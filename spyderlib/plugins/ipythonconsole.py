@@ -37,8 +37,7 @@ from IPython.lib.kernel import find_connection_file
 # Local imports
 from spyderlib.baseconfig import get_conf_path, _
 from spyderlib.utils import programs
-from spyderlib.utils.misc import (get_error_match,
-                                  remove_trailing_single_backslash)
+from spyderlib.utils.misc import get_error_match, remove_backslashes
 from spyderlib.utils.qthelpers import (get_icon, get_std_icon, create_action,
                                        create_toolbutton, add_actions)
 from spyderlib.widgets.tabs import Tabs
@@ -697,18 +696,17 @@ class IPythonConsole(SpyderPluginWidget):
 
     def run_script_in_current_client(self, filename, wdir, args, debug):
         """Run script in current client, if any"""
-        norm = lambda text:\
-               remove_trailing_single_backslash(to_text_string(text))
+        norm = lambda text: remove_backslashes(to_text_string(text))
         client = self.get_current_client()
         if client is not None:
             # Internal kernels, use runfile
             if client.kernel_widget_id is not None:
-                line = "%s(r'%s'" % ('debugfile' if debug else 'runfile',
-                                     to_text_string(filename))
+                line = "%s('%s'" % ('debugfile' if debug else 'runfile',
+                                    norm(filename))
                 if args:
-                    line += ", args=r'%s'" % norm(args)
+                    line += ", args='%s'" % norm(args)
                 if wdir:
-                    line += ", wdir=r'%s'" % norm(wdir)
+                    line += ", wdir='%s'" % norm(wdir)
                 line += ")"
             else: # External kernels, use %run
                 line = "%run "

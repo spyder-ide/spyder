@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
-"POT-Creation-Date: 2013-07-09 20:02+Hora est. del Pacfico de SA\n"
+"POT-Creation-Date: 2013-08-11 14:04+Hora est. del Pacfico de SA\n"
 "PO-Revision-Date: 2011-04-11 21:41+2\n"
 "Last-Translator: Pierre Raybaut\n"
 "Language-Team: Python\n"
@@ -66,88 +66,89 @@ msgstr "Analyser le code source avec pylint"
 msgid "Maximum entries"
 msgstr "Nombre maximum d'entrées"
 
-#: spyderplugins/widgets/pylintgui.py:74
+#: spyderplugins/widgets/pylintgui.py:88
 msgid "Results for "
 msgstr "Résultats pour "
 
-#: spyderplugins/widgets/pylintgui.py:79
+#: spyderplugins/widgets/pylintgui.py:93
 msgid "Convention"
 msgstr "Convention"
 
-#: spyderplugins/widgets/pylintgui.py:81
+#: spyderplugins/widgets/pylintgui.py:95
 msgid "Refactor"
 msgstr "Factorisation"
 
-#: spyderplugins/widgets/pylintgui.py:83
+#: spyderplugins/widgets/pylintgui.py:97
 msgid "Warning"
 msgstr "Avertissement"
 
-#: spyderplugins/widgets/pylintgui.py:85
-#: spyderplugins/widgets/pylintgui.py:308
+#: spyderplugins/widgets/pylintgui.py:99
+#: spyderplugins/widgets/pylintgui.py:330
+#: spyderplugins/widgets/pylintgui.py:358
 msgid "Error"
 msgstr "Erreur"
 
-#: spyderplugins/widgets/pylintgui.py:162
+#: spyderplugins/widgets/pylintgui.py:176
 msgid "Analyze"
 msgstr "Analyser"
 
-#: spyderplugins/widgets/pylintgui.py:163
+#: spyderplugins/widgets/pylintgui.py:177
 msgid "Run analysis"
 msgstr "Analyser le code source"
 
-#: spyderplugins/widgets/pylintgui.py:167
+#: spyderplugins/widgets/pylintgui.py:181
 msgid "Stop"
 msgstr "Arrêter"
 
-#: spyderplugins/widgets/pylintgui.py:168
+#: spyderplugins/widgets/pylintgui.py:182
 msgid "Stop current analysis"
 msgstr "Arrêter l'analyse en cours"
 
-#: spyderplugins/widgets/pylintgui.py:176
-#: spyderplugins/widgets/pylintgui.py:245
+#: spyderplugins/widgets/pylintgui.py:190
+#: spyderplugins/widgets/pylintgui.py:259
 msgid "Select Python script"
 msgstr "Sélectionner un script Python"
 
-#: spyderplugins/widgets/pylintgui.py:182
+#: spyderplugins/widgets/pylintgui.py:196
 msgid "Output"
 msgstr "Sortie"
 
-#: spyderplugins/widgets/pylintgui.py:184
+#: spyderplugins/widgets/pylintgui.py:198
 msgid "Complete Pylint output"
 msgstr "Sortie complète de l'analyse Pylint"
 
-#: spyderplugins/widgets/pylintgui.py:218
+#: spyderplugins/widgets/pylintgui.py:232
 msgid "Pylint script was not found. Please add \"%s\" to PATH."
 msgstr "Le script pylint est introuvable. Merci d'ajouter \"%s\" au PATH."
 
-#: spyderplugins/widgets/pylintgui.py:221
+#: spyderplugins/widgets/pylintgui.py:235
 msgid "Please install <b>pylint</b>:"
 msgstr "Merci d'installer au préalable <b>pylint</b> :"
 
-#: spyderplugins/widgets/pylintgui.py:246
+#: spyderplugins/widgets/pylintgui.py:260
 msgid "Python scripts"
 msgstr "Scripts Python"
 
-#: spyderplugins/widgets/pylintgui.py:282
+#: spyderplugins/widgets/pylintgui.py:296
 msgid "Pylint output"
 msgstr "Analyse Pylint"
 
-#: spyderplugins/widgets/pylintgui.py:309
+#: spyderplugins/widgets/pylintgui.py:331
 msgid "Process failed to start"
 msgstr "Le processus n'a pas pu démarrer"
 
-#: spyderplugins/widgets/pylintgui.py:407
+#: spyderplugins/widgets/pylintgui.py:432
 msgid "Source code has not been rated yet."
 msgstr "Le code source n'a pas encore été analysé."
 
-#: spyderplugins/widgets/pylintgui.py:413
+#: spyderplugins/widgets/pylintgui.py:438
 msgid "Analysis did not succeed (see output for more details)."
 msgstr "L'analyse n'a pas réussi (voir la sortie pour plus de détails)."
 
-#: spyderplugins/widgets/pylintgui.py:426
+#: spyderplugins/widgets/pylintgui.py:451
 msgid "Global evaluation:"
 msgstr "Évaluation globale :"
 
-#: spyderplugins/widgets/pylintgui.py:430
+#: spyderplugins/widgets/pylintgui.py:455
 msgid "previous run:"
 msgstr "analyse précédente :"

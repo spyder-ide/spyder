@@ -596,6 +596,8 @@ def debugfile(filename, args=None, wdir=None):
     debugger._wait_for_mainpyfile = 1
     debugger.mainpyfile = filename
     debugger._user_requested_quit = 0
+    if os.name == 'nt':
+        filename = filename.replace('\\', '/')
     debugger.run("runfile(%r, args=%r, wdir=%r)" % (filename, args, wdir))
 
 builtins.debugfile = debugfile
