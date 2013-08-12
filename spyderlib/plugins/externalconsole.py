@@ -30,8 +30,7 @@ from spyderlib.baseconfig import _, SCIENTIFIC_STARTUP, SUPPORTED_IPYTHON
 from spyderlib.config import CONF
 from spyderlib.utils import programs
 from spyderlib.utils.misc import (get_error_match, get_python_executable,
-                                  remove_trailing_single_backslash,
-                                  is_python_script)
+                                  remove_backslashes, is_python_script)
 from spyderlib.utils.qthelpers import get_icon, create_action, mimedata2url
 from spyderlib.widgets.tabs import Tabs
 from spyderlib.widgets.externalshell.pythonshell import ExternalPythonShell
@@ -659,9 +658,9 @@ class ExternalConsole(SpyderPluginWidget):
         
     def run_script_in_current_shell(self, filename, wdir, args, debug):
         """Run script in current shell, if any"""
-        line = "%s(r'%s'" % ('debugfile' if debug else 'runfile',
-                             unicode(filename))
-        norm = lambda text: remove_trailing_single_backslash(unicode(text))
+        norm = lambda text: remove_backslashes(unicode(text))
+        line = "%s('%s'" % ('debugfile' if debug else 'runfile',
+                            norm(filename))
         if args:
             line += ", args=r'%s'" % norm(args)
         if wdir:

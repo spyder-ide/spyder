@@ -140,15 +140,23 @@ def fix_reference_name(name, blacklist=None):
     return name
 
 
-def remove_trailing_single_backslash(text):
-    """Remove trailing single backslash in *text*
+def remove_backslashes(path):
+    """Remove backslashes in *path*
+
+    For Windows platforms only.
+    Returns the path unchanged on other platforms.    
     
     This is especially useful when formatting path strings on 
-    Windows platforms for which folder paths may end with such 
-    a character"""
-    if text.endswith('\\') and not text.endswith('\\\\'):
-        text = text[:-1]
-    return text
+    Windows platforms for which folder paths may contain backslashes 
+    and provoke unicode decoding errors in Python 3 (or in Python 2
+    when future 'unicode_literals' symbol has been imported)."""
+    if os.name == 'nt':
+        # Removing trailing single backslash
+        if path.endswith('\\') and not path.endswith('\\\\'):
+            path = path[:-1]
+        # Replacing backslashes by slashes
+        path = path.replace('\\', '/')
+    return path
 
 
 def get_error_match(text):

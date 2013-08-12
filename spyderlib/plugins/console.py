@@ -24,7 +24,7 @@ import os.path as osp
 # Local imports
 from spyderlib.baseconfig import _
 from spyderlib.config import CONF
-from spyderlib.utils.misc import get_error_match
+from spyderlib.utils.misc import get_error_match, remove_backslashes
 from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions,
                                        mimedata2url, DialogManager)
 from spyderlib.utils.environ import EnvDialog
@@ -222,12 +222,13 @@ class Console(SpyderPluginWidget):
                    os.getcwdu(), _("Python scripts")+" (*.py ; *.pyw ; *.ipy)")
             self.shell.interpreter.redirect_stds()
             if filename:
-                os.chdir( os.path.dirname(filename) )
-                filename = os.path.basename(filename)
+                os.chdir( osp.dirname(filename) )
+                filename = osp.basename(filename)
             else:
                 return
-        command = "runfile(%s, args=%s)" % (repr(osp.abspath(filename)),
-                                            repr(args))
+        filename = osp.abspath(filename)
+        rbs = remove_backslashes
+        command = "runfile('%s', args='%s')" % (rbs(filename), rbs(args))
         if set_focus:
             self.shell.setFocus()
         if self.dockwidget and not self.ismaximized:
