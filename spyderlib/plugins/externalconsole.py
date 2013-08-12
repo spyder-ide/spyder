@@ -662,7 +662,6 @@ class ExternalConsole(SpyderPluginWidget):
         norm = lambda text: remove_backslashes(to_text_string(text))
         line = "%s('%s'" % ('debugfile' if debug else 'runfile',
                             norm(filename))
-                                                        to_text_string(text))
         if args:
             line += ", args=r'%s'" % norm(args)
         if wdir:
