@@ -78,7 +78,7 @@ class PickleShareDB(MutableMapping):
             return self.cache[fil][0]
         try:
             # The cached item has expired, need to read
-            obj = pickle.load(fil.open())
+            obj = pickle.load(fil.open('rb'))
         except:
             raise KeyError(key)
             
@@ -91,7 +91,9 @@ class PickleShareDB(MutableMapping):
         parent = fil.parent
         if parent and not parent.isdir():
             parent.makedirs()
-        pickled = pickle.dump(value, fil.open('w'))
+        # We specify protocol 2, so that we can mostly go between Python 2
+        # and Python 3. We can upgrade to protocol 3 when Python 2 is obsolete.
+        pickled = pickle.dump(value, fil.open('wb'), protocol=2)
         try:
             self.cache[fil] = (value, fil.mtime)
         except OSError as e:
