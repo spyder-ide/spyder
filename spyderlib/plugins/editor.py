@@ -1389,8 +1389,7 @@ class Editor(SpyderPluginWidget):
             # Creating temporary file
             default = ['# -*- coding: utf-8 -*-',
                        '"""', _("Spyder Editor"), '',
-                       _("This temporary script file is located here:"),
-                       self.TEMPFILE_PATH,
+                       _("This is a temporary script file."),
                        '"""', '', '']
             text = os.linesep.join([encoding.to_unicode(qstr)
                                     for qstr in default])

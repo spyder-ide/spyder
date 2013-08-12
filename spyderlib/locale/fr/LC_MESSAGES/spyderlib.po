@@ -1091,8 +1091,8 @@ msgid "Spyder Editor"
 msgstr "Éditeur de Spyder"
 
 #: spyderlib\plugins\editor.py:1385
-msgid "This temporary script file is located here:"
-msgstr "Ce script temporaire est sauvegardé ici :"
+msgid "This is a temporary script file."
+msgstr "Ceci est un script temporaire."
 
 #: spyderlib\plugins\editor.py:1446
 msgid "untitled"
