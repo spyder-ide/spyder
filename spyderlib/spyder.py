@@ -140,7 +140,6 @@ from spyderlib.cli_options import get_options
 from spyderlib.py3compat import (PY3, to_text_string, is_text_string, getcwd,
                                  u, qbytearray_to_str, configparser as cp)
 from spyderlib.widgets.dependencies import DependenciesDialog
-from spyderlib import dependencies
 
 
 TEMP_SESSION_PATH = get_conf_path('temp.session.tar')
