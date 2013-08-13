@@ -1608,7 +1608,8 @@ class MainWindow(QMainWindow):
         issue_template = """\
 Spyder Version:  %s%s
 Python Version:  %s
-Qt Version:      %s, %s %s on %s
+Qt Version    :  %s, %s %s on %s
+%s
 
 What steps will reproduce the problem?
 1.
@@ -1625,7 +1626,8 @@ Please provide any additional information below.
        versions['qt'],
        versions['qt_api'],
        versions['qt_api_ver'],
-       versions['system'])
+       versions['system'],
+       dependencies.status())
        
         url = QUrl("http://code.google.com/p/spyderlib/issues/entry")
         url.addEncodedQueryItem("comment", quote(issue_template))

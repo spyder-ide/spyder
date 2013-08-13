@@ -6,6 +6,9 @@
 
 """Module checking Spyder optional runtime dependencies"""
 
+
+import os
+
 # Local imports
 from spyderlib.utils import programs
 
@@ -26,16 +29,22 @@ class Dependency(object):
         return programs.check_module_version(self.modname, self.version,
                                              self.get_version_func)
 
+    def get_installed_version(self):
+        """Return module installed version"""
+        if self.get_version_func is None:
+            return programs.get_module_version(self.modname)
+        else:
+            return self.get_version_func()
+
     def get_status(self):
         """Return dependency status (string)"""
         if self.check():
-            return 'OK'
+            status = 'OK'
+            if self.version is None:
+                status += ' (v%s)' % self.get_installed_version()
+            return status
         else:
-            if self.get_version_func is None:
-                actver = programs.get_module_version(self.modname)
-            else:
-                actver = self.get_version_func()
-            return 'NOK (v%s)' % actver
+            return 'NOK (v%s)' % self.get_installed_version()
 
 
 DEPENDENCIES = []
@@ -57,3 +66,21 @@ def check(modname):
             return dependency.check()
     else:
         raise RuntimeError("Unkwown dependency %s" % modname)
+
+def status():
+    """Return a complete status of Optional Dependencies"""
+    global DEPENDENCIES
+    maxwidth = 0
+    col1 = []
+    col2 = []
+    for dependency in DEPENDENCIES:
+        title1 = dependency.modname
+        if dependency.version:
+            title1 += ' ' + dependency.version
+        col1.append(title1)
+        maxwidth = max([maxwidth, len(title1)])
+        col2.append(dependency.get_status())
+    text = ""
+    for index in range(len(DEPENDENCIES)):
+        text += col1[index].ljust(maxwidth) + ':  ' + col2[index] + os.linesep
+    return text
