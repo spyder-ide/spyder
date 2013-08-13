@@ -217,30 +217,30 @@ def check_module_version(module_name, version=None, get_version_func=None):
     
     version may starts with =, >=, > or < to specify the exact requirement ;
     multiple conditions may be separated by ';' (e.g. '>=0.13;<1.0')"""
-    if version is None:
+    if get_version_func is None:
+        actver = get_module_version(module_name)
+    else:
+        actver = get_version_func()
+
+    if actver is None:
+        return False
+    elif version is None:
         return True
     else:
-        if get_version_func is None:
-            actver = get_module_version(module_name)
-        else:
-            actver = get_version_func()
-        if actver is None:
-            return False
-        else:
-            if ';' in version:
-                output = True
-                for ver in version.split(';'):
-                    output = output and check_module_version(module_name, ver)
-                return output
-            match = re.search('[0-9]', version)
-            assert match is not None, "Invalid version number"
-            symb = version[:match.start()]
-            if not symb:
-                symb = '='
-            assert symb in ('>=', '>', '=', '<'),\
-                   "Invalid version condition '%s'" % symb
-            version = version[match.start():]
-            return check_version(actver, version, symb)
+        if ';' in version:
+            output = True
+            for ver in version.split(';'):
+                output = output and check_module_version(module_name, ver)
+            return output
+        match = re.search('[0-9]', version)
+        assert match is not None, "Invalid version number"
+        symb = version[:match.start()]
+        if not symb:
+            symb = '='
+        assert symb in ('>=', '>', '=', '<'),\
+                "Invalid version condition '%s'" % symb
+        version = version[match.start():]
+        return check_version(actver, version, symb)
 
 
 def is_module_installed(module_name, version=None, interpreter=''):

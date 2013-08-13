@@ -136,7 +136,6 @@ from spyderlib.utils import module_completion
 from spyderlib.utils.misc import select_port
 from spyderlib.cli_options import get_options
 from spyderlib.widgets.dependencies import DependenciesDialog
-from spyderlib import dependencies
 
 
 TEMP_SESSION_PATH = get_conf_path('.temp.session.tar')
