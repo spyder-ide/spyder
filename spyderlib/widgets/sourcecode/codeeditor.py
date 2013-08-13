@@ -49,6 +49,7 @@ from spyderlib.utils.debug import log_last_error, log_dt
 from spyderlib.widgets.editortools import PythonCFM
 from spyderlib.widgets.sourcecode.base import TextEditBaseWidget
 from spyderlib.widgets.sourcecode import syntaxhighlighters as sh
+from spyderlib import dependencies
 
 # For debugging purpose:
 LOG_FILENAME = get_conf_path('rope.log')
@@ -57,6 +58,7 @@ LOG_FILENAME = get_conf_path('rope.log')
 #===============================================================================
 # Code introspection features: rope integration
 #===============================================================================
+dependencies.add('rope', _("Code completion, go-to-definition, etc."))
 try:
     try:
         from spyderlib import rope_patch

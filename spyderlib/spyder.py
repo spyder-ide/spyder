@@ -31,7 +31,10 @@ ORIGINAL_SYS_EXIT = sys.exit
 
 # Test if IPython v0.13+ is installed to eventually switch to PyQt API #2
 from spyderlib.utils.programs import is_module_installed
-from spyderlib.baseconfig import SUPPORTED_IPYTHON
+from spyderlib.baseconfig import SUPPORTED_IPYTHON, _
+from spyderlib import dependencies
+dependencies.add("IPython", _("IPython integration"),
+                 version=SUPPORTED_IPYTHON)
 if is_module_installed('IPython.frontend.qt', SUPPORTED_IPYTHON):
     # Importing IPython will eventually set the QT_API environment variable
     import IPython  # analysis:ignore
@@ -132,6 +135,8 @@ from spyderlib.userconfig import NoDefault, NoOptionError
 from spyderlib.utils import module_completion
 from spyderlib.utils.misc import select_port
 from spyderlib.cli_options import get_options
+from spyderlib.widgets.dependencies import DependenciesDialog
+from spyderlib import dependencies
 
 
 TEMP_SESSION_PATH = get_conf_path('.temp.session.tar')
@@ -820,6 +825,9 @@ class MainWindow(QMainWindow):
                                     _("About %s...") % "Spyder",
                                     icon=get_std_icon('MessageBoxInformation'),
                                     triggered=self.about)
+            dep_action = create_action(self, _("Optional dependencies..."),
+                                       icon=get_icon('advanced.png'),
+                                       triggered=self.show_dependencies)
             report_action = create_action(self,
                                     _("Report issue..."),
                                     icon=get_icon('bug.png'),
@@ -844,7 +852,8 @@ class MainWindow(QMainWindow):
             doc_action = create_bookmark_action(self, spyder_doc,
                                _("Spyder documentation"), shortcut="F1",
                                icon=get_std_icon('DialogHelpButton'))
-            self.help_menu_actions = [about_action, report_action, doc_action]
+            self.help_menu_actions = [about_action, dep_action,
+                                      report_action, doc_action]
             # Python documentation
             if get_python_doc_path() is not None:
                 pydoc_act = create_action(self, _("Python documentation"),
@@ -1566,6 +1575,13 @@ class MainWindow(QMainWindow):
                __project_url__, __forum_url__, versions['python'],
                versions['bitness'], versions['qt'], versions['qt_api'],
                versions['qt_api_ver'], versions['system']))
+
+    def show_dependencies(self):
+        """Show Spyder's Optional Dependencies dialog box"""
+        dlg = DependenciesDialog(None)
+        dlg.set_data(dependencies.DEPENDENCIES)
+        dlg.show()
+        dlg.exec_()
 
     def report_issue(self):
         import urllib

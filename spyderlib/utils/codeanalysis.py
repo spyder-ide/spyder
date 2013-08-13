@@ -15,7 +15,9 @@ from subprocess import Popen, PIPE
 import tempfile
 
 # Local import
+from spyderlib.baseconfig import _
 from spyderlib.utils import programs
+from spyderlib import dependencies
 
 
 #==============================================================================
@@ -70,6 +72,8 @@ def check_with_pyflakes(source_code, filename=None):
 
 # Required version: Why 0.5.0? Because it's based on _ast (thread-safe)
 PYFLAKES_REQVER = '0.5.0'
+dependencies.add("pyflakes", _("Real-time code analysis"),
+                 version=PYFLAKES_REQVER)
 
 def is_pyflakes_installed():
     """Return True if pyflakes required version is installed"""

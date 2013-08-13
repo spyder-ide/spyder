@@ -201,7 +201,15 @@ def check_version(actver, version, cmp_op):
         return True
 
 
-def _is_mod_installed(module_name, version=None):
+def get_module_version(module_name):
+    """Return module version"""
+    try:
+        mod = __import__(module_name)
+    except ImportError:
+        return
+    return getattr(mod, '__version__', getattr(mod, 'VERSION', None))
+
+def check_module_version(module_name, version=None, get_version_func=None):
     """Return True if module *module_name* is installed
     
     If version is not None, checking module version 
@@ -209,15 +217,20 @@ def _is_mod_installed(module_name, version=None):
     
     version may starts with =, >=, > or < to specify the exact requirement ;
     multiple conditions may be separated by ';' (e.g. '>=0.13;<1.0')"""
-    try:
-        mod = __import__(module_name)
-        if version is None:
-            return True
+    if version is None:
+        return True
+    else:
+        if get_version_func is None:
+            actver = get_module_version(module_name)
+        else:
+            actver = get_version_func()
+        if actver is None:
+            return False
         else:
             if ';' in version:
                 output = True
                 for ver in version.split(';'):
-                    output = output and _is_mod_installed(module_name, ver)
+                    output = output and check_module_version(module_name, ver)
                 return output
             match = re.search('[0-9]', version)
             assert match is not None, "Invalid version number"
@@ -227,13 +240,7 @@ def _is_mod_installed(module_name, version=None):
             assert symb in ('>=', '>', '=', '<'),\
                    "Invalid version condition '%s'" % symb
             version = version[match.start():]
-            actver = getattr(mod, '__version__', getattr(mod, 'VERSION', None))
-            if actver is None:
-                return False
-            else:
-                return check_version(actver, version, symb)
-    except ImportError:
-        return False
+            return check_version(actver, version, symb)
 
 
 def is_module_installed(module_name, version=None, interpreter=''):
@@ -247,7 +254,7 @@ def is_module_installed(module_name, version=None, interpreter=''):
         
         if osp.isfile(interpreter) and ('python' in interpreter):
             checkver = inspect.getsource(check_version)
-            ismod_inst = inspect.getsource(_is_mod_installed)
+            ismod_inst = inspect.getsource(check_module_version)
             fd, script = tempfile.mkstemp(suffix='.py', dir=TEMPDIR)
             with os.fdopen(fd, 'w') as f:
                 f.write("# -*- coding: utf-8 -*-" + "\n\n")
@@ -256,10 +263,10 @@ def is_module_installed(module_name, version=None, interpreter=''):
                 f.write(checkver + "\n")
                 f.write(ismod_inst + "\n")
                 if version:
-                    f.write("print _is_mod_installed('%s','%s')" % (module_name,
-                                                                    version))
+                    f.write("print check_module_version('%s','%s')"\
+                            % (module_name, version))
                 else:
-                    f.write("print _is_mod_installed('%s')" % module_name)
+                    f.write("print check_module_version('%s')" % module_name)
             try:
                 output = subprocess.Popen([interpreter, script],
                                       stdout=subprocess.PIPE).communicate()[0]
@@ -275,7 +282,7 @@ def is_module_installed(module_name, version=None, interpreter=''):
             # config page)
             return True
     else:
-        return _is_mod_installed(module_name, version)
+        return check_module_version(module_name, version)
 
 
 if __name__ == '__main__':
