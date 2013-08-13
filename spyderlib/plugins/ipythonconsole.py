@@ -35,6 +35,7 @@ from IPython.qt.manager import QtKernelManager
 from IPython.lib.kernel import find_connection_file
 
 # Local imports
+from spyderlib import dependencies
 from spyderlib.baseconfig import get_conf_path, _
 from spyderlib.utils import programs
 from spyderlib.utils.misc import get_error_match, remove_backslashes
