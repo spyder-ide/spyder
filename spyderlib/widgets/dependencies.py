@@ -7,8 +7,9 @@
 """Module checking Spyder optional runtime dependencies"""
 
 from spyderlib.qt.QtGui import (QDialog, QTableView, QItemDelegate,
-                                QVBoxLayout)
-from spyderlib.qt.QtCore import Qt, QModelIndex, QAbstractTableModel
+                                QVBoxLayout, QHBoxLayout, QPushButton,
+                                QApplication)
+from spyderlib.qt.QtCore import Qt, QModelIndex, QAbstractTableModel, SIGNAL
 from spyderlib.qt.compat import to_qvariant
 import sys
 
@@ -116,15 +117,25 @@ class DependenciesDialog(QDialog):
         self.setWindowIcon(get_icon('advanced.png'))
         self.setModal(True)
         self.view = DependenciesTableView(self, [])
-        layout = QVBoxLayout()
-        layout.addWidget(self.view)
-        self.setLayout(layout)
+        vlayout = QVBoxLayout()
+        vlayout.addWidget(self.view)
+        hlayout = QHBoxLayout()
+        btn = QPushButton(_("Copy to clipboard"), )
+        self.connect(btn, SIGNAL('clicked()'), self.copy_to_clipboard)
+        hlayout.addWidget(btn)
+        hlayout.addStretch()
+        vlayout.addLayout(hlayout)
+        self.setLayout(vlayout)
         self.resize(500, 300)
         
     def set_data(self, dependencies):
         self.view.model.set_data(dependencies)
         self.view.adjust_columns()
         self.view.sortByColumn(0, Qt.DescendingOrder)
+    
+    def copy_to_clipboard(self):
+        from spyderlib.dependencies import status
+        QApplication.clipboard().setText(status())
 
 
 def test():
