@@ -258,6 +258,7 @@ def is_module_installed(module_name, version=None, interpreter=''):
         
         if osp.isfile(interpreter) and ('python' in interpreter):
             checkver = inspect.getsource(check_version)
+            get_modver = inspect.getsource(get_module_version)
             ismod_inst = inspect.getsource(check_module_version)
             fd, script = tempfile.mkstemp(suffix='.py', dir=TEMPDIR)
             with os.fdopen(fd, 'w') as f:
@@ -265,6 +266,7 @@ def is_module_installed(module_name, version=None, interpreter=''):
                 f.write("from distutils.version import LooseVersion" + "\n")
                 f.write("import re" + "\n\n")
                 f.write(checkver + "\n")
+                f.write(get_modver + "\n")
                 f.write(ismod_inst + "\n")
                 if version:
                     f.write("print(check_module_version('%s','%s'))"\
