@@ -206,52 +206,29 @@ def check_version(actver, version, cmp_op):
 
 
 def get_module_version(module_name):
-    """Return module version"""
+    """Get module version.
+    
+    Return module version, return False if module is not installed,
+    return None if module is installed but version can't be retrieved"""
     try:
         mod = __import__(module_name)
     except ImportError:
-        return
+        return False
     return getattr(mod, '__version__', getattr(mod, 'VERSION', None))
 
-def check_module_version(module_name, version=None, get_version_func=None):
+
+def is_module_installed(module_name, version=None, get_version_func=None,
+                        interpreter=None):
     """Return True if module *module_name* is installed
     
     If version is not None, checking module version 
     (module must have an attribute named '__version__')
     
     version may starts with =, >=, > or < to specify the exact requirement ;
-    multiple conditions may be separated by ';' (e.g. '>=0.13;<1.0')"""
-    if get_version_func is None:
-        actver = get_module_version(module_name)
-    else:
-        actver = get_version_func()
-
-    if actver is None:
-        return False
-    elif version is None:
-        return True
-    else:
-        if ';' in version:
-            output = True
-            for ver in version.split(';'):
-                output = output and check_module_version(module_name, ver)
-            return output
-        match = re.search('[0-9]', version)
-        assert match is not None, "Invalid version number"
-        symb = version[:match.start()]
-        if not symb:
-            symb = '='
-        assert symb in ('>=', '>', '=', '<'),\
-                "Invalid version condition '%s'" % symb
-        version = version[match.start():]
-        return check_version(actver, version, symb)
-
-
-def is_module_installed(module_name, version=None, interpreter=''):
-    """
-    Check if a module is installed with a given version in a determined
-    interpreter
-    """
+    multiple conditions may be separated by ';' (e.g. '>=0.13;<1.0')
+    
+    interpreter: check if a module is installed with a given version 
+    in a determined interpreter"""
     if interpreter:
         if not osp.isdir(TEMPDIR):
             os.mkdir(TEMPDIR)
@@ -259,7 +236,7 @@ def is_module_installed(module_name, version=None, interpreter=''):
         if osp.isfile(interpreter) and ('python' in interpreter):
             checkver = inspect.getsource(check_version)
             get_modver = inspect.getsource(get_module_version)
-            ismod_inst = inspect.getsource(check_module_version)
+            ismod_inst = inspect.getsource(is_module_installed)
             fd, script = tempfile.mkstemp(suffix='.py', dir=TEMPDIR)
             with os.fdopen(fd, 'w') as f:
                 f.write("# -*- coding: utf-8 -*-" + "\n\n")
@@ -269,10 +246,10 @@ def is_module_installed(module_name, version=None, interpreter=''):
                 f.write(get_modver + "\n")
                 f.write(ismod_inst + "\n")
                 if version:
-                    f.write("print(check_module_version('%s','%s'))"\
+                    f.write("print(is_module_installed('%s','%s'))"\
                             % (module_name, version))
                 else:
-                    f.write("print(check_module_version('%s'))" % module_name)
+                    f.write("print(is_module_installed('%s'))" % module_name)
             try:
                 output, _err = subprocess.Popen([interpreter, script],
                                         stdout=subprocess.PIPE).communicate()
@@ -288,7 +265,32 @@ def is_module_installed(module_name, version=None, interpreter=''):
             # config page)
             return True
     else:
-        return check_module_version(module_name, version)
+        if get_version_func is None:
+            actver = get_module_version(module_name)
+            if actver is not None and not actver:
+                # Module is not installed
+                return False
+        else:
+            actver = get_version_func()
+        if actver is None and version is not None:
+            return False
+        elif version is None:
+            return True
+        else:
+            if ';' in version:
+                output = True
+                for ver in version.split(';'):
+                    output = output and is_module_installed(module_name, ver)
+                return output
+            match = re.search('[0-9]', version)
+            assert match is not None, "Invalid version number"
+            symb = version[:match.start()]
+            if not symb:
+                symb = '='
+            assert symb in ('>=', '>', '=', '<'),\
+                    "Invalid version condition '%s'" % symb
+            version = version[match.start():]
+            return check_version(actver, version, symb)
 
 
 if __name__ == '__main__':
