@@ -138,7 +138,8 @@ from spyderlib.utils import module_completion
 from spyderlib.utils.misc import select_port
 from spyderlib.cli_options import get_options
 from spyderlib.py3compat import (PY3, to_text_string, is_text_string, getcwd,
-                                 u, qbytearray_to_str, configparser as cp)
+                                 u, qbytearray_to_str, configparser as cp,
+                                 is_string, is_binary_string)
 from spyderlib.widgets.dependencies import DependenciesDialog
 
 
@@ -1750,6 +1751,7 @@ Please provide any additional information below.
         Open external files that can be handled either by the Editor or the
         variable explorer inside Spyder.
         """
+        fname = encoding.to_unicode_from_fs(fname)
         if osp.isfile(fname):
             self.open_file(fname, external=True)
         elif osp.isfile(osp.join(CWD, fname)):
@@ -1930,8 +1932,9 @@ Please provide any additional information below.
                 raise
             fname = req.recv(1024)
             if not self.light:
+                fname = fname.decode('utf-8')
                 self.emit(SIGNAL('open_external_file(QString)'), fname)
-            req.sendall(' ')
+            req.sendall(b' ')
 
         
 def initialize():

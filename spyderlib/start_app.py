@@ -13,6 +13,7 @@ from spyderlib.cli_options import get_options
 from spyderlib.baseconfig import get_conf_path
 from spyderlib.config import CONF, DEV
 from spyderlib.utils.external import lockfile
+from spyderlib.py3compat import is_unicode
 
 
 def send_args_to_spyder(args):
@@ -31,6 +32,8 @@ def send_args_to_spyder(args):
                 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM,
                                        socket.IPPROTO_TCP)
                 client.connect(("127.0.0.1", port))
+                if is_unicode(arg):
+                    arg = arg.encode('utf-8')
                 client.send(osp.abspath(arg))
                 client.close()
         except socket.error:
