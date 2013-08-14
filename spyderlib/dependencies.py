@@ -26,8 +26,8 @@ class Dependency(object):
 
     def check(self):
         """Check if dependency is installed"""
-        return programs.check_module_version(self.modname, self.version,
-                                             self.get_version_func)
+        return programs.is_module_installed(self.modname, self.version,
+                                        get_version_func=self.get_version_func)
 
     def get_installed_version(self):
         """Return module installed version"""
