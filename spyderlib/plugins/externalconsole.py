@@ -14,7 +14,8 @@
 # Qt imports
 from spyderlib.qt.QtGui import (QVBoxLayout, QMessageBox, QInputDialog,
                                 QLineEdit, QPushButton, QGroupBox, QLabel,
-                                QTabWidget, QFontComboBox, QHBoxLayout)
+                                QTabWidget, QFontComboBox, QHBoxLayout,
+                                QButtonGroup)
 from spyderlib.qt.QtCore import SIGNAL, Qt
 from spyderlib.qt.compat import getopenfilename
 
@@ -65,6 +66,17 @@ class ExternalConsoleConfigPage(PluginConfigPage):
     def __init__(self, plugin, parent):
         PluginConfigPage.__init__(self, plugin, parent)
         self.get_name = lambda: _("Console")
+        self.def_startup_radio = None
+        self.cus_startup_radio = None
+        self.cus_exec_radio = None
+        self.pyexec_edit = None
+
+    def initialize(self):
+        PluginConfigPage.initialize(self)
+        self.connect(self.pyexec_edit, SIGNAL("textChanged(QString)"),
+                     self.python_executable_changed)
+        self.connect(self.cus_exec_radio, SIGNAL("toggled(bool)"),
+                     self.python_executable_switched)
 
     def setup_page(self):
         interface_group = QGroupBox(_("Interface"))
@@ -195,8 +207,17 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         
         # Python executable Group
         pyexec_group = QGroupBox(_("Python executable"))
-        pyexec_label = QLabel(_("Path to Python interpreter "
-                                "executable binary:"))
+        pyexec_bg = QButtonGroup(pyexec_group)
+        pyexec_label = QLabel(_("Select the Python interpreter executable "
+                                "binary in which Spyder will run scripts:"))
+        def_exec_radio = self.create_radiobutton(
+                                _("Default (i.e. the same as Spyder's)"),
+                                'pythonexecutable/default', True,
+                                button_group=pyexec_bg)
+        self.cus_exec_radio = self.create_radiobutton(
+                                _("Use the following Python interpreter:"),
+                                'pythonexecutable/custom', False,
+                                button_group=pyexec_bg)
         if os.name == 'nt':
             filters = _("Executables")+" (*.exe)"
         else:
@@ -205,16 +226,15 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                                              filters=filters)
         for le in self.lineedits:
             if self.lineedits[le][0] == 'pythonexecutable':
-                pyexec_edit = le
-        self.connect(pyexec_edit, SIGNAL("textChanged(QString)"),
-                     lambda pyexec: self.change_pystartup(pyexec,
-                                                          default_radio,
-                                                          custom_radio))
-        self.connect(pyexec_edit, SIGNAL("textChanged(QString)"),
-                     lambda pyexec: self.change_qtapi(pyexec))
-        
+                self.pyexec_edit = le
+        self.connect(def_exec_radio, SIGNAL("toggled(bool)"),
+                     pyexec_file.setDisabled)
+        self.connect(self.cus_exec_radio, SIGNAL("toggled(bool)"),
+                     pyexec_file.setEnabled)
         pyexec_layout = QVBoxLayout()
         pyexec_layout.addWidget(pyexec_label)
+        pyexec_layout.addWidget(def_exec_radio)
+        pyexec_layout.addWidget(self.cus_exec_radio)
         pyexec_layout.addWidget(pyexec_file)
         pyexec_group.setLayout(pyexec_layout)
         
@@ -229,28 +249,31 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         
         # PYTHONSTARTUP replacement
         pystartup_group = QGroupBox(_("PYTHONSTARTUP replacement"))
+        pystartup_bg = QButtonGroup(pystartup_group)
         pystartup_label = QLabel(_("This option will override the "
                                    "PYTHONSTARTUP environment variable which\n"
                                    "defines the script to be executed during "
                                    "the Python interpreter startup."))
-        default_radio = self.create_radiobutton(
+        self.def_startup_radio = self.create_radiobutton(
                                         _("Default PYTHONSTARTUP script"),
-                                        'pythonstartup/default', True)
-        custom_radio = self.create_radiobutton(
+                                        'pythonstartup/default', True,
+                                        button_group=pystartup_bg)
+        self.cus_startup_radio = self.create_radiobutton(
                                         _("Use the following startup script:"),
-                                        'pythonstartup/custom', False)
+                                        'pythonstartup/custom', False,
+                                        button_group=pystartup_bg)
         pystartup_file = self.create_browsefile('', 'pythonstartup', '',
                                                 filters=_("Python scripts")+\
                                                 " (*.py)")
-        self.connect(default_radio, SIGNAL("toggled(bool)"),
+        self.connect(self.def_startup_radio, SIGNAL("toggled(bool)"),
                      pystartup_file.setDisabled)
-        self.connect(custom_radio, SIGNAL("toggled(bool)"),
+        self.connect(self.cus_startup_radio, SIGNAL("toggled(bool)"),
                      pystartup_file.setEnabled)
         
         pystartup_layout = QVBoxLayout()
         pystartup_layout.addWidget(pystartup_label)
-        pystartup_layout.addWidget(default_radio)
-        pystartup_layout.addWidget(custom_radio)
+        pystartup_layout.addWidget(self.def_startup_radio)
+        pystartup_layout.addWidget(self.cus_startup_radio)
         pystartup_layout.addWidget(pystartup_file)
         pystartup_group.setLayout(pystartup_layout)
         
@@ -284,7 +307,10 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                          tip=_("This option will act on<br> "
                                "libraries such as Matplotlib, guidata "
                                "or ETS"))
-        interpreter = self.get_option('pythonexecutable')
+        if self.get_option('pythonexecutable/default', True):
+            interpreter = get_python_executable()
+        else:
+            interpreter = self.get_option('pythonexecutable')
         has_pyqt4 = programs.is_module_installed('PyQt4',
                                                  interpreter=interpreter)
         has_pyside = programs.is_module_installed('PySide',
@@ -413,40 +439,53 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         vlayout = QVBoxLayout()
         vlayout.addWidget(tabs)
         self.setLayout(vlayout)
-    
-    def change_pystartup(self, pyexec, def_radio, custom_radio):
-        """
-        Automatically change to default PYTHONSTARTUP file if scientific libs
-        are not available
-        """
-        if not is_text_string(pyexec):
-            pyexec = to_text_string(pyexec.toUtf8())
-        old_pyexec = self.get_option("pythonexecutable")
-        if not (pyexec == old_pyexec) and custom_radio.isChecked():
-            scientific = scientific_libs_available(pyexec)
-            if not scientific:
-                def_radio.setChecked(True)
-                custom_radio.setChecked(False)
 
-    def change_qtapi(self, pyexec):
-        """Automatically change qt_api setting after changing interpreter"""
+    def _auto_switch_startup_script(self, pyexec):
+        """Switch automatically from the scientific startup to the default 
+        startup script if scientific libs aren't available with selected 
+        Python executable"""
+        if self.cus_startup_radio.isChecked() and\
+           not scientific_libs_available(pyexec):
+            self.def_startup_radio.setChecked(True)
+            self.cus_startup_radio.setChecked(False)
+
+    def _auto_change_qt_api(self, pyexec):
+        """Change automatically Qt API depending on
+        selected Python executable"""
+        has_pyqt4 = programs.is_module_installed('PyQt4', interpreter=pyexec)
+        has_pyside = programs.is_module_installed('PySide', interpreter=pyexec)
+        for cb in self.comboboxes:
+            if self.comboboxes[cb][0] == 'qt/api':
+                qt_setapi_cb = cb
+        if has_pyside and not has_pyqt4:
+            qt_setapi_cb.setCurrentIndex(2)
+        elif has_pyqt4 and not has_pyside:
+            qt_setapi_cb.setCurrentIndex(1)
+        else:
+            qt_setapi_cb.setCurrentIndex(0)
+
+    def python_executable_changed(self, pyexec):
+        """Custom Python executable value has been changed"""
+        if not self.cus_exec_radio.isChecked():
+            return
         if not is_text_string(pyexec):
-            pyexec = to_text_string(pyexec.toUtf8())
-        old_pyexec = self.get_option("pythonexecutable")
-        if not (pyexec == old_pyexec):
-            has_pyqt4 = programs.is_module_installed('PyQt4',
-                                                     interpreter=pyexec)
-            has_pyside = programs.is_module_installed('PySide',
-                                                      interpreter=pyexec)
-            for cb in self.comboboxes:
-                if self.comboboxes[cb][0] == 'qt/api':
-                    qt_setapi_cb = cb
-            if has_pyside and not has_pyqt4:
-                qt_setapi_cb.setCurrentIndex(2)
-            elif has_pyqt4 and not has_pyside:
-                qt_setapi_cb.setCurrentIndex(1)
-            else:
-                qt_setapi_cb.setCurrentIndex(0)
+            pyexec = to_text_string(pyexec.toUtf8(), 'utf-8')
+        old_pyexec = self.get_option("pythonexecutable",
+                                     get_python_executable())
+        if pyexec != old_pyexec:
+            self._auto_switch_startup_script(pyexec)
+            self._auto_change_qt_api(pyexec)
+
+    def python_executable_switched(self, custom):
+        """Python executable default/custom radio button has been toggled"""
+        def_pyexec = get_python_executable()
+        cust_pyexec = self.pyexec_edit.text()
+        if not is_text_string(cust_pyexec):
+            cust_pyexec = to_text_string(cust_pyexec.toUtf8(), 'utf-8')
+        if def_pyexec != cust_pyexec:
+            pyexec = cust_pyexec if custom else def_pyexec
+            self._auto_switch_startup_script(pyexec)
+            self._auto_change_qt_api(pyexec)
 
 
 class ExternalConsole(SpyderPluginWidget):
@@ -473,8 +512,13 @@ class ExternalConsole(SpyderPluginWidget):
         except ImportError:
             self.set_option('pyqt/ignore_sip_setapi_errors', False)
         
+        # Python executable selection (initializing default values as well)
         executable = self.get_option('pythonexecutable',
                                      get_python_executable())
+        if self.get_option('pythonexecutable/default', True):
+            executable = get_python_executable()
+
+        # Python startup file selection
         if self.get_option('pythonstartup/default', None) is None:
             scientific = scientific_libs_available(executable)
             self.set_option('pythonstartup/default', not scientific)
@@ -766,7 +810,10 @@ class ExternalConsole(SpyderPluginWidget):
         light_background = self.get_option('light_background')
         show_elapsed_time = self.get_option('show_elapsed_time')
         if python:
-            pythonexecutable = self.get_option('pythonexecutable')
+            if self.get_option('pythonexecutable/default', True):
+                pythonexecutable = get_python_executable()
+            else:
+                pythonexecutable = self.get_option('pythonexecutable')
             if self.get_option('pythonstartup/default', True):
                 pythonstartup = None
             else:
