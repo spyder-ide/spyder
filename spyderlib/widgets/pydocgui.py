@@ -7,7 +7,7 @@
 """pydoc widget"""
 
 from spyderlib.qt.QtGui import QApplication, QCursor
-from spyderlib.qt.QtCore import QThread, QUrl, Qt
+from spyderlib.qt.QtCore import QThread, QUrl, Qt, SIGNAL
 
 import sys
 import os.path as osp
@@ -16,7 +16,7 @@ import os.path as osp
 from spyderlib.baseconfig import _
 from spyderlib.widgets.browser import WebBrowser
 from spyderlib.utils.misc import select_port
-from spyderlib.py3compat import to_text_string
+from spyderlib.py3compat import to_text_string, PY3
 
 
 class PydocServer(QThread):
@@ -29,20 +29,28 @@ class PydocServer(QThread):
         
     def run(self):
         import pydoc
-        try:
-            pydoc.serve(self.port, self.callback, self.completer)
-        except AttributeError:
+        if PY3:
             # Python 3
-            pydoc.browse(self.port, open_browser=False)
-        
+            self.callback(pydoc._start_server(pydoc._url_handler, self.port))
+        else:
+            # Python 2
+            pydoc.serve(self.port, self.callback, self.completer)
+
     def callback(self, server):
         self.server = server
+        self.emit(SIGNAL('server_started()'))
         
     def completer(self):
         self.complete = True
         
     def quit_server(self):
-        self.server.quit = 1
+        if PY3:
+            # Python 3
+            if self.server.serving:
+                self.server.stop()
+        else:
+            # Python 2
+            self.server.quit = 1
 
 
 class PydocBrowser(WebBrowser):
@@ -57,10 +65,14 @@ class PydocBrowser(WebBrowser):
         self.port = None
         
     def initialize(self):
-        """Start pydoc server and load home page"""
+        """Start pydoc server"""
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         QApplication.processEvents()
         self.start_server()
+        # Initializing continues in `initialize_continued` method...
+    
+    def initialize_continued(self):
+        """Load home page"""
         self.go_home()
         QApplication.restoreOverrideCursor()
         
@@ -81,8 +93,12 @@ class PydocBrowser(WebBrowser):
             self.port = select_port(default_port=self.DEFAULT_PORT)
             self.set_home_url('http://localhost:%d/' % self.port)
         elif self.server.isRunning():
+            self.disconnect(self.server, SIGNAL('server_started()'),
+                            self.initialize_continued)
             self.server.quit()
         self.server = PydocServer(port=self.port)
+        self.connect(self.server, SIGNAL('server_started()'),
+                     self.initialize_continued)
         self.server.start()
 
     #------ WebBrowser API -----------------------------------------------------
