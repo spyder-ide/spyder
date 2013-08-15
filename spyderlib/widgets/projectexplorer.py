@@ -12,7 +12,8 @@ from __future__ import with_statement
 
 from spyderlib.qt.QtGui import (QVBoxLayout, QLabel, QHBoxLayout, QWidget,
                                 QFileIconProvider, QMessageBox, QInputDialog,
-                                QLineEdit, QPushButton)
+                                QLineEdit, QPushButton, QHeaderView,
+                                QAbstractItemView)
 from spyderlib.qt.QtCore import Qt, SIGNAL, QFileInfo, Slot, Signal
 from spyderlib.qt.compat import getexistingdirectory
 
@@ -508,7 +509,7 @@ class ExplorerTreeWidget(FilteredDirView):
     
     workspace: this is the explorer tree widget root path
     (this attribute name is specific to project explorer)"""
-    def __init__(self, parent):
+    def __init__(self, parent, show_hscrollbar=True):
         FilteredDirView.__init__(self, parent)
         
         self.workspace = Workspace()
@@ -522,12 +523,18 @@ class ExplorerTreeWidget(FilteredDirView):
         self.setSelectionMode(FilteredDirView.ExtendedSelection)
         
         self.setHeaderHidden(True)
-        
+
+        self.show_hscrollbar = show_hscrollbar
+
         # Enable drag & drop events
         self.setDragEnabled(True)
         self.setDragDropMode(FilteredDirView.DragDrop)
 
-    #------DirView API----------------------------------------------------------
+    #------DirView API---------------------------------------------------------
+    def setup_view(self):
+        """Setup view"""
+        FilteredDirView.setup_view(self)
+
     def create_file_new_actions(self, fnames):
         """Return actions for submenu 'New...'"""
         new_project_act = create_action(self, text=_('Project...'),
@@ -634,8 +641,28 @@ class ExplorerTreeWidget(FilteredDirView):
             return FilteredDirView.create_context_menu_actions(self)
         else:
             return []
+
+    def setup_common_actions(self):
+        """Setup context menu common actions"""
+        actions = FilteredDirView.setup_common_actions(self)
+
+        # Toggle horizontal scrollbar
+        hscrollbar_action = create_action(self, _("Show horizontal scrollbar"),
+                                          toggled=self.toggle_hscrollbar)
+        hscrollbar_action.setChecked(self.show_hscrollbar)
+        self.toggle_hscrollbar(self.show_hscrollbar)
+
+        return actions + [hscrollbar_action]
+
+    #------Public API----------------------------------------------------------
+    def toggle_hscrollbar(self, checked):
+        """Toggle horizontal scrollbar"""
+        self.parent_widget.sig_option_changed.emit('show_hscrollbar', checked)
+        self.show_hscrollbar = checked
+        self.header().setStretchLastSection(not checked)
+        self.header().setHorizontalScrollMode(QAbstractItemView.ScrollPerPixel)
+        self.header().setResizeMode(QHeaderView.ResizeToContents)
         
-    #------Public API-----------------------------------------------------------
     def set_folder_names(self, folder_names):
         """Set folder names"""
         self.setUpdatesEnabled(False)
@@ -1233,20 +1260,24 @@ class ProjectExplorerWidget(QWidget):
     sig_open_file = Signal(str)
     
     def __init__(self, parent, name_filters=['*.py', '*.pyw'],
-                 valid_types=['.py', '.pyw'], show_all=False):
+                 valid_types=['.py', '.pyw'], show_all=False,
+                 show_hscrollbar=True):
         QWidget.__init__(self, parent)
         self.treewidget = None
         self.selector = None
-        self.setup_layout(name_filters, valid_types, show_all)
+        self.setup_layout(name_filters, valid_types,
+                          show_all, show_hscrollbar)
         
-    def setup_layout(self, name_filters, valid_types, show_all):
+    def setup_layout(self, name_filters, valid_types,
+                     show_all, show_hscrollbar):
         """Setup project explorer widget layout"""
         self.selector = WorkspaceSelector(self)
         self.selector.setup_widget()
         self.connect(self.selector, SIGNAL('selected_workspace(QString)'),
                      self.set_workspace)
 
-        self.treewidget = ExplorerTreeWidget(self)
+        self.treewidget = ExplorerTreeWidget(self,
+                                             show_hscrollbar=show_hscrollbar)
         self.treewidget.setup(name_filters=name_filters,
                               show_all=show_all, valid_types=valid_types)
         self.connect(self.treewidget, SIGNAL('select_workspace()'),
