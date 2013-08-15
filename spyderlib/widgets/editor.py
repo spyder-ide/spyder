@@ -1735,7 +1735,15 @@ class EditorStack(QWidget):
         finfo.editor.document().setModified(False)
         finfo.editor.set_cursor_position(position)
         codeeditor.validate_rope_project()
-        self._refresh_outlineexplorer(index, update=True, clear=True)
+
+        #XXX CodeEditor-only: re-scan the whole text to rebuild outline 
+        # explorer data from scratch (could be optimized because 
+        # rehighlighting text means searching for all syntax coloring 
+        # patterns instead of only searching for class/def patterns which 
+        # would be sufficient for outline explorer data.
+        finfo.editor.rehighlight()
+
+        self._refresh_outlineexplorer(index)
         
     def revert(self):
         """Revert file from disk"""
