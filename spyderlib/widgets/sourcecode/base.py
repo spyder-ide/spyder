@@ -26,6 +26,7 @@ from spyderlib.qt.QtCore import QPoint, SIGNAL, Qt, QEventLoop, QEvent
 from spyderlib.widgets.sourcecode.terminal import ANSIEscapeCodeHandler
 from spyderlib.widgets.mixins import BaseEditMixin
 from spyderlib.py3compat import to_text_string, str_lower
+from spyderlib.baseconfig import _
 
 
 class CompletionWidget(QListWidget):
@@ -472,10 +473,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                 lines[-1] += ls
             else:
                 lines.append(ls)
-        
-        if no_selection:
-            self.setFocus()
-            self.clear_selection()
         
         return ls.join(lines)
     

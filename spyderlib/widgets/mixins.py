@@ -33,6 +33,7 @@ HISTORY_FILENAMES = []
 class BaseEditMixin(object):
     def __init__(self):
         self.eol_chars = None
+        self.block_separator = '#%%'
         
     #------EOL characters
     def set_eol_chars(self, text):
@@ -178,6 +179,10 @@ class BaseEditMixin(object):
         """
         self.__move_cursor_anchor(what, direction, QTextCursor.KeepAnchor)
 
+    def set_block_separator(self, block_separator):
+        """Set block separator"""
+        self.block_separator = block_separator
+
     def select_current_block(self):
         """
         Select block under cursor
@@ -188,7 +193,7 @@ class BaseEditMixin(object):
             cursor0 = QTextCursor(cursor)
             cursor0.select(QTextCursor.BlockUnderCursor)
             text = to_text_string(cursor0.selectedText())
-            return len(text.strip()) == 0 or text.lstrip()[0] == '#'
+            return text.lstrip().startswith(self.block_separator)
         cursor.movePosition(QTextCursor.StartOfBlock)
         cur_pos = prev_pos = cursor.position()
         while _is_separator(cursor):
