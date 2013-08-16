@@ -329,6 +329,7 @@ DEFAULTS = [
               'fullpath_sorting': True,
               'show_tab_bar': True,
               'max_recent_files': 20,
+              'block_separator': '#%%',
               }),
             ('historylog',
              {
