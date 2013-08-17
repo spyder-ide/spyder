@@ -18,6 +18,10 @@ class Dependency(object):
 
     version may starts with =, >=, > or < to specify the exact requirement ;
     multiple conditions may be separated by ';' (e.g. '>=0.13;<1.0')"""
+
+    OK = 'OK'
+    NOK = 'NOK'
+
     def __init__(self, modname, features, version=None, get_version_func=None):
         self.modname = modname
         self.features = features
@@ -39,12 +43,12 @@ class Dependency(object):
     def get_status(self):
         """Return dependency status (string)"""
         if self.check():
-            status = 'OK'
+            status = self.OK
             if self.version is None:
                 status += ' (v%s)' % self.get_installed_version()
             return status
         else:
-            return 'NOK (v%s)' % self.get_installed_version()
+            return '%s (v%s)' % (self.NOK, self.get_installed_version())
 
 
 DEPENDENCIES = []
