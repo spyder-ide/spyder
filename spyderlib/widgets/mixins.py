@@ -30,7 +30,7 @@ HISTORY_FILENAMES = []
 
 
 class BaseEditMixin(object):
-    BLOCK_SEPARATOR = '#%%'
+    BLOCK_SEPARATORS = ('#%%', '# %%', '# <codecell>')
 
     def __init__(self):
         self.eol_chars = None
@@ -184,7 +184,7 @@ class BaseEditMixin(object):
         cursor0 = QTextCursor(cursor)
         cursor0.select(QTextCursor.BlockUnderCursor)
         text = unicode(cursor0.selectedText())
-        return text.lstrip().startswith(self.BLOCK_SEPARATOR)
+        return text.lstrip().startswith(self.BLOCK_SEPARATORS)
 
     def select_current_block(self):
         """
