@@ -709,12 +709,24 @@ class Editor(SpyderPluginWidget):
                                 _("Run &selection or block (sep.: %s)"
                                   ) % block_separator,
                                 icon='run_selection.png',
-                                tip=_("Run selection or current block "\
+                                tip=_("Run selection or current block \n"\
                                       "(blocks are separated by lines "\
                                       "starting with %s)") % block_separator,
                                 triggered=self.run_selection_or_block)
         self.register_shortcut(run_selected_action, context="Editor",
-                               name="Run selection", default="F9")
+                               name="Run selection or block", default="F9")
+        run_block_advance_action = create_action(self,
+                                _("Run block (sep.: %s) and advance"
+                                  ) % block_separator,
+                                icon='run_block_advance.png',
+                                tip=_("Run current block "\
+                                      "(blocks are separated by lines "\
+                                      "starting with %s) \n"\
+                                      "and advance to the next block"
+                                      ) % block_separator,
+                                triggered=self.run_block_and_advance)
+        self.register_shortcut(run_block_advance_action, context="Editor",
+                               name="Run block and advance", default="Ctrl+F9")
         
         # --- Source code Toolbar ---
         self.todo_list_action = create_action(self,
@@ -885,10 +897,12 @@ class Editor(SpyderPluginWidget):
         # please update the breakpoints plugin accordingly.         
         run_menu_actions = [run_action, debug_action, configure_action,
                             breakpoints_menu, debug_control_menu, None,
-                            re_run_action, run_selected_action, None,
+                            re_run_action, run_selected_action,
+                            run_block_advance_action, None,
                             self.winpdb_action]
         self.main.run_menu_actions += run_menu_actions
-        run_toolbar_actions = [run_action, run_selected_action, re_run_action,
+        run_toolbar_actions = [run_action, run_selected_action,
+                               run_block_advance_action, re_run_action,
                                configure_action]
         self.main.run_toolbar_actions += run_toolbar_actions
         
@@ -915,7 +929,8 @@ class Editor(SpyderPluginWidget):
                                     edit_toolbar_actions
         self.pythonfile_dependent_actions = [run_action, configure_action,
                      set_clear_breakpoint_action, set_cond_breakpoint_action,
-                     debug_action, run_selected_action, blockcomment_action,
+                     debug_action, run_selected_action,
+                     run_block_advance_action, blockcomment_action,
                      unblockcomment_action, self.winpdb_action]
         self.file_dependent_actions = self.pythonfile_dependent_actions + \
                 [self.save_action, save_as_action, print_preview_action,
@@ -2043,6 +2058,11 @@ class Editor(SpyderPluginWidget):
         """Run selection or current line in external console"""
         editorstack = self.get_current_editorstack()
         editorstack.run_selection_or_block()
+    
+    def run_block_and_advance(self):
+        """Run current block and advance to the next one"""
+        editorstack = self.get_current_editorstack()
+        editorstack.run_block_and_advance()
 
 
     #------ Zoom in/out

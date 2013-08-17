@@ -1942,6 +1942,11 @@ class EditorStack(QWidget):
         """
         self.emit(SIGNAL('external_console_execute_lines(QString)'),
                   self.get_current_editor().get_executable_text())
+
+    def run_block_and_advance(self):
+        """Run current block and advance to the next one"""
+        self.run_selection_or_block()
+        self.get_current_editor().go_to_next_block()
             
     #------ Drag and drop
     def dragEnterEvent(self, event):
