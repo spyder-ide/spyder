@@ -1706,13 +1706,15 @@ Please provide any additional information below.
         
     def execute_python_code_in_external_console(self, lines):
         """Execute lines in external or IPython console"""
-        if self.ipyconsole is not None:
-            if self.last_console_plugin_focus_was_python:
-                self.extconsole.execute_python_code(lines)
-            else:
-                self.ipyconsole.execute_python_code(lines) 
+        console = self.extconsole
+        if self.ipyconsole is None\
+           or self.last_console_plugin_focus_was_python:
+            console = self.extconsole
         else:
-            self.extconsole.execute_python_code(lines)
+            console = self.ipyconsole
+        console.visibility_changed(True)
+        console.raise_()
+        console.execute_python_code(lines)
         
     def open_file(self, fname, external=False):
         """
