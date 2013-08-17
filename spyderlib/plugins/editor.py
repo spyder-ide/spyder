@@ -707,27 +707,23 @@ class Editor(SpyderPluginWidget):
         self.register_shortcut(re_run_action, context="Editor",
                                name="Re-run last script", default="Ctrl+F6")
         
-        block_separator = self.get_option('block_separator')
         run_selected_action = create_action(self,
-                                _("Run &selection or block (sep.: %s)"
-                                  ) % block_separator,
-                                icon='run_selection.png',
-                                tip=_("Run selection or current block \n"\
-                                      "(blocks are separated by lines "\
-                                      "starting with %s)") % block_separator,
-                                triggered=self.run_selection_or_block)
+                            _("Run &selection or block"),
+                            icon='run_selection.png',
+                            tip=_("Run selection or current block \n"\
+                                  "(see Editor section in documentation \n"\
+                                  "for more details on blocks)"),
+                            triggered=self.run_selection_or_block)
         self.register_shortcut(run_selected_action, context="Editor",
                                name="Run selection or block", default="F9")
         run_block_advance_action = create_action(self,
-                                _("Run block (sep.: %s) and advance"
-                                  ) % block_separator,
-                                icon='run_block_advance.png',
-                                tip=_("Run current block "\
-                                      "(blocks are separated by lines "\
-                                      "starting with %s) \n"\
-                                      "and advance to the next block"
-                                      ) % block_separator,
-                                triggered=self.run_block_and_advance)
+                            _("Run block and advance"),
+                            icon='run_block_advance.png',
+                            tip=_("Run current block \n"\
+                                  "(see Editor section in documentation \n"\
+                                  "for more details on blocks) \n"\
+                                  "and advance to the next block"),
+                            triggered=self.run_block_and_advance)
         self.register_shortcut(run_block_advance_action, context="Editor",
                                name="Run block and advance", default="Ctrl+F9")
         
@@ -1062,7 +1058,6 @@ class Editor(SpyderPluginWidget):
             ('set_fullpath_sorting_enabled',        'fullpath_sorting'),
             ('set_tabbar_visible',                  'show_tab_bar'),
             ('set_always_remove_trailing_spaces',   'always_remove_trailing_spaces'),
-            ('set_block_separator',                 'block_separator'),
                     )
         for method, setting in settings:
             getattr(editorstack, method)(self.get_option(setting))
