@@ -19,6 +19,17 @@ Horizontal/vertical splitting feature:
 
 .. image:: images/editor3.png
 
+How to define a code block
+--------------------------
+
+A "code block" is a concept similar to MATLAB's "cell" (except that there is 
+no "cell mode" in Spyder), i.e. a block of lines to be executed at once in the 
+current interpreter (Python or IPython). Every script may be divided in as 
+many blocks as needed. 
+
+Blocks are separated by lines starting with `#%%`.
+
+
 Related plugins:
 
 * :doc:`console`
