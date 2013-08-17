@@ -161,10 +161,10 @@ class PylintWidget(QWidget):
         self.rdata = []
         if osp.isfile(self.DATAPATH):
             try:
-                data = pickle.loads(open(self.DATAPATH, 'U').read())
+                data = pickle.loads(open(self.DATAPATH, 'rb').read())
                 if data[0] == self.VERSION:
                     self.rdata = data[1:]
-            except EOFError:
+            except (EOFError, ImportError):
                 pass
 
         self.filecombo = PythonModulesComboBox(self)
@@ -289,7 +289,7 @@ class PylintWidget(QWidget):
     def save(self):
         while len(self.rdata) > self.max_entries:
             self.rdata.pop(-1)
-        pickle.dump([self.VERSION]+self.rdata, open(self.DATAPATH, 'w'))
+        pickle.dump([self.VERSION]+self.rdata, open(self.DATAPATH, 'wb'), 2)
         
     def show_log(self):
         if self.output:
