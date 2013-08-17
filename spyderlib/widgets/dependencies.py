@@ -6,7 +6,7 @@
 
 """Module checking Spyder optional runtime dependencies"""
 
-from spyderlib.qt.QtGui import (QDialog, QTableView, QItemDelegate,
+from spyderlib.qt.QtGui import (QDialog, QTableView, QItemDelegate, QColor,
                                 QVBoxLayout, QHBoxLayout, QPushButton,
                                 QApplication)
 from spyderlib.qt.QtCore import Qt, QModelIndex, QAbstractTableModel, SIGNAL
@@ -72,6 +72,7 @@ class DependenciesTableModel(QAbstractTableModel):
         """Return data at table index"""
         if not index.isValid():
             return to_qvariant()
+        dep = self.dependencies[index.row()]
         if role == Qt.DisplayRole:
             if index.column() == 0:
                 value = self.get_value(index)
@@ -81,6 +82,17 @@ class DependenciesTableModel(QAbstractTableModel):
                 return to_qvariant(value)
         elif role == Qt.TextAlignmentRole:
             return to_qvariant(int(Qt.AlignLeft|Qt.AlignVCenter))
+        elif role == Qt.BackgroundColorRole:
+            from spyderlib.dependencies import Dependency
+            status = dep.get_status()
+            if status.startswith(Dependency.NOK):
+                color = QColor(Qt.red)
+                color.setAlphaF(.6)
+                return to_qvariant(color)
+            elif status.startswith(Dependency.OK):
+                color = QColor(Qt.green)
+                color.setAlphaF(.6)
+                return to_qvariant(color)
     
 class DependenciesDelegate(QItemDelegate):
     def __init__(self, parent=None):
@@ -144,6 +156,7 @@ def test():
     
     # Test sample
     dependencies.add("IPython", "Enhanced Python interpreter", "0.13")    
+    dependencies.add("matplotlib", "Interactive data plotting", None)    
     
     from spyderlib.utils.qthelpers import qapplication
     app = qapplication()
