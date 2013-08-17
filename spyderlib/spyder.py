@@ -130,7 +130,7 @@ from spyderlib.baseconfig import (get_conf_path, _, get_module_data_path,
                                   get_module_source_path, STDOUT, STDERR,
                                   DEBUG, debug_print, get_image_path)
 from spyderlib.config import CONF, DEV, EDIT_EXT, IMPORT_EXT, OPEN_FILES_PORT
-from spyderlib.guiconfig import get_shortcut
+from spyderlib.guiconfig import get_shortcut, remove_deprecated_shortcuts
 from spyderlib.otherplugins import get_spyderplugins_mods
 from spyderlib.utils.iofuncs import load_session, save_session, reset_session
 from spyderlib.userconfig import NoDefault
@@ -1024,6 +1024,7 @@ class MainWindow(QMainWindow):
             
         # Apply all defined shortcuts (plugins + 3rd-party plugins)
         self.apply_shortcuts()
+        self.remove_deprecated_shortcuts()
         
         # Emitting the signal notifying plugins that main window menu and 
         # toolbar actions are all defined:
@@ -1874,6 +1875,12 @@ Please provide any additional information below.
         self.shortcut_data.append( (qaction_or_qshortcut,
                                     context, name, default) )
         self.apply_shortcuts()
+
+    def remove_deprecated_shortcuts(self):
+        """Remove deprecated shortcuts"""
+        data = [(context, name) for (qobject, context, name,
+                default) in self.shortcut_data]
+        remove_deprecated_shortcuts(data)
         
     def apply_shortcuts(self):
         """Apply shortcuts settings to all widgets/plugins"""
@@ -1891,7 +1898,7 @@ Please provide any additional information below.
                 toberemoved.append(index)
         for index in sorted(toberemoved, reverse=True):
             self.shortcut_data.pop(index)
-        
+
     #---- Sessions
     def load_session(self, filename=None):
         """Load session"""
