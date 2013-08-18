@@ -8,6 +8,7 @@
 Editor widget based on QtGui.QPlainTextEdit
 """
 
+#%% This line is for block execution testing
 # pylint: disable=C0103
 # pylint: disable=R0903
 # pylint: disable=R0911
@@ -35,6 +36,7 @@ from spyderlib.qt.QtCore import (Qt, SIGNAL, QTimer, QRect, QRegExp, QSize,
                                  SLOT, Slot)
 from spyderlib.qt.compat import to_qvariant
 
+#%% This line is for block execution testing
 # Local import
 #TODO: Try to separate this module from spyderlib to create a self
 #      consistent editor module (Qt source code and shell widgets library)
@@ -52,6 +54,7 @@ from spyderlib.widgets.sourcecode import syntaxhighlighters as sh
 from spyderlib.py3compat import to_text_string, PY2
 from spyderlib import dependencies
 
+#%% This line is for block execution testing
 # For debugging purpose:
 LOG_FILENAME = get_conf_path('rope.log')
 
@@ -1115,12 +1118,15 @@ class CodeEditor(TextEditBaseWidget):
                                                     self.contentOffset()).top()
         bottom = top + self.blockBoundingRect(block).height()
 
-        painter.setPen(Qt.darkGray)
         def draw_pixmap(ytop, pixmap):
             painter.drawPixmap(0, ytop+(font_height-pixmap.height())/2, pixmap)
         while block.isValid() and top <= event.rect().bottom():
             if block.isVisible() and bottom >= event.rect().top():
                 line_number = block_number+1
+                painter.setPen(Qt.darkGray)
+                if self.is_block_separator(block):
+                    painter.setPen(Qt.red)
+                    painter.drawLine(0, top, self.linenumberarea.width(), top)
                 if self.linenumbers_margin:
                     painter.drawText(0, top, self.linenumberarea.width(),
                                      font_height, Qt.AlignRight|Qt.AlignBottom,
@@ -1177,7 +1183,6 @@ class CodeEditor(TextEditBaseWidget):
         line_number = self.__get_linenumber_from_mouse_event(event)
         shift = event.modifiers() & Qt.ShiftModifier
         self.add_remove_breakpoint(line_number, edit_condition=shift)
-
 
     #------Breakpoints
     def add_remove_breakpoint(self, line_number=None, condition=None,
@@ -1378,14 +1383,13 @@ class CodeEditor(TextEditBaseWidget):
     def viewportEvent(self, event):
         """Override Qt method"""
         # 79-column edge line
-        cr = self.contentsRect()
         offset = self.contentOffset()
         x = self.blockBoundingGeometry(self.firstVisibleBlock()) \
             .translated(offset.x(), offset.y()).left() \
             +self.get_linenumberarea_width() \
             +self.fontMetrics().width('9'*self.edge_line.column)+5
-        self.edge_line.setGeometry(\
-                        QRect(x, cr.top(), 1, cr.bottom()))
+        cr = self.contentsRect()
+        self.edge_line.setGeometry(QRect(x, cr.top(), 1, cr.bottom()))
         self.__set_scrollflagarea_geometry(cr)
         return TextEditBaseWidget.viewportEvent(self, event)
 
