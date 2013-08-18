@@ -254,40 +254,25 @@ class Tabs(BaseTabs):
         self.connect(tab_bar, SIGNAL('move_tab(QString,int,int)'),
                      self.move_tab_from_another_tabwidget)
         self.setTabBar(tab_bar)
-        self.index_history = []
-        self.connect(self, SIGNAL('currentChanged(int)'),
-                     self.__current_changed)
-        tabsc = QShortcut(QKeySequence("Ctrl+Tab"), parent, self.tab_navigate)
-        tabsc.setContext(Qt.WidgetWithChildrenShortcut)
-        closesc = QShortcut(QKeySequence("Ctrl+F4"), parent,
-                            lambda: self.emit(SIGNAL("close_tab(int)"),
-                                              self.currentIndex()))
-        closesc.setContext(Qt.WidgetWithChildrenShortcut)
+        def newsc(keystr, triggered):
+            sc = QShortcut(QKeySequence(keystr), parent, triggered)
+            sc.setContext(Qt.WidgetWithChildrenShortcut)
+            return sc
+        tabsc = newsc("Ctrl+Tab", lambda: self.tab_navigate(1))
+        tabshiftsc = newsc("Shift+Ctrl+Tab", lambda: self.tab_navigate(-1))
+        closesc = newsc("Ctrl+F4",
+                        lambda: self.emit(SIGNAL("close_tab(int)"),
+                                          self.currentIndex()))
         
-    def __current_changed(self, index):
-        for _i in self.index_history[:]:
-            if _i > self.count()-1:
-                self.index_history.pop(self.index_history.index(_i))
-        while index in self.index_history:
-            self.index_history.pop(self.index_history.index(index))
-        self.index_history.append(index)
-        
-    def tab_navigate(self):
+    def tab_navigate(self, delta=1):
         """Ctrl+Tab"""
-        if len(self.index_history) < self.count():
-            # When tab is inserted, the 'currentChanged' signal is not emitted
-            # because index is still the same...
-            # so we add the index to history here:
-            index = self.currentIndex()
-            for _j, _i in enumerate(self.index_history[:]):
-                if _i >= index:
-                    self.index_history[_j] = _i+1
-            self.__current_changed(index)
-        if len(self.index_history) > 1:
-            last = len(self.index_history)-1
-            index = self.index_history.pop(last)
-            self.index_history.insert(0, index)
-            self.setCurrentIndex(self.index_history[last])
+        if delta > 0 and self.currentIndex() == self.count()-1:
+            index = delta-1
+        elif delta < 0 and self.currentIndex() == 0:
+            index = self.count()+delta
+        else:
+            index = self.currentIndex()+delta
+        self.setCurrentIndex(index)
 
     def move_tab(self, index_from, index_to):
         """Move tab inside a tabwidget"""
