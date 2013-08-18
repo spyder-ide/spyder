@@ -92,9 +92,7 @@ def remove_deprecated_shortcuts(data):
     """Remove deprecated shortcuts (shortcuts in CONF but not registered)"""
     section = 'shortcuts'
     options = [('%s/%s' % (context, name)).lower() for (context, name) in data]
-    print(options)
     for option, _ in CONF.items(section, raw=CONF.raw):
-        print(option)
         if option not in options:
             CONF.remove_option(section, option)
             if len(CONF.items(section, raw=CONF.raw)) == 0:
