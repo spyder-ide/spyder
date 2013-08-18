@@ -179,11 +179,15 @@ class BaseEditMixin(object):
         """
         self.__move_cursor_anchor(what, direction, QTextCursor.KeepAnchor)
 
-    def _is_block_separator(self, cursor):
-        """Return True if cursor is on a block separator"""
-        cursor0 = QTextCursor(cursor)
-        cursor0.select(QTextCursor.BlockUnderCursor)
-        text = unicode(cursor0.selectedText())
+    def is_block_separator(self, cursor=None, block=None):
+        """Return True if cursor (or text block) is on a block separator"""
+        assert cursor is not None or block is not None
+        if cursor is not None:
+            cursor0 = QTextCursor(cursor)
+            cursor0.select(QTextCursor.BlockUnderCursor)
+            text = unicode(cursor0.selectedText())
+        else:
+            text = unicode(block.text())
         return text.lstrip().startswith(self.BLOCK_SEPARATORS)
 
     def select_current_block(self):
@@ -194,25 +198,25 @@ class BaseEditMixin(object):
         cursor = self.textCursor()
         cursor.movePosition(QTextCursor.StartOfBlock)
         cur_pos = prev_pos = cursor.position()
-        while self._is_block_separator(cursor):
+        while self.is_block_separator(cursor):
             # Moving to the next code block
             cursor.movePosition(QTextCursor.NextBlock)
             prev_pos = cur_pos
             cur_pos = cursor.position()
             if cur_pos == prev_pos:
                 return
-        while not self._is_block_separator(cursor):
+        while not self.is_block_separator(cursor):
             # Moving to the previous code block
             cursor.movePosition(QTextCursor.PreviousBlock)
             prev_pos = cur_pos
             cur_pos = cursor.position()
             if cur_pos == prev_pos:
-                if self._is_block_separator(cursor):
+                if self.is_block_separator(cursor):
                     return
                 else:
                     break
         cursor.setPosition(prev_pos)
-        while not self._is_block_separator(cursor):
+        while not self.is_block_separator(cursor):
             # Moving to the next code block
             cursor.movePosition(QTextCursor.NextBlock,
                                 QTextCursor.KeepAnchor)
@@ -229,7 +233,7 @@ class BaseEditMixin(object):
         cursor = self.textCursor()
         cursor.movePosition(QTextCursor.StartOfBlock)
         cur_pos = prev_pos = cursor.position()
-        while self._is_block_separator(cursor):
+        while self.is_block_separator(cursor):
             # Moving to the next code block
             cursor.movePosition(QTextCursor.NextBlock)
             prev_pos = cur_pos
