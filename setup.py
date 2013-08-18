@@ -21,6 +21,7 @@ import os
 import os.path as osp
 import subprocess
 import sys
+import shutil
 
 
 def get_package_data(name, extlist):
@@ -70,6 +71,16 @@ CMDCLASS = {'install_data': MyInstallData}
 
 
 # Sphinx build (documentation)
+def get_html_help_exe():
+    """Return HTML Help Workshop executable path (Windows only)"""
+    if os.name == 'nt':
+        hhc_base = r'C:\Program Files%s\HTML Help Workshop\hhc.exe'
+        for hhc_exe in (hhc_base % '', hhc_base % ' (x86)'):
+            if osp.isfile(hhc_exe):
+                return hhc_exe
+        else:
+            return
+
 try:
     from sphinx import setup_command
 
@@ -85,6 +96,10 @@ try:
             sys.path.insert(0, os.path.abspath(build.build_lib))
             dirname = self.distribution.get_command_obj('build').build_purelib
             self.builder_target_dir = osp.join(dirname, 'spyderlib', 'doc')
+
+            hhc_exe = get_html_help_exe()
+            self.builder = "html" if hhc_exe is None else "htmlhelp"
+
             try:
                 setup_command.BuildDoc.run(self)
             except UnicodeDecodeError:
@@ -94,6 +109,19 @@ try:
                       "location (path with *only* ASCII characters).",
                       file=sys.stderr)
             sys.path.pop(0)
+            
+            # Building chm doc, if HTML Help Workshop is installed
+            if hhc_exe is not None:
+                fname = osp.join(self.builder_target_dir, 'Spyderdoc.chm')
+                subprocess.call('"%s" %s' % (hhc_exe, fname), shell=True)
+                if osp.isfile(fname):
+                    dest = osp.join(dirname, 'spyderlib')
+                    try:
+                        shutil.move(fname, dest)
+                    except shutil.Error:
+                        print("Unable to replace %s" % dest)
+                    shutil.rmtree(self.builder_target_dir)
+
     CMDCLASS['build_doc'] = MyBuildDoc
 except ImportError:
     print('WARNING: unable to build documentation because Sphinx '\
@@ -130,7 +158,7 @@ def get_packages():
 # NOTE: the '[...]_win_post_install.py' script is installed even on non-Windows
 # platforms due to a bug in pip installation process (see Issue 1158)
 SCRIPTS = ['spyder', '%s_win_post_install.py' % NAME]
-EXTLIST = ['.mo', '.svg', '.png', '.css', '.html', '.js']
+EXTLIST = ['.mo', '.svg', '.png', '.css', '.html', '.js', '.chm']
 if os.name == 'nt':
     SCRIPTS += ['spyder.bat']
     EXTLIST += ['.ico']
