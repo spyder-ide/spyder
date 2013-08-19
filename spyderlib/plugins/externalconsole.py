@@ -40,7 +40,9 @@ from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 from spyderlib import dependencies
 
-dependencies.add("matplotlib", _("Interactive data plotting"))
+MPL_REQVER = '>=1.0'
+dependencies.add("matplotlib", _("Interactive data plotting"),
+                 required_version=MPL_REQVER)
 
 def is_mpl_patch_available():
     """Return True if Matplotlib patch is available"""
