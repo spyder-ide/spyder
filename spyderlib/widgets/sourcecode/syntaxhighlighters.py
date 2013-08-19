@@ -134,6 +134,42 @@ COLORS = {
            "number":     ("#c80000", False, False),
            "instance":   ("#be5f00", False, True),
            },
+           'Monokai':
+          {#  Name          Color    Bold   Italic
+           "background":  "#2a2b24",
+           "currentline": "#484848",
+           "occurence":   "#55007f",
+           "ctrlclick":   "#0000ff",
+           "sideareas":   "#efefef",
+           "matched_p":   "#688060",
+           "unmatched_p": "#bd6e76",
+           "normal":     ("#ddddda", False, False),
+           "keyword":    ("#f92672", False, False),
+           "builtin":    ("#ae81ff", False, False),
+           "definition": ("#a6e22e", False, False),
+           "comment":    ("#75715e", False, True),
+           "string":     ("#e6db74", False, False),
+           "number":     ("#ae81ff", False, False),
+           "instance":   ("#ddddda", False, True),
+           },
+           'Zenburn':
+          {#  Name          Color    Bold   Italic
+           "background":  "#3f3f3f",
+           "currentline": "#333333",
+           "occurence":   "#55007f",
+           "ctrlclick":   "#0000ff",
+           "sideareas":   "#efefef",
+           "matched_p":   "#688060",
+           "unmatched_p": "#bd6e76",
+           "normal":     ("#dcdccc", False, False),
+           "keyword":    ("#dfaf8f", True,  False),
+           "builtin":    ("#efef8f", False, False),
+           "definition": ("#efef8f", False, False),
+           "comment":    ("#7f9f7f", False, True),
+           "string":     ("#cc9393", False, False),
+           "number":     ("#8cd0d3", False, False),
+           "instance":   ("#dcdccc", False, True),
+           },
           }
 COLOR_SCHEME_NAMES = COLORS.keys()
 
