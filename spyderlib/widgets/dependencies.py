@@ -93,10 +93,12 @@ class DependenciesTableModel(QAbstractTableModel):
                 color = QColor(Qt.green)
                 color.setAlphaF(.25)
                 return to_qvariant(color)
-    
+
+
 class DependenciesDelegate(QItemDelegate):
     def __init__(self, parent=None):
         QItemDelegate.__init__(self, parent)
+
 
 class DependenciesTableView(QTableView):
     def __init__(self, parent, data):
@@ -138,7 +140,7 @@ class DependenciesDialog(QDialog):
         hlayout.addStretch()
         vlayout.addLayout(hlayout)
         self.setLayout(vlayout)
-        self.resize(500, 300)
+        self.resize(600, 300)
         
     def set_data(self, dependencies):
         self.view.model.set_data(dependencies)

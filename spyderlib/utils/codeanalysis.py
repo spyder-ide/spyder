@@ -79,7 +79,7 @@ def check_with_pyflakes(source_code, filename=None):
 
 # Required version: Why 0.5 (Python2)? Because it's based on _ast (thread-safe)
 PYFLAKES_REQVER = '0.4.2' if PY3 else '0.5.0'
-dependencies.add("pyflakes", _("Real-time code analysis"),
+dependencies.add("pyflakes", _("Real-time code analysis on the Editor"),
                  required_version=PYFLAKES_REQVER)
 
 def is_pyflakes_installed():
