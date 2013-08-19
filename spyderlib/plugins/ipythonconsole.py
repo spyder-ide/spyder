@@ -32,6 +32,7 @@ from IPython.frontend.qt.kernelmanager import QtKernelManager
 from IPython.lib.kernel import find_connection_file
 
 # Local imports
+from spyderlib import dependencies
 from spyderlib.baseconfig import get_conf_path, _
 from spyderlib.utils import programs
 from spyderlib.utils.misc import get_error_match, remove_backslashes
@@ -42,6 +43,11 @@ from spyderlib.widgets.ipython import SpyderIPythonWidget
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 from spyderlib.widgets.mixins import SaveHistoryMixin
+
+
+SYMPY_REQVER = '>=0.7.0'
+dependencies.add("sympy", _("Symbolic mathematics for the IPython consoles"),
+                 required_version=SYMPY_REQVER)
 
 
 class IPythonConsoleConfigPage(PluginConfigPage):

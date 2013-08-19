@@ -18,6 +18,7 @@ import socket
 import sys
 
 # Local imports
+from spyderlib import dependencies
 from spyderlib.baseconfig import get_conf_path, _, SUPPORTED_IPYTHON
 from spyderlib.config import CONF
 from spyderlib.guiconfig import get_color_scheme, get_font, set_font
@@ -29,6 +30,7 @@ from spyderlib.widgets.sourcecode import codeeditor
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.browser import WebView
 from spyderlib.widgets.externalshell.pythonshell import ExtPythonShellWidget
+from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 
 #XXX: hardcoded dependency on optional IPython plugin component
 #     that requires the hack to make this work without IPython
@@ -37,14 +39,18 @@ if programs.is_module_installed('IPython.frontend.qt', SUPPORTED_IPYTHON):
 else:
     IPythonControlWidget = None  # analysis:ignore
 
-from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
-
-try:
-    from sphinx import __version__ as sphinx_version
+# Check for Sphinx presence to activate rich text mode
+if programs.is_module_installed('sphinx', '>=0.6.6'):
+    sphinx_version = programs.get_module_version('sphinx')
     from spyderlib.utils.inspector.sphinxify import (CSS_PATH, sphinxify,
                                                      warning, generate_context)
-except ImportError:
+else:
     sphinxify = sphinx_version = None  # analysis:ignore
+
+# To add sphinx dependency to the Dependencies dialog
+SPHINX_REQVER = '>=0.6.6'
+dependencies.add("sphinx", _("Rich text help on the Object Inspector"),
+                 required_version=SPHINX_REQVER)
 
 
 class ObjectComboBox(EditableComboBox):
@@ -106,7 +112,8 @@ class ObjectInspectorConfigPage(PluginConfigPage):
         features_group = QGroupBox(_("Additional features"))
         math_box = self.create_checkbox(_("Render mathematical equations"),
                                         'math')
-        req_sphinx = sphinx_version is not None and sphinx_version >= "1.1"
+        req_sphinx = sphinx_version is not None and \
+                     programs.is_module_installed('sphinx', '>=1.1')
         math_box.setEnabled(req_sphinx)
         if not req_sphinx:
             sphinx_tip = _("This feature requires Sphinx 1.1 or superior.")
