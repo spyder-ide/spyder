@@ -213,7 +213,7 @@ def get_module_version(module_name):
     return getattr(mod, '__version__', getattr(mod, 'VERSION', None))
 
 
-def is_module_installed(module_name, version=None, get_version_func=None,
+def is_module_installed(module_name, version=None, installed_version=None,
                         interpreter=None):
     """Return True if module *module_name* is installed
     
@@ -261,13 +261,13 @@ def is_module_installed(module_name, version=None, get_version_func=None,
             # config page)
             return True
     else:
-        if get_version_func is None:
+        if installed_version is None:
             actver = get_module_version(module_name)
             if actver is not None and not actver:
                 # Module is not installed
                 return False
         else:
-            actver = get_version_func()
+            actver = installed_version
         if actver is None and version is not None:
             return False
         elif version is None:

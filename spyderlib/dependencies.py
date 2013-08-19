@@ -22,16 +22,21 @@ class Dependency(object):
     OK = 'OK'
     NOK = 'NOK'
 
-    def __init__(self, modname, features, required_version):
+    def __init__(self, modname, features, required_version,
+                 installed_version=None):
         self.modname = modname
         self.features = features
         self.required_version = required_version
-        self.installed_version = programs.get_module_version(modname)
+        if installed_version is None:
+            self.installed_version = programs.get_module_version(modname)
+        else:
+            self.installed_version = installed_version
 
     def check(self):
         """Check if dependency is installed"""
         return programs.is_module_installed(self.modname,
-                                            self.required_version)
+                                            self.required_version,
+                                            self.installed_version)
 
     def get_installed_version(self):
         """Return dependency status (string)"""
@@ -50,14 +55,15 @@ class Dependency(object):
 
 DEPENDENCIES = []
 
-def add(modname, features, required_version):
+def add(modname, features, required_version, installed_version=None):
     """Add Spyder optional dependency"""
     global DEPENDENCIES
     for dependency in DEPENDENCIES:
         if dependency.modname == modname:
             raise ValueError("Dependency has already been registered: %s"\
                              % modname)
-    DEPENDENCIES += [Dependency(modname, features, required_version)]
+    DEPENDENCIES += [Dependency(modname, features, required_version,
+                                installed_version)]
 
 def check(modname):
     """Check if required dependency is installed"""
