@@ -22,45 +22,42 @@ class Dependency(object):
     OK = 'OK'
     NOK = 'NOK'
 
-    def __init__(self, modname, features, version=None, get_version_func=None):
+    def __init__(self, modname, features, required_version):
         self.modname = modname
         self.features = features
-        self.version = version
-        self.get_version_func = get_version_func
+        self.required_version = required_version
+        self.installed_version = programs.get_module_version(modname)
 
     def check(self):
         """Check if dependency is installed"""
-        return programs.is_module_installed(self.modname, self.version,
-                                        get_version_func=self.get_version_func)
+        return programs.is_module_installed(self.modname,
+                                            self.required_version)
 
     def get_installed_version(self):
-        """Return module installed version"""
-        if self.get_version_func is None:
-            return programs.get_module_version(self.modname)
+        """Return dependency status (string)"""
+        if self.check():
+            return '%s (%s)' % (self.installed_version, self.OK)
         else:
-            return self.get_version_func()
-
+            return '%s (%s)' % (self.installed_version, self.NOK)
+    
     def get_status(self):
         """Return dependency status (string)"""
         if self.check():
-            status = self.OK
-            if self.version is None:
-                status += ' (v%s)' % self.get_installed_version()
-            return status
+            return self.OK
         else:
-            return '%s (v%s)' % (self.NOK, self.get_installed_version())
+            return self.NOK
 
 
 DEPENDENCIES = []
 
-def add(modname, features, version=None, get_version_func=None):
+def add(modname, features, required_version):
     """Add Spyder optional dependency"""
     global DEPENDENCIES
     for dependency in DEPENDENCIES:
         if dependency.modname == modname:
             raise ValueError("Dependency has already been registered: %s"\
                              % modname)
-    DEPENDENCIES += [Dependency(modname, features, version, get_version_func)]
+    DEPENDENCIES += [Dependency(modname, features, required_version)]
 
 def check(modname):
     """Check if required dependency is installed"""
@@ -79,11 +76,10 @@ def status():
     col2 = []
     for dependency in DEPENDENCIES:
         title1 = dependency.modname
-        if dependency.version:
-            title1 += ' ' + dependency.version
+        title1 += ' ' + dependency.required_version
         col1.append(title1)
         maxwidth = max([maxwidth, len(title1)])
-        col2.append(dependency.get_status())
+        col2.append(dependency.get_installed_version())
     text = ""
     for index in range(len(DEPENDENCIES)):
         text += col1[index].ljust(maxwidth) + ':  ' + col2[index] + os.linesep

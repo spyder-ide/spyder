@@ -56,8 +56,8 @@ class DependenciesTableModel(QAbstractTableModel):
             return to_qvariant()
         i_column = int(section)
         if orientation == Qt.Horizontal:
-            headers = (_("Module"), _("Version"),
-                       _("Status"), _("Related features"))
+            headers = (_("Module"), _(" Required ver. "),
+                       _("  Installed  "), _("Provided features"))
             return to_qvariant( headers[i_column] )
         else:
             return to_qvariant()
@@ -65,8 +65,8 @@ class DependenciesTableModel(QAbstractTableModel):
     def get_value(self, index):
         """Return current value"""
         dep = self.dependencies[index.row()]
-        return (dep.modname, dep.version,
-                dep.get_status(), dep.features)[index.column()]
+        return (dep.modname, dep.required_version,
+                dep.get_installed_version(), dep.features)[index.column()]
     
     def data(self, index, role=Qt.DisplayRole):
         """Return data at table index"""
@@ -85,13 +85,13 @@ class DependenciesTableModel(QAbstractTableModel):
         elif role == Qt.BackgroundColorRole:
             from spyderlib.dependencies import Dependency
             status = dep.get_status()
-            if status.startswith(Dependency.NOK):
+            if status == Dependency.NOK:
                 color = QColor(Qt.red)
-                color.setAlphaF(.6)
+                color.setAlphaF(.25)
                 return to_qvariant(color)
-            elif status.startswith(Dependency.OK):
+            elif status == Dependency.OK:
                 color = QColor(Qt.green)
-                color.setAlphaF(.6)
+                color.setAlphaF(.25)
                 return to_qvariant(color)
     
 class DependenciesDelegate(QItemDelegate):
@@ -155,8 +155,10 @@ def test():
     from spyderlib import dependencies
     
     # Test sample
-    dependencies.add("IPython", "Enhanced Python interpreter", "0.13")    
-    dependencies.add("matplotlib", "Interactive data plotting", None)    
+    dependencies.add("IPython", "Enhanced Python interpreter", ">=0.13")
+    dependencies.add("matplotlib", "Interactive data plotting", ">=1.0")
+    dependencies.add("sympy", "Symbolic Mathematics", ">=10.0")
+    dependencies.add("foo", "Non-existent module", ">=1.0")
     
     from spyderlib.utils.qthelpers import qapplication
     app = qapplication()
