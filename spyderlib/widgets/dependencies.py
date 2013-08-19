@@ -8,7 +8,7 @@
 
 from spyderlib.qt.QtGui import (QDialog, QTableView, QItemDelegate, QColor,
                                 QVBoxLayout, QHBoxLayout, QPushButton,
-                                QApplication)
+                                QApplication, QLabel)
 from spyderlib.qt.QtCore import Qt, QModelIndex, QAbstractTableModel, SIGNAL
 from spyderlib.qt.compat import to_qvariant
 import sys
@@ -56,8 +56,8 @@ class DependenciesTableModel(QAbstractTableModel):
             return to_qvariant()
         i_column = int(section)
         if orientation == Qt.Horizontal:
-            headers = (_("Module"), _(" Required ver. "),
-                       _("  Installed  "), _("Provided features"))
+            headers = (_("Module"), _(" Required "),
+                       _(" Installed "), _("Provided features"))
             return to_qvariant( headers[i_column] )
         else:
             return to_qvariant()
@@ -127,7 +127,23 @@ class DependenciesDialog(QDialog):
         self.setWindowIcon(get_icon('advanced.png'))
         self.setModal(True)
         self.view = DependenciesTableView(self, [])
+        important_mods = ['rope', 'pyflakes', 'IPython', 'matplotlib']
+        self.label = QLabel(_("Spyder depends on several Python modules to "
+                              "provide additional functionality for its "
+                              "plugins. The table below shows the required "
+                              "and installed versions (if any) of all of "
+                              "them.<br><br>"
+                              "Although Spyder can work without any of these "
+                              "modules, it's strongly recommended that at "
+                              "least you try to install <b>%s</b> and "
+                              "<b>%s</b> to have a much better experience.")
+                              % (', '.join(important_mods[:-1]),
+                                 important_mods[-1]))
+        self.label.setWordWrap(True)
+        self.label.setAlignment(Qt.AlignJustify)
+        self.label.setContentsMargins(5, 8, 12, 10)
         vlayout = QVBoxLayout()
+        vlayout.addWidget(self.label)
         vlayout.addWidget(self.view)
         hlayout = QHBoxLayout()
         btn = QPushButton(_("Copy to clipboard"), )
@@ -136,7 +152,7 @@ class DependenciesDialog(QDialog):
         hlayout.addStretch()
         vlayout.addLayout(hlayout)
         self.setLayout(vlayout)
-        self.resize(600, 300)
+        self.resize(560, 350)
         
     def set_data(self, dependencies):
         self.view.model.set_data(dependencies)
@@ -153,9 +169,9 @@ def test():
     from spyderlib import dependencies
     
     # Test sample
-#    dependencies.add("IPython", "Enhanced Python interpreter", ">=0.13")
-#    dependencies.add("matplotlib", "Interactive data plotting", ">=1.0")
-#    dependencies.add("sympy", "Symbolic Mathematics", ">=10.0")
+    dependencies.add("IPython", "Enhanced Python interpreter", ">=0.13")
+    dependencies.add("matplotlib", "Interactive data plotting", ">=1.0")
+    dependencies.add("sympy", "Symbolic Mathematics", ">=10.0")
     dependencies.add("foo", "Non-existent module", ">=1.0")
     
     from spyderlib.utils.qthelpers import qapplication
