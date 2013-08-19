@@ -89,10 +89,6 @@ class DependenciesTableModel(QAbstractTableModel):
                 color = QColor(Qt.red)
                 color.setAlphaF(.25)
                 return to_qvariant(color)
-            elif status == Dependency.OK:
-                color = QColor(Qt.green)
-                color.setAlphaF(.25)
-                return to_qvariant(color)
 
 
 class DependenciesDelegate(QItemDelegate):
