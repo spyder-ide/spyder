@@ -142,9 +142,9 @@ COLORS = {
           {#  Name          Color    Bold   Italic
            "background":  "#2a2b24",
            "currentline": "#484848",
-           "occurence":   "#55007f",
+           "occurence":   "#666666",
            "ctrlclick":   "#0000ff",
-           "sideareas":   "#efefef",
+           "sideareas":   "#2a2b24",
            "matched_p":   "#688060",
            "unmatched_p": "#bd6e76",
            "normal":     ("#ddddda", False, False),
@@ -160,9 +160,9 @@ COLORS = {
           {#  Name          Color    Bold   Italic
            "background":  "#3f3f3f",
            "currentline": "#333333",
-           "occurence":   "#55007f",
+           "occurence":   "#7a738f",
            "ctrlclick":   "#0000ff",
-           "sideareas":   "#efefef",
+           "sideareas":   "#3f3f3f",
            "matched_p":   "#688060",
            "unmatched_p": "#bd6e76",
            "normal":     ("#dcdccc", False, False),
