@@ -22,7 +22,9 @@ from spyderlib.utils.bsdsocket import read_packet, write_packet
 
 LOG_FILENAME = get_conf_path('introspection.log')
 
-if DEBUG:
+DEBUG_INTROSPECTION = DEBUG >= 2
+
+if DEBUG_INTROSPECTION:
     import logging
     logging.basicConfig(filename=get_conf_path('introspection_debug.log'),
                         level=logging.DEBUG)
@@ -49,7 +51,7 @@ class IntrospectionServer(threading.Thread):
         """Send socket to the appropriate object for later communication"""
         shell = self.shells[shell_id]
         shell.set_introspection_socket(sock)
-        if DEBUG:
+        if DEBUG_INTROSPECTION:
             logging.debug('Introspection server: shell [%r] port [%r]'
                           % (shell, self.port))
         
@@ -93,7 +95,7 @@ class NotificationServer(IntrospectionServer):
         n_thread = self.notification_threads[shell_id]
         n_thread.set_notify_socket(sock)
         n_thread.start()
-        if DEBUG:
+        if DEBUG_INTROSPECTION:
             logging.debug('Notification server: shell [%r] port [%r]'
                           % (self.shells[shell_id], self.port))
 
@@ -107,7 +109,7 @@ def start_introspection_server():
     """
     global INTROSPECTION_SERVER
     if INTROSPECTION_SERVER is None:
-        if DEBUG:
+        if DEBUG_INTROSPECTION:
             import time
             time_str = "Logging time: %s" % time.ctime(time.time())
             logging.debug("="*len(time_str))
@@ -184,7 +186,7 @@ class NotificationThread(QThread):
                     self.emit(SIGNAL('open_file(QString,int)'), fname, lineno)
                 else:
                     raise RuntimeError('Unsupported command: %r' % command)
-                if DEBUG:
+                if DEBUG_INTROSPECTION:
                     logging.debug("received command: %r" % command)
             except:
                 log_last_error(LOG_FILENAME, "notification thread")

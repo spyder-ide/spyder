@@ -58,6 +58,8 @@ from spyderlib import dependencies
 # For debugging purpose:
 LOG_FILENAME = get_conf_path('rope.log')
 
+DEBUG_EDITOR = DEBUG >= 3
+
 
 #===============================================================================
 # Code introspection features: rope integration
@@ -106,14 +108,14 @@ class RopeProject(object):
             self.project = rope.base.project.Project(root_path, **ROPE_PREFS)
         except ImportError:
             self.project = None
-            if DEBUG:
+            if DEBUG_EDITOR:
                 log_last_error(LOG_FILENAME,
                                "create_rope_project: %r" % root_path)
         except TypeError:
             # Compatibility with new Mercurial API (>= 1.3).
             # New versions of rope (> 0.9.2) already handle this issue
             self.project = None
-            if DEBUG:
+            if DEBUG_EDITOR:
                 log_last_error(LOG_FILENAME,
                                "create_rope_project: %r" % root_path)
         self.validate_rope_project()
@@ -143,20 +145,20 @@ class RopeProject(object):
             resource = rope.base.libutils.path_to_resource(self.project,
                                                            filename)
         except Exception as _error:
-            if DEBUG:
+            if DEBUG_EDITOR:
                 log_last_error(LOG_FILENAME, "path_to_resource: %r" % filename)
             resource = None
         try:
-            if DEBUG:
+            if DEBUG_EDITOR:
                 t0 = time.time()
             proposals = rope.contrib.codeassist.code_assist(self.project,
                                     source_code, offset, resource, maxfixes=3)
             proposals = rope.contrib.codeassist.sorted_proposals(proposals)
-            if DEBUG:
+            if DEBUG_EDITOR:
                 log_dt(LOG_FILENAME, "code_assist/sorted_proposals", t0)
             return [proposal.name for proposal in proposals]
         except Exception as _error:  #analysis:ignore
-            if DEBUG:
+            if DEBUG_EDITOR:
                 log_last_error(LOG_FILENAME, "get_completion_list")
             return []
 
@@ -173,16 +175,16 @@ class RopeProject(object):
             resource = rope.base.libutils.path_to_resource(self.project,
                                                            filename)
         except Exception as _error:
-            if DEBUG:
+            if DEBUG_EDITOR:
                 log_last_error(LOG_FILENAME, "path_to_resource: %r" % filename)
             resource = None
         try:
-            if DEBUG:
+            if DEBUG_EDITOR:
                 t0 = time.time()
             cts = rope.contrib.codeassist.get_calltip(
                             self.project, source_code, offset, resource,
                             ignore_unknown=False, remove_self=True, maxfixes=3)
-            if DEBUG:
+            if DEBUG_EDITOR:
                 log_dt(LOG_FILENAME, "get_calltip", t0)
             if cts is not None:
                 while '..' in cts:
@@ -192,15 +194,15 @@ class RopeProject(object):
             try:
                 doc_text = rope.contrib.codeassist.get_doc(self.project,
                                      source_code, offset, resource, maxfixes=3)
-                if DEBUG:
+                if DEBUG_EDITOR:
                     log_dt(LOG_FILENAME, "get_doc", t0)
             except Exception as _error:
                 doc_text = ''
-                if DEBUG:
+                if DEBUG_EDITOR:
                     log_last_error(LOG_FILENAME, "get_doc")
             return [cts, doc_text]
         except Exception as _error:  #analysis:ignore
-            if DEBUG:
+            if DEBUG_EDITOR:
                 log_last_error(LOG_FILENAME, "get_calltip_text")
             return []
 
@@ -217,21 +219,21 @@ class RopeProject(object):
             resource = rope.base.libutils.path_to_resource(self.project,
                                                            filename)
         except Exception as _error:
-            if DEBUG:
+            if DEBUG_EDITOR:
                 log_last_error(LOG_FILENAME, "path_to_resource: %r" % filename)
             resource = None
         try:
-            if DEBUG:
+            if DEBUG_EDITOR:
                 t0 = time.time()
             resource, lineno = rope.contrib.codeassist.get_definition_location(
                     self.project, source_code, offset, resource, maxfixes=3)
-            if DEBUG:
+            if DEBUG_EDITOR:
                 log_dt(LOG_FILENAME, "get_definition_location", t0)
             if resource is not None:
                 filename = resource.real_path
             return filename, lineno
         except Exception as _error:  #analysis:ignore
-            if DEBUG:
+            if DEBUG_EDITOR:
                 log_last_error(LOG_FILENAME, "get_definition_location")
             return (None, None)
 

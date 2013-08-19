@@ -50,6 +50,9 @@ from spyderlib.widgets.sourcecode.codeeditor import get_file_language
 from spyderlib.py3compat import to_text_string, qbytearray_to_str, u
 
 
+DEBUG_EDITOR = DEBUG >= 3
+
+
 class FileListDialog(QDialog):
     def __init__(self, parent, tabs, fullpath_sorting):
         QDialog.__init__(self, parent)
@@ -176,7 +179,7 @@ class AnalysisThread(QThread):
         try:
             self.results = self.checker(self.source_code)
         except Exception:
-            if DEBUG:
+            if DEBUG_EDITOR:
                 import traceback
                 traceback.print_exc(file=STDERR)
 
@@ -206,7 +209,7 @@ class ThreadManager(QObject):
         
     def close_threads(self, parent):
         """Close threads associated to parent_id"""
-        if DEBUG:
+        if DEBUG_EDITOR:
             print("Call to 'close_threads'", file=STDOUT)
         if parent is None:
             # Closing all threads
@@ -221,7 +224,7 @@ class ThreadManager(QObject):
                                     if _id != parent_id]
             threadlist = self.started_threads.get(parent_id, [])
         for thread in threadlist:
-            if DEBUG:
+            if DEBUG_EDITOR:
                 print("Waiting for thread %r to finish" % thread, file=STDOUT)
             while thread.isRunning():
                 # We can't terminate thread safely, so we simply wait...
@@ -229,7 +232,7 @@ class ThreadManager(QObject):
                 
     def close_all_threads(self):
         """Close all threads"""
-        if DEBUG:
+        if DEBUG_EDITOR:
             print("Call to 'close_all_threads'", file=STDOUT)
         self.close_threads(None)
         
@@ -239,7 +242,7 @@ class ThreadManager(QObject):
         thread = AnalysisThread(self, checker, source_code)
         self.end_callbacks[id(thread)] = end_callback
         self.pending_threads.append((thread, parent_id))
-        if DEBUG:
+        if DEBUG_EDITOR:
             print("Added thread %r to queue" % thread, file=STDOUT)
         QTimer.singleShot(50, self.update_queue)
     
@@ -264,7 +267,7 @@ class ThreadManager(QObject):
                 self.started_threads[parent_id] = still_running
             else:
                 self.started_threads.pop(parent_id)
-        if DEBUG:
+        if DEBUG_EDITOR:
             print("Updating queue:", file=STDOUT)
             print("    started:", started, file=STDOUT)
             print("    pending:", len(self.pending_threads), file=STDOUT)
@@ -273,7 +276,7 @@ class ThreadManager(QObject):
             self.connect(thread, SIGNAL('finished()'), self.update_queue)
             threadlist = self.started_threads.get(parent_id, [])
             self.started_threads[parent_id] = threadlist+[thread]
-            if DEBUG:
+            if DEBUG_EDITOR:
                 print("===>starting:", thread, file=STDOUT)
             thread.start()
 
@@ -1508,7 +1511,7 @@ class EditorStack(QWidget):
         editor = self.get_current_editor()
         if index != -1:
             editor.setFocus()
-            if DEBUG:
+            if DEBUG_EDITOR:
                 print("setfocusto:", editor, file=STDOUT)
         else:
             self.emit(SIGNAL('reset_statusbar()'))
@@ -1524,7 +1527,7 @@ class EditorStack(QWidget):
         while current_id in self.stack_history:
             self.stack_history.pop(self.stack_history.index(current_id))
         self.stack_history.append(current_id)
-        if DEBUG:
+        if DEBUG_EDITOR:
             print("current_changed:", index, self.data[index].editor, end=' ', file=STDOUT)
             print(self.data[index].editor.get_document_id(), file=STDOUT)
             
@@ -2018,7 +2021,7 @@ class EditorSplitter(QSplitter):
             focus_widget.setFocus()
         
     def editorstack_closed(self):
-        if DEBUG:
+        if DEBUG_EDITOR:
             print("method 'editorstack_closed':", file=STDOUT)
             print("    self  :", self, file=STDOUT)
 #            print >>STDOUT, "    sender:", self.sender()
@@ -2037,7 +2040,7 @@ class EditorSplitter(QSplitter):
         self.__give_focus_to_remaining_editor()
         
     def editorsplitter_closed(self):
-        if DEBUG:
+        if DEBUG_EDITOR:
             print("method 'editorsplitter_closed':", file=STDOUT)
             print("    self  :", self, file=STDOUT)
 #            print >>STDOUT, "    sender:", self.sender()
@@ -2169,7 +2172,7 @@ class EditorWidget(QSplitter):
         
     def register_editorstack(self, editorstack):
         self.editorstacks.append(editorstack)
-        if DEBUG:
+        if DEBUG_EDITOR:
             print("EditorWidget.register_editorstack:", editorstack, file=STDOUT)
             self.__print_editorstacks()
         self.plugin.last_focus_editorstack[self.parent()] = editorstack
@@ -2203,11 +2206,11 @@ class EditorWidget(QSplitter):
             print("    ", edst, file=STDOUT)
         
     def unregister_editorstack(self, editorstack):
-        if DEBUG:
+        if DEBUG_EDITOR:
             print("EditorWidget.unregister_editorstack:", editorstack, file=STDOUT)
         self.plugin.unregister_editorstack(editorstack)
         self.editorstacks.pop(self.editorstacks.index(editorstack))
-        if DEBUG:
+        if DEBUG_EDITOR:
             self.__print_editorstacks()
         
 
@@ -2268,7 +2271,7 @@ class EditorMainWindow(QMainWindow):
         if is_pyqt46:
             self.emit(SIGNAL('destroyed()'))
             for editorstack in self.editorwidget.editorstacks[:]:
-                if DEBUG:
+                if DEBUG_EDITOR:
                     print("--> destroy_editorstack:", editorstack, file=STDOUT)
                 editorstack.emit(SIGNAL('destroyed()'))
                                 
@@ -2350,7 +2353,7 @@ class EditorPluginExample(QSplitter):
     def closeEvent(self, event):
         for win in self.editorwindows[:]:
             win.close()
-        if DEBUG:
+        if DEBUG_EDITOR:
             print(len(self.editorwindows), ":", self.editorwindows, file=STDOUT)
             print(len(self.editorstacks), ":", self.editorstacks, file=STDOUT)
         
@@ -2363,7 +2366,7 @@ class EditorPluginExample(QSplitter):
         editorstack.analyze_script()
     
     def register_editorstack(self, editorstack):
-        if DEBUG:
+        if DEBUG_EDITOR:
             print("FakePlugin.register_editorstack:", editorstack, file=STDOUT)
         self.editorstacks.append(editorstack)
         if self.isAncestorOf(editorstack):
@@ -2396,7 +2399,7 @@ class EditorPluginExample(QSplitter):
                      self.load)
                     
     def unregister_editorstack(self, editorstack):
-        if DEBUG:
+        if DEBUG_EDITOR:
             print("FakePlugin.unregister_editorstack:", editorstack, file=STDOUT)
         self.editorstacks.pop(self.editorstacks.index(editorstack))
         
@@ -2419,12 +2422,12 @@ class EditorPluginExample(QSplitter):
                      lambda win=window: self.unregister_editorwindow(win))
         
     def register_editorwindow(self, window):
-        if DEBUG:
+        if DEBUG_EDITOR:
             print("register_editorwindowQObject*:", window, file=STDOUT)
         self.editorwindows.append(window)
         
     def unregister_editorwindow(self, window):
-        if DEBUG:
+        if DEBUG_EDITOR:
             print("unregister_editorwindow:", window, file=STDOUT)
         self.editorwindows.pop(self.editorwindows.index(window))
     

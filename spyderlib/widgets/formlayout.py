@@ -68,6 +68,8 @@ import datetime
 from spyderlib.baseconfig import _, DEBUG, STDERR
 from spyderlib.py3compat import is_text_string, to_text_string, is_string
 
+DEBUG_FORMLAYOUT = DEBUG >= 2
+
 
 class ColorButton(QPushButton):
     """
@@ -235,7 +237,7 @@ class FormWidget(QWidget):
         if comment:
             self.formlayout.addRow(QLabel(comment))
             self.formlayout.addRow(QLabel(" "))
-        if DEBUG:
+        if DEBUG_FORMLAYOUT:
             print("\n"+("*"*80))
             print("DATA:", self.data)
             print("*"*80)
@@ -251,7 +253,7 @@ class FormWidget(QWidget):
 
     def setup(self):
         for label, value in self.data:
-            if DEBUG:
+            if DEBUG_FORMLAYOUT:
                 print("value:", value)
             if label is None and value is None:
                 # Separator: (None, None)
