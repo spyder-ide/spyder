@@ -392,7 +392,7 @@ The process may not exit as a result of clicking this button
         #-------------------------Python specific-------------------------------
         # Python arguments
         p_args = ['-u']
-        if DEBUG:
+        if DEBUG >= 3:
             p_args += ['-v']
         p_args += get_python_args(self.fname, self.python_args,
                                   self.interact_action.isChecked(),

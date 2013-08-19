@@ -28,7 +28,12 @@ SUPPORTED_IPYTHON = '>=0.13;<1.0'
 #==============================================================================
 STDOUT = sys.stdout
 STDERR = sys.stderr
-DEBUG = bool(os.environ.get('SPYDER_DEBUG', ''))
+def _get_debug_env():
+    debug_env = os.environ.get('SPYDER_DEBUG', '')
+    if not debug_env.isdigit():
+        debug_env = bool(debug_env)
+    return int(debug_env)    
+DEBUG = _get_debug_env()
 
 
 #==============================================================================

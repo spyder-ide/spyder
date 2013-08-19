@@ -27,7 +27,9 @@ SUPPORTED_TYPES = get_supported_types()
 
 LOG_FILENAME = get_conf_path('monitor.log')
 
-if DEBUG:
+DEBUG_MONITOR = DEBUG >= 2
+
+if DEBUG_MONITOR:
     import logging
     logging.basicConfig(filename=get_conf_path('monitor_debug.log'),
                         level=logging.DEBUG)
@@ -519,7 +521,7 @@ class Monitor(threading.Thread):
             output = pickle.dumps(None, pickle.HIGHEST_PROTOCOL)
             glbs = self.mglobals()
             try:
-                if DEBUG:
+                if DEBUG_MONITOR:
                     logging.debug("****** Introspection request /Begin ******")
                 command = PACKET_NOT_RECEIVED
                 try:
@@ -532,21 +534,21 @@ class Monitor(threading.Thread):
                     timed_out = True
                 except struct.error:
                     # This should mean that Spyder GUI has crashed
-                    if DEBUG:
+                    if DEBUG_MONITOR:
                         logging.debug("struct.error -> quitting monitor")
                     break
                 if timed_out:
-                    if DEBUG:
+                    if DEBUG_MONITOR:
                         logging.debug("connection timed out -> updating remote view")
                     self.update_remote_view()
-                    if DEBUG:
+                    if DEBUG_MONITOR:
                         logging.debug("****** Introspection request /End ******")
                     continue
-                if DEBUG:
+                if DEBUG_MONITOR:
                     logging.debug("command: %r" % command)
                 lcls = self.mlocals()
                 result = eval(command, glbs, lcls)
-                if DEBUG:
+                if DEBUG_MONITOR:
                     logging.debug(" result: %r" % result)
                 if self.pdb_obj is None:
                     lcls["_"] = result
@@ -558,17 +560,17 @@ class Monitor(threading.Thread):
             except SystemExit:
                 break
             except:
-                if DEBUG:
+                if DEBUG_MONITOR:
                     logging.debug("error!")
                 log_last_error(LOG_FILENAME, command)
             finally:
                 try:
-                    if DEBUG:
+                    if DEBUG_MONITOR:
                         logging.debug("updating remote view")
                     if self.refresh_after_eval:
                         self.update_remote_view()
                         self.refresh_after_eval = False
-                    if DEBUG:
+                    if DEBUG_MONITOR:
                         logging.debug("sending result")
                         logging.debug("****** Introspection request /End ******")
                     if command is not PACKET_NOT_RECEIVED:
