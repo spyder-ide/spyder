@@ -28,6 +28,7 @@ import re
 import subprocess
 
 # Local imports
+from spyderlib import dependencies
 from spyderlib.utils import programs
 from spyderlib.utils.encoding import to_unicode_from_fs
 from spyderlib.utils.qthelpers import get_icon, create_toolbutton
@@ -58,6 +59,12 @@ def get_pylint_version():
         match = re.match('%s ([0-9\.]*)' % pylint_exe_name, lines[0])
         if match is not None:
             return match.groups()[0]
+
+
+PYLINT_REQVER = '>=0.25'
+PYLINT_VER = get_pylint_version()
+dependencies.add("pylint", _("Static code analysis"),
+                 required_version=PYLINT_REQVER, installed_version=PYLINT_VER)
 
 
 #TODO: display results on 3 columns instead of 1: msg_id, lineno, message
