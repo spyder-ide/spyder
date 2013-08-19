@@ -28,7 +28,11 @@ class Dependency(object):
         self.features = features
         self.required_version = required_version
         if installed_version is None:
-            self.installed_version = programs.get_module_version(modname)
+            try:
+                self.installed_version = programs.get_module_version(modname)
+            except ImportError:
+                # Module is not installed
+                self.installed_version = None
         else:
             self.installed_version = installed_version
 
