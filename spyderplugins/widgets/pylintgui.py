@@ -44,12 +44,18 @@ PYLINT_PATH = programs.find_program('pylint')
 
 def get_pylint_version():
     """Return pylint version"""
+    if os.name == 'nt':
+        shell = True
+        pylint_exe_name = 'pylint-script.py'
+    else:
+        shell = False
+        pylint_exe_name = 'pylint'
     process = subprocess.Popen(['pylint', '--version'],
                                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                               cwd=osp.dirname(PYLINT_PATH), shell=True)
+                               cwd=osp.dirname(PYLINT_PATH), shell=shell)
     lines = to_unicode_from_fs(process.stdout.read()).splitlines()
     if lines:
-        match = re.match('pylint-script.py ([0-9\.]*)', lines[0])
+        match = re.match('%s ([0-9\.]*)' % pylint_exe_name, lines[0])
         if match is not None:
             return match.groups()[0]
 
