@@ -27,7 +27,11 @@ no "cell mode" in Spyder), i.e. a block of lines to be executed at once in the
 current interpreter (Python or IPython). Every script may be divided in as 
 many blocks as needed. 
 
-Blocks are separated by lines starting with `#%%`.
+Blocks are separated by lines starting with:
+
+* `#%%` (standard block separator)
+* `# %%` (standard block separator, when file has been edited with Eclipse)
+* `# <codecell>` (IPython notebook cell separator)
 
 
 Related plugins:
