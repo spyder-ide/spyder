@@ -62,8 +62,10 @@ LOG_FILENAME = get_conf_path('rope.log')
 # Code introspection features: rope integration
 #===============================================================================
 ROPE_REQVER = '>=0.9.2'
-dependencies.add('rope', _("Code completion, go-to-definition, etc."),
-                 required_version=ROPE_REQVER)
+dependencies.add('rope',
+             _("Editor's code completion, go-to-definition, interactive help"),
+             required_version=ROPE_REQVER)
+
 try:
     try:
         from spyderlib import rope_patch
