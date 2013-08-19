@@ -70,10 +70,16 @@ def check_with_pyflakes(source_code, filename=None):
                                 warning.lineno))
         return results
 
-# Required version: Why 0.5.0? Because it's based on _ast (thread-safe)
+# Required versions
+# Why 0.5.0? Because it's based on _ast (thread-safe)
 PYFLAKES_REQVER = '0.5.0'
 dependencies.add("pyflakes", _("Real-time code analysis on the Editor"),
                  required_version=PYFLAKES_REQVER)
+
+PEP8_REQVER = '>=0.6'
+dependencies.add("pep8", _("Real-time code style analysis on the Editor"),
+                 required_version=PEP8_REQVER)
+
 
 def is_pyflakes_installed():
     """Return True if pyflakes required version is installed"""
