@@ -65,8 +65,8 @@ DEBUG_EDITOR = DEBUG >= 3
 #===============================================================================
 ROPE_REQVER = '>=0.9.2'
 dependencies.add('rope',
-             _("Editor's code completion, go-to-definition, interactive help"),
-             required_version=ROPE_REQVER)
+                 _("Editor's code completion, go-to-definition and help"),
+                 required_version=ROPE_REQVER)
 
 try:
     try:

@@ -33,7 +33,7 @@ ORIGINAL_SYS_EXIT = sys.exit
 from spyderlib.utils.programs import is_module_installed
 from spyderlib.baseconfig import SUPPORTED_IPYTHON, _
 from spyderlib import dependencies
-dependencies.add("IPython", _("IPython qtconsole integration"),
+dependencies.add("IPython", _("IPython Console integration"),
                  required_version=SUPPORTED_IPYTHON)
 if is_module_installed('IPython.frontend.qt', SUPPORTED_IPYTHON):
     # Importing IPython will eventually set the QT_API environment variable

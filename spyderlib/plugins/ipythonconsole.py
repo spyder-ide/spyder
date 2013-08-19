@@ -46,7 +46,7 @@ from spyderlib.widgets.mixins import SaveHistoryMixin
 
 
 SYMPY_REQVER = '>=0.7.0'
-dependencies.add("sympy", _("Symbolic mathematics for the IPython consoles"),
+dependencies.add("sympy", _("Symbolic mathematics for the IPython Console"),
                  required_version=SYMPY_REQVER)
 
 
