@@ -206,14 +206,8 @@ def check_version(actver, version, cmp_op):
 
 
 def get_module_version(module_name):
-    """Get module version.
-    
-    Return module version, return False if module is not installed,
-    return None if module is installed but version can't be retrieved"""
-    try:
-        mod = __import__(module_name)
-    except ImportError:
-        return False
+    """Return module version or None if version can't be retrieved."""
+    mod = __import__(module_name)
     return getattr(mod, '__version__', getattr(mod, 'VERSION', None))
 
 
@@ -266,8 +260,9 @@ def is_module_installed(module_name, version=None, installed_version=None,
             return True
     else:
         if installed_version is None:
-            actver = get_module_version(module_name)
-            if actver is not None and not actver:
+            try:
+                actver = get_module_version(module_name)
+            except ImportError:
                 # Module is not installed
                 return False
         else:

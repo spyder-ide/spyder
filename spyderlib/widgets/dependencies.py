@@ -153,9 +153,9 @@ def test():
     from spyderlib import dependencies
     
     # Test sample
-    dependencies.add("IPython", "Enhanced Python interpreter", ">=0.13")
-    dependencies.add("matplotlib", "Interactive data plotting", ">=1.0")
-    dependencies.add("sympy", "Symbolic Mathematics", ">=10.0")
+#    dependencies.add("IPython", "Enhanced Python interpreter", ">=0.13")
+#    dependencies.add("matplotlib", "Interactive data plotting", ">=1.0")
+#    dependencies.add("sympy", "Symbolic Mathematics", ">=10.0")
     dependencies.add("foo", "Non-existent module", ">=1.0")
     
     from spyderlib.utils.qthelpers import qapplication
