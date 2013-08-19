@@ -45,6 +45,9 @@ PYLINT_PATH = programs.find_program('pylint')
 
 def get_pylint_version():
     """Return pylint version"""
+    global PYLINT_PATH
+    if PYLINT_PATH is None:
+        return
     if os.name == 'nt':
         shell = True
         pylint_exe_name = 'pylint-script.py'
