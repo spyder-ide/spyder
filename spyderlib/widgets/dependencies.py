@@ -8,8 +8,9 @@
 
 from spyderlib.qt.QtGui import (QDialog, QTableView, QItemDelegate, QColor,
                                 QVBoxLayout, QHBoxLayout, QPushButton,
-                                QApplication, QLabel)
-from spyderlib.qt.QtCore import Qt, QModelIndex, QAbstractTableModel, SIGNAL
+                                QApplication, QLabel, QDialogButtonBox)
+from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, SIGNAL,
+                                 SLOT)
 from spyderlib.qt.compat import to_qvariant
 import sys
 
@@ -126,7 +127,9 @@ class DependenciesDialog(QDialog):
                                                _("Optional Dependencies")))
         self.setWindowIcon(get_icon('advanced.png'))
         self.setModal(True)
+
         self.view = DependenciesTableView(self, [])
+
         important_mods = ['rope', 'pyflakes', 'IPython', 'matplotlib']
         self.label = QLabel(_("Spyder depends on several Python modules to "
                               "provide additional functionality for its "
@@ -142,15 +145,21 @@ class DependenciesDialog(QDialog):
         self.label.setWordWrap(True)
         self.label.setAlignment(Qt.AlignJustify)
         self.label.setContentsMargins(5, 8, 12, 10)
+
+        btn = QPushButton(_("Copy to clipboard"), )
+        self.connect(btn, SIGNAL('clicked()'), self.copy_to_clipboard)
+        bbox = QDialogButtonBox(QDialogButtonBox.Ok)
+        self.connect(bbox, SIGNAL("accepted()"), SLOT("accept()"))
+        hlayout = QHBoxLayout()
+        hlayout.addWidget(btn)
+        hlayout.addStretch()
+        hlayout.addWidget(bbox)
+
         vlayout = QVBoxLayout()
         vlayout.addWidget(self.label)
         vlayout.addWidget(self.view)
-        hlayout = QHBoxLayout()
-        btn = QPushButton(_("Copy to clipboard"), )
-        self.connect(btn, SIGNAL('clicked()'), self.copy_to_clipboard)
-        hlayout.addWidget(btn)
-        hlayout.addStretch()
         vlayout.addLayout(hlayout)
+
         self.setLayout(vlayout)
         self.resize(560, 350)
         
