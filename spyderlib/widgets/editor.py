@@ -1787,8 +1787,10 @@ class EditorStack(QWidget):
                      lambda s1, s2:
                      self.emit(SIGNAL("save_breakpoints(QString,QString)"),
                                s1, s2))
-        self.connect(editor, SIGNAL("triggers_run_selection()"),
-                     self.run_selection_or_block)
+        self.connect(editor, SIGNAL("run_selection()"), self.run_selection)
+        self.connect(editor, SIGNAL("run_cell()"), self.run_cell)
+        self.connect(editor, SIGNAL('run_cell_and_advance()'),
+                     self.run_cell_and_advance)
         language = get_file_language(fname, txt)
         editor.setup_editor(
                 linenumbers=self.linenumbers_enabled,
@@ -1933,19 +1935,23 @@ class EditorStack(QWidget):
         finfo.editor.fix_indentation()
 
     #------ Run
-    def run_selection_or_block(self):
-        """
-        Run selected text in console and set focus to console
-        *or*, if there is no selection,
-        Run current block of lines in console and go to next block
-        """
-        self.emit(SIGNAL('external_console_execute_lines(QString)'),
-                  self.get_current_editor().get_executable_text())
+    def run_selection(self):
+        """Run selected text in console and set focus to console"""
+        text = self.get_current_editor().get_selection_as_executable_code()
+        if text:
+            self.emit(SIGNAL('exec_in_extconsole(QString,bool)'), text, False)
 
-    def run_block_and_advance(self):
-        """Run current block and advance to the next one"""
-        self.run_selection_or_block()
-        self.get_current_editor().go_to_next_block()
+    def run_cell(self, focus_to_editor=False):
+        """Run current cell"""
+        text = self.get_current_editor().get_cell_as_executable_code()
+        if text:
+            self.emit(SIGNAL('exec_in_extconsole(QString,bool)'),
+                      text, focus_to_editor)
+
+    def run_cell_and_advance(self):
+        """Run current cell and advance to the next one"""
+        self.run_cell(focus_to_editor=True)
+        self.get_current_editor().go_to_next_cell()
             
     #------ Drag and drop
     def dragEnterEvent(self, event):

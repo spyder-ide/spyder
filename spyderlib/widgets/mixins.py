@@ -31,8 +31,6 @@ HISTORY_FILENAMES = []
 
 
 class BaseEditMixin(object):
-    BLOCK_SEPARATORS = ('#%%', '# %%', '# <codecell>')
-
     def __init__(self):
         self.eol_chars = None
         
@@ -179,70 +177,6 @@ class BaseEditMixin(object):
         toward *direction* ('left' or 'right')
         """
         self.__move_cursor_anchor(what, direction, QTextCursor.KeepAnchor)
-
-    def is_block_separator(self, cursor=None, block=None):
-        """Return True if cursor (or text block) is on a block separator"""
-        assert cursor is not None or block is not None
-        if cursor is not None:
-            cursor0 = QTextCursor(cursor)
-            cursor0.select(QTextCursor.BlockUnderCursor)
-            text = to_text_string(cursor0.selectedText())
-        else:
-            text = to_text_string(block.text())
-        return text.lstrip().startswith(self.BLOCK_SEPARATORS)
-
-    def select_current_block(self):
-        """
-        Select block under cursor
-        Block = group of lines separated by either empty lines or commentaries
-        """
-        cursor = self.textCursor()
-        cursor.movePosition(QTextCursor.StartOfBlock)
-        cur_pos = prev_pos = cursor.position()
-        while self.is_block_separator(cursor):
-            # Moving to the next code block
-            cursor.movePosition(QTextCursor.NextBlock)
-            prev_pos = cur_pos
-            cur_pos = cursor.position()
-            if cur_pos == prev_pos:
-                return
-        while not self.is_block_separator(cursor):
-            # Moving to the previous code block
-            cursor.movePosition(QTextCursor.PreviousBlock)
-            prev_pos = cur_pos
-            cur_pos = cursor.position()
-            if cur_pos == prev_pos:
-                if self.is_block_separator(cursor):
-                    return
-                else:
-                    break
-        cursor.setPosition(prev_pos)
-        while not self.is_block_separator(cursor):
-            # Moving to the next code block
-            cursor.movePosition(QTextCursor.NextBlock,
-                                QTextCursor.KeepAnchor)
-            cur_pos = cursor.position()
-            if cur_pos == prev_pos:
-                cursor.movePosition(QTextCursor.EndOfBlock,
-                                    QTextCursor.KeepAnchor)
-                break
-            prev_pos = cur_pos
-        self.setTextCursor(cursor)
-
-    def go_to_next_block(self):
-        """Go to the next block of lines"""
-        cursor = self.textCursor()
-        cursor.movePosition(QTextCursor.StartOfBlock)
-        cur_pos = prev_pos = cursor.position()
-        while self.is_block_separator(cursor):
-            # Moving to the next code block
-            cursor.movePosition(QTextCursor.NextBlock)
-            prev_pos = cur_pos
-            cur_pos = cursor.position()
-            if cur_pos == prev_pos:
-                return
-        self.setTextCursor(cursor)
-        self.select_current_block()
 
 
     #------Text: get, set, ...

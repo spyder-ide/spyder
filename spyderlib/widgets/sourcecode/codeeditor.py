@@ -8,7 +8,7 @@
 Editor widget based on QtGui.QPlainTextEdit
 """
 
-#%% This line is for block execution testing
+#%% This line is for cell execution testing
 # pylint: disable=C0103
 # pylint: disable=R0903
 # pylint: disable=R0911
@@ -36,7 +36,7 @@ from spyderlib.qt.QtCore import (Qt, SIGNAL, QTimer, QRect, QRegExp, QSize,
                                  SLOT, Slot)
 from spyderlib.qt.compat import to_qvariant
 
-#%% This line is for block execution testing
+#%% This line is for cell execution testing
 # Local import
 #TODO: Try to separate this module from spyderlib to create a self
 #      consistent editor module (Qt source code and shell widgets library)
@@ -54,7 +54,7 @@ from spyderlib.widgets.sourcecode import syntaxhighlighters as sh
 from spyderlib.py3compat import to_text_string, PY2
 from spyderlib import dependencies
 
-#%% This line is for block execution testing
+#%% This line is for cell execution testing
 # For debugging purpose:
 LOG_FILENAME = get_conf_path('rope.log')
 
@@ -1130,7 +1130,7 @@ class CodeEditor(TextEditBaseWidget):
             if block.isVisible() and bottom >= event.rect().top():
                 line_number = block_number+1
                 painter.setPen(Qt.darkGray)
-                if self.is_block_separator(block):
+                if self.is_cell_separator(block):
                     painter.setPen(Qt.red)
                     painter.drawLine(0, top, self.linenumberarea.width(), top)
                 if self.linenumbers_margin:
@@ -2245,11 +2245,9 @@ class CodeEditor(TextEditBaseWidget):
                            triggered=self.toggle_comment)
         self.gotodef_action = create_action(self, _("Go to definition"),
                                    triggered=self.go_to_definition_from_cursor)
-        run_selected_action = create_action(self,
-                                        _("Run &selection or current block"),
-                                        icon='run_selection.png',
-                                        triggered=lambda: self.emit(
-                                           SIGNAL('triggers_run_selection()')))
+        run_selection_action = create_action(self,
+                        _("Run &selection"), icon='run_selection.png',
+                        triggered=lambda: self.emit(SIGNAL('run_selection()')))
         zoom_in_action = create_action(self, _("Zoom in"),
                       QKeySequence(QKeySequence.ZoomIn), icon='zoom_in.png',
                       triggered=lambda: self.emit(SIGNAL('zoom_in()')))
@@ -2262,7 +2260,7 @@ class CodeEditor(TextEditBaseWidget):
                                 paste_action, self.delete_action,
                                 None, selectall_action, None, zoom_in_action,
                                 zoom_out_action, None, toggle_comment_action,
-                                None, run_selected_action,
+                                None, run_selection_action,
                                 self.gotodef_action))
             
         # Read-only context-menu
@@ -2294,13 +2292,9 @@ class CodeEditor(TextEditBaseWidget):
                     TextEditBaseWidget.keyPressEvent(self, event)
                     self.fix_indent(comment_or_string=cmt_or_str)
             elif shift:
-                # Ignoring QPlainTextEdit default Shift+Enter keybinding
-                # which will print a new line in the same block:
-                event = QKeyEvent(event.type(), event.key(), Qt.NoModifier,
-                                  event.text(), event.isAutoRepeat(),
-                                  event.count())
-                TextEditBaseWidget.keyPressEvent(self, event)
-                return
+                self.emit(SIGNAL('run_cell_and_advance()'))
+            elif ctrl:
+                self.emit(SIGNAL('run_cell()'))
         elif key == Qt.Key_Insert and not shift and not ctrl:
             self.setOverwriteMode(not self.overwriteMode())
         elif key == Qt.Key_Backspace and not shift and not ctrl:
