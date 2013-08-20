@@ -924,9 +924,11 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
         # Looking for ' or ": filename completion
         q_pos = max([text.rfind("'"), text.rfind('"')])
         if q_pos != -1:
-            self.show_completion_list(self.get_cdlistdir(),
-                                      completion_text=text[q_pos+1:],
-                                      automatic=automatic)
+            completions = self.get_cdlistdir()
+            if completions:
+                self.show_completion_list(completions,
+                                          completion_text=text[q_pos+1:],
+                                          automatic=automatic)
             return
             
     #------ Drag'n Drop
