@@ -174,10 +174,9 @@ class CompletionWidget(QListWidget):
 
 
 class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
-    """
-    Text edit base widget
-    """
+    """Text edit base widget"""
     BRACE_MATCHING_SCOPE = ('sof', 'eof')
+    CELL_SEPARATORS = ('#%%', '# %%', '# <codecell>')
     
     def __init__(self, parent=None):
         QPlainTextEdit.__init__(self, parent)
@@ -401,19 +400,17 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         
 
     #------Text: get, set, ...
-    def get_executable_text(self):
-        """Return selected text or current line as an processed text,
+    def get_selection_as_executable_code(self):
+        """Return selected text as a processed text,
         to be executable in a Python/IPython interpreter"""
-        no_selection = not self.has_selected_text()
-        if no_selection:
-            self.select_current_block()
-        
         ls = self.get_line_separator()
         
         _indent = lambda line: len(line)-len(line.lstrip())
         
         line_from, line_to = self.get_selection_bounds()
         text = self.get_selected_text()
+        if not text:
+            return
 
         lines = text.split(ls)
         if len(lines) > 1:
@@ -474,17 +471,97 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                 lines.append(ls)
         
         return ls.join(lines)
-    
+
+    def get_cell_as_executable_code(self):
+        """Return cell contents as executable code"""
+        start_pos, end_pos = self.__save_selection()
+        self.select_current_cell()
+        text = self.get_selection_as_executable_code()
+        self.__restore_selection(start_pos, end_pos)
+        return text
+
+    def is_cell_separator(self, cursor=None, block=None):
+        """Return True if cursor (or text block) is on a block separator"""
+        assert cursor is not None or block is not None
+        if cursor is not None:
+            cursor0 = QTextCursor(cursor)
+            cursor0.select(QTextCursor.BlockUnderCursor)
+            text = unicode(cursor0.selectedText())
+        else:
+            text = unicode(block.text())
+        return text.lstrip().startswith(self.CELL_SEPARATORS)
+
+    def select_current_cell(self):
+        """Select cell under cursor
+        cell = group of lines separated by either empty lines or commentaries"""
+        cursor = self.textCursor()
+        cursor.movePosition(QTextCursor.StartOfBlock)
+        cur_pos = prev_pos = cursor.position()
+        while self.is_cell_separator(cursor):
+            # Moving to the next code cell
+            cursor.movePosition(QTextCursor.NextBlock)
+            prev_pos = cur_pos
+            cur_pos = cursor.position()
+            if cur_pos == prev_pos:
+                return
+        while not self.is_cell_separator(cursor):
+            # Moving to the previous code cell
+            cursor.movePosition(QTextCursor.PreviousBlock)
+            prev_pos = cur_pos
+            cur_pos = cursor.position()
+            if cur_pos == prev_pos:
+                if self.is_cell_separator(cursor):
+                    return
+                else:
+                    break
+        cursor.setPosition(prev_pos)
+        while not self.is_cell_separator(cursor):
+            # Moving to the next code cell
+            cursor.movePosition(QTextCursor.NextBlock,
+                                QTextCursor.KeepAnchor)
+            cur_pos = cursor.position()
+            if cur_pos == prev_pos:
+                cursor.movePosition(QTextCursor.EndOfBlock,
+                                    QTextCursor.KeepAnchor)
+                break
+            prev_pos = cur_pos
+        self.setTextCursor(cursor)
+
+    def go_to_next_cell(self):
+        """Go to the next cell of lines"""
+        cursor = self.textCursor()
+        cursor.movePosition(QTextCursor.NextBlock)
+        cur_pos = prev_pos = cursor.position()
+        while not self.is_cell_separator(cursor):
+            # Moving to the next code cell
+            cursor.movePosition(QTextCursor.NextBlock)
+            prev_pos = cur_pos
+            cur_pos = cursor.position()
+            if cur_pos == prev_pos:
+                return
+        self.setTextCursor(cursor)
+
     def get_line_count(self):
         """Return document total line number"""
         return self.blockCount()
-    
+
+    def __save_selection(self):
+        """Save current cursor selection and return position bounds"""
+        cursor = self.textCursor()
+        return cursor.selectionStart(), cursor.selectionEnd()
+
+    def __restore_selection(self, start_pos, end_pos):
+        """Restore cursor selection from position bounds"""
+        cursor = self.textCursor()
+        cursor.setPosition(start_pos)
+        cursor.setPosition(end_pos, QTextCursor.KeepAnchor)
+        self.setTextCursor(cursor)
+
     def __duplicate_line_or_selection(self, after_current_line=True):
         """Duplicate current line or selected text"""
         cursor = self.textCursor()
         cursor.beginEditBlock()
-        orig_sel = start_pos, end_pos = (cursor.selectionStart(),
-                                         cursor.selectionEnd())
+        start_pos, end_pos = self.__save_selection()
         if unicode(cursor.selectedText()):
             cursor.setPosition(end_pos)
             # Check if end_pos is at the start of a block: if so, starting
@@ -512,13 +589,13 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             # Moving cursor before current line/selected text
             cursor.setPosition(start_pos)
             cursor.movePosition(QTextCursor.StartOfBlock)
-            orig_sel = (orig_sel[0]+len(text), orig_sel[1]+len(text))
+            start_pos += len(text)
+            end_pos += len(text)
         
         cursor.insertText(text)
         cursor.endEditBlock()
-        cursor.setPosition(orig_sel[0])
-        cursor.setPosition(orig_sel[1], QTextCursor.KeepAnchor)
         self.setTextCursor(cursor)
+        self.__restore_selection(start_pos, end_pos)
     
     def duplicate_line(self):
         """
@@ -538,8 +615,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         """Move current line or selected text"""
         cursor = self.textCursor()
         cursor.beginEditBlock()
-        orig_sel = start_pos, end_pos = (cursor.selectionStart(),
-                                         cursor.selectionEnd())
+        start_pos, end_pos = self.__save_selection()
         if unicode(cursor.selectedText()):
             # Check if start_pos is at the start of a block
             cursor.setPosition(start_pos)
@@ -567,19 +643,19 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         
         if after_current_line:
             text = unicode(cursor.block().text())
-            orig_sel = (orig_sel[0]+len(text)+1, orig_sel[1]+len(text)+1)
+            start_pos += len(text)+1
+            end_pos += len(text)+1
             cursor.movePosition(QTextCursor.NextBlock)
         else:
             cursor.movePosition(QTextCursor.PreviousBlock)
             text = unicode(cursor.block().text())
-            orig_sel = (orig_sel[0]-len(text)-1, orig_sel[1]-len(text)-1)
+            start_pos -= len(text)+1
+            end_pos -= len(text)+1
         cursor.insertText(sel_text)
 
         cursor.endEditBlock()
-
-        cursor.setPosition(orig_sel[0])
-        cursor.setPosition(orig_sel[1], QTextCursor.KeepAnchor)
         self.setTextCursor(cursor)
+        self.__restore_selection(start_pos, end_pos)
     
     def move_line_up(self):
         """Move up current line or selected text"""

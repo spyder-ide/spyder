@@ -15,7 +15,8 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QPrintDialog, QSplitter, QToolBar,
                                 QAction, QApplication, QDialog, QWidget,
                                 QPrinter, QActionGroup, QInputDialog, QMenu,
                                 QAbstractPrintDialog, QGroupBox, QTabWidget,
-                                QLabel, QFontComboBox, QHBoxLayout)
+                                QLabel, QFontComboBox, QHBoxLayout,
+                                QKeySequence)
 from spyderlib.qt.QtCore import SIGNAL, QByteArray, Qt, Slot
 from spyderlib.qt.compat import to_qvariant, from_qvariant, getopenfilenames
 
@@ -704,25 +705,27 @@ class Editor(SpyderPluginWidget):
         self.register_shortcut(re_run_action, context="Editor",
                                name="Re-run last script", default="Ctrl+F6")
         
-        run_selected_action = create_action(self,
-                            _("Run &selection or block"),
-                            icon='run_selection.png',
-                            tip=_("Run selection or current block \n"\
-                                  "(see Editor section in documentation \n"\
-                                  "for more details on blocks)"),
-                            triggered=self.run_selection_or_block)
+        run_selected_action = create_action(self, _("Run &selection"),
+                                            icon='run_selection.png',
+                                            tip=_("Run selection"),
+                                            triggered=self.run_selection)
         self.register_shortcut(run_selected_action, context="Editor",
-                               name="Run selection or block", default="F9")
-        run_block_advance_action = create_action(self,
-                            _("Run block and advance"),
-                            icon='run_block_advance.png',
-                            tip=_("Run current block \n"\
-                                  "(see Editor section in documentation \n"\
-                                  "for more details on blocks) \n"\
-                                  "and advance to the next block"),
-                            triggered=self.run_block_and_advance)
-        self.register_shortcut(run_block_advance_action, context="Editor",
-                               name="Run block and advance", default="Ctrl+F9")
+                               name="Run selection", default="F9")
+        run_cell_action = create_action(self,
+                            _("Run cell"), icon='run_cell.png',
+                            shortcut=QKeySequence("Ctrl+Enter"),
+                            tip=_("Run current cell \n"\
+                                  "(see Editor documentation \n"\
+                                  "for more details on cells)"),
+                            triggered=self.run_cell)
+        run_cell_advance_action = create_action(self,
+                            _("Run cell and advance"),
+                            icon='run_cell_advance.png',
+                            shortcut=QKeySequence("Shift+Enter"),
+                            tip=_("Run current cell and go to the next one\n"\
+                                  "(see Editor documentation \n"\
+                                  "for more details on cells)"),
+                            triggered=self.run_cell_and_advance)
         
         # --- Source code Toolbar ---
         self.todo_list_action = create_action(self,
@@ -894,11 +897,12 @@ class Editor(SpyderPluginWidget):
         run_menu_actions = [run_action, debug_action, configure_action,
                             breakpoints_menu, debug_control_menu, None,
                             re_run_action, run_selected_action,
-                            run_block_advance_action, None,
+                            run_cell_action,
+                            run_cell_advance_action, None,
                             self.winpdb_action]
         self.main.run_menu_actions += run_menu_actions
-        run_toolbar_actions = [run_action, run_selected_action,
-                               run_block_advance_action, re_run_action,
+        run_toolbar_actions = [run_action, run_cell_action,
+                               run_cell_advance_action, re_run_action,
                                configure_action]
         self.main.run_toolbar_actions += run_toolbar_actions
         
@@ -925,8 +929,8 @@ class Editor(SpyderPluginWidget):
                                     edit_toolbar_actions
         self.pythonfile_dependent_actions = [run_action, configure_action,
                      set_clear_breakpoint_action, set_cond_breakpoint_action,
-                     debug_action, run_selected_action,
-                     run_block_advance_action, blockcomment_action,
+                     debug_action, run_selected_action, run_cell_action,
+                     run_cell_advance_action, blockcomment_action,
                      unblockcomment_action, self.winpdb_action]
         self.file_dependent_actions = self.pythonfile_dependent_actions + \
                 [self.save_action, save_as_action, print_preview_action,
@@ -947,8 +951,8 @@ class Editor(SpyderPluginWidget):
                      self.restore_scrollbar_position)
         self.connect(self.main.console,
                      SIGNAL("edit_goto(QString,int,QString)"), self.load)
-        self.connect(self, SIGNAL('external_console_execute_lines(QString)'),
-                     self.main.execute_python_code_in_external_console)
+        self.connect(self, SIGNAL('exec_in_extconsole(QString,bool)'),
+                     self.main.execute_in_external_console)
         self.connect(self, SIGNAL('redirect_stdio(bool)'),
                      self.main.redirect_internalshell_stdio)
         self.connect(self, SIGNAL("open_dir(QString)"),
@@ -1070,10 +1074,9 @@ class Editor(SpyderPluginWidget):
         self.connect(editorstack, SIGNAL('redirect_stdio(bool)'),
                      lambda state:
                      self.emit(SIGNAL('redirect_stdio(bool)'), state))
-        self.connect(editorstack,
-                     SIGNAL('external_console_execute_lines(QString)'),
-                     lambda text: self.emit(
-                     SIGNAL('external_console_execute_lines(QString)'), text))
+        self.connect(editorstack, SIGNAL('exec_in_extconsole(QString,bool)'),
+                     lambda text, option: self.emit(
+                     SIGNAL('exec_in_extconsole(QString,bool)'), text, option))
         self.connect(editorstack, SIGNAL("update_plugin_title()"),
                      lambda: self.emit(SIGNAL("update_plugin_title()")))
 
@@ -2049,15 +2052,20 @@ class Editor(SpyderPluginWidget):
                                             debug, python, python_args,
                                             systerm)
 
-    def run_selection_or_block(self):
+    def run_selection(self):
         """Run selection or current line in external console"""
         editorstack = self.get_current_editorstack()
-        editorstack.run_selection_or_block()
+        editorstack.run_selection()
     
-    def run_block_and_advance(self):
-        """Run current block and advance to the next one"""
+    def run_cell(self):
+        """Run current cell"""
         editorstack = self.get_current_editorstack()
-        editorstack.run_block_and_advance()
+        editorstack.run_cell()
+
+    def run_cell_and_advance(self):
+        """Run current cell and advance to the next one"""
+        editorstack = self.get_current_editorstack()
+        editorstack.run_cell_and_advance()
 
 
     #------ Zoom in/out

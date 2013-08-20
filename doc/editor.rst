@@ -19,18 +19,18 @@ Horizontal/vertical splitting feature:
 
 .. image:: images/editor3.png
 
-How to define a code block
+How to define a code cell
 --------------------------
 
-A "code block" is a concept similar to MATLAB's "cell" (except that there is 
+A "code cell" is a concept similar to MATLAB's "cell" (except that there is 
 no "cell mode" in Spyder), i.e. a block of lines to be executed at once in the 
 current interpreter (Python or IPython). Every script may be divided in as 
-many blocks as needed. 
+many cells as needed. 
 
-Blocks are separated by lines starting with:
+Cells are separated by lines starting with:
 
-* `#%%` (standard block separator)
-* `# %%` (standard block separator, when file has been edited with Eclipse)
+* `#%%` (standard cell separator)
+* `# %%` (standard cell separator, when file has been edited with Eclipse)
 * `# <codecell>` (IPython notebook cell separator)
 
 

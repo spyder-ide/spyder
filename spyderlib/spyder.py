@@ -1705,8 +1705,9 @@ Please provide any additional information below.
                 interact=interact, debug=debug, python=python,
                 python_args=unicode(python_args) )
         
-    def execute_python_code_in_external_console(self, lines):
-        """Execute lines in external or IPython console"""
+    def execute_in_external_console(self, lines, focus_to_editor):
+        """Execute lines in external or IPython console 
+        and eventually set focus to editor"""
         console = self.extconsole
         if self.ipyconsole is None\
            or self.last_console_plugin_focus_was_python:
@@ -1716,6 +1717,8 @@ Please provide any additional information below.
         console.visibility_changed(True)
         console.raise_()
         console.execute_python_code(lines)
+        if focus_to_editor:
+           self.editor.visibility_changed(True)
         
     def open_file(self, fname, external=False):
         """
