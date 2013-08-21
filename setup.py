@@ -145,9 +145,8 @@ def get_packages():
         # Windows platforms, so...)
         import shutil
         import atexit
-        extdir = 'external-py' + sys.version[0]
         for name in ('rope', 'pyflakes'):
-            srcdir = osp.join(extdir, name)
+            srcdir = osp.join('external-py2', name)
             if osp.isdir(srcdir):
                 dstdir = osp.join(LIBNAME, 'utils', 'external', name)
                 shutil.copytree(srcdir, dstdir)
