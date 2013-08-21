@@ -27,7 +27,7 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 """
 
-__version__ = '2.2.3'
+__version__ = '2.2.4dev'
 __license__ = __doc__
 __project_url__ = 'http://code.google.com/p/spyderlib'
 __forum_url__   = 'http://groups.google.com/group/spyderlib'
