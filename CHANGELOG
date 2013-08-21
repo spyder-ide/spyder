@@ -1,5 +1,54 @@
 = History of changes =
 
+== Version 2.2.3 ==
+
+=== Bug fixes (since v2.2.2) ===
+
+  * Issue  1438  runfile/debugfile in evaluated strings: replaced backslashes 
+by slashes in paths to avoid unicode decoding errors in Python 3 (or in Python 
+2 when future 'unicode_literals' has been imported)
+  * Issue   749  Editor/Outline explorer: fixed "outline duplicate entries" 
+bug when reloading file from disk (automatically,after the file has been 
+changed outside of Spyder)
+  * Issue   639  Project Explorer (tree view): added an optional horizontal scrollbar (this
+option may be enabled/disabled in the widget context menu)
+  * Issue   852  Removed old "Run current block" feature (due to bug and 
+unexpected behavior reports).
+  * Keyboard shortcuts: removing deprecated shortcuts at startup. Otherwise, when
+renaming the name of a registered shortcut (in the code), the old shortcut
+will stay in Spyder configuration file and opening the Preferences dialog will
+show a shortcut conflict dialog box. In other words, shortcuts were added to
+configuration file when registered but never removed if they were removed from
+the registered shortcuts in the code (or if their context or name was renamed).
+  * External console tabs: fixed history browsing with Ctrl+Tab and added 
+Shift+Ctrl+Tab support.
+
+=== Other Changes (since v2.2.2) ===
+
+  * New "Run selection" (F9), "Run cell" (Ctrl+Enter) and "Run cell and advance"
+(Shift+Enter) actions in "Run" menu entry, as a replacement to the old
+"Run selection or block" and "Run block and advance" actions.
+  * Added "Optional Dependencies" dialog box in "?" menu.
+  * Editor: added Monokai and Zenburn syntax coloring schemes.
+  * Preferences>Console>Advanced: new option to switch between the default Python
+executable (i.e. the one used to run Spyder itself) and the custom Python
+executable that the user may choose freely. This change avoid side-effects when
+switching from a Python distribution to another on the same OS (with the same
+Spyder configuration file): many users do not change the Python executable and
+because of the way it was written in externalconsole.py, changing from a
+distribution of Python to another with the same Spyder config file could lead to
+an unexpected configuration (Spyder is executed with the new interpreter but
+scripts inside Spyder are executed with the old interpreter).
+  * Run Icons: removed deprecated images, updated other images to the new design
+  * setup.py/Windows installers: now building CHM documentation for Windows
+  * SPYDER_DEBUG environment variable now supports 3 levels of debug mode:
+    * SPYDER_DEBUG=0 or False: debug mode is off
+    * SPYDER_DEBUG=1 or True: debug level 1 is on (internal console is disconnected)
+    * SPYDER_DEBUG=2: debug level 2 is on (+ logging coms with external Python processes)
+    * SPYDER_DEBUG=3: debug level 3 is on (+ enabling -v option in external Python processes and debugging editor)
+
+----
+
 == Version 2.2.2 ==
 
 === Bug fixes (since v2.2.1) ===
