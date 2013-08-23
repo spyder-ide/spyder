@@ -49,29 +49,15 @@ spyderlib/images/spyder_light.svg
 spyderlib/images/whole_words.png
 spyderlib/images/win_env.png
 spyderlib/images/actions/hist.png
-spyderlib/images/actions/maximize.png
-spyderlib/images/actions/stop_debug.png
-spyderlib/images/actions/unmaximize.png
-spyderlib/images/actions/window_fullscreen.png
 spyderlib/images/actions/window_nofullscreen.png
-spyderlib/images/console/terminated.png
-spyderlib/images/editor/breakpoint_big.png
-spyderlib/images/editor/breakpoint_cond_big.png
-spyderlib/images/editor/breakpoint_cond_small.png
-spyderlib/images/editor/breakpoint_small.png
-spyderlib/images/editor/debug.png
 spyderlib/images/editor/filelist.png
 spyderlib/images/editor/function.png
 spyderlib/images/editor/method.png
 spyderlib/images/editor/private1.png
 spyderlib/images/editor/private2.png
 spyderlib/images/editor/refactor.png
-spyderlib/images/editor/run.png
-spyderlib/images/editor/run_again.png
-spyderlib/images/editor/run_cell.png
-spyderlib/images/editor/run_cell_advance.png
-spyderlib/images/editor/run_selection.png
-spyderlib/images/editor/run_settings.png
+spyderlib/images/console/ipython_console.png
+spyderlib/images/console/ipython_console_t.png
 
 
 [2] Crystal Project Icons
@@ -97,10 +83,6 @@ spyderlib/images/actions/1downarrow.png
 spyderlib/images/actions/1uparrow.png
 spyderlib/images/actions/2downarrow.png
 spyderlib/images/actions/2uparrow.png
-spyderlib/images/actions/arrow-continue.png
-spyderlib/images/actions/arrow-step-in.png
-spyderlib/images/actions/arrow-step-out.png
-spyderlib/images/actions/arrow-step-over.png
 spyderlib/images/actions/auto_reload.png
 spyderlib/images/actions/browse_tab.png
 spyderlib/images/actions/check.png
@@ -155,12 +137,9 @@ spyderlib/images/console/console.png
 spyderlib/images/console/environ.png
 spyderlib/images/console/history.png
 spyderlib/images/console/history24.png
-spyderlib/images/console/ipython_console.png
-spyderlib/images/console/ipython_console_t.png
 spyderlib/images/console/kill.png
 spyderlib/images/console/prompt.png
 spyderlib/images/console/restart.png
-spyderlib/images/console/run_small.png
 spyderlib/images/console/syspath.png
 spyderlib/images/console/terminate.png
 spyderlib/images/editor/bug.png
@@ -321,3 +300,35 @@ spyderlib/images/filetypes/nsi.png
 
 [10] Eclipse Public License
 spyderlib/images/projects/pydev.png
+
+
+[11] Creative Commons Attribution 3.0 License
+(Yusuke Kamiyamane Icons)
+
+spyderlib/images/actions/arrow-continue.png
+spyderlib/images/actions/arrow-step-in.png
+spyderlib/images/actions/arrow-step-out.png
+spyderlib/images/actions/arrow-step-over.png
+spyderlib/images/actions/maximize.png
+spyderlib/images/actions/stop_debug.png
+spyderlib/images/actions/unmaximize.png
+spyderlib/images/actions/window_fullscreen.png
+spyderlib/images/editor/breakpoint_big.png
+spyderlib/images/editor/breakpoint_cond_big.png
+spyderlib/images/editor/breakpoint_cond_small.png
+spyderlib/images/editor/breakpoint_small.png
+spyderlib/images/editor/debug.png
+spyderlib/images/console/terminated.png
+
+
+[12] Creative Commons BY-SA license
+(The Oxygen icon theme)
+
+spyderlib/images/editor/run.png
+spyderlib/images/editor/run_again.png
+spyderlib/images/editor/run_cell.png
+spyderlib/images/editor/run_cell_advance.png
+spyderlib/images/editor/run_selection.png
+spyderlib/images/editor/run_settings.png
+spyderlib/images/console/run_small.png
+
