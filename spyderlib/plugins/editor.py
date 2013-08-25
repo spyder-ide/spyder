@@ -619,7 +619,8 @@ class Editor(SpyderPluginWidget):
                 triggered=self.close_all_files)
         self.register_shortcut(self.close_all_action, context="Editor",
                                name="Close all", default="Ctrl+Shift+W")
-        
+
+        # ---- Debug menu ----
         set_clear_breakpoint_action = create_action(self,
                                     _("Set/Clear breakpoint"),
                                     icon=get_icon("breakpoint_big.png"),
@@ -642,6 +643,11 @@ class Editor(SpyderPluginWidget):
         add_actions(breakpoints_menu, (set_clear_breakpoint_action,
                                        set_cond_breakpoint_action, None,
                                        clear_all_breakpoints_action))
+        self.winpdb_action = create_action(self, _("Debug with winpdb"),
+                                           triggered=self.run_winpdb)
+        self.winpdb_action.setEnabled(WINPDB_PATH is not None)
+        self.register_shortcut(self.winpdb_action, context="Editor",
+                               name="Debug with winpdb", default="F7")
         
         # --- Debug toolbar ---
         debug_action = create_action(self, _("&Debug"), icon='debug.png',
@@ -823,12 +829,6 @@ class Editor(SpyderPluginWidget):
                 triggered=self.unindent, context=Qt.WidgetShortcut)
         # ----------------------------------------------------------------------
         
-        self.winpdb_action = create_action(self, _("Debug with winpdb"),
-                                           triggered=self.run_winpdb)
-        self.winpdb_action.setEnabled(WINPDB_PATH is not None)
-        self.register_shortcut(self.winpdb_action, context="Editor",
-                               name="Debug with winpdb", default="F7")
-        
         self.win_eol_action = create_action(self,
                            _("Carriage return and line feed (Windows)"),
                            toggled=lambda: self.toggle_eol_chars('nt'))
@@ -900,22 +900,24 @@ class Editor(SpyderPluginWidget):
         self.main.search_menu_actions += self.search_menu_actions
         self.main.search_toolbar_actions += [gotoline_action]
           
-        # The breakpoints plugin is expecting that
-        # breakpoints_menu will be the first QMenu in run_menu_actions
-        # If breakpoints_menu must be moved below another QMenu in the list 
-        # please update the breakpoints plugin accordingly.         
-        run_menu_actions = [run_action, debug_action, configure_action,
-                            breakpoints_menu, debug_control_menu, None,
-                            re_run_action, run_selected_action,
-                            run_cell_action,
-                            run_cell_advance_action, None,
-                            self.winpdb_action]
+        # ---- Run menu/toolbar construction ----
+        run_menu_actions = [run_action, run_cell_action,
+                            run_cell_advance_action, None, run_selected_action,
+                            re_run_action, configure_action, None]
         self.main.run_menu_actions += run_menu_actions
         run_toolbar_actions = [run_action, run_cell_action,
                                run_cell_advance_action, re_run_action,
                                configure_action]
         self.main.run_toolbar_actions += run_toolbar_actions
         
+        # ---- Debug menu/toolbar construction ----
+        # The breakpoints plugin is expecting that
+        # breakpoints_menu will be the first QMenu in debug_menu_actions
+        # If breakpoints_menu must be moved below another QMenu in the list 
+        # please update the breakpoints plugin accordingly.  
+        debug_menu_actions = [debug_action, breakpoints_menu,
+                              debug_control_menu, None, self.winpdb_action]
+        self.main.debug_menu_actions += debug_menu_actions
         debug_toolbar_actions = [debug_action, debug_next_action,
                                  debug_step_action, debug_return_action,
                                  debug_continue_action, debug_exit_action]
