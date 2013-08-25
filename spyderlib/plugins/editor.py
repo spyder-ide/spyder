@@ -27,9 +27,9 @@ import os.path as osp
 
 # Local imports
 from spyderlib.utils import encoding, sourcecode, codeanalysis
-from spyderlib.baseconfig import get_conf_path, _, STDOUT
+from spyderlib.baseconfig import get_conf_path, _
 from spyderlib.config import CONF, EDIT_FILTERS, get_filter, EDIT_FILETYPES
-from spyderlib.guiconfig import get_color_scheme
+from spyderlib.guiconfig import get_color_scheme, get_shortcut
 from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions,
                                        get_std_icon, get_filetype_icon)
@@ -691,6 +691,9 @@ class Editor(SpyderPluginWidget):
                                    triggered=self.run_file)
         self.register_shortcut(run_action, context="Editor",
                                name="Run", default="F5")
+        run_action.setToolTip(run_action.toolTip() + ' (%s)' %
+                              get_shortcut(context="Editor", name="Run"))
+
         configure_action = create_action(self,
                                _("&Configure..."), icon='run_settings.png',
                                tip=_("Run settings"),
@@ -698,33 +701,40 @@ class Editor(SpyderPluginWidget):
                                triggered=self.edit_run_configurations)
         self.register_shortcut(configure_action, context="Editor",
                                name="Configure", default="F6")
+        configure_action.setToolTip(configure_action.toolTip() + ' (%s)' %
+                                    get_shortcut(context="Editor",
+                                                 name="Configure"))
+        
         re_run_action = create_action(self,
                             _("Re-run &last script"), icon='run_again.png',
                             tip=_("Run again last file"),
                             triggered=self.re_run_file)
         self.register_shortcut(re_run_action, context="Editor",
                                name="Re-run last script", default="Ctrl+F6")
-        
+        re_run_action.setToolTip(re_run_action.toolTip() + ' (%s)' %
+                                 get_shortcut(context="Editor",
+                                              name="Re-run last script"))
+
         run_selected_action = create_action(self, _("Run &selection"),
                                             icon='run_selection.png',
                                             tip=_("Run selection"),
                                             triggered=self.run_selection)
         self.register_shortcut(run_selected_action, context="Editor",
                                name="Run selection", default="F9")
+
         run_cell_action = create_action(self,
                             _("Run cell"), icon='run_cell.png',
                             shortcut=QKeySequence("Ctrl+Enter"),
-                            tip=_("Run current cell \n"\
-                                  "(see Editor documentation \n"\
-                                  "for more details on cells)"),
+                            tip=_("Run current cell (Ctrl+Enter)\n"
+                                  "[Use #%% to create cells]"),
                             triggered=self.run_cell)
+
         run_cell_advance_action = create_action(self,
                             _("Run cell and advance"),
                             icon='run_cell_advance.png',
                             shortcut=QKeySequence("Shift+Enter"),
-                            tip=_("Run current cell and go to the next one\n"\
-                                  "(see Editor documentation \n"\
-                                  "for more details on cells)"),
+                            tip=_("Run current cell and go to "
+                                  "the next one (Shift+Enter)"),
                             triggered=self.run_cell_and_advance)
         
         # --- Source code Toolbar ---
