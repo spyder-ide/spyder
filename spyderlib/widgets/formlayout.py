@@ -36,6 +36,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 from __future__ import print_function
 
 # History:
+# 1.0.15: added support for multiline strings
 # 1.0.14: fixed Python 3 support (regression in 1.0.13)
 # 1.0.13: replaced obsolete QColorDialog.getRgba function and fixed other 
 #         compatibility issues with PySide (see Issue 8 of formlayout website)
@@ -45,7 +46,7 @@ from __future__ import print_function
 # 1.0.7: added support for "Apply" button
 # 1.0.6: code cleaning
 
-__version__ = '1.0.13'
+__version__ = '1.0.15'
 __license__ = __doc__
 
 
@@ -66,7 +67,7 @@ import datetime
 
 # Local imports
 from spyderlib.baseconfig import _, DEBUG, STDERR
-from spyderlib.py3compat import is_text_string, to_text_string, is_string
+from spyderlib.py3compat import is_text_string, to_text_string, is_string, u
 
 DEBUG_FORMLAYOUT = DEBUG >= 2
 
@@ -270,7 +271,13 @@ class FormWidget(QWidget):
             elif text_to_qcolor(value).isValid():
                 field = ColorLayout(QColor(value), self)
             elif is_text_string(value):
-                field = QLineEdit(value, self)
+                if '\n' in value:
+                    for linesep in (os.linesep, '\n'):
+                        if linesep in value:
+                            value = value.replace(linesep, u("\u2029"))
+                    field = QTextEdit(value, self)
+                else:
+                    field = QLineEdit(value, self)
             elif isinstance(value, (list, tuple)):
                 value = list(value)  # in case this is a tuple
                 selindex = value.pop(0)
@@ -326,7 +333,11 @@ class FormWidget(QWidget):
             elif tuple_to_qfont(value) is not None:
                 value = field.get_font()
             elif is_text_string(value):
-                value = to_text_string(field.text())
+                if isinstance(field, QTextEdit):
+                    value = to_text_string(field.toPlainText()
+                                           ).replace(u("\u2029"), os.linesep)
+                else:
+                    value = to_text_string(field.text())
             elif isinstance(value, (list, tuple)):
                 index = int(field.currentIndex())
                 if isinstance(value[0], int):
@@ -529,6 +540,9 @@ if __name__ == "__main__":
 
     def create_datalist_example():
         return [('str', 'this is a string'),
+                ('str', """this is a 
+                MULTILINE
+                string"""),
                 ('list', [0, '1', '3', '4']),
                 ('list2', ['--', ('none', 'None'), ('--', 'Dashed'),
                            ('-.', 'DashDot'), ('-', 'Solid'),
