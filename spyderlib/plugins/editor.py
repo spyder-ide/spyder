@@ -656,34 +656,51 @@ class Editor(SpyderPluginWidget):
                                      triggered=self.debug_file)
         self.register_shortcut(debug_action, context="Editor",
                                name="Debug", default="Ctrl+F5")
+        add_shortcut_to_tooltip(debug_action, context="Editor", name="Debug")
+        
         debug_next_action = create_action(self, _("Step"), 
                icon='arrow-step-over.png', tip=_("Run current line"), 
                triggered=lambda: self.debug_command("next")) 
         self.register_shortcut(debug_next_action, "_",
                    "Debug Step Over", "Ctrl+F10")
+        add_shortcut_to_tooltip(debug_next_action, context="_",
+                                name="Debug Step Over")
+
         debug_continue_action = create_action(self, _("Continue"),
-               icon='arrow-continue.png', tip=_("Continue execution until\n"
+               icon='arrow-continue.png', tip=_("Continue execution until "
                                                 "next breakpoint"), 
                triggered=lambda: self.debug_command("continue"))                                                 
         self.register_shortcut(debug_continue_action, "_",
                    "Debug Continue", "Ctrl+F12")
+        add_shortcut_to_tooltip(debug_continue_action, context="_",
+                                name="Debug Continue")
+
         debug_step_action = create_action(self, _("Step Into"), 
-               icon='arrow-step-in.png', tip=_("Step into function, method\n"
-                                               "or class of current line"), 
+               icon='arrow-step-in.png', tip=_("Step into function or method "
+                                               "of current line"), 
                triggered=lambda: self.debug_command("step"))                
         self.register_shortcut(debug_step_action, "_",
-                   "Debug Step Into", "Ctrl+F11")                             
+                   "Debug Step Into", "Ctrl+F11")
+        add_shortcut_to_tooltip(debug_step_action, context="_",
+                                name="Debug Step Into")
+
         debug_return_action = create_action(self, _("Step Return"), 
-               icon='arrow-step-out.png', tip=_("Run until current function\n"
+               icon='arrow-step-out.png', tip=_("Run until current function "
                                                 "or method returns"), 
                triggered=lambda: self.debug_command("return"))               
         self.register_shortcut(debug_return_action, "_",
                    "Debug Step Return", "Ctrl+Shift+F11")
+        add_shortcut_to_tooltip(debug_return_action, context="_",
+                                name="Debug Step Return")
+
         debug_exit_action = create_action(self, _("Exit"),
                icon='stop_debug.png', tip=_("Exit Debug"), 
                triggered=lambda: self.debug_command("exit"))                                       
         self.register_shortcut(debug_exit_action, "_",
-                   "Debug Exit", "Ctrl+Shift+F12")        
+                   "Debug Exit", "Ctrl+Shift+F12")
+        add_shortcut_to_tooltip(debug_exit_action, context="_",
+                                name="Debug Exit")
+
         debug_control_menu_actions = [debug_next_action,
                                       debug_step_action,
                                       debug_return_action,
