@@ -29,10 +29,11 @@ import os.path as osp
 from spyderlib.utils import encoding, sourcecode, codeanalysis
 from spyderlib.baseconfig import get_conf_path, _
 from spyderlib.config import CONF, EDIT_FILTERS, get_filter, EDIT_FILETYPES
-from spyderlib.guiconfig import get_color_scheme, get_shortcut
+from spyderlib.guiconfig import get_color_scheme
 from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions,
-                                       get_std_icon, get_filetype_icon)
+                                       get_std_icon, get_filetype_icon,
+                                       add_shortcut_to_tooltip)
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.status import (ReadWriteStatus, EOLStatus,
                                       EncodingStatus, CursorPositionStatus)
@@ -697,8 +698,7 @@ class Editor(SpyderPluginWidget):
                                    triggered=self.run_file)
         self.register_shortcut(run_action, context="Editor",
                                name="Run", default="F5")
-        run_action.setToolTip(run_action.toolTip() + ' (%s)' %
-                              get_shortcut(context="Editor", name="Run"))
+        add_shortcut_to_tooltip(run_action, context="Editor", name="Run")
 
         configure_action = create_action(self,
                                _("&Configure..."), icon='run_settings.png',
@@ -707,9 +707,8 @@ class Editor(SpyderPluginWidget):
                                triggered=self.edit_run_configurations)
         self.register_shortcut(configure_action, context="Editor",
                                name="Configure", default="F6")
-        configure_action.setToolTip(configure_action.toolTip() + ' (%s)' %
-                                    get_shortcut(context="Editor",
-                                                 name="Configure"))
+        add_shortcut_to_tooltip(configure_action, context="Editor",
+                                name="Configure")
         
         re_run_action = create_action(self,
                             _("Re-run &last script"), icon='run_again.png',
@@ -717,9 +716,8 @@ class Editor(SpyderPluginWidget):
                             triggered=self.re_run_file)
         self.register_shortcut(re_run_action, context="Editor",
                                name="Re-run last script", default="Ctrl+F6")
-        re_run_action.setToolTip(re_run_action.toolTip() + ' (%s)' %
-                                 get_shortcut(context="Editor",
-                                              name="Re-run last script"))
+        add_shortcut_to_tooltip(re_run_action, context="Editor",
+                                name="Re-run last script")
 
         run_selected_action = create_action(self, _("Run &selection"),
                                             icon='run_selection.png',

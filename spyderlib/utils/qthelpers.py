@@ -21,6 +21,7 @@ import sys
 
 # Local import
 from spyderlib.baseconfig import get_image_path
+from spyderlib.guiconfig import get_shortcut
 from spyderlib.utils import programs
 
 # Note: How to redirect a signal from widget *a* to widget *b* ?
@@ -260,6 +261,12 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
     #  since the context thing doesn't work quite well with these widgets)
     action.setShortcutContext(context)
     return action
+
+
+def add_shortcut_to_tooltip(action, context, name):
+    """Add the shortcut associated with a given action to its tooltip"""
+    action.setToolTip(action.toolTip() + ' (%s)' %
+                      get_shortcut(context=context, name=name))
 
 
 def add_actions(target, actions, insert_before=None):
