@@ -32,7 +32,8 @@ from spyderlib.config import CONF, EDIT_FILTERS, get_filter, EDIT_FILETYPES
 from spyderlib.guiconfig import get_color_scheme
 from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions,
-                                       get_std_icon, get_filetype_icon)
+                                       get_std_icon, get_filetype_icon,
+                                       add_shortcut_to_tooltip)
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.status import (ReadWriteStatus, EOLStatus,
                                       EncodingStatus, CursorPositionStatus)
@@ -622,7 +623,8 @@ class Editor(SpyderPluginWidget):
                 triggered=self.close_all_files)
         self.register_shortcut(self.close_all_action, context="Editor",
                                name="Close all", default="Ctrl+Shift+W")
-        
+
+        # ---- Debug menu ----
         set_clear_breakpoint_action = create_action(self,
                                     _("Set/Clear breakpoint"),
                                     icon=get_icon("breakpoint_big.png"),
@@ -645,6 +647,11 @@ class Editor(SpyderPluginWidget):
         add_actions(breakpoints_menu, (set_clear_breakpoint_action,
                                        set_cond_breakpoint_action, None,
                                        clear_all_breakpoints_action))
+        self.winpdb_action = create_action(self, _("Debug with winpdb"),
+                                           triggered=self.run_winpdb)
+        self.winpdb_action.setEnabled(WINPDB_PATH is not None)
+        self.register_shortcut(self.winpdb_action, context="Editor",
+                               name="Debug with winpdb", default="F7")
         
         # --- Debug toolbar ---
         debug_action = create_action(self, _("&Debug"), icon='debug.png',
@@ -652,34 +659,51 @@ class Editor(SpyderPluginWidget):
                                      triggered=self.debug_file)
         self.register_shortcut(debug_action, context="Editor",
                                name="Debug", default="Ctrl+F5")
+        add_shortcut_to_tooltip(debug_action, context="Editor", name="Debug")
+        
         debug_next_action = create_action(self, _("Step"), 
                icon='arrow-step-over.png', tip=_("Run current line"), 
                triggered=lambda: self.debug_command("next")) 
         self.register_shortcut(debug_next_action, "_",
                    "Debug Step Over", "Ctrl+F10")
+        add_shortcut_to_tooltip(debug_next_action, context="_",
+                                name="Debug Step Over")
+
         debug_continue_action = create_action(self, _("Continue"),
-               icon='arrow-continue.png', tip=_("Continue execution until\n"
+               icon='arrow-continue.png', tip=_("Continue execution until "
                                                 "next breakpoint"), 
                triggered=lambda: self.debug_command("continue"))                                                 
         self.register_shortcut(debug_continue_action, "_",
                    "Debug Continue", "Ctrl+F12")
+        add_shortcut_to_tooltip(debug_continue_action, context="_",
+                                name="Debug Continue")
+
         debug_step_action = create_action(self, _("Step Into"), 
-               icon='arrow-step-in.png', tip=_("Step into function, method\n"
-                                               "or class of current line"), 
+               icon='arrow-step-in.png', tip=_("Step into function or method "
+                                               "of current line"), 
                triggered=lambda: self.debug_command("step"))                
         self.register_shortcut(debug_step_action, "_",
-                   "Debug Step Into", "Ctrl+F11")                             
+                   "Debug Step Into", "Ctrl+F11")
+        add_shortcut_to_tooltip(debug_step_action, context="_",
+                                name="Debug Step Into")
+
         debug_return_action = create_action(self, _("Step Return"), 
-               icon='arrow-step-out.png', tip=_("Run until current function\n"
+               icon='arrow-step-out.png', tip=_("Run until current function "
                                                 "or method returns"), 
                triggered=lambda: self.debug_command("return"))               
         self.register_shortcut(debug_return_action, "_",
                    "Debug Step Return", "Ctrl+Shift+F11")
+        add_shortcut_to_tooltip(debug_return_action, context="_",
+                                name="Debug Step Return")
+
         debug_exit_action = create_action(self, _("Exit"),
                icon='stop_debug.png', tip=_("Exit Debug"), 
                triggered=lambda: self.debug_command("exit"))                                       
         self.register_shortcut(debug_exit_action, "_",
-                   "Debug Exit", "Ctrl+Shift+F12")        
+                   "Debug Exit", "Ctrl+Shift+F12")
+        add_shortcut_to_tooltip(debug_exit_action, context="_",
+                                name="Debug Exit")
+
         debug_control_menu_actions = [debug_next_action,
                                       debug_step_action,
                                       debug_return_action,
@@ -694,6 +718,8 @@ class Editor(SpyderPluginWidget):
                                    triggered=self.run_file)
         self.register_shortcut(run_action, context="Editor",
                                name="Run", default="F5")
+        add_shortcut_to_tooltip(run_action, context="Editor", name="Run")
+
         configure_action = create_action(self,
                                _("&Configure..."), icon='run_settings.png',
                                tip=_("Run settings"),
@@ -701,33 +727,38 @@ class Editor(SpyderPluginWidget):
                                triggered=self.edit_run_configurations)
         self.register_shortcut(configure_action, context="Editor",
                                name="Configure", default="F6")
+        add_shortcut_to_tooltip(configure_action, context="Editor",
+                                name="Configure")
+        
         re_run_action = create_action(self,
                             _("Re-run &last script"), icon='run_again.png',
                             tip=_("Run again last file"),
                             triggered=self.re_run_file)
         self.register_shortcut(re_run_action, context="Editor",
                                name="Re-run last script", default="Ctrl+F6")
-        
+        add_shortcut_to_tooltip(re_run_action, context="Editor",
+                                name="Re-run last script")
+
         run_selected_action = create_action(self, _("Run &selection"),
                                             icon='run_selection.png',
                                             tip=_("Run selection"),
                                             triggered=self.run_selection)
         self.register_shortcut(run_selected_action, context="Editor",
                                name="Run selection", default="F9")
+
         run_cell_action = create_action(self,
                             _("Run cell"), icon='run_cell.png',
                             shortcut=QKeySequence("Ctrl+Enter"),
-                            tip=_("Run current cell \n"\
-                                  "(see Editor documentation \n"\
-                                  "for more details on cells)"),
+                            tip=_("Run current cell (Ctrl+Enter)\n"
+                                  "[Use #%% to create cells]"),
                             triggered=self.run_cell)
+
         run_cell_advance_action = create_action(self,
                             _("Run cell and advance"),
                             icon='run_cell_advance.png',
                             shortcut=QKeySequence("Shift+Enter"),
-                            tip=_("Run current cell and go to the next one\n"\
-                                  "(see Editor documentation \n"\
-                                  "for more details on cells)"),
+                            tip=_("Run current cell and go to "
+                                  "the next one (Shift+Enter)"),
                             triggered=self.run_cell_and_advance)
         
         # --- Source code Toolbar ---
@@ -816,12 +847,6 @@ class Editor(SpyderPluginWidget):
                 triggered=self.unindent, context=Qt.WidgetShortcut)
         # ----------------------------------------------------------------------
         
-        self.winpdb_action = create_action(self, _("Debug with winpdb"),
-                                           triggered=self.run_winpdb)
-        self.winpdb_action.setEnabled(WINPDB_PATH is not None)
-        self.register_shortcut(self.winpdb_action, context="Editor",
-                               name="Debug with winpdb", default="F7")
-        
         self.win_eol_action = create_action(self,
                            _("Carriage return and line feed (Windows)"),
                            toggled=lambda: self.toggle_eol_chars('nt'))
@@ -893,22 +918,24 @@ class Editor(SpyderPluginWidget):
         self.main.search_menu_actions += self.search_menu_actions
         self.main.search_toolbar_actions += [gotoline_action]
           
-        # The breakpoints plugin is expecting that
-        # breakpoints_menu will be the first QMenu in run_menu_actions
-        # If breakpoints_menu must be moved below another QMenu in the list 
-        # please update the breakpoints plugin accordingly.         
-        run_menu_actions = [run_action, debug_action, configure_action,
-                            breakpoints_menu, debug_control_menu, None,
-                            re_run_action, run_selected_action,
-                            run_cell_action,
-                            run_cell_advance_action, None,
-                            self.winpdb_action]
+        # ---- Run menu/toolbar construction ----
+        run_menu_actions = [run_action, run_cell_action,
+                            run_cell_advance_action, None, run_selected_action,
+                            re_run_action, configure_action, None]
         self.main.run_menu_actions += run_menu_actions
         run_toolbar_actions = [run_action, run_cell_action,
                                run_cell_advance_action, re_run_action,
                                configure_action]
         self.main.run_toolbar_actions += run_toolbar_actions
         
+        # ---- Debug menu/toolbar construction ----
+        # The breakpoints plugin is expecting that
+        # breakpoints_menu will be the first QMenu in debug_menu_actions
+        # If breakpoints_menu must be moved below another QMenu in the list 
+        # please update the breakpoints plugin accordingly.  
+        debug_menu_actions = [debug_action, breakpoints_menu,
+                              debug_control_menu, None, self.winpdb_action]
+        self.main.debug_menu_actions += debug_menu_actions
         debug_toolbar_actions = [debug_action, debug_next_action,
                                  debug_step_action, debug_return_action,
                                  debug_continue_action, debug_exit_action]
