@@ -204,7 +204,10 @@ class ExternalPythonShell(ExternalShellBase):
                                    menu_actions=menu_actions,
                                    show_buttons_inside=show_buttons_inside,
                                    show_elapsed_time=show_elapsed_time)
-        
+
+        if self.pythonexecutable is None:
+            self.pythonexecutable = get_python_executable()
+
         self.python_args = None
         if python_args:
             assert isinstance(python_args, basestring)
@@ -489,10 +492,6 @@ The process may not exit as a result of clicking this button
                      self.process.kill)
         
         #-------------------------Python specific-------------------------------
-        executable = self.pythonexecutable
-        if executable is None:
-            executable = get_python_executable()
-        
         # Fixes for our Mac app:
         # 1. PYTHONPATH and PYTHONHOME are set while bootstrapping the app,
         #    but their values are messing sys.path for external interpreters
@@ -502,8 +501,8 @@ The process may not exit as a result of clicking this button
         # 3. Remove PYTHONOPTIMIZE from env so that we can have assert
         #    statements working with our interpreters (See Issue 1281)
         if sys.platform == 'darwin' and 'Spyder.app' in __file__:
-            env.append('SPYDER_INTERPRETER=%s' % executable)
-            if 'Spyder.app' not in executable:
+            env.append('SPYDER_INTERPRETER=%s' % self.pythonexecutable)
+            if 'Spyder.app' not in self.pythonexecutable:
                 env = [p for p in env if not (p.startswith('PYTHONPATH') or \
                                               p.startswith('PYTHONHOME'))] # 1.
 
@@ -512,7 +511,7 @@ The process may not exit as a result of clicking this button
             env = [p for p in env if not p.startswith('PYTHONOPTIMIZE')]   # 3.
 
         self.process.setEnvironment(env)
-        self.process.start(executable, p_args)
+        self.process.start(self.pythonexecutable, p_args)
         #-------------------------Python specific-------------------------------
             
         running = self.process.waitForStarted()
