@@ -44,7 +44,7 @@ class BreakpointTableModel(QAbstractTableModel):
     def set_data(self, data):
         """Set model data"""
         self._data = data
-        keys = data.keys()
+        keys = list(data.keys())
         self.breakpoints = []
         for key in keys:
             bp_list = data[key]
@@ -195,7 +195,7 @@ class BreakpointWidget(QWidget):
     
     def _load_all_breakpoints(self):
         bp_dict = CONF.get('run', 'breakpoints', {})
-        for filename in bp_dict.keys():
+        for filename in list(bp_dict.keys()):
             if not osp.isfile(filename):
                 bp_dict.pop(filename)
         return bp_dict    
