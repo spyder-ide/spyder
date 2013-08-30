@@ -18,8 +18,10 @@ import sys
 from spyderlib.qt.QtGui import (QTextCursor, QColor, QFont, QApplication,
                                 QTextEdit, QTextCharFormat, QToolTip,
                                 QListWidget, QPlainTextEdit, QPalette,
-                                QMainWindow, QTextOption, QMouseEvent)
+                                QMainWindow, QTextOption, QMouseEvent,
+                                QTextFormat)
 from spyderlib.qt.QtCore import QPoint, SIGNAL, Qt, QEventLoop, QEvent
+from spyderlib.qt.compat import to_qvariant
 
 
 # Local imports
@@ -210,6 +212,9 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.calltip_size = 600
         self.calltip_font = QFont()
         self.completion_text = ""
+        
+        # Highlight current line color
+        self.currentline_color = QColor(Qt.red).lighter(190)
 
         # Brace matching
         self.bracepos = None
@@ -235,13 +240,15 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         palette.setColor(QPalette.Base, background)
         palette.setColor(QPalette.Text, foreground)
         self.setPalette(palette)
-        
+
+
     #------Line number area
     def get_linenumberarea_width(self):
         """Return line number area width"""
         # Implemented in CodeEditor, but needed here for completion widget
         return 0
-        
+
+
     #------Extra selections
     def get_extra_selections(self, key):
         return self.extra_selections_dict.get(key, [])
@@ -251,8 +258,13 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         
     def update_extra_selections(self):
         extra_selections = []
-        for _key, extra in list(self.extra_selections_dict.items()):
-            extra_selections.extend(extra)
+        for key, extra in list(self.extra_selections_dict.items()):
+            if key == 'current_line':
+                # Python 3 compatibility (weird): current line has to be 
+                # highlighted first
+                extra_selections = extra + extra_selections
+            else:
+                extra_selections += extra
         self.setExtraSelections(extra_selections)
         
     def clear_extra_selections(self, key):
@@ -264,6 +276,23 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         """Emit changed signal"""
         self.emit(SIGNAL('modificationChanged(bool)'),
                   self.document().isModified())
+
+
+    #------Highlight current line
+    def highlight_current_line(self):
+        """Highlight current line"""
+        selection = QTextEdit.ExtraSelection()
+        selection.format.setProperty(QTextFormat.FullWidthSelection,
+                                     to_qvariant(True))
+        selection.format.setBackground(self.currentline_color)
+        selection.cursor = self.textCursor()
+        selection.cursor.clearSelection()
+        self.set_extra_selections('current_line', [selection])
+        self.update_extra_selections()
+
+    def unhighlight_current_line(self):
+        """Unhighlight current line"""
+        self.clear_extra_selections('current_line')
 
 
     #------Brace matching
