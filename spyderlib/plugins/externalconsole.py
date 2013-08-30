@@ -927,14 +927,44 @@ class ExternalConsole(SpyderPluginWidget):
                              self.open_file_in_spyder)
             if fname is None:
                 if ipykernel:
-                    tab_name = _("Kernel")
-                    tab_icon1 = get_icon('ipython_console.png')
-                    tab_icon2 = get_icon('ipython_console_t.png')
-                    if ipyclient:
-                        self.connect(shellwidget,
-                                 SIGNAL('create_ipython_client(QString)'),
-                                 lambda cf: self.create_ipyclient(
-                                         cf, kernel_widget=shellwidget))
+                    # Detect if kernel and frontend match or not
+                    if self.get_option('pythonexecutable/custom'):
+                        frontend_ver = programs.get_module_version('IPython')
+                        if '0.13' in frontend_ver:
+                            frontend_ver = '<1.0'
+                        else:
+                            frontend_ver = '>=1.0'
+                        pyexec = self.get_option('pythonexecutable')
+                        kernel_and_frontend_match = \
+                          programs.is_module_installed('IPython',
+                                                       version=frontend_ver,
+                                                       interpreter=pyexec)
+                    else:
+                        kernel_and_frontend_match = True
+                    
+                    # Create a a kernel tab only if frontend and kernel
+                    # versions match
+                    if kernel_and_frontend_match:
+                        tab_name = _("Kernel")
+                        tab_icon1 = get_icon('ipython_console.png')
+                        tab_icon2 = get_icon('ipython_console_t.png')
+                        if ipyclient:
+                            self.connect(shellwidget,
+                                     SIGNAL('create_ipython_client(QString)'),
+                                     lambda cf: self.create_ipyclient(
+                                             cf, kernel_widget=shellwidget))
+                    else:
+                        QMessageBox.critical(self,
+                                     _("Mismatch between kernel and frontend"),
+                                     _("Your IPython frontend and kernel "
+                                       "versions are <b>incompatible!!</b>"
+                                       "<br><br>"
+                                       "We're sorry but we can't create an "
+                                       "IPython console for you."
+                                      ), QMessageBox.Ok)
+                        shellwidget.deleteLater()
+                        shellwidget = None
+                        return
                 else:
                     self.python_count += 1
                     tab_name = "Python %d" % self.python_count
