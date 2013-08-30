@@ -31,9 +31,12 @@ import time
 # IPython imports
 from IPython.config.loader import Config, load_pyconfig_files
 from IPython.core.application import get_ipython_dir
-from IPython.qt.manager import QtKernelManager
 from IPython.lib.kernel import find_connection_file
-
+try:
+    from IPython.qt.manager import QtKernelManager # 1.0
+except ImportError:
+    from IPython.frontend.qt.kernelmanager import QtKernelManager # 0.13
+    
 # Local imports
 from spyderlib import dependencies
 from spyderlib.baseconfig import get_conf_path, _
@@ -617,9 +620,12 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         Reimplement Qt method to stop sending the custom_restart_kernel_died
         signal
         """
-        kc = self.ipywidget.kernel_client
-        kc.hb_channel.pause()
-            
+        if programs.is_module_installed('IPython', '>=1.0'):
+            kc = self.ipywidget.kernel_client
+            kc.hb_channel.pause()
+        else:
+            self.ipywidget.custom_restart = False
+
 
 class IPythonConsole(SpyderPluginWidget):
     """
@@ -825,14 +831,19 @@ class IPythonConsole(SpyderPluginWidget):
             client.set_font(font)
 
     def create_kernel_manager_and_client(self, connection_file=None):
-        """Create a kernel manager"""
+        """Create kernel manager and client"""
         cf = find_connection_file(connection_file, profile='default')
         kernel_manager = QtKernelManager(connection_file=cf, config=None)
-        kernel_client = kernel_manager.client()
-        kernel_client.load_connection_file()
-        kernel_client.start_channels()
-        # To rely on kernel's heartbeat to know when a kernel has died
-        kernel_client.hb_channel.unpause()
+        if programs.is_module_installed('IPython', '>=1.0'):
+            kernel_client = kernel_manager.client()
+            kernel_client.load_connection_file()
+            kernel_client.start_channels()
+            # To rely on kernel's heartbeat to know when a kernel has died
+            kernel_client.hb_channel.unpause()
+        else:
+            kernel_client = None
+            kernel_manager.load_connection_file()
+            kernel_manager.start_channels()
         return kernel_manager, kernel_client
 
     def new_ipywidget(self, connection_file=None, config=None):

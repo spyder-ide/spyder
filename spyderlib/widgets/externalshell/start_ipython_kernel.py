@@ -132,8 +132,9 @@ def kernel_config():
 def set_edit_magic(shell):
     """Use %edit to open files in Spyder"""
     from spyderlib.utils import programs
+    from spyderlib.baseconfig import IPYTHON_QT_MODULE, SUPPORTED_IPYTHON
     
-    if programs.is_module_installed('IPython.qt', '>=0.13'):
+    if programs.is_module_installed(IPYTHON_QT_MODULE, SUPPORTED_IPYTHON):
         # For some users, trying to replace %edit with open_in_spyder could
         # give a crash when starting a kernel. I've seen it after updating
         # from 2.1
@@ -163,8 +164,11 @@ __name__ = '__main__'
 sys.path.insert(0, '')
 
 # Fire up the kernel instance.
-from IPython.kernel.zmq.kernelapp import IPKernelApp
-
+try:
+    from IPython.kernel.zmq.kernelapp import IPKernelApp  # 1.0
+except:
+    from IPython.zmq.ipkernel import IPKernelApp  # 0.13  (analysis:ignore)
+    
 ipk_temp = IPKernelApp.instance()
 ipk_temp.config = kernel_config()
 ipk_temp.initialize()
