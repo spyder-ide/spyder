@@ -28,9 +28,12 @@ import time
 
 from IPython.config.loader import Config, load_pyconfig_files
 from IPython.core.application import get_ipython_dir
-from IPython.frontend.qt.kernelmanager import QtKernelManager
 from IPython.lib.kernel import find_connection_file
-
+try:
+    from IPython.qt.manager import QtKernelManager # 1.0
+except ImportError:
+    from IPython.frontend.qt.kernelmanager import QtKernelManager # 0.13
+    
 # Local imports
 from spyderlib import dependencies
 from spyderlib.baseconfig import get_conf_path, _
@@ -611,8 +614,12 @@ class IPythonClient(QWidget, SaveHistoryMixin):
     def closeEvent(self, event):
         """Reimplement Qt method to stop sending the custom_restart_kernel_died
         signal"""
-        self.ipywidget.custom_restart = False
-            
+        if programs.is_module_installed('IPython', '>=1.0'):
+            kc = self.ipywidget.kernel_client
+            kc.hb_channel.pause()
+        else:
+            self.ipywidget.custom_restart = False
+
 
 class IPythonConsole(SpyderPluginWidget):
     """
@@ -817,21 +824,30 @@ class IPythonConsole(SpyderPluginWidget):
         for client in self.clients:
             client.set_font(font)
 
-    def create_kernel_manager(self, connection_file=None):
-        """Create a kernel manager"""
+    def create_kernel_manager_and_client(self, connection_file=None):
+        """Create kernel manager and client"""
         cf = find_connection_file(connection_file, profile='default')
         kernel_manager = QtKernelManager(connection_file=cf, config=None)
-        kernel_manager.load_connection_file()
-        kernel_manager.start_channels()
-        return kernel_manager
+        if programs.is_module_installed('IPython', '>=1.0'):
+            kernel_client = kernel_manager.client()
+            kernel_client.load_connection_file()
+            kernel_client.start_channels()
+            # To rely on kernel's heartbeat to know when a kernel has died
+            kernel_client.hb_channel.unpause()
+        else:
+            kernel_client = None
+            kernel_manager.load_connection_file()
+            kernel_manager.start_channels()
+        return kernel_manager, kernel_client
 
     def new_ipywidget(self, connection_file=None, config=None):
         """
         Create and return a new IPyhon widget from a connection file basename
         """
-        kernel_manager = self.create_kernel_manager(connection_file)
+        km, kc = self.create_kernel_manager_and_client(connection_file)
         widget = SpyderIPythonWidget(config=config, local_kernel=False)
-        widget.kernel_manager = kernel_manager
+        widget.kernel_manager = km
+        widget.kernel_client = kc
         return widget
     
     #------ Public API --------------------------------------------------------
@@ -1165,8 +1181,9 @@ class IPythonConsole(SpyderPluginWidget):
         self.extconsole.set_ipykernel_attrs(connection_file, kernel_widget)
         
         # Connect client to new kernel
-        kernel_manager = self.create_kernel_manager(connection_file)        
-        client.ipywidget.kernel_manager = kernel_manager
+        km, kc = self.create_kernel_manager_and_client(connection_file)        
+        client.ipywidget.kernel_manager = km
+        client.ipywidget.kernel_client = kc
         client.kernel_widget_id = id(kernel_widget)
         client.get_control().setFocus()
         

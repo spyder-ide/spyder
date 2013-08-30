@@ -9,7 +9,10 @@ IPython v0.13+ client's widget
 """
 
 # IPython imports
-from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
+try:  # 1.0
+    from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
+except ImportError: # 0.13
+    from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
 
 # Qt imports
 from spyderlib.qt.QtGui import QTextEdit, QKeySequence, QShortcut
@@ -18,6 +21,7 @@ from spyderlib.utils.qthelpers import restore_keyevent
 
 # Local imports
 from spyderlib.config import CONF
+from spyderlib.utils import programs
 from spyderlib.widgets.mixins import (BaseEditMixin, InspectObjectMixin,
                                       TracebackLinksMixin)
 
@@ -185,7 +189,10 @@ f, g, h = symbols('f g h', cls=Function)
         but only if the kernel is currently looking for raw input.
         """
         if self._reading:
-            self.kernel_manager.stdin_channel.input(line)
+            if programs.is_module_installed('IPython', '>=1.0'):
+                self.kernel_client.stdin_channel.input(line)
+            else:
+                self.kernel_manager.stdin_channel.input(line)
 
     #---- IPython private methods ---------------------------------------------
     def _context_menu_make(self, pos):

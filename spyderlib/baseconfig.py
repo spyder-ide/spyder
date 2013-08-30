@@ -19,9 +19,13 @@ import sys
 
 # Local imports
 from spyderlib import __version__
+from spyderlib.utils import programs
 
-
-SUPPORTED_IPYTHON = '>=0.13;<1.0'
+SUPPORTED_IPYTHON = '>=0.13'
+if programs.is_module_installed('IPython', '>=1.0'):
+    IPYTHON_QT_MODULE = 'IPython.qt'
+else:
+    IPYTHON_QT_MODULE = 'IPython.frontend.qt'
 
 #==============================================================================
 # Debug helpers

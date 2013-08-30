@@ -19,7 +19,8 @@ import sys
 
 # Local imports
 from spyderlib import dependencies
-from spyderlib.baseconfig import get_conf_path, _, SUPPORTED_IPYTHON
+from spyderlib.baseconfig import (get_conf_path, _, SUPPORTED_IPYTHON,
+                                  IPYTHON_QT_MODULE)
 from spyderlib.config import CONF
 from spyderlib.guiconfig import get_color_scheme, get_font, set_font
 from spyderlib.utils import programs
@@ -32,9 +33,9 @@ from spyderlib.widgets.browser import WebView
 from spyderlib.widgets.externalshell.pythonshell import ExtPythonShellWidget
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 
-#XXX: hardcoded dependency on optional IPython plugin component
+#XXX: Hardcoded dependency on optional IPython plugin component
 #     that requires the hack to make this work without IPython
-if programs.is_module_installed('IPython.frontend.qt', SUPPORTED_IPYTHON):
+if programs.is_module_installed(IPYTHON_QT_MODULE, SUPPORTED_IPYTHON):
     from spyderlib.widgets.ipython import IPythonControlWidget
 else:
     IPythonControlWidget = None  # analysis:ignore
