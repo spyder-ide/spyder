@@ -46,6 +46,7 @@ def kernel_config():
     from IPython.config.loader import Config, load_pyconfig_files
     from IPython.core.application import get_ipython_dir
     from spyderlib.config import CONF
+    from spyderlib.utils.programs import is_module_installed
     
     # ---- IPython config ----
     try:
@@ -63,19 +64,19 @@ def kernel_config():
     # http://code.google.com/p/spyderlib/issues/detail?id=1052
     spy_cfg.InteractiveShell.xmode = 'Plain'
     
-    # Pylab activation option
+    # Pylab configuration
+    mpl_installed = is_module_installed('matplotlib')
     pylab_o = CONF.get('ipython_console', 'pylab')
     
-    # Automatically load Pylab and Numpy
-    autoload_pylab_o = CONF.get('ipython_console', 'pylab/autoload')
-    spy_cfg.IPKernelApp.pylab_import_all = pylab_o and autoload_pylab_o
-    
-    # Pylab backend configuration
-    if pylab_o:
+    if mpl_installed and pylab_o:
         backend_o = CONF.get('ipython_console', 'pylab/backend', 0)
         backends = {0: 'inline', 1: 'auto', 2: 'qt', 3: 'osx', 4: 'gtk',
                     5: 'wx', 6: 'tk'}
         spy_cfg.IPKernelApp.pylab = backends[backend_o]
+        
+        # Automatically load Pylab and Numpy
+        autoload_pylab_o = CONF.get('ipython_console', 'pylab/autoload')
+        spy_cfg.IPKernelApp.pylab_import_all = autoload_pylab_o
         
         # Inline backend configuration
         if backends[backend_o] == 'inline':

@@ -157,7 +157,9 @@ class SpyderIPythonWidget(RichIPythonWidget):
         banner = default_gui_banner
         
         pylab_o = CONF.get('ipython_console', 'pylab', True)
-        if pylab_o:
+        autoload_pylab_o = CONF.get('ipython_console', 'pylab/autoload', True)
+        mpl_installed = programs.is_module_installed('matplotlib')
+        if mpl_installed and (pylab_o and autoload_pylab_o):
             backend_o = CONF.get('ipython_console', 'pylab/backend', 0)
             backends = {0: 'module://IPython.zmq.pylab.backend_inline',
                         1: 'Qt4Agg', 2: 'Qt4Agg', 3: 'MacOSX', 4: 'GTKAgg',

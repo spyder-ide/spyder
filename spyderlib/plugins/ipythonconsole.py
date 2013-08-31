@@ -119,9 +119,10 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         
         # --- Graphics ---
         # Pylab Group
-        pylab_group = QGroupBox(_("Support for graphics (Pylab)"))
+        pylab_group = QGroupBox(_("Support for graphics (Matplotlib)"))
         pylab_box = newcb(_("Activate support"), 'pylab')
-        autoload_pylab_box = newcb(_("Automatically load Pylab and NumPy"),
+        autoload_pylab_box = newcb(_("Automatically load Pylab and NumPy "
+                                     "modules"),
                                'pylab/autoload',
                                tip=_("This lets you load graphics support "
                                      "without importing \nthe commands to do "
