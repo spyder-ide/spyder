@@ -11,10 +11,16 @@ import sys
 import os.path as osp
 
 
-def sympy_config(version):
+def sympy_config():
     """Sympy configuration"""
+    from spyderlib.utils.programs import is_module_installed
     
-    lines = """
+    lines_new = """
+from sympy.interactive import init_session
+init_session()
+"""
+    
+    lines_old = """
 from __future__ import division
 from sympy import *
 x, y, z, t = symbols('x y z t')
@@ -22,12 +28,17 @@ k, m, n = symbols('k m n', integer=True)
 f, g, h = symbols('f g h', cls=Function)
 """
     
-    if version >= '0.7.2':
+    if is_module_installed('sympy', '>=0.7.3'):
+        extension = None
+        return lines_new, extension
+    elif is_module_installed('sympy', '=0.7.2'):
         extension = 'sympy.interactive.ipythonprinting'
-    else:
+        return lines_old, extension
+    elif is_module_installed('sympy', '>=0.7.0;<0.7.2'):
         extension = 'sympyprinting'
-    
-    return lines, extension
+        return lines_old, extension
+    else:
+        return None, None
 
 
 def kernel_config():
@@ -112,17 +123,15 @@ def kernel_config():
     # Sympy loading
     sympy_o = CONF.get('ipython_console', 'symbolic_math')
     if sympy_o:
-        try:
-            from sympy import __version__ as version
-            lines, extension = sympy_config(version)
+        lines, extension = sympy_config()
+        if lines is not None:
             if run_lines_o:
                 spy_cfg.IPKernelApp.exec_lines.append(lines)
             else:
                 spy_cfg.IPKernelApp.exec_lines = [lines]
-            spy_cfg.IPKernelApp.extra_extension = extension
-            spy_cfg.LaTeXTool.backends = ['dvipng', 'matplotlib']
-        except ImportError:
-            pass
+            if extension:
+                spy_cfg.IPKernelApp.extra_extension = extension
+                spy_cfg.LaTeXTool.backends = ['dvipng', 'matplotlib']
     
     # Merge IPython and Spyder configs. Spyder prefs will have prevalence
     # over IPython ones

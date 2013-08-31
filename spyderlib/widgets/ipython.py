@@ -171,11 +171,11 @@ For more information, type 'help(pylab)'.\n""" % backends[backend_o]
         if sympy_o:
             lines = """
 These commands were executed:
-from __future__ import division
-from sympy import *
-x, y, z, t = symbols('x y z t')
-k, m, n = symbols('k m n', integer=True)
-f, g, h = symbols('f g h', cls=Function)
+>>> from __future__ import division
+>>> from sympy import *
+>>> x, y, z, t = symbols('x y z t')
+>>> k, m, n = symbols('k m n', integer=True)
+>>> f, g, h = symbols('f g h', cls=Function)
 """
             banner = banner + lines
         return banner
