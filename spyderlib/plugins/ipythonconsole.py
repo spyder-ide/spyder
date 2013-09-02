@@ -28,7 +28,7 @@ import time
 
 from IPython.config.loader import Config, load_pyconfig_files
 from IPython.core.application import get_ipython_dir
-from IPython.lib.kernel import find_connection_file
+from IPython.lib.kernel import find_connection_file, get_connection_info
 try:
     from IPython.qt.manager import QtKernelManager # 1.0
 except ImportError:
@@ -824,10 +824,23 @@ class IPythonConsole(SpyderPluginWidget):
         font = self.get_plugin_font()
         for client in self.clients:
             client.set_font(font)
+    
+    def kernel_and_frontend_match(self, connection_file):
+        # Determine kernel version
+        ci = get_connection_info(connection_file, unpack=True)
+        if ci.has_key(u'control_port'):
+            kernel_ver = '>=1.0'
+        else:
+            kernel_ver = '<1.0'
+        # is_module_installed checks if frontend version agrees with the
+        # kernel one
+        return programs.is_module_installed('IPython', version=kernel_ver)
 
     def create_kernel_manager_and_client(self, connection_file=None):
         """Create kernel manager and client"""
         cf = find_connection_file(connection_file, profile='default')
+        if not self.kernel_and_frontend_match(cf):
+            return None, None
         kernel_manager = QtKernelManager(connection_file=cf, config=None)
         if programs.is_module_installed('IPython', '>=1.0'):
             kernel_client = kernel_manager.client()
@@ -846,6 +859,8 @@ class IPythonConsole(SpyderPluginWidget):
         Create and return a new IPyhon widget from a connection file basename
         """
         km, kc = self.create_kernel_manager_and_client(connection_file)
+        if (km, kc) == (None, None):
+            return None
         widget = SpyderIPythonWidget(config=config, local_kernel=False)
         widget.kernel_manager = km
         widget.kernel_client = kc
@@ -983,6 +998,16 @@ class IPythonConsole(SpyderPluginWidget):
 
         ipywidget = self.new_ipywidget(connection_file,
                                                 config=self.ipywidget_config())
+        if ipywidget is None:
+            QMessageBox.critical(self,
+                                 _("Mismatch between kernel and frontend"),
+                                 _("Your IPython frontend and kernel versions "
+                                   "are <b>incompatible!!</b>"
+                                   "<br><br>"
+                                   "We're sorry but we can't create an IPython "
+                                   "console for you."
+                                ), QMessageBox.Ok)
+            return
 
         client = IPythonClient(self, connection_file, kernel_widget_id,
                                client_name, ipywidget,
