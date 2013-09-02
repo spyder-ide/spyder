@@ -765,8 +765,8 @@ class ExternalConsole(SpyderPluginWidget):
             shellwidget.shell.set_spyder_breakpoints()    
     
     def start(self, fname, wdir=None, args='', interact=False, debug=False,
-              python=True, ipykernel=False, ipyclient=False,
-              python_args=''):
+              python=True, ipykernel=False, ipyclient=None,
+              create_ipyclient=False, python_args=''):
         """
         Start new console
         
@@ -950,11 +950,12 @@ class ExternalConsole(SpyderPluginWidget):
                         tab_name = _("Kernel")
                         tab_icon1 = get_icon('ipython_console.png')
                         tab_icon2 = get_icon('ipython_console_t.png')
-                        if ipyclient:
+                        if create_ipyclient:
                             self.connect(shellwidget,
-                                     SIGNAL('create_ipython_client(QString)'),
-                                     lambda cf: self.create_ipyclient(
-                                             cf, kernel_widget=shellwidget))
+                                  SIGNAL('create_ipython_client(QString)'),
+                                  lambda cf: self.create_ipyclient(cf,
+                                                                   ipyclient,
+                                                                   shellwidget))
                     else:
                         QMessageBox.critical(self,
                                      _("Mismatch between kernel and frontend"),
@@ -1040,12 +1041,14 @@ class ExternalConsole(SpyderPluginWidget):
             name = "%s %s" % (text, match.groups()[0])
             self.tabwidget.setTabText(index, name)
     
-    def create_ipyclient(self, connection_file, kernel_widget):
+    def create_ipyclient(self, connection_file, ipyclient, kernel_widget):
         """Create a new IPython client connected to a kernel just started"""
+        ipyconsole = self.main.ipyconsole
+        ipyclient.connection_file = connection_file
         self.set_ipykernel_attrs(connection_file, kernel_widget)
-        self.main.ipyconsole.new_client(connection_file, id(kernel_widget))
-        # QApplication.restoreOverrideCursor()  # Stop busy cursor indication
-        # QApplication.processEvents()
+        ipyconsole.connect(kernel_widget, SIGNAL('ipykernel_started()'),
+                           lambda : ipyconsole.register_client(ipyclient,
+                                                               kernel_widget))
         
     def open_file_in_spyder(self, fname, lineno):
         """Open file in Spyder's editor from remote process"""
@@ -1243,7 +1246,7 @@ class ExternalConsole(SpyderPluginWidget):
                 if not self.get_option('open_python_at_startup'):
                     self.open_interpreter()
             else:
-                self.start_ipykernel()
+                self.main.ipyconsole.start_new_client()
 
     def open_interpreter(self, wdir=None):
         """Open interpreter"""
@@ -1253,8 +1256,8 @@ class ExternalConsole(SpyderPluginWidget):
             self.visibility_changed(True)
         self.start(fname=None, wdir=to_text_string(wdir), args='',
                    interact=True, debug=False, python=True)
-        
-    def start_ipykernel(self, wdir=None, create_client=True):
+    
+    def start_ipykernel(self, client, wdir=None, create_client=True):
         """Start new IPython kernel"""
         if create_client and not self.get_option('monitor/enabled'):
             QMessageBox.warning(self, _('Open an IPython console'),
@@ -1262,18 +1265,13 @@ class ExternalConsole(SpyderPluginWidget):
                   "be started as expected, but an IPython console will have "
                   "to be connected manually to the kernel."), QMessageBox.Ok)
         
-        # Add a WaitCursor visual indication, because it takes too much time
-        # to display a new console (3 to 5 secs). It's stopped in
-        # create_ipyclient
-        # QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
-        # QApplication.processEvents()
-        
         if wdir is None:
             wdir = getcwd()
         self.main.ipyconsole.visibility_changed(True)
         self.start(fname=None, wdir=to_text_string(wdir), args='',
                    interact=True, debug=False, python=True,
-                   ipykernel=True, ipyclient=create_client)
+                   ipykernel=True, ipyclient=client,
+                   create_ipyclient=create_client)
 
     def open_terminal(self, wdir=None):
         """Open terminal"""

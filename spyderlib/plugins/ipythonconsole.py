@@ -50,6 +50,7 @@ from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 from spyderlib.widgets.mixins import SaveHistoryMixin
 from spyderlib.py3compat import to_text_string
+from spyderlib.widgets.browser import WebView
 
 
 SYMPY_REQVER = '>=0.7.0'
@@ -390,16 +391,21 @@ class IPythonClient(QWidget, SaveHistoryMixin):
     CONF_SECTION = 'ipython'
     SEPARATOR = '%s##---(%s)---' % (os.linesep*2, time.ctime())
     
-    def __init__(self, plugin, connection_file, kernel_widget_id, client_name,
-                 ipywidget, history_filename, menu_actions=None):
+    def __init__(self, plugin, history_filename, menu_actions=None):
         super(IPythonClient, self).__init__(plugin)
         SaveHistoryMixin.__init__(self)
         self.options_button = None
 
-        self.connection_file = connection_file
-        self.kernel_widget_id = kernel_widget_id
-        self.client_name = client_name        
-        self.ipywidget = ipywidget
+        self.connection_file = None
+        self.kernel_widget_id = None
+        self.client_name = ''
+        self.ipywidget = SpyderIPythonWidget(config=plugin.ipywidget_config(),
+                                             local_kernel=False)
+        self.ipywidget.hide()
+        self.loading_widget = WebView(self)
+        self.loading_widget.setHtml('''<html lang="en">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+</head></html>''')
         self.menu_actions = menu_actions
         self.history_filename = get_conf_path(history_filename)
         self.history = []
@@ -413,13 +419,20 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         vlayout.addLayout(hlayout)
         vlayout.setContentsMargins(0, 0, 0, 0)
         vlayout.addWidget(self.ipywidget)
+        vlayout.addWidget(self.loading_widget)
         self.setLayout(vlayout)
         
         self.exit_callback = lambda: plugin.close_console(client=self)
-
+        
+    #------ Public API --------------------------------------------------------
+    def show_ipywidget(self):
+        self.loading_widget.hide()
+        self.ipywidget.show()
+        self.get_control().setFocus()
+        
         # Connect the IPython widget to this IPython client:
         # (see spyderlib/widgets/ipython.py for more details about this)
-        ipywidget.set_ipyclient(self)
+        self.ipywidget.set_ipyclient(self)
         
         # To save history
         self.ipywidget.executing.connect(
@@ -430,8 +443,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         
         # To update the Variable Explorer after execution
         self.ipywidget.executed.connect(self.auto_refresh_namespacebrowser)
-        
-    #------ Public API --------------------------------------------------------
+    
     def get_name(self):
         """Return client name"""
         return _("Console") + " " + self.client_name
@@ -749,13 +761,19 @@ class IPythonConsole(SpyderPluginWidget):
         client = self.get_current_client()
         if client is not None:
             client.ipywidget.write_to_stdin(line)
-    
+
+    def start_new_client(self):
+        client = IPythonClient(self, history_filename='history.py',
+                               menu_actions=self.menu_actions)
+        self.add_tab(client, name=client.get_name())
+        self.main.extconsole.start_ipykernel(client)
+
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         create_client_action = create_action(self,
                                 _("Open an IPython console"),
                                 None, 'ipython_console.png',
-                                triggered=self.main.extconsole.start_ipykernel)
+                                triggered=self.start_new_client)
 
         connect_to_kernel_action = create_action(self,
                 _("Connect to an existing kernel"),
@@ -847,15 +865,15 @@ class IPythonConsole(SpyderPluginWidget):
             kernel_manager.start_channels()
         return kernel_manager, kernel_client
 
-    def new_ipywidget(self, connection_file=None, config=None):
+    def connect_client_to_kernel(self, client):
         """
-        Create and return a new IPyhon widget from a connection file basename
+        Connect a client to its kernel
         """
+        connection_file = client.connection_file
+        widget = client.ipywidget
         km, kc = self.create_kernel_manager_and_client(connection_file)
-        widget = SpyderIPythonWidget(config=config, local_kernel=False)
         widget.kernel_manager = km
         widget.kernel_client = kc
-        return widget
     
     #------ Public API --------------------------------------------------------
     def get_clients(self):
@@ -983,21 +1001,16 @@ class IPythonConsole(SpyderPluginWidget):
         # over IPython ones
         ip_cfg._merge(spy_cfg)
         return ip_cfg
-    
-    def register_client(self, connection_file, kernel_widget_id, client_name):
+
+    def register_client(self, client, kernel_widget, client_name=None):
         """Register new IPython client"""
-
-        ipywidget = self.new_ipywidget(connection_file,
-                                                config=self.ipywidget_config())
-
-        client = IPythonClient(self, connection_file, kernel_widget_id,
-                               client_name, ipywidget,
-                               history_filename='history.py',
-                               menu_actions=self.menu_actions)
-
-        # QTextEdit Widgets
-        control = client.ipywidget._control
-        page_control = client.ipywidget._page_control
+        self.connect_client_to_kernel(client)
+        client.show_ipywidget()
+        client.kernel_widget_id = id(kernel_widget)
+        
+        ipywidget = client.ipywidget
+        control = ipywidget._control
+        page_control = ipywidget._page_control
         
         # For tracebacks
         self.connect(control, SIGNAL("go_to_error(QString)"), self.go_to_error)
@@ -1006,7 +1019,7 @@ class IPythonConsole(SpyderPluginWidget):
         extconsoles = self.extconsole.shellwidgets
         kernel_widget = None
         if extconsoles:
-            if extconsoles[-1].connection_file == connection_file:
+            if extconsoles[-1].connection_file == client.connection_file:
                 kernel_widget = extconsoles[-1]
                 ipywidget.custom_interrupt_requested.connect(
                                               kernel_widget.keyboard_interrupt)
@@ -1044,7 +1057,6 @@ class IPythonConsole(SpyderPluginWidget):
         client.set_font( self.get_plugin_font() )
         
         # Add tab and connect focus signal to client's control widget
-        self.add_tab(client, name=client.get_name())
         self.connect(control, SIGNAL('focus_changed()'),
                      lambda: self.emit(SIGNAL('focus_changed()')))
         
@@ -1060,6 +1072,9 @@ class IPythonConsole(SpyderPluginWidget):
                          self.refresh_plugin)
             self.connect(page_control, SIGNAL('show_find_widget()'),
                          self.find_widget.show)
+        
+        # Update client name
+        self.rename_ipyclient_tab(client.connection_file, id(client))
     
     def close_related_ipyclients(self, client):
         """Close all IPython clients related to *client*, except itself"""
