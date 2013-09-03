@@ -965,10 +965,7 @@ class Editor(SpyderPluginWidget):
                  workdir_action, self.close_action, self.close_all_action,
                  self.toggle_comment_action, self.revert_action,
                  self.indent_action, self.unindent_action]
-        self.stack_menu_actions = [self.save_action, save_as_action,
-                                   self.print_action, None, run_action, debug_action,
-                                   configure_action, None, gotoline_action,
-                                   workdir_action, None, self.close_action]
+        self.stack_menu_actions = [gotoline_action, workdir_action]
         
         return self.file_dependent_actions
     
