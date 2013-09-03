@@ -577,29 +577,43 @@ class Editor(SpyderPluginWidget):
                                default="Ctrl+Alt+P")
         self.addActions([self.toggle_outline_action, self.toggle_project_action])
         
+        # ---- File menu and toolbar ----
         self.new_action = create_action(self, _("&New file..."),
-                icon='filenew.png', tip=_("Create a new Python script"),
+                icon='filenew.png', tip=_("New file"),
                 triggered=self.new)
         self.register_shortcut(self.new_action, context="Editor",
                                name="New file", default="Ctrl+N")
+        add_shortcut_to_tooltip(self.new_action, context="Editor",
+                                name="New file")
+        
         self.open_action = create_action(self, _("&Open..."),
-                icon='fileopen.png', tip=_("Open text file"),
+                icon='fileopen.png', tip=_("Open file"),
                 triggered=self.load)
+        self.register_shortcut(self.open_action, context="Editor",
+                               name="Open file", default="Ctrl+O")
+        add_shortcut_to_tooltip(self.open_action, context="Editor",
+                                name="Open file")
+        
         self.revert_action = create_action(self, _("&Revert"),
                 icon='revert.png', tip=_("Revert file from disk"),
                 triggered=self.revert)
-        self.register_shortcut(self.open_action, context="Editor",
-                               name="Open file", default="Ctrl+O")
+        
         self.save_action = create_action(self, _("&Save"),
-                icon='filesave.png', tip=_("Save current file"),
+                icon='filesave.png', tip=_("Save file"),
                 triggered=self.save)
         self.register_shortcut(self.save_action, context="Editor",
                                name="Save file", default="Ctrl+S")
+        add_shortcut_to_tooltip(self.save_action, context="Editor",
+                                name="Save file")
+        
         self.save_all_action = create_action(self, _("Sav&e all"),
-                icon='save_all.png', tip=_("Save all opened files"),
+                icon='save_all.png', tip=_("Save all files"),
                 triggered=self.save_all)
         self.register_shortcut(self.save_all_action, context="Editor",
                                name="Save all", default="Ctrl+Shift+S")
+        add_shortcut_to_tooltip(self.save_all_action, context="Editor",
+                                name="Save all")
+        
         save_as_action = create_action(self, _("Save &as..."), None,
                 'filesaveas.png', _("Save current file as..."),
                 triggered=self.save_as)
