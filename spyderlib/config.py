@@ -228,7 +228,9 @@ DEFAULTS = [
               'pyqt/ignore_sip_setapi_errors': False,
               'matplotlib/patch': True,
               'matplotlib/backend/enabled': True,
-              'matplotlib/backend/value': 'Qt4Agg',
+              'matplotlib/backend/value': 'MacOSX' if (sys.platform == 'darwin' \
+                                           and os.environ.get('QT_API') == 'pyside')\
+                                           else 'Qt4Agg',
               'umd/enabled': True,
               'umd/verbose': True,
               'umd/namelist': ['guidata', 'guiqwt'],

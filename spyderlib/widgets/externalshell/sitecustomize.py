@@ -152,9 +152,11 @@ if mpl_backend:
     try:
         import matplotlib
         if os.environ.get('QT_API') == 'pyside':
-            # Just for precaution, since mpl is not working with PySide
-            # inside Qt apps, because of its lack of an input hook
-            matplotlib.rcParams['backend.qt4'] = 'PySide'
+            # Try to address PySide lack of an input hook on Mac by settting
+            # mpl_backend to always be MacOSX
+            # Fixes Issue 347
+            if mpl_backend == 'Qt4Agg' and sys.platform == 'darwin':
+                mpl_backend = 'MacOSX'
         matplotlib.rcParams['docstring.hardcopy'] = True
         matplotlib.use(mpl_backend)
     except ImportError:
