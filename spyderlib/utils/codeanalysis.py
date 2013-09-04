@@ -71,8 +71,8 @@ def check_with_pyflakes(source_code, filename=None):
         return results
 
 # Required versions
-# Why 0.5.0? Because it's based on _ast (thread-safe)
-PYFLAKES_REQVER = '0.5.0'
+# Why >=0.5.0? Because it's based on _ast (thread-safe)
+PYFLAKES_REQVER = '>=0.5.0'
 dependencies.add("pyflakes", _("Real-time code analysis on the Editor"),
                  required_version=PYFLAKES_REQVER)
 
@@ -83,7 +83,7 @@ dependencies.add("pep8", _("Real-time code style analysis on the Editor"),
 
 def is_pyflakes_installed():
     """Return True if pyflakes required version is installed"""
-    return programs.is_module_installed('pyflakes', '>='+PYFLAKES_REQVER)
+    return programs.is_module_installed('pyflakes', PYFLAKES_REQVER)
 
 
 def get_checker_executable(name):
