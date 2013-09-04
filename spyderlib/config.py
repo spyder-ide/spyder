@@ -427,11 +427,7 @@ DEFAULTS = [
               }),
             ]
 
-# To activate/deactivate certain things for development
-# SPYDER_DEV is (and *only* have to be) set in bootstrap.py
-DEV = os.environ.get('SPYDER_DEV')
-
-# XXX Previously we had load=(not DEV) here but DEV was set to False.
+# XXX: Previously we had load=(not DEV) here but DEV was set to *False*.
 # Check if it *really* needs to be updated or not
 CONF = UserConfig('spyder', defaults=DEFAULTS, load=True, version='2.4.0',
                   subfolder=SUBFOLDER, backup=True, raw_mode=True)

@@ -126,8 +126,8 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, get_icon,
                                        create_python_script_action, file_uri)
 from spyderlib.baseconfig import (get_conf_path, _, get_module_data_path,
                                   get_module_source_path, STDOUT, STDERR,
-                                  DEBUG, get_image_path)
-from spyderlib.config import CONF, DEV, EDIT_EXT, IMPORT_EXT, OPEN_FILES_PORT
+                                  DEBUG, get_image_path, DEV)
+from spyderlib.config import CONF, EDIT_EXT, IMPORT_EXT, OPEN_FILES_PORT
 from spyderlib.guiconfig import get_shortcut, remove_deprecated_shortcuts
 from spyderlib.otherplugins import get_spyderplugins_mods
 from spyderlib.utils.iofuncs import load_session, save_session, reset_session
