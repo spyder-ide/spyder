@@ -25,11 +25,24 @@ from spyderlib.py3compat import (is_unicode, TEXT_TYPES, INT_TYPES, PY3,
                                  to_text_string, is_text_string)
 from spyderlib.utils import programs
 
+
+#==============================================================================
+# Only for development
+#==============================================================================
+# To activate/deactivate certain things for development
+# SPYDER_DEV is (and *only* have to be) set in bootstrap.py
+DEV = os.environ.get('SPYDER_DEV')
+
+
+#==============================================================================
+# IPython constants
+#==============================================================================
 SUPPORTED_IPYTHON = '>=0.13'
 if programs.is_module_installed('IPython', '>=1.0'):
     IPYTHON_QT_MODULE = 'IPython.qt'
 else:
     IPYTHON_QT_MODULE = 'IPython.frontend.qt'
+
 
 #==============================================================================
 # Debug helpers

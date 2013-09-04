@@ -47,6 +47,7 @@ import os.path as osp
 import shutil
 import time
 
+from spyderlib.baseconfig import DEV
 from spyderlib.utils import encoding
 from spyderlib.py3compat import configparser as cp
 from spyderlib.py3compat import is_text_string, PY2
@@ -207,7 +208,6 @@ class UserConfig(cp.ConfigParser):
         """
         folder = get_home_dir()
         w_dot = osp.join(folder, '.%s.ini' % self.name)
-        DEV = os.environ.get('SPYDER_DEV')
         if self.subfolder is None:
             return w_dot
         else:
