@@ -123,7 +123,7 @@ class Project(object):
             # Old format (Spyder 2.0-2.1 for Python 2)
             with open(fname, 'U') as fdesc:
                 data = cPickle.loads(fdesc.read())
-        except cPickle.PickleError:
+        except TypeError, cPickle.PickleError:
             try:
                 # New format (Spyder >=2.2 for Python 2 and Python 3)
                 with open(fname, 'rb') as fdesc:
