@@ -18,8 +18,14 @@ import subprocess
 import sys
 import tempfile
 
+from spyderlib.utils import encoding
 
-TEMPDIR = tempfile.gettempdir() + osp.sep + 'spyder'
+
+if os.name == 'nt':
+    TEMPDIR = tempfile.gettempdir() + osp.sep + 'spyder'
+else:
+    username = encoding.to_unicode_from_fs(os.environ.get('USER'))
+    TEMPDIR = tempfile.gettempdir() + osp.sep + 'spyder-' + username
 
 
 def is_program_installed(basename):
