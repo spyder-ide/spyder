@@ -6,17 +6,17 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
 "POT-Creation-Date: 2013-09-04 20:58+Hora est. del Pacfico de SA\n"
-"PO-Revision-Date: 2012-06-25 21:52-0500\n"
+"PO-Revision-Date: 2013-09-04 21:35-0500\n"
 "Last-Translator: Carlos Cordoba <ccordoba12@gmail.com>\n"
 "Language-Team: Python\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: \n"
+"Language: es\n"
 "Generated-By: pygettext.py 1.5\n"
-"X-Poedit-Language: Spanish\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: ../../../../\n"
+"X-Generator: Poedit 1.5.4\n"
 
 #: spyderplugins/p_pylint.py:28
 msgid "Settings"
@@ -71,9 +71,8 @@ msgid "Maximum entries"
 msgstr ""
 
 #: spyderplugins/widgets/pylintgui.py:69
-#, fuzzy
 msgid "Static code analysis"
-msgstr "Realizar un análisis del código"
+msgstr "Análisis estático del código"
 
 #: spyderplugins/widgets/pylintgui.py:104
 msgid "Results for "
