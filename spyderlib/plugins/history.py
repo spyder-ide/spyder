@@ -155,6 +155,10 @@ class HistoryLog(SpyderPluginWidget):
         self.menu_actions = [history_action, font_action, self.wrap_action]
         return self.menu_actions
     
+    def on_first_registration(self):
+        """Action to be performed on first plugin registration"""
+        self.main.tabify_plugins(self.main.extconsole, self)
+    
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         self.connect(self, SIGNAL('focus_changed()'),
