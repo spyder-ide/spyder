@@ -391,13 +391,14 @@ class IPythonClient(QWidget, SaveHistoryMixin):
     CONF_SECTION = 'ipython'
     SEPARATOR = '%s##---(%s)---' % (os.linesep*2, time.ctime())
     
-    def __init__(self, plugin, history_filename, menu_actions=None):
+    def __init__(self, plugin, history_filename, connection_file=None,
+                 kernel_widget_id=None, menu_actions=None):
         super(IPythonClient, self).__init__(plugin)
         SaveHistoryMixin.__init__(self)
         self.options_button = None
 
-        self.connection_file = None
-        self.kernel_widget_id = None
+        self.connection_file = connection_file
+        self.kernel_widget_id = kernel_widget_id
         self.name = ''
         self.ipywidget = SpyderIPythonWidget(config=plugin.ipywidget_config(),
                                              local_kernel=False)
@@ -763,6 +764,7 @@ class IPythonConsole(SpyderPluginWidget):
             client.ipywidget.write_to_stdin(line)
 
     def create_new_client(self):
+        """Create a new client"""
         client = IPythonClient(self, history_filename='history.py',
                                menu_actions=self.menu_actions)
         self.add_tab(client, name=client.get_name())
@@ -779,7 +781,7 @@ class IPythonConsole(SpyderPluginWidget):
                 _("Connect to an existing kernel"),
                 None, 'ipython_console.png',
                 _("Open a new IPython client connected to an external kernel"),
-                triggered=self.new_client)
+                triggered=self.create_client_for_kernel)
         
         # Add the action to the 'Interpreters' menu on the main window
         interact_menu_actions = [create_client_action, None,
@@ -893,33 +895,33 @@ class IPythonConsole(SpyderPluginWidget):
             if widget is client or widget is client.get_control():
                 return client
 
-    def new_client(self, connection_file=None, kernel_widget_id=None):
-        """Create a new IPython client"""
-        cf = connection_file
-        if cf is None:
-            example = _('(for example: `kernel-3764.json`, or simply `3764`)')
-            while True:
-                cf, valid = QInputDialog.getText(self, _('IPython'),
-                              _('Provide an IPython kernel connection file:')+\
-                              '\n'+example,
-                              QLineEdit.Normal)
-                if valid:
-                    cf = str(cf)
-                    match = re.match('(kernel-|^)([a-fA-F0-9-]+)(.json|$)', cf)
+    def create_client_for_kernel(self):
+        """Create a client connected to an existing kernel"""
+        example = _("(for example: kernel-3764.json, or simply 3764)")
+        while True:
+            cf, valid = QInputDialog.getText(self, _('IPython'),
+                          _('Provide an IPython kernel connection file:')+\
+                          '\n'+example,
+                          QLineEdit.Normal)
+            if valid:
+                cf = str(cf)
+                match = re.match('(kernel-|^)([a-fA-F0-9-]+)(.json|$)', cf)
+                if match is not None:
                     kernel_num = match.groups()[1]
                     if kernel_num:
                         cf = 'kernel-%s.json' % kernel_num
                         break
-                else:
-                    return
+            else:
+                return
 
         # Generating the client name and setting kernel_widget_id
         match = re.match('^kernel-([a-fA-F0-9-]+).json', cf)
         count = 0
+        kernel_widget_id = None
         while True:
             client_name = match.groups()[0]+'/'+chr(65+count)
             for cl in self.get_clients():
-                if cl.client_name == client_name:
+                if cl.name == client_name:
                     kernel_widget_id = cl.kernel_widget_id
                     break
             else:
@@ -935,14 +937,21 @@ class IPythonConsole(SpyderPluginWidget):
                 if sw.connection_file == cf:
                     kernel_widget_id = id(sw)
 
-        # Creating the IPython client widget
+        # Verifying if the kernel exists
         try:
-            self.register_client(cf, kernel_widget_id, client_name)
+            find_connection_file(cf, profile='default')
         except (IOError, UnboundLocalError):
             QMessageBox.critical(self, _('IPython'),
-                                 _("Unable to connect to IPython kernel "
-                                   "<b>`%s`") % cf)
+                                 _("Unable to connect to IPython <b>%s") % cf)
             return
+        
+        # Creating the client
+        client = IPythonClient(self, history_filename='history.py',
+                               connection_file=cf,
+                               kernel_widget_id=kernel_widget_id,
+                               menu_actions=self.menu_actions)
+        self.add_tab(client, name=client.get_name())
+        self.register_client(client, kernel_widget_id, client_name)
 
     def ipywidget_config(self):
         """Generate a Config instance for IPython widgets using our config
