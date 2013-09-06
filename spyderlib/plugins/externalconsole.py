@@ -951,7 +951,7 @@ class ExternalConsole(SpyderPluginWidget):
                         tab_icon2 = get_icon('ipython_console_t.png')
                         self.connect(shellwidget,
                                      SIGNAL('create_ipython_client(QString)'),
-                                     lambda cf: self.create_ipyclient(cf,
+                                     lambda cf: self.register_ipyclient(cf,
                                                                   ipyclient,
                                                                   shellwidget))
                     else:
@@ -1037,8 +1037,10 @@ class ExternalConsole(SpyderPluginWidget):
         name = "%s %s" % (text, kernel_id)
         self.tabwidget.setTabText(index, name)
     
-    def create_ipyclient(self, connection_file, ipyclient, kernel_widget):
-        """Create a new IPython client connected to a kernel just started"""
+    def register_ipyclient(self, connection_file, ipyclient, kernel_widget):
+        """
+        Register `ipyclient` to be connected to `kernel_widget`
+        """
         # Check if our client already has a connection_file and kernel_widget_id
         # which means that we are asking for a kernel restart
         cf = ipyclient.connection_file
