@@ -1014,12 +1014,17 @@ class IPythonConsole(SpyderPluginWidget):
         ip_cfg._merge(spy_cfg)
         return ip_cfg
 
-    def register_client(self, client, kernel_widget_id, name):
+    def register_client(self, client, kernel_widget_id, name, restart=False):
         """Register new IPython client"""
         self.connect_client_to_kernel(client)
         client.show_ipywidget()
         client.kernel_widget_id = kernel_widget_id
         client.name = name
+        
+        # If we are restarting the kernel we just need to rename the client tab
+        if restart:
+            self.rename_ipyclient_tab(client)
+            return
         
         ipywidget = client.ipywidget
         control = ipywidget._control
@@ -1042,7 +1047,8 @@ class IPythonConsole(SpyderPluginWidget):
         
         # Handle kernel restarts asked by the user
         if kernel_widget is not None:
-            ipywidget.custom_restart_requested.connect(self.create_new_kernel)
+            ipywidget.custom_restart_requested.connect(
+                              lambda cl=client: self.create_new_kernel(client))
         else:
             ipywidget.custom_restart_requested.connect(client.restart_message)
         
@@ -1182,8 +1188,10 @@ class IPythonConsole(SpyderPluginWidget):
         index = self.get_client_index_from_id(id(client))
         self.tabwidget.setTabText(index, client.get_name())
     
-    def create_new_kernel(self):
-        """Create a new kernel if the user asks for it"""
+    def create_new_kernel(self, client):
+        """
+        Create a new kernel and connect it to client if the user asks for it
+        """
         # Took this bit of code (until if result == ) from the IPython project
         # (qt/frontend_widget.py - restart_kernel).
         # Licensed under the BSD license
@@ -1192,40 +1200,16 @@ class IPythonConsole(SpyderPluginWidget):
         result = QMessageBox.question(self, _('Restart kernel?'),
                                       message, buttons)
         if result == QMessageBox.Yes:
-            self.extconsole.start_ipykernel(create_client=False)
-            kernel_widget = self.extconsole.shellwidgets[-1]
-            self.connect(kernel_widget,
-                      SIGNAL('create_ipython_client(QString)'),
-                      lambda cf: self.connect_to_new_kernel(cf, kernel_widget))
-    
-    def connect_to_new_kernel(self, connection_file, kernel_widget):
-        """
-        After a new kernel is created, execute this action to connect the new
-        kernel to the old client
-        """
-        client = self.tabwidget.currentWidget()
-        
-        # Close old kernel tab
-        idx = self.extconsole.get_shell_index_from_id(client.kernel_widget_id)
-        self.extconsole.close_console(index=idx, from_ipyclient=True)
-        
-        # Set attributes for the new kernel
-        match = re.match('^kernel-(\d+).json', connection_file)
-        kernel_id = match.groups()[0]
-        self.extconsole.set_ipykernel_attrs(connection_file, kernel_widget,
-                                            kernel_id)
-        
-        # Connect client to new kernel
-        km, kc = self.create_kernel_manager_and_client(connection_file)        
-        client.ipywidget.kernel_manager = km
-        client.ipywidget.kernel_client = kc
-        client.kernel_widget_id = id(kernel_widget)
-        client.connection_file = connection_file
-        client.get_control().setFocus()
-        
-        # Rename client tab
-        client.name = kernel_id + '/A'
-        self.rename_ipyclient_tab(client)
+            client.ipywidget.hide()
+            client.loading_widget.show()
+            
+            # Close old kernel tab
+            idx = self.extconsole.get_shell_index_from_id(client.kernel_widget_id)
+            self.extconsole.close_console(index=idx, from_ipyclient=True)
+            
+            # Restart the kernel, i.e. create a new one and connect it to the
+            # client
+            self.main.extconsole.start_ipykernel(client, restart=True)
         
     #----Drag and drop
     #TODO: try and reimplement this block

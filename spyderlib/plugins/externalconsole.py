@@ -766,7 +766,7 @@ class ExternalConsole(SpyderPluginWidget):
     
     def start(self, fname, wdir=None, args='', interact=False, debug=False,
               python=True, ipykernel=False, ipyclient=None,
-              create_ipyclient=False, python_args=''):
+              restart_ipykernel=False, python_args=''):
         """
         Start new console
         
@@ -950,12 +950,12 @@ class ExternalConsole(SpyderPluginWidget):
                         tab_name = _("Kernel")
                         tab_icon1 = get_icon('ipython_console.png')
                         tab_icon2 = get_icon('ipython_console_t.png')
-                        if create_ipyclient:
-                            self.connect(shellwidget,
-                                  SIGNAL('create_ipython_client(QString)'),
-                                  lambda cf: self.create_ipyclient(cf,
-                                                                   ipyclient,
-                                                                   shellwidget))
+                        self.connect(shellwidget,
+                                     SIGNAL('create_ipython_client(QString)'),
+                                     lambda cf: self.create_ipyclient(cf,
+                                                            ipyclient,
+                                                            shellwidget,
+                                                            restart_ipykernel))
                     else:
                         QMessageBox.critical(self,
                                      _("Mismatch between kernel and frontend"),
@@ -1039,7 +1039,8 @@ class ExternalConsole(SpyderPluginWidget):
         name = "%s %s" % (text, kernel_id)
         self.tabwidget.setTabText(index, name)
     
-    def create_ipyclient(self, connection_file, ipyclient, kernel_widget):
+    def create_ipyclient(self, connection_file, ipyclient, kernel_widget,
+                         restart_kernel):
         """Create a new IPython client connected to a kernel just started"""
         ipyconsole = self.main.ipyconsole
         ipyclient.connection_file = connection_file
@@ -1054,7 +1055,8 @@ class ExternalConsole(SpyderPluginWidget):
         ipyconsole.connect(kernel_widget, SIGNAL('ipykernel_started()'),
                            lambda : ipyconsole.register_client(ipyclient,
                                                                id(kernel_widget),
-                                                               client_name))
+                                                               client_name,
+                                                               restart_kernel))
         
     def open_file_in_spyder(self, fname, lineno):
         """Open file in Spyder's editor from remote process"""
@@ -1263,9 +1265,9 @@ class ExternalConsole(SpyderPluginWidget):
         self.start(fname=None, wdir=to_text_string(wdir), args='',
                    interact=True, debug=False, python=True)
     
-    def start_ipykernel(self, client=None, wdir=None, create_client=True):
+    def start_ipykernel(self, client, wdir=None, restart=False):
         """Start new IPython kernel"""
-        if create_client and not self.get_option('monitor/enabled'):
+        if not restart and not self.get_option('monitor/enabled'):
             QMessageBox.warning(self, _('Open an IPython console'),
                 _("The console monitor was disabled: the IPython kernel will "
                   "be started as expected, but an IPython console will have "
@@ -1277,7 +1279,7 @@ class ExternalConsole(SpyderPluginWidget):
         self.start(fname=None, wdir=to_text_string(wdir), args='',
                    interact=True, debug=False, python=True,
                    ipykernel=True, ipyclient=client,
-                   create_ipyclient=create_client)
+                   restart_ipykernel=restart)
 
     def open_terminal(self, wdir=None):
         """Open terminal"""
