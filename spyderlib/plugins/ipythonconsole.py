@@ -398,7 +398,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
 
         self.connection_file = None
         self.kernel_widget_id = None
-        self.client_name = ''
+        self.name = ''
         self.ipywidget = SpyderIPythonWidget(config=plugin.ipywidget_config(),
                                              local_kernel=False)
         self.ipywidget.hide()
@@ -446,7 +446,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
     
     def get_name(self):
         """Return client name"""
-        return _("Console") + " " + self.client_name
+        return _("Console") + " " + self.name
     
     def get_control(self):
         """Return the text widget (or similar) to give focus to"""
@@ -1002,11 +1002,12 @@ class IPythonConsole(SpyderPluginWidget):
         ip_cfg._merge(spy_cfg)
         return ip_cfg
 
-    def register_client(self, client, kernel_widget, client_name=None):
+    def register_client(self, client, kernel_widget_id, name):
         """Register new IPython client"""
         self.connect_client_to_kernel(client)
         client.show_ipywidget()
-        client.kernel_widget_id = id(kernel_widget)
+        client.kernel_widget_id = kernel_widget_id
+        client.name = name
         
         ipywidget = client.ipywidget
         control = ipywidget._control
@@ -1072,9 +1073,9 @@ class IPythonConsole(SpyderPluginWidget):
                          self.refresh_plugin)
             self.connect(page_control, SIGNAL('show_find_widget()'),
                          self.find_widget.show)
-        
+
         # Update client name
-        self.rename_ipyclient_tab(client.connection_file, id(client))
+        self.rename_ipyclient_tab(client)
     
     def close_related_ipyclients(self, client):
         """Close all IPython clients related to *client*, except itself"""
@@ -1164,13 +1165,10 @@ class IPythonConsole(SpyderPluginWidget):
             if id(client) == client_id:
                 return index
     
-    def rename_ipyclient_tab(self, connection_file, client_widget_id):
+    def rename_ipyclient_tab(self, client):
         """Add the pid of the kernel process to an IPython client tab"""
-        index = self.get_client_index_from_id(client_widget_id)
-        match = re.match('^kernel-(\d+).json', connection_file)
-        if match is not None:  # should not fail, but we never know...
-            name = _("Console") + " " + match.groups()[0] + '/' + chr(65)
-            self.tabwidget.setTabText(index, name)
+        index = self.get_client_index_from_id(id(client))
+        self.tabwidget.setTabText(index, client.get_name())
     
     def create_new_kernel(self):
         """Create a new kernel if the user asks for it"""

@@ -1014,7 +1014,7 @@ class ExternalConsole(SpyderPluginWidget):
             self.activateWindow()
             shellwidget.shell.setFocus()
     
-    def set_ipykernel_attrs(self, connection_file, kernel_widget):
+    def set_ipykernel_attrs(self, connection_file, kernel_widget, kernel_id):
         """Add the pid of the kernel process to an IPython kernel tab"""
         # Set connection file
         kernel_widget.connection_file = connection_file
@@ -1026,29 +1026,35 @@ class ExternalConsole(SpyderPluginWidget):
         # connection file at the time Spyder exits.
         def cleanup_connection_file(connection_file):
             connection_file = osp.join(get_ipython_dir(), 'profile_default',
-                                   'security', connection_file)
+                                       'security', connection_file)
             try:
                 os.remove(connection_file)
             except OSError:
                 pass
         atexit.register(cleanup_connection_file, connection_file)            
         
-        # Set tab name
+        # Set tab name according to kernel_id
         index = self.get_shell_index_from_id(id(kernel_widget))
-        match = re.match('^kernel-(\d+).json', connection_file)
-        if match is not None:  # should not fail, but we never know...
-            text = to_text_string(self.tabwidget.tabText(index))
-            name = "%s %s" % (text, match.groups()[0])
-            self.tabwidget.setTabText(index, name)
+        text = to_text_string(self.tabwidget.tabText(index))
+        name = "%s %s" % (text, kernel_id)
+        self.tabwidget.setTabText(index, name)
     
     def create_ipyclient(self, connection_file, ipyclient, kernel_widget):
         """Create a new IPython client connected to a kernel just started"""
         ipyconsole = self.main.ipyconsole
         ipyclient.connection_file = connection_file
-        self.set_ipykernel_attrs(connection_file, kernel_widget)
+        
+        # Setting kernel widget attributes
+        match = re.match('^kernel-(\d+).json', connection_file)
+        kernel_id = match.groups()[0]
+        self.set_ipykernel_attrs(connection_file, kernel_widget, kernel_id)
+        
+        # Creating the client
+        client_name = kernel_id + '/A'
         ipyconsole.connect(kernel_widget, SIGNAL('ipykernel_started()'),
                            lambda : ipyconsole.register_client(ipyclient,
-                                                               kernel_widget))
+                                                               id(kernel_widget),
+                                                               client_name))
         
     def open_file_in_spyder(self, fname, lineno):
         """Open file in Spyder's editor from remote process"""
