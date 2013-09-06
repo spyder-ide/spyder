@@ -1210,19 +1210,23 @@ class IPythonConsole(SpyderPluginWidget):
         self.extconsole.close_console(index=idx, from_ipyclient=True)
         
         # Set attributes for the new kernel
-        self.extconsole.set_ipykernel_attrs(connection_file, kernel_widget)
+        match = re.match('^kernel-(\d+).json', connection_file)
+        kernel_id = match.groups()[0]
+        self.extconsole.set_ipykernel_attrs(connection_file, kernel_widget,
+                                            kernel_id)
         
         # Connect client to new kernel
         km, kc = self.create_kernel_manager_and_client(connection_file)        
         client.ipywidget.kernel_manager = km
         client.ipywidget.kernel_client = kc
         client.kernel_widget_id = id(kernel_widget)
+        client.connection_file = connection_file
         client.get_control().setFocus()
         
         # Rename client tab
-        client_widget_id = id(client)
-        self.rename_ipyclient_tab(connection_file, client_widget_id)
-            
+        client.name = kernel_id + '/A'
+        self.rename_ipyclient_tab(client)
+        
     #----Drag and drop
     #TODO: try and reimplement this block
     # (this is still the original code block copied from externalconsole.py)

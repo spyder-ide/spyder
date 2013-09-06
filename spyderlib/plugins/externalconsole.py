@@ -1263,7 +1263,7 @@ class ExternalConsole(SpyderPluginWidget):
         self.start(fname=None, wdir=to_text_string(wdir), args='',
                    interact=True, debug=False, python=True)
     
-    def start_ipykernel(self, client, wdir=None, create_client=True):
+    def start_ipykernel(self, client=None, wdir=None, create_client=True):
         """Start new IPython kernel"""
         if create_client and not self.get_option('monitor/enabled'):
             QMessageBox.warning(self, _('Open an IPython console'),
