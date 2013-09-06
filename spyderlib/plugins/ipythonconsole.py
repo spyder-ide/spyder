@@ -919,7 +919,10 @@ class IPythonConsole(SpyderPluginWidget):
         count = 0
         kernel_widget_id = None
         while True:
-            client_name = match.groups()[0]+'/'+chr(65+count)
+            client_name = match.groups()[0]
+            if '-' in client_name:  # Avoid long names
+                client_name = client_name.split('-')[0]
+            client_name = client_name + '/' + chr(65+count)
             for cl in self.get_clients():
                 if cl.name == client_name:
                     kernel_widget_id = cl.kernel_widget_id
