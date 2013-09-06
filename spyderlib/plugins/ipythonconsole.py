@@ -1209,7 +1209,7 @@ class IPythonConsole(SpyderPluginWidget):
             
             # Restart the kernel, i.e. create a new one and connect it to the
             # client
-            self.main.extconsole.start_ipykernel(client, restart=True)
+            self.main.extconsole.start_ipykernel(client)
         
     #----Drag and drop
     #TODO: try and reimplement this block
