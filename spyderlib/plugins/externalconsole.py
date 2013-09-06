@@ -1057,9 +1057,9 @@ class ExternalConsole(SpyderPluginWidget):
         client_name = kernel_id + '/A'
         ipyconsole = self.main.ipyconsole
         ipyclient.connection_file = connection_file
+        ipyclient.kernel_widget_id = id(kernel_widget)
         ipyconsole.connect(kernel_widget, SIGNAL('ipykernel_started()'),
                            lambda : ipyconsole.register_client(ipyclient,
-                                                               id(kernel_widget),
                                                                client_name,
                                                                restart_kernel))
         

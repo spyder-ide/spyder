@@ -954,7 +954,7 @@ class IPythonConsole(SpyderPluginWidget):
                                kernel_widget_id=kernel_widget_id,
                                menu_actions=self.menu_actions)
         self.add_tab(client, name=client.get_name())
-        self.register_client(client, kernel_widget_id, client_name)
+        self.register_client(client, client_name)
 
     def ipywidget_config(self):
         """Generate a Config instance for IPython widgets using our config
@@ -1014,11 +1014,10 @@ class IPythonConsole(SpyderPluginWidget):
         ip_cfg._merge(spy_cfg)
         return ip_cfg
 
-    def register_client(self, client, kernel_widget_id, name, restart=False):
+    def register_client(self, client, name, restart=False):
         """Register new IPython client"""
         self.connect_client_to_kernel(client)
         client.show_ipywidget()
-        client.kernel_widget_id = kernel_widget_id
         client.name = name
         
         # If we are restarting the kernel we just need to rename the client tab
