@@ -1047,7 +1047,7 @@ class IPythonConsole(SpyderPluginWidget):
         # Handle kernel restarts asked by the user
         if kernel_widget is not None:
             ipywidget.custom_restart_requested.connect(
-                              lambda cl=client: self.create_new_kernel(client))
+                                 lambda cl=client: self.restart_kernel(client))
         else:
             ipywidget.custom_restart_requested.connect(client.restart_message)
         
@@ -1187,9 +1187,9 @@ class IPythonConsole(SpyderPluginWidget):
         index = self.get_client_index_from_id(id(client))
         self.tabwidget.setTabText(index, client.get_name())
     
-    def create_new_kernel(self, client):
+    def restart_kernel(self, client):
         """
-        Create a new kernel and connect it to client if the user asks for it
+        Create a new kernel and connect it to `client` if the user asks for it
         """
         # Took this bit of code (until if result == ) from the IPython project
         # (qt/frontend_widget.py - restart_kernel).
@@ -1206,8 +1206,7 @@ class IPythonConsole(SpyderPluginWidget):
             idx = self.extconsole.get_shell_index_from_id(client.kernel_widget_id)
             self.extconsole.close_console(index=idx, from_ipyclient=True)
             
-            # Restart the kernel, i.e. create a new one and connect it to the
-            # client
+            # Create a new one and connect it to the client
             self.main.extconsole.start_ipykernel(client)
         
     #----Drag and drop
