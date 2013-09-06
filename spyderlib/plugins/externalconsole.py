@@ -1252,7 +1252,7 @@ class ExternalConsole(SpyderPluginWidget):
                 if not self.get_option('open_python_at_startup'):
                     self.open_interpreter()
             else:
-                self.main.ipyconsole.start_new_client()
+                self.main.ipyconsole.create_new_client()
 
     def open_interpreter(self, wdir=None):
         """Open interpreter"""

@@ -762,7 +762,7 @@ class IPythonConsole(SpyderPluginWidget):
         if client is not None:
             client.ipywidget.write_to_stdin(line)
 
-    def start_new_client(self):
+    def create_new_client(self):
         client = IPythonClient(self, history_filename='history.py',
                                menu_actions=self.menu_actions)
         self.add_tab(client, name=client.get_name())
@@ -773,7 +773,7 @@ class IPythonConsole(SpyderPluginWidget):
         create_client_action = create_action(self,
                                 _("Open an IPython console"),
                                 None, 'ipython_console.png',
-                                triggered=self.start_new_client)
+                                triggered=self.create_new_client)
 
         connect_to_kernel_action = create_action(self,
                 _("Connect to an existing kernel"),
