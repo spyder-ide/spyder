@@ -525,7 +525,7 @@ The process may not exit as a result of clicking this button
             self.emit(SIGNAL('started()'))
             if self.is_ipykernel:
                 self.connect(self, SIGNAL('create_ipython_client(QString)'),
-                             lambda _: self.emit(SIGNAL("ipykernel_started()")))
+                       lambda _: self.emit(SIGNAL("ipython_kernel_started()")))
             
         return self.process
 
