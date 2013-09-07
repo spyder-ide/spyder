@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
-"POT-Creation-Date: 2013-08-11 14:04+Hora est. del Pacfico de SA\n"
+"POT-Creation-Date: 2013-09-04 20:58+Hora est. del Pacfico de SA\n"
 "PO-Revision-Date: 2012-06-25 21:59-0500\n"
 "Last-Translator: Carlos Cordoba <ccordoba12@gmail.com>\n"
 "Language-Team: Python\n"

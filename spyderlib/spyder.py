@@ -120,7 +120,7 @@ from spyderlib.plugins.findinfiles import FindInFiles
 from spyderlib.plugins.projectexplorer import ProjectExplorer
 from spyderlib.plugins.outlineexplorer import OutlineExplorer
 from spyderlib.utils.qthelpers import (create_action, add_actions, get_icon,
-                                       get_std_icon,
+                                       get_std_icon, add_shortcut_to_tooltip,
                                        create_module_bookmark_actions,
                                        create_bookmark_action,
                                        create_program_action, DialogManager,
@@ -128,8 +128,8 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, get_icon,
                                        create_python_script_action, file_uri)
 from spyderlib.baseconfig import (get_conf_path, _, get_module_data_path,
                                   get_module_source_path, STDOUT, STDERR,
-                                  DEBUG, debug_print, get_image_path)
-from spyderlib.config import CONF, DEV, EDIT_EXT, IMPORT_EXT, OPEN_FILES_PORT
+                                  DEBUG, DEV, debug_print, get_image_path)
+from spyderlib.config import CONF, EDIT_EXT, IMPORT_EXT, OPEN_FILES_PORT
 from spyderlib.guiconfig import get_shortcut, remove_deprecated_shortcuts
 from spyderlib.otherplugins import get_spyderplugins_mods
 from spyderlib.utils.iofuncs import load_session, save_session, reset_session
@@ -594,11 +594,13 @@ class MainWindow(QMainWindow):
                                          triggered=self.edit_preferences)
             self.register_shortcut(prefs_action, "_", "Preferences",
                                    "Ctrl+Alt+Shift+P")
+            add_shortcut_to_tooltip(prefs_action, context="_",
+                                    name="Preferences")
             spyder_path_action = create_action(self,
                                     _("PYTHONPATH manager"),
                                     None, 'pythonpath_mgr.png',
                                     triggered=self.path_manager_callback,
-                                    tip=_("Open Spyder path manager"),
+                                    tip=_("Python Path Manager"),
                                     menurole=QAction.ApplicationSpecificRole)
             update_modules_action = create_action(self,
                                         _("Update module names list"),
@@ -703,7 +705,7 @@ class MainWindow(QMainWindow):
             
             # Maximize current plugin
             self.maximize_action = create_action(self, '',
-                                             triggered=self.maximize_dockwidget)
+                                            triggered=self.maximize_dockwidget)
             self.register_shortcut(self.maximize_action, "_",
                                    "Maximize dockwidget", "Ctrl+Alt+Shift+M")
             self.__update_maximize_action()
@@ -714,6 +716,8 @@ class MainWindow(QMainWindow):
                                             triggered=self.toggle_fullscreen)
             self.register_shortcut(self.fullscreen_action, "_",
                                    "Fullscreen mode", "F11")
+            add_shortcut_to_tooltip(self.fullscreen_action, context="_",
+                                    name="Fullscreen mode")
             
             # Main toolbar
             self.main_toolbar_actions = [self.maximize_action,
@@ -1453,13 +1457,11 @@ class MainWindow(QMainWindow):
     def __update_maximize_action(self):
         if self.state_before_maximizing is None:
             text = _("Maximize current plugin")
-            tip = _("Maximize current plugin to fit the whole "
-                    "application window")
+            tip = _("Maximize current plugin")
             icon = "maximize.png"
         else:
             text = _("Restore current plugin")
-            tip = _("Restore current plugin to its original size and "
-                    "position within the application window")
+            tip = _("Restore plugin to its original size")
             icon = "unmaximize.png"
         self.maximize_action.setText(text)
         self.maximize_action.setIcon(get_icon(icon))

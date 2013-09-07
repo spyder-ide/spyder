@@ -23,7 +23,11 @@ from spyderlib.utils import encoding
 from spyderlib.py3compat import is_text_string
 
 
-TEMPDIR = tempfile.gettempdir() + osp.sep + 'spyder'
+if os.name == 'nt':
+    TEMPDIR = tempfile.gettempdir() + osp.sep + 'spyder'
+else:
+    username = encoding.to_unicode_from_fs(os.environ.get('USER'))
+    TEMPDIR = tempfile.gettempdir() + osp.sep + 'spyder-' + username
 
 
 def is_program_installed(basename):

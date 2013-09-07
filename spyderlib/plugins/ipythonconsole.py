@@ -31,7 +31,7 @@ import time
 # IPython imports
 from IPython.config.loader import Config, load_pyconfig_files
 from IPython.core.application import get_ipython_dir
-from IPython.lib.kernel import find_connection_file
+from IPython.lib.kernel import find_connection_file, get_connection_info
 try:
     from IPython.qt.manager import QtKernelManager # 1.0
 except ImportError:
@@ -49,7 +49,7 @@ from spyderlib.widgets.ipython import SpyderIPythonWidget
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 from spyderlib.widgets.mixins import SaveHistoryMixin
-from spyderlib.py3compat import to_text_string
+from spyderlib.py3compat import to_text_string, u
 from spyderlib.widgets.browser import WebView
 
 
@@ -850,6 +850,17 @@ class IPythonConsole(SpyderPluginWidget):
         font = self.get_plugin_font()
         for client in self.clients:
             client.set_font(font)
+    
+    def kernel_and_frontend_match(self, connection_file):
+        # Determine kernel version
+        ci = get_connection_info(connection_file, unpack=True)
+        if ci.has_key(u('control_port')):
+            kernel_ver = '>=1.0'
+        else:
+            kernel_ver = '<1.0'
+        # is_module_installed checks if frontend version agrees with the
+        # kernel one
+        return programs.is_module_installed('IPython', version=kernel_ver)
 
     def create_kernel_manager_and_client(self, connection_file=None):
         """Create kernel manager and client"""
@@ -946,6 +957,18 @@ class IPythonConsole(SpyderPluginWidget):
         except (IOError, UnboundLocalError):
             QMessageBox.critical(self, _('IPython'),
                                  _("Unable to connect to IPython <b>%s") % cf)
+            return
+        
+        # Verifying if frontend and kernel have compatible versions
+        if not self.kernel_and_frontend_match(cf):
+            QMessageBox.critical(self,
+                                 _("Mismatch between kernel and frontend"),
+                                 _("Your IPython frontend and kernel versions "
+                                   "are <b>incompatible!!</b>"
+                                   "<br><br>"
+                                   "We're sorry but we can't create an IPython "
+                                   "console for you."
+                                ), QMessageBox.Ok)
             return
         
         # Creating the client
