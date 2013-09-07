@@ -1,5 +1,24 @@
 = History of changes =
 
+== Version 2.2.4 ==
+
+=== Bug fixes (since v2.2.3) ===
+
+  * Issue  347  Matplotlib hangs on Mac if using PySide
+  * Issue  1265  Create a Debug menu to easily show how to set breakpoints
+  * Issue  1489  Project Explorer does not load all projects in workspace.
+  * Issue  1516  Make Spyder compatible with both IPython 0.13 and 1.0
+  * Issue  1531  Pyflakes version check is looking for 0.5.0 only
+  * Issue  1539  /tmp/spyder is owned by the first user on the server to launch spyder
+
+=== Other Changes (since v2.2.3) ===
+
+  * Make Spyder compatible with SymPy 0.7.3+
+  * Add shortcuts to the tooltips of all toolbars
+  * Make IPython Console work better if Matplotlib is not installed
+
+----
+
 == Version 2.2.3 ==
 
 === Bug fixes (since v2.2.2) ===

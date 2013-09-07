@@ -930,7 +930,7 @@ class ExternalConsole(SpyderPluginWidget):
             if fname is None:
                 if ipykernel:
                     # Detect if kernel and frontend match or not
-                    if self.get_option('pythonexecutable/custom'):
+                    if self.get_option('pythonexecutable/custom', False):
                         frontend_ver = programs.get_module_version('IPython')
                         if '0.13' in frontend_ver:
                             frontend_ver = '<1.0'
