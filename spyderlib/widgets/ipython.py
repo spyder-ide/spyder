@@ -546,6 +546,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         """
         if programs.is_module_installed('IPython', '>=1.0'):
             kc = self.ipywidget.kernel_client
-            kc.hb_channel.pause()
+            if kc is not None:
+                kc.hb_channel.pause()
         else:
             self.ipywidget.custom_restart = False
