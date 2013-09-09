@@ -26,6 +26,7 @@ import sys
 import re
 import os
 import os.path as osp
+from string import Template
 import time
 
 # IPython imports
@@ -40,8 +41,9 @@ except ImportError:
 # Local imports
 from spyderlib import dependencies
 from spyderlib.baseconfig import get_conf_path, _
-from spyderlib.utils import programs
+from spyderlib.utils.inspector.sphinxify import CSS_PATH
 from spyderlib.utils.misc import get_error_match, remove_backslashes
+from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import (get_icon, get_std_icon, create_action,
                                        create_toolbutton, add_actions)
 from spyderlib.widgets.tabs import Tabs
@@ -56,6 +58,24 @@ from spyderlib.widgets.browser import WebView
 SYMPY_REQVER = '>=0.7.0'
 dependencies.add("sympy", _("Symbolic mathematics for the IPython Console"),
                  required_version=SYMPY_REQVER)
+
+
+KERNEL_ERROR = \
+"""
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="file:///${css_path}/default.css" type="text/css" />
+</head>
+
+<body>
+  <div id="warning">${message}</div>
+  <div class="metadata"><p><tt>${error}</tt></p></div>
+</body>
+
+</html>
+"""
 
 
 class IPythonConsoleConfigPage(PluginConfigPage):
@@ -427,6 +447,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         
     #------ Public API --------------------------------------------------------
     def show_ipywidget(self):
+        """Show ipywidget and configure it"""
         self.loading_widget.hide()
         self.ipywidget.show()
         self.get_control().setFocus()
@@ -444,6 +465,22 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         
         # To update the Variable Explorer after execution
         self.ipywidget.executed.connect(self.auto_refresh_namespacebrowser)
+    
+    def show_kernel_error(self, error):
+        """Show kernel initialization errors in the client"""
+        # Remove explanation about how to kill the kernel
+        # (doesn't apply to us)
+        error = error.split('issues/2049')[-1]
+        error = error.replace('\n', '<br>')
+        # Remove unneeded blank lines at the beginning
+        while error.startswith('<br>'):
+            error = error[4:]
+        message = _("An error ocurred while starting the kernel!")
+        kernel_error_template = Template(KERNEL_ERROR)
+        page = kernel_error_template.substitute(css_path=CSS_PATH,
+                                                message=message,
+                                                error=error)
+        self.loading_widget.setHtml(page)
     
     def get_name(self):
         """Return client name"""

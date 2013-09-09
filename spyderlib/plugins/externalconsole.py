@@ -954,6 +954,9 @@ class ExternalConsole(SpyderPluginWidget):
                                      lambda cf: self.register_ipyclient(cf,
                                                                   ipyclient,
                                                                   shellwidget))
+                        ipyclient.connect(shellwidget,
+                              SIGNAL("ipython_kernel_start_error(QString)"),
+                              lambda error: ipyclient.show_kernel_error(error))
                     else:
                         QMessageBox.critical(self,
                                      _("Mismatch between kernel and frontend"),
@@ -1060,10 +1063,7 @@ class ExternalConsole(SpyderPluginWidget):
         ipyconsole = self.main.ipyconsole
         ipyclient.connection_file = connection_file
         ipyclient.kernel_widget_id = id(kernel_widget)
-        ipyconsole.connect(kernel_widget, SIGNAL('ipython_kernel_started()'),
-                           lambda : ipyconsole.register_client(ipyclient,
-                                                               client_name,
-                                                               restart_kernel))
+        ipyconsole.register_client(ipyclient, client_name, restart_kernel)
         
     def open_file_in_spyder(self, fname, lineno):
         """Open file in Spyder's editor from remote process"""
