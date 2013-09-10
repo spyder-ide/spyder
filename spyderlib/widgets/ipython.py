@@ -344,6 +344,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         """Show ipywidget and configure it"""
         self.loading_widget.hide()
         self.ipywidget.show()
+        self.loading_widget.setHtml(BLANK)
         self.get_control().setFocus()
         
         # Connect the IPython widget to this IPython client:
