@@ -57,7 +57,7 @@ r"""<html>
 </head>
 <body>
   <div class="loading">
-    <img src="file:///${img_path}/loading.gif"/>&nbsp;&nbsp;${message}</p>
+    <img src="file:///${img_path}/loading.gif"/>&nbsp;&nbsp;${message}
   </div>
 </body>
 </html>
@@ -323,7 +323,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
                                                                 'console'))
         self.loading_page = loading_template.substitute(css_path=CSS_PATH,
                                                         img_path=img_path,
-                                                        message=_("Loading"))
+                                                        message=_("Loading..."))
         self.loading_widget.setHtml(self.loading_page)
         
         vlayout = QVBoxLayout()

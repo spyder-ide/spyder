@@ -237,6 +237,17 @@ tt {
 /* --- Loading style--- */
 div.loading {
     position: fixed;
-    left: 45%;
-    top: 45%;
+    left: 42%;
+    top: 40%;
+    background-color: #EEEEEE;
+    border: 1px solid #C9C9C9;
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    box-shadow: 1px 1px 7px #CACACA;
+    color: #333333;
+    padding: 10px;
+    font-family: 'Trebuchet MS', sans-serif;
+    font-size: 90%;
 }
