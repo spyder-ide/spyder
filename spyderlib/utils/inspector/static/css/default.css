@@ -233,3 +233,10 @@ tt {
     font-size: 95%;
     padding: 0px 1px;
 }
+
+/* --- Loading style--- */
+div.loading {
+    position: fixed;
+    left: 45%;
+    top: 45%;
+}

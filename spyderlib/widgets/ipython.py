@@ -10,6 +10,7 @@ IPython v0.13+ client's widget
 
 # Stdlib imports
 import os
+import os.path as osp
 from string import Template
 import time
 
@@ -27,7 +28,7 @@ except ImportError: # 0.13
     from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
 
 # Local imports
-from spyderlib.baseconfig import get_conf_path, _
+from spyderlib.baseconfig import get_conf_path, get_module_source_path, _
 from spyderlib.config import CONF
 from spyderlib.utils.qthelpers import (get_std_icon, create_toolbutton,
                                        add_actions, create_action, get_icon)
@@ -40,23 +41,40 @@ from spyderlib.widgets.browser import WebView
 #-----------------------------------------------------------------------------
 # Templates
 #-----------------------------------------------------------------------------
-KERNEL_ERROR = \
-"""
-<html>
-
+BLANK = \
+r"""<html>
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <link rel="stylesheet" href="file:///${css_path}/default.css" type="text/css" />
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
 </head>
+</html>
+"""
 
+LOADING = \
+r"""<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+  <link rel="stylesheet" href="file:///${css_path}/default.css" type="text/css"/>
+</head>
+<body>
+  <div class="loading">
+    <img src="file:///${img_path}/loading.gif"/>&nbsp;&nbsp;${message}</p>
+  </div>
+</body>
+</html>
+"""
+
+KERNEL_ERROR = \
+r"""<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <link rel="stylesheet" href="file:///${css_path}/default.css" type="text/css"/>
+</head>
 <body>
   <div id="warning">${message}</div>
   <div class="metadata"><p><tt>${error}</tt></p></div>
 </body>
-
 </html>
 """
-
 
 #-----------------------------------------------------------------------------
 # Control widgets
@@ -146,7 +164,6 @@ class IPythonPageControlWidget(QTextEdit, BaseEditMixin):
         """Reimplement Qt method to send focus change notification"""
         self.emit(SIGNAL('focus_changed()'))
         return super(IPythonPageControlWidget, self).focusOutEvent(event)
-
 
 #-----------------------------------------------------------------------------
 # Shell widget
@@ -262,7 +279,6 @@ These commands were executed:
         self.emit(SIGNAL('focus_changed()'))
         return super(SpyderIPythonWidget, self).focusOutEvent(event)
 
-
 #-----------------------------------------------------------------------------
 # Client widget
 #-----------------------------------------------------------------------------
@@ -297,13 +313,18 @@ class IPythonClient(QWidget, SaveHistoryMixin):
                                              local_kernel=False)
         self.ipywidget.hide()
         self.loading_widget = WebView(self)
-        self.loading_widget.setHtml('''<html lang="en">
-<head><meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
-</head></html>''')
         self.menu_actions = menu_actions
         self.history_filename = get_conf_path(history_filename)
         self.history = []
         self.namespacebrowser = None
+        
+        loading_template = Template(LOADING)
+        img_path = get_module_source_path('spyderlib', osp.join('images',
+                                                                'console'))
+        self.loading_page = loading_template.substitute(css_path=CSS_PATH,
+                                                        img_path=img_path,
+                                                        message=_("Loading"))
+        self.loading_widget.setHtml(self.loading_page)
         
         vlayout = QVBoxLayout()
         toolbar_buttons = self.get_toolbar_buttons()
