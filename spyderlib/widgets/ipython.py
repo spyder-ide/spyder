@@ -377,6 +377,11 @@ class IPythonClient(QWidget, SaveHistoryMixin):
                                                 error=error)
         self.loading_widget.setHtml(page)
     
+    def show_restart_animation(self):
+        self.ipywidget.hide()
+        self.loading_widget.setHtml(self.loading_page)
+        self.loading_widget.show()
+    
     def get_name(self):
         """Return client name"""
         return _("Console") + " " + self.name

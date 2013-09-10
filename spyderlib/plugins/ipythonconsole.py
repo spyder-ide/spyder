@@ -949,8 +949,7 @@ class IPythonConsole(SpyderPluginWidget):
         result = QMessageBox.question(self, _('Restart kernel?'),
                                       message, buttons)
         if result == QMessageBox.Yes:
-            client.ipywidget.hide()
-            client.loading_widget.show()
+            client.show_restart_animation()
             
             # Close old kernel tab
             idx = self.extconsole.get_shell_index_from_id(client.kernel_widget_id)
