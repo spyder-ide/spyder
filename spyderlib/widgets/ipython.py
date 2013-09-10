@@ -318,12 +318,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         self.history = []
         self.namespacebrowser = None
         
-        loading_template = Template(LOADING)
-        img_path = get_module_source_path('spyderlib', osp.join('images',
-                                                                'console'))
-        self.loading_page = loading_template.substitute(css_path=CSS_PATH,
-                                                        img_path=img_path,
-                                                        message=_("Loading..."))
+        self.loading_page = self._create_loading_page()
         self.loading_widget.setHtml(self.loading_page)
         
         vlayout = QVBoxLayout()
@@ -564,6 +559,16 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         """Show IPython Cheat Sheet"""
         from IPython.core.usage import quick_reference
         self._show_plain_help(quick_reference)
+    
+    def _create_loading_page(self):
+        loading_template = Template(LOADING)
+        img_path = get_module_source_path('spyderlib', osp.join('images',
+                                                                'console'))
+        message = _("Loading...")
+        page = loading_template.substitute(css_path=CSS_PATH,
+                                           img_path=img_path,
+                                           message=message)
+        return page
     
     #---- Qt methods ----------------------------------------------------------
     def closeEvent(self, event):
