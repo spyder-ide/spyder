@@ -237,7 +237,7 @@ tt {
 /* --- Loading style--- */
 div.loading {
     position: fixed;
-    left: 42%;
+    left: 37%;
     top: 40%;
     background-color: #EEEEEE;
     border: 1px solid #C9C9C9;

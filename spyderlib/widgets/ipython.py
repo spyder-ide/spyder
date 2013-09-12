@@ -564,7 +564,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         loading_template = Template(LOADING)
         img_path = get_module_source_path('spyderlib', osp.join('images',
                                                                 'console'))
-        message = _("Loading...")
+        message = _("Connecting to kernel")
         page = loading_template.substitute(css_path=CSS_PATH,
                                            img_path=img_path,
                                            message=message)
