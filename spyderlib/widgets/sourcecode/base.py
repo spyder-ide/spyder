@@ -493,19 +493,20 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
     def select_current_cell(self):
         """Select cell under cursor
-        cell = group of lines separated by either empty lines or commentaries"""
+        cell = group of lines separated by CELL_SEPARATORS"""
         cursor = self.textCursor()
         cursor.movePosition(QTextCursor.StartOfBlock)
         cur_pos = prev_pos = cursor.position()
+        # Moving to the next line that is not a separator, if we are
+        # exactly at one of them
         while self.is_cell_separator(cursor):
-            # Moving to the next code cell
             cursor.movePosition(QTextCursor.NextBlock)
             prev_pos = cur_pos
             cur_pos = cursor.position()
             if cur_pos == prev_pos:
                 return
+        # If not, move backwards to find the previous separator
         while not self.is_cell_separator(cursor):
-            # Moving to the previous code cell
             cursor.movePosition(QTextCursor.PreviousBlock)
             prev_pos = cur_pos
             cur_pos = cursor.position()
@@ -515,8 +516,11 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                 else:
                     break
         cursor.setPosition(prev_pos)
+        cell_at_file_start = cursor.atStart()
+        # Once we find it (or reach the beginning of the file)
+        # move to the next separator (or the end of the file)
+        # so we can grab the cell contents
         while not self.is_cell_separator(cursor):
-            # Moving to the next code cell
             cursor.movePosition(QTextCursor.NextBlock,
                                 QTextCursor.KeepAnchor)
             cur_pos = cursor.position()
@@ -525,6 +529,10 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                                     QTextCursor.KeepAnchor)
                 break
             prev_pos = cur_pos
+        # Do nothing if we moved from beginning to end without
+        # finding a separator
+        if cell_at_file_start and cursor.atEnd():
+            return
         self.setTextCursor(cursor)
 
     def go_to_next_cell(self):
