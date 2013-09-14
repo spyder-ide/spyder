@@ -65,7 +65,16 @@ def debug_print(message):
 #==============================================================================
 # Configuration paths
 #==============================================================================
+# Spyder settings dir
 SUBFOLDER = '.spyder%s' % __version__.split('.')[0]
+
+# We can't have PY2 and PY3 settings in the same dir because:
+# 1. This leads to ugly crashes and freezes (e.g. by trying to
+#    embed a PY2 interpreter in PY3)
+# 2. We need to save the list of installed modules (for code
+#    completion) separately for each version
+if PY3:
+    SUBFOLDER = SUBFOLDER + osp.sep + 'python3'
 
 def get_conf_path(filename=None):
     """Return absolute path for configuration file with specified filename"""
