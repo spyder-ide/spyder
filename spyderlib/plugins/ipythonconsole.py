@@ -834,7 +834,7 @@ class IPythonConsole(SpyderPluginWidget):
     def kernel_and_frontend_match(self, connection_file):
         # Determine kernel version
         ci = get_connection_info(connection_file, unpack=True)
-        if ci.has_key(u('control_port')):
+        if u('control_port') in ci:
             kernel_ver = '>=1.0'
         else:
             kernel_ver = '<1.0'
