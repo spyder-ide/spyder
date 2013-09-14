@@ -1944,7 +1944,8 @@ class EditorStack(QWidget):
     def run_cell(self, focus_to_editor=False):
         """Run current cell"""
         text = self.get_current_editor().get_cell_as_executable_code()
-        if text:
+        finfo = self.get_current_finfo()
+        if finfo.editor.is_python() and text:
             self.emit(SIGNAL('exec_in_extconsole(QString,bool)'),
                       text, focus_to_editor)
 
