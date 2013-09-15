@@ -331,13 +331,17 @@ class PylintWidget(QWidget):
         self.error_output = ''
         
         plver = get_pylint_version()
-        if plver.split('.')[0] == '0':
-            p_args = ['-i', 'yes']
+        if plver is not None:
+            if plver.split('.')[0] == '0':
+                p_args = ['-i', 'yes']
+            else:
+                # Option '-i' (alias for '--include-ids') was removed in pylint
+                # 1.0
+                p_args = ["--msg-template='{msg_id}:{line:3d},"\
+                          "{column}: {obj}: {msg}"]
+            p_args += [osp.basename(filename)]
         else:
-            # Option '-i' (alias for '--include-ids') was removed in pylint 1.0
-            p_args = ["--msg-template='{msg_id}:{line:3d},"\
-                      "{column}: {obj}: {msg}"]
-        p_args += [osp.basename(filename)]
+            p_args = [osp.basename(filename)]
         self.process.start(PYLINT_PATH, p_args)
         
         running = self.process.waitForStarted()
