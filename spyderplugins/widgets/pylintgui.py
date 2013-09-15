@@ -48,13 +48,10 @@ def get_pylint_version():
     global PYLINT_PATH
     if PYLINT_PATH is None:
         return
-    if os.name == 'nt':
-        shell = True
-    else:
-        shell = False
     process = subprocess.Popen(['pylint', '--version'],
                                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                               cwd=osp.dirname(PYLINT_PATH), shell=shell)
+                               cwd=osp.dirname(PYLINT_PATH),
+                               shell=True if os.name == 'nt' else False)
     lines = to_unicode_from_fs(process.stdout.read()).splitlines()
     if lines:
         match = re.match('(pylint|pylint-script.py) ([0-9\.]*)', lines[0])
@@ -328,7 +325,7 @@ class PylintWidget(QWidget):
         self.output = ''
         self.error_output = ''
         
-        plver = get_pylint_version()
+        plver = PYLINT_VER
         if plver is not None:
             if plver.split('.')[0] == '0':
                 p_args = ['-i', 'yes']
