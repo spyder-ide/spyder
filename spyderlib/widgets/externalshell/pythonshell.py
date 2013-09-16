@@ -523,11 +523,13 @@ The process may not exit as a result of clicking this button
         else:
             self.shell.setFocus()
             self.emit(SIGNAL('started()'))
-            
         return self.process
 
     def finished(self, exit_code, exit_status):
         """Reimplement ExternalShellBase method"""
+        if self.is_ipykernel and exit_code == 1:
+            self.emit(SIGNAL("ipython_kernel_start_error(QString)"),
+                      self.shell.get_text_with_eol())
         ExternalShellBase.finished(self, exit_code, exit_status)
         self.introspection_socket = None
 
