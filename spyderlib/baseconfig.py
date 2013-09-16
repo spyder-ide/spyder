@@ -74,7 +74,7 @@ SUBFOLDER = '.spyder%s' % __version__.split('.')[0]
 # 2. We need to save the list of installed modules (for code
 #    completion) separately for each version
 if PY3:
-    SUBFOLDER = SUBFOLDER + osp.sep + 'python3'
+    SUBFOLDER = SUBFOLDER + '-py3'
 
 def get_conf_path(filename=None):
     """Return absolute path for configuration file with specified filename"""
