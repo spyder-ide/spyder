@@ -237,7 +237,7 @@ tt {
 /* --- Loading style--- */
 div.loading {
     position: fixed;
-    left: 37%;
+    left: 35%;
     top: 40%;
     background-color: #EEEEEE;
     border: 1px solid #C9C9C9;
@@ -247,7 +247,7 @@ div.loading {
     border-top-right-radius: 6px;
     box-shadow: 1px 1px 7px #CACACA;
     color: #333333;
-    padding: 10px;
+    padding: 12px;
     font-family: 'Trebuchet MS', sans-serif;
     font-size: 90%;
 }
