@@ -844,6 +844,10 @@ class IPythonConsole(SpyderPluginWidget):
         # Update client name
         self.rename_ipyclient_tab(client)
     
+    def open_console_at_startup(self):
+        if self.get_option('open_ipython_at_startup', False):
+            self.main.ipyconsole.create_new_client()
+    
     def close_related_ipyclients(self, client):
         """Close all IPython clients related to *client*, except itself"""
         for cl in self.clients[:]:

@@ -1244,24 +1244,6 @@ class ExternalConsole(SpyderPluginWidget):
         """Open an interpreter or an IPython kernel at startup"""
         if self.get_option('open_python_at_startup', True):
             self.open_interpreter()
-        if CONF.get('ipython_console', 'open_ipython_at_startup', False):
-            if self.main.ipyconsole is None:
-                suffix = SUPPORTED_IPYTHON.replace(';', _(' and ')
-                                         ).replace('<', '&lt;'
-                                         ).replace('>', '&gt;')
-                if programs.is_module_installed('IPython'):
-                    import IPython
-                    suffix += _('<br><u>Installed version</u>: %s'
-                                ) % IPython.__version__
-                QMessageBox.critical(self, _('IPython console'),
-                    _("Unable to open IPython console because no supported "
-                      "IPython version was found.<br><br>"
-                      "<u>Supported IPython versions</u>: %s") % suffix,
-                    QMessageBox.Ok)
-                if not self.get_option('open_python_at_startup'):
-                    self.open_interpreter()
-            else:
-                self.main.ipyconsole.create_new_client()
 
     def open_interpreter(self, wdir=None):
         """Open interpreter"""
