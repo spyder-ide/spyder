@@ -581,7 +581,7 @@ class IPythonConsole(SpyderPluginWidget):
         # Determine kernel version
         ci = get_connection_info(connection_file, unpack=True,
                                  profile='default')
-        if ci.has_key(u('control_port')):
+        if u('control_port') in ci:
             kernel_ver = '>=1.0'
         else:
             kernel_ver = '<1.0'
