@@ -237,7 +237,7 @@ else:
 
 def qbytearray_to_str(qba):
     """Convert QByteArray object to str in a way compatible with Python 2/3"""
-    return str(bytes(qba.toHex()).decode())
+    return str(bytes(qba.toHex().data()).decode())
 
 
 if __name__ == '__main__':
