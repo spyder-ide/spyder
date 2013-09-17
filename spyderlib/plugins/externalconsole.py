@@ -243,7 +243,7 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         # Startup Group
         startup_group = QGroupBox(_("Startup"))
         pystartup_box = newcb(_("Open a Python interpreter at startup"),
-                              'open_python_at_startup')
+                              'open_python_at_startup', True)
         
         startup_layout = QVBoxLayout()
         startup_layout.addWidget(pystartup_box)
