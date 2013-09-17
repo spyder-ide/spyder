@@ -1105,9 +1105,9 @@ class MainWindow(QMainWindow):
         #       startup *sometimes* if using PySide under Python3
         if self.light:
             self.extconsole.open_interpreter()
-        elif self.ipyconsole is not None:
-            self.ipyconsole.open_client_at_startup()
         else:
+            if self.ipyconsole is not None:
+                self.ipyconsole.open_client_at_startup()
             self.extconsole.open_interpreter_at_startup()
         self.extconsole.setMinimumHeight(0)
         
