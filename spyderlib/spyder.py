@@ -1106,9 +1106,9 @@ class MainWindow(QMainWindow):
         if self.light:
             self.extconsole.open_interpreter()
         else:
+            self.extconsole.open_interpreter_at_startup()
             if self.ipyconsole is not None:
                 self.ipyconsole.open_client_at_startup()
-            self.extconsole.open_interpreter_at_startup()
         self.extconsole.setMinimumHeight(0)
         
     def load_window_settings(self, prefix, default=False, section='main'):
