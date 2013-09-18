@@ -28,7 +28,8 @@ except ImportError: # 0.13
     from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
 
 # Local imports
-from spyderlib.baseconfig import get_conf_path, get_module_source_path, _
+from spyderlib.baseconfig import (get_conf_path, get_image_path,
+                                  get_module_source_path, _)
 from spyderlib.config import CONF
 from spyderlib.utils.qthelpers import (get_std_icon, create_toolbutton,
                                        add_actions, create_action, get_icon)
@@ -57,7 +58,7 @@ r"""<html>
 </head>
 <body>
   <div class="loading">
-    <img src="file:///${img_path}/loading.gif"/>&nbsp;&nbsp;${message}
+    <img src="file:///${loading_img}"/>&nbsp;&nbsp;${message}
   </div>
 </body>
 </html>
@@ -562,11 +563,10 @@ class IPythonClient(QWidget, SaveHistoryMixin):
     
     def _create_loading_page(self):
         loading_template = Template(LOADING)
-        img_path = get_module_source_path('spyderlib', osp.join('images',
-                                                                'console'))
+        loading_img = get_image_path('loading.gif')
         message = _("Connecting to kernel...")
         page = loading_template.substitute(css_path=CSS_PATH,
-                                           img_path=img_path,
+                                           loading_img=loading_img,
                                            message=message)
         return page
     
