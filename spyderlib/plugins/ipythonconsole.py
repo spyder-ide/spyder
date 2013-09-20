@@ -574,8 +574,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
     def auto_refresh_namespacebrowser(self):
         """Refresh namespace browser"""
         if self.namespacebrowser:
-            if self.namespacebrowser.autorefresh:
-                self.namespacebrowser.refresh_table()
+            self.namespacebrowser.refresh_table()
     
     #------ Private API -------------------------------------------------------
     def _show_rich_help(self, text):
@@ -1052,6 +1051,11 @@ class IPythonConsole(SpyderPluginWidget):
         # Connect to our variable explorer
         if kernel_widget is not None and self.variableexplorer is not None:
             nsb = self.variableexplorer.currentWidget()
+            # When the autorefresh button is active, our kernels
+            # start to consume more and more CPU during time
+            # Fixes Issue 1450
+            nsb.auto_refresh_button.setChecked(False)
+            nsb.auto_refresh_button.setEnabled(False)
             client.set_namespacebrowser(nsb)
         
         # Connect client to our history log
