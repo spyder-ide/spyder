@@ -10,7 +10,6 @@ IPython v0.13+ client's widget
 
 # Stdlib imports
 import os
-import os.path as osp
 from string import Template
 import time
 
@@ -28,8 +27,7 @@ except ImportError: # 0.13
     from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
 
 # Local imports
-from spyderlib.baseconfig import (get_conf_path, get_image_path,
-                                  get_module_source_path, _)
+from spyderlib.baseconfig import get_conf_path, get_image_path, _
 from spyderlib.config import CONF
 from spyderlib.utils.qthelpers import (get_std_icon, create_toolbutton,
                                        add_actions, create_action, get_icon)
