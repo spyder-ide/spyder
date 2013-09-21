@@ -815,7 +815,7 @@ class ExternalConsole(SpyderPluginWidget):
                 pythonexecutable = get_python_executable()
             else:
                 pythonexecutable = self.get_option('pythonexecutable')
-            if self.get_option('pythonstartup/default', True):
+            if self.get_option('pythonstartup/default', True) or ipykernel:
                 pythonstartup = None
             else:
                 pythonstartup = self.get_option('pythonstartup', None)
