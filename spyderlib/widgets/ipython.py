@@ -164,10 +164,15 @@ class SpyderIPythonWidget(RichIPythonWidget):
             backends = {0: 'module://IPython.zmq.pylab.backend_inline',
                         1: 'Qt4Agg', 2: 'Qt4Agg', 3: 'MacOSX', 4: 'GTKAgg',
                         5: 'WXAgg', 6: 'TKAgg'}
-            pylab_message = """
+            pylab_013_message = """
 Welcome to pylab, a matplotlib-based Python environment [backend: %s].
 For more information, type 'help(pylab)'.\n""" % backends[backend_o]
-            banner = banner + pylab_message
+            pylab_1_message = """
+Populating the interactive namespace from numpy and matplotlib"""
+            if programs.is_module_installed('IPython', '>=1.0'):
+                banner = banner + pylab_1_message
+            else:
+                banner = banner + pylab_013_message
         
         sympy_o = CONF.get('ipython_console', 'symbolic_math', True)
         if sympy_o:
