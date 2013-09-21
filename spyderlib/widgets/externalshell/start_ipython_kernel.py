@@ -178,19 +178,25 @@ try:
     from IPython.kernel.zmq.kernelapp import IPKernelApp  # 1.0
 except:
     from IPython.zmq.ipkernel import IPKernelApp  # 0.13  (analysis:ignore)
-    
+
 ipk_temp = IPKernelApp.instance()
 ipk_temp.config = kernel_config()
 ipk_temp.initialize()
 
+# Grabbing the kernel's shell to share its namespace with our
+# Variable Explorer
 __ipythonshell__ = ipk_temp.shell
-set_edit_magic(__ipythonshell__)
 
-#  Issue 977 : Since kernel.initialize() has completed execution, 
+# Issue 977 : Since kernel.initialize() has completed execution, 
 # we can now allow the monitor to communicate the availablility of 
 # the kernel to accept front end connections.
 __ipythonkernel__ = ipk_temp
 del ipk_temp
+
+# Change %edit to open files inside Spyder
+# NOTE: Leave this and other magic modifications *after* setting
+# __ipythonkernel__
+set_edit_magic(__ipythonshell__)
 
 # Start the (infinite) kernel event loop.
 __ipythonkernel__.start()

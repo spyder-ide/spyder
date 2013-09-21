@@ -813,6 +813,11 @@ class IPythonConsole(SpyderPluginWidget):
         # Connect to our variable explorer
         if kernel_widget is not None and self.variableexplorer is not None:
             nsb = self.variableexplorer.currentWidget()
+            # When the autorefresh button is active, our kernels
+            # start to consume more and more CPU during time
+            # Fixes Issue 1450
+            nsb.auto_refresh_button.setChecked(False)
+            nsb.auto_refresh_button.setEnabled(False)
             client.set_namespacebrowser(nsb)
         
         # Connect client to our history log
