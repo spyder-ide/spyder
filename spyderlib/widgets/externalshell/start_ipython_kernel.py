@@ -90,7 +90,9 @@ def kernel_config():
            spy_cfg.InlineBackend.rc = {'figure.figsize': (6.0, 4.0),
                                    'savefig.dpi': 72,
                                    'font.size': 10,
-                                   'figure.subplot.bottom': .125
+                                   'figure.subplot.bottom': .125,
+                                   'figure.facecolor': 'white',
+                                   'figure.edgecolor': 'white'
                                    }
            resolution_o = CONF.get('ipython_console', 
                                    'pylab/inline/resolution')
