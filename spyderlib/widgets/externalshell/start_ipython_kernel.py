@@ -185,8 +185,13 @@ del ipk_temp
 
 # Change %edit to open files inside Spyder
 # NOTE: Leave this and other magic modifications *after* setting
-# __ipythonkernel__
+# __ipythonkernel__ to not have problems while starting kernels
 change_edit_magic(__ipythonshell__)
+
+# To make %pylab load numpy and pylab even if the user has
+# set autoload_pylab_o to False *but* nevertheless use it in
+# the interactive session.
+__ipythonkernel__.pylab_import_all = True
 
 # Start the (infinite) kernel event loop.
 __ipythonkernel__.start()
