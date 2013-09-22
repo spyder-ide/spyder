@@ -1119,7 +1119,7 @@ class ExternalConsole(SpyderPluginWidget):
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         interpreter_action = create_action(self,
-                            _("Open a Python &interpreter"), None,
+                            _("Open a &Python console"), None,
                             'python.png', triggered=self.open_interpreter)
         if os.name == 'nt':
             text = _("Open &command prompt")
