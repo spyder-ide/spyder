@@ -179,6 +179,7 @@ class SpyderIPythonWidget(RichIPythonWidget):
         self.custom_control = IPythonControlWidget
         self.custom_page_control = IPythonPageControlWidget
         super(SpyderIPythonWidget, self).__init__(*args, **kw)
+        self.set_background_color()
         
         # --- Spyder variables ---
         self.ipyclient = None
@@ -254,6 +255,11 @@ These commands were executed:
                 self.kernel_client.stdin_channel.input(line)
             else:
                 self.kernel_manager.stdin_channel.input(line)
+    
+    def set_background_color(self):
+        lightbg_o = CONF.get('ipython_console', 'light_color', True)
+        if not lightbg_o:
+            self.set_default_style(colors='linux')
 
     #---- IPython private methods ---------------------------------------------
     def _context_menu_make(self, pos):

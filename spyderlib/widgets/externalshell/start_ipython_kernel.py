@@ -13,13 +13,11 @@ import os.path as osp
 
 def sympy_config():
     """Sympy configuration"""
-    from spyderlib.utils.programs import is_module_installed
-    
+    from spyderlib.utils.programs import is_module_installed    
     lines_new = """
 from sympy.interactive import init_session
 init_session()
-"""
-    
+"""    
     lines_old = """
 from __future__ import division
 from sympy import *
@@ -27,7 +25,6 @@ x, y, z, t = symbols('x y z t')
 k, m, n = symbols('k m n', integer=True)
 f, g, h = symbols('f g h', cls=Function)
 """
-    
     if is_module_installed('sympy', '>=0.7.3'):
         extension = None
         return lines_new, extension
@@ -141,23 +138,13 @@ def kernel_config():
     return ip_cfg
 
 
-def set_edit_magic(shell):
+def change_edit_magic(shell):
     """Use %edit to open files in Spyder"""
-    from spyderlib.utils import programs
-    from spyderlib.baseconfig import IPYTHON_QT_MODULE, SUPPORTED_IPYTHON
-    
-    if programs.is_module_installed(IPYTHON_QT_MODULE, SUPPORTED_IPYTHON):
-        # For some users, trying to replace %edit with open_in_spyder could
-        # give a crash when starting a kernel. I've seen it after updating
-        # from 2.1
-        try:
-            shell.magics_manager.magics['line']['ed'] = \
-              shell.magics_manager.magics['line']['edit']
-            shell.magics_manager.magics['line']['edit'] = open_in_spyder
-        except:
-            pass
-    else:
-        # Don't wanna know how things were in previous versions
+    try:
+        shell.magics_manager.magics['line']['ed'] = \
+          shell.magics_manager.magics['line']['edit']
+        shell.magics_manager.magics['line']['edit'] = open_in_spyder  #analysis:ignore
+    except:
         pass
 
 
@@ -197,8 +184,13 @@ del ipk_temp
 
 # Change %edit to open files inside Spyder
 # NOTE: Leave this and other magic modifications *after* setting
-# __ipythonkernel__
-set_edit_magic(__ipythonshell__)
+# __ipythonkernel__ to not have problems while starting kernels
+change_edit_magic(__ipythonshell__)
+
+# To make %pylab load numpy and pylab even if the user has
+# set autoload_pylab_o to False *but* nevertheless use it in
+# the interactive session.
+__ipythonkernel__.pylab_import_all = True
 
 # Start the (infinite) kernel event loop.
 __ipythonkernel__.start()
