@@ -356,8 +356,8 @@ class MainWindow(QMainWindow):
         self.run_menu_actions = []
         self.debug_menu = None
         self.debug_menu_actions = []
-        self.interact_menu = None
-        self.interact_menu_actions = []
+        self.consoles_menu = None
+        self.consoles_menu_actions = []
         self.tools_menu = None
         self.tools_menu_actions = []
         self.external_tools_menu = None # We must keep a reference to this,
@@ -569,8 +569,8 @@ class MainWindow(QMainWindow):
             self.debug_toolbar = self.create_toolbar(_("Debug toolbar"),
                                                      "debug_toolbar")
                                                   
-            # Interact menu/toolbar
-            self.interact_menu = self.menuBar().addMenu(_("&Interpreters"))
+            # Consoles menu/toolbar
+            self.consoles_menu = self.menuBar().addMenu(_("C&onsoles"))
             
             # Tools menu
             self.tools_menu = self.menuBar().addMenu(_("&Tools"))
@@ -1016,7 +1016,7 @@ class MainWindow(QMainWindow):
             add_actions(self.source_menu, self.source_menu_actions)
             add_actions(self.run_menu, self.run_menu_actions)
             add_actions(self.debug_menu, self.debug_menu_actions)
-            add_actions(self.interact_menu, self.interact_menu_actions)
+            add_actions(self.consoles_menu, self.consoles_menu_actions)
             add_actions(self.tools_menu, self.tools_menu_actions)
             add_actions(self.external_tools_menu,
                         self.external_tools_menu_actions)

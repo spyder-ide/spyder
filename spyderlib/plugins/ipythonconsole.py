@@ -521,9 +521,9 @@ class IPythonConsole(SpyderPluginWidget):
                 triggered=self.create_client_for_kernel)
         
         # Add the action to the 'Interpreters' menu on the main window
-        interact_menu_actions = [create_client_action, None,
+        consoles_menu_actions = [create_client_action, None,
                                  connect_to_kernel_action]
-        self.main.interact_menu_actions += interact_menu_actions
+        self.main.consoles_menu_actions += consoles_menu_actions
         
         # Plugin actions
         self.menu_actions = [create_client_action, connect_to_kernel_action]

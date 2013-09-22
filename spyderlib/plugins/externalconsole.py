@@ -1134,14 +1134,14 @@ class ExternalConsole(SpyderPluginWidget):
                             'run_small.png', _("Run a Python script"),
                             triggered=self.run_script)
 
-        interact_menu_actions = [interpreter_action]
+        consoles_menu_actions = [interpreter_action]
         tools_menu_actions = [terminal_action]
         self.menu_actions = [interpreter_action, terminal_action, run_action]
         
-        self.main.interact_menu_actions += interact_menu_actions
+        self.main.consoles_menu_actions += consoles_menu_actions
         self.main.tools_menu_actions += tools_menu_actions
         
-        return self.menu_actions+interact_menu_actions+tools_menu_actions
+        return self.menu_actions+consoles_menu_actions+tools_menu_actions
     
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
