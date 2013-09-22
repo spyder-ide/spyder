@@ -496,6 +496,7 @@ class ExternalConsole(SpyderPluginWidget):
     """
     CONF_SECTION = 'console'
     CONFIGWIDGET_CLASS = ExternalConsoleConfigPage
+    DISABLE_ACTIONS_WHEN_HIDDEN = False
     def __init__(self, parent, light_mode):
         SpyderPluginWidget.__init__(self, parent)
         self.light_mode = light_mode
