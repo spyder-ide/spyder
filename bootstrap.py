@@ -31,13 +31,21 @@ parser.add_option('--gui', default=None,
                   help="GUI toolkit: pyqt (for PyQt4) or pyside (for PySide)")
 parser.add_option('--hide-console', action='store_true',
                   default=False, help="Hide parent console window (Windows only)")
+parser.add_option('--test', dest="test", action='store_true', default=False,
+                  help="Test Spyder with a clean settings dir")
 parser.add_option('--no-apport', action='store_true',
                   default=False, help="Disable Apport exception hook (Ubuntu)")
 parser.add_option('--debug', action='store_true',
                   default=False, help="Run Spyder in debug mode")
 options, args = parser.parse_args()
+
 assert options.gui in (None, 'pyqt', 'pyside'), \
        "Invalid GUI toolkit option '%s'" % options.gui
+
+# For testing purposes
+if options.test:
+    os.environ['SPYDER_TEST'] = 'True'
+
 # Prepare arguments for Spyder's main script
 sys.argv = [sys.argv[0]] + args
 

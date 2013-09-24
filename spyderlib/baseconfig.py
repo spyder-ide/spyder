@@ -33,6 +33,10 @@ from spyderlib.utils import programs
 # SPYDER_DEV is (and *only* have to be) set in bootstrap.py
 DEV = os.environ.get('SPYDER_DEV')
 
+# For testing purposes
+# SPYDER_TEST can be set using the --test option of bootstrap.py
+TEST = os.environ.get('SPYDER_TEST')
+
 
 #==============================================================================
 # IPython constants
@@ -66,7 +70,11 @@ def debug_print(message):
 # Configuration paths
 #==============================================================================
 # Spyder settings dir
-SUBFOLDER = '.spyder%s' % __version__.split('.')[0]
+if TEST is None:
+    SUBFOLDER = '.spyder%s' % __version__.split('.')[0]
+else:
+    SUBFOLDER = 'spyder_test'
+
 
 # We can't have PY2 and PY3 settings in the same dir because:
 # 1. This leads to ugly crashes and freezes (e.g. by trying to
@@ -78,8 +86,12 @@ if PY3:
 
 def get_conf_path(filename=None):
     """Return absolute path for configuration file with specified filename"""
-    from spyderlib import userconfig
-    conf_dir = osp.join(userconfig.get_home_dir(), SUBFOLDER)
+    if TEST is None:
+        from spyderlib import userconfig
+        conf_dir = osp.join(userconfig.get_home_dir(), SUBFOLDER)
+    else:
+         import tempfile
+         conf_dir = osp.join(tempfile.gettempdir(), SUBFOLDER)
     if not osp.isdir(conf_dir):
         os.mkdir(conf_dir)
     if filename is None:
