@@ -126,7 +126,7 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, get_icon,
                                        create_python_script_action, file_uri)
 from spyderlib.baseconfig import (get_conf_path, _, get_module_data_path,
                                   get_module_source_path, STDOUT, STDERR,
-                                  DEBUG, get_image_path, DEV)
+                                  DEBUG, get_image_path, DEV, TEST, SUBFOLDER)
 from spyderlib.config import CONF, EDIT_EXT, IMPORT_EXT, OPEN_FILES_PORT
 from spyderlib.guiconfig import get_shortcut, remove_deprecated_shortcuts
 from spyderlib.otherplugins import get_spyderplugins_mods
@@ -384,7 +384,7 @@ class MainWindow(QMainWindow):
         self.debug_toolbar_actions = []
         
         # Set Window title and icon
-        if DEV:
+        if DEV is not None:
             title = "Spyder %s (Python %s.%s)" % (__version__,
                                                   sys.version_info[0],
                                                   sys.version_info[1])
@@ -1062,6 +1062,12 @@ class MainWindow(QMainWindow):
         
         # Remove our temporary dir
         atexit.register(self.remove_tmpdir)
+        
+        # Remove settings test directory
+        if TEST is not None:
+            import tempfile
+            conf_dir = osp.join(tempfile.gettempdir(), SUBFOLDER)
+            atexit.register(shutil.rmtree, conf_dir, ignore_errors=True)
 
         # [Workaround for Issue 880]
         # QDockWidget objects are not painted if restored as floating 

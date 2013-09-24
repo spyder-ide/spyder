@@ -42,6 +42,7 @@ import os, re, os.path as osp, shutil, time
 from ConfigParser import (ConfigParser, MissingSectionHeaderError,
                           NoSectionError, NoOptionError)
 
+from spyderlib.baseconfig import TEST
 from spyderlib.utils import encoding
 
 
@@ -67,8 +68,10 @@ def get_home_dir():
     else:
         raise RuntimeError('Please define environment variable $HOME')
 
+
 class NoDefault:
     pass
+
 
 class UserConfig(ConfigParser):
     """
@@ -186,7 +189,11 @@ class UserConfig(ConfigParser):
         """
         Create a .ini filename located in user home directory
         """
-        folder = get_home_dir()
+        if TEST is None:
+            folder = get_home_dir()
+        else:
+            import tempfile
+            folder = tempfile.gettempdir()
         if self.subfolder is not None:
             folder = osp.join(folder, self.subfolder)
             try:

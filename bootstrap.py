@@ -28,11 +28,19 @@ parser = optparse.OptionParser(
            "options.\n")
 parser.add_option('--gui', dest="gui", default=None,
                   help="GUI toolkit: pyqt (for PyQt4) or pyside (for PySide)")
+parser.add_option('--test', dest="test", action='store_true', default=False,
+                  help="Test Spyder with a clean settings dir")
 parser.add_option('--hide-console', dest="hide_console", action='store_true',
                   default=False, help="Hide parent console (Windows only)")
 options, args = parser.parse_args()
+
 assert options.gui in (None, 'pyqt', 'pyside'), \
        "Invalid GUI toolkit option '%s'" % options.gui
+
+# For testing purposes
+if options.test:
+    os.environ['SPYDER_TEST'] = 'True'
+
 # Prepare arguments for Spyder's main script
 sys.argv = [sys.argv[0]] + args
 
