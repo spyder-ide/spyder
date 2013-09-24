@@ -514,7 +514,7 @@ The process may not exit as a result of clicking this button
         self.process.start(self.pythonexecutable, p_args)
         #-------------------------Python specific-------------------------------
             
-        running = self.process.waitForStarted()
+        running = self.process.waitForStarted(3000)
         self.set_running_state(running)
         if not running:
             QMessageBox.critical(self, _("Error"),
