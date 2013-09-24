@@ -50,7 +50,7 @@ def main():
 
     # Renaming old configuration files (the '.' prefix has been removed)
     # (except for .spyder.ini --> spyder.ini, which is done in userconfig.py)
-    if not DEV:
+    if DEV is None:
         cpath = get_conf_path()
         for fname in os.listdir(cpath):
             if fname.startswith('.'):

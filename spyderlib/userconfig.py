@@ -224,7 +224,7 @@ class UserConfig(cp.ConfigParser):
                 # Folder (or one of its parents) already exists
                 pass
             old, new = w_dot, osp.join(folder, '%s.ini' % self.name)
-            if osp.isfile(old) and not DEV:
+            if osp.isfile(old) and DEV is None:
                 try:
                     if osp.isfile(new):
                         os.remove(old)
