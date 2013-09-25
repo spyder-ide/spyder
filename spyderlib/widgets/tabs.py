@@ -23,7 +23,7 @@ from spyderlib.baseconfig import _
 from spyderlib.utils.misc import get_common_path
 from spyderlib.utils.qthelpers import (add_actions, create_toolbutton,
                                        create_action, get_icon)
-from spyderlib.py3compat import to_text_string
+from spyderlib.py3compat import PY2, to_text_string
 
 
 class TabBar(QTabBar):
@@ -49,10 +49,19 @@ class TabBar(QTabBar):
                 QApplication.startDragDistance():
             drag = QDrag(self)
             mimeData = QMimeData()
-            mimeData.setData("parent-id", QByteArray.number(id(self.ancestor)))
+            # Converting id's to long to avoid an OverflowError with PySide
+            if PY2:
+                ancestor_id = long(id(self.ancestor))
+                parent_widget_id = long(id(self.parentWidget()))
+                self_id = long(id(self))
+            else:
+                ancestor_id = id(self.ancestor)
+                parent_widget_id = id(self.parentWidget())
+                self_id = id(self)
+            mimeData.setData("parent-id", QByteArray.number(ancestor_id))
             mimeData.setData("tabwidget-id",
-                             QByteArray.number(id(self.parentWidget())))
-            mimeData.setData("tabbar-id", QByteArray.number(id(self)))
+                             QByteArray.number(parent_widget_id))
+            mimeData.setData("tabbar-id", QByteArray.number(self_id))
             mimeData.setData("source-index", 
                          QByteArray.number(self.tabAt(self.__drag_start_pos)))
             drag.setMimeData(mimeData)

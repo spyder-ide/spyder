@@ -821,14 +821,11 @@ class MainWindow(QMainWindow):
             self.variableexplorer.register_plugin()
         
         # IPython console
-        #XXX: we need to think of what to do with the light mode...
-        #     ---> but for now, simply hiding the dockwidget like in standard 
-        #          mode should be sufficient
-        if is_module_installed(IPYTHON_QT_MODULE, SUPPORTED_IPYTHON):
+        if is_module_installed(IPYTHON_QT_MODULE, SUPPORTED_IPYTHON) and not \
+          self.light:
             self.set_splash(_("Loading IPython console..."))
             self.ipyconsole = IPythonConsole(self)
             self.ipyconsole.register_plugin()
-            self.ipyconsole.dockwidget.hide()
 
         if not self.light:
             nsb = self.variableexplorer.add_shellwidget(self.console.shell)
@@ -1109,7 +1106,7 @@ class MainWindow(QMainWindow):
         # Open a Python or IPython console at startup
         # NOTE: Leave this at the end of post_visible_setup because
         #       it seems to avoid being unable to start a console at
-        #       startup *sometimes* if using PySide under Python3
+        #       startup *sometimes* if using PySide
         if self.light:
             self.extconsole.open_interpreter()
         else:
