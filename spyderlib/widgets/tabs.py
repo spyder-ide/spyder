@@ -48,10 +48,14 @@ class TabBar(QTabBar):
                 QApplication.startDragDistance():
             drag = QDrag(self)
             mimeData = QMimeData()
-            mimeData.setData("parent-id", QByteArray.number(id(self.ancestor)))
+            # Converting id's to long to avoid an OverflowError with PySide
+            ancestor_id = long(id(self.ancestor))
+            parent_widget_id = long(id(self.parentWidget()))
+            self_id = long(id(self))
+            mimeData.setData("parent-id", QByteArray.number(ancestor_id))
             mimeData.setData("tabwidget-id",
-                             QByteArray.number(id(self.parentWidget())))
-            mimeData.setData("tabbar-id", QByteArray.number(id(self)))
+                             QByteArray.number(parent_widget_id))
+            mimeData.setData("tabbar-id", QByteArray.number(self_id))
             mimeData.setData("source-index", 
                          QByteArray.number(self.tabAt(self.__drag_start_pos)))
             drag.setMimeData(mimeData)
