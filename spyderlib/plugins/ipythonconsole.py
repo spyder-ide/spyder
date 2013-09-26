@@ -640,6 +640,7 @@ class IPythonConsole(SpyderPluginWidget):
     """
     CONF_SECTION = 'ipython_console'
     CONFIGWIDGET_CLASS = IPythonConsoleConfigPage
+    DISABLE_ACTIONS_WHEN_HIDDEN = False
 
     def __init__(self, parent):
         SpyderPluginWidget.__init__(self, parent)
