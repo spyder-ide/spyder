@@ -19,8 +19,8 @@ import sys
 
 # Local imports
 from spyderlib import dependencies
-from spyderlib.baseconfig import (get_conf_path, _, SUPPORTED_IPYTHON,
-                                  IPYTHON_QT_MODULE)
+from spyderlib.baseconfig import get_conf_path, _
+from spyderlib.ipythonconfig import IPYTHON_QT_MODULE, SUPPORTED_IPYTHON
 from spyderlib.config import CONF
 from spyderlib.guiconfig import get_color_scheme, get_font, set_font
 from spyderlib.utils import programs

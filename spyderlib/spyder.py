@@ -31,10 +31,13 @@ ORIGINAL_SYS_EXIT = sys.exit
 
 # Test if IPython v0.13+ is installed to eventually switch to PyQt API #2
 from spyderlib.utils.programs import is_module_installed
-from spyderlib.baseconfig import IPYTHON_QT_MODULE, SUPPORTED_IPYTHON, _
+from spyderlib.baseconfig import _
+from spyderlib.ipythonconfig import IPYTHON_QT_MODULE, SUPPORTED_IPYTHON
 from spyderlib import dependencies
+
 dependencies.add("IPython", _("IPython Console integration"),
                  required_version=SUPPORTED_IPYTHON)
+
 if is_module_installed(IPYTHON_QT_MODULE, SUPPORTED_IPYTHON):
     # Importing IPython will eventually set the QT_API environment variable
     import IPython  # analysis:ignore
