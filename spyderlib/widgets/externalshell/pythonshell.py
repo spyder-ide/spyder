@@ -519,7 +519,7 @@ The process may not exit as a result of clicking this button
         self.set_running_state(running)
         if not running:
             QMessageBox.critical(self, _("Error"),
-                                 _("Process failed to start"))
+                             _("A Python or IPython Console failed to start!"))
         else:
             self.shell.setFocus()
             self.emit(SIGNAL('started()'))

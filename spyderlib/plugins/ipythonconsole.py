@@ -205,11 +205,11 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                                 "72"))
         width_spin = self.create_spinbox(
                           _("Width:")+"  ", " "+_("inches"),
-                          'pylab/inline/width', min_=4, max_=20, step=1,
+                          'pylab/inline/width', min_=2, max_=20, step=1,
                           tip=_("Default is 6"))
         height_spin = self.create_spinbox(
                           _("Height:")+"  ", " "+_("inches"),
-                          'pylab/inline/height', min_=4, max_=20, step=1,
+                          'pylab/inline/height', min_=1, max_=20, step=1,
                           tip=_("Default is 4"))
         
         inline_layout = QVBoxLayout()
@@ -386,6 +386,7 @@ class IPythonConsole(SpyderPluginWidget):
     """
     CONF_SECTION = 'ipython_console'
     CONFIGWIDGET_CLASS = IPythonConsoleConfigPage
+    DISABLE_ACTIONS_WHEN_HIDDEN = False
 
     def __init__(self, parent):
         SpyderPluginWidget.__init__(self, parent)

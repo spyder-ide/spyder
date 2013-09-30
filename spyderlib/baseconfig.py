@@ -23,7 +23,6 @@ import sys
 from spyderlib import __version__
 from spyderlib.py3compat import (is_unicode, TEXT_TYPES, INT_TYPES, PY3,
                                  to_text_string, is_text_string)
-from spyderlib.utils import programs
 
 
 #==============================================================================
@@ -36,16 +35,6 @@ DEV = os.environ.get('SPYDER_DEV')
 # For testing purposes
 # SPYDER_TEST can be set using the --test option of bootstrap.py
 TEST = os.environ.get('SPYDER_TEST')
-
-
-#==============================================================================
-# IPython constants
-#==============================================================================
-SUPPORTED_IPYTHON = '>=0.13'
-if programs.is_module_installed('IPython', '>=1.0'):
-    IPYTHON_QT_MODULE = 'IPython.qt'
-else:
-    IPYTHON_QT_MODULE = 'IPython.frontend.qt'
 
 
 #==============================================================================
