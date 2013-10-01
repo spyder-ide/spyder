@@ -28,7 +28,6 @@ import sys
 
 # Local imports
 from spyderlib.baseconfig import _, SCIENTIFIC_STARTUP
-from spyderlib.ipythonconfig import SUPPORTED_IPYTHON
 from spyderlib.config import CONF
 from spyderlib.utils import programs
 from spyderlib.utils.misc import (get_error_match, get_python_executable,
