@@ -12,21 +12,51 @@ Requires NumPy, SciPy and Matplotlib
 
 from __future__ import division
 
-# Pollute the namespace but also provide MATLAB-like experience:
-from pylab import *  #analysis:ignore
+has_numpy = True
+has_scipy = True
+has_matplotlib = True
 
-# Enable Matplotlib's interactive mode:
-ion()
+#==============================================================================
+# Pollute the namespace but also provide MATLAB-like experience
+#==============================================================================
+try:
+    from pylab import *  #analysis:ignore
+    # Enable Matplotlib's interactive mode:
+    ion()
+except ImportError:
+    pass
 
 # Import modules following official guidelines:
-import numpy as np
-import scipy as sp
-import matplotlib as mpl
-import matplotlib.pyplot as plt  #analysis:ignore
+try:
+    import numpy as np
+except ImportError:
+    has_numpy = False
+
+try:
+    import scipy as sp
+except ImportError:
+    has_scipy = False
+
+try:
+    import matplotlib as mpl
+    import matplotlib.pyplot as plt  #analysis:ignore
+except ImportError:
+    has_matplotlib = False
+
+#==============================================================================
+# Print what modules have been imported
+#==============================================================================
+imports = ""
+if has_numpy:
+    imports += "Imported NumPy %s" % np.__version__
+if has_scipy:
+    imports += ", SciPy %s" % sp.__version__
+if has_matplotlib:
+    imports += ", Matplotlib %s" % mpl.__version__
 
 print ""
-print "Imported NumPy %s, SciPy %s, Matplotlib %s" %\
-      (np.__version__, sp.__version__, mpl.__version__),
+if imports:
+    print imports
 
 import os
 if os.environ.get('QT_API') != 'pyside':
@@ -39,25 +69,34 @@ if os.environ.get('QT_API') != 'pyside':
                                            guiqwt.__version__)
     except ImportError:
         print
-else:
-    print
 
+#==============================================================================
+# Add help about the "scientific" command
+#==============================================================================
 def setscientific():
     """Set 'scientific' in __builtin__"""
     import __builtin__
     from site import _Printer
-    infos = """\
+    infos = ""
+    
+    if has_numpy:
+        infos += """
 This is a standard Python interpreter with preloaded tools for scientific 
-computing and visualization:
+computing and visualization. It tries to import the following modules:
 
->>> import numpy as np  # NumPy (multidimensional arrays, linear algebra, ...)
->>> import scipy as sp  # SciPy (signal and image processing library)
+>>> import numpy as np  # NumPy (multidimensional arrays, linear algebra, ...)"""
 
+    if has_scipy:
+        infos += """
+>>> import scipy as sp  # SciPy (signal and image processing library)"""
+
+    if has_matplotlib:
+        infos += """
 >>> import matplotlib as mpl         # Matplotlib (2D/3D plotting library)
 >>> import matplotlib.pyplot as plt  # Matplotlib's pyplot: MATLAB-like syntax
 >>> from pylab import *              # Matplotlib's pylab interface
->>> ion()                            # Turned on Matplotlib's interactive mode
-"""
+>>> ion()                            # Turned on Matplotlib's interactive mode"""
+    
     try:
         import guiqwt  #analysis:ignore
         infos += """
@@ -65,10 +104,13 @@ computing and visualization:
 
 >>> import guiqwt                 # Efficient 2D data-plotting features
 >>> import guiqwt.pyplot as plt_  # guiqwt's pyplot: MATLAB-like syntax
->>> plt_.ion()                    # Turned on guiqwt's interactive mode
-"""
+>>> plt_.ion()                    # Turned on guiqwt's interactive mode"""
     except ImportError:
         pass
+    
+    if has_numpy:
+        infos += "\n"
+
     infos += """
 Within Spyder, this interpreter also provides:
     * special commands (e.g. %ls, %pwd, %clear)
@@ -77,6 +119,11 @@ Within Spyder, this interpreter also provides:
 """
     __builtin__.scientific = _Printer("scientific", infos)
 
+
 setscientific()
-del setscientific
 print 'Type "scientific" for more details.'
+
+#==============================================================================
+# Delete temp vars
+#==============================================================================
+del setscientific, has_numpy, has_scipy, has_matplotlib, imports
