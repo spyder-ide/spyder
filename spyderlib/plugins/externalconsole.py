@@ -54,16 +54,6 @@ def is_mpl_patch_available():
         return False
 
 
-def scientific_libs_available(interpreter):
-    """
-    Return True if numpy, scipy and matplotlib are installed in interpreter
-    """
-    mods = ['numpy', 'scipy', 'matplotlib']
-    check_mods = [programs.is_module_installed(m, interpreter=interpreter) \
-                  for m in mods]
-    return all(check_mods)
-
-
 class ExternalConsoleConfigPage(PluginConfigPage):
     def __init__(self, plugin, parent):
         PluginConfigPage.__init__(self, plugin, parent)
@@ -442,15 +432,6 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         vlayout.addWidget(tabs)
         self.setLayout(vlayout)
 
-    def _auto_switch_startup_script(self, pyexec):
-        """Switch automatically from the scientific startup to the default 
-        startup script if scientific libs aren't available with selected 
-        Python executable"""
-        if self.cus_startup_radio.isChecked() and\
-           not scientific_libs_available(pyexec):
-            self.def_startup_radio.setChecked(True)
-            self.cus_startup_radio.setChecked(False)
-
     def _auto_change_qt_api(self, pyexec):
         """Change automatically Qt API depending on
         selected Python executable"""
@@ -475,7 +456,6 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         old_pyexec = self.get_option("pythonexecutable",
                                      get_python_executable())
         if pyexec != old_pyexec:
-            self._auto_switch_startup_script(pyexec)
             self._auto_change_qt_api(pyexec)
 
     def python_executable_switched(self, custom):
@@ -486,7 +466,6 @@ class ExternalConsoleConfigPage(PluginConfigPage):
             cust_pyexec = to_text_string(cust_pyexec.toUtf8(), 'utf-8')
         if def_pyexec != cust_pyexec:
             pyexec = cust_pyexec if custom else def_pyexec
-            self._auto_switch_startup_script(pyexec)
             self._auto_change_qt_api(pyexec)
 
 
@@ -521,16 +500,11 @@ class ExternalConsole(SpyderPluginWidget):
             executable = get_python_executable()
 
         # Python startup file selection
-        if self.get_option('pythonstartup/default', None) is None:
-            scientific = scientific_libs_available(executable)
-            self.set_option('pythonstartup/default', not scientific)
         if not osp.isfile(self.get_option('pythonstartup', '')):
-            scientific = scientific_libs_available(executable)
             self.set_option('pythonstartup', SCIENTIFIC_STARTUP)
-            self.set_option('pythonstartup/default', not scientific)
         # default/custom settings are mutually exclusive:
         self.set_option('pythonstartup/custom',
-                        not self.get_option('pythonstartup/default'))
+                        not self.get_option('pythonstartup/default', False))
         
         if not osp.isfile(executable):
             # This is absolutely necessary, in case the Python interpreter
