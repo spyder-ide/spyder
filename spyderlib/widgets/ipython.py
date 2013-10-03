@@ -10,6 +10,7 @@ IPython v0.13+ client's widget
 
 # Stdlib imports
 import os
+import os.path as osp
 from string import Template
 import time
 
@@ -27,11 +28,11 @@ except ImportError: # 0.13
     from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
 
 # Local imports
-from spyderlib.baseconfig import get_conf_path, get_image_path, _
+from spyderlib.baseconfig import (get_conf_path, get_image_path,
+                                  get_module_source_path, _)
 from spyderlib.config import CONF
 from spyderlib.utils.qthelpers import (get_std_icon, create_toolbutton,
                                        add_actions, create_action, get_icon)
-from spyderlib.utils.inspector.sphinxify import CSS_PATH
 from spyderlib.utils import programs
 from spyderlib.widgets.mixins import (BaseEditMixin, InspectObjectMixin,
                                       SaveHistoryMixin, TracebackLinksMixin)
@@ -40,6 +41,12 @@ from spyderlib.widgets.browser import WebView
 #-----------------------------------------------------------------------------
 # Templates
 #-----------------------------------------------------------------------------
+# Using the same css file from the Object Inspector (because we are
+# sharing the same rules)
+OI_UTILS_PATH = get_module_source_path('spyderlib', osp.join('utils',
+                                                             'inspector'))
+CSS_PATH = osp.join(OI_UTILS_PATH, 'static', 'css')
+
 BLANK = \
 r"""<html>
 <head>
