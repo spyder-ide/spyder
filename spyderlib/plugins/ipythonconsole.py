@@ -1065,7 +1065,12 @@ class IPythonConsole(SpyderPluginWidget):
             nsb = self.variableexplorer.currentWidget()
             # When the autorefresh button is active, our kernels
             # start to consume more and more CPU during time
-            # Fixes Issue 1450
+            # Fix Issue 1450
+            # ----------------
+            # When autorefresh is off by default we need the next
+            # line so that kernels don't start to consume CPU
+            # Fix Issue 1595
+            nsb.auto_refresh_button.setChecked(True)
             nsb.auto_refresh_button.setChecked(False)
             nsb.auto_refresh_button.setEnabled(False)
             client.set_namespacebrowser(nsb)
