@@ -14,11 +14,12 @@ $ python create_app.py py2app   (to build the app)
 
 from setuptools import setup
 
-from distutils.sysconfig import get_python_lib
+from distutils.sysconfig import get_python_lib, get_config_var
 import fileinput
 import shutil
 import os
 import os.path as osp
+import subprocess
 import sys
 
 from IPython.core.completerlib import module_list
@@ -60,12 +61,12 @@ def get_stdlib_modules():
 shutil.copyfile('scripts/spyder', 'Spyder.py')
 
 APP = ['Spyder.py']
-DEPS = ['pylint', 'logilab_astng', 'logilab_common', 'pep8', 'setuptools']
-EXCLUDES = DEPS + ['mercurial', 'nose']
+DEPS = ['pylint', 'logilab', 'astroid', 'pep8', 'setuptools']
+EXCLUDES = DEPS + ['mercurial']
 PACKAGES = ['spyderlib', 'spyderplugins', 'sphinx', 'jinja2', 'docutils',
             'IPython', 'zmq', 'pygments', 'rope', 'distutils', 'PIL', 'PyQt4',
             'sklearn', 'skimage', 'pandas', 'sympy', 'statsmodels',
-            'mpl_toolkits']
+            'mpl_toolkits', 'nose']
 INCLUDES = get_stdlib_modules()
 EDIT_EXT = [ext[1:] for ext in EDIT_EXT]
 
@@ -136,15 +137,6 @@ for i in deps:
     else:
         shutil.copy2(osp.join(system_python_lib, i),
                      osp.join(app_python_lib, i))
-
-# Hack to make pep8 work inside the app
-pep8_egg = filter(lambda d: d.startswith('pep8'), deps)[0]
-pep8_script = osp.join(app_python_lib, pep8_egg, 'pep8.py')
-for line in fileinput.input(pep8_script, inplace=True):
-    if line.strip().startswith('codes = ERRORCODE_REGEX.findall'):
-        print "            codes = ERRORCODE_REGEX.findall(function.__doc__ or 'W000')"
-    else:
-        print line,
 
 # Function to adjust the interpreter used by PROGRAMS
 # (to be added to __boot.py__)
@@ -228,3 +220,15 @@ for line in fileinput.input(boot_file, inplace=True):
     else:
         print line,
 
+# To use the app's own Qt framework
+subprocess.call(['macdeployqt', 'dist/Spyder.app'])
+
+# Workaround for what appears to be a bug with py2app and Homebrew
+# See https://bitbucket.org/ronaldoussoren/py2app/issue/26#comment-2092445
+PF_dir = get_config_var('PYTHONFRAMEWORKINSTALLDIR')
+app_python_interpreter = 'dist/Spyder.app/Contents/MacOS/python'
+shutil.copyfile(osp.join(PF_dir, 'Resources/Python.app/Contents/MacOS/Python'),
+                app_python_interpreter)
+subprocess.call(['install_name_tool', '-change', osp.join(sys.prefix, 'Python'),
+                 '@executable_path/../Frameworks/Python.framework/Versions/2.7/Python',
+                 app_python_interpreter])
