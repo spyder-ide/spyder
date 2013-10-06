@@ -816,6 +816,17 @@ class ExternalConsole(SpyderPluginWidget):
             umd_verbose = self.get_option('umd/verbose')
             ar_timeout = CONF.get('variable_explorer', 'autorefresh/timeout')
             ar_state = CONF.get('variable_explorer', 'autorefresh')
+
+            # CRUCIAL NOTE FOR IPYTHON KERNELS:
+            # autorefresh needs to be on so that our monitor
+            # can find __ipythonkernel__ in the globals namespace
+            # *after* the kernel has been started.
+            # Without the ns refresh provided by autorefresh, a
+            # client is *never* started (although the kernel is)
+            # Fix Issue 1595
+            if not ar_state and ipykernel:
+                ar_state = True
+
             if self.light_mode:
                 from spyderlib.plugins.variableexplorer import VariableExplorer
                 sa_settings = VariableExplorer.get_settings()

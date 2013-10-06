@@ -45,6 +45,7 @@ class NamespaceBrowser(QWidget):
         
         self.shellwidget = None
         self.is_internal_shell = None
+        self.is_ipykernel = None
         
         self.is_visible = True # Do not modify: light mode won't work!
         
@@ -103,7 +104,10 @@ class NamespaceBrowser(QWidget):
             self.exclude_uppercase_action.setChecked(exclude_uppercase)
             self.exclude_capitalized_action.setChecked(exclude_capitalized)
             self.exclude_unsupported_action.setChecked(exclude_unsupported)
-            self.auto_refresh_button.setChecked(autorefresh)
+            # Don't turn autorefresh on for IPython kernels
+            # See Issue 1450
+            if not self.is_ipykernel:
+                self.auto_refresh_button.setChecked(autorefresh)
             self.refresh_table()
             return
         
@@ -155,6 +159,10 @@ class NamespaceBrowser(QWidget):
         from spyderlib.widgets import internalshell
         self.is_internal_shell = isinstance(self.shellwidget,
                                             internalshell.InternalShell)
+        try:
+            self.is_ipykernel = self.shellwidget.is_ipykernel
+        except AttributeError:
+            pass
         if not self.is_internal_shell:
             shellwidget.set_namespacebrowser(self)
         
