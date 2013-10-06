@@ -25,9 +25,9 @@ def exec_print(string="", end_space=False):
         else:
             exec("print('" + string + "')")
 
-has_numpy = True
-has_scipy = True
-has_matplotlib = True
+__has_numpy = True
+__has_scipy = True
+__has_matplotlib = True
 
 #==============================================================================
 # Pollute the namespace but also provide MATLAB-like experience
@@ -43,33 +43,33 @@ except ImportError:
 try:
     import numpy as np
 except ImportError:
-    has_numpy = False
+    __has_numpy = False
 
 try:
     import scipy as sp
 except ImportError:
-    has_scipy = False
+    __has_scipy = False
 
 try:
     import matplotlib as mpl
     import matplotlib.pyplot as plt  #analysis:ignore
 except ImportError:
-    has_matplotlib = False
+    __has_matplotlib = False
 
 #==============================================================================
 # Print what modules have been imported
 #==============================================================================
-imports = ""
-if has_numpy:
-    imports += "Imported NumPy %s" % np.__version__
-if has_scipy:
-    imports += ", SciPy %s" % sp.__version__
-if has_matplotlib:
-    imports += ", Matplotlib %s" % mpl.__version__
+__imports = ""
+if __has_numpy:
+    __imports += "Imported NumPy %s" % np.__version__
+if __has_scipy:
+    __imports += ", SciPy %s" % sp.__version__
+if __has_matplotlib:
+    __imports += ", Matplotlib %s" % mpl.__version__
 
 exec_print("")
-if imports:
-    exec_print(imports)
+if __imports:
+    exec_print(__imports)
 
 import os
 if os.environ.get('QT_API') != 'pyside':
@@ -90,18 +90,18 @@ def setscientific():
     """Set 'scientific' in __builtin__"""
     infos = ""
     
-    if has_numpy:
+    if __has_numpy:
         infos += """
 This is a standard Python interpreter with preloaded tools for scientific 
 computing and visualization. It tries to import the following modules:
 
 >>> import numpy as np  # NumPy (multidimensional arrays, linear algebra, ...)"""
 
-    if has_scipy:
+    if __has_scipy:
         infos += """
 >>> import scipy as sp  # SciPy (signal and image processing library)"""
 
-    if has_matplotlib:
+    if __has_matplotlib:
         infos += """
 >>> import matplotlib as mpl         # Matplotlib (2D/3D plotting library)
 >>> import matplotlib.pyplot as plt  # Matplotlib's pyplot: MATLAB-like syntax
@@ -119,7 +119,7 @@ computing and visualization. It tries to import the following modules:
     except ImportError:
         pass
     
-    if has_numpy:
+    if __has_numpy:
         infos += "\n"
 
     infos += """
@@ -144,4 +144,4 @@ exec_print('Type "scientific" for more details.')
 #==============================================================================
 # Delete temp vars
 #==============================================================================
-del setscientific, has_numpy, has_scipy, has_matplotlib, imports, exec_print
+del setscientific, __has_numpy, __has_scipy, __has_matplotlib, __imports, exec_print
