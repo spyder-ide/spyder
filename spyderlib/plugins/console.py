@@ -40,7 +40,7 @@ class Console(SpyderPluginWidget):
     Console widget
     """
     CONF_SECTION = 'internal_console'
-    def __init__(self, parent=None, namespace=None, commands=[], message="",
+    def __init__(self, parent=None, namespace=None, commands=[], message=None,
                  exitfunc=None, profile=False, multithreaded=False):
         SpyderPluginWidget.__init__(self, parent)
         

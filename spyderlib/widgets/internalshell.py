@@ -43,10 +43,12 @@ from spyderlib.py3compat import to_text_string, getcwd, to_binary_string, u
 
 def create_banner(message):
     """Create internal shell banner"""
-    versions = get_versions()
-    return 'Spyder %s internal shell on Python %s %dbits [%s]\n%s'\
-           % (versions['spyder'], versions['python'], versions['bitness'],
-              versions['system'], message)
+    if message is None:
+        versions = get_versions()
+        return 'Python %s %dbits [%s]'\
+               % (versions['python'], versions['bitness'], versions['system'])
+    else:
+        return message
 
 
 class SysOutput(QObject):
@@ -105,7 +107,7 @@ class WidgetProxy(QObject):
 
 class InternalShell(PythonShellWidget):
     """Shell base widget: link between PythonShellWidget and Interpreter"""
-    def __init__(self, parent=None, namespace=None, commands=[], message="",
+    def __init__(self, parent=None, namespace=None, commands=[], message=None,
                  max_line_count=300, font=None, exitfunc=None, profile=False,
                  multithreaded=True, light_background=True):
         PythonShellWidget.__init__(self, parent,
