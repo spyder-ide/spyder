@@ -22,6 +22,8 @@ two alternatives:
 
   .. warning::
    
+     *This is not necessary anymore since version 2.2.5.*
+     
      * To be able to use the app that comes with this dmg on *Mountain Lion* (10.8)
        you need to install `XQuartz <http://xquartz.macosforge.org/>`_ first.
      * To generate plots in *Snow Leopard* (10.6) you need to install first
@@ -178,8 +180,8 @@ Recommended modules
 
 We recommend you to install these modules to get the most out of Spyder:
 
-* `IPython <http://ipython.org/install.html#downloads>`_ 0.13.2 (1.0dev is not
-  supported yet) -- for an enhanced Python interpreter.
+* `IPython <http://ipython.org/install.html#downloads>`_ -- for an enhanced Python
+  interpreter.
   
  .. note::
   
