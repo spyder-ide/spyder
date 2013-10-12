@@ -1593,7 +1593,7 @@ class MainWindow(QMainWindow):
             <a href="%s">Google Group</a>
             </li></ul>
             <p>This project is part of a larger effort to promote and 
-            facilitate the use of Python for scientific and enginering 
+            facilitate the use of Python for scientific and engineering 
             software development. The popular Python distributions 
             <a href="http://code.google.com/p/pythonxy/">Python(x,y)</a> and 
             <a href="http://code.google.com/p/winpython/">WinPython</a> 
