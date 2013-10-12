@@ -1656,7 +1656,7 @@ class EditorStack(QWidget):
                     answer = QMessageBox.question(self,
                                 self.title,
                                 _("<b>%s</b> has been modified outside Spyder."
-                                  "<br>Do you want to reload it and loose all "
+                                  "<br>Do you want to reload it and lose all "
                                   "your changes?") % name,
                                 QMessageBox.Yes | QMessageBox.No)
                     if answer == QMessageBox.Yes:
