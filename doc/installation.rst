@@ -86,7 +86,7 @@ might need.
 
    Spyder is also available in other GNU/Linux distributions, like
 
-   * `Archlinux <http://www.archlinux.org/packages/community/any/spyder/>`_
+   * `Archlinux <https://aur.archlinux.org/packages/?K=spyder>`_
 
    * `Fedora <https://admin.fedoraproject.org/pkgdb/acls/name/spyder?_csrf_token=ab2ac812ed6df3abdf42981038a56d3d87b34128>`_
 
