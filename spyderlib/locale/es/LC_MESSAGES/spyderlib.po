@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
 "POT-Creation-Date: 2013-10-12 19:49+COT\n"
-"PO-Revision-Date: 2013-09-04 21:44-0500\n"
+"PO-Revision-Date: 2013-10-12 20:19-0500\n"
 "Last-Translator: Carlos Cordoba <ccordoba12@gmail.com>\n"
 "Language-Team: Python\n"
 "Language: es\n"
@@ -1863,11 +1863,11 @@ msgstr "Mostrar un diálogo de confirmación antes de cerrar una terminal"
 
 #: spyderlib/plugins/ipythonconsole.py:106
 msgid "Light background"
-msgstr "Fondo claro (color blanco)"
+msgstr "Fondo claro"
 
 #: spyderlib/plugins/ipythonconsole.py:108
 msgid "Dark background"
-msgstr "Fondo oscuro (color negro)"
+msgstr "Fondo oscuro"
 
 #: spyderlib/plugins/ipythonconsole.py:118
 msgid "Buffer:  "
@@ -3510,7 +3510,6 @@ msgstr ""
 "o renombrado por fuera de Spyder).<br>¿Desea cerrarlo?"
 
 #: spyderlib/widgets/editor.py:1658
-#, fuzzy
 msgid ""
 "<b>%s</b> has been modified outside Spyder.<br>Do you want to reload it and "
 "lose all your changes?"
@@ -3910,9 +3909,8 @@ msgid "No argument"
 msgstr "Sin argumentos"
 
 #: spyderlib/widgets/externalshell/pythonshell.py:521
-#, fuzzy
 msgid "A Python or IPython Console failed to start!"
-msgstr "Abrir una terminal de IPython al inicio"
+msgstr "No se pudo iniciar una terminal de Python o IPython!"
 
 #: spyderlib/widgets/externalshell/systemshell.py:92
 msgid "Process failed to start"
