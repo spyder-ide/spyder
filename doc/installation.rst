@@ -22,6 +22,8 @@ two alternatives:
 
   .. warning::
    
+     *This is not necessary anymore since version 2.2.5.*
+     
      * To be able to use the app that comes with this dmg on *Mountain Lion* (10.8)
        you need to install `XQuartz <http://xquartz.macosforge.org/>`_ first.
      * To generate plots in *Snow Leopard* (10.6) you need to install first
@@ -84,7 +86,7 @@ might need.
 
    Spyder is also available in other GNU/Linux distributions, like
 
-   * `Archlinux <http://www.archlinux.org/packages/community/any/spyder/>`_
+   * `Archlinux <https://aur.archlinux.org/packages/?K=spyder>`_
 
    * `Fedora <https://admin.fedoraproject.org/pkgdb/acls/name/spyder?_csrf_token=ab2ac812ed6df3abdf42981038a56d3d87b34128>`_
 
@@ -178,8 +180,8 @@ Recommended modules
 
 We recommend you to install these modules to get the most out of Spyder:
 
-* `IPython <http://ipython.org/install.html#downloads>`_ 0.13.2 (1.0dev is not
-  supported yet) -- for an enhanced Python interpreter.
+* `IPython <http://ipython.org/install.html#downloads>`_ -- for an enhanced Python
+  interpreter.
   
  .. note::
   
