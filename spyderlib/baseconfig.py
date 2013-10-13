@@ -198,13 +198,18 @@ _ = get_translation("spyderlib")
 #==============================================================================
 
 def get_supported_types():
-    """Return a dictionnary containing types lists supported by the 
+    """
+    Return a dictionnary containing types lists supported by the 
     namespace browser:
     dict(picklable=picklable_types, editable=editables_types)
          
     See:
     get_remote_data function in spyderlib/widgets/externalshell/monitor.py
-    get_internal_shell_filter method in namespacebrowser.py"""
+    get_internal_shell_filter method in namespacebrowser.py
+    
+    Note:
+    If you update this list, don't forget to update doc/variablexplorer.rst
+    """
     from datetime import date
     editable_types = [int, long, float, list, dict, tuple, str, unicode, date]
     try:

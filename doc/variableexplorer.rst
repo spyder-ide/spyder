@@ -37,6 +37,14 @@ effect on console's performance:
 .. image:: images/variableexplorer2.png
 
 
+Supported types
+---------------
+
+The variable explorer can't show all types of objects. The ones currently
+supported are: integers, floats, lists, dictionaries, tuples, strings,
+`NumPy` arrays, `datetime` dates and `PIL/Pillow` images.
+
+
 Related plugins:
 
 * :doc:`console`
