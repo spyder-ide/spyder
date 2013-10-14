@@ -835,6 +835,7 @@ class IPythonConsole(SpyderPluginWidget):
             nsb.auto_refresh_button.setChecked(True)
             nsb.auto_refresh_button.setChecked(False)
             nsb.auto_refresh_button.setEnabled(False)
+            nsb.set_ipyclient(client)
             client.set_namespacebrowser(nsb)
         
         # Connect client to our history log

@@ -45,6 +45,7 @@ class NamespaceBrowser(QWidget):
         
         self.shellwidget = None
         self.is_internal_shell = None
+        self.ipyclient = None
         self.is_ipykernel = None
         
         self.is_visible = True # Do not modify: light mode won't work!
@@ -159,12 +160,13 @@ class NamespaceBrowser(QWidget):
         from spyderlib.widgets import internalshell
         self.is_internal_shell = isinstance(self.shellwidget,
                                             internalshell.InternalShell)
-        try:
-            self.is_ipykernel = self.shellwidget.is_ipykernel
-        except AttributeError:
-            pass
+        self.is_ipykernel = self.shellwidget.is_ipykernel
         if not self.is_internal_shell:
             shellwidget.set_namespacebrowser(self)
+    
+    def set_ipyclient(self, ipyclient):
+        """Bind ipyclient instance to namespace browser"""
+        self.ipyclient = ipyclient
         
     def setup_toolbar(self, exclude_private, exclude_uppercase,
                       exclude_capitalized, exclude_unsupported, autorefresh):
@@ -389,7 +391,11 @@ class NamespaceBrowser(QWidget):
                   "__items__ = getattr(spyderlib.pyplot, '%s')(%s); "\
                   "spyderlib.pyplot.show(); "\
                   "del __fig__, __items__;" % (funcname, name)
-        self.shellwidget.send_to_process(command)
+        if self.is_ipykernel:
+            self.ipyclient.ipywidget.execute("%%varexp --%s %s" % (funcname,
+                                                                   name))
+        else:
+            self.shellwidget.send_to_process(command)
         
     def imshow(self, name):
         command = "import spyderlib.pyplot; " \

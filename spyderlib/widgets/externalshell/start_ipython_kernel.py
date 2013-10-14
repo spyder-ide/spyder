@@ -147,6 +147,20 @@ def change_edit_magic(shell):
     except:
         pass
 
+def varexp(line):
+    """
+    Spyder's variable explorer magic
+    
+    Used to generate plots, histograms and images of the variables displayed
+    on it.
+    """
+    ip = get_ipython()       #analysis:ignore
+    funcname, name = line.split()
+    import spyderlib.pyplot
+    __fig__ = spyderlib.pyplot.figure();
+    __items__ = getattr(spyderlib.pyplot, funcname[2:])(ip.user_ns[name])
+    spyderlib.pyplot.show()
+    del __fig__, __items__
 
 # Remove this module's path from sys.path:
 try:
@@ -186,6 +200,7 @@ del ipk_temp
 # NOTE: Leave this and other magic modifications *after* setting
 # __ipythonkernel__ to not have problems while starting kernels
 change_edit_magic(__ipythonshell__)
+__ipythonshell__.register_magic_function(varexp)
 
 # To make %pylab load numpy and pylab even if the user has
 # set autoload_pylab_o to False *but* nevertheless use it in
