@@ -402,11 +402,17 @@ class NamespaceBrowser(QWidget):
                   "__fig__ = spyderlib.pyplot.figure(); " \
                   "__items__ = spyderlib.pyplot.imshow(%s); " \
                   "spyderlib.pyplot.show(); del __fig__, __items__;" % name
-        self.shellwidget.send_to_process(command)
+        if self.is_ipykernel:
+            self.ipyclient.ipywidget.execute("%%varexp --imshow %s" % name)
+        else:
+            self.shellwidget.send_to_process(command)
         
     def show_image(self, name):
         command = "%s.show()" % name
-        self.shellwidget.send_to_process(command)
+        if self.is_ipykernel:
+            self.ipyclient.ipywidget.execute(command)
+        else:
+            self.shellwidget.send_to_process(command)
         
     def oedit(self, name):
         command = "from spyderlib.widgets.objecteditor import oedit; " \
