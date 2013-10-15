@@ -516,10 +516,9 @@ class IPythonConsole(SpyderPluginWidget):
                                 triggered=self.create_new_client)
 
         connect_to_kernel_action = create_action(self,
-                _("Connect to an existing kernel"),
-                None, 'ipython_console.png',
-                _("Open a new IPython client connected to an external kernel"),
-                triggered=self.create_client_for_kernel)
+               _("Connect to an existing kernel"), None, None,
+               _("Open a new IPython console connected to an existing kernel"),
+               triggered=self.create_client_for_kernel)
         
         # Add the action to the 'Consoles' menu on the main window
         main_consoles_menu = self.main.consoles_menu_actions
