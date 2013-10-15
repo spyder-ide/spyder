@@ -998,12 +998,12 @@ class MainWindow(QMainWindow):
             external_tools_act = create_action(self, _("External Tools"),
                                                icon="ext_tools.png")
             external_tools_act.setMenu(self.external_tools_menu)
-            self.tools_menu_actions.append(external_tools_act)
             add_ext_tools = False
             for et in self.external_tools_menu_actions:
                 if et and et.isEnabled():
                     add_ext_tools = True
             if add_ext_tools:
+                self.tools_menu_actions.append(external_tools_act)
                 self.main_toolbar_actions.append(external_tools_act)
             
             # Filling out menu/toolbar entries:
