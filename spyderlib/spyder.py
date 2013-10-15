@@ -875,7 +875,19 @@ class MainWindow(QMainWindow):
                                   icon=get_icon('python.png'),
                                   triggered=lambda:
                                   programs.start_file(get_python_doc_path()))
-                self.help_menu_actions += [pydoc_act]
+                self.help_menu_actions.append(pydoc_act)
+            # IPython documentation
+            if self.ipyconsole is not None:
+                ipython_menu = QMenu(_("IPython Help"), self)
+                intro_action = create_action(self, _("Intro to IPython"),
+                                          triggered=self.ipyconsole.show_intro)
+                quickref_action = create_action(self, _("Quick Reference"),
+                                       triggered=self.ipyconsole.show_quickref)
+                guiref_action = create_action(self, _("Console help"),
+                                         triggered=self.ipyconsole.show_guiref)                    
+                add_actions(ipython_menu, (intro_action, guiref_action,
+                                           quickref_action))
+                self.help_menu_actions.append(ipython_menu)
             # Qt assistant link
             qta_act = create_program_action(self, _("Qt Help"), "assistant")
             if qta_act:

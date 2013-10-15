@@ -18,7 +18,7 @@ import time
 from spyderlib.qt.QtGui import (QTextEdit, QKeySequence, QShortcut, QWidget,
                                 QMenu, QHBoxLayout, QToolButton, QVBoxLayout,
                                 QMessageBox)
-from spyderlib.qt.QtCore import SIGNAL, Qt, QUrl
+from spyderlib.qt.QtCore import SIGNAL, Qt
 from spyderlib.utils.qthelpers import restore_keyevent
 
 # IPython imports
@@ -416,28 +416,12 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         self.restart_action = create_action(self, _("Restart kernel"),
                                             icon=get_icon('restart.png'),
                                             triggered=self.restart_kernel)
-        
-        # Help
-        self.intro_action = create_action(self, _("Intro to IPython"),
-                                          triggered=self._show_intro)
-        self.quickref_action = create_action(self, _("Quick Reference"),
-                                             triggered=self._show_quickref)
-        self.guiref_action = create_action(self, _("Console help"),
-                                           triggered=self._show_guiref)                    
-        help_menu = QMenu(_("Help"), self)
-        help_action = create_action(self, _("IPython Help"),
-                                    icon=get_std_icon('DialogHelpButton'))
-        help_action.setMenu(help_menu)
-        add_actions(help_menu, (self.intro_action, self.guiref_action,
-                                self.quickref_action))
-        
         # Main menu
         if self.menu_actions is not None:
             actions = [self.interrupt_action, self.restart_action, None] +\
-                      self.menu_actions + [None, help_menu]
+                      self.menu_actions
         else:
-            actions = [self.interrupt_action, self.restart_action, None,
-                       help_menu]
+            actions = [self.interrupt_action, self.restart_action]
         return actions
     
     def get_toolbar_buttons(self):
@@ -543,39 +527,6 @@ class IPythonClient(QWidget, SaveHistoryMixin):
             self.namespacebrowser.refresh_table()
     
     #------ Private API -------------------------------------------------------
-    def _show_rich_help(self, text):
-        """Use our Object Inspector to show IPython help texts in rich mode"""
-        from spyderlib.utils.inspector import sphinxify as spx
-        
-        context = spx.generate_context(name='', argspec='', note='',
-                                       math=False)
-        html_text = spx.sphinxify(text, context)
-        inspector = self.get_control().inspector
-        inspector.switch_to_rich_text()
-        inspector.set_rich_text_html(html_text,
-                                     QUrl.fromLocalFile(spx.CSS_PATH))
-    
-    def _show_plain_help(self, text):
-        """Use our Object Inspector to show IPython help texts in plain mode"""
-        inspector = self.get_control().inspector
-        inspector.switch_to_plain_text()
-        inspector.set_plain_text(text, is_code=False)
-    
-    def _show_intro(self):
-        """Show intro to IPython help"""
-        from IPython.core.usage import interactive_usage
-        self._show_rich_help(interactive_usage)
-    
-    def _show_guiref(self):
-        """Show qtconsole help"""
-        from IPython.core.usage import gui_reference
-        self._show_rich_help(gui_reference)
-    
-    def _show_quickref(self):
-        """Show IPython Cheat Sheet"""
-        from IPython.core.usage import quick_reference
-        self._show_plain_help(quick_reference)
-    
     def _create_loading_page(self):
         loading_template = Template(LOADING)
         loading_img = get_image_path('loading.gif')
