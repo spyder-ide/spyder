@@ -126,9 +126,7 @@ def sort_against(lista, listb, reverse=False):
 
 def unsorted_unique(lista):
     """Removes duplicates from lista neglecting its initial ordering"""
-    set = {}
-    list(map(set.__setitem__, lista, []))
-    return list(set.keys())
+    return list(set(lista))
 
 
 #----Display <--> Value
