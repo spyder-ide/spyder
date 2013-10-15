@@ -455,8 +455,8 @@ class ObjectInspector(SpyderPluginWidget):
         """Refresh widget"""
         if self._starting_up:
             self._starting_up = False
-            QTimer.singleShot(5000, self.refresh_plugin)
-        self.set_object_text(None, force_refresh=False)
+            # TODO: Change this to render a simple intro page
+            self.set_object_text('', force_refresh=False)
 
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
@@ -742,7 +742,6 @@ class ObjectInspector(SpyderPluginWidget):
         if checked:
             self.docstring = not checked
             self.switch_to_rich_text()
-            self.force_refresh()
         self.set_option('rich_mode', checked)
         
     def toggle_auto_import(self, checked):

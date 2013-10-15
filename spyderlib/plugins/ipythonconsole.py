@@ -635,6 +635,8 @@ class IPythonConsole(SpyderPluginWidget):
                                        math=False)
         html_text = spx.sphinxify(text, context)
         inspector = self.inspector
+        inspector.visibility_changed(True)
+        inspector.raise_()
         inspector.switch_to_rich_text()
         inspector.set_rich_text_html(html_text,
                                      QUrl.fromLocalFile(spx.CSS_PATH))
@@ -642,6 +644,8 @@ class IPythonConsole(SpyderPluginWidget):
     def _show_plain_help(self, text):
         """Use our Object Inspector to show IPython help texts in plain mode"""
         inspector = self.inspector
+        inspector.visibility_changed(True)
+        inspector.raise_()
         inspector.switch_to_plain_text()
         inspector.set_plain_text(text, is_code=False)
     
