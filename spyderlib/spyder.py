@@ -668,7 +668,8 @@ class MainWindow(QMainWindow):
             for act in (qtdact, qtlact, qteact):
                 if act:
                     additact.append(act)
-            if len(additact) > 1:
+            if len(additact) > 1 and (is_module_installed('winpython') or \
+              is_module_installed('xy')):
                 self.external_tools_menu_actions += additact
                 
             # Sift
