@@ -227,6 +227,7 @@ if PY2:
     cmp = cmp
     import string
     str_lower = string.lower
+    from itertools import izip_longest as zip_longest
 else:
     # Python 3
     input = input
@@ -234,6 +235,7 @@ else:
     def cmp(a, b):
         return (a > b) - (a < b)
     str_lower = str.lower
+    from itertools import zip_longest
 
 def qbytearray_to_str(qba):
     """Convert QByteArray object to str in a way compatible with Python 2/3"""

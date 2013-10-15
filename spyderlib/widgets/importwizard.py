@@ -24,8 +24,10 @@ from functools import partial as ft_partial
 
 # Local import
 from spyderlib.baseconfig import _
+from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import get_icon, add_actions, create_action
-from spyderlib.py3compat import TEXT_TYPES, INT_TYPES, to_text_string, u
+from spyderlib.py3compat import (TEXT_TYPES, INT_TYPES, to_text_string, u,
+                                 zip_longest)
 
 def try_to_parse(value):
     _types = ('int', 'float')
@@ -356,7 +358,7 @@ class PreviewTable(QTableView):
         """Decode the shape of the given text"""
         assert colsep != rowsep
         out = []
-        text_rows = map(None, text.split(rowsep))[skiprows:]
+        text_rows = text.split(rowsep)[skiprows:]
         for row in text_rows:
             stripped = to_text_string(row).strip()
             if len(stripped) == 0 or stripped.startswith(comments):
@@ -364,6 +366,14 @@ class PreviewTable(QTableView):
             line = to_text_string(row).split(colsep)
             line = [try_to_parse(to_text_string(x)) for x in line]
             out.append(line)
+        # Replace missing elements with np.nan's or None's
+        if programs.is_module_installed('numpy'):
+            from numpy import nan
+            out = list(zip_longest(*out, fillvalue=nan))
+        else:
+            out = list(zip_longest(*out, fillvalue=None))
+        # Tranpose the last result to get the expected one
+        out = [[r[col] for r in out] for col in range(len(out[0]))]
         if transpose:
             return [[r[col] for r in out] for col in range(len(out[0]))]
         return out
