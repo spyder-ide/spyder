@@ -475,6 +475,7 @@ class ExternalConsole(SpyderPluginWidget):
     """
     CONF_SECTION = 'console'
     CONFIGWIDGET_CLASS = ExternalConsoleConfigPage
+    DISABLE_ACTIONS_WHEN_HIDDEN = False
     def __init__(self, parent, light_mode):
         SpyderPluginWidget.__init__(self, parent)
         self.light_mode = light_mode
@@ -1103,7 +1104,7 @@ class ExternalConsole(SpyderPluginWidget):
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         interpreter_action = create_action(self,
-                            _("Open a Python &interpreter"), None,
+                            _("Open a &Python console"), None,
                             'python.png', triggered=self.open_interpreter)
         if os.name == 'nt':
             text = _("Open &command prompt")
@@ -1118,14 +1119,14 @@ class ExternalConsole(SpyderPluginWidget):
                             'run_small.png', _("Run a Python script"),
                             triggered=self.run_script)
 
-        interact_menu_actions = [interpreter_action]
+        consoles_menu_actions = [interpreter_action]
         tools_menu_actions = [terminal_action]
         self.menu_actions = [interpreter_action, terminal_action, run_action]
         
-        self.main.interact_menu_actions += interact_menu_actions
+        self.main.consoles_menu_actions += consoles_menu_actions
         self.main.tools_menu_actions += tools_menu_actions
         
-        return self.menu_actions+interact_menu_actions+tools_menu_actions
+        return self.menu_actions+consoles_menu_actions+tools_menu_actions
     
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
