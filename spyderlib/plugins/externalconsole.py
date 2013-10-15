@@ -1109,9 +1109,9 @@ class ExternalConsole(SpyderPluginWidget):
             text = _("Open &command prompt")
             tip = _("Open a Windows command prompt")
         else:
-            text = _("Open &terminal")
-            tip = _("Open a terminal window inside Spyder")
-        terminal_action = create_action(self, text, None, 'cmdprompt.png', tip,
+            text = _("Open a &terminal")
+            tip = _("Open a terminal window")
+        terminal_action = create_action(self, text, None, None, tip,
                                         triggered=self.open_terminal)
         run_action = create_action(self,
                             _("&Run..."), None,

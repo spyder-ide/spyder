@@ -606,7 +606,6 @@ class MainWindow(QMainWindow):
                                     menurole=QAction.ApplicationSpecificRole)
             update_modules_action = create_action(self,
                                         _("Update module names list"),
-                                        None, 'reload.png',
                                         triggered=module_completion.reset,
                                         tip=_("Refresh list of module names "
                                               "available in PYTHONPATH"))
