@@ -248,20 +248,18 @@ class MainWindow(QMainWindow):
     BOOKMARKS = (
          ('PyQt4',
           "http://pyqt.sourceforge.net/Docs/PyQt4/",
-          _("PyQt4 Reference Guide"), "qt.png"),
+          _("PyQt4 Reference Guide")),
          ('PyQt4',
           "http://pyqt.sourceforge.net/Docs/PyQt4/classes.html",
-          _("PyQt4 API Reference"), "qt.png"),
+          _("PyQt4 API Reference")),
          ('xy', "http://code.google.com/p/pythonxy/",
-          _("Python(x,y)"), "pythonxy.png"),
+          _("Python(x,y)")),
          ('winpython', "http://code.google.com/p/winpython/",
-          _("WinPython"), "winpython.svg"),
+          _("WinPython")),
          ('numpy', "http://docs.scipy.org/doc/",
-          _("Numpy and Scipy documentation"),
-          "scipy.png"),
+          _("Numpy and Scipy documentation")),
          ('matplotlib', "http://matplotlib.sourceforge.net/contents.html",
-          _("Matplotlib documentation"),
-          "matplotlib.png"),
+          _("Matplotlib documentation")),
                 )
     
     def __init__(self, options=None):
@@ -583,7 +581,7 @@ class MainWindow(QMainWindow):
             self.view_menu = self.menuBar().addMenu(_("&View"))
             
             # Help menu
-            self.help_menu = self.menuBar().addMenu("?")
+            self.help_menu = self.menuBar().addMenu(_("&Help"))
                     
             # Status bar
             status = self.statusBar()
@@ -654,12 +652,12 @@ class MainWindow(QMainWindow):
             additact = [None]
             for name in ("designer-qt4", "designer"):
                 qtdact = create_program_action(self, _("Qt Designer"),
-                                               'qtdesigner.png', name)
+                                               name, 'qtdesigner.png')
                 if qtdact:
                     break
             for name in ("linguist-qt4", "linguist"):
                 qtlact = create_program_action(self, _("Qt Linguist"),
-                                               'qtlinguist.png', "linguist")
+                                               "linguist", 'qtlinguist.png')
                 if qtlact:
                     break
             args = ['-no-opengl'] if os.name == 'nt' else []
@@ -703,7 +701,7 @@ class MainWindow(QMainWindow):
                 
             # ViTables
             vitables_act = create_program_action(self, _("ViTables"),
-                                                 'vitables.png', "vitables")
+                                                 "vitables", 'vitables.png')
             if vitables_act:
                 self.external_tools_menu_actions += [None, vitables_act]
             
@@ -844,7 +842,6 @@ class MainWindow(QMainWindow):
                                     icon=get_std_icon('MessageBoxInformation'),
                                     triggered=self.about)
             dep_action = create_action(self, _("Optional dependencies..."),
-                                       icon=get_icon('advanced.png'),
                                        triggered=self.show_dependencies)
             report_action = create_action(self,
                                     _("Report issue..."),
@@ -870,30 +867,29 @@ class MainWindow(QMainWindow):
             doc_action = create_bookmark_action(self, spyder_doc,
                                _("Spyder documentation"), shortcut="F1",
                                icon=get_std_icon('DialogHelpButton'))
-            self.help_menu_actions = [about_action, dep_action,
-                                      report_action, doc_action]
+            self.help_menu_actions = [doc_action, report_action, dep_action,
+                                      None]
             # Python documentation
             if get_python_doc_path() is not None:
                 pydoc_act = create_action(self, _("Python documentation"),
                                   icon=get_icon('python.png'),
                                   triggered=lambda:
                                   programs.start_file(get_python_doc_path()))
-                self.help_menu_actions += [None, pydoc_act]
+                self.help_menu_actions += [pydoc_act]
             # Qt assistant link
-            qta_act = create_program_action(self, _("Qt Assistant"),
-                                            'qtassistant.png', "assistant")
+            qta_act = create_program_action(self, _("Qt Help"), "assistant")
             if qta_act:
                 self.help_menu_actions.append(qta_act)
+            # Online documentation
+            web_resources = QMenu(_("Web Resources"))
+            add_actions(web_resources,
+                        create_module_bookmark_actions(self, self.BOOKMARKS))
+            self.help_menu_actions += [web_resources, None]
             # Windows-only: documentation located in sys.prefix/Doc
             def add_doc_action(text, path):
                 """Add doc action to help menu"""
-                ext = osp.splitext(path)[1]
-                if ext:
-                    icon = get_icon(ext[1:]+".png")
-                else:
-                    icon = get_std_icon("DirIcon")
                 path = file_uri(path)
-                action = create_action(self, text, icon=icon,
+                action = create_action(self, text, icon=None,
                        triggered=lambda path=path: programs.start_file(path))
                 self.help_menu_actions.append(action)
             sysdocpth = osp.join(sys.prefix, 'Doc')
@@ -939,12 +935,11 @@ class MainWindow(QMainWindow):
                 self.help_menu_actions.append(None)
             except (ImportError, KeyError, RuntimeError):
                 pass
-            # Online documentation
-            web_resources = QMenu(_("Web Resources"))
-            web_resources.setIcon(get_icon("browser.png"))
-            add_actions(web_resources,
-                        create_module_bookmark_actions(self, self.BOOKMARKS))
-            self.help_menu_actions.append(web_resources)
+            if self.help_menu_actions[-1] is None:
+                last_action = [about_action]
+            else:
+                last_action = [None, about_action]
+            self.help_menu_actions += last_action
             
             # Status bar widgets
             self.mem_status = MemoryStatus(self, status)

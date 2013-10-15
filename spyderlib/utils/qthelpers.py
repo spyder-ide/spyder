@@ -309,8 +309,6 @@ def set_item_user_text(item, text):
 
 def create_bookmark_action(parent, url, title, icon=None, shortcut=None):
     """Create bookmark action"""
-    if icon is None:
-        icon = get_icon('browser.png')
     return create_action( parent, title, shortcut=shortcut, icon=icon,
                           triggered=lambda u=url: programs.start_file(u) )
 
@@ -321,14 +319,14 @@ def create_module_bookmark_actions(parent, bookmarks):
     bookmarks = ((module_name, url, title), ...)
     """
     actions = []
-    for key, url, title, icon in bookmarks:
+    for key, url, title in bookmarks:
         if programs.is_module_installed(key):
-            act = create_bookmark_action(parent, url, title, get_icon(icon))
+            act = create_bookmark_action(parent, url, title)
             actions.append(act)
     return actions
 
         
-def create_program_action(parent, text, icon, name, nt_name=None):
+def create_program_action(parent, text, name, icon=None, nt_name=None):
     """Create action to run a program"""
     if is_text_string(icon):
         icon = get_icon(icon)
