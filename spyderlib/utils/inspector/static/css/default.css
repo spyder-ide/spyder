@@ -138,6 +138,19 @@ div.section p {
     text-align: center;
 }
 
+#doc-warning {
+    margin-top: 30px;
+    margin-left: 140px;
+    margin-right: 140px;
+    color: rgb(185, 74, 72);
+    background-color: rgb(242, 222, 222);
+    border: 1px solid rgb(238, 211, 215);
+    border-radius: 4px 4px 4px 4px;
+    padding: 15px;
+    text-align: center;
+    font-weight: bold;
+}
+
 /* --- Lists style --- */
 li p span {
     position: relative;
