@@ -247,7 +247,11 @@ tt {
     padding: 0px 1px;
 }
 
-/* --- Loading style--- */
+
+
+/* ####### IPython console styles ####### */
+
+/* --- Loading --- */
 div.loading {
     position: fixed;
     left: 35%;
@@ -261,6 +265,24 @@ div.loading {
     box-shadow: 1px 1px 7px #CACACA;
     color: #333333;
     padding: 12px;
-    font-family: 'Trebuchet MS', sans-serif;
-    font-size: 90%;
+}
+
+#kernel-warning {
+    margin-top: 15px;
+    color: rgb(185, 74, 72);
+    background-color: rgb(242, 222, 222);
+    border: 1px solid rgb(238, 211, 215);
+    border-radius: 4px 4px 4px 4px;
+    padding: 10px;
+    text-align: center;
+    font-weight: bold;
+}
+
+#kernel-error {
+    margin-top: 10px;
+    color: rgb(58, 135, 173);
+    background-color: rgb(217, 237, 247);
+    border: 1px solid rgb(188, 232, 241);
+    border-radius: 4px 4px 4px 4px;
+    padding: 20px;
 }

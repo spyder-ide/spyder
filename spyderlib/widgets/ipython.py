@@ -42,8 +42,8 @@ from spyderlib.widgets.browser import WebView
 #-----------------------------------------------------------------------------
 # Templates
 #-----------------------------------------------------------------------------
-# Using the same css file from the Object Inspector (because we are
-# sharing the same rules)
+# Using the same css file from the Object Inspector for now. Maybe
+# later it'll be a good idea to create a new one.
 OI_UTILS_PATH = get_module_source_path('spyderlib', osp.join('utils',
                                                              'inspector'))
 CSS_PATH = osp.join(OI_UTILS_PATH, 'static', 'css')
@@ -77,8 +77,8 @@ r"""<html>
     <link rel="stylesheet" href="file:///${css_path}/default.css" type="text/css"/>
 </head>
 <body>
-  <div id="warning">${message}</div>
-  <div class="metadata"><p><tt>${error}</tt></p></div>
+  <div id="kernel-warning">${message}</div>
+  <div id="kernel-error">${error}</div>
 </body>
 </html>
 """
