@@ -31,6 +31,7 @@ except ImportError: # 0.13
 from spyderlib.baseconfig import (get_conf_path, get_image_path,
                                   get_module_source_path, _)
 from spyderlib.config import CONF
+from spyderlib.guiconfig import get_font
 from spyderlib.utils.qthelpers import (get_std_icon, create_toolbutton,
                                        add_actions, create_action, get_icon)
 from spyderlib.utils import programs
@@ -335,6 +336,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         self.history = []
         self.namespacebrowser = None
         
+        self.set_loading_widget_font()
         self.loading_page = self._create_loading_page()
         self.loading_widget.setHtml(self.loading_page)
         
@@ -466,6 +468,10 @@ class IPythonClient(QWidget, SaveHistoryMixin):
     def set_font(self, font):
         """Set IPython widget's font"""
         self.ipywidget.font = font
+    
+    def set_loading_widget_font(self):
+        font = get_font('inspector', 'rich_text')
+        self.loading_widget.set_font(font)
     
     def interrupt_kernel(self):
         """Interrupt the associanted Spyder kernel if it's running"""
