@@ -149,6 +149,7 @@ div.section p {
     padding: 15px;
     text-align: center;
     font-weight: bold;
+    font-size: 105%;
 }
 
 /* --- Lists style --- */
@@ -276,6 +277,7 @@ div.loading {
     padding: 10px;
     text-align: center;
     font-weight: bold;
+    font-size: 105%;
 }
 
 #kernel-error {
