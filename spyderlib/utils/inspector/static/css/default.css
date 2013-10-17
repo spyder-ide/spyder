@@ -144,7 +144,7 @@ div.section p {
     margin-right: 140px;
     color: rgb(185, 74, 72);
     background-color: rgb(242, 222, 222);
-    border: 1px solid rgb(238, 211, 215);
+    border: 1px solid rgb(232, 211, 215);
     border-radius: 4px 4px 4px 4px;
     padding: 15px;
     text-align: center;
@@ -272,7 +272,7 @@ div.loading {
     margin-top: 15px;
     color: rgb(185, 74, 72);
     background-color: rgb(242, 222, 222);
-    border: 1px solid rgb(238, 211, 215);
+    border: 1px solid rgb(232, 211, 215);
     border-radius: 4px 4px 4px 4px;
     padding: 10px;
     text-align: center;
