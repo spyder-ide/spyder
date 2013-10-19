@@ -456,6 +456,8 @@ class ObjectInspector(SpyderPluginWidget):
         """Refresh widget"""
         if self._starting_up:
             self._starting_up = False
+            if sphinxify is not None:
+                self.switch_to_rich_text()
             intro_message = _("Here you can get help of any object by pressing "
                               "%s in front of it, either on the Editor or the "
                               "Console.%s"
