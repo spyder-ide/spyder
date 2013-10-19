@@ -152,6 +152,18 @@ div.section p {
     font-size: 105%;
 }
 
+#doc-usage {
+    margin-top: 30px;
+    margin-left: 140px;
+    margin-right: 140px;
+    color: rgb(44, 62, 80);
+    background-color: #EEEEEE;
+    border: 1px solid #C9C9C9;
+    border-radius: 6px 6px 6px 6px;
+    box-shadow: 1px 1px 7px #CACACA;
+    padding: 15px;
+}
+
 /* --- Lists style --- */
 li p span {
     position: relative;

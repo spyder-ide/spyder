@@ -45,7 +45,8 @@ else:
 if programs.is_module_installed('sphinx', '>=0.6.6'):
     sphinx_version = programs.get_module_version('sphinx')
     from spyderlib.utils.inspector.sphinxify import (CSS_PATH, sphinxify,
-                                                     warning, generate_context)
+                                                     warning, generate_context,
+                                                     usage)
 else:
     sphinxify = sphinx_version = None  # analysis:ignore
 
@@ -455,8 +456,15 @@ class ObjectInspector(SpyderPluginWidget):
         """Refresh widget"""
         if self._starting_up:
             self._starting_up = False
-            # TODO: Change this to render a simple intro page
-            self.set_object_text('', force_refresh=False)
+            intro_message = _("Here you can get help of any object by pressing "
+                              "<b>Ctrl+I</b> in front of it, either on the "
+                              "Editor or the Console.<br><br>"
+                              "Help is also shown automatically after writing "
+                              "an opening brace next to an object. If you "
+                              "don't like this behavior, you can deactivate "
+                              "it in <i>Preferences</i>.")
+            self.set_rich_text_html(usage(intro_message),
+                                    QUrl.fromLocalFile(CSS_PATH))
 
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
