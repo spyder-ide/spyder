@@ -10,7 +10,7 @@ from spyderlib.qt.QtGui import (QHBoxLayout, QVBoxLayout, QLabel, QSizePolicy,
                                 QMenu, QToolButton, QGroupBox, QFontComboBox,
                                 QActionGroup, QFontDialog, QWidget, QComboBox,
                                 QLineEdit, QMessageBox)
-from spyderlib.qt.QtCore import SIGNAL, QUrl, QTimer, QThread
+from spyderlib.qt.QtCore import SIGNAL, QUrl, QThread
 
 import re
 import os.path as osp
