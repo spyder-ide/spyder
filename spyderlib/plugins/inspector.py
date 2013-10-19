@@ -458,25 +458,7 @@ class ObjectInspector(SpyderPluginWidget):
             self._starting_up = False
             if sphinxify is not None:
                 self.switch_to_rich_text()
-            intro_message = _("Here you can get help of any object by pressing "
-                              "%s in front of it, either on the Editor or the "
-                              "Console.%s"
-                              "Help is also shown automatically after writing "
-                              "an opening brace next to an object. If you "
-                              "don't like this behavior, you can deactivate "
-                              "it in %s.")
-            prefs = _("Preferences")
-            if self.is_rich_text_mode():
-                intro_message = intro_message % ("<b>Ctrl+I</b>", "<br><br>",
-                                                 "<i>"+prefs+"</i>")
-                self.set_rich_text_html(usage(intro_message),
-                                        QUrl.fromLocalFile(CSS_PATH))
-            else:
-                install_sphinx = _("\n\nPlease consider installing Sphinx to "
-                                   "get documentation rendered in rich text.")
-                intro_message = intro_message % ("Ctrl+I", "\n\n", prefs)
-                intro_message += install_sphinx
-                self.set_plain_text(intro_message, is_code=False)
+            self.show_intro_message()
 
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
@@ -553,6 +535,27 @@ class ObjectInspector(SpyderPluginWidget):
                 self.switch_to_rich_text()
             else:
                 self.switch_to_plain_text()
+    
+    def show_intro_message(self):
+        intro_message = _("Here you can get help of any object by pressing "
+                          "%s in front of it, either on the Editor or the "
+                          "Console.%s"
+                          "Help is also shown automatically after writing "
+                          "an opening brace next to an object. If you "
+                          "don't like this behavior, you can deactivate "
+                          "it in %s.")
+        prefs = _("Preferences")
+        if self.is_rich_text_mode():
+            intro_message = intro_message % ("<b>Ctrl+I</b>", "<br><br>",
+                                             "<i>"+prefs+"</i>")
+            self.set_rich_text_html(usage(intro_message),
+                                    QUrl.fromLocalFile(CSS_PATH))
+        else:
+            install_sphinx = _("\n\nPlease consider installing Sphinx to "
+                               "get documentation rendered in rich text.")
+            intro_message = intro_message % ("Ctrl+I", "\n\n", prefs)
+            intro_message += install_sphinx
+            self.set_plain_text(intro_message, is_code=False)
         
     #------ Public API (related to rich/plain text widgets) --------------------
     @property
