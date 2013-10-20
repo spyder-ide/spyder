@@ -416,6 +416,10 @@ class FileInfo(QObject):
             self.emit(SIGNAL(
                     "send_to_inspector(QString,QString,QString,QString,bool)"),
                     obj_fullname, argspec, note, doc_text, not auto)
+        elif obj_fullname:
+            self.emit(SIGNAL(
+                    "send_to_inspector(QString,QString,QString,QString,bool)"),
+                    obj_fullname, '', '', '', not auto)
         if signatures:
             signatures = ['<b>'+s.replace('(', '(</b>'
                                           ).replace(')', '<b>)</b>')
