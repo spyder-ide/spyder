@@ -92,6 +92,7 @@ class ObjectComboBox(EditableComboBox):
     def validate_current_text(self):
         self.validate(self.currentText())
 
+
 class ObjectInspectorConfigPage(PluginConfigPage):
     def setup_page(self):
         sourcecode_group = QGroupBox(_("Source code"))
@@ -667,7 +668,6 @@ class ObjectInspector(SpyderPluginWidget):
         """Set object analyzed by Object Inspector"""
         if (self.locked and not force_refresh):
             return
-
         self.switch_to_console_source()
 
         add_to_combo = True
@@ -681,7 +681,8 @@ class ObjectInspector(SpyderPluginWidget):
         
         if add_to_combo:
             self.combo.add_text(text)
-        self.save_history()
+        if found:
+            self.save_history()
         
         if self.dockwidget is not None:
             self.dockwidget.blockSignals(True)
@@ -697,11 +698,9 @@ class ObjectInspector(SpyderPluginWidget):
         if (self.locked and not force_refresh):
             return
         self.switch_to_editor_source()
-        
         self._last_rope_doc = doc
-        
         self.object_edit.setText(doc['obj_text'])
-        
+
         if self.rich_help:
             self.render_sphinx_doc(doc)
         else:
@@ -855,11 +854,7 @@ class ObjectInspector(SpyderPluginWidget):
         
         if self.rich_help:
             self.render_sphinx_doc(doc)
-            if ignore_unknown:
-                return doc is not None
-            else:
-                return True
-        
+            return doc is not None
         elif self.docstring:
             hlp_text = doc
             if hlp_text is None:
@@ -878,6 +873,5 @@ class ObjectInspector(SpyderPluginWidget):
                         return False
             else:
                 is_code = True
-        
         self.set_plain_text(hlp_text, is_code=is_code)
         return True

@@ -494,7 +494,7 @@ class InspectObjectMixin(object):
            (self.inspector.dockwidget.isVisible()):
             # ObjectInspector widget exists and is visible
             self.inspector.set_shell(self)
-            self.inspector.set_object_text(text, ignore_unknown=True)
+            self.inspector.set_object_text(text, ignore_unknown=False)
             self.setFocus() # if inspector was not at top level, raising it to
                             # top will automatically give it focus because of
                             # the visibility_changed signal, so we must give
