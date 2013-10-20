@@ -91,6 +91,23 @@ class ObjectComboBox(EditableComboBox):
         
     def validate_current_text(self):
         self.validate(self.currentText())
+    
+    def validate(self, qstr, editing=True):
+        """Reimplemented to avoid formatting actions"""
+        valid = self.is_valid(qstr)
+        if self.hasFocus() and valid is not None:
+            if editing:
+                # Combo box text is being modified: invalidate the entry
+                self.show_tip(self.tips[valid])
+                self.emit(SIGNAL('valid(bool)'), False)
+            else:
+                # A new item has just been selected
+                if valid:
+                    self.selected()
+                else:
+                    self.emit(SIGNAL('valid(bool)'), False)
+        else:
+            self.set_default_style()
 
 
 class ObjectInspectorConfigPage(PluginConfigPage):
