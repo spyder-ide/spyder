@@ -68,6 +68,8 @@ class ObjectComboBox(EditableComboBox):
         
     def is_valid(self, qstr=None):
         """Return True if string is valid"""
+        if not self.object_inspector.source_is_console():
+            return True
         if qstr is None:
             qstr = self.currentText()
         if not re.search('^[a-zA-Z0-9_\.]*$', str(qstr), 0):

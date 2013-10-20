@@ -763,6 +763,7 @@ class EditorStack(QWidget):
             editor = self.get_current_editor()
             position = editor.get_position('cursor')
             finfo = self.get_current_finfo()
+            self.inspector.switch_to_editor_source()
             finfo.trigger_calltip_and_doc_rendering(position, auto=False)
         else:
             text = self.get_current_editor().get_current_object()
