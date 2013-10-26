@@ -170,6 +170,10 @@ table.docutils td {
     padding: 5px;
 }
 
+table.docutils tr.row-odd {
+    background-color: rgb(249, 249, 249);
+}
+
 /* --- Docutils table headers --- */
 table.docutils th {
     background-color: #EEEEEE;
