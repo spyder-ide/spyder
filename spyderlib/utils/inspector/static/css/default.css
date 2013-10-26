@@ -51,8 +51,7 @@ div.metadata {
     background-color: #EEEEEE;
     border: 1px solid #C9C9C9;
     border-radius: 6px 6px 6px 6px;
-    box-shadow: 1px 1px 7px #CACACA;
-    color: #333333;
+    box-shadow: 1px 1px 3px #CACACA;
     font-size: 90%;
 }
 
