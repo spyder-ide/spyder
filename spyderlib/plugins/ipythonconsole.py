@@ -492,14 +492,14 @@ class IPythonConsole(SpyderPluginWidget):
     def execute_python_code(self, lines):
         client = self.get_current_client()
         if client is not None:
-            client.ipywidget.execute(to_text_string(lines))
+            client.shellwidget.execute(to_text_string(lines))
             self.activateWindow()
             client.get_control().setFocus()
 
     def write_to_stdin(self, line):
         client = self.get_current_client()
         if client is not None:
-            client.ipywidget.write_to_stdin(line)
+            client.shellwidget.write_to_stdin(line)
 
     def create_new_client(self):
         """Create a new client"""
@@ -621,7 +621,7 @@ class IPythonConsole(SpyderPluginWidget):
         Connect a client to its kernel
         """
         connection_file = client.connection_file
-        widget = client.ipywidget
+        widget = client.shellwidget
         km, kc = self.create_kernel_manager_and_client(connection_file)
         widget.kernel_manager = km
         widget.kernel_client = kc
@@ -801,7 +801,7 @@ class IPythonConsole(SpyderPluginWidget):
     def register_client(self, client, name, restart=False):
         """Register new IPython client"""
         self.connect_client_to_kernel(client)
-        client.show_ipywidget()
+        client.show_shellwidget()
         client.name = name
         
         # If we are restarting the kernel we just need to rename the client tab
@@ -809,9 +809,9 @@ class IPythonConsole(SpyderPluginWidget):
             self.rename_ipyclient_tab(client)
             return
         
-        ipywidget = client.ipywidget
-        control = ipywidget._control
-        page_control = ipywidget._page_control
+        shellwidget = client.shellwidget
+        control = shellwidget._control
+        page_control = shellwidget._page_control
         
         # For tracebacks
         self.connect(control, SIGNAL("go_to_error(QString)"), self.go_to_error)
@@ -822,21 +822,21 @@ class IPythonConsole(SpyderPluginWidget):
         if extconsoles:
             if extconsoles[-1].connection_file == client.connection_file:
                 kernel_widget = extconsoles[-1]
-                ipywidget.custom_interrupt_requested.connect(
+                shellwidget.custom_interrupt_requested.connect(
                                               kernel_widget.keyboard_interrupt)
         if kernel_widget is None:
-            ipywidget.custom_interrupt_requested.connect(
+            shellwidget.custom_interrupt_requested.connect(
                                                       client.interrupt_message)
         
         # Handle kernel restarts asked by the user
         if kernel_widget is not None:
-            ipywidget.custom_restart_requested.connect(
+            shellwidget.custom_restart_requested.connect(
                                  lambda cl=client: self.restart_kernel(client))
         else:
-            ipywidget.custom_restart_requested.connect(client.restart_message)
+            shellwidget.custom_restart_requested.connect(client.restart_message)
         
         # Print a message if kernel dies unexpectedly
-        ipywidget.custom_restart_kernel_died.connect(
+        shellwidget.custom_restart_kernel_died.connect(
                                             lambda t: client.if_kernel_dies(t))
         
         # Connect text widget to our inspector
@@ -900,11 +900,11 @@ class IPythonConsole(SpyderPluginWidget):
               cl.connection_file == client.connection_file:
                 self.close_console(client=cl)
     
-    def get_ipywidget_by_kernelwidget_id(self, kernel_id):
+    def get_shellwidget_by_kernelwidget_id(self, kernel_id):
         """Return the IPython widget associated to a kernel widget id"""
         for cl in self.clients:
             if cl.kernel_widget_id == kernel_id:
-                return cl.ipywidget
+                return cl.shellwidget
         else:
             raise ValueError("Unknown kernel widget ID %r" % kernel_id)
         

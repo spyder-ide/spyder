@@ -172,12 +172,13 @@ class IPythonPageControlWidget(QTextEdit, BaseEditMixin):
         self.emit(SIGNAL('focus_changed()'))
         return super(IPythonPageControlWidget, self).focusOutEvent(event)
 
+
 #-----------------------------------------------------------------------------
 # Shell widget
 #-----------------------------------------------------------------------------
-class SpyderIPythonWidget(RichIPythonWidget):
+class IPythonShellWidget(RichIPythonWidget):
     """
-    Spyder's IPython widget
+    Spyder's IPython shell widget
 
     This class has custom control and page_control widgets, additional methods
     to provide missing functionality and a couple more keyboard shortcuts.
@@ -186,7 +187,7 @@ class SpyderIPythonWidget(RichIPythonWidget):
         # To override the Qt widget used by RichIPythonWidget
         self.custom_control = IPythonControlWidget
         self.custom_page_control = IPythonPageControlWidget
-        super(SpyderIPythonWidget, self).__init__(*args, **kw)
+        super(IPythonShellWidget, self).__init__(*args, **kw)
         self.set_background_color()
         
         # --- Spyder variables ---
@@ -272,7 +273,7 @@ These commands were executed:
     #---- IPython private methods ---------------------------------------------
     def _context_menu_make(self, pos):
         """Reimplement the IPython context menu"""
-        menu = super(SpyderIPythonWidget, self)._context_menu_make(pos)
+        menu = super(IPythonShellWidget, self)._context_menu_make(pos)
         return self.ipyclient.add_actions_to_context_menu(menu)
     
     def _banner_default(self):
@@ -290,32 +291,26 @@ These commands were executed:
     def focusInEvent(self, event):
         """Reimplement Qt method to send focus change notification"""
         self.emit(SIGNAL('focus_changed()'))
-        return super(SpyderIPythonWidget, self).focusInEvent(event)
+        return super(IPythonShellWidget, self).focusInEvent(event)
     
     def focusOutEvent(self, event):
         """Reimplement Qt method to send focus change notification"""
         self.emit(SIGNAL('focus_changed()'))
-        return super(SpyderIPythonWidget, self).focusOutEvent(event)
+        return super(IPythonShellWidget, self).focusOutEvent(event)
+
 
 #-----------------------------------------------------------------------------
 # Client widget
 #-----------------------------------------------------------------------------
 class IPythonClient(QWidget, SaveHistoryMixin):
     """
-    Spyder IPython client or frontend.
+    IPython client or frontend for Spyder
 
-    This is a layer on top of the IPython Qt widget (i.e. RichIPythonWidget +
-    our additions = SpyderIPythonWidget), which becomes the ipywidget attribute
-    of this class. We are doing this for several reasons:
-
-    1. To add more variables and methods needed to connect the widget to other
-       Spyder plugins and also increase its funcionality.
-    2. To make it clear what has been added by us to IPython widgets.
-    3. To avoid possible name conflicts between our widgets and theirs (e.g.
-       self.history and self._history, respectively)
+    This is a widget composed of a shell widget (i.e. RichIPythonWidget
+    + our additions = IPythonShellWidget) and an WebView info widget to 
+    print kernel error and other messages.
     """
     
-    CONF_SECTION = 'ipython'
     SEPARATOR = '%s##---(%s)---' % (os.linesep*2, time.ctime())
     
     def __init__(self, plugin, history_filename, connection_file=None,
@@ -327,18 +322,18 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         self.connection_file = connection_file
         self.kernel_widget_id = kernel_widget_id
         self.name = ''
-        self.ipywidget = SpyderIPythonWidget(config=plugin.ipywidget_config(),
-                                             local_kernel=False)
-        self.ipywidget.hide()
-        self.loading_widget = WebView(self)
+        self.shellwidget = IPythonShellWidget(config=plugin.ipywidget_config(),
+                                              local_kernel=False)
+        self.shellwidget.hide()
+        self.infowidget = WebView(self)
         self.menu_actions = menu_actions
         self.history_filename = get_conf_path(history_filename)
         self.history = []
         self.namespacebrowser = None
         
-        self.set_loading_widget_font()
+        self.set_infowidget_font()
         self.loading_page = self._create_loading_page()
-        self.loading_widget.setHtml(self.loading_page)
+        self.infowidget.setHtml(self.loading_page)
         
         vlayout = QVBoxLayout()
         toolbar_buttons = self.get_toolbar_buttons()
@@ -347,33 +342,32 @@ class IPythonClient(QWidget, SaveHistoryMixin):
             hlayout.addWidget(button)
         vlayout.addLayout(hlayout)
         vlayout.setContentsMargins(0, 0, 0, 0)
-        vlayout.addWidget(self.ipywidget)
-        vlayout.addWidget(self.loading_widget)
+        vlayout.addWidget(self.shellwidget)
+        vlayout.addWidget(self.infowidget)
         self.setLayout(vlayout)
         
         self.exit_callback = lambda: plugin.close_console(client=self)
         
     #------ Public API --------------------------------------------------------
-    def show_ipywidget(self):
-        """Show ipywidget and configure it"""
-        self.loading_widget.hide()
-        self.ipywidget.show()
-        self.loading_widget.setHtml(BLANK)
+    def show_shellwidget(self):
+        """Show shellwidget and configure it"""
+        self.infowidget.hide()
+        self.shellwidget.show()
+        self.infowidget.setHtml(BLANK)
         self.get_control().setFocus()
         
-        # Connect the IPython widget to this IPython client:
-        # (see spyderlib/widgets/ipython.py for more details about this)
-        self.ipywidget.set_ipyclient(self)
+        # Connect shellwidget to the client
+        self.shellwidget.set_ipyclient(self)
         
         # To save history
-        self.ipywidget.executing.connect(
+        self.shellwidget.executing.connect(
                                       lambda c: self.add_to_history(command=c))
         
         # To update history after execution
-        self.ipywidget.executed.connect(self.update_history)
+        self.shellwidget.executed.connect(self.update_history)
         
         # To update the Variable Explorer after execution
-        self.ipywidget.executed.connect(self.auto_refresh_namespacebrowser)
+        self.shellwidget.executed.connect(self.auto_refresh_namespacebrowser)
     
     def show_kernel_error(self, error):
         """Show kernel initialization errors in the client"""
@@ -397,12 +391,12 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         page = kernel_error_template.substitute(css_path=CSS_PATH,
                                                 message=message,
                                                 error=error)
-        self.loading_widget.setHtml(page)
+        self.infowidget.setHtml(page)
     
     def show_restart_animation(self):
-        self.ipywidget.hide()
-        self.loading_widget.setHtml(self.loading_page)
-        self.loading_widget.show()
+        self.shellwidget.hide()
+        self.infowidget.setHtml(self.loading_page)
+        self.infowidget.show()
     
     def get_name(self):
         """Return client name"""
@@ -411,11 +405,11 @@ class IPythonClient(QWidget, SaveHistoryMixin):
     def get_control(self):
         """Return the text widget (or similar) to give focus to"""
         # page_control is the widget used for paging
-        page_control = self.ipywidget._page_control
+        page_control = self.shellwidget._page_control
         if page_control and page_control.isVisible():
             return page_control
         else:
-            return self.ipywidget._control
+            return self.shellwidget._control
 
     def get_options_menu(self):
         """Return options menu"""
@@ -475,31 +469,31 @@ class IPythonClient(QWidget, SaveHistoryMixin):
     
     def set_font(self, font):
         """Set IPython widget's font"""
-        self.ipywidget.font = font
+        self.shellwidget.font = font
     
-    def set_loading_widget_font(self):
+    def set_infowidget_font(self):
         font = get_font('inspector', 'rich_text')
-        self.loading_widget.set_font(font)
+        self.infowidget.set_font(font)
     
     def interrupt_kernel(self):
         """Interrupt the associanted Spyder kernel if it's running"""
-        self.ipywidget.request_interrupt_kernel()
+        self.shellwidget.request_interrupt_kernel()
     
     def restart_kernel(self):
         """Restart the associanted Spyder kernel"""
-        self.ipywidget.request_restart_kernel()
+        self.shellwidget.request_restart_kernel()
     
     def inspect_object(self):
         """Show how to inspect an object with our object inspector"""
-        self.ipywidget._control.inspect_current_object()
+        self.shellwidget._control.inspect_current_object()
     
     def clear_line(self):
         """Clear a console line"""
-        self.ipywidget._keyboard_quit()
+        self.shellwidget._keyboard_quit()
     
     def clear_console(self):
         """Clear the whole console"""
-        self.ipywidget.execute("%clear")
+        self.shellwidget.execute("%clear")
     
     def if_kernel_dies(self, t):
         """
@@ -508,10 +502,10 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         """
         message = _("It seems the kernel died unexpectedly. Use "
                     "'Restart kernel' to continue using this console.")
-        self.ipywidget._append_plain_text(message + '\n')
+        self.shellwidget._append_plain_text(message + '\n')
     
     def update_history(self):
-        self.history = self.ipywidget._history
+        self.history = self.shellwidget._history
     
     def interrupt_message(self):
         """
@@ -557,8 +551,8 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         signal
         """
         if programs.is_module_installed('IPython', '>=1.0'):
-            kc = self.ipywidget.kernel_client
+            kc = self.shellwidget.kernel_client
             if kc is not None:
                 kc.hb_channel.pause()
         else:
-            self.ipywidget.custom_restart = False
+            self.shellwidget.custom_restart = False

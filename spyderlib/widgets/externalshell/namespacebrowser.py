@@ -392,7 +392,7 @@ class NamespaceBrowser(QWidget):
                   "spyderlib.pyplot.show(); "\
                   "del __fig__, __items__;" % (funcname, name)
         if self.is_ipykernel:
-            self.ipyclient.ipywidget.execute("%%varexp --%s %s" % (funcname,
+            self.ipyclient.shellwidget.execute("%%varexp --%s %s" % (funcname,
                                                                    name))
         else:
             self.shellwidget.send_to_process(command)
@@ -403,14 +403,14 @@ class NamespaceBrowser(QWidget):
                   "__items__ = spyderlib.pyplot.imshow(%s); " \
                   "spyderlib.pyplot.show(); del __fig__, __items__;" % name
         if self.is_ipykernel:
-            self.ipyclient.ipywidget.execute("%%varexp --imshow %s" % name)
+            self.ipyclient.shellwidget.execute("%%varexp --imshow %s" % name)
         else:
             self.shellwidget.send_to_process(command)
         
     def show_image(self, name):
         command = "%s.show()" % name
         if self.is_ipykernel:
-            self.ipyclient.ipywidget.execute(command)
+            self.ipyclient.shellwidget.execute(command)
         else:
             self.shellwidget.send_to_process(command)
         
