@@ -160,9 +160,11 @@ table.docutils {
     border-collapse: collapse;
     border-spacing: 0;
     border: #DDDDDD;
-    margin-left: 15px;
-    margin-bottom: 10px;
-    width: 92%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 17px;
+    margin-bottom: 17px;
+    width: 90%;
 }
 
 table.docutils td {
@@ -185,7 +187,7 @@ table.docutils th {
     font-weight: bold;
     text-align: center;
     padding: 6px 0px 6px 8px;
-    color: navy;
+    color: rgb(65, 65, 65);
 }
 
 /* --- Field-list table style --- */
