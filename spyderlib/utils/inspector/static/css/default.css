@@ -52,7 +52,6 @@ div.metadata {
     border: 1px solid #C9C9C9;
     border-radius: 6px 6px 6px 6px;
     box-shadow: 1px 1px 3px #CACACA;
-    font-size: 90%;
 }
 
 div.metadata p {
@@ -61,6 +60,7 @@ div.metadata p {
 
 span.def {
     font-family: monospace;
+    font-size: 90%;
 }
 
 span.argspec-highlight {
