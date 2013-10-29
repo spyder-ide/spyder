@@ -1192,30 +1192,52 @@ class ExternalConsole(SpyderPluginWidget):
     
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
-        font = self.get_plugin_font()
-        showtime = self.get_option('show_elapsed_time')
-        icontext = self.get_option('show_icontext')
-        calltips = self.get_option('calltips')
-        inspector = CONF.get('inspector', 'connect/python_console')
-        wrap = self.get_option('wrap')
-        compauto = self.get_option('codecompletion/auto')
-        case_comp = self.get_option('codecompletion/case_sensitive')
-        show_single = self.get_option('codecompletion/show_single')
-        compenter = self.get_option('codecompletion/enter_key')
-        mlc = self.get_option('max_line_count')
+        font_n = 'plugin_font'
+        font_o = self.get_plugin_font()
+        showtime_n = 'show_elapsed_time'
+        showtime_o = self.get_option(showtime_n)
+        icontext_n = 'show_icontext'
+        icontext_o = self.get_option(icontext_n)
+        calltips_n = 'calltips'
+        calltips_o = self.get_option(calltips_n)
+        inspector_n = 'connect_to_oi'
+        inspector_o = CONF.get('inspector', 'connect/python_console')
+        wrap_n = 'wrap'
+        wrap_o = self.get_option(wrap_n)
+        compauto_n = 'codecompletion/auto'
+        compauto_o = self.get_option(compauto_n)
+        case_comp_n = 'codecompletion/case_sensitive'
+        case_comp_o = self.get_option(case_comp_n)
+        show_single_n = 'codecompletion/show_single'
+        show_single_o = self.get_option(show_single_n)
+        compenter_n = 'codecompletion/enter_key'
+        compenter_o = self.get_option(compenter_n)
+        mlc_n = 'max_line_count'
+        mlc_o = self.get_option(mlc_n)
         for shellwidget in self.shellwidgets:
-            shellwidget.shell.set_font(font)
-            shellwidget.set_elapsed_time_visible(showtime)
-            shellwidget.set_icontext_visible(icontext)
-            shellwidget.shell.set_calltips(calltips)
-            if isinstance(shellwidget.shell, ExternalPythonShell):
-                shellwidget.shell.set_inspector_enabled(inspector)
-            shellwidget.shell.toggle_wrap_mode(wrap)
-            shellwidget.shell.set_codecompletion_auto(compauto)
-            shellwidget.shell.set_codecompletion_case(case_comp)
-            shellwidget.shell.set_codecompletion_single(show_single)
-            shellwidget.shell.set_codecompletion_enter(compenter)
-            shellwidget.shell.setMaximumBlockCount(mlc)
+            if font_n in options:
+                shellwidget.shell.set_font(font_o)
+            if showtime_n in options:
+                shellwidget.set_elapsed_time_visible(showtime_o)
+            if icontext_n in options:
+                shellwidget.set_icontext_visible(icontext_o)
+            if calltips_n in options:
+                shellwidget.shell.set_calltips(calltips_o)
+            if inspector_n in options:
+                if isinstance(shellwidget, ExternalPythonShell):
+                    shellwidget.shell.set_inspector_enabled(inspector_o)
+            if wrap_n in options:
+                shellwidget.shell.toggle_wrap_mode(wrap_o)
+            if compauto_n in options:
+                shellwidget.shell.set_codecompletion_auto(compauto_o)
+            if case_comp_n in options:
+                shellwidget.shell.set_codecompletion_case(case_comp_o)
+            if show_single_n in options:
+                shellwidget.shell.set_codecompletion_single(show_single_o)
+            if compenter_n in options:
+                shellwidget.shell.set_codecompletion_enter(compenter_o)
+            if mlc_n in options:
+                shellwidget.shell.setMaximumBlockCount(mlc_o)
     
     #------ Public API ---------------------------------------------------------
     def open_interpreter_at_startup(self):

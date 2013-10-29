@@ -517,6 +517,7 @@ class ObjectInspector(SpyderPluginWidget):
         color_scheme_o = get_color_scheme(self.get_option(color_scheme_n))
         font_n = 'plugin_font'
         font_o = self.get_plugin_font()
+        connect_n = 'connect_to_oi'
         rich_font_n = 'rich_text'
         rich_font_o = self.get_plugin_font('rich_text')
         wrap_n = 'wrap'
@@ -524,6 +525,7 @@ class ObjectInspector(SpyderPluginWidget):
         self.wrap_action.setChecked(wrap_o)
         math_n = 'math'
         math_o = self.get_option(math_n)
+        
         if font_n in options:
             scs = color_scheme_o if color_scheme_n in options else None
             self.set_plain_text_font(font_o, color_scheme=scs)
@@ -535,6 +537,12 @@ class ObjectInspector(SpyderPluginWidget):
             self.toggle_wrap_mode(wrap_o)
         if math_n in options:
             self.toggle_math_mode(math_o)
+
+        # To make auto-connection changes take place instantly
+        self.main.editor.apply_plugin_settings(options=[connect_n])
+        self.main.extconsole.apply_plugin_settings(options=[connect_n])
+        if self.main.ipyconsole is not None:
+            self.main.ipyconsole.apply_plugin_settings(options=[connect_n])
         
     #------ Public API (related to inspector's source) -------------------------
     def source_is_console(self):

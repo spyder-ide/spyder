@@ -577,9 +577,16 @@ class IPythonConsole(SpyderPluginWidget):
     
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
-        font = self.get_plugin_font()
+        font_n = 'plugin_font'
+        font_o = self.get_plugin_font()
+        inspector_n = 'connect_to_oi'
+        inspector_o = CONF.get('inspector', 'connect/ipython_console')
         for client in self.clients:
-            client.set_font(font)
+            control = client.get_control()
+            if font_n in options:
+                client.set_font(font_o)
+            if inspector_n in options and control is not None:
+                control.set_inspector_enabled(inspector_o)
     
     def kernel_and_frontend_match(self, connection_file):
         # Determine kernel version
