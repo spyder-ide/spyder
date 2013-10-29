@@ -167,13 +167,6 @@ class EditorConfigPage(PluginConfigPage):
                   tip=_("If this option is enabled, clicking on an object\n"
                         "name (left-click + Ctrl key) will go this object\n"
                         "definition (if resolved)."))
-            inspector_box = newcb(
-                  _("Automatic notification to object inspector"),
-                  'object_inspector', default=True,
-                  tip=_("If this option is enabled, object inspector\n"
-                        "will automatically show informations on functions\n"
-                        "entered in editor (this is triggered when entering\n"
-                        "a left parenthesis after a valid function name)"))
         else:
             rope_label = QLabel(_("<b>Warning:</b><br>"
                                   "The Python module <i>rope</i> is not "
@@ -269,7 +262,6 @@ class EditorConfigPage(PluginConfigPage):
             introspection_layout.addWidget(show_single_box)
             introspection_layout.addWidget(comp_enter_box)
             introspection_layout.addWidget(gotodef_box)
-            introspection_layout.addWidget(inspector_box)
         else:
             introspection_layout.addWidget(rope_label)
         introspection_group.setLayout(introspection_layout)
@@ -1089,7 +1081,6 @@ class Editor(SpyderPluginWidget):
             ('set_auto_unindent_enabled',           'auto_unindent'),
             ('set_indent_chars',                    'indent_chars'),
             ('set_tab_stop_width',                  'tab_stop_width'),
-            ('set_inspector_enabled',               'object_inspector'),
             ('set_wrap_enabled',                    'wrap'),
             ('set_tabmode_enabled',                 'tab_always_indent'),
             ('set_intelligent_backspace_enabled',   'intelligent_backspace'),
@@ -1103,6 +1094,8 @@ class Editor(SpyderPluginWidget):
                     )
         for method, setting in settings:
             getattr(editorstack, method)(self.get_option(setting))
+        editorstack.set_inspector_enabled(CONF.get('inspector',
+                                                   'connect/editor'))
         color_scheme = get_color_scheme(self.get_option('color_scheme_name'))
         editorstack.set_default_font(self.get_plugin_font(), color_scheme)
         
@@ -2195,8 +2188,8 @@ class Editor(SpyderPluginWidget):
             indent_chars_o = self.get_option(indent_chars_n)
             tab_stop_width_n = 'tab_stop_width'
             tab_stop_width_o = self.get_option(tab_stop_width_n)
-            inspector_n = 'object_inspector'
-            inspector_o = self.get_option(inspector_n)
+            inspector_n = 'connect/editor'
+            inspector_o = CONF.get('inspector', inspector_n)
             todo_n = 'todo_list'
             todo_o = self.get_option(todo_n)
             pyflakes_n = 'code_analysis/pyflakes'

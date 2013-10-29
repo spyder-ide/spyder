@@ -114,24 +114,40 @@ class ObjectComboBox(EditableComboBox):
 
 class ObjectInspectorConfigPage(PluginConfigPage):
     def setup_page(self):
-        sourcecode_group = QGroupBox(_("Source code"))
-        wrap_mode_box = self.create_checkbox(_("Wrap lines"), 'wrap')
-        names = CONF.get('color_schemes', 'names')
-        choices = list(zip(names, names))
-        cs_combo = self.create_combobox(_("Syntax color scheme: "),
-                                        choices, 'color_scheme_name')
-
-        sourcecode_layout = QVBoxLayout()
-        sourcecode_layout.addWidget(wrap_mode_box)
-        sourcecode_layout.addWidget(cs_combo)
-        sourcecode_group.setLayout(sourcecode_layout)
-        
+        # Fonts group        
         plain_text_font_group = self.create_fontgroup(option=None,
                                     text=_("Plain text font style"),
                                     fontfilters=QFontComboBox.MonospacedFonts)
         rich_text_font_group = self.create_fontgroup(option='rich_text',
                                 text=_("Rich text font style"))
-                                
+        
+        # Connections group
+        connections_group = QGroupBox(_("Automatic connections"))
+        connections_label = QLabel(_("The Object Inspector can automatically "
+                                     "show an object's help information after "
+                                     "a left parenthesis is written next to it. "
+                                     "Below you can decide to which plugin "
+                                     "you want to connect it to turn on this "
+                                     "feature."))
+        connections_label.setWordWrap(True)
+        editor_box = self.create_checkbox(_("Editor"), 'connect/editor')
+        rope_installed = programs.is_module_installed('rope')
+        editor_box.setEnabled(rope_installed)
+        python_box = self.create_checkbox(_("Python Console"),
+                                          'connect/python_console')
+        ipython_box = self.create_checkbox(_("IPython Console"),
+                                           'connect/ipython_console')
+        ipython_installed = programs.is_module_installed('IPython', '>=0.13')
+        ipython_box.setEnabled(ipython_installed)
+        
+        connections_layout = QVBoxLayout()
+        connections_layout.addWidget(connections_label)
+        connections_layout.addWidget(editor_box)
+        connections_layout.addWidget(python_box)
+        connections_layout.addWidget(ipython_box)
+        connections_group.setLayout(connections_layout)
+        
+        # Features group
         features_group = QGroupBox(_("Additional features"))
         math_box = self.create_checkbox(_("Render mathematical equations"),
                                         'math')
@@ -149,9 +165,24 @@ class ObjectInspectorConfigPage(PluginConfigPage):
         features_layout.addWidget(math_box)
         features_group.setLayout(features_layout)
         
+        # Source code group
+        sourcecode_group = QGroupBox(_("Source code"))
+        wrap_mode_box = self.create_checkbox(_("Wrap lines"), 'wrap')
+        names = CONF.get('color_schemes', 'names')
+        choices = list(zip(names, names))
+        cs_combo = self.create_combobox(_("Syntax color scheme: "),
+                                        choices, 'color_scheme_name')
+
+        sourcecode_layout = QVBoxLayout()
+        sourcecode_layout.addWidget(wrap_mode_box)
+        sourcecode_layout.addWidget(cs_combo)
+        sourcecode_group.setLayout(sourcecode_layout)
+        
+        # Final layout
         vlayout = QVBoxLayout()
         vlayout.addWidget(rich_text_font_group)
         vlayout.addWidget(plain_text_font_group)
+        vlayout.addWidget(connections_group)
         vlayout.addWidget(features_group)
         vlayout.addWidget(sourcecode_group)
         vlayout.addStretch(1)

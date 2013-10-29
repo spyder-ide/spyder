@@ -142,13 +142,6 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         comp_enter_box = newcb(_("Enter key selects completion"),
                                'codecompletion/enter_key')
         calltips_box = newcb(_("Balloon tips"), 'calltips')
-        inspector_box = newcb(
-                  _("Automatic notification to object inspector"),
-                  'object_inspector', default=True,
-                  tip=_("If this option is enabled, object inspector\n"
-                        "will automatically show informations on functions\n"
-                        "entered in console (this is triggered when entering\n"
-                        "a left parenthesis after a valid function name)"))
         
         source_layout = QVBoxLayout()
         source_layout.addWidget(completion_box)
@@ -156,7 +149,6 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         source_layout.addWidget(show_single_box)
         source_layout.addWidget(comp_enter_box)
         source_layout.addWidget(calltips_box)
-        source_layout.addWidget(inspector_box)
         source_group.setLayout(source_layout)
 
         # UMD Group
@@ -898,7 +890,7 @@ class ExternalConsole(SpyderPluginWidget):
         if python and self.inspector is not None:
             shellwidget.shell.set_inspector(self.inspector)
             shellwidget.shell.set_inspector_enabled(
-                                            self.get_option('object_inspector'))
+                               CONF.get('inspector', 'connect/python_console'))
         if self.historylog is not None:
             self.historylog.add_history(shellwidget.shell.history_filename)
             self.connect(shellwidget.shell,
@@ -1204,7 +1196,7 @@ class ExternalConsole(SpyderPluginWidget):
         showtime = self.get_option('show_elapsed_time')
         icontext = self.get_option('show_icontext')
         calltips = self.get_option('calltips')
-        inspector = self.get_option('object_inspector')
+        inspector = CONF.get('inspector', 'connect/python_console')
         wrap = self.get_option('wrap')
         compauto = self.get_option('codecompletion/auto')
         case_comp = self.get_option('codecompletion/case_sensitive')
