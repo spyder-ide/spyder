@@ -906,6 +906,12 @@ class ExternalConsole(SpyderPluginWidget):
                              self.open_file_in_spyder)
             if fname is None:
                 if ipykernel:
+                    # Connect client to any possible error while starting the
+                    # kernel
+                    ipyclient.connect(shellwidget,
+                              SIGNAL("ipython_kernel_start_error(QString)"),
+                              lambda error: ipyclient.show_kernel_error(error))
+                    
                     # Detect if kernel and frontend match or not
                     if self.get_option('pythonexecutable/custom', False):
                         frontend_ver = programs.get_module_version('IPython')
@@ -932,18 +938,18 @@ class ExternalConsole(SpyderPluginWidget):
                                      lambda cf: self.register_ipyclient(cf,
                                                                   ipyclient,
                                                                   shellwidget))
-                        ipyclient.connect(shellwidget,
-                              SIGNAL("ipython_kernel_start_error(QString)"),
-                              lambda error: ipyclient.show_kernel_error(error))
                     else:
-                        QMessageBox.critical(self,
-                                     _("Mismatch between kernel and frontend"),
-                                     _("Your IPython frontend and kernel "
-                                       "versions are <b>incompatible!!</b>"
-                                       "<br><br>"
-                                       "We're sorry but we can't create an "
-                                       "IPython console for you."
-                                      ), QMessageBox.Ok)
+                        shellwidget.emit(
+                          SIGNAL("ipython_kernel_start_error(QString)"),
+                          _("Either:"
+                            "<ol>"
+                            "<li>Your IPython frontend and kernel versions "
+                            "are <b>incompatible</b> or</li>"
+                            "<li>You <b>don't have</b> IPython installed in "
+                            "your external interpreter.</li>"
+                            "</ol>"
+                            "In any case, we're sorry but we can't create an "
+                            "IPython console for you."))
                         shellwidget.deleteLater()
                         shellwidget = None
                         return
