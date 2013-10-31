@@ -379,7 +379,8 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         while error.startswith('<br>'):
             error = error[4:]
         # Remove connection message
-        if error.startswith('To connect another client'):
+        if error.startswith('To connect another client') or \
+          error.startswith('[IPKernelApp] To connect another client'):
             error = error.split('<br>')
             error = '<br>'.join(error[2:])
         # Don't break lines in hyphens
