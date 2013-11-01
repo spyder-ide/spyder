@@ -77,8 +77,14 @@ r"""<html>
     <link rel="stylesheet" href="file:///${css_path}/default.css" type="text/css"/>
 </head>
 <body>
-  <div id="kernel-warning">${message}</div>
-  <div id="kernel-error">${error}</div>
+  <div class="panel panel-danger">
+    <div class="panel-heading">
+      <div class="panel-title">${message}</div>
+    </div>
+    <div class="panel-body">
+      ${error}
+    </div>
+  </div>
 </body>
 </html>
 """

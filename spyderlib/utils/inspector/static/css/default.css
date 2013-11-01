@@ -257,23 +257,45 @@ div.loading {
     padding: 12px;
 }
 
-#kernel-warning {
+.panel {
     margin-top: 15px;
-    color: rgb(185, 74, 72);
-    background-color: rgb(242, 222, 222);
-    border: 1px solid rgb(232, 211, 215);
-    border-radius: 4px 4px 4px 4px;
-    padding: 10px;
-    text-align: center;
-    font-weight: bold;
-    font-size: 105%;
+    background-color: #ffffff;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
 }
 
-#kernel-error {
-    margin-top: 10px;
-    color: rgb(58, 135, 173);
-    background-color: rgb(217, 237, 247);
-    border: 1px solid rgb(188, 232, 241);
-    border-radius: 4px 4px 4px 4px;
-    padding: 20px;
+.panel-heading {
+    padding: 10px 15px;
+    border-bottom: 1px solid transparent;
+    border-top-right-radius: 3px;
+    border-top-left-radius: 3px;
+}
+
+.panel-title {
+    margin-top: 0;
+    margin-bottom: 0;
+    font-size: 105%;
+    color: rgb(255,255,255);
+    font-family: 'Trebuchet MS', sans-serif;
+    font-weight: bold;
+}
+
+.panel-body {
+    padding: 15px;
+}
+
+.panel-danger {
+    border-color: #eed3d7;
+}
+
+.panel-danger > .panel-heading {
+    color: #b94a48;
+    background-color: #f2dede;
+    border-color: #eed3d7;
+    background-color: rgb(199, 28, 34);
+}
+
+.panel-danger > .panel-heading > .panel-title {
+    text-align: center;
 }
