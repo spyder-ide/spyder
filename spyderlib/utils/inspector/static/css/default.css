@@ -51,7 +51,7 @@ div.metadata {
     background-color: #EEEEEE;
     border: 1px solid #C9C9C9;
     border-radius: 6px 6px 6px 6px;
-    box-shadow: 1px 1px 3px #CACACA;
+    box-shadow: 1px 1px 7px #CACACA;
 }
 
 div.metadata p {
@@ -119,7 +119,7 @@ div.section p {
     margin-right: 140px;
     color: rgb(185, 74, 72);
     background-color: rgb(242, 222, 222);
-    border: 1px solid rgb(232, 211, 215);
+    border: 1px solid rgb(238, 211, 215);
     border-radius: 4px 4px 4px 4px;
     padding: 15px;
     text-align: center;
