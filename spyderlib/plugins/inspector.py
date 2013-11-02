@@ -604,9 +604,10 @@ class ObjectInspector(SpyderPluginWidget):
                           "activate this behavior in %s.")
         prefs = _("Preferences > Object Inspector")
         if self.is_rich_text_mode():
+            title = _("Usage")
             intro_message = intro_message % ("<b>Ctrl+I</b>", "<br><br>",
                                              "<i>"+prefs+"</i>")
-            self.set_rich_text_html(usage(intro_message),
+            self.set_rich_text_html(usage(title, intro_message),
                                     QUrl.fromLocalFile(CSS_PATH))
         else:
             install_sphinx = _("\n\nPlease consider installing Sphinx to "

@@ -76,12 +76,12 @@ def warning(message):
     return warning.render(css_path=CSS_PATH, text=message)
 
 
-def usage(message):
+def usage(title, message):
     """Print a usage message on the rich text view"""
     env = Environment()
     env.loader = FileSystemLoader(osp.join(CONFDIR_PATH, 'templates'))
     warning = env.get_template("usage.html")
-    return warning.render(css_path=CSS_PATH, text=message)
+    return warning.render(css_path=CSS_PATH, title=title, text=message)
 
 
 def generate_context(name, argspec, note, math):
