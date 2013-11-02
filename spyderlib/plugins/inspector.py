@@ -599,11 +599,10 @@ class ObjectInspector(SpyderPluginWidget):
         intro_message = _("Here you can get help of any object by pressing "
                           "%s in front of it, either on the Editor or the "
                           "Console.%s"
-                          "Help is also shown automatically after writing "
-                          "an opening brace next to an object. If you "
-                          "don't like this behavior, you can deactivate "
-                          "it in %s.")
-        prefs = _("Preferences")
+                          "Help can also be shown automatically after writing "
+                          "a left parenthesis next to an object. You can "
+                          "activate this behavior in %s.")
+        prefs = _("Preferences > Object Inspector")
         if self.is_rich_text_mode():
             intro_message = intro_message % ("<b>Ctrl+I</b>", "<br><br>",
                                              "<i>"+prefs+"</i>")
