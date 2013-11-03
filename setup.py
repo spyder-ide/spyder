@@ -69,7 +69,6 @@ class MyInstallData(install_data):
             except:
                 print("ERROR: unable to update desktop database",
                       file=sys.stderr)
-
 CMDCLASS = {'install_data': MyInstallData}
 
 
