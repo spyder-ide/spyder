@@ -20,7 +20,7 @@ import sys
 # Local imports
 from spyderlib import dependencies
 from spyderlib.baseconfig import get_conf_path, _
-from spyderlib.ipythonconfig import IPYTHON_QT_MODULE, SUPPORTED_IPYTHON
+from spyderlib.ipythonconfig import IPYTHON_QT_INSTALLED
 from spyderlib.config import CONF
 from spyderlib.guiconfig import get_color_scheme, get_font, set_font
 from spyderlib.utils import programs
@@ -36,7 +36,7 @@ from spyderlib.py3compat import to_text_string, get_meth_class_inst
 
 #XXX: Hardcoded dependency on optional IPython plugin component
 #     that requires the hack to make this work without IPython
-if programs.is_module_installed(IPYTHON_QT_MODULE, SUPPORTED_IPYTHON):
+if IPYTHON_QT_INSTALLED:
     from spyderlib.widgets.ipython import IPythonControlWidget
 else:
     IPythonControlWidget = None  # analysis:ignore

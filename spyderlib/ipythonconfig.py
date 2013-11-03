@@ -10,11 +10,14 @@ IPython configuration variables needed by Spyder
 
 from spyderlib.utils import programs
 
-#==============================================================================
-# Constants
-#==============================================================================
+
+def is_qtconsole_installed():
+    if programs.is_module_installed('IPython.qt'):
+        return True
+    elif programs.is_module_installed('IPython.frontend.qt'):
+        return True
+    else:
+        return False
+
 SUPPORTED_IPYTHON = '>=0.13'
-if programs.is_module_installed('IPython', '>=1.0'):
-    IPYTHON_QT_MODULE = 'IPython.qt'
-else:
-    IPYTHON_QT_MODULE = 'IPython.frontend.qt'
+IPYTHON_QT_INSTALLED = is_qtconsole_installed()
