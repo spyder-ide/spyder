@@ -17,7 +17,10 @@ Licensed under the terms of the MIT License
 
 from __future__ import print_function
 
+
+#==============================================================================
 # Stdlib imports
+#==============================================================================
 import atexit
 import errno
 import os
@@ -28,10 +31,16 @@ import shutil
 import sys
 import threading
 
+
+#==============================================================================
 # Keeping a reference to the original sys.exit before patching it
+#==============================================================================
 ORIGINAL_SYS_EXIT = sys.exit
 
+
+#==============================================================================
 # Test if IPython v0.13+ is installed to eventually switch to PyQt API #2
+#==============================================================================
 from spyderlib.utils.programs import is_module_installed
 from spyderlib.baseconfig import _
 from spyderlib.ipythonconfig import IPYTHON_QT_MODULE, SUPPORTED_IPYTHON
@@ -57,25 +66,38 @@ if IPYTHON_QT_INSTALLED:
             # if no GUI toolkit is installed)
             pass
 
+
+#==============================================================================
 # Check requirements
+#==============================================================================
 from spyderlib import requirements
 requirements.check_path()
 requirements.check_qt()
 
+
+#==============================================================================
 # Windows platforms only: support for hiding the attached console window
+#==============================================================================
 set_attached_console_visible = None
 is_attached_console_visible = None
 if os.name == 'nt':
     from spyderlib.utils.windows import (set_attached_console_visible,
                                          is_attached_console_visible)
 
+
+#==============================================================================
 # Workaround: importing rope.base.project here, otherwise this module can't
 # be imported if Spyder was executed from another folder than spyderlib
+#==============================================================================
 try:
     import rope.base.project  # analysis:ignore
 except ImportError:
     pass
 
+
+#==============================================================================
+# Qt imports
+#==============================================================================
 from spyderlib.qt.QtGui import (QApplication, QMainWindow, QSplashScreen,
                                 QPixmap, QMessageBox, QMenu, QColor, QShortcut,
                                 QKeySequence, QDockWidget, QAction,
@@ -89,7 +111,10 @@ from spyderlib.qt.compat import (from_qvariant, getopenfilename,
 # containing incompatible Qt DLLs versions in PATH):
 from spyderlib.qt import QtSvg  # analysis:ignore
 
+
+#==============================================================================
 # Local imports
+#==============================================================================
 from spyderlib import __version__, __project_url__, __forum_url__, get_versions
 from spyderlib.utils import encoding, programs
 try:
@@ -148,13 +173,22 @@ from spyderlib.py3compat import (PY3, to_text_string, is_text_string, getcwd,
 from spyderlib.widgets.dependencies import DependenciesDialog
 
 
+#==============================================================================
+# To save and load temp sessions
+#==============================================================================
 TEMP_SESSION_PATH = get_conf_path('temp.session.tar')
 
+
+#==============================================================================
 # Get the cwd before initializing WorkingDirectory, which sets it to the one
 # used in the last session
+#==============================================================================
 CWD = getcwd()
 
 
+#==============================================================================
+# Spyder's main window widgets utilities
+#==============================================================================
 def get_python_doc_path():
     """
     Return Python documentation path
@@ -176,9 +210,6 @@ def get_python_doc_path():
         return file_uri(python_doc)
 
 
-#==============================================================================
-# Spyder's main window widgets utilities
-#==============================================================================
 def get_focus_python_shell():
     """Extract and return Python shell from widget
     Return None if *widget* is not a Python shell (e.g. IPython kernel)"""
@@ -189,6 +220,7 @@ def get_focus_python_shell():
         return widget
     elif isinstance(widget, ExternalPythonShell):
         return widget.shell
+
 
 def get_focus_widget_properties():
     """Get properties of focus widget
@@ -206,6 +238,9 @@ def get_focus_widget_properties():
     return widget, textedit_properties
 
 
+#==============================================================================
+# Qt Stylesheet for MainWindow
+#==============================================================================
 #TODO: Improve the stylesheet below for separator handles to be visible
 #      (in Qt, these handles are by default not visible on Windows!)
 STYLESHEET="""
@@ -242,6 +277,9 @@ QMainWindow::separator:horizontal {
 }
 """
 
+#==============================================================================
+# Main Window
+#==============================================================================
 class MainWindow(QMainWindow):
     """Spyder main window"""
     DOCKOPTIONS = QMainWindow.AllowTabbedDocks|QMainWindow.AllowNestedDocks
@@ -1976,7 +2014,10 @@ Please provide any additional information below.
                 self.emit(SIGNAL('open_external_file(QString)'), fname)
             req.sendall(b' ')
 
-        
+
+#==============================================================================
+# Utilities to create the 'main' function
+#==============================================================================
 def initialize():
     """Initialize Qt, patching sys.exit and eventually setting up ETS"""
     app = qapplication()
@@ -2107,6 +2148,9 @@ def __remove_temp_session():
         os.remove(TEMP_SESSION_PATH)
 
 
+#==============================================================================
+# Main
+#==============================================================================
 def main():
     """Session manager"""
     __remove_temp_session()
