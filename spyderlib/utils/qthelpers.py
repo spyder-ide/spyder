@@ -320,9 +320,15 @@ def create_module_bookmark_actions(parent, bookmarks):
     """
     actions = []
     for key, url, title in bookmarks:
-        if programs.is_module_installed(key):
+        # Create actions for scientific distros only if Spyder is installed
+        # under them
+        create_act = True
+        if key == 'xy' or key == 'winpython':
+            if not programs.is_module_installed(key):
+                create_act = False
+        if create_act:
             act = create_bookmark_action(parent, url, title)
-            actions.append(act)
+        actions.append(act)
     return actions
 
         
