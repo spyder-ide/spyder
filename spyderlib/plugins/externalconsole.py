@@ -948,8 +948,8 @@ class ExternalConsole(SpyderPluginWidget):
                             "<li>You <b>don't have</b> IPython installed in "
                             "your external interpreter.</li>"
                             "</ol>"
-                            "In any case, we're sorry but we can't create an "
-                            "IPython console for you."))
+                            "In any case, we're sorry but we can't create a "
+                            "console for you."))
                         shellwidget.deleteLater()
                         shellwidget = None
                         return
