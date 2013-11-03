@@ -39,8 +39,9 @@ from spyderlib import dependencies
 
 dependencies.add("IPython", _("IPython Console integration"),
                  required_version=SUPPORTED_IPYTHON)
+IPYTHON_QT_INSTALLED = is_module_installed(IPYTHON_QT_MODULE, SUPPORTED_IPYTHON)
 
-if is_module_installed(IPYTHON_QT_MODULE, SUPPORTED_IPYTHON):
+if IPYTHON_QT_INSTALLED:
     # Importing IPython will eventually set the QT_API environment variable
     import IPython  # analysis:ignore
     if os.environ.get('QT_API', 'pyqt') == 'pyqt':
@@ -114,8 +115,8 @@ except ImportError:
     OnlineHelp = None  # analysis:ignore
 from spyderlib.plugins.explorer import Explorer
 from spyderlib.plugins.externalconsole import ExternalConsole
-if is_module_installed(IPYTHON_QT_MODULE, SUPPORTED_IPYTHON):
-    # TODO: add ability for plugins to disable themself if their
+if IPYTHON_QT_INSTALLED:
+    # TODO: add ability for plugins to disable themselves if their
     #       requirements are not met before failing during import
     from spyderlib.plugins.ipythonconsole import IPythonConsole
 from spyderlib.plugins.variableexplorer import VariableExplorer
@@ -822,8 +823,7 @@ class MainWindow(QMainWindow):
             self.variableexplorer.register_plugin()
         
         # IPython console
-        if is_module_installed(IPYTHON_QT_MODULE, SUPPORTED_IPYTHON) and not \
-          self.light:
+        if IPYTHON_QT_INSTALLED and not self.light:
             self.set_splash(_("Loading IPython console..."))
             self.ipyconsole = IPythonConsole(self)
             self.ipyconsole.register_plugin()
