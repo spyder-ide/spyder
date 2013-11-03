@@ -130,7 +130,8 @@ def figure_edit(axes, parent=None):
             linedict[label] = line
         curves = []
         linestyles = sorted(LINESTYLES.items())
-        markers = sorted(list(MARKERS.items()), key=lambda (k, v): (v, k))
+        markers = sorted(list(MARKERS.items()),
+                         key=lambda k_v: (k_v[1], k_v[0]))
         curvelabels = sorted(linedict.keys())
         for label in curvelabels:
             line = linedict[label]
