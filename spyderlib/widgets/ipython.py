@@ -7,6 +7,8 @@
 """
 IPython v0.13+ client's widget
 """
+# Fix for Issue 1356
+from __future__ import absolute_import
 
 # Stdlib imports
 import os
