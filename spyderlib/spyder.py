@@ -117,9 +117,8 @@ from spyderlib import __version__, __project_url__, __forum_url__, get_versions
 from spyderlib.utils import encoding, programs
 from spyderlib.utils.programs import is_module_installed
 from spyderlib.baseconfig import (get_conf_path, _, get_module_data_path,
-                                  get_module_source_path, STDOUT, STDERR,
-                                  DEBUG, DEV, debug_print, get_image_path,
-                                  TEST, SUBFOLDER)
+                                  get_module_source_path, STDERR, DEBUG, DEV,
+                                  debug_print, get_image_path, TEST, SUBFOLDER)
 from spyderlib.config import CONF, EDIT_EXT, IMPORT_EXT, OPEN_FILES_PORT
 from spyderlib.utils.iofuncs import load_session, save_session, reset_session
 from spyderlib.userconfig import NoDefault
@@ -127,8 +126,7 @@ from spyderlib.utils import module_completion
 from spyderlib.utils.misc import select_port
 from spyderlib.cli_options import get_options
 from spyderlib.py3compat import (PY3, to_text_string, is_text_string, getcwd,
-                                 u, qbytearray_to_str, configparser as cp,
-                                 is_string, is_binary_string)
+                                 u, qbytearray_to_str, configparser as cp)
 
 
 #==============================================================================
