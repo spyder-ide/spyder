@@ -111,56 +111,16 @@ from spyderlib.qt import QtSvg  # analysis:ignore
 
 
 #==============================================================================
-# Local imports
+# Local utility imports
 #==============================================================================
 from spyderlib import __version__, __project_url__, __forum_url__, get_versions
 from spyderlib.utils import encoding, programs
 from spyderlib.utils.programs import is_module_installed
-try:
-    from spyderlib.utils.environ import WinUserEnvDialog
-except ImportError:
-    WinUserEnvDialog = None  # analysis:ignore
-from spyderlib.widgets.pathmanager import PathManager
-from spyderlib.widgets.status import MemoryStatus, CPUStatus
-from spyderlib.plugins.configdialog import (ConfigDialog, MainConfigPage,
-                                            ColorSchemeConfigPage)
-from spyderlib.plugins.shortcuts import ShortcutsConfigPage
-from spyderlib.plugins.runconfig import RunConfigPage
-from spyderlib.plugins.console import Console
-from spyderlib.plugins.workingdirectory import WorkingDirectory
-from spyderlib.plugins.editor import Editor
-from spyderlib.plugins.history import HistoryLog
-from spyderlib.plugins.inspector import ObjectInspector
-try:
-    # Assuming Qt >= v4.4
-    from spyderlib.plugins.onlinehelp import OnlineHelp
-except ImportError:
-    # Qt < v4.4
-    OnlineHelp = None  # analysis:ignore
-from spyderlib.plugins.explorer import Explorer
-from spyderlib.plugins.externalconsole import ExternalConsole
-if IPYTHON_QT_INSTALLED:
-    # TODO: add ability for plugins to disable themselves if their
-    #       requirements are not met before failing during import
-    from spyderlib.plugins.ipythonconsole import IPythonConsole
-from spyderlib.plugins.variableexplorer import VariableExplorer
-from spyderlib.plugins.findinfiles import FindInFiles
-from spyderlib.plugins.projectexplorer import ProjectExplorer
-from spyderlib.plugins.outlineexplorer import OutlineExplorer
-from spyderlib.utils.qthelpers import (create_action, add_actions, get_icon,
-                                       get_std_icon, add_shortcut_to_tooltip,
-                                       create_module_bookmark_actions,
-                                       create_bookmark_action,
-                                       create_program_action, DialogManager,
-                                       keybinding, qapplication,
-                                       create_python_script_action, file_uri)
 from spyderlib.baseconfig import (get_conf_path, _, get_module_data_path,
                                   get_module_source_path, STDOUT, STDERR,
                                   DEBUG, DEV, debug_print, get_image_path,
                                   TEST, SUBFOLDER)
 from spyderlib.config import CONF, EDIT_EXT, IMPORT_EXT, OPEN_FILES_PORT
-from spyderlib.guiconfig import get_shortcut, remove_deprecated_shortcuts
-from spyderlib.otherplugins import get_spyderplugins_mods
 from spyderlib.utils.iofuncs import load_session, save_session, reset_session
 from spyderlib.userconfig import NoDefault
 from spyderlib.utils import module_completion
@@ -169,7 +129,28 @@ from spyderlib.cli_options import get_options
 from spyderlib.py3compat import (PY3, to_text_string, is_text_string, getcwd,
                                  u, qbytearray_to_str, configparser as cp,
                                  is_string, is_binary_string)
-from spyderlib.widgets.dependencies import DependenciesDialog
+
+
+#==============================================================================
+# Local gui imports
+#==============================================================================
+# NOTE: Move (if possible) import's of widgets and plugins exactly where they
+# are needed in MainWindow to speed up perceived startup time (i.e. the time
+# from clicking the Spyder icon to showing the splash screen).
+try:
+    from spyderlib.utils.environ import WinUserEnvDialog
+except ImportError:
+    WinUserEnvDialog = None  # analysis:ignore
+    
+from spyderlib.utils.qthelpers import (create_action, add_actions, get_icon,
+                                       get_std_icon, add_shortcut_to_tooltip,
+                                       create_module_bookmark_actions,
+                                       create_bookmark_action,
+                                       create_program_action, DialogManager,
+                                       keybinding, qapplication,
+                                       create_python_script_action, file_uri)
+from spyderlib.guiconfig import get_shortcut, remove_deprecated_shortcuts
+from spyderlib.otherplugins import get_spyderplugins_mods
 
 
 #==============================================================================
@@ -276,6 +257,7 @@ QMainWindow::separator:horizontal {
 }
 """
 
+
 #==============================================================================
 # Main Window
 #==============================================================================
@@ -362,6 +344,10 @@ class MainWindow(QMainWindow):
         self.thirdparty_plugins = []
         
         # Preferences
+        from spyderlib.plugins.configdialog import (MainConfigPage,
+                                                    ColorSchemeConfigPage)
+        from spyderlib.plugins.shortcuts import ShortcutsConfigPage
+        from spyderlib.plugins.runconfig import RunConfigPage
         self.general_prefs = [MainConfigPage, ShortcutsConfigPage,
                               ColorSchemeConfigPage, RunConfigPage]
         self.prefs_index = None
@@ -769,6 +755,7 @@ class MainWindow(QMainWindow):
             
             self.debug_print("  ..plugin: internal console")
             # Internal console plugin
+            from spyderlib.plugins.console import Console
             self.console = Console(self, namespace, exitfunc=self.closing,
                                    profile=self.profile,
                                    multithreaded=self.multithreaded,
@@ -778,18 +765,21 @@ class MainWindow(QMainWindow):
             
             self.debug_print("  ..plugin: working directory")
             # Working directory plugin
+            from spyderlib.plugins.workingdirectory import WorkingDirectory
             self.workingdirectory = WorkingDirectory(self, self.init_workdir)
             self.workingdirectory.register_plugin()
         
             # Object inspector plugin
             if CONF.get('inspector', 'enable'):
                 self.set_splash(_("Loading object inspector..."))
+                from spyderlib.plugins.inspector import ObjectInspector
                 self.inspector = ObjectInspector(self)
                 self.inspector.register_plugin()
             
             # Outline explorer widget
             if CONF.get('outline_explorer', 'enable'):
                 self.set_splash(_("Loading outline explorer..."))
+                from spyderlib.plugins.outlineexplorer import OutlineExplorer
                 fullpath_sorting = CONF.get('editor', 'fullpath_sorting', True)
                 self.outlineexplorer = OutlineExplorer(self,
                                             fullpath_sorting=fullpath_sorting)
@@ -797,6 +787,7 @@ class MainWindow(QMainWindow):
             
             # Editor plugin
             self.set_splash(_("Loading editor..."))
+            from spyderlib.plugins.editor import Editor
             self.editor = Editor(self)
             self.editor.register_plugin()
             
@@ -814,22 +805,29 @@ class MainWindow(QMainWindow):
             self.debug_print("  ..widgets")
             # Find in files
             if CONF.get('find_in_files', 'enable'):
+                from spyderlib.plugins.findinfiles import FindInFiles
                 self.findinfiles = FindInFiles(self)
                 self.findinfiles.register_plugin()
             
             # Explorer
             if CONF.get('explorer', 'enable'):
                 self.set_splash(_("Loading file explorer..."))
+                from spyderlib.plugins.explorer import Explorer
                 self.explorer = Explorer(self)
                 self.explorer.register_plugin()
 
             # History log widget
             if CONF.get('historylog', 'enable'):
                 self.set_splash(_("Loading history plugin..."))
+                from spyderlib.plugins.history import HistoryLog
                 self.historylog = HistoryLog(self)
                 self.historylog.register_plugin()
                 
             # Online help widget
+            try:    # Qt >= v4.4
+                from spyderlib.plugins.onlinehelp import OnlineHelp
+            except ImportError:    # Qt < v4.4
+                OnlineHelp = None  # analysis:ignore
             if CONF.get('onlinehelp', 'enable') and OnlineHelp is not None:
                 self.set_splash(_("Loading online help..."))
                 self.onlinehelp = OnlineHelp(self)
@@ -838,6 +836,7 @@ class MainWindow(QMainWindow):
             # Project explorer widget
             if CONF.get('project_explorer', 'enable'):
                 self.set_splash(_("Loading project explorer..."))
+                from spyderlib.plugins.projectexplorer import ProjectExplorer
                 self.projectexplorer = ProjectExplorer(self)
                 self.projectexplorer.register_plugin()
             
@@ -848,6 +847,7 @@ class MainWindow(QMainWindow):
                 os.chdir(self.init_workdir)
         else:
             self.set_splash(_("Loading external console..."))
+        from spyderlib.plugins.externalconsole import ExternalConsole
         self.extconsole = ExternalConsole(self, light_mode=self.light)
         self.extconsole.register_plugin()
         
@@ -856,12 +856,14 @@ class MainWindow(QMainWindow):
             # In light mode, namespace browser is opened inside external console
             # Here, it is opened as an independent plugin, in its own dockwidget
             self.set_splash(_("Loading namespace browser..."))
+            from spyderlib.plugins.variableexplorer import VariableExplorer
             self.variableexplorer = VariableExplorer(self)
             self.variableexplorer.register_plugin()
         
         # IPython console
         if IPYTHON_QT_INSTALLED and not self.light:
             self.set_splash(_("Loading IPython console..."))
+            from spyderlib.plugins.ipythonconsole import IPythonConsole
             self.ipyconsole = IPythonConsole(self)
             self.ipyconsole.register_plugin()
 
@@ -991,6 +993,7 @@ class MainWindow(QMainWindow):
             self.help_menu_actions += last_action
             
             # Status bar widgets
+            from spyderlib.widgets.status import MemoryStatus, CPUStatus
             self.mem_status = MemoryStatus(self, status)
             self.cpu_status = CPUStatus(self, status)
             self.apply_statusbar_settings()
@@ -1654,6 +1657,7 @@ class MainWindow(QMainWindow):
 
     def show_dependencies(self):
         """Show Spyder's Optional Dependencies dialog box"""
+        from spyderlib.widgets.dependencies import DependenciesDialog
         dlg = DependenciesDialog(None)
         dlg.set_data(dependencies.DEPENDENCIES)
         dlg.show()
@@ -1846,6 +1850,7 @@ Please provide any additional information below.
         
     def path_manager_callback(self):
         """Spyder path manager"""
+        from spyderlib.widgets.pathmanager import PathManager
         self.remove_path_from_sys_path()
         project_pathlist = self.projectexplorer.get_pythonpath()
         dialog = PathManager(self, self.path, project_pathlist, sync=True)
@@ -1899,6 +1904,7 @@ Please provide any additional information below.
         
     def edit_preferences(self):
         """Edit Spyder preferences"""
+        from spyderlib.plugins.configdialog import ConfigDialog
         dlg = ConfigDialog(self)
         self.connect(dlg, SIGNAL("size_change(QSize)"),
                      lambda s: self.set_prefs_size(s))
