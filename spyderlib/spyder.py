@@ -1683,7 +1683,7 @@ class MainWindow(QMainWindow):
         if PY3:
             from urllib.parse import quote
         else:
-            from urllib import quote
+            from urllib import quote     # analysis:ignore
         versions = get_versions()
         # Get Mercurial revision for development version
         revlink = ''
