@@ -115,14 +115,14 @@ from spyderlib.qt import QtSvg  # analysis:ignore
 # It blends with the one of MainWindow (i.e. self.splash) and it's hidden
 # just before that one.
 #==============================================================================
-from spyderlib.baseconfig import get_image_path
+from spyderlib.baseconfig import _, get_image_path
 SPLASH_APP = QApplication([''])
 SPLASH = QSplashScreen(QPixmap(get_image_path('splash.png'), 'png'))
 SPLASH_FONT = SPLASH.font()
 SPLASH_FONT.setPixelSize(10)
 SPLASH.setFont(SPLASH_FONT)
 SPLASH.show()
-SPLASH.showMessage("Initializing...", Qt.AlignBottom | Qt.AlignCenter | 
+SPLASH.showMessage(_("Initializing..."), Qt.AlignBottom | Qt.AlignCenter | 
                    Qt.AlignAbsolute, QColor(Qt.white))
 QApplication.processEvents()
 
@@ -131,7 +131,7 @@ QApplication.processEvents()
 # Local utility imports
 #==============================================================================
 from spyderlib import __version__, __project_url__, __forum_url__, get_versions
-from spyderlib.baseconfig import (get_conf_path, _, get_module_data_path,
+from spyderlib.baseconfig import (get_conf_path, get_module_data_path,
                                   get_module_source_path, STDERR, DEBUG, DEV,
                                   debug_print, TEST, SUBFOLDER)
 from spyderlib.config import CONF, EDIT_EXT, IMPORT_EXT, OPEN_FILES_PORT
