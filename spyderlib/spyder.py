@@ -116,7 +116,7 @@ from spyderlib.qt import QtSvg  # analysis:ignore
 # just before that one.
 #==============================================================================
 from spyderlib.baseconfig import get_image_path
-QApplication([''])
+SPLASH_APP = QApplication([''])
 SPLASH = QSplashScreen(QPixmap(get_image_path('splash.png'), 'png'))
 SPLASH_FONT = SPLASH.font()
 SPLASH_FONT.setPixelSize(10)
