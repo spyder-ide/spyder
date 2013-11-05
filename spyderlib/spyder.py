@@ -111,12 +111,29 @@ from spyderlib.qt import QtSvg  # analysis:ignore
 
 
 #==============================================================================
+# Initial splash screen to reduce perceived startup time. 
+# It blends with the one of MainWindow (i.e. self.splash) and it's hidden
+# just before that one.
+#==============================================================================
+from spyderlib.baseconfig import get_image_path
+QApplication([''])
+SPLASH = QSplashScreen(QPixmap(get_image_path('splash.png'), 'png'))
+SPLASH_FONT = SPLASH.font()
+SPLASH_FONT.setPixelSize(10)
+SPLASH.setFont(SPLASH_FONT)
+SPLASH.show()
+SPLASH.showMessage("Initializing...", Qt.AlignBottom | Qt.AlignCenter | 
+                   Qt.AlignAbsolute, QColor(Qt.white))
+QApplication.processEvents()
+
+
+#==============================================================================
 # Local utility imports
 #==============================================================================
 from spyderlib import __version__, __project_url__, __forum_url__, get_versions
 from spyderlib.baseconfig import (get_conf_path, _, get_module_data_path,
                                   get_module_source_path, STDERR, DEBUG, DEV,
-                                  debug_print, get_image_path, TEST, SUBFOLDER)
+                                  debug_print, TEST, SUBFOLDER)
 from spyderlib.config import CONF, EDIT_EXT, IMPORT_EXT, OPEN_FILES_PORT
 from spyderlib.cli_options import get_options
 from spyderlib.userconfig import NoDefault
@@ -1087,7 +1104,8 @@ class MainWindow(QMainWindow):
         # Window set-up
         self.debug_print("Setting up window...")
         self.setup_layout(default=False)
-            
+        
+        SPLASH.hide()
         self.splash.hide()
         
         # Enabling tear off for all menus except help menu
@@ -2189,6 +2207,7 @@ def main():
 
     if CONF.get('main', 'crash', False):
         CONF.set('main', 'crash', False)
+        SPLASH.hide()
         QMessageBox.information(None, "Spyder",
             "Spyder crashed during last session.<br><br>"
             "If Spyder does not start at all and <u>before submitting a "
@@ -2230,6 +2249,7 @@ def main():
             traceback.print_exc(file=open('spyder_crash.log', 'w'))            
         if mainwindow is None:
             # An exception occured
+            SPLASH.hide()
             return
         next_session_name = mainwindow.next_session_name
         save_session_name = mainwindow.save_session_name
