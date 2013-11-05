@@ -190,6 +190,7 @@ class ExternalPythonShell(ExternalShellBase):
         self.umd_verbose = umd_verbose
         self.autorefresh_timeout = autorefresh_timeout
         self.autorefresh_state = autorefresh_state
+        self.is_ipykernel = ipykernel
                 
         self.namespacebrowser_button = None
         self.cwd_button = None
@@ -218,7 +219,7 @@ class ExternalPythonShell(ExternalShellBase):
         self.arguments = arguments
         
         self.connection_file = None
-        self.is_ipykernel = ipykernel
+
         if self.is_ipykernel:
             interact = False
             # Running our custom startup script for IPython kernels:
