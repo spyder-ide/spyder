@@ -610,8 +610,9 @@ class ObjectInspector(SpyderPluginWidget):
             self.set_rich_text_html(usage(title, intro_message),
                                     QUrl.fromLocalFile(CSS_PATH))
         else:
-            install_sphinx = _("\n\nPlease consider installing Sphinx to "
-                               "get documentation rendered in rich text.")
+            install_sphinx = "\n\n%s" % _("Please consider installing Sphinx "
+                                          "to get documentation rendered in "
+                                          "rich text.")
             intro_message = intro_message % ("Ctrl+I", "\n\n", prefs)
             intro_message += install_sphinx
             self.set_plain_text(intro_message, is_code=False)
