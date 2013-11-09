@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
-"POT-Creation-Date: 2013-11-08 15:54+Paris, Madrid\n"
+"POT-Creation-Date: 2013-11-09 14:09+Paris, Madrid\n"
 "PO-Revision-Date: 2011-04-11 21:41+2\n"
 "Last-Translator: Pierre Raybaut\n"
 "Language-Team: Python\n"
@@ -1743,7 +1743,7 @@ msgid ""
 "the Editor or the Console.%sHelp can also be shown automatically after "
 "writing a left parenthesis next to an object. You can activate this behavior "
 "in %s."
-msgstr ""
+msgstr "Pour obtenir de l'aide ici, sélectionner (ou placer le curseur sur) un objet dans l'éditeur ou la console, puis appuyer sur %s.%sL'aide apparaît automatiquement après la saisie d'une parenthèse gauche après un objet si l'option correspondante est activée dans %s."
 
 #: spyderlib\plugins\inspector.py:605
 msgid "Preferences > Object Inspector"
@@ -1756,7 +1756,8 @@ msgstr "Utilisation"
 #: spyderlib\plugins\inspector.py:613
 msgid ""
 "Please consider installing Sphinx to get documentation rendered in rich text."
-msgstr "Merci d'installer Sphinx pour obtenir la documentation en texte enrichi."
+msgstr ""
+"Merci d'installer Sphinx pour obtenir la documentation en texte enrichi."
 
 #: spyderlib\plugins\inspector.py:846
 msgid "Lock"
@@ -3827,7 +3828,9 @@ msgstr "Aucun argument"
 msgid ""
 "The console failed to start! That's all we know :(<br>Please close it and "
 "open a new one."
-msgstr "Le démarrage de la console a échoué !<br>C'est malheureusement tout ce que nous savons...<br>Merci de fermer la console et d'en réouvrir une autre."
+msgstr ""
+"Le démarrage de la console a échoué !<br>C'est malheureusement tout ce que "
+"nous savons...<br>Merci de fermer la console et d'en réouvrir une autre."
 
 #: spyderlib\widgets\externalshell\pythonshell.py:528
 msgid "A Python console failed to start!"
