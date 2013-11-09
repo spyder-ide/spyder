@@ -260,8 +260,8 @@ tt {
 .panel-usage {
     border-color: #2fa4e7;
     margin-top: 30px;
-    margin-left: 140px;
-    margin-right: 140px;
+    margin-left: 50px;
+    margin-right: 50px;
 }
 
 .panel-usage > .panel-heading {
