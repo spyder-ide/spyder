@@ -190,6 +190,7 @@ class ExternalPythonShell(ExternalShellBase):
         self.umd_verbose = umd_verbose
         self.autorefresh_timeout = autorefresh_timeout
         self.autorefresh_state = autorefresh_state
+        self.is_ipykernel = ipykernel
                 
         self.namespacebrowser_button = None
         self.cwd_button = None
@@ -205,7 +206,10 @@ class ExternalPythonShell(ExternalShellBase):
                                    menu_actions=menu_actions,
                                    show_buttons_inside=show_buttons_inside,
                                    show_elapsed_time=show_elapsed_time)
-        
+
+        if self.pythonexecutable is None:
+            self.pythonexecutable = get_python_executable()
+
         self.python_args = None
         if python_args:
             assert is_text_string(python_args)
@@ -215,7 +219,7 @@ class ExternalPythonShell(ExternalShellBase):
         self.arguments = arguments
         
         self.connection_file = None
-        self.is_ipykernel = ipykernel
+
         if self.is_ipykernel:
             interact = False
             # Running our custom startup script for IPython kernels:
@@ -490,10 +494,6 @@ The process may not exit as a result of clicking this button
                      self.process.kill)
         
         #-------------------------Python specific-------------------------------
-        executable = self.pythonexecutable
-        if executable is None:
-            executable = get_python_executable()
-        
         # Fixes for our Mac app:
         # 1. PYTHONPATH and PYTHONHOME are set while bootstrapping the app,
         #    but their values are messing sys.path for external interpreters
@@ -503,8 +503,8 @@ The process may not exit as a result of clicking this button
         # 3. Remove PYTHONOPTIMIZE from env so that we can have assert
         #    statements working with our interpreters (See Issue 1281)
         if sys.platform == 'darwin' and 'Spyder.app' in __file__:
-            env.append('SPYDER_INTERPRETER=%s' % executable)
-            if 'Spyder.app' not in executable:
+            env.append('SPYDER_INTERPRETER=%s' % self.pythonexecutable)
+            if 'Spyder.app' not in self.pythonexecutable:
                 env = [p for p in env if not (p.startswith('PYTHONPATH') or \
                                               p.startswith('PYTHONHOME'))] # 1.
 
@@ -513,22 +513,29 @@ The process may not exit as a result of clicking this button
             env = [p for p in env if not p.startswith('PYTHONOPTIMIZE')]   # 3.
 
         self.process.setEnvironment(env)
-        self.process.start(executable, p_args)
+        self.process.start(self.pythonexecutable, p_args)
         #-------------------------Python specific-------------------------------
             
-        running = self.process.waitForStarted()
+        running = self.process.waitForStarted(3000)
         self.set_running_state(running)
         if not running:
-            QMessageBox.critical(self, _("Error"),
-                                 _("Process failed to start"))
+            if self.is_ipykernel:
+                self.emit(SIGNAL("ipython_kernel_start_error(QString)"),
+                          _("The console failed to start! That's all we know "
+                            ":(<br>Please close it and open a new one."))
+            else:
+                QMessageBox.critical(self, _("Error"),
+                                     _("A Python console failed to start!"))
         else:
             self.shell.setFocus()
             self.emit(SIGNAL('started()'))
-            
         return self.process
 
     def finished(self, exit_code, exit_status):
         """Reimplement ExternalShellBase method"""
+        if self.is_ipykernel and exit_code == 1:
+            self.emit(SIGNAL("ipython_kernel_start_error(QString)"),
+                      self.shell.get_text_with_eol())
         ExternalShellBase.finished(self, exit_code, exit_status)
         self.introspection_socket = None
 

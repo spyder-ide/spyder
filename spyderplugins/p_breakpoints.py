@@ -83,7 +83,7 @@ class Breakpoints(BreakpointWidget, SpyderPluginMixin):
         
         # A fancy way to insert the action into the Breakpoints menu under
         # the assumption that Breakpoints is the first QMenu in the list.
-        for item in self.main.run_menu_actions:
+        for item in self.main.debug_menu_actions:
             try:
                 menu_title = item.title()
             except AttributeError:

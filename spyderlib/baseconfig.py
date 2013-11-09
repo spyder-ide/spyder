@@ -25,7 +25,17 @@ from spyderlib.py3compat import (is_unicode, TEXT_TYPES, INT_TYPES, PY3,
                                  to_text_string, is_text_string)
 
 
-SUPPORTED_IPYTHON = '>=1.0'
+#==============================================================================
+# Only for development
+#==============================================================================
+# To activate/deactivate certain things for development
+# SPYDER_DEV is (and *only* have to be) set in bootstrap.py
+DEV = os.environ.get('SPYDER_DEV')
+
+# For testing purposes
+# SPYDER_TEST can be set using the --test option of bootstrap.py
+TEST = os.environ.get('SPYDER_TEST')
+
 
 #==============================================================================
 # Debug helpers
@@ -48,12 +58,29 @@ def debug_print(message):
 #==============================================================================
 # Configuration paths
 #==============================================================================
-SUBFOLDER = '.spyder%s' % __version__.split('.')[0]
+# Spyder settings dir
+if TEST is None:
+    SUBFOLDER = '.spyder%s' % __version__.split('.')[0]
+else:
+    SUBFOLDER = 'spyder_test'
+
+
+# We can't have PY2 and PY3 settings in the same dir because:
+# 1. This leads to ugly crashes and freezes (e.g. by trying to
+#    embed a PY2 interpreter in PY3)
+# 2. We need to save the list of installed modules (for code
+#    completion) separately for each version
+if PY3:
+    SUBFOLDER = SUBFOLDER + '-py3'
 
 def get_conf_path(filename=None):
     """Return absolute path for configuration file with specified filename"""
-    from spyderlib import userconfig
-    conf_dir = osp.join(userconfig.get_home_dir(), SUBFOLDER)
+    if TEST is None:
+        from spyderlib import userconfig
+        conf_dir = osp.join(userconfig.get_home_dir(), SUBFOLDER)
+    else:
+         import tempfile
+         conf_dir = osp.join(tempfile.gettempdir(), SUBFOLDER)
     if not osp.isdir(conf_dir):
         os.mkdir(conf_dir)
     if filename is None:
@@ -193,13 +220,18 @@ _ = get_translation("spyderlib")
 #==============================================================================
 
 def get_supported_types():
-    """Return a dictionnary containing types lists supported by the 
+    """
+    Return a dictionnary containing types lists supported by the 
     namespace browser:
     dict(picklable=picklable_types, editable=editables_types)
          
     See:
     get_remote_data function in spyderlib/widgets/externalshell/monitor.py
-    get_internal_shell_filter method in namespacebrowser.py"""
+    get_internal_shell_filter method in namespacebrowser.py
+    
+    Note:
+    If you update this list, don't forget to update doc/variablexplorer.rst
+    """
     from datetime import date
     editable_types = [int, float, list, dict, tuple, date
                       ] + list(TEXT_TYPES) + list(INT_TYPES)

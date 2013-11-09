@@ -1,7 +1,7 @@
 body {
     background-color: white;
-    color: black;
-    margin: 0px 20px 15px 20px;
+    color: rgb(51, 51, 51);
+    margin: 0px 25px 15px 25px;
 }
 
 /* --- Title style --- */
@@ -11,15 +11,16 @@ div.title h1 {
     background-color: #6487DC;
     background-image: -webkit-gradient(
         linear,
-        left bottom,
-        left top,
-        color-stop(0, #6487DC),
-        color-stop(1, #666EDC)
+        0 0,
+        0 100%,
+        from(#54b4eb),
+        color-stop(60%, #2fa4e7),
+        to(#1d9ce5)
     );
-    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.45);
+    text-shadow: 0px 1px 1px rgba(0, 0, 0, 0.2);
     font-weight: normal;
     padding: 6px 0px 6px 20px;
-    margin: 0px -20px;
+    margin: 0px -25px;
     color: #FFFFFF;
 }
 
@@ -49,12 +50,8 @@ div.metadata {
     padding: 1px;
     background-color: #EEEEEE;
     border: 1px solid #C9C9C9;
-    border-bottom-left-radius: 6px;
-    border-bottom-right-radius: 6px;
-    border-top-left-radius: 6px;
-    border-top-right-radius: 6px;
+    border-radius: 6px 6px 6px 6px;
     box-shadow: 1px 1px 7px #CACACA;
-    color: #333333;
 }
 
 div.metadata p {
@@ -63,6 +60,7 @@ div.metadata p {
 
 span.def {
     font-family: monospace;
+    font-size: 90%;
 }
 
 span.argspec-highlight {
@@ -77,22 +75,21 @@ div.docstring {
 }
 
 div.docstring p {
-    padding: 0px 10px 0px;
+    padding: 0px 2px 0px;
 }
 
 /* --- Headers style --- */
 div.section {
-    margin: 20px 0px 0px 0px;
+    margin: 22px 0px 0px 0px;
 }
 
 div.section h2 {
     font-size: 140%;
     font-family: 'Trebuchet MS', sans-serif;
     font-weight: normal;
-    background-color: #F2F2F2;
-    border: 1px solid #CCC;
-    color: #20435C;
-    padding: 4px 0px 4px 8px;
+    border-bottom: 1px solid rgb(232, 232, 232);
+    color: rgb(49, 126, 172);
+    padding: 4px 0px 4px 0px;
 }
 
 div.section h3 {
@@ -105,29 +102,7 @@ dl.docutils {
 }
 
 div.section p {
-    padding: 0px 10px 0px;
-}
-
-#parameters h2, #returns h2, #raises h2 {
-    background-color: #EDE;
-    border: 1px solid #AAA !important;
-    color: #06C;
-}
-
-#see-also h2 {
-    background-color: #ffc;
-    border: transparent;
-    color: black;
-    /*margin-top: 4px;*/
-    margin: 4px 0px 0px 0px;
-    padding: 0px 0px 0px 8px;
-}
-
-#see-also {
-    background-color: #ffc;
-    color: black;
-    padding: 1px;
-    border: 1px solid #FF6 !important;
+    padding: 0px 2px 0px;
 }
 
 #warning {
@@ -137,6 +112,21 @@ div.section p {
     padding: 4px 8px 4px 8px;
     text-align: center;
 }
+
+#doc-warning {
+    margin-top: 30px;
+    margin-left: 140px;
+    margin-right: 140px;
+    color: rgb(185, 74, 72);
+    background-color: rgb(242, 222, 222);
+    border: 1px solid rgb(238, 211, 215);
+    border-radius: 4px 4px 4px 4px;
+    padding: 15px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 105%;
+}
+
 
 /* --- Lists style --- */
 li p span {
@@ -159,13 +149,19 @@ table.docutils {
     border-collapse: collapse;
     border-spacing: 0;
     border: #DDDDDD;
-    margin-left: 15px;
-    margin-bottom: 10px;
-    width: 92%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 17px;
+    margin-bottom: 17px;
+    width: 90%;
 }
 
 table.docutils td {
     padding: 5px;
+}
+
+table.docutils tr.row-odd {
+    background-color: rgb(249, 249, 249);
 }
 
 /* --- Docutils table headers --- */
@@ -180,7 +176,7 @@ table.docutils th {
     font-weight: bold;
     text-align: center;
     padding: 6px 0px 6px 8px;
-    color: navy;
+    color: rgb(65, 65, 65);
 }
 
 /* --- Field-list table style --- */
@@ -207,11 +203,10 @@ table.docutils.field-list th {
 
 /* --- Spacing around example code --- */
 div.highlight pre {
-    padding: 2px 0px 2px 0px;
-    background-color: #EFC;
-    border: 1px solid #AC9;
-    border-left: None;
-    border-right: None;
+    padding: 9px 14px;
+    background-color: rgb(247, 247, 249);
+    border-radius: 4px 4px 4px 4px;
+    border: 1px solid rgb(225, 225, 232);
 }
 
 div.highlight {
@@ -232,4 +227,77 @@ tt {
     background-color: #ECF0F3;
     font-size: 95%;
     padding: 0px 1px;
+}
+
+/* ----------- Panels ----------- */
+
+.panel {
+    margin-top: 15px;
+    background-color: #ffffff;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+}
+
+.panel-heading {
+    padding: 10px 15px;
+    border-bottom: 1px solid transparent;
+    border-top-right-radius: 3px;
+    border-top-left-radius: 3px;
+}
+
+.panel-title {
+    margin-top: 0;
+    margin-bottom: 0;
+    font-size: 110%;
+    color: rgb(255,255,255);
+}
+
+.panel-body {
+    padding: 15px;
+}
+
+.panel-usage {
+    border-color: #2fa4e7;
+    margin-top: 30px;
+    margin-left: 50px;
+    margin-right: 50px;
+}
+
+.panel-usage > .panel-heading {
+    color: #ffffff;
+    background-color: #2fa4e7;
+    border-color: #2fa4e7;
+}
+
+
+/* ----------- IPython console styles ----------- */
+
+/* --- Loading --- */
+.loading {
+    position: fixed;
+    left: 35%;
+    top: 40%;
+    background-color: #EEEEEE;
+    border: 1px solid #C9C9C9;
+    border-radius: 6px;
+    box-shadow: 0px 0px 7px #CACACA;
+    color: #333333;
+    padding: 12px;
+}
+
+/* --- Kernel error messages --- */
+.panel-danger {
+    border-color: #eed3d7;
+}
+
+.panel-danger > .panel-heading {
+    color: #b94a48;
+    background-color: #f2dede;
+    border-color: #eed3d7;
+    background-color: rgb(199, 28, 34);
+}
+
+.panel-danger > .panel-heading > .panel-title {
+    text-align: center;
 }

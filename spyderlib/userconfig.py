@@ -47,6 +47,7 @@ import os.path as osp
 import shutil
 import time
 
+from spyderlib.baseconfig import DEV, TEST
 from spyderlib.utils import encoding
 from spyderlib.py3compat import configparser as cp
 from spyderlib.py3compat import is_text_string, PY2
@@ -73,8 +74,10 @@ def get_home_dir():
     else:
         raise RuntimeError('Please define environment variable $HOME')
 
+
 class NoDefault:
     pass
+
 
 class UserConfig(cp.ConfigParser):
     """
@@ -205,9 +208,12 @@ class UserConfig(cp.ConfigParser):
         """
         Create a .ini filename located in user home directory
         """
-        folder = get_home_dir()
+        if TEST is None:
+            folder = get_home_dir()
+        else:
+            import tempfile
+            folder = tempfile.gettempdir()
         w_dot = osp.join(folder, '.%s.ini' % self.name)
-        DEV = os.environ.get('SPYDER_DEV')
         if self.subfolder is None:
             return w_dot
         else:
@@ -218,7 +224,7 @@ class UserConfig(cp.ConfigParser):
                 # Folder (or one of its parents) already exists
                 pass
             old, new = w_dot, osp.join(folder, '%s.ini' % self.name)
-            if osp.isfile(old) and not DEV:
+            if osp.isfile(old) and DEV is None:
                 try:
                     if osp.isfile(new):
                         os.remove(old)

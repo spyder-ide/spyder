@@ -1,11 +1,10 @@
 {#
-    warning.html
-    ~~~~~~~~~~~
+    usage.html
+    ~~~~~~~~~~
 
-    A simple page to emit a warning when no docstring text was found for the
-    one a user was looking for
+    A simple page to inform users how to get help on the Object Inspector
 
-    :copyright: Copyright 2012 by the Spyder team.
+    :copyright: Copyright 2013 by the Spyder Development Team.
     :license: MIT license
 #}
 
@@ -20,8 +19,13 @@
 </head>
 
 <body>
-  <div id="doc-warning">
+  <div class="panel panel-usage">
+    <div class="panel-heading">
+      <div class="panel-title">{{title}}</div>
+    </div>
+    <div class="panel-body">
       {{text}}
+    </div>
   </div>
 </body>
 

@@ -416,6 +416,10 @@ class FileInfo(QObject):
             self.emit(SIGNAL(
                     "send_to_inspector(QString,QString,QString,QString,bool)"),
                     obj_fullname, argspec, note, doc_text, not auto)
+        elif obj_fullname:
+            self.emit(SIGNAL(
+                    "send_to_inspector(QString,QString,QString,QString,bool)"),
+                    obj_fullname, '', '', '', not auto)
         if signatures:
             signatures = ['<b>'+s.replace('(', '(</b>'
                                           ).replace(')', '<b>)</b>')
@@ -759,6 +763,7 @@ class EditorStack(QWidget):
             editor = self.get_current_editor()
             position = editor.get_position('cursor')
             finfo = self.get_current_finfo()
+            self.inspector.switch_to_editor_source()
             finfo.trigger_calltip_and_doc_rendering(position, auto=False)
         else:
             text = self.get_current_editor().get_current_object()
@@ -1660,7 +1665,7 @@ class EditorStack(QWidget):
                     answer = QMessageBox.question(self,
                                 self.title,
                                 _("<b>%s</b> has been modified outside Spyder."
-                                  "<br>Do you want to reload it and loose all "
+                                  "<br>Do you want to reload it and lose all "
                                   "your changes?") % name,
                                 QMessageBox.Yes | QMessageBox.No)
                     if answer == QMessageBox.Yes:
@@ -1944,7 +1949,8 @@ class EditorStack(QWidget):
     def run_cell(self, focus_to_editor=False):
         """Run current cell"""
         text = self.get_current_editor().get_cell_as_executable_code()
-        if text:
+        finfo = self.get_current_finfo()
+        if finfo.editor.is_python() and text:
             self.emit(SIGNAL('exec_in_extconsole(QString,bool)'),
                       text, focus_to_editor)
 

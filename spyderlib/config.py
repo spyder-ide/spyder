@@ -228,7 +228,9 @@ DEFAULTS = [
               'pyqt/ignore_sip_setapi_errors': False,
               'matplotlib/patch': True,
               'matplotlib/backend/enabled': True,
-              'matplotlib/backend/value': 'Qt4Agg',
+              'matplotlib/backend/value': 'MacOSX' if (sys.platform == 'darwin' \
+                                           and os.environ.get('QT_API') == 'pyside')\
+                                           else 'Qt4Agg',
               'umd/enabled': True,
               'umd/verbose': True,
               'umd/namelist': ['guidata', 'guiqwt'],
@@ -356,6 +358,9 @@ DEFAULTS = [
               'rich_text/font/italic': False,
               'rich_text/font/bold': False,
               'wrap': True,
+              'connect/editor': False,
+              'connect/python_console': False,
+              'connect/ipython_console': False,
               'math': True,
               'automatic_import': True,
               }),
@@ -425,11 +430,7 @@ DEFAULTS = [
               }),
             ]
 
-# To activate/deactivate certain things for development
-# SPYDER_DEV is (and *only* have to be) set in bootstrap.py
-DEV = os.environ.get('SPYDER_DEV')
-
-# XXX Previously we had load=(not DEV) here but DEV was set to False.
+# XXX: Previously we had load=(not DEV) here but DEV was set to *False*.
 # Check if it *really* needs to be updated or not
 CONF = UserConfig('spyder', defaults=DEFAULTS, load=True, version='2.4.0',
                   subfolder=SUBFOLDER, backup=True, raw_mode=True)

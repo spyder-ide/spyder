@@ -64,18 +64,24 @@ JQUERY_PATH = get_module_data_path('spyderlib',
 
 def is_sphinx_markup(docstring):
     """Returns whether a string contains Sphinx-style ReST markup."""
-    
     # this could be made much more clever
     return ("`" in docstring or "::" in docstring)
 
 
 def warning(message):
     """Print a warning message on the rich text view"""
-    
     env = Environment()
     env.loader = FileSystemLoader(osp.join(CONFDIR_PATH, 'templates'))
     warning = env.get_template("warning.html")
     return warning.render(css_path=CSS_PATH, text=message)
+
+
+def usage(title, message):
+    """Print a usage message on the rich text view"""
+    env = Environment()
+    env.loader = FileSystemLoader(osp.join(CONFDIR_PATH, 'templates'))
+    warning = env.get_template("usage.html")
+    return warning.render(css_path=CSS_PATH, title=title, text=message)
 
 
 def generate_context(name, argspec, note, math):

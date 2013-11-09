@@ -11,23 +11,31 @@ import sys
 import os.path as osp
 
 
-def sympy_config(version):
+def sympy_config():
     """Sympy configuration"""
-    
-    lines = """
+    from spyderlib.utils.programs import is_module_installed    
+    lines_new = """
+from sympy.interactive import init_session
+init_session()
+"""    
+    lines_old = """
 from __future__ import division
 from sympy import *
 x, y, z, t = symbols('x y z t')
 k, m, n = symbols('k m n', integer=True)
 f, g, h = symbols('f g h', cls=Function)
 """
-    
-    if version >= '0.7.2':
+    if is_module_installed('sympy', '>=0.7.3'):
+        extension = None
+        return lines_new, extension
+    elif is_module_installed('sympy', '=0.7.2'):
         extension = 'sympy.interactive.ipythonprinting'
-    else:
+        return lines_old, extension
+    elif is_module_installed('sympy', '>=0.7.0;<0.7.2'):
         extension = 'sympyprinting'
-    
-    return lines, extension
+        return lines_old, extension
+    else:
+        return None, None
 
 
 def kernel_config():
@@ -35,6 +43,7 @@ def kernel_config():
     from IPython.config.loader import Config, load_pyconfig_files
     from IPython.core.application import get_ipython_dir
     from spyderlib.config import CONF
+    from spyderlib.utils.programs import is_module_installed
     
     # ---- IPython config ----
     try:
@@ -52,19 +61,19 @@ def kernel_config():
     # http://code.google.com/p/spyderlib/issues/detail?id=1052
     spy_cfg.InteractiveShell.xmode = 'Plain'
     
-    # Pylab activation option
+    # Pylab configuration
+    mpl_installed = is_module_installed('matplotlib')
     pylab_o = CONF.get('ipython_console', 'pylab')
     
-    # Automatically load Pylab and Numpy
-    autoload_pylab_o = CONF.get('ipython_console', 'pylab/autoload')
-    spy_cfg.IPKernelApp.pylab_import_all = pylab_o and autoload_pylab_o
-    
-    # Pylab backend configuration
-    if pylab_o:
+    if mpl_installed and pylab_o:
         backend_o = CONF.get('ipython_console', 'pylab/backend', 0)
         backends = {0: 'inline', 1: 'auto', 2: 'qt', 3: 'osx', 4: 'gtk',
                     5: 'wx', 6: 'tk'}
         spy_cfg.IPKernelApp.pylab = backends[backend_o]
+        
+        # Automatically load Pylab and Numpy
+        autoload_pylab_o = CONF.get('ipython_console', 'pylab/autoload')
+        spy_cfg.IPKernelApp.pylab_import_all = autoload_pylab_o
         
         # Inline backend configuration
         if backends[backend_o] == 'inline':
@@ -78,7 +87,9 @@ def kernel_config():
            spy_cfg.InlineBackend.rc = {'figure.figsize': (6.0, 4.0),
                                    'savefig.dpi': 72,
                                    'font.size': 10,
-                                   'figure.subplot.bottom': .125
+                                   'figure.subplot.bottom': .125,
+                                   'figure.facecolor': 'white',
+                                   'figure.edgecolor': 'white'
                                    }
            resolution_o = CONF.get('ipython_console', 
                                    'pylab/inline/resolution')
@@ -111,17 +122,15 @@ def kernel_config():
     # Sympy loading
     sympy_o = CONF.get('ipython_console', 'symbolic_math')
     if sympy_o:
-        try:
-            from sympy import __version__ as version
-            lines, extension = sympy_config(version)
+        lines, extension = sympy_config()
+        if lines is not None:
             if run_lines_o:
                 spy_cfg.IPKernelApp.exec_lines.append(lines)
             else:
                 spy_cfg.IPKernelApp.exec_lines = [lines]
-            spy_cfg.IPKernelApp.extra_extension = extension
-            spy_cfg.LaTeXTool.backends = ['dvipng', 'matplotlib']
-        except ImportError:
-            pass
+            if extension:
+                spy_cfg.IPKernelApp.extra_extension = extension
+                spy_cfg.LaTeXTool.backends = ['dvipng', 'matplotlib']
     
     # Merge IPython and Spyder configs. Spyder prefs will have prevalence
     # over IPython ones
@@ -129,24 +138,29 @@ def kernel_config():
     return ip_cfg
 
 
-def set_edit_magic(shell):
+def change_edit_magic(shell):
     """Use %edit to open files in Spyder"""
-    from spyderlib.utils import programs
-    
-    if programs.is_module_installed('IPython.qt', '>=0.13'):
-        # For some users, trying to replace %edit with open_in_spyder could
-        # give a crash when starting a kernel. I've seen it after updating
-        # from 2.1
-        try:
-            shell.magics_manager.magics['line']['ed'] = \
-              shell.magics_manager.magics['line']['edit']
-            shell.magics_manager.magics['line']['edit'] = open_in_spyder
-        except:
-            pass
-    else:
-        # Don't wanna know how things were in previous versions
+    try:
+        shell.magics_manager.magics['line']['ed'] = \
+          shell.magics_manager.magics['line']['edit']
+        shell.magics_manager.magics['line']['edit'] = open_in_spyder  #analysis:ignore
+    except:
         pass
 
+def varexp(line):
+    """
+    Spyder's variable explorer magic
+    
+    Used to generate plots, histograms and images of the variables displayed
+    on it.
+    """
+    ip = get_ipython()       #analysis:ignore
+    funcname, name = line.split()
+    import spyderlib.pyplot
+    __fig__ = spyderlib.pyplot.figure();
+    __items__ = getattr(spyderlib.pyplot, funcname[2:])(ip.user_ns[name])
+    spyderlib.pyplot.show()
+    del __fig__, __items__
 
 # Remove this module's path from sys.path:
 try:
@@ -163,20 +177,35 @@ __name__ = '__main__'
 sys.path.insert(0, '')
 
 # Fire up the kernel instance.
-from IPython.kernel.zmq.kernelapp import IPKernelApp
+try:
+    from IPython.kernel.zmq.kernelapp import IPKernelApp  # 1.0
+except:
+    from IPython.zmq.ipkernel import IPKernelApp  # 0.13  (analysis:ignore)
 
 ipk_temp = IPKernelApp.instance()
 ipk_temp.config = kernel_config()
 ipk_temp.initialize()
 
+# Grabbing the kernel's shell to share its namespace with our
+# Variable Explorer
 __ipythonshell__ = ipk_temp.shell
-set_edit_magic(__ipythonshell__)
 
-#  Issue 977 : Since kernel.initialize() has completed execution, 
+# Issue 977 : Since kernel.initialize() has completed execution, 
 # we can now allow the monitor to communicate the availablility of 
 # the kernel to accept front end connections.
 __ipythonkernel__ = ipk_temp
 del ipk_temp
+
+# Change %edit to open files inside Spyder
+# NOTE: Leave this and other magic modifications *after* setting
+# __ipythonkernel__ to not have problems while starting kernels
+change_edit_magic(__ipythonshell__)
+__ipythonshell__.register_magic_function(varexp)
+
+# To make %pylab load numpy and pylab even if the user has
+# set autoload_pylab_o to False *but* nevertheless use it in
+# the interactive session.
+__ipythonkernel__.pylab_import_all = True
 
 # Start the (infinite) kernel event loop.
 __ipythonkernel__.start()

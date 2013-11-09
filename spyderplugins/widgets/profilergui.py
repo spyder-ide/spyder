@@ -440,11 +440,11 @@ class ProfilerDataTree(QTreeWidget):
             child_item.setData(1, Qt.DisplayRole, '%.3f' % cum_time)
             child_item.setTextAlignment(1, Qt.AlignCenter)
 
-            child_item.setToolTip(2,_('Local time in function '\
+            child_item.setToolTip(2, _('Local time in function '\
                                       '(not in sub-functions)'))
             #child_item.setData(2, Qt.DisplayRole, loc_time)
             child_item.setData(2, Qt.DisplayRole, '%.3f' % loc_time)
-            child_item.setTextAlignment(2,Qt.AlignCenter)
+            child_item.setTextAlignment(2, Qt.AlignCenter)
 
             child_item.setToolTip(3, _('Total number of calls '\
                                        '(including recursion)'))

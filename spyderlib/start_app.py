@@ -11,7 +11,8 @@ import sys
 # Local imports
 from spyderlib.cli_options import get_options
 from spyderlib.baseconfig import get_conf_path
-from spyderlib.config import CONF, DEV
+from spyderlib.config import CONF
+from spyderlib.baseconfig import DEV
 from spyderlib.utils.external import lockfile
 from spyderlib.py3compat import is_unicode
 
@@ -49,7 +50,7 @@ def main():
 
     # Renaming old configuration files (the '.' prefix has been removed)
     # (except for .spyder.ini --> spyder.ini, which is done in userconfig.py)
-    if not DEV:
+    if DEV is None:
         cpath = get_conf_path()
         for fname in os.listdir(cpath):
             if fname.startswith('.'):

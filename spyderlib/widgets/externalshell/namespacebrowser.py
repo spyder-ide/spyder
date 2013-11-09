@@ -45,6 +45,8 @@ class NamespaceBrowser(QWidget):
         
         self.shellwidget = None
         self.is_internal_shell = None
+        self.ipyclient = None
+        self.is_ipykernel = None
         
         self.is_visible = True # Do not modify: light mode won't work!
         
@@ -103,7 +105,10 @@ class NamespaceBrowser(QWidget):
             self.exclude_uppercase_action.setChecked(exclude_uppercase)
             self.exclude_capitalized_action.setChecked(exclude_capitalized)
             self.exclude_unsupported_action.setChecked(exclude_unsupported)
-            self.auto_refresh_button.setChecked(autorefresh)
+            # Don't turn autorefresh on for IPython kernels
+            # See Issue 1450
+            if not self.is_ipykernel:
+                self.auto_refresh_button.setChecked(autorefresh)
             self.refresh_table()
             return
         
@@ -155,8 +160,13 @@ class NamespaceBrowser(QWidget):
         from spyderlib.widgets import internalshell
         self.is_internal_shell = isinstance(self.shellwidget,
                                             internalshell.InternalShell)
+        self.is_ipykernel = self.shellwidget.is_ipykernel
         if not self.is_internal_shell:
             shellwidget.set_namespacebrowser(self)
+    
+    def set_ipyclient(self, ipyclient):
+        """Bind ipyclient instance to namespace browser"""
+        self.ipyclient = ipyclient
         
     def setup_toolbar(self, exclude_private, exclude_uppercase,
                       exclude_capitalized, exclude_unsupported, autorefresh):
@@ -381,18 +391,28 @@ class NamespaceBrowser(QWidget):
                   "__items__ = getattr(spyderlib.pyplot, '%s')(%s); "\
                   "spyderlib.pyplot.show(); "\
                   "del __fig__, __items__;" % (funcname, name)
-        self.shellwidget.send_to_process(command)
+        if self.is_ipykernel:
+            self.ipyclient.shellwidget.execute("%%varexp --%s %s" % (funcname,
+                                                                   name))
+        else:
+            self.shellwidget.send_to_process(command)
         
     def imshow(self, name):
         command = "import spyderlib.pyplot; " \
                   "__fig__ = spyderlib.pyplot.figure(); " \
                   "__items__ = spyderlib.pyplot.imshow(%s); " \
                   "spyderlib.pyplot.show(); del __fig__, __items__;" % name
-        self.shellwidget.send_to_process(command)
+        if self.is_ipykernel:
+            self.ipyclient.shellwidget.execute("%%varexp --imshow %s" % name)
+        else:
+            self.shellwidget.send_to_process(command)
         
     def show_image(self, name):
         command = "%s.show()" % name
-        self.shellwidget.send_to_process(command)
+        if self.is_ipykernel:
+            self.ipyclient.shellwidget.execute(command)
+        else:
+            self.shellwidget.send_to_process(command)
         
     def oedit(self, name):
         command = "from spyderlib.widgets.objecteditor import oedit; " \

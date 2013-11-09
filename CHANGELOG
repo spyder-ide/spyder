@@ -1,5 +1,49 @@
 = History of changes =
 
+== Version 2.2.5 ==
+
+=== Bug fixes (since v2.2.4) ===
+
+  * Issue  1322  Problems with scientific_startup in other interpreters from the one Spyder is running on
+  * Issue  1337  Mac app - Update to Qt 4.8.4 for HDPI
+  * Issue  1450  IPython kernel cpu usage increases with time
+  * Issue  1520  LinuxColor for ipython plugin
+  * Issue  1551  /doc/installation.rst: update Arch Linux package link
+  * Issue  1560  spyder 2.2.3 incompatible with pylint 0.25.1 on Windows
+  * Issue  1564  Fix several Editor cell problems
+  * Issue  1578  Typo in your 'About Spyder...' dialog.
+  * Issue  1581  Cannot launch Spyder 2.2.4 installed from DMG on Mac OS X.
+  * Issue  1589  Mention what types of objects our Variable Explorer support in our docs
+  * Issue  1595  Fail to start an ipython console when variable explorer autorefresh is turned off in Preferences
+  * Issue  1596  Spelling mistake in dialog ('loose' --> 'lose')
+
+=== Other Changes (since v2.2.4) ===
+
+  * Update our Mac application to the latest versions of Python, Qt and PyQt (now it's based in Homebrew).
+  * Several important compatibility fixes for PySide.
+  * Improve our support for IPython 1.0+.
+
+----
+
+== Version 2.2.4 ==
+
+=== Bug fixes (since v2.2.3) ===
+
+  * Issue  347  Matplotlib hangs on Mac if using PySide
+  * Issue  1265  Create a Debug menu to easily show how to set breakpoints
+  * Issue  1489  Project Explorer does not load all projects in workspace.
+  * Issue  1516  Make Spyder compatible with both IPython 0.13 and 1.0
+  * Issue  1531  Pyflakes version check is looking for 0.5.0 only
+  * Issue  1539  /tmp/spyder is owned by the first user on the server to launch spyder
+
+=== Other Changes (since v2.2.3) ===
+
+  * Make Spyder compatible with SymPy 0.7.3+
+  * Add shortcuts to the tooltips of all toolbars
+  * Make IPython Console work better if Matplotlib is not installed
+
+----
+
 == Version 2.2.3 ==
 
 === Bug fixes (since v2.2.2) ===
@@ -49,7 +93,6 @@
   * Update Pylint plugin to work with pylint 1.0
   * Add Ctrl/Cmd+[+,-] to zoom in/out in the Editor
   * Disable Crtl+MouseWheel to zoom in/out in Mac (See Issue 1509)
-  * Update Pandas and Matplotlib in our Mac application
 
 ----
 

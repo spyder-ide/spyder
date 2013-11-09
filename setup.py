@@ -15,6 +15,7 @@ from __future__ import print_function
 
 from distutils.core import setup
 from distutils.command.build import build
+from distutils.command.install import install
 from distutils.command.install_data import install_data
 
 import os
@@ -45,6 +46,7 @@ def get_subpackages(name):
             splist.append(".".join(dirpath.split(os.sep)))
     return splist
 
+
 def get_data_files():
     """Return data_files in a platform dependent manner"""
     if sys.platform.startswith('linux'):
@@ -67,7 +69,6 @@ class MyInstallData(install_data):
             except:
                 print("ERROR: unable to update desktop database",
                       file=sys.stderr)
-
 CMDCLASS = {'install_data': MyInstallData}
 
 
@@ -86,11 +87,29 @@ try:
     from sphinx import setup_command
 
     class MyBuild(build):
-        def has_doc(self):
+        user_options = [('no-doc', None, "Don't build Spyder documentation")] \
+                       + build.user_options
+        def __init__(self, *args, **kwargs):
+            build.__init__(self, *args, **kwargs)
+            self.no_doc = False
+        def with_doc(self):
             setup_dir = os.path.dirname(os.path.abspath(__file__))
-            return os.path.isdir(os.path.join(setup_dir, 'doc'))
-        sub_commands = build.sub_commands + [('build_doc', has_doc)]
+            is_doc_dir = os.path.isdir(os.path.join(setup_dir, 'doc'))
+            install_obj = self.distribution.get_command_obj('install')
+            return (is_doc_dir and not self.no_doc and not install_obj.no_doc)
+        sub_commands = build.sub_commands + [('build_doc', with_doc)]
     CMDCLASS['build'] = MyBuild
+
+
+    class MyInstall(install):
+        user_options = [('no-doc', None, "Don't build Spyder documentation")] \
+                       + install.user_options
+        def __init__(self, *args, **kwargs):
+            install.__init__(self, *args, **kwargs)
+            self.no_doc = False
+    CMDCLASS['install'] = MyInstall
+
+
     class MyBuildDoc(setup_command.BuildDoc):
         def run(self):
             build = self.get_finalized_command('build')
@@ -165,7 +184,7 @@ def get_packages():
 # NOTE: the '[...]_win_post_install.py' script is installed even on non-Windows
 # platforms due to a bug in pip installation process (see Issue 1158)
 SCRIPTS = ['spyder', '%s_win_post_install.py' % NAME]
-EXTLIST = ['.mo', '.svg', '.png', '.css', '.html', '.js', '.chm']
+EXTLIST = ['.mo', '.svg', '.png', '.css', '.html', '.js', '.chm', '.gif']
 if os.name == 'nt':
     SCRIPTS += ['spyder.bat']
     EXTLIST += ['.ico']

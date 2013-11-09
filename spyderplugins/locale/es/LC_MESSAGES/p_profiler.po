@@ -1,18 +1,18 @@
 # -*- coding: utf-8 -*-
 # Spyder Profiler's spanish translation file
 # Copyright (C) 2011 Spyder Development team
-#
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
-"POT-Creation-Date: 2013-08-11 14:04+Hora est. del Pacfico de SA\n"
+"POT-Creation-Date: 2013-10-12 19:49+COT\n"
 "PO-Revision-Date: 2012-06-25 21:59-0500\n"
 "Last-Translator: Carlos Cordoba <ccordoba12@gmail.com>\n"
 "Language-Team: Python\n"
+"Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: \n"
 "Generated-By: pygettext.py 1.5\n"
 "X-Poedit-Language: Spanish\n"
 "X-Poedit-SourceCharset: utf-8\n"

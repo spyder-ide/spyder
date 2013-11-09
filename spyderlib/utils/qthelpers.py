@@ -21,6 +21,7 @@ import sys
 
 # Local import
 from spyderlib.baseconfig import get_image_path
+from spyderlib.guiconfig import get_shortcut
 from spyderlib.utils import programs
 from spyderlib.py3compat import is_text_string, to_text_string
 
@@ -263,6 +264,12 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
     return action
 
 
+def add_shortcut_to_tooltip(action, context, name):
+    """Add the shortcut associated with a given action to its tooltip"""
+    action.setToolTip(action.toolTip() + ' (%s)' %
+                      get_shortcut(context=context, name=name))
+
+
 def add_actions(target, actions, insert_before=None):
     """Add actions to a menu"""
     previous_action = None
@@ -302,8 +309,6 @@ def set_item_user_text(item, text):
 
 def create_bookmark_action(parent, url, title, icon=None, shortcut=None):
     """Create bookmark action"""
-    if icon is None:
-        icon = get_icon('browser.png')
     return create_action( parent, title, shortcut=shortcut, icon=icon,
                           triggered=lambda u=url: programs.start_file(u) )
 
@@ -314,14 +319,20 @@ def create_module_bookmark_actions(parent, bookmarks):
     bookmarks = ((module_name, url, title), ...)
     """
     actions = []
-    for key, url, title, icon in bookmarks:
-        if programs.is_module_installed(key):
-            act = create_bookmark_action(parent, url, title, get_icon(icon))
-            actions.append(act)
+    for key, url, title in bookmarks:
+        # Create actions for scientific distros only if Spyder is installed
+        # under them
+        create_act = True
+        if key == 'xy' or key == 'winpython':
+            if not programs.is_module_installed(key):
+                create_act = False
+        if create_act:
+            act = create_bookmark_action(parent, url, title)
+        actions.append(act)
     return actions
 
         
-def create_program_action(parent, text, icon, name, nt_name=None):
+def create_program_action(parent, text, name, icon=None, nt_name=None):
     """Create action to run a program"""
     if is_text_string(icon):
         icon = get_icon(icon)

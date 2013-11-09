@@ -8,6 +8,12 @@ import pdb
 import bdb
 
 
+# sys.argv can be missing when Python is embedded, taking care of it.
+# Fixes Issue 1473 and other crazy crashes with IPython 0.13 trying to
+# access it.
+if not hasattr(sys, 'argv'):
+    sys.argv = ['']
+
 #==============================================================================
 # Important Note:
 #
@@ -152,9 +158,11 @@ if mpl_backend:
     try:
         import matplotlib
         if os.environ.get('QT_API') == 'pyside':
-            # Just for precaution, since mpl is not working with PySide
-            # inside Qt apps, because of its lack of an input hook
-            matplotlib.rcParams['backend.qt4'] = 'PySide'
+            # Try to address PySide lack of an input hook on Mac by settting
+            # mpl_backend to always be MacOSX
+            # Fixes Issue 347
+            if mpl_backend == 'Qt4Agg' and sys.platform == 'darwin':
+                mpl_backend = 'MacOSX'
         matplotlib.rcParams['docstring.hardcopy'] = True
         matplotlib.use(mpl_backend)
     except ImportError:
@@ -324,10 +332,6 @@ if os.environ.get("IPYTHON_KERNEL", "").lower() == "true":
         import matplotlib  # analysis:ignore
     except ImportError:
         pass
-
-    # Fixes Issue 1473
-    if not hasattr(sys, 'argv'):
-        sys.argv = ['']
 
     from IPython.core.debugger import Pdb as ipyPdb
     pdb.Pdb = ipyPdb

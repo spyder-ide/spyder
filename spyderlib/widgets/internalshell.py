@@ -115,10 +115,11 @@ class InternalShell(PythonShellWidget):
                                    profile)
         
         self.set_light_background(light_background)
-        
         self.multithreaded = multithreaded
-        
         self.setMaximumBlockCount(max_line_count)
+        
+        # For compatibility with ExtPythonShellWidget
+        self.is_ipykernel = False
         
         if font is not None:
             self.set_font(font)
