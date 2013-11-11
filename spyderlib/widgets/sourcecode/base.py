@@ -27,6 +27,7 @@ from spyderlib.qt.compat import to_qvariant
 # Local imports
 from spyderlib.widgets.sourcecode.terminal import ANSIEscapeCodeHandler
 from spyderlib.widgets.mixins import BaseEditMixin
+from spyderlib.widgets.calltip import CallTipWidget
 from spyderlib.py3compat import to_text_string, str_lower
 
 
@@ -212,6 +213,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.calltip_size = 600
         self.calltip_font = QFont()
         self.completion_text = ""
+        self.sigcalltip = CallTipWidget(self)   # Signature calltip
         
         # Highlight current line color
         self.currentline_color = QColor(Qt.red).lighter(190)
@@ -769,6 +771,9 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         point = self.mapToGlobal(QPoint(cx, cy))
         point.setX(point.x()+self.get_linenumberarea_width())
         QToolTip.showText(point, tiptext)
+    
+    def show_sigcalltip(self, text):
+        self.sigcalltip.show_call_info(text)
 
     def hide_tooltip_if_necessary(self, key):
         """Hide calltip when necessary"""

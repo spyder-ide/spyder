@@ -147,8 +147,10 @@ class CallTipWidget(QtGui.QLabel):
         else:
             doc = ''
 
-        if call_line:
+        if call_line and doc:
             doc = '\n\n'.join([call_line, doc])
+        else:
+            doc = call_line
         return self.show_tip(self._format_tooltip(doc))
 
     def show_tip(self, tip):
