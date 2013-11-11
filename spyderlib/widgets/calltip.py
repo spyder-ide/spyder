@@ -135,7 +135,7 @@ class CallTipWidget(QtGui.QLabel):
     # 'CallTipWidget' interface
     #--------------------------------------------------------------------------
 
-    def show_call_info(self, call_line=None, doc=None, maxlines=20):
+    def show_call_info(self, point, call_line, doc=None, maxlines=20):
         """ Attempts to show the specified call line and docstring at the
             current cursor location. The docstring is possibly truncated for
             length.
@@ -147,18 +147,17 @@ class CallTipWidget(QtGui.QLabel):
         else:
             doc = ''
 
-        if call_line and doc:
+        if doc:
             doc = '\n\n'.join([call_line, doc])
         else:
             doc = call_line
-        return self.show_tip(self._format_tooltip(doc))
+        return self.show_tip(point, self._format_tooltip(doc))
 
-    def show_tip(self, tip):
+    def show_tip(self, point, tip):
         """ Attempts to show the specified tip at the current cursor location.
         """
         # Attempt to find the cursor position at which to show the call tip.
         text_edit = self._text_edit
-        document = text_edit.document()
         cursor = text_edit.textCursor()
         search_pos = cursor.position() - 1
         self._start_position, _ = self._find_parenthesis(search_pos,
@@ -176,7 +175,6 @@ class CallTipWidget(QtGui.QLabel):
         padding = 3 # Distance in pixels between cursor bounds and tip box.
         cursor_rect = text_edit.cursorRect(cursor)
         screen_rect = self.app.desktop().screenGeometry(text_edit)
-        point = text_edit.mapToGlobal(cursor_rect.bottomRight())
         point.setY(point.y() + padding)
         tip_height = self.size().height()
         tip_width = self.size().width()
@@ -208,11 +206,11 @@ class CallTipWidget(QtGui.QLabel):
             else:
                 horizontal = 'Left'
         pos = getattr(cursor_rect, '%s%s' %(vertical, horizontal))
-        point = text_edit.mapToGlobal(pos())
+        adjusted_point = text_edit.mapToGlobal(pos())
         if vertical == 'top':
-            point.setY(point.y() - tip_height - padding)
+            point.setY(adjusted_point.y() - tip_height - padding)
         if horizontal == 'Left':
-            point.setX(point.x() - tip_width - padding)
+            point.setX(adjusted_point.x() - tip_width - padding)
 
         self.move(point)
         self.show()

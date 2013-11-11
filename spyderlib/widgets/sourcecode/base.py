@@ -213,7 +213,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.calltip_size = 600
         self.calltip_font = QFont()
         self.completion_text = ""
-        self.sigcalltip = CallTipWidget(self)   # Signature calltip
+        self.signature_tip = CallTipWidget(self)
         
         # Highlight current line color
         self.currentline_color = QColor(Qt.red).lighter(190)
@@ -740,7 +740,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
 
     #------Code completion / Calltips
-    def show_calltip(self, title, text, color='#2D62FF',
+    def show_calltip(self, title, text, signature=False, color='#2D62FF',
                      at_line=None, at_position=None):
         """Show calltip"""
         if text is None or len(text) == 0:
@@ -768,12 +768,14 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             cx = 5
             cursor = QTextCursor(self.document().findBlockByNumber(at_line-1))
             cy = self.cursorRect(cursor).top()
+        font = self.font()
         point = self.mapToGlobal(QPoint(cx, cy))
         point.setX(point.x()+self.get_linenumberarea_width())
-        QToolTip.showText(point, tiptext)
-    
-    def show_sigcalltip(self, text):
-        self.sigcalltip.show_call_info(text)
+        point.setY(point.y()+font.pointSize()+5)
+        if signature:
+            self.signature_tip.show_call_info(point, tiptext)
+        else:
+            QToolTip.showText(point, tiptext)
 
     def hide_tooltip_if_necessary(self, key):
         """Hide calltip when necessary"""

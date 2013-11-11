@@ -424,9 +424,8 @@ class FileInfo(QObject):
             signatures = ['<b>'+s.replace('(', '(</b>'
                                           ).replace(')', '<b>)</b>')
                           for s in signatures]
-            #self.editor.show_calltip('Arguments', '<br>'.join(signatures),
-            #                         at_position=position)
-            self.editor.show_sigcalltip('<br>'.join(signatures))
+            self.editor.show_calltip('Arguments', '<br>'.join(signatures),
+                                     signature=True, at_position=position)
                     
     def go_to_definition(self, position):
         """Go to definition"""
