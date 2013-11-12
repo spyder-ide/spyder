@@ -793,7 +793,9 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
         if self.get_current_line_to_cursor():
             last_obj = self.get_last_obj()
             if last_obj and not last_obj.isdigit():
+                self.insert_text(text)
                 self.show_docstring(last_obj, call=True)
+                return
         self.insert_text(text)
         
     def _key_period(self, text):
