@@ -115,8 +115,9 @@ div.section p {
 
 #doc-warning {
     margin-top: 30px;
-    margin-left: 140px;
-    margin-right: 140px;
+    width: 45%;
+    margin-left: auto;
+    margin-right: auto;
     color: rgb(185, 74, 72);
     background-color: rgb(242, 222, 222);
     border: 1px solid rgb(238, 211, 215);
