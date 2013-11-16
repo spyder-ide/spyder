@@ -277,15 +277,19 @@ tt {
 
 /* --- Loading --- */
 .loading {
-    position: fixed;
-    left: 35%;
-    top: 40%;
+    position: absolute;
+    margin: -20px 0 0 -95px;
+    width: 180px;
+    height: auto;
+    left: 50%;
+    top: 50%;
     background-color: #EEEEEE;
     border: 1px solid #C9C9C9;
     border-radius: 6px;
     box-shadow: 0px 0px 7px #CACACA;
     color: #333333;
     padding: 12px;
+    text-align: center;
 }
 
 /* --- Kernel error messages --- */
