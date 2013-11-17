@@ -742,17 +742,18 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
     #------Code completion / Calltips
     def _format_signature(self, text):
-        sig = []
-        for t in text:
-            rows = textwrap.wrap(t, 50)
-            for r in rows:
-                for char in ['=', ',', '(', ')', '*', '**']:
-                    r = r.replace(char,
-                           '<span style=\'color: red; font-weight: bold\'>' + \
-                           char + '</span>')
-                sig.append(r)
-        text = '<br>'.join(sig)
-        return text
+        lines = []
+        name = text.split('(')[0]
+        rows = textwrap.wrap(text, 50)
+        for r in rows:
+            for char in ['=', ',', '(', ')', '*', '**']:
+                r = r.replace(char,
+                       '<span style=\'color: red; font-weight: bold\'>' + \
+                       char + '</span>')
+            lines.append(r)
+        concat_str = '<br>' + '&nbsp;'*(len(name)+1)
+        signature = concat_str.join(lines)
+        return signature
 
     def show_calltip(self, title, text, signature=False, color='#2D62FF',
                      at_line=None, at_position=None):
@@ -767,7 +768,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         if signature:
             if type(text) is str:
                 text = [text]
-            text = self._format_signature(text)
+            signatures = [self._format_signature(t) for t in text]
+            text = '<br>'.join(signatures)
         weight = 'bold' if self.calltip_font.bold() else 'normal'
         size = self.calltip_font.pointSize()
         family = self.calltip_font.family()
