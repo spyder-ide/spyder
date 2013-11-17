@@ -14,6 +14,7 @@
 import os
 import re
 import sys
+import textwrap
 
 from spyderlib.qt.QtGui import (QTextCursor, QColor, QFont, QApplication,
                                 QTextEdit, QTextCharFormat, QToolTip,
@@ -740,6 +741,19 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
 
     #------Code completion / Calltips
+    def _format_signature(self, text):
+        sig = []
+        for t in text:
+            rows = textwrap.wrap(t, 50)
+            for r in rows:
+                for char in ['=', ',', '(', ')', '*', '**']:
+                    r = r.replace(char,
+                           '<span style=\'color: red; font-weight: bold\'>' + \
+                           char + '</span>')
+                sig.append(r)
+        text = '<br>'.join(sig)
+        return text
+
     def show_calltip(self, title, text, signature=False, color='#2D62FF',
                      at_line=None, at_position=None):
         """Show calltip"""
@@ -750,15 +764,17 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             at_position = self.get_position('cursor')
         self.calltip_position = at_position
         # Preparing text:
+        if signature:
+            if type(text) is str:
+                text = [text]
+            text = self._format_signature(text)
         weight = 'bold' if self.calltip_font.bold() else 'normal'
         size = self.calltip_font.pointSize()
         family = self.calltip_font.family()
         format1 = '<div style=\'font-size: %spt; color: %s\'>' % (size, color)
         format2 = '<hr><div style=\'font-family: "%s"; font-size: %spt; font-weight: %s\'>' % (family, size, weight)
-        if isinstance(text, list):
-            text = "\n    ".join(text)
         text = text.replace('\n', '<br>')
-        if len(text) > self.calltip_size:
+        if len(text) > self.calltip_size and not signature:
             text = text[:self.calltip_size] + " ..."
         tiptext = format1 + ('<b>%s</b></div>' % title) \
                   + format2 + text + "</div>"

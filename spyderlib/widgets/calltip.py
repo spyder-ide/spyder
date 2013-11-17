@@ -151,7 +151,7 @@ class CallTipWidget(QtGui.QLabel):
             doc = '\n\n'.join([call_line, doc])
         else:
             doc = call_line
-        return self.show_tip(point, self._format_tooltip(doc))
+        return self.show_tip(point, doc)
 
     def show_tip(self, point, tip):
         """ Attempts to show the specified tip at the current cursor location.
