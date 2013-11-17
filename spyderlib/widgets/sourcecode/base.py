@@ -771,22 +771,25 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             signatures = [self._format_signature(t) for t in text]
             text = '<br>'.join(signatures)
         weight = 'bold' if self.calltip_font.bold() else 'normal'
-        size = self.calltip_font.pointSize()
-        family = self.calltip_font.family()
+        font = self.font()
+        size = font.pointSize()
+        family = font.family()
         format1 = '<div style=\'font-size: %spt; color: %s\'>' % (size, color)
-        format2 = '<hr><div style=\'font-family: "%s"; font-size: %spt; font-weight: %s\'>' % (family, size, weight)
+        format2 = '<div style=\'font-family: "%s"; font-size: %s; font-weight: %s\'>'\
+                  % (family, size, weight)
+        if isinstance(text, list):
+            text = "\n    ".join(text)
         text = text.replace('\n', '<br>')
         if len(text) > self.calltip_size and not signature:
             text = text[:self.calltip_size] + " ..."
-        tiptext = format1 + ('<b>%s</b></div>' % title) \
-                  + format2 + text + "</div>"
+        tiptext = format1 + ('<b>%s</b></div>' % title) + '<hr>' + \
+                  format2 + text + "</div>"
         # Showing tooltip at cursor position:
         cx, cy = self.get_coordinates('cursor')
         if at_line is not None:
             cx = 5
             cursor = QTextCursor(self.document().findBlockByNumber(at_line-1))
             cy = self.cursorRect(cursor).top()
-        font = self.font()
         point = self.mapToGlobal(QPoint(cx, cy))
         point.setX(point.x()+self.get_linenumberarea_width())
         point.setY(point.y()+font.pointSize()+5)
