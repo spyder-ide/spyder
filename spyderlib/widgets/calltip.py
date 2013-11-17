@@ -59,7 +59,8 @@ class CallTipWidget(QtGui.QLabel):
 
             if etype == QtCore.QEvent.KeyPress:
                 key = event.key()
-                if key in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return):
+                if key in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return,
+                           QtCore.Qt.Key_Down):
                     self.hide()
                 elif key == QtCore.Qt.Key_Escape:
                     self.hide()
@@ -106,6 +107,10 @@ class CallTipWidget(QtGui.QLabel):
         """
         super(CallTipWidget, self).leaveEvent(event)
         self._leave_event_hide()
+    
+    def mousePressEvent(self, event):
+        super(CallTipWidget, self).mousePressEvent(event)
+        self.hide()
 
     def paintEvent(self, event):
         """ Reimplemented to paint the background panel.

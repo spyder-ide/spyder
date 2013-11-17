@@ -915,6 +915,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     def mousePressEvent(self, event):
         """Reimplement Qt method"""
         if os.name != 'posix' and event.button() == Qt.MidButton:
+            self.signature_tip.hide()
             self.setFocus()
             event = QMouseEvent(QEvent.MouseButtonPress, event.pos(),
                                 Qt.LeftButton, Qt.LeftButton, Qt.NoModifier)
@@ -922,6 +923,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             QPlainTextEdit.mouseReleaseEvent(self, event)
             self.paste()
         else:
+            self.signature_tip.hide()
             QPlainTextEdit.mousePressEvent(self, event)
 
     def focusInEvent(self, event):
