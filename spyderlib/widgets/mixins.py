@@ -508,8 +508,11 @@ class InspectObjectMixin(object):
                         if isinstance(arglist, bool):
                             arglist = []
                         if arglist:
-                            self.show_calltip(_("Arguments"), arglist,
-                                              signature=True, color='#129625')
+                            arglist = ''.join(arglist)
+                            name =  text.split('.')[-1]
+                            tiptext = name + '(' + arglist + ')'
+                            self.show_calltip(_("Arguments"), [tiptext],
+                                              signature=True, color='#2D62FF')
         elif self.calltips: # inspector is not visible or link is disabled
             doc = self.get__doc__(text)
             if doc is not None:

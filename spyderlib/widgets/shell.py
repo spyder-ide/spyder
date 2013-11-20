@@ -101,6 +101,7 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
 
     def set_font(self, font):
         """Set shell styles font"""
+        self.setFont(font)
         self.set_pythonshell_font(font)
         cursor = self.textCursor()
         cursor.select(QTextCursor.Document)

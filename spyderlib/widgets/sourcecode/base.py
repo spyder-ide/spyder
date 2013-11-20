@@ -766,8 +766,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.calltip_position = at_position
         # Preparing text:
         if signature:
-            if type(text) is str:
-                text = [text]
             signatures = [self._format_signature(t) for t in text]
             text = '<br>'.join(signatures)
         weight = 'bold' if self.calltip_font.bold() else 'normal'
