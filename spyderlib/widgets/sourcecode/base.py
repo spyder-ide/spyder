@@ -768,13 +768,13 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         if signature:
             signatures = [self._format_signature(t) for t in text]
             text = '<br>'.join(signatures)
-        weight = 'bold' if self.calltip_font.bold() else 'normal'
         font = self.font()
         size = font.pointSize()
         family = font.family()
-        format1 = '<div style=\'font-size: %spt; color: %s\'>' % (size, color)
-        format2 = '<div style=\'font-family: "%s"; font-size: %s; font-weight: %s\'>'\
-                  % (family, size, weight)
+        format1 = '<div style=\'font-family: "%s"; font-size: %spt; color: %s\'>'\
+                  % (family, size, color)
+        format2 = '<div style=\'font-family: "%s"; font-size: %spt\'>'\
+                  % (family, size-1 if size > 9 else size)
         if isinstance(text, list):
             text = "\n    ".join(text)
         text = text.replace('\n', '<br>')
