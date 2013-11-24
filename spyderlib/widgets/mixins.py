@@ -480,10 +480,10 @@ class InspectObjectMixin(object):
         if tl2 and text2.startswith(tl2[0]):
             text += tl2[0]
         if text:
-            self.show_docstring(text, force=True)
+            self.show_object_info(text, force=True)
     
-    def show_docstring(self, text, call=False, force=False):
-        """Show docstring or arguments"""
+    def show_object_info(self, text, call=False, force=False):
+        """Show signature calltip and/or docstring in the Object Inspector"""
         text = to_text_string(text) # Useful only for ExternalShellBase
         
         insp_enabled = self.inspector_enabled or force
@@ -499,24 +499,20 @@ class InspectObjectMixin(object):
                             # top will automatically give it focus because of
                             # the visibility_changed signal, so we must give
                             # focus back to shell
-            if call and self.calltips:
-                # Display argument list if this is function call
-                iscallable = self.iscallable(text)
-                if iscallable is not None:
-                    if iscallable:
-                        arglist = self.get_arglist(text)
-                        if isinstance(arglist, bool):
-                            arglist = []
-                        if arglist:
-                            arglist = ''.join(arglist)
-                            name =  text.split('.')[-1]
-                            tiptext = name + '(' + arglist + ')'
-                            self.show_calltip(_("Arguments"), [tiptext],
-                                              signature=True, color='#2D62FF')
-        elif self.calltips: # inspector is not visible or link is disabled
-            doc = self.get__doc__(text)
-            if doc is not None:
-                self.show_calltip(_("Documentation"), doc)
+        if call and self.calltips:
+            # Display argument list if this is a function call
+            iscallable = self.iscallable(text)
+            if iscallable is not None:
+                if iscallable:
+                    arglist = self.get_arglist(text)
+                    if isinstance(arglist, bool):
+                        arglist = []
+                    if arglist:
+                        arglist = ''.join(arglist)
+                        name =  text.split('.')[-1]
+                        tiptext = name + '(' + arglist + ')'
+                        self.show_calltip(_("Arguments"), [tiptext],
+                                          signature=True, color='#2D62FF')
     
     def get_last_obj(self, last=False):
         """

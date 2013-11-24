@@ -120,7 +120,7 @@ class IPythonControlWidget(TracebackLinksMixin, InspectObjectMixin, QTextEdit,
         if self.get_current_line_to_cursor():
             last_obj = self.get_last_obj()
             if last_obj and not last_obj.isdigit():
-                self.show_docstring(last_obj)
+                self.show_object_info(last_obj)
         self.insert_text(text)
     
     def keyPressEvent(self, event):
