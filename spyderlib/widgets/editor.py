@@ -300,8 +300,8 @@ class FileInfo(QObject):
 
         self.connect(editor, SIGNAL('trigger_code_completion(bool)'),
                      self.trigger_code_completion)
-        self.connect(editor, SIGNAL('trigger_calltip_and_doc_rendering(int)'),
-                     self.trigger_calltip_and_doc_rendering)
+        self.connect(editor, SIGNAL('show_object_info(int)'), 
+                     self.show_object_info)
         self.connect(editor, SIGNAL("go_to_definition(int)"),
                      self.go_to_definition)
         
@@ -366,9 +366,9 @@ class FileInfo(QObject):
                                                  automatic)
                 return
         
-    def trigger_calltip_and_doc_rendering(self, position, auto=True):
-        """Trigger calltip and docstring rendering in the Object Inspector"""
-        # auto is True means that trigger_calltip was called automatically,
+    def show_object_info(self, position, auto=True):
+        """Show signature calltip and/or docstring in the Object Inspector"""
+        # auto is True means that this method was called automatically,
         # i.e. the user has just entered an opening parenthesis -- in that 
         # case, we don't want to force the object inspector to be visible, 
         # to avoid polluting the window layout
@@ -761,7 +761,7 @@ class EditorStack(QWidget):
             position = editor.get_position('cursor')
             finfo = self.get_current_finfo()
             self.inspector.switch_to_editor_source()
-            finfo.trigger_calltip_and_doc_rendering(position, auto=False)
+            finfo.show_object_info(position, auto=False)
         else:
             text = self.get_current_editor().get_current_object()
             if text:
