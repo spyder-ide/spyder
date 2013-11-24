@@ -14,14 +14,13 @@
 import os
 import re
 import sys
-import textwrap
 
 from spyderlib.qt.QtGui import (QTextCursor, QColor, QFont, QApplication,
                                 QTextEdit, QTextCharFormat, QToolTip,
                                 QListWidget, QPlainTextEdit, QPalette,
                                 QMainWindow, QTextOption, QMouseEvent,
                                 QTextFormat)
-from spyderlib.qt.QtCore import QPoint, SIGNAL, Qt, QEventLoop, QEvent
+from spyderlib.qt.QtCore import SIGNAL, Qt, QEventLoop, QEvent
 from spyderlib.qt.compat import to_qvariant
 
 
@@ -211,7 +210,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.codecompletion_enter = False
         self.calltips = True
         self.calltip_position = None
-        self.calltip_size = 600
         self.calltip_font = QFont()
         self.completion_text = ""
         self.signature_widget = CallTipWidget(self)
@@ -243,13 +241,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         palette.setColor(QPalette.Base, background)
         palette.setColor(QPalette.Text, foreground)
         self.setPalette(palette)
-
-
-    #------Line number area
-    def get_linenumberarea_width(self):
-        """Return line number area width"""
-        # Implemented in CodeEditor, but needed here for completion widget
-        return 0
 
 
     #------Extra selections
@@ -741,61 +732,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
 
     #------Code completion / Calltips
-    def _format_signature(self, text):
-        lines = []
-        name = text.split('(')[0]
-        rows = textwrap.wrap(text, 50)
-        for r in rows:
-            for char in ['=', ',', '(', ')', '*', '**']:
-                r = r.replace(char,
-                       '<span style=\'color: red; font-weight: bold\'>' + \
-                       char + '</span>')
-            lines.append(r)
-        concat_str = '<br>' + '&nbsp;'*(len(name)+1)
-        signature = concat_str.join(lines)
-        return signature
-
-    def show_calltip(self, title, text, signature=False, color='#2D62FF',
-                     at_line=None, at_position=None):
-        """Show calltip"""
-        if text is None or len(text) == 0:
-            return
-        # Saving cursor position:
-        if at_position is None:
-            at_position = self.get_position('cursor')
-        self.calltip_position = at_position
-        # Preparing text:
-        if signature:
-            signatures = [self._format_signature(t) for t in text]
-            text = '<br>'.join(signatures)
-        font = self.font()
-        size = font.pointSize()
-        family = font.family()
-        format1 = '<div style=\'font-family: "%s"; font-size: %spt; color: %s\'>'\
-                  % (family, size, color)
-        format2 = '<div style=\'font-family: "%s"; font-size: %spt\'>'\
-                  % (family, size-1 if size > 9 else size)
-        if isinstance(text, list):
-            text = "\n    ".join(text)
-        text = text.replace('\n', '<br>')
-        if len(text) > self.calltip_size and not signature:
-            text = text[:self.calltip_size] + " ..."
-        tiptext = format1 + ('<b>%s</b></div>' % title) + '<hr>' + \
-                  format2 + text + "</div>"
-        # Showing tooltip at cursor position:
-        cx, cy = self.get_coordinates('cursor')
-        if at_line is not None:
-            cx = 5
-            cursor = QTextCursor(self.document().findBlockByNumber(at_line-1))
-            cy = self.cursorRect(cursor).top()
-        point = self.mapToGlobal(QPoint(cx, cy))
-        point.setX(point.x()+self.get_linenumberarea_width())
-        point.setY(point.y()+font.pointSize()+5)
-        if signature:
-            self.signature_widget.show_call_info(point, tiptext)
-        else:
-            QToolTip.showText(point, tiptext)
-
     def hide_tooltip_if_necessary(self, key):
         """Hide calltip when necessary"""
         try:

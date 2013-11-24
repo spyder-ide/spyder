@@ -28,6 +28,7 @@ try:  # 1.0
     from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
 except ImportError: # 0.13
     from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
+from IPython.core.oinspect import call_tip
 
 # Local imports
 from spyderlib.baseconfig import (get_conf_path, get_image_path,
@@ -37,6 +38,7 @@ from spyderlib.guiconfig import get_font
 from spyderlib.utils.qthelpers import (get_std_icon, create_toolbutton,
                                        add_actions, create_action, get_icon)
 from spyderlib.utils import programs
+from spyderlib.widgets.calltip import CallTipWidget
 from spyderlib.widgets.mixins import (BaseEditMixin, InspectObjectMixin,
                                       SaveHistoryMixin, TracebackLinksMixin)
 from spyderlib.widgets.browser import WebView
@@ -106,8 +108,10 @@ class IPythonControlWidget(TracebackLinksMixin, InspectObjectMixin, QTextEdit,
         BaseEditMixin.__init__(self)
         TracebackLinksMixin.__init__(self)
         InspectObjectMixin.__init__(self)
-        self.calltips = False        # To not use Spyder calltips
         self.found_results = []
+        self.signature_widget = CallTipWidget(self)
+        # To not use Spyder calltips obtained through the monitor
+        self.calltips = False
     
     def showEvent(self, event):
         """Reimplement Qt Method"""
@@ -294,6 +298,33 @@ These commands were executed:
             return self.show_banner()
         else:
             return ''
+    
+    def _handle_object_info_reply(self, rep):
+        """
+        Reimplement call tips to only show signatures, using the same style
+        from our Editor and External Console too.
+        """
+        self.log.debug("oinfo: %s", rep.get('content', ''))
+        cursor = self._get_cursor()
+        info = self._request_info.get('call_tip')
+        if info and info.id == rep['parent_header']['msg_id'] and \
+                info.pos == cursor.position():
+            # Get the information for a call tip.  For now we format the call
+            # line as string, later we can pass False to format_call and
+            # syntax-highlight it ourselves for nicer formatting in the
+            # calltip.
+            content = rep['content']
+            # if this is from pykernel, 'docstring' will be the only key
+            if content.get('ismagic', False):
+                # Don't generate a call-tip for magics. Ideally, we should
+                # generate a tooltip, but not on ( like we do for actual
+                # callables.
+                call_info, doc = None, None
+            else:
+                call_info, doc = call_tip(content, format_call=True)
+            if call_info:
+                self._control.show_calltip(_("Arguments"), [call_info],
+                                           signature=True, color='#2D62FF')
     
     #---- Qt methods ----------------------------------------------------------
     def focusInEvent(self, event):
