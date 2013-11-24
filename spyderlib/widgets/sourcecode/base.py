@@ -214,7 +214,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.calltip_size = 600
         self.calltip_font = QFont()
         self.completion_text = ""
-        self.signature_tip = CallTipWidget(self)
+        self.signature_widget = CallTipWidget(self)
         
         # Highlight current line color
         self.currentline_color = QColor(Qt.red).lighter(190)
@@ -792,7 +792,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         point.setX(point.x()+self.get_linenumberarea_width())
         point.setY(point.y()+font.pointSize()+5)
         if signature:
-            self.signature_tip.show_call_info(point, tiptext)
+            self.signature_widget.show_call_info(point, tiptext)
         else:
             QToolTip.showText(point, tiptext)
 
@@ -913,7 +913,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     def mousePressEvent(self, event):
         """Reimplement Qt method"""
         if os.name != 'posix' and event.button() == Qt.MidButton:
-            self.signature_tip.hide()
+            self.signature_widget.hide()
             self.setFocus()
             event = QMouseEvent(QEvent.MouseButtonPress, event.pos(),
                                 Qt.LeftButton, Qt.LeftButton, Qt.NoModifier)
@@ -921,7 +921,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             QPlainTextEdit.mouseReleaseEvent(self, event)
             self.paste()
         else:
-            self.signature_tip.hide()
+            self.signature_widget.hide()
             QPlainTextEdit.mousePressEvent(self, event)
 
     def focusInEvent(self, event):
