@@ -509,6 +509,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
     
     def set_font(self, font):
         """Set IPython widget's font"""
+        self.shellwidget._control.setFont(font)
         self.shellwidget.font = font
     
     def set_infowidget_font(self):
