@@ -165,11 +165,16 @@ def getsignaturesfromtext(text, objname):
     """Get object signatures from text (object documentation)
     Return a list containing a single string in most cases
     Example of multiple signatures: PyQt4 objects"""
-    #FIXME: the following regexp is not working with this example of docstring:
-    # QObject.connect(QObject, SIGNAL(), QObject, SLOT(), Qt.ConnectionType=Qt.AutoConnection) -> bool QObject.connect(QObject, SIGNAL(), callable, Qt.ConnectionType=Qt.AutoConnection) -> bool QObject.connect(QObject, SIGNAL(), SLOT(), Qt.ConnectionType=Qt.AutoConnection) -> bool
     if isinstance(text, dict):
         text = text.get('docstring', '')
-    return re.findall(objname+r'\([^\)]+\)', text)
+    # Regexps
+    oneline_re = objname + r'\([^\)].+?(?<=[\w\]\}\'"])\)(?!,)'
+    multiline_re = objname + r'\([^\)]+(?<=[\w\]\}\'"])\)(?!,)'
+    multiline_end_parenleft_re = r'(%s\([^\)]+(\),\n.+)+(?<=[\w\]\}\'"])\))'
+    # Grabbing signatures
+    sigs_1 = re.findall(oneline_re + '|' + multiline_re, text)
+    sigs_2 = [g[0] for g in re.findall(multiline_end_parenleft_re % objname, text)]
+    return sigs_1 + sigs_2
 
 def getargsfromtext(text, objname):
     """Get arguments from text (object documentation)"""
