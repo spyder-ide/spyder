@@ -47,7 +47,8 @@ def getobj(txt, last=False):
             return token
     except IndexError:
         return None
-    
+
+
 def getobjdir(obj):
     """
     For standard objects, will simply return dir(obj)
@@ -55,6 +56,7 @@ def getobjdir(obj):
     of result returned by dir(obj)
     """
     return [item for item in dir(obj) if is_text_string(item)]
+
 
 def getdoc(obj):
     """
@@ -146,6 +148,7 @@ def getdoc(obj):
         
     return doc
 
+
 def getsource(obj):
     """Wrapper around inspect.getsource"""
     try:
@@ -160,6 +163,7 @@ def getsource(obj):
         return src
     except (TypeError, IOError):
         return
+
 
 def getsignaturefromtext(text, objname):
     """Get object signatures from text (object documentation)
@@ -182,6 +186,7 @@ def getsignaturefromtext(text, objname):
     else:
         return ''
 
+
 def getargsfromtext(text, objname):
     """Get arguments from text (object documentation)"""
     signature = getsignaturefromtext(text, objname)
@@ -189,10 +194,12 @@ def getargsfromtext(text, objname):
         argtxt = signature[signature.find('(')+1:-1]
         return argtxt.split(',')
 
+
 def getargsfromdoc(obj):
     """Get arguments from object doc"""
     if obj.__doc__ is not None:
         return getargsfromtext(obj.__doc__, obj.__name__)
+
 
 def getargs(obj):
     """Get the names and default values of a function's arguments"""
@@ -231,6 +238,7 @@ def getargs(obj):
         if 'self' in args:
             args.remove('self')
     return args
+
 
 def getargtxt(obj, one_arg_per_line=True):
     """
