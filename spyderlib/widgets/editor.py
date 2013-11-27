@@ -30,7 +30,7 @@ import os.path as osp
 
 # Local imports
 from spyderlib.utils import encoding, sourcecode, programs, codeanalysis
-from spyderlib.utils.dochelpers import getsignaturesfromtext
+from spyderlib.utils.dochelpers import getsignaturefromtext
 from spyderlib.utils.module_completion import (module_completion,
                                                get_preferred_submodules)
 from spyderlib.baseconfig import _, DEBUG, STDOUT, STDERR
@@ -380,7 +380,7 @@ class FileInfo(QObject):
         if not helplist:
             return
         obj_fullname = ''
-        signatures = []
+        signature = ''
         cts, doc_text = helplist
         if cts:
             cts = cts.replace('.__init__', '')
@@ -389,12 +389,12 @@ class FileInfo(QObject):
                 obj_fullname = cts[:parpos]
                 obj_name = obj_fullname.split('.')[-1]
                 cts = cts.replace(obj_fullname, obj_name)
-                signatures = [cts]
+                signature = cts
                 if ('()' in cts) or ('(...)' in cts):
                     # Either inspected object has no argument, or it's 
                     # a builtin or an extension -- in this last case 
                     # the following attempt may succeed:
-                    signatures = getsignaturesfromtext(doc_text, obj_name)
+                    signature = getsignaturefromtext(doc_text, obj_name)
         if not obj_fullname:
             obj_fullname = codeeditor.get_primary_at(source_code, offset)
         if obj_fullname and not obj_fullname.startswith('self.') and doc_text:
@@ -404,9 +404,9 @@ class FileInfo(QObject):
                 argspec = doc_text['argspec']
                 note = doc_text['note']
                 doc_text = doc_text['docstring']
-            elif signatures:
-                argspec_st = signatures[0].find('(')
-                argspec = signatures[0][argspec_st:]
+            elif signature:
+                argspec_st = signature.find('(')
+                argspec = signature[argspec_st:]
                 module_end = obj_fullname.rfind('.')
                 module = obj_fullname[:module_end]
                 note = 'Present in %s module' % module
@@ -420,8 +420,8 @@ class FileInfo(QObject):
             self.emit(SIGNAL(
                     "send_to_inspector(QString,QString,QString,QString,bool)"),
                     obj_fullname, '', '', '', not auto)
-        if signatures:
-            self.editor.show_calltip('Arguments', signatures, signature=True,
+        if signature:
+            self.editor.show_calltip('Arguments', signature, signature=True,
                                      at_position=position)
                     
     def go_to_definition(self, position):

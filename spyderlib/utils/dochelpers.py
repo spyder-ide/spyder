@@ -121,9 +121,9 @@ def getdoc(obj):
             # Try to extract the argspec from the first docstring line
             docstring_lines = doc['docstring'].split("\n")
             first_line = docstring_lines[0].strip()
-            argspec = getsignaturesfromtext(first_line, '')
+            argspec = getsignaturefromtext(first_line, '')
             if argspec:
-                doc['argspec'] = argspec[0]
+                doc['argspec'] = argspec
                 # Many scipy and numpy docstrings begin with a function
                 # signature on the first line. This ends up begin redundant
                 # when we are using title and argspec to create the
@@ -161,7 +161,7 @@ def getsource(obj):
     except (TypeError, IOError):
         return
 
-def getsignaturesfromtext(text, objname):
+def getsignaturefromtext(text, objname):
     """Get object signatures from text (object documentation)
     Return a list containing a single string in most cases
     Example of multiple signatures: PyQt4 objects"""
@@ -174,13 +174,18 @@ def getsignaturesfromtext(text, objname):
     # Grabbing signatures
     sigs_1 = re.findall(oneline_re + '|' + multiline_re, text)
     sigs_2 = [g[0] for g in re.findall(multiline_end_parenleft_re % objname, text)]
-    return sigs_1 + sigs_2
+    all_sigs = sigs_1 + sigs_2
+    # The most relevant signature is usually the first one. There could be
+    # others in doctests but those are not so important
+    if all_sigs:
+        return all_sigs[0]
+    else:
+        return ''
 
 def getargsfromtext(text, objname):
     """Get arguments from text (object documentation)"""
-    signatures = getsignaturesfromtext(text, objname)
-    if signatures:
-        signature = signatures[0]
+    signature = getsignaturefromtext(text, objname)
+    if signature:
         argtxt = signature[signature.find('(')+1:-1]
         return argtxt.split(',')
 

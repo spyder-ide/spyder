@@ -70,8 +70,7 @@ class BaseEditMixin(object):
         self.calltip_position = at_position
         # Preparing text:
         if signature:
-            signatures = [self._format_signature(t) for t in text]
-            text = '<br>'.join(signatures)
+            text = self._format_signature(text)
         font = self.font()
         size = font.pointSize()
         family = font.family()
@@ -578,7 +577,7 @@ class InspectObjectMixin(object):
                         arglist = ''.join(arglist)
                         name =  text.split('.')[-1]
                         tiptext = name + '(' + arglist + ')'
-                        self.show_calltip(_("Arguments"), [tiptext],
+                        self.show_calltip(_("Arguments"), tiptext,
                                           signature=True, color='#2D62FF')
     
     def get_last_obj(self, last=False):
