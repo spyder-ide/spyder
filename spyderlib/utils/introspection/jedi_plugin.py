@@ -37,9 +37,9 @@ dependencies.add('jedi',
                  required_version=JEDI_REQVER)
 editor_widget = None
 
-#-----------------------
+#-----------------------------------------------------------------------------
 # Introspection API
-#-----------------------
+#-----------------------------------------------------------------------------
 def load_plugin():
     if programs.is_module_installed('jedi', JEDI_REQVER):
         global JEDI_HELPER
@@ -69,9 +69,9 @@ def set_pref(name, value):
 def validate():
     pass
 
-#---------------------------
+#-----------------------------------------------------------------------------
 # Implementation
-#---------------------------
+#-----------------------------------------------------------------------------
 
 if os.environ['QT_API'] == 'pyqt':
     AUTO_QT = 'PyQt4'
@@ -96,7 +96,7 @@ class JediThread(QThread):
             time.sleep(0.1)
         for module in self.modules:
             with self.lock:
-                self.sigMessageReady.emit('Jedi loading {}...'.format(module))
+                self.sigMessageReady.emit('Jedi loading %s...' % module)
                 jedi.preload_module(module)
             time.sleep(0.01)
 
@@ -181,7 +181,7 @@ class JediHelper(object):
                 val = func()
             except Exception as e:
                 val = None
-                debug_print('Jedi error ({})'.format(func_name))
+                debug_print('Jedi error (%s)' % func_name)
                 if DEBUG_EDITOR:
                     log_last_error(LOG_FILENAME, str(e))
         if DEBUG_EDITOR:
@@ -229,17 +229,17 @@ class JediHelper(object):
                 argspec = '()'
                 docstring = call_def.doc
             if call_def.type == 'module':
-                note = 'Module {}'.format(mod_name)
+                note = 'Module %s' % mod_name
                 argspec = ''
                 calltip = name
             elif call_def.type == 'class':
-                note = 'Class in {} module'.format(mod_name)
-            elif call_def.doc.startswith('{}(self'.format(name)):
+                note = 'Class in %s module' % mod_name
+            elif call_def.doc.startswith('%s(self' % name):
                 class_name = call_def.full_name.split('.')[-2]
-                note = 'Method of {} class in {} module'.format(
+                note = 'Method of %s class in %s module' % (
                     class_name.capitalize(), mod_name)
             else:
-                note = '{} in {} module'.format(call_def.type.capitalize(),
+                note = '%s in %s module' % (call_def.type.capitalize(),
                                             mod_name)
             doc_text = dict(name=call_def.name, argspec=argspec,
                             note=note, docstring=docstring)
@@ -257,7 +257,7 @@ class JediHelper(object):
             in_builtin = defn.in_builtin_module()
         except Exception as e:
             if DEBUG_EDITOR:
-                log_last_error(LOG_FILENAME, 'Get Defintion: {0}'.format(e))
+                log_last_error(LOG_FILENAME, 'Get Defintion: %s' % e)
             return None
         pattern = 'class\s+{0}|def\s+{0}|self.{0}\s*=|{0}\s*='.format(name)
         if not re.match(pattern, description):

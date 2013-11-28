@@ -14,6 +14,7 @@ import re
 import time
 import functools
 from collections import OrderedDict
+
 from spyderlib.baseconfig import DEBUG, get_conf_path, debug_print
 from spyderlib.widgets.editortools import PythonCFM
 from spyderlib.widgets.sourcecode.codeeditor import CodeEditor
@@ -26,9 +27,9 @@ PLUGIN = None
 LOG_FILENAME = get_conf_path('introspection.log')
 DEBUG_EDITOR = DEBUG >= 3
 
-# ----------------------
+#-----------------------------------------------------------------------------
 # Introspection API
-# ----------------------
+#-----------------------------------------------------------------------------
 
 def jedi_available():
     return PLUGIN and PLUGIN.NAME == 'jedi'
@@ -58,19 +59,19 @@ def get_plugin():
 
 
 def get_completion_list(source_code, offset, filename, token_based=False):
-    '''Return a list of completion strings '''
+    '''Return a list of completion strings'''
     ret = None
     if not token_based:
         try:
             ret = PLUGIN.get_completion_list(source_code, offset, filename)
-            debug_print('completion: ' + str(ret[:2]) + '...({0})'.format(len(ret)))
+            debug_print('completion: %s ....(%s)' % (ret[:2], len(ret)))
         except Exception:
             if DEBUG_EDITOR:
                 log_last_error(LOG_FILENAME)
     if not ret:
         try:
             ret = token_based_completion(source_code, offset)
-            debug_print('token completion: ' + str(ret[:2]) + '...({0})'.format(len(ret)))
+            debug_print('token completion: %s ...(%s)' % (ret[:2], len(ret)))
         except Exception:
             if DEBUG_EDITOR:
                 log_last_error(LOG_FILENAME)
@@ -94,7 +95,7 @@ def get_calltip_and_docs(source_code, offset, filename):
     '''
     try:
         ret = PLUGIN.get_calltip_and_docs(source_code, offset, filename)
-        debug_print('calltip: ' + str(ret)[:60] + '...')
+        debug_print('calltip: %s ...' % str(ret)[:60])
         return ret
     except Exception:
         if DEBUG_EDITOR:
@@ -117,7 +118,7 @@ def get_definition_location(source_code, offset, filename, regex=False):
             ret = get_definition_location_regex(source_code, offset, filename)
             debug_print('get regex definition: ' + str(ret))
         except Exception as e:
-            debug_print('Regex error: {}'.format(e))
+            debug_print('Regex error: %s' % e)
             if DEBUG_EDITOR:
                 log_last_error(LOG_FILENAME)
     return ret
@@ -131,9 +132,9 @@ def validate():
     return PLUGIN.validate()
 
 
-# ----------------------
+#-----------------------------------------------------------------------------
 # Helper functions
-# ----------------------
+#-----------------------------------------------------------------------------
 
 def memoize(obj):
     """https://wiki.python.org/moin/PythonDecoratorLibrary#Memoize"""
@@ -198,12 +199,12 @@ def python_like_mod_finder(import_line, alt_path=None, stop_token=None,
             # from package import module
             if stop_token and not stop_token in path:
                 for ext in python_like_exts():
-                    fname = '{0}{1}'.format(stop_token, ext)
+                    fname = '%s%s' % (stop_token, ext)
                     if os.path.exists(os.path.join(path, fname)):
                         return os.path.join(path, fname)
             # from module import name
             for ext in python_like_exts():
-                fname = '{0}{1}'.format(path, ext)
+                fname = '%s%s' % (path, ext)
                 if os.path.exists(fname):
                     return fname
             # if it is a file, return it
