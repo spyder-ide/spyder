@@ -749,7 +749,7 @@ class ObjectInspector(SpyderPluginWidget):
         if self.dockwidget is not None:
             self.dockwidget.blockSignals(False)
         
-    def set_rope_doc(self, doc, force_refresh=False):
+    def set_doc(self, doc, force_refresh=False):
         """
         Use the object inspector to show docstring dictionary computed
         with rope from the Editor plugin
