@@ -19,12 +19,11 @@ import tarfile
 import os.path as osp
 import shutil
 import warnings
-import pickle
 import json
 
 # Local imports
 from spyderlib.py3compat import pickle, to_text_string, getcwd
-
+from spyderlib.baseconfig import debug_print
 
 try:
     import numpy as np
@@ -37,6 +36,7 @@ try:
         import scipy.io as spio  # analysis:ignore
     def load_matlab(filename):
         try:
+            debug_print('load matlab ' + filename)
             out = spio.loadmat(filename, struct_as_record=True,
                                squeeze_me=True)
             for key, value in list(out.items()):
@@ -377,6 +377,7 @@ class IOFunctions(object):
                 ('.gif', _("GIF images"), load_image, None),
                 ('.tif', _("TIFF images"), load_image, None),
                 ('.pkl', _("Pickle files"), load_pickle, None),
+                ('.pickle', _("Pickle files"), load_pickle, None),
                 ('.json', _("JSON files"), load_json, None),
                 ]
         

@@ -30,7 +30,7 @@ from spyderlib.utils.qthelpers import (get_icon, create_toolbutton,
                                        add_actions, create_action)
 from spyderlib.utils.iofuncs import iofunctions
 from spyderlib.widgets.importwizard import ImportWizard
-from spyderlib.baseconfig import _, get_supported_types
+from spyderlib.baseconfig import _, get_supported_types, debug_print
 from spyderlib.py3compat import is_text_string, to_text_string, getcwd
 
 
@@ -137,6 +137,7 @@ class NamespaceBrowser(QWidget):
                             plot_func=self.plot, imshow_func=self.imshow,
                             show_image_func=self.show_image)
         self.editor.sig_option_changed.connect(self.sig_option_changed.emit)
+        self.editor.sig_files_dropped.connect(self.import_data)
         
         # Setup layout
         hlayout = QHBoxLayout()
@@ -503,6 +504,7 @@ class NamespaceBrowser(QWidget):
                     if error_message is None:
                         interpreter.namespace.update(namespace)
                 else:
+                    debug_print('monitor_load_globals ' + str(self.filename))
                     error_message = monitor_load_globals(self._get_sock(),
                                                          self.filename, ext)
                 QApplication.restoreOverrideCursor()

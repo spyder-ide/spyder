@@ -19,7 +19,7 @@ from spyderlib.utils.dochelpers import (getargtxt, getdoc, getsource,
 from spyderlib.utils.bsdsocket import (communicate, read_packet, write_packet,
                                        PACKET_NOT_RECEIVED)
 from spyderlib.utils.module_completion import module_completion
-from spyderlib.baseconfig import get_conf_path, get_supported_types, DEBUG
+from spyderlib.baseconfig import get_conf_path, get_supported_types, DEBUG, debug_print
 from spyderlib.py3compat import getcwd, is_text_string, pickle, _thread
 
 
@@ -89,6 +89,7 @@ def monitor_save_globals(sock, settings, filename):
 
 def monitor_load_globals(sock, filename, ext):
     """Load globals() from file"""
+    debug_print('loading globals ' + filename + ' ' + ext + ' ' + str(sock))
     return communicate(sock, '__load_globals__()', settings=[filename, ext])
 
 def monitor_get_global(sock, name):
@@ -466,11 +467,13 @@ class Monitor(threading.Thread):
         
     def loadglobals(self):
         """Load globals() from filename"""
+        debug_print('loadglobals')
         glbs = self.mglobals()
         from spyderlib.utils.iofuncs import iofunctions
         filename = read_packet(self.i_request)
         ext = read_packet(self.i_request)
         load_func = iofunctions.load_funcs[ext]
+        debug_print('ext {} load_func {}'.format(ext, load_func))
         data, error_message = load_func(filename)
         if error_message:
             return error_message

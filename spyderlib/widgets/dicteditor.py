@@ -28,6 +28,7 @@ from spyderlib.qt.compat import to_qvariant, from_qvariant, getsavefilename
 
 import sys
 import datetime
+import os
 
 # Local import
 from spyderlib.baseconfig import _
@@ -518,6 +519,7 @@ class BaseTableView(QTableView):
     """Base dictionnary editor table view"""
     sig_option_changed = Signal(str, object)
     sig_files_dropped = Signal(list)
+    
     def __init__(self, parent):
         QTableView.__init__(self, parent)
         self.array_filename = None
