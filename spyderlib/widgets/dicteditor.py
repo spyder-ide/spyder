@@ -44,7 +44,8 @@ if ndarray is not FakeObject:
     from spyderlib.widgets.arrayeditor import ArrayEditor
 from spyderlib.widgets.texteditor import TextEditor
 from spyderlib.widgets.importwizard import ImportWizard
-from spyderlib.py3compat import to_text_string, is_text_string, getcwd, u
+from spyderlib.py3compat import to_text_string, is_text_string, getcwd, u, urllib
+from spyderlib.utils.iofuncs import iofunctions
 
 
 def display_to_value(value, default_value, ignore_errors=True):
@@ -516,6 +517,7 @@ class DictDelegate(QItemDelegate):
 class BaseTableView(QTableView):
     """Base dictionnary editor table view"""
     sig_option_changed = Signal(str, object)
+    sig_files_dropped = Signal(list)
     def __init__(self, parent):
         QTableView.__init__(self, parent)
         self.array_filename = None
@@ -537,6 +539,7 @@ class BaseTableView(QTableView):
         self.rename_action = None
         self.duplicate_action = None
         self.delegate = None
+        self.setAcceptDrops(True)
         
     def setup_table(self):
         """Setup table"""
@@ -771,6 +774,44 @@ class BaseTableView(QTableView):
         else:
             self.empty_ws_menu.popup(event.globalPos())
             event.accept()
+
+    def dragEnterEvent(self, event):
+        """Allow user to drag supported file types"""
+        if self._accepted_urls(event):
+            event.accept()
+        else:
+            event.ignore()
+    
+    def dragMoveEvent(self, event):
+        """Allow user to move supported file types"""
+        if self._accepted_urls(event):
+            event.setDropAction(Qt.CopyAction)
+            event.accept()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event):
+        """Allow user to drop supported file types"""
+        urls = self._accepted_urls(event)
+        if urls:
+            event.setDropAction(Qt.CopyAction)
+            event.accept()
+            self.sig_files_dropped.emit(urls)
+        else:
+            event.ignore()
+            
+    def _accepted_urls(self, event):
+        """Search for importable urls"""
+        urls = []
+        if event.mimeData().hasUrls:
+            for url in event.mimeData().urls():
+                ext = os.path.splitext(str(url.toString()))[1]
+                if ext in iofunctions.load_funcs.keys():
+                    url = str(url.toString())
+                    if url.startswith('file'):
+                        url = urllib.url2pathname(url[5:])
+                    urls.append(url)
+        return urls
 
     def toggle_inplace(self, state):
         """Toggle in-place editor option"""

@@ -19,6 +19,8 @@ import tarfile
 import os.path as osp
 import shutil
 import warnings
+import pickle
+import json
 
 # Local imports
 from spyderlib.py3compat import pickle, to_text_string, getcwd
@@ -64,7 +66,11 @@ try:
     def load_array(filename):
         try:
             name = osp.splitext(osp.basename(filename))[0]
-            return {name: np.load(filename)}, None
+            data = np.load(filename)
+            if hasattr(data, 'keys'):
+                return data, None
+            else:
+                return {name: data}, None
         except Exception as error:
             return None, str(error)    
     def __save_array(data, basename, index):
@@ -115,6 +121,26 @@ try:
 except ImportError:
     load_image = None
 
+
+def load_pickle(filename):
+    """ Load a pickle file as a dictionary"""
+    try:
+        with open(filename, 'rb') as fid:
+            data = pickle.load(fid)
+        return data, None
+    except Exception as err:
+        return None, str(err)
+
+
+def load_json(filename):
+    """ Load a json file as a dictionary"""
+    try:
+        with open(filename, 'rb') as fid:
+            data = json.load(fid)
+        return data, None
+    except Exception as err:
+        return None, str(err)
+   
 
 def save_dictionary(data, filename):
     """Save dictionary in a single file .spydata file"""
@@ -342,6 +368,7 @@ class IOFunctions(object):
                 ('.spydata', _("Spyder data files"),
                              load_dictionary, save_dictionary),
                 ('.npy', _("NumPy arrays"), load_array, None),
+                ('.npz', _("NumPy zip arrays"), load_array, None),
                 ('.mat', _("Matlab files"), load_matlab, save_matlab),
                 ('.csv', _("CSV text files"), 'import_wizard', None),
                 ('.txt', _("Text files"), 'import_wizard', None),
@@ -349,6 +376,8 @@ class IOFunctions(object):
                 ('.png', _("PNG images"), load_image, None),
                 ('.gif', _("GIF images"), load_image, None),
                 ('.tif', _("TIFF images"), load_image, None),
+                ('.pkl', _("Pickle files"), load_pickle, None),
+                ('.json', _("JSON files"), load_json, None),
                 ]
         
     def get_3rd_party_funcs(self):
