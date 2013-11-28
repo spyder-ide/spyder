@@ -23,7 +23,7 @@ import json
 
 # Local imports
 from spyderlib.py3compat import pickle, to_text_string, getcwd
-from spyderlib.baseconfig import debug_print
+
 
 try:
     import numpy as np
@@ -36,7 +36,6 @@ try:
         import scipy.io as spio  # analysis:ignore
     def load_matlab(filename):
         try:
-            debug_print('load matlab ' + filename)
             out = spio.loadmat(filename, struct_as_record=True,
                                squeeze_me=True)
             for key, value in list(out.items()):

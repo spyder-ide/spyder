@@ -30,7 +30,7 @@ from spyderlib.utils.qthelpers import (get_icon, create_toolbutton,
                                        add_actions, create_action)
 from spyderlib.utils.iofuncs import iofunctions
 from spyderlib.widgets.importwizard import ImportWizard
-from spyderlib.baseconfig import _, get_supported_types, debug_print
+from spyderlib.baseconfig import _, get_supported_types
 from spyderlib.py3compat import is_text_string, to_text_string, getcwd
 
 
@@ -471,7 +471,7 @@ class NamespaceBrowser(QWidget):
                     return
 
             load_func = iofunctions.load_funcs[ext]
-                
+
             # 'import_wizard' (self.setup_io)
             if is_text_string(load_func):
                 # Import data with import wizard
@@ -504,7 +504,6 @@ class NamespaceBrowser(QWidget):
                     if error_message is None:
                         interpreter.namespace.update(namespace)
                 else:
-                    debug_print('monitor_load_globals ' + str(self.filename))
                     error_message = monitor_load_globals(self._get_sock(),
                                                          self.filename, ext)
                 QApplication.restoreOverrideCursor()
