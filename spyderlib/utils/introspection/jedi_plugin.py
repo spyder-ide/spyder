@@ -5,7 +5,8 @@ import threading
 from spyderlib.qt.QtCore import QThread, Signal, QTimer
 from spyderlib.qt.QtGui import QApplication
 from spyderlib import dependencies
-from spyderlib.baseconfig import _, get_conf_path, programs, DEBUG, debug_print
+from spyderlib.baseconfig import _, get_conf_path, DEBUG, debug_print
+from spyderlib.utils import programs
 from spyderlib.utils.debug import log_last_error, log_dt
 from spyderlib.utils.sourcecode import split_source
 from spyderlib.utils.introspection.base import (

@@ -54,14 +54,14 @@ def get_completion_list(source_code, offset, filename, token_based=False):
     if not token_based:
         try:
             ret = PLUGIN.get_completion_list(source_code, offset, filename)
-            debug_print('completion: ' + str(ret))
+            debug_print('completion: ' + str(ret[:2]) + '...({0})'.format(len(ret)))
         except Exception:
             if DEBUG_EDITOR:
                 log_last_error(LOG_FILENAME)
     if not ret:
         try:
             ret = token_based_completion(source_code, offset)
-            debug_print('token completion: ' + str(ret))
+            debug_print('token completion: ' + str(ret[:2]) + '...({0})'.format(len(ret)))
         except Exception:
             if DEBUG_EDITOR:
                 log_last_error(LOG_FILENAME)
@@ -85,7 +85,7 @@ def get_calltip_and_docs(source_code, offset, filename):
     '''
     try:
         ret = PLUGIN.get_calltip_and_docs(source_code, offset, filename)
-        debug_print('calltip: ' + str(ret))
+        debug_print('calltip: ' + str(ret)[:60] + '...')
         return ret
     except Exception:
         if DEBUG_EDITOR:
@@ -105,7 +105,6 @@ def get_definition_location(source_code, offset, filename, regex=False):
                 log_last_error(LOG_FILENAME)
     if not ret[0]:
         try:
-            debug_print('getting regex def for {} at{}'.format(offset, filename))
             ret = get_definition_location_regex(source_code, offset, filename)
             debug_print('get regex definition: ' + str(ret))
         except Exception as e:

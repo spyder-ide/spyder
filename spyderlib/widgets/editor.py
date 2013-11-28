@@ -34,7 +34,7 @@ from spyderlib.utils.dochelpers import getsignaturesfromtext
 from spyderlib.utils.module_completion import (module_completion,
                                                get_preferred_submodules)
 from spyderlib.utils import introspection
-from spyderlib.baseconfig import _, DEBUG, STDOUT, STDERR, debug_print
+from spyderlib.baseconfig import _, DEBUG, STDOUT, STDERR
 from spyderlib.config import EDIT_FILTERS, EDIT_EXT, get_filter, EDIT_FILETYPES
 from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions,
                                        mimedata2url, get_filetype_icon,
@@ -379,9 +379,7 @@ class FileInfo(QObject):
         source_code = self.get_source_code()
 
         obj = self.editor.get_current_object()
-        debug_print('calltip on {}'.format(obj))
         if not obj:
-            debug_print('finding parens')
              # find the first preceding opening parens (keep track of closing parens)
             close_parens = 0
             position -= 1
@@ -395,9 +393,7 @@ class FileInfo(QObject):
                     break
 
         if not obj and (not position or not source_code[position] == '('):
-            debug_print('returning')
             return
-        debug_print('getting calltip')
         offset = position
         helplist = introspection.get_calltip_and_docs(source_code, offset,
                                                           self.filename)
