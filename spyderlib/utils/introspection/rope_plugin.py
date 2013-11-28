@@ -48,6 +48,7 @@ ROPE_PREFS = {'ignore_syntax_errors': True,
 # Introspection API
 #-----------------------------------------------------------------------------
 def load_plugin():
+    """Load the Rope introspection plugin"""
     if programs.is_module_installed('rope'):
         global ROPE_PROJECT
         ROPE_PROJECT = RopeProject()
@@ -57,22 +58,27 @@ def load_plugin():
 
 
 def get_completion_list(source_code, offset, filename):
+    """Return a list of completion strings using Rope"""
     return ROPE_PROJECT.get_completion_list(source_code, offset, filename)
 
 
 def get_calltip_and_docs(source_code, offset, filename):
+    """Find the calltip and docs using Rope"""
     return ROPE_PROJECT.get_calltip_and_docs(source_code, offset, filename)
 
 
 def get_definition_location(source_code, offset, filename):
+    """Find a path and line number for a definition using Rope"""
     return ROPE_PROJECT.get_definition_location(source_code, offset, filename)
 
 
 def set_pref(name, value):
+    """Set a Rope plugin preference to a value"""
     return ROPE_PROJECT.set_pref(name, value)
 
 
 def validate():
+    """Validate the Rope plugin"""
     ROPE_PROJECT.validate_rope_project()
     
     
@@ -82,12 +88,16 @@ def validate():
 
 
 class RopeProject(object):
+    """Helper object to interface with the Rope Library"""
+    
     def __init__(self):
+        """Initialize the Rope Helper object"""
         self.project = None
         self.create_rope_project(root_path=get_conf_path())
 
     #------rope integration
     def create_rope_project(self, root_path):
+        """Create a Rope project on a desired path"""
         if PY2:
             root_path = encoding.to_fs_from_unicode(root_path)
         else:
@@ -113,18 +123,22 @@ class RopeProject(object):
         self.validate_rope_project()
 
     def close_rope_project(self):
+        """Close the Rope project"""
         if self.project is not None:
             self.project.close()
 
     def validate_rope_project(self):
+        """Validate the Rope project"""
         if self.project is not None:
             self.project.validate(self.project.root)
 
     def set_pref(self, key, value):
+        """Set a Rope preference"""
         if self.project is not None:
             self.project.prefs.set(key, value)
 
     def get_completion_list(self, source_code, offset, filename):
+        """Get a list of completions using Rope"""
         if self.project is None:
             return []
         if PY2:
@@ -155,6 +169,7 @@ class RopeProject(object):
             return []
 
     def get_calltip_and_docs(self, source_code, offset, filename):
+        """Get a formatted calltip and docstring from Rope"""
         if self.project is None:
             return []
         if PY2:
@@ -199,6 +214,7 @@ class RopeProject(object):
             return []
 
     def get_definition_location(self, source_code, offset, filename):
+        """Find a definition location using Rope"""
         if self.project is None:
             return (None, None)
         if PY2:

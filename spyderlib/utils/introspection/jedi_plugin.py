@@ -41,6 +41,7 @@ editor_widget = None
 # Introspection API
 #-----------------------------------------------------------------------------
 def load_plugin():
+    """Load the Jedi introspection plugin"""
     if programs.is_module_installed('jedi', JEDI_REQVER):
         global JEDI_HELPER
         JEDI_HELPER = JediHelper()
@@ -50,23 +51,28 @@ def load_plugin():
 
 
 def get_completion_list(source_code, offset, filename):
+    """Return a list of completion strings using Jedi"""
     return JEDI_HELPER.get_completion_list(source_code, offset, filename)
 
 
 def get_calltip_and_docs(source_code, offset, filename):
+    """Find the calltip and docs using Jedi"""
     return JEDI_HELPER.get_calltip_and_docs(source_code, offset, filename)
 
 
 def get_definition_location(source_code, offset, filename):
+    """Find a path and line number for a definition using Jedi"""
     return JEDI_HELPER.get_definition_location(source_code, offset, filename)
 
 
 def set_pref(name, value):
+    """Set a Jedi plugin preference to a value"""
     if name == 'extension_modules':
         mods = [mod for mod in value if not '.' in mod]
         JEDI_HELPER.extension_modules = mods
     
 def validate():
+    """Validate the Jedi plugin"""
     pass
 
 #-----------------------------------------------------------------------------
@@ -80,7 +86,7 @@ else:
     
     
 class JediThread(QThread):
-    
+    """Thread to Handle Preloading Modules into Jedi"""
     sigMessageReady = Signal(object)
     
     def __init__(self, modules, lock):
@@ -90,8 +96,8 @@ class JediThread(QThread):
         self.modules = modules
         self.lock = lock
         
-        
     def run(self):
+        """Preload modules into Jedi"""
         while editor_widget and editor_widget.window().is_starting_up:
             time.sleep(0.1)
         for module in self.modules:
@@ -102,10 +108,11 @@ class JediThread(QThread):
 
      
 class JediHelper(object):
-    
+    """Helper object to interface with the Jedi Library"""
     jedi_lock = threading.Lock()
 
     def __init__(self):
+        """Initialize the Jedi Helper object"""
         with self.jedi_lock:
             jedi.settings.case_insensitive_completion = False
         warmup_libs = ['numpy', 'matplotlib.pyplot']
@@ -119,9 +126,10 @@ class JediHelper(object):
         QTimer.singleShot(1500, self.refresh_libs)
 
     def refresh_libs(self):
-        ''' Look for extension modules that are not in our loaded modules
-        that are in the current document
-        '''
+        """ 
+        Look for extension modules that are not in our loaded modules
+        but are in the current document
+        """
         QTimer.singleShot(1500, self.refresh_libs)
         if self.jedi_thread.isRunning():
             self.post_message(self.loading_message)
@@ -142,6 +150,7 @@ class JediHelper(object):
                 return
                 
     def get_libs(self, libs):
+        """Preload libraries into Jedi using a JediThread"""
         if not isinstance(libs, list):
             libs = [libs]
         self.loaded_modules.extend(libs)
@@ -151,18 +160,24 @@ class JediHelper(object):
         self.jedi_thread.start()
         
     def post_message(self, message, timeout=60000):
+        """
+        Post a message to the main window status bar with a timeout in ms
+        """
         if editor_widget:
             editor_widget.window().statusBar().showMessage(message, timeout)
             QApplication.processEvents()
             
     def set_message(self, message):
+        """Set our current loading message"""
         self.loading_message = message
         
     def clear_message(self):
+        """Clear our current loading message and the main window statusbar"""
         self.loading_message = ''
         self.post_message('', 0)
         
     def get_line_col(self, source_code, offset):
+        """Get a line and column given source code and an offset"""
         if not source_code:
             return 1, 1
         source_code = source_code[:offset]
@@ -170,6 +185,7 @@ class JediHelper(object):
         return len(lines), len(lines[-1])
 
     def get_jedi_object(self, source_code, line, col, filename, func_name):
+        """Call a desired function on a Jedi Script and return the result"""
         if not jedi:
             return
         if DEBUG_EDITOR:
@@ -193,8 +209,7 @@ class JediHelper(object):
             return val
 
     def get_completion_list(self, source_code, offset, filename):
-        """Get a list of word completions from jedi
-        """
+        """Get a list of word completions from Jedi"""
         line, col = self.get_line_col(source_code, offset)
         completions = self.get_jedi_object(source_code, line, col, filename,
                                            'completions')
@@ -204,8 +219,7 @@ class JediHelper(object):
             return []
 
     def get_calltip_and_docs(self, source_code, offset, filename):
-        """Get a formatted calltip and docstring from jedi
-        """
+        """Get a formatted calltip and docstring from Jedi"""
         line, col = self.get_line_col(source_code, offset)
         call_def =  self.get_jedi_object(source_code, line, col, filename,
                                         'goto_definitions')
@@ -249,6 +263,7 @@ class JediHelper(object):
 
     @staticmethod
     def get_definition_info(defn):
+        """Extract definition information from the Jedi definition object"""
         try:
             module_path = defn.module_path
             name = defn.name
@@ -269,7 +284,8 @@ class JediHelper(object):
                     goto_next=goto_next)
 
     def get_definition_location(self, source_code, offset, filename):
-        """Find a definition location using jedi
+        """
+        Find a definition location using Jedi
 
         Follows gotos until a definition is found, or it reaches a builtin
         module.  Falls back on token lookup if it is in an enaml file or does
@@ -300,6 +316,7 @@ class JediHelper(object):
 
     @staticmethod
     def find_in_builtin(info):
+        """Find a definition in a builtin file"""
         module_path = info['module_path']
         line_nr = info['line_nr']
         ext = os.path.splitext(info['module_path'])[1]

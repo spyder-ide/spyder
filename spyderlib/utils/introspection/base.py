@@ -22,7 +22,7 @@ from spyderlib.utils.debug import log_dt, log_last_error
 from spyderlib.utils import sourcecode
 
 
-plugins = ['jedi', 'rope']
+PLUGINS = ['jedi', 'rope']
 PLUGIN = None
 LOG_FILENAME = get_conf_path('introspection.log')
 DEBUG_EDITOR = DEBUG >= 3
@@ -32,15 +32,17 @@ DEBUG_EDITOR = DEBUG >= 3
 #-----------------------------------------------------------------------------
 
 def jedi_available():
+    """Check for Jedi plugin availability"""
     return PLUGIN and PLUGIN.NAME == 'jedi'
     
     
 def get_plugin():
-    global PLUGIN, plugins, plugin_name
+    """Get and load a plugin, checking in order of PLUGINS"""
+    global PLUGIN, PLUGINS, plugin_name
     if PLUGIN:
         return PLUGIN
     else:
-        for plugin in plugins:
+        for plugin in PLUGINS:
             available = False
             mod_name = plugin + '_plugin'
             try:
@@ -59,7 +61,7 @@ def get_plugin():
 
 
 def get_completion_list(source_code, offset, filename, token_based=False):
-    '''Return a list of completion strings'''
+    """Return a list of completion strings"""
     ret = None
     if not token_based:
         try:
@@ -79,12 +81,13 @@ def get_completion_list(source_code, offset, filename, token_based=False):
 
 
 def get_calltip_and_docs(source_code, offset, filename):
-    '''Find the calltip and docs
+    """
+    Find the calltip and docs
 
-    calltip is a string with the function or class and its arguments
+    Calltip is a string with the function or class and its arguments
         e.g. 'match(patern, string, flags=0)'
              'ones(shape, dtype=None, order='C')'
-    docs is a a string or a dict with the following keys:
+    Docs is a a string or a dict with the following keys:
        e.g. 'Try to apply the pattern at the start of the string, returning...'
        or {'note': 'Function of numpy.core.numeric...',
            'argspec': "(shape, dtype=None, order='C')'
@@ -92,7 +95,7 @@ def get_calltip_and_docs(source_code, offset, filename):
            'name': 'ones'}
        note, argspec, docstring, name
        e.g.
-    '''
+    """
     try:
         ret = PLUGIN.get_calltip_and_docs(source_code, offset, filename)
         debug_print('calltip: %s ...' % str(ret)[:60])
@@ -104,7 +107,7 @@ def get_calltip_and_docs(source_code, offset, filename):
 
 
 def get_definition_location(source_code, offset, filename, regex=False):
-    '''Find a path and line number for a definition'''
+    """Find a path and line number for a definition"""
     ret = None, None
     if not regex:
         try:
@@ -124,11 +127,13 @@ def get_definition_location(source_code, offset, filename, regex=False):
     return ret
 
 
-def set_pref(x, y):
-    return PLUGIN.set_pref(x, y)
+def set_pref(name, value):
+    """Set a plugin preference to a value"""
+    return PLUGIN.set_pref(name, value)
 
 
 def validate():
+    """Validate the plugin"""
     return PLUGIN.validate()
 
 
@@ -137,7 +142,14 @@ def validate():
 #-----------------------------------------------------------------------------
 
 def memoize(obj):
-    """https://wiki.python.org/moin/PythonDecoratorLibrary#Memoize"""
+    """
+    Memoize objects to trade memory for execution speed
+    
+    Use a limited size cache to store the value, which takes into account
+    The calling args and kwargs
+    
+    See https://wiki.python.org/moin/PythonDecoratorLibrary#Memoize
+    """
     cache = obj.cache = OrderedDict()
    
     @functools.wraps(obj)
@@ -153,8 +165,7 @@ def memoize(obj):
     
 
 def token_based_completion(script, offset):
-    """Simple completion based on python-like identifiers and whitespace
-    """
+    """Simple completion based on python-like identifiers and whitespace"""
     base = sourcecode.get_primary_at(script, offset)
     tokens = sourcecode.get_identifiers(script)
     items = [item for item in tokens if
@@ -168,13 +179,14 @@ def token_based_completion(script, offset):
 
 
 @memoize
-def python_like_mod_finder(import_line, alt_path=None, stop_token=None,
-                           name=None):
-    '''Locate an module path based on an import line in an python-like file
+def python_like_mod_finder(import_line, alt_path=None, stop_token=None):
+    """
+    Locate an module path based on an import line in an python-like file
 
+    import_line is the line of source code containing the import
     alt_path specifies an alternate base path for the module
     stop_token specifies the desired name to stop on
-    '''
+    """
     if stop_token and '.' in stop_token:
         stop_token = stop_token.split('.')[-1]
     tokens = re.split(r'\W', import_line)
@@ -217,8 +229,7 @@ def python_like_mod_finder(import_line, alt_path=None, stop_token=None,
             
 
 def get_definition_location_regex(source_code, offset, filename):
-    '''Find the definition for an object within a set of source code
-    '''
+    """Find the definition for an object within a set of source code"""
     token = sourcecode.get_primary_at(source_code, offset)
     eol = sourcecode.get_eol_chars(source_code) or '\n'
     lines = source_code[:offset].split(eol)
@@ -245,16 +256,16 @@ def get_definition_location_regex(source_code, offset, filename):
 
 @memoize
 def get_definition_from_file(filename, name, line_nr=-1):
-    '''Find the definition for an object in a filename
-    '''
+    """Find the definition for an object in a filename"""
     with open(filename, 'rb') as fid:
         code = fid.read()
     return get_definition_with_regex(code, name, line_nr)
 
 
 def get_definition_with_regex(source, token, start_line=-1):
-    '''Find the definition of an object within a source closest to a given line
-    '''
+    """
+    Find the definition of an object within a source closest to a given line
+    """
     if not token:
         return None
     if DEBUG_EDITOR:
@@ -311,11 +322,12 @@ def get_definition_with_regex(source, token, start_line=-1):
 
 @memoize
 def get_parent_until(path):
-    '''Given a file path, determine the full module path
+    """
+    Given a file path, determine the full module path
 
     e.g. '/usr/lib/python2.7/dist-packages/numpy/core/__init__.pyc' yields
     'numpy.core'
-    '''
+    """
     dirname = os.path.dirname(path)
     try:
         mod = os.path.basename(path)
@@ -335,8 +347,7 @@ def get_parent_until(path):
 
 
 def python_like_exts():
-    '''Return a list of all python-like extensions
-    '''
+    """Return a list of all python-like extensions"""
     languages = CodeEditor.LANGUAGES
     exts = []
     for (key, value) in languages.items():
@@ -350,8 +361,7 @@ def python_like_exts():
 
 
 def all_editable_exts():
-    '''Return a list of all editable extensions
-    '''
+    """Return a list of all editable extensions"""
     languages = CodeEditor.LANGUAGES.keys()
     exts = []
     for language in languages:
