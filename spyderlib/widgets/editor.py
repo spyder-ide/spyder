@@ -377,24 +377,8 @@ class FileInfo(QObject):
         # case, we don't want to force the object inspector to be visible, 
         # to avoid polluting the window layout
         source_code = self.get_source_code()
-
-        obj = self.editor.get_current_object()
-        if not obj:
-             # find the first preceding opening parens (keep track of closing parens)
-            close_parens = 0
-            position -= 1
-            while position and not (source_code[position] == '(' and close_parens == 0):
-                if source_code[position] == ')':
-                    close_parens += 1
-                elif source_code[position] == '(' and close_parens:
-                    close_parens -= 1
-                position -= 1
-                if source_code[position] == '\n':
-                    break
-
-        if not obj and (not position or not source_code[position] == '('):
-            return
         offset = position
+        
         helplist = introspection.get_calltip_and_docs(source_code, offset,
                                                           self.filename)
         if not helplist:
