@@ -7,6 +7,7 @@
 """
 Source code text utilities
 """
+import re
 
 # Order is important:
 EOL_CHARS = (("\r\n", 'nt'), ("\n", 'posix'), ("\r", 'mac'))
@@ -52,3 +53,48 @@ def is_keyword(text):
     """Test if passed string is the name of a Python keyword"""
     import keyword
     return text in keyword.kwlist
+    
+    
+def get_primary_at(source_code, offset, retry=True):
+    """Return Python object in *source_code* at *offset*
+    Periods to the left of the cursor are carried forward 
+      e.g. 'functools.par^tial' would yield 'functools.partial'
+    Retry prevents infinite recursion: retry only once
+    """
+    obj = ''
+    left = re.split(r"[^0-9a-zA-Z_.]", source_code[:offset])
+    if left and left[-1]:
+        obj = left[-1]
+    right = re.split(r"\W", source_code[offset:])
+    if right and right[0]:
+        obj += right[0]
+    if obj and obj[0].isdigit():
+        obj = ''
+    # account for opening chars with no text to the right
+    if not obj and retry and offset and source_code[offset - 1] in '([.':
+        return get_primary_at(source_code, offset - 1, retry=False)
+    return obj
+
+
+def split_source(source_code):
+    '''Split source code into lines
+    '''
+    eol_chars = get_eol_chars(source_code)
+    if eol_chars:
+        return source_code.split(eol_chars)
+    else:
+        return [source_code]
+
+
+def get_identifiers(source_code):
+    '''Split source code into python identifier-like tokens'''
+    tokens = set(re.split(r"[^0-9a-zA-Z_.]", source_code))
+    valid = re.compile(r'[a-zA-Z_]')
+    return [token for token in tokens if re.match(valid, token)]
+
+
+if __name__ == '__main__':
+    code = 'import functools; functools.partial'
+    print get_primary_at(code, len(code))
+    print get_identifiers(code)
+    print split_source(code)
