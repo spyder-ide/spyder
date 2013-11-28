@@ -117,8 +117,11 @@ class JediHelper(object):
         if self.jedi_thread.isRunning():
             self.post_message(self.loading_message)
             return
+        finfo = editor_widget.get_current_finfo()
+        if not finfo:
+            return
         missing_libs = set(self.extension_modules) - set(self.loaded_modules)
-        code = editor_widget.get_current_finfo().get_source_code()
+        code = finfo.get_source_code()
         pattern = '\W+QtCore\W+|\W+QtGui\W+'
         if not AUTO_QT in self.loaded_modules and re.search(pattern, code):
             self.get_libs([AUTO_QT, AUTO_QT + '.QtCore', AUTO_QT + '.QtGui'])
