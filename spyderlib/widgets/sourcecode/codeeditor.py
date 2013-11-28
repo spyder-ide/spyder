@@ -47,6 +47,7 @@ from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
                                        mimedata2url, get_icon)
 from spyderlib.utils.dochelpers import getobj
 from spyderlib.utils import encoding, sourcecode
+from spyderlib.utils.sourcecode import ALL_LANGUAGES
 from spyderlib.utils.debug import log_last_error, log_dt
 from spyderlib.widgets.editortools import PythonCFM
 from spyderlib.widgets.sourcecode.base import TextEditBaseWidget
@@ -286,26 +287,23 @@ def get_file_language(filename, text=None):
 
 class CodeEditor(TextEditBaseWidget):
     """Source Code Editor Widget based exclusively on Qt"""
-    LANGUAGES = {
-                 ('py', 'pyw', 'python', 'ipy'): (sh.PythonSH, '#', PythonCFM),
-                 ('pyx', 'pxi', 'pxd'): (sh.CythonSH, '#', PythonCFM),
-                 ('f', 'for', 'f77'): (sh.Fortran77SH, 'c', None),
-                 ('f90', 'f95', 'f2k'): (sh.FortranSH, '!', None),
-                 ('pro',): (sh.IdlSH, ';', None),
-                 ('m',): (sh.MatlabSH, '%', None),
-                 ('diff', 'patch', 'rej'): (sh.DiffSH, '', None),
-                 ('po', 'pot'): (sh.GetTextSH, '#', None),
-                 ('nsi', 'nsh'): (sh.NsisSH, '#', None),
-                 ('htm', 'html'): (sh.HtmlSH, '', None),
-                 ('css',): (sh.CssSH, '', None),
-                 ('xml',): (sh.XmlSH, '', None),
-                 ('js',): (sh.JsSH, '', None),
-                 ('c', 'cc', 'cpp', 'cxx', 'h', 'hh', 'hpp', 'hxx',
-                  ): (sh.CppSH, '//', None),
-                 ('cl',): (sh.OpenCLSH, '//', None),
-                 ('bat', 'cmd', 'nt'): (sh.BatchSH, 'rem ', None),
-                 ('properties', 'session', 'ini', 'inf', 'reg', 'url',
-                  'cfg', 'cnf', 'aut', 'iss'): (sh.IniSH, '#', None),
+    LANGUAGES ={ 'Python': (sh.PythonSH, '#', PythonCFM),
+                 'Cython': (sh.Fortran77SH, 'c', PythonCFM),
+                 'Fortran77': (sh.Fortran77SH, 'c', None),
+                 'Fortran': (sh.FortranSH, '!', None),
+                 'Idl': (sh.IdlSH, ';', None),
+                 'Matlab': (sh.MatlabSH, '%', None),
+                 'Diff': (sh.DiffSH, '', None),
+                 'GetText': (sh.GetTextSH, '#', None),
+                 'Nsis': (sh.NsisSH, '#', None),
+                 'Html': (sh.HtmlSH, '', None),
+                 'Css': (sh.CssSH, '', None),
+                 'Xml': (sh.XmlSH, '', None),
+                 'Js': (sh.JsSH, '', None),
+                 'Cpp': (sh.CppSH, '//', None),
+                 'OpenCL': (sh.OpenCLSH, '//', None),
+                 'Batch': (sh.BatchSH, 'rem ', None),
+                 'Ini': (sh.IniSH, '#', None),
                  }
     try:
         import pygments  # analysis:ignore
@@ -647,8 +645,8 @@ class CodeEditor(TextEditBaseWidget):
         self.comment_string = ''
         sh_class = sh.TextSH
         if language is not None:
-            for key in self.LANGUAGES:
-                if language.lower() in key:
+            for (key, value) in ALL_LANGUAGES.items():
+                if language.lower() in value:
                     self.supported_language = True
                     sh_class, comment_string, CFMatch = self.LANGUAGES[key]
                     self.comment_string = comment_string

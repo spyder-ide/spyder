@@ -16,7 +16,6 @@ import functools
 from collections import OrderedDict
 
 from spyderlib.baseconfig import DEBUG, get_conf_path, debug_print
-from spyderlib.widgets.editortools import PythonCFM
 from spyderlib.widgets.sourcecode.codeeditor import CodeEditor
 from spyderlib.utils.debug import log_dt, log_last_error
 from spyderlib.utils import sourcecode
@@ -349,27 +348,17 @@ def get_parent_until(path):
 
 def python_like_exts():
     """Return a list of all python-like extensions"""
-    languages = CodeEditor.LANGUAGES
     exts = []
-    for (key, value) in languages.items():
-        _, _, class_browser = value
-        if class_browser == PythonCFM:
-            if isinstance(key, tuple):
-                exts.extend(key)
-            else:
-                exts.append(key)
+    for lang in sourcecode.PYTHON_LIKE_LANGUAGES:
+        exts.extend(list(sourcecode.ALL_LANGUAGES[lang]))
     return ['.' + ext for ext in exts]
 
 
 def all_editable_exts():
     """Return a list of all editable extensions"""
-    languages = CodeEditor.LANGUAGES.keys()
     exts = []
-    for language in languages:
-        if isinstance(language, tuple):
-            exts.extend(language)
-        else:
-            exts.append(language)
+    for (language, extensions) in sourcecode.ALL_LANGUAGES:
+        exts.extend(list(extensions))
     return ['.' + ext for ext in exts]
 
 
