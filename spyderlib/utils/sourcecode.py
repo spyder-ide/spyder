@@ -55,16 +55,16 @@ def is_keyword(text):
     return text in keyword.kwlist
     
     
-def is_binary(filename):
-    """Test if the given filename is binary.
+def is_binary(path):
+    """
+    Test if the given path is a binary file.
     
-    Adapted from:
-    http://bytes.com/topic/python/answers/21222-determine-file-type-binary-text on 6/08/2010
+    Adapted from: http://stackoverflow.com/a/3002505
     
     Original Authors: Trent Mick <TrentM@ActiveState.com>
                       Jorge Orpinel <jorge@orpinel.com>
     """
-    with open(filename, 'rb') as fid:
+    with open(path, 'rb') as fid:
         try:
             CHUNKSIZE = 1024
             while 1:
