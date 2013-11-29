@@ -90,7 +90,7 @@ class IntrospectionPlugin(object):
                                                   filename)
         
     def get_definition_location_regex(self, source_code, offset, filename):
-        """Find a path an line number for a definition using regex"""
+        """Find a path and line number for a definition using regex"""
         ret = None, None
         try:
             ret = get_definition_location_regex(source_code, offset, filename)
