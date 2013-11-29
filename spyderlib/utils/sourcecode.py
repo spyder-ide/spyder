@@ -7,7 +7,6 @@
 """
 Source code text utilities
 """
-from spyderlib.py3compat import to_text_string
 
 
 # Order is important:
