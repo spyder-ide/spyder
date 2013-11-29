@@ -58,7 +58,11 @@ class JediThread(QThread):
 
 
 class JediPlugin(IntrospectionPlugin):
-
+    """
+    Jedi based introspection plugin for jedi
+    
+    Experimental Editor's code completion, go-to-definition and help
+    """
     #-------------------------------------------------------------------------
     # IntrospectionPlugin API
     #-------------------------------------------------------------------------
@@ -67,14 +71,12 @@ class JediPlugin(IntrospectionPlugin):
     jedi_lock = threading.Lock()
 
     def load_plugin(self, editor_widget):
+        """Load the Jedi introspection plugin"""
         if not programs.is_module_installed('jedi', JEDI_REQVER):
-            debug_print('raising error')
             raise ImportError('Requires Jedi %s' % JEDI_REQVER)
-        debug_print('1')
         self.editor_widget = editor_widget
         with self.jedi_lock:
             jedi.settings.case_insensitive_completion = False
-        debug_print('2')
         warmup_libs = ['numpy', 'matplotlib.pyplot']
         self.loading_message = 'Jedi Warming Up'
         self.jedi_thread = JediThread(warmup_libs, self)
@@ -84,7 +86,6 @@ class JediPlugin(IntrospectionPlugin):
         self.loaded_modules = warmup_libs
         self.extension_modules = []
         QTimer.singleShot(1500, self.refresh_libs)
-        debug_print('3')
 
     def get_completion_list(self, source_code, offset, filename):
         """Return a list of completion strings"""
@@ -312,7 +313,7 @@ class JediPlugin(IntrospectionPlugin):
             module_path = info['module_path']
             line_nr = info['line_nr']
         if module_path == filename and line_nr == line:
-            return None, None
+            return
         return module_path, line_nr
 
     @staticmethod

@@ -34,7 +34,7 @@ from spyderlib.utils.dochelpers import getsignaturesfromtext
 from spyderlib.utils.module_completion import (module_completion,
                                                get_preferred_submodules)
 from spyderlib.utils import introspection
-from spyderlib.baseconfig import _, DEBUG, STDOUT, STDERR, debug_print
+from spyderlib.baseconfig import _, DEBUG, STDOUT, STDERR
 from spyderlib.config import EDIT_FILTERS, EDIT_EXT, get_filter, EDIT_FILETYPES
 from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions,
                                        mimedata2url, get_filetype_icon,
@@ -623,7 +623,6 @@ class EditorStack(QWidget):
             ccs = syntaxhighlighters.COLOR_SCHEME_NAMES[0]
         self.color_scheme = ccs
         self.introspection_plugin = introspection.get_plugin(self)
-        debug_print(str(self.introspection_plugin))
 
         self.__file_status_flag = False
 

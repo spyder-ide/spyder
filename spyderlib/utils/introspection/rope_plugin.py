@@ -9,10 +9,12 @@ Rope introspection plugin
 """
 import time
 from spyderlib import dependencies
-from spyderlib.baseconfig import get_conf_path, _, DEBUG, STDERR
+from spyderlib.baseconfig import get_conf_path, _, STDERR, debug_print
 from spyderlib.utils import encoding, programs
 from spyderlib.py3compat import PY2
 from spyderlib.utils.debug import log_last_error, log_dt
+from spyderlib.utils.introspection.base import (
+    DEBUG_EDITOR, LOG_FILENAME, IntrospectionPlugin)
 try:
     try:
         from spyderlib import rope_patch
@@ -26,15 +28,10 @@ except ImportError:
     pass
 
 
-ROPE_PROJECT = None
-NAME = 'rope'
-LOG_FILENAME = get_conf_path('introspection.log')
-DEBUG_EDITOR = DEBUG >= 3
 ROPE_REQVER = '>=0.9.2'
 dependencies.add('rope',
                  _("Editor's code completion, go-to-definition and help"),
                  required_version=ROPE_REQVER)
-editor_widget = None
 
 #TODO: The following preferences should be customizable in the future
 ROPE_PREFS = {'ignore_syntax_errors': True,
@@ -44,58 +41,54 @@ ROPE_PREFS = {'ignore_syntax_errors': True,
               }
 
 
-#-----------------------------------------------------------------------------
-# Introspection API
-#-----------------------------------------------------------------------------
-def load_plugin():
-    """Load the Rope introspection plugin"""
-    if programs.is_module_installed('rope'):
-        global ROPE_PROJECT
-        ROPE_PROJECT = RopeProject()
-        return True
-    else:
-        return False
-
-
-def get_completion_list(source_code, offset, filename):
-    """Return a list of completion strings using Rope"""
-    return ROPE_PROJECT.get_completion_list(source_code, offset, filename)
-
-
-def get_calltip_and_docs(source_code, offset, filename):
-    """Find the calltip and docs using Rope"""
-    return ROPE_PROJECT.get_calltip_and_docs(source_code, offset, filename)
-
-
-def get_definition_location(source_code, offset, filename):
-    """Find a path and line number for a definition using Rope"""
-    return ROPE_PROJECT.get_definition_location(source_code, offset, filename)
-
-
-def set_pref(name, value):
-    """Set a Rope plugin preference to a value"""
-    return ROPE_PROJECT.set_pref(name, value)
-
-
-def validate():
-    """Validate the Rope plugin"""
-    ROPE_PROJECT.validate_rope_project()
+class RopePlugin(IntrospectionPlugin):
+    """
+    Rope based introspection plugin for jedi
     
-    
-#-----------------------------------------------------------------------------
-# Implementation
-#-----------------------------------------------------------------------------
+    Editor's code completion, go-to-definition and help
+    """
+    #-------------------------------------------------------------------------
+    # IntrospectionPlugin API
+    #-------------------------------------------------------------------------
 
+    name = 'rope'
 
-class RopeProject(object):
-    """Helper object to interface with the Rope Library"""
-    
-    def __init__(self):
-        """Initialize the Rope Helper object"""
+    def load_plugin(self, editor_widget):
+        """Load the Rope introspection plugin"""
+        if not programs.is_module_installed('rope', ROPE_REQVER):
+            raise ImportError('Requires Rope %s' % ROPE_REQVER)
         self.project = None
         self.create_rope_project(root_path=get_conf_path())
+        
+    def get_completion_list(self, source_code, offset, filename):
+        """Get a list of completions using Rope"""
+        return self.get_introspection_data('get_completion_list', source_code, 
+                                           offset, filename)
+                
+    def get_calltip_and_docs(self, source_code, offset, filename):
+        """Get a formatted calltip and docstring from Rope"""  
+        return self.get_introspection_data('get_calltip_and_docs', source_code, 
+                                           offset, filename)          
+                    
+    def get_definition_location(self, source_code, offset, filename):
+        """Find a definition location using Rope"""
+        return self.get_introspection_data('get_definition_location', 
+                                           source_code, offset, filename) 
+                             
+    def validate(self):
+        """Validate the Rope project"""
+        if self.project is not None:
+            self.project.validate(self.project.root)
 
-    #------rope integration
+    def set_pref(self, key, value):
+        """Set a Rope preference"""
+        if self.project is not None:
+            self.project.prefs.set(key, value)
+
+    #-------------------------------------------------------------------------
+    # Private API
+    #-------------------------------------------------------------------------
+
     def create_rope_project(self, root_path):
         """Create a Rope project on a desired path"""
         if PY2:
@@ -126,18 +119,22 @@ class RopeProject(object):
         """Close the Rope project"""
         if self.project is not None:
             self.project.close()
+            
+    def get_introspection_data(self, func_name, source_code, offset, filename):
+        """Get the introspection data from our class or the base class"""
+        func = getattr(self, "_%s" % func_name)
+        debug_print(func_name)
+        debug_print(func)
+        data = func(source_code, offset, filename)
+        debug_print(data)
+        if not data or data is (None, None):
+            parent = super(RopePlugin, self)
+            super_method = getattr(parent, func_name)
+            return super_method(source_code, offset, filename)
+        else:
+            return data
 
-    def validate_rope_project(self):
-        """Validate the Rope project"""
-        if self.project is not None:
-            self.project.validate(self.project.root)
-
-    def set_pref(self, key, value):
-        """Set a Rope preference"""
-        if self.project is not None:
-            self.project.prefs.set(key, value)
-
-    def get_completion_list(self, source_code, offset, filename):
+    def _get_completion_list(self, source_code, offset, filename):
         """Get a list of completions using Rope"""
         if self.project is None:
             return []
@@ -168,7 +165,7 @@ class RopeProject(object):
                 log_last_error(LOG_FILENAME, "get_completion_list")
             return []
 
-    def get_calltip_and_docs(self, source_code, offset, filename):
+    def _get_calltip_and_docs(self, source_code, offset, filename):
         """Get a formatted calltip and docstring from Rope"""
         if self.project is None:
             return []
@@ -213,7 +210,7 @@ class RopeProject(object):
                 log_last_error(LOG_FILENAME, "get_calltip_text")
             return []
 
-    def get_definition_location(self, source_code, offset, filename):
+    def _get_definition_location(self, source_code, offset, filename):
         """Find a definition location using Rope"""
         if self.project is None:
             return (None, None)
