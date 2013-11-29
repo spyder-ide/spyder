@@ -53,7 +53,8 @@ def get_plugin(editor_widget):
 
 
 class IntrospectionPlugin(object):
-
+    """Basic Introspection Plugin for Spyder"""
+    
     name = 'fallback'
     editor_widget = None
 
@@ -235,7 +236,11 @@ def python_like_mod_finder(import_line, alt_path=None, stop_token=None):
 
 
 def get_definition_location_regex(source_code, offset, filename):
-    """Find the definition for an object within a set of source code"""
+    """
+    Find the definition for an object within a set of source code
+    
+    This is useful for python-like files such as Cython and Enaml to find another module.
+    """
     token = sourcecode.get_primary_at(source_code, offset)
     eol = sourcecode.get_eol_chars(source_code) or '\n'
     lines = source_code[:offset].split(eol)
@@ -364,28 +369,50 @@ def python_like_exts():
 def all_editable_exts():
     """Return a list of all editable extensions"""
     exts = []
-    for (language, extensions) in sourcecode.ALL_LANGUAGES:
+    for (language, extensions) in sourcecode.ALL_LANGUAGES.items():
         exts.extend(list(extensions))
     return ['.' + ext for ext in exts]
 
 
 if __name__ == '__main__':
-    get_plugin()
+    p = IntrospectionPlugin()
+    
     with open(__file__) as fid:
         code = fid.read()
     code += '\nget_conf_path'
-    print(get_definition_location_regex(code, len(code), __file__))
-    print(token_based_completion(code[:-2], len(code) - 2))
-    print(python_like_exts())
-    print(all_editable_exts())
-    print(get_parent_until(__file__))
+    path, line = p.get_definition_location_regex(code, len(code), __file__)
+    assert path.endswith('baseconfig.py')
+    
+    comp = p.get_token_completion_list(code[:-2], len(code) - 2, None)
+    assert comp == ['get_conf_path']
+    
+    ext = python_like_exts()
+    assert '.py' in ext and '.pyx' in ext
+    
+    ext = all_editable_exts()
+    assert '.cfg' in ext and '.iss' in ext
+    
+    path = get_parent_until(__file__)
+    assert path == 'spyderlib.utils.introspection.base'
+    
     line = 'from spyderlib.widgets.sourcecode.codeeditor import CodeEditor'
-    print(python_like_mod_finder(line))
-    print(python_like_mod_finder(line, stop_token='sourcecode'))
-    print(get_parent_until(os.path.expanduser(r'~/.spyder2/temp.py')))
+    path = python_like_mod_finder(line)
+    assert path.endswith('codeeditor.py')
+    path = python_like_mod_finder(line, stop_token='sourcecode')
+    assert path.endswith('__init__.py') and 'sourcecode' in path
+    
+    path = get_parent_until(os.path.expanduser(r'~/.spyder2/temp.py'))
+    assert path == '.spyder2.temp'
+    
     code = 'import re\n\nre'
-    print(get_definition_location_regex(code, len(code), 'dummy.txt'))
+    path, line = p.get_definition_location_regex(code, len(code), 'dummy.txt')
+    assert path == 'dummy.txt' and line == 1
+    
     code = 'self.proxy.widget; self.'
-    print(token_based_completion(code, len(code)))
+    comp = p.get_token_completion_list(code, len(code), None)
+    assert comp == ['proxy']
+    
     code = 'self.sigMessageReady.emit; self.'
-    print(token_based_completion(code, len(code)))
+    comp = p.get_token_completion_list(code, len(code), None)
+    assert comp == ['sigMessageReady']
+    

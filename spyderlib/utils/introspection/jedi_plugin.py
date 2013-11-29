@@ -343,12 +343,26 @@ class JediPlugin(IntrospectionPlugin):
 
 
 if __name__ == '__main__':
-    import pprint
-    t0 = time.time()
-    # TODO: make this a doc test
-    plugin = ()
-    #source_code = "import numpy; numpy.ones"
-    source_code = "import functools"
-    pprint.pprint(get_calltip_and_docs(source_code, len(source_code),
-                                       __file__))
-    print 'completed in:', time.time() - t0
+    
+    p = JediPlugin()
+    p.load_plugin(None)
+
+    source_code = "import numpy; numpy.ones("
+    calltip, docs = p.get_calltip_and_docs(source_code, len(source_code),
+                                           __file__)
+    assert calltip.startswith('ones(') and docs['name'] == 'ones'
+    
+    source_code = "import n"
+    completions = p.get_completion_list(source_code, len(source_code),
+                                        __file__)
+    assert 'numpy' in completions 
+    
+    source_code = "import matplotlib.pyplot as plt; plt.imsave"
+    path, line_nr = p.get_definition_location(source_code, len(source_code),
+                                            __file__)
+    assert 'pyplot.py' in path 
+    
+    source_code = 'from .base import IntrospectionPlugin'
+    path, line_nr = p.get_definition_location(source_code, len(source_code),
+                                            __file__)
+    assert 'base.py' in path and 'introspection' in path

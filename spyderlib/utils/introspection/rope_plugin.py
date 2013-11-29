@@ -52,6 +52,7 @@ class RopePlugin(IntrospectionPlugin):
     #-------------------------------------------------------------------------
 
     name = 'rope'
+    project = None
 
     def load_plugin(self, editor_widget):
         """Load the Rope introspection plugin"""
@@ -113,7 +114,7 @@ class RopePlugin(IntrospectionPlugin):
             if DEBUG_EDITOR:
                 log_last_error(LOG_FILENAME,
                                "create_rope_project: %r" % root_path)
-        self.validate_rope_project()
+        self.validate()
 
     def close_rope_project(self):
         """Close the Rope project"""
@@ -123,10 +124,7 @@ class RopePlugin(IntrospectionPlugin):
     def get_introspection_data(self, func_name, source_code, offset, filename):
         """Get the introspection data from our class or the base class"""
         func = getattr(self, "_%s" % func_name)
-        debug_print(func_name)
-        debug_print(func)
         data = func(source_code, offset, filename)
-        debug_print(data)
         if not data or data is (None, None):
             parent = super(RopePlugin, self)
             super_method = getattr(parent, func_name)
@@ -244,10 +242,21 @@ class RopePlugin(IntrospectionPlugin):
 
 
 if __name__ == '__main__':
-    import pprint
-    t0 = time.time()
-    load_plugin()
+
+    p = RopePlugin()
+    p.load_plugin(None)
+
     source_code = "import numpy; numpy.ones"
-    pprint.pprint(get_calltip_and_docs(source_code, len(source_code),
-                                      __file__))
-    print 'completed in:', time.time() - t0
+    calltip, docs = p.get_calltip_and_docs(source_code, len(source_code),
+                                           __file__)
+    assert 'ones(' in calltip and 'ones(' in docs
+    
+    source_code = "import numpy; n"
+    completions = p.get_completion_list(source_code, len(source_code),
+                                        __file__)
+    assert 'numpy' in completions 
+    
+    source_code = "import matplotlib.pyplot as plt; plt.imsave"
+    path, line_nr = p.get_definition_location(source_code, len(source_code),
+                                            __file__)
+    assert 'pyplot.py' in path 
