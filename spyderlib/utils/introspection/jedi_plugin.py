@@ -71,11 +71,10 @@ class JediPlugin(IntrospectionPlugin):
     name = 'jedi'
     jedi_lock = threading.Lock()
 
-    def load_plugin(self, editor_widget):
+    def load_plugin(self):
         """Load the Jedi introspection plugin"""
         if not programs.is_module_installed('jedi', JEDI_REQVER):
             raise ImportError('Requires Jedi %s' % JEDI_REQVER)
-        self.editor_widget = editor_widget
         with self.jedi_lock:
             jedi.settings.case_insensitive_completion = False
         warmup_libs = ['numpy', 'matplotlib.pyplot']

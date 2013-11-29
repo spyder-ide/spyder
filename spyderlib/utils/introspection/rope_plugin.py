@@ -55,7 +55,7 @@ class RopePlugin(IntrospectionPlugin):
     name = 'rope'
     project = None
 
-    def load_plugin(self, editor_widget):
+    def load_plugin(self):
         """Load the Rope introspection plugin"""
         if not programs.is_module_installed('rope', ROPE_REQVER):
             raise ImportError('Requires Rope %s' % ROPE_REQVER)

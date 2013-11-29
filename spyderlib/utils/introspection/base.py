@@ -41,7 +41,7 @@ def get_plugin(editor_widget):
                              fromlist=[mod_name])
             cls = getattr(mod, '%sPlugin' % plugin_name.capitalize())
             plugin = cls()
-            plugin.load_plugin(editor_widget)
+            plugin.load_plugin()
         except Exception:
             if DEBUG_EDITOR:
                 log_last_error(LOG_FILENAME)
@@ -50,6 +50,7 @@ def get_plugin(editor_widget):
     if not plugin:
         plugin = IntrospectionPlugin()
     debug_print('Instropection Plugin Loaded: %s' % plugin.name)
+    plugin.editor_widget = editor_widget
     return plugin
 
 
@@ -59,8 +60,9 @@ class IntrospectionPlugin(object):
     name = 'fallback'
     editor_widget = None
 
-    def load_plugin(self, editor_widget):
-        raise NotImplementedError
+    def load_plugin(self):
+        """Load the plugin"""
+        pass
 
     def get_completion_list(self, source_code, offset, filename):
         """Return a list of completion strings"""
@@ -240,7 +242,8 @@ def get_definition_location_regex(source_code, offset, filename):
     """
     Find the definition for an object within a set of source code
     
-    This is useful for python-like files such as Cython and Enaml to find another module.
+    This is useful for python-like files such as Cython and Enaml to find 
+    another module.
     """
     token = sourcecode.get_primary_at(source_code, offset)
     eol = sourcecode.get_eol_chars(source_code) or '\n'
