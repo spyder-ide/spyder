@@ -1987,7 +1987,7 @@ class EditorStack(QWidget):
             files = mimedata2url(source)
             files = [f for f in files if not sourcecode.is_binary(f)]
             supported_files = mimedata2url(source, extlist=EDIT_EXT)
-            files = set(files) | set(supported_files)
+            files = set(files or []) | set(supported_files or [])
             for fname in files:
                 self.emit(SIGNAL('plugin_load(QString)'), fname)
         elif source.hasText():
