@@ -18,6 +18,7 @@ from collections import OrderedDict
 from spyderlib.baseconfig import DEBUG, get_conf_path, debug_print
 from spyderlib.utils.debug import log_dt, log_last_error
 from spyderlib.utils import sourcecode
+
 from spyderlib.qt.QtGui import QApplication
 
 
@@ -120,9 +121,9 @@ class IntrospectionPlugin(object):
     def is_editor_ready(self):
         """Check if the main app is starting up"""
         if self.editor_widget:
-            return self.editor_widget.window().is_starting_up
-        else:
-            return False
+            window = self.editor_widget.window()
+            if hasattr(window, 'is_starting_up') and not window.is_starting_up:
+                return True
 
     def get_current_source(self):
         """Get the source code in the current file"""

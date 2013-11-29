@@ -13,6 +13,7 @@ import time
 import threading
 
 from spyderlib.qt.QtCore import QThread, Signal, QTimer
+
 from spyderlib import dependencies
 from spyderlib.baseconfig import _, debug_print
 from spyderlib.utils import programs

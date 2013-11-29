@@ -8,8 +8,9 @@
 Rope introspection plugin
 """
 import time
+
 from spyderlib import dependencies
-from spyderlib.baseconfig import get_conf_path, _, STDERR, debug_print
+from spyderlib.baseconfig import get_conf_path, _, STDERR
 from spyderlib.utils import encoding, programs
 from spyderlib.py3compat import PY2
 from spyderlib.utils.debug import log_last_error, log_dt
