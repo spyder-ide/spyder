@@ -16,104 +16,78 @@ import functools
 from collections import OrderedDict
 
 from spyderlib.baseconfig import DEBUG, get_conf_path, debug_print
-from spyderlib.widgets.sourcecode.codeeditor import CodeEditor
 from spyderlib.utils.debug import log_dt, log_last_error
 from spyderlib.utils import sourcecode
+from spyderlib.qt.QtGui import QApplication
 
 
 PLUGINS = ['jedi', 'rope']
-PLUGIN = None
 LOG_FILENAME = get_conf_path('introspection.log')
 DEBUG_EDITOR = DEBUG >= 3
+
 
 #-----------------------------------------------------------------------------
 # Introspection API
 #-----------------------------------------------------------------------------
 
-def jedi_available():
-    """Check for Jedi plugin availability"""
-    return PLUGIN and PLUGIN.NAME == 'jedi'
-    
-    
-def get_plugin():
+def get_plugin(editor_widget):
     """Get and load a plugin, checking in order of PLUGINS"""
-    global PLUGIN, PLUGINS, plugin_name
-    if PLUGIN:
-        return PLUGIN
-    else:
-        for plugin in PLUGINS:
-            available = False
-            mod_name = plugin + '_plugin'
-            try:
-                mod = __import__('spyderlib.utils.introspection.' + mod_name,
-                                 fromlist=[mod_name])
-                available = mod.load_plugin()
-            except Exception:
-                if DEBUG_EDITOR:
-                    log_last_error(LOG_FILENAME)
-                continue
-            if available:
-                debug_print('Instropection Plugin Loaded: ' + str(plugin))
-                PLUGIN = mod
-                break
-    return PLUGIN
-
-
-def get_completion_list(source_code, offset, filename, token_based=False):
-    """Return a list of completion strings"""
-    ret = None
-    if not token_based:
+    plugin = None
+    for plugin_name in PLUGINS:
+        mod_name = plugin_name + '_plugin'
         try:
-            ret = PLUGIN.get_completion_list(source_code, offset, filename)
-            debug_print('completion: %s ....(%s)' % (ret[:2], len(ret)))
+            mod = __import__('spyderlib.utils.introspection.' + mod_name,
+                             fromlist=[mod_name])
+            cls = getattr(mod, '%sPlugin' % plugin_name.capitalize())
+            plugin = cls()
+            plugin.load_plugin(editor_widget)
         except Exception:
             if DEBUG_EDITOR:
                 log_last_error(LOG_FILENAME)
-    if not ret:
-        try:
-            ret = token_based_completion(source_code, offset)
-            debug_print('token completion: %s ...(%s)' % (ret[:2], len(ret)))
-        except Exception:
-            if DEBUG_EDITOR:
-                log_last_error(LOG_FILENAME)
-    return ret or []
+        else:
+            break
+    if not plugin:
+        plugin = IntrospectionPlugin()
+    debug_print('Instropection Plugin Loaded: %s' % plugin.name)
+    return plugin
 
 
-def get_calltip_and_docs(source_code, offset, filename):
-    """
-    Find the calltip and docs
+class IntrospectionPlugin(object):
 
-    Calltip is a string with the function or class and its arguments
-        e.g. 'match(patern, string, flags=0)'
-             'ones(shape, dtype=None, order='C')'
-    Docs is a a string or a dict with the following keys:
-       e.g. 'Try to apply the pattern at the start of the string, returning...'
-       or {'note': 'Function of numpy.core.numeric...',
-           'argspec': "(shape, dtype=None, order='C')'
-           'docstring': 'Return an array of given...'
-           'name': 'ones'}
-    """
-    try:
-        ret = PLUGIN.get_calltip_and_docs(source_code, offset, filename)
-        debug_print('calltip: %s ...' % str(ret)[:60])
-        return ret
-    except Exception:
-        if DEBUG_EDITOR:
-            log_last_error(LOG_FILENAME)
-        return []
+    name = 'fallback'
+    editor_widget = None
 
+    def load_plugin(self, editor_widget):
+        raise NotImplementedError
 
-def get_definition_location(source_code, offset, filename, regex=False):
-    """Find a path and line number for a definition"""
-    ret = None, None
-    if not regex:
-        try:
-            ret = PLUGIN.get_definition_location(source_code, offset, filename)
-            debug_print('get definition: ' + str(ret))
-        except Exception:
-            if DEBUG_EDITOR:
-                log_last_error(LOG_FILENAME)
-    if not ret[0]:
+    def get_completion_list(self, source_code, offset, filename):
+        """Return a list of completion strings"""
+        return self.get_token_completion_list(source_code, offset, filename)
+
+    def get_calltip_and_docs(self, source_code, offset, filename):
+        """
+        Find the calltip and docs
+
+        Calltip is a string with the function or class and its arguments
+            e.g. 'match(patern, string, flags=0)'
+                 'ones(shape, dtype=None, order='C')'
+        Docs is a a string or a dict with the following keys:
+           e.g. 'Try to apply the pattern at the start of the string...'
+           or {'note': 'Function of numpy.core.numeric...',
+               'argspec': "(shape, dtype=None, order='C')'
+               'docstring': 'Return an array of given...'
+               'name': 'ones'}
+        """
+        return None
+
+    def get_definition_location(self, source_code, offset, filename):
+        """Find a path and line number for a definition"""
+        return self.get_definition_location_regex(source_code, offset, 
+                                                  filename)
+        
+    def get_definition_location_regex(self, source_code, offset, filename):
+        """Find a path an line number for a definition using regex"""
+        ret = None, None
         try:
             ret = get_definition_location_regex(source_code, offset, filename)
             debug_print('get regex definition: ' + str(ret))
@@ -121,17 +95,49 @@ def get_definition_location(source_code, offset, filename, regex=False):
             debug_print('Regex error: %s' % e)
             if DEBUG_EDITOR:
                 log_last_error(LOG_FILENAME)
-    return ret
+        return ret
+        
+    def get_token_completion_list(self, source_code, offset, filename):
+        """Return a list of completion strings using token matching"""
+        ret = None
+        try:
+            ret = token_based_completion(source_code, offset)
+            debug_print('token completion: %s ...(%s)' % (ret[:2], len(ret)))
+        except Exception:
+            if DEBUG_EDITOR:
+                log_last_error(LOG_FILENAME)
+        return ret or []
 
+    def set_pref(self, name, value):
+        """Set a plugin preference to a value"""
+        pass
 
-def set_pref(name, value):
-    """Set a plugin preference to a value"""
-    return PLUGIN.set_pref(name, value)
+    def validate(self):
+        """Validate the plugin"""
+        pass
 
+    def is_editor_ready(self):
+        """Check if the main app is starting up"""
+        if self.editor_widget:
+            return self.editor_widget.window().is_starting_up
+        else:
+            return False
 
-def validate():
-    """Validate the plugin"""
-    return PLUGIN.validate()
+    def get_current_source(self):
+        """Get the source code in the current file"""
+        if self.editor_widget:
+            finfo = self.editor_widget.get_current_finfo()
+            if finfo:
+                return finfo.get_source_code()
+
+    def post_message(self, message, timeout=60000):
+        """
+        Post a message to the main window status bar with a timeout in ms
+        """
+        if self.editor_widget:
+            statusbar = self.editor_widget.window().statusBar()
+            statusbar.showMessage(message, timeout)
+            QApplication.processEvents()
 
 
 #-----------------------------------------------------------------------------
@@ -141,14 +147,14 @@ def validate():
 def memoize(obj):
     """
     Memoize objects to trade memory for execution speed
-    
+
     Use a limited size cache to store the value, which takes into account
     The calling args and kwargs
-    
+
     See https://wiki.python.org/moin/PythonDecoratorLibrary#Memoize
     """
     cache = obj.cache = OrderedDict()
-   
+
     @functools.wraps(obj)
     def memoizer(*args, **kwargs):
         key = str(args) + str(kwargs)
@@ -159,7 +165,7 @@ def memoize(obj):
             cache.popitem(last=False)
         return cache[key]
     return memoizer
-    
+
 
 def token_based_completion(script, offset):
     """Simple completion based on python-like identifiers and whitespace"""
@@ -183,8 +189,8 @@ def python_like_mod_finder(import_line, alt_path=None, stop_token=None):
     import_line is the line of source code containing the import
     alt_path specifies an alternate base path for the module
     stop_token specifies the desired name to stop on
-    
-    This is used to a find path python-like modules (e.g. cython and enaml) 
+
+    This is used to a find path python-like modules (e.g. cython and enaml)
     to find a definition.
     """
     if stop_token and '.' in stop_token:
@@ -226,7 +232,7 @@ def python_like_mod_finder(import_line, alt_path=None, stop_token=None):
             path = os.path.join(path, '__init__.py')
             if os.path.exists(path):
                 return path
-            
+
 
 def get_definition_location_regex(source_code, offset, filename):
     """Find the definition for an object within a set of source code"""
@@ -240,9 +246,10 @@ def get_definition_location_regex(source_code, offset, filename):
         return filename, line_nr
     if line.startswith('import ') or line.startswith('from '):
         alt_path = os.path.dirname(filename)
-        source_file = python_like_mod_finder(line, alt_path=alt_path, stop_token=token)
-        if (not source_file or 
-            not os.path.splitext(source_file)[-1] in python_like_exts()):
+        source_file = python_like_mod_finder(line, alt_path=alt_path,
+                                             stop_token=token)
+        if (not source_file or
+                not os.path.splitext(source_file)[-1] in python_like_exts()):
             line_nr = get_definition_with_regex(source_code, token, line_nr)
             return filename, line_nr
         mod_name = os.path.basename(source_file).split('.')[0]
