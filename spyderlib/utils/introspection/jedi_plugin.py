@@ -62,12 +62,11 @@ class JediPlugin(IntrospectionPlugin):
     
     Experimental Editor's code completion, go-to-definition and help
     """
-    #-------------------------------------------------------------------------
-    # IntrospectionPlugin API
-    #-------------------------------------------------------------------------
-
-    name = 'jedi'
+    
     jedi_lock = threading.Lock()
+    
+    # ---- IntrospectionPlugin API --------------------------------------------
+    name = 'jedi'
 
     def load_plugin(self):
         """Load the Jedi introspection plugin"""
@@ -132,9 +131,7 @@ class JediPlugin(IntrospectionPlugin):
             mods = [mod for mod in value if not '.' in mod]
             self.extension_modules = mods
 
-    #-------------------------------------------------------------------------
-    # Private API
-    #-------------------------------------------------------------------------
+    # ---- Private API -------------------------------------------------------
 
     def refresh_libs(self):
         """

@@ -78,9 +78,7 @@ class IntrospectionPlugin(object):
     
     editor_widget = None
     
-    #--------------------------------------------------------------------------
-    # IntrospectionPlugin API
-    #--------------------------------------------------------------------------
+    # ---- IntrospectionPlugin API --------------------------------------------
     name = 'fallback'
 
     def load_plugin(self):
@@ -144,10 +142,8 @@ class IntrospectionPlugin(object):
         """Validate the plugin"""
         pass
     
-    #--------------------------------------------------------------------------
-    # Private API
-    #--------------------------------------------------------------------------
-    
+    # ---- Private API -------------------------------------------------------
+
     @staticmethod
     def _token_based_completion(script, offset):
         """Simple completion based on python-like identifiers and whitespace"""

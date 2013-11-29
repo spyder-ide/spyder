@@ -48,13 +48,12 @@ class RopePlugin(IntrospectionPlugin):
     
     Editor's code completion, go-to-definition and help
     """
-    #-------------------------------------------------------------------------
-    # IntrospectionPlugin API
-    #-------------------------------------------------------------------------
-
-    name = 'rope'
+    
     project = None
-
+    
+    # ---- IntrospectionPlugin API --------------------------------------------
+    name = 'rope'
+    
     def load_plugin(self):
         """Load the Rope introspection plugin"""
         if not programs.is_module_installed('rope', ROPE_REQVER):
@@ -87,9 +86,7 @@ class RopePlugin(IntrospectionPlugin):
         if self.project is not None:
             self.project.prefs.set(key, value)
 
-    #-------------------------------------------------------------------------
-    # Private API
-    #-------------------------------------------------------------------------
+    # ---- Private API -------------------------------------------------------
 
     def create_rope_project(self, root_path):
         """Create a Rope project on a desired path"""
