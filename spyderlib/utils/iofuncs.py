@@ -25,6 +25,91 @@ import json
 from spyderlib.py3compat import pickle, to_text_string, getcwd
 
 
+class MatlabStruct(dict):
+    """
+    Matlab style struct, enhanced.
+
+    Supports dictionary and attribute style access.
+
+    Examples
+    ========
+    >>> from oct2py import Struct
+    >>> a = Struct()
+    >>> a.b = 'spam'  # a["b"] == 'spam'
+    >>> a.c["d"] = 'eggs'  # a.c.d == 'eggs'
+    >>> print(a)
+    {'c': {'d': 'eggs'}, 'b': 'spam'}
+
+    """
+    def __getattr__(self, attr):
+        try:
+            return self[attr]
+        except KeyError:
+            if not attr.startswith('_'):
+                self[attr] = MatlabStruct()
+                return self[attr]
+    __setattr__ = dict.__setitem__
+    __delattr__ = dict.__delitem__
+
+
+def get_matlab_value(val):
+    """
+    Extract a value from a Matlab file
+    
+    From the oct2py project, see 
+    http://pythonhosted.org/oct2py/conversions.html
+    """
+    import numpy as np
+    if not isinstance(val, np.ndarray):
+        return val
+    # check for objects
+    if "'|O" in str(val.dtype) or "O'" in str(val.dtype):
+        data = MatlabStruct()
+        for key in val.dtype.fields.keys():
+            data[key] = get_matlab_value(val[key][0])
+        return data
+    # handle cell arrays
+    if val.dtype == np.object:
+        if val.size == 1:
+            val = val[0]
+            if "'|O" in str(val.dtype) or "O'" in str(val.dtype):
+                val = get_matlab_value(val)
+            if val.size == 1:
+                val = val.flatten()
+    if val.dtype == np.object:
+        if len(val.shape) > 2:
+            val = val.T
+            val = np.array([get_matlab_value(val[i].T)
+                            for i in range(val.shape[0])])
+        if len(val.shape) > 1:
+            if len(val.shape) == 2:
+                val = val.T
+            try:
+                return val.astype(val[0][0].dtype)
+            except ValueError:
+                # dig into the cell type
+                for row in range(val.shape[0]):
+                    for i in range(val[row].size):
+                        if not np.isscalar(val[row][i]):
+                            if val[row][i].size > 1:
+                                val[row][i] = val[row][i].squeeze()
+                            else:
+                                val[row][i] = val[row][i][0]
+        else:
+            val = np.array([get_matlab_value(val[i])
+                            for i in range(val.size)])
+        if len(val.shape) == 1 or val.shape[0] == 1 or val.shape[1] == 1:
+            val = val.flatten()
+        val = val.tolist()
+    elif val.size == 1:
+        if hasattr(val, 'flatten'):
+            val = val.flatten()[0]
+    if isinstance(val, MatlabStruct) and isinstance(val.size, MatlabStruct):
+        del val['size']
+        del val['dtype']
+    return val
+
+
 try:
     import numpy as np
     try:
@@ -36,17 +121,9 @@ try:
         import scipy.io as spio  # analysis:ignore
     def load_matlab(filename):
         try:
-            out = spio.loadmat(filename, struct_as_record=True,
-                               squeeze_me=True)
+            out = spio.loadmat(filename)
             for key, value in list(out.items()):
-                if isinstance(value, np.ndarray):
-                    if value.shape == ():
-                        out[key] = value.tolist()
-                    # The following would be needed if squeeze_me=False:
-#                    elif value.shape == (1,):
-#                        out[key] = value[0]
-#                    elif value.shape == (1, 1):
-#                        out[key] = value[0][0]
+                out[key] = get_matlab_value(value)
             return out, None
         except Exception as error:
             return None, str(error)
@@ -122,7 +199,7 @@ except ImportError:
 
 
 def load_pickle(filename):
-    """ Load a pickle file as a dictionary"""
+    """Load a pickle file as a dictionary"""
     try:
         with open(filename, 'rb') as fid:
             data = pickle.load(fid)
@@ -132,7 +209,7 @@ def load_pickle(filename):
 
 
 def load_json(filename):
-    """ Load a json file as a dictionary"""
+    """Load a json file as a dictionary"""
     try:
         with open(filename, 'rb') as fid:
             data = json.load(fid)
