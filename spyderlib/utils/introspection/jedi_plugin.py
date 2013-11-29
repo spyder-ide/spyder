@@ -20,9 +20,7 @@ from spyderlib.utils import programs
 from spyderlib.utils.debug import log_last_error, log_dt
 from spyderlib.utils.sourcecode import split_source
 from spyderlib.utils.introspection.base import (
-    get_parent_until, python_like_exts, python_like_mod_finder,
-    all_editable_exts, get_definition_from_file, DEBUG_EDITOR, LOG_FILENAME,
-    IntrospectionPlugin)
+    DEBUG_EDITOR, LOG_FILENAME, IntrospectionPlugin)
 
 try:
     import jedi
@@ -232,7 +230,7 @@ class JediPlugin(IntrospectionPlugin):
         name = call_def.name
         if name is None:
             return
-        mod_name = get_parent_until(call_def.module_path)
+        mod_name = self.get_parent_until(call_def.module_path)
         if not mod_name:
             mod_name = call_def.module_name
         if call_def.doc.startswith(name + '('):
@@ -316,28 +314,28 @@ class JediPlugin(IntrospectionPlugin):
             return
         return module_path, line_nr
 
-    @staticmethod
-    def find_in_builtin(info):
+    def find_in_builtin(self, info):
         """Find a definition in a builtin file"""
         module_path = info['module_path']
         line_nr = info['line_nr']
         ext = os.path.splitext(info['module_path'])[1]
         desc = info['description']
         name = info['name']
-        if ext in python_like_exts() and (
+        if ext in self.python_like_exts() and (
                 desc.startswith('import ') or desc.startswith('from ')):
-            path = python_like_mod_finder(desc,
+            path = self.python_like_mod_finder(desc,
                                           os.path.dirname(module_path), name)
             if path:
                 info['module_path'] = module_path = path
                 info['line_nr'] = line_nr = 1
-        if ext in all_editable_exts():
+        if ext in self.all_editable_exts():
             pattern = 'from.*\W{0}\W?.*c?import|import.*\W{0}'
             if not re.match(pattern.format(info['name']), desc):
-                line_nr = get_definition_from_file(module_path, name, line_nr)
+                line_nr = self.get_definition_from_file(module_path, name, 
+                                                        line_nr)
                 if not line_nr:
                     module_path = None
-        if not ext in all_editable_exts():
+        if not ext in self.all_editable_exts():
             line_nr = None
         return module_path, line_nr
 
@@ -345,7 +343,7 @@ class JediPlugin(IntrospectionPlugin):
 if __name__ == '__main__':
     
     p = JediPlugin()
-    p.load_plugin(None)
+    p.load_plugin()
 
     source_code = "import numpy; numpy.ones("
     calltip, docs = p.get_calltip_and_docs(source_code, len(source_code),
@@ -362,7 +360,7 @@ if __name__ == '__main__':
                                             __file__)
     assert 'pyplot.py' in path 
     
-    source_code = 'from .base import IntrospectionPlugin'
+    source_code = 'from .base import memoize'
     path, line_nr = p.get_definition_location(source_code, len(source_code),
                                             __file__)
     assert 'base.py' in path and 'introspection' in path

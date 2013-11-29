@@ -245,7 +245,7 @@ class RopePlugin(IntrospectionPlugin):
 if __name__ == '__main__':
 
     p = RopePlugin()
-    p.load_plugin(None)
+    p.load_plugin()
 
     source_code = "import numpy; numpy.ones"
     calltip, docs = p.get_calltip_and_docs(source_code, len(source_code),
