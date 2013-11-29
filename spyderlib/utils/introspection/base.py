@@ -194,8 +194,8 @@ def python_like_mod_finder(import_line, alt_path=None, stop_token=None):
     alt_path specifies an alternate base path for the module
     stop_token specifies the desired name to stop on
 
-    This is used to a find path python-like modules (e.g. cython and enaml)
-    to find a definition.
+    This is used to a find the path to python-like modules 
+    (e.g. cython and enaml) for a goto definition.
     """
     if stop_token and '.' in stop_token:
         stop_token = stop_token.split('.')[-1]
