@@ -7,6 +7,8 @@
 """
 Source code text utilities
 """
+from spyderlib.py3compat import to_text_string
+
 
 # Order is important:
 EOL_CHARS = (("\r\n", 'nt'), ("\n", 'posix'), ("\r", 'mac'))
@@ -67,11 +69,13 @@ def is_binary(filename):
         try:
             CHUNKSIZE = 1024
             while 1:
-                chunk = fid.read(CHUNKSIZE)
+                chunk = fid.read(CHUNKSIZE).decode('utf-8')
                 if '\0' in chunk: # found null byte
                     return True
                 if len(chunk) < CHUNKSIZE:
                     break # done
-        except:
+        except UnicodeDecodeError:
+            return True
+        except Exception:
             pass
     return False
