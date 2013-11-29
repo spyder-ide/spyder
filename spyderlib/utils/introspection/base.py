@@ -242,8 +242,8 @@ def get_definition_location_regex(source_code, offset, filename):
     """
     Find the definition for an object within a set of source code
     
-    This is useful for python-like files such as Cython and Enaml to find 
-    another module.
+    This is used to find the path of python-like modules 
+    (e.g. cython and enaml) for a goto definition
     """
     token = sourcecode.get_primary_at(source_code, offset)
     eol = sourcecode.get_eol_chars(source_code) or '\n'
