@@ -8,5 +8,4 @@
 Introspection utilities used by Spyder
 """
 from .base import get_plugin
-    
-    
+import module_completion

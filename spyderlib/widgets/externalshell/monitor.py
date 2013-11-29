@@ -18,7 +18,7 @@ from spyderlib.utils.dochelpers import (getargtxt, getdoc, getsource,
                                         getobjdir, isdefined)
 from spyderlib.utils.bsdsocket import (communicate, read_packet, write_packet,
                                        PACKET_NOT_RECEIVED)
-from spyderlib.utils.module_completion import module_completion
+from spyderlib.utils.introspection.module_completion import module_completion
 from spyderlib.baseconfig import get_conf_path, get_supported_types, DEBUG
 from spyderlib.py3compat import getcwd, is_text_string, pickle, _thread
 

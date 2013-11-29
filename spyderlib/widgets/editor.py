@@ -29,11 +29,11 @@ import re
 import os.path as osp
 
 # Local imports
-from spyderlib.utils import encoding, sourcecode, programs, codeanalysis
+from spyderlib.utils import encoding, sourcecode, codeanalysis
 from spyderlib.utils.dochelpers import getsignaturesfromtext
-from spyderlib.utils.module_completion import (module_completion,
-                                               get_preferred_submodules)
 from spyderlib.utils import introspection
+from spyderlib.utils.introspection.module_completion import (
+    module_completion, get_preferred_submodules)
 from spyderlib.baseconfig import _, DEBUG, STDOUT, STDERR
 from spyderlib.config import EDIT_FILTERS, EDIT_EXT, get_filter, EDIT_FILETYPES
 from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions,
