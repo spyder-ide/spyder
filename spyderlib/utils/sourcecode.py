@@ -52,3 +52,26 @@ def is_keyword(text):
     """Test if passed string is the name of a Python keyword"""
     import keyword
     return text in keyword.kwlist
+    
+    
+def is_binary(filename):
+    """Test if the given filename is binary.
+    
+    Adapted from:
+    http://bytes.com/topic/python/answers/21222-determine-file-type-binary-text on 6/08/2010
+    
+    Original Authors: Trent Mick <TrentM@ActiveState.com>
+                      Jorge Orpinel <jorge@orpinel.com>
+    """
+    with open(filename, 'rb') as fid:
+        try:
+            CHUNKSIZE = 1024
+            while 1:
+                chunk = fid.read(CHUNKSIZE)
+                if '\0' in chunk: # found null byte
+                    return True
+                if len(chunk) < CHUNKSIZE:
+                    break # done
+        except:
+            pass
+    return False
