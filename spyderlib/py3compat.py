@@ -61,7 +61,6 @@ if PY2:
         import pickle
     from UserDict import DictMixin as MutableMapping
     import thread as _thread
-    import urllib2 as urllib
 else:
     # Python 3
     import builtins
@@ -75,7 +74,6 @@ else:
     import pickle
     from collections import MutableMapping
     import _thread
-    import urllib.request as urllib
 
 
 #==============================================================================

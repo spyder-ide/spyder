@@ -25,6 +25,7 @@ from spyderlib.qt.QtGui import (QMessageBox, QTableView, QItemDelegate,
 from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, SIGNAL,
                                  SLOT, QDateTime, Signal)
 from spyderlib.qt.compat import to_qvariant, from_qvariant, getsavefilename
+from spyderlib.utils.qthelpers import mimedata2url
 
 import sys
 import datetime
@@ -45,7 +46,7 @@ if ndarray is not FakeObject:
     from spyderlib.widgets.arrayeditor import ArrayEditor
 from spyderlib.widgets.texteditor import TextEditor
 from spyderlib.widgets.importwizard import ImportWizard
-from spyderlib.py3compat import to_text_string, is_text_string, getcwd, u, urllib
+from spyderlib.py3compat import to_text_string, is_text_string, getcwd, u
 from spyderlib.utils.iofuncs import iofunctions
 
 
@@ -805,14 +806,10 @@ class BaseTableView(QTableView):
     def _accepted_urls(self, event):
         """Search for importable urls"""
         urls = []
-        if event.mimeData().hasUrls:
-            for url in event.mimeData().urls():
-                ext = os.path.splitext(str(url.toString()))[1]
-                if ext in iofunctions.load_funcs.keys():
-                    url = str(url.toString())
-                    if url.startswith('file'):
-                        url = urllib.url2pathname(url[5:])
-                    urls.append(url)
+        for url in mimedata2url(event.mimeData()):
+            ext = os.path.splitext(url)
+            if ext in iofunctions.load_funcs.keys():
+                urls.append(url)
         return urls
 
     def toggle_inplace(self, state):
