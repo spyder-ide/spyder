@@ -779,38 +779,29 @@ class BaseTableView(QTableView):
             event.accept()
 
     def dragEnterEvent(self, event):
-        """Allow user to drag supported file types"""
-        if self._accepted_urls(event):
+        """Allow user to drag files"""
+        if mimedata2url(event.mimeData()):
             event.accept()
         else:
             event.ignore()
     
     def dragMoveEvent(self, event):
-        """Allow user to move supported file types"""
-        if self._accepted_urls(event):
+        """Allow user to move files"""
+        if mimedata2url(event.mimeData()):
             event.setDropAction(Qt.CopyAction)
             event.accept()
         else:
             event.ignore()
 
     def dropEvent(self, event):
-        """Allow user to drop supported file types"""
-        urls = self._accepted_urls(event)
+        """Allow user to drop supported files"""
+        urls = mimedata2url(event.mimeData())
         if urls:
             event.setDropAction(Qt.CopyAction)
             event.accept()
             self.sig_files_dropped.emit(urls)
         else:
             event.ignore()
-            
-    def _accepted_urls(self, event):
-        """Search for importable urls"""
-        urls = []
-        for url in mimedata2url(event.mimeData()):
-            ext = os.path.splitext(url)
-            if ext in iofunctions.load_funcs.keys():
-                urls.append(url)
-        return urls
 
     def toggle_inplace(self, state):
         """Toggle in-place editor option"""
