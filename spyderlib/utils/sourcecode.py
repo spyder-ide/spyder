@@ -53,28 +53,3 @@ def is_keyword(text):
     """Test if passed string is the name of a Python keyword"""
     import keyword
     return text in keyword.kwlist
-    
-    
-def is_binary(path):
-    """
-    Test if the given path is a binary file.
-    
-    Adapted from: http://stackoverflow.com/a/3002505
-    
-    Original Authors: Trent Mick <TrentM@ActiveState.com>
-                      Jorge Orpinel <jorge@orpinel.com>
-    """
-    with open(path, 'rb') as fid:
-        try:
-            CHUNKSIZE = 1024
-            while 1:
-                chunk = fid.read(CHUNKSIZE).decode('utf-8')
-                if '\0' in chunk: # found null byte
-                    return True
-                if len(chunk) < CHUNKSIZE:
-                    break # done
-        except UnicodeDecodeError:
-            return True
-        except Exception:
-            pass
-    return False

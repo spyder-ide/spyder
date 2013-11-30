@@ -1969,11 +1969,11 @@ class EditorStack(QWidget):
                 event.acceptProposedAction()
             else:
                 all_urls = mimedata2url(source)
-                binary = [sourcecode.is_binary(url) for url in all_urls]
-                if all(binary):
-                    event.ignore()
-                else:
+                text = [encoding.is_text(url) for url in all_urls]
+                if any(text):
                     event.acceptProposedAction()
+                else:
+                    event.ignore()
         elif source.hasText():
             event.acceptProposedAction()
         else:
@@ -1985,7 +1985,7 @@ class EditorStack(QWidget):
         source = event.mimeData()
         if source.hasUrls():
             files = mimedata2url(source)
-            files = [f for f in files if not sourcecode.is_binary(f)]
+            files = [f for f in files if encoding.is_text(f)]
             supported_files = mimedata2url(source, extlist=EDIT_EXT)
             files = set(files or []) | set(supported_files or [])
             for fname in files:

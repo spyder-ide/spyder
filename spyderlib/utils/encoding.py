@@ -220,3 +220,32 @@ def readlines(filename, encoding='utf-8'):
     """
     text, encoding = read(filename, encoding)
     return text.split(os.linesep), encoding
+
+
+def is_text(filename):
+    """
+    Test if the given path is a text-like file.
+    
+    Adapted from: http://stackoverflow.com/a/3002505
+    
+    Original Authors: Trent Mick <TrentM@ActiveState.com>
+                      Jorge Orpinel <jorge@orpinel.com>
+    """
+    try:
+        open(filename)
+    except Exception:
+        return False
+    with open(filename, 'rb') as fid:
+        try:
+            CHUNKSIZE = 1024
+            while 1:
+                chunk = fid.read(CHUNKSIZE).decode('utf-8')
+                if '\0' in chunk: # found null byte
+                    return False
+                if len(chunk) < CHUNKSIZE:
+                    break # done
+        except UnicodeDecodeError:
+            return False
+        except Exception:
+            pass
+    return True
