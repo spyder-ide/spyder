@@ -154,7 +154,7 @@ class ExternalPythonShell(ExternalShellBase):
     """External Shell widget: execute Python script in a separate process"""
     SHELL_CLASS = ExtPythonShellWidget
     def __init__(self, parent=None, fname=None, wdir=None,
-                 interact=False, debug=False, path=[], python_args='',
+                 interact=False, debug=False, post_mortem=False, path=[], python_args='',
                  ipykernel=False, arguments='', stand_alone=None,
                  umd_enabled=True, umd_namelist=[], umd_verbose=True,
                  pythonstartup=None, pythonexecutable=None,
@@ -232,6 +232,7 @@ class ExternalPythonShell(ExternalShellBase):
         self.toggle_globals_explorer(False)
         self.interact_action.setChecked(interact)
         self.debug_action.setChecked(debug)
+        self.post_mortem_action.setChecked(post_mortem)
         
         self.introspection_socket = None
         self.is_interpreter = fname is None
@@ -291,9 +292,12 @@ The process may not exit as a result of clicking this button
         self.debug_action.setCheckable(True)
         self.args_action = create_action(self, _("Arguments..."),
                                          triggered=self.get_arguments)
+        self.post_mortem_action = create_action(self, _("Post Mortem Debug"))
+        self.post_mortem_action.setCheckable(True)
         run_settings_menu = QMenu(_("Run settings"), self)
         add_actions(run_settings_menu,
-                    (self.interact_action, self.debug_action, self.args_action))
+                    (self.interact_action, self.debug_action, self.args_action,
+                     self.post_mortem_action))
         self.cwd_button = create_action(self, _("Working directory"),
                                 icon=get_std_icon('DirOpenIcon'),
                                 tip=_("Set current working directory"),
@@ -346,6 +350,7 @@ The process may not exit as a result of clicking this button
         self.interact_action.setEnabled(not state and not self.is_interpreter)
         self.debug_action.setEnabled(not state and not self.is_interpreter)
         self.args_action.setEnabled(not state and not self.is_interpreter)
+        self.post_mortem_action.setEnabled(not state and not self.is_interpreter)
         if state:
             if self.arguments:
                 argstr = _("Arguments: %s") % self.arguments
@@ -409,6 +414,11 @@ The process may not exit as a result of clicking this button
         if self.pythonstartup:
             env.append('PYTHONSTARTUP=%s' % self.pythonstartup)
         
+        #-------------------------Python specific-------------------------------
+        # Post mortem debugging
+        if self.post_mortem_action.isChecked():
+            env.append('SPYDER_EXCEPTHOOK=True')
+
         # Monitor
         if self.monitor_enabled:
             env.append('SPYDER_SHELL_ID=%s' % id(self))

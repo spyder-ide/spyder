@@ -732,7 +732,7 @@ class ExternalConsole(SpyderPluginWidget):
             shellwidget.shell.set_spyder_breakpoints()    
     
     def start(self, fname, wdir=None, args='', interact=False, debug=False,
-              python=True, ipykernel=False, ipyclient=None, python_args=''):
+              post_mortem=False, python=True, ipykernel=False, ipyclient=None, python_args=''):
         """
         Start new console
         
@@ -826,7 +826,7 @@ class ExternalConsole(SpyderPluginWidget):
             else:
                 sa_settings = None
             shellwidget = ExternalPythonShell(self, fname, wdir,
-                           interact, debug, path=pythonpath,
+                           interact, debug, post_mortem=post_mortem, path=pythonpath,
                            python_args=python_args,
                            ipykernel=ipykernel,
                            arguments=args, stand_alone=sa_settings,

@@ -6,6 +6,7 @@ import os
 import os.path as osp
 import pdb
 import bdb
+import traceback
 
 
 # sys.argv can be missing when Python is embedded, taking care of it.
@@ -654,7 +655,17 @@ def evalsc(command):
 
 builtins.evalsc = evalsc
 
-
+# Add post mortem debugging if requested
+if 'SPYDER_EXCEPTHOOK' in os.environ:  
+    def info(type, value, tb):
+        print >>sys.stderr, '*' * 30
+        print >>sys.stderr, 'Entering Post Mortem Debugging'
+        print >>sys.stderr, '*' * 30
+        traceback.print_exception(type, value, tb)
+        pdb.pm()
+    sys.excepthook = info
+    
+ 
 # Restoring original PYTHONPATH
 try:
     os.environ['PYTHONPATH'] = os.environ['OLD_PYTHONPATH']

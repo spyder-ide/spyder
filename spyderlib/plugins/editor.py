@@ -2038,13 +2038,14 @@ class Editor(SpyderPluginWidget):
             args = runconf.get_arguments()
             python_args = runconf.get_python_arguments()
             interact = runconf.interact
+            post_mortem = runconf.post_mortem
             current = runconf.current
             systerm = runconf.systerm
             
             python = True # Note: in the future, it may be useful to run
             # something in a terminal instead of a Python interp.
             self.__last_ec_exec = (fname, wdir, args, interact, debug,
-                                   python, python_args, current, systerm)
+                                   python, python_args, current, systerm, post_mortem)
             self.re_run_file()
             if not interact and not debug:
                 # If external console dockwidget is hidden, it will be
@@ -2067,7 +2068,7 @@ class Editor(SpyderPluginWidget):
         if self.__last_ec_exec is None:
             return
         (fname, wdir, args, interact, debug,
-         python, python_args, current, systerm) = self.__last_ec_exec
+         python, python_args, current, systerm, post_mortem) = self.__last_ec_exec
         if current:
             if self.main.ipyconsole is not None:
                 if self.main.last_console_plugin_focus_was_python:
@@ -2085,7 +2086,7 @@ class Editor(SpyderPluginWidget):
         else:
             self.main.open_external_console(fname, wdir, args, interact,
                                             debug, python, python_args,
-                                            systerm)
+                                            systerm, post_mortem)
 
     def run_selection(self):
         """Run selection or current line in external console"""
