@@ -214,17 +214,6 @@ class RopePlugin(IntrospectionPlugin):
         """Close the Rope project"""
         if self.project is not None:
             self.project.close()
-            
-    def get_introspection_data(self, func_name, source_code, offset, filename):
-        """Get the introspection data from our class or the base class"""
-        func = getattr(self, "_%s" % func_name)
-        data = func(source_code, offset, filename)
-        if not data or data is (None, None):
-            parent = super(RopePlugin, self)
-            super_method = getattr(parent, func_name)
-            return super_method(source_code, offset, filename)
-        else:
-            return data
 
 
 if __name__ == '__main__':
