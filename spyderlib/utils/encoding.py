@@ -222,7 +222,7 @@ def readlines(filename, encoding='utf-8'):
     return text.split(os.linesep), encoding
 
 
-def is_text(filename):
+def is_text_file(filename):
     """
     Test if the given path is a text-like file.
     
@@ -238,12 +238,18 @@ def is_text(filename):
     with open(filename, 'rb') as fid:
         try:
             CHUNKSIZE = 1024
+            chunk = fid.read(CHUNKSIZE)
+            # check for a UTF BOM
+            for bom in [BOM_UTF8, BOM_UTF16, BOM_UTF32]:
+                if chunk.startswith(bom):
+                    return True
+            chunk = chunk.decode('utf-8')
             while 1:
-                chunk = fid.read(CHUNKSIZE).decode('utf-8')
                 if '\0' in chunk: # found null byte
                     return False
                 if len(chunk) < CHUNKSIZE:
                     break # done
+                chunk = fid.read(CHUNKSIZE).decode('utf-8')
         except UnicodeDecodeError:
             return False
         except Exception:
