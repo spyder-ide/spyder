@@ -44,7 +44,11 @@ except ImportError:
     import builtins
     basestring = (str,)
     def execfile(filename, namespace):
-        exec(compile(open(filename).read(), filename, 'exec'), namespace)
+        if os.name == 'nt' and sys.version[0] == '3':
+        #python 3 under windows : a python source file is now supposed to be utf-8, not default system pagecode
+            exec(compile(open(filename, encoding="utf-8").read(), filename, 'exec'), namespace)
+        else:
+            exec(compile(open(filename).read(), filename, 'exec'), namespace)
 
 
 # Colorization of sys.stderr (standard Python interpreter)
