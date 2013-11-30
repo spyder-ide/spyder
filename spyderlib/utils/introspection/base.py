@@ -25,6 +25,29 @@ from spyderlib.qt.QtGui import QApplication
 PLUGINS = ['jedi', 'rope']
 LOG_FILENAME = get_conf_path('introspection.log')
 DEBUG_EDITOR = DEBUG >= 3
+    
+    
+def get_plugin(editor_widget):
+    """Get and load a plugin, checking in order of PLUGINS"""
+    plugin = None
+    for plugin_name in PLUGINS:
+        mod_name = plugin_name + '_plugin'
+        try:
+            mod = __import__('spyderlib.utils.introspection.' + mod_name,
+                             fromlist=[mod_name])
+            cls = getattr(mod, '%sPlugin' % plugin_name.capitalize())
+            plugin = cls()
+            plugin.load_plugin()
+        except Exception:
+            if DEBUG_EDITOR:
+                log_last_error(LOG_FILENAME)
+        else:
+            break
+    if not plugin:
+        plugin = IntrospectionPlugin()
+    debug_print('Instropection Plugin Loaded: %s' % plugin.name)
+    plugin.editor_widget = editor_widget
+    return plugin
 
 
 def memoize(obj):
@@ -50,27 +73,25 @@ def memoize(obj):
     return memoizer
     
     
-def get_plugin(editor_widget):
-    """Get and load a plugin, checking in order of PLUGINS"""
-    plugin = None
-    for plugin_name in PLUGINS:
-        mod_name = plugin_name + '_plugin'
+def fallback(func):
+    """
+    Call the super method if the method does not complete properly.
+    
+    Handles all exceptions and input that evaluates to False.
+    """
+    @functools.wraps(func)
+    def inner(self, *args, **kwargs):
+        ret = None
         try:
-            mod = __import__('spyderlib.utils.introspection.' + mod_name,
-                             fromlist=[mod_name])
-            cls = getattr(mod, '%sPlugin' % plugin_name.capitalize())
-            plugin = cls()
-            plugin.load_plugin()
+            ret = func(self, *args, **kwargs)
         except Exception:
-            if DEBUG_EDITOR:
-                log_last_error(LOG_FILENAME)
-        else:
-            break
-    if not plugin:
-        plugin = IntrospectionPlugin()
-    debug_print('Instropection Plugin Loaded: %s' % plugin.name)
-    plugin.editor_widget = editor_widget
-    return plugin
+            pass
+        if not ret:
+            super_cls = super(self.__class__, self)
+            super_method = getattr(super_cls, func.func_name)
+            ret = super_method(*args, **kwargs)
+        return ret
+    return inner
 
 
 class IntrospectionPlugin(object):

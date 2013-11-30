@@ -20,7 +20,7 @@ from spyderlib.utils import programs
 from spyderlib.utils.debug import log_last_error, log_dt
 from spyderlib.utils.sourcecode import split_source
 from spyderlib.utils.introspection.base import (
-    DEBUG_EDITOR, LOG_FILENAME, IntrospectionPlugin)
+    DEBUG_EDITOR, LOG_FILENAME, IntrospectionPlugin, fallback)
 
 try:
     import jedi
@@ -84,6 +84,7 @@ class JediPlugin(IntrospectionPlugin):
         self.extension_modules = []
         QTimer.singleShot(1500, self.refresh_libs)
 
+    @fallback
     def get_completion_list(self, source_code, offset, filename):
         """Return a list of completion strings"""
         
@@ -92,10 +93,8 @@ class JediPlugin(IntrospectionPlugin):
                                            'completions')
         if completions:
             return [c.word for c in completions]
-        else:
-            super_method = super(JediPlugin, self).get_completion_list
-            return super_method(source_code, offset, filename)
 
+    @fallback
     def get_calltip_and_docs(self, source_code, offset, filename):
         """
         Find the calltip and docs
@@ -115,15 +114,38 @@ class JediPlugin(IntrospectionPlugin):
                                         'goto_definitions')
         if call_def:
             return self.parse_call_def(call_def)
-        else:
-            super_method = super(JediPlugin, self).get_calltip_and_docs
-            return super_method(source_code, offset, filename)
 
+    @fallback
     def get_definition_location(self, source_code, offset, filename):
-        """Find a path and line number for a definition"""
-        super_method = super(JediPlugin, self).get_definition_location
-        return (self._get_definition_location(source_code, offset, filename)
-                or super_method(source_code, offset, filename))
+        """
+        Find a definition location using Jedi
+
+        Follows gotos until a definition is found, or it reaches a builtin
+        module.  Falls back on token lookup if it is in an enaml file or does
+        not find a match
+        """
+        line, col = self.get_line_col(source_code, offset)
+        info, module_path, line_nr = None, None, None
+        gotos = self.get_jedi_object(source_code, line, col, filename,
+                                     'goto_assignments')
+        if gotos:
+            info = self.get_definition_info(gotos[0])
+        if info and info['goto_next']:
+            defns = self.get_jedi_object(source_code, line, col, filename,
+                                         'goto_definitions')
+            if defns:
+                new_info = self.get_definition_info(defns[0])
+            if not new_info['in_builtin']:
+                info = new_info
+        # handle builtins -> try and find the module
+        if info and info['in_builtin']:
+            module_path, line_nr = self.find_in_builtin(info)
+        elif info:
+            module_path = info['module_path']
+            line_nr = info['line_nr']
+        if module_path == filename and line_nr == line:
+            return
+        return module_path, line_nr
 
     def set_pref(self, name, value):
         """Set a plugin preference to a value"""
@@ -279,37 +301,6 @@ class JediPlugin(IntrospectionPlugin):
         return dict(module_path=module_path, line_nr=line_nr,
                     description=description, name=name, in_builtin=in_builtin,
                     goto_next=goto_next)
-
-    def _get_definition_location(self, source_code, offset, filename):
-        """
-        Find a definition location using Jedi
-
-        Follows gotos until a definition is found, or it reaches a builtin
-        module.  Falls back on token lookup if it is in an enaml file or does
-        not find a match
-        """
-        line, col = self.get_line_col(source_code, offset)
-        info, module_path, line_nr = None, None, None
-        gotos = self.get_jedi_object(source_code, line, col, filename,
-                                     'goto_assignments')
-        if gotos:
-            info = self.get_definition_info(gotos[0])
-        if info and info['goto_next']:
-            defns = self.get_jedi_object(source_code, line, col, filename,
-                                         'goto_definitions')
-            if defns:
-                new_info = self.get_definition_info(defns[0])
-            if not new_info['in_builtin']:
-                info = new_info
-        # handle builtins -> try and find the module
-        if info and info['in_builtin']:
-            module_path, line_nr = self.find_in_builtin(info)
-        elif info:
-            module_path = info['module_path']
-            line_nr = info['line_nr']
-        if module_path == filename and line_nr == line:
-            return
-        return module_path, line_nr
 
     def find_in_builtin(self, info):
         """Find a definition in a builtin file"""

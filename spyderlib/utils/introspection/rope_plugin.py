@@ -15,7 +15,7 @@ from spyderlib.utils import encoding, programs
 from spyderlib.py3compat import PY2
 from spyderlib.utils.debug import log_last_error, log_dt
 from spyderlib.utils.introspection.base import (
-    DEBUG_EDITOR, LOG_FILENAME, IntrospectionPlugin)
+    DEBUG_EDITOR, LOG_FILENAME, IntrospectionPlugin, fallback)
 try:
     try:
         from spyderlib import rope_patch
@@ -61,20 +61,116 @@ class RopePlugin(IntrospectionPlugin):
         self.project = None
         self.create_rope_project(root_path=get_conf_path())
         
+    @fallback
     def get_completion_list(self, source_code, offset, filename):
         """Get a list of completions using Rope"""
-        return self.get_introspection_data('get_completion_list', source_code, 
-                                           offset, filename)
-                
+        if self.project is None:
+            return []
+        if PY2:
+            filename = filename.encode('utf-8')
+        else:
+            #TODO: test if this is working without any further change in
+            # Python 3 with a user account containing unicode characters
+            pass
+        try:
+            resource = rope.base.libutils.path_to_resource(self.project,
+                                                           filename)
+        except Exception as _error:
+            if DEBUG_EDITOR:
+                log_last_error(LOG_FILENAME, "path_to_resource: %r" % filename)
+            resource = None
+        try:
+            if DEBUG_EDITOR:
+                t0 = time.time()
+            proposals = rope.contrib.codeassist.code_assist(self.project,
+                                    source_code, offset, resource, maxfixes=3)
+            proposals = rope.contrib.codeassist.sorted_proposals(proposals)
+            if DEBUG_EDITOR:
+                log_dt(LOG_FILENAME, "code_assist/sorted_proposals", t0)
+            return [proposal.name for proposal in proposals]
+        except Exception as _error:  #analysis:ignore
+            if DEBUG_EDITOR:
+                log_last_error(LOG_FILENAME, "get_completion_list")
+            return []
+
+    @fallback 
     def get_calltip_and_docs(self, source_code, offset, filename):
-        """Get a formatted calltip and docstring from Rope"""  
-        return self.get_introspection_data('get_calltip_and_docs', source_code, 
-                                           offset, filename)          
-                    
+        """Get a formatted calltip and docstring from Rope"""
+        if self.project is None:
+            return []
+        if PY2:
+            filename = filename.encode('utf-8')
+        else:
+            #TODO: test if this is working without any further change in
+            # Python 3 with a user account containing unicode characters
+            pass
+        try:
+            resource = rope.base.libutils.path_to_resource(self.project,
+                                                           filename)
+        except Exception as _error:
+            if DEBUG_EDITOR:
+                log_last_error(LOG_FILENAME, "path_to_resource: %r" % filename)
+            resource = None
+        try:
+            if DEBUG_EDITOR:
+                t0 = time.time()
+            cts = rope.contrib.codeassist.get_calltip(
+                            self.project, source_code, offset, resource,
+                            ignore_unknown=False, remove_self=True, maxfixes=3)
+            if DEBUG_EDITOR:
+                log_dt(LOG_FILENAME, "get_calltip", t0)
+            if cts is not None:
+                while '..' in cts:
+                    cts = cts.replace('..', '.')
+                if '(.)' in cts:
+                    cts = cts.replace('(.)', '(...)')
+            try:
+                doc_text = rope.contrib.codeassist.get_doc(self.project,
+                                     source_code, offset, resource, maxfixes=3)
+                if DEBUG_EDITOR:
+                    log_dt(LOG_FILENAME, "get_doc", t0)
+            except Exception as _error:
+                doc_text = ''
+                if DEBUG_EDITOR:
+                    log_last_error(LOG_FILENAME, "get_doc")
+            return [cts, doc_text]
+        except Exception as _error:  #analysis:ignore
+            if DEBUG_EDITOR:
+                log_last_error(LOG_FILENAME, "get_calltip_text")
+            return []
+            
+    @fallback              
     def get_definition_location(self, source_code, offset, filename):
         """Find a definition location using Rope"""
-        return self.get_introspection_data('get_definition_location', 
-                                           source_code, offset, filename) 
+        if self.project is None:
+            return None
+        if PY2:
+            filename = filename.encode('utf-8')
+        else:
+            #TODO: test if this is working without any further change in
+            # Python 3 with a user account containing unicode characters
+            pass
+        try:
+            resource = rope.base.libutils.path_to_resource(self.project,
+                                                           filename)
+        except Exception as _error:
+            if DEBUG_EDITOR:
+                log_last_error(LOG_FILENAME, "path_to_resource: %r" % filename)
+            resource = None
+        try:
+            if DEBUG_EDITOR:
+                t0 = time.time()
+            resource, lineno = rope.contrib.codeassist.get_definition_location(
+                    self.project, source_code, offset, resource, maxfixes=3)
+            if DEBUG_EDITOR:
+                log_dt(LOG_FILENAME, "get_definition_location", t0)
+            if resource is not None:
+                filename = resource.real_path
+            return filename, lineno
+        except Exception as _error:  #analysis:ignore
+            if DEBUG_EDITOR:
+                log_last_error(LOG_FILENAME, "get_definition_location")
+            return None
                              
     def validate(self):
         """Validate the Rope project"""
@@ -129,114 +225,6 @@ class RopePlugin(IntrospectionPlugin):
             return super_method(source_code, offset, filename)
         else:
             return data
-
-    def _get_completion_list(self, source_code, offset, filename):
-        """Get a list of completions using Rope"""
-        if self.project is None:
-            return []
-        if PY2:
-            filename = filename.encode('utf-8')
-        else:
-            #TODO: test if this is working without any further change in
-            # Python 3 with a user account containing unicode characters
-            pass
-        try:
-            resource = rope.base.libutils.path_to_resource(self.project,
-                                                           filename)
-        except Exception as _error:
-            if DEBUG_EDITOR:
-                log_last_error(LOG_FILENAME, "path_to_resource: %r" % filename)
-            resource = None
-        try:
-            if DEBUG_EDITOR:
-                t0 = time.time()
-            proposals = rope.contrib.codeassist.code_assist(self.project,
-                                    source_code, offset, resource, maxfixes=3)
-            proposals = rope.contrib.codeassist.sorted_proposals(proposals)
-            if DEBUG_EDITOR:
-                log_dt(LOG_FILENAME, "code_assist/sorted_proposals", t0)
-            return [proposal.name for proposal in proposals]
-        except Exception as _error:  #analysis:ignore
-            if DEBUG_EDITOR:
-                log_last_error(LOG_FILENAME, "get_completion_list")
-            return []
-
-    def _get_calltip_and_docs(self, source_code, offset, filename):
-        """Get a formatted calltip and docstring from Rope"""
-        if self.project is None:
-            return []
-        if PY2:
-            filename = filename.encode('utf-8')
-        else:
-            #TODO: test if this is working without any further change in
-            # Python 3 with a user account containing unicode characters
-            pass
-        try:
-            resource = rope.base.libutils.path_to_resource(self.project,
-                                                           filename)
-        except Exception as _error:
-            if DEBUG_EDITOR:
-                log_last_error(LOG_FILENAME, "path_to_resource: %r" % filename)
-            resource = None
-        try:
-            if DEBUG_EDITOR:
-                t0 = time.time()
-            cts = rope.contrib.codeassist.get_calltip(
-                            self.project, source_code, offset, resource,
-                            ignore_unknown=False, remove_self=True, maxfixes=3)
-            if DEBUG_EDITOR:
-                log_dt(LOG_FILENAME, "get_calltip", t0)
-            if cts is not None:
-                while '..' in cts:
-                    cts = cts.replace('..', '.')
-                if '(.)' in cts:
-                    cts = cts.replace('(.)', '(...)')
-            try:
-                doc_text = rope.contrib.codeassist.get_doc(self.project,
-                                     source_code, offset, resource, maxfixes=3)
-                if DEBUG_EDITOR:
-                    log_dt(LOG_FILENAME, "get_doc", t0)
-            except Exception as _error:
-                doc_text = ''
-                if DEBUG_EDITOR:
-                    log_last_error(LOG_FILENAME, "get_doc")
-            return [cts, doc_text]
-        except Exception as _error:  #analysis:ignore
-            if DEBUG_EDITOR:
-                log_last_error(LOG_FILENAME, "get_calltip_text")
-            return []
-
-    def _get_definition_location(self, source_code, offset, filename):
-        """Find a definition location using Rope"""
-        if self.project is None:
-            return (None, None)
-        if PY2:
-            filename = filename.encode('utf-8')
-        else:
-            #TODO: test if this is working without any further change in
-            # Python 3 with a user account containing unicode characters
-            pass
-        try:
-            resource = rope.base.libutils.path_to_resource(self.project,
-                                                           filename)
-        except Exception as _error:
-            if DEBUG_EDITOR:
-                log_last_error(LOG_FILENAME, "path_to_resource: %r" % filename)
-            resource = None
-        try:
-            if DEBUG_EDITOR:
-                t0 = time.time()
-            resource, lineno = rope.contrib.codeassist.get_definition_location(
-                    self.project, source_code, offset, resource, maxfixes=3)
-            if DEBUG_EDITOR:
-                log_dt(LOG_FILENAME, "get_definition_location", t0)
-            if resource is not None:
-                filename = resource.real_path
-            return filename, lineno
-        except Exception as _error:  #analysis:ignore
-            if DEBUG_EDITOR:
-                log_last_error(LOG_FILENAME, "get_definition_location")
-            return (None, None)
 
 
 if __name__ == '__main__':
