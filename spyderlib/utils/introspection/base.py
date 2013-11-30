@@ -75,22 +75,18 @@ def memoize(obj):
     
 def fallback(func):
     """
-    Call the super method if the method does not complete properly.
+    Call the super method if the method throws an error.
     
     Handles all exceptions and input that evaluates to False.
     """
     @functools.wraps(func)
     def inner(self, *args, **kwargs):
-        ret = None
         try:
-            ret = func(self, *args, **kwargs)
+            return func(self, *args, **kwargs)
         except Exception:
-            pass
-        if not ret:
             super_cls = super(self.__class__, self)
             super_method = getattr(super_cls, func.func_name)
-            ret = super_method(*args, **kwargs)
-        return ret
+            return super_method(*args, **kwargs)
     return inner
 
 

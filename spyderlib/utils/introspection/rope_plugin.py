@@ -65,7 +65,7 @@ class RopePlugin(IntrospectionPlugin):
     def get_completion_list(self, source_code, offset, filename):
         """Get a list of completions using Rope"""
         if self.project is None:
-            return []
+            raise ValueError
         if PY2:
             filename = filename.encode('utf-8')
         else:
@@ -87,17 +87,19 @@ class RopePlugin(IntrospectionPlugin):
             proposals = rope.contrib.codeassist.sorted_proposals(proposals)
             if DEBUG_EDITOR:
                 log_dt(LOG_FILENAME, "code_assist/sorted_proposals", t0)
+            if not proposals:
+                raise ValueError
             return [proposal.name for proposal in proposals]
         except Exception as _error:  #analysis:ignore
             if DEBUG_EDITOR:
                 log_last_error(LOG_FILENAME, "get_completion_list")
-            return []
+            raise ValueError
 
     @fallback 
     def get_calltip_and_docs(self, source_code, offset, filename):
         """Get a formatted calltip and docstring from Rope"""
         if self.project is None:
-            return []
+            raise ValueError
         if PY2:
             filename = filename.encode('utf-8')
         else:
@@ -137,13 +139,13 @@ class RopePlugin(IntrospectionPlugin):
         except Exception as _error:  #analysis:ignore
             if DEBUG_EDITOR:
                 log_last_error(LOG_FILENAME, "get_calltip_text")
-            return []
+            raise ValueError
             
     @fallback              
     def get_definition_location(self, source_code, offset, filename):
         """Find a definition location using Rope"""
         if self.project is None:
-            return None
+            raise ValueError
         if PY2:
             filename = filename.encode('utf-8')
         else:
@@ -166,11 +168,13 @@ class RopePlugin(IntrospectionPlugin):
                 log_dt(LOG_FILENAME, "get_definition_location", t0)
             if resource is not None:
                 filename = resource.real_path
+            else:
+                raise ValueError
             return filename, lineno
         except Exception as _error:  #analysis:ignore
             if DEBUG_EDITOR:
                 log_last_error(LOG_FILENAME, "get_definition_location")
-            return None
+            raise ValueError
                              
     def validate(self):
         """Validate the Rope project"""

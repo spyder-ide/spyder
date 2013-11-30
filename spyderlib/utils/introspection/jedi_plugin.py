@@ -93,6 +93,8 @@ class JediPlugin(IntrospectionPlugin):
                                            'completions')
         if completions:
             return [c.word for c in completions]
+        else:
+            raise ValueError
 
     @fallback
     def get_calltip_and_docs(self, source_code, offset, filename):
@@ -114,6 +116,8 @@ class JediPlugin(IntrospectionPlugin):
                                         'goto_definitions')
         if call_def:
             return self.parse_call_def(call_def)
+        else:
+            raise ValueError
 
     @fallback
     def get_definition_location(self, source_code, offset, filename):
@@ -144,7 +148,7 @@ class JediPlugin(IntrospectionPlugin):
             module_path = info['module_path']
             line_nr = info['line_nr']
         if module_path == filename and line_nr == line:
-            return
+            raise ValueError
         return module_path, line_nr
 
     def set_pref(self, name, value):
