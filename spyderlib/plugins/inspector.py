@@ -132,7 +132,7 @@ class ObjectInspectorConfigPage(PluginConfigPage):
         connections_label.setWordWrap(True)
         editor_box = self.create_checkbox(_("Editor"), 'connect/editor')
         rope_installed = programs.is_module_installed('rope')
-        jedi_installed = programs.is_module_installed('jedi')
+        jedi_installed = programs.is_module_installed('jedi', '>=0.7.0')
         editor_box.setEnabled(rope_installed or jedi_installed)
         python_box = self.create_checkbox(_("Python Console"),
                                           'connect/python_console')
@@ -382,7 +382,7 @@ class ObjectInspector(SpyderPluginWidget):
         self.connect(self.source_combo, SIGNAL('currentIndexChanged(int)'),
                      self.source_changed)
         if (not programs.is_module_installed('rope') and 
-                not programs.is_module_installed('jedi')):
+                not programs.is_module_installed('jedi', '>=0.7.0')):
             self.source_combo.hide()
             source_label.hide()
         layout_edit.addWidget(self.source_combo)
