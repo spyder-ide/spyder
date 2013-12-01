@@ -656,7 +656,6 @@ class EditorStack(QWidget):
         self.zoomoutsc = newsc(QKeySequence.ZoomOut,
                                lambda: self.emit(SIGNAL('zoom_out()')))
 
-
     def get_shortcut_data(self):
         """
         Returns shortcut data, a list of tuples (shortcut, text, default)
