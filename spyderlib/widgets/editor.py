@@ -383,8 +383,8 @@ class FileInfo(QObject):
         source_code = self.get_source_code()
         offset = position
         
-        helplist = self.introspection_plugin.get_calltip_and_docs(source_code, offset,
-                                                          self.filename)
+        func = self.introspection_plugin.get_calltip_and_docs
+        helplist = func(source_code, offset, self.filename)
         if not helplist:
             return
         obj_fullname = ''
