@@ -120,10 +120,7 @@ def getdoc(obj):
                 doc['name'] = name + ' lambda '
                 doc['argspec'] = doc['argspec'][1:-1] # remove parentheses
         else:
-            # Try to extract the argspec from the first docstring line
-            docstring_lines = doc['docstring'].split("\n")
-            first_line = docstring_lines[0].strip()
-            argspec = getsignaturefromtext(first_line, '')
+            argspec = getargspecfromtext(doc['docstring'])
             if argspec:
                 doc['argspec'] = argspec
                 # Many scipy and numpy docstrings begin with a function
@@ -135,10 +132,12 @@ def getdoc(obj):
                 # the non-whitespace characters on the first line 
                 # match *exactly* the combined function title 
                 # and argspec we determined above.
-                name_and_argspec = doc['name'] + doc['argspec']
-                if first_line == name_and_argspec:
+                signature = doc['name'] + doc['argspec']
+                docstring_blocks = doc['docstring'].split("\n\n")
+                first_block = docstring_blocks[0].strip()
+                if first_block == signature:
                     doc['docstring'] = doc['docstring'].replace(
-                                              name_and_argspec, '', 1).lstrip()
+                                                     signature, '', 1).lstrip()
             else:
                 doc['argspec'] = '(...)'
         
@@ -185,6 +184,19 @@ def getsignaturefromtext(text, objname):
         return all_sigs[0]
     else:
         return ''
+
+
+def getargspecfromtext(text):
+    """
+    Try to get the formatted argspec of a callable from the first block of its
+    docstring
+    
+    This will return something like
+    '(foo, bar, k=1)'
+    """
+    blocks = text.split("\n\n")
+    first_block = blocks[0].strip()
+    return getsignaturefromtext(first_block, '')
 
 
 def getargsfromtext(text, objname):
