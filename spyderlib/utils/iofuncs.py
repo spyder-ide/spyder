@@ -25,7 +25,7 @@ import json
 from spyderlib.py3compat import pickle, to_text_string, getcwd
 
 
-class MatlabStruct(dict):
+class MatlabStruct(object):
     """
     Matlab style struct, enhanced.
 
@@ -33,8 +33,8 @@ class MatlabStruct(dict):
 
     Examples
     ========
-    >>> from oct2py import Struct
-    >>> a = Struct()
+    >>> from spyderlib.utils.iofuncs import MatlabStruct
+    >>> a = MatlabStruct()
     >>> a.b = 'spam'  # a["b"] == 'spam'
     >>> a.c["d"] = 'eggs'  # a.c.d == 'eggs'
     >>> print(a)
@@ -42,15 +42,30 @@ class MatlabStruct(dict):
 
     """
     def __getattr__(self, attr):
-        try:
-            return self[attr]
-        except KeyError:
+        """Dynamically add sub-structures, to mimic the Matlab behavior"""
+        if not attr in self.__dict__:
             if not attr.startswith('_'):
-                self[attr] = MatlabStruct()
-                return self[attr]
-    __setattr__ = dict.__setitem__
-    __delattr__ = dict.__delitem__
-
+                self.__dict__[attr] = MatlabStruct()
+            else:
+                return
+        return self.__dict__[attr]
+    
+    def __getitem__(self, attr):
+        """Dict-like getitem, to support `obj[key]`"""
+        return self.__dict__[attr]
+        
+    def __setitem__(self, attr, value):
+        """Dict-like setitem, to support `obj[key] = value`"""
+        self.__dict__[attr] = value
+        
+    def __delitem__(self, attr):
+        """Dict-like deltiem, to support `del obj[key]`"""
+        del self.__dict__[attr]
+        
+    def __repr__(self):
+        """Print as a dictionary"""
+        return repr(self.__dict__)
+        
 
 def get_matlab_value(val):
     """
