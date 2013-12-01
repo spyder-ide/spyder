@@ -341,6 +341,7 @@ class FileInfo(QObject):
 
         jedi = self.introspection_plugin.name == 'jedi'
 
+        textlist, completion_text = '', ''
         if not jedi and text.lstrip().startswith('import '):
             text = text.lstrip()
             textlist = module_completion(text, self.path)
@@ -365,9 +366,9 @@ class FileInfo(QObject):
             textlist = func(source_code, offset, self.filename)
             if textlist:
                 completion_text = re.split(r"[^a-zA-Z0-9_]", text)[-1]
-            if textlist:
-                self.editor.show_completion_list(textlist, completion_text,
-                                             automatic)
+        if textlist and completion_text:
+            self.editor.show_completion_list(textlist, completion_text,
+                                         automatic)
 
     def trigger_token_completion(self, automatic):
         '''Trigger a completion using tokens only'''
