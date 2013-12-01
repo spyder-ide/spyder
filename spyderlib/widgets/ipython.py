@@ -21,7 +21,6 @@ from spyderlib.qt.QtGui import (QTextEdit, QKeySequence, QShortcut, QWidget,
                                 QMenu, QHBoxLayout, QToolButton, QVBoxLayout,
                                 QMessageBox)
 from spyderlib.qt.QtCore import SIGNAL, Qt
-from spyderlib.utils.qthelpers import restore_keyevent
 
 # IPython imports
 try:  # 1.0
@@ -35,13 +34,15 @@ from spyderlib.baseconfig import (get_conf_path, get_image_path,
                                   get_module_source_path, _)
 from spyderlib.config import CONF
 from spyderlib.guiconfig import get_font
+from spyderlib.utils.dochelpers import getargspecfromtext, getsignaturefromtext
 from spyderlib.utils.qthelpers import (get_std_icon, create_toolbutton,
-                                       add_actions, create_action, get_icon)
+                                       add_actions, create_action, get_icon,
+                                       restore_keyevent)
 from spyderlib.utils import programs
+from spyderlib.widgets.browser import WebView
 from spyderlib.widgets.calltip import CallTipWidget
 from spyderlib.widgets.mixins import (BaseEditMixin, InspectObjectMixin,
                                       SaveHistoryMixin, TracebackLinksMixin)
-from spyderlib.widgets.browser import WebView
 
 #-----------------------------------------------------------------------------
 # Templates
@@ -322,8 +323,18 @@ These commands were executed:
                 call_info, doc = None, None
             else:
                 call_info, doc = call_tip(content, format_call=True)
+                if not call_info:
+                    name = content['name'].split('.')[-1]
+                    argspec = getargspecfromtext(doc)
+                    if argspec:
+                        # This covers cases like np.abs, whose docstring is
+                        # the same as np.absolute and because of that a proper
+                        # signature can't be obtained correctly
+                        call_info = name + argspec
+                    else:
+                        call_info = getsignaturefromtext(doc, name)
             if call_info:
-                self._control.show_calltip(_("Arguments"), [call_info],
+                self._control.show_calltip(_("Arguments"), call_info,
                                            signature=True, color='#2D62FF')
     
     #---- Qt methods ----------------------------------------------------------
