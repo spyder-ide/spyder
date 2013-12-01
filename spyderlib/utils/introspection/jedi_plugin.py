@@ -20,6 +20,7 @@ from spyderlib.baseconfig import _, debug_print
 from spyderlib.utils import programs
 from spyderlib.utils.debug import log_last_error, log_dt
 from spyderlib.utils.sourcecode import split_source
+from spyderlib.utils.dochelpers import getsignaturesfromtext
 from spyderlib.utils.introspection.base import (
     DEBUG_EDITOR, LOG_FILENAME, IntrospectionPlugin, fallback)
 
@@ -258,10 +259,8 @@ class JediPlugin(IntrospectionPlugin):
         if not mod_name:
             mod_name = call_def.module_name
         if call_def.doc.startswith(name + '('):
-            calltip = call_def.doc[:call_def.doc.find(')') + 1]
-            calltip = calltip.replace('\n', '')
-            calltip = calltip.replace(' ', '')
-            calltip = calltip.replace(',', ', ')
+            signatures = getsignaturesfromtext(call_def.doc, name)
+            calltip = signatures[0]
             argspec = calltip[calltip.find('('):]
             docstring = call_def.doc[call_def.doc.find(')') + 3:]
         else:
