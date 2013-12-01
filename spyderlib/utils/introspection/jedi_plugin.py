@@ -265,7 +265,7 @@ class JediPlugin(IntrospectionPlugin):
             argspec = calltip[calltip.find('('):]
             docstring = call_def.doc[call_def.doc.find(')') + 3:]
         else:
-            calltip = name + '()'
+            calltip = name + '(...)'
             argspec = '()'
             docstring = call_def.doc
         if call_def.type == 'module':
