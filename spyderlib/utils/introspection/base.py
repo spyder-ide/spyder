@@ -10,6 +10,7 @@ Introspection utilities used by Spyder
 from __future__ import print_function
 import imp
 import os
+import os.path as osp
 import re
 import time
 import functools
@@ -220,35 +221,35 @@ class IntrospectionPlugin(object):
                 _, path, _ = imp.find_module(tokens[1])
             except ImportError:
                 if alt_path:
-                    path = os.path.join(alt_path, tokens[1])
+                    path = osp.join(alt_path, tokens[1])
                 else:
                     path = None
             if path:
-                path = os.path.realpath(path)
+                path = osp.realpath(path)
                 if not tokens[1] == stop_token:
                     for part in tokens[2:]:
                         if part in ['import', 'cimport', 'as']:
                             break
-                        path = os.path.join(path, part)
+                        path = osp.join(path, part)
                         if part == stop_token:
                             break
                 # from package import module
                 if stop_token and not stop_token in path:
                     for ext in self.python_like_exts():
                         fname = '%s%s' % (stop_token, ext)
-                        if os.path.exists(os.path.join(path, fname)):
-                            return os.path.join(path, fname)
+                        if osp.exists(osp.join(path, fname)):
+                            return osp.join(path, fname)
                 # from module import name
                 for ext in self.python_like_exts():
                     fname = '%s%s' % (path, ext)
-                    if os.path.exists(fname):
+                    if osp.exists(fname):
                         return fname
                 # if it is a file, return it
-                if os.path.exists(path) and not os.path.isdir(path):
+                if osp.exists(path) and not osp.isdir(path):
                     return path
                 # default to the package file
-                path = os.path.join(path, '__init__.py')
-                if os.path.exists(path):
+                path = osp.join(path, '__init__.py')
+                if osp.exists(path):
                     return path
 
     def _get_definition_location_regex(self, source_code, offset, filename):
@@ -265,20 +266,20 @@ class IntrospectionPlugin(object):
                                                  len(lines))
         line = source_code.split(eol)[line_nr - 1].strip()
         exts = self.python_like_exts()
-        if not os.path.splitext(filename)[-1] in exts:
+        if not osp.splitext(filename)[-1] in exts:
             line_nr = self.get_definition_with_regex(source_code, token, 
                                                      line_nr)
             return filename, line_nr
         if line.startswith('import ') or line.startswith('from '):
-            alt_path = os.path.dirname(filename)
+            alt_path = osp.dirname(filename)
             source_file = self.python_like_mod_finder(line, alt_path=alt_path,
                                                  stop_token=token)
             if (not source_file or
-                    not os.path.splitext(source_file)[-1] in exts):
+                    not osp.splitext(source_file)[-1] in exts):
                 line_nr = self.get_definition_with_regex(source_code, token, 
                                                          line_nr)
                 return filename, line_nr
-            mod_name = os.path.basename(source_file).split('.')[0]
+            mod_name = osp.basename(source_file).split('.')[0]
             if mod_name == token or mod_name == '__init__':
                 return source_file, 1
             else:
@@ -360,18 +361,18 @@ class IntrospectionPlugin(object):
         e.g. '/usr/lib/python2.7/dist-packages/numpy/core/__init__.pyc' yields
         'numpy.core'
         """
-        dirname = os.path.dirname(path)
+        dirname = osp.dirname(path)
         try:
-            mod = os.path.basename(path)
-            mod = os.path.splitext(mod)[0]
+            mod = osp.basename(path)
+            mod = osp.splitext(mod)[0]
             imp.find_module(mod, [dirname])
         except ImportError:
             return
         items = [mod]
         while 1:
-            items.append(os.path.basename(dirname))
+            items.append(osp.basename(dirname))
             try:
-                dirname = os.path.dirname(dirname)
+                dirname = osp.dirname(dirname)
                 imp.find_module('__init__', [dirname + os.sep])
             except ImportError:
                 break
@@ -421,7 +422,7 @@ if __name__ == '__main__':
     path = p.python_like_mod_finder(line, stop_token='sourcecode')
     assert path.endswith('__init__.py') and 'sourcecode' in path
     
-    path = p.get_parent_until(os.path.expanduser(r'~/.spyder2/temp.py'))
+    path = p.get_parent_until(osp.expanduser(r'~/.spyder2/temp.py'))
     assert path == '.spyder2.temp'
     
     code = 'import re\n\nre'

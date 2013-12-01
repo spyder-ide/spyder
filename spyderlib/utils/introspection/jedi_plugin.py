@@ -9,6 +9,7 @@ Jedi Introspection Plugin
 """
 import re
 import os
+import os.path as osp
 import time
 import threading
 
@@ -310,13 +311,13 @@ class JediPlugin(IntrospectionPlugin):
         """Find a definition in a builtin file"""
         module_path = info['module_path']
         line_nr = info['line_nr']
-        ext = os.path.splitext(info['module_path'])[1]
+        ext = osp.splitext(info['module_path'])[1]
         desc = info['description']
         name = info['name']
         if ext in self.python_like_exts() and (
                 desc.startswith('import ') or desc.startswith('from ')):
             path = self.python_like_mod_finder(desc,
-                                          os.path.dirname(module_path), name)
+                                          osp.dirname(module_path), name)
             if path:
                 info['module_path'] = module_path = path
                 info['line_nr'] = line_nr = 1
