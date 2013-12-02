@@ -25,9 +25,9 @@ import json
 from spyderlib.py3compat import pickle, to_text_string, getcwd
 
 
-class MatlabStruct(object):
+class MatlabStruct(dict):
     """
-    Matlab style struct, enhanced.
+    Octave style struct, enhanced.
 
     Supports dictionary and attribute style access.
 
@@ -42,29 +42,22 @@ class MatlabStruct(object):
 
     """
     def __getattr__(self, attr):
-        """Dynamically add sub-structures, to mimic the Matlab behavior"""
-        if not attr in self.__dict__:
+        if attr.startswith('__'):
+            raise AttributeError
+        try:
+            return self[attr]
+        except KeyError:
             if not attr.startswith('_'):
-                self.__dict__[attr] = MatlabStruct()
+                self[attr] = MatlabStruct()
+                return self[attr]
             else:
-                return
-        return self.__dict__[attr]
+                return self.get(attr, None)
+    __setattr__ = dict.__setitem__
+    __delattr__ = dict.__delitem__
     
-    def __getitem__(self, attr):
-        """Dict-like getitem, to support `obj[key]`"""
-        return self.__dict__[attr]
-        
-    def __setitem__(self, attr, value):
-        """Dict-like setitem, to support `obj[key] = value`"""
-        self.__dict__[attr] = value
-        
-    def __delitem__(self, attr):
-        """Dict-like deltiem, to support `del obj[key]`"""
-        del self.__dict__[attr]
-        
-    def __repr__(self):
-        """Print as a dictionary"""
-        return repr(self.__dict__)
+    @property
+    def __dict__(self):
+        return dict(self.items())
         
 
 def get_matlab_value(val):
