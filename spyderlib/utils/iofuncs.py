@@ -27,10 +27,11 @@ from spyderlib.py3compat import pickle, to_text_string, getcwd
 
 class MatlabStruct(dict):
     """
-    Octave style struct, enhanced.
+    Matlab style struct, enhanced.
 
-    Supports dictionary and attribute style access.
-
+    Supports dictionary and attribute style access.  Can be pickled,
+    and supports code completion in a REPL.
+ 
     Examples
     ========
     >>> from spyderlib.utils.iofuncs import MatlabStruct
@@ -42,8 +43,12 @@ class MatlabStruct(dict):
 
     """
     def __getattr__(self, attr):
-        if attr.startswith('__'):
-            raise AttributeError
+        """
+        Allow attribute lookup that mimics dict.__getitem__
+        
+        Creates a child MatlabStruct if the attribute is not in our keys,
+        unless the attribute begins with an underscore.
+        """
         try:
             return self[attr]
         except KeyError:
@@ -51,13 +56,16 @@ class MatlabStruct(dict):
                 self[attr] = MatlabStruct()
                 return self[attr]
             else:
-                return self.get(attr, None)
+                msg = "'MatlabStruct' object has no attribute %s" % attr
+                raise AttributeError(msg)
+                
     __setattr__ = dict.__setitem__
     __delattr__ = dict.__delitem__
     
     @property
     def __dict__(self):
-        return dict(self.items())
+        """Allow for code completion in a REPL"""
+        return self.copy()
         
 
 def get_matlab_value(val):
@@ -525,3 +533,10 @@ if __name__ == "__main__":
     print("Data loaded in %.3f seconds" % (time.time()-t0))
 #    for key in example:
 #        print key, ":", example[key] == example2[key]
+
+    a = MatlabStruct()
+    a.b = 'spam'  
+    assert a["b"] == 'spam'
+    a.c["d"] = 'eggs'  
+    assert a.c.d == 'eggs'
+    assert a == {'c': {'d': 'eggs'}, 'b': 'spam'}
