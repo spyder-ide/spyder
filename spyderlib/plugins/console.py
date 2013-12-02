@@ -156,7 +156,7 @@ class Console(SpyderPluginWidget):
                             _("Wrap lines"),
                             toggled=self.toggle_wrap_mode)
         wrap_action.setChecked(self.get_option('wrap'))
-        calltips_action = create_action(self, _("Balloon tips"),
+        calltips_action = create_action(self, _("Display balloon tips"),
             toggled=self.toggle_calltips)
         calltips_action.setChecked(self.get_option('calltips'))
         codecompletion_action = create_action(self,
