@@ -47,7 +47,8 @@ def getobj(txt, last=False):
             return token
     except IndexError:
         return None
-    
+
+
 def getobjdir(obj):
     """
     For standard objects, will simply return dir(obj)
@@ -55,6 +56,7 @@ def getobjdir(obj):
     of result returned by dir(obj)
     """
     return [item for item in dir(obj) if is_text_string(item)]
+
 
 def getdoc(obj):
     """
@@ -118,12 +120,9 @@ def getdoc(obj):
                 doc['name'] = name + ' lambda '
                 doc['argspec'] = doc['argspec'][1:-1] # remove parentheses
         else:
-            # Try to extract the argspec from the first docstring line
-            docstring_lines = doc['docstring'].split("\n")
-            first_line = docstring_lines[0].strip()
-            argspec = getsignaturesfromtext(first_line, '')
+            argspec = getargspecfromtext(doc['docstring'])
             if argspec:
-                doc['argspec'] = argspec[0]
+                doc['argspec'] = argspec
                 # Many scipy and numpy docstrings begin with a function
                 # signature on the first line. This ends up begin redundant
                 # when we are using title and argspec to create the
@@ -133,10 +132,12 @@ def getdoc(obj):
                 # the non-whitespace characters on the first line 
                 # match *exactly* the combined function title 
                 # and argspec we determined above.
-                name_and_argspec = doc['name'] + doc['argspec']
-                if first_line == name_and_argspec:
+                signature = doc['name'] + doc['argspec']
+                docstring_blocks = doc['docstring'].split("\n\n")
+                first_block = docstring_blocks[0].strip()
+                if first_block == signature:
                     doc['docstring'] = doc['docstring'].replace(
-                                              name_and_argspec, '', 1).lstrip()
+                                                     signature, '', 1).lstrip()
             else:
                 doc['argspec'] = '(...)'
         
@@ -145,6 +146,7 @@ def getdoc(obj):
         doc['argspec'] = argspec.replace('(self)', '()').replace('(self, ', '(')
         
     return doc
+
 
 def getsource(obj):
     """Wrapper around inspect.getsource"""
@@ -161,28 +163,55 @@ def getsource(obj):
     except (TypeError, IOError):
         return
 
-def getsignaturesfromtext(text, objname):
+
+def getsignaturefromtext(text, objname):
     """Get object signatures from text (object documentation)
     Return a list containing a single string in most cases
     Example of multiple signatures: PyQt4 objects"""
-    #FIXME: the following regexp is not working with this example of docstring:
-    # QObject.connect(QObject, SIGNAL(), QObject, SLOT(), Qt.ConnectionType=Qt.AutoConnection) -> bool QObject.connect(QObject, SIGNAL(), callable, Qt.ConnectionType=Qt.AutoConnection) -> bool QObject.connect(QObject, SIGNAL(), SLOT(), Qt.ConnectionType=Qt.AutoConnection) -> bool
     if isinstance(text, dict):
         text = text.get('docstring', '')
-    return re.findall(objname+r'\([^\)]+\)', text)
+    # Regexps
+    oneline_re = objname + r'\([^\)].+?(?<=[\w\]\}\'"])\)(?!,)'
+    multiline_re = objname + r'\([^\)]+(?<=[\w\]\}\'"])\)(?!,)'
+    multiline_end_parenleft_re = r'(%s\([^\)]+(\),\n.+)+(?<=[\w\]\}\'"])\))'
+    # Grabbing signatures
+    sigs_1 = re.findall(oneline_re + '|' + multiline_re, text)
+    sigs_2 = [g[0] for g in re.findall(multiline_end_parenleft_re % objname, text)]
+    all_sigs = sigs_1 + sigs_2
+    # The most relevant signature is usually the first one. There could be
+    # others in doctests but those are not so important
+    if all_sigs:
+        return all_sigs[0]
+    else:
+        return ''
+
+
+def getargspecfromtext(text):
+    """
+    Try to get the formatted argspec of a callable from the first block of its
+    docstring
+    
+    This will return something like
+    '(foo, bar, k=1)'
+    """
+    blocks = text.split("\n\n")
+    first_block = blocks[0].strip()
+    return getsignaturefromtext(first_block, '')
+
 
 def getargsfromtext(text, objname):
     """Get arguments from text (object documentation)"""
-    signatures = getsignaturesfromtext(text, objname)
-    if signatures:
-        signature = signatures[0]
+    signature = getsignaturefromtext(text, objname)
+    if signature:
         argtxt = signature[signature.find('(')+1:-1]
         return argtxt.split(',')
+
 
 def getargsfromdoc(obj):
     """Get arguments from object doc"""
     if obj.__doc__ is not None:
         return getargsfromtext(obj.__doc__, obj.__name__)
+
 
 def getargs(obj):
     """Get the names and default values of a function's arguments"""
@@ -221,6 +250,7 @@ def getargs(obj):
         if 'self' in args:
             args.remove('self')
     return args
+
 
 def getargtxt(obj, one_arg_per_line=True):
     """
