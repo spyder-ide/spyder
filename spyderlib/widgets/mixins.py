@@ -24,7 +24,8 @@ from spyderlib.qt.QtCore import Qt, QPoint, QRegExp, SIGNAL
 from spyderlib.baseconfig import _
 from spyderlib.utils import encoding, sourcecode
 from spyderlib.utils.misc import get_error_match
-from spyderlib.utils.dochelpers import getobj
+from spyderlib.utils.dochelpers import (getobj, getargspecfromtext,
+                                        getsignaturefromtext)
 from spyderlib.py3compat import is_text_string, to_text_string, u
 
 
@@ -552,6 +553,7 @@ class InspectObjectMixin(object):
         """Show signature calltip and/or docstring in the Object Inspector"""
         text = to_text_string(text) # Useful only for ExternalShellBase
         
+        # Show docstring
         insp_enabled = self.inspector_enabled or force
         if force and self.inspector is not None:
             self.inspector.dockwidget.setVisible(True)
@@ -565,18 +567,34 @@ class InspectObjectMixin(object):
                             # top will automatically give it focus because of
                             # the visibility_changed signal, so we must give
                             # focus back to shell
+        
+        # Show calltip
         if call and self.calltips:
             # Display argument list if this is a function call
             iscallable = self.iscallable(text)
             if iscallable is not None:
                 if iscallable:
                     arglist = self.get_arglist(text)
+                    name =  text.split('.')[-1]
+                    argspec = signature = ''
                     if isinstance(arglist, bool):
                         arglist = []
                     if arglist:
-                        arglist = ''.join(arglist)
-                        name =  text.split('.')[-1]
-                        tiptext = name + '(' + arglist + ')'
+                        argspec = '(' + ''.join(arglist) + ')'
+                    else:
+                        doc = self.get__doc__(text)
+                        if doc is not None:
+                            # This covers cases like np.abs, whose docstring is
+                            # the same as np.absolute and because of that a
+                            # proper signature can't be obtained correctly
+                            argspec = getargspecfromtext(doc)
+                            if not argspec:
+                                signature = getsignaturefromtext(doc, name)
+                    if argspec or signature:
+                        if argspec:
+                            tiptext = name + argspec
+                        else:
+                            tiptext = signature
                         self.show_calltip(_("Arguments"), tiptext,
                                           signature=True, color='#2D62FF')
     
