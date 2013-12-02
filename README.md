@@ -121,7 +121,7 @@ greater than 2.6.
 
 * PyQt4 4.6+ or PySide 1.2.0+ (PyQt4 is recommended)
             
-#### Recommended modules
+### Recommended modules
 
 * Rope v0.9.2+ (editor code completion, calltips and go-to-definition)
 
@@ -140,7 +140,7 @@ greater than 2.6.
     In Ubuntu you need to install `ipython-qtconsole`, on Fedora
     `ipython-gui` and on Gentoo `ipython` with the `qt4` USE flag.
 	    
-#### Optional modules
+### Optional modules
 
 * Pygments (syntax highlighting for several file types).
 
