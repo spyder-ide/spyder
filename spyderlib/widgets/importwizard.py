@@ -482,16 +482,17 @@ class ImportWizard(QDialog):
         self.tab_widget.setTabEnabled(1, False)
         
         name_layout = QHBoxLayout()
+        name_label = QLabel(_("Variable Name"))
+        name_layout.addWidget(name_label)
+        
+        self.name_edt = QLineEdit()
+        self.name_edt.setMaximumWidth(200)
+        self.name_edt.setText(varname)
+        name_layout.addWidget(self.name_edt)
+        
         name_h_spacer = QSpacerItem(40, 20, 
                                     QSizePolicy.Expanding, QSizePolicy.Minimum)
         name_layout.addItem(name_h_spacer)
-        
-        name_label = QLabel(_("Name"))
-        name_layout.addWidget(name_label)
-        self.name_edt = QLineEdit()
-        self.name_edt.setMaximumWidth(100)
-        self.name_edt.setText(varname)
-        name_layout.addWidget(self.name_edt)
         
         btns_layout = QHBoxLayout()
         cancel_btn = QPushButton(_("Cancel"))
@@ -524,6 +525,8 @@ class ImportWizard(QDialog):
         layout.addWidget(self.tab_widget)
         layout.addLayout(btns_layout)
         self.setLayout(layout)
+        
+        self.setMinimumWidth(600)
 
     def _focus_tab(self, tab_idx):
         """Change tab focus"""
