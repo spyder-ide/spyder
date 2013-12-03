@@ -43,22 +43,23 @@ class MatlabStruct(dict):
 
     """
     def __getattr__(self, attr):
-        """
-        Allow attribute lookup that mimics dict.__getitem__
-        
-        Creates a child MatlabStruct if the attribute is not in our keys,
-        unless the attribute begins with an underscore.
-        """
+        """Access the dictionary keys for unknown attributes."""
         try:
             return self[attr]
         except KeyError:
-            if not attr.startswith('_'):
-                self[attr] = MatlabStruct()
-                return self[attr]
-            else:
-                msg = "'MatlabStruct' object has no attribute %s" % attr
-                raise AttributeError(msg)
-                
+            msg = "'MatlabStruct' object has no attribute %s" % attr
+            raise AttributeError(msg)
+    
+    def __getitem__(self, attr):
+        """
+        Get a dict value, or create a MatlabStruct.
+        
+        Do not create a key if the attribute starts with an underscore.
+        """
+        if not attr in self.keys() and not attr.startswith('_'):
+            dict.__setitem__(self, attr, MatlabStruct())
+        return dict.__getitem__(self, attr)
+        
     __setattr__ = dict.__setitem__
     __delattr__ = dict.__delitem__
     
