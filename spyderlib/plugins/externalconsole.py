@@ -141,7 +141,7 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                                'codecompletion/show_single')
         comp_enter_box = newcb(_("Enter key selects completion"),
                                'codecompletion/enter_key')
-        calltips_box = newcb(_("Balloon tips"), 'calltips')
+        calltips_box = newcb(_("Display balloon tips"), 'calltips')
         
         source_layout = QVBoxLayout()
         source_layout.addWidget(completion_box)

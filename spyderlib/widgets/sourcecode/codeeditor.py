@@ -2348,8 +2348,7 @@ class CodeEditor(TextEditBaseWidget):
                 self.insert_text(text)
             if (self.is_python() or self.is_cython()) and \
                self.get_text('sol', 'cursor') and self.calltips:
-                self.emit(SIGNAL('trigger_calltip_and_doc_rendering(int)'),
-                          position)
+                self.emit(SIGNAL('show_object_info(int)'), position)
         elif text in ('[', '{') and not self.has_selected_text() \
           and self.close_parentheses_enabled:
             s_trailing_text = self.get_text('cursor', 'eol').strip()
