@@ -8,7 +8,6 @@
 Source code text utilities
 """
 
-
 # Order is important:
 EOL_CHARS = (("\r\n", 'nt'), ("\n", 'posix'), ("\r", 'mac'))
 

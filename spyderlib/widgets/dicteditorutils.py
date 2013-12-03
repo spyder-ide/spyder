@@ -15,7 +15,6 @@ import re
 # Local imports
 from spyderlib.py3compat import (NUMERIC_TYPES, TEXT_TYPES,
                                  to_text_string, is_text_string)
-from spyderlib.utils.iofuncs import MatlabStruct
 
 #----Numpy arrays support
 class FakeObject(object):
@@ -201,8 +200,6 @@ def get_human_readable_type(item):
 def is_supported(value, check_all=False, filters=None, iterate=True):
     """Return True if the value is supported, False otherwise"""
     assert filters is not None
-    if isinstance(value, MatlabStruct):
-        return True
     if not is_editable_type(value):
         return False
     elif not isinstance(value, filters):

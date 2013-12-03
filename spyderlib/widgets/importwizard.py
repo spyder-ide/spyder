@@ -520,8 +520,6 @@ class ImportWizard(QDialog):
         layout.addWidget(self.tab_widget)
         layout.addLayout(btns_layout)
         self.setLayout(layout)
-        
-        self.setMinimumWidth(400)
 
     def _focus_tab(self, tab_idx):
         """Change tab focus"""

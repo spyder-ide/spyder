@@ -471,7 +471,7 @@ class NamespaceBrowser(QWidget):
                     return
 
             load_func = iofunctions.load_funcs[ext]
-
+                
             # 'import_wizard' (self.setup_io)
             if is_text_string(load_func):
                 # Import data with import wizard
