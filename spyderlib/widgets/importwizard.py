@@ -486,13 +486,8 @@ class ImportWizard(QDialog):
         name_layout.addWidget(name_label)
         
         self.name_edt = QLineEdit()
-        self.name_edt.setMaximumWidth(200)
         self.name_edt.setText(varname)
         name_layout.addWidget(self.name_edt)
-        
-        name_h_spacer = QSpacerItem(40, 20, 
-                                    QSizePolicy.Expanding, QSizePolicy.Minimum)
-        name_layout.addItem(name_h_spacer)
         
         btns_layout = QHBoxLayout()
         cancel_btn = QPushButton(_("Cancel"))
@@ -526,7 +521,7 @@ class ImportWizard(QDialog):
         layout.addLayout(btns_layout)
         self.setLayout(layout)
         
-        self.setMinimumWidth(600)
+        self.setMinimumWidth(400)
 
     def _focus_tab(self, tab_idx):
         """Change tab focus"""
