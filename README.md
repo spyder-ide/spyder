@@ -54,16 +54,16 @@ the `bootstrap` script (see next section).
 The easiest way to install Spyder is:
             
 * On Windows:
-  
+
     - Using one of our executable installers, which can be found
       [here](http://spyderlib.googlecode.com/downloads).
-    - Or using one of these Python scientific distributions:
+    - Or using one of these scientific Python distributions:
         1. [Python(x,y)](http://pythonxy.googlecode.com)
         2. [WinPython](http://code.google.com/p/winpython/)
         3. [Anaconda](http://continuum.io/downloads)
 
 * On Mac OSX:
-  
+
     - Using our DMG installer, which can be found
       [here](http://spyderlib.googlecode.com/downloads).
     - Using the [Anaconda Distribution](http://continuum.io/downloads).
@@ -82,7 +82,7 @@ You can also install Spyder from its zip source package. For that you need to
 download and uncompress the file called `spyder-x.y.z.zip`, which can be
 found [here](http://spyderlib.googlecode.com/downloads). Then you need to
 use the integrated `setup.py` script that comes with it and which is based
-on the Python standard library `distutils` module. with the following command:
+on the Python standard library `distutils` module, with the following command:
 
     python setup.py install
 
@@ -100,14 +100,15 @@ with this command
     pip install --upgrade spyder
 
 For more details on supported platforms, please go to
-<http://spyderlib.googlecode.com>.
+<http://pythonhosted.org/spyder/installation.html>.
 
 
 ## Dependencies
 
-*Imnportant note*: Most if not all the dependencies specified below come
-with the Python scientific distributions mentioned above so you don't need
-to install them separately.
+*Imnportant note*: Most if not all the dependencies listed below come
+with Python(x,y), WinPython and Anaconda, so you don't need to install
+them separately when installing one of these scientific Python
+distributions.
 
 ### Build dependencies
 
@@ -139,7 +140,7 @@ greater than 2.6.
 
     In Ubuntu you need to install `ipython-qtconsole`, on Fedora
     `ipython-gui` and on Gentoo `ipython` with the `qt4` USE flag.
-	    
+
 ### Optional modules
 
 * Pygments (syntax highlighting for several file types).
@@ -150,10 +151,10 @@ greater than 2.6.
 
 
 ## Running from source
-  
-It is possible to run Spyder directly from unpacked source folder 
-(i.e. without installation) using Spyder's bootstrap script like
-this
+
+It is possible to run Spyder directly (i.e. without installation)
+from the unpacked zip folder (see *Installing from source*) using
+Spyder's bootstrap script like this:
 
     python bootstrap.py
 
@@ -174,7 +175,7 @@ of the two external libraries included in the Windows installers
 Moreover, despite the fact that Spyder code base supports all Python
 architectures (32 and 64bit), the Windows installers will also target
 specific architectures because of a limitation of the way `distutils`
-works (see http://bugs.python.org/issue6792).
+works (see <http://bugs.python.org/issue6792>).
 
 Example of Spyder binary installers for Windows:
 
@@ -185,10 +186,14 @@ Example of Spyder binary installers for Windows:
 
 
 ## More information
+
+* For code development please go to
+
+    <https://bitbucket.org/spyder-ide/spyderlib/>
     
-* For downloads, bug reports and feature requests please go to
+* For bug reports and feature requests
            
-    <http://code.google.com/p/spyderlib/>
+    <http://code.google.com/p/spyderlib/issues>
 
 * For discussions and troubleshooting:
 
