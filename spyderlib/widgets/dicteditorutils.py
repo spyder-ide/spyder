@@ -16,6 +16,7 @@ import re
 from spyderlib.py3compat import (NUMERIC_TYPES, TEXT_TYPES,
                                  to_text_string, is_text_string)
 
+
 #----Numpy arrays support
 class FakeObject(object):
     """Fake class used in replacement of missing modules"""
