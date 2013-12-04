@@ -194,8 +194,6 @@ def check_version(actver, version, cmp_op):
 
     Distributed under the terms of the BSD License.
     """
-    if isinstance(actver, tuple):
-        actver = '.'.join([str(i) for i in actver])
     try:
         if cmp_op == '>':
             return LooseVersion(actver) > LooseVersion(version)

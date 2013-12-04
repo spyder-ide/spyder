@@ -26,6 +26,8 @@ from spyderlib.utils.introspection.base import (
 
 try:
     import jedi
+    if isinstance(jedi.__version__, tuple):
+        jedi.__version__ = '.'.join(str(i) for i in jedi.__version__)
 except ImportError:
     jedi = None
 
