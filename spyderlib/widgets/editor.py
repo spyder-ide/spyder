@@ -341,7 +341,7 @@ class FileInfo(QObject):
 
         jedi = self.introspection_plugin.name == 'jedi'
 
-        comp_list, completion_text = '', ''
+        comp_list = ''
         if not jedi and text.lstrip().startswith('import '):
             text = text.lstrip()
             comp_list = module_completion(text, self.path)
@@ -366,7 +366,7 @@ class FileInfo(QObject):
             comp_list = func(source_code, offset, self.filename)
             if comp_list:
                 completion_text = re.split(r"[^a-zA-Z0-9_]", text)[-1]
-        if comp_list and completion_text:
+        if comp_list:
             self.editor.show_completion_list(comp_list, completion_text,
                                          automatic)
 
