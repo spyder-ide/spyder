@@ -23,15 +23,17 @@ from spyderlib.utils import sourcecode
 from spyderlib.qt.QtGui import QApplication
 
 
-PLUGINS = ['jedi', 'rope']
+PLUGINS = ['jedi', 'rope', 'fallback']
 LOG_FILENAME = get_conf_path('introspection.log')
 DEBUG_EDITOR = DEBUG >= 3
     
     
-def get_plugin(editor_widget):
+def get_plugin(editor_widget, plugin_name='fallback'):
     """Get and load a plugin, checking in order of PLUGINS"""
     plugin = None
-    for plugin_name in PLUGINS:
+    if not plugin_name in PLUGINS:
+        raise AttributeError('%s not in available plugins' % plugin_name)
+    if not plugin_name == 'fallback':
         mod_name = plugin_name + '_plugin'
         try:
             mod = __import__('spyderlib.utils.introspection.' + mod_name,
@@ -42,8 +44,6 @@ def get_plugin(editor_widget):
         except Exception:
             if DEBUG_EDITOR:
                 log_last_error(LOG_FILENAME)
-        else:
-            break
     if not plugin:
         plugin = IntrospectionPlugin()
     debug_print('Instropection Plugin Loaded: %s' % plugin.name)
