@@ -57,6 +57,7 @@ class JediThread(QThread):
             with self.parent.jedi_lock:
                 self.sigMessageReady.emit('Jedi loading %s...' % module)
                 jedi.preload_module(module)
+                debug_print('jedi pre-loaded module %s' % module)
             time.sleep(0.01)
 
 
@@ -158,7 +159,8 @@ class JediPlugin(IntrospectionPlugin):
     def set_pref(self, name, value):
         """Set a plugin preference to a value"""
         if name == 'extension_modules':
-            self.extension_modules = value
+            mods = [m for m in value if m.count('.') <= 1]
+            self.extension_modules = mods
 
     # ---- Private API -------------------------------------------------------
 
@@ -182,11 +184,12 @@ class JediPlugin(IntrospectionPlugin):
             self.get_libs([default_qt, default_qt + '.QtCore',
                            default_qt + '.QtGui'])
             return
-        lines = [line for line in source.splitlines() if 'import' in line]
-        source = '\n'.join(lines)
+        lines = [line.strip() for line in source.splitlines() if 'import ' in line]
+        lines = [l for l in lines if (l.startswith('from ') or l.startswith('import '))]
+        imports = '\n'.join(lines)
         pattern = 'import {0}\W+|from {0}\W+'
         for lib in missing_libs:
-            if lib in source and re.search(pattern.format(lib), source):
+            if lib in imports and re.search(pattern.format(lib), source):
                 self.get_libs(lib)
                 return
 
