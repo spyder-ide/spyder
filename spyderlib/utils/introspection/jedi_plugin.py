@@ -158,8 +158,7 @@ class JediPlugin(IntrospectionPlugin):
     def set_pref(self, name, value):
         """Set a plugin preference to a value"""
         if name == 'extension_modules':
-            mods = [mod for mod in value if not '.' in mod]
-            self.extension_modules = mods
+            self.extension_modules = value
 
     # ---- Private API -------------------------------------------------------
 
@@ -183,9 +182,11 @@ class JediPlugin(IntrospectionPlugin):
             self.get_libs([default_qt, default_qt + '.QtCore',
                            default_qt + '.QtGui'])
             return
+        lines = [line for line in source.splitlines() if 'import' in line]
+        source = '\n'.join(lines)
         pattern = 'import {0}\W+|from {0}\W+'
         for lib in missing_libs:
-            if re.search(pattern.format(lib), source):
+            if lib in source and re.search(pattern.format(lib), source):
                 self.get_libs(lib)
                 return
 
