@@ -44,7 +44,7 @@ except ImportError:
     import builtins
     basestring = (str,)
     def execfile(filename, namespace):
-        if os.name == 'nt' and sys.version[0] == '3':
+        if os.name == 'nt':
             #python 3 under windows : open python3 source file correctly, whatever its encoding is
             exec(compile(open(filename, 'rb').read(), filename, 'exec'), namespace)
         else:
