@@ -155,8 +155,10 @@ def encode(text, orig_coding):
             return text.encode(coding), coding
         except (UnicodeError, LookupError):
             raise RuntimeError("Incorrect encoding (%s)" % coding)
-    if orig_coding and orig_coding.endswith('-default'):
+    if orig_coding and orig_coding.endswith('-default') or \
+      orig_coding.endswith('-guessed'):
         coding = orig_coding.replace("-default", "")
+        coding = orig_coding.replace("-guessed", "")
         try:
             return text.encode(coding), coding
         except (UnicodeError, LookupError):
