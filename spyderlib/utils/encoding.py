@@ -103,8 +103,8 @@ def get_coding(text):
     @param text text to inspect (string)
     @return coding string
     """
-    for line in to_text_string(text.splitlines()[:2]):
-        result = CODING_RE.search(line)
+    for line in text.splitlines()[:2]:
+        result = CODING_RE.search(to_text_string(line))
         if result:
             return result.group(1)
     return None
