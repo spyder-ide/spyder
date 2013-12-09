@@ -44,13 +44,9 @@ except ImportError:
     import builtins
     basestring = (str,)
     def execfile(filename, namespace):
-        if os.name == 'nt':
-            #open source file correctly, whatever its encoding is
-            exec(compile(open(filename, 'rb').read(), 
-			     filename, 'exec'), namespace)
-        else:
-            exec(compile(open(filename).read(), filename, 'exec'), namespace)
-
+        #open source file correctly, whatever its encoding is
+        exec(compile(open(filename, 'rb').read(), 
+			 filename, 'exec'), namespace)
 
 # Colorization of sys.stderr (standard Python interpreter)
 if os.environ.get("COLORIZE_SYS_STDERR", "").lower() == "true":
