@@ -20,9 +20,11 @@ import os.path as osp
 import shutil
 import warnings
 import json
+import inspect
+import dis
 
 # Local imports
-from spyderlib.py3compat import pickle, to_text_string, getcwd
+from spyderlib.py3compat import pickle, to_text_string, getcwd, PY2
 
 
 class MatlabStruct(dict):
@@ -52,14 +54,29 @@ class MatlabStruct(dict):
     
     def __getitem__(self, attr):
         """
-        Get a dict value, or create a MatlabStruct.
-        
+        Get a dict value; create a MatlabStruct if requesting a submember.
+
         Do not create a key if the attribute starts with an underscore.
         """
-        if not attr in self.keys() and not attr.startswith('_'):
+        if attr in self.keys() or attr.startswith('_'):
+            return dict.__getitem__(self, attr)
+        frame = inspect.currentframe()
+        # step into the function that called us
+        if frame.f_back.f_back and self._is_allowed(frame.f_back.f_back):
+            dict.__setitem__(self, attr, MatlabStruct())
+        elif self._is_allowed(frame.f_back):
             dict.__setitem__(self, attr, MatlabStruct())
         return dict.__getitem__(self, attr)
-        
+            
+    def _is_allowed(self, frame):
+        """Check for allowed op code in the calling frame"""
+        allowed = [dis.opmap['STORE_ATTR'], dis.opmap['LOAD_CONST'],
+                   dis.opmap['STOP_CODE']]
+        bytecode = frame.f_code.co_code
+        instruction = bytecode[frame.f_lasti + 3]
+        instruction = ord(instruction) if PY2 else instruction
+        return instruction in allowed
+
     __setattr__ = dict.__setitem__
     __delattr__ = dict.__delitem__
     
@@ -91,6 +108,8 @@ def get_matlab_value(val):
             val = val[0]
             if "'|O" in str(val.dtype) or "O'" in str(val.dtype):
                 val = get_matlab_value(val)
+            if isinstance(val, MatlabStruct):
+                return val
             if val.size == 1:
                 val = val.flatten()
     if val.dtype == np.object:
