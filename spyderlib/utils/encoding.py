@@ -163,8 +163,6 @@ def encode(text, orig_coding):
             return text.encode(coding), coding
         except (UnicodeError, LookupError):
             pass
-    if orig_coding == 'utf-8-guessed':
-        return text.encode('utf-8'), 'utf-8'
     
     # Try saving as ASCII
     try:
