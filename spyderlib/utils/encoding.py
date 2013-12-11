@@ -103,8 +103,8 @@ def get_coding(text):
     @param text text to inspect (string)
     @return coding string
     """
-    for line in to_text_string(text.splitlines()[:2]):
-        result = CODING_RE.search(line)
+    for line in text.splitlines()[:2]:
+        result = CODING_RE.search(to_text_string(line))
         if result:
             return result.group(1)
     return None
@@ -155,14 +155,14 @@ def encode(text, orig_coding):
             return text.encode(coding), coding
         except (UnicodeError, LookupError):
             raise RuntimeError("Incorrect encoding (%s)" % coding)
-    if orig_coding and orig_coding.endswith('-default'):
+    if orig_coding and orig_coding.endswith('-default') or \
+      orig_coding.endswith('-guessed'):
         coding = orig_coding.replace("-default", "")
+        coding = orig_coding.replace("-guessed", "")
         try:
             return text.encode(coding), coding
         except (UnicodeError, LookupError):
             pass
-    if orig_coding == 'utf-8-guessed':
-        return text.encode('utf-8'), 'utf-8'
     
     # Try saving as ASCII
     try:
