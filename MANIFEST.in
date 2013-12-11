@@ -6,7 +6,7 @@ include scripts/*
 include img_src/*.ico
 include img_src/spyder.png
 include MANIFEST.in
-include README
+include README.md
 include LICENSE
 include CHANGELOG
 include bootstrap.py
