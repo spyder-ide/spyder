@@ -599,7 +599,6 @@ class EditorStack(QWidget):
         self.codecompletion_enter_enabled = False
         self.calltips_enabled = True
         self.go_to_definition_enabled = True
-        self.jedi_plugin_enabled = False
         self.close_parentheses_enabled = True
         self.close_quotes_enabled = True
         self.add_colons_enabled = True
@@ -621,7 +620,7 @@ class EditorStack(QWidget):
         if ccs not in syntaxhighlighters.COLOR_SCHEME_NAMES:
             ccs = syntaxhighlighters.COLOR_SCHEME_NAMES[0]
         self.color_scheme = ccs
-        self.introspection_plugin = None
+        self.introspection_plugin = introspection.get_plugin(self)
         
         self.__file_status_flag = False
         
@@ -934,17 +933,6 @@ class EditorStack(QWidget):
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_go_to_definition_enabled(state)
-                
-    def set_jedi_plugin_enabled(self, state):
-        self.jedi_plugin_enabled = state
-        if state:
-            self.introspection_plugin = introspection.get_plugin(self, 'jedi')
-        else:
-            self.introspection_plugin = introspection.get_plugin(self, 'rope')
-        for finfo in self.data:
-            finfo.introspection_plugin = self.introspection_plugin
-        if self.get_current_finfo():
-            self.get_current_finfo().update_extension_modules()
         
     def set_close_parentheses_enabled(self, state):
         # CONF.get(self.CONF_SECTION, 'close_parentheses')

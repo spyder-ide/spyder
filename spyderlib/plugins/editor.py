@@ -16,7 +16,7 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QPrintDialog, QSplitter, QToolBar,
                                 QPrinter, QActionGroup, QInputDialog, QMenu,
                                 QAbstractPrintDialog, QGroupBox, QTabWidget,
                                 QLabel, QFontComboBox, QHBoxLayout,
-                                QKeySequence, QMessageBox)
+                                QKeySequence)
 from spyderlib.qt.QtCore import SIGNAL, QByteArray, Qt, Slot
 from spyderlib.qt.compat import to_qvariant, from_qvariant, getopenfilenames
 
@@ -27,7 +27,7 @@ import os.path as osp
 
 # Local imports
 from spyderlib.utils import encoding, sourcecode, codeanalysis
-from spyderlib.baseconfig import get_conf_path, _, debug_print
+from spyderlib.baseconfig import get_conf_path, _
 from spyderlib.config import CONF, EDIT_FILTERS, get_filter, EDIT_FILETYPES
 from spyderlib.guiconfig import get_color_scheme
 from spyderlib.utils import programs
@@ -167,15 +167,6 @@ class EditorConfigPage(PluginConfigPage):
                   tip=_("If this option is enabled, clicking on an object\n"
                         "name (left-click + Ctrl key) will go this object\n"
                         "definition (if resolved)."))
-            jedi_is_installed = programs.is_module_installed('jedi', '0.7.0')
-            if jedi_is_installed:
-                jedi_box = newcb(_("Use Jedi Plugin"), 'jedi_plugin', 
-                                 tip=_("Use (Experimental) jedi plugin for "
-                                        " enhanced:\n"
-                                       "calltips, code completion, and "
-                                       "go-to-definition"))
-                jedi_box.clicked.connect(self.show_jedi_warning)
-                self.jedi_box = jedi_box
         else:
             rope_label = QLabel(_("<b>Warning:</b><br>"
                                   "The Python module <i>rope</i> is not "
@@ -271,8 +262,6 @@ class EditorConfigPage(PluginConfigPage):
             introspection_layout.addWidget(show_single_box)
             introspection_layout.addWidget(comp_enter_box)
             introspection_layout.addWidget(gotodef_box)
-            if jedi_is_installed:
-                introspection_layout.addWidget(jedi_box)
         else:
             introspection_layout.addWidget(rope_label)
         introspection_group.setLayout(introspection_layout)
@@ -325,22 +314,7 @@ class EditorConfigPage(PluginConfigPage):
         vlayout = QVBoxLayout()
         vlayout.addWidget(tabs)
         self.setLayout(vlayout)
-        
-    def show_jedi_warning(self):
-        """Display a warning to the user before using Jedi"""
-        if not self.jedi_box.isChecked():
-            return
-        QMessageBox.critical(self, _('Experimental'),
-                    _("The Jedi Plugin is still experimental.<br>"
-                      "Jedi provides enhanced calltips, code completion, and "
-                      "go-to-definition,<br>"
-                      "but can be slow at first to load large libraries (such as Qt)<br>"
-                      "and can use a lot of memory when loading them (>1GB).<br><br>"
-                      "See the <a href=http://jedi.jedidjah.ch/en/latest/docs/features.html>"
-                      "Jedi Documentation</a><br>"
-                      "for a list of features to see if this tradeoff is "
-                      "acceptable."))
-                      
+                  
                       
 class Editor(SpyderPluginWidget):
     """
@@ -1101,7 +1075,6 @@ class Editor(SpyderPluginWidget):
             ('set_codecompletion_enter_enabled',    'codecompletion/enter_key'),
             ('set_calltips_enabled',                'calltips'),
             ('set_go_to_definition_enabled',        'go_to_definition'),
-            ('set_jedi_plugin_enabled',             'jedi_plugin'),
             ('set_close_parentheses_enabled',       'close_parentheses'),
             ('set_close_quotes_enabled',            'close_quotes'),
             ('set_add_colons_enabled',              'add_colons'),
@@ -2203,8 +2176,6 @@ class Editor(SpyderPluginWidget):
             calltips_o = self.get_option(calltips_n)
             gotodef_n = 'go_to_definition'
             gotodef_o = self.get_option(gotodef_n)
-            jedi_plugin_n = 'jedi_plugin'
-            jedi_plugin_o = self.get_option(jedi_plugin_n)
             closepar_n = 'close_parentheses'
             closepar_o = self.get_option(closepar_n)
             close_quotes_n = 'close_quotes'
@@ -2268,8 +2239,6 @@ class Editor(SpyderPluginWidget):
                     editorstack.set_calltips_enabled(calltips_o)
                 if gotodef_n in options:
                     editorstack.set_go_to_definition_enabled(gotodef_o)
-                if jedi_plugin_n in options:
-                    editorstack.set_jedi_plugin_enabled(jedi_plugin_o)
                 if closepar_n in options:
                     editorstack.set_close_parentheses_enabled(closepar_o)
                 if close_quotes_n in options:

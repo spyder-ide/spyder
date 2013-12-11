@@ -310,7 +310,6 @@ DEFAULTS = [
               'toolbox_panel': True,
               'calltips': True,
               'go_to_definition': True,
-              'jedi_plugin': False,
               'close_parentheses': True,
               'close_quotes': False,
               'add_colons': True,

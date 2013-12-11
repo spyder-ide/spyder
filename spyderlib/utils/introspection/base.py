@@ -28,12 +28,10 @@ LOG_FILENAME = get_conf_path('introspection.log')
 DEBUG_EDITOR = DEBUG >= 3
     
     
-def get_plugin(editor_widget, plugin_name='fallback'):
+def get_plugin(editor_widget):
     """Get and load a plugin, checking in order of PLUGINS"""
     plugin = None
-    if not plugin_name in PLUGINS:
-        raise AttributeError('%s not in available plugins' % plugin_name)
-    if not plugin_name == 'fallback':
+    for plugin_name in PLUGINS:
         mod_name = plugin_name + '_plugin'
         try:
             mod = __import__('spyderlib.utils.introspection.' + mod_name,
@@ -44,6 +42,8 @@ def get_plugin(editor_widget, plugin_name='fallback'):
         except Exception:
             if DEBUG_EDITOR:
                 log_last_error(LOG_FILENAME)
+        else:
+            break
     if not plugin:
         plugin = IntrospectionPlugin()
     debug_print('Instropection Plugin Loaded: %s' % plugin.name)
