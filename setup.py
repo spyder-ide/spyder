@@ -13,17 +13,29 @@ The Scientific PYthon Development EnviRonment
 
 from __future__ import print_function
 
-from distutils.core import setup
-from distutils.command.build import build
-from distutils.command.install import install
-from distutils.command.install_data import install_data
-
 import os
 import os.path as osp
 import subprocess
 import sys
 import re
 import shutil
+
+from distutils.core import setup
+from distutils.command.build import build
+from distutils.command.install_data import install_data
+
+# This is necessary to prevent an error while installing Spyder with pip
+# See http://stackoverflow.com/a/18961843/438386
+with_setuptools = False
+if 'USE_SETUPTOOLS' in os.environ or 'pip' in __file__:
+    try:
+        from setuptools.command.install import install
+        with_setuptools = True
+    except:
+        with_setuptools = False
+
+if not with_setuptools:
+    from distutils.command.install import install  # analysis:ignore
 
 
 def get_package_data(name, extlist):
