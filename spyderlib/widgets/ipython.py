@@ -38,7 +38,7 @@ from spyderlib.utils.dochelpers import getargspecfromtext, getsignaturefromtext
 from spyderlib.utils.qthelpers import (get_std_icon, create_toolbutton,
                                        add_actions, create_action, get_icon,
                                        restore_keyevent)
-from spyderlib.utils import programs
+from spyderlib.utils import programs, sourcecode
 from spyderlib.widgets.browser import WebView
 from spyderlib.widgets.calltip import CallTipWidget
 from spyderlib.widgets.mixins import (BaseEditMixin, InspectObjectMixin,
@@ -420,12 +420,12 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         self.shellwidget.executed.connect(self.auto_refresh_namespacebrowser)
     
     def show_kernel_error(self, error):
-        """Show kernel initialization errors in the client"""
-        # Remove explanation about how to kill the kernel
-        # (doesn't apply to us)
+        """Show kernel initialization errors in the client info widget"""
+        # Remove explanation about how to kill the kernel (doesn't apply to us)
         error = error.split('issues/2049')[-1]
-        error = error.replace('\n', '<br>')
         # Remove unneeded blank lines at the beginning
+        eol = sourcecode.get_eol_chars(error)
+        error = error.replace(eol, '<br>')
         while error.startswith('<br>'):
             error = error[4:]
         # Remove connection message
