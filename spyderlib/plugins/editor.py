@@ -314,8 +314,8 @@ class EditorConfigPage(PluginConfigPage):
         vlayout = QVBoxLayout()
         vlayout.addWidget(tabs)
         self.setLayout(vlayout)
-                  
-                      
+
+
 class Editor(SpyderPluginWidget):
     """
     Multi-file Editor widget
