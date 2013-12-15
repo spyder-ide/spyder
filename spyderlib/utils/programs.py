@@ -194,6 +194,8 @@ def check_version(actver, version, cmp_op):
 
     Distributed under the terms of the BSD License.
     """
+    if isinstance(actver, tuple):
+        actver = '.'.join([str(i) for i in actver])
     try:
         if cmp_op == '>':
             return LooseVersion(actver) > LooseVersion(version)
@@ -299,4 +301,4 @@ if __name__ == '__main__':
     print(shell_split('-q "d:\\Python de xxxx\\t.txt" -o -a'))
     print(is_module_installed('IPython', '>=0.12'))
     print(is_module_installed('IPython', '>=0.13;<1.0'))
-    print(is_module_installed('jedi', '>=0.9.0'))
+    print(is_module_installed('jedi', '>=0.7.0'))
