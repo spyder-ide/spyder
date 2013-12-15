@@ -17,6 +17,7 @@ import functools
 from collections import OrderedDict
 
 from spyderlib.baseconfig import DEBUG, get_conf_path, debug_print
+from spyderlib.py3compat import PY2
 from spyderlib.utils.debug import log_dt, log_last_error
 from spyderlib.utils import sourcecode
 
@@ -86,7 +87,10 @@ def fallback(func):
             return func(self, *args, **kwargs)
         except Exception:
             super_cls = super(self.__class__, self)
-            super_method = getattr(super_cls, func.func_name)
+            if PY2:
+                super_method = getattr(super_cls, func.func_name)
+            else:
+                super_method = getattr(super_cls, func.__name__)
             return super_method(*args, **kwargs)
     return inner
 
@@ -436,4 +440,8 @@ if __name__ == '__main__':
     code = 'self.sigMessageReady.emit; self.'
     comp = p.get_token_completion_list(code, len(code), None)
     assert comp == ['sigMessageReady']
+    
+    code = 'álfa;ál'
+    comp = p.get_token_completion_list(code, len(code), None)
+    print(comp)
     
