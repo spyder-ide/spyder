@@ -365,8 +365,12 @@ class FileInfo(QObject):
                 func = self.introspection_plugin.get_completion_list
             comp_list = func(source_code, offset, self.filename)
             if comp_list:
-                completion_text = re.findall(r"[\w]+", text, re.UNICODE)[-1]
+                completion_text = re.findall(r"[\w.]+", text, re.UNICODE)[-1]
+                if '.' in completion_text:
+                    completion_text = completion_text.split('.')[-1]
         if comp_list:
+            debug_print(completion_text)
+            debug_print(comp_list)
             self.editor.show_completion_list(comp_list, completion_text,
                                          automatic)
 
@@ -381,6 +385,22 @@ class FileInfo(QObject):
         # case, we don't want to force the object inspector to be visible, 
         # to avoid polluting the window layout
         source_code = self.get_source_code()
+        
+        # find the first preceding opening parens (keep track of closing parens)
+        if not source_code[position] == '(':
+            close_parens = 0
+            position -= 1
+            while position and not (source_code[position] == '(' and close_parens == 0):
+                if source_code[position] == ')':
+                    close_parens += 1
+                elif source_code[position] == '(' and close_parens:
+                    close_parens -= 1
+                position -= 1
+                if source_code[position] == '\n':
+                    break
+        if not position or not source_code[position] == '(':
+            return
+        
         offset = position
         
         func = self.introspection_plugin.get_calltip_and_docs

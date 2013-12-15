@@ -2219,6 +2219,30 @@ class CodeEditor(TextEditBaseWidget):
         elif key == Qt.Key_Tab:
             # Important note: <TAB> can't be called with a QShortcut because
             # of its singular role with respect to widget focus management
+            if not self.has_selected_text():
+                chars = self.get_text('sol', 'cursor')
+                if not chars.strip():
+                    self.indent_or_replace()
+                elif self.in_comment_or_string():
+                    self.do_token_completion()
+                elif chars.endswith('import ') or chars[-1] == '.':
+                    self.do_code_completion()
+                elif chars.split()[0] in ['from', 'import'] and not ';' in chars:
+                    self.do_code_completion()
+                elif chars[-1] in '(,' or chars.endswith(', '):
+                    position = self.get_position('cursor')
+                    self.do_calltip_and_doc_rendering(position)
+                elif chars.endswith(' '):
+                    self.indent_or_replace()
+                elif re.search(r"[^\d\W]\w*\Z", chars):
+                    self.do_code_completion()
+                elif not chars.endswith(','):
+                    self.indent_or_replace()
+                else:
+                    position = self.get_position('cursor')
+                    self.do_calltip_and_doc_rendering(position)
+            else:
+                self.indent_or_replace()
             self.indent_or_replace()
         elif key == Qt.Key_Backtab:
             # Backtab, i.e. Shift+<TAB>, could be treated as a QShortcut but
