@@ -34,7 +34,7 @@ from spyderlib.utils.dochelpers import getsignaturefromtext
 from spyderlib.utils import introspection
 from spyderlib.utils.introspection.module_completion import (
     module_completion, get_preferred_submodules)
-from spyderlib.baseconfig import _, DEBUG, STDOUT, STDERR
+from spyderlib.baseconfig import _, DEBUG, STDOUT, STDERR, debug_print
 from spyderlib.config import EDIT_FILTERS, EDIT_EXT, get_filter, EDIT_FILETYPES
 from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions,
                                        mimedata2url, get_filetype_icon,
@@ -365,7 +365,7 @@ class FileInfo(QObject):
                 func = self.introspection_plugin.get_completion_list
             comp_list = func(source_code, offset, self.filename)
             if comp_list:
-                completion_text = re.split(r"[^a-zA-Z0-9_]", text)[-1]
+                completion_text = re.findall(r"[\w]+", text, re.UNICODE)[-1]
         if comp_list:
             self.editor.show_completion_list(comp_list, completion_text,
                                          automatic)

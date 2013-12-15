@@ -169,8 +169,9 @@ class IntrospectionPlugin(object):
     @staticmethod
     def _token_based_completion(script, offset):
         """Simple completion based on python-like identifiers and whitespace"""
-        base = sourcecode.get_primary_at(script, offset)
-        tokens = sourcecode.get_identifiers(script)
+        base_tokens = split_words(script[:offset])
+        base = base_tokens[-1]
+        tokens = set(split_words(script))
         items = [item for item in tokens if
                  item.startswith(base) and len(item) > len(base)]
         if '.' in base:
@@ -399,6 +400,11 @@ class IntrospectionPlugin(object):
         return ['.' + ext for ext in exts]
 
 
+def split_words(string):
+    """Split a string into unicode-aware words"""
+    return re.findall(r"[\w.]+", string, re.UNICODE)
+    
+
 if __name__ == '__main__':
     p = IntrospectionPlugin()
     
@@ -441,7 +447,6 @@ if __name__ == '__main__':
     comp = p.get_token_completion_list(code, len(code), None)
     assert comp == ['sigMessageReady']
     
-    code = 'álfa;ál'
+    code = u'álfa;á'
     comp = p.get_token_completion_list(code, len(code), None)
-    print(comp)
-    
+    assert comp == [u'álfa']
