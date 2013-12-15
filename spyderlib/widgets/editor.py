@@ -29,11 +29,12 @@ import re
 import os.path as osp
 
 # Local imports
-from spyderlib.utils import encoding, sourcecode, programs, codeanalysis
+from spyderlib.utils import encoding, sourcecode, codeanalysis
 from spyderlib.utils.dochelpers import getsignaturefromtext
-from spyderlib.utils.module_completion import (module_completion,
-                                               get_preferred_submodules)
-from spyderlib.baseconfig import _, DEBUG, STDOUT, STDERR
+from spyderlib.utils import introspection
+from spyderlib.utils.introspection.module_completion import (
+    module_completion, get_preferred_submodules)
+from spyderlib.baseconfig import _, DEBUG, STDOUT, STDERR, debug_print
 from spyderlib.config import EDIT_FILTERS, EDIT_EXT, get_filter, EDIT_FILETYPES
 from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions,
                                        mimedata2url, get_filetype_icon,
@@ -283,7 +284,8 @@ class ThreadManager(QObject):
 
 class FileInfo(QObject):
     """File properties"""
-    def __init__(self, filename, encoding, editor, new, threadmanager):
+    def __init__(self, filename, encoding, editor, new, threadmanager,
+                 introspection_plugin):
         QObject.__init__(self)
         self.threadmanager = threadmanager
         self.filename = filename
@@ -292,19 +294,23 @@ class FileInfo(QObject):
         self.editor = editor
         self.path = []
         self.submods_thread = GetSubmodulesThread()
-        self.rope_project = codeeditor.get_rope_project()
+        self.introspection_plugin = introspection_plugin
+
         self.classes = (filename, None, None)
         self.analysis_results = []
         self.todo_results = []
         self.lastmodified = QFileInfo(filename).lastModified()
 
-        self.connect(editor, SIGNAL('trigger_code_completion(bool)'),
+        self.connect(editor, SIGNAL('trigger_code_completion(bool)'),                     
                      self.trigger_code_completion)
-        self.connect(editor, SIGNAL('show_object_info(int)'), 
+        self.connect(editor, SIGNAL('trigger_token_completion(bool)'),
+                     self.trigger_token_completion)
+        self.connect(editor, SIGNAL('show_object_info(int)'),
                      self.show_object_info)
         self.connect(editor, SIGNAL("go_to_definition(int)"),
                      self.go_to_definition)
-        
+        self.connect(editor, SIGNAL("go_to_definition_regex(int)"),
+                     self.go_to_definition_regex)
         self.connect(editor, SIGNAL('textChanged()'),
                      self.text_changed)
         
@@ -319,32 +325,31 @@ class FileInfo(QObject):
         self.submods_thread.start()
     
     def update_extension_modules(self):
-        self.rope_project.set_pref('extension_modules',
+        self.introspection_plugin.set_pref('extension_modules',
                                    self.submods_thread.submods)
     
     def text_changed(self):
         """Editor's text has changed"""
         self.emit(SIGNAL('text_changed_at(QString,int)'),
                   self.filename, self.editor.get_position('cursor'))
-        
-    def trigger_code_completion(self, automatic):
+
+    def trigger_code_completion(self, automatic, token_based=False):
         """Trigger code completion"""
         source_code = self.get_source_code()
         offset = self.editor.get_position('cursor')
         text = self.editor.get_text('sol', 'cursor')
-        
-        if text.lstrip().startswith('import '):
+
+        jedi = self.introspection_plugin.name == 'jedi'
+
+        comp_list = ''
+        if not jedi and text.lstrip().startswith('import '):
             text = text.lstrip()
             comp_list = module_completion(text, self.path)
             words = text.split(' ')
             if ',' in words[-1]:
                 words = words[-1].split(',')
-            if comp_list:
-                self.editor.show_completion_list(comp_list,
-                                                 completion_text=words[-1],
-                                                 automatic=automatic)
-            return
-        elif text.lstrip().startswith('from '):
+            completion_text = words[-1]
+        elif not jedi and text.lstrip().startswith('from '):
             text = text.lstrip()
             comp_list = module_completion(text, self.path)
             words = text.split(' ')
@@ -352,20 +357,25 @@ class FileInfo(QObject):
                 words = words[:-2] + words[-1].split('(')
             if ',' in words[-1]:
                 words = words[:-2] + words[-1].split(',')
-            self.editor.show_completion_list(comp_list,
-                                             completion_text=words[-1],
-                                             automatic=automatic)
-            return
+            completion_text = words[-1]
         else:
-            textlist = self.rope_project.get_completion_list(source_code,
-                                                             offset,
-                                                             self.filename)
-            if textlist:
-                completion_text = re.split(r"[^a-zA-Z0-9_]", text)[-1]
-                self.editor.show_completion_list(textlist, completion_text,
-                                                 automatic)
-                return
-        
+            if token_based:
+                func = self.introspection_plugin.get_token_completion_list
+            else:
+                func = self.introspection_plugin.get_completion_list
+            comp_list = func(source_code, offset, self.filename)
+            if comp_list:
+                completion_text = re.findall(r"[\w.]+", text, re.UNICODE)[-1]
+                if '.' in completion_text:
+                    completion_text = completion_text.split('.')[-1]
+        if comp_list:
+            self.editor.show_completion_list(comp_list, completion_text,
+                                         automatic)
+
+    def trigger_token_completion(self, automatic):
+        '''Trigger a completion using tokens only'''
+        self.trigger_code_completion(automatic, token_based=True)
+
     def show_object_info(self, position, auto=True):
         """Show signature calltip and/or docstring in the Object Inspector"""
         # auto is True means that this method was called automatically,
@@ -375,8 +385,8 @@ class FileInfo(QObject):
         source_code = self.get_source_code()
         offset = position
         
-        helplist = self.rope_project.get_calltip_and_docs(source_code, offset,
-                                                          self.filename)
+        func = self.introspection_plugin.get_calltip_and_docs
+        helplist = func(source_code, offset, self.filename)
         if not helplist:
             return
         obj_fullname = ''
@@ -396,7 +406,7 @@ class FileInfo(QObject):
                     # the following attempt may succeed:
                     signature = getsignaturefromtext(doc_text, obj_name)
         if not obj_fullname:
-            obj_fullname = codeeditor.get_primary_at(source_code, offset)
+            obj_fullname = sourcecode.get_primary_at(source_code, offset)
         if obj_fullname and not obj_fullname.startswith('self.') and doc_text:
             # doc_text was generated by utils.dochelpers.getdoc
             if type(doc_text) is dict:
@@ -423,17 +433,24 @@ class FileInfo(QObject):
         if signature:
             self.editor.show_calltip('Arguments', signature, signature=True,
                                      at_position=position)
-                    
-    def go_to_definition(self, position):
+
+    def go_to_definition(self, position, regex=False):
         """Go to definition"""
         source_code = self.get_source_code()
         offset = position
-        fname, lineno = self.rope_project.get_definition_location(source_code,
-                                                    offset, self.filename)
+        if regex:
+            func = self.introspection_plugin.get_definition_location_regex
+        else:
+            func = self.introspection_plugin.get_definition_location
+        fname, lineno = func(source_code, offset, self.filename)
         if fname is not None and lineno is not None:
             self.emit(SIGNAL("edit_goto(QString,int,QString)"),
                       fname, lineno, "")
-    
+
+    def go_to_definition_regex(self, position):
+        """Go to definition using regex lookups"""
+        self.go_to_definition(position, regex=True)
+
     def get_source_code(self):
         """Return associated editor source code"""
         return to_text_string(self.editor.toPlainText())
@@ -605,6 +622,7 @@ class EditorStack(QWidget):
         if ccs not in syntaxhighlighters.COLOR_SCHEME_NAMES:
             ccs = syntaxhighlighters.COLOR_SCHEME_NAMES[0]
         self.color_scheme = ccs
+        self.introspection_plugin = introspection.get_plugin(self)
         
         self.__file_status_flag = False
         
@@ -636,7 +654,7 @@ class EditorStack(QWidget):
                               lambda: self.emit(SIGNAL('zoom_in()')))
         self.zoomoutsc = newsc(QKeySequence.ZoomOut,
                                lambda: self.emit(SIGNAL('zoom_out()')))
-        
+
     def get_shortcut_data(self):
         """
         Returns shortcut data, a list of tuples (shortcut, text, default)
@@ -756,7 +774,7 @@ class EditorStack(QWidget):
             
     def inspect_current_object(self):
         """Inspect current object in Object Inspector"""
-        if programs.is_module_installed('rope'):
+        if self.introspection_plugin:
             editor = self.get_current_editor()
             position = editor.get_position('cursor')
             finfo = self.get_current_finfo()
@@ -917,7 +935,7 @@ class EditorStack(QWidget):
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_go_to_definition_enabled(state)
-                
+        
     def set_close_parentheses_enabled(self, state):
         # CONF.get(self.CONF_SECTION, 'close_parentheses')
         self.close_parentheses_enabled = state
@@ -1385,7 +1403,7 @@ class EditorStack(QWidget):
             finfo.editor.document().setModified(False)
             self.modification_changed(index=index)
             self.analyze_script(index)
-            codeeditor.validate_rope_project()
+            self.introspection_plugin.validate()
             
             #XXX CodeEditor-only: re-scan the whole text to rebuild outline 
             # explorer data from scratch (could be optimized because 
@@ -1739,7 +1757,7 @@ class EditorStack(QWidget):
         finfo.editor.set_text(txt)
         finfo.editor.document().setModified(False)
         finfo.editor.set_cursor_position(position)
-        codeeditor.validate_rope_project()
+        self.introspection_plugin.validate()
 
         #XXX CodeEditor-only: re-scan the whole text to rebuild outline 
         # explorer data from scratch (could be optimized because 
@@ -1772,7 +1790,8 @@ class EditorStack(QWidget):
         Returns finfo object (instead of editor as in previous releases)
         """
         editor = codeeditor.CodeEditor(self)
-        finfo = FileInfo(fname, enc, editor, new, self.threadmanager)
+        finfo = FileInfo(fname, enc, editor, new, self.threadmanager,
+                         self.introspection_plugin)
         self.add_to_data(finfo, set_current)
         self.connect(finfo, SIGNAL(
                     "send_to_inspector(QString,QString,QString,QString,bool)"),
@@ -1873,7 +1892,7 @@ class EditorStack(QWidget):
                 docstring = to_text_string(qstr4)
                 doc = {'obj_text': objtxt, 'name': name, 'argspec': argspec,
                        'note': note, 'docstring': docstring}
-                self.inspector.set_rope_doc(doc, force_refresh=force)
+                self.inspector.set_editor_doc(doc, force_refresh=force)
             editor = self.get_current_editor()
             editor.setFocus()
     

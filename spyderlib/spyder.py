@@ -140,7 +140,7 @@ from spyderlib.userconfig import NoDefault
 from spyderlib.utils import encoding, programs
 from spyderlib.utils.iofuncs import load_session, save_session, reset_session
 from spyderlib.utils.programs import is_module_installed
-from spyderlib.utils import module_completion
+from spyderlib.utils.introspection import module_completion
 from spyderlib.utils.misc import select_port
 from spyderlib.py3compat import (PY3, to_text_string, is_text_string, getcwd,
                                  u, qbytearray_to_str, configparser as cp)
