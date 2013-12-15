@@ -34,7 +34,7 @@ from spyderlib.utils.dochelpers import getsignaturefromtext
 from spyderlib.utils import introspection
 from spyderlib.utils.introspection.module_completion import (
     module_completion, get_preferred_submodules)
-from spyderlib.baseconfig import _, DEBUG, STDOUT, STDERR
+from spyderlib.baseconfig import _, DEBUG, STDOUT, STDERR, debug_print
 from spyderlib.config import EDIT_FILTERS, EDIT_EXT, get_filter, EDIT_FILETYPES
 from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions,
                                        mimedata2url, get_filetype_icon,
@@ -401,6 +401,7 @@ class FileInfo(QObject):
             position -= 1
                 
         offset = position
+
         func = self.introspection_plugin.get_calltip_and_docs
         helplist = func(source_code, offset, self.filename)
         if not helplist:
