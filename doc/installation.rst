@@ -256,7 +256,7 @@ If you want to try the next Spyder version, you have to:
 
 #. Clone the Spyder source code repository with the command:
 
-   ``hg clone https://spyderlib.googlecode.com/hg/ spyder``
+   ``hg clone https://bitbucket.org/spyder-ide/spyderlib``
 
 #. To keep your repository up-to-date, run
 

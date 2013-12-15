@@ -445,14 +445,8 @@ class MainWindow(QMainWindow):
         self.setWindowIcon(get_icon(icon_name, resample=os.name != 'nt'))
         
         # Showing splash screen
-        pixmap = QPixmap(get_image_path('splash.png'), 'png')
-        self.splash = QSplashScreen(pixmap)
-        font = self.splash.font()
-        font.setPixelSize(10)
-        self.splash.setFont(font)
+        self.splash = SPLASH
         if not self.light:
-            self.splash.show()
-            self.set_splash(_("Initializing..."))
             if CONF.get('main', 'current_version', '') != __version__:
                 CONF.set('main', 'current_version', __version__)
                 # Execute here the actions to be performed only once after
@@ -1105,7 +1099,6 @@ class MainWindow(QMainWindow):
         self.debug_print("Setting up window...")
         self.setup_layout(default=False)
         
-        SPLASH.hide()
         self.splash.hide()
         
         # Enabling tear off for all menus except help menu
