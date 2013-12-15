@@ -34,7 +34,7 @@ from spyderlib.utils.dochelpers import getsignaturefromtext
 from spyderlib.utils import introspection
 from spyderlib.utils.introspection.module_completion import (
     module_completion, get_preferred_submodules)
-from spyderlib.baseconfig import _, DEBUG, STDOUT, STDERR, debug_print
+from spyderlib.baseconfig import _, DEBUG, STDOUT, STDERR
 from spyderlib.config import EDIT_FILTERS, EDIT_EXT, get_filter, EDIT_FILETYPES
 from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions,
                                        mimedata2url, get_filetype_icon,
@@ -369,8 +369,6 @@ class FileInfo(QObject):
                 if '.' in completion_text:
                     completion_text = completion_text.split('.')[-1]
         if comp_list:
-            debug_print(completion_text)
-            debug_print(comp_list)
             self.editor.show_completion_list(comp_list, completion_text,
                                          automatic)
 
@@ -385,9 +383,9 @@ class FileInfo(QObject):
         # case, we don't want to force the object inspector to be visible, 
         # to avoid polluting the window layout
         source_code = self.get_source_code()
-        
         # find the first preceding opening parens (keep track of closing parens)
-        if not source_code[position] == '(':
+        orig_pos = position
+        if not position or not source_code[position - 1] == '(':
             close_parens = 0
             position -= 1
             while position and not (source_code[position] == '(' and close_parens == 0):
@@ -397,12 +395,12 @@ class FileInfo(QObject):
                     close_parens -= 1
                 position -= 1
                 if source_code[position] == '\n':
+                    position = orig_pos
                     break
-        if not position or not source_code[position] == '(':
-            return
-        
+        if position and source_code[position - 1] == '(':
+            position -= 1
+                
         offset = position
-        
         func = self.introspection_plugin.get_calltip_and_docs
         helplist = func(source_code, offset, self.filename)
         if not helplist:

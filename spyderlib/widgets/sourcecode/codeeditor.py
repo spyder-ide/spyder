@@ -1089,10 +1089,9 @@ class CodeEditor(TextEditBaseWidget):
         """Trigger go-to-definition"""
         self.emit(SIGNAL("go_to_definition(int)"), self.textCursor().position())
 
-    def do_calltip_and_doc_rendering(self, position):
+    def show_object_info(self, position):
         """Trigger a calltip"""
-        self.emit(SIGNAL('trigger_calltip_and_doc_rendering(int)'),
-                          position)
+        self.emit(SIGNAL('show_object_info(int)'), position)
 
     #-----edge line
     def set_edge_line_enabled(self, state):
@@ -2161,8 +2160,7 @@ class CodeEditor(TextEditBaseWidget):
                 self.insert_text(text)
             if (self.is_python_like()) and \
                self.get_text('sol', 'cursor') and self.calltips:
-                self.emit(SIGNAL('show_object_info(int)'), position)
-
+                   self.show_object_info(position)
         elif text in ('[', '{') and not self.has_selected_text() \
           and self.close_parentheses_enabled:
             s_trailing_text = self.get_text('cursor', 'eol').strip()
@@ -2221,29 +2219,39 @@ class CodeEditor(TextEditBaseWidget):
             # of its singular role with respect to widget focus management
             if not self.has_selected_text():
                 chars = self.get_text('sol', 'cursor')
-                if not chars.strip():
+                if not chars.strip(): 
+                    # blank line
                     self.indent_or_replace()
-                elif self.in_comment_or_string():
+                elif self.in_comment_or_string() and not chars.endswith(' '):
+                    # in a word in a comment
                     self.do_token_completion()
                 elif chars.endswith('import ') or chars[-1] == '.':
+                    # blank import or dot completion
                     self.do_code_completion()
                 elif chars.split()[0] in ['from', 'import'] and not ';' in chars:
+                    # import line with a single statement
+                    #  (prevents lines like: `import pdb; pdb.set_trace()`)
                     self.do_code_completion()
                 elif chars[-1] in '(,' or chars.endswith(', '):
+                    # retrigger calltip if in a function call
                     position = self.get_position('cursor')
-                    self.do_calltip_and_doc_rendering(position)
+                    self.show_object_info(position)
                 elif chars.endswith(' '):
+                    # if the line ends with a space, indent
                     self.indent_or_replace()
-                elif re.search(r"[^\d\W]\w*\Z", chars):
+                elif re.search(r"[^\d\W]\w*\Z", chars, re.UNICODE):
+                    # if the line ends with a non-whitespace character
                     self.do_code_completion()
                 elif not chars.endswith(','):
+                    # if the line ends with any other character but comma
                     self.indent_or_replace()
                 else:
+                    # catch-all for commas - retrigger calltip
                     position = self.get_position('cursor')
-                    self.do_calltip_and_doc_rendering(position)
+                    self.show_object_info(position)
             else:
+                # indent the selected text
                 self.indent_or_replace()
-            self.indent_or_replace()
         elif key == Qt.Key_Backtab:
             # Backtab, i.e. Shift+<TAB>, could be treated as a QShortcut but
             # there is no point since <TAB> can't (see above)
