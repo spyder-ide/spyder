@@ -140,7 +140,7 @@ from spyderlib.userconfig import NoDefault
 from spyderlib.utils import encoding, programs
 from spyderlib.utils.iofuncs import load_session, save_session, reset_session
 from spyderlib.utils.programs import is_module_installed
-from spyderlib.utils import module_completion
+from spyderlib.utils.introspection import module_completion
 from spyderlib.utils.misc import select_port
 from spyderlib.py3compat import (PY3, to_text_string, is_text_string, getcwd,
                                  u, qbytearray_to_str, configparser as cp)
@@ -445,14 +445,8 @@ class MainWindow(QMainWindow):
         self.setWindowIcon(get_icon(icon_name, resample=os.name != 'nt'))
         
         # Showing splash screen
-        pixmap = QPixmap(get_image_path('splash.png'), 'png')
-        self.splash = QSplashScreen(pixmap)
-        font = self.splash.font()
-        font.setPixelSize(10)
-        self.splash.setFont(font)
+        self.splash = SPLASH
         if not self.light:
-            self.splash.show()
-            self.set_splash(_("Initializing..."))
             if CONF.get('main', 'current_version', '') != __version__:
                 CONF.set('main', 'current_version', __version__)
                 # Execute here the actions to be performed only once after
@@ -1105,7 +1099,6 @@ class MainWindow(QMainWindow):
         self.debug_print("Setting up window...")
         self.setup_layout(default=False)
         
-        SPLASH.hide()
         self.splash.hide()
         
         # Enabling tear off for all menus except help menu

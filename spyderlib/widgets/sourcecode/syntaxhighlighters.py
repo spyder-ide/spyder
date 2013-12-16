@@ -524,6 +524,18 @@ class CythonSH(PythonSH):
 
 
 #==============================================================================
+# Enaml syntax highlighter
+#==============================================================================
+class EnamlSH(PythonSH):
+    """Enaml Syntax Highlighter"""
+    ADDITIONAL_KEYWORDS = ["enamldef", "template", "attr", "event", "const", "alias"]
+    ADDITIONAL_BUILTINS = []
+    PROG = re.compile(make_python_patterns(ADDITIONAL_KEYWORDS,
+                                           ADDITIONAL_BUILTINS), re.S)
+    IDPROG = re.compile(r"\s+([\w\.]+)", re.S)
+
+
+#==============================================================================
 # C/C++ syntax highlighter
 #==============================================================================
 C_KEYWORDS1 = 'and and_eq bitand bitor break case catch const const_cast continue default delete do dynamic_cast else explicit export extern for friend goto if inline namespace new not not_eq operator or or_eq private protected public register reinterpret_cast return sizeof static static_cast switch template throw try typedef typeid typename union using virtual while xor xor_eq'

@@ -47,6 +47,7 @@ from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
                                        mimedata2url, get_icon)
 from spyderlib.utils.dochelpers import getobj
 from spyderlib.utils import encoding, sourcecode
+from spyderlib.utils.sourcecode import ALL_LANGUAGES
 from spyderlib.utils.debug import log_last_error, log_dt
 from spyderlib.widgets.editortools import PythonCFM
 from spyderlib.widgets.sourcecode.base import TextEditBaseWidget
@@ -56,199 +57,8 @@ from spyderlib import dependencies
 
 #%% This line is for cell execution testing
 # For debugging purpose:
-LOG_FILENAME = get_conf_path('rope.log')
-
+LOG_FILENAME = get_conf_path('codeeditor.log')
 DEBUG_EDITOR = DEBUG >= 3
-
-
-#===============================================================================
-# Code introspection features: rope integration
-#===============================================================================
-ROPE_REQVER = '>=0.9.2'
-dependencies.add('rope',
-                 _("Editor's code completion, go-to-definition and help"),
-                 required_version=ROPE_REQVER)
-
-try:
-    try:
-        from spyderlib import rope_patch
-        rope_patch.apply()
-    except ImportError:
-        # rope 0.9.2/0.9.3 is not installed
-        pass
-    import rope.base.libutils
-    import rope.contrib.codeassist
-except ImportError:
-    pass
-
-
-#TODO: The following preferences should be customizable in the future
-ROPE_PREFS = {'ignore_syntax_errors': True,
-              'ignore_bad_imports': True,
-              'soa_followed_calls': 2,
-              'extension_modules': [],
-              }
-
-
-class RopeProject(object):
-    def __init__(self):
-        self.project = None
-        self.create_rope_project(root_path=get_conf_path())
-
-    #------rope integration
-    def create_rope_project(self, root_path):
-        if PY2:
-            root_path = encoding.to_fs_from_unicode(root_path)
-        else:
-            #TODO: test if this is working without any further change in 
-            # Python 3 with a user account containing unicode characters
-            pass
-        try:
-            import rope.base.project
-            self.project = rope.base.project.Project(root_path, **ROPE_PREFS)
-        except ImportError:
-            self.project = None
-            if DEBUG_EDITOR:
-                log_last_error(LOG_FILENAME,
-                               "create_rope_project: %r" % root_path)
-        except TypeError:
-            # Compatibility with new Mercurial API (>= 1.3).
-            # New versions of rope (> 0.9.2) already handle this issue
-            self.project = None
-            if DEBUG_EDITOR:
-                log_last_error(LOG_FILENAME,
-                               "create_rope_project: %r" % root_path)
-        self.validate_rope_project()
-
-    def close_rope_project(self):
-        if self.project is not None:
-            self.project.close()
-
-    def validate_rope_project(self):
-        if self.project is not None:
-            self.project.validate(self.project.root)
-
-    def set_pref(self, key, value):
-        if self.project is not None:
-            self.project.prefs.set(key, value)
-
-    def get_completion_list(self, source_code, offset, filename):
-        if self.project is None:
-            return []
-        if PY2:
-            filename = filename.encode('utf-8')
-        else:
-            #TODO: test if this is working without any further change in 
-            # Python 3 with a user account containing unicode characters
-            pass
-        try:
-            resource = rope.base.libutils.path_to_resource(self.project,
-                                                           filename)
-        except Exception as _error:
-            if DEBUG_EDITOR:
-                log_last_error(LOG_FILENAME, "path_to_resource: %r" % filename)
-            resource = None
-        try:
-            if DEBUG_EDITOR:
-                t0 = time.time()
-            proposals = rope.contrib.codeassist.code_assist(self.project,
-                                    source_code, offset, resource, maxfixes=3)
-            proposals = rope.contrib.codeassist.sorted_proposals(proposals)
-            if DEBUG_EDITOR:
-                log_dt(LOG_FILENAME, "code_assist/sorted_proposals", t0)
-            return [proposal.name for proposal in proposals]
-        except Exception as _error:  #analysis:ignore
-            if DEBUG_EDITOR:
-                log_last_error(LOG_FILENAME, "get_completion_list")
-            return []
-
-    def get_calltip_and_docs(self, source_code, offset, filename):
-        if self.project is None:
-            return []
-        if PY2:
-            filename = filename.encode('utf-8')
-        else:
-            #TODO: test if this is working without any further change in 
-            # Python 3 with a user account containing unicode characters
-            pass
-        try:
-            resource = rope.base.libutils.path_to_resource(self.project,
-                                                           filename)
-        except Exception as _error:
-            if DEBUG_EDITOR:
-                log_last_error(LOG_FILENAME, "path_to_resource: %r" % filename)
-            resource = None
-        try:
-            if DEBUG_EDITOR:
-                t0 = time.time()
-            cts = rope.contrib.codeassist.get_calltip(
-                            self.project, source_code, offset, resource,
-                            ignore_unknown=False, remove_self=True, maxfixes=3)
-            if DEBUG_EDITOR:
-                log_dt(LOG_FILENAME, "get_calltip", t0)
-            if cts is not None:
-                while '..' in cts:
-                    cts = cts.replace('..', '.')
-                if '(.)' in cts:
-                    cts = cts.replace('(.)', '(...)')
-            try:
-                doc_text = rope.contrib.codeassist.get_doc(self.project,
-                                     source_code, offset, resource, maxfixes=3)
-                if DEBUG_EDITOR:
-                    log_dt(LOG_FILENAME, "get_doc", t0)
-            except Exception as _error:
-                doc_text = ''
-                if DEBUG_EDITOR:
-                    log_last_error(LOG_FILENAME, "get_doc")
-            return [cts, doc_text]
-        except Exception as _error:  #analysis:ignore
-            if DEBUG_EDITOR:
-                log_last_error(LOG_FILENAME, "get_calltip_text")
-            return []
-
-    def get_definition_location(self, source_code, offset, filename):
-        if self.project is None:
-            return (None, None)
-        if PY2:
-            filename = filename.encode('utf-8')
-        else:
-            #TODO: test if this is working without any further change in 
-            # Python 3 with a user account containing unicode characters
-            pass
-        try:
-            resource = rope.base.libutils.path_to_resource(self.project,
-                                                           filename)
-        except Exception as _error:
-            if DEBUG_EDITOR:
-                log_last_error(LOG_FILENAME, "path_to_resource: %r" % filename)
-            resource = None
-        try:
-            if DEBUG_EDITOR:
-                t0 = time.time()
-            resource, lineno = rope.contrib.codeassist.get_definition_location(
-                    self.project, source_code, offset, resource, maxfixes=3)
-            if DEBUG_EDITOR:
-                log_dt(LOG_FILENAME, "get_definition_location", t0)
-            if resource is not None:
-                filename = resource.real_path
-            return filename, lineno
-        except Exception as _error:  #analysis:ignore
-            if DEBUG_EDITOR:
-                log_last_error(LOG_FILENAME, "get_definition_location")
-            return (None, None)
-
-
-ROPE_PROJECT = None
-def get_rope_project():
-    """Create a single rope project"""
-    global ROPE_PROJECT
-    if ROPE_PROJECT is None:
-        ROPE_PROJECT = RopeProject()
-    return ROPE_PROJECT
-
-def validate_rope_project():
-    """Validate rope project"""
-    get_rope_project().validate_rope_project()
 
 
 #===============================================================================
@@ -449,16 +259,6 @@ class BlockUserData(QTextBlockUserData):
         bud_list.pop(bud_list.index(self))
 
 
-def get_primary_at(source_code, offset):
-    """Return Python object in *source_code* at *offset*"""
-    try:
-        import rope.base.worder
-        word_finder = rope.base.worder.Worder(source_code, True)
-        return word_finder.get_primary_at(offset)
-    except ImportError:
-        return
-
-
 def set_scrollflagarea_painter(painter, light_color):
     """Set scroll flag area painter pen and brush colors"""
     painter.setPen(QColor(light_color).darker(120))
@@ -487,26 +287,24 @@ def get_file_language(filename, text=None):
 
 class CodeEditor(TextEditBaseWidget):
     """Source Code Editor Widget based exclusively on Qt"""
-    LANGUAGES = {
-                 ('py', 'pyw', 'python', 'ipy'): (sh.PythonSH, '#', PythonCFM),
-                 ('pyx', 'pxi', 'pxd'): (sh.CythonSH, '#', PythonCFM),
-                 ('f', 'for', 'f77'): (sh.Fortran77SH, 'c', None),
-                 ('f90', 'f95', 'f2k'): (sh.FortranSH, '!', None),
-                 ('pro',): (sh.IdlSH, ';', None),
-                 ('m',): (sh.MatlabSH, '%', None),
-                 ('diff', 'patch', 'rej'): (sh.DiffSH, '', None),
-                 ('po', 'pot'): (sh.GetTextSH, '#', None),
-                 ('nsi', 'nsh'): (sh.NsisSH, '#', None),
-                 ('htm', 'html'): (sh.HtmlSH, '', None),
-                 ('css',): (sh.CssSH, '', None),
-                 ('xml',): (sh.XmlSH, '', None),
-                 ('js',): (sh.JsSH, '', None),
-                 ('c', 'cc', 'cpp', 'cxx', 'h', 'hh', 'hpp', 'hxx',
-                  ): (sh.CppSH, '//', None),
-                 ('cl',): (sh.OpenCLSH, '//', None),
-                 ('bat', 'cmd', 'nt'): (sh.BatchSH, 'rem ', None),
-                 ('properties', 'session', 'ini', 'inf', 'reg', 'url',
-                  'cfg', 'cnf', 'aut', 'iss'): (sh.IniSH, '#', None),
+    LANGUAGES ={ 'Python': (sh.PythonSH, '#', PythonCFM),
+                 'Cython': (sh.Fortran77SH, 'c', PythonCFM),
+                 'Enaml': (sh.EnamlSH, '#', PythonCFM),
+                 'Fortran77': (sh.Fortran77SH, 'c', None),
+                 'Fortran': (sh.FortranSH, '!', None),
+                 'Idl': (sh.IdlSH, ';', None),
+                 'Matlab': (sh.MatlabSH, '%', None),
+                 'Diff': (sh.DiffSH, '', None),
+                 'GetText': (sh.GetTextSH, '#', None),
+                 'Nsis': (sh.NsisSH, '#', None),
+                 'Html': (sh.HtmlSH, '', None),
+                 'Css': (sh.CssSH, '', None),
+                 'Xml': (sh.XmlSH, '', None),
+                 'Js': (sh.JsSH, '', None),
+                 'Cpp': (sh.CppSH, '//', None),
+                 'OpenCL': (sh.OpenCLSH, '//', None),
+                 'Batch': (sh.BatchSH, 'rem ', None),
+                 'Ini': (sh.IniSH, '#', None),
                  }
     try:
         import pygments  # analysis:ignore
@@ -848,8 +646,8 @@ class CodeEditor(TextEditBaseWidget):
         self.comment_string = ''
         sh_class = sh.TextSH
         if language is not None:
-            for key in self.LANGUAGES:
-                if language.lower() in key:
+            for (key, value) in ALL_LANGUAGES.items():
+                if language.lower() in value:
                     self.supported_language = True
                     sh_class, comment_string, CFMatch = self.LANGUAGES[key]
                     self.comment_string = comment_string
@@ -877,6 +675,12 @@ class CodeEditor(TextEditBaseWidget):
 
     def is_cython(self):
         return self.highlighter_class is sh.CythonSH
+        
+    def is_enaml(self):
+        return self.highlighter_class is sh.EnamlSH
+
+    def is_python_like(self):
+        return self.is_python() or self.is_cython() or self.is_enaml()
 
     def rehighlight(self):
         """
@@ -927,10 +731,10 @@ class CodeEditor(TextEditBaseWidget):
             self.document().setModified(True)
 
     def get_current_object(self):
-        """Return current object (string) -- requires 'rope'"""
+        """Return current object (string) """
         source_code = to_text_string(self.toPlainText())
         offset = self.get_position('cursor')
-        return get_primary_at(source_code, offset)
+        return sourcecode.get_primary_at(source_code, offset)
 
     #------Find occurences
     def __find_first(self, text):
@@ -1006,7 +810,7 @@ class CodeEditor(TextEditBaseWidget):
         if self.has_selected_text() and self.get_selected_text() != text:
             return
             
-        if (self.is_python() or self.is_cython()) and \
+        if (self.is_python_like()) and \
            (sourcecode.is_keyword(to_text_string(text)) or \
            to_text_string(text) == 'self'):
             return
@@ -1200,7 +1004,7 @@ class CodeEditor(TextEditBaseWidget):
     def add_remove_breakpoint(self, line_number=None, condition=None,
                               edit_condition=False):
         """Add/remove breakpoint"""
-        if not self.is_python() and not self.is_cython():
+        if not self.is_python_like():
             return
         if line_number is None:
             block = self.textCursor().block()
@@ -1275,12 +1079,24 @@ class CodeEditor(TextEditBaseWidget):
     def do_code_completion(self):
         """Trigger code completion"""
         if not self.is_completion_widget_visible():
-            self.emit(SIGNAL('trigger_code_completion(bool)'), False)
+            if self.is_python_like():
+                self.emit(SIGNAL('trigger_code_completion(bool)'), False)
+            else:
+                self.do_token_completion()
+
+    def do_token_completion(self):
+        """Trigger a token-based completion"""
+        if not self.is_completion_widget_visible():
+            self.emit(SIGNAL('trigger_token_completion(bool)'), True)
 
     def do_go_to_definition(self):
         """Trigger go-to-definition"""
         self.emit(SIGNAL("go_to_definition(int)"), self.textCursor().position())
 
+    def do_calltip_and_doc_rendering(self, position):
+        """Trigger a calltip"""
+        self.emit(SIGNAL('trigger_calltip_and_doc_rendering(int)'),
+                          position)
 
     #-----edge line
     def set_edge_line_enabled(self, state):
@@ -1805,7 +1621,7 @@ class CodeEditor(TextEditBaseWidget):
 
         Returns True if indent needed to be fixed
         """
-        if not self.is_python() and not self.is_cython():
+        if not self.is_python_like():
             return
         cursor = self.textCursor()
         block_nb = cursor.blockNumber()
@@ -1868,7 +1684,7 @@ class CodeEditor(TextEditBaseWidget):
             self.add_prefix(self.indent_chars)
         elif force or not leading_text.strip() \
              or (self.tab_indents and self.tab_mode):
-            if self.is_python() or self.is_cython():
+            if self.is_python_like():
                 if not self.fix_indent(forward=True):
                     self.add_prefix(self.indent_chars)
             else:
@@ -1911,7 +1727,7 @@ class CodeEditor(TextEditBaseWidget):
             leading_text = self.get_text('sol', 'cursor')
             if force or not leading_text.strip() \
                or (self.tab_indents and self.tab_mode):
-                if self.is_python() or self.is_cython():
+                if self.is_python_like():
                     if not self.fix_indent(forward=False):
                         self.remove_prefix(self.indent_chars)
                 elif leading_text.endswith('\t'):
@@ -2260,7 +2076,8 @@ class CodeEditor(TextEditBaseWidget):
         # Read-only context-menu
         self.readonly_menu = QMenu(self)
         add_actions(self.readonly_menu,
-                    (self.copy_action, None, selectall_action))
+                    (self.copy_action, None, selectall_action,
+                     self.gotodef_action))
     
     def keyPressEvent(self, event):
         """Reimplement Qt method"""
@@ -2274,7 +2091,7 @@ class CodeEditor(TextEditBaseWidget):
             self.hide_tooltip_if_necessary(key)
         if key in (Qt.Key_Enter, Qt.Key_Return):
             if not shift and not ctrl:
-                if self.add_colons_enabled and self.is_python() and \
+                if self.add_colons_enabled and self.is_python_like() and \
                   self.autoinsert_colons():
                     self.insert_text(':' + self.get_line_separator())
                     self.fix_indent()
@@ -2321,12 +2138,12 @@ class CodeEditor(TextEditBaseWidget):
                         self.completion_text = self.completion_text[:-1]
         elif key == Qt.Key_Period:
             self.insert_text(text)
-            if (self.is_python() or self.is_cython()) and not \
+            if (self.is_python_like()) and not \
               self.in_comment_or_string() and self.codecompletion_auto:
                 # Enable auto-completion only if last token isn't a float
                 last_obj = getobj(self.get_text('sol', 'cursor'))
                 if last_obj and not last_obj.isdigit():
-                    self.emit(SIGNAL('trigger_code_completion(bool)'), True)
+                    self.do_code_completion()
         elif key == Qt.Key_Home:
             self.stdkey_home(shift, ctrl)
         elif key == Qt.Key_End:
@@ -2346,10 +2163,10 @@ class CodeEditor(TextEditBaseWidget):
                 self.setTextCursor(cursor)
             else:
                 self.insert_text(text)
-            if (self.is_python() or self.is_cython()) and \
+            if (self.is_python_like()) and \
                self.get_text('sol', 'cursor') and self.calltips:
-                self.emit(SIGNAL('trigger_calltip_and_doc_rendering(int)'),
-                          position)
+                self.emit(SIGNAL('show_object_info(int)'), position)
+
         elif text in ('[', '{') and not self.has_selected_text() \
           and self.close_parentheses_enabled:
             s_trailing_text = self.get_text('cursor', 'eol').strip()
@@ -2364,15 +2181,21 @@ class CodeEditor(TextEditBaseWidget):
         elif key in (Qt.Key_QuoteDbl, Qt.Key_Apostrophe) and \
           self.close_quotes_enabled:
             self.autoinsert_quotes(key)
-        elif key in (Qt.Key_ParenRight, Qt.Key_BraceRight, Qt.Key_BracketRight)\
+        elif ((key in (Qt.Key_ParenRight, Qt.Key_BraceRight, Qt.Key_BracketRight)) or (
+              shift and key == Qt.Key_0)) \
           and not self.has_selected_text() and self.close_parentheses_enabled \
           and not self.textCursor().atBlockEnd():
             cursor = self.textCursor()
             cursor.movePosition(QTextCursor.NextCharacter,
                                 QTextCursor.KeepAnchor)
             text = to_text_string(cursor.selectedText())
-            if text == {Qt.Key_ParenRight: ')', Qt.Key_BraceRight: '}',
-                        Qt.Key_BracketRight: ']'}[key]:
+            if key in [Qt.Key_ParenRight, Qt.Key_0]:
+                match = ')'
+            elif key == Qt.Key_BracketRight and not shift:
+                match = ']'
+            else:
+                match = '}'
+            if text == match:
                 cursor.clearSelection()
                 self.setTextCursor(cursor)
             else:
@@ -2418,7 +2241,7 @@ class CodeEditor(TextEditBaseWidget):
         if self.go_to_definition_enabled and \
            event.modifiers() & Qt.ControlModifier:
             text = self.get_word_at(event.pos())
-            if text and (self.is_python() or self.is_cython())\
+            if text and (self.is_python_like())\
                and not sourcecode.is_keyword(to_text_string(text)):
                 if not self.__cursor_changed:
                     QApplication.setOverrideCursor(
@@ -2457,9 +2280,11 @@ class CodeEditor(TextEditBaseWidget):
             cursor.select(QTextCursor.WordUnderCursor)
             text = to_text_string(cursor.selectedText())
         if self.go_to_definition_enabled and text is not None\
-           and (self.is_python() or self.is_cython())\
+           and (self.is_python_like())\
            and not sourcecode.is_keyword(text):
             self.emit(SIGNAL("go_to_definition(int)"), position)
+        else:
+            self.emit(SIGNAL("go_to_definition_regex(int)"), position)
 
     def mousePressEvent(self, event):
         """Reimplement Qt method"""

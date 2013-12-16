@@ -20,13 +20,14 @@ from spyderlib.qt.QtGui import (QTextCursor, QColor, QFont, QApplication,
                                 QListWidget, QPlainTextEdit, QPalette,
                                 QMainWindow, QTextOption, QMouseEvent,
                                 QTextFormat)
-from spyderlib.qt.QtCore import QPoint, SIGNAL, Qt, QEventLoop, QEvent
+from spyderlib.qt.QtCore import SIGNAL, Qt, QEventLoop, QEvent
 from spyderlib.qt.compat import to_qvariant
 
 
 # Local imports
 from spyderlib.widgets.sourcecode.terminal import ANSIEscapeCodeHandler
 from spyderlib.widgets.mixins import BaseEditMixin
+from spyderlib.widgets.calltip import CallTipWidget
 from spyderlib.py3compat import to_text_string, str_lower
 
 
@@ -209,9 +210,9 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.codecompletion_enter = False
         self.calltips = True
         self.calltip_position = None
-        self.calltip_size = 600
         self.calltip_font = QFont()
         self.completion_text = ""
+        self.signature_widget = CallTipWidget(self)
         
         # Highlight current line color
         self.currentline_color = QColor(Qt.red).lighter(190)
@@ -240,13 +241,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         palette.setColor(QPalette.Base, background)
         palette.setColor(QPalette.Text, foreground)
         self.setPalette(palette)
-
-
-    #------Line number area
-    def get_linenumberarea_width(self):
-        """Return line number area width"""
-        # Implemented in CodeEditor, but needed here for completion widget
-        return 0
 
 
     #------Extra selections
@@ -738,38 +732,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
 
     #------Code completion / Calltips
-    def show_calltip(self, title, text, color='#2D62FF',
-                     at_line=None, at_position=None):
-        """Show calltip"""
-        if text is None or len(text) == 0:
-            return
-        # Saving cursor position:
-        if at_position is None:
-            at_position = self.get_position('cursor')
-        self.calltip_position = at_position
-        # Preparing text:
-        weight = 'bold' if self.calltip_font.bold() else 'normal'
-        size = self.calltip_font.pointSize()
-        family = self.calltip_font.family()
-        format1 = '<div style=\'font-size: %spt; color: %s\'>' % (size, color)
-        format2 = '<hr><div style=\'font-family: "%s"; font-size: %spt; font-weight: %s\'>' % (family, size, weight)
-        if isinstance(text, list):
-            text = "\n    ".join(text)
-        text = text.replace('\n', '<br>')
-        if len(text) > self.calltip_size:
-            text = text[:self.calltip_size] + " ..."
-        tiptext = format1 + ('<b>%s</b></div>' % title) \
-                  + format2 + text + "</div>"
-        # Showing tooltip at cursor position:
-        cx, cy = self.get_coordinates('cursor')
-        if at_line is not None:
-            cx = 5
-            cursor = QTextCursor(self.document().findBlockByNumber(at_line-1))
-            cy = self.cursorRect(cursor).top()
-        point = self.mapToGlobal(QPoint(cx, cy))
-        point.setX(point.x()+self.get_linenumberarea_width())
-        QToolTip.showText(point, tiptext)
-
     def hide_tooltip_if_necessary(self, key):
         """Hide calltip when necessary"""
         try:
@@ -887,6 +849,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     def mousePressEvent(self, event):
         """Reimplement Qt method"""
         if os.name != 'posix' and event.button() == Qt.MidButton:
+            self.signature_widget.hide()
             self.setFocus()
             event = QMouseEvent(QEvent.MouseButtonPress, event.pos(),
                                 Qt.LeftButton, Qt.LeftButton, Qt.NoModifier)
@@ -894,6 +857,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             QPlainTextEdit.mouseReleaseEvent(self, event)
             self.paste()
         else:
+            self.signature_widget.hide()
             QPlainTextEdit.mousePressEvent(self, event)
 
     def focusInEvent(self, event):

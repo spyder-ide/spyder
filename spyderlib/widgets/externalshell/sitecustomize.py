@@ -45,8 +45,8 @@ except ImportError:
     import builtins
     basestring = (str,)
     def execfile(filename, namespace):
-        exec(compile(open(filename).read(), filename, 'exec'), namespace)
-
+        # Open a source file correctly, whatever its encoding is
+        exec(compile(open(filename, 'rb').read(), filename, 'exec'), namespace)
 
 # Colorization of sys.stderr (standard Python interpreter)
 if os.environ.get("COLORIZE_SYS_STDERR", "").lower() == "true":

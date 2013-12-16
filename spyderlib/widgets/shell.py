@@ -101,6 +101,7 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
 
     def set_font(self, font):
         """Set shell styles font"""
+        self.setFont(font)
         self.set_pythonshell_font(font)
         cursor = self.textCursor()
         cursor.select(QTextCursor.Document)
@@ -781,7 +782,7 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
         if self.get_current_line_to_cursor():
             last_obj = self.get_last_obj()
             if last_obj and not last_obj.isdigit():
-                self.show_docstring(last_obj)
+                self.show_object_info(last_obj)
         self.insert_text(text)
         # In case calltip and completion are shown at the same time:
         if self.is_completion_widget_visible():
@@ -793,7 +794,9 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
         if self.get_current_line_to_cursor():
             last_obj = self.get_last_obj()
             if last_obj and not last_obj.isdigit():
-                self.show_docstring(last_obj, call=True)
+                self.insert_text(text)
+                self.show_object_info(last_obj, call=True)
+                return
         self.insert_text(text)
         
     def _key_period(self, text):

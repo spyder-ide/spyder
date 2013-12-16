@@ -161,7 +161,7 @@ class EditorConfigPage(PluginConfigPage):
                                     'codecompletion/show_single')
             comp_enter_box = newcb(_("Enter key selects completion"),
                                    'codecompletion/enter_key')
-            calltips_box = newcb(_("Balloon tips"), 'calltips')
+            calltips_box = newcb(_("Display balloon tips"), 'calltips')
             gotodef_box = newcb(_("Link to object definition"),
                   'go_to_definition',
                   tip=_("If this option is enabled, clicking on an object\n"

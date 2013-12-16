@@ -21,25 +21,28 @@ from spyderlib.qt.QtGui import (QTextEdit, QKeySequence, QShortcut, QWidget,
                                 QMenu, QHBoxLayout, QToolButton, QVBoxLayout,
                                 QMessageBox)
 from spyderlib.qt.QtCore import SIGNAL, Qt
-from spyderlib.utils.qthelpers import restore_keyevent
 
 # IPython imports
 try:  # 1.0
     from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
 except ImportError: # 0.13
     from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
+from IPython.core.oinspect import call_tip
 
 # Local imports
 from spyderlib.baseconfig import (get_conf_path, get_image_path,
                                   get_module_source_path, _)
 from spyderlib.config import CONF
 from spyderlib.guiconfig import get_font
+from spyderlib.utils.dochelpers import getargspecfromtext, getsignaturefromtext
 from spyderlib.utils.qthelpers import (get_std_icon, create_toolbutton,
-                                       add_actions, create_action, get_icon)
-from spyderlib.utils import programs
+                                       add_actions, create_action, get_icon,
+                                       restore_keyevent)
+from spyderlib.utils import programs, sourcecode
+from spyderlib.widgets.browser import WebView
+from spyderlib.widgets.calltip import CallTipWidget
 from spyderlib.widgets.mixins import (BaseEditMixin, InspectObjectMixin,
                                       SaveHistoryMixin, TracebackLinksMixin)
-from spyderlib.widgets.browser import WebView
 
 #-----------------------------------------------------------------------------
 # Templates
@@ -106,8 +109,10 @@ class IPythonControlWidget(TracebackLinksMixin, InspectObjectMixin, QTextEdit,
         BaseEditMixin.__init__(self)
         TracebackLinksMixin.__init__(self)
         InspectObjectMixin.__init__(self)
-        self.calltips = False        # To not use Spyder calltips
         self.found_results = []
+        self.signature_widget = CallTipWidget(self)
+        # To not use Spyder calltips obtained through the monitor
+        self.calltips = False
     
     def showEvent(self, event):
         """Reimplement Qt Method"""
@@ -120,7 +125,7 @@ class IPythonControlWidget(TracebackLinksMixin, InspectObjectMixin, QTextEdit,
         if self.get_current_line_to_cursor():
             last_obj = self.get_last_obj()
             if last_obj and not last_obj.isdigit():
-                self.show_docstring(last_obj)
+                self.show_object_info(last_obj)
         self.insert_text(text)
     
     def keyPressEvent(self, event):
@@ -295,6 +300,43 @@ These commands were executed:
         else:
             return ''
     
+    def _handle_object_info_reply(self, rep):
+        """
+        Reimplement call tips to only show signatures, using the same style
+        from our Editor and External Console too.
+        """
+        self.log.debug("oinfo: %s", rep.get('content', ''))
+        cursor = self._get_cursor()
+        info = self._request_info.get('call_tip')
+        if info and info.id == rep['parent_header']['msg_id'] and \
+                info.pos == cursor.position():
+            # Get the information for a call tip.  For now we format the call
+            # line as string, later we can pass False to format_call and
+            # syntax-highlight it ourselves for nicer formatting in the
+            # calltip.
+            content = rep['content']
+            # if this is from pykernel, 'docstring' will be the only key
+            if content.get('ismagic', False):
+                # Don't generate a call-tip for magics. Ideally, we should
+                # generate a tooltip, but not on ( like we do for actual
+                # callables.
+                call_info, doc = None, None
+            else:
+                call_info, doc = call_tip(content, format_call=True)
+                if not call_info:
+                    name = content['name'].split('.')[-1]
+                    argspec = getargspecfromtext(doc)
+                    if argspec:
+                        # This covers cases like np.abs, whose docstring is
+                        # the same as np.absolute and because of that a proper
+                        # signature can't be obtained correctly
+                        call_info = name + argspec
+                    else:
+                        call_info = getsignaturefromtext(doc, name)
+            if call_info:
+                self._control.show_calltip(_("Arguments"), call_info,
+                                           signature=True, color='#2D62FF')
+    
     #---- Qt methods ----------------------------------------------------------
     def focusInEvent(self, event):
         """Reimplement Qt method to send focus change notification"""
@@ -378,12 +420,12 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         self.shellwidget.executed.connect(self.auto_refresh_namespacebrowser)
     
     def show_kernel_error(self, error):
-        """Show kernel initialization errors in the client"""
-        # Remove explanation about how to kill the kernel
-        # (doesn't apply to us)
+        """Show kernel initialization errors in the client info widget"""
+        # Remove explanation about how to kill the kernel (doesn't apply to us)
         error = error.split('issues/2049')[-1]
-        error = error.replace('\n', '<br>')
         # Remove unneeded blank lines at the beginning
+        eol = sourcecode.get_eol_chars(error)
+        error = error.replace(eol, '<br>')
         while error.startswith('<br>'):
             error = error[4:]
         # Remove connection message
@@ -478,6 +520,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
     
     def set_font(self, font):
         """Set IPython widget's font"""
+        self.shellwidget._control.setFont(font)
         self.shellwidget.font = font
     
     def set_infowidget_font(self):
