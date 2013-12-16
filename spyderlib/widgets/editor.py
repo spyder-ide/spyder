@@ -401,7 +401,7 @@ class FileInfo(QObject):
             position -= 1
                 
         offset = position
-
+        
         func = self.introspection_plugin.get_calltip_and_docs
         helplist = func(source_code, offset, self.filename)
         if not helplist:
