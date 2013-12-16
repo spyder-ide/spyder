@@ -394,7 +394,7 @@ class FileInfo(QObject):
                 elif source_code[position] == '(' and close_parens:
                     close_parens -= 1
                 position -= 1
-                if source_code[position] == '\n':
+                if source_code[position] in ['\n', '\r']:
                     position = orig_pos
                     break
         if position and source_code[position - 1] == '(':
