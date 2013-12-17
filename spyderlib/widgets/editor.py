@@ -32,9 +32,9 @@ import os.path as osp
 from spyderlib.utils import encoding, sourcecode, codeanalysis
 from spyderlib.utils.dochelpers import getsignaturefromtext
 from spyderlib.utils import introspection
-from spyderlib.utils.introspection.module_completion import (
-    module_completion, get_preferred_submodules)
-from spyderlib.baseconfig import _, DEBUG, STDOUT, STDERR, debug_print
+from spyderlib.utils.introspection.module_completion import (module_completion,
+                                                      get_preferred_submodules)
+from spyderlib.baseconfig import _, DEBUG, STDOUT, STDERR
 from spyderlib.config import EDIT_FILTERS, EDIT_EXT, get_filter, EDIT_FILETYPES
 from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions,
                                        mimedata2url, get_filetype_icon,
@@ -448,6 +448,7 @@ class FileInfo(QObject):
                     "send_to_inspector(QString,QString,QString,QString,bool)"),
                     obj_fullname, '', '', '', not auto)
         if signature:
+            self.editor.no_autoclose_paren = True
             self.editor.show_calltip('Arguments', signature, signature=True,
                                      at_position=position)
 

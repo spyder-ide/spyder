@@ -322,6 +322,8 @@ class CodeEditor(TextEditBaseWidget):
         calltip_size = CONF.get('editor_appearance', 'calltips/size')
         calltip_font = get_font('editor_appearance', 'calltips')
         self.setup_calltips(calltip_size, calltip_font)
+        self.no_autoclose_paren = False  # to show signature calltips until the
+                                         # the user writes a closing parenthesis
 
         # Completion
         completion_size = CONF.get('editor_appearance', 'completion/size')
@@ -2149,18 +2151,20 @@ class CodeEditor(TextEditBaseWidget):
             self.hide_completion_widget()
             position = self.get_position('cursor')
             s_trailing_text = self.get_text('cursor', 'eol').strip()
+            self.insert_text(text)
+            if (self.is_python_like()) and \
+               self.get_text('sol', 'cursor') and self.calltips:
+                self.emit(SIGNAL('show_object_info(int)'), position)
             if self.close_parentheses_enabled and \
+               not self.no_autoclose_paren and \
                (len(s_trailing_text) == 0 or \
                 s_trailing_text[0] in (',', ')', ']', '}')):
-                self.insert_text('()')
+                self.insert_text(')')
                 cursor = self.textCursor()
                 cursor.movePosition(QTextCursor.PreviousCharacter)
                 self.setTextCursor(cursor)
             else:
-                self.insert_text(text)
-            if (self.is_python_like()) and \
-               self.get_text('sol', 'cursor') and self.calltips:
-                   self.show_object_info(position)
+                self.no_autoclose_paren = False
         elif text in ('[', '{') and not self.has_selected_text() \
           and self.close_parentheses_enabled:
             s_trailing_text = self.get_text('cursor', 'eol').strip()
