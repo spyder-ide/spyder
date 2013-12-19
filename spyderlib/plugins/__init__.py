@@ -23,7 +23,7 @@ from spyderlib.qt.QtGui import (QDockWidget, QWidget, QShortcut, QCursor,
 from spyderlib.qt.QtCore import SIGNAL, Qt, QObject, Signal
 
 # Local imports
-from spyderlib.utils.qthelpers import toggle_actions, get_icon
+from spyderlib.utils.qthelpers import toggle_actions, get_icon, create_action
 from spyderlib.config import CONF
 from spyderlib.userconfig import NoDefault
 from spyderlib.guiconfig import get_font, set_font
@@ -276,6 +276,20 @@ class SpyderPluginMixin(object):
             if name not in names:
                 name = names[0]
             self.set_option('color_scheme_name', name)
+    
+    def toggle_view_action(self):
+        title = self.get_plugin_title()
+        if 'Editor' in title:
+            title = 'Editor'
+        act = create_action(self, title, toggled=self.toggle_view)
+        act.setChecked(self.isVisible())
+        return act
+    
+    def toggle_view(self, checked):
+        if checked:
+            self.dockwidget.show()
+        else:
+            self.dockwidget.hide()
 
 
 class SpyderPluginWidget(QWidget, SpyderPluginMixin):

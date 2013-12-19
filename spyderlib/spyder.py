@@ -405,7 +405,8 @@ class MainWindow(QMainWindow):
         # otherwise the external tools menu is lost after leaving setup method
         self.external_tools_menu_actions = []
         self.view_menu = None
-        self.windows_toolbars_menu = None
+        self.plugins_menu = None
+        self.toolbars_menu = None
         self.help_menu = None
         self.help_menu_actions = []
         
@@ -414,6 +415,7 @@ class MainWindow(QMainWindow):
         self.cpu_status = None
         
         # Toolbars
+        self.toolbarslist = []
         self.main_toolbar = None
         self.main_toolbar_actions = []
         self.file_toolbar = None
@@ -499,6 +501,7 @@ class MainWindow(QMainWindow):
         toolbar = self.addToolBar(title)
         toolbar.setObjectName(object_name)
         toolbar.setIconSize( QSize(iconsize, iconsize) )
+        self.toolbarslist.append(toolbar)
         return toolbar
     
     def setup(self):
@@ -1009,10 +1012,10 @@ class MainWindow(QMainWindow):
                     print("%s: %s" % (mod, str(error)), file=STDERR)
                                 
             # View menu
-            self.windows_toolbars_menu = QMenu(_("Windows and toolbars"), self)
-            self.connect(self.windows_toolbars_menu, SIGNAL("aboutToShow()"),
-                         self.update_windows_toolbars_menu)
-            self.view_menu.addMenu(self.windows_toolbars_menu)
+            self.plugins_menu = QMenu(_("Plugins"), self)
+            self.toolbars_menu = QMenu(_("Toolbars"), self)
+            self.view_menu.addMenu(self.plugins_menu)
+            self.view_menu.addMenu(self.toolbars_menu)
             reset_layout_action = create_action(self, _("Reset window layout"),
                                             triggered=self.reset_window_layout)
             quick_layout_menu = QMenu(_("Custom window layouts"), self)
@@ -1162,6 +1165,8 @@ class MainWindow(QMainWindow):
             if self.ipyconsole is not None:
                 self.ipyconsole.open_client_at_startup()
         self.extconsole.setMinimumHeight(0)
+        self.create_plugins_menu()
+        self.create_toolbars_menu()
         
     def load_window_settings(self, prefix, default=False, section='main'):
         """Load window layout settings from userconfig-based configuration
@@ -1444,12 +1449,20 @@ class MainWindow(QMainWindow):
             action.setEnabled(True)
         self.replace_action.setEnabled(readwrite_editor)
         self.replace_action.setEnabled(readwrite_editor)
-        
-    def update_windows_toolbars_menu(self):
-        """Update windows&toolbars menu"""
-        self.windows_toolbars_menu.clear()
-        popmenu = self.createPopupMenu()
-        add_actions(self.windows_toolbars_menu, popmenu.actions())
+    
+    def create_plugins_menu(self):
+        actions = []
+        for plugin in self.widgetlist:
+            action = plugin.toggle_view_action()
+            actions.append(action)
+        add_actions(self.plugins_menu, actions)
+    
+    def create_toolbars_menu(self):
+        actions = []
+        for toolbar in self.toolbarslist:
+            action = toolbar.toggleViewAction()
+            actions.append(action)
+        add_actions(self.toolbars_menu, actions)
     
     def set_splash(self, message):
         """Set splash message"""
