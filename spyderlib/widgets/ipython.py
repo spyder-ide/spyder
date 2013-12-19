@@ -425,7 +425,8 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         error = error.split('issues/2049')[-1]
         # Remove unneeded blank lines at the beginning
         eol = sourcecode.get_eol_chars(error)
-        error = error.replace(eol, '<br>')
+        if eol:
+            error = error.replace(eol, '<br>')
         while error.startswith('<br>'):
             error = error[4:]
         # Remove connection message
