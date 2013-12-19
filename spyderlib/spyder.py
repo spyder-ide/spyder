@@ -507,11 +507,11 @@ class MainWindow(QMainWindow):
         if not self.light:
             self.debug_print("  ..core actions")
             self.close_dockwidget_action = create_action(self,
-                                        _("Close current dockwidget"),
+                                        _("Close current plugin"),
                                         triggered=self.close_current_dockwidget,
                                         context=Qt.ApplicationShortcut)
             self.register_shortcut(self.close_dockwidget_action,
-                                   "_", "Close dockwidget", "Shift+Ctrl+F4")
+                                   "_", "Close plugin", "Shift+Ctrl+F4")
             
             _text = _("&Find text")
             self.find_action = create_action(self, _text, icon='find.png',
@@ -734,7 +734,7 @@ class MainWindow(QMainWindow):
             self.maximize_action = create_action(self, '',
                                             triggered=self.maximize_dockwidget)
             self.register_shortcut(self.maximize_action, "_",
-                                   "Maximize dockwidget", "Ctrl+Alt+Shift+M")
+                                   "Maximize plugin", "Ctrl+Alt+Shift+M")
             self.__update_maximize_action()
             
             # Fullscreen mode
@@ -1041,10 +1041,11 @@ class MainWindow(QMainWindow):
                                     toggled=set_attached_console_visible)
                 cmd_act.setChecked(is_attached_console_visible())
                 add_actions(self.view_menu, (None, cmd_act))
-            add_actions(self.view_menu, (None, self.maximize_action,
-                                         self.fullscreen_action, None,
-                                         reset_layout_action, quick_layout_menu,
-                                         None, self.close_dockwidget_action))
+            add_actions(self.view_menu, (None, self.fullscreen_action,
+                                         self.maximize_action,
+                                         self.close_dockwidget_action, None,
+                                         reset_layout_action,
+                                         quick_layout_menu))
             
             # Adding external tools action to "Tools" menu
             if self.external_tools_menu_actions:
