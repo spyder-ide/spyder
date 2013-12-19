@@ -643,7 +643,6 @@ class MainWindow(QMainWindow):
                                         tip=_("Refresh list of module names "
                                               "available in PYTHONPATH"))
             self.tools_menu_actions = [prefs_action, spyder_path_action]
-            self.tools_menu_actions += [update_modules_action, None]
             if WinUserEnvDialog is not None:
                 winenv_action = create_action(self,
                         _("Current user environment variables..."),
@@ -653,6 +652,7 @@ class MainWindow(QMainWindow):
                               "(i.e. for all sessions)"),
                         triggered=self.win_env)
                 self.tools_menu_actions.append(winenv_action)
+            self.tools_menu_actions += [None, update_modules_action]
             
             # External Tools submenu
             self.external_tools_menu = QMenu(_("External Tools"))
@@ -662,26 +662,18 @@ class MainWindow(QMainWindow):
                                    _("Python(x,y) launcher"),
                                    icon=get_icon('pythonxy.png'),
                                    triggered=lambda:
-                                   programs.run_python_script('xy', 'xyhome'))
-            self.external_tools_menu_actions.append(self.xy_action)
-            if not is_module_installed('xy'):
-                self.xy_action.setDisabled(True)
-                self.xy_action.setToolTip(self.xy_action.toolTip() + \
-                                          '\nPlease install Python(x,y) to '
-                                          'enable this feature')
+                                   programs.run_python_script('xy', 'xyhome'))    
+            if os.name == 'nt' and is_module_installed('xy'):
+                self.external_tools_menu_actions.append(self.xy_action)
             # WinPython control panel
             self.wp_action = create_action(self, _("WinPython control panel"),
                        icon=get_icon('winpython.svg'),
                        triggered=lambda:
                        programs.run_python_script('winpython', 'controlpanel'))
-            self.external_tools_menu_actions.append(self.wp_action)
-            if not is_module_installed('winpython'):
-                self.wp_action.setDisabled(True)
-                self.wp_action.setToolTip(self.wp_action.toolTip() + \
-                                          '\nPlease install WinPython to '
-                                          'enable this feature')
+            if os.name == 'nt' and is_module_installed('winpython'):
+                self.external_tools_menu_actions.append(self.wp_action)
             # Qt-related tools
-            additact = [None]
+            additact = []
             for name in ("designer-qt4", "designer"):
                 qtdact = create_program_action(self, _("Qt Designer"),
                                                name, 'qtdesigner.png')
@@ -700,11 +692,11 @@ class MainWindow(QMainWindow):
             for act in (qtdact, qtlact, qteact):
                 if act:
                     additact.append(act)
-            if len(additact) > 1 and (is_module_installed('winpython') or \
+            if additact and (is_module_installed('winpython') or \
               is_module_installed('xy')):
-                self.external_tools_menu_actions += additact
+                self.external_tools_menu_actions += [None] + additact
                 
-            # Sift
+            # Guidata and Sift
             self.debug_print("  ..sift?")
             gdgq_act = []
             if is_module_installed('guidata'):
@@ -762,8 +754,8 @@ class MainWindow(QMainWindow):
             self.main_toolbar = self.create_toolbar(_("Main toolbar"),
                                                     "main_toolbar")
             
-            self.debug_print("  ..plugin: internal console")
             # Internal console plugin
+            self.debug_print("  ..plugin: internal console")
             from spyderlib.plugins.console import Console
             self.console = Console(self, namespace, exitfunc=self.closing,
                                    profile=self.profile,
@@ -772,8 +764,8 @@ class MainWindow(QMainWindow):
                                            '  spy.app, spy.window, dir(spy)')
             self.console.register_plugin()
             
-            self.debug_print("  ..plugin: working directory")
             # Working directory plugin
+            self.debug_print("  ..plugin: working directory")
             from spyderlib.plugins.workingdirectory import WorkingDirectory
             self.workingdirectory = WorkingDirectory(self, self.init_workdir)
             self.workingdirectory.register_plugin()
@@ -1055,15 +1047,11 @@ class MainWindow(QMainWindow):
                                          None, self.close_dockwidget_action))
             
             # Adding external tools action to "Tools" menu
-            external_tools_act = create_action(self, _("External Tools"),
-                                               icon="ext_tools.png")
-            external_tools_act.setMenu(self.external_tools_menu)
-            add_ext_tools = False
-            for et in self.external_tools_menu_actions:
-                if et and et.isEnabled():
-                    add_ext_tools = True
-            if add_ext_tools:
-                self.tools_menu_actions.append(external_tools_act)
+            if self.external_tools_menu_actions:
+                external_tools_act = create_action(self, _("External Tools"),
+                                                   icon="ext_tools.png")
+                external_tools_act.setMenu(self.external_tools_menu)
+                self.tools_menu_actions += [None, external_tools_act]
                 self.main_toolbar_actions.append(external_tools_act)
             
             # Filling out menu/toolbar entries:
