@@ -1479,6 +1479,12 @@ class MainWindow(QMainWindow):
             actions.append(action)
         add_actions(self.toolbars_menu, actions)
     
+    def createPopupMenu(self):
+        menu = QMenu('', self)
+        actions = self.help_menu_actions[:3] + [None, self.help_menu_actions[-1]]
+        add_actions(menu, actions)
+        return menu
+    
     def set_splash(self, message):
         """Set splash message"""
         if message:
