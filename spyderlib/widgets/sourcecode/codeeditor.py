@@ -317,6 +317,7 @@ class CodeEditor(TextEditBaseWidget):
 
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
+        self.setFocusPolicy(Qt.StrongFocus)
 
         # Calltips
         calltip_size = CONF.get('editor_appearance', 'calltips/size')
