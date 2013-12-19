@@ -1451,10 +1451,25 @@ class MainWindow(QMainWindow):
         self.replace_action.setEnabled(readwrite_editor)
     
     def create_plugins_menu(self):
-        actions = []
+        order = ['editor', 'ipython_console', 'console', 'inspector',
+                 'variable_explorer', None, 'historylog', 'explorer',
+                 'find_in_files', 'onlinehelp', 'internal_console', None,
+                 'project_explorer', 'outline_explorer', None]
         for plugin in self.widgetlist:
             action = plugin.toggle_view_action()
-            actions.append(action)
+            try:
+                name = plugin.CONF_SECTION
+                pos = order.index(name)
+            except ValueError:
+                pos = None
+            if pos is not None:
+                order[pos] = action
+            else:
+                order.append(action)
+        actions = order[:]
+        for action in order:
+            if type(action) is str:
+                actions.remove(action)
         add_actions(self.plugins_menu, actions)
     
     def create_toolbars_menu(self):
