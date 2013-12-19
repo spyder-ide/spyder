@@ -921,7 +921,7 @@ class MainWindow(QMainWindow):
                 self.help_menu_actions.append(pydoc_act)
             # IPython documentation
             if self.ipyconsole is not None:
-                ipython_menu = QMenu(_("IPython Help"), self)
+                ipython_menu = QMenu(_("IPython help"), self)
                 intro_action = create_action(self, _("Intro to IPython"),
                                           triggered=self.ipyconsole.show_intro)
                 quickref_action = create_action(self, _("Quick Reference"),
@@ -931,15 +931,15 @@ class MainWindow(QMainWindow):
                 add_actions(ipython_menu, (intro_action, guiref_action,
                                            quickref_action))
                 self.help_menu_actions.append(ipython_menu)
-            # Qt assistant link
-            qta_act = create_program_action(self, _("Qt Help"), "assistant")
-            if qta_act:
-                self.help_menu_actions.append(qta_act)
             # Online documentation
-            web_resources = QMenu(_("Web Resources"))
+            web_resources = QMenu(_("Web resources"))
             add_actions(web_resources,
                         create_module_bookmark_actions(self, self.BOOKMARKS))
-            self.help_menu_actions += [web_resources, None]
+            self.help_menu_actions.append(web_resources)
+            # Qt assistant link
+            qta_act = create_program_action(self, _("Qt help"), "assistant")
+            if qta_act:
+                self.help_menu_actions += [qta_act, None]
             # Windows-only: documentation located in sys.prefix/Doc
             def add_doc_action(text, path):
                 """Add doc action to help menu"""
