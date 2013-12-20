@@ -888,10 +888,12 @@ class MainWindow(QMainWindow):
             dep_action = create_action(self, _("Optional dependencies..."),
                                        triggered=self.show_dependencies)
             report_action = create_action(self,
-                                    _("Report issue..."),
-                                    icon=get_icon('bug.png'),
-                                    triggered=self.report_issue
-                                    )
+                                          _("Report issue..."),
+                                          icon=get_icon('bug.png'),
+                                          triggered=self.report_issue)
+            support_action = create_action(self,
+                                           _("Spyder support..."),
+                                           triggered=self.google_group)
             # Spyder documentation
             doc_path = get_module_data_path('spyderlib', relpath="doc",
                                             attr_name='DOCPATH')
@@ -911,8 +913,8 @@ class MainWindow(QMainWindow):
             doc_action = create_bookmark_action(self, spyder_doc,
                                _("Spyder documentation"), shortcut="F1",
                                icon=get_std_icon('DialogHelpButton'))
-            self.help_menu_actions = [doc_action, report_action, dep_action,
-                                      None]
+            self.help_menu_actions = [doc_action, report_action,
+                                      support_action, dep_action, None]
             # Python documentation
             if get_python_doc_path() is not None:
                 pydoc_act = create_action(self, _("Python documentation"),
@@ -925,7 +927,7 @@ class MainWindow(QMainWindow):
                 ipython_menu = QMenu(_("IPython help"), self)
                 intro_action = create_action(self, _("Intro to IPython"),
                                           triggered=self.ipyconsole.show_intro)
-                quickref_action = create_action(self, _("Quick Reference"),
+                quickref_action = create_action(self, _("Quick reference"),
                                        triggered=self.ipyconsole.show_quickref)
                 guiref_action = create_action(self, _("Console help"),
                                          triggered=self.ipyconsole.show_guiref)                    
@@ -1742,7 +1744,11 @@ Please provide any additional information below.
        
         url = QUrl("http://code.google.com/p/spyderlib/issues/entry")
         url.addEncodedQueryItem("comment", quote(issue_template))
-        QDesktopServices.openUrl(url)    
+        QDesktopServices.openUrl(url)
+    
+    def google_group(self):
+        url = QUrl("http://groups.google.com/group/spyderlib")
+        QDesktopServices.openUrl(url)
 
     #---- Global callbacks (called from plugins)
     def get_current_editor_plugin(self):
