@@ -80,6 +80,7 @@ class SpyderPluginMixin(object):
         self.mainwindow = None
         self.ismaximized = False
         self.isvisible = False
+        self.toggle_view_action = None
         
     def initialize_plugin(self):
         """Initialize plugin: connect signals, setup actions, ..."""
@@ -91,6 +92,7 @@ class SpyderPluginMixin(object):
         if self.sig_option_changed is not None:
             self.sig_option_changed.connect(self.set_option)
         self.setWindowTitle(self.get_plugin_title())
+        self.create_toggle_view_action()
 
     def on_first_registration(self):
         """Action to be performed on first plugin registration"""
@@ -225,6 +227,8 @@ class SpyderPluginMixin(object):
         self.isvisible = enable and visible
         if self.isvisible:
             self.refresh_plugin()   # To give focus to the plugin's widget
+        if self.dockwidget.isHidden():
+            self.toggle_view_action.setChecked(False)
 
     def set_option(self, option, value):
         """
@@ -277,13 +281,12 @@ class SpyderPluginMixin(object):
                 name = names[0]
             self.set_option('color_scheme_name', name)
     
-    def toggle_view_action(self):
+    def create_toggle_view_action(self):
         title = self.get_plugin_title()
         if 'Editor' in title:
             title = 'Editor'
-        act = create_action(self, title, toggled=self.toggle_view)
-        act.setChecked(self.isVisible())
-        return act
+        action = create_action(self, title, toggled=self.toggle_view)
+        self.toggle_view_action = action
     
     def toggle_view(self, checked):
         if checked:
