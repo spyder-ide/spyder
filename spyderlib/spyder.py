@@ -1165,8 +1165,9 @@ class MainWindow(QMainWindow):
             if self.ipyconsole is not None:
                 self.ipyconsole.open_client_at_startup()
         self.extconsole.setMinimumHeight(0)
-        self.create_plugins_menu()
-        self.create_toolbars_menu()
+        if not self.light:
+            self.create_plugins_menu()
+            self.create_toolbars_menu()
         
     def load_window_settings(self, prefix, default=False, section='main'):
         """Load window layout settings from userconfig-based configuration
@@ -1482,9 +1483,13 @@ class MainWindow(QMainWindow):
         add_actions(self.toolbars_menu, actions)
     
     def createPopupMenu(self):
-        menu = QMenu('', self)
-        actions = self.help_menu_actions[:3] + [None, self.help_menu_actions[-1]]
-        add_actions(menu, actions)
+        if self.light:
+            menu = self.createPopupMenu()
+        else:
+            menu = QMenu('', self)
+            actions = self.help_menu_actions[:3] + \
+                      [None, self.help_menu_actions[-1]]
+            add_actions(menu, actions)
         return menu
     
     def set_splash(self, message):
