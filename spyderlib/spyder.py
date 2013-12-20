@@ -772,6 +772,7 @@ class MainWindow(QMainWindow):
             from spyderlib.plugins.workingdirectory import WorkingDirectory
             self.workingdirectory = WorkingDirectory(self, self.init_workdir)
             self.workingdirectory.register_plugin()
+            self.toolbarslist.append(self.workingdirectory)
         
             # Object inspector plugin
             if CONF.get('inspector', 'enable'):
