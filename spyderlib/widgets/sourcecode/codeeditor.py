@@ -679,6 +679,41 @@ class CodeEditor(TextEditBaseWidget):
 
     def is_python_like(self):
         return self.is_python() or self.is_cython()
+        
+    def intelligent_tab(self):
+        """Provide intelligent behavoir for Tab key press"""
+        leading_text = self.get_text('sol', 'cursor')
+        if not leading_text.strip(): 
+            # blank line
+            self.indent_or_replace()
+        elif self.in_comment_or_string() and not leading_text.endswith(' '):
+            # in a word in a comment
+            self.do_token_completion()
+        elif leading_text.endswith('import ') or leading_text[-1] == '.':
+            # blank import or dot completion
+            self.do_code_completion()
+        elif (leading_text.split()[0] in ['from', 'import'] and 
+              not ';' in leading_text):
+            # import line with a single statement
+            #  (prevents lines like: `import pdb; pdb.set_trace()`)
+            self.do_code_completion()
+        elif leading_text[-1] in '(,' or leading_text.endswith(', '):
+            # retrigger calltip if in a function call
+            position = self.get_position('cursor')
+            self.show_object_info(position)
+        elif leading_text.endswith(' '):
+            # if the line ends with a space, indent
+            self.indent_or_replace()
+        elif re.search(r"[^\d\W]\w*\Z", leading_text, re.UNICODE):
+            # if the line ends with a non-whitespace character
+            self.do_code_completion()
+        elif not leading_text.endswith(','):
+            # if the line ends with any other character but comma
+            self.indent_or_replace()
+        else:
+            # catch-all for commas - retrigger calltip
+            position = self.get_position('cursor')
+            self.show_object_info(position)
 
     def rehighlight(self):
         """
@@ -2222,37 +2257,7 @@ class CodeEditor(TextEditBaseWidget):
             # Important note: <TAB> can't be called with a QShortcut because
             # of its singular role with respect to widget focus management
             if not self.has_selected_text():
-                chars = self.get_text('sol', 'cursor')
-                if not chars.strip(): 
-                    # blank line
-                    self.indent_or_replace()
-                elif self.in_comment_or_string() and not chars.endswith(' '):
-                    # in a word in a comment
-                    self.do_token_completion()
-                elif chars.endswith('import ') or chars[-1] == '.':
-                    # blank import or dot completion
-                    self.do_code_completion()
-                elif chars.split()[0] in ['from', 'import'] and not ';' in chars:
-                    # import line with a single statement
-                    #  (prevents lines like: `import pdb; pdb.set_trace()`)
-                    self.do_code_completion()
-                elif chars[-1] in '(,' or chars.endswith(', '):
-                    # retrigger calltip if in a function call
-                    position = self.get_position('cursor')
-                    self.show_object_info(position)
-                elif chars.endswith(' '):
-                    # if the line ends with a space, indent
-                    self.indent_or_replace()
-                elif re.search(r"[^\d\W]\w*\Z", chars, re.UNICODE):
-                    # if the line ends with a non-whitespace character
-                    self.do_code_completion()
-                elif not chars.endswith(','):
-                    # if the line ends with any other character but comma
-                    self.indent_or_replace()
-                else:
-                    # catch-all for commas - retrigger calltip
-                    position = self.get_position('cursor')
-                    self.show_object_info(position)
+                self.intelligent_tab()
             else:
                 # indent the selected text
                 self.indent_or_replace()
