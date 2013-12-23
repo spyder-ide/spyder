@@ -33,7 +33,7 @@ class MatlabStruct(dict):
 
     Supports dictionary and attribute style access.  Can be pickled,
     and supports code completion in a REPL.
- 
+
     Examples
     ========
     >>> from spyderlib.utils.iofuncs import MatlabStruct
@@ -51,7 +51,7 @@ class MatlabStruct(dict):
         except KeyError:
             msg = "'MatlabStruct' object has no attribute %s" % attr
             raise AttributeError(msg)
-    
+
     def __getitem__(self, attr):
         """
         Get a dict value; create a MatlabStruct if requesting a submember.
@@ -67,11 +67,11 @@ class MatlabStruct(dict):
         elif self._is_allowed(frame.f_back):
             dict.__setitem__(self, attr, MatlabStruct())
         return dict.__getitem__(self, attr)
-            
+
     def _is_allowed(self, frame):
         """Check for allowed op code in the calling frame"""
         allowed = [dis.opmap['STORE_ATTR'], dis.opmap['LOAD_CONST'],
-                   dis.opmap['STOP_CODE']]
+                   dis.opmap.get('STOP_CODE', 0)]
         bytecode = frame.f_code.co_code
         instruction = bytecode[frame.f_lasti + 3]
         instruction = ord(instruction) if PY2 else instruction
@@ -79,18 +79,18 @@ class MatlabStruct(dict):
 
     __setattr__ = dict.__setitem__
     __delattr__ = dict.__delitem__
-    
+
     @property
     def __dict__(self):
         """Allow for code completion in a REPL"""
         return self.copy()
-        
+
 
 def get_matlab_value(val):
     """
     Extract a value from a Matlab file
-    
-    From the oct2py project, see 
+
+    From the oct2py project, see
     http://pythonhosted.org/oct2py/conversions.html
     """
     import numpy as np
@@ -184,7 +184,7 @@ try:
             else:
                 return {name: data}, None
         except Exception as error:
-            return None, str(error)    
+            return None, str(error)
     def __save_array(data, basename, index):
         """Save numpy array"""
         fname = basename + '_%04d.npy' % index
@@ -252,7 +252,7 @@ def load_json(filename):
         return data, None
     except Exception as err:
         return None, str(err)
-   
+
 
 def save_dictionary(data, filename):
     """Save dictionary in a single file .spydata file"""
@@ -396,7 +396,7 @@ def load_session(filename):
     try:
         tar = tarfile.open(filename, "r")
         extracted_files = tar.getnames()
-        
+
         # Rename original config files
         for fname in extracted_files:
             orig_name = get_conf_path(fname)
@@ -406,12 +406,12 @@ def load_session(filename):
             if osp.isfile(orig_name):
                 os.rename(orig_name, bak_name)
         renamed = True
-        
+
         tar.extractall()
-        
+
         for fname in extracted_files:
             shutil.move(fname, get_conf_path(fname))
-            
+
     except Exception as error:
         error_message = to_text_string(error)
         if renamed:
@@ -423,14 +423,14 @@ def load_session(filename):
                     os.remove(orig_name)
                 if osp.isfile(bak_name):
                     os.rename(bak_name, orig_name)
-                    
+
     finally:
         # Removing backup config files
         for fname in extracted_files:
             bak_name = get_conf_path(fname+'.bak')
             if osp.isfile(bak_name):
                 os.remove(bak_name)
-        
+
     os.chdir(old_cwd)
     return error_message
 
@@ -445,7 +445,7 @@ class IOFunctions(object):
         self.save_filters = None
         self.load_funcs = None
         self.save_funcs = None
-        
+
     def setup(self):
         iofuncs = self.get_internal_funcs()+self.get_3rd_party_funcs()
         load_extensions = {}
@@ -475,7 +475,7 @@ class IOFunctions(object):
         self.save_funcs = save_funcs
         self.load_extensions = load_extensions
         self.save_extensions = save_extensions
-        
+
     def get_internal_funcs(self):
         return [
                 ('.spydata', _("Spyder data files"),
@@ -493,7 +493,7 @@ class IOFunctions(object):
                 ('.pickle', _("Pickle files"), load_pickle, None),
                 ('.json', _("JSON files"), load_json, None),
                 ]
-        
+
     def get_3rd_party_funcs(self):
         other_funcs = []
         from spyderlib.otherplugins import get_spyderplugins_mods
@@ -504,14 +504,14 @@ class IOFunctions(object):
             except AttributeError as error:
                 print("%s: %s" % (mod, str(error)), file=STDERR)
         return other_funcs
-        
+
     def save(self, data, filename):
         ext = osp.splitext(filename)[1].lower()
         if ext in self.save_funcs:
             return self.save_funcs[ext](data, filename)
         else:
             return _("<b>Unsupported file type '%s'</b>") % ext
-    
+
     def load(self, filename):
         ext = osp.splitext(filename)[1].lower()
         if ext in self.load_funcs:
@@ -555,8 +555,8 @@ if __name__ == "__main__":
 #        print key, ":", example[key] == example2[key]
 
     a = MatlabStruct()
-    a.b = 'spam'  
+    a.b = 'spam'
     assert a["b"] == 'spam'
-    a.c["d"] = 'eggs'  
+    a.c["d"] = 'eggs'
     assert a.c.d == 'eggs'
     assert a == {'c': {'d': 'eggs'}, 'b': 'spam'}
