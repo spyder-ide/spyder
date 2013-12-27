@@ -2189,13 +2189,8 @@ class CodeEditor(TextEditBaseWidget):
             cursor.movePosition(QTextCursor.NextCharacter,
                                 QTextCursor.KeepAnchor)
             text = to_text_string(cursor.selectedText())
-            if key in [Qt.Key_ParenRight, Qt.Key_0]:
-                match = ')'
-            elif key == Qt.Key_BracketRight and not shift:
-                match = ']'
-            else:
-                match = '}'
-            if text == match:
+            if text == {Qt.Key_ParenRight: ')', Qt.Key_BraceRight: '}',
+                        Qt.Key_BracketRight: ']', Qt.Key_0: ')'}[key]:
                 cursor.clearSelection()
                 self.setTextCursor(cursor)
             else:
