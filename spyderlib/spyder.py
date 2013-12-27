@@ -1115,7 +1115,7 @@ class MainWindow(QMainWindow):
         """Actions to be performed only after the main window's `show` method 
         was triggered"""
         self.emit(SIGNAL('restore_scrollbar_position()'))
-       
+        
         if self.projectexplorer is not None:
             self.projectexplorer.check_for_io_errors()
         
@@ -1158,9 +1158,6 @@ class MainWindow(QMainWindow):
                          lambda fname: self.open_external_file(fname))
         
         # Open a Python or IPython console at startup
-        # NOTE: Leave this at the end of post_visible_setup because
-        #       it seems to avoid being unable to start a console at
-        #       startup *sometimes* if using PySide
         if self.light:
             self.extconsole.open_interpreter()
         else:
@@ -1168,9 +1165,14 @@ class MainWindow(QMainWindow):
             if self.ipyconsole is not None:
                 self.ipyconsole.open_client_at_startup()
         self.extconsole.setMinimumHeight(0)
+        
+        # Create Plugins and toolbars submenus
         if not self.light:
             self.create_plugins_menu()
             self.create_toolbars_menu()
+        
+        # Give focus to the Editor
+        self.editor.get_focus_widget().setFocus()
         
     def load_window_settings(self, prefix, default=False, section='main'):
         """Load window layout settings from userconfig-based configuration
