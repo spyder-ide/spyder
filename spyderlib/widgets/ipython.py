@@ -398,12 +398,13 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         self.exit_callback = lambda: plugin.close_console(client=self)
         
     #------ Public API --------------------------------------------------------
-    def show_shellwidget(self):
+    def show_shellwidget(self, give_focus=True):
         """Show shellwidget and configure it"""
         self.infowidget.hide()
         self.shellwidget.show()
         self.infowidget.setHtml(BLANK)
-        self.get_control().setFocus()
+        if give_focus:
+            self.get_control().setFocus()
         
         # Connect shellwidget to the client
         self.shellwidget.set_ipyclient(self)
