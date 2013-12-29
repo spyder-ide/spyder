@@ -483,6 +483,9 @@ class MainWindow(QMainWindow):
         # False: IPython console plugin
         self.last_console_plugin_focus_was_python = True
         
+        # To keep track of the last focused widget
+        self.last_focused_widget = None
+        
         # Server to open external files on a single instance
         self.open_files_server = socket.socket(socket.AF_INET,
                                                socket.SOCK_STREAM,
@@ -1528,7 +1531,22 @@ class MainWindow(QMainWindow):
         if not self.isMaximized() and not self.fullscreen_flag:
             self.window_position = self.pos()
         QMainWindow.moveEvent(self, event)
-        
+    
+    def hideEvent(self, event):
+        """Reimplement Qt method"""
+        for plugin in self.widgetlist:
+            if plugin.isAncestorOf(self.last_focused_widget):
+                plugin.visibility_changed(True)
+        QMainWindow.hideEvent(self, event)
+    
+    def change_last_focused_widget(self, old, now):
+        """To keep track of to the last focused widget"""
+        if (now is None and QApplication.activeWindow() is not None):
+            QApplication.activeWindow().setFocus()
+            self.last_focused_widget = QApplication.focusWidget()
+        elif now is not None:
+            self.last_focused_widget = now
+    
     def closing(self, cancelable=False):
         """Exit tasks"""
         if self.already_closed or self.is_starting_up:
@@ -2191,6 +2209,11 @@ def run_spyder(app, options, args):
     if sys.platform == "darwin" and 'Spyder.app' in __file__:
         main.connect(app, SIGNAL('open_external_file(QString)'),
                      lambda fname: main.open_external_file(fname))
+    
+    # To give focus again to the last focused widget after restoring
+    # the window
+    main.connect(app, SIGNAL('focusChanged(QWidget*, QWidget*)'),
+                 main.change_last_focused_widget)
 
     app.exec_()
     return main
