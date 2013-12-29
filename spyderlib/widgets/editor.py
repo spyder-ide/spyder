@@ -373,18 +373,16 @@ class FileInfo(QObject):
                                          automatic)
 
     def trigger_token_completion(self, automatic):
-        '''Trigger a completion using tokens only'''
+        """Trigger a completion using tokens only"""
         self.trigger_code_completion(automatic, token_based=True)
-
-    def show_object_info(self, position, auto=True):
-        """Show signature calltip and/or docstring in the Object Inspector"""
-        # auto is True means that this method was called automatically,
-        # i.e. the user has just entered an opening parenthesis -- in that 
-        # case, we don't want to force the object inspector to be visible, 
-        # to avoid polluting the window layout
+        
+        
+    def find_nearest_function_call(self, position):
+        """Find the nearest function call at or prior to the current position
+        """
         source_code = self.get_source_code()
-        # find the first preceding opening parens (keep track of closing parens)
         orig_pos = position
+        # find the first preceding opening parens (keep track of closing parens)
         if not position or not source_code[position - 1] == '(':
             close_parens = 0
             position -= 1
@@ -400,7 +398,16 @@ class FileInfo(QObject):
         if position and source_code[position - 1] == '(':
             position -= 1
                 
-        offset = position
+        return position
+
+    def show_object_info(self, position, auto=True):
+        """Show signature calltip and/or docstring in the Object Inspector"""
+        # auto is True means that this method was called automatically,
+        # i.e. the user has just entered an opening parenthesis -- in that 
+        # case, we don't want to force the object inspector to be visible, 
+        # to avoid polluting the window layout
+        source_code = self.get_source_code()
+        offset = self.find_nearest_function_call(position)
         
         func = self.introspection_plugin.get_calltip_and_docs
         helplist = func(source_code, offset, self.filename)
