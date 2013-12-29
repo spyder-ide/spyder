@@ -24,6 +24,7 @@ from spyderlib.qt.QtCore import SIGNAL, Qt, QObject, Signal
 
 # Local imports
 from spyderlib.utils.qthelpers import toggle_actions, get_icon, create_action
+from spyderlib.baseconfig import _
 from spyderlib.config import CONF
 from spyderlib.userconfig import NoDefault
 from spyderlib.guiconfig import get_font, set_font
@@ -282,13 +283,15 @@ class SpyderPluginMixin(object):
             self.set_option('color_scheme_name', name)
     
     def create_toggle_view_action(self):
+        """Associate a toggle view action with each plugin"""
         title = self.get_plugin_title()
-        if 'Editor' in title:
-            title = 'Editor'
+        if self.CONF_SECTION == 'editor':
+            title = _('Editor')
         action = create_action(self, title, toggled=self.toggle_view)
         self.toggle_view_action = action
     
     def toggle_view(self, checked):
+        """Toggle view"""
         if checked:
             self.dockwidget.show()
             self.visibility_changed(True)
