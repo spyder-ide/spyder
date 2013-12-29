@@ -291,6 +291,7 @@ class SpyderPluginMixin(object):
     def toggle_view(self, checked):
         if checked:
             self.dockwidget.show()
+            self.visibility_changed(True)
         else:
             self.dockwidget.hide()
 
