@@ -908,11 +908,16 @@ class MainWindow(QMainWindow):
             # * Trying to find the html doc
             if not osp.isfile(spyder_doc):
                 spyder_doc = osp.join(doc_path, "index.html")
-                if not osp.isfile(spyder_doc):  # development version
-                    spyder_doc = osp.join(get_module_source_path('spyderlib'),
-                                          os.pardir, 'build', 'lib',
-                                          'spyderlib', 'doc', "index.html")
-            spyder_doc = file_uri(spyder_doc)
+            # * Trying to find the development-version html doc
+            if not osp.isfile(spyder_doc):
+                spyder_doc = osp.join(get_module_source_path('spyderlib'),
+                                      os.pardir, 'build', 'lib', 'spyderlib',
+                                      'doc', "index.html")
+            # * If we totally fail, point to our web build
+            if not osp.isfile(spyder_doc):
+                spyder_doc = 'http://pythonhosted.org/spyder'
+            else:
+                spyder_doc = file_uri(spyder_doc)
             doc_action = create_bookmark_action(self, spyder_doc,
                                _("Spyder documentation"), shortcut="F1",
                                icon=get_std_icon('DialogHelpButton'))
