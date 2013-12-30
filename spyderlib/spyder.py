@@ -281,6 +281,10 @@ class MainWindow(QMainWindow):
     DOCKOPTIONS = QMainWindow.AllowTabbedDocks|QMainWindow.AllowNestedDocks
     SPYDER_PATH = get_conf_path('path')
     BOOKMARKS = (
+         ('numpy', "http://docs.scipy.org/doc/",
+          _("Numpy and Scipy documentation")),
+         ('matplotlib', "http://matplotlib.sourceforge.net/contents.html",
+          _("Matplotlib documentation")),
          ('PyQt4',
           "http://pyqt.sourceforge.net/Docs/PyQt4/",
           _("PyQt4 Reference Guide")),
@@ -290,11 +294,7 @@ class MainWindow(QMainWindow):
          ('xy', "http://code.google.com/p/pythonxy/",
           _("Python(x,y)")),
          ('winpython', "http://code.google.com/p/winpython/",
-          _("WinPython")),
-         ('numpy', "http://docs.scipy.org/doc/",
-          _("Numpy and Scipy documentation")),
-         ('matplotlib', "http://matplotlib.sourceforge.net/contents.html",
-          _("Matplotlib documentation")),
+          _("WinPython"))
                 )
     
     def __init__(self, options=None):
@@ -939,8 +939,11 @@ class MainWindow(QMainWindow):
                 self.help_menu_actions.append(ipython_menu)
             # Online documentation
             web_resources = QMenu(_("Web resources"))
-            add_actions(web_resources,
-                        create_module_bookmark_actions(self, self.BOOKMARKS))
+            webres_actions = create_module_bookmark_actions(self,
+                                                            self.BOOKMARKS)
+            webres_actions.insert(2, None)
+            webres_actions.insert(5, None)
+            add_actions(web_resources, webres_actions)
             self.help_menu_actions.append(web_resources)
             # Qt assistant link
             qta_act = create_program_action(self, _("Qt help"), "assistant")
