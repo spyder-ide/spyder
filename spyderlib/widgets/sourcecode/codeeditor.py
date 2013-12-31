@@ -1112,7 +1112,7 @@ class CodeEditor(TextEditBaseWidget):
     def do_code_completion(self):
         """Trigger code completion"""
         if not self.is_completion_widget_visible():
-            if self.is_python_like():
+            if self.is_python_like() and not self.in_comment_or_string():
                 self.emit(SIGNAL('trigger_code_completion(bool)'), False)
             else:
                 self.do_token_completion()
