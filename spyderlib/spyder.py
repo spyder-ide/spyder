@@ -883,7 +883,7 @@ class MainWindow(QMainWindow):
             
             self.set_splash(_("Setting up main window..."))
             
-            # ? menu
+            # Help menu
             about_action = create_action(self,
                                     _("About %s...") % "Spyder",
                                     icon=get_std_icon('MessageBoxInformation'),
@@ -903,8 +903,7 @@ class MainWindow(QMainWindow):
             # * Trying to find the chm doc
             spyder_doc = osp.join(doc_path, "Spyderdoc.chm")
             if not osp.isfile(spyder_doc):
-                spyder_doc = osp.join(doc_path, os.pardir, os.pardir,
-                                      "Spyderdoc.chm")
+                spyder_doc = osp.join(doc_path, os.pardir, "Spyderdoc.chm")
             # * Trying to find the html doc
             if not osp.isfile(spyder_doc):
                 spyder_doc = osp.join(doc_path, "index.html")
