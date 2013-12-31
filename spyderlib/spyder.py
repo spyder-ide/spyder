@@ -1181,8 +1181,13 @@ class MainWindow(QMainWindow):
             self.create_plugins_menu()
             self.create_toolbars_menu()
         
-        # Give focus to the Editor
-        self.editor.get_focus_widget().setFocus()
+        # Give focus to the Editor and show the Object Inspector and Consoles
+        # by default
+        for plugin in (self.inspector, self.extconsole, self.ipyconsole):
+            if plugin is not None and plugin.isVisible():
+                plugin.dockwidget.raise_()
+        if self.editor.isVisible():
+            self.editor.get_focus_widget().setFocus()
         
     def load_window_settings(self, prefix, default=False, section='main'):
         """Load window layout settings from userconfig-based configuration
