@@ -1176,17 +1176,23 @@ class MainWindow(QMainWindow):
                 self.ipyconsole.open_client_at_startup()
         self.extconsole.setMinimumHeight(0)
         
+        # Hide Internal Console so that people doesn't use it instead of
+        # the External or IPython ones
+        if self.console.dockwidget.isVisible() and DEV is None:
+            self.console.dockwidget.hide()
+        
         # Create Plugins and toolbars submenus
         if not self.light:
             self.create_plugins_menu()
             self.create_toolbars_menu()
         
-        # Give focus to the Editor and show the Object Inspector and Consoles
-        # by default
+        # Show the Object Inspector and Consoles by default
         for plugin in (self.inspector, self.extconsole, self.ipyconsole):
-            if plugin is not None and plugin.isVisible():
+            if plugin is not None and plugin.dockwidget.isVisible():
                 plugin.dockwidget.raise_()
-        if self.editor.isVisible():
+        
+        # Give focus to the Editor
+        if self.editor.dockwidget.isVisible():
             self.editor.get_focus_widget().setFocus()
         
     def load_window_settings(self, prefix, default=False, section='main'):
@@ -1479,7 +1485,7 @@ class MainWindow(QMainWindow):
                  'internal_console']
         for plugin in self.widgetlist:
             action = plugin.toggle_view_action
-            action.setChecked(plugin.isVisible())
+            action.setChecked(plugin.dockwidget.isVisible())
             try:
                 name = plugin.CONF_SECTION
                 pos = order.index(name)
