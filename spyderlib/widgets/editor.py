@@ -378,8 +378,7 @@ class FileInfo(QObject):
         
         
     def find_nearest_function_call(self, position):
-        """Find the nearest function call at or prior to the current position
-        """
+        """Find the nearest function call at or prior to current position"""
         source_code = self.get_source_code()
         orig_pos = position
         # find the first preceding opening parens (keep track of closing parens)
