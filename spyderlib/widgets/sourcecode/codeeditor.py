@@ -1120,7 +1120,7 @@ class CodeEditor(TextEditBaseWidget):
     def do_token_completion(self):
         """Trigger a token-based completion"""
         if not self.is_completion_widget_visible():
-            self.emit(SIGNAL('trigger_token_completion(bool)'), True)
+            self.emit(SIGNAL('trigger_token_completion(bool)'), False)
 
     def do_go_to_definition(self):
         """Trigger go-to-definition"""
