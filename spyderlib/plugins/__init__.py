@@ -81,6 +81,9 @@ class SpyderPluginMixin(object):
         self.mainwindow = None
         self.ismaximized = False
         self.isvisible = False
+        # We decided to create our own toggle action instead of using
+        # the one that comes with dockwidget because it's not possible
+        # to raise and focus the plugin with it.
         self.toggle_view_action = None
         
     def initialize_plugin(self):
