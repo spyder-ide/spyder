@@ -2264,7 +2264,7 @@ class CodeEditor(TextEditBaseWidget):
         elif key == Qt.Key_Tab:
             # Important note: <TAB> can't be called with a QShortcut because
             # of its singular role with respect to widget focus management
-            if not self.has_selected_text():
+            if not self.has_selected_text() and not self.tab_mode:
                 self.intelligent_tab()
             else:
                 # indent the selected text
