@@ -884,12 +884,9 @@ class MainWindow(QMainWindow):
             self.set_splash(_("Setting up main window..."))
             
             # Help menu
-            about_action = create_action(self,
-                                    _("About %s...") % "Spyder",
-                                    icon=get_std_icon('MessageBoxInformation'),
-                                    triggered=self.about)
             dep_action = create_action(self, _("Optional dependencies..."),
-                                       triggered=self.show_dependencies)
+                                       triggered=self.show_dependencies,
+                                       icon='advanced.png')
             report_action = create_action(self,
                                           _("Report issue..."),
                                           icon=get_icon('bug.png'),
@@ -925,13 +922,12 @@ class MainWindow(QMainWindow):
             # Python documentation
             if get_python_doc_path() is not None:
                 pydoc_act = create_action(self, _("Python documentation"),
-                                  icon=get_icon('python.png'),
                                   triggered=lambda:
                                   programs.start_file(get_python_doc_path()))
                 self.help_menu_actions.append(pydoc_act)
             # IPython documentation
             if self.ipyconsole is not None:
-                ipython_menu = QMenu(_("IPython help"), self)
+                ipython_menu = QMenu(_("IPython documentation"), self)
                 intro_action = create_action(self, _("Intro to IPython"),
                                           triggered=self.ipyconsole.show_intro)
                 quickref_action = create_action(self, _("Quick reference"),
@@ -941,25 +937,15 @@ class MainWindow(QMainWindow):
                 add_actions(ipython_menu, (intro_action, guiref_action,
                                            quickref_action))
                 self.help_menu_actions.append(ipython_menu)
-            # Online documentation
-            web_resources = QMenu(_("Web resources"))
-            webres_actions = create_module_bookmark_actions(self,
-                                                            self.BOOKMARKS)
-            webres_actions.insert(2, None)
-            webres_actions.insert(5, None)
-            add_actions(web_resources, webres_actions)
-            self.help_menu_actions.append(web_resources)
-            # Qt assistant link
-            qta_act = create_program_action(self, _("Qt help"), "assistant")
-            if qta_act:
-                self.help_menu_actions += [qta_act, None]
             # Windows-only: documentation located in sys.prefix/Doc
-            def add_doc_action(text, path):
-                """Add doc action to help menu"""
+            ipm_actions = []
+            def add_ipm_action(text, path):
+                """Add installed Python module doc action to help submenu"""
                 path = file_uri(path)
-                action = create_action(self, text, icon=None,
+                action = create_action(self, text,
+                       icon='%s.png' % osp.splitext(path)[1][1:],
                        triggered=lambda path=path: programs.start_file(path))
-                self.help_menu_actions.append(action)
+                ipm_actions.append(action)
             sysdocpth = osp.join(sys.prefix, 'Doc')
             if osp.isdir(sysdocpth): # exists on Windows, except frozen dist.
                 for docfn in os.listdir(sysdocpth):
@@ -968,7 +954,7 @@ class MainWindow(QMainWindow):
                     if match is not None:
                         pname = match.groups()[0]
                         if pname not in ('Python', ):
-                            add_doc_action(pname, osp.join(sysdocpth, docfn))
+                            add_ipm_action(pname, osp.join(sysdocpth, docfn))
             # Documentation provided by Python(x,y), if available
             try:
                 from xy.config import DOC_PATH as xy_doc_path
@@ -976,7 +962,7 @@ class MainWindow(QMainWindow):
                 def add_xydoc(text, pathlist):
                     for path in pathlist:
                         if osp.exists(path):
-                            add_doc_action(text, path)
+                            add_ipm_action(text, path)
                             break
                 add_xydoc(_("Python(x,y) documentation folder"),
                           [xy_doc_path])
@@ -1000,14 +986,32 @@ class MainWindow(QMainWindow):
                 add_xydoc(_("SciPy documentation"),
                           [osp.join(xydoc, "SciPy", "scipy.chm"),
                            osp.join(xydoc, "SciPy", "scipy-ref.pdf")])
-                self.help_menu_actions.append(None)
             except (ImportError, KeyError, RuntimeError):
                 pass
-            if self.help_menu_actions[-1] is None:
-                last_action = [about_action]
-            else:
-                last_action = [None, about_action]
-            self.help_menu_actions += last_action
+            # Installed Python modules submenu (Windows only)
+            if ipm_actions:
+                pymods_menu = QMenu(_("Installed Python modules"), self)
+                add_actions(pymods_menu, ipm_actions)
+                self.help_menu_actions.append(pymods_menu)
+            # Online documentation
+            web_resources = QMenu(_("Online documentation"))
+            webres_actions = create_module_bookmark_actions(self,
+                                                            self.BOOKMARKS)
+            webres_actions.insert(2, None)
+            webres_actions.insert(5, None)
+            add_actions(web_resources, webres_actions)
+            self.help_menu_actions.append(web_resources)
+            # Qt assistant link
+            qta_act = create_program_action(self, _("Qt documentation"),
+                                            "assistant")
+            if qta_act:
+                self.help_menu_actions += [qta_act, None]
+            # About Spyder
+            about_action = create_action(self,
+                                    _("About %s...") % "Spyder",
+                                    icon=get_std_icon('MessageBoxInformation'),
+                                    triggered=self.about)
+            self.help_menu_actions += [None, about_action]
             
             # Status bar widgets
             from spyderlib.widgets.status import MemoryStatus, CPUStatus
