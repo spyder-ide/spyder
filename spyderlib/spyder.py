@@ -1029,7 +1029,7 @@ class MainWindow(QMainWindow):
                     print("%s: %s" % (mod, str(error)), file=STDERR)
                                 
             # View menu
-            self.plugins_menu = QMenu(_("Plugins"), self)
+            self.plugins_menu = QMenu(_("Windows"), self)
             self.toolbars_menu = QMenu(_("Toolbars"), self)
             self.view_menu.addMenu(self.plugins_menu)
             self.view_menu.addMenu(self.toolbars_menu)
