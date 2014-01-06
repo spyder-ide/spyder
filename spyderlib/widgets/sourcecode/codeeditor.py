@@ -1661,6 +1661,9 @@ class CodeEditor(TextEditBaseWidget):
         for prevline in range(block_nb-1, -1, -1):
             cursor.movePosition(QTextCursor.PreviousBlock)
             prevtext = to_text_string(cursor.block().text()).rstrip()
+            if prevtext.endswith(','):
+                comment_or_string = True
+                break
             if not prevtext.strip().startswith('#'):
                 close_parens += prevtext.count(')')
                 close_parens -= prevtext.count('(')
@@ -1669,7 +1672,7 @@ class CodeEditor(TextEditBaseWidget):
                 else:
                     # prevent further parsing
                     comment_or_string = True
-
+            
         indent = self.get_block_indentation(block_nb)
         correct_indent = self.get_block_indentation(prevline)
 
