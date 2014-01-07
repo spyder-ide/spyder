@@ -408,8 +408,9 @@ class FileInfo(QObject):
         source_code = self.get_source_code()
         offset = self.find_nearest_function_call(position)
         
-        func = self.introspection_plugin.get_calltip_and_docs
-        helplist = func(source_code, offset, self.filename)
+        # Get calltip and docs
+        helplist = self.introspection_plugin.get_calltip_and_docs(source_code,
+                                                         offset, self.filename)
         if not helplist:
             return
         obj_fullname = ''
@@ -454,7 +455,6 @@ class FileInfo(QObject):
                     "send_to_inspector(QString,QString,QString,QString,bool)"),
                     obj_fullname, '', '', '', not auto)
         if signature:
-            self.editor.no_autoclose_paren = True
             self.editor.show_calltip('Arguments', signature, signature=True,
                                      at_position=position)
 
