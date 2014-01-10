@@ -27,7 +27,7 @@ class CallTipWidget(QtGui.QLabel):
     # 'QObject' interface
     #--------------------------------------------------------------------------
 
-    def __init__(self, text_edit):
+    def __init__(self, text_edit, hide_timer_on=False):
         """ Create a call tip manager that is attached to the specified Qt
             text edit widget.
         """
@@ -35,6 +35,7 @@ class CallTipWidget(QtGui.QLabel):
         super(CallTipWidget, self).__init__(None, QtCore.Qt.ToolTip)
         self.app = QtCore.QCoreApplication.instance()
 
+        self.hide_timer_on = hide_timer_on
         self._hide_timer = QtCore.QBasicTimer()
         self._text_edit = text_edit
 
@@ -169,6 +170,10 @@ class CallTipWidget(QtGui.QLabel):
         if self._start_position == -1:
             return False
 
+        if self.hide_timer_on:
+            self._hide_timer.stop()
+            self._hide_timer.start(3000, self)
+
         # Set the text and resize the widget accordingly.
         self.setText(tip)
         self.resize(self.sizeHint())
@@ -287,6 +292,7 @@ class CallTipWidget(QtGui.QLabel):
         if cursor.position() <= self._start_position:
             self.hide()
         else:
-            position, commas = self._find_parenthesis(self._start_position + 1)
-            if position != -1:
-                self.hide()
+            if not self.hide_timer_on:
+                position, commas = self._find_parenthesis(self._start_position + 1)
+                if position != -1:
+                    self.hide()
