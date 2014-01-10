@@ -70,7 +70,9 @@ class CallTipWidget(QtGui.QLabel):
                 self.hide()
 
             elif etype == QtCore.QEvent.Enter:
-                self._hide_timer.stop()
+                if (self._hide_timer.isActive() and
+                  self.app.topLevelAt(QtGui.QCursor.pos()) == self):
+                    self._hide_timer.stop()
 
             elif etype == QtCore.QEvent.Leave:
                 self._leave_event_hide()
@@ -92,7 +94,9 @@ class CallTipWidget(QtGui.QLabel):
         """ Reimplemented to cancel the hide timer.
         """
         super(CallTipWidget, self).enterEvent(event)
-        self._hide_timer.stop()
+        if (self._hide_timer.isActive() and
+          self.app.topLevelAt(QtGui.QCursor.pos()) == self):
+            self._hide_timer.stop()
 
     def hideEvent(self, event):
         """ Reimplemented to disconnect signal handlers and event filter.
@@ -267,7 +271,7 @@ class CallTipWidget(QtGui.QLabel):
             # this check. But on Mac OS, it sometimes happens the other way
             # around when the tooltip is created.
             self.app.topLevelAt(QtGui.QCursor.pos()) != self):
-            self._hide_timer.start(300, self)
+            self._hide_timer.start(800, self)
 
     #------ Signal handlers ----------------------------------------------------
 
