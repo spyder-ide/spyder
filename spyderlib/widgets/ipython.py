@@ -322,7 +322,7 @@ These commands were executed:
                 call_info, doc = None, None
             else:
                 call_info, doc = call_tip(content, format_call=True)
-                if not call_info:
+                if call_info is None and doc is not None:
                     name = content['name'].split('.')[-1]
                     argspec = getargspecfromtext(doc)
                     if argspec:
