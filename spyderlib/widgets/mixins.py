@@ -68,13 +68,23 @@ class BaseEditMixin(object):
         """Show calltip"""
         if text is None or len(text) == 0:
             return
+
         # Saving cursor position:
         if at_position is None:
             at_position = self.get_position('cursor')
         self.calltip_position = at_position
+
         # Preparing text:
         if signature:
             text = self._format_signature(text)
+        else:
+            if isinstance(text, list):
+                text = "\n    ".join(text)
+            text = text.replace('\n', '<br>')
+            if len(text) > self.calltip_size:
+                text = text[:self.calltip_size] + " ..."
+
+        # Formatting text
         font = self.font()
         size = font.pointSize()
         family = font.family()
@@ -82,13 +92,9 @@ class BaseEditMixin(object):
                   % (family, size, color)
         format2 = '<div style=\'font-family: "%s"; font-size: %spt\'>'\
                   % (family, size-1 if size > 9 else size)
-        if isinstance(text, list):
-            text = "\n    ".join(text)
-        text = text.replace('\n', '<br>')
-        if len(text) > self.calltip_size and not signature:
-            text = text[:self.calltip_size] + " ..."
         tiptext = format1 + ('<b>%s</b></div>' % title) + '<hr>' + \
                   format2 + text + "</div>"
+
         # Showing tooltip at cursor position:
         cx, cy = self.get_coordinates('cursor')
         if at_line is not None:
