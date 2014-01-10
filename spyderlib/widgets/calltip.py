@@ -269,20 +269,6 @@ class CallTipWidget(QtGui.QLabel):
             self.app.topLevelAt(QtGui.QCursor.pos()) != self):
             self._hide_timer.start(300, self)
 
-    def _format_tooltip(self,doc):
-        import textwrap
-
-        # make sure a long argument list does not make
-        # the first row overflow the width of the actual tip body
-        rows = doc.split("\n")
-        # An object which is not a callable has '<no docstring>' as doc
-        if len(rows) == 1:
-            return doc
-        max_text_width = max(80, max([len(x) for x in rows[1:]]))
-        rows= textwrap.wrap(rows[0],max_text_width) + rows[1:]
-        doc = "\n".join(rows)
-        return doc
-
     #------ Signal handlers ----------------------------------------------------
 
     def _cursor_position_changed(self):
