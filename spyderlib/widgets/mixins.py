@@ -15,6 +15,7 @@ import os
 import re
 import sre_constants
 import textwrap
+from xml.sax.saxutils import escape
 
 from spyderlib.qt.QtGui import (QTextCursor, QTextDocument, QApplication,
                                 QCursor, QToolTip)
@@ -52,6 +53,7 @@ class BaseEditMixin(object):
         rows = textwrap.wrap(text, width=50,
                              subsequent_indent=' '*(len(name)+1))
         for r in rows:
+            r = escape(r) # Escape most common html chars
             r = r.replace(' ', '&nbsp;')
             for char in ['=', ',', '(', ')', '*', '**']:
                 r = r.replace(char,
