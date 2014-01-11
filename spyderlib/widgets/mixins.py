@@ -61,7 +61,7 @@ class BaseEditMixin(object):
                        char + '</span>')
             formatted_lines.append(r)
         signature = '<br>'.join(formatted_lines)
-        return signature
+        return signature, rows
     
     def show_calltip(self, title, text, signature=False, color='#2D62FF',
                      at_line=None, at_position=None):
@@ -76,7 +76,7 @@ class BaseEditMixin(object):
 
         # Preparing text:
         if signature:
-            text = self._format_signature(text)
+            text, wrapped_textlines = self._format_signature(text)
         else:
             if isinstance(text, list):
                 text = "\n    ".join(text)
@@ -105,7 +105,7 @@ class BaseEditMixin(object):
         point.setX(point.x()+self.get_linenumberarea_width())
         point.setY(point.y()+font.pointSize()+5)
         if signature:
-            self.signature_widget.show_call_info(point, tiptext)
+            self.signature_widget.show_tip(point, tiptext, wrapped_textlines)
         else:
             QToolTip.showText(point, tiptext)
     
