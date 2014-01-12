@@ -105,7 +105,7 @@ class BaseEditMixin(object):
         point.setX(point.x()+self.get_linenumberarea_width())
         point.setY(point.y()+font.pointSize()+5)
         if signature:
-            self.signature_widget.show_tip(point, tiptext, wrapped_textlines)
+            self.calltip_widget.show_tip(point, tiptext, wrapped_textlines)
         else:
             QToolTip.showText(point, tiptext)
     
