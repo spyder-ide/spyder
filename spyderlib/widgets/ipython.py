@@ -110,7 +110,7 @@ class IPythonControlWidget(TracebackLinksMixin, InspectObjectMixin, QTextEdit,
         TracebackLinksMixin.__init__(self)
         InspectObjectMixin.__init__(self)
         self.found_results = []
-        self.signature_widget = CallTipWidget(self)
+        self.signature_widget = CallTipWidget(self, hide_timer_on=True)
         # To not use Spyder calltips obtained through the monitor
         self.calltips = False
     

@@ -212,7 +212,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.calltip_position = None
         self.calltip_font = QFont()
         self.completion_text = ""
-        self.signature_widget = CallTipWidget(self)
+        self.signature_widget = CallTipWidget(self, hide_timer_on=True)
         
         # Highlight current line color
         self.currentline_color = QColor(Qt.red).lighter(190)
