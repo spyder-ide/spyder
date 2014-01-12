@@ -438,7 +438,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         # From http://stackoverflow.com/q/7691569/438386
         error = error.replace('-', '&#8209')
             
-        message = _("An error ocurred while starting the kernel!")
+        message = _("An error ocurred while starting the kernel")
         kernel_error_template = Template(KERNEL_ERROR)
         page = kernel_error_template.substitute(css_path=CSS_PATH,
                                                 message=message,
