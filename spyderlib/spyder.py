@@ -918,7 +918,7 @@ class MainWindow(QMainWindow):
                                _("Spyder documentation"), shortcut="F1",
                                icon=get_std_icon('DialogHelpButton'))
             self.help_menu_actions = [doc_action, report_action,
-                                      support_action, dep_action, None]
+                                      dep_action, support_action, None]
             # Python documentation
             if get_python_doc_path() is not None:
                 pydoc_act = create_action(self, _("Python documentation"),
