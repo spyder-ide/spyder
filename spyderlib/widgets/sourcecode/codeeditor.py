@@ -718,14 +718,10 @@ class CodeEditor(TextEditBaseWidget):
             self.unindent()  
         elif leading_text[-1] in '(,' or leading_text.endswith(', '):
             position = self.get_position('cursor')
-            self.show_object_info(position - 1)
-        elif not leading_text.endswith(','):
+            self.show_object_info(position)
+        else:
             # if the line ends with any other character but comma
             self.unindent()
-        else:
-            # fallback: try and show calltip
-            position = self.get_position('cursor')
-            self.show_object_info(position - 1)
             
     def rehighlight(self):
         """
