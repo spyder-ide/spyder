@@ -450,4 +450,4 @@ if __name__ == '__main__':
     code = u'álfa;á'
     comp = p.get_token_completion_list(code, len(code), None)
     assert comp == [u'álfa']
-    
+
