@@ -494,12 +494,12 @@ class IPythonConsole(SpyderPluginWidget):
         if client is not None:
             client.shellwidget.write_to_stdin(line)
 
-    def create_new_client(self):
+    def create_new_client(self, give_focus=True):
         """Create a new client"""
         client = IPythonClient(self, history_filename='history.py',
                                menu_actions=self.menu_actions)
         self.add_tab(client, name=client.get_name())
-        self.main.extconsole.start_ipykernel(client)
+        self.main.extconsole.start_ipykernel(client, give_focus=give_focus)
 
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
@@ -798,10 +798,10 @@ class IPythonConsole(SpyderPluginWidget):
         ip_cfg._merge(spy_cfg)
         return ip_cfg
 
-    def register_client(self, client, name, restart=False):
+    def register_client(self, client, name, restart=False, give_focus=True):
         """Register new IPython client"""
         self.connect_client_to_kernel(client)
-        client.show_shellwidget()
+        client.show_shellwidget(give_focus=give_focus)
         client.name = name
         
         # If we are restarting the kernel we just need to rename the client tab
@@ -892,7 +892,7 @@ class IPythonConsole(SpyderPluginWidget):
     
     def open_client_at_startup(self):
         if self.get_option('open_ipython_at_startup', False):
-            self.create_new_client()
+            self.create_new_client(give_focus=False)
     
     def close_related_ipyclients(self, client):
         """Close all IPython clients related to *client*, except itself"""

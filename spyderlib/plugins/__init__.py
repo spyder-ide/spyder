@@ -23,7 +23,8 @@ from spyderlib.qt.QtGui import (QDockWidget, QWidget, QShortcut, QCursor,
 from spyderlib.qt.QtCore import SIGNAL, Qt, QObject, Signal
 
 # Local imports
-from spyderlib.utils.qthelpers import toggle_actions, get_icon
+from spyderlib.utils.qthelpers import toggle_actions, get_icon, create_action
+from spyderlib.baseconfig import _
 from spyderlib.config import CONF
 from spyderlib.userconfig import NoDefault
 from spyderlib.guiconfig import get_font, set_font
@@ -80,6 +81,10 @@ class SpyderPluginMixin(object):
         self.mainwindow = None
         self.ismaximized = False
         self.isvisible = False
+        # We decided to create our own toggle action instead of using
+        # the one that comes with dockwidget because it's not possible
+        # to raise and focus the plugin with it.
+        self.toggle_view_action = None
         
     def initialize_plugin(self):
         """Initialize plugin: connect signals, setup actions, ..."""
@@ -91,6 +96,7 @@ class SpyderPluginMixin(object):
         if self.sig_option_changed is not None:
             self.sig_option_changed.connect(self.set_option)
         self.setWindowTitle(self.get_plugin_title())
+        self.create_toggle_view_action()
 
     def on_first_registration(self):
         """Action to be performed on first plugin registration"""
@@ -225,6 +231,8 @@ class SpyderPluginMixin(object):
         self.isvisible = enable and visible
         if self.isvisible:
             self.refresh_plugin()   # To give focus to the plugin's widget
+        if self.dockwidget.isHidden():
+            self.toggle_view_action.setChecked(False)
 
     def set_option(self, option, value):
         """
@@ -276,6 +284,22 @@ class SpyderPluginMixin(object):
             if name not in names:
                 name = names[0]
             self.set_option('color_scheme_name', name)
+    
+    def create_toggle_view_action(self):
+        """Associate a toggle view action with each plugin"""
+        title = self.get_plugin_title()
+        if self.CONF_SECTION == 'editor':
+            title = _('Editor')
+        action = create_action(self, title, toggled=self.toggle_view)
+        self.toggle_view_action = action
+    
+    def toggle_view(self, checked):
+        """Toggle view"""
+        if checked:
+            self.dockwidget.show()
+            self.dockwidget.raise_()
+        else:
+            self.dockwidget.hide()
 
 
 class SpyderPluginWidget(QWidget, SpyderPluginMixin):

@@ -322,6 +322,8 @@ class CodeEditor(TextEditBaseWidget):
         calltip_size = CONF.get('editor_appearance', 'calltips/size')
         calltip_font = get_font('editor_appearance', 'calltips')
         self.setup_calltips(calltip_size, calltip_font)
+        self.no_autoclose_paren = False  # to show signature calltips until the
+                                         # the user writes a closing parenthesis
 
         # Completion
         completion_size = CONF.get('editor_appearance', 'completion/size')
@@ -677,7 +679,50 @@ class CodeEditor(TextEditBaseWidget):
 
     def is_python_like(self):
         return self.is_python() or self.is_cython()
+        
+    def intelligent_tab(self):
+        """Provide intelligent behavoir for Tab key press"""
+        leading_text = self.get_text('sol', 'cursor')
+        if not leading_text.strip():
+            # blank line
+            self.indent_or_replace()
+        elif self.in_comment_or_string() and not leading_text.endswith(' '):
+            # in a word in a comment
+            self.do_token_completion()
+        elif leading_text.endswith('import ') or leading_text[-1] == '.':
+            # blank import or dot completion
+            self.do_code_completion()
+        elif (leading_text.split()[0] in ['from', 'import'] and
+              not ';' in leading_text):
+            # import line with a single statement
+            #  (prevents lines like: `import pdb; pdb.set_trace()`)
+            self.do_code_completion()
+        elif leading_text[-1] in '(,' or leading_text.endswith(', '):
+            self.indent_or_replace()
+        elif leading_text.endswith(' '):
+            # if the line ends with a space, indent
+            self.indent_or_replace()
+        elif re.search(r"[^\d\W]\w*\Z", leading_text, re.UNICODE):
+            # if the line ends with a non-whitespace character
+            self.do_code_completion()
+        else:
+            self.indent_or_replace()
 
+    def intelligent_backtab(self):
+        """Provide intelligent behavoir for Shift+Tab key press"""
+        leading_text = self.get_text('sol', 'cursor')
+        if not leading_text.strip():
+            # blank line
+            self.unindent()
+        elif self.in_comment_or_string():
+            self.unindent()  
+        elif leading_text[-1] in '(,' or leading_text.endswith(', '):
+            position = self.get_position('cursor')
+            self.show_object_info(position)
+        else:
+            # if the line ends with any other character but comma
+            self.unindent()
+            
     def rehighlight(self):
         """
         Rehighlight the whole document to rebuild outline explorer data
@@ -1075,7 +1120,7 @@ class CodeEditor(TextEditBaseWidget):
     def do_code_completion(self):
         """Trigger code completion"""
         if not self.is_completion_widget_visible():
-            if self.is_python_like():
+            if self.is_python_like() and not self.in_comment_or_string():
                 self.emit(SIGNAL('trigger_code_completion(bool)'), False)
             else:
                 self.do_token_completion()
@@ -1083,16 +1128,15 @@ class CodeEditor(TextEditBaseWidget):
     def do_token_completion(self):
         """Trigger a token-based completion"""
         if not self.is_completion_widget_visible():
-            self.emit(SIGNAL('trigger_token_completion(bool)'), True)
+            self.emit(SIGNAL('trigger_token_completion(bool)'), False)
 
     def do_go_to_definition(self):
         """Trigger go-to-definition"""
         self.emit(SIGNAL("go_to_definition(int)"), self.textCursor().position())
 
-    def do_calltip_and_doc_rendering(self, position):
+    def show_object_info(self, position):
         """Trigger a calltip"""
-        self.emit(SIGNAL('trigger_calltip_and_doc_rendering(int)'),
-                          position)
+        self.emit(SIGNAL('show_object_info(int)'), position)
 
     #-----edge line
     def set_edge_line_enabled(self, state):
@@ -1621,11 +1665,19 @@ class CodeEditor(TextEditBaseWidget):
             return
         cursor = self.textCursor()
         block_nb = cursor.blockNumber()
+        close_parens = 0
         for prevline in range(block_nb-1, -1, -1):
             cursor.movePosition(QTextCursor.PreviousBlock)
             prevtext = to_text_string(cursor.block().text()).rstrip()
             if not prevtext.strip().startswith('#'):
-                break
+                close_parens += prevtext.count(')')
+                close_parens -= prevtext.count('(')
+                if not close_parens:
+                    break
+                else:
+                    # prevent further parsing
+                    comment_or_string = True
+
         indent = self.get_block_indentation(block_nb)
         correct_indent = self.get_block_indentation(prevline)
 
@@ -2150,19 +2202,20 @@ class CodeEditor(TextEditBaseWidget):
             self.hide_completion_widget()
             position = self.get_position('cursor')
             s_trailing_text = self.get_text('cursor', 'eol').strip()
+            self.insert_text(text)
+            if (self.is_python_like()) and \
+               self.get_text('sol', 'cursor') and self.calltips:
+                self.emit(SIGNAL('show_object_info(int)'), position)
             if self.close_parentheses_enabled and \
+               not self.no_autoclose_paren and \
                (len(s_trailing_text) == 0 or \
                 s_trailing_text[0] in (',', ')', ']', '}')):
-                self.insert_text('()')
+                self.insert_text(')')
                 cursor = self.textCursor()
                 cursor.movePosition(QTextCursor.PreviousCharacter)
                 self.setTextCursor(cursor)
             else:
-                self.insert_text(text)
-            if (self.is_python_like()) and \
-               self.get_text('sol', 'cursor') and self.calltips:
-                self.emit(SIGNAL('show_object_info(int)'), position)
-
+                self.no_autoclose_paren = False
         elif text in ('[', '{') and not self.has_selected_text() \
           and self.close_parentheses_enabled:
             s_trailing_text = self.get_text('cursor', 'eol').strip()
@@ -2219,11 +2272,19 @@ class CodeEditor(TextEditBaseWidget):
         elif key == Qt.Key_Tab:
             # Important note: <TAB> can't be called with a QShortcut because
             # of its singular role with respect to widget focus management
-            self.indent_or_replace()
+            if not self.has_selected_text() and not self.tab_mode:
+                self.intelligent_tab()
+            else:
+                # indent the selected text
+                self.indent_or_replace()
         elif key == Qt.Key_Backtab:
             # Backtab, i.e. Shift+<TAB>, could be treated as a QShortcut but
             # there is no point since <TAB> can't (see above)
-            self.unindent()
+            if not self.has_selected_text() and not self.tab_mode:
+                self.intelligent_backtab()
+            else:
+                # indent the selected text
+                self.unindent()
         else:
             TextEditBaseWidget.keyPressEvent(self, event)
             if self.is_completion_widget_visible() and text:

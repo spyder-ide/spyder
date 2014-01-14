@@ -937,8 +937,9 @@ class ExternalConsole(SpyderPluginWidget):
                         self.connect(shellwidget,
                                      SIGNAL('create_ipython_client(QString)'),
                                      lambda cf: self.register_ipyclient(cf,
-                                                                  ipyclient,
-                                                                  shellwidget))
+                                              ipyclient,
+                                              shellwidget,
+                                              give_focus=give_ipyclient_focus))
                     else:
                         shellwidget.emit(
                           SIGNAL("ipython_kernel_start_error(QString)"),
@@ -1025,7 +1026,8 @@ class ExternalConsole(SpyderPluginWidget):
         name = "%s %s" % (text, kernel_id)
         self.tabwidget.setTabText(index, name)
     
-    def register_ipyclient(self, connection_file, ipyclient, kernel_widget):
+    def register_ipyclient(self, connection_file, ipyclient, kernel_widget,
+                           give_focus=True):
         """
         Register `ipyclient` to be connected to `kernel_widget`
         """
@@ -1048,7 +1050,9 @@ class ExternalConsole(SpyderPluginWidget):
         ipyconsole = self.main.ipyconsole
         ipyclient.connection_file = connection_file
         ipyclient.kernel_widget_id = id(kernel_widget)
-        ipyconsole.register_client(ipyclient, client_name, restart_kernel)
+        ipyconsole.register_client(ipyclient, client_name,
+                                   restart=restart_kernel,
+                                   give_focus=give_focus)
         
     def open_file_in_spyder(self, fname, lineno):
         """Open file in Spyder's editor from remote process"""
@@ -1261,7 +1265,7 @@ class ExternalConsole(SpyderPluginWidget):
         self.start(fname=None, wdir=to_text_string(wdir), args='',
                    interact=True, debug=False, python=True)
     
-    def start_ipykernel(self, client, wdir=None):
+    def start_ipykernel(self, client, wdir=None, give_focus=True):
         """Start new IPython kernel"""
         if not self.get_option('monitor/enabled'):
             QMessageBox.warning(self, _('Open an IPython console'),
@@ -1274,7 +1278,7 @@ class ExternalConsole(SpyderPluginWidget):
         self.main.ipyconsole.visibility_changed(True)
         self.start(fname=None, wdir=to_text_string(wdir), args='',
                    interact=True, debug=False, python=True, ipykernel=True,
-                   ipyclient=client)
+                   ipyclient=client, give_ipyclient_focus=give_focus)
 
     def open_terminal(self, wdir=None):
         """Open terminal"""

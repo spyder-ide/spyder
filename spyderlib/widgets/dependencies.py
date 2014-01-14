@@ -125,6 +125,7 @@ class DependenciesDialog(QDialog):
         QDialog.__init__(self, parent)
         self.setWindowTitle("Spyder %s: %s" % (__version__,
                                                _("Optional Dependencies")))
+        self.setWindowIcon(get_icon('advanced.png'))
         self.setModal(True)
 
         self.view = DependenciesTableView(self, [])
