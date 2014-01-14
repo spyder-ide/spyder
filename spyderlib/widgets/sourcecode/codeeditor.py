@@ -317,7 +317,8 @@ class CodeEditor(TextEditBaseWidget):
 
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
-
+        self.setFocusPolicy(Qt.StrongFocus)
+        
         # Calltips
         calltip_size = CONF.get('editor_appearance', 'calltips/size')
         calltip_font = get_font('editor_appearance', 'calltips')
@@ -683,7 +684,7 @@ class CodeEditor(TextEditBaseWidget):
     def intelligent_tab(self):
         """Provide intelligent behavoir for Tab key press"""
         leading_text = self.get_text('sol', 'cursor')
-        if not leading_text.strip():
+        if not leading_text.strip(): 
             # blank line
             self.indent_or_replace()
         elif self.in_comment_or_string() and not leading_text.endswith(' '):
@@ -692,7 +693,7 @@ class CodeEditor(TextEditBaseWidget):
         elif leading_text.endswith('import ') or leading_text[-1] == '.':
             # blank import or dot completion
             self.do_code_completion()
-        elif (leading_text.split()[0] in ['from', 'import'] and
+        elif (leading_text.split()[0] in ['from', 'import'] and 
               not ';' in leading_text):
             # import line with a single statement
             #  (prevents lines like: `import pdb; pdb.set_trace()`)
@@ -734,7 +735,6 @@ class CodeEditor(TextEditBaseWidget):
             self.highlight_current_line()
         else:
             self.unhighlight_current_line()
-
 
     def setup_margins(self, linenumbers=True, markers=True):
         """
@@ -2238,13 +2238,9 @@ class CodeEditor(TextEditBaseWidget):
             cursor.movePosition(QTextCursor.NextCharacter,
                                 QTextCursor.KeepAnchor)
             text = to_text_string(cursor.selectedText())
-            if key in [Qt.Key_ParenRight, Qt.Key_0]:
-                match = ')'
-            elif key == Qt.Key_BracketRight and not shift:
-                match = ']'
-            else:
-                match = '}'
-            if text == match:
+            
+            if text == {Qt.Key_ParenRight: ')', Qt.Key_BraceRight: '}',
+                        Qt.Key_BracketRight: ']', Qt.Key_0: ')'}[key]:
                 cursor.clearSelection()
                 self.setTextCursor(cursor)
             else:
