@@ -317,6 +317,7 @@ class CodeEditor(TextEditBaseWidget):
 
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
+        self.setFocusPolicy(Qt.StrongFocus)
 
         # Calltips
         calltip_size = CONF.get('editor_appearance', 'calltips/size')
@@ -683,7 +684,7 @@ class CodeEditor(TextEditBaseWidget):
     def intelligent_tab(self):
         """Provide intelligent behavoir for Tab key press"""
         leading_text = self.get_text('sol', 'cursor')
-        if not leading_text.strip():
+        if not leading_text.strip(): 
             # blank line
             self.indent_or_replace()
         elif self.in_comment_or_string() and not leading_text.endswith(' '):
@@ -692,37 +693,29 @@ class CodeEditor(TextEditBaseWidget):
         elif leading_text.endswith('import ') or leading_text[-1] == '.':
             # blank import or dot completion
             self.do_code_completion()
-        elif (leading_text.split()[0] in ['from', 'import'] and
+        elif (leading_text.split()[0] in ['from', 'import'] and 
               not ';' in leading_text):
             # import line with a single statement
             #  (prevents lines like: `import pdb; pdb.set_trace()`)
             self.do_code_completion()
         elif leading_text[-1] in '(,' or leading_text.endswith(', '):
-            self.indent_or_replace()
+            # retrigger calltip if in a function call
+            position = self.get_position('cursor')
+            self.show_object_info(position)
         elif leading_text.endswith(' '):
             # if the line ends with a space, indent
             self.indent_or_replace()
         elif re.search(r"[^\d\W]\w*\Z", leading_text, re.UNICODE):
             # if the line ends with a non-whitespace character
             self.do_code_completion()
-        else:
+        elif not leading_text.endswith(','):
+            # if the line ends with any other character but comma
             self.indent_or_replace()
-
-    def intelligent_backtab(self):
-        """Provide intelligent behavoir for Shift+Tab key press"""
-        leading_text = self.get_text('sol', 'cursor')
-        if not leading_text.strip():
-            # blank line
-            self.unindent()
-        elif self.in_comment_or_string():
-            self.unindent()  
-        elif leading_text[-1] in '(,' or leading_text.endswith(', '):
+        else:
+            # catch-all for commas - retrigger calltip
             position = self.get_position('cursor')
             self.show_object_info(position)
-        else:
-            # if the line ends with any other character but comma
-            self.unindent()
-            
+
     def rehighlight(self):
         """
         Rehighlight the whole document to rebuild outline explorer data
@@ -2238,13 +2231,8 @@ class CodeEditor(TextEditBaseWidget):
             cursor.movePosition(QTextCursor.NextCharacter,
                                 QTextCursor.KeepAnchor)
             text = to_text_string(cursor.selectedText())
-            if key in [Qt.Key_ParenRight, Qt.Key_0]:
-                match = ')'
-            elif key == Qt.Key_BracketRight and not shift:
-                match = ']'
-            else:
-                match = '}'
-            if text == match:
+            if text == {Qt.Key_ParenRight: ')', Qt.Key_BraceRight: '}',
+                        Qt.Key_BracketRight: ']', Qt.Key_0: ')'}[key]:
                 cursor.clearSelection()
                 self.setTextCursor(cursor)
             else:
@@ -2280,11 +2268,7 @@ class CodeEditor(TextEditBaseWidget):
         elif key == Qt.Key_Backtab:
             # Backtab, i.e. Shift+<TAB>, could be treated as a QShortcut but
             # there is no point since <TAB> can't (see above)
-            if not self.has_selected_text() and not self.tab_mode:
-                self.intelligent_backtab()
-            else:
-                # indent the selected text
-                self.unindent()
+            self.unindent()
         else:
             TextEditBaseWidget.keyPressEvent(self, event)
             if self.is_completion_widget_visible() and text:

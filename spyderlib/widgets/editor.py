@@ -380,10 +380,9 @@ class FileInfo(QObject):
     def find_nearest_function_call(self, position):
         """Find the nearest function call at or prior to current position"""
         source_code = self.get_source_code()
-        position = min(len(source_code) - 1, position)
         orig_pos = position
         # find the first preceding opening parens (keep track of closing parens)
-        if not position or not source_code[position] == '(':
+        if not position or not source_code[position - 1] == '(':
             close_parens = 0
             position -= 1
             while position and not (source_code[position] == '(' and close_parens == 0):
@@ -395,7 +394,7 @@ class FileInfo(QObject):
                 if source_code[position] in ['\n', '\r']:
                     position = orig_pos
                     break
-        if position and source_code[position] == '(':
+        if position and source_code[position - 1] == '(':
             position -= 1
                 
         return position
@@ -1336,6 +1335,9 @@ class EditorStack(QWidget):
             self._refresh_outlineexplorer()
             self.emit(SIGNAL('refresh_file_dependent_actions()'))
             self.emit(SIGNAL('update_plugin_title()'))
+            editor = self.get_current_editor()
+            if editor:
+                editor.setFocus()
             
             if new_index is not None:
                 if index < new_index:
