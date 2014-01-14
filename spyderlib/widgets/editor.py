@@ -1339,6 +1339,7 @@ class EditorStack(QWidget):
             editor = self.get_current_editor()
             if editor:
                 editor.setFocus()
+            
             if new_index is not None:
                 if index < new_index:
                     new_index -= 1

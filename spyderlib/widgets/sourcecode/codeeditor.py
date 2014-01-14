@@ -318,7 +318,7 @@ class CodeEditor(TextEditBaseWidget):
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
         self.setFocusPolicy(Qt.StrongFocus)
-        
+
         # Calltips
         calltip_size = CONF.get('editor_appearance', 'calltips/size')
         calltip_font = get_font('editor_appearance', 'calltips')
@@ -735,6 +735,7 @@ class CodeEditor(TextEditBaseWidget):
             self.highlight_current_line()
         else:
             self.unhighlight_current_line()
+
 
     def setup_margins(self, linenumbers=True, markers=True):
         """
@@ -2238,7 +2239,6 @@ class CodeEditor(TextEditBaseWidget):
             cursor.movePosition(QTextCursor.NextCharacter,
                                 QTextCursor.KeepAnchor)
             text = to_text_string(cursor.selectedText())
-            
             if text == {Qt.Key_ParenRight: ')', Qt.Key_BraceRight: '}',
                         Qt.Key_BracketRight: ']', Qt.Key_0: ')'}[key]:
                 cursor.clearSelection()
