@@ -110,7 +110,7 @@ class IPythonControlWidget(TracebackLinksMixin, InspectObjectMixin, QTextEdit,
         TracebackLinksMixin.__init__(self)
         InspectObjectMixin.__init__(self)
         self.found_results = []
-        self.signature_widget = CallTipWidget(self)
+        self.calltip_widget = CallTipWidget(self, hide_timer_on=True)
         # To not use Spyder calltips obtained through the monitor
         self.calltips = False
     
@@ -322,7 +322,7 @@ These commands were executed:
                 call_info, doc = None, None
             else:
                 call_info, doc = call_tip(content, format_call=True)
-                if not call_info:
+                if call_info is None and doc is not None:
                     name = content['name'].split('.')[-1]
                     argspec = getargspecfromtext(doc)
                     if argspec:
@@ -438,7 +438,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         # From http://stackoverflow.com/q/7691569/438386
         error = error.replace('-', '&#8209')
             
-        message = _("An error ocurred while starting the kernel!")
+        message = _("An error ocurred while starting the kernel")
         kernel_error_template = Template(KERNEL_ERROR)
         page = kernel_error_template.substitute(css_path=CSS_PATH,
                                                 message=message,

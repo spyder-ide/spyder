@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #-----------------------------------------------------------------------------
 # Copyright (c) 2010, IPython Development Team.
 #
@@ -11,7 +12,6 @@ Calltip widget used only to show signatures
 """
 
 # Standard library imports
-import re
 from unicodedata import category
 
 # System library imports
@@ -26,7 +26,7 @@ class CallTipWidget(QtGui.QLabel):
     # 'QObject' interface
     #--------------------------------------------------------------------------
 
-    def __init__(self, text_edit):
+    def __init__(self, text_edit, hide_timer_on=False):
         """ Create a call tip manager that is attached to the specified Qt
             text edit widget.
         """
@@ -34,6 +34,7 @@ class CallTipWidget(QtGui.QLabel):
         super(CallTipWidget, self).__init__(None, QtCore.Qt.ToolTip)
         self.app = QtCore.QCoreApplication.instance()
 
+        self.hide_timer_on = hide_timer_on
         self._hide_timer = QtCore.QBasicTimer()
         self._text_edit = text_edit
 
@@ -68,7 +69,9 @@ class CallTipWidget(QtGui.QLabel):
                 self.hide()
 
             elif etype == QtCore.QEvent.Enter:
-                self._hide_timer.stop()
+                if (self._hide_timer.isActive() and
+                  self.app.topLevelAt(QtGui.QCursor.pos()) == self):
+                    self._hide_timer.stop()
 
             elif etype == QtCore.QEvent.Leave:
                 self._leave_event_hide()
@@ -90,7 +93,9 @@ class CallTipWidget(QtGui.QLabel):
         """ Reimplemented to cancel the hide timer.
         """
         super(CallTipWidget, self).enterEvent(event)
-        self._hide_timer.stop()
+        if (self._hide_timer.isActive() and
+          self.app.topLevelAt(QtGui.QCursor.pos()) == self):
+            self._hide_timer.stop()
 
     def hideEvent(self, event):
         """ Reimplemented to disconnect signal handlers and event filter.
@@ -138,25 +143,7 @@ class CallTipWidget(QtGui.QLabel):
     # 'CallTipWidget' interface
     #--------------------------------------------------------------------------
 
-    def show_call_info(self, point, call_line, doc=None, maxlines=20):
-        """ Attempts to show the specified call line and docstring at the
-            current cursor location. The docstring is possibly truncated for
-            length.
-        """
-        if doc:
-            match = re.match("(?:[^\n]*\n){%i}" % maxlines, doc)
-            if match:
-                doc = doc[:match.end()] + '\n[Documentation continues...]'
-        else:
-            doc = ''
-
-        if doc:
-            doc = '\n\n'.join([call_line, doc])
-        else:
-            doc = call_line
-        return self.show_tip(point, doc)
-
-    def show_tip(self, point, tip):
+    def show_tip(self, point, tip, wrapped_tiplines):
         """ Attempts to show the specified tip at the current cursor location.
         """
         # Attempt to find the cursor position at which to show the call tip.
@@ -167,6 +154,30 @@ class CallTipWidget(QtGui.QLabel):
                                                          forward=False)
         if self._start_position == -1:
             return False
+
+        if self.hide_timer_on:
+            self._hide_timer.stop()
+            # Logic to decide how much time to show the calltip depending
+            # on the amount of text present
+            if len(wrapped_tiplines) == 1:
+                args = wrapped_tiplines[0].split('(')[1]
+                nargs = len(args.split(','))
+                if nargs == 1:
+                    hide_time = 1400
+                elif nargs == 2:
+                    hide_time = 1600
+                else:
+                    hide_time = 1800
+            elif len(wrapped_tiplines) == 2:
+                args1 = wrapped_tiplines[1].strip()
+                nargs1 = len(args1.split(','))
+                if nargs1 == 1:
+                    hide_time = 2500
+                else:
+                    hide_time = 2800
+            else:
+                hide_time = 3500
+            self._hide_timer.start(hide_time, self)
 
         # Set the text and resize the widget accordingly.
         self.setText(tip)
@@ -261,21 +272,7 @@ class CallTipWidget(QtGui.QLabel):
             # this check. But on Mac OS, it sometimes happens the other way
             # around when the tooltip is created.
             self.app.topLevelAt(QtGui.QCursor.pos()) != self):
-            self._hide_timer.start(300, self)
-
-    def _format_tooltip(self,doc):
-        import textwrap
-
-        # make sure a long argument list does not make
-        # the first row overflow the width of the actual tip body
-        rows = doc.split("\n")
-        # An object which is not a callable has '<no docstring>' as doc
-        if len(rows) == 1:
-            return doc
-        max_text_width = max(80, max([len(x) for x in rows[1:]]))
-        rows= textwrap.wrap(rows[0],max_text_width) + rows[1:]
-        doc = "\n".join(rows)
-        return doc
+            self._hide_timer.start(800, self)
 
     #------ Signal handlers ----------------------------------------------------
 
@@ -286,6 +283,7 @@ class CallTipWidget(QtGui.QLabel):
         if cursor.position() <= self._start_position:
             self.hide()
         else:
-            position, commas = self._find_parenthesis(self._start_position + 1)
-            if position != -1:
-                self.hide()
+            if not self.hide_timer_on:
+                position, commas = self._find_parenthesis(self._start_position + 1)
+                if position != -1:
+                    self.hide()

@@ -15,6 +15,7 @@ import os
 import re
 import sre_constants
 import textwrap
+from xml.sax.saxutils import escape
 
 from spyderlib.qt.QtGui import (QTextCursor, QTextDocument, QApplication,
                                 QCursor, QToolTip)
@@ -52,6 +53,7 @@ class BaseEditMixin(object):
         rows = textwrap.wrap(text, width=50,
                              subsequent_indent=' '*(len(name)+1))
         for r in rows:
+            r = escape(r) # Escape most common html chars
             r = r.replace(' ', '&nbsp;')
             for char in ['=', ',', '(', ')', '*', '**']:
                 r = r.replace(char,
@@ -59,20 +61,30 @@ class BaseEditMixin(object):
                        char + '</span>')
             formatted_lines.append(r)
         signature = '<br>'.join(formatted_lines)
-        return signature
+        return signature, rows
     
     def show_calltip(self, title, text, signature=False, color='#2D62FF',
                      at_line=None, at_position=None):
         """Show calltip"""
         if text is None or len(text) == 0:
             return
+
         # Saving cursor position:
         if at_position is None:
             at_position = self.get_position('cursor')
         self.calltip_position = at_position
+
         # Preparing text:
         if signature:
-            text = self._format_signature(text)
+            text, wrapped_textlines = self._format_signature(text)
+        else:
+            if isinstance(text, list):
+                text = "\n    ".join(text)
+            text = text.replace('\n', '<br>')
+            if len(text) > self.calltip_size:
+                text = text[:self.calltip_size] + " ..."
+
+        # Formatting text
         font = self.font()
         size = font.pointSize()
         family = font.family()
@@ -80,13 +92,9 @@ class BaseEditMixin(object):
                   % (family, size, color)
         format2 = '<div style=\'font-family: "%s"; font-size: %spt\'>'\
                   % (family, size-1 if size > 9 else size)
-        if isinstance(text, list):
-            text = "\n    ".join(text)
-        text = text.replace('\n', '<br>')
-        if len(text) > self.calltip_size and not signature:
-            text = text[:self.calltip_size] + " ..."
         tiptext = format1 + ('<b>%s</b></div>' % title) + '<hr>' + \
                   format2 + text + "</div>"
+
         # Showing tooltip at cursor position:
         cx, cy = self.get_coordinates('cursor')
         if at_line is not None:
@@ -97,7 +105,7 @@ class BaseEditMixin(object):
         point.setX(point.x()+self.get_linenumberarea_width())
         point.setY(point.y()+font.pointSize()+5)
         if signature:
-            self.signature_widget.show_call_info(point, tiptext)
+            self.calltip_widget.show_tip(point, tiptext, wrapped_textlines)
         else:
             QToolTip.showText(point, tiptext)
     
