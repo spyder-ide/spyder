@@ -733,7 +733,7 @@ class ExternalConsole(SpyderPluginWidget):
     
     def start(self, fname, wdir=None, args='', interact=False, debug=False,
               python=True, ipykernel=False, ipyclient=None,
-              give_ipyclient_focus=True, python_args=''):
+              give_ipyclient_focus=True, python_args='', post_mortem=False):
         """
         Start new console
         
