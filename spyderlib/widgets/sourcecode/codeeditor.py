@@ -289,7 +289,6 @@ class CodeEditor(TextEditBaseWidget):
     """Source Code Editor Widget based exclusively on Qt"""
     LANGUAGES ={ 'Python': (sh.PythonSH, '#', PythonCFM),
                  'Cython': (sh.Fortran77SH, 'c', PythonCFM),
-                 'Enaml': (sh.EnamlSH, '#', PythonCFM),
                  'Fortran77': (sh.Fortran77SH, 'c', None),
                  'Fortran': (sh.FortranSH, '!', None),
                  'Idl': (sh.IdlSH, ';', None),
@@ -675,12 +674,9 @@ class CodeEditor(TextEditBaseWidget):
 
     def is_cython(self):
         return self.highlighter_class is sh.CythonSH
-        
-    def is_enaml(self):
-        return self.highlighter_class is sh.EnamlSH
 
     def is_python_like(self):
-        return self.is_python() or self.is_cython() or self.is_enaml()
+        return self.is_python() or self.is_cython()
 
     def rehighlight(self):
         """

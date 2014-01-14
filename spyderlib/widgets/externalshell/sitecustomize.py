@@ -655,6 +655,7 @@ def evalsc(command):
 
 builtins.evalsc = evalsc
 
+
 # Add post mortem debugging if requested
 if 'SPYDER_EXCEPTHOOK' in os.environ:  
     def info(type, value, tb):

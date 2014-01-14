@@ -19,7 +19,7 @@ from collections import OrderedDict
 from spyderlib.baseconfig import DEBUG, get_conf_path, debug_print
 from spyderlib.py3compat import PY2
 from spyderlib.utils.debug import log_dt, log_last_error
-from spyderlib.utils import sourcecode, encoding
+from spyderlib.utils import sourcecode
 
 from spyderlib.qt.QtGui import QApplication
 
@@ -297,7 +297,6 @@ class IntrospectionPlugin(object):
         """Find the definition for an object in a filename"""
         with open(filename, 'rb') as fid:
             code = fid.read()
-        code = encoding.decode(code)
         return self.get_definition_with_regex(code, name, line_nr)
         
     @staticmethod
@@ -409,8 +408,8 @@ def split_words(string):
 if __name__ == '__main__':
     p = IntrospectionPlugin()
     
-    with open(__file__, 'rb') as fid:
-        code = fid.read().decode('utf-8')
+    with open(__file__) as fid:
+        code = fid.read()
     code += '\nget_conf_path'
     path, line = p.get_definition_location_regex(code, len(code), __file__)
     assert path.endswith('baseconfig.py')
