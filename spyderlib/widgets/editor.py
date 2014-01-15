@@ -377,11 +377,11 @@ class FileInfo(QObject):
         self.trigger_code_completion(automatic, token_based=True)
         
         
-    def find_nearest_function_call(self, pos
+    def find_nearest_function_call(self, position):
         """Find the nearest function call at or prior to current position"""
         source_code = self.get_source_code()
-        orig_pos = position
         position = min(len(source_code) - 1, position)
+        orig_pos = position
         # find the first preceding opening parens (keep track of closing parens)
         if not position or not source_code[position] == '(':
             close_parens = 0

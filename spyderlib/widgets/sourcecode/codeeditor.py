@@ -697,7 +697,7 @@ class CodeEditor(TextEditBaseWidget):
             #  (prevents lines like: `import pdb; pdb.set_trace()`)
             self.do_code_completion()
         elif leading_text[-1] in '(,' or leading_text.endswith(', '):
-           self.indent_or_replace()
+            self.indent_or_replace()
         elif leading_text.endswith(' '):
             # if the line ends with a space, indent
             self.indent_or_replace()
@@ -705,9 +705,7 @@ class CodeEditor(TextEditBaseWidget):
             # if the line ends with a non-whitespace character
             self.do_code_completion()
         else:
-            # catch-all for commas - retrigger calltip
-            position = self.get_position('cursor')
-            self.show_object_info(position)
+            self.indent_or_replace()
 
     def intelligent_backtab(self):
         """Provide intelligent behavoir for Shift+Tab key press"""
@@ -723,7 +721,7 @@ class CodeEditor(TextEditBaseWidget):
         else:
             # if the line ends with any other character but comma
             self.unindent()
-
+            
     def rehighlight(self):
         """
         Rehighlight the whole document to rebuild outline explorer data
