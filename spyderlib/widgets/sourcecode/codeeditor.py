@@ -716,9 +716,8 @@ class CodeEditor(TextEditBaseWidget):
         elif self.in_comment_or_string():
             self.unindent()  
         elif leading_text[-1] in '(,' or leading_text.endswith(', '):
-            # catch-all for commas - retrigger calltip
-             position = self.get_position('cursor')
-             self.show_object_info(position)
+            position = self.get_position('cursor')
+            self.show_object_info(position)
         else:
             # if the line ends with any other character but comma
             self.unindent()
@@ -2266,7 +2265,7 @@ class CodeEditor(TextEditBaseWidget):
         elif key == Qt.Key_Backtab:
             # Backtab, i.e. Shift+<TAB>, could be treated as a QShortcut but
             # there is no point since <TAB> can't (see above)
-             if not self.has_selected_text() and not self.tab_mode:
+            if not self.has_selected_text() and not self.tab_mode:
                 self.intelligent_backtab()
             else:
                 # indent the selected text
