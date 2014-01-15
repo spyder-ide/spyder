@@ -376,12 +376,30 @@ class FileInfo(QObject):
         """Trigger a completion using tokens only"""
         self.trigger_code_completion(automatic, token_based=True)
         
-        
-    def find_nearest_function_call(self, position):
+       
+    def find_nearest_object(self, position):
         """Find the nearest function call at or prior to current position"""
         source_code = self.get_source_code()
         position = min(len(source_code) - 1, position)
         orig_pos = position
+
+        # if in a comment, look for the previous definition
+        if self.editor.in_comment_or_string():
+            # backtrack and look for a line that starts with def or class
+            while position:
+                base = source_code[position: position + 6]
+                if base.startswith('def ') or base.startswith('class '):
+                    if base.startswith('def '):
+                        return position + 4
+                    else:
+                        return position + 6
+                position -= 1
+
+        # if already on an object, return that
+        obj = sourcecode.get_primary_at(sourcecode, offset)
+        if obj:
+            return position
+
         # find the first preceding opening parens (keep track of closing parens)
         if not position or not source_code[position] == '(':
             close_parens = 0
@@ -407,7 +425,7 @@ class FileInfo(QObject):
         # case, we don't want to force the object inspector to be visible, 
         # to avoid polluting the window layout
         source_code = self.get_source_code()
-        offset = self.find_nearest_function_call(position)
+        offset = self.find_nearest_object(position)
         
         # Get calltip and docs
         helplist = self.introspection_plugin.get_calltip_and_docs(source_code,
