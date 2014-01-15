@@ -697,31 +697,23 @@ class CodeEditor(TextEditBaseWidget):
             #  (prevents lines like: `import pdb; pdb.set_trace()`)
             self.do_code_completion()
         elif leading_text[-1] in '(,' or leading_text.endswith(', '):
-            self.indent_or_replace()
+            # retrigger calltip if in a function call
+            position = self.get_position('cursor')
+            self.show_object_info(position)
         elif leading_text.endswith(' '):
             # if the line ends with a space, indent
             self.indent_or_replace()
         elif re.search(r"[^\d\W]\w*\Z", leading_text, re.UNICODE):
             # if the line ends with a non-whitespace character
             self.do_code_completion()
-        else:
+        elif not leading_text.endswith(','):
+            # if the line ends with any other character but comma
             self.indent_or_replace()
-
-    def intelligent_backtab(self):
-        """Provide intelligent behavoir for Shift+Tab key press"""
-        leading_text = self.get_text('sol', 'cursor')
-        if not leading_text.strip():
-            # blank line
-            self.unindent()
-        elif self.in_comment_or_string():
-            self.unindent()  
-        elif leading_text[-1] in '(,' or leading_text.endswith(', '):
+        else:
+            # catch-all for commas - retrigger calltip
             position = self.get_position('cursor')
             self.show_object_info(position)
-        else:
-            # if the line ends with any other character but comma
-            self.unindent()
-            
+
     def rehighlight(self):
         """
         Rehighlight the whole document to rebuild outline explorer data
@@ -2265,11 +2257,7 @@ class CodeEditor(TextEditBaseWidget):
         elif key == Qt.Key_Backtab:
             # Backtab, i.e. Shift+<TAB>, could be treated as a QShortcut but
             # there is no point since <TAB> can't (see above)
-            if not self.has_selected_text() and not self.tab_mode:
-                self.intelligent_backtab()
-            else:
-                # indent the selected text
-                self.unindent()
+            self.unindent()
         else:
             TextEditBaseWidget.keyPressEvent(self, event)
             if self.is_completion_widget_visible() and text:
