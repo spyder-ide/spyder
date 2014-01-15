@@ -234,7 +234,7 @@ class EditorConfigPage(PluginConfigPage):
         ancb_layout = QHBoxLayout()
         ancb_layout.addWidget(pyflakes_box)
         ancb_layout.addWidget(pep8_box)
-        todolist_box = newcb(_("Tasks (TODO, FIXME, XXX, HINT, TIP)"),
+        todolist_box = newcb(_("Tasks (TODO, FIXME, XXX, HINT, TIP, @todo)"),
                              'todo_list', default=True)
         realtime_radio = self.create_radiobutton(
                                             _("Perform analysis when "
@@ -770,7 +770,7 @@ class Editor(SpyderPluginWidget):
         # --- Source code Toolbar ---
         self.todo_list_action = create_action(self,
                 _("Show todo list"), icon='todo_list.png',
-                tip=_("Show TODO/FIXME/XXX/HINT/TIP comments list"),
+                tip=_("Show TODO/FIXME/XXX/HINT/TIP/@todo comments list"),
                 triggered=self.go_to_next_todo)
         self.todo_menu = QMenu(self)
         self.todo_list_action.setMenu(self.todo_menu)
