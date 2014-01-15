@@ -1355,6 +1355,9 @@ class EditorStack(QWidget):
             self._refresh_outlineexplorer()
             self.emit(SIGNAL('refresh_file_dependent_actions()'))
             self.emit(SIGNAL('update_plugin_title()'))
+            editor = self.get_current_editor()
+            if editor:
+                editor.setFocus()
             
             if new_index is not None:
                 if index < new_index:

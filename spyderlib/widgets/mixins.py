@@ -47,17 +47,18 @@ class BaseEditMixin(object):
     
     #------Calltips
     def _format_signature(self, text):
-        lines = []
+        formatted_lines = []
         name = text.split('(')[0]
-        rows = textwrap.wrap(text, 50)
+        rows = textwrap.wrap(text, width=50,
+                             subsequent_indent=' '*(len(name)+1))
         for r in rows:
+            r = r.replace(' ', '&nbsp;')
             for char in ['=', ',', '(', ')', '*', '**']:
                 r = r.replace(char,
                        '<span style=\'color: red; font-weight: bold\'>' + \
                        char + '</span>')
-            lines.append(r)
-        concat_str = '<br>' + '&nbsp;'*(len(name)+1)
-        signature = concat_str.join(lines)
+            formatted_lines.append(r)
+        signature = '<br>'.join(formatted_lines)
         return signature
     
     def show_calltip(self, title, text, signature=False, color='#2D62FF',

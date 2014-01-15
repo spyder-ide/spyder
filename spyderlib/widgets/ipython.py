@@ -223,8 +223,7 @@ class IPythonShellWidget(RichIPythonWidget):
     
     #---- Public API ----------------------------------------------------------
     def set_ipyclient(self, ipyclient):
-        """Bind this IPython widget to an IPython client widget
-        (see spyderlib/plugins/ipythonconsole.py)"""
+        """Bind this shell widget to an IPython client one"""
         self.ipyclient = ipyclient
         self.exit_requested.connect(ipyclient.exit_callback)
     
@@ -399,12 +398,13 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         self.exit_callback = lambda: plugin.close_console(client=self)
         
     #------ Public API --------------------------------------------------------
-    def show_shellwidget(self):
+    def show_shellwidget(self, give_focus=True):
         """Show shellwidget and configure it"""
         self.infowidget.hide()
         self.shellwidget.show()
         self.infowidget.setHtml(BLANK)
-        self.get_control().setFocus()
+        if give_focus:
+            self.get_control().setFocus()
         
         # Connect shellwidget to the client
         self.shellwidget.set_ipyclient(self)
@@ -420,12 +420,13 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         self.shellwidget.executed.connect(self.auto_refresh_namespacebrowser)
     
     def show_kernel_error(self, error):
-        """Show kernel initialization errors in the client info widget"""
+        """Show kernel initialization errors in infowidget"""
         # Remove explanation about how to kill the kernel (doesn't apply to us)
         error = error.split('issues/2049')[-1]
         # Remove unneeded blank lines at the beginning
         eol = sourcecode.get_eol_chars(error)
-        error = error.replace(eol, '<br>')
+        if eol:
+            error = error.replace(eol, '<br>')
         while error.startswith('<br>'):
             error = error[4:]
         # Remove connection message

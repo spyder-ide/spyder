@@ -521,8 +521,8 @@ The process may not exit as a result of clicking this button
         if not running:
             if self.is_ipykernel:
                 self.emit(SIGNAL("ipython_kernel_start_error(QString)"),
-                          _("The console failed to start! That's all we know "
-                            ":(<br>Please close it and open a new one."))
+                          _("The kernel failed to start!! That's all we know... "
+                            "Please close this console and open a new one."))
             else:
                 QMessageBox.critical(self, _("Error"),
                                      _("A Python console failed to start!"))

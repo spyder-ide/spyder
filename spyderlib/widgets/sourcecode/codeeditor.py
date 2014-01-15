@@ -317,6 +317,7 @@ class CodeEditor(TextEditBaseWidget):
 
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
+        self.setFocusPolicy(Qt.StrongFocus)
 
         # Calltips
         calltip_size = CONF.get('editor_appearance', 'calltips/size')
@@ -2245,13 +2246,8 @@ class CodeEditor(TextEditBaseWidget):
             cursor.movePosition(QTextCursor.NextCharacter,
                                 QTextCursor.KeepAnchor)
             text = to_text_string(cursor.selectedText())
-            if key in [Qt.Key_ParenRight, Qt.Key_0]:
-                match = ')'
-            elif key == Qt.Key_BracketRight and not shift:
-                match = ']'
-            else:
-                match = '}'
-            if text == match:
+            if text == {Qt.Key_ParenRight: ')', Qt.Key_BraceRight: '}',
+                        Qt.Key_BracketRight: ']', Qt.Key_0: ')'}[key]:
                 cursor.clearSelection()
                 self.setTextCursor(cursor)
             else:
@@ -2279,7 +2275,7 @@ class CodeEditor(TextEditBaseWidget):
         elif key == Qt.Key_Tab:
             # Important note: <TAB> can't be called with a QShortcut because
             # of its singular role with respect to widget focus management
-            if not self.has_selected_text():
+            if not self.has_selected_text() and not self.tab_mode:
                 self.intelligent_tab()
             else:
                 # indent the selected text
