@@ -303,7 +303,3 @@ tt {
     border-color: #eed3d7;
     background-color: rgb(199, 28, 34);
 }
-
-.panel-danger > .panel-heading > .panel-title {
-    text-align: center;
-}
