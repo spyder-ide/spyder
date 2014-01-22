@@ -17,7 +17,8 @@ import os.path as osp
 
 # Local import
 from spyderlib.userconfig import UserConfig, get_home_dir
-from spyderlib.baseconfig import SUBFOLDER, CHECK_ALL, EXCLUDED_NAMES, _
+from spyderlib.baseconfig import (SUBFOLDER, CHECK_ALL, EXCLUDED_NAMES,
+                                  SCIENTIFIC_STARTUP, _)
 from spyderlib.utils import iofuncs, codeanalysis
 
 
@@ -150,6 +151,9 @@ DEFAULTS = [
               'memory_usage/timeout': 2000,
               'cpu_usage/enable': False,
               'cpu_usage/timeout': 2000,
+              'use_custom_margin': True,
+              'custom_margin': 0,
+              'show_internal_console_if_traceback': True
               }),
             ('quick_layouts',
              {
@@ -185,6 +189,7 @@ DEFAULTS = [
               }),
             ('internal_console',
              {
+              'shortcut': None,
               'max_line_count': 300,
               'working_dir_history': 30,
               'working_dir_adjusttocontents': False,
@@ -237,9 +242,17 @@ DEFAULTS = [
               'light_background': True,
               'merge_output_channels': os.name != 'nt',
               'colorize_sys_stderr': os.name != 'nt',
+              'open_python_at_startup': True,
+              'pythonstartup': SCIENTIFIC_STARTUP,
+              'pythonstartup/default': False,
+              'pythonstartup/custom': True,
+              'pythonexecutable/default': True,
+              'pythonexecutable/custom': False,
+              'ets_backend': 'qt4'
               }),
             ('ipython_console',
              {
+              'shortcut': None,
               'font/family': MONOSPACE,
               'font/size': MEDIUM,
               'font/italic': False,
@@ -266,7 +279,9 @@ DEFAULTS = [
               'autocall': 0,
               'symbolic_math': False,
               'in_prompt': '',
-              'out_prompt': ''
+              'out_prompt': '',
+              'light_color': True,
+              'dark_color': False
               }),
             ('variable_explorer',
              {
@@ -331,6 +346,8 @@ DEFAULTS = [
               'fullpath_sorting': True,
               'show_tab_bar': True,
               'max_recent_files': 20,
+              'save_all_before_run': True,
+              'onsave_analysis': False
               }),
             ('historylog',
              {
@@ -375,6 +392,9 @@ DEFAULTS = [
              {
               'shortcut': "Ctrl+Shift+O",
               'enable': True,
+              'show_fullpath': False,
+              'show_all_files': False,
+              'show_comments': True,
               }),
             ('project_explorer',
              {
@@ -382,6 +402,7 @@ DEFAULTS = [
               'enable': True,
               'name_filters': NAME_FILTERS,
               'show_all': False,
+              'show_hscrollbar': True
               }),
             ('arrayeditor',
              {
@@ -406,6 +427,7 @@ DEFAULTS = [
               }),
             ('explorer',
              {
+              'shortcut': None,
               'enable': True,
               'wrap': True,
               'name_filters': NAME_FILTERS,
@@ -416,6 +438,7 @@ DEFAULTS = [
               }),
             ('find_in_files',
              {
+              'shortcut': None,
               'enable': True,
               'supported_encodings': ["utf-8", "iso-8859-1", "cp1252"],
               'include': INCLUDE_PATTERNS,

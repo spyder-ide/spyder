@@ -278,7 +278,7 @@ These commands were executed:
                 self.kernel_manager.stdin_channel.input(line)
     
     def set_background_color(self):
-        lightbg_o = CONF.get('ipython_console', 'light_color', True)
+        lightbg_o = CONF.get('ipython_console', 'light_color')
         if not lightbg_o:
             self.set_default_style(colors='linux')
 

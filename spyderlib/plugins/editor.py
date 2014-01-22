@@ -148,7 +148,7 @@ class EditorConfigPage(PluginConfigPage):
 
         run_group = QGroupBox(_("Run"))
         saveall_box = newcb(_("Save all files before running script"),
-                            'save_all_before_run', True)
+                            'save_all_before_run')
         
         introspection_group = QGroupBox(_("Introspection"))
         rope_is_installed = programs.is_module_installed('rope')
@@ -243,7 +243,7 @@ class EditorConfigPage(PluginConfigPage):
         saveonly_radio = self.create_radiobutton(
                                             _("Perform analysis only "
                                                     "when saving file"),
-                                            'onsave_analysis', False)
+                                            'onsave_analysis')
         af_spin = self.create_spinbox("", " ms", 'realtime_analysis/timeout',
                                       min_=100, max_=1000000, step=100)
         af_layout = QHBoxLayout()
@@ -2062,7 +2062,7 @@ class Editor(SpyderPluginWidget):
         
     def re_run_file(self):
         """Re-run last script"""
-        if self.get_option('save_all_before_run', True):
+        if self.get_option('save_all_before_run'):
             self.save_all()
         if self.__last_ec_exec is None:
             return

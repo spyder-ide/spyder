@@ -121,8 +121,8 @@ class SpyderPluginMixin(object):
         layout = self.layout()
         if self.default_margins is None:
             self.default_margins = layout.getContentsMargins()
-        if CONF.get('main', 'use_custom_margin', True):
-            margin = CONF.get('main', 'custom_margin', 0)
+        if CONF.get('main', 'use_custom_margin'):
+            margin = CONF.get('main', 'custom_margin')
             layout.setContentsMargins(*[margin]*4)
         else:
             layout.setContentsMargins(*self.default_margins)
