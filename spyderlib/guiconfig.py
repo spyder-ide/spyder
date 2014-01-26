@@ -14,7 +14,10 @@ Important note regarding shortcuts:
         Ctrl + Alt + Q, W, F, G, Y, X, C, V, B, N
 """
 
-from spyderlib.qt.QtGui import QFont, QFontDatabase
+from collections import namedtuple
+
+from spyderlib.qt.QtGui import QFont, QFontDatabase, QShortcut, QKeySequence
+from spyderlib.qt.QtCore import Qt
 
 from spyderlib.config import CONF
 from spyderlib.userconfig import NoDefault
@@ -22,11 +25,17 @@ from spyderlib.widgets.sourcecode import syntaxhighlighters as sh
 from spyderlib.py3compat import to_text_string
 
 
+# To save metadata about widget shortcuts (needed to build our
+# preferences page)
+Shortcut = namedtuple('Shortcut', 'data')
+
+
 def font_is_installed(font):
     """Check if font is installed"""
     return [fam for fam in QFontDatabase().families()
             if to_text_string(fam)==font]
-    
+
+
 def get_family(families):
     """Return the first installed font family in family list"""
     if not isinstance(families, list):
@@ -37,7 +46,8 @@ def get_family(families):
     else:
         print("Warning: None of the following fonts is installed: %r" % families)
         return QFont().family()
-    
+
+
 FONT_CACHE = {}
 def get_font(section, option=None):
     """Get console font properties depending on OS and user options"""
@@ -61,6 +71,7 @@ def get_font(section, option=None):
         FONT_CACHE[(section, option)] = font
     return font
 
+
 def set_font(font, section, option=None):
     """Set font"""
     if option is None:
@@ -78,15 +89,27 @@ def get_shortcut(context, name, default=NoDefault):
     """Get keyboard shortcut (key sequence string)"""
     return CONF.get('shortcuts', '%s/%s' % (context, name), default=default)
 
+
 def set_shortcut(context, name, keystr):
     """Set keyboard shortcut (key sequence string)"""
     CONF.set('shortcuts', '%s/%s' % (context, name), keystr)
-    
+
+
+def create_shortcut(action, context, name, parent):
+    """Creates a QShortcut for a widget and returns its associated data"""
+    keystr = get_shortcut(context, name)
+    qsc = QShortcut(QKeySequence(keystr), parent, action)
+    qsc.setContext(Qt.WidgetWithChildrenShortcut)
+    sc = Shortcut(data=(qsc, name, keystr))
+    return sc
+
+
 def iter_shortcuts():
     """Iterate over keyboard shortcuts"""
     for option in CONF.options('shortcuts'):
         context, name = option.split("/", 1)
         yield context, name, get_shortcut(context, name)
+
 
 def remove_deprecated_shortcuts(data):
     """Remove deprecated shortcuts (shortcuts in CONF but not registered)"""
@@ -98,9 +121,11 @@ def remove_deprecated_shortcuts(data):
             if len(CONF.items(section, raw=CONF.raw)) == 0:
                 CONF.remove_section(section)
 
+
 def reset_shortcuts():
     """Reset keyboard shortcuts to default values"""
     CONF.remove_section('shortcuts')
+
 
 def get_color_scheme(name):
     """Get syntax color scheme"""
@@ -108,6 +133,7 @@ def get_color_scheme(name):
     for key in sh.COLOR_SCHEME_KEYS:
         color_scheme[key] = CONF.get("color_schemes", "%s/%s" % (name, key))
     return color_scheme
+
 
 def set_color_scheme(name, color_scheme, replace=True):
     """Set syntax color scheme"""
@@ -121,10 +147,12 @@ def set_color_scheme(name, color_scheme, replace=True):
     names.append(to_text_string(name))
     CONF.set(section, "names", sorted(list(set(names))))
 
+
 def set_default_color_scheme(name, replace=True):
     """Reset color scheme to default values"""
     assert name in sh.COLOR_SCHEME_NAMES
     set_color_scheme(name, sh.COLORS[name], replace=replace)
+
 
 for _name in sh.COLOR_SCHEME_NAMES:
     set_default_color_scheme(_name, replace=False)

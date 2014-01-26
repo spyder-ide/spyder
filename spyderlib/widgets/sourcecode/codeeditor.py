@@ -42,7 +42,7 @@ from spyderlib.qt.compat import to_qvariant
 #      consistent editor module (Qt source code and shell widgets library)
 from spyderlib.baseconfig import get_conf_path, _, DEBUG, get_image_path
 from spyderlib.config import CONF
-from spyderlib.guiconfig import get_font
+from spyderlib.guiconfig import get_font, create_shortcut
 from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
                                        mimedata2url, get_icon)
 from spyderlib.utils.dochelpers import getobj
@@ -452,39 +452,32 @@ class CodeEditor(TextEditBaseWidget):
         self.breakpoints = self.get_breakpoints()
 
         # Keyboard shortcuts
-        ctrl = "Meta" if sys.platform == 'darwin' else "Ctrl"
-        self.codecomp_sc = QShortcut(QKeySequence(ctrl+"+Space"), self,
-                                     self.do_code_completion)
-        self.codecomp_sc.setContext(Qt.WidgetWithChildrenShortcut)
-        dup_seq = "Ctrl+Alt+Up" if os.name == 'nt' else "Shift+Alt+Up"
-        self.duplicate_sc = QShortcut(QKeySequence(dup_seq), self,
-                                      self.duplicate_line)
-        self.duplicate_sc.setContext(Qt.WidgetWithChildrenShortcut)
-        cop_seq = "Ctrl+Alt+Down" if os.name == 'nt' else "Shift+Alt+Down"
-        self.copyline_sc = QShortcut(QKeySequence(cop_seq), self,
-                                     self.copy_line)
-        self.copyline_sc.setContext(Qt.WidgetWithChildrenShortcut)
-        self.deleteline_sc = QShortcut(QKeySequence("Ctrl+D"), self,
-                                       self.delete_line)
-        self.deleteline_sc.setContext(Qt.WidgetWithChildrenShortcut)
-        self.movelineup_sc = QShortcut(QKeySequence("Alt+Up"), self,
-                                       self.move_line_up)
-        self.movelineup_sc.setContext(Qt.WidgetWithChildrenShortcut)
-        self.movelinedown_sc = QShortcut(QKeySequence("Alt+Down"), self,
-                                         self.move_line_down)
-        self.movelinedown_sc.setContext(Qt.WidgetWithChildrenShortcut)
-        self.gotodef_sc = QShortcut(QKeySequence("Ctrl+G"), self,
-                                    self.do_go_to_definition)
-        self.gotodef_sc.setContext(Qt.WidgetWithChildrenShortcut)
-        self.toggle_comment_sc = QShortcut(QKeySequence("Ctrl+1"), self,
-                                           self.toggle_comment)
-        self.toggle_comment_sc.setContext(Qt.WidgetWithChildrenShortcut)
-        self.blockcomment_sc = QShortcut(QKeySequence("Ctrl+4"), self,
-                                         self.blockcomment)
-        self.blockcomment_sc.setContext(Qt.WidgetWithChildrenShortcut)
-        self.unblockcomment_sc = QShortcut(QKeySequence("Ctrl+5"), self,
-                                           self.unblockcomment)
-        self.unblockcomment_sc.setContext(Qt.WidgetWithChildrenShortcut)
+        self.shortcuts = self.create_shortcuts()
+
+    def create_shortcuts(self):
+        codecomp = create_shortcut(self.do_code_completion, context='Editor',
+                                   name='Code completion', parent=self)
+        duplicate_line = create_shortcut(self.duplicate_line, context='Editor',
+                                         name='Duplicate line', parent=self)
+        copyline = create_shortcut(self.copy_line, context='Editor',
+                                   name='Copy line', parent=self)
+        deleteline = create_shortcut(self.delete_line, context='Editor',
+                                     name='Delete line', parent=self)
+        movelineup = create_shortcut(self.move_line_up, context='Editor',
+                                     name='Move line up', parent=self)
+        movelinedown = create_shortcut(self.move_line_down, context='Editor',
+                                       name='Move line down', parent=self)
+        gotodef = create_shortcut(self.do_go_to_definition, context='Editor',
+                                  name='Go to definition', parent=self)
+        toggle_comment = create_shortcut(self.toggle_comment, context='Editor',
+                                         name='Toggle comment', parent=self)
+        blockcomment = create_shortcut(self.blockcomment, context='Editor',
+                                       name='Blockcomment', parent=self)
+        unblockcomment = create_shortcut(self.unblockcomment, context='Editor',
+                                         name='Unblockcomment', parent=self)
+        return [codecomp, duplicate_line, copyline, deleteline, movelineup,
+                movelinedown, gotodef, toggle_comment, blockcomment,
+                unblockcomment]
 
     def get_shortcut_data(self):
         """
@@ -493,19 +486,7 @@ class CodeEditor(TextEditBaseWidget):
         text (string): action/shortcut description
         default (string): default key sequence
         """
-        ctrl = "Meta" if sys.platform == 'darwin' else "Ctrl"
-        return [
-                (self.codecomp_sc, "Code completion", ctrl+"+Space"),
-                (self.duplicate_sc, "Duplicate line", ctrl+"+Alt+Up"),
-                (self.copyline_sc, "Copy line", ctrl+"+Alt+Down"),
-                (self.movelineup_sc, "Move line up", "Alt+Up"),
-                (self.movelinedown_sc, "Move line down", "Alt+Down"),
-                (self.deleteline_sc, "Delete line", "Ctrl+D"),
-                (self.gotodef_sc, "Go to definition", "Ctrl+G"),
-                (self.toggle_comment_sc, "Toggle comment", "Ctrl+1"),
-                (self.blockcomment_sc, "Blockcomment", "Ctrl+4"),
-                (self.unblockcomment_sc, "Unblockcomment", "Ctrl+5"),
-                ]
+        return [sc.data for sc in self.shortcuts]
 
     def closeEvent(self, event):
         TextEditBaseWidget.closeEvent(self, event)

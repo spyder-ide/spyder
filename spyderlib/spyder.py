@@ -516,32 +516,31 @@ class MainWindow(QMainWindow):
                                         _("Close current plugin"),
                                         triggered=self.close_current_dockwidget,
                                         context=Qt.ApplicationShortcut)
-            self.register_shortcut(self.close_dockwidget_action,
-                                   "_", "Close plugin", "Shift+Ctrl+F4")
+            self.register_shortcut(self.close_dockwidget_action, "_",
+                                   "Close plugin")
             
             _text = _("&Find text")
             self.find_action = create_action(self, _text, icon='find.png',
                                              tip=_text, triggered=self.find,
                                              context=Qt.WidgetShortcut)
-            self.register_shortcut(self.find_action, "Editor",
-                                   "Find text", "Ctrl+F")
+            self.register_shortcut(self.find_action, "Editor", "Find text")
             self.find_next_action = create_action(self, _("Find &next"),
                   icon='findnext.png', triggered=self.find_next,
                   context=Qt.WidgetShortcut)
             self.register_shortcut(self.find_next_action, "Editor",
-                                   "Find next", "F3")
+                                   "Find next")
             self.find_previous_action = create_action(self,
                         _("Find &previous"),
                         icon='findprevious.png', triggered=self.find_previous,
                         context=Qt.WidgetShortcut)
             self.register_shortcut(self.find_previous_action, "Editor",
-                                   "Find previous", "Shift+F3")
+                                   "Find previous")
             _text = _("&Replace text")
             self.replace_action = create_action(self, _text, icon='replace.png',
                                             tip=_text, triggered=self.replace,
                                             context=Qt.WidgetShortcut)
             self.register_shortcut(self.replace_action, "Editor",
-                                   "Replace text", "Ctrl+H")
+                                   "Replace text")
             def create_edit_action(text, tr_text, icon_name):
                 textseq = text.split(' ')
                 method_name = textseq[0].lower()+"".join(textseq[1:])
@@ -633,8 +632,7 @@ class MainWindow(QMainWindow):
             prefs_action = create_action(self, _("Pre&ferences"),
                                          icon='configure.png',
                                          triggered=self.edit_preferences)
-            self.register_shortcut(prefs_action, "_", "Preferences",
-                                   "Ctrl+Alt+Shift+P")
+            self.register_shortcut(prefs_action, "_", "Preferences")
             add_shortcut_to_tooltip(prefs_action, context="_",
                                     name="Preferences")
             spyder_path_action = create_action(self,
@@ -740,7 +738,7 @@ class MainWindow(QMainWindow):
             self.maximize_action = create_action(self, '',
                                             triggered=self.maximize_dockwidget)
             self.register_shortcut(self.maximize_action, "_",
-                                   "Maximize plugin", "Ctrl+Alt+Shift+M")
+                                   "Maximize plugin")
             self.__update_maximize_action()
             
             # Fullscreen mode
@@ -748,7 +746,7 @@ class MainWindow(QMainWindow):
                                             _("Fullscreen mode"),
                                             triggered=self.toggle_fullscreen)
             self.register_shortcut(self.fullscreen_action, "_",
-                                   "Fullscreen mode", "F11")
+                                   "Fullscreen mode")
             add_shortcut_to_tooltip(self.fullscreen_action, context="_",
                                     name="Fullscreen mode")
             
@@ -803,7 +801,7 @@ class MainWindow(QMainWindow):
             quit_action = create_action(self, _("&Quit"),
                                         icon='exit.png', tip=_("Quit"),
                                         triggered=self.console.quit)
-            self.register_shortcut(quit_action, "_", "Quit", "Ctrl+Q")
+            self.register_shortcut(quit_action, "_", "Quit")
             self.file_menu_actions += [self.load_temp_session_action,
                                        self.load_session_action,
                                        self.save_session_action,
@@ -1098,7 +1096,7 @@ class MainWindow(QMainWindow):
             
         # Apply all defined shortcuts (plugins + 3rd-party plugins)
         self.apply_shortcuts()
-        self.remove_deprecated_shortcuts()
+        #self.remove_deprecated_shortcuts()
         
         # Emitting the signal notifying plugins that main window menu and 
         # toolbar actions are all defined:

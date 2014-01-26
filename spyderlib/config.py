@@ -122,6 +122,9 @@ NAME_FILTERS = ['*' + _ext for _ext in VALID_EXT + SHOW_EXT if _ext]+\
 # it to open external files
 OPEN_FILES_PORT = 21128
 
+CTRL = "Meta" if sys.platform == 'darwin' else "Ctrl"
+
+
 DEFAULTS = [
             ('main',
              {
@@ -451,6 +454,85 @@ DEFAULTS = [
               'in_python_path': False,
               'more_options': True,
               }),
+            ('shortcuts',
+             {
+              # ---- Global ----
+              # -- In spyder.py
+              '_/close plugin': "Shift+Ctrl+F4",
+              '_/preferences': "Ctrl+Alt+Shift+P",
+              '_/maximize plugin': "Ctrl+Alt+Shift+M",
+              '_/Fullscreen mode': "F11",
+              '_/quit': "Ctrl+Q",
+              # -- In plugins/editor
+              '_/debug step over': "Ctrl+F10",
+              '_/debug continue': "Ctrl+F12",
+              '_/debug step into': "Ctrl+F11",
+              '_/debug step return': "Ctrl+Shift+F11",
+              '_/debug exit': "Ctrl+Shift+F12",
+              # -- In plugins/init
+              '_/switch to inspector': "Ctrl+Shift+I",
+              '_/switch to outline_explorer': "Ctrl+Shift+O",
+              '_/switch to editor': "Ctrl+Shift+E",
+              '_/switch to historylog': "Ctrl+Shift+H",
+              '_/switch to onlinehelp': "Ctrl+Shift+D",
+              '_/switch to project_explorer': "Ctrl+Shift+P",
+              '_/switch to console': "Ctrl+Shift+C",
+              '_/switch to variable_explorer': "Ctrl+Shift+V",
+              # ---- Editor ----
+              # -- In codeeditor
+              'editor/code completion': CTRL+'+Space',
+              'editor/duplicate line': "Ctrl+Alt+Up" if os.name == 'nt' else \
+                                       "Shift+Alt+Up",
+              'editor/copy line': "Ctrl+Alt+Down" if os.name == 'nt' else \
+                                  "Shift+Alt+Down",
+              'editor/delete line': 'Ctrl+D',
+              'editor/move line up': "Alt+Up",
+              'editor/move line down': "Alt+Down",
+              'editor/go to definition': "Ctrl+G",
+              'editor/toggle comment': "Ctrl+1",
+              'editor/blockcomment': "Ctrl+4",
+              'editor/unblockcomment': "Ctrl+5",
+              # -- In widgets/editor
+              'editor/inspect current object': 'Ctrl+I',
+              'editor/go to line': 'Ctrl+L',
+              'editor/file list management': 'Ctrl+E',
+              'editor/go to previous file': 'Ctrl+Tab',
+              'editor/go to next file': 'Ctrl+Shift+Tab',
+              # -- In spyder.py
+              'editor/find text': "Ctrl+F",
+              'editor/find next': "F3",
+              'editor/find previous': "Shift+F3",
+              'editor/replace text': "Ctrl+H",
+              # -- In plugins/editor
+              'editor/show/hide outline': "Ctrl+Alt+O",
+              'editor/show/hide project explorer': "Ctrl+Alt+P",
+              'editor/new file': "Ctrl+N",
+              'editor/open file': "Ctrl+O",
+              'editor/save file': "Ctrl+S",
+              'editor/save all': "Ctrl+Shift+S",
+              'editor/print': "Ctrl+P",
+              'editor/close file': "Ctrl+W",
+              'editor/close all': "Ctrl+Shift+W",
+              'editor/breakpoint': 'F12',
+              'editor/conditional breakpoint': 'Shift+F12',
+              'editor/debug with winpdb': "F7",
+              'editor/debug': "Ctrl+F5",
+              'editor/run': "F5",
+              'editor/configure': "F6",
+              'editor/re-run last script': "Ctrl+F6",
+              'editor/run selection': "F9",
+              'editor/last edit location': "Ctrl+Alt+Shift+Left",
+              'editor/previous cursor position': "Ctrl+Alt+Left",
+              'editor/next cursor position': "Ctrl+Alt+Right",
+              # -- In p_breakpoints
+              'editor/list breakpoints': "Ctrl+B",
+              # ---- Console (in widgets/shell) ----
+              'console/inspect current object': "Ctrl+I",
+              # ---- Pylint (in p_pylint) ----
+              'pylint/run analysis': "F8",
+              # ---- Profiler (in p_profiler) ----
+              'profiler/run profiler': "F10"
+              })
             ]
 
 # XXX: Previously we had load=(not DEV) here but DEV was set to *False*.

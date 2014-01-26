@@ -27,7 +27,8 @@ from spyderlib.qt.compat import getsavefilename
 
 # Local import
 from spyderlib.baseconfig import get_conf_path, _, STDERR, DEBUG
-from spyderlib.guiconfig import CONF, get_font
+from spyderlib.config import CONF
+from spyderlib.guiconfig import get_font, create_shortcut
 from spyderlib.utils import encoding
 from spyderlib.utils.qthelpers import (keybinding, create_action, add_actions,
                                        restore_keyevent, get_icon)
@@ -667,9 +668,14 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
         InspectObjectMixin.__init__(self)
 
         # Local shortcuts
-        self.inspectsc = QShortcut(QKeySequence("Ctrl+I"), self,
-                                   self.inspect_current_object)
-        self.inspectsc.setContext(Qt.WidgetWithChildrenShortcut)
+        self.shortcuts = self.create_shortcuts()
+    
+    def create_shortcuts(self):
+        inspectsc = create_shortcut(self.inspect_current_object,
+                                    context='Console',
+                                    name='Inspect current object',
+                                    parent=self)
+        return [inspectsc]
         
     def get_shortcut_data(self):
         """
@@ -678,10 +684,7 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
         text (string): action/shortcut description
         default (string): default key sequence
         """
-        return [
-                (self.inspectsc, "Inspect current object", "Ctrl+I"),
-                ]
-
+        return [sc.data for sc in self.shortcuts]
 
     #------ Context menu
     def setup_context_menu(self):
