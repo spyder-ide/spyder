@@ -15,24 +15,29 @@ Handles IPython clients (and in the future, will handle IPython kernels too
 # pylint: disable=R0201
 
 # Qt imports
-from spyderlib.qt.QtGui import (QVBoxLayout, QMessageBox, QGroupBox, QLineEdit,
-                                QInputDialog, QTabWidget, QFontComboBox,
+from spyderlib.qt.QtGui import (QVBoxLayout, QMessageBox, QGroupBox,
+                                QInputDialog, QFileDialog, QTabWidget, QFontComboBox,
                                 QApplication, QLabel)
 from spyderlib.qt.QtCore import SIGNAL, Qt, QUrl
 
 # Stdlib imports
 import sys
-import re
+import os
 import os.path as osp
 
 # IPython imports
 from IPython.config.loader import Config, load_pyconfig_files
 from IPython.core.application import get_ipython_dir
 from IPython.lib.kernel import find_connection_file, get_connection_info
-try:
-    from IPython.qt.manager import QtKernelManager # 1.0
-except ImportError:
-    from IPython.frontend.qt.kernelmanager import QtKernelManager # 0.13
+
+try:  # kernel_ver = '>=1.0'
+    from IPython.consoleapp import tunnel_to_kernel
+    from IPython.qt.manager import QtKernelManager
+    from IPython.utils.localinterfaces import LOCALHOST as localhost
+except:  # kernel_ver = '<1.0'
+    from IPython.frontend.consoleapp import tunnel_to_kernel
+    from IPython.frontend.qt.kernelmanager import QtKernelManager
+    from IPython.utils.localinterfaces import LOCALHOST as localhost
     
 # Local imports
 from spyderlib import dependencies
@@ -54,6 +59,7 @@ dependencies.add("sympy", _("Symbolic mathematics for the IPython Console"),
 
 
 class IPythonConsoleConfigPage(PluginConfigPage):
+    
     def __init__(self, plugin, parent):
         PluginConfigPage.__init__(self, plugin, parent)
         self.get_name = lambda: _("IPython console")
@@ -511,15 +517,20 @@ class IPythonConsole(SpyderPluginWidget):
         connect_to_kernel_action = create_action(self,
                _("Connect to an existing kernel"), None, None,
                _("Open a new IPython console connected to an existing kernel"),
-               triggered=self.create_client_for_kernel)
+               triggered= lambda: self.create_client_for_kernel(False))
+
+        connect_to_remote_kernel_action = create_action(self,
+               _("Connect to an existing remote kernel"), None, None,
+               _("Open a new IPython console connected to an existing remote kernel"),
+               triggered= lambda: self.create_client_for_kernel(True))
         
         # Add the action to the 'Consoles' menu on the main window
         main_consoles_menu = self.main.consoles_menu_actions
         main_consoles_menu.insert(0, create_client_action)
-        main_consoles_menu += [None, connect_to_kernel_action]
+        main_consoles_menu += [None, connect_to_kernel_action, connect_to_remote_kernel_action]
         
         # Plugin actions
-        self.menu_actions = [create_client_action, connect_to_kernel_action]
+        self.menu_actions = [create_client_action, connect_to_kernel_action, connect_to_remote_kernel_action]
         
         return self.menu_actions
 
@@ -600,29 +611,50 @@ class IPythonConsole(SpyderPluginWidget):
         # kernel one
         return programs.is_module_installed('IPython', version=kernel_ver)
 
-    def create_kernel_manager_and_client(self, connection_file=None):
+    def create_kernel_manager_and_client(self, connection_file=None, sshserver=None, sshkey=None):
         """Create kernel manager and client"""
         cf = find_connection_file(connection_file, profile='default')
         kernel_manager = QtKernelManager(connection_file=cf, config=None)
         if programs.is_module_installed('IPython', '>=1.0'):
             kernel_client = kernel_manager.client()
             kernel_client.load_connection_file()
+            if sshserver is not None:
+                try:
+                    newports = tunnel_to_kernel(dict(ip=kernel_client.ip,
+                                                     shell_port=kernel_client.shell_port,
+                                                     iopub_port=kernel_client.iopub_port,
+                                                     stdin_port=kernel_client.stdin_port,
+                                                     hb_port=kernel_client.hb_port),
+                                                sshserver, sshkey)
+                    kernel_client.shell_port, kernel_client.iopub_port, kernel_client.stdin_port, kernel_client.hb_port = newports
+                except:
+                    print("Could not ssh to kernel")
             kernel_client.start_channels()
             # To rely on kernel's heartbeat to know when a kernel has died
             kernel_client.hb_channel.unpause()
+            return kernel_manager, kernel_client
         else:
-            kernel_client = None
             kernel_manager.load_connection_file()
+            if sshserver is not None:
+                try:
+                    newports = tunnel_to_kernel(dict(ip=kernel_manager.ip,
+                                                     shell_port=kernel_manager.shell_port,
+                                                     iopub_port=kernel_manager.iopub_port,
+                                                     stdin_port=kernel_manager.stdin_port,
+                                                     hb_port=kernel_manager.hb_port),
+                                                sshserver, sshkey)
+                    kernel_manager.shell_port, kernel_manager.iopub_port, kernel_manager.stdin_port, kernel_manager.hb_port = newports
+                except:
+                    print("Could not ssh to kernel")                  
             kernel_manager.start_channels()
-        return kernel_manager, kernel_client
+            return kernel_manager, None
 
     def connect_client_to_kernel(self, client):
         """
         Connect a client to its kernel
         """
-        connection_file = client.connection_file
+        km, kc = self.create_kernel_manager_and_client(client.connection_file, client.sshserver, client.sshkey)
         widget = client.shellwidget
-        km, kc = self.create_kernel_manager_and_client(connection_file)
         widget.kernel_manager = km
         widget.kernel_client = kc
     
@@ -667,52 +699,56 @@ class IPythonConsole(SpyderPluginWidget):
             if widget is client or widget is client.get_control():
                 return client
 
-    def create_client_for_kernel(self):
+    def create_client_for_kernel(self, is_remote):
         """Create a client connected to an existing kernel"""
-        example = _("(for example: kernel-3764.json, or simply 3764)")
-        while True:
-            cf, valid = QInputDialog.getText(self, _('IPython'),
-                          _('Provide an IPython kernel connection file:')+\
-                          '\n'+example,
-                          QLineEdit.Normal)
-            if valid:
-                cf = str(cf)
-                match = re.match('(kernel-|^)([a-fA-F0-9-]+)(.json|$)', cf)
-                if match is not None:
-                    kernel_num = match.groups()[1]
-                    if kernel_num:
-                        cf = 'kernel-%s.json' % kernel_num
-                        break
-            else:
-                return
+        # Select json connection file
+        cf = QFileDialog.getOpenFileName(self, 'Open Python connection file',
+                 osp.join(get_ipython_dir(), 'profile_default', 'security'),
+                 '*.json;;*.*')
+        # Pyside's QFileDialog returns a tuple
+        if os.environ['QT_API'] == 'pyside':
+            cf = cf[0]
+        # If Cancel button clicked, cf is the empty string. Abort
+        if not cf:
+            return
 
-        # Generating the client name and setting kernel_widget_id
-        match = re.match('^kernel-([a-fA-F0-9-]+).json', cf)
+        # Case of a remote kernel
+        if is_remote:
+            # Select ssh key file
+            kf = QFileDialog.getOpenFileName(self, 'Select ssh key', get_ipython_dir(), '*.pem;;*.*')
+            # Pyside's QFileDialog returns a tuple
+            if os.environ['QT_API'] == 'pyside':
+                kf = kf[0]
+            if not kf:
+                kf = None
+            # Select ssh host
+            sshserver, ok = QInputDialog.getText(self, 'Enter ssh host', 'username@host')
+            sshserver = sshserver if ok else None
+        else:
+            kf = None
+            sshserver = None
+        
+        # Base client name: (remove path and extension, and use the last part when split by '-')
+        base_client_name = osp.splitext(cf.split('/')[-1])[0].split('-')[-1]
+        
+        # Generating the client name by appending /A, /B, etc. until it is unique
         count = 0
-        kernel_widget_id = None
         while True:
-            client_name = match.groups()[0]
-            if '-' in client_name:  # Avoid long names
-                client_name = client_name.split('-')[0]
-            client_name = client_name + '/' + chr(65+count)
+            client_name = base_client_name + '/' + chr(65 + count)
             for cl in self.get_clients():
-                if cl.name == client_name:
-                    kernel_widget_id = cl.kernel_widget_id
+                if cl.name == client_name: 
                     break
             else:
                 break
             count += 1
         
-        # Trying to get kernel_widget_id from the currently opened kernels if
-        # the previous procedure fails. This could happen when the first
-        # client connected to a kernel is closed but the kernel is left open
-        # and you try to connect new clients to it
-        if kernel_widget_id is None:
-            for sw in self.extconsole.shellwidgets:
-                if sw.connection_file == cf:
-                    kernel_widget_id = id(sw)
+        # Getting kernel_widget_id from the currently open kernels.
+        kernel_widget_id = None
+        for sw in self.extconsole.shellwidgets:
+            if sw.connection_file == cf.split('/')[-1]:  
+                kernel_widget_id = id(sw)                 
 
-        # Verifying if the kernel exists
+        # Verifying if the connection file exists
         try:
             find_connection_file(cf, profile='default')
         except (IOError, UnboundLocalError):
@@ -737,14 +773,20 @@ class IPythonConsole(SpyderPluginWidget):
                                connection_file=cf,
                                kernel_widget_id=kernel_widget_id,
                                menu_actions=self.menu_actions)
+        client.sshserver = sshserver
+        client.sshkey = kf
+        
+        # Adding the tab
         self.add_tab(client, name=client.get_name())
+        
+        # Connecting kernel and client
         self.register_client(client, client_name)
 
     def ipywidget_config(self):
         """Generate a Config instance for IPython widgets using our config
         system
         
-        This let us create each widget with its own config (as oppossed to
+        This let us create each widget with its own config (as opposed to
         IPythonQtConsoleApp, where all widgets have the same config)
         """
         # ---- IPython config ----

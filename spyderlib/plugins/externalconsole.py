@@ -23,7 +23,6 @@ from spyderlib.qt.compat import getopenfilename
 import atexit
 import os
 import os.path as osp
-import re
 import sys
 
 # Local imports
@@ -1033,16 +1032,13 @@ class ExternalConsole(SpyderPluginWidget):
         """
         # Check if our client already has a connection_file and kernel_widget_id
         # which means that we are asking for a kernel restart
-        cf = ipyclient.connection_file
-        kwid = ipyclient.kernel_widget_id
-        if cf is not None and kwid is not None:
+        if ipyclient.connection_file is not None and ipyclient.kernel_widget_id is not None:
             restart_kernel = True
         else:
             restart_kernel = False
         
         # Setting kernel widget attributes
-        match = re.match('^kernel-(\d+).json', connection_file)
-        kernel_id = match.groups()[0]
+        kernel_id = osp.splitext(connection_file.split('/')[-1])[0].split('-')[-1] 
         self.set_ipykernel_attrs(connection_file, kernel_widget, kernel_id)
         
         # Creating the client
@@ -1050,6 +1046,8 @@ class ExternalConsole(SpyderPluginWidget):
         ipyconsole = self.main.ipyconsole
         ipyclient.connection_file = connection_file
         ipyclient.kernel_widget_id = id(kernel_widget)
+        ipyclient.sshserver = None
+        ipyclient.sshkey = None
         ipyconsole.register_client(ipyclient, client_name,
                                    restart=restart_kernel,
                                    give_focus=give_focus)
