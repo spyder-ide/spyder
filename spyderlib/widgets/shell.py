@@ -19,8 +19,7 @@ import sys
 import keyword
 
 from spyderlib.qt.QtGui import (QMenu, QApplication, QToolTip, QKeySequence,
-                                QMessageBox, QTextCursor, QTextCharFormat,
-                                QShortcut)
+                                QMessageBox, QTextCursor, QTextCharFormat)
 from spyderlib.qt.QtCore import (Qt, QCoreApplication, QTimer, SIGNAL,
                                  Property)
 from spyderlib.qt.compat import getsavefilename
@@ -28,7 +27,7 @@ from spyderlib.qt.compat import getsavefilename
 # Local import
 from spyderlib.baseconfig import get_conf_path, _, STDERR, DEBUG
 from spyderlib.config import CONF
-from spyderlib.guiconfig import get_font, create_shortcut
+from spyderlib.guiconfig import get_font, create_shortcut, get_shortcut
 from spyderlib.utils import encoding
 from spyderlib.utils.qthelpers import (keybinding, create_action, add_actions,
                                        restore_keyevent, get_icon)
@@ -695,12 +694,14 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
                                      icon=get_icon('copywop.png'),
                                      triggered=self.copy_without_prompts)
         clear_line_action = create_action(self, _("Clear line"),
-                                     QKeySequence("Shift+Escape"),
+                                     QKeySequence(get_shortcut('console',
+                                                               'Clear line')),
                                      icon=get_icon('eraser.png'),
                                      tip=_("Clear line"),
                                      triggered=self.clear_line)
         clear_action = create_action(self, _("Clear shell"),
-                                     QKeySequence("Ctrl+L"),
+                                     QKeySequence(get_shortcut('console',
+                                                               'Clear shell')),
                                      icon=get_icon('clear.png'),
                                      tip=_("Clear shell contents "
                                            "('cls' command)"),

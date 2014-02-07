@@ -528,6 +528,8 @@ DEFAULTS = [
               'editor/list breakpoints': "Ctrl+B",
               # ---- Console (in widgets/shell) ----
               'console/inspect current object': "Ctrl+I",
+              'console/clear shell': "Ctrl+L",
+              'console/clear line': "Shift+Escape",
               # ---- Pylint (in p_pylint) ----
               'pylint/run analysis': "F8",
               # ---- Profiler (in p_profiler) ----
