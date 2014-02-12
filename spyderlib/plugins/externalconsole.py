@@ -27,7 +27,7 @@ import re
 import sys
 
 # Local imports
-from spyderlib.baseconfig import _
+from spyderlib.baseconfig import SCIENTIFIC_STARTUP, _
 from spyderlib.config import CONF
 from spyderlib.utils import programs
 from spyderlib.utils.misc import (get_error_match, get_python_executable,
@@ -491,7 +491,10 @@ class ExternalConsole(SpyderPluginWidget):
                                      get_python_executable())
         if self.get_option('pythonexecutable/default'):
             executable = get_python_executable()
-
+        
+        # Python startup file selection
+        if not osp.isfile(self.get_option('pythonstartup', '')):
+            self.set_option('pythonstartup', SCIENTIFIC_STARTUP)
         # default/custom settings are mutually exclusive:
         self.set_option('pythonstartup/custom',
                         not self.get_option('pythonstartup/default'))
@@ -784,7 +787,7 @@ class ExternalConsole(SpyderPluginWidget):
             if self.get_option('pythonstartup/default') or ipykernel:
                 pythonstartup = None
             else:
-                pythonstartup = self.get_option('pythonstartup')
+                pythonstartup = self.get_option('pythonstartup', None)
             monitor_enabled = self.get_option('monitor/enabled')
             mpl_patch_enabled = is_mpl_patch_available() and\
                                 self.get_option('matplotlib/patch')

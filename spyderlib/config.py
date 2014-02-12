@@ -17,8 +17,7 @@ import os.path as osp
 
 # Local import
 from spyderlib.userconfig import UserConfig, get_home_dir
-from spyderlib.baseconfig import (SUBFOLDER, CHECK_ALL, EXCLUDED_NAMES,
-                                  SCIENTIFIC_STARTUP, _)
+from spyderlib.baseconfig import CHECK_ALL, EXCLUDED_NAMES, SUBFOLDER, _
 from spyderlib.utils import iofuncs, codeanalysis
 
 
@@ -246,7 +245,6 @@ DEFAULTS = [
               'merge_output_channels': os.name != 'nt',
               'colorize_sys_stderr': os.name != 'nt',
               'open_python_at_startup': True,
-              'pythonstartup': SCIENTIFIC_STARTUP,
               'pythonstartup/default': False,
               'pythonstartup/custom': True,
               'pythonexecutable/default': True,
