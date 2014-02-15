@@ -16,8 +16,8 @@ Handles IPython clients (and in the future, will handle IPython kernels too
 
 # Qt imports
 from spyderlib.qt.QtGui import (QVBoxLayout, QMessageBox, QGroupBox,
-                                QInputDialog, QFileDialog, QTabWidget, QFontComboBox,
-                                QApplication, QLabel)
+                                QInputDialog, QFileDialog, QTabWidget,
+                                QFontComboBox, QApplication, QLabel)
 from spyderlib.qt.QtCore import SIGNAL, Qt, QUrl
 
 # Stdlib imports
@@ -33,11 +33,10 @@ from IPython.lib.kernel import find_connection_file, get_connection_info
 try:  # kernel_ver = '>=1.0'
     from IPython.consoleapp import tunnel_to_kernel
     from IPython.qt.manager import QtKernelManager
-    from IPython.utils.localinterfaces import LOCALHOST as localhost
 except:  # kernel_ver = '<1.0'
     from IPython.frontend.consoleapp import tunnel_to_kernel
     from IPython.frontend.qt.kernelmanager import QtKernelManager
-    from IPython.utils.localinterfaces import LOCALHOST as localhost
+from IPython.utils.localinterfaces import LOCALHOST as localhost
     
 # Local imports
 from spyderlib import dependencies
@@ -520,17 +519,19 @@ class IPythonConsole(SpyderPluginWidget):
                triggered= lambda: self.create_client_for_kernel(False))
 
         connect_to_remote_kernel_action = create_action(self,
-               _("Connect to an existing remote kernel"), None, None,
-               _("Open a new IPython console connected to an existing remote kernel"),
+               _("Connect to a remote kernel"), None, None,
+               _("Open a new IPython console connected to a remote kernel"),
                triggered= lambda: self.create_client_for_kernel(True))
         
         # Add the action to the 'Consoles' menu on the main window
         main_consoles_menu = self.main.consoles_menu_actions
         main_consoles_menu.insert(0, create_client_action)
-        main_consoles_menu += [None, connect_to_kernel_action, connect_to_remote_kernel_action]
+        main_consoles_menu += [None, connect_to_kernel_action, 
+                               connect_to_remote_kernel_action]
         
         # Plugin actions
-        self.menu_actions = [create_client_action, connect_to_kernel_action, connect_to_remote_kernel_action]
+        self.menu_actions = [create_client_action, connect_to_kernel_action, 
+                             connect_to_remote_kernel_action]
         
         return self.menu_actions
 
@@ -611,7 +612,8 @@ class IPythonConsole(SpyderPluginWidget):
         # kernel one
         return programs.is_module_installed('IPython', version=kernel_ver)
 
-    def create_kernel_manager_and_client(self, connection_file=None, sshserver=None, sshkey=None):
+    def create_kernel_manager_and_client(self, connection_file=None, \
+                                         sshserver=None, sshkey=None):
         """Create kernel manager and client"""
         cf = find_connection_file(connection_file, profile='default')
         kernel_manager = QtKernelManager(connection_file=cf, config=None)
@@ -621,12 +623,13 @@ class IPythonConsole(SpyderPluginWidget):
             if sshserver is not None:
                 try:
                     newports = tunnel_to_kernel(dict(ip=kernel_client.ip,
-                                                     shell_port=kernel_client.shell_port,
-                                                     iopub_port=kernel_client.iopub_port,
-                                                     stdin_port=kernel_client.stdin_port,
-                                                     hb_port=kernel_client.hb_port),
-                                                sshserver, sshkey)
-                    kernel_client.shell_port, kernel_client.iopub_port, kernel_client.stdin_port, kernel_client.hb_port = newports
+                                          shell_port=kernel_client.shell_port,
+                                          iopub_port=kernel_client.iopub_port,
+                                          stdin_port=kernel_client.stdin_port,
+                                          hb_port=kernel_client.hb_port),
+                                          sshserver, sshkey)
+                    kernel_client.shell_port, kernel_client.iopub_port, \
+                    kernel_client.stdin_port, kernel_client.hb_port = newports
                 except:
                     print("Could not ssh to kernel")
             kernel_client.start_channels()
@@ -638,12 +641,13 @@ class IPythonConsole(SpyderPluginWidget):
             if sshserver is not None:
                 try:
                     newports = tunnel_to_kernel(dict(ip=kernel_manager.ip,
-                                                     shell_port=kernel_manager.shell_port,
-                                                     iopub_port=kernel_manager.iopub_port,
-                                                     stdin_port=kernel_manager.stdin_port,
-                                                     hb_port=kernel_manager.hb_port),
-                                                sshserver, sshkey)
-                    kernel_manager.shell_port, kernel_manager.iopub_port, kernel_manager.stdin_port, kernel_manager.hb_port = newports
+                                          shell_port=kernel_manager.shell_port,
+                                          iopub_port=kernel_manager.iopub_port,
+                                          stdin_port=kernel_manager.stdin_port,
+                                          hb_port=kernel_manager.hb_port),
+                                          sshserver, sshkey)
+                    kernel_manager.shell_port, kernel_manager.iopub_port, \
+                    kernel_manager.stdin_port, kernel_manager.hb_port = newports
                 except:
                     print("Could not ssh to kernel")                  
             kernel_manager.start_channels()
@@ -653,7 +657,8 @@ class IPythonConsole(SpyderPluginWidget):
         """
         Connect a client to its kernel
         """
-        km, kc = self.create_kernel_manager_and_client(client.connection_file, client.sshserver, client.sshkey)
+        km, kc = self.create_kernel_manager_and_client(client.connection_file, 
+                                              client.sshserver, client.sshkey)
         widget = client.shellwidget
         widget.kernel_manager = km
         widget.kernel_client = kc
@@ -786,7 +791,7 @@ class IPythonConsole(SpyderPluginWidget):
         """Generate a Config instance for IPython widgets using our config
         system
         
-        This let us create each widget with its own config (as opposed to
+        This lets us create each widget with its own config (as opposed to
         IPythonQtConsoleApp, where all widgets have the same config)
         """
         # ---- IPython config ----

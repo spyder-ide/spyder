@@ -367,6 +367,8 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         super(IPythonClient, self).__init__(plugin)
         SaveHistoryMixin.__init__(self)
         self.options_button = None
+        self.sshserver = None
+        self.sshkey = None
 
         self.connection_file = connection_file
         self.kernel_widget_id = kernel_widget_id
