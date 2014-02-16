@@ -128,6 +128,9 @@ try:
             sys.path.insert(0, os.path.abspath(build.build_lib))
             dirname = self.distribution.get_command_obj('build').build_purelib
             self.builder_target_dir = osp.join(dirname, 'spyderlib', 'doc')
+            
+            if not osp.exists(self.builder_target_dir):
+                os.mkdir(self.builder_target_dir)
 
             hhc_exe = get_html_help_exe()
             self.builder = "html" if hhc_exe is None else "htmlhelp"

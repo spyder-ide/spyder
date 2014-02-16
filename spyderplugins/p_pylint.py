@@ -26,7 +26,7 @@ from spyderplugins.widgets.pylintgui import PylintWidget, PYLINT_PATH
 class PylintConfigPage(PluginConfigPage):
     def setup_page(self):
         settings_group = QGroupBox(_("Settings"))
-        save_box = self.create_checkbox(_("Save script before analyzing it"),
+        save_box = self.create_checkbox(_("Save file before analyzing it"),
                                         'save_before', default=True)
         
         hist_group = QGroupBox(_("History"))
@@ -38,7 +38,7 @@ class PylintConfigPage(PluginConfigPage):
                             min_=10, max_=1000000, step=10)
 
         results_group = QGroupBox(_("Results"))
-        results_label1 = QLabel(_("Pylint plugin results are stored here:"))
+        results_label1 = QLabel(_("Results are stored here:"))
         results_label1.setWordWrap(True)
 
         # Warning: do not try to regroup the following QLabel contents with 
@@ -86,7 +86,7 @@ class Pylint(PylintWidget, SpyderPluginMixin):
     #------ SpyderPluginWidget API --------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
-        return _("Pylint")
+        return _("Static code analysis")
     
     def get_plugin_icon(self):
         """Return widget icon"""
@@ -122,7 +122,7 @@ class Pylint(PylintWidget, SpyderPluginMixin):
                      self.main.redirect_internalshell_stdio)
         self.main.add_dockwidget(self)
         
-        pylint_act = create_action(self, _("Run pylint code analysis"),
+        pylint_act = create_action(self, _("Run static code analysis"),
                                    triggered=self.run_pylint)
         pylint_act.setEnabled(PYLINT_PATH is not None)
         self.register_shortcut(pylint_act, context="Pylint",

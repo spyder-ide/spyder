@@ -32,9 +32,9 @@ import os.path as osp
 from spyderlib.utils import encoding, sourcecode, codeanalysis
 from spyderlib.utils.dochelpers import getsignaturefromtext
 from spyderlib.utils import introspection
-from spyderlib.utils.introspection.module_completion import (
-    module_completion, get_preferred_submodules)
-from spyderlib.baseconfig import _, DEBUG, STDOUT, STDERR, debug_print
+from spyderlib.utils.introspection.module_completion import (module_completion,
+                                                      get_preferred_submodules)
+from spyderlib.baseconfig import _, DEBUG, STDOUT, STDERR
 from spyderlib.config import EDIT_FILTERS, EDIT_EXT, get_filter, EDIT_FILETYPES
 from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions,
                                        mimedata2url, get_filetype_icon,
@@ -373,8 +373,32 @@ class FileInfo(QObject):
                                          automatic)
 
     def trigger_token_completion(self, automatic):
-        '''Trigger a completion using tokens only'''
+        """Trigger a completion using tokens only"""
         self.trigger_code_completion(automatic, token_based=True)
+        
+        
+    def find_nearest_function_call(self, position):
+        """Find the nearest function call at or prior to current position"""
+        source_code = self.get_source_code()
+        position = min(len(source_code) - 1, position)
+        orig_pos = position
+        # find the first preceding opening parens (keep track of closing parens)
+        if not position or not source_code[position] == '(':
+            close_parens = 0
+            position -= 1
+            while position and not (source_code[position] == '(' and close_parens == 0):
+                if source_code[position] == ')':
+                    close_parens += 1
+                elif source_code[position] == '(' and close_parens:
+                    close_parens -= 1
+                position -= 1
+                if source_code[position] in ['\n', '\r']:
+                    position = orig_pos
+                    break
+        if position and source_code[position] == '(':
+            position -= 1
+                
+        return position
 
     def show_object_info(self, position, auto=True):
         """Show signature calltip and/or docstring in the Object Inspector"""
@@ -383,10 +407,11 @@ class FileInfo(QObject):
         # case, we don't want to force the object inspector to be visible, 
         # to avoid polluting the window layout
         source_code = self.get_source_code()
-        offset = position
+        offset = self.find_nearest_function_call(position)
         
-        func = self.introspection_plugin.get_calltip_and_docs
-        helplist = func(source_code, offset, self.filename)
+        # Get calltip and docs
+        helplist = self.introspection_plugin.get_calltip_and_docs(source_code,
+                                                         offset, self.filename)
         if not helplist:
             return
         obj_fullname = ''
@@ -1311,6 +1336,9 @@ class EditorStack(QWidget):
             self._refresh_outlineexplorer()
             self.emit(SIGNAL('refresh_file_dependent_actions()'))
             self.emit(SIGNAL('update_plugin_title()'))
+            editor = self.get_current_editor()
+            if editor:
+                editor.setFocus()
             
             if new_index is not None:
                 if index < new_index:

@@ -158,7 +158,7 @@ class FindReplace(QWidget):
                                           self.toggle_replace_widgets)
         self.togglereplace_sc.setContext(Qt.WidgetWithChildrenShortcut)
         
-        escape_sc = QShortcut(QKeySequence("Escape"), parent, self.hide)
+        escape_sc = QShortcut(QKeySequence("Escape"), self, self.hide)
         escape_sc.setContext(Qt.WidgetWithChildrenShortcut)
 
         self.highlight_timer = QTimer(self)
