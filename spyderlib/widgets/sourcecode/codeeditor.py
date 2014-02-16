@@ -288,8 +288,8 @@ def get_file_language(filename, text=None):
 class CodeEditor(TextEditBaseWidget):
     """Source Code Editor Widget based exclusively on Qt"""
     LANGUAGES ={ 'Python': (sh.PythonSH, '#', PythonCFM),
-                 'Cython': (sh.CythonSH, '#', PythonCFM),
                  'Enaml': (sh.EnamlSH, '#', PythonCFM),
+                 'Cython': (sh.CythonSH, '#', PythonCFM),
                  'Fortran77': (sh.Fortran77SH, 'c', None),
                  'Fortran': (sh.FortranSH, '!', None),
                  'Idl': (sh.IdlSH, ';', None),
