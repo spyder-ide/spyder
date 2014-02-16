@@ -288,7 +288,6 @@ def get_file_language(filename, text=None):
 class CodeEditor(TextEditBaseWidget):
     """Source Code Editor Widget based exclusively on Qt"""
     LANGUAGES ={ 'Python': (sh.PythonSH, '#', PythonCFM),
-                 'Enaml': (sh.EnamlSH, '#', PythonCFM),
                  'Cython': (sh.CythonSH, '#', PythonCFM),
                  'Fortran77': (sh.Fortran77SH, 'c', None),
                  'Fortran': (sh.FortranSH, '!', None),
@@ -305,6 +304,7 @@ class CodeEditor(TextEditBaseWidget):
                  'OpenCL': (sh.OpenCLSH, '//', None),
                  'Batch': (sh.BatchSH, 'rem ', None),
                  'Ini': (sh.IniSH, '#', None),
+                 'Enaml': (sh.EnamlSH, '#', PythonCFM),
                  }
     try:
         import pygments  # analysis:ignore
