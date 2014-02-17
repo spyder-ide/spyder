@@ -297,7 +297,7 @@ class IntrospectionPlugin(object):
         """Find the definition for an object in a filename"""
         with open(filename, 'rb') as fid:
             code = fid.read()
-        code = encoding.decode(code)
+        code = encoding.decode(code)[0]
         return self.get_definition_with_regex(code, name, line_nr)
         
     @staticmethod
