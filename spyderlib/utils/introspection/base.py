@@ -269,6 +269,12 @@ class IntrospectionPlugin(object):
         lines = source_code[:offset].split(eol)
         line_nr = self.get_definition_with_regex(source_code, token, 
                                                  len(lines))
+        if line_nr is None and '.' in token:
+            token = token.split('.')[-1]
+            line_nr = self.get_definition_with_regex(source_code, token, 
+                                                 len(lines))
+        if line_nr is None:
+            return None, None
         line = source_code.split(eol)[line_nr - 1].strip()
         exts = self.python_like_exts()
         if not osp.splitext(filename)[-1] in exts:
@@ -418,13 +424,18 @@ if __name__ == '__main__':
     comp = p.get_token_completion_list(code[:-2], len(code) - 2, None)
     assert comp == ['get_conf_path']
     
+    code += '\np.get_token_completion_list'
+    path, line = p.get_definition_location_regex(code, len(code), 'dummy.txt')
+    assert path == 'dummy.txt'
+    assert 'def get_token_completion_list(' in code.splitlines()[line - 1]
+    
     ext = p.python_like_exts()
     assert '.py' in ext and '.pyx' in ext
     
     ext = p.all_editable_exts()
     assert '.cfg' in ext and '.iss' in ext
     
-    path = p.get_parent_until(__file__)
+    path = p.get_parent_until(os.path.abspath(__file__))
     assert path == 'spyderlib.utils.introspection.base'
     
     line = 'from spyderlib.widgets.sourcecode.codeeditor import CodeEditor'
@@ -451,4 +462,5 @@ if __name__ == '__main__':
     code = u'álfa;á'
     comp = p.get_token_completion_list(code, len(code), None)
     assert comp == [u'álfa']
+    
     
