@@ -720,23 +720,26 @@ class IPythonConsole(SpyderPluginWidget):
         # Case of a remote kernel
         if is_remote:
             # Select ssh key file
-            kf = QFileDialog.getOpenFileName(self, 'Select ssh key', get_ipython_dir(), '*.pem;;*.*')
+            kf = QFileDialog.getOpenFileName(self, 'Select ssh key', 
+                                             get_ipython_dir(), '*.pem;;*.*')
             # Pyside's QFileDialog returns a tuple
             if os.environ['QT_API'] == 'pyside':
                 kf = kf[0]
             if not kf:
                 kf = None
             # Select ssh host
-            sshserver, ok = QInputDialog.getText(self, 'Enter ssh host', 'username@host')
+            sshserver, ok = QInputDialog.getText(self, 'Enter ssh host',
+                                                             'username@host')
             sshserver = sshserver if ok else None
         else:
             kf = None
             sshserver = None
         
-        # Base client name: (remove path and extension, and use the last part when split by '-')
+        # Base client name: 
+        # remove path and extension, and use the last part when split by '-'
         base_client_name = osp.splitext(cf.split('/')[-1])[0].split('-')[-1]
         
-        # Generating the client name by appending /A, /B, etc. until it is unique
+        # Generating the client name by appending /A, /B... until it is unique
         count = 0
         while True:
             client_name = base_client_name + '/' + chr(65 + count)
