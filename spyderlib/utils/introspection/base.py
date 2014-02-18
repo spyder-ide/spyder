@@ -24,7 +24,7 @@ from spyderlib.utils import sourcecode, encoding
 from spyderlib.qt.QtGui import QApplication
 
 
-PLUGINS = [] #['fallback', 'jedi', 'rope', 'fallback']
+PLUGINS = ['jedi', 'rope', 'fallback']
 LOG_FILENAME = get_conf_path('introspection.log')
 DEBUG_EDITOR = DEBUG >= 3
     
