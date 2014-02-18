@@ -24,7 +24,7 @@ from spyderlib.utils import sourcecode, encoding
 from spyderlib.qt.QtGui import QApplication
 
 
-PLUGINS = ['jedi', 'rope', 'fallback']
+PLUGINS = [] #['fallback', 'jedi', 'rope', 'fallback']
 LOG_FILENAME = get_conf_path('introspection.log')
 DEBUG_EDITOR = DEBUG >= 3
     
@@ -267,10 +267,12 @@ class IntrospectionPlugin(object):
         token = sourcecode.get_primary_at(source_code, offset)
         eol = sourcecode.get_eol_chars(source_code) or '\n'
         lines = source_code[:offset].split(eol)
-        line_nr = self.get_definition_with_regex(source_code, token, 
-                                                 len(lines))
-        if line_nr is None and '.' in token:
-            token = token.split('.')[-1]
+        line_nr = None
+        if '.' in token:
+            temp = token.split('.')[-1]
+            line_nr = self.get_definition_with_regex(source_code, temp, 
+                                                     len(lines))
+        if line_nr is None:
             line_nr = self.get_definition_with_regex(source_code, token, 
                                                  len(lines))
         if line_nr is None:
@@ -278,8 +280,6 @@ class IntrospectionPlugin(object):
         line = source_code.split(eol)[line_nr - 1].strip()
         exts = self.python_like_exts()
         if not osp.splitext(filename)[-1] in exts:
-            line_nr = self.get_definition_with_regex(source_code, token, 
-                                                     line_nr)
             return filename, line_nr
         if line.startswith('import ') or line.startswith('from '):
             alt_path = osp.dirname(filename)
@@ -429,6 +429,10 @@ if __name__ == '__main__':
     assert path == 'dummy.txt'
     assert 'def get_token_completion_list(' in code.splitlines()[line - 1]
     
+    code += '\np.python_like_mod_finder'
+    path, line = p.get_definition_location_regex(code, len(code), 'dummy.txt')
+    pass
+
     ext = p.python_like_exts()
     assert '.py' in ext and '.pyx' in ext
     
@@ -462,5 +466,4 @@ if __name__ == '__main__':
     code = u'álfa;á'
     comp = p.get_token_completion_list(code, len(code), None)
     assert comp == [u'álfa']
-    
     
