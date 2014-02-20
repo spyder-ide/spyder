@@ -274,7 +274,7 @@ class IntrospectionPlugin(object):
                                                      len(lines))
         if line_nr is None:
             line_nr = self.get_definition_with_regex(source_code, token, 
-                                                 len(lines))
+                                                 len(lines), True)
         if line_nr is None:
             return None, None
         line = source_code.split(eol)[line_nr - 1].strip()
@@ -307,7 +307,8 @@ class IntrospectionPlugin(object):
         return self.get_definition_with_regex(code, name, line_nr)
         
     @staticmethod
-    def get_definition_with_regex(source, token, start_line=-1):
+    def get_definition_with_regex(source, token, start_line=-1, 
+                                  use_assignment=False):
         """
         Find the definition of an object within a source closest to a given line
         """
@@ -322,16 +323,16 @@ class IntrospectionPlugin(object):
                     'class\s*{0}{1}',
                     'c?p?def[^=]*\W{0}{1}',
                     'cdef.*\[.*\].*\W{0}{1}',
-                    # "self.item =" or "item ="
-                    '.*\Wself.{0}{1}[^=!<>]*=[^=]',
-                    '.*\W{0}{1}[^=!<>]*=[^=]',
-                    'self.{0}{1}[^=!<>]*=[^=]',
-                    '{0}{1}[^=!<>]*=[^=]',
                     # enaml keyword definitions
                     'enamldef.*\W{0}{1}',
                     'attr.*\W{0}{1}',
                     'event.*\W{0}{1}',
                     'id\s*:.*\W{0}{1}']
+        if use_assignment:
+            patterns += ['.*\Wself.{0}{1}[^=!<>]*=[^=]',
+                        '.*\W{0}{1}[^=!<>]*=[^=]',
+                        'self.{0}{1}[^=!<>]*=[^=]',
+                        '{0}{1}[^=!<>]*=[^=]']
         patterns = [pattern.format(token, r'[^0-9a-zA-Z.[]')
                     for pattern in patterns]
         pattern = re.compile('|^'.join(patterns))
