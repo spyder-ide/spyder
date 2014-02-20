@@ -275,6 +275,10 @@ class IntrospectionPlugin(object):
         if line_nr is None:
             line_nr = self.get_definition_with_regex(source_code, token, 
                                                  len(lines), True)
+        if line_nr is None and '.' in token:
+            temp = token.split('.')[-1]
+            line_nr = self.get_definition_with_regex(source_code, temp, 
+                                                 len(lines), True)
         if line_nr is None:
             return None, None
         line = source_code.split(eol)[line_nr - 1].strip()
@@ -432,7 +436,22 @@ if __name__ == '__main__':
     
     code += '\np.python_like_mod_finder'
     path, line = p.get_definition_location_regex(code, len(code), 'dummy.txt')
-    pass
+    assert path == 'dummy.txt'
+    assert 'def python_like_mod_finder' in code.splitlines()[line - 1]
+    
+    code += 'python_like_mod_finder'
+    path, line = p.get_definition_location_regex(code, len(code), 'dummy.txt')
+    assert line is None
+    
+    code = """
+    class Test(object):
+        def __init__(self):
+            self.foo = bar
+            
+    t = Test()
+    t.foo"""
+    path, line = p.get_definition_location_regex(code, len(code), 'dummy.txt')
+    assert line == 4
 
     ext = p.python_like_exts()
     assert '.py' in ext and '.pyx' in ext
