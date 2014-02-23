@@ -734,6 +734,15 @@ class IPythonConsole(SpyderPluginWidget):
         else:
             kf = None
             sshserver = None
+
+        # Verifying if the connection file exists - in the case of an empty
+        # file name, the last used connection file is returned. 
+        try:
+            cf = find_connection_file(cf, profile='default')
+        except (IOError, UnboundLocalError):
+            QMessageBox.critical(self, _('IPython'),
+                                 _("Unable to connect to IPython <b>%s") % cf)
+            return
         
         # Base client name: 
         # remove path and extension, and use the last part when split by '-'
@@ -755,14 +764,6 @@ class IPythonConsole(SpyderPluginWidget):
         for sw in self.extconsole.shellwidgets:
             if sw.connection_file == cf.split('/')[-1]:  
                 kernel_widget_id = id(sw)                 
-
-        # Verifying if the connection file exists
-        try:
-            find_connection_file(cf, profile='default')
-        except (IOError, UnboundLocalError):
-            QMessageBox.critical(self, _('IPython'),
-                                 _("Unable to connect to IPython <b>%s") % cf)
-            return
         
         # Verifying if frontend and kernel have compatible versions
         if not self.kernel_and_frontend_match(cf):
@@ -780,9 +781,8 @@ class IPythonConsole(SpyderPluginWidget):
         client = IPythonClient(self, history_filename='history.py',
                                connection_file=cf,
                                kernel_widget_id=kernel_widget_id,
-                               menu_actions=self.menu_actions)
-        client.sshserver = sshserver
-        client.sshkey = kf
+                               menu_actions=self.menu_actions,
+                               sshserver=sshserver, sshkey=kf)
         
         # Adding the tab
         self.add_tab(client, name=client.get_name())
