@@ -15,9 +15,11 @@ Handles IPython clients (and in the future, will handle IPython kernels too
 # pylint: disable=R0201
 
 # Qt imports
-from spyderlib.qt.QtGui import (QVBoxLayout, QMessageBox, QGroupBox,
-                                QInputDialog, QFileDialog, QTabWidget,
-                                QFontComboBox, QApplication, QLabel)
+from spyderlib.qt.QtGui import (QVBoxLayout, QHBoxLayout, QFormLayout, 
+                                QMessageBox, QGroupBox, QDialogButtonBox,
+                                QDialog, QInputDialog, QFileDialog,
+                                QTabWidget, QFontComboBox, QApplication,
+                                QLabel, QLineEdit, QPushButton)
 from spyderlib.qt.QtCore import SIGNAL, Qt, QUrl
 
 # Stdlib imports
@@ -376,6 +378,79 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         self.setLayout(vlayout)
 
 
+class KernelConnectionDialog(QDialog):
+    
+    def __init__(self, parent=None):
+        super(KernelConnectionDialog, self).__init__(parent)
+        self.setWindowTitle('Connection to an existing kernel')
+        
+        # connection file
+        self.cf = QLineEdit()
+        self.cf.setPlaceholderText('Path to connection file')
+        self.cf.setMinimumWidth(200)
+        cf_open_btn = QPushButton('Browse')
+        cf_open_btn.clicked.connect(self.selectConnectionFile)
+
+        cf_layout = QHBoxLayout()
+        cf_layout.addWidget(self.cf)
+        cf_layout.addWidget(cf_open_btn)
+        
+        # ssh connection
+        self.hn = QLineEdit()
+        self.hn.setPlaceholderText('username@host')
+        
+        self.kf = QLineEdit()
+        self.kf.setPlaceholderText('Path to ssh key file')
+        kf_open_btn = QPushButton('Browse')
+        kf_open_btn.clicked.connect(self.selectSshKey)
+
+        kf_layout = QHBoxLayout()
+        kf_layout.addWidget(self.kf)
+        kf_layout.addWidget(kf_open_btn)
+                
+        # Ok and Cancel buttons
+        accept_btns = QDialogButtonBox(
+            QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
+            Qt.Horizontal, self)
+
+        accept_btns.accepted.connect(self.accept)
+        accept_btns.rejected.connect(self.reject)
+
+        # General layout
+        form = QFormLayout(self)
+        form.addRow('Connection File', cf_layout)
+        form.addRow('Host name', self.hn)
+        form.addRow('Ssh key', kf_layout)
+        form.addRow(accept_btns)
+
+    def selectConnectionFile(self):
+        cf = QFileDialog.getOpenFileName(self, 'Open Python connection file',
+                 osp.join(get_ipython_dir(), 'profile_default', 'security'),
+                 '*.json;;*.*')
+        # Pyside's QFileDialog returns a tuple
+        if os.environ['QT_API'] == 'pyside':
+            cf = cf[0]
+        self.cf.setText(cf)
+
+    def selectSshKey(self):
+        kf = QFileDialog.getOpenFileName(self, 'Select ssh key', 
+                                             get_ipython_dir(), '*.pem;;*.*')
+        # Pyside's QFileDialog returns a tuple
+        if os.environ['QT_API'] == 'pyside':
+            kf = kf[0]
+        self.kf.setText(kf)
+
+    @staticmethod
+    def getConnectionParameters(parent=None):
+        dialog = KernelConnectionDialog(parent)
+        result = dialog.exec_()
+        def falsy_to_none(hn):
+            return hn if hn else None
+        return (dialog.cf.text(),                # connection file
+                falsy_to_none(dialog.hn.text()), # host name
+                falsy_to_none(dialog.kf.text()), # ssh key file
+                result == QDialog.Accepted)      # ok
+
 class IPythonConsole(SpyderPluginWidget):
     """
     IPython Console plugin
@@ -706,32 +781,24 @@ class IPythonConsole(SpyderPluginWidget):
 
     def create_client_for_kernel(self, is_remote):
         """Create a client connected to an existing kernel"""
-        # Select json connection file
-        cf = QFileDialog.getOpenFileName(self, 'Open Python connection file',
-                 osp.join(get_ipython_dir(), 'profile_default', 'security'),
-                 '*.json;;*.*')
-        # Pyside's QFileDialog returns a tuple
-        if os.environ['QT_API'] == 'pyside':
-            cf = cf[0]
-        # If Cancel button clicked, cf is the empty string. Abort
-        if not cf:
-            return
 
         # Case of a remote kernel
         if is_remote:
-            # Select ssh key file
-            kf = QFileDialog.getOpenFileName(self, 'Select ssh key', 
-                                             get_ipython_dir(), '*.pem;;*.*')
+            cf, sshserver, kf, ok = KernelConnectionDialog.getConnectionParameters(self)
+            if not ok:
+                return
+        else:
+            # Select json connection file
+            cf = QFileDialog.getOpenFileName(self, 'Open Python connection file',
+                     osp.join(get_ipython_dir(), 'profile_default', 'security'),
+                     '*.json;;*.*')
             # Pyside's QFileDialog returns a tuple
             if os.environ['QT_API'] == 'pyside':
-                kf = kf[0]
-            if not kf:
-                kf = None
-            # Select ssh host
-            sshserver, ok = QInputDialog.getText(self, 'Enter ssh host',
-                                                             'username@host')
-            sshserver = sshserver if ok else None
-        else:
+                cf = cf[0]
+            # If Cancel button clicked, cf is the empty string. Abort
+            if not cf:
+                return
+            
             kf = None
             sshserver = None
 
