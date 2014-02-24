@@ -389,7 +389,7 @@ class KernelConnectionDialog(QDialog):
         self.cf.setPlaceholderText('Path to connection file')
         self.cf.setMinimumWidth(200)
         cf_open_btn = QPushButton('Browse')
-        cf_open_btn.clicked.connect(self.selectConnectionFile)
+        self.connect(cf_open_btn, SIGNAL('clicked()'), self.selectConnectionFile)
 
         cf_layout = QHBoxLayout()
         cf_layout.addWidget(self.cf)
@@ -402,7 +402,7 @@ class KernelConnectionDialog(QDialog):
         self.kf = QLineEdit()
         self.kf.setPlaceholderText('Path to ssh key file')
         kf_open_btn = QPushButton('Browse')
-        kf_open_btn.clicked.connect(self.selectSshKey)
+        self.connect(kf_open_btn, SIGNAL('clicked()'), self.selectSshKey)
 
         kf_layout = QHBoxLayout()
         kf_layout.addWidget(self.kf)
@@ -413,8 +413,8 @@ class KernelConnectionDialog(QDialog):
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
             Qt.Horizontal, self)
 
-        accept_btns.accepted.connect(self.accept)
-        accept_btns.rejected.connect(self.reject)
+        self.connect(accept_btns, SIGNAL('accepted()'), self.accept)
+        self.connect(accept_btns, SIGNAL('rejected()'), self.reject)
 
         # General layout
         form = QFormLayout(self)
