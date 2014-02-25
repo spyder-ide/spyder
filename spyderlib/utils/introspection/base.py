@@ -19,7 +19,7 @@ from collections import OrderedDict
 from spyderlib.baseconfig import DEBUG, get_conf_path, debug_print
 from spyderlib.py3compat import PY2
 from spyderlib.utils.debug import log_dt, log_last_error
-from spyderlib.utils import sourcecode
+from spyderlib.utils import sourcecode, encoding
 
 from spyderlib.qt.QtGui import QApplication
 
@@ -267,13 +267,23 @@ class IntrospectionPlugin(object):
         token = sourcecode.get_primary_at(source_code, offset)
         eol = sourcecode.get_eol_chars(source_code) or '\n'
         lines = source_code[:offset].split(eol)
-        line_nr = self.get_definition_with_regex(source_code, token, 
-                                                 len(lines))
+        line_nr = None
+        if '.' in token:
+            temp = token.split('.')[-1]
+            line_nr = self.get_definition_with_regex(source_code, temp, 
+                                                     len(lines))
+        if line_nr is None:
+            line_nr = self.get_definition_with_regex(source_code, token, 
+                                                 len(lines), True)
+        if line_nr is None and '.' in token:
+            temp = token.split('.')[-1]
+            line_nr = self.get_definition_with_regex(source_code, temp, 
+                                                 len(lines), True)
+        if line_nr is None:
+            return None, None
         line = source_code.split(eol)[line_nr - 1].strip()
         exts = self.python_like_exts()
         if not osp.splitext(filename)[-1] in exts:
-            line_nr = self.get_definition_with_regex(source_code, token, 
-                                                     line_nr)
             return filename, line_nr
         if line.startswith('import ') or line.startswith('from '):
             alt_path = osp.dirname(filename)
@@ -297,10 +307,12 @@ class IntrospectionPlugin(object):
         """Find the definition for an object in a filename"""
         with open(filename, 'rb') as fid:
             code = fid.read()
+        code = encoding.decode(code)[0]
         return self.get_definition_with_regex(code, name, line_nr)
         
     @staticmethod
-    def get_definition_with_regex(source, token, start_line=-1):
+    def get_definition_with_regex(source, token, start_line=-1, 
+                                  use_assignment=False):
         """
         Find the definition of an object within a source closest to a given line
         """
@@ -315,16 +327,16 @@ class IntrospectionPlugin(object):
                     'class\s*{0}{1}',
                     'c?p?def[^=]*\W{0}{1}',
                     'cdef.*\[.*\].*\W{0}{1}',
-                    # "self.item =" or "item ="
-                    '.*\Wself.{0}{1}[^=!<>]*=[^=]',
-                    '.*\W{0}{1}[^=!<>]*=[^=]',
-                    'self.{0}{1}[^=!<>]*=[^=]',
-                    '{0}{1}[^=!<>]*=[^=]',
                     # enaml keyword definitions
                     'enamldef.*\W{0}{1}',
                     'attr.*\W{0}{1}',
                     'event.*\W{0}{1}',
                     'id\s*:.*\W{0}{1}']
+        if use_assignment:
+            patterns += ['.*\Wself.{0}{1}[^=!<>]*=[^=]',
+                        '.*\W{0}{1}[^=!<>]*=[^=]',
+                        'self.{0}{1}[^=!<>]*=[^=]',
+                        '{0}{1}[^=!<>]*=[^=]']
         patterns = [pattern.format(token, r'[^0-9a-zA-Z.[]')
                     for pattern in patterns]
         pattern = re.compile('|^'.join(patterns))
@@ -408,8 +420,8 @@ def split_words(string):
 if __name__ == '__main__':
     p = IntrospectionPlugin()
     
-    with open(__file__) as fid:
-        code = fid.read()
+    with open(__file__, 'rb') as fid:
+        code = fid.read().decode('utf-8')
     code += '\nget_conf_path'
     path, line = p.get_definition_location_regex(code, len(code), __file__)
     assert path.endswith('baseconfig.py')
@@ -417,13 +429,37 @@ if __name__ == '__main__':
     comp = p.get_token_completion_list(code[:-2], len(code) - 2, None)
     assert comp == ['get_conf_path']
     
+    code += '\np.get_token_completion_list'
+    path, line = p.get_definition_location_regex(code, len(code), 'dummy.txt')
+    assert path == 'dummy.txt'
+    assert 'def get_token_completion_list(' in code.splitlines()[line - 1]
+    
+    code += '\np.python_like_mod_finder'
+    path, line = p.get_definition_location_regex(code, len(code), 'dummy.txt')
+    assert path == 'dummy.txt'
+    assert 'def python_like_mod_finder' in code.splitlines()[line - 1]
+    
+    code += 'python_like_mod_finder'
+    path, line = p.get_definition_location_regex(code, len(code), 'dummy.txt')
+    assert line is None
+    
+    code = """
+    class Test(object):
+        def __init__(self):
+            self.foo = bar
+            
+    t = Test()
+    t.foo"""
+    path, line = p.get_definition_location_regex(code, len(code), 'dummy.txt')
+    assert line == 4
+
     ext = p.python_like_exts()
     assert '.py' in ext and '.pyx' in ext
     
     ext = p.all_editable_exts()
     assert '.cfg' in ext and '.iss' in ext
     
-    path = p.get_parent_until(__file__)
+    path = p.get_parent_until(os.path.abspath(__file__))
     assert path == 'spyderlib.utils.introspection.base'
     
     line = 'from spyderlib.widgets.sourcecode.codeeditor import CodeEditor'

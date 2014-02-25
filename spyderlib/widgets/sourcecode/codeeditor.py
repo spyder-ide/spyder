@@ -40,7 +40,7 @@ from spyderlib.qt.compat import to_qvariant
 # Local import
 #TODO: Try to separate this module from spyderlib to create a self
 #      consistent editor module (Qt source code and shell widgets library)
-from spyderlib.baseconfig import get_conf_path, _, DEBUG, get_image_path
+from spyderlib.baseconfig import get_conf_path, _, DEBUG, get_image_path, debug_print
 from spyderlib.config import CONF
 from spyderlib.guiconfig import get_font
 from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
@@ -304,6 +304,7 @@ class CodeEditor(TextEditBaseWidget):
                  'OpenCL': (sh.OpenCLSH, '//', None),
                  'Batch': (sh.BatchSH, 'rem ', None),
                  'Ini': (sh.IniSH, '#', None),
+                 'Enaml': (sh.EnamlSH, '#', PythonCFM),
                  }
     try:
         import pygments  # analysis:ignore
@@ -675,9 +676,12 @@ class CodeEditor(TextEditBaseWidget):
 
     def is_cython(self):
         return self.highlighter_class is sh.CythonSH
+        
+    def is_enaml(self):
+        return self.highlighter_class is sh.EnamlSH
 
     def is_python_like(self):
-        return self.is_python() or self.is_cython()
+        return self.is_python() or self.is_cython() or self.is_enaml()
         
     def intelligent_tab(self):
         """Provide intelligent behavoir for Tab key press"""
@@ -1131,7 +1135,8 @@ class CodeEditor(TextEditBaseWidget):
 
     def do_go_to_definition(self):
         """Trigger go-to-definition"""
-        self.emit(SIGNAL("go_to_definition(int)"), self.textCursor().position())
+        if not self.in_comment_or_string():
+            self.emit(SIGNAL("go_to_definition(int)"), self.textCursor().position())
 
     def show_object_info(self, position):
         """Trigger a calltip"""
@@ -2316,6 +2321,8 @@ class CodeEditor(TextEditBaseWidget):
         """Go to definition from cursor instance (QTextCursor)"""
         if cursor is None:
             cursor = self.textCursor()
+        if self.in_comment_or_string():
+            return
         position = cursor.position()
         text = to_text_string(cursor.selectedText())
         if len(text) == 0:

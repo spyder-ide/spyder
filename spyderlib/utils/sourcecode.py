@@ -15,6 +15,7 @@ EOL_CHARS = (("\r\n", 'nt'), ("\n", 'posix'), ("\r", 'mac'))
 ALL_LANGUAGES = {
                  'Python': ('py', 'pyw', 'python', 'ipy'),
                  'Cython': ('pyx', 'pxi', 'pxd'),
+                 'Enaml': ('enaml',),
                  'Fortran77': ('f', 'for', 'f77'),
                  'Fortran': ('f90', 'f95', 'f2k'),
                  'Idl': ('pro',),
@@ -33,7 +34,7 @@ ALL_LANGUAGES = {
                          'cfg', 'cnf', 'aut', 'iss'),
                  }
 
-PYTHON_LIKE_LANGUAGES = ('Python', 'Cython')             
+PYTHON_LIKE_LANGUAGES = ('Python', 'Cython', 'Enaml')             
 
 def get_eol_chars(text):
     """Get text EOL characters"""
