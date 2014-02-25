@@ -7,6 +7,7 @@
 """
 Introspection utilities used by Spyder
 """
+
 from __future__ import print_function
 import imp
 import os
@@ -14,7 +15,6 @@ import os.path as osp
 import re
 import time
 import functools
-from collections import OrderedDict
 
 from spyderlib.baseconfig import DEBUG, get_conf_path, debug_print
 from spyderlib.py3compat import PY2
@@ -61,7 +61,7 @@ def memoize(obj):
 
     See https://wiki.python.org/moin/PythonDecoratorLibrary#Memoize
     """
-    cache = obj.cache = OrderedDict()
+    cache = obj.cache = {}
 
     @functools.wraps(obj)
     def memoizer(*args, **kwargs):
