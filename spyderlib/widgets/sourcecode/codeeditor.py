@@ -1120,18 +1120,18 @@ class CodeEditor(TextEditBaseWidget):
         self.emit(SIGNAL('breakpoints_changed()'))
 
     #-----Code introspection
-    def do_code_completion(self):
+    def do_code_completion(self, automatic=False):
         """Trigger code completion"""
         if not self.is_completion_widget_visible():
             if self.is_python_like() and not self.in_comment_or_string():
-                self.emit(SIGNAL('trigger_code_completion(bool)'), False)
+                self.emit(SIGNAL('trigger_code_completion(bool)'), automatic)
             else:
                 self.do_token_completion()
 
-    def do_token_completion(self):
+    def do_token_completion(self, automatic=False):
         """Trigger a token-based completion"""
         if not self.is_completion_widget_visible():
-            self.emit(SIGNAL('trigger_token_completion(bool)'), False)
+            self.emit(SIGNAL('trigger_token_completion(bool)'), automatic)
 
     def do_go_to_definition(self):
         """Trigger go-to-definition"""
@@ -2188,7 +2188,7 @@ class CodeEditor(TextEditBaseWidget):
                 # Enable auto-completion only if last token isn't a float
                 last_obj = getobj(self.get_text('sol', 'cursor'))
                 if last_obj and not last_obj.isdigit():
-                    self.do_code_completion()
+                    self.do_code_completion(automatic=True)
         elif key == Qt.Key_Home:
             self.stdkey_home(shift, ctrl)
         elif key == Qt.Key_End:
