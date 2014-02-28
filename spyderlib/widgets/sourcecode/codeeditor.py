@@ -1832,7 +1832,7 @@ class CodeEditor(TextEditBaseWidget):
         cursor.setPosition(start_pos)
         cursor.movePosition(QTextCursor.StartOfBlock)
         while cursor.position() <= end_pos:
-            cursor.insertText("# ")
+            cursor.insertText(self.comment_string + " ")
             cursor.movePosition(QTextCursor.EndOfBlock)
             if cursor.atEnd():
                 break
@@ -1865,7 +1865,8 @@ class CodeEditor(TextEditBaseWidget):
         if not __is_comment_bar(cursor1):
             return
         def __in_block_comment(cursor):
-            return to_text_string(cursor.block().text()).startswith('#')
+            cs = self.comment_string
+            return to_text_string(cursor.block().text()).startswith(cs)
         # Finding second comment bar
         cursor2 = QTextCursor(cursor1)
         cursor2.movePosition(QTextCursor.NextBlock)
