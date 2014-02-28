@@ -48,12 +48,10 @@ from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
 from spyderlib.utils.dochelpers import getobj
 from spyderlib.utils import encoding, sourcecode
 from spyderlib.utils.sourcecode import ALL_LANGUAGES
-from spyderlib.utils.debug import log_last_error, log_dt
 from spyderlib.widgets.editortools import PythonCFM
 from spyderlib.widgets.sourcecode.base import TextEditBaseWidget
 from spyderlib.widgets.sourcecode import syntaxhighlighters as sh
-from spyderlib.py3compat import to_text_string, PY2
-from spyderlib import dependencies
+from spyderlib.py3compat import to_text_string
 
 #%% This line is for cell execution testing
 # For debugging purpose:
