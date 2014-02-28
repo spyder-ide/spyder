@@ -19,7 +19,15 @@ from spyderlib.qt.QtGui import (QColor, QApplication, QFont,
 from spyderlib.qt.QtCore import Qt
 
 # Local imports
+from spyderlib import dependencies
+from spyderlib.baseconfig import _
 from spyderlib.py3compat import builtins, is_text_string, to_text_string
+
+
+PYGMENTS_REQVER = '>=1.6'
+dependencies.add("pygments", _("Syntax highlighting for Matlab and other file "
+                               "types"),
+                 required_version=PYGMENTS_REQVER)
 
 
 #==============================================================================
