@@ -40,7 +40,7 @@ from spyderlib.qt.compat import to_qvariant
 # Local import
 #TODO: Try to separate this module from spyderlib to create a self
 #      consistent editor module (Qt source code and shell widgets library)
-from spyderlib.baseconfig import get_conf_path, _, DEBUG, get_image_path, debug_print
+from spyderlib.baseconfig import get_conf_path, _, DEBUG, get_image_path
 from spyderlib.config import CONF
 from spyderlib.guiconfig import get_font
 from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
@@ -297,7 +297,8 @@ class CodeEditor(TextEditBaseWidget):
                  'Html': (sh.HtmlSH, '', None),
                  'Css': (sh.CssSH, '', None),
                  'Xml': (sh.XmlSH, '', None),
-                 'Js': (sh.JsSH, '', None),
+                 'Js': (sh.JsSH, '//', None),
+                 'Julia': (sh.JuliaSH, '#', None),
                  'Cpp': (sh.CppSH, '//', None),
                  'OpenCL': (sh.OpenCLSH, '//', None),
                  'Batch': (sh.BatchSH, 'rem ', None),

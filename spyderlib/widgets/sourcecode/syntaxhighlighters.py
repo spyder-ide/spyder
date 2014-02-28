@@ -959,6 +959,10 @@ class XmlSH(PygmentsSH):
 class JsSH(PygmentsSH):
     """Javascript highlighter"""
     _lang_name = 'js'
+
+class JuliaSH(PygmentsSH):
+    """Julia highlighter"""
+    _lang_name = 'julia'
     
 class CssSH(PygmentsSH):
     """CSS Syntax Highlighter"""

@@ -20,6 +20,7 @@ ALL_LANGUAGES = {
                  'Fortran': ('f90', 'f95', 'f2k'),
                  'Idl': ('pro',),
                  'Matlab': ('m',),
+                 'Julia': ('jl',),
                  'Diff': ('diff', 'patch', 'rej'),
                  'GetText': ('po', 'pot'),
                  'Nsis': ('nsi', 'nsh'),
