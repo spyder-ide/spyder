@@ -638,6 +638,7 @@ class EditorStack(QWidget):
         self.tabmode_enabled = False
         self.intelligent_backspace_enabled = True
         self.highlight_current_line_enabled = False
+        self.highlight_current_cell_enabled = False        
         self.occurence_highlighting_enabled = True
         self.checkeolchars_enabled = True
         self.always_remove_trailing_spaces = False
@@ -1066,6 +1067,12 @@ class EditorStack(QWidget):
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_highlight_current_line(state)
+
+    def set_highlight_current_cell_enabled(self, state):
+        self.highlight_current_cell_enabled = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_highlight_current_cell(state)
         
     def set_checkeolchars_enabled(self, state):
         # CONF.get(self.CONF_SECTION, 'check_eol_chars')
@@ -1850,6 +1857,7 @@ class EditorStack(QWidget):
                 wrap=self.wrap_enabled, tab_mode=self.tabmode_enabled,
                 intelligent_backspace=self.intelligent_backspace_enabled,
                 highlight_current_line=self.highlight_current_line_enabled,
+                highlight_current_cell=self.highlight_current_line_enabled,
                 occurence_highlighting=self.occurence_highlighting_enabled,
                 codecompletion_auto=self.codecompletion_auto_enabled,
                 codecompletion_case=self.codecompletion_case_enabled,

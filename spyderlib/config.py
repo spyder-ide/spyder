@@ -325,6 +325,7 @@ DEFAULTS = [
               'tab_always_indent': False,
               'intelligent_backspace': True,
               'highlight_current_line': True,
+              'highlight_current_cell': True,
               'occurence_highlighting': True,
               'occurence_highlighting/timeout': 1500,
               'always_remove_trailing_spaces': False,

@@ -120,6 +120,8 @@ class EditorConfigPage(PluginConfigPage):
         edgeline_layout.addWidget(edgeline_spin)
         currentline_box = newcb(_("Highlight current line"),
                                 'highlight_current_line', default=True)
+        currentcell_box = newcb(_("Highlight current cell"),
+                                'highlight_current_cell', default=True)
         occurence_box = newcb(_("Highlight occurences after"),
                               'occurence_highlighting', default=True)
         occurence_spin = self.create_spinbox("", " ms",
@@ -141,6 +143,7 @@ class EditorConfigPage(PluginConfigPage):
         display_layout.addWidget(linenumbers_box)
         display_layout.addLayout(edgeline_layout)
         display_layout.addWidget(currentline_box)
+        display_layout.addWidget(currentcell_box)
         display_layout.addLayout(occurence_layout)
         display_layout.addWidget(wrap_mode_box)
         display_layout.addWidget(cs_combo)
@@ -1085,6 +1088,7 @@ class Editor(SpyderPluginWidget):
             ('set_tabmode_enabled',                 'tab_always_indent'),
             ('set_intelligent_backspace_enabled',   'intelligent_backspace'),
             ('set_highlight_current_line_enabled',  'highlight_current_line'),
+            ('set_highlight_current_cell_enabled',  'highlight_current_cell'),
             ('set_occurence_highlighting_enabled',  'occurence_highlighting'),
             ('set_occurence_highlighting_timeout',  'occurence_highlighting/timeout'),
             ('set_checkeolchars_enabled',           'check_eol_chars'),
@@ -2127,6 +2131,8 @@ class Editor(SpyderPluginWidget):
             font_o = self.get_plugin_font()
             currentline_n = 'highlight_current_line'
             currentline_o = self.get_option(currentline_n)
+            currentcell_n = 'highlight_current_cell'
+            currentcell_o = self.get_option(currentcell_n)            
             occurence_n = 'occurence_highlighting'
             occurence_o = self.get_option(occurence_n)
             occurence_timeout_n = 'occurence_highlighting/timeout'
@@ -2140,6 +2146,9 @@ class Editor(SpyderPluginWidget):
                 if currentline_n in options:
                     editorstack.set_highlight_current_line_enabled(
                                                                 currentline_o)
+                if currentcell_n in options:
+                    editorstack.set_highlight_current_cell_enabled(
+                                                                currentcell_o)              
                 if occurence_n in options:
                     editorstack.set_occurence_highlighting_enabled(occurence_o)
                 if occurence_timeout_n in options:

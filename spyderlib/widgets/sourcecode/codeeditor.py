@@ -381,6 +381,7 @@ class CodeEditor(TextEditBaseWidget):
         self.color_scheme = ccs
 
         self.highlight_current_line_enabled = False
+        self.highlight_current_cell_enabled = False
 
         # Scrollbar flag area
         self.scrollflagarea_enabled = None
@@ -532,6 +533,7 @@ class CodeEditor(TextEditBaseWidget):
     def setup_editor(self, linenumbers=True, language=None, markers=False,
                      font=None, color_scheme=None, wrap=False, tab_mode=True,
                      intelligent_backspace=True, highlight_current_line=True,
+                     highlight_current_cell=True, 
                      occurence_highlighting=True, scrollflagarea=True,
                      edge_line=True, edge_line_column=79,
                      codecompletion_auto=False, codecompletion_case=True,
@@ -568,6 +570,9 @@ class CodeEditor(TextEditBaseWidget):
 
         # Lexer
         self.set_language(language)
+
+        # Highlight current cell
+        self.set_highlight_current_cell(highlight_current_cell)
 
         # Highlight current line
         self.set_highlight_current_line(highlight_current_line)
@@ -640,6 +645,14 @@ class CodeEditor(TextEditBaseWidget):
             self.highlight_current_line()
         else:
             self.unhighlight_current_line()
+
+    def set_highlight_current_cell(self, enable):
+        """Enable/disable current line highlighting"""
+        self.highlight_current_cell_enabled = enable
+        if self.highlight_current_cell_enabled:
+            self.highlight_current_cell()
+        else:
+            self.unhighlight_current_cell()
 
     def set_language(self, language):
         self.tab_indents = language in self.TAB_ALWAYS_INDENTS
@@ -733,6 +746,10 @@ class CodeEditor(TextEditBaseWidget):
         """
         if self.highlighter is not None:
             self.highlighter.rehighlight()
+        if self.highlight_current_cell_enabled:
+            self.highlight_current_cell()
+        else:
+            self.unhighlight_current_cell()   
         if self.highlight_current_line_enabled:
             self.highlight_current_line()
         else:
@@ -804,6 +821,10 @@ class CodeEditor(TextEditBaseWidget):
         """Cursor position has changed"""
         line, column = self.get_cursor_line_column()
         self.emit(SIGNAL('cursorPositionChanged(int,int)'), line, column)
+        if self.highlight_current_cell_enabled:
+            self.highlight_current_cell()
+        else:
+            self.unhighlight_current_cell()
         if self.highlight_current_line_enabled:
             self.highlight_current_line()
         else:
@@ -1120,18 +1141,18 @@ class CodeEditor(TextEditBaseWidget):
         self.emit(SIGNAL('breakpoints_changed()'))
 
     #-----Code introspection
-    def do_code_completion(self):
+    def do_code_completion(self, automatic=False):
         """Trigger code completion"""
         if not self.is_completion_widget_visible():
             if self.is_python_like() and not self.in_comment_or_string():
-                self.emit(SIGNAL('trigger_code_completion(bool)'), False)
+                self.emit(SIGNAL('trigger_code_completion(bool)'), automatic)
             else:
                 self.do_token_completion()
 
-    def do_token_completion(self):
+    def do_token_completion(self, automatic=False):
         """Trigger a token-based completion"""
         if not self.is_completion_widget_visible():
-            self.emit(SIGNAL('trigger_token_completion(bool)'), False)
+            self.emit(SIGNAL('trigger_token_completion(bool)'), automatic)
 
     def do_go_to_definition(self):
         """Trigger go-to-definition"""
@@ -1278,6 +1299,14 @@ class CodeEditor(TextEditBaseWidget):
             self.set_palette(background=hl.get_background_color(),
                              foreground=hl.get_foreground_color())
             self.currentline_color = hl.get_currentline_color()
+            # Current cell color is interpolated between background color
+            # and current line color
+            bgcol = hl.get_background_color() 
+            crlin = hl.get_currentline_color()
+            self.currentcell_color = QColor(.4* bgcol.red()   + .6 * crlin.red(),
+                                            .4* bgcol.green() + .6 * crlin.green(),
+                                            .4* bgcol.blue()  + .6 * crlin.blue(),
+                                            .4* bgcol.alpha() + .6 * crlin.alpha()) 
             self.occurence_color = hl.get_occurence_color()
             self.ctrl_click_color = hl.get_ctrlclick_color()
             self.area_background_color = hl.get_sideareas_color()
@@ -1312,6 +1341,10 @@ class CodeEditor(TextEditBaseWidget):
             # this calls self.highlighter.rehighlight()
             self.highlighter.set_color_scheme(color_scheme)
             self._apply_highlighter_color_scheme()
+        if self.highlight_current_cell_enabled:
+            self.highlight_current_cell()
+        else:
+            self.unhighlight_current_cell()
         if self.highlight_current_line_enabled:
             self.highlight_current_line()
         else:
@@ -2188,7 +2221,7 @@ class CodeEditor(TextEditBaseWidget):
                 # Enable auto-completion only if last token isn't a float
                 last_obj = getobj(self.get_text('sol', 'cursor'))
                 if last_obj and not last_obj.isdigit():
-                    self.do_code_completion()
+                    self.do_code_completion(automatic=True)
         elif key == Qt.Key_Home:
             self.stdkey_home(shift, ctrl)
         elif key == Qt.Key_End:
