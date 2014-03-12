@@ -43,7 +43,6 @@ def psutil_phymem_usage():
     import psutil
     return psutil.phymem_usage().percent
 
-
 if programs.is_module_installed('psutil', '>=0.3.0'):
     #  Function `psutil.phymem_usage` was introduced in psutil v0.3.0
     memory_usage = psutil_phymem_usage
