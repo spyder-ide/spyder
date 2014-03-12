@@ -1191,8 +1191,16 @@ class MainWindow(QMainWindow):
             self.create_toolbars_menu()
         
         # Show the Object Inspector and Consoles by default
-        for plugin in (self.inspector, self.extconsole, self.ipyconsole):
-            if plugin is not None and plugin.dockwidget.isVisible():
+        plugins_to_show = [self.inspector]
+        if self.ipyconsole is not None:
+            if CONF.get('ipython_console', 'open_ipython_at_startup'):
+                plugins_to_show += [self.extconsole, self.ipyconsole]
+            else:
+                plugins_to_show += [self.ipyconsole, self.extconsole]
+        else:
+            plugins_to_show += [self.extconsole]
+        for plugin in plugins_to_show:
+            if plugin.dockwidget.isVisible():
                 plugin.dockwidget.raise_()
         
         # Give focus to the Editor
