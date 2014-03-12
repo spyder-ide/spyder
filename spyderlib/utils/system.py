@@ -36,7 +36,6 @@ def windows_memory_usage():
     windll.kernel32.GlobalMemoryStatusEx(byref(memorystatus))
     return float(memorystatus.dwMemoryLoad)
 
-
 def psutil_phymem_usage():
     """Return physical memory usage (float)
     Requires the cross-platform psutil (>=v0.3) library
