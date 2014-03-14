@@ -13,6 +13,7 @@ import re
 import os
 from subprocess import Popen, PIPE
 import tempfile
+import traceback
 
 # Local import
 from spyderlib.baseconfig import _
@@ -80,6 +81,7 @@ def check_with_pyflakes(source_code, filename=None):
     except Exception:
         # Never return None to avoid lock in spyderlib/widgets/editor.py
         results = []
+        traceback.print_exc()  # Print exception in internal console
     return results
 
 # Required version:
@@ -163,6 +165,7 @@ def check_with_pep8(source_code, filename=None):
     except Exception:
         # Never return None to avoid lock in spyderlib/widgets/editor.py
         results = []
+        traceback.print_exc()  # Print exception in internal console
     return results
 
 
