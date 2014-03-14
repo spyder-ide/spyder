@@ -70,7 +70,7 @@ def check_with_pyflakes(source_code, filename=None):
             w = Checker(tree, filename)
             w.messages.sort(key=lambda x: x.lineno)
             results = []
-             coding = encoding.get_coding(source_code)
+            coding = encoding.get_coding(source_code)
             lines = source_code.splitlines()
             for warning in w.messages:
                 if 'analysis:ignore' not in \
