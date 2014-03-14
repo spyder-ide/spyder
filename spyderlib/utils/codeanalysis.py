@@ -16,7 +16,7 @@ import tempfile
 
 # Local import
 from spyderlib.baseconfig import _
-from spyderlib.utils import programs
+from spyderlib.utils import programs, encoding
 from spyderlib.py3compat import to_text_string, to_binary_string, PY3
 from spyderlib import dependencies
 
@@ -140,10 +140,11 @@ def check(args, source_code, filename=None, options=None):
     if filename is None:
         os.unlink(tempfd.name)
     results = []
+    coding = encoding.get_coding(source_code)
     lines = source_code.splitlines()
     for line in output:
         lineno = int(re.search(r'(\:[\d]+\:)', line).group()[1:-1])
-        if 'analysis:ignore' not in to_text_string(lines[lineno-1]):
+        if 'analysis:ignore' not in to_text_string(lines[lineno-1], coding):
             message = line[line.find(': ')+2:]
             results.append((message, lineno))
     return results
