@@ -39,43 +39,47 @@ def find_tasks(source_code):
 def check_with_pyflakes(source_code, filename=None):
     """Check source code with pyflakes
     Returns an empty list if pyflakes is not installed"""
-    if filename is None:
-        filename = '<string>'
     try:
-        source_code += '\n'
-    except TypeError:
-        # Python 3
-        source_code += to_binary_string('\n')
-        
-    import _ast
-    from pyflakes.checker import Checker
-    # First, compile into an AST and handle syntax errors.
-    try:
-        tree = compile(source_code, filename, "exec", _ast.PyCF_ONLY_AST)
-    except SyntaxError as value:
-        # If there's an encoding problem with the file, the text is None.
-        if value.text is None:
-            return []
+        if filename is None:
+            filename = '<string>'
+        try:
+            source_code += '\n'
+        except TypeError:
+            # Python 3
+            source_code += to_binary_string('\n')
+            
+        import _ast
+        from pyflakes.checker import Checker
+        # First, compile into an AST and handle syntax errors.
+        try:
+            tree = compile(source_code, filename, "exec", _ast.PyCF_ONLY_AST)
+        except SyntaxError as value:
+            # If there's an encoding problem with the file, the text is None.
+            if value.text is None:
+                results = []
+            else:
+                results = [(value.args[0], value.lineno)]
+        except (ValueError, TypeError):
+            # Example of ValueError: file contains invalid \x escape character
+            # (see http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=674797)
+            # Example of TypeError: file contains null character
+            # (see http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=674796)
+            results = []
         else:
-            return [(value.args[0], value.lineno)]
-    except (ValueError, TypeError):
-        # Example of ValueError: file contains invalid \x escape character
-        # (see http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=674797)
-        # Example of TypeError: file contains null character
-        # (see http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=674796)
-        return []
-    else:
-        # Okay, it's syntactically valid.  Now check it.
-        w = Checker(tree, filename)
-        w.messages.sort(key=lambda x: x.lineno)
+            # Okay, it's syntactically valid.  Now check it.
+            w = Checker(tree, filename)
+            w.messages.sort(key=lambda x: x.lineno)
+            results = []
+            lines = source_code.splitlines()
+            for warning in w.messages:
+                if 'analysis:ignore' not in \
+                   to_text_string(lines[warning.lineno-1]):
+                    results.append((warning.message % warning.message_args,
+                                    warning.lineno))
+    except Exception:
+        # Never return None to avoid lock in spyderlib/widgets/editor.py
         results = []
-        lines = source_code.splitlines()
-        for warning in w.messages:
-            if 'analysis:ignore' not in \
-               to_text_string(lines[warning.lineno-1]):
-                results.append((warning.message % warning.message_args,
-                                warning.lineno))
-        return results
+    return results
 
 # Required version:
 # Why 0.5 (Python2)? Because it's based on _ast (thread-safe)
@@ -151,8 +155,13 @@ def check(args, source_code, filename=None, options=None):
 
 def check_with_pep8(source_code, filename=None):
     """Check source code with pep8"""
-    args = get_checker_executable('pep8')
-    return check(args, source_code, filename=filename, options=['-r'])
+    try:
+        args = get_checker_executable('pep8')
+        results = check(args, source_code, filename=filename, options=['-r'])
+    except Exception:
+        # Never return None to avoid lock in spyderlib/widgets/editor.py
+        results = []
+    return results
 
 
 if __name__ == '__main__':
