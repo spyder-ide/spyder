@@ -40,7 +40,7 @@ from spyderlib.qt.compat import to_qvariant
 # Local import
 #TODO: Try to separate this module from spyderlib to create a self
 #      consistent editor module (Qt source code and shell widgets library)
-from spyderlib.baseconfig import get_conf_path, _, DEBUG, get_image_path, debug_print
+from spyderlib.baseconfig import get_conf_path, _, DEBUG, get_image_path
 from spyderlib.config import CONF
 from spyderlib.guiconfig import get_font
 from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
@@ -48,12 +48,10 @@ from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
 from spyderlib.utils.dochelpers import getobj
 from spyderlib.utils import encoding, sourcecode
 from spyderlib.utils.sourcecode import ALL_LANGUAGES
-from spyderlib.utils.debug import log_last_error, log_dt
 from spyderlib.widgets.editortools import PythonCFM
 from spyderlib.widgets.sourcecode.base import TextEditBaseWidget
 from spyderlib.widgets.sourcecode import syntaxhighlighters as sh
-from spyderlib.py3compat import to_text_string, PY2
-from spyderlib import dependencies
+from spyderlib.py3compat import to_text_string
 
 #%% This line is for cell execution testing
 # For debugging purpose:
@@ -299,7 +297,8 @@ class CodeEditor(TextEditBaseWidget):
                  'Html': (sh.HtmlSH, '', None),
                  'Css': (sh.CssSH, '', None),
                  'Xml': (sh.XmlSH, '', None),
-                 'Js': (sh.JsSH, '', None),
+                 'Js': (sh.JsSH, '//', None),
+                 'Julia': (sh.JuliaSH, '#', None),
                  'Cpp': (sh.CppSH, '//', None),
                  'OpenCL': (sh.OpenCLSH, '//', None),
                  'Batch': (sh.BatchSH, 'rem ', None),
@@ -1833,7 +1832,7 @@ class CodeEditor(TextEditBaseWidget):
         cursor.setPosition(start_pos)
         cursor.movePosition(QTextCursor.StartOfBlock)
         while cursor.position() <= end_pos:
-            cursor.insertText("# ")
+            cursor.insertText(self.comment_string + " ")
             cursor.movePosition(QTextCursor.EndOfBlock)
             if cursor.atEnd():
                 break
@@ -1866,7 +1865,8 @@ class CodeEditor(TextEditBaseWidget):
         if not __is_comment_bar(cursor1):
             return
         def __in_block_comment(cursor):
-            return to_text_string(cursor.block().text()).startswith('#')
+            cs = self.comment_string
+            return to_text_string(cursor.block().text()).startswith(cs)
         # Finding second comment bar
         cursor2 = QTextCursor(cursor1)
         cursor2.movePosition(QTextCursor.NextBlock)
