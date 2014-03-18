@@ -25,7 +25,7 @@ from spyderlib.py3compat import builtins, is_text_string, to_text_string
 #==============================================================================
 # Syntax highlighting color schemes
 #==============================================================================
-COLOR_SCHEME_KEYS = ("background", "currentline", "occurence",
+COLOR_SCHEME_KEYS = ("background", "currentline", "currentcell", "occurence",
                      "ctrlclick", "sideareas", "matched_p", "unmatched_p",
                      "normal", "keyword", "builtin", "definition",
                      "comment", "string", "number", "instance")
@@ -33,7 +33,8 @@ COLORS = {
           'IDLE':
           {#  Name          Color    Bold   Italic
            "background":  "#ffffff",
-           "currentline": "#eeffdd",
+           "currentline": "#d9e8c9",
+           "currentcell": "#f9ffe7",
            "occurence":   "#e8f2fe",
            "ctrlclick":   "#0000ff",
            "sideareas":   "#efefef",
@@ -52,6 +53,7 @@ COLORS = {
           {#  Name          Color    Bold   Italic
            "background":  "#ffffff",
            "currentline": "#e8f2fe",
+           "currentcell": "#eff8fe",
            "occurence":   "#ffff99",
            "ctrlclick":   "#0000ff",
            "sideareas":   "#efefef",
@@ -70,6 +72,7 @@ COLORS = {
           {#  Name          Color    Bold   Italic
            "background":  "#000000",
            "currentline": "#2b2b43",
+           "currentcell": "#1c1c2d",
            "occurence":   "#abab67",
            "ctrlclick":   "#0000ff",
            "sideareas":   "#555555",
@@ -87,7 +90,8 @@ COLORS = {
           'Scintilla':
           {#  Name          Color    Bold   Italic
            "background":  "#ffffff",
-           "currentline": "#eeffdd",
+           "currentline": "#d6e5c7",
+           "currentcell": "#eeffdd",
            "occurence":   "#ffff99",
            "ctrlclick":   "#0000ff",
            "sideareas":   "#efefef",
@@ -105,7 +109,8 @@ COLORS = {
           'Spyder':
           {#  Name          Color    Bold   Italic
            "background":  "#ffffff",
-           "currentline": "#feefff",
+           "currentline": "#e9deea",
+           "currentcell": "#feefff",
            "occurence":   "#ffff99",
            "ctrlclick":   "#0000ff",
            "sideareas":   "#efefef",
@@ -123,7 +128,8 @@ COLORS = {
           'Spyder/Dark':
           {#  Name          Color    Bold   Italic
            "background":  "#131926",
-           "currentline": "#2b2b43",
+           "currentline": "#4a4a73",
+           "currentcell": "#2b2b43",
            "occurence":   "#abab67",
            "ctrlclick":   "#0000ff",
            "sideareas":   "#282828",
@@ -142,6 +148,7 @@ COLORS = {
           {#  Name          Color    Bold   Italic
            "background":  "#2a2b24",
            "currentline": "#484848",
+           "currentcell": "#3d3d3d",
            "occurence":   "#666666",
            "ctrlclick":   "#0000ff",
            "sideareas":   "#2a2b24",
@@ -159,7 +166,8 @@ COLORS = {
            'Zenburn':
           {#  Name          Color    Bold   Italic
            "background":  "#3f3f3f",
-           "currentline": "#333333",
+           "currentline": "#2c2c2c",
+           "currentcell": "#333333",
            "occurence":   "#7a738f",
            "ctrlclick":   "#0000ff",
            "sideareas":   "#3f3f3f",
@@ -197,6 +205,7 @@ class BaseSH(QSyntaxHighlighter):
         
         self.background_color = None
         self.currentline_color = None
+        self.currentcell_color = None
         self.occurence_color = None
         self.ctrlclick_color = None
         self.sideareas_color = None
@@ -215,6 +224,9 @@ class BaseSH(QSyntaxHighlighter):
         
     def get_currentline_color(self):
         return QColor(self.currentline_color)
+
+    def get_currentcell_color(self):
+        return QColor(self.currentcell_color)
         
     def get_occurence_color(self):
         return QColor(self.occurence_color)
@@ -245,6 +257,7 @@ class BaseSH(QSyntaxHighlighter):
         colors = self.color_scheme.copy()
         self.background_color = colors.pop("background")
         self.currentline_color = colors.pop("currentline")
+        self.currentcell_color = colors.pop("currentcell")
         self.occurence_color = colors.pop("occurence")
         self.ctrlclick_color = colors.pop("ctrlclick")
         self.sideareas_color = colors.pop("sideareas")

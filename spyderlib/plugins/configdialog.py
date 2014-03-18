@@ -766,6 +766,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         fieldnames = {
                       "background":     _("Background:"),
                       "currentline":    _("Current line:"),
+                      "currentcell":    _("Current cell:"),
                       "occurence":      _("Occurence:"),
                       "ctrlclick":      _("Link:"),
                       "sideareas":      _("Side areas:"),

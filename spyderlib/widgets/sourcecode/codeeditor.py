@@ -1299,14 +1299,7 @@ class CodeEditor(TextEditBaseWidget):
             self.set_palette(background=hl.get_background_color(),
                              foreground=hl.get_foreground_color())
             self.currentline_color = hl.get_currentline_color()
-            # Current cell color is interpolated between background color
-            # and current line color
-            bgcol = hl.get_background_color() 
-            crlin = hl.get_currentline_color()
-            self.currentcell_color = QColor(.4* bgcol.red()   + .6 * crlin.red(),
-                                            .4* bgcol.green() + .6 * crlin.green(),
-                                            .4* bgcol.blue()  + .6 * crlin.blue(),
-                                            .4* bgcol.alpha() + .6 * crlin.alpha()) 
+            self.currentcell_color = hl.get_currentcell_color()
             self.occurence_color = hl.get_occurence_color()
             self.ctrl_click_color = hl.get_ctrlclick_color()
             self.area_background_color = hl.get_sideareas_color()
