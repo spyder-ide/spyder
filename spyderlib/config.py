@@ -452,6 +452,18 @@ DEFAULTS = [
               'in_python_path': False,
               'more_options': True,
               }),
+            ('workingdir',
+             {
+              'editor/open/browse_scriptdir': True,
+              'editor/open/browse_workdir': False,
+              'editor/new/browse_scriptdir': False,
+              'editor/new/browse_workdir': True,
+              'editor/open/auto_set_to_basedir': False,
+              'editor/save/auto_set_to_basedir': False,
+              'working_dir_adjusttocontents': False,
+              'working_dir_history': 20,
+              'startup/use_last_directory': True,
+              }),
             ('shortcuts',
              {
               # ---- Global ----
