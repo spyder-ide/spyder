@@ -1043,14 +1043,11 @@ class MainWindow(QMainWindow):
                                         triggered=lambda i=index:
                                         self.quick_layout_switch(i))
                 self.register_shortcut(qli_act, "_",
-                                       "Switch to/from layout %d" % index,
-                                       "Shift+Alt+F%d" % index)
+                                       "Switch to/from layout %d" % index)
                 qlsi_act = create_action(self, _("Set layout %d") % index,
                                          triggered=lambda i=index:
                                          self.quick_layout_set(i))
-                self.register_shortcut(qlsi_act, "_",
-                                       "Set layout %d" % index,
-                                       "Ctrl+Shift+Alt+F%d" % index)
+                self.register_shortcut(qlsi_act, "_", "Set layout %d" % index)
                 ql_actions += [qli_act, qlsi_act]
             add_actions(quick_layout_menu, ql_actions)
             if set_attached_console_visible is not None:

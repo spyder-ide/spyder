@@ -461,6 +461,12 @@ DEFAULTS = [
               '_/maximize plugin': "Ctrl+Alt+Shift+M",
               '_/Fullscreen mode': "F11",
               '_/quit': "Ctrl+Q",
+              '_/switch to/from layout 1': "Shift+Alt+F1",
+              '_/set layout 1': "Ctrl+Shift+Alt+F1",
+              '_/switch to/from layout 2': "Shift+Alt+F2",
+              '_/set layout 2': "Ctrl+Shift+Alt+F2",
+              '_/switch to/from layout 3': "Shift+Alt+F3",
+              '_/set layout 3': "Ctrl+Shift+Alt+F3",
               # -- In plugins/editor
               '_/debug step over': "Ctrl+F10",
               '_/debug continue': "Ctrl+F12",
