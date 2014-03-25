@@ -298,6 +298,7 @@ class CodeEditor(TextEditBaseWidget):
                  'Css': (sh.CssSH, '', None),
                  'Xml': (sh.XmlSH, '', None),
                  'Js': (sh.JsSH, '//', None),
+                 'Json': (sh.JsSH, '//', None),
                  'Julia': (sh.JuliaSH, '#', None),
                  'Cpp': (sh.CppSH, '//', None),
                  'OpenCL': (sh.OpenCLSH, '//', None),
