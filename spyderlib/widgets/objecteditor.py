@@ -61,7 +61,10 @@ def create_dialog(obj, obj_name):
                                                    Image, is_known_type)
     from spyderlib.widgets.dicteditor import DictEditor
     from spyderlib.widgets.arrayeditor import ArrayEditor
-
+    
+    from spyderlib.widgets.dataframeeditor import DataFrameEditor
+    from pandas import DataFrame
+    
     conv_func = lambda data: data
     readonly = not is_known_type(obj)
     if isinstance(obj, ndarray) and ndarray is not FakeObject:
@@ -79,6 +82,10 @@ def create_dialog(obj, obj_name):
             return
         from spyderlib.pil_patch import Image
         conv_func = lambda data: Image.fromarray(data, mode=obj.mode)
+    elif isinstance(obj, DataFrame):
+        dialog = DataFrameEditor()
+        if not dialog.setup_and_check(obj):
+            return		
     elif is_text_string(obj):
         dialog = TextEditor(obj, title=obj_name, readonly=readonly)
     else:

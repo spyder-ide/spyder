@@ -137,6 +137,7 @@ class NamespaceBrowser(QWidget):
                             plot_func=self.plot, imshow_func=self.imshow,
                             show_image_func=self.show_image)
         self.editor.sig_option_changed.connect(self.sig_option_changed.emit)
+        self.editor.is_data_frame=self.is_data_frame
         
         # Setup layout
         hlayout = QHBoxLayout()
@@ -376,6 +377,11 @@ class NamespaceBrowser(QWidget):
     def is_image(self, name):
         """Return True if variable is a PIL.Image image"""
         return communicate(self._get_sock(), 'is_image("%s")' % name)
+    
+    def is_data_frame(self, name):
+        """Return True if variable is a data_frame"""
+        return communicate(self._get_sock(),
+             "isinstance(globals()['%s'], DataFrame)" % name)   
         
     def get_array_shape(self, name):
         """Return array's shape"""

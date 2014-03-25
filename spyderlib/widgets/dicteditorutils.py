@@ -25,6 +25,7 @@ try:
     from numpy import ndarray
     from numpy import array, matrix #@UnusedImport (object eval)
     from numpy.ma import MaskedArray
+    from pandas import DataFrame
 except ImportError:
     ndarray = array = matrix = MaskedArray = FakeObject  # analysis:ignore
 
@@ -169,14 +170,19 @@ def get_size(item):
         return item.shape
     elif isinstance(item, Image):
         return item.size
+    if isinstance(item, DataFrame):
+        return item.shape
     else:
         return 1
 
 def get_type_string(item):
     """Return type string of an object"""
     found = re.findall(r"<(?:type|class) '(\S*)'>", str(type(item)))
+    if isinstance(item, DataFrame):
+        return "DataFrame"
     if found:
         return found[0]
+    
 
 def is_known_type(item):
     """Return True if object has a known type"""
@@ -201,6 +207,8 @@ def get_human_readable_type(item):
 def is_supported(value, check_all=False, filters=None, iterate=True):
     """Return True if the value is supported, False otherwise"""
     assert filters is not None
+    if isinstance(value, DataFrame):
+        return True
     if not is_editable_type(value):
         return False
     elif not isinstance(value, filters):

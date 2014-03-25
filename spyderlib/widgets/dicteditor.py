@@ -44,6 +44,8 @@ if ndarray is not FakeObject:
     from spyderlib.widgets.arrayeditor import ArrayEditor
 from spyderlib.widgets.texteditor import TextEditor
 from spyderlib.widgets.importwizard import ImportWizard
+from spyderlib.widgets.dataframeeditor import DataFrameEditor
+from pandas import DataFrame
 from spyderlib.py3compat import to_text_string, is_text_string, getcwd, u
 
 
@@ -398,6 +400,14 @@ class DictDelegate(QItemDelegate):
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
                                             key=key, readonly=readonly,
                                             conv=conv_func))
+            return None
+        #--editor = DataFrameEditor
+        elif isinstance(value, DataFrame) and not self.inplace:
+            editor = DataFrameEditor()
+            if not editor.setup_and_check(value):
+                return	
+            self.create_dialog(editor, dict(model=index.model(), editor=editor,
+                                            key=key, readonly=readonly))
             return None
         #---editor = QDateTimeEdit
         elif isinstance(value, datetime.datetime) and not self.inplace:
@@ -1266,7 +1276,8 @@ class RemoteDictEditorTableView(BaseTableView):
 
     def oedit_possible(self, key):
         if (self.is_list(key) or self.is_dict(key) 
-            or self.is_array(key) or self.is_image(key)):
+            or self.is_array(key) or self.is_image(key)
+            or self.is_data_frame(key)):
             # If this is a remote dict editor, the following avoid 
             # transfering large amount of data through the socket
             return True
