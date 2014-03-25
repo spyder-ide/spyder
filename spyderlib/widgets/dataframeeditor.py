@@ -80,7 +80,7 @@ class DataFrameModel(QAbstractTableModel):
         #row = self.df.index[index.row()]
         value = from_qvariant(value, str)
         if isinstance(self.df.ix[index.row(), index.column()-1],
-                      (long, int, int64, float, unicode)):
+                      (long, int, int64, float, unicode, str)):
                 try:
                     value = float(value)
                 except ValueError:
@@ -88,9 +88,10 @@ class DataFrameModel(QAbstractTableModel):
                 self.df.ix[index.row(), index.column()-1] = value
                 #it is faster but does not work if the row index contains nan
                 #self.df.set_value(row, col, value)
+                return True
         else:
-            return
-        return True
+            return False
+        
 
     def get_data(self):
         """Return data"""
