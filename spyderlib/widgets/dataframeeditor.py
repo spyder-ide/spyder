@@ -71,10 +71,10 @@ class DataFrameModel(QAbstractTableModel):
         return to_qvariant()
 
     def flags(self, index):
-            flags = super(DataFrameModel, self).flags(index)
-            if index.column() != 0:
-                flags |= Qt.ItemIsEditable
-            return flags
+        if index.column() == 0:
+            return Qt.ItemIsEnabled
+        return Qt.ItemFlags(QAbstractTableModel.flags(self, index)|
+                            Qt.ItemIsEditable)
 
     def setData(self, index, value, role):
         #row = self.df.index[index.row()]
