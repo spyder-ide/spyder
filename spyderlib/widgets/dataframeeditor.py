@@ -22,7 +22,6 @@ class DataFrameModel(QAbstractTableModel):
         self.sat = .7  # Saturation
         self.val = 1.  # Value
         self.alp = .3  # Alpha-channel
-        self.bgcolor_enabled = True
         self.signalUpdate()
         
     def signalUpdate(self):
@@ -62,7 +61,7 @@ class DataFrameModel(QAbstractTableModel):
             return to_qvariant()
         if role == Qt.DisplayRole:
             if index.column() == 0:
-                return to_qvariant(self.df.index.tolist()[index.row()])
+                return to_qvariant(str(self.df.index.tolist()[index.row()]))
             else:
                 return to_qvariant(str(self.df.ix[index.row(),
                                                   index.column()-1]))
