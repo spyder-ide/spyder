@@ -59,7 +59,7 @@ class DataFrameModel(QAbstractTableModel):
     def data(self, index, role=Qt.DisplayRole):
         if not index.isValid():
             return to_qvariant()
-        if role == Qt.DisplayRole:
+        if role == Qt.DisplayRole or role == Qt.EditRole:
             if index.column() == 0:
                 return to_qvariant(str(self.df.index.tolist()[index.row()]))
             else:
@@ -75,7 +75,7 @@ class DataFrameModel(QAbstractTableModel):
         return Qt.ItemFlags(QAbstractTableModel.flags(self, index)|
                             Qt.ItemIsEditable)
 
-    def setData(self, index, value, role):
+    def setData(self, index, value, role=Qt.EditRole):
         #row = self.df.index[index.row()]
         value = from_qvariant(value, str)
         if isinstance(self.df.ix[index.row(), index.column()-1],
