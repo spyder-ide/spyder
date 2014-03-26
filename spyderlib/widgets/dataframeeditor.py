@@ -38,7 +38,7 @@ class DataFrameModel(QAbstractTableModel):
             if section == 0:
                 return 'row'
             try:
-                return self.df.columns.tolist()[section-1]
+                return to_qvariant(self.df.columns.tolist()[section-1])
             except (IndexError, ):
                 return to_qvariant()
         else:
