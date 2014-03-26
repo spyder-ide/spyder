@@ -605,7 +605,6 @@ class CodeEditor(TextEditBaseWidget):
         """Enable/Disable go-to-definition feature, which is implemented in
         child class -> Editor widget"""
         self.go_to_definition_enabled = enable
-        self.gotodef_action.setEnabled(enable)
 
     def set_close_parentheses_enabled(self, enable):
         """Enable/disable automatic parentheses insertion feature"""
@@ -2101,7 +2100,7 @@ class CodeEditor(TextEditBaseWidget):
                            triggered=self.toggle_comment)
         self.gotodef_action = create_action(self, _("Go to definition"),
                                    triggered=self.go_to_definition_from_cursor)
-        run_selection_action = create_action(self,
+        self.run_selection_action = create_action(self,
                         _("Run &selection"), icon='run_selection.png',
                         triggered=lambda: self.emit(SIGNAL('run_selection()')))
         zoom_in_action = create_action(self, _("Zoom in"),
@@ -2116,7 +2115,7 @@ class CodeEditor(TextEditBaseWidget):
                                 paste_action, self.delete_action,
                                 None, selectall_action, None, zoom_in_action,
                                 zoom_out_action, None, toggle_comment_action,
-                                None, run_selection_action,
+                                None, self.run_selection_action,
                                 self.gotodef_action))
             
         # Read-only context-menu
@@ -2348,12 +2347,25 @@ class CodeEditor(TextEditBaseWidget):
 
     def contextMenuEvent(self, event):
         """Reimplement Qt method"""
-        state = self.has_selected_text()
-        self.copy_action.setEnabled(state)
-        self.cut_action.setEnabled(state)
-        self.delete_action.setEnabled(state)
-        self.undo_action.setEnabled( self.document().isUndoAvailable() )
-        self.redo_action.setEnabled( self.document().isRedoAvailable() )
+        nonempty_selection = self.has_selected_text()
+        self.copy_action.setEnabled(nonempty_selection)
+        self.cut_action.setEnabled(nonempty_selection)
+        self.delete_action.setEnabled(nonempty_selection)
+        self.run_selection_action.setEnabled(nonempty_selection) 
+        self.run_selection_action.setVisible(self.is_python())
+        self.gotodef_action.setVisible(self.go_to_definition_enabled\
+                                       and self.is_python_like())        
+        
+        # Code duplication go_to_definition_from_cursor and mouse_move_event
+        cursor = self.textCursor()
+        text = to_text_string(cursor.selectedText())
+        if len(text) == 0:
+            cursor.select(QTextCursor.WordUnderCursor)
+            text = to_text_string(cursor.selectedText())
+        self.gotodef_action.setEnabled(sourcecode.is_keyword(text)) 
+           
+        self.undo_action.setEnabled( self.document().isUndoAvailable())
+        self.redo_action.setEnabled( self.document().isRedoAvailable())
         menu = self.menu
         if self.isReadOnly():
             menu = self.readonly_menu
