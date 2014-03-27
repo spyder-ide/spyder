@@ -209,11 +209,7 @@ class UserConfig(DefaultsConfig):
             _major = lambda _t: _t[:_t.find('.')]
             _minor = lambda _t: _t[:_t.rfind('.')]
             # Save new defaults
-            self.new_defaults = DefaultsConfig(name='defaults-' + version,
-                                               subfolder=subfolder)
-            if not osp.isfile(self.new_defaults.filename()):
-                self.new_defaults.set_defaults(defaults)
-                self.new_defaults._save()
+            self.__save_new_defaults(defaults, version, subfolder)
             # Updating defaults only if major/minor version is different
             if _minor(version) != _minor(old_ver):
                 if backup:
@@ -221,10 +217,10 @@ class UserConfig(DefaultsConfig):
                         shutil.copyfile(fname, "%s-%s.bak" % (fname, old_ver))
                     except IOError:
                         pass
-                self.update_defaults(defaults, version, old_ver)
+                self.__update_defaults(defaults, old_ver)
                 # Remove deprecated options if major version has changed
                 if remove_obsolete or _major(version) != _major(old_ver):
-                    self.__remove_deprecated_options()
+                    self.__remove_deprecated_options(old_ver)
                 # Set new version number
                 self.set_version(version, save=False)
             if defaults is None:
@@ -252,13 +248,46 @@ class UserConfig(DefaultsConfig):
                 self.read(self.filename(), encoding='utf-8')
         except cp.MissingSectionHeaderError:
             print("Warning: File contains no section headers.")
-        
-    def __remove_deprecated_options(self):
+    
+    def __load_old_defaults(self, old_version):
+        """Read old defaults"""
+        old_defaults = cp.ConfigParser()
+        if old_version == '2.4.0':
+            path = get_module_source_path('spyderlib', 'utils')
+        else:
+            path = osp.dirname(self.filename())
+        old_defaults.read(osp.join(path, 'defaults-'+old_version+'.ini'))
+        return old_defaults
+    
+    def __save_new_defaults(self, defaults, new_version, subfolder):
+        """Save new defaults"""
+        new_defaults = DefaultsConfig(name='defaults-'+new_version,
+                                      subfolder=subfolder)
+        if not osp.isfile(new_defaults.filename()):
+            new_defaults.set_defaults(defaults)
+            new_defaults._save()
+    
+    def __update_defaults(self, defaults, old_version, verbose=False):
+        """Update defaults after a change in version"""
+        old_defaults = self.__load_old_defaults(old_version)
+        for section, options in defaults:
+            for option in options:
+                new_value = options[ option ]
+                try:
+                    old_value = old_defaults.get(section, option)
+                except (cp.NoSectionError, cp.NoOptionError):
+                    old_value = None
+                if old_value is None or \
+                  to_text_string(new_value) != old_value:
+                    self._set(section, option, new_value, verbose)
+    
+    def __remove_deprecated_options(self, old_version):
         """
         Remove options which are present in the .ini file but not in defaults
         """
-        for section in self.sections():
-            for option, _ in self.items(section, raw=self.raw):
+        old_defaults = self.__load_old_defaults(old_version)
+        for section in old_defaults.sections():
+            for option, _ in old_defaults.items(section, raw=self.raw):
                 if self.get_default(section, option) is NoDefault:
                     self.remove_option(section, option)
                     if len(self.items(section, raw=self.raw)) == 0:
@@ -291,26 +320,6 @@ class UserConfig(DefaultsConfig):
                 self._set(section, option, value, verbose)
         if save:
             self._save()
-    
-    def update_defaults(self, defaults, version, old_version, verbose=False):
-        """Update defaults after a change in version"""
-        # Reading old defaults
-        old_defs = cp.ConfigParser()
-        if old_version == '2.4.0':
-            path = get_module_source_path('spyderlib', 'utils')
-        else:
-            path = osp.dirname(self.filename())
-        old_defs.read(osp.join(path, 'defaults-' + old_version + '.ini'))
-        for section, options in defaults:
-            for option in options:
-                new_value = options[ option ]
-                try:
-                    old_value = old_defs.get(section, option)
-                except (cp.NoSectionError, cp.NoOptionError):
-                    old_value = None
-                if old_value is None or \
-                  to_text_string(new_value) != old_value:
-                    self._set(section, option, new_value, verbose)
         
     def __check_section_option(self, section, option):
         """
