@@ -471,7 +471,7 @@ DEFAULTS = [
               '_/close plugin': "Shift+Ctrl+F4",
               '_/preferences': "Ctrl+Alt+Shift+P",
               '_/maximize plugin': "Ctrl+Alt+Shift+M",
-              '_/Fullscreen mode': "F11",
+              '_/fullscreen mode': "F11",
               '_/quit': "Ctrl+Q",
               '_/switch to/from layout 1': "Shift+Alt+F1",
               '_/set layout 1': "Ctrl+Shift+Alt+F1",
