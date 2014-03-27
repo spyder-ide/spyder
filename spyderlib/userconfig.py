@@ -222,7 +222,7 @@ class UserConfig(DefaultsConfig):
                     except IOError:
                         pass
                 self.update_defaults(defaults, version, old_ver)
-                # Remove deprecated options of major version has changed
+                # Remove deprecated options if major version has changed
                 if remove_obsolete or _major(version) != _major(old_ver):
                     self.__remove_deprecated_options()
                 # Set new version number
