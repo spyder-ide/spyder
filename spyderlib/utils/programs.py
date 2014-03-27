@@ -205,6 +205,8 @@ def check_version(actver, version, cmp_op):
             return LooseVersion(actver) == LooseVersion(version)
         elif cmp_op == '<':
             return LooseVersion(actver) < LooseVersion(version)
+        elif cmp_op == '<=':
+            return LooseVersion(actver) <= LooseVersion(version)
         else:
             return False
     except TypeError:
@@ -288,7 +290,7 @@ def is_module_installed(module_name, version=None, installed_version=None,
             symb = version[:match.start()]
             if not symb:
                 symb = '='
-            assert symb in ('>=', '>', '=', '<'),\
+            assert symb in ('>=', '>', '=', '<', '<='),\
                     "Invalid version condition '%s'" % symb
             version = version[match.start():]
             

@@ -49,6 +49,7 @@ import time
 
 from spyderlib.baseconfig import DEV, TEST, get_module_source_path
 from spyderlib.utils import encoding
+from spyderlib.utils.programs import check_version
 from spyderlib.py3compat import configparser as cp
 from spyderlib.py3compat import PY2, is_text_string, to_text_string
 
@@ -260,7 +261,7 @@ class UserConfig(DefaultsConfig):
     def __load_old_defaults(self, old_version):
         """Read old defaults"""
         old_defaults = cp.ConfigParser()
-        if old_version == '2.4.0':
+        if check_version(old_version, '2.4.0', '<='):
             path = get_module_source_path('spyderlib', 'utils')
         else:
             path = osp.dirname(self.filename())
