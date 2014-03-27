@@ -5,6 +5,7 @@
 #    ------------------------------------------
 #    
 #    Copyright © 2009-2012 Pierre Raybaut
+#    Copyright © 2014 The Spyder Development Team
 #    
 #    Permission is hereby granted, free of charge, to any person
 #    obtaining a copy of this software and associated documentation
@@ -34,12 +35,11 @@ userconfig
 
 The ``spyderlib.userconfig`` module provides user configuration file (.ini file)
 management features based on ``ConfigParser`` (standard Python library).
+
+NOTE: Since Spyder version 2.3 this module is heavily tied to Spyder internals
 """
 
 from __future__ import print_function
-
-__version__ = '1.1.0'
-__license__ = __doc__
 
 import os
 import re
@@ -53,6 +53,9 @@ from spyderlib.py3compat import configparser as cp
 from spyderlib.py3compat import PY2, is_text_string, to_text_string
 
 
+#==============================================================================
+# Auxiliary functions and classes
+#==============================================================================
 def get_home_dir():
     """
     Return user home directory
@@ -80,6 +83,9 @@ class NoDefault:
     pass
 
 
+#==============================================================================
+# Defaults class
+#==============================================================================
 class DefaultsConfig(cp.ConfigParser):
     """
     Class used to save defaults to a file and as base class for
@@ -170,7 +176,9 @@ class DefaultsConfig(cp.ConfigParser):
                 self._set(section, option, new_value, False)
         
 
-
+#==============================================================================
+# User config class
+#==============================================================================
 class UserConfig(DefaultsConfig):
     """
     UserConfig class, based on ConfigParser
