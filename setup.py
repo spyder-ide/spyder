@@ -199,7 +199,8 @@ def get_packages():
 # NOTE: the '[...]_win_post_install.py' script is installed even on non-Windows
 # platforms due to a bug in pip installation process (see Issue 1158)
 SCRIPTS = ['spyder', '%s_win_post_install.py' % NAME]
-EXTLIST = ['.mo', '.svg', '.png', '.css', '.html', '.js', '.chm', '.gif']
+EXTLIST = ['.mo', '.svg', '.png', '.css', '.html', '.js', '.chm', '.gif',
+           '.ini']
 if os.name == 'nt':
     SCRIPTS += ['spyder.bat']
     EXTLIST += ['.ico']
