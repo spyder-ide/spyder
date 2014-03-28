@@ -321,7 +321,7 @@ class CodeEditor(TextEditBaseWidget):
 
         # Completion
         completion_size = CONF.get('editor_appearance', 'completion/size')
-        completion_font = get_font('editor_appearance', 'completion')
+        completion_font = get_font('editor')
         self.completion_widget.setup_appearance(completion_size,
                                                 completion_font)
 

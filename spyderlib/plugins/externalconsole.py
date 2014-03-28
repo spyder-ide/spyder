@@ -1228,6 +1228,10 @@ class ExternalConsole(SpyderPluginWidget):
         for shellwidget in self.shellwidgets:
             if font_n in options:
                 shellwidget.shell.set_font(font_o)
+                completion_size = CONF.get('shell_appearance',
+                                           'completion/size')
+                comp_widget = shellwidget.shell.completion_widget
+                comp_widget.setup_appearance(completion_size, font_o)
             if showtime_n in options:
                 shellwidget.set_elapsed_time_visible(showtime_o)
             if icontext_n in options:

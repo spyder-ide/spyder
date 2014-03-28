@@ -84,7 +84,7 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
         
         # Completion
         completion_size = CONF.get('shell_appearance', 'completion/size')
-        completion_font = get_font('shell_appearance', 'completion')
+        completion_font = get_font('console')
         self.completion_widget.setup_appearance(completion_size,
                                                 completion_font)
         # Cursor width

@@ -2123,6 +2123,11 @@ class Editor(SpyderPluginWidget):
                 if font_n in options:
                     scs = color_scheme_o if color_scheme_n in options else None
                     editorstack.set_default_font(font_o, scs)
+                    completion_size = CONF.get('editor_appearance',
+                                               'completion/size')
+                    for finfo in editorstack.data:
+                        comp_widget = finfo.editor.completion_widget
+                        comp_widget.setup_appearance(completion_size, font_o)
                 elif color_scheme_n in options:
                     editorstack.set_color_scheme(color_scheme_o)
                 if currentline_n in options:
@@ -2133,6 +2138,7 @@ class Editor(SpyderPluginWidget):
                 if occurence_timeout_n in options:
                     editorstack.set_occurence_highlighting_timeout(
                                                         occurence_timeout_o)
+
             # --- everything else
             fpsorting_n = 'fullpath_sorting'
             fpsorting_o = self.get_option(fpsorting_n)
