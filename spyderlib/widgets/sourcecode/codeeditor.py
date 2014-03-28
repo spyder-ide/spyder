@@ -319,11 +319,6 @@ class CodeEditor(TextEditBaseWidget):
         TextEditBaseWidget.__init__(self, parent)
         self.setFocusPolicy(Qt.StrongFocus)
 
-        # Calltips
-        calltip_size = CONF.get('editor_appearance', 'calltips/size')
-        calltip_font = get_font('editor_appearance', 'calltips')
-        self.setup_calltips(calltip_size, calltip_font)
-
         # Completion
         completion_size = CONF.get('editor_appearance', 'completion/size')
         completion_font = get_font('editor_appearance', 'completion')

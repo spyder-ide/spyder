@@ -81,11 +81,6 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
 
         # Give focus to widget
         self.setFocus()
-                
-        # Calltips
-        calltip_size = CONF.get('shell_appearance', 'calltips/size')
-        calltip_font = get_font('shell_appearance', 'calltips')
-        self.setup_calltips(calltip_size, calltip_font)
         
         # Completion
         completion_size = CONF.get('shell_appearance', 'completion/size')
