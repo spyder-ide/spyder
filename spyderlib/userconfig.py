@@ -226,7 +226,10 @@ class UserConfig(DefaultsConfig):
                         shutil.copyfile(fname, "%s-%s.bak" % (fname, old_ver))
                     except IOError:
                         pass
-                self.__update_defaults(defaults, old_ver)
+                if check_version(old_ver, '2.4.0', '<'):
+                    self.reset_to_defaults(save=False)
+                else:
+                    self.__update_defaults(defaults, old_ver)
                 # Remove deprecated options if major version has changed
                 if remove_obsolete or _major(version) != _major(old_ver):
                     self.__remove_deprecated_options(old_ver)
@@ -261,7 +264,7 @@ class UserConfig(DefaultsConfig):
     def __load_old_defaults(self, old_version):
         """Read old defaults"""
         old_defaults = cp.ConfigParser()
-        if check_version(old_version, '2.4.0', '<='):
+        if check_version(old_version, '2.4.0', '='):
             path = get_module_source_path('spyderlib', 'utils')
         else:
             path = osp.dirname(self.filename())
