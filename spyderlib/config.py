@@ -21,27 +21,9 @@ from spyderlib.baseconfig import CHECK_ALL, EXCLUDED_NAMES, SUBFOLDER, _
 from spyderlib.utils import iofuncs, codeanalysis
 
 
-SANS_SERIF = ['Sans Serif', 'DejaVu Sans', 'Bitstream Vera Sans',
-              'Bitstream Charter', 'Lucida Grande', 'MS Shell Dlg 2',
-              'Calibri', 'Verdana', 'Geneva', 'Lucid', 'Arial',
-              'Helvetica', 'Avant Garde', 'Times', 'sans-serif']
-
-MONOSPACE = ['Monospace', 'DejaVu Sans Mono', 'Consolas', 'Monaco',
-             'Bitstream Vera Sans Mono', 'Andale Mono', 'Liberation Mono',
-             'Courier New', 'Courier', 'monospace', 'Fixed', 'Terminal']
-
-if sys.platform == 'darwin':
-    BIG = MEDIUM = SMALL = 12
-elif os.name == 'nt':
-    BIG = 12    
-    MEDIUM = 10
-    SMALL = 9
-else:
-    BIG = 12    
-    MEDIUM = 9
-    SMALL = 9
-
+#==============================================================================
 # Extensions supported by Spyder's Editor
+#==============================================================================
 EDIT_FILETYPES = (
     (_("Python files"), ('.py', '.pyw', '.ipy')),
     (_("Cython/Pyrex files"), ('.pyx', '.pxd', '.pxi')),
@@ -105,6 +87,7 @@ SHOW_EXT = ['.png', '.ico', '.svg']
 # Extensions supported by Spyder (Editor or Variable explorer)
 VALID_EXT = EDIT_EXT+IMPORT_EXT
 
+
 # Find in files include/exclude patterns
 INCLUDE_PATTERNS = [r'|'.join(['\\'+_ext+r'$' for _ext in EDIT_EXT if _ext])+\
                     r'|README|INSTALL',
@@ -113,17 +96,63 @@ INCLUDE_PATTERNS = [r'|'.join(['\\'+_ext+r'$' for _ext in EDIT_EXT if _ext])+\
 EXCLUDE_PATTERNS = [r'\.pyc$|\.pyo$|\.orig$|\.hg|\.svn|\bbuild\b',
                     r'\.pyc$|\.pyo$|\.orig$|\.hg|\.svn']
 
+
 # Name filters for file/project explorers (excluding files without extension)
 NAME_FILTERS = ['*' + _ext for _ext in VALID_EXT + SHOW_EXT if _ext]+\
                ['README', 'INSTALL', 'LICENSE', 'CHANGELOG']
+
 
 # Port used to detect if there is a running instance and to communicate with
 # it to open external files
 OPEN_FILES_PORT = 21128
 
+# Ctrl key
 CTRL = "Meta" if sys.platform == 'darwin' else "Ctrl"
 
 
+#==============================================================================
+# Fonts
+#==============================================================================
+def is_ubuntu():
+    if sys.platform.startswith('linux') and osp.isfile('/etc/lsb-release'):
+        release_info = open('/etc/lsb-release').read()
+        if 'Ubuntu' in release_info:
+            return True
+        else:
+            return False
+    else:
+        return False
+
+
+SANS_SERIF = ['Sans Serif', 'DejaVu Sans', 'Bitstream Vera Sans',
+              'Bitstream Charter', 'Lucida Grande', 'MS Shell Dlg 2',
+              'Calibri', 'Verdana', 'Geneva', 'Lucid', 'Arial',
+              'Helvetica', 'Avant Garde', 'Times', 'sans-serif']
+
+MONOSPACE = ['Monospace', 'DejaVu Sans Mono', 'Consolas', 'Monaco',
+             'Bitstream Vera Sans Mono', 'Andale Mono', 'Liberation Mono',
+             'Courier New', 'Courier', 'monospace', 'Fixed', 'Terminal']
+
+
+if sys.platform == 'darwin':
+    BIG = MEDIUM = SMALL = 12
+elif os.name == 'nt':
+    BIG = 12
+    MEDIUM = 10
+    SMALL = 9
+elif is_ubuntu():
+    SANS_SERIF = ['Ubuntu'] + SANS_SERIF
+    MONOSPACE = ['Ubuntu Mono'] + MONOSPACE
+    BIG = 13
+    MEDIUM = SMALL = 10
+else:
+    BIG = 12
+    MEDIUM = SMALL = 9
+
+
+#==============================================================================
+# Defaults
+#==============================================================================
 DEFAULTS = [
             ('main',
              {
@@ -135,7 +164,7 @@ DEFAULTS = [
               'animated_docks': True,
               'window/size': (1260, 740),
               'window/position': (10, 10),
-              'window/is_maximized': False,
+              'window/is_maximized': True,
               'window/is_fullscreen': False,
               'window/prefs_dialog_size': (745, 411),
               'lightwindow/size': (650, 400),
@@ -164,29 +193,11 @@ DEFAULTS = [
             ('editor_appearance',
              {
               'cursor/width': 2,
-              'calltips/font/family': MONOSPACE,
-              'calltips/font/size': SMALL,
-              'calltips/font/italic': False,
-              'calltips/font/bold': False,
-              'calltips/size': 600,
-              'completion/font/family': MONOSPACE,
-              'completion/font/size': SMALL,
-              'completion/font/italic': False,
-              'completion/font/bold': False,
               'completion/size': (300, 180),
               }),
             ('shell_appearance',
              {
               'cursor/width': 2,
-              'calltips/font/family': MONOSPACE,
-              'calltips/font/size': SMALL,
-              'calltips/font/italic': False,
-              'calltips/font/bold': False,
-              'calltips/size': 600,
-              'completion/font/family': MONOSPACE,
-              'completion/font/size': SMALL,
-              'completion/font/italic': False,
-              'completion/font/bold': False,
               'completion/size': (300, 180),
               }),
             ('internal_console',
@@ -212,7 +223,7 @@ DEFAULTS = [
             ('console',
              {
               'shortcut': "Ctrl+Shift+C",
-              'max_line_count': 10000,
+              'max_line_count': 500,
               'font/family': MONOSPACE,
               'font/size': MEDIUM,
               'font/italic': False,
@@ -225,7 +236,7 @@ DEFAULTS = [
               'codecompletion/enter_key': True,
               'codecompletion/case_sensitive': True,
               'codecompletion/show_single': False,
-              'show_elapsed_time': True,
+              'show_elapsed_time': False,
               'show_icontext': False,
               'monitor/enabled': True,
               'qt/install_inputhook': os.name == 'nt' \
@@ -245,8 +256,8 @@ DEFAULTS = [
               'merge_output_channels': os.name != 'nt',
               'colorize_sys_stderr': os.name != 'nt',
               'open_python_at_startup': True,
-              'pythonstartup/default': False,
-              'pythonstartup/custom': True,
+              'pythonstartup/default': True,
+              'pythonstartup/custom': False,
               'pythonexecutable/default': True,
               'pythonexecutable/custom': False,
               'ets_backend': 'qt4'
@@ -261,12 +272,12 @@ DEFAULTS = [
               'show_banner': True,
               'use_gui_completion': True,
               'use_pager': True,
-              'show_calltips': False,
+              'show_calltips': True,
               'ask_before_closing': True,
               'object_inspector': True,
-              'buffer_size': 10000,
+              'buffer_size': 500,
               'pylab': True,
-              'pylab/autoload': True,
+              'pylab/autoload': False,
               'pylab/backend': 0,
               'pylab/inline/figure_format': 0,
               'pylab/inline/resolution': 72,
@@ -275,7 +286,7 @@ DEFAULTS = [
               'startup/run_lines': '',
               'startup/use_run_file': False,
               'startup/run_file': '',
-              'open_ipython_at_startup': False,
+              'open_ipython_at_startup': True,
               'greedy_completer': False,
               'autocall': 0,
               'symbolic_math': False,
@@ -553,10 +564,15 @@ DEFAULTS = [
               })
             ]
 
+
+#==============================================================================
+# Config instance
+#==============================================================================
 # XXX: Previously we had load=(not DEV) here but DEV was set to *False*.
 # Check if it *really* needs to be updated or not
-CONF = UserConfig('spyder', defaults=DEFAULTS, load=True, version='2.4.0',
+CONF = UserConfig('spyder', defaults=DEFAULTS, load=True, version='3.0.0',
                   subfolder=SUBFOLDER, backup=True, raw_mode=True)
+
 
 # Removing old .spyder.ini location:
 old_location = osp.join(get_home_dir(), '.spyder.ini')
