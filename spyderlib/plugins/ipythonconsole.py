@@ -17,7 +17,7 @@ Handles IPython clients (and in the future, will handle IPython kernels too
 # Qt imports
 from spyderlib.qt.QtGui import (QVBoxLayout, QHBoxLayout, QFormLayout, 
                                 QMessageBox, QGroupBox, QDialogButtonBox,
-                                QDialog, QInputDialog, QFileDialog,
+                                QDialog, QFileDialog,
                                 QTabWidget, QFontComboBox, QApplication,
                                 QLabel, QLineEdit, QPushButton)
 from spyderlib.qt.QtCore import SIGNAL, Qt, QUrl
@@ -397,7 +397,7 @@ class KernelConnectionDialog(QDialog):
         
         # ssh connection
         self.hn = QLineEdit()
-        self.hn.setPlaceholderText('username@host')
+        self.hn.setPlaceholderText('username@host:port')
         
         self.kf = QLineEdit()
         self.kf.setPlaceholderText('Path to ssh key file')
