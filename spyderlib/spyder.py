@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2013 Pierre Raybaut
+# Copyright Â© 2009-2013 Pierre Raybaut
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -10,7 +10,7 @@ Spyder, the Scientific PYthon Development EnviRonment
 
 Developped and maintained by Pierre Raybaut
 
-Copyright © 2009-2012 Pierre Raybaut
+Copyright Â© 2009-2012 Pierre Raybaut
 Licensed under the terms of the MIT License
 (see spyderlib/__init__.py for details)
 """
@@ -1898,7 +1898,10 @@ Please provide any additional information below.
         console.raise_()
         console.execute_python_code(lines)
         if focus_to_editor:
-           self.editor.visibility_changed(True)
+            self.editor.visibility_changed(True)
+
+    def new_file(self, text):
+        self.editor.new(text=text)
         
     def open_file(self, fname, external=False):
         """

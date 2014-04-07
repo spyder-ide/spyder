@@ -179,7 +179,7 @@ class CompletionWidget(QListWidget):
 class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     """Text edit base widget"""
     BRACE_MATCHING_SCOPE = ('sof', 'eof')
-    CELL_SEPARATORS = ('#%%', '# %%', '# <codecell>')
+    CELL_SEPARATORS = ('#%%', '# %%', '# <codecell>', '# In[')
     
     def __init__(self, parent=None):
         QPlainTextEdit.__init__(self, parent)

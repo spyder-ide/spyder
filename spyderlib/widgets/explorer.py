@@ -33,7 +33,7 @@ from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions,
 from spyderlib.utils import misc, encoding, programs, vcs
 from spyderlib.baseconfig import _
 from spyderlib.py3compat import to_text_string, getcwd, str_lower
-
+from IPython.nbconvert import python as nbconvert_python
 
 def fixpath(path):
     """Normalize path fixing case, making absolute and removing symlinks"""
@@ -225,6 +225,8 @@ class DirView(QTreeView):
         only_files = all([osp.isfile(_fn) for _fn in fnames])
         only_modules = all([osp.splitext(_fn)[1] in ('.py', '.pyw', '.ipy')
                             for _fn in fnames])
+        only_notebooks = all([osp.splitext(_fn)[1] == '.ipynb' 
+                            for _fn in fnames])
         only_valid = all([osp.splitext(_fn)[1] in self.valid_types
                           for _fn in fnames])
         run_action = create_action(self, _("Run"), icon="run_small.png",
@@ -241,6 +243,8 @@ class DirView(QTreeView):
                                       icon="rename.png",
                                       triggered=self.rename)
         open_action = create_action(self, _("Open"), triggered=self.open)
+        ipynb_convert_action = create_action(self, _("Convert notebook(s) to script"), 
+                                      triggered=self.convert)
         
         actions = []
         if only_modules:
@@ -249,11 +253,14 @@ class DirView(QTreeView):
             actions.append(edit_action)
         else:
             actions.append(open_action)
+        
         actions += [delete_action, rename_action]
         basedir = fixpath(osp.dirname(fnames[0]))
         if all([fixpath(osp.dirname(_fn)) == basedir for _fn in fnames]):
             actions.append(move_action)
         actions += [None]
+        if only_notebooks:
+            actions.append(ipynb_convert_action)
         
         # VCS support is quite limited for now, so we are enabling the VCS
         # related actions only when a single file/folder is selected:
@@ -489,6 +496,20 @@ class DirView(QTreeView):
             if yes_to_all is not None and not yes_to_all:
                 # Canceled
                 return
+
+    def convert_notebook(self, fname):
+        """Convert an IPython notebook to a Python script in editor"""
+        script = nbconvert_python.PythonExporter().from_filename(fname)[0]
+        self.parent_widget.sig_new_file.emit(script)
+    
+    def convert(self, fnames=None):
+        """Convert IPython notebooks to Python scripts in editor"""
+        if fnames is None:
+            fnames = self.get_selected_filenames()
+        if not isinstance(fnames, (tuple, list)):
+            fnames = [fnames]
+        for fname in fnames:
+            self.convert_notebook(fname)        
 
     def rename_file(self, fname):
         """Rename file"""
@@ -944,6 +965,7 @@ class ExplorerWidget(QWidget):
     """Explorer widget"""
     sig_option_changed = Signal(str, object)
     sig_open_file = Signal(str)
+    sig_new_file = Signal(str)
     
     def __init__(self, parent=None, name_filters=['*.py', '*.pyw'],
                  valid_types=('.py', '.pyw'), show_all=False,
