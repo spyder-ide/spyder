@@ -243,7 +243,7 @@ class DirView(QTreeView):
                                       icon="rename.png",
                                       triggered=self.rename)
         open_action = create_action(self, _("Open"), triggered=self.open)
-        ipynb_convert_action = create_action(self, _("Convert notebook(s) to script"), 
+        ipynb_convert_action = create_action(self, _("Convert to Python script"), 
                                       triggered=self.convert)
         
         actions = []
