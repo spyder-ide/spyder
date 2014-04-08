@@ -17,31 +17,13 @@ import os.path as osp
 
 # Local import
 from spyderlib.userconfig import UserConfig, get_home_dir
-from spyderlib.baseconfig import SUBFOLDER, CHECK_ALL, EXCLUDED_NAMES, _
+from spyderlib.baseconfig import CHECK_ALL, EXCLUDED_NAMES, SUBFOLDER, _
 from spyderlib.utils import iofuncs, codeanalysis
 
 
-SANS_SERIF = ['Sans Serif', 'DejaVu Sans', 'Bitstream Vera Sans',
-              'Bitstream Charter', 'Lucida Grande', 'MS Shell Dlg 2',
-              'Calibri', 'Verdana', 'Geneva', 'Lucid', 'Arial',
-              'Helvetica', 'Avant Garde', 'Times', 'sans-serif']
-
-MONOSPACE = ['Monospace', 'DejaVu Sans Mono', 'Consolas', 'Monaco',
-             'Bitstream Vera Sans Mono', 'Andale Mono', 'Liberation Mono',
-             'Courier New', 'Courier', 'monospace', 'Fixed', 'Terminal']
-
-if sys.platform == 'darwin':
-    BIG = MEDIUM = SMALL = 12
-elif os.name == 'nt':
-    BIG = 12    
-    MEDIUM = 10
-    SMALL = 9
-else:
-    BIG = 12    
-    MEDIUM = 9
-    SMALL = 9
-
+#==============================================================================
 # Extensions supported by Spyder's Editor
+#==============================================================================
 EDIT_FILETYPES = (
     (_("Python files"), ('.py', '.pyw', '.ipy')),
     (_("Cython/Pyrex files"), ('.pyx', '.pxd', '.pxi')),
@@ -106,6 +88,7 @@ SHOW_EXT = ['.png', '.ico', '.svg']
 # Extensions supported by Spyder (Editor or Variable explorer)
 VALID_EXT = EDIT_EXT+IMPORT_EXT
 
+
 # Find in files include/exclude patterns
 INCLUDE_PATTERNS = [r'|'.join(['\\'+_ext+r'$' for _ext in EDIT_EXT if _ext])+\
                     r'|README|INSTALL',
@@ -114,14 +97,63 @@ INCLUDE_PATTERNS = [r'|'.join(['\\'+_ext+r'$' for _ext in EDIT_EXT if _ext])+\
 EXCLUDE_PATTERNS = [r'\.pyc$|\.pyo$|\.orig$|\.hg|\.svn|\bbuild\b',
                     r'\.pyc$|\.pyo$|\.orig$|\.hg|\.svn']
 
+
 # Name filters for file/project explorers (excluding files without extension)
 NAME_FILTERS = ['*' + _ext for _ext in VALID_EXT + SHOW_EXT if _ext]+\
                ['README', 'INSTALL', 'LICENSE', 'CHANGELOG']
+
 
 # Port used to detect if there is a running instance and to communicate with
 # it to open external files
 OPEN_FILES_PORT = 21128
 
+# Ctrl key
+CTRL = "Meta" if sys.platform == 'darwin' else "Ctrl"
+
+
+#==============================================================================
+# Fonts
+#==============================================================================
+def is_ubuntu():
+    if sys.platform.startswith('linux') and osp.isfile('/etc/lsb-release'):
+        release_info = open('/etc/lsb-release').read()
+        if 'Ubuntu' in release_info:
+            return True
+        else:
+            return False
+    else:
+        return False
+
+
+SANS_SERIF = ['Sans Serif', 'DejaVu Sans', 'Bitstream Vera Sans',
+              'Bitstream Charter', 'Lucida Grande', 'MS Shell Dlg 2',
+              'Calibri', 'Verdana', 'Geneva', 'Lucid', 'Arial',
+              'Helvetica', 'Avant Garde', 'Times', 'sans-serif']
+
+MONOSPACE = ['Monospace', 'DejaVu Sans Mono', 'Consolas', 'Monaco',
+             'Bitstream Vera Sans Mono', 'Andale Mono', 'Liberation Mono',
+             'Courier New', 'Courier', 'monospace', 'Fixed', 'Terminal']
+
+
+if sys.platform == 'darwin':
+    BIG = MEDIUM = SMALL = 12
+elif os.name == 'nt':
+    BIG = 12
+    MEDIUM = 10
+    SMALL = 9
+elif is_ubuntu():
+    SANS_SERIF = ['Ubuntu'] + SANS_SERIF
+    MONOSPACE = ['Ubuntu Mono'] + MONOSPACE
+    BIG = 13
+    MEDIUM = SMALL = 10
+else:
+    BIG = 12
+    MEDIUM = SMALL = 9
+
+
+#==============================================================================
+# Defaults
+#==============================================================================
 DEFAULTS = [
             ('main',
              {
@@ -133,7 +165,7 @@ DEFAULTS = [
               'animated_docks': True,
               'window/size': (1260, 740),
               'window/position': (10, 10),
-              'window/is_maximized': False,
+              'window/is_maximized': True,
               'window/is_fullscreen': False,
               'window/prefs_dialog_size': (745, 411),
               'lightwindow/size': (650, 400),
@@ -151,6 +183,9 @@ DEFAULTS = [
               'memory_usage/timeout': 2000,
               'cpu_usage/enable': False,
               'cpu_usage/timeout': 2000,
+              'use_custom_margin': True,
+              'custom_margin': 0,
+              'show_internal_console_if_traceback': True
               }),
             ('quick_layouts',
              {
@@ -159,33 +194,16 @@ DEFAULTS = [
             ('editor_appearance',
              {
               'cursor/width': 2,
-              'calltips/font/family': MONOSPACE,
-              'calltips/font/size': SMALL,
-              'calltips/font/italic': False,
-              'calltips/font/bold': False,
-              'calltips/size': 600,
-              'completion/font/family': MONOSPACE,
-              'completion/font/size': SMALL,
-              'completion/font/italic': False,
-              'completion/font/bold': False,
               'completion/size': (300, 180),
               }),
             ('shell_appearance',
              {
               'cursor/width': 2,
-              'calltips/font/family': MONOSPACE,
-              'calltips/font/size': SMALL,
-              'calltips/font/italic': False,
-              'calltips/font/bold': False,
-              'calltips/size': 600,
-              'completion/font/family': MONOSPACE,
-              'completion/font/size': SMALL,
-              'completion/font/italic': False,
-              'completion/font/bold': False,
               'completion/size': (300, 180),
               }),
             ('internal_console',
              {
+              'shortcut': None,
               'max_line_count': 300,
               'working_dir_history': 30,
               'working_dir_adjusttocontents': False,
@@ -206,7 +224,7 @@ DEFAULTS = [
             ('console',
              {
               'shortcut': "Ctrl+Shift+C",
-              'max_line_count': 10000,
+              'max_line_count': 500,
               'font/family': MONOSPACE,
               'font/size': MEDIUM,
               'font/italic': False,
@@ -219,7 +237,7 @@ DEFAULTS = [
               'codecompletion/enter_key': True,
               'codecompletion/case_sensitive': True,
               'codecompletion/show_single': False,
-              'show_elapsed_time': True,
+              'show_elapsed_time': False,
               'show_icontext': False,
               'monitor/enabled': True,
               'qt/install_inputhook': os.name == 'nt' \
@@ -238,9 +256,16 @@ DEFAULTS = [
               'light_background': True,
               'merge_output_channels': os.name != 'nt',
               'colorize_sys_stderr': os.name != 'nt',
+              'open_python_at_startup': True,
+              'pythonstartup/default': True,
+              'pythonstartup/custom': False,
+              'pythonexecutable/default': True,
+              'pythonexecutable/custom': False,
+              'ets_backend': 'qt4'
               }),
             ('ipython_console',
              {
+              'shortcut': None,
               'font/family': MONOSPACE,
               'font/size': MEDIUM,
               'font/italic': False,
@@ -248,12 +273,12 @@ DEFAULTS = [
               'show_banner': True,
               'use_gui_completion': True,
               'use_pager': True,
-              'show_calltips': False,
+              'show_calltips': True,
               'ask_before_closing': True,
               'object_inspector': True,
-              'buffer_size': 10000,
+              'buffer_size': 500,
               'pylab': True,
-              'pylab/autoload': True,
+              'pylab/autoload': False,
               'pylab/backend': 0,
               'pylab/inline/figure_format': 0,
               'pylab/inline/resolution': 72,
@@ -262,12 +287,14 @@ DEFAULTS = [
               'startup/run_lines': '',
               'startup/use_run_file': False,
               'startup/run_file': '',
-              'open_ipython_at_startup': False,
+              'open_ipython_at_startup': True,
               'greedy_completer': False,
               'autocall': 0,
               'symbolic_math': False,
               'in_prompt': '',
-              'out_prompt': ''
+              'out_prompt': '',
+              'light_color': True,
+              'dark_color': False
               }),
             ('variable_explorer',
              {
@@ -332,6 +359,8 @@ DEFAULTS = [
               'fullpath_sorting': True,
               'show_tab_bar': True,
               'max_recent_files': 20,
+              'save_all_before_run': True,
+              'onsave_analysis': False
               }),
             ('historylog',
              {
@@ -376,6 +405,9 @@ DEFAULTS = [
              {
               'shortcut': "Ctrl+Shift+O",
               'enable': True,
+              'show_fullpath': False,
+              'show_all_files': False,
+              'show_comments': True,
               }),
             ('project_explorer',
              {
@@ -383,6 +415,7 @@ DEFAULTS = [
               'enable': True,
               'name_filters': NAME_FILTERS,
               'show_all': False,
+              'show_hscrollbar': True
               }),
             ('arrayeditor',
              {
@@ -407,6 +440,7 @@ DEFAULTS = [
               }),
             ('explorer',
              {
+              'shortcut': None,
               'enable': True,
               'wrap': True,
               'name_filters': NAME_FILTERS,
@@ -417,6 +451,7 @@ DEFAULTS = [
               }),
             ('find_in_files',
              {
+              'shortcut': None,
               'enable': True,
               'supported_encodings': ["utf-8", "iso-8859-1", "cp1252"],
               'include': INCLUDE_PATTERNS,
@@ -429,12 +464,116 @@ DEFAULTS = [
               'in_python_path': False,
               'more_options': True,
               }),
+            ('workingdir',
+             {
+              'editor/open/browse_scriptdir': True,
+              'editor/open/browse_workdir': False,
+              'editor/new/browse_scriptdir': False,
+              'editor/new/browse_workdir': True,
+              'editor/open/auto_set_to_basedir': False,
+              'editor/save/auto_set_to_basedir': False,
+              'working_dir_adjusttocontents': False,
+              'working_dir_history': 20,
+              'startup/use_last_directory': True,
+              }),
+            ('shortcuts',
+             {
+              # ---- Global ----
+              # -- In spyder.py
+              '_/close plugin': "Shift+Ctrl+F4",
+              '_/preferences': "Ctrl+Alt+Shift+P",
+              '_/maximize plugin': "Ctrl+Alt+Shift+M",
+              '_/fullscreen mode': "F11",
+              '_/quit': "Ctrl+Q",
+              '_/switch to/from layout 1': "Shift+Alt+F1",
+              '_/set layout 1': "Ctrl+Shift+Alt+F1",
+              '_/switch to/from layout 2': "Shift+Alt+F2",
+              '_/set layout 2': "Ctrl+Shift+Alt+F2",
+              '_/switch to/from layout 3': "Shift+Alt+F3",
+              '_/set layout 3': "Ctrl+Shift+Alt+F3",
+              # -- In plugins/editor
+              '_/debug step over': "Ctrl+F10",
+              '_/debug continue': "Ctrl+F12",
+              '_/debug step into': "Ctrl+F11",
+              '_/debug step return': "Ctrl+Shift+F11",
+              '_/debug exit': "Ctrl+Shift+F12",
+              # -- In plugins/init
+              '_/switch to inspector': "Ctrl+Shift+I",
+              '_/switch to outline_explorer': "Ctrl+Shift+O",
+              '_/switch to editor': "Ctrl+Shift+E",
+              '_/switch to historylog': "Ctrl+Shift+H",
+              '_/switch to onlinehelp': "Ctrl+Shift+D",
+              '_/switch to project_explorer': "Ctrl+Shift+P",
+              '_/switch to console': "Ctrl+Shift+C",
+              '_/switch to variable_explorer': "Ctrl+Shift+V",
+              # ---- Editor ----
+              # -- In codeeditor
+              'editor/code completion': CTRL+'+Space',
+              'editor/duplicate line': "Ctrl+Alt+Up" if os.name == 'nt' else \
+                                       "Shift+Alt+Up",
+              'editor/copy line': "Ctrl+Alt+Down" if os.name == 'nt' else \
+                                  "Shift+Alt+Down",
+              'editor/delete line': 'Ctrl+D',
+              'editor/move line up': "Alt+Up",
+              'editor/move line down': "Alt+Down",
+              'editor/go to definition': "Ctrl+G",
+              'editor/toggle comment': "Ctrl+1",
+              'editor/blockcomment': "Ctrl+4",
+              'editor/unblockcomment': "Ctrl+5",
+              # -- In widgets/editor
+              'editor/inspect current object': 'Ctrl+I',
+              'editor/go to line': 'Ctrl+L',
+              'editor/file list management': 'Ctrl+E',
+              'editor/go to previous file': 'Ctrl+Tab',
+              'editor/go to next file': 'Ctrl+Shift+Tab',
+              # -- In spyder.py
+              'editor/find text': "Ctrl+F",
+              'editor/find next': "F3",
+              'editor/find previous': "Shift+F3",
+              'editor/replace text': "Ctrl+H",
+              # -- In plugins/editor
+              'editor/show/hide outline': "Ctrl+Alt+O",
+              'editor/show/hide project explorer': "Ctrl+Alt+P",
+              'editor/new file': "Ctrl+N",
+              'editor/open file': "Ctrl+O",
+              'editor/save file': "Ctrl+S",
+              'editor/save all': "Ctrl+Shift+S",
+              'editor/print': "Ctrl+P",
+              'editor/close file': "Ctrl+W",
+              'editor/close all': "Ctrl+Shift+W",
+              'editor/breakpoint': 'F12',
+              'editor/conditional breakpoint': 'Shift+F12',
+              'editor/debug with winpdb': "F7",
+              'editor/debug': "Ctrl+F5",
+              'editor/run': "F5",
+              'editor/configure': "F6",
+              'editor/re-run last script': "Ctrl+F6",
+              'editor/run selection': "F9",
+              'editor/last edit location': "Ctrl+Alt+Shift+Left",
+              'editor/previous cursor position': "Ctrl+Alt+Left",
+              'editor/next cursor position': "Ctrl+Alt+Right",
+              # -- In p_breakpoints
+              'editor/list breakpoints': "Ctrl+B",
+              # ---- Console (in widgets/shell) ----
+              'console/inspect current object': "Ctrl+I",
+              'console/clear shell': "Ctrl+L",
+              'console/clear line': "Shift+Escape",
+              # ---- Pylint (in p_pylint) ----
+              'pylint/run analysis': "F8",
+              # ---- Profiler (in p_profiler) ----
+              'profiler/run profiler': "F10"
+              })
             ]
 
+
+#==============================================================================
+# Config instance
+#==============================================================================
 # XXX: Previously we had load=(not DEV) here but DEV was set to *False*.
 # Check if it *really* needs to be updated or not
-CONF = UserConfig('spyder', defaults=DEFAULTS, load=True, version='2.4.0',
+CONF = UserConfig('spyder', defaults=DEFAULTS, load=True, version='3.0.0',
                   subfolder=SUBFOLDER, backup=True, raw_mode=True)
+
 
 # Removing old .spyder.ini location:
 old_location = osp.join(get_home_dir(), '.spyder.ini')

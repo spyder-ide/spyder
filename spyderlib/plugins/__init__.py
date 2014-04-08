@@ -29,7 +29,7 @@ from spyderlib.config import CONF
 from spyderlib.userconfig import NoDefault
 from spyderlib.guiconfig import get_font, set_font
 from spyderlib.plugins.configdialog import SpyderConfigPage
-from spyderlib.py3compat import is_text_string
+from spyderlib.py3compat import configparser, is_text_string
 
 
 class PluginConfigPage(SpyderConfigPage):
@@ -121,8 +121,8 @@ class SpyderPluginMixin(object):
         layout = self.layout()
         if self.default_margins is None:
             self.default_margins = layout.getContentsMargins()
-        if CONF.get('main', 'use_custom_margin', True):
-            margin = CONF.get('main', 'custom_margin', 0)
+        if CONF.get('main', 'use_custom_margin'):
+            margin = CONF.get('main', 'custom_margin')
             layout.setContentsMargins(*[margin]*4)
         else:
             layout.setContentsMargins(*self.default_margins)
@@ -158,13 +158,15 @@ class SpyderPluginMixin(object):
         self.connect(dock, SIGNAL('visibilityChanged(bool)'),
                      self.visibility_changed)
         self.dockwidget = dock
-        short = self.get_option("shortcut", None)
+        try:
+            short = CONF.get('shortcuts', '_/switch to %s' % self.CONF_SECTION)
+        except configparser.NoOptionError:
+            short = None
         if short is not None:
             shortcut = QShortcut(QKeySequence(short),
                                  self.main, self.switch_to_plugin)
             self.register_shortcut(shortcut, "_",
-                                   "Switch to %s" % self.CONF_SECTION,
-                                   default=short)
+                                   "Switch to %s" % self.CONF_SECTION)
         return (dock, self.LOCATION)
     
     def create_mainwindow(self):

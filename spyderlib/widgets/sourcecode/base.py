@@ -210,7 +210,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.codecompletion_enter = False
         self.calltips = True
         self.calltip_position = None
-        self.calltip_font = QFont()
         self.completion_text = ""
         self.calltip_widget = CallTipWidget(self, hide_timer_on=True)
         
@@ -222,10 +221,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.matched_p_color = QColor(Qt.green)
         self.unmatched_p_color = QColor(Qt.red)
         
-    def setup_calltips(self, size=None, font=None):
-        self.calltip_size = size
-        self.calltip_font = font
-    
     def setup_completion(self, size=None, font=None):
         self.completion_widget.setup_appearance(size, font)
         
