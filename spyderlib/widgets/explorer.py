@@ -33,7 +33,13 @@ from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions,
 from spyderlib.utils import misc, encoding, programs, vcs
 from spyderlib.baseconfig import _
 from spyderlib.py3compat import to_text_string, getcwd, str_lower
-from IPython.nbconvert import python as nbconvert_python
+# Fire up the kernel instance.
+try:
+    from IPython.nbconvert import PythonExporter # >=1.0
+except:
+    from IPython.nbformat.v3.nbpy import PyWriter # 0.13
+    from IPython.nbformat.v3.nbjson import read
+
 
 def fixpath(path):
     """Normalize path fixing case, making absolute and removing symlinks"""
@@ -499,7 +505,10 @@ class DirView(QTreeView):
 
     def convert_notebook(self, fname):
         """Convert an IPython notebook to a Python script in editor"""
-        script = nbconvert_python.PythonExporter().from_filename(fname)[0]
+        if programs.is_module_installed('IPython', '>=1.0'):
+            script = PythonExporter().from_filename(fname)[0]
+        else:
+            script = PyWriter().writes(read(open(fname, 'r')))
         self.parent_widget.sig_new_file.emit(script)
     
     def convert(self, fnames=None):

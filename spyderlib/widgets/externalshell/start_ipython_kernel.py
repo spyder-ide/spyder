@@ -178,9 +178,9 @@ sys.path.insert(0, '')
 
 # Fire up the kernel instance.
 try:
-    from IPython.kernel.zmq.kernelapp import IPKernelApp  # 1.0
+    from IPython.kernel.zmq.kernelapp import IPKernelApp  # >=1.0
 except:
-    from IPython.zmq.ipkernel import IPKernelApp  # 0.13  (analysis:ignore)
+    from IPython.zmq.ipkernel import IPKernelApp  # 0.13
 
 ipk_temp = IPKernelApp.instance()
 ipk_temp.config = kernel_config()
