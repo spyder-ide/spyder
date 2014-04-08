@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright Â© 2009-2013 Pierre Raybaut
+# Copyright © 2009-2013 Pierre Raybaut
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -10,7 +10,7 @@ Spyder, the Scientific PYthon Development EnviRonment
 
 Developped and maintained by Pierre Raybaut
 
-Copyright Â© 2009-2012 Pierre Raybaut
+Copyright © 2009-2012 Pierre Raybaut
 Licensed under the terms of the MIT License
 (see spyderlib/__init__.py for details)
 """
