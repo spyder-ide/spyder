@@ -36,22 +36,19 @@ class DataFrameModel(QAbstractTableModel):
 
         if orientation == Qt.Horizontal:
             if section == 0:
-                return 'row'
-            try:
-                return to_qvariant(self.df.columns.tolist()[section-1])
-            except (IndexError, ):
-                return to_qvariant()
+                return 'Index'
+            else:
+                return to_qvariant(str(self.df.columns.tolist()[section-1]))
         else:
             return to_qvariant()
-        return to_qvariant()
         
     def get_bgcolor(self, index):
         """Background color depending on value"""
-        value = self.df.ix[index.row(), index.column()-1]
         if index.column() == 0:
             color = QColor(Qt.lightGray)
             color.setAlphaF(.05)
         else:
+            value = self.df.ix[index.row(), index.column()-1]
             color = QColor(get_color_name(value))
             color.setAlphaF(self.alp)
         return color
@@ -100,8 +97,13 @@ class DataFrameModel(QAbstractTableModel):
         return self.df.shape[0]
 
     def columnCount(self, index=QModelIndex()):
-        return self.df.shape[1]+1
-
+         shape=self.df.shape
+         #this is done to implement timeseries
+         if len(shape) == 1:
+             return 2
+         else: 
+             return shape[1]+1
+        
 
 class DataFrameEditor(QDialog):
     ''' a simple widget for using DataFrames in a gui '''
@@ -168,12 +170,16 @@ def test_edit(data, title="", parent=None):
 
 
 def test():
-    from pandas import DataFrame
+    from pandas import DataFrame, TimeSeries
     from numpy import nan
     df1 = DataFrame([[1, 'test'], [1, 'test'], [1, 'test'], [1, 'test']],
                     index=['a', 'b', nan, nan], columns=['a', 'b'])
     out = test_edit(df1)
-    print ("out:", out)
+    print("out:", out)
+    print("out:", test_edit(df1['a'].to_frame()))
+    df1 = DataFrame([[1, 'test'], [1, 'test'], [1, 'test'], [1, 'test']])
+    print("out:",test_edit(df1))
+    print("out:", test_edit(TimeSeries(range(10)).to_frame()))
     return out
     
 if __name__ == '__main__':
