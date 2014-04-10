@@ -9,10 +9,10 @@ from spyderlib.qt.QtCore import (QAbstractTableModel, Qt, QModelIndex, SIGNAL,
 from spyderlib.qt.QtGui import (QDialog, QTableView, QColor, QGridLayout,
                                 QDialogButtonBox, QHBoxLayout)
 from spyderlib.qt.compat import to_qvariant, from_qvariant
-from spyderlib.utils.qthelpers import qapplication
+from spyderlib.utils.qthelpers import qapplication, get_icon
 from spyderlib.widgets.dicteditorutils import get_color_name
 from numpy import int64
-
+from pandas import DataFrame, TimeSeries
 
 class DataFrameModel(QAbstractTableModel):
     ''' data model for a DataFrame class '''
@@ -115,15 +115,24 @@ class DataFrameEditor(QDialog):
         # a segmentation fault on UNIX or an application crash on Windows
         self.setAttribute(Qt.WA_DeleteOnClose)
         
-        self.data = None
-        self.arraywidget = None
-        self.stack = None
+        self.is_time_series = False
         self.layout = None
     
     def setup_and_check(self, dataFrame, title=''):
+        """
+        Setup DataFrameEditor:
+        return False if data is not supported, True otherwise
+        """
+        if isinstance(dataFrame, TimeSeries):
+            self.is_time_series = True
+            dataFrame=dataFrame.to_frame()
+        elif isinstance(dataFrame, DataFrame):
+            pass
+        else:
+            return False
         self.layout = QGridLayout()
         self.setLayout(self.layout)
-        # self.setWindowIcon(get_icon('arredit.png'))
+        self.setWindowIcon(get_icon('arredit.png'))
         if title:
             title = unicode(title)  # in case title is not a string
         else:
@@ -131,7 +140,7 @@ class DataFrameEditor(QDialog):
         self.setWindowTitle(title)
         self.resize(600, 500)
         
-        self.dataModel = DataFrameModel(dataFrame)
+        self.dataModel = DataFrameModel(dataFrame)                     
         self.dataTable = QTableView()
         self.dataTable.setModel(self.dataModel)
         self.dataTable.resizeColumnsToContents()
@@ -156,13 +165,17 @@ class DataFrameEditor(QDialog):
         """Return modified Dataframe -- this is *not* a copy"""
         # It is import to avoid accessing Qt C++ object as it has probably
         # already been destroyed, due to the Qt.WA_DeleteOnClose attribute
-        return self.dataModel.get_data()
+        df=self.dataModel.get_data()
+        if self.is_time_series:
+            return df.ix[:,df.columns[0]]
+        else:
+            return df
 
 
-def test_edit(data, title="", parent=None):
+def test_edit(data, title="", parent=None, is_time_series=False):
     """Test subroutine"""
-    dlg = DataFrameEditor(parent)
-    if dlg.setup_and_check(data) and dlg.exec_():
+    dlg = DataFrameEditor(parent=parent)
+    if dlg.setup_and_check(data, title=title) and dlg.exec_():
         return dlg.get_value()
     else:
         import sys
@@ -170,16 +183,17 @@ def test_edit(data, title="", parent=None):
 
 
 def test():
-    from pandas import DataFrame, TimeSeries
     from numpy import nan
     df1 = DataFrame([[1, 'test'], [1, 'test'], [1, 'test'], [1, 'test']],
                     index=['a', 'b', nan, nan], columns=['a', 'b'])
     out = test_edit(df1)
     print("out:", out)
-    print("out:", test_edit(df1['a'].to_frame()))
+    out = test_edit(df1['a'])
+    print("out:", out)
     df1 = DataFrame([[1, 'test'], [1, 'test'], [1, 'test'], [1, 'test']])
     print("out:",test_edit(df1))
-    print("out:", test_edit(TimeSeries(range(10)).to_frame()))
+    out = test_edit(TimeSeries(range(10)))
+    print("out:", out)
     return out
     
 if __name__ == '__main__':
