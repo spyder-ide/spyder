@@ -533,9 +533,8 @@ class CodeEditor(TextEditBaseWidget):
     def setup_editor(self, linenumbers=True, language=None, markers=False,
                      font=None, color_scheme=None, wrap=False, tab_mode=True,
                      intelligent_backspace=True, highlight_current_line=True,
-                     highlight_current_cell=True, 
-                     occurence_highlighting=True, scrollflagarea=True,
-                     edge_line=True, edge_line_column=79,
+                     highlight_current_cell=True, occurence_highlighting=True,
+                     scrollflagarea=True, edge_line=True, edge_line_column=79,
                      codecompletion_auto=False, codecompletion_case=True,
                      codecompletion_single=False, codecompletion_enter=False,
                      calltips=None, go_to_definition=False,
@@ -1141,18 +1140,18 @@ class CodeEditor(TextEditBaseWidget):
         self.emit(SIGNAL('breakpoints_changed()'))
 
     #-----Code introspection
-    def do_code_completion(self, automatic=False):
+    def do_code_completion(self):
         """Trigger code completion"""
         if not self.is_completion_widget_visible():
             if self.is_python_like() and not self.in_comment_or_string():
-                self.emit(SIGNAL('trigger_code_completion(bool)'), automatic)
+                self.emit(SIGNAL('trigger_code_completion(bool)'), False)
             else:
                 self.do_token_completion()
 
-    def do_token_completion(self, automatic=False):
+    def do_token_completion(self):
         """Trigger a token-based completion"""
         if not self.is_completion_widget_visible():
-            self.emit(SIGNAL('trigger_token_completion(bool)'), automatic)
+            self.emit(SIGNAL('trigger_token_completion(bool)'), False)
 
     def do_go_to_definition(self):
         """Trigger go-to-definition"""
@@ -2214,7 +2213,7 @@ class CodeEditor(TextEditBaseWidget):
                 # Enable auto-completion only if last token isn't a float
                 last_obj = getobj(self.get_text('sol', 'cursor'))
                 if last_obj and not last_obj.isdigit():
-                    self.do_code_completion(automatic=True)
+                    self.do_code_completion()
         elif key == Qt.Key_Home:
             self.stdkey_home(shift, ctrl)
         elif key == Qt.Key_End:

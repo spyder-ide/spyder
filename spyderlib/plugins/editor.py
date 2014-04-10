@@ -119,9 +119,9 @@ class EditorConfigPage(PluginConfigPage):
         edgeline_layout.addWidget(edgeline_box)
         edgeline_layout.addWidget(edgeline_spin)
         currentline_box = newcb(_("Highlight current line"),
-                                'highlight_current_line', default=True)
+                                'highlight_current_line')
         currentcell_box = newcb(_("Highlight current cell"),
-                                'highlight_current_cell', default=True)
+                                'highlight_current_cell')
         occurence_box = newcb(_("Highlight occurences after"),
                               'occurence_highlighting', default=True)
         occurence_spin = self.create_spinbox("", " ms",
