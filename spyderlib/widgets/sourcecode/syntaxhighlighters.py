@@ -109,8 +109,8 @@ COLORS = {
           'Spyder':
           {#  Name          Color    Bold   Italic
            "background":  "#ffffff",
-           "currentline": "#e9deea",
-           "currentcell": "#feefff",
+           "currentline": "#d8d8bd",
+           "currentcell": "#fcfcdc",
            "occurence":   "#ffff99",
            "ctrlclick":   "#0000ff",
            "sideareas":   "#efefef",
