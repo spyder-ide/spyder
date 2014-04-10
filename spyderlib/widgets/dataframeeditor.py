@@ -191,7 +191,7 @@ def test():
     out = test_edit(df1['a'])
     print("out:", out)
     df1 = DataFrame([[1, 'test'], [1, 'test'], [1, 'test'], [1, 'test']])
-    print("out:",test_edit(df1))
+    print("out:", test_edit(df1))
     out = test_edit(TimeSeries(range(10)))
     print("out:", out)
     return out
