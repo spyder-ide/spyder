@@ -264,9 +264,9 @@ class UserConfig(DefaultsConfig):
         old_defaults = cp.ConfigParser()
         if check_version(old_version, '3.0.0', '<='):
             path = get_module_source_path('spyderlib')
-            path = path + osp.sep + 'defaults'
         else:
             path = osp.dirname(self.filename())
+        path = osp.join(path, 'defaults') 
         old_defaults.read(osp.join(path, 'defaults-'+old_version+'.ini'))
         return old_defaults
     
