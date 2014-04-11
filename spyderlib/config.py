@@ -710,9 +710,17 @@ DEFAULTS = [
 #==============================================================================
 # Config instance
 #==============================================================================
+# IMPORTANT NOTES FOR DEVELOPERS:
+# 1. If you want to *change* the default value of a current option, you need to
+#    do a MINOR update in config version, e.g. from 3.0.0 to 3.1.0
+# 2. If you want to *remove* options that are no longer needed in our codebase,
+#    you need to do a MAJOR update in version, e.g. from 3.0.0 to 4.0.0
+CONF_VERSION = '3.0.0'
+
+
 # XXX: Previously we had load=(not DEV) here but DEV was set to *False*.
 # Check if it *really* needs to be updated or not
-CONF = UserConfig('spyder', defaults=DEFAULTS, load=True, version='3.0.0',
+CONF = UserConfig('spyder', defaults=DEFAULTS, load=True, version=CONF_VERSION,
                   subfolder=SUBFOLDER, backup=True, raw_mode=True)
 
 
