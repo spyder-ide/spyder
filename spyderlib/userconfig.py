@@ -30,13 +30,8 @@
 
 
 """
-userconfig
-----------
-
-The ``spyderlib.userconfig`` module provides user configuration file (.ini file)
-management features based on ``ConfigParser`` (standard Python library).
-
-NOTE: Since Spyder version 2.3 this module is heavily tied to Spyder internals
+This module provides user configuration file (.ini file) management features
+based on ``ConfigParser`` (present in the standard library).
 """
 
 from __future__ import print_function
