@@ -151,11 +151,11 @@ def set_color_scheme(name, color_scheme, replace=True):
 def set_default_color_scheme(name, replace=True):
     """Reset color scheme to default values"""
     assert name in sh.COLOR_SCHEME_NAMES
-    set_color_scheme(name, sh.COLORS[name], replace=replace)
+    set_color_scheme(name, sh.get_color_scheme(name), replace=replace)
 
 
 for _name in sh.COLOR_SCHEME_NAMES:
     set_default_color_scheme(_name, replace=False)
 CUSTOM_COLOR_SCHEME_NAME = "Custom"
-set_color_scheme(CUSTOM_COLOR_SCHEME_NAME,
-                 sh.COLORS["Spyder"], replace=False)
+set_color_scheme(CUSTOM_COLOR_SCHEME_NAME, sh.get_color_scheme("Spyder"),
+                 replace=False)
