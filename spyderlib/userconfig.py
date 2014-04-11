@@ -265,7 +265,8 @@ class UserConfig(DefaultsConfig):
         """Read old defaults"""
         old_defaults = cp.ConfigParser()
         if check_version(old_version, '2.4.0', '='):
-            path = get_module_source_path('spyderlib', 'utils')
+            path = get_module_source_path('spyderlib')
+            path = path + osp.sep + 'defaults'
         else:
             path = osp.dirname(self.filename())
         old_defaults.read(osp.join(path, 'defaults-'+old_version+'.ini'))
