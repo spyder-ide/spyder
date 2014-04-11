@@ -154,6 +154,9 @@ class DefaultsConfig(cp.ConfigParser):
             return w_dot
         else:
             folder = osp.join(folder, self.subfolder)
+            # Save defaults in a "defaults" dir of .spyder2 to not pollute it
+            if 'defaults' in self.name:
+                folder = osp.join(folder, 'defaults')
             try:
                 os.makedirs(folder)
             except os.error:
@@ -187,7 +190,7 @@ class UserConfig(DefaultsConfig):
     defaults: dictionnary containing options
               *or* list of tuples (section_name, options)
     version: version of the configuration file (X.Y.Z format)
-    subfolder: configuration file will be saved in %home%/subfolder/.%name%.ini
+    subfolder: configuration file will be saved in %home%/subfolder/%name%.ini
     
     Note that 'get' and 'set' arguments number and type
     differ from the overriden methods
