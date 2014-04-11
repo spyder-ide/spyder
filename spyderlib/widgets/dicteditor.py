@@ -45,7 +45,7 @@ if ndarray is not FakeObject:
 from spyderlib.widgets.texteditor import TextEditor
 from spyderlib.widgets.importwizard import ImportWizard
 from spyderlib.widgets.dataframeeditor import DataFrameEditor
-from pandas import DataFrame
+from pandas import DataFrame, TimeSeries
 from spyderlib.py3compat import to_text_string, is_text_string, getcwd, u
 
 
@@ -401,14 +401,15 @@ class DictDelegate(QItemDelegate):
                                             key=key, readonly=readonly,
                                             conv=conv_func))
             return None
-        #--editor = DataFrameEditor
-        elif isinstance(value, DataFrame) and not self.inplace:
+        #--editor = DataFrameEditor and TimeSeriesEditor
+        elif isinstance(value, (DataFrame, TimeSeries)) and not self.inplace:
             editor = DataFrameEditor()
             if not editor.setup_and_check(value):
                 return	
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
                                             key=key, readonly=readonly))
             return None
+
         #---editor = QDateTimeEdit
         elif isinstance(value, datetime.datetime) and not self.inplace:
             editor = QDateTimeEdit(value, parent)
@@ -1212,6 +1213,7 @@ class RemoteDictEditorTableView(BaseTableView):
                  is_array_func=None, is_image_func=None, is_dict_func=None,
                  get_array_shape_func=None, get_array_ndim_func=None,
                  oedit_func=None, plot_func=None, imshow_func=None,
+                 is_data_frame_func=None, is_time_series_func=None,
                  show_image_func=None):
         BaseTableView.__init__(self, parent)
         
@@ -1220,7 +1222,9 @@ class RemoteDictEditorTableView(BaseTableView):
         self.remove_values = remove_values_func
         self.copy_value = copy_value_func
         self.new_value = new_value_func
-        
+
+        self.is_data_frame = is_data_frame_func
+        self.is_time_series = is_time_series_func
         self.is_list = is_list_func
         self.get_len = get_len_func
         self.is_array = is_array_func
@@ -1277,7 +1281,7 @@ class RemoteDictEditorTableView(BaseTableView):
     def oedit_possible(self, key):
         if (self.is_list(key) or self.is_dict(key) 
             or self.is_array(key) or self.is_image(key)
-            or self.is_data_frame(key)):
+            or self.is_data_frame(key) or self.is_time_series(key)):
             # If this is a remote dict editor, the following avoid 
             # transfering large amount of data through the socket
             return True
