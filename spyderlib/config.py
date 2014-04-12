@@ -643,8 +643,8 @@ DEFAULTS = [
               # ---- Scintilla ----
               #         Name             Color     Bold  Italic
               'scintilla/background':  "#ffffff",
-              'scintilla/currentline':     "#d6e5c7",
-              'scintilla/currentcell':     "#eeffdd",  
+              'scintilla/currentline': "#d6e5c7",
+              'scintilla/currentcell': "#eeffdd",  
               'scintilla/occurence':   "#ffff99",
               'scintilla/ctrlclick':   "#0000ff",
               'scintilla/sideareas':   "#efefef",
