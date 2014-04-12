@@ -29,7 +29,7 @@ from spyderlib.py3compat import (is_unicode, TEXT_TYPES, INT_TYPES, PY3,
 # Only for development
 #==============================================================================
 # To activate/deactivate certain things for development
-# SPYDER_DEV is (and *only* have to be) set in bootstrap.py
+# SPYDER_DEV is (and *only* has to be) set in bootstrap.py
 DEV = os.environ.get('SPYDER_DEV')
 
 # For testing purposes

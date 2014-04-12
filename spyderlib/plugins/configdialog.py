@@ -734,8 +734,7 @@ class MainConfigPage(GeneralConfigPage):
         debug_group = QGroupBox(_("Debugging"))
         popup_console_box = newcb(_("Pop up internal console when internal "
                                     "errors appear"),
-                                  'show_internal_console_if_traceback',
-                                  default=True)
+                                  'show_internal_console_if_traceback')
         
         debug_layout = QVBoxLayout()
         debug_layout.addWidget(popup_console_box)

@@ -126,7 +126,7 @@ class Pylint(PylintWidget, SpyderPluginMixin):
                                    triggered=self.run_pylint)
         pylint_act.setEnabled(PYLINT_PATH is not None)
         self.register_shortcut(pylint_act, context="Pylint",
-                               name="Run analysis", default="F8")
+                               name="Run analysis")
         
         self.main.source_menu_actions += [None, pylint_act]
         self.main.editor.pythonfile_dependent_actions += [pylint_act]

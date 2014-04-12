@@ -36,6 +36,7 @@ from spyderlib.utils.introspection.module_completion import (module_completion,
                                                       get_preferred_submodules)
 from spyderlib.baseconfig import _, DEBUG, STDOUT, STDERR
 from spyderlib.config import EDIT_FILTERS, EDIT_EXT, get_filter, EDIT_FILETYPES
+from spyderlib.guiconfig import create_shortcut
 from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions,
                                        mimedata2url, get_filetype_icon,
                                        create_toolbutton)
@@ -661,25 +662,42 @@ class EditorStack(QWidget):
         
         # Accepting drops
         self.setAcceptDrops(True)
-
+        
         # Local shortcuts
-        def newsc(keystr, triggered):
-            sc = QShortcut(QKeySequence(keystr), self, triggered)
-            sc.setContext(Qt.WidgetWithChildrenShortcut)
-            return sc
-        self.inspectsc = newsc("Ctrl+I", self.inspect_current_object)
-        self.breakpointsc = newsc("F12", self.set_or_clear_breakpoint)
-        self.cbreakpointsc = newsc("Shift+F12",
-                                   self.set_or_edit_conditional_breakpoint)
-        self.gotolinesc = newsc("Ctrl+L", self.go_to_line)
-        self.filelistsc = newsc("Ctrl+E", self.open_filelistdialog)
-        self.tabsc = newsc("Ctrl+Tab", self.go_to_previous_file)
-        self.closesc = newsc("Ctrl+F4", self.close_file)
-        self.tabshiftsc = newsc("Ctrl+Shift+Tab", self.go_to_next_file)
-        self.zoominsc = newsc(QKeySequence.ZoomIn,
-                              lambda: self.emit(SIGNAL('zoom_in()')))
-        self.zoomoutsc = newsc(QKeySequence.ZoomOut,
-                               lambda: self.emit(SIGNAL('zoom_out()')))
+        self.shortcuts = self.create_shortcuts()
+
+    def create_shortcuts(self):
+        """Create local shortcuts"""
+        # Configurable shortcuts
+        inspect = create_shortcut(self.inspect_current_object, context='Editor',
+                                  name='Inspect current object', parent=self)
+        breakpoint = create_shortcut(self.set_or_clear_breakpoint,
+                                     context='Editor', name='Breakpoint',
+                                     parent=self)
+        cbreakpoint = create_shortcut(self.set_or_edit_conditional_breakpoint,
+                                      context='Editor',
+                                      name='Conditional breakpoint',
+                                      parent=self)
+        gotoline = create_shortcut(self.go_to_line, context='Editor',
+                                   name='Go to line', parent=self)
+        filelist = create_shortcut(self.open_filelistdialog, context='Editor',
+                                   name='File list management', parent=self)
+        tab = create_shortcut(self.go_to_previous_file, context='Editor',
+                              name='Go to previous file', parent=self)
+        close_file = create_shortcut(self.close_file, context='Editor',
+                                     name='Close file', parent=self)
+        tabshift = create_shortcut(self.go_to_next_file, context='Editor',
+                                   name='Go to next file', parent=self)
+        # Fixed shortcuts
+        zoomin = QShortcut(QKeySequence(QKeySequence.ZoomIn), self,
+                           lambda: self.emit(SIGNAL('zoom_in()')))
+        zoomin.setContext(Qt.WidgetWithChildrenShortcut)
+        zoomout = QShortcut(QKeySequence(QKeySequence.ZoomOut), self,
+                           lambda: self.emit(SIGNAL('zoom_out()')))
+        zoomout.setContext(Qt.WidgetWithChildrenShortcut)
+        # Return configurable ones
+        return [inspect, breakpoint, cbreakpoint, gotoline, filelist, tab,
+                close_file, tabshift]
 
     def get_shortcut_data(self):
         """
@@ -688,13 +706,7 @@ class EditorStack(QWidget):
         text (string): action/shortcut description
         default (string): default key sequence
         """
-        return [
-                (self.inspectsc, "Inspect current object", "Ctrl+I"),
-                (self.breakpointsc, "Breakpoint", "F12"),
-                (self.cbreakpointsc, "Conditional breakpoint", "Shift+F12"),
-                (self.gotolinesc, "Go to line", "Ctrl+L"),
-                (self.filelistsc, "File list management", "Ctrl+E"),
-                ]
+        return [sc.data for sc in self.shortcuts]
         
     def setup_editorstack(self, parent, layout):
         """Setup editorstack's layout"""
