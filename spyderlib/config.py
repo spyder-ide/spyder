@@ -643,8 +643,8 @@ DEFAULTS = [
               # ---- Scintilla ----
               #         Name             Color     Bold  Italic
               'scintilla/background':  "#ffffff",
-              'scintilla/currentline': "#d6e5c7",
-              'scintilla/currentcell': "#eeffdd",  
+              'scintilla/currentline': "#eeffdd",
+              'scintilla/currentcell': "#d6e5c7",  
               'scintilla/occurence':   "#ffff99",
               'scintilla/ctrlclick':   "#0000ff",
               'scintilla/sideareas':   "#efefef",
@@ -697,8 +697,8 @@ DEFAULTS = [
               # ---- Zenburn ----
               #        Name            Color     Bold  Italic
               'zenburn/background':  "#3f3f3f",
-              'zenburn/currentline': "#2c2c2c",
-              'zenburn/currentcell': "#333333",
+              'zenburn/currentline': "#333333",
+              'zenburn/currentcell': "#2c2c2c",
               'zenburn/occurence':   "#7a738f",
               'zenburn/ctrlclick':   "#0000ff",
               'zenburn/sideareas':   "#3f3f3f",
