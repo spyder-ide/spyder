@@ -589,8 +589,8 @@ DEFAULTS = [
               # ---- IDLE ----
               #      Name            Color     Bold  Italic
               'idle/background':   "#ffffff",
-              'idle/currentline':  "#d9e8c9",
-              'idle/currentcell':  "#f9ffe7",
+              'idle/currentline':  "#e3e7d3",
+              'idle/currentcell':  "#edf1dc",
               'idle/occurence':    "#e8f2fe",
               'idle/ctrlclick':    "#0000ff",
               'idle/sideareas':    "#efefef",
@@ -661,7 +661,7 @@ DEFAULTS = [
               # ---- Spyder ----
               #       Name            Color     Bold  Italic
               'spyder/background':  "#ffffff",
-              'spyder/currentline': "#d8d8bd",
+              'spyder/currentline': "#e6e6c9",
               'spyder/currentcell': "#fcfcdc",              
               'spyder/occurence':   "#ffff99",
               'spyder/ctrlclick':   "#0000ff",
