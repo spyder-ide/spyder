@@ -679,8 +679,8 @@ DEFAULTS = [
               # ---- Spyder/Dark ----
               #           Name             Color     Bold  Italic
               'spyder/dark/background':  "#131926",
-              'spyder/dark/currentline': "#4a4a73",
-              'spyder/dark/currentcell': "#2b2b43",
+              'spyder/dark/currentline': "#2b2b43",
+              'spyder/dark/currentcell': "#4a4a73",
               'spyder/dark/occurence':   "#abab67",
               'spyder/dark/ctrlclick':   "#0000ff",
               'spyder/dark/sideareas':   "#282828",
