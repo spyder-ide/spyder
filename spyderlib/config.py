@@ -589,8 +589,8 @@ DEFAULTS = [
               # ---- IDLE ----
               #      Name            Color     Bold  Italic
               'idle/background':   "#ffffff",
-              'idle/currentline':  "#e3e7d3",
-              'idle/currentcell':  "#edf1dc",
+              'idle/currentline':  "#f2e6f3",
+              'idle/currentcell':  "#feefff",
               'idle/occurence':    "#e8f2fe",
               'idle/ctrlclick':    "#0000ff",
               'idle/sideareas':    "#efefef",
@@ -643,8 +643,8 @@ DEFAULTS = [
               # ---- Scintilla ----
               #         Name             Color     Bold  Italic
               'scintilla/background':  "#ffffff",
-              'scintilla/currentline': "#eeffdd",
-              'scintilla/currentcell': "#d6e5c7",  
+              'scintilla/currentline': "#e1f0d1",
+              'scintilla/currentcell': "#edfcdc",  
               'scintilla/occurence':   "#ffff99",
               'scintilla/ctrlclick':   "#0000ff",
               'scintilla/sideareas':   "#efefef",
@@ -661,8 +661,8 @@ DEFAULTS = [
               # ---- Spyder ----
               #       Name            Color     Bold  Italic
               'spyder/background':  "#ffffff",
-              'spyder/currentline': "#e6e6c9",
-              'spyder/currentcell': "#fcfcdc",              
+              'spyder/currentline': "#f7ecf8",
+              'spyder/currentcell': "#fdfdde",              
               'spyder/occurence':   "#ffff99",
               'spyder/ctrlclick':   "#0000ff",
               'spyder/sideareas':   "#efefef",
@@ -680,7 +680,7 @@ DEFAULTS = [
               #           Name             Color     Bold  Italic
               'spyder/dark/background':  "#131926",
               'spyder/dark/currentline': "#2b2b43",
-              'spyder/dark/currentcell': "#4a4a73",
+              'spyder/dark/currentcell': "#31314e",
               'spyder/dark/occurence':   "#abab67",
               'spyder/dark/ctrlclick':   "#0000ff",
               'spyder/dark/sideareas':   "#282828",
@@ -724,7 +724,7 @@ DEFAULTS = [
 #    do a MINOR update in config version, e.g. from 3.0.0 to 3.1.0
 # 2. If you want to *remove* options that are no longer needed in our codebase,
 #    you need to do a MAJOR update in version, e.g. from 3.0.0 to 4.0.0
-CONF_VERSION = '3.1.0'
+CONF_VERSION = '3.2.0'
 
 
 # XXX: Previously we had load=(not DEV) here but DEV was set to *False*.
