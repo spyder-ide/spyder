@@ -49,7 +49,10 @@ def get_color_scheme(name):
     name = name.lower()
     scheme = {}
     for key in COLOR_SCHEME_KEYS:
-        scheme[key] = CONF.get('color_schemes', name+'/'+key)
+        try:
+            scheme[key] = CONF.get('color_schemes', name+'/'+key)
+        except:
+            scheme[key] = CONF.get('color_schemes', 'spyder/'+key)
     return scheme
 
 
