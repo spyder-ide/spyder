@@ -94,6 +94,8 @@ might need.
 
    * `openSUSE <https://build.opensuse.org/package/show?package=python-spyder&project=home%3Aocefpaf>`_
 
+   * `Mageia <http://mageia.madb.org/package/show/name/spyder>`_
+
    Please refer to your distribution's documentation to learn how to install it
    there.
 
