@@ -296,6 +296,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         if not whole_file_selected:
             self.set_extra_selections('current_cell', [selection])
             self.update_extra_selections()
+        else:
+            self.clear_extra_selections('current_cell')
 
     def unhighlight_current_cell(self):
         """Unhighlight current cell"""
