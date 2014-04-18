@@ -20,7 +20,7 @@ from spyderlib.qt.QtGui import (QTextCursor, QColor, QFont, QApplication,
                                 QListWidget, QPlainTextEdit, QPalette,
                                 QMainWindow, QTextOption, QMouseEvent,
                                 QTextFormat)
-from spyderlib.qt.QtCore import SIGNAL, Qt, QEventLoop, QEvent
+from spyderlib.qt.QtCore import SIGNAL, Qt, QEventLoop, QEvent, QPoint
 from spyderlib.qt.compat import to_qvariant
 
 
@@ -292,7 +292,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         selection.format.setProperty(QTextFormat.FullWidthSelection,
                                      to_qvariant(True))
         selection.format.setBackground(self.currentcell_color)
-        selection.cursor, whole_file_selected = self.select_current_cell()
+        selection.cursor, whole_file_selected = self.select_current_cell(True)
         if not whole_file_selected:
             self.set_extra_selections('current_cell', [selection])
             self.update_extra_selections()
@@ -530,7 +530,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             text = to_text_string(block.text())
         return text.lstrip().startswith(self.CELL_SEPARATORS)
 
-    def select_current_cell(self):
+    def select_current_cell(self, onlyVisible=False):
         """Select cell under cursor
         cell = group of lines separated by CELL_SEPARATORS
         returns the textCursor and a boolean indicating if the
@@ -538,6 +538,14 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         cursor = self.textCursor()
         cursor.movePosition(QTextCursor.StartOfBlock)
         cur_pos = prev_pos = cursor.position()
+
+        if onlyVisible:
+            beg_pos = self.cursorForPosition(QPoint(0, 0)).position()
+            bottom_right = QPoint(self.viewport().width() - 1, self.viewport().height() - 1)
+            end_pos = self.cursorForPosition(bottom_right).position()
+        else:
+            beg_pos, end_pos = 0, 0xFFFFFFFF
+
         # Moving to the next line that is not a separator, if we are
         # exactly at one of them
         while self.is_cell_separator(cursor):
@@ -547,7 +555,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             if cur_pos == prev_pos:
                 return cursor, False
         # If not, move backwards to find the previous separator
-        while not self.is_cell_separator(cursor):
+        while not self.is_cell_separator(cursor)\
+              and cursor.position()>=beg_pos:
             cursor.movePosition(QTextCursor.PreviousBlock)
             prev_pos = cur_pos
             cur_pos = cursor.position()
@@ -561,7 +570,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         # Once we find it (or reach the beginning of the file)
         # move to the next separator (or the end of the file)
         # so we can grab the cell contents
-        while not self.is_cell_separator(cursor):
+        while not self.is_cell_separator(cursor)\
+              and cursor.position()<end_pos:
             cursor.movePosition(QTextCursor.NextBlock,
                                 QTextCursor.KeepAnchor)
             cur_pos = cursor.position()
@@ -897,6 +907,11 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                     self.emit(SIGNAL("zoom_in()"))
                 return
         QPlainTextEdit.wheelEvent(self, event)
+
+    def paintEvent(self, event):
+        """Reimplemented to recompute cell highlighting"""
+        self.highlight_current_cell()
+        QPlainTextEdit.paintEvent(self, event)
 
 
 class QtANSIEscapeCodeHandler(ANSIEscapeCodeHandler):
