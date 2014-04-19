@@ -3,7 +3,6 @@
 pandas DataFrame Editor Dialog based on Qt
 """
 
-# Or if you use PyQt4:
 from spyderlib.qt.QtCore import (QAbstractTableModel, Qt, QModelIndex, SIGNAL,
                                  SLOT)
 from spyderlib.qt.QtGui import (QDialog, QTableView, QColor, QGridLayout,
@@ -77,14 +76,14 @@ class DataFrameModel(QAbstractTableModel):
         value = from_qvariant(value, str)
         if isinstance(self.df.ix[index.row(), index.column()-1],
                       (long, int, int64, float, unicode, str)):
-                try:
-                    value = float(value)
-                except ValueError:
-                    value = unicode(value)
-                self.df.ix[index.row(), index.column()-1] = value
-                #it is faster but does not work if the row index contains nan
-                #self.df.set_value(row, col, value)
-                return True
+            try:
+                value = float(value)
+            except ValueError:
+                value = unicode(value)
+            self.df.ix[index.row(), index.column()-1] = value
+            #it is faster but does not work if the row index contains nan
+            #self.df.set_value(row, col, value)
+            return True
         else:
             return False
         
@@ -97,12 +96,12 @@ class DataFrameModel(QAbstractTableModel):
         return self.df.shape[0]
 
     def columnCount(self, index=QModelIndex()):
-         shape=self.df.shape
-         #this is done to implement timeseries
-         if len(shape) == 1:
-             return 2
-         else: 
-             return shape[1]+1
+        shape = self.df.shape
+        #this is done to implement timeseries
+        if len(shape) == 1:
+            return 2
+        else: 
+            return shape[1]+1
         
 
 class DataFrameEditor(QDialog):
@@ -125,7 +124,7 @@ class DataFrameEditor(QDialog):
         """
         if isinstance(dataFrame, TimeSeries):
             self.is_time_series = True
-            dataFrame=dataFrame.to_frame()
+            dataFrame = dataFrame.to_frame()
         elif isinstance(dataFrame, DataFrame):
             pass
         else:
@@ -165,14 +164,14 @@ class DataFrameEditor(QDialog):
         """Return modified Dataframe -- this is *not* a copy"""
         # It is import to avoid accessing Qt C++ object as it has probably
         # already been destroyed, due to the Qt.WA_DeleteOnClose attribute
-        df=self.dataModel.get_data()
+        df = self.dataModel.get_data()
         if self.is_time_series:
-            return df.ix[:,df.columns[0]]
+            return df.ix[:, df.columns[0]]
         else:
             return df
 
 
-def test_edit(data, title="", parent=None, is_time_series=False):
+def test_edit(data, title="", parent=None):
     """Test subroutine"""
     dlg = DataFrameEditor(parent=parent)
     if dlg.setup_and_check(data, title=title) and dlg.exec_():
