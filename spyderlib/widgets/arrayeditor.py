@@ -20,7 +20,7 @@ from spyderlib.qt.QtGui import (QHBoxLayout, QColor, QTableView, QItemDelegate,
                                 QDoubleValidator, QDialog, QDialogButtonBox,
                                 QMessageBox, QPushButton, QInputDialog, QMenu,
                                 QApplication, QKeySequence, QLabel, QComboBox,
-                                QStackedWidget, QWidget, QVBoxLayout)
+                                QSpinBox, QStackedWidget, QWidget, QVBoxLayout)
 from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, SIGNAL,
                                  SLOT)
 from spyderlib.qt.compat import to_qvariant, from_qvariant
@@ -446,7 +446,12 @@ class ArrayEditor(QDialog):
         self.arraywidget = None
         self.stack = None
         self.layout = None
-    
+        
+        self.index_spin = None
+        self.dim_label = None
+        self.size_label = None
+        self.last_index = 2
+        
     def setup_and_check(self, data, title='', readonly=False,
                         xlabels=None, ylabels=None):
         """
@@ -459,8 +464,8 @@ class ArrayEditor(QDialog):
         if data.size == 0:
             self.error(_("Array is empty"))
             return False
-        if data.ndim > 2:
-            self.error(_("Arrays with more than 2 dimensions "
+        if data.ndim > 3:
+            self.error(_("Arrays with more than 3 dimensions "
                                "are not supported"))
             return False
         if xlabels is not None and len(xlabels) != self.data.shape[1]:
@@ -504,6 +509,11 @@ class ArrayEditor(QDialog):
                                                    xlabels, ylabels))
             self.stack.addWidget(ArrayEditorWidget(self, data.mask, readonly,
                                                    xlabels, ylabels))
+        elif data.ndim == 3:
+            for i in range(data.shape[2]):
+                self.stack.addWidget(ArrayEditorWidget(self, data[:, :, i], 
+                                                       readonly,xlabels, 
+                                                       ylabels))
         else:
             self.stack.addWidget(ArrayEditorWidget(self, data, readonly,
                                                    xlabels, ylabels))
@@ -514,7 +524,7 @@ class ArrayEditor(QDialog):
 
         # Buttons configuration
         btn_layout = QHBoxLayout()
-        if is_record_array or is_masked_array:
+        if is_record_array or is_masked_array or data.ndim == 3:
             if is_record_array:
                 btn_layout.addWidget(QLabel(_("Record array fields:")))
                 names = []
@@ -529,11 +539,36 @@ class ArrayEditor(QDialog):
                     names.append(text)
             else:
                 names = [_('Masked data'), _('Data'), _('Mask')]
-            ra_combo = QComboBox(self)
-            self.connect(ra_combo, SIGNAL('currentIndexChanged(int)'),
-                         self.stack.setCurrentIndex)
-            ra_combo.addItems(names)
-            btn_layout.addWidget(ra_combo)
+            if data.ndim == 3:
+                # QSpinBox
+                self.index_spin = QSpinBox(self, keyboardTracking=False)
+                self.index_spin.setRange(-data.shape[2], data.shape[2]-1)
+                self.connect(self.index_spin, SIGNAL('valueChanged(int)'),
+                             self.change_active_widget)
+                # QComboBox
+                names = [str(i) for i in range(3)]
+                ra_combo = QComboBox(self)
+                ra_combo.addItems(names)
+                ra_combo.setCurrentIndex(2)
+                self.connect(ra_combo, SIGNAL('currentIndexChanged(int)'),
+                             self.current_dim_changed)                
+                # Adding the widgets to layout
+                label = QLabel(_("Axis:"))
+                btn_layout.addWidget(label)
+                btn_layout.addWidget(ra_combo)
+                self.size_label = QLabel(_(r"Size: (%i, %i, <font color=red>%i</font>)    "%data.shape))
+                btn_layout.addWidget(self.size_label)
+                label = QLabel(_("Index:"))
+                btn_layout.addWidget(label)
+                btn_layout.addWidget(self.index_spin)
+                self.dim_label = QLabel(_(r"Data[:, :, <font color=red>0</font>]"))
+                btn_layout.addWidget(self.dim_label)
+            else:
+                ra_combo = QComboBox(self)
+                self.connect(ra_combo, SIGNAL('currentIndexChanged(int)'),
+                             self.stack.setCurrentIndex)
+                ra_combo.addItems(names)
+                btn_layout.addWidget(ra_combo)
             if is_masked_array:
                 label = QLabel(_("<u>Warning</u>: changes are applied separately"))
                 label.setToolTip(_("For performance reasons, changes applied "\
@@ -546,16 +581,62 @@ class ArrayEditor(QDialog):
         self.connect(bbox, SIGNAL("rejected()"), SLOT("reject()"))
         btn_layout.addWidget(bbox)
         self.layout.addLayout(btn_layout, 2, 0)
-        
+
         self.setMinimumSize(400, 300)
         
         # Make the dialog act as a window
         self.setWindowFlags(Qt.Window)
         
         return True
-        
+            
     def current_widget_changed(self, index):
         self.arraywidget = self.stack.widget(index)
+        
+    def update_label(self, index):
+        """ 
+        This updates the label that shows the current slicing
+        of the 3D array
+        """
+        string_index = [':']*3
+        string_index[self.last_index] = '<font color=red>%i</font>'
+        self.dim_label.setText((r"Data["+', '.join(string_index)+"]")%index)
+            
+    def change_active_widget(self, index):
+        """
+        This is implemented for handling negative values in index for
+        3d arrays, to give the same behaivore as slicing
+        """
+        self.update_label(index)
+        if index<0:
+            self.stack.setCurrentIndex(self.data.shape[self.last_index]+index)  
+        else:
+            self.stack.setCurrentIndex(index)  
+            
+    def current_dim_changed(self, index):
+        """
+        This changes the active axis the array editor is plotting over
+        in 3D
+        """
+        while True:
+            widget = self.stack.widget(0)
+            if not widget: #widget returns none when there are no more widgets
+                break
+            else:
+                self.stack.removeWidget(widget)
+        slice_index = [slice(None, None) for _ in range(3)]    
+        for i in range(self.data.shape[index]):
+            slice_index[index] = i
+            self.stack.addWidget(ArrayEditorWidget(self, self.data[slice_index]))
+        self.last_index = index
+        string_size = ['%i']*3
+        string_size[index] = '<font color=red>%i</font>'
+        self.size_label.setText(('Size: ('+', '.join(string_size)+')    ')%self.data.shape)
+        if self.index_spin.value() != 0:
+            self.index_spin.setValue(0)
+        else:
+            self.update_label(0)   
+        self.index_spin.setRange(-self.data.shape[index], self.data.shape[index]-1)
+        self.stack.update()     
         
     def accept(self):
         """Reimplement Qt method"""
@@ -628,6 +709,11 @@ def test():
     print(arr_in is arr_out)
     arr = np.array([1, 2, 3], dtype="int8")
     print("out:", test_edit(arr, "int array"))
+    arr = np.zeros((3,3,4))
+    arr[0,0,0]=1
+    arr[0,0,1]=2
+    arr[0,0,2]=3
+    print("out:", test_edit(arr))
 
 
 if __name__ == "__main__":
