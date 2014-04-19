@@ -561,7 +561,7 @@ class ArrayEditor(QDialog):
                 label = QLabel(_("Index:"))
                 btn_layout.addWidget(label)
                 btn_layout.addWidget(self.index_spin)
-                self.dim_label = QLabel(_(r"Data[:, :, <font color=red>0</font>]"))
+                self.dim_label = QLabel(_(r"Slicing: [:, :, <font color=red>0</font>]"))
                 btn_layout.addWidget(self.dim_label)
             else:
                 ra_combo = QComboBox(self)
@@ -599,12 +599,12 @@ class ArrayEditor(QDialog):
         """
         string_index = [':']*3
         string_index[self.last_index] = '<font color=red>%i</font>'
-        self.dim_label.setText((r"Data["+', '.join(string_index)+"]")%index)
+        self.dim_label.setText((r"Slicing: ["+', '.join(string_index)+"]")%index)
             
     def change_active_widget(self, index):
         """
         This is implemented for handling negative values in index for
-        3d arrays, to give the same behaivore as slicing
+        3d arrays, to give the same behavior as slicing
         """
         self.update_label(index)
         if index<0:
@@ -614,7 +614,7 @@ class ArrayEditor(QDialog):
             
     def current_dim_changed(self, index):
         """
-        This changes the active axis the array editor is plotting over
+        This change the active axis the array editor is plotting over
         in 3D
         """
         while True:
