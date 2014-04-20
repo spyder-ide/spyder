@@ -146,7 +146,9 @@ class BreakpointTableView(QTableView):
             filename = self.model.breakpoints[index_clicked.row()][0]
             line_number_str = self.model.breakpoints[index_clicked.row()][1]
             self.emit(SIGNAL("edit_goto(QString,int,QString)"),
-                               filename, int(line_number_str), '')
+                               filename, int(line_number_str), '') 
+        if index_clicked.column()==2:
+            self.emit(SIGNAL("set_or_edit_conditional_breakpoint()")) 
                            
     def contextMenuEvent(self, event):
         index_clicked = self.indexAt(event.pos())
@@ -192,7 +194,9 @@ class BreakpointWidget(QWidget):
         self.connect(self.dictwidget, SIGNAL("edit_goto(QString,int,QString)"),
                      lambda s1, lino, s2: self.emit(
                      SIGNAL("edit_goto(QString,int,QString)"), s1, lino, s2))
-    
+        self.connect(self.dictwidget, SIGNAL('set_or_edit_conditional_breakpoint()'),
+                     lambda: self.emit(SIGNAL('set_or_edit_conditional_breakpoint()')))    
+                     
     def _load_all_breakpoints(self):
         bp_dict = CONF.get('run', 'breakpoints', {})
         for filename in list(bp_dict.keys()):
