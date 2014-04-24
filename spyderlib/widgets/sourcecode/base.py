@@ -293,9 +293,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                                      to_qvariant(True))
         selection.format.setBackground(self.currentcell_color)
         selection.cursor, whole_file_selected = self.select_current_cell(True)
-        if not whole_file_selected:
-            self.set_extra_selections('current_cell', [selection])
-            self.update_extra_selections()
+        self.set_extra_selections('current_cell', [selection])
+        self.update_extra_selections()
 
     def unhighlight_current_cell(self):
         """Unhighlight current cell"""
