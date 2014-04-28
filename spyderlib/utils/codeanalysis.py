@@ -80,6 +80,7 @@ def check_with_pyflakes(source_code, filename=None):
                                     warning.lineno))
     except Exception:
         # Never return None to avoid lock in spyderlib/widgets/editor.py
+        # See Issue 1547
         results = []
         if PRINT_TRACEBACK:
             traceback.print_exc()  # Print exception in internal console
@@ -165,6 +166,7 @@ def check_with_pep8(source_code, filename=None):
         results = check(args, source_code, filename=filename, options=['-r'])
     except Exception:
         # Never return None to avoid lock in spyderlib/widgets/editor.py
+        # See Issue 1547
         results = []
         if PRINT_TRACEBACK:
             traceback.print_exc()  # Print exception in internal console
