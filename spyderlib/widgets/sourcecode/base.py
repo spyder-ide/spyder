@@ -555,7 +555,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                 return cursor, False
         # If not, move backwards to find the previous separator
         while not self.is_cell_separator(cursor)\
-              and cursor.position()>=beg_pos:
+          and cursor.position() >= beg_pos:
             cursor.movePosition(QTextCursor.PreviousBlock)
             prev_pos = cur_pos
             cur_pos = cursor.position()
@@ -570,7 +570,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         # move to the next separator (or the end of the file)
         # so we can grab the cell contents
         while not self.is_cell_separator(cursor)\
-              and cursor.position()<end_pos:
+          and cursor.position() < end_pos:
             cursor.movePosition(QTextCursor.NextBlock,
                                 QTextCursor.KeepAnchor)
             cur_pos = cursor.position()
