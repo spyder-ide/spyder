@@ -20,7 +20,7 @@ from spyderlib.baseconfig import _, DEBUG
 from spyderlib.utils import programs, encoding
 from spyderlib.py3compat import to_text_string, to_binary_string, PY3
 from spyderlib import dependencies
-PRINT_TRACEBACK = DEBUG >= 3
+DEBUG_EDITOR = DEBUG >= 3
 
 #==============================================================================
 # Pyflakes/pep8 code analysis
@@ -82,7 +82,7 @@ def check_with_pyflakes(source_code, filename=None):
         # Never return None to avoid lock in spyderlib/widgets/editor.py
         # See Issue 1547
         results = []
-        if PRINT_TRACEBACK:
+        if DEBUG_EDITOR:
             traceback.print_exc()  # Print exception in internal console
     return results
 
@@ -168,7 +168,7 @@ def check_with_pep8(source_code, filename=None):
         # Never return None to avoid lock in spyderlib/widgets/editor.py
         # See Issue 1547
         results = []
-        if PRINT_TRACEBACK:
+        if DEBUG_EDITOR:
             traceback.print_exc()  # Print exception in internal console
     return results
 
