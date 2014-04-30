@@ -623,7 +623,7 @@ class ArrayEditor(QDialog):
                 break
             else:
                 self.stack.removeWidget(widget)
-        slice_index = [slice(None, None) for _ in range(3)]    
+        slice_index = [slice(None, None)]*3 
         for i in range(self.data.shape[index]):
             slice_index[index] = i
             self.stack.addWidget(ArrayEditorWidget(self, self.data[slice_index]))
