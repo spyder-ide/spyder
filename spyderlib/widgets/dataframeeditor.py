@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
+#
+# Copyright © 2014 Daniel Høegh
+# Licensed under the terms of the MIT License
 """
-pandas DataFrame Editor Dialog based on Qt
+Pandas DataFrame Editor Dialog based on Qt
 """
 
 from spyderlib.qt.QtCore import (QAbstractTableModel, Qt, QModelIndex, SIGNAL,
@@ -13,8 +16,15 @@ from spyderlib.widgets.dicteditorutils import get_color_name
 from numpy import int64
 from pandas import DataFrame, TimeSeries
 
+
 class DataFrameModel(QAbstractTableModel):
-    ''' data model for a DataFrame class '''
+    """
+    Data model for a DataFrame class
+    Based on the Class DataFrameModel from the pandas project.
+    Present in pandas.sandbox.qtpandas in v0.13.1
+    Copyright (c) 2011-2012, Lambda Foundry, Inc.
+    and PyData Development Team All rights reserved
+    """
     def __init__(self, dataFrame):
         super(DataFrameModel, self).__init__()
         self.df = dataFrame
@@ -22,7 +32,7 @@ class DataFrameModel(QAbstractTableModel):
         self.val = 1.  # Value
         self.alp = .3  # Alpha-channel
         self.signalUpdate()
-        
+
     def signalUpdate(self):
         ''' tell viewers to update their data (this is full update, not
         efficient)'''
@@ -40,7 +50,7 @@ class DataFrameModel(QAbstractTableModel):
                 return to_qvariant(str(self.df.columns.tolist()[section-1]))
         else:
             return to_qvariant()
-        
+
     def get_bgcolor(self, index):
         """Background color depending on value"""
         if index.column() == 0:
@@ -51,7 +61,7 @@ class DataFrameModel(QAbstractTableModel):
             color = QColor(get_color_name(value))
             color.setAlphaF(self.alp)
         return color
-        
+
     def data(self, index, role=Qt.DisplayRole):
         if not index.isValid():
             return to_qvariant()
@@ -68,7 +78,7 @@ class DataFrameModel(QAbstractTableModel):
     def flags(self, index):
         if index.column() == 0:
             return Qt.ItemIsEnabled
-        return Qt.ItemFlags(QAbstractTableModel.flags(self, index)|
+        return Qt.ItemFlags(QAbstractTableModel.flags(self, index) |
                             Qt.ItemIsEditable)
 
     def setData(self, index, value, role=Qt.EditRole):
@@ -86,7 +96,6 @@ class DataFrameModel(QAbstractTableModel):
             return True
         else:
             return False
-        
 
     def get_data(self):
         """Return data"""
@@ -100,9 +109,9 @@ class DataFrameModel(QAbstractTableModel):
         #this is done to implement timeseries
         if len(shape) == 1:
             return 2
-        else: 
+        else:
             return shape[1]+1
-        
+
 
 class DataFrameEditor(QDialog):
     ''' a simple widget for using DataFrames in a gui '''
@@ -113,10 +122,10 @@ class DataFrameEditor(QDialog):
         # (e.g. the editor's analysis thread in Spyder), thus leading to
         # a segmentation fault on UNIX or an application crash on Windows
         self.setAttribute(Qt.WA_DeleteOnClose)
-        
+
         self.is_time_series = False
         self.layout = None
-    
+
     def setup_and_check(self, dataFrame, title=''):
         """
         Setup DataFrameEditor:
@@ -138,28 +147,26 @@ class DataFrameEditor(QDialog):
             title = "Data Frame editor"
         self.setWindowTitle(title)
         self.resize(600, 500)
-        
-        self.dataModel = DataFrameModel(dataFrame)                     
+
+        self.dataModel = DataFrameModel(dataFrame)
         self.dataTable = QTableView()
         self.dataTable.setModel(self.dataModel)
         self.dataTable.resizeColumnsToContents()
-        
+
         self.layout.addWidget(self.dataTable)
         self.setLayout(self.layout)
-        # Set DataFrame
-        
         self.setMinimumSize(400, 300)
-         # Make the dialog act as a window
+        # Make the dialog act as a window
         self.setWindowFlags(Qt.Window)
         btn_layout = QHBoxLayout()
         bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         self.connect(bbox, SIGNAL("accepted()"), SLOT("accept()"))
         self.connect(bbox, SIGNAL("rejected()"), SLOT("reject()"))
-        
+
         btn_layout.addWidget(bbox)
         self.layout.addLayout(btn_layout, 2, 0)
         return True
-        
+
     def get_value(self):
         """Return modified Dataframe -- this is *not* a copy"""
         # It is import to avoid accessing Qt C++ object as it has probably
@@ -182,6 +189,7 @@ def test_edit(data, title="", parent=None):
 
 
 def test():
+    """DataFrame editor test"""
     from numpy import nan
     df1 = DataFrame([[1, 'test'], [1, 'test'], [1, 'test'], [1, 'test']],
                     index=['a', 'b', nan, nan], columns=['a', 'b'])
@@ -194,7 +202,7 @@ def test():
     out = test_edit(TimeSeries(range(10)))
     print("out:", out)
     return out
-    
+
 if __name__ == '__main__':
     _app = qapplication()
     df = test()
