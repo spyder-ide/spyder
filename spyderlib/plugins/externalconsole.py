@@ -219,15 +219,6 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         pyexec_layout.addWidget(pyexec_file)
         pyexec_group.setLayout(pyexec_layout)
         
-        # Startup Group
-        startup_group = QGroupBox(_("Startup"))
-        pystartup_box = newcb(_("Open a Python interpreter at startup"),
-                              'open_python_at_startup')
-        
-        startup_layout = QVBoxLayout()
-        startup_layout.addWidget(pystartup_box)
-        startup_group.setLayout(startup_layout)
-        
         # PYTHONSTARTUP replacement
         pystartup_group = QGroupBox(_("PYTHONSTARTUP replacement"))
         pystartup_bg = QButtonGroup(pystartup_group)
@@ -411,8 +402,7 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                     _("Display"))
         tabs.addTab(self.create_tab(monitor_group, source_group),
                     _("Introspection"))
-        tabs.addTab(self.create_tab(pyexec_group, startup_group,
-                                    pystartup_group, umd_group),
+        tabs.addTab(self.create_tab(pyexec_group, pystartup_group, umd_group),
                     _("Advanced settings"))
         tabs.addTab(self.create_tab(qt_group, mpl_group, ets_group),
                     _("External modules"))

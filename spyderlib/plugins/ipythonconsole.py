@@ -252,14 +252,6 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         run_file_layout.addWidget(run_file_browser)
         run_file_group.setLayout(run_file_layout)
         
-        # Spyder group
-        spyder_group = QGroupBox(_("Spyder startup"))
-        ipystartup_box = newcb(_("Open an IPython console at startup"),
-                                 "open_ipython_at_startup")
-        spyder_layout = QVBoxLayout()
-        spyder_layout.addWidget(ipystartup_box)
-        spyder_group.setLayout(spyder_layout)
-        
         # ---- Advanced settings ----
         # Greedy completer group
         greedy_group = QGroupBox(_("Greedy completion"))
@@ -361,8 +353,8 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                                     source_code_group), _("Display"))
         tabs.addTab(self.create_tab(pylab_group, backend_group, inline_group),
                                     _("Graphics"))
-        tabs.addTab(self.create_tab(spyder_group, run_lines_group,
-                                    run_file_group), _("Startup"))
+        tabs.addTab(self.create_tab(run_lines_group, run_file_group),
+                                    _("Startup"))
         tabs.addTab(self.create_tab(greedy_group, autocall_group, sympy_group,
                                     prompts_group), _("Advanced Settings"))
 
