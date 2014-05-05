@@ -254,7 +254,6 @@ DEFAULTS = [
               'light_background': True,
               'merge_output_channels': os.name != 'nt',
               'colorize_sys_stderr': os.name != 'nt',
-              'open_python_at_startup': True,
               'pythonstartup/default': True,
               'pythonstartup/custom': False,
               'pythonexecutable/default': True,
@@ -285,7 +284,6 @@ DEFAULTS = [
               'startup/run_lines': '',
               'startup/use_run_file': False,
               'startup/run_file': '',
-              'open_ipython_at_startup': True,
               'greedy_completer': False,
               'autocall': 0,
               'symbolic_math': False,
@@ -722,7 +720,7 @@ DEFAULTS = [
 # 2. If you want to *remove* options that are no longer needed in our codebase,
 #    you need to do a MAJOR update in version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '4.0.0'
+CONF_VERSION = '5.0.0'
 
 # XXX: Previously we had load=(not DEV) here but DEV was set to *False*.
 # Check if it *really* needs to be updated or not

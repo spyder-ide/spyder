@@ -1184,7 +1184,7 @@ class MainWindow(QMainWindow):
         # Show the Object Inspector and Consoles by default
         plugins_to_show = [self.inspector]
         if self.ipyconsole is not None:
-            if CONF.get('ipython_console', 'open_ipython_at_startup'):
+            if self.ipyconsole.isvisible:
                 plugins_to_show += [self.extconsole, self.ipyconsole]
             else:
                 plugins_to_show += [self.ipyconsole, self.extconsole]
@@ -1196,7 +1196,10 @@ class MainWindow(QMainWindow):
         
         # Give focus to the Editor
         if self.editor.dockwidget.isVisible():
-            self.editor.get_focus_widget().setFocus()
+            try:
+                self.editor.get_focus_widget().setFocus()
+            except AttributeError:
+                pass
         
     def load_window_settings(self, prefix, default=False, section='main'):
         """Load window layout settings from userconfig-based configuration
