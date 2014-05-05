@@ -535,7 +535,7 @@ class TracebackLinksMixin(object):
 class InspectObjectMixin(object):
     def __init__(self):
         self.inspector = None
-        self.inspector_enabled = True
+        self.inspector_enabled = False
     
     def set_inspector(self, inspector):
         """Set ObjectInspector DockWidget reference"""

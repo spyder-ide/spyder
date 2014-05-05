@@ -17,8 +17,8 @@ from string import Template
 import time
 
 # Qt imports
-from spyderlib.qt.QtGui import (QTextEdit, QKeySequence, QShortcut, QWidget,
-                                QMenu, QHBoxLayout, QToolButton, QVBoxLayout,
+from spyderlib.qt.QtGui import (QTextEdit, QKeySequence, QWidget, QMenu,
+                                QHBoxLayout, QToolButton, QVBoxLayout,
                                 QMessageBox)
 from spyderlib.qt.QtCore import SIGNAL, Qt
 
@@ -33,7 +33,7 @@ from IPython.core.oinspect import call_tip
 from spyderlib.baseconfig import (get_conf_path, get_image_path,
                                   get_module_source_path, _)
 from spyderlib.config import CONF
-from spyderlib.guiconfig import get_font
+from spyderlib.guiconfig import create_shortcut, get_font, get_shortcut
 from spyderlib.utils.dochelpers import getargspecfromtext, getsignaturefromtext
 from spyderlib.utils.qthelpers import (get_std_icon, create_toolbutton,
                                        add_actions, create_action, get_icon,
@@ -132,11 +132,9 @@ class IPythonControlWidget(TracebackLinksMixin, InspectObjectMixin, QTextEdit,
         """Reimplement Qt Method - Basic keypress event handler"""
         event, text, key, ctrl, shift = restore_keyevent(event)
         
-        if key == Qt.Key_Question and not self.has_selected_text() and \
-          self.set_inspector_enabled:
+        if key == Qt.Key_Question and not self.has_selected_text():
             self._key_question(text)
-        elif key == Qt.Key_ParenLeft and not self.has_selected_text() \
-          and self.set_inspector_enabled:
+        elif key == Qt.Key_ParenLeft and not self.has_selected_text():
             self._key_question(text)
         else:
             # Let the parent widget handle the key press event
@@ -207,12 +205,7 @@ class IPythonShellWidget(RichIPythonWidget):
         self.ipyclient = None
         
         # --- Keyboard shortcuts ---
-        inspectsc = QShortcut(QKeySequence("Ctrl+I"), self,
-                              self._control.inspect_current_object)
-        inspectsc.setContext(Qt.WidgetWithChildrenShortcut)
-        clear_consolesc = QShortcut(QKeySequence("Ctrl+L"), self,
-                                    self.clear_console)
-        clear_consolesc.setContext(Qt.WidgetWithChildrenShortcut)
+        self.shortcuts = self.create_shortcuts()
         
         # --- IPython variables ---
         # To send an interrupt signal to the Spyder kernel
@@ -278,9 +271,17 @@ These commands were executed:
                 self.kernel_manager.stdin_channel.input(line)
     
     def set_background_color(self):
-        lightbg_o = CONF.get('ipython_console', 'light_color', True)
+        lightbg_o = CONF.get('ipython_console', 'light_color')
         if not lightbg_o:
             self.set_default_style(colors='linux')
+    
+    def create_shortcuts(self):
+        inspect = create_shortcut(self._control.inspect_current_object,
+                                  context='Console', name='Inspect current object',
+                                  parent=self)
+        clear_console = create_shortcut(self.clear_console, context='Console',
+                                        name='Clear shell', parent=self)
+        return [inspect, clear_console]
 
     #---- IPython private methods ---------------------------------------------
     def _context_menu_make(self, pos):
@@ -502,7 +503,8 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         """Add actions to IPython widget context menu"""
         # See spyderlib/widgets/ipython.py for more details on this method
         inspect_action = create_action(self, _("Inspect current object"),
-                                    QKeySequence("Ctrl+I"),
+                                    QKeySequence(get_shortcut('console',
+                                                    'inspect current object')),
                                     icon=get_std_icon('MessageBoxInformation'),
                                     triggered=self.inspect_object)
         clear_line_action = create_action(self, _("Clear line or block"),
@@ -510,7 +512,8 @@ class IPythonClient(QWidget, SaveHistoryMixin):
                                           icon=get_icon('eraser.png'),
                                           triggered=self.clear_line)
         clear_console_action = create_action(self, _("Clear console"),
-                                             QKeySequence("Ctrl+L"),
+                                             QKeySequence(get_shortcut('console',
+                                                               'clear shell')),
                                              icon=get_icon('clear.png'),
                                              triggered=self.clear_console)
         quit_action = create_action(self, _("&Quit"), icon='exit.png',
