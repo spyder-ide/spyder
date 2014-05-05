@@ -103,9 +103,9 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         # Background Color Group
         bg_group = QGroupBox(_("Background color"))
         light_radio = self.create_radiobutton(_("Light background"),
-                                              'light_color', True)
+                                              'light_color')
         dark_radio = self.create_radiobutton(_("Dark background"),
-                                             'dark_color', False)
+                                             'dark_color')
         bg_layout = QVBoxLayout()
         bg_layout.addWidget(light_radio)
         bg_layout.addWidget(dark_radio)

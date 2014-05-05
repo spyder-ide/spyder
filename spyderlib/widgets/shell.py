@@ -19,15 +19,15 @@ import sys
 import keyword
 
 from spyderlib.qt.QtGui import (QMenu, QApplication, QToolTip, QKeySequence,
-                                QMessageBox, QTextCursor, QTextCharFormat,
-                                QShortcut)
+                                QMessageBox, QTextCursor, QTextCharFormat)
 from spyderlib.qt.QtCore import (Qt, QCoreApplication, QTimer, SIGNAL,
                                  Property)
 from spyderlib.qt.compat import getsavefilename
 
 # Local import
 from spyderlib.baseconfig import get_conf_path, _, STDERR, DEBUG
-from spyderlib.guiconfig import CONF, get_font
+from spyderlib.config import CONF
+from spyderlib.guiconfig import get_font, create_shortcut, get_shortcut
 from spyderlib.utils import encoding
 from spyderlib.utils.qthelpers import (keybinding, create_action, add_actions,
                                        restore_keyevent, get_icon)
@@ -81,15 +81,10 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
 
         # Give focus to widget
         self.setFocus()
-                
-        # Calltips
-        calltip_size = CONF.get('shell_appearance', 'calltips/size')
-        calltip_font = get_font('shell_appearance', 'calltips')
-        self.setup_calltips(calltip_size, calltip_font)
         
         # Completion
         completion_size = CONF.get('shell_appearance', 'completion/size')
-        completion_font = get_font('shell_appearance', 'completion')
+        completion_font = get_font('console')
         self.completion_widget.setup_appearance(completion_size,
                                                 completion_font)
         # Cursor width
@@ -667,9 +662,14 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
         InspectObjectMixin.__init__(self)
 
         # Local shortcuts
-        self.inspectsc = QShortcut(QKeySequence("Ctrl+I"), self,
-                                   self.inspect_current_object)
-        self.inspectsc.setContext(Qt.WidgetWithChildrenShortcut)
+        self.shortcuts = self.create_shortcuts()
+    
+    def create_shortcuts(self):
+        inspectsc = create_shortcut(self.inspect_current_object,
+                                    context='Console',
+                                    name='Inspect current object',
+                                    parent=self)
+        return [inspectsc]
         
     def get_shortcut_data(self):
         """
@@ -678,10 +678,7 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
         text (string): action/shortcut description
         default (string): default key sequence
         """
-        return [
-                (self.inspectsc, "Inspect current object", "Ctrl+I"),
-                ]
-
+        return [sc.data for sc in self.shortcuts]
 
     #------ Context menu
     def setup_context_menu(self):
@@ -692,12 +689,14 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
                                      icon=get_icon('copywop.png'),
                                      triggered=self.copy_without_prompts)
         clear_line_action = create_action(self, _("Clear line"),
-                                     QKeySequence("Shift+Escape"),
+                                     QKeySequence(get_shortcut('console',
+                                                               'Clear line')),
                                      icon=get_icon('eraser.png'),
                                      tip=_("Clear line"),
                                      triggered=self.clear_line)
         clear_action = create_action(self, _("Clear shell"),
-                                     QKeySequence("Ctrl+L"),
+                                     QKeySequence(get_shortcut('console',
+                                                               'Clear shell')),
                                      icon=get_icon('clear.png'),
                                      tip=_("Clear shell contents "
                                            "('cls' command)"),

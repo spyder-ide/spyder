@@ -39,7 +39,6 @@ class CompletionWidget(QListWidget):
         self.textedit = parent
         self.completion_list = None
         self.case_sensitive = False
-        self.show_single = None
         self.enter_select = None
         self.hide()
         self.connect(self, SIGNAL("itemActivated(QListWidgetItem*)"),
@@ -50,7 +49,7 @@ class CompletionWidget(QListWidget):
         self.setFont(font)
         
     def show_list(self, completion_list, automatic=True):
-        if not self.show_single and len(completion_list) == 1 and not automatic:
+        if len(completion_list) == 1 and not automatic:
             self.textedit.insert_completion(completion_list[0])
             return
         
@@ -206,26 +205,22 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.completion_widget = CompletionWidget(self, parent)
         self.codecompletion_auto = False
         self.codecompletion_case = True
-        self.codecompletion_single = False
         self.codecompletion_enter = False
         self.calltips = True
         self.calltip_position = None
-        self.calltip_font = QFont()
         self.completion_text = ""
         self.calltip_widget = CallTipWidget(self, hide_timer_on=True)
         
+        # The color values may be overridden by the syntax highlighter 
         # Highlight current line color
         self.currentline_color = QColor(Qt.red).lighter(190)
+        self.currentcell_color = QColor(Qt.red).lighter(194)
 
         # Brace matching
         self.bracepos = None
         self.matched_p_color = QColor(Qt.green)
         self.unmatched_p_color = QColor(Qt.red)
         
-    def setup_calltips(self, size=None, font=None):
-        self.calltip_size = size
-        self.calltip_font = font
-    
     def setup_completion(self, size=None, font=None):
         self.completion_widget.setup_appearance(size, font)
         
@@ -253,7 +248,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     def update_extra_selections(self):
         extra_selections = []
         for key, extra in list(self.extra_selections_dict.items()):
-            if key == 'current_line':
+            if key == 'current_line' or key == 'current_cell':
                 # Python 3 compatibility (weird): current line has to be 
                 # highlighted first
                 extra_selections = extra + extra_selections
@@ -288,6 +283,23 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         """Unhighlight current line"""
         self.clear_extra_selections('current_line')
 
+    #------Highlight current cell
+    def highlight_current_cell(self):
+        """Highlight current cell"""
+        selection = QTextEdit.ExtraSelection()
+        selection.format.setProperty(QTextFormat.FullWidthSelection,
+                                     to_qvariant(True))
+        selection.format.setBackground(self.currentcell_color)
+        selection.cursor, whole_file_selected = self.select_current_cell()
+        if not whole_file_selected:
+            self.set_extra_selections('current_cell', [selection])
+            self.update_extra_selections()
+        else:
+            self.clear_extra_selections('current_cell')
+
+    def unhighlight_current_cell(self):
+        """Unhighlight current cell"""
+        self.clear_extra_selections('current_cell')
 
     #------Brace matching
     def find_brace_match(self, position, brace, forward):
@@ -385,11 +397,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.codecompletion_case = state
         self.completion_widget.case_sensitive = state
         
-    def set_codecompletion_single(self, state):
-        """Show single completion"""
-        self.codecompletion_single = state
-        self.completion_widget.show_single = state
-        
     def set_codecompletion_enter(self, state):
         """Enable Enter key to select completion"""
         self.codecompletion_enter = state
@@ -460,10 +467,12 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
         # Remove any leading whitespace or comment lines
         # since they confuse the reserved word detector that follows below
-        first_line = lines[0].lstrip()
-        while first_line == '' or first_line[0] == '#':
-            lines.pop(0)
+        while lines:
             first_line = lines[0].lstrip()
+            if first_line == '' or first_line[0] == '#':
+                lines.pop(0)
+            else:
+                break
         
         # Add an EOL character after indentation blocks that start with some 
         # Python reserved words, so that it gets evaluated automatically
@@ -498,7 +507,9 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     def get_cell_as_executable_code(self):
         """Return cell contents as executable code"""
         start_pos, end_pos = self.__save_selection()
-        self.select_current_cell()
+        cursor, whole_file_selected = self.select_current_cell()
+        if not whole_file_selected:
+            self.setTextCursor(cursor)
         text = self.get_selection_as_executable_code()
         self.__restore_selection(start_pos, end_pos)
         return text
@@ -516,7 +527,9 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
     def select_current_cell(self):
         """Select cell under cursor
-        cell = group of lines separated by CELL_SEPARATORS"""
+        cell = group of lines separated by CELL_SEPARATORS
+        returns the textCursor and a boolean indicating if the
+        entire file is selected"""
         cursor = self.textCursor()
         cursor.movePosition(QTextCursor.StartOfBlock)
         cur_pos = prev_pos = cursor.position()
@@ -527,7 +540,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             prev_pos = cur_pos
             cur_pos = cursor.position()
             if cur_pos == prev_pos:
-                return
+                return cursor, False
         # If not, move backwards to find the previous separator
         while not self.is_cell_separator(cursor):
             cursor.movePosition(QTextCursor.PreviousBlock)
@@ -535,7 +548,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             cur_pos = cursor.position()
             if cur_pos == prev_pos:
                 if self.is_cell_separator(cursor):
-                    return
+                    return cursor, False
                 else:
                     break
         cursor.setPosition(prev_pos)
@@ -552,11 +565,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                                     QTextCursor.KeepAnchor)
                 break
             prev_pos = cur_pos
-        # Do nothing if we moved from beginning to end without
-        # finding a separator
-        if cell_at_file_start and cursor.atEnd():
-            return
-        self.setTextCursor(cursor)
+        return cursor, cell_at_file_start and cursor.atEnd()
 
     def go_to_next_cell(self):
         """Go to the next cell of lines"""

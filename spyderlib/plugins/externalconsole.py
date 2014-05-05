@@ -26,7 +26,7 @@ import os.path as osp
 import sys
 
 # Local imports
-from spyderlib.baseconfig import _, SCIENTIFIC_STARTUP
+from spyderlib.baseconfig import SCIENTIFIC_STARTUP, _
 from spyderlib.config import CONF
 from spyderlib.utils import programs
 from spyderlib.utils.misc import (get_error_match, get_python_executable,
@@ -136,8 +136,6 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                                'codecompletion/auto')
         case_comp_box = newcb(_("Case sensitive code completion"),
                               'codecompletion/case_sensitive')
-        show_single_box = newcb(_("Show single completion"),
-                               'codecompletion/show_single')
         comp_enter_box = newcb(_("Enter key selects completion"),
                                'codecompletion/enter_key')
         calltips_box = newcb(_("Display balloon tips"), 'calltips')
@@ -145,7 +143,6 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         source_layout = QVBoxLayout()
         source_layout.addWidget(completion_box)
         source_layout.addWidget(case_comp_box)
-        source_layout.addWidget(show_single_box)
         source_layout.addWidget(comp_enter_box)
         source_layout.addWidget(calltips_box)
         source_group.setLayout(source_layout)
@@ -195,11 +192,11 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                                 "binary in which Spyder will run scripts:"))
         def_exec_radio = self.create_radiobutton(
                                 _("Default (i.e. the same as Spyder's)"),
-                                'pythonexecutable/default', True,
+                                'pythonexecutable/default', 
                                 button_group=pyexec_bg)
         self.cus_exec_radio = self.create_radiobutton(
                                 _("Use the following Python interpreter:"),
-                                'pythonexecutable/custom', False,
+                                'pythonexecutable/custom',
                                 button_group=pyexec_bg)
         if os.name == 'nt':
             filters = _("Executables")+" (*.exe)"
@@ -224,7 +221,7 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         # Startup Group
         startup_group = QGroupBox(_("Startup"))
         pystartup_box = newcb(_("Open a Python interpreter at startup"),
-                              'open_python_at_startup', True)
+                              'open_python_at_startup')
         
         startup_layout = QVBoxLayout()
         startup_layout.addWidget(pystartup_box)
@@ -239,11 +236,11 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                                    "the Python interpreter startup."))
         self.def_startup_radio = self.create_radiobutton(
                                         _("Default PYTHONSTARTUP script"),
-                                        'pythonstartup/default', True,
+                                        'pythonstartup/default',
                                         button_group=pystartup_bg)
         self.cus_startup_radio = self.create_radiobutton(
                                         _("Use the following startup script:"),
-                                        'pythonstartup/custom', False,
+                                        'pythonstartup/custom',
                                         button_group=pystartup_bg)
         pystartup_file = self.create_browsefile('', 'pythonstartup', '',
                                                 filters=_("Python scripts")+\
@@ -270,8 +267,8 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                                  "to accelerate console startup."))
         monitor_label.setWordWrap(True)
         monitor_box = newcb(_("Enable monitor"), 'monitor/enabled')
-        for obj in (completion_box, case_comp_box, show_single_box,
-                    comp_enter_box, calltips_box):
+        for obj in (completion_box, case_comp_box, comp_enter_box,
+                    calltips_box):
             self.connect(monitor_box, SIGNAL("toggled(bool)"), obj.setEnabled)
             obj.setEnabled(self.get_option('monitor/enabled'))
         
@@ -290,7 +287,7 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                          tip=_("This option will act on<br> "
                                "libraries such as Matplotlib, guidata "
                                "or ETS"))
-        if self.get_option('pythonexecutable/default', True):
+        if self.get_option('pythonexecutable/default'):
             interpreter = get_python_executable()
         else:
             interpreter = self.get_option('pythonexecutable')
@@ -397,7 +394,7 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                              "user interfaces."))
         ets_label.setWordWrap(True)
         ets_edit = self.create_lineedit(_("ETS_TOOLKIT:"), 'ets_backend',
-                                        default='qt4', alignment=Qt.Horizontal)
+                                        alignment=Qt.Horizontal)
         
         ets_layout = QVBoxLayout()
         ets_layout.addWidget(ets_label)
@@ -488,15 +485,15 @@ class ExternalConsole(SpyderPluginWidget):
         # Python executable selection (initializing default values as well)
         executable = self.get_option('pythonexecutable',
                                      get_python_executable())
-        if self.get_option('pythonexecutable/default', True):
+        if self.get_option('pythonexecutable/default'):
             executable = get_python_executable()
-
+        
         # Python startup file selection
         if not osp.isfile(self.get_option('pythonstartup', '')):
             self.set_option('pythonstartup', SCIENTIFIC_STARTUP)
         # default/custom settings are mutually exclusive:
         self.set_option('pythonstartup/custom',
-                        not self.get_option('pythonstartup/default', False))
+                        not self.get_option('pythonstartup/default'))
         
         if not osp.isfile(executable):
             # This is absolutely necessary, in case the Python interpreter
@@ -779,11 +776,11 @@ class ExternalConsole(SpyderPluginWidget):
         light_background = self.get_option('light_background')
         show_elapsed_time = self.get_option('show_elapsed_time')
         if python:
-            if self.get_option('pythonexecutable/default', True):
+            if self.get_option('pythonexecutable/default'):
                 pythonexecutable = get_python_executable()
             else:
                 pythonexecutable = self.get_option('pythonexecutable')
-            if self.get_option('pythonstartup/default', True) or ipykernel:
+            if self.get_option('pythonstartup/default') or ipykernel:
                 pythonstartup = None
             else:
                 pythonstartup = self.get_option('pythonstartup', None)
@@ -794,7 +791,7 @@ class ExternalConsole(SpyderPluginWidget):
                 mpl_backend = self.get_option('matplotlib/backend/value')
             else:
                 mpl_backend = None
-            ets_backend = self.get_option('ets_backend', 'qt4')
+            ets_backend = self.get_option('ets_backend')
             qt_api = self.get_option('qt/api')
             if qt_api not in ('pyqt', 'pyside'):
                 qt_api = None
@@ -883,8 +880,6 @@ class ExternalConsole(SpyderPluginWidget):
                             self.get_option('codecompletion/auto') )
         shellwidget.shell.set_codecompletion_case(
                             self.get_option('codecompletion/case_sensitive') )
-        shellwidget.shell.set_codecompletion_single(
-                            self.get_option('codecompletion/show_single') )
         shellwidget.shell.set_codecompletion_enter(
                             self.get_option('codecompletion/enter_key') )
         if python and self.inspector is not None:
@@ -913,7 +908,7 @@ class ExternalConsole(SpyderPluginWidget):
                               lambda error: ipyclient.show_kernel_error(error))
                     
                     # Detect if kernel and frontend match or not
-                    if self.get_option('pythonexecutable/custom', False):
+                    if self.get_option('pythonexecutable/custom'):
                         frontend_ver = programs.get_module_version('IPython')
                         if '0.13' in frontend_ver:
                             frontend_ver = '<1.0'
@@ -1216,8 +1211,6 @@ class ExternalConsole(SpyderPluginWidget):
         compauto_o = self.get_option(compauto_n)
         case_comp_n = 'codecompletion/case_sensitive'
         case_comp_o = self.get_option(case_comp_n)
-        show_single_n = 'codecompletion/show_single'
-        show_single_o = self.get_option(show_single_n)
         compenter_n = 'codecompletion/enter_key'
         compenter_o = self.get_option(compenter_n)
         mlc_n = 'max_line_count'
@@ -1225,6 +1218,10 @@ class ExternalConsole(SpyderPluginWidget):
         for shellwidget in self.shellwidgets:
             if font_n in options:
                 shellwidget.shell.set_font(font_o)
+                completion_size = CONF.get('shell_appearance',
+                                           'completion/size')
+                comp_widget = shellwidget.shell.completion_widget
+                comp_widget.setup_appearance(completion_size, font_o)
             if showtime_n in options:
                 shellwidget.set_elapsed_time_visible(showtime_o)
             if icontext_n in options:
@@ -1240,8 +1237,6 @@ class ExternalConsole(SpyderPluginWidget):
                 shellwidget.shell.set_codecompletion_auto(compauto_o)
             if case_comp_n in options:
                 shellwidget.shell.set_codecompletion_case(case_comp_o)
-            if show_single_n in options:
-                shellwidget.shell.set_codecompletion_single(show_single_o)
             if compenter_n in options:
                 shellwidget.shell.set_codecompletion_enter(compenter_o)
             if mlc_n in options:
@@ -1250,7 +1245,7 @@ class ExternalConsole(SpyderPluginWidget):
     #------ Public API ---------------------------------------------------------
     def open_interpreter_at_startup(self):
         """Open an interpreter or an IPython kernel at startup"""
-        if self.get_option('open_python_at_startup', True):
+        if self.get_option('open_python_at_startup'):
             self.open_interpreter()
 
     def open_interpreter(self, wdir=None):

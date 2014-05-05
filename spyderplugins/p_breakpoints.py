@@ -79,7 +79,7 @@ class Breakpoints(BreakpointWidget, SpyderPluginMixin):
                                    triggered=self.show)
         list_action.setEnabled(True)
         self.register_shortcut(list_action, context="Editor",
-                               name="List breakpoints", default="Ctrl+B")
+                               name="List breakpoints")
         
         # A fancy way to insert the action into the Breakpoints menu under
         # the assumption that Breakpoints is the first QMenu in the list.
