@@ -425,7 +425,10 @@ class IPythonConsole(SpyderPluginWidget):
             self.dockwidget.raise_()
             # Start a client in case there are none shown
             if not self.clients:
-                self.create_new_client(give_focus=False)
+                if self.main.is_setting_up:
+                    self.create_new_client(give_focus=False)
+                else:
+                    self.create_new_client(give_focus=True)
         else:
             self.dockwidget.hide()
     

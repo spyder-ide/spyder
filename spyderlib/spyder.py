@@ -461,6 +461,7 @@ class MainWindow(QMainWindow):
         # Flags used if closing() is called by the exit() shell command
         self.already_closed = False
         self.is_starting_up = True
+        self.is_setting_up = True
         
         self.floating_dockwidgets = []
         self.window_size = None
@@ -1200,6 +1201,8 @@ class MainWindow(QMainWindow):
                 self.editor.get_focus_widget().setFocus()
             except AttributeError:
                 pass
+        
+        self.is_setting_up = False
         
     def load_window_settings(self, prefix, default=False, section='main'):
         """Load window layout settings from userconfig-based configuration
