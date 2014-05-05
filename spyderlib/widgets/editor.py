@@ -1862,7 +1862,7 @@ class EditorStack(QWidget):
                 wrap=self.wrap_enabled, tab_mode=self.tabmode_enabled,
                 intelligent_backspace=self.intelligent_backspace_enabled,
                 highlight_current_line=self.highlight_current_line_enabled,
-                highlight_current_cell=self.highlight_current_line_enabled,
+                highlight_current_cell=self.highlight_current_cell_enabled,
                 occurence_highlighting=self.occurence_highlighting_enabled,
                 codecompletion_auto=self.codecompletion_auto_enabled,
                 codecompletion_case=self.codecompletion_case_enabled,
