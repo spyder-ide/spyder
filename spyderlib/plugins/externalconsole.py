@@ -137,8 +137,6 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                                'codecompletion/auto')
         case_comp_box = newcb(_("Case sensitive code completion"),
                               'codecompletion/case_sensitive')
-        show_single_box = newcb(_("Show single completion"),
-                               'codecompletion/show_single')
         comp_enter_box = newcb(_("Enter key selects completion"),
                                'codecompletion/enter_key')
         calltips_box = newcb(_("Display balloon tips"), 'calltips')
@@ -146,7 +144,6 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         source_layout = QVBoxLayout()
         source_layout.addWidget(completion_box)
         source_layout.addWidget(case_comp_box)
-        source_layout.addWidget(show_single_box)
         source_layout.addWidget(comp_enter_box)
         source_layout.addWidget(calltips_box)
         source_group.setLayout(source_layout)
@@ -271,7 +268,7 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                                  "to accelerate console startup."))
         monitor_label.setWordWrap(True)
         monitor_box = newcb(_("Enable monitor"), 'monitor/enabled')
-        for obj in (completion_box, case_comp_box, show_single_box,
+        for obj in (completion_box, case_comp_box,
                     comp_enter_box, calltips_box):
             self.connect(monitor_box, SIGNAL("toggled(bool)"), obj.setEnabled)
             obj.setEnabled(self.get_option('monitor/enabled'))
@@ -884,8 +881,6 @@ class ExternalConsole(SpyderPluginWidget):
                             self.get_option('codecompletion/auto') )
         shellwidget.shell.set_codecompletion_case(
                             self.get_option('codecompletion/case_sensitive') )
-        shellwidget.shell.set_codecompletion_single(
-                            self.get_option('codecompletion/show_single') )
         shellwidget.shell.set_codecompletion_enter(
                             self.get_option('codecompletion/enter_key') )
         if python and self.inspector is not None:
@@ -1219,8 +1214,6 @@ class ExternalConsole(SpyderPluginWidget):
         compauto_o = self.get_option(compauto_n)
         case_comp_n = 'codecompletion/case_sensitive'
         case_comp_o = self.get_option(case_comp_n)
-        show_single_n = 'codecompletion/show_single'
-        show_single_o = self.get_option(show_single_n)
         compenter_n = 'codecompletion/enter_key'
         compenter_o = self.get_option(compenter_n)
         mlc_n = 'max_line_count'
@@ -1247,8 +1240,6 @@ class ExternalConsole(SpyderPluginWidget):
                 shellwidget.shell.set_codecompletion_auto(compauto_o)
             if case_comp_n in options:
                 shellwidget.shell.set_codecompletion_case(case_comp_o)
-            if show_single_n in options:
-                shellwidget.shell.set_codecompletion_single(show_single_o)
             if compenter_n in options:
                 shellwidget.shell.set_codecompletion_enter(compenter_o)
             if mlc_n in options:

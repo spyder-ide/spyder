@@ -216,7 +216,6 @@ DEFAULTS = [
               'codecompletion/auto': False,
               'codecompletion/enter_key': True,
               'codecompletion/case_sensitive': True,
-              'codecompletion/show_single': False,
               'external_editor/path': 'SciTE',
               'external_editor/gotoline': '-goto:',
               'light_background': True,
@@ -236,7 +235,6 @@ DEFAULTS = [
               'codecompletion/auto': True,
               'codecompletion/enter_key': True,
               'codecompletion/case_sensitive': True,
-              'codecompletion/show_single': False,
               'show_elapsed_time': False,
               'show_icontext': False,
               'monitor/enabled': True,
@@ -348,7 +346,6 @@ DEFAULTS = [
               'codecompletion/auto': True,
               'codecompletion/enter_key': True,
               'codecompletion/case_sensitive': True,
-              'codecompletion/show_single': False,
               'check_eol_chars': True,
               'tab_always_indent': False,
               'intelligent_backspace': True,
@@ -725,7 +722,7 @@ DEFAULTS = [
 # 2. If you want to *remove* options that are no longer needed in our codebase,
 #    you need to do a MAJOR update in version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '3.3.0'
+CONF_VERSION = '4.0.0'
 
 # XXX: Previously we had load=(not DEV) here but DEV was set to *False*.
 # Check if it *really* needs to be updated or not
