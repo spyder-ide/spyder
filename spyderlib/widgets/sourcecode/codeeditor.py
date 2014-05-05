@@ -2226,8 +2226,7 @@ class CodeEditor(TextEditBaseWidget):
         elif key in (Qt.Key_QuoteDbl, Qt.Key_Apostrophe) and \
           self.close_quotes_enabled:
             self.autoinsert_quotes(key)
-        elif ((key in (Qt.Key_ParenRight, Qt.Key_BraceRight, Qt.Key_BracketRight)) or (
-              shift and key == Qt.Key_0)) \
+        elif key in (Qt.Key_ParenRight, Qt.Key_BraceRight, Qt.Key_BracketRight)\
           and not self.has_selected_text() and self.close_parentheses_enabled \
           and not self.textCursor().atBlockEnd():
             cursor = self.textCursor()
@@ -2235,7 +2234,7 @@ class CodeEditor(TextEditBaseWidget):
                                 QTextCursor.KeepAnchor)
             text = to_text_string(cursor.selectedText())
             if text == {Qt.Key_ParenRight: ')', Qt.Key_BraceRight: '}',
-                        Qt.Key_BracketRight: ']', Qt.Key_0: ')'}[key]:
+                        Qt.Key_BracketRight: ']'}[key]:
                 cursor.clearSelection()
                 self.setTextCursor(cursor)
             else:
