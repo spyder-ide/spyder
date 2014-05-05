@@ -17,7 +17,6 @@ Editor widget based on QtGui.QPlainTextEdit
 from __future__ import division
 
 import sys
-import os
 import re
 import sre_constants
 import os.path as osp
@@ -29,7 +28,7 @@ from spyderlib.qt.QtGui import (QColor, QMenu, QApplication, QSplitter, QFont,
                                 QBrush, QTextDocument, QTextCharFormat,
                                 QPixmap, QPrinter, QToolTip, QCursor, QLabel,
                                 QInputDialog, QTextBlockUserData, QLineEdit,
-                                QShortcut, QKeySequence, QWidget, QVBoxLayout,
+                                QKeySequence, QWidget, QVBoxLayout,
                                 QHBoxLayout, QDialog, QIntValidator,
                                 QDialogButtonBox, QGridLayout)
 from spyderlib.qt.QtCore import (Qt, SIGNAL, QTimer, QRect, QRegExp, QSize,
