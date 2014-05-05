@@ -268,8 +268,8 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                                  "to accelerate console startup."))
         monitor_label.setWordWrap(True)
         monitor_box = newcb(_("Enable monitor"), 'monitor/enabled')
-        for obj in (completion_box, case_comp_box,
-                    comp_enter_box, calltips_box):
+        for obj in (completion_box, case_comp_box, comp_enter_box,
+                    calltips_box):
             self.connect(monitor_box, SIGNAL("toggled(bool)"), obj.setEnabled)
             obj.setEnabled(self.get_option('monitor/enabled'))
         
