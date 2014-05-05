@@ -1166,24 +1166,20 @@ class MainWindow(QMainWindow):
             self.connect(self, SIGNAL('open_external_file(QString)'),
                          lambda fname: self.open_external_file(fname))
         
-        # Open a Python or IPython console at startup
+        # Create Plugins and toolbars submenus
+        if not self.light:
+            self.create_plugins_menu()
+            self.create_toolbars_menu()
+        
+        # Open a Python console for light mode
         if self.light:
             self.extconsole.open_interpreter()
-        else:
-            self.extconsole.open_interpreter_at_startup()
-            if self.ipyconsole is not None:
-                self.ipyconsole.open_client_at_startup()
         self.extconsole.setMinimumHeight(0)
         
         # Hide Internal Console so that people doesn't use it instead of
         # the External or IPython ones
         if self.console.dockwidget.isVisible() and DEV is None:
             self.console.dockwidget.hide()
-        
-        # Create Plugins and toolbars submenus
-        if not self.light:
-            self.create_plugins_menu()
-            self.create_toolbars_menu()
         
         # Show the Object Inspector and Consoles by default
         plugins_to_show = [self.inspector]

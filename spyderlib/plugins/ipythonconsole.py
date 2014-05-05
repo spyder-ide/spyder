@@ -425,6 +425,18 @@ class IPythonConsole(SpyderPluginWidget):
         # Accepting drops
         self.setAcceptDrops(True)
     
+    #------ SpyderPluginMixin API ---------------------------------------------
+    def toggle_view(self, checked):
+        """Toggle view"""
+        if checked:
+            self.dockwidget.show()
+            self.dockwidget.raise_()
+            # Start a client in case there are none shown
+            if not self.clients:
+                self.create_new_client(give_focus=False)
+        else:
+            self.dockwidget.hide()
+    
     #------ SpyderPluginWidget API --------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
@@ -889,10 +901,6 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Update client name
         self.rename_ipyclient_tab(client)
-    
-    def open_client_at_startup(self):
-        if self.get_option('open_ipython_at_startup', False):
-            self.create_new_client(give_focus=False)
     
     def close_related_ipyclients(self, client):
         """Close all IPython clients related to *client*, except itself"""

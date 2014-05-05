@@ -1245,12 +1245,26 @@ class ExternalConsole(SpyderPluginWidget):
             if mlc_n in options:
                 shellwidget.shell.setMaximumBlockCount(mlc_o)
     
+    #------ SpyderPluginMixin API ---------------------------------------------
+    def toggle_view(self, checked):
+        """Toggle view"""
+        if checked:
+            self.dockwidget.show()
+            self.dockwidget.raise_()
+            # Start a console in case there are none shown
+            from spyderlib.widgets.externalshell import pythonshell
+            consoles = None
+            for sw in self.shellwidgets:
+                if isinstance(sw, pythonshell.ExternalPythonShell):
+                    if not sw.is_ipykernel:
+                        consoles = True
+                        break
+            if not consoles:
+                self.open_interpreter()
+        else:
+            self.dockwidget.hide()
+    
     #------ Public API ---------------------------------------------------------
-    def open_interpreter_at_startup(self):
-        """Open an interpreter or an IPython kernel at startup"""
-        if self.get_option('open_python_at_startup'):
-            self.open_interpreter()
-
     def open_interpreter(self, wdir=None):
         """Open interpreter"""
         if wdir is None:
