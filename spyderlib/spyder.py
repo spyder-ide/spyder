@@ -1195,6 +1195,11 @@ class MainWindow(QMainWindow):
             if plugin.dockwidget.isVisible():
                 plugin.dockwidget.raise_()
         
+        # Show history file if no console is visible
+        ipy_visible = self.ipyconsole is not None and self.ipyconsole.isvisible
+        if not self.extconsole.isvisible and not ipy_visible:
+            self.historylog.add_history(get_conf_path('history.py'))
+        
         # Give focus to the Editor
         if self.editor.dockwidget.isVisible():
             try:
