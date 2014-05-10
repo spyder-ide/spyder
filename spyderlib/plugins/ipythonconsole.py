@@ -259,14 +259,6 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         run_file_layout.addWidget(run_file_browser)
         run_file_group.setLayout(run_file_layout)
         
-        # Spyder group
-        spyder_group = QGroupBox(_("Spyder startup"))
-        ipystartup_box = newcb(_("Open an IPython console at startup"),
-                                 "open_ipython_at_startup")
-        spyder_layout = QVBoxLayout()
-        spyder_layout.addWidget(ipystartup_box)
-        spyder_group.setLayout(spyder_layout)
-        
         # ---- Advanced settings ----
         # Greedy completer group
         greedy_group = QGroupBox(_("Greedy completion"))
@@ -368,8 +360,8 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                                     source_code_group), _("Display"))
         tabs.addTab(self.create_tab(pylab_group, backend_group, inline_group),
                                     _("Graphics"))
-        tabs.addTab(self.create_tab(spyder_group, run_lines_group,
-                                    run_file_group), _("Startup"))
+        tabs.addTab(self.create_tab(run_lines_group, run_file_group),
+                                    _("Startup"))
         tabs.addTab(self.create_tab(greedy_group, autocall_group, sympy_group,
                                     prompts_group), _("Advanced Settings"))
 
@@ -504,6 +496,21 @@ class IPythonConsole(SpyderPluginWidget):
             
         # Accepting drops
         self.setAcceptDrops(True)
+    
+    #------ SpyderPluginMixin API ---------------------------------------------
+    def toggle_view(self, checked):
+        """Toggle view"""
+        if checked:
+            self.dockwidget.show()
+            self.dockwidget.raise_()
+            # Start a client in case there are none shown
+            if not self.clients:
+                if self.main.is_setting_up:
+                    self.create_new_client(give_focus=False)
+                else:
+                    self.create_new_client(give_focus=True)
+        else:
+            self.dockwidget.hide()
     
     #------ SpyderPluginWidget API --------------------------------------------
     def get_plugin_title(self):
@@ -1006,10 +1013,6 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Update client name
         self.rename_ipyclient_tab(client)
-    
-    def open_client_at_startup(self):
-        if self.get_option('open_ipython_at_startup', False):
-            self.create_new_client(give_focus=False)
     
     def close_related_ipyclients(self, client):
         """Close all IPython clients related to *client*, except itself"""
