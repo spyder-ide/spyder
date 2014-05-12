@@ -39,7 +39,6 @@ class CompletionWidget(QListWidget):
         self.textedit = parent
         self.completion_list = None
         self.case_sensitive = False
-        self.show_single = None
         self.enter_select = None
         self.hide()
         self.connect(self, SIGNAL("itemActivated(QListWidgetItem*)"),
@@ -50,7 +49,7 @@ class CompletionWidget(QListWidget):
         self.setFont(font)
         
     def show_list(self, completion_list, automatic=True):
-        if not self.show_single and len(completion_list) == 1 and not automatic:
+        if len(completion_list) == 1 and not automatic:
             self.textedit.insert_completion(completion_list[0])
             return
         
@@ -206,7 +205,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.completion_widget = CompletionWidget(self, parent)
         self.codecompletion_auto = False
         self.codecompletion_case = True
-        self.codecompletion_single = False
         self.codecompletion_enter = False
         self.calltips = True
         self.calltip_position = None
@@ -293,8 +291,11 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                                      to_qvariant(True))
         selection.format.setBackground(self.currentcell_color)
         selection.cursor, whole_file_selected = self.select_current_cell(True)
-        self.set_extra_selections('current_cell', [selection])
-        self.update_extra_selections()
+        if not whole_file_selected:
+            self.set_extra_selections('current_cell', [selection])
+            self.update_extra_selections()
+        else:
+            self.clear_extra_selections('current_cell')
 
     def unhighlight_current_cell(self):
         """Unhighlight current cell"""
@@ -395,11 +396,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         """Case sensitive completion"""
         self.codecompletion_case = state
         self.completion_widget.case_sensitive = state
-        
-    def set_codecompletion_single(self, state):
-        """Show single completion"""
-        self.codecompletion_single = state
-        self.completion_widget.show_single = state
         
     def set_codecompletion_enter(self, state):
         """Enable Enter key to select completion"""

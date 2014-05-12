@@ -623,7 +623,6 @@ class EditorStack(QWidget):
         self.outlineexplorer_enabled = True
         self.codecompletion_auto_enabled = True
         self.codecompletion_case_enabled = False
-        self.codecompletion_single_enabled = False
         self.codecompletion_enter_enabled = False
         self.calltips_enabled = True
         self.go_to_definition_enabled = True
@@ -947,12 +946,6 @@ class EditorStack(QWidget):
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_codecompletion_case(state)
-                
-    def set_codecompletion_single_enabled(self, state):
-        self.codecompletion_single_enabled = state
-        if self.data:
-            for finfo in self.data:
-                finfo.editor.set_codecompletion_single(state)
                     
     def set_codecompletion_enter_enabled(self, state):
         self.codecompletion_enter_enabled = state
@@ -1869,11 +1862,10 @@ class EditorStack(QWidget):
                 wrap=self.wrap_enabled, tab_mode=self.tabmode_enabled,
                 intelligent_backspace=self.intelligent_backspace_enabled,
                 highlight_current_line=self.highlight_current_line_enabled,
-                highlight_current_cell=self.highlight_current_line_enabled,
+                highlight_current_cell=self.highlight_current_cell_enabled,
                 occurence_highlighting=self.occurence_highlighting_enabled,
                 codecompletion_auto=self.codecompletion_auto_enabled,
                 codecompletion_case=self.codecompletion_case_enabled,
-                codecompletion_single=self.codecompletion_single_enabled,
                 codecompletion_enter=self.codecompletion_enter_enabled,
                 calltips=self.calltips_enabled,
                 go_to_definition=self.go_to_definition_enabled,

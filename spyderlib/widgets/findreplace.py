@@ -356,6 +356,12 @@ class FindReplace(QWidget):
                     cursor.beginEditBlock()
                 else:
                     position1 = self.editor.get_position('cursor')
+                    if is_position_inf(position1,
+                                       position0 + len(replace_text) -
+                                       len(search_text) + 1):
+                        # Identify wrapping even when the replace string
+                        # includes part of the search string
+                        wrapped = True
                     if wrapped:
                         if position1 == position or \
                            is_position_sup(position1, position):
@@ -365,8 +371,6 @@ class FindReplace(QWidget):
                     if position1 == position0:
                         # Avoid infinite loop: single found occurence
                         break
-                    if is_position_inf(position1, position0):
-                        wrapped = True
                     position0 = position1
                 if pattern is None:
                     cursor.removeSelectedText()
