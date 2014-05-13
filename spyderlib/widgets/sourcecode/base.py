@@ -30,7 +30,7 @@ from spyderlib.widgets.mixins import BaseEditMixin
 from spyderlib.widgets.calltip import CallTipWidget
 from spyderlib.py3compat import to_text_string, str_lower
 
-CELL_SEPARATORS = ('#%%', '# %%', '# <codecell>')
+CELL_SEPARATORS = ('#%%', '# %%', '# <codecell>', '# In[')
 
 
 class CompletionWidget(QListWidget):
