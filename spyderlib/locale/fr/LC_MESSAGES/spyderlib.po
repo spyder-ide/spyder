@@ -1,18 +1,20 @@
 # -*- coding: utf-8 -*-
 # Spyder's french translation file
 # Copyright (C) 2009-2011 Pierre Raybaut
-# 
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
 "POT-Creation-Date: 2014-01-04 15:22+Paris, Madrid\n"
-"PO-Revision-Date: 2011-04-11 21:41+2\n"
-"Last-Translator: Pierre Raybaut\n"
+"PO-Revision-Date: 2014-05-13 23:59+0100\n"
+"Last-Translator: Joseph Martinot-Lagarde <contrebasse@gmail.com>\n"
 "Language-Team: Python\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
-"Content-Transfer-Encoding: utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
 "Generated-By: pygettext.py 1.5\n"
+"Language: fr\n"
+"X-Generator: Poedit 1.6.4\n"
 
 #: spyderlib\config.py:46
 msgid "Python files"
@@ -1530,6 +1532,10 @@ msgid ""
 "your external interpreter.</li></ol>In any case, we're sorry but we can't "
 "create a console for you."
 msgstr ""
+"<ol><li>Soit les versions de votre interface IPython et du noyau sont "
+"<b>incompatibles</b>,</li><li>Soit IPython <b>n'est pas</b> installé pour "
+"votre interpréteur externe.</li></ol>Dans tous les cas nous sommes désolés "
+"mais nous ne pouvons ouvrir une console pour vous."
 
 #: spyderlib\plugins\externalconsole.py:968
 msgid "Command Window"
@@ -1679,7 +1685,9 @@ msgid ""
 "The Object Inspector can automatically show an object's help information "
 "after a left parenthesis is written next to it. Below you can decide to "
 "which plugin you want to connect it to turn on this feature."
-msgstr "L'inspecteur d'objet peut automatiquement afficher l'aide sur un objet dès l'ouverture d'une parenthèse."
+msgstr ""
+"L'inspecteur d'objet peut automatiquement afficher l'aide sur un objet dès "
+"l'ouverture d'une parenthèse."
 
 #: spyderlib\plugins\inspector.py:137
 msgid "Python Console"
@@ -1999,25 +2007,28 @@ msgid "Open an IPython console at startup"
 msgstr "Ouvrir une console IPython au démarrage"
 
 #: spyderlib\plugins\ipythonconsole.py:265
-#, fuzzy
 msgid "Greedy completion"
-msgstr "Entrée valide la complétion de code"
+msgstr "Complétion avancée"
 
 #: spyderlib\plugins\ipythonconsole.py:266
 msgid ""
 "Enable <tt>Tab</tt> completion on elements of lists, results of function "
 "calls, etc, <i>without</i> assigning them to a variable.<br>For example, you "
-"can get completions on things like <tt>li[0].&lt;Tab&gt;</tt> or <tt>ins.meth"
-"().&lt;Tab&gt;</tt>"
+"can get completions on things like <tt>li[0].&lt;Tab&gt;</tt> or <tt>ins."
+"meth().&lt;Tab&gt;</tt>"
 msgstr ""
+"Active la complétion par <tt>Tab</tt> sur les éléments de liste, les "
+"résultats de fonctions, etc... <i>sans</i> les avoir assignés à une variable."
+"<br>Par exemple vous pourrez avoir la complétion pour des expressions du "
+"type <tt>li[0].&lt;Tab&gt;</tt> ou <tt>ins.meth().&lt;Tab&gt;</tt>."
 
 #: spyderlib\plugins\ipythonconsole.py:274
 msgid "Use the greedy completer"
-msgstr ""
+msgstr "Utiliser la complétion avancée"
 
 #: spyderlib\plugins\ipythonconsole.py:285
 msgid "Autocall"
-msgstr ""
+msgstr "Appel automatique"
 
 #: spyderlib\plugins\ipythonconsole.py:286
 msgid ""
@@ -2025,23 +2036,25 @@ msgid ""
 "didn't type explicit parentheses.<br>For example, if you type <i>str 43</i> "
 "it becomes <i>str(43)</i> automatically."
 msgstr ""
+"L'appel automatique dans IPython va automatiquement appeler les objets "
+"appelables même sans parenthèses explicites.<br>Par exemple <tt>str 43</tt> "
+"deviendra automatiquement <tt>str(43)</tt>."
 
 #: spyderlib\plugins\ipythonconsole.py:293
-#, fuzzy
 msgid "Smart"
-msgstr "Démarrage"
+msgstr "Intelligent"
 
 #: spyderlib\plugins\ipythonconsole.py:294
 msgid "Full"
-msgstr ""
+msgstr "Toujours"
 
 #: spyderlib\plugins\ipythonconsole.py:295
 msgid "Off"
-msgstr ""
+msgstr "Désactivé"
 
 #: spyderlib\plugins\ipythonconsole.py:297
 msgid "Autocall:  "
-msgstr ""
+msgstr "Appel automatique :"
 
 #: spyderlib\plugins\ipythonconsole.py:298
 msgid ""
@@ -2049,26 +2062,34 @@ msgid ""
 "the callable. On <b>%s</b> mode, all callable objects are automatically "
 "called (even if no arguments are present)."
 msgstr ""
+"En mode <b>%s</b>, l'appel automatique n'est pas activé si il n'y a pas "
+"d'arguments. En mode <b>%s</b>, tous les objets appelables sont "
+"automatiquement appelés (même s'il n'y a pas d'arguments)"
 
 #: spyderlib\plugins\ipythonconsole.py:310
 msgid "Symbolic Mathematics"
-msgstr ""
+msgstr "Calcul formel"
 
 #: spyderlib\plugins\ipythonconsole.py:311
 msgid ""
 "Perfom symbolic operations in the console (e.g. integrals, derivatives, "
 "vector calculus, etc) and get the outputs in a beautifully printed style."
 msgstr ""
+"Utilise le calcul formel pour réaliser des opérations dans la console (par "
+"exemple intégrales, dérivées, calcul vectoriel, etc...) et affiche les "
+"résultats de manière élégante."
 
 #: spyderlib\plugins\ipythonconsole.py:316
 msgid "Use symbolic math"
-msgstr ""
+msgstr "Utiliser le calcul formel"
 
 #: spyderlib\plugins\ipythonconsole.py:317
 msgid ""
 "This option loads the Sympy library to work with.<br>Please refer to its "
 "documentation to learn how to use it."
 msgstr ""
+"Activer cette option permet de travailler avec la bibliothèque Sympy."
+"<br>Merci de consulter la documentation pour savoir comment l'utiliser."
 
 #: spyderlib\plugins\ipythonconsole.py:330
 msgid ""
@@ -2079,32 +2100,34 @@ msgstr ""
 "Ce dernier n'est apparemment pas installé."
 
 #: spyderlib\plugins\ipythonconsole.py:335
-#, fuzzy
 msgid "Prompts"
-msgstr "Propriétés"
+msgstr "Invites de commande"
 
 #: spyderlib\plugins\ipythonconsole.py:336
 msgid "Modify how Input and Output prompts are shown in the console."
 msgstr ""
+"Change l'affichage des invites de commande d'entrée et de sortie de la "
+"console."
 
 #: spyderlib\plugins\ipythonconsole.py:339
-#, fuzzy
 msgid "Input prompt:"
-msgstr "Copier sans les préfixes"
+msgstr "En entrée :"
 
 #: spyderlib\plugins\ipythonconsole.py:341
 msgid ""
 "Default is<br>In [&lt;span class=\"in-prompt-number\"&gt;%i&lt;/span&gt;]:"
 msgstr ""
+"Par défaut :<br>In [&lt;span class=\"in-prompt-number\"&gt;%i&lt;/span&gt;]:"
 
 #: spyderlib\plugins\ipythonconsole.py:345
 msgid "Output prompt:"
-msgstr ""
+msgstr "En sortie :"
 
 #: spyderlib\plugins\ipythonconsole.py:347
 msgid ""
 "Default is<br>Out[&lt;span class=\"out-prompt-number\"&gt;%i&lt;/span&gt;]:"
 msgstr ""
+"Par défaut :<br>Out[&lt;span class=\"out-prompt-number\"&gt;%i&lt;/span&gt;]:"
 
 #: spyderlib\plugins\ipythonconsole.py:363
 msgid "Graphics"
@@ -2153,13 +2176,16 @@ msgstr "Impossible de se connecter au noyau IPython <b>`%s`"
 
 #: spyderlib\plugins\ipythonconsole.py:726
 msgid "Mismatch between kernel and frontend"
-msgstr ""
+msgstr "Incompatibilité entre le noyau et l'interface"
 
 #: spyderlib\plugins\ipythonconsole.py:727
 msgid ""
 "Your IPython frontend and kernel versions are <b>incompatible!!</"
 "b><br><br>We're sorry but we can't create an IPython console for you."
 msgstr ""
+"Les versions d'IPython de votre noyau et de l'interface sont "
+"<b>incompatibles !!</b><br><br>Nous sommes désolés, mais nous ne pouvons pas "
+"vous ouvrir une console IPython."
 
 #: spyderlib\plugins\ipythonconsole.py:952
 msgid ""
@@ -3421,8 +3447,8 @@ msgstr "Enregistrer"
 #: spyderlib\widgets\editor.py:1420
 msgid "<b>Unable to save script '%s'</b><br><br>Error message:<br>%s"
 msgstr ""
-"<b>Impossible d'enregistrer le script '%s'</b><br><br>Message d'erreur :<br>%"
-"s"
+"<b>Impossible d'enregistrer le script '%s'</b><br><br>Message d'erreur :<br>"
+"%s"
 
 #: spyderlib\widgets\editor.py:1442
 msgid "Save Python script"
@@ -3603,8 +3629,8 @@ msgstr "Nouveau nom :"
 
 #: spyderlib\widgets\explorer.py:504
 msgid ""
-"Do you really want to rename <b>%s</b> and overwrite the existing file <b>%"
-"s</b>?"
+"Do you really want to rename <b>%s</b> and overwrite the existing file <b>"
+"%s</b>?"
 msgstr ""
 "Souhaitez-vous réellement renommer <b>%s</b> et remplacer le ficher existant "
 "<b>%s</b> ?"
@@ -3836,13 +3862,12 @@ msgid "No argument"
 msgstr "Aucun argument"
 
 #: spyderlib\widgets\externalshell\pythonshell.py:524
-#, fuzzy
 msgid ""
 "The kernel failed to start!! That's all we know... Please close this console "
 "and open a new one."
 msgstr ""
-"Le démarrage de la console a échoué !<br>C'est malheureusement tout ce que "
-"nous savons...<br>Merci de fermer la console et d'en réouvrir une autre."
+"Le démarrage du noyau a échoué !! C'est malheureusement tout ce que nous "
+"savons... Merci de fermer cette console et d'en ouvrir une nouvelle."
 
 #: spyderlib\widgets\externalshell\pythonshell.py:528
 msgid "A Python console failed to start!"
@@ -4176,7 +4201,7 @@ msgstr ""
 
 #: spyderlib\widgets\ipython.py:593
 msgid "Connecting to kernel..."
-msgstr "Connexion à un noyau existant..."
+msgstr "Connexion au noyau..."
 
 #: spyderlib\widgets\onecolumntree.py:63
 msgid "Collapse all"
@@ -4334,8 +4359,8 @@ msgid ""
 "The workspace was unable to load or save %s<br><br>Please check if you have "
 "the permission to write the associated configuration files."
 msgstr ""
-"L'espace de travail n'est pas parvenu à ouvrir ou enregistrer %"
-"s<br><br>Veuillez vérifier que vous disposez bien des droits d'écriture sur "
+"L'espace de travail n'est pas parvenu à ouvrir ou enregistrer "
+"%s<br><br>Veuillez vérifier que vous disposez bien des droits d'écriture sur "
 "les fichiers de configuration associés."
 
 #: spyderlib\widgets\projectexplorer.py:743
@@ -4449,8 +4474,8 @@ msgid ""
 "Statistics on source files only:<br>(Python, C/C++, Fortran)<br><br><b>%s</"
 "b> files.<br><b>%s</b> lines of code."
 msgstr ""
-"Statistique sur les fichiers source uniquement:<br>(Python, C/C++, Fortran)"
-"<br><br><b>%s</b> fichiers.<br><b>%s</b> lignes de code."
+"Statistique sur les fichiers source uniquement:<br>(Python, C/C++, "
+"Fortran)<br><br><b>%s</b> fichiers.<br><b>%s</b> lignes de code."
 
 #: spyderlib\widgets\projectexplorer.py:1137
 msgid "File <b>%s</b> already exists.<br>Do you want to overwrite it?"
@@ -4703,8 +4728,8 @@ msgstr "Éditeur de texte"
 #~ "found.<br><br><u>Supported IPython versions</u>: %s"
 #~ msgstr ""
 #~ "Impossible d'ouvrir une console IPython car aucune version prise en "
-#~ "charge n'est installée.<br><br><u>Versions IPython prises en charge</u>: %"
-#~ "s"
+#~ "charge n'est installée.<br><br><u>Versions IPython prises en charge</u>: "
+#~ "%s"
 
 #~ msgid "&Interpreters"
 #~ msgstr "&Interpréteurs"
@@ -5014,8 +5039,8 @@ msgstr "Éditeur de texte"
 #~ msgstr "Attention :"
 
 #~ msgid ""
-#~ "<i>%s</i> is not properly installed<br>(opening a terminal and typing \"%"
-#~ "s script.py\" do not work)"
+#~ "<i>%s</i> is not properly installed<br>(opening a terminal and typing "
+#~ "\"%s script.py\" do not work)"
 #~ msgstr ""
 #~ "<i>%s</i> n'est pas installé correctement<br>(l'exécution dans un "
 #~ "terminal de \"%s script.py\" ne fonctionne pas)"
