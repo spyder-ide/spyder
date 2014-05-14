@@ -13,6 +13,7 @@ from spyderlib.qt.QtGui import (QDialog, QTableView, QColor, QGridLayout,
 from spyderlib.qt.compat import to_qvariant, from_qvariant
 from spyderlib.utils.qthelpers import qapplication, get_icon
 from spyderlib.widgets.dicteditorutils import get_color_name
+from spyderlib.py3compat import to_text_string
 from numpy import int64
 from pandas import DataFrame, TimeSeries
 
@@ -47,7 +48,7 @@ class DataFrameModel(QAbstractTableModel):
             if section == 0:
                 return 'Index'
             else:
-                return to_qvariant(str(self.df.columns.tolist()[section-1]))
+                return to_qvariant(to_text_string(self.df.columns.tolist()[section-1]))
         else:
             return to_qvariant()
 
@@ -67,9 +68,9 @@ class DataFrameModel(QAbstractTableModel):
             return to_qvariant()
         if role == Qt.DisplayRole or role == Qt.EditRole:
             if index.column() == 0:
-                return to_qvariant(str(self.df.index.tolist()[index.row()]))
+                return to_qvariant(to_text_string(self.df.index.tolist()[index.row()]))
             else:
-                return to_qvariant(str(self.df.ix[index.row(),
+                return to_qvariant(to_text_string(self.df.ix[index.row(),
                                                   index.column()-1]))
         elif role == Qt.BackgroundColorRole:
             return to_qvariant(self.get_bgcolor(index))
