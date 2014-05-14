@@ -461,6 +461,7 @@ class MainWindow(QMainWindow):
         # Flags used if closing() is called by the exit() shell command
         self.already_closed = False
         self.is_starting_up = True
+        self.is_setting_up = True
         
         self.floating_dockwidgets = []
         self.window_size = None
@@ -1166,13 +1167,14 @@ class MainWindow(QMainWindow):
             self.connect(self, SIGNAL('open_external_file(QString)'),
                          lambda fname: self.open_external_file(fname))
         
-        # Open a Python or IPython console at startup
+        # Create Plugins and toolbars submenus
+        if not self.light:
+            self.create_plugins_menu()
+            self.create_toolbars_menu()
+        
+        # Open a Python console for light mode
         if self.light:
             self.extconsole.open_interpreter()
-        else:
-            self.extconsole.open_interpreter_at_startup()
-            if self.ipyconsole is not None:
-                self.ipyconsole.open_client_at_startup()
         self.extconsole.setMinimumHeight(0)
         
         # Hide Internal Console so that people doesn't use it instead of
@@ -1180,15 +1182,10 @@ class MainWindow(QMainWindow):
         if self.console.dockwidget.isVisible() and DEV is None:
             self.console.dockwidget.hide()
         
-        # Create Plugins and toolbars submenus
-        if not self.light:
-            self.create_plugins_menu()
-            self.create_toolbars_menu()
-        
         # Show the Object Inspector and Consoles by default
         plugins_to_show = [self.inspector]
         if self.ipyconsole is not None:
-            if CONF.get('ipython_console', 'open_ipython_at_startup'):
+            if self.ipyconsole.isvisible:
                 plugins_to_show += [self.extconsole, self.ipyconsole]
             else:
                 plugins_to_show += [self.ipyconsole, self.extconsole]
@@ -1198,9 +1195,19 @@ class MainWindow(QMainWindow):
             if plugin.dockwidget.isVisible():
                 plugin.dockwidget.raise_()
         
+        # Show history file if no console is visible
+        ipy_visible = self.ipyconsole is not None and self.ipyconsole.isvisible
+        if not self.extconsole.isvisible and not ipy_visible:
+            self.historylog.add_history(get_conf_path('history.py'))
+        
         # Give focus to the Editor
         if self.editor.dockwidget.isVisible():
-            self.editor.get_focus_widget().setFocus()
+            try:
+                self.editor.get_focus_widget().setFocus()
+            except AttributeError:
+                pass
+        
+        self.is_setting_up = False
         
     def load_window_settings(self, prefix, default=False, section='main'):
         """Load window layout settings from userconfig-based configuration

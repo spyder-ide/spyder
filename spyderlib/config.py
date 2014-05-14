@@ -216,7 +216,6 @@ DEFAULTS = [
               'codecompletion/auto': False,
               'codecompletion/enter_key': True,
               'codecompletion/case_sensitive': True,
-              'codecompletion/show_single': False,
               'external_editor/path': 'SciTE',
               'external_editor/gotoline': '-goto:',
               'light_background': True,
@@ -236,7 +235,6 @@ DEFAULTS = [
               'codecompletion/auto': True,
               'codecompletion/enter_key': True,
               'codecompletion/case_sensitive': True,
-              'codecompletion/show_single': False,
               'show_elapsed_time': False,
               'show_icontext': False,
               'monitor/enabled': True,
@@ -256,7 +254,6 @@ DEFAULTS = [
               'light_background': True,
               'merge_output_channels': os.name != 'nt',
               'colorize_sys_stderr': os.name != 'nt',
-              'open_python_at_startup': True,
               'pythonstartup/default': True,
               'pythonstartup/custom': False,
               'pythonexecutable/default': True,
@@ -272,7 +269,7 @@ DEFAULTS = [
               'font/bold': False,
               'show_banner': True,
               'use_gui_completion': True,
-              'use_pager': True,
+              'use_pager': False,
               'show_calltips': True,
               'ask_before_closing': True,
               'object_inspector': True,
@@ -287,7 +284,6 @@ DEFAULTS = [
               'startup/run_lines': '',
               'startup/use_run_file': False,
               'startup/run_file': '',
-              'open_ipython_at_startup': True,
               'greedy_completer': False,
               'autocall': 0,
               'symbolic_math': False,
@@ -348,7 +344,6 @@ DEFAULTS = [
               'codecompletion/auto': True,
               'codecompletion/enter_key': True,
               'codecompletion/case_sensitive': True,
-              'codecompletion/show_single': False,
               'check_eol_chars': True,
               'tab_always_indent': False,
               'intelligent_backspace': True,
@@ -719,19 +714,18 @@ DEFAULTS = [
 #==============================================================================
 # Config instance
 #==============================================================================
-# IMPORTANT NOTES FOR DEVELOPERS:
+# IMPORTANT NOTES:
 # 1. If you want to *change* the default value of a current option, you need to
 #    do a MINOR update in config version, e.g. from 3.0.0 to 3.1.0
 # 2. If you want to *remove* options that are no longer needed in our codebase,
 #    you need to do a MAJOR update in version, e.g. from 3.0.0 to 4.0.0
-CONF_VERSION = '3.2.0'
-
+# 3. You don't need to touch this value if you're just adding a new option
+CONF_VERSION = '5.0.0'
 
 # XXX: Previously we had load=(not DEV) here but DEV was set to *False*.
 # Check if it *really* needs to be updated or not
 CONF = UserConfig('spyder', defaults=DEFAULTS, load=True, version=CONF_VERSION,
                   subfolder=SUBFOLDER, backup=True, raw_mode=True)
-
 
 # Removing old .spyder.ini location:
 old_location = osp.join(get_home_dir(), '.spyder.ini')
