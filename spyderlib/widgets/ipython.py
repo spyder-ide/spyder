@@ -132,11 +132,9 @@ class IPythonControlWidget(TracebackLinksMixin, InspectObjectMixin, QTextEdit,
         """Reimplement Qt Method - Basic keypress event handler"""
         event, text, key, ctrl, shift = restore_keyevent(event)
         
-        if key == Qt.Key_Question and not self.has_selected_text() and \
-          self.set_inspector_enabled:
+        if key == Qt.Key_Question and not self.has_selected_text():
             self._key_question(text)
-        elif key == Qt.Key_ParenLeft and not self.has_selected_text() \
-          and self.set_inspector_enabled:
+        elif key == Qt.Key_ParenLeft and not self.has_selected_text():
             self._key_question(text)
         else:
             # Let the parent widget handle the key press event

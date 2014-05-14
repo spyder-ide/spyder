@@ -160,8 +160,6 @@ class EditorConfigPage(PluginConfigPage):
                                    'codecompletion/auto')
             case_comp_box = newcb(_("Case sensitive code completion"),
                                   'codecompletion/case_sensitive')
-            show_single_box = newcb(_("Show single completion"),
-                                    'codecompletion/show_single')
             comp_enter_box = newcb(_("Enter key selects completion"),
                                    'codecompletion/enter_key')
             calltips_box = newcb(_("Display balloon tips"), 'calltips')
@@ -262,7 +260,6 @@ class EditorConfigPage(PluginConfigPage):
             introspection_layout.addWidget(calltips_box)
             introspection_layout.addWidget(completion_box)
             introspection_layout.addWidget(case_comp_box)
-            introspection_layout.addWidget(show_single_box)
             introspection_layout.addWidget(comp_enter_box)
             introspection_layout.addWidget(gotodef_box)
         else:
@@ -1062,7 +1059,6 @@ class Editor(SpyderPluginWidget):
             ('set_outlineexplorer_enabled',         'outline_explorer'),
             ('set_codecompletion_auto_enabled',     'codecompletion/auto'),
             ('set_codecompletion_case_enabled',     'codecompletion/case_sensitive'),
-            ('set_codecompletion_single_enabled',   'codecompletion/show_single'),
             ('set_codecompletion_enter_enabled',    'codecompletion/enter_key'),
             ('set_calltips_enabled',                'calltips'),
             ('set_go_to_definition_enabled',        'go_to_definition'),
@@ -2171,8 +2167,6 @@ class Editor(SpyderPluginWidget):
             autocomp_o = self.get_option(autocomp_n)
             case_comp_n = 'codecompletion/case_sensitive'
             case_comp_o = self.get_option(case_comp_n)
-            show_single_n = 'codecompletion/show_single'
-            show_single_o = self.get_option(show_single_n)
             enter_key_n = 'codecompletion/enter_key'
             enter_key_o = self.get_option(enter_key_n)
             calltips_n = 'calltips'
@@ -2234,8 +2228,6 @@ class Editor(SpyderPluginWidget):
                     editorstack.set_codecompletion_auto_enabled(autocomp_o)
                 if case_comp_n in options:
                     editorstack.set_codecompletion_case_enabled(case_comp_o)
-                if show_single_n in options:
-                    editorstack.set_codecompletion_single_enabled(show_single_o)
                 if enter_key_n in options:
                     editorstack.set_codecompletion_enter_enabled(enter_key_o)
                 if calltips_n in options:

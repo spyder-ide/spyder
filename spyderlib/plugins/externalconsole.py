@@ -137,8 +137,6 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                                'codecompletion/auto')
         case_comp_box = newcb(_("Case sensitive code completion"),
                               'codecompletion/case_sensitive')
-        show_single_box = newcb(_("Show single completion"),
-                               'codecompletion/show_single')
         comp_enter_box = newcb(_("Enter key selects completion"),
                                'codecompletion/enter_key')
         calltips_box = newcb(_("Display balloon tips"), 'calltips')
@@ -146,7 +144,6 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         source_layout = QVBoxLayout()
         source_layout.addWidget(completion_box)
         source_layout.addWidget(case_comp_box)
-        source_layout.addWidget(show_single_box)
         source_layout.addWidget(comp_enter_box)
         source_layout.addWidget(calltips_box)
         source_group.setLayout(source_layout)
@@ -222,15 +219,6 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         pyexec_layout.addWidget(pyexec_file)
         pyexec_group.setLayout(pyexec_layout)
         
-        # Startup Group
-        startup_group = QGroupBox(_("Startup"))
-        pystartup_box = newcb(_("Open a Python interpreter at startup"),
-                              'open_python_at_startup')
-        
-        startup_layout = QVBoxLayout()
-        startup_layout.addWidget(pystartup_box)
-        startup_group.setLayout(startup_layout)
-        
         # PYTHONSTARTUP replacement
         pystartup_group = QGroupBox(_("PYTHONSTARTUP replacement"))
         pystartup_bg = QButtonGroup(pystartup_group)
@@ -271,8 +259,8 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                                  "to accelerate console startup."))
         monitor_label.setWordWrap(True)
         monitor_box = newcb(_("Enable monitor"), 'monitor/enabled')
-        for obj in (completion_box, case_comp_box, show_single_box,
-                    comp_enter_box, calltips_box):
+        for obj in (completion_box, case_comp_box, comp_enter_box,
+                    calltips_box):
             self.connect(monitor_box, SIGNAL("toggled(bool)"), obj.setEnabled)
             obj.setEnabled(self.get_option('monitor/enabled'))
         
@@ -414,8 +402,7 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                     _("Display"))
         tabs.addTab(self.create_tab(monitor_group, source_group),
                     _("Introspection"))
-        tabs.addTab(self.create_tab(pyexec_group, startup_group,
-                                    pystartup_group, umd_group),
+        tabs.addTab(self.create_tab(pyexec_group, pystartup_group, umd_group),
                     _("Advanced settings"))
         tabs.addTab(self.create_tab(qt_group, mpl_group, ets_group),
                     _("External modules"))
@@ -884,8 +871,6 @@ class ExternalConsole(SpyderPluginWidget):
                             self.get_option('codecompletion/auto') )
         shellwidget.shell.set_codecompletion_case(
                             self.get_option('codecompletion/case_sensitive') )
-        shellwidget.shell.set_codecompletion_single(
-                            self.get_option('codecompletion/show_single') )
         shellwidget.shell.set_codecompletion_enter(
                             self.get_option('codecompletion/enter_key') )
         if python and self.inspector is not None:
@@ -1219,8 +1204,6 @@ class ExternalConsole(SpyderPluginWidget):
         compauto_o = self.get_option(compauto_n)
         case_comp_n = 'codecompletion/case_sensitive'
         case_comp_o = self.get_option(case_comp_n)
-        show_single_n = 'codecompletion/show_single'
-        show_single_o = self.get_option(show_single_n)
         compenter_n = 'codecompletion/enter_key'
         compenter_o = self.get_option(compenter_n)
         mlc_n = 'max_line_count'
@@ -1247,19 +1230,31 @@ class ExternalConsole(SpyderPluginWidget):
                 shellwidget.shell.set_codecompletion_auto(compauto_o)
             if case_comp_n in options:
                 shellwidget.shell.set_codecompletion_case(case_comp_o)
-            if show_single_n in options:
-                shellwidget.shell.set_codecompletion_single(show_single_o)
             if compenter_n in options:
                 shellwidget.shell.set_codecompletion_enter(compenter_o)
             if mlc_n in options:
                 shellwidget.shell.setMaximumBlockCount(mlc_o)
     
+    #------ SpyderPluginMixin API ---------------------------------------------
+    def toggle_view(self, checked):
+        """Toggle view"""
+        if checked:
+            self.dockwidget.show()
+            self.dockwidget.raise_()
+            # Start a console in case there are none shown
+            from spyderlib.widgets.externalshell import pythonshell
+            consoles = None
+            for sw in self.shellwidgets:
+                if isinstance(sw, pythonshell.ExternalPythonShell):
+                    if not sw.is_ipykernel:
+                        consoles = True
+                        break
+            if not consoles:
+                self.open_interpreter()
+        else:
+            self.dockwidget.hide()
+    
     #------ Public API ---------------------------------------------------------
-    def open_interpreter_at_startup(self):
-        """Open an interpreter or an IPython kernel at startup"""
-        if self.get_option('open_python_at_startup'):
-            self.open_interpreter()
-
     def open_interpreter(self, wdir=None):
         """Open interpreter"""
         if wdir is None:
