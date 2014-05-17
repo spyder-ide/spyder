@@ -551,6 +551,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             cur_pos = cursor.position()
             if cur_pos == prev_pos:
                 return cursor, False
+        prev_pos = cur_pos
         # If not, move backwards to find the previous separator
         while not self.is_cell_separator(cursor):
             cursor.movePosition(QTextCursor.PreviousBlock)
@@ -601,7 +602,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             prev_pos = cur_pos
             cur_pos = cursor.position()
             if cur_pos == prev_pos:
-                return cursor, False
+                return cursor, False, False
+        prev_pos = cur_pos
         # If not, move backwards to find the previous separator
         while not self.is_cell_separator(cursor)\
           and cursor.position() >= beg_pos:
@@ -610,7 +612,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             cur_pos = cursor.position()
             if cur_pos == prev_pos:
                 if self.is_cell_separator(cursor):
-                    return cursor, False
+                    return cursor, False, False
                 else:
                     break
         cell_at_screen_start = cursor.position() <= beg_pos
