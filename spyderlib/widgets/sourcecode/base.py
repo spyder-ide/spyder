@@ -209,6 +209,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.codecompletion_enter = False
         self.calltips = True
         self.calltip_position = None
+        self.has_cell_separators = False        
         self.completion_text = ""
         self.calltip_widget = CallTipWidget(self, hide_timer_on=True)
         
@@ -293,7 +294,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         selection.format.setBackground(self.currentcell_color)
         selection.cursor, whole_file_selected, whole_screen_selected =\
             self.select_current_cell_in_visible_portion()
-        self.has_cell_separators = True # FIXME: This information must come from outline explorer
         if whole_file_selected: 
             self.clear_extra_selections('current_cell')
         elif whole_screen_selected:
@@ -613,7 +613,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                     return cursor, False
                 else:
                     break
-        cell_at_screen_start = cursor.position() < beg_pos
+        cell_at_screen_start = cursor.position() <= beg_pos
             
         cursor.setPosition(prev_pos)
         cell_at_file_start = cursor.atStart()
