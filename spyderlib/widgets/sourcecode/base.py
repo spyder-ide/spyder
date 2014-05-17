@@ -616,14 +616,18 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                 else:
                     break
         cell_at_screen_start = cursor.position() <= beg_pos
-            
         cursor.setPosition(prev_pos)
         cell_at_file_start = cursor.atStart()
+        # Selecting cell header
+        if not cell_at_file_start:
+            cursor.movePosition(QTextCursor.PreviousBlock)
+            cursor.movePosition(QTextCursor.NextBlock,
+                                QTextCursor.KeepAnchor)
         # Once we find it (or reach the beginning of the file)
         # move to the next separator (or the end of the file)
         # so we can grab the cell contents
         while not self.is_cell_separator(cursor)\
-          and cursor.position() < end_pos:
+          and cursor.position() <= end_pos:
             cursor.movePosition(QTextCursor.NextBlock,
                                 QTextCursor.KeepAnchor)
             cur_pos = cursor.position()
