@@ -23,6 +23,7 @@ from spyderlib import dependencies
 from spyderlib.baseconfig import _
 from spyderlib.config import CONF
 from spyderlib.py3compat import builtins, is_text_string, to_text_string
+from spyderlib.widgets.sourcecode.base import CELL_SEPARATORS
 
 
 PYGMENTS_REQVER = '>=1.6'
@@ -239,7 +240,7 @@ def make_python_patterns(additional_keywords=[], additional_builtins=[]):
                      number, any("SYNC", [r"\n"])])
 
 class OutlineExplorerData(object):
-    CLASS, FUNCTION, STATEMENT, COMMENT = list(range(4))
+    CLASS, FUNCTION, STATEMENT, COMMENT, CELL = list(range(5))
     def __init__(self):
         self.text = None
         self.fold_level = None
@@ -250,7 +251,7 @@ class OutlineExplorerData(object):
         return self.def_type not in (self.CLASS, self.FUNCTION)
     
     def is_comment(self):
-        return self.def_type == self.COMMENT
+        return self.def_type in (self.COMMENT, self.CELL)
         
     def get_class_name(self):
         if self.def_type == self.CLASS:
@@ -329,7 +330,13 @@ class PythonSH(BaseSH):
                     else:
                         self.setFormat(start, end-start, self.formats[key])
                         if key == "comment":
-                            if self.OECOMMENT.match(text.lstrip()):
+                            if text.lstrip().startswith(CELL_SEPARATORS):
+                                oedata = OutlineExplorerData()
+                                oedata.text = to_text_string(text).strip()
+                                oedata.fold_level = start
+                                oedata.def_type = OutlineExplorerData.CELL
+                                oedata.def_name = text.strip()
+                            elif self.OECOMMENT.match(text.lstrip()):
                                 oedata = OutlineExplorerData()
                                 oedata.text = to_text_string(text).strip()
                                 oedata.fold_level = start
