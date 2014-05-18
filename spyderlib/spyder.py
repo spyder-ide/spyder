@@ -514,11 +514,11 @@ class MainWindow(QMainWindow):
         if not self.light:
             self.debug_print("  ..core actions")
             self.close_dockwidget_action = create_action(self,
-                                        _("Close current plugin"),
+                                        _("Close current pane"),
                                         triggered=self.close_current_dockwidget,
                                         context=Qt.ApplicationShortcut)
             self.register_shortcut(self.close_dockwidget_action, "_",
-                                   "Close plugin")
+                                   "Close pane")
             
             _text = _("&Find text")
             self.find_action = create_action(self, _text, icon='find.png',
@@ -739,7 +739,7 @@ class MainWindow(QMainWindow):
             self.maximize_action = create_action(self, '',
                                             triggered=self.maximize_dockwidget)
             self.register_shortcut(self.maximize_action, "_",
-                                   "Maximize plugin")
+                                   "Maximize pane")
             self.__update_maximize_action()
             
             # Fullscreen mode
@@ -1612,12 +1612,12 @@ class MainWindow(QMainWindow):
         
     def __update_maximize_action(self):
         if self.state_before_maximizing is None:
-            text = _("Maximize current plugin")
-            tip = _("Maximize current plugin")
+            text = _("Maximize current pane")
+            tip = _("Maximize current pane")
             icon = "maximize.png"
         else:
-            text = _("Restore current plugin")
-            tip = _("Restore plugin to its original size")
+            text = _("Restore current pane")
+            tip = _("Restore pane to its original size")
             icon = "unmaximize.png"
         self.maximize_action.setText(text)
         self.maximize_action.setIcon(get_icon(icon))
