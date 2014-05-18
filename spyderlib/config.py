@@ -549,7 +549,7 @@ DEFAULTS = [
               'editor/previous cursor position': "Ctrl+Alt+Left",
               'editor/next cursor position': "Ctrl+Alt+Right",
               # -- In p_breakpoints
-              'editor/list breakpoints': "Ctrl+B",
+              '_/switch to breakpoints': "Ctrl+Shift+B",
               # ---- Console (in widgets/shell) ----
               'console/inspect current object': "Ctrl+I",
               'console/clear shell': "Ctrl+L",
@@ -720,7 +720,7 @@ DEFAULTS = [
 # 2. If you want to *remove* options that are no longer needed in our codebase,
 #    you need to do a MAJOR update in version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '6.0.0'
+CONF_VERSION = '7.0.0'
 
 # XXX: Previously we had load=(not DEV) here but DEV was set to *False*.
 # Check if it *really* needs to be updated or not
