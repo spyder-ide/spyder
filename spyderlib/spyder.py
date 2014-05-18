@@ -1492,11 +1492,11 @@ class MainWindow(QMainWindow):
         self.replace_action.setEnabled(readwrite_editor)
     
     def create_plugins_menu(self):
-        order = ['editor', 'outline_explorer', 'project_explorer',
-                 'breakpoints', 'pylint', None, 'ipython_console', 'console',
-                 'historylog', 'profiler', None, 'variable_explorer',
-                 'inspector', 'explorer', 'find_in_files', None, 'onlinehelp',
-                 'internal_console']
+        order = ['editor', 'console', 'ipython_console', 'variable_explorer',
+                 'inspector', None, 'explorer', 'outline_explorer',
+                 'project_explorer', 'find_in_files', None, 'historylog',
+                 'profiler', 'breakpoints', 'pylint', None,
+                 'onlinehelp', 'internal_console']
         for plugin in self.widgetlist:
             action = plugin.toggle_view_action
             action.setChecked(plugin.dockwidget.isVisible())
