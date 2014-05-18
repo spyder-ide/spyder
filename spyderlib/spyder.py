@@ -1516,11 +1516,21 @@ class MainWindow(QMainWindow):
         add_actions(self.plugins_menu, actions)
     
     def create_toolbars_menu(self):
-        actions = []
+        order = ['file_toolbar', 'run_toolbar', 'debug_toolbar',
+                 'main_toolbar', 'Global working directory', None,
+                 'search_toolbar', 'edit_toolbar', 'source_toolbar']
         for toolbar in self.toolbarslist:
             action = toolbar.toggleViewAction()
-            actions.append(action)
-        add_actions(self.toolbars_menu, actions)
+            name = toolbar.objectName()
+            try:
+                pos = order.index(name)
+            except ValueError:
+                pos = None
+            if pos is not None:
+                order[pos] = action
+            else:
+                order.append(action)
+        add_actions(self.toolbars_menu, order)
     
     def createPopupMenu(self):
         if self.light:
