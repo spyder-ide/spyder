@@ -1698,15 +1698,6 @@ class MainWindow(QMainWindow):
 
     def about(self):
         """About Spyder"""
-        not_installed = _('(not installed)')
-        try:
-            from pyflakes import __version__ as pyflakes_version
-        except ImportError:
-            pyflakes_version = not_installed  # analysis:ignore
-        try:
-            from rope import VERSION as rope_version
-        except ImportError:
-            rope_version = not_installed  # analysis:ignore
         versions = get_versions()
         # Show Mercurial revision for development version
         revlink = ''
@@ -1718,19 +1709,14 @@ class MainWindow(QMainWindow):
         QMessageBox.about(self,
             _("About %s") % "Spyder",
             """<b>Spyder %s</b> %s
-            <br>Scientific PYthon Development EnviRonment
+            <br>The Scientific PYthon Development EnviRonment
             <p>Copyright &copy; 2009-2012 Pierre Raybaut
             <br>Licensed under the terms of the MIT License
             <p>Created by Pierre Raybaut
             <br>Developed and maintained by the 
             <a href="%s/people/list">Spyder Development Team</a>
             <br>Many thanks to all the Spyder beta-testers and regular users.
-            <p>Source code editor: Python code real-time analysis is powered by 
-            %spyflakes %s%s (&copy; 2005 
-            <a href="http://www.divmod.com/">Divmod, Inc.</a>) and other code 
-            introspection features (completion, go-to-definition, ...) are 
-            powered by %srope %s%s (&copy; 2006-2009 Ali Gholami Rudi)
-            <p>Most of the icons are coming from the %sCrystal Project%s 
+            <p>Most of the icons come from the Crystal Project 
             (&copy; 2006-2007 Everaldo Coelho). Other icons by 
             <a href="http://p.yusukekamiyamane.com/"> Yusuke Kamiyamane</a> 
             (All rights reserved) and by 
@@ -1751,10 +1737,6 @@ class MainWindow(QMainWindow):
             also contribute to this plan.
             <p>Python %s %dbits, Qt %s, %s %s on %s"""
             % (versions['spyder'], revlink, __project_url__,
-               "<span style=\'color: #444444\'><b>", pyflakes_version,
-               "</b></span>", "<span style=\'color: #444444\'><b>",
-               rope_version, "</b></span>",
-               "<span style=\'color: #444444\'><b>", "</b></span>",
                __project_url__, __forum_url__, versions['python'],
                versions['bitness'], versions['qt'], versions['qt_api'],
                versions['qt_api_ver'], versions['system']))
