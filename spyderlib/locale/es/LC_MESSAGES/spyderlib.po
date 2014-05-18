@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
 "POT-Creation-Date: 2014-05-18 13:23+COT\n"
-"PO-Revision-Date: 2013-10-12 20:19-0500\n"
+"PO-Revision-Date: 2014-05-18 13:50-0500\n"
 "Last-Translator: Carlos Cordoba <ccordoba12@gmail.com>\n"
 "Language-Team: Python\n"
 "Language: es\n"
@@ -51,9 +51,8 @@ msgid "MATLAB files"
 msgstr "Archivos MATLAB"
 
 #: spyderlib/config.py:36
-#, fuzzy
 msgid "Julia files"
-msgstr "Todos los archivos"
+msgstr "Archivos Julia"
 
 #: spyderlib/config.py:37
 msgid "Patch and diff files"
@@ -246,9 +245,8 @@ msgid "Current line:"
 msgstr "Línea seleccionada:"
 
 #: spyderlib/plugins/configdialog.py:768
-#, fuzzy
 msgid "Current cell:"
-msgstr "Línea seleccionada:"
+msgstr "Celda seleccionada:"
 
 #: spyderlib/plugins/configdialog.py:769
 msgid "Occurence:"
@@ -472,9 +470,8 @@ msgid "Highlight current line"
 msgstr "Resaltar la línea actual"
 
 #: spyderlib/plugins/editor.py:123
-#, fuzzy
 msgid "Highlight current cell"
-msgstr "Resaltar la línea actual"
+msgstr "Resaltar la celda actual"
 
 #: spyderlib/plugins/editor.py:125
 msgid "Highlight occurences after"
@@ -645,9 +642,8 @@ msgstr ""
 "esta guía de estilo serán resaltadas."
 
 #: spyderlib/plugins/editor.py:238
-#, fuzzy
 msgid "Tasks (TODO, FIXME, XXX, HINT, TIP, @todo)"
-msgstr "Tareas (TODO, FIXME, XXX, HINT, TIP)"
+msgstr "Tareas (TODO, FIXME, XXX, HINT, TIP, @todo)"
 
 #: spyderlib/plugins/editor.py:241
 msgid "Perform analysis when saving file and every"
@@ -909,11 +905,10 @@ msgid "Show todo list"
 msgstr "Mostrar lista de TODO's"
 
 #: spyderlib/plugins/editor.py:764
-#, fuzzy
 msgid "Show TODO/FIXME/XXX/HINT/TIP/@todo comments list"
 msgstr ""
 "Mostrar la lista de comentarios de\n"
-"los TODO/FIXME/XXX/HINT/TIP"
+"los TODO/FIXME/XXX/HINT/TIP/@todo"
 
 #: spyderlib/plugins/editor.py:772
 msgid "Show warning/error list"
@@ -1133,9 +1128,8 @@ msgid "Spyder Editor"
 msgstr "Editor de Spyder"
 
 #: spyderlib/plugins/editor.py:1428
-#, fuzzy
 msgid "This is a temporary script file."
-msgstr "Este archivo temporal se encuentra aquí:"
+msgstr "Este es archivo temporal"
 
 #: spyderlib/plugins/editor.py:1488
 msgid "untitled"
@@ -1530,16 +1524,16 @@ msgid "Kernel"
 msgstr "Núcleo"
 
 #: spyderlib/plugins/externalconsole.py:931
-#, fuzzy
 msgid ""
 "Either:<ol><li>Your IPython frontend and kernel versions are "
 "<b>incompatible</b> or</li><li>You <b>don't have</b> IPython installed in "
 "your external interpreter.</li></ol>In any case, we're sorry but we can't "
 "create a console for you."
 msgstr ""
-"Sus versiones del núcleo y la interfaz gráfica de IPython son "
-"<b>incompatibles!!</b><br><br>Lo lamentamos pero no podemos crear una "
-"terminal de IPython para usted."
+"O bien:<ol><li>Sus versiones del núcleo y la interfaz gráfica de IPython son "
+"<b>incompatibles</b> o</li><li>Usted <b>no tiene</b> IPython instalado en su "
+"intérprete externo.</li></ol>Lo lamentamos, pero en cualquier caso no "
+"podemos crear una terminal de IPython para usted."
 
 #: spyderlib/plugins/externalconsole.py:955
 msgid "Command Window"
@@ -1550,9 +1544,8 @@ msgid "Terminal"
 msgstr "Terminal"
 
 #: spyderlib/plugins/externalconsole.py:1095
-#, fuzzy
 msgid "Open a &Python console"
-msgstr "Abrir una terminal de IPython"
+msgstr "Abrir una terminal de Python"
 
 #: spyderlib/plugins/externalconsole.py:1098
 msgid "Open &command prompt"
@@ -1563,14 +1556,12 @@ msgid "Open a Windows command prompt"
 msgstr "Abre el símbolo del sistema de Windows"
 
 #: spyderlib/plugins/externalconsole.py:1101
-#, fuzzy
 msgid "Open a &terminal"
 msgstr "Abrir &terminal de comandos"
 
 #: spyderlib/plugins/externalconsole.py:1102
-#, fuzzy
 msgid "Open a terminal window"
-msgstr "Abre una terminal del sistema (en Windows, dentro de Spyder)"
+msgstr "Abre una terminal del sistema"
 
 #: spyderlib/plugins/externalconsole.py:1270
 msgid "Open an IPython console"
@@ -1684,9 +1675,8 @@ msgid "Rich text font style"
 msgstr "Fuente para el texto enriquecido"
 
 #: spyderlib/plugins/inspector.py:125
-#, fuzzy
 msgid "Automatic connections"
-msgstr "Completar código automáticamente"
+msgstr "Conexiones automáticas"
 
 #: spyderlib/plugins/inspector.py:126
 msgid ""
@@ -1694,14 +1684,15 @@ msgid ""
 "after a left parenthesis is written next to it. Below you can decide to "
 "which plugin you want to connect it to turn on this feature."
 msgstr ""
+"El Inspector de Objetos puede mostrar automáticamente la ayuda de un objeto "
+"después de escribir un paréntesis junto al mismo. A continuación puede "
+"decidir a que panel desea conectarlo para activar esta característica."
 
 #: spyderlib/plugins/inspector.py:137
-#, fuzzy
 msgid "Python Console"
 msgstr "Terminal de IPython"
 
 #: spyderlib/plugins/inspector.py:139
-#, fuzzy
 msgid "IPython Console"
 msgstr "Terminal de IPython"
 
@@ -1760,20 +1751,25 @@ msgid ""
 "writing a left parenthesis next to an object. You can activate this behavior "
 "in %s."
 msgstr ""
+"En este panel es posible obtener la ayuda de cualquier objeto al oprimir %s "
+"estando al frente del mismo, bien sea en el Editor o en la Terminal.%sEsta "
+"ayuda también se puede mostrar automáticamente después de escribir un "
+"paréntesis junto a un objeto. Este comportamiento puede activarse en %s."
 
 #: spyderlib/plugins/inspector.py:607
-#, fuzzy
 msgid "Preferences > Object Inspector"
-msgstr "Inspector de objetos"
+msgstr "Preferencias > Inspector de objetos"
 
 #: spyderlib/plugins/inspector.py:609
 msgid "Usage"
-msgstr ""
+msgstr "Uso"
 
 #: spyderlib/plugins/inspector.py:615
 msgid ""
 "Please consider installing Sphinx to get documentation rendered in rich text."
 msgstr ""
+"Por favor considere instalar Sphinx para obtener la documentación en texto "
+"enriquecido "
 
 #: spyderlib/plugins/inspector.py:848
 msgid "Lock"
@@ -2157,7 +2153,6 @@ msgstr ""
 "abra uno nuevo e intente otra vez."
 
 #: spyderlib/plugins/ipythonconsole.py:514
-#, fuzzy
 msgid "Open an &IPython console"
 msgstr "Abrir una terminal de IPython"
 
@@ -2166,12 +2161,10 @@ msgid "Connect to an existing kernel"
 msgstr "Conectarse a un núcleo existente"
 
 #: spyderlib/plugins/ipythonconsole.py:520
-#, fuzzy
 msgid "Open a new IPython console connected to an existing kernel"
-msgstr "Abrir una nueva consola de IPython conectada a un núcleo existente"
+msgstr "Abrir una nueva terminal de IPython conectada a un núcleo existente"
 
 #: spyderlib/plugins/ipythonconsole.py:679
-#, fuzzy
 msgid "(for example: kernel-3764.json, or simply 3764)"
 msgstr "(por ejemplo: `kernel-3764.json`, o simplemente `3764`)"
 
@@ -2185,7 +2178,6 @@ msgid "Provide an IPython kernel connection file:"
 msgstr "Provea un archivo de conexión para un núcleo de IPython"
 
 #: spyderlib/plugins/ipythonconsole.py:727
-#, fuzzy
 msgid "Unable to connect to IPython <b>%s"
 msgstr "No se pudo establecer conexión con el núcleo <b>`%s`"
 
@@ -2607,9 +2599,8 @@ msgid "Save current session and quit application"
 msgstr "Guardar sesión actual y salir de la aplicación"
 
 #: spyderlib/spyder.py:517
-#, fuzzy
 msgid "Close current pane"
-msgstr "Cerrar pestaña actual"
+msgstr "Cerrar panel actual"
 
 #: spyderlib/spyder.py:523
 msgid "&Find text"
@@ -2664,18 +2655,16 @@ msgid "Select All"
 msgstr "Seleccionar todo"
 
 #: spyderlib/spyder.py:614
-#, fuzzy
 msgid "C&onsoles"
-msgstr "Terminal"
+msgstr "&Terminales"
 
 #: spyderlib/spyder.py:620
 msgid "&View"
 msgstr "&Ver"
 
 #: spyderlib/spyder.py:623
-#, fuzzy
 msgid "&Help"
-msgstr "Ayuda"
+msgstr "A&yuda"
 
 #: spyderlib/spyder.py:628
 msgid "Welcome to Spyder!"
@@ -2818,9 +2807,8 @@ msgid "Report issue..."
 msgstr "Reportar un problema..."
 
 #: spyderlib/spyder.py:894
-#, fuzzy
 msgid "Spyder support..."
-msgstr "Inicialización de Spyder"
+msgstr "Obtener soporte para Spyder"
 
 #: spyderlib/spyder.py:917
 msgid "Spyder documentation"
@@ -2839,7 +2827,6 @@ msgid "Intro to IPython"
 msgstr "Ayuda básica"
 
 #: spyderlib/spyder.py:932
-#, fuzzy
 msgid "Quick reference"
 msgstr "Referencia rápida"
 
@@ -2877,17 +2864,15 @@ msgstr "Documentación de SciPy"
 
 #: spyderlib/spyder.py:992
 msgid "Installed Python modules"
-msgstr ""
+msgstr "Módulos instalados de Python"
 
 #: spyderlib/spyder.py:996
-#, fuzzy
 msgid "Online documentation"
-msgstr "Documentación de SciPy"
+msgstr "Documentación en línea"
 
 #: spyderlib/spyder.py:1004
-#, fuzzy
 msgid "Qt documentation"
-msgstr "Documentación de guiqwt"
+msgstr "Documentación de Qt"
 
 #: spyderlib/spyder.py:1010
 msgid "About %s..."
@@ -2895,12 +2880,11 @@ msgstr "Acerca de %s..."
 
 #: spyderlib/spyder.py:1031
 msgid "Panes"
-msgstr ""
+msgstr "Paneles"
 
 #: spyderlib/spyder.py:1032
-#, fuzzy
 msgid "Toolbars"
-msgstr "&Herramientas"
+msgstr "Barras de herramientas"
 
 #: spyderlib/spyder.py:1035
 msgid "Reset window layout"
@@ -2937,19 +2921,16 @@ msgid "Quick switch layout #%d has not yet been defined."
 msgstr "Aún no se ha definido la disposición de componentes #%d"
 
 #: spyderlib/spyder.py:1625 spyderlib/spyder.py:1626
-#, fuzzy
 msgid "Maximize current pane"
-msgstr "Maximizar el componente actual"
+msgstr "Maximizar el panel actual"
 
 #: spyderlib/spyder.py:1629
-#, fuzzy
 msgid "Restore current pane"
-msgstr "Restaurar el componente actual"
+msgstr "Restaurar el panel actual"
 
 #: spyderlib/spyder.py:1630
-#, fuzzy
 msgid "Restore pane to its original size"
-msgstr "Restaurar el componente a su tamaño original"
+msgstr "Restaurar el panel a su tamaño original"
 
 #: spyderlib/spyder.py:1701
 msgid "(not installed)"
@@ -3899,11 +3880,12 @@ msgid ""
 "The kernel failed to start!! That's all we know... Please close this console "
 "and open a new one."
 msgstr ""
+"No fue posible crear un núcleo!! Es todo lo que sabemos... Por favor cierre "
+"esta terminal y abra una nueva."
 
 #: spyderlib/widgets/externalshell/pythonshell.py:528
-#, fuzzy
 msgid "A Python console failed to start!"
-msgstr "No se pudo iniciar una terminal de Python o IPython!"
+msgstr "No se pudo iniciar una terminal de Python!"
 
 #: spyderlib/widgets/externalshell/systemshell.py:94
 msgid "Process failed to start"
@@ -4203,9 +4185,8 @@ msgid "GUI-based editor:"
 msgstr "Editor gráfico:"
 
 #: spyderlib/widgets/ipython.py:442
-#, fuzzy
 msgid "An error ocurred while starting the kernel"
-msgstr "Está seguro de que desea reiniciar el núcleo?"
+msgstr "Ocurrió un error mientras iniciaba el núcleo"
 
 #: spyderlib/widgets/ipython.py:470
 msgid "Interrupt kernel"
@@ -4246,9 +4227,8 @@ msgstr ""
 "El núcleo es remoto o no está especificado. Por ello no se puede reiniciar."
 
 #: spyderlib/widgets/ipython.py:597
-#, fuzzy
 msgid "Connecting to kernel..."
-msgstr "Conectarse a un núcleo existente"
+msgstr "Conectándose al núcleo..."
 
 #: spyderlib/widgets/onecolumntree.py:63
 msgid "Collapse all"
@@ -4639,11 +4619,11 @@ msgstr "Ir a la definición"
 
 #: spyderlib/widgets/sourcecode/syntaxhighlighters.py:29
 msgid "Syntax highlighting for Matlab and other file types"
-msgstr ""
+msgstr "Coloreado del código para archivos Matlab y otros tipos"
 
 #: spyderlib/widgets/status.py:20
 msgid "CPU and memory usage info in the status bar"
-msgstr ""
+msgstr "Uso de memoria y CPU en la barra de estado"
 
 #: spyderlib/widgets/status.py:89
 msgid "Memory:"
