@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
 "POT-Creation-Date: 2014-05-18 13:23+COT\n"
-"PO-Revision-Date: 2013-09-04 21:35-0500\n"
+"PO-Revision-Date: 2014-05-18 16:44-0500\n"
 "Last-Translator: Carlos Cordoba <ccordoba12@gmail.com>\n"
 "Language-Team: Python\n"
 "Language: es\n"
@@ -23,7 +23,6 @@ msgid "Settings"
 msgstr "Ajustes"
 
 #: spyderplugins/p_pylint.py:29
-#, fuzzy
 msgid "Save file before analyzing it"
 msgstr "Guardar archivo antes de analizarlo"
 
@@ -48,9 +47,8 @@ msgid "Results"
 msgstr "Resultados"
 
 #: spyderplugins/p_pylint.py:41
-#, fuzzy
 msgid "Results are stored here:"
-msgstr "Los resultados de Pylint son guardados en:"
+msgstr "Los resultados se guardan en:"
 
 #: spyderplugins/p_pylint.py:89 spyderplugins/widgets/pylintgui.py:64
 msgid "Static code analysis"
@@ -65,9 +63,8 @@ msgid "Set history maximum entries"
 msgstr ""
 
 #: spyderplugins/p_pylint.py:125
-#, fuzzy
 msgid "Run static code analysis"
-msgstr "Análisis estático del código"
+msgstr "Realizar análisis estático del código"
 
 #: spyderplugins/p_pylint.py:152
 msgid "Maximum entries"

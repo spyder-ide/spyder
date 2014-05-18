@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
 "POT-Creation-Date: 2014-05-18 13:23+COT\n"
-"PO-Revision-Date: 2014-05-18 13:50-0500\n"
+"PO-Revision-Date: 2014-05-18 16:36-0500\n"
 "Last-Translator: Carlos Cordoba <ccordoba12@gmail.com>\n"
 "Language-Team: Python\n"
 "Language: es\n"
@@ -3197,7 +3197,7 @@ msgstr ""
 
 #: spyderlib/widgets/dependencies.py:60
 msgid " Required "
-msgstr "Requerida"
+msgstr "Requerido"
 
 #: spyderlib/widgets/dependencies.py:60
 msgid "Module"
@@ -3205,7 +3205,7 @@ msgstr "Módulo"
 
 #: spyderlib/widgets/dependencies.py:61
 msgid " Installed "
-msgstr "Instalada"
+msgstr "Instalado"
 
 #: spyderlib/widgets/dependencies.py:61
 msgid "Provided features"
@@ -3227,7 +3227,7 @@ msgstr ""
 "adicional para sus componentes. La tabla que aparece a continuación muestra "
 "las versiones requeridas e instaladas (de existir) de todos ellos."
 "<br><br>Aunque Spyder puede funcionar sin ninguno de estos módulos, se "
-"recomienda al menos instalar <b>%s</b> and <b>%s</b> para tener una mejor "
+"recomienda al menos instalar <b>%s</b> y <b>%s</b> para tener una mejor "
 "experiencia."
 
 #: spyderlib/widgets/dependencies.py:149
