@@ -309,7 +309,7 @@ class SpyderPluginMixin(object):
             title = _('Editor')
         try:
             shortcut = CONF.get('shortcuts', '_/switch to ' + self.CONF_SECTION)
-        except:
+        except configparser.NoOptionError:
             shortcut = None
         action = create_action(self, title, toggled=self.toggle_view,
                                shortcut=shortcut)
