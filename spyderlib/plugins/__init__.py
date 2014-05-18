@@ -307,7 +307,12 @@ class SpyderPluginMixin(object):
         title = self.get_plugin_title()
         if self.CONF_SECTION == 'editor':
             title = _('Editor')
-        action = create_action(self, title, toggled=self.toggle_view)
+        try:
+            shortcut = CONF.get('shortcuts', '_/switch to ' + self.CONF_SECTION)
+        except:
+            shortcut = None
+        action = create_action(self, title, toggled=self.toggle_view,
+                               shortcut=shortcut)
         self.toggle_view_action = action
     
     def toggle_view(self, checked):
