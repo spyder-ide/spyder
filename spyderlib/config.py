@@ -205,7 +205,6 @@ DEFAULTS = [
               }),
             ('internal_console',
              {
-              'shortcut': None,
               'max_line_count': 300,
               'working_dir_history': 30,
               'working_dir_adjusttocontents': False,
@@ -224,7 +223,6 @@ DEFAULTS = [
               }),
             ('console',
              {
-              'shortcut': "Ctrl+Shift+C",
               'max_line_count': 500,
               'font/family': MONOSPACE,
               'font/size': MEDIUM,
@@ -264,7 +262,6 @@ DEFAULTS = [
               }),
             ('ipython_console',
              {
-              'shortcut': None,
               'font/family': MONOSPACE,
               'font/size': MEDIUM,
               'font/italic': False,
@@ -296,7 +293,6 @@ DEFAULTS = [
               }),
             ('variable_explorer',
              {
-              'shortcut': "Ctrl+Shift+V",
               'autorefresh': True,
               'autorefresh/timeout': 2000,
               'check_all': CHECK_ALL,
@@ -313,7 +309,6 @@ DEFAULTS = [
               }),
             ('editor',
              {
-              'shortcut': "Ctrl+Shift+E",
               'printer_header/font/family': SANS_SERIF,
               'printer_header/font/size': MEDIUM,
               'printer_header/font/italic': False,
@@ -362,7 +357,6 @@ DEFAULTS = [
               }),
             ('historylog',
              {
-              'shortcut': "Ctrl+Shift+H",
               'enable': True,
               'max_entries': 100,
               'font/family': MONOSPACE,
@@ -374,7 +368,6 @@ DEFAULTS = [
               }),
             ('inspector',
              {
-              'shortcut': "Ctrl+Shift+I",
               'enable': True,
               'max_history_entries': 20,
               'font/family': MONOSPACE,
@@ -394,14 +387,12 @@ DEFAULTS = [
               }),
             ('onlinehelp',
              {
-              'shortcut': "Ctrl+Shift+D",
               'enable': True,
               'zoom_factor': .8,
               'max_history_entries': 20,
               }),
             ('outline_explorer',
              {
-              'shortcut': "Ctrl+Shift+O",
               'enable': True,
               'show_fullpath': False,
               'show_all_files': False,
@@ -409,7 +400,6 @@ DEFAULTS = [
               }),
             ('project_explorer',
              {
-              'shortcut': "Ctrl+Shift+P",
               'enable': True,
               'name_filters': NAME_FILTERS,
               'show_all': False,
@@ -438,7 +428,6 @@ DEFAULTS = [
               }),
             ('explorer',
              {
-              'shortcut': None,
               'enable': True,
               'wrap': True,
               'name_filters': NAME_FILTERS,
@@ -449,7 +438,6 @@ DEFAULTS = [
               }),
             ('find_in_files',
              {
-              'shortcut': None,
               'enable': True,
               'supported_encodings': ["utf-8", "iso-8859-1", "cp1252"],
               'include': INCLUDE_PATTERNS,
@@ -478,9 +466,9 @@ DEFAULTS = [
              {
               # ---- Global ----
               # -- In spyder.py
-              '_/close plugin': "Shift+Ctrl+F4",
+              '_/close pane': "Shift+Ctrl+F4",
               '_/preferences': "Ctrl+Alt+Shift+P",
-              '_/maximize plugin': "Ctrl+Alt+Shift+M",
+              '_/maximize pane': "Ctrl+Alt+Shift+M",
               '_/fullscreen mode': "F11",
               '_/quit': "Ctrl+Q",
               '_/switch to/from layout 1': "Shift+Alt+F1",
@@ -496,13 +484,14 @@ DEFAULTS = [
               '_/debug step return': "Ctrl+Shift+F11",
               '_/debug exit': "Ctrl+Shift+F12",
               # -- In plugins/init
-              '_/switch to inspector': "Ctrl+Shift+I",
+              '_/switch to inspector': "Ctrl+Shift+H",
               '_/switch to outline_explorer': "Ctrl+Shift+O",
               '_/switch to editor': "Ctrl+Shift+E",
-              '_/switch to historylog': "Ctrl+Shift+H",
+              '_/switch to historylog': "Ctrl+Shift+L",
               '_/switch to onlinehelp': "Ctrl+Shift+D",
               '_/switch to project_explorer': "Ctrl+Shift+P",
               '_/switch to console': "Ctrl+Shift+C",
+              '_/switch to ipython_console': "Ctrl+Shift+I",
               '_/switch to variable_explorer': "Ctrl+Shift+V",
               # ---- Editor ----
               # -- In codeeditor
@@ -551,7 +540,7 @@ DEFAULTS = [
               'editor/previous cursor position': "Ctrl+Alt+Left",
               'editor/next cursor position': "Ctrl+Alt+Right",
               # -- In p_breakpoints
-              'editor/list breakpoints': "Ctrl+B",
+              '_/switch to breakpoints': "Ctrl+Shift+B",
               # ---- Console (in widgets/shell) ----
               'console/inspect current object': "Ctrl+I",
               'console/clear shell': "Ctrl+L",
@@ -722,7 +711,7 @@ DEFAULTS = [
 # 2. If you want to *remove* options that are no longer needed in our codebase,
 #    you need to do a MAJOR update in version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '5.0.0'
+CONF_VERSION = '8.0.0'
 
 # XXX: Previously we had load=(not DEV) here but DEV was set to *False*.
 # Check if it *really* needs to be updated or not
