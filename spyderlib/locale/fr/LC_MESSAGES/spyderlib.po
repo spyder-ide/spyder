@@ -1,19 +1,20 @@
 # -*- coding: utf-8 -*-
 # Spyder's french translation file
 # Copyright (C) 2009-2011 Pierre Raybaut
-# 
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
 "POT-Creation-Date: 2014-05-18 13:23+COT\n"
-"PO-Revision-Date: 2011-04-11 21:41+2\n"
-"Last-Translator: Pierre Raybaut\n"
+"PO-Revision-Date: 2014-05-20 10:34+0100\n"
+"Last-Translator: Joseph Martinot-Lagarde <contrebasse@gmail.com>\n"
 "Language-Team: Python\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
-"Content-Transfer-Encoding: utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
 "Generated-By: pygettext.py 1.5\n"
+"X-Generator: Poedit 1.6.4\n"
 
 #: spyderlib/config.py:28
 msgid "Python files"
@@ -48,9 +49,8 @@ msgid "MATLAB files"
 msgstr "Fichiers MATLAB"
 
 #: spyderlib/config.py:36
-#, fuzzy
 msgid "Julia files"
-msgstr "Tous les fichiers"
+msgstr "Fichiers Julia"
 
 #: spyderlib/config.py:37
 msgid "Patch and diff files"
@@ -243,9 +243,8 @@ msgid "Current line:"
 msgstr "Ligne actuelle :"
 
 #: spyderlib/plugins/configdialog.py:768
-#, fuzzy
 msgid "Current cell:"
-msgstr "Ligne actuelle :"
+msgstr "Cellule actuelle :"
 
 #: spyderlib/plugins/configdialog.py:769
 msgid "Occurence:"
@@ -470,9 +469,8 @@ msgid "Highlight current line"
 msgstr "Surligner la ligne en cours d'édition"
 
 #: spyderlib/plugins/editor.py:123
-#, fuzzy
 msgid "Highlight current cell"
-msgstr "Surligner la ligne en cours d'édition"
+msgstr "Surligner la cellule en cours d'édition"
 
 #: spyderlib/plugins/editor.py:125
 msgid "Highlight occurences after"
@@ -643,9 +641,8 @@ msgstr ""
 "les recommandations officielles seront indiquées"
 
 #: spyderlib/plugins/editor.py:238
-#, fuzzy
 msgid "Tasks (TODO, FIXME, XXX, HINT, TIP, @todo)"
-msgstr "Tâches (TODO, FIXME, XXX, HINT, TIP)"
+msgstr "Tâches (TODO, FIXME, XXX, HINT, TIP, @todo)"
 
 #: spyderlib/plugins/editor.py:241
 msgid "Perform analysis when saving file and every"
@@ -910,9 +907,9 @@ msgid "Show todo list"
 msgstr "Afficher la liste des tâches"
 
 #: spyderlib/plugins/editor.py:764
-#, fuzzy
 msgid "Show TODO/FIXME/XXX/HINT/TIP/@todo comments list"
-msgstr "Afficher la liste des commentaires du type TODO/FIXME/XXX/HINT/TIP"
+msgstr ""
+"Afficher la liste des commentaires du type TODO/FIXME/XXX/HINT/TIP/@todo"
 
 #: spyderlib/plugins/editor.py:772
 msgid "Show warning/error list"
@@ -2002,7 +1999,6 @@ msgid "Use the following file:"
 msgstr "Utiliser le fichier suivant :"
 
 #: spyderlib/plugins/ipythonconsole.py:257
-#, fuzzy
 msgid "Greedy completion"
 msgstr "Complétion avancée"
 
@@ -2037,7 +2033,6 @@ msgstr ""
 "deviendra automatiquement <tt>str(43)</tt>."
 
 #: spyderlib/plugins/ipythonconsole.py:285
-#, fuzzy
 msgid "Smart"
 msgstr "Intelligent"
 
@@ -2097,7 +2092,6 @@ msgstr ""
 "Ce dernier n'est apparemment pas installé."
 
 #: spyderlib/plugins/ipythonconsole.py:327
-#, fuzzy
 msgid "Prompts"
 msgstr "Invites de commande"
 
@@ -2108,7 +2102,6 @@ msgstr ""
 "console."
 
 #: spyderlib/plugins/ipythonconsole.py:331
-#, fuzzy
 msgid "Input prompt:"
 msgstr "En entrée :"
 
@@ -2598,9 +2591,8 @@ msgid "Save current session and quit application"
 msgstr "Enregistrer la session en cours et quitter l'application"
 
 #: spyderlib/spyder.py:517
-#, fuzzy
 msgid "Close current pane"
-msgstr "Fermer l'onglet"
+msgstr "Fermer le volet courant"
 
 #: spyderlib/spyder.py:523
 msgid "&Find text"
@@ -2879,7 +2871,7 @@ msgstr "À propos de %s..."
 
 #: spyderlib/spyder.py:1031
 msgid "Panes"
-msgstr ""
+msgstr "Volets"
 
 #: spyderlib/spyder.py:1032
 msgid "Toolbars"
@@ -2921,19 +2913,16 @@ msgstr ""
 "La disposition de fenêtre personnalisée n°%d n'a pas encore été définie."
 
 #: spyderlib/spyder.py:1625 spyderlib/spyder.py:1626
-#, fuzzy
 msgid "Maximize current pane"
-msgstr "Agrandir la fenêtre courante"
+msgstr "Agrandir le volet courant"
 
 #: spyderlib/spyder.py:1629
-#, fuzzy
 msgid "Restore current pane"
-msgstr "Réduire la fenêtre courante"
+msgstr "Restaurer le volet courant"
 
 #: spyderlib/spyder.py:1630
-#, fuzzy
 msgid "Restore pane to its original size"
-msgstr "Restaurer la fenêtre à sa taille d'origine"
+msgstr "Restaurer le volet à sa taille d'origine"
 
 #: spyderlib/spyder.py:1701
 msgid "(not installed)"
@@ -3870,7 +3859,6 @@ msgid "No argument"
 msgstr "Aucun argument"
 
 #: spyderlib/widgets/externalshell/pythonshell.py:524
-#, fuzzy
 msgid ""
 "The kernel failed to start!! That's all we know... Please close this console "
 "and open a new one."
@@ -4165,9 +4153,8 @@ msgid "GUI-based editor:"
 msgstr "Éditeur graphique :"
 
 #: spyderlib/widgets/ipython.py:442
-#, fuzzy
 msgid "An error ocurred while starting the kernel"
-msgstr "Une erreur est survenue lors du démarrage du noyau !"
+msgstr "Une erreur est survenue lors du démarrage du noyau."
 
 #: spyderlib/widgets/ipython.py:470
 msgid "Interrupt kernel"
@@ -4603,11 +4590,12 @@ msgstr "Aller à la définition de l'objet"
 
 #: spyderlib/widgets/sourcecode/syntaxhighlighters.py:29
 msgid "Syntax highlighting for Matlab and other file types"
-msgstr ""
+msgstr "Coloration syntaxique pour Matlab et d'autres types de fichier"
 
 #: spyderlib/widgets/status.py:20
 msgid "CPU and memory usage info in the status bar"
 msgstr ""
+"Informations sur l'utilisation processeur et mémoire dans la barre d'état"
 
 #: spyderlib/widgets/status.py:89
 msgid "Memory:"
