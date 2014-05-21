@@ -1,19 +1,20 @@
 # -*- coding: utf-8 -*-
 # Spyder's french translation file
 # Copyright (C) 2009-2011 Pierre Raybaut
-# 
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
 "POT-Creation-Date: 2014-05-18 13:23+COT\n"
-"PO-Revision-Date: 2011-04-11 21:41+2\n"
-"Last-Translator: Pierre Raybaut\n"
+"PO-Revision-Date: 2014-05-20 10:34+0100\n"
+"Last-Translator: Joseph Martinot-Lagarde <contrebasse@gmail.com>\n"
 "Language-Team: Python\n"
-"Language: \n"
+"Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
-"Content-Transfer-Encoding: utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
 "Generated-By: pygettext.py 1.5\n"
+"X-Generator: Poedit 1.6.4\n"
 
 #: spyderlib/config.py:28
 msgid "Python files"
@@ -48,9 +49,8 @@ msgid "MATLAB files"
 msgstr "Fichiers MATLAB"
 
 #: spyderlib/config.py:36
-#, fuzzy
 msgid "Julia files"
-msgstr "Tous les fichiers"
+msgstr "Fichiers Julia"
 
 #: spyderlib/config.py:37
 msgid "Patch and diff files"
@@ -243,9 +243,8 @@ msgid "Current line:"
 msgstr "Ligne actuelle :"
 
 #: spyderlib/plugins/configdialog.py:768
-#, fuzzy
 msgid "Current cell:"
-msgstr "Ligne actuelle :"
+msgstr "Cellule actuelle :"
 
 #: spyderlib/plugins/configdialog.py:769
 msgid "Occurence:"
@@ -470,9 +469,8 @@ msgid "Highlight current line"
 msgstr "Surligner la ligne en cours d'édition"
 
 #: spyderlib/plugins/editor.py:123
-#, fuzzy
 msgid "Highlight current cell"
-msgstr "Surligner la ligne en cours d'édition"
+msgstr "Surligner la cellule en cours d'édition"
 
 #: spyderlib/plugins/editor.py:125
 msgid "Highlight occurences after"
@@ -643,9 +641,8 @@ msgstr ""
 "les recommandations officielles seront indiquées"
 
 #: spyderlib/plugins/editor.py:238
-#, fuzzy
 msgid "Tasks (TODO, FIXME, XXX, HINT, TIP, @todo)"
-msgstr "Tâches (TODO, FIXME, XXX, HINT, TIP)"
+msgstr "Tâches (TODO, FIXME, XXX, HINT, TIP, @todo)"
 
 #: spyderlib/plugins/editor.py:241
 msgid "Perform analysis when saving file and every"
@@ -910,9 +907,9 @@ msgid "Show todo list"
 msgstr "Afficher la liste des tâches"
 
 #: spyderlib/plugins/editor.py:764
-#, fuzzy
 msgid "Show TODO/FIXME/XXX/HINT/TIP/@todo comments list"
-msgstr "Afficher la liste des commentaires du type TODO/FIXME/XXX/HINT/TIP"
+msgstr ""
+"Afficher la liste des commentaires du type TODO/FIXME/XXX/HINT/TIP/@todo"
 
 #: spyderlib/plugins/editor.py:772
 msgid "Show warning/error list"
@@ -1535,6 +1532,10 @@ msgid ""
 "your external interpreter.</li></ol>In any case, we're sorry but we can't "
 "create a console for you."
 msgstr ""
+"<ol><li>Soit les versions de votre interface IPython et du noyau sont "
+"<b>incompatibles</b>,</li><li>soit IPython <b>n'est pas</b> installé pour "
+"votre interpréteur externe.</li></ol>Dans tous les cas nous sommes désolés "
+"mais nous ne pouvons ouvrir une console pour vous."
 
 #: spyderlib/plugins/externalconsole.py:955
 msgid "Command Window"
@@ -1998,9 +1999,8 @@ msgid "Use the following file:"
 msgstr "Utiliser le fichier suivant :"
 
 #: spyderlib/plugins/ipythonconsole.py:257
-#, fuzzy
 msgid "Greedy completion"
-msgstr "Entrée valide la complétion de code"
+msgstr "Complétion avancée"
 
 #: spyderlib/plugins/ipythonconsole.py:258
 msgid ""
@@ -2009,14 +2009,18 @@ msgid ""
 "can get completions on things like <tt>li[0].&lt;Tab&gt;</tt> or <tt>ins."
 "meth().&lt;Tab&gt;</tt>"
 msgstr ""
+"Active la complétion par <tt>Tab</tt> sur les éléments de liste, les "
+"résultats de fonctions, etc... <i>sans</i> les avoir assignés à une variable."
+"<br>Par exemple vous pourrez avoir la complétion pour des expressions du "
+"type <tt>li[0].&lt;Tab&gt;</tt> ou <tt>ins.meth().&lt;Tab&gt;</tt>."
 
 #: spyderlib/plugins/ipythonconsole.py:266
 msgid "Use the greedy completer"
-msgstr ""
+msgstr "Utiliser la complétion avancée"
 
 #: spyderlib/plugins/ipythonconsole.py:277
 msgid "Autocall"
-msgstr ""
+msgstr "Appel automatique"
 
 #: spyderlib/plugins/ipythonconsole.py:278
 msgid ""
@@ -2024,23 +2028,25 @@ msgid ""
 "didn't type explicit parentheses.<br>For example, if you type <i>str 43</i> "
 "it becomes <i>str(43)</i> automatically."
 msgstr ""
+"L'appel automatique dans IPython va automatiquement appeler les objets "
+"appelables même sans parenthèses explicites.<br>Par exemple <tt>str 43</tt> "
+"deviendra automatiquement <tt>str(43)</tt>."
 
 #: spyderlib/plugins/ipythonconsole.py:285
-#, fuzzy
 msgid "Smart"
-msgstr "Démarrage"
+msgstr "Intelligent"
 
 #: spyderlib/plugins/ipythonconsole.py:286
 msgid "Full"
-msgstr ""
+msgstr "Toujours"
 
 #: spyderlib/plugins/ipythonconsole.py:287
 msgid "Off"
-msgstr ""
+msgstr "Désactivé"
 
 #: spyderlib/plugins/ipythonconsole.py:289
 msgid "Autocall:  "
-msgstr ""
+msgstr "Appel automatique :"
 
 #: spyderlib/plugins/ipythonconsole.py:290
 msgid ""
@@ -2048,26 +2054,34 @@ msgid ""
 "the callable. On <b>%s</b> mode, all callable objects are automatically "
 "called (even if no arguments are present)."
 msgstr ""
+"En mode <b>%s</b>, l'appel automatique n'est pas activé si il n'y a pas "
+"d'arguments. En mode <b>%s</b>, tous les objets appelables sont "
+"automatiquement appelés (même s'il n'y a pas d'arguments)"
 
 #: spyderlib/plugins/ipythonconsole.py:302
 msgid "Symbolic Mathematics"
-msgstr ""
+msgstr "Calcul formel"
 
 #: spyderlib/plugins/ipythonconsole.py:303
 msgid ""
 "Perfom symbolic operations in the console (e.g. integrals, derivatives, "
 "vector calculus, etc) and get the outputs in a beautifully printed style."
 msgstr ""
+"Utilise le calcul formel pour réaliser des opérations dans la console (par "
+"exemple intégrales, dérivées, calcul vectoriel, etc...) et affiche les "
+"résultats de manière élégante."
 
 #: spyderlib/plugins/ipythonconsole.py:308
 msgid "Use symbolic math"
-msgstr ""
+msgstr "Utiliser le calcul formel"
 
 #: spyderlib/plugins/ipythonconsole.py:309
 msgid ""
 "This option loads the Sympy library to work with.<br>Please refer to its "
 "documentation to learn how to use it."
 msgstr ""
+"Activer cette option permet de travailler avec la bibliothèque Sympy."
+"<br>Merci de consulter la documentation pour savoir comment l'utiliser."
 
 #: spyderlib/plugins/ipythonconsole.py:322
 msgid ""
@@ -2078,32 +2092,34 @@ msgstr ""
 "Ce dernier n'est apparemment pas installé."
 
 #: spyderlib/plugins/ipythonconsole.py:327
-#, fuzzy
 msgid "Prompts"
-msgstr "Propriétés"
+msgstr "Invites de commande"
 
 #: spyderlib/plugins/ipythonconsole.py:328
 msgid "Modify how Input and Output prompts are shown in the console."
 msgstr ""
+"Change l'affichage des invites de commande d'entrée et de sortie de la "
+"console."
 
 #: spyderlib/plugins/ipythonconsole.py:331
-#, fuzzy
 msgid "Input prompt:"
-msgstr "Copier sans les préfixes"
+msgstr "En entrée :"
 
 #: spyderlib/plugins/ipythonconsole.py:333
 msgid ""
 "Default is<br>In [&lt;span class=\"in-prompt-number\"&gt;%i&lt;/span&gt;]:"
 msgstr ""
+"Par défaut :<br>In [&lt;span class=\"in-prompt-number\"&gt;%i&lt;/span&gt;]:"
 
 #: spyderlib/plugins/ipythonconsole.py:337
 msgid "Output prompt:"
-msgstr ""
+msgstr "En sortie :"
 
 #: spyderlib/plugins/ipythonconsole.py:339
 msgid ""
 "Default is<br>Out[&lt;span class=\"out-prompt-number\"&gt;%i&lt;/span&gt;]:"
 msgstr ""
+"Par défaut :<br>Out[&lt;span class=\"out-prompt-number\"&gt;%i&lt;/span&gt;]:"
 
 #: spyderlib/plugins/ipythonconsole.py:355
 msgid "Graphics"
@@ -2157,13 +2173,16 @@ msgstr "Impossible de se connecter au noyau IPython <b>`%s`"
 
 #: spyderlib/plugins/ipythonconsole.py:733
 msgid "Mismatch between kernel and frontend"
-msgstr ""
+msgstr "Incompatibilité entre le noyau et l'interface"
 
 #: spyderlib/plugins/ipythonconsole.py:734
 msgid ""
 "Your IPython frontend and kernel versions are <b>incompatible!!</"
 "b><br><br>We're sorry but we can't create an IPython console for you."
 msgstr ""
+"Les versions d'IPython de votre noyau et de l'interface sont "
+"<b>incompatibles !</b><br><br>Nous sommes désolés, mais nous ne pouvons pas "
+"vous ouvrir une console IPython."
 
 #: spyderlib/plugins/ipythonconsole.py:955
 msgid ""
@@ -2572,9 +2591,8 @@ msgid "Save current session and quit application"
 msgstr "Enregistrer la session en cours et quitter l'application"
 
 #: spyderlib/spyder.py:517
-#, fuzzy
 msgid "Close current pane"
-msgstr "Fermer l'onglet"
+msgstr "Fermer le volet courant"
 
 #: spyderlib/spyder.py:523
 msgid "&Find text"
@@ -2853,7 +2871,7 @@ msgstr "À propos de %s..."
 
 #: spyderlib/spyder.py:1031
 msgid "Panes"
-msgstr ""
+msgstr "Volets"
 
 #: spyderlib/spyder.py:1032
 msgid "Toolbars"
@@ -2895,19 +2913,16 @@ msgstr ""
 "La disposition de fenêtre personnalisée n°%d n'a pas encore été définie."
 
 #: spyderlib/spyder.py:1625 spyderlib/spyder.py:1626
-#, fuzzy
 msgid "Maximize current pane"
-msgstr "Agrandir la fenêtre courante"
+msgstr "Agrandir le volet courant"
 
 #: spyderlib/spyder.py:1629
-#, fuzzy
 msgid "Restore current pane"
-msgstr "Réduire la fenêtre courante"
+msgstr "Restaurer le volet courant"
 
 #: spyderlib/spyder.py:1630
-#, fuzzy
 msgid "Restore pane to its original size"
-msgstr "Restaurer la fenêtre à sa taille d'origine"
+msgstr "Restaurer le volet à sa taille d'origine"
 
 #: spyderlib/spyder.py:1701
 msgid "(not installed)"
@@ -3844,13 +3859,12 @@ msgid "No argument"
 msgstr "Aucun argument"
 
 #: spyderlib/widgets/externalshell/pythonshell.py:524
-#, fuzzy
 msgid ""
 "The kernel failed to start!! That's all we know... Please close this console "
 "and open a new one."
 msgstr ""
-"Le démarrage de la console a échoué !<br>C'est malheureusement tout ce que "
-"nous savons...<br>Merci de fermer la console et d'en réouvrir une autre."
+"Le démarrage du noyau a échoué ! C'est malheureusement tout ce que nous "
+"savons... Merci de fermer cette console et d'en ouvrir une nouvelle."
 
 #: spyderlib/widgets/externalshell/pythonshell.py:528
 msgid "A Python console failed to start!"
@@ -4139,9 +4153,8 @@ msgid "GUI-based editor:"
 msgstr "Éditeur graphique :"
 
 #: spyderlib/widgets/ipython.py:442
-#, fuzzy
 msgid "An error ocurred while starting the kernel"
-msgstr "Une erreur est survenue lors du démarrage du noyau !"
+msgstr "Une erreur est survenue lors du démarrage du noyau."
 
 #: spyderlib/widgets/ipython.py:470
 msgid "Interrupt kernel"
@@ -4185,7 +4198,7 @@ msgstr ""
 
 #: spyderlib/widgets/ipython.py:597
 msgid "Connecting to kernel..."
-msgstr "Connexion à un noyau existant..."
+msgstr "Connexion au noyau..."
 
 #: spyderlib/widgets/onecolumntree.py:63
 msgid "Collapse all"
@@ -4577,11 +4590,12 @@ msgstr "Aller à la définition de l'objet"
 
 #: spyderlib/widgets/sourcecode/syntaxhighlighters.py:29
 msgid "Syntax highlighting for Matlab and other file types"
-msgstr ""
+msgstr "Coloration syntaxique pour Matlab et d'autres types de fichier"
 
 #: spyderlib/widgets/status.py:20
 msgid "CPU and memory usage info in the status bar"
 msgstr ""
+"Informations sur l'utilisation processeur et mémoire dans la barre d'état"
 
 #: spyderlib/widgets/status.py:89
 msgid "Memory:"
