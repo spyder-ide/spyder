@@ -81,7 +81,7 @@ def read_packet(sock, timeout=None):
     if data is not None:
         try:
             return pickle.loads(data)
-        except (EOFError, pickle.UnpicklingError):
+        except (EOFError, pickle.UnpicklingError, ValueError):
             return
 
 
