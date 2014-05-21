@@ -331,8 +331,10 @@ class PythonSH(BaseSH):
                         self.setFormat(start, end-start, self.formats[key])
                         if key == "comment":
                             if text.lstrip().startswith(CELL_SEPARATORS):
+                                title = to_text_string(text).strip()
+                                title = title.lstrip("# ")
                                 oedata = OutlineExplorerData()
-                                oedata.text = to_text_string(text).strip()
+                                oedata.text = title
                                 oedata.fold_level = start
                                 oedata.def_type = OutlineExplorerData.CELL
                                 oedata.def_name = text.strip()
