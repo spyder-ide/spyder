@@ -1720,7 +1720,7 @@ class MainWindow(QMainWindow):
             (&copy; 2006-2007 Everaldo Coelho). Other icons by 
             <a href="http://p.yusukekamiyamane.com/"> Yusuke Kamiyamane</a> 
             (All rights reserved) and by 
-            <a href="http://http://www.oxygen-icons.org/">
+            <a href="http://www.oxygen-icons.org/">
             The Oxygen icon theme</a> (used under the Creative Commons BY-SA 
             license)
             <p>Spyder's community:
