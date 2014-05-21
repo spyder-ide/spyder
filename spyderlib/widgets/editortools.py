@@ -116,6 +116,15 @@ class FunctionItem(TreeItem):
             self.setToolTip(0, _("Function defined at line %s"
                                  ) % str(self.line))
 
+class CommentItem(TreeItem):
+    def setup(self):
+        self.set_icon('blockcomment.png')
+        self.setToolTip(0, _("Line %s") % str(self.line))
+
+class CellItem(TreeItem):
+    def setup(self):
+        self.set_icon('cell.png')
+        self.setToolTip(0, _("Cell starts at line %s") % str(self.line))
 
 def get_item_children(item):
     children = [item.child(index) for index in range(item.childCount())]
@@ -367,7 +376,14 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                         continue
                     else:
                         remove_from_tree_cache(tree_cache, line=line_nb)
-                item = TreeItem(data.text, line_nb, parent, preceding)
+                if data.is_comment():
+                    if data.def_type == data.CELL:
+                        item = CellItem(data.text, line_nb, parent, preceding)
+                    else:
+                        item = CommentItem(
+                            data.text, line_nb, parent, preceding)
+                else:
+                    item = TreeItem(data.text, line_nb, parent, preceding)
             elif class_name is not None:
                 if citem is not None:
                     if class_name == cname and level == clevel:
