@@ -58,7 +58,7 @@ class DataFrameModel(QAbstractTableModel):
             color = QColor(Qt.lightGray)
             color.setAlphaF(.05)
         else:
-            value = self.df.ix[index.row(), index.column()-1]
+            value = self.df.iloc[index.row(), index.column()-1]
             color = QColor(get_color_name(value))
             color.setAlphaF(self.alp)
         return color
@@ -67,11 +67,14 @@ class DataFrameModel(QAbstractTableModel):
         if not index.isValid():
             return to_qvariant()
         if role == Qt.DisplayRole or role == Qt.EditRole:
-            if index.column() == 0:
-                return to_qvariant(to_text_string(self.df.index.tolist()[index.row()]))
+            column = index.column()
+            row = index.row()
+            if  column == 0:
+                return to_qvariant(to_text_string(self.df.index.tolist()[row]))
             else:
-                return to_qvariant(to_text_string(self.df.ix[index.row(),
-                                                  index.column()-1]))
+                return to_qvariant(to_text_string(self.df.iloc[row,column-1]))
+        
+                                  
         elif role == Qt.BackgroundColorRole:
             return to_qvariant(self.get_bgcolor(index))
         return to_qvariant()
@@ -83,15 +86,16 @@ class DataFrameModel(QAbstractTableModel):
                             Qt.ItemIsEditable)
 
     def setData(self, index, value, role=Qt.EditRole):
-        #row = self.df.index[index.row()]
+        column = index.column()        
+        row = index.row()
         value = from_qvariant(value, str)
-        if isinstance(self.df.ix[index.row(), index.column()-1],
+        if isinstance(self.df.ix[row, column - 1],
                       (long, int, int64, float, unicode, str)):
             try:
                 value = float(value)
             except ValueError:
                 value = unicode(value)
-            self.df.ix[index.row(), index.column()-1] = value
+            self.df.iloc[row, column - 1] = value
             #it is faster but does not work if the row index contains nan
             #self.df.set_value(row, col, value)
             return True
@@ -198,7 +202,9 @@ def test():
     print("out:", out)
     out = test_edit(df1['a'])
     print("out:", out)
-    df1 = DataFrame([[1, 'test'], [1, 'test'], [1, 'test'], [1, 'test']])
+    df1 = DataFrame([[2, 'two'], [1, 'one'], [3, 'test'], [4, 'test']])
+    df1.sort(columns=0,inplace=True)
+    
     print("out:", test_edit(df1))
     out = test_edit(TimeSeries(range(10)))
     print("out:", out)
