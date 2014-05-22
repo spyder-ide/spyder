@@ -1464,7 +1464,7 @@ class Editor(SpyderPluginWidget):
         fname=None --> fname will be 'untitledXX.py' but do not create file
         fname=<basestring> --> create file
         """
-        # If no text is providing, creating default content
+        # If no text is provided, create default content
         if text is None:
             text, enc = encoding.read(self.TEMPLATE_PATH)
             enc_match = re.search('-*- coding: ?([a-z0-9A-Z\-]*) -*-', text)
