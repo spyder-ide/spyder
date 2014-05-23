@@ -1646,12 +1646,7 @@ class EditorStack(QWidget):
         enable = False
         if self.data:
             finfo = self.data[index]
-            # oe_visible: if outline explorer is not visible, maybe the whole
-            # GUI is not visible (Spyder is starting up) -> in this case,
-            # it is necessary to update the outline explorer
-            oe_visible = oe.isVisible() or not self.isVisible()
-            if self.outlineexplorer_enabled and finfo.editor.is_python() \
-               and oe_visible:
+            if self.outlineexplorer_enabled and finfo.editor.is_python():
                 enable = True
                 oe.setEnabled(True)
                 oe.set_current_editor(finfo.editor, finfo.filename,
