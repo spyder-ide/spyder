@@ -93,6 +93,8 @@ class DataFrameModel(QAbstractTableModel):
                       (long, int, int64, float, unicode, str)):
             try:
                 value = float(value)
+                if value.is_integer():
+                    value = int(value)
             except ValueError:
                 value = unicode(value)
             self.df.iloc[row, column - 1] = value
