@@ -620,7 +620,6 @@ class EditorStack(QWidget):
         self.linenumbers_enabled = True
         self.edgeline_enabled = True
         self.edgeline_column = 79
-        self.outlineexplorer_enabled = True
         self.codecompletion_auto_enabled = True
         self.codecompletion_case_enabled = False
         self.codecompletion_enter_enabled = False
@@ -840,7 +839,6 @@ class EditorStack(QWidget):
         
     def set_outlineexplorer(self, outlineexplorer):
         self.outlineexplorer = outlineexplorer
-        self.outlineexplorer_enabled = True
         self.connect(self.outlineexplorer,
                      SIGNAL("outlineexplorer_is_visible()"),
                      self._refresh_outlineexplorer)
@@ -1012,10 +1010,6 @@ class EditorStack(QWidget):
                 
     def set_inspector_enabled(self, state):
         self.inspector_enabled = state
-        
-    def set_outlineexplorer_enabled(self, state):
-        # CONF.get(self.CONF_SECTION, 'outline_explorer')
-        self.outlineexplorer_enabled = state
         
     def set_default_font(self, font, color_scheme=None):
         # get_font(self.CONF_SECTION)
@@ -1646,7 +1640,7 @@ class EditorStack(QWidget):
         enable = False
         if self.data:
             finfo = self.data[index]
-            if self.outlineexplorer_enabled and finfo.editor.is_python():
+            if finfo.editor.is_python():
                 enable = True
                 oe.setEnabled(True)
                 oe.set_current_editor(finfo.editor, finfo.filename,
