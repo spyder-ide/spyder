@@ -446,11 +446,15 @@ class ArrayEditor(QDialog):
         self.arraywidget = None
         self.stack = None
         self.layout = None
-        
+        # Values for 3d array editor
         self.index_spin = None
         self.dim_label = None
         self.size_label = None
-        self.last_index = 2
+        self.last_index = 2 # Determines the first slice in 3d array editor
+        self.index_loaded = None
+        self.index_num = [self.last_index] # keep track on index order
+        # keeps track of the index offset in the 3d array editor
+        self.index_off_set = 0
         
     def setup_and_check(self, data, title='', readonly=False,
                         xlabels=None, ylabels=None):
@@ -510,8 +514,10 @@ class ArrayEditor(QDialog):
             self.stack.addWidget(ArrayEditorWidget(self, data.mask, readonly,
                                                    xlabels, ylabels))
         elif data.ndim == 3:
-            for i in range(data.shape[2]):
-                self.stack.addWidget(ArrayEditorWidget(self, data[:, :, i], 
+            slice_index = [slice(None, None)]*3 
+            for i in range(data.shape[self.last_index]):
+                slice_index[self.last_index] = i
+                self.stack.addWidget(ArrayEditorWidget(self, data[slice_index], 
                                                        readonly,xlabels, 
                                                        ylabels))
         else:
@@ -549,7 +555,7 @@ class ArrayEditor(QDialog):
                 names = [str(i) for i in range(3)]
                 ra_combo = QComboBox(self)
                 ra_combo.addItems(names)
-                ra_combo.setCurrentIndex(2)
+                ra_combo.setCurrentIndex(self.last_index)
                 self.connect(ra_combo, SIGNAL('currentIndexChanged(int)'),
                              self.current_dim_changed)                
                 # Adding the widgets to layout
@@ -608,35 +614,44 @@ class ArrayEditor(QDialog):
         """
         self.update_label(index)
         if index<0:
-            self.stack.setCurrentIndex(self.data.shape[self.last_index]+index)  
+            self.stack.setCurrentIndex(self.index_off_set +
+                                       self.data.shape[self.last_index]+index)  
         else:
-            self.stack.setCurrentIndex(index)  
+            self.stack.setCurrentIndex(self.index_off_set + index)  
             
     def current_dim_changed(self, index):
         """
         This change the active axis the array editor is plotting over
         in 3D
         """
-        while True:
-            widget = self.stack.widget(0)
-            if not widget: #widget returns none when there are no more widgets
-                break
-            else:
-                self.stack.removeWidget(widget)
-        slice_index = [slice(None, None)]*3 
-        for i in range(self.data.shape[index]):
-            slice_index[index] = i
-            self.stack.addWidget(ArrayEditorWidget(self, self.data[slice_index]))
+        if index in self.index_num:
+            self.index_off_set = 0
+            for i in self.index_num:
+                if i==index:
+                    break
+                else:
+                    self.index_off_set+=self.data.shape[i]
+        else:   
+            self.index_off_set = sum(self.data.shape[i] for i in self.index_num)
+            self.index_num.append(index)
+            slice_index = [slice(None, None)]*3 
+            for i in range(self.data.shape[index]):
+                slice_index[index] = i
+                self.stack.addWidget(ArrayEditorWidget(self, self.data[slice_index]))
+            self.stack.update()  
+        
         self.last_index = index
         string_size = ['%i']*3
         string_size[index] = '<font color=red>%i</font>'
         self.size_label.setText(('Size: ('+', '.join(string_size)+')    ')%self.data.shape)
         if self.index_spin.value() != 0:
             self.index_spin.setValue(0)
-        else:
-            self.update_label(0)   
+        else: 
+            # this is done since if the value is currently 0 it does not emit 
+            # currentIndexChanged(int)
+            self.change_active_widget(0)
         self.index_spin.setRange(-self.data.shape[index], self.data.shape[index]-1)
-        self.stack.update()     
+           
         
     def accept(self):
         """Reimplement Qt method"""
