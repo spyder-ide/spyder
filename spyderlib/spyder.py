@@ -1225,22 +1225,23 @@ class MainWindow(QMainWindow):
         is_fullscreen = get_func(section, prefix+'is_fullscreen')
         return hexstate, window_size, prefs_dialog_size, pos, is_maximized, \
                is_fullscreen
-    
+
     def get_window_settings(self):
         """Return current window settings
         Symetric to the 'set_window_settings' setter"""
-        size = self.window_size
-        width, height = size.width(), size.height()
+        window_size = (self.window_size.width, self.window_size.height)
         is_fullscreen = self.isFullScreen()
         if is_fullscreen:
             is_maximized = self.maximized_flag
         else:
             is_maximized = self.isMaximized()
-        pos = self.window_position
-        posx, posy = pos.x(), pos.y()
+        pos = (self.window_position.x, self.window_position.y)
+        prefs_dialog_size = (self.prefs_dialog_size.width,
+                             self.prefs_dialog_size.height)
         hexstate = qbytearray_to_str(self.saveState())
-        return hexstate, width, height, posx, posy, is_maximized, is_fullscreen
-        
+        return (hexstate, window_size, prefs_dialog_size, pos, is_maximized,
+                is_fullscreen)
+
     def set_window_settings(self, hexstate, window_size, prefs_dialog_size,
                             pos, is_maximized, is_fullscreen):
         """Set window settings
