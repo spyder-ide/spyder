@@ -1721,8 +1721,7 @@ class MainWindow(QMainWindow):
             <a href="http://p.yusukekamiyamane.com/"> Yusuke Kamiyamane</a> 
             (All rights reserved) and by 
             <a href="http://www.oxygen-icons.org/">
-            The Oxygen icon theme</a> (used under the Creative Commons BY-SA 
-            license)
+            The Oxygen icon theme</a>.
             <p>Spyder's community:
             <ul><li>Bug reports and feature requests: 
             <a href="%s">Google Code</a>
@@ -1733,7 +1732,7 @@ class MainWindow(QMainWindow):
             facilitate the use of Python for scientific and engineering 
             software development. The popular Python distributions 
             <a href="http://code.google.com/p/pythonxy/">Python(x,y)</a> and 
-            <a href="http://code.google.com/p/winpython/">WinPython</a> 
+            <a href="http://winpython.sourceforge.net/">WinPython</a> 
             also contribute to this plan.
             <p>Python %s %dbits, Qt %s, %s %s on %s"""
             % (versions['spyder'], revlink, __project_url__,
