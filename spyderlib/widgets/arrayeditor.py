@@ -633,8 +633,7 @@ class ArrayEditor(QDialog):
             # currentIndexChanged(int)
             self.change_active_widget(0)
         self.index_spin.setRange(-self.data.shape[index], self.data.shape[index]-1)
-           
-        
+
     def accept(self):
         """Reimplement Qt method"""
         for index in range(self.stack.count()):
