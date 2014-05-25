@@ -659,6 +659,9 @@ builtins.evalsc = evalsc
 # Add post mortem debugging if requested
 if 'SPYDER_EXCEPTHOOK' in os.environ:  
     def info(type, value, tb):
+        if not hasattr(sys, 'last_traceback'):
+            traceback.print_exception(type, value, tb)
+            return
         print >>sys.stderr, '*' * 30
         print >>sys.stderr, 'Entering Post Mortem Debugging'
         print >>sys.stderr, '*' * 30
