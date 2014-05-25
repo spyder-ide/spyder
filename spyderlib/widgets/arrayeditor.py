@@ -609,8 +609,8 @@ class ArrayEditor(QDialog):
         slice_index = [slice(None, None)]*3 
         slice_index[self.last_dim] = data_index
         
-        stack_index = self.dim_indexes[self.last_dim].get(data_index,False)
-        if stack_index == False:
+        stack_index = self.dim_indexes[self.last_dim].get(data_index)
+        if stack_index == None:
             stack_index = self.stack.count()
             self.stack.addWidget(ArrayEditorWidget(self, self.data[slice_index]))
             self.dim_indexes[self.last_dim][data_index] = stack_index
