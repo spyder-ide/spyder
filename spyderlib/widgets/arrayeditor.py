@@ -447,14 +447,8 @@ class ArrayEditor(QDialog):
         self.stack = None
         self.layout = None
         # Values for 3d array editor
-        self.index_spin = None
-        self.dim_label = None
-        self.size_label = None
-        self.last_index = 2 # Determines the first slice in 3d array editor
-        self.index_loaded = None
-        self.index_num = [self.last_index] # keep track on index order
-        # keeps track of the index offset in the 3d array editor
-        self.index_off_set = 0
+        self.dim_indexes = [{0:0},{0:1},{0:2}]
+        self.last_dim = 2
         
     def setup_and_check(self, data, title='', readonly=False,
                         xlabels=None, ylabels=None):
@@ -514,12 +508,12 @@ class ArrayEditor(QDialog):
             self.stack.addWidget(ArrayEditorWidget(self, data.mask, readonly,
                                                    xlabels, ylabels))
         elif data.ndim == 3:
-            slice_index = [slice(None, None)]*3 
-            for i in range(data.shape[self.last_index]):
-                slice_index[self.last_index] = i
+            for i in range(3):
+                slice_index = [slice(None, None)]*3 
+                slice_index[i] = 0
                 self.stack.addWidget(ArrayEditorWidget(self, data[slice_index], 
                                                        readonly,xlabels, 
-                                                       ylabels))
+                                                       ylabels))  
         else:
             self.stack.addWidget(ArrayEditorWidget(self, data, readonly,
                                                    xlabels, ylabels))
@@ -548,16 +542,16 @@ class ArrayEditor(QDialog):
             if data.ndim == 3:
                 # QSpinBox
                 self.index_spin = QSpinBox(self, keyboardTracking=False)
-                self.index_spin.setRange(-data.shape[2], data.shape[2]-1)
+                self.index_spin.setRange(-data.shape[self.last_dim], 
+                                         data.shape[self.last_dim]-1)
                 self.connect(self.index_spin, SIGNAL('valueChanged(int)'),
                              self.change_active_widget)
                 # QComboBox
                 names = [str(i) for i in range(3)]
                 ra_combo = QComboBox(self)
                 ra_combo.addItems(names)
-                ra_combo.setCurrentIndex(self.last_index)
                 self.connect(ra_combo, SIGNAL('currentIndexChanged(int)'),
-                             self.current_dim_changed)                
+                             self.current_dim_changed)         
                 # Adding the widgets to layout
                 label = QLabel(_("Axis:"))
                 btn_layout.addWidget(label)
@@ -569,6 +563,8 @@ class ArrayEditor(QDialog):
                 btn_layout.addWidget(self.index_spin)
                 self.dim_label = QLabel(_(r"Slicing: [:, :, <font color=red>0</font>]"))
                 btn_layout.addWidget(self.dim_label)
+                # set the widget to display when launched
+                ra_combo.setCurrentIndex(self.last_dim)
             else:
                 ra_combo = QComboBox(self)
                 self.connect(ra_combo, SIGNAL('currentIndexChanged(int)'),
@@ -604,7 +600,7 @@ class ArrayEditor(QDialog):
         of the 3D array
         """
         string_index = [':']*3
-        string_index[self.last_index] = '<font color=red>%i</font>'
+        string_index[self.last_dim] = '<font color=red>%i</font>'
         self.dim_label.setText((r"Slicing: ["+', '.join(string_index)+"]")%index)
             
     def change_active_widget(self, index):
@@ -614,33 +610,28 @@ class ArrayEditor(QDialog):
         """
         self.update_label(index)
         if index<0:
-            self.stack.setCurrentIndex(self.index_off_set +
-                                       self.data.shape[self.last_index]+index)  
-        else:
-            self.stack.setCurrentIndex(self.index_off_set + index)  
+            data_index = self.data.shape[self.last_dim]+index
+        else: 
+            data_index = index
+        slice_index = [slice(None, None)]*3 
+        slice_index[self.last_dim] = data_index
+        
+        stack_index = self.dim_indexes[self.last_dim].get(data_index,False)
+        if stack_index == False:
+            stack_index = self.stack.count()
+            self.stack.addWidget(ArrayEditorWidget(self, self.data[slice_index]))
+            self.dim_indexes[self.last_dim][data_index] = stack_index
+            self.stack.update()
+        self.stack.setCurrentIndex(stack_index) 
+        
+        
             
     def current_dim_changed(self, index):
         """
         This change the active axis the array editor is plotting over
         in 3D
         """
-        if index in self.index_num:
-            self.index_off_set = 0
-            for i in self.index_num:
-                if i==index:
-                    break
-                else:
-                    self.index_off_set+=self.data.shape[i]
-        else:   
-            self.index_off_set = sum(self.data.shape[i] for i in self.index_num)
-            self.index_num.append(index)
-            slice_index = [slice(None, None)]*3 
-            for i in range(self.data.shape[index]):
-                slice_index[index] = i
-                self.stack.addWidget(ArrayEditorWidget(self, self.data[slice_index]))
-            self.stack.update()  
-        
-        self.last_index = index
+        self.last_dim = index
         string_size = ['%i']*3
         string_size[index] = '<font color=red>%i</font>'
         self.size_label.setText(('Size: ('+', '.join(string_size)+')    ')%self.data.shape)
