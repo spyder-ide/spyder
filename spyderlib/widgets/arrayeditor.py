@@ -592,23 +592,16 @@ class ArrayEditor(QDialog):
         return True
             
     def current_widget_changed(self, index):
-        self.arraywidget = self.stack.widget(index)
-        
-    def update_label(self, index):
-        """ 
-        This updates the label that shows the current slicing
-        of the 3D array
-        """
-        string_index = [':']*3
-        string_index[self.last_dim] = '<font color=red>%i</font>'
-        self.dim_label.setText((r"Slicing: ["+', '.join(string_index)+"]")%index)
+        self.arraywidget = self.stack.widget(index)     
             
     def change_active_widget(self, index):
         """
         This is implemented for handling negative values in index for
         3d arrays, to give the same behavior as slicing
         """
-        self.update_label(index)
+        string_index = [':']*3
+        string_index[self.last_dim] = '<font color=red>%i</font>'
+        self.dim_label.setText((r"Slicing: ["+', '.join(string_index)+"]")%index)
         if index<0:
             data_index = self.data.shape[self.last_dim]+index
         else: 
@@ -622,9 +615,7 @@ class ArrayEditor(QDialog):
             self.stack.addWidget(ArrayEditorWidget(self, self.data[slice_index]))
             self.dim_indexes[self.last_dim][data_index] = stack_index
             self.stack.update()
-        self.stack.setCurrentIndex(stack_index) 
-        
-        
+        self.stack.setCurrentIndex(stack_index)
             
     def current_dim_changed(self, index):
         """
