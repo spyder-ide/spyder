@@ -9,7 +9,8 @@ Pandas DataFrame Editor Dialog based on Qt
 from spyderlib.qt.QtCore import (QAbstractTableModel, Qt, QModelIndex, SIGNAL,
                                  SLOT)
 from spyderlib.qt.QtGui import (QDialog, QTableView, QColor, QGridLayout,
-                                QDialogButtonBox, QHBoxLayout)
+                                QDialogButtonBox, QHBoxLayout, QPushButton,
+                                QCheckBox, QMessageBox, QInputDialog, QLineEdit)
 from spyderlib.qt.compat import to_qvariant, from_qvariant
 from spyderlib.utils.qthelpers import qapplication, get_icon
 from spyderlib.widgets.dicteditorutils import get_color_name
@@ -26,20 +27,36 @@ class DataFrameModel(QAbstractTableModel):
     Copyright (c) 2011-2012, Lambda Foundry, Inc.
     and PyData Development Team All rights reserved
     """
-    def __init__(self, dataFrame):
+    def __init__(self, dataFrame, format="%.3f"):
         super(DataFrameModel, self).__init__()
         self.df = dataFrame
         self.sat = .7  # Saturation
         self.val = 1.  # Value
         self.alp = .3  # Alpha-channel
+        self._format = format
+        self.bgcolor_enabled = True
         self.signalUpdate()
 
     def signalUpdate(self):
         ''' tell viewers to update their data (this is full update, not
         efficient)'''
         self.layoutChanged.emit()
-
-    #------------- table display functions -----------------
+    
+    def get_format(self):
+        """Return current format"""
+        # Avoid accessing the private attribute _format from outside
+        return self._format
+    
+    def set_format(self, format):
+        """Change display format"""
+        self._format = format
+        self.reset()
+        
+    def bgcolor(self, state):
+        """Toggle backgroundcolor"""
+        self.bgcolor_enabled = state > 0
+        self.reset()
+        
     def headerData(self, section, orientation, role=Qt.DisplayRole):
         if role != Qt.DisplayRole:
             return to_qvariant()
@@ -54,11 +71,12 @@ class DataFrameModel(QAbstractTableModel):
 
     def get_bgcolor(self, index):
         """Background color depending on value"""
-        if index.column() == 0:
+        column = index.column()
+        if column == 0 or not self.bgcolor_enabled:
             color = QColor(Qt.lightGray)
             color.setAlphaF(.05)
         else:
-            value = self.df.iloc[index.row(), index.column()-1]
+            value = self.df.iloc[index.row(), column-1]
             color = QColor(get_color_name(value))
             color.setAlphaF(self.alp)
         return color
@@ -72,13 +90,23 @@ class DataFrameModel(QAbstractTableModel):
             if  column == 0:
                 return to_qvariant(to_text_string(self.df.index.tolist()[row]))
             else:
-                return to_qvariant(to_text_string(self.df.iloc[row,column-1]))
-        
-                                  
+                value=self.df.iloc[row,column-1]
+                if isinstance(value, float):
+                    return to_qvariant(self._format %value)
+                else:
+                    return to_qvariant(to_text_string(value))
         elif role == Qt.BackgroundColorRole:
             return to_qvariant(self.get_bgcolor(index))
         return to_qvariant()
-
+    
+    def sort(self, column, order=Qt.AscendingOrder):
+        """Overriding sort method"""
+        
+        if column > 0:
+            self.df.sort(columns=self.df.columns[column-1], ascending=order, inplace=True)
+        else: 
+            self.df.sort_index(inplace=True, ascending=order)
+        self.reset()
     def flags(self, index):
         if index.column() == 0:
             return Qt.ItemIsEnabled
@@ -159,21 +187,57 @@ class DataFrameEditor(QDialog):
         self.dataTable = QTableView()
         self.dataTable.setModel(self.dataModel)
         self.dataTable.resizeColumnsToContents()
-
+        
         self.layout.addWidget(self.dataTable)
         self.setLayout(self.layout)
         self.setMinimumSize(400, 300)
         # Make the dialog act as a window
         self.setWindowFlags(Qt.Window)
         btn_layout = QHBoxLayout()
+        
+        btn = QPushButton("Format")
+        # disable format button for int type
+        btn_layout.addWidget(btn)
+        self.connect(btn, SIGNAL("clicked()"), self.change_format)
+        btn = QPushButton('Resize')
+        btn_layout.addWidget(btn)
+        self.connect(btn, SIGNAL("clicked()"), self.dataTable.resizeColumnsToContents)
+        
+        bgcolor = QCheckBox('Background color')
+        bgcolor.setChecked(self.dataModel.bgcolor_enabled)
+        bgcolor.setEnabled(self.dataModel.bgcolor_enabled)
+        self.connect(bgcolor, SIGNAL("stateChanged(int)"), self.dataModel.bgcolor)
+        btn_layout.addWidget(bgcolor)
+        btn_layout.addStretch()
         bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         self.connect(bbox, SIGNAL("accepted()"), SLOT("accept()"))
         self.connect(bbox, SIGNAL("rejected()"), SLOT("reject()"))
-
         btn_layout.addWidget(bbox)
+        
         self.layout.addLayout(btn_layout, 2, 0)
+        
+        self.connect(self.dataTable.horizontalHeader(),SIGNAL("sectionClicked(int)"), self.sortByColumn)
+        
         return True
-
+        
+    def change_format(self):
+        """Change display format"""
+        format, valid = QInputDialog.getText(self, 'Format',
+                                 "Float formatting",
+                                 QLineEdit.Normal, self.dataModel.get_format())
+        if valid:
+            format = str(format)
+            try:
+                format % 1.1
+            except:
+                QMessageBox.critical(self, ("Error"),
+                                     ("Format (%s) is incorrect") % format)
+                return
+            self.dataModel.set_format(format)    
+            
+    def sortByColumn(self,index):
+        self.dataTable.setSortingEnabled(True)
+        
     def get_value(self):
         """Return modified Dataframe -- this is *not* a copy"""
         # It is import to avoid accessing Qt C++ object as it has probably
@@ -205,8 +269,7 @@ def test():
     out = test_edit(df1['a'])
     print("out:", out)
     df1 = DataFrame([[2, 'two'], [1, 'one'], [3, 'test'], [4, 'test']])
-    df1.sort(columns=0,inplace=True)
-    
+    df1.sort(columns=[0,1],inplace=True)
     print("out:", test_edit(df1))
     out = test_edit(TimeSeries(range(10)))
     print("out:", out)
