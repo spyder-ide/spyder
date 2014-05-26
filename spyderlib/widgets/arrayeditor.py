@@ -449,6 +449,7 @@ class ArrayEditor(QDialog):
         # Values for 3d array editor
         self.dim_indexes = [{}, {}, {}]
         self.last_dim = 2  # Adjust this for changing the startup dimension
+        self.dim_indexes[self.last_dim][0] = 0
         
     def setup_and_check(self, data, title='', readonly=False,
                         xlabels=None, ylabels=None):
@@ -508,7 +509,10 @@ class ArrayEditor(QDialog):
             self.stack.addWidget(ArrayEditorWidget(self, data.mask, readonly,
                                                    xlabels, ylabels))
         elif data.ndim == 3:
-            pass
+            slice_index = [slice(None, None)]*3
+            slice_index[self.last_dim] = 0
+            self.stack.addWidget(ArrayEditorWidget(self, data[slice_index],
+                                                   readonly, xlabels, ylabels))
         else:
             self.stack.addWidget(ArrayEditorWidget(self, data, readonly,
                                                    xlabels, ylabels))
@@ -537,6 +541,8 @@ class ArrayEditor(QDialog):
             if data.ndim == 3:
                 # QSpinBox
                 self.index_spin = QSpinBox(self, keyboardTracking=False)
+                self.index_spin.setRange(-data.shape[self.last_dim],
+                                         data.shape[self.last_dim]-1)
                 self.connect(self.index_spin, SIGNAL('valueChanged(int)'),
                              self.change_active_widget)
                 # QComboBox
@@ -549,13 +555,15 @@ class ArrayEditor(QDialog):
                 label = QLabel(_("Axis:"))
                 btn_layout.addWidget(label)
                 btn_layout.addWidget(ra_combo)
-                self.shape_label = QLabel(_(""))
-                btn_layout.addWidget(self.shape_label)
+                self.size_label = QLabel(_(r"Shape: (%i, %i, <font color=red>"
+                                           "%i</font>)    " % data.shape))
+                btn_layout.addWidget(self.size_label)
                 label = QLabel(_("Index:"))
                 btn_layout.addWidget(label)
                 btn_layout.addWidget(self.index_spin)
-                self.slicing_label = QLabel(_(""))
-                btn_layout.addWidget(self.slicing_label)
+                self.dim_label = QLabel(_(r"Slicing: [:, :, <font color=red>"
+                                          "0</font>]"))
+                btn_layout.addWidget(self.dim_label)
                 # set the widget to display when launched
                 ra_combo.setCurrentIndex(self.last_dim)
             else:
@@ -594,13 +602,13 @@ class ArrayEditor(QDialog):
         """
         string_index = [':']*3
         string_index[self.last_dim] = '<font color=red>%i</font>'
-        self.slicing_label.setText((r"Slicing: [" + ", ".join(string_index) +
+        self.dim_label.setText((r"Slicing: [" + ", ".join(string_index) +
                                 "]") % index)
         if index < 0:
             data_index = self.data.shape[self.last_dim] + index
         else:
             data_index = index
-        slice_index = [slice(None)]*3
+        slice_index = [slice(None, None)]*3
         slice_index[self.last_dim] = data_index
 
         stack_index = self.dim_indexes[self.last_dim].get(data_index)
@@ -620,7 +628,7 @@ class ArrayEditor(QDialog):
         self.last_dim = index
         string_size = ['%i']*3
         string_size[index] = '<font color=red>%i</font>'
-        self.shape_label.setText(('Shape: (' + ', '.join(string_size) +
+        self.size_label.setText(('Shape: (' + ', '.join(string_size) +
                                  ')    ') % self.data.shape)
         if self.index_spin.value() != 0:
             self.index_spin.setValue(0)
