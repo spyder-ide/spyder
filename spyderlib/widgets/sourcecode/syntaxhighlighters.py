@@ -337,7 +337,7 @@ class PythonSH(BaseSH):
                                 title = title.lstrip("#% ")
                                 if title.startswith("<codecell>"):
                                     title = title[10:].lstrip()
-                                if title.startswith("In["):
+                                elif title.startswith("In["):
                                     title = title[3:].rstrip("]:")
                                 oedata = OutlineExplorerData()
                                 oedata.text = title
