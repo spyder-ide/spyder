@@ -335,9 +335,10 @@ class PythonSH(BaseSH):
                                 self.found_cell_separators = True
                                 title = to_text_string(text).strip()
                                 title = title.lstrip("#% ")
-                                print(repr(title))
                                 if title.startswith("<codecell>"):
                                     title = title[10:].lstrip()
+                                if title.startswith("In["):
+                                    title = title[3:].rstrip("]:")
                                 oedata = OutlineExplorerData()
                                 oedata.text = title
                                 oedata.fold_level = start
