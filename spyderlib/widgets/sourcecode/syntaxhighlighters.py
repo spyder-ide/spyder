@@ -278,6 +278,7 @@ class PythonSH(BaseSH):
     def __init__(self, parent, font=None, color_scheme='Spyder'):
         BaseSH.__init__(self, parent, font, color_scheme)
         self.import_statements = {}
+        self.found_cell_separators = False
 
     def highlightBlock(self, text):
         text = to_text_string(text)
@@ -331,6 +332,7 @@ class PythonSH(BaseSH):
                         self.setFormat(start, end-start, self.formats[key])
                         if key == "comment":
                             if text.lstrip().startswith(CELL_SEPARATORS):
+                                self.found_cell_separators = True
                                 title = to_text_string(text).strip()
                                 title = title.lstrip("#% ")
                                 print(repr(title))
@@ -397,6 +399,7 @@ class PythonSH(BaseSH):
         if oedata is not None:
             block_nb = self.currentBlock().blockNumber()
             self.outlineexplorer_data[block_nb] = oedata
+            self.outlineexplorer_data['found_cell_separators'] = self.found_cell_separators
         if import_stmt is not None:
             block_nb = self.currentBlock().blockNumber()
             self.import_statements[block_nb] = import_stmt
@@ -406,6 +409,7 @@ class PythonSH(BaseSH):
             
     def rehighlight(self):
         self.import_statements = {}
+        self.found_cell_separators = False
         BaseSH.rehighlight(self)
 
 
