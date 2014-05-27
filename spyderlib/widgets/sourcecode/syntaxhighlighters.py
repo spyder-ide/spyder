@@ -333,22 +333,14 @@ class PythonSH(BaseSH):
                         if key == "comment":
                             if text.lstrip().startswith(CELL_SEPARATORS):
                                 self.found_cell_separators = True
-                                title = to_text_string(text).strip()
-                                title = title.lstrip("#% ")
-                                if title.startswith("<codecell>"):
-                                    title = title[10:].lstrip()
-                                elif title.startswith("In["):
-                                    title = title[3:].rstrip("]:")
                                 oedata = OutlineExplorerData()
-                                oedata.text = title
+                                oedata.text = to_text_string(text).strip()
                                 oedata.fold_level = start
                                 oedata.def_type = OutlineExplorerData.CELL
                                 oedata.def_name = text.strip()
                             elif self.OECOMMENT.match(text.lstrip()):
-                                title = to_text_string(text).strip()
-                                title = title.lstrip("# ")
                                 oedata = OutlineExplorerData()
-                                oedata.text = title
+                                oedata.text = to_text_string(text).strip()
                                 oedata.fold_level = start
                                 oedata.def_type = OutlineExplorerData.COMMENT
                                 oedata.def_name = text.strip()

@@ -117,6 +117,10 @@ class FunctionItem(TreeItem):
                                  ) % str(self.line))
 
 class CommentItem(TreeItem):
+    def __init__(self, name, line, parent, preceding):
+        name = name.lstrip("# ")
+        TreeItem.__init__(self, name, line, parent, preceding)
+
     def setup(self):
         self.set_icon('blockcomment.png')
         font = self.font(0)
@@ -125,6 +129,24 @@ class CommentItem(TreeItem):
         self.setToolTip(0, _("Line %s") % str(self.line))
 
 class CellItem(TreeItem):
+    IPYTHON_CELL = re.compile(r'^In\[(\d*)\]:?\s*(.*)')
+
+    def __init__(self, name, line, parent, preceding):
+        name = name.lstrip("#% ")
+        if name.startswith("<codecell>"):
+            name = name[10:].lstrip()
+        elif name.startswith("In["):
+            match = self.IPYTHON_CELL.match(name)
+            if match is not None:
+                number, title = match.groups()
+                if not title:
+                    name = number
+                elif not number:
+                    name = title
+                else:
+                    name = number + ": " + title
+        TreeItem.__init__(self, name, line, parent, preceding)
+
     def setup(self):
         self.set_icon('cell.png')
         font = self.font(0)
