@@ -129,22 +129,15 @@ class CommentItem(TreeItem):
         self.setToolTip(0, _("Line %s") % str(self.line))
 
 class CellItem(TreeItem):
-    IPYTHON_CELL = re.compile(r'^In\[\s*(\d*)\s*\]:?\s*(.*)')
-
     def __init__(self, name, line, parent, preceding):
         name = name.lstrip("#% ")
         if name.startswith("<codecell>"):
             name = name[10:].lstrip()
         elif name.startswith("In["):
-            match = self.IPYTHON_CELL.match(name)
-            if match is not None:
-                number, title = match.groups()
-                if not title:
-                    name = number
-                elif not number:
-                    name = title
-                else:
-                    name = number + ": " + title
+            name = name[2:]
+            if name.endswith("]:"):
+                name = name[:-1]
+            name = name.strip()
         TreeItem.__init__(self, name, line, parent, preceding)
 
     def setup(self):
