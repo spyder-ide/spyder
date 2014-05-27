@@ -129,7 +129,7 @@ class CommentItem(TreeItem):
         self.setToolTip(0, _("Line %s") % str(self.line))
 
 class CellItem(TreeItem):
-    IPYTHON_CELL = re.compile(r'^In\[(\d*)\]:?\s*(.*)')
+    IPYTHON_CELL = re.compile(r'^In\[\s*(\d*)\s*\]:?\s*(.*)')
 
     def __init__(self, name, line, parent, preceding):
         name = name.lstrip("#% ")
