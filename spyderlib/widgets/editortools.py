@@ -119,11 +119,17 @@ class FunctionItem(TreeItem):
 class CommentItem(TreeItem):
     def setup(self):
         self.set_icon('blockcomment.png')
+        font = self.font(0)
+        font.setItalic(True)
+        self.setFont(0, font)
         self.setToolTip(0, _("Line %s") % str(self.line))
 
 class CellItem(TreeItem):
     def setup(self):
         self.set_icon('cell.png')
+        font = self.font(0)
+        font.setItalic(True)
+        self.setFont(0, font)
         self.setToolTip(0, _("Cell starts at line %s") % str(self.line))
 
 def get_item_children(item):
