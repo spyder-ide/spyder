@@ -13,11 +13,9 @@ from spyderlib.qt.QtGui import (QDialog, QTableView, QColor, QGridLayout,
                                 QCheckBox, QMessageBox, QInputDialog, QLineEdit)
 from spyderlib.qt.compat import to_qvariant, from_qvariant
 from spyderlib.utils.qthelpers import qapplication, get_icon
-from spyderlib.widgets.dicteditorutils import get_color_name
 from spyderlib.py3compat import to_text_string
-from numpy import int64
 from pandas import DataFrame, TimeSeries
-import numpy as np
+
 
 class DataFrameModel(QAbstractTableModel):
     """
@@ -47,13 +45,9 @@ class DataFrameModel(QAbstractTableModel):
         self.float_cols_update()
     
     def float_cols_update(self):
-        self.float_cols = []
-        for max_val, min_val in zip(self.df.max(), self.df.min()):
-            try:
-                max_min = [float(max_val), float(min_val)]
-            except ValueError:
-                max_min = [None, None]
-            self.float_cols.append(max_min)
+        float_intran = self.df.apply(lambda row : [ not isinstance(e, basestring) for e in row ],axis=1)
+        self.float_cols = zip(self.df[float_intran].max(), self.df[float_intran].min())
+        
         
     def signalUpdate(self):
         ''' tell viewers to update their data (this is full update, not
@@ -90,21 +84,21 @@ class DataFrameModel(QAbstractTableModel):
     def get_bgcolor(self, index):
         """Background color depending on value"""
         column = index.column()
-        if column == 0 or not self.bgcolor_enabled:
+        if column == 0:
             color = QColor(Qt.lightGray)
-            color.setAlphaF(.05)
-        elif not None in self.float_cols[column-1]:
+            color.setAlphaF(.8)
+            return color
+        value = self.df.iloc[index.row(), column-1]
+        if not isinstance(value,basestring) and self.bgcolor_enabled:
             vmax, vmin = self.float_cols[column-1]
-            value = self.df.iloc[index.row(), column-1]
             hue = self.hue0+\
                   self.dhue*(vmax-value)\
                   /(vmax-vmin)
-            hue = float(np.abs(hue))
+            hue = float(abs(hue))
             color = QColor.fromHsvF(hue, self.sat, self.val, self.alp)
         else:
-            value = self.df.iloc[index.row(), column-1]
-            color = QColor(get_color_name(value))
-            color.setAlphaF(.4)
+            color = QColor(Qt.lightGray)
+            color.setAlphaF(.05)
         return color
 
     def data(self, index, role=Qt.DisplayRole):
@@ -116,7 +110,7 @@ class DataFrameModel(QAbstractTableModel):
             if  column == 0:
                 return to_qvariant(to_text_string(self.df.index.tolist()[row]))
             else:
-                value=self.df.iloc[row,column-1]
+                value = self.df.iloc[row,column-1]
                 if isinstance(value, float):
                     return to_qvariant(self._format %value)
                 else:
@@ -144,22 +138,18 @@ class DataFrameModel(QAbstractTableModel):
         column = index.column()        
         row = index.row()
         value = from_qvariant(value, str)
-        if isinstance(self.df.ix[row, column - 1],
-                      (long, int, int64, float, unicode, str)):
-            try:
-                value = float(value)
-                if value.is_integer():
-                    value = int(value)
-            except ValueError:
-                value = unicode(value)
-            self.df.iloc[row, column - 1] = value
-            #it is faster but does not work if the row index contains nan
-            #self.df.set_value(row, col, value)
-            self.float_cols_update()    
-            return True
-        else:
-            return False
-
+        try:
+            value = float(value)
+            if value.is_integer():
+                value = int(value)
+        except ValueError:
+            value = unicode(value)
+        self.df.iloc[row, column - 1] = value
+        #it is faster but does not work if the row index contains nan
+        #self.df.set_value(row, col, value)
+        self.float_cols_update()    
+        return True
+        
     def get_data(self):
         """Return data"""
         return self.df
