@@ -12,6 +12,7 @@ from spyderlib.qt.QtGui import (QDialog, QTableView, QColor, QGridLayout,
                                 QDialogButtonBox, QHBoxLayout, QPushButton,
                                 QCheckBox, QMessageBox, QInputDialog,
                                 QLineEdit)
+from spyderlib.baseconfig import _
 from spyderlib.qt.compat import to_qvariant, from_qvariant
 from spyderlib.utils.qthelpers import qapplication, get_icon
 from spyderlib.py3compat import to_text_string
@@ -211,16 +212,16 @@ class DataFrameEditor(QDialog):
         self.setWindowFlags(Qt.Window)
         btn_layout = QHBoxLayout()
         
-        btn = QPushButton("Format")
+        btn = QPushButton(_("Format"))
         # disable format button for int type
         btn_layout.addWidget(btn)
         self.connect(btn, SIGNAL("clicked()"), self.change_format)
-        btn = QPushButton('Resize')
+        btn = QPushButton(_('Resize'))
         btn_layout.addWidget(btn)
         self.connect(btn, SIGNAL("clicked()"), 
                      self.dataTable.resizeColumnsToContents)
         
-        bgcolor = QCheckBox('Background color')
+        bgcolor = QCheckBox(_('Background color'))
         bgcolor.setChecked(self.dataModel.bgcolor_enabled)
         bgcolor.setEnabled(self.dataModel.bgcolor_enabled)
         self.connect(bgcolor, SIGNAL("stateChanged(int)"),
@@ -241,8 +242,8 @@ class DataFrameEditor(QDialog):
         
     def change_format(self):
         """Change display format"""
-        format, valid = QInputDialog.getText(self, 'Format',
-                                             "Float formatting",
+        format, valid = QInputDialog.getText(self, _('Format'),
+                                             _("Float formatting"),
                                              QLineEdit.Normal,
                                              self.dataModel.get_format())
         if valid:
@@ -250,8 +251,8 @@ class DataFrameEditor(QDialog):
             try:
                 format % 1.1
             except:
-                QMessageBox.critical(self, ("Error"),
-                                     ("Format (%s) is incorrect") % format)
+                QMessageBox.critical(self, _("Error"),
+                                     _("Format (%s) is incorrect") % format)
                 return
             self.dataModel.set_format(format)    
             
