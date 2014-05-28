@@ -6,11 +6,12 @@
 Pandas DataFrame Editor Dialog based on Qt
 """
 
-from spyderlib.qt.QtCore import (QAbstractTableModel, Qt, QModelIndex, SIGNAL,
-                                 SLOT)
+from spyderlib.qt.QtCore import (QAbstractTableModel, Qt, QModelIndex,
+                                 SIGNAL, SLOT)
 from spyderlib.qt.QtGui import (QDialog, QTableView, QColor, QGridLayout,
                                 QDialogButtonBox, QHBoxLayout, QPushButton,
-                                QCheckBox, QMessageBox, QInputDialog, QLineEdit)
+                                QCheckBox, QMessageBox, QInputDialog,
+                                QLineEdit)
 from spyderlib.qt.compat import to_qvariant, from_qvariant
 from spyderlib.utils.qthelpers import qapplication, get_icon
 from spyderlib.py3compat import to_text_string
@@ -33,7 +34,6 @@ class DataFrameModel(QAbstractTableModel):
         self.alp = .3  # Alpha-channel
         self._format = format
         self.bgcolor_enabled = True
-        self.signalUpdate()
         
         huerange = [.66, .99] # Hue
         self.sat = .7 # Saturation
@@ -45,14 +45,12 @@ class DataFrameModel(QAbstractTableModel):
         self.float_cols_update()
     
     def float_cols_update(self):
-        float_intran = self.df.apply(lambda row : [ not isinstance(e, basestring) for e in row ],axis=1)
-        self.float_cols = zip(self.df[float_intran].max(), self.df[float_intran].min())
-        
-        
-    def signalUpdate(self):
-        ''' tell viewers to update their data (this is full update, not
-        efficient)'''
-        self.layoutChanged.emit()
+        """Determines the maximum and minimum number in each column"""
+        float_intran = self.df.apply(lambda row:
+                                     [not isinstance(e, basestring)
+                                     for e in row], axis=1)
+        self.float_cols = zip(self.df[float_intran].max(),
+                              self.df[float_intran].min())
     
     def get_format(self):
         """Return current format"""
@@ -77,7 +75,8 @@ class DataFrameModel(QAbstractTableModel):
             if section == 0:
                 return 'Index'
             else:
-                return to_qvariant(to_text_string(self.df.columns.tolist()[section-1]))
+                return to_qvariant(to_text_string(self.df.columns.tolist()\
+                                                  [section-1]))
         else:
             return to_qvariant()
 
@@ -89,11 +88,9 @@ class DataFrameModel(QAbstractTableModel):
             color.setAlphaF(.8)
             return color
         value = self.df.iloc[index.row(), column-1]
-        if not isinstance(value,basestring) and self.bgcolor_enabled:
+        if not isinstance(value, basestring) and self.bgcolor_enabled:
             vmax, vmin = self.float_cols[column-1]
-            hue = self.hue0+\
-                  self.dhue*(vmax-value)\
-                  /(vmax-vmin)
+            hue = self.hue0+self.dhue*(vmax-value)/(vmax-vmin)
             hue = float(abs(hue))
             color = QColor.fromHsvF(hue, self.sat, self.val, self.alp)
         else:
@@ -110,7 +107,7 @@ class DataFrameModel(QAbstractTableModel):
             if  column == 0:
                 return to_qvariant(to_text_string(self.df.index.tolist()[row]))
             else:
-                value = self.df.iloc[row,column-1]
+                value = self.df.iloc[row, column-1]
                 if isinstance(value, float):
                     return to_qvariant(self._format %value)
                 else:
@@ -123,7 +120,8 @@ class DataFrameModel(QAbstractTableModel):
         """Overriding sort method"""
         
         if column > 0:
-            self.df.sort(columns=self.df.columns[column-1], ascending=order, inplace=True)
+            self.df.sort(columns=self.df.columns[column-1], ascending=order,
+                         inplace=True)
         else: 
             self.df.sort_index(inplace=True, ascending=order)
         self.reset()
@@ -219,12 +217,14 @@ class DataFrameEditor(QDialog):
         self.connect(btn, SIGNAL("clicked()"), self.change_format)
         btn = QPushButton('Resize')
         btn_layout.addWidget(btn)
-        self.connect(btn, SIGNAL("clicked()"), self.dataTable.resizeColumnsToContents)
+        self.connect(btn, SIGNAL("clicked()"), 
+                     self.dataTable.resizeColumnsToContents)
         
         bgcolor = QCheckBox('Background color')
         bgcolor.setChecked(self.dataModel.bgcolor_enabled)
         bgcolor.setEnabled(self.dataModel.bgcolor_enabled)
-        self.connect(bgcolor, SIGNAL("stateChanged(int)"), self.dataModel.bgcolor)
+        self.connect(bgcolor, SIGNAL("stateChanged(int)"),
+                     self.dataModel.bgcolor)
         btn_layout.addWidget(bgcolor)
         btn_layout.addStretch()
         bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
@@ -234,15 +234,17 @@ class DataFrameEditor(QDialog):
         
         self.layout.addLayout(btn_layout, 2, 0)
         
-        self.connect(self.dataTable.horizontalHeader(),SIGNAL("sectionClicked(int)"), self.sortByColumn)
+        self.connect(self.dataTable.horizontalHeader(),
+                     SIGNAL("sectionClicked(int)"), self.sortByColumn)
         
         return True
         
     def change_format(self):
         """Change display format"""
         format, valid = QInputDialog.getText(self, 'Format',
-                                 "Float formatting",
-                                 QLineEdit.Normal, self.dataModel.get_format())
+                                             "Float formatting",
+                                             QLineEdit.Normal,
+                                             self.dataModel.get_format())
         if valid:
             format = str(format)
             try:
@@ -275,7 +277,6 @@ def test_edit(data, title="", parent=None):
     else:
         import sys
         sys.exit()
-
 
 def test():
     """DataFrame editor test"""
