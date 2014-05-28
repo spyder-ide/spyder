@@ -50,6 +50,17 @@ class PluginConfigPage(SpyderConfigPage):
         return self.plugin.get_plugin_icon()
 
 
+class SpyderDockWidget(QDockWidget):
+    """Subclass to override needed methods"""
+    
+    def closeEvent(self, event):
+        """
+        Reimplement Qt method to send a signal on close so that "Panes" main
+        window menu can be updated correctly
+        """
+        self.emit(SIGNAL('plugin_closed()'))
+
+
 class SpyderPluginMixin(object):
     """
     Useful methods to bind widgets to the main window
@@ -148,7 +159,7 @@ class SpyderPluginMixin(object):
 ##         # or non-Windows platforms (lot of warnings are printed out)
 ##         # (so in those cases, we use the default window flags: Qt.Widget):
 ##         flags = Qt.Widget if is_old_pyqt or os.name != 'nt' else Qt.Window
-        dock = QDockWidget(self.get_plugin_title(), self.main)#, flags)
+        dock = SpyderDockWidget(self.get_plugin_title(), self.main)#, flags)
 
         dock.setObjectName(self.__class__.__name__+"_dw")
         dock.setAllowedAreas(self.ALLOWED_AREAS)
@@ -157,6 +168,8 @@ class SpyderPluginMixin(object):
         self.update_margins()
         self.connect(dock, SIGNAL('visibilityChanged(bool)'),
                      self.visibility_changed)
+        self.connect(dock, SIGNAL('plugin_closed()'),
+                     self.plugin_closed)
         self.dockwidget = dock
         try:
             short = CONF.get('shortcuts', '_/switch to %s' % self.CONF_SECTION)
@@ -233,8 +246,10 @@ class SpyderPluginMixin(object):
         self.isvisible = enable and visible
         if self.isvisible:
             self.refresh_plugin()   # To give focus to the plugin's widget
-        if self.dockwidget.isHidden():
-            self.toggle_view_action.setChecked(False)
+    
+    def plugin_closed(self):
+        """DockWidget was closed"""
+        self.toggle_view_action.setChecked(False)
 
     def set_option(self, option, value):
         """

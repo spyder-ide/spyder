@@ -226,6 +226,7 @@ class EdgeLine(QWidget):
         QWidget.__init__(self, editor)
         self.code_editor = editor
         self.column = 79
+        self.setAttribute(Qt.WA_TransparentForMouseEvents)
 
     def paintEvent(self, event):
         """Override Qt method"""

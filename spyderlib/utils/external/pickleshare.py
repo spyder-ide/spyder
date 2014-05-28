@@ -42,6 +42,7 @@ import os
 import stat
 import time
 import glob
+import errno
 
 def gethashfile(key):
     return ("%02x" % abs(hash(key) % 256))[-2:]
@@ -97,7 +98,7 @@ class PickleShareDB(MutableMapping):
         try:
             self.cache[fil] = (value, fil.mtime)
         except OSError as e:
-            if e.errno != 2:
+            if e.errno != errno.ENOENT:
                 raise
     
     def hset(self, hashroot, key, value):

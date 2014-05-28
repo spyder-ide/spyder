@@ -514,11 +514,11 @@ class MainWindow(QMainWindow):
         if not self.light:
             self.debug_print("  ..core actions")
             self.close_dockwidget_action = create_action(self,
-                                        _("Close current plugin"),
+                                        _("Close current pane"),
                                         triggered=self.close_current_dockwidget,
                                         context=Qt.ApplicationShortcut)
             self.register_shortcut(self.close_dockwidget_action, "_",
-                                   "Close plugin")
+                                   "Close pane")
             
             _text = _("&Find text")
             self.find_action = create_action(self, _text, icon='find.png',
@@ -739,7 +739,7 @@ class MainWindow(QMainWindow):
             self.maximize_action = create_action(self, '',
                                             triggered=self.maximize_dockwidget)
             self.register_shortcut(self.maximize_action, "_",
-                                   "Maximize plugin")
+                                   "Maximize pane")
             self.__update_maximize_action()
             
             # Fullscreen mode
@@ -1492,11 +1492,11 @@ class MainWindow(QMainWindow):
         self.replace_action.setEnabled(readwrite_editor)
     
     def create_plugins_menu(self):
-        order = ['editor', 'outline_explorer', 'project_explorer',
-                 'breakpoints', 'pylint', None, 'ipython_console', 'console',
-                 'historylog', 'profiler', None, 'variable_explorer',
-                 'inspector', 'explorer', 'find_in_files', None, 'onlinehelp',
-                 'internal_console']
+        order = ['editor', 'console', 'ipython_console', 'variable_explorer',
+                 'inspector', None, 'explorer', 'outline_explorer',
+                 'project_explorer', 'find_in_files', None, 'historylog',
+                 'profiler', 'breakpoints', 'pylint', None,
+                 'onlinehelp', 'internal_console']
         for plugin in self.widgetlist:
             action = plugin.toggle_view_action
             action.setChecked(plugin.dockwidget.isVisible())
@@ -1516,11 +1516,21 @@ class MainWindow(QMainWindow):
         add_actions(self.plugins_menu, actions)
     
     def create_toolbars_menu(self):
-        actions = []
+        order = ['file_toolbar', 'run_toolbar', 'debug_toolbar',
+                 'main_toolbar', 'Global working directory', None,
+                 'search_toolbar', 'edit_toolbar', 'source_toolbar']
         for toolbar in self.toolbarslist:
             action = toolbar.toggleViewAction()
-            actions.append(action)
-        add_actions(self.toolbars_menu, actions)
+            name = toolbar.objectName()
+            try:
+                pos = order.index(name)
+            except ValueError:
+                pos = None
+            if pos is not None:
+                order[pos] = action
+            else:
+                order.append(action)
+        add_actions(self.toolbars_menu, order)
     
     def createPopupMenu(self):
         if self.light:
@@ -1612,12 +1622,12 @@ class MainWindow(QMainWindow):
         
     def __update_maximize_action(self):
         if self.state_before_maximizing is None:
-            text = _("Maximize current plugin")
-            tip = _("Maximize current plugin")
+            text = _("Maximize current pane")
+            tip = _("Maximize current pane")
             icon = "maximize.png"
         else:
-            text = _("Restore current plugin")
-            tip = _("Restore plugin to its original size")
+            text = _("Restore current pane")
+            tip = _("Restore pane to its original size")
             icon = "unmaximize.png"
         self.maximize_action.setText(text)
         self.maximize_action.setIcon(get_icon(icon))
@@ -1688,15 +1698,6 @@ class MainWindow(QMainWindow):
 
     def about(self):
         """About Spyder"""
-        not_installed = _('(not installed)')
-        try:
-            from pyflakes import __version__ as pyflakes_version
-        except ImportError:
-            pyflakes_version = not_installed  # analysis:ignore
-        try:
-            from rope import VERSION as rope_version
-        except ImportError:
-            rope_version = not_installed  # analysis:ignore
         versions = get_versions()
         # Show Mercurial revision for development version
         revlink = ''
@@ -1708,25 +1709,19 @@ class MainWindow(QMainWindow):
         QMessageBox.about(self,
             _("About %s") % "Spyder",
             """<b>Spyder %s</b> %s
-            <br>Scientific PYthon Development EnviRonment
+            <br>The Scientific PYthon Development EnviRonment
             <p>Copyright &copy; 2009-2012 Pierre Raybaut
             <br>Licensed under the terms of the MIT License
             <p>Created by Pierre Raybaut
             <br>Developed and maintained by the 
             <a href="%s/people/list">Spyder Development Team</a>
             <br>Many thanks to all the Spyder beta-testers and regular users.
-            <p>Source code editor: Python code real-time analysis is powered by 
-            %spyflakes %s%s (&copy; 2005 
-            <a href="http://www.divmod.com/">Divmod, Inc.</a>) and other code 
-            introspection features (completion, go-to-definition, ...) are 
-            powered by %srope %s%s (&copy; 2006-2009 Ali Gholami Rudi)
-            <p>Most of the icons are coming from the %sCrystal Project%s 
+            <p>Most of the icons come from the Crystal Project 
             (&copy; 2006-2007 Everaldo Coelho). Other icons by 
             <a href="http://p.yusukekamiyamane.com/"> Yusuke Kamiyamane</a> 
             (All rights reserved) and by 
-            <a href="http://http://www.oxygen-icons.org/">
-            The Oxygen icon theme</a> (used under the Creative Commons BY-SA 
-            license)
+            <a href="http://www.oxygen-icons.org/">
+            The Oxygen icon theme</a>.
             <p>Spyder's community:
             <ul><li>Bug reports and feature requests: 
             <a href="%s">Google Code</a>
@@ -1737,14 +1732,10 @@ class MainWindow(QMainWindow):
             facilitate the use of Python for scientific and engineering 
             software development. The popular Python distributions 
             <a href="http://code.google.com/p/pythonxy/">Python(x,y)</a> and 
-            <a href="http://code.google.com/p/winpython/">WinPython</a> 
+            <a href="http://winpython.sourceforge.net/">WinPython</a> 
             also contribute to this plan.
             <p>Python %s %dbits, Qt %s, %s %s on %s"""
             % (versions['spyder'], revlink, __project_url__,
-               "<span style=\'color: #444444\'><b>", pyflakes_version,
-               "</b></span>", "<span style=\'color: #444444\'><b>",
-               rope_version, "</b></span>",
-               "<span style=\'color: #444444\'><b>", "</b></span>",
                __project_url__, __forum_url__, versions['python'],
                versions['bitness'], versions['qt'], versions['qt_api'],
                versions['qt_api_ver'], versions['system']))
