@@ -416,7 +416,7 @@ The process may not exit as a result of clicking this button
         
         #-------------------------Python specific-------------------------------
         # Post mortem debugging
-        if self.post_mortem_action.isChecked():
+        if not self.is_interpreter and self.post_mortem_action.isChecked():
             env.append('SPYDER_EXCEPTHOOK=True')
 
         # Monitor
