@@ -8,7 +8,9 @@ What is the purpose of this directory?
 The files present here (licensed also MIT) are used to cleanly update user
 configuration options from Spyder versions previous to 2.3. They way they did
 an update was by resetting *all* config options to new defaults, which was
-quite bad from a usability point of view.
+quite bad from a usability point of view. Now we compare new defaults against
+a copy of their previous values and only change those that are different in
+the user config file. This way almost all his/her values remain intact.
 
 In particular:
 
