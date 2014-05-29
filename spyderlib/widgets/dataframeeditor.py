@@ -28,7 +28,8 @@ class DataFrameModel(QAbstractTableModel):
     and PyData Development Team All rights reserved
     """
     def __init__(self, dataFrame, format="%.3g"):
-        super(DataFrameModel, self).__init__()
+        QAbstractTableModel.__init__(self)
+        
         self.df = dataFrame
         self.sat = .7  # Saturation
         self.val = 1.  # Value
@@ -194,9 +195,9 @@ class DataFrameEditor(QDialog):
         self.setLayout(self.layout)
         self.setWindowIcon(get_icon('arredit.png'))
         if title:
-            title = unicode(title)  # in case title is not a string
+            title = to_text_string(title) # in case title is not a string
         else:
-            title = "Data Frame editor"
+            title = _("Data Frame editor")
         self.setWindowTitle(title)
         self.resize(600, 500)
 
