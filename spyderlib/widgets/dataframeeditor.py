@@ -296,7 +296,7 @@ class DataFrameEditor(QDialog):
         sort_order=self.header_class.sortIndicatorOrder() 
         if not self.dataModel.sort(index,sort_order):
             if len(self.sort_old)!=2:
-                self.header_class.setSortIndicatorShown(True)
+                self.header_class.setSortIndicatorShown(False)
             else:
                 self.header_class.setSortIndicator(self.sort_old[0],self.sort_old[1])
             return
