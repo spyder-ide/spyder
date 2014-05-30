@@ -11,16 +11,22 @@ from spyderlib.qt.QtCore import (QAbstractTableModel, Qt, QModelIndex,
 from spyderlib.qt.QtGui import (QDialog, QTableView, QColor, QGridLayout,
                                 QDialogButtonBox, QHBoxLayout, QPushButton,
                                 QCheckBox, QMessageBox, QInputDialog,
-                                QLineEdit)
+                                QLineEdit, QApplication, QMenu)
 
 from spyderlib.baseconfig import _
 from spyderlib.qt.compat import to_qvariant, from_qvariant
-from spyderlib.utils.qthelpers import qapplication, get_icon
-from spyderlib.py3compat import to_text_string
+from spyderlib.utils.qthelpers import (qapplication, get_icon, create_action,
+                                       add_actions, keybinding)
+from spyderlib.py3compat import io, to_text_string
 from pandas import DataFrame, TimeSeries
 import re
 import numpy as np
 pattern = re.compile(r'(bool|float|str|unicode|complex|int)\((.*)\)')
+
+def get_idx_rect(index_list):
+    """Extract the boundaries from a list of indexes"""
+    rows, cols = list(zip(*[(i.row(), i.column()) for i in index_list]))
+    return ( min(rows), max(rows), min(cols), max(cols) )
 
 class DataFrameModel(QAbstractTableModel):
     """
@@ -39,6 +45,7 @@ class DataFrameModel(QAbstractTableModel):
         self.alp = .3  # Alpha-channel
         self._format = format
         self.bgcolor_enabled = True
+        self.complex_intran = None
         
         huerange = [.66, .99] # Hue
         self.sat = .7 # Saturation
@@ -48,26 +55,27 @@ class DataFrameModel(QAbstractTableModel):
         self.dhue = huerange[1]-huerange[0]
         self.float_cols = []
         self.float_cols_update()
+        self.bool_false =['false','0']
     
     def float_cols_update(self):
         """Determines the maximum and minimum number in each column"""
-        string_intran = self.df.apply(lambda row:
-                                     [not isinstance(e, basestring)
-                                     for e in row], axis=1)
-        
-        self.float_cols = zip(self.df[string_intran].max(skipna=True),
-                              self.df[string_intran].min(skipna=True))
+        max_r = self.df.max(numeric_only=True)
+        min_r = self.df.min(numeric_only=True)
+        self.float_cols = zip(max_r, min_r)
         if len(self.float_cols)!=self.df.shape[1]:
             # Then it contain complex numbers
-            # TODOO I think the run time error is from here
-            complex_intran = self.df.apply(lambda row:
+            # TODOO se if this can be cleaned
+            string_intran = self.df.apply(lambda row:
+                                     [not isinstance(e, basestring)
+                                     for e in row], axis=1)
+            self.complex_intran = self.df.apply(lambda row:
                                      [isinstance(e,(complex, np.complex64, np.complex128))
                                      for e in row], axis=1)
-            max_c = self.df[complex_intran].abs().max(skipna=True)
-            max_r = self.df[(string_intran*(complex_intran==False))
+            max_c = self.df[self.complex_intran].abs().max(skipna=True)
+            max_r = self.df[(string_intran*(self.complex_intran==False))
                             ].max(skipna=True)
-            min_c = self.df[complex_intran].abs().min(skipna=True)
-            min_r = self.df[(string_intran*(complex_intran==False))
+            min_c = self.df[self.complex_intran].abs().min(skipna=True)
+            min_r = self.df[(string_intran*(self.complex_intran==False))
                             ].min(skipna=True)
             self.float_cols = zip(DataFrame([max_c,max_r]).max(skipna=True),DataFrame([min_c,min_r]).min(skipna=True))
 
@@ -87,6 +95,7 @@ class DataFrameModel(QAbstractTableModel):
         self.reset()
         
     def headerData(self, section, orientation, role=Qt.DisplayRole):
+        """Set header data"""
         if role != Qt.DisplayRole:
             return to_qvariant()
 
@@ -122,6 +131,7 @@ class DataFrameModel(QAbstractTableModel):
         return color
 
     def data(self, index, role=Qt.DisplayRole):
+        """Cell content"""
         if not index.isValid():
             return to_qvariant()
         if role == Qt.DisplayRole or role == Qt.EditRole:
@@ -141,6 +151,13 @@ class DataFrameModel(QAbstractTableModel):
     
     def sort(self, column, order=Qt.AscendingOrder):
         """Overriding sort method"""
+        if self.complex_intran is not None:
+            if self.complex_intran.any(axis=0).iloc[column-1]:
+                QMessageBox.critical(self.dialog, "Error",
+                                     "TypeError error: no ordering "\
+                                     "relation is defined for complex numbers")
+                        
+                return False
         try:
             if column > 0:
                 self.df.sort(columns=self.df.columns[column-1], ascending=order,
@@ -156,29 +173,43 @@ class DataFrameModel(QAbstractTableModel):
         return True
         
     def flags(self, index):
+        """Set flags"""
         if index.column() == 0:
-            return Qt.ItemIsEnabled
+            return Qt.ItemIsEnabled | Qt.ItemIsSelectable
         return Qt.ItemFlags(QAbstractTableModel.flags(self, index) |
                             Qt.ItemIsEditable)
-
-    def setData(self, index, value, role=Qt.EditRole):
+                            
+    def bool_false_check(self, value):
+        if value in self.bool_false:
+            value = ''
+        return value
+        
+    def setData(self, index, value,role=Qt.EditRole, change_type=None):
+        """Cell content change"""
         column = index.column()        
         row = index.row()
         
-        val = from_qvariant(value, str)
-        match = pattern.match(val)
-        try:
-            if match:
-                func = eval(match.group(1))
-                self.df.iloc[row, column - 1] = func(match.group(2))
-            else:
+        if change_type!=None:
+            try:
+                value = self.data(index, role=Qt.DisplayRole)
+                val = from_qvariant(value, str)
+                if change_type is bool:
+                    val = self.bool_false_check(value)
+                self.df.iloc[row, column - 1] = change_type(val)
+            except ValueError:
+                self.df.iloc[row, column - 1] = change_type('0')
+        else:
+            try:
+                val = from_qvariant(value, str)
                 current_value = self.df.iloc[row, column - 1]
+                if isinstance(current_value,bool):
+                    val = self.bool_false_check(value)
                 self.df.iloc[row, column - 1] = current_value.__class__(val)
                 #it is faster but does not work if the row index contains nan
                 #self.df.set_value(row, col, value)
-        except ValueError as e:
-            QMessageBox.critical(self.dialog, "Error",
-                                 "Value error: %s" % str(e))
+            except ValueError as e:
+                QMessageBox.critical(self.dialog, "Error",
+                                     "Value error: %s" % str(e))
         self.float_cols_update()    
         return True
         
@@ -187,9 +218,11 @@ class DataFrameModel(QAbstractTableModel):
         return self.df
 
     def rowCount(self, index=QModelIndex()):
+        """DataFrame row number"""
         return self.df.shape[0]
 
     def columnCount(self, index=QModelIndex()):
+        """DataFrame column number"""
         shape = self.df.shape
         #this is done to implement timeseries
         if len(shape) == 1:
@@ -197,6 +230,79 @@ class DataFrameModel(QAbstractTableModel):
         else:
             return shape[1]+1
 
+class DataFrameView(QTableView):
+    """Array view class"""
+    def __init__(self, parent, model):
+        QTableView.__init__(self, parent)
+        self.setModel(model)
+        self.resizeColumnsToContents()
+        self.sort_old = [None]
+        self.header_class=self.horizontalHeader()
+        self.connect(self.header_class,
+                     SIGNAL("sectionClicked(int)"), self.sortByColumn)
+        
+        self.menu = self.setup_menu()
+        
+    def sortByColumn(self,index):
+        """ Implement a Column sort """
+        if self.sort_old == [None]:
+            self.header_class.setSortIndicatorShown(True)
+        sort_order=self.header_class.sortIndicatorOrder() 
+        if not self.model().sort(index,sort_order):
+            if len(self.sort_old)!=2:
+                self.header_class.setSortIndicatorShown(False)
+            else:
+                self.header_class.setSortIndicator(self.sort_old[0],self.sort_old[1])
+            return
+        self.sort_old=[index, self.header_class.sortIndicatorOrder()]
+
+    def contextMenuEvent(self, event):
+        """Reimplement Qt method"""
+        self.menu.popup(event.globalPos())
+        event.accept()        
+
+    def setup_menu(self):
+        """Setup context menu"""
+        copy_action = create_action(self, _( "Copy"),
+                                         shortcut=keybinding("Copy"),
+                                         icon=get_icon('editcopy.png'),
+                                         triggered=self.copy,
+                                         context=Qt.WidgetShortcut)
+        functions = (("To bool",bool),("To complex",complex),("To int",int),("To float",float),
+                     ("To str",str),("To unicode",unicode))
+        types_in_menu = [copy_action , None]
+        for name, func in functions:
+    
+            types_in_menu += [create_action(self, _(name),
+                                             triggered=lambda func=func: self.change_type(func),
+                                             context=Qt.WidgetShortcut)]
+                                        
+        menu = QMenu(self)
+        add_actions(menu, types_in_menu)
+        return menu
+        
+    def change_type(self, func=bool):
+        model = self.model()
+        index_list=self.selectedIndexes()
+        [model.setData(i,'',change_type=func) for i in index_list]
+     
+    def copy(self, index=False, header=False):
+        """Copy text to clipboard"""
+        row_min, row_max, col_min, col_max = get_idx_rect(self.selectedIndexes())
+        if col_min==0:
+            col_min=1
+            index = True
+        df = self.model().df
+        if df.shape[0]==row_max+1 and row_min==0:
+            header = True
+        obj = df.iloc[slice(row_min, row_max+1),slice(col_min-1, col_max)]
+        
+        output = io.StringIO()
+        obj.to_csv(output, sep='\t', index=index, header=header)
+        contents = output.getvalue()
+        output.close()
+        clipboard = QApplication.clipboard()
+        clipboard.setText(contents)
 
 class DataFrameEditor(QDialog):
     ''' a simple widget for using DataFrames in a gui '''
@@ -207,7 +313,6 @@ class DataFrameEditor(QDialog):
         # (e.g. the editor's analysis thread in Spyder), thus leading to
         # a segmentation fault on UNIX or an application crash on Windows
         self.setAttribute(Qt.WA_DeleteOnClose)
-        self.sort_old = [None]
         self.is_time_series = False
         self.layout = None
 
@@ -234,9 +339,7 @@ class DataFrameEditor(QDialog):
         self.resize(600, 500)
 
         self.dataModel = DataFrameModel(dataFrame, parent=self)
-        self.dataTable = QTableView()
-        self.dataTable.setModel(self.dataModel)
-        self.dataTable.resizeColumnsToContents()
+        self.dataTable = DataFrameView(self, self.dataModel)
         
         self.layout.addWidget(self.dataTable)
         self.setLayout(self.layout)
@@ -267,9 +370,6 @@ class DataFrameEditor(QDialog):
         btn_layout.addWidget(bbox)
         
         self.layout.addLayout(btn_layout, 2, 0)
-        self.header_class=self.dataTable.horizontalHeader()
-        self.connect(self.header_class,
-                     SIGNAL("sectionClicked(int)"), self.sortByColumn)
         
         return True
         
@@ -289,18 +389,6 @@ class DataFrameEditor(QDialog):
                 return
             self.dataModel.set_format(format)    
             
-    def sortByColumn(self,index):
-        """ Implement a Column sort """
-        if self.sort_old == [None]:
-            self.header_class.setSortIndicatorShown(True)
-        sort_order=self.header_class.sortIndicatorOrder() 
-        if not self.dataModel.sort(index,sort_order):
-            if len(self.sort_old)!=2:
-                self.header_class.setSortIndicatorShown(False)
-            else:
-                self.header_class.setSortIndicator(self.sort_old[0],self.sort_old[1])
-            return
-        self.sort_old=[index, self.header_class.sortIndicatorOrder()]
         
         
         
@@ -327,13 +415,13 @@ def test_edit(data, title="", parent=None):
 def test():
     """DataFrame editor test"""
     from numpy import nan
-    df1 = DataFrame([[True, "bool","bool(1)"],
-                     [1+1j, "complex","complex(1+1j)"],
-                     ['test', "string","str(test)"],
-                     [1.11, "float", "float(1.11)"],
-                     [1, "int", "int(1)"]],
+    df1 = DataFrame([[True, "bool"],
+                     [1+1j, "complex"],
+                     ['test', "string"],
+                     [1.11, "float"],
+                     [1, "int"]],
                      index=['a', 'b', nan, nan, nan],
-                     columns=['Value', 'Type', 'To change to this'])         
+                     columns=['Value', 'Type'])         
     out = test_edit(df1)
     print("out:", out)
     out = test_edit(df1['Value'])
@@ -349,3 +437,4 @@ def test():
 if __name__ == '__main__':
     _app = qapplication()
     df = test()
+
