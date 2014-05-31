@@ -846,6 +846,10 @@ class JsSH(PygmentsSH):
     """Javascript highlighter"""
     _lang_name = 'js'
 
+class JsonSH(PygmentsSH):
+    """Json highlighter"""
+    _lang_name = 'json'
+
 class JuliaSH(PygmentsSH):
     """Julia highlighter"""
     _lang_name = 'julia'

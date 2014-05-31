@@ -297,7 +297,7 @@ class CodeEditor(TextEditBaseWidget):
                  'Css': (sh.CssSH, '', None),
                  'Xml': (sh.XmlSH, '', None),
                  'Js': (sh.JsSH, '//', None),
-                 'Json': (sh.JsSH, '//', None),
+                 'Json': (sh.JsonSH, '', None),
                  'Julia': (sh.JuliaSH, '#', None),
                  'Cpp': (sh.CppSH, '//', None),
                  'OpenCL': (sh.OpenCLSH, '//', None),
@@ -655,6 +655,9 @@ class CodeEditor(TextEditBaseWidget):
             self.highlighter = self.highlighter_class(self.document(),
                                                 self.font(), self.color_scheme)
             self._apply_highlighter_color_scheme()
+
+    def is_json(self):
+        return self.highlighter_class is sh.JsonSH
 
     def is_python(self):
         return self.highlighter_class is sh.PythonSH
@@ -2097,6 +2100,9 @@ class CodeEditor(TextEditBaseWidget):
                            _("Comment")+"/"+_("Uncomment"),
                            icon=get_icon("comment.png"),
                            triggered=self.toggle_comment)
+        self.clear_all_output_action = create_action(self,
+                        _("Clear &all &ouput"), icon='editdelete.png',
+                        triggered=lambda: self.emit(SIGNAL('clear_all_output()')))
         self.gotodef_action = create_action(self, _("Go to definition"),
                                    triggered=self.go_to_definition_from_cursor)
         self.run_selection_action = create_action(self,
@@ -2112,7 +2118,8 @@ class CodeEditor(TextEditBaseWidget):
         add_actions(self.menu, (self.undo_action, self.redo_action, None,
                                 self.cut_action, self.copy_action,
                                 paste_action, self.delete_action,
-                                None, selectall_action, None, zoom_in_action,
+                                None, self.clear_all_output_action, None, 
+                                selectall_action, None, zoom_in_action,
                                 zoom_out_action, None, toggle_comment_action,
                                 None, self.run_selection_action,
                                 self.gotodef_action))
@@ -2349,7 +2356,8 @@ class CodeEditor(TextEditBaseWidget):
         self.copy_action.setEnabled(nonempty_selection)
         self.cut_action.setEnabled(nonempty_selection)
         self.delete_action.setEnabled(nonempty_selection)
-        self.run_selection_action.setEnabled(nonempty_selection) 
+        self.clear_all_output_action.setVisible(self.is_json())
+        self.run_selection_action.setEnabled(nonempty_selection)
         self.run_selection_action.setVisible(self.is_python())
         self.gotodef_action.setVisible(self.go_to_definition_enabled\
                                        and self.is_python_like())        
