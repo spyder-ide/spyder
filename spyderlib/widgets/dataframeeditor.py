@@ -47,7 +47,8 @@ class DataFrameModel(QAbstractTableModel):
         self._format = format
         self.bgcolor_enabled = True
         self.complex_intran = None
-        
+        self.as_matrix = dataFrame.as_matrix()
+
         huerange = [.66, .99] # Hue
         self.sat = .7 # Saturation
         self.val = 1. # Value
@@ -112,11 +113,11 @@ class DataFrameModel(QAbstractTableModel):
             color = QColor(Qt.lightGray)
             color.setAlphaF(.8)
             return color
-        value = self.df.iloc[index.row(), column-1]
+        value = self.as_matrix[index.row(), column-1]
         if isinstance(value,_sup_com):
             color_func = abs
         else:
-            color_func = np.real
+            color_func = float
         if isinstance(value, _sup_nr+_sup_com+(bool,)) and self.bgcolor_enabled:
             vmax, vmin = self.float_cols[column-1]
             hue = self.hue0+self.dhue*(vmax-color_func(value))/(vmax-vmin)
@@ -140,7 +141,7 @@ class DataFrameModel(QAbstractTableModel):
             if  column == 0:
                 return to_qvariant(to_text_string(self.df.index.tolist()[row]))
             else:
-                value = self.df.iloc[row, column-1]
+                value = self.as_matrix[row, column-1]
                 if isinstance(value, float):
                     return to_qvariant(self._format %value)
                 else:
@@ -410,7 +411,7 @@ class DataFrameEditor(QDialog):
         # already been destroyed, due to the Qt.WA_DeleteOnClose attribute
         df = self.dataModel.get_data()
         if self.is_time_series == False:
-            return df.ix[:, df.columns[0]]
+            return df.iloc[:, 0]
         else:
             return df
 
@@ -435,12 +436,12 @@ def test():
                      [1, "int"],
                      [np.random.rand(3,3), "Unkown type"]],
                      index=['a', 'b', nan, nan, nan,'c'],
-                     columns=['Value', 'Type'])         
+                     columns=[nan, 'Type'])         
     out = test_edit(df1)
     print("out:", out)
-    out = test_edit(df1['Value'])
+    out = test_edit(df1.iloc[0])
     print("out:", out)
-    df1 = DataFrame([[2, 'two'], [1, 'one'], [3, 'test'], [4, 'test']])
+    df1 = DataFrame(np.random.rand(1000,10))
     df1.sort(columns=[0,1],inplace=True)
     out = test_edit(df1)
     print("out:", out)
