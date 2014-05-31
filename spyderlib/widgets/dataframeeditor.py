@@ -47,7 +47,7 @@ class DataFrameModel(QAbstractTableModel):
         self._format = format
         self.bgcolor_enabled = True
         self.complex_intran = None
-        self.as_matrix = dataFrame.as_matrix()
+        #self.as_matrix = dataFrame.as_matrix()
 
         huerange = [.66, .99] # Hue
         self.sat = .7 # Saturation
@@ -113,7 +113,7 @@ class DataFrameModel(QAbstractTableModel):
             color = QColor(Qt.lightGray)
             color.setAlphaF(.8)
             return color
-        value = self.as_matrix[index.row(), column-1]
+        value = self.df.iloc[index.row(), column-1]
         if isinstance(value,_sup_com):
             color_func = abs
         else:
@@ -141,7 +141,7 @@ class DataFrameModel(QAbstractTableModel):
             if  column == 0:
                 return to_qvariant(to_text_string(self.df.index.tolist()[row]))
             else:
-                value = self.as_matrix[row, column-1]
+                value = self.df.iloc[row, column-1]
                 if isinstance(value, float):
                     return to_qvariant(self._format %value)
                 else:
