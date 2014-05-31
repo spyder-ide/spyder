@@ -153,7 +153,6 @@ class JediPlugin(IntrospectionPlugin):
                 val = None
                 debug_print('Jedi error (%s)' % func_name)
                 debug_print(str(e))
-                debug_print(filename)
                 if DEBUG_EDITOR:
                     log_last_error(LOG_FILENAME, str(e))
         if DEBUG_EDITOR:
