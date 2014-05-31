@@ -34,11 +34,12 @@ from spyderlib.utils import misc, encoding, programs, vcs
 from spyderlib.baseconfig import _
 from spyderlib.py3compat import to_text_string, getcwd, str_lower
 # Fire up the kernel instance.
-try:
-    from IPython.nbconvert import PythonExporter # >=1.0
-except:
-    from IPython.nbformat.v3.nbpy import PyWriter # 0.13
-    from IPython.nbformat.v3.nbjson import read
+if programs.is_module_installed('IPython'):
+    try:
+        from IPython.nbconvert import PythonExporter # >=1.0
+    except:
+        from IPython.nbformat.v3.nbpy import PyWriter # 0.13
+        from IPython.nbformat.v3.nbjson import read
 
 
 def fixpath(path):
@@ -507,8 +508,10 @@ class DirView(QTreeView):
         """Convert an IPython notebook to a Python script in editor"""
         if programs.is_module_installed('IPython', '>=1.0'):
             script = PythonExporter().from_filename(fname)[0]
-        else:
+        elif programs.is_module_installed('IPython'):
             script = PyWriter().writes(read(open(fname, 'r')))
+        else:
+			script = ''
         self.parent_widget.sig_new_file.emit(script)
     
     def convert(self, fnames=None):

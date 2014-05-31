@@ -45,12 +45,15 @@ from spyderlib.guiconfig import get_font, create_shortcut
 from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
                                        mimedata2url, get_icon)
 from spyderlib.utils.dochelpers import getobj
-from spyderlib.utils import encoding, sourcecode
+from spyderlib.utils import encoding, sourcecode, programs
 from spyderlib.utils.sourcecode import ALL_LANGUAGES
 from spyderlib.widgets.editortools import PythonCFM
 from spyderlib.widgets.sourcecode.base import TextEditBaseWidget
 from spyderlib.widgets.sourcecode import syntaxhighlighters as sh
 from spyderlib.py3compat import to_text_string
+
+if programs.is_module_installed('IPython'):
+    from IPython.nbformat import current
 
 #%% This line is for cell execution testing
 # For debugging purpose:
@@ -1719,6 +1722,25 @@ class CodeEditor(TextEditBaseWidget):
             cursor.endEditBlock()
             return True
 
+    def clear_all_output(self):
+        """removes all input in the ipynb format (Json only)"""
+        if self.is_json() and programs.is_module_installed('IPython'):
+            def strip_output(nb):
+                """strip the outputs from a notebook object"""
+                if nb.worksheets:
+                    for cell in nb.worksheets[0].cells:
+                        if 'outputs' in cell:
+                            cell['outputs'] = []
+                        if 'prompt_number' in cell:
+                            cell['prompt_number'] = None
+                return nb
+            nb = current.reads(self.toPlainText(), 'json')
+            nb = strip_output(nb)
+            self.setPlainText(current.writes(nb, 'json'))
+            self.document().setModified(True)
+        else:
+            return
+
     def indent(self, force=False):
         """
         Indent current line or selection
@@ -2102,7 +2124,7 @@ class CodeEditor(TextEditBaseWidget):
                            triggered=self.toggle_comment)
         self.clear_all_output_action = create_action(self,
                         _("Clear &all &ouput"), icon='editdelete.png',
-                        triggered=lambda: self.emit(SIGNAL('clear_all_output()')))
+                        triggered=self.clear_all_output)
         self.gotodef_action = create_action(self, _("Go to definition"),
                                    triggered=self.go_to_definition_from_cursor)
         self.run_selection_action = create_action(self,
