@@ -31,34 +31,11 @@ try:
 except ImportError:
     jedi = None
 
-JEDI_REQVER = '>=0.7.0'
+JEDI_REQVER = '>=0.8.0'
 dependencies.add('jedi',
                  _("(Experimental) Editor's code completion,"
                    " go-to-definition and help"),
                  required_version=JEDI_REQVER)
-
-
-class JediThread(QThread):
-    """Thread to Handle Preloading Modules into Jedi"""
-    sigMessageReady = Signal(object)
-
-    def __init__(self, modules, parent):
-        super(JediThread, self).__init__()
-        if not isinstance(modules, list):
-            modules = [modules]
-        self.modules = modules
-        self.parent = parent
-
-    def run(self):
-        """Preload modules into Jedi"""
-        while not self.parent.is_editor_ready():
-            time.sleep(0.1)
-        for module in self.modules:
-            with self.parent.jedi_lock:
-                self.sigMessageReady.emit('Jedi loading %s...' % module)
-                jedi.preload_module(module)
-                debug_print('jedi pre-loaded module %s' % module)
-            time.sleep(0.01)
 
 
 class JediPlugin(IntrospectionPlugin):
@@ -79,15 +56,6 @@ class JediPlugin(IntrospectionPlugin):
             raise ImportError('Requires Jedi %s' % JEDI_REQVER)
         with self.jedi_lock:
             jedi.settings.case_insensitive_completion = False
-        warmup_libs = ['numpy', 'matplotlib.pyplot']
-        self.loading_message = 'Jedi Warming Up'
-        self.jedi_thread = JediThread(warmup_libs, self)
-        self.jedi_thread.sigMessageReady.connect(self.set_message)
-        self.jedi_thread.finished.connect(self.clear_message)
-        self.jedi_thread.start()
-        self.loaded_modules = warmup_libs
-        self.extension_modules = []
-        QTimer.singleShot(1500, self.refresh_libs)
 
     @fallback
     def get_completion_list(self, source_code, offset, filename):
@@ -158,70 +126,9 @@ class JediPlugin(IntrospectionPlugin):
 
     def set_pref(self, name, value):
         """Set a plugin preference to a value"""
-        if name == 'extension_modules':
-            mods = [m for m in value if m.count('.') <= 1]
-            self.extension_modules = mods
+        pass
 
     # ---- Private API -------------------------------------------------------
-
-    def refresh_libs(self):
-        """
-        Look for extension modules that are not in our loaded modules
-        but are in the current document
-        """
-        QTimer.singleShot(1500, self.refresh_libs)
-        if self.jedi_thread.isRunning():
-            self.post_message(self.loading_message)
-            return
-        source = self.get_current_source()
-        if not source:
-            return
-        missing_libs = set(self.extension_modules) - set(self.loaded_modules)
-        pattern = '\W+QtCore\W+|\W+QtGui\W+'
-        default_qt = self.default_qt()
-        if not default_qt in self.loaded_modules and re.search(pattern,
-                                                               source):
-            self.get_libs([default_qt, default_qt + '.QtCore',
-                           default_qt + '.QtGui'])
-            return
-        lines = [line.strip() for line in source.splitlines() if 'import ' in line]
-        lines = [l for l in lines if (l.startswith('from ') or l.startswith('import '))]
-        imports = '\n'.join(lines)
-        pattern = 'import {0}\W+|from {0}\W+'
-        for lib in missing_libs:
-            if lib in imports and re.search(pattern.format(lib), source):
-                self.get_libs(lib)
-                return
-
-    def default_qt(self):
-        """
-        Look for a the default QT API to preload for an ambiguous Qt import
-
-        Such as `from spyderlib.qt import QtCore`
-        """
-        if os.environ['QT_API'] == 'pyqt':
-            return 'PyQt4'
-        else:
-            return 'PySide'
-
-    def get_libs(self, libs):
-        """Preload libraries into Jedi using a JediThread"""
-        if not isinstance(libs, list):
-            libs = [libs]
-        self.loaded_modules.extend(libs)
-        self.jedi_thread = JediThread(libs, self)
-        self.jedi_thread.sigMessageReady.connect(self.set_message)
-        self.jedi_thread.finished.connect(self.clear_message)
-        self.jedi_thread.start()
-
-    def set_message(self, message):
-        """Set our current loading message"""
-        self.loading_message = message
-
-    def clear_message(self):
-        """Clear our current loading message and the main window statusbar"""
-        self.loading_message = ''
-        self.post_message('', 0)
 
     def get_line_col(self, source_code, offset):
         """Get a line and column given source code and an offset"""
@@ -245,6 +152,8 @@ class JediPlugin(IntrospectionPlugin):
             except Exception as e:
                 val = None
                 debug_print('Jedi error (%s)' % func_name)
+                debug_print(str(e))
+                debug_print(filename)
                 if DEBUG_EDITOR:
                     log_last_error(LOG_FILENAME, str(e))
         if DEBUG_EDITOR:
