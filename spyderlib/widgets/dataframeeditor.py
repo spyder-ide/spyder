@@ -19,9 +19,10 @@ from spyderlib.utils.qthelpers import (qapplication, get_icon, create_action,
                                        add_actions, keybinding)
 from spyderlib.py3compat import io, to_text_string
 from pandas import DataFrame, TimeSeries
-import re
 import numpy as np
-pattern = re.compile(r'(bool|float|str|unicode|complex|int)\((.*)\)')
+
+_sup_nr = (float, int, np.int64)
+_sup_com = (complex, np.complex64, np.complex128)
 
 def get_idx_rect(index_list):
     """Extract the boundaries from a list of indexes"""
@@ -63,20 +64,16 @@ class DataFrameModel(QAbstractTableModel):
         min_r = self.df.min(numeric_only=True)
         self.float_cols = zip(max_r, min_r)
         if len(self.float_cols)!=self.df.shape[1]:
-            # Then it contain complex numbers
-            # TODOO se if this can be cleaned
-            string_intran = self.df.apply(lambda row:
-                                     [not isinstance(e, basestring)
-                                     for e in row], axis=1)
-            self.complex_intran = self.df.apply(lambda row:
-                                     [isinstance(e,(complex, np.complex64, np.complex128))
-                                     for e in row], axis=1)
-            max_c = self.df[self.complex_intran].abs().max(skipna=True)
-            max_r = self.df[(string_intran*(self.complex_intran==False))
-                            ].max(skipna=True)
-            min_c = self.df[self.complex_intran].abs().min(skipna=True)
-            min_r = self.df[(string_intran*(self.complex_intran==False))
-                            ].min(skipna=True)
+            # Then it contain complex numbers or other types
+            float_intran = self.df.applymap(lambda e: isinstance(e, _sup_nr))
+            self.complex_intran = self.df.applymap(lambda e: isinstance(e, _sup_com))
+            mask = float_intran & (~ self.complex_intran)
+            df_abs=self.df[self.complex_intran].abs()
+            max_c = df_abs.max(skipna=True)
+            min_c = df_abs.min(skipna=True)
+            df_real = self.df[mask]
+            max_r = df_real.max(skipna=True)
+            min_r = df_real.min(skipna=True)
             self.float_cols = zip(DataFrame([max_c,max_r]).max(skipna=True),DataFrame([min_c,min_r]).min(skipna=True))
 
     def get_format(self):
@@ -116,18 +113,21 @@ class DataFrameModel(QAbstractTableModel):
             color.setAlphaF(.8)
             return color
         value = self.df.iloc[index.row(), column-1]
-        if isinstance(value,(complex,np.complex64, np.complex128)):
+        if isinstance(value,_sup_com):
             color_func = abs
         else:
             color_func = np.real
-        if not isinstance(value, basestring) and self.bgcolor_enabled:
+        if isinstance(value, _sup_nr+_sup_com+(bool,)) and self.bgcolor_enabled:
             vmax, vmin = self.float_cols[column-1]
             hue = self.hue0+self.dhue*(vmax-color_func(value))/(vmax-vmin)
             hue = float(abs(hue))
             color = QColor.fromHsvF(hue, self.sat, self.val, self.alp)
-        else:
+        elif isinstance(value, basestring):
             color = QColor(Qt.lightGray)
             color.setAlphaF(.05)
+        else:
+            color = QColor(Qt.lightGray)
+            color.setAlphaF(.3)
         return color
 
     def data(self, index, role=Qt.DisplayRole):
@@ -199,17 +199,25 @@ class DataFrameModel(QAbstractTableModel):
             except ValueError:
                 self.df.iloc[row, column - 1] = change_type('0')
         else:
-            try:
-                val = from_qvariant(value, str)
-                current_value = self.df.iloc[row, column - 1]
-                if isinstance(current_value,bool):
-                    val = self.bool_false_check(value)
-                self.df.iloc[row, column - 1] = current_value.__class__(val)
-                #it is faster but does not work if the row index contains nan
-                #self.df.set_value(row, col, value)
-            except ValueError as e:
+
+            val = from_qvariant(value, str)
+            current_value = self.df.iloc[row, column - 1]
+            if isinstance(current_value,bool):
+                val = self.bool_false_check(value)
+            if isinstance(current_value,((basestring, bool)+_sup_nr+_sup_com)):
+                try:
+                    self.df.iloc[row, column - 1] = current_value.__class__(val)
+                    #it is faster but does not work if the row index contains nan
+                    #self.df.set_value(row, col, value)
+                except ValueError as e:
+                    QMessageBox.critical(self.dialog, "Error",
+                                         "Value error: %s" % str(e))
+                    return False
+            else:
                 QMessageBox.critical(self.dialog, "Error",
-                                     "Value error: %s" % str(e))
+                                 "The type of the cell is not a supported type")
+            
+                return False
         self.float_cols_update()    
         return True
         
@@ -281,7 +289,8 @@ class DataFrameView(QTableView):
         add_actions(menu, types_in_menu)
         return menu
         
-    def change_type(self, func=bool):
+    def change_type(self, func):
+        """A function that changes types of cells"""
         model = self.model()
         index_list=self.selectedIndexes()
         [model.setData(i,'',change_type=func) for i in index_list]
@@ -289,18 +298,21 @@ class DataFrameView(QTableView):
     def copy(self, index=False, header=False):
         """Copy text to clipboard"""
         row_min, row_max, col_min, col_max = get_idx_rect(self.selectedIndexes())
-        if col_min==0:
+        if col_min == 0:
             col_min=1
             index = True
         df = self.model().df
-        if df.shape[0]==row_max+1 and row_min==0:
-            header = True
-        obj = df.iloc[slice(row_min, row_max+1),slice(col_min-1, col_max)]
-        
-        output = io.StringIO()
-        obj.to_csv(output, sep='\t', index=index, header=header)
-        contents = output.getvalue()
-        output.close()
+        if col_max == 0: # To copy indices
+            contents = '\n'.join(map(str,df.index.tolist()[slice(row_min, row_max+1)]))
+        else: # To copy DataFrame
+            if df.shape[0]==row_max+1 and row_min==0:
+                header = True
+            obj = df.iloc[slice(row_min, row_max+1),slice(col_min-1, col_max)]
+            
+            output = io.StringIO()
+            obj.to_csv(output, sep='\t', index=index, header=header)
+            contents = output.getvalue()
+            output.close()
         clipboard = QApplication.clipboard()
         clipboard.setText(contents)
 
@@ -415,12 +427,14 @@ def test_edit(data, title="", parent=None):
 def test():
     """DataFrame editor test"""
     from numpy import nan
+    
     df1 = DataFrame([[True, "bool"],
                      [1+1j, "complex"],
                      ['test', "string"],
                      [1.11, "float"],
-                     [1, "int"]],
-                     index=['a', 'b', nan, nan, nan],
+                     [1, "int"],
+                     [np.random.rand(3,3), "Unkown type"]],
+                     index=['a', 'b', nan, nan, nan,'c'],
                      columns=['Value', 'Type'])         
     out = test_edit(df1)
     print("out:", out)
