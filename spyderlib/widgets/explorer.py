@@ -511,7 +511,7 @@ class DirView(QTreeView):
         elif programs.is_module_installed('IPython'):
             script = PyWriter().writes(read(open(fname, 'r')))
         else:
-			script = ''
+            script = ''
         self.parent_widget.sig_new_file.emit(script)
     
     def convert(self, fnames=None):
