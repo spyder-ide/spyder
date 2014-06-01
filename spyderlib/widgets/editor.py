@@ -333,7 +333,7 @@ class FileInfo(QObject):
         """Editor's text has changed"""
         self.emit(SIGNAL('text_changed_at(QString,int)'),
                   self.filename, self.editor.get_position('cursor'))
-
+        
     def trigger_code_completion(self, automatic, token_based=False):
         """Trigger code completion"""
         source_code = self.get_source_code()
@@ -343,22 +343,8 @@ class FileInfo(QObject):
         jedi = self.introspection_plugin.name == 'jedi'
 
         comp_list = ''
-        if not jedi and text.lstrip().startswith('import '):
-            text = text.lstrip()
-            comp_list = module_completion(text, self.path)
-            words = text.split(' ')
-            if ',' in words[-1]:
-                words = words[-1].split(',')
-            completion_text = words[-1]
-        elif text.lstrip().startswith('from '):
-            text = text.lstrip()
-            comp_list = module_completion(text, self.path)
-            words = text.split(' ')
-            if '(' in words[-1]:
-                words = words[:-2] + words[-1].split('(')
-            if ',' in words[-1]:
-                words = words[:-2] + words[-1].split(',')
-            completion_text = words[-1]
+        if not jedi and text.lstrip().startswith(('import ', 'from ')):
+            comp_list, completion_text = self.get_module_completion(text)
         else:
             if token_based:
                 func = self.introspection_plugin.get_token_completion_list
@@ -369,17 +355,30 @@ class FileInfo(QObject):
                 completion_text = re.findall(r"[\w.]+", text, re.UNICODE)[-1]
                 if '.' in completion_text:
                     completion_text = completion_text.split('.')[-1]
-        if not comp_list and jedi and text.lstrip().startswith('import '):
-            comp_list = module_completion(text, self.path)
-            words = text.split(' ')
-            if ',' in words[-1]:
-                words = words[-1].split(',')
-            completion_text = words[-1]
+        if (not comp_list) and jedi and text.lstrip().startswith(('import ', 
+                                                                  'from ')):
+            comp_list, completion_text = self.get_module_completion(text)
         if comp_list:
             self.editor.show_completion_list(comp_list, completion_text,
                                          automatic)
         
-
+    def get_module_completion(self, text):
+        """Get completions for import statements using module_completion.
+        """
+        text = text.lstrip()
+        comp_list = module_completion(text, self.path)
+        words = text.split(' ')
+        if text.startswith('import'):
+            if ',' in words[-1]:
+                words = words[-1].split(',')
+        else:
+            if '(' in words[-1]:
+                words = words[:-2] + words[-1].split('(')
+            if ',' in words[-1]:
+                words = words[:-2] + words[-1].split(',')
+        completion_text = words[-1]
+        return comp_list, completion_text
+        
     def trigger_token_completion(self, automatic):
         """Trigger a completion using tokens only"""
         self.trigger_code_completion(automatic, token_based=True)
