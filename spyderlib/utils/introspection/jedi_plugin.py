@@ -8,12 +8,10 @@
 Jedi Introspection Plugin
 """
 import re
-import os
 import os.path as osp
+import sys
 import time
 import threading
-
-from spyderlib.qt.QtCore import QThread, Signal, QTimer
 
 from spyderlib import dependencies
 from spyderlib.baseconfig import _, debug_print
@@ -144,6 +142,8 @@ class JediPlugin(IntrospectionPlugin):
             return
         if DEBUG_EDITOR:
             t0 = time.time()
+        # override IPython qt_loaders ImportDenier behavior
+        sys.meta_path = []
         with self.jedi_lock:
             try:
                 script = jedi.Script(source_code, line, col, filename)
