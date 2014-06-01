@@ -350,7 +350,7 @@ class FileInfo(QObject):
             if ',' in words[-1]:
                 words = words[-1].split(',')
             completion_text = words[-1]
-        elif not jedi and text.lstrip().startswith('from '):
+        elif text.lstrip().startswith('from '):
             text = text.lstrip()
             comp_list = module_completion(text, self.path)
             words = text.split(' ')
@@ -369,9 +369,16 @@ class FileInfo(QObject):
                 completion_text = re.findall(r"[\w.]+", text, re.UNICODE)[-1]
                 if '.' in completion_text:
                     completion_text = completion_text.split('.')[-1]
+        if not comp_list and jedi and text.lstrip().startswith('import '):
+            comp_list = module_completion(text, self.path)
+            words = text.split(' ')
+            if ',' in words[-1]:
+                words = words[-1].split(',')
+            completion_text = words[-1]
         if comp_list:
             self.editor.show_completion_list(comp_list, completion_text,
                                          automatic)
+        
 
     def trigger_token_completion(self, automatic):
         """Trigger a completion using tokens only"""
