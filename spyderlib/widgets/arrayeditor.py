@@ -598,7 +598,7 @@ def test_edit(data, title="", xlabels=None, ylabels=None,
 def test():
     """Array editor test"""
     _app = qapplication()
-    
+    """
     arr = np.array(["kjrekrjkejr"])
     print("out:", test_edit(arr, "string array"))
     from spyderlib.py3compat import u
@@ -626,7 +626,8 @@ def test():
     arr_out = test_edit(arr_in, "bool array")
     print("out:", arr_out)
     print(arr_in is arr_out)
-    arr = np.array([1, 2, 3], dtype="int8")
+    """
+    arr = np.random.rand(1000,10)
     print("out:", test_edit(arr, "int array"))
 
 

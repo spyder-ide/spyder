@@ -14,6 +14,7 @@ from spyderlib.qt.QtGui import (QDialog, QTableView, QColor, QGridLayout,
                                 QLineEdit, QApplication, QMenu)
 
 from spyderlib.baseconfig import _
+from spyderlib.guiconfig import get_font
 from spyderlib.qt.compat import to_qvariant, from_qvariant
 from spyderlib.utils.qthelpers import (qapplication, get_icon, create_action,
                                        add_actions, keybinding)
@@ -113,7 +114,7 @@ class DataFrameModel(QAbstractTableModel):
             color = QColor(Qt.lightGray)
             color.setAlphaF(.8)
             return color
-        value = self.df.iloc[index.row(), column-1]
+        value = self.get_value(index.row(), column-1)
         if isinstance(value,_sup_com):
             color_func = abs
         else:
@@ -130,7 +131,17 @@ class DataFrameModel(QAbstractTableModel):
             color = QColor(Qt.lightGray)
             color.setAlphaF(.3)
         return color
-
+        
+    def get_value(self, row, column):
+        """Returns the value of the DataFrame"""
+        # To increase the performance iat is used but that requires error
+        # handeling when index contains nan, so fallback uses iloc
+        try:
+            value = self.df.iat[row, column]
+        except KeyError:
+            value = self.df.iloc[row, column]
+        return value
+        
     def data(self, index, role=Qt.DisplayRole):
         """Cell content"""
         if not index.isValid():
@@ -141,13 +152,15 @@ class DataFrameModel(QAbstractTableModel):
             if  column == 0:
                 return to_qvariant(to_text_string(self.df.index.tolist()[row]))
             else:
-                value = self.df.iloc[row, column-1]
+                value = self.get_value(row, column-1)
                 if isinstance(value, float):
                     return to_qvariant(self._format %value)
                 else:
                     return to_qvariant(to_text_string(value))
         elif role == Qt.BackgroundColorRole:
             return to_qvariant(self.get_bgcolor(index))
+        elif role == Qt.FontRole:
+            return to_qvariant(get_font('arrayeditor'))
         return to_qvariant()
     
     def sort(self, column, order=Qt.AscendingOrder):
@@ -202,7 +215,7 @@ class DataFrameModel(QAbstractTableModel):
         else:
 
             val = from_qvariant(value, str)
-            current_value = self.df.iloc[row, column - 1]
+            current_value = self.get_value(row, column-1)
             if isinstance(current_value,bool):
                 val = self.bool_false_check(value)
             if isinstance(current_value,((basestring, bool)+_sup_nr+_sup_com)):
@@ -244,7 +257,7 @@ class DataFrameView(QTableView):
     def __init__(self, parent, model):
         QTableView.__init__(self, parent)
         self.setModel(model)
-        self.resizeColumnsToContents()
+        
         self.sort_old = [None]
         self.header_class=self.horizontalHeader()
         self.connect(self.header_class,
