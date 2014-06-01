@@ -180,7 +180,6 @@ class CompletionWidget(QListWidget):
 class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     """Text edit base widget"""
     BRACE_MATCHING_SCOPE = ('sof', 'eof')
-    CELL_SEPARATORS = ('#%%', '# %%', '# <codecell>', '# In[')
     
     def __init__(self, parent=None):
         QPlainTextEdit.__init__(self, parent)
@@ -533,7 +532,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             text = to_text_string(cursor0.selectedText())
         else:
             text = to_text_string(block.text())
-        return text.lstrip().startswith(self.CELL_SEPARATORS)
+        return text.lstrip().startswith(CELL_SEPARATORS)
 
     def select_current_cell(self):
         """Select cell under cursor
