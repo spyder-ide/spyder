@@ -423,7 +423,7 @@ class DataFrameEditor(QDialog):
         # It is import to avoid accessing Qt C++ object as it has probably
         # already been destroyed, due to the Qt.WA_DeleteOnClose attribute
         df = self.dataModel.get_data()
-        if self.is_time_series == False:
+        if self.is_time_series:
             return df.iloc[:, 0]
         else:
             return df
