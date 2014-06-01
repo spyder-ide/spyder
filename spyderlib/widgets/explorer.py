@@ -33,7 +33,7 @@ from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions,
 from spyderlib.utils import misc, encoding, programs, vcs
 from spyderlib.baseconfig import _
 from spyderlib.py3compat import to_text_string, getcwd, str_lower
-# Fire up the kernel instance.
+
 if programs.is_module_installed('IPython'):
     try:
         from IPython.nbconvert import PythonExporter # >=1.0
@@ -260,7 +260,6 @@ class DirView(QTreeView):
             actions.append(edit_action)
         else:
             actions.append(open_action)
-        
         actions += [delete_action, rename_action]
         basedir = fixpath(osp.dirname(fnames[0]))
         if all([fixpath(osp.dirname(_fn)) == basedir for _fn in fnames]):
