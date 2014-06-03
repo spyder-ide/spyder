@@ -48,7 +48,6 @@ class DataFrameModel(QAbstractTableModel):
         self._format = format
         self.bgcolor_enabled = True
         self.complex_intran = None
-        #self.as_matrix = dataFrame.as_matrix()
 
         huerange = [.66, .99] # Hue
         self.sat = .7 # Saturation
@@ -77,7 +76,8 @@ class DataFrameModel(QAbstractTableModel):
             max_r = df_real.max(skipna=True)
             min_r = df_real.min(skipna=True)
             self.float_cols = zip(DataFrame([max_c,max_r]).max(skipna=True),DataFrame([min_c,min_r]).min(skipna=True))
-
+            self.float_cols = [[vmax, vmin-1] if vmax == vmin else [vmax, vmin] for vmax, vmin in self.float_cols]
+            
     def get_format(self):
         """Return current format"""
         # Avoid accessing the private attribute _format from outside
@@ -119,7 +119,7 @@ class DataFrameModel(QAbstractTableModel):
             color_func = abs
         else:
             color_func = float
-        if isinstance(value, _sup_nr+_sup_com+(bool,)) and self.bgcolor_enabled:
+        if isinstance(value, _sup_nr+_sup_com) and self.bgcolor_enabled:
             vmax, vmin = self.float_cols[column-1]
             hue = self.hue0+self.dhue*(vmax-color_func(value))/(vmax-vmin)
             hue = float(abs(hue))
@@ -194,7 +194,7 @@ class DataFrameModel(QAbstractTableModel):
                             Qt.ItemIsEditable)
                             
     def bool_false_check(self, value):
-        if value in self.bool_false:
+        if value.lower() in self.bool_false:
             value = ''
         return value
         
@@ -208,7 +208,7 @@ class DataFrameModel(QAbstractTableModel):
                 value = self.data(index, role=Qt.DisplayRole)
                 val = from_qvariant(value, str)
                 if change_type is bool:
-                    val = self.bool_false_check(value)
+                    val = self.bool_false_check(val)
                 self.df.iloc[row, column - 1] = change_type(val)
             except ValueError:
                 self.df.iloc[row, column - 1] = change_type('0')
@@ -217,7 +217,7 @@ class DataFrameModel(QAbstractTableModel):
             val = from_qvariant(value, str)
             current_value = self.get_value(row, column-1)
             if isinstance(current_value,bool):
-                val = self.bool_false_check(value)
+                val = self.bool_false_check(val)
             if isinstance(current_value,((basestring, bool)+_sup_nr+_sup_com)):
                 try:
                     self.df.iloc[row, column - 1] = current_value.__class__(val)
