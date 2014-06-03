@@ -76,7 +76,7 @@ class DataFrameModel(QAbstractTableModel):
             max_r = df_real.max(skipna=True)
             min_r = df_real.min(skipna=True)
             self.float_cols = zip(DataFrame([max_c,max_r]).max(skipna=True),DataFrame([min_c,min_r]).min(skipna=True))
-            self.float_cols = [[vmax, vmin-1] if vmax == vmin else [vmax, vmin] for vmax, vmin in self.float_cols]
+        self.float_cols = [[vmax, vmin-1] if vmax == vmin else [vmax, vmin] for vmax, vmin in self.float_cols]
             
     def get_format(self):
         """Return current format"""
