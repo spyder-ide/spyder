@@ -665,6 +665,12 @@ if 'SPYDER_EXCEPTHOOK' in os.environ:
         print >>sys.stderr, '*' * 30
         print >>sys.stderr, 'Entering Post Mortem Debugging'
         print >>sys.stderr, '*' * 30
+        frame = tb.tb_frame
+        fname = frame.f_code.co_filename
+        lineno = frame.f_lineno
+        if isinstance(fname, basestring) and isinstance(lineno, int):
+            if osp.isfile(fname) and monitor is not None:
+                monitor.notify_pdb_step(fname, lineno)
         pdb.pm()
     sys.excepthook = info
     
