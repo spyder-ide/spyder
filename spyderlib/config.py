@@ -525,6 +525,7 @@ DEFAULTS = [
               'editor/save all': "Ctrl+Shift+S",
               'editor/print': "Ctrl+P",
               'editor/close file': "Ctrl+W",
+              'editor/close tab': "Ctrl+F4",
               'editor/close all': "Ctrl+Shift+W",
               'editor/breakpoint': 'F12',
               'editor/conditional breakpoint': 'Shift+F12',
