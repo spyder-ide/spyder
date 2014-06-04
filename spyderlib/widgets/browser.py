@@ -8,7 +8,7 @@
 
 from spyderlib.qt.QtGui import (QHBoxLayout, QWidget, QVBoxLayout,
                                 QProgressBar, QLabel, QMenu)
-from spyderlib.qt.QtWebKit import QWebView, QWebPage
+from spyderlib.qt.QtWebKit import QWebView, QWebPage, QWebSettings
 from spyderlib.qt.QtCore import SIGNAL, QUrl
 
 import sys
@@ -16,7 +16,7 @@ import sys
 # Local imports
 from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions,
                                        create_toolbutton, action2button)
-from spyderlib.baseconfig import _
+from spyderlib.baseconfig import DEV, _
 from spyderlib.widgets.comboboxes import UrlComboBox
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.py3compat import to_text_string, is_text_string
@@ -96,11 +96,16 @@ class WebView(QWebView):
         
     def contextMenuEvent(self, event):
         menu = QMenu(self)
-        add_actions( menu, (self.pageAction(QWebPage.Back),
-                            self.pageAction(QWebPage.Forward), None,
-                            self.pageAction(QWebPage.SelectAll),
-                            self.pageAction(QWebPage.Copy), None,
-                            self.zoom_in_action, self.zoom_out_action) )
+        actions = [self.pageAction(QWebPage.Back),
+                   self.pageAction(QWebPage.Forward), None,
+                   self.pageAction(QWebPage.SelectAll),
+                   self.pageAction(QWebPage.Copy), None,
+                   self.zoom_in_action, self.zoom_out_action]
+        if DEV:
+            settings = self.page().settings()
+            settings.setAttribute(QWebSettings.DeveloperExtrasEnabled, True)
+            actions += [None, self.pageAction(QWebPage.InspectElement)]
+        add_actions(menu, actions)
         menu.popup(event.globalPos())
         event.accept()
                 
