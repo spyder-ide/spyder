@@ -556,7 +556,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
     #------ Private API -------------------------------------------------------
     def _create_loading_page(self):
         loading_template = Template(LOADING)
-        loading_img = get_image_path('loading.gif')
+        loading_img = get_image_path('loading_sprites.png')
         message = _("Connecting to kernel...")
         page = loading_template.substitute(css_path=CSS_PATH,
                                            loading_img=loading_img,
