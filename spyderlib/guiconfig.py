@@ -124,7 +124,7 @@ def remove_deprecated_shortcuts(data):
 
 def reset_shortcuts():
     """Reset keyboard shortcuts to default values"""
-    CONF.remove_section('shortcuts')
+    CONF.reset_to_defaults(section='shortcuts')
 
 
 def get_color_scheme(name):
