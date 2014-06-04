@@ -662,9 +662,13 @@ if 'SPYDER_EXCEPTHOOK' in os.environ:
         traceback.print_exception(type, value, tb)
         if not hasattr(sys, 'last_traceback'):
             return
-        print >>sys.stderr, '*' * 30
-        print >>sys.stderr, 'Entering Post Mortem Debugging'
-        print >>sys.stderr, '*' * 30
+        if sys.flags.interactive:
+            return
+        print '*' * 40
+        print 'Entering post mortem debugging...'
+        print '*' * 40
+        while tb.tb_next:
+            tb = tb.tb_next
         frame = tb.tb_frame
         fname = frame.f_code.co_filename
         lineno = frame.f_lineno
