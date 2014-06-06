@@ -544,6 +544,31 @@ def _get_globals():
     return namespace
 
 
+# Add post mortem debugging if requested
+if 'SPYDER_EXCEPTHOOK' in os.environ:  
+    prev_excepthook = sys.excepthook
+    
+    def post_mortem_debug(type, value, tb):
+        sys.excepthook = prev_excepthook
+        traceback.print_exception(type, value, tb)
+        if not hasattr(sys, 'last_traceback'):
+            return
+        _print('', file=sys.stderr)
+        _print('*' * 40)
+        _print('Entering post mortem debugging...')
+        _print('*' * 40)
+        while tb.tb_next:
+            tb = tb.tb_next
+        frame = tb.tb_frame
+        fname = frame.f_code.co_filename
+        lineno = frame.f_lineno
+        if isinstance(fname, basestring) and isinstance(lineno, int):
+            if osp.isfile(fname) and monitor is not None:
+                monitor.notify_pdb_step(fname, lineno)
+        pdb.pm()
+    sys.excepthook = post_mortem_debug
+    
+
 def runfile(filename, args=None, wdir=None, namespace=None):
     """
     Run filename
@@ -654,28 +679,6 @@ def evalsc(command):
             raise NotImplementedError("Unsupported command: '%s'" % command)
 
 builtins.evalsc = evalsc
-
-
-# Add post mortem debugging if requested
-if 'SPYDER_EXCEPTHOOK' in os.environ:  
-    def info(type, value, tb):
-        traceback.print_exception(type, value, tb)
-        if not hasattr(sys, 'last_traceback'):
-            return
-        print >>sys.stderr, ''
-        print '*' * 40
-        print 'Entering post mortem debugging...'
-        print '*' * 40
-        while tb.tb_next:
-            tb = tb.tb_next
-        frame = tb.tb_frame
-        fname = frame.f_code.co_filename
-        lineno = frame.f_lineno
-        if isinstance(fname, basestring) and isinstance(lineno, int):
-            if osp.isfile(fname) and monitor is not None:
-                monitor.notify_pdb_step(fname, lineno)
-        pdb.pm()
-    sys.excepthook = info
     
  
 # Restoring original PYTHONPATH
