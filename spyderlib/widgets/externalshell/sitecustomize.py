@@ -662,8 +662,6 @@ if 'SPYDER_EXCEPTHOOK' in os.environ:
         traceback.print_exception(type, value, tb)
         if not hasattr(sys, 'last_traceback'):
             return
-        if sys.flags.interactive:
-            return
         print '*' * 40
         print 'Entering post mortem debugging...'
         print '*' * 40
