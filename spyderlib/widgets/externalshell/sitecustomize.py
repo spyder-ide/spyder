@@ -544,28 +544,30 @@ def _get_globals():
     return namespace
 
 
-# Add post mortem debugging if requested
-if 'SPYDER_EXCEPTHOOK' in os.environ:  
-    prev_excepthook = sys.excepthook
+prev_excepthook = sys.excepthook
     
-    def post_mortem_debug(type, value, tb):
-        sys.excepthook = prev_excepthook
-        traceback.print_exception(type, value, tb)
-        if not hasattr(sys, 'last_traceback'):
-            return
-        _print('', file=sys.stderr)
-        _print('*' * 40)
-        _print('Entering post mortem debugging...')
-        _print('*' * 40)
-        while tb.tb_next:
-            tb = tb.tb_next
-        frame = tb.tb_frame
-        fname = frame.f_code.co_filename
-        lineno = frame.f_lineno
-        if isinstance(fname, basestring) and isinstance(lineno, int):
-            if osp.isfile(fname) and monitor is not None:
-                monitor.notify_pdb_step(fname, lineno)
-        pdb.pm()
+def post_mortem_debug(type, value, tb):
+    sys.excepthook = prev_excepthook
+    traceback.print_exception(type, value, tb)
+    if not hasattr(sys, 'last_traceback'):
+        return
+    _print('', file=sys.stderr)
+    _print('*' * 40)
+    _print('Entering post mortem debugging...')
+    _print('*' * 40)
+    while tb.tb_next:
+        tb = tb.tb_next
+    frame = tb.tb_frame
+    fname = frame.f_code.co_filename
+    lineno = frame.f_lineno
+    if isinstance(fname, basestring) and isinstance(lineno, int):
+        if osp.isfile(fname) and monitor is not None:
+            monitor.notify_pdb_step(fname, lineno)
+    pdb.pm()
+        
+
+# Add post mortem debugging if requested and not the main interpreter
+if 'SPYDER_EXCEPTHOOK' in os.environ and not 'UMD_ENABLED' in os.environ:  
     sys.excepthook = post_mortem_debug
     
 
@@ -608,6 +610,8 @@ def runfile(filename, args=None, wdir=None, namespace=None):
             # AttributeError --> systematically raised in Python 3
             pass
         os.chdir(wdir)
+    if 'SPYDER_EXCEPTHOOK' in os.environ:
+        sys.excepthook = post_mortem_debug
     execfile(filename, namespace)
     sys.argv = ['']
     namespace.pop('__file__')

@@ -173,6 +173,9 @@ class RunConfigOptions(QWidget):
         self.connect(browse_btn, SIGNAL("clicked()"), self.select_directory)
         wd_layout.addWidget(browse_btn)
         common_layout.addLayout(wd_layout, 1, 1)
+        self.post_mortem_cb = QCheckBox(_("Enter post mortem debugging"
+                                          " for uncaught exceptions"))
+        common_layout.addWidget(self.post_mortem_cb)
         
         # --- Interpreter ---
         interpreter_group = QGroupBox(_("Interpreter"))
@@ -194,20 +197,17 @@ class RunConfigOptions(QWidget):
         self.interact_cb = QCheckBox(_("Interact with the Python "
                                        "interpreter after execution"))
         new_layout.addWidget(self.interact_cb, 1, 0, 1, -1)
-        self.post_mortem_cb = QCheckBox(_("Enter post mortem debugging"
-                                          " for uncaught exceptions"))
-        new_layout.addWidget(self.post_mortem_cb, 2, 0, 1, -1)
+        
         self.pclo_cb = QCheckBox(_("Command line options:"))
-        new_layout.addWidget(self.pclo_cb, 3, 0)
+        new_layout.addWidget(self.pclo_cb, 2, 0)
         self.pclo_edit = QLineEdit()
         self.connect(self.pclo_cb, SIGNAL("toggled(bool)"),
                      self.pclo_edit.setEnabled)
         self.pclo_edit.setEnabled(False)
         self.pclo_edit.setToolTip(_("<b>-u</b> is added to the "
                                     "other options you set here"))
-        new_layout.addWidget(self.pclo_edit, 3, 1)
+        new_layout.addWidget(self.pclo_edit, 2, 1)
         
-        #TODO: Add option for "Post-mortem debugging"
 
         # Checkbox to preserve the old behavior, i.e. always open the dialog
         # on first run
