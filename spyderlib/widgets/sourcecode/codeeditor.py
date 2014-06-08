@@ -1730,17 +1730,13 @@ class CodeEditor(TextEditBaseWidget):
     def clear_all_output(self):
         """removes all input in the ipynb format (Json only)"""
         if self.is_json() and programs.is_module_installed('IPython'):
-            def strip_output(nb):
-                """strip the outputs from a notebook object"""
-                if nb.worksheets:
-                    for cell in nb.worksheets[0].cells:
-                        if 'outputs' in cell:
-                            cell['outputs'] = []
-                        if 'prompt_number' in cell:
-                            cell['prompt_number'] = None
-                return nb
             nb = current.reads(self.toPlainText(), 'json')
-            nb = strip_output(nb)
+            if nb.worksheets:
+                for cell in nb.worksheets[0].cells:
+                    if 'outputs' in cell:
+                        cell['outputs'] = []
+                    if 'prompt_number' in cell:
+                        cell['prompt_number'] = None
             self.setPlainText(current.writes(nb, 'json'))
             self.document().setModified(True)
         else:
