@@ -54,6 +54,10 @@ from spyderlib.py3compat import to_text_string
 
 if programs.is_module_installed('IPython'):
     from IPython.nbformat import current
+    try:
+        from IPython.nbconvert import PythonExporter # >=1.0
+    except:
+        from IPython.nbformat.v3.nbpy import PyWriter # 0.13
 
 #%% This line is for cell execution testing
 # For debugging purpose:
@@ -1742,6 +1746,18 @@ class CodeEditor(TextEditBaseWidget):
         else:
             return
 
+    def convert_notebook(self):
+        """Convert an IPython notebook to a Python script in editor"""
+        # FIXME: This is near to be duplicated from widgets/explorer.py 
+        if programs.is_module_installed('IPython', '>=1.0'):
+            script = PythonExporter().from_notebook_node(current.reads(self.toPlainText(),'json'))[0]
+        elif programs.is_module_installed('IPython'):
+            script = PyWriter().writes(current.reads(self.toPlainText(),'json'))
+        else:
+            script = ''
+        # FIXME: Should sig_new_file be in explorer
+        self.window().explorer.sig_new_file.emit(script)
+
     def indent(self, force=False):
         """
         Indent current line or selection
@@ -2124,13 +2140,15 @@ class CodeEditor(TextEditBaseWidget):
                            icon=get_icon("comment.png"),
                            triggered=self.toggle_comment)
         self.clear_all_output_action = create_action(self,
-                        _("Clear &all &ouput"), icon='editdelete.png',
-                        triggered=self.clear_all_output)
+                           _("Clear all ouput"), icon='ipython_console_t.png',
+                           triggered=self.clear_all_output)
+        self.ipynb_convert_action = create_action(self, _("Convert to Python script"),
+                           triggered=self.convert_notebook, icon='python.png')
         self.gotodef_action = create_action(self, _("Go to definition"),
-                                   triggered=self.go_to_definition_from_cursor)
+                           triggered=self.go_to_definition_from_cursor)
         self.run_selection_action = create_action(self,
-                        _("Run &selection"), icon='run_selection.png',
-                        triggered=lambda: self.emit(SIGNAL('run_selection()')))
+                           _("Run selection"), icon='run_selection.png',
+                           triggered=lambda: self.emit(SIGNAL('run_selection()')))
         zoom_in_action = create_action(self, _("Zoom in"),
                       QKeySequence(QKeySequence.ZoomIn), icon='zoom_in.png',
                       triggered=lambda: self.emit(SIGNAL('zoom_in()')))
@@ -2141,7 +2159,8 @@ class CodeEditor(TextEditBaseWidget):
         add_actions(self.menu, (self.undo_action, self.redo_action, None,
                                 self.cut_action, self.copy_action,
                                 paste_action, self.delete_action,
-                                None, self.clear_all_output_action, None, 
+                                None, self.clear_all_output_action,
+                                self.ipynb_convert_action, None, 
                                 selectall_action, None, zoom_in_action,
                                 zoom_out_action, None, toggle_comment_action,
                                 None, self.run_selection_action,
@@ -2380,6 +2399,7 @@ class CodeEditor(TextEditBaseWidget):
         self.cut_action.setEnabled(nonempty_selection)
         self.delete_action.setEnabled(nonempty_selection)
         self.clear_all_output_action.setVisible(self.is_json())
+        self.ipynb_convert_action.setVisible(self.is_json())
         self.run_selection_action.setEnabled(nonempty_selection)
         self.run_selection_action.setVisible(self.is_python())
         self.gotodef_action.setVisible(self.go_to_definition_enabled\

@@ -35,11 +35,11 @@ from spyderlib.baseconfig import _
 from spyderlib.py3compat import to_text_string, getcwd, str_lower
 
 if programs.is_module_installed('IPython'):
+    from IPython.nbformat import current
     try:
         from IPython.nbconvert import PythonExporter # >=1.0
     except:
         from IPython.nbformat.v3.nbpy import PyWriter # 0.13
-        from IPython.nbformat.v3.nbjson import read
 
 
 def fixpath(path):
@@ -251,6 +251,7 @@ class DirView(QTreeView):
                                       triggered=self.rename)
         open_action = create_action(self, _("Open"), triggered=self.open)
         ipynb_convert_action = create_action(self, _("Convert to Python script"), 
+                                      icon="python.png",
                                       triggered=self.convert)
         
         actions = []
@@ -508,7 +509,7 @@ class DirView(QTreeView):
         if programs.is_module_installed('IPython', '>=1.0'):
             script = PythonExporter().from_filename(fname)[0]
         elif programs.is_module_installed('IPython'):
-            script = PyWriter().writes(read(open(fname, 'r')))
+            script = PyWriter().writes(current.read(open(fname, 'r')))
         else:
             script = ''
         self.parent_widget.sig_new_file.emit(script)
@@ -520,7 +521,7 @@ class DirView(QTreeView):
         if not isinstance(fnames, (tuple, list)):
             fnames = [fnames]
         for fname in fnames:
-            self.convert_notebook(fname)        
+            self.convert_notebook(fname)
 
     def rename_file(self, fname):
         """Rename file"""
