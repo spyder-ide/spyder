@@ -550,10 +550,9 @@ def _get_globals():
  
 
 prev_excepthook = sys.excepthook
-
+use_ipython = os.environ.get("IPYTHON_KERNEL", "").lower() == "true"
 
 def clear_excepthook():
-    use_ipython = os.environ.get("IPYTHON_KERNEL", "").lower() == "true"
     if use_ipython:
         from IPython.core.getipython import get_ipython
         ipython_shell = get_ipython()
@@ -568,21 +567,27 @@ def post_mortem_debug(type, value, tb):
     if hasattr(sys, 'ps1') and not 'UMD_ENABLED' in os.environ:
         # in interactive mode in dedicated interpreter, just exit after printing
         return
-    _print('', file=sys.stderr)
-    _print('*' * 40)
-    _print('Entering post mortem debugging...')
-    _print('*' * 40)
-    
-    while tb.tb_next:
-        tb = tb.tb_next
-    sys.last_traceback = tb
-    frame = tb.tb_frame
-    fname = frame.f_code.co_filename
-    lineno = frame.f_lineno
+    if not type == SyntaxError:
+        _print('', file=sys.stderr)
+        _print('*' * 40)
+        _print('Entering post mortem debugging...')
+        _print('*' * 40)
+    if not type == SyntaxError:
+        while tb.tb_next:
+            tb = tb.tb_next
+        sys.last_traceback = tb
+        frame = tb.tb_frame
+        fname = frame.f_code.co_filename
+        lineno = frame.f_lineno
+    else:
+        fname, lineno = value.filename, value.lineno
+    if not os.path.dirname(fname):
+        fname = os.path.join(os.getcwd(), fname)
     if isinstance(fname, basestring) and isinstance(lineno, int):
         if osp.isfile(fname) and monitor is not None:
             monitor.notify_pdb_step(fname, lineno)
-    pdb.pm()
+    if not type == SyntaxError:
+        pdb.pm()
     
 
 def set_excepthook():
