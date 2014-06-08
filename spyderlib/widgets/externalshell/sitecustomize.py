@@ -565,8 +565,8 @@ def clear_excepthook():
 def post_mortem_debug(type, value, tb):
     clear_excepthook()
     traceback.print_exception(type, value, tb)
-    if hasattr(sys, 'ps1'):
-        # in interactive mode, just exit after printing
+    if hasattr(sys, 'ps1') and not 'UMD_ENABLED' in os.environ:
+        # in interactive mode in dedicated interpreter, just exit after printing
         return
     _print('', file=sys.stderr)
     _print('*' * 40)
@@ -646,6 +646,7 @@ def runfile(filename, args=None, wdir=None, namespace=None):
     if 'SPYDER_EXCEPTHOOK' in os.environ:
         set_excepthook()
     execfile(filename, namespace)
+    clear_excepthook()
     sys.argv = ['']
     namespace.pop('__file__')
     
