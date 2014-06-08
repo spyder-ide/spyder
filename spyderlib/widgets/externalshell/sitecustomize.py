@@ -545,33 +545,36 @@ def _get_globals():
 
 
 #===============================================================================
-# Post mortem debugging
+# Handle Post Mortem Debugging and Traceback Linkage to Spyder
 #===============================================================================
  
 
-prev_excepthook = sys.excepthook
-use_ipython = os.environ.get("IPYTHON_KERNEL", "").lower() == "true"
+is_ipython = os.environ.get("IPYTHON_KERNEL", "").lower() == "true"
+is_dedicated = not 'UMD_ENABLED' in os.environ
 
-def clear_excepthook():
-    if use_ipython:
-        from IPython.core.getipython import get_ipython
-        ipython_shell = get_ipython()
-        ipython_shell.set_custom_exc((None,), None)
-    else:
-        sys.excepthook = prev_excepthook
+
+if is_ipython:
+    from IPython.core.interactiveshell import InteractiveShell
     
-    
-def post_mortem_debug(type, value, tb):
-    clear_excepthook()
-    traceback.print_exception(type, value, tb)
-    if hasattr(sys, 'ps1') and not 'UMD_ENABLED' in os.environ:
-        # in interactive mode in dedicated interpreter, just exit after printing
-        return
-    if not type == SyntaxError:
-        _print('', file=sys.stderr)
-        _print('*' * 40)
-        _print('Entering post mortem debugging...')
-        _print('*' * 40)
+    # Notify Spyder when IPython prints a traceback so we can update 
+    # the monitor
+    @monkeypatch_method(InteractiveShell, 'InteractiveShell')
+    def showtraceback(self,exc_tuple = None,filename=None,tb_offset=None,
+                          exception_only=False):
+        self._old_InteractiveShell_showtraceback(exc_tuple, filename, 
+                          tb_offset, exception_only)
+        if exc_tuple is None:
+            etype, value, tb = sys.exc_info()
+        else:
+            etype, value, tb = exc_tuple
+        spyder_default_excepthook(type, value, tb, show_message=False)
+
+
+def spyder_default_excepthook(type, value, tb, show_message=True):
+    """Enhanced Traceback Handling with Linkage to Spyder Monitor.
+    """
+    if show_message:
+        traceback.print_exception(type, value, tb)
     if not type == SyntaxError:
         while tb.tb_next:
             tb = tb.tb_next
@@ -586,27 +589,62 @@ def post_mortem_debug(type, value, tb):
     if isinstance(fname, basestring) and isinstance(lineno, int):
         if osp.isfile(fname) and monitor is not None:
             monitor.notify_pdb_step(fname, lineno)
+            
+            
+def clear_post_mortem():
+    """
+    Remove the post mortem excepthook and replace with a standard one.
+    """
+    if is_ipython:
+        from IPython.core.getipython import get_ipython
+        ipython_shell = get_ipython()
+        if ipython_shell:
+            ipython_shell.set_custom_exc((None,), None)
+        else:
+            from IPython.terminal.ipapp import TerminalIPythonApp
+            TerminalIPythonApp.exec_lines = ['clear_post_mortem()']
+    else:
+        sys.excepthook = spyder_default_excepthook
+    
+            
+def post_mortem_excepthook(type, value, tb):
+    """
+    For post mortem exception handling, print a banner and enable post
+    mortem debugging.
+    """
+    clear_post_mortem()
+    spyder_default_excepthook(type, value, tb)
+    if hasattr(sys, 'ps1') and is_dedicated:
+        # in interactive mode in dedicated interpreter, just exit after printing
+        return
     if not type == SyntaxError:
+        _print('', file=sys.stderr)
+        _print('*' * 40)
+        _print('Entering post mortem debugging...')
+        _print('*' * 40)
         pdb.pm()
     
 
-def set_excepthook():
-    use_ipython = os.environ.get("IPYTHON_KERNEL", "").lower() == "true"
-    if use_ipython:
+def set_post_mortem():
+    """
+    Enable the post mortem debugging excepthook.
+    """
+    if is_ipython:
         from IPython.core.getipython import get_ipython
         def ipython_post_mortem_debug(shell, etype, evalue, tb, 
                    tb_offset=None):
-            post_mortem_debug(etype, evalue, tb)
+            post_mortem_excepthook(etype, evalue, tb)
         ipython_shell = get_ipython()
         ipython_shell.set_custom_exc((Exception,), ipython_post_mortem_debug)
     else:
-        sys.excepthook = post_mortem_debug
+        sys.excepthook = post_mortem_excepthook
 
 # Add post mortem debugging if requested and in a dedicated interpreter
 # existing interpreters use "runfile" below
-if 'SPYDER_EXCEPTHOOK' in os.environ and not 'UMD_ENABLED' in os.environ:  
-    set_excepthook()   
-
+if 'SPYDER_EXCEPTHOOK' in os.environ and is_dedicated:  
+    set_post_mortem() 
+else:
+    clear_post_mortem()
     
     
 def runfile(filename, args=None, wdir=None, namespace=None):
@@ -649,9 +687,9 @@ def runfile(filename, args=None, wdir=None, namespace=None):
             pass
         os.chdir(wdir)
     if 'SPYDER_EXCEPTHOOK' in os.environ:
-        set_excepthook()
+        set_post_mortem()
     execfile(filename, namespace)
-    clear_excepthook()
+    clear_post_mortem()
     sys.argv = ['']
     namespace.pop('__file__')
     
@@ -731,3 +769,4 @@ try:
 except KeyError:
     if os.environ.get('PYTHONPATH') is not None:
         del os.environ['PYTHONPATH']
+
