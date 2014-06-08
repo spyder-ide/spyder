@@ -53,7 +53,7 @@ from spyderlib.widgets.sourcecode import syntaxhighlighters as sh
 from spyderlib.py3compat import to_text_string
 
 if programs.is_module_installed('IPython'):
-    from IPython.nbformat import current
+    import IPython.nbformat as nbformat
     try:
         from IPython.nbconvert import PythonExporter # >=1.0
     except:
@@ -1730,25 +1730,26 @@ class CodeEditor(TextEditBaseWidget):
     def clear_all_output(self):
         """removes all input in the ipynb format (Json only)"""
         if self.is_json() and programs.is_module_installed('IPython'):
-            nb = current.reads(self.toPlainText(), 'json')
+            nb = nbformat.current.reads(self.toPlainText(), 'json')
             if nb.worksheets:
                 for cell in nb.worksheets[0].cells:
                     if 'outputs' in cell:
                         cell['outputs'] = []
                     if 'prompt_number' in cell:
                         cell['prompt_number'] = None
-            self.setPlainText(current.writes(nb, 'json'))
+            self.setPlainText(nbformat.current.writes(nb, 'json'))
             self.document().setModified(True)
         else:
             return
 
     def convert_notebook(self):
         """Convert an IPython notebook to a Python script in editor"""
-        # FIXME: This is near to be duplicated from widgets/explorer.py 
-        if programs.is_module_installed('IPython', '>=1.0'):
-            script = PythonExporter().from_notebook_node(current.reads(self.toPlainText(),'json'))[0]
-        elif programs.is_module_installed('IPython'):
-            script = PyWriter().writes(current.reads(self.toPlainText(),'json'))
+        if programs.is_module_installed('IPython'):
+            nb = nbformat.current.reads(self.toPlainText(),'json')
+            if programs.is_module_installed('IPython', '>=1.0'):
+                script = PythonExporter().from_notebook_node(nb)[0]
+            else:
+                script = PyWriter().writes(nb)
         else:
             script = ''
         # FIXME: Should sig_new_file be in explorer

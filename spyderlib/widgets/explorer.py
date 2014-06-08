@@ -35,7 +35,7 @@ from spyderlib.baseconfig import _
 from spyderlib.py3compat import to_text_string, getcwd, str_lower
 
 if programs.is_module_installed('IPython'):
-    from IPython.nbformat import current
+    import IPython.nbformat as nbformat
     try:
         from IPython.nbconvert import PythonExporter # >=1.0
     except:
@@ -509,7 +509,7 @@ class DirView(QTreeView):
         if programs.is_module_installed('IPython', '>=1.0'):
             script = PythonExporter().from_filename(fname)[0]
         elif programs.is_module_installed('IPython'):
-            script = PyWriter().writes(current.read(open(fname, 'r')))
+            script = PyWriter().writes(nbformat.current.read(open(fname, 'r')))
         else:
             script = ''
         self.parent_widget.sig_new_file.emit(script)
