@@ -600,9 +600,6 @@ def clear_post_mortem():
         ipython_shell = get_ipython()
         if ipython_shell:
             ipython_shell.set_custom_exc((None,), None)
-        else:
-            from IPython.terminal.ipapp import TerminalIPythonApp
-            TerminalIPythonApp.exec_lines = ['clear_post_mortem()']
     else:
         sys.excepthook = spyder_default_excepthook
     
