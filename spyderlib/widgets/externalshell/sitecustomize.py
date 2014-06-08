@@ -545,18 +545,26 @@ def _get_globals():
 
 
 prev_excepthook = sys.excepthook
-    
+
+
+USE_IPYTHON = os.environ.get("IPYTHON_KERNEL", "").lower() == "true"
+if USE_IPYTHON:
+    from IPython.core.getipython import get_ipython
+
+
 def post_mortem_debug(type, value, tb):
     sys.excepthook = prev_excepthook
+    if USE_IPYTHON:
+        ipython_shell = get_ipython()
+        ipython_shell.set_custom_exc((None,), None)
     traceback.print_exception(type, value, tb)
-    if not hasattr(sys, 'last_traceback'):
-        return
     _print('', file=sys.stderr)
     _print('*' * 40)
     _print('Entering post mortem debugging...')
     _print('*' * 40)
     while tb.tb_next:
         tb = tb.tb_next
+    sys.last_traceback = tb
     frame = tb.tb_frame
     fname = frame.f_code.co_filename
     lineno = frame.f_lineno
@@ -564,11 +572,19 @@ def post_mortem_debug(type, value, tb):
         if osp.isfile(fname) and monitor is not None:
             monitor.notify_pdb_step(fname, lineno)
     pdb.pm()
-        
+    
+    
+def ipython_post_mortem_debug(shell, etype, evalue, tb, tb_offset=None):
+    post_mortem_debug(etype, evalue, tb)
 
 # Add post mortem debugging if requested and not the main interpreter
 if 'SPYDER_EXCEPTHOOK' in os.environ and not 'UMD_ENABLED' in os.environ:  
-    sys.excepthook = post_mortem_debug
+    if USE_IPYTHON:
+        # Tell IPython to use it for any/all Exceptions:
+        ipython_shell = get_ipython()
+        ipython_shell.set_custom_exc((Exception,), ipython_post_mortem_debug)
+    else:
+        sys.excepthook = post_mortem_debug
     
 
 def runfile(filename, args=None, wdir=None, namespace=None):
@@ -611,7 +627,13 @@ def runfile(filename, args=None, wdir=None, namespace=None):
             pass
         os.chdir(wdir)
     if 'SPYDER_EXCEPTHOOK' in os.environ:
-        sys.excepthook = post_mortem_debug
+        if USE_IPYTHON:
+            # Tell IPython to use it for any/all Exceptions:
+            ipython_shell = get_ipython()
+            ipython_shell.set_custom_exc((Exception,), 
+                                         ipython_post_mortem_debug)
+        else:
+            sys.excepthook = post_mortem_debug
     execfile(filename, namespace)
     sys.argv = ['']
     namespace.pop('__file__')
