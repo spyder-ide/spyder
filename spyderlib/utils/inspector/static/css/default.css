@@ -278,8 +278,8 @@ tt {
 /* --- Loading --- */
 .loading {
     position: absolute;
-    margin: -20px 0 0 -85px;
-    width: 165px;
+    margin: -20px 0 0 -95px;
+    width: 180px;
     height: auto;
     left: 50%;
     top: 50%;
@@ -289,12 +289,15 @@ tt {
     box-shadow: 0px 0px 7px #CACACA;
     color: #333333;
     padding: 12px;
-    text-align: right;
+    text-align: center;
 }
 
 #loading-image {
-    width: 16px;
     float: left;
+}
+
+#loading-message {
+    margin-left: 23px;
 }
 
 /* --- Kernel error messages --- */
