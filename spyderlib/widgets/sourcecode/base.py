@@ -967,11 +967,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                     self.emit(SIGNAL("zoom_in()"))
                 return
         QPlainTextEdit.wheelEvent(self, event)
-
-    def paintEvent(self, event):
-        """Reimplemented to recompute cell highlighting"""
         self.highlight_current_cell()
-        QPlainTextEdit.paintEvent(self, event)
 
 
 class QtANSIEscapeCodeHandler(ANSIEscapeCodeHandler):
