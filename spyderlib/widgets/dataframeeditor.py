@@ -350,10 +350,7 @@ class DataFrameEditor(QDialog):
         if isinstance(dataFrame, TimeSeries):
             self.is_time_series = True
             dataFrame = dataFrame.to_frame()
-        elif isinstance(dataFrame, DataFrame):
-            pass
-        else:
-            return False
+        
         self.layout = QGridLayout()
         self.setLayout(self.layout)
         self.setWindowIcon(get_icon('arredit.png'))
@@ -413,10 +410,7 @@ class DataFrameEditor(QDialog):
                 QMessageBox.critical(self, _("Error"),
                                      _("Format (%s) is incorrect") % format)
                 return
-            self.dataModel.set_format(format)    
-            
-        
-        
+            self.dataModel.set_format(format)
         
     def get_value(self):
         """Return modified Dataframe -- this is *not* a copy"""
