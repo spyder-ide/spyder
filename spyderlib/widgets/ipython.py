@@ -49,50 +49,13 @@ from spyderlib.widgets.mixins import (BaseEditMixin, InspectObjectMixin,
 #-----------------------------------------------------------------------------
 # Using the same css file from the Object Inspector for now. Maybe
 # later it'll be a good idea to create a new one.
-OI_UTILS_PATH = get_module_source_path('spyderlib', osp.join('utils',
-                                                             'inspector'))
-CSS_PATH = osp.join(OI_UTILS_PATH, 'static', 'css')
+UTILS_PATH = get_module_source_path('spyderlib', 'utils')
+CSS_PATH = osp.join(UTILS_PATH, 'inspector', 'static', 'css')
+TEMPLATES_PATH = osp.join(UTILS_PATH, 'ipython', 'templates')
 
-BLANK = \
-r"""<html>
-<head>
-  <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
-</head>
-</html>
-"""
-
-LOADING = \
-r"""<html>
-<head>
-  <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
-  <link rel="stylesheet" href="file:///${css_path}/default.css" type="text/css"/>
-</head>
-<body>
-  <div class="loading">
-    <img src="file:///${loading_img}"/>&nbsp;&nbsp;${message}
-  </div>
-</body>
-</html>
-"""
-
-KERNEL_ERROR = \
-r"""<html>
-<head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <link rel="stylesheet" href="file:///${css_path}/default.css" type="text/css"/>
-</head>
-<body>
-  <div class="panel panel-danger">
-    <div class="panel-heading">
-      <div class="panel-title">${message}</div>
-    </div>
-    <div class="panel-body">
-      ${error}
-    </div>
-  </div>
-</body>
-</html>
-"""
+BLANK = open(osp.join(TEMPLATES_PATH, 'blank.html')).read()
+LOADING = open(osp.join(TEMPLATES_PATH, 'loading.html')).read()
+KERNEL_ERROR = open(osp.join(TEMPLATES_PATH, 'kernel_error.html')).read()
 
 #-----------------------------------------------------------------------------
 # Control widgets
@@ -593,7 +556,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
     #------ Private API -------------------------------------------------------
     def _create_loading_page(self):
         loading_template = Template(LOADING)
-        loading_img = get_image_path('loading.gif')
+        loading_img = get_image_path('loading_sprites.png')
         message = _("Connecting to kernel...")
         page = loading_template.substitute(css_path=CSS_PATH,
                                            loading_img=loading_img,
