@@ -682,8 +682,6 @@ class EditorStack(QWidget):
                                    name='File list management', parent=self)
         tab = create_shortcut(self.go_to_previous_file, context='Editor',
                               name='Go to previous file', parent=self)
-        close_tab = create_shortcut(self.close_file, context='Editor',
-                                     name='Close tab', parent=self)
         tabshift = create_shortcut(self.go_to_next_file, context='Editor',
                                    name='Go to next file', parent=self)
         # Fixed shortcuts
@@ -695,7 +693,7 @@ class EditorStack(QWidget):
         zoomout.setContext(Qt.WidgetWithChildrenShortcut)
         # Return configurable ones
         return [inspect, breakpoint, cbreakpoint, gotoline, filelist, tab,
-                close_tab, tabshift]
+                tabshift]
 
     def get_shortcut_data(self):
         """
