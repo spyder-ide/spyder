@@ -553,28 +553,10 @@ is_ipython = os.environ.get("IPYTHON_KERNEL", "").lower() == "true"
 is_dedicated = not 'UMD_ENABLED' in os.environ
 
 
-if is_ipython:
-    from IPython.core.interactiveshell import InteractiveShell
-    
-    # Notify Spyder when IPython prints a traceback so we can update 
-    # the monitor
-    @monkeypatch_method(InteractiveShell, 'InteractiveShell')
-    def showtraceback(self,exc_tuple = None,filename=None,tb_offset=None,
-                          exception_only=False):
-        self._old_InteractiveShell_showtraceback(exc_tuple, filename, 
-                          tb_offset, exception_only)
-        if exc_tuple is None:
-            etype, value, tb = sys.exc_info()
-        else:
-            etype, value, tb = exc_tuple
-        spyder_default_excepthook(type, value, tb, show_message=False)
-
-
-def spyder_default_excepthook(type, value, tb, show_message=True):
-    """Enhanced Traceback Handling with Linkage to Spyder Monitor.
+def spyder_notify_traceback(type, value, tb):
     """
-    if show_message:
-        traceback.print_exception(type, value, tb)
+    Notify Spyder of a Traceback so we can go to file and line in editor.
+    """
     if not type == SyntaxError:
         while tb.tb_next:
             tb = tb.tb_next
@@ -589,8 +571,34 @@ def spyder_default_excepthook(type, value, tb, show_message=True):
     if isinstance(fname, basestring) and isinstance(lineno, int):
         if osp.isfile(fname) and monitor is not None:
             monitor.notify_pdb_step(fname, lineno)
+
             
-            
+# override traceback.print_exception to notify spyder
+old_print_exception = traceback.print_exception
+
+def new_print_exception(type, value, tb, limit=None, file=None):
+    old_print_exception(type, value, tb, limit, file)
+    spyder_notify_traceback(type, value, tb)
+traceback.print_exception = new_print_exception
+
+
+if is_ipython:
+    from IPython.core.interactiveshell import InteractiveShell
+    
+    # Notify Spyder when IPython prints a traceback so we can update 
+    # the monitor
+    @monkeypatch_method(InteractiveShell, 'InteractiveShell')
+    def showtraceback(self,exc_tuple = None,filename=None,tb_offset=None,
+                          exception_only=False):
+        self._old_InteractiveShell_showtraceback(exc_tuple, filename, 
+                          tb_offset, exception_only)
+        if exc_tuple is None:
+            etype, value, tb = sys.exc_info()
+        else:
+            etype, value, tb = exc_tuple
+        spyder_notify_traceback(type, value, tb)   
+         
+
 def clear_post_mortem():
     """
     Remove the post mortem excepthook and replace with a standard one.
@@ -601,7 +609,7 @@ def clear_post_mortem():
         if ipython_shell:
             ipython_shell.set_custom_exc((None,), None)
     else:
-        sys.excepthook = spyder_default_excepthook
+        sys.excepthook = sys.__excepthook__
     
             
 def post_mortem_excepthook(type, value, tb):
@@ -610,7 +618,7 @@ def post_mortem_excepthook(type, value, tb):
     mortem debugging.
     """
     clear_post_mortem()
-    spyder_default_excepthook(type, value, tb)
+    traceback.print_exception(type, value, tb)
     if hasattr(sys, 'ps1') and is_dedicated:
         # in interactive mode in dedicated interpreter, just exit after printing
         return
@@ -640,9 +648,7 @@ def set_post_mortem():
 # existing interpreters use "runfile" below
 if 'SPYDER_EXCEPTHOOK' in os.environ and is_dedicated:  
     set_post_mortem() 
-else:
-    clear_post_mortem()
-    
+
     
 def runfile(filename, args=None, wdir=None, namespace=None):
     """
