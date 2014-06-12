@@ -15,8 +15,11 @@ import socket
 import struct
 import threading
 import errno
+import traceback
 
 # Local imports
+from spyderlib.baseconfig import DEBUG, STDERR
+DEBUG_EDITOR = DEBUG >= 3
 from spyderlib.py3compat import pickle
 PICKLE_HIGHEST_PROTOCOL = 2
 
@@ -82,8 +85,10 @@ def read_packet(sock, timeout=None):
     if data is not None:
         try:
             return pickle.loads(data)
-        except (EOFError, pickle.UnpicklingError, ValueError):
-            # ValueError is raised for an unsupported protocol
+        except Exception:
+            # Catch all exceptions to avoid locking spyder
+            if DEBUG_EDITOR:
+                traceback.print_exc(file=STDERR)
             return
 
 
