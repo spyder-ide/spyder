@@ -19,7 +19,9 @@ import os.path as osp
 import sys
 import optparse
 
+
 # --- Parse command line
+
 parser = optparse.OptionParser(
     usage="python bootstrap.py [options] [-- spyder_options]",
     epilog="""\
@@ -31,6 +33,9 @@ parser.add_option('--gui', default=None,
                   help="GUI toolkit: pyqt (for PyQt4) or pyside (for PySide)")
 parser.add_option('--hide-console', action='store_true',
                   default=False, help="Hide parent console window (Windows only)")
+parser.add_option('--versions', dest="versions", action='store_true',
+                  default=False,
+                  help="Show Qt and Python versions used by Spyder")
 parser.add_option('--test', dest="test", action='store_true', default=False,
                   help="Test Spyder with a clean settings dir")
 parser.add_option('--no-apport', action='store_true',
@@ -99,6 +104,7 @@ if osp.isdir(EXTPATH):
     sys.path.insert(0, EXTPATH)
     print("                      and %s" % EXTPATH)
 
+
 # Selecting the GUI toolkit: PySide if installed, otherwise PyQt4
 # (Note: PyQt4 is still the officially supported GUI toolkit for Spyder)
 if options.gui is None:
@@ -112,6 +118,7 @@ else:
     print ("02. Skipping GUI toolkit detection")
     os.environ['QT_API'] = options.gui
 
+
 if options.debug:
     # safety check - Spyder config should not be imported at this point
     if "spyderlib.baseconfig" in sys.modules:
@@ -121,25 +128,29 @@ if options.debug:
     # this way of interaction suxx, because there is no feedback
     # if operation is successful
 
-# Importing Spyder (among other things, this has the effect of setting the 
-# QT_API environment variable if this has not yet been done just above)
 
-#FIXME: `from spyderlib import spyder` is necessary with current package 
-# structure to avoid "AttributeError: 'module' object has no attribute 'qt'"
-# when importing get_versions (see Issue 1320 for more details).
-from spyderlib import spyder
+if options.versions:
+    # Importing spyder (among other things, this has the effect of setting the 
+    # QT_API environment variable if this has not yet been done just above)
 
-from spyderlib import start_app, get_versions
-versions = get_versions()
-print("03. Imported Spyder %s" % versions['spyder'])
-print("    [Python %s %dbits, Qt %s, %s %s on %s]" % \
-      (versions['python'], versions['bitness'], versions['qt'],
-       versions['qt_api'], versions['qt_api_ver'], versions['system']))
+    # FIXME: `from spyderlib import spyder` is necessary with current package 
+    # structure to avoid "AttributeError: 'module' object has no attribute 'qt'"
+    # when importing get_versions (see Issue 1320 for more details).
+    from spyderlib import spyder
+    from spyderlib import get_versions
+    versions = get_versions()
+    print("03. Imported Spyder %s" % versions['spyder'])
+    print("    [Python %s %dbits, Qt %s, %s %s on %s]" % \
+          (versions['python'], versions['bitness'], versions['qt'],
+           versions['qt_api'], versions['qt_api_ver'], versions['system']))
 
-# Executing Spyder
+
+# --- Executing Spyder
+
 if not options.hide_console and os.name == 'nt':
     print("0x. Enforcing parent console (Windows only)")
     sys.argv.append("--show-console")  # Windows only: show parent console
 
 print("04. Executing spyder.main()")
+from spyderlib import start_app
 start_app.main()
