@@ -25,6 +25,7 @@ import os
 import os.path as osp
 import re
 import sys
+import subprocess
 
 # Local imports
 from spyderlib.baseconfig import SCIENTIFIC_STARTUP, _
@@ -436,6 +437,7 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                                      get_python_executable())
         if pyexec != old_pyexec:
             self._auto_change_qt_api(pyexec)
+        self.warn_python_compatibility(pyexec)
 
     def python_executable_switched(self, custom):
         """Python executable default/custom radio button has been toggled"""
@@ -446,7 +448,25 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         if def_pyexec != cust_pyexec:
             pyexec = cust_pyexec if custom else def_pyexec
             self._auto_change_qt_api(pyexec)
+            if custom:
+                self.warn_python_compatibility(cust_pyexec)
 
+    def warn_python_compatibility(self, pyexec):
+        spyder_version = sys.version_info[0]
+        try:
+            cmd = [pyexec, "-c", "import sys; print(sys.version_info[0])"]
+            # subprocess.check_output is not present in python2.6 and 3.0
+            process = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+            console_version = int(process.communicate()[0])
+        except IOError:
+            console_version = spyder_version
+        if spyder_version != console_version:
+            QMessageBox.warning(self, _('Warning'),
+                _("You selected a python%d interpreter for the console but "
+                  "spyder is running within python%d. Be aware that the "
+                  "compatibility is not guaranteed and some tools like "
+                  "pylint, pyflake or pep8 may raise false warnings."
+                  ) % (console_version, spyder_version), QMessageBox.Ok)
 
 class ExternalConsole(SpyderPluginWidget):
     """
@@ -1372,4 +1392,3 @@ class ExternalConsole(SpyderPluginWidget):
             elif shellwidget:
                 shellwidget.shell.drop_pathlist(pathlist)
         event.acceptProposedAction()
-
