@@ -281,6 +281,10 @@ class MainWindow(QMainWindow):
     DOCKOPTIONS = QMainWindow.AllowTabbedDocks|QMainWindow.AllowNestedDocks
     SPYDER_PATH = get_conf_path('path')
     BOOKMARKS = (
+         ('numpy', "http://docs.scipy.org/doc/",
+          _("Numpy and Scipy documentation")),
+         ('matplotlib', "http://matplotlib.sourceforge.net/contents.html",
+          _("Matplotlib documentation")),
          ('PyQt4',
           "http://pyqt.sourceforge.net/Docs/PyQt4/",
           _("PyQt4 Reference Guide")),
@@ -290,11 +294,7 @@ class MainWindow(QMainWindow):
          ('xy', "http://code.google.com/p/pythonxy/",
           _("Python(x,y)")),
          ('winpython', "http://code.google.com/p/winpython/",
-          _("WinPython")),
-         ('numpy', "http://docs.scipy.org/doc/",
-          _("Numpy and Scipy documentation")),
-         ('matplotlib', "http://matplotlib.sourceforge.net/contents.html",
-          _("Matplotlib documentation")),
+          _("WinPython"))
                 )
     
     def __init__(self, options=None):
@@ -461,6 +461,7 @@ class MainWindow(QMainWindow):
         # Flags used if closing() is called by the exit() shell command
         self.already_closed = False
         self.is_starting_up = True
+        self.is_setting_up = True
         
         self.floating_dockwidgets = []
         self.window_size = None
@@ -482,6 +483,9 @@ class MainWindow(QMainWindow):
         # True: Console plugin
         # False: IPython console plugin
         self.last_console_plugin_focus_was_python = True
+        
+        # To keep track of the last focused widget
+        self.last_focused_widget = None
         
         # Server to open external files on a single instance
         self.open_files_server = socket.socket(socket.AF_INET,
@@ -510,35 +514,34 @@ class MainWindow(QMainWindow):
         if not self.light:
             self.debug_print("  ..core actions")
             self.close_dockwidget_action = create_action(self,
-                                        _("Close current plugin"),
+                                        _("Close current pane"),
                                         triggered=self.close_current_dockwidget,
                                         context=Qt.ApplicationShortcut)
-            self.register_shortcut(self.close_dockwidget_action,
-                                   "_", "Close plugin", "Shift+Ctrl+F4")
+            self.register_shortcut(self.close_dockwidget_action, "_",
+                                   "Close pane")
             
             _text = _("&Find text")
             self.find_action = create_action(self, _text, icon='find.png',
                                              tip=_text, triggered=self.find,
                                              context=Qt.WidgetShortcut)
-            self.register_shortcut(self.find_action, "Editor",
-                                   "Find text", "Ctrl+F")
+            self.register_shortcut(self.find_action, "Editor", "Find text")
             self.find_next_action = create_action(self, _("Find &next"),
                   icon='findnext.png', triggered=self.find_next,
                   context=Qt.WidgetShortcut)
             self.register_shortcut(self.find_next_action, "Editor",
-                                   "Find next", "F3")
+                                   "Find next")
             self.find_previous_action = create_action(self,
                         _("Find &previous"),
                         icon='findprevious.png', triggered=self.find_previous,
                         context=Qt.WidgetShortcut)
             self.register_shortcut(self.find_previous_action, "Editor",
-                                   "Find previous", "Shift+F3")
+                                   "Find previous")
             _text = _("&Replace text")
             self.replace_action = create_action(self, _text, icon='replace.png',
                                             tip=_text, triggered=self.replace,
                                             context=Qt.WidgetShortcut)
             self.register_shortcut(self.replace_action, "Editor",
-                                   "Replace text", "Ctrl+H")
+                                   "Replace text")
             def create_edit_action(text, tr_text, icon_name):
                 textseq = text.split(' ')
                 method_name = textseq[0].lower()+"".join(textseq[1:])
@@ -630,8 +633,7 @@ class MainWindow(QMainWindow):
             prefs_action = create_action(self, _("Pre&ferences"),
                                          icon='configure.png',
                                          triggered=self.edit_preferences)
-            self.register_shortcut(prefs_action, "_", "Preferences",
-                                   "Ctrl+Alt+Shift+P")
+            self.register_shortcut(prefs_action, "_", "Preferences")
             add_shortcut_to_tooltip(prefs_action, context="_",
                                     name="Preferences")
             spyder_path_action = create_action(self,
@@ -737,7 +739,7 @@ class MainWindow(QMainWindow):
             self.maximize_action = create_action(self, '',
                                             triggered=self.maximize_dockwidget)
             self.register_shortcut(self.maximize_action, "_",
-                                   "Maximize plugin", "Ctrl+Alt+Shift+M")
+                                   "Maximize pane")
             self.__update_maximize_action()
             
             # Fullscreen mode
@@ -745,7 +747,7 @@ class MainWindow(QMainWindow):
                                             _("Fullscreen mode"),
                                             triggered=self.toggle_fullscreen)
             self.register_shortcut(self.fullscreen_action, "_",
-                                   "Fullscreen mode", "F11")
+                                   "Fullscreen mode")
             add_shortcut_to_tooltip(self.fullscreen_action, context="_",
                                     name="Fullscreen mode")
             
@@ -763,8 +765,11 @@ class MainWindow(QMainWindow):
             self.console = Console(self, namespace, exitfunc=self.closing,
                                    profile=self.profile,
                                    multithreaded=self.multithreaded,
-                                   message='Inspect Spyder internals:\n'\
-                                           '  spy.app, spy.window, dir(spy)')
+                                   message="DON'T USE THIS CONSOLE TO RUN CODE!\n\n"
+                                           "It's used to report application errors\n"
+                                           "and to inspect Spyder internals with\n"
+                                           "the following commands:\n"
+                                           "  spy.app, spy.window, dir(spy)")
             self.console.register_plugin()
             
             # Working directory plugin
@@ -800,7 +805,7 @@ class MainWindow(QMainWindow):
             quit_action = create_action(self, _("&Quit"),
                                         icon='exit.png', tip=_("Quit"),
                                         triggered=self.console.quit)
-            self.register_shortcut(quit_action, "_", "Quit", "Ctrl+Q")
+            self.register_shortcut(quit_action, "_", "Quit")
             self.file_menu_actions += [self.load_temp_session_action,
                                        self.load_session_action,
                                        self.save_session_action,
@@ -880,13 +885,10 @@ class MainWindow(QMainWindow):
             
             self.set_splash(_("Setting up main window..."))
             
-            # ? menu
-            about_action = create_action(self,
-                                    _("About %s...") % "Spyder",
-                                    icon=get_std_icon('MessageBoxInformation'),
-                                    triggered=self.about)
+            # Help menu
             dep_action = create_action(self, _("Optional dependencies..."),
-                                       triggered=self.show_dependencies)
+                                       triggered=self.show_dependencies,
+                                       icon='advanced.png')
             report_action = create_action(self,
                                           _("Report issue..."),
                                           icon=get_icon('bug.png'),
@@ -900,31 +902,34 @@ class MainWindow(QMainWindow):
             # * Trying to find the chm doc
             spyder_doc = osp.join(doc_path, "Spyderdoc.chm")
             if not osp.isfile(spyder_doc):
-                spyder_doc = osp.join(doc_path, os.pardir, os.pardir,
-                                      "Spyderdoc.chm")
+                spyder_doc = osp.join(doc_path, os.pardir, "Spyderdoc.chm")
             # * Trying to find the html doc
             if not osp.isfile(spyder_doc):
                 spyder_doc = osp.join(doc_path, "index.html")
-                if not osp.isfile(spyder_doc):  # development version
-                    spyder_doc = osp.join(get_module_source_path('spyderlib'),
-                                          os.pardir, 'build', 'lib',
-                                          'spyderlib', 'doc', "index.html")
-            spyder_doc = file_uri(spyder_doc)
+            # * Trying to find the development-version html doc
+            if not osp.isfile(spyder_doc):
+                spyder_doc = osp.join(get_module_source_path('spyderlib'),
+                                      os.pardir, 'build', 'lib', 'spyderlib',
+                                      'doc', "index.html")
+            # * If we totally fail, point to our web build
+            if not osp.isfile(spyder_doc):
+                spyder_doc = 'http://pythonhosted.org/spyder'
+            else:
+                spyder_doc = file_uri(spyder_doc)
             doc_action = create_bookmark_action(self, spyder_doc,
                                _("Spyder documentation"), shortcut="F1",
                                icon=get_std_icon('DialogHelpButton'))
             self.help_menu_actions = [doc_action, report_action,
-                                      support_action, dep_action, None]
+                                      dep_action, support_action, None]
             # Python documentation
             if get_python_doc_path() is not None:
                 pydoc_act = create_action(self, _("Python documentation"),
-                                  icon=get_icon('python.png'),
                                   triggered=lambda:
                                   programs.start_file(get_python_doc_path()))
                 self.help_menu_actions.append(pydoc_act)
             # IPython documentation
             if self.ipyconsole is not None:
-                ipython_menu = QMenu(_("IPython help"), self)
+                ipython_menu = QMenu(_("IPython documentation"), self)
                 intro_action = create_action(self, _("Intro to IPython"),
                                           triggered=self.ipyconsole.show_intro)
                 quickref_action = create_action(self, _("Quick reference"),
@@ -934,22 +939,15 @@ class MainWindow(QMainWindow):
                 add_actions(ipython_menu, (intro_action, guiref_action,
                                            quickref_action))
                 self.help_menu_actions.append(ipython_menu)
-            # Online documentation
-            web_resources = QMenu(_("Web resources"))
-            add_actions(web_resources,
-                        create_module_bookmark_actions(self, self.BOOKMARKS))
-            self.help_menu_actions.append(web_resources)
-            # Qt assistant link
-            qta_act = create_program_action(self, _("Qt help"), "assistant")
-            if qta_act:
-                self.help_menu_actions += [qta_act, None]
             # Windows-only: documentation located in sys.prefix/Doc
-            def add_doc_action(text, path):
-                """Add doc action to help menu"""
+            ipm_actions = []
+            def add_ipm_action(text, path):
+                """Add installed Python module doc action to help submenu"""
                 path = file_uri(path)
-                action = create_action(self, text, icon=None,
+                action = create_action(self, text,
+                       icon='%s.png' % osp.splitext(path)[1][1:],
                        triggered=lambda path=path: programs.start_file(path))
-                self.help_menu_actions.append(action)
+                ipm_actions.append(action)
             sysdocpth = osp.join(sys.prefix, 'Doc')
             if osp.isdir(sysdocpth): # exists on Windows, except frozen dist.
                 for docfn in os.listdir(sysdocpth):
@@ -958,7 +956,7 @@ class MainWindow(QMainWindow):
                     if match is not None:
                         pname = match.groups()[0]
                         if pname not in ('Python', ):
-                            add_doc_action(pname, osp.join(sysdocpth, docfn))
+                            add_ipm_action(pname, osp.join(sysdocpth, docfn))
             # Documentation provided by Python(x,y), if available
             try:
                 from xy.config import DOC_PATH as xy_doc_path
@@ -966,7 +964,7 @@ class MainWindow(QMainWindow):
                 def add_xydoc(text, pathlist):
                     for path in pathlist:
                         if osp.exists(path):
-                            add_doc_action(text, path)
+                            add_ipm_action(text, path)
                             break
                 add_xydoc(_("Python(x,y) documentation folder"),
                           [xy_doc_path])
@@ -990,14 +988,32 @@ class MainWindow(QMainWindow):
                 add_xydoc(_("SciPy documentation"),
                           [osp.join(xydoc, "SciPy", "scipy.chm"),
                            osp.join(xydoc, "SciPy", "scipy-ref.pdf")])
-                self.help_menu_actions.append(None)
             except (ImportError, KeyError, RuntimeError):
                 pass
-            if self.help_menu_actions[-1] is None:
-                last_action = [about_action]
-            else:
-                last_action = [None, about_action]
-            self.help_menu_actions += last_action
+            # Installed Python modules submenu (Windows only)
+            if ipm_actions:
+                pymods_menu = QMenu(_("Installed Python modules"), self)
+                add_actions(pymods_menu, ipm_actions)
+                self.help_menu_actions.append(pymods_menu)
+            # Online documentation
+            web_resources = QMenu(_("Online documentation"))
+            webres_actions = create_module_bookmark_actions(self,
+                                                            self.BOOKMARKS)
+            webres_actions.insert(2, None)
+            webres_actions.insert(5, None)
+            add_actions(web_resources, webres_actions)
+            self.help_menu_actions.append(web_resources)
+            # Qt assistant link
+            qta_act = create_program_action(self, _("Qt documentation"),
+                                            "assistant")
+            if qta_act:
+                self.help_menu_actions += [qta_act, None]
+            # About Spyder
+            about_action = create_action(self,
+                                    _("About %s...") % "Spyder",
+                                    icon=get_std_icon('MessageBoxInformation'),
+                                    triggered=self.about)
+            self.help_menu_actions += [None, about_action]
             
             # Status bar widgets
             from spyderlib.widgets.status import MemoryStatus, CPUStatus
@@ -1015,7 +1031,7 @@ class MainWindow(QMainWindow):
                     print("%s: %s" % (mod, str(error)), file=STDERR)
                                 
             # View menu
-            self.plugins_menu = QMenu(_("Plugins"), self)
+            self.plugins_menu = QMenu(_("Panes"), self)
             self.toolbars_menu = QMenu(_("Toolbars"), self)
             self.view_menu.addMenu(self.plugins_menu)
             self.view_menu.addMenu(self.toolbars_menu)
@@ -1031,14 +1047,11 @@ class MainWindow(QMainWindow):
                                         triggered=lambda i=index:
                                         self.quick_layout_switch(i))
                 self.register_shortcut(qli_act, "_",
-                                       "Switch to/from layout %d" % index,
-                                       "Shift+Alt+F%d" % index)
+                                       "Switch to/from layout %d" % index)
                 qlsi_act = create_action(self, _("Set layout %d") % index,
                                          triggered=lambda i=index:
                                          self.quick_layout_set(i))
-                self.register_shortcut(qlsi_act, "_",
-                                       "Set layout %d" % index,
-                                       "Ctrl+Shift+Alt+F%d" % index)
+                self.register_shortcut(qlsi_act, "_", "Set layout %d" % index)
                 ql_actions += [qli_act, qlsi_act]
             add_actions(quick_layout_menu, ql_actions)
             if set_attached_console_visible is not None:
@@ -1084,7 +1097,7 @@ class MainWindow(QMainWindow):
             
         # Apply all defined shortcuts (plugins + 3rd-party plugins)
         self.apply_shortcuts()
-        self.remove_deprecated_shortcuts()
+        #self.remove_deprecated_shortcuts()
         
         # Emitting the signal notifying plugins that main window menu and 
         # toolbar actions are all defined:
@@ -1115,7 +1128,7 @@ class MainWindow(QMainWindow):
         """Actions to be performed only after the main window's `show` method 
         was triggered"""
         self.emit(SIGNAL('restore_scrollbar_position()'))
-       
+        
         if self.projectexplorer is not None:
             self.projectexplorer.check_for_io_errors()
         
@@ -1157,20 +1170,48 @@ class MainWindow(QMainWindow):
             self.connect(self, SIGNAL('open_external_file(QString)'),
                          lambda fname: self.open_external_file(fname))
         
-        # Open a Python or IPython console at startup
-        # NOTE: Leave this at the end of post_visible_setup because
-        #       it seems to avoid being unable to start a console at
-        #       startup *sometimes* if using PySide
-        if self.light:
-            self.extconsole.open_interpreter()
-        else:
-            self.extconsole.open_interpreter_at_startup()
-            if self.ipyconsole is not None:
-                self.ipyconsole.open_client_at_startup()
-        self.extconsole.setMinimumHeight(0)
+        # Create Plugins and toolbars submenus
         if not self.light:
             self.create_plugins_menu()
             self.create_toolbars_menu()
+        
+        # Open a Python console for light mode
+        if self.light:
+            self.extconsole.open_interpreter()
+        self.extconsole.setMinimumHeight(0)
+        
+        if not self.light:
+            # Hide Internal Console so that people doesn't use it instead of
+            # the External or IPython ones
+            if self.console.dockwidget.isVisible() and DEV is None:
+                self.console.dockwidget.hide()
+        
+            # Show the Object Inspector and Consoles by default
+            plugins_to_show = [self.inspector]
+            if self.ipyconsole is not None:
+                if self.ipyconsole.isvisible:
+                    plugins_to_show += [self.extconsole, self.ipyconsole]
+                else:
+                    plugins_to_show += [self.ipyconsole, self.extconsole]
+            else:
+                plugins_to_show += [self.extconsole]
+            for plugin in plugins_to_show:
+                if plugin.dockwidget.isVisible():
+                    plugin.dockwidget.raise_()
+            
+            # Show history file if no console is visible
+            ipy_visible = self.ipyconsole is not None and self.ipyconsole.isvisible
+            if not self.extconsole.isvisible and not ipy_visible:
+                self.historylog.add_history(get_conf_path('history.py'))
+            
+            # Give focus to the Editor
+            if self.editor.dockwidget.isVisible():
+                try:
+                    self.editor.get_focus_widget().setFocus()
+                except AttributeError:
+                    pass
+        
+        self.is_setting_up = False
         
     def load_window_settings(self, prefix, default=False, section='main'):
         """Load window layout settings from userconfig-based configuration
@@ -1188,22 +1229,23 @@ class MainWindow(QMainWindow):
         is_fullscreen = get_func(section, prefix+'is_fullscreen')
         return hexstate, window_size, prefs_dialog_size, pos, is_maximized, \
                is_fullscreen
-    
+
     def get_window_settings(self):
         """Return current window settings
         Symetric to the 'set_window_settings' setter"""
-        size = self.window_size
-        width, height = size.width(), size.height()
+        window_size = (self.window_size.width(), self.window_size.height())
         is_fullscreen = self.isFullScreen()
         if is_fullscreen:
             is_maximized = self.maximized_flag
         else:
             is_maximized = self.isMaximized()
-        pos = self.window_position
-        posx, posy = pos.x(), pos.y()
+        pos = (self.window_position.x(), self.window_position.y())
+        prefs_dialog_size = (self.prefs_dialog_size.width(),
+                             self.prefs_dialog_size.height())
         hexstate = qbytearray_to_str(self.saveState())
-        return hexstate, width, height, posx, posy, is_maximized, is_fullscreen
-        
+        return (hexstate, window_size, prefs_dialog_size, pos, is_maximized,
+                is_fullscreen)
+
     def set_window_settings(self, hexstate, window_size, prefs_dialog_size,
                             pos, is_maximized, is_fullscreen):
         """Set window settings
@@ -1455,14 +1497,14 @@ class MainWindow(QMainWindow):
         self.replace_action.setEnabled(readwrite_editor)
     
     def create_plugins_menu(self):
-        order = ['editor', 'outline_explorer', 'project_explorer',
-                 'breakpoints', 'pylint', None, 'ipython_console', 'console',
-                 'historylog', 'profiler', None, 'variable_explorer',
-                 'inspector', 'explorer', 'find_in_files', None, 'onlinehelp',
-                 'internal_console']
+        order = ['editor', 'console', 'ipython_console', 'variable_explorer',
+                 'inspector', None, 'explorer', 'outline_explorer',
+                 'project_explorer', 'find_in_files', None, 'historylog',
+                 'profiler', 'breakpoints', 'pylint', None,
+                 'onlinehelp', 'internal_console']
         for plugin in self.widgetlist:
             action = plugin.toggle_view_action
-            action.setChecked(plugin.isVisible())
+            action.setChecked(plugin.dockwidget.isVisible())
             try:
                 name = plugin.CONF_SECTION
                 pos = order.index(name)
@@ -1479,11 +1521,21 @@ class MainWindow(QMainWindow):
         add_actions(self.plugins_menu, actions)
     
     def create_toolbars_menu(self):
-        actions = []
+        order = ['file_toolbar', 'run_toolbar', 'debug_toolbar',
+                 'main_toolbar', 'Global working directory', None,
+                 'search_toolbar', 'edit_toolbar', 'source_toolbar']
         for toolbar in self.toolbarslist:
             action = toolbar.toggleViewAction()
-            actions.append(action)
-        add_actions(self.toolbars_menu, actions)
+            name = toolbar.objectName()
+            try:
+                pos = order.index(name)
+            except ValueError:
+                pos = None
+            if pos is not None:
+                order[pos] = action
+            else:
+                order.append(action)
+        add_actions(self.toolbars_menu, order)
     
     def createPopupMenu(self):
         if self.light:
@@ -1526,7 +1578,22 @@ class MainWindow(QMainWindow):
         if not self.isMaximized() and not self.fullscreen_flag:
             self.window_position = self.pos()
         QMainWindow.moveEvent(self, event)
-        
+    
+    def hideEvent(self, event):
+        """Reimplement Qt method"""
+        for plugin in self.widgetlist:
+            if plugin.isAncestorOf(self.last_focused_widget):
+                plugin.visibility_changed(True)
+        QMainWindow.hideEvent(self, event)
+    
+    def change_last_focused_widget(self, old, now):
+        """To keep track of to the last focused widget"""
+        if (now is None and QApplication.activeWindow() is not None):
+            QApplication.activeWindow().setFocus()
+            self.last_focused_widget = QApplication.focusWidget()
+        elif now is not None:
+            self.last_focused_widget = now
+    
     def closing(self, cancelable=False):
         """Exit tasks"""
         if self.already_closed or self.is_starting_up:
@@ -1560,12 +1627,12 @@ class MainWindow(QMainWindow):
         
     def __update_maximize_action(self):
         if self.state_before_maximizing is None:
-            text = _("Maximize current plugin")
-            tip = _("Maximize current plugin")
+            text = _("Maximize current pane")
+            tip = _("Maximize current pane")
             icon = "maximize.png"
         else:
-            text = _("Restore current plugin")
-            tip = _("Restore plugin to its original size")
+            text = _("Restore current pane")
+            tip = _("Restore pane to its original size")
             icon = "unmaximize.png"
         self.maximize_action.setText(text)
         self.maximize_action.setIcon(get_icon(icon))
@@ -1636,15 +1703,6 @@ class MainWindow(QMainWindow):
 
     def about(self):
         """About Spyder"""
-        not_installed = _('(not installed)')
-        try:
-            from pyflakes import __version__ as pyflakes_version
-        except ImportError:
-            pyflakes_version = not_installed  # analysis:ignore
-        try:
-            from rope import VERSION as rope_version
-        except ImportError:
-            rope_version = not_installed  # analysis:ignore
         versions = get_versions()
         # Show Mercurial revision for development version
         revlink = ''
@@ -1656,25 +1714,19 @@ class MainWindow(QMainWindow):
         QMessageBox.about(self,
             _("About %s") % "Spyder",
             """<b>Spyder %s</b> %s
-            <br>Scientific PYthon Development EnviRonment
+            <br>The Scientific PYthon Development EnviRonment
             <p>Copyright &copy; 2009-2012 Pierre Raybaut
             <br>Licensed under the terms of the MIT License
             <p>Created by Pierre Raybaut
             <br>Developed and maintained by the 
             <a href="%s/people/list">Spyder Development Team</a>
             <br>Many thanks to all the Spyder beta-testers and regular users.
-            <p>Source code editor: Python code real-time analysis is powered by 
-            %spyflakes %s%s (&copy; 2005 
-            <a href="http://www.divmod.com/">Divmod, Inc.</a>) and other code 
-            introspection features (completion, go-to-definition, ...) are 
-            powered by %srope %s%s (&copy; 2006-2009 Ali Gholami Rudi)
-            <p>Most of the icons are coming from the %sCrystal Project%s 
+            <p>Most of the icons come from the Crystal Project 
             (&copy; 2006-2007 Everaldo Coelho). Other icons by 
             <a href="http://p.yusukekamiyamane.com/"> Yusuke Kamiyamane</a> 
             (All rights reserved) and by 
-            <a href="http://http://www.oxygen-icons.org/">
-            The Oxygen icon theme</a> (used under the Creative Commons BY-SA 
-            license)
+            <a href="http://www.oxygen-icons.org/">
+            The Oxygen icon theme</a>.
             <p>Spyder's community:
             <ul><li>Bug reports and feature requests: 
             <a href="%s">Google Code</a>
@@ -1685,14 +1737,10 @@ class MainWindow(QMainWindow):
             facilitate the use of Python for scientific and engineering 
             software development. The popular Python distributions 
             <a href="http://code.google.com/p/pythonxy/">Python(x,y)</a> and 
-            <a href="http://code.google.com/p/winpython/">WinPython</a> 
+            <a href="http://winpython.sourceforge.net/">WinPython</a> 
             also contribute to this plan.
             <p>Python %s %dbits, Qt %s, %s %s on %s"""
             % (versions['spyder'], revlink, __project_url__,
-               "<span style=\'color: #444444\'><b>", pyflakes_version,
-               "</b></span>", "<span style=\'color: #444444\'><b>",
-               rope_version, "</b></span>",
-               "<span style=\'color: #444444\'><b>", "</b></span>",
                __project_url__, __forum_url__, versions['python'],
                versions['bitness'], versions['qt'], versions['qt_api'],
                versions['qt_api_ver'], versions['system']))
@@ -2189,6 +2237,11 @@ def run_spyder(app, options, args):
     if sys.platform == "darwin" and 'Spyder.app' in __file__:
         main.connect(app, SIGNAL('open_external_file(QString)'),
                      lambda fname: main.open_external_file(fname))
+    
+    # To give focus again to the last focused widget after restoring
+    # the window
+    main.connect(app, SIGNAL('focusChanged(QWidget*, QWidget*)'),
+                 main.change_last_focused_widget)
 
     app.exec_()
     return main

@@ -27,7 +27,7 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
                     name_filters=self.get_option('name_filters'),
                     valid_types=VALID_EXT,
                     show_all=self.get_option('show_all', False),
-                    show_hscrollbar=self.get_option('show_hscrollbar', True))
+                    show_hscrollbar=self.get_option('show_hscrollbar'))
         SpyderPluginMixin.__init__(self, parent)
 
         # Initialize plugin

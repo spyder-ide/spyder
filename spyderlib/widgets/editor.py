@@ -36,6 +36,7 @@ from spyderlib.utils.introspection.module_completion import (module_completion,
                                                       get_preferred_submodules)
 from spyderlib.baseconfig import _, DEBUG, STDOUT, STDERR
 from spyderlib.config import EDIT_FILTERS, EDIT_EXT, get_filter, EDIT_FILETYPES
+from spyderlib.guiconfig import create_shortcut
 from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions,
                                        mimedata2url, get_filetype_icon,
                                        create_toolbutton)
@@ -373,8 +374,32 @@ class FileInfo(QObject):
                                          automatic)
 
     def trigger_token_completion(self, automatic):
-        '''Trigger a completion using tokens only'''
+        """Trigger a completion using tokens only"""
         self.trigger_code_completion(automatic, token_based=True)
+        
+        
+    def find_nearest_function_call(self, position):
+        """Find the nearest function call at or prior to current position"""
+        source_code = self.get_source_code()
+        position = min(len(source_code) - 1, position)
+        orig_pos = position
+        # find the first preceding opening parens (keep track of closing parens)
+        if not position or not source_code[position] == '(':
+            close_parens = 0
+            position -= 1
+            while position and not (source_code[position] == '(' and close_parens == 0):
+                if source_code[position] == ')':
+                    close_parens += 1
+                elif source_code[position] == '(' and close_parens:
+                    close_parens -= 1
+                position -= 1
+                if source_code[position] in ['\n', '\r']:
+                    position = orig_pos
+                    break
+        if position and source_code[position] == '(':
+            position -= 1
+                
+        return position
 
     def show_object_info(self, position, auto=True):
         """Show signature calltip and/or docstring in the Object Inspector"""
@@ -383,10 +408,11 @@ class FileInfo(QObject):
         # case, we don't want to force the object inspector to be visible, 
         # to avoid polluting the window layout
         source_code = self.get_source_code()
-        offset = position
+        offset = self.find_nearest_function_call(position)
         
-        func = self.introspection_plugin.get_calltip_and_docs
-        helplist = func(source_code, offset, self.filename)
+        # Get calltip and docs
+        helplist = self.introspection_plugin.get_calltip_and_docs(source_code,
+                                                         offset, self.filename)
         if not helplist:
             return
         obj_fullname = ''
@@ -431,7 +457,6 @@ class FileInfo(QObject):
                     "send_to_inspector(QString,QString,QString,QString,bool)"),
                     obj_fullname, '', '', '', not auto)
         if signature:
-            self.editor.no_autoclose_paren = True
             self.editor.show_calltip('Arguments', signature, signature=True,
                                      at_position=position)
 
@@ -595,10 +620,8 @@ class EditorStack(QWidget):
         self.linenumbers_enabled = True
         self.edgeline_enabled = True
         self.edgeline_column = 79
-        self.outlineexplorer_enabled = True
         self.codecompletion_auto_enabled = True
         self.codecompletion_case_enabled = False
-        self.codecompletion_single_enabled = False
         self.codecompletion_enter_enabled = False
         self.calltips_enabled = True
         self.go_to_definition_enabled = True
@@ -614,6 +637,7 @@ class EditorStack(QWidget):
         self.tabmode_enabled = False
         self.intelligent_backspace_enabled = True
         self.highlight_current_line_enabled = False
+        self.highlight_current_cell_enabled = False        
         self.occurence_highlighting_enabled = True
         self.checkeolchars_enabled = True
         self.always_remove_trailing_spaces = False
@@ -636,25 +660,42 @@ class EditorStack(QWidget):
         
         # Accepting drops
         self.setAcceptDrops(True)
-
+        
         # Local shortcuts
-        def newsc(keystr, triggered):
-            sc = QShortcut(QKeySequence(keystr), self, triggered)
-            sc.setContext(Qt.WidgetWithChildrenShortcut)
-            return sc
-        self.inspectsc = newsc("Ctrl+I", self.inspect_current_object)
-        self.breakpointsc = newsc("F12", self.set_or_clear_breakpoint)
-        self.cbreakpointsc = newsc("Shift+F12",
-                                   self.set_or_edit_conditional_breakpoint)
-        self.gotolinesc = newsc("Ctrl+L", self.go_to_line)
-        self.filelistsc = newsc("Ctrl+E", self.open_filelistdialog)
-        self.tabsc = newsc("Ctrl+Tab", self.go_to_previous_file)
-        self.closesc = newsc("Ctrl+F4", self.close_file)
-        self.tabshiftsc = newsc("Ctrl+Shift+Tab", self.go_to_next_file)
-        self.zoominsc = newsc(QKeySequence.ZoomIn,
-                              lambda: self.emit(SIGNAL('zoom_in()')))
-        self.zoomoutsc = newsc(QKeySequence.ZoomOut,
-                               lambda: self.emit(SIGNAL('zoom_out()')))
+        self.shortcuts = self.create_shortcuts()
+
+    def create_shortcuts(self):
+        """Create local shortcuts"""
+        # Configurable shortcuts
+        inspect = create_shortcut(self.inspect_current_object, context='Editor',
+                                  name='Inspect current object', parent=self)
+        breakpoint = create_shortcut(self.set_or_clear_breakpoint,
+                                     context='Editor', name='Breakpoint',
+                                     parent=self)
+        cbreakpoint = create_shortcut(self.set_or_edit_conditional_breakpoint,
+                                      context='Editor',
+                                      name='Conditional breakpoint',
+                                      parent=self)
+        gotoline = create_shortcut(self.go_to_line, context='Editor',
+                                   name='Go to line', parent=self)
+        filelist = create_shortcut(self.open_filelistdialog, context='Editor',
+                                   name='File list management', parent=self)
+        tab = create_shortcut(self.go_to_previous_file, context='Editor',
+                              name='Go to previous file', parent=self)
+        close_file = create_shortcut(self.close_file, context='Editor',
+                                     name='Close file', parent=self)
+        tabshift = create_shortcut(self.go_to_next_file, context='Editor',
+                                   name='Go to next file', parent=self)
+        # Fixed shortcuts
+        zoomin = QShortcut(QKeySequence(QKeySequence.ZoomIn), self,
+                           lambda: self.emit(SIGNAL('zoom_in()')))
+        zoomin.setContext(Qt.WidgetWithChildrenShortcut)
+        zoomout = QShortcut(QKeySequence(QKeySequence.ZoomOut), self,
+                           lambda: self.emit(SIGNAL('zoom_out()')))
+        zoomout.setContext(Qt.WidgetWithChildrenShortcut)
+        # Return configurable ones
+        return [inspect, breakpoint, cbreakpoint, gotoline, filelist, tab,
+                close_file, tabshift]
 
     def get_shortcut_data(self):
         """
@@ -663,13 +704,7 @@ class EditorStack(QWidget):
         text (string): action/shortcut description
         default (string): default key sequence
         """
-        return [
-                (self.inspectsc, "Inspect current object", "Ctrl+I"),
-                (self.breakpointsc, "Breakpoint", "F12"),
-                (self.cbreakpointsc, "Conditional breakpoint", "Shift+F12"),
-                (self.gotolinesc, "Go to line", "Ctrl+L"),
-                (self.filelistsc, "File list management", "Ctrl+E"),
-                ]
+        return [sc.data for sc in self.shortcuts]
         
     def setup_editorstack(self, parent, layout):
         """Setup editorstack's layout"""
@@ -804,7 +839,6 @@ class EditorStack(QWidget):
         
     def set_outlineexplorer(self, outlineexplorer):
         self.outlineexplorer = outlineexplorer
-        self.outlineexplorer_enabled = True
         self.connect(self.outlineexplorer,
                      SIGNAL("outlineexplorer_is_visible()"),
                      self._refresh_outlineexplorer)
@@ -910,12 +944,6 @@ class EditorStack(QWidget):
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_codecompletion_case(state)
-                
-    def set_codecompletion_single_enabled(self, state):
-        self.codecompletion_single_enabled = state
-        if self.data:
-            for finfo in self.data:
-                finfo.editor.set_codecompletion_single(state)
                     
     def set_codecompletion_enter_enabled(self, state):
         self.codecompletion_enter_enabled = state
@@ -983,10 +1011,6 @@ class EditorStack(QWidget):
     def set_inspector_enabled(self, state):
         self.inspector_enabled = state
         
-    def set_outlineexplorer_enabled(self, state):
-        # CONF.get(self.CONF_SECTION, 'outline_explorer')
-        self.outlineexplorer_enabled = state
-        
     def set_default_font(self, font, color_scheme=None):
         # get_font(self.CONF_SECTION)
         self.default_font = font
@@ -1042,6 +1066,12 @@ class EditorStack(QWidget):
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_highlight_current_line(state)
+
+    def set_highlight_current_cell_enabled(self, state):
+        self.highlight_current_cell_enabled = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_highlight_current_cell(state)
         
     def set_checkeolchars_enabled(self, state):
         # CONF.get(self.CONF_SECTION, 'check_eol_chars')
@@ -1312,6 +1342,9 @@ class EditorStack(QWidget):
             self._refresh_outlineexplorer()
             self.emit(SIGNAL('refresh_file_dependent_actions()'))
             self.emit(SIGNAL('update_plugin_title()'))
+            editor = self.get_current_editor()
+            if editor:
+                editor.setFocus()
             
             if new_index is not None:
                 if index < new_index:
@@ -1607,12 +1640,7 @@ class EditorStack(QWidget):
         enable = False
         if self.data:
             finfo = self.data[index]
-            # oe_visible: if outline explorer is not visible, maybe the whole
-            # GUI is not visible (Spyder is starting up) -> in this case,
-            # it is necessary to update the outline explorer
-            oe_visible = oe.isVisible() or not self.isVisible()
-            if self.outlineexplorer_enabled and finfo.editor.is_python() \
-               and oe_visible:
+            if finfo.editor.is_python():
                 enable = True
                 oe.setEnabled(True)
                 oe.set_current_editor(finfo.editor, finfo.filename,
@@ -1823,10 +1851,10 @@ class EditorStack(QWidget):
                 wrap=self.wrap_enabled, tab_mode=self.tabmode_enabled,
                 intelligent_backspace=self.intelligent_backspace_enabled,
                 highlight_current_line=self.highlight_current_line_enabled,
+                highlight_current_cell=self.highlight_current_cell_enabled,
                 occurence_highlighting=self.occurence_highlighting_enabled,
                 codecompletion_auto=self.codecompletion_auto_enabled,
                 codecompletion_case=self.codecompletion_case_enabled,
-                codecompletion_single=self.codecompletion_single_enabled,
                 codecompletion_enter=self.codecompletion_enter_enabled,
                 calltips=self.calltips_enabled,
                 go_to_definition=self.go_to_definition_enabled,

@@ -328,7 +328,7 @@ def create_module_bookmark_actions(parent, bookmarks):
                 create_act = False
         if create_act:
             act = create_bookmark_action(parent, url, title)
-        actions.append(act)
+            actions.append(act)
     return actions
 
         

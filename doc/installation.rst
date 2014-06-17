@@ -94,6 +94,8 @@ might need.
 
    * `openSUSE <https://build.opensuse.org/package/show?package=python-spyder&project=home%3Aocefpaf>`_
 
+   * `Mageia <http://mageia.madb.org/package/show/name/spyder>`_
+
    Please refer to your distribution's documentation to learn how to install it
    there.
 
@@ -124,12 +126,6 @@ If you want to install Spyder directly, you need to follow these steps:
 
    * `The Python language <http://www.python.org/>`_
    * `PyQt4 <http://www.riverbankcomputing.co.uk/software/pyqt/download>`_
-
-#. Install some recommended modules:
-   
-   Important functionality will be missed if these modules are not installed
-   
-   * `pywin32 <http://sourceforge.net/projects/pywin32/>`_ .
 
 #. Install optional modules:
 

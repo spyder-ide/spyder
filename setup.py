@@ -24,6 +24,9 @@ from distutils.core import setup
 from distutils.command.build import build
 from distutils.command.install_data import install_data
 
+# Check for Python 3
+PY3 = sys.version_info[0] == 3
+
 # This is necessary to prevent an error while installing Spyder with pip
 # See http://stackoverflow.com/a/18961843/438386
 with_setuptools = False
@@ -62,8 +65,12 @@ def get_subpackages(name):
 def get_data_files():
     """Return data_files in a platform dependent manner"""
     if sys.platform.startswith('linux'):
-        data_files = [('share/applications', ['scripts/spyder.desktop']),
-                      ('share/pixmaps', ['img_src/spyder.png'])]
+        if PY3:
+            data_files = [('share/applications', ['scripts/spyder3.desktop']),
+                          ('share/pixmaps', ['img_src/spyder3.png'])]
+        else:
+            data_files = [('share/applications', ['scripts/spyder.desktop']),
+                          ('share/pixmaps', ['img_src/spyder.png'])]
     elif os.name == 'nt':
         data_files = [('scripts', ['img_src/spyder.ico',
                                    'img_src/spyder_light.ico'])]
@@ -128,6 +135,9 @@ try:
             sys.path.insert(0, os.path.abspath(build.build_lib))
             dirname = self.distribution.get_command_obj('build').build_purelib
             self.builder_target_dir = osp.join(dirname, 'spyderlib', 'doc')
+            
+            if not osp.exists(self.builder_target_dir):
+                os.mkdir(self.builder_target_dir)
 
             hhc_exe = get_html_help_exe()
             self.builder = "html" if hhc_exe is None else "htmlhelp"
@@ -195,8 +205,13 @@ def get_packages():
 
 # NOTE: the '[...]_win_post_install.py' script is installed even on non-Windows
 # platforms due to a bug in pip installation process (see Issue 1158)
-SCRIPTS = ['spyder', '%s_win_post_install.py' % NAME]
-EXTLIST = ['.mo', '.svg', '.png', '.css', '.html', '.js', '.chm', '.gif']
+SCRIPTS = ['%s_win_post_install.py' % NAME]
+if PY3 and sys.platform.startswith('linux'):
+    SCRIPTS.append('spyder3')
+else:
+    SCRIPTS.append('spyder')
+EXTLIST = ['.mo', '.svg', '.png', '.css', '.html', '.js', '.chm', '.ini',
+           '.txt']
 if os.name == 'nt':
     SCRIPTS += ['spyder.bat']
     EXTLIST += ['.ico']

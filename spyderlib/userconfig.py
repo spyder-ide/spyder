@@ -5,6 +5,7 @@
 #    ------------------------------------------
 #    
 #    Copyright © 2009-2012 Pierre Raybaut
+#    Copyright © 2014 The Spyder Development Team
 #    
 #    Permission is hereby granted, free of charge, to any person
 #    obtaining a copy of this software and associated documentation
@@ -29,17 +30,11 @@
 
 
 """
-userconfig
-----------
-
-The ``spyderlib.userconfig`` module provides user configuration file (.ini file)
-management features based on ``ConfigParser`` (standard Python library).
+This module provides user configuration file (.ini file) management features
+based on ``ConfigParser`` (present in the standard library).
 """
 
 from __future__ import print_function
-
-__version__ = '1.1.0'
-__license__ = __doc__
 
 import os
 import re
@@ -47,133 +42,46 @@ import os.path as osp
 import shutil
 import time
 
-from spyderlib.baseconfig import DEV, TEST
-from spyderlib.utils import encoding
+from spyderlib.baseconfig import (DEV, TEST, get_module_source_path,
+                                  get_home_dir)
+from spyderlib.utils.programs import check_version
 from spyderlib.py3compat import configparser as cp
-from spyderlib.py3compat import is_text_string, PY2
-
-def get_home_dir():
-    """
-    Return user home directory
-    """
-    try:
-        # expanduser() returns a raw byte string which needs to be
-        # decoded with the codec that the OS is using to represent file paths.
-        path = encoding.to_unicode_from_fs(osp.expanduser('~'))
-    except:
-        path = ''
-    for env_var in ('HOME', 'USERPROFILE', 'TMP'):
-        if osp.isdir(path):
-            break
-        # os.environ.get() returns a raw byte string which needs to be
-        # decoded with the codec that the OS is using to represent environment
-        # variables.
-        path = encoding.to_unicode_from_fs(os.environ.get(env_var, ''))
-    if path:
-        return path
-    else:
-        raise RuntimeError('Please define environment variable $HOME')
+from spyderlib.py3compat import PY2, is_text_string, to_text_string
 
 
+#==============================================================================
+# Auxiliary classes
+#==============================================================================
 class NoDefault:
     pass
 
 
-class UserConfig(cp.ConfigParser):
+#==============================================================================
+# Defaults class
+#==============================================================================
+class DefaultsConfig(cp.ConfigParser):
     """
-    UserConfig class, based on ConfigParser
-    name: name of the config
-    defaults: dictionnary containing options
-              *or* list of tuples (section_name, options)
-    version: version of the configuration file (X.Y.Z format)
-    subfolder: configuration file will be saved in %home%/subfolder/.%name%.ini
-    
-    Note that 'get' and 'set' arguments number and type
-    differ from the overriden methods
+    Class used to save defaults to a file and as base class for
+    UserConfig
     """
-    DEFAULT_SECTION_NAME = 'main'
-    def __init__(self, name, defaults=None, load=True, version=None,
-                 subfolder=None, backup=False, raw_mode=False,
-                 remove_obsolete=False):
+    def __init__(self, name, subfolder):
         cp.ConfigParser.__init__(self)
-        self.raw = 1 if raw_mode else 0
-        self.subfolder = subfolder
-        if (version is not None) and (re.match('^(\d+).(\d+).(\d+)$', version) is None):
-            raise ValueError("Version number %r is incorrect - must be in X.Y.Z format" % version)
         self.name = name
-        if isinstance(defaults, dict):
-            defaults = [ (self.DEFAULT_SECTION_NAME, defaults) ]
-        self.defaults = defaults
-        if defaults is not None:
-            self.reset_to_defaults(save=False)
-        fname = self.filename()
-        if backup:
-            try:
-                shutil.copyfile(fname, "%s.bak" % fname)
-            except IOError:
-                pass
-        if load:
-            # If config file already exists, it overrides Default options:
-            self.load_from_ini()
-            old_ver = self.get_version(version)
-            _major = lambda _t: _t[:_t.find('.')]
-            _minor = lambda _t: _t[:_t.rfind('.')]
-            # Resetting to defaults only if major/minor version is different
-            if _minor(version) != _minor(old_ver):
-                if backup:
-                    try:
-                        shutil.copyfile(fname, "%s-%s.bak" % (fname, old_ver))
-                    except IOError:
-                        pass
-                # Version has changed -> overwriting .ini file
-                self.reset_to_defaults(save=False)
-                if remove_obsolete or _major(version) != _major(old_ver):
-                    self.__remove_deprecated_options()
-                # Set new version number
-                self.set_version(version, save=False)
-            if defaults is None:
-                # If no defaults are defined, set .ini file settings as default
-                self.set_as_defaults()
-        # In any case, the resulting config is saved in config file:
-        # FIXME (Carlos): Commenting this for now because it's corrupting our
-        # config on Windows when a user tries to open several files at once. Is
-        # this really necessary?
-        # self.__save()
-        
-    def get_version(self, version='0.0.0'):
-        """Return configuration (not application!) version"""
-        return self.get(self.DEFAULT_SECTION_NAME, 'version', version)
-        
-    def set_version(self, version='0.0.0', save=True):
-        """Set configuration (not application!) version"""
-        self.set(self.DEFAULT_SECTION_NAME, 'version', version, save=save)
+        self.subfolder = subfolder
+    
+    def _set(self, section, option, value, verbose):
+        """
+        Private set method
+        """
+        if not self.has_section(section):
+            self.add_section( section )
+        if not is_text_string(value):
+            value = repr( value )
+        if verbose:
+            print('%s[ %s ] = %s' % (section, option, value))
+        cp.ConfigParser.set(self, section, option, value)
 
-    def load_from_ini(self):
-        """
-        Load config from the associated .ini file
-        """
-        try:
-            if PY2:
-                # Python 2
-                self.read(self.filename())
-            else:
-                # Python 3
-                self.read(self.filename(), encoding='utf-8')
-        except cp.MissingSectionHeaderError:
-            print("Warning: File contains no section headers.")
-        
-    def __remove_deprecated_options(self):
-        """
-        Remove options which are present in the .ini file but not in defaults
-        """
-        for section in self.sections():
-            for option, _ in self.items(section, raw=self.raw):
-                if self.get_default(section, option) is NoDefault:
-                    self.remove_option(section, option)
-                    if len(self.items(section, raw=self.raw)) == 0:
-                        self.remove_section(section)
-        
-    def __save(self):
+    def _save(self):
         """
         Save config into the associated .ini file
         """
@@ -218,6 +126,9 @@ class UserConfig(cp.ConfigParser):
             return w_dot
         else:
             folder = osp.join(folder, self.subfolder)
+            # Save defaults in a "defaults" dir of .spyder2 to not pollute it
+            if 'defaults' in self.name:
+                folder = osp.join(folder, 'defaults')
             try:
                 os.makedirs(folder)
             except os.error:
@@ -233,7 +144,143 @@ class UserConfig(cp.ConfigParser):
                 except OSError:
                     pass
             return new
+    
+    def set_defaults(self, defaults):
+        for section, options in defaults:
+            for option in options:
+                new_value = options[ option ]
+                self._set(section, option, new_value, False)
         
+
+#==============================================================================
+# User config class
+#==============================================================================
+class UserConfig(DefaultsConfig):
+    """
+    UserConfig class, based on ConfigParser
+    name: name of the config
+    defaults: dictionnary containing options
+              *or* list of tuples (section_name, options)
+    version: version of the configuration file (X.Y.Z format)
+    subfolder: configuration file will be saved in %home%/subfolder/%name%.ini
+    
+    Note that 'get' and 'set' arguments number and type
+    differ from the overriden methods
+    """
+    DEFAULT_SECTION_NAME = 'main'
+    def __init__(self, name, defaults=None, load=True, version=None,
+                 subfolder=None, backup=False, raw_mode=False,
+                 remove_obsolete=False):
+        DefaultsConfig.__init__(self, name, subfolder)
+        self.raw = 1 if raw_mode else 0
+        if (version is not None) and (re.match('^(\d+).(\d+).(\d+)$', version) is None):
+            raise ValueError("Version number %r is incorrect - must be in X.Y.Z format" % version)
+        if isinstance(defaults, dict):
+            defaults = [ (self.DEFAULT_SECTION_NAME, defaults) ]
+        self.defaults = defaults
+        if defaults is not None:
+            self.reset_to_defaults(save=False)
+        fname = self.filename()
+        if backup:
+            try:
+                shutil.copyfile(fname, "%s.bak" % fname)
+            except IOError:
+                pass
+        if load:
+            # If config file already exists, it overrides Default options:
+            self.load_from_ini()
+            old_ver = self.get_version(version)
+            _major = lambda _t: _t[:_t.find('.')]
+            _minor = lambda _t: _t[:_t.rfind('.')]
+            # Save new defaults
+            self.__save_new_defaults(defaults, version, subfolder)
+            # Updating defaults only if major/minor version is different
+            if _minor(version) != _minor(old_ver):
+                if backup:
+                    try:
+                        shutil.copyfile(fname, "%s-%s.bak" % (fname, old_ver))
+                    except IOError:
+                        pass
+                if check_version(old_ver, '2.4.0', '<'):
+                    self.reset_to_defaults(save=False)
+                else:
+                    self.__update_defaults(defaults, old_ver)
+                # Remove deprecated options if major version has changed
+                if remove_obsolete or _major(version) != _major(old_ver):
+                    self.__remove_deprecated_options(old_ver)
+                # Set new version number
+                self.set_version(version, save=False)
+            if defaults is None:
+                # If no defaults are defined, set .ini file settings as default
+                self.set_as_defaults()
+        
+    def get_version(self, version='0.0.0'):
+        """Return configuration (not application!) version"""
+        return self.get(self.DEFAULT_SECTION_NAME, 'version', version)
+        
+    def set_version(self, version='0.0.0', save=True):
+        """Set configuration (not application!) version"""
+        self.set(self.DEFAULT_SECTION_NAME, 'version', version, save=save)
+
+    def load_from_ini(self):
+        """
+        Load config from the associated .ini file
+        """
+        try:
+            if PY2:
+                # Python 2
+                self.read(self.filename())
+            else:
+                # Python 3
+                self.read(self.filename(), encoding='utf-8')
+        except cp.MissingSectionHeaderError:
+            print("Warning: File contains no section headers.")
+    
+    def __load_old_defaults(self, old_version):
+        """Read old defaults"""
+        old_defaults = cp.ConfigParser()
+        if check_version(old_version, '3.0.0', '<='):
+            path = get_module_source_path('spyderlib')
+        else:
+            path = osp.dirname(self.filename())
+        path = osp.join(path, 'defaults') 
+        old_defaults.read(osp.join(path, 'defaults-'+old_version+'.ini'))
+        return old_defaults
+    
+    def __save_new_defaults(self, defaults, new_version, subfolder):
+        """Save new defaults"""
+        new_defaults = DefaultsConfig(name='defaults-'+new_version,
+                                      subfolder=subfolder)
+        if not osp.isfile(new_defaults.filename()):
+            new_defaults.set_defaults(defaults)
+            new_defaults._save()
+    
+    def __update_defaults(self, defaults, old_version, verbose=False):
+        """Update defaults after a change in version"""
+        old_defaults = self.__load_old_defaults(old_version)
+        for section, options in defaults:
+            for option in options:
+                new_value = options[ option ]
+                try:
+                    old_value = old_defaults.get(section, option)
+                except (cp.NoSectionError, cp.NoOptionError):
+                    old_value = None
+                if old_value is None or \
+                  to_text_string(new_value) != old_value:
+                    self._set(section, option, new_value, verbose)
+    
+    def __remove_deprecated_options(self, old_version):
+        """
+        Remove options which are present in the .ini file but not in defaults
+        """
+        old_defaults = self.__load_old_defaults(old_version)
+        for section in old_defaults.sections():
+            for option, _ in old_defaults.items(section, raw=self.raw):
+                if self.get_default(section, option) is NoDefault:
+                    self.remove_option(section, option)
+                    if len(self.items(section, raw=self.raw)) == 0:
+                        self.remove_section(section)
+
     def cleanup(self):
         """
         Remove .ini file associated to config
@@ -258,9 +305,9 @@ class UserConfig(cp.ConfigParser):
         for section, options in self.defaults:
             for option in options:
                 value = options[ option ]
-                self.__set(section, option, value, verbose)
+                self._set(section, option, value, verbose)
         if save:
-            self.__save()
+            self._save()
         
     def __check_section_option(self, section, option):
         """
@@ -330,18 +377,6 @@ class UserConfig(cp.ConfigParser):
                 pass
         return value
 
-    def __set(self, section, option, value, verbose):
-        """
-        Private set method
-        """
-        if not self.has_section(section):
-            self.add_section( section )
-        if not is_text_string(value):
-            value = repr( value )
-        if verbose:
-            print('%s[ %s ] = %s' % (section, option, value))
-        cp.ConfigParser.set(self, section, option, value)
-
     def set_default(self, section, option, default_value):
         """
         Set Default value for a given (section, option)
@@ -370,14 +405,14 @@ class UserConfig(cp.ConfigParser):
             value = int(value)
         elif not is_text_string(default_value):
             value = repr(value)
-        self.__set(section, option, value, verbose)
+        self._set(section, option, value, verbose)
         if save:
-            self.__save()
+            self._save()
             
     def remove_section(self, section):
         cp.ConfigParser.remove_section(self, section)
-        self.__save()
+        self._save()
             
     def remove_option(self, section, option):
         cp.ConfigParser.remove_option(self, section, option)
-        self.__save()
+        self._save()

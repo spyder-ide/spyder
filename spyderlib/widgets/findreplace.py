@@ -19,10 +19,11 @@ from spyderlib.qt.QtCore import SIGNAL, Qt, QTimer
 import re
 
 # Local imports
+from spyderlib.baseconfig import _
+from spyderlib.guiconfig import create_shortcut
 from spyderlib.utils.qthelpers import (get_icon, get_std_icon,
                                        create_toolbutton)
 from spyderlib.widgets.comboboxes import PatternComboBox
-from spyderlib.baseconfig import _
 from spyderlib.py3compat import to_text_string
 
 
@@ -145,27 +146,30 @@ class FindReplace(QWidget):
         
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         
-        self.findnext_sc = QShortcut(QKeySequence("F3"), parent,
-                                     self.find_next)
-        self.findnext_sc.setContext(Qt.WidgetWithChildrenShortcut)
-        self.findprev_sc = QShortcut(QKeySequence("Shift+F3"), parent,
-                                     self.find_previous)
-        self.findprev_sc.setContext(Qt.WidgetWithChildrenShortcut)
-        self.togglefind_sc = QShortcut(QKeySequence("Ctrl+F"), parent,
-                                       self.show)
-        self.togglefind_sc.setContext(Qt.WidgetWithChildrenShortcut)
-        self.togglereplace_sc = QShortcut(QKeySequence("Ctrl+H"), parent,
-                                          self.toggle_replace_widgets)
-        self.togglereplace_sc.setContext(Qt.WidgetWithChildrenShortcut)
+        self.shortcuts = self.create_shortcuts(parent)
         
-        escape_sc = QShortcut(QKeySequence("Escape"), self, self.hide)
-        escape_sc.setContext(Qt.WidgetWithChildrenShortcut)
-
         self.highlight_timer = QTimer(self)
         self.highlight_timer.setSingleShot(True)
         self.highlight_timer.setInterval(1000)
         self.connect(self.highlight_timer, SIGNAL("timeout()"),
                      self.highlight_matches)
+        
+    def create_shortcuts(self, parent):
+        """Create shortcuts for this widget"""
+        # Configurable
+        findnext = create_shortcut(self.find_next, context='Editor',
+                                   name='Find next', parent=parent)
+        findprev = create_shortcut(self.find_previous, context='Editor',
+                                   name='Find previous', parent=parent)
+        togglefind = create_shortcut(self.show, context='Editor',
+                                     name='Find text', parent=parent)
+        togglereplace = create_shortcut(self.toggle_replace_widgets,
+                                        context='Editor', name='Replace text',
+                                        parent=parent)
+        # Fixed
+        escape = QShortcut(QKeySequence("Escape"), self, self.hide)
+        escape.setContext(Qt.WidgetWithChildrenShortcut)
+        return [findnext, findprev, togglefind, togglereplace]
         
     def get_shortcut_data(self):
         """
@@ -174,10 +178,7 @@ class FindReplace(QWidget):
         text (string): action/shortcut description
         default (string): default key sequence
         """
-        return [(self.findnext_sc, "Find next", "F3"),
-                (self.findprev_sc, "Find previous", "Shift+F3"),
-                (self.togglefind_sc, "Find text", "Ctrl+F"),
-                (self.togglereplace_sc, "Replace text", "Ctrl+H"),]
+        return [sc.data for sc in self.shortcuts]
         
     def update_search_combo(self):
         self.search_text.lineEdit().emit(SIGNAL('returnPressed()'))
@@ -355,6 +356,12 @@ class FindReplace(QWidget):
                     cursor.beginEditBlock()
                 else:
                     position1 = self.editor.get_position('cursor')
+                    if is_position_inf(position1,
+                                       position0 + len(replace_text) -
+                                       len(search_text) + 1):
+                        # Identify wrapping even when the replace string
+                        # includes part of the search string
+                        wrapped = True
                     if wrapped:
                         if position1 == position or \
                            is_position_sup(position1, position):
@@ -364,8 +371,6 @@ class FindReplace(QWidget):
                     if position1 == position0:
                         # Avoid infinite loop: single found occurence
                         break
-                    if is_position_inf(position1, position0):
-                        wrapped = True
                     position0 = position1
                 if pattern is None:
                     cursor.removeSelectedText()
