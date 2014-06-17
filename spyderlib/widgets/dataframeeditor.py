@@ -38,9 +38,6 @@ class DataFrameModel(QAbstractTableModel):
         QAbstractTableModel.__init__(self)
         self.dialog = parent
         self.df = dataFrame
-        self.sat = .7  # Saturation
-        self.val = 1.  # Value
-        self.alp = .3  # Alpha-channel
         self._format = format
         self.bgcolor_enabled = True
         self.complex_intran = None
@@ -251,7 +248,7 @@ class DataFrameModel(QAbstractTableModel):
             return shape[1]+1
 
 class DataFrameView(QTableView):
-    """Array view class"""
+    """Data Frame view class"""
     def __init__(self, parent, model):
         QTableView.__init__(self, parent)
         self.setModel(model)
@@ -260,7 +257,6 @@ class DataFrameView(QTableView):
         self.header_class=self.horizontalHeader()
         self.connect(self.header_class,
                      SIGNAL("sectionClicked(int)"), self.sortByColumn)
-        
         self.menu = self.setup_menu()
         
     def sortByColumn(self,index):
@@ -329,7 +325,7 @@ class DataFrameView(QTableView):
         clipboard.setText(contents)
 
 class DataFrameEditor(QDialog):
-    ''' a simple widget for using DataFrames in a gui '''
+    """ Data Frame Editor Dialog """   
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
         # Destroying the C++ object right after closing the dialog box,
