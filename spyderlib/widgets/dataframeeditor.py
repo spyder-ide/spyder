@@ -51,6 +51,8 @@ class DataFrameModel(QAbstractTableModel):
         self.float_cols = []
         self.float_cols_update()
         self.bool_false =['false','0']
+        self.colum_avg_enabled=True
+        self.colum_avg(1)
     
     def float_cols_update(self):
         """Determines the maximum and minimum number in each column"""
@@ -88,6 +90,20 @@ class DataFrameModel(QAbstractTableModel):
         self.bgcolor_enabled = state > 0
         self.reset()
         
+    def colum_avg(self, state):
+        """Toggle backgroundcolor"""
+        self.colum_avg_enabled = state > 0
+        if self.colum_avg_enabled:
+            self.return_max=lambda cols_vals, index: cols_vals[index]
+        else:
+            self.return_max=self.global_max
+        self.reset()
+        
+    def global_max(self, cols_vals, index):
+        """Returns the global maximum and minimum"""
+        e=zip(*cols_vals)
+        return max(e[0]), min(e[1])
+        
     def headerData(self, section, orientation, role=Qt.DisplayRole):
         """Set header data"""
         if role != Qt.DisplayRole:
@@ -109,13 +125,15 @@ class DataFrameModel(QAbstractTableModel):
             color = QColor(Qt.lightGray)
             color.setAlphaF(.8)
             return color
+        if not self.bgcolor_enabled:
+            return
         value = self.get_value(index.row(), column-1)
         if isinstance(value,_sup_com):
             color_func = abs
         else:
             color_func = float
         if isinstance(value, _sup_nr+_sup_com) and self.bgcolor_enabled:
-            vmax, vmin = self.float_cols[column-1]
+            vmax, vmin = self.return_max(self.float_cols,column-1)
             hue = self.hue0+self.dhue*(vmax-color_func(value))/(vmax-vmin)
             hue = float(abs(hue))
             color = QColor.fromHsvF(hue, self.sat, self.val, self.alp)
@@ -378,8 +396,17 @@ class DataFrameEditor(QDialog):
         bgcolor.setChecked(self.dataModel.bgcolor_enabled)
         bgcolor.setEnabled(self.dataModel.bgcolor_enabled)
         self.connect(bgcolor, SIGNAL("stateChanged(int)"),
-                     self.dataModel.bgcolor)
+                     self.change_bgcolor_enable)
         btn_layout.addWidget(bgcolor)
+        
+        self.bgcolor_global = QCheckBox(_('Column min/max'))
+        self.bgcolor_global.setChecked(self.dataModel.colum_avg_enabled)
+        self.bgcolor_global.setEnabled(not self.is_time_series and
+                                        self.dataModel.bgcolor_enabled)
+        self.connect(self.bgcolor_global, SIGNAL("stateChanged(int)"),
+                     self.dataModel.colum_avg)
+        btn_layout.addWidget(self.bgcolor_global)
+        
         btn_layout.addStretch()
         bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         self.connect(bbox, SIGNAL("accepted()"), SLOT("accept()"))
@@ -389,6 +416,11 @@ class DataFrameEditor(QDialog):
         self.layout.addLayout(btn_layout, 2, 0)
         
         return True
+        
+    def change_bgcolor_enable(self,state):
+        """This is implementet so column min/max is only active when bgcolor is"""
+        self.dataModel.bgcolor(state)
+        self.bgcolor_global.setEnabled(not self.is_time_series and state > 0)
         
     def change_format(self):
         """Change display format"""
