@@ -298,14 +298,15 @@ class UserConfig(DefaultsConfig):
                 secdict[option] = value
             self.defaults.append( (section, secdict) )
 
-    def reset_to_defaults(self, save=True, verbose=False):
+    def reset_to_defaults(self, save=True, verbose=False, section=None):
         """
         Reset config to Default values
         """
-        for section, options in self.defaults:
-            for option in options:
-                value = options[ option ]
-                self._set(section, option, value, verbose)
+        for sec, options in self.defaults:
+            if section == None or section == sec:
+                for option in options:
+                    value = options[ option ]
+                    self._set(sec, option, value, verbose)
         if save:
             self._save()
         
