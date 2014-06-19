@@ -132,8 +132,13 @@ class ObjectInspectorConfigPage(PluginConfigPage):
         connections_label.setWordWrap(True)
         editor_box = self.create_checkbox(_("Editor"), 'connect/editor')
         rope_installed = programs.is_module_installed('rope')
-        jedi_installed = programs.is_module_installed('jedi', '>=0.7.0')
+        jedi_installed = programs.is_module_installed('jedi', '>=0.8.0')
         editor_box.setEnabled(rope_installed or jedi_installed)
+        # TODO: Don't forget to add Jedi here
+        if not rope_installed:
+            rope_tip = _("This feature requires the Rope library.\n"
+                         "It seems you don't have it installed.")
+            editor_box.setToolTip(rope_tip)
         python_box = self.create_checkbox(_("Python Console"),
                                           'connect/python_console')
         ipython_box = self.create_checkbox(_("IPython Console"),
