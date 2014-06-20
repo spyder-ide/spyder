@@ -292,6 +292,14 @@ tt {
     text-align: center;
 }
 
+#loading-image {
+    float: left;
+}
+
+#loading-message {
+    margin-left: 23px;
+}
+
 /* --- Kernel error messages --- */
 .panel-danger {
     border-color: #eed3d7;

@@ -765,8 +765,11 @@ class MainWindow(QMainWindow):
             self.console = Console(self, namespace, exitfunc=self.closing,
                                    profile=self.profile,
                                    multithreaded=self.multithreaded,
-                                   message='Inspect Spyder internals:\n'\
-                                           '  spy.app, spy.window, dir(spy)')
+                                   message="DON'T USE THIS CONSOLE TO RUN CODE!\n\n"
+                                           "It's used to report application errors\n"
+                                           "and to inspect Spyder internals with\n"
+                                           "the following commands:\n"
+                                           "  spy.app, spy.window, dir(spy)")
             self.console.register_plugin()
             
             # Working directory plugin
@@ -1177,35 +1180,36 @@ class MainWindow(QMainWindow):
             self.extconsole.open_interpreter()
         self.extconsole.setMinimumHeight(0)
         
-        # Hide Internal Console so that people doesn't use it instead of
-        # the External or IPython ones
-        if self.console.dockwidget.isVisible() and DEV is None:
-            self.console.dockwidget.hide()
+        if not self.light:
+            # Hide Internal Console so that people doesn't use it instead of
+            # the External or IPython ones
+            if self.console.dockwidget.isVisible() and DEV is None:
+                self.console.dockwidget.hide()
         
-        # Show the Object Inspector and Consoles by default
-        plugins_to_show = [self.inspector]
-        if self.ipyconsole is not None:
-            if self.ipyconsole.isvisible:
-                plugins_to_show += [self.extconsole, self.ipyconsole]
+            # Show the Object Inspector and Consoles by default
+            plugins_to_show = [self.inspector]
+            if self.ipyconsole is not None:
+                if self.ipyconsole.isvisible:
+                    plugins_to_show += [self.extconsole, self.ipyconsole]
+                else:
+                    plugins_to_show += [self.ipyconsole, self.extconsole]
             else:
-                plugins_to_show += [self.ipyconsole, self.extconsole]
-        else:
-            plugins_to_show += [self.extconsole]
-        for plugin in plugins_to_show:
-            if plugin.dockwidget.isVisible():
-                plugin.dockwidget.raise_()
-        
-        # Show history file if no console is visible
-        ipy_visible = self.ipyconsole is not None and self.ipyconsole.isvisible
-        if not self.extconsole.isvisible and not ipy_visible:
-            self.historylog.add_history(get_conf_path('history.py'))
-        
-        # Give focus to the Editor
-        if self.editor.dockwidget.isVisible():
-            try:
-                self.editor.get_focus_widget().setFocus()
-            except AttributeError:
-                pass
+                plugins_to_show += [self.extconsole]
+            for plugin in plugins_to_show:
+                if plugin.dockwidget.isVisible():
+                    plugin.dockwidget.raise_()
+            
+            # Show history file if no console is visible
+            ipy_visible = self.ipyconsole is not None and self.ipyconsole.isvisible
+            if not self.extconsole.isvisible and not ipy_visible:
+                self.historylog.add_history(get_conf_path('history.py'))
+            
+            # Give focus to the Editor
+            if self.editor.dockwidget.isVisible():
+                try:
+                    self.editor.get_focus_widget().setFocus()
+                except AttributeError:
+                    pass
         
         self.is_setting_up = False
         
@@ -1225,22 +1229,23 @@ class MainWindow(QMainWindow):
         is_fullscreen = get_func(section, prefix+'is_fullscreen')
         return hexstate, window_size, prefs_dialog_size, pos, is_maximized, \
                is_fullscreen
-    
+
     def get_window_settings(self):
         """Return current window settings
         Symetric to the 'set_window_settings' setter"""
-        size = self.window_size
-        width, height = size.width(), size.height()
+        window_size = (self.window_size.width(), self.window_size.height())
         is_fullscreen = self.isFullScreen()
         if is_fullscreen:
             is_maximized = self.maximized_flag
         else:
             is_maximized = self.isMaximized()
-        pos = self.window_position
-        posx, posy = pos.x(), pos.y()
+        pos = (self.window_position.x(), self.window_position.y())
+        prefs_dialog_size = (self.prefs_dialog_size.width(),
+                             self.prefs_dialog_size.height())
         hexstate = qbytearray_to_str(self.saveState())
-        return hexstate, width, height, posx, posy, is_maximized, is_fullscreen
-        
+        return (hexstate, window_size, prefs_dialog_size, pos, is_maximized,
+                is_fullscreen)
+
     def set_window_settings(self, hexstate, window_size, prefs_dialog_size,
                             pos, is_maximized, is_fullscreen):
         """Set window settings

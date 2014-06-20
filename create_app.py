@@ -67,8 +67,8 @@ DEPS = ['pylint', 'logilab', 'astroid', 'pep8', 'setuptools']
 EXCLUDES = DEPS + ['mercurial']
 PACKAGES = ['spyderlib', 'spyderplugins', 'sphinx', 'jinja2', 'docutils',
             'IPython', 'zmq', 'pygments', 'rope', 'distutils', 'PIL', 'PyQt4',
-            'sklearn', 'skimage', 'pandas', 'sympy', 'statsmodels',
-            'mpl_toolkits', 'nose']
+            'sklearn', 'skimage', 'pandas', 'sympy', 'statsmodels', 'pyflakes',
+            'mpl_toolkits', 'nose', 'psutil']
 INCLUDES = get_stdlib_modules()
 EDIT_EXT = [ext[1:] for ext in EDIT_EXT]
 
