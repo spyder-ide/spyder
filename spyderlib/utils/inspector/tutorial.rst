@@ -2,21 +2,21 @@
 Spyder - the Python IDE
 =======================
 
+Spyder is an Integrated Development Environment (IDE) for scientific
+computing using the Python programming language. It comes with an
+Editor to write code, a Console to evaluate it and see its results at
+any time, a Variable Explorer to see what variables have been defined
+during evaluation, and several other facilities to help you to
+effectively develop the programs you need as a scientist.
 
-:date: 2013-09-16
-:tags: Python, Productivity, IPython, Education
 
-----------
-
-`Hans Fangohr <http://www.southampton.ac.uk/~fangohr>`__, University
-of Southampton, UK, 2013
-
-Spyder has developed into a fairly mature and very productive tool;
-here I try to provide a tutorial. This documentation is motivated by
-training courses in Python and computational modelling for students at
-the University of Southampton (see `historical note`_ for more
-detail).
-
+In recent years, Spyder has developed into a fairly mature and very
+productive tool. This documentation, authored by 
+`Hans Fangohr <http://www.southampton.ac.uk/~fangohr>`__ 
+from the University of
+Southampton (UK) originated from training courses in Python and
+Computational Modelling for students at the University of Southampton
+(see `historical note`_ for more detail).
 
 
 .. contents:: Outline
