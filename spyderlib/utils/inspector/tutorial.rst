@@ -533,9 +533,24 @@ Shortcuts for useful functions
   I couldn't find a way of changing the font size in the variable explorer.
 
 - ``TAB`` autocompletes commands, function names, variable
-  names, methods in the console (very useful). A new feature is underway
-  to provide this so-called tab-completion also in the editor (until then
-  CTRL+SPACE provides auto-completion in the editor).
+  names, methods in the console (both Python and IPython) and in the
+  Editor. This feature is very useful, and should be used
+  routinely. Do try it now if autocompletion is new to you. 
+  Assume you have defined a variable::
+
+    mylongvariablename = 42
+
+  Suppose we need to write code that computes ``mylongvariablename +
+  100``, we can simply type ``my`` and then press the TAB key. The
+  full variable name will be completed and inserted at the cursor
+  position if the name is unique, and then we can carry on and type
+  ``+ 100``. If the name is not uniquely identifiable given the
+  letters ``my``, a list field will be displayed from which the right
+  variable can be chosen. Choosing from the list can be done with the
+  ``<CURSOR UP>`` key and ``<CURSOR DOWN>`` key and the ``<RETURN>``
+  key to select, or by typing more letters of the name in question
+  (the selection will update automatically) and confirming by pressing
+  ``<RETURN>`` when the right name is identified.
 
 - ``CMD+s`` (on Mac OS X) and ``CTRL+s`` (otherwise) *in the editor*
   window saves the file
