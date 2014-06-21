@@ -467,8 +467,9 @@ def test():
                      ['test', "string"],
                      [1.11, "float"],
                      [1, "int"],
-                     [np.random.rand(3,3), "Unkown type"]],
-                     index=['a', 'b', nan, nan, nan,'c'],
+                     [np.random.rand(3,3), "Unkown type"],
+                     ["Large value", 100]],
+                     index=['a', 'b', nan, nan, nan,'c',"Test global max"],
                      columns=[nan, 'Type'])         
     out = test_edit(df1)
     print("out:", out)
