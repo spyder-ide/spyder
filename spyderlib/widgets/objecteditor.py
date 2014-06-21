@@ -58,12 +58,12 @@ def create_dialog(obj, obj_name):
     # Local import
     from spyderlib.widgets.texteditor import TextEditor
     from spyderlib.widgets.dicteditorutils import (ndarray, FakeObject,
-                                                   Image, is_known_type)
+                                                   Image, is_known_type,
+                                                   DataFrame, TimeSeries)
     from spyderlib.widgets.dicteditor import DictEditor
     from spyderlib.widgets.arrayeditor import ArrayEditor
-    
-    from spyderlib.widgets.dataframeeditor import DataFrameEditor
-    from pandas import DataFrame, TimeSeries
+    if DataFrame is not FakeObject:
+        from spyderlib.widgets.dataframeeditor import DataFrameEditor
     
     conv_func = lambda data: data
     readonly = not is_known_type(obj)
@@ -82,7 +82,8 @@ def create_dialog(obj, obj_name):
             return
         from spyderlib.pil_patch import Image
         conv_func = lambda data: Image.fromarray(data, mode=obj.mode)
-    elif isinstance(obj, (DataFrame, TimeSeries)):
+    elif isinstance(obj, (DataFrame, TimeSeries)) \
+         and DataFrame is not FakeObject:
         dialog = DataFrameEditor()
         if not dialog.setup_and_check(obj):
             return		

@@ -39,13 +39,13 @@ from spyderlib.widgets.dicteditorutils import (sort_against, get_size,
                get_human_readable_type, value_to_display, get_color_name,
                is_known_type, FakeObject, Image, ndarray, array, MaskedArray,
                unsorted_unique, try_to_eval, datestr_to_datetime,
-               get_numpy_dtype, is_editable_type)
+               get_numpy_dtype, is_editable_type, DataFrame, TimeSeries)
 if ndarray is not FakeObject:
     from spyderlib.widgets.arrayeditor import ArrayEditor
+if DataFrame is not FakeObject:
+    from spyderlib.widgets.dataframeeditor import DataFrameEditor
 from spyderlib.widgets.texteditor import TextEditor
 from spyderlib.widgets.importwizard import ImportWizard
-from spyderlib.widgets.dataframeeditor import DataFrameEditor
-from pandas import DataFrame, TimeSeries
 from spyderlib.py3compat import to_text_string, is_text_string, getcwd, u
 
 
@@ -402,7 +402,8 @@ class DictDelegate(QItemDelegate):
                                             conv=conv_func))
             return None
         #--editor = DataFrameEditor and TimeSeriesEditor
-        elif isinstance(value, (DataFrame, TimeSeries)) and not self.inplace:
+        elif isinstance(value, (DataFrame, TimeSeries))\
+             and DataFrame is not FakeObject:
             editor = DataFrameEditor()
             if not editor.setup_and_check(value):
                 return	

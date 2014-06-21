@@ -25,11 +25,13 @@ try:
     from numpy import ndarray
     from numpy import array, matrix #@UnusedImport (object eval)
     from numpy.ma import MaskedArray
-    from pandas import DataFrame, TimeSeries
 except ImportError:
     ndarray = array = matrix = MaskedArray = FakeObject  # analysis:ignore
-
-
+try: 
+    from pandas import DataFrame, TimeSeries
+except ImportError:
+    DataFrame = TimeSeries = FakeObject
+    
 def get_numpy_dtype(obj):
     """Return NumPy data type associated to obj
     Return None if NumPy is not available
