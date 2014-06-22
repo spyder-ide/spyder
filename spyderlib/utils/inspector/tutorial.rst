@@ -309,23 +309,15 @@ Recommended first steps for Python beginners
 ############################################
 
 To teach and learn Python programming, we recommend
-to (i) use IPython instead of the normal Python interpreter and (ii)
-not use any convenience imports. This accepts IPython as the de-facto
+here to use IPython instead of the normal Python interpreter.
+This accepts IPython as the de-facto
 standard and helps to better understand namespaces.
-
-Spyder tries to help more advanced users by importing a number of modules into
-the main name space. Type ``scientific`` in the command prompt to see the
-details. This behaviour may change in future Spyder releases.
-
-While these convenience imports are very useful for more experienced
-programmers, they can be confusing (if not misleading) for beginners. We
-thus recommend to ``undo`` these imports to fulfil our requirements
-outline above and to (i) `switch to an IPython console`_, and (ii)
-issue the ``%reset`` command to `reset the name space`_. Both steps are
-explained in more detail in the next section.
 
 Switch to an IPython console
 ----------------------------
+
+If you already have an IPython console, you can ignore this section,
+and make in visible by clicking on the "IPython console" rider.
 
 In the console window (lower right corner by default), you see by
 default a prompt with three greater than signs, i.e. ``>>>``. This
@@ -333,7 +325,7 @@ shows that we are using the ``console`` -- basically a normal Python
 interpreter session (with some added functionality from Spyder).
 
 Instead, we would like to use an *Interactive Python* shell, short *IPython*
-from the `ipython project <http://www.ipython.org>`__. To do this, select
+from the `IPython project <http://www.ipython.org>`__. To do this, select
 ``Interpreters`` > ``Open an IPython Console``.
 
 You should see in the consolse window a new shell appearing, and the
@@ -982,3 +974,5 @@ improvements.
 
 30 December 2013: Reviewed by Carlos Cordoba, updated content for Spyder 2.3.
 
+20 Juni 2014: Review by Carlos Cordoba and Hans Fangohr, in
+preparation for Spyder 2.3 release
