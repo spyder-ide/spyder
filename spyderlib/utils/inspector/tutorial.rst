@@ -178,9 +178,7 @@ Inspecting objects
     done some convenience imports for you already. To address this you
     may want to:
 
-    - `Reset the name space`_ (you may want to follow instructions
-      at `No convenience imports in IPython Console`_ to change the
-      default settings)
+    - `Reset the name space`_ 
 
     - execute the file ``hello.py`` again by pressing F5
 
@@ -341,8 +339,6 @@ from the `ipython project <http://www.ipython.org>`__. To do this, select
 You should see in the consolse window a new shell appearing, and the
 IPython prompt ``In [``\ **1**\ ``]:`` should be displayed.
 
-See also: `Change Spyder settings to always start with an IPython shell`_
-
 
 Reset the name space
 --------------------
@@ -417,16 +413,6 @@ operating system:
 * On Mac OS, go to ``Python/Spyder > Preferences``
 
 
-Change Spyder settings to always start with an IPython shell
-------------------------------------------------------------
-
-Go to ``Preferences > IPython console > Startup`` and
-select the tickbox next to ``Open an IPython console at
-startup``. Then click the ``OK`` button.
-
-The next time Spyder starts, it will show the IPython console
-automatically.
-
 
 Warn if PEP8 coding guidelines are violated
 -------------------------------------------
@@ -434,38 +420,6 @@ Warn if PEP8 coding guidelines are violated
 Go to ``Preferences > Editor > Code
 Introspection/Analysis`` and
 select the tickbox next to ``Style analysis (PEP8)``
-
-
-No convenience imports in Python Console
-----------------------------------------
-
-To avoid any 'magic' when the console is started, go to
-
-``Preferences > Console > Advanced Settings > PYTHONSTARTUP
-replacement``
-and select ``Default PYTHONSTARTUP script`` (and restart Spyder).
-
-(This magic, amongst other things, runs the ``from __future__ import
-division`` which provides `integer division as in Python 3
-<https://mail.python.org/pipermail/tutor/2008-March/060886.html>`__)
-
-The `default settings may change
-<https://groups.google.com/forum/#!topic/spyderlib/yTm4j9madZM>`__ for this in
-the next major release.
-
-
-No convenience imports in IPython Console
------------------------------------------
-
-To avoid import of all objects from ``pylab`` and ``numpy`` into the
-current name space in the IPython Console, go to
-``Preferences > IPython console > Graphics`` and
-deselect the tickbox next to ``Automatically load Pylab and NumPy
-modules`` and also deselect ``Activate support``.
-
-The `default settings may change
-<https://groups.google.com/forum/#!topic/spyderlib/yTm4j9madZM>`__ for this in
-the next major release.
 
 
 Automatic Symbolic Python
@@ -718,8 +672,7 @@ Recommendation
 
 My recommendation for beginners would be to
 `Execute in current Python or IPython interpreter`_, *and*
-to choose the IPython interpreter for this (see also
-`Change Spyder settings to always start with an IPython shell`_).
+to choose the IPython interpreter for this.
 
 Once you have completed a piece of code, double check that it executes
 independently using one of the options explained in
