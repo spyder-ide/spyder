@@ -915,6 +915,9 @@ direction.)
 Plotting
 ########
 
+Matplotlib with IPython console
+-------------------------------
+
 Assuming we use an IPython console with version >= 1.0.0, we can
 decide whether figures created with matplotlib/pylab will show
 
@@ -940,6 +943,34 @@ The Spyder preferences can be used to customise the default behaviour
 (in particular ``Preferences > IPython Console > Graphics >
 Activate Support`` to switch into inline plotting).
 
+Here are two lines you can use to quickly create a plot and test
+this::
+
+    import pylab
+    pylab.plot(range(10), 'o'))
+
+
+Matplotlib with Python
+----------------------
+
+If we use the Python console, we need to use matplotlib's or pylab's
+``show()`` command to make a plot appear. It will appear in a new
+window (there is no way of making it appear inline inside the Python
+console - this only works for
+`Matplotlib with IPython Console`_).
+
+Here is a brief example that you can use to create and display a
+plot::
+
+    import pylab
+    pylab.plot(range(10), 'o'))
+    pylab.show()
+
+Note that the ``show()`` command will bind the focus to new window
+that has appeared, and that you will need to close that window before
+Spyder can accept any further commands or respond to interaction. If
+you cannot see the new window, check with your window manager whether
+it may have appeared behind the spyder window, or be partly hidden, etc.
 
 
 Historical note
