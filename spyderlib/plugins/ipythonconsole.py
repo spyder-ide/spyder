@@ -451,7 +451,7 @@ class IPythonConsole(SpyderPluginWidget):
         if client is not None:
             return client
 
-    def run_script_in_current_client(self, filename, wdir, args, debug):
+    def run_script_in_current_client(self, filename, wdir, args, debug, post_mortem):
         """Run script in current client, if any"""
         norm = lambda text: remove_backslashes(to_text_string(text))
         client = self.get_current_client()
@@ -464,6 +464,8 @@ class IPythonConsole(SpyderPluginWidget):
                     line += ", args='%s'" % norm(args)
                 if wdir:
                     line += ", wdir='%s'" % norm(wdir)
+                if post_mortem:
+                    line += ", post_mortem=True"
                 line += ")"
             else: # External kernels, use %run
                 line = "%run "
@@ -543,7 +545,7 @@ class IPythonConsole(SpyderPluginWidget):
             self.connect(self, SIGNAL("edit_goto(QString,int,QString)"),
                          self.main.editor.load)
             self.connect(self.main.editor,
-                         SIGNAL('run_in_current_ipyclient(QString,QString,QString,bool)'),
+                         SIGNAL('run_in_current_ipyclient(QString,QString,QString,bool,bool)'),
                          self.run_script_in_current_client)
         
     def closing_plugin(self, cancelable=False):

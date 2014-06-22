@@ -2073,16 +2073,16 @@ class Editor(SpyderPluginWidget):
             if self.main.ipyconsole is not None:
                 if self.main.last_console_plugin_focus_was_python:
                     self.emit(
-                      SIGNAL('run_in_current_extconsole(QString,QString,QString,bool)'),
-                      fname, wdir, args, debug)
+                      SIGNAL('run_in_current_extconsole(QString,QString,QString,bool,bool)'),
+                      fname, wdir, args, debug, post_mortem)
                 else:
                     self.emit(
-                      SIGNAL('run_in_current_ipyclient(QString,QString,QString,bool)'),
-                      fname, wdir, args, debug)
+                      SIGNAL('run_in_current_ipyclient(QString,QString,QString,bool,bool)'),
+                      fname, wdir, args, debug, post_mortem)
             else:
                 self.emit(
-                  SIGNAL('run_in_current_extconsole(QString,QString,QString,bool)'),
-                  fname, wdir, args, debug)
+                  SIGNAL('run_in_current_extconsole(QString,QString,QString,bool,bool)'),
+                  fname, wdir, args, debug, post_mortem)
         else:
             self.main.open_external_console(fname, wdir, args, interact,
                                             debug, python, python_args,

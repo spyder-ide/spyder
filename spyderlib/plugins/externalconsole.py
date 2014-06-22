@@ -672,7 +672,8 @@ class ExternalConsole(SpyderPluginWidget):
             else:
                 return shellwidgets[0].shell
         
-    def run_script_in_current_shell(self, filename, wdir, args, debug):
+    def run_script_in_current_shell(self, filename, wdir, args, debug, 
+                  post_mortem):
         """Run script in current shell, if any"""
         norm = lambda text: remove_backslashes(to_text_string(text))
         line = "%s('%s'" % ('debugfile' if debug else 'runfile',
@@ -681,6 +682,8 @@ class ExternalConsole(SpyderPluginWidget):
             line += ", args=r'%s'" % norm(args)
         if wdir:
             line += ", wdir=r'%s'" % norm(wdir)
+        if post_mortem:
+            line += ', post_mortem=True'
         line += ")"
         if not self.execute_python_code(line, interpreter_only=True):
             QMessageBox.warning(self, _('Warning'),
@@ -1149,7 +1152,7 @@ class ExternalConsole(SpyderPluginWidget):
                          self.main.editor.load(fname, lineno, word,
                                                processevents=processevents))
             self.connect(self.main.editor,
-                         SIGNAL('run_in_current_extconsole(QString,QString,QString,bool)'),
+                         SIGNAL('run_in_current_extconsole(QString,QString,QString,bool,bool)'),
                          self.run_script_in_current_shell)
             self.connect(self.main.editor,
                          SIGNAL("breakpoints_saved()"),

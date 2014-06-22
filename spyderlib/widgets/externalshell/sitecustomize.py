@@ -646,11 +646,11 @@ def set_post_mortem():
 
 # Add post mortem debugging if requested and in a dedicated interpreter
 # existing interpreters use "runfile" below
-if 'SPYDER_EXCEPTHOOK' in os.environ and is_dedicated:  
+if 'SPYDER_EXCEPTHOOK' in os.environ:  
     set_post_mortem() 
 
     
-def runfile(filename, args=None, wdir=None, namespace=None):
+def runfile(filename, args=None, wdir=None, namespace=None, post_mortem=False):
     """
     Run filename
     args: command line arguments (string)
@@ -689,7 +689,7 @@ def runfile(filename, args=None, wdir=None, namespace=None):
             # AttributeError --> systematically raised in Python 3
             pass
         os.chdir(wdir)
-    if 'SPYDER_EXCEPTHOOK' in os.environ:
+    if post_mortem:
         set_post_mortem()
     execfile(filename, namespace)
     clear_post_mortem()

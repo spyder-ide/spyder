@@ -232,7 +232,7 @@ class ExternalPythonShell(ExternalShellBase):
         self.toggle_globals_explorer(False)
         self.interact_action.setChecked(interact)
         self.debug_action.setChecked(debug)
-        self.post_mortem_action.setChecked(post_mortem)
+        self.post_mortem_action.setChecked(post_mortem and not self.is_interpreter)
         
         self.introspection_socket = None
         self.is_interpreter = fname is None
@@ -350,7 +350,7 @@ The process may not exit as a result of clicking this button
         self.interact_action.setEnabled(not state and not self.is_interpreter)
         self.debug_action.setEnabled(not state and not self.is_interpreter)
         self.args_action.setEnabled(not state and not self.is_interpreter)
-        self.post_mortem_action.setEnabled(not state)
+        self.post_mortem_action.setEnabled(not state and not self.is_interpreter)
         if state:
             if self.arguments:
                 argstr = _("Arguments: %s") % self.arguments
@@ -416,7 +416,7 @@ The process may not exit as a result of clicking this button
         
         #-------------------------Python specific-------------------------------
         # Post mortem debugging
-        if self.post_mortem_action.isChecked():
+        if self.post_mortem_action.isChecked() and not self.is_interpreter:
             env.append('SPYDER_EXCEPTHOOK=True')
 
         # Monitor
