@@ -1,6 +1,6 @@
-=======================
-Spyder - the Python IDE
-=======================
+======================================================
+Spyder - the Scientific PYthon Development EnviRonment
+======================================================
 
 Spyder is an Integrated Development Environment (IDE) for scientific
 computing using the Python programming language. It comes with an
