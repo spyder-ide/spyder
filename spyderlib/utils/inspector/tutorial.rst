@@ -826,27 +826,30 @@ Often it is a good idea to include an example as shown.
 
 
 
-Debugging in the Ipython Debugger
-#################################
+Debugging
+#########
 
 Line by line step execution of code
 -----------------------------------
 
-Activating the debug mode (``Debug > Debug``) starts the IPython
-debugger (ipdb) in the IPython console. This is operated as normal,
-but the editor display window highlights the line that is about to be
+Activating the debug mode (``Debug > Debug``) starts the Python
+debugger (Pdb) if the Python console is active, and starts the IPython
+debugger (ipdb) if the IPython console is active. The debuggers are
+operated as normal (a short introduction of key actions follows below),
+but the editor display window in Spyder highlights the line that is about to be
 executed, and the variable explorer displays variables in the current
 context of the point of program execution. (It only displays
 'numerical' variables, i.e. not function objects etc.)
 
-The key commands within the IPython debugger are indivdual keystrokes:
+The key commands within the debugger are individual keystrokes:
 
 * ``s`` to Step into the current statement. If this is a function
-  call, step into that function.
+  call, step into that function. 
 
 * ``n`` move to the Next statement. If the current statement is a
   function, do not step into that function, but execute it completely
-  before returning control to the interactive debugger prompt.
+  before returning control to the interactive debugger prompt. This is
+  the normal key to press to advance programme execution line by line.
 
 * ``r`` complete all statements in the current function and Return
   from that function before returning control.
@@ -854,17 +857,45 @@ The key commands within the IPython debugger are indivdual keystrokes:
 * ``p`` Print allows to display values of variables, for example
   ``p x`` will print the value of the variable ``x``.
 
-Note that at the ipdb, you can also *change* values of variable. For
-example, to modify a valiable ``x``, you can say ``ipdb > x = 42``
+Note that at the debugger prompt, you can also *change* values of variable. For
+example, to modify a variable ``x`` at the IPython debugger prompt, you can say ``ipdb > x = 42``
 and the debugger will carry on with ``x`` being bound to ``42``. You
-can also call functions, and do many others things.
+can also call functions, and do many others things. Try this example::
+
+   def demo(x):
+       for i in range(5):
+           print("i={}, x={}".format(i, x))
+           x = x + 1
+        
+   demo(0)
+
+If we execute this (``Run > Run``), we should fine the output::
+
+	i=0, x=0
+	i=1, x=1
+	i=2, x=2
+	i=3, x=3
+	i=4, x=4
+	
+Now execute this using the debugger (``Debug > Debug``), press ``n``
+until the highlighted line reaches the ``demo(0)`` function call, then
+press ``s`` to Step into this function. Keep pressing ``n`` to execute
+the next lines. Then, modify ``x`` by typing ``x=10`` in the debugger
+prompt. You see x changing in the Variable explorer. You should also
+see ``x`` changing when its value is printed as part of the ``demo()``
+function. (The printed output appears between your debugger commands
+and responses.)
+
+This debugging ability to execute code line by line, to inspect variables as
+they change, and to modify them manually is a powerful tool to
+understand what a piece of code is doing (and to correct it if desired).
 
 To leave the debugging mode, you can type ``exit`` or select from the
 menu ``Debug > Debugging Control > Exit``
 
 
-Debugging once an exception has occured
----------------------------------------
+Debugging once an exception has occured with IPython
+----------------------------------------------------
 
 In the IPython console, we can call ``%debug``
 straight after an exception has been raised: this will start the
@@ -873,10 +904,11 @@ point where the exception occurred as described above. This is a lot
 more efficient than adding ``print`` statements to the code an
 running it again.
 
-If you use this, you may also want to use the commands ``up`` and
-``down`` which navigate the inspection point up and down the
-stack. (Up the stack means to the functions that have called the
-current function; down is the opposite direction.)
+If you use this, you may also want to use the commands ``up``
+(i.e. press ``u``) and ``down`` (i.e. press ``d``) which navigate the
+inspection point up and down the stack. (Up the stack means to the
+functions that have called the current function; down is the opposite
+direction.)
 
 
 
