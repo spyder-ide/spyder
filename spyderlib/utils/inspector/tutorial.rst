@@ -76,7 +76,7 @@ Before we proceed, please
   console, and we suggest to use it as the default console here.
 
   In the IPython interpreter session that we have just started, you can use
-  ``Run>Run`` (as before) to execute ``hello.py`` and you should see::
+  ``Run > Run`` (as before) to execute ``hello.py`` and you should see::
 
     In [1]: runfile('/Users/fangohr/Desktop/hello.py', wdir='/Users/fangohr/Desktop')
     Hello World
@@ -316,8 +316,8 @@ standard and helps to better understand namespaces.
 Switch to an IPython console
 ----------------------------
 
-If you already have an IPython console, you can ignore this section,
-and make in visible by clicking on the "IPython console" rider.
+If you already have an IPython console active, you can ignore this section,
+and make it visible by clicking on the "IPython console" rider.
 
 In the console window (lower right corner by default), you see by
 default a prompt with three greater than signs, i.e. ``>>>``. This
