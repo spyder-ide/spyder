@@ -232,13 +232,15 @@ class ExternalPythonShell(ExternalShellBase):
         self.toggle_globals_explorer(False)
         self.interact_action.setChecked(interact)
         self.debug_action.setChecked(debug)
-        self.post_mortem_action.setChecked(post_mortem and not self.is_interpreter)
+        
         
         self.introspection_socket = None
         self.is_interpreter = fname is None
         
         if self.is_interpreter:
             self.terminate_button.hide()
+            
+        self.post_mortem_action.setChecked(post_mortem and not self.is_interpreter)
         
         # Additional python path list
         self.path = path
@@ -416,7 +418,7 @@ The process may not exit as a result of clicking this button
         
         #-------------------------Python specific-------------------------------
         # Post mortem debugging
-        if self.post_mortem_action.isChecked() and not self.is_interpreter:
+        if self.post_mortem_action.isChecked():
             env.append('SPYDER_EXCEPTHOOK=True')
 
         # Monitor
