@@ -164,6 +164,7 @@ if mpl_backend:
             if mpl_backend == 'Qt4Agg' and sys.platform == 'darwin':
                 mpl_backend = 'MacOSX'
         matplotlib.rcParams['docstring.hardcopy'] = True
+        matplotlib.rcParams['interactive'] = True
         matplotlib.use(mpl_backend)
     except ImportError:
         pass
