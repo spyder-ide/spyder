@@ -462,11 +462,14 @@ class ExternalConsoleConfigPage(PluginConfigPage):
             console_version = spyder_version
         if spyder_version != console_version:
             QMessageBox.warning(self, _('Warning'),
-                _("You selected a python%d interpreter for the console but "
-                  "spyder is running within python%d. Be aware that the "
-                  "compatibility is not guaranteed and some tools like "
-                  "pylint, pyflake or pep8 may raise false warnings."
+                _("You selected a <b>Python %d</b> interpreter for the console "
+                  "but Spyder is running on <b>Python %d</b>!.<br><br>"
+                  "Although this is possible, we recommend you to install and "
+                  "run Spyder directly with your selected interpreter, to avoid "
+                  "seeing false warnings and errors due to the incompatible "
+                  "syntax between these two Python versions."
                   ) % (console_version, spyder_version), QMessageBox.Ok)
+
 
 class ExternalConsole(SpyderPluginWidget):
     """
