@@ -577,8 +577,9 @@ def spyder_notify_traceback(type, value, tb):
 old_print_exception = traceback.print_exception
 
 def new_print_exception(type, value, tb, limit=None, file=None):
-    old_print_exception(type, value, tb, limit, file)
+    val = old_print_exception(type, value, tb, limit, file)
     spyder_notify_traceback(type, value, tb)
+    return val
 traceback.print_exception = new_print_exception
 
 
@@ -618,12 +619,12 @@ def post_mortem_excepthook(type, value, tb):
     mortem debugging.
     """
     clear_post_mortem()
-    traceback.print_exception(type, value, tb)
+    traceback.print_exception(type, value, tb, file=sys.stderr)
+    _print('', file=sys.stderr)
     if hasattr(sys, 'ps1') and is_dedicated:
         # in interactive mode in dedicated interpreter, just exit after printing
         return
     if not type == SyntaxError:
-        _print('', file=sys.stderr)
         _print('*' * 40)
         _print('Entering post mortem debugging...')
         _print('*' * 40)
