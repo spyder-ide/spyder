@@ -6,6 +6,7 @@ import os
 import os.path as osp
 import pdb
 import bdb
+import time
 import traceback
 
 
@@ -620,7 +621,7 @@ def post_mortem_excepthook(type, value, tb):
     """
     clear_post_mortem()
     traceback.print_exception(type, value, tb, file=sys.stderr)
-    _print('', file=sys.stderr)
+    time.sleep(0.01)
     if hasattr(sys, 'ps1') and is_dedicated:
         # in interactive mode in dedicated interpreter, just exit after printing
         return
