@@ -84,8 +84,8 @@ class JediPlugin(IntrospectionPlugin):
         """
         line, col = self.get_line_col(source_code, offset)
         call_def = self.get_jedi_object(source_code, line, col, filename,
-                                        'goto_definitions')
-        if call_def:
+                                       'goto_definitions')
+        if call_def and not call_def.type == 'module':
             return self.parse_call_def(call_def)
         else:
             raise ValueError
