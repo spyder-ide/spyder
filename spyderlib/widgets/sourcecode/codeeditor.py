@@ -158,6 +158,13 @@ class LineNumberArea(QWidget):
         """Override Qt method"""
         self.code_editor.linenumberarea_mousedoubleclick_event(event)
 
+    def mousePressEvent(self, event):
+        """Override Qt method"""
+        self.code_editor.linenumberarea_mousepress_event(event)
+
+    def mouseReleaseEvent(self, event):
+        """Override Qt method"""
+        self.code_editor.linenumberarea_mouserelease_event(event)
 
 class ScrollFlagArea(QWidget):
     """Source code editor's scroll flag area"""
@@ -353,7 +360,8 @@ class CodeEditor(TextEditBaseWidget):
                      self.update_linenumberarea_width)
         self.connect(self, SIGNAL("updateRequest(QRect,int)"),
                      self.update_linenumberarea)
-
+        self.linenumberarea_pressed = None
+        self.linenumberarea_released = None
 
         # --- Syntax highlight entrypoint ---
         #
@@ -968,6 +976,8 @@ class CodeEditor(TextEditBaseWidget):
 
         block = self.firstVisibleBlock()
         block_number = block.blockNumber()
+        active_block = self.textCursor().block()
+        active_line_number = active_block.blockNumber() + 1        
         top = self.blockBoundingGeometry(block).translated(
                                                     self.contentOffset()).top()
         bottom = top + self.blockBoundingRect(block).height()
@@ -982,6 +992,15 @@ class CodeEditor(TextEditBaseWidget):
                     painter.setPen(Qt.red)
                     painter.drawLine(0, top, self.linenumberarea.width(), top)
                 if self.linenumbers_margin:
+                    font = painter.font()
+                    if line_number == active_line_number:
+                        font.setWeight(font.Bold)
+                        painter.setFont(font)
+                        painter.setPen(Qt.black)
+                    else:
+                        font.setWeight(font.Normal)
+                        painter.setFont(font)
+                        painter.setPen(Qt.darkGray)                    
                     painter.drawText(0, top, self.linenumberarea.width(),
                                      font_height, Qt.AlignRight|Qt.AlignBottom,
                                      to_text_string(line_number))
@@ -1031,12 +1050,49 @@ class CodeEditor(TextEditBaseWidget):
         data = block.userData()
         if data and data.code_analysis:
             self.__show_code_analysis_results(line_number, data.code_analysis)
+        if event.buttons() == Qt.LeftButton:
+            self.linenumberarea_released = line_number
+            self.linenumberarea_select_lines(self.linenumberarea_pressed,
+                                             self.linenumberarea_released)            
 
     def linenumberarea_mousedoubleclick_event(self, event):
         """Handling line number area mouse double-click event"""
         line_number = self.__get_linenumber_from_mouse_event(event)
         shift = event.modifiers() & Qt.ShiftModifier
         self.add_remove_breakpoint(line_number, edit_condition=shift)
+
+    def linenumberarea_mousepress_event(self, event):
+        """Handling line number area mouse double press event"""
+        line_number = self.__get_linenumber_from_mouse_event(event)
+        self.linenumberarea_pressed = line_number
+        self.linenumberarea_released = line_number
+        self.linenumberarea_select_lines(self.linenumberarea_pressed,
+                                         self.linenumberarea_released)
+
+    def linenumberarea_mouserelease_event(self, event):
+        """Handling line number area mouse double release event"""
+        get_line_from_mouse = self.__get_linenumber_from_mouse_event
+        self.linenumberarea_released = get_line_from_mouse(event)
+        self.linenumberarea_select_lines(self.linenumberarea_pressed,
+                                         self.linenumberarea_released)
+
+    def linenumberarea_select_lines(self, linenumber_pressed,
+                                    linenumber_released):
+        """Handling line number area mouse press and drag event to select"""
+        find_block_by_line_number = self.document().findBlockByLineNumber
+        move_n_blocks = linenumber_released - linenumber_pressed
+        block_pressed = find_block_by_line_number(linenumber_pressed - 1)
+        cursor = self.textCursor()
+        cursor.setPosition(block_pressed.position())
+        if move_n_blocks >= 0:
+            for n in range(abs(move_n_blocks)):
+                cursor.movePosition(cursor.NextBlock, cursor.KeepAnchor)
+            cursor.movePosition(cursor.EndOfBlock, cursor.KeepAnchor)
+        else:
+            cursor.movePosition(cursor.EndOfBlock)
+            for n in range(abs(move_n_blocks)):
+                cursor.movePosition(cursor.PreviousBlock, cursor.KeepAnchor)
+        self.setTextCursor(cursor)
 
     #------Breakpoints
     def add_remove_breakpoint(self, line_number=None, condition=None,
