@@ -162,10 +162,6 @@ class LineNumberArea(QWidget):
         """Override Qt method"""
         self.code_editor.linenumberarea_mousepress_event(event)
 
-    def mouseReleaseEvent(self, event):
-        """Override Qt method"""
-        self.code_editor.linenumberarea_mouserelease_event(event)
-
 class ScrollFlagArea(QWidget):
     """Source code editor's scroll flag area"""
     WIDTH = 12
@@ -1067,13 +1063,6 @@ class CodeEditor(TextEditBaseWidget):
         line_number = self.__get_linenumber_from_mouse_event(event)
         self.linenumberarea_pressed = line_number
         self.linenumberarea_released = line_number
-        self.linenumberarea_select_lines(self.linenumberarea_pressed,
-                                         self.linenumberarea_released)
-
-    def linenumberarea_mouserelease_event(self, event):
-        """Handling line number area mouse double release event"""
-        get_line_from_mouse = self.__get_linenumber_from_mouse_event
-        self.linenumberarea_released = get_line_from_mouse(event)
         self.linenumberarea_select_lines(self.linenumberarea_pressed,
                                          self.linenumberarea_released)
 
