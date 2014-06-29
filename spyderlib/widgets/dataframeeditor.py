@@ -5,6 +5,7 @@
 """
 Pandas DataFrame Editor Dialog based on Qt
 """
+from __future__ import unicode_literals
 
 from spyderlib.qt.QtCore import (QAbstractTableModel, Qt, QModelIndex,
                                  SIGNAL, SLOT)
@@ -18,13 +19,13 @@ from spyderlib.guiconfig import get_font
 from spyderlib.qt.compat import to_qvariant, from_qvariant
 from spyderlib.utils.qthelpers import (qapplication, get_icon, create_action,
                                        add_actions, keybinding)
-from spyderlib.py3compat import io, to_text_string
+from spyderlib.py3compat import io, is_text_string, to_text_string
 from spyderlib.widgets.arrayeditor import get_idx_rect
 from pandas import DataFrame, TimeSeries
 import numpy as np
 
 # Supported Numbers and complex numbers
-_sup_nr = (float, int, np.int64)
+_sup_nr = (float, int, np.int64, np.int32)
 _sup_com = (complex, np.complex64, np.complex128)
 # Used to convert bool intrance to false since bool('False') will return True
 _bool_false = ['false', '0']
@@ -76,7 +77,7 @@ class DataFrameModel(QAbstractTableModel):
         """Determines the maximum and minimum number in each column"""
         max_r = self.df.max(numeric_only=True)
         min_r = self.df.min(numeric_only=True)
-        self.max_min_col = zip(max_r, min_r)
+        self.max_min_col = list(zip(max_r, min_r))
         if len(self.max_min_col) != self.df.shape[1]:
             # Then it contain complex numbers or other types
             float_intran = self.df.applymap(lambda e: isinstance(e, _sup_nr))
@@ -89,8 +90,8 @@ class DataFrameModel(QAbstractTableModel):
             df_real = self.df[mask]
             max_r = df_real.max(skipna=True)
             min_r = df_real.min(skipna=True)
-            self.max_min_col = zip(DataFrame([max_c, max_r]).max(skipna=True),
-                                   DataFrame([min_c, min_r]).min(skipna=True))
+            self.max_min_col = list(zip(DataFrame([max_c, max_r]).max(skipna=True),
+                                        DataFrame([min_c, min_r]).min(skipna=True)))
         self.max_min_col = [[vmax, vmin-1] if vmax == vmin else [vmax, vmin]
                             for vmax, vmin in self.max_min_col]
 
@@ -151,7 +152,7 @@ class DataFrameModel(QAbstractTableModel):
             hue = self.hue0 + self.dhue*(vmax-color_func(value)) / (vmax-vmin)
             hue = float(abs(hue))
             color = QColor.fromHsvF(hue, self.sat, self.val, self.alp)
-        elif isinstance(value, basestring):
+        elif is_text_string(value):
             color = QColor(Qt.lightGray)
             color.setAlphaF(.05)
         else:
@@ -238,8 +239,8 @@ class DataFrameModel(QAbstractTableModel):
             current_value = self.get_value(row, column-1)
             if isinstance(current_value, bool):
                 val = bool_false_check(val)
-            if isinstance(current_value, ((basestring, bool) +
-                                          _sup_nr + _sup_com)):
+            if isinstance(current_value, ((bool) + _sup_nr + _sup_com)) or \
+               is_text_string(current_value):
                 try:
                     self.df.iloc[row, column-1] = current_value.__class__(val)
                 except ValueError as e:
@@ -311,8 +312,8 @@ class DataFrameView(QTableView):
                                     triggered=self.copy,
                                     context=Qt.WidgetShortcut)
         functions = (("To bool", bool), ("To complex", complex),
-                     ("To int", int), ("To float", float), ("To str", str),
-                     ("To unicode", unicode))
+                     ("To int", int), ("To float", float), 
+                     ("To str", to_text_string))
         types_in_menu = [copy_action]
         for name, func in functions:
             types_in_menu += [create_action(self, _(name),
@@ -489,7 +490,7 @@ def test():
     df1.sort(columns=[0, 1], inplace=True)
     out = test_edit(df1)
     print("out:", out)
-    out = test_edit(TimeSeries(range(10)))
+    out = test_edit(TimeSeries(np.arange(10)))
     print("out:", out)
     return out
 
