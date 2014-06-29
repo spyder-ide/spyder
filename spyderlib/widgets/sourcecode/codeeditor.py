@@ -973,6 +973,7 @@ class CodeEditor(TextEditBaseWidget):
         font_height = self.fontMetrics().height()
         painter = QPainter(self.linenumberarea)
         painter.fillRect(event.rect(), self.area_background_color)
+        font = painter.font()
 
         block = self.firstVisibleBlock()
         block_number = block.blockNumber()
@@ -981,7 +982,6 @@ class CodeEditor(TextEditBaseWidget):
         top = self.blockBoundingGeometry(block).translated(
                                                     self.contentOffset()).top()
         bottom = top + self.blockBoundingRect(block).height()
-
         def draw_pixmap(ytop, pixmap):
             painter.drawPixmap(0, ytop+(font_height-pixmap.height())/2, pixmap)
         while block.isValid() and top <= event.rect().bottom():
@@ -992,7 +992,6 @@ class CodeEditor(TextEditBaseWidget):
                     painter.setPen(Qt.red)
                     painter.drawLine(0, top, self.linenumberarea.width(), top)
                 if self.linenumbers_margin:
-                    font = painter.font()
                     if line_number == active_line_number:
                         font.setWeight(font.Bold)
                         painter.setFont(font)
