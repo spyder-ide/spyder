@@ -1074,11 +1074,11 @@ class CodeEditor(TextEditBaseWidget):
         block_pressed = find_block_by_line_number(linenumber_pressed - 1)
         cursor = self.textCursor()
         cursor.setPosition(block_pressed.position())
-        if move_n_blocks >= 0:
+        if move_n_blocks >= 0: # select/drag downwards or select single line
             for n in range(abs(move_n_blocks)):
                 cursor.movePosition(cursor.NextBlock, cursor.KeepAnchor)
             cursor.movePosition(cursor.EndOfBlock, cursor.KeepAnchor)
-        else:
+        else: # select/drag upwards
             cursor.movePosition(cursor.EndOfBlock)
             for n in range(abs(move_n_blocks)):
                 cursor.movePosition(cursor.PreviousBlock, cursor.KeepAnchor)
