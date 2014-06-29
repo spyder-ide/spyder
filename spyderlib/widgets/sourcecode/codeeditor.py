@@ -970,11 +970,11 @@ class CodeEditor(TextEditBaseWidget):
 
     def linenumberarea_paint_event(self, event):
         """Painting line number area"""
-        font_height = self.fontMetrics().height()
         painter = QPainter(self.linenumberarea)
         painter.fillRect(event.rect(), self.area_background_color)
         font = painter.font()
-
+        font_height = self.fontMetrics().height()
+        
         block = self.firstVisibleBlock()
         block_number = block.blockNumber()
         active_block = self.textCursor().block()
