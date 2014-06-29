@@ -982,8 +982,10 @@ class CodeEditor(TextEditBaseWidget):
         top = self.blockBoundingGeometry(block).translated(
                                                     self.contentOffset()).top()
         bottom = top + self.blockBoundingRect(block).height()
+
         def draw_pixmap(ytop, pixmap):
             painter.drawPixmap(0, ytop+(font_height-pixmap.height())/2, pixmap)
+
         while block.isValid() and top <= event.rect().bottom():
             if block.isVisible() and bottom >= event.rect().top():
                 line_number = block_number+1
