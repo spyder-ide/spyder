@@ -621,11 +621,12 @@ def post_mortem_excepthook(type, value, tb):
     """
     clear_post_mortem()
     traceback.print_exception(type, value, tb, file=sys.stderr)
-    time.sleep(0.01)
     if hasattr(sys, 'ps1') and is_dedicated:
         # in interactive mode in dedicated interpreter, just exit after printing
         return
     if not type == SyntaxError:
+        # allow time for sys.stderr to write before writing to stdout
+        time.sleep(0.1)
         _print('*' * 40)
         _print('Entering post mortem debugging...')
         _print('*' * 40)
