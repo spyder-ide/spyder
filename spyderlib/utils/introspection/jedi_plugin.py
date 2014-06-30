@@ -143,7 +143,10 @@ class JediPlugin(IntrospectionPlugin):
         if DEBUG_EDITOR:
             t0 = time.time()
         # override IPython qt_loaders ImportDenier behavior
-        sys.meta_path = []
+        metas = sys.meta_path
+        for meta in metas:
+            if meta.__name__ == 'ImportDenier' and hasattr(meta, 'forbid'):
+                sys.meta_path.remove(meta)
         with self.jedi_lock:
             try:
                 script = jedi.Script(source_code, line, col, filename)
@@ -253,6 +256,7 @@ if __name__ == '__main__':
     source_code = "import numpy; numpy.ones("
     calltip, docs = p.get_calltip_and_docs(source_code, len(source_code),
                                            __file__)
+                        
     assert calltip.startswith('ones(') and docs['name'] == 'ones'
     
     source_code = "import n"
