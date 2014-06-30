@@ -145,7 +145,7 @@ class JediPlugin(IntrospectionPlugin):
         # override IPython qt_loaders ImportDenier behavior
         metas = sys.meta_path
         for meta in metas:
-            if meta.__name__ == 'ImportDenier' and hasattr(meta, 'forbid'):
+            if meta.__class__.__name__ == 'ImportDenier' and hasattr(meta, 'forbid'):
                 sys.meta_path.remove(meta)
         with self.jedi_lock:
             try:
