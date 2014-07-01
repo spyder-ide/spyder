@@ -763,13 +763,13 @@ class MainWindow(QMainWindow):
             self.debug_print("  ..plugin: internal console")
             from spyderlib.plugins.console import Console
             self.console = Console(self, namespace, exitfunc=self.closing,
-                                   profile=self.profile,
-                                   multithreaded=self.multithreaded,
-                                   message="DON'T USE THIS CONSOLE TO RUN CODE!\n\n"
-                                           "It's used to report application errors\n"
-                                           "and to inspect Spyder internals with\n"
-                                           "the following commands:\n"
-                                           "  spy.app, spy.window, dir(spy)")
+                              profile=self.profile,
+                              multithreaded=self.multithreaded,
+                              message=_("DON'T USE THIS CONSOLE TO RUN CODE!\n\n"
+                                        "It's used to report application errors\n"
+                                        "and to inspect Spyder internals with\n"
+                                        "the following commands:\n"
+                                        "  spy.app, spy.window, dir(spy)"))
             self.console.register_plugin()
             
             # Working directory plugin
