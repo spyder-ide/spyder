@@ -6,9 +6,8 @@
 
 """
 Bootstrapping Spyder
-(Executing Spyder from source checkout)
 
-This script is a contribution from techtonik:
+Detect environment and execute Spyder from source checkout
 http://code.google.com/p/spyderlib/issues/detail?id=741
 """
 
