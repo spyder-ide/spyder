@@ -2191,7 +2191,13 @@ def initialize():
 
 
 class Spy(object):
-    """Inspect Spyder internals"""
+    """
+    Inspect Spyder internals
+    
+    Attributes:
+        app       Reference to main QApplication object
+        window    Reference to spyder.MainWindow widget
+    """
     def __init__(self, app, window):
         self.app = app
         self.window = window
