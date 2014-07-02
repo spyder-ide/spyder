@@ -35,7 +35,6 @@ if API == 'pyqt':
         API = os.environ['QT_API'] = 'pyside'
         API_NAME = 'PySide'
     else:
-        __version_info__ = tuple(__version__.split('.')+['final', 1])
         is_old_pyqt = __version__.startswith(('4.4', '4.5', '4.6', '4.7'))
         is_pyqt46 = __version__.startswith('4.6')
         import sip
