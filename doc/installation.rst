@@ -165,7 +165,7 @@ Requirements
 
 The minimal requirements to run Spyder are
 
-* `Python <http://www.python.org/>`_ v2.x (x>=5)
+* `Python <http://www.python.org/>`_ 2.6+
   
 * `PyQt4 <http://www.riverbankcomputing.co.uk/software/pyqt/download>`_ >= v4.6 or
   `PySide <http://pyside.org/>`_ >=1.2.0 (PyQt4 is recommended).
