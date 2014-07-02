@@ -134,11 +134,6 @@ if options.debug:
 if options.versions:
     # Importing spyder (among other things, this has the effect of setting the 
     # QT_API environment variable if this has not yet been done just above)
-
-    # FIXME: `from spyderlib import spyder` is necessary with current package 
-    # structure to avoid "AttributeError: 'module' object has no attribute 'qt'"
-    # when importing get_versions (see Issue 1320 for more details).
-    from spyderlib import spyder
     from spyderlib import get_versions
     versions = get_versions()
     print("03. Imported Spyder %s" % versions['spyder'])

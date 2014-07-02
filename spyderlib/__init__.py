@@ -60,7 +60,8 @@ def get_versions():
     """Get version information for components used by Spyder"""
     import sys
     import platform
-    import spyderlib
+    import spyderlib.qt
+    import spyderlib.qt.QtCore
     from spyderlib.utils import vcs
     full, short, branch = vcs.get_hg_revision(os.path.dirname(__dir__))
     revision = None
@@ -71,7 +72,7 @@ def get_versions():
     else:
         system = 'Darwin'
     return {
-        'spyder': spyderlib.__version__,
+        'spyder': __version__,
         'python': platform.python_version(),  # "2.7.3"
         'bitness': 64 if sys.maxsize > 2**32 else 32,
         'qt': spyderlib.qt.QtCore.__version__,
