@@ -43,7 +43,7 @@ parser.add_option('--debug', action='store_true',
                   default=False, help="Run Spyder in debug mode")
 options, args = parser.parse_args()
 
-assert options.gui in (None, 'pyqt', 'pyside'), \
+assert options.gui in (None, 'pyqt', 'pyqtv1', 'pyside'), \
        "Invalid GUI toolkit option '%s'" % options.gui
 
 # For testing purposes
