@@ -36,6 +36,12 @@ __forum_url__   = 'http://groups.google.com/group/spyderlib'
 # following path to module's data (images) and translations:
 DATAPATH = LOCALEPATH = DOCPATH = MATHJAXPATH = JQUERYPATH = ''
 
+
+import os
+# Directory of the current file
+__dir__ = os.path.dirname(os.path.abspath(__file__))
+
+
 def add_to_distribution(dist):
     """Add package to py2exe/cx_Freeze distribution object
     Extension to guidata.disthelpers"""
@@ -53,12 +59,10 @@ def add_to_distribution(dist):
 def get_versions():
     """Get version information for components used by Spyder"""
     import sys
-    import os.path as osp
     import platform
     import spyderlib
     from spyderlib.utils import vcs
-    spyderpath = spyderlib.__path__[0]
-    full, short, branch = vcs.get_hg_revision(osp.dirname(spyderpath))
+    full, short, branch = vcs.get_hg_revision(os.path.dirname(__dir__))
     revision = None
     if full:
         revision = '%s:%s' % (full, short)
