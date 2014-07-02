@@ -56,17 +56,20 @@ def add_to_distribution(dist):
                                     '.qm', '.py',),
                                    copy_to_root=False)
 
-def get_versions():
+def get_versions(reporev=True):
     """Get version information for components used by Spyder"""
     import sys
     import platform
     import spyderlib.qt
     import spyderlib.qt.QtCore
-    from spyderlib.utils import vcs
-    full, short, branch = vcs.get_hg_revision(os.path.dirname(__dir__))
+
     revision = None
-    if full:
-        revision = '%s:%s' % (full, short)
+    if reporev:
+        from spyderlib.utils import vcs
+        full, short, branch = vcs.get_hg_revision(os.path.dirname(__dir__))
+        if full:
+            revision = '%s:%s' % (full, short)
+
     if not sys.platform == 'darwin':  # To avoid a crash with our Mac app
         system = platform.system()
     else:
