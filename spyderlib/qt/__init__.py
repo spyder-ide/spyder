@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2011 Pierre Raybaut
+# Copyright © 2011-2012 Pierre Raybaut
+#           © 2012-2014 anatoly techtonik
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -15,16 +16,18 @@ API = os.environ['QT_API']
 API_NAME = {'pyqt': 'PyQt4', 'pyside': 'PySide'}[API]
 
 if API == 'pyqt':
-    # We do not force QString, QVariant, ... API to #1 or #2 anymore 
-    # as spyderlib is now compatible with both APIs
-#    import sip
-#    try:
-#        sip.setapi('QString', 2)
-#        sip.setapi('QVariant', 2)
-#    except AttributeError:
-#        # PyQt < v4.6: in future version, we should warn the user 
-#        # that PyQt is outdated and won't be supported by Spyder >v2.1
-#        pass
+    # Spyder 2.2 is compatible with both #1 and #2 PyQt API,
+    # but to avoid issues with IPython and other Qt plugins
+    # we choose to support only API #2 for 2.3+
+    import sip
+    try:
+        sip.setapi('QString', 2)
+        sip.setapi('QVariant', 2)
+    except AttributeError:
+        # PyQt < v4.6. The actual check is done by requirements.check_qt()
+        # call from spyder.py
+        pass
+
     try:
         from PyQt4.QtCore import PYQT_VERSION_STR as __version__
     except ImportError:
