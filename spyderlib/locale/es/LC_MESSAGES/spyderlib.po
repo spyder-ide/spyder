@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
 "POT-Creation-Date: 2014-07-02 12:54+COT\n"
-"PO-Revision-Date: 2014-05-18 16:36-0500\n"
+"PO-Revision-Date: 2014-07-02 13:46-0500\n"
 "Last-Translator: Carlos Cordoba <ccordoba12@gmail.com>\n"
 "Language-Team: Python\n"
 "Language: es\n"
@@ -1498,6 +1498,11 @@ msgid ""
 "avoid seeing false warnings and errors due to the incompatible syntax "
 "between these two Python versions."
 msgstr ""
+"Usted seleccionó un intérprete de <b>Python %d</b> para la terminal, pero "
+"Spyder está corriendo bajo <b>Python %d</b>!.<br><br>Aunque esto es posible, "
+"le recomendamos instalar y correr Spyder directamente con el intérprete "
+"seleccionado, para evitar ver falsos errores y alarmas en el Editor debido a "
+"la sintaxis incompatible entre estas dos versiones de Python."
 
 #: spyderlib/plugins/externalconsole.py:620
 msgid "Trying to kill a kernel?"
@@ -1699,12 +1704,11 @@ msgstr ""
 "decidir a que panel desea conectarlo para activar esta característica."
 
 #: spyderlib/plugins/inspector.py:139
-#, fuzzy
 msgid ""
 "This feature requires the Rope library.\n"
 "It seems you don't have it installed."
 msgstr ""
-"Esta característica requiere la librería Sympy.\n"
+"Esta característica requiere la librería Rope.\n"
 "Al parecer no la tiene instalada."
 
 #: spyderlib/plugins/inspector.py:142
@@ -2782,6 +2786,12 @@ msgid ""
 "the following commands:\n"
 "  spy.app, spy.window, dir(spy)"
 msgstr ""
+"NO USE ESTA TERMINAL PARA EJECUTAR CODIGO!\n"
+"\n"
+"Esta terminal se utiliza para reportar errores de la\n"
+"aplicación y para inspeccionar las características\n"
+"internas de Spyder con los siguientes comandos:\n"
+"  spy.app, spy.window, dir(spy)"
 
 #: spyderlib/spyder.py:784
 msgid "Loading object inspector..."
@@ -3547,9 +3557,8 @@ msgid "Function defined at line %s"
 msgstr "Función definida en la línea %s"
 
 #: spyderlib/widgets/editortools.py:148
-#, fuzzy
 msgid "Cell starts at line %s"
-msgstr "Clase definida en la línea %s"
+msgstr "La celda empieza en la línea %s"
 
 #: spyderlib/widgets/editortools.py:201 spyderlib/widgets/editortools.py:536
 msgid "Go to cursor position"
