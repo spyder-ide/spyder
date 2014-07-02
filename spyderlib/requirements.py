@@ -35,7 +35,7 @@ def check_path():
 
 def check_qt():
     """Check Qt binding requirements"""
-    qt_infos = dict(pyqt=("PyQt4", "4.6"), pyside=("PySide", "1.1.1"))
+    qt_infos = dict(pyqt=("PyQt4", "4.6"), pyside=("PySide", "1.2.0"))
     try:
         from spyderlib import qt
         package_name, required_ver = qt_infos[qt.API]
