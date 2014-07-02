@@ -60,8 +60,11 @@ def get_versions(reporev=True):
     """Get version information for components used by Spyder"""
     import sys
     import platform
-    import spyderlib.qt
-    import spyderlib.qt.QtCore
+    try:
+        from IPython.external import qt
+    except ImportError:
+        from spyderlib import qt
+    import qt.QtCore
 
     revision = None
     if reporev:
@@ -78,9 +81,9 @@ def get_versions(reporev=True):
         'spyder': __version__,
         'python': platform.python_version(),  # "2.7.3"
         'bitness': 64 if sys.maxsize > 2**32 else 32,
-        'qt': spyderlib.qt.QtCore.__version__,
-        'qt_api': spyderlib.qt.API_NAME,      # PySide or PyQt4
-        'qt_api_ver': spyderlib.qt.__version__,
+        'qt': qt.QtCore.__version__,
+        'qt_api': qt.API_NAME,      # PySide or PyQt4
+        'qt_api_ver': qt.__version__,
         'system': system,   # Linux, Windows, ...
         'revision': revision,  # '9fdf926eccce+:2430+'
     }
