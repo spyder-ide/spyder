@@ -50,23 +50,6 @@ dependencies.add("IPython", _("IPython Console integration"),
 dependencies.add("zmq", _("IPython Console integration"),
                  required_version='>=2.1.11')
 
-if IPYTHON_QT_INSTALLED:
-    # Importing IPython will eventually set the QT_API environment variable
-    import IPython  # analysis:ignore
-    if os.environ.get('QT_API', 'pyqt') == 'pyqt':
-        # If PyQt is the selected GUI toolkit (at this stage, only the
-        # bootstrap script has eventually set this option), switch to 
-        # PyQt API #2 by simply importing the IPython qt module
-        os.environ['QT_API'] = 'pyqt'
-        try:
-            from IPython.external import qt  #analysis:ignore
-        except ImportError:
-            # Avoid raising any error here: the spyderlib.requirements module
-            # will take care of it, in a user-friendly way (Tkinter message box
-            # if no GUI toolkit is installed)
-            pass
-
-
 #==============================================================================
 # Check requirements
 #==============================================================================
