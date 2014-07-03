@@ -39,7 +39,15 @@ ORIGINAL_SYS_EXIT = sys.exit
 
 
 #==============================================================================
-# Test if IPython v0.13+ is installed to eventually switch to PyQt API #2
+# Check requirements
+#==============================================================================
+from spyderlib import requirements
+requirements.check_path()
+requirements.check_qt()
+
+
+#==============================================================================
+# Check optional features: IPython v0.13+ integration
 #==============================================================================
 from spyderlib.baseconfig import _
 from spyderlib.ipythonconfig import IPYTHON_QT_INSTALLED, SUPPORTED_IPYTHON
@@ -50,16 +58,9 @@ dependencies.add("IPython", _("IPython Console integration"),
 dependencies.add("zmq", _("IPython Console integration"),
                  required_version='>=2.1.11')
 
-#==============================================================================
-# Check requirements
-#==============================================================================
-from spyderlib import requirements
-requirements.check_path()
-requirements.check_qt()
-
 
 #==============================================================================
-# Windows platforms only: support for hiding the attached console window
+# Windows only: support for hiding console window when started with python.exe
 #==============================================================================
 set_attached_console_visible = None
 is_attached_console_visible = None
