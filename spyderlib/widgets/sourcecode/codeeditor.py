@@ -331,9 +331,6 @@ class CodeEditor(TextEditBaseWidget):
         # Caret (text cursor)
         self.setCursorWidth( CONF.get('editor_appearance', 'cursor/width') )
 
-        # Side areas background color
-        self.area_background_color = QColor(Qt.white)
-
         # 79-col edge line
         self.edge_line_enabled = True
         self.edge_line = EdgeLine(self)
@@ -358,6 +355,26 @@ class CodeEditor(TextEditBaseWidget):
                      self.update_linenumberarea)
         self.linenumberarea_pressed = None
         self.linenumberarea_released = None
+
+        # Colors to use in numbers and background 
+        # look into: def _apply_highlighter_color_scheme
+        # FIXME: Should all the default scheme colors be defined here?  
+#        self.area_background_color = QColor("#ffffff")         
+        self.currentline_color = QColor("#f7ecf8")
+        self.currentcell_color = QColor("#fdfdde")
+        self.occurence_color = QColor("#ffff99",)
+        self.ctrl_click_color = QColor("#0000ff")
+        self.sideareas_color = QColor("#efefef")
+        self.matched_p_color = QColor("#99ff99")
+        self.unmatched_p_color = QColor("#ff9999")
+        self.normal_color = QColor("#000000") # ('#000000', False, False),)
+        #self.keyword_color = QColor('#0000ff') # ('#0000ff', False, False),
+        #self.builtin_color = QColor('#900090') # ('#900090', False, False),
+        #self.definition_color = QColor('#000000') # ('#000000', True, False),
+        self.comment_color = QColor('#adadad') # ('#adadad', False, True),
+        #self.string_color = QColor('#00aa00') # ('#00aa00', False, False),
+        #self.number_color = QColor('#00aa00') # ('#00aa00', False, False),
+        #self.instance_color = QColor('#924900') # ('#924900', False, True),
 
         # --- Syntax highlight entrypoint ---
         #
@@ -966,11 +983,16 @@ class CodeEditor(TextEditBaseWidget):
 
     def linenumberarea_paint_event(self, event):
         """Painting line number area"""
+        back_color = self.sideareas_color
+        number_color = self.comment_color
+        active_number_color = self.normal_color
+        cell_line_color = self.currentcell_color
+
         painter = QPainter(self.linenumberarea)
-        painter.fillRect(event.rect(), self.area_background_color)
+        painter.fillRect(event.rect(), back_color)
         font = painter.font()
         font_height = self.fontMetrics().height()
-        
+
         block = self.firstVisibleBlock()
         block_number = block.blockNumber()
         active_block = self.textCursor().block()
@@ -985,21 +1007,21 @@ class CodeEditor(TextEditBaseWidget):
         while block.isValid() and top <= event.rect().bottom():
             if block.isVisible() and bottom >= event.rect().top():
                 line_number = block_number+1
-                painter.setPen(Qt.darkGray)
                 if self.is_cell_separator(block):
-                    painter.setPen(Qt.red)
+                    painter.setPen(cell_line_color)
                     painter.drawLine(0, top, self.linenumberarea.width(), top)
                 if self.linenumbers_margin:
                     if line_number == active_line_number:
                         font.setWeight(font.Bold)
                         painter.setFont(font)
-                        painter.setPen(Qt.black)
+                        painter.setPen(active_number_color)
                     else:
                         font.setWeight(font.Normal)
                         painter.setFont(font)
-                        painter.setPen(Qt.darkGray)                    
+                        painter.setPen(number_color)
                     painter.drawText(0, top, self.linenumberarea.width(),
-                                     font_height, Qt.AlignRight|Qt.AlignBottom,
+                                     font_height,
+                                     Qt.AlignRight | Qt.AlignBottom,
                                      to_text_string(line_number))
                 data = block.userData()
                 if self.markers_margin and data:
@@ -1215,7 +1237,7 @@ class CodeEditor(TextEditBaseWidget):
         
         # Filling the whole painting area
         painter = QPainter(self.scrollflagarea)
-        painter.fillRect(event.rect(), self.area_background_color)
+        painter.fillRect(event.rect(), self.sideareas_color)
         block = self.document().firstBlock()
         
         # Painting warnings and todos
@@ -1321,7 +1343,10 @@ class CodeEditor(TextEditBaseWidget):
             self.currentcell_color = hl.get_currentcell_color()
             self.occurence_color = hl.get_occurence_color()
             self.ctrl_click_color = hl.get_ctrlclick_color()
-            self.area_background_color = hl.get_sideareas_color()
+            self.sideareas_color = hl.get_sideareas_color()
+#            self.area_background_color = hl.get_background_color()
+            self.comment_color = hl.get_comment_color()
+            self.normal_color = hl.get_foreground_color()
             self.matched_p_color = hl.get_matched_p_color()
             self.unmatched_p_color = hl.get_unmatched_p_color()
 
