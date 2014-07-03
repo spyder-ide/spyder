@@ -55,6 +55,8 @@ spyderlib/images/editor/function.png
 spyderlib/images/editor/method.png
 spyderlib/images/editor/private1.png
 spyderlib/images/editor/private2.png
+spyderlib/images/editor/cell.png
+spyderlib/images/editor/blockcomment.png
 spyderlib/images/editor/refactor.png
 spyderlib/images/console/ipython_console.png
 spyderlib/images/console/ipython_console_t.png
