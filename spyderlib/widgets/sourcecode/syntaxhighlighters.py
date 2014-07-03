@@ -86,6 +86,7 @@ class BaseSH(QSyntaxHighlighter):
         self.sideareas_color = None
         self.matched_p_color = None
         self.unmatched_p_color = None
+        self.comment_color = None 
 
         self.formats = None
         self.setup_formats(font)
@@ -117,6 +118,9 @@ class BaseSH(QSyntaxHighlighter):
     
     def get_unmatched_p_color(self):
         return QColor(self.unmatched_p_color)
+
+    def get_comment_color(self):
+        return QColor(self.comment_color)
     
     def get_color_name(self, fmt):
         """Return color name assigned to a given format"""
@@ -146,7 +150,8 @@ class BaseSH(QSyntaxHighlighter):
                 format.setFontWeight(QFont.Bold)
             format.setFontItalic(italic)
             self.formats[name] = format
-
+        self.comment_color = self.formats['comment'].foreground() #FIXME:
+        
     def _check_color_scheme(self, color_scheme):
         if is_text_string(color_scheme):
             assert color_scheme in COLOR_SCHEME_NAMES
