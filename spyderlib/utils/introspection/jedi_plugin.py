@@ -54,8 +54,8 @@ class JediPlugin(IntrospectionPlugin):
         with self.jedi_lock:
             jedi.settings.case_insensitive_completion = False
         self._warming_up = True
-        self._startup_thread = threading.thread(self.preload, ('numpy', 
-                                                               'scipy.stats'))
+        self._startup_thread = threading.Thread(target=self.preload, 
+                                                args=('numpy', 'scipy.stats'))
         self._startup_thread.start()
 
     @fallback
@@ -176,7 +176,10 @@ class JediPlugin(IntrospectionPlugin):
         name = call_def.name
         if name is None:
             return
-        mod_name = self.get_parent_until(call_def.module_path)
+        if call_def.module_path:
+            mod_name = self.get_parent_until(call_def.module_path)
+        else:
+            mod_name = None
         if not mod_name:
             mod_name = call_def.module_name
         if call_def.doc.startswith(name + '('):
@@ -200,6 +203,8 @@ class JediPlugin(IntrospectionPlugin):
         else:
             note = '%s in %s module' % (call_def.type.capitalize(),
                                         mod_name)
+        argspec = argspec.replace(' = ', '=')
+        calltip = calltip.replace(' = ', '=')
         doc_text = dict(name=call_def.name, argspec=argspec,
                         note=note, docstring=docstring)
         return calltip, doc_text
@@ -263,25 +268,32 @@ if __name__ == '__main__':
     
     p = JediPlugin()
     p.load_plugin()
+    
+    print('Warming up Jedi')
+    t0 = time.time()
+    while p._warming_up:
+        time.sleep(0.1)
+    print('Warmed up in %0.1f s' % (time.time() - t0))
 
     source_code = "import numpy; numpy.ones("
     calltip, docs = p.get_calltip_and_docs(source_code, len(source_code),
-                                           __file__)
+                                           None)
                         
     assert calltip.startswith('ones(') and docs['name'] == 'ones'
     
     source_code = "import n"
     completions = p.get_completion_list(source_code, len(source_code),
-                                        __file__)
+                                        None)
     assert 'numpy' in completions 
     
     source_code = "import matplotlib.pyplot as plt; plt.imsave"
     path, line_nr = p.get_definition_location(source_code, len(source_code),
-                                            __file__)
+                                              None)
     assert 'pyplot.py' in path 
     
     source_code = 'from .base import memoize'
     path, line_nr = p.get_definition_location(source_code, len(source_code),
-                                            __file__)
+                                              __file__)
     assert 'base.py' in path and 'introspection' in path
+
 
