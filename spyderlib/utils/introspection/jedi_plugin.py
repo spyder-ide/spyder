@@ -24,17 +24,16 @@ from spyderlib.utils.introspection.base import (
 
 try:
     import jedi
-    if isinstance(jedi.__version__, tuple):
-        jedi.__version__ = '.'.join(str(i) for i in jedi.__version__)
 except ImportError:
     jedi = None
+    
 
 JEDI_REQVER = '>=0.8.0'
 dependencies.add('jedi',
                  _("(Experimental) Editor's code completion,"
                    " go-to-definition and help"),
                  required_version=JEDI_REQVER)
-
+            
 
 class JediPlugin(IntrospectionPlugin):
     """
@@ -54,6 +53,10 @@ class JediPlugin(IntrospectionPlugin):
             raise ImportError('Requires Jedi %s' % JEDI_REQVER)
         with self.jedi_lock:
             jedi.settings.case_insensitive_completion = False
+        self._warming_up = True
+        self._startup_thread = threading.thread(self.preload, ('numpy', 
+                                                               'scipy.stats'))
+        self._startup_thread.start()
 
     @fallback
     def get_completion_list(self, source_code, offset, filename):
@@ -138,8 +141,8 @@ class JediPlugin(IntrospectionPlugin):
 
     def get_jedi_object(self, source_code, line, col, filename, func_name):
         """Call a desired function on a Jedi Script and return the result"""
-        if not jedi:
-            return
+        if not jedi or self._warming_up:
+            raise  # trigger the super class
         if DEBUG_EDITOR:
             t0 = time.time()
         # override IPython qt_loaders ImportDenier behavior
@@ -147,17 +150,18 @@ class JediPlugin(IntrospectionPlugin):
         for meta in metas:
             if meta.__class__.__name__ == 'ImportDenier' and hasattr(meta, 'forbid'):
                 sys.meta_path.remove(meta)
-        with self.jedi_lock:
-            try:
+        
+        try:
+            with self.jedi_lock:
                 script = jedi.Script(source_code, line, col, filename)
-                func = getattr(script, func_name)
-                val = func()
-            except Exception as e:
-                val = None
-                debug_print('Jedi error (%s)' % func_name)
-                debug_print(str(e))
-                if DEBUG_EDITOR:
-                    log_last_error(LOG_FILENAME, str(e))
+            func = getattr(script, func_name)
+            val = func()
+        except Exception as e:
+            val = None
+            debug_print('Jedi error (%s)' % func_name)
+            debug_print(str(e))
+            if DEBUG_EDITOR:
+                log_last_error(LOG_FILENAME, str(e))
         if DEBUG_EDITOR:
             log_dt(LOG_FILENAME, func_name, t0)
         if not val and filename:
@@ -246,7 +250,14 @@ class JediPlugin(IntrospectionPlugin):
         if not ext in self.all_editable_exts():
             line_nr = None
         return module_path, line_nr
-
+        
+    def preload(self, *libs):
+        """Preload a list of libraries"""
+        for lib in libs:
+            with self.jedi_lock:
+                jedi.preload_module(lib)
+        self._warming_up = False
+            
 
 if __name__ == '__main__':
     
