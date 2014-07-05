@@ -17,14 +17,13 @@ Handles IPython clients (and in the future, will handle IPython kernels too
 # Qt imports
 from spyderlib.qt.QtGui import (QVBoxLayout, QHBoxLayout, QFormLayout, 
                                 QMessageBox, QGroupBox, QDialogButtonBox,
-                                QDialog, QFileDialog,
-                                QTabWidget, QFontComboBox, QApplication,
-                                QLabel, QLineEdit, QPushButton)
+                                QDialog, QTabWidget, QFontComboBox, 
+                                QApplication, QLabel, QLineEdit, QPushButton)
+from spyderlib.qt.compat import getopenfilename
 from spyderlib.qt.QtCore import SIGNAL, Qt, QUrl
 
 # Stdlib imports
 import sys
-import os
 import os.path as osp
 
 # IPython imports
@@ -416,20 +415,14 @@ class KernelConnectionDialog(QDialog):
         form.addRow(accept_btns)
 
     def selectConnectionFile(self):
-        cf = QFileDialog.getOpenFileName(self, 'Open Python connection file',
+        cf = getopenfilename(self, 'Open Python connection file',
                  osp.join(get_ipython_dir(), 'profile_default', 'security'),
-                 '*.json;;*.*')
-        # Pyside's QFileDialog returns a tuple
-        if os.environ['QT_API'] == 'pyside':
-            cf = cf[0]
+                 '*.json;;*.*')[0]
         self.cf.setText(cf)
 
     def selectSshKey(self):
-        kf = QFileDialog.getOpenFileName(self, 'Select ssh key', 
-                                             get_ipython_dir(), '*.pem;;*.*')
-        # Pyside's QFileDialog returns a tuple
-        if os.environ['QT_API'] == 'pyside':
-            kf = kf[0]
+        kf = getopenfilename(self, 'Select ssh key', 
+                             get_ipython_dir(), '*.pem;;*.*')[0]
         self.kf.setText(kf)
 
     @staticmethod
@@ -796,12 +789,9 @@ class IPythonConsole(SpyderPluginWidget):
                 return
         else:
             # Select json connection file
-            cf = QFileDialog.getOpenFileName(self, 'Open Python connection file',
+            cf = getopenfilename(self, 'Open Python connection file',
                      osp.join(get_ipython_dir(), 'profile_default', 'security'),
-                     '*.json;;*.*')
-            # Pyside's QFileDialog returns a tuple
-            if os.environ['QT_API'] == 'pyside':
-                cf = cf[0]
+                     '*.json;;*.*')[0]
             # If Cancel button clicked, cf is the empty string. Abort
             if not cf:
                 return
