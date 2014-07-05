@@ -8,11 +8,11 @@
 
   * Editor
     * Use the Tab key to do code completions
-    * Highlighting cells, i.e. portions of a file delimited by separators of the form `# %%`
+    * Highlight cells, i.e. portions of a file delimited by separators of the form `# %%`
     * First-class support for Enaml files
     * Syntax highlighting for Julia files
-    * Use Shift+Tab to show the signature corresponding to a function while it's been called
-    * Do code completions using the tokens (or words) found in a file, in case it can't be found other completions to offer
+    * Use Shift+Tab to show the signature corresponding to a function/method while it's been called
+    * Do code completions using the tokens (or words) found in a file
     * Token-based completions work for any file type supported by the Editor
     * Add a new tooltip widget (borrowed from the IPython project) to better handle how to show function signatures
     
@@ -31,7 +31,7 @@
 
   * Under the hood
     * Improve startup time
-    * Develop a new way to update config defaults (that doesn't involve resetting user settings)
+    * Develop a new way to update configuration defaults (that doesn't involve resetting user settings)
 
 === Bug fixes (since v2.2) ===
 
@@ -101,6 +101,7 @@
   * Issue  1829  Keyboard shortcuts, Reset to default values errors
   * Issue  1836  [CTRL]+F4 does not close tabs
   * Issue  1879  Can't start bootstrap.py with pyqt
+  * Issue  1881  Bootstrap.py won't start with python3
 
 
 ----
