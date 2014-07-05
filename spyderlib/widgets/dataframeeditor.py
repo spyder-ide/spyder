@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2014 Daniel Høegh
-# Licensed under the terms of the MIT License
+# Copyright © 2014 Spyder development team
+# Licensed under the terms of the New BSD License
+# DataFrameModel is based on the class ArrayModel from array editor
+# and the class DataFrameModel from the pandas project.
+# Present in pandas.sandbox.qtpandas in v0.13.1
+# Copyright (c) 2011-2012, Lambda Foundry, Inc.
+# and PyData Development Team All rights reserved
 """
 Pandas DataFrame Editor Dialog based on Qt
 """
-from __future__ import unicode_literals
 
 from spyderlib.qt.QtCore import (QAbstractTableModel, Qt, QModelIndex,
                                  SIGNAL, SLOT)
@@ -46,14 +50,7 @@ def global_max(col_vals, index):
     return max(max_col), min(min_col)
 
 class DataFrameModel(QAbstractTableModel):
-    """
-    Data model for a DataFrame class
-    Based on the class ArrayModel from array editor and the
-    class DataFrameModel from the pandas project.
-    Present in pandas.sandbox.qtpandas in v0.13.1
-    Copyright (c) 2011-2012, Lambda Foundry, Inc.
-    and PyData Development Team All rights reserved
-    """
+    """ DataFrame Table Model"""
     def __init__(self, dataFrame, format="%.3g", parent=None):
         QAbstractTableModel.__init__(self)
         self.dialog = parent
@@ -90,8 +87,10 @@ class DataFrameModel(QAbstractTableModel):
             df_real = self.df[mask]
             max_r = df_real.max(skipna=True)
             min_r = df_real.min(skipna=True)
-            self.max_min_col = list(zip(DataFrame([max_c, max_r]).max(skipna=True),
-                                        DataFrame([min_c, min_r]).min(skipna=True)))
+            self.max_min_col = list(zip(DataFrame([max_c,
+                                                   max_r]).max(skipna=True),
+                                        DataFrame([min_c,
+                                                   min_r]).min(skipna=True)))
         self.max_min_col = [[vmax, vmin-1] if vmax == vmin else [vmax, vmin]
                             for vmax, vmin in self.max_min_col]
 
@@ -312,12 +311,13 @@ class DataFrameView(QTableView):
                                     triggered=self.copy,
                                     context=Qt.WidgetShortcut)
         functions = (("To bool", bool), ("To complex", complex),
-                     ("To int", int), ("To float", float), 
+                     ("To int", int), ("To float", float),
                      ("To str", to_text_string))
         types_in_menu = [copy_action]
         for name, func in functions:
             types_in_menu += [create_action(self, _(name),
-                                            triggered=lambda func=func: self.change_type(func),
+                                            triggered=lambda func=func:
+                                                      self.change_type(func),
                                             context=Qt.WidgetShortcut)]
         menu = QMenu(self)
         add_actions(menu, types_in_menu)
@@ -331,7 +331,8 @@ class DataFrameView(QTableView):
 
     def copy(self, index=False, header=False):
         """Copy text to clipboard"""
-        row_min, row_max, col_min, col_max = get_idx_rect(self.selectedIndexes())
+        (row_min, row_max, 
+         col_min, col_max) = get_idx_rect(self.selectedIndexes())
         if col_min == 0:
             col_min = 1
             index = True
