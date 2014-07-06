@@ -380,6 +380,17 @@ class DataFrameEditor(QDialog):
             title = to_text_string(title)  # in case title is not a string
         else:
             title = _("Data Frame editor")
+        size = 1
+        for dim in dataFrame.shape:
+            size *= dim
+        if size > 1e7:
+            answer = QMessageBox.warning(self, _("Data Frame editor"),
+                                         _("Opening the DataFrame can"
+                                           " take a while\n"
+                                           "Do you want to continue anyway?"),
+                                         QMessageBox.Yes | QMessageBox.No)
+            if answer == QMessageBox.No:
+                return
         self.setWindowTitle(title)
         self.resize(600, 500)
 
@@ -487,7 +498,8 @@ def test():
     print("out:", out)
     out = test_edit(df1.iloc[0])
     print("out:", out)
-    df1 = DataFrame(np.random.rand(1000, 10))
+    df1 = DataFrame(np.random.rand(1000001, 10))
+    #Sorting large DataFrame takes time
     df1.sort(columns=[0, 1], inplace=True)
     out = test_edit(df1)
     print("out:", out)
