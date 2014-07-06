@@ -15,7 +15,7 @@ import re
 # Local imports
 from spyderlib.py3compat import (NUMERIC_TYPES, TEXT_TYPES,
                                  to_text_string, is_text_string)
-
+from spyderlib.utils import programs
 
 #----Numpy arrays support
 class FakeObject(object):
@@ -27,9 +27,9 @@ try:
     from numpy.ma import MaskedArray
 except ImportError:
     ndarray = array = matrix = MaskedArray = FakeObject  # analysis:ignore
-try: 
+if programs.is_module_installed('pandas', '>=0.13.1'):
     from pandas import DataFrame, TimeSeries
-except ImportError:
+else:
     DataFrame = TimeSeries = FakeObject
     
 def get_numpy_dtype(obj):
