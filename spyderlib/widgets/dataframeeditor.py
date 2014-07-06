@@ -372,7 +372,7 @@ class DataFrameEditor(QDialog):
         size = 1
         for dim in dataFrame.shape:
             size *= dim
-        if size > 1e7:
+        if size > 1e6:
             answer = QMessageBox.warning(self, _("Data Frame editor"),
                                          _("Opening the DataFrame can"
                                            " take a while\n"
