@@ -369,6 +369,18 @@ class DataFrameEditor(QDialog):
         Setup DataFrameEditor:
         return False if data is not supported, True otherwise
         """
+        size = 1
+        for dim in dataFrame.shape:
+            size *= dim
+        if size > 1e7:
+            answer = QMessageBox.warning(self, _("Data Frame editor"),
+                                         _("Opening the DataFrame can"
+                                           " take a while\n"
+                                           "Do you want to continue anyway?"),
+                                         QMessageBox.Yes | QMessageBox.No)
+            if answer == QMessageBox.No:
+                return
+        
         if isinstance(dataFrame, TimeSeries):
             self.is_time_series = True
             dataFrame = dataFrame.to_frame()
@@ -380,17 +392,6 @@ class DataFrameEditor(QDialog):
             title = to_text_string(title)  # in case title is not a string
         else:
             title = _("Data Frame editor")
-        size = 1
-        for dim in dataFrame.shape:
-            size *= dim
-        if size > 1e6:
-            answer = QMessageBox.warning(self, _("Data Frame editor"),
-                                         _("Opening the DataFrame can"
-                                           " take a while\n"
-                                           "Do you want to continue anyway?"),
-                                         QMessageBox.Yes | QMessageBox.No)
-            if answer == QMessageBox.No:
-                return
         self.setWindowTitle(title)
         self.resize(600, 500)
 
