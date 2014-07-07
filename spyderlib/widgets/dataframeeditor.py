@@ -17,14 +17,15 @@ from spyderlib.qt.QtGui import (QDialog, QTableView, QColor, QGridLayout,
                                 QDialogButtonBox, QHBoxLayout, QPushButton,
                                 QCheckBox, QMessageBox, QInputDialog,
                                 QLineEdit, QApplication, QMenu)
-
-from spyderlib.baseconfig import _
-from spyderlib.guiconfig import get_font
 from spyderlib.qt.compat import to_qvariant, from_qvariant
 from spyderlib.utils.qthelpers import (qapplication, get_icon, create_action,
                                        add_actions, keybinding)
+
+from spyderlib.baseconfig import _
+from spyderlib.guiconfig import get_font
 from spyderlib.py3compat import io, is_text_string, to_text_string
 from spyderlib.widgets.arrayeditor import get_idx_rect
+
 from pandas import DataFrame, TimeSeries
 import numpy as np
 
@@ -44,10 +45,12 @@ def bool_false_check(value):
         value = ''
     return value
 
+
 def global_max(col_vals, index):
     """Returns the global maximum and minimum"""
     max_col, min_col = zip(*col_vals)
     return max(max_col), min(min_col)
+
 
 class DataFrameModel(QAbstractTableModel):
     """ DataFrame Table Model"""
@@ -265,7 +268,7 @@ class DataFrameModel(QAbstractTableModel):
     def columnCount(self, index=QModelIndex()):
         """DataFrame column number"""
         shape = self.df.shape
-        #this is done to implement timeseries
+        # This is done to implement timeseries
         if len(shape) == 1:
             return 2
         else:
@@ -331,7 +334,7 @@ class DataFrameView(QTableView):
 
     def copy(self, index=False, header=False):
         """Copy text to clipboard"""
-        (row_min, row_max, 
+        (row_min, row_max,
          col_min, col_max) = get_idx_rect(self.selectedIndexes())
         if col_min == 0:
             col_min = 1
@@ -364,26 +367,24 @@ class DataFrameEditor(QDialog):
         self.is_time_series = False
         self.layout = None
 
-    def setup_and_check(self, dataFrame, title=''):
+    def setup_and_check(self, data, title=''):
         """
         Setup DataFrameEditor:
         return False if data is not supported, True otherwise
         """
         size = 1
-        for dim in dataFrame.shape:
+        for dim in data.shape:
             size *= dim
         if size > 1e6:
-            answer = QMessageBox.warning(self, _("Data Frame editor"),
-                                         _("Opening the DataFrame can"
-                                           " take a while\n"
-                                           "Do you want to continue anyway?"),
+            answer = QMessageBox.warning(self, _("%s editor"
+                                                 % data.__class__.__name__),
+                                         _("Opening and browsing this "
+                                           "%s can be slow\n\n"
+                                           "Do you want to continue anyway?"
+                                           % data.__class__.__name__),
                                          QMessageBox.Yes | QMessageBox.No)
             if answer == QMessageBox.No:
                 return
-        
-        if isinstance(dataFrame, TimeSeries):
-            self.is_time_series = True
-            dataFrame = dataFrame.to_frame()
 
         self.layout = QGridLayout()
         self.setLayout(self.layout)
@@ -391,11 +392,15 @@ class DataFrameEditor(QDialog):
         if title:
             title = to_text_string(title)  # in case title is not a string
         else:
-            title = _("Data Frame editor")
+            title = _("%s editor" % data.__class__.__name__)
+        if isinstance(data, TimeSeries):
+            self.is_time_series = True
+            data = data.to_frame()
+
         self.setWindowTitle(title)
         self.resize(600, 500)
 
-        self.dataModel = DataFrameModel(dataFrame, parent=self)
+        self.dataModel = DataFrameModel(data, parent=self)
         self.dataTable = DataFrameView(self, self.dataModel)
 
         self.layout.addWidget(self.dataTable)
@@ -482,6 +487,7 @@ def test_edit(data, title="", parent=None):
         import sys
         sys.exit()
 
+
 def test():
     """DataFrame editor test"""
     from numpy import nan
@@ -500,13 +506,14 @@ def test():
     out = test_edit(df1.iloc[0])
     print("out:", out)
     df1 = DataFrame(np.random.rand(100001, 10))
-    #Sorting large DataFrame takes time
+    # Sorting large DataFrame takes time
     df1.sort(columns=[0, 1], inplace=True)
     out = test_edit(df1)
     print("out:", out)
     out = test_edit(TimeSeries(np.arange(10)))
     print("out:", out)
     return out
+
 
 if __name__ == '__main__':
     _app = qapplication()
