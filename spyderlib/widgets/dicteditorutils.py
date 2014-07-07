@@ -29,6 +29,7 @@ try:
     from numpy.ma import MaskedArray
 except ImportError:
     ndarray = array = matrix = MaskedArray = FakeObject  # analysis:ignore
+
 Pandas_REQVER = '>=0.13.1'
 dependencies.add('pandas',
                  _("For viewing and editing pandas DataFrames and Series"),
@@ -37,7 +38,8 @@ if programs.is_module_installed('pandas', '>=0.13.1'):
     from pandas import DataFrame, TimeSeries
 else:
     DataFrame = TimeSeries = FakeObject
-    
+
+
 def get_numpy_dtype(obj):
     """Return NumPy data type associated to obj
     Return None if NumPy is not available
