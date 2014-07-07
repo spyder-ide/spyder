@@ -16,6 +16,8 @@ import re
 from spyderlib.py3compat import (NUMERIC_TYPES, TEXT_TYPES,
                                  to_text_string, is_text_string)
 from spyderlib.utils import programs
+from spyderlib import dependencies
+from spyderlib.baseconfig import _
 
 #----Numpy arrays support
 class FakeObject(object):
@@ -27,6 +29,10 @@ try:
     from numpy.ma import MaskedArray
 except ImportError:
     ndarray = array = matrix = MaskedArray = FakeObject  # analysis:ignore
+Pandas_REQVER = '>=0.13.1'
+dependencies.add('pandas',
+                 _("For viewing and editing pandas DataFrames and Series"),
+                 required_version=Pandas_REQVER)
 if programs.is_module_installed('pandas', '>=0.13.1'):
     from pandas import DataFrame, TimeSeries
 else:
