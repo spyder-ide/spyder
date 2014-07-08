@@ -39,9 +39,9 @@ def is_attached_console_visible():
 def set_windows_appusermodelid():
     """Make sure correct icon is used on Windows 7 taskbar"""
     try:
-        windll.shell32.SetCurrentProcessExplicitAppUserModelID("spyderlib.Spyder")
+        return windll.shell32.SetCurrentProcessExplicitAppUserModelID("spyderlib.Spyder")
     except AttributeError:
-        pass
+        return "SetCurrentProcessExplicitAppUserModelID not found"
 
 
 # [ ] the console state asks for a storage container

@@ -448,7 +448,8 @@ class MainWindow(QMainWindow):
         # Resampling SVG icon only on non-Windows platforms (see Issue 1314):
         self.setWindowIcon(get_icon(icon_name, resample=os.name != 'nt'))
         if set_windows_appusermodelid != None:
-            set_windows_appusermodelid()
+            res = set_windows_appusermodelid()
+            debug_print("appusermodelid: " + str(res))
         
         # Showing splash screen
         self.splash = SPLASH
