@@ -36,6 +36,13 @@ def is_attached_console_visible():
     """Return True if attached console window is visible"""
     return IsWindowVisible(console_window_handle)
 
+def set_windows_appusermodelid():
+    """Make sure correct icon is used on Windows 7 taskbar"""
+    try:
+        windll.shell32.SetCurrentProcessExplicitAppUserModelID("spyderlib.Spyder")
+    except AttributeError:
+        pass
+
 
 # [ ] the console state asks for a storage container
 # [ ] reopen console on exit - better die open than become a zombie
