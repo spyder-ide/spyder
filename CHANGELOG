@@ -82,6 +82,7 @@
   * Issue  1695  Add "psutil" to the list of optional dependancies
   * Issue  1696  Check marks in display > windows menu are unchecked by moving plugins
   * Issue  1697  Variable explorer freezes spyder
+  * Issue  1701  pip install spyder does not work any longer (pip version >=1.5)
   * Issue  1715  debian lintian4py check
   * Issue  1716  Add new icon and scripts for python3 in Linux
   * Issue  1723  .pyx Comment and syntax color error in editor
