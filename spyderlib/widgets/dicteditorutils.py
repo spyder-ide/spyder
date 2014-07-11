@@ -15,7 +15,9 @@ import re
 # Local imports
 from spyderlib.py3compat import (NUMERIC_TYPES, TEXT_TYPES,
                                  to_text_string, is_text_string)
-
+from spyderlib.utils import programs
+from spyderlib import dependencies
+from spyderlib.baseconfig import _
 
 #----Numpy arrays support
 class FakeObject(object):
@@ -27,6 +29,15 @@ try:
     from numpy.ma import MaskedArray
 except ImportError:
     ndarray = array = matrix = MaskedArray = FakeObject  # analysis:ignore
+
+Pandas_REQVER = '>=0.13.1'
+dependencies.add('pandas',
+                 _("For viewing and editing pandas DataFrames and Series"),
+                 required_version=Pandas_REQVER)
+if programs.is_module_installed('pandas', '>=0.13.1'):
+    from pandas import DataFrame, TimeSeries
+else:
+    DataFrame = TimeSeries = FakeObject
 
 
 def get_numpy_dtype(obj):
@@ -169,14 +180,23 @@ def get_size(item):
         return item.shape
     elif isinstance(item, Image):
         return item.size
+    if isinstance(item, (DataFrame, TimeSeries)):
+        return item.shape
     else:
         return 1
 
 def get_type_string(item):
     """Return type string of an object"""
     found = re.findall(r"<(?:type|class) '(\S*)'>", str(type(item)))
+    
+    if isinstance(item, DataFrame):
+        return "DataFrame"
+    if isinstance(item, TimeSeries):
+        return "TimeSeries"
+       
     if found:
         return found[0]
+    
 
 def is_known_type(item):
     """Return True if object has a known type"""
@@ -201,6 +221,8 @@ def get_human_readable_type(item):
 def is_supported(value, check_all=False, filters=None, iterate=True):
     """Return True if the value is supported, False otherwise"""
     assert filters is not None
+    if isinstance(value, (DataFrame, TimeSeries)):
+        return True
     if not is_editable_type(value):
         return False
     elif not isinstance(value, filters):
