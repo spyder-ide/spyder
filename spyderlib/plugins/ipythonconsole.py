@@ -705,7 +705,8 @@ class IPythonConsole(SpyderPluginWidget):
                                           sshserver, sshkey)
                     kernel_client.shell_port, kernel_client.iopub_port, \
                     kernel_client.stdin_port, kernel_client.hb_port = newports
-                except:
+                except Exception as e:
+                    print(e)
                     print("Could not ssh to kernel")
             kernel_client.start_channels()
             # To rely on kernel's heartbeat to know when a kernel has died
@@ -723,8 +724,9 @@ class IPythonConsole(SpyderPluginWidget):
                                           sshserver, sshkey)
                     kernel_manager.shell_port, kernel_manager.iopub_port, \
                     kernel_manager.stdin_port, kernel_manager.hb_port = newports
-                except:
-                    print("Could not ssh to kernel")                  
+                except Exception as e:
+                    print(e)
+                    print("Could not ssh to kernel")
             kernel_manager.start_channels()
             return kernel_manager, None
 
