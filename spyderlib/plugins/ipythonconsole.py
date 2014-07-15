@@ -31,14 +31,15 @@ from IPython.config.loader import Config, load_pyconfig_files
 from IPython.core.application import get_ipython_dir
 from IPython.lib.kernel import find_connection_file, get_connection_info
 
-try:  # kernel_ver = '>=1.0'
-    from IPython.consoleapp import tunnel_to_kernel
+try:  # IPython = '>=1.0'
     from IPython.qt.manager import QtKernelManager
-except:  # kernel_ver = '<1.0'
-    from IPython.frontend.consoleapp import tunnel_to_kernel
+except:  # IPython = '<1.0'
     from IPython.frontend.qt.kernelmanager import QtKernelManager
-from IPython.utils.localinterfaces import LOCALHOST as localhost
-    
+try: # IPython = "<=2.0"
+    from IPython.external.ssh import tunnel
+except:
+    from zmq.ssh import tunnel
+
 # Local imports
 from spyderlib import dependencies
 from spyderlib.baseconfig import _
@@ -57,6 +58,15 @@ SYMPY_REQVER = '>=0.7.0'
 dependencies.add("sympy", _("Symbolic mathematics for the IPython Console"),
                  required_version=SYMPY_REQVER)
 
+#FIXME: timeout should be set in the preferences of Spyder
+def tunnel_to_kernel(cf, sshserver, sshkey=None, password=None, timeout=10):
+    """tunnel connections to a kernel via ssh"""
+    lports = tunnel.select_random_ports(4)
+    rports = cf['shell_port'], cf['iopub_port'], cf['stdin_port'], cf['hb_port']
+    remote_ip = cf['ip']   
+    for lp,rp in zip(lports, rports):
+        tunnel.ssh_tunnel(lp, rp, sshserver, remote_ip, sshkey, password, timeout)
+    return tuple(lports)
 
 class IPythonConsoleConfigPage(PluginConfigPage):
     
@@ -398,7 +408,11 @@ class KernelConnectionDialog(QDialog):
         kf_layout = QHBoxLayout()
         kf_layout.addWidget(self.kf)
         kf_layout.addWidget(kf_open_btn)
-                
+        
+        self.pw = QLineEdit()
+        self.pw.setPlaceholderText('Password or ssh key passphrase')
+        self.pw.setEchoMode(QLineEdit.Password)
+        
         # Ok and Cancel buttons
         accept_btns = QDialogButtonBox(
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
@@ -412,6 +426,7 @@ class KernelConnectionDialog(QDialog):
         form.addRow('Connection File', cf_layout)
         form.addRow('Host name', self.hn)
         form.addRow('Ssh key', kf_layout)
+        form.addRow('Password', self.pw)
         form.addRow(accept_btns)
 
     def selectConnectionFile(self):
@@ -434,6 +449,7 @@ class KernelConnectionDialog(QDialog):
         return (dialog.cf.text(),                # connection file
                 falsy_to_none(dialog.hn.text()), # host name
                 falsy_to_none(dialog.kf.text()), # ssh key file
+                falsy_to_none(dialog.pw.text()), # ssh password
                 result == QDialog.Accepted)      # ok
 
 class IPythonConsole(SpyderPluginWidget):
@@ -688,7 +704,7 @@ class IPythonConsole(SpyderPluginWidget):
         return programs.is_module_installed('IPython', version=kernel_ver)
 
     def create_kernel_manager_and_client(self, connection_file=None, \
-                                         sshserver=None, sshkey=None):
+                                         sshserver=None, sshkey=None, password=None):
         """Create kernel manager and client"""
         cf = find_connection_file(connection_file, profile='default')
         kernel_manager = QtKernelManager(connection_file=cf, config=None)
@@ -702,7 +718,7 @@ class IPythonConsole(SpyderPluginWidget):
                                           iopub_port=kernel_client.iopub_port,
                                           stdin_port=kernel_client.stdin_port,
                                           hb_port=kernel_client.hb_port),
-                                          sshserver, sshkey)
+                                          sshserver, sshkey, password)
                     kernel_client.shell_port, kernel_client.iopub_port, \
                     kernel_client.stdin_port, kernel_client.hb_port = newports
                 except Exception as e:
@@ -721,7 +737,7 @@ class IPythonConsole(SpyderPluginWidget):
                                           iopub_port=kernel_manager.iopub_port,
                                           stdin_port=kernel_manager.stdin_port,
                                           hb_port=kernel_manager.hb_port),
-                                          sshserver, sshkey)
+                                          sshserver, sshkey, password)
                     kernel_manager.shell_port, kernel_manager.iopub_port, \
                     kernel_manager.stdin_port, kernel_manager.hb_port = newports
                 except Exception as e:
@@ -735,7 +751,7 @@ class IPythonConsole(SpyderPluginWidget):
         Connect a client to its kernel
         """
         km, kc = self.create_kernel_manager_and_client(client.connection_file, 
-                                              client.sshserver, client.sshkey)
+                                              client.sshserver, client.sshkey, client.password)
         widget = client.shellwidget
         widget.kernel_manager = km
         widget.kernel_client = kc
@@ -786,7 +802,7 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Case of a remote kernel
         if is_remote:
-            cf, sshserver, kf, ok = KernelConnectionDialog.getConnectionParameters(self)
+            cf, sshserver, kf, pw, ok = KernelConnectionDialog.getConnectionParameters(self)
             if not ok:
                 return
         else:
@@ -799,6 +815,7 @@ class IPythonConsole(SpyderPluginWidget):
                 return
             
             kf = None
+            pw = None
             sshserver = None
 
         # Verifying if the connection file exists - in the case of an empty
@@ -848,7 +865,7 @@ class IPythonConsole(SpyderPluginWidget):
                                connection_file=cf,
                                kernel_widget_id=kernel_widget_id,
                                menu_actions=self.menu_actions,
-                               sshserver=sshserver, sshkey=kf)
+                               sshserver=sshserver, sshkey=kf, password=pw)
         
         # Adding the tab
         self.add_tab(client, name=client.get_name())
