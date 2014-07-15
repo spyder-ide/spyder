@@ -102,6 +102,7 @@ COLORS = {
           TEXT_TYPES:         "#800000",
           (ndarray,
            MaskedArray,
+           matrix,
            DataFrame,
            TimeSeries):       ARRAY_COLOR,
           Image:              "#008000",
