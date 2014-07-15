@@ -37,7 +37,7 @@ dependencies.add('pandas',
 if programs.is_module_installed('pandas', '>=0.13.1'):
     from pandas import DataFrame, TimeSeries
 else:
-    DataFrame = TimeSeries = FakeObject
+    DataFrame = TimeSeries = FakeObject      # analysis:ignore
 
 
 def get_numpy_dtype(obj):
@@ -101,7 +101,9 @@ COLORS = {
           tuple:              "#c0c0c0",
           TEXT_TYPES:         "#800000",
           (ndarray,
-           MaskedArray):      ARRAY_COLOR,
+           MaskedArray,
+           DataFrame,
+           TimeSeries):       ARRAY_COLOR,
           Image:              "#008000",
           datetime.date:      "#808000",
           }
@@ -187,13 +189,11 @@ def get_size(item):
 
 def get_type_string(item):
     """Return type string of an object"""
-    found = re.findall(r"<(?:type|class) '(\S*)'>", str(type(item)))
-    
     if isinstance(item, DataFrame):
         return "DataFrame"
     if isinstance(item, TimeSeries):
-        return "TimeSeries"
-       
+        return "TimeSeries"    
+    found = re.findall(r"<(?:type|class) '(\S*)'>", str(type(item)))
     if found:
         return found[0]
     
@@ -221,8 +221,6 @@ def get_human_readable_type(item):
 def is_supported(value, check_all=False, filters=None, iterate=True):
     """Return True if the value is supported, False otherwise"""
     assert filters is not None
-    if isinstance(value, (DataFrame, TimeSeries)):
-        return True
     if not is_editable_type(value):
         return False
     elif not isinstance(value, filters):
