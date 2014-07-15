@@ -1004,8 +1004,10 @@ class MainWindow(QMainWindow):
             add_actions(web_resources, webres_actions)
             self.help_menu_actions.append(web_resources)
             # Qt assistant link
-            qta_act = create_program_action(self, _("Qt documentation"),
-                                            "assistant")
+            qta_exe = "assistant-qt4" if sys.platform.startswith('linux') else \
+                      "assistant"
+            qta_act = create_program_action(self, _("Qt documentation"), 
+                                            qta_exe)
             if qta_act:
                 self.help_menu_actions += [qta_act, None]
             # About Spyder

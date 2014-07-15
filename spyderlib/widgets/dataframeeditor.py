@@ -2,13 +2,15 @@
 #
 # Copyright © 2014 Spyder development team
 # Licensed under the terms of the New BSD License
+#
 # DataFrameModel is based on the class ArrayModel from array editor
 # and the class DataFrameModel from the pandas project.
 # Present in pandas.sandbox.qtpandas in v0.13.1
 # Copyright (c) 2011-2012, Lambda Foundry, Inc.
 # and PyData Development Team All rights reserved
+
 """
-Pandas DataFrame Editor Dialog based on Qt
+Pandas DataFrame Editor Dialog
 """
 
 from spyderlib.qt.QtCore import (QAbstractTableModel, Qt, QModelIndex,
@@ -24,6 +26,7 @@ from spyderlib.utils.qthelpers import (qapplication, get_icon, create_action,
 from spyderlib.baseconfig import _
 from spyderlib.guiconfig import get_font
 from spyderlib.py3compat import io, is_text_string, to_text_string
+from spyderlib.utils import encoding
 from spyderlib.widgets.arrayeditor import get_idx_rect
 
 from pandas import DataFrame, TimeSeries
@@ -186,7 +189,7 @@ class DataFrameModel(QAbstractTableModel):
                 if isinstance(value, float):
                     return to_qvariant(self._format % value)
                 else:
-                    return to_qvariant(to_text_string(value))
+                    return to_qvariant(encoding.to_unicode(value))
         elif role == Qt.BackgroundColorRole:
             return to_qvariant(self.get_bgcolor(index))
         elif role == Qt.FontRole:

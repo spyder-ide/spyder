@@ -275,8 +275,12 @@ def get_file_language(filename, text=None):
         for line in text.splitlines():
             if not line.strip():
                 continue
-            if line.startswith('#!') and \
-               line[2:].split() == ['/usr/bin/env', 'python']:
+            if line.startswith('#!'):
+               shebang = line[2:]
+               py_shebangs = ['/usr/bin/env python', '/usr/bin/python',
+                              '/usr/bin/python3', '/usr/bin/python2',
+                              '/usr/local/bin/python', 'python', 'python3']
+               if any([(s in shebang) for s in py_shebangs]):
                     language = 'python'
             else:
                 break

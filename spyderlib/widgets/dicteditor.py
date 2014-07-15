@@ -757,7 +757,10 @@ class BaseTableView(QTableView):
         """Reimplement Qt method"""
         index_clicked = self.indexAt(event.pos())
         if index_clicked.isValid():
-            self.edit_item()
+            row = index_clicked.row()
+            # TODO: Remove hard coded "Value" column number (3 here)
+            index_clicked = index_clicked.child(row, 3)
+            self.edit(index_clicked)
         else:
             event.accept()
     
