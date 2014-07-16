@@ -423,7 +423,7 @@ class KernelConnectionDialog(QDialog):
 
         # General layout
         form = QFormLayout(self)
-        form.addRow('Connection File', cf_layout)
+        form.addRow('Connection file', cf_layout)
         form.addRow('Host name', self.hn)
         form.addRow('Ssh key', kf_layout)
         form.addRow('Password', self.pw)
@@ -722,8 +722,8 @@ class IPythonConsole(SpyderPluginWidget):
                     kernel_client.shell_port, kernel_client.iopub_port, \
                     kernel_client.stdin_port, kernel_client.hb_port = newports
                 except Exception as e:
+                    print("Could not ssh to kernel:")
                     print(e)
-                    print("Could not ssh to kernel")
             kernel_client.start_channels()
             # To rely on kernel's heartbeat to know when a kernel has died
             kernel_client.hb_channel.unpause()
@@ -741,8 +741,8 @@ class IPythonConsole(SpyderPluginWidget):
                     kernel_manager.shell_port, kernel_manager.iopub_port, \
                     kernel_manager.stdin_port, kernel_manager.hb_port = newports
                 except Exception as e:
+                    print("Could not ssh to kernel:")
                     print(e)
-                    print("Could not ssh to kernel")
             kernel_manager.start_channels()
             return kernel_manager, None
 
