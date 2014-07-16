@@ -173,7 +173,7 @@ class JediPlugin(IntrospectionPlugin):
     def parse_call_def(self, call_def):
         """Get a formatted calltip and docstring from Jedi"""
         for cd in call_def:
-            if cd.doc:
+            if cd.doc and not cd.doc.endswith(')'):
                 call_def = cd
                 break
         else:
