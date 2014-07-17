@@ -189,7 +189,10 @@ class DataFrameModel(QAbstractTableModel):
                 if isinstance(value, float):
                     return to_qvariant(self._format % value)
                 else:
-                    return to_qvariant(encoding.to_unicode(value))
+                    try:
+                        return to_qvariant(to_text_string(value))
+                    except UnicodeDecodeError:
+                        return to_qvariant(encoding.to_unicode(value))
         elif role == Qt.BackgroundColorRole:
             return to_qvariant(self.get_bgcolor(index))
         elif role == Qt.FontRole:
@@ -495,14 +498,18 @@ def test():
     """DataFrame editor test"""
     from numpy import nan
 
-    df1 = DataFrame([[True, "bool"],
+    df1 = DataFrame([
+                     [True, "bool"],
                      [1+1j, "complex"],
                      ['test', "string"],
                      [1.11, "float"],
                      [1, "int"],
                      [np.random.rand(3, 3), "Unkown type"],
-                     ["Large value", 100]],
-                    index=['a', 'b', nan, nan, nan, 'c', "Test global max"],
+                     ["Large value", 100],
+                     ["áéí", "unicode"]
+                    ],
+                    index=['a', 'b', nan, nan, nan, 'c',
+                           "Test global max", 'd'],
                     columns=[nan, 'Type'])
     out = test_edit(df1)
     print("out:", out)
