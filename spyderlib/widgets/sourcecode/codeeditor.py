@@ -162,6 +162,11 @@ class LineNumberArea(QWidget):
         """Override Qt method"""
         self.code_editor.linenumberarea_mousepress_event(event)
 
+    def wheelEvent(self, event):
+        """Override Qt method"""
+        self.code_editor.wheelEvent(event)
+
+
 class ScrollFlagArea(QWidget):
     """Source code editor's scroll flag area"""
     WIDTH = 12
