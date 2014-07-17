@@ -1005,10 +1005,10 @@ class CodeEditor(TextEditBaseWidget):
         back_color = self.sideareas_color
         number_color = self.comment_color
         active_number_color = self.normal_color
-        cell_line_color = self.__invert_color(self.currentcell_color)
+        #cell_line_color = self.comment_color
 
         painter = QPainter(self.linenumberarea)
-        pen = painter.pen()
+        #pen = painter.pen()
         painter.fillRect(event.rect(), back_color)
         font = painter.font()
         font_height = self.fontMetrics().height()
@@ -1022,11 +1022,11 @@ class CodeEditor(TextEditBaseWidget):
                                pixmap)
 
         for top, line_number, block in self.visibleBlocks:            
-            if self.is_cell_separator(block):
-                pen.setStyle(Qt.DashLine)
-                pen.setBrush(cell_line_color)
-                painter.setPen(pen)
-                painter.drawLine(0, top, self.linenumberarea.width(), top)
+            #if self.is_cell_separator(block):
+            #    pen.setStyle(Qt.DashLine)
+            #    pen.setBrush(cell_line_color)
+            #    painter.setPen(pen)
+            #    painter.drawLine(0, top, self.linenumberarea.width(), top)
             if self.linenumbers_margin:
                 if line_number == active_line_number:
                     font.setWeight(font.Bold)
@@ -2502,12 +2502,13 @@ class CodeEditor(TextEditBaseWidget):
     def _draw_editor_cell_divider(self):
         """
         """
-        cell_line_color = self.__invert_color(self.currentcell_color)
+        cell_line_color = self.comment_color
         painter = QPainter(self.viewport())
         pen = painter.pen() 
-        pen.setStyle(Qt.DotLine)
-        pen.setStyle(Qt.DashLine)
-        pen.setBrush(cell_line_color )
+        #pen.setStyle(Qt.DotLine)
+        #pen.setStyle(Qt.DashLine)
+        pen.setStyle(Qt.SolidLine)
+        pen.setBrush(cell_line_color)
         painter.setPen(pen)
         
         for top, line_number, block in self.visibleBlocks:
