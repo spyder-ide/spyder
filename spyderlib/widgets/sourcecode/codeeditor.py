@@ -2514,7 +2514,7 @@ class CodeEditor(TextEditBaseWidget):
         for top, line_number, block in self.visibleBlocks:
             #data = block.userData()  # USE THIS  or BLOCK USER DATA?
             if self.is_cell_separator(block):  
-                painter.drawLine(0, top, self.width(), top)
+                painter.drawLine(3, top, self.width(), top)
                 
     @property
     def visibleBlocks(self):
