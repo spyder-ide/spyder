@@ -154,6 +154,7 @@ ROOT = 'root'
 
 
 class CondaPackagesModel(QAbstractTableModel):
+    """ """
     def __init__(self):
         QAbstractTableModel.__init__(self)
         self.__envs = []   # ordered... for combo box
@@ -358,6 +359,8 @@ class MultiColumnSortFilterProxy(QSortFilterProxyModel):
         """
         text : string
             The string to be used for pattern matching.
+        status : int
+            TODO:
         """
         self.filterString = text
         self.filterStatus = status
@@ -435,9 +438,6 @@ class CondaPackagesTable(QTableView):
 #        self.setSortingEnabled(True)
         self.setShowGrid(False)
 
-        for col in HIDE_COLUMNS:
-            self.hideColumn(col)
-
         for col in [UPDATE, INSTALL, REMOVE]:
             self.setColumnWidth(col, self.WIDTH_ACTIONS)
 
@@ -455,6 +455,7 @@ class CondaPackagesTable(QTableView):
             border: 0px solid black;
             border-radius: 0px;
             background-color: rgb(200, 200, 255);
+            font-weight: Bold;
             };
         """)
         self.sortByColumn(NAME, Qt.AscendingOrder)
@@ -463,6 +464,12 @@ class CondaPackagesTable(QTableView):
     def set_model(self):
         self.source_model = CondaPackagesModel()
         self.proxy_model.setSourceModel(self.source_model)
+        self.hide_columns()
+
+    def hide_columns(self):
+        for col in HIDE_COLUMNS:
+            self.hideColumn(col)
+
 
     def filter_changed(self):
         status = self.__filterbox
@@ -522,6 +529,7 @@ class CondaPackagesWidget(QWidget):
                                                 triggered=self.check_updates,
                                                 text_beside_icon=True)
 
+        self.environment_box_label = QLabel(_('Conda environment:'))
         self.environment_combobox = QComboBox()
         self.search_box = QLineEdit()
         self.filter_combobox = QComboBox()
@@ -530,13 +538,16 @@ class CondaPackagesWidget(QWidget):
         self.__envs = [u'']
 
         hlayout1 = QHBoxLayout()
+        hlayout1.addWidget(self.environment_box_label)
         hlayout1.addWidget(self.environment_combobox)
-
+        hlayout1.addStretch()
+        hlayout1.addWidget(self.updates_button)
+        
         hlayout2 = QHBoxLayout()
 
         hlayout2.addWidget(self.filter_combobox)
+        hlayout1.addStretch()        
         hlayout2.addWidget(self.search_box)
-        hlayout2.addWidget(self.updates_button)
 
         hlayout3 = QHBoxLayout()
         hlayout3.addWidget(self.info_label)
@@ -572,7 +583,8 @@ class CondaPackagesWidget(QWidget):
 
         self.setLayout(layout)
 
-    def setup_widget(self):
+    def setup_widget(self):        
+        
         self.environment_combobox.addItems(self.__envs)
         self.environment_combobox.setCurrentIndex(0)
 
