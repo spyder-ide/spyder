@@ -114,7 +114,7 @@ def get_conda_packages():
 
     # Now preprocess the data to remove packages not usable given actual
     # python used
-    print(fname, python_ver)
+    #print(fname, python_ver)
     usable_packages = {}
     grouped_usable_packages = {}
 
@@ -139,11 +139,7 @@ def get_conda_packages():
         name = val['name'].lower()
         grouped_usable_packages[name].append([key, val])
 
-
-
     return grouped_usable_packages
-
-##-----------
 
 # Constants
 COLUMNS = (NAME, DESCRIPTION, VERSION, STATUS,
@@ -156,6 +152,7 @@ HIDE_COLUMNS = [STATUS]
 #HIDE_COLUMNS = []
 ROOT = 'root'
 
+
 class CondaPackagesModel(QAbstractTableModel):
     def __init__(self):
         QAbstractTableModel.__init__(self)
@@ -164,7 +161,7 @@ class CondaPackagesModel(QAbstractTableModel):
         self.__environment = ROOT   # Default value
         self.__conda_packages = {}  # Everything from the json file
         self.__packages_names = []
-        self.__packages_linked = {} # Has to be remeptied on __setup_data
+        self.__packages_linked = {}  # Has to be remeptied on __setup_data
         self.__packages_versions = {}
         self.__packages_upgradable = {}
         self.__rows = []
@@ -205,7 +202,6 @@ class CondaPackagesModel(QAbstractTableModel):
             versions = self.__packages_versions[n]
             self.__packages_upgradable[n] = not(canonical_name in versions[0])
 
-
         for row, name in enumerate(self.__packages_names):
             if name in self.__packages_linked:
                 version = self.__packages_linked[name][1]
@@ -218,7 +214,6 @@ class CondaPackagesModel(QAbstractTableModel):
                 status = NOT_INSTALLED
             description = name
             self.__rows[row] = [name, description, version, status]
-            
 
     def flags(self, index):
         if not index.isValid():
@@ -296,11 +291,7 @@ class CondaPackagesModel(QAbstractTableModel):
             elif section == INSTALL:
                 return to_qvariant("I")
             elif section == REMOVE:
-                return to_qvariant("R")                
-
-
-#            elif section == TYPE:
-#                return to_qvariant("Type")
+                return to_qvariant("R")
         return to_qvariant()
 
     def rowCount(self, index=QModelIndex()):
@@ -420,7 +411,9 @@ class MultiColumnSortFilterProxy(QSortFilterProxyModel):
 
 
 class CondaPackagesTable(QTableView):
+    """ """
     WIDTH_ACTIONS = 15
+
     def __init__(self, parent, env):
         QTableView.__init__(self, parent)
         self.__searchbox = u''
@@ -475,21 +468,21 @@ class CondaPackagesTable(QTableView):
         status = self.__filterbox
         text = self.__searchbox
         if status in [ALL]:
-            status = ''.join([to_text_string(INSTALLED), 
+            status = ''.join([to_text_string(INSTALLED),
                              to_text_string(UPGRADABLE),
                              to_text_string(NOT_INSTALLED)])
         if status in [INSTALLED]:
-            status = ''.join([to_text_string(INSTALLED), 
+            status = ''.join([to_text_string(INSTALLED),
                               to_text_string(UPGRADABLE)])
         else:
             status = to_text_string(status)
         self.model().setFilter(text, status)
         print(self.__envbox, self.__filterbox, self.__searchbox)
-        
+
     def searchbox_changed(self, text):
         status = self.__filterbox
         text = to_text_string(text)
-        self.__searchbox = text        
+        self.__searchbox = text
         self.filter_changed()
 
     def filterbox_changed(self, text):
@@ -504,7 +497,6 @@ class CondaPackagesTable(QTableView):
         self.source_model.env_changed(envbox)
         self.filter_changed()
 
-        
     def mousePressEvent(self, event):
         row = self.rowAt(event.y())
         column = self.columnAt(event.x())
@@ -518,7 +510,6 @@ class CondaPackagesWidget(QWidget):
     Packages widget
     """
     VERSION = '1.0.0'
-    
 
     def __init__(self, parent):
         QWidget.__init__(self, parent)
@@ -526,11 +517,11 @@ class CondaPackagesWidget(QWidget):
         self.setWindowTitle("Conda Packages")
 
         self.updates_button = create_toolbutton(self, icon=get_icon('run.png'),
-                                              text=_("Check for Updates"),
-                                              tip=_("Check for Updates"),
-                                              triggered=self.check_updates,
-                                              text_beside_icon=True)
-        
+                                                text=_("Check for Updates"),
+                                                tip=_("Check for Updates"),
+                                                triggered=self.check_updates,
+                                                text_beside_icon=True)
+
         self.environment_combobox = QComboBox()
         self.search_box = QLineEdit()
         self.filter_combobox = QComboBox()
@@ -574,14 +565,13 @@ class CondaPackagesWidget(QWidget):
             self.info_label.setTextFormat(Qt.RichText)
             self.info_label.setTextInteractionFlags(Qt.TextBrowserInteraction)
             self.info_label.setOpenExternalLinks(True)
-            
         else:
             self.table.set_model()
             self.__envs = self.table.source_model.envs
             self.setup_widget()
 
         self.setLayout(layout)
-      
+
     def setup_widget(self):
         self.environment_combobox.addItems(self.__envs)
         self.environment_combobox.setCurrentIndex(0)
@@ -593,16 +583,16 @@ class CondaPackagesWidget(QWidget):
                      self.table.searchbox_changed)
 
         # Connect filter combobox
-        self.connect(self.filter_combobox, SIGNAL('currentIndexChanged(QString)'),
+        self.connect(self.filter_combobox,
+                     SIGNAL('currentIndexChanged(QString)'),
                      self.table.filterbox_changed)
-                     
+
         # Connect environments combobox
-        self.connect(self.environment_combobox, SIGNAL('currentIndexChanged(QString)'),
-#                     self.update_model)
-                     self.table.environmentbox_changed)                     
+        self.connect(self.environment_combobox,
+                     SIGNAL('currentIndexChanged(QString)'),
+                     self.table.environmentbox_changed)
 
         self.table.filter_changed()
-        
 
     def create_conda_environment(self):
         pass
