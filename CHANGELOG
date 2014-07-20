@@ -8,11 +8,11 @@
 
   * Editor
     * Use the Tab key to do code completions
-    * Highlighting cells, i.e. portions of a file delimited by separators of the form `# %%`
+    * Highlight cells, i.e. portions of a file delimited by separators of the form `# %%`
     * First-class support for Enaml files
     * Syntax highlighting for Julia files
-    * Use Shift+Tab to show the signature corresponding to a function while it's been called
-    * Do code completions using the tokens (or words) found in a file, in case it can't be found other completions to offer
+    * Use Shift+Tab to show the signature corresponding to a function/method while it's been called
+    * Do code completions using the tokens (or words) found in a file
     * Token-based completions work for any file type supported by the Editor
     * Add a new tooltip widget (borrowed from the IPython project) to better handle how to show function signatures
     
@@ -31,7 +31,7 @@
 
   * Under the hood
     * Improve startup time
-    * Develop a new way to update config defaults (that doesn't involve resetting user settings)
+    * Develop a new way to update configuration defaults (that doesn't involve resetting user settings)
 
 === Bug fixes (since v2.2) ===
 
@@ -82,6 +82,7 @@
   * Issue  1695  Add "psutil" to the list of optional dependancies
   * Issue  1696  Check marks in display > windows menu are unchecked by moving plugins
   * Issue  1697  Variable explorer freezes spyder
+  * Issue  1701  pip install spyder does not work any longer (pip version >=1.5)
   * Issue  1715  debian lintian4py check
   * Issue  1716  Add new icon and scripts for python3 in Linux
   * Issue  1723  .pyx Comment and syntax color error in editor
@@ -101,6 +102,7 @@
   * Issue  1829  Keyboard shortcuts, Reset to default values errors
   * Issue  1836  [CTRL]+F4 does not close tabs
   * Issue  1879  Can't start bootstrap.py with pyqt
+  * Issue  1881  Bootstrap.py won't start with python3
 
 
 ----

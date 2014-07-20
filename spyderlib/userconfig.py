@@ -126,6 +126,7 @@ class DefaultsConfig(cp.ConfigParser):
             return w_dot
         else:
             folder = osp.join(folder, self.subfolder)
+            w_dot = osp.join(folder, '.%s.ini' % self.name)
             # Save defaults in a "defaults" dir of .spyder2 to not pollute it
             if 'defaults' in self.name:
                 folder = osp.join(folder, 'defaults')

@@ -78,9 +78,11 @@ requirements.check_qt()
 #==============================================================================
 set_attached_console_visible = None
 is_attached_console_visible = None
+set_windows_appusermodelid = None
 if os.name == 'nt':
     from spyderlib.utils.windows import (set_attached_console_visible,
-                                         is_attached_console_visible)
+                                         is_attached_console_visible,
+                                         set_windows_appusermodelid)
 
 
 #==============================================================================
@@ -445,6 +447,9 @@ class MainWindow(QMainWindow):
         icon_name = 'spyder_light.svg' if self.light else 'spyder.svg'
         # Resampling SVG icon only on non-Windows platforms (see Issue 1314):
         self.setWindowIcon(get_icon(icon_name, resample=os.name != 'nt'))
+        if set_windows_appusermodelid != None:
+            res = set_windows_appusermodelid()
+            debug_print("appusermodelid: " + str(res))
         
         # Showing splash screen
         self.splash = SPLASH
@@ -1004,8 +1009,10 @@ class MainWindow(QMainWindow):
             add_actions(web_resources, webres_actions)
             self.help_menu_actions.append(web_resources)
             # Qt assistant link
-            qta_act = create_program_action(self, _("Qt documentation"),
-                                            "assistant")
+            qta_exe = "assistant-qt4" if sys.platform.startswith('linux') else \
+                      "assistant"
+            qta_act = create_program_action(self, _("Qt documentation"), 
+                                            qta_exe)
             if qta_act:
                 self.help_menu_actions += [qta_act, None]
             # About Spyder

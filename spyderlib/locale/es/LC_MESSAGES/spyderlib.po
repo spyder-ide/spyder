@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
 "POT-Creation-Date: 2014-07-02 12:54+COT\n"
-"PO-Revision-Date: 2014-07-02 13:46-0500\n"
+"PO-Revision-Date: 2014-07-05 09:55-0500\n"
 "Last-Translator: Carlos Cordoba <ccordoba12@gmail.com>\n"
 "Language-Team: Python\n"
 "Language: es\n"
@@ -1129,7 +1129,7 @@ msgstr "Editor de Spyder"
 
 #: spyderlib/plugins/editor.py:1427
 msgid "This is a temporary script file."
-msgstr "Este es archivo temporal"
+msgstr "Este es un archivo temporal"
 
 #: spyderlib/plugins/editor.py:1487
 msgid "untitled"

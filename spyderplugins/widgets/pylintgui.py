@@ -471,8 +471,9 @@ class PylintWidget(QWidget):
                     text_prun = ' (%s %s/10)' % (text_prun, previous_rate)
                     text += prevrate_style % text_prun
                 self.treewidget.set_results(filename, results)
-                date_text = text_style % time.strftime("%d %b %Y %H:%M",
-                                                       datetime)
+                date = to_text_string(time.strftime("%d %b %Y %H:%M", datetime),
+                                      encoding='utf8')
+                date_text = text_style % date
             
         self.ratelabel.setText(text)
         self.datelabel.setText(date_text)

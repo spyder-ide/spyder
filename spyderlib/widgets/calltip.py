@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #-----------------------------------------------------------------------------
-# Copyright (c) 2010, IPython Development Team.
+# Copyright (c) IPython Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -16,6 +16,9 @@ from unicodedata import category
 
 # System library imports
 from spyderlib.qt import QtCore, QtGui
+
+# Local imports
+from spyderlib.py3compat import to_text_string
 
 
 class CallTipWidget(QtGui.QLabel):
@@ -243,7 +246,7 @@ class CallTipWidget(QtGui.QLabel):
         """
         commas = depth = 0
         document = self._text_edit.document()
-        char = document.characterAt(position)
+        char = to_text_string(document.characterAt(position))
         # Search until a match is found or a non-printable character is
         # encountered.
         while category(char) != 'Cc' and position > 0:

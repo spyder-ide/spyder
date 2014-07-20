@@ -181,7 +181,7 @@ TARGET_MATCH = re.search(r'--target-version=([0-9]*)\.([0-9]*)', JOINEDARGS)
 if TARGET_MATCH:
     TARGET_VERSION = TARGET_MATCH.groups()
 else:
-    TARGET_VERSION = (str(sys.version_info.major), str(sys.version_info.minor))
+    TARGET_VERSION = (str(sys.version_info[0]), str(sys.version_info[1]))
 
 
 def get_packages():
