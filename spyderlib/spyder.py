@@ -78,9 +78,11 @@ requirements.check_qt()
 #==============================================================================
 set_attached_console_visible = None
 is_attached_console_visible = None
+set_windows_appusermodelid = None
 if os.name == 'nt':
     from spyderlib.utils.windows import (set_attached_console_visible,
-                                         is_attached_console_visible)
+                                         is_attached_console_visible,
+                                         set_windows_appusermodelid)
 
 
 #==============================================================================
@@ -445,6 +447,9 @@ class MainWindow(QMainWindow):
         icon_name = 'spyder_light.svg' if self.light else 'spyder.svg'
         # Resampling SVG icon only on non-Windows platforms (see Issue 1314):
         self.setWindowIcon(get_icon(icon_name, resample=os.name != 'nt'))
+        if set_windows_appusermodelid != None:
+            res = set_windows_appusermodelid()
+            debug_print("appusermodelid: " + str(res))
         
         # Showing splash screen
         self.splash = SPLASH
