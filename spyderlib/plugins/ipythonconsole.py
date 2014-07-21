@@ -17,7 +17,7 @@ Handles IPython clients (and in the future, will handle IPython kernels too
 # Qt imports
 from spyderlib.qt.QtGui import (QVBoxLayout, QHBoxLayout, QFormLayout, 
                                 QMessageBox, QGroupBox, QDialogButtonBox,
-                                QDialog, QTabWidget, QFontComboBox, 
+                                QDialog, QTabWidget, QFontComboBox, QCheckBox,
                                 QApplication, QLabel, QLineEdit, QPushButton)
 from spyderlib.qt.compat import getopenfilename
 from spyderlib.qt.QtCore import SIGNAL, Qt, QUrl
@@ -386,6 +386,7 @@ class KernelConnectionDialog(QDialog):
         self.setWindowTitle('Connection to an existing kernel')
         
         # connection file
+        cf_label = QLabel('Connection file')
         self.cf = QLineEdit()
         self.cf.setPlaceholderText('Path to connection file')
         self.cf.setMinimumWidth(200)
@@ -393,10 +394,14 @@ class KernelConnectionDialog(QDialog):
         self.connect(cf_open_btn, SIGNAL('clicked()'), self.selectConnectionFile)
 
         cf_layout = QHBoxLayout()
+        cf_layout.addWidget(cf_label)
         cf_layout.addWidget(self.cf)
         cf_layout.addWidget(cf_open_btn)
         
-        # ssh connection
+        # remote kernel checkbox 
+        self.rm_cb = QCheckBox('This is a remote kernel')
+        
+        # ssh connection 
         self.hn = QLineEdit()
         self.hn.setPlaceholderText('username@host:port')
         
@@ -412,6 +417,11 @@ class KernelConnectionDialog(QDialog):
         self.pw = QLineEdit()
         self.pw.setPlaceholderText('Password or ssh key passphrase')
         self.pw.setEchoMode(QLineEdit.Password)
+
+        ssh_form = QFormLayout()
+        ssh_form.addRow('Host name', self.hn)
+        ssh_form.addRow('Ssh key', kf_layout)
+        ssh_form.addRow('Password', self.pw)
         
         # Ok and Cancel buttons
         accept_btns = QDialogButtonBox(
@@ -421,13 +431,22 @@ class KernelConnectionDialog(QDialog):
         self.connect(accept_btns, SIGNAL('accepted()'), self.accept)
         self.connect(accept_btns, SIGNAL('rejected()'), self.reject)
 
-        # General layout
-        form = QFormLayout(self)
-        form.addRow('Connection file', cf_layout)
-        form.addRow('Host name', self.hn)
-        form.addRow('Ssh key', kf_layout)
-        form.addRow('Password', self.pw)
-        form.addRow(accept_btns)
+        # Dialog layout
+        layout = QVBoxLayout(self)
+        layout.addLayout(cf_layout)
+        layout.addWidget(self.rm_cb)
+        layout.addLayout(ssh_form)
+        layout.addWidget(accept_btns)
+                
+        # remote kernel checkbox enables the ssh_connection_form
+        def sshSetEnabled(state):
+            for wid in [self.hn, self.kf, kf_open_btn, self.pw]:
+                wid.setEnabled(state)
+            for i in xrange(ssh_form.rowCount()):
+                ssh_form.itemAt(2 * i).widget().setEnabled(state)
+       
+        sshSetEnabled(self.rm_cb.checkState())
+        self.connect(self.rm_cb, SIGNAL('stateChanged(int)'), sshSetEnabled)
 
     def selectConnectionFile(self):
         cf = getopenfilename(self, 'Open Python connection file',
@@ -444,13 +463,17 @@ class KernelConnectionDialog(QDialog):
     def getConnectionParameters(parent=None):
         dialog = KernelConnectionDialog(parent)
         result = dialog.exec_()
-        def falsy_to_none(hn):
-            return hn if hn else None
-        return (dialog.cf.text(),                # connection file
+        is_remote = bool(dialog.rm_cb.checkState())
+        accepted = result == QDialog.Accepted
+        if is_remote:
+            falsy_to_none = lambda arg: arg if arg else None
+            return (dialog.cf.text(),            # connection file
                 falsy_to_none(dialog.hn.text()), # host name
                 falsy_to_none(dialog.kf.text()), # ssh key file
                 falsy_to_none(dialog.pw.text()), # ssh password
-                result == QDialog.Accepted)      # ok
+                accepted)                        # ok
+        else:
+            return (dialog.cf.text(), None, None, None, accepted)
 
 class IPythonConsole(SpyderPluginWidget):
     """
@@ -604,25 +627,20 @@ class IPythonConsole(SpyderPluginWidget):
                                 None, 'ipython_console.png',
                                 triggered=self.create_new_client)
 
-        connect_to_kernel_action = create_action(self,
-               _("Connect to an existing kernel"), None, None,
-               _("Open a new IPython console connected to an existing kernel"),
-               triggered= lambda: self.create_client_for_kernel(False))
 
-        connect_to_remote_kernel_action = create_action(self,
-               _("Connect to a remote kernel"), None, None,
+        connect_to_existing_kernel_action = create_action(self,
+               _("Connect to an existing kernel"), None, None,
                _("Open a new IPython console connected to a remote kernel"),
-               triggered= lambda: self.create_client_for_kernel(True))
+               triggered=self.create_client_for_kernel)
         
         # Add the action to the 'Consoles' menu on the main window
         main_consoles_menu = self.main.consoles_menu_actions
         main_consoles_menu.insert(0, create_client_action)
-        main_consoles_menu += [None, connect_to_kernel_action, 
-                               connect_to_remote_kernel_action]
+        main_consoles_menu += [None, connect_to_existing_kernel_action]
         
         # Plugin actions
-        self.menu_actions = [create_client_action, connect_to_kernel_action, 
-                             connect_to_remote_kernel_action]
+        self.menu_actions = [create_client_action,
+                             connect_to_existing_kernel_action]
         
         return self.menu_actions
 
@@ -797,26 +815,13 @@ class IPythonConsole(SpyderPluginWidget):
             if widget is client or widget is client.get_control():
                 return client
 
-    def create_client_for_kernel(self, is_remote):
+    def create_client_for_kernel(self):
         """Create a client connected to an existing kernel"""
 
         # Case of a remote kernel
-        if is_remote:
-            cf, sshserver, kf, pw, ok = KernelConnectionDialog.getConnectionParameters(self)
-            if not ok:
-                return
-        else:
-            # Select json connection file
-            cf = getopenfilename(self, 'Open Python connection file',
-                     osp.join(get_ipython_dir(), 'profile_default', 'security'),
-                     '*.json;;*.*')[0]
-            # If Cancel button clicked, cf is the empty string. Abort
-            if not cf:
-                return
-            
-            kf = None
-            pw = None
-            sshserver = None
+        cf, sshserver, kf, pw, ok = KernelConnectionDialog.getConnectionParameters(self)
+        if not ok:
+            return
 
         # Verifying if the connection file exists - in the case of an empty
         # file name, the last used connection file is returned. 
