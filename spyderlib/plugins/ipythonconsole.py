@@ -17,14 +17,16 @@ Handles IPython clients (and in the future, will handle IPython kernels too
 # Qt imports
 from spyderlib.qt.QtGui import (QVBoxLayout, QHBoxLayout, QFormLayout, 
                                 QMessageBox, QGroupBox, QDialogButtonBox,
-                                QDialog, QTabWidget, QFontComboBox, QCheckBox,
-                                QApplication, QLabel, QLineEdit, QPushButton)
+                                QDialog, QInputDialog, QTabWidget, 
+                                QFontComboBox, QCheckBox, QApplication, 
+                                QLabel, QLineEdit, QPushButton)
 from spyderlib.qt.compat import getopenfilename
 from spyderlib.qt.QtCore import SIGNAL, Qt, QUrl
 
 # Stdlib imports
 import sys
 import os.path as osp
+import re
 
 # IPython imports
 from IPython.config.loader import Config, load_pyconfig_files
@@ -627,6 +629,10 @@ class IPythonConsole(SpyderPluginWidget):
                                 None, 'ipython_console.png',
                                 triggered=self.create_new_client)
 
+        connect_to_kernel_number_action = create_action(self,
+               _("Connect to kernel number"), None, None,
+               _("Open a new IPython console connected to a remote kernel"),
+               triggered=self.create_client_for_kernel_number)
 
         connect_to_existing_kernel_action = create_action(self,
                _("Connect to an existing kernel"), None, None,
@@ -636,10 +642,12 @@ class IPythonConsole(SpyderPluginWidget):
         # Add the action to the 'Consoles' menu on the main window
         main_consoles_menu = self.main.consoles_menu_actions
         main_consoles_menu.insert(0, create_client_action)
-        main_consoles_menu += [None, connect_to_existing_kernel_action]
+        main_consoles_menu += [None, connect_to_kernel_number_action, 
+                               connect_to_existing_kernel_action]
         
         # Plugin actions
         self.menu_actions = [create_client_action,
+                             connect_to_kernel_number_action,
                              connect_to_existing_kernel_action]
         
         return self.menu_actions
@@ -817,12 +825,30 @@ class IPythonConsole(SpyderPluginWidget):
 
     def create_client_for_kernel(self):
         """Create a client connected to an existing kernel"""
-
-        # Case of a remote kernel
         cf, sshserver, kf, pw, ok = KernelConnectionDialog.getConnectionParameters(self)
         if not ok:
             return
+        else:
+            self.create_client_for_kernel_impl(cf, sshserver, kf, pw)
 
+    def create_client_for_kernel_number(self):
+        """Create a client connected to an existing kernel"""
+        example = _("(for example: kernel-3764.json, or simply 3764)")
+        cf, ok = QInputDialog.getText(self, _('IPython'),
+                      _('Provide an IPython kernel connection file:')+\
+                      '\n'+example, QLineEdit.Normal)
+        if not ok:
+            return
+        else:
+            cf = str(cf)
+            match = re.match('(kernel-|^)([a-fA-F0-9-]+)(.json|$)', cf)
+            if match is not None:
+                kernel_num = match.groups()[1]
+                if kernel_num:
+                    cf = 'kernel-%s.json' % kernel_num
+            self.create_client_for_kernel_impl(cf, None, None, None)            
+
+    def create_client_for_kernel_impl(self, cf, sshserver, kf, pw):
         # Verifying if the connection file exists - in the case of an empty
         # file name, the last used connection file is returned. 
         try:
