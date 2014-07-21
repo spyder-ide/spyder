@@ -631,12 +631,12 @@ class IPythonConsole(SpyderPluginWidget):
 
         connect_to_kernel_number_action = create_action(self,
                _("Connect to kernel number"), None, None,
-               _("Open a new IPython console connected to a remote kernel"),
+               _("Open a new IPython console connected to an existing kernel"),
                triggered=self.create_client_for_kernel_number)
 
         connect_to_existing_kernel_action = create_action(self,
                _("Connect to an existing kernel"), None, None,
-               _("Open a new IPython console connected to a remote kernel"),
+               _("Open a new IPython console connected to an existing kernel"),
                triggered=self.create_client_for_kernel)
         
         # Add the action to the 'Consoles' menu on the main window
