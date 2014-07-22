@@ -690,7 +690,7 @@ class CondaPackagesTable(QTableView):
         if model_index:
             self.source_model.update_row_icon(model_index.row(),
                                               model_index.column())
-            print(model_index.row(), model_index.column())
+#            print(model_index.row(), model_index.column())
 
         if self.valid:
             dlg = CondaActionDialog(self, self.column)
