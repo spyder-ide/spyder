@@ -34,6 +34,7 @@ import os
 import os.path as osp
 import json
 
+
 # Local imports
 from spyderlib import dependencies
 from spyderlib.utils import programs
