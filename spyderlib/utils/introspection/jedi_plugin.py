@@ -26,24 +26,24 @@ try:
     import jedi
 except ImportError:
     jedi = None
-    
 
-JEDI_REQVER = '>=0.8.0'
+
+JEDI_REQVER = '>=0.8.1'
 dependencies.add('jedi',
                  _("(Experimental) Editor's code completion,"
                    " go-to-definition and help"),
                  required_version=JEDI_REQVER)
-            
+
 
 class JediPlugin(IntrospectionPlugin):
     """
     Jedi based introspection plugin for jedi
-    
+
     Experimental Editor's code completion, go-to-definition and help
     """
-    
+
     jedi_lock = threading.Lock()
-    
+
     # ---- IntrospectionPlugin API --------------------------------------------
     name = 'jedi'
 
@@ -54,14 +54,14 @@ class JediPlugin(IntrospectionPlugin):
         with self.jedi_lock:
             jedi.settings.case_insensitive_completion = False
         self._warming_up = True
-        self._startup_thread = threading.Thread(target=self.preload, 
+        self._startup_thread = threading.Thread(target=self.preload,
                                                 args=('numpy', 'scipy.stats'))
         self._startup_thread.start()
 
     @fallback
     def get_completion_list(self, source_code, offset, filename):
         """Return a list of completion strings"""
-        
+
         line, col = self.get_line_col(source_code, offset)
         completions = self.get_jedi_object(source_code, line, col, filename,
                                            'completions')
@@ -150,7 +150,7 @@ class JediPlugin(IntrospectionPlugin):
         for meta in metas:
             if meta.__class__.__name__ == 'ImportDenier' and hasattr(meta, 'forbid'):
                 sys.meta_path.remove(meta)
-        
+
         try:
             with self.jedi_lock:
                 script = jedi.Script(source_code, line, col, filename)
@@ -253,27 +253,27 @@ class JediPlugin(IntrospectionPlugin):
         if ext in self.all_editable_exts():
             pattern = 'from.*\W{0}\W?.*c?import|import.*\W{0}'
             if not re.match(pattern.format(info['name']), desc):
-                line_nr = self.get_definition_from_file(module_path, name, 
+                line_nr = self.get_definition_from_file(module_path, name,
                                                         line_nr)
                 if not line_nr:
                     module_path = None
         if not ext in self.all_editable_exts():
             line_nr = None
         return module_path, line_nr
-        
+
     def preload(self, *libs):
         """Preload a list of libraries"""
         for lib in libs:
             with self.jedi_lock:
                 jedi.preload_module(lib)
         self._warming_up = False
-            
+
 
 if __name__ == '__main__':
-    
+
     p = JediPlugin()
     p.load_plugin()
-    
+
     print('Warming up Jedi')
     t0 = time.time()
     while p._warming_up:
@@ -283,19 +283,19 @@ if __name__ == '__main__':
     source_code = "import numpy; numpy.ones("
     calltip, docs = p.get_calltip_and_docs(source_code, len(source_code),
                                            None)
-                        
+
     assert calltip.startswith('ones(') and docs['name'] == 'ones'
-    
+
     source_code = "import n"
     completions = p.get_completion_list(source_code, len(source_code),
                                         None)
-    assert 'numpy' in completions 
-    
+    assert 'numpy' in completions
+
     source_code = "import matplotlib.pyplot as plt; plt.imsave"
     path, line_nr = p.get_definition_location(source_code, len(source_code),
                                               None)
-    assert 'pyplot.py' in path 
-    
+    assert 'pyplot.py' in path
+
     source_code = 'from .base import memoize'
     path, line_nr = p.get_definition_location(source_code, len(source_code),
                                               __file__)
