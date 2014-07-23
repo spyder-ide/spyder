@@ -448,7 +448,7 @@ class ArrayEditor(QDialog):
         self.layout = None
         # Values for 3d array editor
         self.dim_indexes = [{}, {}, {}]
-        self.last_dim = 2  # Adjust this for changing the startup dimension
+        self.last_dim = 0  # Adjust this for changing the startup dimension
         
     def setup_and_check(self, data, title='', readonly=False,
                         xlabels=None, ylabels=None):
