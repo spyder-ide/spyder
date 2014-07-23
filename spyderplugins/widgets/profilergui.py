@@ -368,10 +368,9 @@ class ProfilerDataTree(QTreeWidget):
     def find_root(self):
         """Find a function without a caller"""
         self.profdata.sort_stats("cumulative")
-        for func in self.profdata.fcn_list:
-            if ('~', 0, '<built-in method exec>') != func:
-                return func
-    
+        self.profdata.fcn_list.remove(('~', 0, '<built-in method exec>'))       
+        return self.profdata.fcn_list[0]
+
     def find_callees(self, parent):
         """Find all functions called by (parent) function."""
         # FIXME: This implementation is very inneficient, because it
