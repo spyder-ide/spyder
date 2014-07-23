@@ -876,6 +876,8 @@ class CondaPackagesTable(QTableView):
             self.__model_index_clicked = None
             self.valid = False
 
+    #FIXME: Maybe this should be moved to the Main widget to centralize the
+    # Conda actions either in the widget or in the Abstract Model...
     def action_released(self):
         """ """
         model_index = self.__model_index_clicked
@@ -901,7 +903,7 @@ class CondaPackagesTable(QTableView):
                 elif self.column == DOWNGRADE:
                     conda_api.install(env, pkgs=pkgs)
                 self.source_model.refresh_()
-                print(env, pkgs)
+#                print(env, pkgs)
 
 
 class SearchLineEdit(QLineEdit):
@@ -1035,25 +1037,33 @@ class CondaActionDialog(QDialog):
 
 class CondaCreateDialog(QDialog):
     """ """
-    def __init__(self, parent, action, pyvers):
+    def __init__(self, parent, action, pyvers, envs):
         """ """
         QDialog.__init__(self, parent)
         self.parent = parent
         self.pyvers = pyvers
+        self.envs = envs
 
         # Widgets
-        if action == CREATE:
-            self.setWindowTitle(_("Create new environment"))
-            self.env_name_text = QLineEdit()
-        elif action == CLONE:
-            self.setWindowTitle(_("Clone existing environment"))
-            self.env_name_text = QComboBox()
-
         self.env_name_label = QLabel(_('Environment name'))
         self.python_ver_label = QLabel(_('Python version'))
+        self.env_label = QLabel(_('Clone from'))
         self.env_path_label = QLabel(_('Path (optional)'))
         self.env_path_text = SearchLineEdit(False)
         self.python_ver_combobox = QComboBox()
+        self.env_combobox = QComboBox()
+        self.env_name_text = QLineEdit()
+
+        if action == CREATE:
+            print('create')
+            self.setWindowTitle(_("Create new environment"))
+            self.combobox = self.python_ver_combobox
+            self.combobox_label = self.python_ver_label
+        elif action == CLONE:
+            print('clone')
+            self.setWindowTitle(_("Clone existing environment"))
+            self.combobox = self.env_combobox
+            self.combobox_label = self.env_label
 
         self.browse = create_toolbutton(self, icon=get_icon('fileopen.png'),
                                tip=_('Select environment directory'),
@@ -1071,8 +1081,8 @@ class CondaCreateDialog(QDialog):
         hlayout1.addWidget(self.env_path_label, 1, 0)
         hlayout1.addWidget(self.env_path_text, 1, 2)
         hlayout1.addWidget(self.browse, 1, 3)
-        hlayout1.addWidget(self.python_ver_label, 2, 0)
-        hlayout1.addWidget(self.python_ver_combobox, 2, 2, 1, 2)
+        hlayout1.addWidget(self.combobox_label, 2, 0)
+        hlayout1.addWidget(self.combobox, 2, 2, 1, 2)
 
         hlayout2 = QHBoxLayout()
         hlayout2.addStretch(0)
@@ -1099,6 +1109,8 @@ class CondaCreateDialog(QDialog):
         py2 = [v for v in self.pyvers if v[0] == '2']
         py1 = [v for v in self.pyvers if v[0] == '1']
 
+        print(self.envs)
+        self.env_combobox.addItems(self.envs)
         self.python_ver_combobox.addItems(self.pyvers)
         self.python_ver_combobox.insertSeparator(len(py3))
         if py1:
@@ -1227,7 +1239,7 @@ class CondaPackagesWidget(QWidget):
             self.info_label.setTextInteractionFlags(Qt.TextBrowserInteraction)
             self.info_label.setOpenExternalLinks(True)
         else:
-            self.env_clone_button.setDisabled(True)
+#            self.env_clone_button.setDisabled(True)
             hlayout3 = QHBoxLayout()
             hlayout3.addWidget(self.filter_combobox)
             hlayout3.addWidget(self.updates_button)
@@ -1358,33 +1370,41 @@ class CondaPackagesWidget(QWidget):
         elif ret == QMessageBox.No:
             pass
 
-    def create_environment(self):
+    def __create(self, action, envs=[]):
         """ """
         pyvers = self.table.source_model.get_package_versions('python', True)
         pyvers = sort_versions(list(set(pyvers)), reverse=True)
-        dlg = CondaCreateDialog(self, CREATE, pyvers)
+        dlg = CondaCreateDialog(self, action, pyvers, envs)
         ret = dlg.exec_()
         if ret:
             envname = to_text_string(dlg.env_name_text.text())
             pyver = to_text_string(dlg.python_ver_combobox.currentText())
             path = to_text_string(dlg.env_path_text.text())
+            envclone = to_text_string(dlg.env_combobox.currentText())
 
-            if path != u'':
-                fullpath = osp.join(path, envname)
-                conda_api.create(path=fullpath,
-                                 pkgs=['python={}'.format(pyver)])  # TODO:
-            else:
-                conda_api.create(name=envname,
-                                 pkgs=['python={}'.format(pyver)])  # TODO:
+            if action == CREATE:
+                if path != u'':
+                    fullpath = osp.join(path, envname)
+                    conda_api.create(path=fullpath,
+                                     pkgs=['python={}'.format(pyver)])  # TODO:
+                else:
+                    conda_api.create(name=envname,
+                                     pkgs=['python={}'.format(pyver)])  # TODO:
+            elif action == CLONE:
+                # FIXME: NO SUPPORT for path yet!
+                conda_api._call_conda(['create', '--yes', '--quiet',
+                                       '-n', envname, '--clone',  envclone])  # TODO:                
             self.refresh_env_combobox()
         else:
             pass
 
-    def clone_environment(self):
+    def create_environment(self, bool_):
         """ """
-        dlg = CondaCreateDialog(self, CLONE)
-        if dlg.exec_():
-            print('clone')
+        self.__create(CREATE)
+
+    def clone_environment(self, bool_):
+        """ """
+        self.__create(CLONE, self.envs)
 
     def check_updates(self):
         """ """
