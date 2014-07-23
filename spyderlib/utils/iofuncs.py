@@ -22,6 +22,10 @@ import warnings
 import json
 import inspect
 import dis
+try:
+    import pandas as pd
+except ImportError:
+    pd = None
 
 # Local imports
 from spyderlib.py3compat import pickle, to_text_string, getcwd, PY2
@@ -237,9 +241,12 @@ except ImportError:
 def load_pickle(filename):
     """Load a pickle file as a dictionary"""
     try:
-        with open(filename, 'rb') as fid:
-            data = pickle.load(fid)
-        return data, None
+        if not pd is None:
+            return pd.read_pickle(data), None
+        else:
+            with open(filename, 'rb') as fid:
+                data = pickle.load(fid)
+            return data, None
     except Exception as err:
         return None, str(err)
 
@@ -344,6 +351,12 @@ def load_dictionary(filename):
         error_message = to_text_string(error)
     os.chdir(old_cwd)
     return data, error_message
+
+
+def load_hdf(filname):
+    if pd is None:
+        raise ImportError('Pandas required to load HDF files')
+    return pd.load_hdf(filename)
 
 
 from spyderlib.baseconfig import get_conf_path, STDERR
@@ -483,6 +496,7 @@ class IOFunctions(object):
                 ('.npy', _("NumPy arrays"), load_array, None),
                 ('.npz', _("NumPy zip arrays"), load_array, None),
                 ('.mat', _("Matlab files"), load_matlab, save_matlab),
+                ('.hdf', _("HDF files"), load_hdf, None),
                 ('.csv', _("CSV text files"), 'import_wizard', None),
                 ('.txt', _("Text files"), 'import_wizard', None),
                 ('.jpg', _("JPEG images"), load_image, None),
