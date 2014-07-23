@@ -5,8 +5,9 @@ recursive-include app_example *.py *.pyw *.bat *.qm *.svg *.png
 include scripts/*
 include img_src/*.ico
 include img_src/spyder.png
+include img_src/spyder3.png
 include MANIFEST.in
-include README
+include README.md
 include LICENSE
 include CHANGELOG
 include bootstrap.py

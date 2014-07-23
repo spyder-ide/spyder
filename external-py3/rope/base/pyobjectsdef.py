@@ -1,3 +1,4 @@
+import sys
 import rope.base.codeanalyze
 import rope.base.evaluate
 import rope.base.builtins
@@ -6,7 +7,6 @@ import rope.base.pyscopes
 from rope.base import (pynamesdef as pynames, exceptions, ast,
                        astutils, pyobjects, fscommands, arguments, utils)
 from rope.base.pyobjects import *
-
 
 class PyFunction(pyobjects.PyFunction):
 
@@ -377,9 +377,19 @@ class _ScopeVisitor(object):
         return result
 
     def _With(self, node):
-        if node.optional_vars:
-            self._update_evaluated(node.optional_vars,
-                                   node.context_expr, '.__enter__()')
+        if (sys.version_info[1] < 3):
+            if node.optional_vars:
+                self._update_evaluated(node.optional_vars,
+                                       node.context_expr, '.__enter__()')
+        elif len(node.items) > 0:
+            #TODO Handle all items?
+            if node.items[0].optional_vars:
+                self._update_evaluated(
+                    node.items[0].optional_vars,
+                    node.items[0].context_expr, 
+                    '.__enter__()'
+                )
+                                
         for child in node.body:
             ast.walk(child, self)
 

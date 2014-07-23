@@ -103,7 +103,8 @@ def get_hg_revision(repopath):
         output, _err = subprocess.Popen([hg, 'id', '-nib', repopath],
                                         stdout=subprocess.PIPE).communicate()
         # output is now: ('eba7273c69df+ 2015+ default\n', None)
-        return tuple(output.decode().strip().split())
+        # Split 2 times max to allow spaces in branch names.
+        return tuple(output.decode().strip().split(None, 2))
     except (subprocess.CalledProcessError, AssertionError, AttributeError):
         # print("Error: Failed to get revision number from Mercurial - %s" % exc)
         return (None, None, None)

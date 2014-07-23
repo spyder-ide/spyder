@@ -132,7 +132,13 @@ class ObjectInspectorConfigPage(PluginConfigPage):
         connections_label.setWordWrap(True)
         editor_box = self.create_checkbox(_("Editor"), 'connect/editor')
         rope_installed = programs.is_module_installed('rope')
-        editor_box.setEnabled(rope_installed)
+        jedi_installed = programs.is_module_installed('jedi', '>=0.8.0')
+        editor_box.setEnabled(rope_installed or jedi_installed)
+        # TODO: Don't forget to add Jedi here
+        if not rope_installed:
+            rope_tip = _("This feature requires the Rope library.\n"
+                         "It seems you don't have it installed.")
+            editor_box.setToolTip(rope_tip)
         python_box = self.create_checkbox(_("Python Console"),
                                           'connect/python_console')
         ipython_box = self.create_checkbox(_("IPython Console"),
@@ -365,7 +371,7 @@ class ObjectInspector(SpyderPluginWidget):
         # locked = disable link with Console
         self.locked = False
         self._last_texts = [None, None]
-        self._last_rope_doc = None
+        self._last_editor_doc = None
         
         # Object name
         layout_edit = QHBoxLayout()
@@ -380,7 +386,8 @@ class ObjectInspector(SpyderPluginWidget):
         self.source_combo.addItems([_("Console"), _("Editor")])
         self.connect(self.source_combo, SIGNAL('currentIndexChanged(int)'),
                      self.source_changed)
-        if not programs.is_module_installed('rope'):
+        if (not programs.is_module_installed('rope') and 
+                not programs.is_module_installed('jedi', '>=0.7.0')):
             self.source_combo.hide()
             source_label.hide()
         layout_edit.addWidget(self.source_combo)
@@ -720,8 +727,8 @@ class ObjectInspector(SpyderPluginWidget):
     def force_refresh(self):
         if self.source_is_console():
             self.set_object_text(None, force_refresh=True)
-        elif self._last_rope_doc is not None:
-            self.set_rope_doc(self._last_rope_doc, force_refresh=True)
+        elif self._last_editor_doc is not None:
+            self.set_editor_doc(self._last_editor_doc, force_refresh=True)
     
     def set_object_text(self, text, force_refresh=False, ignore_unknown=False):
         """Set object analyzed by Object Inspector"""
@@ -749,15 +756,15 @@ class ObjectInspector(SpyderPluginWidget):
         if self.dockwidget is not None:
             self.dockwidget.blockSignals(False)
         
-    def set_rope_doc(self, doc, force_refresh=False):
+    def set_editor_doc(self, doc, force_refresh=False):
         """
         Use the object inspector to show docstring dictionary computed
-        with rope from the Editor plugin
+        with introspection plugin from the Editor plugin
         """
         if (self.locked and not force_refresh):
             return
         self.switch_to_editor_source()
-        self._last_rope_doc = doc
+        self._last_editor_doc = doc
         self.object_edit.setText(doc['obj_text'])
 
         if self.rich_help:

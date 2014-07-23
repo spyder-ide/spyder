@@ -19,164 +19,47 @@ from spyderlib.qt.QtGui import (QColor, QApplication, QFont,
 from spyderlib.qt.QtCore import Qt
 
 # Local imports
+from spyderlib import dependencies
+from spyderlib.baseconfig import _
+from spyderlib.config import CONF
 from spyderlib.py3compat import builtins, is_text_string, to_text_string
+from spyderlib.widgets.sourcecode.base import CELL_SEPARATORS
+
+
+PYGMENTS_REQVER = '>=1.6'
+dependencies.add("pygments", _("Syntax highlighting for Matlab and other file "
+                               "types"),
+                 required_version=PYGMENTS_REQVER)
+
+
+#==============================================================================
+# Constants
+#==============================================================================
+COLOR_SCHEME_KEYS = ("background", "currentline", "currentcell", "occurence",
+                     "ctrlclick", "sideareas", "matched_p", "unmatched_p",
+                     "normal", "keyword", "builtin", "definition",
+                     "comment", "string", "number", "instance")
+COLOR_SCHEME_NAMES = CONF.get('color_schemes', 'names')
+
+
+#==============================================================================
+# Auxiliary functions
+#==============================================================================
+def get_color_scheme(name):
+    """Get a color scheme from config using its name"""
+    name = name.lower()
+    scheme = {}
+    for key in COLOR_SCHEME_KEYS:
+        try:
+            scheme[key] = CONF.get('color_schemes', name+'/'+key)
+        except:
+            scheme[key] = CONF.get('color_schemes', 'spyder/'+key)
+    return scheme
 
 
 #==============================================================================
 # Syntax highlighting color schemes
 #==============================================================================
-COLOR_SCHEME_KEYS = ("background", "currentline", "occurence",
-                     "ctrlclick", "sideareas", "matched_p", "unmatched_p",
-                     "normal", "keyword", "builtin", "definition",
-                     "comment", "string", "number", "instance")
-COLORS = {
-          'IDLE':
-          {#  Name          Color    Bold   Italic
-           "background":  "#ffffff",
-           "currentline": "#eeffdd",
-           "occurence":   "#e8f2fe",
-           "ctrlclick":   "#0000ff",
-           "sideareas":   "#efefef",
-           "matched_p":   "#99ff99",
-           "unmatched_p": "#ff9999",
-           "normal":     ("#000000", False, False),
-           "keyword":    ("#ff7700", True,  False),
-           "builtin":    ("#900090", False, False),
-           "definition": ("#0000ff", False, False),
-           "comment":    ("#dd0000", False, True),
-           "string":     ("#00aa00", False, False),
-           "number":     ("#924900", False, False),
-           "instance":   ("#777777", True,  True),
-           },
-          'Pydev':
-          {#  Name          Color    Bold   Italic
-           "background":  "#ffffff",
-           "currentline": "#e8f2fe",
-           "occurence":   "#ffff99",
-           "ctrlclick":   "#0000ff",
-           "sideareas":   "#efefef",
-           "matched_p":   "#99ff99",
-           "unmatched_p": "#ff9999",
-           "normal":     ("#000000", False, False),
-           "keyword":    ("#0000ff", False, False),
-           "builtin":    ("#900090", False, False),
-           "definition": ("#000000", True,  False),
-           "comment":    ("#c0c0c0", False, False),
-           "string":     ("#00aa00", False, True),
-           "number":     ("#800000", False, False),
-           "instance":   ("#000000", False, True),
-           },
-          'Emacs':
-          {#  Name          Color    Bold   Italic
-           "background":  "#000000",
-           "currentline": "#2b2b43",
-           "occurence":   "#abab67",
-           "ctrlclick":   "#0000ff",
-           "sideareas":   "#555555",
-           "matched_p":   "#009800",
-           "unmatched_p": "#c80000",
-           "normal":     ("#ffffff", False, False),
-           "keyword":    ("#3c51e8", False, False),
-           "builtin":    ("#900090", False, False),
-           "definition": ("#ff8040", True,  False),
-           "comment":    ("#005100", False, False),
-           "string":     ("#00aa00", False, True),
-           "number":     ("#800000", False, False),
-           "instance":   ("#ffffff", False, True),
-           },
-          'Scintilla':
-          {#  Name          Color    Bold   Italic
-           "background":  "#ffffff",
-           "currentline": "#eeffdd",
-           "occurence":   "#ffff99",
-           "ctrlclick":   "#0000ff",
-           "sideareas":   "#efefef",
-           "matched_p":   "#99ff99",
-           "unmatched_p": "#ff9999",
-           "normal":     ("#000000", False, False),
-           "keyword":    ("#00007f", True,  False),
-           "builtin":    ("#000000", False, False),
-           "definition": ("#007f7f", True,  False),
-           "comment":    ("#007f00", False, False),
-           "string":     ("#7f007f", False, False),
-           "number":     ("#007f7f", False, False),
-           "instance":   ("#000000", False, True),
-           },
-          'Spyder':
-          {#  Name          Color    Bold   Italic
-           "background":  "#ffffff",
-           "currentline": "#feefff",
-           "occurence":   "#ffff99",
-           "ctrlclick":   "#0000ff",
-           "sideareas":   "#efefef",
-           "matched_p":   "#99ff99",
-           "unmatched_p": "#ff9999",
-           "normal":     ("#000000", False, False),
-           "keyword":    ("#0000ff", False, False),
-           "builtin":    ("#900090", False, False),
-           "definition": ("#000000", True,  False),
-           "comment":    ("#adadad", False, True),
-           "string":     ("#00aa00", False, False),
-           "number":     ("#800000", False, False),
-           "instance":   ("#924900", False, True),
-           },
-          'Spyder/Dark':
-          {#  Name          Color    Bold   Italic
-           "background":  "#131926",
-           "currentline": "#2b2b43",
-           "occurence":   "#abab67",
-           "ctrlclick":   "#0000ff",
-           "sideareas":   "#282828",
-           "matched_p":   "#009800",
-           "unmatched_p": "#c80000",
-           "normal":     ("#ffffff", False, False),
-           "keyword":    ("#558eff", False, False),
-           "builtin":    ("#aa00aa", False, False),
-           "definition": ("#ffffff", True,  False),
-           "comment":    ("#7f7f7f", False, False),
-           "string":     ("#11a642", False, True),
-           "number":     ("#c80000", False, False),
-           "instance":   ("#be5f00", False, True),
-           },
-           'Monokai':
-          {#  Name          Color    Bold   Italic
-           "background":  "#2a2b24",
-           "currentline": "#484848",
-           "occurence":   "#666666",
-           "ctrlclick":   "#0000ff",
-           "sideareas":   "#2a2b24",
-           "matched_p":   "#688060",
-           "unmatched_p": "#bd6e76",
-           "normal":     ("#ddddda", False, False),
-           "keyword":    ("#f92672", False, False),
-           "builtin":    ("#ae81ff", False, False),
-           "definition": ("#a6e22e", False, False),
-           "comment":    ("#75715e", False, True),
-           "string":     ("#e6db74", False, False),
-           "number":     ("#ae81ff", False, False),
-           "instance":   ("#ddddda", False, True),
-           },
-           'Zenburn':
-          {#  Name          Color    Bold   Italic
-           "background":  "#3f3f3f",
-           "currentline": "#333333",
-           "occurence":   "#7a738f",
-           "ctrlclick":   "#0000ff",
-           "sideareas":   "#3f3f3f",
-           "matched_p":   "#688060",
-           "unmatched_p": "#bd6e76",
-           "normal":     ("#dcdccc", False, False),
-           "keyword":    ("#dfaf8f", True,  False),
-           "builtin":    ("#efef8f", False, False),
-           "definition": ("#efef8f", False, False),
-           "comment":    ("#7f9f7f", False, True),
-           "string":     ("#cc9393", False, False),
-           "number":     ("#8cd0d3", False, False),
-           "instance":   ("#dcdccc", False, True),
-           },
-          }
-COLOR_SCHEME_NAMES = list(COLORS.keys())
-
 class BaseSH(QSyntaxHighlighter):
     """Base Syntax Highlighter Class"""
     # Syntax highlighting rules:
@@ -191,12 +74,13 @@ class BaseSH(QSyntaxHighlighter):
         self.font = font
         self._check_color_scheme(color_scheme)
         if is_text_string(color_scheme):
-            self.color_scheme = COLORS[color_scheme]
+            self.color_scheme = get_color_scheme(color_scheme)
         else:
             self.color_scheme = color_scheme
         
         self.background_color = None
         self.currentline_color = None
+        self.currentcell_color = None
         self.occurence_color = None
         self.ctrlclick_color = None
         self.sideareas_color = None
@@ -215,6 +99,9 @@ class BaseSH(QSyntaxHighlighter):
         
     def get_currentline_color(self):
         return QColor(self.currentline_color)
+
+    def get_currentcell_color(self):
+        return QColor(self.currentcell_color)
         
     def get_occurence_color(self):
         return QColor(self.occurence_color)
@@ -245,6 +132,7 @@ class BaseSH(QSyntaxHighlighter):
         colors = self.color_scheme.copy()
         self.background_color = colors.pop("background")
         self.currentline_color = colors.pop("currentline")
+        self.currentcell_color = colors.pop("currentcell")
         self.occurence_color = colors.pop("occurence")
         self.ctrlclick_color = colors.pop("ctrlclick")
         self.sideareas_color = colors.pop("sideareas")
@@ -268,7 +156,7 @@ class BaseSH(QSyntaxHighlighter):
     def set_color_scheme(self, color_scheme):
         self._check_color_scheme(color_scheme)
         if is_text_string(color_scheme):
-            self.color_scheme = COLORS[color_scheme]
+            self.color_scheme = get_color_scheme(color_scheme)
         else:
             self.color_scheme = color_scheme
         self.setup_formats()
@@ -352,7 +240,7 @@ def make_python_patterns(additional_keywords=[], additional_builtins=[]):
                      number, any("SYNC", [r"\n"])])
 
 class OutlineExplorerData(object):
-    CLASS, FUNCTION, STATEMENT, COMMENT = list(range(4))
+    CLASS, FUNCTION, STATEMENT, COMMENT, CELL = list(range(5))
     def __init__(self):
         self.text = None
         self.fold_level = None
@@ -363,7 +251,7 @@ class OutlineExplorerData(object):
         return self.def_type not in (self.CLASS, self.FUNCTION)
     
     def is_comment(self):
-        return self.def_type == self.COMMENT
+        return self.def_type in (self.COMMENT, self.CELL)
         
     def get_class_name(self):
         if self.def_type == self.CLASS:
@@ -390,6 +278,7 @@ class PythonSH(BaseSH):
     def __init__(self, parent, font=None, color_scheme='Spyder'):
         BaseSH.__init__(self, parent, font, color_scheme)
         self.import_statements = {}
+        self.found_cell_separators = False
 
     def highlightBlock(self, text):
         text = to_text_string(text)
@@ -442,7 +331,14 @@ class PythonSH(BaseSH):
                     else:
                         self.setFormat(start, end-start, self.formats[key])
                         if key == "comment":
-                            if self.OECOMMENT.match(text.lstrip()):
+                            if text.lstrip().startswith(CELL_SEPARATORS):
+                                self.found_cell_separators = True
+                                oedata = OutlineExplorerData()
+                                oedata.text = to_text_string(text).strip()
+                                oedata.fold_level = start
+                                oedata.def_type = OutlineExplorerData.CELL
+                                oedata.def_name = text.strip()
+                            elif self.OECOMMENT.match(text.lstrip()):
                                 oedata = OutlineExplorerData()
                                 oedata.text = to_text_string(text).strip()
                                 oedata.fold_level = start
@@ -496,6 +392,7 @@ class PythonSH(BaseSH):
         if oedata is not None:
             block_nb = self.currentBlock().blockNumber()
             self.outlineexplorer_data[block_nb] = oedata
+            self.outlineexplorer_data['found_cell_separators'] = self.found_cell_separators
         if import_stmt is not None:
             block_nb = self.currentBlock().blockNumber()
             self.import_statements[block_nb] = import_stmt
@@ -505,6 +402,7 @@ class PythonSH(BaseSH):
             
     def rehighlight(self):
         self.import_statements = {}
+        self.found_cell_separators = False
         BaseSH.rehighlight(self)
 
 
@@ -518,6 +416,18 @@ class CythonSH(PythonSH):
     ADDITIONAL_KEYWORDS = ["cdef", "ctypedef", "cpdef", "inline", "cimport",
                            "DEF"]
     ADDITIONAL_BUILTINS = C_TYPES.split()
+    PROG = re.compile(make_python_patterns(ADDITIONAL_KEYWORDS,
+                                           ADDITIONAL_BUILTINS), re.S)
+    IDPROG = re.compile(r"\s+([\w\.]+)", re.S)
+
+
+#==============================================================================
+# Enaml syntax highlighter
+#==============================================================================
+class EnamlSH(PythonSH):
+    """Enaml Syntax Highlighter"""
+    ADDITIONAL_KEYWORDS = ["enamldef", "template", "attr", "event", "const", "alias"]
+    ADDITIONAL_BUILTINS = []
     PROG = re.compile(make_python_patterns(ADDITIONAL_KEYWORDS,
                                            ADDITIONAL_BUILTINS), re.S)
     IDPROG = re.compile(r"\s+([\w\.]+)", re.S)
@@ -939,6 +849,10 @@ class XmlSH(PygmentsSH):
 class JsSH(PygmentsSH):
     """Javascript highlighter"""
     _lang_name = 'js'
+
+class JuliaSH(PygmentsSH):
+    """Julia highlighter"""
+    _lang_name = 'julia'
     
 class CssSH(PygmentsSH):
     """CSS Syntax Highlighter"""
