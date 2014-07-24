@@ -21,6 +21,7 @@ import sys
 
 # Local imports
 from spyderlib import __version__
+from spyderlib.utils import encoding
 from spyderlib.py3compat import (is_unicode, TEXT_TYPES, INT_TYPES, PY3,
                                  to_text_string, is_text_string)
 
@@ -29,7 +30,7 @@ from spyderlib.py3compat import (is_unicode, TEXT_TYPES, INT_TYPES, PY3,
 # Only for development
 #==============================================================================
 # To activate/deactivate certain things for development
-# SPYDER_DEV is (and *only* have to be) set in bootstrap.py
+# SPYDER_DEV is (and *only* has to be) set in bootstrap.py
 DEV = os.environ.get('SPYDER_DEV')
 
 # For testing purposes
@@ -73,11 +74,34 @@ else:
 if PY3:
     SUBFOLDER = SUBFOLDER + '-py3'
 
+
+def get_home_dir():
+    """
+    Return user home directory
+    """
+    try:
+        # expanduser() returns a raw byte string which needs to be
+        # decoded with the codec that the OS is using to represent file paths.
+        path = encoding.to_unicode_from_fs(osp.expanduser('~'))
+    except:
+        path = ''
+    for env_var in ('HOME', 'USERPROFILE', 'TMP'):
+        if osp.isdir(path):
+            break
+        # os.environ.get() returns a raw byte string which needs to be
+        # decoded with the codec that the OS is using to represent environment
+        # variables.
+        path = encoding.to_unicode_from_fs(os.environ.get(env_var, ''))
+    if path:
+        return path
+    else:
+        raise RuntimeError('Please define environment variable $HOME')
+
+
 def get_conf_path(filename=None):
     """Return absolute path for configuration file with specified filename"""
     if TEST is None:
-        from spyderlib import userconfig
-        conf_dir = osp.join(userconfig.get_home_dir(), SUBFOLDER)
+        conf_dir = osp.join(get_home_dir(), SUBFOLDER)
     else:
          import tempfile
          conf_dir = osp.join(tempfile.gettempdir(), SUBFOLDER)

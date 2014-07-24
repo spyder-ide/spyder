@@ -17,8 +17,8 @@ from spyderlib.utils.debug import log_last_error
 from spyderlib.utils.dochelpers import (getargtxt, getdoc, getsource,
                                         getobjdir, isdefined)
 from spyderlib.utils.bsdsocket import (communicate, read_packet, write_packet,
-                                       PACKET_NOT_RECEIVED)
-from spyderlib.utils.module_completion import module_completion
+                                       PACKET_NOT_RECEIVED, PICKLE_HIGHEST_PROTOCOL)
+from spyderlib.utils.introspection.module_completion import module_completion
 from spyderlib.baseconfig import get_conf_path, get_supported_types, DEBUG
 from spyderlib.py3compat import getcwd, is_text_string, pickle, _thread
 
@@ -518,7 +518,7 @@ class Monitor(threading.Thread):
     def run(self):
         self.ipython_shell = None
         while True:
-            output = pickle.dumps(None, pickle.HIGHEST_PROTOCOL)
+            output = pickle.dumps(None, PICKLE_HIGHEST_PROTOCOL)
             glbs = self.mglobals()
             try:
                 if DEBUG_MONITOR:
@@ -553,10 +553,10 @@ class Monitor(threading.Thread):
                 if self.pdb_obj is None:
                     lcls["_"] = result
                 # old com implementation: (see solution (1) in Issue 434)
-                output = pickle.dumps(result, pickle.HIGHEST_PROTOCOL)
+                output = pickle.dumps(result, PICKLE_HIGHEST_PROTOCOL)
 #                # new com implementation: (see solution (2) in Issue 434)
 #                output = pickle.dumps((command, result),
-#                                      pickle.HIGHEST_PROTOCOL)
+#                                      PICKLE_HIGHEST_PROTOCOL)
             except SystemExit:
                 break
             except:

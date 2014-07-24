@@ -12,7 +12,7 @@ import sys
 from spyderlib.cli_options import get_options
 from spyderlib.baseconfig import get_conf_path
 from spyderlib.config import CONF
-from spyderlib.baseconfig import DEV
+from spyderlib.baseconfig import DEV, TEST
 from spyderlib.utils.external import lockfile
 from spyderlib.py3compat import is_unicode
 
@@ -86,7 +86,8 @@ def main():
             if args:
                 send_args_to_spyder(args)
         else:
-            atexit.register(lock.unlock)
+            if TEST is None:
+                atexit.register(lock.unlock)
             from spyderlib import spyder
             spyder.main()
     else:

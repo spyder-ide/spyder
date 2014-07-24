@@ -23,12 +23,13 @@ from spyderlib.qt.QtGui import (QDockWidget, QWidget, QShortcut, QCursor,
 from spyderlib.qt.QtCore import SIGNAL, Qt, QObject, Signal
 
 # Local imports
-from spyderlib.utils.qthelpers import toggle_actions, get_icon
+from spyderlib.utils.qthelpers import toggle_actions, get_icon, create_action
+from spyderlib.baseconfig import _
 from spyderlib.config import CONF
 from spyderlib.userconfig import NoDefault
 from spyderlib.guiconfig import get_font, set_font
 from spyderlib.plugins.configdialog import SpyderConfigPage
-from spyderlib.py3compat import is_text_string
+from spyderlib.py3compat import configparser, is_text_string
 
 
 class PluginConfigPage(SpyderConfigPage):
@@ -47,6 +48,17 @@ class PluginConfigPage(SpyderConfigPage):
 
     def get_icon(self):
         return self.plugin.get_plugin_icon()
+
+
+class SpyderDockWidget(QDockWidget):
+    """Subclass to override needed methods"""
+    
+    def closeEvent(self, event):
+        """
+        Reimplement Qt method to send a signal on close so that "Panes" main
+        window menu can be updated correctly
+        """
+        self.emit(SIGNAL('plugin_closed()'))
 
 
 class SpyderPluginMixin(object):
@@ -80,6 +92,10 @@ class SpyderPluginMixin(object):
         self.mainwindow = None
         self.ismaximized = False
         self.isvisible = False
+        # We decided to create our own toggle action instead of using
+        # the one that comes with dockwidget because it's not possible
+        # to raise and focus the plugin with it.
+        self.toggle_view_action = None
         
     def initialize_plugin(self):
         """Initialize plugin: connect signals, setup actions, ..."""
@@ -91,6 +107,7 @@ class SpyderPluginMixin(object):
         if self.sig_option_changed is not None:
             self.sig_option_changed.connect(self.set_option)
         self.setWindowTitle(self.get_plugin_title())
+        self.create_toggle_view_action()
 
     def on_first_registration(self):
         """Action to be performed on first plugin registration"""
@@ -115,8 +132,8 @@ class SpyderPluginMixin(object):
         layout = self.layout()
         if self.default_margins is None:
             self.default_margins = layout.getContentsMargins()
-        if CONF.get('main', 'use_custom_margin', True):
-            margin = CONF.get('main', 'custom_margin', 0)
+        if CONF.get('main', 'use_custom_margin'):
+            margin = CONF.get('main', 'custom_margin')
             layout.setContentsMargins(*[margin]*4)
         else:
             layout.setContentsMargins(*self.default_margins)
@@ -142,7 +159,7 @@ class SpyderPluginMixin(object):
 ##         # or non-Windows platforms (lot of warnings are printed out)
 ##         # (so in those cases, we use the default window flags: Qt.Widget):
 ##         flags = Qt.Widget if is_old_pyqt or os.name != 'nt' else Qt.Window
-        dock = QDockWidget(self.get_plugin_title(), self.main)#, flags)
+        dock = SpyderDockWidget(self.get_plugin_title(), self.main)#, flags)
 
         dock.setObjectName(self.__class__.__name__+"_dw")
         dock.setAllowedAreas(self.ALLOWED_AREAS)
@@ -151,14 +168,18 @@ class SpyderPluginMixin(object):
         self.update_margins()
         self.connect(dock, SIGNAL('visibilityChanged(bool)'),
                      self.visibility_changed)
+        self.connect(dock, SIGNAL('plugin_closed()'),
+                     self.plugin_closed)
         self.dockwidget = dock
-        short = self.get_option("shortcut", None)
+        try:
+            short = CONF.get('shortcuts', '_/switch to %s' % self.CONF_SECTION)
+        except configparser.NoOptionError:
+            short = None
         if short is not None:
             shortcut = QShortcut(QKeySequence(short),
                                  self.main, self.switch_to_plugin)
             self.register_shortcut(shortcut, "_",
-                                   "Switch to %s" % self.CONF_SECTION,
-                                   default=short)
+                                   "Switch to %s" % self.CONF_SECTION)
         return (dock, self.LOCATION)
     
     def create_mainwindow(self):
@@ -225,6 +246,10 @@ class SpyderPluginMixin(object):
         self.isvisible = enable and visible
         if self.isvisible:
             self.refresh_plugin()   # To give focus to the plugin's widget
+    
+    def plugin_closed(self):
+        """DockWidget was closed"""
+        self.toggle_view_action.setChecked(False)
 
     def set_option(self, option, value):
         """
@@ -276,6 +301,22 @@ class SpyderPluginMixin(object):
             if name not in names:
                 name = names[0]
             self.set_option('color_scheme_name', name)
+    
+    def create_toggle_view_action(self):
+        """Associate a toggle view action with each plugin"""
+        title = self.get_plugin_title()
+        if self.CONF_SECTION == 'editor':
+            title = _('Editor')
+        action = create_action(self, title, toggled=self.toggle_view)
+        self.toggle_view_action = action
+    
+    def toggle_view(self, checked):
+        """Toggle view"""
+        if checked:
+            self.dockwidget.show()
+            self.dockwidget.raise_()
+        else:
+            self.dockwidget.hide()
 
 
 class SpyderPluginWidget(QWidget, SpyderPluginMixin):

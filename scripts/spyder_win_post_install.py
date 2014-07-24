@@ -1,5 +1,5 @@
 # postinstall script for Spyder
-"""Create Spyder start menu entries"""
+"""Create Spyder start menu and desktop entries"""
 
 from __future__ import print_function
 
@@ -19,6 +19,7 @@ EWS = "Edit with Spyder"
 KEY_C = r"Software\Classes\%s"
 KEY_C0 = KEY_C % r"Python.%sFile\shell\%s"
 KEY_C1 = KEY_C0 + r"\command"
+
 
 def install():
     """Function executed when running the script with the -install switch"""
@@ -66,10 +67,18 @@ def install():
     winreg.SetValueEx(winreg.CreateKey(root, KEY_C1 % ("NoCon", EWS)),
                       "", 0, winreg.REG_SZ,
                       '"%s" "%s\Scripts\spyder" "%%1"' % (pythonw, sys.prefix))
+    
+    # Create desktop shortcut file
+    desktop_folder = get_special_folder_path("CSIDL_DESKTOPDIRECTORY")
+    fname = osp.join(desktop_folder, 'Spyder.lnk')
+    desc = 'Scientific Python Development EnvironmEnt, an alternative to IDLE'
+    create_shortcut(pythonw, desc, fname, '"%s"' % script, workdir,
+                    osp.join(ico_dir, 'spyder.ico'))
+    file_created(fname)
 
 
 def remove():
-    """Function executed when running the script with the -install switch"""
+    """Function executed when running the script with the -remove switch"""
     current = True  # only affects current user
     root = winreg.HKEY_CURRENT_USER if current else winreg.HKEY_LOCAL_MACHINE
     for key in (KEY_C1 % ("", EWS), KEY_C1 % ("NoCon", EWS),

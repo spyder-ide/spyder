@@ -198,7 +198,7 @@ class PylintWidget(QWidget):
         self.connect(self.filecombo, SIGNAL('valid(bool)'), self.show_data)
 
         browse_button = create_toolbutton(self, icon=get_icon('fileopen.png'),
-                               tip=_('Select Python script'),
+                               tip=_('Select Python file'),
                                triggered=self.select_file)
 
         self.ratelabel = QLabel()
@@ -206,7 +206,7 @@ class PylintWidget(QWidget):
         self.log_button = create_toolbutton(self, icon=get_icon('log.png'),
                                     text=_("Output"),
                                     text_beside_icon=True,
-                                    tip=_("Complete Pylint output"),
+                                    tip=_("Complete output"),
                                     triggered=self.show_log)
         self.treewidget = ResultsTree(self)
         
@@ -267,8 +267,8 @@ class PylintWidget(QWidget):
             
     def select_file(self):
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
-        filename, _selfilter = getopenfilename(self, _("Select Python script"),
-                           getcwd(), _("Python scripts")+" (*.py ; *.pyw)")
+        filename, _selfilter = getopenfilename(self, _("Select Python file"),
+                           getcwd(), _("Python files")+" (*.py ; *.pyw)")
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
         if filename:
             self.analyze(filename)

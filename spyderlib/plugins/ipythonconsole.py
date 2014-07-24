@@ -96,9 +96,9 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         # Background Color Group
         bg_group = QGroupBox(_("Background color"))
         light_radio = self.create_radiobutton(_("Light background"),
-                                              'light_color', True)
+                                              'light_color')
         dark_radio = self.create_radiobutton(_("Dark background"),
-                                             'dark_color', False)
+                                             'dark_color')
         bg_layout = QVBoxLayout()
         bg_layout.addWidget(light_radio)
         bg_layout.addWidget(dark_radio)
@@ -252,14 +252,6 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         run_file_layout.addWidget(run_file_browser)
         run_file_group.setLayout(run_file_layout)
         
-        # Spyder group
-        spyder_group = QGroupBox(_("Spyder startup"))
-        ipystartup_box = newcb(_("Open an IPython console at startup"),
-                                 "open_ipython_at_startup")
-        spyder_layout = QVBoxLayout()
-        spyder_layout.addWidget(ipystartup_box)
-        spyder_group.setLayout(spyder_layout)
-        
         # ---- Advanced settings ----
         # Greedy completer group
         greedy_group = QGroupBox(_("Greedy completion"))
@@ -361,8 +353,8 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                                     source_code_group), _("Display"))
         tabs.addTab(self.create_tab(pylab_group, backend_group, inline_group),
                                     _("Graphics"))
-        tabs.addTab(self.create_tab(spyder_group, run_lines_group,
-                                    run_file_group), _("Startup"))
+        tabs.addTab(self.create_tab(run_lines_group, run_file_group),
+                                    _("Startup"))
         tabs.addTab(self.create_tab(greedy_group, autocall_group, sympy_group,
                                     prompts_group), _("Advanced Settings"))
 
@@ -424,6 +416,21 @@ class IPythonConsole(SpyderPluginWidget):
             
         # Accepting drops
         self.setAcceptDrops(True)
+    
+    #------ SpyderPluginMixin API ---------------------------------------------
+    def toggle_view(self, checked):
+        """Toggle view"""
+        if checked:
+            self.dockwidget.show()
+            self.dockwidget.raise_()
+            # Start a client in case there are none shown
+            if not self.clients:
+                if self.main.is_setting_up:
+                    self.create_new_client(give_focus=False)
+                else:
+                    self.create_new_client(give_focus=True)
+        else:
+            self.dockwidget.hide()
     
     #------ SpyderPluginWidget API --------------------------------------------
     def get_plugin_title(self):
@@ -494,12 +501,12 @@ class IPythonConsole(SpyderPluginWidget):
         if client is not None:
             client.shellwidget.write_to_stdin(line)
 
-    def create_new_client(self):
+    def create_new_client(self, give_focus=True):
         """Create a new client"""
         client = IPythonClient(self, history_filename='history.py',
                                menu_actions=self.menu_actions)
         self.add_tab(client, name=client.get_name())
-        self.main.extconsole.start_ipykernel(client)
+        self.main.extconsole.start_ipykernel(client, give_focus=give_focus)
 
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
@@ -798,10 +805,10 @@ class IPythonConsole(SpyderPluginWidget):
         ip_cfg._merge(spy_cfg)
         return ip_cfg
 
-    def register_client(self, client, name, restart=False):
+    def register_client(self, client, name, restart=False, give_focus=True):
         """Register new IPython client"""
         self.connect_client_to_kernel(client)
-        client.show_shellwidget()
+        client.show_shellwidget(give_focus=give_focus)
         client.name = name
         
         # If we are restarting the kernel we just need to rename the client tab
@@ -889,10 +896,6 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Update client name
         self.rename_ipyclient_tab(client)
-    
-    def open_client_at_startup(self):
-        if self.get_option('open_ipython_at_startup', False):
-            self.create_new_client()
     
     def close_related_ipyclients(self, client):
         """Close all IPython clients related to *client*, except itself"""

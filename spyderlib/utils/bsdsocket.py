@@ -15,9 +15,13 @@ import socket
 import struct
 import threading
 import errno
+import traceback
 
 # Local imports
+from spyderlib.baseconfig import DEBUG, STDERR
+DEBUG_EDITOR = DEBUG >= 3
 from spyderlib.py3compat import pickle
+PICKLE_HIGHEST_PROTOCOL = 2
 
 
 def temp_fail_retry(error, fun, *args):
@@ -40,7 +44,7 @@ def write_packet(sock, data, already_pickled=False):
     if already_pickled:
         sent_data = data
     else:
-        sent_data = pickle.dumps(data, pickle.HIGHEST_PROTOCOL)
+        sent_data = pickle.dumps(data, PICKLE_HIGHEST_PROTOCOL)
     sent_data = struct.pack("l", len(sent_data)) + sent_data
     nsend = len(sent_data)
     while nsend > 0:
@@ -81,7 +85,10 @@ def read_packet(sock, timeout=None):
     if data is not None:
         try:
             return pickle.loads(data)
-        except (EOFError, pickle.UnpicklingError):
+        except Exception:
+            # Catch all exceptions to avoid locking spyder
+            if DEBUG_EDITOR:
+                traceback.print_exc(file=STDERR)
             return
 
 

@@ -134,7 +134,11 @@ Within Spyder, this interpreter also provides:
     except ImportError:
         # Python 3
         import builtins
-    from site import _Printer
+    try:
+        from site import _Printer
+    except ImportError:
+        # Python 3.4
+        from _sitebuiltins import _Printer
     builtins.scientific = _Printer("scientific", infos)
 
 

@@ -119,7 +119,9 @@ class EditorConfigPage(PluginConfigPage):
         edgeline_layout.addWidget(edgeline_box)
         edgeline_layout.addWidget(edgeline_spin)
         currentline_box = newcb(_("Highlight current line"),
-                                'highlight_current_line', default=True)
+                                'highlight_current_line')
+        currentcell_box = newcb(_("Highlight current cell"),
+                                'highlight_current_cell')
         occurence_box = newcb(_("Highlight occurences after"),
                               'occurence_highlighting', default=True)
         occurence_spin = self.create_spinbox("", " ms",
@@ -141,6 +143,7 @@ class EditorConfigPage(PluginConfigPage):
         display_layout.addWidget(linenumbers_box)
         display_layout.addLayout(edgeline_layout)
         display_layout.addWidget(currentline_box)
+        display_layout.addWidget(currentcell_box)
         display_layout.addLayout(occurence_layout)
         display_layout.addWidget(wrap_mode_box)
         display_layout.addWidget(cs_combo)
@@ -148,7 +151,7 @@ class EditorConfigPage(PluginConfigPage):
 
         run_group = QGroupBox(_("Run"))
         saveall_box = newcb(_("Save all files before running script"),
-                            'save_all_before_run', True)
+                            'save_all_before_run')
         
         introspection_group = QGroupBox(_("Introspection"))
         rope_is_installed = programs.is_module_installed('rope')
@@ -157,8 +160,6 @@ class EditorConfigPage(PluginConfigPage):
                                    'codecompletion/auto')
             case_comp_box = newcb(_("Case sensitive code completion"),
                                   'codecompletion/case_sensitive')
-            show_single_box = newcb(_("Show single completion"),
-                                    'codecompletion/show_single')
             comp_enter_box = newcb(_("Enter key selects completion"),
                                    'codecompletion/enter_key')
             calltips_box = newcb(_("Display balloon tips"), 'calltips')
@@ -234,7 +235,7 @@ class EditorConfigPage(PluginConfigPage):
         ancb_layout = QHBoxLayout()
         ancb_layout.addWidget(pyflakes_box)
         ancb_layout.addWidget(pep8_box)
-        todolist_box = newcb(_("Tasks (TODO, FIXME, XXX, HINT, TIP)"),
+        todolist_box = newcb(_("Tasks (TODO, FIXME, XXX, HINT, TIP, @todo)"),
                              'todo_list', default=True)
         realtime_radio = self.create_radiobutton(
                                             _("Perform analysis when "
@@ -243,7 +244,7 @@ class EditorConfigPage(PluginConfigPage):
         saveonly_radio = self.create_radiobutton(
                                             _("Perform analysis only "
                                                     "when saving file"),
-                                            'onsave_analysis', False)
+                                            'onsave_analysis')
         af_spin = self.create_spinbox("", " ms", 'realtime_analysis/timeout',
                                       min_=100, max_=1000000, step=100)
         af_layout = QHBoxLayout()
@@ -259,7 +260,6 @@ class EditorConfigPage(PluginConfigPage):
             introspection_layout.addWidget(calltips_box)
             introspection_layout.addWidget(completion_box)
             introspection_layout.addWidget(case_comp_box)
-            introspection_layout.addWidget(show_single_box)
             introspection_layout.addWidget(comp_enter_box)
             introspection_layout.addWidget(gotodef_box)
         else:
@@ -562,14 +562,13 @@ class Editor(SpyderPluginWidget):
                                 triggered=self.show_hide_outline_explorer,
                                 context=Qt.WidgetWithChildrenShortcut)
         self.register_shortcut(self.toggle_outline_action, context="Editor",
-                               name="Show/hide outline", default="Ctrl+Alt+O")
+                               name="Show/hide outline")
         self.toggle_project_action = create_action(self,
                                 _("Show/hide project explorer"),
                                 triggered=self.show_hide_project_explorer,
                                 context=Qt.WidgetWithChildrenShortcut)
         self.register_shortcut(self.toggle_project_action, context="Editor",
-                               name="Show/hide project explorer",
-                               default="Ctrl+Alt+P")
+                               name="Show/hide project explorer")
         self.addActions([self.toggle_outline_action, self.toggle_project_action])
         
         # ---- File menu and toolbar ----
@@ -577,7 +576,7 @@ class Editor(SpyderPluginWidget):
                 icon='filenew.png', tip=_("New file"),
                 triggered=self.new)
         self.register_shortcut(self.new_action, context="Editor",
-                               name="New file", default="Ctrl+N")
+                               name="New file")
         add_shortcut_to_tooltip(self.new_action, context="Editor",
                                 name="New file")
         
@@ -585,7 +584,7 @@ class Editor(SpyderPluginWidget):
                 icon='fileopen.png', tip=_("Open file"),
                 triggered=self.load)
         self.register_shortcut(self.open_action, context="Editor",
-                               name="Open file", default="Ctrl+O")
+                               name="Open file")
         add_shortcut_to_tooltip(self.open_action, context="Editor",
                                 name="Open file")
         
@@ -597,7 +596,7 @@ class Editor(SpyderPluginWidget):
                 icon='filesave.png', tip=_("Save file"),
                 triggered=self.save)
         self.register_shortcut(self.save_action, context="Editor",
-                               name="Save file", default="Ctrl+S")
+                               name="Save file")
         add_shortcut_to_tooltip(self.save_action, context="Editor",
                                 name="Save file")
         
@@ -605,7 +604,7 @@ class Editor(SpyderPluginWidget):
                 icon='save_all.png', tip=_("Save all files"),
                 triggered=self.save_all)
         self.register_shortcut(self.save_all_action, context="Editor",
-                               name="Save all", default="Ctrl+Shift+S")
+                               name="Save all")
         add_shortcut_to_tooltip(self.save_all_action, context="Editor",
                                 name="Save all")
         
@@ -618,17 +617,17 @@ class Editor(SpyderPluginWidget):
                 icon='print.png', tip=_("Print current file..."),
                 triggered=self.print_file)
         self.register_shortcut(self.print_action, context="Editor",
-        	name="Print", default="Ctrl+P")
+                               name="Print")
         self.close_action = create_action(self, _("&Close"),
                 icon='fileclose.png', tip=_("Close current file"),
                 triggered=self.close_file)
         self.register_shortcut(self.close_action, context="Editor",
-                               name="Close file", default="Ctrl+W")
+                               name="Close file")
         self.close_all_action = create_action(self, _("C&lose all"),
                 icon='filecloseall.png', tip=_("Close all opened files"),
                 triggered=self.close_all_files)
         self.register_shortcut(self.close_all_action, context="Editor",
-                               name="Close all", default="Ctrl+Shift+W")
+                               name="Close all")
 
         # ---- Debug menu ----
         set_clear_breakpoint_action = create_action(self,
@@ -637,15 +636,14 @@ class Editor(SpyderPluginWidget):
                                     triggered=self.set_or_clear_breakpoint,
                                     context=Qt.WidgetShortcut)
         self.register_shortcut(set_clear_breakpoint_action, context="Editor",
-                               name="Breakpoint", default="F12")
+                               name="Breakpoint")
         set_cond_breakpoint_action = create_action(self,
                             _("Set/Edit conditional breakpoint"),
                             icon=get_icon("breakpoint_cond_big.png"),
                             triggered=self.set_or_edit_conditional_breakpoint,
                             context=Qt.WidgetShortcut)
         self.register_shortcut(set_cond_breakpoint_action, context="Editor",
-                               name="Conditional breakpoint",
-                               default="Shift+F12")
+                               name="Conditional breakpoint")
         clear_all_breakpoints_action = create_action(self,
                                     _("Clear breakpoints in all files"),
                                     triggered=self.clear_all_breakpoints)
@@ -657,21 +655,19 @@ class Editor(SpyderPluginWidget):
                                            triggered=self.run_winpdb)
         self.winpdb_action.setEnabled(WINPDB_PATH is not None)
         self.register_shortcut(self.winpdb_action, context="Editor",
-                               name="Debug with winpdb", default="F7")
+                               name="Debug with winpdb")
         
         # --- Debug toolbar ---
         debug_action = create_action(self, _("&Debug"), icon='debug.png',
                                      tip=_("Debug file"),
                                      triggered=self.debug_file)
-        self.register_shortcut(debug_action, context="Editor",
-                               name="Debug", default="Ctrl+F5")
+        self.register_shortcut(debug_action, context="Editor", name="Debug")
         add_shortcut_to_tooltip(debug_action, context="Editor", name="Debug")
         
         debug_next_action = create_action(self, _("Step"), 
                icon='arrow-step-over.png', tip=_("Run current line"), 
                triggered=lambda: self.debug_command("next")) 
-        self.register_shortcut(debug_next_action, "_",
-                   "Debug Step Over", "Ctrl+F10")
+        self.register_shortcut(debug_next_action, "_", "Debug Step Over")
         add_shortcut_to_tooltip(debug_next_action, context="_",
                                 name="Debug Step Over")
 
@@ -679,8 +675,7 @@ class Editor(SpyderPluginWidget):
                icon='arrow-continue.png', tip=_("Continue execution until "
                                                 "next breakpoint"), 
                triggered=lambda: self.debug_command("continue"))                                                 
-        self.register_shortcut(debug_continue_action, "_",
-                   "Debug Continue", "Ctrl+F12")
+        self.register_shortcut(debug_continue_action, "_", "Debug Continue")
         add_shortcut_to_tooltip(debug_continue_action, context="_",
                                 name="Debug Continue")
 
@@ -688,8 +683,7 @@ class Editor(SpyderPluginWidget):
                icon='arrow-step-in.png', tip=_("Step into function or method "
                                                "of current line"), 
                triggered=lambda: self.debug_command("step"))                
-        self.register_shortcut(debug_step_action, "_",
-                   "Debug Step Into", "Ctrl+F11")
+        self.register_shortcut(debug_step_action, "_", "Debug Step Into")
         add_shortcut_to_tooltip(debug_step_action, context="_",
                                 name="Debug Step Into")
 
@@ -697,16 +691,14 @@ class Editor(SpyderPluginWidget):
                icon='arrow-step-out.png', tip=_("Run until current function "
                                                 "or method returns"), 
                triggered=lambda: self.debug_command("return"))               
-        self.register_shortcut(debug_return_action, "_",
-                   "Debug Step Return", "Ctrl+Shift+F11")
+        self.register_shortcut(debug_return_action, "_", "Debug Step Return")
         add_shortcut_to_tooltip(debug_return_action, context="_",
                                 name="Debug Step Return")
 
         debug_exit_action = create_action(self, _("Exit"),
                icon='stop_debug.png', tip=_("Exit Debug"), 
                triggered=lambda: self.debug_command("exit"))                                       
-        self.register_shortcut(debug_exit_action, "_",
-                   "Debug Exit", "Ctrl+Shift+F12")
+        self.register_shortcut(debug_exit_action, "_", "Debug Exit")
         add_shortcut_to_tooltip(debug_exit_action, context="_",
                                 name="Debug Exit")
 
@@ -722,8 +714,7 @@ class Editor(SpyderPluginWidget):
         run_action = create_action(self, _("&Run"), icon='run.png',
                                    tip=_("Run file"),
                                    triggered=self.run_file)
-        self.register_shortcut(run_action, context="Editor",
-                               name="Run", default="F5")
+        self.register_shortcut(run_action, context="Editor", name="Run")
         add_shortcut_to_tooltip(run_action, context="Editor", name="Run")
 
         configure_action = create_action(self,
@@ -732,7 +723,7 @@ class Editor(SpyderPluginWidget):
                                menurole=QAction.NoRole,
                                triggered=self.edit_run_configurations)
         self.register_shortcut(configure_action, context="Editor",
-                               name="Configure", default="F6")
+                               name="Configure")
         add_shortcut_to_tooltip(configure_action, context="Editor",
                                 name="Configure")
         
@@ -741,7 +732,7 @@ class Editor(SpyderPluginWidget):
                             tip=_("Run again last file"),
                             triggered=self.re_run_file)
         self.register_shortcut(re_run_action, context="Editor",
-                               name="Re-run last script", default="Ctrl+F6")
+                               name="Re-run last script")
         add_shortcut_to_tooltip(re_run_action, context="Editor",
                                 name="Re-run last script")
 
@@ -750,7 +741,7 @@ class Editor(SpyderPluginWidget):
                                             tip=_("Run selection"),
                                             triggered=self.run_selection)
         self.register_shortcut(run_selected_action, context="Editor",
-                               name="Run selection", default="F9")
+                               name="Run selection")
 
         run_cell_action = create_action(self,
                             _("Run cell"), icon='run_cell.png',
@@ -770,7 +761,7 @@ class Editor(SpyderPluginWidget):
         # --- Source code Toolbar ---
         self.todo_list_action = create_action(self,
                 _("Show todo list"), icon='todo_list.png',
-                tip=_("Show TODO/FIXME/XXX/HINT/TIP comments list"),
+                tip=_("Show TODO/FIXME/XXX/HINT/TIP/@todo comments list"),
                 triggered=self.go_to_next_todo)
         self.todo_menu = QMenu(self)
         self.todo_list_action.setMenu(self.todo_menu)
@@ -800,23 +791,20 @@ class Editor(SpyderPluginWidget):
                 triggered=self.go_to_last_edit_location)
         self.register_shortcut(self.previous_edit_cursor_action,
                                context="Editor",
-                               name="Last edit location",
-                               default="Ctrl+Alt+Shift+Left")
+                               name="Last edit location")
         self.previous_cursor_action = create_action(self,
                 _("Previous cursor position"), icon='prev_cursor.png',
                 tip=_("Go to previous cursor position"),
                 triggered=self.go_to_previous_cursor_position)
         self.register_shortcut(self.previous_cursor_action,
                                context="Editor",
-                               name="Previous cursor position",
-                               default="Ctrl+Alt+Left")
+                               name="Previous cursor position")
         self.next_cursor_action = create_action(self,
                 _("Next cursor position"), icon='next_cursor.png',
                 tip=_("Go to next cursor position"),
                 triggered=self.go_to_next_cursor_position)
         self.register_shortcut(self.next_cursor_action,
-                               context="Editor", name="Next cursor position",
-                               default="Ctrl+Alt+Right")
+                               context="Editor", name="Next cursor position")
         
         # --- Edit Toolbar ---
         self.toggle_comment_action = create_action(self,
@@ -824,20 +812,20 @@ class Editor(SpyderPluginWidget):
                 tip=_("Comment current line or selection"),
                 triggered=self.toggle_comment, context=Qt.WidgetShortcut)
         self.register_shortcut(self.toggle_comment_action, context="Editor",
-                               name="Toggle comment", default="Ctrl+1")
+                               name="Toggle comment")
         blockcomment_action = create_action(self, _("Add &block comment"),
                 tip=_("Add block comment around "
                             "current line or selection"),
                 triggered=self.blockcomment, context=Qt.WidgetShortcut)
         self.register_shortcut(blockcomment_action, context="Editor",
-                               name="Blockcomment", default="Ctrl+4")
+                               name="Blockcomment")
         unblockcomment_action = create_action(self,
                 _("R&emove block comment"),
                 tip = _("Remove comment block around "
                               "current line or selection"),
                 triggered=self.unblockcomment, context=Qt.WidgetShortcut)
         self.register_shortcut(unblockcomment_action, context="Editor",
-                               name="Unblockcomment", default="Ctrl+5")
+                               name="Unblockcomment")
                 
         # ----------------------------------------------------------------------
         # The following action shortcuts are hard-coded in CodeEditor
@@ -881,7 +869,7 @@ class Editor(SpyderPluginWidget):
                                         triggered=self.go_to_line,
                                         context=Qt.WidgetShortcut)
         self.register_shortcut(gotoline_action, context="Editor",
-                               name="Go to line", default="Ctrl+L")
+                               name="Go to line")
 
         workdir_action = create_action(self,
                 _("Set console working directory"),
@@ -1068,10 +1056,8 @@ class Editor(SpyderPluginWidget):
             ('set_linenumbers_enabled',             'line_numbers'),
             ('set_edgeline_enabled',                'edge_line'),
             ('set_edgeline_column',                 'edge_line_column'),
-            ('set_outlineexplorer_enabled',         'outline_explorer'),
             ('set_codecompletion_auto_enabled',     'codecompletion/auto'),
             ('set_codecompletion_case_enabled',     'codecompletion/case_sensitive'),
-            ('set_codecompletion_single_enabled',   'codecompletion/show_single'),
             ('set_codecompletion_enter_enabled',    'codecompletion/enter_key'),
             ('set_calltips_enabled',                'calltips'),
             ('set_go_to_definition_enabled',        'go_to_definition'),
@@ -1085,6 +1071,7 @@ class Editor(SpyderPluginWidget):
             ('set_tabmode_enabled',                 'tab_always_indent'),
             ('set_intelligent_backspace_enabled',   'intelligent_backspace'),
             ('set_highlight_current_line_enabled',  'highlight_current_line'),
+            ('set_highlight_current_cell_enabled',  'highlight_current_cell'),
             ('set_occurence_highlighting_enabled',  'occurence_highlighting'),
             ('set_occurence_highlighting_timeout',  'occurence_highlighting/timeout'),
             ('set_checkeolchars_enabled',           'check_eol_chars'),
@@ -2062,7 +2049,7 @@ class Editor(SpyderPluginWidget):
         
     def re_run_file(self):
         """Re-run last script"""
-        if self.get_option('save_all_before_run', True):
+        if self.get_option('save_all_before_run'):
             self.save_all()
         if self.__last_ec_exec is None:
             return
@@ -2127,6 +2114,8 @@ class Editor(SpyderPluginWidget):
             font_o = self.get_plugin_font()
             currentline_n = 'highlight_current_line'
             currentline_o = self.get_option(currentline_n)
+            currentcell_n = 'highlight_current_cell'
+            currentcell_o = self.get_option(currentcell_n)            
             occurence_n = 'occurence_highlighting'
             occurence_o = self.get_option(occurence_n)
             occurence_timeout_n = 'occurence_highlighting/timeout'
@@ -2135,16 +2124,25 @@ class Editor(SpyderPluginWidget):
                 if font_n in options:
                     scs = color_scheme_o if color_scheme_n in options else None
                     editorstack.set_default_font(font_o, scs)
+                    completion_size = CONF.get('editor_appearance',
+                                               'completion/size')
+                    for finfo in editorstack.data:
+                        comp_widget = finfo.editor.completion_widget
+                        comp_widget.setup_appearance(completion_size, font_o)
                 elif color_scheme_n in options:
                     editorstack.set_color_scheme(color_scheme_o)
                 if currentline_n in options:
                     editorstack.set_highlight_current_line_enabled(
                                                                 currentline_o)
+                if currentcell_n in options:
+                    editorstack.set_highlight_current_cell_enabled(
+                                                                currentcell_o)              
                 if occurence_n in options:
                     editorstack.set_occurence_highlighting_enabled(occurence_o)
                 if occurence_timeout_n in options:
                     editorstack.set_occurence_highlighting_timeout(
                                                         occurence_timeout_o)
+
             # --- everything else
             fpsorting_n = 'fullpath_sorting'
             fpsorting_o = self.get_option(fpsorting_n)
@@ -2168,8 +2166,6 @@ class Editor(SpyderPluginWidget):
             autocomp_o = self.get_option(autocomp_n)
             case_comp_n = 'codecompletion/case_sensitive'
             case_comp_o = self.get_option(case_comp_n)
-            show_single_n = 'codecompletion/show_single'
-            show_single_o = self.get_option(show_single_n)
             enter_key_n = 'codecompletion/enter_key'
             enter_key_o = self.get_option(enter_key_n)
             calltips_n = 'calltips'
@@ -2231,8 +2227,6 @@ class Editor(SpyderPluginWidget):
                     editorstack.set_codecompletion_auto_enabled(autocomp_o)
                 if case_comp_n in options:
                     editorstack.set_codecompletion_case_enabled(case_comp_o)
-                if show_single_n in options:
-                    editorstack.set_codecompletion_single_enabled(show_single_o)
                 if enter_key_n in options:
                     editorstack.set_codecompletion_enter_enabled(enter_key_o)
                 if calltips_n in options:
