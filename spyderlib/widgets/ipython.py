@@ -456,7 +456,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
     
     def get_name(self):
         """Return client name"""
-        return (("Localhost" if self.sshserver is None else self.sshserver)
+        return (("Console" if self.sshserver is None else self.sshserver)
             + " " + self.name)
     
     def get_control(self):
