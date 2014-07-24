@@ -362,12 +362,6 @@ def load_dictionary(filename):
     return data, error_message
 
 
-def load_hdf(filname):
-    if pd is None:
-        raise ImportError('Pandas required to load HDF files')
-    return pd.load_hdf(filename)
-
-
 from spyderlib.baseconfig import get_conf_path, STDERR
 
 SAVED_CONFIG_FILES = ('inspector', 'onlinehelp', 'path', 'pylint.results',
@@ -505,7 +499,6 @@ class IOFunctions(object):
                 ('.npy', _("NumPy arrays"), load_array, None),
                 ('.npz', _("NumPy zip arrays"), load_array, None),
                 ('.mat', _("Matlab files"), load_matlab, save_matlab),
-                ('.hdf', _("HDF files"), load_hdf, None),
                 ('.csv', _("CSV text files"), 'import_wizard', None),
                 ('.txt', _("Text files"), 'import_wizard', None),
                 ('.jpg', _("JPEG images"), load_image, None),
