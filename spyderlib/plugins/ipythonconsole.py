@@ -389,6 +389,10 @@ class KernelConnectionDialog(QDialog):
         
         # connection file
         cf_label = QLabel('Connection info')
+        cf_label.setToolTip('''The connection info can either be the full path
+to the connection file, or the kernel id. 
+For example kernel-3764.json or 3764.
+''')
         self.cf = QLineEdit()
         self.cf.setPlaceholderText('Path to connection file or kernel id')
         self.cf.setMinimumWidth(250)
