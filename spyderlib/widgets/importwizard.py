@@ -412,17 +412,26 @@ class PreviewWidget(QWidget):
         
         vert_layout = QVBoxLayout()
         
-        hor_layout = QHBoxLayout()
-        self.array_box = QCheckBox(_("Import as array"))
-        self.array_box.setEnabled(ndarray is not FakeObject)
-        self.array_box.setChecked(ndarray is not FakeObject)
-        hor_layout.addWidget(self.array_box)
+        # Type frame
+        type_layout = QHBoxLayout()
+        type_label = QLabel(_("Import as"))
+        type_layout.addWidget(type_label)
+        self.array_btn = array_btn = QRadioButton(_("array"))
+        array_btn.setEnabled(ndarray is not FakeObject)
+        array_btn.setChecked(ndarray is not FakeObject)
+
+        type_layout.addWidget(array_btn)
+        list_btn = QRadioButton(_("list"))
+        list_btn.setChecked(not array_btn.isChecked())
+        type_layout.addWidget(list_btn)    
         h_spacer = QSpacerItem(40, 20,
-                               QSizePolicy.Expanding, QSizePolicy.Minimum)        
-        hor_layout.addItem(h_spacer)
+                               QSizePolicy.Expanding, QSizePolicy.Minimum)
+        type_layout.addItem(h_spacer)        
+        type_frame = QFrame()
+        type_frame.setLayout(type_layout)
         
         self._table_view = PreviewTable(self)
-        vert_layout.addLayout(hor_layout)
+        vert_layout.addWidget(type_frame)
         vert_layout.addWidget(self._table_view)
         self.setLayout(vert_layout)
 
@@ -473,14 +482,10 @@ class ImportWizard(QDialog):
         self.tab_widget.setTabEnabled(1, False)
         
         name_layout = QHBoxLayout()
-        name_h_spacer = QSpacerItem(40, 20, 
-                                    QSizePolicy.Expanding, QSizePolicy.Minimum)
-        name_layout.addItem(name_h_spacer)
-        
-        name_label = QLabel(_("Name"))
+        name_label = QLabel(_("Variable Name"))
         name_layout.addWidget(name_label)
+        
         self.name_edt = QLineEdit()
-        self.name_edt.setMaximumWidth(100)
         self.name_edt.setText(varname)
         name_layout.addWidget(self.name_edt)
         
@@ -571,7 +576,7 @@ class ImportWizard(QDialog):
         """Return clipboard processed as data"""
         data = self._simplify_shape(
                 self.table_widget.get_data())
-        if self.table_widget.array_box.isChecked():
+        if self.table_widget.array_btn.isChecked():
             return array(data)
         return data
 
