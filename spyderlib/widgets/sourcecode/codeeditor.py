@@ -1004,7 +1004,6 @@ class CodeEditor(TextEditBaseWidget):
         sideareas_color = self.sideareas_color
         number_color = self.linenumbers_color
         active_number_color = self.normal_color
-        #cell_line_color = self.comment_color
 
         painter = QPainter(self.linenumberarea)
         #pen = painter.pen()
@@ -2510,7 +2509,7 @@ class CodeEditor(TextEditBaseWidget):
         for top, line_number, block in self.visible_blocks:
             # FIXME: data = block.userData()  # USE THIS  or BLOCK USER DATA
             if self.is_cell_separator(block):  
-                painter.drawLine(3, top, self.width(), top)
+                painter.drawLine(4, top, self.width(), top)
 
     @property
     def visible_blocks(self):
