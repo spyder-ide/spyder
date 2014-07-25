@@ -227,6 +227,10 @@ class ScrollFlagArea(QWidget):
         pos2 = self.value_to_position(value + vsb.pageStep(), slider=True)
         return QRect(1, pos1, self.WIDTH-2, pos2-pos1+1)
 
+    def wheelEvent(self, event):
+        """Override Qt method"""
+        self.code_editor.wheelEvent(event)
+
 
 class EdgeLine(QWidget):
     """Source code editor's edge line (default: 79 columns, PEP8)"""
@@ -365,24 +369,18 @@ class CodeEditor(TextEditBaseWidget):
         self.linenumberarea_pressed = None
         self.linenumberarea_released = None
 
-        # Colors to use in numbers and background 
-        # look into: def _apply_highlighter_color_scheme
-        # FIXME: Should all the default scheme colors be defined here?  
-        self.currentline_color = QColor("#f7ecf8")
-        self.currentcell_color = QColor("#fdfdde")
-        self.occurence_color = QColor("#ffff99",)
-        self.ctrl_click_color = QColor("#0000ff")
-        self.sideareas_color = QColor("#efefef")
-        self.matched_p_color = QColor("#99ff99")
-        self.unmatched_p_color = QColor("#ff9999")
-        self.normal_color = QColor("#000000") # ('#000000', False, False),)
-        #self.keyword_color = QColor('#0000ff') # ('#0000ff', False, False),
-        #self.builtin_color = QColor('#900090') # ('#900090', False, False),
-        #self.definition_color = QColor('#000000') # ('#000000', True, False),
-        self.comment_color = QColor('#adadad') # ('#adadad', False, True),
-        #self.string_color = QColor('#00aa00') # ('#00aa00', False, False),
-        #self.number_color = QColor('#00aa00') # ('#00aa00', False, False),
-        #self.instance_color = QColor('#924900') # ('#924900', False, True),
+        # Colors to be defined in _apply_highlighter_color_scheme()
+        # Currentcell color and current line color are defined in base.py
+        self.occurence_color = None
+        self.ctrl_click_color = None
+        self.sideareas_color = None
+        self.matched_p_color = None
+        self.unmatched_p_color = None
+        self.normal_color = None
+        self.comment_color = None
+        
+        self.linenumbers_color = QColor(Qt.darkGray)
+
 
         # --- Syntax highlight entrypoint ---
         #
@@ -1003,14 +1001,14 @@ class CodeEditor(TextEditBaseWidget):
 
     def linenumberarea_paint_event(self, event):
         """Painting line number area"""
-        back_color = self.sideareas_color
-        number_color = self.comment_color
+        sideareas_color = self.sideareas_color
+        number_color = self.linenumbers_color
         active_number_color = self.normal_color
         #cell_line_color = self.comment_color
 
         painter = QPainter(self.linenumberarea)
         #pen = painter.pen()
-        painter.fillRect(event.rect(), back_color)
+        painter.fillRect(event.rect(), sideareas_color)
         font = painter.font()
         font_height = self.fontMetrics().height()
 
@@ -1022,7 +1020,7 @@ class CodeEditor(TextEditBaseWidget):
             painter.drawPixmap(0, ytop + (font_height-pixmap.height()) / 2, 
                                pixmap)
 
-        for top, line_number, block in self.visibleBlocks:            
+        for top, line_number, block in self.visible_blocks:            
             #if self.is_cell_separator(block):
             #    pen.setStyle(Qt.DashLine)
             #    pen.setBrush(cell_line_color)
@@ -1111,11 +1109,11 @@ class CodeEditor(TextEditBaseWidget):
         block_pressed = find_block_by_line_number(linenumber_pressed - 1)
         cursor = self.textCursor()
         cursor.setPosition(block_pressed.position())
-        if move_n_blocks >= 0: # select/drag downwards or select single line
+        if move_n_blocks >= 0:  # select/drag downwards or select single line
             for n in range(abs(move_n_blocks)):
                 cursor.movePosition(cursor.NextBlock, cursor.KeepAnchor)
             cursor.movePosition(cursor.EndOfBlock, cursor.KeepAnchor)
-        else: # select/drag upwards
+        else:  # select/drag upwards
             cursor.movePosition(cursor.EndOfBlock)
             for n in range(abs(move_n_blocks)):
                 cursor.movePosition(cursor.PreviousBlock, cursor.KeepAnchor)
@@ -2462,7 +2460,7 @@ class CodeEditor(TextEditBaseWidget):
         else:
             TextEditBaseWidget.dropEvent(self, event)
 
-    #------ New Editor Methods FIXME: Locate them in a proper place
+    # TODO: New Editor Methods - Locate them in a proper place
     def paintEvent(self, event):
         """
         Overrides paint event to update the list of visible blocks and emit
@@ -2470,11 +2468,11 @@ class CodeEditor(TextEditBaseWidget):
 
         :param e: paint event
         """
-        self.updateVisibleBlocks(event)
+        self.update_visible_blocks(event)
         TextEditBaseWidget.paintEvent(self, event)
         self.painted.emit(event)
 
-    def updateVisibleBlocks(self, event):
+    def update_visible_blocks(self, event):
         """
         Update the list of visible blocks/lines position.
 
@@ -2501,24 +2499,21 @@ class CodeEditor(TextEditBaseWidget):
             blockNumber = block.blockNumber()
 
     def _draw_editor_cell_divider(self):
-        """
-        """
+        """ draw a line on top of a define cell """
         cell_line_color = self.comment_color
         painter = QPainter(self.viewport())
         pen = painter.pen() 
-        #pen.setStyle(Qt.DotLine)
-        #pen.setStyle(Qt.DashLine)
         pen.setStyle(Qt.SolidLine)
         pen.setBrush(cell_line_color)
         painter.setPen(pen)
         
-        for top, line_number, block in self.visibleBlocks:
-            #data = block.userData()  # USE THIS  or BLOCK USER DATA?
+        for top, line_number, block in self.visible_blocks:
+            # FIXME: data = block.userData()  # USE THIS  or BLOCK USER DATA
             if self.is_cell_separator(block):  
                 painter.drawLine(3, top, self.width(), top)
-                
+
     @property
-    def visibleBlocks(self):
+    def visible_blocks(self):
         """
         Returns the list of visible blocks.
 
