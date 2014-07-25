@@ -22,13 +22,10 @@ import warnings
 import json
 import inspect
 import dis
-<<<<<<< local
-=======
 try:
     import pandas as pd
 except ImportError:
     pd = None
->>>>>>> other
 
 # Local imports
 from spyderlib.py3compat import pickle, to_text_string, getcwd, PY2
@@ -244,18 +241,12 @@ except ImportError:
 def load_pickle(filename):
     """Load a pickle file as a dictionary"""
     try:
-<<<<<<< local
-        with open(filename, 'rb') as fid:
-            data = pickle.load(fid)
-        return data, None
-=======
-        if not pd is None:
+        if pd:
             return pd.read_pickle(data), None
         else:
             with open(filename, 'rb') as fid:
                 data = pickle.load(fid)
             return data, None
->>>>>>> other
     except Exception as err:
         return None, str(err)
 
@@ -575,7 +566,4 @@ if __name__ == "__main__":
     assert a["b"] == 'spam'
     a.c["d"] = 'eggs'
     assert a.c.d == 'eggs'
-<<<<<<< local
-    assert a == {'c': {'d': 'eggs'}, 'b': 'spam'}=======
     assert a == {'c': {'d': 'eggs'}, 'b': 'spam'}
->>>>>>> other
