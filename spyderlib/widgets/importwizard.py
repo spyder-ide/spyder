@@ -22,6 +22,11 @@ from spyderlib.qt.compat import to_qvariant
 
 from functools import partial as ft_partial
 
+try:
+    import pandas as pd
+except ImportError:
+    pd = None
+
 # Local import
 from spyderlib.baseconfig import _
 from spyderlib.utils import programs
@@ -114,6 +119,7 @@ class ContentsWidget(QWidget):
         type_layout.addWidget(code_btn)        
         txt_btn = QRadioButton(_("text"))
         type_layout.addWidget(txt_btn)
+        
         h_spacer = QSpacerItem(40, 20,
                                QSizePolicy.Expanding, QSizePolicy.Minimum)
         type_layout.addItem(h_spacer)        
@@ -129,15 +135,16 @@ class ContentsWidget(QWidget):
         col_w = QWidget()
         col_btn_layout = QHBoxLayout()
         self.tab_btn = QRadioButton(_("Tab"))
-        self.tab_btn.setChecked(True)
+        self.tab_btn.setChecked(False)
         col_btn_layout.addWidget(self.tab_btn)
         other_btn_col = QRadioButton(_("other"))
+        other_btn_col.setChecked(True)
         col_btn_layout.addWidget(other_btn_col)
         col_w.setLayout(col_btn_layout)
         grid_layout.addWidget(col_w, 0, 1)
         self.line_edt = QLineEdit(",")
         self.line_edt.setMaximumWidth(30)
-        self.line_edt.setEnabled(False)
+        self.line_edt.setEnabled(True)
         self.connect(other_btn_col, SIGNAL("toggled(bool)"),
                      self.line_edt, SLOT("setEnabled(bool)"))
         grid_layout.addWidget(self.line_edt, 0, 2)
@@ -162,7 +169,7 @@ class ContentsWidget(QWidget):
 
         grid_layout.setRowMinimumHeight(2, 15)
         
-        other_group = QGroupBox(_("Additionnal options"))
+        other_group = QGroupBox(_("Additional options"))
         other_layout = QGridLayout()
         other_group.setLayout(other_layout)
 
@@ -250,6 +257,7 @@ class ContentsWidget(QWidget):
     def set_as_code(self, as_code):
         """Set if code type conversion"""
         self._as_code = as_code
+
 
 class PreviewTableModel(QAbstractTableModel):
     """Import wizard preview table model"""
@@ -592,6 +600,8 @@ class ImportWizard(QDialog):
         elif self.text_widget.get_as_code():
             self.clip_data = try_to_eval(
                 to_text_string(self._get_plain_text()))
+        elif self.text_widget.get_as_df():
+            self.clip_data = pd.read_csv(self._get_plain_text())
         else:
             self.clip_data = to_text_string(self._get_plain_text())
         self.accept()
