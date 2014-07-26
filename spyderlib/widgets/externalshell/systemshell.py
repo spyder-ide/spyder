@@ -85,7 +85,7 @@ class ExternalSystemShell(ExternalShellBase):
         else:
             # Using bash:
             self.process.start('bash', p_args)
-            self.send_to_process(r"""PS1="\u@\h:\w> "\n""")
+            self.send_to_process('PS1="\\u@\\h:\\w> "\n')
             
         running = self.process.waitForStarted()
         self.set_running_state(running)
