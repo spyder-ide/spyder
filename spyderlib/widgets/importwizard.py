@@ -32,7 +32,7 @@ from spyderlib.baseconfig import _
 from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import get_icon, add_actions, create_action
 from spyderlib.py3compat import (TEXT_TYPES, INT_TYPES, to_text_string, u,
-                                 zip_longest)
+                                 zip_longest, io)
 
 def try_to_parse(value):
     _types = ('int', 'float')
@@ -424,14 +424,21 @@ class PreviewWidget(QWidget):
         type_layout = QHBoxLayout()
         type_label = QLabel(_("Import as"))
         type_layout.addWidget(type_label)
+        
         self.array_btn = array_btn = QRadioButton(_("array"))
         array_btn.setEnabled(ndarray is not FakeObject)
         array_btn.setChecked(ndarray is not FakeObject)
-
         type_layout.addWidget(array_btn)
+        
         list_btn = QRadioButton(_("list"))
         list_btn.setChecked(not array_btn.isChecked())
         type_layout.addWidget(list_btn)    
+        
+        if pd:
+            self.df_btn = df_btn = QRadioButton(_("DataFrame"))
+            df_btn.setChecked(False)
+            type_layout.addWidget(df_btn)
+        
         h_spacer = QSpacerItem(40, 20,
                                QSizePolicy.Expanding, QSizePolicy.Minimum)
         type_layout.addItem(h_spacer)        
@@ -586,6 +593,9 @@ class ImportWizard(QDialog):
                 self.table_widget.get_data())
         if self.table_widget.array_btn.isChecked():
             return array(data)
+        elif pd and self.table_widget.df_btn.isChecked():
+            data = io.StringIO(data)
+            return pd.read_csv(data)
         return data
 
     def _get_plain_text(self):
