@@ -1915,8 +1915,7 @@ Please provide any additional information below.
         ext = osp.splitext(fname)[1]
         if ext in EDIT_EXT:
             self.editor.load(fname)
-        elif self.variableexplorer is not None and ext in IMPORT_EXT\
-             and ext in ('.spydata', '.mat', '.npy', '.h5'):
+        elif self.variableexplorer is not None and ext in IMPORT_EXT:
             self.variableexplorer.import_data(fname)
         elif not external:
             fname = file_uri(fname)
