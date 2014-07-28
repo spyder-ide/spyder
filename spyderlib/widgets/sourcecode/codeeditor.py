@@ -991,14 +991,6 @@ class CodeEditor(TextEditBaseWidget):
         if qrect.contains(self.viewport().rect()):
             self.update_linenumberarea_width()
 
-    # FIXME:
-    def __invert_color(self ,color):
-        """Invert a given QColor
-        These function should be more like in editor tools I guess???
-        """
-        c = QColor(255 - color.red(), 255 - color.green(), 255 - color.blue())
-        return c
-
     def linenumberarea_paint_event(self, event):
         """Painting line number area"""
         sideareas_color = self.sideareas_color
@@ -1006,7 +998,6 @@ class CodeEditor(TextEditBaseWidget):
         active_number_color = self.normal_color
 
         painter = QPainter(self.linenumberarea)
-        #pen = painter.pen()
         painter.fillRect(event.rect(), sideareas_color)
         font = painter.font()
         font_height = self.fontMetrics().height()
@@ -1020,11 +1011,6 @@ class CodeEditor(TextEditBaseWidget):
                                pixmap)
 
         for top, line_number, block in self.visible_blocks:            
-            #if self.is_cell_separator(block):
-            #    pen.setStyle(Qt.DashLine)
-            #    pen.setBrush(cell_line_color)
-            #    painter.setPen(pen)
-            #    painter.drawLine(0, top, self.linenumberarea.width(), top)
             if self.linenumbers_margin:
                 if line_number == active_line_number:
                     font.setWeight(font.Bold)
@@ -2212,8 +2198,8 @@ class CodeEditor(TextEditBaseWidget):
         ctrl = event.modifiers() & Qt.ControlModifier
         shift = event.modifiers() & Qt.ShiftModifier
         text = to_text_string(event.text())
-        if text:
-            self.__clear_occurences()
+#        if text:
+#            self.__clear_occurences()
         if QToolTip.isVisible():
             self.hide_tooltip_if_necessary(key)
         if key in (Qt.Key_Enter, Qt.Key_Return):
@@ -2461,22 +2447,13 @@ class CodeEditor(TextEditBaseWidget):
 
     # TODO: New Editor Methods - Locate them in a proper place
     def paintEvent(self, event):
-        """
-        Overrides paint event to update the list of visible blocks and emit
-        the painted event.
-
-        :param e: paint event
-        """
+        """Overrides paint event to update the list of visible blocks"""
         self.update_visible_blocks(event)
         TextEditBaseWidget.paintEvent(self, event)
         self.painted.emit(event)
 
     def update_visible_blocks(self, event):
-        """
-        Update the list of visible blocks/lines position.
-
-        :param event: QtGui.QPaintEvent
-        """
+        """Update the list of visible blocks/lines position"""
         self.__visible_blocks[:] = []
         block = self.firstVisibleBlock()
         blockNumber = block.blockNumber()
