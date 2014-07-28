@@ -6,40 +6,43 @@
 
 """Packager manager widget"""
 
-# pylint: disable=C0103
+# pylint: disable=C01031
 # pylint: disable=R0903
 # pylint: disable=R0911
 # pylint: disable=R0201
 
 from __future__ import with_statement, print_function
 
-from spyderlib.qt.QtGui import (QGroupBox, QDialogButtonBox, QToolButton, QSpacerItem,
-                                QPixmap, QIcon, QHBoxLayout, QGridLayout,
-                                QWidget, QMessageBox, QVBoxLayout, QLabel,
-                                QTableView, QPushButton, QAbstractItemView,
-                                QColor, QBrush, QPainter, QLayout, QFileDialog,
-                                QSortFilterProxyModel, QLineEdit, QComboBox,
-                                QStyle, QFont, QDialog, QSizePolicy, QRegExpValidator)
-from spyderlib.qt.QtCore import (QSize, Qt, SIGNAL, QProcess, QByteArray,
+from spyderlib.qt.QtGui import (QGridLayout, QVBoxLayout, QHBoxLayout,
+                                QStatusBar, QDialogButtonBox, QToolButton,
+                                QLineEdit, QComboBox, QProgressBar,
+                                QSpacerItem, QPushButton, QMenu,
+                                QPixmap, QIcon, QFileDialog,
+                                QWidget, QMessageBox, QLabel, QAction,
+                                QTableView, QAbstractItemView, QSortFilterProxyModel,
+                                QColor, QBrush, QPainter,
+                                QStyle, QFont, QDialog, QPalette,
+                                QSizePolicy, QRegExpValidator)
+from spyderlib.qt.QtCore import (QSize, Qt, SIGNAL, QProcess, QByteArray, QRect,
                                  QTextCodec, Signal, QThread,
                                  QAbstractTableModel, QModelIndex, QRegExp,
-                                 QPoint, SLOT)
+                                 QPoint, SLOT, Slot, QObject, QMetaObject, Q_ARG)
 locale_codec = QTextCodec.codecForLocale()
 from spyderlib.qt.compat import to_qvariant, getexistingdirectory
-from spyderlib.utils.qthelpers import get_icon
 
 import sys
 import platform
 import os
 import os.path as osp
 import json
-import locale
+#import locale
 
 # Local imports
 from spyderlib import dependencies
 from spyderlib.utils import programs
 from spyderlib.utils.encoding import to_unicode_from_fs
-from spyderlib.utils.qthelpers import get_icon, create_toolbutton
+from spyderlib.utils.qthelpers import (get_icon, create_toolbutton, create_action,
+                                       add_actions)
 from spyderlib.baseconfig import get_conf_path, get_translation, get_image_path
 
 from spyderlib.py3compat import to_text_string, getcwd, pickle
@@ -141,10 +144,12 @@ def get_conda_packages():
     return grouped_usable_packages
 
 
-def sort_versions(versions=[], reverse=False):  # FIXME: Python 3 unicode?
-    """ """
+def sort_versions(versions=[], reverse=False, sep =u'.'):  # FIXME: Python 3 unicode?
+    """ Sort a list of version number strings """
     if versions == []:
         return []
+
+    digits = u'0123456789'
 
     def toint(x):
         try:
@@ -157,18 +162,19 @@ def sort_versions(versions=[], reverse=False):  # FIXME: Python 3 unicode?
     alpha, sizes = set(), set()
 
     for item in versions:
-        it = item.split(u'.')
+        it = item.split(sep)
         temp = []
         for i in it:
             x = toint(i)
             if not isinstance(x, int):
                 x = unicode(x)
-                middle = x.lstrip(u'0123456789').rstrip(u'0123456789')
-                tail = toint(x.lstrip(u'0123456789').replace(middle, u''))
-                head = toint(x.rstrip(u'0123456789').replace(middle, u''))
+                middle = x.lstrip(digits).rstrip(digits)
+                tail = toint(x.lstrip(digits).replace(middle, u''))
+                head = toint(x.rstrip(digits).replace(middle, u''))
+                middle = toint(middle)
                 res = [head, middle, tail]
-                while '' in res:
-                    res.remove('')
+                while u'' in res:
+                    res.remove(u'')
                 for r in res:
                     if isinstance(r, unicode):
                         alpha.add(r)
@@ -201,20 +207,19 @@ def sort_versions(versions=[], reverse=False):  # FIXME: Python 3 unicode?
 
     new_versions = sorted(new_versions, reverse=reverse)
     return [n[-1] for n in new_versions]
-    #return sorted(versions, reverse=reverse)
+    # return sorted(versions, reverse=reverse)
 
 # Constants
 COLUMNS = (NAME, DESCRIPTION, VERSION, STATUS,
            INSTALL, REMOVE, UPGRADE, DOWNGRADE, ENDCOL) = list(range(9))
 ACTION_COLUMNS = [INSTALL, REMOVE, UPGRADE, DOWNGRADE]
-TYPES = (INSTALLED, NOT_INSTALLED, UPGRADABLE, DOWNGRADABLE, MIXGRADABLE,
-         ALL, CREATE, CLONE) = list(range(8))
-COMBOBOX_VALUES_ORDERED = [u'Installed', u'Not installed', u'Upgradable',
-                           u'Downgradable', u'Upgradable and downgradable',
-                           u'All available']
+TYPES = (INSTALLED, NOT_INSTALLED, UPGRADABLE, DOWNGRADABLE, INSTALLABLE, ALL,
+         MIXGRADABLE, CREATE, CLONE, REMOVE_ENV) = list(range(10))
+COMBOBOX_VALUES_ORDERED = [_(u'Installed'), _(u'Not installed'),
+                           _(u'Upgradable'), _(u'Downgradable'),
+                           _(u'All instalable'), _(u'All')]
 COMBOBOX_VALUES = dict(zip(COMBOBOX_VALUES_ORDERED, TYPES))
 HIDE_COLUMNS = [STATUS]
-#HIDE_COLUMNS = []
 ROOT = 'root'
 
 
@@ -455,20 +460,20 @@ class CondaPackagesModel(QAbstractTableModel):
                     return to_qvariant(self.icons['downgrade.inactive'])
         elif role == Qt.ToolTipRole:
             if column == INSTALL and status == NOT_INSTALLED:
-                return to_qvariant('Install package')
+                return to_qvariant(_('Install package'))
             elif column == REMOVE and (status == INSTALLED or
                                        status == UPGRADABLE or
                                        status == DOWNGRADABLE or
                                        status == MIXGRADABLE):
-                return to_qvariant('Remove package')
+                return to_qvariant(_('Remove package'))
             elif column == UPGRADE and (status == INSTALLED or
                                         status == UPGRADABLE or
                                         status == MIXGRADABLE):
-                return to_qvariant('Upgrade package')
+                return to_qvariant(_('Upgrade package'))
             elif column == DOWNGRADE and (status == INSTALLED or
                                           status == DOWNGRADABLE or
                                           status == MIXGRADABLE):
-                return to_qvariant('Downgrade package')
+                return to_qvariant(_('Downgrade package'))
         elif role == Qt.ForegroundRole:
             if column == NAME:
                 if status in [INSTALLED, UPGRADABLE, DOWNGRADABLE,
@@ -491,25 +496,36 @@ class CondaPackagesModel(QAbstractTableModel):
             if orientation == Qt.Horizontal:
                 return to_qvariant(int(Qt.AlignHCenter | Qt.AlignVCenter))
             return to_qvariant(int(Qt.AlignRight | Qt.AlignVCenter))
+        elif role == Qt.ToolTipRole:
+            column = section
+            if column == INSTALL:
+                return to_qvariant(_('Install package'))
+            elif column == REMOVE:
+                return to_qvariant(_('Remove package'))
+            elif column == UPGRADE:
+                return to_qvariant(_('Upgrade package'))
+            elif column == DOWNGRADE:
+                return to_qvariant(_('Downgrade package'))
 
         if orientation == Qt.Horizontal:
             if section == NAME:
-                return to_qvariant("Name")
+                return to_qvariant(_("Name"))
             elif section == VERSION:
-                return to_qvariant("Version")
+                return to_qvariant(_("Version"))
             elif section == DESCRIPTION:
-                return to_qvariant("Description")
+                return to_qvariant(_("Description"))
             elif section == STATUS:
-                return to_qvariant("Status")
-            elif section == UPGRADE:
-                return to_qvariant("")
+                return to_qvariant(_("Status"))
             elif section == INSTALL:
-                return to_qvariant("")
+                return to_qvariant(_("I"))
             elif section == REMOVE:
-                return to_qvariant("")
+                return to_qvariant(_("R"))
+            elif section == UPGRADE:
+                return to_qvariant(_("U"))
             elif section == DOWNGRADE:
-                return to_qvariant("")
-            return to_qvariant()
+                return to_qvariant(_("D"))
+            else:
+                return to_qvariant()
 
     def rowCount(self, index=QModelIndex()):
         return len(self.__packages_names)
@@ -739,12 +755,11 @@ class CondaPackagesTable(QTableView):
 
         # Header setup
         hheader = self.horizontalHeader()
-        hheader.setResizeMode(hheader.Fixed)
         hheader.setStyleSheet("""
-        QHeaderView {
+         QHeaderView {
             border: 0px solid black;
-            border-radius: 0px;
             background-color: rgb(200, 200, 255);
+            border-radius: 0px;
             font-weight: Normal;
             };
         """)
@@ -797,7 +812,6 @@ class CondaPackagesTable(QTableView):
         else:
             status = to_text_string(status)
         self.model().setFilter(text, status)
-#        print(self.__envbox, self.__filterbox, self.__searchbox)
 
     def search_string_changed(self, text):
         """ """
@@ -865,10 +879,11 @@ class CondaPackagesTable(QTableView):
         model = self.source_model
         self.valid = False
 
-        if ( (column == INSTALL and model.is_installable(model_index)) or
-             (column == REMOVE and model.is_removable(model_index)) or
-             (column == UPGRADE and model.is_upgradable(model_index)) or
-             (column == DOWNGRADE and model.is_downgradable(model_index)) ):
+        if ((column == INSTALL and model.is_installable(model_index)) or
+            (column == REMOVE and model.is_removable(model_index)) or
+            (column == UPGRADE and model.is_upgradable(model_index)) or
+            (column == DOWNGRADE and model.is_downgradable(model_index))):
+
             model.update_row_icon(model_index.row(), model_index.column())
             self.valid = True
             self.column = column
@@ -981,7 +996,7 @@ class CondaActionDialog(QDialog):
         btnlayout.addWidget(bbox)
 
         ok_button = bbox.button(QDialogButtonBox.Ok)
-        
+
         # Versions mih have duplicates from different builds
         versions = sort_versions(list(set(versions)), reverse=True)
 
@@ -1017,6 +1032,9 @@ class CondaActionDialog(QDialog):
             self.setWindowTitle(_("Install package"))
             ok_button.setEnabled(True)
 
+        if len(versions) == 1:
+            labeltext = _('Package available:')
+
         self.label.setText(labeltext)
         self.version_combobox.addItems(versions)
 
@@ -1035,19 +1053,25 @@ class CondaActionDialog(QDialog):
 #        self.lineedit.setFocus()
 
 
-class CondaCreateDialog(QDialog):
+class CondaEnvironmentActionDialog(QDialog):
     """ """
-    def __init__(self, parent, action, pyvers, envs):
+    def __init__(self, parent, action, pyvers, envs, env_dir, active_env):
         """ """
         QDialog.__init__(self, parent)
+
+        # Attributes
         self.parent = parent
+        self.action = action
         self.pyvers = pyvers
         self.envs = envs
+        self.env_dir = env_dir
+        self.active_env = active_env
+
+        self.dialog_size = QSize(460, 160)
 
         # Widgets
         self.env_name_label = QLabel(_('Environment name'))
         self.python_ver_label = QLabel(_('Python version'))
-        self.env_label = QLabel(_('Clone from'))
         self.env_path_label = QLabel(_('Path (optional)'))
         self.env_path_text = SearchLineEdit(False)
         self.python_ver_combobox = QComboBox()
@@ -1055,19 +1079,18 @@ class CondaCreateDialog(QDialog):
         self.env_name_text = QLineEdit()
 
         if action == CREATE:
-            print('create')
             self.setWindowTitle(_("Create new environment"))
             self.combobox = self.python_ver_combobox
             self.combobox_label = self.python_ver_label
         elif action == CLONE:
-            print('clone')
             self.setWindowTitle(_("Clone existing environment"))
             self.combobox = self.env_combobox
-            self.combobox_label = self.env_label
-
-        self.browse = create_toolbutton(self, icon=get_icon('fileopen.png'),
-                               tip=_('Select environment directory'),
-                               triggered=self.select_file)
+            self.combobox_label = QLabel(_('Clone from'))
+        elif action == REMOVE_ENV:
+            self.setWindowTitle(_("Remove existing environment"))
+            self.combobox = self.env_combobox
+            self.combobox_label = QLabel(_('Select environment '))
+            self.dialog_size = QSize(260, 100)
 
         self.bbox = QDialogButtonBox(QDialogButtonBox.Cancel |
                                      QDialogButtonBox.Ok,
@@ -1076,13 +1099,22 @@ class CondaCreateDialog(QDialog):
 
         # Layout
         hlayout1 = QGridLayout()
-        hlayout1.addWidget(self.env_name_label, 0, 0)
-        hlayout1.addWidget(self.env_name_text, 0, 2, 1, 2)
-        hlayout1.addWidget(self.env_path_label, 1, 0)
-        hlayout1.addWidget(self.env_path_text, 1, 2)
-        hlayout1.addWidget(self.browse, 1, 3)
-        hlayout1.addWidget(self.combobox_label, 2, 0)
-        hlayout1.addWidget(self.combobox, 2, 2, 1, 2)
+
+        if action == REMOVE_ENV:
+            hlayout1.addWidget(self.combobox_label, 0, 0)
+            hlayout1.addWidget(self.combobox, 0, 1)
+        else:
+            self.browse = create_toolbutton(self,
+                                            icon=get_icon('fileopen.png'),
+                                            tip=_('Select directory'),
+                                            triggered=self.select_file)
+            hlayout1.addWidget(self.env_name_label, 0, 0)
+            hlayout1.addWidget(self.env_name_text, 0, 2, 1, 2)
+            hlayout1.addWidget(self.combobox_label, 1, 0)
+            hlayout1.addWidget(self.combobox, 1, 2, 1, 2)
+            hlayout1.addWidget(self.env_path_label, 2, 0)
+            hlayout1.addWidget(self.env_path_text, 2, 2)
+            hlayout1.addWidget(self.browse, 2, 3)
 
         hlayout2 = QHBoxLayout()
         hlayout2.addStretch(0)
@@ -1098,28 +1130,39 @@ class CondaCreateDialog(QDialog):
 
     def setup_widget(self):
         """ """
-        self.setMinimumSize(QSize(340, 160))
-        self.setFixedSize(340, 160)
-        self.ok_button.setDisabled(True)
+        self.setMinimumSize(self.dialog_size)
+        self.setFixedSize(self.dialog_size)
         self.env_name_text.setMaxLength(12)
         self.env_path_text.setReadOnly(True)
+        self.env_path_text.setPlaceholderText(self.env_dir)
 
         default_pyver = 2  # FIXME: add this to the control panel
         py3 = [v for v in self.pyvers if v[0] == '3']
         py2 = [v for v in self.pyvers if v[0] == '2']
         py1 = [v for v in self.pyvers if v[0] == '1']
 
-        print(self.envs)
-        self.env_combobox.addItems(self.envs)
-        self.python_ver_combobox.addItems(self.pyvers)
-        self.python_ver_combobox.insertSeparator(len(py3))
-        if py1:
-            self.python_ver_combobox.insertSeparator(len(py3) + len(py2) + 1)
+        if self.action == REMOVE_ENV:
+            envs = self.envs
+            if ROOT in envs:
+                envs.remove(ROOT)
+            if self.active_env in envs:
+                envs.remove(self.active_env)
+            self.env_combobox.addItems(self.envs)
+            self.ok_button.setDisabled(False)
+        else:
+            self.env_combobox.addItems(self.envs)
+            self.python_ver_combobox.addItems(self.pyvers)
+            self.python_ver_combobox.insertSeparator(len(py3))
+            self.ok_button.setDisabled(True)
 
-        if default_pyver == 2:
-            self.python_ver_combobox.setCurrentIndex(len(py3) + 1)
-        elif default_pyver == 3:
-            self.python_ver_combobox.setCurrentIndex(0)
+            if py1:
+                self.python_ver_combobox.insertSeparator(len(py3) +
+                                                         len(py2) + 1)
+            if default_pyver == 2:
+                self.python_ver_combobox.setCurrentIndex(len(py3) + 1)
+            elif default_pyver == 3:
+                self.python_ver_combobox.setCurrentIndex(0)
+
         self.setModal(True)
 
         # Validator
@@ -1135,45 +1178,27 @@ class CondaCreateDialog(QDialog):
 
         # Existing environments
         self.envs = self.parent.table.source_model.envs
+        self.env_name_text.setFocus()
 
     def check_text(self, text):
         """ """
         text = to_text_string(text)
         envs = self.envs
-        #envs = self.parent.table.source_model.envs
 
         if text and text not in envs:
             self.ok_button.setDisabled(False)
         else:
             self.ok_button.setDisabled(True)
 
+        env_dir = osp.join(self.env_dir, text)
+        self.env_path_text.setPlaceholderText(env_dir)
+
     def select_file(self):
         """ """
         folder = getexistingdirectory(self, _("Select directory"),
-                           getcwd(), QFileDialog.ShowDirsOnly)
+                                      getcwd(), QFileDialog.ShowDirsOnly)
         if folder:
             self.env_path_text.setText(folder)
-
-
-class Thread(QThread):
-    """Installation/Uninstallation thread"""
-    def __init__(self, parent):
-        QThread.__init__(self, parent)
-        self.callback = None
-        self.error = None
-
-    def run(self):
-        try:
-            self.callback()
-        except Exception as error:
-            error_str = str(error)
-            fs_encoding = sys.getfilesystemencoding()\
-                          or locale.getpreferredencoding()
-            try:
-                error_str = error_str.decode(fs_encoding)
-            except (UnicodeError, TypeError):
-                pass
-            self.error = error_str
 
 
 class CondaPackagesWidget(QWidget):
@@ -1185,49 +1210,58 @@ class CondaPackagesWidget(QWidget):
     def __init__(self, parent):
         QWidget.__init__(self, parent)
 
-        self.setWindowTitle(_("Conda Packages"))
-
-        self.updates_button = QPushButton(_('Update list'))
-
-        self.env_box_label = QLabel(_('Environment '))
-        self.env_combobox = QComboBox()
-        self.env_create_button = QPushButton(_('Create'))
-        self.env_clone_button = QPushButton(_('Clone'))
-        self.env_remove_button = QPushButton(_('Remove'))
-
-        self.search_box = SearchLineEdit()
-        self.filter_combobox = QComboBox()
-        self.info_label = QLabel()
-        self.table = CondaPackagesTable(self)
-        self.status_bar = QLabel(u'Status bar')
-
+        # Variables
         self.envs = [u'']
         self.environments = {}
-        self.last_env_removed = None
-        self.active_env = ROOT
+        self.active_env = self.get_active_env()
+        self.selected_env = self.get_active_env()
 
-#        self.environment_combobox.setSizePolicy(QSizePolicy.Expanding,
-#                                                QSizePolicy.Expanding)
-        env_group = QGroupBox(_("Environment"))
-        env_layout = QHBoxLayout()
-        env_layout.addWidget(self.env_combobox)
-        env_layout.addItem(QSpacerItem(5, 5))
-        env_layout.addWidget(self.env_create_button)
-        env_layout.addWidget(self.env_clone_button)
-        env_layout.addWidget(self.env_remove_button)
+        self.last_env_created = None
+        self.last_env_deleted = None
 
-        env_layout.setStretchFactor(self.env_combobox, 2)
-        env_group.setLayout(env_layout)
+        # Widget Options
+        self.setWindowTitle(_("Conda Packages"))
+
+        # Widgets
+        self.filter_combobox = QComboBox()
+        self.updates_button = QPushButton(_('Update list'))
+        self.search_box = SearchLineEdit()
+        self.info_label = QLabel()
+
+        self.env_options_menu = QMenu()
+        self.env_options_submenu = QMenu(_('Environments'))
+        self.env_create_button = create_action(self, _('Create'),
+                                               icon=get_icon('filenew.png'),
+                                               triggered=self.create_env)
+        self.env_clone_button = create_action(self, _('Clone'),
+                                              icon=get_icon('editcopy.png'),
+                                              triggered=self.clone_env)
+        self.env_remove_button = create_action(self, _('Remove'),
+                                               icon=get_icon('editdelete.png'),
+                                               triggered=self.remove_env)
+        actions = [self.env_create_button, self.env_clone_button,
+                   self.env_remove_button, self.env_options_submenu]
+        add_actions(self.env_options_menu, actions)
+
+        self.env_options_button = QToolButton()
+        self.env_options_button.setAutoRaise(True)
+        self.env_options_button.setMenu(self.env_options_menu)
+        self.env_options_button.setPopupMode(QToolButton.InstantPopup)
+        self.env_options_button.setIcon(get_icon('tooloptions.png'))
+
+        self.table = CondaPackagesTable(self)
+
+        self.status_bar = QStatusBar()
+        self.progress_bar = QProgressBar()
 
         if CONDA_PATH is None:
 #        if True:
-            hlayout3 = QHBoxLayout()
-            hlayout3.addWidget(self.info_label)
+            top_layout = QHBoxLayout()
+            top_layout.addWidget(self.info_label)
 
             for widget in (self.table, self.search_box, self.updates_button,
-                           self.filter_combobox, self.env_combobox,
-                           self.env_create_button, self.env_clone_button,
-                           self.env_remove_button):
+                           self.filter_combobox, self.env_create_button,
+                           self.env_clone_button, self.env_remove_button):
                 widget.setDisabled(True)
             url = 'http://docs.continuum.io/anaconda/index.html'
             info_text = _('''To use the Conda Package Manager you need to
@@ -1238,82 +1272,97 @@ class CondaPackagesWidget(QWidget):
             self.info_label.setTextFormat(Qt.RichText)
             self.info_label.setTextInteractionFlags(Qt.TextBrowserInteraction)
             self.info_label.setOpenExternalLinks(True)
+            self.status_bar.setSizeGripEnabled(False)
+            self.progress_bar.setVisible(False)
         else:
-#            self.env_clone_button.setDisabled(True)
-            hlayout3 = QHBoxLayout()
-            hlayout3.addWidget(self.filter_combobox)
-            hlayout3.addWidget(self.updates_button)
-            hlayout3.addWidget(self.search_box)
+            top_layout = QHBoxLayout()
+            top_layout.addWidget(self.filter_combobox)
+            top_layout.addWidget(self.updates_button)
+            top_layout.addWidget(self.search_box)
+            top_layout.addWidget(self.env_options_button)
 
             self.table.setup_model()
             self.envs = self.table.source_model.envs
             self.environments = self.table.source_model.environments
-            self.setup_widget()
+            self._setup_widget()
 
-        hlayout4 = QHBoxLayout()
-        hlayout4.addWidget(self.table)
+        middle_layout = QHBoxLayout()
+        middle_layout.addWidget(self.table)
 
-        hlayout5 = QHBoxLayout()
-        hlayout5.addWidget(self.status_bar)
+        bottom_layout = QHBoxLayout()
+        bottom_layout.addWidget(self.status_bar)
+        self.status_bar.addPermanentWidget(self.progress_bar)
 
         layout = QVBoxLayout()
         layout.addItem(QSpacerItem(250, 5))
-        layout.addWidget(env_group)
-        layout.addLayout(hlayout3)
-        layout.addLayout(hlayout4)
-        layout.addLayout(hlayout5)
+
+        layout.addLayout(top_layout)
+        layout.addLayout(middle_layout)
+        layout.addLayout(bottom_layout)
 
         self.setLayout(layout)
 
-    def refresh_env_combobox(self):
+    def _refresh_env_submenu(self):
         """ """
-        self.active_env = self.get_active_env()
         self.table.source_model.refresh_envs()
         self.envs = self.table.source_model.envs
         self.environments = self.table.source_model.environments
-        current = _(' [current]')
 
-        envs_items = ["{0}".format(k, self.environments[k]) for k in
-                      self.envs]
-        active_env_index = envs_items.index(self.active_env)
-        envs_items[active_env_index] = envs_items[active_env_index] + current
+        active = _(' [active]')
+        actions = []
+        active_env = self.get_active_env()
+        selected_env = self.selected_env
 
-        n = len(envs_items)
-        actual_n = self.env_combobox.count()
-        actual_envs_items = [to_text_string(self.env_combobox.itemText(i)) for
-                             i in range(actual_n)]
+        for i, env in enumerate(self.envs):
+            e = env
+            if e == active_env:
+                e = env + active
+                icon = QIcon()
+#                active_index = i
+            if selected_env == env:
+                selected_index = i
 
-        if actual_n == 0:  # Initial population of combobox
-            self.env_combobox.addItems(envs_items)
-            self.env_combobox.setCurrentIndex(0)
-        elif n > actual_n:  # Added environment
-            actual_envs_items.extend([None]*(n - actual_n))
-            for i, item in enumerate(envs_items):
-                if item != actual_envs_items[i]:
-                    self.env_combobox.insertItem(i, envs_items[i])
-                    self.env_combobox.setCurrentIndex(i)
-                    break
-        elif n < actual_n:  # Removed environment
-            env_remove = to_text_string(self.env_combobox.currentText())
-            self.env_combobox.removeItem(actual_envs_items.index(env_remove))
-            self.env_combobox.setCurrentIndex(0)
+            actions.append(create_action(self, _(e), icon=icon,
+                           triggered=lambda
+                           env=env: self.select_env(env)))
 
-#        self.env_combobox.setItemIcon(active_env_index, self.table.source_model.icons['upgrade.active'])
+        self.env_options_submenu.clear()
+        actions[selected_index].setCheckable(True)
+        actions[selected_index].setChecked(True)
+        add_actions(self.env_options_submenu, actions)
 
-    def setup_widget(self):
+        envs = self.envs
+        active_env = self.get_active_env()
+
+        if active_env == ROOT and len(envs) == 1:
+            self.env_remove_button.setDisabled(True)
+        elif active_env != ROOT and len(envs) == 2:
+            self.env_remove_button.setDisabled(True)
+        else:
+            self.env_remove_button.setDisabled(False)
+
+    def _setup_widget(self):
         """ """
-        self.refresh_env_combobox()
+        self._refresh_env_submenu()
+        self.progress_bar.setMaximum(0)
+        self.progress_bar.setMinimum(0)
+        self.progress_bar.setMaximumHeight(16)
+        self.progress_bar.setMaximumWidth(140)
+
+        self.status_bar.setSizeGripEnabled(False)
+        self.progress_bar.setVisible(False)
+        self.env_options_button.setToolTip(_('Options'))
 
         self.filter_combobox.addItems([k for k in COMBOBOX_VALUES_ORDERED])
         self.filter_combobox.setCurrentIndex(ALL)
 
-        # Connect environments combobox
-        self.connect(self.env_create_button, SIGNAL('clicked(bool)'),
-                     self.create_environment)
-        self.connect(self.env_clone_button, SIGNAL('clicked(bool)'),
-                     self.clone_environment)
-        self.connect(self.env_remove_button, SIGNAL('clicked(bool)'),
-                     self.remove_environment)
+        # Connect environments buttons
+        self.connect(self.env_create_button, SIGNAL('clicked()'),
+                     self.create_env)
+        self.connect(self.env_clone_button, SIGNAL('clicked()'),
+                     self.clone_env)
+        self.connect(self.env_remove_button, SIGNAL('clicked()'),
+                     self.remove_env)
 
         # Connect environments combobox
         self.connect(self.updates_button,
@@ -1329,88 +1378,135 @@ class CondaPackagesWidget(QWidget):
                      SIGNAL('currentIndexChanged(QString)'),
                      self.table.filter_status_changed)
 
-        # Connect environments combobox
-        self.connect(self.env_combobox,
-                     SIGNAL('currentIndexChanged(QString)'),
-                     self.environment_changed)
-
-        self.env_remove_button.setDisabled(True)
         self.table.filter_changed()
 
-    def environment_changed(self, text):
+    def _run_env_action(self, action, envs=[]):
         """ """
-        text = to_text_string(text)
-        if text:
-            env = text.split()[0]
-            if env != ROOT and env != self.last_env_removed:
-                self.env_remove_button.setDisabled(False)
-            else:
-                self.env_remove_button.setDisabled(True)
-
-            self.table.environment_changed(env)
-
-    def remove_environment(self):
-        """ """
-        env = self.envs[self.env_combobox.currentIndex()]
-        msg_box = QMessageBox()
-        msg_box.setWindowTitle(_("Remove conda environment"))
-        msg_box.setText(_("Do you wish to remove ") + '<b>{}</b>?'.format(env))
-        msg_box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-        msg_box.setIcon(QMessageBox.Warning)
-
-        ret = msg_box.exec_()
-        if ret == QMessageBox.Yes:
-            # conda_api.remove_environment(env)  # TODO:
-            # Temporal fix...
-            conda_api._call_conda(['remove', '--yes', '--quiet', '--all',
-                                  '--no-pin', '--features', '-n', env, ])  # TODO:
-
-            self.last_env_removed = env
-            self.refresh_env_combobox()
-        elif ret == QMessageBox.No:
-            pass
-
-    def __create(self, action, envs=[]):
-        """ """
+        env_dir = osp.join(conda_api.get_prefix_envname(ROOT), 'envs')
         pyvers = self.table.source_model.get_package_versions('python', True)
         pyvers = sort_versions(list(set(pyvers)), reverse=True)
-        dlg = CondaCreateDialog(self, action, pyvers, envs)
+        active_env = self.get_active_env()
+
+        dlg = CondaEnvironmentActionDialog(self, action, pyvers, envs, env_dir,
+                                           active_env)
+
         ret = dlg.exec_()
+
         if ret:
             envname = to_text_string(dlg.env_name_text.text())
             pyver = to_text_string(dlg.python_ver_combobox.currentText())
             path = to_text_string(dlg.env_path_text.text())
             envclone = to_text_string(dlg.env_combobox.currentText())
+            pkgs = 'python={}'.format(pyver)
+            dic = {}
+
+            dic['pkgs'] = pkgs
+
+            # Use QProcess and only use
+            self.process = QProcess(self)
+            self.process.readyRead.connect(self._on_data_available)
 
             if action == CREATE:
+                self.last_env_created = envname
                 if path != u'':
-                    fullpath = osp.join(path, envname)
-                    conda_api.create(path=fullpath,
-                                     pkgs=['python={}'.format(pyver)])  # TODO:
+                    dic['path'] = osp.join(path, envname)
+#                    self._run_conda(action, dic)
                 else:
-                    conda_api.create(name=envname,
-                                     pkgs=['python={}'.format(pyver)])  # TODO:
+                    dic['name'] = envname
+                    self._run_conda(action, dic)
             elif action == CLONE:
-                # FIXME: NO SUPPORT for path yet!
-                conda_api._call_conda(['create', '--yes', '--quiet',
-                                       '-n', envname, '--clone',  envclone])  # TODO:                
-            self.refresh_env_combobox()
+                if path != u'':
+                    pass
+                else:
+                    dic['cloned from'] = envclone
+                    dic['name'] = envname
+                    self.last_env_created = envname
+                    self._run_conda(action, dic)
+            elif action == REMOVE_ENV:
+                dic['name'] = envclone
+                self.last_env_created = self.get_active_env()
+
+                self._run_conda(action, dic)
+
+            self.process.started.connect(lambda: self._set_gui_disabled(True))
+            self.process.finished.connect(lambda: self._on_process_ready(True))
+
+    def _set_gui_disabled(self, boo):
+        """ """
+        widgets = [self.updates_button, self.filter_combobox,
+                   self.filter_combobox, self.search_box,
+                   self.table, self.env_options_button]
+
+        for widget in widgets:
+            widget.setDisabled(boo)
+
+        self.progress_bar.setVisible(boo)
+
+        if boo:
+            self.status_bar.showMessage(self.status)
         else:
+            self.status_bar.showMessage('')
+
+    def _run_conda(self, action, dic):
+        """ """
+        if action == CREATE and 'path' in dic:
             pass
+        elif action == CREATE and 'path' not in dic:
+            extra_args = ['create', '--yes', '--quiet',
+                          '--name', dic['name'], dic['pkgs']]
+            cmd_list = conda_api._call_conda_2(extra_args)
+            print(cmd_list[0], cmd_list[1:])
+            status = _('Creating environment "') + dic['name'] + '"'
+        elif action == CLONE:
+            (extra_args) = ['create', '--yes', '--quiet', '-n', dic['name'],
+                            '--clone',  dic['cloned from']]
+            cmd_list = conda_api._call_conda_2(extra_args)
+            status = (_('Cloning from environment ') + '"' + dic['cloned from']
+                      + _('" into "') + dic['name'] + '"')
+        elif action == REMOVE_ENV:
+            cmd_list = conda_api._call_conda_2(['remove', '--yes', '--quiet',
+                                                '--all', '--no-pin',
+                                                '--features', '-n',
+                                                dic['name']])
+            status = _('Removing environment "') + dic['name'] + '"'
 
-    def create_environment(self, bool_):
-        """ """
-        self.__create(CREATE)
+        self.process.start(cmd_list[0], cmd_list[1:])
+        self.status = status
 
-    def clone_environment(self, bool_):
+    def _on_data_available(self):
         """ """
-        self.__create(CLONE, self.envs)
+        response = to_text_string(self.process.readAll())
+        response
+
+    def _on_process_ready(self, True):
+        """ """
+        env = self.last_env_created
+        self.select_env(env)
+        self._set_gui_disabled(False)
+
+    def select_env(self, env):
+        """ """
+        self.selected_env = to_text_string(env)
+        self._refresh_env_submenu()
+        self.table.environment_changed(env)
+
+    def remove_env(self):
+        """ """
+        self._run_env_action(REMOVE_ENV, self.envs)
+
+    def create_env(self):
+        """ """
+        self._run_env_action(CREATE)
+
+    def clone_env(self):
+        """ """
+        self._run_env_action(CLONE, self.envs)
 
     def check_updates(self):
         """ """
         model = self.table.source_model
         model.refresh_()
-        self.refresh_env_combobox()
+        self._refresh_env_submenu()
 #        print([self.get_active_env()])
 
     def get_active_env(self):
