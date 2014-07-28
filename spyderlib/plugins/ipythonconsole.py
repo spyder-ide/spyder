@@ -35,11 +35,11 @@ from IPython.lib.kernel import find_connection_file, get_connection_info
 
 try: # IPython = '>=1.0'
     from IPython.qt.manager import QtKernelManager
-except ImportError: # IPython = '<1.0'
+except ImportError:
     from IPython.frontend.qt.kernelmanager import QtKernelManager
 try: # IPython = "<=2.0"
     from IPython.external.ssh import tunnel
-except ImportError: # IPython = '>2.0'
+except ImportError:
     from zmq.ssh import tunnel
 
 # Local imports
@@ -61,14 +61,14 @@ dependencies.add("sympy", _("Symbolic mathematics for the IPython Console"),
                  required_version=SYMPY_REQVER)
 
 #FIXME: timeout should be set in the preferences of Spyder
-def tunnel_to_kernel(ci, sshserver, sshkey=None, password=None, timeout=10):
+def tunnel_to_kernel(ci, hostname, sshkey=None, password=None, timeout=10):
     """tunnel connections to a kernel via ssh. remote ports are specified in
     the connection info ci."""
     lports = tunnel.select_random_ports(4)
     rports = ci['shell_port'], ci['iopub_port'], ci['stdin_port'], ci['hb_port']
     remote_ip = ci['ip']
     for lp, rp in zip(lports, rports):
-        tunnel.ssh_tunnel(lp, rp, sshserver, remote_ip, sshkey, password, timeout)
+        tunnel.ssh_tunnel(lp, rp, hostname, remote_ip, sshkey, password, timeout)
     return tuple(lports)
 
 class IPythonConsoleConfigPage(PluginConfigPage):
@@ -409,7 +409,7 @@ class KernelConnectionDialog(QDialog):
         
         # ssh connection 
         self.hn = QLineEdit()
-        self.hn.setPlaceholderText('username@host:port')
+        self.hn.setPlaceholderText('username@hostname:port')
         
         self.kf = QLineEdit()
         self.kf.setPlaceholderText('Path to ssh key file')
@@ -726,21 +726,21 @@ class IPythonConsole(SpyderPluginWidget):
         return programs.is_module_installed('IPython', version=kernel_ver)
 
     def create_kernel_manager_and_client(self, connection_file=None, \
-                                    sshserver=None, sshkey=None, password=None):
+                                    hostname=None, sshkey=None, password=None):
         """Create kernel manager and client"""
         cf = find_connection_file(connection_file, profile='default')
         kernel_manager = QtKernelManager(connection_file=cf, config=None)
         if programs.is_module_installed('IPython', '>=1.0'):
             kernel_client = kernel_manager.client()
             kernel_client.load_connection_file()
-            if sshserver is not None:
+            if hostname is not None:
                 try:
                     newports = tunnel_to_kernel(dict(ip=kernel_client.ip,
                                           shell_port=kernel_client.shell_port,
                                           iopub_port=kernel_client.iopub_port,
                                           stdin_port=kernel_client.stdin_port,
                                           hb_port=kernel_client.hb_port),
-                                          sshserver, sshkey, password)
+                                          hostname, sshkey, password)
                     kernel_client.shell_port, kernel_client.iopub_port, \
                     kernel_client.stdin_port, kernel_client.hb_port = newports
                 except Exception as e:
@@ -752,14 +752,14 @@ class IPythonConsole(SpyderPluginWidget):
             return kernel_manager, kernel_client
         else:
             kernel_manager.load_connection_file()
-            if sshserver is not None:
+            if hostname is not None:
                 try:
                     newports = tunnel_to_kernel(dict(ip=kernel_manager.ip,
                                           shell_port=kernel_manager.shell_port,
                                           iopub_port=kernel_manager.iopub_port,
                                           stdin_port=kernel_manager.stdin_port,
                                           hb_port=kernel_manager.hb_port),
-                                          sshserver, sshkey, password)
+                                          hostname, sshkey, password)
                     kernel_manager.shell_port, kernel_manager.iopub_port, \
                     kernel_manager.stdin_port, kernel_manager.hb_port = newports
                 except Exception as e:
@@ -773,7 +773,7 @@ class IPythonConsole(SpyderPluginWidget):
         Connect a client to its kernel
         """
         km, kc = self.create_kernel_manager_and_client(client.connection_file, 
-                                              client.sshserver, client.sshkey, client.password)
+                                              client.hostname, client.sshkey, client.password)
         widget = client.shellwidget
         widget.kernel_manager = km
         widget.kernel_client = kc
@@ -821,7 +821,7 @@ class IPythonConsole(SpyderPluginWidget):
 
     def create_client_for_kernel(self):
         """Create a client connected to an existing kernel"""
-        cf, sshserver, kf, pw, ok = KernelConnectionDialog.getConnectionParameters(self)
+        cf, hostname, kf, pw, ok = KernelConnectionDialog.getConnectionParameters(self)
 
         match = re.match('(kernel-|^)([a-fA-F0-9-]+)(.json|$)', cf)
         if match is not None:
@@ -832,9 +832,9 @@ class IPythonConsole(SpyderPluginWidget):
         if not ok:
             return
         else:
-            self.create_client_for_kernel_impl(cf, sshserver, kf, pw)
+            self.create_client_for_kernel_impl(cf, hostname, kf, pw)
 
-    def create_client_for_kernel_impl(self, cf, sshserver, kf, pw):
+    def create_client_for_kernel_impl(self, cf, hostname, kf, pw):
         # Verifying if the connection file exists - in the case of an empty
         # file name, the last used connection file is returned. 
         try:
@@ -882,7 +882,7 @@ class IPythonConsole(SpyderPluginWidget):
                                connection_file=cf,
                                kernel_widget_id=kernel_widget_id,
                                menu_actions=self.menu_actions,
-                               sshserver=sshserver, sshkey=kf, password=pw)
+                               hostname=hostname, sshkey=kf, password=pw)
         
         # Adding the tab
         self.add_tab(client, name=client.get_name())

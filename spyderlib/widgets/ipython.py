@@ -364,14 +364,14 @@ class IPythonClient(QWidget, SaveHistoryMixin):
     SEPARATOR = '%s##---(%s)---' % (os.linesep*2, time.ctime())
     
     def __init__(self, plugin, history_filename, connection_file=None, 
-                 sshserver=None, sshkey=None, password=None, 
+                 hostname=None, sshkey=None, password=None, 
                  kernel_widget_id=None, menu_actions=None):
         super(IPythonClient, self).__init__(plugin)
         SaveHistoryMixin.__init__(self)
         self.options_button = None
         self.connection_file = connection_file
         self.kernel_widget_id = kernel_widget_id
-        self.sshserver = sshserver
+        self.hostname = hostname
         self.sshkey = sshkey
         self.password = password
         self.name = ''
@@ -456,7 +456,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
     
     def get_name(self):
         """Return client name"""
-        return ((_("Console") if self.sshserver is None else self.sshserver)
+        return ((_("Console") if self.hostname is None else self.hostname)
             + " " + self.name)
     
     def get_control(self):
