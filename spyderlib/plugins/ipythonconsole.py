@@ -17,9 +17,9 @@ Handles IPython clients (and in the future, will handle IPython kernels too
 # Qt imports
 from spyderlib.qt.QtGui import (QVBoxLayout, QHBoxLayout, QFormLayout, 
                                 QMessageBox, QGroupBox, QDialogButtonBox,
-                                QDialog, QInputDialog, QTabWidget, 
-                                QFontComboBox, QCheckBox, QApplication, 
-                                QLabel, QLineEdit, QPushButton)
+                                QDialog, QTabWidget, QFontComboBox, 
+                                QCheckBox, QApplication, QLabel, 
+                                QLineEdit, QPushButton)
 from spyderlib.qt.compat import getopenfilename
 from spyderlib.qt.QtCore import SIGNAL, Qt, QUrl
 
@@ -744,8 +744,9 @@ class IPythonConsole(SpyderPluginWidget):
                     kernel_client.shell_port, kernel_client.iopub_port, \
                     kernel_client.stdin_port, kernel_client.hb_port = newports
                 except Exception as e:
-                    print("Could not ssh to kernel:")
-                    print(e)
+                    QMessageBox.critical(self, _('Connection error'), 
+                                         _('Could not open ssh tunnel\n') +  str(e))
+                    return None, None
             kernel_client.start_channels()
             # To rely on kernel's heartbeat to know when a kernel has died
             kernel_client.hb_channel.unpause()
@@ -763,8 +764,9 @@ class IPythonConsole(SpyderPluginWidget):
                     kernel_manager.shell_port, kernel_manager.iopub_port, \
                     kernel_manager.stdin_port, kernel_manager.hb_port = newports
                 except Exception as e:
-                    print("Could not ssh to kernel:")
-                    print(e)
+                    QMessageBox.critical(self, _('Connection error'), 
+                                         _('Could not open ssh tunnel\n') +  str(e))
+                    return None, None
             kernel_manager.start_channels()
             return kernel_manager, None
 
@@ -774,9 +776,10 @@ class IPythonConsole(SpyderPluginWidget):
         """
         km, kc = self.create_kernel_manager_and_client(client.connection_file, 
                                               client.hostname, client.sshkey, client.password)
-        widget = client.shellwidget
-        widget.kernel_manager = km
-        widget.kernel_client = kc
+        if km is not None:
+            widget = client.shellwidget
+            widget.kernel_manager = km
+            widget.kernel_client = kc
     
     #------ Private API -------------------------------------------------------
     def _show_rich_help(self, text):
