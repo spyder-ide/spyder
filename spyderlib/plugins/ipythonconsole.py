@@ -826,11 +826,11 @@ class IPythonConsole(SpyderPluginWidget):
         """Create a client connected to an existing kernel"""
         cf, hostname, kf, pw, ok = KernelConnectionDialog.getConnectionParameters(self)
 
-        match = re.match('(kernel-|^)([a-fA-F0-9-]+)(.json|$)', cf)
-        if match is not None:
-            kernel_num = match.groups()[1]
-            if kernel_num:
-                cf = 'kernel-%s.json' % kernel_num
+        #match = re.match('(kernel-|^)([a-fA-F0-9-]+)(.json|$)', cf)
+        #if match is not None:
+        #    kernel_num = match.groups()[1]
+        #    if kernel_num:
+        #        cf = 'kernel-%s.json' % kernel_num
 
         if not ok:
             return
