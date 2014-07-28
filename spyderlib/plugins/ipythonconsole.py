@@ -33,13 +33,13 @@ from IPython.config.loader import Config, load_pyconfig_files
 from IPython.core.application import get_ipython_dir
 from IPython.lib.kernel import find_connection_file, get_connection_info
 
-try:  # IPython = '>=1.0'
+try: # IPython = '>=1.0'
     from IPython.qt.manager import QtKernelManager
-except:  # IPython = '<1.0'
+except ImportError: # IPython = '<1.0'
     from IPython.frontend.qt.kernelmanager import QtKernelManager
 try: # IPython = "<=2.0"
     from IPython.external.ssh import tunnel
-except:
+except ImportError: # IPython = '>2.0'
     from zmq.ssh import tunnel
 
 # Local imports
@@ -389,10 +389,9 @@ class KernelConnectionDialog(QDialog):
         
         # connection file
         cf_label = QLabel('Connection info')
-        cf_label.setToolTip('''The connection info can either be the full path
-to the connection file, or the kernel id. 
-For example kernel-3764.json or 3764.
-''')
+        cf_label.setToolTip(_("The connection info can either be the full path\n"
+                              "to the connection file, or the kernel id.\n" 
+                              "For example kernel-3764.json or 3764."))
         self.cf = QLineEdit()
         self.cf.setPlaceholderText('Path to connection file or kernel id')
         self.cf.setMinimumWidth(250)
@@ -633,7 +632,7 @@ class IPythonConsole(SpyderPluginWidget):
                                 None, 'ipython_console.png',
                                 triggered=self.create_new_client)
 
-        connect_to_existing_kernel_action = create_action(self,
+        connect_to_kernel_action  = create_action(self,
                _("Connect to an existing kernel"), None, None,
                _("Open a new IPython console connected to an existing kernel"),
                triggered=self.create_client_for_kernel)
@@ -641,10 +640,10 @@ class IPythonConsole(SpyderPluginWidget):
         # Add the action to the 'Consoles' menu on the main window
         main_consoles_menu = self.main.consoles_menu_actions
         main_consoles_menu.insert(0, create_client_action)
-        main_consoles_menu += [None, connect_to_existing_kernel_action]
+        main_consoles_menu += [None, connect_to_kernel_action ]
         
         # Plugin actions
-        self.menu_actions = [create_client_action, connect_to_existing_kernel_action]
+        self.menu_actions = [create_client_action, connect_to_kernel_action ]
         
         return self.menu_actions
 
@@ -726,7 +725,7 @@ class IPythonConsole(SpyderPluginWidget):
         return programs.is_module_installed('IPython', version=kernel_ver)
 
     def create_kernel_manager_and_client(self, connection_file=None, \
-                                         sshserver=None, sshkey=None, password=None):
+                                    sshserver=None, sshkey=None, password=None):
         """Create kernel manager and client"""
         cf = find_connection_file(connection_file, profile='default')
         kernel_manager = QtKernelManager(connection_file=cf, config=None)

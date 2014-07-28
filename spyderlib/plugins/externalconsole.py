@@ -1018,7 +1018,7 @@ class ExternalConsole(SpyderPluginWidget):
         # Check if our client already has a connection_file and kernel_widget_id
         # which means that we are asking for a kernel restart
         if ipyclient.connection_file is not None \
-        and ipyclient.kernel_widget_id is not None:
+          and ipyclient.kernel_widget_id is not None:
             restart_kernel = True
         else:
             restart_kernel = False
