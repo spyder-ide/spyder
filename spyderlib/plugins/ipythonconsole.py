@@ -25,8 +25,8 @@ from spyderlib.qt.QtCore import SIGNAL, Qt, QUrl
 
 # Stdlib imports
 import sys
-import os.path as osp
 import re
+import os.path as osp
 
 # IPython imports
 from IPython.config.loader import Config, load_pyconfig_files
@@ -61,12 +61,13 @@ dependencies.add("sympy", _("Symbolic mathematics for the IPython Console"),
                  required_version=SYMPY_REQVER)
 
 #FIXME: timeout should be set in the preferences of Spyder
-def tunnel_to_kernel(cf, sshserver, sshkey=None, password=None, timeout=10):
-    """tunnel connections to a kernel via ssh"""
+def tunnel_to_kernel(ci, sshserver, sshkey=None, password=None, timeout=10):
+    """tunnel connections to a kernel via ssh. remote ports are specified in
+    the connection info ci."""
     lports = tunnel.select_random_ports(4)
-    rports = cf['shell_port'], cf['iopub_port'], cf['stdin_port'], cf['hb_port']
-    remote_ip = cf['ip']   
-    for lp,rp in zip(lports, rports):
+    rports = ci['shell_port'], ci['iopub_port'], ci['stdin_port'], ci['hb_port']
+    remote_ip = ci['ip']
+    for lp, rp in zip(lports, rports):
         tunnel.ssh_tunnel(lp, rp, sshserver, remote_ip, sshkey, password, timeout)
     return tuple(lports)
 
@@ -632,7 +633,7 @@ class IPythonConsole(SpyderPluginWidget):
                                 None, 'ipython_console.png',
                                 triggered=self.create_new_client)
 
-        connect_to_kernel_action  = create_action(self,
+        connect_to_kernel_action = create_action(self,
                _("Connect to an existing kernel"), None, None,
                _("Open a new IPython console connected to an existing kernel"),
                triggered=self.create_client_for_kernel)
@@ -640,10 +641,10 @@ class IPythonConsole(SpyderPluginWidget):
         # Add the action to the 'Consoles' menu on the main window
         main_consoles_menu = self.main.consoles_menu_actions
         main_consoles_menu.insert(0, create_client_action)
-        main_consoles_menu += [None, connect_to_kernel_action ]
+        main_consoles_menu += [None, connect_to_kernel_action]
         
         # Plugin actions
-        self.menu_actions = [create_client_action, connect_to_kernel_action ]
+        self.menu_actions = [create_client_action, connect_to_kernel_action]
         
         return self.menu_actions
 
