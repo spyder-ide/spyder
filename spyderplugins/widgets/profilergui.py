@@ -371,7 +371,7 @@ class ProfilerDataTree(QTreeWidget):
         for func in self.profdata.fcn_list:
             if ('~', 0, '<built-in method exec>') != func: 
                 # This skips the profiler function at the top of the list
-                # it does only occure in Python 3
+                # it does only occur in Python 3
                 return func
     
     def find_callees(self, parent):
