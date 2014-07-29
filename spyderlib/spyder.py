@@ -1913,10 +1913,12 @@ Please provide any additional information below.
         """
         fname = to_text_string(fname)
         ext = osp.splitext(fname)[1]
-        if ext in EDIT_EXT or encoding.is_text_file(fname):
+        if ext in EDIT_EXT:
             self.editor.load(fname)
         elif self.variableexplorer is not None and ext in IMPORT_EXT:
             self.variableexplorer.import_data(fname)
+        elif encoding.is_text_file(fname):
+            self.editor.load(fname)
         elif not external:
             fname = file_uri(fname)
             programs.start_file(fname)
