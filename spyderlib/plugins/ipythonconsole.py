@@ -396,7 +396,7 @@ class KernelConnectionDialog(QDialog):
         self.cf.setPlaceholderText('Path to connection file or kernel id')
         self.cf.setMinimumWidth(250)
         cf_open_btn = QPushButton('Browse')
-        self.connect(cf_open_btn, SIGNAL('clicked()'), self.selectConnectionFile)
+        self.connect(cf_open_btn, SIGNAL('clicked()'), self.select_connection_file)
 
         cf_layout = QHBoxLayout()
         cf_layout.addWidget(cf_label)
@@ -413,7 +413,7 @@ class KernelConnectionDialog(QDialog):
         self.kf = QLineEdit()
         self.kf.setPlaceholderText('Path to ssh key file')
         kf_open_btn = QPushButton('Browse')
-        self.connect(kf_open_btn, SIGNAL('clicked()'), self.selectSshKey)
+        self.connect(kf_open_btn, SIGNAL('clicked()'), self.select_ssh_key)
 
         kf_layout = QHBoxLayout()
         kf_layout.addWidget(self.kf)
@@ -453,19 +453,19 @@ class KernelConnectionDialog(QDialog):
         sshSetEnabled(self.rm_cb.checkState())
         self.connect(self.rm_cb, SIGNAL('stateChanged(int)'), sshSetEnabled)
 
-    def selectConnectionFile(self):
+    def select_connection_file(self):
         cf = getopenfilename(self, 'Open Python connection file',
                  osp.join(get_ipython_dir(), 'profile_default', 'security'),
                  '*.json;;*.*')[0]
         self.cf.setText(cf)
 
-    def selectSshKey(self):
+    def select_ssh_key(self):
         kf = getopenfilename(self, 'Select ssh key', 
                              get_ipython_dir(), '*.pem;;*.*')[0]
         self.kf.setText(kf)
 
     @staticmethod
-    def getConnectionParameters(parent=None):
+    def get_connection_parameters(parent=None):
         dialog = KernelConnectionDialog(parent)
         result = dialog.exec_()
         is_remote = bool(dialog.rm_cb.checkState())
@@ -823,7 +823,7 @@ class IPythonConsole(SpyderPluginWidget):
 
     def create_client_for_kernel(self):
         """Create a client connected to an existing kernel"""
-        cf, hostname, kf, pw, ok = KernelConnectionDialog.getConnectionParameters(self)
+        cf, hostname, kf, pw, ok = KernelConnectionDialog.get_connection_parameters(self)
         if not ok:
             return
         else:
