@@ -59,7 +59,6 @@ SYMPY_REQVER = '>=0.7.0'
 dependencies.add("sympy", _("Symbolic mathematics for the IPython Console"),
                  required_version=SYMPY_REQVER)
 
-#FIXME: timeout should be set in the preferences of Spyder
 def tunnel_to_kernel(ci, hostname, sshkey=None, password=None, timeout=10):
     """tunnel connections to a kernel via ssh. remote ports are specified in
     the connection info ci."""
