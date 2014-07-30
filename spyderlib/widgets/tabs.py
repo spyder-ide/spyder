@@ -31,7 +31,6 @@ class TabBar(QTabBar):
     def __init__(self, parent, ancestor):
         QTabBar.__init__(self, parent)
         self.ancestor = ancestor
-        self.setStyleSheet('font-size: 10pt; ')
             
         # Dragging tabs
         self.__drag_start_pos = QPoint()
@@ -107,7 +106,6 @@ class BaseTabs(QTabWidget):
     def __init__(self, parent, actions=None, menu=None,
                  corner_widgets=None, menu_use_tooltips=False):
         QTabWidget.__init__(self, parent)
-        self.setStyleSheet('padding : 0px;')
         
         self.setUsesScrollButtons(True)
         
