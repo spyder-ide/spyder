@@ -128,6 +128,7 @@ class BaseTabs(QTabWidget):
                                           icon=get_icon("browse_tab.png"),
                                           tip=_("Browse tabs"))
         self.browse_tabs_menu = QMenu(self)
+        self.browse_tabs_menu.setStyleSheet('font-size:8pt;')
         self.browse_button.setMenu(self.browse_tabs_menu)
         self.browse_button.setPopupMode(self.browse_button.InstantPopup)
         self.connect(self.browse_tabs_menu, SIGNAL("aboutToShow()"),
@@ -139,6 +140,7 @@ class BaseTabs(QTabWidget):
     def update_browse_tabs_menu(self):
         """Update browse tabs menu"""
         self.browse_tabs_menu.clear()
+        self.browse_tabs_menu.setStyleSheet('font-size:8pt;')
         names = []
         dirnames = []
         for index in range(self.count()):
