@@ -723,7 +723,7 @@ class IPythonConsole(SpyderPluginWidget):
         # kernel one
         return programs.is_module_installed('IPython', version=kernel_ver)
 
-    def create_kernel_manager_and_client(self, connection_file=None, \
+    def create_kernel_manager_and_client(self, connection_file=None,
                                     hostname=None, sshkey=None, password=None):
         """Create kernel manager and client"""
         cf = find_connection_file(connection_file, profile='default')
@@ -739,8 +739,8 @@ class IPythonConsole(SpyderPluginWidget):
                                           stdin_port=kernel_client.stdin_port,
                                           hb_port=kernel_client.hb_port),
                                           hostname, sshkey, password)
-                    kernel_client.shell_port, kernel_client.iopub_port, \
-                    kernel_client.stdin_port, kernel_client.hb_port = newports
+                    (kernel_client.shell_port, kernel_client.iopub_port,
+                     kernel_client.stdin_port, kernel_client.hb_port) = newports
                 except Exception as e:
                     QMessageBox.critical(self, _('Connection error'), 
                                          _('Could not open ssh tunnel\n') +  str(e))
@@ -759,8 +759,8 @@ class IPythonConsole(SpyderPluginWidget):
                                           stdin_port=kernel_manager.stdin_port,
                                           hb_port=kernel_manager.hb_port),
                                           hostname, sshkey, password)
-                    kernel_manager.shell_port, kernel_manager.iopub_port, \
-                    kernel_manager.stdin_port, kernel_manager.hb_port = newports
+                    (kernel_manager.shell_port, kernel_manager.iopub_port,
+                     kernel_manager.stdin_port, kernel_manager.hb_port) = newports
                 except Exception as e:
                     QMessageBox.critical(self, _('Connection error'), 
                                          _('Could not open ssh tunnel\n') +  str(e))
@@ -826,9 +826,9 @@ class IPythonConsole(SpyderPluginWidget):
         if not ok:
             return
         else:
-            self.create_client_for_kernel_impl(cf, hostname, kf, pw)
+            self._create_client_for_kernel(cf, hostname, kf, pw)
 
-    def create_client_for_kernel_impl(self, cf, hostname, kf, pw):
+    def _create_client_for_kernel(self, cf, hostname, kf, pw):
         # Verifying if the connection file exists - in the case of an empty
         # file name, the last used connection file is returned. 
         try:
