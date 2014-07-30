@@ -29,7 +29,7 @@ from spyderlib.qt.QtGui import (QGridLayout, QVBoxLayout, QHBoxLayout,
                                 QPixmap, QIcon, QFileDialog, QCheckBox,
                                 QWidget, QLabel, QSortFilterProxyModel,
                                 QTableView, QAbstractItemView,
-                                QFont, QDialog, QPalette,
+                                QFont, QDialog, QPalette, QColor,
                                 QRegExpValidator)
 from spyderlib.qt.QtCore import (QSize, Qt, SIGNAL, QProcess,
                                  QTextCodec, QAbstractTableModel, QModelIndex,
