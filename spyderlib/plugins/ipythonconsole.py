@@ -384,17 +384,17 @@ class KernelConnectionDialog(QDialog):
     
     def __init__(self, parent=None):
         super(KernelConnectionDialog, self).__init__(parent)
-        self.setWindowTitle('Connection to an existing kernel')
+        self.setWindowTitle(_('Connect to an existing kernel'))
         
         # connection file
-        cf_label = QLabel('Connection info')
+        cf_label = QLabel(_('Connection info'))
         cf_label.setToolTip(_("The connection info can either be the full path\n"
                               "to the connection file, or the kernel id.\n" 
                               "For example kernel-3764.json or 3764."))
         self.cf = QLineEdit()
-        self.cf.setPlaceholderText('Path to connection file or kernel id')
+        self.cf.setPlaceholderText(_('Path to connection file or kernel id'))
         self.cf.setMinimumWidth(250)
-        cf_open_btn = QPushButton('Browse')
+        cf_open_btn = QPushButton(_('Browse'))
         self.connect(cf_open_btn, SIGNAL('clicked()'), self.select_connection_file)
 
         cf_layout = QHBoxLayout()
@@ -403,15 +403,15 @@ class KernelConnectionDialog(QDialog):
         cf_layout.addWidget(cf_open_btn)
         
         # remote kernel checkbox 
-        self.rm_cb = QCheckBox('This is a remote kernel')
+        self.rm_cb = QCheckBox(_('This is a remote kernel'))
         
         # ssh connection 
         self.hn = QLineEdit()
-        self.hn.setPlaceholderText('username@hostname:port')
+        self.hn.setPlaceholderText(_('username@hostname:port'))
         
         self.kf = QLineEdit()
-        self.kf.setPlaceholderText('Path to ssh key file')
-        kf_open_btn = QPushButton('Browse')
+        self.kf.setPlaceholderText(_('Path to ssh key file'))
+        kf_open_btn = QPushButton(_('Browse'))
         self.connect(kf_open_btn, SIGNAL('clicked()'), self.select_ssh_key)
 
         kf_layout = QHBoxLayout()
@@ -419,13 +419,13 @@ class KernelConnectionDialog(QDialog):
         kf_layout.addWidget(kf_open_btn)
         
         self.pw = QLineEdit()
-        self.pw.setPlaceholderText('Password or ssh key passphrase')
+        self.pw.setPlaceholderText(_('Password or ssh key passphrase'))
         self.pw.setEchoMode(QLineEdit.Password)
 
         ssh_form = QFormLayout()
-        ssh_form.addRow('Host name', self.hn)
-        ssh_form.addRow('Ssh key', kf_layout)
-        ssh_form.addRow('Password', self.pw)
+        ssh_form.addRow(_('Host name'), self.hn)
+        ssh_form.addRow(_('Ssh key'), kf_layout)
+        ssh_form.addRow(_('Password'), self.pw)
         
         # Ok and Cancel buttons
         accept_btns = QDialogButtonBox(
@@ -453,13 +453,13 @@ class KernelConnectionDialog(QDialog):
         self.connect(self.rm_cb, SIGNAL('stateChanged(int)'), sshSetEnabled)
 
     def select_connection_file(self):
-        cf = getopenfilename(self, 'Open Python connection file',
+        cf = getopenfilename(self, _('Open IPython connection file'),
                  osp.join(get_ipython_dir(), 'profile_default', 'security'),
                  '*.json;;*.*')[0]
         self.cf.setText(cf)
 
     def select_ssh_key(self):
-        kf = getopenfilename(self, 'Select ssh key', 
+        kf = getopenfilename(self, _('Select ssh key'), 
                              get_ipython_dir(), '*.pem;;*.*')[0]
         self.kf.setText(kf)
 
