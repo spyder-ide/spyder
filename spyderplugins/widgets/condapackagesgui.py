@@ -4,7 +4,7 @@
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
-"""Packager manager widget"""
+"""Conda Packager Manager Widget"""
 
 # pylint: disable=C01031
 # pylint: disable=R0903
@@ -93,6 +93,10 @@ dependencies.add("conda", _("Conda package manager"),
 
 
 def _call_conda_2(extra_args, abspath=True):
+    """ Patched version of the conda api returning only the cmd list
+
+    Allows using this trhough QProcess instead of Popen
+    """
     # call conda with the list of extra arguments, and return the tuple
     # stdout, stderr
     ROOT_PREFIX = conda_api.ROOT_PREFIX
@@ -1651,9 +1655,11 @@ class CondaPackagesWidget(QWidget):
         self.env_remove_button = create_action(self, _('Remove'),
                                                icon=get_icon('editdelete.png'),
                                                triggered=self.remove_env)
-        actions = [self.env_create_button, self.env_clone_button,
-                   self.env_remove_button, self.env_options_submenu]
-        add_actions(self.env_options_menu, actions)
+
+        self.env_actions = [self.env_create_button, self.env_clone_button,
+                            self.env_remove_button]
+        add_actions(self.env_options_menu, [self.env_options_submenu])
+        add_actions(self.env_options_submenu, self.env_actions)
 
         self.env_options_button = QToolButton()
         self.env_options_button.setAutoRaise(True)
@@ -1709,8 +1715,6 @@ class CondaPackagesWidget(QWidget):
             self.environments = self.table.source_model.environments
             self._setup_widget()
 
-
-
         middle_layout = QHBoxLayout()
         middle_layout.addWidget(self.table)
 
@@ -1758,6 +1762,8 @@ class CondaPackagesWidget(QWidget):
         self.env_options_submenu.clear()
         actions[selected_index].setCheckable(True)
         actions[selected_index].setChecked(True)
+        add_actions(self.env_options_submenu, self.env_actions)
+        self.env_options_submenu.addSeparator()
         add_actions(self.env_options_submenu, actions)
 
         envs = self.envs
