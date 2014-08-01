@@ -42,6 +42,8 @@ import platform
 import os
 import os.path as osp
 import json
+import re
+import subprocess
 #import locale
 
 # Local imports
@@ -51,28 +53,98 @@ from spyderlib.utils.encoding import to_unicode_from_fs
 from spyderlib.utils.qthelpers import (get_icon, create_toolbutton,
                                        create_action, add_actions)
 from spyderlib.baseconfig import (get_conf_path, get_translation, get_image_path,
-                                 get_module_data_path)
-from spyderlib.py3compat import to_text_string, getcwd, pickle
+                                 get_module_data_path, get_module_source_path)
+from spyderlib.py3compat import (to_text_string, getcwd, pickle, u,
+                                 is_binary_string, is_unicode)
 from spyderlib.py3compat import configparser as cp
 _ = get_translation("p_condapackages", dirname="spyderplugins")
 
-import conda_api  # TODO: This will reside where???
-CONDA_PATH = programs.find_program('conda')  # FIXME: Conda api has similar
 
-# FIXME: Conda API requires defining this first. Where should I put this?
-conda_api.set_root_prefix()  # TODO:
+CONDA_PATH = programs.find_program('conda')  # FIXME: Conda api has similar
 
 # Get packages data first from local database .ini file
 # TODO: relocate this files somewhere sensible
 DATA_PATH = get_module_data_path('spyderplugins', 'data')
 
+#print(get_module_source_path('conda_api2'))
+#print(programs.python_script_exists(,
+#'conda_api2'))
 
-def extract_optional_infos(self):
-    """Extract package optional infos (description, url)
-    from the package database"""
-    metadata = get_package_metadata('packages.ini', self.name)
-    for key, value in list(metadata.items()):
-        setattr(self, key, value)
+def get_conda_version():
+    """Return pylint version"""
+    global CONDA_PATH
+    if CONDA_PATH is None:
+        return
+    process = subprocess.Popen(['conda', '--version'],
+                               stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+#                               cwd=osp.dirname(CONDA_PATH),
+                               shell=True if os.name == 'nt' else False)
+    # FIXME: his works with QString but not with QByte Arrays?
+    lines = to_unicode_from_fs(process.communicate()[-1]).splitlines()
+    if lines:
+        match = re.match('(conda|conda-script.py) ([0-9\.]*)', lines[0])
+        if match is not None:
+            return match.groups()[1]
+
+CONDA_REQVER = '>=3.5.5'
+CONDA_VER = get_conda_version()
+dependencies.add("conda", _("Conda package manager"),
+                 required_version=CONDA_REQVER, installed_version=CONDA_VER)
+
+
+def _call_conda_2(extra_args, abspath=True):
+    # call conda with the list of extra arguments, and return the tuple
+    # stdout, stderr
+    ROOT_PREFIX = conda_api.ROOT_PREFIX
+    from os.path import join
+    if abspath:
+        if sys.platform == 'win32':
+            python = join(ROOT_PREFIX, 'python.exe')
+            conda = join(ROOT_PREFIX, 'Scripts', 'conda-script.py')
+        else:
+            python = join(ROOT_PREFIX, 'bin/python')
+            conda = join(ROOT_PREFIX, 'bin/conda')
+        cmd_list = [python, conda]
+    else:  # just use whatever conda is on the path
+        cmd_list = ['conda']
+
+    cmd_list.extend(extra_args)
+    return cmd_list
+
+CONDA_API_REQVER = '>=1.1.0'
+if CONDA_PATH is None:
+    pass
+else:
+    print(programs.is_module_installed('conda_api'))
+    if programs.is_module_installed('conda_api'):
+        CONDA_API_VER = programs.get_module_version('conda_api')
+
+        import conda_api  # TODO: This will reside where???
+    #    print(CONDA_PATH)
+        process = subprocess.Popen([CONDA_PATH, 'info'],
+                                   stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE,
+                                   shell=True if os.name == 'nt' else False)
+        lines = to_unicode_from_fs(process.communicate()[0])
+        lines = lines.replace('\r', '')
+        lines = lines.split('\n')
+
+        for line in lines:
+            if 'root environment' in line:
+                root_prefix = line.strip().split()[-2]
+    #            print(root_prefix)
+        conda_api.set_root_prefix(root_prefix)  # TODO:
+        conda_api._call_conda_2 = _call_conda_2
+        # TODO: Need to check version to enable or not the plugin!!!!!
+        # Use homebrewed sort_versions? or use another package?
+
+    else:
+        # TODO: Try to install the conda api with a subprocess??
+        CONDA_API_VER = None
+
+dependencies.add("conda-api", _("Conda package manager"),
+                 required_version=CONDA_API_REQVER,
+                 installed_version=CONDA_API_VER)
 
 
 def get_package_metadata(database, name):
@@ -158,7 +230,8 @@ def get_conda_packages():
     grouped_usable_packages = {}
 #
 #    # This has to be outside of here!!!!! FUCK
-    for key, val in packages.iteritems():
+    for key in packages:
+        val = packages[key]
 #        build = val['build'].lower()
         name = val['name'].lower()
 #
@@ -176,7 +249,8 @@ def get_conda_packages():
 #        'md5'
 #    """
 #    for key, val in usable_packages.iteritems():
-    for key, val in packages.iteritems():
+    for key in packages:
+        val = packages[key]
         name = val['name'].lower()
         grouped_usable_packages[name].append([key, val])
 
@@ -206,7 +280,7 @@ def sort_versions(versions=[], reverse=False, sep =u'.'):  # FIXME: Python 3 uni
         for i in it:
             x = toint(i)
             if not isinstance(x, int):
-                x = unicode(x)
+                x = u(x)
                 middle = x.lstrip(digits).rstrip(digits)
                 tail = toint(x.lstrip(digits).replace(middle, u''))
                 head = toint(x.rstrip(digits).replace(middle, u''))
@@ -215,7 +289,7 @@ def sort_versions(versions=[], reverse=False, sep =u'.'):  # FIXME: Python 3 uni
                 while u'' in res:
                     res.remove(u'')
                 for r in res:
-                    if isinstance(r, unicode):
+                    if is_unicode(r):
                         alpha.add(r)
             else:
                 res = [x]
@@ -266,11 +340,11 @@ ROOT = 'root'
 
 class CondaPackagesModel(QAbstractTableModel):
     """ """
-    def __init__(self):
+    def __init__(self, env):
         QAbstractTableModel.__init__(self)
         self.__envs = []   # ordered... for combo box
         self.__environments = {}
-        self.__environment = ROOT   # Default value
+        self.__environment = env   # Default value
         self.__conda_packages = {}  # Everything from the json file
         self.__packages_names = []
         self.__packages_linked = {}  # Has to be remeptied on __setup_data
@@ -320,7 +394,7 @@ class CondaPackagesModel(QAbstractTableModel):
         # This has to do with the active python
         self.__pyver_running = pyver_running.replace('.', '')[:-1].lower()
 
-    def __set_env(self, env=ROOT):
+    def __set_env(self, env):
         self.__prefix = self.__environments[env]
 
     def __update_all(self):
@@ -337,13 +411,14 @@ class CondaPackagesModel(QAbstractTableModel):
         """ """
         exlude_names = ['emptydummypackage']  # FIXME: Any packages to exclude?
         self.__packages_names = sorted([key for key in self.__conda_packages])
-        self.__rows = range(len(self.__packages_names))
+        self.__rows = list(range(len(self.__packages_names)))
         self.__packages_linked = {}
 
         canonical_names = sorted(list(conda_api.linked(self.__prefix))) # TODO:
 
         # This has to do with the versions of the selected environment, NOT
         # with the python version running!
+        # FIXME: What if there is no python.... wierd case...
         pyver, numpyver, pybuild, numpybuild = None, None, None, None
         for canonical_name in canonical_names:
             n, v, b = conda_api.split_canonical_name(canonical_name)  # TODO:
@@ -397,7 +472,8 @@ class CondaPackagesModel(QAbstractTableModel):
 
         # FIXME: Check what to do with different builds??
         # For the moment here a set is used to remove duplicate versions
-        for n, vals in self.__packages_linked.iteritems():
+        for n in self.__packages_linked:
+            vals = self.__packages_linked[n]
             canonical_name = vals[-1]
             current_ver = vals[1]
             vers = self.__packages_versions_number[n]
@@ -789,7 +865,7 @@ class CondaPackagesTable(QTableView):
         self.parent = parent
         self.__searchbox = u''
         self.__filterbox = ALL
-        self.__envbox = ROOT
+        self.__envbox = parent.get_active_env()
 
         # To manage icon states
         self.__model_index_clicked = None
@@ -827,14 +903,14 @@ class CondaPackagesTable(QTableView):
         """ """
         self.proxy_model = MultiColumnSortFilterProxy(self)
         self.setModel(self.proxy_model)
-        self.source_model = CondaPackagesModel()
+        self.source_model = CondaPackagesModel(self.__envbox)
         self.proxy_model.setSourceModel(self.source_model)
         self.hide_columns()
 
         # Custom Proxy Model setup
         self.proxy_model.setDynamicSortFilter(True)
         filter_text = (lambda row, text, status: (
-        all([t in row[NAME] for t in text.split()]) or 
+        all([t in row[NAME] for t in text.split()]) or
         all([t in row[DESCRIPTION] for t in text.lower().split()])))
         filter_status = (lambda row, text, status: to_text_string(row[STATUS])
                          in to_text_string(status))
@@ -1059,7 +1135,7 @@ class CondaDependenciesModel(QAbstractTableModel):
 
             for key in order:
                 if key in dic:
-                    self.__rows.append([unicode(titles[key]), ''])
+                    self.__rows.append([u(titles[key]), ''])
                     self.__bold_rows.append(row)
                     row += 1
                     for item in dic[key]:
@@ -1285,7 +1361,12 @@ class CondaPackageActionDialog(QDialog):
     def _on_process_ready(self, boo):
         """ """
         if self.isVisible():
-            response = to_text_string(self.process.readAll())
+            response = self.process.readAll()
+            response = str(response)  # Check if this runs in py2
+            if 'b"' in response[:2] or "b'" in response[:2]:
+                response = eval(response)
+            if is_binary_string(response):
+                response = response.decode('ascii')
             self._parse_dependencies(response)
             dic = self.dependencies_dic
             self._set_dependencies_table()
@@ -1302,6 +1383,7 @@ class CondaPackageActionDialog(QDialog):
 
     def _parse_dependencies(self, response):
         """ """
+#        print(response)
         order = []
         lines = response.split(os.linesep)
         while '' in lines:
@@ -1370,7 +1452,7 @@ class CondaPackageActionDialog(QDialog):
 
         for widget in widgets:
             widget.setDisabled(boo)
-    
+
     def _close(self):
         self.close()
 
@@ -1540,8 +1622,8 @@ class CondaPackagesWidget(QWidget):
         # Variables
         self.envs = [u'']
         self.environments = {}
-        self.active_env = self.get_active_env()
-        self.selected_env = self.get_active_env()
+        self.active_env = None
+        self.selected_env = None
         self.status = ''
         self.process = None
 
@@ -1549,6 +1631,7 @@ class CondaPackagesWidget(QWidget):
         self.last_env_deleted = None
 
         # Widget Options
+        self.dialog_size = QSize(480, 300)
         self.setWindowTitle(_("Conda Packages"))
 
         # Widgets
@@ -1578,22 +1661,22 @@ class CondaPackagesWidget(QWidget):
         self.env_options_button.setPopupMode(QToolButton.InstantPopup)
         self.env_options_button.setIcon(get_icon('tooloptions.png'))
 
-        self.table = CondaPackagesTable(self)
+        self.table = QTableView()
 
         self.status_bar = QLabel()
         self.progress_bar = QProgressBar()
 
+        top_layout = QHBoxLayout()
+
         if CONDA_PATH is None:
-#        if True:
-            top_layout = QHBoxLayout()
-            top_layout.addWidget(self.info_label)
+            top_layout.addWidget(self.info_label, Qt.AlignCenter)
 
             for widget in (self.table, self.search_box, self.updates_button,
                            self.filter_combobox, self.env_create_button,
                            self.env_clone_button, self.env_remove_button):
                 widget.setDisabled(True)
             url = 'http://docs.continuum.io/anaconda/index.html'
-            info_text = _('''To use the Conda Package Manager you need to
+            info_text = _(''' To use the Conda Package Manager you need to
                           install the ''')
             info_text += ' <a href={0}>{1}</a> '.format(url, '<b>anaconda</b>')
             info_text += _('distribution.')
@@ -1601,17 +1684,32 @@ class CondaPackagesWidget(QWidget):
             self.info_label.setTextFormat(Qt.RichText)
             self.info_label.setTextInteractionFlags(Qt.TextBrowserInteraction)
             self.info_label.setOpenExternalLinks(True)
+            self.progress_bar.setVisible(False)
+        elif (CONDA_PATH is not None) and (CONDA_API_VER is None):
+            top_layout.addWidget(self.info_label, Qt.AlignCenter)
+
+            for widget in (self.table, self.search_box, self.updates_button,
+                           self.filter_combobox, self.env_create_button,
+                           self.env_clone_button, self.env_remove_button):
+                widget.setDisabled(True)
+            info_text = _(''' To use the Conda Package Manager you need to
+                          install the <b>conda-api</b>''')
+            self.info_label.setText(info_text)
+            self.info_label.setTextFormat(Qt.RichText)
+            self.progress_bar.setVisible(False)
         else:
             top_layout = QHBoxLayout()
             top_layout.addWidget(self.filter_combobox)
             top_layout.addWidget(self.updates_button)
             top_layout.addWidget(self.search_box)
             top_layout.addWidget(self.env_options_button)
-
+            self.table = CondaPackagesTable(self)
             self.table.setup_model()
             self.envs = self.table.source_model.envs
             self.environments = self.table.source_model.environments
             self._setup_widget()
+
+
 
         middle_layout = QHBoxLayout()
         middle_layout.addWidget(self.table)
@@ -1638,18 +1736,22 @@ class CondaPackagesWidget(QWidget):
         active = _(' [active]')
         actions = []
         active_env = self.get_active_env()
-        selected_env = self.selected_env
+
+        if self.selected_env is not None:
+            selected_env = self.selected_env
+        else:
+            selected_env = active_env
 
         for i, env in enumerate(self.envs):
             e = env
             if e == active_env:
                 e = env + active
-                icon = QIcon()
+#                icon = QIcon()
 #                active_index = i
             if selected_env == env:
                 selected_index = i
 
-            actions.append(create_action(self, _(e), icon=icon,
+            actions.append(create_action(self, _(e),
                            triggered=lambda
                            env=env: self.select_env(env)))
 
@@ -1659,7 +1761,6 @@ class CondaPackagesWidget(QWidget):
         add_actions(self.env_options_submenu, actions)
 
         envs = self.envs
-        active_env = self.get_active_env()
 
         if active_env == ROOT and len(envs) == 1:
             self.env_remove_button.setDisabled(True)
@@ -1671,6 +1772,7 @@ class CondaPackagesWidget(QWidget):
 
     def _setup_widget(self):
         """ """
+        self.setMinimumSize(self.dialog_size)
         self._refresh_env_submenu()
         self.progress_bar.setMaximum(0)
         self.progress_bar.setMinimum(0)
@@ -1766,7 +1868,7 @@ class CondaPackagesWidget(QWidget):
             if path != u'':
                 dic['path'] = osp.join(path, envname)
 
-            self._run_conda(action, dic)
+            self._run_conda_process(action, dic)
 
     def _run_pack_action(self, name, action, version, versions):
         """ """
@@ -1791,10 +1893,10 @@ class CondaPackagesWidget(QWidget):
             dic['pkg'] = pkg
             dic['dep'] = dep == 0 and state
             print(dep, state)
-            self._run_conda(action, dic)
+            self._run_conda_process(action, dic)
             self.table.source_model.refresh_()
 
-    def _run_conda(self, action, dic):
+    def _run_conda_process(self, action, dic):
         """ """
         extra_args = []
 
@@ -1876,12 +1978,15 @@ class CondaPackagesWidget(QWidget):
         self.table.source_model.refresh_()
         self.table.resize_rows()
         self._refresh_env_submenu()
-        
+
 
     def get_active_env(self):
         """ """
         tup = conda_api._call_conda(['info', '-e'])  # TODO:
-        out = tup[0].replace('\r', '').split('\n')
+        string = tup[0]
+        if is_binary_string(string):
+            string = string.decode('ascii')
+        out = string.replace('\r', '').split('\n')
 
         while '' in out:
             out.remove('')
