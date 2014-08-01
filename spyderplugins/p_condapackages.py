@@ -20,8 +20,8 @@ _ = get_translation("p_condapackages", dirname="spyderplugins")
 from spyderlib.utils.qthelpers import get_icon, create_action
 from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage
 
-from spyderplugins.widgets.pylintgui import (PylintWidget, 
-                                             PYLINT_PATH)
+#from spyderplugins.widgets.pylintgui import (PylintWidget, 
+#                                             PYLINT_PATH)
 from spyderplugins.widgets.condapackagesgui import (CondaPackagesWidget, 
                                                     CONDA_PATH)
 
@@ -31,7 +31,9 @@ class CondaPackagesConfigPage(PluginConfigPage):
         settings_group = QGroupBox(_("Settings"))
         confirm_box = self.create_checkbox(_("Confirm before taking action"),
                                         'confirm_action', default=True)
-        
+#        default_python = self.create_combobox(_("Select default python version for new environment creation"),
+#                                        (2,2), default=True)
+
 #        hist_group = QGroupBox(_("History"))
 #        hist_label1 = QLabel(_("The following option will be applied at next "
 #                               "startup."))
@@ -78,39 +80,37 @@ class CondaPackages(CondaPackagesWidget, SpyderPluginMixin):
     """Conda package manager based on conda and conda-api """
     CONF_SECTION = 'condapackages'
     CONFIGWIDGET_CLASS = CondaPackagesConfigPage
+
     def __init__(self, parent=None):
-#        PylintWidget.__init__(self, parent=parent,
-#                              max_entries=self.get_option('max_entries', 50))
         CondaPackagesWidget.__init__(self, parent=parent)
         SpyderPluginMixin.__init__(self, parent)
-        
+
         # Initialize plugin
         self.initialize_plugin()
-        
+
     #------ SpyderPluginWidget API --------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
         return _("Conda package manager")
-    
+
     def get_plugin_icon(self):
         """Return widget icon"""
         return get_icon('condapackages.png')
-    
+
     def get_focus_widget(self):
         """
         Return the widget to give focus to when
         this plugin's dockwidget is raised on top-level
         """
-#        return self.treewidget
-        return None
-    
+        return self.search_box
+
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         # Font
-        history_action = create_action(self, _("History..."),
-                                       None, 'history.png',
-                                       _("Set history maximum entries"),
-                                       triggered=self.change_history_depth)
+#        history_action = create_action(self, _("History..."),
+#                                       None, 'history.png',
+#                                       _("Set history maximum entries"),
+#                                       triggered=self.change_history_depth)
 #        self.treewidget.common_actions += (None, history_action)
         return []
 
@@ -127,14 +127,14 @@ class CondaPackages(CondaPackagesWidget, SpyderPluginMixin):
                      self.main.redirect_internalshell_stdio)
         self.main.add_dockwidget(self)
         
-        pylint_act = create_action(self, _("Run static code analysis"),
-                                   triggered=self.run_pylint)
-        pylint_act.setEnabled(PYLINT_PATH is not None)
-        self.register_shortcut(pylint_act, context="Pylint",
-                               name="Run analysis")
+#        pylint_act = create_action(self, _("Run static code analysis"),
+#                                   triggered=self.run_pylint)
+#        pylint_act.setEnabled(PYLINT_PATH is not None)
+#        self.register_shortcut(pylint_act, context="Pylint",
+#                               name="Run analysis")
         
-        self.main.source_menu_actions += [None, pylint_act]
-        self.main.editor.pythonfile_dependent_actions += [pylint_act]
+#        self.main.source_menu_actions += [None, pylint_act]
+#        self.main.editor.pythonfile_dependent_actions += [pylint_act]
 
     def refresh_plugin(self):
         """Refresh pylint widget"""
