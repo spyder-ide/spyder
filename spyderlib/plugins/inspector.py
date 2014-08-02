@@ -609,12 +609,14 @@ class ObjectInspector(SpyderPluginWidget):
                           "Help can also be shown automatically after writing "
                           "a left parenthesis next to an object. You can "
                           "activate this behavior in %s.")
+        tutorial_message = _("New to Spyder? Read our tutorial")
         prefs = _("Preferences > Object Inspector")
         if self.is_rich_text_mode():
             title = _("Usage")
             intro_message = intro_message % ("<b>Ctrl+I</b>", "<br><br>",
                                              "<i>"+prefs+"</i>")
-            self.set_rich_text_html(usage(title, intro_message),
+            self.set_rich_text_html(usage(title, intro_message,
+                                          tutorial_message),
                                     QUrl.fromLocalFile(CSS_PATH))
         else:
             install_sphinx = "\n\n%s" % _("Please consider installing Sphinx "

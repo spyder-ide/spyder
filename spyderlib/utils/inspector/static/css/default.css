@@ -260,8 +260,8 @@ tt {
 
 .panel-usage {
     border-color: #2fa4e7;
-    margin-top: 30px;
-    width: 53%;
+    margin-top: 25px;
+    width: 60%;
     margin-left: auto;
     margin-right: auto;
 }
@@ -270,6 +270,12 @@ tt {
     color: #ffffff;
     background-color: #2fa4e7;
     border-color: #2fa4e7;
+}
+
+.panel-usage > .panel-body > br {
+    display: block;
+    margin: 12px 0;
+    content: "";
 }
 
 
