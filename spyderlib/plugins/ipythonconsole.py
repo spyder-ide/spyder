@@ -381,21 +381,30 @@ class IPythonConsoleConfigPage(PluginConfigPage):
 
 
 class KernelConnectionDialog(QDialog):
+    """Dialog to connect to existing kernels (either local or remote)"""
     
     def __init__(self, parent=None):
         super(KernelConnectionDialog, self).__init__(parent)
         self.setWindowTitle(_('Connect to an existing kernel'))
         
+        main_label = QLabel(_("Please enter the connection info of the kernel "
+                              "you want to connect to. For that you can "
+                              "either select its JSON connection file using "
+                              "the <tt>Browse</tt> button, or write directly "
+                              "its id, in case it's a local kernel (for "
+                              "example <tt>kernel-3764.json</tt> or just "
+                              "<tt>3764</tt>)."))
+        main_label.setWordWrap(True)
+        main_label.setAlignment(Qt.AlignJustify)
+        
         # connection file
-        cf_label = QLabel(_('Connection info'))
-        cf_label.setToolTip(_("The connection info can either be the full path\n"
-                              "to the connection file, or the kernel id.\n" 
-                              "For example kernel-3764.json or 3764."))
+        cf_label = QLabel(_('Connection info:'))
         self.cf = QLineEdit()
         self.cf.setPlaceholderText(_('Path to connection file or kernel id'))
         self.cf.setMinimumWidth(250)
         cf_open_btn = QPushButton(_('Browse'))
-        self.connect(cf_open_btn, SIGNAL('clicked()'), self.select_connection_file)
+        self.connect(cf_open_btn, SIGNAL('clicked()'),
+                     self.select_connection_file)
 
         cf_layout = QHBoxLayout()
         cf_layout.addWidget(cf_label)
@@ -437,20 +446,21 @@ class KernelConnectionDialog(QDialog):
 
         # Dialog layout
         layout = QVBoxLayout(self)
+        layout.addWidget(main_label)
         layout.addLayout(cf_layout)
         layout.addWidget(self.rm_cb)
         layout.addLayout(ssh_form)
         layout.addWidget(accept_btns)
                 
         # remote kernel checkbox enables the ssh_connection_form
-        def sshSetEnabled(state):
+        def ssh_set_enabled(state):
             for wid in [self.hn, self.kf, kf_open_btn, self.pw]:
                 wid.setEnabled(state)
             for i in xrange(ssh_form.rowCount()):
                 ssh_form.itemAt(2 * i).widget().setEnabled(state)
        
-        sshSetEnabled(self.rm_cb.checkState())
-        self.connect(self.rm_cb, SIGNAL('stateChanged(int)'), sshSetEnabled)
+        ssh_set_enabled(self.rm_cb.checkState())
+        self.connect(self.rm_cb, SIGNAL('stateChanged(int)'), ssh_set_enabled)
 
     def select_connection_file(self):
         cf = getopenfilename(self, _('Open IPython connection file'),
@@ -478,6 +488,7 @@ class KernelConnectionDialog(QDialog):
                 accepted)                        # ok
         else:
             return (dialog.cf.text(), None, None, None, accepted)
+
 
 class IPythonConsole(SpyderPluginWidget):
     """
