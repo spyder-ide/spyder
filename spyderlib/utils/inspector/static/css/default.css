@@ -4,6 +4,7 @@ body {
     margin: 0px 25px 15px 25px;
 }
 
+
 /* --- Title style --- */
 div.title h1 {
     font-size: 180%;
@@ -69,6 +70,7 @@ span.argspec-highlight {
     font-weight: 900;
 }
 
+
 /* --- Docstring div style --- */
 div.docstring {
     margin-top: -1px;
@@ -77,6 +79,7 @@ div.docstring {
 div.docstring p {
     padding: 0px 2px 0px;
 }
+
 
 /* --- Headers style --- */
 h2, h3, h4 {
@@ -100,6 +103,43 @@ h3 {
 h4 {
     font-size: 100%;
     margin-top: 14px;
+    font-weight: normal;
+}
+
+h2.html-toggle-button, h3.html-toggle-button, h4.html-toggle-button {
+    padding-left: 20px;
+}
+
+.collapsed > h2 {
+    background-color: transparent;
+    background-image: url(../images/collapse_expand.png);
+    background-repeat: no-repeat;
+    background-attachment: scroll;
+    background-position: 2px 7px;
+}
+
+.collapsed > h3, .collapsed > h4 {
+    background-color: transparent;
+    background-image: url(../images/collapse_expand.png);
+    background-repeat: no-repeat;
+    background-attachment: scroll;
+    background-position: 2px 2px;
+}
+
+.expanded > h2 {
+    background-color: transparent;
+    background-image: url(../images/collapse_expand.png);
+    background-repeat: no-repeat;
+    background-attachment: scroll;
+    background-position: 0px -31px;
+}
+
+.expanded > h3, .expanded > h4 {
+    background-color: transparent;
+    background-image: url(../images/collapse_expand.png);
+    background-repeat: no-repeat;
+    background-attachment: scroll;
+    background-position: 0px -38px;
 }
 
 dl.docutils {
@@ -144,11 +184,13 @@ ol.arabic {
     margin-left: -8px;
 }
 
+
 /* --- Literal blocks style --- */
 pre.literal-block {
     padding-left: 35px;
     font-size: 95%;
 }
+
 
 /* --- Docutils table style --- */
 table.docutils {
@@ -170,6 +212,7 @@ table.docutils tr.row-odd {
     background-color: rgb(249, 249, 249);
 }
 
+
 /* --- Docutils table headers --- */
 table.docutils th {
     background-color: #EEEEEE;
@@ -185,6 +228,7 @@ table.docutils th {
     color: rgb(65, 65, 65);
 }
 
+
 /* --- Field-list table style --- */
 table.docutils.field-list {
     font-size: 80%;
@@ -196,6 +240,7 @@ table.docutils.field-list {
     width: 83%;
 }
 
+
 /* --- Field-list table headers --- */
 table.docutils.field-list th {
     background-color: transparent;
@@ -206,6 +251,7 @@ table.docutils.field-list th {
     text-align: left;
     padding: 4px 0px 4px 8px;
 }
+
 
 /* --- Spacing around example code --- */
 div.highlight pre {
@@ -234,6 +280,7 @@ tt {
     font-size: 95%;
     padding: 0px 1px;
 }
+
 
 /* ----------- Panels ----------- */
 
