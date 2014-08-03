@@ -79,22 +79,27 @@ div.docstring p {
 }
 
 /* --- Headers style --- */
-div.section {
-    margin: 22px 0px 0px 0px;
+h2, h3, h4 {
+    font-family: 'Helvetica', sans-serif;
+    color: rgb(49, 126, 172);
+    margin-top: 20px;
+    margin-bottom: 10px;
 }
 
-div.section h2 {
+h2 {
     font-size: 140%;
-    font-family: 'Trebuchet MS', sans-serif;
     font-weight: normal;
-    border-bottom: 1px solid rgb(238, 238, 238);
-    color: rgb(49, 126, 172);
+    border-bottom: 1px solid rgb(220, 220, 220);
     padding: 4px 0px 4px 0px;
 }
 
-div.section h3 {
-    font-size: 110%;
-    padding: 0px 5px 0px;
+h3 {
+    font-size: 115%;
+}
+
+h4 {
+    font-size: 100%;
+    margin-top: 14px;
 }
 
 dl.docutils {
@@ -260,7 +265,7 @@ tt {
 
 .panel-usage {
     border-color: #2fa4e7;
-    margin-top: 25px;
+    margin-top: 15px;
     width: 60%;
     margin-left: auto;
     margin-right: auto;

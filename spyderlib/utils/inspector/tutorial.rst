@@ -19,14 +19,6 @@ Computational Modelling for students at the University of Southampton
 (see `historical note`_ for more detail).
 
 
-.. contents:: Outline
-
-.. sectnum::
-
-----------
-
-
-
 First steps with Spyder
 #######################
 
