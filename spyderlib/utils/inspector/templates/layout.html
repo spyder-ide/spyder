@@ -31,11 +31,18 @@
     {% endif %}
 </head>
 
+
 <script type="text/javascript" charset="utf-8">
 {% include js_path + "/math_config.js" %}
 </script>
+
+{% if collapse %}
+<script src="file:///{{js_path}}/collapse_sections.js" type="text/javascript" charset="utf-8"></script>
+{% endif %}
+
 <script src="file:///{{js_path}}/utils.js" type="text/javascript" charset="utf-8"></script>
 <script src="file:///{{js_path}}/copy_button.js" type="text/javascript" charset="utf-8"></script>
+
 
 <body>
     {# Docstring header #}

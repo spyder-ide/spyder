@@ -796,7 +796,7 @@ class IPythonConsole(SpyderPluginWidget):
         from spyderlib.utils.inspector import sphinxify as spx
         
         context = spx.generate_context(name='', argspec='', note='',
-                                       math=False)
+                                       math=False, collapse=False)
         html_text = spx.sphinxify(text, context)
         inspector = self.inspector
         inspector.visibility_changed(True)

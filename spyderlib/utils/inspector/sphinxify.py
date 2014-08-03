@@ -85,7 +85,7 @@ def usage(title, message, tutorial_message, tutorial):
                         tutorial_message=tutorial_message, tutorial=tutorial)
 
 
-def generate_context(name, argspec, note, math):
+def generate_context(name, argspec, note, math, collapse):
     """
     Generate the html_context dictionary for our Sphinx conf file.
     
@@ -105,6 +105,8 @@ def generate_context(name, argspec, note, math):
     math : bool
         Turn on/off Latex rendering on the OI. If False, Latex will be shown in
         plain text.
+    collapse : bool
+        Collapse sections
     
     Returns
     -------
@@ -118,6 +120,7 @@ def generate_context(name, argspec, note, math):
       'name': name,
       'argspec': argspec,
       'note': note,
+      'collapse': collapse,
       
       # Static variables
       'css_path': CSS_PATH,
