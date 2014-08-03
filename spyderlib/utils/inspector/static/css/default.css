@@ -115,6 +115,8 @@ h2.html-toggle-button, h3.html-toggle-button, h4.html-toggle-button {
     background-image: url(../images/collapse_expand.png);
     background-repeat: no-repeat;
     background-attachment: scroll;
+    cursor: pointer;
+    cursor: hand;
 }
 
 .collapsed > h2 {
