@@ -557,7 +557,7 @@ class CondaPackagesModel(QAbstractTableModel):
 
     # 'public api'
     def refresh_(self):
-        self.__update_conda_packages()
+#        self.__update_conda_packages()
         self.__get_env_and_prefixes()
         self.__setup_data()
         self.__update_all()
@@ -1633,8 +1633,9 @@ class CondaPackagesWidget(QWidget):
             self.status_bar.setText('')
             
         if progress:
+            self.progress_bar.setMinimum(0)
             self.progress_bar.setMaximum(progress[1])
-            self.progress_bar.setValue(progress[0])
+            self.progress_bar.setValue(progress[0])            
         else:          
             self.progress_bar.setMaximum(0)
             self.progress_bar.setMinimum(0)
@@ -1645,22 +1646,25 @@ class CondaPackagesWidget(QWidget):
 
         if dlg.exec_():
             dic = {}
-            env = self.selected_env
+            env = self.active_env
             ver1 = dlg.version_label.text()
             ver2 = dlg.version_combobox.currentText()
             pkg = u'{0}={1}{2}'.format(name, ver1, ver2)
             dep = dlg.checkbox.checkState()
             state = dlg.checkbox.isEnabled()
-
+            
             # Use QProcess and only use
             self.process = QProcess(self)
-            self.process.readyRead.connect(self._on_proces_data_available)
+            self.process.readyRead.connect(self._on_process_data_available)
             self.process.started.connect(lambda: self._update_status(True))
             self.process.finished.connect(lambda: self._on_process_ready(True))
 
             dic['name'] = env
             dic['pkg'] = pkg
             dic['dep'] = dep == 0 and state
+
+            self.status = _('Processing')
+            self._update_status(True, [0, 0])
             self._run_conda_process(action, dic)
             self.table.source_model.refresh_()
 
@@ -1703,19 +1707,15 @@ class CondaPackagesWidget(QWidget):
 
         self.process.start(cmd_list[0], cmd_list[1:])
 
-#    def _on_process_data_available(self):
-#        """ """
-#        response = to_text_string(self.process.readAll())
+    def _on_process_data_available(self):
+        """ """
+        response = to_text_string(self.process.readAll())
 
     def _on_process_ready(self, package_action=False):
         """ """
-        if not package_action:
-            env = self.last_env_created
-        else:
-            env = self.selected_env
-        self.select_env(env)
-        self._udate_status(False)
+        self.table.source_model.refresh_()
         self.process.close()
+        self._update_status(False)
 
     def _set_table_data(self):
         """ """
