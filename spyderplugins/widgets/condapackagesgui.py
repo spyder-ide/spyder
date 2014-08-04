@@ -150,6 +150,22 @@ dependencies.add("conda-api", _("Conda package manager"),
                  required_version=CONDA_API_REQVER,
                  installed_version=CONDA_API_VER)
 
+"""
+#!/usr/bin/python
+import urllib2 
+import time
+
+loop_value = 1
+
+while (loop_value == 1):
+    try:
+	urllib2.urlopen("http://www.google.com")
+    except urllib2.URLError, e:
+	time.sleep( 10 )
+    else:
+	loop_value = 0
+	<commands to be ran when internet connection is established go here>
+"""
 
 def get_package_metadata(database, name):
     """Extract infos (description, url) from the local database"""
@@ -1212,8 +1228,7 @@ class CondaPackageActionDialog(QDialog):
     """ """
     def __init__(self, parent, name, action, version, versions):
         QDialog.__init__(self, parent)
-
-        self.env = parent.selected_env
+        self.env = parent.get_active_env()  # parent.selected_env 
         self.parent = parent
         self.version_text = None
         self.name = name
@@ -1714,6 +1729,7 @@ class CondaPackagesWidget(QWidget):
             self.envs = self.table.source_model.envs
             self.environments = self.table.source_model.environments
             self._setup_widget()
+            self.env_options_button.setVisible(False)
 
         middle_layout = QHBoxLayout()
         middle_layout.addWidget(self.table)
