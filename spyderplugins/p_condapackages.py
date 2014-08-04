@@ -11,67 +11,32 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-from spyderlib.qt.QtGui import QInputDialog, QVBoxLayout, QGroupBox, QLabel
-from spyderlib.qt.QtCore import SIGNAL, Qt
+from spyderlib.qt.QtGui import QVBoxLayout, QGroupBox
+from spyderlib.qt.QtCore import SIGNAL
 
 # Local imports
 from spyderlib.baseconfig import get_translation
 _ = get_translation("p_condapackages", dirname="spyderplugins")
-from spyderlib.utils.qthelpers import get_icon, create_action
+from spyderlib.utils.qthelpers import get_icon
 from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage
 
-#from spyderplugins.widgets.pylintgui import (PylintWidget, 
-#                                             PYLINT_PATH)
 from spyderplugins.widgets.condapackagesgui import (CondaPackagesWidget, 
                                                     CONDA_PATH)
 
 
 class CondaPackagesConfigPage(PluginConfigPage):
+    """ """
     def setup_page(self):
         settings_group = QGroupBox(_("Settings"))
         confirm_box = self.create_checkbox(_("Confirm before taking action"),
                                         'confirm_action', default=True)
-#        default_python = self.create_combobox(_("Select default python version for new environment creation"),
-#                                        (2,2), default=True)
-
-#        hist_group = QGroupBox(_("History"))
-#        hist_label1 = QLabel(_("The following option will be applied at next "
-#                               "startup."))
-#        hist_label1.setWordWrap(True)
-#        hist_spin = self.create_spinbox(_("History: "),
-#                            _(" results"), 'max_entries', default=50,
-#                            min_=10, max_=1000000, step=10)
-#
-#        results_group = QGroupBox(_("Results"))
-#        results_label1 = QLabel(_("Results are stored here:"))
-#        results_label1.setWordWrap(True)
-
-        # Warning: do not try to regroup the following QLabel contents with 
-        # widgets above -- this string was isolated here in a single QLabel
-        # on purpose: to fix Issue 863
-#        results_label2 = QLabel(PylintWidget.DATAPATH)
-
-#        results_label2.setTextInteractionFlags(Qt.TextSelectableByMouse)
-#        results_label2.setWordWrap(True)
 
         settings_layout = QVBoxLayout()
         settings_layout.addWidget(confirm_box)
         settings_group.setLayout(settings_layout)
 
-#        hist_layout = QVBoxLayout()
-#        hist_layout.addWidget(hist_label1)
-#        hist_layout.addWidget(hist_spin)
-#        hist_group.setLayout(hist_layout)
-#
-#        results_layout = QVBoxLayout()
-#        results_layout.addWidget(results_label1)
-#        results_layout.addWidget(results_label2)
-#        results_group.setLayout(results_layout)
-
         vlayout = QVBoxLayout()
         vlayout.addWidget(settings_group)
-#        vlayout.addWidget(hist_group)
-#        vlayout.addWidget(results_group)
         vlayout.addStretch(1)
         self.setLayout(vlayout)
 
@@ -106,12 +71,6 @@ class CondaPackages(CondaPackagesWidget, SpyderPluginMixin):
 
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
-        # Font
-#        history_action = create_action(self, _("History..."),
-#                                       None, 'history.png',
-#                                       _("Set history maximum entries"),
-#                                       triggered=self.change_history_depth)
-#        self.treewidget.common_actions += (None, history_action)
         return []
 
     def on_first_registration(self):
@@ -121,24 +80,14 @@ class CondaPackages(CondaPackagesWidget, SpyderPluginMixin):
 
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
-        self.connect(self, SIGNAL("edit_goto(QString,int,QString)"),
-                     self.main.editor.load)
-        self.connect(self, SIGNAL('redirect_stdio(bool)'),
-                     self.main.redirect_internalshell_stdio)
+#        self.connect(self, SIGNAL("edit_goto(QString,int,QString)"),
+#                     self.main.editor.load)
+#        self.connect(self, SIGNAL('redirect_stdio(bool)'),
+#                     self.main.redirect_internalshell_stdio)
         self.main.add_dockwidget(self)
         
-#        pylint_act = create_action(self, _("Run static code analysis"),
-#                                   triggered=self.run_pylint)
-#        pylint_act.setEnabled(PYLINT_PATH is not None)
-#        self.register_shortcut(pylint_act, context="Pylint",
-#                               name="Run analysis")
-        
-#        self.main.source_menu_actions += [None, pylint_act]
-#        self.main.editor.pythonfile_dependent_actions += [pylint_act]
-
     def refresh_plugin(self):
         """Refresh pylint widget"""
-#        self.remove_obsolete_items()
         
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
@@ -146,37 +95,13 @@ class CondaPackages(CondaPackagesWidget, SpyderPluginMixin):
             
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
-        # The history depth option will be applied at 
-        # next Spyder startup, which is soon enough
         pass
         
     #------ Public API --------------------------------------------------------
-    def change_history_depth(self):
-        "Change history max entries"""
-        depth, valid = QInputDialog.getInteger(self, _('History'),
-                                       _('Maximum entries'),
-                                       self.get_option('max_entries'),
-                                       10, 10000)
-        if valid:
-            self.set_option('max_entries', depth)
-        
-    def run_pylint(self):
-        """Run pylint code analysis"""
-        if self.get_option('save_before', True)\
-           and not self.main.editor.save():
-            return
-        self.analyze( self.main.editor.get_current_filename() )
-        
-    def analyze(self, filename):
-        """Reimplement analyze method"""
-        if self.dockwidget and not self.ismaximized:
-            self.dockwidget.setVisible(True)
-            self.dockwidget.setFocus()
-            self.dockwidget.raise_()
-        CondaPackagesWidget.analyze(self, filename)
 
 
 #==============================================================================
 # The following statements are required to register this 3rd party plugin:
 #==============================================================================
-PLUGIN_CLASS = CondaPackages
+if CONDA_PATH:
+    PLUGIN_CLASS = CondaPackages
