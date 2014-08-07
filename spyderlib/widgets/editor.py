@@ -2011,7 +2011,12 @@ class EditorStack(QWidget):
             if mimedata2url(source, extlist=EDIT_EXT):
                 event.acceptProposedAction()
             else:
-                event.ignore()
+                all_urls = mimedata2url(source)
+                text = [encoding.is_text_file(url) for url in all_urls]
+                if any(text):
+                    event.acceptProposedAction()
+                else:
+                    event.ignore()
         elif source.hasText():
             event.acceptProposedAction()
         else:
@@ -2022,10 +2027,12 @@ class EditorStack(QWidget):
         Unpack dropped data and handle it"""
         source = event.mimeData()
         if source.hasUrls():
-            files = mimedata2url(source, extlist=EDIT_EXT)
-            if files:
-                for fname in files:
-                    self.emit(SIGNAL('plugin_load(QString)'), fname)
+            files = mimedata2url(source)
+            files = [f for f in files if encoding.is_text_file(f)]
+            supported_files = mimedata2url(source, extlist=EDIT_EXT)
+            files = set(files or []) | set(supported_files or [])
+            for fname in files:
+                self.emit(SIGNAL('plugin_load(QString)'), fname)
         elif source.hasText():
             editor = self.get_current_editor()
             if editor is not None:

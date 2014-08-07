@@ -139,6 +139,7 @@ class NamespaceBrowser(QWidget):
                             plot_func=self.plot, imshow_func=self.imshow,
                             show_image_func=self.show_image)
         self.editor.sig_option_changed.connect(self.sig_option_changed.emit)
+        self.editor.sig_files_dropped.connect(self.import_data)
         
         
         # Setup layout
