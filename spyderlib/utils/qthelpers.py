@@ -445,7 +445,6 @@ def show_std_icons():
     app = qapplication()
     dialog = ShowStdIcons(None)
     dialog.show()
-    import sys
     sys.exit(app.exec_())
 
 

@@ -19,9 +19,135 @@ import tarfile
 import os.path as osp
 import shutil
 import warnings
+import json
+import inspect
+import dis
+try:
+    import pandas as pd
+except ImportError:
+    pd = None
 
 # Local imports
-from spyderlib.py3compat import pickle, to_text_string, getcwd
+from spyderlib.py3compat import pickle, to_text_string, getcwd, PY2
+
+
+class MatlabStruct(dict):
+    """
+    Matlab style struct, enhanced.
+
+    Supports dictionary and attribute style access.  Can be pickled,
+    and supports code completion in a REPL.
+
+    Examples
+    ========
+    >>> from spyderlib.utils.iofuncs import MatlabStruct
+    >>> a = MatlabStruct()
+    >>> a.b = 'spam'  # a["b"] == 'spam'
+    >>> a.c["d"] = 'eggs'  # a.c.d == 'eggs'
+    >>> print(a)
+    {'c': {'d': 'eggs'}, 'b': 'spam'}
+
+    """
+    def __getattr__(self, attr):
+        """Access the dictionary keys for unknown attributes."""
+        try:
+            return self[attr]
+        except KeyError:
+            msg = "'MatlabStruct' object has no attribute %s" % attr
+            raise AttributeError(msg)
+
+    def __getitem__(self, attr):
+        """
+        Get a dict value; create a MatlabStruct if requesting a submember.
+
+        Do not create a key if the attribute starts with an underscore.
+        """
+        if attr in self.keys() or attr.startswith('_'):
+            return dict.__getitem__(self, attr)
+        frame = inspect.currentframe()
+        # step into the function that called us
+        if frame.f_back.f_back and self._is_allowed(frame.f_back.f_back):
+            dict.__setitem__(self, attr, MatlabStruct())
+        elif self._is_allowed(frame.f_back):
+            dict.__setitem__(self, attr, MatlabStruct())
+        return dict.__getitem__(self, attr)
+
+    def _is_allowed(self, frame):
+        """Check for allowed op code in the calling frame"""
+        allowed = [dis.opmap['STORE_ATTR'], dis.opmap['LOAD_CONST'],
+                   dis.opmap.get('STOP_CODE', 0)]
+        bytecode = frame.f_code.co_code
+        instruction = bytecode[frame.f_lasti + 3]
+        instruction = ord(instruction) if PY2 else instruction
+        return instruction in allowed
+
+    __setattr__ = dict.__setitem__
+    __delattr__ = dict.__delitem__
+
+    @property
+    def __dict__(self):
+        """Allow for code completion in a REPL"""
+        return self.copy()
+
+
+def get_matlab_value(val):
+    """
+    Extract a value from a Matlab file
+
+    From the oct2py project, see
+    http://pythonhosted.org/oct2py/conversions.html
+    """
+    import numpy as np
+    if not isinstance(val, np.ndarray):
+        return val
+    # check for objects
+    if "'|O" in str(val.dtype) or "O'" in str(val.dtype):
+        data = MatlabStruct()
+        for key in val.dtype.fields.keys():
+            data[key] = get_matlab_value(val[key][0])
+        return data
+    # handle cell arrays
+    if val.dtype == np.object:
+        if val.size == 1:
+            val = val[0]
+            if "'|O" in str(val.dtype) or "O'" in str(val.dtype):
+                val = get_matlab_value(val)
+            if isinstance(val, MatlabStruct):
+                return val
+            if val.size == 1:
+                val = val.flatten()
+    if val.dtype == np.object:
+        if len(val.shape) > 2:
+            val = val.T
+            val = np.array([get_matlab_value(val[i].T)
+                            for i in range(val.shape[0])])
+        if len(val.shape) > 1:
+            if len(val.shape) == 2:
+                val = val.T
+            try:
+                return val.astype(val[0][0].dtype)
+            except ValueError:
+                # dig into the cell type
+                for row in range(val.shape[0]):
+                    for i in range(val[row].size):
+                        if not np.isscalar(val[row][i]):
+                            if val[row][i].size > 1:
+                                val[row][i] = val[row][i].squeeze()
+                            else:
+                                val[row][i] = val[row][i][0]
+        else:
+            val = np.array([get_matlab_value(val[i])
+                            for i in range(val.size)])
+        if len(val.shape) == 1 or val.shape[0] == 1 or val.shape[1] == 1:
+            val = val.flatten()
+        val = val.tolist()
+    elif val.size == 1:
+        if hasattr(val, 'flatten'):
+            val = val.flatten()[0]
+    if isinstance(val, MatlabStruct) and isinstance(val.size, MatlabStruct):
+        del val['size']
+        del val['dtype']
+    return val
 
 
 try:
@@ -35,17 +161,9 @@ try:
         import scipy.io as spio  # analysis:ignore
     def load_matlab(filename):
         try:
-            out = spio.loadmat(filename, struct_as_record=True,
-                               squeeze_me=True)
+            out = spio.loadmat(filename)
             for key, value in list(out.items()):
-                if isinstance(value, np.ndarray):
-                    if value.shape == ():
-                        out[key] = value.tolist()
-                    # The following would be needed if squeeze_me=False:
-#                    elif value.shape == (1,):
-#                        out[key] = value[0]
-#                    elif value.shape == (1, 1):
-#                        out[key] = value[0][0]
+                out[key] = get_matlab_value(value)
             return out, None
         except Exception as error:
             return None, str(error)
@@ -64,9 +182,13 @@ try:
     def load_array(filename):
         try:
             name = osp.splitext(osp.basename(filename))[0]
-            return {name: np.load(filename)}, None
+            data = np.load(filename)
+            if hasattr(data, 'keys'):
+                return data, None
+            else:
+                return {name: data}, None
         except Exception as error:
-            return None, str(error)    
+            return None, str(error)
     def __save_array(data, basename, index):
         """Save numpy array"""
         fname = basename + '_%04d.npy' % index
@@ -114,6 +236,29 @@ try:
             return None, str(error)
 except ImportError:
     load_image = None
+
+
+def load_pickle(filename):
+    """Load a pickle file as a dictionary"""
+    try:
+        if pd:
+            return pd.read_pickle(data), None
+        else:
+            with open(filename, 'rb') as fid:
+                data = pickle.load(fid)
+            return data, None
+    except Exception as err:
+        return None, str(err)
+
+
+def load_json(filename):
+    """Load a json file as a dictionary"""
+    try:
+        with open(filename, 'rb') as fid:
+            data = json.load(fid)
+        return data, None
+    except Exception as err:
+        return None, str(err)
 
 
 def save_dictionary(data, filename):
@@ -258,7 +403,7 @@ def load_session(filename):
     try:
         tar = tarfile.open(filename, "r")
         extracted_files = tar.getnames()
-        
+
         # Rename original config files
         for fname in extracted_files:
             orig_name = get_conf_path(fname)
@@ -268,12 +413,12 @@ def load_session(filename):
             if osp.isfile(orig_name):
                 os.rename(orig_name, bak_name)
         renamed = True
-        
+
         tar.extractall()
-        
+
         for fname in extracted_files:
             shutil.move(fname, get_conf_path(fname))
-            
+
     except Exception as error:
         error_message = to_text_string(error)
         if renamed:
@@ -285,14 +430,14 @@ def load_session(filename):
                     os.remove(orig_name)
                 if osp.isfile(bak_name):
                     os.rename(bak_name, orig_name)
-                    
+
     finally:
         # Removing backup config files
         for fname in extracted_files:
             bak_name = get_conf_path(fname+'.bak')
             if osp.isfile(bak_name):
                 os.remove(bak_name)
-        
+
     os.chdir(old_cwd)
     return error_message
 
@@ -307,7 +452,7 @@ class IOFunctions(object):
         self.save_filters = None
         self.load_funcs = None
         self.save_funcs = None
-        
+
     def setup(self):
         iofuncs = self.get_internal_funcs()+self.get_3rd_party_funcs()
         load_extensions = {}
@@ -330,18 +475,20 @@ class IOFunctions(object):
                 save_funcs[ext] = savefunc
         load_filters.insert(0, to_text_string(_("Supported files")+" (*"+\
                                               " *".join(load_ext)+")"))
+        load_filters.append(to_text_string(_("All files (*.*)")))
         self.load_filters = "\n".join(load_filters)
         self.save_filters = "\n".join(save_filters)
         self.load_funcs = load_funcs
         self.save_funcs = save_funcs
         self.load_extensions = load_extensions
         self.save_extensions = save_extensions
-        
+
     def get_internal_funcs(self):
         return [
                 ('.spydata', _("Spyder data files"),
                              load_dictionary, save_dictionary),
                 ('.npy', _("NumPy arrays"), load_array, None),
+                ('.npz', _("NumPy zip arrays"), load_array, None),
                 ('.mat', _("Matlab files"), load_matlab, save_matlab),
                 ('.csv', _("CSV text files"), 'import_wizard', None),
                 ('.txt', _("Text files"), 'import_wizard', None),
@@ -349,8 +496,11 @@ class IOFunctions(object):
                 ('.png', _("PNG images"), load_image, None),
                 ('.gif', _("GIF images"), load_image, None),
                 ('.tif', _("TIFF images"), load_image, None),
+                ('.pkl', _("Pickle files"), load_pickle, None),
+                ('.pickle', _("Pickle files"), load_pickle, None),
+                ('.json', _("JSON files"), load_json, None),
                 ]
-        
+
     def get_3rd_party_funcs(self):
         other_funcs = []
         from spyderlib.otherplugins import get_spyderplugins_mods
@@ -361,14 +511,14 @@ class IOFunctions(object):
             except AttributeError as error:
                 print("%s: %s" % (mod, str(error)), file=STDERR)
         return other_funcs
-        
+
     def save(self, data, filename):
         ext = osp.splitext(filename)[1].lower()
         if ext in self.save_funcs:
             return self.save_funcs[ext](data, filename)
         else:
             return _("<b>Unsupported file type '%s'</b>") % ext
-    
+
     def load(self, filename):
         ext = osp.splitext(filename)[1].lower()
         if ext in self.load_funcs:
@@ -410,3 +560,10 @@ if __name__ == "__main__":
     print("Data loaded in %.3f seconds" % (time.time()-t0))
 #    for key in example:
 #        print key, ":", example[key] == example2[key]
+
+    a = MatlabStruct()
+    a.b = 'spam'
+    assert a["b"] == 'spam'
+    a.c["d"] = 'eggs'
+    assert a.c.d == 'eggs'
+    assert a == {'c': {'d': 'eggs'}, 'b': 'spam'}
