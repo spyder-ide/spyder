@@ -30,7 +30,7 @@ from spyderlib.qt.QtGui import (QGridLayout, QVBoxLayout, QHBoxLayout,
                                 QWidget, QLabel, QSortFilterProxyModel,
                                 QTableView, QAbstractItemView,
                                 QFont, QDialog, QPalette, QColor,
-                                QRegExpValidator)
+                                QRegExpValidator, QDesktopServices)
 from spyderlib.qt.QtCore import (QSize, Qt, SIGNAL, QProcess,
                                  QTextCodec, QAbstractTableModel, QModelIndex,
                                  QRegExp, QPoint, SLOT, 
@@ -63,8 +63,6 @@ from spyderlib.py3compat import (to_text_string, getcwd, pickle, u,
                                  is_binary_string, is_unicode)
 from spyderlib.py3compat import configparser as cp
 _ = get_translation("p_condapackages", dirname="spyderplugins")
-
-get_conf_path('conda')
 
 CONDA_PATH = programs.find_program('conda')  # FIXME: Conda api has similar
 DATA_PATH = get_module_data_path('spyderplugins', 'data')
@@ -124,7 +122,11 @@ def get_package_metadata(database, name):
     db = cp.ConfigParser()
     db.readfp(open(osp.join(DATA_PATH, database)))
 
-    metadata = dict(description='', url='http://pypi.python.org/pypi/' + name)
+    metadata = dict(description='', url='http://pypi.python.org/pypi/' + name,
+                    pypi='http://pypi.python.org/pypi/' + name,
+                    home='http://pypi.python.org/pypi/' + name,
+                    docs='http://pypi.python.org/pypi/' + name,
+                    dev='http://pypi.python.org/pypi/' + name)
 
     for key in metadata:
         name1 = name.lower()
@@ -201,8 +203,8 @@ def sort_versions(versions=[], reverse=False, sep =u'.'):
     # return sorted(versions, reverse=reverse)
 
 # Constants
-COLUMNS = (NAME, DESCRIPTION, VERSION, STATUS,
-           INSTALL, REMOVE, UPGRADE, DOWNGRADE, ENDCOL) = list(range(9))
+COLUMNS = (NAME, DESCRIPTION, VERSION, STATUS, URL, LICENSE, 
+           INSTALL, REMOVE, UPGRADE, DOWNGRADE, ENDCOL) = list(range(11))
 ACTION_COLUMNS = [INSTALL, REMOVE, UPGRADE, DOWNGRADE]
 TYPES = (INSTALLED, NOT_INSTALLED, UPGRADABLE, DOWNGRADABLE, ALL_INSTALLABLE,
          ALL, NOT_INSTALLABLE, MIXGRADABLE, CREATE, CLONE,
@@ -211,7 +213,7 @@ COMBOBOX_VALUES_ORDERED = [_(u'Installed'), _(u'Not installed'),
                            _(u'Upgradable'), _(u'Downgradable'),
                            _(u'All instalable'), _(u'All')]
 COMBOBOX_VALUES = dict(zip(COMBOBOX_VALUES_ORDERED, TYPES))
-HIDE_COLUMNS = [STATUS]
+HIDE_COLUMNS = [STATUS, URL, LICENSE]
 #HIDE_COLUMNS = []
 ROOT = 'root'
 
@@ -232,6 +234,7 @@ class CondaPackagesModel(QAbstractTableModel):
         self.__packages_upgradable = {}
         self.__packages_downgradable = {}
         self.__packages_installable = {}
+        self.__packages_licenses_all = {}
         self.__rows = []
 
         self.__python_ver = u''
@@ -251,15 +254,10 @@ class CondaPackagesModel(QAbstractTableModel):
             'remove.pressed': get_icon('conda_remove_pressed.png')}
 
         # Run conda and initial setup
-#        self.__update_conda_packages()
         self.__get_env_and_prefixes()
         self.__set_env(self.__environment)
         self.__setup_data()
 
-#    def __update_conda_packages(self, dic={}):
-#        """ """
-#        self.__conda_packages = get_conda_packages()
-#        self.__manager.get_file('http://repo.continuum.io/pkgs/free/linux-32/repodata.json')
 
     def __get_env_and_prefixes(self):
         """ """
@@ -319,6 +317,10 @@ class CondaPackagesModel(QAbstractTableModel):
         else:                
             self.__packages_names = sorted([key for key in self.__conda_packages])
             self.__rows = list(range(len(self.__packages_names)))
+            for n in self.__conda_packages:
+                self.__packages_licenses_all[n] = {}
+
+
 
         pybuild = 'py' + ''.join(pyver.split('.'))[:-1] + '_'  # + pybuild
         if numpyver is None and numpybuild is None:
@@ -330,6 +332,16 @@ class CondaPackagesModel(QAbstractTableModel):
             self.__packages_versions_all[n] = sort_versions([s[0] for s in
                                                      self.__conda_packages[n]],
                                                      reverse=True)
+            for s in self.__conda_packages[n]:
+                val = s[1]
+                if 'version' in val:
+                    ver = val['version']                    
+                    if 'license' in val:
+                        lic = val['license']
+#                        print(n, ver, lic)
+                        self.__packages_licenses_all[n][ver] = lic
+        
+#        print(self.__packages_licenses_all)
         # Now clean versions depending on the build version of python and numpy
         # FIXME: there is an issue here... at this moment on package with same
         # version but only differing in the build number will get added
@@ -396,8 +408,18 @@ class CondaPackagesModel(QAbstractTableModel):
 
             metadata = get_package_metadata('packages.ini', name)
             description = metadata['description']
-            self.__rows[row] = [name, description, version, status, False,
-                                False, False, False]
+            url = metadata['url']
+
+            if version in self.__packages_licenses_all[name]:
+                if self.__packages_licenses_all[name][version]:
+                    license_ = self.__packages_licenses_all[name][version]
+                else:
+                    license_ = u''
+            else:
+                license_ = u''
+
+            self.__rows[row] = [name, description, version, status, url,
+                                license_, False, False, False, False]
 
     def flags(self, index):
         """ """
@@ -422,11 +444,11 @@ class CondaPackagesModel(QAbstractTableModel):
 
         # Carefull here with the order, this has to be adjusted manually
         if self.__rows[row] == row:
-            name, description, version, status, i, r, u, d = [u'', u'', '-',
-                                                              -1, False, False,
-                                                              False, False]
+            [name, description, version, status, url, license_, i, r, u, d] =\
+            [u'', u'', '-', -1, u'', u'', False, False, False, False]
         else:
-            name, description, version, status, i, r, u, d = self.__rows[row]
+            [name, description, version, status, url, license_, i, r, u,
+             d] = self.__rows[row]
 
         if role == Qt.DisplayRole:
             if column == NAME:
@@ -555,9 +577,7 @@ class CondaPackagesModel(QAbstractTableModel):
         """ """
         return self.__rows[rownum]
 
-    # 'public api'
     def refresh_(self):
-#        self.__update_conda_packages()
         self.__get_env_and_prefixes()
         self.__setup_data()
         self.__update_all()
@@ -647,18 +667,6 @@ class CondaPackagesModel(QAbstractTableModel):
             return self.row(rownum)[VERSION]
         else:
             return u''
-
-    @property
-    def envs(self):
-        """ """
-        self.__get_env_and_prefixes()
-        return self.__envs
-
-    @property
-    def environments(self):
-        """ """
-        self.__get_env_and_prefixes()
-        return self.__environments
 
 
 class MultiColumnSortFilterProxy(QSortFilterProxyModel):
@@ -761,6 +769,7 @@ class CondaPackagesTable(QTableView):
         self.__model_index_clicked = None
         self.valid = False
         self.column = None
+        self.current_index = None
 
         # To prevent triggering the keyrelease after closing a dialog
         # bu hititng enter on it
@@ -769,6 +778,8 @@ class CondaPackagesTable(QTableView):
         self.source_model = None
         self.proxy_model = None
 
+        self.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.setSelectionMode(QAbstractItemView.SingleSelection)
         self.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.verticalHeader().hide()
         self.setAlternatingRowColors(True)
@@ -788,6 +799,7 @@ class CondaPackagesTable(QTableView):
             };
         """)
         self.sortByColumn(NAME, Qt.AscendingOrder)
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
 
     def setup_model(self, env, conda_packages_dic):
         """ """
@@ -911,16 +923,25 @@ class CondaPackagesTable(QTableView):
 
     def mousePressEvent(self, event):
         """ """
-        pos = QPoint(event.x(), event.y())
-        index = self.indexAt(pos)
-        self.action_pressed(index)
+        QTableView.mousePressEvent(self, event)
+        self.current_index = self.currentIndex()
+
+        if event.button() == Qt.LeftButton:
+            pos = QPoint(event.x(), event.y())
+            index = self.indexAt(pos)
+            self.action_pressed(index)
+        elif event.button() == Qt.RightButton:
+            self.context_menu_requested(event)
+        
 
     def mouseReleaseEvent(self, event):
         """ """
-        self.action_released()
+        if event.button() == Qt.LeftButton:
+            self.action_released()
 
     def action_pressed(self, index):
         """ """
+        model_index = self.proxy_model.mapToSource(index)                  
         column = index.column()
         model_index = self.proxy_model.mapToSource(index)
         self.__model_index_clicked = model_index
@@ -947,13 +968,77 @@ class CondaPackagesTable(QTableView):
         if model_index:
             self.source_model.update_row_icon(model_index.row(),
                                               model_index.column())
-        if self.valid:
-            name = self.source_model.row(model_index.row())[NAME]
-            versions = self.source_model.get_package_versions(name)
-            version = self.source_model.get_package_version(name)
-            action = self.column
+            if self.valid:
 
-            self.parent._run_pack_action(name, action, version, versions)
+                name = self.source_model.row(model_index.row())[NAME]
+                versions = self.source_model.get_package_versions(name)
+                version = self.source_model.get_package_version(name)
+                action = self.column
+    
+                self.parent._run_pack_action(name, action, version, versions)
+
+    def context_menu_requested(self, event):
+        """ """
+        index = self.current_index
+        model_index = self.proxy_model.mapToSource(index)
+        row = self.source_model.row(model_index.row())
+
+        name, license_ = row[NAME], row[LICENSE]
+        pos = QPoint(event.x(), event.y())
+        menu = QMenu(self)
+
+        metadata = get_package_metadata('packages.ini', name)
+        pypi = metadata['pypi']
+        home = metadata['home']
+        dev = metadata['dev']
+        docs = metadata['docs']
+
+        q_pypi = QIcon(get_image_path('python.png'))
+        q_home = QIcon(get_image_path('home.png'))
+        q_docs = QIcon(get_image_path('conda_docs.png'))
+
+        if 'git' in dev:
+            q_dev = QIcon(get_image_path('conda_github.png'))
+        elif 'bitbucket' in dev:
+            q_dev = QIcon(get_image_path('conda_bitbucket.png'))
+        else:
+            q_dev = QIcon()
+
+        if 'mit' in license_.lower():
+            lic = 'http://opensource.org/licenses/MIT'
+
+        actions_1, actions_2 = [], []
+
+        if license_ != '':
+            actions_1.append(create_action(self, _('License: ' + license_),
+                                           icon=QIcon(),
+                                           triggered=lambda: self.open_url(lic)))
+#            actions_1[-1].setEnabled(False)
+
+        if pypi != '':
+            actions_1.append(create_action(self, _('Python Package Index'),
+                                           icon=q_pypi,
+                                           triggered=lambda: self.open_url(pypi)))
+        if home != '':
+            actions_1.append(create_action(self, _('Homepage'),
+                                           icon=q_home,
+                                           triggered=lambda: self.open_url(home)))
+        if docs != '':
+            actions_1.append(create_action(self, _('Documentation'),
+                                           icon=q_docs,
+                                           triggered=lambda: self.open_url(docs)))
+        if dev != '':
+            actions_1.append(create_action(self, _('Development'),
+                                           icon=q_dev,
+                                           triggered=lambda: self.open_url(dev)))
+
+        #D:\Users\penac1\Dropbox (Personal)\repos\hg\spyderlib-conda\spyderlib\images\console
+
+        add_actions(menu, actions_1) 
+        menu.popup(self.viewport().mapToGlobal(pos))
+    
+    def open_url(self, url):
+        QDesktopServices.openUrl(QUrl(url))
 
 
 class DownloadManager(QObject):
@@ -970,10 +1055,9 @@ class DownloadManager(QObject):
         self.request = None
         self.reply = None
                
-    def get_file(self, url, fsave=''):
+    def get_file(self, url):
         """ """
         self.url = url
-        self.fsave = fsave
         self.request = QNetworkRequest(QUrl(url))
         self.reply = self.manager.get(self.request)
 
@@ -991,10 +1075,9 @@ class DownloadManager(QObject):
         """ """
         self.onerrorfunc(e)
 
-    def progress(self,a, b):
+    def progress(self, downloaded_size, total_size):
         """ """
-        c = [a, b]
-        self.onprogressfunc(c)
+        self.onprogressfunc([downloaded_size, total_size])
 
 
 class SearchLineEdit(QLineEdit):
@@ -1138,9 +1221,9 @@ class CondaDependenciesModel(QAbstractTableModel):
 
 class CondaPackageActionDialog(QDialog):
     """ """
-    def __init__(self, parent, name, action, version, versions):
+    def __init__(self, parent, env, name, action, version, versions):
         QDialog.__init__(self, parent)
-        self.env = parent.get_active_env()  # parent.selected_env 
+        self.env = env  #  If this is searched current func is too slow..
         self.parent = parent
         self.version_text = None
         self.name = name
@@ -1198,7 +1281,6 @@ class CondaPackageActionDialog(QDialog):
             versions = [version]
             self.version_combobox.setEnabled(False)
 
-        # TODO: if only one element then change to a label
         if len(versions) == 1:
             if action == REMOVE:
                 labeltext = _('Package version to remove:')
@@ -1432,8 +1514,7 @@ class CondaPackagesWidget(QWidget):
             top_layout.addWidget(self.info_label, Qt.AlignCenter)
 
             for widget in (self.table, self.search_box, self.updates_button,
-                           self.filter_combobox, self.env_create_button,
-                           self.env_clone_button, self.env_remove_button):
+                           self.filter_combobox):
                 widget.setDisabled(True)
             url = 'http://docs.continuum.io/anaconda/index.html'
             info_text = _(''' To use the Conda Package Manager you need to
@@ -1450,6 +1531,7 @@ class CondaPackagesWidget(QWidget):
             top_layout.addWidget(self.filter_combobox)
             top_layout.addWidget(self.updates_button)
             top_layout.addWidget(self.search_box)
+            self.filter_combobox.setMinimumWidth(120)
             self.table = CondaPackagesTable(self)
             self.progress_bar.setVisible(False)
             self.progress_bar.setTextVisible(False)
@@ -1512,9 +1594,7 @@ class CondaPackagesWidget(QWidget):
             os.mkdir(self.CONDA_CONF_PATH)
 
         url = 'http://repo.continuum.io/pkgs/free/{0}/repodata.json'.format(fname)
-
-        fullpath = osp.join(self.CONDA_CONF_PATH, fname + '.json')
-        self.download_manager.get_file(url, fullpath)
+        self.download_manager.get_file(url)
 
     def _save_repo(self, data):
         """This function is called after download is finished either
@@ -1642,7 +1722,9 @@ class CondaPackagesWidget(QWidget):
 
     def _run_pack_action(self, name, action, version, versions):
         """ """
-        dlg = CondaPackageActionDialog(self, name, action, version, versions)
+        env = self.active_env
+        dlg = CondaPackageActionDialog(self, env, name, action, version, 
+                                       versions)        
 
         if dlg.exec_():
             dic = {}
@@ -1746,6 +1828,15 @@ class CondaPackagesWidget(QWidget):
             if ' * ' in env:
                 return env.split()[0]
 
+
+# TODO: Define some automatic tests that can include the following:
+
+# Test 1
+# Find out if all the urls in the packages.ini file lead to a webpage
+# or if they produce a 404 error
+
+# Test 2 
+# Test installation of custom packages
 
 def test():
     """Run packages widget test"""
