@@ -36,12 +36,13 @@
 {% include js_path + "/math_config.js" %}
 </script>
 
-{% if collapse %}
-<script src="file:///{{js_path}}/collapse_sections.js" type="text/javascript" charset="utf-8"></script>
-{% endif %}
-
 <script src="file:///{{js_path}}/utils.js" type="text/javascript" charset="utf-8"></script>
 <script src="file:///{{js_path}}/copy_button.js" type="text/javascript" charset="utf-8"></script>
+
+{% if collapse %}
+<script src="file:///{{js_path}}/collapse_sections.js" type="text/javascript" charset="utf-8"></script>
+<script src="file:///{{js_path}}/move_contents.js" type="text/javascript" charset="utf-8"></script>
+{% endif %}
 
 
 <body>
@@ -66,6 +67,12 @@
     {# Docstring text #}
     <div class="docstring">
         {% block body %}{% endblock %}
+        {% if collapse %}
+        <div class="section" id="contents">
+            <h2> Contents </h2>
+            {{ toc }}
+        </div>
+        {% endif %}
     </div>
 </body>
 

@@ -52,7 +52,12 @@ $(document).ready(function (){
 
     // open section if user jumps to it from w/in page
     $(window).bind("hashchange", function () {
-      if(contains_hash()) set_state(true);
+      if(contains_hash()) {
+        var link = document.location.hash;
+        $(link).parents().each(set_state, [true]);
+        set_state(true);
+        $('html, body').animate({ scrollTop: $(link).offset().top }, 'fast');
+      }
     });
   }
 
