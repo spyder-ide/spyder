@@ -432,6 +432,9 @@ class MainWindow(QMainWindow):
         self.run_toolbar_actions = []
         self.debug_toolbar = None
         self.debug_toolbar_actions = []
+        self.layout_toolbar = None
+        self.layout_toolbar_actions = []
+        
         
         # Set Window title and icon
         if DEV is not None:
