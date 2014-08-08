@@ -116,7 +116,6 @@ h2.html-toggle-button, h3.html-toggle-button, h4.html-toggle-button {
     background-repeat: no-repeat;
     background-attachment: scroll;
     cursor: pointer;
-    cursor: hand;
 }
 
 .collapsed > h2 {
@@ -172,6 +171,17 @@ div.section p {
     text-align: center;
     font-weight: bold;
     font-size: 105%;
+}
+
+
+/* --- Links --- */
+a {
+    text-decoration: none;
+    color: rgba(40, 130, 180, 1);
+}
+
+a:hover {
+    text-decoration: underline;
 }
 
 
