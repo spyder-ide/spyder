@@ -753,10 +753,13 @@ class ObjectInspector(SpyderPluginWidget):
         self.show_rich_text(text, collapse=True, img_path=img_path)
 
     def handle_link_clicks(self, url):
-        if url == QUrl("spy://tutorial"):
+        url = to_text_string(url.toString())
+        if url == "spy://tutorial":
             self.show_tutorial()
+        elif url.startswith('http'):
+            programs.start_file(url)
         else:
-            self.rich_text.webview.load(url)
+            self.rich_text.webview.load(QUrl(url))
         
     #------ Public API ---------------------------------------------------------
     def set_external_console(self, external_console):
