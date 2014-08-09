@@ -607,43 +607,6 @@ class ObjectInspector(SpyderPluginWidget):
                 self.switch_to_rich_text()
             else:
                 self.switch_to_plain_text()
-    
-    def show_intro_message(self):
-        intro_message = _("Here you can get help of any object by pressing "
-                          "%s in front of it, either on the Editor or the "
-                          "Console.%s"
-                          "Help can also be shown automatically after writing "
-                          "a left parenthesis next to an object. You can "
-                          "activate this behavior in %s.")
-        prefs = _("Preferences > Object Inspector")
-        if self.is_rich_text_mode():
-            title = _("Usage")
-            tutorial_message = _("New to Spyder? Read our")
-            tutorial = _("tutorial")
-            intro_message = intro_message % ("<b>Ctrl+I</b>", "<br><br>",
-                                             "<i>"+prefs+"</i>")
-            self.set_rich_text_html(usage(title, intro_message,
-                                          tutorial_message, tutorial),
-                                    QUrl.fromLocalFile(CSS_PATH))
-        else:
-            install_sphinx = "\n\n%s" % _("Please consider installing Sphinx "
-                                          "to get documentation rendered in "
-                                          "rich text.")
-            intro_message = intro_message % ("Ctrl+I", "\n\n", prefs)
-            intro_message += install_sphinx
-            self.set_plain_text(intro_message, is_code=False)
-    
-    def handle_link_clicks(self, url):
-        if url == QUrl("spy://tutorial"):
-            tutorial_path = get_module_source_path('spyderlib.utils.inspector')
-            img_path = osp.join(tutorial_path, 'static', 'images')
-            context = generate_context(collapse=True, img_path=img_path)
-            tutorial = osp.join(tutorial_path, 'tutorial.rst')
-            text = open(tutorial).read()
-            html_text = sphinxify(text, context)
-            self.set_rich_text_html(html_text, QUrl.fromLocalFile(CSS_PATH))
-        else:
-            self.rich_text.webview.load(url)
         
     #------ Public API (related to rich/plain text widgets) --------------------
     @property
@@ -740,6 +703,43 @@ class ObjectInspector(SpyderPluginWidget):
         """Set rich text"""
         self.rich_text.set_html(html_text, base_url)
         self.save_text([self.rich_text.set_html, html_text, base_url])
+    
+    def show_intro_message(self):
+        intro_message = _("Here you can get help of any object by pressing "
+                          "%s in front of it, either on the Editor or the "
+                          "Console.%s"
+                          "Help can also be shown automatically after writing "
+                          "a left parenthesis next to an object. You can "
+                          "activate this behavior in %s.")
+        prefs = _("Preferences > Object Inspector")
+        if self.is_rich_text_mode():
+            title = _("Usage")
+            tutorial_message = _("New to Spyder? Read our")
+            tutorial = _("tutorial")
+            intro_message = intro_message % ("<b>Ctrl+I</b>", "<br><br>",
+                                             "<i>"+prefs+"</i>")
+            self.set_rich_text_html(usage(title, intro_message,
+                                          tutorial_message, tutorial),
+                                    QUrl.fromLocalFile(CSS_PATH))
+        else:
+            install_sphinx = "\n\n%s" % _("Please consider installing Sphinx "
+                                          "to get documentation rendered in "
+                                          "rich text.")
+            intro_message = intro_message % ("Ctrl+I", "\n\n", prefs)
+            intro_message += install_sphinx
+            self.set_plain_text(intro_message, is_code=False)
+    
+    def handle_link_clicks(self, url):
+        if url == QUrl("spy://tutorial"):
+            tutorial_path = get_module_source_path('spyderlib.utils.inspector')
+            img_path = osp.join(tutorial_path, 'static', 'images')
+            context = generate_context(collapse=True, img_path=img_path)
+            tutorial = osp.join(tutorial_path, 'tutorial.rst')
+            text = open(tutorial).read()
+            html_text = sphinxify(text, context)
+            self.set_rich_text_html(html_text, QUrl.fromLocalFile(CSS_PATH))
+        else:
+            self.rich_text.webview.load(url)
         
     #------ Public API ---------------------------------------------------------
     def set_external_console(self, external_console):
