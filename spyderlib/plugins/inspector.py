@@ -745,15 +745,16 @@ class ObjectInspector(SpyderPluginWidget):
         self.switch_to_plain_text()
         self.set_plain_text(text, is_code=False)
     
+    def show_tutorial(self):
+        tutorial_path = get_module_source_path('spyderlib.utils.inspector')
+        img_path = osp.join(tutorial_path, 'static', 'images')
+        tutorial = osp.join(tutorial_path, 'tutorial.rst')
+        text = open(tutorial).read()
+        self.show_rich_text(text, collapse=True, img_path=img_path)
+
     def handle_link_clicks(self, url):
         if url == QUrl("spy://tutorial"):
-            tutorial_path = get_module_source_path('spyderlib.utils.inspector')
-            img_path = osp.join(tutorial_path, 'static', 'images')
-            context = generate_context(collapse=True, img_path=img_path)
-            tutorial = osp.join(tutorial_path, 'tutorial.rst')
-            text = open(tutorial).read()
-            html_text = sphinxify(text, context)
-            self.set_rich_text_html(html_text, QUrl.fromLocalFile(CSS_PATH))
+            self.show_tutorial()
         else:
             self.rich_text.webview.load(url)
         
