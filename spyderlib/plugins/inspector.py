@@ -636,9 +636,11 @@ class ObjectInspector(SpyderPluginWidget):
     
     def handle_link_clicks(self, url):
         if url == QUrl("spy://tutorial"):
-            context = generate_context(name='', argspec='', note='',
-                                       math=False, collapse=True)
             tutorial_path = get_module_source_path('spyderlib.utils.inspector')
+            img_path = osp.join(tutorial_path, 'static', 'images')
+            context = generate_context(name='', argspec='', note='',
+                                       math=False, collapse=True,
+                                       img_path=img_path)
             tutorial = osp.join(tutorial_path, 'tutorial.rst')
             text = open(tutorial).read()
             html_text = sphinxify(text, context)

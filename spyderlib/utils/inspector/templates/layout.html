@@ -44,6 +44,12 @@
 <script src="file:///{{js_path}}/move_contents.js" type="text/javascript" charset="utf-8"></script>
 {% endif %}
 
+{% if img_path %}
+<script type="text/javascript" charset="utf-8">
+{% include js_path + "/fix_image_paths.js" %}
+</script>
+{% endif %}
+
 
 <body>
     {# Docstring header #}
