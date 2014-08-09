@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-//  Move Contents to be the first section
+//  Move Outline section to be the first one
 //
 //  Copyright 2014 by The Spyder development team
 //
@@ -12,5 +12,5 @@
 
 $(document).ready(function (){
     var first_section_id = $(".section")[0].id;
-    $("#contents").prependTo("#" + first_section_id);
+    $("#outline").prependTo("#" + first_section_id);
 });
