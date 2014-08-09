@@ -85,7 +85,8 @@ def usage(title, message, tutorial_message, tutorial):
                         tutorial_message=tutorial_message, tutorial=tutorial)
 
 
-def generate_context(name, argspec, note, math, collapse, img_path=''):
+def generate_context(name='', argspec='', note='', math=False, collapse=False,
+                     img_path=''):
     """
     Generate the html_context dictionary for our Sphinx conf file.
     

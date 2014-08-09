@@ -314,8 +314,7 @@ class SphinxThread(QThread):
                 context = generate_context(name=doc['name'],
                                            argspec=doc['argspec'],
                                            note=doc['note'],
-                                           math=self.math_option,
-                                           collapse=False)
+                                           math=self.math_option)
                 html_text = sphinxify(doc['docstring'], context)
             except Exception as error:
                 self.emit(SIGNAL('error_msg(QString)'),
@@ -638,9 +637,7 @@ class ObjectInspector(SpyderPluginWidget):
         if url == QUrl("spy://tutorial"):
             tutorial_path = get_module_source_path('spyderlib.utils.inspector')
             img_path = osp.join(tutorial_path, 'static', 'images')
-            context = generate_context(name='', argspec='', note='',
-                                       math=False, collapse=True,
-                                       img_path=img_path)
+            context = generate_context(collapse=True, img_path=img_path)
             tutorial = osp.join(tutorial_path, 'tutorial.rst')
             text = open(tutorial).read()
             html_text = sphinxify(text, context)

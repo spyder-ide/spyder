@@ -795,8 +795,7 @@ class IPythonConsole(SpyderPluginWidget):
         """Use our Object Inspector to show IPython help texts in rich mode"""
         from spyderlib.utils.inspector import sphinxify as spx
         
-        context = spx.generate_context(name='', argspec='', note='',
-                                       math=False, collapse=False)
+        context = spx.generate_context()
         html_text = spx.sphinxify(text, context)
         inspector = self.inspector
         inspector.visibility_changed(True)
