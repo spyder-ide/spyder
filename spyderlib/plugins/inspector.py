@@ -729,6 +729,22 @@ class ObjectInspector(SpyderPluginWidget):
             intro_message += install_sphinx
             self.set_plain_text(intro_message, is_code=False)
     
+    def show_rich_text(self, text, collapse=False, img_path=''):
+        """Show text in rich mode"""
+        context = generate_context(collapse=collapse, img_path=img_path)
+        html_text = sphinxify(text, context)
+        self.visibility_changed(True)
+        self.raise_()
+        self.switch_to_rich_text()
+        self.set_rich_text_html(html_text, QUrl.fromLocalFile(CSS_PATH))
+    
+    def show_plain_text(self, text):
+        """Show text in plain mode"""
+        self.visibility_changed(True)
+        self.raise_()
+        self.switch_to_plain_text()
+        self.set_plain_text(text, is_code=False)
+    
     def handle_link_clicks(self, url):
         if url == QUrl("spy://tutorial"):
             tutorial_path = get_module_source_path('spyderlib.utils.inspector')
