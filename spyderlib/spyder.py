@@ -1610,13 +1610,15 @@ class MainWindow(QMainWindow):
             return True
         prefix = ('lightwindow' if self.light else 'window') + '/'
         self.save_current_window_settings(prefix)
+        if CONF.get('main', 'single_instance'):
+            if os.name == 'nt':
+                self.open_files_server.shutdown(socket.SHUT_RDWR)
+            self.open_files_server.close()
         for widget in self.widgetlist:
             if not widget.closing_plugin(cancelable):
                 return False
         self.dialog_manager.close_all()
         self.already_closed = True
-        if CONF.get('main', 'single_instance'):
-            self.open_files_server.close()
         return True
         
     def add_dockwidget(self, child):
