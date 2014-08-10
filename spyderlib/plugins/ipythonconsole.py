@@ -547,6 +547,23 @@ class IPythonConsole(SpyderPluginWidget):
         self.setAcceptDrops(True)
     
     #------ SpyderPluginMixin API ---------------------------------------------
+    def on_first_registration(self):
+        """Action to be performed on first plugin registration"""
+        self.main.tabify_plugins(self.main.extconsole, self)
+
+    def apply_plugin_settings(self, options):
+        """Apply configuration file's plugin settings"""
+        font_n = 'plugin_font'
+        font_o = self.get_plugin_font()
+        inspector_n = 'connect_to_oi'
+        inspector_o = CONF.get('inspector', 'connect/ipython_console')
+        for client in self.clients:
+            control = client.get_control()
+            if font_n in options:
+                client.set_font(font_o)
+            if inspector_n in options and control is not None:
+                control.set_inspector_enabled(inspector_o)
+
     def toggle_view(self, checked):
         """Toggle view"""
         if checked:
@@ -579,6 +596,94 @@ class IPythonConsole(SpyderPluginWidget):
         if client is not None:
             return client.get_control()
 
+    def closing_plugin(self, cancelable=False):
+        """Perform actions before parent main window is closed"""
+        for client in self.clients:
+            client.close()
+        return True
+    
+    def refresh_plugin(self):
+        """Refresh tabwidget"""
+        client = None
+        if self.tabwidget.count():
+            # Give focus to the control widget of the selected tab
+            client = self.tabwidget.currentWidget()
+            control = client.get_control()
+            control.setFocus()
+            widgets = client.get_toolbar_buttons()+[5]
+            
+            # Change extconsole tab to the client's kernel widget
+            idx = self.extconsole.get_shell_index_from_id(
+                                                       client.kernel_widget_id)
+            if idx is not None:
+                self.extconsole.tabwidget.setCurrentIndex(idx)
+        else:
+            control = None
+            widgets = []
+        self.find_widget.set_editor(control)
+        self.tabwidget.set_corner_widgets({Qt.TopRightCorner: widgets})
+        self.main.last_console_plugin_focus_was_python = False
+        self.emit(SIGNAL('update_plugin_title()'))
+
+    def get_plugin_actions(self):
+        """Return a list of actions related to plugin"""
+        create_client_action = create_action(self,
+                                _("Open an &IPython console"),
+                                None, 'ipython_console.png',
+                                triggered=self.create_new_client)
+
+        connect_to_kernel_action = create_action(self,
+               _("Connect to an existing kernel"), None, None,
+               _("Open a new IPython console connected to an existing kernel"),
+               triggered=self.create_client_for_kernel)
+        
+        # Add the action to the 'Consoles' menu on the main window
+        main_consoles_menu = self.main.consoles_menu_actions
+        main_consoles_menu.insert(0, create_client_action)
+        main_consoles_menu += [None, connect_to_kernel_action]
+        
+        # Plugin actions
+        self.menu_actions = [create_client_action, connect_to_kernel_action]
+        
+        return self.menu_actions
+
+    def register_plugin(self):
+        """Register plugin in Spyder's main window"""
+        self.main.add_dockwidget(self)
+
+        self.extconsole = self.main.extconsole
+        self.inspector = self.main.inspector
+        self.historylog = self.main.historylog
+        self.variableexplorer = self.main.variableexplorer
+
+        self.connect(self, SIGNAL('focus_changed()'),
+                     self.main.plugin_focus_changed)
+
+        if self.main.editor is not None:
+            self.connect(self, SIGNAL("edit_goto(QString,int,QString)"),
+                         self.main.editor.load)
+            self.connect(self.main.editor,
+                         SIGNAL('run_in_current_ipyclient(QString,QString,QString,bool)'),
+                         self.run_script_in_current_client)
+
+    #------ Public API --------------------------------------------------------
+    def get_clients(self):
+        """Return IPython client widgets list"""
+        return [cl for cl in self.clients if isinstance(cl, IPythonClient)]
+        
+#    def get_kernels(self):
+#        """Return IPython kernel widgets list"""
+#        return [sw for sw in self.shellwidgets
+#                if isinstance(sw, IPythonKernel)]
+#        
+
+    def get_focus_client(self):
+        """Return current client with focus, if any"""
+        widget = QApplication.focusWidget()
+        for client in self.get_clients():
+            if widget is client or widget is client.get_control():
+                return client
+    
     def get_current_client(self):
         """
         Return the currently selected client
@@ -636,93 +741,6 @@ class IPythonConsole(SpyderPluginWidget):
                                menu_actions=self.menu_actions)
         self.add_tab(client, name=client.get_name())
         self.main.extconsole.start_ipykernel(client, give_focus=give_focus)
-
-    def get_plugin_actions(self):
-        """Return a list of actions related to plugin"""
-        create_client_action = create_action(self,
-                                _("Open an &IPython console"),
-                                None, 'ipython_console.png',
-                                triggered=self.create_new_client)
-
-        connect_to_kernel_action = create_action(self,
-               _("Connect to an existing kernel"), None, None,
-               _("Open a new IPython console connected to an existing kernel"),
-               triggered=self.create_client_for_kernel)
-        
-        # Add the action to the 'Consoles' menu on the main window
-        main_consoles_menu = self.main.consoles_menu_actions
-        main_consoles_menu.insert(0, create_client_action)
-        main_consoles_menu += [None, connect_to_kernel_action]
-        
-        # Plugin actions
-        self.menu_actions = [create_client_action, connect_to_kernel_action]
-        
-        return self.menu_actions
-
-    def on_first_registration(self):
-        """Action to be performed on first plugin registration"""
-        self.main.tabify_plugins(self.main.extconsole, self)
-
-    def register_plugin(self):
-        """Register plugin in Spyder's main window"""
-        self.main.add_dockwidget(self)
-
-        self.extconsole = self.main.extconsole
-        self.inspector = self.main.inspector
-        self.historylog = self.main.historylog
-        self.variableexplorer = self.main.variableexplorer
-
-        self.connect(self, SIGNAL('focus_changed()'),
-                     self.main.plugin_focus_changed)
-
-        if self.main.editor is not None:
-            self.connect(self, SIGNAL("edit_goto(QString,int,QString)"),
-                         self.main.editor.load)
-            self.connect(self.main.editor,
-                         SIGNAL('run_in_current_ipyclient(QString,QString,QString,bool)'),
-                         self.run_script_in_current_client)
-        
-    def closing_plugin(self, cancelable=False):
-        """Perform actions before parent main window is closed"""
-        for client in self.clients:
-            client.close()
-        return True
-    
-    def refresh_plugin(self):
-        """Refresh tabwidget"""
-        client = None
-        if self.tabwidget.count():
-            # Give focus to the control widget of the selected tab
-            client = self.tabwidget.currentWidget()
-            control = client.get_control()
-            control.setFocus()
-            widgets = client.get_toolbar_buttons()+[5]
-            
-            # Change extconsole tab to the client's kernel widget
-            idx = self.extconsole.get_shell_index_from_id(
-                                                       client.kernel_widget_id)
-            if idx is not None:
-                self.extconsole.tabwidget.setCurrentIndex(idx)
-        else:
-            control = None
-            widgets = []
-        self.find_widget.set_editor(control)
-        self.tabwidget.set_corner_widgets({Qt.TopRightCorner: widgets})
-        self.main.last_console_plugin_focus_was_python = False
-        self.emit(SIGNAL('update_plugin_title()'))
-    
-    def apply_plugin_settings(self, options):
-        """Apply configuration file's plugin settings"""
-        font_n = 'plugin_font'
-        font_o = self.get_plugin_font()
-        inspector_n = 'connect_to_oi'
-        inspector_o = CONF.get('inspector', 'connect/ipython_console')
-        for client in self.clients:
-            control = client.get_control()
-            if font_n in options:
-                client.set_font(font_o)
-            if inspector_n in options and control is not None:
-                control.set_inspector_enabled(inspector_o)
     
     def kernel_and_frontend_match(self, connection_file):
         # Determine kernel version
@@ -737,7 +755,8 @@ class IPythonConsole(SpyderPluginWidget):
         return programs.is_module_installed('IPython', version=kernel_ver)
 
     def create_kernel_manager_and_client(self, connection_file=None,
-                                    hostname=None, sshkey=None, password=None):
+                                         hostname=None, sshkey=None,
+                                         password=None):
         """Create kernel manager and client"""
         cf = find_connection_file(connection_file, profile='default')
         kernel_manager = QtKernelManager(connection_file=cf, config=None)
@@ -793,24 +812,6 @@ class IPythonConsole(SpyderPluginWidget):
             widget = client.shellwidget
             widget.kernel_manager = km
             widget.kernel_client = kc
-    
-    #------ Public API --------------------------------------------------------
-    def get_clients(self):
-        """Return IPython client widgets list"""
-        return [cl for cl in self.clients if isinstance(cl, IPythonClient)]
-        
-#    def get_kernels(self):
-#        """Return IPython kernel widgets list"""
-#        return [sw for sw in self.shellwidgets
-#                if isinstance(sw, IPythonKernel)]
-#        
-
-    def get_focus_client(self):
-        """Return current client with focus, if any"""
-        widget = QApplication.focusWidget()
-        for client in self.get_clients():
-            if widget is client or widget is client.get_control():
-                return client
 
     def create_client_for_kernel(self):
         """Create a client connected to an existing kernel"""
