@@ -354,6 +354,12 @@ tt {
     content: "";
 }
 
+hr {
+    color: rgb(238, 238, 238);
+    background-color: rgb(238, 238, 238);
+    height: 1px;
+}
+
 
 /* ----------- IPython console styles ----------- */
 
