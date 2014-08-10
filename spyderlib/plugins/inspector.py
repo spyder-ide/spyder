@@ -281,9 +281,13 @@ class SphinxThread(QThread):
     
     Parameters
     ----------
-    doc : dict
-        A dict containing the doc string components to be rendered.
+    doc : str or dict
+        A string containing a raw rst text or a dict containing
+        the doc string components to be rendered.
         See spyderlib.utils.dochelpers.getdoc for description.
+    context : dict
+        A dict containing the substitution variables for the
+        layout template
     html_text_no_doc : unicode
         Text to be rendered if doc string cannot be extracted.
     math_option : bool
@@ -292,12 +296,13 @@ class SphinxThread(QThread):
     """
     def __init__(self, html_text_no_doc=''):
         super(SphinxThread, self).__init__()
+        self.doc = None
+        self.context = None
         self.html_text_no_doc = html_text_no_doc
-        self.doc = {}
         self.math_option = False
         
     def render(self, doc, context=None, math_option=False):
-        """Start thread to render given doc string dictionary"""
+        """Start thread to render a given documentation"""
         # If the thread is already running wait for it to finish before
         # starting it again.
         if self.wait():
