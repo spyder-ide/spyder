@@ -59,6 +59,7 @@ SYMPY_REQVER = '>=0.7.0'
 dependencies.add("sympy", _("Symbolic mathematics for the IPython Console"),
                  required_version=SYMPY_REQVER)
 
+
 def tunnel_to_kernel(ci, hostname, sshkey=None, password=None, timeout=10):
     """tunnel connections to a kernel via ssh. remote ports are specified in
     the connection info ci."""
@@ -68,6 +69,7 @@ def tunnel_to_kernel(ci, hostname, sshkey=None, password=None, timeout=10):
     for lp, rp in zip(lports, rports):
         tunnel.ssh_tunnel(lp, rp, hostname, remote_ip, sshkey, password, timeout)
     return tuple(lports)
+
 
 class IPythonConsoleConfigPage(PluginConfigPage):
     
@@ -754,7 +756,7 @@ class IPythonConsole(SpyderPluginWidget):
                      kernel_client.stdin_port, kernel_client.hb_port) = newports
                 except Exception as e:
                     QMessageBox.critical(self, _('Connection error'), 
-                                         _('Could not open ssh tunnel\n') +  str(e))
+                                     _('Could not open ssh tunnel\n') + str(e))
                     return None, None
             kernel_client.start_channels()
             # To rely on kernel's heartbeat to know when a kernel has died
@@ -774,7 +776,7 @@ class IPythonConsole(SpyderPluginWidget):
                      kernel_manager.stdin_port, kernel_manager.hb_port) = newports
                 except Exception as e:
                     QMessageBox.critical(self, _('Connection error'), 
-                                         _('Could not open ssh tunnel\n') +  str(e))
+                                     _('Could not open ssh tunnel\n') + str(e))
                     return None, None
             kernel_manager.start_channels()
             return kernel_manager, None
@@ -784,7 +786,9 @@ class IPythonConsole(SpyderPluginWidget):
         Connect a client to its kernel
         """
         km, kc = self.create_kernel_manager_and_client(client.connection_file, 
-                                              client.hostname, client.sshkey, client.password)
+                                                       client.hostname,
+                                                       client.sshkey,
+                                                       client.password)
         if km is not None:
             widget = client.shellwidget
             widget.kernel_manager = km
@@ -810,7 +814,8 @@ class IPythonConsole(SpyderPluginWidget):
 
     def create_client_for_kernel(self):
         """Create a client connected to an existing kernel"""
-        cf, hostname, kf, pw, ok = KernelConnectionDialog.get_connection_parameters(self)
+        (cf, hostname,
+         kf, pw, ok) = KernelConnectionDialog.get_connection_parameters(self)
         if not ok:
             return
         else:
