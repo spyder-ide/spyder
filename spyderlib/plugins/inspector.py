@@ -11,6 +11,7 @@ from spyderlib.qt.QtGui import (QHBoxLayout, QVBoxLayout, QLabel, QSizePolicy,
                                 QActionGroup, QFontDialog, QWidget, QComboBox,
                                 QLineEdit, QMessageBox)
 from spyderlib.qt.QtCore import SIGNAL, QUrl, QThread
+from spyderlib.qt.QtWebKit import QWebPage
 
 import re
 import os.path as osp
@@ -19,7 +20,7 @@ import sys
 
 # Local imports
 from spyderlib import dependencies
-from spyderlib.baseconfig import get_conf_path, _
+from spyderlib.baseconfig import get_conf_path, get_module_source_path, _
 from spyderlib.ipythonconfig import IPYTHON_QT_INSTALLED
 from spyderlib.config import CONF
 from spyderlib.guiconfig import get_color_scheme, get_font, set_font
@@ -474,6 +475,11 @@ class ObjectInspector(SpyderPluginWidget):
                          self._on_sphinx_thread_html_ready)
             self.connect(self._sphinx_thread, SIGNAL('error_msg(QString)'),
                          self._on_sphinx_thread_error_msg)
+        
+        # Render internal links
+        view = self.rich_text.webview
+        view.page().setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
+        view.linkClicked.connect(self.handle_link_clicks)
 
         self._starting_up = True
             
@@ -601,28 +607,6 @@ class ObjectInspector(SpyderPluginWidget):
                 self.switch_to_rich_text()
             else:
                 self.switch_to_plain_text()
-    
-    def show_intro_message(self):
-        intro_message = _("Here you can get help of any object by pressing "
-                          "%s in front of it, either on the Editor or the "
-                          "Console.%s"
-                          "Help can also be shown automatically after writing "
-                          "a left parenthesis next to an object. You can "
-                          "activate this behavior in %s.")
-        prefs = _("Preferences > Object Inspector")
-        if self.is_rich_text_mode():
-            title = _("Usage")
-            intro_message = intro_message % ("<b>Ctrl+I</b>", "<br><br>",
-                                             "<i>"+prefs+"</i>")
-            self.set_rich_text_html(usage(title, intro_message),
-                                    QUrl.fromLocalFile(CSS_PATH))
-        else:
-            install_sphinx = "\n\n%s" % _("Please consider installing Sphinx "
-                                          "to get documentation rendered in "
-                                          "rich text.")
-            intro_message = intro_message % ("Ctrl+I", "\n\n", prefs)
-            intro_message += install_sphinx
-            self.set_plain_text(intro_message, is_code=False)
         
     #------ Public API (related to rich/plain text widgets) --------------------
     @property
@@ -719,6 +703,63 @@ class ObjectInspector(SpyderPluginWidget):
         """Set rich text"""
         self.rich_text.set_html(html_text, base_url)
         self.save_text([self.rich_text.set_html, html_text, base_url])
+    
+    def show_intro_message(self):
+        intro_message = _("Here you can get help of any object by pressing "
+                          "%s in front of it, either on the Editor or the "
+                          "Console.%s"
+                          "Help can also be shown automatically after writing "
+                          "a left parenthesis next to an object. You can "
+                          "activate this behavior in %s.")
+        prefs = _("Preferences > Object Inspector")
+        if self.is_rich_text_mode():
+            title = _("Usage")
+            tutorial_message = _("New to Spyder? Read our")
+            tutorial = _("tutorial")
+            intro_message = intro_message % ("<b>Ctrl+I</b>", "<br><br>",
+                                             "<i>"+prefs+"</i>")
+            self.set_rich_text_html(usage(title, intro_message,
+                                          tutorial_message, tutorial),
+                                    QUrl.fromLocalFile(CSS_PATH))
+        else:
+            install_sphinx = "\n\n%s" % _("Please consider installing Sphinx "
+                                          "to get documentation rendered in "
+                                          "rich text.")
+            intro_message = intro_message % ("Ctrl+I", "\n\n", prefs)
+            intro_message += install_sphinx
+            self.set_plain_text(intro_message, is_code=False)
+    
+    def show_rich_text(self, text, collapse=False, img_path=''):
+        """Show text in rich mode"""
+        context = generate_context(collapse=collapse, img_path=img_path)
+        html_text = sphinxify(text, context)
+        self.visibility_changed(True)
+        self.raise_()
+        self.switch_to_rich_text()
+        self.set_rich_text_html(html_text, QUrl.fromLocalFile(CSS_PATH))
+    
+    def show_plain_text(self, text):
+        """Show text in plain mode"""
+        self.visibility_changed(True)
+        self.raise_()
+        self.switch_to_plain_text()
+        self.set_plain_text(text, is_code=False)
+    
+    def show_tutorial(self):
+        tutorial_path = get_module_source_path('spyderlib.utils.inspector')
+        img_path = osp.join(tutorial_path, 'static', 'images')
+        tutorial = osp.join(tutorial_path, 'tutorial.rst')
+        text = open(tutorial).read()
+        self.show_rich_text(text, collapse=True, img_path=img_path)
+
+    def handle_link_clicks(self, url):
+        url = to_text_string(url.toString())
+        if url == "spy://tutorial":
+            self.show_tutorial()
+        elif url.startswith('http'):
+            programs.start_file(url)
+        else:
+            self.rich_text.webview.load(QUrl(url))
         
     #------ Public API ---------------------------------------------------------
     def set_external_console(self, external_console):

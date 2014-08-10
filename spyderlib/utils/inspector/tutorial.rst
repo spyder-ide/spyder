@@ -19,14 +19,6 @@ Computational Modelling for students at the University of Southampton
 (see `historical note`_ for more detail).
 
 
-.. contents:: Outline
-
-.. sectnum::
-
-----------
-
-
-
 First steps with Spyder
 #######################
 
@@ -217,6 +209,7 @@ Inspecting objects
   automatically in the object inspector:
 
   .. image:: static/images/spyder-hello-docstring.png
+       :align: center
 
   This works in the console and in the editor (as of `Spyder version`_ 2.3).
 
@@ -436,6 +429,7 @@ reports what it has done.
 We can then use the variables ``x``, ``y``, for example like this:
 
 .. image:: static/images/spyder-sympy-example.png
+     :align: center
 
 Shortcuts for useful functions
 ##############################
@@ -729,6 +723,7 @@ For example, to get our ``average()`` function look like this in the
 Spyder Object inspector:
 
 .. image:: static/images/spyder-nice-docstring-rendering.png
+     :align: center
 
 We need to format the documentation string as follows
 

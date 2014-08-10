@@ -21,7 +21,7 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QHBoxLayout, QFormLayout,
                                 QCheckBox, QApplication, QLabel, 
                                 QLineEdit, QPushButton)
 from spyderlib.qt.compat import getopenfilename
-from spyderlib.qt.QtCore import SIGNAL, Qt, QUrl
+from spyderlib.qt.QtCore import SIGNAL, Qt
 
 # Stdlib imports
 import sys
@@ -790,29 +790,6 @@ class IPythonConsole(SpyderPluginWidget):
             widget.kernel_manager = km
             widget.kernel_client = kc
     
-    #------ Private API -------------------------------------------------------
-    def _show_rich_help(self, text):
-        """Use our Object Inspector to show IPython help texts in rich mode"""
-        from spyderlib.utils.inspector import sphinxify as spx
-        
-        context = spx.generate_context(name='', argspec='', note='',
-                                       math=False)
-        html_text = spx.sphinxify(text, context)
-        inspector = self.inspector
-        inspector.visibility_changed(True)
-        inspector.raise_()
-        inspector.switch_to_rich_text()
-        inspector.set_rich_text_html(html_text,
-                                     QUrl.fromLocalFile(spx.CSS_PATH))
-    
-    def _show_plain_help(self, text):
-        """Use our Object Inspector to show IPython help texts in plain mode"""
-        inspector = self.inspector
-        inspector.visibility_changed(True)
-        inspector.raise_()
-        inspector.switch_to_plain_text()
-        inspector.set_plain_text(text, is_code=False)
-    
     #------ Public API --------------------------------------------------------
     def get_clients(self):
         """Return IPython client widgets list"""
@@ -1130,17 +1107,17 @@ class IPythonConsole(SpyderPluginWidget):
     def show_intro(self):
         """Show intro to IPython help"""
         from IPython.core.usage import interactive_usage
-        self._show_rich_help(interactive_usage)
+        self.inspector.show_rich_text(interactive_usage)
     
     def show_guiref(self):
         """Show qtconsole help"""
         from IPython.core.usage import gui_reference
-        self._show_rich_help(gui_reference)
+        self.inspector.show_rich_text(gui_reference, collapse=True)
     
     def show_quickref(self):
         """Show IPython Cheat Sheet"""
         from IPython.core.usage import quick_reference
-        self._show_plain_help(quick_reference)
+        self.inspector.show_plain_text(quick_reference)
     
     def get_client_index_from_id(self, client_id):
         """Return client index from id"""
