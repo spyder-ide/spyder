@@ -30,6 +30,7 @@ from spyderlib.userconfig import NoDefault
 from spyderlib.guiconfig import get_font, set_font
 from spyderlib.plugins.configdialog import SpyderConfigPage
 from spyderlib.py3compat import configparser, is_text_string
+import sys
 
 
 class PluginConfigPage(SpyderConfigPage):
@@ -52,7 +53,17 @@ class PluginConfigPage(SpyderConfigPage):
 
 class SpyderDockWidget(QDockWidget):
     """Subclass to override needed methods"""
-    
+    DARWIN_STYLE = '''QDockWidget::close-button, QDockWidget::float-button {
+        padding: 0px;
+        margin: 2px;
+        }
+        '''
+
+    def __init__(self, *args, **kwargs):
+        super(SpyderDockWidget, self).__init__(*args, **kwargs)
+        if sys.platform == 'darwin':
+            self.setStyleSheet(self.DARWIN_STYLE)
+
     def closeEvent(self, event):
         """
         Reimplement Qt method to send a signal on close so that "Panes" main
