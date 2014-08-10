@@ -531,7 +531,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.connect(self.tabwidget, SIGNAL('move_data(int,int)'),
                      self.move_tab)
                      
-        self.tabwidget.set_close_function(self.close_console)
+        self.tabwidget.set_close_function(self.close_client)
 
         layout.addWidget(self.tabwidget)
 
@@ -668,7 +668,7 @@ class IPythonConsole(SpyderPluginWidget):
 
     #------ Public API (for clients) ------------------------------------------
     def get_clients(self):
-        """Return IPython client widgets list"""
+        """Return clients list"""
         return [cl for cl in self.clients if isinstance(cl, IPythonClient)]
         
 #    def get_kernels(self):
@@ -685,9 +685,7 @@ class IPythonConsole(SpyderPluginWidget):
                 return client
     
     def get_current_client(self):
-        """
-        Return the currently selected client
-        """
+        """Return the currently selected client"""
         client = self.tabwidget.currentWidget()
         if client is not None:
             return client
@@ -743,14 +741,14 @@ class IPythonConsole(SpyderPluginWidget):
         self.main.extconsole.start_ipykernel(client, give_focus=give_focus)
 
     def register_client(self, client, name, restart=False, give_focus=True):
-        """Register new IPython client"""
+        """Register new client"""
         self.connect_client_to_kernel(client)
         client.show_shellwidget(give_focus=give_focus)
         client.name = name
         
         # If we are restarting the kernel we just need to rename the client tab
         if restart:
-            self.rename_ipyclient_tab(client)
+            self.rename_client_tab(client)
             return
         
         shellwidget = client.shellwidget
@@ -832,10 +830,10 @@ class IPythonConsole(SpyderPluginWidget):
                          self.find_widget.show)
 
         # Update client name
-        self.rename_ipyclient_tab(client)
+        self.rename_client_tab(client)
 
-    def close_console(self, index=None, client=None, force=False):
-        """Close console tab from index or widget (or close current tab)"""
+    def close_client(self, index=None, client=None, force=False):
+        """Close client tab from index or widget (or close current tab)"""
         if not self.tabwidget.count():
             return
         if client is not None:
@@ -864,13 +862,12 @@ class IPythonConsole(SpyderPluginWidget):
                 if close_all:
                     self.extconsole.close_console(index=idx,
                                                   from_ipyclient=True)
-                    self.close_related_ipyclients(client)
+                    self.close_related_clients(client)
         client.close()
         
         # Note: client index may have changed after closing related widgets
         self.tabwidget.removeTab(self.tabwidget.indexOf(client))
         self.clients.remove(client)
-
         self.emit(SIGNAL('update_plugin_title()'))
 
     def get_client_index_from_id(self, client_id):
@@ -879,17 +876,17 @@ class IPythonConsole(SpyderPluginWidget):
             if id(client) == client_id:
                 return index
     
-    def rename_ipyclient_tab(self, client):
-        """Add the pid of the kernel process to an IPython client tab"""
+    def rename_client_tab(self, client):
+        """Add the pid of the kernel process to client tab"""
         index = self.get_client_index_from_id(id(client))
         self.tabwidget.setTabText(index, client.get_name())
 
-    def close_related_ipyclients(self, client):
-        """Close all IPython clients related to *client*, except itself"""
+    def close_related_clients(self, client):
+        """Close all clients related to *client*, except itself"""
         for cl in self.clients[:]:
             if cl is not client and \
               cl.connection_file == client.connection_file:
-                self.close_console(client=cl)
+                self.close_client(client=cl)
 
     #------ Public API (for kernels) ------------------------------------------
     def kernel_and_frontend_match(self, connection_file):

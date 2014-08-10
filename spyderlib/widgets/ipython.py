@@ -362,7 +362,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         vlayout.addWidget(self.infowidget)
         self.setLayout(vlayout)
         
-        self.exit_callback = lambda: plugin.close_console(client=self)
+        self.exit_callback = lambda: plugin.close_client(client=self)
         
     #------ Public API --------------------------------------------------------
     def show_shellwidget(self, give_focus=True):
