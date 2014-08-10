@@ -27,7 +27,9 @@ try:  # 1.0
     from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
 except ImportError: # 0.13
     from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
+from IPython.core.application import get_ipython_dir
 from IPython.core.oinspect import call_tip
+from IPython.config.loader import Config, load_pyconfig_files
 
 # Local imports
 from spyderlib.baseconfig import (get_conf_path, get_image_path,
@@ -338,7 +340,8 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         self.sshkey = sshkey
         self.password = password
         self.name = ''
-        self.shellwidget = IPythonShellWidget(config=plugin.ipywidget_config(),
+        self.get_option = plugin.get_option
+        self.shellwidget = IPythonShellWidget(config=self.shellwidget_config(),
                                               local_kernel=False)
         self.shellwidget.hide()
         self.infowidget = WebView(self)
@@ -362,7 +365,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         vlayout.addWidget(self.infowidget)
         self.setLayout(vlayout)
         
-        self.exit_callback = lambda: plugin.close_console(client=self)
+        self.exit_callback = lambda: plugin.close_client(client=self)
         
     #------ Public API --------------------------------------------------------
     def show_shellwidget(self, give_focus=True):
@@ -556,6 +559,64 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         """Refresh namespace browser"""
         if self.namespacebrowser:
             self.namespacebrowser.refresh_table()
+    
+    def shellwidget_config(self):
+        """Generate a Config instance for shell widgets using our config
+        system
+        
+        This lets us create each widget with its own config (as opposed to
+        IPythonQtConsoleApp, where all widgets have the same config)
+        """
+        # ---- IPython config ----
+        try:
+            profile_path = osp.join(get_ipython_dir(), 'profile_default')
+            full_ip_cfg = load_pyconfig_files(['ipython_qtconsole_config.py'],
+                                              profile_path)
+            
+            # From the full config we only select the IPythonWidget section
+            # because the others have no effect here.
+            ip_cfg = Config({'IPythonWidget': full_ip_cfg.IPythonWidget})
+        except:
+            ip_cfg = Config()
+       
+        # ---- Spyder config ----
+        spy_cfg = Config()
+        
+        # Make the pager widget a rich one (i.e a QTextEdit)
+        spy_cfg.IPythonWidget.kind = 'rich'
+        
+        # Gui completion widget
+        gui_comp_o = self.get_option('use_gui_completion')
+        completions = {True: 'droplist', False: 'ncurses'}
+        spy_cfg.IPythonWidget.gui_completion = completions[gui_comp_o]
+
+        # Pager
+        pager_o = self.get_option('use_pager')
+        if pager_o:
+            spy_cfg.IPythonWidget.paging = 'inside'
+        else:
+            spy_cfg.IPythonWidget.paging = 'none'
+        
+        # Calltips
+        calltips_o = self.get_option('show_calltips')
+        spy_cfg.IPythonWidget.enable_calltips = calltips_o
+
+        # Buffer size
+        buffer_size_o = self.get_option('buffer_size')
+        spy_cfg.IPythonWidget.buffer_size = buffer_size_o
+        
+        # Prompts
+        in_prompt_o = self.get_option('in_prompt')
+        out_prompt_o = self.get_option('out_prompt')
+        if in_prompt_o:
+            spy_cfg.IPythonWidget.in_prompt = in_prompt_o
+        if out_prompt_o:
+            spy_cfg.IPythonWidget.out_prompt = out_prompt_o
+        
+        # Merge IPython and Spyder configs. Spyder prefs will have prevalence
+        # over IPython ones
+        ip_cfg._merge(spy_cfg)
+        return ip_cfg
     
     #------ Private API -------------------------------------------------------
     def _create_loading_page(self):

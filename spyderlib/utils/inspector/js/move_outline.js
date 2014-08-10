@@ -12,5 +12,5 @@
 
 $(document).ready(function (){
     var first_section_id = $(".section")[0].id;
-    $("#outline").prependTo("#" + first_section_id);
+    $("#outline").insertBefore("#" + first_section_id);
 });

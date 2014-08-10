@@ -281,9 +281,13 @@ class SphinxThread(QThread):
     
     Parameters
     ----------
-    doc : dict
-        A dict containing the doc string components to be rendered.
+    doc : str or dict
+        A string containing a raw rst text or a dict containing
+        the doc string components to be rendered.
         See spyderlib.utils.dochelpers.getdoc for description.
+    context : dict
+        A dict containing the substitution variables for the
+        layout template
     html_text_no_doc : unicode
         Text to be rendered if doc string cannot be extracted.
     math_option : bool
@@ -292,16 +296,18 @@ class SphinxThread(QThread):
     """
     def __init__(self, html_text_no_doc=''):
         super(SphinxThread, self).__init__()
+        self.doc = None
+        self.context = None
         self.html_text_no_doc = html_text_no_doc
-        self.doc = {}
         self.math_option = False
         
-    def render(self, doc, math_option=False):
-        """Start thread to render given doc string dictionary"""
+    def render(self, doc, context=None, math_option=False):
+        """Start thread to render a given documentation"""
         # If the thread is already running wait for it to finish before
         # starting it again.
         if self.wait():
             self.doc = doc
+            self.context = context
             self.math_option = math_option
             # This causes run() to be executed in separate thread
             self.start()
@@ -309,17 +315,30 @@ class SphinxThread(QThread):
     def run(self):
         html_text = self.html_text_no_doc
         doc = self.doc
-        if doc is not None and doc['docstring'] != '':
-            try:
-                context = generate_context(name=doc['name'],
-                                           argspec=doc['argspec'],
-                                           note=doc['note'],
-                                           math=self.math_option)
-                html_text = sphinxify(doc['docstring'], context)
-            except Exception as error:
-                self.emit(SIGNAL('error_msg(QString)'),
-                          to_text_string(error))
-                return
+        if doc is not None:
+            if type(doc) is dict and 'docstring' in doc.keys() \
+              and doc['docstring'] != '':
+                try:
+                    context = generate_context(name=doc['name'],
+                                               argspec=doc['argspec'],
+                                               note=doc['note'],
+                                               math=self.math_option)
+                    html_text = sphinxify(doc['docstring'], context)
+                except Exception as error:
+                    self.emit(SIGNAL('error_msg(QString)'),
+                              to_text_string(error))
+                    return
+            elif self.context is not None:
+                try:
+                    html_text = sphinxify(doc, self.context)
+                except Exception as error:
+                    self.emit(SIGNAL('error_msg(QString)'),
+                              to_text_string(error))
+                    return
+            else:
+                error = _("It's not possible to render the text you provided")
+                self.emit(SIGNAL('error_msg(QString)'), error)
+                return     
         self.emit(SIGNAL('html_ready(QString)'), html_text)
 
 
@@ -401,6 +420,7 @@ class ObjectInspector(SpyderPluginWidget):
         layout_edit.addWidget(self.object_edit)
         self.combo.setMaxCount(self.get_option('max_history_entries'))
         self.combo.addItems( self.load_history() )
+        self.combo.setItemText(0, '')
         self.connect(self.combo, SIGNAL("valid(bool)"),
                      lambda valid: self.force_refresh())
         
@@ -731,12 +751,11 @@ class ObjectInspector(SpyderPluginWidget):
     
     def show_rich_text(self, text, collapse=False, img_path=''):
         """Show text in rich mode"""
-        context = generate_context(collapse=collapse, img_path=img_path)
-        html_text = sphinxify(text, context)
         self.visibility_changed(True)
         self.raise_()
         self.switch_to_rich_text()
-        self.set_rich_text_html(html_text, QUrl.fromLocalFile(CSS_PATH))
+        context = generate_context(collapse=collapse, img_path=img_path)
+        self.render_sphinx_doc(text, context)
     
     def show_plain_text(self, text):
         """Show text in plain mode"""
@@ -917,10 +936,10 @@ class ObjectInspector(SpyderPluginWidget):
                 self.shell = self.internal_shell
         return self.shell
         
-    def render_sphinx_doc(self, doc):
+    def render_sphinx_doc(self, doc, context=None):
         """Transform doc string dictionary to HTML and show it"""
         # Math rendering option could have changed
-        self._sphinx_thread.render(doc, self.get_option('math'))
+        self._sphinx_thread.render(doc, context, self.get_option('math'))
         
     def _on_sphinx_thread_html_ready(self, html_text):
         """Set our sphinx documentation based on thread result"""
