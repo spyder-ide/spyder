@@ -401,6 +401,7 @@ class ObjectInspector(SpyderPluginWidget):
         layout_edit.addWidget(self.object_edit)
         self.combo.setMaxCount(self.get_option('max_history_entries'))
         self.combo.addItems( self.load_history() )
+        self.combo.setItemText(0, '')
         self.connect(self.combo, SIGNAL("valid(bool)"),
                      lambda valid: self.force_refresh())
         
