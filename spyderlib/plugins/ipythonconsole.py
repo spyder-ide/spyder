@@ -666,7 +666,7 @@ class IPythonConsole(SpyderPluginWidget):
                          SIGNAL('run_in_current_ipyclient(QString,QString,QString,bool)'),
                          self.run_script_in_current_client)
 
-    #------ Public API --------------------------------------------------------
+    #------ Public API (for clients) ------------------------------------------
     def get_clients(self):
         """Return IPython client widgets list"""
         return [cl for cl in self.clients if isinstance(cl, IPythonClient)]
@@ -741,7 +741,157 @@ class IPythonConsole(SpyderPluginWidget):
                                menu_actions=self.menu_actions)
         self.add_tab(client, name=client.get_name())
         self.main.extconsole.start_ipykernel(client, give_focus=give_focus)
+
+    def register_client(self, client, name, restart=False, give_focus=True):
+        """Register new IPython client"""
+        self.connect_client_to_kernel(client)
+        client.show_shellwidget(give_focus=give_focus)
+        client.name = name
+        
+        # If we are restarting the kernel we just need to rename the client tab
+        if restart:
+            self.rename_ipyclient_tab(client)
+            return
+        
+        shellwidget = client.shellwidget
+        control = shellwidget._control
+        page_control = shellwidget._page_control
+        
+        # For tracebacks
+        self.connect(control, SIGNAL("go_to_error(QString)"), self.go_to_error)
+
+        # Handle kernel interrupts
+        extconsoles = self.extconsole.shellwidgets
+        kernel_widget = None
+        if extconsoles:
+            if extconsoles[-1].connection_file == client.connection_file:
+                kernel_widget = extconsoles[-1]
+                shellwidget.custom_interrupt_requested.connect(
+                                              kernel_widget.keyboard_interrupt)
+        if kernel_widget is None:
+            shellwidget.custom_interrupt_requested.connect(
+                                                      client.interrupt_message)
+        
+        # Handle kernel restarts asked by the user
+        if kernel_widget is not None:
+            shellwidget.custom_restart_requested.connect(
+                                 lambda cl=client: self.restart_kernel(client))
+        else:
+            shellwidget.custom_restart_requested.connect(client.restart_message)
+        
+        # Print a message if kernel dies unexpectedly
+        shellwidget.custom_restart_kernel_died.connect(
+                                            lambda t: client.if_kernel_dies(t))
+        
+        # Connect text widget to our inspector
+        if kernel_widget is not None and self.inspector is not None:
+            control.set_inspector(self.inspector)
+            control.set_inspector_enabled(CONF.get('inspector',
+                                                   'connect/ipython_console'))
+
+        # Connect to our variable explorer
+        if kernel_widget is not None and self.variableexplorer is not None:
+            nsb = self.variableexplorer.currentWidget()
+            # When the autorefresh button is active, our kernels
+            # start to consume more and more CPU during time
+            # Fix Issue 1450
+            # ----------------
+            # When autorefresh is off by default we need the next
+            # line so that kernels don't start to consume CPU
+            # Fix Issue 1595
+            nsb.auto_refresh_button.setChecked(True)
+            nsb.auto_refresh_button.setChecked(False)
+            nsb.auto_refresh_button.setEnabled(False)
+            nsb.set_ipyclient(client)
+            client.set_namespacebrowser(nsb)
+        
+        # Connect client to our history log
+        if self.historylog is not None:
+            self.historylog.add_history(client.history_filename)
+            self.connect(client, SIGNAL('append_to_history(QString,QString)'),
+                         self.historylog.append_to_history)
+        
+        # Apply settings to newly created client widget:
+        client.set_font( self.get_plugin_font() )
+        
+        # Add tab and connect focus signal to client's control widget
+        self.connect(control, SIGNAL('focus_changed()'),
+                     lambda: self.emit(SIGNAL('focus_changed()')))
+        
+        # Update the find widget if focus changes between control and
+        # page_control
+        self.find_widget.set_editor(control)
+        if page_control:
+            self.connect(page_control, SIGNAL('focus_changed()'),
+                         lambda: self.emit(SIGNAL('focus_changed()')))
+            self.connect(control, SIGNAL('visibility_changed(bool)'),
+                         self.refresh_plugin)
+            self.connect(page_control, SIGNAL('visibility_changed(bool)'),
+                         self.refresh_plugin)
+            self.connect(page_control, SIGNAL('show_find_widget()'),
+                         self.find_widget.show)
+
+        # Update client name
+        self.rename_ipyclient_tab(client)
+
+    def close_console(self, index=None, client=None, force=False):
+        """Close console tab from index or widget (or close current tab)"""
+        if not self.tabwidget.count():
+            return
+        if client is not None:
+            index = self.tabwidget.indexOf(client)
+        if index is None and client is None:
+            index = self.tabwidget.currentIndex()
+        if index is not None:
+            client = self.tabwidget.widget(index)
+
+        # Check if related clients or kernels are opened
+        # and eventually ask before closing them
+        if not force and isinstance(client, IPythonClient):
+            idx = self.extconsole.get_shell_index_from_id(
+                                                       client.kernel_widget_id)
+            if idx is not None:
+                close_all = True
+                if self.get_option('ask_before_closing'):
+                    ans = QMessageBox.question(self, self.get_plugin_title(),
+                           _("%s will be closed.\n"
+                             "Do you want to kill the associated kernel "
+                             "and all of its clients?") % client.get_name(),
+                           QMessageBox.Yes|QMessageBox.No|QMessageBox.Cancel)
+                    if ans == QMessageBox.Cancel:
+                        return
+                    close_all = ans == QMessageBox.Yes
+                if close_all:
+                    self.extconsole.close_console(index=idx,
+                                                  from_ipyclient=True)
+                    self.close_related_ipyclients(client)
+        client.close()
+        
+        # Note: client index may have changed after closing related widgets
+        self.tabwidget.removeTab(self.tabwidget.indexOf(client))
+        self.clients.remove(client)
+
+        self.emit(SIGNAL('update_plugin_title()'))
+
+    def get_client_index_from_id(self, client_id):
+        """Return client index from id"""
+        for index, client in enumerate(self.clients):
+            if id(client) == client_id:
+                return index
     
+    def rename_ipyclient_tab(self, client):
+        """Add the pid of the kernel process to an IPython client tab"""
+        index = self.get_client_index_from_id(id(client))
+        self.tabwidget.setTabText(index, client.get_name())
+
+    def close_related_ipyclients(self, client):
+        """Close all IPython clients related to *client*, except itself"""
+        for cl in self.clients[:]:
+            if cl is not client and \
+              cl.connection_file == client.connection_file:
+                self.close_console(client=cl)
+
+    #------ Public API (for kernels) ------------------------------------------
     def kernel_and_frontend_match(self, connection_file):
         # Determine kernel version
         ci = get_connection_info(connection_file, unpack=True,
@@ -878,6 +1028,80 @@ class IPythonConsole(SpyderPluginWidget):
         # Connecting kernel and client
         self.register_client(client, client_name)
 
+    def restart_kernel(self, client):
+        """
+        Create a new kernel and connect it to `client` if the user asks for it
+        """
+        # Took this bit of code (until if result == ) from the IPython project
+        # (qt/frontend_widget.py - restart_kernel).
+        # Licensed under the BSD license
+        message = _('Are you sure you want to restart the kernel?')
+        buttons = QMessageBox.Yes | QMessageBox.No
+        result = QMessageBox.question(self, _('Restart kernel?'),
+                                      message, buttons)
+        if result == QMessageBox.Yes:
+            client.show_restart_animation()
+            
+            # Close old kernel tab
+            idx = self.extconsole.get_shell_index_from_id(client.kernel_widget_id)
+            self.extconsole.close_console(index=idx, from_ipyclient=True)
+            
+            # Create a new one and connect it to the client
+            self.main.extconsole.start_ipykernel(client)
+    
+    def get_shellwidget_by_kernelwidget_id(self, kernel_id):
+        """Return the IPython widget associated to a kernel widget id"""
+        for cl in self.clients:
+            if cl.kernel_widget_id == kernel_id:
+                return cl.shellwidget
+        else:
+            raise ValueError("Unknown kernel widget ID %r" % kernel_id)
+
+    #------ Public API (for tabs) ---------------------------------------------
+    def add_tab(self, widget, name):
+        """Add tab"""
+        self.clients.append(widget)
+        index = self.tabwidget.addTab(widget, get_icon('ipython_console.png'),
+                                      name)
+        self.tabwidget.setCurrentIndex(index)
+        if self.dockwidget and not self.ismaximized:
+            self.dockwidget.setVisible(True)
+            self.dockwidget.raise_()
+        self.activateWindow()
+        widget.get_control().setFocus()
+        
+    def move_tab(self, index_from, index_to):
+        """
+        Move tab (tabs themselves have already been moved by the tabwidget)
+        """
+        client = self.clients.pop(index_from)
+        self.clients.insert(index_to, client)
+        self.emit(SIGNAL('update_plugin_title()'))
+
+    #------ Public API (for help) ---------------------------------------------
+    def go_to_error(self, text):
+        """Go to error if relevant"""
+        match = get_error_match(to_text_string(text))
+        if match:
+            fname, lnb = match.groups()
+            self.emit(SIGNAL("edit_goto(QString,int,QString)"),
+                      osp.abspath(fname), int(lnb), '')
+    
+    def show_intro(self):
+        """Show intro to IPython help"""
+        from IPython.core.usage import interactive_usage
+        self.inspector.show_rich_text(interactive_usage)
+    
+    def show_guiref(self):
+        """Show qtconsole help"""
+        from IPython.core.usage import gui_reference
+        self.inspector.show_rich_text(gui_reference, collapse=True)
+    
+    def show_quickref(self):
+        """Show IPython Cheat Sheet"""
+        from IPython.core.usage import quick_reference
+        self.inspector.show_plain_text(quick_reference)
+
     def ipywidget_config(self):
         """Generate a Config instance for IPython widgets using our config
         system
@@ -935,227 +1159,6 @@ class IPythonConsole(SpyderPluginWidget):
         # over IPython ones
         ip_cfg._merge(spy_cfg)
         return ip_cfg
-
-    def register_client(self, client, name, restart=False, give_focus=True):
-        """Register new IPython client"""
-        self.connect_client_to_kernel(client)
-        client.show_shellwidget(give_focus=give_focus)
-        client.name = name
-        
-        # If we are restarting the kernel we just need to rename the client tab
-        if restart:
-            self.rename_ipyclient_tab(client)
-            return
-        
-        shellwidget = client.shellwidget
-        control = shellwidget._control
-        page_control = shellwidget._page_control
-        
-        # For tracebacks
-        self.connect(control, SIGNAL("go_to_error(QString)"), self.go_to_error)
-
-        # Handle kernel interrupts
-        extconsoles = self.extconsole.shellwidgets
-        kernel_widget = None
-        if extconsoles:
-            if extconsoles[-1].connection_file == client.connection_file:
-                kernel_widget = extconsoles[-1]
-                shellwidget.custom_interrupt_requested.connect(
-                                              kernel_widget.keyboard_interrupt)
-        if kernel_widget is None:
-            shellwidget.custom_interrupt_requested.connect(
-                                                      client.interrupt_message)
-        
-        # Handle kernel restarts asked by the user
-        if kernel_widget is not None:
-            shellwidget.custom_restart_requested.connect(
-                                 lambda cl=client: self.restart_kernel(client))
-        else:
-            shellwidget.custom_restart_requested.connect(client.restart_message)
-        
-        # Print a message if kernel dies unexpectedly
-        shellwidget.custom_restart_kernel_died.connect(
-                                            lambda t: client.if_kernel_dies(t))
-        
-        # Connect text widget to our inspector
-        if kernel_widget is not None and self.inspector is not None:
-            control.set_inspector(self.inspector)
-            control.set_inspector_enabled(CONF.get('inspector',
-                                                   'connect/ipython_console'))
-
-        # Connect to our variable explorer
-        if kernel_widget is not None and self.variableexplorer is not None:
-            nsb = self.variableexplorer.currentWidget()
-            # When the autorefresh button is active, our kernels
-            # start to consume more and more CPU during time
-            # Fix Issue 1450
-            # ----------------
-            # When autorefresh is off by default we need the next
-            # line so that kernels don't start to consume CPU
-            # Fix Issue 1595
-            nsb.auto_refresh_button.setChecked(True)
-            nsb.auto_refresh_button.setChecked(False)
-            nsb.auto_refresh_button.setEnabled(False)
-            nsb.set_ipyclient(client)
-            client.set_namespacebrowser(nsb)
-        
-        # Connect client to our history log
-        if self.historylog is not None:
-            self.historylog.add_history(client.history_filename)
-            self.connect(client, SIGNAL('append_to_history(QString,QString)'),
-                         self.historylog.append_to_history)
-        
-        # Apply settings to newly created client widget:
-        client.set_font( self.get_plugin_font() )
-        
-        # Add tab and connect focus signal to client's control widget
-        self.connect(control, SIGNAL('focus_changed()'),
-                     lambda: self.emit(SIGNAL('focus_changed()')))
-        
-        # Update the find widget if focus changes between control and
-        # page_control
-        self.find_widget.set_editor(control)
-        if page_control:
-            self.connect(page_control, SIGNAL('focus_changed()'),
-                         lambda: self.emit(SIGNAL('focus_changed()')))
-            self.connect(control, SIGNAL('visibility_changed(bool)'),
-                         self.refresh_plugin)
-            self.connect(page_control, SIGNAL('visibility_changed(bool)'),
-                         self.refresh_plugin)
-            self.connect(page_control, SIGNAL('show_find_widget()'),
-                         self.find_widget.show)
-
-        # Update client name
-        self.rename_ipyclient_tab(client)
-    
-    def close_related_ipyclients(self, client):
-        """Close all IPython clients related to *client*, except itself"""
-        for cl in self.clients[:]:
-            if cl is not client and \
-              cl.connection_file == client.connection_file:
-                self.close_console(client=cl)
-    
-    def get_shellwidget_by_kernelwidget_id(self, kernel_id):
-        """Return the IPython widget associated to a kernel widget id"""
-        for cl in self.clients:
-            if cl.kernel_widget_id == kernel_id:
-                return cl.shellwidget
-        else:
-            raise ValueError("Unknown kernel widget ID %r" % kernel_id)
-        
-    def add_tab(self, widget, name):
-        """Add tab"""
-        self.clients.append(widget)
-        index = self.tabwidget.addTab(widget, get_icon('ipython_console.png'),
-                                      name)
-        self.tabwidget.setCurrentIndex(index)
-        if self.dockwidget and not self.ismaximized:
-            self.dockwidget.setVisible(True)
-            self.dockwidget.raise_()
-        self.activateWindow()
-        widget.get_control().setFocus()
-        
-    def move_tab(self, index_from, index_to):
-        """
-        Move tab (tabs themselves have already been moved by the tabwidget)
-        """
-        client = self.clients.pop(index_from)
-        self.clients.insert(index_to, client)
-        self.emit(SIGNAL('update_plugin_title()'))
-        
-    def close_console(self, index=None, client=None, force=False):
-        """Close console tab from index or widget (or close current tab)"""
-        if not self.tabwidget.count():
-            return
-        if client is not None:
-            index = self.tabwidget.indexOf(client)
-        if index is None and client is None:
-            index = self.tabwidget.currentIndex()
-        if index is not None:
-            client = self.tabwidget.widget(index)
-
-        # Check if related clients or kernels are opened
-        # and eventually ask before closing them
-        if not force and isinstance(client, IPythonClient):
-            idx = self.extconsole.get_shell_index_from_id(
-                                                       client.kernel_widget_id)
-            if idx is not None:
-                close_all = True
-                if self.get_option('ask_before_closing'):
-                    ans = QMessageBox.question(self, self.get_plugin_title(),
-                           _("%s will be closed.\n"
-                             "Do you want to kill the associated kernel "
-                             "and all of its clients?") % client.get_name(),
-                           QMessageBox.Yes|QMessageBox.No|QMessageBox.Cancel)
-                    if ans == QMessageBox.Cancel:
-                        return
-                    close_all = ans == QMessageBox.Yes
-                if close_all:
-                    self.extconsole.close_console(index=idx,
-                                                  from_ipyclient=True)
-                    self.close_related_ipyclients(client)
-        client.close()
-        
-        # Note: client index may have changed after closing related widgets
-        self.tabwidget.removeTab(self.tabwidget.indexOf(client))
-        self.clients.remove(client)
-
-        self.emit(SIGNAL('update_plugin_title()'))
-        
-    def go_to_error(self, text):
-        """Go to error if relevant"""
-        match = get_error_match(to_text_string(text))
-        if match:
-            fname, lnb = match.groups()
-            self.emit(SIGNAL("edit_goto(QString,int,QString)"),
-                      osp.abspath(fname), int(lnb), '')
-    
-    def show_intro(self):
-        """Show intro to IPython help"""
-        from IPython.core.usage import interactive_usage
-        self.inspector.show_rich_text(interactive_usage)
-    
-    def show_guiref(self):
-        """Show qtconsole help"""
-        from IPython.core.usage import gui_reference
-        self.inspector.show_rich_text(gui_reference, collapse=True)
-    
-    def show_quickref(self):
-        """Show IPython Cheat Sheet"""
-        from IPython.core.usage import quick_reference
-        self.inspector.show_plain_text(quick_reference)
-    
-    def get_client_index_from_id(self, client_id):
-        """Return client index from id"""
-        for index, client in enumerate(self.clients):
-            if id(client) == client_id:
-                return index
-    
-    def rename_ipyclient_tab(self, client):
-        """Add the pid of the kernel process to an IPython client tab"""
-        index = self.get_client_index_from_id(id(client))
-        self.tabwidget.setTabText(index, client.get_name())
-    
-    def restart_kernel(self, client):
-        """
-        Create a new kernel and connect it to `client` if the user asks for it
-        """
-        # Took this bit of code (until if result == ) from the IPython project
-        # (qt/frontend_widget.py - restart_kernel).
-        # Licensed under the BSD license
-        message = _('Are you sure you want to restart the kernel?')
-        buttons = QMessageBox.Yes | QMessageBox.No
-        result = QMessageBox.question(self, _('Restart kernel?'),
-                                      message, buttons)
-        if result == QMessageBox.Yes:
-            client.show_restart_animation()
-            
-            # Close old kernel tab
-            idx = self.extconsole.get_shell_index_from_id(client.kernel_widget_id)
-            self.extconsole.close_console(index=idx, from_ipyclient=True)
-            
-            # Create a new one and connect it to the client
-            self.main.extconsole.start_ipykernel(client)
         
     #----Drag and drop
     #TODO: try and reimplement this block
