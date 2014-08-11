@@ -19,7 +19,7 @@ from spyderlib.qt.QtGui import (QTextCursor, QColor, QFont, QApplication,
                                 QTextEdit, QTextCharFormat, QToolTip,
                                 QListWidget, QPlainTextEdit, QPalette,
                                 QMainWindow, QTextOption, QMouseEvent,
-                                QTextFormat)
+                                QTextFormat, QClipboard)
 from spyderlib.qt.QtCore import SIGNAL, Qt, QEventLoop, QEvent, QPoint
 from spyderlib.qt.compat import to_qvariant
 
@@ -436,7 +436,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         Copy text to clipboard with correct EOL chars
         """
         QApplication.clipboard().setText(self.get_selected_text())
-        
 
     #------Text: get, set, ...
     def get_selection_as_executable_code(self):
@@ -932,14 +931,27 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     #----Qt Events
     def mousePressEvent(self, event):
         """Reimplement Qt method"""
-        if os.name != 'posix' and event.button() == Qt.MidButton:
+        if sys.platform.startswith('linux') and event.button() == Qt.MidButton:
             self.calltip_widget.hide()
+            if self.has_selected_text():
+                self.remove_selected_text()
             self.setFocus()
             event = QMouseEvent(QEvent.MouseButtonPress, event.pos(),
                                 Qt.LeftButton, Qt.LeftButton, Qt.NoModifier)
             QPlainTextEdit.mousePressEvent(self, event)
             QPlainTextEdit.mouseReleaseEvent(self, event)
+            # Send selection text to clipboard to be able to use
+            # the paste method and avoid the strange Issue 1445
+            #
+            # Note: This issue seems a focusing problem but it
+            # seems really hard to track
+            mode_clip = QClipboard.Clipboard
+            mode_sel = QClipboard.Selection
+            text_clip = QApplication.clipboard().text(mode=mode_clip)
+            text_sel = QApplication.clipboard().text(mode=mode_sel)
+            QApplication.clipboard().setText(text_sel, mode=mode_clip)
             self.paste()
+            QApplication.clipboard().setText(text_clip, mode=mode_clip)
         else:
             self.calltip_widget.hide()
             QPlainTextEdit.mousePressEvent(self, event)
@@ -1038,7 +1050,8 @@ class QtANSIEscapeCodeHandler(ANSIEscapeCodeHandler):
 
 def inverse_color(color):
     color.setHsv(color.hue(), color.saturation(), 255-color.value())
-    
+
+
 class ConsoleFontStyle(object):
     def __init__(self, foregroundcolor, backgroundcolor, 
                  bold, italic, underline):
