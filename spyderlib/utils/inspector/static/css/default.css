@@ -4,6 +4,7 @@ body {
     margin: 0px 25px 15px 25px;
 }
 
+
 /* --- Title style --- */
 div.title h1 {
     font-size: 180%;
@@ -69,6 +70,7 @@ span.argspec-highlight {
     font-weight: 900;
 }
 
+
 /* --- Docstring div style --- */
 div.docstring {
     margin-top: -1px;
@@ -78,23 +80,66 @@ div.docstring p {
     padding: 0px 2px 0px;
 }
 
+
 /* --- Headers style --- */
-div.section {
-    margin: 22px 0px 0px 0px;
+h2, h3, h4 {
+    font-family: 'Helvetica', sans-serif;
+    color: rgb(49, 126, 172);
+    margin-top: 20px;
+    margin-bottom: 10px;
 }
 
-div.section h2 {
+h2 {
     font-size: 140%;
-    font-family: 'Trebuchet MS', sans-serif;
     font-weight: normal;
-    border-bottom: 1px solid rgb(238, 238, 238);
-    color: rgb(49, 126, 172);
+    border-bottom: 1px solid rgb(220, 220, 220);
     padding: 4px 0px 4px 0px;
 }
 
-div.section h3 {
-    font-size: 110%;
-    padding: 0px 5px 0px;
+h3 {
+    font-size: 115%;
+}
+
+h4 {
+    font-size: 100%;
+    margin-top: 14px;
+    font-weight: normal;
+}
+
+h2.html-toggle-button, h3.html-toggle-button, h4.html-toggle-button {
+    padding-left: 20px;
+}
+
+.collapsed > h2, .collapsed > h3, .collapsed > h4, .expanded > h2, .expanded > h3, .expanded > h4 {
+    background-color: transparent;
+    background-image: url(../images/collapse_expand.png);
+    background-repeat: no-repeat;
+    background-attachment: scroll;
+    cursor: pointer;
+}
+
+.collapsed > h2 {
+    background-position: 2px 7px;
+}
+
+.collapsed > h3 {
+    background-position: 2px 2px;
+}
+
+.collapsed > h4 {
+    background-position: 2px 0px;
+}
+
+.expanded > h2 {
+    background-position: 0px -31px;
+}
+
+.expanded > h3 {
+    background-position: 0px -38px;
+}
+
+.expanded > h4 {
+    background-position: 0px -39px;
 }
 
 dl.docutils {
@@ -129,6 +174,30 @@ div.section p {
 }
 
 
+/* --- Links --- */
+a {
+    text-decoration: none;
+    color: rgba(40, 130, 180, 1);
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+
+/* --- Images --- */
+img {
+    box-shadow: 0px 2px 6px #cacaca;
+    border: 1px solid #c9c9c9;
+}
+
+img.align-center {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+
 /* --- Lists style --- */
 li p span {
     position: relative;
@@ -139,11 +208,13 @@ ol.arabic {
     margin-left: -8px;
 }
 
+
 /* --- Literal blocks style --- */
 pre.literal-block {
     padding-left: 35px;
     font-size: 95%;
 }
+
 
 /* --- Docutils table style --- */
 table.docutils {
@@ -165,6 +236,7 @@ table.docutils tr.row-odd {
     background-color: rgb(249, 249, 249);
 }
 
+
 /* --- Docutils table headers --- */
 table.docutils th {
     background-color: #EEEEEE;
@@ -180,6 +252,7 @@ table.docutils th {
     color: rgb(65, 65, 65);
 }
 
+
 /* --- Field-list table style --- */
 table.docutils.field-list {
     font-size: 80%;
@@ -191,6 +264,7 @@ table.docutils.field-list {
     width: 83%;
 }
 
+
 /* --- Field-list table headers --- */
 table.docutils.field-list th {
     background-color: transparent;
@@ -201,6 +275,7 @@ table.docutils.field-list th {
     text-align: left;
     padding: 4px 0px 4px 8px;
 }
+
 
 /* --- Spacing around example code --- */
 div.highlight pre {
@@ -229,6 +304,7 @@ tt {
     font-size: 95%;
     padding: 0px 1px;
 }
+
 
 /* ----------- Panels ----------- */
 
@@ -260,8 +336,8 @@ tt {
 
 .panel-usage {
     border-color: #2fa4e7;
-    margin-top: 30px;
-    width: 53%;
+    margin-top: 15px;
+    width: 60%;
     margin-left: auto;
     margin-right: auto;
 }
@@ -270,6 +346,17 @@ tt {
     color: #ffffff;
     background-color: #2fa4e7;
     border-color: #2fa4e7;
+}
+
+.panel-usage > .panel-body > br {
+    display: block;
+    margin: 12px 0;
+    content: "";
+}
+
+.hr {
+    background-color: rgb(200, 200, 200);
+    height: 1px;
 }
 
 

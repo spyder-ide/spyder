@@ -924,8 +924,11 @@ class MainWindow(QMainWindow):
             doc_action = create_bookmark_action(self, spyder_doc,
                                _("Spyder documentation"), shortcut="F1",
                                icon=get_std_icon('DialogHelpButton'))
-            self.help_menu_actions = [doc_action, report_action,
-                                      dep_action, support_action, None]
+            tut_action = create_action(self, _("Spyder tutorial"),
+                                       triggered=self.inspector.show_tutorial)
+            self.help_menu_actions = [doc_action, tut_action, None,
+                                      report_action, dep_action, support_action,
+                                      None]
             # Python documentation
             if get_python_doc_path() is not None:
                 pydoc_act = create_action(self, _("Python documentation"),
@@ -1607,13 +1610,15 @@ class MainWindow(QMainWindow):
             return True
         prefix = ('lightwindow' if self.light else 'window') + '/'
         self.save_current_window_settings(prefix)
+        if CONF.get('main', 'single_instance'):
+            if os.name == 'nt':
+                self.open_files_server.shutdown(socket.SHUT_RDWR)
+            self.open_files_server.close()
         for widget in self.widgetlist:
             if not widget.closing_plugin(cancelable):
                 return False
         self.dialog_manager.close_all()
         self.already_closed = True
-        if CONF.get('main', 'single_instance'):
-            self.open_files_server.close()
         return True
         
     def add_dockwidget(self, child):
