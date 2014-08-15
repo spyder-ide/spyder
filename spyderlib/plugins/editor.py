@@ -154,7 +154,7 @@ class EditorConfigPage(PluginConfigPage):
                             'save_all_before_run')
         
         run_selection_group = QGroupBox(_("Run selection"))
-        focus_box = newcb(_("Set focus to the editor after running selection"),
+        focus_box = newcb(_("Maintain focus in the editor after running cells or selections"),
                             'focus_to_editor')
         
         introspection_group = QGroupBox(_("Introspection"))
