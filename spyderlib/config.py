@@ -352,6 +352,7 @@ DEFAULTS = [
               'show_tab_bar': True,
               'max_recent_files': 20,
               'save_all_before_run': True,
+              'focus_to_editor': True,
               'onsave_analysis': False
               }),
             ('historylog',
