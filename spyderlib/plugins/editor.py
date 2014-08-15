@@ -1487,9 +1487,6 @@ class Editor(SpyderPluginWidget):
                 pass
         else:
             enc = encoding.read(self.TEMPLATE_PATH)[1]
-            enc_match = re.search('-*- coding: ?([a-z0-9A-Z\-]*) -*-', text)
-            if enc_match:
-                enc = enc_match.group(1)
         
         create_fname = lambda n: to_text_string(_("untitled")) + ("%d.py" % n)
         # Creating editor widget
