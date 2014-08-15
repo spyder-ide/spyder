@@ -229,6 +229,7 @@ DEFAULTS = [
               'font/bold': False,
               'wrap': True,
               'single_tab': True,
+              'autokill_old_shell': False,
               'calltips': True,
               'object_inspector': True,
               'codecompletion/auto': True,

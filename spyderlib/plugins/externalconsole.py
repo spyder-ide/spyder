@@ -76,12 +76,15 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                                     fontfilters=QFontComboBox.MonospacedFonts)
         newcb = self.create_checkbox
         singletab_box = newcb(_("One tab per script"), 'single_tab')
+        autokill_old_shell_box = newcb(_("Automatically kill existing process"),
+                                       'autokill_old_shell')
         showtime_box = newcb(_("Show elapsed time"), 'show_elapsed_time')
         icontext_box = newcb(_("Show icons and text"), 'show_icontext')
 
         # Interface Group
         interface_layout = QVBoxLayout()
         interface_layout.addWidget(singletab_box)
+        interface_layout.addWidget(autokill_old_shell_box)
         interface_layout.addWidget(showtime_box)
         interface_layout.addWidget(icontext_box)
         interface_group.setLayout(interface_layout)
@@ -768,11 +771,15 @@ class ExternalConsole(SpyderPluginWidget):
             if self.get_option('single_tab'):
                 old_shell = self.shellwidgets[index]
                 if old_shell.is_running():
-                    answer = QMessageBox.question(self, self.get_plugin_title(),
-                        _("%s is already running in a separate process.\n"
-                          "Do you want to kill the process before starting "
-                          "a new one?") % osp.basename(fname),
-                        QMessageBox.Yes | QMessageBox.Cancel)
+                    if not self.get_option('autokill_old_shell'):
+                        answer = QMessageBox.question(self, self.get_plugin_title(),
+                            _("%s is already running in a separate process.\n"
+                              "Do you want to kill the process before starting "
+                              "a new one?") % osp.basename(fname),
+                            QMessageBox.Yes | QMessageBox.Cancel)
+                    else:
+                        answer = QMessageBox.Yes
+
                     if answer == QMessageBox.Yes:
                         old_shell.process.kill()
                         old_shell.process.waitForFinished()
