@@ -316,12 +316,10 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                 _("API selection for QString and QVariant objects:"),
                 ((_("Default API"), 0), (_("API #1"), 1), (_("API #2"), 2)),
                 'pyqt/api_version', default=0,
-                tip=_("PyQt API #1 is the default API for<br>"
-                      "Python 2. PyQt API #2 is the default "
-                      "API for Python 3 and is compatible with "
-                      "PySide. Note that switching to API #2 "
-                      "may require to enable the Matplotlib "
-                      "patch."))
+                tip=_("PyQt API #1 is the default <br>"
+                      "API for Python 2. PyQt API #2 is "
+                      "the default API for Python 3 and "
+                      "is compatible with PySide."))
             ignore_api_box = newcb(_("Ignore API change errors (sip.setapi)"),
                                      'pyqt/ignore_sip_setapi_errors',
                                tip=_("Enabling this option will ignore <br>"
@@ -809,7 +807,7 @@ class ExternalConsole(SpyderPluginWidget):
             if qt_api not in ('pyqt', 'pyside'):
                 qt_api = None
             install_qt_inputhook = self.get_option('qt/install_inputhook')
-            pyqt_api = self.get_option('pyqt/api_version', 0)
+            pyqt_api = self.get_option('pyqt/api_version')
             ignore_sip_setapi_errors = self.get_option(
                                             'pyqt/ignore_sip_setapi_errors')
             merge_output_channels = self.get_option('merge_output_channels')
