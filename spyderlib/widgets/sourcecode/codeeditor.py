@@ -1728,7 +1728,7 @@ class CodeEditor(TextEditBaseWidget):
             return True
 
     def clear_all_output(self):
-        """removes all input in the ipynb format (Json only)"""
+        """removes all ouput in the ipynb format (Json only)"""
         if self.is_json() and programs.is_module_installed('IPython'):
             nb = nbformat.current.reads(self.toPlainText(), 'json')
             if nb.worksheets:
@@ -2153,15 +2153,25 @@ class CodeEditor(TextEditBaseWidget):
                       QKeySequence(QKeySequence.ZoomOut), icon='zoom_out.png',
                       triggered=lambda: self.emit(SIGNAL('zoom_out()')))
         self.menu = QMenu(self)
-        add_actions(self.menu, (self.undo_action, self.redo_action, None,
-                                self.cut_action, self.copy_action,
-                                paste_action, self.delete_action,
-                                None, self.clear_all_output_action,
-                                self.ipynb_convert_action, None, 
-                                selectall_action, None, zoom_in_action,
-                                zoom_out_action, None, toggle_comment_action,
-                                None, self.run_selection_action,
-                                self.gotodef_action))
+        if programs.is_module_installed('IPython'):
+            add_actions(self.menu, (self.undo_action, self.redo_action, None,
+                                    self.cut_action, self.copy_action,
+                                    paste_action, self.delete_action,
+                                    None, self.clear_all_output_action,
+                                    self.ipynb_convert_action, None, 
+                                    selectall_action, None, zoom_in_action,
+                                    zoom_out_action, None, toggle_comment_action,
+                                    None, self.run_selection_action,
+                                    self.gotodef_action))
+        else:
+            add_actions(self.menu, (self.undo_action, self.redo_action, None,
+                                    self.cut_action, self.copy_action,
+                                    paste_action, self.delete_action,
+                                    None, selectall_action, None, zoom_in_action,
+                                    zoom_out_action, None, toggle_comment_action,
+                                    None, self.run_selection_action,
+                                    self.gotodef_action))
+
             
         # Read-only context-menu
         self.readonly_menu = QMenu(self)

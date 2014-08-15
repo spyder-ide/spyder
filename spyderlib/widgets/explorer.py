@@ -232,7 +232,7 @@ class DirView(QTreeView):
         only_files = all([osp.isfile(_fn) for _fn in fnames])
         only_modules = all([osp.splitext(_fn)[1] in ('.py', '.pyw', '.ipy')
                             for _fn in fnames])
-        only_notebooks = all([osp.splitext(_fn)[1] == '.ipynb' 
+        only_notebooks = all([osp.splitext(_fn)[1] == '.ipynb'
                             for _fn in fnames])
         only_valid = all([osp.splitext(_fn)[1] in self.valid_types
                           for _fn in fnames])
@@ -250,9 +250,9 @@ class DirView(QTreeView):
                                       icon="rename.png",
                                       triggered=self.rename)
         open_action = create_action(self, _("Open"), triggered=self.open)
-        ipynb_convert_action = create_action(self, _("Convert to Python script"), 
-                                      icon="python.png",
-                                      triggered=self.convert)
+        ipynb_convert_action = create_action(self, _("Convert to Python script"),
+                                             icon="python.png",
+                                             triggered=self.convert)
         
         actions = []
         if only_modules:
@@ -266,7 +266,7 @@ class DirView(QTreeView):
         if all([fixpath(osp.dirname(_fn)) == basedir for _fn in fnames]):
             actions.append(move_action)
         actions += [None]
-        if only_notebooks:
+        if only_notebooks and programs.is_module_installed('IPython'):
             actions.append(ipynb_convert_action)
         
         # VCS support is quite limited for now, so we are enabling the VCS
