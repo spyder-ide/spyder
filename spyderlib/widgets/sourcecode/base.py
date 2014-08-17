@@ -11,7 +11,6 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-import os
 import re
 import sys
 
