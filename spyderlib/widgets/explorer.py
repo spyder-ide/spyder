@@ -39,6 +39,7 @@ if programs.is_module_installed('IPython'):
     try:
         from IPython.nbconvert import PythonExporter # >=1.0
     except:
+        import IPython.nbformat.current as current
         from IPython.nbformat.v3.nbpy import PyWriter # 0.13
 
 
@@ -509,7 +510,7 @@ class DirView(QTreeView):
         if programs.is_module_installed('IPython', '>=1.0'):
             script = PythonExporter().from_filename(fname)[0]
         elif programs.is_module_installed('IPython'):
-            script = PyWriter().writes(nbformat.current.read(open(fname, 'r')))
+            script = PyWriter().writes(current.read(open(fname, 'r'), 'ipynb'))
         else:
             script = ''
         self.parent_widget.sig_new_file.emit(script)

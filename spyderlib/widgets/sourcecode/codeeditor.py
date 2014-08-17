@@ -57,6 +57,7 @@ if programs.is_module_installed('IPython'):
     try:
         from IPython.nbconvert import PythonExporter # >=1.0
     except:
+        import IPython.nbformat.current as current
         from IPython.nbformat.v3.nbpy import PyWriter # 0.13
 
 #%% This line is for cell execution testing
@@ -1730,7 +1731,7 @@ class CodeEditor(TextEditBaseWidget):
     def clear_all_output(self):
         """removes all ouput in the ipynb format (Json only)"""
         if self.is_json() and programs.is_module_installed('IPython'):
-            nb = nbformat.current.reads(self.toPlainText(), 'json')
+            nb = current.reads(self.toPlainText(), 'json')
             if nb.worksheets:
                 for cell in nb.worksheets[0].cells:
                     if 'outputs' in cell:
