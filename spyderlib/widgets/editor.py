@@ -1987,11 +1987,13 @@ class EditorStack(QWidget):
 
     #------ Run
     def run_selection(self):
-        """Run selected text in console and set focus to console"""
+        """Run selected text or current line in console"""
         text = self.get_current_editor().get_selection_as_executable_code()
-        if text:
-            self.emit(SIGNAL('exec_in_extconsole(QString,bool)'), text, 
-                      self.focus_to_editor)
+        if not text:
+            line = self.get_current_editor().get_current_line()
+            text = line.lstrip()
+        self.emit(SIGNAL('exec_in_extconsole(QString,bool)'), text, 
+                         self.focus_to_editor)
 
     def run_cell(self):
         """Run current cell"""

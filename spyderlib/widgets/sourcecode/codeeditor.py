@@ -2102,7 +2102,8 @@ class CodeEditor(TextEditBaseWidget):
         self.gotodef_action = create_action(self, _("Go to definition"),
                                    triggered=self.go_to_definition_from_cursor)
         run_selection_action = create_action(self,
-                        _("Run &selection"), icon='run_selection.png',
+                        _("Run &selection or current line"),
+                        icon='run_selection.png',
                         triggered=lambda: self.emit(SIGNAL('run_selection()')))
         zoom_in_action = create_action(self, _("Zoom in"),
                       QKeySequence(QKeySequence.ZoomIn), icon='zoom_in.png',
