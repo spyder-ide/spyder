@@ -673,8 +673,8 @@ class CodeEditor(TextEditBaseWidget):
     def intelligent_tab(self):
         """Provide intelligent behavoir for Tab key press"""
         leading_text = self.get_text('sol', 'cursor')
-        if not leading_text.strip(): 
-            # blank line
+        if not leading_text.strip() or leading_text.endswith('#'):
+            # blank line or start of comment
             self.indent_or_replace()
         elif self.in_comment_or_string() and not leading_text.endswith(' '):
             # in a word in a comment
