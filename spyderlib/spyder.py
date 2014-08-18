@@ -1457,9 +1457,9 @@ class MainWindow(QMainWindow):
 
         dlg = self.dialog_layout_settings(names, order, active)
         if dlg.exec_():
-            set_('quick_layouts', 'names', names)
-            set_('quick_layouts', 'order', order)
-            set_('quick_layouts', 'active', active)
+            set_('quick_layouts', 'names', dlg.names)
+            set_('quick_layouts', 'order', dlg.order)
+            set_('quick_layouts', 'active', dlg.active)
             self.quick_layout_set_menu()
 
     def quick_layout_switch(self, index):
