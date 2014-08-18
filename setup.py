@@ -181,7 +181,7 @@ TARGET_MATCH = re.search(r'--target-version=([0-9]*)\.([0-9]*)', JOINEDARGS)
 if TARGET_MATCH:
     TARGET_VERSION = TARGET_MATCH.groups()
 else:
-    TARGET_VERSION = (str(sys.version_info.major), str(sys.version_info.minor))
+    TARGET_VERSION = (str(sys.version_info[0]), str(sys.version_info[1]))
 
 
 def get_packages():
@@ -210,8 +210,8 @@ if PY3 and sys.platform.startswith('linux'):
     SCRIPTS.append('spyder3')
 else:
     SCRIPTS.append('spyder')
-EXTLIST = ['.mo', '.svg', '.png', '.css', '.html', '.js', '.chm', '.gif',
-           '.ini', '.txt']
+EXTLIST = ['.mo', '.svg', '.png', '.css', '.html', '.js', '.chm', '.ini',
+           '.txt']
 if os.name == 'nt':
     SCRIPTS += ['spyder.bat']
     EXTLIST += ['.ico']

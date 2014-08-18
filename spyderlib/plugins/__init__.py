@@ -30,6 +30,7 @@ from spyderlib.userconfig import NoDefault
 from spyderlib.guiconfig import get_font, set_font
 from spyderlib.plugins.configdialog import SpyderConfigPage
 from spyderlib.py3compat import configparser, is_text_string
+import sys
 
 
 class PluginConfigPage(SpyderConfigPage):
@@ -52,7 +53,71 @@ class PluginConfigPage(SpyderConfigPage):
 
 class SpyderDockWidget(QDockWidget):
     """Subclass to override needed methods"""
+    DARWIN_STYLE = """
+    QDockWidget::close-button, QDockWidget::float-button {
+        padding: 0px;
+        margin: 2px;
+    }
     
+    QTabWidget::pane {
+        border: 3px solid rgb(235, 235, 235);
+        border-bottom: 0;
+    }
+    
+    QTabWidget::tab-bar {
+        left: 5px;
+    }
+    
+    QTabBar::tab {
+        background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                    stop: 0 #b1b1b1, stop: 0.07 #b3b3b3,
+                                    stop: 0.33 #b3b3b3, stop: 0.4 #b0b0b0,
+                                    stop: 0.47 #b3b3b3, stop: 1.0 #b2b2b2);
+        border: 1px solid #787878;
+        border-top-color: transparent;
+        border-bottom-color: transparent;
+        margin-left: -1px;
+        margin-right: -1px;
+        min-width: 8ex;
+        padding: 3px;
+    }
+    
+    QTabBar::tab:selected {
+        background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                    stop: 0 #dfdfdf, stop: 0.1 #dddddd,
+                                    stop: 0.12 #dfdfdf, stop: 0.22 #e0e0e0,
+                                    stop: 0.33 #dedede, stop: 0.47 #dedede,
+                                    stop: 0.49 #e0e0e0, stop: 0.59 #dddddd,
+                                    stop: 0.61 #dfdfdf, stop: 0.73 #dedede,
+                                    stop: 0.80 #e0e0e0, stop: 1.0 #dedede);
+        border: 1px solid #787878;
+        border-top-color: transparent;
+        border-bottom-left-radius: 3px;
+        border-bottom-right-radius: 3px;
+    }
+    
+    QTabBar::tab:first {
+        margin-left: 0;
+    }
+    
+    QTabBar::tab:last {
+        margin-right: 0;
+    }
+    
+    QTabBar::tab:only-one {
+        margin: 0;
+    }
+    
+    QToolButton {
+        border: none;
+    }
+    """
+
+    def __init__(self, *args, **kwargs):
+        super(SpyderDockWidget, self).__init__(*args, **kwargs)
+        if sys.platform == 'darwin':
+            self.setStyleSheet(self.DARWIN_STYLE)
+
     def closeEvent(self, event):
         """
         Reimplement Qt method to send a signal on close so that "Panes" main

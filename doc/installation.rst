@@ -127,12 +127,6 @@ If you want to install Spyder directly, you need to follow these steps:
    * `The Python language <http://www.python.org/>`_
    * `PyQt4 <http://www.riverbankcomputing.co.uk/software/pyqt/download>`_
 
-#. Install some recommended modules:
-   
-   Important functionality will be missed if these modules are not installed
-   
-   * `pywin32 <http://sourceforge.net/projects/pywin32/>`_ .
-
 #. Install optional modules:
 
    These are the most important modules to do scientific programming with Python
@@ -171,7 +165,7 @@ Requirements
 
 The minimal requirements to run Spyder are
 
-* `Python <http://www.python.org/>`_ v2.x (x>=5)
+* `Python <http://www.python.org/>`_ 2.6+
   
 * `PyQt4 <http://www.riverbankcomputing.co.uk/software/pyqt/download>`_ >= v4.6 or
   `PySide <http://pyside.org/>`_ >=1.2.0 (PyQt4 is recommended).

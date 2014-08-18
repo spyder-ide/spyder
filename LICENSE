@@ -55,6 +55,8 @@ spyderlib/images/editor/function.png
 spyderlib/images/editor/method.png
 spyderlib/images/editor/private1.png
 spyderlib/images/editor/private2.png
+spyderlib/images/editor/cell.png
+spyderlib/images/editor/blockcomment.png
 spyderlib/images/editor/refactor.png
 spyderlib/images/console/ipython_console.png
 spyderlib/images/console/ipython_console_t.png
@@ -332,7 +334,9 @@ spyderlib/images/editor/run_selection.png
 spyderlib/images/editor/run_settings.png
 spyderlib/images/console/run_small.png
 
-[13] http://www.ajaxload.info/
-(Acoording to the website: "Generated gifs are
-totally free for use")
-spyderlib/images/console/loading.gif
+[13] http://preloaders.net/
+(According to the website: "All animated GIF and APNG images are completely
+free to use in all projects (web and desktop applications, freeware and
+commercial projects)")
+
+spyderlib/images/console/loading_sprites.png

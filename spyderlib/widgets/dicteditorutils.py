@@ -15,7 +15,9 @@ import re
 # Local imports
 from spyderlib.py3compat import (NUMERIC_TYPES, TEXT_TYPES,
                                  to_text_string, is_text_string)
-
+from spyderlib.utils import programs
+from spyderlib import dependencies
+from spyderlib.baseconfig import _
 
 #----Numpy arrays support
 class FakeObject(object):
@@ -27,6 +29,15 @@ try:
     from numpy.ma import MaskedArray
 except ImportError:
     ndarray = array = matrix = MaskedArray = FakeObject  # analysis:ignore
+
+Pandas_REQVER = '>=0.13.1'
+dependencies.add('pandas',
+                 _("For viewing and editing pandas DataFrames and Series"),
+                 required_version=Pandas_REQVER)
+if programs.is_module_installed('pandas', '>=0.13.1'):
+    from pandas import DataFrame, TimeSeries
+else:
+    DataFrame = TimeSeries = FakeObject      # analysis:ignore
 
 
 def get_numpy_dtype(obj):
@@ -90,7 +101,10 @@ COLORS = {
           tuple:              "#c0c0c0",
           TEXT_TYPES:         "#800000",
           (ndarray,
-           MaskedArray):      ARRAY_COLOR,
+           MaskedArray,
+           matrix,
+           DataFrame,
+           TimeSeries):       ARRAY_COLOR,
           Image:              "#008000",
           datetime.date:      "#808000",
           }
@@ -145,6 +159,8 @@ def value_to_display(value, truncate=False,
             pass
     if isinstance(value, Image):
         return '%s  Mode: %s' % (address(value), value.mode)
+    if isinstance(value, DataFrame):
+        return ', '.join(list(value.columns))
     if not is_text_string(value):
         if isinstance(value, (list, tuple, dict, set)) and not collvalue:            
             value = address(value)
@@ -169,14 +185,21 @@ def get_size(item):
         return item.shape
     elif isinstance(item, Image):
         return item.size
+    if isinstance(item, (DataFrame, TimeSeries)):
+        return item.shape
     else:
         return 1
 
 def get_type_string(item):
     """Return type string of an object"""
+    if isinstance(item, DataFrame):
+        return "DataFrame"
+    if isinstance(item, TimeSeries):
+        return "TimeSeries"    
     found = re.findall(r"<(?:type|class) '(\S*)'>", str(type(item)))
     if found:
         return found[0]
+    
 
 def is_known_type(item):
     """Return True if object has a known type"""

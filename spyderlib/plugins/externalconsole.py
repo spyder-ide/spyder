@@ -23,8 +23,8 @@ from spyderlib.qt.compat import getopenfilename
 import atexit
 import os
 import os.path as osp
-import re
 import sys
+import subprocess
 
 # Local imports
 from spyderlib.baseconfig import SCIENTIFIC_STARTUP, _
@@ -316,12 +316,10 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                 _("API selection for QString and QVariant objects:"),
                 ((_("Default API"), 0), (_("API #1"), 1), (_("API #2"), 2)),
                 'pyqt/api_version', default=0,
-                tip=_("PyQt API #1 is the default API for<br>"
-                      "Python 2. PyQt API #2 is the default "
-                      "API for Python 3 and is compatible with "
-                      "PySide. Note that switching to API #2 "
-                      "may require to enable the Matplotlib "
-                      "patch."))
+                tip=_("PyQt API #1 is the default <br>"
+                      "API for Python 2. PyQt API #2 is "
+                      "the default API for Python 3 and "
+                      "is compatible with PySide."))
             ignore_api_box = newcb(_("Ignore API change errors (sip.setapi)"),
                                      'pyqt/ignore_sip_setapi_errors',
                                tip=_("Enabling this option will ignore <br>"
@@ -436,6 +434,7 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                                      get_python_executable())
         if pyexec != old_pyexec:
             self._auto_change_qt_api(pyexec)
+        self.warn_python_compatibility(pyexec)
 
     def python_executable_switched(self, custom):
         """Python executable default/custom radio button has been toggled"""
@@ -446,6 +445,27 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         if def_pyexec != cust_pyexec:
             pyexec = cust_pyexec if custom else def_pyexec
             self._auto_change_qt_api(pyexec)
+            if custom:
+                self.warn_python_compatibility(cust_pyexec)
+
+    def warn_python_compatibility(self, pyexec):
+        spyder_version = sys.version_info[0]
+        try:
+            cmd = [pyexec, "-c", "import sys; print(sys.version_info[0])"]
+            # subprocess.check_output is not present in python2.6 and 3.0
+            process = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+            console_version = int(process.communicate()[0])
+        except IOError:
+            console_version = spyder_version
+        if spyder_version != console_version:
+            QMessageBox.warning(self, _('Warning'),
+                _("You selected a <b>Python %d</b> interpreter for the console "
+                  "but Spyder is running on <b>Python %d</b>!.<br><br>"
+                  "Although this is possible, we recommend you to install and "
+                  "run Spyder directly with your selected interpreter, to avoid "
+                  "seeing false warnings and errors due to the incompatible "
+                  "syntax between these two Python versions."
+                  ) % (console_version, spyder_version), QMessageBox.Ok)
 
 
 class ExternalConsole(SpyderPluginWidget):
@@ -787,7 +807,7 @@ class ExternalConsole(SpyderPluginWidget):
             if qt_api not in ('pyqt', 'pyside'):
                 qt_api = None
             install_qt_inputhook = self.get_option('qt/install_inputhook')
-            pyqt_api = self.get_option('pyqt/api_version', 0)
+            pyqt_api = self.get_option('pyqt/api_version')
             ignore_sip_setapi_errors = self.get_option(
                                             'pyqt/ignore_sip_setapi_errors')
             merge_output_channels = self.get_option('merge_output_channels')
@@ -1018,16 +1038,14 @@ class ExternalConsole(SpyderPluginWidget):
         """
         # Check if our client already has a connection_file and kernel_widget_id
         # which means that we are asking for a kernel restart
-        cf = ipyclient.connection_file
-        kwid = ipyclient.kernel_widget_id
-        if cf is not None and kwid is not None:
+        if ipyclient.connection_file is not None \
+          and ipyclient.kernel_widget_id is not None:
             restart_kernel = True
         else:
             restart_kernel = False
         
         # Setting kernel widget attributes
-        match = re.match('^kernel-(\d+).json', connection_file)
-        kernel_id = match.groups()[0]
+        kernel_id = osp.splitext(connection_file.split('/')[-1])[0].split('-')[-1] 
         self.set_ipykernel_attrs(connection_file, kernel_widget, kernel_id)
         
         # Creating the client
@@ -1372,4 +1390,3 @@ class ExternalConsole(SpyderPluginWidget):
             elif shellwidget:
                 shellwidget.shell.drop_pathlist(pathlist)
         event.acceptProposedAction()
-

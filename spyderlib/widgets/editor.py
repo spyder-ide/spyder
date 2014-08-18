@@ -642,6 +642,7 @@ class EditorStack(QWidget):
         self.checkeolchars_enabled = True
         self.always_remove_trailing_spaces = False
         self.fullpath_sorting_enabled = None
+        self.focus_to_editor = True
         self.set_fullpath_sorting_enabled(False)
         ccs = 'Spyder'
         if ccs not in syntaxhighlighters.COLOR_SCHEME_NAMES:
@@ -682,8 +683,6 @@ class EditorStack(QWidget):
                                    name='File list management', parent=self)
         tab = create_shortcut(self.go_to_previous_file, context='Editor',
                               name='Go to previous file', parent=self)
-        close_file = create_shortcut(self.close_file, context='Editor',
-                                     name='Close file', parent=self)
         tabshift = create_shortcut(self.go_to_next_file, context='Editor',
                                    name='Go to next file', parent=self)
         # Fixed shortcuts
@@ -695,7 +694,7 @@ class EditorStack(QWidget):
         zoomout.setContext(Qt.WidgetWithChildrenShortcut)
         # Return configurable ones
         return [inspect, breakpoint, cbreakpoint, gotoline, filelist, tab,
-                close_file, tabshift]
+                tabshift]
 
     def get_shortcut_data(self):
         """
@@ -1091,6 +1090,8 @@ class EditorStack(QWidget):
         # CONF.get(self.CONF_SECTION, 'always_remove_trailing_spaces')
         self.always_remove_trailing_spaces = state
             
+    def set_focus_to_editor(self, state):
+        self.focus_to_editor = state
     
     #------ Stacked widget management
     def get_stack_index(self):
@@ -1986,23 +1987,31 @@ class EditorStack(QWidget):
 
     #------ Run
     def run_selection(self):
-        """Run selected text in console and set focus to console"""
+        """Run selected text or current line in console"""
         text = self.get_current_editor().get_selection_as_executable_code()
-        if text:
-            self.emit(SIGNAL('exec_in_extconsole(QString,bool)'), text, False)
+        if not text:
+            line = self.get_current_editor().get_current_line()
+            text = line.lstrip()
+        self.emit(SIGNAL('exec_in_extconsole(QString,bool)'), text, 
+                         self.focus_to_editor)
 
-    def run_cell(self, focus_to_editor=False):
+    def run_cell(self):
         """Run current cell"""
         text = self.get_current_editor().get_cell_as_executable_code()
         finfo = self.get_current_finfo()
         if finfo.editor.is_python() and text:
             self.emit(SIGNAL('exec_in_extconsole(QString,bool)'),
-                      text, focus_to_editor)
+                      text, self.focus_to_editor)
 
     def run_cell_and_advance(self):
         """Run current cell and advance to the next one"""
-        self.run_cell(focus_to_editor=True)
-        self.get_current_editor().go_to_next_cell()
+        self.run_cell()
+        if self.focus_to_editor:
+            self.get_current_editor().go_to_next_cell()
+        else:
+            term = QApplication.focusWidget()
+            self.get_current_editor().go_to_next_cell()
+            term.setFocus()
             
     #------ Drag and drop
     def dragEnterEvent(self, event):
@@ -2013,7 +2022,12 @@ class EditorStack(QWidget):
             if mimedata2url(source, extlist=EDIT_EXT):
                 event.acceptProposedAction()
             else:
-                event.ignore()
+                all_urls = mimedata2url(source)
+                text = [encoding.is_text_file(url) for url in all_urls]
+                if any(text):
+                    event.acceptProposedAction()
+                else:
+                    event.ignore()
         elif source.hasText():
             event.acceptProposedAction()
         else:
@@ -2024,10 +2038,12 @@ class EditorStack(QWidget):
         Unpack dropped data and handle it"""
         source = event.mimeData()
         if source.hasUrls():
-            files = mimedata2url(source, extlist=EDIT_EXT)
-            if files:
-                for fname in files:
-                    self.emit(SIGNAL('plugin_load(QString)'), fname)
+            files = mimedata2url(source)
+            files = [f for f in files if encoding.is_text_file(f)]
+            supported_files = mimedata2url(source, extlist=EDIT_EXT)
+            files = set(files or []) | set(supported_files or [])
+            for fname in files:
+                self.emit(SIGNAL('plugin_load(QString)'), fname)
         elif source.hasText():
             editor = self.get_current_editor()
             if editor is not None:

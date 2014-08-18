@@ -153,6 +153,10 @@ class EditorConfigPage(PluginConfigPage):
         saveall_box = newcb(_("Save all files before running script"),
                             'save_all_before_run')
         
+        run_selection_group = QGroupBox(_("Run selection"))
+        focus_box = newcb(_("Maintain focus in the Editor after running cells or selections"),
+                            'focus_to_editor')
+        
         introspection_group = QGroupBox(_("Introspection"))
         rope_is_installed = programs.is_module_installed('rope')
         if rope_is_installed:
@@ -255,6 +259,10 @@ class EditorConfigPage(PluginConfigPage):
         run_layout.addWidget(saveall_box)
         run_group.setLayout(run_layout)
         
+        run_selection_layout = QVBoxLayout()
+        run_selection_layout.addWidget(focus_box)
+        run_selection_group.setLayout(run_selection_layout)
+        
         introspection_layout = QVBoxLayout()
         if rope_is_installed:
             introspection_layout.addWidget(calltips_box)
@@ -307,8 +315,8 @@ class EditorConfigPage(PluginConfigPage):
                     _("Display"))
         tabs.addTab(self.create_tab(introspection_group, analysis_group),
                     _("Code Introspection/Analysis"))
-        tabs.addTab(self.create_tab(template_btn, run_group, sourcecode_group,
-                                    eol_group),
+        tabs.addTab(self.create_tab(template_btn, run_group, run_selection_group,
+                                    sourcecode_group, eol_group),
                     _("Advanced settings"))
         
         vlayout = QVBoxLayout()
@@ -736,9 +744,11 @@ class Editor(SpyderPluginWidget):
         add_shortcut_to_tooltip(re_run_action, context="Editor",
                                 name="Re-run last script")
 
-        run_selected_action = create_action(self, _("Run &selection"),
+        run_selected_action = create_action(self, _("Run &selection or "
+                                                    "current line"),
                                             icon='run_selection.png',
-                                            tip=_("Run selection"),
+                                            tip=_("Run selection or "
+                                                  "current line"),
                                             triggered=self.run_selection)
         self.register_shortcut(run_selected_action, context="Editor",
                                name="Run selection")
@@ -1061,6 +1071,7 @@ class Editor(SpyderPluginWidget):
             ('set_codecompletion_enter_enabled',    'codecompletion/enter_key'),
             ('set_calltips_enabled',                'calltips'),
             ('set_go_to_definition_enabled',        'go_to_definition'),
+            ('set_focus_to_editor',                 'focus_to_editor'),
             ('set_close_parentheses_enabled',       'close_parentheses'),
             ('set_close_quotes_enabled',            'close_quotes'),
             ('set_add_colons_enabled',              'add_colons'),
@@ -2124,6 +2135,9 @@ class Editor(SpyderPluginWidget):
             occurence_o = self.get_option(occurence_n)
             occurence_timeout_n = 'occurence_highlighting/timeout'
             occurence_timeout_o = self.get_option(occurence_timeout_n)
+            focus_to_editor_n = 'focus_to_editor'
+            focus_to_editor_o = self.get_option(focus_to_editor_n)
+            
             for editorstack in self.editorstacks:
                 if font_n in options:
                     scs = color_scheme_o if color_scheme_n in options else None
@@ -2146,6 +2160,8 @@ class Editor(SpyderPluginWidget):
                 if occurence_timeout_n in options:
                     editorstack.set_occurence_highlighting_timeout(
                                                         occurence_timeout_o)
+                if focus_to_editor_n in options:
+                    editorstack.set_focus_to_editor(focus_to_editor_o)
 
             # --- everything else
             fpsorting_n = 'fullpath_sorting'

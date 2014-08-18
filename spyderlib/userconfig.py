@@ -42,39 +42,16 @@ import os.path as osp
 import shutil
 import time
 
-from spyderlib.baseconfig import DEV, TEST, get_module_source_path
-from spyderlib.utils import encoding
+from spyderlib.baseconfig import (DEV, TEST, get_module_source_path,
+                                  get_home_dir)
 from spyderlib.utils.programs import check_version
 from spyderlib.py3compat import configparser as cp
 from spyderlib.py3compat import PY2, is_text_string, to_text_string
 
 
 #==============================================================================
-# Auxiliary functions and classes
+# Auxiliary classes
 #==============================================================================
-def get_home_dir():
-    """
-    Return user home directory
-    """
-    try:
-        # expanduser() returns a raw byte string which needs to be
-        # decoded with the codec that the OS is using to represent file paths.
-        path = encoding.to_unicode_from_fs(osp.expanduser('~'))
-    except:
-        path = ''
-    for env_var in ('HOME', 'USERPROFILE', 'TMP'):
-        if osp.isdir(path):
-            break
-        # os.environ.get() returns a raw byte string which needs to be
-        # decoded with the codec that the OS is using to represent environment
-        # variables.
-        path = encoding.to_unicode_from_fs(os.environ.get(env_var, ''))
-    if path:
-        return path
-    else:
-        raise RuntimeError('Please define environment variable $HOME')
-
-
 class NoDefault:
     pass
 
@@ -149,6 +126,7 @@ class DefaultsConfig(cp.ConfigParser):
             return w_dot
         else:
             folder = osp.join(folder, self.subfolder)
+            w_dot = osp.join(folder, '.%s.ini' % self.name)
             # Save defaults in a "defaults" dir of .spyder2 to not pollute it
             if 'defaults' in self.name:
                 folder = osp.join(folder, 'defaults')
@@ -321,14 +299,15 @@ class UserConfig(DefaultsConfig):
                 secdict[option] = value
             self.defaults.append( (section, secdict) )
 
-    def reset_to_defaults(self, save=True, verbose=False):
+    def reset_to_defaults(self, save=True, verbose=False, section=None):
         """
         Reset config to Default values
         """
-        for section, options in self.defaults:
-            for option in options:
-                value = options[ option ]
-                self._set(section, option, value, verbose)
+        for sec, options in self.defaults:
+            if section == None or section == sec:
+                for option in options:
+                    value = options[ option ]
+                    self._set(sec, option, value, verbose)
         if save:
             self._save()
         

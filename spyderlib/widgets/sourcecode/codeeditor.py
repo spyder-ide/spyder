@@ -283,9 +283,10 @@ def get_file_language(filename, text=None):
         for line in text.splitlines():
             if not line.strip():
                 continue
-            if line.startswith('#!') and \
-               line[2:].split() == ['/usr/bin/env', 'python']:
-                    language = 'python'
+            if line.startswith('#!'):
+               shebang = line[2:]
+               if 'python' in shebang:
+                   language = 'python'
             else:
                 break
     return language
@@ -2143,10 +2144,11 @@ class CodeEditor(TextEditBaseWidget):
         self.ipynb_convert_action = create_action(self, _("Convert to Python script"),
                            triggered=self.convert_notebook, icon='python.png')
         self.gotodef_action = create_action(self, _("Go to definition"),
-                           triggered=self.go_to_definition_from_cursor)
-        self.run_selection_action = create_action(self,
-                           _("Run selection"), icon='run_selection.png',
-                           triggered=lambda: self.emit(SIGNAL('run_selection()')))
+                                   triggered=self.go_to_definition_from_cursor)
+        run_selection_action = create_action(self,
+                        _("Run &selection or current line"),
+                        icon='run_selection.png',
+                        triggered=lambda: self.emit(SIGNAL('run_selection()')))
         zoom_in_action = create_action(self, _("Zoom in"),
                       QKeySequence(QKeySequence.ZoomIn), icon='zoom_in.png',
                       triggered=lambda: self.emit(SIGNAL('zoom_in()')))

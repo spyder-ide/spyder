@@ -16,8 +16,9 @@ import sys
 import os.path as osp
 
 # Local import
-from spyderlib.userconfig import UserConfig, get_home_dir
-from spyderlib.baseconfig import CHECK_ALL, EXCLUDED_NAMES, SUBFOLDER, _
+from spyderlib.userconfig import UserConfig
+from spyderlib.baseconfig import (CHECK_ALL, EXCLUDED_NAMES, SUBFOLDER,
+                                  get_home_dir, _)
 from spyderlib.utils import iofuncs, codeanalysis
 
 
@@ -241,7 +242,7 @@ DEFAULTS = [
               'qt/install_inputhook': os.name == 'nt' \
                                       or os.environ.get('QT_API') == 'pyside',
               'qt/api': 'default',
-              'pyqt/api_version': 0,
+              'pyqt/api_version': 2,
               'pyqt/ignore_sip_setapi_errors': False,
               'matplotlib/patch': True,
               'matplotlib/backend/enabled': True,
@@ -353,6 +354,7 @@ DEFAULTS = [
               'show_tab_bar': True,
               'max_recent_files': 20,
               'save_all_before_run': True,
+              'focus_to_editor': True,
               'onsave_analysis': False
               }),
             ('historylog',
@@ -526,7 +528,7 @@ DEFAULTS = [
               'editor/save file': "Ctrl+S",
               'editor/save all': "Ctrl+Shift+S",
               'editor/print': "Ctrl+P",
-              'editor/close file': "Ctrl+W",
+              'editor/close file': "Ctrl+F4" if os.name == 'nt' else "Ctrl+W",
               'editor/close all': "Ctrl+Shift+W",
               'editor/breakpoint': 'F12',
               'editor/conditional breakpoint': 'Shift+F12',
@@ -711,7 +713,7 @@ DEFAULTS = [
 # 2. If you want to *remove* options that are no longer needed in our codebase,
 #    you need to do a MAJOR update in version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '8.0.0'
+CONF_VERSION = '8.2.0'
 
 # XXX: Previously we had load=(not DEV) here but DEV was set to *False*.
 # Check if it *really* needs to be updated or not

@@ -6,20 +6,24 @@
 
 """
 Bootstrapping Spyder
-(Executing Spyder from source checkout)
 
-This script is a contribution from techtonik:
+Detect environment and execute Spyder from source checkout
 http://code.google.com/p/spyderlib/issues/detail?id=741
 """
 
 # pylint: disable=C0103
+
+import time
+time_start = time.time()
 
 import os
 import os.path as osp
 import sys
 import optparse
 
+
 # --- Parse command line
+
 parser = optparse.OptionParser(
     usage="python bootstrap.py [options] [-- spyder_options]",
     epilog="""\
@@ -99,6 +103,7 @@ if osp.isdir(EXTPATH):
     sys.path.insert(0, EXTPATH)
     print("                      and %s" % EXTPATH)
 
+
 # Selecting the GUI toolkit: PySide if installed, otherwise PyQt4
 # (Note: PyQt4 is still the officially supported GUI toolkit for Spyder)
 if options.gui is None:
@@ -112,6 +117,7 @@ else:
     print ("02. Skipping GUI toolkit detection")
     os.environ['QT_API'] = options.gui
 
+
 if options.debug:
     # safety check - Spyder config should not be imported at this point
     if "spyderlib.baseconfig" in sys.modules:
@@ -121,25 +127,30 @@ if options.debug:
     # this way of interaction suxx, because there is no feedback
     # if operation is successful
 
-# Importing Spyder (among other things, this has the effect of setting the 
+
+# Checking versions (among other things, this has the effect of setting the
 # QT_API environment variable if this has not yet been done just above)
-
-#FIXME: `from spyderlib import spyder` is necessary with current package 
-# structure to avoid "AttributeError: 'module' object has no attribute 'qt'"
-# when importing get_versions (see Issue 1320 for more details).
-from spyderlib import spyder
-
-from spyderlib import start_app, get_versions
-versions = get_versions()
+from spyderlib import get_versions
+versions = get_versions(reporev=False)
 print("03. Imported Spyder %s" % versions['spyder'])
 print("    [Python %s %dbits, Qt %s, %s %s on %s]" % \
       (versions['python'], versions['bitness'], versions['qt'],
        versions['qt_api'], versions['qt_api_ver'], versions['system']))
 
-# Executing Spyder
+
+# --- Executing Spyder
+
 if not options.hide_console and os.name == 'nt':
     print("0x. Enforcing parent console (Windows only)")
     sys.argv.append("--show-console")  # Windows only: show parent console
 
 print("04. Executing spyder.main()")
+from spyderlib import start_app
+
+time_lapse = time.time()-time_start
+print("Bootstrap completed in " +
+    time.strftime("%H:%M:%S.", time.gmtime(time_lapse)) +  
+    # gmtime() converts float into tuple, but loses milliseconds
+    ("%.4f" % time_lapse).split('.')[1])
+
 start_app.main()
