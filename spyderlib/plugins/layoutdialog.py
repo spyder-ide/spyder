@@ -299,7 +299,6 @@ class LayoutSettingsDialog(QDialog):
         self.button_move_up.setDisabled(False)
         self.button_move_down.setDisabled(False)
 
-        print(row)
         if row == 0:
             self.button_move_up.setDisabled(True)
         if row == len(names) - 1:
@@ -310,17 +309,21 @@ class LayoutSettingsDialog(QDialog):
 #        print(names, active, self.order)
 
 
-def test():
+def test(type_=True):
     """Run layout test widget test"""
     from spyderlib.utils.qthelpers import qapplication
     app = qapplication()
     names = ['test', 'tester', '20', '30', '40']
     order = ['test', 'tester', '20', '30', '40']
     active = ['test', 'tester']
-    widget = LayoutSettingsDialog(names, order, active)
-#    widget = LayoutSaveDialog(order)
+
+    if type_:
+        widget = LayoutSettingsDialog(names, order, active)
+    else:
+        widget = LayoutSaveDialog(order)
     widget.show()
     sys.exit(app.exec_())
 
 if __name__ == '__main__':
-    test()
+    test(True)
+#    test(False)
