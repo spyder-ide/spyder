@@ -38,6 +38,7 @@ from spyderlib.widgets.externalshell.pythonshell import ExternalPythonShell
 from spyderlib.widgets.externalshell.systemshell import ExternalSystemShell
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
+from spyderlib.plugins.runconfig import get_run_configuration
 from spyderlib.py3compat import to_text_string, is_text_string, getcwd
 from spyderlib import dependencies
 
@@ -76,15 +77,12 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                                     fontfilters=QFontComboBox.MonospacedFonts)
         newcb = self.create_checkbox
         singletab_box = newcb(_("One tab per script"), 'single_tab')
-        autokill_old_shell_box = newcb(_("Automatically kill existing process"),
-                                       'autokill_old_shell')
         showtime_box = newcb(_("Show elapsed time"), 'show_elapsed_time')
         icontext_box = newcb(_("Show icons and text"), 'show_icontext')
 
         # Interface Group
         interface_layout = QVBoxLayout()
         interface_layout.addWidget(singletab_box)
-        interface_layout.addWidget(autokill_old_shell_box)
         interface_layout.addWidget(showtime_box)
         interface_layout.addWidget(icontext_box)
         interface_group.setLayout(interface_layout)
@@ -771,7 +769,8 @@ class ExternalConsole(SpyderPluginWidget):
             if self.get_option('single_tab'):
                 old_shell = self.shellwidgets[index]
                 if old_shell.is_running():
-                    if not self.get_option('autokill_old_shell'):
+                    runconfig = get_run_configuration(fname)
+                    if runconfig is None or not runconfig.autokill:
                         answer = QMessageBox.question(self, self.get_plugin_title(),
                             _("%s is already running in a separate process.\n"
                               "Do you want to kill the process before starting "
