@@ -16,7 +16,7 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QHBoxLayout,
                                 QDialog, QGroupBox)
 from spyderlib.qt.QtCore import (Qt, QSize, SIGNAL, SLOT,
                                  QAbstractTableModel, QModelIndex)
-from spyderlib.qt.compat import (to_qvariant, from_qvariant)
+from spyderlib.qt.compat import (to_qvariant)
 from spyderlib.py3compat import to_text_string
 
 
@@ -99,7 +99,10 @@ class LayoutModel(QAbstractTableModel):
 
     def row(self, rownum):
         """ """
-        return self.__rows[rownum]
+        if self.__rows == []:
+            return [None, None]
+        else:
+            return self.__rows[rownum]
 
     def set_row(self, rownum, value):
         """ """
@@ -240,7 +243,7 @@ class LayoutSettingsDialog(QDialog):
             index = self.table.model().index(0, 0)
             self.table.setCurrentIndex(index)
             self.table.setFocus()
-
+            self.selection_changed(None, None)
             if len(names) == 0:
                 self.button_move_up.setDisabled(True)
                 self.button_move_down.setDisabled(True)
@@ -262,10 +265,10 @@ class LayoutSettingsDialog(QDialog):
 
         self.order = order
         self.table.setModel(LayoutModel(table, names, order, active))
+        self.selection_changed(None, None)
         index = self.table.model().index(row_new, 0)
         self.table.setCurrentIndex(index)
         self.table.setFocus()
-        self.selection_changed(None, None)
 
     def selection_changed(self, selection, deselection):
         """ """
