@@ -191,6 +191,9 @@ DEFAULTS = [
             ('quick_layouts',
              {
               'place_holder': '',
+              'names': [],
+              'order': [],
+              'active': [],
               }),
             ('editor_appearance',
              {
