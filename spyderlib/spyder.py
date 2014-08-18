@@ -369,7 +369,13 @@ class MainWindow(QMainWindow):
                               ColorSchemeConfigPage, RunConfigPage]
         self.prefs_index = None
         self.prefs_dialog_size = None
-        
+
+        # Quick Layouts and Dialogs
+        from spyderlib.plugins.layoutdialog import (LayoutSaveDialog,
+                                                    LayoutSettingsDialog)
+        self.dialog_layout_save = LayoutSaveDialog
+        self.dialog_layout_settings = LayoutSettingsDialog
+
         # Actions
         self.close_dockwidget_action = None
         self.find_action = None
@@ -1039,7 +1045,7 @@ class MainWindow(QMainWindow):
                     plugin.register_plugin()
                 except AttributeError as error:
                     print("%s: %s" % (mod, str(error)), file=STDERR)
-                                
+    #----- View
             # View menu
             self.plugins_menu = QMenu(_("Panes"), self)
             self.toolbars_menu = QMenu(_("Toolbars"), self)
@@ -1047,23 +1053,9 @@ class MainWindow(QMainWindow):
             self.view_menu.addMenu(self.toolbars_menu)
             reset_layout_action = create_action(self, _("Reset window layout"),
                                             triggered=self.reset_window_layout)
-            quick_layout_menu = QMenu(_("Custom window layouts"), self)
-            ql_actions = []
-            for index in range(1, 4):
-                if index > 0:
-                    ql_actions += [None]
-                qli_act = create_action(self,
-                                        _("Switch to/from layout %d") % index,
-                                        triggered=lambda i=index:
-                                        self.quick_layout_switch(i))
-                self.register_shortcut(qli_act, "_",
-                                       "Switch to/from layout %d" % index)
-                qlsi_act = create_action(self, _("Set layout %d") % index,
-                                         triggered=lambda i=index:
-                                         self.quick_layout_set(i))
-                self.register_shortcut(qlsi_act, "_", "Set layout %d" % index)
-                ql_actions += [qli_act, qlsi_act]
-            add_actions(quick_layout_menu, ql_actions)
+            self.quick_layout_menu = QMenu(_("Custom window layouts"), self)
+            self.quick_layout_set_menu()
+
             if set_attached_console_visible is not None:
                 cmd_act = create_action(self,
                                     _("Attached console window (debugging)"),
@@ -1074,7 +1066,7 @@ class MainWindow(QMainWindow):
                                          self.maximize_action,
                                          self.close_dockwidget_action, None,
                                          reset_layout_action,
-                                         quick_layout_menu))
+                                         self.quick_layout_menu))
             
             # Adding external tools action to "Tools" menu
             if self.external_tools_menu_actions:
@@ -1374,7 +1366,102 @@ class MainWindow(QMainWindow):
                      QMessageBox.Yes | QMessageBox.No)
         if answer == QMessageBox.Yes:
             self.setup_layout(default=True)
-            
+
+    def quick_layout_set_menu(self):
+        """ """
+        get = CONF.get
+        names = get('quick_layouts', 'names')
+        order = get('quick_layouts', 'order')
+        active = get('quick_layouts', 'active')
+
+        ql_actions = [create_action(self, _('Spyder Default Layout'),
+                                    triggered=self.reset_window_layout)]
+        for name in order:
+            if name in active:
+                index = names.index(name)
+                qli_act = create_action(self, name,
+                                        triggered=lambda i=index:
+                                        self.quick_layout_switch(i))
+                ql_actions += [qli_act]
+
+        # FIXME: Add this definitions to init
+        self.ql_save = create_action(self, _("Save current layout as..."),
+                                     triggered=lambda:
+                                     self.quick_layout_save())
+        self.ql_settings = create_action(self, _("Layout settings..."),
+                                         triggered=lambda:
+                                         self.quick_layout_settings())
+        ql_actions += [None]
+        ql_actions += [self.ql_save, self.ql_settings]
+
+        self.quick_layout_menu.clear()
+        add_actions(self.quick_layout_menu, ql_actions)
+
+        if len(names) == 0:
+            self.ql_settings.setEnabled(False)
+        else:
+            self.ql_settings.setEnabled(True)
+
+    def quick_layout_save(self):
+        """ """
+        get = CONF.get
+        set_ = CONF.set
+        names = get('quick_layouts', 'names')
+        order = get('quick_layouts', 'order')
+        active = get('quick_layouts', 'active')
+
+        if names == '':
+            names = []
+        if order == '':
+            order = []
+        dlg = self.dialog_layout_save(names)
+
+        if dlg.exec_():
+            name = dlg.combo_box.currentText()
+
+            if name in names:
+                answer = QMessageBox.warning(self,
+                                             _("Warning"),
+                                             _("Layout <b>{0}</b> will be \
+                                               overwritten. Do you want to \
+                                               continue?".format(name)),
+                                             QMessageBox.Yes | QMessageBox.No)
+                index = order.index(name)
+            else:
+                answer = True
+                index = len(names)
+                names.append(name)
+                order.append(name)
+
+            # Always make active a new layout even if it overwrites an unactive
+            # layout
+            if name not in active:
+                active.append(name)
+
+            if answer:
+                self.save_current_window_settings('layout_%d/' % index,
+                                                  section='quick_layouts')
+                set_('quick_layouts', 'names', names)
+                set_('quick_layouts', 'order', order)
+                set_('quick_layouts', 'active', active)
+                self.quick_layout_set_menu()
+
+    def quick_layout_settings(self):
+        """ """
+        get = CONF.get
+        set_ = CONF.set
+
+        names = get('quick_layouts', 'names')
+        order = get('quick_layouts', 'order')
+        active = get('quick_layouts', 'active')
+
+        dlg = self.dialog_layout_settings(names, order, active)
+        if dlg.exec_():
+            set_('quick_layouts', 'names', names)
+            set_('quick_layouts', 'order', order)
+            set_('quick_layouts', 'active', active)
+            self.quick_layout_set_menu()
+
     def quick_layout_switch(self, index):
         """Switch to quick layout number *index*"""
         if self.current_quick_layout == index:
@@ -1533,6 +1620,7 @@ class MainWindow(QMainWindow):
     def create_toolbars_menu(self):
         order = ['file_toolbar', 'run_toolbar', 'debug_toolbar',
                  'main_toolbar', 'Global working directory', None,
+                 'layout',   # TODO:
                  'search_toolbar', 'edit_toolbar', 'source_toolbar']
         for toolbar in self.toolbarslist:
             action = toolbar.toggleViewAction()
