@@ -507,13 +507,12 @@ class DirView(QTreeView):
 
     def convert_notebook(self, fname):
         """Convert an IPython notebook to a Python script in editor"""
-        if programs.is_module_installed('IPython', '>=1.0'):
-            script = PythonExporter().from_filename(fname)[0]
-        elif programs.is_module_installed('IPython'):
-            script = PyWriter().writes(current.read(open(fname, 'r'), 'ipynb'))
-        else:
-            script = ''
-        self.parent_widget.sig_new_file.emit(script)
+        if programs.is_module_installed('IPython'):
+            if programs.is_module_installed('IPython', '>=1.0'):
+                script = PythonExporter().from_filename(fname)[0]
+            else:
+                script = PyWriter().writes(current.read(open(fname, 'r'), 'ipynb'))
+            self.parent_widget.sig_new_file.emit(script)
     
     def convert(self, fnames=None):
         """Convert IPython notebooks to Python scripts in editor"""

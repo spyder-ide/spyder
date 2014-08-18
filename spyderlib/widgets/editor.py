@@ -1842,6 +1842,8 @@ class EditorStack(QWidget):
         self.connect(editor, SIGNAL("run_cell()"), self.run_cell)
         self.connect(editor, SIGNAL('run_cell_and_advance()'),
                      self.run_cell_and_advance)
+        editor.sig_new_file.connect(lambda s: self.new(filename='Untitled.py', 
+                                                       encoding='utf8', text=s))
         language = get_file_language(fname, txt)
         editor.setup_editor(
                 linenumbers=self.linenumbers_enabled,

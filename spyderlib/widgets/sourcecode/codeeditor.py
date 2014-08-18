@@ -32,7 +32,7 @@ from spyderlib.qt.QtGui import (QColor, QMenu, QApplication, QSplitter, QFont,
                                 QHBoxLayout, QDialog, QIntValidator,
                                 QDialogButtonBox, QGridLayout)
 from spyderlib.qt.QtCore import (Qt, SIGNAL, QTimer, QRect, QRegExp, QSize,
-                                 SLOT, Slot)
+                                 SLOT, Signal, Slot)
 from spyderlib.qt.compat import to_qvariant
 
 #%% This line is for cell execution testing
@@ -1744,6 +1744,8 @@ class CodeEditor(TextEditBaseWidget):
         else:
             return
 
+    sig_new_file = Signal(str)
+
     def convert_notebook(self):
         """Convert an IPython notebook to a Python script in editor"""
         if programs.is_module_installed('IPython'):
@@ -1752,10 +1754,7 @@ class CodeEditor(TextEditBaseWidget):
                 script = PythonExporter().from_notebook_node(nb)[0]
             else:
                 script = PyWriter().writes(nb)
-        else:
-            script = ''
-        # FIXME: Should sig_new_file be in explorer
-        self.window().explorer.sig_new_file.emit(script)
+            self.sig_new_file.emit(script)
 
     def indent(self, force=False):
         """
@@ -2145,7 +2144,7 @@ class CodeEditor(TextEditBaseWidget):
                            triggered=self.convert_notebook, icon='python.png')
         self.gotodef_action = create_action(self, _("Go to definition"),
                                    triggered=self.go_to_definition_from_cursor)
-        run_selection_action = create_action(self,
+        self.run_selection_action = create_action(self,
                         _("Run &selection or current line"),
                         icon='run_selection.png',
                         triggered=lambda: self.emit(SIGNAL('run_selection()')))
