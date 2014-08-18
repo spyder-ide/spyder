@@ -1051,8 +1051,6 @@ class MainWindow(QMainWindow):
             self.toolbars_menu = QMenu(_("Toolbars"), self)
             self.view_menu.addMenu(self.plugins_menu)
             self.view_menu.addMenu(self.toolbars_menu)
-            reset_layout_action = create_action(self, _("Reset window layout"),
-                                            triggered=self.reset_window_layout)
             self.quick_layout_menu = QMenu(_("Custom window layouts"), self)
             self.quick_layout_set_menu()
 
@@ -1065,7 +1063,6 @@ class MainWindow(QMainWindow):
             add_actions(self.view_menu, (None, self.fullscreen_action,
                                          self.maximize_action,
                                          self.close_dockwidget_action, None,
-                                         reset_layout_action,
                                          self.quick_layout_menu))
             
             # Adding external tools action to "Tools" menu
@@ -1357,16 +1354,6 @@ class MainWindow(QMainWindow):
         for plugin in self.widgetlist:
             plugin.initialize_plugin_in_mainwindow_layout()
 
-    def reset_window_layout(self):
-        """Reset window layout to default"""
-        answer = QMessageBox.warning(self, _("Warning"),
-                     _("Window layout will be reset to default settings: "
-                       "this affects window position, size and dockwidgets.\n"
-                       "Do you want to continue?"),
-                     QMessageBox.Yes | QMessageBox.No)
-        if answer == QMessageBox.Yes:
-            self.setup_layout(default=True)
-
     def quick_layout_set_menu(self):
         """ """
         get = CONF.get
@@ -1402,26 +1389,31 @@ class MainWindow(QMainWindow):
         else:
             self.ql_settings.setEnabled(True)
 
+    def reset_window_layout(self):
+        """Reset window layout to default"""
+        answer = QMessageBox.warning(self, _("Warning"),
+                     _("Window layout will be reset to default settings: "
+                       "this affects window position, size and dockwidgets.\n"
+                       "Do you want to continue?"),
+                     QMessageBox.Yes | QMessageBox.No)
+        if answer == QMessageBox.Yes:
+            self.setup_layout(default=True)
+
     def quick_layout_save(self):
-        """ """
+        """Save layout dialog"""
         get = CONF.get
         set_ = CONF.set
         names = get('quick_layouts', 'names')
         order = get('quick_layouts', 'order')
         active = get('quick_layouts', 'active')
 
-        if names == '':
-            names = []
-        if order == '':
-            order = []
         dlg = self.dialog_layout_save(names)
 
         if dlg.exec_():
             name = dlg.combo_box.currentText()
 
             if name in names:
-                answer = QMessageBox.warning(self,
-                                             _("Warning"),
+                answer = QMessageBox.warning(self, _("Warning"),
                                              _("Layout <b>{0}</b> will be \
                                                overwritten. Do you want to \
                                                continue?".format(name)),
@@ -1433,7 +1425,7 @@ class MainWindow(QMainWindow):
                 names.append(name)
                 order.append(name)
 
-            # Always make active a new layout even if it overwrites an unactive
+            # Always make active a new layout even if it overwrites an inactive
             # layout
             if name not in active:
                 active.append(name)
@@ -1447,7 +1439,7 @@ class MainWindow(QMainWindow):
                 self.quick_layout_set_menu()
 
     def quick_layout_settings(self):
-        """ """
+        """Layout settings dialog"""
         get = CONF.get
         set_ = CONF.set
 
@@ -1479,11 +1471,6 @@ class MainWindow(QMainWindow):
             self.previous_layout_settings = self.get_window_settings()
             self.set_window_settings(*settings)
             self.current_quick_layout = index
-    
-    def quick_layout_set(self, index):
-        """Save current window settings as quick layout number *index*"""
-        self.save_current_window_settings('layout_%d/' % index,
-                                          section='quick_layouts')
 
     def plugin_focus_changed(self):
         """Focus has changed from one plugin to another"""
