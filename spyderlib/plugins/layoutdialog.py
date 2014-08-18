@@ -22,11 +22,19 @@ from spyderlib.py3compat import to_text_string
 
 class LayoutModel(QAbstractTableModel):
     """ """
-    def __init__(self, parent, names, order, active):
+    def __init__(self, parent, order, active):
         QAbstractTableModel.__init__(self)
         self.parent = parent
+        self.order = order
+        self.active = active
         self.__rows = []
+        self.set_data(order, active)
 
+    def set_data(self, order, active):
+        """ """
+        self.__rows = []
+        self.order = order
+        self.active = active
         for name in order:
             if name in active:
                 row = [name, True]
@@ -176,7 +184,7 @@ class LayoutSettingsDialog(QDialog):
         # Layouts
         self.dialog_size = QSize(300, 200)
         self.setWindowTitle('Layout Settings')
-        self.table.setModel(LayoutModel(self.table, names, order, active))
+        self.table.setModel(LayoutModel(self.table, order, active))
         self.table.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.table.setSelectionMode(QAbstractItemView.SingleSelection)
         self.table.verticalHeader().hide()
@@ -209,11 +217,11 @@ class LayoutSettingsDialog(QDialog):
         # Signlas and slots
         self.connect(self.button_box, SIGNAL("accepted()"), SLOT("accept()"))
         self.connect(self.button_box, SIGNAL("rejected()"), self.close)
-        self.connect(self.button_delete, SIGNAL("pressed()"),
+        self.connect(self.button_delete, SIGNAL("clicked()"),
                      self.delete_layout)
-        self.connect(self.button_move_up, SIGNAL("pressed()"),
+        self.connect(self.button_move_up, SIGNAL("clicked()"),
                      lambda: self.move_layout(True))
-        self.connect(self.button_move_down, SIGNAL("pressed()"),
+        self.connect(self.button_move_down, SIGNAL("clicked()"),
                      lambda: self.move_layout(False))
         self.connect(self.table.selectionModel(),
                      SIGNAL("selectionChanged(QItemSelection,QItemSelection)"),
@@ -239,7 +247,7 @@ class LayoutSettingsDialog(QDialog):
             if name in active:
                 active.remove(name)
             self.names, self.order, self.active = names, order, active
-            self.table.setModel(LayoutModel(self.table, names, order, active))
+            self.table.model().set_data(order, active)
             index = self.table.model().index(0, 0)
             self.table.setCurrentIndex(index)
             self.table.setFocus()
@@ -252,7 +260,6 @@ class LayoutSettingsDialog(QDialog):
     def move_layout(self, up=True):
         """ """
         names, order, active = self.names, self.order, self.active
-        table = self.table
         row = self.table.selectionModel().currentIndex().row()
         row_new = row
 
@@ -264,11 +271,11 @@ class LayoutSettingsDialog(QDialog):
         order[row], order[row_new] = order[row_new], order[row]
 
         self.order = order
-        self.table.setModel(LayoutModel(table, names, order, active))
-        self.selection_changed(None, None)
+        self.table.model().set_data(order, active)
         index = self.table.model().index(row_new, 0)
         self.table.setCurrentIndex(index)
         self.table.setFocus()
+        self.selection_changed(None, None)
 
     def selection_changed(self, selection, deselection):
         """ """
@@ -292,6 +299,7 @@ class LayoutSettingsDialog(QDialog):
         self.button_move_up.setDisabled(False)
         self.button_move_down.setDisabled(False)
 
+        print(row)
         if row == 0:
             self.button_move_up.setDisabled(True)
         if row == len(names) - 1:
