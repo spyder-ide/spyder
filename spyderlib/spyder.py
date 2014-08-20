@@ -1354,6 +1354,59 @@ class MainWindow(QMainWindow):
         for plugin in self.widgetlist:
             plugin.initialize_plugin_in_mainwindow_layout()
 
+    # TODO:
+    def setup_default_layouts(self, layout, default=True):
+        """Setup default window layout when run for the first time"""
+
+        prefix = ('lightwindow' if self.light else 'window') + '/'
+        (hexstate, window_size, prefs_dialog_size, pos, is_maximized,
+         is_fullscreen) = self.load_window_settings(prefix, default)
+        
+        if hexstate is None and not self.light:
+            # First Spyder execution:
+            # trying to set-up the dockwidget/toolbar positions to the best 
+            # appearance possible
+            splitting = (
+                         (self.projectexplorer, self.editor, Qt.Horizontal),
+                         (self.editor, self.outlineexplorer, Qt.Horizontal),
+                         (self.outlineexplorer, self.inspector, Qt.Horizontal),
+                         (self.inspector, self.console, Qt.Vertical),
+                         )
+            for first, second, orientation in splitting:
+                if first is not None and second is not None:
+                    self.splitDockWidget(first.dockwidget, second.dockwidget,
+                                         orientation)
+            for first, second in ((self.console, self.extconsole),
+                                  (self.extconsole, self.ipyconsole),
+                                  (self.ipyconsole, self.historylog),
+                                  (self.inspector, self.variableexplorer),
+                                  (self.variableexplorer, self.onlinehelp),
+                                  (self.onlinehelp, self.explorer),
+                                  (self.explorer, self.findinfiles),
+                                  ):
+                if first is not None and second is not None:
+                    self.tabify_plugins(first, second)
+            for plugin in [self.findinfiles, self.onlinehelp, self.console,
+                           ]+self.thirdparty_plugins:
+                if plugin is not None:
+                    plugin.dockwidget.close()
+            for plugin in (self.inspector, self.extconsole):
+                if plugin is not None:
+                    plugin.dockwidget.raise_()
+            self.extconsole.setMinimumHeight(250)
+            hidden_toolbars = [self.source_toolbar, self.edit_toolbar,
+                               self.search_toolbar]
+            for toolbar in hidden_toolbars:
+                toolbar.close()
+            for plugin in (self.projectexplorer, self.outlineexplorer):
+                plugin.dockwidget.close()
+
+        self.set_window_settings(hexstate, window_size, prefs_dialog_size, pos,
+                                 is_maximized, is_fullscreen)
+
+        for plugin in self.widgetlist:
+            plugin.initialize_plugin_in_mainwindow_layout()
+
     def quick_layout_set_menu(self):
         """ """
         get = CONF.get
@@ -1371,7 +1424,7 @@ class MainWindow(QMainWindow):
                                         self.quick_layout_switch(i))
                 ql_actions += [qli_act]
 
-        # FIXME: Add this definitions to init
+        # FIXME: Add this definitions to init? or can be defines here only?
         self.ql_save = create_action(self, _("Save current layout as..."),
                                      triggered=lambda:
                                      self.quick_layout_save())
@@ -1389,6 +1442,10 @@ class MainWindow(QMainWindow):
         else:
             self.ql_settings.setEnabled(True)
 
+    # FIXME: when run the second time it after first startup, it is 
+    # messing up the configuration maybe it is good to save this states
+    # In a default place in the quicklayouts section, so that the reset will
+    # default to this characteristics!, the question can be changed
     def reset_window_layout(self):
         """Reset window layout to default"""
         answer = QMessageBox.warning(self, _("Warning"),
@@ -1421,8 +1478,12 @@ class MainWindow(QMainWindow):
                 index = order.index(name)
             else:
                 answer = True
-                index = len(names)
-                names.append(name)
+                if None in names:
+                    index = names.index(None)
+                    names[index] = name
+                else:
+                    index = len(names)
+                    names.append(name)
                 order.append(name)
 
             # Always make active a new layout even if it overwrites an inactive
@@ -1454,6 +1515,9 @@ class MainWindow(QMainWindow):
             set_('quick_layouts', 'active', dlg.active)
             self.quick_layout_set_menu()
 
+    # FIXME: Include a condition to check if one of the default layouts was
+    # was selected for the first time and then recreate this layout in 
+    # different methods, like the setup_layout one
     def quick_layout_switch(self, index):
         """Switch to quick layout number *index*"""
         if self.current_quick_layout == index:

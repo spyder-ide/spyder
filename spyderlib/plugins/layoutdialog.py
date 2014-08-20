@@ -16,7 +16,7 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QHBoxLayout,
                                 QDialog, QGroupBox)
 from spyderlib.qt.QtCore import (Qt, QSize, SIGNAL, SLOT,
                                  QAbstractTableModel, QModelIndex)
-from spyderlib.qt.compat import (to_qvariant)
+from spyderlib.qt.compat import (to_qvariant, from_qvariant)
 from spyderlib.py3compat import to_text_string
 
 
@@ -49,8 +49,8 @@ class LayoutModel(QAbstractTableModel):
         column = index.column()
         if column in [0]:
             return Qt.ItemFlags(Qt.ItemIsEnabled |
-                                Qt.ItemIsSelectable | Qt.ItemIsUserCheckable)
-#                                | Qt.ItemIsEditable )
+                                Qt.ItemIsSelectable | Qt.ItemIsUserCheckable#)
+                                | Qt.ItemIsEditable )
         else:
             return Qt.ItemFlags(Qt.ItemIsEnabled)
 
@@ -64,7 +64,7 @@ class LayoutModel(QAbstractTableModel):
         name = self.row(row)[0]
         state = self.row(row)[1]
 
-        if role == Qt.DisplayRole:# or role == Qt.EditRole:
+        if role == Qt.DisplayRole or role == Qt.EditRole:
             if column == 0:
                 return to_qvariant(name)
         elif role == Qt.CheckStateRole:
@@ -90,11 +90,11 @@ class LayoutModel(QAbstractTableModel):
             self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
                       index, index)
             return True
-#        elif role == Qt.EditRole:
-#            self.set_row(row, [to_text_string(value), state])
-#            self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
-#                      index, index)
-#            return True
+        elif role == Qt.EditRole:
+            self.set_row(row, [from_qvariant(value, to_text_string), state])
+            self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
+                      index, index)
+            return True
         return True
 
     def rowCount(self, index=QModelIndex()):
@@ -238,12 +238,15 @@ class LayoutSettingsDialog(QDialog):
     def delete_layout(self):
         """ """
         names, order, active = self.names, self.order, self.order
-        index = self.table.selectionModel().currentIndex().row()
+        name = from_qvariant(self.table.selectionModel().currentIndex().data(),
+                             to_text_string)
 
-        # In case nothing has focus in the table
+        if name in names:
+            index = names.index(name)
+            # In case nothing has focus in the table
         if index != -1:
-            name = order.pop(index)
-            names.remove(name)
+            order.remove(name)
+            names[index] = None
             if name in active:
                 active.remove(name)
             self.names, self.order, self.active = names, order, active
@@ -252,7 +255,7 @@ class LayoutSettingsDialog(QDialog):
             self.table.setCurrentIndex(index)
             self.table.setFocus()
             self.selection_changed(None, None)
-            if len(names) == 0:
+            if len(order) == 0:
                 self.button_move_up.setDisabled(True)
                 self.button_move_down.setDisabled(True)
                 self.button_delete.setDisabled(True)
@@ -282,12 +285,21 @@ class LayoutSettingsDialog(QDialog):
         model = self.table.model()
         index = self.table.currentIndex()
         row = index.row()
-        names = self.names
-        active = self.active
+        order, names, active = self.order, self.names, self.active
 
         state = model.row(row)[1]
         name = model.row(row)[0]
 
+        # Check if name changed
+        if name not in names:  # Did changed
+            if row != -1:  # row == -1, means no items left to delete
+                old_name = order[row]
+                order[row] = name
+                names[names.index(old_name)] = name
+                if old_name in active:
+                    active[active.index(old_name)] = name
+
+        # Check if checbox clicked
         if state:
             if name not in active:
                 active.append(name)
