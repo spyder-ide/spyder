@@ -30,6 +30,7 @@ import socket
 import shutil
 import sys
 import threading
+import time
 
 
 #==============================================================================
@@ -1353,59 +1354,156 @@ class MainWindow(QMainWindow):
 
         for plugin in self.widgetlist:
             plugin.initialize_plugin_in_mainwindow_layout()
+        
+        # TODO: Organize the part below
+        # Now that the initial setup is done, copy the window settings, except
+        # for the hexstate in the quick layouts sections for the default
+        # layouts. Order and name of the default layouts is found in config.py
+        section = 'quick_layouts'
+        order = CONF.get(section, 'order')
+        for index, name, in enumerate(order):
+            prefix = 'layout_{0}/'.format(index)
+            self.save_current_window_settings(prefix, section)
+            CONF.set(section, prefix+'state', None)
+        # FIXME: Try and see
+        # Store the initial default layout to be use later in restoring 
+        # the initial options? Try and see
+        prefix = 'layout_default/'
+        self.save_current_window_settings(prefix, section)
 
     # TODO:
-    def setup_default_layouts(self, layout, default=True):
-        """Setup default window layout when run for the first time"""
+    def setup_default_layouts(self, index, settings):
+        """Setup default layouts when run for the first time"""
+        # Layout definition       
+        rstudio_layout = [[self.editor],
+                          [self.ipyconsole, self.extconsole, self.console],
+                          [self.variableexplorer, self.historylog, 
+                           self.outlineexplorer, self.findinfiles] + self.thirdparty_plugins,
+                          [self.explorer, self.projectexplorer, self.inspector,
+                           self.onlinehelp]]
+        matlab_layout = [[self.editor],
+                         [self.ipyconsole, self.extconsole, self.console],
+                         [self.variableexplorer, self.historylog, 
+                          self.outlineexplorer, self.findinfiles] + self.thirdparty_plugins,
+                         [self.explorer, self.projectexplorer, self.inspector,
+                          self.onlinehelp]]
+        vertical_layout = [[self.editor],
+                           [None],
+                           [self.ipyconsole, self.extconsole, 
+                            self.console, self.explorer, 
+                            self.projectexplorer, self.inspector, 
+                            self.variableexplorer, self.historylog, 
+                            self.outlineexplorer, self.findinfiles,
+                            self.onlinehelp]+ self.thirdparty_plugins,
+                           [None]]
+        horizontal_layout = [[self.editor],
+                             [self.ipyconsole, self.extconsole, self.console,
+                              self.variableexplorer, self.historylog, 
+                              self.outlineexplorer, self.findinfiles,
+                              self.explorer, self.projectexplorer, 
+                              self.inspector, self.onlinehelp] + self.thirdparty_plugins,
+                             [None],
+                             [None]]
+                         
+        # Layout selection
+        matlab, rstudio, vertical, horizontal = range(4) 
+        layouts = {rstudio: rstudio_layout,
+                   matlab: matlab_layout,
+                   vertical: vertical_layout,
+                   horizontal: horizontal_layout}
 
-        prefix = ('lightwindow' if self.light else 'window') + '/'
-        (hexstate, window_size, prefs_dialog_size, pos, is_maximized,
-         is_fullscreen) = self.load_window_settings(prefix, default)
+        widgets_layout = layouts[index]
+
         
-        if hexstate is None and not self.light:
-            # First Spyder execution:
-            # trying to set-up the dockwidget/toolbar positions to the best 
-            # appearance possible
-            splitting = (
-                         (self.projectexplorer, self.editor, Qt.Horizontal),
-                         (self.editor, self.outlineexplorer, Qt.Horizontal),
-                         (self.outlineexplorer, self.inspector, Qt.Horizontal),
-                         (self.inspector, self.console, Qt.Vertical),
-                         )
-            for first, second, orientation in splitting:
-                if first is not None and second is not None:
-                    self.splitDockWidget(first.dockwidget, second.dockwidget,
-                                         orientation)
-            for first, second in ((self.console, self.extconsole),
-                                  (self.extconsole, self.ipyconsole),
-                                  (self.ipyconsole, self.historylog),
-                                  (self.inspector, self.variableexplorer),
-                                  (self.variableexplorer, self.onlinehelp),
-                                  (self.onlinehelp, self.explorer),
-                                  (self.explorer, self.findinfiles),
-                                  ):
-                if first is not None and second is not None:
-                    self.tabify_plugins(first, second)
-            for plugin in [self.findinfiles, self.onlinehelp, self.console,
-                           ]+self.thirdparty_plugins:
-                if plugin is not None:
-                    plugin.dockwidget.close()
-            for plugin in (self.inspector, self.extconsole):
-                if plugin is not None:
-                    plugin.dockwidget.raise_()
-            self.extconsole.setMinimumHeight(250)
-            hidden_toolbars = [self.source_toolbar, self.edit_toolbar,
-                               self.search_toolbar]
-            for toolbar in hidden_toolbars:
-                toolbar.close()
-            for plugin in (self.projectexplorer, self.outlineexplorer):
-                plugin.dockwidget.close()
+        widgets_hidden = [self.findinfiles, self.console] + self.thirdparty_plugins
+        widgets = [item for sublist in widgets_layout for item in sublist]
+        while None in widgets:
+            widgets.remove(None)
 
-        self.set_window_settings(hexstate, window_size, prefs_dialog_size, pos,
-                                 is_maximized, is_fullscreen)
+        # Reset everything horizontally and show everything
+        for i in range(len(widgets)-1):
+            first = widgets[i-1]
+            second = widgets[i]
+            self.splitDockWidget(first.dockwidget, second.dockwidget,
+                                 Qt.Horizontal)
+
+        # Now arrange each cuadrant
+        for i in range(0, 4, 2):
+            first = widgets_layout[i][0]
+            second = widgets_layout[i+1][0]
+            if first is not None and second is not None:
+                self.splitDockWidget(first.dockwidget, second.dockwidget,
+                                     Qt.Vertical)
+        # Make everything visible now
+        for widget in widgets:
+            widget.toggle_view(True)
+            action = widget.toggle_view_action
+            action.setChecked(widget.dockwidget.isVisible())
+
+        # Tabify
+        for cuadrant in widgets_layout:
+            if cuadrant[0] is not None:
+                # Remove any None from the widget cuadrant list
+                while None in cuadrant:
+                    cuadrant.remove(None)
+                for i in range(len(cuadrant)-1):
+                    first = cuadrant[i]
+                    second = cuadrant[i+1]
+                    self.tabify_plugins(first, second)
+                    
+                    # Hide
+                    if first in widgets_hidden:
+                        first.dockwidget.close()
+                    if second in widgets_hidden:
+                        second.dockwidget.close()
+    
+                # Raise the top widgets
+                cuadrant[0].dockwidget.show()
+                cuadrant[0].dockwidget.raise_()
+
+#        self.extconsole.setMinimumHeight(250)
+
+        hidden_toolbars = [self.source_toolbar, self.edit_toolbar,
+                           self.search_toolbar]
+        for toolbar in hidden_toolbars:
+            toolbar.close()
+        for plugin in (self.projectexplorer, self.outlineexplorer):
+            plugin.dockwidget.close()
+
+        self.set_window_settings(*settings)
 
         for plugin in self.widgetlist:
             plugin.initialize_plugin_in_mainwindow_layout()
+            
+        # self = spy.window
+        # from spyderlib.qt.QtCore import QSize
+        # self.editor.resize(QSize(200,200))
+            
+        width, height = self.window_size.width(), self.window_size.height()
+        # Now fix for each configuration the symetry
+        if index == horizontal:
+            fraction = 0.45
+            cuadrants = [1] 
+        elif index == rstudio or index == matlab:
+            fraction = 0.45
+            cuadrants = [1, 3]
+        
+        if index == horizontal or index == rstudio or index == matlab:
+            for i in cuadrants:
+                widget = widgets_layout[i][0].dockwidget
+                old_max = widget.maximumHeight()
+                old_min = widget.minimumHeight()
+                widget.setMinimumHeight(int(height * fraction))
+                widget.setMaximumHeight(int(height * fraction))
+                widget.updateGeometry()
+                widget.setMinimumHeight(old_min)
+                widget.setMaximumHeight(old_max)
+
+        self.save_current_window_settings('layout_{}/'.format(index),
+                                          section='quick_layouts')            
+# FIXME: What to do here ???
+#            widget.setMaximumHeight(old_max)
+
 
     def quick_layout_set_menu(self):
         """ """
@@ -1415,7 +1513,8 @@ class MainWindow(QMainWindow):
         active = get('quick_layouts', 'active')
 
         ql_actions = [create_action(self, _('Spyder Default Layout'),
-                                    triggered=self.reset_window_layout)]
+                                    triggered=lambda:
+                                    self.quick_layout_switch('default'))]
         for name in order:
             if name in active:
                 index = names.index(name)
@@ -1431,13 +1530,15 @@ class MainWindow(QMainWindow):
         self.ql_settings = create_action(self, _("Layout settings..."),
                                          triggered=lambda:
                                          self.quick_layout_settings())
+        self.ql_reset = create_action(self, _('Reset Window Layout'),
+                                    triggered=self.reset_window_layout)
         ql_actions += [None]
-        ql_actions += [self.ql_save, self.ql_settings]
+        ql_actions += [self.ql_save, self.ql_settings, self.ql_reset]
 
         self.quick_layout_menu.clear()
         add_actions(self.quick_layout_menu, ql_actions)
 
-        if len(names) == 0:
+        if len(order) == 0:
             self.ql_settings.setEnabled(False)
         else:
             self.ql_settings.setEnabled(True)
@@ -1503,16 +1604,18 @@ class MainWindow(QMainWindow):
         """Layout settings dialog"""
         get = CONF.get
         set_ = CONF.set
+        
+        section = 'quick_layouts'
 
-        names = get('quick_layouts', 'names')
-        order = get('quick_layouts', 'order')
-        active = get('quick_layouts', 'active')
+        names = get(section, 'names')
+        order = get(section, 'order')
+        active = get(section, 'active')
 
         dlg = self.dialog_layout_settings(names, order, active)
         if dlg.exec_():
-            set_('quick_layouts', 'names', dlg.names)
-            set_('quick_layouts', 'order', dlg.order)
-            set_('quick_layouts', 'active', dlg.active)
+            set_(section, 'names', dlg.names)
+            set_(section, 'order', dlg.order)
+            set_(section, 'active', dlg.active)
             self.quick_layout_set_menu()
 
     # FIXME: Include a condition to check if one of the default layouts was
@@ -1520,21 +1623,31 @@ class MainWindow(QMainWindow):
     # different methods, like the setup_layout one
     def quick_layout_switch(self, index):
         """Switch to quick layout number *index*"""
-        if self.current_quick_layout == index:
-            self.set_window_settings(*self.previous_layout_settings)
-            self.current_quick_layout = None
-        else:
+        section = 'quick_layouts'
+#        if self.current_quick_layout == index:
+        if True:
+#            self.set_window_settings(*self.previous_layout_settings)
+#            self.current_quick_layout = None
+#        else:
             try:
-                settings = self.load_window_settings('layout_%d/' % index,
-                                                     section='quick_layouts')
+                # TODO: if state is None, then this default layout is run
+                # for the first time and the configuration needs to be setup!
+                settings = self.load_window_settings('layout_{}/'.format(index),
+                                                     section=section)
+                (hexstate, window_size, prefs_dialog_size, pos, is_maximized, 
+                 is_fullscreen) = settings
+                if hexstate is None:
+                    self.setup_default_layouts(index, settings)
+                    settings = self.load_window_settings('layout_{}/'.format(index),
+                            section=section)                 
             except cp.NoOptionError:
                 QMessageBox.critical(self, _("Warning"),
                                      _("Quick switch layout #%d has not yet "
                                        "been defined.") % index)
                 return
-            self.previous_layout_settings = self.get_window_settings()
+#            self.previous_layout_settings = self.get_window_settings()
             self.set_window_settings(*settings)
-            self.current_quick_layout = index
+#            self.current_quick_layout = index
 
     def plugin_focus_changed(self):
         """Focus has changed from one plugin to another"""
