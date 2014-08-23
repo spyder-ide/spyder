@@ -301,13 +301,12 @@ def test():
     shell = ExternalPythonShell(wdir=osp.dirname(spyderlib.__file__),
                                 ipykernel=True, stand_alone=settings,
                                 arguments="-q4thread -pylab -colors LightBG",
-                                mpl_patch_enabled=True, light_background=False)
+                                light_background=False)
 #    shell = ExternalPythonShell(wdir=osp.dirname(spyderlib.__file__),
 #                                interact=True, umd_enabled=True,
 #                                stand_alone=settings,
 #                                umd_namelist=['guidata', 'guiqwt'],
-#                                umd_verbose=True, mpl_patch_enabled=False,
-#                                light_background=False)
+#                                umd_verbose=True, light_background=False)
 #    shell = ExternalSystemShell(wdir=osp.dirname(spyderlib.__file__),
 #                                light_background=False)
     shell.shell.toggle_wrap_mode(True)

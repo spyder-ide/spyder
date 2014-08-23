@@ -2223,7 +2223,6 @@ class Spy(object):
 def run_spyder(app, options, args):
     """
     Create and show Spyder's main window
-    Patch matplotlib for figure integration
     Start QApplication event loop
     """
     #TODO: insert here

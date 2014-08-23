@@ -158,13 +158,13 @@ class ExternalPythonShell(ExternalShellBase):
                  ipykernel=False, arguments='', stand_alone=None,
                  umd_enabled=True, umd_namelist=[], umd_verbose=True,
                  pythonstartup=None, pythonexecutable=None,
-                 monitor_enabled=True, mpl_patch_enabled=True,
-                 mpl_backend=None, ets_backend='qt4', qt_api=None, pyqt_api=0,
-                 install_qt_inputhook=True, ignore_sip_setapi_errors=False,
-                 merge_output_channels=False, colorize_sys_stderr=False,
-                 autorefresh_timeout=3000, autorefresh_state=True,
-                 light_background=True, menu_actions=None,
-                 show_buttons_inside=True, show_elapsed_time=True):
+                 monitor_enabled=True, mpl_backend=None, ets_backend='qt4',
+                 qt_api=None, pyqt_api=0, install_qt_inputhook=True,
+                 ignore_sip_setapi_errors=False, merge_output_channels=False,
+                 colorize_sys_stderr=False, autorefresh_timeout=3000,
+                 autorefresh_state=True, light_background=True,
+                 menu_actions=None, show_buttons_inside=True,
+                 show_elapsed_time=True):
 
         assert qt_api in (None, 'pyqt', 'pyside')
 
@@ -178,7 +178,6 @@ class ExternalPythonShell(ExternalShellBase):
         self.pythonstartup = pythonstartup
         self.pythonexecutable = pythonexecutable
         self.monitor_enabled = monitor_enabled
-        self.mpl_patch_enabled = mpl_patch_enabled
         self.mpl_backend = mpl_backend
         self.ets_backend = ets_backend
         self.qt_api = qt_api
@@ -440,7 +439,6 @@ The process may not exit as a result of clicking this button
         
         # External modules options
         env.append('ETS_TOOLKIT=%s' % self.ets_backend)
-        env.append('MATPLOTLIB_PATCH=%r' % self.mpl_patch_enabled)
         if self.mpl_backend:
             env.append('MATPLOTLIB_BACKEND=%s' % self.mpl_backend)
         if self.qt_api:
