@@ -154,6 +154,7 @@ if sys.platform == 'darwin' and 'Spyder.app' in __file__:
 
 
 mpl_backend = os.environ.get("MATPLOTLIB_BACKEND")
+mpl_ion = os.environ.get("MATPLOTLIB_ION")
 if mpl_backend:
     try:
         import matplotlib
@@ -164,7 +165,8 @@ if mpl_backend:
             if mpl_backend == 'Qt4Agg' and sys.platform == 'darwin':
                 mpl_backend = 'MacOSX'
         matplotlib.rcParams['docstring.hardcopy'] = True
-        matplotlib.rcParams['interactive'] = True
+        if mpl_ion.lower() == "true":
+            matplotlib.rcParams['interactive'] = True
         matplotlib.use(mpl_backend)
     except ImportError:
         pass
