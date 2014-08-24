@@ -55,7 +55,7 @@ from spyderlib.py3compat import to_text_string, u
 
 
 SYMPY_REQVER = '>=0.7.0'
-dependencies.add("sympy", _("Symbolic mathematics for the IPython Console"),
+dependencies.add("sympy", _("Symbolic mathematics in the IPython Console"),
                  required_version=SYMPY_REQVER)
 
 
