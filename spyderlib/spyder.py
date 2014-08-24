@@ -534,6 +534,21 @@ class MainWindow(QMainWindow):
                                         context=Qt.ApplicationShortcut)
             self.register_shortcut(self.close_dockwidget_action, "_",
                                    "Close pane")
+            # FIXME:
+            # Custom Layouts Shortcuts
+            self.toggle_next_layout_action = create_action(self,
+                                        _("Toggle next layout"),
+                                        triggered=self.toggle_next_layout,
+                                        context=Qt.ApplicationShortcut)
+            self.toggle_previous_layout_action = create_action(self,
+                                        _("Toggle previous layout"),
+                                        triggered=self.toggle_previous_layout,
+                                        context=Qt.ApplicationShortcut)
+            self.register_shortcut(self.toggle_next_layout_action, "_",
+                                   "Toggle next layout")
+            self.register_shortcut(self.toggle_previous_layout_action, "_",
+                                   "Toggle previous layout")
+
             
             _text = _("&Find text")
             self.find_action = create_action(self, _text, icon='find.png',
@@ -1064,6 +1079,8 @@ class MainWindow(QMainWindow):
             add_actions(self.view_menu, (None, self.fullscreen_action,
                                          self.maximize_action,
                                          self.close_dockwidget_action, None,
+                                         self.toggle_previous_layout_action,
+                                         self.toggle_next_layout_action,
                                          self.quick_layout_menu))
             
             # Adding external tools action to "Tools" menu
@@ -1349,27 +1366,29 @@ class MainWindow(QMainWindow):
             for plugin in (self.projectexplorer, self.outlineexplorer):
                 plugin.dockwidget.close()
 
+            # TODO: Organize the part below
+            # Now that the initial setup is done, copy the window settings, except
+            # for the hexstate in the quick layouts sections for the default
+            # layouts. Order and name of the default layouts is found in config.py
+            section = 'quick_layouts'
+            order = CONF.get(section, 'order')
+            self.set_window_settings(hexstate, window_size, prefs_dialog_size, pos, is_maximized, is_fullscreen)
+            for index, name, in enumerate(order):
+                prefix = 'layout_{0}/'.format(index)
+                self.save_current_window_settings(prefix, section)
+                CONF.set(section, prefix+'state', None)
+            # FIXME: Try and see
+            # Store the initial default layout to be use later in restoring 
+            # the initial options? Try and see
+            prefix = 'layout_default/'
+            self.save_current_window_settings(prefix, section)
+            self.current_quick_layout = 'default'
+
         self.set_window_settings(hexstate, window_size, prefs_dialog_size, pos,
                                  is_maximized, is_fullscreen)
 
         for plugin in self.widgetlist:
             plugin.initialize_plugin_in_mainwindow_layout()
-        
-        # TODO: Organize the part below
-        # Now that the initial setup is done, copy the window settings, except
-        # for the hexstate in the quick layouts sections for the default
-        # layouts. Order and name of the default layouts is found in config.py
-        section = 'quick_layouts'
-        order = CONF.get(section, 'order')
-        for index, name, in enumerate(order):
-            prefix = 'layout_{0}/'.format(index)
-            self.save_current_window_settings(prefix, section)
-            CONF.set(section, prefix+'state', None)
-        # FIXME: Try and see
-        # Store the initial default layout to be use later in restoring 
-        # the initial options? Try and see
-        prefix = 'layout_default/'
-        self.save_current_window_settings(prefix, section)
 
     # TODO:
     def setup_default_layouts(self, index, settings):
@@ -1378,13 +1397,15 @@ class MainWindow(QMainWindow):
         rstudio_layout = [[self.editor],
                           [self.ipyconsole, self.extconsole, self.console],
                           [self.variableexplorer, self.historylog, 
-                           self.outlineexplorer, self.findinfiles] + self.thirdparty_plugins,
+                           self.outlineexplorer, 
+                           self.findinfiles] + self.thirdparty_plugins,
                           [self.explorer, self.projectexplorer, self.inspector,
                            self.onlinehelp]]
         matlab_layout = [[self.editor],
                          [self.ipyconsole, self.extconsole, self.console],
                          [self.variableexplorer, self.historylog, 
-                          self.outlineexplorer, self.findinfiles] + self.thirdparty_plugins,
+                          self.outlineexplorer, 
+                          self.findinfiles] + self.thirdparty_plugins,
                          [self.explorer, self.projectexplorer, self.inspector,
                           self.onlinehelp]]
         vertical_layout = [[self.editor],
@@ -1401,7 +1422,8 @@ class MainWindow(QMainWindow):
                               self.variableexplorer, self.historylog, 
                               self.outlineexplorer, self.findinfiles,
                               self.explorer, self.projectexplorer, 
-                              self.inspector, self.onlinehelp] + self.thirdparty_plugins,
+                              self.inspector, 
+                              self.onlinehelp] + self.thirdparty_plugins,
                              [None],
                              [None]]
                          
@@ -1420,7 +1442,7 @@ class MainWindow(QMainWindow):
         while None in widgets:
             widgets.remove(None)
 
-        # Reset everything horizontally and show everything
+        # Reset everything horizontally
         for i in range(len(widgets)-1):
             first = widgets[i-1]
             second = widgets[i]
@@ -1501,10 +1523,48 @@ class MainWindow(QMainWindow):
 
         self.save_current_window_settings('layout_{}/'.format(index),
                                           section='quick_layouts')            
-# FIXME: What to do here ???
-#            widget.setMaximumHeight(old_max)
+        # FIXME: What to do here to get the layout to display symmetricaly 
 
 
+    def toggle_previous_layout(self):
+        """ """
+        self.toggle_layout('previous')
+
+    def toggle_next_layout(self):
+        """ """
+        self.toggle_layout('next')
+
+    def toggle_layout(self, direction='next'):
+        """ """
+        print(direction)
+        get = CONF.get
+        names = get('quick_layouts', 'names')
+        order = get('quick_layouts', 'order')
+        active = get('quick_layouts', 'active')
+        
+        if len(active) == 0:
+            return
+
+        layout_index = ['default']            
+        for name in order:
+            if name in active:
+                layout_index.append(names.index(name))
+        
+        current_layout = self.current_quick_layout
+        dic = {'next': 1, 'previous': -1}
+        
+        if current_layout is None:
+            # Start from default
+            current_layout = 'default'
+            
+        if current_layout in layout_index:
+            current_index = layout_index.index(current_layout)
+        else:
+            current_index = 0
+
+        new_index = (current_index + dic[direction]) % len(layout_index)
+        self.quick_layout_switch(layout_index[new_index])
+                                             
     def quick_layout_set_menu(self):
         """ """
         get = CONF.get
@@ -1526,22 +1586,30 @@ class MainWindow(QMainWindow):
         # FIXME: Add this definitions to init? or can be defines here only?
         self.ql_save = create_action(self, _("Save current layout as..."),
                                      triggered=lambda:
-                                     self.quick_layout_save())
-        self.ql_settings = create_action(self, _("Layout settings..."),
+                                     self.quick_layout_save(),
+                                     context=Qt.ApplicationShortcut)
+        self.ql_preferences = create_action(self, _("Layout preferences..."),
                                          triggered=lambda:
-                                         self.quick_layout_settings())
-        self.ql_reset = create_action(self, _('Reset Window Layout'),
+                                         self.quick_layout_settings(),
+                                         context=Qt.ApplicationShortcut)
+        self.ql_reset = create_action(self, _('Reset window layout'),
                                     triggered=self.reset_window_layout)
+
+
+        self.register_shortcut(self.ql_save, "_", "Save current layout")
+        self.register_shortcut(self.ql_preferences, "_",
+                               "Layout preferences")
+
         ql_actions += [None]
-        ql_actions += [self.ql_save, self.ql_settings, self.ql_reset]
+        ql_actions += [self.ql_save, self.ql_preferences, self.ql_reset]
 
         self.quick_layout_menu.clear()
         add_actions(self.quick_layout_menu, ql_actions)
 
         if len(order) == 0:
-            self.ql_settings.setEnabled(False)
+            self.ql_preferences.setEnabled(False)
         else:
-            self.ql_settings.setEnabled(True)
+            self.ql_preferences.setEnabled(True)
 
     # FIXME: when run the second time it after first startup, it is 
     # messing up the configuration maybe it is good to save this states
@@ -1647,7 +1715,7 @@ class MainWindow(QMainWindow):
                 return
 #            self.previous_layout_settings = self.get_window_settings()
             self.set_window_settings(*settings)
-#            self.current_quick_layout = index
+            self.current_quick_layout = index
 
     def plugin_focus_changed(self):
         """Focus has changed from one plugin to another"""
