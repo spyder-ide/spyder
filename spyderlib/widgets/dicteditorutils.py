@@ -30,11 +30,12 @@ try:
 except ImportError:
     ndarray = array = matrix = MaskedArray = FakeObject  # analysis:ignore
 
-Pandas_REQVER = '>=0.13.1'
-dependencies.add('pandas',
-                 _("For viewing and editing pandas DataFrames and Series"),
-                 required_version=Pandas_REQVER)
-if programs.is_module_installed('pandas', '>=0.13.1'):
+
+PANDAS_REQVER = '>=0.13.1'
+dependencies.add('pandas',  _("View and edit DataFrames and Series in the "
+                              "Variable Explorer"),
+                 required_version=PANDAS_REQVER)
+if programs.is_module_installed('pandas', PANDAS_REQVER):
     from pandas import DataFrame, TimeSeries
 else:
     DataFrame = TimeSeries = FakeObject      # analysis:ignore
