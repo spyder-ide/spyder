@@ -472,8 +472,11 @@ DEFAULTS = [
               '_/preferences': "Ctrl+Alt+Shift+P",
               '_/maximize pane': "Ctrl+Alt+Shift+M",
               '_/fullscreen mode': "F11",
-              '_/set next active layout': "Ctrl+Shift+PageUp",
-              '_/set previous active layout': "Ctrl+Shift+PageDown",
+              '_/toggle next layout': "Shift+Alt+PgDown",
+              '_/toggle previous layout': "Shift+Alt+PgUp",
+              '_/save current layout': "Shift+Alt+S",
+              '_/toggle default layout': "Shift+Alt+Home",
+              '_/layout preferences': "Shift+Alt+P",              
               '_/quit': "Ctrl+Q",              
               # -- In plugins/editor
               '_/debug step over': "Ctrl+F10",
