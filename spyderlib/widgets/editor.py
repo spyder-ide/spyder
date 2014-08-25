@@ -642,6 +642,7 @@ class EditorStack(QWidget):
         self.checkeolchars_enabled = True
         self.always_remove_trailing_spaces = False
         self.fullpath_sorting_enabled = None
+        self.focus_to_editor = True
         self.set_fullpath_sorting_enabled(False)
         ccs = 'Spyder'
         if ccs not in syntaxhighlighters.COLOR_SCHEME_NAMES:
@@ -1089,6 +1090,8 @@ class EditorStack(QWidget):
         # CONF.get(self.CONF_SECTION, 'always_remove_trailing_spaces')
         self.always_remove_trailing_spaces = state
             
+    def set_focus_to_editor(self, state):
+        self.focus_to_editor = state
     
     #------ Stacked widget management
     def get_stack_index(self):
@@ -1984,23 +1987,31 @@ class EditorStack(QWidget):
 
     #------ Run
     def run_selection(self):
-        """Run selected text in console and set focus to console"""
+        """Run selected text or current line in console"""
         text = self.get_current_editor().get_selection_as_executable_code()
-        if text:
-            self.emit(SIGNAL('exec_in_extconsole(QString,bool)'), text, False)
+        if not text:
+            line = self.get_current_editor().get_current_line()
+            text = line.lstrip()
+        self.emit(SIGNAL('exec_in_extconsole(QString,bool)'), text, 
+                         self.focus_to_editor)
 
-    def run_cell(self, focus_to_editor=False):
+    def run_cell(self):
         """Run current cell"""
         text = self.get_current_editor().get_cell_as_executable_code()
         finfo = self.get_current_finfo()
         if finfo.editor.is_python() and text:
             self.emit(SIGNAL('exec_in_extconsole(QString,bool)'),
-                      text, focus_to_editor)
+                      text, self.focus_to_editor)
 
     def run_cell_and_advance(self):
         """Run current cell and advance to the next one"""
-        self.run_cell(focus_to_editor=True)
-        self.get_current_editor().go_to_next_cell()
+        self.run_cell()
+        if self.focus_to_editor:
+            self.get_current_editor().go_to_next_cell()
+        else:
+            term = QApplication.focusWidget()
+            self.get_current_editor().go_to_next_cell()
+            term.setFocus()
             
     #------ Drag and drop
     def dragEnterEvent(self, event):

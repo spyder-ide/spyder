@@ -769,7 +769,10 @@ class ObjectInspector(SpyderPluginWidget):
         img_path = osp.join(tutorial_path, 'static', 'images')
         tutorial = osp.join(tutorial_path, 'tutorial.rst')
         text = open(tutorial).read()
-        self.show_rich_text(text, collapse=True, img_path=img_path)
+        if sphinxify is not None:
+            self.show_rich_text(text, collapse=True, img_path=img_path)
+        else:
+            self.show_plain_text(text)
 
     def handle_link_clicks(self, url):
         url = to_text_string(url.toString())

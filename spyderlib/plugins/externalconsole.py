@@ -45,14 +45,6 @@ MPL_REQVER = '>=1.0'
 dependencies.add("matplotlib", _("Interactive data plotting"),
                  required_version=MPL_REQVER)
 
-def is_mpl_patch_available():
-    """Return True if Matplotlib patch is available"""
-    if programs.is_module_installed('matplotlib'):
-        from spyderlib import mpl_patch
-        return mpl_patch.is_available()
-    else:
-        return False
-
 
 class ExternalConsoleConfigPage(PluginConfigPage):
     def __init__(self, plugin, parent):
@@ -316,12 +308,10 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                 _("API selection for QString and QVariant objects:"),
                 ((_("Default API"), 0), (_("API #1"), 1), (_("API #2"), 2)),
                 'pyqt/api_version', default=0,
-                tip=_("PyQt API #1 is the default API for<br>"
-                      "Python 2. PyQt API #2 is the default "
-                      "API for Python 3 and is compatible with "
-                      "PySide. Note that switching to API #2 "
-                      "may require to enable the Matplotlib "
-                      "patch."))
+                tip=_("PyQt API #1 is the default <br>"
+                      "API for Python 2. PyQt API #2 is "
+                      "the default API for Python 3 and "
+                      "is compatible with PySide."))
             ignore_api_box = newcb(_("Ignore API change errors (sip.setapi)"),
                                      'pyqt/ignore_sip_setapi_errors',
                                tip=_("Enabling this option will ignore <br>"
@@ -358,24 +348,10 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         mpl_backend_layout.addWidget(mpl_backend_edit)
         mpl_backend_edit.setEnabled(
                                 self.get_option('matplotlib/backend/enabled'))
-        mpl_patch_box = newcb(_("Patch Matplotlib figures"),
-                              'matplotlib/patch', False)
-        mpl_patch_label = QLabel(_("Patching Matplotlib library will add a "
-                                   "button to customize figure options "
-                                   "(Qt4Agg only) and fix some issues."))
-        mpl_patch_label.setWordWrap(True)
-        self.connect(mpl_patch_box, SIGNAL("toggled(bool)"),
-                     mpl_patch_label.setEnabled)
-        
         mpl_installed = programs.is_module_installed('matplotlib')
-        if not is_mpl_patch_available():
-            mpl_patch_box.hide()
-            mpl_patch_label.hide()
         
         mpl_layout = QVBoxLayout()
         mpl_layout.addLayout(mpl_backend_layout)
-        mpl_layout.addWidget(mpl_patch_box)
-        mpl_layout.addWidget(mpl_patch_label)
         mpl_group.setLayout(mpl_layout)
         mpl_group.setEnabled(mpl_installed)
         
@@ -798,8 +774,6 @@ class ExternalConsole(SpyderPluginWidget):
             else:
                 pythonstartup = self.get_option('pythonstartup', None)
             monitor_enabled = self.get_option('monitor/enabled')
-            mpl_patch_enabled = is_mpl_patch_available() and\
-                                self.get_option('matplotlib/patch')
             if self.get_option('matplotlib/backend/enabled'):
                 mpl_backend = self.get_option('matplotlib/backend/value')
             else:
@@ -809,7 +783,7 @@ class ExternalConsole(SpyderPluginWidget):
             if qt_api not in ('pyqt', 'pyside'):
                 qt_api = None
             install_qt_inputhook = self.get_option('qt/install_inputhook')
-            pyqt_api = self.get_option('pyqt/api_version', 0)
+            pyqt_api = self.get_option('pyqt/api_version')
             ignore_sip_setapi_errors = self.get_option(
                                             'pyqt/ignore_sip_setapi_errors')
             merge_output_channels = self.get_option('merge_output_channels')
@@ -845,7 +819,6 @@ class ExternalConsole(SpyderPluginWidget):
                            umd_enabled=umd_enabled, umd_namelist=umd_namelist,
                            umd_verbose=umd_verbose, ets_backend=ets_backend,
                            monitor_enabled=monitor_enabled,
-                           mpl_patch_enabled=mpl_patch_enabled,
                            mpl_backend=mpl_backend,
                            qt_api=qt_api, pyqt_api=pyqt_api,
                            install_qt_inputhook=install_qt_inputhook,
