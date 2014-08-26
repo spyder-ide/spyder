@@ -42,7 +42,7 @@ from spyderlib.py3compat import to_text_string, is_text_string, getcwd
 from spyderlib import dependencies
 
 MPL_REQVER = '>=1.0'
-dependencies.add("matplotlib", _("Interactive data plotting"),
+dependencies.add("matplotlib", _("Interactive data plotting in the consoles"),
                  required_version=MPL_REQVER)
 
 

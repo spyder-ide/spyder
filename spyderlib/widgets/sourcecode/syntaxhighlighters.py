@@ -27,8 +27,8 @@ from spyderlib.widgets.sourcecode.base import CELL_SEPARATORS
 
 
 PYGMENTS_REQVER = '>=1.6'
-dependencies.add("pygments", _("Syntax highlighting for Matlab and other file "
-                               "types"),
+dependencies.add("pygments", _("Syntax highlighting for Matlab, Julia and other "
+                               "file types"),
                  required_version=PYGMENTS_REQVER)
 
 
