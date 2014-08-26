@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
 "POT-Creation-Date: 2014-07-02 12:54+COT\n"
-"PO-Revision-Date: 2014-07-05 09:55-0500\n"
+"PO-Revision-Date: 2014-08-25 22:13-0500\n"
 "Last-Translator: Carlos Cordoba <ccordoba12@gmail.com>\n"
 "Language-Team: Python\n"
 "Language: es\n"
@@ -1679,7 +1679,7 @@ msgstr "Máximo número de entradas"
 
 #: spyderlib/plugins/inspector.py:55
 msgid "Rich text help on the Object Inspector"
-msgstr "Ayuda en texto enriquecido en el Insp. de Objetos"
+msgstr "Ayuda en texto enriquecido en el Inspector de Objetos"
 
 #: spyderlib/plugins/inspector.py:119
 msgid "Plain text font style"
