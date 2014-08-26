@@ -335,10 +335,6 @@ class SphinxThread(QThread):
                     self.emit(SIGNAL('error_msg(QString)'),
                               to_text_string(error))
                     return
-            else:
-                error = _("It's not possible to render the text you provided")
-                self.emit(SIGNAL('error_msg(QString)'), error)
-                return     
         self.emit(SIGNAL('html_ready(QString)'), html_text)
 
 
