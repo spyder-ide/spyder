@@ -2,7 +2,7 @@
 Spyder - the Scientific PYthon Development EnviRonment
 ======================================================
 
-Spyder is an Integrated Development Environment (IDE) for scientific
+*Spyder* is an Integrated Development Environment (IDE) for scientific
 computing using the Python programming language. It comes with an
 Editor to write code, a Console to evaluate it and see its results at
 any time, a Variable Explorer to see what variables have been defined
@@ -10,80 +10,74 @@ during evaluation, and several other facilities to help you to
 effectively develop the programs you need as a scientist.
 
 
-In recent years, Spyder has developed into a fairly mature and very
-productive tool. This documentation, authored by 
-`Hans Fangohr <http://www.southampton.ac.uk/~fangohr>`__ 
-from the University of
-Southampton (UK) originated from training courses in Python and
-Computational Modelling for students at the University of Southampton
-(see `historical note`_ for more detail).
+This tutorial is authored by
+`Hans Fangohr <http://www.southampton.ac.uk/~fangohr>`__ from the
+University of Southampton (UK) (see `historical note`_ for more
+detail).
 
 
 First steps with Spyder
 #######################
 
+This section is aimed at Python and Spyder beginners. If you find it too
+simple, please continue to the next section.
+
 Execute a given program
 -----------------------
 
-We use this program as an example:
+* We are going to use this program as a first example:
 
-.. include:: static/code/python/spyder/hello.py
-   :literal:
+  .. code-block:: python
 
-* Get the hello world file into the Spyder editor window by
+     # Demo file for Spyder Tutorial
+     # Hans Fangohr, University of Southampton, UK
 
-  * clicking on `hello.py <static/code/python/spyder/hello.py>`__ to see the
-    source code in the webbrowser, then copy the whole code, and
+     def hello():
+         """Print "Hello World" and return None"""
+         print("Hello World")
 
-  * navigate to the editor window in spyder and paste the code. Then
-    save the file as ``hello.py``.
+     # main program starts here
+     hello()
 
+* To use this program, please create a new file in the Spyder editor pane. Then copy
+  and paste the code inside the box above on the file, and the save it with the name
+  ``hello.py``.
 
-* To execute the program, select ``Run > Run`` (or press F5), and
+* To execute the program, select ``Run > Run`` from the menu (or press F5), and
   confirm the ``Run settings`` if required.
 
-  You should see output like::
+  If this is your first time, you should see an output like this::
 
+    In [1]: runfile('/Users/fangohr/Desktop/hello.py', wdir=r'/Users/fangohr/Desktop')
     Hello World
-    >>>
-
-  or (the particular path will depend on where you have saved the
-  file, but this is inserted by Spyder automatically)::
-
-    >>> runfile('/Users/fangohr/Desktop/hello.py', wdir=r'/Users/fangohr/Desktop')
-    Hello World
-    >>>
+    
+    In [2]:
 
   If so, then you have just run your first Python program - well done.
 
-
-Start IPython
-~~~~~~~~~~~~~
-
-Before we proceed, please
-
-* `Switch to an IPython console`_
-
-  The IPython console can do a little more than the standard Python
-  console, and we suggest to use it as the default console here.
-
-  In the IPython interpreter session that we have just started, you can use
-  ``Run > Run`` (as before) to execute ``hello.py`` and you should see::
-
-    In [1]: runfile('/Users/fangohr/Desktop/hello.py', wdir='/Users/fangohr/Desktop')
-    Hello World
+  .. note::
+  
+     The particular path shown next to ``runfile`` will depend on where you have saved
+     the file, but this is inserted by Spyder automatically.
 
 
-Background information: What happens when you execute the program?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Use the IPython Console
+~~~~~~~~~~~~~~~~~~~~~~~
 
-* Python reads the file line by line, ignoring comments
+Before we proceed, we recommend you to use the IPython console. This console can do a
+little more than the standard Python console, and we suggest to use it as the default
+console here.
+
+
+What happens when you execute the program?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* Python reads the file line by line, ignoring comments (i.e. lines starting
+  with the ``#`` symbol).
 
 * When it comes across the ``def`` keyword, it knows that a function
-  is DEFined in this and the next (one or more) lines. In the
-  ``hello.py`` file, Python thus creates a *function object* with name
-  ``hello``. All *indented* lines following ``def hello():`` belong to
-  the function body.
+  is DEFined in this and the next (one or more) lines. All *indented* lines
+  following ``def hello():`` belong to the function body.
 
   Note that the function object is just created at this point in the
   file, but the function is not yet called (i.e. not executed).
@@ -94,15 +88,14 @@ Background information: What happens when you execute the program?
   line reading ``hello()`` which will actually call (i.e. *execute*)
   the function with name ``hello``.
 
-  If you remove the line ``hello()`` from the program and run the whole file
-  again (by pressing F5, or selecting ``Run > Run``), nothing will be
-  printed (because the function ``hello`` is defined, but not called,
+  If you comment or remove the line ``hello()`` from the program and run
+  the whole file again (by pressing F5, or selecting ``Run > Run``), nothing
+  will be printed (because the function ``hello`` is defined, but not called,
   i.e. not executed).
 
 
 Now you should know how to execute a Python program that you have in
-the editor window in Spyder using the Python Console, and the more
-sophisticated IPython Console.
+the editor pane in Spyder using the IPython console.
 
 If you are just starting to learn Python, this is probably a good
 point to return to your text book / course and look at more basic
@@ -110,30 +103,28 @@ examples.
 
 
 The next section gives more detailed information how you can execute
-*parts* of the code in the editor in the Python console, and thus
+*parts* of the code in the editor in the IPython console, and thus
 update parts of your definitions in the editor. This is a more
 advanced technique but can be very useful. (You may also be interested
 in the option to execute chunks (so-called "cells") of code that are
-seperated by delimiters -- see `Shortcuts for useful functions`_.)
+separated by delimiters -- see `Shortcuts for useful functions`_.)
 
 
 
-Call existing function objects from the command line
-----------------------------------------------------
+Call existing functions in the console
+--------------------------------------
 
 Once you have executed the ``hello.py`` program, the function object ``hello``
-is defined and known at the Python prompt. We can thus call the function from
-the Python prompt:
+is defined and known to the IPython console. We can thus call the function from
+the console like this:
 
-* Call the ``hello()`` function from the Python prompt, i.e. type
-  ``hello()`` in the Python Shell window (the Python prompt shows as
-  ``>>>``, or as ``In [?]`` if we use the IPython session where the
-  question mark can be any positive integer number.), and press the
-  return key.
+* Type ``hello()`` in the console (next to ``In [?]`` prompt, where
+  the question mark can be any positive integer number), and press the
+  ``Enter`` key.
 
   You should find that the ``hello()`` function is executed again,
   i.e. ``Hello World`` is printed again. Your function call at the
-  Python prompt together with the output should look like this::
+  console together with the output should look like this::
 
     In [ ]: hello()
     Hello World
@@ -142,27 +133,27 @@ the Python prompt:
 
   When we execute the whole program (by pressing F5), Python goes
   through the file, creates the ``hello`` function object (overriding
-  the previous object), reaches the main program and calls the
+  the previous object), reaches the ``hello()`` line and calls the
   function.
 
-  When we call ``hello()`` from the Python prompt, we only call the
-  function objects ``hello`` that has been defined in the (I)Python
+  When we call ``hello()`` in the console, we only call the
+  function object ``hello`` that has been defined in the IPython
   console when we executed the whole ``hello.py`` file earlier (by
-  pressing ``F5``).
+  pressing F5).
 
   This will become clearer over time and also when we work with
   slightly larger examples. You may want to return to this tutorial at
   a slightly later stage.
 
 
-Inspecting objects
-------------------
+Inspecting objects defined in the console
+-----------------------------------------
 
-* Python provides a function that displays all known objects (in the
-  current name space). It is called ``dir()``: when you type ``dir()``
-  at the prompt, you get a list of known objects. Ignore everything
-  starting with an underscore for now. Can you see ``hello`` in the
-  list?
+* Python provides a function that displays all known objects in the
+  current name space of the console. It is called ``dir()``: when you
+  type ``dir()`` at the console, you get a list of known objects. Ignore
+  everything starting with an underscore for now. Can you see ``hello``
+  in the list?
 
   .. note::
 
@@ -172,14 +163,14 @@ Inspecting objects
 
     - `Reset the name space`_ 
 
-    - execute the file ``hello.py`` again by pressing F5
+    - Execute ``hello.py`` again by pressing F5
 
     Then run ``dir()`` as suggested above.
 
 * Once an object is visible in the current name space (as is ``hello``
   in this example), we can use the ``help`` function as follows to
-  learn about it: Type ``help(hello)`` at the Python prompt, you
-  should see output like this::
+  learn about it: Typing ``help(hello)`` at the console prompt, you
+  should see an output like this::
 
     In [ ]: help(hello)
     Help on function hello in module __main__:
@@ -195,7 +186,7 @@ Inspecting objects
   for the function object ``hello``. The documentation string is the
   first string immediately below the line ``def hello():``.
 
-  This strings are special, and they are called *docstring* which is short for
+  This strings are special, and they are called *docstrings* which is short for
   *documentation strings*. As they usually extend over multiple lines, there
   are enclosed by triple single quotes (``'''``) or triple double quotes
   (``"""``).
@@ -211,7 +202,7 @@ Inspecting objects
   .. image:: static/images/spyder-hello-docstring.png
        :align: center
 
-  This works in the console and in the editor (as of `Spyder version`_ 2.3).
+  This works in the console and in the editor.
 
 Updating objects
 ----------------
@@ -237,30 +228,29 @@ Looking at the details
 ~~~~~~~~~~~~~~~~~~~~~~
 
 We need to start with a clearly defined state. To do this, please change the
-function ``hello()`` back so that it prints ``Hello World`` (i.e. use the
-original `hello.py <static/code/python/spyder/hello.py>`__ file), then press
+function ``hello()`` back so that it prints ``Hello World``, then press
 F5 to run the whole program and check that it prints ``Hello World``.
 
 * Call the function ``hello()`` from the command prompt (as described
-  in `Call existing function objects from the command line`_). You
+  in `Call existing functions in the console`_). You
   should see ``Hello World`` printed.
 
 * Now change the function definition so that it would print ``Laters
   World``, and save the file (but do NOT execute the program, i.e. do
   NOT press F5 yet).
 
-* Call the function ``hello()`` from the command prompt again. You
+* Call the function ``hello()`` in the console again. You
   should find that the text printed reads ``Hello World``, like here
   ::
 
     In [ ]: hello()
     Hello World
 
-  Why is this so? Because the ``hello`` function object in the Python
-  *interpreter* is the old one which prints ``Hello World``. So far, we have
+  Why is this so? Because the ``hello`` function object in the console
+  is the old one which prints ``Hello World``. So far, we have
   changed the file ``hello.py`` (and replaced ``Hello World`` in there with
   ``Laters World``) in the editor but this has not affected the objects that
-  have previously been created in the Python interpreter.
+  have previously been created in the console.
 
 Here are two possibilities to use our modified version of the ``hello``
 function:
@@ -272,9 +262,9 @@ function:
 
 * Option 2: select the region you have changed (in this case the whole
   function ``hello``, starting from the line ``def hello():`` down to
-  ``return None``, and then select ``Run > Run selection``.
+  ``print("Laters Wold")``, and then select ``Run > Run selection``.
 
-  This will update the ``hello`` object in the interpreter without
+  This will update the ``hello`` object in the console without
   having to execute the whole ``hello.py`` file::
 
      In [ ]: def hello():
@@ -288,13 +278,13 @@ function:
      Laters world
 
 The ability to execute *parts of the code* to update some objects in
-the interpreter (in the example above, we updated the function object
+the console (in the example above, we updated the function object
 ``hello``), is of great use when developing and debugging more complex
-codes, and when creating objects/data in the interpreter session take
+codes, and when creating objects/data in the console session take
 time. For example, by modifying only the functions (or
 classes/objects, etc) that we are actually developing or debugging, we
 can keep re-using the data and other objects that are defined in the
-interpreter session.
+console session.
 
 
 
