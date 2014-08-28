@@ -200,7 +200,7 @@ img.align-center {
 
 /* --- Lists style --- */
 ol.arabic {
-    margin-left: -35px;
+    margin-left: -10px;
 }
 
 ul {
@@ -301,6 +301,23 @@ tt {
     background-color: #ECF0F3;
     /*font-size: 95%;*/
     padding: 0px 1px;
+}
+
+
+
+div.admonition.note {
+    font-size: 0.95em;
+    margin: 1.3em;
+    border: 1px solid #BCE8F1;
+    background-color: #D9EDF7;
+    padding: 0px 5px 0 5px;
+    color: #3A87AD;
+}
+
+div.admonition p.admonition-title {
+    font-size: 1em;
+    margin-top: 7px;
+    font-weight: bold;
 }
 
 
