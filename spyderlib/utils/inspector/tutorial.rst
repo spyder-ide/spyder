@@ -291,10 +291,9 @@ console session.
 Recommended first steps for Python beginners
 ############################################
 
-To teach and learn Python programming, we recommend
-here to use IPython instead of the normal Python interpreter.
-This accepts IPython as the de-facto
-standard and helps to better understand namespaces.
+To teach and learn Python programming, we recommend here to use IPython
+instead of the normal Python interpreter. This accepts IPython as the
+de-facto standard in the scientific Python community.
 
 Switch to an IPython console
 ----------------------------
@@ -307,20 +306,21 @@ default a prompt with three greater than signs, i.e. ``>>>``. This
 shows that we are using the ``console`` -- basically a normal Python
 interpreter session (with some added functionality from Spyder).
 
-Instead, we would like to use an *Interactive Python* shell, short *IPython*
+Instead, we would like to use an *Interactive Python* console, short *IPython*
 from the `IPython project <http://www.ipython.org>`__. To do this, select
-``Interpreters`` > ``Open an IPython Console``.
+``Consoles > Open an IPython Console``.
 
 You should see in the consolse window a new shell appearing, and the
-IPython prompt ``In [``\ **1**\ ``]:`` should be displayed.
+IPython prompt ``In [1]:`` should be displayed.
 
 
 Reset the name space
 --------------------
 
 The `name space <http://bytebaker.com/2008/07/30/python-namespaces/>`__
-can be cleared in IPython using the ``%reset``
-command. Type ``%reset`` and press return, then confirm with ``y``::
+(i.e. the collection of objects defined in the console at any given time)
+can be cleared in IPython using the ``%reset`` command. Type ``%reset``
+and press return, then confirm with ``y``::
 
   In [1]: %reset
 
@@ -361,16 +361,17 @@ command, use can use ``%reset -f`` instead of ``%reset``.
 Strive for PEP8 Compliance
 --------------------------
 
-In addition to the Syntax that is enforced by Python, there are
-additional conventions regarding the layout of source code, in
-particular the `Style Guide for Python source code
+In addition to the syntax that is enforced by the Python programming
+language, there are additional conventions regarding the layout of
+the source code, in particular the `Style Guide for Python source code 
 <http://www.python.org/dev/peps/pep-0008/>`__ known as "PEP8". By
-writing code in the same style, it becomes easier to read, and
-thus easier to debug and re-use - both for the original author
-and others.
+following this guide and writing code in the same style as almost all
+Python programmers do, it becomes easier to read, and thus easier to
+debug and re-use -- both for the original author and others.
 
 You should change Spyders settings to
 `Warn if PEP8 coding guidelines are violated`_.
+
 
 
 Selected Preferences
