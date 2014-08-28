@@ -199,15 +199,13 @@ img.align-center {
 
 
 /* --- Lists style --- */
-li p span {
-    position: relative;
-    left: -9px;
-}
-
 ol.arabic {
-    margin-left: -8px;
+    margin-left: -35px;
 }
 
+ul {
+    margin-left: -5px;
+}
 
 /* --- Literal blocks style --- */
 pre.literal-block {
@@ -301,7 +299,7 @@ dt {
 
 tt {
     background-color: #ECF0F3;
-    font-size: 95%;
+    /*font-size: 95%;*/
     padding: 0px 1px;
 }
 
