@@ -388,8 +388,6 @@ operating system:
 
 * On Mac OS, go to ``Python/Spyder > Preferences``
 
-
-
 Warn if PEP8 coding guidelines are violated
 -------------------------------------------
 
@@ -397,15 +395,14 @@ Go to ``Preferences > Editor > Code
 Introspection/Analysis`` and
 select the tickbox next to ``Style analysis (PEP8)``
 
-
 Automatic Symbolic Python
 -------------------------
 
 Through ``Preferences > IPython console > Advanced Settings > Use
 symbolic math`` we can activate IPython's SYMbolic PYthon (sympy) mode that is
 provided by the `sympy <http://sympy.org>`__ module. This mode
-in Spyder allows nicely rendered sympy output (latex style) and also imports
-some sympy objects automatically when the IPython console starts, and
+in Spyder allows nicely rendered mathematical output (latex style) and also
+imports some sympy objects automatically when the IPython console starts, and
 reports what it has done.
 
 .. code-block:: python
@@ -422,20 +419,43 @@ We can then use the variables ``x``, ``y``, for example like this:
 .. image:: static/images/spyder-sympy-example.png
      :align: center
 
+
+
 Shortcuts for useful functions
 ##############################
 
-- F5 executes the current file
+- ``F5`` executes the current file
 
-- F9 executes the currently highlighted chunk of code: this is very   useful
+- ``F9`` executes the currently highlighted chunk of code: this is very useful
   to update definitions of functions (say) in the interpreter session without
-  having to run the whole file again
+  having to run the whole file again. If nothing is selected ``F9`` executes
+  the current line.
 
-- ``CTRL + <RETURN>`` executes the current cell (menu enty ``Run > Run
-  cell``). A cell is defined as the   code between two lines which start with
+- ``Tab`` auto-completes commands, function names, variable
+  names, methods in the Console (both Python and IPython) and in the
+  Editor. This feature is very useful, and should be used
+  routinely. Do try it now if auto-completion is new to you. 
+  Assume you have defined a variable::
+
+    mylongvariablename = 42
+
+  Suppose we need to write code that computes ``mylongvariablename +
+  100``, we can simply type ``my`` and then press the ``Tab`` key. The
+  full variable name will be completed and inserted at the cursor
+  position if the name is unique, and then we can carry on and type
+  ``+ 100``. If the name is not uniquely identifiable given the
+  letters ``my``, a list field will be displayed from which the right
+  variable can be chosen. Choosing from the list can be done with the
+  ``<Arrow up>`` key and ``<Arrow down>`` key and the ``Enter``
+  key to select, or by typing more letters of the name in question
+  (the selection will update automatically) and confirming by pressing
+  ``Enter`` when the right name is identified.
+
+- ``Ctrl+Enter`` executes the current cell (menu enty ``Run > Run
+  cell``). A cell is defined as the code between two lines which start with
   the agreed tag ``#%%``.
 
-- ``SHIFT + <RETURN>`` executes the current cell and advances the
+- ``Shift+Enter`` executes the current cell and advances the
   cursor to the next cell (menu entry ``Run > Run cell and
   advance``).
 
@@ -443,54 +463,35 @@ Shortcuts for useful functions
   units. (It is a little bit like a cell in an IPython notebook, in
   that chunks of code can be run independently.)
 
-- ``ALT + <CURSOR UP>`` moves the current line up. If multiple lines are
-  highlighted, they are moved up together. ``ALT+<CURSOR DOWN>``
+- ``Alt+<Up Arrow>`` moves the current line up. If multiple lines are
+  highlighted, they are moved up together. ``Alt+<Down arrow>``
   works correspondingly moving line(s) down.
 
-- ``CTRL+Left Click`` on a function/method in the source, opens a new
+- ``Ctrl+Left Mouse Click`` on a function/method in the source, opens a new
   editor windows showing the definition of that function.
 
-- ``SHIFT+CTRL+ALT+M`` maximises the current window (or changes the
-  size back to normal if pressed in a maximised window)
+- ``Shift+Ctrl+Alt+M`` maximizes the current window (or changes the
+  size back to normal if pressed in a maximized window)
 
-- ``SHIFT+CTRL+F`` activates the search across all files.
+- ``Ctrl+Shift+F`` activates the search pane across all files.
 
-- On Mac OS X: ``CMD`` + ``+`` will increase the font size in the editor,
-  ``CMD`` + ``-`` decrease. Also works in the IPython Console.
+- ``Cmd + +`` (On MacOS X) or ``Ctrl + +`` (otherwise) will increase the font
+  size in the Editor, whereas ``Cmd + -`` (``Ctrl + -``) will decrease it.
+  Also works in the IPython Console.
 
-  The font size for the object explorer, the Python console etc can be set
+  The font size for the Object Inspector, the Python console etc can be set
   individually via ``Preferences > Object inspector`` etc.
 
   I couldn't find a way of changing the font size in the variable explorer.
 
-- ``TAB`` autocompletes commands, function names, variable
-  names, methods in the console (both Python and IPython) and in the
-  Editor. This feature is very useful, and should be used
-  routinely. Do try it now if autocompletion is new to you. 
-  Assume you have defined a variable::
-
-    mylongvariablename = 42
-
-  Suppose we need to write code that computes ``mylongvariablename +
-  100``, we can simply type ``my`` and then press the TAB key. The
-  full variable name will be completed and inserted at the cursor
-  position if the name is unique, and then we can carry on and type
-  ``+ 100``. If the name is not uniquely identifiable given the
-  letters ``my``, a list field will be displayed from which the right
-  variable can be chosen. Choosing from the list can be done with the
-  ``<CURSOR UP>`` key and ``<CURSOR DOWN>`` key and the ``<RETURN>``
-  key to select, or by typing more letters of the name in question
-  (the selection will update automatically) and confirming by pressing
-  ``<RETURN>`` when the right name is identified.
-
-- ``CMD+s`` (on Mac OS X) and ``CTRL+s`` (otherwise) *in the editor*
-  window saves the file
+- ``Cmd+S`` (on MacOS X) and ``Ctrl+S`` (otherwise) *in the Editor*
+  pane saves the file
   currently being edited. This also forces various warning triangles
-  in the left column of the editor to be updated (otherwise they
+  in the left column of the Editor to be updated (otherwise they
   update every 2 to 3 seconds by default).
 
-- ``CMD+s`` (on Mac OS X) and ``CTRL+s`` (otherwise) *in the IPython console*
-  window saves the current IPython session as an HTML file, including
+- ``Cmd+S`` (on MacOS X) and ``Ctrl+S`` (otherwise) *in the IPython console*
+  pane saves the current IPython session as an HTML file, including
   any figures that may be displayed inline. This is useful as a quick
   way of recording what has been done in a session.
 
@@ -498,7 +499,7 @@ Shortcuts for useful functions
   possible to load this saved record back into the session - if you
   need functionality like this, look for the IPython Notebook.)
 
-- ``CMD+i`` (on Mac OS X) and ``CTRL+i`` (otherwise) when pressed
+- ``Cmd+I`` (on Mac OS X) and ``Ctrl+I`` (otherwise) when pressed
   while the cursor is on an object, opens documentation for that
   object in the object inspector.
 
