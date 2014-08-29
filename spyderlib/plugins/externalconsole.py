@@ -148,12 +148,12 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         umd_enabled_box = newcb(_("Enable UMD"), 'umd/enabled',
                                 msg_if_enabled=True, msg_warning=_(
                         "This option will enable the User Module Deleter (UMD) "
-                        "in Python interpreters. UMD forces Python to "
+                        "in Python/IPython consoles. UMD forces Python to "
                         "reload deeply modules during import when running a "
                         "Python script using the Spyder's builtin function "
                         "<b>runfile</b>."
                         "<br><br><b>1.</b> UMD may require to restart the "
-                        "Python interpreter in which it will be called "
+                        "console in which it will be called "
                         "(otherwise only newly imported modules will be "
                         "reloaded when executing scripts)."
                         "<br><br><b>2.</b> If errors occur when re-running a "
@@ -165,7 +165,7 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         umd_verbose_box = newcb(_("Show reloaded modules list"),
                                 'umd/verbose', msg_info=_(
                                 "Please note that these changes will "
-                                "be applied only to new Python interpreters"))
+                                "be applied only to new consoles"))
         umd_namelist_btn = QPushButton(
                             _("Set UMD excluded (not reloaded) modules"))
         self.connect(umd_namelist_btn, SIGNAL('clicked()'),
@@ -217,7 +217,7 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         pystartup_label = QLabel(_("This option will override the "
                                    "PYTHONSTARTUP environment variable which\n"
                                    "defines the script to be executed during "
-                                   "the Python interpreter startup."))
+                                   "the Python console startup."))
         self.def_startup_radio = self.create_radiobutton(
                                         _("Default PYTHONSTARTUP script"),
                                         'pythonstartup/default',
@@ -286,7 +286,7 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                         'qt/install_inputhook',
                         tip=_("PyQt installs an input hook that allows<br> "
                               "creating and interacting with Qt widgets "
-                              "in an interactive interpreter without "
+                              "in an interactive console without "
                               "blocking it. On Windows platforms, it "
                               "is strongly recommended to replace it "
                               "by Spyder's. Regarding PySide, note that "
@@ -669,8 +669,8 @@ class ExternalConsole(SpyderPluginWidget):
         line += ")"
         if not self.execute_python_code(line, interpreter_only=True):
             QMessageBox.warning(self, _('Warning'),
-                _("No Python shell is currently selected to run <b>%s</b>."
-                  "<br><br>Please select or open a new Python interpreter "
+                _("No Python console is currently selected to run <b>%s</b>."
+                  "<br><br>Please select or open a new Python console "
                   "and try again."
                   ) % osp.basename(norm(filename)), QMessageBox.Ok)
         else:
@@ -1311,7 +1311,7 @@ class ExternalConsole(SpyderPluginWidget):
                 QMessageBox.information(self, _('UMD'),
                                     _("Please note that these changes will "
                                       "be applied only to new Python/IPython "
-                                      "interpreters"), QMessageBox.Ok)
+                                      "consoles"), QMessageBox.Ok)
             else:
                 fixed_namelist = []
             self.set_option('umd/namelist', fixed_namelist)

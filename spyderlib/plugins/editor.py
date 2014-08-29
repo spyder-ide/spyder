@@ -297,7 +297,7 @@ class EditorConfigPage(PluginConfigPage):
         eol_group = QGroupBox(_("End-of-line characters"))
         eol_label = QLabel(_("When opening a text file containing "
                              "mixed end-of-line characters (this may "
-                             "raise syntax errors in Python interpreter "
+                             "raise syntax errors in the consoles "
                              "on Windows platforms), Spyder may fix the "
                              "file automatically."))
         eol_label.setWordWrap(True)

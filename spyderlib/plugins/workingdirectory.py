@@ -34,7 +34,7 @@ class WorkingDirectoryConfigPage(PluginConfigPage):
     def setup_page(self):
         about_label = QLabel(_("The <b>global working directory</b> is "
                     "the working directory for newly opened <i>consoles</i> "
-                    "(Python/IPython interpreters and terminals), for the "
+                    "(Python/IPython consoles and terminals), for the "
                     "<i>file explorer</i>, for the <i>find in files</i> "
                     "plugin and for new files created in the <i>editor</i>."))
         about_label.setWordWrap(True)
@@ -179,7 +179,7 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         adjust = self.get_option('working_dir_adjusttocontents')
         self.pathedit = PathComboBox(self, adjust_to_contents=adjust)
         self.pathedit.setToolTip(_("This is the working directory for newly\n"
-                               "opened consoles (Python interpreters and\n"
+                               "opened consoles (Python/IPython consoles and\n"
                                "terminals), for the file explorer, for the\n"
                                "find in files plugin and for new files\n"
                                "created in the editor"))
