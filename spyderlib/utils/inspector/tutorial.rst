@@ -292,7 +292,7 @@ Recommended first steps for Python beginners
 ############################################
 
 To teach and learn Python programming, we recommend here to use IPython
-instead of the normal Python interpreter. This accepts IPython as the
+instead of the normal Python console. This accepts IPython as the
 de-facto standard in the scientific Python community.
 
 Switch to an IPython console
@@ -304,7 +304,7 @@ and make it visible by clicking on the "IPython console" rider.
 In the console window (lower right corner by default), you see by
 default a prompt with three greater than signs, i.e. ``>>>``. This
 shows that we are using the ``console`` -- basically a normal Python
-interpreter session (with some added functionality from Spyder).
+console session (with some added functionality from Spyder).
 
 Instead, we would like to use an *Interactive Python* console, short *IPython*
 from the `IPython project <http://www.ipython.org>`__. To do this, select
@@ -312,7 +312,6 @@ from the `IPython project <http://www.ipython.org>`__. To do this, select
 
 You should see in the consolse window a new shell appearing, and the
 IPython prompt ``In [1]:`` should be displayed.
-
 
 Reset the name space
 --------------------
@@ -427,7 +426,7 @@ Shortcuts for useful functions
 - ``F5`` executes the current file
 
 - ``F9`` executes the currently highlighted chunk of code: this is very useful
-  to update definitions of functions (say) in the interpreter session without
+  to update definitions of functions (say) in the console session without
   having to run the whole file again. If nothing is selected ``F9`` executes
   the current line.
 
@@ -515,7 +514,7 @@ By default, the settings box will appear the first time we try to execute a
 file. If we want to change the settings at any other time, they can be
 found under ``Run > Configure`` or by pressing F6.
 
-There are three choices for the interpreter to use, of which I'll discuss the
+There are three choices for the console to use, of which I'll discuss the
 first two. Let's assume we have a program ``hello.py`` in the editor which
 reads
 
@@ -530,22 +529,21 @@ reads
    if __name__ == "__main__":
        hello(i)
 
-
-Execute in current Python or IPython interpreter
-------------------------------------------------
+Execute in current Python or IPython console
+--------------------------------------------
 
 This is the default suggestion, and also generally a good choice.
 
 Persistence of objects I (after code execution)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Choosing ``Execute in current Python or IPython interpreter
-setting`` under ``Run > Configure`` means that
+Choosing ``Execute in current Python or IPython console``
+setting under ``Run > Configure`` means that
 
 1. When the execution of ``hello.py`` is completed, we can interact
-   with the interpreter in which the program ran, and we can use the
-   convenient IPython interpreter for this (rather than the default
-   Python interpreter).
+   with the console in which the program ran, and we can use the
+   convenient IPython console for this (rather than the default
+   Python console).
 
    In particular,
 
@@ -553,104 +551,101 @@ setting`` under ``Run > Configure`` means that
    our program created, such as ``i`` and ``hello()``.
 
 This is generally very useful for incremental coding, testing and
-debugging: we can call ``hello()`` directly from the interpreter
+debugging: we can call ``hello()`` directly from the console
 prompt, and don't need to execute the whole ``hello.py`` for this
 (although if we change the function ``hello()``, we need to execute
 the file, or at least the function definition, to make the new
-version of ``hello()`` visible at the interpreter; either by
+version of ``hello()`` visible at the console; either by
 executing the whole buffer or via ``Run > Run Selection``.)
-
 
 Persistence of objects II (from before code execution)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-However, executing the code in the editor in the current interpreter
+However, executing the code in the editor in the current console
 also means that
 
 3. the code that executes can see other (global) objects that were
-   defined in the interpreter session.
+   defined in the console session.
 
 *This* persistence of objects is easily forgotten and usually not
 required when working on small programs (although it can be of great
 value occasionally). These objects could come from previous execution
-of code, from interactive work in the interpreter, or from convenience
+of code, from interactive work in the console, or from convenience
 imports such as ``from pylab import *`` (Spyder may do some of those
 convenience imports automatically).
 
-This visibility of objects in the interpreter global name space to the
+This visibility of objects in the console name space to the
 code we execute may also result in coding mistakes if the code
 inadvertently relies on these objects.
 
 Here is an example: imagine that
 
 *   we run the code ``hello.py``. Subsequently, the variable ``i``
-    is known in the interpreter as a global variable.
+    is known in the console as a global variable.
 
 *   we edit the ``hello.py`` source and accidentally delete the line
     ``i = 42``
 
 *   we execute the buffer containing ``hello.py`` again. At this
     point, the call of ``hello(i)`` will *not* fail because the
-    interpreter has an object of name ``i`` defined, although this is
+    console has an object of name ``i`` defined, although this is
     not defined in the source of ``hello.py``.
 
 At this point, we could save ``hello.py`` and (falsely) think it
-would execute correctly. However, running it in a new Python
-interpreter session (or via ``python hello.py`` in a terminal, say)
+would execute correctly. However, running it in a new (I)Python
+console session (or via ``python hello.py`` in a terminal, say)
 would result in an error, because ``i`` is not defined.
 
 The problem arises because the code makes use of an object (here
 ``i``) without creating it. This also affects importing of modules: if
 we had imported ``pylab`` at the IPython prompt, then our program will
-see that when executed in this IPython interpreter session.
+see that when executed in this IPython console session.
 
 To learn how we can double check that our code does not depend on such
 existing objects, see `How to double check your code executes correctly "on
 its own"`_ .
 
-Execute in new dedicated Python interpreter
--------------------------------------------
+Execute in new dedicated Python console
+---------------------------------------
 
-Choosing ``Execute in new dedicated Python interpreter`` under ``Run
-> Configure`` will start *a new Python interpreter everytime* the
+Choosing ``Execute in new dedicated Python console`` under ``Run
+> Configure`` will start *a new Python console everytime* the
 ``hello.py`` program is executed. The major advantage of this mode
-over `Execute in current Python or IPython interpreter`_ is that we
+over `Execute in current Python or IPython console`_ is that we
 can be certain that there are no global objects defined in this
-interpreter which originate from debugging and repeated execution of
+console which originate from debugging and repeated execution of
 our code: every time we run the code in the editor, the python
-interpreter in which the code runs is restarted.
+console in which the code runs is restarted.
 
 This is a safe option, but provides less flexibility and cannot use
-the IPyton interpreter.
-
+the IPython console.
 
 How to double check your code executes correctly "on its own"
 -------------------------------------------------------------
 
 Assuming you have chosen for your code to
-`Execute in current Python or IPython interpreter`_,
+`Execute in current Python or IPython console`_,
 then you have two options to check that your code does work on its own
 (i.e. it does not depend on undefined variables, unimported modules
 and commands etc.)
 
-(i)  Switch from `Execute in current Python or IPython interpreter`_
-     to `Execute in new dedicated Python interpreter`_,
-     and execute the code in the editor in this dedicated Python interpreter.
+(i)  Switch from `Execute in current Python or IPython console`_
+     to `Execute in new dedicated Python console`_,
+     and execute the code in the editor in this dedicated Python console.
 
      Alternatively, if you want to stay with the current IPython
-     interpreter, you can
+     console, you can
 
 (ii) Use IPython's magic ``%reset`` command which will remove all
      objects (such as ``i`` in the example above) from the current name
      space, and then execute the code in the editor.
 
-
 Recommendation
 --------------
 
 My recommendation for beginners would be to
-`Execute in current Python or IPython interpreter`_, *and*
-to choose the IPython interpreter for this.
+`Execute in current Python or IPython console`_, *and*
+to choose the IPython console for this.
 
 Once you have completed a piece of code, double check that it executes
 independently using one of the options explained in
