@@ -770,7 +770,7 @@ class ExternalConsole(SpyderPluginWidget):
                 old_shell = self.shellwidgets[index]
                 if old_shell.is_running():
                     runconfig = get_run_configuration(fname)
-                    if runconfig is None or not runconfig.autokill:
+                    if runconfig is None or runconfig.show_kill_warning:
                         answer = QMessageBox.question(self, self.get_plugin_title(),
                             _("%s is already running in a separate process.\n"
                               "Do you want to kill the process before starting "

@@ -51,7 +51,7 @@ class RunConfiguration(object):
         self.current = None
         self.systerm = None
         self.interact = None
-        self.autokill = None
+        self.show_kill_warning = None
         self.python_args = None
         self.python_args_enabled = None
         self.set(CONF.get('run', 'defaultconfiguration', default={}))
@@ -75,7 +75,7 @@ class RunConfiguration(object):
         self.systerm = options.get('systerm',
                            CONF.get('run', SYSTERM_INTERPRETER_OPTION, False))
         self.interact = options.get('interact', False)
-        self.autokill = options.get('autokill', False)
+        self.show_kill_warning = options.get('show_kill_warning', True)
         self.python_args = options.get('python_args', '')
         self.python_args_enabled = options.get('python_args/enabled', False)
         
@@ -88,7 +88,7 @@ class RunConfiguration(object):
                 'current': self.current,
                 'systerm': self.systerm,
                 'interact': self.interact,
-                'autokill': self.autokill,
+                'show_kill_warning': self.show_kill_warning,
                 'python_args/enabled': self.python_args_enabled,
                 'python_args': self.python_args,
                 }
@@ -195,9 +195,9 @@ class RunConfigOptions(QWidget):
                                        "interpreter after execution"))
         new_layout.addWidget(self.interact_cb, 1, 0, 1, -1)
         
-        self.autokill_cb = QCheckBox(_("Automatically kill existing "
-                                       "process"))
-        new_layout.addWidget(self.autokill_cb, 2, 0, 1, -1)
+        self.show_kill_warning_cb = QCheckBox(_("Show warning when killing"
+                                                " running process"))
+        new_layout.addWidget(self.show_kill_warning_cb, 2, 0, 1, -1)
         self.pclo_cb = QCheckBox(_("Command line options:"))
         new_layout.addWidget(self.pclo_cb, 3, 0)
         self.pclo_edit = QLineEdit()
@@ -251,7 +251,7 @@ class RunConfigOptions(QWidget):
         else:
             self.dedicated_radio.setChecked(True)
         self.interact_cb.setChecked(self.runconf.interact)
-        self.autokill_cb.setChecked(self.runconf.autokill)
+        self.show_kill_warning_cb.setChecked(self.runconf.show_kill_warning)
         self.pclo_cb.setChecked(self.runconf.python_args_enabled)
         self.pclo_edit.setText(self.runconf.python_args)
     
@@ -263,7 +263,7 @@ class RunConfigOptions(QWidget):
         self.runconf.current = self.current_radio.isChecked()
         self.runconf.systerm = self.systerm_radio.isChecked()
         self.runconf.interact = self.interact_cb.isChecked()
-        self.runconf.autokill = self.autokill_cb.isChecked()
+        self.runconf.show_kill_warning = self.show_kill_warning_cb.isChecked()
         self.runconf.python_args_enabled = self.pclo_cb.isChecked()
         self.runconf.python_args = to_text_string(self.pclo_edit.text())
         return self.runconf.get()
