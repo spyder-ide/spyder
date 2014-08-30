@@ -656,11 +656,10 @@ independently using one of the options explained in
 Other observations
 ##################
 
-
 Multiple files
 --------------
 
-When multiple files are opened in the editor, the
+When multiple files are opened in the Editor, the
 corresponding tabs at the top of the window area are arranged in
 alphabetical order of the filename from left to right.
 
@@ -671,15 +670,14 @@ file directly, if many files are open.
 Environment variables
 ---------------------
 
-Environment variables can be displayed from the Console window (bottom right
-window in default layout). Click on the ``Options`` icon (the tooltip is
+Environment variables can be displayed from the Python Console window (bottom
+right window in default layout). Click on the ``Options`` icon (the tooltip is
 ``Options``), then select ``Environment variables``.
 
-
-Reset all customisation
+Reset all customization
 -----------------------
 
-All customisation saved on disk can be reset by calling spyder from
+All customization saved on disk can be reset by calling spyder from
 the command line with the switch ``--reset``, i.e. a command like
 ``spyder --reset``.
 
@@ -687,7 +685,7 @@ Objects in the variable explorer
 --------------------------------
 
 Right-clicking on arrays in the variable explorer gives options to
-plot and analyse these further.
+plot and analyze these further.
 
 Double clicking on a dictionary object opens a new window that
 displays the dictionary nicely.
@@ -696,23 +694,27 @@ You can also show and edit the contents of numpy arrays, lists, numbers
 and strings.
 
 
+
 Documentation string formatting
 ###############################
 
+If you want to add documentation for the code you are developing, we recommend
+you to write documentation strings (or *docstrings*) for it, using a special 
+format called restructured text (`quick reference
+<http://docutils.sourceforge.net/docs/user/rst/quickref.html>`__). This format
+also needs to follow a set of conventions called the `Numpydoc standard
+<https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt#id5>`
 
-There are some conventions assumed regarding documentation strings written in
-special format called restructured text (`quick reference
-<http://docutils.sourceforge.net/docs/user/rst/quickref.html>`__). If we
-follow those guidelines, we can obtain beautifully formated documentation
-strings in Spyder.
+If you follow those guidelines, you can obtain beautifully formated docstrings
+in Spyder.
 
-For example, to get our ``average()`` function look like this in the
+For example, to get an ``average()`` function look like this in the
 Spyder Object inspector:
 
 .. image:: static/images/spyder-nice-docstring-rendering.png
      :align: center
 
-We need to format the documentation string as follows
+you need to format the documentation string as follows
 
 .. code-block:: python
 
@@ -744,12 +746,12 @@ We need to format the documentation string as follows
 What matters here, is that the word ``Parameters`` is used, and
 underlined. The line ``a : number`` shows us that the type of the
 parameter ``a`` is ``number``. In the next line, which is indented, we
-can write a more extended explanation what this variable represents,
+can write a more extended explanation of what this variable represents,
 what conditions the allowed types have to fulfill, etc.
 
 The same for all Parameters, and also for the returned value.
 
-Often it is a good idea to include an example as shown.
+Often it is a good idea to include an example too, as shown.
 
 
 
