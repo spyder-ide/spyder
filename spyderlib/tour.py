@@ -64,6 +64,87 @@ from spyderlib.widgets.sourcecode import syntaxhighlighters as sh
 from spyderlib.py3compat import to_text_string
 
 
+# FIXME: WHERE TO PUT THIS?
+
+def get_tour(index):
+    """ """
+
+    test = [{'title': "Welcome to Spyder introduction tour",
+             'content': "<b>Spyder</b> is an interactive development environment \
+                         based on bla",
+             'image' : 'spyder.png'},
+
+            {'title': "Welcome to Spyder introduction tour",
+             'content': "Spyder is an interactive development environment \
+                         based on bla",
+             'widgets': ['button']},
+
+            {'title': "Welcome to Spyder introduction tour",
+             'content': "Spyder is an interactive development environment \
+                         based on bla",
+             'image' : 'spyder.png'},
+            ]
+    
+    intro = [{'title': _("Welcome to Spyder introduction tour"),
+              'content': _("<b>Spyder</b> is a powerful interactive development \
+                          environment for the Python language. \n \
+                          Use the arrow keys or the mouse to move into the tour."),
+              'image' : 'spyder.png'},
+
+             {'title': _("The toolbars"),
+              'content': _("<b>Spyder</b> is a powerful interactive development \
+                          environment for the Python language with advanced \
+                          editing, interactive testing, debugging and \
+                          introspection features"),
+              'widgets': ['file_toolbar']},
+                  
+    
+                   ['The run toolbar', 
+                       '', 
+                       ['self.run_toolbar'], None],
+                   ['The debug toolbar', 
+                       '', 
+                       ['self.debug_toolbar'], None],
+                   ['The main toolbar', 
+                       '', 
+                       ['self.main_toolbar'], None],
+                   ['The editor', 
+                       'Spyder has differnet bla bla bla', 
+                       ['self.editor.dockwidget'], None],
+                   ['The editor', 
+                       'Spyder has differnet bla bla bla', 
+                       ['self.outlineexplorer.dockwidget'], None],
+
+                   ['The menu bar', 
+                       'Spyder has differnet bla bla bla', 
+                       ['self.menuBar()'], None],
+
+                   ['The menu bar', 
+                       'Spyder has differnet bla bla bla', 
+                       ['self.statusBar()'], None],
+
+                       
+                   ['The toolbars!', 
+                       'Spyder has differnet bla bla bla', 
+                       ['self.variableexplorer.dockwidget'], None],
+                   ['The toolbars MO!', 
+                       'Spyder has differnet bla bla bla', 
+                       ['self.extconsole.dockwidget'], None],
+                   ['The whole window?!', 
+                       'Spyder has differnet bla bla bla', 
+                       ['self'], None],
+                   ['Lets try something!', 
+                       'Spyder has differnet bla bla bla', 
+                       ['self.extconsole.dockwidget', 
+                        'self.variableexplorer.dockwidget'], None]
+                        
+                      ]
+
+    tours = {0: test,
+             1: intro}
+
+    return tours[index]
+
 class FadingDialog(QDialog):
     """A general fade in/fade out QDialog with some builtin functions"""
 
@@ -77,20 +158,21 @@ class FadingDialog(QDialog):
         self.easing_curve = QEasingCurve.Linear
         self.effect = None
         self.anim = None
-        self.is_anim_running = True
+        self.anim_running = False
         self.funcs_before_fade_in = []
+        self.funcs_after_fade_in = []        
         self.funcs_before_fade_out = []
 
     def _set_anim_finished(self):
         """ """
-        self.is_anim_running = False
+        self.anim_running = False
     
     def is_anim_running(self):
-        return self.is_anim_running
+        return self.anim_running
 
     def __fade_setup(self):
         """ """
-        self.is_anim_running = True
+        self.anim_running = True
         self.effect = QGraphicsOpacityEffect(self)
         self.setGraphicsEffect(self.effect)
         self.anim = QPropertyAnimation(self.effect, "opacity")
@@ -98,14 +180,15 @@ class FadingDialog(QDialog):
 
     def fade_in(self, on_finished_connect):
         """ """
-        self.__run_before_fade_in()        
-        self.__fade_setup()       
-        self.show()
+        self.__run_before_fade_in()
+        self.__fade_setup()
+        self.show()        
         self.anim.setStartValue(self.opacity_min)
         self.anim.setEndValue(self.opacity_max)
         self.anim.setDuration(self.duration)
         self.anim.finished.connect(on_finished_connect)
         self.anim.finished.connect(self._set_anim_finished)
+        self.anim.finished.connect(self.__run_after_fade_in)
         self.anim.start()
 
     def fade_out(self, on_finished_connect):
@@ -125,6 +208,12 @@ class FadingDialog(QDialog):
         for func in funcs:
             func()
 
+    def __run_after_fade_in(self):
+        """ """
+        funcs = self.funcs_after_fade_in
+        for func in funcs:
+            func()            
+
     def __run_before_fade_out(self):
         """ """
         funcs = self.funcs_before_fade_out
@@ -134,6 +223,10 @@ class FadingDialog(QDialog):
     def set_funcs_before_fade_in(self, funcs):
         """ """
         self.funcs_before_fade_in = funcs
+
+    def set_funcs_after_fade_in(self, funcs):
+        """ """
+        self.funcs_after_fade_in = funcs
 
     def set_funcs_before_fade_out(self, funcs):
         """ """
@@ -161,6 +254,7 @@ class FadingCanvas(FadingDialog):
 
         self.setWindowFlags(Qt.Dialog | Qt.FramelessWindowHint)
         self.setAttribute(Qt.WA_TranslucentBackground)
+        self.setModal(True)
 
     def _update_canvas(self):
         """ """
@@ -192,18 +286,17 @@ class FadingCanvas(FadingDialog):
 
     def paintEvent(self, event):
         """ """
-        painter = QPainter()
-        painter.begin(self)
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing)
         # Decoration
         painter.fillPath(self.path_current, QBrush(self.color))
         #painter.strokePath(self.round_rect_path, QPen(Qt.gray, 1));
-        painter.end()
 
     def switch(self):
         """ """
-        self.repaint()
+#        self.repaint()
         self._update_canvas()
-        self.repaint()
+#        self.repaint()
 
     def update_widgets(self, widgets):
         """ """
@@ -212,6 +305,7 @@ class FadingCanvas(FadingDialog):
     def update_decoration_widgets(self, widgets):
         """ """
         self.widgets_decoration = widgets
+
 
 
 class FadingTipDialog(FadingDialog):
@@ -240,7 +334,7 @@ class FadingTipDialog(FadingDialog):
         self.setGraphicsEffect(effect)
 
         self.setAttribute(Qt.WA_TranslucentBackground)
-        self.setWindowFlags(Qt.Dialog | Qt.FramelessWindowHint)
+#        self.setWindowFlags(Qt.Dialog | Qt.FramelessWindowHint)
 
         # Widgets
         self.button_close = QPushButton("X")
@@ -272,17 +366,17 @@ class FadingTipDialog(FadingDialog):
 
         self.label_title = QLabel()
         self.label_current = QLabel()
-        self.label_body = QLabel()
+        self.label_content = QLabel()
 
         self.label_current.setAlignment(Qt.AlignCenter)
 
-        self.label_body.setWordWrap(True)
+        self.label_content.setWordWrap(True)
         self.label_image = QLabel()
         self.label_empty_previous = QLabel()
         self.label_empty_next = QLabel()
         self.button_disable = None
 
-        self.widgets = [self.label_body, self.label_title, self.label_current,
+        self.widgets = [self.label_content, self.label_title, self.label_current,
                         self.button_close, self.button_next,
                         self.button_previous]
                         
@@ -301,7 +395,7 @@ class FadingTipDialog(FadingDialog):
         top_layout.addSpacerItem(spacer)
 
         content_layout = QHBoxLayout()
-        content_layout.addWidget(self.label_body)
+        content_layout.addWidget(self.label_content)
         content_layout.addWidget(self.label_image)
         content_layout.addSpacerItem(QSpacerItem(5,5))
 
@@ -324,25 +418,34 @@ class FadingTipDialog(FadingDialog):
         self.setLayout(layout)
         self.setFixedWidth(self.fixed_width)
         
-        self.set_funcs_before_fade_in([self._disable_widgets, 
-                                       self._set_window_flags,
-                                       self._enable_widgets])
+        self.set_funcs_before_fade_in([self._disable_widgets,
+                                       self._set_window_flags])
+
+        self.set_funcs_after_fade_in([self._enable_widgets,
+                                      self._set_window_flags])
                                        
         self.set_funcs_before_fade_out([self._disable_widgets])
+        self.setModal(True)
 
-    def set_data(self, title, body, current, image=None):
+    def set_data(self, title, content, current, image=None):
         """ """
         self.label_title.setText(title)
         self.label_current.setText(current)
-        self.label_body.setText(body)
+        self.label_content.setText(content)
         self.image = image
-
-        self.label_image.setFixedSize(0, 0)
+        
+        if image is None:
+            self.label_image.setFixedSize(0, 0)
+        else:
+            extension = image.split('.')[-1]
+            self.image = QPixmap(get_image_path(image), extension)
+            self.label_image.setFixedSize(self.image.size())
 
         # To make sure that the widget height is calculated before drawing
         # the tip panel
         self.show()
         self.hide()
+        self.repaint()
 
     def set_pos(self, x, y):
         """ """
@@ -355,13 +458,8 @@ class FadingTipDialog(FadingDialog):
         """ """
         self.build_paths()
 
-        painter = QPainter()
-        painter.begin(self)
-
-#        for widget in self.widgets:
-#            widget.setStyleSheet(self.stylesheet)
-
-        painter.setRenderHint(QPainter.Antialiasing);
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing)
 
         painter.fillPath(self.round_rect_path, self.color_back)
         painter.fillPath(self.top_rect_path, self.color_top)
@@ -369,16 +467,14 @@ class FadingTipDialog(FadingDialog):
         
         if self.image is not None:
             x = self.fixed_width - self.offset_shadow - self.image.width()
-            y = self.label_body.y()
+            y = self.label_content.y()
             
             painter.drawPixmap(QPoint(x, y), self.image)
             self.label_image.setFixedSize(self.image.size())
         else:
             self.label_image.setFixedSize(0, 0)
 
-        # TODO: Build the pointing arrow!!!!!
-
-        painter.end()
+        # TODO: Build the pointing arrow?
 
     def build_paths(self):
         """ """
@@ -418,7 +514,8 @@ class FadingTipDialog(FadingDialog):
     def _set_window_flags(self):
         """ """
         # Needed to be able to click again on the fading tip wodget
-        self.setWindowFlags(Qt.FramelessWindowHint)
+        self.setWindowFlags(Qt.Dialog | Qt.FramelessWindowHint)
+        self.raise_()
 
     def _disable_widgets(self):
         """ """
@@ -440,10 +537,12 @@ class FadingTipDialog(FadingDialog):
         key = event.key()
         self.key_pressed = key
 
-        keys = [Qt.Key_Right, Qt.Key_Left, Qt.Key_Down, Qt.Key_Up]
+        keys = [Qt.Key_Right, Qt.Key_Left, Qt.Key_Down, Qt.Key_Up,
+                Qt.Key_Escape]
 
         if key in keys:
-            self.emit(SIGNAL("keyPressed"))
+            if not self.is_anim_running():
+                self.emit(SIGNAL("keyPressed"))
 
     def reject(self):
         """Qt method to handle escape key event"""
@@ -455,30 +554,26 @@ class FadingTipDialog(FadingDialog):
 class AnimatedTour(QWidget):
     """ """
 
-    def __init__(self, parent, frames):
+    def __init__(self, parent):
         QWidget.__init__(self)
         self.parent = parent
         self.duration= 666
         self.opacity_min = 0.0
-        self.opacity_middle = 0.7        
+        self.opacity_middle = 0.7   
         self.opacity_max = 1.0
         self.color = Qt.black
         self.easing_curve = QEasingCurve.Linear
 
         self.current_step = 0
         self.step_current = 0
-        self.steps = len(frames)
-        self.frames = frames
+        self.steps = 0
 
         self.canvas = FadingCanvas(self.parent, self.opacity_min,
                                    self.opacity_middle, self.duration,
                                    self.easing_curve, self.color)
-        self.tips = FadingTipDialog(self.canvas, self.opacity_min,
+        self.tips = FadingTipDialog(self.parent, self.opacity_min,
                                     self.opacity_max, self.duration,
                                     self.easing_curve)
-
-        # Set the first frame
-        self._set_data()
 
         self.connect(self.tips.button_next, SIGNAL('clicked()'),
                      self.next_step)
@@ -486,39 +581,71 @@ class AnimatedTour(QWidget):
                      self.previous_step)
         self.connect(self.tips.button_close, SIGNAL('clicked()'),
                      self.close_tour)
+        
+        # FIXME: Not working now
         # To capture the arrow keys that allow moving the tour
         self.connect(self.tips, SIGNAL("keyPressed"),
                      self.key_pressed)
 
+    def set_tour(self, index, spy_window):
+        """ """
+        self.spy_window = spy_window
+        self.frames = get_tour(index)
+        self.steps = len(self.frames)
+        self._set_data()
+
     def _start_tips(self):
         """ """
-        self.tips.fade_in(self.tips.raise_)
+        self.tips.fade_in(self.tips.show)
+#        self.tips.raise_()
 
     def _close_canvas(self):
         """ """
-        self.tips.close
         self.canvas.fade_out(self.canvas.close)
+        # FIXME: some weird bug with the widget closing
+        self.tips.raise_()           # Not sure why... but needed~
+        self.tips.setParent(None)  # To delete the widget
 
     def _move_step(self):
         """ """
         self._set_data()
-        self.tips.fade_in(self.tips.raise_)
+        frame = self.frames[self.step_current]
 
         # Show the widget
-        widgets = self.frames[self.step_current][2]
-        if widgets is not None:
+        if 'widgets' in  frame:
+            widgets = self.widgets
             widget = widgets[0]
             widget.show()
-#            widget.hide()
-            widget.show()
+
+        # Very important!
+        self.tips.fade_in(self.canvas.lower)
+        self.tips.raise_()
 
     def _set_data(self):
         """ """
         step, steps, frames = self.step_current, self.steps, self.frames
         current = '{0}/{1}'.format(step + 1, steps)
-        widgets = frames[step][2]
-        image = frames[step][3]
-        self.tips.set_data(frames[step][0], frames[step][1], current, image)
+        frame = frames[step]
+
+        title, content, widgets, image = '', '', None, None
+        
+        # Check if entry exists in dic and act accordingly
+        if 'title' in frame:
+            title = frame['title']
+        if 'content' in frame:
+            content = frame['content']
+        if 'widgets' in frame:
+            widgets = []
+            widget_names = frames[step]['widgets']
+            # Get the widgets based on their name
+            for name in widget_names:
+                widgets.append(getattr(self.spy_window, name))
+            self.widgets = widgets
+
+        if 'image' in frame:
+            image = frames[step]['image']
+        
+        self.tips.set_data(title, content, current, image)
         self._check_buttons()
         self.canvas.update_widgets(widgets)
         self.canvas.switch()
@@ -617,7 +744,6 @@ class AnimatedTour(QWidget):
         if answer == QMessageBox.Yes:
             # Gracefully close everything
             self.tips.fade_out(self._close_canvas)
-            self.close()
 
     def next_step(self):
         """ """
@@ -640,6 +766,7 @@ class AnimatedTour(QWidget):
               self.step_current != 0):
             self.previous_step()
         elif key == Qt.Key_Escape:
+            print('close tour')
             self.close_tour()
 
 
@@ -692,24 +819,11 @@ class TestWindow(QMainWindow):
         self.button1.clicked.connect(self.action2)
 
 
-        dic = [['Welcome to Spyder introduction tour',
-                   'Spyder is an interactive development environment based on bla',
-                   None,
-                   QPixmap(get_image_path('spyder.png'), 'png')],
-               ['The toolbars!',
-                   'Spyder has differnet bla bla blaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-                   [self.button],
-                   None],
-               ['The toolbars MO!',
-                   'Spyder has differnet bla bla blasssssssssssssssssssssssss',
-                   None, 
-                   None]
-               ]
-
-        self.tour = AnimatedTour(self, dic)
+        self.tour = AnimatedTour(self)
 
     def action1(self):
         """ """
+        self.tour.set_tour(0, self)
         self.tour.start_tour()
 
     def action2(self):

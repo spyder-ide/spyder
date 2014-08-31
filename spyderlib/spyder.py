@@ -168,6 +168,7 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, get_icon,
                                        create_python_script_action, file_uri)
 from spyderlib.guiconfig import get_shortcut, remove_deprecated_shortcuts
 from spyderlib.otherplugins import get_spyderplugins_mods
+from spyderlib import tour # FIXME: Better place for this?
 
 
 #==============================================================================
@@ -359,6 +360,9 @@ class MainWindow(QMainWindow):
         self.variableexplorer = None
         self.findinfiles = None
         self.thirdparty_plugins = []
+        
+        # Tour  # FIXME: Should I consider it a plugin?? or?
+        self.tour = None        
         
         # Preferences
         from spyderlib.plugins.configdialog import (MainConfigPage,
@@ -891,7 +895,7 @@ class MainWindow(QMainWindow):
             
             self.set_splash(_("Setting up main window..."))
             
-            # Help menu
+            # Help menu            
             dep_action = create_action(self, _("Optional dependencies..."),
                                        triggered=self.show_dependencies,
                                        icon='advanced.png')
@@ -927,7 +931,22 @@ class MainWindow(QMainWindow):
                                icon=get_std_icon('DialogHelpButton'))
             tut_action = create_action(self, _("Spyder tutorial"),
                                        triggered=self.inspector.show_tutorial)
-            self.help_menu_actions = [doc_action, tut_action, None,
+
+        #----- Tours
+            self.tours_menu = QMenu(_("Spyder tours"))
+            self.tour = tour.AnimatedTour(self)
+            intro_tour_action = create_action(self, _("Introduction to Spyder"),
+                                              tip=_(""),
+                                              triggered=lambda: self.show_tour(1))
+            features_tour_action = create_action(self, _("New features"),
+                                              tip=_(""),
+                                              triggered=lambda: self.show_tour(2))
+                                              
+            self.tour_menu_actions = [intro_tour_action, features_tour_action]
+            self.tours_menu.addActions(self.tour_menu_actions)
+
+            self.help_menu_actions = [doc_action, tut_action, self.tours_menu,
+                                      None,
                                       report_action, dep_action, support_action,
                                       None]
             # Python documentation
@@ -2127,6 +2146,12 @@ Please provide any additional information below.
                 self.emit(SIGNAL('open_external_file(QString)'), fname)
             req.sendall(b' ')
 
+
+    #---- Interactive Tours
+    def show_tour(self, index):
+        """ """
+        self.tour.set_tour(index, self)
+        self.tour.start_tour()
 
 #==============================================================================
 # Utilities to create the 'main' function
