@@ -247,7 +247,7 @@ class FadingTipDialog(FadingDialog):
         self.button_previous = QPushButton("<<")
         self.button_next = QPushButton(">>")
 
-        self.stylesheet = """QPushButton {{
+        self.stylesheet = """QPushButton {
                              background-color: rgbs(200,200,200,100%);
                              color: rgbs(0,0,0,100%);
                              border-style: outset;
@@ -255,19 +255,20 @@ class FadingTipDialog(FadingDialog):
                              border-radius: 3px;
                              border-color: rgbs(100,100,100,100%);
                              padding: 2px;
-                             }}
+                             }
 
-                             QPushButton:hover {{
+                             QPushButton:hover {
                              background-color: rgbs(150, 150, 150, 100%);
-                             }}
+                             }
 
-                             QPushButton:disabled {{
+                             QPushButton:disabled {
                              background-color: rgbs(230,230,230,100%);
                              color: rgbs(200,200,200,100%);
                              border-color: rgbs(200,200,200,100%);
-                             }}                             
-                             
-        """
+                             }
+                             """
+
+
 
         self.label_title = QLabel()
         self.label_current = QLabel()
@@ -284,9 +285,11 @@ class FadingTipDialog(FadingDialog):
         self.widgets = [self.label_body, self.label_title, self.label_current,
                         self.button_close, self.button_next,
                         self.button_previous]
+                        
 
         for widget in self.widgets:
             widget.setFocusPolicy(Qt.NoFocus)
+            widget.setStyleSheet(self.stylesheet)
 
         spacer = QSpacerItem(self.offset_shadow, self.offset_shadow)
         spacer2 = QSpacerItem(20, 20)
@@ -354,27 +357,24 @@ class FadingTipDialog(FadingDialog):
 
         painter = QPainter()
         painter.begin(self)
-#        painter.setOpacity(self.opacity_value)
 
-#        alpha = int(self.opacity_value*100)
-        alpha = 100
-        for widget in self.widgets:
-            widget.setStyleSheet(self.stylesheet.format(alpha))
-#
+#        for widget in self.widgets:
+#            widget.setStyleSheet(self.stylesheet)
+
         painter.setRenderHint(QPainter.Antialiasing);
 
         painter.fillPath(self.round_rect_path, self.color_back)
         painter.fillPath(self.top_rect_path, self.color_top)
         painter.strokePath(self.round_rect_path, QPen(Qt.gray, 1))
         
-#        if self.image is not None:
-#            x = self.fixed_width - self.offset_shadow - self.image.width()
-#            y = self.label_body.y()
-#            
-#            painter.drawPixmap(QPoint(x, y), self.image)
-#            self.label_image.setFixedSize(self.image.size())
-#        else:
-#            self.label_image.setFixedSize(0, 0)
+        if self.image is not None:
+            x = self.fixed_width - self.offset_shadow - self.image.width()
+            y = self.label_body.y()
+            
+            painter.drawPixmap(QPoint(x, y), self.image)
+            self.label_image.setFixedSize(self.image.size())
+        else:
+            self.label_image.setFixedSize(0, 0)
 
         # TODO: Build the pointing arrow!!!!!
 
