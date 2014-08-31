@@ -168,8 +168,7 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, get_icon,
                                        create_python_script_action, file_uri)
 from spyderlib.guiconfig import get_shortcut, remove_deprecated_shortcuts
 from spyderlib.otherplugins import get_spyderplugins_mods
-from spyderlib import tour # FIXME: Move this to a better place
-
+from spyderlib import tour # FIXME: Move this to a better place?
 
 #==============================================================================
 # To save and load temp sessions
@@ -360,7 +359,6 @@ class MainWindow(QMainWindow):
         self.variableexplorer = None
         self.findinfiles = None
         self.thirdparty_plugins = []
-        self.tour = None
         
         # Preferences
         from spyderlib.plugins.configdialog import (MainConfigPage,
@@ -772,11 +770,12 @@ class MainWindow(QMainWindow):
             self.console = Console(self, namespace, exitfunc=self.closing,
                               profile=self.profile,
                               multithreaded=self.multithreaded,
-                              message=_("DON'T USE THIS CONSOLE TO RUN CODE!\n\n"
-                                        "It's used to report application errors\n"
-                                        "and to inspect Spyder internals with\n"
-                                        "the following commands:\n"
-                                        "  spy.app, spy.window, dir(spy)"))
+                              message=_("Spyder Internal Console\n\n"
+                                        "This console is used to report application\n"
+                                        "internal errors and to inspect Spyder\n"
+                                        "internals with the following commands:\n"
+                                        "  spy.app, spy.window, dir(spy)\n\n"
+                                        "Please don't use it to run your code\n\n"))
             self.console.register_plugin()
             
             # Working directory plugin
@@ -923,70 +922,14 @@ class MainWindow(QMainWindow):
                 spyder_doc = 'http://pythonhosted.org/spyder'
             else:
                 spyder_doc = file_uri(spyder_doc)
-#---- Tour
-            tour_action = create_action(self, _("Spyder tour"),
-                                        triggered=self.spyder_tour)
-
-            # FIXME: WHERE TO PUT THIS?
-            dic = [['Welcome to Spyder introduction tour', 
-                       'Spyder is an interactive development environment based on bla',
-                       None,
-                       QPixmap(get_image_path('spyder.png'), 'png')],
-                   ['The file toolbar', 
-                       '', 
-                       [self.file_toolbar], None],
-                   ['The run toolbar', 
-                       '', 
-                       [self.run_toolbar], None],
-                   ['The debug toolbar', 
-                       '', 
-                       [self.debug_toolbar], None],
-                   ['The main toolbar', 
-                       '', 
-                       [self.main_toolbar], None],
-                   ['The editor', 
-                       'Spyder has differnet bla bla bla', 
-                       [self.editor.dockwidget], None],
-                   ['The editor', 
-                       'Spyder has differnet bla bla bla', 
-                       [self.outlineexplorer.dockwidget], None],
-
-                   ['The menu bar', 
-                       'Spyder has differnet bla bla bla', 
-                       [self.menuBar()], None],
-
-                   ['The menu bar', 
-                       'Spyder has differnet bla bla bla', 
-                       [self.statusBar()], None],
-
-                       
-                   ['The toolbars!', 
-                       'Spyder has differnet bla bla bla', 
-                       [self.variableexplorer.dockwidget], None],
-                   ['The toolbars MO!', 
-                       'Spyder has differnet bla bla bla', 
-                       [self.extconsole.dockwidget], None],
-                   ['The whole window?!', 
-                       'Spyder has differnet bla bla bla', 
-                       [self], None],
-                   ['Lets try something!', 
-                       'Spyder has differnet bla bla bla', 
-                       [self.extconsole.dockwidget, 
-                        self.variableexplorer.dockwidget], None]
-                        
-                      ]
-            self.tour = tour.AnimatedTour(self, dic)
-
-
-
             doc_action = create_bookmark_action(self, spyder_doc,
                                _("Spyder documentation"), shortcut="F1",
                                icon=get_std_icon('DialogHelpButton'))
             tut_action = create_action(self, _("Spyder tutorial"),
                                        triggered=self.inspector.show_tutorial)
-            self.help_menu_actions = [tour_action , doc_action, tut_action, 
-                                      None, report_action, dep_action,
-                                      support_action,None]
+            self.help_menu_actions = [doc_action, tut_action, None,
+                                      report_action, dep_action, support_action,
+                                      None]
             # Python documentation
             if get_python_doc_path() is not None:
                 pydoc_act = create_action(self, _("Python documentation"),
@@ -1649,9 +1592,10 @@ class MainWindow(QMainWindow):
     
     def hideEvent(self, event):
         """Reimplement Qt method"""
-        for plugin in self.widgetlist:
-            if plugin.isAncestorOf(self.last_focused_widget):
-                plugin.visibility_changed(True)
+        if not self.light:
+            for plugin in self.widgetlist:
+                if plugin.isAncestorOf(self.last_focused_widget):
+                    plugin.visibility_changed(True)
         QMainWindow.hideEvent(self, event)
     
     def change_last_focused_widget(self, old, now):
@@ -2183,11 +2127,6 @@ Please provide any additional information below.
                 self.emit(SIGNAL('open_external_file(QString)'), fname)
             req.sendall(b' ')
 
-
-    #---- Spyder Tour
-    def spyder_tour(self):
-        """ """      
-        self.tour.start_tour()
 
 #==============================================================================
 # Utilities to create the 'main' function
