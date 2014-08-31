@@ -168,7 +168,7 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, get_icon,
                                        create_python_script_action, file_uri)
 from spyderlib.guiconfig import get_shortcut, remove_deprecated_shortcuts
 from spyderlib.otherplugins import get_spyderplugins_mods
-from spyderlib import tour # FIXME: Move this to a better place?
+
 
 #==============================================================================
 # To save and load temp sessions
