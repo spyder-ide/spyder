@@ -247,7 +247,7 @@ class DataFrameModel(QAbstractTableModel):
             current_value = self.get_value(row, column-1)
             if isinstance(current_value, bool):
                 val = bool_false_check(val)
-            if isinstance(current_value, ((bool) + _sup_nr + _sup_com)) or \
+            if isinstance(current_value, ((bool,) + _sup_nr + _sup_com)) or \
                is_text_string(current_value):
                 try:
                     self.df.iloc[row, column-1] = current_value.__class__(val)
