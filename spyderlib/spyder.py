@@ -933,16 +933,17 @@ class MainWindow(QMainWindow):
                                        triggered=self.inspector.show_tutorial)
 
         #----- Tours
-            self.tours_menu = QMenu(_("Spyder tours"))
             self.tour = tour.AnimatedTour(self)
-            intro_tour_action = create_action(self, _("Introduction to Spyder"),
-                                              tip=_(""),
-                                              triggered=lambda: self.show_tour(1))
-            features_tour_action = create_action(self, _("New features"),
-                                              tip=_(""),
-                                              triggered=lambda: self.show_tour(2))
-                                              
-            self.tour_menu_actions = [intro_tour_action, features_tour_action]
+            self.tours_menu = QMenu(_("Spyder tours"))
+            self.tour_menu_actions = []
+            tours_available = tour.get_tours()
+            
+            for i, tour_available in enumerate(tours_available):
+                temp = create_action(self, tour_available['name'],
+                                     tip=_(""),
+                                     triggered=lambda x=i: self.show_tour(x))
+                self.tour_menu_actions += [temp]
+
             self.tours_menu.addActions(self.tour_menu_actions)
 
             self.help_menu_actions = [doc_action, tut_action, self.tours_menu,
