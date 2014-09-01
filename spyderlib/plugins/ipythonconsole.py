@@ -457,7 +457,7 @@ class KernelConnectionDialog(QDialog):
         def ssh_set_enabled(state):
             for wid in [self.hn, self.kf, kf_open_btn, self.pw]:
                 wid.setEnabled(state)
-            for i in xrange(ssh_form.rowCount()):
+            for i in range(ssh_form.rowCount()):
                 ssh_form.itemAt(2 * i).widget().setEnabled(state)
        
         ssh_set_enabled(self.rm_cb.checkState())
