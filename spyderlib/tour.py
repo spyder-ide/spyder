@@ -220,15 +220,16 @@ def get_tour(index):
 class FadingDialog(QDialog):
     """A general fade in/fade out QDialog with some builtin functions"""
 
-    def __init__(self, parent, opacitiy_min, opacity_max, duration,
-                 easing_curve):
+    def __init__(self, parent, opacity, duration, easing_curve):
         QDialog.__init__(self, parent)
 
         self.parent = parent
-        self.opacity_min = opacitiy_min
-        self.opacity_max = opacity_max
-        self.duration = duration
-        self.easing_curve = QEasingCurve.Linear
+        self.opacity_min = min(opacity)
+        self.opacity_max = max(opacity)
+        self.duration_fadein = duration[0]
+        self.duration_fadeout = duration[-1]
+        self.easing_curve_in = easing_curve[0]
+        self.easing_curve_out = easing_curve[-1]
         self.effect = None
         self.anim = None
         self.fade_running = False
@@ -248,7 +249,6 @@ class FadingDialog(QDialog):
         self.effect = QGraphicsOpacityEffect(self)
         self.setGraphicsEffect(self.effect)
         self.anim = QPropertyAnimation(self.effect, "opacity")
-        self.anim.setEasingCurve(self.easing_curve)
 
     def _run_before_fade_in(self):
         """ """
@@ -296,9 +296,10 @@ class FadingDialog(QDialog):
         self._fade_setup()
         self.show()
         self.raise_()
+        self.anim.setEasingCurve(self.easing_curve_in)
         self.anim.setStartValue(self.opacity_min)
         self.anim.setEndValue(self.opacity_max)
-        self.anim.setDuration(self.duration)
+        self.anim.setDuration(self.duration_fadein)
         self.anim.finished.connect(on_finished_connect)
         self.anim.finished.connect(self._set_fade_finished)
         self.anim.finished.connect(self._run_after_fade_in)
@@ -308,9 +309,10 @@ class FadingDialog(QDialog):
         """ """
         self._run_before_fade_out()
         self._fade_setup()
+        self.anim.setEasingCurve(self.easing_curve_out)
         self.anim.setStartValue(self.opacity_max)
         self.anim.setEndValue(self.opacity_min)
-        self.anim.setDuration(self.duration)
+        self.anim.setDuration(self.duration_fadeout)
         self.anim.finished.connect(on_finished_connect)
         self.anim.finished.connect(self._set_fade_finished)
         self.anim.finished.connect(self._run_after_fade_out)
@@ -322,15 +324,14 @@ class FadingDialog(QDialog):
 
 class FadingCanvas(FadingDialog):
     """The black semi transparent canvas that covers the application"""
-    def __init__(self, parent, opacity_min, opacity_max, duration,
+    def __init__(self, parent, opacity, duration,
                  easing_curve, color):
-        FadingDialog.__init__(self, parent, opacity_min, opacity_max,
-                              duration, easing_curve)
+        FadingDialog.__init__(self, parent, opacity, duration, easing_curve)
         self.parent = parent
-        self.opacity_min = opacity_min
-        self.opacity_max = opacity_max
-        self.duration = duration
-        self.easing_curve = easing_curve
+#        self.opacity_min = opacity_min
+#        self.opacity_max = opacity_max
+#        self.duration = duration
+#        self.easing_curve = easing_curve
         self.color = color
         self.color_decoration = Qt.red
         self.stroke_decoration = 2
@@ -460,16 +461,14 @@ class FadingCanvas(FadingDialog):
 
 class FadingTipBox(FadingDialog):
     """ """
-    def __init__(self, parent, opacity_min, opacity_max, duration,
-                 easing_curve):
-        FadingDialog.__init__(self, parent, opacity_min, opacity_max,
-                              duration, easing_curve)
+    def __init__(self, parent, opacity, duration, easing_curve):
+        FadingDialog.__init__(self, parent, opacity, duration, easing_curve)
         self.holder = self.anim
         self.parent = parent
-        self.opacity_min = opacity_min
-        self.opacity_max = opacity_max
-        self.duration = duration
-        self.easing_curve = easing_curve
+#        self.opacity_min = opacity_min
+#        self.opacity_max = opacity_max
+#        self.duration = duration
+#        self.easing_curve = easing_curve
 
         self.color_top = QColor.fromRgb(230, 230, 230)
         self.color_back = QColor.fromRgb(255, 255, 255)
@@ -715,12 +714,12 @@ class AnimatedTour(QWidget):
     def __init__(self, parent):
         QWidget.__init__(self, parent)
         self.parent = parent
-        self.duration = 666
-        self.opacity_min = 0.0
-        self.opacity_middle = 0.7
-        self.opacity_max = 1.0
+        self.duration_canvas = [666, 666]
+        self.duration_tips = [333, 333]
+        self.opacity_canvas = [0.0, 0.7]
+        self.opacity_tips = [0.0, 1.0]
         self.color = Qt.black
-        self.easing_curve = QEasingCurve.Linear
+        self.easing_curve = [QEasingCurve.Linear]
 
         self.current_step = 0
         self.step_current = 0
@@ -737,12 +736,11 @@ class AnimatedTour(QWidget):
 
         self.is_tour_set = False
 
-        self.canvas = FadingCanvas(self.parent, self.opacity_min,
-                                   self.opacity_middle, self.duration,
-                                   self.easing_curve, self.color)
-        self.tips = FadingTipBox(self.parent, self.opacity_min,
-                                 self.opacity_max, self.duration*1.2,
-                                 self.easing_curve)
+        self.canvas = FadingCanvas(self.parent, self.opacity_canvas,
+                                   self.duration_canvas, self.easing_curve,
+                                   self.color)
+        self.tips = FadingTipBox(self.parent, self.opacity_tips,
+                                 self.duration_tips, self.easing_curve)
 
         self.connect(self.tips.button_next, SIGNAL('clicked()'),
                      self.next_step)
@@ -784,6 +782,7 @@ class AnimatedTour(QWidget):
 
     def _close_canvas(self):
         """ """
+        self._set_modal(False, [self.tips])
         self.tips.hide()
         self.canvas.fade_out(self.canvas.hide)
 
@@ -996,6 +995,7 @@ class AnimatedTour(QWidget):
         self.canvas.setFixedSize(width, height)
         self.canvas.move(QPoint(x, y))
         self.canvas.fade_in(self._move_step)
+        self._clear_canvas()
 
     def close_tour(self):
         """ """
@@ -1025,6 +1025,10 @@ class AnimatedTour(QWidget):
         self._clear_canvas()
         self.step_current -= 1
         self.tips.fade_out(self._move_step)
+
+
+# ----------------------------------------------------------------------------
+# Used for testing the functionality
 
 
 class TestWindow(QMainWindow):
