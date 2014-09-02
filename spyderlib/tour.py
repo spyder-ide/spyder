@@ -489,7 +489,8 @@ class FadingTipDialog(FadingDialog):
         effect.setOffset(self.offset_shadow/2, self.offset_shadow/2)
 
         self.setAttribute(Qt.WA_TranslucentBackground)
-        self.setWindowFlags(Qt.Dialog | Qt.FramelessWindowHint)
+        self.setWindowFlags(Qt.Dialog | Qt.FramelessWindowHint |
+                            Qt.WindowStaysOnTopHint)
         self.setModal(False)
 
         # Widgets
@@ -711,6 +712,7 @@ class FadingTipDialog(FadingDialog):
         """override Qt method"""
         # Raise the main application window on click
         self.parent.raise_()
+        self.raise_()
 
     def reject(self):
         """Qt method to handle escape key event"""
@@ -990,7 +992,9 @@ class AnimatedTour(QWidget):
 
     def close_tour(self):
         """ """
-        self.tips.lower()
+        self.tips.setWindowFlags(Qt.Dialog | Qt.FramelessWindowHint)
+        self.tips.show()
+
         message_box = QMessageBox()
         message_box.setText(_("Do you want to finish the tour?"))
         message_box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
@@ -998,6 +1002,10 @@ class AnimatedTour(QWidget):
         answer = message_box.exec_()
         if answer == QMessageBox.Yes:
             self.tips.fade_out(self._close_canvas)
+        else:
+            self.tips.setWindowFlags(Qt.Dialog | Qt.FramelessWindowHint |
+                                Qt.WindowStaysOnTopHint)
+            self.tips.show()
 
     def next_step(self):
         """ """
