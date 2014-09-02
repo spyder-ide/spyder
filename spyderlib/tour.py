@@ -155,8 +155,15 @@ def get_tour(index):
               'content': _("Now lets interact with the <b>IPython Console</b>."
                            "<br><br><i>Decoration</i> included also."),
               'widgets': [ipython_console, variable_explorer],
-              'decoration': [variable_explorer],
-              'interact': True}
+              'decoration': [ipython_console],
+              'interact': True},
+
+             {'title': _("The IPython console"),
+              'content': _("Now lets interact with the <b>IPython Console</b>."
+                           "<br><br><i>Decoration</i> included also."),
+              'widgets': [ipython_console, variable_explorer],
+              'decoration': [ipython_console, variable_explorer],
+              'interact': True}              
               ]
 
 #                   ['The run toolbar',
@@ -464,7 +471,7 @@ class FadingCanvas(FadingDialog):
         tips.activateWindow()
 
 
-class FadingTipDialog(FadingDialog):
+class FadingTipBox(FadingDialog):
     """ """
     def __init__(self, parent, opacity_min, opacity_max, duration,
                  easing_curve):
@@ -602,6 +609,8 @@ class FadingTipDialog(FadingDialog):
 
     def _enable_widgets(self):
         """ """
+        self.setWindowFlags(Qt.Dialog | Qt.FramelessWindowHint |
+                            Qt.WindowStaysOnTopHint)        
         for widget in self.widgets:
             widget.setDisabled(False)
 
@@ -753,9 +762,9 @@ class AnimatedTour(QWidget):
         self.canvas = FadingCanvas(self.parent, self.opacity_min,
                                    self.opacity_middle, self.duration,
                                    self.easing_curve, self.color)
-        self.tips = FadingTipDialog(self.parent, self.opacity_min,
-                                    self.opacity_max, self.duration,
-                                    self.easing_curve)
+        self.tips = FadingTipBox(self.parent, self.opacity_min,
+                                 self.opacity_max, self.duration,
+                                 self.easing_curve)
 
         self.connect(self.tips.button_next, SIGNAL('clicked()'),
                      self.next_step)
