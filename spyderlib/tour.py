@@ -420,7 +420,6 @@ class FadingCanvas(FadingDialog):
 
         # Add a decoration stroke around widget
         # TODO:
-
         self.setMask(self.region_mask)
         self.update()
         self.repaint()
@@ -484,9 +483,9 @@ class FadingTipBox(FadingDialog):
                             Qt.WindowStaysOnTopHint)
         self.setModal(False)
 
-        effect = QGraphicsDropShadowEffect(self)
+#        effect = QGraphicsDropShadowEffect(self)
 #        effect.setBlurRadius(self.offset_shadow/2)
-        effect.setOffset(self.offset_shadow/2, self.offset_shadow/2)
+#        effect.setOffset(self.offset_shadow/2, self.offset_shadow/2)
 
         # Widgets
         self.button_next = QPushButton(">>")
@@ -506,11 +505,10 @@ class FadingTipBox(FadingDialog):
         self.label_current.setAlignment(Qt.AlignCenter)
 
         self.label_content.setWordWrap(True)
-        self.button_disable = None
 
         self.widgets = [self.label_content, self.label_title,
                         self.label_current,
-                        self.button_close, self.button_next,
+                        self.button_close, self.button_run, self.button_next,
                         self.button_previous]
 
         self.stylesheet = """QPushButton {
@@ -813,6 +811,13 @@ class AnimatedTour(QWidget):
         # Change in canvas only after fadein finishes, for visual aesthetics
         self.tips.fade_in(self.canvas.update_canvas)
 
+    def _set_modal(self, value, widgets):
+        """ """
+        for widget in widgets:
+            widget.setModal(value)
+            widget.hide()
+            widget.show()
+
     def _process_widgets(self, names, spy_window):
         """ """
         widgets = []
@@ -872,8 +877,13 @@ class AnimatedTour(QWidget):
 
         if 'interact' in frame:
             self.canvas.set_interaction(frame['interact'])
+            if frame['interact']:
+                self._set_modal(False, [self.tips])
+            else:
+                self._set_modal(True, [self.tips])
         else:
             self.canvas.set_interaction(False)
+            self._set_modal(True, [self.tips])
 
         if 'run' in frame:
             # Asume that the frist widget is the console
