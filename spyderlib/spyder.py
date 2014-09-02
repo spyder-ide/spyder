@@ -1603,12 +1603,14 @@ class MainWindow(QMainWindow):
         if not self.isMaximized() and not self.fullscreen_flag:
             self.window_size = self.size()
         QMainWindow.resizeEvent(self, event)
+        self.emit(SIGNAL("resized(QResizeEvent)"), event)
         
     def moveEvent(self, event):
         """Reimplement Qt method"""
         if not self.isMaximized() and not self.fullscreen_flag:
             self.window_position = self.pos()
         QMainWindow.moveEvent(self, event)
+        self.emit(SIGNAL("moved(QMoveEvent)"), event)
     
     def hideEvent(self, event):
         """Reimplement Qt method"""
