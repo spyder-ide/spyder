@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2013 The Spyder Development Team
+# Copyright Â© 2013 The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -27,8 +27,8 @@ from spyderlib.qt.QtGui import QApplication
 PLUGINS = ['jedi', 'rope', 'fallback']
 LOG_FILENAME = get_conf_path('introspection.log')
 DEBUG_EDITOR = DEBUG >= 3
-
-
+    
+    
 def get_plugin(editor_widget):
     """Get and load a plugin, checking in order of PLUGINS"""
     plugin = None
@@ -73,12 +73,12 @@ def memoize(obj):
             cache.popitem(last=False)
         return cache[key]
     return memoizer
-
-
+    
+    
 def fallback(func):
     """
     Call the super method if the method throws an error.
-
+    
     Handles all exceptions and input that evaluates to False.
     """
     @functools.wraps(func)
@@ -97,9 +97,9 @@ def fallback(func):
 
 class IntrospectionPlugin(object):
     """Basic Introspection Plugin for Spyder"""
-
+    
     editor_widget = None
-
+    
     # ---- IntrospectionPlugin API --------------------------------------------
     name = 'fallback'
 
@@ -129,14 +129,14 @@ class IntrospectionPlugin(object):
 
     def get_definition_location(self, source_code, offset, filename):
         """Find a path and line number for a definition"""
-        return self.get_definition_location_regex(source_code, offset,
+        return self.get_definition_location_regex(source_code, offset, 
                                                   filename)
-
+        
     def get_definition_location_regex(self, source_code, offset, filename):
         """Find a path and line number for a definition using regex"""
         ret = None, None
         try:
-            ret = self._get_definition_location_regex(source_code, offset,
+            ret = self._get_definition_location_regex(source_code, offset, 
                                                       filename)
             debug_print('get regex definition: ' + str(ret))
         except Exception as e:
@@ -144,7 +144,7 @@ class IntrospectionPlugin(object):
             if DEBUG_EDITOR:
                 log_last_error(LOG_FILENAME)
         return ret
-
+        
     def get_token_completion_list(self, source_code, offset, filename):
         """Return a list of completion strings using token matching"""
         ret = None
@@ -163,7 +163,7 @@ class IntrospectionPlugin(object):
     def validate(self):
         """Validate the plugin"""
         pass
-
+    
     # ---- Private API -------------------------------------------------------
 
     @staticmethod
@@ -207,18 +207,18 @@ class IntrospectionPlugin(object):
             statusbar = self.editor_widget.window().statusBar()
             statusbar.showMessage(message, timeout)
             QApplication.processEvents()
-
+            
     @memoize
-    def python_like_mod_finder(self, import_line, alt_path=None,
+    def python_like_mod_finder(self, import_line, alt_path=None, 
                                stop_token=None):
         """
         Locate a module path based on an import line in an python-like file
-
+    
         import_line is the line of source code containing the import
         alt_path specifies an alternate base path for the module
         stop_token specifies the desired name to stop on
-
-        This is used to a find the path to python-like modules
+    
+        This is used to a find the path to python-like modules 
         (e.g. cython and enaml) for a goto definition.
         """
         if stop_token and '.' in stop_token:
@@ -264,8 +264,8 @@ class IntrospectionPlugin(object):
     def _get_definition_location_regex(self, source_code, offset, filename):
         """
         Find the definition for an object within a set of source code
-
-        This is used to find the path of python-like modules
+        
+        This is used to find the path of python-like modules 
         (e.g. cython and enaml) for a goto definition
         """
         token = sourcecode.get_primary_at(source_code, offset)
@@ -274,14 +274,14 @@ class IntrospectionPlugin(object):
         line_nr = None
         if '.' in token:
             temp = token.split('.')[-1]
-            line_nr = self.get_definition_with_regex(source_code, temp,
+            line_nr = self.get_definition_with_regex(source_code, temp, 
                                                      len(lines))
         if line_nr is None:
-            line_nr = self.get_definition_with_regex(source_code, token,
+            line_nr = self.get_definition_with_regex(source_code, token, 
                                                  len(lines), True)
         if line_nr is None and '.' in token:
             temp = token.split('.')[-1]
-            line_nr = self.get_definition_with_regex(source_code, temp,
+            line_nr = self.get_definition_with_regex(source_code, temp, 
                                                  len(lines), True)
         if line_nr is None:
             return None, None
@@ -295,7 +295,7 @@ class IntrospectionPlugin(object):
                                                  stop_token=token)
             if (not source_file or
                     not osp.splitext(source_file)[-1] in exts):
-                line_nr = self.get_definition_with_regex(source_code, token,
+                line_nr = self.get_definition_with_regex(source_code, token, 
                                                          line_nr)
                 return filename, line_nr
             mod_name = osp.basename(source_file).split('.')[0]
@@ -305,7 +305,7 @@ class IntrospectionPlugin(object):
                 line_nr = self.get_definition_from_file(source_file, token)
                 return source_file, line_nr
         return filename, line_nr
-
+        
     @memoize
     def get_definition_from_file(self, filename, name, line_nr=-1):
         """Find the definition for an object in a filename"""
@@ -313,9 +313,9 @@ class IntrospectionPlugin(object):
             code = fid.read()
         code = encoding.decode(code)[0]
         return self.get_definition_with_regex(code, name, line_nr)
-
+        
     @staticmethod
-    def get_definition_with_regex(source, token, start_line=-1,
+    def get_definition_with_regex(source, token, start_line=-1, 
                                   use_assignment=False):
         """
         Find the definition of an object within a source closest to a given line
@@ -378,7 +378,7 @@ class IntrospectionPlugin(object):
     def get_parent_until(path):
         """
         Given a file path, determine the full module path
-
+    
         e.g. '/usr/lib/python2.7/dist-packages/numpy/core/__init__.pyc' yields
         'numpy.core'
         """
@@ -406,7 +406,7 @@ class IntrospectionPlugin(object):
         for lang in sourcecode.PYTHON_LIKE_LANGUAGES:
             exts.extend(list(sourcecode.ALL_LANGUAGES[lang]))
         return ['.' + ext for ext in exts]
-
+    
     @staticmethod
     def all_editable_exts():
         """Return a list of all editable extensions"""
@@ -419,39 +419,39 @@ class IntrospectionPlugin(object):
 def split_words(string):
     """Split a string into unicode-aware words"""
     return re.findall(r"[\w.]+", string, re.UNICODE)
-
+    
 
 if __name__ == '__main__':
     p = IntrospectionPlugin()
-
+    
     with open(__file__, 'rb') as fid:
         code = fid.read().decode('utf-8')
     code += '\nget_conf_path'
     path, line = p.get_definition_location_regex(code, len(code), __file__)
     assert path.endswith('baseconfig.py')
-
+    
     comp = p.get_token_completion_list(code[:-2], len(code) - 2, None)
     assert comp == ['get_conf_path']
-
+    
     code += '\np.get_token_completion_list'
     path, line = p.get_definition_location_regex(code, len(code), 'dummy.txt')
     assert path == 'dummy.txt'
     assert 'def get_token_completion_list(' in code.splitlines()[line - 1]
-
+    
     code += '\np.python_like_mod_finder'
     path, line = p.get_definition_location_regex(code, len(code), 'dummy.txt')
     assert path == 'dummy.txt'
     assert 'def python_like_mod_finder' in code.splitlines()[line - 1]
-
+    
     code += 'python_like_mod_finder'
     path, line = p.get_definition_location_regex(code, len(code), 'dummy.txt')
     assert line is None
-
+    
     code = """
     class Test(object):
         def __init__(self):
             self.foo = bar
-
+            
     t = Test()
     t.foo"""
     path, line = p.get_definition_location_regex(code, len(code), 'dummy.txt')
@@ -459,35 +459,34 @@ if __name__ == '__main__':
 
     ext = p.python_like_exts()
     assert '.py' in ext and '.pyx' in ext
-
+    
     ext = p.all_editable_exts()
     assert '.cfg' in ext and '.iss' in ext
-
+    
     path = p.get_parent_until(os.path.abspath(__file__))
     assert path == 'spyderlib.utils.introspection.base'
-
+    
     line = 'from spyderlib.widgets.sourcecode.codeeditor import CodeEditor'
     path = p.python_like_mod_finder(line)
     assert path.endswith('codeeditor.py')
     path = p.python_like_mod_finder(line, stop_token='sourcecode')
     assert path.endswith('__init__.py') and 'sourcecode' in path
-
+    
     path = p.get_parent_until(osp.expanduser(r'~/.spyder2/temp.py'))
     assert path == '.spyder2.temp'
-
+    
     code = 'import re\n\nre'
     path, line = p.get_definition_location_regex(code, len(code), 'dummy.txt')
     assert path == 'dummy.txt' and line == 1
-
+    
     code = 'self.proxy.widget; self.'
     comp = p.get_token_completion_list(code, len(code), None)
     assert comp == ['proxy']
-
+    
     code = 'self.sigMessageReady.emit; self.'
     comp = p.get_token_completion_list(code, len(code), None)
     assert comp == ['sigMessageReady']
-
-    code = encoding.to_unicode('álfa;á')
+    
+    code = encoding.to_unicode('Ã¡lfa;Ã¡')
     comp = p.get_token_completion_list(code, len(code), None)
-    assert comp == [encoding.to_unicode('álfa')]
-
+    assert comp == [encoding.to_unicode('Ã¡lfa')]
