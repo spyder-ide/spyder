@@ -15,40 +15,31 @@ from __future__ import division
 
 import os.path as osp
 
-from spyderlib.qt import is_pyqt46
-from spyderlib.qt.QtGui import (QColor, QMenu, QApplication, QSplitter, QFont,
-                                QTextEdit, QTextFormat, QPainter, QTextCursor,
+from spyderlib.qt.QtGui import (QColor, QMenu, QApplication, 
+                                QPainter, 
                                 QBrush,
                                 QPixmap, QLabel,
                                 QWidget, QVBoxLayout,
-                                QHBoxLayout, QDialog, QIntValidator,
+                                QHBoxLayout, QDialog, 
                                 QMainWindow,
                                 QAction, QPushButton, QGraphicsDropShadowEffect,
                                 QPainterPath, QSpacerItem, QPen, QMessageBox,
                                 QGraphicsOpacityEffect,
-                                QMouseEvent, QRegion)
+                                QRegion)
 from spyderlib.qt.QtCore import (Qt, SIGNAL, QTimer, QRect, QRegExp, QSize,
                                  SLOT, Slot, QPointF, QPoint, QRectF,
                                  QTimeLine, QEvent, QPropertyAnimation,
                                  QEasingCurve, QEvent)
 
-#%% This line is for cell execution testing
 # Local import
-#TODO: Try to separate this module from spyderlib to create a self
-#      consistent editor module (Qt source code and shell widgets library)
 from spyderlib.baseconfig import get_conf_path, _, DEBUG, get_image_path
 from spyderlib.config import CONF
-from spyderlib.guiconfig import get_font, create_shortcut
-from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
-                                       mimedata2url, get_icon)
-from spyderlib.utils.dochelpers import getobj
-from spyderlib.utils import encoding, sourcecode
-
 
 # FIXME: ISSUES:
 # On Linux the Tip panel after transitions (although appears on top) needs to
 # clicked to get the focus back... seems to be an issue of Qt and the window
 # Manager in Linux.
+
 
 def get_tours():
     """ """
@@ -80,12 +71,10 @@ def get_tour(index):
     debug_toolbar = ''
     main_toolbar = ''
 
-
     status_bar = ''
     menu_bar = ''
     file_menu = ''
     edit_menu = ''
-
 
     # This test should serve as example of keys to use in the tour frame dics
     test = [{'title': "Welcome to Spyder introduction tour",
@@ -101,7 +90,6 @@ def get_tour(index):
              'widgets': ['button1'],
              'decoration': ['button2'],
              'interact': True},
-
 
             {'title': "Widget display",
              'content': ("This show how a widget is displayed. The tip panel "
@@ -128,11 +116,11 @@ def get_tour(index):
                            "development environment for the Python language. "
                            "<br><br>Use the arrow keys or the mouse to move "
                            "into the tour."),
-              'image' : 'spyder.png'},
+              'image': 'spyder.png'},
 
              {'title': _("The Editor"),
-              'content': _("A powerful editor is a central piece of any good IDE."
-                           "<br><br> No interaction example." ),
+              'content': _("A powerful editor is a central piece of any good "
+                           "IDE.<br><br> No interaction example."),
               'widgets': [editor]},
 
              {'title': _("The Editor"),
@@ -143,12 +131,12 @@ def get_tour(index):
               'decoration': [line_number_area]},
 
              {'title': _("The IPython console"),
-              'content': _("Now lets try to run some code to show the nice things "
-                           "in <b>Spyder</b>.<br><br>"
+              'content': _("Now lets try to run some code to show the nice "
+                           "things in <b>Spyder</b>.<br><br>"
                            "Click when ready and pay close attention to the "
                            "variable explorer"),
               'widgets': [ipython_console, variable_explorer],
-              'run': ['a = 2', 'b = 4']
+              'run': ['a = 2', 'b = 4.0']
               },
 
              {'title': _("The IPython console"),
@@ -164,7 +152,7 @@ def get_tour(index):
               'widgets': [ipython_console, variable_explorer],
               'decoration': [ipython_console, variable_explorer],
               'interact': True}
-              ]
+             ]
 
 #                   ['The run toolbar',
 #                       'Should be short',
@@ -208,15 +196,15 @@ def get_tour(index):
 #                      ]
 
     feat24 = [{'title': "New features in Spyder 2.4",
-             'content': "<b>Spyder</b> is an interactive development environment \
-                         based on bla",
-             'image' : 'spyder.png'},
+               'content': _("<b>Spyder</b> is an interactive development "
+                            "environment based on bla"),
+               'image': 'spyder.png'},
 
-            {'title': "Welcome to Spyder introduction tour",
-             'content': "Spyder is an interactive development environment \
-                         based on bla",
-             'widgets': ['variableexplorer']},
-            ]
+              {'title': _("Welcome to Spyder introduction tour"),
+               'content': _("Spyder is an interactive development environment "
+                            "based on bla"),
+               'widgets': ['variableexplorer']},
+              ]
 
     tours = [{'name': _('Introduction tour'), 'tour': intro},
              {'name': _('New features in version 2.4'), 'tour': feat24}]
@@ -486,19 +474,19 @@ class FadingTipBox(FadingDialog):
 
         self.color_top = QColor.fromRgb(230, 230, 230)
         self.color_back = QColor.fromRgb(255, 255, 255)
-        self.offset_shadow = 6
+        self.offset_shadow = 0
         self.fixed_width = 300
 
         self.key_pressed = None
-
-        effect = QGraphicsDropShadowEffect(self)
-        effect.setBlurRadius(self.offset_shadow/2)
-        effect.setOffset(self.offset_shadow/2, self.offset_shadow/2)
 
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.setWindowFlags(Qt.Dialog | Qt.FramelessWindowHint |
                             Qt.WindowStaysOnTopHint)
         self.setModal(False)
+
+        effect = QGraphicsDropShadowEffect(self)
+#        effect.setBlurRadius(self.offset_shadow/2)
+        effect.setOffset(self.offset_shadow/2, self.offset_shadow/2)
 
         # Widgets
         self.button_next = QPushButton(">>")
@@ -578,29 +566,24 @@ class FadingTipBox(FadingDialog):
         layout_navigation.addWidget(self.button_next)
         layout_navigation.addSpacerItem(spacer)
 
-        self.layout = QVBoxLayout()
-        self.layout.addLayout(layout_top)
-        self.layout.addStretch()
-        self.layout.addSpacerItem(spacer2)
-        self.layout.addLayout(layout_content)
-        self.layout.addLayout(layout_run)
-        self.layout.addStretch()
-        self.layout.addSpacerItem(spacer2)
-        self.layout.addLayout(layout_navigation)
-        self.layout.addSpacerItem(spacer)
+        layout = QVBoxLayout()
+        layout.addLayout(layout_top)
+        layout.addStretch()
+        layout.addSpacerItem(spacer2)
+        layout.addLayout(layout_content)
+        layout.addLayout(layout_run)
+        layout.addStretch()
+        layout.addSpacerItem(spacer2)
+        layout.addLayout(layout_navigation)
+        layout.addSpacerItem(spacer)
 
-        self.setLayout(self.layout)
+        layout.setSizeConstraint(3)
 
-        self.set_funcs_before_fade_in([self._disable_widgets,
-                                       self.activateWindow])
+        self.setLayout(layout)
 
-        self.set_funcs_after_fade_in([self._enable_widgets,
-#                                      self.show, self.raise_, self.setFocus,
-                                      self.activateWindow])
-
-        self.set_funcs_before_fade_out([self._disable_widgets,
-                                        self.activateWindow])
-        self.setFocusPolicy(Qt.StrongFocus)
+        self.set_funcs_before_fade_in([self._disable_widgets])
+        self.set_funcs_after_fade_in([self._enable_widgets])
+        self.set_funcs_before_fade_out([self._disable_widgets])
 
     def _disable_widgets(self):
         """ """
@@ -641,30 +624,14 @@ class FadingTipBox(FadingDialog):
             self.button_run.setDisabled(False)
             self.button_run.setVisible(True)
 
-        # To make sure that the widget height is calculated before drawing
-        # the tip panel
-        layout = self.layout
-        layout.setSizeConstraint(3)
-        layout.activate()
+        # Refresh layout
+        self.layout().activate()
 
     def set_pos(self, x, y):
         """ """
         self.x = x
         self.y = y
         self.move(QPoint(x, y))
-
-    def paintEvent(self, event):
-        """ """
-        self.build_paths()
-
-        painter = QPainter(self)
-        painter.setRenderHint(QPainter.Antialiasing)
-
-        painter.fillPath(self.round_rect_path, self.color_back)
-        painter.fillPath(self.top_rect_path, self.color_top)
-        painter.strokePath(self.round_rect_path, QPen(Qt.gray, 1))
-
-        # TODO: Build the pointing arrow?
 
     def build_paths(self):
         """ """
@@ -704,6 +671,19 @@ class FadingTipBox(FadingDialog):
         self.top_rect_path.arcTo(left, top, radius, radius, 90.0, 90.0)
         self.top_rect_path.lineTo(left, top + header)
         self.top_rect_path.lineTo(right, top + header)
+
+    def paintEvent(self, event):
+        """ """
+        self.build_paths()
+
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing)
+
+        painter.fillPath(self.round_rect_path, self.color_back)
+        painter.fillPath(self.top_rect_path, self.color_top)
+        painter.strokePath(self.round_rect_path, QPen(Qt.gray, 1))
+
+        # TODO: Build the pointing arrow?
 
     def keyReleaseEvent(self, event):
         """ """
@@ -763,7 +743,7 @@ class AnimatedTour(QWidget):
                                    self.opacity_middle, self.duration,
                                    self.easing_curve, self.color)
         self.tips = FadingTipBox(self.parent, self.opacity_min,
-                                 self.opacity_max, self.duration,
+                                 self.opacity_max, self.duration*1.2,
                                  self.easing_curve)
 
         self.connect(self.tips.button_next, SIGNAL('clicked()'),
@@ -779,15 +759,15 @@ class AnimatedTour(QWidget):
 
         # Main window move or resize
         self.connect(self.parent, SIGNAL('resized(QResizeEvent)'),
-                     self._reset_size)
+                     self._resized)
         self.connect(self.parent, SIGNAL('moved(QMoveEvent)'),
-                     self._reset_position)
+                     self._moved)
 
         # To capture the arrow keys that allow moving the tour
         self.connect(self.tips, SIGNAL("keyPressed"),
                      self._key_pressed)
 
-    def _reset_size(self, event):
+    def _resized(self, event):
         """ """
         size = event.size()
         self.canvas.setFixedSize(size)
@@ -796,7 +776,7 @@ class AnimatedTour(QWidget):
         if self.is_tour_set:
             self._set_data()
 
-    def _reset_position(self, event):
+    def _moved(self, event):
         """ """
         pos = event.pos()
         self.canvas.move(QPoint(pos.x(), pos.y()))
@@ -807,8 +787,15 @@ class AnimatedTour(QWidget):
     def _close_canvas(self):
         """ """
         self.tips.hide()
-#        self.tips.setParent(None)
         self.canvas.fade_out(self.canvas.hide)
+
+    def _clear_canvas(self):
+        """ """
+        # TODO: Add option to also make it white... might be usefull?
+        # Make canvas black before transitions
+        self.canvas.update_widgets(None)
+        self.canvas.update_decoration(None)
+        self.canvas.update_canvas()
 
     def _move_step(self):
         """ """
@@ -823,8 +810,8 @@ class AnimatedTour(QWidget):
 
         frame = self.frames[self.step_current]
 
-        # Very important!
-        self.tips.fade_in(self.tips.activateWindow)
+        # Change in canvas only after fadein finishes, for visual aesthetics
+        self.tips.fade_in(self.canvas.update_canvas)
 
     def _process_widgets(self, names, spy_window):
         """ """
@@ -862,6 +849,7 @@ class AnimatedTour(QWidget):
         # Check if entry exists in dic and act accordingly
         if 'title' in frame:
             title = frame['title']
+
         if 'content' in frame:
             content = frame['content']
 
@@ -894,9 +882,10 @@ class AnimatedTour(QWidget):
 
         self.tips.set_data(title, content, current, image, run)
         self._check_buttons()
+
+        # Make canvas black when starting a new place of decoration
         self.canvas.update_widgets(dockwidgets)
         self.canvas.update_decoration(decoration)
-        self.canvas.update_canvas()
 
         # Store the dimensions of the main window
         geo = self.parent.frameGeometry()
@@ -1017,11 +1006,13 @@ class AnimatedTour(QWidget):
 
     def next_step(self):
         """ """
+        self._clear_canvas()
         self.step_current += 1
         self.tips.fade_out(self._move_step)
 
     def previous_step(self):
         """ """
+        self._clear_canvas()
         self.step_current -= 1
         self.tips.fade_out(self._move_step)
 
