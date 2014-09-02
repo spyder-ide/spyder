@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright Â© 2013 The Spyder Development Team
+# Copyright © 2013 The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -479,14 +479,14 @@ if __name__ == '__main__':
     path, line = p.get_definition_location_regex(code, len(code), 'dummy.txt')
     assert path == 'dummy.txt' and line == 1
     
-    code = 'self.proxy.widget; self.'
+    code = 'self.proxy.widget; self.p'
     comp = p.get_token_completion_list(code, len(code), None)
     assert comp == ['proxy']
     
-    code = 'self.sigMessageReady.emit; self.'
+    code = 'self.sigMessageReady.emit; self.s'
     comp = p.get_token_completion_list(code, len(code), None)
     assert comp == ['sigMessageReady']
     
-    code = encoding.to_unicode('Ã¡lfa;Ã¡')
+    code = encoding.to_unicode('álfa;á')
     comp = p.get_token_completion_list(code, len(code), None)
-    assert comp == [encoding.to_unicode('Ã¡lfa')]
+    assert comp == [encoding.to_unicode('álfa')]
