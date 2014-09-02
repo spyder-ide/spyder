@@ -1603,6 +1603,8 @@ class MainWindow(QMainWindow):
         if not self.isMaximized() and not self.fullscreen_flag:
             self.window_size = self.size()
         QMainWindow.resizeEvent(self, event)
+
+        # To be used by the tour to be able to resize
         self.emit(SIGNAL("resized(QResizeEvent)"), event)
         
     def moveEvent(self, event):
@@ -1610,6 +1612,8 @@ class MainWindow(QMainWindow):
         if not self.isMaximized() and not self.fullscreen_flag:
             self.window_position = self.pos()
         QMainWindow.moveEvent(self, event)
+
+        # To be used by the tour to be able to move
         self.emit(SIGNAL("moved(QMoveEvent)"), event)
     
     def hideEvent(self, event):
