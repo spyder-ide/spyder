@@ -489,8 +489,7 @@ class FadingTipDialog(FadingDialog):
         effect.setOffset(self.offset_shadow/2, self.offset_shadow/2)
 
         self.setAttribute(Qt.WA_TranslucentBackground)
-        self.setWindowFlags(Qt.Dialog | Qt.FramelessWindowHint |
-                            Qt.WindowStaysOnTopHint)
+        self.setWindowFlags(Qt.Dialog | Qt.FramelessWindowHint)
         self.setModal(False)
 
         # Widgets
@@ -875,6 +874,8 @@ class AnimatedTour(QWidget):
 
         if 'interact' in frame:
             self.canvas.set_interaction(frame['interact'])
+        else:
+            self.canvas.set_interaction(False)
 
         if 'run' in frame:
             # Asume that the frist widget is the console
@@ -989,9 +990,12 @@ class AnimatedTour(QWidget):
 
     def close_tour(self):
         """ """
-        answer = QMessageBox.warning(self, _("All set to go?"),
-                                     _("Do you want to finish the tour?"),
-                                     QMessageBox.Yes | QMessageBox.No)
+        self.tips.lower()
+        message_box = QMessageBox()
+        message_box.setText(_("Do you want to finish the tour?"))
+        message_box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        
+        answer = message_box.exec_()
         if answer == QMessageBox.Yes:
             self.tips.fade_out(self._close_canvas)
 
@@ -1071,6 +1075,7 @@ class TestWindow(QMainWindow):
         """Reimplement Qt method"""
         QMainWindow.moveEvent(self, event)
         self.emit(SIGNAL("moved(QMoveEvent)"), event)
+
 
 def test():
     """ """
