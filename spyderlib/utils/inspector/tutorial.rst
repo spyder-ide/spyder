@@ -761,35 +761,48 @@ Debugging
 Line by line step execution of code
 -----------------------------------
 
-Activating the debug mode (``Debug > Debug``) starts the Python
-debugger (Pdb) if the Python console is active, and starts the IPython
-debugger (ipdb) if the IPython console is active. The debuggers are
-operated as normal (a short introduction of key actions follows below),
-but the editor display window in Spyder highlights the line that is about to be
-executed, and the variable explorer displays variables in the current
-context of the point of program execution. (It only displays
-'numerical' variables, i.e. not function objects etc.)
+Activating the debug mode (with the ``Debug > Debug`` menu option or Ctrl+F5)
+starts the Python debugger (Pdb) if the Python console is active, or the IPython
+debugger (ipdb) if the IPython console is active. After doing that, the
+Editor pane will highlight the line that is about to be executed, and the
+Variable Explorer will display variables in the current context of the point
+of program execution. (It only displays 'numerical' and array type of variables,
+i.e. not function or class objects)
 
-The key commands within the debugger are individual keystrokes:
+After entering debug mode, you can execute the code line by line using the
+``Step`` button of the Debug toolbar:
 
-* ``s`` to Step into the current statement. If this is a function
-  call, step into that function. 
+.. image:: static/images/debug-step-over.png
+     :align: center
 
-* ``n`` move to the Next statement. If the current statement is a
-  function, do not step into that function, but execute it completely
-  before returning control to the interactive debugger prompt. This is
-  the normal key to press to advance programme execution line by line.
+or the shortcut Ctrl+F10. You can also inspect how a particular function is
+working by stepping into it with the ``Step into`` button
 
-* ``r`` complete all statements in the current function and Return
-  from that function before returning control.
+.. image:: static/images/debug-step-in.png
+     :align: center
 
-* ``p`` Print allows to display values of variables, for example
-  ``p x`` will print the value of the variable ``x``.
+or the shortcut Ctrl+F11. Finally, to get out of a function and continue with
+the next line you need to use the ``Step return`` button 
 
-Note that at the debugger prompt, you can also *change* values of variable. For
-example, to modify a variable ``x`` at the IPython debugger prompt, you can say ``ipdb > x = 42``
-and the debugger will carry on with ``x`` being bound to ``42``. You
-can also call functions, and do many others things. Try this example::
+.. image:: static/images/debug-step-out.png
+     :align: center
+
+or the shortcut Ctrl+F12.
+
+If you prefer to inspect your program at a specific point, you need to insert a
+*breakpoint* by pressing F12 on the line on which you want to stop. After
+that a red dot will be placed next to the line and you can press the ``Continue``
+button
+
+.. image:: static/images/debug-continue.png
+     :align: center
+
+(after entering debug mode) to stop the execution at that line.
+
+Note that at the debugger prompt, you can also *change* values of variables. For
+example, to modify a variable ``x`` at the IPython debugger prompt, you can say
+``ipdb > x = 42`` and the debugger will carry on with ``x`` being bound to ``42``.
+You can also call functions, and do many others things. Try this example::
 
    def demo(x):
        for i in range(5):
@@ -798,7 +811,7 @@ can also call functions, and do many others things. Try this example::
         
    demo(0)
 
-If we execute this (``Run > Run``), we should fine the output::
+If we execute this (``Run > Run``), we should see the output::
 
 	i=0, x=0
 	i=1, x=1
@@ -806,14 +819,14 @@ If we execute this (``Run > Run``), we should fine the output::
 	i=3, x=3
 	i=4, x=4
 	
-Now execute this using the debugger (``Debug > Debug``), press ``n``
-until the highlighted line reaches the ``demo(0)`` function call, then
-press ``s`` to Step into this function. Keep pressing ``n`` to execute
-the next lines. Then, modify ``x`` by typing ``x=10`` in the debugger
-prompt. You see x changing in the Variable explorer. You should also
-see ``x`` changing when its value is printed as part of the ``demo()``
-function. (The printed output appears between your debugger commands
-and responses.)
+Now execute this using the debugger (``Debug > Debug``), press the
+``Step button`` until the highlighted line reaches the ``demo(0)``
+function call, then press the ``Step into`` to inspect this function.
+Keep pressing the ``Step button`` to execute the next lines. Then,
+modify ``x`` by typing ``x=10`` in the debugger prompt. You see x
+changing in the Variable Explorer. You should also see ``x`` changing
+when its value is printed as part of the ``demo()`` function. (The
+printed output appears between your debugger commands and responses.)
 
 This debugging ability to execute code line by line, to inspect variables as
 they change, and to modify them manually is a powerful tool to
@@ -822,30 +835,29 @@ understand what a piece of code is doing (and to correct it if desired).
 To leave the debugging mode, you can type ``exit`` or select from the
 menu ``Debug > Debugging Control > Exit``
 
+Debugging once an exception has occurred with IPython
+-----------------------------------------------------
 
-Debugging once an exception has occured with IPython
-----------------------------------------------------
-
-In the IPython console, we can call ``%debug``
+In the IPython console, we can call ``%debug`` 
 straight after an exception has been raised: this will start the
-IPython debug mode, and allows inspection of local variables at the
+IPython debug mode, which allows inspection of local variables at the
 point where the exception occurred as described above. This is a lot
 more efficient than adding ``print`` statements to the code an
 running it again.
 
 If you use this, you may also want to use the commands ``up``
-(i.e. press ``u``) and ``down`` (i.e. press ``d``) which navigate the
-inspection point up and down the stack. (Up the stack means to the
-functions that have called the current function; down is the opposite
-direction.)
+(i.e. press ``u`` at the debugger) and ``down`` (i.e. press ``d``) which
+navigate the inspection point up and down the stack. (Up the stack means
+to the functions that have called the current function; down is the
+opposite direction.)
 
 
 
 Plotting
 ########
 
-Matplotlib with IPython console
--------------------------------
+Plotting with the IPython console
+---------------------------------
 
 Assuming we use an IPython console with version >= 1.0.0, we can
 decide whether figures created with matplotlib/pylab will show
@@ -859,47 +871,53 @@ Option 1 is convenient to save a record of the interactive session
 the IPython console to an html file).
 
 Option 2 allows to interactively zoom into the figure, manipulate it a little,
-and save the figure to different file formats via the menu.
+and save the figure to different file formats via a menu the window it
+contains has.
 
 The command to get the figures to appear *inline* in the IPython
-console is
-``%matplotlib inline``.
+console is::
+
+    In [3]: %matplotlib inline
 
 The command to get figures appear in their own window (which
-technically is a QT windown) is ``%matplotlib qt``.
+technically is a Qt windown) is::
 
-The Spyder preferences can be used to customise the default behaviour
+    In [4]: %matplotlib qt
+
+The Spyder preferences can be used to customize the default behavior
 (in particular ``Preferences > IPython Console > Graphics >
 Activate Support`` to switch into inline plotting).
 
 Here are two lines you can use to quickly create a plot and test
 this::
 
-    import pylab
-    pylab.plot(range(10), 'o'))
+    In [5]: import pylab
+    In [6]: pylab.plot(range(10), 'o'))
 
 
-Matplotlib with Python
-----------------------
+Plotting with the Python console
+--------------------------------
 
-If we use the Python console, we need to use matplotlib's or pylab's
-``show()`` command to make a plot appear. It will appear in a new
-window (there is no way of making it appear inline inside the Python
-console - this only works for
-`Matplotlib with IPython Console`_).
+If we use the Python console, all plots will appear in a new window
+(there is no way of making it appear inline inside the Python
+console - this only works for the IPython Console).
 
 Here is a brief example that you can use to create and display a
 plot::
 
-    import pylab
-    pylab.plot(range(10), 'o'))
-    pylab.show()
+    >>> import pylab
+    >>> pylab.plot(range(10), 'o'))
+
+If you execute your code in a dedicated console, you need to use
+matplotlib's or pylab's ``show()`` command in your code to make a plot
+appear, like this: ``pylab.show()``.
 
 Note that the ``show()`` command will bind the focus to new window
 that has appeared, and that you will need to close that window before
 Spyder can accept any further commands or respond to interaction. If
-you cannot see the new window, check with your window manager whether
-it may have appeared behind the spyder window, or be partly hidden, etc.
+you cannot see the new window, check whether it may have appeared behind
+the Spyder window, or be partly hidden.
+
 
 
 Historical note
@@ -914,49 +932,3 @@ used at the `University of Southampton <http://www.soton.ac.uk>`__ to
 undegraduate engineers and postgraduate PhD students for the
 `Next Generation Computational Modelling <http://ngcm.soton.ac.uk>`__
 doctoral training centre.
-
-
-
-Versions
-########
-
-
-Spyder version
---------------
-
-The notes above have been created in September 2013 with Spyder 2.2.14
-on Mac OS, installed via Anaconda.
-
-Additions after 18 October 2013 tested with Spyder 2.2.4 and IPython 1.0.0.
-
-Text has been reviewed by Carlos Cordoba for Spyder 2.3.
-
-To find out what Spyder version you use, go to ``Python/Spyder > About`` (on
-Mac OS X).
-
-
-
-Changes
--------
-
-22 September 2013: Update location of preferences, add notes on debugger and
-variable explorer.
-
-23 September 2013: Add section on run settings.
-
-30 September 2013: How to avoid automatic imports and other magic in
-Python and IPython console added.
-
-18 October 2013: Add ``%matplotlib`` command, and shortcuts for
-executing a cell.
-
-21 October 2013: Adding ``%debug`` after exception, Adding section "first
-steps", adding numbering of sections.
-
-29 December 2013: Reviewed for inclusion into Spyder, minor fixes and
-improvements.
-
-30 December 2013: Reviewed by Carlos Cordoba, updated content for Spyder 2.3.
-
-20 Juni 2014: Review by Carlos Cordoba and Hans Fangohr, in
-preparation for Spyder 2.3 release
