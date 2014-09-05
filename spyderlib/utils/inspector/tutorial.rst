@@ -799,7 +799,23 @@ button
 
 (after entering debug mode) to stop the execution at that line.
 
-Note that at the debugger prompt, you can also *change* values of variables. For
+.. note::
+
+   You can also control the debugging process by issuing these commands in the
+   console prompt:
+   
+   * ``n`` to move to the Next statement. 
+   
+   * ``s`` to Step into the current statement. If this is a function
+     call, step into that function. 
+
+   * ``r`` to complete all statements in the current function and Return
+     from that function before returning control.
+
+   * ``p`` to print values of variables, for example ``p x`` will print the
+     value of the variable ``x``.
+
+At the debugger prompt, you can also *change* values of variables. For
 example, to modify a variable ``x`` at the IPython debugger prompt, you can say
 ``ipdb > x = 42`` and the debugger will carry on with ``x`` being bound to ``42``.
 You can also call functions, and do many others things. Try this example::
