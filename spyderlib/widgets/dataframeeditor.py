@@ -319,12 +319,12 @@ class DataFrameView(QTableView):
                                     icon=get_icon('editcopy.png'),
                                     triggered=self.copy,
                                     context=Qt.WidgetShortcut)
-        functions = (("To bool", bool), ("To complex", complex),
-                     ("To int", int), ("To float", float),
-                     ("To str", to_text_string))
+        functions = ((_("To bool"), bool), (_("To complex"), complex),
+                     (_("To int"), int), (_("To float"), float),
+                     (_("To str"), to_text_string))
         types_in_menu = [copy_action]
         for name, func in functions:
-            types_in_menu += [create_action(self, _(name),
+            types_in_menu += [create_action(self, name,
                                             triggered=lambda func=func:
                                                       self.change_type(func),
                                             context=Qt.WidgetShortcut)]
@@ -382,12 +382,12 @@ class DataFrameEditor(QDialog):
         for dim in data.shape:
             size *= dim
         if size > 1e6:
-            answer = QMessageBox.warning(self, _("%s editor"
-                                                 % data.__class__.__name__),
+            answer = QMessageBox.warning(self, _("%s editor")
+                                                 % data.__class__.__name__,
                                          _("Opening and browsing this "
                                            "%s can be slow\n\n"
-                                           "Do you want to continue anyway?"
-                                           % data.__class__.__name__),
+                                           "Do you want to continue anyway?")
+                                           % data.__class__.__name__,
                                          QMessageBox.Yes | QMessageBox.No)
             if answer == QMessageBox.No:
                 return
@@ -398,7 +398,7 @@ class DataFrameEditor(QDialog):
         if title:
             title = to_text_string(title)  # in case title is not a string
         else:
-            title = _("%s editor" % data.__class__.__name__)
+            title = _("%s editor") % data.__class__.__name__
         if isinstance(data, TimeSeries):
             self.is_time_series = True
             data = data.to_frame()
