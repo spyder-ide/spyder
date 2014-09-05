@@ -25,8 +25,8 @@ from spyderlib.plugins.configdialog import GeneralConfigPage
 from spyderlib.py3compat import to_text_string, getcwd
 
 
-CURRENT_INTERPRETER = _("Execute in current Python or IPython interpreter")
-DEDICATED_INTERPRETER = _("Execute in a new dedicated Python interpreter")
+CURRENT_INTERPRETER = _("Execute in current Python or IPython console")
+DEDICATED_INTERPRETER = _("Execute in a new dedicated Python console")
 SYSTERM_INTERPRETER = _("Execute in an external System terminal")
 
 CURRENT_INTERPRETER_OPTION = 'default/interpreter/current'
@@ -172,7 +172,7 @@ class RunConfigOptions(QWidget):
         common_layout.addLayout(wd_layout, 1, 1)
         
         # --- Interpreter ---
-        interpreter_group = QGroupBox(_("Interpreter"))
+        interpreter_group = QGroupBox(_("Console"))
         interpreter_layout = QVBoxLayout()
         interpreter_group.setLayout(interpreter_layout)
         self.current_radio = QRadioButton(CURRENT_INTERPRETER)
@@ -183,13 +183,13 @@ class RunConfigOptions(QWidget):
         interpreter_layout.addWidget(self.systerm_radio)
         
         # --- Dedicated interpreter ---
-        new_group = QGroupBox(_("Dedicated Python interpreter"))
+        new_group = QGroupBox(_("Dedicated Python console"))
         self.connect(self.current_radio, SIGNAL("toggled(bool)"),
                      new_group.setDisabled)
         new_layout = QGridLayout()
         new_group.setLayout(new_layout)
         self.interact_cb = QCheckBox(_("Interact with the Python "
-                                       "interpreter after execution"))
+                                       "console after execution"))
         new_layout.addWidget(self.interact_cb, 1, 0, 1, -1)
         self.pclo_cb = QCheckBox(_("Command line options:"))
         new_layout.addWidget(self.pclo_cb, 2, 0)
@@ -435,7 +435,7 @@ class RunConfigPage(GeneralConfigPage):
                                ) % (run_dlg, run_dlg, run_menu))
         about_label.setWordWrap(True)
 
-        interpreter_group = QGroupBox(_("Interpreter"))
+        interpreter_group = QGroupBox(_("Console"))
         interpreter_bg = QButtonGroup(interpreter_group)
         self.current_radio = self.create_radiobutton(CURRENT_INTERPRETER,
                                 CURRENT_INTERPRETER_OPTION, True,
