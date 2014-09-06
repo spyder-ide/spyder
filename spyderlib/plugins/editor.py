@@ -978,8 +978,8 @@ class Editor(SpyderPluginWidget):
     
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
-        self.connect(self.main, SIGNAL('restore_scrollbar_position()'),
-                     self.restore_scrollbar_position)
+        self.main.restore_scrollbar_position.connect(
+                                               self.restore_scrollbar_position)
         self.connect(self.main.console,
                      SIGNAL("edit_goto(QString,int,QString)"), self.load)
         self.connect(self, SIGNAL('exec_in_extconsole(QString,bool)'),

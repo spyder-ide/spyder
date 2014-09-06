@@ -102,7 +102,7 @@ from spyderlib.qt.QtGui import (QApplication, QMainWindow, QSplashScreen,
                                 QPixmap, QMessageBox, QMenu, QColor, QShortcut,
                                 QKeySequence, QDockWidget, QAction,
                                 QDesktopServices)
-from spyderlib.qt.QtCore import SIGNAL, QPoint, Qt, QSize, QByteArray, QUrl
+from spyderlib.qt.QtCore import Signal, SIGNAL, QPoint, Qt, QSize, QByteArray, QUrl
 from spyderlib.qt.compat import (from_qvariant, getopenfilename,
                                  getsavefilename)
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms 
@@ -298,6 +298,9 @@ class MainWindow(QMainWindow):
          ('winpython', "http://code.google.com/p/winpython/",
           _("WinPython"))
                 )
+    
+    # Signals
+    restore_scrollbar_position = Signal()
     
     def __init__(self, options=None):
         QMainWindow.__init__(self)
@@ -1138,7 +1141,7 @@ class MainWindow(QMainWindow):
     def post_visible_setup(self):
         """Actions to be performed only after the main window's `show` method 
         was triggered"""
-        self.emit(SIGNAL('restore_scrollbar_position()'))
+        self.restore_scrollbar_position.emit()
         
         if self.projectexplorer is not None:
             self.projectexplorer.check_for_io_errors()

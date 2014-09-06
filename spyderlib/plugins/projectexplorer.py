@@ -67,8 +67,8 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         self.main.pythonpath_changed()
-        self.connect(self.main, SIGNAL('restore_scrollbar_position()'),
-                     self.restore_scrollbar_position)
+        self.main.restore_scrollbar_position.connect(
+                                               self.restore_scrollbar_position)
         self.connect(self, SIGNAL("pythonpath_changed()"),
                      self.main.pythonpath_changed)
         self.connect(self, SIGNAL("projects_were_closed()"),

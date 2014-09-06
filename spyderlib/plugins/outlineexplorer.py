@@ -11,7 +11,7 @@ highlighter of assigned editor. For example, for Python files code editor uses
 highlighter spyderlib.widgets.sourcecode.syntaxhighlighters.PythonSH
 """
 
-from spyderlib.qt.QtCore import SIGNAL, Signal
+from spyderlib.qt.QtCore import Signal
 
 # Local imports
 from spyderlib.baseconfig import _
@@ -24,6 +24,8 @@ from spyderlib.py3compat import is_text_string
 class OutlineExplorer(OutlineExplorerWidget, SpyderPluginMixin):
     CONF_SECTION = 'outline_explorer'
     sig_option_changed = Signal(str, object)
+    outlineexplorer_is_visible = Signal()
+    
     def __init__(self, parent=None, fullpath_sorting=True):
         show_fullpath = self.get_option('show_fullpath')
         show_all_files = self.get_option('show_all_files')
@@ -63,8 +65,8 @@ class OutlineExplorer(OutlineExplorerWidget, SpyderPluginMixin):
     
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
-        self.connect(self.main, SIGNAL('restore_scrollbar_position()'),
-                     self.restore_scrollbar_position)
+        self.main.restore_scrollbar_position.connect(
+                                               self.restore_scrollbar_position)
         self.main.add_dockwidget(self)
         
     def refresh_plugin(self):
@@ -81,7 +83,7 @@ class OutlineExplorer(OutlineExplorerWidget, SpyderPluginMixin):
         """DockWidget visibility has changed"""
         SpyderPluginMixin.visibility_changed(self, enable)
         if enable:
-            self.emit(SIGNAL("outlineexplorer_is_visible()"))
+            self.outlineexplorer_is_visible.emit()
             
     #------ Public API ---------------------------------------------------------
     def restore_scrollbar_position(self):
