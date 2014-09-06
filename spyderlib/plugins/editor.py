@@ -1110,7 +1110,7 @@ class Editor(SpyderPluginWidget):
                      lambda text, option: self.emit(
                      SIGNAL('exec_in_extconsole(QString,bool)'), text, option))
         self.connect(editorstack, SIGNAL("update_plugin_title()"),
-                     lambda: self.emit(SIGNAL("update_plugin_title()")))
+                     lambda: self.update_plugin_title.emit())
 
         self.connect(editorstack, SIGNAL("editor_focus_changed()"),
                      self.save_focus_editorstack)

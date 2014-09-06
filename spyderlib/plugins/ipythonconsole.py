@@ -622,7 +622,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.find_widget.set_editor(control)
         self.tabwidget.set_corner_widgets({Qt.TopRightCorner: widgets})
         self.main.last_console_plugin_focus_was_python = False
-        self.emit(SIGNAL('update_plugin_title()'))
+        self.update_plugin_title.emit()
 
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
@@ -871,7 +871,7 @@ class IPythonConsole(SpyderPluginWidget):
         # Note: client index may have changed after closing related widgets
         self.tabwidget.removeTab(self.tabwidget.indexOf(client))
         self.clients.remove(client)
-        self.emit(SIGNAL('update_plugin_title()'))
+        self.update_plugin_title.emit()
 
     def get_client_index_from_id(self, client_id):
         """Return client index from id"""
@@ -1075,7 +1075,7 @@ class IPythonConsole(SpyderPluginWidget):
         """
         client = self.clients.pop(index_from)
         self.clients.insert(index_to, client)
-        self.emit(SIGNAL('update_plugin_title()'))
+        self.update_plugin_title.emit()
 
     #------ Public API (for help) ---------------------------------------------
     def go_to_error(self, text):

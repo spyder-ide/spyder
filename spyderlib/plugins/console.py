@@ -56,7 +56,7 @@ class Console(SpyderPluginWidget):
                                    light_background=light_background)
         self.connect(self.shell, SIGNAL('status(QString)'),
                      lambda msg:
-                     self.emit(SIGNAL('show_message(QString,int)'), msg, 0))
+                     self.show_message.emit(msg, 0))
         self.connect(self.shell, SIGNAL("go_to_error(QString)"),
                      self.go_to_error)
         self.connect(self.shell, SIGNAL("focus_changed()"),

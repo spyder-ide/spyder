@@ -547,7 +547,7 @@ class ExternalConsole(SpyderPluginWidget):
         self.filenames.insert(index_to, filename)
         self.shellwidgets.insert(index_to, shell)
         self.icons.insert(index_to, icons)
-        self.emit(SIGNAL('update_plugin_title()'))
+        self.update_plugin_title.emit()
 
     def get_shell_index_from_id(self, shell_id):
         """Return shellwidget index from id"""
@@ -590,7 +590,7 @@ class ExternalConsole(SpyderPluginWidget):
             self.filenames.pop(index)
             self.shellwidgets.pop(index)
             self.icons.pop(index)
-            self.emit(SIGNAL('update_plugin_title()'))
+            self.update_plugin_title.emit()
         else:
             QMessageBox.question(self, _('Trying to kill a kernel?'),
                 _("You can't close this kernel because it has one or more "
@@ -1177,7 +1177,7 @@ class ExternalConsole(SpyderPluginWidget):
         if shellwidget:
             shellwidget.update_time_label_visibility()
         self.main.last_console_plugin_focus_was_python = True
-        self.emit(SIGNAL('update_plugin_title()'))
+        self.update_plugin_title.emit()
     
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""

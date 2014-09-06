@@ -20,7 +20,7 @@ These plugins inherit the following classes
 
 from spyderlib.qt.QtGui import (QDockWidget, QWidget, QShortcut, QCursor,
                                 QKeySequence, QMainWindow, QApplication)
-from spyderlib.qt.QtCore import SIGNAL, Qt, QObject, Signal
+from spyderlib.qt.QtCore import Qt, Signal
 
 # Local imports
 from spyderlib.utils.qthelpers import toggle_actions, get_icon, create_action
@@ -113,6 +113,8 @@ class SpyderDockWidget(QDockWidget):
     }
     """
 
+    plugin_closed = Signal()
+
     def __init__(self, *args, **kwargs):
         super(SpyderDockWidget, self).__init__(*args, **kwargs)
         if sys.platform == 'darwin':
@@ -123,7 +125,7 @@ class SpyderDockWidget(QDockWidget):
         Reimplement Qt method to send a signal on close so that "Panes" main
         window menu can be updated correctly
         """
-        self.emit(SIGNAL('plugin_closed()'))
+        self.plugin_closed.emit()
 
 
 class SpyderPluginMixin(object):
@@ -132,10 +134,11 @@ class SpyderPluginMixin(object):
     See SpyderPluginWidget class for required widget interface
     
     Signals:
-        sig_option_changed
-            Example:
-            plugin.sig_option_changed.emit('show_all', checked)
-        'show_message(QString,int)'
+        * sig_option_changed
+             Example:
+             plugin.sig_option_changed.emit('show_all', checked)
+        * show_message
+        * update_plugin_title
     """
     CONF_SECTION = None
     CONFIGWIDGET_CLASS = None
@@ -145,7 +148,12 @@ class SpyderPluginMixin(object):
                QDockWidget.DockWidgetFloatable | \
                QDockWidget.DockWidgetMovable
     DISABLE_ACTIONS_WHEN_HIDDEN = True
+
+    # Signals
     sig_option_changed = None
+    show_message = Signal(str, int)
+    update_plugin_title = Signal()
+
     def __init__(self, main):
         """Bind widget to a QMainWindow instance"""
         super(SpyderPluginMixin, self).__init__()
@@ -165,10 +173,8 @@ class SpyderPluginMixin(object):
     def initialize_plugin(self):
         """Initialize plugin: connect signals, setup actions, ..."""
         self.plugin_actions = self.get_plugin_actions()
-        QObject.connect(self, SIGNAL('show_message(QString,int)'),
-                        self.show_message)
-        QObject.connect(self, SIGNAL('update_plugin_title()'),
-                        self.__update_plugin_title)
+        self.show_message.connect(self.__show_message)
+        self.update_plugin_title.connect(self.__update_plugin_title)
         if self.sig_option_changed is not None:
             self.sig_option_changed.connect(self.set_option)
         self.setWindowTitle(self.get_plugin_title())
@@ -231,10 +237,8 @@ class SpyderPluginMixin(object):
         dock.setFeatures(self.FEATURES)
         dock.setWidget(self)
         self.update_margins()
-        self.connect(dock, SIGNAL('visibilityChanged(bool)'),
-                     self.visibility_changed)
-        self.connect(dock, SIGNAL('plugin_closed()'),
-                     self.plugin_closed)
+        dock.visibilityChanged.connect(self.visibility_changed)
+        dock.plugin_closed.connect(self.plugin_closed)
         self.dockwidget = dock
         try:
             short = CONF.get('shortcuts', '_/switch to %s' % self.CONF_SECTION)
@@ -336,7 +340,7 @@ class SpyderPluginMixin(object):
         """Set plugin font option"""
         set_font(font, self.CONF_SECTION, option)
         
-    def show_message(self, message, timeout=0):
+    def __show_message(self, message, timeout=0):
         """Show message in main window's status bar"""
         self.main.statusBar().showMessage(message, timeout)
 
@@ -345,7 +349,7 @@ class SpyderPluginMixin(object):
         Showing message in main window's status bar
         and changing mouse cursor to Qt.WaitCursor
         """
-        self.show_message(message)
+        self.__show_message(message)
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         QApplication.processEvents()
         
@@ -355,7 +359,7 @@ class SpyderPluginMixin(object):
         and restoring mouse cursor
         """
         QApplication.restoreOverrideCursor()
-        self.show_message(message, timeout=2000)
+        self.__show_message(message, timeout=2000)
         QApplication.processEvents()
         
     def set_default_color_scheme(self, name='Spyder'):
