@@ -352,6 +352,9 @@ class ObjectInspector(SpyderPluginWidget):
     CONF_SECTION = 'inspector'
     CONFIGWIDGET_CLASS = ObjectInspectorConfigPage
     LOG_PATH = get_conf_path(CONF_SECTION)
+    # Signals
+    focus_changed = Signal()
+    
     def __init__(self, parent):
         SpyderPluginWidget.__init__(self, parent)
         
