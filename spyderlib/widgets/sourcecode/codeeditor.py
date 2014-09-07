@@ -31,7 +31,7 @@ from spyderlib.qt.QtGui import (QColor, QMenu, QApplication, QSplitter, QFont,
                                 QKeySequence, QWidget, QVBoxLayout,
                                 QHBoxLayout, QDialog, QIntValidator,
                                 QDialogButtonBox, QGridLayout)
-from spyderlib.qt.QtCore import (Qt, SIGNAL, QTimer, QRect, QRegExp, QSize,
+from spyderlib.qt.QtCore import (Qt, Signal, SIGNAL, QTimer, QRect, QRegExp, QSize,
                                  SLOT, Slot)
 from spyderlib.qt.compat import to_qvariant
 
@@ -315,6 +315,9 @@ class CodeEditor(TextEditBaseWidget):
                 LANGUAGES.pop(key)
     
     TAB_ALWAYS_INDENTS = ('py', 'pyw', 'python', 'c', 'cpp', 'cl', 'h')
+    
+    # Signals
+    focus_changed = Signal()
 
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)

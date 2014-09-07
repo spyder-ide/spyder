@@ -10,7 +10,7 @@ from spyderlib.qt.QtGui import (QHBoxLayout, QVBoxLayout, QLabel, QSizePolicy,
                                 QMenu, QToolButton, QGroupBox, QFontComboBox,
                                 QActionGroup, QFontDialog, QWidget, QComboBox,
                                 QLineEdit, QMessageBox)
-from spyderlib.qt.QtCore import SIGNAL, QUrl, QThread
+from spyderlib.qt.QtCore import Signal, QUrl, QThread
 from spyderlib.qt.QtWebKit import QWebPage
 
 import re
@@ -61,6 +61,9 @@ class ObjectComboBox(EditableComboBox):
     """
     QComboBox handling object names
     """
+    # Signals
+    valid = Signal(bool)
+    
     def __init__(self, parent):
         EditableComboBox.__init__(self, parent)
         self.object_inspector = parent
@@ -102,13 +105,13 @@ class ObjectComboBox(EditableComboBox):
             if editing:
                 # Combo box text is being modified: invalidate the entry
                 self.show_tip(self.tips[valid])
-                self.emit(SIGNAL('valid(bool)'), False)
+                self.valid.emit(False)
             else:
                 # A new item has just been selected
                 if valid:
                     self.selected()
                 else:
-                    self.emit(SIGNAL('valid(bool)'), False)
+                    self.valid.emit(False)
         else:
             self.set_default_style()
 
@@ -230,6 +233,9 @@ class PlainText(QWidget):
     """
     Read-only editor widget with find dialog
     """
+    # Signals
+    focus_changed = Signal()
+    
     def __init__(self, parent):
         QWidget.__init__(self, parent)
         self.editor = None
@@ -238,8 +244,7 @@ class PlainText(QWidget):
         self.editor = codeeditor.CodeEditor(self)
         self.editor.setup_editor(linenumbers=False, language='py',
                                  scrollflagarea=False, edge_line=False)
-        self.connect(self.editor, SIGNAL("focus_changed()"),
-                     lambda: self.emit(SIGNAL("focus_changed()")))
+        self.editor.focus_changed.connect(lambda: self.focus_changed.emit())
         self.editor.setReadOnly(True)
         
         # Find/replace widget
@@ -294,6 +299,10 @@ class SphinxThread(QThread):
         Use LaTeX math rendering.
         
     """
+    # Signals
+    error_msg = Signal(str)
+    html_ready = Signal(str)
+    
     def __init__(self, html_text_no_doc=''):
         super(SphinxThread, self).__init__()
         self.doc = None
@@ -325,17 +334,15 @@ class SphinxThread(QThread):
                                                math=self.math_option)
                     html_text = sphinxify(doc['docstring'], context)
                 except Exception as error:
-                    self.emit(SIGNAL('error_msg(QString)'),
-                              to_text_string(error))
+                    self.error_msg.emit(to_text_string(error))
                     return
             elif self.context is not None:
                 try:
                     html_text = sphinxify(doc, self.context)
                 except Exception as error:
-                    self.emit(SIGNAL('error_msg(QString)'),
-                              to_text_string(error))
+                    self.error_msg.emit(to_text_string(error))
                     return
-        self.emit(SIGNAL('html_ready(QString)'), html_text)
+        self.html_ready.emit(html_text)
 
 
 class ObjectInspector(SpyderPluginWidget):
@@ -400,8 +407,7 @@ class ObjectInspector(SpyderPluginWidget):
         layout_edit.addWidget(source_label)
         self.source_combo = QComboBox(self)
         self.source_combo.addItems([_("Console"), _("Editor")])
-        self.connect(self.source_combo, SIGNAL('currentIndexChanged(int)'),
-                     self.source_changed)
+        self.source_combo.currentIndexChanged.connect(self.source_changed)
         if (not programs.is_module_installed('rope') and 
                 not programs.is_module_installed('jedi', '>=0.7.0')):
             self.source_combo.hide()
@@ -417,8 +423,7 @@ class ObjectInspector(SpyderPluginWidget):
         self.combo.setMaxCount(self.get_option('max_history_entries'))
         self.combo.addItems( self.load_history() )
         self.combo.setItemText(0, '')
-        self.connect(self.combo, SIGNAL("valid(bool)"),
-                     lambda valid: self.force_refresh())
+        self.combo.valid.connect(lambda valid: self.force_refresh())
         
         # Plain text docstring option
         self.docstring = True
@@ -487,10 +492,10 @@ class ObjectInspector(SpyderPluginWidget):
         else:
             self._sphinx_thread = SphinxThread(
                                   html_text_no_doc=warning(self.no_doc_string))
-            self.connect(self._sphinx_thread, SIGNAL('html_ready(QString)'), 
-                         self._on_sphinx_thread_html_ready)
-            self.connect(self._sphinx_thread, SIGNAL('error_msg(QString)'),
-                         self._on_sphinx_thread_error_msg)
+            self._sphinx_thread.html_ready.connect(
+                                             self._on_sphinx_thread_html_ready)
+            self._sphinx_thread.error_msg.connect(
+                                              self._on_sphinx_thread_error_msg)
         
         # Render internal links
         view = self.rich_text.webview
@@ -522,8 +527,7 @@ class ObjectInspector(SpyderPluginWidget):
     
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
-        self.connect(self, SIGNAL('focus_changed()'),
-                     self.main.plugin_focus_changed)
+        # self.focus_changed.connect(self.main.plugin_focus_changed)
         self.main.add_dockwidget(self)
         self.main.console.set_inspector(self)
         self.internal_shell = self.main.console.shell
