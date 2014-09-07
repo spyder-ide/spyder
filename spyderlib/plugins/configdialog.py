@@ -270,7 +270,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         """Load settings from configuration file"""
         for checkbox, (option, default) in list(self.checkboxes.items()):
             checkbox.setChecked(self.get_option(option, default))
-            checkbox.clicked.connect(lambda _foo, opt=option:
+            checkbox.clicked.connect(lambda opt=option: 
                                      self.has_been_modified(opt))
         for radiobutton, (option, default) in list(self.radiobuttons.items()):
             radiobutton.setChecked(self.get_option(option, default))
@@ -327,9 +327,9 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             btn.clicked.connect(lambda opt=option: self.has_been_modified(opt))
             edit.textChanged.connect(lambda _foo, opt=option:
                                      self.has_been_modified(opt))
-            cb_bold.clicked.connect(lambda _foo, opt=option:
+            cb_bold.clicked.connect(lambda opt=option: 
                                     self.has_been_modified(opt))
-            cb_italic.clicked.connect(lambda _foo, opt=option:
+            cb_italic.clicked.connect(lambda opt=option:
                                       self.has_been_modified(opt))
     
     def save_to_conf(self):
