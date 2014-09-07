@@ -17,7 +17,7 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QPrintDialog, QSplitter, QToolBar,
                                 QAbstractPrintDialog, QGroupBox, QTabWidget,
                                 QLabel, QFontComboBox, QHBoxLayout,
                                 QKeySequence)
-from spyderlib.qt.QtCore import SIGNAL, QByteArray, Qt, Slot
+from spyderlib.qt.QtCore import Signal, SIGNAL, QByteArray, Qt, Slot
 from spyderlib.qt.compat import to_qvariant, from_qvariant, getopenfilenames
 
 import os
@@ -333,6 +333,9 @@ class Editor(SpyderPluginWidget):
     TEMPFILE_PATH = get_conf_path('temp.py')
     TEMPLATE_PATH = get_conf_path('template.py')
     DISABLE_ACTIONS_WHEN_HIDDEN = False # SpyderPluginWidget class attribute
+    # Signals
+    run_in_current_ipyclient = Signal(str, str, str, bool)
+    
     def __init__(self, parent, ignore_last_opened_files=False):
         SpyderPluginWidget.__init__(self, parent)
         
@@ -2073,9 +2076,8 @@ class Editor(SpyderPluginWidget):
                       SIGNAL('run_in_current_extconsole(QString,QString,QString,bool)'),
                       fname, wdir, args, debug)
                 else:
-                    self.emit(
-                      SIGNAL('run_in_current_ipyclient(QString,QString,QString,bool)'),
-                      fname, wdir, args, debug)
+                    self.run_in_current_ipyclient.emit(fname, wdir, args,
+                                                       debug)
             else:
                 self.emit(
                   SIGNAL('run_in_current_extconsole(QString,QString,QString,bool)'),
