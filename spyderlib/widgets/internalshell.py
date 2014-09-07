@@ -24,7 +24,7 @@ from time import time
 from subprocess import Popen
 
 from spyderlib.qt.QtGui import QMessageBox
-from spyderlib.qt.QtCore import SIGNAL, QObject, QEventLoop
+from spyderlib.qt.QtCore import Signal, SIGNAL, QObject, QEventLoop
 
 # Local import
 from spyderlib import get_versions
@@ -107,6 +107,9 @@ class WidgetProxy(QObject):
 
 class InternalShell(PythonShellWidget):
     """Shell base widget: link between PythonShellWidget and Interpreter"""
+    
+    status = Signal(str)
+    
     def __init__(self, parent=None, namespace=None, commands=[], message=None,
                  max_line_count=300, font=None, exitfunc=None, profile=False,
                  multithreaded=True, light_background=True):
@@ -149,7 +152,7 @@ class InternalShell(PythonShellWidget):
         self.start_interpreter(namespace)
         
         # Clear status bar
-        self.emit(SIGNAL("status(QString)"), '')
+        self.status.emit('')
         
         # Embedded shell -- requires the monitor (which installs the
         # 'open_in_spyder' function in builtins)

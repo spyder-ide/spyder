@@ -20,7 +20,7 @@ import keyword
 
 from spyderlib.qt.QtGui import (QMenu, QApplication, QToolTip, QKeySequence,
                                 QMessageBox, QTextCursor, QTextCharFormat)
-from spyderlib.qt.QtCore import (Qt, QCoreApplication, QTimer, SIGNAL,
+from spyderlib.qt.QtCore import (Qt, QCoreApplication, QTimer, Signal, SIGNAL,
                                  Property)
 from spyderlib.qt.compat import getsavefilename
 
@@ -42,6 +42,8 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
     """
     Shell base widget
     """
+    
+    redirect_stdio = Signal(bool)
     
     def __init__(self, parent, history_filename, profile=False):
         """
@@ -245,10 +247,10 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
     def save_historylog(self):
         """Save current history log (all text in console)"""
         title = _("Save history log")
-        self.emit(SIGNAL('redirect_stdio(bool)'), False)
+        self.redirect_stdio.emit(False)
         filename, _selfilter = getsavefilename(self, title,
                     self.historylog_filename, "%s (*.log)" % _("History logs"))
-        self.emit(SIGNAL('redirect_stdio(bool)'), True)
+        self.redirect_stdio.emit(True)
         if filename:
             filename = osp.normpath(filename)
             try:

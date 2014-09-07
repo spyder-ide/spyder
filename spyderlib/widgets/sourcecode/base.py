@@ -19,7 +19,7 @@ from spyderlib.qt.QtGui import (QTextCursor, QColor, QFont, QApplication,
                                 QListWidget, QPlainTextEdit, QPalette,
                                 QMainWindow, QTextOption, QMouseEvent,
                                 QTextFormat, QClipboard)
-from spyderlib.qt.QtCore import SIGNAL, Qt, QEventLoop, QEvent, QPoint
+from spyderlib.qt.QtCore import Signal, SIGNAL, Qt, QEventLoop, QEvent, QPoint
 from spyderlib.qt.compat import to_qvariant
 
 
@@ -1082,6 +1082,7 @@ class ConsoleBaseWidget(TextEditBaseWidget):
     """Console base widget"""
     BRACE_MATCHING_SCOPE = ('sol', 'eol')
     COLOR_PATTERN = re.compile('\x01?\x1b\[(.*?)m\x02?')
+    traceback_available = Signal()
     
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
@@ -1198,7 +1199,7 @@ class ConsoleBaseWidget(TextEditBaseWidget):
                     # Show error/warning messages in red
                     cursor.insertText(text, self.error_style.format)
             if is_traceback:
-                self.emit(SIGNAL('traceback_available()'))
+                self.traceback_available.emit()
         elif prompt:
             # Show prompt in green
             cursor.insertText(text, self.prompt_style.format)
