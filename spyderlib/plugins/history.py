@@ -206,7 +206,7 @@ class HistoryLog(SpyderPluginWidget):
     def add_history(self, filename):
         """
         Add new history tab
-        Slot for SIGNAL('add_history(QString)') emitted by shell instance
+        Slot for add_history signal emitted by shell instance
         """
         filename = encoding.to_unicode_from_fs(filename)
         if filename in self.filenames:
@@ -242,8 +242,7 @@ class HistoryLog(SpyderPluginWidget):
     def append_to_history(self, filename, command):
         """
         Append an entry to history filename
-        Slot for SIGNAL('append_to_history(QString,QString)')
-        emitted by shell instance
+        Slot for append_to_history signal emitted by shell instance
         """
         if not is_text_string(filename): # filename is a QString
             filename = to_text_string(filename.toUtf8(), 'utf-8')
