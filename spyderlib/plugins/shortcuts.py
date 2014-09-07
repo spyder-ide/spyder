@@ -11,7 +11,7 @@ from __future__ import print_function
 from spyderlib.qt.QtGui import (QVBoxLayout, QComboBox, QItemDelegate,
                                 QTableView, QMessageBox, QPushButton)
 from spyderlib.qt.QtCore import (Qt, QSize, QAbstractTableModel, QModelIndex,
-                                 SIGNAL)
+                                 SIGNAL, Signal)
 from spyderlib.qt.compat import to_qvariant, from_qvariant
 
 import sys
@@ -315,7 +315,7 @@ class ShortcutsTable(QTableView):
                         or sh2.context == '_'):
                     conflicts.append((sh1, sh2))
         if conflicts:
-            self.parent().emit(SIGNAL('show_this_page()'))
+            self.parent().show_this_page.emit()
             cstr = "\n".join(['%s <---> %s' % (sh1, sh2)
                               for sh1, sh2 in conflicts])
             QMessageBox.warning(self, _( "Conflicts"),
