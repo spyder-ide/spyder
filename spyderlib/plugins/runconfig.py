@@ -12,7 +12,7 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QDialog, QWidget, QGroupBox,
                                 QStackedWidget, QGridLayout, QSizePolicy,
                                 QRadioButton, QMessageBox, QFrame,
                                 QButtonGroup)
-from spyderlib.qt.QtCore import SIGNAL, SLOT, Qt
+from spyderlib.qt.QtCore import Signal, Slot, Qt, QSize
 from spyderlib.qt.compat import getexistingdirectory
 
 import os.path as osp
@@ -153,21 +153,19 @@ class RunConfigOptions(QWidget):
         self.clo_cb = QCheckBox(_("Command line options:"))
         common_layout.addWidget(self.clo_cb, 0, 0)
         self.clo_edit = QLineEdit()
-        self.connect(self.clo_cb, SIGNAL("toggled(bool)"),
-                     self.clo_edit.setEnabled)
+        self.clo_cb.toggled.connect(self.clo_edit.setEnabled)
         self.clo_edit.setEnabled(False)
         common_layout.addWidget(self.clo_edit, 0, 1)
         self.wd_cb = QCheckBox(_("Working directory:"))
         common_layout.addWidget(self.wd_cb, 1, 0)
         wd_layout = QHBoxLayout()
         self.wd_edit = QLineEdit()
-        self.connect(self.wd_cb, SIGNAL("toggled(bool)"),
-                     self.wd_edit.setEnabled)
+        self.wd_cb.toggled.connect(self.wd_edit.setEnabled)
         self.wd_edit.setEnabled(False)
         wd_layout.addWidget(self.wd_edit)
         browse_btn = QPushButton(get_std_icon('DirOpenIcon'), "", self)
         browse_btn.setToolTip(_("Select directory"))
-        self.connect(browse_btn, SIGNAL("clicked()"), self.select_directory)
+        browse_btn.clicked.connect(self.select_directory)
         wd_layout.addWidget(browse_btn)
         common_layout.addLayout(wd_layout, 1, 1)
         
@@ -184,8 +182,7 @@ class RunConfigOptions(QWidget):
         
         # --- Dedicated interpreter ---
         new_group = QGroupBox(_("Dedicated Python console"))
-        self.connect(self.current_radio, SIGNAL("toggled(bool)"),
-                     new_group.setDisabled)
+        self.current_radio.toggled.connect(new_group.setDisabled)
         new_layout = QGridLayout()
         new_group.setLayout(new_layout)
         self.interact_cb = QCheckBox(_("Interact with the Python "
@@ -194,8 +191,7 @@ class RunConfigOptions(QWidget):
         self.pclo_cb = QCheckBox(_("Command line options:"))
         new_layout.addWidget(self.pclo_cb, 2, 0)
         self.pclo_edit = QLineEdit()
-        self.connect(self.pclo_cb, SIGNAL("toggled(bool)"),
-                     self.pclo_edit.setEnabled)
+        self.pclo_cb.toggled.connect(self.pclo_edit.setEnabled)
         self.pclo_edit.setEnabled(False)
         self.pclo_edit.setToolTip(_("<b>-u</b> is added to the "
                                     "other options you set here"))
@@ -209,8 +205,7 @@ class RunConfigOptions(QWidget):
         hline.setFrameShape(QFrame.HLine)
         hline.setFrameShadow(QFrame.Sunken)
         self.firstrun_cb = QCheckBox(ALWAYS_OPEN_FIRST_RUN % _("this dialog"))
-        self.connect(self.firstrun_cb, SIGNAL("clicked(bool)"),
-                     self.set_firstrun_o)
+        self.firstrun_cb.clicked.connect(self.set_firstrun_o)
         self.firstrun_cb.setChecked(firstrun_o)
         
         layout = QVBoxLayout()
@@ -276,6 +271,8 @@ class RunConfigOptions(QWidget):
 
 class BaseRunConfigDialog(QDialog):
     """Run configuration dialog box, base widget"""
+    size_change = Signal(QSize)
+    
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
         
@@ -302,9 +299,9 @@ class BaseRunConfigDialog(QDialog):
         """Create dialog button box and add it to the dialog layout"""
         bbox = QDialogButtonBox(stdbtns)
         run_btn = bbox.addButton(_("Run"), QDialogButtonBox.AcceptRole)
-        self.connect(run_btn, SIGNAL('clicked()'), self.run_btn_clicked)
-        self.connect(bbox, SIGNAL("accepted()"), SLOT("accept()"))
-        self.connect(bbox, SIGNAL("rejected()"), SLOT("reject()"))
+        run_btn.clicked.connect(self.run_btn_clicked)
+        bbox.accepted.connect(self.accept)
+        bbox.rejected.connect(self.reject)
         btnlayout = QHBoxLayout()
         btnlayout.addStretch(1)
         btnlayout.addWidget(bbox)
@@ -316,7 +313,7 @@ class BaseRunConfigDialog(QDialog):
         main application
         """
         QDialog.resizeEvent(self, event)
-        self.emit(SIGNAL("size_change(QSize)"), self.size())
+        self.size_change.emit(self.size())
     
     def run_btn_clicked(self):
         """Run button was just clicked"""
@@ -342,7 +339,8 @@ class RunConfigOneDialog(BaseRunConfigDialog):
         self.add_widgets(self.runconfigoptions)
         self.add_button_box(QDialogButtonBox.Cancel)
         self.setWindowTitle(_("Run settings for %s") % osp.basename(fname))
-            
+    
+    @Slot()
     def accept(self):
         """Reimplement Qt method"""
         if not self.runconfigoptions.is_valid():
@@ -395,8 +393,7 @@ class RunConfigDialog(BaseRunConfigDialog):
             widget.set(options)
             self.combo.addItem(filename)
             self.stack.addWidget(widget)
-        self.connect(self.combo, SIGNAL("currentIndexChanged(int)"),
-                     self.stack.setCurrentIndex)
+        self.combo.currentIndexChanged.connect(self.stack.setCurrentIndex)
         self.combo.setCurrentIndex(index)
 
         self.add_widgets(combo_label, self.combo, 10, self.stack)
@@ -464,10 +461,8 @@ class RunConfigPage(GeneralConfigPage):
                                 WDIR_USE_FIXED_DIR_OPTION, False,
                                 button_group=wdir_bg)
         thisdir_bd = self.create_browsedir("", WDIR_FIXED_DIR_OPTION, getcwd())
-        self.connect(thisdir_radio, SIGNAL("toggled(bool)"),
-                     thisdir_bd.setEnabled)
-        self.connect(dirname_radio, SIGNAL("toggled(bool)"),
-                     thisdir_bd.setDisabled)
+        thisdir_radio.toggled.connect(thisdir_bd.setEnabled)
+        dirname_radio.toggled.connect(thisdir_bd.setDisabled)
         thisdir_layout = QHBoxLayout()
         thisdir_layout.addWidget(thisdir_radio)
         thisdir_layout.addWidget(thisdir_bd)
