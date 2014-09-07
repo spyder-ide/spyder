@@ -14,7 +14,7 @@
 from spyderlib.qt.QtGui import (QTabWidget, QMenu, QDrag, QApplication,
                                 QTabBar, QShortcut, QKeySequence, QWidget,
                                 QHBoxLayout)
-from spyderlib.qt.QtCore import SIGNAL, Qt, QPoint, QMimeData, QByteArray
+from spyderlib.qt.QtCore import Signal, SIGNAL, Qt, QPoint, QMimeData, QByteArray
 
 import os.path as osp
 
@@ -255,6 +255,9 @@ class BaseTabs(QTabWidget):
         
 class Tabs(BaseTabs):
     """BaseTabs widget with movable tabs and tab navigation shortcuts"""
+    # Signals
+    move_data = Signal(int, int)
+    
     def __init__(self, parent, actions=None, menu=None,
                  corner_widgets=None, menu_use_tooltips=False):
         BaseTabs.__init__(self, parent, actions, menu,
@@ -286,7 +289,7 @@ class Tabs(BaseTabs):
 
     def move_tab(self, index_from, index_to):
         """Move tab inside a tabwidget"""
-        self.emit(SIGNAL('move_data(int,int)'), index_from, index_to)
+        self.move_data.emit(index_from, index_to)
 
         tip, text = self.tabToolTip(index_from), self.tabText(index_from)
         icon, widget = self.tabIcon(index_from), self.widget(index_from)

@@ -8,7 +8,7 @@
 
 from spyderlib.qt.QtGui import (QVBoxLayout, QFontDialog, QInputDialog,
                                 QToolButton, QMenu, QFontComboBox, QGroupBox)
-from spyderlib.qt.QtCore import SIGNAL
+from spyderlib.qt.QtCore import Signal
 
 import os.path as osp
 
@@ -73,6 +73,9 @@ class HistoryLog(SpyderPluginWidget):
     """
     CONF_SECTION = 'historylog'
     CONFIGWIDGET_CLASS = HistoryConfigPage
+    # Signals
+    focus_changed = Signal()
+    
     def __init__(self, parent):
         self.tabwidget = None
         self.menu_actions = None
@@ -92,10 +95,8 @@ class HistoryLog(SpyderPluginWidget):
         
         layout = QVBoxLayout()
         self.tabwidget = Tabs(self, self.menu_actions)
-        self.connect(self.tabwidget, SIGNAL('currentChanged(int)'),
-                     self.refresh_plugin)
-        self.connect(self.tabwidget, SIGNAL('move_data(int,int)'),
-                     self.move_tab)
+        self.tabwidget.currentChanged.connect(self.refresh_plugin)
+        self.tabwidget.move_data.connect(self.move_tab)
         layout.addWidget(self.tabwidget)
 
         # Menu as corner widget
@@ -165,12 +166,10 @@ class HistoryLog(SpyderPluginWidget):
     
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
-        self.connect(self, SIGNAL('focus_changed()'),
-                     self.main.plugin_focus_changed)
+        self.focus_changed.connect(self.main.plugin_focus_changed)
         self.main.add_dockwidget(self)
 #        self.main.console.set_historylog(self)
-        self.connect(self.main.console.shell, SIGNAL("refresh()"),
-                     self.refresh_plugin)
+        self.main.console.shell.refresh.connect(self.refresh_plugin)
 
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
@@ -221,8 +220,7 @@ class HistoryLog(SpyderPluginWidget):
             icon = get_icon('cmdprompt.png')
         editor.setup_editor(linenumbers=False, language=language,
                             scrollflagarea=False)
-        self.connect(editor, SIGNAL("focus_changed()"),
-                     lambda: self.emit(SIGNAL("focus_changed()")))
+        editor.focus_changed.connect(lambda: self.focus_changed.emit())
         editor.setReadOnly(True)
         color_scheme = get_color_scheme(self.get_option('color_scheme_name'))
         editor.set_font( self.get_plugin_font(), color_scheme )
