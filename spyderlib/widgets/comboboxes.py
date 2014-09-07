@@ -13,7 +13,7 @@
 
 from spyderlib.qt.QtGui import (QComboBox, QFont, QToolTip, QSizePolicy,
                                 QCompleter)
-from spyderlib.qt.QtCore import SIGNAL, Qt, QUrl, QTimer
+from spyderlib.qt.QtCore import Signal, SIGNAL, Qt, QUrl, QTimer
 
 import os.path as osp
 
@@ -161,6 +161,8 @@ class PathComboBox(EditableComboBox):
     """
     QComboBox handling path locations
     """
+    open_dir = Signal(str)
+    
     def __init__(self, parent, adjust_to_contents=False):
         EditableComboBox.__init__(self, parent)
         if adjust_to_contents:
@@ -182,7 +184,7 @@ class PathComboBox(EditableComboBox):
     def selected(self):
         """Action to be executed when a valid item has been selected"""
         EditableComboBox.selected(self)
-        self.emit(SIGNAL("open_dir(QString)"), self.currentText())
+        self.open_dir.emit(self.currentText())
 
 
 class UrlComboBox(PathComboBox):

@@ -109,6 +109,7 @@ class InternalShell(PythonShellWidget):
     """Shell base widget: link between PythonShellWidget and Interpreter"""
     
     status = Signal(str)
+    refresh = Signal()
     
     def __init__(self, parent=None, namespace=None, commands=[], message=None,
                  max_line_count=300, font=None, exitfunc=None, profile=False,
@@ -195,7 +196,7 @@ class InternalShell(PythonShellWidget):
                 
         # First prompt
         self.new_prompt(self.interpreter.p1)
-        self.emit(SIGNAL("refresh()"))
+        self.refresh.emit()
 
         return self.interpreter
 
@@ -399,7 +400,7 @@ class InternalShell(PythonShellWidget):
         self.interpreter.stdin_write.write(to_binary_string(cmd + '\n'))
         if not self.multithreaded:
             self.interpreter.run_line()
-            self.emit(SIGNAL("refresh()"))
+            self.refresh.emit()
     
     
     #------ Code completion / Calltips
