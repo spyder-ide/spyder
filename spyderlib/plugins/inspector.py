@@ -527,7 +527,7 @@ class ObjectInspector(SpyderPluginWidget):
     
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
-        # self.focus_changed.connect(self.main.plugin_focus_changed)
+        self.focus_changed.connect(self.main.plugin_focus_changed)
         self.main.add_dockwidget(self)
         self.main.console.set_inspector(self)
         self.internal_shell = self.main.console.shell
