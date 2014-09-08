@@ -318,6 +318,8 @@ class CodeEditor(TextEditBaseWidget):
     
     # Signals
     focus_changed = Signal()
+    zoom_in = Signal()
+    zoom_out = Signal()
 
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
@@ -2110,10 +2112,10 @@ class CodeEditor(TextEditBaseWidget):
                         triggered=lambda: self.emit(SIGNAL('run_selection()')))
         zoom_in_action = create_action(self, _("Zoom in"),
                       QKeySequence(QKeySequence.ZoomIn), icon='zoom_in.png',
-                      triggered=lambda: self.emit(SIGNAL('zoom_in()')))
+                      triggered=lambda: self.zoom_in.emit())
         zoom_out_action = create_action(self, _("Zoom out"),
                       QKeySequence(QKeySequence.ZoomOut), icon='zoom_out.png',
-                      triggered=lambda: self.emit(SIGNAL('zoom_out()')))
+                      triggered=lambda: self.zoom_out.emit())
         self.menu = QMenu(self)
         add_actions(self.menu, (self.undo_action, self.redo_action, None,
                                 self.cut_action, self.copy_action,

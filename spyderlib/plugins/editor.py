@@ -17,7 +17,7 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QPrintDialog, QSplitter, QToolBar,
                                 QAbstractPrintDialog, QGroupBox, QTabWidget,
                                 QLabel, QFontComboBox, QHBoxLayout,
                                 QKeySequence)
-from spyderlib.qt.QtCore import Signal, SIGNAL, QByteArray, Qt, Slot
+from spyderlib.qt.QtCore import Signal, QByteArray, Qt, Slot
 from spyderlib.qt.compat import to_qvariant, from_qvariant, getopenfilenames
 
 import os
@@ -112,8 +112,7 @@ class EditorConfigPage(PluginConfigPage):
         edgeline_box = newcb(_("Show vertical line after"), 'edge_line')
         edgeline_spin = self.create_spinbox("", _("characters"),
                                             'edge_line_column', 79, 1, 500)
-        self.connect(edgeline_box, SIGNAL("toggled(bool)"),
-                     edgeline_spin.setEnabled)
+        edgeline_box.toggled.connect(edgeline_spin.setEnabled)
         edgeline_spin.setEnabled(self.get_option('edge_line'))
         edgeline_layout = QHBoxLayout()
         edgeline_layout.addWidget(edgeline_box)
@@ -127,8 +126,7 @@ class EditorConfigPage(PluginConfigPage):
         occurence_spin = self.create_spinbox("", " ms",
                                              'occurence_highlighting/timeout',
                                              min_=100, max_=1000000, step=100)
-        self.connect(occurence_box, SIGNAL("toggled(bool)"),
-                     occurence_spin.setEnabled)
+        occurence_box.toggled.connect(occurence_spin.setEnabled)
         occurence_spin.setEnabled(self.get_option('occurence_highlighting'))
         occurence_layout = QHBoxLayout()
         occurence_layout.addWidget(occurence_box)
@@ -333,8 +331,14 @@ class Editor(SpyderPluginWidget):
     TEMPFILE_PATH = get_conf_path('temp.py')
     TEMPLATE_PATH = get_conf_path('template.py')
     DISABLE_ACTIONS_WHEN_HIDDEN = False # SpyderPluginWidget class attribute
+    
     # Signals
     run_in_current_ipyclient = Signal(str, str, str, bool)
+    exec_in_extconsole = Signal(str, bool)
+    redirect_stdio = Signal(bool)
+    open_dir = Signal(str)
+    breakpoints_saved = Signal()
+    run_in_current_extconsole = Signal(str, str, str, bool)
     
     def __init__(self, parent, ignore_last_opened_files=False):
         SpyderPluginWidget.__init__(self, parent)
@@ -395,12 +399,10 @@ class Editor(SpyderPluginWidget):
         self.menu_list = None
         
         # Setup new windows:
-        self.connect(self.main, SIGNAL('all_actions_defined()'),
-                     self.setup_other_windows)
+        self.main.all_actions_defined.connect(self.setup_other_windows)
 
         # Change module completions when PYTHONPATH changes
-        self.connect(self.main, SIGNAL("pythonpath_changed()"),
-                     self.set_path)
+        self.main.sig_pythonpath_changed.connect(self.set_path)
         
         # Find widget
         self.find_widget = FindReplace(self, enable_replace=True)
@@ -480,14 +482,13 @@ class Editor(SpyderPluginWidget):
         for editorstack in self.editorstacks:
             editorstack.set_outlineexplorer(self.outlineexplorer)
         self.editorstacks[0].initialize_outlineexplorer()
-        self.connect(self.outlineexplorer,
-                     SIGNAL("edit_goto(QString,int,QString)"),
-                     lambda filenames, goto, word:
-                     self.load(filenames=filenames, goto=goto, word=word,
-                               editorwindow=self))
-        self.connect(self.outlineexplorer, SIGNAL("edit(QString)"),
-                     lambda filenames:
-                     self.load(filenames=filenames, editorwindow=self))
+        self.outlineexplorer.edit_goto.connect(
+                           lambda filenames, goto, word:
+                           self.load(filenames=filenames, goto=goto, word=word,
+                                     editorwindow=self))
+        self.outlineexplorer.edit.connect(
+                             lambda filenames:
+                             self.load(filenames=filenames, editorwindow=self))
             
     def show_hide_outline_explorer(self):
         if self.outlineexplorer is not None:
@@ -778,8 +779,7 @@ class Editor(SpyderPluginWidget):
                 triggered=self.go_to_next_todo)
         self.todo_menu = QMenu(self)
         self.todo_list_action.setMenu(self.todo_menu)
-        self.connect(self.todo_menu, SIGNAL("aboutToShow()"),
-                     self.update_todo_menu)
+        self.todo_menu.aboutToShow.connect(self.update_todo_menu)
         
         self.warning_list_action = create_action(self,
                 _("Show warning/error list"), icon='wng_list.png',
@@ -787,8 +787,7 @@ class Editor(SpyderPluginWidget):
                 triggered=self.go_to_next_warning)
         self.warning_menu = QMenu(self)
         self.warning_list_action.setMenu(self.warning_menu)
-        self.connect(self.warning_menu, SIGNAL("aboutToShow()"),
-                     self.update_warning_menu)
+        self.warning_menu.aboutToShow.connect(self.update_warning_menu)
         self.previous_warning_action = create_action(self,
                 _("Previous warning/error"), icon='prev_wng.png',
                 tip=_("Go to previous code analysis warning/error"),
@@ -898,8 +897,7 @@ class Editor(SpyderPluginWidget):
             _("Clear this list"), tip=_("Clear recent files list"),
             triggered=self.clear_recent_files)
         self.recent_file_menu = QMenu(_("Open &recent"), self)
-        self.connect(self.recent_file_menu, SIGNAL("aboutToShow()"),
-                     self.update_recent_file_menu)
+        self.recent_file_menu.aboutToShow.connect(self.update_recent_file_menu)
 
         file_menu_actions = [self.new_action, self.open_action,
                              self.recent_file_menu, self.save_action,
@@ -983,14 +981,10 @@ class Editor(SpyderPluginWidget):
         """Register plugin in Spyder's main window"""
         self.main.restore_scrollbar_position.connect(
                                                self.restore_scrollbar_position)
-        self.connect(self.main.console,
-                     SIGNAL("edit_goto(QString,int,QString)"), self.load)
-        self.connect(self, SIGNAL('exec_in_extconsole(QString,bool)'),
-                     self.main.execute_in_external_console)
-        self.connect(self, SIGNAL('redirect_stdio(bool)'),
-                     self.main.redirect_internalshell_stdio)
-        self.connect(self, SIGNAL("open_dir(QString)"),
-                     self.main.workingdirectory.chdir)
+        self.main.console.edit_goto.connect(self.load)
+        self.exec_in_extconsole.connect(self.main.execute_in_external_console)
+        self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
+        self.open_dir.connect(self.main.workingdirectory.chdir)
         self.set_inspector(self.main.inspector)
         if self.main.outlineexplorer is not None:
             self.set_outlineexplorer(self.main.outlineexplorer)
@@ -1040,21 +1034,16 @@ class Editor(SpyderPluginWidget):
             if self.outlineexplorer is not None:
                 editorstack.set_outlineexplorer(self.outlineexplorer)
             editorstack.set_find_widget(self.find_widget)
-            self.connect(editorstack, SIGNAL('reset_statusbar()'),
-                         self.readwrite_status.hide)
-            self.connect(editorstack, SIGNAL('reset_statusbar()'),
-                         self.encoding_status.hide)
-            self.connect(editorstack, SIGNAL('reset_statusbar()'),
-                         self.cursorpos_status.hide)
-            self.connect(editorstack, SIGNAL('readonly_changed(bool)'),
-                         self.readwrite_status.readonly_changed)
-            self.connect(editorstack, SIGNAL('encoding_changed(QString)'),
-                         self.encoding_status.encoding_changed)
-            self.connect(editorstack,
-                         SIGNAL('editor_cursor_position_changed(int,int)'),
-                         self.cursorpos_status.cursor_position_changed)
-            self.connect(editorstack, SIGNAL('refresh_eol_chars(QString)'),
-                         self.eol_status.eol_changed)
+            editorstack.reset_statusbar.connect(self.readwrite_status.hide)
+            editorstack.reset_statusbar.connect(self.encoding_status.hide)
+            editorstack.reset_statusbar.connect(self.cursorpos_status.hide)
+            editorstack.readonly_changed.connect(
+                                        self.readwrite_status.readonly_changed)
+            editorstack.encoding_changed.connect(
+                                         self.encoding_status.encoding_changed)
+            editorstack.sig_editor_cursor_position_changed.connect(
+                                 self.cursorpos_status.cursor_position_changed)
+            editorstack.refresh_eol_chars.connect(self.eol_status.eol_changed)
             
         editorstack.set_inspector(self.inspector)
         editorstack.set_io_actions(self.new_action, self.open_action,
@@ -1100,69 +1089,44 @@ class Editor(SpyderPluginWidget):
         color_scheme = get_color_scheme(self.get_option('color_scheme_name'))
         editorstack.set_default_font(self.get_plugin_font(), color_scheme)
         
-        self.connect(editorstack, SIGNAL('starting_long_process(QString)'),
-                     self.starting_long_process)
-        self.connect(editorstack, SIGNAL('ending_long_process(QString)'),
-                     self.ending_long_process)
+        editorstack.starting_long_process.connect(self.starting_long_process)
+        editorstack.ending_long_process.connect(self.ending_long_process)
         
         # Redirect signals
-        self.connect(editorstack, SIGNAL('redirect_stdio(bool)'),
-                     lambda state:
-                     self.emit(SIGNAL('redirect_stdio(bool)'), state))
-        self.connect(editorstack, SIGNAL('exec_in_extconsole(QString,bool)'),
-                     lambda text, option: self.emit(
-                     SIGNAL('exec_in_extconsole(QString,bool)'), text, option))
-        self.connect(editorstack, SIGNAL("update_plugin_title()"),
-                     lambda: self.update_plugin_title.emit())
-
-        self.connect(editorstack, SIGNAL("editor_focus_changed()"),
-                     self.save_focus_editorstack)
-        self.connect(editorstack, SIGNAL('editor_focus_changed()'),
-                     self.main.plugin_focus_changed)
-
-        self.connect(editorstack, SIGNAL('zoom_in()'), lambda: self.zoom(1))
-        self.connect(editorstack, SIGNAL('zoom_out()'), lambda: self.zoom(-1))
-        
-        self.connect(editorstack, SIGNAL('close_file(QString,int)'),
-                     self.close_file_in_all_editorstacks)
-        self.connect(editorstack, SIGNAL('file_saved(QString,int,QString)'),
-                     self.file_saved_in_editorstack)
-        self.connect(editorstack,
-                     SIGNAL('file_renamed_in_data(QString,int,QString)'),
-                     self.file_renamed_in_data_in_editorstack)
-        
-        self.connect(editorstack, SIGNAL("create_new_window()"),
-                     self.create_new_window)
-        
-        self.connect(editorstack, SIGNAL('opened_files_list_changed()'),
-                     self.opened_files_list_changed)
-        self.connect(editorstack, SIGNAL('analysis_results_changed()'),
-                     self.analysis_results_changed)
-        self.connect(editorstack, SIGNAL('todo_results_changed()'),
-                     self.todo_results_changed)
-        self.connect(editorstack, SIGNAL('update_code_analysis_actions()'),
-                     self.update_code_analysis_actions)
-        self.connect(editorstack, SIGNAL('update_code_analysis_actions()'),
-                     self.update_todo_actions)
-        self.connect(editorstack,
-                     SIGNAL('refresh_file_dependent_actions()'),
-                     self.refresh_file_dependent_actions)
-        self.connect(editorstack, SIGNAL('refresh_save_all_action()'),
-                     self.refresh_save_all_action)
-        self.connect(editorstack, SIGNAL('refresh_eol_chars(QString)'),
-                     self.refresh_eol_chars)
-        
-        self.connect(editorstack, SIGNAL("save_breakpoints(QString,QString)"),
-                     self.save_breakpoints)
-        
-        self.connect(editorstack, SIGNAL('text_changed_at(QString,int)'),
-                     self.text_changed_at)
-        self.connect(editorstack, SIGNAL('current_file_changed(QString,int)'),
-                     self.current_file_changed)
-        
-        self.connect(editorstack, SIGNAL('plugin_load(QString)'), self.load)
-        self.connect(editorstack, SIGNAL("edit_goto(QString,int,QString)"),
-                     self.load)
+        editorstack.redirect_stdio.connect(
+                                 lambda state: self.redirect_stdio.emit(state))
+        editorstack.exec_in_extconsole.connect(
+                                    lambda text, option:
+                                    self.exec_in_extconsole.emit(text, option))
+        editorstack.update_plugin_title.connect(
+                                       lambda: self.update_plugin_title.emit())
+        editorstack.editor_focus_changed.connect(self.save_focus_editorstack)
+        editorstack.editor_focus_changed.connect(self.main.plugin_focus_changed)
+        editorstack.zoom_in.connect(lambda: self.zoom(1))
+        editorstack.zoom_out.connect(lambda: self.zoom(-1))
+        editorstack.sig_close_file.connect(self.close_file_in_all_editorstacks)
+        editorstack.file_saved.connect(self.file_saved_in_editorstack)
+        editorstack.file_renamed_in_data.connect(
+                                      self.file_renamed_in_data_in_editorstack)
+        editorstack.create_new_window.connect(self.create_new_window)
+        editorstack.opened_files_list_changed.connect(
+                                                self.opened_files_list_changed)
+        editorstack.analysis_results_changed.connect(
+                                                 self.analysis_results_changed)
+        editorstack.todo_results_changed.connect(self.todo_results_changed)
+        editorstack.update_code_analysis_actions.connect(
+                                             self.update_code_analysis_actions)
+        editorstack.update_code_analysis_actions.connect(
+                                                      self.update_todo_actions)
+        editorstack.refresh_file_dependent_actions.connect(
+                                           self.refresh_file_dependent_actions)
+        editorstack.refresh_save_all_action.connect(self.refresh_save_all_action)
+        editorstack.refresh_eol_chars.connect(self.refresh_eol_chars)
+        editorstack.save_breakpoints.connect(self.save_breakpoints)
+        editorstack.text_changed_at.connect(self.text_changed_at)
+        editorstack.current_file_changed.connect(self.current_file_changed)
+        editorstack.plugin_load.connect(self.load)
+        editorstack.edit_goto.connect(self.load)
         
     def unregister_editorstack(self, editorstack):
         """Removing editorstack only if it's not the last remaining"""
@@ -1241,8 +1205,8 @@ class Editor(SpyderPluginWidget):
         window.resize(self.size())
         window.show()
         self.register_editorwindow(window)
-        self.connect(window, SIGNAL("destroyed()"),
-                     lambda win=window: self.unregister_editorwindow(win))
+        window.destroyed.connect(lambda win=window:
+                                 self.unregister_editorwindow(win))
         return window
     
     def register_editorwindow(self, window):
@@ -1429,7 +1393,7 @@ class Editor(SpyderPluginWidget):
         else:
             breakpoints = []
         save_breakpoints(filename, breakpoints)
-        self.emit(SIGNAL("breakpoints_saved()"))
+        self.breakpoints_saved.emit()
         
     #------ File I/O
     def __load_temp_file(self):
@@ -1450,7 +1414,7 @@ class Editor(SpyderPluginWidget):
         fname = self.get_current_filename()
         if fname is not None:
             directory = osp.dirname(osp.abspath(fname))
-            self.emit(SIGNAL("open_dir(QString)"), directory)
+            self.open_dir.emit(directory)
                 
     def __add_recent_file(self, fname):
         """Add to recent file list"""
@@ -1601,7 +1565,7 @@ class Editor(SpyderPluginWidget):
                 c_fname = self.get_current_filename()
                 if c_fname is not None and c_fname != self.TEMPFILE_PATH:
                     basedir = osp.dirname(c_fname)
-            self.emit(SIGNAL('redirect_stdio(bool)'), False)
+            self.redirect_stdio.emit(False)
             parent_widget = self.get_current_editorstack()
             if filename0 is not None:
                 selectedfilter = get_filter(EDIT_FILETYPES,
@@ -1611,12 +1575,12 @@ class Editor(SpyderPluginWidget):
             filenames, _selfilter = getopenfilenames(parent_widget,
                                          _("Open file"), basedir, EDIT_FILTERS,
                                          selectedfilter=selectedfilter)
-            self.emit(SIGNAL('redirect_stdio(bool)'), True)
+            self.redirect_stdio.emit(True)
             if filenames:
                 filenames = [osp.normpath(fname) for fname in filenames]
                 if CONF.get('workingdir', 'editor/open/auto_set_to_basedir'):
                     directory = osp.dirname(filenames[0])
-                    self.emit(SIGNAL("open_dir(QString)"), directory)
+                    self.open_dir.emit(directory)
             else:
                 return
             
@@ -1687,9 +1651,9 @@ class Editor(SpyderPluginWidget):
         printDialog = QPrintDialog(printer, editor)
         if editor.has_selected_text():
             printDialog.addEnabledOption(QAbstractPrintDialog.PrintSelection)
-        self.emit(SIGNAL('redirect_stdio(bool)'), False)
+        self.redirect_stdio.emit(False)
         answer = printDialog.exec_()
-        self.emit(SIGNAL('redirect_stdio(bool)'), True)
+        self.redirect_stdio.emit(True)
         if answer == QDialog.Accepted:
             self.starting_long_process(_("Printing..."))
             printer.setDocName(filename)
@@ -1704,11 +1668,10 @@ class Editor(SpyderPluginWidget):
                           header_font=self.get_plugin_font('printer_header'))
         preview = QPrintPreviewDialog(printer, self)
         preview.setWindowFlags(Qt.Window)
-        self.connect(preview, SIGNAL("paintRequested(QPrinter*)"),
-                     lambda printer: editor.print_(printer))
-        self.emit(SIGNAL('redirect_stdio(bool)'), False)
+        preview.paintRequested.connect(lambda printer: editor.print_(printer))
+        self.redirect_stdio.emit(False)
         preview.exec_()
-        self.emit(SIGNAL('redirect_stdio(bool)'), True)
+        self.redirect_stdio.emit(True)
 
     def close_file(self):
         """Close current file"""
@@ -1730,7 +1693,7 @@ class Editor(SpyderPluginWidget):
         if editorstack.save_as():
             fname = editorstack.get_current_filename()
             if CONF.get('workingdir', 'editor/save/auto_set_to_basedir'):
-                self.emit(SIGNAL("open_dir(QString)"), osp.dirname(fname))
+                self.open_dir.emit(osp.dirname(fname))
             self.__add_recent_file(fname)
         
     def save_all(self):
@@ -1961,7 +1924,7 @@ class Editor(SpyderPluginWidget):
     def clear_all_breakpoints(self):
         """Clear breakpoints in all files"""
         clear_all_breakpoints()
-        self.emit(SIGNAL("breakpoints_saved()"))
+        self.breakpoints_saved.emit()
         editorstack = self.get_current_editorstack()
         if editorstack is not None:
             for data in editorstack.data:
@@ -1971,7 +1934,7 @@ class Editor(SpyderPluginWidget):
     def clear_breakpoint(self, filename, lineno):
         """Remove a single breakpoint"""
         clear_breakpoint(filename, lineno)
-        self.emit(SIGNAL("breakpoints_saved()"))
+        self.breakpoints_saved.emit()
         editorstack = self.get_current_editorstack()
         if editorstack is not None:
             index = self.is_file_opened(filename)
@@ -1994,8 +1957,7 @@ class Editor(SpyderPluginWidget):
     #------ Run Python script
     def edit_run_configurations(self):
         dialog = RunConfigDialog(self)
-        self.connect(dialog, SIGNAL("size_change(QSize)"),
-                     lambda s: self.set_dialog_size(s))
+        dialog.size_change.connect(lambda s: self.set_dialog_size(s))
         if self.dialog_size is not None:
             dialog.resize(self.dialog_size)
         fname = osp.abspath(self.get_current_filename())
@@ -2016,8 +1978,7 @@ class Editor(SpyderPluginWidget):
             runconf = get_run_configuration(fname)
             if runconf is None:
                 dialog = RunConfigOneDialog(self)
-                self.connect(dialog, SIGNAL("size_change(QSize)"),
-                             lambda s: self.set_dialog_size(s))
+                dialog.size_change.connect(lambda s: self.set_dialog_size(s))
                 if self.dialog_size is not None:
                     dialog.resize(self.dialog_size)
                 dialog.setup(fname)
@@ -2072,16 +2033,13 @@ class Editor(SpyderPluginWidget):
         if current:
             if self.main.ipyconsole is not None:
                 if self.main.last_console_plugin_focus_was_python:
-                    self.emit(
-                      SIGNAL('run_in_current_extconsole(QString,QString,QString,bool)'),
-                      fname, wdir, args, debug)
+                    self.run_in_current_extconsole.emit(fname, wdir, args,
+                                                        debug)
                 else:
                     self.run_in_current_ipyclient.emit(fname, wdir, args,
                                                        debug)
             else:
-                self.emit(
-                  SIGNAL('run_in_current_extconsole(QString,QString,QString,bool)'),
-                  fname, wdir, args, debug)
+                self.run_in_current_extconsole.emit(fname, wdir, args, debug)
         else:
             self.main.open_external_console(fname, wdir, args, interact,
                                             debug, python, python_args,

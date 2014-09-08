@@ -301,6 +301,8 @@ class MainWindow(QMainWindow):
     
     # Signals
     restore_scrollbar_position = Signal()
+    all_actions_defined = Signal()
+    sig_pythonpath_changed = Signal()
     
     def __init__(self, options=None):
         QMainWindow.__init__(self)
@@ -1115,7 +1117,7 @@ class MainWindow(QMainWindow):
         
         # Emitting the signal notifying plugins that main window menu and 
         # toolbar actions are all defined:
-        self.emit(SIGNAL('all_actions_defined()'))
+        self.all_actions_defined.emit()
         
         # Window set-up
         self.debug_print("Setting up window...")
@@ -1970,14 +1972,14 @@ Please provide any additional information below.
         dialog.exec_()
         self.add_path_to_sys_path()
         encoding.writelines(self.path, self.SPYDER_PATH) # Saving path
-        self.emit(SIGNAL("pythonpath_changed()"))
+        self.sig_pythonpath_changed.emit()
         
     def pythonpath_changed(self):
         """Project Explorer PYTHONPATH contribution has changed"""
         self.remove_path_from_sys_path()
         self.project_path = self.projectexplorer.get_pythonpath()
         self.add_path_to_sys_path()
-        self.emit(SIGNAL("pythonpath_changed()"))
+        self.sig_pythonpath_changed.emit()
     
     def win_env(self):
         """Show Windows current user environment variables"""

@@ -516,8 +516,7 @@ class ExternalConsole(SpyderPluginWidget):
         self.connect(self.tabwidget, SIGNAL('currentChanged(int)'),
                      self.refresh_plugin)
         self.tabwidget.move_data.connect(self.move_tab)
-        self.connect(self.main, SIGNAL("pythonpath_changed()"),
-                     self.set_path)
+        self.main.sig_pythonpath_changed.connect(self.set_path)
                      
         self.tabwidget.set_close_function(self.close_console)
 

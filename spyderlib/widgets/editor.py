@@ -19,7 +19,7 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QMessageBox, QMenu, QFont,
                                 QLabel, QKeySequence, QShortcut, QMainWindow,
                                 QSplitter, QListWidget, QListWidgetItem,
                                 QDialog, QLineEdit)
-from spyderlib.qt.QtCore import (SIGNAL, Qt, QFileInfo, QThread, QObject,
+from spyderlib.qt.QtCore import (Signal, SIGNAL, Qt, QFileInfo, QThread, QObject,
                                  QByteArray, QSize, QPoint, QTimer, Slot)
 from spyderlib.qt.compat import getsavefilename
 
@@ -285,6 +285,12 @@ class ThreadManager(QObject):
 
 class FileInfo(QObject):
     """File properties"""
+    analysis_results_changed = Signal()
+    todo_results_changed = Signal()
+    save_breakpoints = Signal(str, str)
+    text_changed_at = Signal(str, int)
+    edit_goto = Signal(str, int, str)
+    
     def __init__(self, filename, encoding, editor, new, threadmanager,
                  introspection_plugin):
         QObject.__init__(self)
@@ -331,8 +337,8 @@ class FileInfo(QObject):
     
     def text_changed(self):
         """Editor's text has changed"""
-        self.emit(SIGNAL('text_changed_at(QString,int)'),
-                  self.filename, self.editor.get_position('cursor'))
+        self.text_changed_at.emit(self.filename,
+                                  self.editor.get_position('cursor'))
 
     def trigger_code_completion(self, automatic, token_based=False):
         """Trigger code completion"""
@@ -470,8 +476,7 @@ class FileInfo(QObject):
             func = self.introspection_plugin.get_definition_location
         fname, lineno = func(source_code, offset, self.filename)
         if fname is not None and lineno is not None:
-            self.emit(SIGNAL("edit_goto(QString,int,QString)"),
-                      fname, lineno, "")
+            self.edit_goto.emit(fname, lineno, "")
 
     def go_to_definition_regex(self, position):
         """Go to definition using regex lookups"""
@@ -519,7 +524,7 @@ class FileInfo(QObject):
     def code_analysis_finished(self):
         """Code analysis thread has finished"""
         self.set_analysis_results(self.pyflakes_results+self.pep8_results)
-        self.emit(SIGNAL('analysis_results_changed()'))
+        self.analysis_results_changed.emit()
         
     def set_analysis_results(self, results):
         """Set analysis results and update warning markers in editor"""
@@ -541,7 +546,7 @@ class FileInfo(QObject):
     def todo_finished(self, results):
         """Code analysis thread has finished"""
         self.set_todo_results(results)
-        self.emit(SIGNAL('todo_results_changed()'))
+        self.todo_results_changed.emit()
         
     def set_todo_results(self, results):
         """Set TODO results and update markers in editor"""
@@ -557,11 +562,39 @@ class FileInfo(QObject):
         breakpoints = self.editor.get_breakpoints()
         if self.editor.breakpoints != breakpoints:
             self.editor.breakpoints = breakpoints
-            self.emit(SIGNAL("save_breakpoints(QString,QString)"),
-                      self.filename, repr(breakpoints))
+            self.save_breakpoints.emit(self.filename, repr(breakpoints))
         
 
 class EditorStack(QWidget):
+    reset_statusbar = Signal()
+    readonly_changed = Signal(bool)
+    encoding_changed = Signal(str)
+    sig_editor_cursor_position_changed = Signal(int, int)
+    refresh_eol_chars = Signal(str)
+    starting_long_process = Signal(str)
+    ending_long_process = Signal(str)
+    redirect_stdio = Signal(bool)
+    exec_in_extconsole = Signal(str, bool)
+    update_plugin_title = Signal()
+    editor_focus_changed = Signal()
+    zoom_in = Signal()
+    zoom_out = Signal()
+    sig_close_file = Signal(str, int)
+    file_saved = Signal(str, int, str)
+    file_renamed_in_data = Signal(str, int, str)
+    create_new_window = Signal()
+    opened_files_list_changed = Signal()
+    analysis_results_changed = Signal()
+    todo_results_changed = Signal()
+    update_code_analysis_actions = Signal()
+    refresh_file_dependent_actions = Signal()
+    refresh_save_all_action = Signal()
+    save_breakpoints = Signal(str, str)
+    text_changed_at = Signal(str, int)
+    current_file_changed = Signal(str ,int)
+    plugin_load = Signal(str)
+    edit_goto = Signal(str, int, str)
+    
     def __init__(self, parent, actions):
         QWidget.__init__(self, parent)
         
@@ -687,10 +720,10 @@ class EditorStack(QWidget):
                                    name='Go to next file', parent=self)
         # Fixed shortcuts
         zoomin = QShortcut(QKeySequence(QKeySequence.ZoomIn), self,
-                           lambda: self.emit(SIGNAL('zoom_in()')))
+                           lambda: self.zoom_in.emit())
         zoomin.setContext(Qt.WidgetWithChildrenShortcut)
         zoomout = QShortcut(QKeySequence(QKeySequence.ZoomOut), self,
-                           lambda: self.emit(SIGNAL('zoom_out()')))
+                            lambda: self.zoom_out.emit())
         zoomout.setContext(Qt.WidgetWithChildrenShortcut)
         # Return configurable ones
         return [inspect, breakpoint, cbreakpoint, gotoline, filelist, tab,
@@ -1242,7 +1275,7 @@ class EditorStack(QWidget):
         # New window
         self.newwindow_action = create_action(self, _("New window"),
                 icon="newwindow.png", tip=_("Create a new editor window"),
-                triggered=lambda: self.emit(SIGNAL("create_new_window()")))
+                triggered=lambda: self.create_new_window.emit())
         # Splitting
         self.versplit_action = create_action(self, _("Split vertically"),
                 icon="versplit.png",
@@ -1332,17 +1365,17 @@ class EditorStack(QWidget):
             # depend on the platform: long for 64bit, int for 32bit. Replacing 
             # by long all the time is not working on some 32bit platforms 
             # (see Issue 1094, Issue 1098)
-            self.emit(SIGNAL('close_file(QString,int)'), str(id(self)), index)
+            self.sig_close_file.emit(str(id(self)), index)
             
             if not self.data and self.is_closable:
                 # editortabwidget is empty: removing it
                 # (if it's not the first editortabwidget)
                 self.close()
-            self.emit(SIGNAL('opened_files_list_changed()'))
-            self.emit(SIGNAL('update_code_analysis_actions()'))
+            self.opened_files_list_changed.emit()
+            self.update_code_analysis_actions.emit()
             self._refresh_outlineexplorer()
-            self.emit(SIGNAL('refresh_file_dependent_actions()'))
-            self.emit(SIGNAL('update_plugin_title()'))
+            self.refresh_file_dependent_actions.emit()
+            self.update_plugin_title.emit()
             editor = self.get_current_editor()
             if editor:
                 editor.setFocus()
@@ -1425,15 +1458,14 @@ class EditorStack(QWidget):
             finfo.encoding = encoding.write(txt, finfo.filename,
                                             finfo.encoding)
             finfo.newly_created = False
-            self.emit(SIGNAL('encoding_changed(QString)'), finfo.encoding)
+            self.encoding_changed.emit(finfo.encoding)
             finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
             
             # We pass self object ID as a QString, because otherwise it would 
             # depend on the platform: long for 64bit, int for 32bit. Replacing 
             # by long all the time is not working on some 32bit platforms 
             # (see Issue 1094, Issue 1098)
-            self.emit(SIGNAL('file_saved(QString,int,QString)'),
-                      str(id(self)), index, finfo.filename)
+            self.file_saved.emit(str(id(self)), index, finfo.filename)
 
             finfo.editor.document().setModified(False)
             self.modification_changed(index=index)
@@ -1472,10 +1504,10 @@ class EditorStack(QWidget):
     def select_savename(self, original_filename):
         selectedfilter = get_filter(EDIT_FILETYPES,
                                     osp.splitext(original_filename)[1])
-        self.emit(SIGNAL('redirect_stdio(bool)'), False)
+        self.redirect_stdio.emit(False)
         filename, _selfilter = getsavefilename(self, _("Save Python script"),
                                original_filename, EDIT_FILTERS, selectedfilter)
-        self.emit(SIGNAL('redirect_stdio(bool)'), True)
+        self.redirect_stdio.emit(True)
         if filename:
             return osp.normpath(filename)
     
@@ -1501,8 +1533,7 @@ class EditorStack(QWidget):
             # depend on the platform: long for 64bit, int for 32bit. Replacing 
             # by long all the time is not working on some 32bit platforms 
             # (see Issue 1094, Issue 1098)
-            self.emit(SIGNAL('file_renamed_in_data(QString,int,QString)'),
-                      str(id(self)), index, filename)
+            self.file_renamed_in_data.emit(str(id(self)), index, filename)
 
             ok = self.save(index=new_index, force=True)
             self.refresh(new_index)
@@ -1569,8 +1600,8 @@ class EditorStack(QWidget):
             if DEBUG_EDITOR:
                 print("setfocusto:", editor, file=STDOUT)
         else:
-            self.emit(SIGNAL('reset_statusbar()'))
-        self.emit(SIGNAL('opened_files_list_changed()'))
+            self.reset_statusbar.emit()
+        self.opened_files_list_changed.emit()
         
         # Index history management
         id_list = [id(self.tabs.widget(_i))
@@ -1586,10 +1617,10 @@ class EditorStack(QWidget):
             print("current_changed:", index, self.data[index].editor, end=' ', file=STDOUT)
             print(self.data[index].editor.get_document_id(), file=STDOUT)
             
-        self.emit(SIGNAL('update_plugin_title()'))
+        self.update_plugin_title.emit()
         if editor is not None:
-            self.emit(SIGNAL('current_file_changed(QString,int)'),
-                      self.data[index].filename, editor.get_position('cursor'))
+            self.current_file_changed.emit(self.data[index].filename,
+                                           editor.get_position('cursor'))
         
     def _get_previous_file_index(self):
         if len(self.stack_history) > 1:
@@ -1629,7 +1660,7 @@ class EditorStack(QWidget):
         for finfo in self.data:
             if fwidget is finfo.editor:
                 self.refresh()
-        self.emit(SIGNAL("editor_focus_changed()"))
+        self.editor_focus_changed.emit()
         
     def _refresh_outlineexplorer(self, index=None, update=True, clear=False):
         """Refresh outline explorer panel"""
@@ -1655,8 +1686,7 @@ class EditorStack(QWidget):
         self.emit(SIGNAL('encoding_changed(QString)'), finfo.encoding)
         # Refresh cursor position status:
         line, index = finfo.editor.get_cursor_line_column()
-        self.emit(SIGNAL('editor_cursor_position_changed(int,int)'),
-                  line, index)
+        self.sig_editor_cursor_position_changed.emit(line, index)
         
     def __refresh_readonly(self, index):
         finfo = self.data[index]
@@ -1665,7 +1695,7 @@ class EditorStack(QWidget):
             # This is an 'untitledX.py' file (newly created)
             read_only = False
         finfo.editor.setReadOnly(read_only)
-        self.emit(SIGNAL('readonly_changed(bool)'), read_only)
+        self.readonly_changed.emit(read_only)
         
     def __check_file_status(self, index):
         """Check if file has been changed in any way outside Spyder:
@@ -1734,11 +1764,11 @@ class EditorStack(QWidget):
             editor = finfo.editor
             editor.setFocus()
             self._refresh_outlineexplorer(index, update=False)
-            self.emit(SIGNAL('update_code_analysis_actions()'))
+            self.update_code_analysis_actions.emit()
             self.__refresh_statusbar(index)
             self.__refresh_readonly(index)
             self.__check_file_status(index)
-            self.emit(SIGNAL('update_plugin_title()'))
+            self.update_plugin_title.emit()
         else:
             editor = None
         # Update the modification-state-dependent parameters
@@ -1758,7 +1788,7 @@ class EditorStack(QWidget):
                     break
         # This must be done before refreshing save/save all actions:
         # (otherwise Save/Save all actions will always be enabled)
-        self.emit(SIGNAL('opened_files_list_changed()'))
+        self.opened_files_list_changed.emit()
         # --
         if index is None:
             index = self.get_stack_index()
@@ -1770,11 +1800,11 @@ class EditorStack(QWidget):
         self.set_stack_title(index, state)
         # Toggle save/save all actions state
         self.save_action.setEnabled(state)
-        self.emit(SIGNAL('refresh_save_all_action()'))
+        self.refresh_save_all_action.emit()
         # Refreshing eol mode
         eol_chars = finfo.editor.get_line_separator()
         os_name = sourcecode.get_os_name_from_eol_chars(eol_chars)
-        self.emit(SIGNAL('refresh_eol_chars(QString)'), os_name)
+        self.refresh_eol_chars.emit(os_name)
         
 
     #------ Load, reload
@@ -1826,18 +1856,14 @@ class EditorStack(QWidget):
         self.connect(finfo, SIGNAL(
                     "send_to_inspector(QString,QString,QString,QString,bool)"),
                     self.send_to_inspector)
-        self.connect(finfo, SIGNAL('analysis_results_changed()'),
-                     lambda: self.emit(SIGNAL('analysis_results_changed()')))
-        self.connect(finfo, SIGNAL('todo_results_changed()'),
-                     lambda: self.emit(SIGNAL('todo_results_changed()')))
-        self.connect(finfo, SIGNAL("edit_goto(QString,int,QString)"),
-                     lambda fname, lineno, name:
-                     self.emit(SIGNAL("edit_goto(QString,int,QString)"),
-                               fname, lineno, name))
-        self.connect(finfo, SIGNAL("save_breakpoints(QString,QString)"),
-                     lambda s1, s2:
-                     self.emit(SIGNAL("save_breakpoints(QString,QString)"),
-                               s1, s2))
+        finfo.analysis_results_changed.connect(
+                                  lambda: self.analysis_results_changed.emit())
+        finfo.todo_results_changed.connect(
+                                      lambda: self.todo_results_changed.emit())
+        finfo.edit_goto.connect(lambda fname, lineno, name:
+                                self.edit_goto.emit(fname, lineno, name))
+        finfo.save_breakpoints.connect(lambda s1, s2: 
+                                       self.save_breakpoints.emit(s1, s2))
         self.connect(editor, SIGNAL("run_selection()"), self.run_selection)
         self.connect(editor, SIGNAL("run_cell()"), self.run_cell)
         self.connect(editor, SIGNAL('run_cell_and_advance()'),
@@ -1869,10 +1895,9 @@ class EditorStack(QWidget):
         if cloned_from is None:
             editor.set_text(txt)
             editor.document().setModified(False)
-        self.connect(finfo, SIGNAL('text_changed_at(QString,int)'),
-                     lambda fname, position:
-                     self.emit(SIGNAL('text_changed_at(QString,int)'),
-                               fname, position))
+        finfo.text_changed_at.connect(
+                                    lambda fname, position:
+                                    self.text_changed_at.emit(fname, position))
         self.connect(editor, SIGNAL('cursorPositionChanged(int,int)'),
                      self.editor_cursor_position_changed)
         self.connect(editor, SIGNAL('textChanged()'),
@@ -1881,10 +1906,8 @@ class EditorStack(QWidget):
                      lambda state: self.modification_changed(state,
                                                     editor_id=id(editor)))
         self.connect(editor, SIGNAL("focus_in()"), self.focus_changed)
-        self.connect(editor, SIGNAL('zoom_in()'),
-                     lambda: self.emit(SIGNAL('zoom_in()')))
-        self.connect(editor, SIGNAL('zoom_out()'),
-                     lambda: self.emit(SIGNAL('zoom_out()')))
+        editor.zoom_in.connect(lambda: self.zoom_in.emit())
+        editor.zoom_out.connect(lambda: self.zoom_out.emit())
         if self.outlineexplorer is not None:
             # Removing editor reference from outline explorer settings:
             self.connect(editor, SIGNAL("destroyed()"),
@@ -1893,15 +1916,14 @@ class EditorStack(QWidget):
 
         self.find_widget.set_editor(editor)
        
-        self.emit(SIGNAL('refresh_file_dependent_actions()'))
+        self.refresh_file_dependent_actions.emit()
         self.modification_changed(index=self.data.index(finfo))
         
         return finfo
     
     def editor_cursor_position_changed(self, line, index):
         """Cursor position of one of the editor in the stack has changed"""
-        self.emit(SIGNAL('editor_cursor_position_changed(int,int)'),
-                  line, index)
+        self.sig_editor_cursor_position_changed.emit(line, index)
     
     def send_to_inspector(self, qstr1, qstr2=None, qstr3=None,
                           qstr4=None, force=False):
@@ -1944,13 +1966,12 @@ class EditorStack(QWidget):
         plugin (in case multiple editorstack instances are handled)
         """
         filename = osp.abspath(to_text_string(filename))
-        self.emit(SIGNAL('starting_long_process(QString)'),
-                  _("Loading %s...") % filename)
+        self.starting_long_process.emit(_("Loading %s...") % filename)
         text, enc = encoding.read(filename)
         finfo = self.create_new_editor(filename, enc, text, set_current)
         index = self.data.index(finfo)
         self._refresh_outlineexplorer(index, update=True)
-        self.emit(SIGNAL('ending_long_process(QString)'), "")
+        self.ending_long_process.emit("")
         if self.isVisible() and self.checkeolchars_enabled \
            and sourcecode.has_mixed_eol_chars(text):
             name = osp.basename(filename)
@@ -1992,16 +2013,14 @@ class EditorStack(QWidget):
         if not text:
             line = self.get_current_editor().get_current_line()
             text = line.lstrip()
-        self.emit(SIGNAL('exec_in_extconsole(QString,bool)'), text, 
-                         self.focus_to_editor)
+        self.exec_in_extconsole.emit(text, self.focus_to_editor)
 
     def run_cell(self):
         """Run current cell"""
         text = self.get_current_editor().get_cell_as_executable_code()
         finfo = self.get_current_finfo()
         if finfo.editor.is_python() and text:
-            self.emit(SIGNAL('exec_in_extconsole(QString,bool)'),
-                      text, self.focus_to_editor)
+            self.exec_in_extconsole.emit(text, self.focus_to_editor)
 
     def run_cell_and_advance(self):
         """Run current cell and advance to the next one"""
@@ -2043,7 +2062,7 @@ class EditorStack(QWidget):
             supported_files = mimedata2url(source, extlist=EDIT_EXT)
             files = set(files or []) | set(supported_files or [])
             for fname in files:
-                self.emit(SIGNAL('plugin_load(QString)'), fname)
+                self.plugin_load.emit(fname)
         elif source.hasText():
             editor = self.get_current_editor()
             if editor is not None:
@@ -2458,18 +2477,12 @@ class EditorPluginExample(QSplitter):
         font.setPointSize(10)
         editorstack.set_default_font(font, color_scheme='Spyder')
 
-        self.connect(editorstack, SIGNAL('close_file(QString,int)'),
-                     self.close_file_in_all_editorstacks)
-        self.connect(editorstack, SIGNAL('file_saved(QString,int,QString)'),
-                     self.file_saved_in_editorstack)
-        self.connect(editorstack,
-                     SIGNAL('file_renamed_in_data(QString,int,QString)'),
-                     self.file_renamed_in_data_in_editorstack)
-
-        self.connect(editorstack, SIGNAL("create_new_window()"),
-                     self.create_new_window)
-        self.connect(editorstack, SIGNAL('plugin_load(QString)'),
-                     self.load)
+        editorstack.sig_close_file.connect(self.close_file_in_all_editorstacks)
+        editorstack.file_saved.connect(self.file_saved_in_editorstack)
+        editorstack.file_renamed_in_data.connect(
+                                      self.file_renamed_in_data_in_editorstack)
+        editorstack.create_new_window.connect(self.create_new_window)
+        editorstack.plugin_load.connect(self.load)
                     
     def unregister_editorstack(self, editorstack):
         if DEBUG_EDITOR:
