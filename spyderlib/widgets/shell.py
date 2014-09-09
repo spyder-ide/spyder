@@ -43,7 +43,7 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
     """
     
     redirect_stdio = Signal(bool)
-    keyboard_interrupt = Signal()
+    sig_keyboard_interrupt = Signal()
     execute = Signal(str)
     
     def __init__(self, parent, history_filename, profile=False):
@@ -231,7 +231,7 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
 
     def interrupt(self):
         """Keyboard interrupt"""
-        self.keyboard_interrupt.emit()
+        self.sig_keyboard_interrupt.emit()
 
     def cut(self):
         """Cut text"""
