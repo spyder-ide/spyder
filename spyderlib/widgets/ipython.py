@@ -20,7 +20,7 @@ import time
 from spyderlib.qt.QtGui import (QTextEdit, QKeySequence, QWidget, QMenu,
                                 QHBoxLayout, QToolButton, QVBoxLayout,
                                 QMessageBox)
-from spyderlib.qt.QtCore import Signal, SIGNAL, Qt
+from spyderlib.qt.QtCore import Signal, Qt
 
 # IPython imports
 try:  # 1.0
@@ -109,12 +109,12 @@ class IPythonControlWidget(TracebackLinksMixin, InspectObjectMixin, QTextEdit,
 
     def focusInEvent(self, event):
         """Reimplement Qt method to send focus change notification"""
-        self.emit(SIGNAL('focus_changed()'))
+        self.focus_changed.emit()
         return super(IPythonControlWidget, self).focusInEvent(event)
     
     def focusOutEvent(self, event):
         """Reimplement Qt method to send focus change notification"""
-        self.emit(SIGNAL('focus_changed()'))
+        self.focus_changed.emit()
         return super(IPythonControlWidget, self).focusOutEvent(event)
 
 
@@ -145,12 +145,12 @@ class IPythonPageControlWidget(QTextEdit, BaseEditMixin):
 
     def focusInEvent(self, event):
         """Reimplement Qt method to send focus change notification"""
-        self.emit(SIGNAL('focus_changed()'))
+        self.focus_changed.emit()
         return super(IPythonPageControlWidget, self).focusInEvent(event)
     
     def focusOutEvent(self, event):
         """Reimplement Qt method to send focus change notification"""
-        self.emit(SIGNAL('focus_changed()'))
+        self.focus_changed.emit()
         return super(IPythonPageControlWidget, self).focusOutEvent(event)
 
 
@@ -164,6 +164,8 @@ class IPythonShellWidget(RichIPythonWidget):
     This class has custom control and page_control widgets, additional methods
     to provide missing functionality and a couple more keyboard shortcuts.
     """
+    focus_changed = Signal()
+    
     def __init__(self, *args, **kw):
         # To override the Qt widget used by RichIPythonWidget
         self.custom_control = IPythonControlWidget
@@ -310,12 +312,12 @@ These commands were executed:
     #---- Qt methods ----------------------------------------------------------
     def focusInEvent(self, event):
         """Reimplement Qt method to send focus change notification"""
-        self.emit(SIGNAL('focus_changed()'))
+        self.focus_changed.emit()
         return super(IPythonShellWidget, self).focusInEvent(event)
     
     def focusOutEvent(self, event):
         """Reimplement Qt method to send focus change notification"""
-        self.emit(SIGNAL('focus_changed()'))
+        self.focus_changed.emit()
         return super(IPythonShellWidget, self).focusOutEvent(event)
 
 
