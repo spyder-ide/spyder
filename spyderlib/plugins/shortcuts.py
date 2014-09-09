@@ -10,8 +10,7 @@ from __future__ import print_function
 
 from spyderlib.qt.QtGui import (QVBoxLayout, QComboBox, QItemDelegate,
                                 QTableView, QMessageBox, QPushButton)
-from spyderlib.qt.QtCore import (Qt, QSize, QAbstractTableModel, QModelIndex,
-                                 SIGNAL, Signal)
+from spyderlib.qt.QtCore import Qt, QSize, QAbstractTableModel, QModelIndex
 from spyderlib.qt.compat import to_qvariant, from_qvariant
 
 import sys
@@ -208,8 +207,7 @@ class ShortcutsModel(QAbstractTableModel):
                 key.modifiers[2] = Key.modifier_from_name(text)
             elif column == KEY:
                 key.key = Key.key_from_str(text)
-            self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
-                      index, index)
+            self.dataChanged.emit(index, index)
             return True
         return False
 
@@ -336,13 +334,12 @@ class ShortcutsConfigPage(GeneralConfigPage):
     
     def setup_page(self):
         self.table = ShortcutsTable(self)
-        self.connect(self.table.model,
-                     SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
+        self.table.model.dataChanged.connect(
                      lambda i1, i2, opt='': self.has_been_modified(opt))
         vlayout = QVBoxLayout()
         vlayout.addWidget(self.table)
         reset_btn = QPushButton(_("Reset to default values"))
-        self.connect(reset_btn, SIGNAL('clicked()'), self.reset_to_default)
+        reset_btn.clicked.connect(self.reset_to_default)
         vlayout.addWidget(reset_btn)
         self.setLayout(vlayout)
         
