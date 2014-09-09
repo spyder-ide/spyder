@@ -17,8 +17,8 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QLabel, QHBoxLayout, QInputDialog,
                                 QFileSystemModel, QMenu, QWidget, QToolButton,
                                 QLineEdit, QMessageBox, QToolBar, QTreeView,
                                 QDrag, QSortFilterProxyModel)
-from spyderlib.qt.QtCore import (Qt, SIGNAL, QMimeData, QSize, QDir, QUrl,
-                                 Signal, QTimer)
+from spyderlib.qt.QtCore import (Qt, Signal, QMimeData, QSize, QDir, QUrl,
+                                 QTimer)
 from spyderlib.qt.compat import getsavefilename, getexistingdirectory
 
 import os
@@ -106,8 +106,8 @@ class DirView(QTreeView):
     def setup_view(self):
         """Setup view"""
         self.install_model()
-        self.connect(self.fsmodel, SIGNAL('directoryLoaded(QString)'),
-                     lambda: self.resizeColumnToContents(0))
+        self.fsmodel.directoryLoaded.connect(
+                                        lambda: self.resizeColumnToContents(0))
         self.setAnimated(False)
         self.setSortingEnabled(True)
         self.sortByColumn(0, Qt.AscendingOrder)
@@ -418,7 +418,7 @@ class DirView(QTreeView):
             path = file_uri(path)
             ok = programs.start_file(path)
             if not ok:
-                self.parent_widget.emit(SIGNAL("edit(QString)"), path)
+                self.parent_widget.edit.emit(path)
                 
     def open_terminal(self, fnames):
         """Open terminal"""
@@ -435,7 +435,7 @@ class DirView(QTreeView):
         if fnames is None:
             fnames = self.get_selected_filenames()
         for fname in fnames:
-            self.parent_widget.emit(SIGNAL("run(QString)"), fname)
+            self.parent_widget.run.emit(fname)
     
     def remove_tree(self, dirname):
         """Remove whole directory tree
@@ -463,12 +463,10 @@ class DirView(QTreeView):
         try:
             if osp.isfile(fname):
                 misc.remove_file(fname)
-                self.parent_widget.emit(SIGNAL("removed(QString)"),
-                                        fname)
+                self.parent_widget.removed.emit(fname)
             else:
                 self.remove_tree(fname)
-                self.parent_widget.emit(SIGNAL("removed_tree(QString)"),
-                                        fname)
+                self.parent_widget.removed_tree.emit(fname)
             return yes_to_all
         except EnvironmentError as error:
             action_str = _('delete')
@@ -508,8 +506,7 @@ class DirView(QTreeView):
                     return
             try:
                 misc.rename_file(fname, path)
-                self.parent_widget.emit( \
-                     SIGNAL("renamed(QString,QString)"), fname, path)
+                self.parent_widget.renamed.emit(fname, path)
                 return path
             except EnvironmentError as error:
                 QMessageBox.critical(self, _("Rename"),
@@ -532,9 +529,9 @@ class DirView(QTreeView):
             fnames = self.get_selected_filenames()
         orig = fixpath(osp.dirname(fnames[0]))
         while True:
-            self.parent_widget.emit(SIGNAL('redirect_stdio(bool)'), False)
+            self.parent_widget.redirect_stdio.emit(False)
             folder = getexistingdirectory(self, _("Select directory"), orig)
-            self.parent_widget.emit(SIGNAL('redirect_stdio(bool)'), True)
+            self.parent_widget.redirect_stdio.emit(True)
             if folder:
                 folder = fixpath(folder)
                 if folder != orig:
@@ -602,9 +599,9 @@ class DirView(QTreeView):
             current_path = ''
         if osp.isfile(current_path):
             current_path = osp.dirname(current_path)
-        self.parent_widget.emit(SIGNAL('redirect_stdio(bool)'), False)
+        self.parent_widget.redirect_stdio.emit(False)
         fname, _selfilter = getsavefilename(self, title, current_path, filters)
-        self.parent_widget.emit(SIGNAL('redirect_stdio(bool)'), True)
+        self.parent_widget.redirect_stdio.emit(True)
         if fname:
             try:
                 create_func(fname)
@@ -633,8 +630,7 @@ class DirView(QTreeView):
         """New module"""
         title = _("New module")
         filters = _("Python scripts")+" (*.py *.pyw *.ipy)"
-        create_func = lambda fname: self.parent_widget.emit( \
-                                     SIGNAL("create_module(QString)"), fname)
+        create_func = lambda fname: self.parent_widget.create_module.emit(fname)
         self.create_new_file(basedir, title, filters, create_func)
         
     #----- VCS actions
@@ -706,8 +702,7 @@ class DirView(QTreeView):
                 self._to_be_loaded.append(path)
                 self.setExpanded(self.get_index(path), True)
         if not self.__expanded_state:
-            self.disconnect(self.fsmodel, SIGNAL('directoryLoaded(QString)'),
-                            self.restore_directory_state)
+            self.fsmodel.directoryLoaded.disconnect()
                 
     def follow_directories_loaded(self, fname):
         """Follow directories loaded during startup"""
@@ -717,8 +712,7 @@ class DirView(QTreeView):
         if path in self._to_be_loaded:
             self._to_be_loaded.remove(path)
         if self._to_be_loaded is not None and len(self._to_be_loaded) == 0:
-            self.disconnect(self.fsmodel, SIGNAL('directoryLoaded(QString)'),
-                            self.follow_directories_loaded)
+            self.fsmodel.directoryLoaded.disconnect()
             if self._scrollbar_positions is not None:
                 # The tree view need some time to render branches:
                 QTimer.singleShot(50, self.restore_scrollbar_positions)
@@ -728,10 +722,10 @@ class DirView(QTreeView):
         if self.__expanded_state is not None:
             # In the old project explorer, the expanded state was a dictionnary:
             if isinstance(self.__expanded_state, list):
-                self.connect(self.fsmodel, SIGNAL('directoryLoaded(QString)'),
-                             self.restore_directory_state)
-                self.connect(self.fsmodel, SIGNAL('directoryLoaded(QString)'),
-                             self.follow_directories_loaded)
+                self.fsmodel.directoryLoaded.connect(
+                                                  self.restore_directory_state)
+                self.fsmodel.directoryLoaded.connect(
+                                                self.follow_directories_loaded)
 
 
 class ProxyModel(QSortFilterProxyModel):
@@ -821,6 +815,9 @@ class ExplorerTreeWidget(DirView):
     show_cd_only: Show current directory only
     (True/False: enable/disable the option
      None: enable the option and do not allow the user to disable it)"""
+    set_previous_enabled = Signal(bool)
+    set_next_enabled = Signal(bool)
+    
     def __init__(self, parent=None, show_cd_only=None):
         DirView.__init__(self, parent)
                 
@@ -885,11 +882,10 @@ class ExplorerTreeWidget(DirView):
             index = self.set_current_folder(new_path)
             self.expand(index)
             self.setCurrentIndex(index)
-        self.emit(SIGNAL("set_previous_enabled(bool)"),
-                  self.histindex is not None and self.histindex > 0)
-        self.emit(SIGNAL("set_next_enabled(bool)"),
-                  self.histindex is not None and \
-                  self.histindex < len(self.history)-1)
+        self.set_previous_enabled.emit(
+                             self.histindex is not None and self.histindex > 0)
+        self.set_next_enabled.emit(self.histindex is not None and \
+                                   self.histindex < len(self.history)-1)
             
     #---- Events
     def directory_clicked(self, dirname):
@@ -936,7 +932,7 @@ class ExplorerTreeWidget(DirView):
             self.histindex = len(self.history)-1
         directory = to_text_string(directory)
         os.chdir(directory)
-        self.parent_widget.emit(SIGNAL("open_dir(QString)"), directory)
+        self.parent_widget.open_dir.emit(directory)
         self.refresh(new_path=directory, force_current=True)
 
 
@@ -971,16 +967,15 @@ class ExplorerWidget(QWidget):
                             triggered=self.treewidget.go_to_previous_directory)
         self.toolbar.addAction(self.previous_action)
         self.previous_action.setEnabled(False)
-        self.connect(self.treewidget, SIGNAL("set_previous_enabled(bool)"),
-                     self.previous_action.setEnabled)
+        self.treewidget.set_previous_enabled.connect(
+                                               self.previous_action.setEnabled)
         
         self.next_action = create_action(self, text=_("Next"),
                             icon=get_icon('next.png'),
                             triggered=self.treewidget.go_to_next_directory)
         self.toolbar.addAction(self.next_action)
         self.next_action.setEnabled(False)
-        self.connect(self.treewidget, SIGNAL("set_next_enabled(bool)"),
-                     self.next_action.setEnabled)
+        self.treewidget.set_next_enabled.connect(self.next_action.setEnabled)
         
         parent_action = create_action(self, text=_("Parent"),
                             icon=get_icon('up.png'),
@@ -1046,8 +1041,7 @@ class FileExplorerTest(QWidget):
         hlayout2.addWidget(label)
         self.label2 = QLabel()
         hlayout2.addWidget(self.label2)
-        self.connect(self.explorer, SIGNAL("open_dir(QString)"),
-                     self.label2.setText)
+        self.explorer.open_dir.connect(self.label2.setText)
         
         hlayout3 = QHBoxLayout()
         vlayout.addLayout(hlayout3)
@@ -1058,9 +1052,8 @@ class FileExplorerTest(QWidget):
         hlayout3.addWidget(self.label3)
         self.explorer.sig_option_changed.connect(
            lambda x, y: self.label3.setText('option_changed: %r, %r' % (x, y)))
-
-        self.connect(self.explorer, SIGNAL("open_parent_dir()"),
-                     lambda: self.explorer.listwidget.refresh('..'))
+        self.explorer.open_parent_dir.connect(
+                                lambda: self.explorer.listwidget.refresh('..'))
 
 class ProjectExplorerTest(QWidget):
     def __init__(self, parent=None):
