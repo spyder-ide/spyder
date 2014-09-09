@@ -22,14 +22,13 @@ from spyderlib.qt.QtGui import (QMessageBox, QTableView, QItemDelegate,
                                 QDialog, QDateEdit, QDialogButtonBox, QMenu,
                                 QInputDialog, QDateTimeEdit, QApplication,
                                 QKeySequence)
-from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, SIGNAL,
-                                 SLOT, QDateTime, Signal)
+from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, Signal,
+                                 Slot, QDateTime)
 from spyderlib.qt.compat import to_qvariant, from_qvariant, getsavefilename
 from spyderlib.utils.qthelpers import mimedata2url
 
 import sys
 import datetime
-import os
 
 # Local import
 from spyderlib.baseconfig import _
@@ -49,7 +48,6 @@ if DataFrame is not FakeObject:
 from spyderlib.widgets.texteditor import TextEditor
 from spyderlib.widgets.importwizard import ImportWizard
 from spyderlib.py3compat import to_text_string, is_text_string, getcwd, u
-from spyderlib.utils.iofuncs import iofunctions
 
 
 def display_to_value(value, default_value, ignore_errors=True):
@@ -336,8 +334,7 @@ class DictModel(ReadOnlyDictModel):
         value = display_to_value(value, self.get_value(index),
                                  ignore_errors=True)
         self.set_value(index, value)
-        self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
-                  index, index)
+        self.dataChanged.emit(index, index)
         return True
 
 
@@ -419,16 +416,14 @@ class DictDelegate(QItemDelegate):
             editor = QDateTimeEdit(value, parent)
             editor.setCalendarPopup(True)
             editor.setFont(get_font('dicteditor'))
-            self.connect(editor, SIGNAL("returnPressed()"),
-                         self.commitAndCloseEditor)
+            editor.returnPressed.connect(self.commitAndCloseEditor)
             return editor
         #---editor = QDateEdit
         elif isinstance(value, datetime.date) and not self.inplace:
             editor = QDateEdit(value, parent)
             editor.setCalendarPopup(True)
             editor.setFont(get_font('dicteditor'))
-            self.connect(editor, SIGNAL("returnPressed()"),
-                         self.commitAndCloseEditor)
+            editor.returnPressed.connect(self.commitAndCloseEditor)
             return editor
         #---editor = QTextEdit
         elif is_text_string(value) and len(value)>40:
@@ -441,8 +436,7 @@ class DictDelegate(QItemDelegate):
             editor = QLineEdit(parent)
             editor.setFont(get_font('dicteditor'))
             editor.setAlignment(Qt.AlignLeft)
-            self.connect(editor, SIGNAL("returnPressed()"),
-                         self.commitAndCloseEditor)
+            editor.returnPressed.connect(self.commitAndCloseEditor)
             return editor
         #---editor = DictEditor for an arbitrary object
         else:
@@ -455,9 +449,9 @@ class DictDelegate(QItemDelegate):
             
     def create_dialog(self, editor, data):
         self._editors[id(editor)] = data
-        self.connect(editor, SIGNAL('accepted()'),
+        editor.accepted.connect(
                      lambda eid=id(editor): self.editor_accepted(eid))
-        self.connect(editor, SIGNAL('rejected()'),
+        editor.rejected.connect(
                      lambda eid=id(editor): self.editor_rejected(eid))
         editor.show()
         
@@ -476,8 +470,8 @@ class DictDelegate(QItemDelegate):
     def commitAndCloseEditor(self):
         """Overriding method commitAndCloseEditor"""
         editor = self.sender()
-        self.emit(SIGNAL("commitData(QWidget*)"), editor)
-        self.emit(SIGNAL("closeEditor(QWidget*)"), editor)
+        self.commitData.emit(editor)
+        self.closeEditor.emit(editor)
 
     def setEditorData(self, editor, index):
         """Overriding method setEditorData
@@ -532,6 +526,7 @@ class BaseTableView(QTableView):
     """Base dictionnary editor table view"""
     sig_option_changed = Signal(str, object)
     sig_files_dropped = Signal(list)
+    redirect_stdio = Signal(bool)
     
     def __init__(self, parent):
         QTableView.__init__(self, parent)
@@ -964,11 +959,11 @@ class BaseTableView(QTableView):
         title = _( "Save array")
         if self.array_filename is None:
             self.array_filename = getcwd()
-        self.emit(SIGNAL('redirect_stdio(bool)'), False)
+        self.redirect_stdio.emit(False)
         filename, _selfilter = getsavefilename(self, title,
                                                self.array_filename,
                                                _("NumPy arrays")+" (*.npy)")
-        self.emit(SIGNAL('redirect_stdio(bool)'), True)
+        self.redirect_stdio.emit(True)
         if filename:
             self.array_filename = filename
             data = self.delegate.get_value( self.currentIndex() )
@@ -1194,9 +1189,9 @@ class DictEditor(QDialog):
         if not readonly:
             buttons = buttons | QDialogButtonBox.Cancel
         bbox = QDialogButtonBox(buttons)
-        self.connect(bbox, SIGNAL("accepted()"), SLOT("accept()"))
+        bbox.accepted.connect(self.accept)
         if not readonly:
-            self.connect(bbox, SIGNAL("rejected()"), SLOT("reject()"))
+            bbox.rejected.connect(self.reject)
         layout.addWidget(bbox)
 
         constant = 121
