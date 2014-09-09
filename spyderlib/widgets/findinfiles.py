@@ -520,8 +520,7 @@ class FindOptions(QWidget):
             self.emit(SIGNAL('find()'))
         elif event.key() == Qt.Key_F and ctrl and shift:
             # Toggle find widgets
-            self.parent().emit(SIGNAL('toggle_visibility(bool)'),
-                               not self.isVisible())
+            self.parent().toggle_visibility.emit(not self.isVisible())
         else:
             QWidget.keyPressEvent(self, event)
 
