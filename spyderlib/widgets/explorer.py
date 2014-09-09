@@ -423,12 +423,12 @@ class DirView(QTreeView):
     def open_terminal(self, fnames):
         """Open terminal"""
         for path in sorted(fnames):
-            self.parent_widget.emit(SIGNAL("open_terminal(QString)"), path)
+            self.parent_widget.open_terminal.emit(path)
             
     def open_interpreter(self, fnames):
         """Open interpreter"""
         for path in sorted(fnames):
-            self.parent_widget.emit(SIGNAL("open_interpreter(QString)"), path)
+            self.parent_widget.open_interpreter.emit(path)
         
     def run(self, fnames=None):
         """Run Python scripts"""

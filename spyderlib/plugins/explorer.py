@@ -12,7 +12,7 @@
 # pylint: disable=R0201
 
 from spyderlib.qt.QtGui import QFontDialog
-from spyderlib.qt.QtCore import SIGNAL
+from spyderlib.qt.QtCore import Signal, SIGNAL
 
 import os.path as osp
 
@@ -28,6 +28,9 @@ from spyderlib.py3compat import to_text_string
 class Explorer(ExplorerWidget, SpyderPluginMixin):
     """File and Directories Explorer DockWidget"""
     CONF_SECTION = 'explorer'
+    open_terminal = Signal(str)
+    open_interpreter = Signal(str)
+    
     def __init__(self, parent=None):
         ExplorerWidget.__init__(self, parent=parent,
                                 name_filters=self.get_option('name_filters'),

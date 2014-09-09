@@ -12,7 +12,7 @@ import os.path as osp
 import socket
 
 from spyderlib.qt.QtGui import QApplication, QMessageBox, QSplitter, QMenu
-from spyderlib.qt.QtCore import QProcess, SIGNAL, Qt, QTextCodec
+from spyderlib.qt.QtCore import QProcess, Signal, SIGNAL, Qt, QTextCodec
 LOCALE_CODEC = QTextCodec.codecForLocale()
 from spyderlib.qt.compat import getexistingdirectory
 
@@ -153,6 +153,13 @@ class ExtPythonShellWidget(PythonShellWidget):
 class ExternalPythonShell(ExternalShellBase):
     """External Shell widget: execute Python script in a separate process"""
     SHELL_CLASS = ExtPythonShellWidget
+    sig_pdb = Signal(str, int)
+    open_file = Signal(str, int)
+    ipython_kernel_start_error = Signal(str)
+    create_ipython_client = Signal(str)
+    started = Signal()
+    sig_finished = Signal()
+    
     def __init__(self, parent=None, fname=None, wdir=None,
                  interact=False, debug=False, path=[], python_args='',
                  ipykernel=False, arguments='', stand_alone=None,
@@ -419,19 +426,15 @@ The process may not exit as a result of clicking this button
             introspection_server.register(self)
             notification_server = introspection.start_notification_server()
             self.notification_thread = notification_server.register(self)
-            self.connect(self.notification_thread, SIGNAL('pdb(QString,int)'),
-                         lambda fname, lineno:
-                         self.emit(SIGNAL('pdb(QString,int)'), fname, lineno))
-            self.connect(self.notification_thread,
-                         SIGNAL('new_ipython_kernel(QString)'),
-                         lambda args:
-                         self.emit(SIGNAL('create_ipython_client(QString)'),
-                         args))
-            self.connect(self.notification_thread,
-                         SIGNAL('open_file(QString,int)'),
-                         lambda fname, lineno:
-                         self.emit(SIGNAL('open_file(QString,int)'),
-                                   fname, lineno))
+            self.notification_thread.sig_pdb.connect(
+                                              lambda fname, lineno:
+                                              self.sig_pdb.emit(fname, lineno))
+            self.notification_thread.new_ipython_kernel.connect(
+                                         lambda args:
+                                         self.create_ipython_client.emit(args))
+            self.notification_thread.open_file.connect(
+                                            lambda fname, lineno:
+                                            self.open_file.emit(fname, lineno))
             if self.namespacebrowser is not None:
                 self.configure_namespacebrowser()
             env.append('SPYDER_I_PORT=%d' % introspection_server.port)
@@ -491,7 +494,7 @@ The process may not exit as a result of clicking this button
         self.connect(self.process, SIGNAL("finished(int,QProcess::ExitStatus)"),
                      self.finished)
                      
-        self.connect(self, SIGNAL('finished()'), self.dialog_manager.close_all)
+        self.sig_finished.connect(self.dialog_manager.close_all)
 
         self.connect(self.terminate_button, SIGNAL("clicked()"),
                      self.process.terminate)
@@ -525,7 +528,7 @@ The process may not exit as a result of clicking this button
         self.set_running_state(running)
         if not running:
             if self.is_ipykernel:
-                self.emit(SIGNAL("ipython_kernel_start_error(QString)"),
+                self.ipython_kernel_start_error.emit(
                           _("The kernel failed to start!! That's all we know... "
                             "Please close this console and open a new one."))
             else:
@@ -533,14 +536,13 @@ The process may not exit as a result of clicking this button
                                      _("A Python console failed to start!"))
         else:
             self.shell.setFocus()
-            self.emit(SIGNAL('started()'))
+            self.started.emit()
         return self.process
 
     def finished(self, exit_code, exit_status):
         """Reimplement ExternalShellBase method"""
         if self.is_ipykernel and exit_code == 1:
-            self.emit(SIGNAL("ipython_kernel_start_error(QString)"),
-                      self.shell.get_text_with_eol())
+            self.ipython_kernel_start_error.emit(self.shell.get_text_with_eol())
         ExternalShellBase.finished(self, exit_code, exit_status)
         self.introspection_socket = None
 
