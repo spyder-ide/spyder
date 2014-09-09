@@ -13,7 +13,7 @@ import os.path as osp
 
 from spyderlib.qt.QtGui import (QWidget, QTreeWidgetItem,  QHBoxLayout,
                                 QVBoxLayout)
-from spyderlib.qt.QtCore import Qt, Signal, SIGNAL
+from spyderlib.qt.QtCore import Qt, Signal
 from spyderlib.qt.compat import from_qvariant
 
 # Local import
@@ -489,6 +489,7 @@ class OutlineExplorerWidget(QWidget):
     """Class browser"""
     edit_goto = Signal(str, int, str)
     edit = Signal(str)
+    outlineexplorer_is_visible = Signal()
     
     def __init__(self, parent=None, show_fullpath=True, fullpath_sorting=True,
                  show_all_files=True, show_comments=True):
@@ -524,7 +525,7 @@ class OutlineExplorerWidget(QWidget):
             current_editor.clearFocus()
             current_editor.setFocus()
             if state:
-                self.emit(SIGNAL("outlineexplorer_is_visible()"))
+                self.outlineexplorer_is_visible.emit()
         
     def setup_buttons(self):
         fromcursor_btn = create_toolbutton(self,

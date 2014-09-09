@@ -24,7 +24,6 @@ from spyderlib.py3compat import is_text_string
 class OutlineExplorer(OutlineExplorerWidget, SpyderPluginMixin):
     CONF_SECTION = 'outline_explorer'
     sig_option_changed = Signal(str, object)
-    outlineexplorer_is_visible = Signal()
     
     def __init__(self, parent=None, fullpath_sorting=True):
         show_fullpath = self.get_option('show_fullpath')
