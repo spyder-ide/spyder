@@ -1614,7 +1614,7 @@ class MainWindow(QMainWindow):
         self.save_current_window_settings(prefix)
         if CONF.get('main', 'single_instance'):
             if os.name == 'nt':
-                self.open_files_server.shutdown(socket.SHUT_RDWR)
+                pass # All seems to indicate port is closed at this point
             self.open_files_server.close()
         for widget in self.widgetlist:
             if not widget.closing_plugin(cancelable):
