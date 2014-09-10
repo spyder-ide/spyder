@@ -12,7 +12,7 @@ import os.path as osp
 import socket
 
 from spyderlib.qt.QtGui import QApplication, QMessageBox, QSplitter, QMenu
-from spyderlib.qt.QtCore import QProcess, Signal, SIGNAL, Qt, QTextCodec
+from spyderlib.qt.QtCore import QProcess, Signal, Qt, QTextCodec
 LOCALE_CODEC = QTextCodec.codecForLocale()
 from spyderlib.qt.compat import getexistingdirectory
 
@@ -34,6 +34,9 @@ from spyderlib.py3compat import is_text_string, to_text_string
 
 
 class ExtPythonShellWidget(PythonShellWidget):
+    
+    wait_for_ready_read = Signal()
+    
     def __init__(self, parent, history_filename, profile=False):
         PythonShellWidget.__init__(self, parent, history_filename, profile)
         self.path = []
@@ -45,7 +48,7 @@ class ExtPythonShellWidget(PythonShellWidget):
     def clear_terminal(self):
         """Reimplement ShellBaseWidget method"""
         self.clear()
-        self.emit(SIGNAL("execute(QString)"), "\n")
+        self.execute.emit("\n")
 
     def execute_lines(self, lines):
         """
@@ -66,7 +69,7 @@ class ExtPythonShellWidget(PythonShellWidget):
                 import time
                 time.sleep(0.025)
             else:
-                self.emit(SIGNAL("wait_for_ready_read()"))
+                self.wait_for_ready_read.emit()
             self.flush()
 
     #------ Code completion / Calltips
@@ -334,8 +337,7 @@ The process may not exit as a result of clicking this button
                          lambda: self.toggle_globals_explorer(False))
             # Shell splitter
             self.splitter = splitter = QSplitter(Qt.Vertical, self)
-            self.connect(self.splitter, SIGNAL('splitterMoved(int, int)'),
-                         self.splitter_moved)
+            self.splitter.splitterMoved.connect(self.splitter_moved)
             splitter.addWidget(self.shell)
             splitter.setCollapsible(0, False)
             splitter.addWidget(self.namespacebrowser)
@@ -380,8 +382,7 @@ The process may not exit as a result of clicking this button
     def configure_namespacebrowser(self):
         """Connect the namespace browser to the notification thread"""
         if self.notification_thread is not None:
-            self.connect(self.notification_thread,
-                         SIGNAL('refresh_namespace_browser()'),
+            self.notification_thread.refresh_namespace_browser.connect(
                          self.namespacebrowser.refresh_table)
             signal = self.notification_thread.sig_process_remote_view
             signal.connect(self.namespacebrowser.process_remote_view)
@@ -394,7 +395,7 @@ The process may not exit as a result of clicking this button
             self.process.setProcessChannelMode(QProcess.MergedChannels)
         else:
             self.process.setProcessChannelMode(QProcess.SeparateChannels)
-        self.connect(self.shell, SIGNAL("wait_for_ready_read()"),
+        self.shell.wait_for_ready_read.connect(
                      lambda: self.process.waitForReadyRead(250))
         
         # Working directory
@@ -487,19 +488,13 @@ The process may not exit as a result of clicking this button
 
         #-------------------------Python specific-------------------------------
                         
-        self.connect(self.process, SIGNAL("readyReadStandardOutput()"),
-                     self.write_output)
-        self.connect(self.process, SIGNAL("readyReadStandardError()"),
-                     self.write_error)
-        self.connect(self.process, SIGNAL("finished(int,QProcess::ExitStatus)"),
-                     self.finished)
-                     
+        self.process.readyReadStandardOutput.connect(self.write_output)
+        self.process.readyReadStandardError.connect(self.write_error)
+        self.process.finished.connect(lambda ec, es=QProcess.ExitStatus:
+                                      self.finished(ec, es))
         self.sig_finished.connect(self.dialog_manager.close_all)
-
-        self.connect(self.terminate_button, SIGNAL("clicked()"),
-                     self.process.terminate)
-        self.connect(self.kill_button, SIGNAL("clicked()"),
-                     self.process.kill)
+        self.terminate_button.clicked.connect(self.process.terminate)
+        self.kill_button.clicked.connect(self.process.kill)
         
         #-------------------------Python specific-------------------------------
         # Fixes for our Mac app:
@@ -614,11 +609,11 @@ The process may not exit as a result of clicking this button
     def set_current_working_directory(self):
         """Set current working directory"""
         cwd = self.shell.get_cwd()
-        self.emit(SIGNAL('redirect_stdio(bool)'), False)
+        self.redirect_stdio.emit(False)
         directory = getexistingdirectory(self, _("Select directory"), cwd)
         if directory:
             self.shell.set_cwd(directory)
-        self.emit(SIGNAL('redirect_stdio(bool)'), True)
+        self.redirect_stdio.emit(True)
 
     def show_env(self):
         """Show environment variables"""
