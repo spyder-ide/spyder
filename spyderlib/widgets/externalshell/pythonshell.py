@@ -330,7 +330,7 @@ The process may not exit as a result of clicking this button
             settings = self.stand_alone
             self.namespacebrowser.set_shellwidget(self)
             self.namespacebrowser.setup(**settings)
-            self.connect(self.namespacebrowser, SIGNAL('collapse()'),
+            self.namespacebrowser.sig_collapse.connect(
                          lambda: self.toggle_globals_explorer(False))
             # Shell splitter
             self.splitter = splitter = QSplitter(Qt.Vertical, self)

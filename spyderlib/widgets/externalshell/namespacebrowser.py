@@ -12,7 +12,7 @@ import socket
 from spyderlib.qt.QtGui import (QWidget, QVBoxLayout, QHBoxLayout, QMenu,
                                 QToolButton, QMessageBox, QApplication,
                                 QCursor, QInputDialog)
-from spyderlib.qt.QtCore import SIGNAL, Qt, Signal
+from spyderlib.qt.QtCore import Qt, Signal
 from spyderlib.qt.compat import getopenfilenames, getsavefilename
 
 # Local imports
@@ -40,6 +40,8 @@ SUPPORTED_TYPES = get_supported_types()
 class NamespaceBrowser(QWidget):
     """Namespace browser (global variables explorer widget)"""
     sig_option_changed = Signal(str, object)
+    sig_collapse = Signal()
+    
     def __init__(self, parent):
         QWidget.__init__(self, parent)
         
@@ -442,7 +444,7 @@ class NamespaceBrowser(QWidget):
         
     def collapse(self):
         """Collapse"""
-        self.emit(SIGNAL('collapse()'))
+        self.sig_collapse.emit()
         
     def import_data(self, filenames=None):
         """Import data from text file"""
