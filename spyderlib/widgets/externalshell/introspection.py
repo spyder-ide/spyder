@@ -6,7 +6,7 @@
 
 """External shell's introspection and notification servers"""
 
-from spyderlib.qt.QtCore import QThread, SIGNAL, Signal
+from spyderlib.qt.QtCore import QThread, Signal
 
 import threading
 import socket
@@ -141,6 +141,7 @@ class NotificationThread(QThread):
     sig_pdb = Signal(str, int)
     open_file = Signal(str, int)
     new_ipython_kernel = Signal(str)
+    refresh_namespace_browser = Signal()
     
     def __init__(self):
         QThread.__init__(self)
@@ -178,9 +179,9 @@ class NotificationThread(QThread):
                 if command == 'pdb_step':
                     fname, lineno = data
                     self.sig_pdb.emit(fname, lineno)
-                    self.emit(SIGNAL('refresh_namespace_browser()'))
+                    self.refresh_namespace_browser.emit()
                 elif command == 'refresh':
-                    self.emit(SIGNAL('refresh_namespace_browser()'))
+                    self.refresh_namespace_browser.emit()
                 elif command == 'remote_view':
                     self.sig_process_remote_view.emit(data)
                 elif command == 'ipykernel':
