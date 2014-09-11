@@ -15,7 +15,7 @@ from __future__ import with_statement
 
 from spyderlib.qt.QtGui import (QHBoxLayout, QWidget, QTreeWidgetItem,
                                 QSizePolicy, QRadioButton, QVBoxLayout, QLabel)
-from spyderlib.qt.QtCore import SIGNAL, Qt, QThread, QMutexLocker, QMutex
+from spyderlib.qt.QtCore import Signal, Qt, QThread, QMutexLocker, QMutex
 from spyderlib.qt.compat import getexistingdirectory
 
 import sys
@@ -106,6 +106,8 @@ from spyderlib.py3compat import to_text_string, getcwd
 
 class SearchThread(QThread):
     """Find in files search thread"""
+    sig_finished = Signal(bool)
+    
     def __init__(self, parent):
         QThread.__init__(self, parent)
         self.mutex = QMutex()
@@ -154,7 +156,7 @@ class SearchThread(QThread):
             traceback.print_exc()
             self.error_flag = _("Unexpected error: see internal console")
         self.stop()
-        self.emit(SIGNAL("finished(bool)"), self.completed)
+        self.sig_finished.emit(self.completed)
         
     def stop(self):
         with QMutexLocker(self.mutex):
@@ -284,6 +286,9 @@ class SearchThread(QThread):
 
 class FindOptions(QWidget):
     """Find widget with options"""
+    find = Signal()
+    stop = Signal()
+    
     def __init__(self, parent, search_text, search_text_regexp, search_path,
                  include, include_idx, include_regexp,
                  exclude, exclude_idx, exclude_regexp,
@@ -321,13 +326,13 @@ class FindOptions(QWidget):
         
         self.ok_button = create_toolbutton(self, text=_("Search"),
                                 icon=get_std_icon("DialogApplyButton"),
-                                triggered=lambda: self.emit(SIGNAL('find()')),
+                                triggered=lambda: self.find.emit(),
                                 tip=_("Start search"),
                                 text_beside_icon=True)
-        self.connect(self.ok_button, SIGNAL('clicked()'), self.update_combos)
+        self.ok_button.clicked.connect(self.update_combos)
         self.stop_button = create_toolbutton(self, text=_("Stop"),
                                 icon=get_icon("terminate.png"),
-                                triggered=lambda: self.emit(SIGNAL('stop()')),
+                                triggered=lambda: self.stop.emit(),
                                 tip=_("Stop search"),
                                 text_beside_icon=True)
         self.stop_button.setEnabled(False)
@@ -383,12 +388,9 @@ class FindOptions(QWidget):
         self.dir_combo = PathComboBox(self)
         self.dir_combo.addItems(search_path)
         self.dir_combo.setToolTip(_("Search recursively in this directory"))
-        self.connect(self.dir_combo, SIGNAL("open_dir(QString)"),
-                     self.set_directory)
-        self.connect(self.python_path, SIGNAL('toggled(bool)'),
-                     self.dir_combo.setDisabled)
-        self.connect(self.hg_manifest, SIGNAL('toggled(bool)'),
-                     self.dir_combo.setDisabled)
+        self.dir_combo.open_dir.connect(self.set_directory)
+        self.python_path.toggled.connect(self.dir_combo.setDisabled)
+        self.hg_manifest.toggled.connect(self.dir_combo.setDisabled)
         browse = create_toolbutton(self, icon=get_std_icon('DirOpenIcon'),
                                    tip=_('Browse a search directory'),
                                    triggered=self.select_directory)
@@ -396,14 +398,10 @@ class FindOptions(QWidget):
                        self.dir_combo, browse]:
             hlayout3.addWidget(widget)
             
-        self.connect(self.search_text, SIGNAL("valid(bool)"),
-                     lambda valid: self.emit(SIGNAL('find()')))
-        self.connect(self.include_pattern, SIGNAL("valid(bool)"),
-                     lambda valid: self.emit(SIGNAL('find()')))
-        self.connect(self.exclude_pattern, SIGNAL("valid(bool)"),
-                     lambda valid: self.emit(SIGNAL('find()')))
-        self.connect(self.dir_combo, SIGNAL("valid(bool)"),
-                     lambda valid: self.emit(SIGNAL('find()')))
+        self.search_text.valid.connect(lambda valid: self.find.emit())
+        self.include_pattern.valid.connect(lambda valid: self.find.emit())
+        self.exclude_pattern.valid.connect(lambda valid: self.find.emit())
+        self.dir_combo.valid.connect(lambda valid: self.find.emit())
             
         vlayout = QVBoxLayout()
         vlayout.setContentsMargins(0, 0, 0, 0)
@@ -431,9 +429,9 @@ class FindOptions(QWidget):
         self.more_options.setToolTip(tip)
         
     def update_combos(self):
-        self.search_text.lineEdit().emit(SIGNAL('returnPressed()'))
-        self.include_pattern.lineEdit().emit(SIGNAL('returnPressed()'))
-        self.exclude_pattern.lineEdit().emit(SIGNAL('returnPressed()'))
+        self.search_text.lineEdit().returnPressed.emit()
+        self.include_pattern.lineEdit().returnPressed.emit()
+        self.exclude_pattern.lineEdit().returnPressed.emit()
         
     def detect_hg_repository(self, path=None):
         if path is None:
@@ -500,12 +498,12 @@ class FindOptions(QWidget):
         
     def select_directory(self):
         """Select directory"""
-        self.parent().emit(SIGNAL('redirect_stdio(bool)'), False)
+        self.parent().redirect_stdio.emit(False)
         directory = getexistingdirectory(self, _("Select directory"),
                                          self.dir_combo.currentText())
         if directory:
             self.set_directory(directory)
-        self.parent().emit(SIGNAL('redirect_stdio(bool)'), True)
+        self.parent().redirect_stdio.emit(True)
         
     def set_directory(self, directory):
         path = to_text_string(osp.abspath(to_text_string(directory)))
@@ -517,7 +515,7 @@ class FindOptions(QWidget):
         ctrl = event.modifiers() & Qt.ControlModifier
         shift = event.modifiers() & Qt.ShiftModifier
         if event.key() in (Qt.Key_Enter, Qt.Key_Return):
-            self.emit(SIGNAL('find()'))
+            self.find.emit()
         elif event.key() == Qt.Key_F and ctrl and shift:
             # Toggle find widgets
             self.parent().toggle_visibility.emit(not self.isVisible())
@@ -542,8 +540,7 @@ class ResultsBrowser(OneColumnTree):
         itemdata = self.data.get(id(self.currentItem()))
         if itemdata is not None:
             filename, lineno = itemdata
-            self.parent().emit(SIGNAL("edit_goto(QString,int,QString)"),
-                               filename, lineno, self.search_text)
+            self.parent().edit_goto.emit(filename, lineno, self.search_text)
 
     def clicked(self, item):
         """Click event"""
@@ -698,9 +695,8 @@ class FindInFilesWidget(QWidget):
                                         exclude, exclude_idx, exclude_regexp,
                                         supported_encodings, in_python_path,
                                         more_options)
-        self.connect(self.find_options, SIGNAL('find()'), self.find)
-        self.connect(self.find_options, SIGNAL('stop()'),
-                     self.stop_and_reset_thread)
+        self.find_options.find.connect(self.find)
+        self.find_options.stop.connect(self.stop_and_reset_thread)
         
         self.result_browser = ResultsBrowser(self)
         
@@ -747,8 +743,7 @@ class FindInFilesWidget(QWidget):
         self.search_thread = SearchThread(self)
         self.search_thread.get_pythonpath_callback = \
                                                 self.get_pythonpath_callback
-        self.connect(self.search_thread, SIGNAL("finished(bool)"),
-                     self.search_complete)
+        self.search_thread.sig_finished.connect(self.search_complete)
         self.search_thread.initialize(*options)
         self.search_thread.start()
         self.find_options.ok_button.setEnabled(False)
@@ -759,9 +754,7 @@ class FindInFilesWidget(QWidget):
         if self.search_thread is not None:
             if self.search_thread.isRunning():
                 if ignore_results:
-                    self.disconnect(self.search_thread,
-                                    SIGNAL("finished(bool)"),
-                                    self.search_complete)
+                    self.search_thread.sig_finished.disconnect()
                 self.search_thread.stop()
                 self.search_thread.wait()
             self.search_thread.setParent(None)
