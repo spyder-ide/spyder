@@ -315,11 +315,6 @@ class CodeEditor(TextEditBaseWidget):
                 LANGUAGES.pop(key)
     
     TAB_ALWAYS_INDENTS = ('py', 'pyw', 'python', 'c', 'cpp', 'cl', 'h')
-    
-    # Signals
-    focus_changed = Signal()
-    zoom_in = Signal()
-    zoom_out = Signal()
 
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)

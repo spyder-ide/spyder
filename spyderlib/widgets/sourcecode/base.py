@@ -19,7 +19,7 @@ from spyderlib.qt.QtGui import (QTextCursor, QColor, QFont, QApplication,
                                 QListWidget, QPlainTextEdit, QPalette,
                                 QMainWindow, QTextOption, QMouseEvent,
                                 QTextFormat, QClipboard)
-from spyderlib.qt.QtCore import Signal, SIGNAL, Qt, QEventLoop, QEvent, QPoint
+from spyderlib.qt.QtCore import Signal, Qt, QEventLoop, QEvent, QPoint
 from spyderlib.qt.compat import to_qvariant
 
 
@@ -42,8 +42,7 @@ class CompletionWidget(QListWidget):
         self.case_sensitive = False
         self.enter_select = None
         self.hide()
-        self.connect(self, SIGNAL("itemActivated(QListWidgetItem*)"),
-                     self.item_selected)
+        self.itemActivated.connect(self.item_selected)
         
     def setup_appearance(self, size, font):
         self.resize(*size)
@@ -179,6 +178,9 @@ class CompletionWidget(QListWidget):
 class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     """Text edit base widget"""
     BRACE_MATCHING_SCOPE = ('sof', 'eof')
+    focus_in = Signal()
+    zoom_in = Signal()
+    zoom_out = Signal()
     
     def __init__(self, parent=None):
         QPlainTextEdit.__init__(self, parent)
@@ -187,9 +189,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         
         self.extra_selections_dict = {}
         
-        self.connect(self, SIGNAL('textChanged()'), self.changed)
-        self.connect(self, SIGNAL('cursorPositionChanged()'),
-                     self.cursor_position_changed)
+        self.textChanged.connect(self.changed)
+        self.cursorPositionChanged.connect(self.cursor_position_changed)
         
         self.indent_chars = " "*4
         
@@ -264,8 +265,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         
     def changed(self):
         """Emit changed signal"""
-        self.emit(SIGNAL('modificationChanged(bool)'),
-                  self.document().isModified())
+        self.modificationChanged.emit(self.document().isModified())
 
 
     #------Highlight current line
@@ -957,13 +957,13 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
     def focusInEvent(self, event):
         """Reimplemented to handle focus"""
-        self.emit(SIGNAL("focus_changed()"))
-        self.emit(SIGNAL("focus_in()"))
+        self.focus_changed.emit()
+        self.focus_in.emit()
         QPlainTextEdit.focusInEvent(self, event)
         
     def focusOutEvent(self, event):
         """Reimplemented to handle focus"""
-        self.emit(SIGNAL("focus_changed()"))
+        self.focus_changed.emit()
         QPlainTextEdit.focusOutEvent(self, event)
     
     def wheelEvent(self, event):
@@ -973,9 +973,9 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         if sys.platform != 'darwin':
             if event.modifiers() & Qt.ControlModifier:
                 if event.delta() < 0:
-                    self.emit(SIGNAL("zoom_out()"))
+                    self.zoom_out.emit()
                 elif event.delta() > 0:
-                    self.emit(SIGNAL("zoom_in()"))
+                    self.zoom_in.emit()
                 return
         QPlainTextEdit.wheelEvent(self, event)
         self.highlight_current_cell()
@@ -1077,12 +1077,15 @@ class ConsoleFontStyle(object):
         font.setItalic(self.italic)
         font.setUnderline(self.underline)
         self.format.setFont(font)
-    
+
+
 class ConsoleBaseWidget(TextEditBaseWidget):
     """Console base widget"""
     BRACE_MATCHING_SCOPE = ('sol', 'eol')
     COLOR_PATTERN = re.compile('\x01?\x1b\[(.*?)m\x02?')
     traceback_available = Signal()
+    userListActivated = Signal(int, str)
+    completion_widget_activated = Signal(str)
     
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
@@ -1097,10 +1100,8 @@ class ConsoleBaseWidget(TextEditBaseWidget):
         # Disable undo/redo (nonsense for a console widget...):
         self.setUndoRedoEnabled(False)
         
-        self.connect(self, SIGNAL('userListActivated(int, const QString)'),
-                     lambda user_id, text:
-                     self.emit(SIGNAL('completion_widget_activated(QString)'),
-                               text))
+        self.userListActivated.connect(lambda user_id, text:
+                                   self.completion_widget_activated.emit(text))
         
         self.default_style = ConsoleFontStyle(
                             foregroundcolor=0x000000, backgroundcolor=0xFFFFFF,
