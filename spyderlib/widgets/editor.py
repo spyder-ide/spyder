@@ -1898,8 +1898,8 @@ class EditorStack(QWidget):
         finfo.text_changed_at.connect(
                                     lambda fname, position:
                                     self.text_changed_at.emit(fname, position))
-        self.connect(editor, SIGNAL('cursorPositionChanged(int,int)'),
-                     self.editor_cursor_position_changed)
+        editor.sig_cursor_position_changed.connect(
+                                           self.editor_cursor_position_changed)
         self.connect(editor, SIGNAL('textChanged()'),
                      self.start_stop_analysis_timer)
         self.connect(editor, SIGNAL('modificationChanged(bool)'),
