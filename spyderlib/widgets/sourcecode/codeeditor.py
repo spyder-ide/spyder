@@ -317,6 +317,7 @@ class CodeEditor(TextEditBaseWidget):
     
     breakpoints_changed = Signal()
     trigger_code_completion = Signal(bool)
+    trigger_token_completion = Signal(bool)  # Is it used?
     go_to_definition = Signal(int)
     sig_show_object_info = Signal(int)
     run_selection = Signal()
