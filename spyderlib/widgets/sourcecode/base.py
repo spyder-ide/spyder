@@ -179,6 +179,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     """Text edit base widget"""
     BRACE_MATCHING_SCOPE = ('sof', 'eof')
     focus_in = Signal()
+    focus_center = Signal()
     zoom_in = Signal()
     zoom_out = Signal()
     
@@ -959,6 +960,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         """Reimplemented to handle focus"""
         self.focus_changed.emit()
         self.focus_in.emit()
+        self.focus_center.emit()
         QPlainTextEdit.focusInEvent(self, event)
         
     def focusOutEvent(self, event):
