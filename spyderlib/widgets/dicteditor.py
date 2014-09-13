@@ -21,9 +21,9 @@ from spyderlib.qt.QtGui import (QMessageBox, QTableView, QItemDelegate,
                                 QLineEdit, QVBoxLayout, QWidget, QColor,
                                 QDialog, QDateEdit, QDialogButtonBox, QMenu,
                                 QInputDialog, QDateTimeEdit, QApplication,
-                                QKeySequence)
+                                QKeySequence, QAbstractItemDelegate)
 from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, Signal,
-                                 Slot, QDateTime)
+                                 QDateTime)
 from spyderlib.qt.compat import to_qvariant, from_qvariant, getsavefilename
 from spyderlib.utils.qthelpers import mimedata2url
 
@@ -471,7 +471,7 @@ class DictDelegate(QItemDelegate):
         """Overriding method commitAndCloseEditor"""
         editor = self.sender()
         self.commitData.emit(editor)
-        self.closeEditor.emit(editor)
+        self.closeEditor.emit(editor, QAbstractItemDelegate.NoHint)
 
     def setEditorData(self, editor, index):
         """Overriding method setEditorData
