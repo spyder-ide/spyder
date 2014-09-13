@@ -13,8 +13,7 @@
 Pandas DataFrame Editor Dialog
 """
 
-from spyderlib.qt.QtCore import (QAbstractTableModel, Qt, QModelIndex,
-                                 SIGNAL, SLOT)
+from spyderlib.qt.QtCore import QAbstractTableModel, Qt, QModelIndex
 from spyderlib.qt.QtGui import (QDialog, QTableView, QColor, QGridLayout,
                                 QDialogButtonBox, QHBoxLayout, QPushButton,
                                 QCheckBox, QMessageBox, QInputDialog,
@@ -289,8 +288,7 @@ class DataFrameView(QTableView):
 
         self.sort_old = [None]
         self.header_class = self.horizontalHeader()
-        self.connect(self.header_class,
-                     SIGNAL("sectionClicked(int)"), self.sortByColumn)
+        self.header_class.sectionClicked.connect(self.sortByColumn)
         self.menu = self.setup_menu()
 
     def sortByColumn(self, index):
@@ -419,31 +417,28 @@ class DataFrameEditor(QDialog):
         btn = QPushButton(_("Format"))
         # disable format button for int type
         btn_layout.addWidget(btn)
-        self.connect(btn, SIGNAL("clicked()"), self.change_format)
+        btn.clicked.connect(self.change_format)
         btn = QPushButton(_('Resize'))
         btn_layout.addWidget(btn)
-        self.connect(btn, SIGNAL("clicked()"),
-                     self.dataTable.resizeColumnsToContents)
+        btn.clicked.connect(self.dataTable.resizeColumnsToContents)
 
         bgcolor = QCheckBox(_('Background color'))
         bgcolor.setChecked(self.dataModel.bgcolor_enabled)
         bgcolor.setEnabled(self.dataModel.bgcolor_enabled)
-        self.connect(bgcolor, SIGNAL("stateChanged(int)"),
-                     self.change_bgcolor_enable)
+        bgcolor.stateChanged.connect(self.change_bgcolor_enable)
         btn_layout.addWidget(bgcolor)
 
         self.bgcolor_global = QCheckBox(_('Column min/max'))
         self.bgcolor_global.setChecked(self.dataModel.colum_avg_enabled)
         self.bgcolor_global.setEnabled(not self.is_time_series and
                                        self.dataModel.bgcolor_enabled)
-        self.connect(self.bgcolor_global, SIGNAL("stateChanged(int)"),
-                     self.dataModel.colum_avg)
+        self.bgcolor_global.stateChanged.connect(self.dataModel.colum_avg)
         btn_layout.addWidget(self.bgcolor_global)
 
         btn_layout.addStretch()
         bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        self.connect(bbox, SIGNAL("accepted()"), SLOT("accept()"))
-        self.connect(bbox, SIGNAL("rejected()"), SLOT("reject()"))
+        bbox.accepted.connect(self.accept)
+        bbox.rejected.connect(self.reject)
         btn_layout.addWidget(bbox)
 
         self.layout.addLayout(btn_layout, 2, 0)
