@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
 "POT-Creation-Date: 2014-09-06 12:34+COT\n"
-"PO-Revision-Date: 2014-09-12 23:27+0100\n"
+"PO-Revision-Date: 2014-09-14 21:59+0100\n"
 "Last-Translator: Joseph Martinot-Lagarde <contrebasse@gmail.com>\n"
 "Language-Team: Python\n"
 "Language: fr\n"
@@ -672,8 +672,8 @@ msgid ""
 "raise syntax errors in the consoles on Windows platforms), Spyder may fix "
 "the file automatically."
 msgstr ""
-"Lors de l'ouverture d'un fichier contenant des caractères de fin de ligne "
-"mélangés (ce qui peut se traduire par des erreurs de syntaxe dans les "
+"Lors de l'ouverture d'un fichier contenant différents types de caractères de "
+"fin de ligne (ce qui peut se traduire par des erreurs de syntaxe dans les "
 "consoles Python sous Windows), Spyder peut réparer le fichier "
 "automatiquement."
 
@@ -1325,7 +1325,7 @@ msgid ""
 "This option will override the PYTHONSTARTUP environment variable which\n"
 "defines the script to be executed during the Python console startup."
 msgstr ""
-"Cette option permet de remplacer le script de démarrage des consoles python "
+"Cette option permet de remplacer le script de démarrage des consoles Python "
 "défini par la\n"
 "variable d'environnement PYTHONSTARTUP."
 
@@ -2339,7 +2339,7 @@ msgstr "Répertoire de travail :"
 
 #: spyderlib/plugins/runconfig.py:186
 msgid "Dedicated Python console"
-msgstr "Console python dédiée"
+msgstr "Console Python dédiée"
 
 #: spyderlib/plugins/runconfig.py:191
 msgid "Interact with the Python console after execution"
@@ -4260,11 +4260,11 @@ msgstr "Transposer"
 
 #: spyderlib/widgets/importwizard.py:419
 msgid "array"
-msgstr "tableaux"
+msgstr "tableau"
 
 #: spyderlib/widgets/importwizard.py:424
 msgid "list"
-msgstr "Liste"
+msgstr "liste"
 
 #: spyderlib/widgets/importwizard.py:461 spyderlib/widgets/importwizard.py:548
 msgid "Import wizard"
