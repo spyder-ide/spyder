@@ -557,7 +557,7 @@ class ArrayEditor(QDialog):
                 self.slicing_label = QLabel()
                 btn_layout.addWidget(self.slicing_label)
                 # set the widget to display when launched
-                ra_combo.setCurrentIndex(self.last_dim)
+                self.current_dim_changed(self.last_dim)
             else:
                 ra_combo = QComboBox(self)
                 self.connect(ra_combo, SIGNAL('currentIndexChanged(int)'),
