@@ -38,6 +38,7 @@ from spyderlib.widgets.externalshell.pythonshell import ExternalPythonShell
 from spyderlib.widgets.externalshell.systemshell import ExternalSystemShell
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
+from spyderlib.plugins.runconfig import get_run_configuration
 from spyderlib.py3compat import to_text_string, is_text_string, getcwd
 from spyderlib import dependencies
 
@@ -746,11 +747,16 @@ class ExternalConsole(SpyderPluginWidget):
             if self.get_option('single_tab'):
                 old_shell = self.shellwidgets[index]
                 if old_shell.is_running():
-                    answer = QMessageBox.question(self, self.get_plugin_title(),
-                        _("%s is already running in a separate process.\n"
-                          "Do you want to kill the process before starting "
-                          "a new one?") % osp.basename(fname),
-                        QMessageBox.Yes | QMessageBox.Cancel)
+                    runconfig = get_run_configuration(fname)
+                    if runconfig is None or runconfig.show_kill_warning:
+                        answer = QMessageBox.question(self, self.get_plugin_title(),
+                            _("%s is already running in a separate process.\n"
+                              "Do you want to kill the process before starting "
+                              "a new one?") % osp.basename(fname),
+                            QMessageBox.Yes | QMessageBox.Cancel)
+                    else:
+                        answer = QMessageBox.Yes
+
                     if answer == QMessageBox.Yes:
                         old_shell.process.kill()
                         old_shell.process.waitForFinished()
