@@ -366,7 +366,11 @@ class FileInfo(QObject):
                 func = self.introspection_plugin.get_completion_list
             comp_list = func(source_code, offset, self.filename)
             if comp_list:
-                completion_text = re.findall(r"[\w.]+", text, re.UNICODE)[-1]
+                completion_text = re.findall(r"[\w.]+", text, re.UNICODE)
+                if completion_text:
+                    completion_text = completion_text[0]
+                else:
+                    comp_list = []
                 if '.' in completion_text:
                     completion_text = completion_text.split('.')[-1]
         if comp_list:
