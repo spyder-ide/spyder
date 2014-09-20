@@ -492,6 +492,7 @@ DEFAULTS = [
               '_/switch to console': "Ctrl+Shift+C",
               '_/switch to ipython_console': "Ctrl+Shift+I",
               '_/switch to variable_explorer': "Ctrl+Shift+V",
+              '_/switch to find_in_files': "Ctrl+Shift+F",
               # ---- Editor ----
               # -- In codeeditor
               'editor/code completion': CTRL+'+Space',
