@@ -37,11 +37,19 @@ def windows_memory_usage():
     return float(memorystatus.dwMemoryLoad)
 
 def psutil_phymem_usage():
-    """Return physical memory usage (float)
+    """
+    Return physical memory usage (float)
     Requires the cross-platform psutil (>=v0.3) library
-    (http://code.google.com/p/psutil/)"""
+    (http://code.google.com/p/psutil/)
+    """
     import psutil
-    return psutil.phymem_usage().percent
+    # This is needed to avoid a deprecation warning error with
+    # newer psutil versions
+    try:
+        percent = psutil.virtual_memory().percent
+    except:
+        percent = psutil.phymem_usage().percent
+    return percent
 
 if programs.is_module_installed('psutil', '>=0.3.0'):
     #  Function `psutil.phymem_usage` was introduced in psutil v0.3.0
