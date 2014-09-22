@@ -161,7 +161,9 @@ def value_to_display(value, truncate=False,
     if isinstance(value, Image):
         return '%s  Mode: %s' % (address(value), value.mode)
     if isinstance(value, DataFrame):
-        return ', '.join(list(value.columns))
+        cols = value.columns
+        cols = [to_text_string(c) for c in cols]
+        return 'Column names: ' + ', '.join(list(cols))
     if not is_text_string(value):
         if isinstance(value, (list, tuple, dict, set)) and not collvalue:            
             value = address(value)
