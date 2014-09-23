@@ -162,6 +162,10 @@ class LineNumberArea(QWidget):
         """Override Qt method"""
         self.code_editor.linenumberarea_mousepress_event(event)
 
+    def mouseReleaseEvent(self, event):
+        """Override Qt method"""
+        self.code_editor.linenumberarea_mouserelease_event(event)
+
     def wheelEvent(self, event):
         """Override Qt method"""
         self.code_editor.wheelEvent(event)
@@ -1065,12 +1069,15 @@ class CodeEditor(TextEditBaseWidget):
         line_number = self.__get_linenumber_from_mouse_event(event)
         block = self.document().findBlockByNumber(line_number-1)
         data = block.userData()
-        if data and data.code_analysis:
+
+        check = self.linenumberarea_released == -1
+        if data and data.code_analysis and check:
             self.__show_code_analysis_results(line_number, data.code_analysis)
+
         if event.buttons() == Qt.LeftButton:
             self.linenumberarea_released = line_number
             self.linenumberarea_select_lines(self.linenumberarea_pressed,
-                                             self.linenumberarea_released)            
+                                             self.linenumberarea_released)
 
     def linenumberarea_mousedoubleclick_event(self, event):
         """Handling line number area mouse double-click event"""
@@ -1085,6 +1092,16 @@ class CodeEditor(TextEditBaseWidget):
         self.linenumberarea_released = line_number
         self.linenumberarea_select_lines(self.linenumberarea_pressed,
                                          self.linenumberarea_released)
+
+    def linenumberarea_mouserelease_event(self, event):
+        """Handling line number area mouse double press event"""
+        self.linenumberarea_released = -1
+        self.linenumberarea_pressed = -1
+#        line_number = self.__get_linenumber_from_mouse_event(event)
+#        self.linenumberarea_pressed = line_number
+#        self.linenumberarea_released = line_number
+#        self.linenumberarea_select_lines(self.linenumberarea_pressed,
+#                                         self.linenumberarea_released)
 
     def linenumberarea_select_lines(self, linenumber_pressed,
                                     linenumber_released):
