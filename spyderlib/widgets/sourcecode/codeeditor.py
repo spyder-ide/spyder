@@ -1090,28 +1090,22 @@ class CodeEditor(TextEditBaseWidget):
                                     linenumber_released):
         """Select line(s) after a mouse press/mouse press drag event"""
         find_block_by_line_number = self.document().findBlockByLineNumber
-        move_n_blocks = linenumber_released - linenumber_pressed
-        block_pressed = find_block_by_line_number(linenumber_pressed - 1)
+        move_n_blocks = abs(linenumber_released - linenumber_pressed) + 1
+        start_line = min(linenumber_released, linenumber_pressed)
+        start_block = find_block_by_line_number(start_line - 1)
 
         cursor = self.textCursor()
-        cursor.setPosition(block_pressed.position())
-        if move_n_blocks >= 0:  # select/drag downwards or select single line
-            for n in range(abs(move_n_blocks) + 1):
-                cursor.movePosition(cursor.NextBlock, cursor.KeepAnchor)
-            # account for last line case
-            if linenumber_released == self.blockCount():
-                cursor.movePosition(cursor.EndOfBlock, cursor.KeepAnchor)
-            else:
-                cursor.movePosition(cursor.StartOfBlock, cursor.KeepAnchor)
-        else:  # select/drag upwards
-            cursor.movePosition(cursor.EndOfBlock)
-            for n in range(abs(move_n_blocks) + 1):
-                cursor.movePosition(cursor.PreviousBlock, cursor.KeepAnchor)
-            # account for first line case
-            if linenumber_released == 1:
-                cursor.movePosition(cursor.StartOfBlock, cursor.KeepAnchor)
-            else:
-                cursor.movePosition(cursor.EndOfBlock, cursor.KeepAnchor)
+        cursor.setPosition(start_block.position())
+
+        for n in range(move_n_blocks):
+            cursor.movePosition(cursor.NextBlock, cursor.KeepAnchor)
+
+        # account for last line case
+        if linenumber_released == self.blockCount():
+            cursor.movePosition(cursor.EndOfBlock, cursor.KeepAnchor)
+        else:
+            cursor.movePosition(cursor.StartOfBlock, cursor.KeepAnchor)
+
         self.setTextCursor(cursor)
 
     #------Breakpoints
@@ -1175,7 +1169,7 @@ class CodeEditor(TextEditBaseWidget):
         self.breakpoints = []
         for data in self.blockuserdata_list[:]:
             data.breakpoint = False
-            #data.breakpoint_condition = None # not necessary, but logical
+            # data.breakpoint_condition = None  # not necessary, but logical
             if data.is_empty():
                 del data
 
