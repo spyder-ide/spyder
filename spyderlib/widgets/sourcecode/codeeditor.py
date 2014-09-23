@@ -2216,15 +2216,15 @@ class CodeEditor(TextEditBaseWidget):
         add_actions(self.readonly_menu,
                     (self.copy_action, None, selectall_action,
                      self.gotodef_action))
-    
+
     def keyPressEvent(self, event):
         """Reimplement Qt method"""
         key = event.key()
         ctrl = event.modifiers() & Qt.ControlModifier
         shift = event.modifiers() & Qt.ShiftModifier
         text = to_text_string(event.text())
-#        if text:
-#            self.__clear_occurences()
+        if text:
+            self.__clear_occurences()
         if QToolTip.isVisible():
             self.hide_tooltip_if_necessary(key)
         if key in (Qt.Key_Enter, Qt.Key_Return):
