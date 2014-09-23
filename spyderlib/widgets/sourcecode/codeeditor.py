@@ -370,8 +370,8 @@ class CodeEditor(TextEditBaseWidget):
                      self.update_linenumberarea_width)
         self.connect(self, SIGNAL("updateRequest(QRect,int)"),
                      self.update_linenumberarea)
-        self.linenumberarea_pressed = None
-        self.linenumberarea_released = None
+        self.linenumberarea_pressed = -1
+        self.linenumberarea_released = -1
 
         # Colors to be defined in _apply_highlighter_color_scheme()
         # Currentcell color and current line color are defined in base.py
@@ -1070,6 +1070,8 @@ class CodeEditor(TextEditBaseWidget):
         block = self.document().findBlockByNumber(line_number-1)
         data = block.userData()
 
+        # this disables pyflakes messages if there is an active drag/selection
+        # operation
         check = self.linenumberarea_released == -1
         if data and data.code_analysis and check:
             self.__show_code_analysis_results(line_number, data.code_analysis)
@@ -1094,7 +1096,7 @@ class CodeEditor(TextEditBaseWidget):
                                          self.linenumberarea_released)
 
     def linenumberarea_mouserelease_event(self, event):
-        """Handling line number area mouse double press event"""
+        """Handling line number area mouse release event"""
         self.linenumberarea_released = -1
         self.linenumberarea_pressed = -1
 
@@ -1102,17 +1104,23 @@ class CodeEditor(TextEditBaseWidget):
                                     linenumber_released):
         """Select line(s) after a mouse press/mouse press drag event"""
         find_block_by_line_number = self.document().findBlockByLineNumber
-        move_n_blocks = abs(linenumber_released - linenumber_pressed) + 1
-        start_line = min(linenumber_released, linenumber_pressed)
+        move_n_blocks = (linenumber_released - linenumber_pressed)
+        start_line = linenumber_pressed
         start_block = find_block_by_line_number(start_line - 1)
 
         cursor = self.textCursor()
         cursor.setPosition(start_block.position())
 
-        for n in range(move_n_blocks):
-            cursor.movePosition(cursor.NextBlock, cursor.KeepAnchor)
+        # Select/drag downwards or select single line
+        if move_n_blocks >= 0:
+            for n in range(abs(move_n_blocks) + 1):
+                cursor.movePosition(cursor.NextBlock, cursor.KeepAnchor)
+        else:
+            cursor.movePosition(cursor.NextBlock)
+            for n in range(abs(move_n_blocks) + 1):
+                cursor.movePosition(cursor.PreviousBlock, cursor.KeepAnchor)
 
-        # account for last line case
+        # Account for las line case
         if linenumber_released == self.blockCount():
             cursor.movePosition(cursor.EndOfBlock, cursor.KeepAnchor)
         else:
