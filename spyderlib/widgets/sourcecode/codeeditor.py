@@ -1097,11 +1097,6 @@ class CodeEditor(TextEditBaseWidget):
         """Handling line number area mouse double press event"""
         self.linenumberarea_released = -1
         self.linenumberarea_pressed = -1
-#        line_number = self.__get_linenumber_from_mouse_event(event)
-#        self.linenumberarea_pressed = line_number
-#        self.linenumberarea_released = line_number
-#        self.linenumberarea_select_lines(self.linenumberarea_pressed,
-#                                         self.linenumberarea_released)
 
     def linenumberarea_select_lines(self, linenumber_pressed,
                                     linenumber_released):
