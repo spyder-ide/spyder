@@ -2470,7 +2470,7 @@ class CodeEditor(TextEditBaseWidget):
         else:
             TextEditBaseWidget.dropEvent(self, event)
 
-    # TODO: New Editor Methods - Locate them in a proper place
+    #------ Paint event
     def paintEvent(self, event):
         """Overrides paint event to update the list of visible blocks"""
         self.update_visible_blocks(event)
