@@ -997,33 +997,28 @@ class CodeEditor(TextEditBaseWidget):
 
     def linenumberarea_paint_event(self, event):
         """Painting line number area"""
-        sideareas_color = self.sideareas_color
-        number_color = self.linenumbers_color
-        active_number_color = self.normal_color
-
         painter = QPainter(self.linenumberarea)
-        painter.fillRect(event.rect(), sideareas_color)
+        painter.fillRect(event.rect(), self.sideareas_color)
         font = painter.font()
         font_height = self.fontMetrics().height()
 
         active_block = self.textCursor().block()
-        active_line_number = active_block.blockNumber() + 1        
-
+        active_line_number = active_block.blockNumber() + 1
 
         def draw_pixmap(ytop, pixmap):
-            painter.drawPixmap(0, ytop + (font_height-pixmap.height()) / 2, 
+            painter.drawPixmap(0, ytop + (font_height-pixmap.height()) / 2,
                                pixmap)
 
-        for top, line_number, block in self.visible_blocks:            
+        for top, line_number, block in self.visible_blocks:
             if self.linenumbers_margin:
                 if line_number == active_line_number:
                     font.setWeight(font.Bold)
                     painter.setFont(font)
-                    painter.setPen(active_number_color)
+                    painter.setPen(self.normal_color)
                 else:
                     font.setWeight(font.Normal)
                     painter.setFont(font)
-                    painter.setPen(number_color)
+                    painter.setPen(self.linenumbers_color)
 
                 painter.drawText(0, top, self.linenumberarea.width(),
                                  font_height,
