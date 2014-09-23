@@ -2503,14 +2503,13 @@ class CodeEditor(TextEditBaseWidget):
         """ draw a line on top of a define cell """
         cell_line_color = self.comment_color
         painter = QPainter(self.viewport())
-        pen = painter.pen() 
+        pen = painter.pen()
         pen.setStyle(Qt.SolidLine)
         pen.setBrush(cell_line_color)
         painter.setPen(pen)
-        
+
         for top, line_number, block in self.visible_blocks:
-            # FIXME: data = block.userData()  # USE THIS  or BLOCK USER DATA
-            if self.is_cell_separator(block):  
+            if self.is_cell_separator(block):
                 painter.drawLine(4, top, self.width(), top)
 
     @property
