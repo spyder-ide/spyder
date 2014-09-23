@@ -92,11 +92,11 @@ class BaseSH(QSyntaxHighlighter):
         
     def get_background_color(self):
         return QColor(self.background_color)
-        
+
     def get_foreground_color(self):
         """Return foreground ('normal' text) color"""
         return self.formats["normal"].foreground().color()
-        
+		
     def get_currentline_color(self):
         return QColor(self.currentline_color)
 
@@ -117,6 +117,10 @@ class BaseSH(QSyntaxHighlighter):
     
     def get_unmatched_p_color(self):
         return QColor(self.unmatched_p_color)
+
+    def get_comment_color(self):
+        """ Return color for the comments """
+        return self.formats['comment'].foreground().color()
     
     def get_color_name(self, fmt):
         """Return color name assigned to a given format"""
@@ -146,7 +150,7 @@ class BaseSH(QSyntaxHighlighter):
                 format.setFontWeight(QFont.Bold)
             format.setFontItalic(italic)
             self.formats[name] = format
-
+        
     def _check_color_scheme(self, color_scheme):
         if is_text_string(color_scheme):
             assert color_scheme in COLOR_SCHEME_NAMES
@@ -386,7 +390,7 @@ class PythonSH(BaseSH):
                                                    self.formats["keyword"])
                     
             match = self.PROG.search(text, match.end())
-
+ 
         self.setCurrentBlockState(state)
         
         if oedata is not None:
