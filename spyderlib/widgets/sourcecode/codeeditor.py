@@ -1092,16 +1092,26 @@ class CodeEditor(TextEditBaseWidget):
         find_block_by_line_number = self.document().findBlockByLineNumber
         move_n_blocks = linenumber_released - linenumber_pressed
         block_pressed = find_block_by_line_number(linenumber_pressed - 1)
+
         cursor = self.textCursor()
         cursor.setPosition(block_pressed.position())
         if move_n_blocks >= 0:  # select/drag downwards or select single line
-            for n in range(abs(move_n_blocks)):
+            for n in range(abs(move_n_blocks) + 1):
                 cursor.movePosition(cursor.NextBlock, cursor.KeepAnchor)
-            cursor.movePosition(cursor.EndOfBlock, cursor.KeepAnchor)
+            # account for last line case
+            if linenumber_released == self.blockCount():
+                cursor.movePosition(cursor.EndOfBlock, cursor.KeepAnchor)
+            else:
+                cursor.movePosition(cursor.StartOfBlock, cursor.KeepAnchor)
         else:  # select/drag upwards
             cursor.movePosition(cursor.EndOfBlock)
-            for n in range(abs(move_n_blocks)):
+            for n in range(abs(move_n_blocks) + 1):
                 cursor.movePosition(cursor.PreviousBlock, cursor.KeepAnchor)
+            # account for first line case
+            if linenumber_released == 1:
+                cursor.movePosition(cursor.StartOfBlock, cursor.KeepAnchor)
+            else:
+                cursor.movePosition(cursor.EndOfBlock, cursor.KeepAnchor)
         self.setTextCursor(cursor)
 
     #------Breakpoints
