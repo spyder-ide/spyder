@@ -1111,16 +1111,17 @@ class CodeEditor(TextEditBaseWidget):
         cursor = self.textCursor()
         cursor.setPosition(start_block.position())
 
-        # Select/drag downwards or select single line
-        if move_n_blocks >= 0:
+        # Select/drag downwards
+        if move_n_blocks > 0:
             for n in range(abs(move_n_blocks) + 1):
                 cursor.movePosition(cursor.NextBlock, cursor.KeepAnchor)
+        # Select/drag upwards or select single line
         else:
             cursor.movePosition(cursor.NextBlock)
             for n in range(abs(move_n_blocks) + 1):
                 cursor.movePosition(cursor.PreviousBlock, cursor.KeepAnchor)
 
-        # Account for las line case
+        # Account for last line case
         if linenumber_released == self.blockCount():
             cursor.movePosition(cursor.EndOfBlock, cursor.KeepAnchor)
         else:
