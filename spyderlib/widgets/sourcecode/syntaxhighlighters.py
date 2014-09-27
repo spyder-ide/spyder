@@ -706,8 +706,7 @@ class GetTextSH(GenericSH):
 
 def make_yaml_patterns():
     "Strongly inspired from sublime highlighter "
-    # kwstr = '\\: \\> \\| \\-'
-    kw = any("keyword", [r":|>|-|\|"])
+    kw = any("keyword", [r":|>|-|\||\[|\]"])
     links = any("normal", [r"#:[^\n]*"])
     comment = any("comment", [r"#[^\n]*"])
     number = any("number",
