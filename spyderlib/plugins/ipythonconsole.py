@@ -827,6 +827,10 @@ class IPythonConsole(SpyderPluginWidget):
         control = shellwidget._control
         page_control = shellwidget._page_control
 
+        # Create new clients with Ctrl+T shortcut
+        self.connect(shellwidget, SIGNAL('new_ipyclient()'),
+                     self.create_new_client)
+        
         # Handle kernel interrupts
         extconsoles = self.extconsole.shellwidgets
         kernel_widget = None

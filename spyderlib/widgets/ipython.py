@@ -20,7 +20,7 @@ import time
 # Qt imports
 from spyderlib.qt.QtGui import (QTextEdit, QKeySequence, QWidget, QMenu,
                                 QHBoxLayout, QToolButton, QVBoxLayout,
-                                QMessageBox)
+                                QMessageBox, QShortcut)
 from spyderlib.qt.QtCore import SIGNAL, Qt
 
 from spyderlib import pygments_patch
@@ -266,6 +266,12 @@ These commands were executed:
                                   parent=self)
         clear_console = create_shortcut(self.clear_console, context='Console',
                                         name='Clear shell', parent=self)
+
+        # Fixed shortcuts
+        create_client = QShortcut(QKeySequence("Ctrl+T"), self,
+                                  lambda: self.emit(SIGNAL("new_ipyclient()")))
+        create_client.setContext(Qt.WidgetWithChildrenShortcut)
+
         return [inspect, clear_console]
     
     def get_signature(self, content):
