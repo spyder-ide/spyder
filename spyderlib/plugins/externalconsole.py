@@ -38,20 +38,13 @@ from spyderlib.widgets.externalshell.pythonshell import ExternalPythonShell
 from spyderlib.widgets.externalshell.systemshell import ExternalSystemShell
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
+from spyderlib.plugins.runconfig import get_run_configuration
 from spyderlib.py3compat import to_text_string, is_text_string, getcwd
 from spyderlib import dependencies
 
 MPL_REQVER = '>=1.0'
-dependencies.add("matplotlib", _("Interactive data plotting"),
+dependencies.add("matplotlib", _("Interactive data plotting in the consoles"),
                  required_version=MPL_REQVER)
-
-def is_mpl_patch_available():
-    """Return True if Matplotlib patch is available"""
-    if programs.is_module_installed('matplotlib'):
-        from spyderlib import mpl_patch
-        return mpl_patch.is_available()
-    else:
-        return False
 
 
 class ExternalConsoleConfigPage(PluginConfigPage):
@@ -156,12 +149,12 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         umd_enabled_box = newcb(_("Enable UMD"), 'umd/enabled',
                                 msg_if_enabled=True, msg_warning=_(
                         "This option will enable the User Module Deleter (UMD) "
-                        "in Python interpreters. UMD forces Python to "
+                        "in Python/IPython consoles. UMD forces Python to "
                         "reload deeply modules during import when running a "
                         "Python script using the Spyder's builtin function "
                         "<b>runfile</b>."
                         "<br><br><b>1.</b> UMD may require to restart the "
-                        "Python interpreter in which it will be called "
+                        "console in which it will be called "
                         "(otherwise only newly imported modules will be "
                         "reloaded when executing scripts)."
                         "<br><br><b>2.</b> If errors occur when re-running a "
@@ -173,7 +166,7 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         umd_verbose_box = newcb(_("Show reloaded modules list"),
                                 'umd/verbose', msg_info=_(
                                 "Please note that these changes will "
-                                "be applied only to new Python interpreters"))
+                                "be applied only to new consoles"))
         umd_namelist_btn = QPushButton(
                             _("Set UMD excluded (not reloaded) modules"))
         self.connect(umd_namelist_btn, SIGNAL('clicked()'),
@@ -225,7 +218,7 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         pystartup_label = QLabel(_("This option will override the "
                                    "PYTHONSTARTUP environment variable which\n"
                                    "defines the script to be executed during "
-                                   "the Python interpreter startup."))
+                                   "the Python console startup."))
         self.def_startup_radio = self.create_radiobutton(
                                         _("Default PYTHONSTARTUP script"),
                                         'pythonstartup/default',
@@ -294,7 +287,7 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                         'qt/install_inputhook',
                         tip=_("PyQt installs an input hook that allows<br> "
                               "creating and interacting with Qt widgets "
-                              "in an interactive interpreter without "
+                              "in an interactive console without "
                               "blocking it. On Windows platforms, it "
                               "is strongly recommended to replace it "
                               "by Spyder's. Regarding PySide, note that "
@@ -356,24 +349,10 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         mpl_backend_layout.addWidget(mpl_backend_edit)
         mpl_backend_edit.setEnabled(
                                 self.get_option('matplotlib/backend/enabled'))
-        mpl_patch_box = newcb(_("Patch Matplotlib figures"),
-                              'matplotlib/patch', False)
-        mpl_patch_label = QLabel(_("Patching Matplotlib library will add a "
-                                   "button to customize figure options "
-                                   "(Qt4Agg only) and fix some issues."))
-        mpl_patch_label.setWordWrap(True)
-        self.connect(mpl_patch_box, SIGNAL("toggled(bool)"),
-                     mpl_patch_label.setEnabled)
-        
         mpl_installed = programs.is_module_installed('matplotlib')
-        if not is_mpl_patch_available():
-            mpl_patch_box.hide()
-            mpl_patch_label.hide()
         
         mpl_layout = QVBoxLayout()
         mpl_layout.addLayout(mpl_backend_layout)
-        mpl_layout.addWidget(mpl_patch_box)
-        mpl_layout.addWidget(mpl_patch_label)
         mpl_group.setLayout(mpl_layout)
         mpl_group.setEnabled(mpl_installed)
         
@@ -691,8 +670,8 @@ class ExternalConsole(SpyderPluginWidget):
         line += ")"
         if not self.execute_python_code(line, interpreter_only=True):
             QMessageBox.warning(self, _('Warning'),
-                _("No Python shell is currently selected to run <b>%s</b>."
-                  "<br><br>Please select or open a new Python interpreter "
+                _("No Python console is currently selected to run <b>%s</b>."
+                  "<br><br>Please select or open a new Python console "
                   "and try again."
                   ) % osp.basename(norm(filename)), QMessageBox.Ok)
         else:
@@ -768,11 +747,16 @@ class ExternalConsole(SpyderPluginWidget):
             if self.get_option('single_tab'):
                 old_shell = self.shellwidgets[index]
                 if old_shell.is_running():
-                    answer = QMessageBox.question(self, self.get_plugin_title(),
-                        _("%s is already running in a separate process.\n"
-                          "Do you want to kill the process before starting "
-                          "a new one?") % osp.basename(fname),
-                        QMessageBox.Yes | QMessageBox.Cancel)
+                    runconfig = get_run_configuration(fname)
+                    if runconfig is None or runconfig.show_kill_warning:
+                        answer = QMessageBox.question(self, self.get_plugin_title(),
+                            _("%s is already running in a separate process.\n"
+                              "Do you want to kill the process before starting "
+                              "a new one?") % osp.basename(fname),
+                            QMessageBox.Yes | QMessageBox.Cancel)
+                    else:
+                        answer = QMessageBox.Yes
+
                     if answer == QMessageBox.Yes:
                         old_shell.process.kill()
                         old_shell.process.waitForFinished()
@@ -796,8 +780,6 @@ class ExternalConsole(SpyderPluginWidget):
             else:
                 pythonstartup = self.get_option('pythonstartup', None)
             monitor_enabled = self.get_option('monitor/enabled')
-            mpl_patch_enabled = is_mpl_patch_available() and\
-                                self.get_option('matplotlib/patch')
             if self.get_option('matplotlib/backend/enabled'):
                 mpl_backend = self.get_option('matplotlib/backend/value')
             else:
@@ -843,7 +825,6 @@ class ExternalConsole(SpyderPluginWidget):
                            umd_enabled=umd_enabled, umd_namelist=umd_namelist,
                            umd_verbose=umd_verbose, ets_backend=ets_backend,
                            monitor_enabled=monitor_enabled,
-                           mpl_patch_enabled=mpl_patch_enabled,
                            mpl_backend=mpl_backend,
                            qt_api=qt_api, pyqt_api=pyqt_api,
                            install_qt_inputhook=install_qt_inputhook,
@@ -1336,7 +1317,7 @@ class ExternalConsole(SpyderPluginWidget):
                 QMessageBox.information(self, _('UMD'),
                                     _("Please note that these changes will "
                                       "be applied only to new Python/IPython "
-                                      "interpreters"), QMessageBox.Ok)
+                                      "consoles"), QMessageBox.Ok)
             else:
                 fixed_namelist = []
             self.set_option('umd/namelist', fixed_namelist)

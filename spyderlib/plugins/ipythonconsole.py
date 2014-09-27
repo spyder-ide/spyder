@@ -55,7 +55,7 @@ from spyderlib.py3compat import to_text_string, u
 
 
 SYMPY_REQVER = '>=0.7.0'
-dependencies.add("sympy", _("Symbolic mathematics for the IPython Console"),
+dependencies.add("sympy", _("Symbolic mathematics in the IPython Console"),
                  required_version=SYMPY_REQVER)
 
 
@@ -457,7 +457,7 @@ class KernelConnectionDialog(QDialog):
         def ssh_set_enabled(state):
             for wid in [self.hn, self.kf, kf_open_btn, self.pw]:
                 wid.setEnabled(state)
-            for i in xrange(ssh_form.rowCount()):
+            for i in range(ssh_form.rowCount()):
                 ssh_form.itemAt(2 * i).widget().setEnabled(state)
        
         ssh_set_enabled(self.rm_cb.checkState())
@@ -745,17 +745,10 @@ class IPythonConsole(SpyderPluginWidget):
         client.show_shellwidget(give_focus=give_focus)
         client.name = name
         
-        # If we are restarting the kernel we just need to rename the client tab
-        if restart:
-            self.rename_client_tab(client)
-            return
-        
+        # Local vars
         shellwidget = client.shellwidget
         control = shellwidget._control
         page_control = shellwidget._page_control
-        
-        # For tracebacks
-        self.connect(control, SIGNAL("go_to_error(QString)"), self.go_to_error)
 
         # Handle kernel interrupts
         extconsoles = self.extconsole.shellwidgets
@@ -763,11 +756,22 @@ class IPythonConsole(SpyderPluginWidget):
         if extconsoles:
             if extconsoles[-1].connection_file == client.connection_file:
                 kernel_widget = extconsoles[-1]
+                if restart:
+                    shellwidget.custom_interrupt_requested.disconnect()
                 shellwidget.custom_interrupt_requested.connect(
                                               kernel_widget.keyboard_interrupt)
         if kernel_widget is None:
             shellwidget.custom_interrupt_requested.connect(
                                                       client.interrupt_message)
+        
+        # If we are restarting the kernel we need to rename
+        # the client tab and do no more from here on
+        if restart:
+            self.rename_client_tab(client)
+            return
+        
+        # For tracebacks
+        self.connect(control, SIGNAL("go_to_error(QString)"), self.go_to_error)
         
         # Handle kernel restarts asked by the user
         if kernel_widget is not None:
@@ -808,10 +812,10 @@ class IPythonConsole(SpyderPluginWidget):
             self.connect(client, SIGNAL('append_to_history(QString,QString)'),
                          self.historylog.append_to_history)
         
-        # Apply settings to newly created client widget:
+        # Set font for client
         client.set_font( self.get_plugin_font() )
         
-        # Add tab and connect focus signal to client's control widget
+        # Connect focus signal to client's control widget
         self.connect(control, SIGNAL('focus_changed()'),
                      lambda: self.emit(SIGNAL('focus_changed()')))
         
@@ -1037,13 +1041,12 @@ class IPythonConsole(SpyderPluginWidget):
                                       message, buttons)
         if result == QMessageBox.Yes:
             client.show_restart_animation()
-            
             # Close old kernel tab
             idx = self.extconsole.get_shell_index_from_id(client.kernel_widget_id)
             self.extconsole.close_console(index=idx, from_ipyclient=True)
             
             # Create a new one and connect it to the client
-            self.main.extconsole.start_ipykernel(client)
+            self.extconsole.start_ipykernel(client)
     
     def get_shellwidget_by_kernelwidget_id(self, kernel_id):
         """Return the IPython widget associated to a kernel widget id"""

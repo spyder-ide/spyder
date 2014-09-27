@@ -30,11 +30,12 @@ try:
 except ImportError:
     ndarray = array = matrix = MaskedArray = FakeObject  # analysis:ignore
 
-Pandas_REQVER = '>=0.13.1'
-dependencies.add('pandas',
-                 _("For viewing and editing pandas DataFrames and Series"),
-                 required_version=Pandas_REQVER)
-if programs.is_module_installed('pandas', '>=0.13.1'):
+
+PANDAS_REQVER = '>=0.13.1'
+dependencies.add('pandas',  _("View and edit DataFrames and Series in the "
+                              "Variable Explorer"),
+                 required_version=PANDAS_REQVER)
+if programs.is_module_installed('pandas', PANDAS_REQVER):
     from pandas import DataFrame, TimeSeries
 else:
     DataFrame = TimeSeries = FakeObject      # analysis:ignore
@@ -160,7 +161,9 @@ def value_to_display(value, truncate=False,
     if isinstance(value, Image):
         return '%s  Mode: %s' % (address(value), value.mode)
     if isinstance(value, DataFrame):
-        return ', '.join(list(value.columns))
+        cols = value.columns
+        cols = [to_text_string(c) for c in cols]
+        return 'Column names: ' + ', '.join(list(cols))
     if not is_text_string(value):
         if isinstance(value, (list, tuple, dict, set)) and not collvalue:            
             value = address(value)

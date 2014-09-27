@@ -1,5 +1,49 @@
 = History of changes =
 
+== Version 2.3.1 ==
+
+=== New features since v2.3.0 ===
+
+  * Variable Explorer
+    * Support for Pandas DataFrame's and TimeSerie's types
+    * Support for Numpy 3D arrays
+    * Drag and drop works for all its supported file types (e.g. images, mat files, json files, etc)
+
+  * Editor
+    * F9 runs the current line under the cursor if nothing is selected
+    * Focus remains on it after evaluating cells and selections (an option was added to return to the old behavior)
+    
+  * IPython console
+    * Connect to external kernels through ssh
+
+  * Object Inspector
+    * Add a tutorial for beginners
+
+  * Main Window
+    * Improve style on Mac
+
+=== Bug fixes (since v2.3.1) ===
+
+  * Issue  93  Variable explorer: allow array editor to deal with arrays with more than 2 dimensions
+  * Issue  1160  Variable Explorer: add support for pandas objects
+  * Issue  1305  mayavi plot hangs when IPython graphics backend is inline (default)
+  * Issue  1319  Spyder is not getting its taskbar icon right in Win 7/8
+  * Issue  1445  Linux style middle mouse button paste not executed in console
+  * Issue  1530  Wrong encoding for date in pylint widget
+  * Issue  1590  Add numpy matrices as a supported type to the Variable Explorer
+  * Issue  1604  spyder 2.2.5 freezes with netCDF4-python
+  * Issue  1627  Run selection (F9) changes focus to Python interpreter, but ex-Matlab users expect the focus to remain on the editor
+  * Issue  1670  Provide a "Run current line" feature
+  * Issue  1690  Feature request: connect to existing IPython kernel over ssh
+  * Issue  1699  Option to disable middle button paste
+  * Issue  1783  The new cell delimiter when converting a notebook to python file is # In[`*`]
+  * Issue  1863  Ctrl-C doesn't work in a *restarted* IPython console
+  * Issue  1893  Matplotlib plots do not display correctly in 2.3.0 (when running in dedicated python interpreter)
+
+
+----
+
+
 == Version 2.3.0 ==
 
 === New features since v2.2 ===

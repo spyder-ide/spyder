@@ -158,13 +158,13 @@ class ExternalPythonShell(ExternalShellBase):
                  ipykernel=False, arguments='', stand_alone=None,
                  umd_enabled=True, umd_namelist=[], umd_verbose=True,
                  pythonstartup=None, pythonexecutable=None,
-                 monitor_enabled=True, mpl_patch_enabled=True,
-                 mpl_backend=None, ets_backend='qt4', qt_api=None, pyqt_api=0,
-                 install_qt_inputhook=True, ignore_sip_setapi_errors=False,
-                 merge_output_channels=False, colorize_sys_stderr=False,
-                 autorefresh_timeout=3000, autorefresh_state=True,
-                 light_background=True, menu_actions=None,
-                 show_buttons_inside=True, show_elapsed_time=True):
+                 monitor_enabled=True, mpl_backend=None, ets_backend='qt4',
+                 qt_api=None, pyqt_api=0, install_qt_inputhook=True,
+                 ignore_sip_setapi_errors=False, merge_output_channels=False,
+                 colorize_sys_stderr=False, autorefresh_timeout=3000,
+                 autorefresh_state=True, light_background=True,
+                 menu_actions=None, show_buttons_inside=True,
+                 show_elapsed_time=True):
 
         assert qt_api in (None, 'pyqt', 'pyside')
 
@@ -173,10 +173,11 @@ class ExternalPythonShell(ExternalShellBase):
         self.dialog_manager = DialogManager()
         
         self.stand_alone = stand_alone # stand alone settings (None: plugin)
+        self.interact = interact
+        self.is_ipykernel = ipykernel
         self.pythonstartup = pythonstartup
         self.pythonexecutable = pythonexecutable
         self.monitor_enabled = monitor_enabled
-        self.mpl_patch_enabled = mpl_patch_enabled
         self.mpl_backend = mpl_backend
         self.ets_backend = ets_backend
         self.qt_api = qt_api
@@ -190,7 +191,6 @@ class ExternalPythonShell(ExternalShellBase):
         self.umd_verbose = umd_verbose
         self.autorefresh_timeout = autorefresh_timeout
         self.autorefresh_state = autorefresh_state
-        self.is_ipykernel = ipykernel
                 
         self.namespacebrowser_button = None
         self.cwd_button = None
@@ -221,7 +221,7 @@ class ExternalPythonShell(ExternalShellBase):
         self.connection_file = None
 
         if self.is_ipykernel:
-            interact = False
+            self.interact = False
             # Running our custom startup script for IPython kernels:
             # (see spyderlib/widgets/externalshell/start_ipython_kernel.py)
             self.fname = get_module_source_path(
@@ -230,7 +230,7 @@ class ExternalPythonShell(ExternalShellBase):
         self.shell.set_externalshell(self)
 
         self.toggle_globals_explorer(False)
-        self.interact_action.setChecked(interact)
+        self.interact_action.setChecked(self.interact)
         self.debug_action.setChecked(debug)
         
         self.introspection_socket = None
@@ -439,7 +439,6 @@ The process may not exit as a result of clicking this button
         
         # External modules options
         env.append('ETS_TOOLKIT=%s' % self.ets_backend)
-        env.append('MATPLOTLIB_PATCH=%r' % self.mpl_patch_enabled)
         if self.mpl_backend:
             env.append('MATPLOTLIB_BACKEND=%s' % self.mpl_backend)
         if self.qt_api:
@@ -461,6 +460,12 @@ The process may not exit as a result of clicking this button
             env.append('UMD_ENABLED=%r' % self.umd_enabled)
             env.append('UMD_NAMELIST=%s' % ','.join(self.umd_namelist))
             env.append('UMD_VERBOSE=%r' % self.umd_verbose)
+            env.append('MATPLOTLIB_ION=True')
+        else:
+            if self.interact:
+                env.append('MATPLOTLIB_ION=True')
+            else:
+                env.append('MATPLOTLIB_ION=False')
 
         # IPython kernel
         env.append('IPYTHON_KERNEL=%r' % self.is_ipykernel)

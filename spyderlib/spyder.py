@@ -770,11 +770,12 @@ class MainWindow(QMainWindow):
             self.console = Console(self, namespace, exitfunc=self.closing,
                               profile=self.profile,
                               multithreaded=self.multithreaded,
-                              message=_("DON'T USE THIS CONSOLE TO RUN CODE!\n\n"
-                                        "It's used to report application errors\n"
-                                        "and to inspect Spyder internals with\n"
-                                        "the following commands:\n"
-                                        "  spy.app, spy.window, dir(spy)"))
+                              message=_("Spyder Internal Console\n\n"
+                                        "This console is used to report application\n"
+                                        "internal errors and to inspect Spyder\n"
+                                        "internals with the following commands:\n"
+                                        "  spy.app, spy.window, dir(spy)\n\n"
+                                        "Please don't use it to run your code\n\n"))
             self.console.register_plugin()
             
             # Working directory plugin
@@ -1591,9 +1592,10 @@ class MainWindow(QMainWindow):
     
     def hideEvent(self, event):
         """Reimplement Qt method"""
-        for plugin in self.widgetlist:
-            if plugin.isAncestorOf(self.last_focused_widget):
-                plugin.visibility_changed(True)
+        if not self.light:
+            for plugin in self.widgetlist:
+                if plugin.isAncestorOf(self.last_focused_widget):
+                    plugin.visibility_changed(True)
         QMainWindow.hideEvent(self, event)
     
     def change_last_focused_widget(self, old, now):
@@ -1612,7 +1614,7 @@ class MainWindow(QMainWindow):
         self.save_current_window_settings(prefix)
         if CONF.get('main', 'single_instance'):
             if os.name == 'nt':
-                self.open_files_server.shutdown(socket.SHUT_RDWR)
+                pass # All seems to indicate port is closed at this point
             self.open_files_server.close()
         for widget in self.widgetlist:
             if not widget.closing_plugin(cancelable):
@@ -1923,9 +1925,10 @@ Please provide any additional information below.
         ext = osp.splitext(fname)[1]
         if ext in EDIT_EXT:
             self.editor.load(fname)
-        elif self.variableexplorer is not None and ext in IMPORT_EXT\
-             and ext in ('.spydata', '.mat', '.npy', '.h5'):
+        elif self.variableexplorer is not None and ext in IMPORT_EXT:
             self.variableexplorer.import_data(fname)
+        elif encoding.is_text_file(fname):
+            self.editor.load(fname)
         elif not external:
             fname = file_uri(fname)
             programs.start_file(fname)
@@ -2226,7 +2229,6 @@ class Spy(object):
 def run_spyder(app, options, args):
     """
     Create and show Spyder's main window
-    Patch matplotlib for figure integration
     Start QApplication event loop
     """
     #TODO: insert here

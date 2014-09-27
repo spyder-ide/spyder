@@ -297,7 +297,7 @@ class DirView(QTreeView):
                                triggered=lambda fnames=fnames:
                                self.open_terminal(fnames))
         actions.append(action)
-        _title = _("Open Python interpreter here")
+        _title = _("Open Python console here")
         action = create_action(self, _title, icon="python.png",
                                triggered=lambda fnames=fnames:
                                self.open_interpreter(fnames))
