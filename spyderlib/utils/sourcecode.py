@@ -33,6 +33,7 @@ ALL_LANGUAGES = {
                  'Batch': ('bat', 'cmd', 'nt'),
                  'Ini': ('properties', 'session', 'ini', 'inf', 'reg', 'url',
                          'cfg', 'cnf', 'aut', 'iss'),
+                 'Yaml':('yaml','yml'),
                  }
 
 PYTHON_LIKE_LANGUAGES = ('Python', 'Cython', 'Enaml')             

@@ -27,7 +27,7 @@ from spyderlib.widgets.sourcecode.base import CELL_SEPARATORS
 
 
 PYGMENTS_REQVER = '>=1.6'
-dependencies.add("pygments", _("Syntax highlighting for Matlab, Julia and other "
+dependencies.add("pygments", _("Syntax highlighting for Matlab, Julia, yaml and other "
                                "file types"),
                  required_version=PYGMENTS_REQVER)
 
@@ -700,6 +700,31 @@ class GetTextSH(GenericSH):
     # Syntax highlighting rules:
     PROG = re.compile(make_gettext_patterns(), re.S)
 
+#==============================================================================
+# yaml highlighter
+#==============================================================================
+
+def make_yaml_patterns():
+    "Strongly inspired from sublime highlighter "
+    # kwstr = '\\: \\> \\| \\-'
+    kw = any("keyword", [r":|>|-|\|"])
+    links = any("normal", [r"#:[^\n]*"])
+    comment = any("comment", [r"#[^\n]*"])
+    number = any("number",
+                 [r"\b[+-]?[0-9]+[lL]?\b",
+                  r"\b[+-]?0[xX][0-9A-Fa-f]+[lL]?\b",
+                  r"\b[+-]?[0-9]+(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?\b"])
+    sqstring = r"(\b[rRuU])?'[^'\\\n]*(\\.[^'\\\n]*)*'?"
+    dqstring = r'(\b[rRuU])?"[^"\\\n]*(\\.[^"\\\n]*)*"?'
+    string = any("string", [sqstring, dqstring])
+    return "|".join([kw, string, number, links, comment,
+                     any("SYNC", [r"\n"])])
+
+class YamlSH(GenericSH):
+    """yaml Syntax Highlighter"""
+    # Syntax highlighting rules:
+    PROG = re.compile(make_yaml_patterns(), re.S)
+
 
 #==============================================================================
 # HTML highlighter
@@ -857,6 +882,10 @@ class JsSH(PygmentsSH):
 class JuliaSH(PygmentsSH):
     """Julia highlighter"""
     _lang_name = 'julia'
+    
+# class YamlSH(PygmentsSH):
+#     """yaml highlighter"""
+#     _lang_name = 'yaml'
     
 class CssSH(PygmentsSH):
     """CSS Syntax Highlighter"""
