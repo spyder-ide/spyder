@@ -27,7 +27,7 @@ from spyderlib.widgets.sourcecode.base import CELL_SEPARATORS
 
 
 PYGMENTS_REQVER = '>=1.6'
-dependencies.add("pygments", _("Syntax highlighting for Matlab, Julia, yaml and other "
+dependencies.add("pygments", _("Syntax highlighting for Matlab, Julia and other "
                                "file types"),
                  required_version=PYGMENTS_REQVER)
 
@@ -882,11 +882,7 @@ class JsSH(PygmentsSH):
 class JuliaSH(PygmentsSH):
     """Julia highlighter"""
     _lang_name = 'julia'
-    
-# class YamlSH(PygmentsSH):
-#     """yaml highlighter"""
-#     _lang_name = 'yaml'
-    
+        
 class CssSH(PygmentsSH):
     """CSS Syntax Highlighter"""
     _lang_name = 'css'
