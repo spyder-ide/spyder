@@ -19,7 +19,7 @@ import time
 # Qt imports
 from spyderlib.qt.QtGui import (QTextEdit, QKeySequence, QWidget, QMenu,
                                 QHBoxLayout, QToolButton, QVBoxLayout,
-                                QMessageBox)
+                                QMessageBox, QApplication)
 from spyderlib.qt.QtCore import SIGNAL, Qt
 
 # IPython imports
@@ -78,6 +78,7 @@ class IPythonControlWidget(TracebackLinksMixin, InspectObjectMixin, QTextEdit,
         self.calltip_widget = CallTipWidget(self, hide_timer_on=True)
         # To not use Spyder calltips obtained through the monitor
         self.calltips = False
+        
     
     def showEvent(self, event):
         """Reimplement Qt Method"""
@@ -334,6 +335,11 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         super(IPythonClient, self).__init__(plugin)
         SaveHistoryMixin.__init__(self)
         self.options_button = None
+        # stop button and icon
+        self.stop_button = None
+        self.stop_icon = get_icon("stop.png")
+        self.stop_icon_faded = get_icon("terminated.png")
+        
         self.connection_file = connection_file
         self.kernel_widget_id = kernel_widget_id
         self.hostname = hostname
@@ -367,6 +373,8 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         
         self.exit_callback = lambda: plugin.close_client(client=self)
         
+        
+        
     #------ Public API --------------------------------------------------------
     def show_shellwidget(self, give_focus=True):
         """Show shellwidget and configure it"""
@@ -390,6 +398,33 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         
         # To update the Variable Explorer after execution
         self.shellwidget.executed.connect(self.auto_refresh_namespacebrowser)
+        
+        # To show stop button, when executing a process
+        self.shellwidget.executing.connect(self.enable_stop_button)
+        # To hide stop button after execution stopped
+        self.shellwidget.executed.connect(self.disable_stop_button)
+    
+    def enable_stop_button(self):
+        # set click event handler
+        self.stop_button.clicked.connect(self.stop_button_click_handler)
+        # enable  the button (was disabled with last click)
+        self.stop_button.setEnabled(True)
+        # make it visible
+        self.stop_button.setVisible(True)
+   
+    def disable_stop_button(self):
+        self.stop_button.setVisible(False)
+        
+    def stop_button_click_handler(self):
+        # diable after processing first click to avoid multple clicks
+        self.stop_button.setDisabled(True)
+        # seticon to a faded button to show click event being processed
+        self.stop_button.setIcon(self.stop_icon_faded)
+        QApplication.processEvents()
+        # execute kernel interruption
+        self.interrupt_kernel()
+        # reset the icon for the next time
+        self.stop_button.setIcon(self.stop_icon)
     
     def show_kernel_error(self, error):
         """Show kernel initialization errors in infowidget"""
@@ -469,8 +504,19 @@ class IPythonClient(QWidget, SaveHistoryMixin):
                 self.options_button.setMenu(menu)
         if self.options_button is not None:
             buttons.append(self.options_button)
+
+                
+        
+        # code to add stop button 
+        if self.stop_button is None:
+            self.stop_button = create_toolbutton(self, text=_("Stop"),
+            icon=self.stop_icon, tip=_("Stop the current command"))
+            self.stop_button.setVisible(False)
+        if self.stop_button is not None:
+            buttons.append(self.stop_button)
+            
         return buttons
-    
+        
     def add_actions_to_context_menu(self, menu):
         """Add actions to IPython widget context menu"""
         # See spyderlib/widgets/ipython.py for more details on this method
