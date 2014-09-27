@@ -668,11 +668,8 @@ class CodeEditor(TextEditBaseWidget):
         self.supported_language = False
         self.comment_string = ''
         sh_class = sh.TextSH
-        print "lang <<should be yaml>> ", str(language)
         if language is not None:
             for (key, value) in ALL_LANGUAGES.items():
-            	print "key ", key
-            	print "value ", value
                 if language.lower() in value:
                     self.supported_language = True
                     sh_class, comment_string, CFMatch = self.LANGUAGES[key]
@@ -1420,7 +1417,6 @@ class CodeEditor(TextEditBaseWidget):
         text, _enc = encoding.read(filename)
         if language is None:
             language = get_file_language(filename, text)
-            print language
         self.set_language(language)
         self.set_text(text)
 
