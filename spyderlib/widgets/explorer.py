@@ -36,11 +36,7 @@ from spyderlib.py3compat import to_text_string, getcwd, str_lower
 
 if programs.is_module_installed('IPython'):
     import IPython.nbformat as nbformat
-    try:
-        from IPython.nbconvert import PythonExporter # >=1.0
-    except:
-        import IPython.nbformat.current as current
-        from IPython.nbformat.v3.nbpy import PyWriter # 0.13
+    import IPython.nbformat.current as current
 
 
 def fixpath(path):
@@ -508,10 +504,7 @@ class DirView(QTreeView):
     def convert_notebook(self, fname):
         """Convert an IPython notebook to a Python script in editor"""
         if programs.is_module_installed('IPython'):
-            if programs.is_module_installed('IPython', '>=1.0'):
-                script = PythonExporter().from_filename(fname)[0]
-            else:
-                script = PyWriter().writes(current.read(open(fname, 'r'), 'ipynb'))
+            script = current.writes_py(current.read(open(fname, 'r'), 'ipynb'))
             self.parent_widget.sig_new_file.emit(script)
     
     def convert(self, fnames=None):

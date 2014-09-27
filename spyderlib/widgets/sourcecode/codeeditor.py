@@ -54,11 +54,7 @@ from spyderlib.py3compat import to_text_string
 
 if programs.is_module_installed('IPython'):
     import IPython.nbformat as nbformat
-    try:
-        from IPython.nbconvert import PythonExporter # >=1.0
-    except:
-        import IPython.nbformat.current as current
-        from IPython.nbformat.v3.nbpy import PyWriter # 0.13
+    import IPython.nbformat.current as current
 
 #%% This line is for cell execution testing
 # For debugging purpose:
@@ -1839,11 +1835,8 @@ class CodeEditor(TextEditBaseWidget):
     def convert_notebook(self):
         """Convert an IPython notebook to a Python script in editor"""
         if programs.is_module_installed('IPython'):
-            nb = nbformat.current.reads(self.toPlainText(),'json')
-            if programs.is_module_installed('IPython', '>=1.0'):
-                script = PythonExporter().from_notebook_node(nb)[0]
-            else:
-                script = PyWriter().writes(nb)
+            nb = nbformat.current.reads(self.toPlainText(), 'json')
+            script = current.writes_py(nb)
             self.sig_new_file.emit(script)
 
     def indent(self, force=False):
