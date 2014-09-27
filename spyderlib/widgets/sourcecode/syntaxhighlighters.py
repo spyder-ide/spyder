@@ -706,9 +706,10 @@ class GetTextSH(GenericSH):
 
 def make_yaml_patterns():
     "Strongly inspired from sublime highlighter "
-    kw = any("keyword", [r":|>|-|\||\[|\]"])
+    kw = any("keyword", [r">|-|\||\[|\]"])
     links = any("normal", [r"#:[^\n]*"])
     comment = any("comment", [r"#[^\n]*"])
+    instance = any("instance", [r"[A-Za-z][\w\s\-\_ ]+:"])
     number = any("number",
                  [r"\b[+-]?[0-9]+[lL]?\b",
                   r"\b[+-]?0[xX][0-9A-Fa-f]+[lL]?\b",
@@ -716,7 +717,7 @@ def make_yaml_patterns():
     sqstring = r"(\b[rRuU])?'[^'\\\n]*(\\.[^'\\\n]*)*'?"
     dqstring = r'(\b[rRuU])?"[^"\\\n]*(\\.[^"\\\n]*)*"?'
     string = any("string", [sqstring, dqstring])
-    return "|".join([kw, string, number, links, comment,
+    return "|".join([kw, string, number, links, comment,instance, 
                      any("SYNC", [r"\n"])])
 
 class YamlSH(GenericSH):
