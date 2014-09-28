@@ -1,17 +1,13 @@
 from __future__ import print_function
-import imp
-import os
-import os.path as osp
 import re
-import time
-import functools
 
 from spyderlib.baseconfig import DEBUG, get_conf_path, debug_print
-from spyderlib.py3compat import PY2
-from spyderlib.utils.debug import log_dt, log_last_error
-from spyderlib.utils import sourcecode, encoding
+from spyderlib.utils.dochelpers import getsignaturefromtext
+from spyderlib.utils import sourcecode
+from spyderlib.utils.introspection.module_completion import (module_completion,
+                                                      get_preferred_submodules)
 
-from spyderlib.qt.QtGui import QApplication
+
 from spyderlib.qt.QtCore import SIGNAL
 
 
@@ -19,6 +15,30 @@ PLUGINS = ['jedi', 'rope', 'fallback']
 LOG_FILENAME = get_conf_path('introspection.log')
 DEBUG_EDITOR = DEBUG >= 3
 
+
+class GetSubmodulesThread(QThread):
+    """
+    A thread to generate a list of submodules to be passed to Rope
+    extension_modules preference
+    """
+    def __init__(self):
+        super(GetSubmodulesThread, self).__init__()
+        self.submods = []
+
+    def run(self):
+        self.submods = get_preferred_submodules()
+        self.emit(SIGNAL('submods_ready()'))
+
+
+self.submods_thread = GetSubmodulesThread()
+self.connect(self.submods_thread, SIGNAL('submods_ready()'),
+             self.update_extension_modules)
+self.submods_thread.start()
+
+
+def update_extension_modules(self):
+    self.introspection_plugin.set_pref('extension_modules',
+                                   self.submods_thread.submods)
 
 class Info(object):
     """Store the information about an introspection request.

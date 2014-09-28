@@ -30,10 +30,7 @@ import os.path as osp
 
 # Local imports
 from spyderlib.utils import encoding, sourcecode, codeanalysis
-from spyderlib.utils.dochelpers import getsignaturefromtext
 from spyderlib.utils import introspection
-from spyderlib.utils.introspection.module_completion import (module_completion,
-                                                      get_preferred_submodules)
 from spyderlib.baseconfig import _, DEBUG, STDOUT, STDERR
 from spyderlib.config import EDIT_FILTERS, EDIT_EXT, get_filter, EDIT_FILETYPES
 from spyderlib.guiconfig import create_shortcut
@@ -186,20 +183,6 @@ class AnalysisThread(QThread):
                 traceback.print_exc(file=STDERR)
 
 
-class GetSubmodulesThread(QThread):
-    """
-    A thread to generate a list of submodules to be passed to Rope
-    extension_modules preference
-    """
-    def __init__(self):
-        super(GetSubmodulesThread, self).__init__()
-        self.submods = []
-
-    def run(self):
-        self.submods = get_preferred_submodules()
-        self.emit(SIGNAL('submods_ready()'))
-
-
 class ThreadManager(QObject):
     """Analysis thread manager"""
     def __init__(self, parent, max_simultaneous_threads=2):
@@ -294,7 +277,7 @@ class FileInfo(QObject):
         self.encoding = encoding
         self.editor = editor
         self.path = []
-        self.submods_thread = GetSubmodulesThread()
+        
         self.introspection_plugin = introspection_plugin
         plugin = introspection_plugin
 
@@ -318,17 +301,9 @@ class FileInfo(QObject):
         
         self.connect(editor, SIGNAL('breakpoints_changed()'),
                      self.breakpoints_changed)
-        self.connect(self.submods_thread, SIGNAL('submods_ready()'),
-                     self.update_extension_modules)
-        
+
         self.pyflakes_results = None
         self.pep8_results = None
-
-        self.submods_thread.start()
-    
-    def update_extension_modules(self):
-        self.introspection_plugin.set_pref('extension_modules',
-                                   self.submods_thread.submods)
     
     def text_changed(self):
         """Editor's text has changed"""
