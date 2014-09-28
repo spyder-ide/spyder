@@ -104,8 +104,6 @@ class RopePlugin(IntrospectionPlugin):
         filename = info.filename
         source_code = info.source_code
         offset = info.offset
-        if (not info.obj) and info.func_call:
-            info.offset = info.func_call_offset
 
         if PY2:
             filename = filename.encode('utf-8')
@@ -186,7 +184,7 @@ class RopePlugin(IntrospectionPlugin):
         return dict(name=obj_fullname, argspec=argspec, note=note,
             docstring=doc_text, calltip=calltip)
 
-    def get_definition_location(self, info):
+    def get_definition(self, info):
         """Find a definition location using Rope"""
         if self.project is None:
             return
@@ -194,8 +192,6 @@ class RopePlugin(IntrospectionPlugin):
         filename = info.filename
         source_code = info.source_code
         offset = info.offset
-        if (not info.obj) and info.func_call:
-            info.offset = info.func_call_offset
 
         if PY2:
             filename = filename.encode('utf-8')

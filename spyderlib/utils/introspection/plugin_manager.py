@@ -86,18 +86,17 @@ class Info(object):
             self.object = tokens[-2]
         else:
             self.object = None
-        func_call = re.findall(self.func_call_regex, self.line,
+
+        if (self.name in ['info', 'definition'] and (not self.object)
+                and self.editor.is_python_like()):
+            func_call = re.findall(self.func_call_regex, self.line,
                                re.UNICODE)
-        if func_call:
-            self.func_call = func_call[-1]
-            self.func_call_col = (self.line.index(self.func_call)
-                                  + len(self.func_call))
-            self.func_call_offset = (position - len(self.line)
-                                     + self.func_call_col)
-        else:
-            self.func_call = None
-            self.func_call_col = 0
-            self.func_call_offset = position
+            if func_call:
+                self.obj = func_call[-1]
+                self.col = (self.line.index(self.func_call)
+                                      + len(self.func_call))
+                self.offset = (position - len(self.line)
+                                         + self.func_call_col)
 
     def split_words(self, position=None):
         if position is None:

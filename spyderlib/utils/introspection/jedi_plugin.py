@@ -67,9 +67,6 @@ class JediPlugin(IntrospectionPlugin):
             'name': 'ones',
             'calltip': 'ones(shape, dtype=None, order='C')'}
         """
-        if (not info.obj) and info.func_call:
-            info.obj = info.func_call
-            info.column = info.func_call_column
         call_def = self.get_jedi_object('goto_definitions', info)
         if call_def and not call_def[0].type == 'module':
             return
@@ -123,9 +120,6 @@ class JediPlugin(IntrospectionPlugin):
         module.  Falls back on token lookup if it is in an enaml file or does
         not find a match
         """
-        if (not info.obj) and info.func_call:
-            info.obj = info.func_call
-            info.column = info.func_call_column
         line, filename = info.line_nr, info.filename
         def_info, module_path, line_nr = None, None, None
         gotos = self.get_jedi_object('goto_assignments', info)
