@@ -268,8 +268,7 @@ class ThreadManager(QObject):
 
 class FileInfo(QObject):
     """File properties"""
-    def __init__(self, filename, encoding, editor, new, threadmanager,
-                 introspection_plugin):
+    def __init__(self, filename, encoding, editor, new, threadmanager):
         QObject.__init__(self)
         self.threadmanager = threadmanager
         self.filename = filename
@@ -277,27 +276,11 @@ class FileInfo(QObject):
         self.encoding = encoding
         self.editor = editor
         self.path = []
-        
-        self.introspection_plugin = introspection_plugin
-        plugin = introspection_plugin
 
         self.classes = (filename, None, None)
         self.analysis_results = []
         self.todo_results = []
         self.lastmodified = QFileInfo(filename).lastModified()
-
-        self.connect(editor, SIGNAL('trigger_code_completion(bool)'),                     
-                     plugin.trigger_code_completion)
-        self.connect(editor, SIGNAL('trigger_token_completion(bool)'),
-                     plugin.trigger_token_completion)
-        self.connect(editor, SIGNAL('show_object_info(int)'),
-                     plugin.show_object_info)
-        self.connect(editor, SIGNAL("go_to_definition(int)"),
-                     plugin.go_to_definition)
-        self.connect(editor, SIGNAL("go_to_definition_regex(int)"),
-                     plugin.go_to_definition_regex)
-        self.connect(editor, SIGNAL('textChanged()'),
-                     self.text_changed)
         
         self.connect(editor, SIGNAL('breakpoints_changed()'),
                      self.breakpoints_changed)
@@ -481,8 +464,17 @@ class EditorStack(QWidget):
         if ccs not in syntaxhighlighters.COLOR_SCHEME_NAMES:
             ccs = syntaxhighlighters.COLOR_SCHEME_NAMES[0]
         self.color_scheme = ccs
-        self.introspection_plugin = introspection.PluginManager(self)
+        self.introspector = introspection.PluginManager(self)
         
+        self.connect(self.introspector, SIGNAL(
+                    "send_to_inspector(QString,QString,QString,QString,bool)"),
+                    self.send_to_inspector)
+        self.connect(self.introspector, 
+            SIGNAL("edit_goto(QString,int,QString)"),
+             lambda fname, lineno, name:
+             self.emit(SIGNAL("edit_goto(QString,int,QString)"),
+                       fname, lineno, name))
+
         self.__file_status_flag = False
         
         # Real-time code analysis
@@ -642,11 +634,11 @@ class EditorStack(QWidget):
             
     def inspect_current_object(self):
         """Inspect current object in Object Inspector"""
-        if self.introspection_plugin:
+        if self.introspector:
             editor = self.get_current_editor()
             position = editor.get_position('cursor')
             self.inspector.switch_to_editor_source()
-            self.introspection_plugin.show_object_info(position, auto=False)
+            self.introspector.show_object_info(position, auto=False)
         else:
             text = self.get_current_editor().get_current_object()
             if text:
@@ -1269,7 +1261,7 @@ class EditorStack(QWidget):
             finfo.editor.document().setModified(False)
             self.modification_changed(index=index)
             self.analyze_script(index)
-            self.introspection_plugin.validate()
+            self.introspector.validate()
             
             #XXX CodeEditor-only: re-scan the whole text to rebuild outline 
             # explorer data from scratch (could be optimized because 
@@ -1618,7 +1610,7 @@ class EditorStack(QWidget):
         finfo.editor.set_text(txt)
         finfo.editor.document().setModified(False)
         finfo.editor.set_cursor_position(position)
-        self.introspection_plugin.validate()
+        self.introspector.validate()
 
         #XXX CodeEditor-only: re-scan the whole text to rebuild outline 
         # explorer data from scratch (could be optimized because 
@@ -1650,21 +1642,25 @@ class EditorStack(QWidget):
         Create a new editor instance
         Returns finfo object (instead of editor as in previous releases)
         """
-        editor = codeeditor.CodeEditor(self)
-        finfo = FileInfo(fname, enc, editor, new, self.threadmanager,
-                         self.introspection_plugin)
+        editor = codeeditor.CodeEditor(self, fname)
+        introspector = self.introspector
+        self.connect(editor, SIGNAL('get_completions(bool)'),
+                     introspector.get_completions)
+        self.connect(editor, SIGNAL('show_object_info(int)'),
+                     introspector.show_object_info)
+        self.connect(editor, SIGNAL("go_to_definition(int)"),
+                     introspector.go_to_definition)
+
+        self.connect(editor, SIGNAL('textChanged()'),
+                     self.text_changed)
+
+        finfo = FileInfo(fname, enc, editor, new, self.threadmanager)
         self.add_to_data(finfo, set_current)
-        self.connect(finfo, SIGNAL(
-                    "send_to_inspector(QString,QString,QString,QString,bool)"),
-                    self.send_to_inspector)
         self.connect(finfo, SIGNAL('analysis_results_changed()'),
                      lambda: self.emit(SIGNAL('analysis_results_changed()')))
         self.connect(finfo, SIGNAL('todo_results_changed()'),
                      lambda: self.emit(SIGNAL('todo_results_changed()')))
-        self.connect(finfo, SIGNAL("edit_goto(QString,int,QString)"),
-                     lambda fname, lineno, name:
-                     self.emit(SIGNAL("edit_goto(QString,int,QString)"),
-                               fname, lineno, name))
+
         self.connect(finfo, SIGNAL("save_breakpoints(QString,QString)"),
                      lambda s1, s2:
                      self.emit(SIGNAL("save_breakpoints(QString,QString)"),

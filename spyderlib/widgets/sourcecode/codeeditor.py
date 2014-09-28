@@ -317,6 +317,7 @@ class CodeEditor(TextEditBaseWidget):
 
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
+
         self.setFocusPolicy(Qt.StrongFocus)
 
         # Completion
@@ -451,8 +452,8 @@ class CodeEditor(TextEditBaseWidget):
         self.shortcuts = self.create_shortcuts()
 
     def create_shortcuts(self):
-        codecomp = create_shortcut(self.do_code_completion, context='Editor',
-                                   name='Code completion', parent=self)
+        codecomp = create_shortcut(self.do_completion, context='Editor',
+                                   name='Completion', parent=self)
         duplicate_line = create_shortcut(self.duplicate_line, context='Editor',
                                          name='Duplicate line', parent=self)
         copyline = create_shortcut(self.copy_line, context='Editor',
@@ -677,15 +678,15 @@ class CodeEditor(TextEditBaseWidget):
             self.indent_or_replace()
         elif self.in_comment_or_string() and not leading_text.endswith(' '):
             # in a word in a comment
-            self.do_token_completion()
+            self.do_completion()
         elif leading_text.endswith('import ') or leading_text[-1] == '.':
             # blank import or dot completion
-            self.do_code_completion()
+            self.do_completion()
         elif (leading_text.split()[0] in ['from', 'import'] and 
               not ';' in leading_text):
             # import line with a single statement
             #  (prevents lines like: `import pdb; pdb.set_trace()`)
-            self.do_code_completion()
+            self.do_completion()
         elif leading_text[-1] in '(,' or leading_text.endswith(', '):
             self.indent_or_replace()
         elif leading_text.endswith(' '):
@@ -693,7 +694,7 @@ class CodeEditor(TextEditBaseWidget):
             self.indent_or_replace()
         elif re.search(r"[^\d\W]\w*\Z", leading_text, re.UNICODE):
             # if the line ends with a non-whitespace character
-            self.do_code_completion()
+            self.do_completion()
         else:
             self.indent_or_replace()
 
@@ -1114,18 +1115,10 @@ class CodeEditor(TextEditBaseWidget):
         self.emit(SIGNAL('breakpoints_changed()'))
 
     #-----Code introspection
-    def do_code_completion(self, automatic=False):
-        """Trigger code completion"""
+    def do_completion(self, automatic=False):
+        """Trigger completion"""
         if not self.is_completion_widget_visible():
-            if self.is_python_like() and not self.in_comment_or_string():
-                self.emit(SIGNAL('trigger_code_completion(bool)'), automatic)
-            else:
-                self.do_token_completion()
-
-    def do_token_completion(self, automatic=False):
-        """Trigger a token-based completion"""
-        if not self.is_completion_widget_visible():
-            self.emit(SIGNAL('trigger_token_completion(bool)'), automatic)
+            self.emit(SIGNAL('get_completions(bool)'), automatic)
 
     def do_go_to_definition(self):
         """Trigger go-to-definition"""
@@ -2188,7 +2181,7 @@ class CodeEditor(TextEditBaseWidget):
                 # Enable auto-completion only if last token isn't a float
                 last_obj = getobj(self.get_text('sol', 'cursor'))
                 if last_obj and not last_obj.isdigit():
-                    self.do_code_completion(automatic=True)
+                    self.do_completion(automatic=True)
         elif key == Qt.Key_Home:
             self.stdkey_home(shift, ctrl)
         elif key == Qt.Key_End:
@@ -2318,6 +2311,8 @@ class CodeEditor(TextEditBaseWidget):
         
     def go_to_definition_from_cursor(self, cursor=None):
         """Go to definition from cursor instance (QTextCursor)"""
+        if not self.go_to_definition_enabled:
+            return
         if cursor is None:
             cursor = self.textCursor()
         if self.in_comment_or_string():
@@ -2327,12 +2322,8 @@ class CodeEditor(TextEditBaseWidget):
         if len(text) == 0:
             cursor.select(QTextCursor.WordUnderCursor)
             text = to_text_string(cursor.selectedText())
-        if self.go_to_definition_enabled and text is not None\
-           and (self.is_python_like())\
-           and not sourcecode.is_keyword(text):
+        if not text is None:
             self.emit(SIGNAL("go_to_definition(int)"), position)
-        else:
-            self.emit(SIGNAL("go_to_definition_regex(int)"), position)
 
     def mousePressEvent(self, event):
         """Reimplement Qt method"""
