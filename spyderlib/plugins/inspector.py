@@ -386,7 +386,7 @@ class ObjectInspector(SpyderPluginWidget):
         self.connect(self.source_combo, SIGNAL('currentIndexChanged(int)'),
                      self.source_changed)
         if (not programs.is_module_installed('rope') and 
-                not programs.is_module_installed('jedi', '>=0.8.0')):
+                not programs.is_module_installed('jedi', '>=0.8.1')):
             self.source_combo.hide()
             source_label.hide()
         layout_edit.addWidget(self.source_combo)
