@@ -11,16 +11,14 @@ import re
 import os.path as osp
 import sys
 import time
-import threading
 
 from spyderlib import dependencies
 from spyderlib.baseconfig import _, debug_print
 from spyderlib.utils import programs
 from spyderlib.utils.debug import log_last_error, log_dt
-from spyderlib.utils.sourcecode import split_source
 from spyderlib.utils.dochelpers import getsignaturefromtext
-from spyderlib.utils.introspection.base import (
-    DEBUG_EDITOR, LOG_FILENAME, IntrospectionPlugin, fallback)
+from spyderlib.utils.introspection.plugin_manager import (
+    DEBUG_EDITOR, LOG_FILENAME, IntrospectionPlugin)
 
 try:
     import jedi
@@ -42,8 +40,6 @@ class JediPlugin(IntrospectionPlugin):
     Experimental Editor's code completion, go-to-definition and help
     """
 
-    jedi_lock = threading.Lock()
-
     # ---- IntrospectionPlugin API --------------------------------------------
     name = 'jedi'
 
@@ -51,127 +47,32 @@ class JediPlugin(IntrospectionPlugin):
         """Load the Jedi introspection plugin"""
         if not programs.is_module_installed('jedi', JEDI_REQVER):
             raise ImportError('Requires Jedi %s' % JEDI_REQVER)
-        with self.jedi_lock:
-            jedi.settings.case_insensitive_completion = False
-        self._warming_up = True
-        self._startup_thread = threading.Thread(target=self.preload,
-                                                args=('numpy', 'scipy.stats'))
-        self._startup_thread.start()
+        jedi.settings.case_insensitive_completion = False
+        self.busy = True
+        self.preload()
 
-    @fallback
-    def get_completion_list(self, source_code, offset, filename):
+    def get_completions(self, info):
         """Return a list of completion strings"""
+        completions = self.get_jedi_object('completions', info)
+        return [c.word for c in completions]
 
-        line, col = self.get_line_col(source_code, offset)
-        completions = self.get_jedi_object(source_code, line, col, filename,
-                                           'completions')
-        if completions:
-            return [c.word for c in completions]
-        else:
-            raise ValueError
-
-    @fallback
-    def get_calltip_and_docs(self, source_code, offset, filename):
+    def get_info(self, info):
         """
         Find the calltip and docs
 
-        Calltip is a string with the function or class and its arguments
-            e.g. 'match(patern, string, flags=0)'
-                 'ones(shape, dtype=None, order='C')'
-        Docs is a a string or a dict with the following keys:
-           e.g. 'Try to apply the pattern at the start of the string...'
-           or {'note': 'Function of numpy.core.numeric...',
-               'argspec': "(shape, dtype=None, order='C')'
-               'docstring': 'Return an array of given...'
-               'name': 'ones'}
+        Returns a dict like the following:
+           {'note': 'Function of numpy.core.numeric...',
+            'argspec': "(shape, dtype=None, order='C')'
+            'docstring': 'Return an array of given...'
+            'name': 'ones',
+            'calltip': 'ones(shape, dtype=None, order='C')'}
         """
-        line, col = self.get_line_col(source_code, offset)
-        call_def = self.get_jedi_object(source_code, line, col, filename,
-                                       'goto_definitions')
+        if (not info.obj) and info.func_call:
+            info.obj = info.func_call
+            info.column = info.func_call_column
+        call_def = self.get_jedi_object('goto_definitions', info)
         if call_def and not call_def[0].type == 'module':
-            return self.parse_call_def(call_def)
-        else:
-            raise ValueError
-
-    @fallback
-    def get_definition_location(self, source_code, offset, filename):
-        """
-        Find a definition location using Jedi
-
-        Follows gotos until a definition is found, or it reaches a builtin
-        module.  Falls back on token lookup if it is in an enaml file or does
-        not find a match
-        """
-        line, col = self.get_line_col(source_code, offset)
-        info, module_path, line_nr = None, None, None
-        gotos = self.get_jedi_object(source_code, line, col, filename,
-                                     'goto_assignments')
-        if gotos:
-            info = self.get_definition_info(gotos[0])
-        if info and info['goto_next']:
-            defns = self.get_jedi_object(source_code, line, col, filename,
-                                         'goto_definitions')
-            if defns:
-                new_info = self.get_definition_info(defns[0])
-            if not new_info['in_builtin']:
-                info = new_info
-        # handle builtins -> try and find the module
-        if info and info['in_builtin']:
-            module_path, line_nr = self.find_in_builtin(info)
-        elif info:
-            module_path = info['module_path']
-            line_nr = info['line_nr']
-        if module_path == filename and line_nr == line:
-            raise ValueError
-        return module_path, line_nr
-
-    def set_pref(self, name, value):
-        """Set a plugin preference to a value"""
-        pass
-
-    # ---- Private API -------------------------------------------------------
-
-    def get_line_col(self, source_code, offset):
-        """Get a line and column given source code and an offset"""
-        if not source_code:
-            return 1, 1
-        source_code = source_code[:offset]
-        lines = split_source(source_code)
-        return len(lines), len(lines[-1])
-
-    def get_jedi_object(self, source_code, line, col, filename, func_name):
-        """Call a desired function on a Jedi Script and return the result"""
-        if not jedi or self._warming_up:
-            raise  # trigger the super class
-        if DEBUG_EDITOR:
-            t0 = time.time()
-        # override IPython qt_loaders ImportDenier behavior
-        metas = sys.meta_path
-        for meta in metas:
-            if meta.__class__.__name__ == 'ImportDenier' and hasattr(meta, 'forbid'):
-                sys.meta_path.remove(meta)
-
-        try:
-            with self.jedi_lock:
-                script = jedi.Script(source_code, line, col, filename)
-            func = getattr(script, func_name)
-            val = func()
-        except Exception as e:
-            val = None
-            debug_print('Jedi error (%s)' % func_name)
-            debug_print(str(e))
-            if DEBUG_EDITOR:
-                log_last_error(LOG_FILENAME, str(e))
-        if DEBUG_EDITOR:
-            log_dt(LOG_FILENAME, func_name, t0)
-        if not val and filename:
-            return self.get_jedi_object(source_code, line, col, None,
-                                        func_name)
-        else:
-            return val
-
-    def parse_call_def(self, call_def):
-        """Get a formatted calltip and docstring from Jedi"""
+            return
         for cd in call_def:
             if cd.doc and not cd.doc.rstrip().endswith(')'):
                 call_def = cd
@@ -210,9 +111,83 @@ class JediPlugin(IntrospectionPlugin):
                                         mod_name)
         argspec = argspec.replace(' = ', '=')
         calltip = calltip.replace(' = ', '=')
-        doc_text = dict(name=call_def.name, argspec=argspec,
-                        note=note, docstring=docstring)
-        return calltip, doc_text
+        doc_info = dict(name=call_def.name, argspec=argspec,
+                        note=note, docstring=docstring, calltip=calltip)
+        return doc_info
+
+    def get_definition(self, info):
+        """
+        Find a definition location using Jedi
+
+        Follows gotos until a definition is found, or it reaches a builtin
+        module.  Falls back on token lookup if it is in an enaml file or does
+        not find a match
+        """
+        if (not info.obj) and info.func_call:
+            info.obj = info.func_call
+            info.column = info.func_call_column
+        line, filename = info.line_nr, info.filename
+        def_info, module_path, line_nr = None, None, None
+        gotos = self.get_jedi_object('goto_assignments', info)
+        if gotos:
+            def_info = self.get_definition_info(gotos[0])
+        if def_info and info['goto_next']:
+            defns = self.get_jedi_object('goto_definitions', info)
+            if defns:
+                new_info = self.get_definition_info(defns[0])
+            if not new_info['in_builtin']:
+                def_info = new_info
+        # handle builtins -> try and find the module
+        if def_info and def_info['in_builtin']:
+            module_path, line_nr = self.find_in_builtin(def_info)
+        elif def_info:
+            module_path = def_info['module_path']
+            line_nr = def_info['line_nr']
+        if module_path == filename and line_nr == line:
+            raise ValueError
+        return module_path, line_nr
+
+    def set_pref(self, name, value):
+        """Set a plugin preference to a value"""
+        pass
+
+    # ---- Private API -------------------------------------------------------
+
+    def get_jedi_object(self, func_name, info, use_filename=True):
+        """Call a desired function on a Jedi Script and return the result"""
+        if not jedi or self.busy:
+            return
+        if DEBUG_EDITOR:
+            t0 = time.time()
+        # override IPython qt_loaders ImportDenier behavior
+        metas = sys.meta_path
+        for meta in metas:
+            if (meta.__class__.__name__ == 'ImportDenier'
+                    and hasattr(meta, 'forbid')):
+                sys.meta_path.remove(meta)
+
+        if use_filename:
+            filename = info.filename
+        else:
+            filename = None
+
+        try:
+            script = jedi.Script(info.source_code, info.line_num,
+                                 info.column, filename)
+            func = getattr(script, func_name)
+            val = func()
+        except Exception as e:
+            val = None
+            debug_print('Jedi error (%s)' % func_name)
+            debug_print(str(e))
+            if DEBUG_EDITOR:
+                log_last_error(LOG_FILENAME, str(e))
+        if DEBUG_EDITOR:
+            log_dt(LOG_FILENAME, func_name, t0)
+        if not val and filename:
+            return self.get_jedi_object(func_name, info, False)
+        else:
+            return val
 
     @staticmethod
     def get_definition_info(defn):
@@ -261,12 +236,11 @@ class JediPlugin(IntrospectionPlugin):
             line_nr = None
         return module_path, line_nr
 
-    def preload(self, *libs):
+    def preload(self):
         """Preload a list of libraries"""
-        for lib in libs:
-            with self.jedi_lock:
-                jedi.preload_module(lib)
-        self._warming_up = False
+        for lib in ['numpy', 'scipy.stats']:
+            jedi.preload_module(lib)
+        self.busy = False
 
 
 if __name__ == '__main__':

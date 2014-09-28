@@ -17,39 +17,16 @@ import time
 import functools
 
 from spyderlib.baseconfig import DEBUG, get_conf_path, debug_print
-from spyderlib.py3compat import PY2
 from spyderlib.utils.debug import log_dt, log_last_error
 from spyderlib.utils import sourcecode, encoding
-
-from spyderlib.qt.QtGui import QApplication
+from spyderlib.utils.dochelpers import getsignaturefromtext
+from spyderlib.utils.introspection.plugin_manager import IntrospectionPlugin
+from spyderlib.utils.introspection.module_completion import module_completion
 
 
 PLUGINS = ['jedi', 'rope', 'fallback']
 LOG_FILENAME = get_conf_path('introspection.log')
 DEBUG_EDITOR = DEBUG >= 3
-    
-    
-def get_plugin(editor_widget):
-    """Get and load a plugin, checking in order of PLUGINS"""
-    plugin = None
-    for plugin_name in PLUGINS:
-        mod_name = plugin_name + '_plugin'
-        try:
-            mod = __import__('spyderlib.utils.introspection.' + mod_name,
-                             fromlist=[mod_name])
-            cls = getattr(mod, '%sPlugin' % plugin_name.capitalize())
-            plugin = cls()
-            plugin.load_plugin()
-        except Exception:
-            if DEBUG_EDITOR:
-                log_last_error(LOG_FILENAME)
-        else:
-            break
-    if not plugin:
-        plugin = IntrospectionPlugin()
-    debug_print('Instropection Plugin Loaded: %s' % plugin.name)
-    plugin.editor_widget = editor_widget
-    return plugin
 
 
 def memoize(obj):
@@ -73,96 +50,22 @@ def memoize(obj):
             cache.popitem(last=False)
         return cache[key]
     return memoizer
-    
-    
-def fallback(func):
-    """
-    Call the super method if the method throws an error.
-    
-    Handles all exceptions and input that evaluates to False.
-    """
-    @functools.wraps(func)
-    def inner(self, *args, **kwargs):
-        try:
-            return func(self, *args, **kwargs)
-        except Exception:
-            super_cls = super(self.__class__, self)
-            if PY2:
-                super_method = getattr(super_cls, func.func_name)
-            else:
-                super_method = getattr(super_cls, func.__name__)
-            return super_method(*args, **kwargs)
-    return inner
 
 
-class IntrospectionPlugin(object):
+class FallbackPlugin(IntrospectionPlugin):
     """Basic Introspection Plugin for Spyder"""
-    
-    editor_widget = None
-    
+
     # ---- IntrospectionPlugin API --------------------------------------------
     name = 'fallback'
 
-    def load_plugin(self):
-        """Load the plugin"""
-        pass
-
-    def get_completion_list(self, source_code, offset, filename):
+    def get_completions(self, info):
         """Return a list of completion strings"""
         return self.get_token_completion_list(source_code, offset, filename)
 
-    def get_calltip_and_docs(self, source_code, offset, filename):
-        """
-        Find the calltip and docs
-
-        Calltip is a string with the function or class and its arguments
-            e.g. 'match(patern, string, flags=0)'
-                 'ones(shape, dtype=None, order='C')'
-        Docs is a a string or a dict with the following keys:
-           e.g. 'Try to apply the pattern at the start of the string...'
-           or {'note': 'Function of numpy.core.numeric...',
-               'argspec': "(shape, dtype=None, order='C')'
-               'docstring': 'Return an array of given...'
-               'name': 'ones'}
-        """
-        return None
-
-    def get_definition_location(self, source_code, offset, filename):
+    def get_definition(self, info):
         """Find a path and line number for a definition"""
         return self.get_definition_location_regex(source_code, offset, 
                                                   filename)
-        
-    def get_definition_location_regex(self, source_code, offset, filename):
-        """Find a path and line number for a definition using regex"""
-        ret = None, None
-        try:
-            ret = self._get_definition_location_regex(source_code, offset, 
-                                                      filename)
-            debug_print('get regex definition: ' + str(ret))
-        except Exception as e:
-            debug_print('Regex error: %s' % e)
-            if DEBUG_EDITOR:
-                log_last_error(LOG_FILENAME)
-        return ret
-        
-    def get_token_completion_list(self, source_code, offset, filename):
-        """Return a list of completion strings using token matching"""
-        ret = None
-        try:
-            ret = self._token_based_completion(source_code, offset)
-            debug_print('token completion: %s ...(%s)' % (ret[:2], len(ret)))
-        except Exception:
-            if DEBUG_EDITOR:
-                log_last_error(LOG_FILENAME)
-        return ret or []
-
-    def set_pref(self, name, value):
-        """Set a plugin preference to a value"""
-        pass
-
-    def validate(self):
-        """Validate the plugin"""
-        pass
     
     # ---- Private API -------------------------------------------------------
 
@@ -180,29 +83,6 @@ class IntrospectionPlugin(object):
             start = 0
         items = [i[start:len(base)] + i[len(base):].split('.')[0] for i in items]
         return list(sorted(items))
-
-    def is_editor_ready(self):
-        """Check if the main app is starting up"""
-        if self.editor_widget:
-            window = self.editor_widget.window()
-            if hasattr(window, 'is_starting_up') and not window.is_starting_up:
-                return True
-
-    def get_current_source(self):
-        """Get the source code in the current file"""
-        if self.editor_widget:
-            finfo = self.editor_widget.get_current_finfo()
-            if finfo:
-                return finfo.get_source_code()
-
-    def post_message(self, message, timeout=60000):
-        """
-        Post a message to the main window status bar with a timeout in ms
-        """
-        if self.editor_widget:
-            statusbar = self.editor_widget.window().statusBar()
-            statusbar.showMessage(message, timeout)
-            QApplication.processEvents()
             
     @memoize
     def python_like_mod_finder(self, import_line, alt_path=None, 
@@ -410,6 +290,84 @@ class IntrospectionPlugin(object):
         for (language, extensions) in sourcecode.ALL_LANGUAGES.items():
             exts.extend(list(extensions))
         return ['.' + ext for ext in exts]
+
+
+# TODO: put these in the base plugin
+def _get_module_completion(text):
+    """Get completions for import statements using module_completion.
+    """
+    text = text.lstrip()
+    comp_list = module_completion(text, self.path)
+    words = text.split(' ')
+    if text.startswith('import'):
+        if ',' in words[-1]:
+            words = words[-1].split(',')
+    else:
+        if '(' in words[-1]:
+            words = words[:-2] + words[-1].split('(')
+        if ',' in words[-1]:
+            words = words[:-2] + words[-1].split(',')
+    completion_text = words[-1]
+    return comp_list, completion_text
+
+
+
+def get_obj_info():
+
+        source_code = self.get_source_code()
+        offset = self.find_nearest_function_call(position)
+
+        # Get calltip and docs
+        helplist = self.introspection_plugin.get_calltip_and_docs(source_code,
+                                                         offset, self.filename)
+        if not helplist:
+            return
+        obj_fullname = ''
+        signature = ''
+        cts, doc_text = helplist
+
+        obj_fullname, '', '', '', not auto
+
+        if cts:
+            cts = cts.replace('.__init__', '')
+            parpos = cts.find('(')
+            if parpos:
+                obj_fullname = cts[:parpos]
+                obj_name = obj_fullname.split('.')[-1]
+                cts = cts.replace(obj_fullname, obj_name)
+                signature = cts
+                if ('()' in cts) or ('(...)' in cts):
+                    # Either inspected object has no argument, or it's
+                    # a builtin or an extension -- in this last case
+                    # the following attempt may succeed:
+                    signature = getsignaturefromtext(doc_text, obj_name)
+        if not obj_fullname:
+            obj_fullname = sourcecode.get_primary_at(source_code, offset)
+        if obj_fullname and not obj_fullname.startswith('self.') and doc_text:
+            # doc_text was generated by utils.dochelpers.getdoc
+            if type(doc_text) is dict:
+                obj_fullname = doc_text['name']
+                argspec = doc_text['argspec']
+                note = doc_text['note']
+                doc_text = doc_text['docstring']
+            elif signature:
+                argspec_st = signature.find('(')
+                argspec = signature[argspec_st:]
+                module_end = obj_fullname.rfind('.')
+                module = obj_fullname[:module_end]
+                note = 'Present in %s module' % module
+            else:
+                argspec = ''
+                note = ''
+            
+        elif obj_fullname:
+            self.emit(SIGNAL(
+                    "send_to_inspector(QString,QString,QString,QString,bool)"),
+                    obj_fullname, '', '', '', not auto)
+        if signature:
+            self.editor.show_calltip('Arguments', signature, signature=True,
+                                     at_position=position)
+
 
 
 def split_words(string):

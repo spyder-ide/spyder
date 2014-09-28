@@ -3,13 +3,12 @@ import re
 from collections import OrderedDict
 
 from spyderlib.baseconfig import DEBUG, get_conf_path, debug_print
-from spyderlib.utils.dochelpers import getsignaturefromtext
+from spyderlib.utils.introspection.module_completion import (
+    get_preferred_submodules)
 from spyderlib.utils import sourcecode
 from spyderlib.utils.debug import log_last_error
-from spyderlib.utils.introspection.module_completion import (module_completion,
-                                                             get_preferred_submodules)
-from spyderlib.py3compat import to_text_string
 
+from spyderlib.qt.QtGui import QApplication
 from spyderlib.qt.QtCore import SIGNAL, QThread, QObject
 
 
@@ -21,8 +20,8 @@ DEBUG_EDITOR = DEBUG >= 3
 class GetSubmodulesThread(QThread):
 
     """
-    A thread to generate a list of submodules to be passed to Rope
-    extension_modules preference
+    A thread to generate a list of submodules to be passed to
+    introspection plugins
     """
 
     def __init__(self):
@@ -48,10 +47,12 @@ class IntrospectionThread(QThread):
 
     def run(self):
         func = getattr(self.plugin, 'get_%s' % self.info.name)
+        self.plugin.busy = True
         try:
             self.result = func(self.info)
         except Exception as e:
             debug_print(e)
+        self.plugin.busy = False
         self.emit(SIGNAL('introspection_complete()'))
 
 
@@ -78,6 +79,7 @@ class Info(object):
         lines = self.source_code[:position].splitlines()
         self.line_num = len(lines)
         self.line = lines[-1]
+        self.column = len(lines[-1])
 
         tokens = re.split(self.id_regex, self.line, re.UNICODE)
         if len(tokens) >= 2 and tokens[-1] == '':
@@ -112,7 +114,7 @@ class PluginManager(QObject):
 
     def load_plugins(self):
         """Get and load a plugin, checking in order of PLUGINS"""
-        plugins = dict()
+        plugins = OrderedDict()
         for plugin_name in PLUGINS:
             mod_name = plugin_name + '_plugin'
             try:
@@ -165,16 +167,27 @@ class PluginManager(QObject):
             for plugin in self.plugins.values():
                 plugin.validate()
 
+    def is_editor_ready(self):
+        """Check if the main app is starting up"""
+        if self.editor_widget:
+            window = self.editor_widget.window()
+            if hasattr(window, 'is_starting_up') and not window.is_starting_up:
+                return True
+
     def _handle_request(self, info, desired=None):
-        if self._use_fallback(info):
+        editor = info.editor
+        if ((not editor.is_python_like())
+                or sourcecode.is_keyword(info.object)
+                or editor.in_comment_or_string()):
             desired = 'fallback'
+
         self.pending = (info, desired)
-        if self.busy:
-            return
-        self._handle_pending()
+        if not self.busy:
+            self._handle_pending()
 
     def _handle_pending(self):
         if not self.pending:
+            self._post_message('')
             return
         info, desired = self.pending
         if desired is None or self.plugins[desired].busy:
@@ -188,6 +201,8 @@ class PluginManager(QObject):
     def _make_async_call(self, plugin, info):
         self.busy = True
         self._thread = IntrospectionThread(plugin, info)
+        self._post_message('Getting %s from %s plugin'
+                           % info.name, plugin.name)
         self.connect(self._thread, SIGNAL('introspection_complete()'),
                      self._introspection_complete)
         self._thread.start()
@@ -226,20 +241,20 @@ class PluginManager(QObject):
         info.editor.show_completion_list(comp_list, completion_text,
                                          prev_info.automatic)
 
-    def _handle_info_response(self, help_info, info, prev_info):
+    def _handle_info_response(self, resp, info, prev_info):
         # make sure we are on the same line of text
         if info.line_num != prev_info.line_num:
             return
 
-        if help_info['obj_fullname']:
+        if resp['name']:
             self.emit(SIGNAL(
                 "send_to_inspector(QString,QString,QString,QString,bool)"),
-                help_info['obj_fullname'], help_info['argspec'],
-                help_info['note'], help_info['doc_text'],
+                resp['name'], resp['argspec'],
+                resp['note'], resp['doc_text'],
                 not prev_info.auto)
 
-        if help_info['signature']:
-            self.editor.show_calltip('Arguments', help_info['signature'],
+        if resp['calltip']:
+            self.editor.show_calltip('Arguments', resp['calltip'],
                                      signature=True,
                                      at_position=prev_info.position)
 
@@ -248,120 +263,44 @@ class PluginManager(QObject):
         self.emit(SIGNAL("edit_goto(QString,int,QString)"),
                   fname, lineno, "")
 
-    def _use_fallback(self, info):
-        editor = info.editor
-        obj = info.object
-
-        if not editor.is_python_like():
-            return True
-        elif editor.is_python_like() and sourcecode.is_keyword(obj):
-            return True
-        elif editor.in_comment_or_string():
-            return True
-        return False
-
     def _update_extension_modules(self):
         for plugin in self.plugins:
             plugin.set_pref('extension_modules',
                             self._submods_thread.submods)
 
-
-# TODO: put these in the base plugin
-def _get_module_completion(text):
-    """Get completions for import statements using module_completion.
-    """
-    text = text.lstrip()
-    comp_list = module_completion(text, self.path)
-    words = text.split(' ')
-    if text.startswith('import'):
-        if ',' in words[-1]:
-            words = words[-1].split(',')
-    else:
-        if '(' in words[-1]:
-            words = words[:-2] + words[-1].split('(')
-        if ',' in words[-1]:
-            words = words[:-2] + words[-1].split(',')
-    completion_text = words[-1]
-    return comp_list, completion_text
-
-
-
-def get_obj_info():
-
-        source_code = self.get_source_code()
-        offset = self.find_nearest_function_call(position)
-
-        # Get calltip and docs
-        helplist = self.introspection_plugin.get_calltip_and_docs(source_code,
-                                                         offset, self.filename)
-        if not helplist:
-            return
-        obj_fullname = ''
-        signature = ''
-        cts, doc_text = helplist
-
-        obj_fullname, '', '', '', not auto
-
-        if cts:
-            cts = cts.replace('.__init__', '')
-            parpos = cts.find('(')
-            if parpos:
-                obj_fullname = cts[:parpos]
-                obj_name = obj_fullname.split('.')[-1]
-                cts = cts.replace(obj_fullname, obj_name)
-                signature = cts
-                if ('()' in cts) or ('(...)' in cts):
-                    # Either inspected object has no argument, or it's
-                    # a builtin or an extension -- in this last case
-                    # the following attempt may succeed:
-                    signature = getsignaturefromtext(doc_text, obj_name)
-        if not obj_fullname:
-            obj_fullname = sourcecode.get_primary_at(source_code, offset)
-        if obj_fullname and not obj_fullname.startswith('self.') and doc_text:
-            # doc_text was generated by utils.dochelpers.getdoc
-            if type(doc_text) is dict:
-                obj_fullname = doc_text['name']
-                argspec = doc_text['argspec']
-                note = doc_text['note']
-                doc_text = doc_text['docstring']
-            elif signature:
-                argspec_st = signature.find('(')
-                argspec = signature[argspec_st:]
-                module_end = obj_fullname.rfind('.')
-                module = obj_fullname[:module_end]
-                note = 'Present in %s module' % module
-            else:
-                argspec = ''
-                note = ''
-            
-        elif obj_fullname:
-            self.emit(SIGNAL(
-                    "send_to_inspector(QString,QString,QString,QString,bool)"),
-                    obj_fullname, '', '', '', not auto)
-        if signature:
-            self.editor.show_calltip('Arguments', signature, signature=True,
-                                     at_position=position)
-
+    def _post_message(self, message, timeout=60000):
+        """
+        Post a message to the main window status bar with a timeout in ms
+        """
+        if self.editor_widget:
+            statusbar = self.editor_widget.window().statusBar()
+            statusbar.showMessage(message, timeout)
+            QApplication.processEvents()
 
 
 class IntrospectionPlugin(object):
 
-    def __init__(self, manager):
-        self.manager = manager
-        self.manager.connect(self, SIGNAL('introspection_completion(QString)'),
-                             self.manager.introspection_complete)
-
     def load_plugin(self):
-        raise NotImplementedError
+        pass
 
-    def get_completion_list(self, info):
-        raise NotImplementedError
+    def get_completions(self, info):
+        pass
 
-    def get_calltip_and_docs(self, info):
-        raise NotImplementedError
+    def get_info(self, info):
+        """
+        Find the calltip and docs
 
-    def get_definition_location(self, info):
-        raise NotImplementedError
+        Returns a dict like the following:
+           {'note': 'Function of numpy.core.numeric...',
+            'argspec': "(shape, dtype=None, order='C')'
+            'docstring': 'Return an array of given...'
+            'name': 'ones',
+            'calltip': 'ones(shape, dtype=None, order='C')'}
+        """
+        pass
+
+    def get_definition(self, info):
+        pass
 
     def set_pref(self, name, value):
         """Set a plugin preference to a value"""
