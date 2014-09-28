@@ -99,6 +99,12 @@ class Info(object):
             self.func_call_col = 0
             self.func_call_offset = position
 
+    def split_words(self, position=None):
+        if position is None:
+            position = self.offset
+        text = self.source_code[:position]
+        return re.findall(self.id_regex, text, re.UNICODE)
+
 
 class PluginManager(QObject):
 
