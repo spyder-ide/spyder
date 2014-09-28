@@ -4,11 +4,12 @@ import re
 from spyderlib.baseconfig import DEBUG, get_conf_path, debug_print
 from spyderlib.utils.dochelpers import getsignaturefromtext
 from spyderlib.utils import sourcecode
+from spyderlib.utils.debug import log_last_error
 from spyderlib.utils.introspection.module_completion import (module_completion,
                                                       get_preferred_submodules)
 
 
-from spyderlib.qt.QtCore import SIGNAL
+from spyderlib.qt.QtCore import SIGNAL, QThread, QObject
 
 
 PLUGINS = ['jedi', 'rope', 'fallback']
@@ -29,16 +30,6 @@ class GetSubmodulesThread(QThread):
         self.submods = get_preferred_submodules()
         self.emit(SIGNAL('submods_ready()'))
 
-
-self.submods_thread = GetSubmodulesThread()
-self.connect(self.submods_thread, SIGNAL('submods_ready()'),
-             self.update_extension_modules)
-self.submods_thread.start()
-
-
-def update_extension_modules(self):
-    self.introspection_plugin.set_pref('extension_modules',
-                                   self.submods_thread.submods)
 
 class Info(object):
     """Store the information about an introspection request.
@@ -76,13 +67,22 @@ class Info(object):
             self.func_call_offset = offset
 
 
-class PluginManager(object):
+class PluginManager(QObject):
 
     def __init__(self, editor_widget):
         self.editor_widget = editor_widget
         self.pending = None
         self.busy = False
         self.load_plugins()
+        self.submods_thread = GetSubmodulesThread()
+        self.connect(self.submods_thread, SIGNAL('submods_ready()'),
+                     self.update_extension_modules)
+        self.submods_thread.start()
+
+    def update_extension_modules(self):
+        for plugin in self.plugins:
+            plugin.set_pref('extension_modules',
+                            self.submods_thread.submods)
 
     def load_plugins(self):
         """Get and load a plugin, checking in order of PLUGINS"""
@@ -179,7 +179,6 @@ class PluginManager(object):
     def _handle_response(self, info):
         pass
 
-
     def trigger_code_completion(self, automatic, token_based=False):
         """Trigger code completion"""
         source_code = self.get_source_code()
@@ -228,7 +227,6 @@ class PluginManager(object):
     def trigger_token_completion(self, automatic):
         """Trigger a completion using tokens only"""
         self.trigger_code_completion(automatic, token_based=True)
-
 
     def find_nearest_function_call(self, position):
         """Find the nearest function call at or prior to current position"""
