@@ -179,6 +179,10 @@ class IntrospectionPlugin(object):
         else:
             start = 0
         items = [i[start:len(base)] + i[len(base):].split('.')[0] for i in items]
+
+        if base.endswith('.'):
+            items = []
+
         return list(sorted(items))
 
     def is_editor_ready(self):
@@ -475,15 +479,14 @@ if __name__ == '__main__':
     path, line = p.get_definition_location_regex(code, len(code), 'dummy.txt')
     assert path == 'dummy.txt' and line == 1
     
-    code = 'self.proxy.widget; self.'
+    code = 'self.proxy.widget; self.p'
     comp = p.get_token_completion_list(code, len(code), None)
     assert comp == ['proxy']
     
-    code = 'self.sigMessageReady.emit; self.'
+    code = 'self.sigMessageReady.emit; self.s'
     comp = p.get_token_completion_list(code, len(code), None)
     assert comp == ['sigMessageReady']
     
     code = encoding.to_unicode('álfa;á')
     comp = p.get_token_completion_list(code, len(code), None)
     assert comp == [encoding.to_unicode('álfa')]
-    
