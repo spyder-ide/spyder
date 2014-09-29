@@ -20,7 +20,7 @@ from spyderlib.utils.debug import log_dt, log_last_error
 from spyderlib.utils import sourcecode, encoding
 from spyderlib.utils.introspection.module_completion import module_completion
 from spyderlib.utils.introspection.plugin_manager import (
-    DEBUG_EDITOR, LOG_FILENAME, IntrospectionPlugin)
+    DEBUG_EDITOR, LOG_FILENAME, IntrospectionPlugin, memoize)
 
 
 class FallbackPlugin(IntrospectionPlugin):
@@ -36,7 +36,7 @@ class FallbackPlugin(IntrospectionPlugin):
         """
         if (info.line.strip().startswith(('import ', 'from ')) and
                 info.is_python_like):
-            completions = module_completion(info.line, [info.filename])
+            items = module_completion(info.line, [info.filename])
         else:
             base = info.obj
             tokens = set(info.split_words(-1))
@@ -47,7 +47,8 @@ class FallbackPlugin(IntrospectionPlugin):
             else:
                 start = 0
             items = [i[start:len(base)] + i[len(base):].split('.')[0]
-
+                     for i in items]
+        return list(sorted(items))
 
     def get_definition(self, info):
         """
