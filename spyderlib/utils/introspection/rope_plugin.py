@@ -285,3 +285,16 @@ if __name__ == '__main__':
     path, line_nr = p.get_definition(CodeInfo('definition',source_code,
         len(source_code), __file__))
     assert 'pyplot.py' in path 
+
+    code = '''
+def test(a, b):
+    """Test docstring"""
+    pass
+test(1,'''
+    path, line = p.get_definition(CodeInfo('definition', code, len(code),
+        'dummy.txt'))
+    assert line == 2
+
+    docs = p.get_info(CodeInfo('info', code, len(code), __file__))
+    assert 'Test docstring' in docs['docstring']
+

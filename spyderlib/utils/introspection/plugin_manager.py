@@ -86,10 +86,8 @@ class CodeInfo(object):
             func_call = re.findall(self.func_call_regex, self.line)
             if func_call:
                 self.obj = func_call[-1]
-                self.col = (self.line.index(self.func_call)
-                                      + len(self.func_call))
-                self.offset = (position - len(self.line)
-                                         + self.func_call_col)
+                self.col = self.line.index(self.obj) + len(self.obj)
+                self.position = position - len(self.line) + self.col
 
     def split_words(self, position=None):
         if position is None:
