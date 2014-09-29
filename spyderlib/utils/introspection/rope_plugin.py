@@ -282,7 +282,7 @@ if __name__ == '__main__':
     assert 'numpy' in completions 
     
     source_code = "import matplotlib.pyplot as plt; plt.imsave"
-    path, line_nr = p.get_definition(CodeInfo('definition',source_code,
+    path, line_nr = p.get_definition(CodeInfo('definition', source_code,
         len(source_code), __file__))
     assert 'pyplot.py' in path 
 
@@ -297,4 +297,3 @@ test(1,'''
 
     docs = p.get_info(CodeInfo('info', code, len(code), __file__))
     assert 'Test docstring' in docs['docstring']
-

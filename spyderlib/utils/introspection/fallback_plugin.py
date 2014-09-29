@@ -14,7 +14,6 @@ import os
 import os.path as osp
 import re
 import time
-import functools
 
 from spyderlib.baseconfig import DEBUG, get_conf_path, debug_print
 from spyderlib.utils.debug import log_dt, log_last_error
@@ -22,29 +21,6 @@ from spyderlib.utils import sourcecode, encoding
 from spyderlib.utils.introspection.module_completion import module_completion
 from spyderlib.utils.introspection.plugin_manager import (
     DEBUG_EDITOR, LOG_FILENAME, IntrospectionPlugin)
-
-
-def memoize(obj):
-    """
-    Memoize objects to trade memory for execution speed
-
-    Use a limited size cache to store the value, which takes into account
-    The calling args and kwargs
-
-    See https://wiki.python.org/moin/PythonDecoratorLibrary#Memoize
-    """
-    cache = obj.cache = {}
-
-    @functools.wraps(obj)
-    def memoizer(*args, **kwargs):
-        key = str(args) + str(kwargs)
-        if key not in cache:
-            cache[key] = obj(*args, **kwargs)
-        # only keep the most recent 100 entries
-        if len(cache) > 100:
-            cache.popitem(last=False)
-        return cache[key]
-    return memoizer
 
 
 class FallbackPlugin(IntrospectionPlugin):
@@ -239,32 +215,6 @@ def get_matches(patterns, source, token, start_line):
     return matches
 
 
-@memoize
-def get_parent_until(path):
-    """
-    Given a file path, determine the full module path
-
-    e.g. '/usr/lib/python2.7/dist-packages/numpy/core/__init__.pyc' yields
-    'numpy.core'
-    """
-    dirname = osp.dirname(path)
-    try:
-        mod = osp.basename(path)
-        mod = osp.splitext(mod)[0]
-        imp.find_module(mod, [dirname])
-    except ImportError:
-        return
-    items = [mod]
-    while 1:
-        items.append(osp.basename(dirname))
-        try:
-            dirname = osp.dirname(dirname)
-            imp.find_module('__init__', [dirname + os.sep])
-        except ImportError:
-            break
-    return '.'.join(reversed(items))
-
-
 def python_like_exts():
     """Return a list of all python-like extensions"""
     exts = []
@@ -329,7 +279,7 @@ if __name__ == '__main__':
     ext = all_editable_exts()
     assert '.cfg' in ext and '.iss' in ext
     
-    path = get_parent_until(os.path.abspath(__file__))
+    path = p.get_parent_until(os.path.abspath(__file__))
     assert path == 'spyderlib.utils.introspection.fallback_plugin'
     
     line = 'from spyderlib.widgets.sourcecode.codeeditor import CodeEditor'
@@ -338,7 +288,7 @@ if __name__ == '__main__':
     path = python_like_mod_finder(line, stop_token='sourcecode')
     assert path.endswith('__init__.py') and 'sourcecode' in path
     
-    path = get_parent_until(osp.expanduser(r'~/.spyder2/temp.py'))
+    path = p.get_parent_until(osp.expanduser(r'~/.spyder2/temp.py'))
     assert path == '.spyder2.temp'
     
     code = 'import re\n\nre'

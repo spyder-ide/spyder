@@ -11,6 +11,7 @@ import re
 import os.path as osp
 import sys
 import time
+import threading
 
 from spyderlib import dependencies
 from spyderlib.baseconfig import _, debug_print
@@ -49,7 +50,8 @@ class JediPlugin(IntrospectionPlugin):
             raise ImportError('Requires Jedi %s' % JEDI_REQVER)
         jedi.settings.case_insensitive_completion = False
         self.busy = True
-        self.preload()
+        self._warmup_thread = threading.Thread(target=self.preload)
+        self._warmup_thread.start()
 
     def get_completions(self, info):
         """Return a list of completion strings"""
@@ -68,8 +70,6 @@ class JediPlugin(IntrospectionPlugin):
             'calltip': 'ones(shape, dtype=None, order='C')'}
         """
         call_def = self.get_jedi_object('goto_definitions', info)
-        if call_def and not call_def[0].type == 'module':
-            return
         for cd in call_def:
             if cd.doc and not cd.doc.rstrip().endswith(')'):
                 call_def = cd
@@ -120,17 +120,19 @@ class JediPlugin(IntrospectionPlugin):
         module.  Falls back on token lookup if it is in an enaml file or does
         not find a match
         """
-        line, filename = info.line_nr, info.filename
+        line, filename = info.line_num, info.filename
         def_info, module_path, line_nr = None, None, None
         gotos = self.get_jedi_object('goto_assignments', info)
         if gotos:
             def_info = self.get_definition_info(gotos[0])
-        if def_info and info['goto_next']:
+        if def_info and def_info['goto_next']:
             defns = self.get_jedi_object('goto_definitions', info)
             if defns:
                 new_info = self.get_definition_info(defns[0])
             if not new_info['in_builtin']:
                 def_info = new_info
+        elif not def_info:
+            return
         # handle builtins -> try and find the module
         if def_info and def_info['in_builtin']:
             module_path, line_nr = self.find_in_builtin(def_info)
@@ -138,7 +140,7 @@ class JediPlugin(IntrospectionPlugin):
             module_path = def_info['module_path']
             line_nr = def_info['line_nr']
         if module_path == filename and line_nr == line:
-            raise ValueError
+            return
         return module_path, line_nr
 
     def set_pref(self, name, value):
@@ -239,34 +241,45 @@ class JediPlugin(IntrospectionPlugin):
 
 if __name__ == '__main__':
 
+    from spyderlib.utils.introspection.plugin_manager import CodeInfo
+
     p = JediPlugin()
     p.load_plugin()
 
     print('Warming up Jedi')
     t0 = time.time()
-    while p._warming_up:
+    while p.busy:
         time.sleep(0.1)
     print('Warmed up in %0.1f s' % (time.time() - t0))
 
     source_code = "import numpy; numpy.ones("
-    calltip, docs = p.get_calltip_and_docs(source_code, len(source_code),
-                                           None)
+    docs = p.get_info(CodeInfo('info', source_code, len(source_code)))
 
-    assert calltip.startswith('ones(') and docs['name'] == 'ones'
+    assert docs['calltip'].startswith('ones(') and docs['name'] == 'ones'
 
     source_code = "import n"
-    completions = p.get_completion_list(source_code, len(source_code),
-                                        None)
+    completions = p.get_completions(CodeInfo('completions', source_code,
+        len(source_code)))
     assert 'numpy' in completions
 
     source_code = "import matplotlib.pyplot as plt; plt.imsave"
-    path, line_nr = p.get_definition_location(source_code, len(source_code),
-                                              None)
+    path, line_nr = p.get_definition(CodeInfo('definition', source_code,
+        len(source_code)))
     assert 'pyplot.py' in path
 
-    source_code = 'from .base import memoize'
-    path, line_nr = p.get_definition_location(source_code, len(source_code),
-                                              __file__)
-    assert 'base.py' in path and 'introspection' in path
+    source_code = 'from .plugin_manager import memoize'
+    path, line_nr = p.get_definition(CodeInfo('definition', source_code,
+        len(source_code), __file__))
+    assert 'plugin_manager.py' in path and 'introspection' in path
 
+    code = '''
+def test(a, b):
+    """Test docstring"""
+    pass
+test(1,'''
+    path, line = p.get_definition(CodeInfo('definition', code, len(code),
+        'dummy.txt'))
+    assert line == 2
 
+    docs = p.get_info(CodeInfo('info', code, len(code), __file__))
+    assert 'Test docstring' in docs['docstring']

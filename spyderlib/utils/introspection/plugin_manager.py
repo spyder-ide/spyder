@@ -1,6 +1,10 @@
 from __future__ import print_function
 import re
 from collections import OrderedDict
+import functools
+import os.path as osp
+import os
+import imp
 
 from spyderlib.baseconfig import DEBUG, get_conf_path, debug_print
 from spyderlib.utils.introspection.module_completion import (
@@ -86,8 +90,8 @@ class CodeInfo(object):
             func_call = re.findall(self.func_call_regex, self.line)
             if func_call:
                 self.obj = func_call[-1]
-                self.col = self.line.index(self.obj) + len(self.obj)
-                self.position = position - len(self.line) + self.col
+                self.column = self.line.index(self.obj) + len(self.obj)
+                self.position = position - len(self.line) + self.column
 
     def split_words(self, position=None):
         if position is None:
@@ -293,6 +297,29 @@ class PluginManager(QObject):
             QApplication.processEvents()
 
 
+def memoize(obj):
+    """
+    Memoize objects to trade memory for execution speed
+
+    Use a limited size cache to store the value, which takes into account
+    The calling args and kwargs
+
+    See https://wiki.python.org/moin/PythonDecoratorLibrary#Memoize
+    """
+    cache = obj.cache = {}
+
+    @functools.wraps(obj)
+    def memoizer(*args, **kwargs):
+        key = str(args) + str(kwargs)
+        if key not in cache:
+            cache[key] = obj(*args, **kwargs)
+        # only keep the most recent 100 entries
+        if len(cache) > 100:
+            cache.popitem(last=False)
+        return cache[key]
+    return memoizer
+
+
 class IntrospectionPlugin(object):
 
     def load_plugin(self):
@@ -324,3 +351,29 @@ class IntrospectionPlugin(object):
     def validate(self):
         """Validate the plugin"""
         pass
+
+    @staticmethod
+    @memoize
+    def get_parent_until(path):
+        """
+        Given a file path, determine the full module path
+
+        e.g. '/usr/lib/python2.7/dist-packages/numpy/core/__init__.pyc' yields
+        'numpy.core'
+        """
+        dirname = osp.dirname(path)
+        try:
+            mod = osp.basename(path)
+            mod = osp.splitext(mod)[0]
+            imp.find_module(mod, [dirname])
+        except ImportError:
+            return
+        items = [mod]
+        while 1:
+            items.append(osp.basename(dirname))
+            try:
+                dirname = osp.dirname(dirname)
+                imp.find_module('__init__', [dirname + os.sep])
+            except ImportError:
+                break
+        return '.'.join(reversed(items))
