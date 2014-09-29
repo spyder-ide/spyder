@@ -62,7 +62,7 @@ class CodeInfo(object):
     func_call_regex = re.compile(r'([^\d\W][\w\.]*)\([^\)\()]*\Z',
                                  re.UNICODE)
 
-    def __init__(self, name, source_code, position, filename,
+    def __init__(self, name, source_code, position, filename=None,
             is_python_like=True):
         self.name = name
         self.filename = filename

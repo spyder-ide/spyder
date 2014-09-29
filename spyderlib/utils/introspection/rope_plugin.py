@@ -13,7 +13,7 @@ from spyderlib import dependencies
 from spyderlib.baseconfig import get_conf_path, _, STDERR
 from spyderlib.utils import encoding, programs
 from spyderlib.py3compat import PY2
-from spyderlib.utils.dochelpers import getcalltipfromtext
+from spyderlib.utils.dochelpers import getsignaturefromtext
 from spyderlib.utils import sourcecode
 from spyderlib.utils.debug import log_last_error, log_dt
 from spyderlib.utils.introspection.plugin_manager import (
@@ -69,7 +69,7 @@ class RopePlugin(IntrospectionPlugin):
             return
         filename = info.filename
         source_code = info.source_code
-        offset = info.offset
+        offset = info.position
 
         if PY2:
             filename = filename.encode('utf-8')
@@ -103,7 +103,7 @@ class RopePlugin(IntrospectionPlugin):
             return
         filename = info.filename
         source_code = info.source_code
-        offset = info.offset
+        offset = info.position
 
         if PY2:
             filename = filename.encode('utf-8')
@@ -164,7 +164,7 @@ class RopePlugin(IntrospectionPlugin):
                     # Either inspected object has no argument, or it's
                     # a builtin or an extension -- in this last case
                     # the following attempt may succeed:
-                    calltip = getcalltipfromtext(doc_text, obj_name)
+                    calltip = getsignaturefromtext(doc_text, obj_name)
         if not obj_fullname:
             obj_fullname = sourcecode.get_primary_at(source_code, offset)
         if obj_fullname and not obj_fullname.startswith('self.') and doc_text:
@@ -191,7 +191,7 @@ class RopePlugin(IntrospectionPlugin):
 
         filename = info.filename
         source_code = info.source_code
-        offset = info.offset
+        offset = info.position
 
         if PY2:
             filename = filename.encode('utf-8')
@@ -266,20 +266,22 @@ class RopePlugin(IntrospectionPlugin):
 
 if __name__ == '__main__':
 
+    from spyderlib.utils.introspection.plugin_manager import CodeInfo
+    
     p = RopePlugin()
     p.load_plugin()
 
     source_code = "import numpy; numpy.ones"
-    calltip, docs = p.get_calltip_and_docs(source_code, len(source_code),
-                                           __file__)
-    assert 'ones(' in calltip and 'ones(' in docs
+    docs = p.get_info(CodeInfo('info', source_code, len(source_code),
+                                           __file__))
+    assert 'ones(' in docs['calltip'] and 'ones(' in docs['docstring']
     
     source_code = "import numpy; n"
-    completions = p.get_completion_list(source_code, len(source_code),
-                                        __file__)
+    completions = p.get_completions(CodeInfo('completions', source_code,
+        len(source_code), __file__))
     assert 'numpy' in completions 
     
     source_code = "import matplotlib.pyplot as plt; plt.imsave"
-    path, line_nr = p.get_definition_location(source_code, len(source_code),
-                                            __file__)
+    path, line_nr = p.get_definition(CodeInfo('definition',source_code,
+        len(source_code), __file__))
     assert 'pyplot.py' in path 
