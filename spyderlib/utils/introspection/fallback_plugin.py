@@ -19,7 +19,7 @@ import functools
 from spyderlib.baseconfig import DEBUG, get_conf_path, debug_print
 from spyderlib.utils.debug import log_dt, log_last_error
 from spyderlib.utils import sourcecode, encoding
-from spyderlib.utils.introspection.plugin_manager import IntrospectionPlugin
+from spyderlib.utils.introspection.module_completion import module_completion
 from spyderlib.utils.introspection.plugin_manager import (
     DEBUG_EDITOR, LOG_FILENAME, IntrospectionPlugin)
 
@@ -59,7 +59,7 @@ class FallbackPlugin(IntrospectionPlugin):
         Simple completion based on python-like identifiers and whitespace
         """
         if (info.line.strip().startswith(('import ', 'from ')) and
-                info.editor.is_python_like()):
+                info.is_python_like):
             completions = module_completion(info.line, [info.filename])
         else:
             base = info.obj
@@ -89,16 +89,10 @@ class FallbackPlugin(IntrospectionPlugin):
 
         line_nr = None
         if '.' in token:
-            temp = token.split('.')[-1]
-            line_nr = get_definition_with_regex(source_code, temp,
-                                                     len(lines))
-        if line_nr is None:
-            line_nr = get_definition_with_regex(source_code, token,
-                                                 len(lines), True)
-        if line_nr is None and '.' in token:
-            temp = token.split('.')[-1]
-            line_nr = get_definition_with_regex(source_code, temp,
-                                                 len(lines), True)
+            token = token.split('.')[-1]
+
+        line_nr = get_definition_with_regex(source_code, token,
+                                            len(lines))
         if line_nr is None:
             return
         line = info.line
@@ -180,8 +174,7 @@ def python_like_mod_finder(import_line, alt_path=None,
                 return path
 
 
-def get_definition_with_regex(source, token, start_line=-1,
-                              use_assignment=False):
+def get_definition_with_regex(source, token, start_line=-1):
     """
     Find the definition of an object within a source closest to a given line
     """
@@ -201,27 +194,19 @@ def get_definition_with_regex(source, token, start_line=-1,
                 'attr.*\W{0}{1}',
                 'event.*\W{0}{1}',
                 'id\s*:.*\W{0}{1}']
-    if use_assignment:
-        patterns += ['.*\Wself.{0}{1}[^=!<>]*=[^=]',
+
+    matches = get_matches(patterns, source, token, start_line)
+
+    if not matches:
+        patterns = ['.*\Wself.{0}{1}[^=!<>]*=[^=]',
                     '.*\W{0}{1}[^=!<>]*=[^=]',
                     'self.{0}{1}[^=!<>]*=[^=]',
                     '{0}{1}[^=!<>]*=[^=]']
-    patterns = [pattern.format(token, r'[^0-9a-zA-Z.[]')
-                for pattern in patterns]
-    pattern = re.compile('|^'.join(patterns))
-    # add the trailing space to allow some regexes to match
-    eol = sourcecode.get_eol_chars(source) or '\n'
-    lines = source.split(eol)
-    lines = [line.strip() + ' ' for line in lines]
-    if start_line == -1:
-        start_line = len(lines)
-    matches = []
-    for (index, line) in enumerate(lines):
-        if re.match(pattern, line):
-            matches.append(index + 1)
+        matches = get_matches(patterns, source, token, start_line)
+
     # find the one closest to the start line (prefer before the start line)
     if matches:
-        min_dist = len(lines)
+        min_dist = len(source.splitlines())
         best_ind = 0
         for match in matches:
             dist = abs(start_line - match)
@@ -237,6 +222,21 @@ def get_definition_with_regex(source, token, start_line=-1,
         if DEBUG_EDITOR:
             log_dt(LOG_FILENAME, 'regex definition failed match', t0)
         return None
+
+
+def get_matches(patterns, source, token, start_line):
+    patterns = [pattern.format(token, r'[^0-9a-zA-Z.[]')
+            for pattern in patterns]
+    pattern = re.compile('|^'.join(patterns))
+    # add the trailing space to allow some regexes to match
+    lines = [line.strip() + ' ' for line in source.splitlines()]
+    if start_line == -1:
+        start_line = len(lines)
+    matches = []
+    for (index, line) in enumerate(lines):
+        if re.match(pattern, line):
+            matches.append(index + 1)
+    return matches
 
 
 @memoize
@@ -282,30 +282,35 @@ def all_editable_exts():
 
 
 if __name__ == '__main__':
-    p = IntrospectionPlugin()
+    from spyderlib.utils.introspection.plugin_manager import CodeInfo
     
+    p = FallbackPlugin()
+
     with open(__file__, 'rb') as fid:
         code = fid.read().decode('utf-8')
     code += '\nget_conf_path'
-    path, line = p.get_definition_location_regex(code, len(code), __file__)
-    assert path.endswith('baseconfig.py')
-    
-    comp = p.get_token_completion_list(code[:-2], len(code) - 2, None)
-    assert comp == ['get_conf_path']
-    
-    code += '\np.get_token_completion_list'
-    path, line = p.get_definition_location_regex(code, len(code), 'dummy.txt')
+
+    path, line = p.get_definition(CodeInfo('definition', code, len(code),
+        __file__))
+    assert path == 'fallback_plugin.py'
+
+    code += '\np.get_completions'
+    path, line = p.get_definition(CodeInfo('definition', code, len(code),
+        'dummy.txt'))
     assert path == 'dummy.txt'
-    assert 'def get_token_completion_list(' in code.splitlines()[line - 1]
+    assert 'def get_completions(' in code.splitlines()[line - 1]
     
-    code += '\np.python_like_mod_finder'
-    path, line = p.get_definition_location_regex(code, len(code), 'dummy.txt')
+    code += '\npython_like_mod_finder'
+    path, line = p.get_definition(CodeInfo('definition', code, len(code),
+        'dummy.txt'))
     assert path == 'dummy.txt'
+    # FIXME: we need to prioritize def over =
     assert 'def python_like_mod_finder' in code.splitlines()[line - 1]
     
     code += 'python_like_mod_finder'
-    path, line = p.get_definition_location_regex(code, len(code), 'dummy.txt')
-    assert line is None
+    resp = p.get_definition(CodeInfo('definition', code, len(code),
+        'dummy.txt'))
+    assert resp is None
     
     code = """
     class Test(object):
@@ -314,40 +319,53 @@ if __name__ == '__main__':
             
     t = Test()
     t.foo"""
-    path, line = p.get_definition_location_regex(code, len(code), 'dummy.txt')
+    path, line = p.get_definition(CodeInfo('definition', code, len(code),
+        'dummy.txt'))
     assert line == 4
 
-    ext = p.python_like_exts()
+    ext = python_like_exts()
     assert '.py' in ext and '.pyx' in ext
     
-    ext = p.all_editable_exts()
+    ext = all_editable_exts()
     assert '.cfg' in ext and '.iss' in ext
     
-    path = p.get_parent_until(os.path.abspath(__file__))
-    assert path == 'spyderlib.utils.introspection.base'
+    path = get_parent_until(os.path.abspath(__file__))
+    assert path == 'spyderlib.utils.introspection.fallback_plugin'
     
     line = 'from spyderlib.widgets.sourcecode.codeeditor import CodeEditor'
-    path = p.python_like_mod_finder(line)
+    path = python_like_mod_finder(line)
     assert path.endswith('codeeditor.py')
-    path = p.python_like_mod_finder(line, stop_token='sourcecode')
+    path = python_like_mod_finder(line, stop_token='sourcecode')
     assert path.endswith('__init__.py') and 'sourcecode' in path
     
-    path = p.get_parent_until(osp.expanduser(r'~/.spyder2/temp.py'))
+    path = get_parent_until(osp.expanduser(r'~/.spyder2/temp.py'))
     assert path == '.spyder2.temp'
     
     code = 'import re\n\nre'
-    path, line = p.get_definition_location_regex(code, len(code), 'dummy.txt')
+    path, line = p.get_definition(CodeInfo('definition', code, len(code),
+        'dummy.txt'))
     assert path == 'dummy.txt' and line == 1
-    
+
     code = 'self.proxy.widget; self.'
-    comp = p.get_token_completion_list(code, len(code), None)
+    comp = p.get_completions(CodeInfo('completions', code, len(code), None))
     assert comp == ['proxy']
     
     code = 'self.sigMessageReady.emit; self.'
-    comp = p.get_token_completion_list(code, len(code), None)
+    comp = p.get_completions(CodeInfo('completions', code, len(code), None))
     assert comp == ['sigMessageReady']
     
     code = encoding.to_unicode('álfa;á')
-    comp = p.get_token_completion_list(code, len(code), None)
+    comp = p.get_completions(CodeInfo('completions', code, len(code), None))
     assert comp == [encoding.to_unicode('álfa')]
-    
+
+    code = 'from numpy import one'
+    comp = p.get_completions(CodeInfo('completions', code, len(code), None))
+    assert 'ones' in comp
+
+    comp = p.get_completions(CodeInfo('completions', code, len(code), None,
+        is_python_like=False))
+    assert not comp
+
+    code = 'from numpy.testing import (asse'
+    comp = p.get_completions(CodeInfo('completions', code, len(code), None))
+    assert 'assert_equal' in comp

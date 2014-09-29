@@ -56,41 +56,34 @@ class IntrospectionThread(QThread):
         self.emit(SIGNAL('introspection_complete()'))
 
 
-class Info(object):
+class CodeInfo(object):
 
-    """Store the information about an introspection request.
-    """
-    id_regex = re.compile(r'[^\d\W]\w*', re.UNICODE)
-    func_call_regex = re.compile(r'([^\d\W]\w*)\([^\)\()]*\Z',
+    id_regex = re.compile(r'[^\d\W][\w\.]*', re.UNICODE)
+    func_call_regex = re.compile(r'([^\d\W][\w\.]*)\([^\)\()]*\Z',
                                  re.UNICODE)
 
-    def __init__(self, name, editor_widget, position=None):
-
-        self.editor = editor_widget.get_current_editor()
-        self.finfo = editor_widget.get_current_finfo()
+    def __init__(self, name, source_code, position, filename,
+            is_python_like=True):
         self.name = name
-        self.source_code = self.finfo.get_source_code()
-        self.filename = self.finfo.filename
-
-        if position is None:
-            position = self.editor.get_position('cursor')
+        self.filename = filename
+        self.source_code = source_code
         self.position = position
+        self.is_python_like = is_python_like
 
-        lines = self.source_code[:position].splitlines()
-        self.line_num = len(lines)
-        self.line = lines[-1]
-        self.column = len(lines[-1])
+        self.lines = source_code[:position].splitlines()
+        self.line_num = len(self.lines)
+        self.line = self.lines[-1]
+        self.column = len(self.lines[-1])
 
-        tokens = re.split(self.id_regex, self.line, re.UNICODE)
-        if len(tokens) >= 2 and tokens[-1] == '':
-            self.object = tokens[-2]
+        tokens = re.findall(self.id_regex, self.line)
+        if tokens and self.line.endswith(tokens[-1]):
+            self.obj = tokens[-1]
         else:
-            self.object = None
+            self.obj = None
 
-        if (self.name in ['info', 'definition'] and (not self.object)
-                and self.editor.is_python_like()):
-            func_call = re.findall(self.func_call_regex, self.line,
-                               re.UNICODE)
+        if (self.name in ['info', 'definition'] and (not self.obj)
+                and self.is_python_like):
+            func_call = re.findall(self.func_call_regex, self.line)
             if func_call:
                 self.obj = func_call[-1]
                 self.col = (self.line.index(self.func_call)
@@ -102,7 +95,26 @@ class Info(object):
         if position is None:
             position = self.offset
         text = self.source_code[:position]
-        return re.findall(self.id_regex, text, re.UNICODE)
+        return re.findall(self.id_regex, text)
+
+
+class Info(CodeInfo):
+
+    """Store the information about an introspection request.
+    """
+    def __init__(self, name, editor_widget, position=None):
+
+        self.editor = editor_widget.get_current_editor()
+        self.finfo = editor_widget.get_current_finfo()
+        self.name = name
+        self.source_code = self.finfo.get_source_code()
+        self.filename = self.finfo.filename
+
+        if position is None:
+            position = self.editor.get_position('cursor')
+        self.position = position
+        super(Info, self).__init__(name, self.source_code, position,
+            self.filename, self.editor.is_python_like())
 
 
 class PluginManager(QObject):
