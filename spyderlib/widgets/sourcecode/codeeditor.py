@@ -30,9 +30,9 @@ from spyderlib.qt.QtGui import (QColor, QMenu, QApplication, QSplitter, QFont,
                                 QInputDialog, QTextBlockUserData, QLineEdit,
                                 QKeySequence, QWidget, QVBoxLayout,
                                 QHBoxLayout, QDialog, QIntValidator,
-                                QDialogButtonBox, QGridLayout)
-from spyderlib.qt.QtCore import (Qt, SIGNAL, QTimer, QRect, QRegExp, QSize,
-                                 SLOT, Slot)
+                                QDialogButtonBox, QGridLayout, QPaintEvent)
+from spyderlib.qt.QtCore import (Qt, SIGNAL, Signal, QTimer, QRect, QRegExp, 
+                                 QSize, SLOT, Slot)
 from spyderlib.qt.compat import to_qvariant
 
 #%% This line is for cell execution testing
@@ -158,6 +158,18 @@ class LineNumberArea(QWidget):
         """Override Qt method"""
         self.code_editor.linenumberarea_mousedoubleclick_event(event)
 
+    def mousePressEvent(self, event):
+        """Override Qt method"""
+        self.code_editor.linenumberarea_mousepress_event(event)
+
+    def mouseReleaseEvent(self, event):
+        """Override Qt method"""
+        self.code_editor.linenumberarea_mouserelease_event(event)
+
+    def wheelEvent(self, event):
+        """Override Qt method"""
+        self.code_editor.wheelEvent(event)
+
 
 class ScrollFlagArea(QWidget):
     """Source code editor's scroll flag area"""
@@ -219,6 +231,10 @@ class ScrollFlagArea(QWidget):
         pos2 = self.value_to_position(value + vsb.pageStep(), slider=True)
         return QRect(1, pos1, self.WIDTH-2, pos2-pos1+1)
 
+    def wheelEvent(self, event):
+        """Override Qt method"""
+        self.code_editor.wheelEvent(event)
+
 
 class EdgeLine(QWidget):
     """Source code editor's edge line (default: 79 columns, PEP8)"""
@@ -275,9 +291,10 @@ def get_file_language(filename, text=None):
         for line in text.splitlines():
             if not line.strip():
                 continue
-            if line.startswith('#!') and \
-               line[2:].split() == ['/usr/bin/env', 'python']:
-                    language = 'python'
+            if line.startswith('#!'):
+               shebang = line[2:]
+               if 'python' in shebang:
+                   language = 'python'
             else:
                 break
     return language
@@ -315,6 +332,9 @@ class CodeEditor(TextEditBaseWidget):
     
     TAB_ALWAYS_INDENTS = ('py', 'pyw', 'python', 'c', 'cpp', 'cl', 'h')
 
+    # Custom signal to be emitted upon completion of the editor's paintEvent 
+    painted = Signal(QPaintEvent)
+    
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
 
@@ -328,9 +348,6 @@ class CodeEditor(TextEditBaseWidget):
 
         # Caret (text cursor)
         self.setCursorWidth( CONF.get('editor_appearance', 'cursor/width') )
-
-        # Side areas background color
-        self.area_background_color = QColor(Qt.white)
 
         # 79-col edge line
         self.edge_line_enabled = True
@@ -354,6 +371,20 @@ class CodeEditor(TextEditBaseWidget):
                      self.update_linenumberarea_width)
         self.connect(self, SIGNAL("updateRequest(QRect,int)"),
                      self.update_linenumberarea)
+        self.linenumberarea_pressed = -1
+        self.linenumberarea_released = -1
+
+        # Colors to be defined in _apply_highlighter_color_scheme()
+        # Currentcell color and current line color are defined in base.py
+        self.occurence_color = None
+        self.ctrl_click_color = None
+        self.sideareas_color = None
+        self.matched_p_color = None
+        self.unmatched_p_color = None
+        self.normal_color = None
+        self.comment_color = None
+        
+        self.linenumbers_color = QColor(Qt.darkGray)
 
 
         # --- Syntax highlight entrypoint ---
@@ -444,12 +475,16 @@ class CodeEditor(TextEditBaseWidget):
         self.setMouseTracking(True)
         self.__cursor_changed = False
         self.ctrl_click_color = QColor(Qt.blue)
-        
+
         # Breakpoints
         self.breakpoints = self.get_breakpoints()
 
         # Keyboard shortcuts
         self.shortcuts = self.create_shortcuts()
+
+        # Code editor
+        self.__visible_blocks = []  # Visible blocks, update with repaint
+        self.painted.connect(self._draw_editor_cell_divider)
 
     def create_shortcuts(self):
         codecomp = create_shortcut(self.do_completion, context='Editor',
@@ -673,8 +708,8 @@ class CodeEditor(TextEditBaseWidget):
     def intelligent_tab(self):
         """Provide intelligent behavoir for Tab key press"""
         leading_text = self.get_text('sol', 'cursor')
-        if not leading_text.strip(): 
-            # blank line
+        if not leading_text.strip() or leading_text.endswith('#'):
+            # blank line or start of comment
             self.indent_or_replace()
         elif self.in_comment_or_string() and not leading_text.endswith(' '):
             # in a word in a comment
@@ -963,51 +998,51 @@ class CodeEditor(TextEditBaseWidget):
 
     def linenumberarea_paint_event(self, event):
         """Painting line number area"""
-        font_height = self.fontMetrics().height()
         painter = QPainter(self.linenumberarea)
-        painter.fillRect(event.rect(), self.area_background_color)
+        painter.fillRect(event.rect(), self.sideareas_color)
+        font = painter.font()
+        font_height = self.fontMetrics().height()
 
-        block = self.firstVisibleBlock()
-        block_number = block.blockNumber()
-        top = self.blockBoundingGeometry(block).translated(
-                                                    self.contentOffset()).top()
-        bottom = top + self.blockBoundingRect(block).height()
+        active_block = self.textCursor().block()
+        active_line_number = active_block.blockNumber() + 1
 
         def draw_pixmap(ytop, pixmap):
-            painter.drawPixmap(0, ytop+(font_height-pixmap.height())/2, pixmap)
-        while block.isValid() and top <= event.rect().bottom():
-            if block.isVisible() and bottom >= event.rect().top():
-                line_number = block_number+1
-                painter.setPen(Qt.darkGray)
-                if self.is_cell_separator(block):
-                    painter.setPen(Qt.red)
-                    painter.drawLine(0, top, self.linenumberarea.width(), top)
-                if self.linenumbers_margin:
-                    painter.drawText(0, top, self.linenumberarea.width(),
-                                     font_height, Qt.AlignRight|Qt.AlignBottom,
-                                     to_text_string(line_number))
-                data = block.userData()
-                if self.markers_margin and data:
-                    if data.code_analysis:
-                        for _message, error in data.code_analysis:
-                            if error:
-                                break
-                        if error:
-                            draw_pixmap(top, self.error_pixmap)
-                        else:
-                            draw_pixmap(top, self.warning_pixmap)
-                    if data.todo:
-                        draw_pixmap(top, self.todo_pixmap)
-                    if data.breakpoint:
-                        if data.breakpoint_condition is None:
-                            draw_pixmap(top, self.bp_pixmap)
-                        else:
-                            draw_pixmap(top, self.bpc_pixmap)
+            painter.drawPixmap(0, ytop + (font_height-pixmap.height()) / 2,
+                               pixmap)
 
-            block = block.next()
-            top = bottom
-            bottom = top + self.blockBoundingRect(block).height()
-            block_number += 1
+        for top, line_number, block in self.visible_blocks:
+            if self.linenumbers_margin:
+                if line_number == active_line_number:
+                    font.setWeight(font.Bold)
+                    painter.setFont(font)
+                    painter.setPen(self.normal_color)
+                else:
+                    font.setWeight(font.Normal)
+                    painter.setFont(font)
+                    painter.setPen(self.linenumbers_color)
+
+                painter.drawText(0, top, self.linenumberarea.width(),
+                                 font_height,
+                                 Qt.AlignRight | Qt.AlignBottom,
+                                 to_text_string(line_number))
+
+            data = block.userData()
+            if self.markers_margin and data:
+                if data.code_analysis:
+                    for _message, error in data.code_analysis:
+                        if error:
+                            break
+                    if error:
+                        draw_pixmap(top, self.error_pixmap)
+                    else:
+                        draw_pixmap(top, self.warning_pixmap)
+                if data.todo:
+                    draw_pixmap(top, self.todo_pixmap)
+                if data.breakpoint:
+                    if data.breakpoint_condition is None:
+                        draw_pixmap(top, self.bp_pixmap)
+                    else:
+                        draw_pixmap(top, self.bpc_pixmap)
 
     def __get_linenumber_from_mouse_event(self, event):
         """Return line number from mouse event"""
@@ -1030,14 +1065,65 @@ class CodeEditor(TextEditBaseWidget):
         line_number = self.__get_linenumber_from_mouse_event(event)
         block = self.document().findBlockByNumber(line_number-1)
         data = block.userData()
-        if data and data.code_analysis:
+
+        # this disables pyflakes messages if there is an active drag/selection
+        # operation
+        check = self.linenumberarea_released == -1
+        if data and data.code_analysis and check:
             self.__show_code_analysis_results(line_number, data.code_analysis)
+
+        if event.buttons() == Qt.LeftButton:
+            self.linenumberarea_released = line_number
+            self.linenumberarea_select_lines(self.linenumberarea_pressed,
+                                             self.linenumberarea_released)
 
     def linenumberarea_mousedoubleclick_event(self, event):
         """Handling line number area mouse double-click event"""
         line_number = self.__get_linenumber_from_mouse_event(event)
         shift = event.modifiers() & Qt.ShiftModifier
         self.add_remove_breakpoint(line_number, edit_condition=shift)
+
+    def linenumberarea_mousepress_event(self, event):
+        """Handling line number area mouse double press event"""
+        line_number = self.__get_linenumber_from_mouse_event(event)
+        self.linenumberarea_pressed = line_number
+        self.linenumberarea_released = line_number
+        self.linenumberarea_select_lines(self.linenumberarea_pressed,
+                                         self.linenumberarea_released)
+
+    def linenumberarea_mouserelease_event(self, event):
+        """Handling line number area mouse release event"""
+        self.linenumberarea_released = -1
+        self.linenumberarea_pressed = -1
+
+    def linenumberarea_select_lines(self, linenumber_pressed,
+                                    linenumber_released):
+        """Select line(s) after a mouse press/mouse press drag event"""
+        find_block_by_line_number = self.document().findBlockByLineNumber
+        move_n_blocks = (linenumber_released - linenumber_pressed)
+        start_line = linenumber_pressed
+        start_block = find_block_by_line_number(start_line - 1)
+
+        cursor = self.textCursor()
+        cursor.setPosition(start_block.position())
+
+        # Select/drag downwards
+        if move_n_blocks > 0:
+            for n in range(abs(move_n_blocks) + 1):
+                cursor.movePosition(cursor.NextBlock, cursor.KeepAnchor)
+        # Select/drag upwards or select single line
+        else:
+            cursor.movePosition(cursor.NextBlock)
+            for n in range(abs(move_n_blocks) + 1):
+                cursor.movePosition(cursor.PreviousBlock, cursor.KeepAnchor)
+
+        # Account for last line case
+        if linenumber_released == self.blockCount():
+            cursor.movePosition(cursor.EndOfBlock, cursor.KeepAnchor)
+        else:
+            cursor.movePosition(cursor.StartOfBlock, cursor.KeepAnchor)
+
+        self.setTextCursor(cursor)
 
     #------Breakpoints
     def add_remove_breakpoint(self, line_number=None, condition=None,
@@ -1100,7 +1186,7 @@ class CodeEditor(TextEditBaseWidget):
         self.breakpoints = []
         for data in self.blockuserdata_list[:]:
             data.breakpoint = False
-#            data.breakpoint_condition = None # not necessary, but logical
+            # data.breakpoint_condition = None  # not necessary, but logical
             if data.is_empty():
                 del data
 
@@ -1162,7 +1248,7 @@ class CodeEditor(TextEditBaseWidget):
         
         # Filling the whole painting area
         painter = QPainter(self.scrollflagarea)
-        painter.fillRect(event.rect(), self.area_background_color)
+        painter.fillRect(event.rect(), self.sideareas_color)
         block = self.document().firstBlock()
         
         # Painting warnings and todos
@@ -1268,7 +1354,9 @@ class CodeEditor(TextEditBaseWidget):
             self.currentcell_color = hl.get_currentcell_color()
             self.occurence_color = hl.get_occurence_color()
             self.ctrl_click_color = hl.get_ctrlclick_color()
-            self.area_background_color = hl.get_sideareas_color()
+            self.sideareas_color = hl.get_sideareas_color()
+            self.comment_color = hl.get_comment_color()
+            self.normal_color = hl.get_foreground_color()
             self.matched_p_color = hl.get_matched_p_color()
             self.unmatched_p_color = hl.get_unmatched_p_color()
 
@@ -1313,8 +1401,8 @@ class CodeEditor(TextEditBaseWidget):
         """Set the text of the editor"""
         self.setPlainText(text)
         self.set_eol_chars(text)
-#        if self.supported_language:
-#            self.highlighter.rehighlight()
+        #if self.supported_language:
+            #self.highlighter.rehighlight()
 
     def set_text_from_file(self, filename, language=None):
         """Set the text of the editor from file *fname*"""
@@ -2094,7 +2182,8 @@ class CodeEditor(TextEditBaseWidget):
         self.gotodef_action = create_action(self, _("Go to definition"),
                                    triggered=self.go_to_definition_from_cursor)
         run_selection_action = create_action(self,
-                        _("Run &selection"), icon='run_selection.png',
+                        _("Run &selection or current line"),
+                        icon='run_selection.png',
                         triggered=lambda: self.emit(SIGNAL('run_selection()')))
         zoom_in_action = create_action(self, _("Zoom in"),
                       QKeySequence(QKeySequence.ZoomIn), icon='zoom_in.png',
@@ -2116,7 +2205,7 @@ class CodeEditor(TextEditBaseWidget):
         add_actions(self.readonly_menu,
                     (self.copy_action, None, selectall_action,
                      self.gotodef_action))
-    
+
     def keyPressEvent(self, event):
         """Reimplement Qt method"""
         key = event.key()
@@ -2368,6 +2457,60 @@ class CodeEditor(TextEditBaseWidget):
         else:
             TextEditBaseWidget.dropEvent(self, event)
 
+    #------ Paint event
+    def paintEvent(self, event):
+        """Overrides paint event to update the list of visible blocks"""
+        self.update_visible_blocks(event)
+        TextEditBaseWidget.paintEvent(self, event)
+        self.painted.emit(event)
+
+    def update_visible_blocks(self, event):
+        """Update the list of visible blocks/lines position"""
+        self.__visible_blocks[:] = []
+        block = self.firstVisibleBlock()
+        blockNumber = block.blockNumber()
+        top = int(self.blockBoundingGeometry(block).translated(
+            self.contentOffset()).top())
+        bottom = top + int(self.blockBoundingRect(block).height())
+        ebottom_top = 0
+        ebottom_bottom = self.height()
+
+        while block.isValid():
+            visible = (top >= ebottom_top and bottom <= ebottom_bottom)
+            if not visible:
+                break
+            if block.isVisible():
+                self.__visible_blocks.append((top, blockNumber+1, block))
+            block = block.next()
+            top = bottom
+            bottom = top + int(self.blockBoundingRect(block).height())
+            blockNumber = block.blockNumber()
+
+    def _draw_editor_cell_divider(self):
+        """ draw a line on top of a define cell """
+        cell_line_color = self.comment_color
+        painter = QPainter(self.viewport())
+        pen = painter.pen()
+        pen.setStyle(Qt.SolidLine)
+        pen.setBrush(cell_line_color)
+        painter.setPen(pen)
+
+        for top, line_number, block in self.visible_blocks:
+            if self.is_cell_separator(block):
+                painter.drawLine(4, top, self.width(), top)
+
+    @property
+    def visible_blocks(self):
+        """
+        Returns the list of visible blocks.
+
+        Each element in the list is a tuple made up of the line top position,
+        the line number (already 1 based), and the QTextBlock itself.
+
+        :return: A list of tuple(top position, line number, block)
+        :rtype: List of tuple(int, int, QtGui.QTextBlock)
+        """
+        return self.__visible_blocks
 
 #===============================================================================
 # CodeEditor's Printer

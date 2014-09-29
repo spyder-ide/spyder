@@ -264,6 +264,11 @@ def get_supported_types():
         editable_types += [ndarray, matrix, generic]
     except ImportError:
         pass
+    try:
+        from pandas import DataFrame, TimeSeries
+        editable_types += [DataFrame, TimeSeries]
+    except ImportError:
+        pass
     picklable_types = editable_types[:]
     try:
         from spyderlib.pil_patch import Image

@@ -25,8 +25,8 @@ from spyderlib.plugins.configdialog import GeneralConfigPage
 from spyderlib.py3compat import to_text_string, getcwd
 
 
-CURRENT_INTERPRETER = _("Execute in current Python or IPython interpreter")
-DEDICATED_INTERPRETER = _("Execute in a new dedicated Python interpreter")
+CURRENT_INTERPRETER = _("Execute in current Python or IPython console")
+DEDICATED_INTERPRETER = _("Execute in a new dedicated Python console")
 SYSTERM_INTERPRETER = _("Execute in an external System terminal")
 
 CURRENT_INTERPRETER_OPTION = 'default/interpreter/current'
@@ -51,6 +51,7 @@ class RunConfiguration(object):
         self.current = None
         self.systerm = None
         self.interact = None
+        self.show_kill_warning = None
         self.python_args = None
         self.python_args_enabled = None
         self.set(CONF.get('run', 'defaultconfiguration', default={}))
@@ -74,6 +75,7 @@ class RunConfiguration(object):
         self.systerm = options.get('systerm',
                            CONF.get('run', SYSTERM_INTERPRETER_OPTION, False))
         self.interact = options.get('interact', False)
+        self.show_kill_warning = options.get('show_kill_warning', True)
         self.python_args = options.get('python_args', '')
         self.python_args_enabled = options.get('python_args/enabled', False)
         
@@ -86,6 +88,7 @@ class RunConfiguration(object):
                 'current': self.current,
                 'systerm': self.systerm,
                 'interact': self.interact,
+                'show_kill_warning': self.show_kill_warning,
                 'python_args/enabled': self.python_args_enabled,
                 'python_args': self.python_args,
                 }
@@ -172,7 +175,7 @@ class RunConfigOptions(QWidget):
         common_layout.addLayout(wd_layout, 1, 1)
         
         # --- Interpreter ---
-        interpreter_group = QGroupBox(_("Interpreter"))
+        interpreter_group = QGroupBox(_("Console"))
         interpreter_layout = QVBoxLayout()
         interpreter_group.setLayout(interpreter_layout)
         self.current_radio = QRadioButton(CURRENT_INTERPRETER)
@@ -183,23 +186,27 @@ class RunConfigOptions(QWidget):
         interpreter_layout.addWidget(self.systerm_radio)
         
         # --- Dedicated interpreter ---
-        new_group = QGroupBox(_("Dedicated Python interpreter"))
+        new_group = QGroupBox(_("Dedicated Python console"))
         self.connect(self.current_radio, SIGNAL("toggled(bool)"),
                      new_group.setDisabled)
         new_layout = QGridLayout()
         new_group.setLayout(new_layout)
         self.interact_cb = QCheckBox(_("Interact with the Python "
-                                       "interpreter after execution"))
+                                       "console after execution"))
         new_layout.addWidget(self.interact_cb, 1, 0, 1, -1)
+        
+        self.show_kill_warning_cb = QCheckBox(_("Show warning when killing"
+                                                " running process"))
+        new_layout.addWidget(self.show_kill_warning_cb, 2, 0, 1, -1)
         self.pclo_cb = QCheckBox(_("Command line options:"))
-        new_layout.addWidget(self.pclo_cb, 2, 0)
+        new_layout.addWidget(self.pclo_cb, 3, 0)
         self.pclo_edit = QLineEdit()
         self.connect(self.pclo_cb, SIGNAL("toggled(bool)"),
                      self.pclo_edit.setEnabled)
         self.pclo_edit.setEnabled(False)
         self.pclo_edit.setToolTip(_("<b>-u</b> is added to the "
                                     "other options you set here"))
-        new_layout.addWidget(self.pclo_edit, 2, 1)
+        new_layout.addWidget(self.pclo_edit, 3, 1)
         
         #TODO: Add option for "Post-mortem debugging"
 
@@ -244,6 +251,7 @@ class RunConfigOptions(QWidget):
         else:
             self.dedicated_radio.setChecked(True)
         self.interact_cb.setChecked(self.runconf.interact)
+        self.show_kill_warning_cb.setChecked(self.runconf.show_kill_warning)
         self.pclo_cb.setChecked(self.runconf.python_args_enabled)
         self.pclo_edit.setText(self.runconf.python_args)
     
@@ -255,6 +263,7 @@ class RunConfigOptions(QWidget):
         self.runconf.current = self.current_radio.isChecked()
         self.runconf.systerm = self.systerm_radio.isChecked()
         self.runconf.interact = self.interact_cb.isChecked()
+        self.runconf.show_kill_warning = self.show_kill_warning_cb.isChecked()
         self.runconf.python_args_enabled = self.pclo_cb.isChecked()
         self.runconf.python_args = to_text_string(self.pclo_edit.text())
         return self.runconf.get()
@@ -435,7 +444,7 @@ class RunConfigPage(GeneralConfigPage):
                                ) % (run_dlg, run_dlg, run_menu))
         about_label.setWordWrap(True)
 
-        interpreter_group = QGroupBox(_("Interpreter"))
+        interpreter_group = QGroupBox(_("Console"))
         interpreter_bg = QButtonGroup(interpreter_group)
         self.current_radio = self.create_radiobutton(CURRENT_INTERPRETER,
                                 CURRENT_INTERPRETER_OPTION, True,

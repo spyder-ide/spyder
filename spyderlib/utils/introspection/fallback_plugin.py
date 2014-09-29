@@ -47,9 +47,7 @@ class FallbackPlugin(IntrospectionPlugin):
             else:
                 start = 0
             items = [i[start:len(base)] + i[len(base):].split('.')[0]
-                     for i in items]
-            completions = list(sorted(items))
-        return completions
+
 
     def get_definition(self, info):
         """
@@ -296,11 +294,11 @@ if __name__ == '__main__':
         'dummy.txt'))
     assert path == 'dummy.txt' and line == 1
 
-    code = 'self.proxy.widget; self.'
+    code = 'self.proxy.widget; self.p'
     comp = p.get_completions(CodeInfo('completions', code, len(code)))
     assert comp == ['proxy']
     
-    code = 'self.sigMessageReady.emit; self.'
+    code = 'self.sigMessageReady.emit; self.s'
     comp = p.get_completions(CodeInfo('completions', code, len(code)))
     assert comp == ['sigMessageReady']
     

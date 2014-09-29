@@ -6,13 +6,15 @@
 
 """
 Bootstrapping Spyder
-(Executing Spyder from source checkout)
 
-This script is a contribution from techtonik:
+Detect environment and execute Spyder from source checkout
 http://code.google.com/p/spyderlib/issues/detail?id=741
 """
 
 # pylint: disable=C0103
+
+import time
+time_start = time.time()
 
 import os
 import os.path as osp
@@ -33,9 +35,6 @@ parser.add_option('--gui', default=None,
                   help="GUI toolkit: pyqt (for PyQt4) or pyside (for PySide)")
 parser.add_option('--hide-console', action='store_true',
                   default=False, help="Hide parent console window (Windows only)")
-parser.add_option('--versions', dest="versions", action='store_true',
-                  default=False,
-                  help="Show Qt and Python versions used by Spyder")
 parser.add_option('--test', dest="test", action='store_true', default=False,
                   help="Test Spyder with a clean settings dir")
 parser.add_option('--no-apport', action='store_true',
@@ -129,20 +128,14 @@ if options.debug:
     # if operation is successful
 
 
-if options.versions:
-    # Importing spyder (among other things, this has the effect of setting the 
-    # QT_API environment variable if this has not yet been done just above)
-
-    # FIXME: `from spyderlib import spyder` is necessary with current package 
-    # structure to avoid "AttributeError: 'module' object has no attribute 'qt'"
-    # when importing get_versions (see Issue 1320 for more details).
-    from spyderlib import spyder
-    from spyderlib import get_versions
-    versions = get_versions()
-    print("03. Imported Spyder %s" % versions['spyder'])
-    print("    [Python %s %dbits, Qt %s, %s %s on %s]" % \
-          (versions['python'], versions['bitness'], versions['qt'],
-           versions['qt_api'], versions['qt_api_ver'], versions['system']))
+# Checking versions (among other things, this has the effect of setting the
+# QT_API environment variable if this has not yet been done just above)
+from spyderlib import get_versions
+versions = get_versions(reporev=False)
+print("03. Imported Spyder %s" % versions['spyder'])
+print("    [Python %s %dbits, Qt %s, %s %s on %s]" % \
+      (versions['python'], versions['bitness'], versions['qt'],
+       versions['qt_api'], versions['qt_api_ver'], versions['system']))
 
 
 # --- Executing Spyder
@@ -153,4 +146,11 @@ if not options.hide_console and os.name == 'nt':
 
 print("04. Executing spyder.main()")
 from spyderlib import start_app
+
+time_lapse = time.time()-time_start
+print("Bootstrap completed in " +
+    time.strftime("%H:%M:%S.", time.gmtime(time_lapse)) +  
+    # gmtime() converts float into tuple, but loses milliseconds
+    ("%.4f" % time_lapse).split('.')[1])
+
 start_app.main()

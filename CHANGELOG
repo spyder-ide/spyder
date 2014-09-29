@@ -1,5 +1,157 @@
 = History of changes =
 
+== Version 2.3.1 ==
+
+=== New features since v2.3.0 ===
+
+  * Variable Explorer
+    * Support for Pandas DataFrame's and TimeSerie's types
+    * Support for Numpy 3D arrays
+    * Drag and drop works for all its supported file types (e.g. images, mat files, json files, etc)
+
+  * Editor
+    * F9 runs the current line under the cursor if nothing is selected
+    * Focus remains on it after evaluating cells and selections (an option was added to return to the old behavior)
+    
+  * IPython console
+    * Connect to external kernels through ssh
+
+  * Object Inspector
+    * Add a tutorial for beginners
+
+  * Main Window
+    * Improve style on Mac
+
+=== Bug fixes (since v2.3.1) ===
+
+  * Issue  93  Variable explorer: allow array editor to deal with arrays with more than 2 dimensions
+  * Issue  1160  Variable Explorer: add support for pandas objects
+  * Issue  1305  mayavi plot hangs when IPython graphics backend is inline (default)
+  * Issue  1319  Spyder is not getting its taskbar icon right in Win 7/8
+  * Issue  1445  Linux style middle mouse button paste not executed in console
+  * Issue  1530  Wrong encoding for date in pylint widget
+  * Issue  1590  Add numpy matrices as a supported type to the Variable Explorer
+  * Issue  1604  spyder 2.2.5 freezes with netCDF4-python
+  * Issue  1627  Run selection (F9) changes focus to Python interpreter, but ex-Matlab users expect the focus to remain on the editor
+  * Issue  1670  Provide a "Run current line" feature
+  * Issue  1690  Feature request: connect to existing IPython kernel over ssh
+  * Issue  1699  Option to disable middle button paste
+  * Issue  1783  The new cell delimiter when converting a notebook to python file is # In[`*`]
+  * Issue  1863  Ctrl-C doesn't work in a *restarted* IPython console
+  * Issue  1893  Matplotlib plots do not display correctly in 2.3.0 (when running in dedicated python interpreter)
+
+
+----
+
+
+== Version 2.3.0 ==
+
+=== New features since v2.2 ===
+
+  * Python 3 support
+
+  * Editor
+    * Use the Tab key to do code completions
+    * Highlight cells, i.e. portions of a file delimited by separators of the form `# %%`
+    * First-class support for Enaml files
+    * Syntax highlighting for Julia files
+    * Use Shift+Tab to show the signature corresponding to a function/method while it's been called
+    * Do code completions using the tokens (or words) found in a file
+    * Token-based completions work for any file type supported by the Editor
+    * Add a new tooltip widget (borrowed from the IPython project) to better handle how to show function signatures
+    
+  * IPython console
+    * Assign the keyboard shortcut Ctrl+Shift+I to move to it
+    * Open a console by default at startup
+    * Give visual feedback when opening a console
+    * Show kernel error messages in the client tab
+
+  * Object Inspector
+    * Add an intro message to explain how to use it
+    * New style based on the Bootswatch Cerulean theme
+
+  * Main Window
+    * Reorganize several menus
+
+  * Under the hood
+    * Improve startup time
+    * Develop a new way to update configuration defaults (that doesn't involve resetting user settings)
+
+=== Bug fixes (since v2.2) ===
+
+  * Issue  696  Use Tab to do code completion in the Editor
+  * Issue  944  Add Python 3 support
+  * Issue  1068  Shortcut key to switch to IPython console
+  * Issue  1082  IPython console: multiprocessing print output goes to kernel not client
+  * Issue  1152  Use the Editor/Console fonts for the code completion widget
+  * Issue  1243  Bootstrap fails under Python 3.2
+  * Issue  1356  IPython ImportError by not using absolute_import
+  * Issue  1374  IPython 1.0dev is giving "ImportError: No module named kernelmanager"
+  * Issue  1402  Execute pyflakes, pep8, ... with the Python interpreter specified in Preferences>Console
+  * Issue  1420  Deactivate pager by default in the iPython console (because it's perceived as a freeze)
+  * Issue  1424  Object inspector is broken for external console
+  * Issue  1429  Windows installer for Python 3.3 doesn't finish correctly
+  * Issue  1437  Corrupted contents when saving non-unicode .py files with non-ASCII characters
+  * Issue  1441  Spyder has several problems to start on Windows because pywin32 is not installed
+  * Issue  1465  scientific_startup is defining print_function for Python 2.X interactive consoles
+  * Issue  1466  unicode_literals breaks PySide
+  * Issue  1467  pyflakes flags print "" on python2 systems
+  * Issue  1471  IPython is not enabled in 2.3 (because of mismatched IPython version)
+  * Issue  1473  IPython kernel can't be started, complaining that 'sys' doesn't have attribute 'argv'
+  * Issue  1475  Plotting from the Variable Explorer is not working for IPython consoles
+  * Issue  1479  Opening another file in a running Spyder from the terminal fails in Python 3
+  * Issue  1496  Ctrl+C don't interrupt computations in either the Console or IPython console
+  * Issue  1513  "Replace all" crashes (not always, but regularly)
+  * Issue  1514  Python 3 / Spyder 2.3 : impossible to run temporary script in current interpreter
+  * Issue  1517  Console/IPython console reappear each time Spyder starts
+  * Issue  1519  Old .spyder.ini is not copied to spyder.ini
+  * Issue  1528  Error while shutting down Spyder
+  * Issue  1540  Exception instead of dialog box
+  * Issue  1542  Braces/Parentheses/Brackets Highlighting is broken with v2.3.0dev6 on Windows/Python 3
+  * Issue  1545  Win32 "Spyder Documentation" fails to open
+  * Issue  1556  Show cells in the outline explorer
+  * Issue  1562  Make Windows installers create a desktop shortcut for Spyder
+  * Issue  1567  Accept newer versions of pyflakes
+  * Issue  1618  Please provide a way to not compile the documentation during the build process
+  * Issue  1619  Python3 invalid syntax in figureoptions.py
+  * Issue  1623  Mac app: Editor slow on mac after os update to mavericks
+  * Issue  1628  Profiler runs but doesn't show the results
+  * Issue  1631  Documentation problem with numpy.concatenate
+  * Issue  1646  Different numerical results from "runfile" and "execfile"
+  * Issue  1649  Variable Explorer does not show complex number variables
+  * Issue  1653  2 popup windows during lauch
+  * Issue  1664  Window gone transparent after splash screen
+  * Issue  1675  Redifing any for numpy.any in the console
+  * Issue  1692  Minor problem with the new Tab completion functionality
+  * Issue  1695  Add "psutil" to the list of optional dependancies
+  * Issue  1696  Check marks in display > windows menu are unchecked by moving plugins
+  * Issue  1697  Variable explorer freezes spyder
+  * Issue  1701  pip install spyder does not work any longer (pip version >=1.5)
+  * Issue  1715  debian lintian4py check
+  * Issue  1716  Add new icon and scripts for python3 in Linux
+  * Issue  1723  .pyx Comment and syntax color error in editor
+  * Issue  1731  Support Julia files (.jl) in editor
+  * Issue  1735  Small correction in French translations
+  * Issue  1745  Fix over-aggressive code completion on dot
+  * Issue  1746  Errors when running empty cells
+  * Issue  1752  Unable to read Spyder Documentation. F1 key does not work
+  * Issue  1753  A fix for the behavior of spyderlib\utils\system.py on Windows
+  * Issue  1763  Editor with auto-closing bracket enabled : unabled to type "0" before ")"
+  * Issue  1772  Fix download links on the main page
+  * Issue  1786  problem of icon with spyder 2.3.0 beta4
+  * Issue  1793  Highlight current cell slows down the Editor on big files
+  * Issue  1794  Mouse pointer on vertical line
+  * Issue  1819  Quick layout change unsuccessful
+  * Issue  1828  QAction::eventFilter: Ambiguous shortcut overload: Ctrl+W
+  * Issue  1829  Keyboard shortcuts, Reset to default values errors
+  * Issue  1836  [CTRL]+F4 does not close tabs
+  * Issue  1879  Can't start bootstrap.py with pyqt
+  * Issue  1881  Bootstrap.py won't start with python3
+
+
+----
+
+
 == Version 2.2.5 ==
 
 === Bug fixes (since v2.2.4) ===

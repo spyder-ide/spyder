@@ -27,7 +27,9 @@ try:  # 1.0
     from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
 except ImportError: # 0.13
     from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
+from IPython.core.application import get_ipython_dir
 from IPython.core.oinspect import call_tip
+from IPython.config.loader import Config, load_pyconfig_files
 
 # Local imports
 from spyderlib.baseconfig import (get_conf_path, get_image_path,
@@ -326,16 +328,20 @@ class IPythonClient(QWidget, SaveHistoryMixin):
     
     SEPARATOR = '%s##---(%s)---' % (os.linesep*2, time.ctime())
     
-    def __init__(self, plugin, history_filename, connection_file=None,
+    def __init__(self, plugin, history_filename, connection_file=None, 
+                 hostname=None, sshkey=None, password=None, 
                  kernel_widget_id=None, menu_actions=None):
         super(IPythonClient, self).__init__(plugin)
         SaveHistoryMixin.__init__(self)
         self.options_button = None
-
         self.connection_file = connection_file
         self.kernel_widget_id = kernel_widget_id
+        self.hostname = hostname
+        self.sshkey = sshkey
+        self.password = password
         self.name = ''
-        self.shellwidget = IPythonShellWidget(config=plugin.ipywidget_config(),
+        self.get_option = plugin.get_option
+        self.shellwidget = IPythonShellWidget(config=self.shellwidget_config(),
                                               local_kernel=False)
         self.shellwidget.hide()
         self.infowidget = WebView(self)
@@ -359,7 +365,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         vlayout.addWidget(self.infowidget)
         self.setLayout(vlayout)
         
-        self.exit_callback = lambda: plugin.close_console(client=self)
+        self.exit_callback = lambda: plugin.close_client(client=self)
         
     #------ Public API --------------------------------------------------------
     def show_shellwidget(self, give_focus=True):
@@ -374,8 +380,10 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         self.shellwidget.set_ipyclient(self)
         
         # To save history
-        self.shellwidget.executing.connect(
-                                      lambda c: self.add_to_history(command=c))
+        self.shellwidget.executing.connect(self.add_to_history)
+        
+        # For Mayavi to run correctly
+        self.shellwidget.executing.connect(self.set_backend_for_mayavi)
         
         # To update history after execution
         self.shellwidget.executed.connect(self.update_history)
@@ -416,7 +424,8 @@ class IPythonClient(QWidget, SaveHistoryMixin):
     
     def get_name(self):
         """Return client name"""
-        return _("Console") + " " + self.name
+        return ((_("Console") if self.hostname is None else self.hostname)
+            + " " + self.name)
     
     def get_control(self):
         """Return the text widget (or similar) to give focus to"""
@@ -526,6 +535,19 @@ class IPythonClient(QWidget, SaveHistoryMixin):
     def update_history(self):
         self.history = self.shellwidget._history
     
+    def set_backend_for_mayavi(self, command):
+        calling_mayavi = False
+        lines = command.splitlines()
+        for l in lines:
+            if not l.startswith('#'):
+                if 'import mayavi' in l or 'from mayavi' in l:
+                    calling_mayavi = True
+                    break
+        if calling_mayavi:
+            message = _("Changing backend to Qt for Mayavi")
+            self.shellwidget._append_plain_text(message + '\n')
+            self.shellwidget.execute("%gui inline\n%gui qt")
+    
     def interrupt_message(self):
         """
         Print an interrupt message when the client is connected to an external
@@ -552,6 +574,64 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         """Refresh namespace browser"""
         if self.namespacebrowser:
             self.namespacebrowser.refresh_table()
+    
+    def shellwidget_config(self):
+        """Generate a Config instance for shell widgets using our config
+        system
+        
+        This lets us create each widget with its own config (as opposed to
+        IPythonQtConsoleApp, where all widgets have the same config)
+        """
+        # ---- IPython config ----
+        try:
+            profile_path = osp.join(get_ipython_dir(), 'profile_default')
+            full_ip_cfg = load_pyconfig_files(['ipython_qtconsole_config.py'],
+                                              profile_path)
+            
+            # From the full config we only select the IPythonWidget section
+            # because the others have no effect here.
+            ip_cfg = Config({'IPythonWidget': full_ip_cfg.IPythonWidget})
+        except:
+            ip_cfg = Config()
+       
+        # ---- Spyder config ----
+        spy_cfg = Config()
+        
+        # Make the pager widget a rich one (i.e a QTextEdit)
+        spy_cfg.IPythonWidget.kind = 'rich'
+        
+        # Gui completion widget
+        gui_comp_o = self.get_option('use_gui_completion')
+        completions = {True: 'droplist', False: 'ncurses'}
+        spy_cfg.IPythonWidget.gui_completion = completions[gui_comp_o]
+
+        # Pager
+        pager_o = self.get_option('use_pager')
+        if pager_o:
+            spy_cfg.IPythonWidget.paging = 'inside'
+        else:
+            spy_cfg.IPythonWidget.paging = 'none'
+        
+        # Calltips
+        calltips_o = self.get_option('show_calltips')
+        spy_cfg.IPythonWidget.enable_calltips = calltips_o
+
+        # Buffer size
+        buffer_size_o = self.get_option('buffer_size')
+        spy_cfg.IPythonWidget.buffer_size = buffer_size_o
+        
+        # Prompts
+        in_prompt_o = self.get_option('in_prompt')
+        out_prompt_o = self.get_option('out_prompt')
+        if in_prompt_o:
+            spy_cfg.IPythonWidget.in_prompt = in_prompt_o
+        if out_prompt_o:
+            spy_cfg.IPythonWidget.out_prompt = out_prompt_o
+        
+        # Merge IPython and Spyder configs. Spyder prefs will have prevalence
+        # over IPython ones
+        ip_cfg._merge(spy_cfg)
+        return ip_cfg
     
     #------ Private API -------------------------------------------------------
     def _create_loading_page(self):

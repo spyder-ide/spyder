@@ -240,9 +240,8 @@ DEFAULTS = [
               'qt/install_inputhook': os.name == 'nt' \
                                       or os.environ.get('QT_API') == 'pyside',
               'qt/api': 'default',
-              'pyqt/api_version': 0,
+              'pyqt/api_version': 2,
               'pyqt/ignore_sip_setapi_errors': False,
-              'matplotlib/patch': True,
               'matplotlib/backend/enabled': True,
               'matplotlib/backend/value': 'MacOSX' if (sys.platform == 'darwin' \
                                            and os.environ.get('QT_API') == 'pyside')\
@@ -352,6 +351,7 @@ DEFAULTS = [
               'show_tab_bar': True,
               'max_recent_files': 20,
               'save_all_before_run': True,
+              'focus_to_editor': True,
               'onsave_analysis': False
               }),
             ('historylog',
@@ -492,6 +492,8 @@ DEFAULTS = [
               '_/switch to console': "Ctrl+Shift+C",
               '_/switch to ipython_console': "Ctrl+Shift+I",
               '_/switch to variable_explorer': "Ctrl+Shift+V",
+              '_/switch to find_in_files': "Ctrl+Shift+F",
+              '_/switch to explorer': "Ctrl+Shift+X",
               # ---- Editor ----
               # -- In codeeditor
               'editor/code completion': CTRL+'+Space',
@@ -710,7 +712,7 @@ DEFAULTS = [
 # 2. If you want to *remove* options that are no longer needed in our codebase,
 #    you need to do a MAJOR update in version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '8.1.0'
+CONF_VERSION = '9.0.0'
 
 # XXX: Previously we had load=(not DEV) here but DEV was set to *False*.
 # Check if it *really* needs to be updated or not

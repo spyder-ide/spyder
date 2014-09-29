@@ -70,6 +70,10 @@ class SysOutput(QObject):
         self.queue = []
         self.lock.release()
         return s
+    
+    # We need to add this method to fix Issue 1789
+    def flush(self):
+        pass
 
 class WidgetProxyData(object):
     pass

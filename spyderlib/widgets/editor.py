@@ -293,6 +293,10 @@ class FileInfo(QObject):
         self.emit(SIGNAL('text_changed_at(QString,int)'),
                   self.filename, self.editor.get_position('cursor'))
 
+                if completion_text:
+                    completion_text = completion_text[0]
+                else:
+                    comp_list = []
     def get_source_code(self):
         """Return associated editor source code"""
         return to_text_string(self.editor.toPlainText())
@@ -1836,6 +1840,9 @@ class EditorStack(QWidget):
         if self.focus_to_editor:
             self.get_current_editor().go_to_next_cell()
         else:
+            term = QApplication.focusWidget()
+            self.get_current_editor().go_to_next_cell()
+            term.setFocus()
             term = QApplication.focusWidget()
             self.get_current_editor().go_to_next_cell()
             term.setFocus()

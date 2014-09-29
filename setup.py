@@ -30,7 +30,8 @@ PY3 = sys.version_info[0] == 3
 # This is necessary to prevent an error while installing Spyder with pip
 # See http://stackoverflow.com/a/18961843/438386
 with_setuptools = False
-if 'USE_SETUPTOOLS' in os.environ or 'pip' in __file__:
+if 'USE_SETUPTOOLS' in os.environ or 'pip' in __file__ or \
+  'VIRTUAL_ENV' in os.environ:
     try:
         from setuptools.command.install import install
         with_setuptools = True
@@ -181,7 +182,7 @@ TARGET_MATCH = re.search(r'--target-version=([0-9]*)\.([0-9]*)', JOINEDARGS)
 if TARGET_MATCH:
     TARGET_VERSION = TARGET_MATCH.groups()
 else:
-    TARGET_VERSION = (str(sys.version_info.major), str(sys.version_info.minor))
+    TARGET_VERSION = (str(sys.version_info[0]), str(sys.version_info[1]))
 
 
 def get_packages():
@@ -211,7 +212,7 @@ if PY3 and sys.platform.startswith('linux'):
 else:
     SCRIPTS.append('spyder')
 EXTLIST = ['.mo', '.svg', '.png', '.css', '.html', '.js', '.chm', '.ini',
-           '.txt']
+           '.txt', '.rst']
 if os.name == 'nt':
     SCRIPTS += ['spyder.bat']
     EXTLIST += ['.ico']

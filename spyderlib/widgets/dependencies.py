@@ -161,7 +161,7 @@ class DependenciesDialog(QDialog):
         vlayout.addLayout(hlayout)
 
         self.setLayout(vlayout)
-        self.resize(560, 350)
+        self.resize(630, 420)
         
     def set_data(self, dependencies):
         self.view.model.set_data(dependencies)

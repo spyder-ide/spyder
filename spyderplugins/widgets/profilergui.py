@@ -367,16 +367,12 @@ class ProfilerDataTree(QTreeWidget):
 
     def find_root(self):
         """Find a function without a caller"""
-        for func, (cc, nc, tt, ct, callers) in list(self.stats.items()):
-            if not callers and self.find_callees(func):
+        self.profdata.sort_stats("cumulative")
+        for func in self.profdata.fcn_list:
+            if ('~', 0, '<built-in method exec>') != func: 
+                # This skips the profiler function at the top of the list
+                # it does only occur in Python 3
                 return func
-    
-    def find_root_skip_profilerfuns(self):
-        """Define root ignoring profiler-specific functions."""
-        # FIXME: this is specific to module 'profile' and has to be
-        #        changed for cProfile
-        #return ('', 0, 'execfile')     # For 'profile' module   
-        return ('~', 0, '<execfile>')     # For 'cProfile' module   
     
     def find_callees(self, parent):
         """Find all functions called by (parent) function."""
@@ -390,7 +386,6 @@ class ProfilerDataTree(QTreeWidget):
         self.setItemsExpandable(True)
         self.setSortingEnabled(False)
         rootkey = self.find_root()  # This root contains profiler overhead
-#        rootkey = self.find_root_skip_profilerfuns()
         if rootkey:
             self.populate_tree(self, self.find_callees(rootkey))
             self.resizeColumnToContents(0)
@@ -530,7 +525,7 @@ def test():
     widget.show()
     #widget.analyze(__file__)
     widget.analyze(osp.join(osp.dirname(__file__), os.pardir, os.pardir,
-                            'rope_profiling', 'test.py'))
+                            'spyderlib/widgets', 'texteditor.py'))
     sys.exit(app.exec_())
     
 if __name__ == '__main__':

@@ -78,9 +78,11 @@ requirements.check_qt()
 #==============================================================================
 set_attached_console_visible = None
 is_attached_console_visible = None
+set_windows_appusermodelid = None
 if os.name == 'nt':
     from spyderlib.utils.windows import (set_attached_console_visible,
-                                         is_attached_console_visible)
+                                         is_attached_console_visible,
+                                         set_windows_appusermodelid)
 
 
 #==============================================================================
@@ -445,6 +447,9 @@ class MainWindow(QMainWindow):
         icon_name = 'spyder_light.svg' if self.light else 'spyder.svg'
         # Resampling SVG icon only on non-Windows platforms (see Issue 1314):
         self.setWindowIcon(get_icon(icon_name, resample=os.name != 'nt'))
+        if set_windows_appusermodelid != None:
+            res = set_windows_appusermodelid()
+            debug_print("appusermodelid: " + str(res))
         
         # Showing splash screen
         self.splash = SPLASH
@@ -763,13 +768,14 @@ class MainWindow(QMainWindow):
             self.debug_print("  ..plugin: internal console")
             from spyderlib.plugins.console import Console
             self.console = Console(self, namespace, exitfunc=self.closing,
-                                   profile=self.profile,
-                                   multithreaded=self.multithreaded,
-                                   message="DON'T USE THIS CONSOLE TO RUN CODE!\n\n"
-                                           "It's used to report application errors\n"
-                                           "and to inspect Spyder internals with\n"
-                                           "the following commands:\n"
-                                           "  spy.app, spy.window, dir(spy)")
+                              profile=self.profile,
+                              multithreaded=self.multithreaded,
+                              message=_("Spyder Internal Console\n\n"
+                                        "This console is used to report application\n"
+                                        "internal errors and to inspect Spyder\n"
+                                        "internals with the following commands:\n"
+                                        "  spy.app, spy.window, dir(spy)\n\n"
+                                        "Please don't use it to run your code\n\n"))
             self.console.register_plugin()
             
             # Working directory plugin
@@ -919,8 +925,11 @@ class MainWindow(QMainWindow):
             doc_action = create_bookmark_action(self, spyder_doc,
                                _("Spyder documentation"), shortcut="F1",
                                icon=get_std_icon('DialogHelpButton'))
-            self.help_menu_actions = [doc_action, report_action,
-                                      dep_action, support_action, None]
+            tut_action = create_action(self, _("Spyder tutorial"),
+                                       triggered=self.inspector.show_tutorial)
+            self.help_menu_actions = [doc_action, tut_action, None,
+                                      report_action, dep_action, support_action,
+                                      None]
             # Python documentation
             if get_python_doc_path() is not None:
                 pydoc_act = create_action(self, _("Python documentation"),
@@ -1004,8 +1013,10 @@ class MainWindow(QMainWindow):
             add_actions(web_resources, webres_actions)
             self.help_menu_actions.append(web_resources)
             # Qt assistant link
-            qta_act = create_program_action(self, _("Qt documentation"),
-                                            "assistant")
+            qta_exe = "assistant-qt4" if sys.platform.startswith('linux') else \
+                      "assistant"
+            qta_act = create_program_action(self, _("Qt documentation"), 
+                                            qta_exe)
             if qta_act:
                 self.help_menu_actions += [qta_act, None]
             # About Spyder
@@ -1581,9 +1592,10 @@ class MainWindow(QMainWindow):
     
     def hideEvent(self, event):
         """Reimplement Qt method"""
-        for plugin in self.widgetlist:
-            if plugin.isAncestorOf(self.last_focused_widget):
-                plugin.visibility_changed(True)
+        if not self.light:
+            for plugin in self.widgetlist:
+                if plugin.isAncestorOf(self.last_focused_widget):
+                    plugin.visibility_changed(True)
         QMainWindow.hideEvent(self, event)
     
     def change_last_focused_widget(self, old, now):
@@ -1600,13 +1612,15 @@ class MainWindow(QMainWindow):
             return True
         prefix = ('lightwindow' if self.light else 'window') + '/'
         self.save_current_window_settings(prefix)
+        if CONF.get('main', 'single_instance'):
+            if os.name == 'nt':
+                pass # All seems to indicate port is closed at this point
+            self.open_files_server.close()
         for widget in self.widgetlist:
             if not widget.closing_plugin(cancelable):
                 return False
         self.dialog_manager.close_all()
         self.already_closed = True
-        if CONF.get('main', 'single_instance'):
-            self.open_files_server.close()
         return True
         
     def add_dockwidget(self, child):
@@ -1908,9 +1922,10 @@ Please provide any additional information below.
         ext = osp.splitext(fname)[1]
         if ext in EDIT_EXT:
             self.editor.load(fname)
-        elif self.variableexplorer is not None and ext in IMPORT_EXT\
-             and ext in ('.spydata', '.mat', '.npy', '.h5'):
+        elif self.variableexplorer is not None and ext in IMPORT_EXT:
             self.variableexplorer.import_data(fname)
+        elif encoding.is_text_file(fname):
+            self.editor.load(fname)
         elif not external:
             fname = file_uri(fname)
             programs.start_file(fname)
@@ -2191,7 +2206,13 @@ def initialize():
 
 
 class Spy(object):
-    """Inspect Spyder internals"""
+    """
+    Inspect Spyder internals
+    
+    Attributes:
+        app       Reference to main QApplication object
+        window    Reference to spyder.MainWindow widget
+    """
     def __init__(self, app, window):
         self.app = app
         self.window = window
@@ -2205,7 +2226,6 @@ class Spy(object):
 def run_spyder(app, options, args):
     """
     Create and show Spyder's main window
-    Patch matplotlib for figure integration
     Start QApplication event loop
     """
     #TODO: insert here
