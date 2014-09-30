@@ -234,7 +234,7 @@ class JediPlugin(IntrospectionPlugin):
 
     def preload(self):
         """Preload a list of libraries"""
-        for lib in ['numpy', 'scipy.stats']:
+        for lib in ['numpy']:
             jedi.preload_module(lib)
         self.busy = False
 
