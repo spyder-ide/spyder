@@ -55,7 +55,9 @@ class JediPlugin(IntrospectionPlugin):
 
     def get_completions(self, info):
         """Return a list of completion strings"""
+        debug_print(info)
         completions = self.get_jedi_object('completions', info)
+        debug_print(completions)
         return [c.word for c in completions]
 
     def get_info(self, info):
@@ -151,7 +153,7 @@ class JediPlugin(IntrospectionPlugin):
 
     def get_jedi_object(self, func_name, info, use_filename=True):
         """Call a desired function on a Jedi Script and return the result"""
-        if not jedi or self.busy:
+        if not jedi:
             return
         if DEBUG_EDITOR:
             t0 = time.time()
@@ -237,7 +239,7 @@ class JediPlugin(IntrospectionPlugin):
         for lib in ['numpy']:
             jedi.preload_module(lib)
         self.busy = False
-
+        debug_print('not busy')
 
 if __name__ == '__main__':
 

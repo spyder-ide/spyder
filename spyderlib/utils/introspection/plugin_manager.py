@@ -44,7 +44,7 @@ class IntrospectionThread(QThread):
     """
 
     def __init__(self, plugin, info):
-        super(GetSubmodulesThread, self).__init__()
+        super(IntrospectionThread, self).__init__()
         self.plugin = plugin
         self.info = info
         self.result = None
@@ -142,14 +142,16 @@ class PluginManager(QObject):
                                  fromlist=[mod_name])
                 cls = getattr(mod, '%sPlugin' % plugin_name.capitalize())
                 plugin = cls()
-                plugin.load_plugin(self)
-            except Exception:
+                plugin.load_plugin()
+            except Exception as e:
+                debug_print(e)
                 if DEBUG_EDITOR:
                     log_last_error(LOG_FILENAME)
             else:
                 plugins[plugin_name] = plugin
                 debug_print('Instropection Plugin Loaded: %s' % plugin.name)
         self.plugins = plugins
+        debug_print('Plugins loaded: %s' % self.plugins.keys())
         return plugins
 
     def get_completions(self, automatic):
@@ -195,6 +197,8 @@ class PluginManager(QObject):
                 return True
 
     def _handle_request(self, info, desired=None):
+        debug_print('%s request:' % info.name)
+
         editor = info.editor
         if ((not editor.is_python_like())
                 or sourcecode.is_keyword(info.obj)
@@ -220,9 +224,11 @@ class PluginManager(QObject):
 
     def _make_async_call(self, plugin, info):
         self.busy = True
+        self.pending = None
+        debug_print('%s async call' % info.name)
         self._thread = IntrospectionThread(plugin, info)
         self._post_message('Getting %s from %s plugin'
-                           % info.name, plugin.name)
+                           % (info.name, plugin.name))
         self.connect(self._thread, SIGNAL('introspection_complete()'),
                      self._introspection_complete)
         self._thread.start()
@@ -233,23 +239,26 @@ class PluginManager(QObject):
         info = self._thread.info
         current = Info('current', self.editor_widget)
 
+        debug_print('%s request from %s complete: %s'
+            % (info.name, self._thread.plugin.name, result))
+
         if not result and self.pending:
             pass
         elif not result:
-            index = list(self.plugins.values()).index[self._thread.plugin]
-            for plugin in list(self.plugins.values())[index:]:
+            index = list(self.plugins.values()).index(self._thread.plugin)
+            for plugin in list(self.plugins.values())[index + 1:]:
                 if not plugin.busy:
                     self._make_async_call(plugin, info)
                     return
         elif current.filename == info.filename:
-            func = getattr(self, '_handle_%s_response' % result.name)
+            func = getattr(self, '_handle_%s_response' % info.name)
             try:
                 func(result, current, info)
             except Exception as e:
                 debug_print(e)
         self._handle_pending()
 
-    def _handle_completion_response(self, comp_list, info, prev_info):
+    def _handle_completions_response(self, comp_list, info, prev_info):
         # make sure we are on the same line with the same base obj
         if info.line_num != prev_info.line_num:
             return
@@ -284,7 +293,7 @@ class PluginManager(QObject):
                   fname, lineno, "")
 
     def _update_extension_modules(self):
-        for plugin in self.plugins:
+        for plugin in self.plugins.values():
             plugin.set_pref('extension_modules',
                             self._submods_thread.submods)
 
@@ -322,6 +331,8 @@ def memoize(obj):
 
 
 class IntrospectionPlugin(object):
+
+    busy = False
 
     def load_plugin(self):
         pass
