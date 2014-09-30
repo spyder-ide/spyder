@@ -282,6 +282,8 @@ class FileInfo(QObject):
         self.todo_results = []
         self.lastmodified = QFileInfo(filename).lastModified()
         
+        self.connect(editor, SIGNAL('textChanged()'),
+             self.text_changed)
         self.connect(editor, SIGNAL('breakpoints_changed()'),
                      self.breakpoints_changed)
 
@@ -293,10 +295,6 @@ class FileInfo(QObject):
         self.emit(SIGNAL('text_changed_at(QString,int)'),
                   self.filename, self.editor.get_position('cursor'))
 
-                if completion_text:
-                    completion_text = completion_text[0]
-                else:
-                    comp_list = []
     def get_source_code(self):
         """Return associated editor source code"""
         return to_text_string(self.editor.toPlainText())
@@ -1646,7 +1644,7 @@ class EditorStack(QWidget):
         Create a new editor instance
         Returns finfo object (instead of editor as in previous releases)
         """
-        editor = codeeditor.CodeEditor(self, fname)
+        editor = codeeditor.CodeEditor(self)
         introspector = self.introspector
         self.connect(editor, SIGNAL('get_completions(bool)'),
                      introspector.get_completions)
@@ -1655,10 +1653,8 @@ class EditorStack(QWidget):
         self.connect(editor, SIGNAL("go_to_definition(int)"),
                      introspector.go_to_definition)
 
-        self.connect(editor, SIGNAL('textChanged()'),
-                     self.text_changed)
-
         finfo = FileInfo(fname, enc, editor, new, self.threadmanager)
+
         self.add_to_data(finfo, set_current)
         self.connect(finfo, SIGNAL('analysis_results_changed()'),
                      lambda: self.emit(SIGNAL('analysis_results_changed()')))

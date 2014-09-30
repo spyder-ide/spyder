@@ -488,7 +488,7 @@ class CodeEditor(TextEditBaseWidget):
 
     def create_shortcuts(self):
         codecomp = create_shortcut(self.do_completion, context='Editor',
-                                   name='Completion', parent=self)
+                                   name='Code Completion', parent=self)
         duplicate_line = create_shortcut(self.duplicate_line, context='Editor',
                                          name='Duplicate line', parent=self)
         copyline = create_shortcut(self.copy_line, context='Editor',

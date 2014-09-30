@@ -122,6 +122,7 @@ class Info(CodeInfo):
 class PluginManager(QObject):
 
     def __init__(self, editor_widget):
+        super(PluginManager, self).__init__()
         self.editor_widget = editor_widget
         self.pending = None
         self.busy = False
@@ -159,7 +160,7 @@ class PluginManager(QObject):
         if 'jedi' in self.plugins and not self.plugins['jedi'].busy:
             self._handle_request(info, 'jedi')
 
-        elif info['line'].startswith(('import ', 'from ')):
+        elif info.line.startswith(('import ', 'from ')):
             self._handle_request(info, 'fallback')
 
         else:
@@ -196,7 +197,7 @@ class PluginManager(QObject):
     def _handle_request(self, info, desired=None):
         editor = info.editor
         if ((not editor.is_python_like())
-                or sourcecode.is_keyword(info.object)
+                or sourcecode.is_keyword(info.obj)
                 or editor.in_comment_or_string()):
             desired = 'fallback'
 
