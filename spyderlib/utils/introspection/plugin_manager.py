@@ -17,6 +17,7 @@ from spyderlib.qt.QtCore import SIGNAL, QThread, QObject
 
 
 PLUGINS = ['jedi', 'rope', 'fallback']
+PLUGINS = ['rope']
 LOG_FILENAME = get_conf_path('introspection.log')
 DEBUG_EDITOR = DEBUG >= 3
 
@@ -263,10 +264,16 @@ class PluginManager(QObject):
         if info.line_num != prev_info.line_num:
             return
         completion_text = info.obj
+        debug_print(prev_info.obj)
+        debug_print(info.obj)
         if not completion_text.startswith(prev_info.obj):
             return
 
+        if '.' in info.obj:
+            completion_text = completion_text.split('.')[-1]
+
         comp_list = [c for c in comp_list if c.startswith(completion_text)]
+
         info.editor.show_completion_list(comp_list, completion_text,
                                          prev_info.automatic)
 

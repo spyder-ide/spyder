@@ -215,7 +215,8 @@ class RopePlugin(IntrospectionPlugin):
                 log_dt(LOG_FILENAME, "get_definition_location", t0)
             if resource is not None:
                 filename = resource.real_path
-            return filename, lineno
+            if filename and lineno:
+                return filename, lineno
         except Exception as _error:  #analysis:ignore
             if DEBUG_EDITOR:
                 log_last_error(LOG_FILENAME, "get_definition_location")

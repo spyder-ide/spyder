@@ -239,7 +239,6 @@ class JediPlugin(IntrospectionPlugin):
         for lib in ['numpy']:
             jedi.preload_module(lib)
         self.busy = False
-        debug_print('not busy')
 
 if __name__ == '__main__':
 
