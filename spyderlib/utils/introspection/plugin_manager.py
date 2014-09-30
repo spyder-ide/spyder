@@ -17,7 +17,7 @@ from spyderlib.qt.QtCore import SIGNAL, QThread, QObject
 
 
 PLUGINS = ['jedi', 'rope', 'fallback']
-PLUGINS = ['rope']
+PLUGINS = ['fallback']
 LOG_FILENAME = get_conf_path('introspection.log')
 DEBUG_EDITOR = DEBUG >= 3
 
