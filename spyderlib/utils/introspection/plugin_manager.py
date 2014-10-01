@@ -95,6 +95,10 @@ class CodeInfo(object):
                 self.position = position - len(self.line) + self.column
 
     def split_words(self, position=None):
+        """
+        Split our source code into valid identifiers.
+
+        P"""
         if position is None:
             position = self.offset
         text = self.source_code[:position]
@@ -198,6 +202,7 @@ class PluginManager(QObject):
                 return True
 
     def _handle_request(self, info, desired=None):
+        """Handle an incoming request from the user."""
         debug_print('%s request:' % info.name)
 
         editor = info.editor
@@ -211,6 +216,7 @@ class PluginManager(QObject):
             self._handle_pending()
 
     def _handle_pending(self):
+        """Handle any pending requests, sending them to the correct plugin."""
         if not self.pending:
             self._post_message('')
             return
@@ -224,6 +230,7 @@ class PluginManager(QObject):
             self._make_async_call(self.plugins[desired], info)
 
     def _make_async_call(self, plugin, info):
+        """Trigger an introspection job in a thread"""
         self.busy = True
         self.pending = None
         debug_print('%s async call' % info.name)
@@ -235,6 +242,12 @@ class PluginManager(QObject):
         self._thread.start()
 
     def _introspection_complete(self):
+        """
+        Handle an introspection response from the thread.
+
+        Route the response to the correct handler, and then handle
+        any pending requests.
+        """
         self.busy = False
         result = self._thread.result
         info = self._thread.info
@@ -260,12 +273,16 @@ class PluginManager(QObject):
         self._handle_pending()
 
     def _handle_completions_response(self, comp_list, info, prev_info):
-        # make sure we are on the same line with the same base obj
+        """
+        Handle a `completions` response.
+
+        Only handle the response if we are on the same line of text and
+        on the same `obj` as the original request.
+        """
         if info.line_num != prev_info.line_num:
             return
         completion_text = info.obj
-        debug_print(prev_info.obj)
-        debug_print(info.obj)
+
         if not completion_text.startswith(prev_info.obj):
             return
 
@@ -278,7 +295,12 @@ class PluginManager(QObject):
                                          prev_info.automatic)
 
     def _handle_info_response(self, resp, info, prev_info):
-        # make sure we are on the same line of text
+        """
+        Handle an `info` response, triggering a calltip and/or docstring.
+
+        Only handle the response if we are on the same line of text as
+        when the request was initiated.
+        """
         if info.line_num != prev_info.line_num:
             return
 
@@ -295,11 +317,13 @@ class PluginManager(QObject):
                                      at_position=prev_info.position)
 
     def _handle_definition_response(self, resp, info, prev_info):
+        """Handle a `definition` response"""
         fname, lineno = resp
         self.emit(SIGNAL("edit_goto(QString,int,QString)"),
                   fname, lineno, "")
 
     def _update_extension_modules(self):
+        """Set the extension_modules after submods thread finishes"""
         for plugin in self.plugins.values():
             plugin.set_pref('extension_modules',
                             self._submods_thread.submods)
@@ -342,9 +366,11 @@ class IntrospectionPlugin(object):
     busy = False
 
     def load_plugin(self):
+        """Initialize the plugin"""
         pass
 
     def get_completions(self, info):
+        """Get a list of completions"""
         pass
 
     def get_info(self, info):
@@ -361,6 +387,7 @@ class IntrospectionPlugin(object):
         pass
 
     def get_definition(self, info):
+        """Get a (filename, line_num) location for a definition"""
         pass
 
     def set_pref(self, name, value):
