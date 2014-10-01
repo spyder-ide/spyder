@@ -316,6 +316,7 @@ class CodeEditor(TextEditBaseWidget):
                  'Xml': (sh.XmlSH, '', None),
                  'Js': (sh.JsSH, '//', None),
                  'Julia': (sh.JuliaSH, '#', None),
+                 'Yaml': (sh.YamlSH, '#', None),
                  'Cpp': (sh.CppSH, '//', None),
                  'OpenCL': (sh.OpenCLSH, '//', None),
                  'Batch': (sh.BatchSH, 'rem ', None),
