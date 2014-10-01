@@ -35,6 +35,7 @@ EDIT_FILETYPES = (
     (_("IDL files"), ('.pro', )),
     (_("MATLAB files"), ('.m', )),
     (_("Julia files"), ('.jl',)),
+    (_("Yaml files"), ('.yaml','.yml',)),
     (_("Patch and diff files"), ('.patch', '.diff', '.rej')),
     (_("Batch files"), ('.bat', '.cmd')),
     (_("Text files"), ('.txt',)),
