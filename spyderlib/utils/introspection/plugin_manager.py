@@ -86,6 +86,15 @@ class CodeInfo(object):
         else:
             self.obj = None
 
+        self.full_obj = self.obj
+
+        if self.obj:
+            full_line = source_code.splitlines()[self.line_num - 1]
+            rest = full_line[self.column:]
+            match = re.match(self.id_regex, rest)
+            if match:
+                self.full_obj = self.obj + match.group()
+
         if (self.name in ['info', 'definition'] and (not self.obj)
                 and self.is_python_like):
             func_call = re.findall(self.func_call_regex, self.line)
@@ -291,6 +300,15 @@ class PluginManager(QObject):
         if not completion_text.startswith(prev_text):
             return
 
+        if info.full_obj and len(info.full_obj) > len(info.obj):
+            new_list = [c for c in comp_list if c.startswith(info.full_obj)]
+            if new_list:
+                pos = info.editor.get_position('cursor')
+                new_pos = pos + len(info.full_obj) - len(info.obj)
+                info.editor.set_cursor_position(new_pos)
+                completion_text = info.full_obj
+                comp_list = new_list
+
         if '.' in completion_text:
             completion_text = completion_text.split('.')[-1]
 
@@ -428,3 +446,10 @@ class IntrospectionPlugin(object):
             except ImportError:
                 break
         return '.'.join(reversed(items))
+
+
+if __name__ == '__main__':
+    code = 'import numpy'
+    test = CodeInfo('test', code, len(code) - 2)
+    assert test.obj == 'num'
+    assert test.full_obj == 'numpy'
