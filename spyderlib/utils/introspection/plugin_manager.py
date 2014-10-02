@@ -327,17 +327,19 @@ class PluginManager(QObject):
         if info.line_num != prev_info.line_num:
             return
 
+        if resp['calltip']:
+            info.editor.show_calltip('Arguments', resp['calltip'],
+                                     signature=True,
+                                     at_position=prev_info.position)
+            if not resp['docstring']:
+                resp['docstring'] = resp['calltip']
+
         if resp['name']:
             self.emit(SIGNAL(
                 "send_to_inspector(QString,QString,QString,QString,bool)"),
                 resp['name'], resp['argspec'],
                 resp['note'], resp['docstring'],
                 not prev_info.auto)
-
-        if resp['calltip']:
-            info.editor.show_calltip('Arguments', resp['calltip'],
-                                     signature=True,
-                                     at_position=prev_info.position)
 
     def _handle_definition_response(self, resp, info, prev_info):
         """Handle a `definition` response"""
