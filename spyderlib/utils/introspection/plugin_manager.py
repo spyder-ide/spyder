@@ -282,11 +282,16 @@ class PluginManager(QObject):
         if info.line_num != prev_info.line_num:
             return
         completion_text = info.obj
+        prev_text = prev_info.obj
 
-        if not completion_text.startswith(prev_info.obj):
+        if prev_info.obj is None:
+            completion_text = ''
+            prev_text = ''
+
+        if not completion_text.startswith(prev_text):
             return
 
-        if '.' in info.obj:
+        if '.' in completion_text:
             completion_text = completion_text.split('.')[-1]
 
         comp_list = [c for c in comp_list if c.startswith(completion_text)]
