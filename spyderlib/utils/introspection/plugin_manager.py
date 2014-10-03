@@ -271,7 +271,7 @@ class PluginManager(QObject):
         current = Info('current', self.editor_widget)
 
         delta = time.time() - self._start_time
-        debug_print('%s request from %s complete: "%s" in %s s'
+        debug_print('%s request from %s complete: "%s" in %.1f sec'
             % (info.name, self._thread.plugin.name,
                 str(result)[:100], delta))
 
