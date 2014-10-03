@@ -625,7 +625,8 @@ def post_mortem_excepthook(type, value, tb):
         # in interactive mode in dedicated interpreter, just exit after printing
         return
     if not type == SyntaxError:
-        sys.stderr.flush()
+        # wait for stderr to print (stderr.flush does not work in this case)
+        time.sleep(0.1)
         _print('*' * 40)
         _print('Entering post mortem debugging...')
         _print('*' * 40)
