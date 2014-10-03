@@ -36,7 +36,6 @@ class GetSubmodulesThread(QThread):
 
     def run(self):
         self.submods = get_preferred_submodules()
-        self.emit(SIGNAL('submods_ready()'))
 
 
 class IntrospectionThread(QThread):
@@ -59,7 +58,6 @@ class IntrospectionThread(QThread):
         except Exception as e:
             debug_print(e)
         self.plugin.busy = False
-        self.emit(SIGNAL('introspection_complete()'))
 
 
 class CodeInfo(object):
@@ -149,7 +147,7 @@ class PluginManager(QObject):
         self.busy = False
         self.load_plugins()
         self._submods_thread = GetSubmodulesThread()
-        self.connect(self._submods_thread, SIGNAL('submods_ready()'),
+        self.connect(self._submods_thread, SIGNAL('finished()'),
                      self._update_extension_modules)
         self._submods_thread.start()
 
@@ -253,7 +251,7 @@ class PluginManager(QObject):
         self._thread = IntrospectionThread(plugin, info)
         self._post_message('Getting %s from %s plugin'
                            % (info.name, plugin.name))
-        self.connect(self._thread, SIGNAL('introspection_complete()'),
+        self.connect(self._thread, SIGNAL('finished()'),
                      self._introspection_complete)
         self._thread.start()
         self._start_time = time.time()
