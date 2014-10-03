@@ -113,6 +113,9 @@ class CodeInfo(object):
         text = self.source_code[:position]
         return re.findall(self.id_regex, text)
 
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
+
 
 class Info(CodeInfo):
 
@@ -279,6 +282,8 @@ class PluginManager(QObject):
                 func(result, current, info)
             except Exception as e:
                 debug_print(e)
+        if info == self.pending:
+            self.pending = None
         self._handle_pending()
 
     def _handle_completions_response(self, comp_list, info, prev_info):
@@ -456,3 +461,5 @@ if __name__ == '__main__':
     test = CodeInfo('test', code, len(code) - 2)
     assert test.obj == 'num'
     assert test.full_obj == 'numpy'
+    test2 = CodeInfo('test', code, len(code) - 2)
+    assert test == test2
