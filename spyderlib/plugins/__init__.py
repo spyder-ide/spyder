@@ -29,7 +29,8 @@ from spyderlib.config import CONF
 from spyderlib.userconfig import NoDefault
 from spyderlib.guiconfig import get_font, set_font
 from spyderlib.plugins.configdialog import SpyderConfigPage
-from spyderlib.py3compat import is_text_string
+from spyderlib.py3compat import configparser, is_text_string
+import sys
 
 
 class PluginConfigPage(SpyderConfigPage):
@@ -48,6 +49,81 @@ class PluginConfigPage(SpyderConfigPage):
 
     def get_icon(self):
         return self.plugin.get_plugin_icon()
+
+
+class SpyderDockWidget(QDockWidget):
+    """Subclass to override needed methods"""
+    DARWIN_STYLE = """
+    QDockWidget::close-button, QDockWidget::float-button {
+        padding: 0px;
+        margin: 2px;
+    }
+    
+    QTabWidget::pane {
+        border: 3px solid rgb(235, 235, 235);
+        border-bottom: 0;
+    }
+    
+    QTabWidget::tab-bar {
+        left: 5px;
+    }
+    
+    QTabBar::tab {
+        background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                    stop: 0 #b1b1b1, stop: 0.07 #b3b3b3,
+                                    stop: 0.33 #b3b3b3, stop: 0.4 #b0b0b0,
+                                    stop: 0.47 #b3b3b3, stop: 1.0 #b2b2b2);
+        border: 1px solid #787878;
+        border-top-color: transparent;
+        border-bottom-color: transparent;
+        margin-left: -1px;
+        margin-right: -1px;
+        min-width: 8ex;
+        padding: 3px;
+    }
+    
+    QTabBar::tab:selected {
+        background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                    stop: 0 #dfdfdf, stop: 0.1 #dddddd,
+                                    stop: 0.12 #dfdfdf, stop: 0.22 #e0e0e0,
+                                    stop: 0.33 #dedede, stop: 0.47 #dedede,
+                                    stop: 0.49 #e0e0e0, stop: 0.59 #dddddd,
+                                    stop: 0.61 #dfdfdf, stop: 0.73 #dedede,
+                                    stop: 0.80 #e0e0e0, stop: 1.0 #dedede);
+        border: 1px solid #787878;
+        border-top-color: transparent;
+        border-bottom-left-radius: 3px;
+        border-bottom-right-radius: 3px;
+    }
+    
+    QTabBar::tab:first {
+        margin-left: 0;
+    }
+    
+    QTabBar::tab:last {
+        margin-right: 0;
+    }
+    
+    QTabBar::tab:only-one {
+        margin: 0;
+    }
+    
+    QToolButton {
+        border: none;
+    }
+    """
+
+    def __init__(self, *args, **kwargs):
+        super(SpyderDockWidget, self).__init__(*args, **kwargs)
+        if sys.platform == 'darwin':
+            self.setStyleSheet(self.DARWIN_STYLE)
+
+    def closeEvent(self, event):
+        """
+        Reimplement Qt method to send a signal on close so that "Panes" main
+        window menu can be updated correctly
+        """
+        self.emit(SIGNAL('plugin_closed()'))
 
 
 class SpyderPluginMixin(object):
@@ -121,8 +197,8 @@ class SpyderPluginMixin(object):
         layout = self.layout()
         if self.default_margins is None:
             self.default_margins = layout.getContentsMargins()
-        if CONF.get('main', 'use_custom_margin', True):
-            margin = CONF.get('main', 'custom_margin', 0)
+        if CONF.get('main', 'use_custom_margin'):
+            margin = CONF.get('main', 'custom_margin')
             layout.setContentsMargins(*[margin]*4)
         else:
             layout.setContentsMargins(*self.default_margins)
@@ -148,7 +224,7 @@ class SpyderPluginMixin(object):
 ##         # or non-Windows platforms (lot of warnings are printed out)
 ##         # (so in those cases, we use the default window flags: Qt.Widget):
 ##         flags = Qt.Widget if is_old_pyqt or os.name != 'nt' else Qt.Window
-        dock = QDockWidget(self.get_plugin_title(), self.main)#, flags)
+        dock = SpyderDockWidget(self.get_plugin_title(), self.main)#, flags)
 
         dock.setObjectName(self.__class__.__name__+"_dw")
         dock.setAllowedAreas(self.ALLOWED_AREAS)
@@ -157,14 +233,18 @@ class SpyderPluginMixin(object):
         self.update_margins()
         self.connect(dock, SIGNAL('visibilityChanged(bool)'),
                      self.visibility_changed)
+        self.connect(dock, SIGNAL('plugin_closed()'),
+                     self.plugin_closed)
         self.dockwidget = dock
-        short = self.get_option("shortcut", None)
+        try:
+            short = CONF.get('shortcuts', '_/switch to %s' % self.CONF_SECTION)
+        except configparser.NoOptionError:
+            short = None
         if short is not None:
             shortcut = QShortcut(QKeySequence(short),
                                  self.main, self.switch_to_plugin)
             self.register_shortcut(shortcut, "_",
-                                   "Switch to %s" % self.CONF_SECTION,
-                                   default=short)
+                                   "Switch to %s" % self.CONF_SECTION)
         return (dock, self.LOCATION)
     
     def create_mainwindow(self):
@@ -231,8 +311,10 @@ class SpyderPluginMixin(object):
         self.isvisible = enable and visible
         if self.isvisible:
             self.refresh_plugin()   # To give focus to the plugin's widget
-        if self.dockwidget.isHidden():
-            self.toggle_view_action.setChecked(False)
+    
+    def plugin_closed(self):
+        """DockWidget was closed"""
+        self.toggle_view_action.setChecked(False)
 
     def set_option(self, option, value):
         """

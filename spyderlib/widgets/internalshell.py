@@ -70,6 +70,10 @@ class SysOutput(QObject):
         self.queue = []
         self.lock.release()
         return s
+    
+    # We need to add this method to fix Issue 1789
+    def flush(self):
+        pass
 
 class WidgetProxyData(object):
     pass
@@ -136,9 +140,7 @@ class InternalShell(PythonShellWidget):
         # Code completion / calltips
         getcfg = lambda option: CONF.get('internal_console', option)
         case_sensitive = getcfg('codecompletion/case_sensitive')
-        show_single = getcfg('codecompletion/show_single')
         self.set_codecompletion_case(case_sensitive)
-        self.set_codecompletion_single(show_single)
         
         # keyboard events management
         self.eventqueue = []

@@ -34,7 +34,7 @@ class WorkingDirectoryConfigPage(PluginConfigPage):
     def setup_page(self):
         about_label = QLabel(_("The <b>global working directory</b> is "
                     "the working directory for newly opened <i>consoles</i> "
-                    "(Python/IPython interpreters and terminals), for the "
+                    "(Python/IPython consoles and terminals), for the "
                     "<i>file explorer</i>, for the <i>find in files</i> "
                     "plugin and for new files created in the <i>editor</i>."))
         about_label.setWordWrap(True)
@@ -72,11 +72,11 @@ class WorkingDirectoryConfigPage(PluginConfigPage):
         editor_o_bg = QButtonGroup(editor_o_group)
         editor_o_radio1 = self.create_radiobutton(
                                 _("the current file directory"),
-                                'editor/open/browse_scriptdir', True,
+                                'editor/open/browse_scriptdir',
                                 button_group=editor_o_bg)
         editor_o_radio2 = self.create_radiobutton(
                                 _("the global working directory"),
-                                'editor/open/browse_workdir', False,
+                                'editor/open/browse_workdir', 
                                 button_group=editor_o_bg)
         
         editor_n_group = QGroupBox(_("New file"))
@@ -85,11 +85,11 @@ class WorkingDirectoryConfigPage(PluginConfigPage):
         editor_n_bg = QButtonGroup(editor_n_group)
         editor_n_radio1 = self.create_radiobutton(
                                 _("the current file directory"),
-                                'editor/new/browse_scriptdir', False,
+                                'editor/new/browse_scriptdir',
                                 button_group=editor_n_bg)
         editor_n_radio2 = self.create_radiobutton(
                                 _("the global working directory"),
-                                'editor/new/browse_workdir', True,
+                                'editor/new/browse_workdir',
                                 button_group=editor_n_bg)
         # Note: default values for the options above are set in plugin's
         #       constructor (see below)
@@ -97,9 +97,9 @@ class WorkingDirectoryConfigPage(PluginConfigPage):
         other_group = QGroupBox(_("Change to file base directory"))
         newcb = self.create_checkbox
         open_box = newcb(_("When opening a file"),
-                         'editor/open/auto_set_to_basedir', False)
+                         'editor/open/auto_set_to_basedir')
         save_box = newcb(_("When saving a file"),
-                         'editor/save/auto_set_to_basedir', False)
+                         'editor/save/auto_set_to_basedir')
         
         startup_layout = QVBoxLayout()
         startup_layout.addWidget(startup_label)
@@ -150,14 +150,6 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         # Initialize plugin
         self.initialize_plugin()
         
-        # Setting default values for editor-related options
-        self.get_option('editor/open/browse_scriptdir', True)
-        self.get_option('editor/open/browse_workdir', False)
-        self.get_option('editor/new/browse_scriptdir', False)
-        self.get_option('editor/new/browse_workdir', True)
-        self.get_option('editor/open/auto_set_to_basedir', False)
-        self.get_option('editor/save/auto_set_to_basedir', False)
-        
         self.setWindowTitle(self.get_plugin_title()) # Toolbar title
         self.setObjectName(self.get_plugin_title()) # Used to save Window state
         
@@ -184,18 +176,18 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
                      self.next_action.setEnabled)
         
         # Path combo box
-        adjust = self.get_option('working_dir_adjusttocontents', False)
+        adjust = self.get_option('working_dir_adjusttocontents')
         self.pathedit = PathComboBox(self, adjust_to_contents=adjust)
         self.pathedit.setToolTip(_("This is the working directory for newly\n"
-                               "opened consoles (Python interpreters and\n"
+                               "opened consoles (Python/IPython consoles and\n"
                                "terminals), for the file explorer, for the\n"
                                "find in files plugin and for new files\n"
                                "created in the editor"))
         self.connect(self.pathedit, SIGNAL("open_dir(QString)"), self.chdir)
-        self.pathedit.setMaxCount(self.get_option('working_dir_history', 20))
+        self.pathedit.setMaxCount(self.get_option('working_dir_history'))
         wdhistory = self.load_wdhistory( workdir )
         if workdir is None:
-            if self.get_option('startup/use_last_directory', True):
+            if self.get_option('startup/use_last_directory'):
                 if wdhistory:
                     workdir = wdhistory[0]
                 else:

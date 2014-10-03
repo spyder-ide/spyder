@@ -25,8 +25,8 @@ from spyderlib.plugins.configdialog import GeneralConfigPage
 from spyderlib.py3compat import to_text_string, getcwd
 
 
-CURRENT_INTERPRETER = _("Execute in current Python or IPython interpreter")
-DEDICATED_INTERPRETER = _("Execute in a new dedicated Python interpreter")
+CURRENT_INTERPRETER = _("Execute in current Python or IPython console")
+DEDICATED_INTERPRETER = _("Execute in a new dedicated Python console")
 SYSTERM_INTERPRETER = _("Execute in an external System terminal")
 
 CURRENT_INTERPRETER_OPTION = 'default/interpreter/current'

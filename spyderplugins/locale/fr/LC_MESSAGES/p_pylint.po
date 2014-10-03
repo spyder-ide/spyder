@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
-"POT-Creation-Date: 2013-10-12 19:49+COT\n"
+"POT-Creation-Date: 2014-09-06 12:34+COT\n"
 "PO-Revision-Date: 2011-04-11 21:41+2\n"
 "Last-Translator: Pierre Raybaut\n"
 "Language-Team: Python\n"
@@ -20,8 +20,8 @@ msgid "Settings"
 msgstr "Options"
 
 #: spyderplugins/p_pylint.py:29
-msgid "Save script before analyzing it"
-msgstr "Enregistrer le script avant de l'analyser"
+msgid "Save file before analyzing it"
+msgstr "Enregistrer le fichier avant de l'analyser"
 
 #: spyderplugins/p_pylint.py:32 spyderplugins/p_pylint.py:151
 msgid "History"
@@ -44,12 +44,12 @@ msgid "Results"
 msgstr "Résultats"
 
 #: spyderplugins/p_pylint.py:41
-msgid "Pylint plugin results are stored here:"
-msgstr "Les résultats des analyses de code Pylint sont stockés ici :"
+msgid "Results are stored here:"
+msgstr "Les résultats sont stockés ici :"
 
-#: spyderplugins/p_pylint.py:89
-msgid "Pylint"
-msgstr "Pylint"
+#: spyderplugins/p_pylint.py:89 spyderplugins/widgets/pylintgui.py:64
+msgid "Static code analysis"
+msgstr "Analyse de code statique"
 
 #: spyderplugins/p_pylint.py:105
 msgid "History..."
@@ -60,17 +60,12 @@ msgid "Set history maximum entries"
 msgstr "Modifier le nombre d'entrées maximum de l'historique"
 
 #: spyderplugins/p_pylint.py:125
-msgid "Run pylint code analysis"
-msgstr "Analyser le code source avec pylint"
+msgid "Run static code analysis"
+msgstr "Démarrer l'analyse de code statique"
 
 #: spyderplugins/p_pylint.py:152
 msgid "Maximum entries"
 msgstr "Nombre maximum d'entrées"
-
-#: spyderplugins/widgets/pylintgui.py:64
-#, fuzzy
-msgid "Static code analysis"
-msgstr "Arrêter l'analyse en cours"
 
 #: spyderplugins/widgets/pylintgui.py:99
 msgid "Results for "
@@ -112,16 +107,16 @@ msgstr "Arrêter l'analyse en cours"
 
 #: spyderplugins/widgets/pylintgui.py:201
 #: spyderplugins/widgets/pylintgui.py:270
-msgid "Select Python script"
-msgstr "Sélectionner un script Python"
+msgid "Select Python file"
+msgstr "Sélectionner un fichier Python"
 
 #: spyderplugins/widgets/pylintgui.py:207
 msgid "Output"
 msgstr "Sortie"
 
 #: spyderplugins/widgets/pylintgui.py:209
-msgid "Complete Pylint output"
-msgstr "Sortie complète de l'analyse Pylint"
+msgid "Complete output"
+msgstr "Sortie complète"
 
 #: spyderplugins/widgets/pylintgui.py:243
 msgid "Pylint script was not found. Please add \"%s\" to PATH."
@@ -132,8 +127,8 @@ msgid "Please install <b>pylint</b>:"
 msgstr "Merci d'installer au préalable <b>pylint</b> :"
 
 #: spyderplugins/widgets/pylintgui.py:271
-msgid "Python scripts"
-msgstr "Scripts Python"
+msgid "Python files"
+msgstr "Fichiers Python"
 
 #: spyderplugins/widgets/pylintgui.py:307
 msgid "Pylint output"
@@ -158,3 +153,9 @@ msgstr "Évaluation globale :"
 #: spyderplugins/widgets/pylintgui.py:470
 msgid "previous run:"
 msgstr "analyse précédente :"
+
+#~ msgid "Pylint"
+#~ msgstr "Pylint"
+
+#~ msgid "Run pylint code analysis"
+#~ msgstr "Analyser le code source avec pylint"

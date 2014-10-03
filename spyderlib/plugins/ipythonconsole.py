@@ -1023,7 +1023,60 @@ class IPythonConsole(SpyderPluginWidget):
             self.extconsole.close_console(index=idx, from_ipyclient=True)
             
             # Create a new one and connect it to the client
-            self.main.extconsole.start_ipykernel(client)
+            self.extconsole.start_ipykernel(client)
+    
+    def get_shellwidget_by_kernelwidget_id(self, kernel_id):
+        """Return the IPython widget associated to a kernel widget id"""
+        for cl in self.clients:
+            if cl.kernel_widget_id == kernel_id:
+                return cl.shellwidget
+        else:
+            raise ValueError("Unknown kernel widget ID %r" % kernel_id)
+
+    #------ Public API (for tabs) ---------------------------------------------
+    def add_tab(self, widget, name):
+        """Add tab"""
+        self.clients.append(widget)
+        index = self.tabwidget.addTab(widget, get_icon('ipython_console.png'),
+                                      name)
+        self.tabwidget.setCurrentIndex(index)
+        if self.dockwidget and not self.ismaximized:
+            self.dockwidget.setVisible(True)
+            self.dockwidget.raise_()
+        self.activateWindow()
+        widget.get_control().setFocus()
+        
+    def move_tab(self, index_from, index_to):
+        """
+        Move tab (tabs themselves have already been moved by the tabwidget)
+        """
+        client = self.clients.pop(index_from)
+        self.clients.insert(index_to, client)
+        self.emit(SIGNAL('update_plugin_title()'))
+
+    #------ Public API (for help) ---------------------------------------------
+    def go_to_error(self, text):
+        """Go to error if relevant"""
+        match = get_error_match(to_text_string(text))
+        if match:
+            fname, lnb = match.groups()
+            self.emit(SIGNAL("edit_goto(QString,int,QString)"),
+                      osp.abspath(fname), int(lnb), '')
+    
+    def show_intro(self):
+        """Show intro to IPython help"""
+        from IPython.core.usage import interactive_usage
+        self.inspector.show_rich_text(interactive_usage)
+    
+    def show_guiref(self):
+        """Show qtconsole help"""
+        from IPython.core.usage import gui_reference
+        self.inspector.show_rich_text(gui_reference, collapse=True)
+    
+    def show_quickref(self):
+        """Show IPython Cheat Sheet"""
+        from IPython.core.usage import quick_reference
+        self.inspector.show_plain_text(quick_reference)
         
     #----Drag and drop
     #TODO: try and reimplement this block

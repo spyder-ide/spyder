@@ -49,6 +49,7 @@ from __future__ import print_function
 __version__ = '1.0.15'
 __license__ = __doc__
 
+import os
 
 try:
     from spyderlib.qt.QtGui import QFormLayout
@@ -61,7 +62,8 @@ from spyderlib.qt.QtGui import (QWidget, QLineEdit, QComboBox, QLabel,
                                 QPushButton, QCheckBox, QColorDialog, QPixmap,
                                 QTabWidget, QApplication, QStackedWidget,
                                 QDateEdit, QDateTimeEdit, QFont, QFontComboBox,
-                                QFontDatabase, QGridLayout, QDoubleValidator)
+                                QFontDatabase, QGridLayout, QDoubleValidator,
+                                QTextEdit)
 from spyderlib.qt.QtCore import Qt, SIGNAL, SLOT, QSize, Slot, Property
 import datetime
 

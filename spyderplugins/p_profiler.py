@@ -97,7 +97,7 @@ class Profiler(ProfilerWidget, SpyderPluginMixin):
                                      triggered=self.run_profiler)
         profiler_act.setEnabled(is_profiler_installed())
         self.register_shortcut(profiler_act, context="Profiler",
-                               name="Run profiler", default="F10")
+                               name="Run profiler")
         
         self.main.run_menu_actions += [profiler_act]
         self.main.editor.pythonfile_dependent_actions += [profiler_act]

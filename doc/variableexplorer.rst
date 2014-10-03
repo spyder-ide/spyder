@@ -41,9 +41,19 @@ Supported types
 ---------------
 
 The variable explorer can't show all types of objects. The ones currently
-supported are: integers, floats, complex, lists, dictionaries, tuples, strings,
-`NumPy` arrays, `datetime` dates and `PIL/Pillow` images.
+supported are:
 
+#. `Pandas` DataFrames and TimeSeries
+#. `NumPy` arrays and matrices
+#. `PIL/Pillow` images
+#. `datetime` dates
+#. Integers
+#. Floats
+#. Complex numbers
+#. Lists
+#. Dictionaries
+#. Tuples
+#. Strings
 
 Related plugins:
 

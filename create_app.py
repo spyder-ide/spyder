@@ -30,6 +30,9 @@ from spyderlib import __version__ as spy_version
 from spyderlib.config import EDIT_EXT
 from spyderlib.utils.programs import find_program
 
+
+PY2 = sys.version[0] == '2'
+
 #==============================================================================
 # Auxiliary functions
 #==============================================================================
@@ -67,8 +70,10 @@ DEPS = ['pylint', 'logilab', 'astroid', 'pep8', 'setuptools']
 EXCLUDES = DEPS + ['mercurial']
 PACKAGES = ['spyderlib', 'spyderplugins', 'sphinx', 'jinja2', 'docutils',
             'IPython', 'zmq', 'pygments', 'rope', 'distutils', 'PIL', 'PyQt4',
-            'sklearn', 'skimage', 'pandas', 'sympy', 'statsmodels',
+            'sklearn', 'skimage', 'pandas', 'sympy', 'pyflakes', 'psutil',
             'mpl_toolkits', 'nose']
+if PY2:
+    PACKAGES.append('statsmodels')
 INCLUDES = get_stdlib_modules()
 EDIT_EXT = [ext[1:] for ext in EDIT_EXT]
 
@@ -98,10 +103,13 @@ os.remove('Spyder.py')
 # Post-app creation
 #==============================================================================
 
+# Python version
+py_ver = '%s.%s' % (sys.version[0], sys.version[2])
+
 # Main paths
 resources = 'dist/Spyder.app/Contents/Resources'
 system_python_lib = get_python_lib()
-app_python_lib = osp.join(resources, 'lib', 'python2.7')
+app_python_lib = osp.join(resources, 'lib', 'python%s' % py_ver)
 
 # Add our docs to the app
 docs_orig = 'build/lib/spyderlib/doc'
@@ -151,10 +159,10 @@ def _change_interpreter(program):
     import sys
     try:
         for line in fileinput.input(program, inplace=True):
-           if line.startswith('#!'):
-               print '#!' + sys.executable
-           else:
-               print line,
+            if line.startswith('#!'):
+                print('#!' + sys.executable)
+            else:
+                print(line)
     except:
         pass
 
@@ -228,9 +236,11 @@ subprocess.call(['macdeployqt', 'dist/Spyder.app'])
 # Workaround for what appears to be a bug with py2app and Homebrew
 # See https://bitbucket.org/ronaldoussoren/py2app/issue/26#comment-2092445
 PF_dir = get_config_var('PYTHONFRAMEWORKINSTALLDIR')
+if not PY2:
+    PF_dir = osp.join(PF_dir, 'Versions', py_ver)
 app_python_interpreter = 'dist/Spyder.app/Contents/MacOS/python'
 shutil.copyfile(osp.join(PF_dir, 'Resources/Python.app/Contents/MacOS/Python'),
                 app_python_interpreter)
+exec_path = '@executable_path/../Frameworks/Python.framework/Versions/%s/Python' % py_ver
 subprocess.call(['install_name_tool', '-change', osp.join(sys.prefix, 'Python'),
-                 '@executable_path/../Frameworks/Python.framework/Versions/2.7/Python',
-                 app_python_interpreter])
+                 exec_path, app_python_interpreter])

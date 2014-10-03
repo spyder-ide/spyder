@@ -179,6 +179,10 @@ class IntrospectionPlugin(object):
         else:
             start = 0
         items = [i[start:len(base)] + i[len(base):].split('.')[0] for i in items]
+
+        if base.endswith('.'):
+            items = []
+
         return list(sorted(items))
 
     def is_editor_ready(self):
