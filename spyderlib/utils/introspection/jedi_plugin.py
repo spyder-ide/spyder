@@ -91,6 +91,10 @@ class JediPlugin(IntrospectionPlugin):
             calltip = getsignaturefromtext(call_def.doc, name)
             argspec = calltip[calltip.find('('):]
             docstring = call_def.doc[call_def.doc.find(')') + 3:]
+        elif '(' in call_def.doc.splitlines()[0]:
+                calltip = call_def.doc.splitlines()[0]
+                name = call_def.doc.split('(')[0]
+                docstring = call_def.doc[call_def.doc.find(')') + 3:]
         else:
             calltip = name + '(...)'
             argspec = '()'
@@ -110,7 +114,9 @@ class JediPlugin(IntrospectionPlugin):
                                         mod_name)
         argspec = argspec.replace(' = ', '=')
         calltip = calltip.replace(' = ', '=')
-        doc_info = dict(name=call_def.name, argspec=argspec,
+        debug_print(call_def.name)
+
+        doc_info = dict(name=name, argspec=argspec,
                         note=note, docstring=docstring, calltip=calltip)
         return doc_info
 
