@@ -331,10 +331,11 @@ class PluginManager(QObject):
             info.editor.show_calltip('Arguments', resp['calltip'],
                                      signature=True,
                                      at_position=prev_info.position)
-            if not resp['docstring']:
-                resp['docstring'] = resp['calltip']
 
         if resp['name']:
+            if not resp['docstring']:
+                resp['docstring'] = '<no docstring>'
+
             self.emit(SIGNAL(
                 "send_to_inspector(QString,QString,QString,QString,bool)"),
                 resp['name'], resp['argspec'],
