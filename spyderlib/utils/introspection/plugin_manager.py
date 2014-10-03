@@ -5,6 +5,7 @@ import functools
 import os.path as osp
 import os
 import imp
+import time
 
 from spyderlib.baseconfig import DEBUG, get_conf_path, debug_print
 from spyderlib.utils.introspection.module_completion import (
@@ -118,6 +119,7 @@ class CodeInfo(object):
             return self.__dict__ == other.__dict__
         except Exception:
             return False
+
 
 class Info(CodeInfo):
 
@@ -254,6 +256,7 @@ class PluginManager(QObject):
         self.connect(self._thread, SIGNAL('introspection_complete()'),
                      self._introspection_complete)
         self._thread.start()
+        self._start_time = time.time()
 
     def _introspection_complete(self):
         """
@@ -267,8 +270,10 @@ class PluginManager(QObject):
         info = self._thread.info
         current = Info('current', self.editor_widget)
 
-        debug_print('%s request from %s complete: %s'
-            % (info.name, self._thread.plugin.name, result))
+        delta = time.time() - self._start_time
+        debug_print('%s request from %s complete: "%s" in %s s'
+            % (info.name, self._thread.plugin.name,
+                str(result)[:100], delta))
 
         if not result and self.pending:
             pass
