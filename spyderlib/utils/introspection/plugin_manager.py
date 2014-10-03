@@ -114,8 +114,10 @@ class CodeInfo(object):
         return re.findall(self.id_regex, text)
 
     def __eq__(self, other):
-        return self.__dict__ == other.__dict__
-
+        try:
+            return self.__dict__ == other.__dict__
+        except Exception:
+            return False
 
 class Info(CodeInfo):
 
