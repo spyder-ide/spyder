@@ -638,6 +638,7 @@ def post_mortem_excepthook(type, value, tb):
             frame = frame.f_back
         p.interaction(frame, tb)
 
+
 def set_post_mortem():
     """
     Enable the post mortem debugging excepthook.
