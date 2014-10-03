@@ -549,53 +549,6 @@ is_ipython = os.environ.get("IPYTHON_KERNEL", "").lower() == "true"
 is_dedicated = not 'UMD_ENABLED' in os.environ
 
 
-def spyder_notify_traceback(type, value, tb):
-    """
-    Notify Spyder of a Traceback so we can go to file and line in editor.
-    """
-    if not type == SyntaxError:
-        while tb.tb_next:
-            tb = tb.tb_next
-        sys.last_traceback = tb
-        frame = tb.tb_frame
-        fname = frame.f_code.co_filename
-        lineno = frame.f_lineno
-    else:
-        fname, lineno = value.filename, value.lineno
-    if not os.path.dirname(fname):
-        fname = os.path.join(os.getcwd(), fname)
-    if isinstance(fname, basestring) and isinstance(lineno, int):
-        if osp.isfile(fname) and monitor is not None:
-            monitor.notify_pdb_step(fname, lineno)
-
-
-# override traceback.print_exception to notify spyder
-old_print_exception = traceback.print_exception
-
-def new_print_exception(type, value, tb, limit=None, file=None):
-    val = old_print_exception(type, value, tb, limit, file)
-    spyder_notify_traceback(type, value, tb)
-    return val
-traceback.print_exception = new_print_exception
-
-
-if is_ipython:
-    from IPython.core.interactiveshell import InteractiveShell
-
-    # Notify Spyder when IPython prints a traceback so we can update
-    # the monitor
-    @monkeypatch_method(InteractiveShell, 'InteractiveShell')
-    def showtraceback(self,exc_tuple = None,filename=None,tb_offset=None,
-                          exception_only=False):
-        self._old_InteractiveShell_showtraceback(exc_tuple, filename,
-                          tb_offset, exception_only)
-        if exc_tuple is None:
-            etype, value, tb = sys.exc_info()
-        else:
-            etype, value, tb = exc_tuple
-        spyder_notify_traceback(type, value, tb)
-
-
 def clear_post_mortem():
     """
     Remove the post mortem excepthook and replace with a standard one.
