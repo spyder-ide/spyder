@@ -14,13 +14,62 @@ from spyderlib.utils import sourcecode
 from spyderlib.utils.debug import log_last_error
 
 from spyderlib.qt.QtGui import QApplication
-from spyderlib.qt.QtCore import SIGNAL, QThread, QObject
+from spyderlib.qt.QtCore import SIGNAL, QThread, QObject, QTimer
 
 
 PLUGINS = ['jedi', 'rope', 'fallback']
 
 LOG_FILENAME = get_conf_path('introspection.log')
 DEBUG_EDITOR = DEBUG >= 3
+LEAD_TIME_SEC = 0.25
+
+
+class RequestHandler(QObject):
+
+    """Handle introspection request.
+    """
+    def __init__(self, code_info, plugins):
+
+        self.info = code_info
+        self.timer = QTimer()
+        self.timer.singleShot(LEAD_TIME_SEC * 1000, self.handle_timeout)
+        self.waiting = True
+        self.pending = {}
+        self.result = None
+        self.plugins = plugins
+        self._start_time = time.time()
+        self._threads = {}
+        for plugin in plugins:
+            self._make_async_call(plugin, code_info)
+
+    def _handle_timeout(self):
+        if self.pending:
+            for plugin in self.plugins:
+                if plugin in self.pending:
+                    self.finalize(plugin, self.pending[plugin])
+                    return
+        self.waiting = False
+
+    def _handle_incoming(self, plugin, result):
+        if plugin == self.plugins[0] or not self.waiting:
+            self.finalize(plugin, result)
+        else:
+            self.pending[plugin] = result
+
+    def _make_async_call(self, plugin, info):
+        """Trigger an introspection job in a thread"""
+        self._threads[plugin] = IntrospectionThread(plugin, info)
+        self.connect(self._thread, SIGNAL('finished()'),
+                     self._handle_incoming)
+        self._threads[plugin].start()
+
+    def _finalize(self, plugin, result):
+        self.result = result
+        self.waiting = False
+        delta = time.time() - self._start_time
+        debug_print('%s request from %s complete: "%s" in %.1f sec'
+            % (self.info.name, plugin.name, str(result)[:100], delta))
+        self.emit(SIGNAL("introspection_complete()"))
 
 
 class GetSubmodulesThread(QThread):
@@ -67,7 +116,8 @@ class CodeInfo(object):
                                  re.UNICODE)
 
     def __init__(self, name, source_code, position, filename=None,
-            is_python_like=True):
+            is_python_like=True, **kwargs):
+        self.options = kwargs
         self.name = name
         self.filename = filename
         self.source_code = source_code
@@ -119,25 +169,6 @@ class CodeInfo(object):
             return False
 
 
-class Info(CodeInfo):
-
-    """Store the information about an introspection request.
-    """
-    def __init__(self, name, editor_widget, position=None):
-
-        self.editor = editor_widget.get_current_editor()
-        self.finfo = editor_widget.get_current_finfo()
-        self.name = name
-        self.source_code = self.finfo.get_source_code()
-        self.filename = self.finfo.filename
-
-        if position is None:
-            position = self.editor.get_position('cursor')
-        self.position = position
-        super(Info, self).__init__(name, self.source_code, position,
-            self.filename, self.editor.is_python_like())
-
-
 class PluginManager(QObject):
 
     def __init__(self, editor_widget):
@@ -173,15 +204,29 @@ class PluginManager(QObject):
         debug_print('Plugins loaded: %s' % self.plugins.keys())
         return plugins
 
+    def _get_code_info(self, name, position=None, **kwargs):
+
+        editor = self.editor_widget.get_current_editor()
+        finfo = self.editor_widget.get_current_finfo()
+
+        if position is None:
+            position = editor.get_position('cursor')
+
+        kwargs['editor'] = editor
+        kwargs['finfo'] = finfo
+        kwargs['editor_widget'] = self.editor_widget
+
+        return CodeInfo(name, finfo.get_source_code(), position,
+            finfo.filename, editor.is_python_like, **kwargs)
+
     def get_completions(self, automatic):
         """Get code completion"""
-        info = Info('completions', self.editor_widget)
-        info.automatic = automatic
+        info = self.get_code_info('completions', automatic=automatic)
 
         if 'jedi' in self.plugins and not self.plugins['jedi'].busy:
-            self._handle_request(info, 'jedi')
+            self._handle_request(info)
 
-        elif info.line.startswith(('import ', 'from ')):
+        elif info.line.lstrip().startswith(('import ', 'from ')):
             self._handle_request(info, 'fallback')
 
         else:
@@ -189,7 +234,7 @@ class PluginManager(QObject):
 
     def go_to_definition(self, position):
         """Go to definition"""
-        info = Info('definition', self.editor_widget, position)
+        info = self._get_code_info('definition', position)
         self._handle_request(info)
 
     def show_object_info(self, position, auto=True):
@@ -198,8 +243,7 @@ class PluginManager(QObject):
         # i.e. the user has just entered an opening parenthesis -- in that
         # case, we don't want to force the object inspector to be visible,
         # to avoid polluting the window layout
-        info = Info('info', self.editor_widget, position)
-        info.auto = auto
+        info = self._get_code_info('info', position, auto=auto)
         self._handle_request(info)
 
     def validate(self):
@@ -235,26 +279,19 @@ class PluginManager(QObject):
             self._post_message('')
             return
         info, desired = self.pending
-        if desired is None or self.plugins[desired].busy:
-            for plugin in self.plugins.values():
-                if not plugin.busy:
-                    self._make_async_call(plugin, info)
-                    return
-        else:
-            self._make_async_call(self.plugins[desired], info)
-
-    def _make_async_call(self, plugin, info):
-        """Trigger an introspection job in a thread"""
+        if desired and self.plugins[desired].busy:
+            return
         self.busy = True
-        self.pending = None
-        debug_print('%s async call' % info.name)
-        self._thread = IntrospectionThread(plugin, info)
-        self._post_message('Getting %s from %s plugin'
-                           % (info.name, plugin.name))
-        self.connect(self._thread, SIGNAL('finished()'),
-                     self._introspection_complete)
-        self._thread.start()
-        self._start_time = time.time()
+
+        if desired:
+            plugins = [self.plugins[desired]]
+        else:
+            # use all but the fallback
+            plugins = [p for p in self.plugins.values()[:-1] if not p.busy]
+
+        self.request = RequestHandler(info, plugins)
+        self.connect(self.request, SIGNAL('introspection_complete()'),
+                     self.introspection_complete)
 
     def _introspection_complete(self):
         """
@@ -264,31 +301,20 @@ class PluginManager(QObject):
         any pending requests.
         """
         self.busy = False
-        result = self._thread.result
-        info = self._thread.info
-        current = Info('current', self.editor_widget)
+        result = self.request.result
+        info = self.request.info
+        current = self._get_code_info('current')
 
-        delta = time.time() - self._start_time
-        debug_print('%s request from %s complete: "%s" in %.1f sec'
-            % (info.name, self._thread.plugin.name,
-                str(result)[:100], delta))
-
-        if not result and self.pending:
-            pass
-        elif not result:
-            index = list(self.plugins.values()).index(self._thread.plugin)
-            for plugin in list(self.plugins.values())[index + 1:]:
-                if not plugin.busy:
-                    self._make_async_call(plugin, info)
-                    return
-        elif current.filename == info.filename:
+        if result and current.filename == info.filename:
             func = getattr(self, '_handle_%s_response' % info.name)
             try:
                 func(result, current, info)
             except Exception as e:
                 debug_print(e)
+
         if info == self.pending:
             self.pending = None
+
         self._handle_pending()
 
     def _handle_completions_response(self, comp_list, info, prev_info):
