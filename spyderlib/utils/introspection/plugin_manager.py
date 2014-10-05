@@ -29,10 +29,10 @@ class RequestHandler(QObject):
     """Handle introspection request.
     """
     def __init__(self, code_info, plugins):
-
+        super(RequestHandler, self).__init__()
         self.info = code_info
         self.timer = QTimer()
-        self.timer.singleShot(LEAD_TIME_SEC * 1000, self.handle_timeout)
+        self.timer.singleShot(LEAD_TIME_SEC * 1000, self._handle_timeout)
         self.waiting = True
         self.pending = {}
         self.result = None
@@ -45,30 +45,31 @@ class RequestHandler(QObject):
     def _handle_timeout(self):
         if self.pending:
             for plugin in self.plugins:
-                if plugin in self.pending:
-                    self.finalize(plugin, self.pending[plugin])
+                if plugin.name in self.pending:
+                    self._finalize(plugin.name, self.pending[plugin.name])
                     return
         self.waiting = False
 
-    def _handle_incoming(self, plugin, result):
-        if plugin == self.plugins[0] or not self.waiting:
-            self.finalize(plugin, result)
+    def _handle_incoming(self, name):
+        result = self._threads[name].result
+        if name == self.plugins[0].name or not self.waiting:
+            self._finalize(name, result)
         else:
-            self.pending[plugin] = result
+            self.pending[name] = result
 
     def _make_async_call(self, plugin, info):
         """Trigger an introspection job in a thread"""
-        self._threads[plugin] = IntrospectionThread(plugin, info)
-        self.connect(self._thread, SIGNAL('finished()'),
+        self._threads[plugin.name] = thread = IntrospectionThread(plugin, info)
+        self.connect(thread, SIGNAL('request_handled(QString)'),
                      self._handle_incoming)
-        self._threads[plugin].start()
+        thread.start()
 
-    def _finalize(self, plugin, result):
+    def _finalize(self, name, result):
         self.result = result
         self.waiting = False
         delta = time.time() - self._start_time
         debug_print('%s request from %s complete: "%s" in %.1f sec'
-            % (self.info.name, plugin.name, str(result)[:100], delta))
+            % (self.info.name, name, str(result)[:100], delta))
         self.emit(SIGNAL("introspection_complete()"))
 
 
@@ -107,6 +108,7 @@ class IntrospectionThread(QThread):
         except Exception as e:
             debug_print(e)
         self.plugin.busy = False
+        self.emit(SIGNAL("request_handled(QString)"), self.plugin.name)
 
 
 class CodeInfo(object):
@@ -117,15 +119,25 @@ class CodeInfo(object):
 
     def __init__(self, name, source_code, position, filename=None,
             is_python_like=True, **kwargs):
-        self.options = kwargs
+        self.__dict__.update(kwargs)
         self.name = name
         self.filename = filename
         self.source_code = source_code
         self.position = position
         self.is_python_like = is_python_like
 
-        self.lines = source_code[:position].splitlines()
+        if position == 0:
+            self.lines = []
+            self.line_num = 0
+            self.obj = None
+            self.full_obj = None
+        else:
+            self._get_info()
+
+    def _get_info(self):
+        self.lines = self.source_code[:self.position].splitlines()
         self.line_num = len(self.lines)
+
         self.line = self.lines[-1]
         self.column = len(self.lines[-1])
 
@@ -138,7 +150,7 @@ class CodeInfo(object):
         self.full_obj = self.obj
 
         if self.obj:
-            full_line = source_code.splitlines()[self.line_num - 1]
+            full_line = self.source_code.splitlines()[self.line_num - 1]
             rest = full_line[self.column:]
             match = re.match(self.id_regex, rest)
             if match:
@@ -150,7 +162,7 @@ class CodeInfo(object):
             if func_call:
                 self.obj = func_call[-1]
                 self.column = self.line.index(self.obj) + len(self.obj)
-                self.position = position - len(self.line) + self.column
+                self.position = self.position - len(self.line) + self.column
 
     def split_words(self, position=None):
         """
@@ -221,7 +233,7 @@ class PluginManager(QObject):
 
     def get_completions(self, automatic):
         """Get code completion"""
-        info = self.get_code_info('completions', automatic=automatic)
+        info = self._get_code_info('completions', automatic=automatic)
 
         if 'jedi' in self.plugins and not self.plugins['jedi'].busy:
             self._handle_request(info)
@@ -291,7 +303,8 @@ class PluginManager(QObject):
 
         self.request = RequestHandler(info, plugins)
         self.connect(self.request, SIGNAL('introspection_complete()'),
-                     self.introspection_complete)
+                     self._introspection_complete)
+        self.pending = None
 
     def _introspection_complete(self):
         """
