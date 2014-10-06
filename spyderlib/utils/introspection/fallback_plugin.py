@@ -34,10 +34,11 @@ class FallbackPlugin(IntrospectionPlugin):
 
         Simple completion based on python-like identifiers and whitespace
         """
+        items = []
         if (info.line.strip().startswith(('import ', 'from ')) and
                 info.is_python_like):
-            items = module_completion(info.line, [info.filename])
-        else:
+            items += module_completion(info.line, [info.filename])
+        elif info.obj:
             base = info.obj
             tokens = set(info.split_words(-1))
             items = [item for item in tokens if
@@ -46,8 +47,13 @@ class FallbackPlugin(IntrospectionPlugin):
                 start = base.rfind('.') + 1
             else:
                 start = 0
-            items = [i[start:len(base)] + i[len(base):].split('.')[0]
+            items += [i[start:len(base)] + i[len(base):].split('.')[0]
                      for i in items]
+        # get path completions
+        # get last word back to a space or a quote character
+        match = re.search('''[ "\']([\w\.\\\\/]+)\Z''', info.line)
+        if match:
+            items += _complete_path(match.groups()[0])
         return list(sorted(items))
 
     def get_definition(self, info):
@@ -230,9 +236,43 @@ def all_editable_exts():
     return ['.' + ext for ext in exts]
 
 
+def _listdir(root):
+    "List directory 'root' appending the path separator to subdirs."
+    res = []
+    root = os.path.expanduser(root)
+    try:
+        for name in os.listdir(root):
+            path = os.path.join(root, name)
+            if os.path.isdir(path):
+                name += os.sep
+            res.append(name)
+    except:
+        pass  # no need to report invalid paths
+    return res
+
+
+def _complete_path(path=None):
+    """Perform completion of filesystem path.
+    http://stackoverflow.com/questions/5637124/tab-completion-in-pythons-raw-input
+    """
+    if not path:
+        return _listdir('.')
+    dirname, rest = os.path.split(path)
+    tmp = dirname if dirname else '.'
+    res = [p for p in _listdir(tmp) if p.startswith(rest)]
+    # more than one match, or single match which does not exist (typo)
+    if len(res) > 1 or not os.path.exists(path):
+        return res
+    # resolved to a single directory, so return list of files below it
+    if os.path.isdir(path):
+        return [p for p in _listdir(path)]
+    # exact file match terminates this completion
+    return [path + ' ']
+
+
 if __name__ == '__main__':
     from spyderlib.utils.introspection.plugin_manager import CodeInfo
-    
+
     p = FallbackPlugin()
 
     with open(__file__, 'rb') as fid:
@@ -248,24 +288,24 @@ if __name__ == '__main__':
         'dummy.txt'))
     assert path == 'dummy.txt'
     assert 'def get_completions(' in code.splitlines()[line - 1]
-    
+
     code += '\npython_like_mod_finder'
     path, line = p.get_definition(CodeInfo('definition', code, len(code),
         'dummy.txt'))
     assert path == 'dummy.txt'
     # FIXME: we need to prioritize def over =
     assert 'def python_like_mod_finder' in code.splitlines()[line - 1]
-    
+
     code += 'python_like_mod_finder'
     resp = p.get_definition(CodeInfo('definition', code, len(code),
         'dummy.txt'))
     assert resp is None
-    
+
     code = """
     class Test(object):
         def __init__(self):
             self.foo = bar
-            
+
     t = Test()
     t.foo"""
     path, line = p.get_definition(CodeInfo('definition', code, len(code),
@@ -274,22 +314,22 @@ if __name__ == '__main__':
 
     ext = python_like_exts()
     assert '.py' in ext and '.pyx' in ext
-    
+
     ext = all_editable_exts()
     assert '.cfg' in ext and '.iss' in ext
-    
+
     path = p.get_parent_until(os.path.abspath(__file__))
     assert path == 'spyderlib.utils.introspection.fallback_plugin'
-    
+
     line = 'from spyderlib.widgets.sourcecode.codeeditor import CodeEditor'
     path = python_like_mod_finder(line)
     assert path.endswith('codeeditor.py')
     path = python_like_mod_finder(line, stop_token='sourcecode')
     assert path.endswith('__init__.py') and 'sourcecode' in path
-    
+
     path = p.get_parent_until(osp.expanduser(r'~/.spyder2/temp.py'))
     assert path == '.spyder2.temp'
-    
+
     code = 'import re\n\nre'
     path, line = p.get_definition(CodeInfo('definition', code, len(code),
         'dummy.txt'))
@@ -298,11 +338,11 @@ if __name__ == '__main__':
     code = 'self.proxy.widget; self.p'
     comp = p.get_completions(CodeInfo('completions', code, len(code)))
     assert comp == ['proxy']
-    
+
     code = 'self.sigMessageReady.emit; self.s'
     comp = p.get_completions(CodeInfo('completions', code, len(code)))
     assert comp == ['sigMessageReady']
-    
+
     code = encoding.to_unicode('álfa;á')
     comp = p.get_completions(CodeInfo('completions', code, len(code)))
     assert comp == [encoding.to_unicode('álfa')]
