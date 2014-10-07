@@ -49,12 +49,12 @@ class FallbackPlugin(IntrospectionPlugin):
                 start = 0
             items += [i[start:len(base)] + i[len(base):].split('.')[0]
                      for i in items]
-        # get path completions
-        # get last word back to a space or a quote character
-        match = re.search('''[ "\']([\w\.\\\\/]+)\Z''', info.line)
-        if match:
-            items += _complete_path(match.groups()[0])
-        return list(sorted(items))
+            # get path completions
+            # get last word back to a space or a quote character
+            match = re.search('''[ "\']([\w\.\\\\/]+)\Z''', info.line)
+            if match:
+                items += _complete_path(match.groups()[0])
+            return list(sorted(items))
 
     def get_definition(self, info):
         """

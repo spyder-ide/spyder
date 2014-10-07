@@ -299,7 +299,7 @@ class PluginManager(QObject):
             plugins = [self.plugins[desired]]
         else:
             # use all but the fallback
-            plugins = [p for p in self.plugins.values()[:-1] if not p.busy]
+            plugins = [p for p in list(self.plugins.values())[:-1] if not p.busy]
 
         self.request = RequestHandler(info, plugins)
         self.connect(self.request, SIGNAL('introspection_complete()'),
