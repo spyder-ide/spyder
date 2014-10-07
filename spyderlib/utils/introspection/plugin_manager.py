@@ -298,6 +298,8 @@ class PluginManager(QObject):
 
         if desired:
             plugins = [self.plugins[desired]]
+        elif info.name == 'definition':
+            plugins = [p for p in self.plugins.values() if not p.busy]
         else:
             # use all but the fallback
             plugins = [p for p in list(self.plugins.values())[:-1] if not p.busy]
