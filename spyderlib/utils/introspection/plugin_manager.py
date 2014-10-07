@@ -56,6 +56,7 @@ class RequestHandler(QObject):
             self._finalize(name, result)
         else:
             self.pending[name] = result
+        self._threads[name].wait()
 
     def _make_async_call(self, plugin, info):
         """Trigger an introspection job in a thread"""
