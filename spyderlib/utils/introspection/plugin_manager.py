@@ -249,10 +249,7 @@ class PluginManager(QObject):
         """Go to definition"""
         info = self._get_code_info('definition', position)
 
-        if not info.editor.is_python():
-            self._handle_request(info, 'fallback')
-        else:
-            self._handle_request(info)
+        self._handle_request(info)
 
     def show_object_info(self, position, auto=True):
         """Show signature calltip and/or docstring in the Object Inspector"""
@@ -302,6 +299,8 @@ class PluginManager(QObject):
 
         if desired:
             plugins = [self.plugins[desired]]
+        elif info.name == 'definition' and not info.editor.is_python():
+            plugins = [p for p in self.plugins.values() if not p.busy]
         else:
             # use all but the fallback
             plugins = [p for p in list(self.plugins.values())[:-1] if not p.busy]
