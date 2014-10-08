@@ -485,6 +485,9 @@ class CodeEditor(TextEditBaseWidget):
         # Code editor
         self.__visible_blocks = []  # Visible blocks, update with repaint
         self.painted.connect(self._draw_editor_cell_divider)
+        
+        self.connect(self.verticalScrollBar(), SIGNAL('valueChanged(int)'),
+                     lambda value: self.highlight_current_cell())
 
     def create_shortcuts(self):
         codecomp = create_shortcut(self.do_code_completion, context='Editor',
