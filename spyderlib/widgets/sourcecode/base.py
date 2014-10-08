@@ -959,6 +959,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         """Reimplemented to handle focus"""
         self.emit(SIGNAL("focus_changed()"))
         self.emit(SIGNAL("focus_in()"))
+        self.highlight_current_cell()
         QPlainTextEdit.focusInEvent(self, event)
         
     def focusOutEvent(self, event):
