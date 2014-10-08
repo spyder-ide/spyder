@@ -843,7 +843,8 @@ class BaseTableView(QTableView):
         index = self.currentIndex()
         if not index.isValid():
             return
-        self.edit(index)
+        # TODO: Remove hard coded "Value" column number (3 here)
+        self.edit(index.child(index.row(), 3))
     
     def remove_item(self):
         """Remove item"""
