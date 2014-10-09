@@ -73,11 +73,10 @@ class ProfilerWidget(QWidget):
                                     tip=_("Run profiler"),
                                     triggered=self.start, text_beside_icon=True)
         self.stop_button = create_toolbutton(self,
-                                    icon=get_icon('terminate.png'),
-                                    text=_("Stop"),
-                                    tip=_(
-                                                  "Stop current profiling"),
-                                    text_beside_icon=True)
+                                             icon=get_icon('stop.png'),
+                                             text=_("Stop"),
+                                             tip=_("Stop current profiling"),
+                                             text_beside_icon=True)
         self.connect(self.filecombo, SIGNAL('valid(bool)'),
                      self.start_button.setEnabled)
         #self.connect(self.filecombo, SIGNAL('valid(bool)'), self.show_data)
