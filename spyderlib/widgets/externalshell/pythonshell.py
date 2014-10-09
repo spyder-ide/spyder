@@ -272,10 +272,11 @@ class ExternalPythonShell(ExternalShellBase):
                   toggled=self.toggle_globals_explorer, text_beside_icon=True)
         if self.terminate_button is None:
             self.terminate_button = create_toolbutton(self,
-                  text=_("Terminate"), icon=get_icon('terminate.png'),
-                  tip=_("""Attempts to terminate the process.
-The process may not exit as a result of clicking this button
-(it is given the chance to prompt the user for any unsaved files, etc)."""))
+                  text=_("Terminate"), icon=get_icon('stop.png'),
+                  tip=_("Attempts to stop the process. The process\n"
+                        "may not exit as a result of clicking this\n"
+                        "button (it is given the chance to prompt\n"
+                        "the user for any unsaved files, etc)."))
         buttons = []
         if self.namespacebrowser_button is not None:
             buttons.append(self.namespacebrowser_button)
