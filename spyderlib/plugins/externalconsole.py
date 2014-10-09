@@ -597,7 +597,7 @@ class ExternalConsole(SpyderPluginWidget):
                 _("You can't close this kernel because it has one or more "
                   "consoles connected to it.<br><br>"
                   "You need to close them instead or you can kill the kernel "
-                  "using the button far to the right."),
+                  "using the second button from right to left."),
                   QMessageBox.Ok)
                                  
         

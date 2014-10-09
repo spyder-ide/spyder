@@ -19,7 +19,7 @@ import time
 # Qt imports
 from spyderlib.qt.QtGui import (QTextEdit, QKeySequence, QWidget, QMenu,
                                 QHBoxLayout, QToolButton, QVBoxLayout,
-                                QMessageBox, QApplication)
+                                QMessageBox)
 from spyderlib.qt.QtCore import SIGNAL, Qt
 
 # IPython imports
@@ -339,7 +339,6 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         # stop button and icon
         self.stop_button = None
         self.stop_icon = get_icon("stop.png")
-        self.stop_icon_faded = get_icon("terminated.png")
         
         self.connection_file = connection_file
         self.kernel_widget_id = kernel_widget_id
@@ -405,22 +404,13 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         self.shellwidget.executed.connect(self.disable_stop_button)
     
     def enable_stop_button(self):
-        # Enable the button (was disabled with last click)
         self.stop_button.setEnabled(True)
-        self.stop_button.setVisible(True)
    
     def disable_stop_button(self):
-        self.stop_button.setVisible(False)
-        # reset the icon for the next time
-        self.stop_button.setIcon(self.stop_icon)
+        self.stop_button.setDisabled(True)
         
     def stop_button_click_handler(self):
-        # Disable after processing first click to avoid multple clicks
         self.stop_button.setDisabled(True)
-        # set icon to a faded button to show click event being processed
-        self.stop_button.setIcon(self.stop_icon_faded)
-        QApplication.processEvents()
-        # execute kernel interruption
         self.interrupt_kernel()
 
     def show_kernel_error(self, error):
@@ -470,19 +460,14 @@ class IPythonClient(QWidget, SaveHistoryMixin):
 
     def get_options_menu(self):
         """Return options menu"""
-        # Kernel
-        self.interrupt_action = create_action(self, _("Interrupt kernel"),
-                                              icon=get_icon('terminate.png'),
-                                              triggered=self.interrupt_kernel)
         self.restart_action = create_action(self, _("Restart kernel"),
                                             icon=get_icon('restart.png'),
                                             triggered=self.restart_kernel)
         # Main menu
         if self.menu_actions is not None:
-            actions = [self.interrupt_action, self.restart_action, None] +\
-                      self.menu_actions
+            actions = [self.restart_action, None] + self.menu_actions
         else:
-            actions = [self.interrupt_action, self.restart_action]
+            actions = [self.restart_action]
         return actions
     
     def get_toolbar_buttons(self):
@@ -495,7 +480,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
             self.stop_button = create_toolbutton(self, text=_("Stop"),
                                              icon=self.stop_icon,
                                              tip=_("Stop the current command"))
-            self.stop_button.setVisible(False)
+            self.disable_stop_button()
             # set click event handler
             self.stop_button.clicked.connect(self.stop_button_click_handler)
         if self.stop_button is not None:
