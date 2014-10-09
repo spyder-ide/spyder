@@ -459,19 +459,14 @@ class IPythonClient(QWidget, SaveHistoryMixin):
 
     def get_options_menu(self):
         """Return options menu"""
-        # Kernel
-        self.interrupt_action = create_action(self, _("Interrupt kernel"),
-                                              icon=get_icon('terminate.png'),
-                                              triggered=self.interrupt_kernel)
         self.restart_action = create_action(self, _("Restart kernel"),
                                             icon=get_icon('restart.png'),
                                             triggered=self.restart_kernel)
         # Main menu
         if self.menu_actions is not None:
-            actions = [self.interrupt_action, self.restart_action, None] +\
-                      self.menu_actions
+            actions = [self.restart_action, None] + self.menu_actions
         else:
-            actions = [self.interrupt_action, self.restart_action]
+            actions = [self.restart_action]
         return actions
     
     def get_toolbar_buttons(self):
