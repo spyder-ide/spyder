@@ -386,7 +386,6 @@ class CodeEditor(TextEditBaseWidget):
         
         self.linenumbers_color = QColor(Qt.darkGray)
 
-
         # --- Syntax highlight entrypoint ---
         #
         # - if set, self.highlighter is responsible for
@@ -685,16 +684,15 @@ class CodeEditor(TextEditBaseWidget):
         self._set_highlighter(sh_class)
 
     def _set_highlighter(self, sh_class):
-        if self.highlighter_class is not sh_class:
-            self.highlighter_class = sh_class
-            if self.highlighter is not None:
-                # Removing old highlighter
-                # TODO: test if leaving parent/document as is eats memory
-                self.highlighter.setParent(None)
-                self.highlighter.setDocument(None)
-            self.highlighter = self.highlighter_class(self.document(),
-                                                self.font(), self.color_scheme)
-            self._apply_highlighter_color_scheme()
+        self.highlighter_class = sh_class
+        if self.highlighter is not None:
+            # Removing old highlighter
+            # TODO: test if leaving parent/document as is eats memory
+            self.highlighter.setParent(None)
+            self.highlighter.setDocument(None)
+        self.highlighter = self.highlighter_class(self.document(),
+                                            self.font(), self.color_scheme)
+        self._apply_highlighter_color_scheme()
 
     def is_python(self):
         return self.highlighter_class is sh.PythonSH
