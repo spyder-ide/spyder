@@ -23,7 +23,7 @@ from spyderlib import dependencies
 from spyderlib.baseconfig import _
 from spyderlib.config import CONF
 from spyderlib.py3compat import builtins, is_text_string, to_text_string
-from spyderlib.widgets.sourcecode.base import CELL_SEPARATORS
+from spyderlib.utils.sourcecode import CELL_LANGUAGES
 
 
 PYGMENTS_REQVER = '>=1.6'
@@ -89,6 +89,8 @@ class BaseSH(QSyntaxHighlighter):
 
         self.formats = None
         self.setup_formats(font)
+        
+        self.cell_separators = None
         
     def get_background_color(self):
         return QColor(self.background_color)
@@ -283,6 +285,7 @@ class PythonSH(BaseSH):
         BaseSH.__init__(self, parent, font, color_scheme)
         self.import_statements = {}
         self.found_cell_separators = False
+        self.cell_separators = CELL_LANGUAGES['Python']
 
     def highlightBlock(self, text):
         text = to_text_string(text)
@@ -335,7 +338,7 @@ class PythonSH(BaseSH):
                     else:
                         self.setFormat(start, end-start, self.formats[key])
                         if key == "comment":
-                            if text.lstrip().startswith(CELL_SEPARATORS):
+                            if text.lstrip().startswith(self.cell_separators):
                                 self.found_cell_separators = True
                                 oedata = OutlineExplorerData()
                                 oedata.text = to_text_string(text).strip()
