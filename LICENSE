@@ -126,7 +126,6 @@ spyderlib/images/actions/rename.png
 spyderlib/images/actions/replace.png
 spyderlib/images/actions/show.png
 spyderlib/images/actions/special_paste.png
-spyderlib/images/actions/stop.png
 spyderlib/images/actions/synchronize.png
 spyderlib/images/actions/tooloptions.png
 spyderlib/images/actions/undo.png
@@ -321,6 +320,7 @@ spyderlib/images/editor/breakpoint_cond_small.png
 spyderlib/images/editor/breakpoint_small.png
 spyderlib/images/editor/debug.png
 spyderlib/images/console/terminated.png
+spyderlib/images/actions/stop.png
 
 
 [12] Creative Commons BY-SA license
