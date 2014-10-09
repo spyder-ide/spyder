@@ -280,8 +280,8 @@ class ExternalPythonShell(ExternalShellBase):
         buttons = []
         if self.namespacebrowser_button is not None:
             buttons.append(self.namespacebrowser_button)
-        buttons += [self.run_button, self.options_button,
-                    self.terminate_button, self.kill_button]
+        buttons += [self.run_button, self.terminate_button, self.kill_button,
+                    self.options_button]
         return buttons
 
     def get_options_menu(self):
