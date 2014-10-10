@@ -46,7 +46,7 @@ from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
                                        mimedata2url, get_icon)
 from spyderlib.utils.dochelpers import getobj
 from spyderlib.utils import encoding, sourcecode
-from spyderlib.utils.sourcecode import ALL_LANGUAGES
+from spyderlib.utils.sourcecode import ALL_LANGUAGES, CELL_LANGUAGES
 from spyderlib.widgets.editortools import PythonCFM
 from spyderlib.widgets.sourcecode.base import TextEditBaseWidget
 from spyderlib.widgets.sourcecode import syntaxhighlighters as sh
@@ -302,7 +302,8 @@ def get_file_language(filename, text=None):
 
 class CodeEditor(TextEditBaseWidget):
     """Source Code Editor Widget based exclusively on Qt"""
-    LANGUAGES ={ 'Python': (sh.PythonSH, '#', PythonCFM),
+    
+    LANGUAGES = {'Python': (sh.PythonSH, '#', PythonCFM),
                  'Cython': (sh.CythonSH, '#', PythonCFM),
                  'Fortran77': (sh.Fortran77SH, 'c', None),
                  'Fortran': (sh.FortranSH, '!', None),
@@ -322,7 +323,8 @@ class CodeEditor(TextEditBaseWidget):
                  'Batch': (sh.BatchSH, 'rem ', None),
                  'Ini': (sh.IniSH, '#', None),
                  'Enaml': (sh.EnamlSH, '#', PythonCFM),
-                 }
+                }
+
     try:
         import pygments  # analysis:ignore
     except ImportError:
@@ -386,7 +388,6 @@ class CodeEditor(TextEditBaseWidget):
         
         self.linenumbers_color = QColor(Qt.darkGray)
 
-
         # --- Syntax highlight entrypoint ---
         #
         # - if set, self.highlighter is responsible for
@@ -428,7 +429,8 @@ class CodeEditor(TextEditBaseWidget):
         self.__find_first_pos = None
         self.__find_flags = None
 
-        self.supported_language = None
+        self.supported_language = False
+        self.supported_cell_language = False
         self.classfunc_match = None
         self.comment_string = None
 
@@ -487,7 +489,7 @@ class CodeEditor(TextEditBaseWidget):
         self.painted.connect(self._draw_editor_cell_divider)
         
         self.connect(self.verticalScrollBar(), SIGNAL('valueChanged(int)'),
-                     lambda value: self.highlight_current_cell())
+                     lambda value: self.rehighlight_cells())
 
     def create_shortcuts(self):
         codecomp = create_shortcut(self.do_code_completion, context='Editor',
@@ -660,7 +662,8 @@ class CodeEditor(TextEditBaseWidget):
 
     def set_highlight_current_cell(self, enable):
         """Enable/disable current line highlighting"""
-        self.highlight_current_cell_enabled = enable
+        hl_cell_enable = enable and self.supported_cell_language
+        self.highlight_current_cell_enabled = hl_cell_enable
         if self.highlight_current_cell_enabled:
             self.highlight_current_cell()
         else:
@@ -668,7 +671,6 @@ class CodeEditor(TextEditBaseWidget):
 
     def set_language(self, language):
         self.tab_indents = language in self.TAB_ALWAYS_INDENTS
-        self.supported_language = False
         self.comment_string = ''
         sh_class = sh.TextSH
         if language is not None:
@@ -677,6 +679,9 @@ class CodeEditor(TextEditBaseWidget):
                     self.supported_language = True
                     sh_class, comment_string, CFMatch = self.LANGUAGES[key]
                     self.comment_string = comment_string
+                    if key in CELL_LANGUAGES:
+                        self.supported_cell_language = True
+                        self.cell_separators = CELL_LANGUAGES[key]
                     if CFMatch is None:
                         self.classfunc_match = None
                     else:
@@ -685,16 +690,16 @@ class CodeEditor(TextEditBaseWidget):
         self._set_highlighter(sh_class)
 
     def _set_highlighter(self, sh_class):
-        if self.highlighter_class is not sh_class:
-            self.highlighter_class = sh_class
-            if self.highlighter is not None:
-                # Removing old highlighter
-                # TODO: test if leaving parent/document as is eats memory
-                self.highlighter.setParent(None)
-                self.highlighter.setDocument(None)
-            self.highlighter = self.highlighter_class(self.document(),
-                                                self.font(), self.color_scheme)
-            self._apply_highlighter_color_scheme()
+        self.highlighter_class = sh_class
+        if self.highlighter is not None:
+            # Removing old highlighter
+            # TODO: test if leaving parent/document as is eats memory
+            self.highlighter.setParent(None)
+            self.highlighter.setDocument(None)
+        self.highlighter = self.highlighter_class(self.document(),
+                                                  self.font(),
+                                                  self.color_scheme)
+        self._apply_highlighter_color_scheme()
 
     def is_python(self):
         return self.highlighter_class is sh.PythonSH
@@ -766,7 +771,11 @@ class CodeEditor(TextEditBaseWidget):
             self.highlight_current_line()
         else:
             self.unhighlight_current_line()
-
+    
+    def rehighlight_cells(self):
+        """Rehighlight cells when moving the scrollbar"""
+        if self.highlight_current_cell_enabled:
+            self.highlight_current_cell()
 
     def setup_margins(self, linenumbers=True, markers=True):
         """
@@ -2500,17 +2509,18 @@ class CodeEditor(TextEditBaseWidget):
             blockNumber = block.blockNumber()
 
     def _draw_editor_cell_divider(self):
-        """ draw a line on top of a define cell """
-        cell_line_color = self.comment_color
-        painter = QPainter(self.viewport())
-        pen = painter.pen()
-        pen.setStyle(Qt.SolidLine)
-        pen.setBrush(cell_line_color)
-        painter.setPen(pen)
-
-        for top, line_number, block in self.visible_blocks:
-            if self.is_cell_separator(block):
-                painter.drawLine(4, top, self.width(), top)
+        """Draw a line on top of a define cell"""
+        if self.supported_cell_language:
+            cell_line_color = self.comment_color
+            painter = QPainter(self.viewport())
+            pen = painter.pen()
+            pen.setStyle(Qt.SolidLine)
+            pen.setBrush(cell_line_color)
+            painter.setPen(pen)
+    
+            for top, line_number, block in self.visible_blocks:
+                if self.is_cell_separator(block):
+                    painter.drawLine(4, top, self.width(), top)
 
     @property
     def visible_blocks(self):
