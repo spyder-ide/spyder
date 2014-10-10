@@ -154,6 +154,10 @@ class BreakpointTableView(QTableView):
         index_clicked = self.indexAt(event.pos())
         actions = []
         self.popup_menu = QMenu(self)
+        clear_all_breakpoints_action = create_action(self, 
+            _("Clear breakpoints in all files"),
+            triggered=lambda: self.emit(SIGNAL('clear_all_breakpoints()')))
+        actions.append(clear_all_breakpoints_action)
         if self.model.breakpoints:
             filename = self.model.breakpoints[index_clicked.row()][0]
             lineno = int(self.model.breakpoints[index_clicked.row()][1])         
@@ -162,11 +166,16 @@ class BreakpointTableView(QTableView):
                     triggered=lambda filename=filename, lineno=lineno: \
                     self.emit(SIGNAL('clear_breakpoint(QString,int)'),
                               filename, lineno))
-            actions.append(clear_breakpoint_action)
-        clear_all_breakpoints_action = create_action(self, 
-            _("Clear breakpoints in all files"),
-            triggered=lambda: self.emit(SIGNAL('clear_all_breakpoints()')))
-        actions.append(clear_all_breakpoints_action)
+            actions.insert(0,clear_breakpoint_action)
+
+            edit_breakpoint_action = create_action(self,
+                    _("Edit this breakpoint"),
+                    triggered=lambda filename=filename, lineno=lineno: \
+                    (self.emit(SIGNAL('edit_goto(QString,int,QString)'),
+                              filename, lineno, ''),
+                     self.emit(SIGNAL("set_or_edit_conditional_breakpoint()")))
+                    )
+            actions.append(edit_breakpoint_action)
         add_actions(self.popup_menu, actions)        
         self.popup_menu.popup(event.globalPos())
         event.accept()
