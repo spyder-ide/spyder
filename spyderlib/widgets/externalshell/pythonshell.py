@@ -410,6 +410,13 @@ class ExternalPythonShell(ExternalShellBase):
         if self.pythonstartup:
             env.append('PYTHONSTARTUP=%s' % self.pythonstartup)
         
+        # Set standard input/output encoding for Python consoles
+        # (IPython handles it on its own)
+        # See http://stackoverflow.com/q/26312400/438386, specifically
+        # the comments of Martijn Pieters
+        if not self.is_ipykernel:
+            env.append('PYTHONIOENCODING=UTF-8')
+        
         # Monitor
         if self.monitor_enabled:
             env.append('SPYDER_SHELL_ID=%s' % id(self))
