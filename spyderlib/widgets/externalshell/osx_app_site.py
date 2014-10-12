@@ -1,4 +1,6 @@
-# -*- coding: utf-8 -*-
+#
+# IMPORTANT NOTE: Don't add a coding line here! It's not necessary for
+# site files
 #
 # Spyder's MacOS X App site.py additions
 #
