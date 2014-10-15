@@ -69,6 +69,8 @@ class Breakpoints(BreakpointWidget, SpyderPluginMixin):
                      self.main.editor.clear_all_breakpoints)
         self.connect(self, SIGNAL('clear_breakpoint(QString,int)'),
                      self.main.editor.clear_breakpoint)
+        self.connect(self, SIGNAL('set_or_edit_conditional_breakpoint()'),
+                     self.main.editor.set_or_edit_conditional_breakpoint)
         self.connect(self.main.editor,
                      SIGNAL("breakpoints_saved()"),
                      self.set_data)

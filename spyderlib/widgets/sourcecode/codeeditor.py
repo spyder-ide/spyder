@@ -1150,17 +1150,19 @@ class CodeEditor(TextEditBaseWidget):
         data = block.userData()
         if data:
             data.breakpoint = not data.breakpoint
+            old_breakpoint_condition = data.breakpoint_condition
             data.breakpoint_condition = None
         else:
             data = BlockUserData(self)
             data.breakpoint = True
+            old_breakpoint_condition = None
         if condition is not None:
             data.breakpoint_condition = condition
         if edit_condition:
             data.breakpoint = True
             condition = data.breakpoint_condition
-            if condition is None:
-                condition = ''
+            if old_breakpoint_condition is not None:
+                condition = old_breakpoint_condition
             condition, valid = QInputDialog.getText(self,
                                         _('Breakpoint'),
                                         _("Condition:"),
@@ -1171,6 +1173,7 @@ class CodeEditor(TextEditBaseWidget):
                     condition = None
                 data.breakpoint_condition = condition
             else:
+                data.breakpoint_condition = old_breakpoint_condition
                 return
         if data.breakpoint:
             text = to_text_string(block.text()).strip()
