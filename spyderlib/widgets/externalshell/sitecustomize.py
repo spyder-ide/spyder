@@ -342,8 +342,19 @@ if os.environ.get("IPYTHON_KERNEL", "").lower() == "true":
             kwargs['testRunner'] = kwargs.pop('testRunner', test_runner)
             kwargs['exit'] = False
             TestProgram.__init__(self, *args, **kwargs)
-
     unittest.main = IPyTesProgram
+    
+    # Patch a Pandas function to make it recognize our IPython consoles as
+    # proper qtconsoles
+    # Fixes Issue 2015
+    try:
+        def in_qtconsole():
+            return True
+        import pandas as pd
+        pd.core.common.in_qtconsole = in_qtconsole
+    except:
+        pass
+        
 
 class SpyderPdb(pdb.Pdb):
     def set_spyder_breakpoints(self):
