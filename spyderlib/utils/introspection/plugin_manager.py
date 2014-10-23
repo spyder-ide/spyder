@@ -14,7 +14,7 @@ from spyderlib.utils import sourcecode
 from spyderlib.utils.debug import log_last_error
 
 from spyderlib.qt.QtGui import QApplication
-from spyderlib.qt.QtCore import SIGNAL, QThread, QObject, QTimer
+from spyderlib.qt.QtCore import pyqtSignal, QThread, QObject, QTimer
 
 
 PLUGINS = ['jedi', 'rope', 'fallback']
@@ -28,6 +28,9 @@ class RequestHandler(QObject):
 
     """Handle introspection request.
     """
+
+    introspection_complete = pyqtSignal()
+
     def __init__(self, code_info, plugins):
         super(RequestHandler, self).__init__()
         self.info = code_info
@@ -61,8 +64,7 @@ class RequestHandler(QObject):
     def _make_async_call(self, plugin, info):
         """Trigger an introspection job in a thread"""
         self._threads[plugin.name] = thread = IntrospectionThread(plugin, info)
-        self.connect(thread, SIGNAL('request_handled(QString)'),
-                     self._handle_incoming)
+        thread.request_handled.connect(self._handle_incoming)
         thread.start()
 
     def _finalize(self, name, result):
@@ -71,7 +73,7 @@ class RequestHandler(QObject):
         delta = time.time() - self._start_time
         debug_print('%s request from %s complete: "%s" in %.1f sec'
             % (self.info.name, name, str(result)[:100], delta))
-        self.emit(SIGNAL("introspection_complete()"))
+        self.introspection_complete.emit()
 
 
 class GetSubmodulesThread(QThread):
@@ -95,6 +97,8 @@ class IntrospectionThread(QThread):
     A thread to perform an introspection task
     """
 
+    request_handled = pyqtSignal(str)
+
     def __init__(self, plugin, info):
         super(IntrospectionThread, self).__init__()
         self.plugin = plugin
@@ -109,7 +113,7 @@ class IntrospectionThread(QThread):
         except Exception as e:
             debug_print(e)
         self.plugin.busy = False
-        self.emit(SIGNAL("request_handled(QString)"), self.plugin.name)
+        self.request_handled.emit(self.plugin.name)
 
 
 class CodeInfo(object):
@@ -184,6 +188,9 @@ class CodeInfo(object):
 
 class PluginManager(QObject):
 
+    send_to_inspector = pyqtSignal(str, str, str, str, bool)
+    edit_goto = pyqtSignal(str, int, str)
+
     def __init__(self, editor_widget):
         super(PluginManager, self).__init__()
         self.editor_widget = editor_widget
@@ -191,8 +198,7 @@ class PluginManager(QObject):
         self.busy = False
         self.load_plugins()
         self._submods_thread = GetSubmodulesThread()
-        self.connect(self._submods_thread, SIGNAL('finished()'),
-                     self._update_extension_modules)
+        self._submods_thread.finished.connect(self._update_extension_modules)
         self._submods_thread.start()
 
     def load_plugins(self):
@@ -306,8 +312,8 @@ class PluginManager(QObject):
             plugins = [p for p in list(self.plugins.values())[:-1] if not p.busy]
 
         self.request = RequestHandler(info, plugins)
-        self.connect(self.request, SIGNAL('introspection_complete()'),
-                     self._introspection_complete)
+        self.request.introspection_complete.connect(
+            self._introspection_complete)
         self.pending = None
 
     def _introspection_complete(self):
@@ -391,8 +397,7 @@ class PluginManager(QObject):
             if not resp['docstring']:
                 resp['docstring'] = '<no docstring>'
 
-            self.emit(SIGNAL(
-                "send_to_inspector(QString,QString,QString,QString,bool)"),
+            self.send_to_inspector.emit(
                 resp['name'], resp['argspec'],
                 resp['note'], resp['docstring'],
                 not prev_info.auto)
@@ -400,8 +405,7 @@ class PluginManager(QObject):
     def _handle_definition_response(self, resp, info, prev_info):
         """Handle a `definition` response"""
         fname, lineno = resp
-        self.emit(SIGNAL("edit_goto(QString,int,QString)"),
-                  fname, lineno, "")
+        self.edit_goto.emit(fname, lineno, "")
 
     def _update_extension_modules(self):
         """Set the extension_modules after submods thread finishes"""
