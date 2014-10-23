@@ -1841,8 +1841,10 @@ class CodeEditor(TextEditBaseWidget):
                         cell['outputs'] = []
                     if 'prompt_number' in cell:
                         cell['prompt_number'] = None
-            self.setPlainText(nbformat.current.writes(nb, 'json'))
-            self.document().setModified(True)
+            # We do the following rather than using self.setPlainText
+            # to benefit from QTextEdit's undo/redo feature. 
+            self.selectAll()
+            self.insertPlainText(nbformat.current.writes(nb, 'json'))
         else:
             return
 
