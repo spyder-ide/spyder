@@ -941,10 +941,12 @@ class ObjectInspector(SpyderPluginWidget):
         
     def _on_sphinx_thread_html_ready(self, html_text):
         """Set our sphinx documentation based on thread result"""
+        self._sphinx_thread.wait()
         self.set_rich_text_html(html_text, QUrl.fromLocalFile(CSS_PATH))
 
     def _on_sphinx_thread_error_msg(self, error_msg):
         """ Display error message on Sphinx rich text failure"""
+        self._sphinx_thread.wait()
         self.plain_text_action.setChecked(True)
         QMessageBox.critical(self,
                     _('Object inspector'),
