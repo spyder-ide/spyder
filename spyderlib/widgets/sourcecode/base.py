@@ -29,8 +29,6 @@ from spyderlib.widgets.mixins import BaseEditMixin
 from spyderlib.widgets.calltip import CallTipWidget
 from spyderlib.py3compat import to_text_string, str_lower
 
-CELL_SEPARATORS = ('#%%', '# %%', '# <codecell>', '# In[')
-
 
 class CompletionWidget(QListWidget):
     """Completion list widget"""
@@ -208,7 +206,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.codecompletion_enter = False
         self.calltips = True
         self.calltip_position = None
-        self.has_cell_separators = False        
+        self.has_cell_separators = False
+        self.cell_separators = None
         self.completion_text = ""
         self.calltip_widget = CallTipWidget(self, hide_timer_on=True)
         
@@ -287,6 +286,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     #------Highlight current cell
     def highlight_current_cell(self):
         """Highlight current cell"""
+        if self.cell_separators is None:
+            return
         selection = QTextEdit.ExtraSelection()
         selection.format.setProperty(QTextFormat.FullWidthSelection,
                                      to_qvariant(True))
@@ -530,7 +531,10 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             text = to_text_string(cursor0.selectedText())
         else:
             text = to_text_string(block.text())
-        return text.lstrip().startswith(CELL_SEPARATORS)
+        if self.cell_separators is None:
+            return False
+        else:
+            return text.lstrip().startswith(self.cell_separators)
 
     def select_current_cell(self):
         """Select cell under cursor
@@ -959,6 +963,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         """Reimplemented to handle focus"""
         self.emit(SIGNAL("focus_changed()"))
         self.emit(SIGNAL("focus_in()"))
+        self.highlight_current_cell()
         QPlainTextEdit.focusInEvent(self, event)
         
     def focusOutEvent(self, event):

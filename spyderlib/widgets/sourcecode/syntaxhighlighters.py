@@ -23,7 +23,7 @@ from spyderlib import dependencies
 from spyderlib.baseconfig import _
 from spyderlib.config import CONF
 from spyderlib.py3compat import builtins, is_text_string, to_text_string
-from spyderlib.widgets.sourcecode.base import CELL_SEPARATORS
+from spyderlib.utils.sourcecode import CELL_LANGUAGES
 
 
 PYGMENTS_REQVER = '>=1.6'
@@ -89,6 +89,8 @@ class BaseSH(QSyntaxHighlighter):
 
         self.formats = None
         self.setup_formats(font)
+        
+        self.cell_separators = None
         
     def get_background_color(self):
         return QColor(self.background_color)
@@ -283,6 +285,7 @@ class PythonSH(BaseSH):
         BaseSH.__init__(self, parent, font, color_scheme)
         self.import_statements = {}
         self.found_cell_separators = False
+        self.cell_separators = CELL_LANGUAGES['Python']
 
     def highlightBlock(self, text):
         text = to_text_string(text)
@@ -335,7 +338,7 @@ class PythonSH(BaseSH):
                     else:
                         self.setFormat(start, end-start, self.formats[key])
                         if key == "comment":
-                            if text.lstrip().startswith(CELL_SEPARATORS):
+                            if text.lstrip().startswith(self.cell_separators):
                                 self.found_cell_separators = True
                                 oedata = OutlineExplorerData()
                                 oedata.text = to_text_string(text).strip()
@@ -700,6 +703,30 @@ class GetTextSH(GenericSH):
     # Syntax highlighting rules:
     PROG = re.compile(make_gettext_patterns(), re.S)
 
+#==============================================================================
+# yaml highlighter
+#==============================================================================
+
+def make_yaml_patterns():
+    "Strongly inspired from sublime highlighter "
+    kw = any("keyword", [r":|>|-|\||\[|\]|[A-Za-z][\w\s\-\_ ]+(?=:)"])
+    links = any("normal", [r"#:[^\n]*"])
+    comment = any("comment", [r"#[^\n]*"])
+    number = any("number",
+                 [r"\b[+-]?[0-9]+[lL]?\b",
+                  r"\b[+-]?0[xX][0-9A-Fa-f]+[lL]?\b",
+                  r"\b[+-]?[0-9]+(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?\b"])
+    sqstring = r"(\b[rRuU])?'[^'\\\n]*(\\.[^'\\\n]*)*'?"
+    dqstring = r'(\b[rRuU])?"[^"\\\n]*(\\.[^"\\\n]*)*"?'
+    string = any("string", [sqstring, dqstring])
+    return "|".join([kw, string, number, links, comment, 
+                     any("SYNC", [r"\n"])])
+
+class YamlSH(GenericSH):
+    """yaml Syntax Highlighter"""
+    # Syntax highlighting rules:
+    PROG = re.compile(make_yaml_patterns(), re.S)
+
 
 #==============================================================================
 # HTML highlighter
@@ -861,7 +888,7 @@ class JsonSH(PygmentsSH):
 class JuliaSH(PygmentsSH):
     """Julia highlighter"""
     _lang_name = 'julia'
-    
+        
 class CssSH(PygmentsSH):
     """CSS Syntax Highlighter"""
     _lang_name = 'css'

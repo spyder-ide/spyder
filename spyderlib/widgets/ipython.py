@@ -78,6 +78,7 @@ class IPythonControlWidget(TracebackLinksMixin, InspectObjectMixin, QTextEdit,
         self.calltip_widget = CallTipWidget(self, hide_timer_on=True)
         # To not use Spyder calltips obtained through the monitor
         self.calltips = False
+        
     
     def showEvent(self, event):
         """Reimplement Qt Method"""
@@ -334,6 +335,11 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         super(IPythonClient, self).__init__(plugin)
         SaveHistoryMixin.__init__(self)
         self.options_button = None
+        
+        # stop button and icon
+        self.stop_button = None
+        self.stop_icon = get_icon("stop.png")
+        
         self.connection_file = connection_file
         self.kernel_widget_id = kernel_widget_id
         self.hostname = hostname
@@ -390,7 +396,23 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         
         # To update the Variable Explorer after execution
         self.shellwidget.executed.connect(self.auto_refresh_namespacebrowser)
+        
+        # To show a stop button, when executing a process
+        self.shellwidget.executing.connect(self.enable_stop_button)
+        
+        # To hide a stop button after execution stopped
+        self.shellwidget.executed.connect(self.disable_stop_button)
     
+    def enable_stop_button(self):
+        self.stop_button.setEnabled(True)
+   
+    def disable_stop_button(self):
+        self.stop_button.setDisabled(True)
+        
+    def stop_button_click_handler(self):
+        self.stop_button.setDisabled(True)
+        self.interrupt_kernel()
+
     def show_kernel_error(self, error):
         """Show kernel initialization errors in infowidget"""
         # Remove explanation about how to kill the kernel (doesn't apply to us)
@@ -438,19 +460,14 @@ class IPythonClient(QWidget, SaveHistoryMixin):
 
     def get_options_menu(self):
         """Return options menu"""
-        # Kernel
-        self.interrupt_action = create_action(self, _("Interrupt kernel"),
-                                              icon=get_icon('terminate.png'),
-                                              triggered=self.interrupt_kernel)
         self.restart_action = create_action(self, _("Restart kernel"),
                                             icon=get_icon('restart.png'),
                                             triggered=self.restart_kernel)
         # Main menu
         if self.menu_actions is not None:
-            actions = [self.interrupt_action, self.restart_action, None] +\
-                      self.menu_actions
+            actions = [self.restart_action, None] + self.menu_actions
         else:
-            actions = [self.interrupt_action, self.restart_action]
+            actions = [self.restart_action]
         return actions
     
     def get_toolbar_buttons(self):
@@ -458,6 +475,17 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         #TODO: Eventually add some buttons (Empty for now)
         # (see for example: spyderlib/widgets/externalshell/baseshell.py)
         buttons = []
+        # Code to add the stop button 
+        if self.stop_button is None:
+            self.stop_button = create_toolbutton(self, text=_("Stop"),
+                                             icon=self.stop_icon,
+                                             tip=_("Stop the current command"))
+            self.disable_stop_button()
+            # set click event handler
+            self.stop_button.clicked.connect(self.stop_button_click_handler)
+        if self.stop_button is not None:
+            buttons.append(self.stop_button)
+            
         if self.options_button is None:
             options = self.get_options_menu()
             if options:
@@ -469,8 +497,9 @@ class IPythonClient(QWidget, SaveHistoryMixin):
                 self.options_button.setMenu(menu)
         if self.options_button is not None:
             buttons.append(self.options_button)
+
         return buttons
-    
+
     def add_actions_to_context_menu(self, menu):
         """Add actions to IPython widget context menu"""
         # See spyderlib/widgets/ipython.py for more details on this method
