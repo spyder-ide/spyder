@@ -46,6 +46,7 @@ class RequestHandler(QObject):
             self._make_async_call(plugin, code_info)
 
     def _handle_timeout(self):
+        debug_print('got timeout')
         if self.pending:
             for plugin in self.plugins:
                 if plugin.name in self.pending:
@@ -54,12 +55,14 @@ class RequestHandler(QObject):
         self.waiting = False
 
     def _handle_incoming(self, name):
+        self._threads[name].wait()
+        if self.result:
+            return
         result = self._threads[name].result
         if name == self.plugins[0].name or not self.waiting:
             self._finalize(name, result)
         else:
             self.pending[name] = result
-        self._threads[name].wait()
 
     def _make_async_call(self, plugin, info):
         """Trigger an introspection job in a thread"""
