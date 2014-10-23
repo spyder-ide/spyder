@@ -70,6 +70,7 @@ class RequestHandler(QObject):
     def _finalize(self, name, result):
         self.result = result
         self.waiting = False
+        self.pending = None
         delta = time.time() - self._start_time
         debug_print('%s request from %s complete: "%s" in %.1f sec'
             % (self.info.name, name, str(result)[:100], delta))
