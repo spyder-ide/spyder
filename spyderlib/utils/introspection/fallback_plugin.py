@@ -54,7 +54,7 @@ class FallbackPlugin(IntrospectionPlugin):
             match = re.search('''[ "\']([\w\.\\\\/]+)\Z''', info.line)
             if match:
                 items += _complete_path(match.groups()[0])
-            return list(sorted(items))
+        return list(sorted(items))
 
     def get_definition(self, info):
         """
