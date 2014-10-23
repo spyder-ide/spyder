@@ -55,6 +55,10 @@ from spyderlib.py3compat import to_text_string
 if programs.is_module_installed('IPython'):
     import IPython.nbformat as nbformat
     import IPython.nbformat.current as current
+    try:
+        from IPython.nbconvert import PythonExporter as exporter  # >= 1.0
+    except:
+        exporter = None
 else:
     nbformat = None
     current = None
@@ -1854,7 +1858,11 @@ class CodeEditor(TextEditBaseWidget):
         """Convert an IPython notebook to a Python script in editor"""
         if nbformat is not None:
             nb = nbformat.current.reads(self.toPlainText(), 'json')
-            script = nbformat.current.writes_py(nb)
+            # Use writes_py if nbconvert is not available
+            if exporter is None:
+                script = nbformat.current.writes_py(nb)
+            else:
+                script = exporter().from_notebook_node(nb)[0]
             self.sig_new_file.emit(script)
 
     def indent(self, force=False):
