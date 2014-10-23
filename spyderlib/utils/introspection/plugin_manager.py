@@ -14,7 +14,7 @@ from spyderlib.utils import sourcecode
 from spyderlib.utils.debug import log_last_error
 
 from spyderlib.qt.QtGui import QApplication
-from spyderlib.qt.QtCore import pyqtSignal, QThread, QObject, QTimer
+from spyderlib.qt.QtCore import Signal, QThread, QObject, QTimer
 
 
 PLUGINS = ['jedi', 'rope', 'fallback']
@@ -29,7 +29,7 @@ class RequestHandler(QObject):
     """Handle introspection request.
     """
 
-    introspection_complete = pyqtSignal()
+    introspection_complete = Signal()
 
     def __init__(self, code_info, plugins):
         super(RequestHandler, self).__init__()
@@ -101,7 +101,7 @@ class IntrospectionThread(QThread):
     A thread to perform an introspection task
     """
 
-    request_handled = pyqtSignal(str)
+    request_handled = Signal(str)
 
     def __init__(self, plugin, info):
         super(IntrospectionThread, self).__init__()
@@ -192,8 +192,8 @@ class CodeInfo(object):
 
 class PluginManager(QObject):
 
-    send_to_inspector = pyqtSignal(str, str, str, str, bool)
-    edit_goto = pyqtSignal(str, int, str)
+    send_to_inspector = Signal(str, str, str, str, bool)
+    edit_goto = Signal(str, int, str)
 
     def __init__(self, editor_widget):
         super(PluginManager, self).__init__()
