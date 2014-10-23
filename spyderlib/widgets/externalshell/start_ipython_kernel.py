@@ -180,7 +180,7 @@ sys.path.insert(0, '')
 try:
     from IPython.kernel.zmq.kernelapp import IPKernelApp  # >=1.0
 except:
-    from IPython.zmq.ipkernel import IPKernelApp  # 0.13
+    from IPython.zmq.ipkernel import IPKernelApp  # 0.13  (analysis:ignore)
 
 ipk_temp = IPKernelApp.instance()
 ipk_temp.config = kernel_config()

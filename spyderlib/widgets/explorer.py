@@ -37,6 +37,9 @@ from spyderlib.py3compat import to_text_string, getcwd, str_lower
 if programs.is_module_installed('IPython'):
     import IPython.nbformat as nbformat
     import IPython.nbformat.current as current
+else: 
+    nbformat = None
+    current = None
 
 
 def fixpath(path):
@@ -230,7 +233,7 @@ class DirView(QTreeView):
         only_modules = all([osp.splitext(_fn)[1] in ('.py', '.pyw', '.ipy')
                             for _fn in fnames])
         only_notebooks = all([osp.splitext(_fn)[1] == '.ipynb'
-                            for _fn in fnames])
+                              for _fn in fnames])
         only_valid = all([osp.splitext(_fn)[1] in self.valid_types
                           for _fn in fnames])
         run_action = create_action(self, _("Run"), icon="run_small.png",
@@ -503,8 +506,9 @@ class DirView(QTreeView):
 
     def convert_notebook(self, fname):
         """Convert an IPython notebook to a Python script in editor"""
-        if programs.is_module_installed('IPython'):
-            script = current.writes_py(current.read(open(fname, 'r'), 'ipynb'))
+        if nbformat is not None:
+            script = nbformat.current.writes_py(nbformat.current.read(
+                                                   open(fname, 'r'), 'ipynb'))
             self.parent_widget.sig_new_file.emit(script)
     
     def convert(self, fnames=None):

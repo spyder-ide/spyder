@@ -55,6 +55,9 @@ from spyderlib.py3compat import to_text_string
 if programs.is_module_installed('IPython'):
     import IPython.nbformat as nbformat
     import IPython.nbformat.current as current
+else:
+    nbformat = None
+    current = None
 
 #%% This line is for cell execution testing
 # For debugging purpose:
@@ -1830,7 +1833,7 @@ class CodeEditor(TextEditBaseWidget):
 
     def clear_all_output(self):
         """removes all ouput in the ipynb format (Json only)"""
-        if self.is_json() and programs.is_module_installed('IPython'):
+        if self.is_json() and nbformat is not None:
             nb = nbformat.current.reads(self.toPlainText(), 'json')
             if nb.worksheets:
                 for cell in nb.worksheets[0].cells:
@@ -1847,9 +1850,9 @@ class CodeEditor(TextEditBaseWidget):
 
     def convert_notebook(self):
         """Convert an IPython notebook to a Python script in editor"""
-        if programs.is_module_installed('IPython'):
+        if nbformat is not None:
             nb = nbformat.current.reads(self.toPlainText(), 'json')
-            script = current.writes_py(nb)
+            script = nbformat.current.writes_py(nb)
             self.sig_new_file.emit(script)
 
     def indent(self, force=False):
@@ -2251,7 +2254,7 @@ class CodeEditor(TextEditBaseWidget):
                       QKeySequence(QKeySequence.ZoomOut), icon='zoom_out.png',
                       triggered=lambda: self.emit(SIGNAL('zoom_out()')))
         self.menu = QMenu(self)
-        if programs.is_module_installed('IPython'):
+        if nbformat is not None:
             add_actions(self.menu, (self.undo_action, self.redo_action, None,
                                     self.cut_action, self.copy_action,
                                     paste_action, self.delete_action,
