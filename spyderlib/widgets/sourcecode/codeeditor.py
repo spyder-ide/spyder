@@ -54,14 +54,13 @@ from spyderlib.py3compat import to_text_string
 
 if programs.is_module_installed('IPython'):
     import IPython.nbformat as nbformat
-    import IPython.nbformat.current as current
+    import IPython.nbformat.current  # in IPython 0.13.2, current is not loaded with nbformat.
     try:
-        from IPython.nbconvert import PythonExporter as exporter  # >= 1.0
+        from IPython.nbconvert import PythonExporter as nbexporter  # >= 1.0
     except:
-        exporter = None
+        nbexporter = None
 else:
     nbformat = None
-    current = None
 
 #%% This line is for cell execution testing
 # For debugging purpose:
@@ -1859,10 +1858,10 @@ class CodeEditor(TextEditBaseWidget):
         if nbformat is not None:
             nb = nbformat.current.reads(self.toPlainText(), 'json')
             # Use writes_py if nbconvert is not available
-            if exporter is None:
+            if nbexporter is None:
                 script = nbformat.current.writes_py(nb)
             else:
-                script = exporter().from_notebook_node(nb)[0]
+                script = nbexporter().from_notebook_node(nb)[0]
             self.sig_new_file.emit(script)
 
     def indent(self, force=False):
