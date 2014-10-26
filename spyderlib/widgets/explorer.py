@@ -36,7 +36,8 @@ from spyderlib.py3compat import to_text_string, getcwd, str_lower
 
 if programs.is_module_installed('IPython'):
     import IPython.nbformat as nbformat
-    import IPython.nbformat.current  # in IPython 0.13.2, current is not loaded with nbformat.
+    import IPython.nbformat.current  # in IPython 0.13.2, current is not loaded
+                                     # with nbformat.
     try:
         from IPython.nbconvert import PythonExporter as nbexporter  # >= 1.0
     except:
