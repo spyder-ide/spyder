@@ -54,7 +54,8 @@ from spyderlib.py3compat import to_text_string
 
 if programs.is_module_installed('IPython'):
     import IPython.nbformat as nbformat
-    import IPython.nbformat.current  # in IPython 0.13.2, current is not loaded with nbformat.
+    import IPython.nbformat.current  # in IPython 0.13.2, current is not loaded
+                                     # with nbformat.
     try:
         from IPython.nbconvert import PythonExporter as nbexporter  # >= 1.0
     except:
@@ -2246,7 +2247,7 @@ class CodeEditor(TextEditBaseWidget):
                            icon=get_icon("comment.png"),
                            triggered=self.toggle_comment)
         self.clear_all_output_action = create_action(self,
-                           _("Clear all ouput"), icon='ipython_console_t.png',
+                           _("Clear all ouput"), icon='ipython_console.png',
                            triggered=self.clear_all_output)
         self.ipynb_convert_action = create_action(self, _("Convert to Python script"),
                            triggered=self.convert_notebook, icon='python.png')
