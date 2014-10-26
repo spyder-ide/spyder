@@ -31,7 +31,7 @@ from spyderlib.qt.QtGui import (QColor, QMenu, QApplication, QSplitter, QFont,
                                 QKeySequence, QWidget, QVBoxLayout,
                                 QHBoxLayout, QDialog, QIntValidator,
                                 QDialogButtonBox, QGridLayout, QPaintEvent)
-from spyderlib.qt.QtCore import (Qt, SIGNAL, Signal, QTimer, QRect, QRegExp, 
+from spyderlib.qt.QtCore import (Qt, SIGNAL, Signal, QTimer, QRect, QRegExp,
                                  QSize, SLOT, Slot)
 from spyderlib.qt.compat import to_qvariant
 
@@ -45,12 +45,22 @@ from spyderlib.guiconfig import get_font, create_shortcut
 from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
                                        mimedata2url, get_icon)
 from spyderlib.utils.dochelpers import getobj
-from spyderlib.utils import encoding, sourcecode
+from spyderlib.utils import encoding, sourcecode, programs
 from spyderlib.utils.sourcecode import ALL_LANGUAGES, CELL_LANGUAGES
 from spyderlib.widgets.editortools import PythonCFM
 from spyderlib.widgets.sourcecode.base import TextEditBaseWidget
 from spyderlib.widgets.sourcecode import syntaxhighlighters as sh
 from spyderlib.py3compat import to_text_string
+
+if programs.is_module_installed('IPython'):
+    import IPython.nbformat as nbformat
+    import IPython.nbformat.current  # in IPython 0.13.2, current is not loaded with nbformat.
+    try:
+        from IPython.nbconvert import PythonExporter as nbexporter  # >= 1.0
+    except:
+        nbexporter = None
+else:
+    nbformat = None
 
 #%% This line is for cell execution testing
 # For debugging purpose:
@@ -316,6 +326,7 @@ class CodeEditor(TextEditBaseWidget):
                  'Css': (sh.CssSH, '', None),
                  'Xml': (sh.XmlSH, '', None),
                  'Js': (sh.JsSH, '//', None),
+                 'Json': (sh.JsonSH, '', None),
                  'Julia': (sh.JuliaSH, '#', None),
                  'Yaml': (sh.YamlSH, '#', None),
                  'Cpp': (sh.CppSH, '//', None),
@@ -624,7 +635,6 @@ class CodeEditor(TextEditBaseWidget):
         """Enable/Disable go-to-definition feature, which is implemented in
         child class -> Editor widget"""
         self.go_to_definition_enabled = enable
-        self.gotodef_action.setEnabled(enable)
 
     def set_close_parentheses_enabled(self, enable):
         """Enable/disable automatic parentheses insertion feature"""
@@ -700,6 +710,9 @@ class CodeEditor(TextEditBaseWidget):
                                                   self.font(),
                                                   self.color_scheme)
         self._apply_highlighter_color_scheme()
+
+    def is_json(self):
+        return self.highlighter_class is sh.JsonSH
 
     def is_python(self):
         return self.highlighter_class is sh.PythonSH
@@ -1821,6 +1834,36 @@ class CodeEditor(TextEditBaseWidget):
             cursor.endEditBlock()
             return True
 
+    def clear_all_output(self):
+        """removes all ouput in the ipynb format (Json only)"""
+        if self.is_json() and nbformat is not None:
+            nb = nbformat.current.reads(self.toPlainText(), 'json')
+            if nb.worksheets:
+                for cell in nb.worksheets[0].cells:
+                    if 'outputs' in cell:
+                        cell['outputs'] = []
+                    if 'prompt_number' in cell:
+                        cell['prompt_number'] = None
+            # We do the following rather than using self.setPlainText
+            # to benefit from QTextEdit's undo/redo feature. 
+            self.selectAll()
+            self.insertPlainText(nbformat.current.writes(nb, 'json'))
+        else:
+            return
+
+    sig_new_file = Signal(str)
+
+    def convert_notebook(self):
+        """Convert an IPython notebook to a Python script in editor"""
+        if nbformat is not None:
+            nb = nbformat.current.reads(self.toPlainText(), 'json')
+            # Use writes_py if nbconvert is not available
+            if nbexporter is None:
+                script = nbformat.current.writes_py(nb)
+            else:
+                script = nbexporter().from_notebook_node(nb)[0]
+            self.sig_new_file.emit(script)
+
     def indent(self, force=False):
         """
         Indent current line or selection
@@ -2202,9 +2245,14 @@ class CodeEditor(TextEditBaseWidget):
                            _("Comment")+"/"+_("Uncomment"),
                            icon=get_icon("comment.png"),
                            triggered=self.toggle_comment)
+        self.clear_all_output_action = create_action(self,
+                           _("Clear all ouput"), icon='ipython_console_t.png',
+                           triggered=self.clear_all_output)
+        self.ipynb_convert_action = create_action(self, _("Convert to Python script"),
+                           triggered=self.convert_notebook, icon='python.png')
         self.gotodef_action = create_action(self, _("Go to definition"),
                                    triggered=self.go_to_definition_from_cursor)
-        run_selection_action = create_action(self,
+        self.run_selection_action = create_action(self,
                         _("Run &selection or current line"),
                         icon='run_selection.png',
                         triggered=lambda: self.emit(SIGNAL('run_selection()')))
@@ -2215,13 +2263,25 @@ class CodeEditor(TextEditBaseWidget):
                       QKeySequence(QKeySequence.ZoomOut), icon='zoom_out.png',
                       triggered=lambda: self.emit(SIGNAL('zoom_out()')))
         self.menu = QMenu(self)
-        add_actions(self.menu, (self.undo_action, self.redo_action, None,
-                                self.cut_action, self.copy_action,
-                                paste_action, self.delete_action,
-                                None, selectall_action, None, zoom_in_action,
-                                zoom_out_action, None, toggle_comment_action,
-                                None, run_selection_action,
-                                self.gotodef_action))
+        if nbformat is not None:
+            add_actions(self.menu, (self.undo_action, self.redo_action, None,
+                                    self.cut_action, self.copy_action,
+                                    paste_action, self.delete_action,
+                                    None, self.clear_all_output_action,
+                                    self.ipynb_convert_action, None, 
+                                    selectall_action, None, zoom_in_action,
+                                    zoom_out_action, None, toggle_comment_action,
+                                    None, self.run_selection_action,
+                                    self.gotodef_action))
+        else:
+            add_actions(self.menu, (self.undo_action, self.redo_action, None,
+                                    self.cut_action, self.copy_action,
+                                    paste_action, self.delete_action,
+                                    None, selectall_action, None, zoom_in_action,
+                                    zoom_out_action, None, toggle_comment_action,
+                                    None, self.run_selection_action,
+                                    self.gotodef_action))
+
             
         # Read-only context-menu
         self.readonly_menu = QMenu(self)
@@ -2451,12 +2511,27 @@ class CodeEditor(TextEditBaseWidget):
 
     def contextMenuEvent(self, event):
         """Reimplement Qt method"""
-        state = self.has_selected_text()
-        self.copy_action.setEnabled(state)
-        self.cut_action.setEnabled(state)
-        self.delete_action.setEnabled(state)
-        self.undo_action.setEnabled( self.document().isUndoAvailable() )
-        self.redo_action.setEnabled( self.document().isRedoAvailable() )
+        nonempty_selection = self.has_selected_text()
+        self.copy_action.setEnabled(nonempty_selection)
+        self.cut_action.setEnabled(nonempty_selection)
+        self.delete_action.setEnabled(nonempty_selection)
+        self.clear_all_output_action.setVisible(self.is_json())
+        self.ipynb_convert_action.setVisible(self.is_json())
+        self.run_selection_action.setEnabled(nonempty_selection)
+        self.run_selection_action.setVisible(self.is_python())
+        self.gotodef_action.setVisible(self.go_to_definition_enabled\
+                                       and self.is_python_like())        
+        
+        # Code duplication go_to_definition_from_cursor and mouse_move_event
+        cursor = self.textCursor()
+        text = to_text_string(cursor.selectedText())
+        if len(text) == 0:
+            cursor.select(QTextCursor.WordUnderCursor)
+            text = to_text_string(cursor.selectedText())
+        self.gotodef_action.setEnabled(sourcecode.is_keyword(text)) 
+           
+        self.undo_action.setEnabled( self.document().isUndoAvailable())
+        self.redo_action.setEnabled( self.document().isRedoAvailable())
         menu = self.menu
         if self.isReadOnly():
             menu = self.readonly_menu

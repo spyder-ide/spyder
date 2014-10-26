@@ -1467,34 +1467,38 @@ class Editor(SpyderPluginWidget):
             editor = editorstack.clone_editor_from(finfo, set_current=False)
             self.register_widget_shortcuts("Editor", editor)
     
-    def new(self, fname=None, editorstack=None):
+    def new(self, fname=None, editorstack=None, text=None):
         """
         Create a new file - Untitled
         
         fname=None --> fname will be 'untitledXX.py' but do not create file
         fname=<basestring> --> create file
         """
-        # Creating template
-        text, enc = encoding.read(self.TEMPLATE_PATH)
-        encoding_match = re.search('-*- coding: ?([a-z0-9A-Z\-]*) -*-', text)
-        if encoding_match:
-            enc = encoding_match.group(1)
-        # Initialize template variables
-        # Windows
-        username = encoding.to_unicode_from_fs(os.environ.get('USERNAME',
-                                                              ''))
-        # Linux, Mac OS X
-        if not username:
-            username = encoding.to_unicode_from_fs(os.environ.get('USER',
-                                                                  '-'))
-        VARS = {
-            'date': time.ctime(),
-            'username': username,
-        }
-        try:
-            text = text % VARS
-        except:
-            pass
+        # If no text is provided, create default content
+        if text is None:
+            text, enc = encoding.read(self.TEMPLATE_PATH)
+            enc_match = re.search('-*- coding: ?([a-z0-9A-Z\-]*) -*-', text)
+            if enc_match:
+                enc = enc_match.group(1)
+            # Initialize template variables
+            # Windows
+            username = encoding.to_unicode_from_fs(os.environ.get('USERNAME',
+                                                                  ''))
+            # Linux, Mac OS X
+            if not username:
+                username = encoding.to_unicode_from_fs(os.environ.get('USER',
+                                                                      '-'))
+            VARS = {
+                'date': time.ctime(),
+                'username': username,
+            }
+            try:
+                text = text % VARS
+            except:
+                pass
+        else:
+            enc = encoding.read(self.TEMPLATE_PATH)[1]
+        
         create_fname = lambda n: to_text_string(_("untitled")) + ("%d.py" % n)
         # Creating editor widget
         if editorstack is None:

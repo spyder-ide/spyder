@@ -45,6 +45,8 @@ EDIT_FILETYPES = (
     (_("Web page files"), ('.css', '.htm', '.html',)),
     (_("XML files"), ('.xml',)),
     (_("Javascript files"), ('.js',)),
+    (_("Json files"), ('.json',)),
+    (_("IPython notebooks"), ('.ipynb',)),
     (_("Enaml files"), ('.enaml',)),
     (_("Configuration files"), ('.properties', '.session', '.ini', '.inf',
                                 '.reg', '.cfg', '.desktop')),

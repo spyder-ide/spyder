@@ -28,6 +28,7 @@ ALL_LANGUAGES = {
                  'Css': ('css',),
                  'Xml': ('xml',),
                  'Js': ('js',),
+                 'Json': ('json', 'ipynb'),
                  'Cpp': ('c', 'cc', 'cpp', 'cxx', 'h', 'hh', 'hpp', 'hxx'),
                  'OpenCL': ('cl',),
                  'Batch': ('bat', 'cmd', 'nt'),

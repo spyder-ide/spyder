@@ -78,6 +78,7 @@ class IPythonControlWidget(TracebackLinksMixin, InspectObjectMixin, QTextEdit,
         self.calltip_widget = CallTipWidget(self, hide_timer_on=True)
         # To not use Spyder calltips obtained through the monitor
         self.calltips = False
+        
     
     def showEvent(self, event):
         """Reimplement Qt Method"""
@@ -411,7 +412,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
     def stop_button_click_handler(self):
         self.stop_button.setDisabled(True)
         self.interrupt_kernel()
-    
+
     def show_kernel_error(self, error):
         """Show kernel initialization errors in infowidget"""
         # Remove explanation about how to kill the kernel (doesn't apply to us)
