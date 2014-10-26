@@ -11,6 +11,7 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
+import os
 import re
 import sys
 
@@ -27,7 +28,7 @@ from spyderlib.qt.compat import to_qvariant
 from spyderlib.widgets.sourcecode.terminal import ANSIEscapeCodeHandler
 from spyderlib.widgets.mixins import BaseEditMixin
 from spyderlib.widgets.calltip import CallTipWidget
-from spyderlib.py3compat import to_text_string, str_lower
+from spyderlib.py3compat import to_text_string, str_lower, PY3
 
 
 class CompletionWidget(QListWidget):
@@ -436,6 +437,21 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         Copy text to clipboard with correct EOL chars
         """
         QApplication.clipboard().setText(self.get_selected_text())
+    
+    def toPlainText(self):
+        """
+        Reimplement Qt method
+        Fix PyQt4 bug on Windows and Python 3
+        """
+        # Fix what appears to be a PyQt4 bug when getting file
+        # contents under Windows and PY3. This bug leads to
+        # corruptions when saving files with certain combinations
+        # of unicode chars on them (like the one attached on
+        # Issue 1546)
+        if os.name == 'nt' and PY3:
+            return self.get_text('sof', 'eof')
+        else:
+            return super(TextEditBaseWidget, self).toPlainText()
 
     #------Text: get, set, ...
     def get_selection_as_executable_code(self):
