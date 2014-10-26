@@ -12,8 +12,7 @@ import os.path as osp
 import socket
 
 from spyderlib.qt.QtGui import QApplication, QMessageBox, QSplitter, QMenu
-from spyderlib.qt.QtCore import QProcess, SIGNAL, Qt, QTextCodec
-LOCALE_CODEC = QTextCodec.codecForLocale()
+from spyderlib.qt.QtCore import QProcess, SIGNAL, Qt
 from spyderlib.qt.compat import getexistingdirectory
 
 # Local imports
@@ -30,7 +29,8 @@ from spyderlib.utils.bsdsocket import communicate, write_packet
 from spyderlib.widgets.externalshell.baseshell import (ExternalShellBase,
                                                    add_pathlist_to_PYTHONPATH)
 from spyderlib.widgets.dicteditor import DictEditor
-from spyderlib.py3compat import is_text_string, to_text_string
+from spyderlib.py3compat import (is_text_string, to_text_string,
+                                 to_binary_string)
 
 
 class ExtPythonShellWidget(PythonShellWidget):
@@ -410,6 +410,13 @@ class ExternalPythonShell(ExternalShellBase):
         if self.pythonstartup:
             env.append('PYTHONSTARTUP=%s' % self.pythonstartup)
         
+        # Set standard input/output encoding for Python consoles
+        # (IPython handles it on its own)
+        # See http://stackoverflow.com/q/26312400/438386, specifically
+        # the comments of Martijn Pieters
+        if not self.is_ipykernel:
+            env.append('PYTHONIOENCODING=UTF-8')
+        
         # Monitor
         if self.monitor_enabled:
             env.append('SPYDER_SHELL_ID=%s' % id(self))
@@ -575,7 +582,7 @@ class ExternalPythonShell(ExternalShellBase):
             text = 'evalsc(r"%s")\n' % text
         if not text.endswith('\n'):
             text += '\n'
-        self.process.write(LOCALE_CODEC.fromUnicode(text))
+        self.process.write(to_binary_string(text, 'utf8'))
         self.process.waitForBytesWritten(-1)
         
         # Eventually write prompt faster (when hitting Enter continuously)

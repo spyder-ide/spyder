@@ -255,7 +255,7 @@ class ExternalShellBase(QWidget):
 #    Input/Output
 #===============================================================================
     def transcode(self, qba):
-        return to_text_string( LOCALE_CODEC.toUnicode(qba.data()) )
+        return to_text_string(qba.data(), 'utf8')
     
     def get_stdout(self):
         self.process.setReadChannel(QProcess.StandardOutput)

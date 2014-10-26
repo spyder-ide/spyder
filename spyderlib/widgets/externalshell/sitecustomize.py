@@ -1,5 +1,9 @@
-# -*- coding: utf-8 -*-
+#
+# IMPORTANT NOTE: Don't add a coding line here! It's not necessary for
+# site files
+#
 # Spyder's ExternalPythonShell sitecustomize
+#
 
 import sys
 import os
@@ -172,28 +176,6 @@ if mpl_backend:
         pass
 
 
-# Set standard outputs encoding:
-# (otherwise, for example, print("é") will fail)
-encoding = None
-try:
-    import locale
-except ImportError:
-    pass
-else:
-    loc = locale.getdefaultlocale()
-    if loc[1]:
-        encoding = loc[1]
-
-if encoding is None:
-    encoding = "UTF-8"
-
-try:
-    sys.setdefaultencoding(encoding)
-    os.environ['SPYDER_ENCODING'] = encoding
-except AttributeError:
-    # Python 3
-    pass
-    
 try:
     import sitecustomize  #analysis:ignore
 except ImportError:
