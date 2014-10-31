@@ -1199,6 +1199,7 @@ class ConsoleBaseWidget(TextEditBaseWidget):
         """
         cursor = self.textCursor()
         cursor.movePosition(QTextCursor.End)
+        text = '\n'.join(text.splitlines())  # replace \r\n with \n
         while True:
             index = text.find(chr(12))
             if index == -1:
@@ -1222,19 +1223,18 @@ class ConsoleBaseWidget(TextEditBaseWidget):
                 self.emit(SIGNAL('traceback_available()'))
         elif prompt:
             # Show prompt in green
-            _insert_text_backspaces(cursor, text, self.prompt_style.format)
+            insert_text(cursor, text, self.prompt_style.format)
         else:
             # Show other outputs in black
             last_end = 0
             for match in self.COLOR_PATTERN.finditer(text):
-                _insert_text_backspaces(cursor, text[last_end:match.start()],
-                                        self.default_style.format)
+                insert_text(cursor, text[last_end:match.start()],
+                            self.default_style.format)
                 last_end = match.end()
                 for code in [int(_c) for _c in match.group(1).split(';')]:
                     self.ansi_handler.set_code(code)
                 self.default_style.format = self.ansi_handler.get_format()
-            _insert_text_backspaces(cursor, text[last_end:],
-                                    self.default_style.format)
+            insert_text(cursor, text[last_end:], self.default_style.format)
 #            # Slower alternative:
 #            segments = self.COLOR_PATTERN.split(text)
 #            cursor.insertText(segments.pop(0), self.default_style.format)
@@ -1258,7 +1258,7 @@ class ConsoleBaseWidget(TextEditBaseWidget):
         self.ansi_handler.set_base_format(self.default_style.format)
 
 
-def _insert_text_backspaces(cursor, text, fmt):
+def insert_text(cursor, text, fmt):
     """Helper to print text, taking into account backspaces"""
     while True:
         index = text.find(chr(8))  # backspace
