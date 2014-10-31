@@ -1199,8 +1199,9 @@ class ConsoleBaseWidget(TextEditBaseWidget):
         """
         cursor = self.textCursor()
         cursor.movePosition(QTextCursor.End)
-        if '\r' in text:
-            text = '\n'.join(text.splitlines())  # replace \r\n with \n
+        if '\r' in text:    # replace \r\n with \n
+            text = text.replace('\r\n', '\n')
+            text = text.replace('\r', '\n')
         while True:
             index = text.find(chr(12))
             if index == -1:
