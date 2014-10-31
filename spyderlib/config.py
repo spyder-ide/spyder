@@ -167,6 +167,7 @@ DEFAULTS = [
               'vertical_dockwidget_titlebars': False,
               'vertical_tabs': False,
               'animated_docks': True,
+              'prompt_on_exit': False,
               'window/size': (1260, 740),
               'window/position': (10, 10),
               'window/is_maximized': True,
