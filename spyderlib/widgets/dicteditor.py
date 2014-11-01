@@ -29,7 +29,6 @@ from spyderlib.utils.qthelpers import mimedata2url
 
 import sys
 import datetime
-import os
 
 # Local import
 from spyderlib.baseconfig import _
@@ -48,8 +47,8 @@ if DataFrame is not FakeObject:
     from spyderlib.widgets.dataframeeditor import DataFrameEditor
 from spyderlib.widgets.texteditor import TextEditor
 from spyderlib.widgets.importwizard import ImportWizard
-from spyderlib.py3compat import to_text_string, is_text_string, getcwd, u
-from spyderlib.utils.iofuncs import iofunctions
+from spyderlib.py3compat import (to_text_string, to_binary_string,
+                                 is_text_string, is_binary_string, getcwd, u)
 
 
 def display_to_value(value, default_value, ignore_errors=True):
@@ -69,8 +68,8 @@ def display_to_value(value, default_value, ignore_errors=True):
                 value = np_dtype(complex(value))
             else:
                 value = np_dtype(value)
-        elif isinstance(default_value, str):
-            value = str(value)
+        elif is_binary_string(default_value):
+            value = to_binary_string(value, 'utf8')
         elif is_text_string(default_value):
             value = to_text_string(value)
         elif isinstance(default_value, complex):
@@ -484,6 +483,8 @@ class DictDelegate(QItemDelegate):
         Model --> Editor"""
         value = self.get_value(index)
         if isinstance(editor, QLineEdit):
+            if is_binary_string(value):
+                value = to_text_string(value, 'utf8')
             if not is_text_string(value):
                 value = repr(value)
             editor.setText(value)

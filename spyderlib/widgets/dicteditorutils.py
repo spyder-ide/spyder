@@ -13,8 +13,8 @@ from __future__ import print_function
 import re
 
 # Local imports
-from spyderlib.py3compat import (NUMERIC_TYPES, TEXT_TYPES,
-                                 to_text_string, is_text_string)
+from spyderlib.py3compat import (NUMERIC_TYPES, TEXT_TYPES, to_text_string,
+                                 is_text_string, is_binary_string)
 from spyderlib.utils import programs
 from spyderlib import dependencies
 from spyderlib.baseconfig import _
@@ -145,8 +145,8 @@ def unsorted_unique(lista):
 
 
 #----Display <--> Value
-def value_to_display(value, truncate=False,
-                     trunc_len=80, minmax=False, collvalue=True):
+def value_to_display(value, truncate=False, trunc_len=80, minmax=False,
+                     collvalue=True):
     """Convert value for display purpose"""
     if minmax and isinstance(value, (ndarray, MaskedArray)):
         if value.size == 0:
@@ -164,6 +164,8 @@ def value_to_display(value, truncate=False,
         cols = value.columns
         cols = [to_text_string(c) for c in cols]
         return 'Column names: ' + ', '.join(list(cols))
+    if is_binary_string(value):
+        value = to_text_string(value, 'utf8')
     if not is_text_string(value):
         if isinstance(value, (list, tuple, dict, set)) and not collvalue:            
             value = address(value)
