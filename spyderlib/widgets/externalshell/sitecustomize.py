@@ -42,7 +42,35 @@ def _print(*objects, **options):
             print >>file, string,
 
 try:
+    # Python 2
     import __builtin__ as builtins
+    #==========================================================================
+    # These definitions of execfile for Python 2 are taken from the IPython
+    # project (present in IPython.utils.py3compat)
+    #
+    # Copyright (C) The IPython Development Team
+    # Distributed under the terms of the modified BSD license
+    #==========================================================================
+    if os.name == 'nt':
+        def encode(u):
+            return u.encode('utf8', 'replace')
+        def execfile(fname, glob=None, loc=None):
+            loc = loc if (loc is not None) else glob
+            scripttext = builtins.open(fname).read()+ '\n'
+            # compile converts unicode filename to str assuming
+            # ascii. Let's do the conversion before calling compile
+            if isinstance(fname, unicode):
+                filename = encode(fname)
+            else:
+                filename = fname
+            exec(compile(scripttext, filename, 'exec'), glob, loc)
+    else:
+        def execfile(fname, *where):
+            if isinstance(fname, unicode):
+                filename = fname.encode(sys.getfilesystemencoding())
+            else:
+                filename = fname
+            builtins.execfile(filename, *where)
 except ImportError:
     # Python 3
     import builtins
