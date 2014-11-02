@@ -1613,8 +1613,6 @@ class MainWindow(QMainWindow):
         prefix = ('lightwindow' if self.light else 'window') + '/'
         self.save_current_window_settings(prefix)
         if CONF.get('main', 'single_instance'):
-            if os.name == 'nt':
-                pass # All seems to indicate port is closed at this point
             self.open_files_server.close()
         for widget in self.widgetlist:
             if not widget.closing_plugin(cancelable):
@@ -2122,7 +2120,11 @@ Please provide any additional information below.
                 # See Issue 1275 for details on why errno EINTR is
                 # silently ignored here.
                 eintr = errno.WSAEINTR if os.name == 'nt' else errno.EINTR
+                # To avoid a traceback after closing on Windows
+                enotsock = errno.WSAENOTSOCK if os.name == 'nt' else errno.ENOTSOCK
                 if e.args[0] == eintr:
+                    continue
+                elif e.args[0] == enotsock:
                     continue
                 raise
             fname = req.recv(1024)

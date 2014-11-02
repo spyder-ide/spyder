@@ -952,8 +952,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         """Reimplement Qt method"""
         if sys.platform.startswith('linux') and event.button() == Qt.MidButton:
             self.calltip_widget.hide()
-            if self.has_selected_text():
-                self.remove_selected_text()
             self.setFocus()
             event = QMouseEvent(QEvent.MouseButtonPress, event.pos(),
                                 Qt.LeftButton, Qt.LeftButton, Qt.NoModifier)
@@ -961,8 +959,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             QPlainTextEdit.mouseReleaseEvent(self, event)
             # Send selection text to clipboard to be able to use
             # the paste method and avoid the strange Issue 1445
-            #
-            # Note: This issue seems a focusing problem but it
+            # NOTE: This issue seems a focusing problem but it
             # seems really hard to track
             mode_clip = QClipboard.Clipboard
             mode_sel = QClipboard.Selection

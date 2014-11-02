@@ -26,9 +26,11 @@ def _analyze_node(pycore, pydefined, should_analyze,
         new_followed_calls = max(0, followed_calls - 1)
         return_true = lambda pydefined: True
         return_false = lambda pydefined: False
+
         def _follow(pyfunction):
             _analyze_node(pycore, pyfunction, return_true,
                           return_false, new_followed_calls)
+
         if not followed_calls:
             _follow = None
         visitor = SOAVisitor(pycore, pydefined, _follow)
@@ -113,7 +115,8 @@ class SOAVisitor(object):
             args_pynames.append(evaluate.eval_node(self.scope,
                                                    subscript.slice.value))
             value = rope.base.oi.soi._infer_assignment(
-                rope.base.pynames.AssignmentValue(node.value, levels), self.pymodule)
+                rope.base.pynames.AssignmentValue(node.value, levels),
+                self.pymodule)
             args_pynames.append(rope.base.pynames.UnboundName(value))
             if instance is not None and value is not None:
                 pyobject = instance.get_object()

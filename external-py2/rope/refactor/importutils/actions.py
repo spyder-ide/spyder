@@ -1,6 +1,3 @@
-import os
-import sys
-
 from rope.base import pyobjects, exceptions, stdmods
 from rope.refactor import occurrences
 from rope.refactor.importutils import importinfo
@@ -35,7 +32,8 @@ class RelativeToAbsoluteVisitor(ImportInfoVisitor):
         self.context = importinfo.ImportContext(pycore, current_folder)
 
     def visitNormalImport(self, import_stmt, import_info):
-        self.to_be_absolute.extend(self._get_relative_to_absolute_list(import_info))
+        self.to_be_absolute.extend(
+            self._get_relative_to_absolute_list(import_info))
         new_pairs = []
         for name, alias in import_info.names_and_aliases:
             resource = self.pycore.find_module(name, folder=self.folder)
@@ -45,7 +43,7 @@ class RelativeToAbsoluteVisitor(ImportInfoVisitor):
             absolute_name = self.pycore.modname(resource)
             new_pairs.append((absolute_name, alias))
         if not import_info._are_name_and_alias_lists_equal(
-            new_pairs, import_info.names_and_aliases):
+                new_pairs, import_info.names_and_aliases):
             import_stmt.import_info = importinfo.NormalImport(new_pairs)
 
     def _get_relative_to_absolute_list(self, import_info):
@@ -162,7 +160,8 @@ class AddingVisitor(ImportInfoVisitor):
         # Multiple imports using a single import statement is discouraged
         # so we won't bother adding them.
         if self.import_info._are_name_and_alias_lists_equal(
-            import_info.names_and_aliases, self.import_info.names_and_aliases):
+                import_info.names_and_aliases,
+                self.import_info.names_and_aliases):
             return True
 
     def visitFromImport(self, import_stmt, import_info):
@@ -228,7 +227,7 @@ class SelfImportVisitor(ImportInfoVisitor):
             else:
                 new_pairs.append((name, alias))
         if not import_info._are_name_and_alias_lists_equal(
-            new_pairs, import_info.names_and_aliases):
+                new_pairs, import_info.names_and_aliases):
             import_stmt.import_info = importinfo.NormalImport(new_pairs)
 
     def visitFromImport(self, import_stmt, import_info):
@@ -254,7 +253,7 @@ class SelfImportVisitor(ImportInfoVisitor):
             except exceptions.AttributeNotFoundError:
                 new_pairs.append((name, alias))
         if not import_info._are_name_and_alias_lists_equal(
-            new_pairs, import_info.names_and_aliases):
+                new_pairs, import_info.names_and_aliases):
             import_stmt.import_info = importinfo.FromImport(
                 import_info.module_name, import_info.level, new_pairs)
 
@@ -312,7 +311,6 @@ class LongImportVisitor(ImportInfoVisitor):
         self.new_imports = []
 
     def visitNormalImport(self, import_stmt, import_info):
-        new_pairs = []
         for name, alias in import_info.names_and_aliases:
             if alias is None and self._is_long(name):
                 self.to_be_renamed.add(name)
@@ -324,7 +322,7 @@ class LongImportVisitor(ImportInfoVisitor):
 
     def _is_long(self, name):
         return name.count('.') > self.maxdots or \
-               ('.' in name and len(name) > self.maxlength)
+            ('.' in name and len(name) > self.maxlength)
 
 
 class RemovePyNameVisitor(ImportInfoVisitor):
@@ -356,4 +354,4 @@ class RemovePyNameVisitor(ImportInfoVisitor):
 
 def _is_future(info):
     return isinstance(info, importinfo.FromImport) and \
-           info.module_name == '__future__'
+        info.module_name == '__future__'

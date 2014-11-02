@@ -45,8 +45,8 @@ TaskHandle` parameter.  You can use this object for stopping or
 monitoring the progress of refactorings.
 
 """
-from rope.refactor.importutils import ImportOrganizer
-from rope.refactor.topackage import ModuleToPackage
+from rope.refactor.importutils import ImportOrganizer  # noqa
+from rope.refactor.topackage import ModuleToPackage  # noqa
 
 
 __all__ = ['rename', 'move', 'inline', 'extract', 'restructure', 'topackage',

@@ -26,11 +26,13 @@ from rope.base.change import ChangeSet, ChangeContents
 from rope.refactor import (occurrences, rename, sourceutils,
                            importutils, move, change_signature)
 
+
 def unique_prefix():
     n = 0
     while True:
         yield "__" + str(n) + "__"
         n += 1
+
 
 def create_inline(project, resource, offset):
     """Create a refactoring object for inlining
@@ -100,7 +102,6 @@ class InlineMethod(_Inliner):
     def _get_scope_range(self):
         scope = self.pyfunction.get_scope()
         lines = self.pymodule.lines
-        logicals = self.pymodule.logical_lines
         start_line = scope.get_start()
         if self.pyfunction.decorators:
             decorators = self.pyfunction.decorators
@@ -132,7 +133,7 @@ class InlineMethod(_Inliner):
             job_set.started_job(file.path)
             if file == self.resource:
                 changes.add_change(self._defining_file_changes(
-                        changes, remove=remove, only_current=only_current))
+                    changes, remove=remove, only_current=only_current))
             else:
                 aim = None
                 if only_current and self.original == file:
@@ -154,8 +155,6 @@ class InlineMethod(_Inliner):
     def _get_removed_range(self):
         scope = self.pyfunction.get_scope()
         lines = self.pymodule.lines
-        logical = self.pymodule.logical_lines
-        start_line = scope.get_start()
         start, end = self._get_scope_range()
         end_line = scope.get_end()
         for i in range(end_line + 1, lines.length()):
@@ -200,7 +199,6 @@ class InlineMethod(_Inliner):
             return False
         class_start, class_end = sourceutils.get_body_region(pyclass)
         source = self.pymodule.source_code
-        lines = self.pymodule.lines
         func_start, func_end = self._get_scope_range()
         if source[class_start:func_start].strip() == '' and \
            source[func_end:class_end].strip() == '':
@@ -329,6 +327,7 @@ def _join_lines(lines):
 
 class _DefinitionGenerator(object):
     unique_prefix = unique_prefix()
+
     def __init__(self, project, pyfunction, body=None):
         self.pycore = project.pycore
         self.pyfunction = pyfunction
@@ -360,10 +359,11 @@ class _DefinitionGenerator(object):
     def get_function_name(self):
         return self.pyfunction.get_name()
 
-    def get_definition(self, primary, pyname, call, host_vars=[],returns=False):
+    def get_definition(self, primary, pyname, call, host_vars=[],
+                       returns=False):
         # caching already calculated definitions
         return self._calculate_definition(primary, pyname, call,
-                           host_vars, returns)
+                                          host_vars, returns)
 
     def _calculate_header(self, primary, pyname, call):
         # A header is created which initializes parameters
@@ -377,10 +377,6 @@ class _DefinitionGenerator(object):
             paramdict[param_name] = value
         header = ''
         to_be_inlined = []
-        mod = self.pycore.get_string_module(self.body)
-        all_names = mod.get_scope().get_names()
-        assigned_names = [name for name in all_names if
-            isinstance(all_names[name], rope.base.pynamesdef.AssignedName)]
         for name, value in paramdict.items():
             if name != value and value is not None:
                 header += name + ' = ' + value.replace('\n', ' ') + '\n'
@@ -394,8 +390,9 @@ class _DefinitionGenerator(object):
         source = header + self.body
         mod = self.pycore.get_string_module(source)
         name_dict = mod.get_scope().get_names()
-        all_names =   [x for x in  name_dict if
-            not isinstance(name_dict[x], rope.base.builtins.BuiltinName)]
+        all_names = [x for x in name_dict if
+                     not isinstance(name_dict[x],
+                                    rope.base.builtins.BuiltinName)]
 
         # If there is a name conflict, all variable names
         # inside the inlined function are renamed
@@ -404,13 +401,13 @@ class _DefinitionGenerator(object):
             prefix = _DefinitionGenerator.unique_prefix.next()
             guest = self.pycore.get_string_module(source, self.resource)
 
-            to_be_inlined = [prefix+item for item in to_be_inlined]
+            to_be_inlined = [prefix + item for item in to_be_inlined]
             for item in all_names:
                 pyname = guest[item]
-                occurrence_finder = occurrences.create_finder(
-                                        self.pycore, item, pyname)
+                occurrence_finder = occurrences.create_finder(self.pycore,
+                                                              item, pyname)
                 source = rename.rename_in_module(occurrence_finder,
-                                         prefix+item, pymodule=guest)
+                                                 prefix + item, pymodule=guest)
                 guest = self.pycore.get_string_module(source, self.resource)
 
         #parameters not reassigned inside the functions are now inlined.
@@ -425,19 +422,22 @@ class _DefinitionGenerator(object):
         result = []
         returned = None
         last_changed = 0
-        for match in _DefinitionGenerator._get_return_pattern().finditer(source):
+        for match in _DefinitionGenerator._get_return_pattern().finditer(
+                source):
             for key, value in match.groupdict().items():
                 if value and key == 'return':
                     result.append(source[last_changed:match.start('return')])
                     if returns:
                         self._check_nothing_after_return(source,
                                                          match.end('return'))
+                        beg_idx = match.end('return')
                         returned = _join_lines(
-                            source[match.end('return'): len(source)].splitlines())
+                            source[beg_idx:len(source)].splitlines())
                         last_changed = len(source)
                     else:
                         current = match.end('return')
-                        while current < len(source) and source[current] in ' \t':
+                        while current < len(source) and \
+                                source[current] in ' \t':
                             current += 1
                         last_changed = current
                         if current == len(source) or source[current] == '\n':
@@ -452,7 +452,8 @@ class _DefinitionGenerator(object):
         lineno = logical_lines.logical_line_in(lineno)[1]
         if source[lines.get_line_end(lineno):len(source)].strip() != '':
             raise rope.base.exceptions.RefactoringError(
-                'Cannot inline functions with statements after return statement.')
+                'Cannot inline functions with statements ' +
+                'after return statement.')
 
     @classmethod
     def _get_return_pattern(cls):
@@ -504,24 +505,24 @@ class _InlineFunctionCallsForModuleHandle(object):
         end_parens = self._find_end_parens(self.source, end - 1)
         lineno = self.lines.get_line_number(start)
         start_line, end_line = self.pymodule.logical_lines.\
-                               logical_line_in(lineno)
+            logical_line_in(lineno)
         line_start = self.lines.get_line_start(start_line)
         line_end = self.lines.get_line_end(end_line)
 
-
         returns = self.source[line_start:start].strip() != '' or \
-                  self.source[end_parens:line_end].strip() != ''
+            self.source[end_parens:line_end].strip() != ''
         indents = sourceutils.get_indents(self.lines, start_line)
         primary, pyname = occurrence.get_primary_and_pyname()
 
         host = self.pycore.resource_to_pyobject(self.resource)
         scope = host.scope.get_inner_scope_for_line(lineno)
         definition, returned = self.generator.get_definition(
-            primary, pyname, self.source[start:end_parens], scope.get_names(), returns=returns)
+            primary, pyname, self.source[start:end_parens], scope.get_names(),
+            returns=returns)
 
         end = min(line_end + 1, len(self.source))
-        change_collector.add_change(line_start, end,
-               sourceutils.fix_indentation(definition, indents))
+        change_collector.add_change(
+            line_start, end, sourceutils.fix_indentation(definition, indents))
         if returns:
             name = returned
             if name is None:
@@ -567,10 +568,11 @@ def _inline_variable(pycore, pymodule, pyname, name,
     if remove:
         lines = codeanalyze.SourceLinesAdapter(changed_source)
         source = changed_source[:lines.get_line_start(start)] + \
-                 changed_source[lines.get_line_end(end) + 1:]
+            changed_source[lines.get_line_end(end) + 1:]
     else:
         source = changed_source
     return source
+
 
 def _getvardef(pymodule, pyname):
     assignment = pyname.assignments[0]
@@ -581,13 +583,15 @@ def _getvardef(pymodule, pyname):
     if assignment.levels:
         raise rope.base.exceptions.RefactoringError(
             'Cannot inline tuple assignments.')
-    definition = definition_with_assignment[definition_with_assignment.\
+    definition = definition_with_assignment[definition_with_assignment.
                                             index('=') + 1:].strip()
     return definition
+
 
 def _assigned_lineno(pymodule, pyname):
     definition_line = pyname.assignments[0].ast_node.lineno
     return pymodule.logical_lines.logical_line_in(definition_line)
+
 
 def _add_imports(pycore, source, resource, imports):
     if not imports:
@@ -601,12 +605,14 @@ def _add_imports(pycore, source, resource, imports):
     import_tools = importutils.ImportTools(pycore)
     return import_tools.organize_imports(pymodule, unused=False, sort=False)
 
+
 def _get_pyname(pycore, resource, offset):
     pymodule = pycore.resource_to_pyobject(resource)
     pyname = evaluate.eval_location(pymodule, offset)
     if isinstance(pyname, pynames.ImportedName):
         pyname = pyname._get_imported_pyname()
     return pyname
+
 
 def _remove_from(pycore, pyname, source, resource):
     pymodule = pycore.get_string_module(source, resource)
