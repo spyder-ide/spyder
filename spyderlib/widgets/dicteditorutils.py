@@ -137,7 +137,10 @@ def is_editable_type(value):
 #----Sorting
 def sort_against(lista, listb, reverse=False):
     """Arrange lista items in the same order as sorted(listb)"""
-    return [item for _, item in sorted(zip(listb, lista), reverse=reverse)]
+    try:
+        return [item for _, item in sorted(zip(listb, lista), reverse=reverse)]
+    except:
+        return lista
 
 def unsorted_unique(lista):
     """Removes duplicates from lista neglecting its initial ordering"""
