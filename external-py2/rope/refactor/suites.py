@@ -14,6 +14,7 @@ def find_visible_for_suite(root, lines):
     line2 = find_visible_for_suite(root, lines[1:])
     suite1 = root.find_suite(line1)
     suite2 = root.find_suite(line2)
+
     def valid(suite):
         return suite is not None and not suite.ignored
     if valid(suite1) and not valid(suite2):

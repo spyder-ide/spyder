@@ -6,9 +6,9 @@ import warnings
 import rope.base.oi.doa
 import rope.base.oi.objectinfo
 import rope.base.oi.soa
-from rope.base import ast, exceptions, taskhandle, utils, stdmods
+from rope.base import exceptions, taskhandle, utils, stdmods
 from rope.base.exceptions import ModuleNotFoundError
-from rope.base.pyobjectsdef import PyModule, PyPackage, PyClass
+from rope.base.pyobjectsdef import PyModule, PyPackage
 import rope.base.resources
 import rope.base.resourceobserver
 from rope.base import builtins
@@ -38,7 +38,8 @@ class PyCore(object):
         callback = self._invalidate_resource_cache
         observer = rope.base.resourceobserver.ResourceObserver(
             changed=callback, moved=callback, removed=callback)
-        self.observer = rope.base.resourceobserver.FilteredResourceObserver(observer)
+        self.observer = \
+            rope.base.resourceobserver.FilteredResourceObserver(observer)
         self.project.add_observer(self.observer)
 
     def _init_source_folders(self):
@@ -62,7 +63,7 @@ class PyCore(object):
 
     def _file_changed_for_soa(self, resource, new_resource=None):
         old_contents = self.project.history.\
-                       contents_before_current_change(resource)
+            contents_before_current_change(resource)
         if old_contents is not None:
             perform_soa_on_changed_scopes(self.project, resource, old_contents)
 
@@ -78,7 +79,7 @@ class PyCore(object):
         # check if this is a builtin module
         pymod = self._builtin_module(name)
         if pymod is not None:
-             return pymod
+            return pymod
         module = self.find_module(name, folder)
         if module is None:
             raise ModuleNotFoundError('Module %s not found' % name)
@@ -124,7 +125,7 @@ class PyCore(object):
         module = folder
         packages = modname.split('.')
         for pkg in packages[:-1]:
-            if  module.is_folder() and module.has_child(pkg):
+            if module.is_folder() and module.has_child(pkg):
                 module = module.get_child(pkg)
             else:
                 return None
@@ -133,7 +134,7 @@ class PyCore(object):
                module.get_child(packages[-1]).is_folder():
                 return module.get_child(packages[-1])
             elif module.has_child(packages[-1] + '.py') and \
-                 not module.get_child(packages[-1] + '.py').is_folder():
+                    not module.get_child(packages[-1] + '.py').is_folder():
                 return module.get_child(packages[-1] + '.py')
 
     def get_python_path_folders(self):
@@ -141,7 +142,8 @@ class PyCore(object):
         result = []
         for src in self.project.prefs.get('python_path', []) + sys.path:
             try:
-                src_folder = rope.base.project.get_no_project().get_resource(src)
+                src_folder = \
+                    rope.base.project.get_no_project().get_resource(src)
                 result.append(src_folder)
             except rope.base.exceptions.ResourceNotFoundError:
                 pass
@@ -282,7 +284,7 @@ class PyCore(object):
             source_folder = resource.parent
 
         while source_folder != source_folder.parent and \
-              source_folder.has_child('__init__.py'):
+                source_folder.has_child('__init__.py'):
             module_name = source_folder.name + '.' + module_name
             source_folder = source_folder.parent
         return module_name
@@ -355,9 +357,11 @@ def perform_soa_on_changed_scopes(project, resource, old_contents):
             new_contents = resource.read()
             # detecting changes in new_contents relative to old_contents
             detector = _TextChangeDetector(new_contents, old_contents)
+
             def search_subscopes(pydefined):
                 scope = pydefined.get_scope()
                 return detector.is_changed(scope.get_start(), scope.get_end())
+
             def should_analyze(pydefined):
                 scope = pydefined.get_scope()
                 start = scope.get_start()
