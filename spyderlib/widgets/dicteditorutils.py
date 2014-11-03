@@ -168,7 +168,10 @@ def value_to_display(value, truncate=False, trunc_len=80, minmax=False,
         cols = [to_text_string(c) for c in cols]
         return 'Column names: ' + ', '.join(list(cols))
     if is_binary_string(value):
-        value = to_text_string(value, 'utf8')
+        try:
+            value = to_text_string(value, 'utf8')
+        except:
+            pass
     if not is_text_string(value):
         if isinstance(value, (list, tuple, dict, set)) and not collvalue:            
             value = address(value)

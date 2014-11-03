@@ -490,7 +490,10 @@ class DictDelegate(QItemDelegate):
         value = self.get_value(index)
         if isinstance(editor, QLineEdit):
             if is_binary_string(value):
-                value = to_text_string(value, 'utf8')
+                try:
+                    value = to_text_string(value, 'utf8')
+                except:
+                    pass
             if not is_text_string(value):
                 value = repr(value)
             editor.setText(value)
