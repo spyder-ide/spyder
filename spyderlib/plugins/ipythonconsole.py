@@ -42,6 +42,12 @@ except ImportError:
     from zmq.ssh import tunnel as zmqtunnel
     import pexpect
 
+# Replacing pyzmq openssh_tunnel method to work around the issue
+# https://github.com/zeromq/pyzmq/issues/589 which was solved in pyzmq
+# https://github.com/zeromq/pyzmq/pull/615
+
+class SSHException(Exception):
+    pass
 
 def openssh_tunnel(lport, rport, server, remoteip='127.0.0.1', keyfile=None, password=None, timeout=60):
     if pexpect is None:
@@ -78,8 +84,7 @@ def openssh_tunnel(lport, rport, server, remoteip='127.0.0.1', keyfile=None, pas
         try:
             i = tunnel.expect([ssh_newkey, '[Pp]assword:'], timeout=.1)
             if i==0:
-                tunnel.sendline('yes')
-                continue
+                raise SSHException('The authenticity of the host can\'t be established.')
         except pexpect.TIMEOUT:
             continue
         except pexpect.EOF:
