@@ -24,7 +24,7 @@ from spyderlib.qt.compat import getopenfilename
 from spyderlib.qt.QtCore import SIGNAL, Qt
 
 # Stdlib imports
-import sys
+import sys, os
 import os.path as osp
 
 # IPython imports
@@ -36,9 +36,73 @@ try: # IPython = '>=1.0'
 except ImportError:
     from IPython.frontend.qt.kernelmanager import QtKernelManager
 try: # IPython = "<=2.0"
-    from IPython.external.ssh import tunnel
+    from IPython.external.ssh import tunnel as zmqtunnel
+    import IPython.external.pexpect as pexpect
 except ImportError:
-    from zmq.ssh import tunnel
+    from zmq.ssh import tunnel as zmqtunnel
+    import pexpect
+
+
+def openssh_tunnel(lport, rport, server, remoteip='127.0.0.1', keyfile=None, password=None, timeout=60):
+    if pexpect is None:
+        raise ImportError("pexpect unavailable, use paramiko_tunnel")
+    ssh="ssh "
+    if keyfile:
+        ssh += "-i " + keyfile
+    
+    if ':' in server:
+        server, port = server.split(':')
+        ssh += " -p %s" % port
+    
+    cmd = "%s -O check %s" % (ssh, server)
+    (output, exitstatus) = pexpect.run(cmd, withexitstatus=True)
+    if not exitstatus:
+        pid = int(output[output.find("(pid=")+5:output.find(")")]) 
+        cmd = "%s -O forward -L 127.0.0.1:%i:%s:%i %s" % (
+            ssh, lport, remoteip, rport, server)
+        (output, exitstatus) = pexpect.run(cmd, withexitstatus=True)
+        if not exitstatus:
+            atexit.register(_stop_tunnel, cmd.replace("-O forward", "-O cancel", 1))
+            return pid
+    cmd = "%s -f -S none -L 127.0.0.1:%i:%s:%i %s sleep %i" % (
+        ssh, lport, remoteip, rport, server, timeout)
+    
+    # pop SSH_ASKPASS from env
+    env = os.environ.copy()
+    env.pop('SSH_ASKPASS', None)
+    
+    ssh_newkey = 'Are you sure you want to continue connecting'
+    tunnel = pexpect.spawn(cmd, env=env)
+    failed = False
+    while True:
+        try:
+            i = tunnel.expect([ssh_newkey, '[Pp]assword:'], timeout=.1)
+            if i==0:
+                tunnel.sendline('yes')
+                continue
+        except pexpect.TIMEOUT:
+            continue
+        except pexpect.EOF:
+            if tunnel.exitstatus:
+                print(tunnel.exitstatus)
+                print(tunnel.before)
+                print(tunnel.after)
+                raise RuntimeError("tunnel '%s' failed to start"%(cmd))
+            else:
+                return tunnel.pid
+        else:
+            if failed:
+                print("Password rejected, try again")
+                password=None
+            if password is None:
+                password = getpass("%s's password: "%(server))
+            tunnel.sendline(password)
+            failed = True
+
+if sys.platform == 'win32':
+    ssh_tunnel = zmqtunnel.paramiko_tunnel
+else:
+    ssh_tunnel = openssh_tunnel
 
 # Local imports
 from spyderlib import dependencies
@@ -62,11 +126,11 @@ dependencies.add("sympy", _("Symbolic mathematics for the IPython Console"),
 def tunnel_to_kernel(ci, hostname, sshkey=None, password=None, timeout=10):
     """tunnel connections to a kernel via ssh. remote ports are specified in
     the connection info ci."""
-    lports = tunnel.select_random_ports(4)
+    lports = zmqtunnel.select_random_ports(4)
     rports = ci['shell_port'], ci['iopub_port'], ci['stdin_port'], ci['hb_port']
     remote_ip = ci['ip']
     for lp, rp in zip(lports, rports):
-        tunnel.ssh_tunnel(lp, rp, hostname, remote_ip, sshkey, password, timeout)
+        ssh_tunnel(lp, rp, hostname, remote_ip, sshkey, password, timeout)
     return tuple(lports)
 
 
