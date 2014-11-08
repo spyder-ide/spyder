@@ -971,7 +971,7 @@ class IPythonConsole(SpyderPluginWidget):
         else:
             return openssh_tunnel(self, *args, **kwargs)
 
-    def tunnel_to_kernel(self, ci, hostname, sshkey=None, password=None, timeout=0.4):
+    def tunnel_to_kernel(self, ci, hostname, sshkey=None, password=None, timeout=10):
         """tunnel connections to a kernel via ssh. remote ports are specified in
         the connection info ci."""
         lports = zmqtunnel.select_random_ports(4)
