@@ -19,7 +19,7 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QHBoxLayout, QFormLayout,
                                 QMessageBox, QGroupBox, QDialogButtonBox,
                                 QDialog, QTabWidget, QFontComboBox, 
                                 QCheckBox, QApplication, QLabel, 
-                                QLineEdit, QPushButton)
+                                QLineEdit, QInputDialog, QPushButton)
 from spyderlib.qt.compat import getopenfilename
 from spyderlib.qt.QtCore import SIGNAL, Qt
 
@@ -46,10 +46,7 @@ except ImportError:
 # https://github.com/zeromq/pyzmq/issues/589 which was solved in pyzmq
 # https://github.com/zeromq/pyzmq/pull/615
 
-class SSHException(Exception):
-    pass
-
-def openssh_tunnel(lport, rport, server, remoteip='127.0.0.1', keyfile=None, password=None, timeout=60):
+def openssh_tunnel(self, lport, rport, server, remoteip='127.0.0.1', keyfile=None, password=None, timeout=0.4):
     if pexpect is None:
         raise ImportError("pexpect unavailable, use paramiko_tunnel")
     ssh="ssh "
@@ -84,7 +81,17 @@ def openssh_tunnel(lport, rport, server, remoteip='127.0.0.1', keyfile=None, pas
         try:
             i = tunnel.expect([ssh_newkey, '[Pp]assword:'], timeout=.1)
             if i==0:
-                raise SSHException('The authenticity of the host can\'t be established.')
+                question = ("The authenticity of the host can't be established."
+                            "Are you sure you want to continue connecting?")
+                reply = QMessageBox.question(self, _('Warning'), _(question),
+                                             QMessageBox.Yes | QMessageBox.No,
+                                             QMessageBox.No)
+                if reply == QMessageBox.Yes:
+                    tunnel.sendline('yes')
+                    continue
+                else:
+                    tunnel.sendline('no')
+                    raise RuntimeError('The authenticity of the host can\'t be established.')
         except pexpect.TIMEOUT:
             continue
         except pexpect.EOF:
@@ -100,14 +107,14 @@ def openssh_tunnel(lport, rport, server, remoteip='127.0.0.1', keyfile=None, pas
                 print("Password rejected, try again")
                 password=None
             if password is None:
-                password = getpass("%s's password: "%(server))
+                password, ok = QInputDialog.getText(self, _('Password'),
+                        _('Enter password for: ') + server,
+                        mode=QLineEdit.Password)
+                if ok is False or password=='':
+                    password = None
             tunnel.sendline(password)
             failed = True
 
-if sys.platform == 'win32':
-    ssh_tunnel = zmqtunnel.paramiko_tunnel
-else:
-    ssh_tunnel = openssh_tunnel
 
 # Local imports
 from spyderlib import dependencies
@@ -126,17 +133,6 @@ from spyderlib.py3compat import to_text_string, u
 SYMPY_REQVER = '>=0.7.0'
 dependencies.add("sympy", _("Symbolic mathematics for the IPython Console"),
                  required_version=SYMPY_REQVER)
-
-
-def tunnel_to_kernel(ci, hostname, sshkey=None, password=None, timeout=10):
-    """tunnel connections to a kernel via ssh. remote ports are specified in
-    the connection info ci."""
-    lports = zmqtunnel.select_random_ports(4)
-    rports = ci['shell_port'], ci['iopub_port'], ci['stdin_port'], ci['hb_port']
-    remote_ip = ci['ip']
-    for lp, rp in zip(lports, rports):
-        ssh_tunnel(lp, rp, hostname, remote_ip, sshkey, password, timeout)
-    return tuple(lports)
 
 
 class IPythonConsoleConfigPage(PluginConfigPage):
@@ -969,6 +965,22 @@ class IPythonConsole(SpyderPluginWidget):
         # kernel one
         return programs.is_module_installed('IPython', version=kernel_ver)
 
+    def ssh_tunnel(self, *args, **kwargs):
+        if sys.platform == 'win32':
+            return zmqtunnel.paramiko_tunnel(*args, **kwargs)
+        else:
+            return openssh_tunnel(self, *args, **kwargs)
+
+    def tunnel_to_kernel(self, ci, hostname, sshkey=None, password=None, timeout=0.4):
+        """tunnel connections to a kernel via ssh. remote ports are specified in
+        the connection info ci."""
+        lports = zmqtunnel.select_random_ports(4)
+        rports = ci['shell_port'], ci['iopub_port'], ci['stdin_port'], ci['hb_port']
+        remote_ip = ci['ip']
+        for lp, rp in zip(lports, rports):
+            self.ssh_tunnel(lp, rp, hostname, remote_ip, sshkey, password, timeout)
+        return tuple(lports)
+
     def create_kernel_manager_and_client(self, connection_file=None,
                                          hostname=None, sshkey=None,
                                          password=None):
@@ -980,7 +992,7 @@ class IPythonConsole(SpyderPluginWidget):
             kernel_client.load_connection_file()
             if hostname is not None:
                 try:
-                    newports = tunnel_to_kernel(dict(ip=kernel_client.ip,
+                    newports = self.tunnel_to_kernel(dict(ip=kernel_client.ip,
                                           shell_port=kernel_client.shell_port,
                                           iopub_port=kernel_client.iopub_port,
                                           stdin_port=kernel_client.stdin_port,
@@ -1000,7 +1012,7 @@ class IPythonConsole(SpyderPluginWidget):
             kernel_manager.load_connection_file()
             if hostname is not None:
                 try:
-                    newports = tunnel_to_kernel(dict(ip=kernel_manager.ip,
+                    newports = self.tunnel_to_kernel(dict(ip=kernel_manager.ip,
                                           shell_port=kernel_manager.shell_port,
                                           iopub_port=kernel_manager.iopub_port,
                                           stdin_port=kernel_manager.stdin_port,
