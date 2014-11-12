@@ -110,7 +110,7 @@ The easy way
 Spyder is already included in these *Python Scientific Distributions*:
 
 #. `Python(x,y) <https://code.google.com/p/pythonxy>`_
-#. `WinPython <https://code.google.com/p/winpython>`_
+#. `WinPython <https://winpython.github.io/>`_
 #. `Anaconda <http://continuum.io/downloads.html>`_
 
 You can start using it immediately after installing one of them (you only need

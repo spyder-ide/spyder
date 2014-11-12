@@ -378,10 +378,11 @@ class DataFrameEditor(QDialog):
         Setup DataFrameEditor:
         return False if data is not supported, True otherwise
         """
+        rows = data.shape[0]
         size = 1
         for dim in data.shape:
             size *= dim
-        if size > 1e6:
+        if rows > 1e5 or size > 5e5:
             answer = QMessageBox.warning(self, _("%s editor")
                                                  % data.__class__.__name__,
                                          _("Opening and browsing this "

@@ -295,7 +295,7 @@ class MainWindow(QMainWindow):
           _("PyQt4 API Reference")),
          ('xy', "http://code.google.com/p/pythonxy/",
           _("Python(x,y)")),
-         ('winpython', "http://code.google.com/p/winpython/",
+         ('winpython', "https://winpython.github.io/",
           _("WinPython"))
                 )
     
@@ -1749,7 +1749,7 @@ class MainWindow(QMainWindow):
             facilitate the use of Python for scientific and engineering 
             software development. The popular Python distributions 
             <a href="http://code.google.com/p/pythonxy/">Python(x,y)</a> and 
-            <a href="http://winpython.sourceforge.net/">WinPython</a> 
+            <a href="https://winpython.github.io/">WinPython</a> 
             also contribute to this plan.
             <p>Python %s %dbits, Qt %s, %s %s on %s"""
             % (versions['spyder'], revlink, __project_url__,
