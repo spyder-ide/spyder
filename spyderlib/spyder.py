@@ -47,6 +47,8 @@ from spyderlib import dependencies
 
 dependencies.add("IPython", _("IPython Console integration"),
                  required_version=SUPPORTED_IPYTHON)
+dependencies.add("zmq", _("IPython Console integration"),
+                 required_version='>=2.1.11')
 
 if IPYTHON_QT_INSTALLED:
     # Importing IPython will eventually set the QT_API environment variable
