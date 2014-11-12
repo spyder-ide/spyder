@@ -76,6 +76,9 @@ SUPPORTED_FORMATS = {
                      'bool': '%r',
                      }
 
+LARGE_NROWS = 1e5
+
+
 def is_float(dtype):
     """Return True if datatype dtype is a float kind"""
     return ('float' in dtype.name) or dtype.name in ['single', 'double']
@@ -93,6 +96,9 @@ def get_idx_rect(index_list):
 
 class ArrayModel(QAbstractTableModel):
     """Array Editor Table Model"""
+    
+    ROWS_TO_LOAD = 100
+    
     def __init__(self, data, format="%.3f", xlabels=None, ylabels=None,
                  readonly=False, parent=None):
         QAbstractTableModel.__init__(self)
@@ -135,6 +141,13 @@ class ArrayModel(QAbstractTableModel):
             self.dhue = None
             self.bgcolor_enabled = False
         
+        # To define paging when the number of rows is large
+        self.total_rows = self._data.shape[0]
+        if self.total_rows > LARGE_NROWS:
+            self.rows_loaded = self.ROWS_TO_LOAD
+        else:
+            self.rows_loaded = self.total_rows
+        
         
     def get_format(self):
         """Return current format"""
@@ -156,7 +169,24 @@ class ArrayModel(QAbstractTableModel):
 
     def rowCount(self, qindex=QModelIndex()):
         """Array row number"""
-        return self._data.shape[0]
+        if self.total_rows <= self.rows_loaded:
+            return self.total_rows
+        else:
+            return self.rows_loaded
+    
+    def canFetchMore(self, qindex=QModelIndex()):
+        if self.total_rows > self.rows_loaded:
+            return True
+        else:
+            return False
+ 
+    def fetchMore(self, qindex=QModelIndex()):
+        reminder = self.total_rows - self.rows_loaded
+        items_to_fetch = min(reminder, self.ROWS_TO_LOAD)
+        self.beginInsertRows(QModelIndex(), self.rows_loaded,
+                             self.rows_loaded + items_to_fetch - 1)
+        self.rows_loaded += items_to_fetch
+        self.endInsertRows()
 
     def bgcolor(self, state):
         """Toggle backgroundcolor"""
@@ -308,17 +338,6 @@ class ArrayView(QTableView):
   
     def resize_to_contents(self):
         """Resize cells to contents"""
-        size = 1
-        for dim in self.shape:
-            size *= dim
-        if size > 1e5:
-            answer = QMessageBox.warning(self, _("Array editor"),
-                                         _("Resizing cells of a table of such "
-                                           "size could take a long time.\n"
-                                           "Do you want to continue anyway?"),
-                                         QMessageBox.Yes | QMessageBox.No)
-            if answer == QMessageBox.No:
-                return
         self.resizeColumnsToContents()
         self.resizeRowsToContents()
 
