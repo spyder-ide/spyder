@@ -156,7 +156,7 @@ class ExternalPythonShell(ExternalShellBase):
     def __init__(self, parent=None, fname=None, wdir=None,
                  interact=False, debug=False, path=[], python_args='',
                  ipykernel=False, arguments='', stand_alone=None,
-                 umd_enabled=True, umd_namelist=[], umd_verbose=True,
+                 umr_enabled=True, umr_namelist=[], umr_verbose=True,
                  pythonstartup=None, pythonexecutable=None,
                  monitor_enabled=True, mpl_backend=None, ets_backend='qt4',
                  qt_api=None, pyqt_api=0, install_qt_inputhook=True,
@@ -186,9 +186,9 @@ class ExternalPythonShell(ExternalShellBase):
         self.ignore_sip_setapi_errors = ignore_sip_setapi_errors
         self.merge_output_channels = merge_output_channels
         self.colorize_sys_stderr = colorize_sys_stderr
-        self.umd_enabled = umd_enabled
-        self.umd_namelist = umd_namelist
-        self.umd_verbose = umd_verbose
+        self.umr_enabled = umr_enabled
+        self.umr_namelist = umr_namelist
+        self.umr_verbose = umr_verbose
         self.autorefresh_timeout = autorefresh_timeout
         self.autorefresh_state = autorefresh_state
                 
@@ -465,9 +465,9 @@ class ExternalPythonShell(ExternalShellBase):
         
         # User Module Deleter
         if self.is_interpreter:
-            env.append('UMD_ENABLED=%r' % self.umd_enabled)
-            env.append('UMD_NAMELIST=%s' % ','.join(self.umd_namelist))
-            env.append('UMD_VERBOSE=%r' % self.umd_verbose)
+            env.append('UMR_ENABLED=%r' % self.umr_enabled)
+            env.append('UMR_NAMELIST=%s' % ','.join(self.umr_namelist))
+            env.append('UMR_VERBOSE=%r' % self.umr_verbose)
             env.append('MATPLOTLIB_ION=True')
         else:
             if self.interact:

@@ -495,9 +495,9 @@ if os.environ.get("IGNORE_SIP_SETAPI_ERRORS", "").lower() == "true":
 
 # The following classes and functions are mainly intended to be used from 
 # an interactive Python session
-class UserModuleDeleter(object):
+class UserModuleReloader(object):
     """
-    User Module Deleter (UMD) aims at deleting user modules 
+    User Module Reloader (UMR) aims at deleting user modules 
     to force Python to deeply reload them during import
     
     pathlist [list]: blacklist in terms of module path
@@ -541,9 +541,9 @@ class UserModuleDeleter(object):
                     del sys.modules[modname]
         if verbose and log:
             _print("\x1b[4;33m%s\x1b[24m%s\x1b[0m"\
-                   % ("UMD has deleted", ": "+", ".join(log)))
+                   % ("Reloaded modules", ": "+", ".join(log)))
 
-__umd__ = None
+__umr__ = None
 
 
 def _get_globals():
@@ -571,16 +571,16 @@ def runfile(filename, args=None, wdir=None, namespace=None):
         # UnicodeError, TypeError --> eventually raised in Python 2
         # AttributeError --> systematically raised in Python 3
         pass
-    global __umd__
-    if os.environ.get("UMD_ENABLED", "").lower() == "true":
-        if __umd__ is None:
-            namelist = os.environ.get("UMD_NAMELIST", None)
+    global __umr__
+    if os.environ.get("UMR_ENABLED", "").lower() == "true":
+        if __umr__ is None:
+            namelist = os.environ.get("UMR_NAMELIST", None)
             if namelist is not None:
                 namelist = namelist.split(',')
-            __umd__ = UserModuleDeleter(namelist=namelist)
+            __umr__ = UserModuleReloader(namelist=namelist)
         else:
-            verbose = os.environ.get("UMD_VERBOSE", "").lower() == "true"
-            __umd__.run(verbose=verbose)
+            verbose = os.environ.get("UMR_VERBOSE", "").lower() == "true"
+            __umr__.run(verbose=verbose)
     if args is not None and not isinstance(args, basestring):
         raise TypeError("expected a character buffer object")
     if namespace is None:
