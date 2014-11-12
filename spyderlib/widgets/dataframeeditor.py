@@ -39,6 +39,10 @@ _sup_com = (complex, np.complex64, np.complex128)
 _bool_false = ['false', '0']
 
 
+LARGE_NROWS = 1e5
+LARGE_SIZE = 5e5
+
+
 def bool_false_check(value):
     """
     Used to convert bool intrance to false since any string in bool('')
@@ -57,6 +61,9 @@ def global_max(col_vals, index):
 
 class DataFrameModel(QAbstractTableModel):
     """ DataFrame Table Model"""
+    
+    ROWS_TO_LOAD = 100
+    
     def __init__(self, dataFrame, format="%.3g", parent=None):
         QAbstractTableModel.__init__(self)
         self.dialog = parent
@@ -75,6 +82,13 @@ class DataFrameModel(QAbstractTableModel):
         self.max_min_col_update()
         self.colum_avg_enabled = True
         self.colum_avg(1)
+
+        # To define paging when the number of rows is large
+        self.total_rows = self.df.shape[0]
+        if self.total_rows > LARGE_NROWS:
+            self.rows_loaded = self.ROWS_TO_LOAD
+        else:
+            self.rows_loaded = self.total_rows
 
     def max_min_col_update(self):
         """Determines the maximum and minimum number in each column"""
@@ -269,7 +283,24 @@ class DataFrameModel(QAbstractTableModel):
 
     def rowCount(self, index=QModelIndex()):
         """DataFrame row number"""
-        return self.df.shape[0]
+        if self.total_rows <= self.rows_loaded:
+            return self.total_rows
+        else:
+            return self.rows_loaded
+    
+    def canFetchMore(self, index=QModelIndex()):
+        if self.total_rows > self.rows_loaded:
+            return True
+        else:
+            return False
+ 
+    def fetchMore(self, index=QModelIndex()):
+        reminder = self.total_rows - self.rows_loaded
+        items_to_fetch = min(reminder, self.ROWS_TO_LOAD)
+        self.beginInsertRows(QModelIndex(), self.rows_loaded,
+                             self.rows_loaded + items_to_fetch - 1)
+        self.rows_loaded += items_to_fetch
+        self.endInsertRows()
 
     def columnCount(self, index=QModelIndex()):
         """DataFrame column number"""
@@ -382,7 +413,7 @@ class DataFrameEditor(QDialog):
         size = 1
         for dim in data.shape:
             size *= dim
-        if rows > 1e5 or size > 5e5:
+        if rows > LARGE_NROWS or size > LARGE_SIZE:
             answer = QMessageBox.warning(self, _("%s editor")
                                                  % data.__class__.__name__,
                                          _("Opening and browsing this "
