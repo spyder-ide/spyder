@@ -40,7 +40,6 @@ _bool_false = ['false', '0']
 
 
 LARGE_NROWS = 1e5
-LARGE_SIZE = 5e5
 
 
 def bool_false_check(value):
@@ -416,21 +415,6 @@ class DataFrameEditor(QDialog):
         Setup DataFrameEditor:
         return False if data is not supported, True otherwise
         """
-        rows = data.shape[0]
-        size = 1
-        for dim in data.shape:
-            size *= dim
-        if rows > LARGE_NROWS or size > LARGE_SIZE:
-            answer = QMessageBox.warning(self, _("%s editor")
-                                                 % data.__class__.__name__,
-                                         _("Opening and browsing this "
-                                           "%s can be slow\n\n"
-                                           "Do you want to continue anyway?")
-                                           % data.__class__.__name__,
-                                         QMessageBox.Yes | QMessageBox.No)
-            if answer == QMessageBox.No:
-                return
-
         self.layout = QGridLayout()
         self.setLayout(self.layout)
         self.setWindowIcon(get_icon('arredit.png'))
