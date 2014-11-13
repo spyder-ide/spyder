@@ -68,6 +68,7 @@ class DataFrameModel(QAbstractTableModel):
         QAbstractTableModel.__init__(self)
         self.dialog = parent
         self.df = dataFrame
+        self.df_index = dataFrame.index.tolist()
         self._format = format
         self.bgcolor_enabled = True
         self.complex_intran = None
@@ -189,6 +190,10 @@ class DataFrameModel(QAbstractTableModel):
             value = self.df.iloc[row, column]
         return value
 
+    def update_df_index(self):
+        """"Update the DataFrame index"""
+        self.df_index = self.df.index.tolist()
+
     def data(self, index, role=Qt.DisplayRole):
         """Cell content"""
         if not index.isValid():
@@ -197,7 +202,7 @@ class DataFrameModel(QAbstractTableModel):
             column = index.column()
             row = index.row()
             if column == 0:
-                return to_qvariant(to_text_string(self.df.index.tolist()[row]))
+                return to_qvariant(to_text_string(self.df_index[row]))
             else:
                 value = self.get_value(row, column-1)
                 if isinstance(value, float):
@@ -225,8 +230,10 @@ class DataFrameModel(QAbstractTableModel):
             if column > 0:
                 self.df.sort(columns=self.df.columns[column-1],
                              ascending=order, inplace=True)
+                self.update_df_index()
             else:
                 self.df.sort_index(inplace=True, ascending=order)
+                self.update_df_index()
         except TypeError as e:
             QMessageBox.critical(self.dialog, "Error",
                                  "TypeError error: %s" % str(e))
