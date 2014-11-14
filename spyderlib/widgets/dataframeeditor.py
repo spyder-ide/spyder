@@ -61,7 +61,7 @@ def global_max(col_vals, index):
 class DataFrameModel(QAbstractTableModel):
     """ DataFrame Table Model"""
     
-    ROWS_TO_LOAD = 100
+    ROWS_TO_LOAD = 500
     
     def __init__(self, dataFrame, format="%.3g", parent=None):
         QAbstractTableModel.__init__(self)

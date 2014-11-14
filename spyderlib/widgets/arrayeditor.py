@@ -97,7 +97,7 @@ def get_idx_rect(index_list):
 class ArrayModel(QAbstractTableModel):
     """Array Editor Table Model"""
     
-    ROWS_TO_LOAD = 100
+    ROWS_TO_LOAD = 500
     
     def __init__(self, data, format="%.3f", xlabels=None, ylabels=None,
                  readonly=False, parent=None):
