@@ -368,7 +368,7 @@ class FileInfo(QObject):
             if comp_list:
                 completion_text = re.findall(r"[\w.]+", text, re.UNICODE)
                 if completion_text:
-                    completion_text = completion_text[0]
+                    completion_text = completion_text[-1]
                 else:
                     comp_list = []
                 if '.' in completion_text:
