@@ -115,6 +115,9 @@ def kernel_config():
     autocall_o = CONF.get('ipython_console', 'autocall')
     spy_cfg.ZMQInteractiveShell.autocall = autocall_o
     
+    # To handle the banner by ourselves in IPython 3+
+    spy_cfg.ZMQInteractiveShell.banner1 = ''
+    
     # Greedy completer
     greedy_o = CONF.get('ipython_console', 'greedy_completer')
     spy_cfg.IPCompleter.greedy = greedy_o
