@@ -14,6 +14,7 @@ from __future__ import absolute_import
 import os
 import os.path as osp
 from string import Template
+import sys
 import time
 
 # Qt imports
@@ -186,7 +187,7 @@ class IPythonShellWidget(RichIPythonWidget):
         self.ipyclient = ipyclient
         self.exit_requested.connect(ipyclient.exit_callback)
     
-    def show_banner(self):
+    def long_banner(self):
         """Banner for IPython widgets with pylab message"""
         from IPython.core.usage import default_gui_banner
         banner = default_gui_banner
@@ -220,6 +221,15 @@ These commands were executed:
 >>> f, g, h = symbols('f g h', cls=Function)
 """
             banner = banner + lines
+        return banner
+    
+    def short_banner(self):
+        """Short banner with Python and IPython versions"""
+        from IPython.core.release import version
+        py_ver = '%d.%d.%d' % (sys.version_info[0], sys.version_info[1],
+                               sys.version_info[2])
+        banner = 'Python %s on %s -- IPython %s' % (py_ver, sys.platform,
+                                                    version)
         return banner
     
     def clear_console(self):
@@ -262,9 +272,9 @@ These commands were executed:
         """
         banner_o = CONF.get('ipython_console', 'show_banner', True)
         if banner_o:
-            return self.show_banner()
+            return self.long_banner()
         else:
-            return ''
+            return self.short_banner()
     
     def _handle_object_info_reply(self, rep):
         """
