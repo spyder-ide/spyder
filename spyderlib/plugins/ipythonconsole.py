@@ -46,7 +46,8 @@ except ImportError:
 # https://github.com/zeromq/pyzmq/issues/589 which was solved in pyzmq
 # https://github.com/zeromq/pyzmq/pull/615
 
-def openssh_tunnel(self, lport, rport, server, remoteip='127.0.0.1', keyfile=None, password=None, timeout=0.4):
+def openssh_tunnel(self, lport, rport, server, remoteip='127.0.0.1',
+                   keyfile=None, password=None, timeout=0.4):
     if pexpect is None:
         raise ImportError("pexpect unavailable, use paramiko_tunnel")
     ssh="ssh "
@@ -81,8 +82,8 @@ def openssh_tunnel(self, lport, rport, server, remoteip='127.0.0.1', keyfile=Non
         try:
             i = tunnel.expect([ssh_newkey, '[Pp]assword:'], timeout=.1)
             if i==0:
-                question = ("The authenticity of the host can't be established."
-                            "Are you sure you want to continue connecting?")
+                question = _("The authenticity of the host can't be established."
+                             "Are you sure you want to continue connecting?")
                 reply = QMessageBox.question(self, _('Warning'), _(question),
                                              QMessageBox.Yes | QMessageBox.No,
                                              QMessageBox.No)
@@ -91,21 +92,19 @@ def openssh_tunnel(self, lport, rport, server, remoteip='127.0.0.1', keyfile=Non
                     continue
                 else:
                     tunnel.sendline('no')
-                    raise RuntimeError('The authenticity of the host can\'t be established.')
+                    raise RuntimeError(
+                        'The authenticity of the host can\'t be established.')
         except pexpect.TIMEOUT:
             continue
         except pexpect.EOF:
             if tunnel.exitstatus:
-                print(tunnel.exitstatus)
-                print(tunnel.before)
-                print(tunnel.after)
                 raise RuntimeError("tunnel '%s' failed to start"%(cmd))
             else:
                 return tunnel.pid
         else:
             if failed:
-                print("Password rejected, try again")
-                password=None
+                # Password rejected
+                password = None
             if password is None:
                 password, ok = QInputDialog.getText(self, _('Password'),
                         _('Enter password for: ') + server,
