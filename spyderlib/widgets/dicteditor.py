@@ -185,11 +185,17 @@ class ReadOnlyDictModel(QAbstractTableModel):
         if column == 0:
             self.sizes = sort_against(self.sizes, self.keys, reverse)
             self.types = sort_against(self.types, self.keys, reverse)
-            self.keys.sort(reverse=reverse)
+            try:
+                self.keys.sort(reverse=reverse)
+            except:
+                pass
         elif column == 1:
             self.keys = sort_against(self.keys, self.types, reverse)
             self.sizes = sort_against(self.sizes, self.types, reverse)
-            self.types.sort(reverse=reverse)
+            try:
+                self.types.sort(reverse=reverse)
+            except:
+                pass
         elif column == 2:
             self.keys = sort_against(self.keys, self.sizes, reverse)
             self.types = sort_against(self.types, self.sizes, reverse)
