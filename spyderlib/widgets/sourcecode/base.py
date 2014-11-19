@@ -178,6 +178,7 @@ class CompletionWidget(QListWidget):
 class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     """Text edit base widget"""
     BRACE_MATCHING_SCOPE = ('sof', 'eof')
+    cell_separators = None
     
     def __init__(self, parent=None):
         QPlainTextEdit.__init__(self, parent)
@@ -208,7 +209,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.calltips = True
         self.calltip_position = None
         self.has_cell_separators = False
-        self.cell_separators = None
         self.completion_text = ""
         self.calltip_widget = CallTipWidget(self, hide_timer_on=True)
         

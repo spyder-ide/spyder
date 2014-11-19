@@ -350,6 +350,10 @@ class CodeEditor(TextEditBaseWidget):
     # Custom signal to be emitted upon completion of the editor's paintEvent 
     painted = Signal(QPaintEvent)
     
+    # To have these attrs when early viewportEvent's are triggered
+    edge_line = None
+    linenumberarea = None
+    
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
         self.setFocusPolicy(Qt.StrongFocus)
