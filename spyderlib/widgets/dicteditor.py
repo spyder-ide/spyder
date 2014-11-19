@@ -185,11 +185,17 @@ class ReadOnlyDictModel(QAbstractTableModel):
         if column == 0:
             self.sizes = sort_against(self.sizes, self.keys, reverse)
             self.types = sort_against(self.types, self.keys, reverse)
-            self.keys.sort(reverse=reverse)
+            try:
+                self.keys.sort(reverse=reverse)
+            except:
+                pass
         elif column == 1:
             self.keys = sort_against(self.keys, self.types, reverse)
             self.sizes = sort_against(self.sizes, self.types, reverse)
-            self.types.sort(reverse=reverse)
+            try:
+                self.types.sort(reverse=reverse)
+            except:
+                pass
         elif column == 2:
             self.keys = sort_against(self.keys, self.sizes, reverse)
             self.types = sort_against(self.types, self.sizes, reverse)
@@ -1359,7 +1365,8 @@ def get_test_data():
     """Create test data"""
     import numpy as np
     from spyderlib.pil_patch import Image
-    image = Image.fromarray(np.random.random_integers(255, size=(100, 100)))
+    image = Image.fromarray(np.random.random_integers(255, size=(100, 100)),
+                            mode='P')
     testdict = {'d': 1, 'a': np.random.rand(10, 10), 'b': [1, 2]}
     testdate = datetime.date(1945, 5, 8)
     class Foobar(object):
@@ -1370,7 +1377,7 @@ def get_test_data():
     foobar = Foobar()
     return {'object': foobar,
             'str': 'kjkj kj k j j kj k jkj',
-            'unicode': u('éù'),
+            'unicode': to_text_string('éù', 'utf-8'),
             'list': [1, 3, [sorted, 5, 6], 'kjkj', None],
             'tuple': ([1, testdate, testdict], 'kjkj', None),
             'dict': testdict,
@@ -1393,7 +1400,7 @@ def get_test_data():
             'bool_scalar': np.bool(8),
             'unsupported1': np.arccos,
             'unsupported2': np.cast,
-            1: (1, 2, 3), -5: ("a", "b", "c"), 2.5: np.array((4.0, 6.0, 8.0)),            
+            #1: (1, 2, 3), -5: ("a", "b", "c"), 2.5: np.array((4.0, 6.0, 8.0)),            
             }
 
 def test():
@@ -1413,11 +1420,12 @@ def remote_editor_test():
     from pprint import pprint
     pprint(remote)
     app = qapplication()
-    dialog = DictEditor(remote, remote=True)
+    dialog = DictEditor()
+    dialog.setup(remote, remote=True)
     dialog.show()
     app.exec_()
     if dialog.result():
         print(dialog.get_value())
 
 if __name__ == "__main__":
-    test()
+    remote_editor_test()
