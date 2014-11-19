@@ -23,6 +23,9 @@ from spyderlib.qt.QtGui import (QTextEdit, QKeySequence, QWidget, QMenu,
                                 QMessageBox)
 from spyderlib.qt.QtCore import SIGNAL, Qt
 
+from spyderlib import pygments_patch
+pygments_patch.apply()
+
 # IPython imports
 try:  # 1.0
     from IPython.qt.console.rich_ipython_widget import RichIPythonWidget

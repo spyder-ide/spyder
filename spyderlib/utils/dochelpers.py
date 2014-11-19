@@ -185,6 +185,10 @@ def getsignaturefromtext(text, objname):
     else:
         return ''
 
+# Fix for Issue 1953
+# TODO: Add more signatures and remove this hack in 2.4
+getsignaturesfromtext = getsignaturefromtext
+
 
 def getargspecfromtext(text):
     """
