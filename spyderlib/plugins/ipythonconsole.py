@@ -35,16 +35,26 @@ try: # IPython = '>=1.0'
     from IPython.qt.manager import QtKernelManager
 except ImportError:
     from IPython.frontend.qt.kernelmanager import QtKernelManager
+import atexit
 try: # IPython = "<=2.0"
     from IPython.external.ssh import tunnel as zmqtunnel
     import IPython.external.pexpect as pexpect
 except ImportError:
     from zmq.ssh import tunnel as zmqtunnel
-    import pexpect
+    try:
+        import pexpect
+    except ImportError:
+        pexpect = None
+
 
 # Replacing pyzmq openssh_tunnel method to work around the issue
 # https://github.com/zeromq/pyzmq/issues/589 which was solved in pyzmq
 # https://github.com/zeromq/pyzmq/pull/615
+
+
+def _stop_tunnel(cmd):
+    pexpect.run(cmd)
+
 
 def openssh_tunnel(self, lport, rport, server, remoteip='127.0.0.1',
                    keyfile=None, password=None, timeout=0.4):
@@ -94,6 +104,8 @@ def openssh_tunnel(self, lport, rport, server, remoteip='127.0.0.1',
                     tunnel.sendline('no')
                     raise RuntimeError(
                         'The authenticity of the host can\'t be established.')
+            if i==1 and password is not None:
+                tunnel.sendline(password) 
         except pexpect.TIMEOUT:
             continue
         except pexpect.EOF:
@@ -102,15 +114,15 @@ def openssh_tunnel(self, lport, rport, server, remoteip='127.0.0.1',
             else:
                 return tunnel.pid
         else:
-            if failed:
-                # Password rejected
-                password = None
-            if password is None:
-                password, ok = QInputDialog.getText(self, _('Password'),
-                        _('Enter password for: ') + server,
-                        mode=QLineEdit.Password)
-                if ok is False or password=='':
-                    password = None
+            if failed or password is None:
+                raise RuntimeError('Could not connect to remote host.')
+
+                # # Prompt a passphrase dialog to the user for a second attempt
+                # password, ok = QInputDialog.getText(self, _('Password'),
+                #             _('Enter password for: ') + server,
+                #             mode=QLineEdit.Password)
+                # if ok is False:
+                #      raise RuntimeError('Could not connect to remote host.') 
             tunnel.sendline(password)
             failed = True
 
