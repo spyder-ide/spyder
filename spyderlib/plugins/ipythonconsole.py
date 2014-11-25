@@ -92,10 +92,12 @@ def openssh_tunnel(self, lport, rport, server, remoteip='127.0.0.1',
             ssh, lport, remoteip, rport, server)
         (output, exitstatus) = pexpect.run(cmd, withexitstatus=True)
         if not exitstatus:
-            atexit.register(_stop_tunnel, cmd.replace("-O forward", "-O cancel", 1))
+            atexit.register(_stop_tunnel, cmd.replace("-O forward",
+                                                      "-O cancel",
+                                                      1))
             return pid
     cmd = "%s -f -S none -L 127.0.0.1:%i:%s:%i %s sleep %i" % (
-        ssh, lport, remoteip, rport, server, timeout)
+                                  ssh, lport, remoteip, rport, server, timeout)
     
     # pop SSH_ASKPASS from env
     env = os.environ.copy()
@@ -108,8 +110,10 @@ def openssh_tunnel(self, lport, rport, server, remoteip='127.0.0.1',
         try:
             i = tunnel.expect([ssh_newkey, '[Pp]assword:'], timeout=.1)
             if i==0:
-                question = _("The authenticity of the host can't be established."
-                             "Are you sure you want to continue connecting?")
+                host = server.split('@')[-1]
+                question = _("The authenticity of host <b>%s</b> can't be "
+                             "established. Are you sure you want to continue "
+                             "connecting?" % host)
                 reply = QMessageBox.question(self, _('Warning'), question,
                                              QMessageBox.Yes | QMessageBox.No,
                                              QMessageBox.No)
@@ -136,7 +140,7 @@ def openssh_tunnel(self, lport, rport, server, remoteip='127.0.0.1',
                 # # Prompt a passphrase dialog to the user for a second attempt
                 # password, ok = QInputDialog.getText(self, _('Password'),
                 #             _('Enter password for: ') + server,
-                #             mode=QLineEdit.Password)
+                #             echo=QLineEdit.Password)
                 # if ok is False:
                 #      raise RuntimeError('Could not connect to remote host.') 
             tunnel.sendline(password)
