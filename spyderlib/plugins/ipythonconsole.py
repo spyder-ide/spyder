@@ -14,18 +14,20 @@ Handles IPython clients (and in the future, will handle IPython kernels too
 # pylint: disable=R0911
 # pylint: disable=R0201
 
+# Stdlib imports
+import atexit
+import os
+import os.path as osp
+import sys
+
 # Qt imports
 from spyderlib.qt.QtGui import (QVBoxLayout, QHBoxLayout, QFormLayout, 
                                 QMessageBox, QGroupBox, QDialogButtonBox,
                                 QDialog, QTabWidget, QFontComboBox, 
-                                QCheckBox, QApplication, QLabel, 
-                                QLineEdit, QInputDialog, QPushButton)
+                                QCheckBox, QApplication, QLabel,QLineEdit,
+                                QPushButton)
 from spyderlib.qt.compat import getopenfilename
 from spyderlib.qt.QtCore import SIGNAL, Qt
-
-# Stdlib imports
-import sys, os
-import os.path as osp
 
 # IPython imports
 from IPython.core.application import get_ipython_dir
@@ -35,7 +37,6 @@ try: # IPython = '>=1.0'
     from IPython.qt.manager import QtKernelManager
 except ImportError:
     from IPython.frontend.qt.kernelmanager import QtKernelManager
-import atexit
 try: # IPython = "<=2.0"
     from IPython.external.ssh import tunnel as zmqtunnel
     import IPython.external.pexpect as pexpect
@@ -46,15 +47,30 @@ except ImportError:
     except ImportError:
         pexpect = None
 
+# Local imports
+from spyderlib import dependencies
+from spyderlib.baseconfig import _
+from spyderlib.config import CONF
+from spyderlib.utils.misc import get_error_match, remove_backslashes
+from spyderlib.utils import programs
+from spyderlib.utils.qthelpers import get_icon, create_action
+from spyderlib.widgets.tabs import Tabs
+from spyderlib.widgets.ipython import IPythonClient
+from spyderlib.widgets.findreplace import FindReplace
+from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
+from spyderlib.py3compat import to_text_string, u
+
+
+SYMPY_REQVER = '>=0.7.0'
+dependencies.add("sympy", _("Symbolic mathematics in the IPython Console"),
+                 required_version=SYMPY_REQVER)
+
 
 # Replacing pyzmq openssh_tunnel method to work around the issue
 # https://github.com/zeromq/pyzmq/issues/589 which was solved in pyzmq
 # https://github.com/zeromq/pyzmq/pull/615
-
-
 def _stop_tunnel(cmd):
     pexpect.run(cmd)
-
 
 def openssh_tunnel(self, lport, rport, server, remoteip='127.0.0.1',
                    keyfile=None, password=None, timeout=0.4):
@@ -125,25 +141,6 @@ def openssh_tunnel(self, lport, rport, server, remoteip='127.0.0.1',
                 #      raise RuntimeError('Could not connect to remote host.') 
             tunnel.sendline(password)
             failed = True
-
-
-# Local imports
-from spyderlib import dependencies
-from spyderlib.baseconfig import _
-from spyderlib.config import CONF
-from spyderlib.utils.misc import get_error_match, remove_backslashes
-from spyderlib.utils import programs
-from spyderlib.utils.qthelpers import get_icon, create_action
-from spyderlib.widgets.tabs import Tabs
-from spyderlib.widgets.ipython import IPythonClient
-from spyderlib.widgets.findreplace import FindReplace
-from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
-from spyderlib.py3compat import to_text_string, u
-
-
-SYMPY_REQVER = '>=0.7.0'
-dependencies.add("sympy", _("Symbolic mathematics in the IPython Console"),
-                 required_version=SYMPY_REQVER)
 
 
 class IPythonConsoleConfigPage(PluginConfigPage):
