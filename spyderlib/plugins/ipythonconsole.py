@@ -113,7 +113,7 @@ def openssh_tunnel(self, lport, rport, server, remoteip='127.0.0.1',
                 host = server.split('@')[-1]
                 question = _("The authenticity of host <b>%s</b> can't be "
                              "established. Are you sure you want to continue "
-                             "connecting?" % host)
+                             "connecting?") % host
                 reply = QMessageBox.question(self, _('Warning'), question,
                                              QMessageBox.Yes | QMessageBox.No,
                                              QMessageBox.No)
