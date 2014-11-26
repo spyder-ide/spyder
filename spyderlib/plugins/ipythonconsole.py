@@ -14,18 +14,20 @@ Handles IPython clients (and in the future, will handle IPython kernels too
 # pylint: disable=R0911
 # pylint: disable=R0201
 
+# Stdlib imports
+import atexit
+import os
+import os.path as osp
+import sys
+
 # Qt imports
 from spyderlib.qt.QtGui import (QVBoxLayout, QHBoxLayout, QFormLayout, 
                                 QMessageBox, QGroupBox, QDialogButtonBox,
                                 QDialog, QTabWidget, QFontComboBox, 
-                                QCheckBox, QApplication, QLabel, 
-                                QLineEdit, QInputDialog, QPushButton)
+                                QCheckBox, QApplication, QLabel,QLineEdit,
+                                QPushButton)
 from spyderlib.qt.compat import getopenfilename
 from spyderlib.qt.QtCore import SIGNAL, Qt
-
-# Stdlib imports
-import sys, os
-import os.path as osp
 
 # IPython imports
 from IPython.core.application import get_ipython_dir
@@ -35,7 +37,6 @@ try: # IPython = '>=1.0'
     from IPython.qt.manager import QtKernelManager
 except ImportError:
     from IPython.frontend.qt.kernelmanager import QtKernelManager
-import atexit
 try: # IPython = "<=2.0"
     from IPython.external.ssh import tunnel as zmqtunnel
     import IPython.external.pexpect as pexpect
@@ -46,15 +47,30 @@ except ImportError:
     except ImportError:
         pexpect = None
 
+# Local imports
+from spyderlib import dependencies
+from spyderlib.baseconfig import _
+from spyderlib.config import CONF
+from spyderlib.utils.misc import get_error_match, remove_backslashes
+from spyderlib.utils import programs
+from spyderlib.utils.qthelpers import get_icon, create_action
+from spyderlib.widgets.tabs import Tabs
+from spyderlib.widgets.ipython import IPythonClient
+from spyderlib.widgets.findreplace import FindReplace
+from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
+from spyderlib.py3compat import to_text_string, u
+
+
+SYMPY_REQVER = '>=0.7.0'
+dependencies.add("sympy", _("Symbolic mathematics in the IPython Console"),
+                 required_version=SYMPY_REQVER)
+
 
 # Replacing pyzmq openssh_tunnel method to work around the issue
 # https://github.com/zeromq/pyzmq/issues/589 which was solved in pyzmq
 # https://github.com/zeromq/pyzmq/pull/615
-
-
 def _stop_tunnel(cmd):
     pexpect.run(cmd)
-
 
 def openssh_tunnel(self, lport, rport, server, remoteip='127.0.0.1',
                    keyfile=None, password=None, timeout=0.4):
@@ -76,10 +92,12 @@ def openssh_tunnel(self, lport, rport, server, remoteip='127.0.0.1',
             ssh, lport, remoteip, rport, server)
         (output, exitstatus) = pexpect.run(cmd, withexitstatus=True)
         if not exitstatus:
-            atexit.register(_stop_tunnel, cmd.replace("-O forward", "-O cancel", 1))
+            atexit.register(_stop_tunnel, cmd.replace("-O forward",
+                                                      "-O cancel",
+                                                      1))
             return pid
     cmd = "%s -f -S none -L 127.0.0.1:%i:%s:%i %s sleep %i" % (
-        ssh, lport, remoteip, rport, server, timeout)
+                                  ssh, lport, remoteip, rport, server, timeout)
     
     # pop SSH_ASKPASS from env
     env = os.environ.copy()
@@ -92,8 +110,10 @@ def openssh_tunnel(self, lport, rport, server, remoteip='127.0.0.1',
         try:
             i = tunnel.expect([ssh_newkey, '[Pp]assword:'], timeout=.1)
             if i==0:
-                question = _("The authenticity of the host can't be established."
-                             "Are you sure you want to continue connecting?")
+                host = server.split('@')[-1]
+                question = _("The authenticity of host <b>%s</b> can't be "
+                             "established. Are you sure you want to continue "
+                             "connecting?" % host)
                 reply = QMessageBox.question(self, _('Warning'), question,
                                              QMessageBox.Yes | QMessageBox.No,
                                              QMessageBox.No)
@@ -103,47 +123,28 @@ def openssh_tunnel(self, lport, rport, server, remoteip='127.0.0.1',
                 else:
                     tunnel.sendline('no')
                     raise RuntimeError(
-                        'The authenticity of the host can\'t be established.')
+                       _("The authenticity of the host can't be established"))
             if i==1 and password is not None:
                 tunnel.sendline(password) 
         except pexpect.TIMEOUT:
             continue
         except pexpect.EOF:
             if tunnel.exitstatus:
-                raise RuntimeError("tunnel '%s' failed to start"%(cmd))
+                raise RuntimeError(_("Tunnel '%s' failed to start") % cmd)
             else:
                 return tunnel.pid
         else:
             if failed or password is None:
-                raise RuntimeError('Could not connect to remote host.')
-
+                raise RuntimeError(_("Could not connect to remote host"))
+                # TODO: Use this block when pyzmq bug #620 is fixed
                 # # Prompt a passphrase dialog to the user for a second attempt
                 # password, ok = QInputDialog.getText(self, _('Password'),
                 #             _('Enter password for: ') + server,
-                #             mode=QLineEdit.Password)
+                #             echo=QLineEdit.Password)
                 # if ok is False:
                 #      raise RuntimeError('Could not connect to remote host.') 
             tunnel.sendline(password)
             failed = True
-
-
-# Local imports
-from spyderlib import dependencies
-from spyderlib.baseconfig import _
-from spyderlib.config import CONF
-from spyderlib.utils.misc import get_error_match, remove_backslashes
-from spyderlib.utils import programs
-from spyderlib.utils.qthelpers import get_icon, create_action
-from spyderlib.widgets.tabs import Tabs
-from spyderlib.widgets.ipython import IPythonClient
-from spyderlib.widgets.findreplace import FindReplace
-from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
-from spyderlib.py3compat import to_text_string, u
-
-
-SYMPY_REQVER = '>=0.7.0'
-dependencies.add("sympy", _("Symbolic mathematics in the IPython Console"),
-                 required_version=SYMPY_REQVER)
 
 
 class IPythonConsoleConfigPage(PluginConfigPage):
@@ -1017,7 +1018,8 @@ class IPythonConsole(SpyderPluginWidget):
                      kernel_client.stdin_port, kernel_client.hb_port) = newports
                 except Exception as e:
                     QMessageBox.critical(self, _('Connection error'), 
-                                     _('Could not open ssh tunnel\n') + str(e))
+                                       _("Could not open ssh tunnel. The "
+                                         "error was:\n\n") + to_text_string(e))
                     return None, None
             kernel_client.start_channels()
             # To rely on kernel's heartbeat to know when a kernel has died
