@@ -123,20 +123,20 @@ def openssh_tunnel(self, lport, rport, server, remoteip='127.0.0.1',
                 else:
                     tunnel.sendline('no')
                     raise RuntimeError(
-                        'The authenticity of the host can\'t be established.')
+                       _("The authenticity of the host can't be established"))
             if i==1 and password is not None:
                 tunnel.sendline(password) 
         except pexpect.TIMEOUT:
             continue
         except pexpect.EOF:
             if tunnel.exitstatus:
-                raise RuntimeError("tunnel '%s' failed to start"%(cmd))
+                raise RuntimeError(_("Tunnel '%s' failed to start") % cmd)
             else:
                 return tunnel.pid
         else:
             if failed or password is None:
-                raise RuntimeError('Could not connect to remote host.')
-
+                raise RuntimeError(_("Could not connect to remote host"))
+                # TODO: Use this block when pyzmq bug #620 is fixed
                 # # Prompt a passphrase dialog to the user for a second attempt
                 # password, ok = QInputDialog.getText(self, _('Password'),
                 #             _('Enter password for: ') + server,
@@ -1018,7 +1018,8 @@ class IPythonConsole(SpyderPluginWidget):
                      kernel_client.stdin_port, kernel_client.hb_port) = newports
                 except Exception as e:
                     QMessageBox.critical(self, _('Connection error'), 
-                                     _('Could not open ssh tunnel\n') + str(e))
+                                       _("Could not open ssh tunnel. The "
+                                         "error was:\n\n") + to_text_string(e))
                     return None, None
             kernel_client.start_channels()
             # To rely on kernel's heartbeat to know when a kernel has died
