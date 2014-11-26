@@ -6,7 +6,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2014-09-06 12:34+COT\n"
+"POT-Creation-Date: 2014-11-26 06:56+COT\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -20,7 +20,7 @@ msgstr ""
 msgid "Breakpoints"
 msgstr "Points d'arrêt"
 
-#: spyderplugins/p_breakpoints.py:78
+#: spyderplugins/p_breakpoints.py:80
 msgid "List breakpoints"
 msgstr "Liste des points d'arrêt"
 
@@ -36,10 +36,15 @@ msgstr "Fichier"
 msgid "Line"
 msgstr "Ligne"
 
-#: spyderplugins/widgets/breakpointsgui.py:159
+#: spyderplugins/widgets/breakpointsgui.py:158
+msgid "Clear breakpoints in all files"
+msgstr "Supprimer tous les points d'arrêts"
+
+#: spyderplugins/widgets/breakpointsgui.py:165
 msgid "Clear this breakpoint"
 msgstr "Supprimer ce point d'arrêt"
 
-#: spyderplugins/widgets/breakpointsgui.py:165
-msgid "Clear breakpoints in all files"
-msgstr "Supprimer tous les points d'arrêts"
+#: spyderplugins/widgets/breakpointsgui.py:172
+#, fuzzy
+msgid "Edit this breakpoint"
+msgstr "Supprimer ce point d'arrêt"
