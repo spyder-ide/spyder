@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
 "POT-Creation-Date: 2014-11-26 06:56+COT\n"
-"PO-Revision-Date: 2014-09-10 12:29-0500\n"
+"PO-Revision-Date: 2014-11-26 07:17-0500\n"
 "Last-Translator: Carlos Cordoba <ccordoba12@gmail.com>\n"
 "Language-Team: Python\n"
 "Language: es\n"
@@ -55,9 +55,8 @@ msgid "Julia files"
 msgstr "Archivos Julia"
 
 #: spyderlib/config.py:38
-#, fuzzy
 msgid "Yaml files"
-msgstr "Archivos Enaml"
+msgstr "Archivos Yaml"
 
 #: spyderlib/config.py:39
 msgid "Patch and diff files"
@@ -96,14 +95,12 @@ msgid "Javascript files"
 msgstr "Archivos Javascript"
 
 #: spyderlib/config.py:48
-#, fuzzy
 msgid "Json files"
-msgstr "Archivos Python"
+msgstr "Archivos Json"
 
 #: spyderlib/config.py:49
-#, fuzzy
 msgid "IPython notebooks"
-msgstr "Terminal de IPython"
+msgstr "Notebooks de IPython"
 
 #: spyderlib/config.py:50
 msgid "Enaml files"
@@ -1256,26 +1253,22 @@ msgid "Light background (white color)"
 msgstr "Fondo claro (color blanco)"
 
 #: spyderlib/plugins/externalconsole.py:145
-#, fuzzy
 msgid "User Module Reloader (UMR)"
-msgstr "Eliminador de Módulos del Usuario (EMU)"
+msgstr "Recargador de Módulos del Usuario (RMU)"
 
 #: spyderlib/plugins/externalconsole.py:146
-#, fuzzy
 msgid ""
 "UMR forces Python to reload modules which were imported when executing a \n"
 "script in the external console with the 'runfile' function."
 msgstr ""
-"El EMU obliga a Python a recargar los módulos que fueron importados\n"
+"El RMU obliga a Python a recargar los módulos que fueron importados\n"
 "durante la ejecución de un archivo en la terminal con la función 'runfile'."
 
 #: spyderlib/plugins/externalconsole.py:149
-#, fuzzy
 msgid "Enable UMR"
-msgstr "Activar el EMU"
+msgstr "Activar el RMU"
 
 #: spyderlib/plugins/externalconsole.py:150
-#, fuzzy
 msgid ""
 "This option will enable the User Module Reloader (UMR) in Python/IPython "
 "consoles. UMR forces Python to reload deeply modules during import when "
@@ -1287,11 +1280,11 @@ msgid ""
 "you may have to use the attribute <b>Qt.WA_DeleteOnClose</b> on your main "
 "window, using the <b>setAttribute</b> method)"
 msgstr ""
-"Esta opción activará el Eliminador de módulos del usuario (EMU) en las "
-"terminales de Python y IPython. El EMU obliga a Python a recargar "
+"Esta opción activará el Recargador de Módulos del Usuario (RMU) en las "
+"terminales de Python y IPython. El RMU obliga a Python a recargar "
 "profundamente los módulos que fueron importados al ejecutar un archivo de "
 "Python, usando la función incorporada de Spyder llamada <b>runfile</b>."
-"<br><br><b>1.</b> El EMU puede requerir que se reinicie la terminal en la "
+"<br><br><b>1.</b> El RMU puede requerir que se reinicie la terminal en la "
 "cual será utilizado (de otra forma, sólo los módulos que fueron importados "
 "en último lugar serán recargados al ejecutar un archivo).<br><br><b>2.</b> "
 "Si ocurre algún error al re-ejecutar programas basados en PyQt o PySide, por "
@@ -1310,9 +1303,8 @@ msgstr ""
 "terminales"
 
 #: spyderlib/plugins/externalconsole.py:171
-#, fuzzy
 msgid "Set UMR excluded (not reloaded) modules"
-msgstr "Establecer la lista de módulos excluidos por el EMU"
+msgstr "Establecer la lista de módulos excluidos por el RMU"
 
 #: spyderlib/plugins/externalconsole.py:183
 msgid "Python executable"
@@ -1520,7 +1512,6 @@ msgid "Trying to kill a kernel?"
 msgstr "Desea cerrar un núcleo?"
 
 #: spyderlib/plugins/externalconsole.py:597
-#, fuzzy
 msgid ""
 "You can't close this kernel because it has one or more consoles connected to "
 "it.<br><br>You need to close them instead or you can kill the kernel using "
@@ -1528,7 +1519,7 @@ msgid ""
 msgstr ""
 "No puede cerrar este núcleo porque tiene una o más terminales conectadas a "
 "él.<br><br>Debe cerrarlas previamente o puede terminar el proceso usando el "
-"botón ubicado más a su derecha."
+"segundo botón ubicado de derecha a izquierda."
 
 #: spyderlib/plugins/externalconsole.py:673
 msgid ""
@@ -1606,17 +1597,15 @@ msgstr ""
 #: spyderlib/plugins/externalconsole.py:1300
 #: spyderlib/plugins/externalconsole.py:1313
 #: spyderlib/plugins/externalconsole.py:1317
-#, fuzzy
 msgid "UMR"
-msgstr "EMU"
+msgstr "RMU"
 
 #: spyderlib/plugins/externalconsole.py:1301
-#, fuzzy
 msgid ""
 "UMR excluded modules:\n"
 "(example: guidata, guiqwt)"
 msgstr ""
-"Módulos excluidos del EMU:\n"
+"Módulos excluidos del RMU:\n"
 "(por ejemplo: guidata, guiqwt)"
 
 #: spyderlib/plugins/externalconsole.py:1314
@@ -1846,19 +1835,20 @@ msgid ""
 "The authenticity of host <b>%s</b> can't be established. Are you sure you "
 "want to continue connecting?"
 msgstr ""
+"La autenticidad del servidor <b>%s</b> no puede ser establecida. ¿Está "
+"seguro de que desea continuar conectándose?"
 
 #: spyderlib/plugins/ipythonconsole.py:126
 msgid "The authenticity of the host can't be established"
-msgstr ""
+msgstr "La autenticidad del servidor no puede ser establecida"
 
 #: spyderlib/plugins/ipythonconsole.py:133
-#, fuzzy
 msgid "Tunnel '%s' failed to start"
-msgstr "El proceso falló al empezar"
+msgstr "El túnel '%s' falló en ser iniciado"
 
 #: spyderlib/plugins/ipythonconsole.py:138
 msgid "Could not connect to remote host"
-msgstr ""
+msgstr "No fue posible conectarse al servidor remoto"
 
 #: spyderlib/plugins/ipythonconsole.py:154
 #: spyderlib/plugins/ipythonconsole.py:660
@@ -2305,11 +2295,12 @@ msgid "Connection error"
 msgstr "Error de conexión"
 
 #: spyderlib/plugins/ipythonconsole.py:1021
-#, fuzzy
 msgid ""
 "Could not open ssh tunnel. The error was:\n"
 "\n"
-msgstr "No fue posible crear un túnel ssh\n"
+msgstr ""
+"No fue posible crear un túnel ssh. El error fue:\n"
+"\n"
 
 #: spyderlib/plugins/ipythonconsole.py:1042
 msgid "Could not open ssh tunnel\n"
@@ -2402,7 +2393,7 @@ msgstr "Interactuar con la terminal después de la ejecución"
 
 #: spyderlib/plugins/runconfig.py:198
 msgid "Show warning when killing running process"
-msgstr ""
+msgstr "Mostrar una advertencia cuando se termine el proceso"
 
 #: spyderlib/plugins/runconfig.py:207
 msgid "<b>-u</b> is added to the other options you set here"
@@ -3791,9 +3782,8 @@ msgstr "Abrir"
 
 #: spyderlib/widgets/explorer.py:257
 #: spyderlib/widgets/sourcecode/codeeditor.py:2256
-#, fuzzy
 msgid "Convert to Python script"
-msgstr "Guardar archivo de Python"
+msgstr "Convertir a un archivo de Python"
 
 #: spyderlib/widgets/explorer.py:280
 msgid "Commit"
@@ -4046,7 +4036,6 @@ msgid "Terminate"
 msgstr "Interrumpir"
 
 #: spyderlib/widgets/externalshell/pythonshell.py:276
-#, fuzzy
 msgid ""
 "Attempts to stop the process. The process\n"
 "may not exit as a result of clicking this\n"
@@ -4305,7 +4294,6 @@ msgid "EOL"
 msgstr "Fin de línea"
 
 #: spyderlib/widgets/importwizard.py:172
-#, fuzzy
 msgid "Additional options"
 msgstr "Opciones adicionales"
 
@@ -4330,9 +4318,8 @@ msgid "list"
 msgstr "lista"
 
 #: spyderlib/widgets/importwizard.py:438
-#, fuzzy
 msgid "DataFrame"
-msgstr "Datos"
+msgstr "DataFrame"
 
 #: spyderlib/widgets/importwizard.py:480 spyderlib/widgets/importwizard.py:567
 msgid "Import wizard"
@@ -4423,9 +4410,8 @@ msgid "Restart kernel"
 msgstr "Reiniciar el núcleo"
 
 #: spyderlib/widgets/ipython.py:495
-#, fuzzy
 msgid "Stop the current command"
-msgstr "Restaurar el panel actual"
+msgstr "Detener el comando actual"
 
 #: spyderlib/widgets/ipython.py:519
 msgid "Inspect current object"
@@ -4849,9 +4835,8 @@ msgid "To do"
 msgstr "To do"
 
 #: spyderlib/widgets/sourcecode/codeeditor.py:2254
-#, fuzzy
 msgid "Clear all ouput"
-msgstr "Limpiar la terminal"
+msgstr "Eliminar todas las salidas"
 
 #: spyderlib/widgets/sourcecode/codeeditor.py:2258
 msgid "Go to definition"
