@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
 "POT-Creation-Date: 2014-11-26 06:56+COT\n"
-"PO-Revision-Date: 2014-11-28 22:10-0000\n"
+"PO-Revision-Date: 2014-11-30 09:13-0500\n"
 "Last-Translator: Sylvain Corlay <sylvain.corlay@gmail.com>\n"
 "Language-Team: Python\n"
 "Language: fr\n"
@@ -1303,7 +1303,7 @@ msgstr ""
 
 #: spyderlib/plugins/externalconsole.py:171
 msgid "Set UMR excluded (not reloaded) modules"
-msgstr "Définir la liste des modules non affectés par l'UMR"
+msgstr "Définir la liste des modules non rechargés par l'UMR"
 
 #: spyderlib/plugins/externalconsole.py:183
 msgid "Python executable"
@@ -1521,8 +1521,8 @@ msgid ""
 "the second button from right to left."
 msgstr ""
 "Le noyau ne peut pas être fermé car au moins une console y est connectée. "
-"<br><br> Veuillez soit fermer au préalable toutes les consoles connectées ou "
-"appuyer sur le bouton à l'extrême droite pour tuer le processus du noyau."
+"<br><br> Veuillez soit fermer toutes les consoles connectées ou appuyer sur "
+"le second bouton en partant de la droite pour tuer le processus du noyau."
 
 #: spyderlib/plugins/externalconsole.py:673
 msgid ""
@@ -1837,7 +1837,7 @@ msgid ""
 "The authenticity of host <b>%s</b> can't be established. Are you sure you "
 "want to continue connecting?"
 msgstr ""
-"L'identité du serveur<b>%s</b> ne peut pas être confirmée. Êtes-vous sûr de "
+"L'identité du serveur <b>%s</b> ne peut pas être confirmée. Êtes-vous sûr de "
 "vouloir poursuivre ?"
 
 #: spyderlib/plugins/ipythonconsole.py:126
@@ -2062,8 +2062,8 @@ msgstr "Complétion avancée"
 msgid ""
 "Enable <tt>Tab</tt> completion on elements of lists, results of function "
 "calls, etc, <i>without</i> assigning them to a variable.<br>For example, you "
-"can get completions on things like <tt>li[0].&lt;Tab&gt;</tt> or <tt>ins."
-"meth().&lt;Tab&gt;</tt>"
+"can get completions on things like <tt>li[0].&lt;Tab&gt;</tt> or <tt>ins.meth"
+"().&lt;Tab&gt;</tt>"
 msgstr ""
 "Active la complétion par <tt>Tab</tt> sur les éléments de liste, les "
 "résultats de fonctions, etc... <i>sans</i> les avoir assignés à une variable."
@@ -2385,7 +2385,7 @@ msgstr "Interagir avec la console Python après l'exécution"
 
 #: spyderlib/plugins/runconfig.py:198
 msgid "Show warning when killing running process"
-msgstr "Affichier un avertissement à l'interuption d'un processsus"
+msgstr "Afficher un avertissement à l'interruption d'un processus"
 
 #: spyderlib/plugins/runconfig.py:207
 msgid "<b>-u</b> is added to the other options you set here"
@@ -3782,7 +3782,7 @@ msgstr "Ouvrir"
 #: spyderlib/widgets/explorer.py:257
 #: spyderlib/widgets/sourcecode/codeeditor.py:2256
 msgid "Convert to Python script"
-msgstr "Convertir vers fichier Python"
+msgstr "Convertir en fichier Python"
 
 #: spyderlib/widgets/explorer.py:280
 msgid "Commit"
@@ -4704,8 +4704,8 @@ msgid ""
 "Statistics on source files only:<br>(Python, C/C++, Fortran)<br><br><b>%s</"
 "b> files.<br><b>%s</b> lines of code."
 msgstr ""
-"Statistique sur les fichiers source uniquement:<br>(Python, C/C++, "
-"Fortran)<br><br><b>%s</b> fichiers.<br><b>%s</b> lignes de code."
+"Statistique sur les fichiers source uniquement:<br>(Python, C/C++, Fortran)"
+"<br><br><b>%s</b> fichiers.<br><b>%s</b> lignes de code."
 
 #: spyderlib/widgets/projectexplorer.py:1137
 msgid "File <b>%s</b> already exists.<br>Do you want to overwrite it?"
