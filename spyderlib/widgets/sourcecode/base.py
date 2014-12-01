@@ -449,7 +449,9 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         # of unicode chars on them (like the one attached on
         # Issue 1546)
         if os.name == 'nt' and PY3:
-            return self.get_text('sof', 'eof')
+            text = self.get_text('sof', 'eof')
+            return text.replace('\u2028', '\n').replace('\u2029', '\n')\
+                       .replace('\u0085', '\n')
         else:
             return super(TextEditBaseWidget, self).toPlainText()
 
@@ -1252,4 +1254,3 @@ class ConsoleBaseWidget(TextEditBaseWidget):
                               light_background=self.light_background,
                               is_default=style is self.default_style)
         self.ansi_handler.set_base_format(self.default_style.format)
-        
