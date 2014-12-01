@@ -6,15 +6,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
 "POT-Creation-Date: 2014-11-26 06:56+COT\n"
-"PO-Revision-Date: 2014-09-14 21:59+0100\n"
-"Last-Translator: Joseph Martinot-Lagarde <contrebasse@gmail.com>\n"
+"PO-Revision-Date: 2014-11-30 09:13-0500\n"
+"Last-Translator: Sylvain Corlay <sylvain.corlay@gmail.com>\n"
 "Language-Team: Python\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: pygettext.py 1.5\n"
-"X-Generator: Poedit 1.6.9\n"
+"X-Generator: Poedit 1.5.4\n"
 
 #: spyderlib/config.py:29
 msgid "Python files"
@@ -53,9 +53,8 @@ msgid "Julia files"
 msgstr "Fichiers Julia"
 
 #: spyderlib/config.py:38
-#, fuzzy
 msgid "Yaml files"
-msgstr "Fichiers Enaml"
+msgstr "Fichiers Yaml"
 
 #: spyderlib/config.py:39
 msgid "Patch and diff files"
@@ -94,14 +93,12 @@ msgid "Javascript files"
 msgstr "Fichiers Javascript"
 
 #: spyderlib/config.py:48
-#, fuzzy
 msgid "Json files"
-msgstr "Fichiers Python"
+msgstr "Fichiers Json"
 
 #: spyderlib/config.py:49
-#, fuzzy
 msgid "IPython notebooks"
-msgstr "Console IPython"
+msgstr "Documents IPython "
 
 #: spyderlib/config.py:50
 msgid "Enaml files"
@@ -1253,27 +1250,23 @@ msgid "Light background (white color)"
 msgstr "Fond blanc"
 
 #: spyderlib/plugins/externalconsole.py:145
-#, fuzzy
 msgid "User Module Reloader (UMR)"
-msgstr "User Module Deleter (UMD)"
+msgstr "User Module Reloader (UMR)"
 
 #: spyderlib/plugins/externalconsole.py:146
-#, fuzzy
 msgid ""
 "UMR forces Python to reload modules which were imported when executing a \n"
 "script in the external console with the 'runfile' function."
 msgstr ""
-"L'UMD force Python à recharger les modules importés lors de l'exécution "
+"L'UMR force Python à recharger les modules importés lors de l'exécution "
 "d'un\n"
 "script dans la console interne avec la fonction 'runfile'."
 
 #: spyderlib/plugins/externalconsole.py:149
-#, fuzzy
 msgid "Enable UMR"
-msgstr "Activer l'UMD"
+msgstr "Activer l'UMR"
 
 #: spyderlib/plugins/externalconsole.py:150
-#, fuzzy
 msgid ""
 "This option will enable the User Module Reloader (UMR) in Python/IPython "
 "consoles. UMR forces Python to reload deeply modules during import when "
@@ -1285,12 +1278,12 @@ msgid ""
 "you may have to use the attribute <b>Qt.WA_DeleteOnClose</b> on your main "
 "window, using the <b>setAttribute</b> method)"
 msgstr ""
-"Cette option active le User Module Deleter (UMD) dans les consoles Python. "
-"L'UMD force Python à recharger complètement les modules lors de leur "
+"Cette option active le User Module Deleter (UMR) dans les consoles Python. "
+"L'UMR force Python à recharger complètement les modules lors de leur "
 "importation, dans le cadre de l'exécution d'un script Python avec la "
-"fonction Spyder <b>runfile</b>.<br><br><b>1.</b> UMD peut nécessiter le "
+"fonction Spyder <b>runfile</b>.<br><br><b>1.</b> UMR peut nécessiter le "
 "redémarrage de la console Python dans lequel il va être utilisé (dans le cas "
-"contraire, seuls les modules importés après activation de l'UMD seront "
+"contraire, seuls les modules importés après activation de l'UMR seront "
 "rechargés complètement lors de l'exécution de scripts).<br><br><b>2.</b> Si "
 "des erreurs survenaient lors de la réexécution de programmes utilisant PyQt, "
 "veuillez vérifier que les objets Qt sont correctement détruits à la sortie "
@@ -1309,9 +1302,8 @@ msgstr ""
 "nouvelles consoles Python"
 
 #: spyderlib/plugins/externalconsole.py:171
-#, fuzzy
 msgid "Set UMR excluded (not reloaded) modules"
-msgstr "Modifier la liste des modules non rechargés par l'UMD"
+msgstr "Définir la liste des modules non rechargés par l'UMR"
 
 #: spyderlib/plugins/externalconsole.py:183
 msgid "Python executable"
@@ -1523,17 +1515,14 @@ msgid "Trying to kill a kernel?"
 msgstr "Tentative d'arrêt d'un noyau"
 
 #: spyderlib/plugins/externalconsole.py:597
-#, fuzzy
 msgid ""
 "You can't close this kernel because it has one or more consoles connected to "
 "it.<br><br>You need to close them instead or you can kill the kernel using "
 "the second button from right to left."
 msgstr ""
-"Le noyau ne peut pas être fermé car au moins une console frontale y est "
-"connectée.\n"
-"\n"
-"Veuillez soit fermer au préalable toutes les consoles connectées ou appuyer "
-"sur le bouton à l'extrême droite pour tuer le processus du noyau."
+"Le noyau ne peut pas être fermé car au moins une console y est connectée. "
+"<br><br> Veuillez soit fermer toutes les consoles connectées ou appuyer sur "
+"le second bouton en partant de la droite pour tuer le processus du noyau."
 
 #: spyderlib/plugins/externalconsole.py:673
 msgid ""
@@ -1612,17 +1601,15 @@ msgstr ""
 #: spyderlib/plugins/externalconsole.py:1300
 #: spyderlib/plugins/externalconsole.py:1313
 #: spyderlib/plugins/externalconsole.py:1317
-#, fuzzy
 msgid "UMR"
-msgstr "UMD"
+msgstr "UMR"
 
 #: spyderlib/plugins/externalconsole.py:1301
-#, fuzzy
 msgid ""
 "UMR excluded modules:\n"
 "(example: guidata, guiqwt)"
 msgstr ""
-"Modules non rechargés par l'UMD :\n"
+"Modules non rechargés par l'UMR :\n"
 "(exemple: guidata, guiqwt)"
 
 #: spyderlib/plugins/externalconsole.py:1314
@@ -1850,19 +1837,20 @@ msgid ""
 "The authenticity of host <b>%s</b> can't be established. Are you sure you "
 "want to continue connecting?"
 msgstr ""
+"L'identité du serveur <b>%s</b> ne peut pas être confirmée. Êtes-vous sûr de "
+"vouloir poursuivre ?"
 
 #: spyderlib/plugins/ipythonconsole.py:126
 msgid "The authenticity of the host can't be established"
-msgstr ""
+msgstr "L'identité du serveur ne peut pas être confirmée"
 
 #: spyderlib/plugins/ipythonconsole.py:133
-#, fuzzy
 msgid "Tunnel '%s' failed to start"
-msgstr "Le processus n'a pas pu démarrer"
+msgstr "Impossible d'ouvrir le tunnel '%s'"
 
 #: spyderlib/plugins/ipythonconsole.py:138
 msgid "Could not connect to remote host"
-msgstr ""
+msgstr "Impossible d'établir la connection au serveur distant"
 
 #: spyderlib/plugins/ipythonconsole.py:154
 #: spyderlib/plugins/ipythonconsole.py:660
@@ -2074,8 +2062,8 @@ msgstr "Complétion avancée"
 msgid ""
 "Enable <tt>Tab</tt> completion on elements of lists, results of function "
 "calls, etc, <i>without</i> assigning them to a variable.<br>For example, you "
-"can get completions on things like <tt>li[0].&lt;Tab&gt;</tt> or <tt>ins."
-"meth().&lt;Tab&gt;</tt>"
+"can get completions on things like <tt>li[0].&lt;Tab&gt;</tt> or <tt>ins.meth"
+"().&lt;Tab&gt;</tt>"
 msgstr ""
 "Active la complétion par <tt>Tab</tt> sur les éléments de liste, les "
 "résultats de fonctions, etc... <i>sans</i> les avoir assignés à une variable."
@@ -2299,11 +2287,12 @@ msgid "Connection error"
 msgstr "Erreur de connexion"
 
 #: spyderlib/plugins/ipythonconsole.py:1021
-#, fuzzy
 msgid ""
 "Could not open ssh tunnel. The error was:\n"
 "\n"
-msgstr "Impossible d'ouvrir un tunnel ssh\n"
+msgstr ""
+"Impossible d'ouvrir un tunnel ssh. L'erreur rencontrée est:\n"
+"\n"
 
 #: spyderlib/plugins/ipythonconsole.py:1042
 msgid "Could not open ssh tunnel\n"
@@ -2396,7 +2385,7 @@ msgstr "Interagir avec la console Python après l'exécution"
 
 #: spyderlib/plugins/runconfig.py:198
 msgid "Show warning when killing running process"
-msgstr ""
+msgstr "Afficher un avertissement à l'interruption d'un processus"
 
 #: spyderlib/plugins/runconfig.py:207
 msgid "<b>-u</b> is added to the other options you set here"
@@ -3792,9 +3781,8 @@ msgstr "Ouvrir"
 
 #: spyderlib/widgets/explorer.py:257
 #: spyderlib/widgets/sourcecode/codeeditor.py:2256
-#, fuzzy
 msgid "Convert to Python script"
-msgstr "Enregistrer le script Python"
+msgstr "Convertir en fichier Python"
 
 #: spyderlib/widgets/explorer.py:280
 msgid "Commit"
@@ -4040,16 +4028,16 @@ msgid "Terminate"
 msgstr "Quitter"
 
 #: spyderlib/widgets/externalshell/pythonshell.py:276
-#, fuzzy
 msgid ""
 "Attempts to stop the process. The process\n"
 "may not exit as a result of clicking this\n"
 "button (it is given the chance to prompt\n"
 "the user for any unsaved files, etc)."
 msgstr ""
-"Tentative de fermeture du processus.\n"
-"Le processus peut ne pas s'arrêter suite à cette tentative,\n"
-"mais cela permet au programme en cours de quitter proprement."
+"Tentative de fermeture du processus. Il est possible que\n"
+"le processus ne s'arrête pas suite à cette tentative,\n"
+"et propose à l'utilisateur de sauvegarder\n"
+"les fichiers non-enregistrés, etc..."
 
 #: spyderlib/widgets/externalshell/pythonshell.py:289
 msgid "Interact"
@@ -4716,8 +4704,8 @@ msgid ""
 "Statistics on source files only:<br>(Python, C/C++, Fortran)<br><br><b>%s</"
 "b> files.<br><b>%s</b> lines of code."
 msgstr ""
-"Statistique sur les fichiers source uniquement:<br>(Python, C/C++, "
-"Fortran)<br><br><b>%s</b> fichiers.<br><b>%s</b> lignes de code."
+"Statistique sur les fichiers source uniquement:<br>(Python, C/C++, Fortran)"
+"<br><br><b>%s</b> fichiers.<br><b>%s</b> lignes de code."
 
 #: spyderlib/widgets/projectexplorer.py:1137
 msgid "File <b>%s</b> already exists.<br>Do you want to overwrite it?"
