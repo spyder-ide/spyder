@@ -40,7 +40,7 @@ def try_to_parse(value):
         try:
             _val = eval("%s('%s')" % (_t, value))
             return _val
-        except ValueError:
+        except (ValueError, SyntaxError):
             pass
     return value
 
