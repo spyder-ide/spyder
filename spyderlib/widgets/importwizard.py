@@ -620,8 +620,6 @@ class ImportWizard(QDialog):
         elif self.text_widget.get_as_code():
             self.clip_data = try_to_eval(
                 to_text_string(self._get_plain_text()))
-        elif self.text_widget.get_as_df():
-            self.clip_data = pd.read_csv(self._get_plain_text())
         else:
             self.clip_data = to_text_string(self._get_plain_text())
         self.accept()
