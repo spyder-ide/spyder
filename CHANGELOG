@@ -1,5 +1,74 @@
 = History of changes =
 
+== Version 2.3.2 ==
+
+=== New features since v2.3.1 ===
+
+  * Editor
+    * Improve cells visualization
+    * Add support for drag selection and improve look of line number area
+    * Open on it any text file present in the Variable Explorer
+    * View and edit IPython notebooks as Json files
+    * Syntax highlighting for Json and Yaml files
+
+  * Variable Explorer:
+    * Import csv files as DataFrames (if Pandas is present)
+    * Improve browsing speed for NumPy arrays and DataFrames with more than 1e5 elements
+
+  * Debugging
+    * Make it easier to set conditions through the Breakpoints pane
+
+  * IPython Console
+    * Add a stop button to easily stop computations
+
+  * Python Console
+    * Fixes various issues with unicode
+
+=== Bug fixes (since v2.3.1) ===
+
+  * Issue  556  Deal with DOS/Windows encoding
+  * Issue  681  Allow printing Unicode characters
+  * Issue  875  Add indication that console is busy
+  * Issue  883  Open all text files in the Editor from the File Explorer
+  * Issue  1200  Strings with accents and variable explorer
+  * Issue  1546  Spyder issues with unicode under windows
+  * Issue  1767  Some support for the ipynb format
+  * Issue  1774  can't open preferences or interpreter after changing path to intepreter
+  * Issue  1789  Getting warning "WARNING: Unexpected error discovering local network interfaces: 'SysOutput' object has no attribute 'flush"
+  * Issue  1809  Shortcut to get to file explorer
+  * Issue  1812  Erros when pressing Tab key in the Editor
+  * Issue  1830  Don't modify python default system encoding in the console
+  * Issue  1832  Select line via line numbers
+  * Issue  1847  Preferences panel don't appear
+  * Issue  1849  Support yaml files in editor
+  * Issue  1859  Latest rope breaks the Object Inspector
+  * Issue  1874  Wheel mouse scrolling not enabled in numberlinemarker or flag area
+  * Issue  1877  Cell higlighting and scrollbar
+  * Issue  1878  Cell highlighting on startup
+  * Issue  1891  Sorting Variable explorer gives a traceback
+  * Issue  1892  Spyder crashes because pyzmq is missing
+  * Issue  1949  Spyder 'support for graphics' should not require pylab
+  * Issue  1953  Please do not break API in minor releases
+  * Issue  1958  Disable Variable Explorer auto-refresh feature by default
+  * Issue  1961  opening bracket in editor or console: focus switches to internal console (which also display an error)
+  * Issue  1970  Connecting to an IPython kernel through ssh hangs if you have never connected to hostname before  
+  * Issue  1973  Pandas DataFrame in variable explorer can crash the app if it gets out of memory
+  * Issue  1975  Improve confusing "UMD has deleted" message
+  * Issue  1978  'Edit' context menu in Variable Explorer should work in all columns
+  * Issue  1979  Spyder crashes or hangs when creating some pandas DataFrame's
+  * Issue  1982  Middle mouse button *CUTS* text in editor in linux
+  * Issue  2004  Open sys.stdin with the right encoding in the console for Python 2
+  * Issue  2005  Error when running files in folders with UTF-8 in path
+  * Issue  2008  Wrong path to favicon.ico
+  * Issue  2015  Printing large pandas DataFrame clears iPython terminal 
+  * Issue  2033  Link to new WinPython site
+  * Issue  2042  IPython console doens't work with Pygments 2.0rc1
+  * Issue  2044  Autocomplete in the editor appends the completed variable onto the preceding expression if there's a token in between
+
+
+----
+
+
 == Version 2.3.1 ==
 
 === New features since v2.3.0 ===

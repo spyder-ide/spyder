@@ -175,6 +175,8 @@ def getsignaturefromtext(text, objname):
     multiline_re = objname + r'\([^\)]+(?<=[\w\]\}\'"])\)(?!,)'
     multiline_end_parenleft_re = r'(%s\([^\)]+(\),\n.+)+(?<=[\w\]\}\'"])\))'
     # Grabbing signatures
+    if not text:
+        text = ''
     sigs_1 = re.findall(oneline_re + '|' + multiline_re, text)
     sigs_2 = [g[0] for g in re.findall(multiline_end_parenleft_re % objname, text)]
     all_sigs = sigs_1 + sigs_2
