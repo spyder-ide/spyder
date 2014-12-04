@@ -20,15 +20,9 @@ two alternatives:
 #. Use our dmg installer, which can be found
    `here <https://bitbucket.org/spyder-ide/spyderlib/downloads>`_.
 
-  .. warning::
+  .. note::
    
-     *This is not necessary anymore since version 2.2.5.*
-     
-     * To be able to use the app that comes with this dmg on *Mountain Lion* (10.8)
-       you need to install `XQuartz <http://xquartz.macosforge.org/>`_ first.
-     * To generate plots in *Snow Leopard* (10.6) you need to install first
-       `this <http://ethan.tira-thompson.com/Mac_OS_X_Ports_files/libpng%20%28universal%29.dmg>`_
-       (more recent) version of ``libpng``.
+     The minimal MacOS X version to run our dmg is Lion (10.7)
 
 
 The hard way
