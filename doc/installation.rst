@@ -18,7 +18,7 @@ two alternatives:
    `site <http://continuum.io/downloads.html>`_.
 
 #. Use our dmg installer, which can be found
-   `here <https://code.google.com/p/spyderlib/downloads/list>`_.
+   `here <https://bitbucket.org/spyder-ide/spyderlib/downloads>`_.
 
   .. warning::
    
@@ -141,7 +141,7 @@ If you want to install Spyder directly, you need to follow these steps:
 
    You need to download and install the .exe file that corresponds to your Python
    version and architecture from
-   `this page <http://code.google.com/p/spyderlib/downloads/list>`_.
+   `this page <https://bitbucket.org/spyder-ide/spyderlib/downloads>`_.
 
 
 Updating Spyder
