@@ -7,13 +7,13 @@
   * Editor
     * Improve cells visualization
     * Add support for drag selection and improve look of line number area
-    * Open on it any text file present in the Variable Explorer
+    * Open on it any text file present in the File Explorer
     * View and edit IPython notebooks as Json files
     * Syntax highlighting for Json and Yaml files
 
   * Variable Explorer:
     * Import csv files as DataFrames (if Pandas is present)
-    * Improve browsing speed for NumPy arrays and DataFrames with more than 1e5 elements
+    * Improve browsing speed for NumPy arrays and DataFrames with more than 1e5 rows
 
   * Debugging
     * Make it easier to set conditions through the Breakpoints pane
