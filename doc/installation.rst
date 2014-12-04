@@ -37,7 +37,7 @@ The hard way
 Thanks to the *MacPorts* project, Spyder can be installed using its ``port`` package manager.
 There are `several versions`__ available from which you can choose from.
 
-__ http://www.macports.org/ports.php?by=name&substr=spyder MacPorts
+__ http://www.macports.org/ports.php?by=name&substr=spyder
 
   .. warning::
 
