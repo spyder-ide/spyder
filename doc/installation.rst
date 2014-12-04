@@ -123,13 +123,8 @@ If you want to install Spyder directly, you need to follow these steps:
 
 #. Install optional modules:
 
-   These are the most important modules to do scientific programming with Python
-
-   * `numpy <http://numpy.scipy.org/>`_
-   * `scipy <http://www.scipy.org/>`_
-   * `matplotlib <http://matplotlib.sourceforge.net/>`_
-   * `IPython <http://ipython.org/install.html#downloads>`_
-   * `Python Imaging Library <https://pypi.python.org/pypi/Pillow>`_
+   Please refer to the `Recommended modules`_ section to see what other packages
+   you might need.
   
 #. Installing Spyder itself:
 
