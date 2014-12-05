@@ -65,8 +65,8 @@ class Breakpoints(BreakpointWidget, SpyderPluginMixin):
                                         self.main.editor.clear_all_breakpoints)
         self.clear_breakpoint.connect(self.main.editor.clear_breakpoint)
         self.main.editor.breakpoints_saved.connect(self.set_data)
-        self.connect(self, SIGNAL('set_or_edit_conditional_breakpoint()'),
-                     self.main.editor.set_or_edit_conditional_breakpoint)
+        self.set_or_edit_conditional_breakpoint.connect(
+                           self.main.editor.set_or_edit_conditional_breakpoint)
         
         self.main.add_dockwidget(self)
         

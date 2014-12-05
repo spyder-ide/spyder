@@ -123,6 +123,7 @@ class BreakpointTableView(QTableView):
     edit_goto = Signal(str, int, str)
     clear_breakpoint = Signal(str, int)
     clear_all_breakpoints = Signal()
+    set_or_edit_conditional_breakpoint = Signal()
     
     def __init__(self, parent, data):
         QTableView.__init__(self, parent)
@@ -155,7 +156,7 @@ class BreakpointTableView(QTableView):
             line_number_str = self.model.breakpoints[index_clicked.row()][1]
             self.edit_goto.emit(filename, int(line_number_str), '')
         if index_clicked.column()==2:
-            self.emit(SIGNAL("set_or_edit_conditional_breakpoint()")) 
+            self.set_or_edit_conditional_breakpoint.emit()
                            
     def contextMenuEvent(self, event):
         index_clicked = self.indexAt(event.pos())
@@ -163,7 +164,7 @@ class BreakpointTableView(QTableView):
         self.popup_menu = QMenu(self)
         clear_all_breakpoints_action = create_action(self, 
             _("Clear breakpoints in all files"),
-            triggered=lambda: self.emit(SIGNAL('clear_all_breakpoints()')))
+            triggered=lambda: self.clear_all_breakpoints.emit())
         actions.append(clear_all_breakpoints_action)
         if self.model.breakpoints:
             filename = self.model.breakpoints[index_clicked.row()][0]
@@ -177,9 +178,8 @@ class BreakpointTableView(QTableView):
             edit_breakpoint_action = create_action(self,
                     _("Edit this breakpoint"),
                     triggered=lambda filename=filename, lineno=lineno: \
-                    (self.emit(SIGNAL('edit_goto(QString,int,QString)'),
-                              filename, lineno, ''),
-                     self.emit(SIGNAL("set_or_edit_conditional_breakpoint()")))
+                    (self.edit_goto.emit(filename, lineno, ''),
+                     self.set_or_edit_conditional_breakpoint.emit())
                     )
             actions.append(edit_breakpoint_action)
         add_actions(self.popup_menu, actions)        
@@ -193,6 +193,7 @@ class BreakpointWidget(QWidget):
     """
     VERSION = '1.0.0'
     clear_all_breakpoints = Signal()
+    set_or_edit_conditional_breakpoint = Signal()
     clear_breakpoint = Signal(str, int)
     edit_goto = Signal(str, int, str)
     
@@ -211,8 +212,8 @@ class BreakpointWidget(QWidget):
                          lambda s1, lino: self.clear_breakpoint.emit(s1, lino))
         self.dictwidget.edit_goto.connect(
                         lambda s1, lino, s2: self.edit_goto.emit(s1, lino, s2))
-        self.connect(self.dictwidget, SIGNAL('set_or_edit_conditional_breakpoint()'),
-                     lambda: self.emit(SIGNAL('set_or_edit_conditional_breakpoint()')))    
+        self.dictwidget.set_or_edit_conditional_breakpoint.connect(
+                        lambda: self.set_or_edit_conditional_breakpoint.emit())
                      
     def _load_all_breakpoints(self):
         bp_dict = CONF.get('run', 'breakpoints', {})
