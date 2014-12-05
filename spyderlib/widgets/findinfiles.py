@@ -331,7 +331,7 @@ class FindOptions(QWidget):
                                 text_beside_icon=True)
         self.ok_button.clicked.connect(self.update_combos)
         self.stop_button = create_toolbutton(self, text=_("Stop"),
-                                icon=get_icon("terminate.png"),
+                                icon=get_icon("stop.png"),
                                 triggered=lambda: self.stop.emit(),
                                 tip=_("Stop search"),
                                 text_beside_icon=True)

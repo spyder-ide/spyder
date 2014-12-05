@@ -14,18 +14,20 @@ Handles IPython clients (and in the future, will handle IPython kernels too
 # pylint: disable=R0911
 # pylint: disable=R0201
 
+# Stdlib imports
+import atexit
+import os
+import os.path as osp
+import sys
+
 # Qt imports
 from spyderlib.qt.QtGui import (QVBoxLayout, QHBoxLayout, QFormLayout, 
                                 QMessageBox, QGroupBox, QDialogButtonBox,
                                 QDialog, QTabWidget, QFontComboBox, 
-                                QCheckBox, QApplication, QLabel, 
-                                QLineEdit, QPushButton)
+                                QCheckBox, QApplication, QLabel,QLineEdit,
+                                QPushButton)
 from spyderlib.qt.compat import getopenfilename
 from spyderlib.qt.QtCore import Signal, Qt
-
-# Stdlib imports
-import sys
-import os.path as osp
 
 # IPython imports
 from IPython.core.application import get_ipython_dir
@@ -36,9 +38,14 @@ try: # IPython = '>=1.0'
 except ImportError:
     from IPython.frontend.qt.kernelmanager import QtKernelManager
 try: # IPython = "<=2.0"
-    from IPython.external.ssh import tunnel
+    from IPython.external.ssh import tunnel as zmqtunnel
+    import IPython.external.pexpect as pexpect
 except ImportError:
-    from zmq.ssh import tunnel
+    from zmq.ssh import tunnel as zmqtunnel
+    try:
+        import pexpect
+    except ImportError:
+        pexpect = None
 
 # Local imports
 from spyderlib import dependencies
@@ -59,15 +66,85 @@ dependencies.add("sympy", _("Symbolic mathematics in the IPython Console"),
                  required_version=SYMPY_REQVER)
 
 
-def tunnel_to_kernel(ci, hostname, sshkey=None, password=None, timeout=10):
-    """tunnel connections to a kernel via ssh. remote ports are specified in
-    the connection info ci."""
-    lports = tunnel.select_random_ports(4)
-    rports = ci['shell_port'], ci['iopub_port'], ci['stdin_port'], ci['hb_port']
-    remote_ip = ci['ip']
-    for lp, rp in zip(lports, rports):
-        tunnel.ssh_tunnel(lp, rp, hostname, remote_ip, sshkey, password, timeout)
-    return tuple(lports)
+# Replacing pyzmq openssh_tunnel method to work around the issue
+# https://github.com/zeromq/pyzmq/issues/589 which was solved in pyzmq
+# https://github.com/zeromq/pyzmq/pull/615
+def _stop_tunnel(cmd):
+    pexpect.run(cmd)
+
+def openssh_tunnel(self, lport, rport, server, remoteip='127.0.0.1',
+                   keyfile=None, password=None, timeout=0.4):
+    if pexpect is None:
+        raise ImportError("pexpect unavailable, use paramiko_tunnel")
+    ssh="ssh "
+    if keyfile:
+        ssh += "-i " + keyfile
+    
+    if ':' in server:
+        server, port = server.split(':')
+        ssh += " -p %s" % port
+    
+    cmd = "%s -O check %s" % (ssh, server)
+    (output, exitstatus) = pexpect.run(cmd, withexitstatus=True)
+    if not exitstatus:
+        pid = int(output[output.find("(pid=")+5:output.find(")")]) 
+        cmd = "%s -O forward -L 127.0.0.1:%i:%s:%i %s" % (
+            ssh, lport, remoteip, rport, server)
+        (output, exitstatus) = pexpect.run(cmd, withexitstatus=True)
+        if not exitstatus:
+            atexit.register(_stop_tunnel, cmd.replace("-O forward",
+                                                      "-O cancel",
+                                                      1))
+            return pid
+    cmd = "%s -f -S none -L 127.0.0.1:%i:%s:%i %s sleep %i" % (
+                                  ssh, lport, remoteip, rport, server, timeout)
+    
+    # pop SSH_ASKPASS from env
+    env = os.environ.copy()
+    env.pop('SSH_ASKPASS', None)
+    
+    ssh_newkey = 'Are you sure you want to continue connecting'
+    tunnel = pexpect.spawn(cmd, env=env)
+    failed = False
+    while True:
+        try:
+            i = tunnel.expect([ssh_newkey, '[Pp]assword:'], timeout=.1)
+            if i==0:
+                host = server.split('@')[-1]
+                question = _("The authenticity of host <b>%s</b> can't be "
+                             "established. Are you sure you want to continue "
+                             "connecting?") % host
+                reply = QMessageBox.question(self, _('Warning'), question,
+                                             QMessageBox.Yes | QMessageBox.No,
+                                             QMessageBox.No)
+                if reply == QMessageBox.Yes:
+                    tunnel.sendline('yes')
+                    continue
+                else:
+                    tunnel.sendline('no')
+                    raise RuntimeError(
+                       _("The authenticity of the host can't be established"))
+            if i==1 and password is not None:
+                tunnel.sendline(password) 
+        except pexpect.TIMEOUT:
+            continue
+        except pexpect.EOF:
+            if tunnel.exitstatus:
+                raise RuntimeError(_("Tunnel '%s' failed to start") % cmd)
+            else:
+                return tunnel.pid
+        else:
+            if failed or password is None:
+                raise RuntimeError(_("Could not connect to remote host"))
+                # TODO: Use this block when pyzmq bug #620 is fixed
+                # # Prompt a passphrase dialog to the user for a second attempt
+                # password, ok = QInputDialog.getText(self, _('Password'),
+                #             _('Enter password for: ') + server,
+                #             echo=QLineEdit.Password)
+                # if ok is False:
+                #      raise RuntimeError('Could not connect to remote host.') 
+            tunnel.sendline(password)
+            failed = True
 
 
 class IPythonConsoleConfigPage(PluginConfigPage):
@@ -894,6 +971,22 @@ class IPythonConsole(SpyderPluginWidget):
         # kernel one
         return programs.is_module_installed('IPython', version=kernel_ver)
 
+    def ssh_tunnel(self, *args, **kwargs):
+        if sys.platform == 'win32':
+            return zmqtunnel.paramiko_tunnel(*args, **kwargs)
+        else:
+            return openssh_tunnel(self, *args, **kwargs)
+
+    def tunnel_to_kernel(self, ci, hostname, sshkey=None, password=None, timeout=10):
+        """tunnel connections to a kernel via ssh. remote ports are specified in
+        the connection info ci."""
+        lports = zmqtunnel.select_random_ports(4)
+        rports = ci['shell_port'], ci['iopub_port'], ci['stdin_port'], ci['hb_port']
+        remote_ip = ci['ip']
+        for lp, rp in zip(lports, rports):
+            self.ssh_tunnel(lp, rp, hostname, remote_ip, sshkey, password, timeout)
+        return tuple(lports)
+
     def create_kernel_manager_and_client(self, connection_file=None,
                                          hostname=None, sshkey=None,
                                          password=None):
@@ -905,7 +998,7 @@ class IPythonConsole(SpyderPluginWidget):
             kernel_client.load_connection_file()
             if hostname is not None:
                 try:
-                    newports = tunnel_to_kernel(dict(ip=kernel_client.ip,
+                    newports = self.tunnel_to_kernel(dict(ip=kernel_client.ip,
                                           shell_port=kernel_client.shell_port,
                                           iopub_port=kernel_client.iopub_port,
                                           stdin_port=kernel_client.stdin_port,
@@ -915,7 +1008,8 @@ class IPythonConsole(SpyderPluginWidget):
                      kernel_client.stdin_port, kernel_client.hb_port) = newports
                 except Exception as e:
                     QMessageBox.critical(self, _('Connection error'), 
-                                     _('Could not open ssh tunnel\n') + str(e))
+                                       _("Could not open ssh tunnel. The "
+                                         "error was:\n\n") + to_text_string(e))
                     return None, None
             kernel_client.start_channels()
             # To rely on kernel's heartbeat to know when a kernel has died
@@ -925,7 +1019,7 @@ class IPythonConsole(SpyderPluginWidget):
             kernel_manager.load_connection_file()
             if hostname is not None:
                 try:
-                    newports = tunnel_to_kernel(dict(ip=kernel_manager.ip,
+                    newports = self.tunnel_to_kernel(dict(ip=kernel_manager.ip,
                                           shell_port=kernel_manager.shell_port,
                                           iopub_port=kernel_manager.iopub_port,
                                           stdin_port=kernel_manager.stdin_port,

@@ -38,6 +38,7 @@ from spyderlib.widgets.externalshell.pythonshell import ExternalPythonShell
 from spyderlib.widgets.externalshell.systemshell import ExternalSystemShell
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
+from spyderlib.plugins.runconfig import get_run_configuration
 from spyderlib.py3compat import to_text_string, is_text_string, getcwd
 from spyderlib import dependencies
 
@@ -136,19 +137,19 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         source_layout.addWidget(calltips_box)
         source_group.setLayout(source_layout)
 
-        # UMD Group
-        umd_group = QGroupBox(_("User Module Deleter (UMD)"))
-        umd_label = QLabel(_("UMD forces Python to reload modules which were "
+        # UMR Group
+        umr_group = QGroupBox(_("User Module Reloader (UMR)"))
+        umr_label = QLabel(_("UMR forces Python to reload modules which were "
                              "imported when executing a \nscript in the "
                              "external console with the 'runfile' function."))
-        umd_enabled_box = newcb(_("Enable UMD"), 'umd/enabled',
+        umr_enabled_box = newcb(_("Enable UMR"), 'umr/enabled',
                                 msg_if_enabled=True, msg_warning=_(
-                        "This option will enable the User Module Deleter (UMD) "
-                        "in Python/IPython consoles. UMD forces Python to "
+                        "This option will enable the User Module Reloader (UMR) "
+                        "in Python/IPython consoles. UMR forces Python to "
                         "reload deeply modules during import when running a "
                         "Python script using the Spyder's builtin function "
                         "<b>runfile</b>."
-                        "<br><br><b>1.</b> UMD may require to restart the "
+                        "<br><br><b>1.</b> UMR may require to restart the "
                         "console in which it will be called "
                         "(otherwise only newly imported modules will be "
                         "reloaded when executing scripts)."
@@ -158,20 +159,20 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                         "attribute <b>Qt.WA_DeleteOnClose</b> on your main "
                         "window, using the <b>setAttribute</b> method)"),
                                 )
-        umd_verbose_box = newcb(_("Show reloaded modules list"),
-                                'umd/verbose', msg_info=_(
+        umr_verbose_box = newcb(_("Show reloaded modules list"),
+                                'umr/verbose', msg_info=_(
                                 "Please note that these changes will "
                                 "be applied only to new consoles"))
-        umd_namelist_btn = QPushButton(
-                            _("Set UMD excluded (not reloaded) modules"))
-        umd_namelist_btn.clicked.connect(self.plugin.set_umd_namelist)
+        umr_namelist_btn = QPushButton(
+                            _("Set UMR excluded (not reloaded) modules"))
+        umr_namelist_btn.clicked.connect(self.plugin.set_umr_namelist)
         
-        umd_layout = QVBoxLayout()
-        umd_layout.addWidget(umd_label)
-        umd_layout.addWidget(umd_enabled_box)
-        umd_layout.addWidget(umd_verbose_box)
-        umd_layout.addWidget(umd_namelist_btn)
-        umd_group.setLayout(umd_layout)
+        umr_layout = QVBoxLayout()
+        umr_layout.addWidget(umr_label)
+        umr_layout.addWidget(umr_enabled_box)
+        umr_layout.addWidget(umr_verbose_box)
+        umr_layout.addWidget(umr_namelist_btn)
+        umr_group.setLayout(umr_layout)
         
         # Python executable Group
         pyexec_group = QGroupBox(_("Python executable"))
@@ -368,7 +369,7 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                     _("Display"))
         tabs.addTab(self.create_tab(monitor_group, source_group),
                     _("Introspection"))
-        tabs.addTab(self.create_tab(pyexec_group, pystartup_group, umd_group),
+        tabs.addTab(self.create_tab(pyexec_group, pystartup_group, umr_group),
                     _("Advanced settings"))
         tabs.addTab(self.create_tab(qt_group, mpl_group, ets_group),
                     _("External modules"))
@@ -588,7 +589,7 @@ class ExternalConsole(SpyderPluginWidget):
                 _("You can't close this kernel because it has one or more "
                   "consoles connected to it.<br><br>"
                   "You need to close them instead or you can kill the kernel "
-                  "using the button far to the right."),
+                  "using the second button from right to left."),
                   QMessageBox.Ok)
                                  
         
@@ -737,11 +738,16 @@ class ExternalConsole(SpyderPluginWidget):
             if self.get_option('single_tab'):
                 old_shell = self.shellwidgets[index]
                 if old_shell.is_running():
-                    answer = QMessageBox.question(self, self.get_plugin_title(),
-                        _("%s is already running in a separate process.\n"
-                          "Do you want to kill the process before starting "
-                          "a new one?") % osp.basename(fname),
-                        QMessageBox.Yes | QMessageBox.Cancel)
+                    runconfig = get_run_configuration(fname)
+                    if runconfig is None or runconfig.show_kill_warning:
+                        answer = QMessageBox.question(self, self.get_plugin_title(),
+                            _("%s is already running in a separate process.\n"
+                              "Do you want to kill the process before starting "
+                              "a new one?") % osp.basename(fname),
+                            QMessageBox.Yes | QMessageBox.Cancel)
+                    else:
+                        answer = QMessageBox.Yes
+
                     if answer == QMessageBox.Yes:
                         old_shell.process.kill()
                         old_shell.process.waitForFinished()
@@ -779,9 +785,9 @@ class ExternalConsole(SpyderPluginWidget):
                                             'pyqt/ignore_sip_setapi_errors')
             merge_output_channels = self.get_option('merge_output_channels')
             colorize_sys_stderr = self.get_option('colorize_sys_stderr')
-            umd_enabled = self.get_option('umd/enabled')
-            umd_namelist = self.get_option('umd/namelist')
-            umd_verbose = self.get_option('umd/verbose')
+            umr_enabled = self.get_option('umr/enabled')
+            umr_namelist = self.get_option('umr/namelist')
+            umr_verbose = self.get_option('umr/verbose')
             ar_timeout = CONF.get('variable_explorer', 'autorefresh/timeout')
             ar_state = CONF.get('variable_explorer', 'autorefresh')
 
@@ -807,8 +813,8 @@ class ExternalConsole(SpyderPluginWidget):
                            arguments=args, stand_alone=sa_settings,
                            pythonstartup=pythonstartup,
                            pythonexecutable=pythonexecutable,
-                           umd_enabled=umd_enabled, umd_namelist=umd_namelist,
-                           umd_verbose=umd_verbose, ets_backend=ets_backend,
+                           umr_enabled=umr_enabled, umr_namelist=umr_namelist,
+                           umr_verbose=umr_verbose, ets_backend=ets_backend,
                            monitor_enabled=monitor_enabled,
                            mpl_backend=mpl_backend,
                            qt_api=qt_api, pyqt_api=pyqt_api,
@@ -1266,13 +1272,13 @@ class ExternalConsole(SpyderPluginWidget):
             self.start(fname=filename, wdir=None, args='',
                        interact=False, debug=False)
         
-    def set_umd_namelist(self):
-        """Set UMD excluded modules name list"""
-        arguments, valid = QInputDialog.getText(self, _('UMD'),
-                                  _('UMD excluded modules:\n'
+    def set_umr_namelist(self):
+        """Set UMR excluded modules name list"""
+        arguments, valid = QInputDialog.getText(self, _('UMR'),
+                                  _('UMR excluded modules:\n'
                                           '(example: guidata, guiqwt)'),
                                   QLineEdit.Normal,
-                                  ", ".join(self.get_option('umd/namelist')))
+                                  ", ".join(self.get_option('umr/namelist')))
         if valid:
             arguments = to_text_string(arguments)
             if arguments:
@@ -1281,17 +1287,17 @@ class ExternalConsole(SpyderPluginWidget):
                                   if programs.is_module_installed(module_name)]
                 invalid = ", ".join(set(namelist)-set(fixed_namelist))
                 if invalid:
-                    QMessageBox.warning(self, _('UMD'),
+                    QMessageBox.warning(self, _('UMR'),
                                         _("The following modules are not "
                                           "installed on your machine:\n%s"
                                           ) % invalid, QMessageBox.Ok)
-                QMessageBox.information(self, _('UMD'),
+                QMessageBox.information(self, _('UMR'),
                                     _("Please note that these changes will "
                                       "be applied only to new Python/IPython "
                                       "consoles"), QMessageBox.Ok)
             else:
                 fixed_namelist = []
-            self.set_option('umd/namelist', fixed_namelist)
+            self.set_option('umr/namelist', fixed_namelist)
         
     def go_to_error(self, text):
         """Go to error if relevant"""

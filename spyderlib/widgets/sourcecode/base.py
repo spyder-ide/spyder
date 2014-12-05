@@ -11,6 +11,7 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
+import os
 import re
 import sys
 
@@ -27,9 +28,7 @@ from spyderlib.qt.compat import to_qvariant
 from spyderlib.widgets.sourcecode.terminal import ANSIEscapeCodeHandler
 from spyderlib.widgets.mixins import BaseEditMixin
 from spyderlib.widgets.calltip import CallTipWidget
-from spyderlib.py3compat import to_text_string, str_lower
-
-CELL_SEPARATORS = ('#%%', '# %%', '# <codecell>', '# In[')
+from spyderlib.py3compat import to_text_string, str_lower, PY3
 
 
 class CompletionWidget(QListWidget):
@@ -178,6 +177,7 @@ class CompletionWidget(QListWidget):
 class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     """Text edit base widget"""
     BRACE_MATCHING_SCOPE = ('sof', 'eof')
+    cell_separators = None
     focus_in = Signal()
     focus_center = Signal()
     zoom_in = Signal()
@@ -210,7 +210,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.codecompletion_enter = False
         self.calltips = True
         self.calltip_position = None
-        self.has_cell_separators = False        
+        self.has_cell_separators = False
         self.completion_text = ""
         self.calltip_widget = CallTipWidget(self, hide_timer_on=True)
         
@@ -288,6 +288,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     #------Highlight current cell
     def highlight_current_cell(self):
         """Highlight current cell"""
+        if self.cell_separators is None:
+            return
         selection = QTextEdit.ExtraSelection()
         selection.format.setProperty(QTextFormat.FullWidthSelection,
                                      to_qvariant(True))
@@ -436,6 +438,23 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         Copy text to clipboard with correct EOL chars
         """
         QApplication.clipboard().setText(self.get_selected_text())
+    
+    def toPlainText(self):
+        """
+        Reimplement Qt method
+        Fix PyQt4 bug on Windows and Python 3
+        """
+        # Fix what appears to be a PyQt4 bug when getting file
+        # contents under Windows and PY3. This bug leads to
+        # corruptions when saving files with certain combinations
+        # of unicode chars on them (like the one attached on
+        # Issue 1546)
+        if os.name == 'nt' and PY3:
+            text = self.get_text('sof', 'eof')
+            return text.replace('\u2028', '\n').replace('\u2029', '\n')\
+                       .replace('\u0085', '\n')
+        else:
+            return super(TextEditBaseWidget, self).toPlainText()
 
     #------Text: get, set, ...
     def get_selection_as_executable_code(self):
@@ -531,7 +550,10 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             text = to_text_string(cursor0.selectedText())
         else:
             text = to_text_string(block.text())
-        return text.lstrip().startswith(CELL_SEPARATORS)
+        if self.cell_separators is None:
+            return False
+        else:
+            return text.lstrip().startswith(self.cell_separators)
 
     def select_current_cell(self):
         """Select cell under cursor
@@ -933,8 +955,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         """Reimplement Qt method"""
         if sys.platform.startswith('linux') and event.button() == Qt.MidButton:
             self.calltip_widget.hide()
-            if self.has_selected_text():
-                self.remove_selected_text()
             self.setFocus()
             event = QMouseEvent(QEvent.MouseButtonPress, event.pos(),
                                 Qt.LeftButton, Qt.LeftButton, Qt.NoModifier)
@@ -942,8 +962,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             QPlainTextEdit.mouseReleaseEvent(self, event)
             # Send selection text to clipboard to be able to use
             # the paste method and avoid the strange Issue 1445
-            #
-            # Note: This issue seems a focusing problem but it
+            # NOTE: This issue seems a focusing problem but it
             # seems really hard to track
             mode_clip = QClipboard.Clipboard
             mode_sel = QClipboard.Selection
@@ -960,7 +979,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         """Reimplemented to handle focus"""
         self.focus_changed.emit()
         self.focus_in.emit()
-        self.focus_center.emit()
+        self.highlight_current_cell()
         QPlainTextEdit.focusInEvent(self, event)
         
     def focusOutEvent(self, event):
@@ -1238,4 +1257,3 @@ class ConsoleBaseWidget(TextEditBaseWidget):
                               light_background=self.light_background,
                               is_default=style is self.default_style)
         self.ansi_handler.set_base_format(self.default_style.format)
-        

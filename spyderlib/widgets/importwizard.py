@@ -22,12 +22,17 @@ from spyderlib.qt.compat import to_qvariant
 
 from functools import partial as ft_partial
 
+try:
+    import pandas as pd
+except ImportError:
+    pd = None
+
 # Local import
 from spyderlib.baseconfig import _
 from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import get_icon, add_actions, create_action
 from spyderlib.py3compat import (TEXT_TYPES, INT_TYPES, to_text_string, u,
-                                 zip_longest)
+                                 zip_longest, io)
 
 
 def try_to_parse(value):
@@ -36,7 +41,7 @@ def try_to_parse(value):
         try:
             _val = eval("%s('%s')" % (_t, value))
             return _val
-        except ValueError:
+        except (ValueError, SyntaxError):
             pass
     return value
 
@@ -72,7 +77,7 @@ except ImportError:
 def datestr_to_datetime(value, dayfirst=True):
     return dateparse(value, dayfirst=dayfirst)
 
-#----Background colors for supported types 
+#----Background colors for supported types
 COLORS = {
           bool: Qt.magenta,
           tuple([float] + list(INT_TYPES)): Qt.blue,
@@ -100,11 +105,11 @@ class ContentsWidget(QWidget):
     
     def __init__(self, parent, text):
         QWidget.__init__(self, parent)
-        
+
         self.text_editor = QTextEdit(self)
         self.text_editor.setText(text)
         self.text_editor.setReadOnly(True)
-        
+
         # Type frame
         type_layout = QHBoxLayout()
         type_label = QLabel(_("Import as"))
@@ -115,33 +120,35 @@ class ContentsWidget(QWidget):
         type_layout.addWidget(data_btn)
         code_btn = QRadioButton(_("code"))
         self._as_code = False
-        type_layout.addWidget(code_btn)        
+        type_layout.addWidget(code_btn)
         txt_btn = QRadioButton(_("text"))
         type_layout.addWidget(txt_btn)
+
         h_spacer = QSpacerItem(40, 20,
                                QSizePolicy.Expanding, QSizePolicy.Minimum)
-        type_layout.addItem(h_spacer)        
+        type_layout.addItem(h_spacer)
         type_frame = QFrame()
         type_frame.setLayout(type_layout)
-        
+
         # Opts frame
         grid_layout = QGridLayout()
         grid_layout.setSpacing(0)
-        
+
         col_label = QLabel(_("Column separator:"))
         grid_layout.addWidget(col_label, 0, 0)
         col_w = QWidget()
         col_btn_layout = QHBoxLayout()
         self.tab_btn = QRadioButton(_("Tab"))
-        self.tab_btn.setChecked(True)
+        self.tab_btn.setChecked(False)
         col_btn_layout.addWidget(self.tab_btn)
         other_btn_col = QRadioButton(_("other"))
+        other_btn_col.setChecked(True)
         col_btn_layout.addWidget(other_btn_col)
         col_w.setLayout(col_btn_layout)
         grid_layout.addWidget(col_w, 0, 1)
         self.line_edt = QLineEdit(",")
         self.line_edt.setMaximumWidth(30)
-        self.line_edt.setEnabled(False)
+        self.line_edt.setEnabled(True)
         other_btn_col.toggled.connect(self.line_edt.setEnabled)
         grid_layout.addWidget(self.line_edt, 0, 2)
 
@@ -163,8 +170,8 @@ class ContentsWidget(QWidget):
         grid_layout.addWidget(self.line_edt_row, 1, 2)
 
         grid_layout.setRowMinimumHeight(2, 15)
-        
-        other_group = QGroupBox(_("Additionnal options"))
+
+        other_group = QGroupBox(_("Additional options"))
         other_layout = QGridLayout()
         other_group.setLayout(other_layout)
 
@@ -176,24 +183,24 @@ class ContentsWidget(QWidget):
                                  self.skiprows_edt)
         self.skiprows_edt.setValidator(intvalid)
         other_layout.addWidget(self.skiprows_edt, 0, 1)
-        
+
         other_layout.setColumnMinimumWidth(2, 5)
-        
+
         comments_label = QLabel(_("Comments:"))
         other_layout.addWidget(comments_label, 0, 3)
         self.comments_edt = QLineEdit('#')
         self.comments_edt.setMaximumWidth(30)
         other_layout.addWidget(self.comments_edt, 0, 4)
-        
+
         self.trnsp_box = QCheckBox(_("Transpose"))
         #self.trnsp_box.setEnabled(False)
         other_layout.addWidget(self.trnsp_box, 1, 0, 2, 0)
-        
+
         grid_layout.addWidget(other_group, 3, 0, 2, 0)
-        
+
         opts_frame = QFrame()
         opts_frame.setLayout(grid_layout)
-        
+
         data_btn.toggled.connect(opts_frame.setEnabled)
         data_btn.toggled.connect(self.set_as_data)
         code_btn.toggled.connect(self.set_as_code)
@@ -210,11 +217,11 @@ class ContentsWidget(QWidget):
     def get_as_data(self):
         """Return if data type conversion"""
         return self._as_data
-    
+
     def get_as_code(self):
         """Return if code type conversion"""
         return self._as_code
-    
+
     def get_as_num(self):
         """Return if numeric type conversion"""
         return self._as_num
@@ -224,17 +231,17 @@ class ContentsWidget(QWidget):
         if self.tab_btn.isChecked():
             return u("\t")
         return to_text_string(self.line_edt.text())
-    
+
     def get_row_sep(self):
         """Return the row separator"""
         if self.eol_btn.isChecked():
             return u("\n")
         return to_text_string(self.line_edt_row.text())
-    
+
     def get_skiprows(self):
         """Return number of lines to be skipped"""
         return int(to_text_string(self.skiprows_edt.text()))
-    
+
     def get_comments(self):
         """Return comment string"""
         return to_text_string(self.comments_edt.text())
@@ -260,7 +267,7 @@ class PreviewTableModel(QAbstractTableModel):
     def rowCount(self, parent=QModelIndex()):
         """Return row count"""
         return len(self._data)
-    
+
     def columnCount(self, parent=QModelIndex()):
         """Return column count"""
         return len(self._data[0])
@@ -268,7 +275,7 @@ class PreviewTableModel(QAbstractTableModel):
     def _display_data(self, index):
         """Return a data element"""
         return to_qvariant(self._data[index.row()][index.column()])
-    
+
     def data(self, index, role=Qt.DisplayRole):
         """Return a model data element"""
         if not index.isValid():
@@ -276,11 +283,11 @@ class PreviewTableModel(QAbstractTableModel):
         if role == Qt.DisplayRole:
             return self._display_data(index)
         elif role == Qt.BackgroundColorRole:
-            return to_qvariant(get_color(self._data[index.row()][index.column()], .2))            
+            return to_qvariant(get_color(self._data[index.row()][index.column()], .2))
         elif role == Qt.TextAlignmentRole:
             return to_qvariant(int(Qt.AlignRight|Qt.AlignVCenter))
         return to_qvariant()
-    
+
     def setData(self, index, value, role=Qt.EditRole):
         """Set model data"""
         return False
@@ -312,7 +319,7 @@ class PreviewTableModel(QAbstractTableModel):
                     self._data[index.row()][index.column()])
             elif kwargs['atype'] == "float":
                 self._data[index.row()][index.column()] = float(
-                    self._data[index.row()][index.column()])                
+                    self._data[index.row()][index.column()])
             self.dataChanged.emit(index, index)
         except Exception as instance:
             print(instance)
@@ -339,7 +346,7 @@ class PreviewTable(QTableView):
             triggered=ft_partial(self.parse_to_type, atype="int"))
         self.float_action = create_action(self, "float",
             triggered=ft_partial(self.parse_to_type, atype="float"))
-        
+
         # Setting up menus
         self.date_menu = QMenu()
         self.date_menu.setTitle("Date")
@@ -378,7 +385,7 @@ class PreviewTable(QTableView):
         if transpose:
             return [[r[col] for r in out] for col in range(len(out[0]))]
         return out
-    
+
     def get_data(self):
         """Return model data"""
         if self._model is None:
@@ -399,7 +406,7 @@ class PreviewTable(QTableView):
         if not indexes: return
         for index in indexes:
             self.model().parse_data_type(index, **kwargs)
-    
+
     def contextMenuEvent(self, event):
         """Reimplement Qt method"""
         self.opt_menu.popup(event.globalPos())
@@ -408,30 +415,37 @@ class PreviewTable(QTableView):
 
 class PreviewWidget(QWidget):
     """Import wizard preview widget"""
-    
+
     def __init__(self, parent):
         QWidget.__init__(self, parent)
-        
+
         vert_layout = QVBoxLayout()
-        
+
         # Type frame
         type_layout = QHBoxLayout()
         type_label = QLabel(_("Import as"))
         type_layout.addWidget(type_label)
+
         self.array_btn = array_btn = QRadioButton(_("array"))
         array_btn.setEnabled(ndarray is not FakeObject)
         array_btn.setChecked(ndarray is not FakeObject)
-
         type_layout.addWidget(array_btn)
+
         list_btn = QRadioButton(_("list"))
         list_btn.setChecked(not array_btn.isChecked())
-        type_layout.addWidget(list_btn)    
+        type_layout.addWidget(list_btn)
+
+        if pd:
+            self.df_btn = df_btn = QRadioButton(_("DataFrame"))
+            df_btn.setChecked(False)
+            type_layout.addWidget(df_btn)
+
         h_spacer = QSpacerItem(40, 20,
                                QSizePolicy.Expanding, QSizePolicy.Minimum)
-        type_layout.addItem(h_spacer)        
+        type_layout.addItem(h_spacer)
         type_frame = QFrame()
         type_frame.setLayout(type_layout)
-        
+
         self._table_view = PreviewTable(self)
         vert_layout.addWidget(type_frame)
         vert_layout.addWidget(self._table_view)
@@ -440,9 +454,13 @@ class PreviewWidget(QWidget):
     def open_data(self, text, colsep=u("\t"), rowsep=u("\n"),
                   transpose=False, skiprows=0, comments='#'):
         """Open clipboard text as table"""
+        if pd:
+            self.pd_text = text
+            self.pd_info = dict(sep=colsep, lineterminator=rowsep,
+                skiprows=skiprows,comment=comments)
         self._table_view.process_data(text, colsep, rowsep, transpose,
                                       skiprows, comments)
-    
+
     def get_data(self):
         """Return table data"""
         return self._table_view.get_data()
@@ -453,13 +471,13 @@ class ImportWizard(QDialog):
     def __init__(self, parent, text,
                  title=None, icon=None, contents_title=None, varname=None):
         QDialog.__init__(self, parent)
-        
+
         # Destroying the C++ object right after closing the dialog box,
         # otherwise it may be garbage-collected in another QThread
         # (e.g. the editor's analysis thread in Spyder), thus leading to
         # a segmentation fault on UNIX or an application crash on Windows
         self.setAttribute(Qt.WA_DeleteOnClose)
-        
+
         if title is None:
             title = _("Import wizard")
         self.setWindowTitle(title)
@@ -467,31 +485,31 @@ class ImportWizard(QDialog):
             self.setWindowIcon(get_icon("fileimport.png"))
         if contents_title is None:
             contents_title = _("Raw text")
-        
+
         if varname is None:
             varname = _("variable_name")
-        
+
         self.var_name, self.clip_data = None, None
-        
+
         # Setting GUI
         self.tab_widget = QTabWidget(self)
         self.text_widget = ContentsWidget(self, text)
         self.table_widget = PreviewWidget(self)
-        
+
         self.tab_widget.addTab(self.text_widget, _("text"))
         self.tab_widget.setTabText(0, contents_title)
         self.tab_widget.addTab(self.table_widget, _("table"))
         self.tab_widget.setTabText(1, _("Preview"))
         self.tab_widget.setTabEnabled(1, False)
-        
+
         name_layout = QHBoxLayout()
         name_label = QLabel(_("Variable Name"))
         name_layout.addWidget(name_label)
-        
+
         self.name_edt = QLineEdit()
         self.name_edt.setText(varname)
         name_layout.addWidget(self.name_edt)
-        
+
         btns_layout = QHBoxLayout()
         cancel_btn = QPushButton(_("Cancel"))
         btns_layout.addWidget(cancel_btn)
@@ -510,7 +528,7 @@ class ImportWizard(QDialog):
         self.done_btn.setEnabled(False)
         btns_layout.addWidget(self.done_btn)
         self.done_btn.clicked.connect(self.process)
-        
+
         self.text_widget.asDataChanged.connect(self.fwd_btn.setEnabled)
         self.text_widget.asDataChanged.connect(self.done_btn.setDisabled)
         layout = QVBoxLayout()
@@ -525,7 +543,7 @@ class ImportWizard(QDialog):
             self.tab_widget.setTabEnabled(i, False)
         self.tab_widget.setTabEnabled(tab_idx, True)
         self.tab_widget.setCurrentIndex(tab_idx)
-        
+
     def _set_step(self, step):
         """Proceed to a given step"""
         new_tab = self.tab_widget.currentIndex() + step
@@ -553,7 +571,7 @@ class ImportWizard(QDialog):
             self.fwd_btn.setEnabled(True)
             self.back_btn.setEnabled(False)
         self._focus_tab(new_tab)
-    
+
     def get_data(self):
         """Return processed data"""
         # It is import to avoid accessing Qt C++ object as it has probably
@@ -576,6 +594,10 @@ class ImportWizard(QDialog):
                 self.table_widget.get_data())
         if self.table_widget.array_btn.isChecked():
             return array(data)
+        elif pd and self.table_widget.df_btn.isChecked():
+            info = self.table_widget.pd_info
+            buf = io.StringIO(self.table_widget.pd_text)
+            return pd.read_csv(buf, **info)
         return data
 
     def _get_plain_text(self):

@@ -47,6 +47,8 @@ from spyderlib import dependencies
 
 dependencies.add("IPython", _("IPython Console integration"),
                  required_version=SUPPORTED_IPYTHON)
+dependencies.add("zmq", _("IPython Console integration"),
+                 required_version='>=2.1.11')
 
 if IPYTHON_QT_INSTALLED:
     # Importing IPython will eventually set the QT_API environment variable
@@ -295,7 +297,7 @@ class MainWindow(QMainWindow):
           _("PyQt4 API Reference")),
          ('xy', "http://code.google.com/p/pythonxy/",
           _("Python(x,y)")),
-         ('winpython', "http://code.google.com/p/winpython/",
+         ('winpython', "https://winpython.github.io/",
           _("WinPython"))
                 )
     
@@ -1615,8 +1617,6 @@ class MainWindow(QMainWindow):
         prefix = ('lightwindow' if self.light else 'window') + '/'
         self.save_current_window_settings(prefix)
         if CONF.get('main', 'single_instance'):
-            if os.name == 'nt':
-                self.open_files_server.shutdown(socket.SHUT_RDWR)
             self.open_files_server.close()
         for widget in self.widgetlist:
             if not widget.closing_plugin(cancelable):
@@ -1753,7 +1753,7 @@ class MainWindow(QMainWindow):
             facilitate the use of Python for scientific and engineering 
             software development. The popular Python distributions 
             <a href="http://code.google.com/p/pythonxy/">Python(x,y)</a> and 
-            <a href="http://winpython.sourceforge.net/">WinPython</a> 
+            <a href="https://winpython.github.io/">WinPython</a> 
             also contribute to this plan.
             <p>Python %s %dbits, Qt %s, %s %s on %s"""
             % (versions['spyder'], revlink, __project_url__,
@@ -1912,7 +1912,10 @@ Please provide any additional information below.
         console.raise_()
         console.execute_python_code(lines)
         if focus_to_editor:
-           self.editor.visibility_changed(True)
+            self.editor.visibility_changed(True)
+
+    def new_file(self, text):
+        self.editor.new(text=text)
         
     def open_file(self, fname, external=False):
         """
@@ -1924,9 +1927,10 @@ Please provide any additional information below.
         ext = osp.splitext(fname)[1]
         if ext in EDIT_EXT:
             self.editor.load(fname)
-        elif self.variableexplorer is not None and ext in IMPORT_EXT\
-             and ext in ('.spydata', '.mat', '.npy', '.h5'):
+        elif self.variableexplorer is not None and ext in IMPORT_EXT:
             self.variableexplorer.import_data(fname)
+        elif encoding.is_text_file(fname):
+            self.editor.load(fname)
         elif not external:
             fname = file_uri(fname)
             programs.start_file(fname)
@@ -2117,7 +2121,11 @@ Please provide any additional information below.
                 # See Issue 1275 for details on why errno EINTR is
                 # silently ignored here.
                 eintr = errno.WSAEINTR if os.name == 'nt' else errno.EINTR
+                # To avoid a traceback after closing on Windows
+                enotsock = errno.WSAENOTSOCK if os.name == 'nt' else errno.ENOTSOCK
                 if e.args[0] == eintr:
+                    continue
+                elif e.args[0] == enotsock:
                     continue
                 raise
             fname = req.recv(1024)

@@ -113,7 +113,7 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
         self.main.workingdirectory.refresh_findinfiles.connect(self.refreshdir)
         
         findinfiles_action = create_action(self, _("&Find in files"),
-                                   "Ctrl+Shift+F", 'findf.png',
+                                   icon='findf.png',
                                    triggered=self.findinfiles_callback,
                                    tip=_("Search text in multiple files"))        
         

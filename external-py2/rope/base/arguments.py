@@ -72,6 +72,8 @@ class ObjectArguments(object):
 
     def get_instance_pyname(self):
         return self.pynames[0]
+
+
 class MixedArguments(object):
 
     def __init__(self, pyname, arguments, scope):

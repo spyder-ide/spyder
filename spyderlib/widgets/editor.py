@@ -366,7 +366,11 @@ class FileInfo(QObject):
                 func = self.introspection_plugin.get_completion_list
             comp_list = func(source_code, offset, self.filename)
             if comp_list:
-                completion_text = re.findall(r"[\w.]+", text, re.UNICODE)[-1]
+                completion_text = re.findall(r"[\w.]+", text, re.UNICODE)
+                if completion_text:
+                    completion_text = completion_text[-1]
+                else:
+                    comp_list = []
                 if '.' in completion_text:
                     completion_text = completion_text.split('.')[-1]
         if comp_list:
@@ -1854,6 +1858,7 @@ class EditorStack(QWidget):
         editor.run_selection.connect(self.run_selection)
         editor.run_cell.connect(self.run_cell)
         editor.run_cell_and_advance.connect(self.run_cell_and_advance)
+        editor.sig_new_file.connect(lambda s: self.parent().plugin.new(text=s))
         language = get_file_language(fname, txt)
         editor.setup_editor(
                 linenumbers=self.linenumbers_enabled,

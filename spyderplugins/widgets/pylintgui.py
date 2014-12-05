@@ -188,11 +188,10 @@ class PylintWidget(QWidget):
                                     tip=_("Run analysis"),
                                     triggered=self.start, text_beside_icon=True)
         self.stop_button = create_toolbutton(self,
-                                    icon=get_icon('terminate.png'),
-                                    text=_("Stop"),
-                                    tip=_(
-                                                  "Stop current analysis"),
-                                    text_beside_icon=True)
+                                             icon=get_icon('stop.png'),
+                                             text=_("Stop"),
+                                             tip=_("Stop current analysis"),
+                                             text_beside_icon=True)
         self.filecombo.valid.connect(self.start_button.setEnabled)
         self.filecombo.valid.connect(self.show_data)
 

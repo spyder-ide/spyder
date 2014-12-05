@@ -84,7 +84,7 @@ class ImportInfo(object):
 
     def __eq__(self, obj):
         return isinstance(obj, self.__class__) and \
-               self.get_import_statement() == obj.get_import_statement()
+            self.get_import_statement() == obj.get_import_statement()
 
     def __ne__(self, obj):
         return not self.__eq__(obj)
@@ -180,7 +180,7 @@ class FromImport(ImportInfo):
 
     def is_star_import(self):
         return len(self.names_and_aliases) > 0 and \
-               self.names_and_aliases[0][0] == '*'
+            self.names_and_aliases[0][0] == '*'
 
 
 class EmptyImport(ImportInfo):

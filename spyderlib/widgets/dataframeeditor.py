@@ -38,6 +38,9 @@ _sup_com = (complex, np.complex64, np.complex128)
 _bool_false = ['false', '0']
 
 
+LARGE_NROWS = 1e5
+
+
 def bool_false_check(value):
     """
     Used to convert bool intrance to false since any string in bool('')
@@ -56,10 +59,14 @@ def global_max(col_vals, index):
 
 class DataFrameModel(QAbstractTableModel):
     """ DataFrame Table Model"""
+    
+    ROWS_TO_LOAD = 500
+    
     def __init__(self, dataFrame, format="%.3g", parent=None):
         QAbstractTableModel.__init__(self)
         self.dialog = parent
         self.df = dataFrame
+        self.df_index = dataFrame.index.tolist()
         self._format = format
         self.bgcolor_enabled = True
         self.complex_intran = None
@@ -74,6 +81,13 @@ class DataFrameModel(QAbstractTableModel):
         self.max_min_col_update()
         self.colum_avg_enabled = True
         self.colum_avg(1)
+
+        # To define paging when the number of rows is large
+        self.total_rows = self.df.shape[0]
+        if self.total_rows > LARGE_NROWS:
+            self.rows_loaded = self.ROWS_TO_LOAD
+        else:
+            self.rows_loaded = self.total_rows
 
     def max_min_col_update(self):
         """Determines the maximum and minimum number in each column"""
@@ -174,6 +188,10 @@ class DataFrameModel(QAbstractTableModel):
             value = self.df.iloc[row, column]
         return value
 
+    def update_df_index(self):
+        """"Update the DataFrame index"""
+        self.df_index = self.df.index.tolist()
+
     def data(self, index, role=Qt.DisplayRole):
         """Cell content"""
         if not index.isValid():
@@ -182,7 +200,7 @@ class DataFrameModel(QAbstractTableModel):
             column = index.column()
             row = index.row()
             if column == 0:
-                return to_qvariant(to_text_string(self.df.index.tolist()[row]))
+                return to_qvariant(to_text_string(self.df_index[row]))
             else:
                 value = self.get_value(row, column-1)
                 if isinstance(value, float):
@@ -210,8 +228,10 @@ class DataFrameModel(QAbstractTableModel):
             if column > 0:
                 self.df.sort(columns=self.df.columns[column-1],
                              ascending=order, inplace=True)
+                self.update_df_index()
             else:
                 self.df.sort_index(inplace=True, ascending=order)
+                self.update_df_index()
         except TypeError as e:
             QMessageBox.critical(self.dialog, "Error",
                                  "TypeError error: %s" % str(e))
@@ -268,7 +288,24 @@ class DataFrameModel(QAbstractTableModel):
 
     def rowCount(self, index=QModelIndex()):
         """DataFrame row number"""
-        return self.df.shape[0]
+        if self.total_rows <= self.rows_loaded:
+            return self.total_rows
+        else:
+            return self.rows_loaded
+    
+    def canFetchMore(self, index=QModelIndex()):
+        if self.total_rows > self.rows_loaded:
+            return True
+        else:
+            return False
+ 
+    def fetchMore(self, index=QModelIndex()):
+        reminder = self.total_rows - self.rows_loaded
+        items_to_fetch = min(reminder, self.ROWS_TO_LOAD)
+        self.beginInsertRows(QModelIndex(), self.rows_loaded,
+                             self.rows_loaded + items_to_fetch - 1)
+        self.rows_loaded += items_to_fetch
+        self.endInsertRows()
 
     def columnCount(self, index=QModelIndex()):
         """DataFrame column number"""
@@ -317,12 +354,12 @@ class DataFrameView(QTableView):
                                     icon=get_icon('editcopy.png'),
                                     triggered=self.copy,
                                     context=Qt.WidgetShortcut)
-        functions = (("To bool", bool), ("To complex", complex),
-                     ("To int", int), ("To float", float),
-                     ("To str", to_text_string))
+        functions = ((_("To bool"), bool), (_("To complex"), complex),
+                     (_("To int"), int), (_("To float"), float),
+                     (_("To str"), to_text_string))
         types_in_menu = [copy_action]
         for name, func in functions:
-            types_in_menu += [create_action(self, _(name),
+            types_in_menu += [create_action(self, name,
                                             triggered=lambda func=func:
                                                       self.change_type(func),
                                             context=Qt.WidgetShortcut)]
@@ -376,27 +413,13 @@ class DataFrameEditor(QDialog):
         Setup DataFrameEditor:
         return False if data is not supported, True otherwise
         """
-        size = 1
-        for dim in data.shape:
-            size *= dim
-        if size > 1e6:
-            answer = QMessageBox.warning(self, _("%s editor"
-                                                 % data.__class__.__name__),
-                                         _("Opening and browsing this "
-                                           "%s can be slow\n\n"
-                                           "Do you want to continue anyway?"
-                                           % data.__class__.__name__),
-                                         QMessageBox.Yes | QMessageBox.No)
-            if answer == QMessageBox.No:
-                return
-
         self.layout = QGridLayout()
         self.setLayout(self.layout)
         self.setWindowIcon(get_icon('arredit.png'))
         if title:
             title = to_text_string(title)  # in case title is not a string
         else:
-            title = _("%s editor" % data.__class__.__name__)
+            title = _("%s editor") % data.__class__.__name__
         if isinstance(data, TimeSeries):
             self.is_time_series = True
             data = data.to_frame()

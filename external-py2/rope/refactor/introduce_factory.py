@@ -13,8 +13,9 @@ class IntroduceFactory(object):
 
         this_pymodule = self.pycore.resource_to_pyobject(resource)
         self.old_pyname = evaluate.eval_location(this_pymodule, offset)
-        if self.old_pyname is None or not isinstance(self.old_pyname.get_object(),
-                                                     rope.base.pyobjects.PyClass):
+        if self.old_pyname is None or \
+                not isinstance(self.old_pyname.get_object(),
+                               rope.base.pyobjects.PyClass):
             raise rope.base.exceptions.RefactoringError(
                 'Introduce factory should be performed on a class.')
         self.old_name = self.old_pyname.get_object().get_name()
@@ -111,7 +112,7 @@ class IntroduceFactory(object):
             ('@staticmethod\ndef %s(*args, **kwds):\n' % factory_name +
              '%sreturn %s(*args, **kwds)\n' % (unit_indents, self.old_name))
         indents = self._get_scope_indents(lines, class_scope) + \
-                  sourceutils.get_indent(self.pycore)
+            sourceutils.get_indent(self.pycore)
         return '\n' + sourceutils.indent_lines(unindented_factory, indents)
 
     def _get_scope_indents(self, lines, scope):

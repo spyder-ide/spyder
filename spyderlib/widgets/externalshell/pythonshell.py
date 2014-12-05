@@ -12,8 +12,7 @@ import os.path as osp
 import socket
 
 from spyderlib.qt.QtGui import QApplication, QMessageBox, QSplitter, QMenu
-from spyderlib.qt.QtCore import QProcess, Signal, Qt, QTextCodec
-LOCALE_CODEC = QTextCodec.codecForLocale()
+from spyderlib.qt.QtCore import QProcess, Signal, Qt
 from spyderlib.qt.compat import getexistingdirectory
 
 # Local imports
@@ -30,7 +29,8 @@ from spyderlib.utils.bsdsocket import communicate, write_packet
 from spyderlib.widgets.externalshell.baseshell import (ExternalShellBase,
                                                    add_pathlist_to_PYTHONPATH)
 from spyderlib.widgets.dicteditor import DictEditor
-from spyderlib.py3compat import is_text_string, to_text_string
+from spyderlib.py3compat import (is_text_string, to_text_string,
+                                 to_binary_string)
 
 
 class ExtPythonShellWidget(PythonShellWidget):
@@ -166,7 +166,7 @@ class ExternalPythonShell(ExternalShellBase):
     def __init__(self, parent=None, fname=None, wdir=None,
                  interact=False, debug=False, path=[], python_args='',
                  ipykernel=False, arguments='', stand_alone=None,
-                 umd_enabled=True, umd_namelist=[], umd_verbose=True,
+                 umr_enabled=True, umr_namelist=[], umr_verbose=True,
                  pythonstartup=None, pythonexecutable=None,
                  monitor_enabled=True, mpl_backend=None, ets_backend='qt4',
                  qt_api=None, pyqt_api=0, install_qt_inputhook=True,
@@ -196,9 +196,9 @@ class ExternalPythonShell(ExternalShellBase):
         self.ignore_sip_setapi_errors = ignore_sip_setapi_errors
         self.merge_output_channels = merge_output_channels
         self.colorize_sys_stderr = colorize_sys_stderr
-        self.umd_enabled = umd_enabled
-        self.umd_namelist = umd_namelist
-        self.umd_verbose = umd_verbose
+        self.umr_enabled = umr_enabled
+        self.umr_namelist = umr_namelist
+        self.umr_verbose = umr_verbose
         self.autorefresh_timeout = autorefresh_timeout
         self.autorefresh_state = autorefresh_state
                 
@@ -282,15 +282,16 @@ class ExternalPythonShell(ExternalShellBase):
                   toggled=self.toggle_globals_explorer, text_beside_icon=True)
         if self.terminate_button is None:
             self.terminate_button = create_toolbutton(self,
-                  text=_("Terminate"), icon=get_icon('terminate.png'),
-                  tip=_("""Attempts to terminate the process.
-The process may not exit as a result of clicking this button
-(it is given the chance to prompt the user for any unsaved files, etc)."""))
+                  text=_("Terminate"), icon=get_icon('stop.png'),
+                  tip=_("Attempts to stop the process. The process\n"
+                        "may not exit as a result of clicking this\n"
+                        "button (it is given the chance to prompt\n"
+                        "the user for any unsaved files, etc)."))
         buttons = []
         if self.namespacebrowser_button is not None:
             buttons.append(self.namespacebrowser_button)
-        buttons += [self.run_button, self.options_button,
-                    self.terminate_button, self.kill_button]
+        buttons += [self.run_button, self.terminate_button, self.kill_button,
+                    self.options_button]
         return buttons
 
     def get_options_menu(self):
@@ -417,6 +418,13 @@ The process may not exit as a result of clicking this button
         if self.pythonstartup:
             env.append('PYTHONSTARTUP=%s' % self.pythonstartup)
         
+        # Set standard input/output encoding for Python consoles
+        # (IPython handles it on its own)
+        # See http://stackoverflow.com/q/26312400/438386, specifically
+        # the comments of Martijn Pieters
+        if not self.is_ipykernel:
+            env.append('PYTHONIOENCODING=UTF-8')
+        
         # Monitor
         if self.monitor_enabled:
             env.append('SPYDER_SHELL_ID=%s' % id(self))
@@ -461,9 +469,9 @@ The process may not exit as a result of clicking this button
         
         # User Module Deleter
         if self.is_interpreter:
-            env.append('UMD_ENABLED=%r' % self.umd_enabled)
-            env.append('UMD_NAMELIST=%s' % ','.join(self.umd_namelist))
-            env.append('UMD_VERBOSE=%r' % self.umd_verbose)
+            env.append('UMR_ENABLED=%r' % self.umr_enabled)
+            env.append('UMR_NAMELIST=%s' % ','.join(self.umr_namelist))
+            env.append('UMR_VERBOSE=%r' % self.umr_verbose)
             env.append('MATPLOTLIB_ION=True')
         else:
             if self.interact:
@@ -571,7 +579,7 @@ The process may not exit as a result of clicking this button
             text = 'evalsc(r"%s")\n' % text
         if not text.endswith('\n'):
             text += '\n'
-        self.process.write(LOCALE_CODEC.fromUnicode(text))
+        self.process.write(to_binary_string(text, 'utf8'))
         self.process.waitForBytesWritten(-1)
         
         # Eventually write prompt faster (when hitting Enter continuously)

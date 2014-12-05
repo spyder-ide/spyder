@@ -65,14 +65,14 @@ class Breakpoints(BreakpointWidget, SpyderPluginMixin):
                                         self.main.editor.clear_all_breakpoints)
         self.clear_breakpoint.connect(self.main.editor.clear_breakpoint)
         self.main.editor.breakpoints_saved.connect(self.set_data)
+        self.connect(self, SIGNAL('set_or_edit_conditional_breakpoint()'),
+                     self.main.editor.set_or_edit_conditional_breakpoint)
         
         self.main.add_dockwidget(self)
         
         list_action = create_action(self, _("List breakpoints"),
                                    triggered=self.show)
         list_action.setEnabled(True)
-        self.register_shortcut(list_action, context="_",
-                               name="Switch to Breakpoints")
         
         # A fancy way to insert the action into the Breakpoints menu under
         # the assumption that Breakpoints is the first QMenu in the list.

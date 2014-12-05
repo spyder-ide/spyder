@@ -258,7 +258,7 @@ class ExternalShellBase(QWidget):
 #    Input/Output
 #===============================================================================
     def transcode(self, qba):
-        return to_text_string( LOCALE_CODEC.toUnicode(qba.data()) )
+        return to_text_string(qba.data(), 'utf8')
     
     def get_stdout(self):
         self.process.setReadChannel(QProcess.StandardOutput)
@@ -306,10 +306,10 @@ def test():
                                 arguments="-q4thread -pylab -colors LightBG",
                                 light_background=False)
 #    shell = ExternalPythonShell(wdir=osp.dirname(spyderlib.__file__),
-#                                interact=True, umd_enabled=True,
+#                                interact=True, umr_enabled=True,
 #                                stand_alone=settings,
-#                                umd_namelist=['guidata', 'guiqwt'],
-#                                umd_verbose=True, light_background=False)
+#                                umr_namelist=['guidata', 'guiqwt'],
+#                                umr_verbose=True, light_background=False)
 #    shell = ExternalSystemShell(wdir=osp.dirname(spyderlib.__file__),
 #                                light_background=False)
     shell.shell.toggle_wrap_mode(True)

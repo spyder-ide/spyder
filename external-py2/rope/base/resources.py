@@ -187,8 +187,8 @@ class _ResourceMatcher(object):
 
     def _add_pattern(self, pattern):
         re_pattern = pattern.replace('.', '\\.').\
-                     replace('*', '[^/]*').replace('?', '[^/]').\
-                     replace('//', '/(.*/)?')
+            replace('*', '[^/]*').replace('?', '[^/]').\
+            replace('//', '/(.*/)?')
         re_pattern = '^(.*/)?' + re_pattern + '(/.*)?$'
         self.compiled_patterns.append(re.compile(re_pattern))
 

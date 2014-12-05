@@ -283,7 +283,8 @@ class BaseEditMixin(object):
         """
         cursor = self.__select_text(position_from, position_to)
         text = to_text_string(cursor.selectedText())
-        if text:
+        all_text = position_from == 'sof' and position_to == 'eof'
+        if text and not all_text:
             while text.endswith("\n"):
                 text = text[:-1]
             while text.endswith(u("\u2029")):

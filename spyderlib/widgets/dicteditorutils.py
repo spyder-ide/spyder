@@ -13,8 +13,8 @@ from __future__ import print_function
 import re
 
 # Local imports
-from spyderlib.py3compat import (NUMERIC_TYPES, TEXT_TYPES,
-                                 to_text_string, is_text_string)
+from spyderlib.py3compat import (NUMERIC_TYPES, TEXT_TYPES, to_text_string,
+                                 is_text_string, is_binary_string)
 from spyderlib.utils import programs
 from spyderlib import dependencies
 from spyderlib.baseconfig import _
@@ -137,7 +137,10 @@ def is_editable_type(value):
 #----Sorting
 def sort_against(lista, listb, reverse=False):
     """Arrange lista items in the same order as sorted(listb)"""
-    return [item for _, item in sorted(zip(listb, lista), reverse=reverse)]
+    try:
+        return [item for _, item in sorted(zip(listb, lista), reverse=reverse)]
+    except:
+        return lista
 
 def unsorted_unique(lista):
     """Removes duplicates from lista neglecting its initial ordering"""
@@ -145,8 +148,8 @@ def unsorted_unique(lista):
 
 
 #----Display <--> Value
-def value_to_display(value, truncate=False,
-                     trunc_len=80, minmax=False, collvalue=True):
+def value_to_display(value, truncate=False, trunc_len=80, minmax=False,
+                     collvalue=True):
     """Convert value for display purpose"""
     if minmax and isinstance(value, (ndarray, MaskedArray)):
         if value.size == 0:
@@ -161,7 +164,14 @@ def value_to_display(value, truncate=False,
     if isinstance(value, Image):
         return '%s  Mode: %s' % (address(value), value.mode)
     if isinstance(value, DataFrame):
-        return ', '.join(list(value.columns))
+        cols = value.columns
+        cols = [to_text_string(c) for c in cols]
+        return 'Column names: ' + ', '.join(list(cols))
+    if is_binary_string(value):
+        try:
+            value = to_text_string(value, 'utf8')
+        except:
+            pass
     if not is_text_string(value):
         if isinstance(value, (list, tuple, dict, set)) and not collvalue:            
             value = address(value)
