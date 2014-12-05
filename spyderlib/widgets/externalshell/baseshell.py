@@ -221,7 +221,10 @@ class ExternalShellBase(QWidget):
         else:
             if self.state_label is not None:
                 self.state_label.setText(_('Terminated.'))
-            self.timer.timeout.disconnect()
+            try:
+                self.timer.timeout.disconnect()
+            except RuntimeError:
+                pass
 
     def set_buttons_runnning_state(self, state):
         self.run_button.setVisible(not state and not self.is_ipykernel)
