@@ -1496,7 +1496,7 @@ class CodeEditor(TextEditBaseWidget):
     def center_cursor_on_next_focus(self):
         """QPlainTextEdit's "centerCursor" requires the widget to be visible"""
         self.centerCursor()
-        self.focus_center.disconnect()
+        self.focus_in.disconnect(self.center_cursor_on_next_focus)
 
     def go_to_line(self, line, word=''):
         """Go to line number *line* and eventually highlight it"""
@@ -1505,7 +1505,7 @@ class CodeEditor(TextEditBaseWidget):
         if self.isVisible():
             self.centerCursor()
         else:
-            self.focus_center.connect(self.center_cursor_on_next_focus)
+            self.focus_in.connect(self.center_cursor_on_next_focus)
         self.horizontalScrollBar().setValue(0)
         if word and to_text_string(word) in to_text_string(block.text()):
             self.find(word, QTextDocument.FindCaseSensitively)

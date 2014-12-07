@@ -194,7 +194,7 @@ class UrlComboBox(PathComboBox):
     """
     def __init__(self, parent, adjust_to_contents=False):
         PathComboBox.__init__(self, parent, adjust_to_contents)
-        self.editTextChanged.disconnect()
+        self.editTextChanged.disconnect(self.validate)
         
     def is_valid(self, qstr=None):
         """Return True if string is valid"""

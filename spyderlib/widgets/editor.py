@@ -780,7 +780,7 @@ class EditorStack(QWidget):
         
     def closeEvent(self, event):
         self.threadmanager.close_all_threads()
-        self.analysis_timer.timeout.disconnect()
+        self.analysis_timer.timeout.disconnect(self.analyze_script)
         QWidget.closeEvent(self, event)
         if is_pyqt46:
             self.destroyed.emit()

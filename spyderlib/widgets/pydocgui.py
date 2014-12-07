@@ -95,7 +95,7 @@ class PydocBrowser(WebBrowser):
             self.port = select_port(default_port=self.DEFAULT_PORT)
             self.set_home_url('http://localhost:%d/' % self.port)
         elif self.server.isRunning():
-            self.server.server_started.disconnect()
+            self.server.server_started.disconnect(self.initialize_continued)
             self.server.quit()
         self.server = PydocServer(port=self.port)
         self.server.server_started.connect(self.initialize_continued)

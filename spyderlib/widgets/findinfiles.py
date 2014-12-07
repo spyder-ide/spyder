@@ -754,7 +754,8 @@ class FindInFilesWidget(QWidget):
         if self.search_thread is not None:
             if self.search_thread.isRunning():
                 if ignore_results:
-                    self.search_thread.sig_finished.disconnect()
+                    self.search_thread.sig_finished.disconnect(
+                                                         self.search_complete)
                 self.search_thread.stop()
                 self.search_thread.wait()
             self.search_thread.setParent(None)

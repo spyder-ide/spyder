@@ -203,10 +203,7 @@ class ExternalShellBase(QWidget):
             self.is_closing = True
             self.process.kill()
             self.process.waitForFinished(100)
-        try:
-            self.timer.timeout.disconnect()
-        except RuntimeError:
-            pass
+        self.timer.timeout.disconnect(self.show_time)
     
     def set_running_state(self, state=True):
         self.set_buttons_runnning_state(state)
@@ -221,10 +218,7 @@ class ExternalShellBase(QWidget):
         else:
             if self.state_label is not None:
                 self.state_label.setText(_('Terminated.'))
-            try:
-                self.timer.timeout.disconnect()
-            except RuntimeError:
-                pass
+            self.timer.timeout.disconnect(self.show_time)
 
     def set_buttons_runnning_state(self, state):
         self.run_button.setVisible(not state and not self.is_ipykernel)

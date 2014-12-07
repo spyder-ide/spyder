@@ -740,7 +740,7 @@ class DirView(QTreeView):
                 self._to_be_loaded.append(path)
                 self.setExpanded(self.get_index(path), True)
         if not self.__expanded_state:
-            self.fsmodel.directoryLoaded.disconnect()
+            self.fsmodel.directoryLoaded.disconnect(self.restore_directory_state)
                 
     def follow_directories_loaded(self, fname):
         """Follow directories loaded during startup"""
@@ -750,7 +750,8 @@ class DirView(QTreeView):
         if path in self._to_be_loaded:
             self._to_be_loaded.remove(path)
         if self._to_be_loaded is not None and len(self._to_be_loaded) == 0:
-            self.fsmodel.directoryLoaded.disconnect()
+            self.fsmodel.directoryLoaded.disconnect(
+                                        self.follow_directories_loaded)
             if self._scrollbar_positions is not None:
                 # The tree view need some time to render branches:
                 QTimer.singleShot(50, self.restore_scrollbar_positions)
