@@ -16,8 +16,8 @@ from spyderlib.qt.QtGui import (QTableView, QVBoxLayout, QHBoxLayout,
                                 QSizePolicy, QCheckBox, QColor, QRadioButton,
                                 QLineEdit, QFrame, QMenu, QIntValidator,
                                 QGroupBox, QMessageBox)
-from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel,
-                                 SIGNAL, SLOT, Slot)
+from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, Signal,
+                                 Slot)
 from spyderlib.qt.compat import to_qvariant
 
 from functools import partial as ft_partial
@@ -33,6 +33,7 @@ from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import get_icon, add_actions, create_action
 from spyderlib.py3compat import (TEXT_TYPES, INT_TYPES, to_text_string, u,
                                  zip_longest, io)
+
 
 def try_to_parse(value):
     _types = ('int', 'float')
@@ -97,8 +98,11 @@ def get_color(value, alpha):
     color.setAlphaF(alpha)
     return color
 
+
 class ContentsWidget(QWidget):
     """Import wizard contents widget"""
+    asDataChanged = Signal(bool)
+    
     def __init__(self, parent, text):
         QWidget.__init__(self, parent)
 
@@ -145,8 +149,7 @@ class ContentsWidget(QWidget):
         self.line_edt = QLineEdit(",")
         self.line_edt.setMaximumWidth(30)
         self.line_edt.setEnabled(True)
-        self.connect(other_btn_col, SIGNAL("toggled(bool)"),
-                     self.line_edt, SLOT("setEnabled(bool)"))
+        other_btn_col.toggled.connect(self.line_edt.setEnabled)
         grid_layout.addWidget(self.line_edt, 0, 2)
 
         row_label = QLabel(_("Row separator:"))
@@ -163,8 +166,7 @@ class ContentsWidget(QWidget):
         self.line_edt_row = QLineEdit(";")
         self.line_edt_row.setMaximumWidth(30)
         self.line_edt_row.setEnabled(False)
-        self.connect(other_btn_row, SIGNAL("toggled(bool)"),
-                     self.line_edt_row, SLOT("setEnabled(bool)"))
+        other_btn_row.toggled.connect(self.line_edt_row.setEnabled)
         grid_layout.addWidget(self.line_edt_row, 1, 2)
 
         grid_layout.setRowMinimumHeight(2, 15)
@@ -199,12 +201,9 @@ class ContentsWidget(QWidget):
         opts_frame = QFrame()
         opts_frame.setLayout(grid_layout)
 
-        self.connect(data_btn, SIGNAL("toggled(bool)"),
-                     opts_frame, SLOT("setEnabled(bool)"))
-        self.connect(data_btn, SIGNAL("toggled(bool)"),
-                     self, SLOT("set_as_data(bool)"))
-        self.connect(code_btn, SIGNAL("toggled(bool)"),
-                     self, SLOT("set_as_code(bool)"))
+        data_btn.toggled.connect(opts_frame.setEnabled)
+        data_btn.toggled.connect(self.set_as_data)
+        code_btn.toggled.connect(self.set_as_code)
 #        self.connect(txt_btn, SIGNAL("toggled(bool)"),
 #                     self, SLOT("is_text(bool)"))
 
@@ -251,7 +250,7 @@ class ContentsWidget(QWidget):
     def set_as_data(self, as_data):
         """Set if data type conversion"""
         self._as_data = as_data
-        self.emit(SIGNAL("asDataChanged(bool)"), as_data)
+        self.asDataChanged.emit(as_data)
 
     @Slot(bool)
     def set_as_code(self, as_code):
@@ -321,9 +320,10 @@ class PreviewTableModel(QAbstractTableModel):
             elif kwargs['atype'] == "float":
                 self._data[index.row()][index.column()] = float(
                     self._data[index.row()][index.column()])
-            self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"), index, index)
+            self.dataChanged.emit(index, index)
         except Exception as instance:
             print(instance)
+
 
 class PreviewTable(QTableView):
     """Import wizard preview widget"""
@@ -412,6 +412,7 @@ class PreviewTable(QTableView):
         self.opt_menu.popup(event.globalPos())
         event.accept()
 
+
 class PreviewWidget(QWidget):
     """Import wizard preview widget"""
 
@@ -464,6 +465,7 @@ class PreviewWidget(QWidget):
         """Return table data"""
         return self._table_view.get_data()
 
+
 class ImportWizard(QDialog):
     """Text data import wizard"""
     def __init__(self, parent, text,
@@ -511,29 +513,24 @@ class ImportWizard(QDialog):
         btns_layout = QHBoxLayout()
         cancel_btn = QPushButton(_("Cancel"))
         btns_layout.addWidget(cancel_btn)
-        self.connect(cancel_btn, SIGNAL("clicked()"), self, SLOT("reject()"))
+        cancel_btn.clicked.connect(self.reject)
         h_spacer = QSpacerItem(40, 20,
                                QSizePolicy.Expanding, QSizePolicy.Minimum)
         btns_layout.addItem(h_spacer)
         self.back_btn = QPushButton(_("Previous"))
         self.back_btn.setEnabled(False)
         btns_layout.addWidget(self.back_btn)
-        self.connect(self.back_btn, SIGNAL("clicked()"),
-                     ft_partial(self._set_step, step=-1))
+        self.back_btn.clicked.connect(ft_partial(self._set_step, step=-1))
         self.fwd_btn = QPushButton(_("Next"))
         btns_layout.addWidget(self.fwd_btn)
-        self.connect(self.fwd_btn, SIGNAL("clicked()"),
-                     ft_partial(self._set_step, step=1))
+        self.fwd_btn.clicked.connect(ft_partial(self._set_step, step=1))
         self.done_btn = QPushButton(_("Done"))
         self.done_btn.setEnabled(False)
         btns_layout.addWidget(self.done_btn)
-        self.connect(self.done_btn, SIGNAL("clicked()"),
-                     self, SLOT("process()"))
+        self.done_btn.clicked.connect(self.process)
 
-        self.connect(self.text_widget, SIGNAL("asDataChanged(bool)"),
-                     self.fwd_btn, SLOT("setEnabled(bool)"))
-        self.connect(self.text_widget, SIGNAL("asDataChanged(bool)"),
-                     self.done_btn, SLOT("setDisabled(bool)"))
+        self.text_widget.asDataChanged.connect(self.fwd_btn.setEnabled)
+        self.text_widget.asDataChanged.connect(self.done_btn.setDisabled)
         layout = QVBoxLayout()
         layout.addLayout(name_layout)
         layout.addWidget(self.tab_widget)

@@ -10,7 +10,7 @@ Text Editor Dialog based on Qt
 
 from __future__ import print_function
 
-from spyderlib.qt.QtCore import Qt, SIGNAL, SLOT
+from spyderlib.qt.QtCore import Qt
 from spyderlib.qt.QtGui import QVBoxLayout, QTextEdit, QDialog, QDialogButtonBox
 
 # Local import
@@ -48,7 +48,7 @@ class TextEditor(QDialog):
 
         # Text edit
         self.edit = QTextEdit(parent)
-        self.connect(self.edit, SIGNAL('textChanged()'), self.text_changed)
+        self.edit.textChanged.connect(self.text_changed)
         self.edit.setReadOnly(readonly)
         self.edit.setPlainText(text)
         if font is None:
@@ -61,8 +61,8 @@ class TextEditor(QDialog):
         if not readonly:
             buttons = buttons | QDialogButtonBox.Cancel
         bbox = QDialogButtonBox(buttons)
-        self.connect(bbox, SIGNAL("accepted()"), SLOT("accept()"))
-        self.connect(bbox, SIGNAL("rejected()"), SLOT("reject()"))
+        bbox.accepted.connect(self.accept)
+        bbox.rejected.connect(self.reject)
         self.layout.addWidget(bbox)
         
         # Make the dialog act as a window

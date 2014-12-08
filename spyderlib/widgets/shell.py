@@ -20,8 +20,7 @@ import keyword
 
 from spyderlib.qt.QtGui import (QMenu, QApplication, QToolTip, QKeySequence,
                                 QMessageBox, QTextCursor, QTextCharFormat)
-from spyderlib.qt.QtCore import (Qt, QCoreApplication, QTimer, SIGNAL,
-                                 Property)
+from spyderlib.qt.QtCore import Qt, QCoreApplication, QTimer, Signal, Property
 from spyderlib.qt.compat import getsavefilename
 
 # Local import
@@ -42,6 +41,10 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
     """
     Shell base widget
     """
+    
+    redirect_stdio = Signal(bool)
+    sig_keyboard_interrupt = Signal()
+    execute = Signal(str)
     
     def __init__(self, parent, history_filename, profile=False):
         """
@@ -77,7 +80,7 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
         self.__timestamp = 0.0
         self.__flushtimer = QTimer(self)
         self.__flushtimer.setSingleShot(True)
-        self.connect(self.__flushtimer, SIGNAL('timeout()'), self.flush)
+        self.__flushtimer.timeout.connect(self.flush)
 
         # Give focus to widget
         self.setFocus()
@@ -228,7 +231,7 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
 
     def interrupt(self):
         """Keyboard interrupt"""
-        self.emit(SIGNAL("keyboard_interrupt()"))
+        self.sig_keyboard_interrupt.emit()
 
     def cut(self):
         """Cut text"""
@@ -245,10 +248,10 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
     def save_historylog(self):
         """Save current history log (all text in console)"""
         title = _("Save history log")
-        self.emit(SIGNAL('redirect_stdio(bool)'), False)
+        self.redirect_stdio.emit(False)
         filename, _selfilter = getsavefilename(self, title,
                     self.historylog_filename, "%s (*.log)" % _("History logs"))
-        self.emit(SIGNAL('redirect_stdio(bool)'), True)
+        self.redirect_stdio.emit(True)
         if filename:
             filename = osp.normpath(filename)
             try:
@@ -270,7 +273,7 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
         self.execute_command(command)
         
     def execute_command(self, command):
-        self.emit(SIGNAL("execute(QString)"), command)
+        self.execute.emit(command)
         self.add_to_history(command)
         self.new_input_line = True
         

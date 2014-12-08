@@ -292,8 +292,7 @@ else:
             app = QtCore.QCoreApplication.instance()
             if app and app.thread() is QtCore.QThread.currentThread():
                 timer = QtCore.QTimer()
-                QtCore.QObject.connect(timer, QtCore.SIGNAL('timeout()'),
-                                       app, QtCore.SLOT('quit()'))
+                timer.timeout.connect(app.quit)
                 monitor.toggle_inputhook_flag(False)
                 while not monitor.inputhook_flag:
                     timer.start(50)

@@ -15,7 +15,6 @@ They are also used in Spyder through the Plugin interface
 """
 
 from spyderlib.qt.QtGui import QTreeWidget, QMenu
-from spyderlib.qt.QtCore import SIGNAL
 
 # Local imports
 from spyderlib.baseconfig import _
@@ -29,10 +28,8 @@ class OneColumnTree(QTreeWidget):
         QTreeWidget.__init__(self, parent)
         self.setItemsExpandable(True)
         self.setColumnCount(1)
-        self.connect(self, SIGNAL('itemActivated(QTreeWidgetItem*,int)'),
-                     self.activated)
-        self.connect(self, SIGNAL('itemClicked(QTreeWidgetItem*,int)'),
-                     self.clicked)
+        self.itemActivated.connect(self.activated)
+        self.itemClicked.connect(self.clicked)
         # Setup context menu
         self.menu = QMenu(self)
         self.collapse_all_action = None
@@ -43,8 +40,7 @@ class OneColumnTree(QTreeWidget):
         
         self.__expanded_state = None
 
-        self.connect(self, SIGNAL('itemSelectionChanged()'),
-                     self.item_selection_changed)
+        self.itemSelectionChanged.connect(self.item_selection_changed)
         self.item_selection_changed()
                      
     def activated(self, item):

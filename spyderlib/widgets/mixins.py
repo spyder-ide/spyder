@@ -19,7 +19,7 @@ from xml.sax.saxutils import escape
 
 from spyderlib.qt.QtGui import (QTextCursor, QTextDocument, QApplication,
                                 QCursor, QToolTip)
-from spyderlib.qt.QtCore import Qt, QPoint, QRegExp, SIGNAL
+from spyderlib.qt.QtCore import Qt, QPoint, QRegExp, Signal
 
 # Local imports
 from spyderlib.baseconfig import _
@@ -34,10 +34,12 @@ HISTORY_FILENAMES = []
 
 
 class BaseEditMixin(object):
+    
+    focus_changed = Signal()
+    
     def __init__(self):
         self.eol_chars = None
         self.calltip_size = 600
-    
     
     #------Line number area
     def get_linenumberarea_width(self):
@@ -497,7 +499,9 @@ class BaseEditMixin(object):
 
 
 class TracebackLinksMixin(object):
+    
     QT_CLASS = None
+    go_to_error = Signal(str)
     
     def __init__(self):
         self.__cursor_changed = False
@@ -509,7 +513,7 @@ class TracebackLinksMixin(object):
         self.QT_CLASS.mouseReleaseEvent(self, event)            
         text = self.get_line_at(event.pos())
         if get_error_match(text) and not self.has_selected_text():
-            self.emit(SIGNAL("go_to_error(QString)"), text)
+            self.go_to_error.emit(text)
 
     def mouseMoveEvent(self, event):
         """Show Pointing Hand Cursor on error messages"""
@@ -619,6 +623,7 @@ class SaveHistoryMixin(object):
     
     INITHISTORY = None
     SEPARATOR = None
+    append_to_history = Signal(str, str)
     
     def __init__(self):
         pass
@@ -643,5 +648,4 @@ class SaveHistoryMixin(object):
             text = self.SEPARATOR + text
         
         encoding.write(text, self.history_filename, mode='ab')
-        self.emit(SIGNAL('append_to_history(QString,QString)'),
-                  self.history_filename, text)
+        self.append_to_history.emit(self.history_filename, text)

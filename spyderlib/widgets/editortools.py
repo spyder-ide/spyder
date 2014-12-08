@@ -13,7 +13,7 @@ import os.path as osp
 
 from spyderlib.qt.QtGui import (QWidget, QTreeWidgetItem,  QHBoxLayout,
                                 QVBoxLayout)
-from spyderlib.qt.QtCore import Qt, SIGNAL
+from spyderlib.qt.QtCore import Qt, Signal
 from spyderlib.qt.compat import from_qvariant
 
 # Local import
@@ -464,10 +464,9 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         root_item = self.get_root_item(item)
         self.freeze = True
         if line:
-            self.parent().emit(SIGNAL("edit_goto(QString,int,QString)"),
-                               root_item.path, line, item.text(0))
+            self.parent().edit_goto.emit(root_item.path, line, item.text(0))
         else:
-            self.parent().emit(SIGNAL("edit(QString)"), root_item.path)
+            self.parent().edit.emit(root_item.path)
         self.freeze = False
         parent = self.current_editor.parent()
         for editor_id, i_item in list(self.editor_items.items()):
@@ -487,13 +486,11 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
 
 class OutlineExplorerWidget(QWidget):
-    """
-    Class browser
+    """Class browser"""
+    edit_goto = Signal(str, int, str)
+    edit = Signal(str)
+    outlineexplorer_is_visible = Signal()
     
-    Signals:
-        SIGNAL("edit_goto(QString,int,QString)")
-        SIGNAL("edit(QString)")
-    """
     def __init__(self, parent=None, show_fullpath=True, fullpath_sorting=True,
                  show_all_files=True, show_comments=True):
         QWidget.__init__(self, parent)
@@ -528,7 +525,7 @@ class OutlineExplorerWidget(QWidget):
             current_editor.clearFocus()
             current_editor.setFocus()
             if state:
-                self.emit(SIGNAL("outlineexplorer_is_visible()"))
+                self.outlineexplorer_is_visible.emit()
         
     def setup_buttons(self):
         fromcursor_btn = create_toolbutton(self,

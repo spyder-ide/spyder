@@ -14,7 +14,7 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QLabel, QHBoxLayout, QWidget,
                                 QFileIconProvider, QMessageBox, QInputDialog,
                                 QLineEdit, QPushButton, QHeaderView,
                                 QAbstractItemView)
-from spyderlib.qt.QtCore import Qt, SIGNAL, QFileInfo, Slot, Signal
+from spyderlib.qt.QtCore import Qt, QFileInfo, Slot, Signal
 from spyderlib.qt.compat import getexistingdirectory
 
 import os
@@ -509,13 +509,15 @@ class ExplorerTreeWidget(FilteredDirView):
     
     workspace: this is the explorer tree widget root path
     (this attribute name is specific to project explorer)"""
+
+    select_workspace = Signal()
+    
     def __init__(self, parent, show_hscrollbar=True):
         FilteredDirView.__init__(self, parent)
         
         self.workspace = Workspace()
         
-        self.connect(self.fsmodel, SIGNAL('modelReset()'),
-                     self.reset_icon_provider)
+        self.fsmodel.modelReset.connect(self.reset_icon_provider)
         self.reset_icon_provider()
 
         self.last_folder = None
@@ -706,7 +708,7 @@ class ExplorerTreeWidget(FilteredDirView):
         # (see spyderlib/widgets/projectexplorer.py).
         self.set_show_all(self.show_all)
 
-        self.parent_widget.emit(SIGNAL("pythonpath_changed()"))
+        self.parent_widget.pythonpath_changed.emit()
 #        print "folders:", self.workspace.get_folder_names()
 #        print "is_valid:", self.workspace.is_valid()
 #        print "is_empty:", self.workspace.is_empty()
@@ -766,7 +768,7 @@ class ExplorerTreeWidget(FilteredDirView):
         
         project = self.workspace.add_project(folder)
         self.set_folder_names(self.workspace.get_folder_names())
-        self.parent_widget.emit(SIGNAL("pythonpath_changed()"))
+        self.parent_widget.pythonpath_changed.emit()
         
         self.check_for_io_errors()
         
@@ -775,7 +777,7 @@ class ExplorerTreeWidget(FilteredDirView):
     def open_projects(self, projects, open_related=True):
         """Open projects"""
         self.workspace.open_projects(projects, open_related)
-        self.parent_widget.emit(SIGNAL("pythonpath_changed()"))
+        self.parent_widget.pythonpath_changed.emit()
         self.reset_icon_provider()
         for project in projects:
             self.update(self.get_index(project.root_path))
@@ -783,8 +785,8 @@ class ExplorerTreeWidget(FilteredDirView):
     def close_projects(self, projects):
         """Close projects"""
         self.workspace.close_projects(projects)
-        self.parent_widget.emit(SIGNAL("pythonpath_changed()"))
-        self.parent_widget.emit(SIGNAL("projects_were_closed()"))
+        self.parent_widget.pythonpath_changed.emit()
+        self.parent_widget.sig_projects_were_closed.emit()
         self.reset_icon_provider()
         for project in projects:
             index = self.get_index(project.root_path)
@@ -795,7 +797,7 @@ class ExplorerTreeWidget(FilteredDirView):
         """Remove projects"""
         self.workspace.remove_projects(projects)
         self.set_folder_names(self.workspace.get_folder_names())
-        self.parent_widget.emit(SIGNAL("pythonpath_changed()"))
+        self.parent_widget.pythonpath_changed.emit()
         
     def close_unrelated_projects(self, projects):
         """Close unrelated projects"""
@@ -876,7 +878,7 @@ class ExplorerTreeWidget(FilteredDirView):
                                             "Do you want to do this now?"),
                                           QMessageBox.Yes|QMessageBox.Cancel)
             if answer == QMessageBox.Yes:
-                self.emit(SIGNAL('select_workspace()'))
+                self.select_workspace.emit()
         
     def _select_existing_directory(self):
         """Select existing source code directory,
@@ -885,10 +887,10 @@ class ExplorerTreeWidget(FilteredDirView):
         if self.last_folder is None:
             self.last_folder = self.workspace.root_path
         while True:
-            self.parent_widget.emit(SIGNAL('redirect_stdio(bool)'), False)
+            self.parent_widget.redirect_stdio.emit(False)
             folder = getexistingdirectory(self, _("Select directory"),
                                           self.last_folder)
-            self.parent_widget.emit(SIGNAL('redirect_stdio(bool)'), True)
+            self.parent_widget.redirect_stdio.emit(True)
             if folder:
                 folder = osp.abspath(folder)
                 self.last_folder = folder
@@ -972,7 +974,7 @@ class ExplorerTreeWidget(FilteredDirView):
                     project.name = name
                     project.set_related_projects(related_projects)
                     project.set_pythonpath(path)
-                    self.parent_widget.emit(SIGNAL("pythonpath_changed()"))
+                    self.parent_widget.pythonpath_changed.emit()
 
     def rename_file(self, fname):
         """Rename file"""
@@ -1017,7 +1019,7 @@ class ExplorerTreeWidget(FilteredDirView):
         for path in fnames:
             project = self.get_source_project(path)
             if project.add_to_pythonpath(path):
-                self.parent_widget.emit(SIGNAL("pythonpath_changed()"))
+                self.parent_widget.pythonpath_changed.emit()
                 indexes.append(self.get_index(path))
         if indexes:
             self.reset_icon_provider()
@@ -1027,7 +1029,7 @@ class ExplorerTreeWidget(FilteredDirView):
     def remove_path_from_project_pythonpath(self, project, path):
         """Remove path from project's PYTHONPATH"""
         ok = project.remove_from_pythonpath(path)
-        self.parent_widget.emit(SIGNAL("pythonpath_changed()"))
+        self.parent_widget.pythonpath_changed.emit()
         return ok
     
     def remove_from_path(self, fnames):
@@ -1049,7 +1051,7 @@ class ExplorerTreeWidget(FilteredDirView):
             dlg = PathManager(self, pathlist, sync=False)
             dlg.exec_()
             project.set_pythonpath(dlg.get_path_list())
-            self.parent_widget.emit(SIGNAL("pythonpath_changed()"))
+            self.parent_widget.pythonpath_changed.emit()
     
     def edit_related_projects(self, projects):
         """Edit related projects"""
@@ -1163,7 +1165,7 @@ class ExplorerTreeWidget(FilteredDirView):
                         misc.move_file(src, dst)
                     else:
                         shutil.move(src, dst)
-                    self.parent_widget.emit(SIGNAL("removed(QString)"), src)
+                    self.parent_widget.removed.emit(src)
             except EnvironmentError as error:
                 if action == Qt.CopyAction:
                     action_str = _('copy')
@@ -1190,6 +1192,8 @@ class WorkspaceSelector(QWidget):
             "<b>.spyderproject</b>) with project settings (PYTHONPATH, linked "
             "projects, ...).<br>"
             )
+    
+    selected_workspace = Signal(str)
 
     def __init__(self, parent):
         super(WorkspaceSelector, self).__init__(parent)
@@ -1212,8 +1216,7 @@ class WorkspaceSelector(QWidget):
         self.line_edit.setDisabled(True)
         self.browse_btn = QPushButton(get_std_icon('DirOpenIcon'), "", self)
         self.browse_btn.setToolTip(self.TITLE)
-        self.connect(self.browse_btn, SIGNAL("clicked()"),
-                     self.select_directory)
+        self.browse_btn.clicked.connect(self.select_directory)
         layout = QHBoxLayout()
         layout.addWidget(self.line_edit)
         layout.addWidget(self.browse_btn)
@@ -1229,9 +1232,9 @@ class WorkspaceSelector(QWidget):
         if not osp.isdir(basedir):
             basedir = getcwd()
         while True:
-            self.parent().emit(SIGNAL('redirect_stdio(bool)'), False)
+            self.parent().redirect_stdio.emit(False)
             directory = getexistingdirectory(self, self.TITLE, basedir)
-            self.parent().emit(SIGNAL('redirect_stdio(bool)'), True)
+            self.parent().redirect_stdio.emit(True)
             if not directory:
                 break
             path = osp.join(directory, Workspace.CONFIG_NAME)
@@ -1245,21 +1248,12 @@ class WorkspaceSelector(QWidget):
                     continue
             directory = osp.abspath(osp.normpath(directory))
             self.set_workspace(directory)
-            self.emit(SIGNAL('selected_workspace(QString)'), directory)
+            self.selected_workspace.emit(directory)
             break
 
 
 class ProjectExplorerWidget(QWidget):
-    """
-    Project Explorer
-    
-    Signals:
-        sig_open_file
-        SIGNAL("create_module(QString)")
-        SIGNAL("pythonpath_changed()")
-        SIGNAL("renamed(QString,QString)")
-        SIGNAL("removed(QString)")
-    """
+    """Project Explorer"""
     sig_option_changed = Signal(str, object)
     sig_open_file = Signal(str)
     
@@ -1277,15 +1271,13 @@ class ProjectExplorerWidget(QWidget):
         """Setup project explorer widget layout"""
         self.selector = WorkspaceSelector(self)
         self.selector.setup_widget()
-        self.connect(self.selector, SIGNAL('selected_workspace(QString)'),
-                     self.set_workspace)
+        self.selector.selected_workspace.connect(self.set_workspace)
 
         self.treewidget = ExplorerTreeWidget(self,
                                              show_hscrollbar=show_hscrollbar)
         self.treewidget.setup(name_filters=name_filters,
                               show_all=show_all, valid_types=valid_types)
-        self.connect(self.treewidget, SIGNAL('select_workspace()'),
-                     self.selector.select_directory)
+        self.treewidget.select_workspace.connect(self.selector.select_directory)
         
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)

@@ -21,7 +21,7 @@ from __future__ import with_statement
 from spyderlib.qt.QtGui import (QHBoxLayout, QWidget, QMessageBox, QVBoxLayout,
                                 QLabel, QTreeWidget, QTreeWidgetItem,
                                 QApplication)
-from spyderlib.qt.QtCore import SIGNAL, QProcess, QByteArray, Qt, QTextCodec
+from spyderlib.qt.QtCore import Signal, QProcess, QByteArray, Qt, QTextCodec
 locale_codec = QTextCodec.codecForLocale()
 from spyderlib.qt.compat import getopenfilename
 
@@ -53,6 +53,7 @@ class ProfilerWidget(QWidget):
     """
     DATAPATH = get_conf_path('profiler.results')
     VERSION = '0.0.1'
+    redirect_stdio = Signal(bool)
     
     def __init__(self, parent, max_entries=100):
         QWidget.__init__(self, parent)
@@ -77,8 +78,7 @@ class ProfilerWidget(QWidget):
                                              text=_("Stop"),
                                              tip=_("Stop current profiling"),
                                              text_beside_icon=True)
-        self.connect(self.filecombo, SIGNAL('valid(bool)'),
-                     self.start_button.setEnabled)
+        self.filecombo.valid.connect(self.start_button.setEnabled)
         #self.connect(self.filecombo, SIGNAL('valid(bool)'), self.show_data)
         # FIXME: The combobox emits this signal on almost any event
         #        triggering show_data() too early, too often. 
@@ -164,10 +164,10 @@ class ProfilerWidget(QWidget):
             self.start(wdir, args, pythonpath)
             
     def select_file(self):
-        self.emit(SIGNAL('redirect_stdio(bool)'), False)
+        self.redirect_stdio.emit(False)
         filename, _selfilter = getopenfilename(self, _("Select Python script"),
                            getcwd(), _("Python scripts")+" (*.py ; *.pyw)")
-        self.emit(SIGNAL('redirect_stdio(bool)'), False)
+        self.redirect_stdio.emit(True)
         if filename:
             self.analyze(filename)
         
@@ -202,14 +202,12 @@ class ProfilerWidget(QWidget):
         self.process = QProcess(self)
         self.process.setProcessChannelMode(QProcess.SeparateChannels)
         self.process.setWorkingDirectory(wdir)
-        self.connect(self.process, SIGNAL("readyReadStandardOutput()"),
-                     self.read_output)
-        self.connect(self.process, SIGNAL("readyReadStandardError()"),
-                     lambda: self.read_output(error=True))
-        self.connect(self.process,
-                     SIGNAL("finished(int,QProcess::ExitStatus)"),
-                     self.finished)
-        self.connect(self.stop_button, SIGNAL("clicked()"), self.process.kill)
+        self.process.readyReadStandardOutput.connect(self.read_output)
+        self.process.readyReadStandardError.connect(
+                                          lambda: self.read_output(error=True))
+        self.process.finished.connect(lambda ec, es=QProcess.ExitStatus:
+                                      self.finished(ec, es))
+        self.stop_button.clicked.connect(self.process.kill)
 
         if pythonpath is not None:
             env = [to_text_string(_pth)
@@ -263,7 +261,7 @@ class ProfilerWidget(QWidget):
         else:
             self.output += text
         
-    def finished(self):
+    def finished(self, exit_code, exit_status):
         self.set_running_state(False)
         self.show_errorlog()  # If errors occurred, show them.
         self.output = self.error_output + self.output
@@ -335,10 +333,8 @@ class ProfilerDataTree(QTreeWidget):
         self.setColumnCount(len(self.header_list))
         self.setHeaderLabels(self.header_list)
         self.initialize_view()
-        self.connect(self, SIGNAL('itemActivated(QTreeWidgetItem*,int)'),
-                     self.item_activated)
-        self.connect(self, SIGNAL('itemExpanded(QTreeWidgetItem*)'),
-                     self.item_expanded)
+        self.itemActivated.connect(self.item_activated)
+        self.itemExpanded.connect(self.item_expanded)
 
     def set_item_data(self, item, filename, line_number):
         """Set tree item user data: filename (string) and line_number (int)"""
@@ -463,8 +459,7 @@ class ProfilerDataTree(QTreeWidget):
         
     def item_activated(self, item):
         filename, line_number = self.get_item_data(item)
-        self.parent().emit(SIGNAL("edit_goto(QString,int,QString)"),
-                           filename, line_number, '')
+        self.parent().edit_goto.emit(filename, line_number, '')
             
     def item_expanded(self, item):
         if item.childCount() == 0 and id(item) in self.items_to_be_shown:

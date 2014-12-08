@@ -17,7 +17,7 @@ from time import time, strftime, gmtime
 from spyderlib.qt.QtGui import (QApplication, QWidget, QVBoxLayout,
                                 QHBoxLayout, QMenu, QLabel, QInputDialog,
                                 QLineEdit, QToolButton)
-from spyderlib.qt.QtCore import (QProcess, SIGNAL, QByteArray, QTimer, Qt,
+from spyderlib.qt.QtCore import (QProcess, Signal, QByteArray, QTimer, Qt,
                                  QTextCodec)
 LOCALE_CODEC = QTextCodec.codecForLocale()
 
@@ -49,6 +49,9 @@ def add_pathlist_to_PYTHONPATH(env, pathlist):
 class ExternalShellBase(QWidget):
     """External Shell widget: execute Python script in a separate process"""
     SHELL_CLASS = None
+    redirect_stdio = Signal(bool)
+    sig_finished = Signal()
+    
     def __init__(self, parent=None, fname=None, wdir=None,
                  history_filename=None, show_icontext=True,
                  light_background=True, menu_actions=None,
@@ -72,14 +75,11 @@ class ExternalShellBase(QWidget):
         
         self.shell = self.SHELL_CLASS(parent, get_conf_path(history_filename))
         self.shell.set_light_background(light_background)
-        self.connect(self.shell, SIGNAL("execute(QString)"),
-                     self.send_to_process)
-        self.connect(self.shell, SIGNAL("keyboard_interrupt()"),
-                     self.keyboard_interrupt)
+        self.shell.execute.connect(self.send_to_process)
+        self.shell.sig_keyboard_interrupt.connect(self.keyboard_interrupt)
         # Redirecting some SIGNALs:
-        self.connect(self.shell, SIGNAL('redirect_stdio(bool)'),
-                     lambda state: self.emit(SIGNAL('redirect_stdio(bool)'),
-                                             state))
+        self.shell.redirect_stdio.connect(
+                     lambda state: self.redirect_stdio.emit(state))
         
         self.state_label = None
         self.time_label = None
@@ -203,7 +203,7 @@ class ExternalShellBase(QWidget):
             self.is_closing = True
             self.process.kill()
             self.process.waitForFinished(100)
-        self.disconnect(self.timer, SIGNAL("timeout()"), self.show_time)
+        self.timer.timeout.disconnect(self.show_time)
     
     def set_running_state(self, state=True):
         self.set_buttons_runnning_state(state)
@@ -213,12 +213,12 @@ class ExternalShellBase(QWidget):
                 self.state_label.setText(_(
                    "<span style=\'color: #44AA44\'><b>Running...</b></span>"))
             self.t0 = time()
-            self.connect(self.timer, SIGNAL("timeout()"), self.show_time)
+            self.timer.timeout.connect(self.show_time)
             self.timer.start(1000)        
         else:
             if self.state_label is not None:
                 self.state_label.setText(_('Terminated.'))
-            self.disconnect(self.timer, SIGNAL("timeout()"), self.show_time)
+            self.timer.timeout.disconnect(self.show_time)
 
     def set_buttons_runnning_state(self, state):
         self.run_button.setVisible(not state and not self.is_ipykernel)
@@ -245,7 +245,7 @@ class ExternalShellBase(QWidget):
     
     def finished(self, exit_code, exit_status):
         self.shell.flush()
-        self.emit(SIGNAL('finished()'))
+        self.sig_finished.emit()
         if self.is_closing:
             return
         self.set_running_state(False)

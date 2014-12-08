@@ -20,9 +20,10 @@ from spyderlib.qt.QtGui import (QHBoxLayout, QColor, QTableView, QItemDelegate,
                                 QDoubleValidator, QDialog, QDialogButtonBox,
                                 QMessageBox, QPushButton, QInputDialog, QMenu,
                                 QApplication, QKeySequence, QLabel, QComboBox,
-                                QSpinBox, QStackedWidget, QWidget, QVBoxLayout)
-from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, SIGNAL,
-                                 SLOT)
+                                QSpinBox, QStackedWidget, QWidget, QVBoxLayout,
+                                QAbstractItemDelegate)
+from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, Slot)
+                                 
 from spyderlib.qt.compat import to_qvariant, from_qvariant
 
 import numpy as np
@@ -259,8 +260,7 @@ class ArrayModel(QAbstractTableModel):
         
         # Add change to self.changes
         self.changes[(i, j)] = val
-        self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
-                  index, index)
+        self.dataChanged.emit(index, index)
         if val > self.vmax:
             self.vmax = val
         if val < self.vmin:
@@ -305,15 +305,14 @@ class ArrayDelegate(QItemDelegate):
             editor.setAlignment(Qt.AlignCenter)
             if is_number(self.dtype):
                 editor.setValidator(QDoubleValidator(editor))
-            self.connect(editor, SIGNAL("returnPressed()"),
-                         self.commitAndCloseEditor)
+            editor.returnPressed.connect(self.commitAndCloseEditor)
             return editor
 
     def commitAndCloseEditor(self):
         """Commit and close editor"""
         editor = self.sender()
-        self.emit(SIGNAL("commitData(QWidget*)"), editor)
-        self.emit(SIGNAL("closeEditor(QWidget*)"), editor)
+        self.commitData.emit(editor)
+        self.closeEditor.emit(editor, QAbstractItemDelegate.NoHint)
 
     def setEditorData(self, editor, index):
         """Set editor widget's data"""
@@ -407,14 +406,14 @@ class ArrayEditorWidget(QWidget):
         # disable format button for int type
         btn.setEnabled(is_float(data.dtype))
         btn_layout.addWidget(btn)
-        self.connect(btn, SIGNAL("clicked()"), self.change_format)
+        btn.clicked.connect(self.change_format)
         btn = QPushButton(_( "Resize"))
         btn_layout.addWidget(btn)
-        self.connect(btn, SIGNAL("clicked()"), self.view.resize_to_contents)
+        btn.clicked.connect(self.view.resize_to_contents)
         bgcolor = QCheckBox(_( 'Background color'))
         bgcolor.setChecked(self.model.bgcolor_enabled)
         bgcolor.setEnabled(self.model.bgcolor_enabled)
-        self.connect(bgcolor, SIGNAL("stateChanged(int)"), self.model.bgcolor)
+        bgcolor.stateChanged.connect(self.model.bgcolor)
         btn_layout.addWidget(bgcolor)
         
         layout = QVBoxLayout()
@@ -532,8 +531,7 @@ class ArrayEditor(QDialog):
             self.stack.addWidget(ArrayEditorWidget(self, data, readonly,
                                                    xlabels, ylabels))
         self.arraywidget = self.stack.currentWidget()
-        self.connect(self.stack, SIGNAL('currentChanged(int)'),
-                     self.current_widget_changed)
+        self.stack.currentChanged.connect(self.current_widget_changed)
         self.layout.addWidget(self.stack, 1, 0)
 
         # Buttons configuration
@@ -556,14 +554,12 @@ class ArrayEditor(QDialog):
             if data.ndim == 3:
                 # QSpinBox
                 self.index_spin = QSpinBox(self, keyboardTracking=False)
-                self.connect(self.index_spin, SIGNAL('valueChanged(int)'),
-                             self.change_active_widget)
+                self.index_spin.valueChanged.connect(self.change_active_widget)
                 # QComboBox
                 names = [str(i) for i in range(3)]
                 ra_combo = QComboBox(self)
                 ra_combo.addItems(names)
-                self.connect(ra_combo, SIGNAL('currentIndexChanged(int)'),
-                             self.current_dim_changed)    
+                ra_combo.currentIndexChanged.connect(self.current_dim_changed)    
                 # Adding the widgets to layout
                 label = QLabel(_("Axis:"))
                 btn_layout.addWidget(label)
@@ -579,8 +575,7 @@ class ArrayEditor(QDialog):
                 self.current_dim_changed(self.last_dim)
             else:
                 ra_combo = QComboBox(self)
-                self.connect(ra_combo, SIGNAL('currentIndexChanged(int)'),
-                             self.stack.setCurrentIndex)
+                ra_combo.currentIndexChanged.connect(self.stack.setCurrentIndex)
                 ra_combo.addItems(names)
                 btn_layout.addWidget(ra_combo)
             if is_masked_array:
@@ -591,8 +586,8 @@ class ArrayEditor(QDialog):
                 btn_layout.addWidget(label)
             btn_layout.addStretch()
         bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        self.connect(bbox, SIGNAL("accepted()"), SLOT("accept()"))
-        self.connect(bbox, SIGNAL("rejected()"), SLOT("reject()"))
+        bbox.accepted.connect(self.accept)
+        bbox.rejected.connect(self.reject)
         btn_layout.addWidget(bbox)
         self.layout.addLayout(btn_layout, 2, 0)
 
@@ -650,6 +645,7 @@ class ArrayEditor(QDialog):
         self.index_spin.setRange(-self.data.shape[index],
                                  self.data.shape[index]-1)
 
+    @Slot()
     def accept(self):
         """Reimplement Qt method"""
         for index in range(self.stack.count()):
@@ -668,6 +664,7 @@ class ArrayEditor(QDialog):
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.reject()
 
+    @Slot()
     def reject(self):
         """Reimplement Qt method"""
         if self.arraywidget is not None:

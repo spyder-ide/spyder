@@ -13,7 +13,7 @@
 
 from spyderlib.qt.QtGui import (QVBoxLayout, QFontDialog, QInputDialog,
                                 QLineEdit, QMenu)
-from spyderlib.qt.QtCore import SIGNAL
+from spyderlib.qt.QtCore import Signal
 from spyderlib.qt.compat import getopenfilename
 
 import os
@@ -40,6 +40,10 @@ class Console(SpyderPluginWidget):
     Console widget
     """
     CONF_SECTION = 'internal_console'
+    focus_changed = Signal()
+    redirect_stdio = Signal(bool)
+    edit_goto = Signal(str, int, str)
+    
     def __init__(self, parent=None, namespace=None, commands=[], message=None,
                  exitfunc=None, profile=False, multithreaded=False):
         SpyderPluginWidget.__init__(self, parent)
@@ -54,17 +58,12 @@ class Console(SpyderPluginWidget):
                                    self.get_plugin_font(), exitfunc, profile,
                                    multithreaded,
                                    light_background=light_background)
-        self.connect(self.shell, SIGNAL('status(QString)'),
-                     lambda msg:
-                     self.emit(SIGNAL('show_message(QString,int)'), msg, 0))
-        self.connect(self.shell, SIGNAL("go_to_error(QString)"),
-                     self.go_to_error)
-        self.connect(self.shell, SIGNAL("focus_changed()"),
-                     lambda: self.emit(SIGNAL("focus_changed()")))
-        # Redirecting some SIGNALs:
-        self.connect(self.shell, SIGNAL('redirect_stdio(bool)'),
-                     lambda state: self.emit(SIGNAL('redirect_stdio(bool)'),
-                                             state))
+        self.shell.status.connect(lambda msg: self.show_message.emit(msg, 0))
+        self.shell.go_to_error.connect(self.go_to_error)
+        self.shell.focus_changed.connect(lambda: self.focus_changed.emit())
+        # Redirecting some signals:
+        self.shell.redirect_stdio.connect(lambda state:
+                                          self.redirect_stdio.emit(state))
         
         # Initialize plugin
         self.initialize_plugin()
@@ -92,8 +91,7 @@ class Console(SpyderPluginWidget):
         """Bind historylog instance to this console
         Not used anymore since v2.0"""
         historylog.add_history(self.shell.history_filename)
-        self.connect(self.shell, SIGNAL('append_to_history(QString,QString)'),
-                     historylog.append_to_history)
+        self.shell.append_to_history.connect(historylog.append_to_history)
         
     def set_inspector(self, inspector):
         """Bind inspector instance to this console"""
@@ -185,12 +183,10 @@ class Console(SpyderPluginWidget):
     
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
-        self.connect(self, SIGNAL('focus_changed()'),
-                     self.main.plugin_focus_changed)
+        self.focus_changed.connect(self.main.plugin_focus_changed)
         self.main.add_dockwidget(self)
         # Connecting the following signal once the dockwidget has been created:
-        self.connect(self.shell, SIGNAL('traceback_available()'),
-                     self.traceback_available)
+        self.shell.traceback_available.connect(self.traceback_available)
     
     def traceback_available(self):
         """Traceback is available in the internal console: showing the 
@@ -255,8 +251,7 @@ class Console(SpyderPluginWidget):
             self.shell.external_editor(filename, goto)
             return
         if filename is not None:
-            self.emit(SIGNAL("edit_goto(QString,int,QString)"),
-                      osp.abspath(filename), goto, '')
+            self.edit_goto.emit(osp.abspath(filename), goto, '')
         
     def execute_lines(self, lines):
         """Execute lines and give focus to shell"""

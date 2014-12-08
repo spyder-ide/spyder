@@ -7,7 +7,7 @@
 """pydoc widget"""
 
 from spyderlib.qt.QtGui import QApplication, QCursor
-from spyderlib.qt.QtCore import QThread, QUrl, Qt, SIGNAL
+from spyderlib.qt.QtCore import QThread, QUrl, Qt, Signal
 
 import sys
 import os.path as osp
@@ -21,6 +21,8 @@ from spyderlib.py3compat import to_text_string, PY3
 
 class PydocServer(QThread):
     """Pydoc server"""
+    server_started = Signal()
+    
     def __init__(self, port=7464):
         QThread.__init__(self)
         self.port = port
@@ -38,7 +40,7 @@ class PydocServer(QThread):
 
     def callback(self, server):
         self.server = server
-        self.emit(SIGNAL('server_started()'))
+        self.server_started.emit()
         
     def completer(self):
         self.complete = True
@@ -93,12 +95,10 @@ class PydocBrowser(WebBrowser):
             self.port = select_port(default_port=self.DEFAULT_PORT)
             self.set_home_url('http://localhost:%d/' % self.port)
         elif self.server.isRunning():
-            self.disconnect(self.server, SIGNAL('server_started()'),
-                            self.initialize_continued)
+            self.server.server_started.disconnect(self.initialize_continued)
             self.server.quit()
         self.server = PydocServer(port=self.port)
-        self.connect(self.server, SIGNAL('server_started()'),
-                     self.initialize_continued)
+        self.server.server_started.connect(self.initialize_continued)
         self.server.start()
 
     #------ WebBrowser API -----------------------------------------------------

@@ -9,8 +9,7 @@
 from spyderlib.qt.QtGui import (QDialog, QTableView, QItemDelegate, QColor,
                                 QVBoxLayout, QHBoxLayout, QPushButton,
                                 QApplication, QLabel, QDialogButtonBox)
-from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, SIGNAL,
-                                 SLOT)
+from spyderlib.qt.QtCore import Qt, QModelIndex, QAbstractTableModel
 from spyderlib.qt.compat import to_qvariant
 import sys
 
@@ -147,9 +146,9 @@ class DependenciesDialog(QDialog):
         self.label.setContentsMargins(5, 8, 12, 10)
 
         btn = QPushButton(_("Copy to clipboard"), )
-        self.connect(btn, SIGNAL('clicked()'), self.copy_to_clipboard)
+        btn.clicked.connect(self.copy_to_clipboard)
         bbox = QDialogButtonBox(QDialogButtonBox.Ok)
-        self.connect(bbox, SIGNAL("accepted()"), SLOT("accept()"))
+        bbox.accepted.connect(self.accept)
         hlayout = QHBoxLayout()
         hlayout.addWidget(btn)
         hlayout.addStretch()

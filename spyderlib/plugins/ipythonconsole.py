@@ -27,7 +27,7 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QHBoxLayout, QFormLayout,
                                 QCheckBox, QApplication, QLabel,QLineEdit,
                                 QPushButton)
 from spyderlib.qt.compat import getopenfilename
-from spyderlib.qt.QtCore import SIGNAL, Qt
+from spyderlib.qt.QtCore import Signal, Qt
 
 # IPython imports
 from IPython.core.application import get_ipython_dir
@@ -225,8 +225,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                                      "Matplotlib or to develop \nGUIs with "
                                      "Spyder."))
         autoload_pylab_box.setEnabled(self.get_option('pylab') and mpl_present)
-        self.connect(pylab_box, SIGNAL("toggled(bool)"),
-                     autoload_pylab_box.setEnabled)
+        pylab_box.toggled.connect(autoload_pylab_box.setEnabled)
         
         pylab_layout = QVBoxLayout()
         pylab_layout.addWidget(pylab_box)
@@ -275,8 +274,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         backend_layout.addWidget(backend_box)
         backend_group.setLayout(backend_layout)
         backend_group.setEnabled(self.get_option('pylab') and mpl_present)
-        self.connect(pylab_box, SIGNAL("toggled(bool)"),
-                     backend_group.setEnabled)
+        pylab_box.toggled.connect(backend_group.setEnabled)
         
         # Inline backend Group
         inline_group = QGroupBox(_("Inline backend"))
@@ -308,8 +306,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         inline_layout.addWidget(height_spin)
         inline_group.setLayout(inline_layout)
         inline_group.setEnabled(self.get_option('pylab') and mpl_present)
-        self.connect(pylab_box, SIGNAL("toggled(bool)"),
-                     inline_group.setEnabled)
+        pylab_box.toggled.connect(inline_group.setEnabled)
 
         # --- Startup ---
         # Run lines Group
@@ -338,8 +335,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                            'startup/use_run_file', False)
         run_file_browser = self.create_browsefile('', 'startup/run_file', '')
         run_file_browser.setEnabled(False)
-        self.connect(file_radio, SIGNAL("toggled(bool)"),
-                     run_file_browser.setEnabled)
+        file_radio.toggled.connect(run_file_browser.setEnabled)
         
         run_file_layout = QVBoxLayout()
         run_file_layout.addWidget(run_file_label)
@@ -481,8 +477,7 @@ class KernelConnectionDialog(QDialog):
         self.cf.setPlaceholderText(_('Path to connection file or kernel id'))
         self.cf.setMinimumWidth(250)
         cf_open_btn = QPushButton(_('Browse'))
-        self.connect(cf_open_btn, SIGNAL('clicked()'),
-                     self.select_connection_file)
+        cf_open_btn.clicked.connect(self.select_connection_file)
 
         cf_layout = QHBoxLayout()
         cf_layout.addWidget(cf_label)
@@ -499,7 +494,7 @@ class KernelConnectionDialog(QDialog):
         self.kf = QLineEdit()
         self.kf.setPlaceholderText(_('Path to ssh key file'))
         kf_open_btn = QPushButton(_('Browse'))
-        self.connect(kf_open_btn, SIGNAL('clicked()'), self.select_ssh_key)
+        kf_open_btn.clicked.connect(self.select_ssh_key)
 
         kf_layout = QHBoxLayout()
         kf_layout.addWidget(self.kf)
@@ -519,8 +514,8 @@ class KernelConnectionDialog(QDialog):
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
             Qt.Horizontal, self)
 
-        self.connect(accept_btns, SIGNAL('accepted()'), self.accept)
-        self.connect(accept_btns, SIGNAL('rejected()'), self.reject)
+        accept_btns.accepted.connect(self.accept)
+        accept_btns.rejected.connect(self.reject)
 
         # Dialog layout
         layout = QVBoxLayout(self)
@@ -538,7 +533,7 @@ class KernelConnectionDialog(QDialog):
                 ssh_form.itemAt(2 * i).widget().setEnabled(state)
        
         ssh_set_enabled(self.rm_cb.checkState())
-        self.connect(self.rm_cb, SIGNAL('stateChanged(int)'), ssh_set_enabled)
+        self.rm_cb.stateChanged.connect(ssh_set_enabled)
 
     def select_connection_file(self):
         cf = getopenfilename(self, _('Open IPython connection file'),
@@ -577,6 +572,11 @@ class IPythonConsole(SpyderPluginWidget):
     CONF_SECTION = 'ipython_console'
     CONFIGWIDGET_CLASS = IPythonConsoleConfigPage
     DISABLE_ACTIONS_WHEN_HIDDEN = False
+    
+    # Signals
+    focus_changed = Signal()
+    edit_goto = Signal(str, int, str)
+    focus_changed = Signal()
 
     def __init__(self, parent):
         SpyderPluginWidget.__init__(self, parent)
@@ -588,6 +588,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.inspector = None          # Object inspector plugin
         self.historylog = None         # History log plugin
         self.variableexplorer = None   # Variable explorer plugin
+        self.editor = None             # Editor plugin
         
         self.clients = []
         
@@ -602,10 +603,8 @@ class IPythonConsole(SpyderPluginWidget):
             # a crash when the console is detached from the main window
             # Fixes Issue 561
             self.tabwidget.setDocumentMode(True)
-        self.connect(self.tabwidget, SIGNAL('currentChanged(int)'),
-                     self.refresh_plugin)
-        self.connect(self.tabwidget, SIGNAL('move_data(int,int)'),
-                     self.move_tab)
+        self.tabwidget.currentChanged.connect(self.refresh_plugin)
+        self.tabwidget.move_data.connect(self.move_tab)
                      
         self.tabwidget.set_close_function(self.close_client)
 
@@ -699,7 +698,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.find_widget.set_editor(control)
         self.tabwidget.set_corner_widgets({Qt.TopRightCorner: widgets})
         self.main.last_console_plugin_focus_was_python = False
-        self.emit(SIGNAL('update_plugin_title()'))
+        self.update_plugin_title.emit()
 
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
@@ -731,16 +730,13 @@ class IPythonConsole(SpyderPluginWidget):
         self.inspector = self.main.inspector
         self.historylog = self.main.historylog
         self.variableexplorer = self.main.variableexplorer
-
-        self.connect(self, SIGNAL('focus_changed()'),
-                     self.main.plugin_focus_changed)
-
-        if self.main.editor is not None:
-            self.connect(self, SIGNAL("edit_goto(QString,int,QString)"),
-                         self.main.editor.load)
-            self.connect(self.main.editor,
-                         SIGNAL('run_in_current_ipyclient(QString,QString,QString,bool)'),
-                         self.run_script_in_current_client)
+        self.editor = self.main.editor
+        
+        self.focus_changed.connect(self.main.plugin_focus_changed)
+        if self.editor is not None:
+            self.edit_goto.connect(self.editor.load)
+            self.editor.run_in_current_ipyclient.connect(
+                                             self.run_script_in_current_client)
 
     #------ Public API (for clients) ------------------------------------------
     def get_clients(self):
@@ -848,7 +844,7 @@ class IPythonConsole(SpyderPluginWidget):
             return
         
         # For tracebacks
-        self.connect(control, SIGNAL("go_to_error(QString)"), self.go_to_error)
+        control.go_to_error.connect(self.go_to_error)
         
         # Handle kernel restarts asked by the user
         if kernel_widget is not None:
@@ -886,28 +882,22 @@ class IPythonConsole(SpyderPluginWidget):
         # Connect client to our history log
         if self.historylog is not None:
             self.historylog.add_history(client.history_filename)
-            self.connect(client, SIGNAL('append_to_history(QString,QString)'),
-                         self.historylog.append_to_history)
+            client.append_to_history.connect(self.historylog.append_to_history)
         
         # Set font for client
         client.set_font( self.get_plugin_font() )
         
         # Connect focus signal to client's control widget
-        self.connect(control, SIGNAL('focus_changed()'),
-                     lambda: self.emit(SIGNAL('focus_changed()')))
+        control.focus_changed.connect(lambda: self.focus_changed.emit())
         
         # Update the find widget if focus changes between control and
         # page_control
         self.find_widget.set_editor(control)
         if page_control:
-            self.connect(page_control, SIGNAL('focus_changed()'),
-                         lambda: self.emit(SIGNAL('focus_changed()')))
-            self.connect(control, SIGNAL('visibility_changed(bool)'),
-                         self.refresh_plugin)
-            self.connect(page_control, SIGNAL('visibility_changed(bool)'),
-                         self.refresh_plugin)
-            self.connect(page_control, SIGNAL('show_find_widget()'),
-                         self.find_widget.show)
+            page_control.focus_changed.connect(lambda: self.focus_changed.emit())
+            control.visibility_changed.connect(self.refresh_plugin)
+            page_control.visibility_changed.connect(self.refresh_plugin)
+            page_control.show_find_widget.connect(self.find_widget.show)
 
         # Update client name
         self.rename_client_tab(client)
@@ -948,7 +938,7 @@ class IPythonConsole(SpyderPluginWidget):
         # Note: client index may have changed after closing related widgets
         self.tabwidget.removeTab(self.tabwidget.indexOf(client))
         self.clients.remove(client)
-        self.emit(SIGNAL('update_plugin_title()'))
+        self.update_plugin_title.emit()
 
     def get_client_index_from_id(self, client_id):
         """Return client index from id"""
@@ -1169,7 +1159,7 @@ class IPythonConsole(SpyderPluginWidget):
         """
         client = self.clients.pop(index_from)
         self.clients.insert(index_to, client)
-        self.emit(SIGNAL('update_plugin_title()'))
+        self.update_plugin_title.emit()
 
     #------ Public API (for help) ---------------------------------------------
     def go_to_error(self, text):
@@ -1177,8 +1167,7 @@ class IPythonConsole(SpyderPluginWidget):
         match = get_error_match(to_text_string(text))
         if match:
             fname, lnb = match.groups()
-            self.emit(SIGNAL("edit_goto(QString,int,QString)"),
-                      osp.abspath(fname), int(lnb), '')
+            self.edit_goto.emit(osp.abspath(fname), int(lnb), '')
     
     def show_intro(self):
         """Show intro to IPython help"""

@@ -11,7 +11,7 @@ from __future__ import print_function
 from spyderlib.qt.QtGui import (QDialog, QListWidget, QDialogButtonBox,
                                 QVBoxLayout, QHBoxLayout, QMessageBox,
                                 QListWidgetItem)
-from spyderlib.qt.QtCore import Qt, SIGNAL, SLOT
+from spyderlib.qt.QtCore import Qt, Signal
 from spyderlib.qt.compat import getexistingdirectory
 
 import os
@@ -25,6 +25,8 @@ from spyderlib.py3compat import getcwd
 
 
 class PathManager(QDialog):
+    redirect_stdio = Signal(bool)
+    
     def __init__(self, parent=None, pathlist=None, ro_pathlist=None, sync=True):
         QDialog.__init__(self, parent)
         
@@ -56,8 +58,7 @@ class PathManager(QDialog):
         self.toolbar_widgets1 = self.setup_top_toolbar(top_layout)
 
         self.listwidget = QListWidget(self)
-        self.connect(self.listwidget, SIGNAL("currentRowChanged(int)"),
-                     self.refresh)
+        self.listwidget.currentRowChanged.connect(self.refresh)
         layout.addWidget(self.listwidget)
 
         bottom_layout = QHBoxLayout()
@@ -67,7 +68,7 @@ class PathManager(QDialog):
         
         # Buttons configuration
         bbox = QDialogButtonBox(QDialogButtonBox.Close)
-        self.connect(bbox, SIGNAL("rejected()"), SLOT("reject()"))
+        bbox.rejected.connect(self.reject)
         bottom_layout.addWidget(bbox)
         
         self.update_list()
@@ -214,10 +215,10 @@ class PathManager(QDialog):
             self.update_list()
     
     def add_path(self):
-        self.emit(SIGNAL('redirect_stdio(bool)'), False)
+        self.redirect_stdio.emit(False)
         directory = getexistingdirectory(self, _("Select directory"),
                                          self.last_path)
-        self.emit(SIGNAL('redirect_stdio(bool)'), True)
+        self.redirect_stdio.emit(True)
         if directory:
             directory = osp.abspath(directory)
             self.last_path = directory

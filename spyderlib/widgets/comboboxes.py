@@ -13,7 +13,7 @@
 
 from spyderlib.qt.QtGui import (QComboBox, QFont, QToolTip, QSizePolicy,
                                 QCompleter)
-from spyderlib.qt.QtCore import SIGNAL, Qt, QUrl, QTimer
+from spyderlib.qt.QtCore import Signal, Qt, QUrl, QTimer
 
 import os.path as osp
 
@@ -24,6 +24,8 @@ from spyderlib.py3compat import to_text_string
 
 class BaseComboBox(QComboBox):
     """Editable combo box base class"""
+    valid = Signal(bool)
+    
     def __init__(self, parent):
         QComboBox.__init__(self, parent)
         self.setEditable(True)
@@ -55,7 +57,7 @@ class BaseComboBox(QComboBox):
         
     def selected(self):
         """Action to be executed when a valid item has been selected"""
-        self.emit(SIGNAL('valid(bool)'), True)
+        self.valid.emit(True)
         
     def add_text(self, text):
         """Add text to combo box: add a new item if text is not found in 
@@ -110,9 +112,8 @@ class EditableComboBox(BaseComboBox):
         BaseComboBox.__init__(self, parent)
         self.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLength)
         self.font = QFont()
-        self.connect(self, SIGNAL("editTextChanged(QString)"), self.validate)
-        self.connect(self, SIGNAL("activated(QString)"),
-                     lambda qstr: self.validate(qstr, editing=False))
+        self.editTextChanged.connect(self.validate)
+        self.activated.connect(lambda qstr: self.validate(qstr, editing=False))
         self.set_default_style()
         self.tips = {True: _("Press enter to validate this entry"),
                      False: _('This entry is incorrect')}
@@ -146,13 +147,13 @@ class EditableComboBox(BaseComboBox):
             if editing:
                 # Combo box text is being modified: invalidate the entry
                 self.show_tip(self.tips[valid])
-                self.emit(SIGNAL('valid(bool)'), False)
+                self.valid.emit(False)
             else:
                 # A new item has just been selected
                 if valid:
                     self.selected()
                 else:
-                    self.emit(SIGNAL('valid(bool)'), False)
+                    self.valid.emit(False)
         else:
             self.set_default_style()
             
@@ -161,6 +162,8 @@ class PathComboBox(EditableComboBox):
     """
     QComboBox handling path locations
     """
+    open_dir = Signal(str)
+    
     def __init__(self, parent, adjust_to_contents=False):
         EditableComboBox.__init__(self, parent)
         if adjust_to_contents:
@@ -182,7 +185,7 @@ class PathComboBox(EditableComboBox):
     def selected(self):
         """Action to be executed when a valid item has been selected"""
         EditableComboBox.selected(self)
-        self.emit(SIGNAL("open_dir(QString)"), self.currentText())
+        self.open_dir.emit(self.currentText())
 
 
 class UrlComboBox(PathComboBox):
@@ -191,7 +194,7 @@ class UrlComboBox(PathComboBox):
     """
     def __init__(self, parent, adjust_to_contents=False):
         PathComboBox.__init__(self, parent, adjust_to_contents)
-        self.disconnect(self, SIGNAL("editTextChanged(QString)"), self.validate)
+        self.editTextChanged.disconnect(self.validate)
         
     def is_valid(self, qstr=None):
         """Return True if string is valid"""
@@ -205,6 +208,7 @@ def is_module_or_package(path):
     is_module = osp.isfile(path) and osp.splitext(path)[1] in ('.py', '.pyw')
     is_package = osp.isdir(path) and osp.isfile(osp.join(path, '__init__.py'))
     return is_module or is_package
+
 
 class PythonModulesComboBox(PathComboBox):
     """
@@ -223,4 +227,4 @@ class PythonModulesComboBox(PathComboBox):
     def selected(self):
         """Action to be executed when a valid item has been selected"""
         EditableComboBox.selected(self)
-        self.emit(SIGNAL("open(QString)"), self.currentText())
+        self.open_dir.emit(self.currentText())
