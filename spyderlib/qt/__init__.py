@@ -9,13 +9,6 @@
 
 import os
 
-
-def debug(msg):
-    # lightweight debug function
-    #print(msg)
-    pass
-
-
 os.environ.setdefault('QT_API', 'pyqt')
 assert os.environ['QT_API'] in ('pyqt', 'pyqtv1', 'pyside')
 
@@ -23,19 +16,19 @@ API = os.environ['QT_API']
 API_NAME = None
 
 if API == 'pyqt':
-    # Spyder 2.2 is compatible with both #1 and #2 PyQt API,
+    # Spyder 2.3 is compatible with both #1 and #2 PyQt API,
     # but to avoid issues with IPython and other Qt plugins
-    # we choose to support only API #2 for 2.3+
+    # we choose to support only API #2 for 2.4+
     try:
         import sip
         sip.setapi('QString', 2)
         sip.setapi('QVariant', 2)
     except ImportError:
-        debug('qt: PyQt4 is not found. Fallback to PySide API')
+        print('qt: PyQt4 is not found. Fallback to PySide API')
         API = os.environ['QT_API'] = 'pyside'
     except AttributeError:
         # PyQt < 4.6. Fallback to API #1
-        debug('qt: Fallback to PyQt4 API #1')
+        print('qt: Fallback to PyQt4 API #1')
         API = os.environ['QT_API'] = 'pyqtv1'
 
 if API in ('pyqtv1', 'pyqt'):
@@ -43,7 +36,7 @@ if API in ('pyqtv1', 'pyqt'):
         from PyQt4.QtCore import PYQT_VERSION_STR as __version__
     except ImportError:
         # No PyQt4. Fallback to PySide
-        debug('qt: Fallback to PySide API')
+        print('qt: Fallback to PySide API')
         API = os.environ['QT_API'] = 'pyside'
     else:
         is_old_pyqt = __version__.startswith(('4.4', '4.5', '4.6', '4.7'))
