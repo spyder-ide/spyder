@@ -74,6 +74,8 @@ class IPythonControlWidget(TracebackLinksMixin, InspectObjectMixin, QTextEdit,
     """
     QT_CLASS = QTextEdit
     visibility_changed = Signal(bool)
+    go_to_error = Signal(str)
+    focus_changed = Signal()
     
     def __init__(self, parent=None):
         QTextEdit.__init__(self, parent)
@@ -131,6 +133,7 @@ class IPythonPageControlWidget(QTextEdit, BaseEditMixin):
     QT_CLASS = QTextEdit
     visibility_changed = Signal(bool)
     show_find_widget = Signal()
+    focus_changed = Signal()
     
     def __init__(self, parent=None):
         QTextEdit.__init__(self, parent)
@@ -348,6 +351,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
     """
     
     SEPARATOR = '%s##---(%s)---' % (os.linesep*2, time.ctime())
+    append_to_history = Signal(str, str)
     
     def __init__(self, plugin, history_filename, connection_file=None, 
                  hostname=None, sshkey=None, password=None, 

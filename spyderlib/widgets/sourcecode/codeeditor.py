@@ -363,6 +363,7 @@ class CodeEditor(TextEditBaseWidget):
     run_cell = Signal()
     go_to_definition_regex = Signal(int)
     sig_cursor_position_changed = Signal(int, int)
+    focus_changed = Signal()
 
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)

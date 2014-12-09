@@ -45,6 +45,7 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
     redirect_stdio = Signal(bool)
     sig_keyboard_interrupt = Signal()
     execute = Signal(str)
+    append_to_history = Signal(str, str)
     
     def __init__(self, parent, history_filename, profile=False):
         """
@@ -654,10 +655,10 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
                         InspectObjectMixin):
     """Python shell widget"""
     QT_CLASS = ShellBaseWidget
-
     INITHISTORY = ['# -*- coding: utf-8 -*-',
                    '# *** Spyder Python Console History Log ***',]
     SEPARATOR = '%s##---(%s)---' % (os.linesep*2, time.ctime())
+    go_to_error = Signal(str)
     
     def __init__(self, parent, history_filename, profile=False):
         ShellBaseWidget.__init__(self, parent, history_filename, profile)
