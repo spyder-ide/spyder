@@ -47,19 +47,6 @@ requirements.check_qt()
 
 
 #==============================================================================
-# Check optional features: IPython v0.13+ integration
-#==============================================================================
-from spyderlib.baseconfig import _
-from spyderlib.ipythonconfig import IPYTHON_QT_INSTALLED, SUPPORTED_IPYTHON
-from spyderlib import dependencies
-
-dependencies.add("IPython", _("IPython Console integration"),
-                 required_version=SUPPORTED_IPYTHON)
-dependencies.add("zmq", _("IPython Console integration"),
-                 required_version='>=2.1.11')
-
-
-#==============================================================================
 # Windows only: support for hiding console window when started with python.exe
 #==============================================================================
 set_attached_console_visible = None
@@ -124,6 +111,7 @@ from spyderlib.baseconfig import (get_conf_path, get_module_data_path,
                                   debug_print, TEST, SUBFOLDER)
 from spyderlib.config import CONF, EDIT_EXT, IMPORT_EXT, OPEN_FILES_PORT
 from spyderlib.cli_options import get_options
+from spyderlib import dependencies
 from spyderlib.userconfig import NoDefault
 from spyderlib.utils import encoding, programs
 from spyderlib.utils.iofuncs import load_session, save_session, reset_session
@@ -154,6 +142,19 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, get_icon,
                                        create_python_script_action, file_uri)
 from spyderlib.guiconfig import get_shortcut, remove_deprecated_shortcuts
 from spyderlib.otherplugins import get_spyderplugins_mods
+
+
+#==============================================================================
+# Add dependencies for IPython qtconsole integration
+#==============================================================================
+# They can't be added in the plugin because if they are not met, the plugin
+# won't be loaded
+from spyderlib.ipythonconfig import IPYTHON_QT_INSTALLED, SUPPORTED_IPYTHON
+
+dependencies.add("IPython", _("IPython Console integration"),
+                 required_version=SUPPORTED_IPYTHON)
+dependencies.add("zmq", _("IPython Console integration"),
+                 required_version='>=2.1.11')
 
 
 #==============================================================================
