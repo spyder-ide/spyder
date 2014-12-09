@@ -18,7 +18,7 @@ from spyderlib.qt.QtGui import (QApplication, QWidget, QVBoxLayout,
                                 QHBoxLayout, QMenu, QLabel, QInputDialog,
                                 QLineEdit, QToolButton)
 from spyderlib.qt.QtCore import (QProcess, Signal, QByteArray, QTimer, Qt,
-                                 QTextCodec)
+                                 QTextCodec, Slot)
 LOCALE_CODEC = QTextCodec.codecForLocale()
 
 # Local imports
@@ -114,7 +114,8 @@ class ExternalShellBase(QWidget):
 
         if show_buttons_inside:
             self.update_time_label_visibility()
-        
+
+    @Slot(bool)
     def set_elapsed_time_visible(self, state):
         self.show_elapsed_time = state
         if self.time_label is not None:
@@ -223,7 +224,8 @@ class ExternalShellBase(QWidget):
     def set_buttons_runnning_state(self, state):
         self.run_button.setVisible(not state and not self.is_ipykernel)
         self.kill_button.setVisible(state)
-    
+
+    @Slot()
     def start_shell(self, ask_for_arguments=False):
         """Start shell"""
         if ask_for_arguments and not self.get_arguments():
@@ -231,6 +233,7 @@ class ExternalShellBase(QWidget):
             return
         self.create_process()
 
+    @Slot()
     def get_arguments(self):
         arguments, valid = QInputDialog.getText(self, _('Arguments'),
                                                 _('Command line arguments:'),

@@ -14,6 +14,7 @@ They are also used in Spyder through the Plugin interface
 (see spyderlib.plugins)
 """
 
+from spyderlib.qt.QtCore import Slot
 from spyderlib.qt.QtGui import QTreeWidget, QMenu
 
 # Local imports
@@ -94,6 +95,7 @@ class OneColumnTree(QTreeWidget):
         # (reimplement this method)
         return []
 
+    @Slot()
     def restore(self):
         self.collapseAll()
         for item in self.get_top_level_items():
@@ -110,7 +112,8 @@ class OneColumnTree(QTreeWidget):
             for index in range(item.childCount()):
                 child = item.child(index)
                 self.__expand_item(child)
-        
+    
+    @Slot()
     def expand_selection(self):
         items = self.selectedItems()
         if not items:
@@ -126,6 +129,7 @@ class OneColumnTree(QTreeWidget):
             child = item.child(index)
             self.__collapse_item(child)
 
+    @Slot()
     def collapse_selection(self):
         items = self.selectedItems()
         if not items:

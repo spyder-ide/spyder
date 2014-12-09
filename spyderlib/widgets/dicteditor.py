@@ -23,7 +23,7 @@ from spyderlib.qt.QtGui import (QMessageBox, QTableView, QItemDelegate,
                                 QInputDialog, QDateTimeEdit, QApplication,
                                 QKeySequence, QAbstractItemDelegate)
 from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, Signal,
-                                 QDateTime)
+                                 QDateTime, Slot)
 from spyderlib.qt.compat import to_qvariant, from_qvariant, getsavefilename
 from spyderlib.utils.qthelpers import mimedata2url
 
@@ -831,26 +831,31 @@ class BaseTableView(QTableView):
         else:
             event.ignore()
 
+    @Slot(bool)
     def toggle_inplace(self, state):
         """Toggle in-place editor option"""
         self.sig_option_changed.emit('inplace', state)
         self.delegate.inplace = state
-        
+
+    @Slot(bool)
     def toggle_truncate(self, state):
         """Toggle display truncating option"""
         self.sig_option_changed.emit('truncate', state)
         self.model.truncate = state
-        
+
+    @Slot(bool)
     def toggle_minmax(self, state):
         """Toggle min/max display for numpy arrays"""
         self.sig_option_changed.emit('minmax', state)
         self.model.minmax = state
-        
+
+    @Slot(bool)
     def toggle_collvalue(self, state):
         """Toggle value display for collections"""
         self.sig_option_changed.emit('collvalue', state)
         self.model.collvalue = state
-            
+
+    @Slot()
     def edit_item(self):
         """Edit item"""
         index = self.currentIndex()
@@ -858,7 +863,8 @@ class BaseTableView(QTableView):
             return
         # TODO: Remove hard coded "Value" column number (3 here)
         self.edit(index.child(index.row(), 3))
-    
+
+    @Slot()
     def remove_item(self):
         """Remove item"""
         indexes = self.selectedIndexes()
@@ -895,15 +901,18 @@ class BaseTableView(QTableView):
             self.copy_value(orig_key, new_key)
             if erase_original:
                 self.remove_values([orig_key])
-    
+
+    @Slot()
     def duplicate_item(self):
         """Duplicate item"""
         self.copy_item()
 
+    @Slot()
     def rename_item(self):
         """Rename item"""
         self.copy_item(True)
-    
+
+    @Slot()
     def insert_item(self):
         """Insert item"""
         index = self.currentIndex()
@@ -956,7 +965,8 @@ class BaseTableView(QTableView):
                                      _("<b>Unable to plot data.</b>"
                                        "<br><br>Error message:<br>%s"
                                        ) % str(error))
-            
+
+    @Slot()
     def imshow_item(self):
         """Imshow item"""
         index = self.currentIndex()
@@ -972,7 +982,8 @@ class BaseTableView(QTableView):
                                      _("<b>Unable to show image.</b>"
                                        "<br><br>Error message:<br>%s"
                                        ) % str(error))
-            
+
+    @Slot()
     def save_array(self):
         """Save array"""
         title = _( "Save array")
@@ -994,6 +1005,8 @@ class BaseTableView(QTableView):
                                      _("<b>Unable to save array</b>"
                                        "<br><br>Error message:<br>%s"
                                        ) % str(error))
+    
+    @Slot()
     def copy(self):
         """Copy text to clipboard"""
         clipboard = QApplication.clipboard()
@@ -1014,7 +1027,8 @@ class BaseTableView(QTableView):
         if editor.exec_():
             var_name, clip_data = editor.get_data()
             self.new_value(var_name, clip_data)
-    
+
+    @Slot()
     def paste(self):
         """Import text/data/code from clipboard"""
         clipboard = QApplication.clipboard()
@@ -1321,7 +1335,8 @@ class RemoteDictEditorTableView(BaseTableView):
         self.toggle_remote_editing(remote_editing)
         add_actions(menu, (self.remote_editing_action,))
         return menu
-            
+
+    @Slot(bool)
     def toggle_remote_editing(self, state):
         """Toggle remote editing state"""
         self.sig_option_changed.emit('remote_editing', state)

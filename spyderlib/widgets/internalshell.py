@@ -24,7 +24,7 @@ from time import time
 from subprocess import Popen
 
 from spyderlib.qt.QtGui import QMessageBox
-from spyderlib.qt.QtCore import Signal, QObject, QEventLoop
+from spyderlib.qt.QtCore import Signal, Slot, QObject, QEventLoop
 
 # Local import
 from spyderlib import get_versions
@@ -258,6 +258,7 @@ class InternalShell(PythonShellWidget):
                            triggered=self.help)
         self.menu.addAction(self.help_action)
 
+    @Slot()
     def help(self):
         """Help on Spyder console"""
         QMessageBox.about(self, _("Help"),
