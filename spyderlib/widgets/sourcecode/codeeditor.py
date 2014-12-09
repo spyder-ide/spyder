@@ -364,6 +364,7 @@ class CodeEditor(TextEditBaseWidget):
     go_to_definition_regex = Signal(int)
     sig_cursor_position_changed = Signal(int, int)
     focus_changed = Signal()
+    sig_new_file = Signal(str)
 
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
@@ -1858,8 +1859,6 @@ class CodeEditor(TextEditBaseWidget):
             self.insertPlainText(nbformat.current.writes(nb, 'json'))
         else:
             return
-
-    sig_new_file = Signal(str)
 
     def convert_notebook(self):
         """Convert an IPython notebook to a Python script in editor"""
