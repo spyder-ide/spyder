@@ -86,9 +86,7 @@ from spyderlib.qt import QtSvg  # analysis:ignore
 
 
 #==============================================================================
-# Initial splash screen to reduce perceived startup time. 
-# It blends with the one of MainWindow (i.e. self.splash) and it's hidden
-# just before that one.
+# Splash screen 
 #==============================================================================
 from spyderlib.baseconfig import _, get_image_path
 SPLASH_APP = QApplication([''])
