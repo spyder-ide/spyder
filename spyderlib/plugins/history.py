@@ -8,7 +8,7 @@
 
 from spyderlib.qt.QtGui import (QVBoxLayout, QFontDialog, QInputDialog,
                                 QToolButton, QMenu, QFontComboBox, QGroupBox)
-from spyderlib.qt.QtCore import Signal
+from spyderlib.qt.QtCore import Signal, Slot
 
 import os.path as osp
 
@@ -252,7 +252,8 @@ class HistoryLog(SpyderPluginWidget):
         if self.get_option('go_to_eof'):
             self.editors[index].set_cursor_position('eof')
         self.tabwidget.setCurrentIndex(index)
-        
+    
+    @Slot()
     def change_history_depth(self):
         "Change history max entries"""
         depth, valid = QInputDialog.getInteger(self, _('History'),
@@ -261,7 +262,8 @@ class HistoryLog(SpyderPluginWidget):
                                        10, 10000)
         if valid:
             self.set_option('max_entries', depth)
-        
+    
+    @Slot()
     def change_font(self):
         """Change console font"""
         font, valid = QFontDialog.getFont(self.get_plugin_font(),
@@ -270,7 +272,8 @@ class HistoryLog(SpyderPluginWidget):
             for editor in self.editors:
                 editor.set_font(font)
             self.set_plugin_font(font)
-            
+    
+    @Slot(bool)
     def toggle_wrap_mode(self, checked):
         """Toggle wrap mode"""
         if self.tabwidget is None:

@@ -13,7 +13,7 @@
 
 from spyderlib.qt.QtGui import (QVBoxLayout, QFontDialog, QInputDialog,
                                 QLineEdit, QMenu)
-from spyderlib.qt.QtCore import Signal
+from spyderlib.qt.QtCore import Signal, Slot
 from spyderlib.qt.compat import getopenfilename
 
 import os
@@ -196,21 +196,25 @@ class Console(SpyderPluginWidget):
             self.dockwidget.raise_()
         
     #------ Public API ---------------------------------------------------------
+    @Slot()
     def quit(self):
         """Quit mainwindow"""
         self.main.close()
-        
+    
+    @Slot()
     def show_env(self):
         """Show environment variables"""
         self.dialog_manager.show(EnvDialog())
-
+    
+    @Slot()
     def show_syspath(self):
         """Show sys.path"""
         editor = DictEditor()
         editor.setup(sys.path, title="sys.path", readonly=True,
                      width=600, icon='syspath.png')
         self.dialog_manager.show(editor)
-        
+    
+    @Slot()
     def run_script(self, filename=None, silent=False, set_focus=False,
                    args=None):
         """Run a Python script"""
@@ -257,7 +261,8 @@ class Console(SpyderPluginWidget):
         """Execute lines and give focus to shell"""
         self.shell.execute_lines(to_text_string(lines))
         self.shell.setFocus()
-        
+    
+    @Slot()
     def change_font(self):
         """Change console font"""
         font, valid = QFontDialog.getFont(self.get_plugin_font(),
@@ -265,7 +270,8 @@ class Console(SpyderPluginWidget):
         if valid:
             self.shell.set_font(font)
             self.set_plugin_font(font)
-        
+    
+    @Slot()
     def change_max_line_count(self):
         "Change maximum line count"""
         mlc, valid = QInputDialog.getInteger(self, _('Buffer'),
@@ -276,6 +282,7 @@ class Console(SpyderPluginWidget):
             self.shell.setMaximumBlockCount(mlc)
             self.set_option('max_line_count', mlc)
 
+    @Slot()
     def change_exteditor(self):
         """Change external editor path"""
         path, valid = QInputDialog.getText(self, _('External editor'),
@@ -284,22 +291,26 @@ class Console(SpyderPluginWidget):
                           self.get_option('external_editor/path'))
         if valid:
             self.set_option('external_editor/path', to_text_string(path))
-            
+    
+    @Slot(bool)
     def toggle_wrap_mode(self, checked):
         """Toggle wrap mode"""
         self.shell.toggle_wrap_mode(checked)
         self.set_option('wrap', checked)
-            
+    
+    @Slot(bool)
     def toggle_calltips(self, checked):
         """Toggle calltips"""
         self.shell.set_calltips(checked)
         self.set_option('calltips', checked)
-            
+    
+    @Slot(bool)
     def toggle_codecompletion(self, checked):
         """Toggle automatic code completion"""
         self.shell.set_codecompletion_auto(checked)
         self.set_option('codecompletion/auto', checked)
-            
+    
+    @Slot(bool)
     def toggle_codecompletion_enter(self, checked):
         """Toggle Enter key for code completion"""
         self.shell.set_codecompletion_enter(checked)

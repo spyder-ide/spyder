@@ -378,7 +378,8 @@ class SpyderPluginMixin(object):
         title = self.get_plugin_title()
         if self.CONF_SECTION == 'editor':
             title = _('Editor')
-        action = create_action(self, title, toggled=self.toggle_view)
+        action = create_action(self, title, toggled=lambda checked:
+                                                    self.toggle_view(checked))
         self.toggle_view_action = action
     
     def toggle_view(self, checked):

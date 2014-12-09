@@ -466,7 +466,8 @@ class Editor(SpyderPluginWidget):
         
     def set_projectexplorer(self, projectexplorer):
         self.projectexplorer = projectexplorer
-        
+
+    @Slot()
     def show_hide_project_explorer(self):
         if self.projectexplorer is not None:
             dw = self.projectexplorer.dockwidget
@@ -489,7 +490,8 @@ class Editor(SpyderPluginWidget):
         self.outlineexplorer.edit.connect(
                              lambda filenames:
                              self.load(filenames=filenames, editorwindow=self))
-            
+
+    @Slot()
     def show_hide_outline_explorer(self):
         if self.outlineexplorer is not None:
             dw = self.outlineexplorer.dockwidget
@@ -1409,6 +1411,7 @@ class Editor(SpyderPluginWidget):
             encoding.write(to_text_string(text), self.TEMPFILE_PATH, 'utf-8')
         self.load(self.TEMPFILE_PATH)
 
+    @Slot()
     def __set_workdir(self):
         """Set current script directory as working directory"""
         fname = self.get_current_filename()
@@ -1434,6 +1437,7 @@ class Editor(SpyderPluginWidget):
             editor = editorstack.clone_editor_from(finfo, set_current=False)
             self.register_widget_shortcuts("Editor", editor)
     
+    @Slot()
     def new(self, fname=None, editorstack=None, text=None):
         """
         Create a new file - Untitled
@@ -1528,11 +1532,13 @@ class Editor(SpyderPluginWidget):
         self.clear_recent_action.setEnabled(len(recent_files) > 0)
         add_actions(self.recent_file_menu, (None, self.max_recent_action,
                                             self.clear_recent_action))
-        
+
+    @Slot()
     def clear_recent_files(self):
         """Clear recent files list"""
         self.recent_files = []
-        
+
+    @Slot()
     def change_max_recent_files(self):
         "Change max recent files entries"""
         editorstack = self.get_current_editorstack()
@@ -1541,7 +1547,8 @@ class Editor(SpyderPluginWidget):
                                self.get_option('max_recent_files'), 1, 35)
         if valid:
             self.set_option('max_recent_files', mrf)
-        
+    
+    @Slot()
     def load(self, filenames=None, goto=None, word='', editorwindow=None,
              processevents=True):
         """
@@ -1646,6 +1653,7 @@ class Editor(SpyderPluginWidget):
             if processevents:
                 QApplication.processEvents()
 
+    @Slot()
     def print_file(self):
         """Print current file"""
         editor = self.get_current_editor()
@@ -1664,6 +1672,7 @@ class Editor(SpyderPluginWidget):
             editor.print_(printer)
             self.ending_long_process()
 
+    @Slot()
     def print_preview(self):
         """Print preview for current file"""
         from spyderlib.qt.QtGui import QPrintPreviewDialog
@@ -1677,20 +1686,24 @@ class Editor(SpyderPluginWidget):
         preview.exec_()
         self.redirect_stdio.emit(True)
 
+    @Slot()
     def close_file(self):
         """Close current file"""
         editorstack = self.get_current_editorstack()
         editorstack.close_file()
-            
+    
+    @Slot()
     def close_all_files(self):
         """Close all opened scripts"""
         self.editorstacks[0].close_all_files()
-                
+    
+    @Slot()
     def save(self, index=None, force=False):
         """Save file"""
         editorstack = self.get_current_editorstack()
         return editorstack.save(index=index, force=force)
-                
+    
+    @Slot()
     def save_as(self):
         """Save *as* the currently edited file"""
         editorstack = self.get_current_editorstack()
@@ -1699,11 +1712,13 @@ class Editor(SpyderPluginWidget):
             if CONF.get('workingdir', 'editor/save/auto_set_to_basedir'):
                 self.open_dir.emit(osp.dirname(fname))
             self.__add_recent_file(fname)
-        
+    
+    @Slot()
     def save_all(self):
         """Save all opened files"""
         self.get_current_editorstack().save_all()
-        
+    
+    @Slot()
     def revert(self):
         """Revert the currently edited file from disk"""
         editorstack = self.get_current_editorstack()
@@ -1740,54 +1755,63 @@ class Editor(SpyderPluginWidget):
         
     
     #------ Source code
+    @Slot()
     def indent(self):
         """Indent current line or selection"""
         editor = self.get_current_editor()
         if editor is not None:
             editor.indent()
 
+    @Slot()
     def unindent(self):
         """Unindent current line or selection"""
         editor = self.get_current_editor()
         if editor is not None:
             editor.unindent()
-    
+
+    @Slot()
     def toggle_comment(self):
         """Comment current line or selection"""
         editor = self.get_current_editor()
         if editor is not None:
             editor.toggle_comment()
-    
+
+    @Slot()
     def blockcomment(self):
         """Block comment current line or selection"""
         editor = self.get_current_editor()
         if editor is not None:
             editor.blockcomment()
 
+    @Slot()
     def unblockcomment(self):
         """Un-block comment current line or selection"""
         editor = self.get_current_editor()
         if editor is not None:
             editor.unblockcomment()
-    
+
+    @Slot()
     def go_to_next_todo(self):
         editor = self.get_current_editor()
         position = editor.go_to_next_todo()
         filename = self.get_current_filename()
         self.add_cursor_position_to_history(filename, position)
-    
+
+    @Slot()
     def go_to_next_warning(self):
         editor = self.get_current_editor()
         position = editor.go_to_next_warning()
         filename = self.get_current_filename()
         self.add_cursor_position_to_history(filename, position)
-    
+
+    @Slot()
     def go_to_previous_warning(self):
         editor = self.get_current_editor()
         position = editor.go_to_previous_warning()
         filename = self.get_current_filename()
         self.add_cursor_position_to_history(filename, position)
-                
+
+    @Slot()
     def run_winpdb(self):
         """Run winpdb to debug current file"""
         if self.save():
@@ -1809,11 +1833,13 @@ class Editor(SpyderPluginWidget):
         editor = self.get_current_editor()
         if self.__set_eol_chars:
             editor.set_eol_chars(sourcecode.get_eol_chars_from_os_name(os_name))
-        
+
+    @Slot()
     def remove_trailing_spaces(self):
         editorstack = self.get_current_editorstack()
         editorstack.remove_trailing_spaces()
-        
+
+    @Slot()
     def fix_indentation(self):
         editorstack = self.get_current_editorstack()
         editorstack.fix_indentation()
@@ -1862,7 +1888,8 @@ class Editor(SpyderPluginWidget):
     def current_file_changed(self, filename, position):
         self.add_cursor_position_to_history(to_text_string(filename), position,
                                             fc=True)
-        
+
+    @Slot()
     def go_to_last_edit_location(self):
         if self.last_edit_cursor_pos is not None:
             filename, position = self.last_edit_cursor_pos
@@ -1900,31 +1927,37 @@ class Editor(SpyderPluginWidget):
                 editor.set_cursor_position(position)
         self.__ignore_cursor_position = False
         self.update_cursorpos_actions()
-            
+
+    @Slot()
     def go_to_previous_cursor_position(self):
         self.__move_cursor_position(-1)
-            
+
+    @Slot()
     def go_to_next_cursor_position(self):
         self.__move_cursor_position(1)
-        
+
+    @Slot()
     def go_to_line(self):
         """Open 'go to line' dialog"""
         editorstack = self.get_current_editorstack()
         if editorstack is not None:
             editorstack.go_to_line()
-            
+
+    @Slot()
     def set_or_clear_breakpoint(self):
         """Set/Clear breakpoint"""
         editorstack = self.get_current_editorstack()
         if editorstack is not None:
             editorstack.set_or_clear_breakpoint()
-            
+
+    @Slot()
     def set_or_edit_conditional_breakpoint(self):
         """Set/Edit conditional breakpoint"""
         editorstack = self.get_current_editorstack()
         if editorstack is not None:
             editorstack.set_or_edit_conditional_breakpoint()
-            
+
+    @Slot()
     def clear_all_breakpoints(self):
         """Clear breakpoints in all files"""
         clear_all_breakpoints()
@@ -1959,6 +1992,7 @@ class Editor(SpyderPluginWidget):
             self.main.extconsole.execute_python_code(command)
     
     #------ Run Python script
+    @Slot()
     def edit_run_configurations(self):
         dialog = RunConfigDialog(self)
         dialog.size_change.connect(lambda s: self.set_dialog_size(s))
@@ -1971,7 +2005,8 @@ class Editor(SpyderPluginWidget):
             if fname is not None:
                 self.load(fname)
                 self.run_file()
-        
+
+    @Slot()
     def run_file(self, debug=False):
         """Run script inside current interpreter or in a new one"""
         editorstack = self.get_current_editorstack()
@@ -2022,10 +2057,12 @@ class Editor(SpyderPluginWidget):
     def set_dialog_size(self, size):
         self.dialog_size = size
 
+    @Slot()
     def debug_file(self):
         """Debug current script"""
         self.run_file(debug=True)
-        
+
+    @Slot()
     def re_run_file(self):
         """Re-run last script"""
         if self.get_option('save_all_before_run'):
@@ -2049,16 +2086,19 @@ class Editor(SpyderPluginWidget):
                                             debug, python, python_args,
                                             systerm)
 
+    @Slot()
     def run_selection(self):
         """Run selection or current line in external console"""
         editorstack = self.get_current_editorstack()
         editorstack.run_selection()
-    
+
+    @Slot()
     def run_cell(self):
         """Run current cell"""
         editorstack = self.get_current_editorstack()
         editorstack.run_cell()
 
+    @Slot()
     def run_cell_and_advance(self):
         """Run current cell and advance to the next one"""
         editorstack = self.get_current_editorstack()

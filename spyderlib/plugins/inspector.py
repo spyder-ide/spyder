@@ -10,7 +10,7 @@ from spyderlib.qt.QtGui import (QHBoxLayout, QVBoxLayout, QLabel, QSizePolicy,
                                 QMenu, QToolButton, QGroupBox, QFontComboBox,
                                 QActionGroup, QFontDialog, QWidget, QComboBox,
                                 QLineEdit, QMessageBox)
-from spyderlib.qt.QtCore import Signal, QUrl, QThread
+from spyderlib.qt.QtCore import Signal, Slot, QUrl, QThread
 from spyderlib.qt.QtWebKit import QWebPage
 
 import re
@@ -650,7 +650,8 @@ class ObjectInspector(SpyderPluginWidget):
     def set_plain_text_color_scheme(self, color_scheme):
         """Set plain text mode color scheme"""
         self.plain_text.set_color_scheme(color_scheme)
-        
+    
+    @Slot()
     def change_font(self):
         """Change console font"""
         font, valid = QFontDialog.getFont(get_font(self.CONF_SECTION), self,
@@ -658,7 +659,8 @@ class ObjectInspector(SpyderPluginWidget):
         if valid:
             self.set_plain_text_font(font)
             set_font(font, self.CONF_SECTION)
-            
+    
+    @Slot(bool)
     def toggle_wrap_mode(self, checked):
         """Toggle wrap mode"""
         self.plain_text.editor.toggle_wrap_mode(checked)
@@ -874,7 +876,8 @@ class ObjectInspector(SpyderPluginWidget):
         open(self.LOG_PATH, 'w').write("\n".join( \
                 [to_text_string(self.combo.itemText(index))
                  for index in range(self.combo.count())] ))
-        
+    
+    @Slot(bool)
     def toggle_plain_text(self, checked):
         """Toggle plain text docstring"""
         if checked:
@@ -882,7 +885,8 @@ class ObjectInspector(SpyderPluginWidget):
             self.switch_to_plain_text()
             self.force_refresh()
         self.set_option('rich_mode', not checked)
-        
+    
+    @Slot(bool)
     def toggle_show_source(self, checked):
         """Toggle show source code"""
         if checked:
@@ -890,20 +894,23 @@ class ObjectInspector(SpyderPluginWidget):
         self.docstring = not checked
         self.force_refresh()
         self.set_option('rich_mode', not checked)
-        
+    
+    @Slot(bool)
     def toggle_rich_text(self, checked):
         """Toggle between sphinxified docstrings or plain ones"""
         if checked:
             self.docstring = not checked
             self.switch_to_rich_text()
         self.set_option('rich_mode', checked)
-        
+    
+    @Slot(bool)
     def toggle_auto_import(self, checked):
         """Toggle automatic import feature"""
         self.combo.validate_current_text()
         self.set_option('automatic_import', checked)
         self.force_refresh()
-        
+    
+    @Slot()
     def toggle_locked(self):
         """
         Toggle locked state

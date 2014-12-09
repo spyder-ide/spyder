@@ -27,7 +27,7 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QHBoxLayout, QFormLayout,
                                 QCheckBox, QApplication, QLabel,QLineEdit,
                                 QPushButton)
 from spyderlib.qt.compat import getopenfilename
-from spyderlib.qt.QtCore import Signal, Qt
+from spyderlib.qt.QtCore import Signal, Slot, Qt
 
 # IPython imports
 from IPython.core.application import get_ipython_dir
@@ -805,6 +805,7 @@ class IPythonConsole(SpyderPluginWidget):
         if client is not None:
             client.shellwidget.write_to_stdin(line)
 
+    @Slot()
     def create_new_client(self, give_focus=True):
         """Create a new client"""
         client = IPythonClient(self, history_filename='history.py',
@@ -1047,6 +1048,7 @@ class IPythonConsole(SpyderPluginWidget):
             widget.kernel_manager = km
             widget.kernel_client = kc
 
+    @Slot()
     def create_client_for_kernel(self):
         """Create a client connected to an existing kernel"""
         (cf, hostname,
