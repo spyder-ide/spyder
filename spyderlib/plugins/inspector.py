@@ -768,7 +768,8 @@ class ObjectInspector(SpyderPluginWidget):
         self.raise_()
         self.switch_to_plain_text()
         self.set_plain_text(text, is_code=False)
-    
+
+    @Slot()
     def show_tutorial(self):
         tutorial_path = get_module_source_path('spyderlib.utils.inspector')
         img_path = osp.join(tutorial_path, 'static', 'images')

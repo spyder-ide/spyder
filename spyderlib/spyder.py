@@ -104,7 +104,8 @@ from spyderlib.qt.QtGui import (QApplication, QMainWindow, QSplashScreen,
                                 QPixmap, QMessageBox, QMenu, QColor, QShortcut,
                                 QKeySequence, QDockWidget, QAction,
                                 QDesktopServices)
-from spyderlib.qt.QtCore import Signal, QPoint, Qt, QSize, QByteArray, QUrl
+from spyderlib.qt.QtCore import (Signal, QPoint, Qt, QSize, QByteArray, QUrl,
+                                 Slot)
 from spyderlib.qt.compat import (from_qvariant, getopenfilename,
                                  getsavefilename)
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms 
@@ -656,7 +657,8 @@ class MainWindow(QMainWindow):
                                     menurole=QAction.ApplicationSpecificRole)
             update_modules_action = create_action(self,
                                         _("Update module names list"),
-                                        triggered=module_completion.reset,
+                                        triggered=lambda:
+                                                  module_completion.reset(),
                                         tip=_("Refresh list of module names "
                                               "available in PYTHONPATH"))
             self.tools_menu_actions = [prefs_action, spyder_path_action]
@@ -1074,7 +1076,8 @@ class MainWindow(QMainWindow):
             if set_attached_console_visible is not None:
                 cmd_act = create_action(self,
                                     _("Attached console window (debugging)"),
-                                    toggled=set_attached_console_visible)
+                                    toggled=lambda state:
+                                           set_attached_console_visible(state))
                 cmd_act.setChecked(is_attached_console_visible())
                 add_actions(self.view_menu, (None, cmd_act))
             add_actions(self.view_menu, (None, self.fullscreen_action,
@@ -1370,6 +1373,7 @@ class MainWindow(QMainWindow):
         for plugin in self.widgetlist:
             plugin.initialize_plugin_in_mainwindow_layout()
 
+    @Slot()
     def reset_window_layout(self):
         """Reset window layout to default"""
         answer = QMessageBox.warning(self, _("Warning"),
@@ -1633,7 +1637,8 @@ class MainWindow(QMainWindow):
                                    QDockWidget.DockWidgetVerticalTitleBar)
         self.addDockWidget(location, dockwidget)
         self.widgetlist.append(child)
-        
+
+    @Slot()
     def close_current_dockwidget(self):
         widget = QApplication.focusWidget()
         for plugin in self.widgetlist:
@@ -1653,7 +1658,8 @@ class MainWindow(QMainWindow):
         self.maximize_action.setText(text)
         self.maximize_action.setIcon(get_icon(icon))
         self.maximize_action.setToolTip(tip)
-        
+
+    @Slot()
     def maximize_dockwidget(self, restore=False):
         """Shortcut: Ctrl+Alt+Shift+M
         First call: maximize current dockwidget
@@ -1698,7 +1704,8 @@ class MainWindow(QMainWindow):
         else:
             icon = "window_fullscreen.png"
         self.fullscreen_action.setIcon(get_icon(icon))
-        
+
+    @Slot()
     def toggle_fullscreen(self):
         if self.isFullScreen():
             self.fullscreen_flag = False
@@ -1717,6 +1724,7 @@ class MainWindow(QMainWindow):
         if actions is not None:
             add_actions(toolbar, actions)
 
+    @Slot()
     def about(self):
         """About Spyder"""
         versions = get_versions()
@@ -1761,6 +1769,7 @@ class MainWindow(QMainWindow):
                versions['bitness'], versions['qt'], versions['qt_api'],
                versions['qt_api_ver'], versions['system']))
 
+    @Slot()
     def show_dependencies(self):
         """Show Spyder's Optional Dependencies dialog box"""
         from spyderlib.widgets.dependencies import DependenciesDialog
@@ -1769,6 +1778,7 @@ class MainWindow(QMainWindow):
         dlg.show()
         dlg.exec_()
 
+    @Slot()
     def report_issue(self):
         if PY3:
             from urllib.parse import quote
@@ -1809,7 +1819,8 @@ Please provide any additional information below.
         url = QUrl("http://code.google.com/p/spyderlib/issues/entry")
         url.addEncodedQueryItem("comment", quote(issue_template))
         QDesktopServices.openUrl(url)
-    
+
+    @Slot()
     def google_group(self):
         url = QUrl("http://groups.google.com/group/spyderlib")
         QDesktopServices.openUrl(url)
@@ -1835,7 +1846,8 @@ Please provide any additional information below.
             while not isinstance(plugin, EditorWidget):
                 plugin = plugin.parent()
             return plugin         
-    
+
+    @Slot()
     def find(self):
         """Global find callback"""
         plugin = self.get_current_editor_plugin()
@@ -1843,25 +1855,29 @@ Please provide any additional information below.
             plugin.find_widget.show()
             plugin.find_widget.search_text.setFocus()
             return plugin
-    
+
+    @Slot()
     def find_next(self):
         """Global find next callback"""
         plugin = self.get_current_editor_plugin()
         if plugin is not None:
             plugin.find_widget.find_next()
-            
+
+    @Slot()
     def find_previous(self):
         """Global find previous callback"""
         plugin = self.get_current_editor_plugin()
         if plugin is not None:
             plugin.find_widget.find_previous()
-        
+
+    @Slot()
     def replace(self):
         """Global replace callback"""
         plugin = self.find()
         if plugin is not None:
             plugin.find_widget.show_replace()
 
+    @Slot()
     def global_callback(self):
         """Global callback"""
         widget = QApplication.focusWidget()
@@ -1961,7 +1977,8 @@ Please provide any additional information below.
         sys_path = sys.path
         while sys_path[1] in self.get_spyder_pythonpath():
             sys_path.pop(1)
-        
+
+    @Slot()
     def path_manager_callback(self):
         """Spyder path manager"""
         from spyderlib.widgets.pathmanager import PathManager
@@ -1980,7 +1997,8 @@ Please provide any additional information below.
         self.project_path = self.projectexplorer.get_pythonpath()
         self.add_path_to_sys_path()
         self.sig_pythonpath_changed.emit()
-    
+
+    @Slot()
     def win_env(self):
         """Show Windows current user environment variables"""
         self.dialog_manager.show(WinUserEnvDialog(self))
@@ -2014,7 +2032,8 @@ Please provide any additional information below.
             if widget is not None:
                 widget.setVisible(CONF.get('main', '%s/enable' % name))
                 widget.set_interval(CONF.get('main', '%s/timeout' % name))
-        
+
+    @Slot()
     def edit_preferences(self):
         """Edit Spyder preferences"""
         from spyderlib.plugins.configdialog import ConfigDialog
@@ -2085,6 +2104,7 @@ Please provide any additional information below.
             self.shortcut_data.pop(index)
 
     #---- Sessions
+    @Slot()
     def load_session(self, filename=None):
         """Load session"""
         if filename is None:
@@ -2096,7 +2116,8 @@ Please provide any additional information below.
                 return
         if self.close():
             self.next_session_name = filename
-    
+
+    @Slot()
     def save_session(self):
         """Save session and quit application"""
         self.redirect_internalshell_stdio(False)

@@ -1170,17 +1170,20 @@ class IPythonConsole(SpyderPluginWidget):
         if match:
             fname, lnb = match.groups()
             self.edit_goto.emit(osp.abspath(fname), int(lnb), '')
-    
+
+    @Slot()
     def show_intro(self):
         """Show intro to IPython help"""
         from IPython.core.usage import interactive_usage
         self.inspector.show_rich_text(interactive_usage)
-    
+
+    @Slot()
     def show_guiref(self):
         """Show qtconsole help"""
         from IPython.core.usage import gui_reference
         self.inspector.show_rich_text(gui_reference, collapse=True)
-    
+
+    @Slot()
     def show_quickref(self):
         """Show IPython Cheat Sheet"""
         from IPython.core.usage import quick_reference
