@@ -14,8 +14,8 @@ They are also used in Spyder through the Plugin interface
 (see spyderlib.plugins)
 """
 
+from spyderlib.qt.QtCore import Slot
 from spyderlib.qt.QtGui import QTreeWidget, QMenu
-from spyderlib.qt.QtCore import SIGNAL
 
 # Local imports
 from spyderlib.baseconfig import _
@@ -29,10 +29,8 @@ class OneColumnTree(QTreeWidget):
         QTreeWidget.__init__(self, parent)
         self.setItemsExpandable(True)
         self.setColumnCount(1)
-        self.connect(self, SIGNAL('itemActivated(QTreeWidgetItem*,int)'),
-                     self.activated)
-        self.connect(self, SIGNAL('itemClicked(QTreeWidgetItem*,int)'),
-                     self.clicked)
+        self.itemActivated.connect(self.activated)
+        self.itemClicked.connect(self.clicked)
         # Setup context menu
         self.menu = QMenu(self)
         self.collapse_all_action = None
@@ -43,8 +41,7 @@ class OneColumnTree(QTreeWidget):
         
         self.__expanded_state = None
 
-        self.connect(self, SIGNAL('itemSelectionChanged()'),
-                     self.item_selection_changed)
+        self.itemSelectionChanged.connect(self.item_selection_changed)
         self.item_selection_changed()
                      
     def activated(self, item):
@@ -98,6 +95,7 @@ class OneColumnTree(QTreeWidget):
         # (reimplement this method)
         return []
 
+    @Slot()
     def restore(self):
         self.collapseAll()
         for item in self.get_top_level_items():
@@ -114,7 +112,8 @@ class OneColumnTree(QTreeWidget):
             for index in range(item.childCount()):
                 child = item.child(index)
                 self.__expand_item(child)
-        
+    
+    @Slot()
     def expand_selection(self):
         items = self.selectedItems()
         if not items:
@@ -130,6 +129,7 @@ class OneColumnTree(QTreeWidget):
             child = item.child(index)
             self.__collapse_item(child)
 
+    @Slot()
     def collapse_selection(self):
         items = self.selectedItems()
         if not items:

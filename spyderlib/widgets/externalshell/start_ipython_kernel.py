@@ -115,6 +115,9 @@ def kernel_config():
     autocall_o = CONF.get('ipython_console', 'autocall')
     spy_cfg.ZMQInteractiveShell.autocall = autocall_o
     
+    # To handle the banner by ourselves in IPython 3+
+    spy_cfg.ZMQInteractiveShell.banner1 = ''
+    
     # Greedy completer
     greedy_o = CONF.get('ipython_console', 'greedy_completer')
     spy_cfg.IPCompleter.greedy = greedy_o
@@ -201,6 +204,12 @@ del ipk_temp
 # __ipythonkernel__ to not have problems while starting kernels
 change_edit_magic(__ipythonshell__)
 __ipythonshell__.register_magic_function(varexp)
+
+# Remove pylab modules from namespace
+if not __ipythonkernel__.pylab_import_all:
+    [__ipythonshell__.user_ns.pop(m, '') for m in ('matplotlib', 'mlab', 'np',
+                                                   'numpy', 'plt', 'pyplot',
+                                                   'pylab')]
 
 # To make %pylab load numpy and pylab even if the user has
 # set autoload_pylab_o to False *but* nevertheless use it in

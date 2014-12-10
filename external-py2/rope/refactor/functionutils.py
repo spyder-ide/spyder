@@ -32,9 +32,6 @@ class DefinitionInfo(object):
 
     @staticmethod
     def _read(pyfunction, code):
-        scope = pyfunction.get_scope()
-        parent = scope.parent
-        parameter_names = pyfunction.get_param_names()
         kind = pyfunction.get_kind()
         is_method = kind == 'method'
         is_lambda = kind == 'lambda'
@@ -89,7 +86,8 @@ class CallInfo(object):
         if self.args[start:]:
             params.extend(self.args[start:])
         if self.keywords:
-            params.extend(['%s=%s' % (name, value) for name, value in self.keywords])
+            params.extend(['%s=%s' % (name, value)
+                          for name, value in self.keywords])
         if self.args_arg is not None:
             params.append('*' + self.args_arg)
         if self.keywords_arg:
@@ -120,15 +118,15 @@ class CallInfo(object):
     @staticmethod
     def _is_method_call(primary, pyname):
         return primary is not None and \
-               isinstance(primary.get_object().get_type(),
-                          rope.base.pyobjects.PyClass) and \
-                          CallInfo._is_method(pyname)
+            isinstance(primary.get_object().get_type(),
+                       rope.base.pyobjects.PyClass) and \
+            CallInfo._is_method(pyname)
 
     @staticmethod
     def _is_class(pyname):
         return pyname is not None and \
-               isinstance(pyname.get_object(),
-                          rope.base.pyobjects.PyClass)
+            isinstance(pyname.get_object(),
+                       rope.base.pyobjects.PyClass)
 
     @staticmethod
     def _is_method(pyname):
@@ -184,7 +182,8 @@ class ArgumentMapping(object):
         keywords.extend(self.keyword_args)
         return CallInfo(self.call_info.function_name, args, keywords,
                         self.call_info.args_arg, self.call_info.keywords_arg,
-                        self.call_info.implicit_arg, self.call_info.constructor)
+                        self.call_info.implicit_arg,
+                        self.call_info.constructor)
 
 
 class _FunctionParser(object):
@@ -197,7 +196,8 @@ class _FunctionParser(object):
             self.last_parens = self.call.rindex(':')
         else:
             self.last_parens = self.call.rindex(')')
-        self.first_parens = self.word_finder._find_parens_start(self.last_parens)
+        self.first_parens = self.word_finder._find_parens_start(
+            self.last_parens)
 
     def get_parameters(self):
         args, keywords = self.word_finder.get_parameters(self.first_parens,

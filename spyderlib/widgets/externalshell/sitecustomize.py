@@ -42,7 +42,35 @@ def _print(*objects, **options):
             print >>file, string,
 
 try:
+    # Python 2
     import __builtin__ as builtins
+    #==========================================================================
+    # These definitions of execfile for Python 2 are taken from the IPython
+    # project (present in IPython.utils.py3compat)
+    #
+    # Copyright (C) The IPython Development Team
+    # Distributed under the terms of the modified BSD license
+    #==========================================================================
+    if os.name == 'nt':
+        def encode(u):
+            return u.encode('utf8', 'replace')
+        def execfile(fname, glob=None, loc=None):
+            loc = loc if (loc is not None) else glob
+            scripttext = builtins.open(fname).read()+ '\n'
+            # compile converts unicode filename to str assuming
+            # ascii. Let's do the conversion before calling compile
+            if isinstance(fname, unicode):
+                filename = encode(fname)
+            else:
+                filename = fname
+            exec(compile(scripttext, filename, 'exec'), glob, loc)
+    else:
+        def execfile(fname, *where):
+            if isinstance(fname, unicode):
+                filename = fname.encode(sys.getfilesystemencoding())
+            else:
+                filename = fname
+            builtins.execfile(filename, *where)
 except ImportError:
     # Python 3
     import builtins
@@ -264,8 +292,7 @@ else:
             app = QtCore.QCoreApplication.instance()
             if app and app.thread() is QtCore.QThread.currentThread():
                 timer = QtCore.QTimer()
-                QtCore.QObject.connect(timer, QtCore.SIGNAL('timeout()'),
-                                       app, QtCore.SLOT('quit()'))
+                timer.timeout.connect(app.quit)
                 monitor.toggle_inputhook_flag(False)
                 while not monitor.inputhook_flag:
                     timer.start(50)
@@ -467,9 +494,9 @@ if os.environ.get("IGNORE_SIP_SETAPI_ERRORS", "").lower() == "true":
 
 # The following classes and functions are mainly intended to be used from 
 # an interactive Python session
-class UserModuleDeleter(object):
+class UserModuleReloader(object):
     """
-    User Module Deleter (UMD) aims at deleting user modules 
+    User Module Reloader (UMR) aims at deleting user modules 
     to force Python to deeply reload them during import
     
     pathlist [list]: blacklist in terms of module path
@@ -513,9 +540,9 @@ class UserModuleDeleter(object):
                     del sys.modules[modname]
         if verbose and log:
             _print("\x1b[4;33m%s\x1b[24m%s\x1b[0m"\
-                   % ("UMD has deleted", ": "+", ".join(log)))
+                   % ("Reloaded modules", ": "+", ".join(log)))
 
-__umd__ = None
+__umr__ = None
 
 
 def _get_globals():
@@ -543,16 +570,16 @@ def runfile(filename, args=None, wdir=None, namespace=None):
         # UnicodeError, TypeError --> eventually raised in Python 2
         # AttributeError --> systematically raised in Python 3
         pass
-    global __umd__
-    if os.environ.get("UMD_ENABLED", "").lower() == "true":
-        if __umd__ is None:
-            namelist = os.environ.get("UMD_NAMELIST", None)
+    global __umr__
+    if os.environ.get("UMR_ENABLED", "").lower() == "true":
+        if __umr__ is None:
+            namelist = os.environ.get("UMR_NAMELIST", None)
             if namelist is not None:
                 namelist = namelist.split(',')
-            __umd__ = UserModuleDeleter(namelist=namelist)
+            __umr__ = UserModuleReloader(namelist=namelist)
         else:
-            verbose = os.environ.get("UMD_VERBOSE", "").lower() == "true"
-            __umd__.run(verbose=verbose)
+            verbose = os.environ.get("UMR_VERBOSE", "").lower() == "true"
+            __umr__.run(verbose=verbose)
     if args is not None and not isinstance(args, basestring):
         raise TypeError("expected a character buffer object")
     if namespace is None:

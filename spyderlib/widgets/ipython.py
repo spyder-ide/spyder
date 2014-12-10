@@ -14,13 +14,17 @@ from __future__ import absolute_import
 import os
 import os.path as osp
 from string import Template
+import sys
 import time
 
 # Qt imports
 from spyderlib.qt.QtGui import (QTextEdit, QKeySequence, QWidget, QMenu,
                                 QHBoxLayout, QToolButton, QVBoxLayout,
                                 QMessageBox)
-from spyderlib.qt.QtCore import SIGNAL, Qt
+from spyderlib.qt.QtCore import Signal, Slot, Qt
+
+from spyderlib import pygments_patch
+pygments_patch.apply()
 
 # IPython imports
 try:  # 1.0
@@ -69,6 +73,10 @@ class IPythonControlWidget(TracebackLinksMixin, InspectObjectMixin, QTextEdit,
     control widget for IPython widgets
     """
     QT_CLASS = QTextEdit
+    visibility_changed = Signal(bool)
+    go_to_error = Signal(str)
+    focus_changed = Signal()
+    
     def __init__(self, parent=None):
         QTextEdit.__init__(self, parent)
         BaseEditMixin.__init__(self)
@@ -82,7 +90,7 @@ class IPythonControlWidget(TracebackLinksMixin, InspectObjectMixin, QTextEdit,
     
     def showEvent(self, event):
         """Reimplement Qt Method"""
-        self.emit(SIGNAL("visibility_changed(bool)"), True)
+        self.visibility_changed.emit(True)
     
     def _key_question(self, text):
         """ Action for '?' and '(' """
@@ -108,12 +116,12 @@ class IPythonControlWidget(TracebackLinksMixin, InspectObjectMixin, QTextEdit,
 
     def focusInEvent(self, event):
         """Reimplement Qt method to send focus change notification"""
-        self.emit(SIGNAL('focus_changed()'))
+        self.focus_changed.emit()
         return super(IPythonControlWidget, self).focusInEvent(event)
     
     def focusOutEvent(self, event):
         """Reimplement Qt method to send focus change notification"""
-        self.emit(SIGNAL('focus_changed()'))
+        self.focus_changed.emit()
         return super(IPythonControlWidget, self).focusOutEvent(event)
 
 
@@ -123,6 +131,10 @@ class IPythonPageControlWidget(QTextEdit, BaseEditMixin):
     use as the paging widget for IPython widgets
     """
     QT_CLASS = QTextEdit
+    visibility_changed = Signal(bool)
+    show_find_widget = Signal()
+    focus_changed = Signal()
+    
     def __init__(self, parent=None):
         QTextEdit.__init__(self, parent)
         BaseEditMixin.__init__(self)
@@ -130,23 +142,23 @@ class IPythonPageControlWidget(QTextEdit, BaseEditMixin):
     
     def showEvent(self, event):
         """Reimplement Qt Method"""
-        self.emit(SIGNAL("visibility_changed(bool)"), True)
+        self.visibility_changed.emit(True)
     
     def keyPressEvent(self, event):
         """Reimplement Qt Method - Basic keypress event handler"""
         event, text, key, ctrl, shift = restore_keyevent(event)
         
         if key == Qt.Key_Slash and self.isVisible():
-            self.emit(SIGNAL("show_find_widget()"))
+            self.show_find_widget.emit()
 
     def focusInEvent(self, event):
         """Reimplement Qt method to send focus change notification"""
-        self.emit(SIGNAL('focus_changed()'))
+        self.focus_changed.emit()
         return super(IPythonPageControlWidget, self).focusInEvent(event)
     
     def focusOutEvent(self, event):
         """Reimplement Qt method to send focus change notification"""
-        self.emit(SIGNAL('focus_changed()'))
+        self.focus_changed.emit()
         return super(IPythonPageControlWidget, self).focusOutEvent(event)
 
 
@@ -160,6 +172,8 @@ class IPythonShellWidget(RichIPythonWidget):
     This class has custom control and page_control widgets, additional methods
     to provide missing functionality and a couple more keyboard shortcuts.
     """
+    focus_changed = Signal()
+    
     def __init__(self, *args, **kw):
         # To override the Qt widget used by RichIPythonWidget
         self.custom_control = IPythonControlWidget
@@ -186,7 +200,7 @@ class IPythonShellWidget(RichIPythonWidget):
         self.ipyclient = ipyclient
         self.exit_requested.connect(ipyclient.exit_callback)
     
-    def show_banner(self):
+    def long_banner(self):
         """Banner for IPython widgets with pylab message"""
         from IPython.core.usage import default_gui_banner
         banner = default_gui_banner
@@ -220,6 +234,15 @@ These commands were executed:
 >>> f, g, h = symbols('f g h', cls=Function)
 """
             banner = banner + lines
+        return banner
+    
+    def short_banner(self):
+        """Short banner with Python and IPython versions"""
+        from IPython.core.release import version
+        py_ver = '%d.%d.%d' % (sys.version_info[0], sys.version_info[1],
+                               sys.version_info[2])
+        banner = 'Python %s on %s -- IPython %s' % (py_ver, sys.platform,
+                                                    version)
         return banner
     
     def clear_console(self):
@@ -262,9 +285,9 @@ These commands were executed:
         """
         banner_o = CONF.get('ipython_console', 'show_banner', True)
         if banner_o:
-            return self.show_banner()
+            return self.long_banner()
         else:
-            return ''
+            return self.short_banner()
     
     def _handle_object_info_reply(self, rep):
         """
@@ -306,12 +329,12 @@ These commands were executed:
     #---- Qt methods ----------------------------------------------------------
     def focusInEvent(self, event):
         """Reimplement Qt method to send focus change notification"""
-        self.emit(SIGNAL('focus_changed()'))
+        self.focus_changed.emit()
         return super(IPythonShellWidget, self).focusInEvent(event)
     
     def focusOutEvent(self, event):
         """Reimplement Qt method to send focus change notification"""
-        self.emit(SIGNAL('focus_changed()'))
+        self.focus_changed.emit()
         return super(IPythonShellWidget, self).focusOutEvent(event)
 
 
@@ -328,6 +351,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
     """
     
     SEPARATOR = '%s##---(%s)---' % (os.linesep*2, time.ctime())
+    append_to_history = Signal(str, str)
     
     def __init__(self, plugin, history_filename, connection_file=None, 
                  hostname=None, sshkey=None, password=None, 
@@ -408,7 +432,8 @@ class IPythonClient(QWidget, SaveHistoryMixin):
    
     def disable_stop_button(self):
         self.stop_button.setDisabled(True)
-        
+
+    @Slot()
     def stop_button_click_handler(self):
         self.stop_button.setDisabled(True)
         self.interrupt_kernel()
@@ -535,19 +560,23 @@ class IPythonClient(QWidget, SaveHistoryMixin):
     def interrupt_kernel(self):
         """Interrupt the associanted Spyder kernel if it's running"""
         self.shellwidget.request_interrupt_kernel()
-    
+
+    @Slot()
     def restart_kernel(self):
         """Restart the associanted Spyder kernel"""
         self.shellwidget.request_restart_kernel()
-    
+
+    @Slot()
     def inspect_object(self):
         """Show how to inspect an object with our object inspector"""
         self.shellwidget._control.inspect_current_object()
-    
+
+    @Slot()
     def clear_line(self):
         """Clear a console line"""
         self.shellwidget._keyboard_quit()
-    
+
+    @Slot()
     def clear_console(self):
         """Clear the whole console"""
         self.shellwidget.execute("%clear")

@@ -175,6 +175,8 @@ def getsignaturefromtext(text, objname):
     multiline_re = objname + r'\([^\)]+(?<=[\w\]\}\'"])\)(?!,)'
     multiline_end_parenleft_re = r'(%s\([^\)]+(\),\n.+)+(?<=[\w\]\}\'"])\))'
     # Grabbing signatures
+    if not text:
+        text = ''
     sigs_1 = re.findall(oneline_re + '|' + multiline_re, text)
     sigs_2 = [g[0] for g in re.findall(multiline_end_parenleft_re % objname, text)]
     all_sigs = sigs_1 + sigs_2
@@ -184,6 +186,10 @@ def getsignaturefromtext(text, objname):
         return all_sigs[0]
     else:
         return ''
+
+# Fix for Issue 1953
+# TODO: Add more signatures and remove this hack in 2.4
+getsignaturesfromtext = getsignaturefromtext
 
 
 def getargspecfromtext(text):

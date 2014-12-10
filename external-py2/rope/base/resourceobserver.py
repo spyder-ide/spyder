@@ -231,7 +231,8 @@ class FilteredResourceObserver(object):
     def _is_changed(self, resource):
         if self.resources[resource] is None:
             return False
-        return self.resources[resource] != self.timekeeper.get_indicator(resource)
+        return self.resources[resource] != \
+            self.timekeeper.get_indicator(resource)
 
     def _calculate_new_resource(self, main, new_main, resource):
         if new_main is None:

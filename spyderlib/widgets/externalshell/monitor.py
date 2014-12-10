@@ -229,7 +229,7 @@ class Monitor(threading.Thread):
             self._mglobals = glbs
             return glbs
     
-    def get_current_namespace(self):
+    def get_current_namespace(self, with_magics=False):
         """Return current namespace, i.e. globals() if not debugging,
         or a dictionary containing both locals() and globals() 
         for current frame when debugging"""
@@ -244,7 +244,7 @@ class Monitor(threading.Thread):
         
         # Add magics to ns so we can show help about them on the Object
         # Inspector
-        if self.ip:
+        if self.ip and with_magics:
             line_magics = self.ip.magics_manager.magics['line']
             cell_magics = self.ip.magics_manager.magics['cell']
             ns.update(line_magics)
@@ -272,7 +272,7 @@ class Monitor(threading.Thread):
     
     def isdefined(self, obj, force_import=False):
         """Return True if object is defined in current namespace"""
-        ns = self.get_current_namespace()
+        ns = self.get_current_namespace(with_magics=True)
         return isdefined(obj, force_import=force_import, namespace=ns)
 
     def toggle_inputhook_flag(self, state):
@@ -335,7 +335,7 @@ class Monitor(threading.Thread):
         and *valid* is True if object evaluation did not raise any exception
         """
         assert is_text_string(text)
-        ns = self.get_current_namespace()
+        ns = self.get_current_namespace(with_magics=True)
         try:
             return eval(text, ns), True
         except:

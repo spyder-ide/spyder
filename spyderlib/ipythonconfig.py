@@ -12,9 +12,11 @@ from spyderlib.utils import programs
 
 
 def is_qtconsole_installed():
-    if programs.is_module_installed('IPython.qt'):
+    pyzmq_installed = programs.is_module_installed('zmq')
+    if programs.is_module_installed('IPython.qt') and pyzmq_installed:
         return True
-    elif programs.is_module_installed('IPython.frontend.qt'):
+    elif programs.is_module_installed('IPython.frontend.qt') and \
+      pyzmq_installed:
         return True
     else:
         return False

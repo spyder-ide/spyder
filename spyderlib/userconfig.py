@@ -68,6 +68,27 @@ class DefaultsConfig(cp.ConfigParser):
         cp.ConfigParser.__init__(self)
         self.name = name
         self.subfolder = subfolder
+
+    def _write(self, fp):
+        """
+        Private write method for Python 2
+        The one from configparser fails for non-ascii Windows accounts
+        """
+        if self._defaults:
+            fp.write("[%s]\n" % DEFAULTSECT)
+            for (key, value) in self._defaults.items():
+                fp.write("%s = %s\n" % (key, str(value).replace('\n', '\n\t')))
+            fp.write("\n")
+        for section in self._sections:
+            fp.write("[%s]\n" % section)
+            for (key, value) in self._sections[section].items():
+                if key == "__name__":
+                    continue
+                if (value is not None) or (self._optcre == self.OPTCRE):
+                    value = to_text_string(value)
+                    key = " = ".join((key, value.replace('\n', '\n\t')))
+                fp.write("%s\n" % (key))
+            fp.write("\n")
     
     def _set(self, section, option, value, verbose):
         """
@@ -93,7 +114,7 @@ class DefaultsConfig(cp.ConfigParser):
             if PY2:
                 # Python 2
                 with open(fname, 'w') as configfile:
-                    self.write(configfile)
+                    self._write(configfile)
             else:
                 # Python 3
                 with open(fname, 'w', encoding='utf-8') as configfile:
@@ -397,6 +418,11 @@ class UserConfig(DefaultsConfig):
         section = self.__check_section_option(section, option)
         default_value = self.get_default(section, option)
         if default_value is NoDefault:
+            # This let us save correctly string value options with
+            # no config default that contain non-ascii chars in
+            # Python 2
+            if PY2 and is_text_string(value):
+                value = repr(value)
             default_value = value
             self.set_default(section, option, default_value)
         if isinstance(default_value, bool):
