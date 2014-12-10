@@ -182,8 +182,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     zoom_in = Signal()
     zoom_out = Signal()
     zoom_reset = Signal()
-    focus_changed = Signal()    
-
+    focus_changed = Signal()
+    
     def __init__(self, parent=None):
         QPlainTextEdit.__init__(self, parent)
         BaseEditMixin.__init__(self)
@@ -192,8 +192,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.extra_selections_dict = {}
         
         self.textChanged.connect(self.changed)
-        self.cursorPositionChanged.connect(self.cursor_position_changed)        
- 
+        self.cursorPositionChanged.connect(self.cursor_position_changed)
+        
         self.indent_chars = " "*4
         
         # Code completion / calltips
@@ -1109,7 +1109,7 @@ class ConsoleBaseWidget(TextEditBaseWidget):
     traceback_available = Signal()
     userListActivated = Signal(int, str)
     completion_widget_activated = Signal(str)
-        
+
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
         
