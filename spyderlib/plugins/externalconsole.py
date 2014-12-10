@@ -693,7 +693,7 @@ class ExternalConsole(SpyderPluginWidget):
         # This is a unique form of the edit_goto signal that is intended to 
         # prevent keyboard input from accidentally entering the editor
         # during repeated, rapid entry of debugging commands.    
-        self.edit_got.emit(fname, lineno, '', False)
+        self.edit_goto.emit(fname, lineno, '', False)
         if shellwidget.is_ipykernel:
             # Focus client widget, not kernel
             ipw = self.main.ipyconsole.get_focus_widget()
