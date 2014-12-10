@@ -1419,7 +1419,7 @@ class CodeEditor(TextEditBaseWidget):
                 self.highlighter.rehighlight()
 
     def set_font(self, font, color_scheme=None):
-        """Set shell font"""
+        """Set font"""
         # Note: why using this method to set color scheme instead of
         #       'set_color_scheme'? To avoid rehighlighting the document twice
         #       at startup.
@@ -2274,6 +2274,9 @@ class CodeEditor(TextEditBaseWidget):
         zoom_out_action = create_action(self, _("Zoom out"),
                       QKeySequence(QKeySequence.ZoomOut), icon='zoom_out.png',
                       triggered=lambda: self.zoom_out.emit())
+        zoom_reset_action = create_action(self, _("Zoom reset"),
+                      QKeySequence("Ctrl+0"),
+                      triggered=lambda: self.zoom_reset.emit())
         self.menu = QMenu(self)
         if nbformat is not None:
             add_actions(self.menu, (self.undo_action, self.redo_action, None,
@@ -2282,7 +2285,8 @@ class CodeEditor(TextEditBaseWidget):
                                     None, self.clear_all_output_action,
                                     self.ipynb_convert_action, None, 
                                     selectall_action, None, zoom_in_action,
-                                    zoom_out_action, None, toggle_comment_action,
+                                    zoom_out_action, zoom_reset_action, None,
+                                    toggle_comment_action,
                                     None, self.run_selection_action,
                                     self.gotodef_action))
         else:
@@ -2290,7 +2294,8 @@ class CodeEditor(TextEditBaseWidget):
                                     self.cut_action, self.copy_action,
                                     paste_action, self.delete_action,
                                     None, selectall_action, None, zoom_in_action,
-                                    zoom_out_action, None, toggle_comment_action,
+                                    zoom_out_action, zoom_reset_action, None,
+                                    toggle_comment_action,
                                     None, self.run_selection_action,
                                     self.gotodef_action))
 

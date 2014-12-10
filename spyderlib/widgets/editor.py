@@ -575,6 +575,7 @@ class EditorStack(QWidget):
     editor_focus_changed = Signal()
     zoom_in = Signal()
     zoom_out = Signal()
+    zoom_reset = Signal()
     sig_close_file = Signal(str, int)
     file_saved = Signal(str, int, str)
     file_renamed_in_data = Signal(str, int, str)
@@ -722,6 +723,9 @@ class EditorStack(QWidget):
         zoomout = QShortcut(QKeySequence(QKeySequence.ZoomOut), self,
                             lambda: self.zoom_out.emit())
         zoomout.setContext(Qt.WidgetWithChildrenShortcut)
+        zoomreset = QShortcut(QKeySequence("Ctrl+0"), self,
+                              lambda: self.zoom_reset.emit())
+        zoomreset.setContext(Qt.WidgetWithChildrenShortcut)
         # Return configurable ones
         return [inspect, breakpoint, cbreakpoint, gotoline, filelist, tab,
                 tabshift]
@@ -1900,6 +1904,7 @@ class EditorStack(QWidget):
         editor.focus_in.connect(self.focus_changed)
         editor.zoom_in.connect(lambda: self.zoom_in.emit())
         editor.zoom_out.connect(lambda: self.zoom_out.emit())
+        editor.zoom_reset.connect(lambda: self.zoom_reset.emit())
         if self.outlineexplorer is not None:
             # Removing editor reference from outline explorer settings:
             editor.destroyed.connect(lambda obj=editor:
