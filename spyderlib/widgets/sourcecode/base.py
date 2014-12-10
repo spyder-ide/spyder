@@ -1109,7 +1109,7 @@ class ConsoleBaseWidget(TextEditBaseWidget):
     traceback_available = Signal()
     userListActivated = Signal(int, str)
     completion_widget_activated = Signal(str)
-
+    
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
         
@@ -1183,7 +1183,7 @@ class ConsoleBaseWidget(TextEditBaseWidget):
     #------Python shell
     def insert_text(self, text):
         """Reimplement TextEditBaseWidget method"""
-        # Eventually this maybe should wrap to self.insert_text_to if
+        # Eventually this maybe should wrap to insert_text_to if
         # backspace-handling is required
         self.textCursor().insertText(text, self.default_style.format)
         
