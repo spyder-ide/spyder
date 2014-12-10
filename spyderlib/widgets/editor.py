@@ -696,6 +696,9 @@ class EditorStack(QWidget):
         zoomout = QShortcut(QKeySequence(QKeySequence.ZoomOut), self,
                            lambda: self.emit(SIGNAL('zoom_out()')))
         zoomout.setContext(Qt.WidgetWithChildrenShortcut)
+        zoomreset = QShortcut(QKeySequence("Ctrl+0"), self,
+                              lambda: self.emit(SIGNAL('zoom_reset()')))
+        zoomreset.setContext(Qt.WidgetWithChildrenShortcut)
         # Return configurable ones
         return [inspect, breakpoint, cbreakpoint, gotoline, filelist, tab,
                 tabshift]
@@ -1890,6 +1893,8 @@ class EditorStack(QWidget):
                      lambda: self.emit(SIGNAL('zoom_in()')))
         self.connect(editor, SIGNAL('zoom_out()'),
                      lambda: self.emit(SIGNAL('zoom_out()')))
+        self.connect(editor, SIGNAL('zoom_reset()'),
+                     lambda: self.emit(SIGNAL('zoom_reset()')))
         if self.outlineexplorer is not None:
             # Removing editor reference from outline explorer settings:
             self.connect(editor, SIGNAL("destroyed()"),

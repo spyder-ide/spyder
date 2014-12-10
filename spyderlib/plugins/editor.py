@@ -1119,6 +1119,7 @@ class Editor(SpyderPluginWidget):
 
         self.connect(editorstack, SIGNAL('zoom_in()'), lambda: self.zoom(1))
         self.connect(editorstack, SIGNAL('zoom_out()'), lambda: self.zoom(-1))
+        self.connect(editorstack, SIGNAL('zoom_reset()'), lambda: self.zoom(0))
         
         self.connect(editorstack, SIGNAL('close_file(QString,int)'),
                      self.close_file_in_all_editorstacks)
@@ -2104,18 +2105,19 @@ class Editor(SpyderPluginWidget):
         editorstack = self.get_current_editorstack()
         editorstack.run_cell_and_advance()
 
-
-    #------ Zoom in/out
+    #------ Zoom in/out/reset
     def zoom(self, constant):
-        """Zoom in/out"""
-        font = self.get_plugin_font()
-        size = font.pointSize() + constant
-        if size > 0:
-            font.setPointSize(size)
-            for editorstack in self.editorstacks:
-                editorstack.set_default_font(font)
-            self.set_plugin_font(font)
-
+        """Zoom in/out/reset"""
+        editor = self.get_current_editorstack().get_current_editor()
+        if constant == 0:
+            font = self.get_plugin_font()
+            editor.set_font(font)
+        else:
+            font = editor.font()
+            size = font.pointSize() + constant
+            if size > 0:
+                font.setPointSize(size)
+                editor.set_font(font)
 
     #------ Options
     def apply_plugin_settings(self, options):
