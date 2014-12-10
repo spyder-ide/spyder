@@ -20,7 +20,7 @@ from spyderlib.qt.QtGui import (QTextCursor, QColor, QFont, QApplication,
                                 QListWidget, QPlainTextEdit, QPalette,
                                 QMainWindow, QTextOption, QMouseEvent,
                                 QTextFormat, QClipboard)
-from spyderlib.qt.QtCore import SIGNAL, Qt, QEventLoop, QEvent, QPoint
+from spyderlib.qt.QtCore import Signal, Slot, Qt, QEventLoop, QEvent, QPoint
 from spyderlib.qt.compat import to_qvariant
 
 
@@ -41,8 +41,7 @@ class CompletionWidget(QListWidget):
         self.case_sensitive = False
         self.enter_select = None
         self.hide()
-        self.connect(self, SIGNAL("itemActivated(QListWidgetItem*)"),
-                     self.item_selected)
+        self.itemActivated.connect(self.item_selected)
         
     def setup_appearance(self, size, font):
         self.resize(*size)
@@ -178,7 +177,13 @@ class CompletionWidget(QListWidget):
 class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     """Text edit base widget"""
     BRACE_MATCHING_SCOPE = ('sof', 'eof')
-    
+    cell_separators = None
+    focus_in = Signal()
+    zoom_in = Signal()
+    zoom_out = Signal()
+    zoom_reset = Signal()
+    focus_changed = Signal()    
+
     def __init__(self, parent=None):
         QPlainTextEdit.__init__(self, parent)
         BaseEditMixin.__init__(self)
@@ -186,10 +191,9 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         
         self.extra_selections_dict = {}
         
-        self.connect(self, SIGNAL('textChanged()'), self.changed)
-        self.connect(self, SIGNAL('cursorPositionChanged()'),
-                     self.cursor_position_changed)
-        
+        self.textChanged.connect(self.changed)
+        self.cursorPositionChanged.connect(self.cursor_position_changed)        
+ 
         self.indent_chars = " "*4
         
         # Code completion / calltips
@@ -208,7 +212,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.calltips = True
         self.calltip_position = None
         self.has_cell_separators = False
-        self.cell_separators = None
         self.completion_text = ""
         self.calltip_widget = CallTipWidget(self, hide_timer_on=True)
         
@@ -264,8 +267,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         
     def changed(self):
         """Emit changed signal"""
-        self.emit(SIGNAL('modificationChanged(bool)'),
-                  self.document().isModified())
+        self.modificationChanged.emit(self.document().isModified())
 
 
     #------Highlight current line
@@ -431,6 +433,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         
         
     #------Reimplementing Qt methods
+    @Slot()
     def copy(self):
         """
         Reimplement Qt method
@@ -449,7 +452,9 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         # of unicode chars on them (like the one attached on
         # Issue 1546)
         if os.name == 'nt' and PY3:
-            return self.get_text('sof', 'eof')
+            text = self.get_text('sof', 'eof')
+            return text.replace('\u2028', '\n').replace('\u2029', '\n')\
+                       .replace('\u0085', '\n')
         else:
             return super(TextEditBaseWidget, self).toPlainText()
 
@@ -952,8 +957,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         """Reimplement Qt method"""
         if sys.platform.startswith('linux') and event.button() == Qt.MidButton:
             self.calltip_widget.hide()
-            if self.has_selected_text():
-                self.remove_selected_text()
             self.setFocus()
             event = QMouseEvent(QEvent.MouseButtonPress, event.pos(),
                                 Qt.LeftButton, Qt.LeftButton, Qt.NoModifier)
@@ -961,8 +964,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             QPlainTextEdit.mouseReleaseEvent(self, event)
             # Send selection text to clipboard to be able to use
             # the paste method and avoid the strange Issue 1445
-            #
-            # Note: This issue seems a focusing problem but it
+            # NOTE: This issue seems a focusing problem but it
             # seems really hard to track
             mode_clip = QClipboard.Clipboard
             mode_sel = QClipboard.Selection
@@ -977,14 +979,14 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
     def focusInEvent(self, event):
         """Reimplemented to handle focus"""
-        self.emit(SIGNAL("focus_changed()"))
-        self.emit(SIGNAL("focus_in()"))
+        self.focus_changed.emit()
+        self.focus_in.emit()
         self.highlight_current_cell()
         QPlainTextEdit.focusInEvent(self, event)
         
     def focusOutEvent(self, event):
         """Reimplemented to handle focus"""
-        self.emit(SIGNAL("focus_changed()"))
+        self.focus_changed.emit()
         QPlainTextEdit.focusOutEvent(self, event)
     
     def wheelEvent(self, event):
@@ -994,9 +996,9 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         if sys.platform != 'darwin':
             if event.modifiers() & Qt.ControlModifier:
                 if event.delta() < 0:
-                    self.emit(SIGNAL("zoom_out()"))
+                    self.zoom_out.emit()
                 elif event.delta() > 0:
-                    self.emit(SIGNAL("zoom_in()"))
+                    self.zoom_in.emit()
                 return
         QPlainTextEdit.wheelEvent(self, event)
         self.highlight_current_cell()
@@ -1098,12 +1100,16 @@ class ConsoleFontStyle(object):
         font.setItalic(self.italic)
         font.setUnderline(self.underline)
         self.format.setFont(font)
-    
+
+
 class ConsoleBaseWidget(TextEditBaseWidget):
     """Console base widget"""
     BRACE_MATCHING_SCOPE = ('sol', 'eol')
     COLOR_PATTERN = re.compile('\x01?\x1b\[(.*?)m\x02?')
-    
+    traceback_available = Signal()
+    userListActivated = Signal(int, str)
+    completion_widget_activated = Signal(str)
+        
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
         
@@ -1117,10 +1123,8 @@ class ConsoleBaseWidget(TextEditBaseWidget):
         # Disable undo/redo (nonsense for a console widget...):
         self.setUndoRedoEnabled(False)
         
-        self.connect(self, SIGNAL('userListActivated(int, const QString)'),
-                     lambda user_id, text:
-                     self.emit(SIGNAL('completion_widget_activated(QString)'),
-                               text))
+        self.userListActivated.connect(lambda user_id, text:
+                                   self.completion_widget_activated.emit(text))
         
         self.default_style = ConsoleFontStyle(
                             foregroundcolor=0x000000, backgroundcolor=0xFFFFFF,
@@ -1179,6 +1183,8 @@ class ConsoleBaseWidget(TextEditBaseWidget):
     #------Python shell
     def insert_text(self, text):
         """Reimplement TextEditBaseWidget method"""
+        # Eventually this maybe should wrap to self.insert_text_to if
+        # backspace-handling is required
         self.textCursor().insertText(text, self.default_style.format)
         
     def paste(self):
@@ -1222,21 +1228,21 @@ class ConsoleBaseWidget(TextEditBaseWidget):
                     # Show error/warning messages in red
                     cursor.insertText(text, self.error_style.format)
             if is_traceback:
-                self.emit(SIGNAL('traceback_available()'))
+                self.traceback_available.emit()
         elif prompt:
             # Show prompt in green
-            insert_text(cursor, text, self.prompt_style.format)
+            insert_text_to(cursor, text, self.prompt_style.format)
         else:
             # Show other outputs in black
             last_end = 0
             for match in self.COLOR_PATTERN.finditer(text):
-                insert_text(cursor, text[last_end:match.start()],
-                            self.default_style.format)
+                insert_text_to(cursor, text[last_end:match.start()],
+                               self.default_style.format)
                 last_end = match.end()
                 for code in [int(_c) for _c in match.group(1).split(';')]:
                     self.ansi_handler.set_code(code)
                 self.default_style.format = self.ansi_handler.get_format()
-            insert_text(cursor, text[last_end:], self.default_style.format)
+            insert_text_to(cursor, text[last_end:], self.default_style.format)
 #            # Slower alternative:
 #            segments = self.COLOR_PATTERN.split(text)
 #            cursor.insertText(segments.pop(0), self.default_style.format)
@@ -1260,7 +1266,7 @@ class ConsoleBaseWidget(TextEditBaseWidget):
         self.ansi_handler.set_base_format(self.default_style.format)
 
 
-def insert_text(cursor, text, fmt):
+def insert_text_to(cursor, text, fmt):
     """Helper to print text, taking into account backspaces"""
     while True:
         index = text.find(chr(8))  # backspace
