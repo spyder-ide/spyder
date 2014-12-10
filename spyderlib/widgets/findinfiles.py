@@ -15,7 +15,8 @@ from __future__ import with_statement
 
 from spyderlib.qt.QtGui import (QHBoxLayout, QWidget, QTreeWidgetItem,
                                 QSizePolicy, QRadioButton, QVBoxLayout, QLabel)
-from spyderlib.qt.QtCore import Signal, Qt, QThread, QMutexLocker, QMutex
+from spyderlib.qt.QtCore import (Signal, Slot, Qt, QThread, QMutexLocker,
+                                 QMutex)
 from spyderlib.qt.compat import getexistingdirectory
 
 import sys
@@ -413,7 +414,8 @@ class FindOptions(QWidget):
         self.setLayout(vlayout)
                 
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
-        
+
+    @Slot(bool)
     def toggle_more_options(self, state):
         for layout in self.more_widgets:
             for index in range(layout.count()):
@@ -495,7 +497,8 @@ class FindOptions(QWidget):
         else:
             return (path, python_path, hg_manifest,
                     include, exclude, texts, text_re)
-        
+
+    @Slot()
     def select_directory(self):
         """Select directory"""
         self.parent().redirect_stdio.emit(False)

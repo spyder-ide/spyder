@@ -12,7 +12,7 @@ import socket
 from spyderlib.qt.QtGui import (QWidget, QVBoxLayout, QHBoxLayout, QMenu,
                                 QToolButton, QMessageBox, QApplication,
                                 QCursor, QInputDialog)
-from spyderlib.qt.QtCore import Qt, Signal
+from spyderlib.qt.QtCore import Qt, Signal, Slot
 from spyderlib.qt.compat import getopenfilenames, getsavefilename
 
 # Local imports
@@ -270,7 +270,8 @@ class NamespaceBrowser(QWidget):
         self.is_visible = enable
         if enable:
             self.refresh_table()
-        
+
+    @Slot(bool)
     def toggle_auto_refresh(self, state):
         """Toggle auto refresh state"""
         self.autorefresh = state
@@ -310,7 +311,8 @@ class NamespaceBrowser(QWidget):
         for name in REMOTE_SETTINGS:
             settings[name] = getattr(self, name)
         return settings
-        
+
+    @Slot()
     def refresh_table(self):
         """Refresh variable table"""
         if self.is_visible and self.isVisible():
@@ -445,7 +447,8 @@ class NamespaceBrowser(QWidget):
     def collapse(self):
         """Collapse"""
         self.sig_collapse.emit()
-        
+
+    @Slot()
     def import_data(self, filenames=None):
         """Import data from text file"""
         title = _("Import data")
@@ -531,7 +534,7 @@ class NamespaceBrowser(QWidget):
                                        ) % (self.filename, error_message))
             self.refresh_table()
             
-    
+    @Slot()
     def save_data(self, filename=None):
         """Save data"""
         if filename is None:

@@ -14,7 +14,7 @@
 from spyderlib.qt.QtGui import (QHBoxLayout, QGridLayout, QCheckBox, QLabel,
                                 QWidget, QSizePolicy, QShortcut, QKeySequence,
                                 QTextCursor)
-from spyderlib.qt.QtCore import Signal, Qt, QTimer
+from spyderlib.qt.QtCore import Signal, Slot, Qt, QTimer
 
 import re
 
@@ -183,7 +183,8 @@ class FindReplace(QWidget):
             else:
                 self.show_replace()
                 self.replace_text.setFocus()
-                
+
+    @Slot(bool)
     def toggle_highlighting(self, state):
         """Toggle the 'highlight all results' feature"""
         if self.editor is not None:
@@ -205,7 +206,8 @@ class FindReplace(QWidget):
             else:
                 self.search_text.lineEdit().selectAll()
             self.search_text.setFocus()
-        
+
+    @Slot()
     def hide(self):
         """Overrides Qt Method"""
         for widget in self.replace_widgets:
@@ -256,14 +258,16 @@ class FindReplace(QWidget):
             self.refresh()
         if self.isHidden() and editor is not None:
             self.clear_matches()
-        
+
+    @Slot()
     def find_next(self):
         """Find next occurence"""
         state = self.find(changed=False, forward=True, rehighlight=False)
         self.editor.setFocus()
         self.search_text.add_current_text()
         return state
-        
+
+    @Slot()
     def find_previous(self):
         """Find previous occurence"""
         state = self.find(changed=False, forward=False, rehighlight=False)
@@ -313,7 +317,8 @@ class FindReplace(QWidget):
             else:
                 self.clear_matches()
             return found
-            
+
+    @Slot()
     def replace_find(self):
         """Replace and find"""
         if (self.editor is not None):

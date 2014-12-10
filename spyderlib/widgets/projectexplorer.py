@@ -657,6 +657,7 @@ class ExplorerTreeWidget(FilteredDirView):
         return actions + [hscrollbar_action]
 
     #------Public API----------------------------------------------------------
+    @Slot(bool)
     def toggle_hscrollbar(self, checked):
         """Toggle horizontal scrollbar"""
         self.parent_widget.sig_option_changed.emit('show_hscrollbar', checked)
@@ -862,7 +863,8 @@ class ExplorerTreeWidget(FilteredDirView):
                 return name
             else:
                 return
-    
+
+    @Slot()
     def new_project(self):
         """Return True if project was created"""
         title = _('New project')
@@ -899,7 +901,8 @@ class ExplorerTreeWidget(FilteredDirView):
                 return folder
             else:
                 return
-    
+
+    @Slot()
     def import_existing_directory(self):
         """Create project from existing directory
         Eventually copy the whole directory to current workspace"""
@@ -940,7 +943,8 @@ class ExplorerTreeWidget(FilteredDirView):
                                        ) % (osp.basename(folder), typename))
                     continue
             return folder
-    
+
+    @Slot()
     def import_existing_project(self):
         """Import existing project"""
         folders = self.__select_existing_project("Spyder", Project.CONFIG_NAME)
@@ -950,7 +954,8 @@ class ExplorerTreeWidget(FilteredDirView):
             folders = [folders]
         for folder in folders:
             self.add_project(folder, silent=True)
-    
+
+    @Slot()
     def import_existing_pydev_project(self):
         """Import existing Pydev project"""
         folders = self.__select_existing_project("Pydev", ".pydevproject")

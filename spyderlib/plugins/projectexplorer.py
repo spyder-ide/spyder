@@ -7,7 +7,7 @@
 """Project Explorer Plugin"""
 
 from spyderlib.qt.QtGui import QFontDialog
-from spyderlib.qt.QtCore import Signal
+from spyderlib.qt.QtCore import Signal, Slot
 
 # Local imports
 from spyderlib.baseconfig import _
@@ -102,6 +102,7 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         return True
         
     #------ Public API ---------------------------------------------------------
+    @Slot()
     def create_new_project(self):
         """Create new project"""
         if self.dockwidget.isHidden():
@@ -117,7 +118,8 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         for fname in self.main.editor.get_filenames():
             if self.treewidget.workspace.is_file_in_closed_project(fname):
                 self.main.editor.close_file_from_name(fname)
-        
+
+    @Slot()    
     def change_font(self):
         """Change font"""
         font, valid = QFontDialog.getFont(self.get_plugin_font(), self,

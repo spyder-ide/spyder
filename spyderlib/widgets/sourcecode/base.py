@@ -20,7 +20,7 @@ from spyderlib.qt.QtGui import (QTextCursor, QColor, QFont, QApplication,
                                 QListWidget, QPlainTextEdit, QPalette,
                                 QMainWindow, QTextOption, QMouseEvent,
                                 QTextFormat, QClipboard)
-from spyderlib.qt.QtCore import Signal, Qt, QEventLoop, QEvent, QPoint
+from spyderlib.qt.QtCore import Signal, Slot, Qt, QEventLoop, QEvent, QPoint
 from spyderlib.qt.compat import to_qvariant
 
 
@@ -181,6 +181,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     focus_in = Signal()
     zoom_in = Signal()
     zoom_out = Signal()
+    focus_changed = Signal()
     
     def __init__(self, parent=None):
         QPlainTextEdit.__init__(self, parent)
@@ -431,6 +432,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         
         
     #------Reimplementing Qt methods
+    @Slot()
     def copy(self):
         """
         Reimplement Qt method

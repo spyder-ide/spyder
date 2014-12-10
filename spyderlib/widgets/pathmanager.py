@@ -11,7 +11,7 @@ from __future__ import print_function
 from spyderlib.qt.QtGui import (QDialog, QListWidget, QDialogButtonBox,
                                 QVBoxLayout, QHBoxLayout, QMessageBox,
                                 QListWidgetItem)
-from spyderlib.qt.QtCore import Qt, Signal
+from spyderlib.qt.QtCore import Qt, Signal, Slot
 from spyderlib.qt.compat import getexistingdirectory
 
 import os
@@ -133,7 +133,8 @@ class PathManager(QDialog):
                   text_beside_icon=True)
             layout.addWidget(self.sync_button)
         return toolbar
-    
+
+    @Slot()
     def synchronize(self):
         """
         Synchronize Spyder's path list with PYTHONPATH environment variable
@@ -205,7 +206,8 @@ class PathManager(QDialog):
         self.pathlist.insert(new_index, path)
         self.update_list()
         self.listwidget.setCurrentRow(new_index)
-        
+
+    @Slot()
     def remove_path(self):
         answer = QMessageBox.warning(self, _("Remove path"),
             _("Do you really want to remove selected path?"),
@@ -213,7 +215,8 @@ class PathManager(QDialog):
         if answer == QMessageBox.Yes:
             self.pathlist.pop(self.listwidget.currentRow())
             self.update_list()
-    
+
+    @Slot()
     def add_path(self):
         self.redirect_stdio.emit(False)
         directory = getexistingdirectory(self, _("Select directory"),

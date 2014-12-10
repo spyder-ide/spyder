@@ -13,7 +13,7 @@
 Pandas DataFrame Editor Dialog
 """
 
-from spyderlib.qt.QtCore import QAbstractTableModel, Qt, QModelIndex
+from spyderlib.qt.QtCore import QAbstractTableModel, Qt, QModelIndex, Slot
 from spyderlib.qt.QtGui import (QDialog, QTableView, QColor, QGridLayout,
                                 QDialogButtonBox, QHBoxLayout, QPushButton,
                                 QCheckBox, QMessageBox, QInputDialog,
@@ -373,6 +373,7 @@ class DataFrameView(QTableView):
         index_list = self.selectedIndexes()
         [model.setData(i, '', change_type=func) for i in index_list]
 
+    @Slot()
     def copy(self, index=False, header=False):
         """Copy text to clipboard"""
         (row_min, row_max,

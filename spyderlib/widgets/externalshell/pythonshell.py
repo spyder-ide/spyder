@@ -12,7 +12,7 @@ import os.path as osp
 import socket
 
 from spyderlib.qt.QtGui import QApplication, QMessageBox, QSplitter, QMenu
-from spyderlib.qt.QtCore import QProcess, Signal, Qt
+from spyderlib.qt.QtCore import QProcess, Signal, Slot, Qt
 from spyderlib.qt.compat import getexistingdirectory
 
 # Local imports
@@ -403,7 +403,7 @@ class ExternalPythonShell(ExternalShellBase):
         if self.wdir is not None:
             self.process.setWorkingDirectory(self.wdir)
 
-        #-------------------------Python specific-------------------------------
+        #-------------------------Python specific------------------------------
         # Python arguments
         p_args = ['-u']
         if DEBUG >= 3:
@@ -494,7 +494,7 @@ class ExternalPythonShell(ExternalShellBase):
         # Adding path list to PYTHONPATH environment variable
         add_pathlist_to_PYTHONPATH(env, pathlist)
 
-        #-------------------------Python specific-------------------------------
+        #-------------------------Python specific------------------------------
                         
         self.process.readyReadStandardOutput.connect(self.write_output)
         self.process.readyReadStandardError.connect(self.write_error)
@@ -504,7 +504,7 @@ class ExternalPythonShell(ExternalShellBase):
         self.terminate_button.clicked.connect(self.process.terminate)
         self.kill_button.clicked.connect(self.process.kill)
         
-        #-------------------------Python specific-------------------------------
+        #-------------------------Python specific------------------------------
         # Fixes for our Mac app:
         # 1. PYTHONPATH and PYTHONHOME are set while bootstrapping the app,
         #    but their values are messing sys.path for external interpreters
@@ -525,7 +525,7 @@ class ExternalPythonShell(ExternalShellBase):
 
         self.process.setEnvironment(env)
         self.process.start(self.pythonexecutable, p_args)
-        #-------------------------Python specific-------------------------------
+        #-------------------------Python specific------------------------------
             
         running = self.process.waitForStarted(3000)
         self.set_running_state(running)
@@ -550,9 +550,9 @@ class ExternalPythonShell(ExternalShellBase):
         self.introspection_socket = None
 
     
-#===============================================================================
+#==============================================================================
 #    Input/Output
-#===============================================================================
+#==============================================================================
     def write_error(self):
         if os.name == 'nt':
             #---This is apparently necessary only on Windows (not sure though):
@@ -598,9 +598,10 @@ class ExternalPythonShell(ExternalShellBase):
             except socket.error:
                 pass
             
-#===============================================================================
+#==============================================================================
 #    Globals explorer
-#===============================================================================
+#==============================================================================
+    @Slot(bool)
     def toggle_globals_explorer(self, state):
         if self.stand_alone is not None:
             self.splitter.setSizes([1, 1 if state else 0])
@@ -611,9 +612,10 @@ class ExternalPythonShell(ExternalShellBase):
     def splitter_moved(self, pos, index):
         self.namespacebrowser_button.setChecked( self.splitter.sizes()[1] )
 
-#===============================================================================
+#==============================================================================
 #    Misc.
-#===============================================================================
+#==============================================================================
+    @Slot()
     def set_current_working_directory(self):
         """Set current working directory"""
         cwd = self.shell.get_cwd()
@@ -623,12 +625,14 @@ class ExternalPythonShell(ExternalShellBase):
             self.shell.set_cwd(directory)
         self.redirect_stdio.emit(True)
 
+    @Slot()
     def show_env(self):
         """Show environment variables"""
         get_func = self.shell.get_env
         set_func = self.shell.set_env
         self.dialog_manager.show(RemoteEnvDialog(get_func, set_func))
-        
+
+    @Slot()
     def show_syspath(self):
         """Show sys.path contents"""
         editor = DictEditor()

@@ -13,7 +13,7 @@ import os.path as osp
 
 from spyderlib.qt.QtGui import (QWidget, QTreeWidgetItem,  QHBoxLayout,
                                 QVBoxLayout)
-from spyderlib.qt.QtCore import Qt, Signal
+from spyderlib.qt.QtCore import Qt, Signal, Slot
 from spyderlib.qt.compat import from_qvariant
 
 # Local import
@@ -212,7 +212,8 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         comment_act.setChecked(self.show_comments)
         actions = [fullpath_act, allfiles_act, comment_act, fromcursor_act]
         return actions
-    
+
+    @Slot(bool)
     def toggle_fullpath_mode(self, state):
         self.show_fullpath = state
         self.setTextElideMode(Qt.ElideMiddle if state else Qt.ElideRight)
@@ -226,14 +227,16 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         """
         for _it in self.get_top_level_items():
             _it.setHidden(_it is not item and not self.show_all_files)
-            
+
+    @Slot(bool)
     def toggle_show_all_files(self, state):
         self.show_all_files = state
         if self.current_editor is not None:
             editor_id = self.editor_ids[self.current_editor]
             item = self.editor_items[editor_id]
             self.__hide_or_show_root_items(item)
-            
+
+    @Slot(bool)
     def toggle_show_comments(self, state):
         self.show_comments = state
         self.update_all()
@@ -241,7 +244,8 @@ class OutlineExplorerTreeWidget(OneColumnTree):
     def set_fullpath_sorting(self, state):
         self.fullpath_sorting = state
         self.__sort_toplevel_items()
-        
+
+    @Slot()
     def go_to_cursor_position(self):
         if self.current_editor is not None:
             line = self.current_editor.get_cursor_line_number()
@@ -517,7 +521,8 @@ class OutlineExplorerWidget(QWidget):
         layout.addLayout(btn_layout)
         layout.addWidget(self.treewidget)
         self.setLayout(layout)
-        
+
+    @Slot(bool)
     def toggle_visibility(self, state):
         self.setVisible(state)
         current_editor = self.treewidget.current_editor

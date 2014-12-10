@@ -16,7 +16,7 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QMessageBox, QInputDialog,
                                 QLineEdit, QPushButton, QGroupBox, QLabel,
                                 QTabWidget, QFontComboBox, QHBoxLayout,
                                 QButtonGroup)
-from spyderlib.qt.QtCore import Signal, Qt
+from spyderlib.qt.QtCore import Signal, Slot, Qt
 from spyderlib.qt.compat import getopenfilename
 
 # Stdlib imports
@@ -1231,6 +1231,7 @@ class ExternalConsole(SpyderPluginWidget):
             self.dockwidget.hide()
     
     #------ Public API ---------------------------------------------------------
+    @Slot()
     def open_interpreter(self, wdir=None):
         """Open interpreter"""
         if wdir is None:
@@ -1255,13 +1256,15 @@ class ExternalConsole(SpyderPluginWidget):
                    interact=True, debug=False, python=True, ipykernel=True,
                    ipyclient=client, give_ipyclient_focus=give_focus)
 
+    @Slot()
     def open_terminal(self, wdir=None):
         """Open terminal"""
         if wdir is None:
             wdir = getcwd()
         self.start(fname=None, wdir=to_text_string(wdir), args='',
                    interact=True, debug=False, python=False)
-        
+
+    @Slot()
     def run_script(self):
         """Run a Python script"""
         self.redirect_stdio.emit(False)

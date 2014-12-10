@@ -12,7 +12,7 @@
 # pylint: disable=R0201
 
 from spyderlib.qt.QtGui import QFontDialog
-from spyderlib.qt.QtCore import Signal
+from spyderlib.qt.QtCore import Signal, Slot
 
 import os.path as osp
 
@@ -111,7 +111,8 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
     def chdir(self, directory):
         """Set working directory"""
         self.treewidget.chdir(directory)
-        
+    
+    @Slot()
     def change_font(self):
         """Change font"""
         font, valid = QFontDialog.getFont(self.get_plugin_font(), self,

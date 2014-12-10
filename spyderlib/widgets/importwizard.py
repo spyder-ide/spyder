@@ -400,6 +400,7 @@ class PreviewTable(QTableView):
         self._model = PreviewTableModel(data)
         self.setModel(self._model)
 
+    @Slot()
     def parse_to_type(self,**kwargs):
         """Parse to a given type"""
         indexes = self.selectedIndexes()

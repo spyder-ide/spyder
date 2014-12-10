@@ -20,7 +20,8 @@ import keyword
 
 from spyderlib.qt.QtGui import (QMenu, QApplication, QToolTip, QKeySequence,
                                 QMessageBox, QTextCursor, QTextCharFormat)
-from spyderlib.qt.QtCore import Qt, QCoreApplication, QTimer, Signal, Property
+from spyderlib.qt.QtCore import (Qt, QCoreApplication, QTimer, Signal,
+                                 Property, Slot)
 from spyderlib.qt.compat import getsavefilename
 
 # Local import
@@ -45,6 +46,7 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
     redirect_stdio = Signal(bool)
     sig_keyboard_interrupt = Signal()
     execute = Signal(str)
+    append_to_history = Signal(str, str)
     
     def __init__(self, parent, history_filename, profile=False):
         """
@@ -164,12 +166,14 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
         else:
             pline, pindex = self.current_prompt_pos
         self.setSelection(pline, pindex, line, index)
-            
+
+    @Slot()
     def clear_line(self):
         """Clear current line (without clearing console prompt)"""
         if self.current_prompt_pos is not None:
             self.remove_text(self.current_prompt_pos, 'eof')
-        
+
+    @Slot()
     def clear_terminal(self):
         """
         Clear terminal window
@@ -222,6 +226,7 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
         
         
     #------ Copy / Keyboard interrupt
+    @Slot()
     def copy(self):
         """Copy text to clipboard... or keyboard interrupt"""
         if self.has_selected_text():
@@ -233,18 +238,21 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
         """Keyboard interrupt"""
         self.sig_keyboard_interrupt.emit()
 
+    @Slot()
     def cut(self):
         """Cut text"""
         self.check_selection()
         if self.has_selected_text():
             ConsoleBaseWidget.cut(self)
 
+    @Slot()
     def delete(self):
         """Remove selected text"""
         self.check_selection()
         if self.has_selected_text():
             ConsoleBaseWidget.remove_selected_text(self)
-        
+
+    @Slot()
     def save_historylog(self):
         """Save current history log (all text in console)"""
         title = _("Save history log")
@@ -282,7 +290,8 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
         self.set_cursor_position('eof')
         self.current_prompt_pos = self.get_position('cursor')
         self.new_input_line = False
-        
+
+    @Slot()
     def paste(self):
         """Reimplemented slot to handle multiline paste action"""
         if self.new_input_line:
@@ -654,10 +663,10 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
                         InspectObjectMixin):
     """Python shell widget"""
     QT_CLASS = ShellBaseWidget
-
     INITHISTORY = ['# -*- coding: utf-8 -*-',
                    '# *** Spyder Python Console History Log ***',]
     SEPARATOR = '%s##---(%s)---' % (os.linesep*2, time.ctime())
+    go_to_error = Signal(str)
     
     def __init__(self, parent, history_filename, profile=False):
         ShellBaseWidget.__init__(self, parent, history_filename, profile)
@@ -712,7 +721,8 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
         state = self.has_selected_text()
         self.copy_without_prompts_action.setEnabled(state)
         ShellBaseWidget.contextMenuEvent(self, event)
-        
+
+    @Slot()
     def copy_without_prompts(self):
         """Copy text to clipboard without prompts"""
         text = self.get_selected_text()

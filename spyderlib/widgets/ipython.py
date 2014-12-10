@@ -21,7 +21,7 @@ import time
 from spyderlib.qt.QtGui import (QTextEdit, QKeySequence, QWidget, QMenu,
                                 QHBoxLayout, QToolButton, QVBoxLayout,
                                 QMessageBox)
-from spyderlib.qt.QtCore import Signal, Qt
+from spyderlib.qt.QtCore import Signal, Slot, Qt
 
 from spyderlib import pygments_patch
 pygments_patch.apply()
@@ -74,6 +74,8 @@ class IPythonControlWidget(TracebackLinksMixin, InspectObjectMixin, QTextEdit,
     """
     QT_CLASS = QTextEdit
     visibility_changed = Signal(bool)
+    go_to_error = Signal(str)
+    focus_changed = Signal()
     
     def __init__(self, parent=None):
         QTextEdit.__init__(self, parent)
@@ -131,6 +133,7 @@ class IPythonPageControlWidget(QTextEdit, BaseEditMixin):
     QT_CLASS = QTextEdit
     visibility_changed = Signal(bool)
     show_find_widget = Signal()
+    focus_changed = Signal()
     
     def __init__(self, parent=None):
         QTextEdit.__init__(self, parent)
@@ -348,6 +351,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
     """
     
     SEPARATOR = '%s##---(%s)---' % (os.linesep*2, time.ctime())
+    append_to_history = Signal(str, str)
     
     def __init__(self, plugin, history_filename, connection_file=None, 
                  hostname=None, sshkey=None, password=None, 
@@ -428,7 +432,8 @@ class IPythonClient(QWidget, SaveHistoryMixin):
    
     def disable_stop_button(self):
         self.stop_button.setDisabled(True)
-        
+
+    @Slot()
     def stop_button_click_handler(self):
         self.stop_button.setDisabled(True)
         self.interrupt_kernel()
@@ -555,19 +560,23 @@ class IPythonClient(QWidget, SaveHistoryMixin):
     def interrupt_kernel(self):
         """Interrupt the associanted Spyder kernel if it's running"""
         self.shellwidget.request_interrupt_kernel()
-    
+
+    @Slot()
     def restart_kernel(self):
         """Restart the associanted Spyder kernel"""
         self.shellwidget.request_restart_kernel()
-    
+
+    @Slot()
     def inspect_object(self):
         """Show how to inspect an object with our object inspector"""
         self.shellwidget._control.inspect_current_object()
-    
+
+    @Slot()
     def clear_line(self):
         """Clear a console line"""
         self.shellwidget._keyboard_quit()
-    
+
+    @Slot()
     def clear_console(self):
         """Clear the whole console"""
         self.shellwidget.execute("%clear")

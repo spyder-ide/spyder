@@ -363,6 +363,8 @@ class CodeEditor(TextEditBaseWidget):
     run_cell = Signal()
     go_to_definition_regex = Signal(int)
     sig_cursor_position_changed = Signal(int, int)
+    focus_changed = Signal()
+    sig_new_file = Signal(str)
 
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
@@ -1384,6 +1386,7 @@ class CodeEditor(TextEditBaseWidget):
         return TextEditBaseWidget.viewportEvent(self, event)
 
     #-----Misc.
+    @Slot()
     def delete(self):
         """Remove selected text"""
         # Used by global callbacks in Spyder -> delete_action
@@ -1463,6 +1466,7 @@ class CodeEditor(TextEditBaseWidget):
         cursor.movePosition(QTextCursor.End)
         cursor.insertText(text)
 
+    @Slot()
     def paste(self):
         """
         Reimplement QPlainTextEdit's method to fix the following issue:
@@ -1841,6 +1845,7 @@ class CodeEditor(TextEditBaseWidget):
             cursor.endEditBlock()
             return True
 
+    @Slot()
     def clear_all_output(self):
         """removes all ouput in the ipynb format (Json only)"""
         if self.is_json() and nbformat is not None:
@@ -1858,8 +1863,7 @@ class CodeEditor(TextEditBaseWidget):
         else:
             return
 
-    sig_new_file = Signal(str)
-
+    @Slot()
     def convert_notebook(self):
         """Convert an IPython notebook to a Python script in editor"""
         if nbformat is not None:
@@ -1933,6 +1937,7 @@ class CodeEditor(TextEditBaseWidget):
                 else:
                     self.remove_prefix(self.indent_chars)
 
+    @Slot()
     def toggle_comment(self):
         """Toggle comment on current line or selection"""
         cursor = self.textCursor()
@@ -2487,7 +2492,8 @@ class CodeEditor(TextEditBaseWidget):
             self.__cursor_changed = False
             self.clear_extra_selections('ctrl_click')
         TextEditBaseWidget.leaveEvent(self, event)
-        
+
+    @Slot()
     def go_to_definition_from_cursor(self, cursor=None):
         """Go to definition from cursor instance (QTextCursor)"""
         if cursor is None:

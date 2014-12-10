@@ -18,7 +18,7 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QLabel, QHBoxLayout, QInputDialog,
                                 QLineEdit, QMessageBox, QToolBar, QTreeView,
                                 QDrag, QSortFilterProxyModel)
 from spyderlib.qt.QtCore import (Qt, Signal, QMimeData, QSize, QDir, QUrl,
-                                 QTimer)
+                                 QTimer, Slot)
 from spyderlib.qt.compat import getsavefilename, getexistingdirectory
 
 import os
@@ -188,7 +188,8 @@ class DirView(QTreeView):
         self.toggle_all(self.show_all)
         
         return [filters_action, all_action]
-        
+
+    @Slot()
     def edit_filter(self):
         """Edit name filters"""
         filters, valid = QInputDialog.getText(self, _('Edit filename filters'),
@@ -199,7 +200,8 @@ class DirView(QTreeView):
             filters = [f.strip() for f in to_text_string(filters).split(',')]
             self.parent_widget.sig_option_changed.emit('name_filters', filters)
             self.set_name_filters(filters)
-            
+
+    @Slot(bool)
     def toggle_all(self, checked):
         """Toggle all files mode"""
         self.parent_widget.sig_option_changed.emit('show_all', checked)
@@ -382,7 +384,8 @@ class DirView(QTreeView):
         """Reimplement Qt method"""
         QTreeView.mouseDoubleClickEvent(self, event)
         self.clicked()
-        
+
+    @Slot()
     def clicked(self):
         """Selected item was double-clicked or enter/return was pressed"""
         fnames = self.get_selected_filenames()
@@ -418,6 +421,7 @@ class DirView(QTreeView):
         drag.exec_()
         
     #---- File/Directory actions
+    @Slot()
     def open(self, fnames=None):
         """Open files with the appropriate application"""
         if fnames is None:
@@ -447,7 +451,8 @@ class DirView(QTreeView):
         """Open interpreter"""
         for path in sorted(fnames):
             self.parent_widget.open_interpreter.emit(path)
-        
+
+    @Slot()
     def run(self, fnames=None):
         """Run Python scripts"""
         if fnames is None:
@@ -493,7 +498,8 @@ class DirView(QTreeView):
                               "<br><br>Error message:<br>%s"
                               ) % (action_str, fname, to_text_string(error)))
         return False
-        
+
+    @Slot()
     def delete(self, fnames=None):
         """Delete files"""
         if fnames is None:
@@ -516,7 +522,8 @@ class DirView(QTreeView):
             else:
                 script = nbexporter().from_filename(fname)[0]
             self.parent_widget.sig_new_file.emit(script)
-    
+
+    @Slot()
     def convert(self, fnames=None):
         """Convert IPython notebooks to Python scripts in editor"""
         if fnames is None:
@@ -551,7 +558,8 @@ class DirView(QTreeView):
                             _("<b>Unable to rename file <i>%s</i></b>"
                               "<br><br>Error message:<br>%s"
                               ) % (osp.basename(fname), to_text_string(error)))
-    
+
+    @Slot()
     def rename(self, fnames=None):
         """Rename files"""
         if fnames is None:
@@ -560,7 +568,8 @@ class DirView(QTreeView):
             fnames = [fnames]
         for fname in fnames:
             self.rename_file(fname)
-        
+
+    @Slot()
     def move(self, fnames=None):
         """Move files/directories"""
         if fnames is None:
@@ -890,7 +899,8 @@ class ExplorerTreeWidget(DirView):
             self.toggle_show_cd_only(self.show_cd_only)
             actions.append(cd_only_action)
         return actions
-            
+
+    @Slot(bool)
     def toggle_show_cd_only(self, checked):
         """Toggle show current directory only mode"""
         self.parent_widget.sig_option_changed.emit('show_cd_only', checked)
@@ -932,15 +942,18 @@ class ExplorerTreeWidget(DirView):
         self.chdir(directory=dirname)
         
     #---- Files/Directories Actions
+    @Slot()
     def go_to_parent_directory(self):
         """Go to parent directory"""
         self.chdir( osp.abspath(osp.join(getcwd(), os.pardir)) )
-        
+
+    @Slot()
     def go_to_previous_directory(self):
         """Back to previous directory"""
         self.histindex -= 1
         self.chdir(browsing_history=True)
-        
+
+    @Slot()
     def go_to_next_directory(self):
         """Return to next directory"""
         self.histindex += 1
@@ -1040,12 +1053,14 @@ class ExplorerWidget(QWidget):
         vlayout.addWidget(self.toolbar)
         vlayout.addWidget(self.treewidget)
         self.setLayout(vlayout)
-        
+
+    @Slot(bool)
     def toggle_toolbar(self, state):
         """Toggle toolbar"""
         self.sig_option_changed.emit('show_toolbar', state)
         self.toolbar.setVisible(state)
-            
+
+    @Slot(bool)
     def toggle_icontext(self, state):
         """Toggle icon text"""
         self.sig_option_changed.emit('show_icontext', state)

@@ -122,7 +122,8 @@ class FileListDialog(QDialog):
         self.tabs = tabs
         self.fullpath_sorting = fullpath_sorting
         self.buttons = (edit_btn, close_btn)
-        
+
+    @Slot()
     def edit_file(self):
         row = self.listwidget.currentRow()
         if self.listwidget.count() > 0 and row >= 0:
@@ -801,7 +802,8 @@ class EditorStack(QWidget):
         for other_finfo in other.data:
             self.clone_editor_from(other_finfo, set_current=True)
         self.set_stack_index(other.get_stack_index())
-        
+
+    @Slot()
     def open_filelistdialog(self):
         """Open file list management dialog box"""
         self.filelist_dlg = dlg = FileListDialog(self, self.tabs,

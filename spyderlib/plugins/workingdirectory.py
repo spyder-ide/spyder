@@ -13,7 +13,7 @@
 
 from spyderlib.qt.QtGui import (QToolBar, QLabel, QGroupBox, QVBoxLayout,
                                 QHBoxLayout, QButtonGroup)
-from spyderlib.qt.QtCore import Signal
+from spyderlib.qt.QtCore import Signal, Slot
 from spyderlib.qt.compat import getexistingdirectory
 
 import os
@@ -279,7 +279,8 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         text = [ to_text_string( self.pathedit.itemText(index) ) \
                  for index in range(self.pathedit.count()) ]
         encoding.writelines(text, self.LOG_PATH)
-        
+    
+    @Slot()
     def select_directory(self):
         """Select directory"""
         self.redirect_stdio.emit(False)
@@ -288,17 +289,20 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         if directory:
             self.chdir(directory)
         self.redirect_stdio.emit(True)
-        
+    
+    @Slot()
     def previous_directory(self):
         """Back to previous directory"""
         self.histindex -= 1
         self.chdir(browsing_history=True)
-        
+    
+    @Slot()
     def next_directory(self):
         """Return to next directory"""
         self.histindex += 1
         self.chdir(browsing_history=True)
-        
+    
+    @Slot()
     def parent_directory(self):
         """Change working directory to parent directory"""
         self.chdir(os.path.join(getcwd(), os.path.pardir))
@@ -327,7 +331,8 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         if refresh_explorer:
             self.set_explorer_cwd.emit(directory)
         self.refresh_findinfiles.emit()
-        
+    
+    @Slot()
     def set_as_current_console_wd(self):
         """Set as current console working directory"""
         self.set_current_console_wd.emit(getcwd())

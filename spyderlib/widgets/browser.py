@@ -9,7 +9,7 @@
 from spyderlib.qt.QtGui import (QHBoxLayout, QWidget, QVBoxLayout,
                                 QProgressBar, QLabel, QMenu)
 from spyderlib.qt.QtWebKit import QWebView, QWebPage, QWebSettings
-from spyderlib.qt.QtCore import QUrl
+from spyderlib.qt.QtCore import QUrl, Slot
 
 import sys
 
@@ -78,12 +78,14 @@ class WebView(QWebView):
     def get_zoom_factor(self):
         """Return zoom factor"""
         return self.zoom_factor
-            
+
+    @Slot()
     def zoom_out(self):
         """Zoom out"""
         self.zoom_factor = max(.1, self.zoom_factor-.1)
         self.apply_zoom_factor()
-    
+
+    @Slot()
     def zoom_in(self):
         """Zoom in"""
         self.zoom_factor += .1
@@ -196,7 +198,8 @@ class WebBrowser(QWidget):
         else:
             url = url_or_text
         self.webview.load(url)
-        
+
+    @Slot()
     def go_home(self):
         """Go to home page"""
         if self.home_url is not None:
@@ -227,7 +230,8 @@ class WebBrowser(QWidget):
         self.url_combo.setItemIcon(self.url_combo.currentIndex(),
                                    self.webview.icon())
         self.setWindowIcon(self.webview.icon())
-        
+
+    @Slot(bool)
     def toggle_find_widget(self, state):
         if state:
             self.find_widget.show()

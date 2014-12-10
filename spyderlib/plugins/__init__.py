@@ -151,8 +151,8 @@ class SpyderPluginMixin(object):
 
     # Signals
     sig_option_changed = None
-    show_message = Signal(str, int)
-    update_plugin_title = Signal()
+    show_message = None
+    update_plugin_title = None
 
     def __init__(self, main):
         """Bind widget to a QMainWindow instance"""
@@ -173,8 +173,10 @@ class SpyderPluginMixin(object):
     def initialize_plugin(self):
         """Initialize plugin: connect signals, setup actions, ..."""
         self.plugin_actions = self.get_plugin_actions()
-        self.show_message.connect(self.__show_message)
-        self.update_plugin_title.connect(self.__update_plugin_title)
+        if self.show_message is not None:
+            self.show_message.connect(self.__show_message)
+        if self.update_plugin_title is not None:
+            self.update_plugin_title.connect(self.__update_plugin_title)
         if self.sig_option_changed is not None:
             self.sig_option_changed.connect(self.set_option)
         self.setWindowTitle(self.get_plugin_title())
@@ -376,7 +378,8 @@ class SpyderPluginMixin(object):
         title = self.get_plugin_title()
         if self.CONF_SECTION == 'editor':
             title = _('Editor')
-        action = create_action(self, title, toggled=self.toggle_view)
+        action = create_action(self, title, toggled=lambda checked:
+                                                    self.toggle_view(checked))
         self.toggle_view_action = action
     
     def toggle_view(self, checked):
@@ -394,6 +397,8 @@ class SpyderPluginWidget(QWidget, SpyderPluginMixin):
     Spyder's widgets either inherit this class or reimplement its interface
     """
     sig_option_changed = Signal(str, object)
+    show_message = Signal(str, int)
+    update_plugin_title = Signal()
     
     def __init__(self, parent):
         QWidget.__init__(self, parent)

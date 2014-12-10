@@ -12,7 +12,7 @@
 # pylint: disable=R0201
 
 from spyderlib.qt.QtGui import QApplication
-from spyderlib.qt.QtCore import Signal
+from spyderlib.qt.QtCore import Signal, Slot
 
 # Local imports
 from spyderlib.baseconfig import _
@@ -71,6 +71,7 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
         """Refresh search directory"""
         self.find_options.set_directory(getcwd())
 
+    @Slot()
     def findinfiles_callback(self):
         """Find in files callback"""
         widget = QApplication.focusWidget()
