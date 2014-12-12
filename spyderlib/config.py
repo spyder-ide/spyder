@@ -35,6 +35,7 @@ EDIT_FILETYPES = (
     (_("IDL files"), ('.pro', )),
     (_("MATLAB files"), ('.m', )),
     (_("Julia files"), ('.jl',)),
+    (_("Yaml files"), ('.yaml','.yml',)),
     (_("Patch and diff files"), ('.patch', '.diff', '.rej')),
     (_("Batch files"), ('.bat', '.cmd')),
     (_("Text files"), ('.txt',)),
@@ -44,6 +45,8 @@ EDIT_FILETYPES = (
     (_("Web page files"), ('.css', '.htm', '.html',)),
     (_("XML files"), ('.xml',)),
     (_("Javascript files"), ('.js',)),
+    (_("Json files"), ('.json',)),
+    (_("IPython notebooks"), ('.ipynb',)),
     (_("Enaml files"), ('.enaml',)),
     (_("Configuration files"), ('.properties', '.session', '.ini', '.inf',
                                 '.reg', '.cfg', '.desktop')),
@@ -246,9 +249,9 @@ DEFAULTS = [
               'matplotlib/backend/value': 'MacOSX' if (sys.platform == 'darwin' \
                                            and os.environ.get('QT_API') == 'pyside')\
                                            else 'Qt4Agg',
-              'umd/enabled': True,
-              'umd/verbose': True,
-              'umd/namelist': ['guidata', 'guiqwt'],
+              'umr/enabled': True,
+              'umr/verbose': True,
+              'umr/namelist': ['guidata', 'guiqwt'],
               'light_background': True,
               'merge_output_channels': os.name != 'nt',
               'colorize_sys_stderr': os.name != 'nt',
@@ -291,7 +294,7 @@ DEFAULTS = [
               }),
             ('variable_explorer',
              {
-              'autorefresh': True,
+              'autorefresh': False,
               'autorefresh/timeout': 2000,
               'check_all': CHECK_ALL,
               'excluded_names': EXCLUDED_NAMES,
@@ -302,7 +305,7 @@ DEFAULTS = [
               'inplace': False,
               'truncate': True,
               'minmax': False,
-              'collvalue': False,
+              'collvalue': True,
               'remote_editing': False,
               }),
             ('editor',
@@ -712,7 +715,7 @@ DEFAULTS = [
 # 2. If you want to *remove* options that are no longer needed in our codebase,
 #    you need to do a MAJOR update in version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '9.0.0'
+CONF_VERSION = '10.0.0'
 
 # XXX: Previously we had load=(not DEV) here but DEV was set to *False*.
 # Check if it *really* needs to be updated or not

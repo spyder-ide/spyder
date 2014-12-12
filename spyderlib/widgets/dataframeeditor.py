@@ -13,8 +13,7 @@
 Pandas DataFrame Editor Dialog
 """
 
-from spyderlib.qt.QtCore import (QAbstractTableModel, Qt, QModelIndex,
-                                 SIGNAL, SLOT)
+from spyderlib.qt.QtCore import QAbstractTableModel, Qt, QModelIndex, Slot
 from spyderlib.qt.QtGui import (QDialog, QTableView, QColor, QGridLayout,
                                 QDialogButtonBox, QHBoxLayout, QPushButton,
                                 QCheckBox, QMessageBox, QInputDialog,
@@ -39,6 +38,9 @@ _sup_com = (complex, np.complex64, np.complex128)
 _bool_false = ['false', '0']
 
 
+LARGE_NROWS = 1e5
+
+
 def bool_false_check(value):
     """
     Used to convert bool intrance to false since any string in bool('')
@@ -57,10 +59,14 @@ def global_max(col_vals, index):
 
 class DataFrameModel(QAbstractTableModel):
     """ DataFrame Table Model"""
+    
+    ROWS_TO_LOAD = 500
+    
     def __init__(self, dataFrame, format="%.3g", parent=None):
         QAbstractTableModel.__init__(self)
         self.dialog = parent
         self.df = dataFrame
+        self.df_index = dataFrame.index.tolist()
         self._format = format
         self.bgcolor_enabled = True
         self.complex_intran = None
@@ -75,6 +81,13 @@ class DataFrameModel(QAbstractTableModel):
         self.max_min_col_update()
         self.colum_avg_enabled = True
         self.colum_avg(1)
+
+        # To define paging when the number of rows is large
+        self.total_rows = self.df.shape[0]
+        if self.total_rows > LARGE_NROWS:
+            self.rows_loaded = self.ROWS_TO_LOAD
+        else:
+            self.rows_loaded = self.total_rows
 
     def max_min_col_update(self):
         """Determines the maximum and minimum number in each column"""
@@ -175,6 +188,10 @@ class DataFrameModel(QAbstractTableModel):
             value = self.df.iloc[row, column]
         return value
 
+    def update_df_index(self):
+        """"Update the DataFrame index"""
+        self.df_index = self.df.index.tolist()
+
     def data(self, index, role=Qt.DisplayRole):
         """Cell content"""
         if not index.isValid():
@@ -183,7 +200,7 @@ class DataFrameModel(QAbstractTableModel):
             column = index.column()
             row = index.row()
             if column == 0:
-                return to_qvariant(to_text_string(self.df.index.tolist()[row]))
+                return to_qvariant(to_text_string(self.df_index[row]))
             else:
                 value = self.get_value(row, column-1)
                 if isinstance(value, float):
@@ -211,8 +228,10 @@ class DataFrameModel(QAbstractTableModel):
             if column > 0:
                 self.df.sort(columns=self.df.columns[column-1],
                              ascending=order, inplace=True)
+                self.update_df_index()
             else:
                 self.df.sort_index(inplace=True, ascending=order)
+                self.update_df_index()
         except TypeError as e:
             QMessageBox.critical(self.dialog, "Error",
                                  "TypeError error: %s" % str(e))
@@ -269,7 +288,24 @@ class DataFrameModel(QAbstractTableModel):
 
     def rowCount(self, index=QModelIndex()):
         """DataFrame row number"""
-        return self.df.shape[0]
+        if self.total_rows <= self.rows_loaded:
+            return self.total_rows
+        else:
+            return self.rows_loaded
+    
+    def canFetchMore(self, index=QModelIndex()):
+        if self.total_rows > self.rows_loaded:
+            return True
+        else:
+            return False
+ 
+    def fetchMore(self, index=QModelIndex()):
+        reminder = self.total_rows - self.rows_loaded
+        items_to_fetch = min(reminder, self.ROWS_TO_LOAD)
+        self.beginInsertRows(QModelIndex(), self.rows_loaded,
+                             self.rows_loaded + items_to_fetch - 1)
+        self.rows_loaded += items_to_fetch
+        self.endInsertRows()
 
     def columnCount(self, index=QModelIndex()):
         """DataFrame column number"""
@@ -289,8 +325,7 @@ class DataFrameView(QTableView):
 
         self.sort_old = [None]
         self.header_class = self.horizontalHeader()
-        self.connect(self.header_class,
-                     SIGNAL("sectionClicked(int)"), self.sortByColumn)
+        self.header_class.sectionClicked.connect(self.sortByColumn)
         self.menu = self.setup_menu()
 
     def sortByColumn(self, index):
@@ -338,6 +373,7 @@ class DataFrameView(QTableView):
         index_list = self.selectedIndexes()
         [model.setData(i, '', change_type=func) for i in index_list]
 
+    @Slot()
     def copy(self, index=False, header=False):
         """Copy text to clipboard"""
         (row_min, row_max,
@@ -378,20 +414,6 @@ class DataFrameEditor(QDialog):
         Setup DataFrameEditor:
         return False if data is not supported, True otherwise
         """
-        size = 1
-        for dim in data.shape:
-            size *= dim
-        if size > 1e6:
-            answer = QMessageBox.warning(self, _("%s editor")
-                                                 % data.__class__.__name__,
-                                         _("Opening and browsing this "
-                                           "%s can be slow\n\n"
-                                           "Do you want to continue anyway?")
-                                           % data.__class__.__name__,
-                                         QMessageBox.Yes | QMessageBox.No)
-            if answer == QMessageBox.No:
-                return
-
         self.layout = QGridLayout()
         self.setLayout(self.layout)
         self.setWindowIcon(get_icon('arredit.png'))
@@ -419,31 +441,28 @@ class DataFrameEditor(QDialog):
         btn = QPushButton(_("Format"))
         # disable format button for int type
         btn_layout.addWidget(btn)
-        self.connect(btn, SIGNAL("clicked()"), self.change_format)
+        btn.clicked.connect(self.change_format)
         btn = QPushButton(_('Resize'))
         btn_layout.addWidget(btn)
-        self.connect(btn, SIGNAL("clicked()"),
-                     self.dataTable.resizeColumnsToContents)
+        btn.clicked.connect(self.dataTable.resizeColumnsToContents)
 
         bgcolor = QCheckBox(_('Background color'))
         bgcolor.setChecked(self.dataModel.bgcolor_enabled)
         bgcolor.setEnabled(self.dataModel.bgcolor_enabled)
-        self.connect(bgcolor, SIGNAL("stateChanged(int)"),
-                     self.change_bgcolor_enable)
+        bgcolor.stateChanged.connect(self.change_bgcolor_enable)
         btn_layout.addWidget(bgcolor)
 
         self.bgcolor_global = QCheckBox(_('Column min/max'))
         self.bgcolor_global.setChecked(self.dataModel.colum_avg_enabled)
         self.bgcolor_global.setEnabled(not self.is_time_series and
                                        self.dataModel.bgcolor_enabled)
-        self.connect(self.bgcolor_global, SIGNAL("stateChanged(int)"),
-                     self.dataModel.colum_avg)
+        self.bgcolor_global.stateChanged.connect(self.dataModel.colum_avg)
         btn_layout.addWidget(self.bgcolor_global)
 
         btn_layout.addStretch()
         bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        self.connect(bbox, SIGNAL("accepted()"), SLOT("accept()"))
-        self.connect(bbox, SIGNAL("rejected()"), SLOT("reject()"))
+        bbox.accepted.connect(self.accept)
+        bbox.rejected.connect(self.reject)
         btn_layout.addWidget(bbox)
 
         self.layout.addLayout(btn_layout, 2, 0)

@@ -28,14 +28,18 @@ ALL_LANGUAGES = {
                  'Css': ('css',),
                  'Xml': ('xml',),
                  'Js': ('js',),
+                 'Json': ('json', 'ipynb'),
                  'Cpp': ('c', 'cc', 'cpp', 'cxx', 'h', 'hh', 'hpp', 'hxx'),
                  'OpenCL': ('cl',),
                  'Batch': ('bat', 'cmd', 'nt'),
                  'Ini': ('properties', 'session', 'ini', 'inf', 'reg', 'url',
                          'cfg', 'cnf', 'aut', 'iss'),
+                 'Yaml':('yaml','yml'),
                  }
 
-PYTHON_LIKE_LANGUAGES = ('Python', 'Cython', 'Enaml')             
+PYTHON_LIKE_LANGUAGES = ('Python', 'Cython', 'Enaml')
+
+CELL_LANGUAGES = {'Python': ('#%%', '# %%', '# <codecell>', '# In[')}
 
 def get_eol_chars(text):
     """Get text EOL characters"""

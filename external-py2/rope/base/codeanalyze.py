@@ -18,6 +18,7 @@ class ChangeCollector(object):
     def get_changed(self):
         if not self.changes:
             return None
+
         def compare_changes(change1, change2):
             return cmp(change1[:2], change2[:2])
         self.changes.sort(compare_changes)
@@ -131,6 +132,7 @@ class _CustomGenerator(object):
         return result
 
     _main_chars = re.compile(r'[\'|"|#|\\|\[|\]|\{|\}|\(|\)]')
+
     def _analyze_line(self, line):
         char = None
         for match in self._main_chars.finditer(line):
@@ -142,8 +144,8 @@ class _CustomGenerator(object):
                     if char * 3 == line[i:i + 3]:
                         self.in_string = char * 3
                 elif self.in_string == line[i:i + len(self.in_string)] and \
-                     not (i > 0 and line[i - 1] == '\\' and
-                          not (i > 1 and line[i - 2] == '\\')):
+                    not (i > 0 and line[i - 1] == '\\' and
+                         not (i > 1 and line[i - 2] == '\\')):
                     self.in_string = ''
             if self.in_string:
                 continue
@@ -157,6 +159,7 @@ class _CustomGenerator(object):
             self.continuation = True
         else:
             self.continuation = False
+
 
 def custom_generator(lines):
     return _CustomGenerator(lines)()
@@ -189,7 +192,6 @@ class LogicalLineFinder(object):
         # XXX: `block_start` should be at a better position!
         block_start = 1
         readline = LinesToReadline(self.lines, block_start)
-        shifted = start_line - block_start + 1
         try:
             for start, end in self._logical_lines(readline):
                 real_start = start + block_start - 1
@@ -199,7 +201,7 @@ class LogicalLineFinder(object):
                 real_end = end + block_start - 1
                 if real_start >= start_line:
                     yield (real_start, real_end)
-        except tokenize.TokenError, e:
+        except tokenize.TokenError:
             pass
 
     def _block_logical_line(self, block_start, line_number):
@@ -254,6 +256,7 @@ class CachingLogicalLineFinder(object):
         self._generate = generate
 
     _starts = None
+
     @property
     def starts(self):
         if self._starts is None:
@@ -261,6 +264,7 @@ class CachingLogicalLineFinder(object):
         return self._starts
 
     _ends = None
+
     @property
     def ends(self):
         if self._ends is None:
@@ -326,6 +330,7 @@ def get_block_start(lines, lineno, maximum_indents=80):
 
 _block_start_pattern = None
 
+
 def get_block_start_patterns():
     global _block_start_pattern
     if not _block_start_pattern:
@@ -353,6 +358,7 @@ def get_string_pattern():
     shortstr = r'%s"(\\.|[^"\\\n])*"' % start
     return '|'.join([longstr, longstr.replace('"', "'"),
                      shortstr, shortstr.replace('"', "'")])
+
 
 def get_comment_pattern():
     return r'#[^\n]*'

@@ -2,7 +2,6 @@ import datetime
 import difflib
 import os
 import time
-import warnings
 
 import rope.base.fscommands
 from rope.base import taskhandle, exceptions, utils
@@ -17,13 +16,13 @@ class Change(object):
 
     def do(self, job_set=None):
         """Perform the change
-        
+
         .. note:: Do use this directly.  Use `Project.do()` instead.
         """
 
     def undo(self, job_set=None):
         """Perform the change
-        
+
         .. note:: Do use this directly.  Use `History.undo()` instead.
         """
 
@@ -97,7 +96,8 @@ class ChangeSet(Change):
             date = datetime.datetime.fromtimestamp(self.time)
             if date.date() == datetime.date.today():
                 string_date = 'today'
-            elif date.date() == (datetime.date.today() - datetime.timedelta(1)):
+            elif date.date() == (datetime.date.today() -
+                                 datetime.timedelta(1)):
                 string_date = 'yesterday'
             elif date.year == datetime.date.today().year:
                 string_date = date.strftime('%b %d')
@@ -257,7 +257,8 @@ class CreateFolder(CreateResource):
     """
 
     def __init__(self, parent, name):
-        resource = parent.project.get_folder(self._get_child_path(parent, name))
+        resource = parent.project.get_folder(
+            self._get_child_path(parent, name))
         super(CreateFolder, self).__init__(resource)
 
 
@@ -308,6 +309,7 @@ def count_changes(change):
             result += count_changes(child)
         return result
     return 1
+
 
 def create_job_set(task_handle, change):
     return task_handle.create_jobset(str(change), count_changes(change))

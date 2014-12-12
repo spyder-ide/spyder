@@ -9,7 +9,7 @@
 import os
 
 from spyderlib.qt.QtGui import QMessageBox
-from spyderlib.qt.QtCore import QProcess, SIGNAL, QTextCodec
+from spyderlib.qt.QtCore import QProcess, Signal, QTextCodec
 LOCALE_CODEC = QTextCodec.codecForLocale()
 CP850_CODEC = QTextCodec.codecForName('cp850')
 
@@ -26,6 +26,8 @@ from spyderlib.py3compat import to_text_string, is_text_string
 class ExternalSystemShell(ExternalShellBase):
     """External Shell widget: execute Python script in a separate process"""
     SHELL_CLASS = TerminalWidget
+    started = Signal()
+    
     def __init__(self, parent=None, wdir=None, path=[], light_background=True,
                  menu_actions=None, show_buttons_inside=True,
                  show_elapsed_time=True):
@@ -71,14 +73,10 @@ class ExternalSystemShell(ExternalShellBase):
             
         if self.arguments:
             p_args.extend( shell_split(self.arguments) )
-                        
-        self.connect(self.process, SIGNAL("readyReadStandardOutput()"),
-                     self.write_output)
-        self.connect(self.process, SIGNAL("finished(int,QProcess::ExitStatus)"),
-                     self.finished)
         
-        self.connect(self.kill_button, SIGNAL("clicked()"),
-                     self.process.kill)
+        self.process.readyReadStandardOutput.connect(self.write_output)
+        self.process.finished.connect(self.finished)
+        self.kill_button.clicked.connect(self.process.kill)
         
         if os.name == 'nt':
             self.process.start('cmd.exe', p_args)
@@ -94,7 +92,7 @@ class ExternalSystemShell(ExternalShellBase):
                                  _("Process failed to start"))
         else:
             self.shell.setFocus()
-            self.emit(SIGNAL('started()'))
+            self.started.emit()
             
         return self.process
     

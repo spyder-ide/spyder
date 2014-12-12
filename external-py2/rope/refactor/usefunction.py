@@ -1,6 +1,6 @@
 from rope.base import (change, taskhandle, evaluate,
                        exceptions, pyobjects, pynames, ast)
-from rope.refactor import restructure, sourceutils, similarfinder, importutils
+from rope.refactor import restructure, sourceutils, similarfinder
 
 
 class UseFunction(object):
@@ -55,7 +55,6 @@ class UseFunction(object):
         return self.pyfunction.get_name()
 
     def _restructure(self, resources, task_handle, others=True):
-        body = self._get_body()
         pattern = self._make_pattern()
         goal = self._make_goal(import_=others)
         imports = None
@@ -135,15 +134,18 @@ def find_temps(project, code):
 def _returns_last(node):
     return node.body and isinstance(node.body[-1], ast.Return)
 
+
 def _yield_count(node):
     visitor = _ReturnOrYieldFinder()
     visitor.start_walking(node)
     return visitor.yields
 
+
 def _return_count(node):
     visitor = _ReturnOrYieldFinder()
     visitor.start_walking(node)
     return visitor.returns
+
 
 class _ReturnOrYieldFinder(object):
 

@@ -7,7 +7,8 @@ from rope.refactor import occurrences
 
 
 def find_occurrences(project, resource, offset, unsure=False, resources=None,
-                     in_hierarchy=False, task_handle=taskhandle.NullTaskHandle()):
+                     in_hierarchy=False,
+                     task_handle=taskhandle.NullTaskHandle()):
     """Return a list of `Location`\s
 
     If `unsure` is `True`, possible matches are returned, too.  You
@@ -21,6 +22,7 @@ def find_occurrences(project, resource, offset, unsure=False, resources=None,
     this_pymodule = project.pycore.resource_to_pyobject(resource)
     primary, pyname = rope.base.evaluate.eval_location2(
         this_pymodule, offset)
+
     def is_match(occurrence):
         return unsure
     finder = occurrences.create_finder(
@@ -50,9 +52,11 @@ def find_implementations(project, resource, offset, resources=None,
             raise exceptions.BadIdentifierError('Not a method!')
     else:
         raise exceptions.BadIdentifierError('Cannot resolve the identifier!')
+
     def is_defined(occurrence):
         if not occurrence.is_defined():
             return False
+
     def not_self(occurrence):
         if occurrence.get_pyname().get_object() == pyname.get_object():
             return False
@@ -73,13 +77,13 @@ def find_definition(project, code, offset, resource=None, maxfixes=1):
     determined, otherwise ``None`` is returned.
     """
     fixer = fixsyntax.FixSyntax(project.pycore, code, resource, maxfixes)
-    main_module = fixer.get_pymodule()
     pyname = fixer.pyname_at(offset)
     if pyname is not None:
         module, lineno = pyname.get_definition_location()
         name = rope.base.worder.Worder(code).get_word_at(offset)
         if lineno is not None:
             start = module.lines.get_line_start(lineno)
+
             def check_offset(occurrence):
                 if occurrence.offset < start:
                     return False
