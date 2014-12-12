@@ -300,7 +300,6 @@ class FileInfo(QObject):
         editor.textChanged.connect(self.text_changed)
         editor.breakpoints_changed.connect(self.breakpoints_changed)
         self.submods_thread.submods_ready.connect(self.update_extension_modules)
-	# TODO: fixme
 
         self.pyflakes_results = None
         self.pep8_results = None
