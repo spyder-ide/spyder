@@ -138,7 +138,8 @@ QApplication.processEvents()
 from spyderlib import __version__, __project_url__, __forum_url__, get_versions
 from spyderlib.baseconfig import (get_conf_path, get_module_data_path,
                                   get_module_source_path, STDERR, DEBUG, DEV,
-                                  debug_print, TEST, SUBFOLDER)
+                                  debug_print, TEST, SUBFOLDER, MAC_APP_NAME,
+                                  running_in_mac_app)
 from spyderlib.config import CONF, EDIT_EXT, IMPORT_EXT, OPEN_FILES_PORT
 from spyderlib.cli_options import get_options
 from spyderlib.userconfig import NoDefault
@@ -1170,11 +1171,11 @@ class MainWindow(QMainWindow):
         # In MacOS X 10.7 our app is not displayed after initialized (I don't
         # know why because this doesn't happen when started from the terminal),
         # so we need to resort to this hack to make it appear.
-        if sys.platform == 'darwin' and 'Spyder.app' in __file__:
+        if running_in_mac_app():
             import subprocess
-            idx = __file__.index('Spyder.app')
+            idx = __file__.index(MAC_APP_NAME)
             app_path = __file__[:idx]
-            subprocess.call(['open', app_path + 'Spyder.app'])
+            subprocess.call(['open', app_path + MAC_APP_NAME])
 
         # Server to maintain just one Spyder instance and open files in it if
         # the user tries to start other instances with
@@ -2281,7 +2282,7 @@ def run_spyder(app, options, args):
             main.open_external_file(a)
 
     # Open external files with our Mac app
-    if sys.platform == "darwin" and 'Spyder.app' in __file__:
+    if running_in_mac_app():
         app.sig_open_external_file.connect(main.open_external_file)
     
     # To give focus again to the last focused widget after restoring
