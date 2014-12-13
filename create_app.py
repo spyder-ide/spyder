@@ -73,9 +73,8 @@ EXCLUDES = DEPS + ['mercurial']
 PACKAGES = ['spyderlib', 'spyderplugins', 'sphinx', 'jinja2', 'docutils',
             'IPython', 'zmq', 'pygments', 'rope', 'distutils', 'PIL', 'PyQt4',
             'sklearn', 'skimage', 'pandas', 'sympy', 'pyflakes', 'psutil',
-            'mpl_toolkits', 'nose']
-if PY2:
-    PACKAGES.append('statsmodels')
+            'mpl_toolkits', 'nose', 'patsy','statsmodels']
+
 INCLUDES = get_stdlib_modules()
 EDIT_EXT = [ext[1:] for ext in EDIT_EXT]
 
