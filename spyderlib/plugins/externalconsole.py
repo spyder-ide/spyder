@@ -444,8 +444,8 @@ class ExternalConsole(SpyderPluginWidget):
     CONF_SECTION = 'console'
     CONFIGWIDGET_CLASS = ExternalConsoleConfigPage
     DISABLE_ACTIONS_WHEN_HIDDEN = False
-    
-    edit_goto = Signal(str, int, str, bool)
+
+    edit_goto = Signal((str, int, str), (str, int, str, bool))
     focus_changed = Signal()
     redirect_stdio = Signal(bool)
     
@@ -693,7 +693,7 @@ class ExternalConsole(SpyderPluginWidget):
         # This is a unique form of the edit_goto signal that is intended to 
         # prevent keyboard input from accidentally entering the editor
         # during repeated, rapid entry of debugging commands.    
-        self.edit_goto.emit(fname, lineno, '', False)
+        self.edit_goto[str, int, str, bool].emit(fname, lineno, '', False)
         if shellwidget.is_ipykernel:
             # Focus client widget, not kernel
             ipw = self.main.ipyconsole.get_focus_widget()
@@ -1112,7 +1112,7 @@ class ExternalConsole(SpyderPluginWidget):
                 self.inspector.set_external_console(self)
             self.historylog = self.main.historylog
             self.edit_goto.connect(self.main.editor.load)
-            self.edit_goto.connect(
+            self.edit_goto[str, int, str, bool].connect(
                          lambda fname, lineno, word, processevents:
                          self.main.editor.load(fname, lineno, word,
                                                processevents=processevents))
