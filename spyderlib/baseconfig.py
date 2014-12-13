@@ -286,3 +286,18 @@ EXCLUDED_NAMES = ['nan', 'inf', 'infty', 'little_endian', 'colorbar_doc',
                   'typecodes', '__builtins__', '__main__', '__doc__', 'NaN',
                   'Inf', 'Infinity', 'sctypes', 'rcParams', 'rcParamsDefault',
                   'sctypeNA', 'typeNA', 'False_', 'True_',]
+
+#==============================================================================
+# Spyder Mac application name
+#==============================================================================
+
+if PY3:
+    MAC_APP_NAME = 'Spyder.app'
+else:
+    MAC_APP_NAME = 'Spyder-Py2.app'
+
+def running_in_mac_app():
+    if sys.platform == "darwin" and MAC_APP_NAME in __file__:
+        return True
+    else:
+        return False
