@@ -39,7 +39,7 @@ from spyderlib.qt.compat import to_qvariant
 # Local import
 #TODO: Try to separate this module from spyderlib to create a self
 #      consistent editor module (Qt source code and shell widgets library)
-from spyderlib.baseconfig import get_conf_path, _, DEBUG, get_image_path
+from spyderlib.baseconfig import get_conf_path, _, DEBUG, get_image_path, debug_print
 from spyderlib.config import CONF
 from spyderlib.guiconfig import get_font, create_shortcut
 from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
@@ -354,8 +354,7 @@ class CodeEditor(TextEditBaseWidget):
     linenumberarea = None
 
     breakpoints_changed = Signal()
-    trigger_code_completion = Signal(bool)
-    trigger_token_completion = Signal(bool)  # Is it used?
+    get_completions = Signal(bool)
     go_to_definition = Signal(int)
     sig_show_object_info = Signal(int)
     run_selection = Signal()

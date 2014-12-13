@@ -184,9 +184,6 @@ class AnalysisThread(QThread):
                 traceback.print_exc(file=STDERR)
 
 
-    submods_ready = Signal()
-
-        self.submods_ready.emit()
 class ThreadManager(QObject):
     """Analysis thread manager"""
     def __init__(self, parent, max_simultaneous_threads=2):
@@ -279,6 +276,8 @@ class FileInfo(QObject):
     edit_goto = Signal(str, int, str)
     send_to_inspector = Signal(str, str, str, str, bool)
 
+    def __init__(self, filename, encoding, editor, new, threadmanager,
+                 introspection_plugin):
         QObject.__init__(self)
         self.threadmanager = threadmanager
         self.filename = filename
@@ -292,14 +291,8 @@ class FileInfo(QObject):
         self.todo_results = []
         self.lastmodified = QFileInfo(filename).lastModified()
 
-        editor.trigger_code_completion.connect(self.trigger_code_completion)
-        editor.trigger_token_completion.connect(self.trigger_token_completion)
-        editor.sig_show_object_info.connect(self.show_object_info)
-        editor.go_to_definition.connect(self.go_to_definition)
-        editor.go_to_definition_regex.connect(self.go_to_definition_regex)
-        editor.textChanged.connect(self.text_changed)
-        editor.breakpoints_changed.connect(self.breakpoints_changed)
-        self.submods_thread.submods_ready.connect(self.update_extension_modules)
+        self.editor.textChanged.connect(self.text_changed)
+        self.editor.breakpoints_changed.connect(self.breakpoints_changed)
 
         self.pyflakes_results = None
         self.pep8_results = None
@@ -309,11 +302,6 @@ class FileInfo(QObject):
         self.text_changed_at.emit(self.filename,
                                   self.editor.get_position('cursor'))
 
-                    completion_text = completion_text[-1]
-            self.send_to_inspector.emit(obj_fullname, argspec, note, doc_text,
-                                        not auto)
-            self.send_to_inspector.emit(obj_fullname, '', '', '', not auto)
-            self.edit_goto.emit(fname, lineno, "")
     def get_source_code(self):
         """Return associated editor source code"""
         return to_text_string(self.editor.toPlainText())
@@ -1689,11 +1677,12 @@ class EditorStack(QWidget):
         """
         editor = codeeditor.CodeEditor(self)
         introspector = self.introspector
-        self.editor.get_completions.connect(introspector.get_completions)
-        self.editor.show_object_info.connect(ntrospector.show_object_info)
-        self.editor.go_to_definition.connect(introspector.go_to_definition)
+        editor.get_completions.connect(introspector.get_completions)
+        editor.sig_show_object_info.connect(introspector.show_object_info)
+        editor.go_to_definition.connect(introspector.go_to_definition)
 
-        finfo = FileInfo(fname, enc, editor, new, self.threadmanager)
+        finfo = FileInfo(fname, enc, editor, new, self.threadmanager,
+                         self.introspector)
 
         self.add_to_data(finfo, set_current)
         finfo.send_to_inspector.connect(self.send_to_inspector)
