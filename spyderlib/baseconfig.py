@@ -288,7 +288,7 @@ EXCLUDED_NAMES = ['nan', 'inf', 'infty', 'little_endian', 'colorbar_doc',
                   'sctypeNA', 'typeNA', 'False_', 'True_',]
 
 #==============================================================================
-# Spyder Mac application name
+# Mac application utilities
 #==============================================================================
 
 if PY3:
