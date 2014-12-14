@@ -92,7 +92,6 @@ class DirView(QTreeView):
         super(DirView, self).__init__(parent)
         self.name_filters = None
         self.parent_widget = parent
-        self.valid_types = None
         self.show_all = None
         self.menu = None
         self.common_actions = None
@@ -161,13 +160,11 @@ class DirView(QTreeView):
                 return osp.dirname(fname)
         
     #---- Tree view widget
-    def setup(self, name_filters=['*.py', '*.pyw'],
-              valid_types= ('.py', '.pyw'), show_all=False):
+    def setup(self, name_filters=['*.py', '*.pyw'], show_all=False):
         """Setup tree widget"""
         self.setup_view()
         
         self.set_name_filters(name_filters)
-        self.valid_types = valid_types
         self.show_all = show_all
         
         # Setup context menu
@@ -238,8 +235,7 @@ class DirView(QTreeView):
                             for _fn in fnames])
         only_notebooks = all([osp.splitext(_fn)[1] == '.ipynb'
                               for _fn in fnames])
-        only_valid = all([osp.splitext(_fn)[1] in self.valid_types
-                          for _fn in fnames])
+        only_valid = all([encoding.is_text_file(_fn) for _fn in fnames])
         run_action = create_action(self, _("Run"), icon="run_small.png",
                                    triggered=self.run)
         edit_action = create_action(self, _("Edit"), icon="edit.png",
@@ -423,8 +419,7 @@ class DirView(QTreeView):
         if fnames is None:
             fnames = self.get_selected_filenames()
         for fname in fnames:
-            ext = osp.splitext(fname)[1]
-            if osp.isfile(fname) and ext in self.valid_types:
+            if osp.isfile(fname) and encoding.is_text_file(fname):
                 self.parent_widget.sig_open_file.emit(fname)
             else:
                 self.open_outside_spyder([fname])
@@ -985,13 +980,12 @@ class ExplorerWidget(QWidget):
     sig_new_file = Signal(str)
     
     def __init__(self, parent=None, name_filters=['*.py', '*.pyw'],
-                 valid_types=('.py', '.pyw'), show_all=False,
-                 show_cd_only=None, show_toolbar=True, show_icontext=True):
+                 show_all=False, show_cd_only=None, show_toolbar=True,
+                 show_icontext=True):
         QWidget.__init__(self, parent)
         
         self.treewidget = ExplorerTreeWidget(self, show_cd_only=show_cd_only)
-        self.treewidget.setup(name_filters=name_filters,
-                              valid_types=valid_types, show_all=show_all)
+        self.treewidget.setup(name_filters=name_filters, show_all=show_all)
         self.treewidget.chdir(getcwd())
         
         toolbar_action = create_action(self, _("Show toolbar"),
