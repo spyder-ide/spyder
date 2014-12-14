@@ -96,7 +96,7 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
                                                       refresh_explorer=False))
 
         self.sig_open_file.connect(self.main.open_file)
-        self.sig_new_file.connect(self.main.new_file)
+        self.sig_new_file.connect(lambda t: self.main.editor.new(text=t))
         
     def refresh_plugin(self, new_path=None, force_current=True):
         """Refresh explorer widget"""

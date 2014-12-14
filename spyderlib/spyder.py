@@ -1930,9 +1930,6 @@ Please provide any additional information below.
         console.execute_python_code(lines)
         if focus_to_editor:
             self.editor.visibility_changed(True)
-
-    def new_file(self, text):
-        self.editor.new(text=text)
         
     def open_file(self, fname, external=False):
         """
