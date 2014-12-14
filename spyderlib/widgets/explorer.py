@@ -993,6 +993,7 @@ class ExplorerWidget(QWidget):
     sig_option_changed = Signal(str, object)
     sig_open_file = Signal(str)
     sig_new_file = Signal(str)
+    redirect_stdio = Signal(bool)
     
     def __init__(self, parent=None, name_filters=['*.py', '*.pyw'],
                  valid_types=('.py', '.pyw'), show_all=False,
