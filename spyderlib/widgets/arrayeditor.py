@@ -20,7 +20,8 @@ from spyderlib.qt.QtGui import (QHBoxLayout, QColor, QTableView, QItemDelegate,
                                 QDoubleValidator, QDialog, QDialogButtonBox,
                                 QMessageBox, QPushButton, QInputDialog, QMenu,
                                 QApplication, QKeySequence, QLabel, QComboBox,
-                                QSpinBox, QStackedWidget, QWidget, QVBoxLayout)
+                                QSpinBox, QStackedWidget, QWidget, QVBoxLayout,
+                                QShortcut)
 from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, SIGNAL,
                                  SLOT)
 from spyderlib.qt.compat import to_qvariant, from_qvariant
@@ -335,6 +336,9 @@ class ArrayView(QTableView):
         self.viewport().resize(min(total_width, 1024), self.height())
         self.shape = shape
         self.menu = self.setup_menu()
+        copy_sc = QShortcut(QKeySequence(QKeySequence.Copy), self,
+                            self.copy)
+        copy_sc.setContext(Qt.WidgetWithChildrenShortcut)
   
     def resize_to_contents(self):
         """Resize cells to contents"""
