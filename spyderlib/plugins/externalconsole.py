@@ -51,8 +51,6 @@ class ExternalConsoleConfigPage(PluginConfigPage):
     def __init__(self, plugin, parent):
         PluginConfigPage.__init__(self, plugin, parent)
         self.get_name = lambda: _("Console")
-        self.def_startup_radio = None
-        self.cus_startup_radio = None
         self.cus_exec_radio = None
         self.pyexec_edit = None
 
@@ -212,24 +210,24 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                                    "PYTHONSTARTUP environment variable which\n"
                                    "defines the script to be executed during "
                                    "the Python console startup."))
-        self.def_startup_radio = self.create_radiobutton(
+        def_startup_radio = self.create_radiobutton(
                                         _("Default PYTHONSTARTUP script"),
                                         'pythonstartup/default',
                                         button_group=pystartup_bg)
-        self.cus_startup_radio = self.create_radiobutton(
+        cus_startup_radio = self.create_radiobutton(
                                         _("Use the following startup script:"),
                                         'pythonstartup/custom',
                                         button_group=pystartup_bg)
         pystartup_file = self.create_browsefile('', 'pythonstartup', '',
                                                 filters=_("Python scripts")+\
                                                 " (*.py)")
-        self.def_startup_radio.toggled.connect(pystartup_file.setDisabled)
-        self.cus_startup_radio.toggled.connect(pystartup_file.setEnabled)
+        def_startup_radio.toggled.connect(pystartup_file.setDisabled)
+        cus_startup_radio.toggled.connect(pystartup_file.setEnabled)
         
         pystartup_layout = QVBoxLayout()
         pystartup_layout.addWidget(pystartup_label)
-        pystartup_layout.addWidget(self.def_startup_radio)
-        pystartup_layout.addWidget(self.cus_startup_radio)
+        pystartup_layout.addWidget(def_startup_radio)
+        pystartup_layout.addWidget(cus_startup_radio)
         pystartup_layout.addWidget(pystartup_file)
         pystartup_group.setLayout(pystartup_layout)
         
@@ -418,6 +416,8 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                 self.warn_python_compatibility(cust_pyexec)
 
     def warn_python_compatibility(self, pyexec):
+        if not osp.isfile(pyexec):
+            return
         spyder_version = sys.version_info[0]
         try:
             cmd = [pyexec, "-c", "import sys; print(sys.version_info[0])"]
