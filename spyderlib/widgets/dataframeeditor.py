@@ -17,7 +17,8 @@ from spyderlib.qt.QtCore import QAbstractTableModel, Qt, QModelIndex, Slot
 from spyderlib.qt.QtGui import (QDialog, QTableView, QColor, QGridLayout,
                                 QDialogButtonBox, QHBoxLayout, QPushButton,
                                 QCheckBox, QMessageBox, QInputDialog,
-                                QLineEdit, QApplication, QMenu)
+                                QLineEdit, QApplication, QMenu, QShortcut,
+                                QKeySequence)
 from spyderlib.qt.compat import to_qvariant, from_qvariant
 from spyderlib.utils.qthelpers import (qapplication, get_icon, create_action,
                                        add_actions, keybinding)
@@ -327,6 +328,9 @@ class DataFrameView(QTableView):
         self.header_class = self.horizontalHeader()
         self.header_class.sectionClicked.connect(self.sortByColumn)
         self.menu = self.setup_menu()
+        copy_sc = QShortcut(QKeySequence(QKeySequence.Copy), self,
+                            self.copy)
+        copy_sc.setContext(Qt.WidgetWithChildrenShortcut)
 
     def sortByColumn(self, index):
         """ Implement a Column sort """
@@ -374,10 +378,11 @@ class DataFrameView(QTableView):
         [model.setData(i, '', change_type=func) for i in index_list]
 
     @Slot()
-    def copy(self, index=False, header=False):
+    def copy(self):
         """Copy text to clipboard"""
         (row_min, row_max,
          col_min, col_max) = get_idx_rect(self.selectedIndexes())
+        index = header = False
         if col_min == 0:
             col_min = 1
             index = True
@@ -386,7 +391,7 @@ class DataFrameView(QTableView):
             contents = '\n'.join(map(str, df.index.tolist()[slice(row_min,
                                                             row_max+1)]))
         else:  # To copy DataFrame
-            if df.shape[0] == row_max+1 and row_min == 0:
+            if (col_min == 0 or col_min == 1) and (df.shape[1] == col_max):
                 header = True
             obj = df.iloc[slice(row_min, row_max+1), slice(col_min-1, col_max)]
             output = io.StringIO()

@@ -1263,16 +1263,13 @@ class ProjectExplorerWidget(QWidget):
     sig_open_file = Signal(str)
     
     def __init__(self, parent, name_filters=['*.py', '*.pyw'],
-                 valid_types=['.py', '.pyw'], show_all=False,
-                 show_hscrollbar=True):
+                 show_all=False, show_hscrollbar=True):
         QWidget.__init__(self, parent)
         self.treewidget = None
         self.selector = None
-        self.setup_layout(name_filters, valid_types,
-                          show_all, show_hscrollbar)
+        self.setup_layout(name_filters, show_all, show_hscrollbar)
         
-    def setup_layout(self, name_filters, valid_types,
-                     show_all, show_hscrollbar):
+    def setup_layout(self, name_filters, show_all, show_hscrollbar):
         """Setup project explorer widget layout"""
         self.selector = WorkspaceSelector(self)
         self.selector.setup_widget()
@@ -1280,8 +1277,7 @@ class ProjectExplorerWidget(QWidget):
 
         self.treewidget = ExplorerTreeWidget(self,
                                              show_hscrollbar=show_hscrollbar)
-        self.treewidget.setup(name_filters=name_filters,
-                              show_all=show_all, valid_types=valid_types)
+        self.treewidget.setup(name_filters=name_filters, show_all=show_all)
         self.treewidget.select_workspace.connect(self.selector.select_directory)
         
         layout = QVBoxLayout()
