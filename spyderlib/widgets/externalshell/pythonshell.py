@@ -379,7 +379,8 @@ class ExternalPythonShell(ExternalShellBase):
                          SIGNAL('refresh_namespace_browser()'),
                          self.namespacebrowser.refresh_table)
             signal = self.notification_thread.sig_process_remote_view
-            signal.connect(self.namespacebrowser.process_remote_view)
+            signal.connect(lambda data:
+                           self.namespacebrowser.process_remote_view(data))
     
     def create_process(self):
         self.shell.clear()
