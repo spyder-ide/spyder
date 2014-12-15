@@ -1195,9 +1195,10 @@ class MainWindow(QMainWindow):
         self.extconsole.setMinimumHeight(0)
         
         if not self.light:
-            # Hide Internal Console so that people doesn't use it instead of
+            # Hide Internal Console so that people don't use it instead of
             # the External or IPython ones
             if self.console.dockwidget.isVisible() and DEV is None:
+                self.console.toggle_view_action.setChecked(False)
                 self.console.dockwidget.hide()
         
             # Show the Object Inspector and Consoles by default
