@@ -29,7 +29,7 @@ import shutil
 
 # Local imports
 from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions,
-                                       file_uri)
+                                       file_uri, get_std_icon)
 from spyderlib.utils import misc, encoding, programs, vcs
 from spyderlib.baseconfig import _
 from spyderlib.py3compat import to_text_string, getcwd, str_lower
@@ -996,7 +996,7 @@ class ExplorerWidget(QWidget):
         self.toolbar.setIconSize(QSize(16, 16))
         
         self.previous_action = create_action(self, text=_("Previous"),
-                            icon=get_icon('previous.png'),
+                            icon=get_std_icon("ArrowBack"),
                             triggered=self.treewidget.go_to_previous_directory)
         self.toolbar.addAction(self.previous_action)
         self.previous_action.setEnabled(False)
@@ -1004,7 +1004,7 @@ class ExplorerWidget(QWidget):
                      self.previous_action.setEnabled)
         
         self.next_action = create_action(self, text=_("Next"),
-                            icon=get_icon('next.png'),
+                            icon=get_std_icon("ArrowForward"),
                             triggered=self.treewidget.go_to_next_directory)
         self.toolbar.addAction(self.next_action)
         self.next_action.setEnabled(False)
@@ -1012,9 +1012,10 @@ class ExplorerWidget(QWidget):
                      self.next_action.setEnabled)
         
         parent_action = create_action(self, text=_("Parent"),
-                            icon=get_icon('up.png'),
+                            icon=get_std_icon("ArrowUp"),
                             triggered=self.treewidget.go_to_parent_directory)
         self.toolbar.addAction(parent_action)
+        self.toolbar.addSeparator()
 
         options_action = create_action(self, text='', tip=_("Options"),
                                        icon=get_icon('tooloptions.png'))
@@ -1037,11 +1038,12 @@ class ExplorerWidget(QWidget):
         """Toggle icon text"""
         self.sig_option_changed.emit('show_icontext', state)
         for action in self.toolbar.actions():
-            widget = self.toolbar.widgetForAction(action)
-            if state:
-                widget.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
-            else:
-                widget.setToolButtonStyle(Qt.ToolButtonIconOnly)
+            if not action.isSeparator():
+                widget = self.toolbar.widgetForAction(action)
+                if state:
+                    widget.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
+                else:
+                    widget.setToolButtonStyle(Qt.ToolButtonIconOnly)
 
 
 class FileExplorerTest(QWidget):
