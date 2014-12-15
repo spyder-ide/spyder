@@ -980,20 +980,16 @@ class ExplorerWidget(QWidget):
     sig_new_file = Signal(str)
     
     def __init__(self, parent=None, name_filters=['*.py', '*.pyw'],
-                 show_all=False, show_cd_only=None, show_toolbar=True,
-                 show_icontext=True):
+                 show_all=False, show_cd_only=None, show_icontext=True):
         QWidget.__init__(self, parent)
         
         self.treewidget = ExplorerTreeWidget(self, show_cd_only=show_cd_only)
         self.treewidget.setup(name_filters=name_filters, show_all=show_all)
         self.treewidget.chdir(getcwd())
         
-        toolbar_action = create_action(self, _("Show toolbar"),
-                                       toggled=self.toggle_toolbar)
         icontext_action = create_action(self, _("Show icons and text"),
                                         toggled=self.toggle_icontext)
-        self.treewidget.common_actions += [None,
-                                           toolbar_action, icontext_action]
+        self.treewidget.common_actions += [None, icontext_action]
         
         # Setup toolbar
         self.toolbar = QToolBar(self)
@@ -1029,8 +1025,6 @@ class ExplorerWidget(QWidget):
         add_actions(menu, self.treewidget.common_actions)
         options_action.setMenu(menu)
             
-        toolbar_action.setChecked(show_toolbar)
-        self.toggle_toolbar(show_toolbar)   
         icontext_action.setChecked(show_icontext)
         self.toggle_icontext(show_icontext)     
         
@@ -1038,12 +1032,7 @@ class ExplorerWidget(QWidget):
         vlayout.addWidget(self.toolbar)
         vlayout.addWidget(self.treewidget)
         self.setLayout(vlayout)
-        
-    def toggle_toolbar(self, state):
-        """Toggle toolbar"""
-        self.sig_option_changed.emit('show_toolbar', state)
-        self.toolbar.setVisible(state)
-            
+
     def toggle_icontext(self, state):
         """Toggle icon text"""
         self.sig_option_changed.emit('show_icontext', state)

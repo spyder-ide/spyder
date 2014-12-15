@@ -435,7 +435,6 @@ DEFAULTS = [
               'name_filters': NAME_FILTERS,
               'show_hidden': True,
               'show_all': False,
-              'show_toolbar': True,
               'show_icontext': False,
               }),
             ('find_in_files',
@@ -715,7 +714,7 @@ DEFAULTS = [
 # 2. If you want to *remove* options that are no longer needed in our codebase,
 #    you need to do a MAJOR update in version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '10.0.0'
+CONF_VERSION = '11.0.0'
 
 # XXX: Previously we had load=(not DEV) here but DEV was set to *False*.
 # Check if it *really* needs to be updated or not
