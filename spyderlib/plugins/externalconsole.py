@@ -426,6 +426,8 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                 self.warn_python_compatibility(cust_pyexec)
 
     def warn_python_compatibility(self, pyexec):
+        if not osp.isfile(pyexec):
+            return
         spyder_version = sys.version_info[0]
         try:
             cmd = [pyexec, "-c", "import sys; print(sys.version_info[0])"]
