@@ -22,7 +22,8 @@ from spyderlib.utils.qthelpers import (get_icon, get_std_icon, add_actions,
 from spyderlib.utils.environ import RemoteEnvDialog
 from spyderlib.utils.programs import get_python_args
 from spyderlib.utils.misc import get_python_executable
-from spyderlib.baseconfig import _, get_module_source_path, DEBUG
+from spyderlib.baseconfig import (_, get_module_source_path, DEBUG,
+                                  MAC_APP_NAME, running_in_mac_app)
 from spyderlib.widgets.shell import PythonShellWidget
 from spyderlib.widgets.externalshell.namespacebrowser import NamespaceBrowser
 from spyderlib.utils.bsdsocket import communicate, write_packet
@@ -386,7 +387,8 @@ class ExternalPythonShell(ExternalShellBase):
             self.notification_thread.refresh_namespace_browser.connect(
                          self.namespacebrowser.refresh_table)
             signal = self.notification_thread.sig_process_remote_view
-            signal.connect(self.namespacebrowser.process_remote_view)
+            signal.connect(lambda data:
+                           self.namespacebrowser.process_remote_view(data))
     
     def create_process(self):
         self.shell.clear()
@@ -513,9 +515,9 @@ class ExternalPythonShell(ExternalShellBase):
         #    interpreter to use our sitecustomize script.
         # 3. Remove PYTHONOPTIMIZE from env so that we can have assert
         #    statements working with our interpreters (See Issue 1281)
-        if sys.platform == 'darwin' and 'Spyder.app' in __file__:
+        if running_in_mac_app():
             env.append('SPYDER_INTERPRETER=%s' % self.pythonexecutable)
-            if 'Spyder.app' not in self.pythonexecutable:
+            if MAC_APP_NAME not in self.pythonexecutable:
                 env = [p for p in env if not (p.startswith('PYTHONPATH') or \
                                               p.startswith('PYTHONHOME'))] # 1.
 
