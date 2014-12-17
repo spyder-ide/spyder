@@ -101,7 +101,10 @@ class DataFrameModel(QAbstractTableModel):
             self.complex_intran = self.df.applymap(lambda e:
                                                    isinstance(e, _sup_com))
             mask = float_intran & (~ self.complex_intran)
-            df_abs = self.df[self.complex_intran].abs()
+            try:
+                df_abs = self.df[self.complex_intran].abs()
+            except TypeError:
+                df_abs = self.df[self.complex_intran]
             max_c = df_abs.max(skipna=True)
             min_c = df_abs.min(skipna=True)
             df_real = self.df[mask]
