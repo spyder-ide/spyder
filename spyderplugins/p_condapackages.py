@@ -12,7 +12,7 @@
 # pylint: disable=R0201
 
 from spyderlib.qt.QtGui import QVBoxLayout, QGroupBox
-from spyderlib.qt.QtCore import SIGNAL
+#from spyderlib.qt.QtCore import SIGNAL
 
 # Local imports
 from spyderlib.baseconfig import get_translation
@@ -20,7 +20,7 @@ _ = get_translation("p_condapackages", dirname="spyderplugins")
 from spyderlib.utils.qthelpers import get_icon
 from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage
 
-from spyderplugins.widgets.condapackagesgui import (CondaPackagesWidget, 
+from spyderplugins.widgets.condapackagesgui import (CondaPackagesWidget,
                                                     CONDA_PATH)
 
 
@@ -28,11 +28,11 @@ class CondaPackagesConfigPage(PluginConfigPage):
     """ """
     def setup_page(self):
         settings_group = QGroupBox(_("Settings"))
-        confirm_box = self.create_checkbox(_("Confirm before taking action"),
-                                        'confirm_action', default=True)
-
+        update_box = self.create_checkbox(_("Update channel data on startup"),
+                                          'update_channel_startup',
+                                          default=True)
         settings_layout = QVBoxLayout()
-        settings_layout.addWidget(confirm_box)
+        settings_layout.addWidget(update_box)
         settings_group.setLayout(settings_layout)
 
         vlayout = QVBoxLayout()
@@ -53,7 +53,7 @@ class CondaPackages(CondaPackagesWidget, SpyderPluginMixin):
         # Initialize plugin
         self.initialize_plugin()
 
-    #------ SpyderPluginWidget API --------------------------------------------
+    # ------ SpyderPluginWidget API -------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
         return _("Conda package manager")
@@ -85,23 +85,24 @@ class CondaPackages(CondaPackagesWidget, SpyderPluginMixin):
 #        self.connect(self, SIGNAL('redirect_stdio(bool)'),
 #                     self.main.redirect_internalshell_stdio)
         self.main.add_dockwidget(self)
-        
+
     def refresh_plugin(self):
         """Refresh pylint widget"""
-        
+
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         return True
-            
+
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
         pass
-        
-    #------ Public API --------------------------------------------------------
+
+    # ------ Public API -------------------------------------------------------
 
 
-#==============================================================================
+# =============================================================================
 # The following statements are required to register this 3rd party plugin:
-#==============================================================================
+# =============================================================================
+# Only register plugin if conda is found on the system
 if CONDA_PATH:
     PLUGIN_CLASS = CondaPackages
