@@ -1620,6 +1620,12 @@ class MainWindow(QMainWindow):
         """Exit tasks"""
         if self.already_closed or self.is_starting_up:
             return True
+        if cancelable and CONF.get('main', 'prompt_on_exit'):
+            reply = QMessageBox.critical(self, 'Spyder',
+                                         'Do you really want to exit?',
+                                         QMessageBox.Yes, QMessageBox.No)
+            if reply == QMessageBox.No:
+                return False
         prefix = ('lightwindow' if self.light else 'window') + '/'
         self.save_current_window_settings(prefix)
         if CONF.get('main', 'single_instance'):
