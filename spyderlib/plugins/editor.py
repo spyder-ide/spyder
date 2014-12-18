@@ -994,6 +994,9 @@ class Editor(SpyderPluginWidget):
         self.set_inspector(self.main.inspector)
         if self.main.outlineexplorer is not None:
             self.set_outlineexplorer(self.main.outlineexplorer)
+        editorstack = self.get_current_editorstack()
+        if not editorstack.data:
+            self.__load_temp_file()
         self.main.add_dockwidget(self)
     
         
