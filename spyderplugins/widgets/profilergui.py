@@ -296,6 +296,18 @@ class ProfilerWidget(QWidget):
         self.datelabel.setText(date_text)
 
 
+class TreeWidgetItem( QTreeWidgetItem ):
+    def __init__(self, parent=None):
+        QTreeWidgetItem.__init__(self, parent)
+    
+    def __lt__(self, otherItem):
+        column = self.treeWidget().sortColumn()
+        try:
+            return float( self.text(column) ) > float( otherItem.text(column) )
+        except ValueError:
+            return self.text(column) > otherItem.text(column)
+
+
 class ProfilerDataTree(QTreeWidget):
     """
     Convenience tree widget (with built-in model) 
@@ -415,7 +427,7 @@ class ProfilerDataTree(QTreeWidget):
              ) = self.function_info(child_key)
             (primcalls, total_calls, loc_time, cum_time, callers
              ) = self.stats[child_key]
-            child_item = QTreeWidgetItem(parentItem)
+            child_item = TreeWidgetItem(parentItem)
             self.item_list.append(child_item)
             self.set_item_data(child_item, filename, line_number)
 
