@@ -505,7 +505,10 @@ class Editor(SpyderPluginWidget):
     def restore_scrollbar_position(self):
         """Restoring scrollbar position after main window is visible"""
         # Widget is now visible, we may center cursor on top level editor:
-        self.get_current_editor().centerCursor()
+        try:
+            self.get_current_editor().centerCursor()
+        except AttributeError:
+            pass
             
     #------ SpyderPluginWidget API ---------------------------------------------    
     def get_plugin_title(self):
