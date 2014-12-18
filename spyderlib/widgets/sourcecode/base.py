@@ -31,6 +31,19 @@ from spyderlib.widgets.calltip import CallTipWidget
 from spyderlib.py3compat import to_text_string, str_lower, PY3
 
 
+def insert_text_to(cursor, text, fmt):
+    """Helper to print text, taking into account backspaces"""
+    while True:
+        index = text.find(chr(8))  # backspace
+        if index == -1:
+            break
+        cursor.insertText(text[:index], fmt)
+        if cursor.positionInBlock() > 0:
+            cursor.deletePreviousChar()
+        text = text[index+1:]
+    cursor.insertText(text, fmt)
+
+
 class CompletionWidget(QListWidget):
     """Completion list widget"""
     def __init__(self, parent, ancestor):
@@ -1264,16 +1277,3 @@ class ConsoleBaseWidget(TextEditBaseWidget):
                               light_background=self.light_background,
                               is_default=style is self.default_style)
         self.ansi_handler.set_base_format(self.default_style.format)
-
-
-def insert_text_to(cursor, text, fmt):
-    """Helper to print text, taking into account backspaces"""
-    while True:
-        index = text.find(chr(8))  # backspace
-        if index == -1:
-            break
-        cursor.insertText(text[:index], fmt)
-        if cursor.positionInBlock() > 0:
-            cursor.deletePreviousChar()
-        text = text[index+1:]
-    cursor.insertText(text, fmt)
