@@ -69,6 +69,7 @@ class DataFrameModel(QAbstractTableModel):
         self.dialog = parent
         self.df = dataFrame
         self.df_index = dataFrame.index.tolist()
+        self.df_header = dataFrame.columns.tolist()
         self._format = format
         self.bgcolor_enabled = True
         self.complex_intran = None
@@ -151,8 +152,7 @@ class DataFrameModel(QAbstractTableModel):
             if section == 0:
                 return 'Index'
             else:
-                return to_qvariant(to_text_string(self.df.columns.tolist()
-                                                  [section-1]))
+                return to_qvariant(to_text_string(self.df_header[section-1]))
         else:
             return to_qvariant()
 
