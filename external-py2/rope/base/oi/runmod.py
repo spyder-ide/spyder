@@ -40,9 +40,9 @@ def __rope_start_everything():
         def close(self):
             self.my_file.close()
 
-
     def _cached(func):
         cache = {}
+
         def newfunc(self, arg):
             if arg in cache:
                 return cache[arg]
@@ -76,7 +76,8 @@ def __rope_start_everything():
             code = frame.f_code
             for argname in code.co_varnames[:code.co_argcount]:
                 try:
-                    args.append(self._object_to_persisted_form(frame.f_locals[argname]))
+                    args.append(self._object_to_persisted_form(
+                        frame.f_locals[argname]))
                 except (TypeError, AttributeError):
                     args.append(('unknown',))
             try:
@@ -94,17 +95,19 @@ def __rope_start_everything():
         def _is_an_interesting_call(self, frame):
             #if frame.f_code.co_name in ['?', '<module>']:
             #    return False
-            #return not frame.f_back or not self._is_code_inside_project(frame.f_back.f_code)
+            #return not frame.f_back or
+            #    not self._is_code_inside_project(frame.f_back.f_code)
 
             if not self._is_code_inside_project(frame.f_code) and \
-               (not frame.f_back or not self._is_code_inside_project(frame.f_back.f_code)):
+               (not frame.f_back or
+                    not self._is_code_inside_project(frame.f_back.f_code)):
                 return False
             return True
 
         def _is_code_inside_project(self, code):
             source = self._path(code.co_filename)
             return source is not None and os.path.exists(source) and \
-                   _realpath(source).startswith(self.project_root)
+                _realpath(source).startswith(self.project_root)
 
         @_cached
         def _get_persisted_code(self, object_):
@@ -128,7 +131,8 @@ def __rope_start_everything():
                 holding = None
                 if len(object_) > 0:
                     holding = object_[0]
-                return ('builtin', 'list', self._object_to_persisted_form(holding))
+                return ('builtin', 'list',
+                        self._object_to_persisted_form(holding))
             if isinstance(object_, dict):
                 keys = None
                 values = None
@@ -152,7 +156,8 @@ def __rope_start_everything():
                     for o in object_:
                         holding = o
                         break
-                return ('builtin', 'set', self._object_to_persisted_form(holding))
+                return ('builtin', 'set',
+                        self._object_to_persisted_form(holding))
             return ('unknown',)
 
         def _object_to_persisted_form(self, object_):

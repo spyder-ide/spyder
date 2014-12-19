@@ -4,9 +4,11 @@
 based on inputs.
 
 """
-from rope.base import pyobjects, codeanalyze, exceptions, pynames, taskhandle, evaluate, worder
+from rope.base import (pyobjects, codeanalyze, exceptions, pynames,
+                       taskhandle, evaluate, worder)
 from rope.base.change import ChangeSet, ChangeContents, MoveResource
-from rope.refactor import importutils, rename, occurrences, sourceutils, functionutils
+from rope.refactor import importutils, rename, occurrences, sourceutils, \
+    functionutils
 
 
 def create_move(project, resource, offset=None):
@@ -113,8 +115,8 @@ class MoveMethod(object):
     def _get_changes_made_by_old_class(self, dest_attr, new_name):
         pymodule = self.pyfunction.get_module()
         indents = self._get_scope_indents(self.pyfunction)
-        body = 'return self.%s.%s(%s)\n' % (dest_attr, new_name,
-                                            self._get_passed_arguments_string())
+        body = 'return self.%s.%s(%s)\n' % (
+            dest_attr, new_name, self._get_passed_arguments_string())
         region = sourceutils.get_body_region(self.pyfunction)
         return (pymodule.get_resource(), region[0], region[1],
                 sourceutils.fix_indentation(body, indents))
@@ -212,13 +214,15 @@ class MoveGlobal(object):
 
     def _check_exceptional_conditions(self):
         if self.old_pyname is None or \
-           not isinstance(self.old_pyname.get_object(), pyobjects.PyDefinedObject):
+           not isinstance(self.old_pyname.get_object(),
+                          pyobjects.PyDefinedObject):
             raise exceptions.RefactoringError(
                 'Move refactoring should be performed on a class/function.')
         moving_pyobject = self.old_pyname.get_object()
         if not self._is_global(moving_pyobject):
             raise exceptions.RefactoringError(
-                'Move refactoring should be performed on a global class/function.')
+                'Move refactoring should be performed ' +
+                'on a global class/function.')
 
     def _is_global(self, pyobject):
         return pyobject.get_scope().parent == pyobject.get_module().get_scope()
@@ -264,7 +268,8 @@ class MoveGlobal(object):
                 if should_import:
                     pymodule = self.tools.new_pymodule(pymodule, source)
                     source, imported = importutils.add_import(
-                        self.pycore, pymodule, self._new_modname(dest), self.old_name)
+                        self.pycore, pymodule, self._new_modname(dest),
+                        self.old_name)
                     source = source.replace(placeholder, imported)
                 source = self.tools.new_source(pymodule, source)
                 if source != file_.read():
@@ -310,7 +315,8 @@ class MoveGlobal(object):
             lineno = module_with_imports.imports[-1].end_line - 1
         else:
             while lineno < pymodule.lines.length() and \
-                  pymodule.lines.get_line(lineno + 1).lstrip().startswith('#'):
+                    pymodule.lines.get_line(lineno + 1).\
+                    lstrip().startswith('#'):
                 lineno += 1
         if lineno > 0:
             cut = pymodule.lines.get_line_end(lineno) + 1
@@ -345,7 +351,7 @@ class MoveGlobal(object):
         start = lines.get_line_start(scope.get_start())
         end_line = scope.get_end()
         while end_line < lines.length() and \
-              lines.get_line(end_line + 1).strip() == '':
+                lines.get_line(end_line + 1).strip() == '':
             end_line += 1
         end = min(lines.get_line_end(end_line) + 1, len(pymodule.source_code))
         return start, end
@@ -385,7 +391,6 @@ class MoveModule(object):
 
     def get_changes(self, dest, resources=None,
                     task_handle=taskhandle.NullTaskHandle()):
-        moving_pyobject = self.old_pyname.get_object()
         if resources is None:
             resources = self.pycore.get_python_files()
         if dest is None or not dest.is_folder():
@@ -480,10 +485,12 @@ class _MoveTools(object):
     def remove_old_imports(self, pymodule):
         old_source = pymodule.source_code
         module_with_imports = self.import_tools.module_imports(pymodule)
+
         class CanSelect(object):
             changed = False
             old_name = self.old_name
             old_pyname = self.old_pyname
+
             def __call__(self, name):
                 try:
                     if name == self.old_name and \
@@ -501,7 +508,7 @@ class _MoveTools(object):
             return new_source
 
     def rename_in_module(self, new_name, pymodule=None,
-                          imports=False, resource=None):
+                         imports=False, resource=None):
         occurrence_finder = self._create_finder(imports)
         source = rename.rename_in_module(
             occurrence_finder, new_name, replace_primary=True,
@@ -610,7 +617,7 @@ class ModuleSkipRenamer(object):
         self.replacement = replacement
         self.handle = handle
         if self.handle is None:
-            self.handle = ModuleSkipHandle()
+            self.handle = ModuleSkipRenamerHandle()
 
     def get_changed_module(self):
         source = self.resource.read()
@@ -618,7 +625,8 @@ class ModuleSkipRenamer(object):
         if self.replacement is not None:
             change_collector.add_change(self.skip_start, self.skip_end,
                                         self.replacement)
-        for occurrence in self.occurrence_finder.find_occurrences(self.resource):
+        for occurrence in self.occurrence_finder.find_occurrences(
+                self.resource):
             start, end = occurrence.get_primary_range()
             if self.skip_start <= start < self.skip_end:
                 self.handle.occurred_inside_skip(change_collector, occurrence)

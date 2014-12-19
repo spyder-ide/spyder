@@ -12,8 +12,6 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-from spyderlib.qt.QtCore import SIGNAL
-
 # Local imports
 from spyderlib.baseconfig import get_translation
 _ = get_translation("p_breakpoints", dirname="spyderplugins")
@@ -61,17 +59,14 @@ class Breakpoints(BreakpointWidget, SpyderPluginMixin):
 
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
-        self.connect(self, SIGNAL("edit_goto(QString,int,QString)"),
-                     self.main.editor.load)
-        self.connect(self, SIGNAL('redirect_stdio(bool)'),
-                     self.main.redirect_internalshell_stdio)
-        self.connect(self, SIGNAL('clear_all_breakpoints()'),
-                     self.main.editor.clear_all_breakpoints)
-        self.connect(self, SIGNAL('clear_breakpoint(QString,int)'),
-                     self.main.editor.clear_breakpoint)
-        self.connect(self.main.editor,
-                     SIGNAL("breakpoints_saved()"),
-                     self.set_data)
+        self.edit_goto.connect(self.main.editor.load)
+        #self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
+        self.clear_all_breakpoints.connect(
+                                        self.main.editor.clear_all_breakpoints)
+        self.clear_breakpoint.connect(self.main.editor.clear_breakpoint)
+        self.main.editor.breakpoints_saved.connect(self.set_data)
+        self.set_or_edit_conditional_breakpoint.connect(
+                           self.main.editor.set_or_edit_conditional_breakpoint)
         
         self.main.add_dockwidget(self)
         

@@ -27,7 +27,7 @@ class Prefs(object):
 
     def add_callback(self, key, callback):
         """Add `key` preference with `callback` function
-        
+
         Whenever `key` is set the callback is called with the
         given `value` as parameter.
 
