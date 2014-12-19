@@ -74,8 +74,11 @@ class DataFrameModel(QAbstractTableModel):
         self.df_index = dataFrame.index.tolist()
         self.df_header = dataFrame.columns.tolist()
         self._format = format
-        self.bgcolor_enabled = True
         self.complex_intran = None
+        
+        self.total_rows = self.df.shape[0]
+        self.total_cols = self.df.shape[1]
+        size = self.total_rows * self.total_cols
 
         huerange = [.66, .99]  # Hue
         self.sat = .7  # Saturation
@@ -84,15 +87,18 @@ class DataFrameModel(QAbstractTableModel):
         self.hue0 = huerange[0]
         self.dhue = huerange[1]-huerange[0]
         self.max_min_col = None
-        self.max_min_col_update()
-        self.colum_avg_enabled = True
-        self.colum_avg(1)
+        if size < LARGE_SIZE:
+            self.max_min_col_update()
+            self.colum_avg_enabled = True
+            self.bgcolor_enabled = True
+            self.colum_avg(1)
+        else:
+            self.colum_avg_enabled = False
+            self.bgcolor_enabled = False
+            self.colum_avg(0)
 
         # Use paging when the total size, number of rows or number of
         # columns is too large
-        self.total_rows = self.df.shape[0]
-        self.total_cols = self.df.shape[1]
-        size = self.total_rows * self.total_cols
         if size > LARGE_SIZE:
             self.rows_loaded = self.ROWS_TO_LOAD
             self.cols_loaded = self.COLS_TO_LOAD
