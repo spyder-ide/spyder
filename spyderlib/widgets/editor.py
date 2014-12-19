@@ -417,6 +417,7 @@ class EditorStack(QWidget):
     edit_goto = Signal(str, int, str)
     split_vertically = Signal()
     split_horizontally = Signal()
+    sig_new_file = Signal(str)
 
     def __init__(self, parent, actions):
         QWidget.__init__(self, parent)
@@ -1697,7 +1698,7 @@ class EditorStack(QWidget):
         editor.run_selection.connect(self.run_selection)
         editor.run_cell.connect(self.run_cell)
         editor.run_cell_and_advance.connect(self.run_cell_and_advance)
-        editor.sig_new_file.connect(lambda s: self.parent().plugin.new(text=s))
+        editor.sig_new_file.connect(self.sig_new_file.emit)
         language = get_file_language(fname, txt)
         editor.setup_editor(
                 linenumbers=self.linenumbers_enabled,

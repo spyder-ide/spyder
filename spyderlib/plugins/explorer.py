@@ -18,7 +18,6 @@ import os.path as osp
 
 # Local imports
 from spyderlib.baseconfig import _
-from spyderlib.config import VALID_EXT
 from spyderlib.utils.qthelpers import create_action
 from spyderlib.widgets.explorer import ExplorerWidget
 from spyderlib.plugins import SpyderPluginMixin
@@ -40,9 +39,7 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
     def __init__(self, parent=None):
         ExplorerWidget.__init__(self, parent=parent,
                                 name_filters=self.get_option('name_filters'),
-                                valid_types=VALID_EXT,
                                 show_all=self.get_option('show_all'),
-                                show_toolbar=self.get_option('show_toolbar'),
                                 show_icontext=self.get_option('show_icontext'))
         SpyderPluginMixin.__init__(self, parent)
 
@@ -96,7 +93,7 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
                                                       refresh_explorer=False))
 
         self.sig_open_file.connect(self.main.open_file)
-        self.sig_new_file.connect(self.main.new_file)
+        self.sig_new_file.connect(lambda t: self.main.editor.new(text=t))
         
     def refresh_plugin(self, new_path=None, force_current=True):
         """Refresh explorer widget"""

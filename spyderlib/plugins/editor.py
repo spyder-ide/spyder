@@ -1107,6 +1107,7 @@ class Editor(SpyderPluginWidget):
         editorstack.zoom_in.connect(lambda: self.zoom(1))
         editorstack.zoom_out.connect(lambda: self.zoom(-1))
         editorstack.zoom_reset.connect(lambda: self.zoom(0))
+        editorstack.sig_new_file.connect(lambda s: self.new(text=s))
         editorstack.sig_close_file.connect(self.close_file_in_all_editorstacks)
         editorstack.file_saved.connect(self.file_saved_in_editorstack)
         editorstack.file_renamed_in_data.connect(
@@ -1438,7 +1439,7 @@ class Editor(SpyderPluginWidget):
             editor = editorstack.clone_editor_from(finfo, set_current=False)
             self.register_widget_shortcuts("Editor", editor)
     
-    @Slot()
+    @Slot(str)
     def new(self, fname=None, editorstack=None, text=None):
         """
         Create a new file - Untitled
@@ -1549,7 +1550,7 @@ class Editor(SpyderPluginWidget):
         if valid:
             self.set_option('max_recent_files', mrf)
     
-    @Slot()
+    @Slot(str, int, str)
     def load(self, filenames=None, goto=None, word='', editorwindow=None,
              processevents=True):
         """

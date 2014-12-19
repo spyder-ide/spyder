@@ -67,10 +67,10 @@ class FindReplace(QWidget):
         
         self.previous_button = create_toolbutton(self,
                                              triggered=self.find_previous,
-                                             icon=get_std_icon("ArrowBack"))
+                                             icon=get_std_icon("ArrowUp"))
         self.next_button = create_toolbutton(self,
                                              triggered=self.find_next,
-                                             icon=get_std_icon("ArrowForward"))
+                                             icon=get_std_icon("ArrowDown"))
         self.next_button.clicked.connect(self.update_search_combo)
         self.previous_button.clicked.connect(self.update_search_combo)
 
