@@ -91,9 +91,10 @@ class JediPlugin(IntrospectionPlugin):
             argspec = calltip[calltip.find('('):]
             docstring = call_def.doc[call_def.doc.find(')') + 3:]
         elif '(' in call_def.doc.splitlines()[0]:
-                calltip = call_def.doc.splitlines()[0]
-                name = call_def.doc.split('(')[0]
-                docstring = call_def.doc[call_def.doc.find(')') + 3:]
+            calltip = call_def.doc.splitlines()[0]
+            name = call_def.doc.split('(')[0]
+            docstring = call_def.doc[call_def.doc.find(')') + 3:]
+            argspec = calltip[calltip.find('('):]
         else:
             calltip = name + '(...)'
             argspec = '()'
