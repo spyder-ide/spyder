@@ -374,6 +374,10 @@ class PluginManager(QObject):
                 completion_text = info.full_obj
                 comp_list = new_list
 
+        if '.' in completion_text:
+            completion_text = completion_text.split('.')[-1]
+
+        comp_list = [c.split('.')[-1]  for c in comp_list]
         comp_list = [c for c in comp_list if c.startswith(completion_text)]
 
         info.editor.show_completion_list(comp_list, completion_text,
