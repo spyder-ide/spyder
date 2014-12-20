@@ -102,15 +102,15 @@ class DataFrameModel(QAbstractTableModel):
         if size > LARGE_SIZE:
             self.rows_loaded = self.ROWS_TO_LOAD
             self.cols_loaded = self.COLS_TO_LOAD
-            return
-        if self.total_rows > LARGE_NROWS:
-            self.rows_loaded = self.ROWS_TO_LOAD
         else:
-            self.rows_loaded = self.total_rows
-        if self.total_cols > LARGE_COLS:
-            self.cols_loaded = self.COLS_TO_LOAD
-        else:
-            self.cols_loaded = self.total_cols
+            if self.total_rows > LARGE_NROWS:
+                self.rows_loaded = self.ROWS_TO_LOAD
+            else:
+                self.rows_loaded = self.total_rows
+            if self.total_cols > LARGE_COLS:
+                self.cols_loaded = self.COLS_TO_LOAD
+            else:
+                self.cols_loaded = self.total_cols
 
     def max_min_col_update(self):
         """Determines the maximum and minimum number in each column"""
