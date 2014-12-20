@@ -245,7 +245,10 @@ These commands were executed:
         """
         if self._reading:
             if programs.is_module_installed('IPython', '>=1.0'):
-                self.kernel_client.stdin_channel.input(line)
+                try:
+                    self.kernel_client.stdin_channel.input(line)
+                except AttributeError:
+                    self.kernel_client.input(line)
             else:
                 self.kernel_manager.stdin_channel.input(line)
     
