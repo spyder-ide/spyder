@@ -1089,10 +1089,10 @@ class CondaPackageActionDialog(QDialog):
         dialog_size = QSize(250, 90)
 
         # helper variable values
-        title = {UPGRADE: _("Upgrade package"),
-                 DOWNGRADE: _("Downgrade package"),
-                 REMOVE: _("Remove package"),
-                 INSTALL: _("Install package")}
+        action_title = {UPGRADE: _("Upgrade package"),
+                        DOWNGRADE: _("Downgrade package"),
+                        REMOVE: _("Remove package"),
+                        INSTALL: _("Install package")}
 
         # Versions might have duplicates from different builds
         versions = sort_versions(list(set(versions)), reverse=True)
@@ -1166,10 +1166,11 @@ class CondaPackageActionDialog(QDialog):
         layout.addItem(QSpacerItem(10, 5), row_index + 3, 0)
         layout.addWidget(bbox, row_index + 6, 0, 1, 2, Qt.AlignHCenter)
 
+        title = "{0}: {1}".format(action_title[action], name)
         self.setLayout(layout)
         self.setMinimumSize(dialog_size)
         self.setFixedSize(dialog_size)
-        self.setWindowTitle(title[action])
+        self.setWindowTitle(title)
         self.setModal(True)
 
         # signals and slots
