@@ -16,6 +16,7 @@ from spyderlib.qt.QtGui import (QTabWidget, QMenu, QDrag, QApplication,
                                 QHBoxLayout)
 from spyderlib.qt.QtCore import SIGNAL, Qt, QPoint, QMimeData, QByteArray
 
+import os
 import os.path as osp
 
 # Local imports
@@ -270,7 +271,7 @@ class Tabs(BaseTabs):
             return sc
         tabsc = newsc("Ctrl+Tab", lambda: self.tab_navigate(1))
         tabshiftsc = newsc("Shift+Ctrl+Tab", lambda: self.tab_navigate(-1))
-        closesc = newsc("Ctrl+F4",
+        closesc = newsc("Ctrl+F4" if os.name == 'nt' else "Ctrl+W",
                         lambda: self.emit(SIGNAL("close_tab(int)"),
                                           self.currentIndex()))
         
