@@ -1,17 +1,19 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2014 Gonzalo Peña (@goanpeca)
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
-"""Conda Packager Manager Widget"""
+"""Conda Packager Manager Widget
 
-# pylint: disable=C01031
+Maybe this package manager should be shipped as a different module
+in pipy? spyder_package_manager? so that spyder updates could
+be handled easily?
+"""
+
 # pylint: disable=R0903
 # pylint: disable=R0911
 # pylint: disable=R0201
-
-# TODO:  update packages.ini file
 
 from __future__ import with_statement, print_function
 
@@ -23,26 +25,23 @@ from spyderlib.qt.QtGui import (QGridLayout, QVBoxLayout, QHBoxLayout,
                                 QWidget, QLabel, QSortFilterProxyModel,
                                 QTableView, QAbstractItemView,
                                 QFont, QDialog, QPalette, QDesktopServices)
-from spyderlib.qt.QtCore import (QSize, Qt, SIGNAL, QProcess,
-                                 QTextCodec, QAbstractTableModel, QModelIndex,
-                                 QPoint, SLOT, QUrl, QObject)
+from spyderlib.qt.QtCore import (QSize, Qt, QAbstractTableModel, QModelIndex,
+                                 QPoint, QUrl, QObject, Slot,
+                                 Signal, QThread)
 
 from spyderlib.qt.QtNetwork import QNetworkRequest, QNetworkAccessManager
 
-locale_codec = QTextCodec.codecForLocale()
 from spyderlib.qt.compat import to_qvariant
 
 import sys
-import platform
 import os
 import os.path as osp
 import json
-import subprocess
-#import locale
+import shutil
 
 # Local imports
+import conda_api_q
 from spyderlib.utils import programs
-from spyderlib.utils.encoding import to_unicode_from_fs
 from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions)
 from spyderlib.baseconfig import (get_conf_path, get_translation,
                                   get_image_path, get_module_data_path)
@@ -51,84 +50,16 @@ from spyderlib.py3compat import (to_text_string, u, is_binary_string,
 from spyderlib.py3compat import configparser as cp
 _ = get_translation("p_condapackages", dirname="spyderplugins")
 
-CONDA_PATH = programs.find_program('conda')  # FIXME: Conda api has similar
+CONDA_PATH = programs.find_program('conda')
 DATA_PATH = get_module_data_path('spyderplugins', 'data')
 
 
-def _call_conda_2(extra_args, abspath=True):
-    """ Patched version of the conda api returning only the cmd list
-
-    Allows using this trhough QProcess instead of Popen
-    """
-    # call conda with the list of extra arguments, and return the tuple
-    # stdout, stderr
-    ROOT_PREFIX = conda_api.ROOT_PREFIX
-    from os.path import join
-    if abspath:
-        if sys.platform == 'win32':
-            python = join(ROOT_PREFIX, 'python.exe')
-            conda = join(ROOT_PREFIX, 'Scripts', 'conda-script.py')
-        else:
-            python = join(ROOT_PREFIX, 'bin/python')
-            conda = join(ROOT_PREFIX, 'bin/conda')
-        cmd_list = [python, conda]
-    else:  # just use whatever conda is on the path
-        cmd_list = ['conda']
-
-    cmd_list.extend(extra_args)
-    return cmd_list
-
-if CONDA_PATH is None:
-    pass
-else:
-    if programs.is_module_installed('conda_api'):
-        CONDA_API_VER = programs.get_module_version('conda_api')
-
-        import conda_api  # TODO: This will reside where???
-        process = subprocess.Popen([CONDA_PATH, 'info'],
-                                   stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE,
-                                   shell=True if os.name == 'nt' else False)
-        lines = to_unicode_from_fs(process.communicate()[0])
-        lines = lines.replace('\r', '')
-        lines = lines.split('\n')
-
-        for line in lines:
-            if 'root environment' in line:
-                root_prefix = line.strip().split()[-2]
-        conda_api.set_root_prefix(root_prefix)  # TODO:
-        conda_api._call_conda_2 = _call_conda_2
-    else:
-        # TODO: Try to install the conda api with a subprocess??
-        # Or simply ship it with spyder, or with anaconda (ask continuum)
-        CONDA_API_VER = None
-
-
-def get_package_metadata(database, name):
-    """Extract infos (description, url) from the local database"""
-    # Note: we could use the PyPI database
-    db = cp.ConfigParser()
-    db.readfp(open(osp.join(DATA_PATH, database)))
-
-    metadata = dict(description='', url='http://pypi.python.org/pypi/' + name,
-                    pypi='http://pypi.python.org/pypi/' + name,
-                    home='http://pypi.python.org/pypi/' + name,
-                    docs='http://pypi.python.org/pypi/' + name,
-                    dev='http://pypi.python.org/pypi/' + name)
-
-    for key in metadata:
-        name1 = name.lower()
-        for name2 in (name1, name1.split('-')[0]):
-            try:
-                metadata[key] = db.get(name2, key)
-                break
-            except (cp.NoSectionError, cp.NoOptionError):
-                pass
-    return metadata
-
-
-def sort_versions(versions=[], reverse=False, sep=u'.'):
+def sort_versions(versions=(), reverse=False, sep=u'.'):
     """ Sort a list of version number strings """
+    # FIXME: I made this quick and dirty version to make sure it was working
+    # but I guess there is an equivalent function in conda or in distutils.
+    # I wrote this, because the ordering of package versions was not correct
+    # when including alpha, dev rc1 etc...
     if versions == []:
         return []
 
@@ -189,7 +120,6 @@ def sort_versions(versions=[], reverse=False, sep=u'.'):
 
     new_versions = sorted(new_versions, reverse=reverse)
     return [n[-1] for n in new_versions]
-    # return sorted(versions, reverse=reverse)
 
 # Constants
 COLUMNS = (NAME, DESCRIPTION, VERSION, STATUS, URL, LICENSE,
@@ -208,27 +138,15 @@ ROOT = 'root'
 
 
 class CondaPackagesModel(QAbstractTableModel):
-    """ """
-    def __init__(self, env, packages_dic):
-        QAbstractTableModel.__init__(self)
-        self.__envs = []   # ordered... for combo box
-        self.__environments = {}
-        self.__environment = env   # Default value
-        self.__conda_packages = packages_dic  # Everything from the json file
-        self.__packages_names = []
-        self.__packages_linked = {}  # Has to be remeptied on __setup_data
-        self.__packages_versions = {}  # the canonical name of versions compat
-        self.__packages_versions_number = {}
-        self.__packages_versions_all = {}  # the canonical name of all versions
-        self.__packages_upgradable = {}
-        self.__packages_downgradable = {}
-        self.__packages_installable = {}
-        self.__packages_licenses_all = {}
-        self.__rows = []
+    """Abstract Model to handle the packages in a conda environment"""
+    def __init__(self, parent, packages_names, packages_versions, row_data):
+        super(CondaPackagesModel, self).__init__(parent)
+        self.parent = parent
+        self._packages_names = packages_names
+        self._packages_versions = packages_versions
+        self._rows = row_data
 
-        self.__python_ver = u''
-
-        self.icons = {
+        self._icons = {
             'upgrade.active': get_icon('conda_upgrade_active.png'),
             'upgrade.inactive': get_icon('conda_upgrade_inactive.png'),
             'upgrade.pressed': get_icon('conda_upgrade_pressed.png'),
@@ -242,174 +160,18 @@ class CondaPackagesModel(QAbstractTableModel):
             'remove.inactive': get_icon('conda_remove_inactive.png'),
             'remove.pressed': get_icon('conda_remove_pressed.png')}
 
-        # Run conda and initial setup
-        self.__get_env_and_prefixes()
-        self.__set_env(self.__environment)
-        self.__setup_data()
+#    def _update_all(self):
+#        first = self.first_index()
+#        last = self.last_index()
+#        self.dataChanged.emit(first, last)
 
-    def __get_env_and_prefixes(self):
-        """ """
-        pyver_running = platform.python_version()
-        envs = conda_api.get_envs()  # TODO:
-        prefixes = ([conda_api.get_prefix_envname(ROOT)] + [k for k in envs])
-        environments = [ROOT] + [k.split(osp.sep)[-1] for k in envs]
-        self.__environments = dict(zip(environments, prefixes))
-        self.__envs = environments
-
-        # This has to do with the active python
-        self.__pyver_running = pyver_running.replace('.', '')[:-1].lower()
-
-    def __set_env(self, env):
-        self.__prefix = self.__environments[env]
-
-    def __update_all(self):
-        first = self.first_index()
-        last = self.last_index()
-        self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"), first, last)
-
-    def __update_cell(self, row, column):
+    def _update_cell(self, row, column):
         start = self.index(row, column)
         end = self.index(row, column)
-        self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"), start, end)
-
-    def __setup_data(self):
-        """ """
-        # exclude_names = ['emptydummypackage']  # FIXME: packages to exclude?
-
-        # First do the list of linked packages so in case there is no json
-        # We can show at least that
-        self.__packages_linked = {}
-        canonical_names = sorted(list(conda_api.linked(self.__prefix)))
-
-        # This has to do with the versions of the selected environment, NOT
-        # with the python version running!
-        # FIXME: What if there is no python.... wierd case...
-        pyver, numpyver, pybuild, numpybuild = None, None, None, None
-        for canonical_name in canonical_names:
-            n, v, b = conda_api.split_canonical_name(canonical_name)  # TODO:
-            self.__packages_linked[n] = [n, v, b, canonical_name]
-            if n == 'python':
-                pyver = v
-                pybuild = b
-            elif n == 'numpy':
-                numpyver = v
-                numpybuild = b
-
-        if self.__conda_packages == {}:
-            self.__packages_names = sorted([l for l in self.__packages_linked])
-            self.__rows = list(range(len(self.__packages_names)))
-            for n in self.__packages_linked:
-                val = self.__packages_linked[n]
-                v = val[-1]
-                self.__conda_packages[n] = [[v, v]]
-        else:
-            self.__packages_names = sorted([key for key in
-                                            self.__conda_packages])
-            self.__rows = list(range(len(self.__packages_names)))
-            for n in self.__conda_packages:
-                self.__packages_licenses_all[n] = {}
-
-        pybuild = 'py' + ''.join(pyver.split('.'))[:-1] + '_'  # + pybuild
-        if numpyver is None and numpybuild is None:
-            numpybuild = ''
-        else:
-            numpybuild = 'np' + ''.join(numpyver.split('.'))[:-1]
-
-        for n in self.__packages_names:
-            self.__packages_versions_all[n] = \
-                sort_versions([s[0] for s in self.__conda_packages[n]],
-                              reverse=True)
-            for s in self.__conda_packages[n]:
-                val = s[1]
-                if 'version' in val:
-                    ver = val['version']
-                    if 'license' in val:
-                        lic = val['license']
-#                        print(n, ver, lic)
-                        self.__packages_licenses_all[n][ver] = lic
-
-#        print(self.__packages_licenses_all)
-        # Now clean versions depending on the build version of python and numpy
-        # FIXME: there is an issue here... at this moment on package with same
-        # version but only differing in the build number will get added
-        # Now it assumes that there is a python installed in the root
-        for name in self.__packages_versions_all:
-            tempver_cano = []
-            tempver_num = []
-            for ver in self.__packages_versions_all[name]:
-                n, v, b = conda_api.split_canonical_name(ver)
-
-                if 'np' in b and 'py' in b:
-                    if (numpybuild + pybuild) in b:
-                        tempver_cano.append(ver)
-                        tempver_num.append(v)
-                elif 'py' in b:
-                    if pybuild in b:
-                        tempver_cano.append(ver)
-                        tempver_num.append(v)
-                elif 'np' in b:
-                    if numpybuild in b:
-                        tempver_cano.append(ver)
-                        tempver_num.append(v)
-                else:
-                    tempver_cano.append(ver)
-                    tempver_num.append(v)
-            self.__packages_versions[name] = sort_versions(tempver_cano,
-                                                           reverse=True)
-            self.__packages_versions_number[name] = sort_versions(tempver_num,
-                                                                  reverse=True)
-
-        # FIXME: Check what to do with different builds??
-        # For the moment here a set is used to remove duplicate versions
-        for n in self.__packages_linked:
-            vals = self.__packages_linked[n]
-            canonical_name = vals[-1]
-            current_ver = vals[1]
-            vers = self.__packages_versions_number[n]
-            vers = sort_versions(list(set(vers)), reverse=True)
-
-            self.__packages_upgradable[n] = not(current_ver == vers[0])
-            self.__packages_downgradable[n] = not(current_ver == vers[-1])
-
-        for row, name in enumerate(self.__packages_names):
-            if name in self.__packages_linked:
-                version = self.__packages_linked[name][1]
-                if (self.__packages_upgradable[name] and
-                        self.__packages_downgradable[name]):
-                    status = MIXGRADABLE
-                elif self.__packages_upgradable[name]:
-                    status = UPGRADABLE
-                elif self.__packages_downgradable[name]:
-                    status = DOWNGRADABLE
-                else:
-                    status = INSTALLED
-            else:
-                vers = self.__packages_versions_number[name]
-                vers = sort_versions(list(set(vers)), reverse=True)
-                version = '-'
-
-                if len(vers) == 0:
-                    status = NOT_INSTALLABLE
-                else:
-                    status = NOT_INSTALLED
-
-            metadata = get_package_metadata('packages.ini', name)
-            description = metadata['description']
-            url = metadata['url']
-
-            if version in self.__packages_licenses_all[name]:
-                if self.__packages_licenses_all[name][version]:
-                    license_ = self.__packages_licenses_all[name][version]
-                else:
-                    license_ = u''
-            else:
-                license_ = u''
-
-            self.__rows[row] = [name, description, version, status, url,
-                                license_, False, False, False, False]
+        self.dataChanged.emit(start, end)
 
     def flags(self, index):
-        """ """
+        """Override Qt method"""
         if not index.isValid():
             return Qt.ItemIsEnabled
         column = index.column()
@@ -423,19 +185,20 @@ class CondaPackagesModel(QAbstractTableModel):
             return Qt.ItemFlags(Qt.ItemIsEnabled)
 
     def data(self, index, role=Qt.DisplayRole):
-        if not index.isValid() or not (0 <= index.row() < len(self.__rows)):
+        """Override Qt method"""
+        if not index.isValid() or not 0 <= index.row() < len(self._rows):
             return to_qvariant()
 
         row = index.row()
         column = index.column()
 
         # Carefull here with the order, this has to be adjusted manually
-        if self.__rows[row] == row:
+        if self._rows[row] == row:
             [name, description, version, status, url, license_, i, r, u, d] =\
                 [u'', u'', '-', -1, u'', u'', False, False, False, False]
         else:
             [name, description, version, status, url, license_, i, r, u,
-             d] = self.__rows[row]
+             d] = self._rows[row]
 
         if role == Qt.DisplayRole:
             if column == NAME:
@@ -455,36 +218,36 @@ class CondaPackagesModel(QAbstractTableModel):
             if column == INSTALL:
                 if status == NOT_INSTALLED:
                     if i:
-                        return to_qvariant(self.icons['add.pressed'])
+                        return to_qvariant(self._icons['add.pressed'])
                     else:
-                        return to_qvariant(self.icons['add.active'])
+                        return to_qvariant(self._icons['add.active'])
                 else:
-                    return to_qvariant(self.icons['add.inactive'])
+                    return to_qvariant(self._icons['add.inactive'])
             elif column == REMOVE:
                 if (status == INSTALLED or status == UPGRADABLE or
-                   status == DOWNGRADABLE or status == MIXGRADABLE):
+                        status == DOWNGRADABLE or status == MIXGRADABLE):
                     if r:
-                        return to_qvariant(self.icons['remove.pressed'])
+                        return to_qvariant(self._icons['remove.pressed'])
                     else:
-                        return to_qvariant(self.icons['remove.active'])
+                        return to_qvariant(self._icons['remove.active'])
                 else:
-                    return to_qvariant(self.icons['remove.inactive'])
+                    return to_qvariant(self._icons['remove.inactive'])
             elif column == UPGRADE:
                 if status == UPGRADABLE or status == MIXGRADABLE:
                     if u:
-                        return to_qvariant(self.icons['upgrade.pressed'])
+                        return to_qvariant(self._icons['upgrade.pressed'])
                     else:
-                        return to_qvariant(self.icons['upgrade.active'])
+                        return to_qvariant(self._icons['upgrade.active'])
                 else:
-                    return to_qvariant(self.icons['upgrade.inactive'])
+                    return to_qvariant(self._icons['upgrade.inactive'])
             elif column == DOWNGRADE:
                 if status == DOWNGRADABLE or status == MIXGRADABLE:
                     if d:
-                        return to_qvariant(self.icons['downgrade.pressed'])
+                        return to_qvariant(self._icons['downgrade.pressed'])
                     else:
-                        return to_qvariant(self.icons['downgrade.active'])
+                        return to_qvariant(self._icons['downgrade.active'])
                 else:
-                    return to_qvariant(self.icons['downgrade.inactive'])
+                    return to_qvariant(self._icons['downgrade.inactive'])
         elif role == Qt.ToolTipRole:
             if column == INSTALL and status == NOT_INSTALLED:
                 return to_qvariant(_('Install package'))
@@ -502,29 +265,19 @@ class CondaPackagesModel(QAbstractTableModel):
                                           status == MIXGRADABLE):
                 return to_qvariant(_('Downgrade package'))
         elif role == Qt.ForegroundRole:
+            palette = QPalette()
             if column in [NAME, DESCRIPTION, VERSION]:
                 if status in [INSTALLED, UPGRADABLE, DOWNGRADABLE,
                               MIXGRADABLE]:
-                    color = QPalette.WindowText  # FIXME: Use system colors
+                    color = palette.color(QPalette.WindowText)
                     return to_qvariant(color)
                 elif status in [NOT_INSTALLED, NOT_INSTALLABLE]:
-                    color = QPalette.WindowText  # FIXME: Use system colors
+                    color = palette.color(QPalette.Mid)
                     return to_qvariant(color)
-        elif role == Qt.FontRole:
-            font = QFont()
-            font.setBold(False)
-            return to_qvariant(font)
-
-#            if (column == NAME  or
-#                column == DESCRIPTION) and (status in [INSTALLED, UPGRADABLE,
-#                                            DOWNGRADABLE, MIXGRADABLE]):
-#                font = QFont()
-#                font.setBold(False)
-#                return to_qvariant(font)
-
         return to_qvariant()
 
     def headerData(self, section, orientation, role=Qt.DisplayRole):
+        """Override Qt method"""
         if role == Qt.TextAlignmentRole:
             if orientation == Qt.Horizontal:
                 return to_qvariant(int(Qt.AlignHCenter | Qt.AlignVCenter))
@@ -561,66 +314,56 @@ class CondaPackagesModel(QAbstractTableModel):
                 return to_qvariant()
 
     def rowCount(self, index=QModelIndex()):
-        return len(self.__packages_names)
+        """Override Qt method"""
+        return len(self._packages_names)
 
     def columnCount(self, index=QModelIndex()):
+        """Override Qt method"""
         return len(COLUMNS)
 
     def row(self, rownum):
         """ """
-        return self.__rows[rownum]
-
-    def refresh_(self):
-        self.__get_env_and_prefixes()
-        self.__setup_data()
-        self.__update_all()
-
-    def refresh_envs(self):
-        """ """
-        self.__get_env_and_prefixes()
-
-    def env_changed(self, env):
-        self.__set_env(env)
-        self.__setup_data()
-        self.__update_all()
+        return self._rows[rownum]
 
     def first_index(self):
+        """ """
         return self.index(0, 0)
 
     def last_index(self):
+        """ """
         return self.index(self.rowCount() - 1, self.columnCount() - 1)
 
     def update_row_icon(self, row, column):
         """ """
         if column in ACTION_COLUMNS:
-            r = self.__rows[row]
+            r = self._rows[row]
             actual_state = r[column]
             r[column] = not actual_state
-            self.__rows[row] = r
-            self.__update_cell(row, column)
+            self._rows[row] = r
+            self._update_cell(row, column)
 
     def is_installable(self, model_index):
         """ """
         row = model_index.row()
-        status = self.__rows[row][STATUS]
+        status = self._rows[row][STATUS]
         return status == NOT_INSTALLED
 
     def is_removable(self, model_index):
         """ """
         row = model_index.row()
-        status = self.__rows[row][STATUS]
+        status = self._rows[row][STATUS]
         return status in [UPGRADABLE, DOWNGRADABLE, INSTALLED, MIXGRADABLE]
 
     def is_upgradable(self, model_index):
         """ """
         row = model_index.row()
-        status = self.__rows[row][STATUS]
+        status = self._rows[row][STATUS]
         return status == UPGRADABLE or status == MIXGRADABLE
 
     def is_downgradable(self, model_index):
         """ """
         row = model_index.row()
-        status = self.__rows[row][STATUS]
+        status = self._rows[row][STATUS]
         return status == DOWNGRADABLE or status == MIXGRADABLE
 
     def get_package_versions(self, name, versiononly=True):
@@ -631,13 +374,13 @@ class CondaPackagesModel(QAbstractTableModel):
             versiononly : bool
                 if True, returns version number only, otherwise canonical name
         """
-        versions = self.__packages_versions
+        versions = self._packages_versions
         if name in versions:
             if versiononly:
                 ver = versions[name]
                 temp = []
                 for ve in ver:
-                    n, v, b = conda_api.split_canonical_name(ve)
+                    n, v, b = conda_api_q.split_canonical_name(ve)
                     temp.append(v)
                 return temp
             else:
@@ -646,7 +389,7 @@ class CondaPackagesModel(QAbstractTableModel):
             return []
 
         # FIXME: now the env create is broken
-        cp = self.__conda_packages[name]
+        cp = self._packages[name]
         versions = set()
         for p in cp:
             versions.add(p[-1]['version'])
@@ -654,7 +397,7 @@ class CondaPackagesModel(QAbstractTableModel):
 
     def get_package_version(self, name):
         """  """
-        packages = self.__packages_names
+        packages = self._packages_names
         if name in packages:
             rownum = packages.index(name)
             return self.row(rownum)[VERSION]
@@ -664,41 +407,39 @@ class CondaPackagesModel(QAbstractTableModel):
 
 class MultiColumnSortFilterProxy(QSortFilterProxyModel):
     """
+    Implements a QSortFilterProxyModel that allows for custom filtering. Add
+    new filter functions using add_filter_function(). New functions should
+    accept two arguments, the column to be filtered and the currently set
+    filter string, and should return True to accept the row, False otherwise.
+
+    Filter functions are stored in a dictionary for easy removal by key. Use
+    the add_filter_function() and remove_filter_function() methods for access.
+
+    The filterString is used as the main pattern matching string for filter
+    functions. This could easily be expanded to handle regular expressions if
+    needed.
+
     Copyright https://gist.github.com/dbridges/4732790
-
-    Implements a QSortFilterProxyModel that allows for custom
-    filtering. Add new filter functions using addFilterFunction().
-    New functions should accept two arguments, the column to be
-    filtered and the currently set filter string, and should
-    return True to accept the row, False otherwise.
-
-    Filter functions are stored in a dictionary for easy
-    removal by key. Use the addFilterFunction() and
-    removeFilterFunction() methods for access.
-
-    The filterString is used as the main pattern matching
-    string for filter functions. This could easily be expanded
-    to handle regular expressions if needed.
     """
     def __init__(self, parent=None):
         super(MultiColumnSortFilterProxy, self).__init__(parent)
-        self.filterString = ''
-        self.filterStatus = ALL
-        self.filterFunctions = {}
-        self.table = parent
+        self.parent = parent
+        self.filter_string = ''
+        self.filter_status = ALL
+        self.filter_functions = {}
 
-    def setFilter(self, text, status):
+    def set_filter(self, text, status):
         """
         text : string
             The string to be used for pattern matching.
         status : int
             TODO: add description
         """
-        self.filterString = text.lower()
-        self.filterStatus = status
+        self.filter_string = text.lower()
+        self.filter_status = status
         self.invalidateFilter()
 
-    def addFilterFunction(self, name, new_func):
+    def add_filter_function(self, name, new_function):
         """
         name : hashable object
             The object to be used as the key for
@@ -706,43 +447,42 @@ class MultiColumnSortFilterProxy(QSortFilterProxyModel):
             to remove the filter function in the future.
             Typically this is a self descriptive string.
 
-        new_func : function
+        new_function : function
             A new function which must take two arguments,
             the row to be tested and the ProxyModel's current
             filterString. The function should return True if
             the filter accepts the row, False otherwise.
 
             ex:
-            model.addFilterFunction(
+            model.add_filter_function(
                 'test_columns_1_and_2',
                 lambda r,s: (s in r[1] and s in r[2]))
         """
-        self.filterFunctions[name] = new_func
+        self.filter_functions[name] = new_function
         self.invalidateFilter()
 
-    def removeFilterFunction(self, name):
-        """
-        name : hashable object
+    def remove_filter_function(self, name):
+        """Removes the filter function associated with name, if it exists
 
-        Removes the filter function associated with name,
-        if it exists.
+        name : hashable object
         """
-        if name in self.filterFunctions.keys():
-            del self.filterFunctions[name]
+        if name in self.filter_functions.keys():
+            del self.filter_functions[name]
             self.invalidateFilter()
 
     def filterAcceptsRow(self, row_num, parent):
-        """
-        Reimplemented from base class to allow the use
-        of custom filtering.
+        """Qt override
+        Reimplemented from base class to allow the use of custom filtering
         """
         model = self.sourceModel()
 
         # The source model should have a method called row()
         # which returns the table row as a python list.
-        tests = [func(model.row(row_num), self.filterString, self.filterStatus)
-                 for func in self.filterFunctions.values()]
-        return not (False in tests)
+        tests = [func(model.row(row_num), self.filter_string,
+                 self.filter_status) for func in
+                 self.filter_functions.values()]
+
+        return False not in tests  # Changes this to any or all!
 
 
 class CondaPackagesTable(QTableView):
@@ -752,14 +492,14 @@ class CondaPackagesTable(QTableView):
     WIDTH_VERSION = 70
 
     def __init__(self, parent):
-        QTableView.__init__(self, parent)
+        super(CondaPackagesTable, self).__init__(parent)
         self.parent = parent
-        self.__searchbox = u''
-        self.__filterbox = ALL
-        self.__envbox = u''
+        self._searchbox = u''
+        self._filterbox = ALL
+        self._selected_env = u''
 
         # To manage icon states
-        self.__model_index_clicked = None
+        self._model_index_clicked = None
         self.valid = False
         self.column = None
         self.current_index = None
@@ -786,22 +526,18 @@ class CondaPackagesTable(QTableView):
         hheader = self.horizontalHeader()
         hheader.setResizeMode(hheader.Fixed)
         self.setPalette(self.palette)
-        hheader.setStyleSheet("""
-         QHeaderView {
-            border: 0px solid black;
-            border-radius: 0px;
-            font-weight: Normal;
-            };
-        """)
+        hheader.setStyleSheet("""QHeaderView {border: 0px;
+                                              border-radius: 0px;};""")
         self.sortByColumn(NAME, Qt.AscendingOrder)
         self.setContextMenuPolicy(Qt.CustomContextMenu)
 
-    def setup_model(self, env, conda_packages_dic):
+    def setup_model(self, packages_names, packages_versions, row_data):
         """ """
-        self.__envbox = env
+#        self.__selected_env = env
         self.proxy_model = MultiColumnSortFilterProxy(self)
         self.setModel(self.proxy_model)
-        self.source_model = CondaPackagesModel(env, conda_packages_dic)
+        self.source_model = CondaPackagesModel(self, packages_names,
+                                               packages_versions, row_data)
         self.proxy_model.setSourceModel(self.source_model)
         self.hide_columns()
 
@@ -815,11 +551,11 @@ class CondaPackagesTable(QTableView):
 
         filter_status = (lambda row, text, status: to_text_string(row[STATUS])
                          in to_text_string(status))
-        self.model().addFilterFunction('status-search', filter_status)
-        self.model().addFilterFunction('text-search', filter_text)
+        self.model().add_filter_function('status-search', filter_status)
+        self.model().add_filter_function('text-search', filter_text)
 
         vsb = self.verticalScrollBar()
-        self.connect(vsb, SIGNAL('valueChanged(int)'), self.resize_rows)
+        vsb.valueChanged.connect(self.resize_rows)
 
     def resize_rows(self):
         """ """
@@ -839,59 +575,58 @@ class CondaPackagesTable(QTableView):
             self.hideColumn(col)
 
     def filter_changed(self):
-        """ """
-        status = self.__filterbox
-        text = self.__searchbox
-        if status in [ALL]:
-            status = ''.join([to_text_string(INSTALLED),
+        """Trigger the filter"""
+        group = self._filterbox
+        text = self._searchbox
+
+        if group in [ALL]:
+            group = ''.join([to_text_string(INSTALLED),
                              to_text_string(UPGRADABLE),
                              to_text_string(NOT_INSTALLED),
                              to_text_string(DOWNGRADABLE),
                              to_text_string(MIXGRADABLE),
                              to_text_string(NOT_INSTALLABLE)])
-        elif status in [INSTALLED]:
-            status = ''.join([to_text_string(INSTALLED),
-                              to_text_string(UPGRADABLE),
-                              to_text_string(DOWNGRADABLE),
-                              to_text_string(MIXGRADABLE)])
-        elif status in [UPGRADABLE]:
-            status = ''.join([to_text_string(UPGRADABLE),
-                              to_text_string(MIXGRADABLE)])
-        elif status in [DOWNGRADABLE]:
-            status = ''.join([to_text_string(DOWNGRADABLE),
-                              to_text_string(MIXGRADABLE)])
-        elif status in [ALL_INSTALLABLE]:
-            status = ''.join([to_text_string(INSTALLED),
+        elif group in [INSTALLED]:
+            group = ''.join([to_text_string(INSTALLED),
+                             to_text_string(UPGRADABLE),
+                             to_text_string(DOWNGRADABLE),
+                             to_text_string(MIXGRADABLE)])
+        elif group in [UPGRADABLE]:
+            group = ''.join([to_text_string(UPGRADABLE),
+                             to_text_string(MIXGRADABLE)])
+        elif group in [DOWNGRADABLE]:
+            group = ''.join([to_text_string(DOWNGRADABLE),
+                             to_text_string(MIXGRADABLE)])
+        elif group in [ALL_INSTALLABLE]:
+            group = ''.join([to_text_string(INSTALLED),
                              to_text_string(UPGRADABLE),
                              to_text_string(NOT_INSTALLED),
                              to_text_string(DOWNGRADABLE),
                              to_text_string(MIXGRADABLE)])
         else:
-            status = to_text_string(status)
-        self.proxy_model.setFilter(text, status)
+            group = to_text_string(group)
+
+        self.proxy_model.set_filter(text, group)
         self.resize_rows()
 
     def search_string_changed(self, text):
         """ """
         text = to_text_string(text).lower()
-        self.__searchbox = text
+        self._searchbox = text
         self.filter_changed()
 
     def filter_status_changed(self, text):
         """ """
-        status = COMBOBOX_VALUES[to_text_string(text)]
-        self.__filterbox = status
-        self.filter_changed()
-
-    def environment_changed(self, env):
-        """ """
-        self.__envbox = env
-        self.source_model.env_changed(env)
+        for key, val in COMBOBOX_VALUES.iteritems():
+            if str(val) == to_text_string(text):
+                group = val
+                break
+        self._filterbox = group
         self.filter_changed()
 
     # Events
     def resizeEvent(self, event):
-        """ """
+        """Override Qt method"""
         w = self.width()
         self.setColumnWidth(NAME, self.WIDTH_NAME)
         self.setColumnWidth(VERSION, self.WIDTH_VERSION)
@@ -905,7 +640,7 @@ class CondaPackagesTable(QTableView):
         self.resize_rows()
 
     def keyPressEvent(self, event):
-        """ """
+        """Override Qt method"""
         QTableView.keyPressEvent(self, event)
         if event.key() in [Qt.Key_Enter, Qt.Key_Return]:
             index = self.currentIndex()
@@ -913,14 +648,14 @@ class CondaPackagesTable(QTableView):
             self.pressed_here = True
 
     def keyReleaseEvent(self, event):
-        """ """
+        """Override Qt method"""
         QTableView.keyReleaseEvent(self, event)
         if event.key() in [Qt.Key_Enter, Qt.Key_Return] and self.pressed_here:
             self.action_released()
         self.pressed_here = False
 
     def mousePressEvent(self, event):
-        """ """
+        """Override Qt method"""
         QTableView.mousePressEvent(self, event)
         self.current_index = self.currentIndex()
 
@@ -932,36 +667,35 @@ class CondaPackagesTable(QTableView):
             self.context_menu_requested(event)
 
     def mouseReleaseEvent(self, event):
-        """ """
+        """Override Qt method"""
         if event.button() == Qt.LeftButton:
             self.action_released()
 
     def action_pressed(self, index):
         """ """
+        # TODO: When not working fix the none type error
         model_index = self.proxy_model.mapToSource(index)
         column = index.column()
         model_index = self.proxy_model.mapToSource(index)
-        self.__model_index_clicked = model_index
+        self._model_index_clicked = model_index
         model = self.source_model
         self.valid = False
 
         if ((column == INSTALL and model.is_installable(model_index)) or
-            (column == REMOVE and model.is_removable(model_index)) or
-            (column == UPGRADE and model.is_upgradable(model_index)) or
+           (column == REMOVE and model.is_removable(model_index)) or
+           (column == UPGRADE and model.is_upgradable(model_index)) or
                 (column == DOWNGRADE and model.is_downgradable(model_index))):
 
             model.update_row_icon(model_index.row(), model_index.column())
             self.valid = True
             self.column = column
         else:
-            self.__model_index_clicked = None
+            self._model_index_clicked = None
             self.valid = False
 
-    #FIXME: Maybe this should be moved to the Main widget to centralize the
-    # Conda actions either in the widget or in the Abstract Model...
     def action_released(self):
         """ """
-        model_index = self.__model_index_clicked
+        model_index = self._model_index_clicked
         if model_index:
             self.source_model.update_row_icon(model_index.row(),
                                               model_index.column())
@@ -975,7 +709,7 @@ class CondaPackagesTable(QTableView):
                 self.parent._run_pack_action(name, action, version, versions)
 
     def context_menu_requested(self, event):
-        """ """
+        """ Custom context menu"""
         index = self.current_index
         model_index = self.proxy_model.mapToSource(index)
         row = self.source_model.row(model_index.row())
@@ -984,7 +718,7 @@ class CondaPackagesTable(QTableView):
         pos = QPoint(event.x(), event.y())
         menu = QMenu(self)
 
-        metadata = get_package_metadata('packages.ini', name)
+        metadata = self.parent.get_package_metadata(name)
         pypi = metadata['pypi']
         home = metadata['home']
         dev = metadata['dev']
@@ -1004,85 +738,190 @@ class CondaPackagesTable(QTableView):
         if 'mit' in license_.lower():
             lic = 'http://opensource.org/licenses/MIT'
 
-        actions_1, actions_2 = [], []
+        actions = []
 
         if license_ != '':
-            actions_1.append(create_action(self, _('License: ' + license_),
-                                           icon=QIcon(),
-                                           triggered=lambda:
-                                           self.open_url(lic)))
+            actions.append(create_action(self, _('License: ' + license_),
+                                         icon=QIcon(), triggered=lambda:
+                                         self.open_url(lic)))
         if pypi != '':
-            actions_1.append(create_action(self, _('Python Package Index'),
-                                           icon=q_pypi,
-                                           triggered=lambda:
-                                           self.open_url(pypi)))
+            actions.append(create_action(self, _('Python Package Index'),
+                                         icon=q_pypi, triggered=lambda:
+                                         self.open_url(pypi)))
         if home != '':
-            actions_1.append(create_action(self, _('Homepage'),
-                                           icon=q_home,
-                                           triggered=lambda:
-                                           self.open_url(home)))
+            actions.append(create_action(self, _('Homepage'),
+                                         icon=q_home, triggered=lambda:
+                                         self.open_url(home)))
         if docs != '':
-            actions_1.append(create_action(self, _('Documentation'),
-                                           icon=q_docs,
-                                           triggered=lambda:
-                                           self.open_url(docs)))
+            actions.append(create_action(self, _('Documentation'),
+                                         icon=q_docs, triggered=lambda:
+                                         self.open_url(docs)))
         if dev != '':
-            actions_1.append(create_action(self, _('Development'),
-                                           icon=q_dev, triggered=lambda:
-                                           self.open_url(dev)))
-
-        add_actions(menu, actions_1)
+            actions.append(create_action(self, _('Development'),
+                                         icon=q_dev, triggered=lambda:
+                                         self.open_url(dev)))
+        add_actions(menu, actions)
         menu.popup(self.viewport().mapToGlobal(pos))
 
     def open_url(self, url):
+        """Open link from action in default operating system  browser"""
         QDesktopServices.openUrl(QUrl(url))
 
 
 class DownloadManager(QObject):
-    """ """
-    def __init__(self, parent, ondownloadfunc, onerrorfunc, onprogressfunc):
-        QObject.__init__(self)
-        self.ondownloadfunc = ondownloadfunc
-        self.onerrorfunc = onerrorfunc
-        self.onprogressfunc = onprogressfunc
+    """Synchronous download manager
 
+    used http://qt-project.org/doc/qt-4.8/
+    network-downloadmanager-downloadmanager-cpp.html
+
+    as inspiration
+    """
+    def __init__(self, parent, on_finished_func, on_progress_func, save_path):
+        super(DownloadManager, self).__init__(parent)
         self.parent = parent
-        self.url = ''
-        self.manager = QNetworkAccessManager(self)
-        self.request = None
-        self.reply = None
 
-    def get_file(self, url):
+        self._on_finished_func = on_finished_func
+        self._on_progress_func = on_progress_func
+
+        self._manager = QNetworkAccessManager(self)
+        self._request = None
+        self._reply = None
+        self._queue = None         # [['filename', 'uri'], ...]
+        self._url = None           # current url in process
+        self._filename = None      # current filename in process
+        self._save_path = None     # current defined save path
+        self._error = None         # error number
+        self._free = True          # lock process flag
+
+        self.set_save_path(save_path)
+
+    def _start_next_download(self):
         """ """
-        self.url = url
-        self.request = QNetworkRequest(QUrl(url))
-        self.reply = self.manager.get(self.request)
+        if self._free:
+            if len(self._queue) != 0:
+                self._free = False
+                self._filename, self._url = self._queue.pop(0)
+                full_path = osp.join(self._save_path, self._filename)
 
-        self.reply.error.connect(self.errors)
-        self.reply.sslErrors.connect(self.errors)
-        self.reply.downloadProgress.connect(self.progress)
-        self.reply.finished.connect(self.downloaded)
+                if osp.isfile(full_path):
+                    # compare file versions by getting headers first
+                    self._get(header_only=True)
+                else:
+                    # file does not exists, first download
+                    self._get()
+                # print(full_path)
+            else:
+                self._on_finished_func()
 
-    def downloaded(self):
+    def _get(self, header_only=False):
+        """Download file specified by uri"""
+        self._request = QNetworkRequest(QUrl(self._url))
+        self._reply = None
+        self._error = None
+
+        if header_only:
+            self._reply = self._manager.head(self._request)
+            self._reply.finished.connect(self._on_downloaded_headers)
+        else:
+            self._reply = self._manager.get(self._request)
+            self._reply.finished.connect(self._on_downloaded)
+
+        self._reply.downloadProgress.connect(self._on_progress)
+
+    def _on_downloaded_headers(self):
+        """On header from uri downloaded"""
+        # handle error for headers...
+        error_code = self._reply.error()
+        if error_code > 0:
+            self._on_errors(error_code)
+            return None
+
+        fullpath = osp.join(self._save_path, self._filename)
+        headers = {}
+        data = self._reply.rawHeaderPairs()
+
+        for d in data:
+            # Python 2, on python 3 this will be bytes!
+            key = to_text_string(d[0], encoding='ascii')
+            value = to_text_string(d[1], encoding='ascii')
+            headers[key.lower()] = value
+#            headers[str(d[0]).lower()] = str(d[1])
+
+        if len(headers) != 0:
+            header_filesize = int(headers['content-length'])
+            local_filesize = int(osp.getsize(fullpath))
+
+            if header_filesize == local_filesize:
+                self._free = True
+                self._start_next_download()
+            else:
+                self._get()
+
+    def _on_downloaded(self):
+        """On file downloaded"""
+        # check if errors
+        error_code = self._reply.error()
+        if error_code > 0:
+            self._on_errors(error_code)
+            return None
+
+        # process data if no errors
+        data = self._reply.readAll()
+
+        self._save_file(data)
+
+    def _on_errors(self, e):
+        """On download errors"""
+        self._free = True  # otherwise update button cannot work!
+        self._error = e
+        self._on_finished_func()
+
+    def _on_progress(self, downloaded_size, total_size):
+        """On Partial progress"""
+        self._on_progress_func([downloaded_size, total_size])
+
+    def _save_file(self, data):
         """ """
-        data = self.reply.readAll()
-        self.ondownloadfunc(data)
+        if not osp.isdir(self._save_path):
+            os.mkdir(self._save_path)
 
-    def errors(self, e):
-        """ """
-        self.onerrorfunc(e)
+        fullpath = osp.join(self._save_path, self._filename)
 
-    def progress(self, downloaded_size, total_size):
+        with open(fullpath, 'wb') as f:
+            f.write(data)
+
+        self._free = True
+        self._start_next_download()
+
+    # public api
+    # ----------
+    def set_save_path(self, path):
         """ """
-        self.onprogressfunc([downloaded_size, total_size])
+        self._save_path = path
+
+    def set_queue(self, queue):
+        """[['filename', 'uri'], ['filename', 'uri'], ...]"""
+        self._queue = queue
+
+    def get_errors(self):
+        """ """
+        return self._error
+
+    def start_download(self):
+        """ """
+        self._start_next_download()
+
+    def stop_download(self):
+        """ """
+        pass
 
 
 class SearchLineEdit(QLineEdit):
-    """ """
-    def __init__(self, icon=True):
-        QLineEdit.__init__(self)
-
+    """Line edit search widget with icon and remove all button"""
+    def __init__(self, parent, icon=True):
+        super(SearchLineEdit, self).__init__(parent)
         self.setTextMargins(1, 0, 20, 0)
+
         if icon:
             self.setTextMargins(18, 0, 20, 0)
             self.label = QLabel(self)
@@ -1092,77 +931,76 @@ class SearchLineEdit(QLineEdit):
                                      padding-left: 1px;''')
 
         pixmap = QPixmap(get_image_path(('conda_del.png')))
-        self.button = QToolButton(self)
-        self.button.setIcon(QIcon(pixmap))
-        self.button.setIconSize(QSize(18, 18))
-        self.button.setCursor(Qt.ArrowCursor)
-        self.button.setStyleSheet("""QToolButton {background: transparent;
-                                  padding: 0px; border: none; margin:0px; }""")
-        self.button.setVisible(False)
+        self.button_clear = QToolButton(self)
+        self.button_clear.setIcon(QIcon(pixmap))
+        self.button_clear.setIconSize(QSize(18, 18))
+        self.button_clear.setCursor(Qt.ArrowCursor)
+        self.button_clear.setStyleSheet("""QToolButton
+            {background: transparent;
+            padding: 0px; border: none; margin:0px; }""")
+        self.button_clear.setVisible(False)
 
-        # Signals and slots
-        self.connect(self.button, SIGNAL("clicked(bool)"),
-                     self.delete_text)
-        self.connect(self, SIGNAL("textChanged(QString)"),
-                     self.toggle_visibility)
-        self.connect(self, SIGNAL("textEdited(QString)"),
-                     self.toggle_visibility)
+        # signals and slots
+        self.button_clear.clicked.connect(self.clear_text)
+        self.textChanged.connect(self._toggle_visibility)
+        self.textEdited.connect(self._toggle_visibility)
 
-#        self.button.setMinimumSize(QSize(18, 18))
         layout = QHBoxLayout(self)
-        layout.addWidget(self.button, 0, Qt.AlignRight)
+        layout.addWidget(self.button_clear, 0, Qt.AlignRight)
         layout.setSpacing(0)
         layout.setContentsMargins(0, 2, 2, 0)
 
-    def delete_text(self, val):
+    def _toggle_visibility(self):
+        """ """
+        if len(self.text()) == 0:
+            self.button_clear.setVisible(False)
+        else:
+            self.button_clear.setVisible(True)
+
+    # public api
+    # ----------
+    def clear_text(self, val):
         """ """
         self.setText('')
         self.setFocus()
 
-    def toggle_visibility(self):
-        """ """
-        if len(self.text()) == 0:
-            self.button.setVisible(False)
-        else:
-            self.button.setVisible(True)
-
 
 class CondaDependenciesModel(QAbstractTableModel):
     """ """
-    def __init__(self, dic):
-        QAbstractTableModel.__init__(self)
-        self.__packages = dic
-        self.__rows = []
-        self.__bold_rows = []
+    def __init__(self, parent, dic):
+        super(CondaDependenciesModel, self).__init__(parent)
+        self.parent = parent
+        self._packages = dic
+        self._rows = []
+        self._bold_rows = []
 
         if len(dic) == 0:
-            self.__rows = [[_(u'Updating dependency list...'), u'']]
-            self.__bold_rows.append(0)
+            self._rows = [[_(u'Updating dependency list...'), u'']]
+            self._bold_rows.append(0)
         else:
-            titles = {'download': _('Packages to download'),
-                      'unlinked': _('Packages to unlink'),
-                      'linked': _('Packages to link')}
-            order = ['download', 'unlinked', 'linked']
+            if 'actions' in dic:
+                dic = dic['actions']
+            titles = {'FETCH': _('Packages to download'),
+                      'UNLINK': _('Packages to unlink'),
+                      'LINK': _('Packages to link'),
+                      'EXTRACT': _('Packages to extract')
+                      }
+            order = ['FETCH', 'EXTRACT', 'LINK', 'UNLINK']
             row = 0
 
             for key in order:
                 if key in dic:
-                    self.__rows.append([u(titles[key]), ''])
-                    self.__bold_rows.append(row)
+                    self._rows.append([u(titles[key]), ''])
+                    self._bold_rows.append(row)
                     row += 1
                     for item in dic[key]:
-                        name = item[0]
-                        size = ''
-                        if key == 'download':
-                            if len(item) > 1:
-                                size = '{} {}'.format(item[-2], item[-1])
-                            if 'Total:' in item:
-                                name = _('Total:')
-                        self.__rows.append([name, size])
+                        name, version, build = \
+                            conda_api_q.split_canonical_name(item)
+                        self._rows.append([name, version])
                         row += 1
 
     def flags(self, index):
-        """ """
+        """Override Qt method"""
         if not index.isValid():
             return Qt.ItemIsEnabled
         column = index.column()
@@ -1172,16 +1010,17 @@ class CondaDependenciesModel(QAbstractTableModel):
             return Qt.ItemFlags(Qt.ItemIsEnabled)
 
     def data(self, index, role=Qt.DisplayRole):
-        if not index.isValid() or not (0 <= index.row() < len(self.__rows)):
+        """Override Qt method"""
+        if not index.isValid() or not 0 <= index.row() < len(self._rows):
             return to_qvariant()
         row = index.row()
         column = index.column()
 
         # Carefull here with the order, this has to be adjusted manually
-        if self.__rows[row] == row:
+        if self._rows[row] == row:
             name, size, = [u'', u'']
         else:
-            name, size = self.__rows[row]
+            name, size = self._rows[row]
 
         if role == Qt.DisplayRole:
             if column == 0:
@@ -1197,7 +1036,7 @@ class CondaDependenciesModel(QAbstractTableModel):
             return to_qvariant()
         elif role == Qt.FontRole:
             font = QFont()
-            if row in self.__bold_rows:
+            if row in self._bold_rows:
                 font.setBold(True)
                 return to_qvariant(font)
             else:
@@ -1206,46 +1045,54 @@ class CondaDependenciesModel(QAbstractTableModel):
         return to_qvariant()
 
     def rowCount(self, index=QModelIndex()):
-        return len(self.__rows)
+        """Override Qt method"""
+        return len(self._rows)
 
     def columnCount(self, index=QModelIndex()):
+        """Override Qt method"""
         return 2
 
     def row(self, rownum):
         """ """
-        return self.__rows[rownum]
+        return self._rows[rownum]
 
 
 class CondaPackageActionDialog(QDialog):
     """ """
     def __init__(self, parent, env, name, action, version, versions):
-        QDialog.__init__(self, parent)
-        self.env = env  # If this is searched current func is too slow..
+        super(CondaPackageActionDialog, self).__init__(parent)
         self.parent = parent
-        self.version_text = None
-        self.name = name
-        self.dependencies_dic = {}
-        self.warnings = []
-        self.process = QProcess(self)
+        self._env = env
+        self._version_text = None
+        self._name = name
+        self._dependencies_dic = {}
+        self._conda_process = \
+            conda_api_q.CondaProcess(self, self._on_process_finished)
 
-        self.setModal(True)
-
-        self.dialog_size = QSize(250, 90)
-
+        # widgets
         self.label = QLabel()
-        self.version_combobox = QComboBox()
-        self.version_label = QLabel()
-        self.version_widget = None
+        self.combobox_version = QComboBox()
+        self.label_version = QLabel()
+        self.widget_version = None
+        self.table_dependencies = None
 
         self.checkbox = QCheckBox(_('Install dependencies (recommended)'))
         bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
                                 Qt.Horizontal, self)
 
-        self.ok_button = bbox.button(QDialogButtonBox.Ok)
-        self.cancel_button = bbox.button(QDialogButtonBox.Cancel)
+        self.button_ok = bbox.button(QDialogButtonBox.Ok)
+        self.button_cancel = bbox.button(QDialogButtonBox.Cancel)
 
-        self.cancel_button.setDefault(True)
-        self.cancel_button.setAutoDefault(True)
+        self.button_cancel.setDefault(True)
+        self.button_cancel.setAutoDefault(True)
+
+        dialog_size = QSize(250, 90)
+
+        # helper variable values
+        title = {UPGRADE: _("Upgrade package"),
+                 DOWNGRADE: _("Downgrade package"),
+                 REMOVE: _("Remove package"),
+                 INSTALL: _("Install package")}
 
         # Versions might have duplicates from different builds
         versions = sort_versions(list(set(versions)), reverse=True)
@@ -1254,14 +1101,6 @@ class CondaPackageActionDialog(QDialog):
         # astropy 0.4 and the linked list 0.4 but the available versions
         # in the json file do not include 0.4 but 0.4rc1... so...
         # temporal fix is to check if inside list otherwise show full list
-        title = {UPGRADE: _("Upgrade package"),
-                 DOWNGRADE: _("Downgrade package"),
-                 REMOVE: _("Remove package"),
-                 INSTALL: _("Install package")}
-
-        self.setWindowTitle(title[action])
-
-        # TODO: Try to simplify this
         if action == UPGRADE:
             if version in versions:
                 index = versions.index(version)
@@ -1276,38 +1115,40 @@ class CondaPackageActionDialog(QDialog):
                 versions = versions
         elif action == REMOVE:
             versions = [version]
-            self.version_combobox.setEnabled(False)
+            self.combobox_version.setEnabled(False)
 
         if len(versions) == 1:
             if action == REMOVE:
                 labeltext = _('Package version to remove:')
             else:
                 labeltext = _('Package version available:')
-            self.version_label.setText(versions[0])
-            self.version_widget = self.version_label
+            self.label_version.setText(versions[0])
+            self.widget_version = self.label_version
         else:
             labeltext = _("Select package version:")
-            self.version_combobox.addItems(versions)
-            self.version_widget = self.version_combobox
+            self.combobox_version.addItems(versions)
+            self.widget_version = self.combobox_version
+
+        self.widgets = [self.checkbox, self.button_ok, self.widget_version]
 
         self.label.setText(labeltext)
-        self.version_label.setAlignment(Qt.AlignLeft)
+        self.label_version.setAlignment(Qt.AlignLeft)
 
         layout = QGridLayout()
         layout.addWidget(self.label, 0, 0, Qt.AlignVCenter | Qt.AlignLeft)
-        layout.addWidget(self.version_widget, 0, 1, Qt.AlignVCenter |
+        layout.addWidget(self.widget_version, 0, 1, Qt.AlignVCenter |
                          Qt.AlignRight)
 
         # Create a Table
         if action in [INSTALL, UPGRADE, DOWNGRADE]:
             table = QTableView()
-            self.dialog_size = QSize(self.dialog_size.width()+40, 300)
-            self.dependencies = table
+            dialog_size = QSize(dialog_size.width() + 40, 300)
+            self.table_dependencies = table
             row_index = 1
             layout.addItem(QSpacerItem(10, 5), row_index, 0)
             layout.addWidget(self.checkbox, row_index + 1, 0, 1, 2)
             self.checkbox.setChecked(True)
-            self.changed_version(versions[0])
+            self._changed_version(versions[0])
 
             table.setSelectionBehavior(QAbstractItemView.SelectRows)
             table.verticalHeader().hide()
@@ -1318,223 +1159,172 @@ class CondaPackageActionDialog(QDialog):
             table.horizontalHeader().setStretchLastSection(True)
         else:
             row_index = 1
-            self.dependencies = QWidget()
+            self.table_dependencies = QWidget()
 
-        layout.addWidget(self.dependencies, row_index + 2, 0, 1, 2,
+        layout.addWidget(self.table_dependencies, row_index + 2, 0, 1, 2,
                          Qt.AlignHCenter)
         layout.addItem(QSpacerItem(10, 5), row_index + 3, 0)
         layout.addWidget(bbox, row_index + 6, 0, 1, 2, Qt.AlignHCenter)
 
         self.setLayout(layout)
-        self.setMinimumSize(self.dialog_size)
-        self.setFixedSize(self.dialog_size)
+        self.setMinimumSize(dialog_size)
+        self.setFixedSize(dialog_size)
+        self.setWindowTitle(title[action])
+        self.setModal(True)
 
-        self.connect(bbox, SIGNAL("accepted()"), SLOT("accept()"))
-        self.connect(bbox, SIGNAL("rejected()"), self.process.close)
-        self.connect(bbox, SIGNAL("rejected()"), self.close)
-        self.connect(self.version_combobox,
-                     SIGNAL("currentIndexChanged(QString)"),
-                     self.changed_version)
-        self.connect(self.checkbox, SIGNAL("stateChanged(int)"),
-                     self.changed_checkbox)
+        # signals and slots
+        bbox.accepted.connect(self.accept)
+        bbox.rejected.connect(self.close)
+        self.combobox_version.currentIndexChanged.connect(
+            self._changed_version)
+        self.checkbox.stateChanged.connect(self._changed_checkbox)
 
-    def changed_version(self, version, dependencies=True):
+    def _changed_version(self, version, dependencies=True):
         """ """
+        self._set_gui_disabled(True)
         install_dependencies = (self.checkbox.checkState() == 2)
-        self.version_text = to_text_string(version)
-        self.get_dependencies(install_dependencies)
+        self._version_text = to_text_string(version)
+        self._get_dependencies(install_dependencies)
 
-    def get_dependencies(self, dependencies=True):
+    def _get_dependencies(self, dependencies=True):
         """ """
-        name = self.name + '=' + self.version_text
-        if dependencies:
-            cmd_list = ['install', '--name', self.env, '--dry-run', name]
-        else:
-            cmd_list = ['install', '--name', self.env, '--dry-run',
-                        '--no-deps', name]
+        name = [self._name + '=' + self._version_text]
 
-        cmd_list = conda_api._call_conda_2(cmd_list)
+        self._conda_process.dependencies(name=self._env, pkgs=name,
+                                         dep=dependencies)
 
-        self.process = QProcess(self)
-        self.process.started.connect(lambda: self._set_gui_disabled(True))
-        self.process.finished.connect(lambda: self._on_process_ready(True))
-        self.process.start(cmd_list[0], cmd_list[1:])
-
-    def changed_checkbox(self, state):
+    def _changed_checkbox(self, state):
         """ """
         if state:
-            self.changed_version(self.version_text)
+            self._changed_version(self._version_text)
         else:
-            self.changed_version(self.version_text, dependencies=False)
+            self._changed_version(self._version_text, dependencies=False)
 
-    def _on_process_ready(self, boo):
+    def _on_process_finished(self, boo):
         """ """
         if self.isVisible():
-            response = self.process.readAll()
-            response = str(response)  # Check if this runs in py2
-            if 'b"' in response[:2] or "b'" in response[:2]:
-                response = eval(response)
-            if is_binary_string(response):
-                response = response.decode('ascii')
-            self._parse_dependencies(response)
-            dic = self.dependencies_dic
+            dic = self._conda_process.output
+            self.dependencies_dic = dic
             self._set_dependencies_table()
             self._set_gui_disabled(False)
 
-            if 'linked' in dic:
-                if len(dic['linked']) == 1 and (self.checkbox.checkState() ==
-                                                Qt.Checked):
-                    self.checkbox.setEnabled(False)
-        self.process.close()
+#            if 'linked' in dic:
+#                if len(dic['linked']) == 1 and (self.checkbox.checkState() ==
+#                                                Qt.Checked):
+#                    self.checkbox.setEnabled(False)
 
-    def _parse_dependencies(self, response):
+    def _set_dependencies_table(self):
         """ """
-#        print(response)
-        order = []
-        lines = response.split(os.linesep)
-        while '' in lines:
-            lines.remove('')
-
-        lines = lines[3:-1]
-        lines_clean, indexes, dic = [], [], {}
-
-        # clean lines
-        for line in lines:
-            lin = line.lower()
-            if '----' in lin:
-                continue
-            if ('package' in lin and 'build' in lin):
-                continue
-            if ('warning' in lin or 'not 'in lin or 'updating ' in lin):
-                self.warnings.append(line)
-                continue
-            lines_clean.append(line)
-
-        # Find breaks bewteen download, unlinked and linked
-        for i, line in enumerate(lines_clean):
-            if 'downloaded:' in line:
-                indexes.append(i)
-                order.append('download')
-            elif 'UN-linked:' in line:
-                indexes.append(i)
-                order.append('unlinked')
-            elif 'linked:' in line:
-                indexes.append(i)
-                order.append('linked')
-
-        indexes.append(len(lines_clean))
-        for i, key in enumerate(order):
-            temp = lines_clean[indexes[i]+1:indexes[i+1]]
-            if 'Total' in temp[-1] and ('KB' in temp[-1] or 'MB' in temp[-1] or
-                                        'GB' in temp[-1]):
-                dic['total'] = True
-            dic[key] = temp
-
-        # Now clean the dic
-        for key in dic:
-            if key != 'total':
-                lines = dic[key]
-                val = [line.replace('|', '').split() for line in lines]
-                dic[key] = val
-
-        self.dependencies_dic = dic
-
-    def _set_dependencies_table(self, updating=True):
-        """ """
-        table = self.dependencies
+        table = self.table_dependencies
         dic = self.dependencies_dic
-        table.setModel(CondaDependenciesModel(dic))
+        table.setModel(CondaDependenciesModel(self, dic))
         table.resizeColumnsToContents()
         table.resizeColumnToContents(1)
 
-    def _set_gui_disabled(self, boo):
+    def _set_gui_disabled(self, value):
         """ """
-        if boo:
-            table = self.dependencies
-            table.setModel(CondaDependenciesModel({}))
+        if value:
+            table = self.table_dependencies
+            table.setModel(CondaDependenciesModel(self, {}))
             table.resizeColumnsToContents()
-
-        widgets = [self.checkbox, self.ok_button, self.version_widget]
-
-        for widget in widgets:
-            widget.setDisabled(boo)
+        for widget in self.widgets:
+            widget.setDisabled(value)
 
 
 class CondaPackagesWidget(QWidget):
-    """
-    Packages widget
-    """
+    """Conda Packages widget"""
     VERSION = '1.0.0'
+
+    # Location of updated repo.json files from continuum/binstar
     CONDA_CONF_PATH = get_conf_path('conda')
+
+    # Location of continuum/anaconda default repos shipped with spyder
     DATA_PATH = get_module_data_path('spyderplugins', 'data')
 
+    # file inside DATA_PATH with metadata for conda packages
+    DATABASE_FILE = 'packages.ini'
+
     def __init__(self, parent):
-        QWidget.__init__(self, parent)
-
-        # Variables
+        super(CondaPackagesWidget, self).__init__(parent)
         self.parent = parent
-        self.active_env = None
-        self.status = ''  # Statusbar message
-        # FIXME: Should I start the process so that it sits in the back always
-        # or should I start a process everytime I want to execute an action?
-        self.process = QProcess()
-        self.download_manager = DownloadManager(self, self._save_repo,
-                                                self._on_download_error,
-                                                self._on_download_available)
-        self.conda_repo_file_name = ''  # eg. win-32.json
-        self.conda_repo_path = ''       # Full path/win-32.json
-        self.packages_dic = {}
-        self.download_error = None
-        self.widget_setup_ready = False
 
-        # Widget Options
-        self.dialog_size = QSize(480, 300)
-        self.setWindowTitle(_("Conda Packages"))
+        self._status = ''  # Statusbar message
+        self._conda_process = \
+            conda_api_q.CondaProcess(self, self._on_conda_process_ready)
+        self._prefix = conda_api_q.CondaProcess.ROOT_PREFIX
 
-        # Widgets
-        self.filter_combobox = QComboBox()
-        self.updates_button = QPushButton(_('Update package index'))
-        self.search_box = SearchLineEdit()
-        self.info_label = QLabel()
-        self.table = QTableView()
+        self._download_manager = DownloadManager(self,
+                                                 self._on_download_finished,
+                                                 self._on_download_progress,
+                                                 self.CONDA_CONF_PATH)
+        self._thread = QThread()
+        self._worker = None
+        self._db_metadata = cp.ConfigParser()
+        self._db_file = CondaPackagesWidget.DATABASE_FILE
+        self._db_metadata.readfp(open(osp.join(DATA_PATH, self._db_file)))
+        self._packages_names = None
+        self._row_data = None
+
+        # Hardcoded channels for the moment
+        self._default_channels = [
+            ['_free_', 'http://repo.continuum.io/pkgs/free'],
+            ['_pro_', 'http://repo.continuum.io/pkgs/pro']
+            ]
+
+        self._extra_channels = []
+        # pyqt not working with ssl some bug here on the anaconda compilation
+        # [['binstar_goanpeca_', 'https://conda.binstar.org/goanpeca']]
+
+        self._repo_name = None  # linux-64, win-32, etc...
+        self._channels = None  # [['filename', 'channel url'], ...]
+        self._repo_files = None  # [filepath, filepath, ...]
+        self._packages = {}
+        self._download_error = None
+#        self._widget_setup_ready = False
+        self._error = None
+
+        # defined in self._setup() if None or in self.set_env method
+        self._selected_env = None
+
+        # widgets
+        self.combobox_filter = QComboBox()
+        self.button_update = QPushButton(_('Update package index'))
+        self.textbox_search = SearchLineEdit(self)
+
+        self.table = CondaPackagesTable(self)
         self.status_bar = QLabel()
         self.progress_bar = QProgressBar()
 
+        self.widgets = [self.button_update, self.combobox_filter,
+                        self.textbox_search, self.table]
+
+        # setup widgets
+        self.combobox_filter.addItems([k for k in COMBOBOX_VALUES_ORDERED])
+        self.combobox_filter.setCurrentIndex(ALL)
+        self.combobox_filter.setMinimumWidth(120)
+
+        self.progress_bar.setVisible(False)
+        self.progress_bar.setTextVisible(False)
+        self.progress_bar.setMaximumHeight(16)
+        self.progress_bar.setMaximumWidth(130)
+
+        self.setWindowTitle(_("Conda Packages"))
+        self.setMinimumSize(QSize(480, 300))
+
+        # signals and slots
+        self.combobox_filter.currentIndexChanged.connect(self.filter_package)
+        self.button_update.clicked.connect(self.update_package_index)
+        self.textbox_search.textChanged.connect(self.search_package)
+
+        # layout setup
         top_layout = QHBoxLayout()
-
-        if CONDA_PATH is None:
-            top_layout.addWidget(self.info_label, Qt.AlignCenter)
-
-            for widget in (self.table, self.search_box, self.updates_button,
-                           self.filter_combobox):
-                widget.setDisabled(True)
-            url = 'http://docs.continuum.io/anaconda/index.html'
-            info_text = _(''' To use the Conda Package Manager you need to
-                          install the ''')
-            info_text += ' <a href={0}>{1}</a> '.format(url, '<b>anaconda</b>')
-            info_text += _('distribution.')
-            self.info_label.setText(info_text)
-            self.info_label.setTextFormat(Qt.RichText)
-            self.info_label.setTextInteractionFlags(Qt.TextBrowserInteraction)
-            self.info_label.setOpenExternalLinks(True)
-            self.progress_bar.setVisible(False)
-        else:
-            top_layout = QHBoxLayout()
-            top_layout.addWidget(self.filter_combobox)
-            top_layout.addWidget(self.updates_button)
-            top_layout.addWidget(self.search_box)
-            self.filter_combobox.setMinimumWidth(120)
-            self.table = CondaPackagesTable(self)
-            self.progress_bar.setVisible(False)
-            self.progress_bar.setTextVisible(False)
-            self.setMinimumSize(self.dialog_size)
-            self.progress_bar.setMaximumHeight(16)
-            self.progress_bar.setMaximumWidth(130)
-            self._get_conda_repo_name()
-            self._download_repo()
+        top_layout.addWidget(self.combobox_filter)
+        top_layout.addWidget(self.button_update)
+        top_layout.addWidget(self.textbox_search)
 
         middle_layout = QHBoxLayout()
         middle_layout.addWidget(self.table)
+
         bottom_layout = QHBoxLayout()
         bottom_layout.addWidget(self.status_bar, Qt.AlignLeft)
         bottom_layout.addWidget(self.progress_bar, Qt.AlignRight)
@@ -1548,8 +1338,12 @@ class CondaPackagesWidget(QWidget):
 
         self.setLayout(layout)
 
-    def _get_conda_repo_name(self):
-        """Get python system bitness and system and return reponame"""
+        # setup
+        self._set_repo_name()
+        self.update_package_index()
+
+    def _set_repo_name(self):
+        """Get python system and bitness, and return default repo name"""
         system = sys.platform.lower()
         bitness = 64 if sys.maxsize > 2**32 else 32
         fname = [None, None]
@@ -1561,6 +1355,7 @@ class CondaPackagesWidget(QWidget):
         elif 'osx' in system:
             fname[0] = 'osx'
         else:
+            # TODO: what is appropriate to return here?
             fname[0] = 'dummy'
 
         if bitness == 32:
@@ -1568,262 +1363,446 @@ class CondaPackagesWidget(QWidget):
         elif bitness == 64:
             fname[1] = '64'
         else:
+            # TODO: what is appropriate to return here?
             fname[0] = 'dummy'
 
         if 'dummy' in fname[0]:
             fname[1] = 'package'
 
-        self.conda_repo_file_name = '-'.join(fname) + '.json'
+        self._repo_name = '-'.join(fname)
 
-    def _download_repo(self):
-        """Try to download the latest version available of the repo"""
-        self.download_error = False
-        self.status = _('Downloading package index...')
-
-        fname = self.conda_repo_file_name.replace('.json', '')
-
-        if not osp.isdir(self.CONDA_CONF_PATH):
-            os.mkdir(self.CONDA_CONF_PATH)
-
-        head = 'http://repo.continuum.io/pkgs/free/'
+    def _set_channels(self):
+        """ """
+        default = self._default_channels
+        extra = self._extra_channels
+        body = self._repo_name
         tail = '/repodata.json'
-        url = '{0}{1}{2}'.format(head, fname, tail)
-        self.download_manager.get_file(url)
+        channels = []
+        files = []
 
-    def _save_repo(self, data):
-        """This function is called after download is finished either
-        succesfully or not so that the file can be opened at that time
+        for channel in default + extra:
+            prefix = channel[0]
+            url = '{0}/{1}{2}'.format(channel[1], body, tail)
+            name = '{0}{1}.json'.format(prefix, body)
+            channels.append([name, url])
+            files.append(osp.join(self.CONDA_CONF_PATH, name))
+
+        self._repo_files = files
+        self._channels = channels
+#        print(channels)
+
+    def _download_repodata(self):
+        """download the latest version available of the repo(s)"""
+        status = _('Updating package index...')
+        self._update_status(hide=True, progress=[0, 0], status=status)
+
+        self._download_manager.set_queue(self._channels)
+        self._download_manager.start_download()
+
+    # --- callback download manager
+    # ------------------------------------------------------------------------
+    def _on_download_progress(self, progress):
+        """function called by download manager when receiving data
+
+        data is a 2 item list of int with [downloaded, total]
         """
-        if self.download_error:
-            self._update_status(True, [75, 100])
-        else:
-            self.status = _('Download successful. Loading package index...')
-            self._update_status(True, [1, 1])
-            fname = self.conda_repo_file_name
-            fullpath = osp.join(self.CONDA_CONF_PATH, fname)
+        self._update_status(hide=True, progress=progress, status=None)
 
-            with open(fullpath, 'w') as f:
-                f.write(data)
+    def _on_download_finished(self):
+        """function called by download manager when finished all downloads
 
-            self.download_error = False
-            self.conda_repo_path = fullpath
+        this will be called even if errors were encountered, so error handling
+        is done here as well
+        """
+        error = self._download_manager.get_errors()
 
-        if not self.widget_setup_ready:
-            self._setup_widget()
-        else:
-            self._set_table_data()
+        if error is not None:
+            self._update_status(hide=False)
 
-        self._update_status(False)
+            if not osp.isdir(self.CONDA_CONF_PATH):
+                os.mkdir(self.CONDA_CONF_PATH)
 
-    def _on_download_error(self, e):
+            for repo_file in self._repo_files:
+                # if a file does not exists, look for one in DATA_PATH
+                if not osp.isfile(repo_file):
+                    filename = osp.basename(repo_file)
+                    bck_repo_file = osp.join(DATA_PATH, filename)
+
+                    # if available copy to CONDA_CONF_PATH
+                    if osp.isfile(bck_repo_file):
+                        shutil.copy(bck_repo_file, repo_file)
+                    # otherwise remove from the repo_files list
+                    else:
+                        self._repo_files.remove(repo_file)
+            self._error = None
+#        print(self._repo_files)
+
+        self._setup_widget()
+    # ------------------------------------------------------------------------
+
+    def _setup_widget(self):
         """ """
-        self.status = _('Connection error. Loading cached package index...')
-        self._update_status(True, [75, 100])
+        if self._selected_env is None:
+            self._selected_env = ROOT
+        self._thread.terminate()
+        self._worker = Worker(self, self._repo_files, self._selected_env,
+                              self._prefix)
+        thread = self._thread
+        worker = self._worker
+        worker.ready.connect(self._worker_ready)
+        worker.ready.connect(thread.quit)
+        worker.moveToThread(thread)
+        worker.status_updated.connect(self._update_status)
+        thread.started.connect(worker._prepare_model)
+        thread.start()
+#        self.widget_setup_ready = True
 
-        self.download_error = True
-        fname = self.conda_repo_file_name
-        fullpath_spyder = osp.join(self.CONDA_CONF_PATH, fname)
-        fullpath_data = osp.join(self.DATA_PATH, fname)
-
-        # Check if repo data exists and if not copy from data folder
-        if osp.isfile(fullpath_spyder):
-            self.conda_repo_path = fullpath_spyder
-        else:
-            self.conda_repo_path = fullpath_data
-
-    def _on_download_available(self, data):
-        """ Update status bar"""
-        self._update_status(True, data)
-
-    def _load_conda_packages(self):
+    def _worker_ready(self):
         """ """
-        with open(self.conda_repo_path, 'r') as f:
-            data = json.load(f)
+        self._packages_names = self._worker.packages_names
+        self._packages_versions = self._worker.packages_versions
+        self._row_data = self._worker.row_data
 
-        # info = data['info']
-        packages = data['packages']
+        # depending on the size of table this might lock the gui for a moment
+        self.table.setup_model(self._packages_names, self._packages_versions,
+                               self._row_data)
+        self.table.filter_changed()
 
-        # Now preprocess the data to remove packages not usable given actual
-        # python used
-        if packages is not None:
-            grouped_usable_packages = {}
+        self._update_status(hide=False)
 
-            for key in packages:
-                val = packages[key]
-                name = val['name'].lower()
-                grouped_usable_packages[name] = list()
+    def _update_status(self, status=None, hide=True, progress=None):
+        """ Update status bar, progress display and widget visibility """
+        for widget in self.widgets:
+            widget.setDisabled(hide)
 
+        self.progress_bar.setVisible(hide)
+
+        if status is not None:
+            self._status = status
+
+        if hide:
+            self.status_bar.setText(self._status)
+        else:
+            self.status_bar.setText('')
+
+        if progress is not None:
+            self.progress_bar.setMinimum(0)
+            self.progress_bar.setMaximum(progress[1])
+            self.progress_bar.setValue(progress[0])
+
+    def _run_pack_action(self, name, action, version, versions):
+        """ """
+        env = self._selected_env
+        dlg = CondaPackageActionDialog(self, env, name, action, version,
+                                       versions)
+
+        if dlg.exec_():
+            dic = {}
+
+            self.status = 'Processing'
+            self._update_status(hide=True)
+            self.repaint()
+
+            env = self._selected_env
+            ver1 = dlg.label_version.text()
+            ver2 = dlg.combobox_version.currentText()
+            pkg = u'{0}={1}{2}'.format(name, ver1, ver2)
+            dep = dlg.checkbox.checkState()
+            state = dlg.checkbox.isEnabled()
+            dlg.close()
+
+            dic['name'] = env
+            dic['pkg'] = pkg
+            dic['dep'] = not (dep == 0 and state)
+
+            self._run_conda_process(action, dic)
+
+    def _run_conda_process(self, action, dic):
+        """ """
+        cp = self._conda_process
+        name = dic['name']
+        pkgs = dic['pkg']
+        dep = dic['dep']
+
+        if action == INSTALL or action == UPGRADE or action == DOWNGRADE:
+            status = _('Installing <b>') + dic['pkg'] + '</b>'
+            status = status + _(' into <i>') + dic['name'] + '</i>'
+            cp.install(name=name, pkgs=[pkgs], dep=dep)
+        elif action == REMOVE:
+            status = (_('Removing <b>') + dic['pkg'] + '</b>' + _(' from <i>')
+                      + dic['name'] + '</i>')
+            cp.remove(pkgs, name=name)
+#        elif action == CREATE:
+#            status = _('Creating environment <b>') + dic['name'] + '</b>'
+#        elif action == CLONE:
+#            status = (_('Cloning ') + '<i>' + dic['cloned from']
+#                      + _('</i> into <b>') + dic['name'] + '</b>')
+#        elif action == REMOVE_ENV:
+#            status = _('Removing environment <b>') + dic['name'] + '</b>'
+
+        self._update_status(hide=True, status=status, progress=[0, 0])
+
+    def _on_conda_process_ready(self):
+        """ """
+        self._update_status(hide=False)
+        self._setup_widget()
+
+    # public api
+    # ----------
+    def update_package_index(self):
+        """ """
+        self._set_channels()
+        self._download_repodata()
+
+    def search_package(self, text):
+        """ """
+        self.table.search_string_changed(text)
+
+    def filter_package(self, value):
+        """ """
+        self.table.filter_status_changed(value)
+
+    def get_package_metadata(self, name):
+        """ """
+        db = self._db_metadata
+        metadata = dict(description='', url='', pypi='', home='', docs='',
+                        dev='')
+        for key in metadata:
+            name1 = name.lower()
+            for name2 in (name1, name1.split('-')[0]):
+                try:
+                    metadata[key] = db.get(name2, key)
+                    break
+                except (cp.NoSectionError, cp.NoOptionError):
+                    pass
+        return metadata
+
+    def set_environment(self, env):
+        """Reset environent to reflect this environment in the pacakge model"""
+        # TODO: check if env exists!
+        self._selected_env = env
+        self._setup_widget()
+
+
+class Worker(QObject):
+    """ helper class to preprocess the repodata.json file(s) information into
+    an usefull format for the CondaPackagesModel class without blocking th GUI
+    in case the number of packages or channels grows too large
+    """
+    ready = Signal()
+    status_updated = Signal(str, bool, list)
+
+    def __init__(self, parent, repo_files, env, prefix):
+        QObject.__init__(self)
+        self.parent = parent
+        self._repo_files = repo_files
+        self._env = env
+        self._prefix = prefix
+
+        self.packages_names = None
+        self.row_data = None
+        self.packages_versions = None
+
+        # define helper function locally
+        self._get_package_metadata = parent.get_package_metadata
+
+    @Slot()
+    def _prepare_model(self):
+        """ """
+        self._load_packages()
+        self._setup_data()
+
+    def _load_packages(self):
+        """ """
+        self.status_updated.emit(_('Loading conda packages...'), True, [0, 0])
+        grouped_usable_packages = {}
+        packages_all = []
+
+        for repo_file in self._repo_files:
+            with open(repo_file, 'r') as f:
+                data = json.load(f)
+
+            # info = data['info']
+            packages = data['packages']
+
+            if packages is not None:
+                packages_all.append(packages)
+                for key in packages:
+                    val = packages[key]
+                    name = val['name'].lower()
+                    grouped_usable_packages[name] = list()
+
+        for packages in packages_all:
             for key in packages:
                 val = packages[key]
                 name = val['name'].lower()
                 grouped_usable_packages[name].append([key, val])
 
-            self.packages_dic = grouped_usable_packages
+#        for key, val in grouped_usable_packages.iteritems():
+#            print(key)
+#            for v in val:
+#                print(v[0])
+#            print()
+        self._packages = grouped_usable_packages
+
+    def _setup_data(self):
+        """ """
+        self._packages_names = []
+        self._rows = []
+        self._packages_versions = {}  # the canonical name of versions compat
+
+        self._packages_linked = {}
+        self._packages_versions_number = {}
+        self._packages_versions_all = {}  # the canonical name of all versions
+        self._packages_upgradable = {}
+        self._packages_downgradable = {}
+        self._packages_installable = {}
+        self._packages_licenses_all = {}
+        self._conda_api = conda_api_q
+
+        cp = self._conda_api
+        # TODO: Do we want to exclude some packages? If we plan to continue
+        # with the projects in spyder idea, we might as well hide spyder
+        # from the possible instalable apps...
+        # exclude_names = ['emptydummypackage']  # FIXME: packages to exclude?
+
+        # First do the list of linked packages so in case there is no json
+        # We can show at least that
+        self._packages_linked = {}
+        canonical_names = sorted(list(cp.linked(self._prefix)))
+
+        # This has to do with the versions of the selected environment, NOT
+        # with the python version running!
+        pyver, numpyver, pybuild, numpybuild = None, None, None, None
+        for canonical_name in canonical_names:
+            n, v, b = cp.split_canonical_name(canonical_name)
+            self._packages_linked[n] = [n, v, b, canonical_name]
+            if n == 'python':
+                pyver = v
+                pybuild = b
+            elif n == 'numpy':
+                numpyver = v
+                numpybuild = b
+
+        if self._packages == {}:
+            self._packages_names = sorted([l for l in self._packages_linked])
+            self._rows = list(range(len(self._packages_names)))
+            for n in self._packages_linked:
+                val = self._packages_linked[n]
+                v = val[-1]
+                self._packages[n] = [[v, v]]
         else:
-            self.packages_dic = {}
+            self._packages_names = sorted([key for key in
+                                           self._packages])
+            self._rows = list(range(len(self._packages_names)))
+            for n in self._packages:
+                self._packages_licenses_all[n] = {}
 
-    def _setup_widget(self):
-        """ """
-        self._load_conda_packages()
-        self.active_env = self.get_active_env()
-        self.filter_combobox.addItems([k for k in COMBOBOX_VALUES_ORDERED])
-        self.filter_combobox.setCurrentIndex(ALL)
-
-        self.connect(self.updates_button,
-                     SIGNAL('clicked(bool)'),
-                     self.check_updates)
-
-        self.connect(self.search_box, SIGNAL('textChanged(QString)'),
-                     self.table.search_string_changed)
-        self.connect(self.filter_combobox,
-                     SIGNAL('currentIndexChanged(QString)'),
-                     self.table.filter_status_changed)
-        self.process.readyRead.connect(self._on_process_data_available)
-        self.process.started.connect(lambda: self._update_status(True))
-        self.process.finished.connect(lambda: self._on_process_ready(True))
-
-        self.table.setup_model(self.active_env, self.packages_dic)
-        self.table.filter_changed()
-        self.widget_setup_ready = True
-
-    def _update_status(self, hide, progress=None):
-        """ """
-        widgets = [self.updates_button, self.filter_combobox,
-                   self.filter_combobox, self.search_box,
-                   self.table]
-
-        for widget in widgets:
-            widget.setDisabled(hide)
-
-        self.progress_bar.setVisible(hide)
-
-        if hide:
-            self.status_bar.setText(self.status)
+        pybuild = 'py' + ''.join(pyver.split('.'))[:-1] + '_'  # + pybuild
+        if numpyver is None and numpybuild is None:
+            numpybuild = ''
         else:
-            self.status_bar.setText('')
+            numpybuild = 'np' + ''.join(numpyver.split('.'))[:-1]
 
-        if progress:
-            self.progress_bar.setMinimum(0)
-            self.progress_bar.setMaximum(progress[1])
-            self.progress_bar.setValue(progress[0])
-        else:
-            self.progress_bar.setMaximum(0)
-            self.progress_bar.setMinimum(0)
+        for n in self._packages_names:
+            self._packages_versions_all[n] = \
+                sort_versions([s[0] for s in self._packages[n]],
+                              reverse=True)
+            for s in self._packages[n]:
+                val = s[1]
+                if 'version' in val:
+                    ver = val['version']
+                    if 'license' in val:
+                        lic = val['license']
+                        self._packages_licenses_all[n][ver] = lic
 
-    def _run_pack_action(self, name, action, version, versions):
-        """ """
-        env = self.active_env
-        dlg = CondaPackageActionDialog(self, env, name, action, version,
-                                       versions)
+        # Now clean versions depending on the build version of python and numpy
+        # FIXME: there is an issue here... at this moment a package with same
+        # version but only differing in the build number will get added
+        # Now it assumes that there is a python installed in the root
+        for name in self._packages_versions_all:
+            tempver_cano = []
+            tempver_num = []
+            for ver in self._packages_versions_all[name]:
+                n, v, b = cp.split_canonical_name(ver)
 
-        if dlg.exec_():
-            self.status = 'Processing'
-            self._update_status(True)
-            self.repaint()
-            dic = {}
-            env = self.active_env
-            ver1 = dlg.version_label.text()
-            ver2 = dlg.version_combobox.currentText()
-            pkg = u'{0}={1}{2}'.format(name, ver1, ver2)
-            dep = dlg.checkbox.checkState()
-            state = dlg.checkbox.isEnabled()
-            dlg.process.close()
-            dlg.close()
+                if 'np' in b and 'py' in b:
+                    if numpybuild + pybuild in b:
+                        tempver_cano.append(ver)
+                        tempver_num.append(v)
+                elif 'py' in b:
+                    if pybuild in b:
+                        tempver_cano.append(ver)
+                        tempver_num.append(v)
+                elif 'np' in b:
+                    if numpybuild in b:
+                        tempver_cano.append(ver)
+                        tempver_num.append(v)
+                else:
+                    tempver_cano.append(ver)
+                    tempver_num.append(v)
+            self._packages_versions[name] = sort_versions(tempver_cano,
+                                                          reverse=True)
+            self._packages_versions_number[name] = sort_versions(tempver_num,
+                                                                 reverse=True)
 
-            # FIXME: Start process here or on __init__?
-#            self.process = QProcess(self)
-#            self.process.readyRead.connect(self._on_process_data_available)
-#            self.process.started.connect(lambda: self._update_status(True))
-#            self.process.finished.connect(lambda:
-#                                          self._on_process_ready(True))
+        # FIXME: Check what to do with different builds??
+        # For the moment here a set is used to remove duplicate versions
+        for n in self._packages_linked:
+            vals = self._packages_linked[n]
+            canonical_name = vals[-1]
+            current_ver = vals[1]
+            vers = self._packages_versions_number[n]
+            vers = sort_versions(list(set(vers)), reverse=True)
 
-            dic['name'] = env
-            dic['pkg'] = pkg
-            dic['dep'] = dep == 0 and state
+            self._packages_upgradable[n] = not current_ver == vers[0]
+            self._packages_downgradable[n] = not current_ver == vers[-1]
 
-            self._run_conda_process(action, dic)
-            self.table.source_model.refresh_()
-
-    def _run_conda_process(self, action, dic):
-        """ """
-        extra_args = []
-
-        if action == CREATE:
-            extra_args.extend(['create', '--yes', '--quiet', dic['pkgs']])
-            status = _('Creating environment <b>') + dic['name'] + '</b>'
-        elif action == CLONE:
-            extra_args.extend(['create', '--yes', '--quiet', '--clone',
-                               dic['cloned from']])
-            status = (_('Cloning ') + '<i>' + dic['cloned from']
-                      + _('</i> into <b>') + dic['name'] + '</b>')
-        elif action == REMOVE_ENV:
-            extra_args.extend(['remove', '--yes', '--quiet', '--all',
-                              '--no-pin', '--features'])
-            status = _('Removing environment <b>') + dic['name'] + '</b>'
-        elif action == INSTALL or action == UPGRADE or action == DOWNGRADE:
-            extra_args.extend(['install', '--yes', '--quiet', dic['pkg']])
-            status = _('Installing <b>') + dic['pkg'] + '</b>'
-            if dic['dep']:
-                extra_args.extend(['--no-deps'])
+        for row, name in enumerate(self._packages_names):
+            if name in self._packages_linked:
+                version = self._packages_linked[name][1]
+                if (self._packages_upgradable[name] and
+                        self._packages_downgradable[name]):
+                    status = MIXGRADABLE
+                elif self._packages_upgradable[name]:
+                    status = UPGRADABLE
+                elif self._packages_downgradable[name]:
+                    status = DOWNGRADABLE
+                else:
+                    status = INSTALLED
             else:
-                status = status + _(' and dependencies')
-            status = status + _(' into <i>') + dic['name'] + '</i>'
-        elif action == REMOVE:
-            extra_args.extend(['remove', '--yes', '--quiet', dic['pkg']])
-            status = (_('Removing <b>') + dic['pkg'] + '</b>' + _(' from <i>')
-                      + dic['name'] + '</i>')
+                vers = self._packages_versions_number[name]
+                vers = sort_versions(list(set(vers)), reverse=True)
+                version = '-'
 
-        if 'path' in dic:
-            extra_args.extend(['--prefix', dic['path']])
-        elif 'name' in dic:
-            extra_args.extend(['--name', dic['name']])
+                if len(vers) == 0:
+                    status = NOT_INSTALLABLE
+                else:
+                    status = NOT_INSTALLED
 
-        cmd_list = conda_api._call_conda_2(extra_args)
-        self.status = status
+            metadata = self._get_package_metadata(name)
+            description = metadata['description']
+            url = metadata['url']
 
-        self.process.start(cmd_list[0], cmd_list[1:])
+            if version in self._packages_licenses_all[name]:
+                if self._packages_licenses_all[name][version]:
+                    license_ = self._packages_licenses_all[name][version]
+                else:
+                    license_ = u''
+            else:
+                license_ = u''
 
-    def _on_process_data_available(self):
-        """ """
-        #response = to_text_string(self.process.readAll())
-        self._update_status(True)
+            self._rows[row] = [name, description, version, status, url,
+                               license_, False, False, False, False]
 
-    def _on_process_ready(self, package_action=False):
-        """ """
-        self.table.source_model.refresh_()
-#        self.process.close()
-        self._update_status(False)
+        self.row_data = self._rows
+        self.packages_names = self._packages_names
+        self.packages_versions = self._packages_versions
 
-    def _set_table_data(self):
-        """ """
-        self._load_conda_packages()
-        self.table.setup_model(self.active_env, self.packages_dic)
-        self.table.filter_changed()
-
-    def check_updates(self):
-        """ """
-        self.status = ''
-        self._update_status(True, [0, 100])
-        self._download_repo()
-
-    def get_active_env(self):
-        """ Parse active env from conda info command """
-        tup = conda_api._call_conda(['info', '-e'])  # TODO:
-        string = tup[0]
-        if is_binary_string(string):
-            string = string.decode('ascii')
-        out = string.replace('\r', '').split('\n')
-
-        while '' in out:
-            out.remove('')
-
-        envs = out[2:]
-
-        for env in envs:
-            if ' * ' in env:
-                return env.split()[0]
+        self.ready.emit()
 
 
+# TODO:  update packages.ini file
 # TODO: Define some automatic tests that can include the following:
 
 # Test 1
@@ -1833,13 +1812,18 @@ class CondaPackagesWidget(QWidget):
 # Test 2
 # Test installation of custom packages
 
+# Test 3
+# nothing is loaded on the package listing but clicking on it will produce an
+# nonetype error
+
 def test():
-    """Run packages widget test"""
+    """Run conda packages widget test"""
     from spyderlib.utils.qthelpers import qapplication
     app = qapplication()
     widget = CondaPackagesWidget(None)
     widget.show()
     sys.exit(app.exec_())
+
 
 if __name__ == '__main__':
     test()
