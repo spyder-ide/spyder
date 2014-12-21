@@ -25,7 +25,7 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QHBoxLayout, QFormLayout,
                                 QMessageBox, QGroupBox, QDialogButtonBox,
                                 QDialog, QTabWidget, QFontComboBox, 
                                 QCheckBox, QApplication, QLabel,QLineEdit,
-                                QPushButton)
+                                QPushButton, QKeySequence)
 from spyderlib.qt.compat import getopenfilename
 from spyderlib.qt.QtCore import SIGNAL, Qt
 
@@ -703,10 +703,18 @@ class IPythonConsole(SpyderPluginWidget):
 
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
-        create_client_action = create_action(self,
+        ctrl = "Cmd" if sys.platform == "darwin" else "Ctrl"
+        main_create_client_action = create_action(self,
                                 _("Open an &IPython console"),
                                 None, 'ipython_console.png',
+                                triggered=self.create_new_client,
+                                tip=_("Use %s+T when the console is selected "
+                                      "to open a new one") % ctrl)
+        create_client_action = create_action(self,
+                                _("Open an new console"),
+                                QKeySequence("Ctrl+T"), 'ipython_console.png',
                                 triggered=self.create_new_client)
+        create_client_action.setShortcutContext(Qt.WidgetWithChildrenShortcut)
 
         connect_to_kernel_action = create_action(self,
                _("Connect to an existing kernel"), None, None,
@@ -715,7 +723,7 @@ class IPythonConsole(SpyderPluginWidget):
         
         # Add the action to the 'Consoles' menu on the main window
         main_consoles_menu = self.main.consoles_menu_actions
-        main_consoles_menu.insert(0, create_client_action)
+        main_consoles_menu.insert(0, main_create_client_action)
         main_consoles_menu += [None, connect_to_kernel_action]
         
         # Plugin actions
