@@ -12,7 +12,6 @@
 # pylint: disable=R0201
 
 from spyderlib.qt.QtGui import QVBoxLayout, QGroupBox
-#from spyderlib.qt.QtCore import SIGNAL
 
 # Local imports
 from spyderlib.baseconfig import get_translation
@@ -35,8 +34,16 @@ class CondaPackagesConfigPage(PluginConfigPage):
         settings_layout.addWidget(update_box)
         settings_group.setLayout(settings_layout)
 
+        network_group = QGroupBox(_("Network"))
+        proxy_box = self.create_checkbox(_("Use network proxy"),
+                                         'use_proxy_flag', default=True)
+        network_layout = QVBoxLayout()
+        network_layout.addWidget(proxy_box)
+        network_group.setLayout(network_layout)
+
         vlayout = QVBoxLayout()
         vlayout.addWidget(settings_group)
+        vlayout.addWidget(network_group)
         vlayout.addStretch(1)
         self.setLayout(vlayout)
 
@@ -67,7 +74,7 @@ class CondaPackages(CondaPackagesWidget, SpyderPluginMixin):
         Return the widget to give focus to when
         this plugin's dockwidget is raised on top-level
         """
-        return self.search_box
+        return self.textbox_search
 
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
