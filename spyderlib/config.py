@@ -515,6 +515,7 @@ DEFAULTS = [
               'editor/file list management': 'Ctrl+E',
               'editor/go to previous file': 'Ctrl+Tab',
               'editor/go to next file': 'Ctrl+Shift+Tab',
+              'editor/close file': "Ctrl+F4" if os.name == 'nt' else "Ctrl+W",
               # -- In spyder.py
               'editor/find text': "Ctrl+F",
               'editor/find next': "F3",
@@ -528,7 +529,6 @@ DEFAULTS = [
               'editor/save file': "Ctrl+S",
               'editor/save all': "Ctrl+Shift+S",
               'editor/print': "Ctrl+P",
-              'editor/close file': "Ctrl+F4" if os.name == 'nt' else "Ctrl+W",
               'editor/close all': "Ctrl+Shift+W",
               'editor/breakpoint': 'F12',
               'editor/conditional breakpoint': 'Shift+F12',

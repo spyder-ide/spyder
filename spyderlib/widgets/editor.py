@@ -689,6 +689,9 @@ class EditorStack(QWidget):
                               name='Go to previous file', parent=self)
         tabshift = create_shortcut(self.go_to_next_file, context='Editor',
                                    name='Go to next file', parent=self)
+        close_file = create_shortcut(lambda: self.emit(SIGNAL('close_file()')),
+                                     context='Editor', name='Close file',
+                                     parent=self)
         # Fixed shortcuts
         zoomin = QShortcut(QKeySequence(QKeySequence.ZoomIn), self,
                            lambda: self.emit(SIGNAL('zoom_in()')))
@@ -701,7 +704,7 @@ class EditorStack(QWidget):
         zoomreset.setContext(Qt.WidgetWithChildrenShortcut)
         # Return configurable ones
         return [inspect, breakpoint, cbreakpoint, gotoline, filelist, tab,
-                tabshift]
+                tabshift, close_file]
 
     def get_shortcut_data(self):
         """

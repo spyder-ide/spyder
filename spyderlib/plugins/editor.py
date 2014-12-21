@@ -629,11 +629,10 @@ class Editor(SpyderPluginWidget):
                 triggered=self.print_file)
         self.register_shortcut(self.print_action, context="Editor",
                                name="Print")
+        # Shortcut for close_action is defined in widgets/editor.py
         self.close_action = create_action(self, _("&Close"),
                 icon='fileclose.png', tip=_("Close current file"),
                 triggered=self.close_file)
-        self.register_shortcut(self.close_action, context="Editor",
-                               name="Close file")
         self.close_all_action = create_action(self, _("C&lose all"),
                 icon='filecloseall.png', tip=_("Close all opened files"),
                 triggered=self.close_all_files)
@@ -1126,6 +1125,7 @@ class Editor(SpyderPluginWidget):
         self.connect(editorstack, SIGNAL('zoom_in()'), lambda: self.zoom(1))
         self.connect(editorstack, SIGNAL('zoom_out()'), lambda: self.zoom(-1))
         self.connect(editorstack, SIGNAL('zoom_reset()'), lambda: self.zoom(0))
+        self.connect(editorstack, SIGNAL('close_file()'), self.close_file)
         
         self.connect(editorstack, SIGNAL('close_file(QString,int)'),
                      self.close_file_in_all_editorstacks)
