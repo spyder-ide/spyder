@@ -47,7 +47,8 @@ class FallbackPlugin(IntrospectionPlugin):
                 start = base.rfind('.') + 1
             else:
                 start = 0
-            items += [i[start:len(base)] + i[len(base):].split('.')[0]
+ 
+            items = [i[start:len(base)] + i[len(base):].split('.')[0]
                      for i in items]
             # get path completions
             # get last word back to a space or a quote character
