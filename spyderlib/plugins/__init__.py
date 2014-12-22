@@ -165,6 +165,16 @@ class SpyderPluginMixin(object):
         self.mainwindow = None
         self.ismaximized = False
         self.isvisible = False
+
+        # NOTE: Don't use the default option of CONF.get to assign a
+        # None shortcut to plugins that don't have one. That will mess
+        # the creation of our Keyboard Shortcuts prefs page
+        try:
+            self.shortcut = CONF.get('shortcuts', '_/switch to %s' % \
+                                     self.CONF_SECTION)
+        except configparser.NoOptionError:
+            self.shortcut = None
+
         # We decided to create our own toggle action instead of using
         # the one that comes with dockwidget because it's not possible
         # to raise and focus the plugin with it.
@@ -242,15 +252,10 @@ class SpyderPluginMixin(object):
         dock.visibilityChanged.connect(self.visibility_changed)
         dock.plugin_closed.connect(self.plugin_closed)
         self.dockwidget = dock
-        try:
-            short = CONF.get('shortcuts', '_/switch to %s' % self.CONF_SECTION)
-        except configparser.NoOptionError:
-            short = None
-        if short is not None:
-            shortcut = QShortcut(QKeySequence(short),
-                                 self.main, self.switch_to_plugin)
-            self.register_shortcut(shortcut, "_",
-                                   "Switch to %s" % self.CONF_SECTION)
+        if self.shortcut is not None:
+            sc = QShortcut(QKeySequence(self.shortcut), self.main,
+                            self.switch_to_plugin)
+            self.register_shortcut(sc, "_", "Switch to %s" % self.CONF_SECTION)
         return (dock, self.LOCATION)
     
     def create_mainwindow(self):
@@ -302,6 +307,8 @@ class SpyderPluginMixin(object):
         This method is called when pressing plugin's shortcut key"""
         if not self.ismaximized:
             self.dockwidget.show()
+        if not self.toggle_view_action.isChecked():
+            self.toggle_view_action.setChecked(True)
         self.visibility_changed(True)
 
     def visibility_changed(self, enable):
@@ -378,8 +385,14 @@ class SpyderPluginMixin(object):
         title = self.get_plugin_title()
         if self.CONF_SECTION == 'editor':
             title = _('Editor')
-        action = create_action(self, title, toggled=lambda checked:
-                                                    self.toggle_view(checked))
+        if self.shortcut is not None:
+            action = create_action(self, title,
+                             toggled=lambda checked: self.toggle_view(checked),
+                             shortcut=QKeySequence(self.shortcut))
+            action.setShortcutContext(Qt.WidgetWithChildrenShortcut)
+        else:
+            action = create_action(self, title, toggled=lambda checked:
+                                                self.toggle_view(checked))
         self.toggle_view_action = action
     
     def toggle_view(self, checked):
