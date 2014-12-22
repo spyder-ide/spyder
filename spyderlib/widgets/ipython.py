@@ -20,7 +20,7 @@ import time
 # Qt imports
 from spyderlib.qt.QtGui import (QTextEdit, QKeySequence, QWidget, QMenu,
                                 QHBoxLayout, QToolButton, QVBoxLayout,
-                                QMessageBox)
+                                QMessageBox, QShortcut)
 from spyderlib.qt.QtCore import Signal, Slot, Qt
 
 from spyderlib import pygments_patch
@@ -176,6 +176,7 @@ class IPythonShellWidget(RichIPythonWidget):
     to provide missing functionality and a couple more keyboard shortcuts.
     """
     focus_changed = Signal()
+    new_client = Signal()
     
     def __init__(self, *args, **kw):
         # To override the Qt widget used by RichIPythonWidget
@@ -276,6 +277,12 @@ These commands were executed:
                                   parent=self)
         clear_console = create_shortcut(self.clear_console, context='Console',
                                         name='Clear shell', parent=self)
+
+        # Fixed shortcuts
+        create_client = QShortcut(QKeySequence("Ctrl+T"), self,
+                                  lambda: self.new_client.emit())
+        create_client.setContext(Qt.WidgetWithChildrenShortcut)
+
         return [inspect, clear_console]
     
     def get_signature(self, content):
@@ -521,14 +528,17 @@ class IPythonClient(QWidget, SaveHistoryMixin):
 
     def get_options_menu(self):
         """Return options menu"""
-        self.restart_action = create_action(self, _("Restart kernel"),
-                                            icon=get_icon('restart.png'),
-                                            triggered=self.restart_kernel)
+        restart_action = create_action(self, _("Restart kernel"),
+                                       shortcut=QKeySequence("Ctrl+."),
+                                       icon=get_icon('restart.png'),
+                                       triggered=self.restart_kernel)
+        restart_action.setShortcutContext(Qt.WidgetWithChildrenShortcut)
+        
         # Main menu
         if self.menu_actions is not None:
-            actions = [self.restart_action, None] + self.menu_actions
+            actions = [restart_action, None] + self.menu_actions
         else:
-            actions = [self.restart_action]
+            actions = [restart_action]
         return actions
     
     def get_toolbar_buttons(self):
