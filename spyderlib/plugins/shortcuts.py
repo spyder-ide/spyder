@@ -54,13 +54,14 @@ class Key(object):
                          Qt.MetaModifier: "Meta"}
     KEYS = {}
     for attr in KEYSTRINGS:
+        # ISSUE
         # This is needed to cope with a strange behaviour of Qt.
         # Qt.Key_PageUp/Qt.Key_PageDown when string parsed use PgDown/PgUp
         attr2 = attr
         if attr == 'PageDown':
             attr2 = 'PgDown'
         elif attr == 'PageUp':
-            attr2 = 'PgUp'            
+            attr2 = 'PgUp'
 
         KEYS[getattr(Qt, "Key_"+attr)] = attr2
 
@@ -69,9 +70,9 @@ class Key(object):
         modifiers = [mod1, mod2, mod3]
         assert all([mod in self.MODIFIERS for mod in modifiers])
         self.modifiers = sorted(modifiers)
-#        assert key in self.KEYS
+#        assert key in self.KEYS  # this will fail due to the same issue above
         self.key = key
-        
+
     def __str__(self):
         tlist = []
         for mod in sorted(list(set(self.modifiers))):
