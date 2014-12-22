@@ -26,7 +26,7 @@ class LocalToField(object):
 
         new_name = self._get_field_name(function_scope.pyobject, name)
         changes = Rename(self.project, self.resource, self.offset).\
-                  get_changes(new_name, resources=[self.resource])
+            get_changes(new_name, resources=[self.resource])
         return changes
 
     def _check_redefinition(self, name, function_scope):
@@ -45,6 +45,6 @@ class LocalToField(object):
         holding_scope = pymodule.get_scope().get_inner_scope_for_line(lineno)
         parent = holding_scope.parent
         return isinstance(pyname, pynames.AssignedName) and \
-               pyname in holding_scope.get_names().values() and \
-               holding_scope.get_kind() == 'Function' and \
-               parent is not None and parent.get_kind() == 'Class'
+            pyname in holding_scope.get_names().values() and \
+            holding_scope.get_kind() == 'Function' and \
+            parent is not None and parent.get_kind() == 'Class'

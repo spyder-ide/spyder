@@ -18,17 +18,11 @@ two alternatives:
    `site <http://continuum.io/downloads.html>`_.
 
 #. Use our dmg installer, which can be found
-   `here <https://code.google.com/p/spyderlib/downloads/list>`_.
+   `here <https://bitbucket.org/spyder-ide/spyderlib/downloads>`_.
 
-  .. warning::
+  .. note::
    
-     *This is not necessary anymore since version 2.2.5.*
-     
-     * To be able to use the app that comes with this dmg on *Mountain Lion* (10.8)
-       you need to install `XQuartz <http://xquartz.macosforge.org/>`_ first.
-     * To generate plots in *Snow Leopard* (10.6) you need to install first
-       `this <http://ethan.tira-thompson.com/Mac_OS_X_Ports_files/libpng%20%28universal%29.dmg>`_
-       (more recent) version of ``libpng``.
+     The minimal MacOS X version to run our dmg is Lion (10.7)
 
 
 The hard way
@@ -37,7 +31,7 @@ The hard way
 Thanks to the *MacPorts* project, Spyder can be installed using its ``port`` package manager.
 There are `several versions`__ available from which you can choose from.
 
-__ http://www.macports.org/ports.php?by=name&substr=spyder MacPorts
+__ http://www.macports.org/ports.php?by=name&substr=spyder
 
   .. warning::
 
@@ -110,7 +104,7 @@ The easy way
 Spyder is already included in these *Python Scientific Distributions*:
 
 #. `Python(x,y) <https://code.google.com/p/pythonxy>`_
-#. `WinPython <https://code.google.com/p/winpython>`_
+#. `WinPython <https://winpython.github.io/>`_
 #. `Anaconda <http://continuum.io/downloads.html>`_
 
 You can start using it immediately after installing one of them (you only need
@@ -129,19 +123,14 @@ If you want to install Spyder directly, you need to follow these steps:
 
 #. Install optional modules:
 
-   These are the most important modules to do scientific programming with Python
-
-   * `numpy <http://numpy.scipy.org/>`_
-   * `scipy <http://www.scipy.org/>`_
-   * `matplotlib <http://matplotlib.sourceforge.net/>`_
-   * `IPython <http://ipython.org/install.html#downloads>`_
-   * `Python Imaging Library <https://pypi.python.org/pypi/Pillow>`_
+   Please refer to the `Recommended modules`_ section to see what other packages
+   you might need.
   
 #. Installing Spyder itself:
 
    You need to download and install the .exe file that corresponds to your Python
    version and architecture from
-   `this page <http://code.google.com/p/spyderlib/downloads/list>`_.
+   `this page <https://bitbucket.org/spyder-ide/spyderlib/downloads>`_.
 
 
 Updating Spyder

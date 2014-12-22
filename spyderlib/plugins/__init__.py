@@ -20,7 +20,7 @@ These plugins inherit the following classes
 
 from spyderlib.qt.QtGui import (QDockWidget, QWidget, QShortcut, QCursor,
                                 QKeySequence, QMainWindow, QApplication)
-from spyderlib.qt.QtCore import SIGNAL, Qt, QObject, Signal
+from spyderlib.qt.QtCore import Qt, Signal
 
 # Local imports
 from spyderlib.utils.qthelpers import toggle_actions, get_icon, create_action
@@ -30,6 +30,7 @@ from spyderlib.userconfig import NoDefault
 from spyderlib.guiconfig import get_font, set_font
 from spyderlib.plugins.configdialog import SpyderConfigPage
 from spyderlib.py3compat import configparser, is_text_string
+import sys
 
 
 class PluginConfigPage(SpyderConfigPage):
@@ -52,13 +53,79 @@ class PluginConfigPage(SpyderConfigPage):
 
 class SpyderDockWidget(QDockWidget):
     """Subclass to override needed methods"""
+    DARWIN_STYLE = """
+    QDockWidget::close-button, QDockWidget::float-button {
+        padding: 0px;
+        margin: 2px;
+    }
     
+    QTabWidget::pane {
+        border: 3px solid rgb(235, 235, 235);
+        border-bottom: 0;
+    }
+    
+    QTabWidget::tab-bar {
+        left: 5px;
+    }
+    
+    QTabBar::tab {
+        background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                    stop: 0 #b1b1b1, stop: 0.07 #b3b3b3,
+                                    stop: 0.33 #b3b3b3, stop: 0.4 #b0b0b0,
+                                    stop: 0.47 #b3b3b3, stop: 1.0 #b2b2b2);
+        border: 1px solid #787878;
+        border-top-color: transparent;
+        border-bottom-color: transparent;
+        margin-left: -1px;
+        margin-right: -1px;
+        min-width: 8ex;
+        padding: 3px;
+    }
+    
+    QTabBar::tab:selected {
+        background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                    stop: 0 #dfdfdf, stop: 0.1 #dddddd,
+                                    stop: 0.12 #dfdfdf, stop: 0.22 #e0e0e0,
+                                    stop: 0.33 #dedede, stop: 0.47 #dedede,
+                                    stop: 0.49 #e0e0e0, stop: 0.59 #dddddd,
+                                    stop: 0.61 #dfdfdf, stop: 0.73 #dedede,
+                                    stop: 0.80 #e0e0e0, stop: 1.0 #dedede);
+        border: 1px solid #787878;
+        border-top-color: transparent;
+        border-bottom-left-radius: 3px;
+        border-bottom-right-radius: 3px;
+    }
+    
+    QTabBar::tab:first {
+        margin-left: 0;
+    }
+    
+    QTabBar::tab:last {
+        margin-right: 0;
+    }
+    
+    QTabBar::tab:only-one {
+        margin: 0;
+    }
+    
+    QToolButton {
+        border: none;
+    }
+    """
+
+    plugin_closed = Signal()
+
+    def __init__(self, *args, **kwargs):
+        super(SpyderDockWidget, self).__init__(*args, **kwargs)
+        if sys.platform == 'darwin':
+            self.setStyleSheet(self.DARWIN_STYLE)
+
     def closeEvent(self, event):
         """
         Reimplement Qt method to send a signal on close so that "Panes" main
         window menu can be updated correctly
         """
-        self.emit(SIGNAL('plugin_closed()'))
+        self.plugin_closed.emit()
 
 
 class SpyderPluginMixin(object):
@@ -67,10 +134,11 @@ class SpyderPluginMixin(object):
     See SpyderPluginWidget class for required widget interface
     
     Signals:
-        sig_option_changed
-            Example:
-            plugin.sig_option_changed.emit('show_all', checked)
-        'show_message(QString,int)'
+        * sig_option_changed
+             Example:
+             plugin.sig_option_changed.emit('show_all', checked)
+        * show_message
+        * update_plugin_title
     """
     CONF_SECTION = None
     CONFIGWIDGET_CLASS = None
@@ -80,7 +148,12 @@ class SpyderPluginMixin(object):
                QDockWidget.DockWidgetFloatable | \
                QDockWidget.DockWidgetMovable
     DISABLE_ACTIONS_WHEN_HIDDEN = True
+
+    # Signals
     sig_option_changed = None
+    show_message = None
+    update_plugin_title = None
+
     def __init__(self, main):
         """Bind widget to a QMainWindow instance"""
         super(SpyderPluginMixin, self).__init__()
@@ -92,6 +165,16 @@ class SpyderPluginMixin(object):
         self.mainwindow = None
         self.ismaximized = False
         self.isvisible = False
+
+        # NOTE: Don't use the default option of CONF.get to assign a
+        # None shortcut to plugins that don't have one. That will mess
+        # the creation of our Keyboard Shortcuts prefs page
+        try:
+            self.shortcut = CONF.get('shortcuts', '_/switch to %s' % \
+                                     self.CONF_SECTION)
+        except configparser.NoOptionError:
+            self.shortcut = None
+
         # We decided to create our own toggle action instead of using
         # the one that comes with dockwidget because it's not possible
         # to raise and focus the plugin with it.
@@ -100,10 +183,10 @@ class SpyderPluginMixin(object):
     def initialize_plugin(self):
         """Initialize plugin: connect signals, setup actions, ..."""
         self.plugin_actions = self.get_plugin_actions()
-        QObject.connect(self, SIGNAL('show_message(QString,int)'),
-                        self.show_message)
-        QObject.connect(self, SIGNAL('update_plugin_title()'),
-                        self.__update_plugin_title)
+        if self.show_message is not None:
+            self.show_message.connect(self.__show_message)
+        if self.update_plugin_title is not None:
+            self.update_plugin_title.connect(self.__update_plugin_title)
         if self.sig_option_changed is not None:
             self.sig_option_changed.connect(self.set_option)
         self.setWindowTitle(self.get_plugin_title())
@@ -166,20 +249,13 @@ class SpyderPluginMixin(object):
         dock.setFeatures(self.FEATURES)
         dock.setWidget(self)
         self.update_margins()
-        self.connect(dock, SIGNAL('visibilityChanged(bool)'),
-                     self.visibility_changed)
-        self.connect(dock, SIGNAL('plugin_closed()'),
-                     self.plugin_closed)
+        dock.visibilityChanged.connect(self.visibility_changed)
+        dock.plugin_closed.connect(self.plugin_closed)
         self.dockwidget = dock
-        try:
-            short = CONF.get('shortcuts', '_/switch to %s' % self.CONF_SECTION)
-        except configparser.NoOptionError:
-            short = None
-        if short is not None:
-            shortcut = QShortcut(QKeySequence(short),
-                                 self.main, self.switch_to_plugin)
-            self.register_shortcut(shortcut, "_",
-                                   "Switch to %s" % self.CONF_SECTION)
+        if self.shortcut is not None:
+            sc = QShortcut(QKeySequence(self.shortcut), self.main,
+                            self.switch_to_plugin)
+            self.register_shortcut(sc, "_", "Switch to %s" % self.CONF_SECTION)
         return (dock, self.LOCATION)
     
     def create_mainwindow(self):
@@ -231,6 +307,8 @@ class SpyderPluginMixin(object):
         This method is called when pressing plugin's shortcut key"""
         if not self.ismaximized:
             self.dockwidget.show()
+        if not self.toggle_view_action.isChecked():
+            self.toggle_view_action.setChecked(True)
         self.visibility_changed(True)
 
     def visibility_changed(self, enable):
@@ -271,7 +349,7 @@ class SpyderPluginMixin(object):
         """Set plugin font option"""
         set_font(font, self.CONF_SECTION, option)
         
-    def show_message(self, message, timeout=0):
+    def __show_message(self, message, timeout=0):
         """Show message in main window's status bar"""
         self.main.statusBar().showMessage(message, timeout)
 
@@ -280,7 +358,7 @@ class SpyderPluginMixin(object):
         Showing message in main window's status bar
         and changing mouse cursor to Qt.WaitCursor
         """
-        self.show_message(message)
+        self.__show_message(message)
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         QApplication.processEvents()
         
@@ -290,7 +368,7 @@ class SpyderPluginMixin(object):
         and restoring mouse cursor
         """
         QApplication.restoreOverrideCursor()
-        self.show_message(message, timeout=2000)
+        self.__show_message(message, timeout=2000)
         QApplication.processEvents()
         
     def set_default_color_scheme(self, name='Spyder'):
@@ -307,7 +385,14 @@ class SpyderPluginMixin(object):
         title = self.get_plugin_title()
         if self.CONF_SECTION == 'editor':
             title = _('Editor')
-        action = create_action(self, title, toggled=self.toggle_view)
+        if self.shortcut is not None:
+            action = create_action(self, title,
+                             toggled=lambda checked: self.toggle_view(checked),
+                             shortcut=QKeySequence(self.shortcut))
+            action.setShortcutContext(Qt.WidgetWithChildrenShortcut)
+        else:
+            action = create_action(self, title, toggled=lambda checked:
+                                                self.toggle_view(checked))
         self.toggle_view_action = action
     
     def toggle_view(self, checked):
@@ -325,6 +410,8 @@ class SpyderPluginWidget(QWidget, SpyderPluginMixin):
     Spyder's widgets either inherit this class or reimplement its interface
     """
     sig_option_changed = Signal(str, object)
+    show_message = Signal(str, int)
+    update_plugin_title = Signal()
     
     def __init__(self, parent):
         QWidget.__init__(self, parent)

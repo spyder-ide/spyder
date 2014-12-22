@@ -28,7 +28,11 @@ from IPython.core.completerlib import module_list
 
 from spyderlib import __version__ as spy_version
 from spyderlib.config import EDIT_EXT
+from spyderlib.baseconfig import MAC_APP_NAME
 from spyderlib.utils.programs import find_program
+
+
+PY2 = sys.version[0] == '2'
 
 #==============================================================================
 # Auxiliary functions
@@ -60,15 +64,17 @@ def get_stdlib_modules():
 # App creation
 #==============================================================================
 
-shutil.copyfile('scripts/spyder', 'Spyder.py')
+APP_MAIN_SCRIPT = MAC_APP_NAME[:-4] + '.py'
+shutil.copyfile('scripts/spyder', APP_MAIN_SCRIPT)
 
-APP = ['Spyder.py']
+APP = [APP_MAIN_SCRIPT]
 DEPS = ['pylint', 'logilab', 'astroid', 'pep8', 'setuptools']
 EXCLUDES = DEPS + ['mercurial']
 PACKAGES = ['spyderlib', 'spyderplugins', 'sphinx', 'jinja2', 'docutils',
             'IPython', 'zmq', 'pygments', 'rope', 'distutils', 'PIL', 'PyQt4',
-            'sklearn', 'skimage', 'pandas', 'sympy', 'statsmodels', 'pyflakes',
-            'mpl_toolkits', 'nose', 'psutil']
+            'sklearn', 'skimage', 'pandas', 'sympy', 'pyflakes', 'psutil',
+            'mpl_toolkits', 'nose', 'patsy','statsmodels']
+
 INCLUDES = get_stdlib_modules()
 EDIT_EXT = [ext[1:] for ext in EDIT_EXT]
 
@@ -92,16 +98,19 @@ setup(
     options={'py2app': OPTIONS}
 )
 
-os.remove('Spyder.py')
+# Remove script for app
+os.remove(APP_MAIN_SCRIPT)
 
 #==============================================================================
 # Post-app creation
 #==============================================================================
 
+py_ver = '%s.%s' % (sys.version_info[0], sys.version_info[1])
+
 # Main paths
-resources = 'dist/Spyder.app/Contents/Resources'
+resources = 'dist/%s/Contents/Resources' % MAC_APP_NAME
 system_python_lib = get_python_lib()
-app_python_lib = osp.join(resources, 'lib', 'python2.7')
+app_python_lib = osp.join(resources, 'lib', 'python%s' % py_ver)
 
 # Add our docs to the app
 docs_orig = 'build/lib/spyderlib/doc'
@@ -151,10 +160,10 @@ def _change_interpreter(program):
     import sys
     try:
         for line in fileinput.input(program, inplace=True):
-           if line.startswith('#!'):
-               print '#!' + sys.executable
-           else:
-               print line,
+            if line.startswith('#!'):
+                print('#!' + sys.executable)
+            else:
+                print(line)
     except:
         pass
 
@@ -207,7 +216,7 @@ except:
 
 # Add our modifications to __boot__.py so that they can be taken into
 # account when the app is started
-boot_file = 'dist/Spyder.app/Contents/Resources/__boot__.py'
+boot_file = 'dist/%s/Contents/Resources/__boot__.py' % MAC_APP_NAME
 reset_line = "_reset_sys_path()"
 run_line = "_run()"
 for line in fileinput.input(boot_file, inplace=True):
@@ -223,14 +232,16 @@ for line in fileinput.input(boot_file, inplace=True):
         print(line, end='')
 
 # To use the app's own Qt framework
-subprocess.call(['macdeployqt', 'dist/Spyder.app'])
+subprocess.call(['macdeployqt', 'dist/%s' % MAC_APP_NAME])
 
 # Workaround for what appears to be a bug with py2app and Homebrew
 # See https://bitbucket.org/ronaldoussoren/py2app/issue/26#comment-2092445
 PF_dir = get_config_var('PYTHONFRAMEWORKINSTALLDIR')
-app_python_interpreter = 'dist/Spyder.app/Contents/MacOS/python'
+if not PY2:
+    PF_dir = osp.join(PF_dir, 'Versions', py_ver)
+app_python_interpreter = 'dist/%s/Contents/MacOS/python' % MAC_APP_NAME
 shutil.copyfile(osp.join(PF_dir, 'Resources/Python.app/Contents/MacOS/Python'),
                 app_python_interpreter)
+exec_path = '@executable_path/../Frameworks/Python.framework/Versions/%s/Python' % py_ver
 subprocess.call(['install_name_tool', '-change', osp.join(sys.prefix, 'Python'),
-                 '@executable_path/../Frameworks/Python.framework/Versions/2.7/Python',
-                 app_python_interpreter])
+                 exec_path, app_python_interpreter])

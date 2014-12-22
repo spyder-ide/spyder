@@ -21,15 +21,14 @@ from spyderlib.qt.QtGui import (QMessageBox, QTableView, QItemDelegate,
                                 QLineEdit, QVBoxLayout, QWidget, QColor,
                                 QDialog, QDateEdit, QDialogButtonBox, QMenu,
                                 QInputDialog, QDateTimeEdit, QApplication,
-                                QKeySequence)
-from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, SIGNAL,
-                                 SLOT, QDateTime, Signal)
+                                QKeySequence, QAbstractItemDelegate)
+from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, Signal,
+                                 QDateTime, Slot)
 from spyderlib.qt.compat import to_qvariant, from_qvariant, getsavefilename
 from spyderlib.utils.qthelpers import mimedata2url
 
 import sys
 import datetime
-import os
 
 # Local import
 from spyderlib.baseconfig import _
@@ -48,8 +47,8 @@ if DataFrame is not FakeObject:
     from spyderlib.widgets.dataframeeditor import DataFrameEditor
 from spyderlib.widgets.texteditor import TextEditor
 from spyderlib.widgets.importwizard import ImportWizard
-from spyderlib.py3compat import to_text_string, is_text_string, getcwd, u
-from spyderlib.utils.iofuncs import iofunctions
+from spyderlib.py3compat import (to_text_string, to_binary_string,
+                                 is_text_string, is_binary_string, getcwd, u)
 
 
 def display_to_value(value, default_value, ignore_errors=True):
@@ -69,8 +68,8 @@ def display_to_value(value, default_value, ignore_errors=True):
                 value = np_dtype(complex(value))
             else:
                 value = np_dtype(value)
-        elif isinstance(default_value, str):
-            value = str(value)
+        elif is_binary_string(default_value):
+            value = to_binary_string(value, 'utf8')
         elif is_text_string(default_value):
             value = to_text_string(value)
         elif isinstance(default_value, complex):
@@ -186,19 +185,31 @@ class ReadOnlyDictModel(QAbstractTableModel):
         if column == 0:
             self.sizes = sort_against(self.sizes, self.keys, reverse)
             self.types = sort_against(self.types, self.keys, reverse)
-            self.keys.sort(reverse=reverse)
+            try:
+                self.keys.sort(reverse=reverse)
+            except:
+                pass
         elif column == 1:
             self.keys = sort_against(self.keys, self.types, reverse)
             self.sizes = sort_against(self.sizes, self.types, reverse)
-            self.types.sort(reverse=reverse)
+            try:
+                self.types.sort(reverse=reverse)
+            except:
+                pass
         elif column == 2:
             self.keys = sort_against(self.keys, self.sizes, reverse)
             self.types = sort_against(self.types, self.sizes, reverse)
-            self.sizes.sort(reverse=reverse)
+            try:
+                self.sizes.sort(reverse=reverse)
+            except:
+                pass
         elif column == 3:
             self.keys = sort_against(self.keys, self.sizes, reverse)
             self.types = sort_against(self.types, self.sizes, reverse)
-            self.sizes.sort(reverse=reverse)
+            try:
+                self.sizes.sort(reverse=reverse)
+            except:
+                pass
         elif column == 4:
             values = [self._data[key] for key in self.keys]
             self.keys = sort_against(self.keys, values, reverse)
@@ -336,8 +347,7 @@ class DictModel(ReadOnlyDictModel):
         value = display_to_value(value, self.get_value(index),
                                  ignore_errors=True)
         self.set_value(index, value)
-        self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
-                  index, index)
+        self.dataChanged.emit(index, index)
         return True
 
 
@@ -419,16 +429,14 @@ class DictDelegate(QItemDelegate):
             editor = QDateTimeEdit(value, parent)
             editor.setCalendarPopup(True)
             editor.setFont(get_font('dicteditor'))
-            self.connect(editor, SIGNAL("returnPressed()"),
-                         self.commitAndCloseEditor)
+            editor.returnPressed.connect(self.commitAndCloseEditor)
             return editor
         #---editor = QDateEdit
         elif isinstance(value, datetime.date) and not self.inplace:
             editor = QDateEdit(value, parent)
             editor.setCalendarPopup(True)
             editor.setFont(get_font('dicteditor'))
-            self.connect(editor, SIGNAL("returnPressed()"),
-                         self.commitAndCloseEditor)
+            editor.returnPressed.connect(self.commitAndCloseEditor)
             return editor
         #---editor = QTextEdit
         elif is_text_string(value) and len(value)>40:
@@ -441,8 +449,7 @@ class DictDelegate(QItemDelegate):
             editor = QLineEdit(parent)
             editor.setFont(get_font('dicteditor'))
             editor.setAlignment(Qt.AlignLeft)
-            self.connect(editor, SIGNAL("returnPressed()"),
-                         self.commitAndCloseEditor)
+            editor.returnPressed.connect(self.commitAndCloseEditor)
             return editor
         #---editor = DictEditor for an arbitrary object
         else:
@@ -455,9 +462,9 @@ class DictDelegate(QItemDelegate):
             
     def create_dialog(self, editor, data):
         self._editors[id(editor)] = data
-        self.connect(editor, SIGNAL('accepted()'),
+        editor.accepted.connect(
                      lambda eid=id(editor): self.editor_accepted(eid))
-        self.connect(editor, SIGNAL('rejected()'),
+        editor.rejected.connect(
                      lambda eid=id(editor): self.editor_rejected(eid))
         editor.show()
         
@@ -476,14 +483,19 @@ class DictDelegate(QItemDelegate):
     def commitAndCloseEditor(self):
         """Overriding method commitAndCloseEditor"""
         editor = self.sender()
-        self.emit(SIGNAL("commitData(QWidget*)"), editor)
-        self.emit(SIGNAL("closeEditor(QWidget*)"), editor)
+        self.commitData.emit(editor)
+        self.closeEditor.emit(editor, QAbstractItemDelegate.NoHint)
 
     def setEditorData(self, editor, index):
         """Overriding method setEditorData
         Model --> Editor"""
         value = self.get_value(index)
         if isinstance(editor, QLineEdit):
+            if is_binary_string(value):
+                try:
+                    value = to_text_string(value, 'utf8')
+                except:
+                    pass
             if not is_text_string(value):
                 value = repr(value)
             editor.setText(value)
@@ -532,6 +544,7 @@ class BaseTableView(QTableView):
     """Base dictionnary editor table view"""
     sig_option_changed = Signal(str, object)
     sig_files_dropped = Signal(list)
+    redirect_stdio = Signal(bool)
     
     def __init__(self, parent):
         QTableView.__init__(self, parent)
@@ -818,33 +831,40 @@ class BaseTableView(QTableView):
         else:
             event.ignore()
 
+    @Slot(bool)
     def toggle_inplace(self, state):
         """Toggle in-place editor option"""
         self.sig_option_changed.emit('inplace', state)
         self.delegate.inplace = state
-        
+
+    @Slot(bool)
     def toggle_truncate(self, state):
         """Toggle display truncating option"""
         self.sig_option_changed.emit('truncate', state)
         self.model.truncate = state
-        
+
+    @Slot(bool)
     def toggle_minmax(self, state):
         """Toggle min/max display for numpy arrays"""
         self.sig_option_changed.emit('minmax', state)
         self.model.minmax = state
-        
+
+    @Slot(bool)
     def toggle_collvalue(self, state):
         """Toggle value display for collections"""
         self.sig_option_changed.emit('collvalue', state)
         self.model.collvalue = state
-            
+
+    @Slot()
     def edit_item(self):
         """Edit item"""
         index = self.currentIndex()
         if not index.isValid():
             return
-        self.edit(index)
-    
+        # TODO: Remove hard coded "Value" column number (3 here)
+        self.edit(index.child(index.row(), 3))
+
+    @Slot()
     def remove_item(self):
         """Remove item"""
         indexes = self.selectedIndexes()
@@ -881,15 +901,18 @@ class BaseTableView(QTableView):
             self.copy_value(orig_key, new_key)
             if erase_original:
                 self.remove_values([orig_key])
-    
+
+    @Slot()
     def duplicate_item(self):
         """Duplicate item"""
         self.copy_item()
 
+    @Slot()
     def rename_item(self):
         """Rename item"""
         self.copy_item(True)
-    
+
+    @Slot()
     def insert_item(self):
         """Insert item"""
         index = self.currentIndex()
@@ -942,7 +965,8 @@ class BaseTableView(QTableView):
                                      _("<b>Unable to plot data.</b>"
                                        "<br><br>Error message:<br>%s"
                                        ) % str(error))
-            
+
+    @Slot()
     def imshow_item(self):
         """Imshow item"""
         index = self.currentIndex()
@@ -958,17 +982,18 @@ class BaseTableView(QTableView):
                                      _("<b>Unable to show image.</b>"
                                        "<br><br>Error message:<br>%s"
                                        ) % str(error))
-            
+
+    @Slot()
     def save_array(self):
         """Save array"""
         title = _( "Save array")
         if self.array_filename is None:
             self.array_filename = getcwd()
-        self.emit(SIGNAL('redirect_stdio(bool)'), False)
+        self.redirect_stdio.emit(False)
         filename, _selfilter = getsavefilename(self, title,
                                                self.array_filename,
                                                _("NumPy arrays")+" (*.npy)")
-        self.emit(SIGNAL('redirect_stdio(bool)'), True)
+        self.redirect_stdio.emit(True)
         if filename:
             self.array_filename = filename
             data = self.delegate.get_value( self.currentIndex() )
@@ -980,6 +1005,8 @@ class BaseTableView(QTableView):
                                      _("<b>Unable to save array</b>"
                                        "<br><br>Error message:<br>%s"
                                        ) % str(error))
+    
+    @Slot()
     def copy(self):
         """Copy text to clipboard"""
         clipboard = QApplication.clipboard()
@@ -1000,7 +1027,8 @@ class BaseTableView(QTableView):
         if editor.exec_():
             var_name, clip_data = editor.get_data()
             self.new_value(var_name, clip_data)
-    
+
+    @Slot()
     def paste(self):
         """Import text/data/code from clipboard"""
         clipboard = QApplication.clipboard()
@@ -1194,9 +1222,9 @@ class DictEditor(QDialog):
         if not readonly:
             buttons = buttons | QDialogButtonBox.Cancel
         bbox = QDialogButtonBox(buttons)
-        self.connect(bbox, SIGNAL("accepted()"), SLOT("accept()"))
+        bbox.accepted.connect(self.accept)
         if not readonly:
-            self.connect(bbox, SIGNAL("rejected()"), SLOT("reject()"))
+            bbox.rejected.connect(self.reject)
         layout.addWidget(bbox)
 
         constant = 121
@@ -1307,7 +1335,8 @@ class RemoteDictEditorTableView(BaseTableView):
         self.toggle_remote_editing(remote_editing)
         add_actions(menu, (self.remote_editing_action,))
         return menu
-            
+
+    @Slot(bool)
     def toggle_remote_editing(self, state):
         """Toggle remote editing state"""
         self.sig_option_changed.emit('remote_editing', state)
@@ -1348,7 +1377,8 @@ def get_test_data():
     """Create test data"""
     import numpy as np
     from spyderlib.pil_patch import Image
-    image = Image.fromarray(np.random.random_integers(255, size=(100, 100)))
+    image = Image.fromarray(np.random.random_integers(255, size=(100, 100)),
+                            mode='P')
     testdict = {'d': 1, 'a': np.random.rand(10, 10), 'b': [1, 2]}
     testdate = datetime.date(1945, 5, 8)
     class Foobar(object):
@@ -1359,7 +1389,7 @@ def get_test_data():
     foobar = Foobar()
     return {'object': foobar,
             'str': 'kjkj kj k j j kj k jkj',
-            'unicode': u('éù'),
+            'unicode': to_text_string('éù', 'utf-8'),
             'list': [1, 3, [sorted, 5, 6], 'kjkj', None],
             'tuple': ([1, testdate, testdict], 'kjkj', None),
             'dict': testdict,
@@ -1382,7 +1412,7 @@ def get_test_data():
             'bool_scalar': np.bool(8),
             'unsupported1': np.arccos,
             'unsupported2': np.cast,
-            1: (1, 2, 3), -5: ("a", "b", "c"), 2.5: np.array((4.0, 6.0, 8.0)),            
+            #1: (1, 2, 3), -5: ("a", "b", "c"), 2.5: np.array((4.0, 6.0, 8.0)),            
             }
 
 def test():
@@ -1402,11 +1432,12 @@ def remote_editor_test():
     from pprint import pprint
     pprint(remote)
     app = qapplication()
-    dialog = DictEditor(remote, remote=True)
+    dialog = DictEditor()
+    dialog.setup(remote, remote=True)
     dialog.show()
     app.exec_()
     if dialog.result():
         print(dialog.get_value())
 
 if __name__ == "__main__":
-    test()
+    remote_editor_test()

@@ -31,11 +31,25 @@
     {% endif %}
 </head>
 
+
 <script type="text/javascript" charset="utf-8">
 {% include js_path + "/math_config.js" %}
 </script>
+
 <script src="file:///{{js_path}}/utils.js" type="text/javascript" charset="utf-8"></script>
 <script src="file:///{{js_path}}/copy_button.js" type="text/javascript" charset="utf-8"></script>
+
+{% if collapse %}
+<script src="file:///{{js_path}}/collapse_sections.js" type="text/javascript" charset="utf-8"></script>
+<script src="file:///{{js_path}}/move_outline.js" type="text/javascript" charset="utf-8"></script>
+{% endif %}
+
+{% if img_path %}
+<script type="text/javascript" charset="utf-8">
+{% include js_path + "/fix_image_paths.js" %}
+</script>
+{% endif %}
+
 
 <body>
     {# Docstring header #}
@@ -59,6 +73,12 @@
     {# Docstring text #}
     <div class="docstring">
         {% block body %}{% endblock %}
+        {% if collapse %}
+        <div class="section" id="outline">
+            <h2> Outline </h2>
+            {{ toc }}
+        </div>
+        {% endif %}
     </div>
 </body>
 

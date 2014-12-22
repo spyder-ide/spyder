@@ -31,12 +31,4 @@ $(document).ready(function () {
     $('div.docstring').find('div.section h1').replaceWith(function () {
         return '<h2>' + $(this).text() + '</h2>';
     });
-
-    // Wrap <li> text in a <span> so we can control the space between bullets 
-    // and text. We need this because QtWebKit uses too much space and that
-    // looks ugly.
-    // Taken from http://stackoverflow.com/questions/4373046/css-control-space-between-bullet-and-li
-    $('div.docstring').find('li p').replaceWith(function () {
-        return '<p><span>' + $(this).text() + '</span></p>';
-    });
 });

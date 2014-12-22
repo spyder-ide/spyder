@@ -76,15 +76,17 @@ def warning(message):
     return warning.render(css_path=CSS_PATH, text=message)
 
 
-def usage(title, message):
+def usage(title, message, tutorial_message, tutorial):
     """Print a usage message on the rich text view"""
     env = Environment()
     env.loader = FileSystemLoader(osp.join(CONFDIR_PATH, 'templates'))
-    warning = env.get_template("usage.html")
-    return warning.render(css_path=CSS_PATH, title=title, text=message)
+    usage = env.get_template("usage.html")
+    return usage.render(css_path=CSS_PATH, title=title, intro_message=message,
+                        tutorial_message=tutorial_message, tutorial=tutorial)
 
 
-def generate_context(name, argspec, note, math):
+def generate_context(name='', argspec='', note='', math=False, collapse=False,
+                     img_path=''):
     """
     Generate the html_context dictionary for our Sphinx conf file.
     
@@ -104,6 +106,8 @@ def generate_context(name, argspec, note, math):
     math : bool
         Turn on/off Latex rendering on the OI. If False, Latex will be shown in
         plain text.
+    collapse : bool
+        Collapse sections
     
     Returns
     -------
@@ -117,6 +121,8 @@ def generate_context(name, argspec, note, math):
       'name': name,
       'argspec': argspec,
       'note': note,
+      'collapse': collapse,
+      'img_path': img_path,
       
       # Static variables
       'css_path': CSS_PATH,

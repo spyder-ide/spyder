@@ -100,7 +100,7 @@ class _CheckObject(object):
         pyname = self._evaluate_node(pymodule, node)
         if pyname is None or self.expected is None:
             return self.unsure
-        if self._unsure_pyname(pyname, unbound=self.kind=='name'):
+        if self._unsure_pyname(pyname, unbound=self.kind == 'name'):
             return True
         if self.kind == 'name':
             return self._same_pyname(self.expected, pyname)
@@ -161,8 +161,10 @@ class _CheckObject(object):
             class _BuiltinsStub(object):
                 def get_attribute(self, name):
                     return builtins.builtins[name]
+
                 def __getitem__(self, name):
                     return builtins.builtins[name]
+
                 def __contains__(self, name):
                     return name in builtins.builtins
             pyobject = _BuiltinsStub()
