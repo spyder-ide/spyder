@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2014 Gonzalo Peña (@goanpeca)
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -10,29 +10,29 @@ import sys
 
 from spyderlib.baseconfig import _
 
-from spyderlib.qt.QtGui import (QVBoxLayout, QHBoxLayout,
-                                QDialogButtonBox, QComboBox, QPushButton,
-                                QTableView, QAbstractItemView,
-                                QDialog, QGroupBox)
-from spyderlib.qt.QtCore import (Qt, QSize, SIGNAL, SLOT,
-                                 QAbstractTableModel, QModelIndex)
-from spyderlib.qt.compat import (to_qvariant, from_qvariant)
+from spyderlib.qt.QtGui import (QVBoxLayout, QHBoxLayout, QDialogButtonBox,
+                                QGroupBox, QComboBox, QPushButton, QDialog,
+                                QAbstractItemView, QTableView)
+from spyderlib.qt.QtCore import Qt, QSize, QAbstractTableModel, QModelIndex
+from spyderlib.qt.compat import to_qvariant, from_qvariant
 from spyderlib.py3compat import to_text_string
 
 
 class LayoutModel(QAbstractTableModel):
     """ """
     def __init__(self, parent, order, active):
-        QAbstractTableModel.__init__(self)
+        super(LayoutModel, self).__init__(parent)
+
+        # variables
         self.parent = parent
         self.order = order
         self.active = active
-        self.__rows = []
+        self._rows = []
         self.set_data(order, active)
 
     def set_data(self, order, active):
         """ """
-        self.__rows = []
+        self._rows = []
         self.order = order
         self.active = active
         for name in order:
@@ -40,7 +40,7 @@ class LayoutModel(QAbstractTableModel):
                 row = [name, True]
             else:
                 row = [name, False]
-            self.__rows.append(row)
+            self._rows.append(row)
 
     def flags(self, index):
         """Override Qt method"""
@@ -48,21 +48,19 @@ class LayoutModel(QAbstractTableModel):
             return Qt.ItemIsEnabled
         column = index.column()
         if column in [0]:
-            return Qt.ItemFlags(Qt.ItemIsEnabled |
-                                Qt.ItemIsSelectable | Qt.ItemIsUserCheckable#)
-                                | Qt.ItemIsEditable )
+            return Qt.ItemFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable |
+                                Qt.ItemIsUserCheckable | Qt.ItemIsEditable)
         else:
             return Qt.ItemFlags(Qt.ItemIsEnabled)
 
     def data(self, index, role=Qt.DisplayRole):
         """Override Qt method"""
-        if not index.isValid() or not 0 <= index.row() < len(self.__rows):
+        if not index.isValid() or not 0 <= index.row() < len(self._rows):
             return to_qvariant()
         row = index.row()
         column = index.column()
 
-        name = self.row(row)[0]
-        state = self.row(row)[1]
+        name, state = self.row(row)
 
         if role == Qt.DisplayRole or role == Qt.EditRole:
             if column == 0:
@@ -78,28 +76,25 @@ class LayoutModel(QAbstractTableModel):
         return to_qvariant()
 
     def setData(self, index, value, role):
-        """ """
+        """Override Qt method"""
         row = index.row()
-        name = self.row(row)[0]
-        state = self.row(row)[1]
+        name, state = self.row(row)
 
         if role == Qt.CheckStateRole:
             self.set_row(row, [name, not state])
             self.parent.setCurrentIndex(index)
             self.parent.setFocus()
-            self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
-                      index, index)
+            self.dataChanged.emit(index, index)
             return True
         elif role == Qt.EditRole:
             self.set_row(row, [from_qvariant(value, to_text_string), state])
-            self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
-                      index, index)
+            self.dataChanged.emit(index, index)
             return True
         return True
 
     def rowCount(self, index=QModelIndex()):
         """Override Qt method"""
-        return len(self.__rows)
+        return len(self._rows)
 
     def columnCount(self, index=QModelIndex()):
         """Override Qt method"""
@@ -107,21 +102,25 @@ class LayoutModel(QAbstractTableModel):
 
     def row(self, rownum):
         """ """
-        if self.__rows == []:
+        if self._rows == []:
             return [None, None]
         else:
-            return self.__rows[rownum]
+            return self._rows[rownum]
 
     def set_row(self, rownum, value):
         """ """
-        self.__rows[rownum] = value
+        self._rows[rownum] = value
 
 
 class LayoutSaveDialog(QDialog):
     """ """
-    def __init__(self, order):
-        QDialog.__init__(self)
+    def __init__(self, parent, order):
+        super(LayoutSaveDialog, self).__init__(parent)
 
+        # variables
+        self.parent = parent
+
+        # widgets
         self.combo_box = QComboBox(self)
         self.combo_box.addItems(order)
         self.combo_box.setEditable(True)
@@ -132,22 +131,24 @@ class LayoutSaveDialog(QDialog):
         self.button_ok = self.button_box.button(QDialogButtonBox.Ok)
         self.button_cancel = self.button_box.button(QDialogButtonBox.Cancel)
 
+        # widget setup
+        self.button_ok.setEnabled(False)
         self.dialog_size = QSize(300, 100)
         self.setWindowTitle('Save layout as')
+        self.setModal(True)
+        self.setMinimumSize(self.dialog_size)
+        self.setFixedSize(self.dialog_size)
 
+        # layouts
         layout = QVBoxLayout()
         layout.addWidget(self.combo_box)
         layout.addWidget(self.button_box)
-
-        self.setModal(True)
         self.setLayout(layout)
-        self.setMinimumSize(self.dialog_size)
-        self.setFixedSize(self.dialog_size)
-        self.connect(self.button_box, SIGNAL("accepted()"), SLOT("accept()"))
-        self.connect(self.button_box, SIGNAL("rejected()"), self.close)
-        self.connect(self.combo_box, SIGNAL("editTextChanged(QString)"),
-                     self.check_text)
-        self.button_ok.setEnabled(False)
+
+        # signals and slots
+        self.button_box.accepted.connect(self.accept)
+        self.button_box.rejected.connect(self.close)
+        self.combo_box.editTextChanged.connect(self.check_text)
 
     def check_text(self, text):
         """Disable empty layout name possibility"""
@@ -159,15 +160,16 @@ class LayoutSaveDialog(QDialog):
 
 class LayoutSettingsDialog(QDialog):
     """Layout settings dialog"""
-    def __init__(self, names, order, active):
-        QDialog.__init__(self)
+    def __init__(self, parent, names, order, active):
+        super(LayoutSettingsDialog, self).__init__(parent)
 
-        # Variables
+        # variables
+        self.parent = parent
         self.names = names
         self.order = order
         self.active = active
 
-        # Widgets
+        # widgets
         self.button_move_up = QPushButton(_('Move Up'))
         self.button_move_down = QPushButton(_('Move Down'))
         self.button_delete = QPushButton(_('Delete Layout'))
@@ -181,9 +183,12 @@ class LayoutSettingsDialog(QDialog):
         self.cancel_button.setDefault(True)
         self.cancel_button.setAutoDefault(True)
 
-        # Layouts
+        # widget setup
         self.dialog_size = QSize(300, 200)
+        self.setMinimumSize(self.dialog_size)
+        self.setFixedSize(self.dialog_size)
         self.setWindowTitle('Layout Settings')
+
         self.table.setModel(LayoutModel(self.table, order, active))
         self.table.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.table.setSelectionMode(QAbstractItemView.SingleSelection)
@@ -195,6 +200,7 @@ class LayoutSettingsDialog(QDialog):
         self.table.horizontalHeader().setStretchLastSection(True)
         self.table.setColumnHidden(1, True)
 
+        # layout
         buttons_layout = QVBoxLayout()
         buttons_layout.addWidget(self.button_move_up)
         buttons_layout.addWidget(self.button_move_down)
@@ -211,26 +217,19 @@ class LayoutSettingsDialog(QDialog):
         layout.addWidget(self.button_box)
 
         self.setLayout(layout)
-        self.setMinimumSize(self.dialog_size)
-        self.setFixedSize(self.dialog_size)
 
-        # Signlas and slots
-        self.connect(self.button_box, SIGNAL("accepted()"), SLOT("accept()"))
-        self.connect(self.button_box, SIGNAL("rejected()"), self.close)
-        self.connect(self.button_delete, SIGNAL("clicked()"),
-                     self.delete_layout)
-        self.connect(self.button_move_up, SIGNAL("clicked()"),
-                     lambda: self.move_layout(True))
-        self.connect(self.button_move_down, SIGNAL("clicked()"),
-                     lambda: self.move_layout(False))
-        self.connect(self.table.selectionModel(),
-                     SIGNAL("selectionChanged(QItemSelection,QItemSelection)"),
-                     lambda: self.selection_changed(None, None))
-        self.connect(self.table.model(),
-                     SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
-                     lambda: self.selection_changed(None, None))
+        # signals and slots
+        self.button_box.accepted.connect(self.accept)
+        self.button_box.rejected.connect(self.close)
+        self.button_delete.clicked.connect(self.delete_layout)
+        self.button_move_up.clicked.connect(lambda: self.move_layout(True))
+        self.button_move_down.clicked.connect(lambda: self.move_layout(False))
+        self.table.selectionModel().selectionChanged.connect(
+           lambda: self.selection_changed(None, None))
+        self.table.model().dataChanged.connect(
+           lambda: self.selection_changed(None, None))
 
-        # Focus table
+        # focus table
         index = self.table.model().index(0, 0)
         self.table.setCurrentIndex(index)
         self.table.setFocus()
@@ -318,24 +317,21 @@ class LayoutSettingsDialog(QDialog):
         if len(names) == 0:
             self.button_move_up.setDisabled(True)
             self.button_move_down.setDisabled(True)
-#        print(names, active, self.order)
 
 
-def test(type_=True):
+def test():
     """Run layout test widget test"""
     from spyderlib.utils.qthelpers import qapplication
+
     app = qapplication()
     names = ['test', 'tester', '20', '30', '40']
     order = ['test', 'tester', '20', '30', '40']
     active = ['test', 'tester']
-
-    if type_:
-        widget = LayoutSettingsDialog(names, order, active)
-    else:
-        widget = LayoutSaveDialog(order)
-    widget.show()
+    widget_1 = LayoutSettingsDialog(None, names, order, active)
+    widget_2 = LayoutSaveDialog(None, order)
+    widget_1.show()
+    widget_2.show()
     sys.exit(app.exec_())
 
 if __name__ == '__main__':
-    test(True)
-#    test(False)
+    test()
