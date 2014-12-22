@@ -15,8 +15,7 @@ import os.path as osp
 import re
 import time
 
-from spyderlib.baseconfig import DEBUG, get_conf_path, debug_print
-from spyderlib.utils.debug import log_dt, log_last_error
+from spyderlib.utils.debug import log_dt
 from spyderlib.utils import sourcecode, encoding
 from spyderlib.utils.introspection.module_completion import module_completion
 from spyderlib.utils.introspection.plugin_manager import (
@@ -278,11 +277,11 @@ if __name__ == '__main__':
 
     with open(__file__, 'rb') as fid:
         code = fid.read().decode('utf-8')
-    code += '\nget_conf_path'
+    code += '\nlog_dt'
 
     path, line = p.get_definition(CodeInfo('definition', code, len(code),
         __file__))
-    assert path == 'fallback_plugin.py'
+    assert path.endswith('fallback_plugin.py')
 
     code += '\np.get_completions'
     path, line = p.get_definition(CodeInfo('definition', code, len(code),
