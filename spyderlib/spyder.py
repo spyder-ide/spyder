@@ -87,6 +87,8 @@ from spyderlib.qt import QtSvg  # analysis:ignore
 
 
 #==============================================================================
+# Splash screen
+#==============================================================================
 from spyderlib.baseconfig import _, get_image_path
 SPLASH_APP = QApplication([''])
 SPLASH = QSplashScreen(QPixmap(get_image_path('splash.png'), 'png'))
