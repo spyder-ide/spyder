@@ -1064,6 +1064,8 @@ class MainWindow(QMainWindow):
             add_actions(self.view_menu, (None, self.fullscreen_action,
                                          self.maximize_action,
                                          self.close_dockwidget_action, None,
+                                         self.toggle_previous_layout_action,
+                                         self.toggle_next_layout_action,
                                          self.quick_layout_menu))
 
             # Adding external tools action to "Tools" menu
@@ -1615,7 +1617,7 @@ class MainWindow(QMainWindow):
         order = get('quick_layouts', 'order')
         active = get('quick_layouts', 'active')
 
-        dlg = self.dialog_layout_save(names)
+        dlg = self.dialog_layout_save(self, names)
 
         if dlg.exec_():
             name = dlg.combo_box.currentText()
@@ -1661,7 +1663,7 @@ class MainWindow(QMainWindow):
         order = get(section, 'order')
         active = get(section, 'active')
 
-        dlg = self.dialog_layout_settings(names, order, active)
+        dlg = self.dialog_layout_settings(self, names, order, active)
         if dlg.exec_():
             set_(section, 'names', dlg.names)
             set_(section, 'order', dlg.order)
