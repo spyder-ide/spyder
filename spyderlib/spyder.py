@@ -1044,7 +1044,7 @@ class MainWindow(QMainWindow):
                     plugin.register_plugin()
                 except AttributeError as error:
                     print("%s: %s" % (mod, str(error)), file=STDERR)
-                                
+
 
     #----- View
             # View menu
@@ -1052,37 +1052,18 @@ class MainWindow(QMainWindow):
             self.toolbars_menu = QMenu(_("Toolbars"), self)
             self.view_menu.addMenu(self.plugins_menu)
             self.view_menu.addMenu(self.toolbars_menu)
-            reset_layout_action = create_action(self, _("Reset window layout"),
-                                            triggered=self.reset_window_layout)
-            quick_layout_menu = QMenu(_("Custom window layouts"), self)
-            ql_actions = []
-            for index in range(1, 4):
-                if index > 0:
-                    ql_actions += [None]
-                qli_act = create_action(self,
-                                        _("Switch to/from layout %d") % index,
-                                        triggered=lambda i=index:
-                                        self.quick_layout_switch(i))
-                self.register_shortcut(qli_act, "_",
-                                       "Switch to/from layout %d" % index)
-                qlsi_act = create_action(self, _("Set layout %d") % index,
-                                         triggered=lambda i=index:
-                                         self.quick_layout_set(i))
-                self.register_shortcut(qlsi_act, "_", "Set layout %d" % index)
-                ql_actions += [qli_act, qlsi_act]
-            add_actions(quick_layout_menu, ql_actions)
+            self.quick_layout_menu = QMenu(_("Custom window layouts"), self)
+            self.quick_layout_set_menu()
+
             if set_attached_console_visible is not None:
                 cmd_act = create_action(self,
                                     _("Attached console window (debugging)"),
-                                    toggled=lambda state:
-                                           set_attached_console_visible(state))
+                                    toggled=set_attached_console_visible)
                 cmd_act.setChecked(is_attached_console_visible())
                 add_actions(self.view_menu, (None, cmd_act))
             add_actions(self.view_menu, (None, self.fullscreen_action,
                                          self.maximize_action,
                                          self.close_dockwidget_action, None,
-                                         self.toggle_previous_layout_action,
-                                         self.toggle_next_layout_action,
                                          self.quick_layout_menu))
 
             # Adding external tools action to "Tools" menu
