@@ -488,6 +488,7 @@ class CondaPackagesTable(QTableView):
         self.parent = parent
         self._searchbox = u''
         self._filterbox = ALL
+        self.row_count = None
 
         # To manage icon states
         self._model_index_clicked = None
@@ -600,6 +601,19 @@ class CondaPackagesTable(QTableView):
 
         self.proxy_model.set_filter(text, group)
         self.resize_rows()
+
+        # update label count
+        count = self.verticalHeader().count()
+        if count == 0:
+            count_text = _("0 packages available ")
+        elif count == 1:
+            count_text = _("1 package available ")
+        elif count > 1:
+            count_text = str(count) + _(" packages available ")
+
+        if text != '':
+            count_text = count_text + _('matching "{0}"').format(text)
+        self.parent.label_count.setText(count_text)
 
     def search_string_changed(self, text):
         """ """
@@ -1284,6 +1298,7 @@ class CondaPackagesWidget(QWidget):
         self.textbox_search = SearchLineEdit(self)
 
         self.table = CondaPackagesTable(self)
+        self.label_count = QLabel()
         self.status_bar = QLabel()
         self.progress_bar = QProgressBar()
 
@@ -1300,6 +1315,7 @@ class CondaPackagesWidget(QWidget):
         self.progress_bar.setMaximumHeight(16)
         self.progress_bar.setMaximumWidth(130)
 
+        self.label_count.setAlignment(Qt.AlignRight)
         self.setWindowTitle(_("Conda Packages"))
         self.setMinimumSize(QSize(480, 300))
 
@@ -1314,8 +1330,9 @@ class CondaPackagesWidget(QWidget):
         top_layout.addWidget(self.button_update)
         top_layout.addWidget(self.textbox_search)
 
-        middle_layout = QHBoxLayout()
+        middle_layout = QVBoxLayout()
         middle_layout.addWidget(self.table)
+        middle_layout.addWidget(self.label_count)
 
         bottom_layout = QHBoxLayout()
         bottom_layout.addWidget(self.status_bar, Qt.AlignLeft)
