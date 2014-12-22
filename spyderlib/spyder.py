@@ -102,7 +102,8 @@ from spyderlib.qt.QtGui import (QApplication, QMainWindow, QSplashScreen,
                                 QPixmap, QMessageBox, QMenu, QColor, QShortcut,
                                 QKeySequence, QDockWidget, QAction,
                                 QDesktopServices)
-from spyderlib.qt.QtCore import SIGNAL, QPoint, Qt, QSize, QByteArray, QUrl, Slot
+from spyderlib.qt.QtCore import (Signal, QPoint, Qt, QSize, QByteArray, QUrl,
+                                 Slot)
 from spyderlib.qt.compat import (from_qvariant, getopenfilename,
                                  getsavefilename)
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms
@@ -298,6 +299,12 @@ class MainWindow(QMainWindow):
          ('winpython', "http://code.google.com/p/winpython/",
           _("WinPython"))
                 )
+
+    # Signals
+    restore_scrollbar_position = Signal()
+    all_actions_defined = Signal()
+    sig_pythonpath_changed = Signal()
+    sig_open_external_file = Signal(str)
 
     def __init__(self, options=None):
         QMainWindow.__init__(self)
