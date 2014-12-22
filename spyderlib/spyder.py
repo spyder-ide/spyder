@@ -39,33 +39,6 @@ ORIGINAL_SYS_EXIT = sys.exit
 
 
 #==============================================================================
-# Test if IPython v0.13+ is installed to eventually switch to PyQt API #2
-#==============================================================================
-from spyderlib.baseconfig import _
-from spyderlib.ipythonconfig import IPYTHON_QT_INSTALLED, SUPPORTED_IPYTHON
-from spyderlib import dependencies
-
-dependencies.add("IPython", _("IPython Console integration"),
-                 required_version=SUPPORTED_IPYTHON)
-
-if IPYTHON_QT_INSTALLED:
-    # Importing IPython will eventually set the QT_API environment variable
-    import IPython  # analysis:ignore
-    if os.environ.get('QT_API', 'pyqt') == 'pyqt':
-        # If PyQt is the selected GUI toolkit (at this stage, only the
-        # bootstrap script has eventually set this option), switch to
-        # PyQt API #2 by simply importing the IPython qt module
-        os.environ['QT_API'] = 'pyqt'
-        try:
-            from IPython.external import qt  #analysis:ignore
-        except ImportError:
-            # Avoid raising any error here: the spyderlib.requirements module
-            # will take care of it, in a user-friendly way (Tkinter message box
-            # if no GUI toolkit is installed)
-            pass
-
-
-#==============================================================================
 # Check requirements
 #==============================================================================
 from spyderlib import requirements
@@ -74,7 +47,7 @@ requirements.check_qt()
 
 
 #==============================================================================
-# Windows platforms only: support for hiding the attached console window
+# Windows only: support for hiding console window when started with python.exe
 #==============================================================================
 set_attached_console_visible = None
 is_attached_console_visible = None
@@ -114,9 +87,7 @@ from spyderlib.qt import QtSvg  # analysis:ignore
 
 
 #==============================================================================
-# Initial splash screen to reduce perceived startup time.
-# It blends with the one of MainWindow (i.e. self.splash) and it's hidden
-# just before that one.
+# Splash screen
 #==============================================================================
 from spyderlib.baseconfig import _, get_image_path
 SPLASH_APP = QApplication([''])
@@ -136,9 +107,12 @@ QApplication.processEvents()
 from spyderlib import __version__, __project_url__, __forum_url__, get_versions
 from spyderlib.baseconfig import (get_conf_path, get_module_data_path,
                                   get_module_source_path, STDERR, DEBUG, DEV,
-                                  debug_print, TEST, SUBFOLDER)
+                                  debug_print, TEST, SUBFOLDER, MAC_APP_NAME,
+                                  running_in_mac_app)
 from spyderlib.config import CONF, EDIT_EXT, IMPORT_EXT, OPEN_FILES_PORT
 from spyderlib.cli_options import get_options
+from spyderlib import dependencies
+from spyderlib.ipythonconfig import IPYTHON_QT_INSTALLED
 from spyderlib.userconfig import NoDefault
 from spyderlib.utils import encoding, programs
 from spyderlib.utils.iofuncs import load_session, save_session, reset_session
