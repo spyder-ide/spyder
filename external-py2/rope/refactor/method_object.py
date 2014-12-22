@@ -43,7 +43,8 @@ class MethodObject(object):
         insertion = self._get_class_insertion_point()
         collector.add_change(insertion, insertion,
                              '\n\n' + self.get_new_class(classname))
-        changes = change.ChangeSet('Replace method with method object refactoring')
+        changes = change.ChangeSet(
+            'Replace method with method object refactoring')
         changes.add_change(change.ChangeContents(self.resource,
                                                  collector.get_changed()))
         return changes

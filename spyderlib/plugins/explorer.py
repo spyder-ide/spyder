@@ -12,13 +12,12 @@
 # pylint: disable=R0201
 
 from spyderlib.qt.QtGui import QFontDialog
-from spyderlib.qt.QtCore import SIGNAL
+from spyderlib.qt.QtCore import Signal, Slot
 
 import os.path as osp
 
 # Local imports
 from spyderlib.baseconfig import _
-from spyderlib.config import VALID_EXT
 from spyderlib.utils.qthelpers import create_action
 from spyderlib.widgets.explorer import ExplorerWidget
 from spyderlib.plugins import SpyderPluginMixin
@@ -28,12 +27,19 @@ from spyderlib.py3compat import to_text_string
 class Explorer(ExplorerWidget, SpyderPluginMixin):
     """File and Directories Explorer DockWidget"""
     CONF_SECTION = 'explorer'
+    open_terminal = Signal(str)
+    open_interpreter = Signal(str)
+    edit = Signal(str)
+    removed = Signal(str)
+    renamed = Signal(str, str)
+    create_module = Signal(str)
+    run = Signal(str)
+    open_dir = Signal(str)
+    
     def __init__(self, parent=None):
         ExplorerWidget.__init__(self, parent=parent,
                                 name_filters=self.get_option('name_filters'),
-                                valid_types=VALID_EXT,
                                 show_all=self.get_option('show_all'),
-                                show_toolbar=self.get_option('show_toolbar'),
                                 show_icontext=self.get_option('show_icontext'))
         SpyderPluginMixin.__init__(self, parent)
 
@@ -66,30 +72,28 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         self.main.add_dockwidget(self)
-        self.connect(self, SIGNAL("edit(QString)"), self.main.editor.load)
-        self.connect(self, SIGNAL("removed(QString)"), self.main.editor.removed)
-        self.connect(self, SIGNAL("renamed(QString,QString)"),
-                     self.main.editor.renamed)
-        self.connect(self.main.editor, SIGNAL("open_dir(QString)"), self.chdir)
-        self.connect(self, SIGNAL("create_module(QString)"),
-                     self.main.editor.new)
-        self.connect(self, SIGNAL("run(QString)"),
+        self.edit.connect(self.main.editor.load)
+        self.removed.connect(self.main.editor.removed)
+        self.renamed.connect(self.main.editor.renamed)
+        self.main.editor.open_dir.connect(self.chdir)
+        self.create_module.connect(self.main.editor.new)
+        self.run.connect(
                      lambda fname:
                      self.main.open_external_console(to_text_string(fname),
                                          osp.dirname(to_text_string(fname)),
                                          '', False, False, True, '', False))
         # Signal "set_explorer_cwd(QString)" will refresh only the
         # contents of path passed by the signal in explorer:
-        self.connect(self.main.workingdirectory,
-                     SIGNAL("set_explorer_cwd(QString)"),
+        self.main.workingdirectory.set_explorer_cwd.connect(
                      lambda directory: self.refresh_plugin(new_path=directory,
                                                            force_current=True))
-        self.connect(self, SIGNAL("open_dir(QString)"),
+        self.open_dir.connect(
                      lambda dirname:
                      self.main.workingdirectory.chdir(dirname,
                                                       refresh_explorer=False))
 
         self.sig_open_file.connect(self.main.open_file)
+        self.sig_new_file.connect(lambda t: self.main.editor.new(text=t))
         
     def refresh_plugin(self, new_path=None, force_current=True):
         """Refresh explorer widget"""
@@ -104,7 +108,8 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
     def chdir(self, directory):
         """Set working directory"""
         self.treewidget.chdir(directory)
-        
+    
+    @Slot()
     def change_font(self):
         """Change font"""
         font, valid = QFontDialog.getFont(self.get_plugin_font(), self,

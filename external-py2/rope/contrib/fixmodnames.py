@@ -15,7 +15,7 @@ You can tell it to use any other style by using the ``fixer``
 argument.
 
 """
-from rope.base import change, taskhandle
+from rope.base import taskhandle
 from rope.contrib import changestack
 from rope.refactor import rename
 

@@ -10,7 +10,7 @@ Object Editor Dialog based on Qt
 
 from __future__ import print_function
 
-from spyderlib.qt.QtCore import QObject, SIGNAL
+from spyderlib.qt.QtCore import QObject
 
 # Local imports
 from spyderlib.py3compat import is_text_string
@@ -27,9 +27,9 @@ class DialogKeeper(QObject):
     
     def create_dialog(self, dialog, refname, func):
         self.dialogs[id(dialog)] = dialog, refname, func
-        self.connect(dialog, SIGNAL('accepted()'),
+        dialog.accepted.connect(
                      lambda eid=id(dialog): self.editor_accepted(eid))
-        self.connect(dialog, SIGNAL('rejected()'),
+        dialog.rejected.connect(
                      lambda eid=id(dialog): self.editor_rejected(eid))
         dialog.show()
         dialog.activateWindow()
@@ -148,7 +148,8 @@ def test():
     """Run object editor test"""
     import datetime, numpy as np
     from spyderlib.pil_patch import Image
-    image = Image.fromarray(np.random.random_integers(255, size=(100, 100)))
+    data = np.random.random_integers(255, size=(100, 100)).astype('uint8')
+    image = Image.fromarray(data)
     example = {'str': 'kjkj kj k j j kj k jkj',
                'list': [1, 3, 4, 'kjkj', None],
                'dict': {'d': 1, 'a': np.random.rand(10, 10), 'b': [1, 2]},

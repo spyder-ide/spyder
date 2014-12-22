@@ -6,11 +6,14 @@ from rope.base import utils
 
 def _stdlib_path():
     import distutils.sysconfig
-    return distutils.sysconfig.get_python_lib(standard_lib=True)
+    return distutils.sysconfig.get_python_lib(standard_lib=True,
+                                              plat_specific=True)
+
 
 @utils.cached(1)
 def standard_modules():
     return python_modules() | dynload_modules()
+
 
 @utils.cached(1)
 def python_modules():
@@ -27,6 +30,7 @@ def python_modules():
                     result.add(name[:-3])
     return result
 
+
 @utils.cached(1)
 def dynload_modules():
     result = set(sys.builtin_module_names)
@@ -35,6 +39,8 @@ def dynload_modules():
         for name in os.listdir(dynload_path):
             path = os.path.join(dynload_path, name)
             if os.path.isfile(path):
-                if name.endswith('.so') or name.endswith('.dll'):
+                if name.endswith('.dll'):
                     result.add(os.path.splitext(name)[0])
+                if name.endswith('.so'):
+                    result.add(os.path.splitext(name)[0].replace('module', ''))
     return result

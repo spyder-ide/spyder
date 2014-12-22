@@ -27,7 +27,7 @@ from time import time
 import sys
 from zipimport import zipimporter
 
-from spyderlib.baseconfig import get_conf_path
+from spyderlib.baseconfig import get_conf_path, running_in_mac_app
 from spyderlib.utils.external.pickleshare import PickleShareDB
 
 #-----------------------------------------------------------------------------
@@ -42,7 +42,7 @@ TIMEOUT_GIVEUP = 20
 
 # Py2app only uses .pyc files for the stdlib when optimize=0,
 # so we need to add it as another suffix here
-if sys.platform == 'darwin' and 'Spyder.app' in __file__:
+if running_in_mac_app():
     suffixes = imp.get_suffixes() + [('.pyc', 'rb', '2')]
 else:
     suffixes = imp.get_suffixes()

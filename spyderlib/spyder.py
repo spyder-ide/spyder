@@ -39,33 +39,6 @@ ORIGINAL_SYS_EXIT = sys.exit
 
 
 #==============================================================================
-# Test if IPython v0.13+ is installed to eventually switch to PyQt API #2
-#==============================================================================
-from spyderlib.baseconfig import _
-from spyderlib.ipythonconfig import IPYTHON_QT_INSTALLED, SUPPORTED_IPYTHON
-from spyderlib import dependencies
-
-dependencies.add("IPython", _("IPython Console integration"),
-                 required_version=SUPPORTED_IPYTHON)
-
-if IPYTHON_QT_INSTALLED:
-    # Importing IPython will eventually set the QT_API environment variable
-    import IPython  # analysis:ignore
-    if os.environ.get('QT_API', 'pyqt') == 'pyqt':
-        # If PyQt is the selected GUI toolkit (at this stage, only the
-        # bootstrap script has eventually set this option), switch to 
-        # PyQt API #2 by simply importing the IPython qt module
-        os.environ['QT_API'] = 'pyqt'
-        try:
-            from IPython.external import qt  #analysis:ignore
-        except ImportError:
-            # Avoid raising any error here: the spyderlib.requirements module
-            # will take care of it, in a user-friendly way (Tkinter message box
-            # if no GUI toolkit is installed)
-            pass
-
-
-#==============================================================================
 # Check requirements
 #==============================================================================
 from spyderlib import requirements
@@ -74,7 +47,7 @@ requirements.check_qt()
 
 
 #==============================================================================
-# Windows platforms only: support for hiding the attached console window
+# Windows only: support for hiding console window when started with python.exe
 #==============================================================================
 set_attached_console_visible = None
 is_attached_console_visible = None
@@ -102,7 +75,8 @@ from spyderlib.qt.QtGui import (QApplication, QMainWindow, QSplashScreen,
                                 QPixmap, QMessageBox, QMenu, QColor, QShortcut,
                                 QKeySequence, QDockWidget, QAction,
                                 QDesktopServices)
-from spyderlib.qt.QtCore import SIGNAL, QPoint, Qt, QSize, QByteArray, QUrl
+from spyderlib.qt.QtCore import (Signal, QPoint, Qt, QSize, QByteArray, QUrl,
+                                 Slot)
 from spyderlib.qt.compat import (from_qvariant, getopenfilename,
                                  getsavefilename)
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms 
@@ -113,9 +87,7 @@ from spyderlib.qt import QtSvg  # analysis:ignore
 
 
 #==============================================================================
-# Initial splash screen to reduce perceived startup time. 
-# It blends with the one of MainWindow (i.e. self.splash) and it's hidden
-# just before that one.
+# Splash screen 
 #==============================================================================
 from spyderlib.baseconfig import _, get_image_path
 SPLASH_APP = QApplication([''])
@@ -135,9 +107,12 @@ QApplication.processEvents()
 from spyderlib import __version__, __project_url__, __forum_url__, get_versions
 from spyderlib.baseconfig import (get_conf_path, get_module_data_path,
                                   get_module_source_path, STDERR, DEBUG, DEV,
-                                  debug_print, TEST, SUBFOLDER)
+                                  debug_print, TEST, SUBFOLDER, MAC_APP_NAME,
+                                  running_in_mac_app)
 from spyderlib.config import CONF, EDIT_EXT, IMPORT_EXT, OPEN_FILES_PORT
 from spyderlib.cli_options import get_options
+from spyderlib import dependencies
+from spyderlib.ipythonconfig import IPYTHON_QT_INSTALLED
 from spyderlib.userconfig import NoDefault
 from spyderlib.utils import encoding, programs
 from spyderlib.utils.iofuncs import load_session, save_session, reset_session
@@ -295,9 +270,15 @@ class MainWindow(QMainWindow):
           _("PyQt4 API Reference")),
          ('xy', "http://code.google.com/p/pythonxy/",
           _("Python(x,y)")),
-         ('winpython', "http://code.google.com/p/winpython/",
+         ('winpython', "https://winpython.github.io/",
           _("WinPython"))
                 )
+    
+    # Signals
+    restore_scrollbar_position = Signal()
+    all_actions_defined = Signal()
+    sig_pythonpath_changed = Signal()
+    sig_open_external_file = Signal(str)
     
     def __init__(self, options=None):
         QMainWindow.__init__(self)
@@ -585,8 +566,7 @@ class MainWindow(QMainWindow):
             self.debug_print("  ..toolbars")
             # File menu/toolbar
             self.file_menu = self.menuBar().addMenu(_("&File"))
-            self.connect(self.file_menu, SIGNAL("aboutToShow()"),
-                         self.update_file_menu)
+            self.file_menu.aboutToShow.connect(self.update_file_menu)
             self.file_toolbar = self.create_toolbar(_("File toolbar"),
                                                     "file_toolbar")
             
@@ -649,7 +629,8 @@ class MainWindow(QMainWindow):
                                     menurole=QAction.ApplicationSpecificRole)
             update_modules_action = create_action(self,
                                         _("Update module names list"),
-                                        triggered=module_completion.reset,
+                                        triggered=lambda:
+                                                  module_completion.reset(),
                                         tip=_("Refresh list of module names "
                                               "available in PYTHONPATH"))
             self.tools_menu_actions = [prefs_action, spyder_path_action]
@@ -770,11 +751,12 @@ class MainWindow(QMainWindow):
             self.console = Console(self, namespace, exitfunc=self.closing,
                               profile=self.profile,
                               multithreaded=self.multithreaded,
-                              message=_("DON'T USE THIS CONSOLE TO RUN CODE!\n\n"
-                                        "It's used to report application errors\n"
-                                        "and to inspect Spyder internals with\n"
-                                        "the following commands:\n"
-                                        "  spy.app, spy.window, dir(spy)"))
+                              message=_("Spyder Internal Console\n\n"
+                                        "This console is used to report application\n"
+                                        "internal errors and to inspect Spyder\n"
+                                        "internals with the following commands:\n"
+                                        "  spy.app, spy.window, dir(spy)\n\n"
+                                        "Please don't use it to run your code\n\n"))
             self.console.register_plugin()
             
             # Working directory plugin
@@ -884,8 +866,7 @@ class MainWindow(QMainWindow):
 
         if not self.light:
             nsb = self.variableexplorer.add_shellwidget(self.console.shell)
-            self.connect(self.console.shell, SIGNAL('refresh()'),
-                         nsb.refresh_table)
+            self.console.shell.refresh.connect(nsb.refresh_table)
             nsb.auto_refresh_button.setEnabled(False)
             
             self.set_splash(_("Setting up main window..."))
@@ -1067,7 +1048,8 @@ class MainWindow(QMainWindow):
             if set_attached_console_visible is not None:
                 cmd_act = create_action(self,
                                     _("Attached console window (debugging)"),
-                                    toggled=set_attached_console_visible)
+                                    toggled=lambda state:
+                                           set_attached_console_visible(state))
                 cmd_act.setChecked(is_attached_console_visible())
                 add_actions(self.view_menu, (None, cmd_act))
             add_actions(self.view_menu, (None, self.fullscreen_action,
@@ -1111,7 +1093,7 @@ class MainWindow(QMainWindow):
         
         # Emitting the signal notifying plugins that main window menu and 
         # toolbar actions are all defined:
-        self.emit(SIGNAL('all_actions_defined()'))
+        self.all_actions_defined.emit()
         
         # Window set-up
         self.debug_print("Setting up window...")
@@ -1128,8 +1110,7 @@ class MainWindow(QMainWindow):
         # Menu about to show
         for child in self.menuBar().children():
             if isinstance(child, QMenu):
-                self.connect(child, SIGNAL("aboutToShow()"),
-                             self.update_edit_menu)
+                child.aboutToShow.connect(self.update_edit_menu)
         
         self.debug_print("*** End of MainWindow setup ***")
         self.is_starting_up = False
@@ -1137,7 +1118,7 @@ class MainWindow(QMainWindow):
     def post_visible_setup(self):
         """Actions to be performed only after the main window's `show` method 
         was triggered"""
-        self.emit(SIGNAL('restore_scrollbar_position()'))
+        self.restore_scrollbar_position.emit()
         
         if self.projectexplorer is not None:
             self.projectexplorer.check_for_io_errors()
@@ -1161,11 +1142,11 @@ class MainWindow(QMainWindow):
         # In MacOS X 10.7 our app is not displayed after initialized (I don't
         # know why because this doesn't happen when started from the terminal),
         # so we need to resort to this hack to make it appear.
-        if sys.platform == 'darwin' and 'Spyder.app' in __file__:
+        if running_in_mac_app():
             import subprocess
-            idx = __file__.index('Spyder.app')
+            idx = __file__.index(MAC_APP_NAME)
             app_path = __file__[:idx]
-            subprocess.call(['open', app_path + 'Spyder.app'])
+            subprocess.call(['open', app_path + MAC_APP_NAME])
 
         # Server to maintain just one Spyder instance and open files in it if
         # the user tries to start other instances with
@@ -1177,8 +1158,7 @@ class MainWindow(QMainWindow):
         
             # Connect the window to the signal emmited by the previous server
             # when it gets a client connected to it
-            self.connect(self, SIGNAL('open_external_file(QString)'),
-                         lambda fname: self.open_external_file(fname))
+            self.sig_open_external_file.connect(self.open_external_file)
         
         # Create Plugins and toolbars submenus
         if not self.light:
@@ -1191,9 +1171,10 @@ class MainWindow(QMainWindow):
         self.extconsole.setMinimumHeight(0)
         
         if not self.light:
-            # Hide Internal Console so that people doesn't use it instead of
+            # Hide Internal Console so that people don't use it instead of
             # the External or IPython ones
             if self.console.dockwidget.isVisible() and DEV is None:
+                self.console.toggle_view_action.setChecked(False)
                 self.console.dockwidget.hide()
         
             # Show the Object Inspector and Consoles by default
@@ -1365,6 +1346,7 @@ class MainWindow(QMainWindow):
         for plugin in self.widgetlist:
             plugin.initialize_plugin_in_mainwindow_layout()
 
+    @Slot()
     def reset_window_layout(self):
         """Reset window layout to default"""
         answer = QMessageBox.warning(self, _("Warning"),
@@ -1591,9 +1573,10 @@ class MainWindow(QMainWindow):
     
     def hideEvent(self, event):
         """Reimplement Qt method"""
-        for plugin in self.widgetlist:
-            if plugin.isAncestorOf(self.last_focused_widget):
-                plugin.visibility_changed(True)
+        if not self.light:
+            for plugin in self.widgetlist:
+                if plugin.isAncestorOf(self.last_focused_widget):
+                    plugin.visibility_changed(True)
         QMainWindow.hideEvent(self, event)
     
     def change_last_focused_widget(self, old, now):
@@ -1608,11 +1591,15 @@ class MainWindow(QMainWindow):
         """Exit tasks"""
         if self.already_closed or self.is_starting_up:
             return True
+        if cancelable and CONF.get('main', 'prompt_on_exit'):
+            reply = QMessageBox.critical(self, 'Spyder',
+                                         'Do you really want to exit?',
+                                         QMessageBox.Yes, QMessageBox.No)
+            if reply == QMessageBox.No:
+                return False
         prefix = ('lightwindow' if self.light else 'window') + '/'
         self.save_current_window_settings(prefix)
         if CONF.get('main', 'single_instance'):
-            if os.name == 'nt':
-                self.open_files_server.shutdown(socket.SHUT_RDWR)
             self.open_files_server.close()
         for widget in self.widgetlist:
             if not widget.closing_plugin(cancelable):
@@ -1629,7 +1616,8 @@ class MainWindow(QMainWindow):
                                    QDockWidget.DockWidgetVerticalTitleBar)
         self.addDockWidget(location, dockwidget)
         self.widgetlist.append(child)
-        
+
+    @Slot()
     def close_current_dockwidget(self):
         widget = QApplication.focusWidget()
         for plugin in self.widgetlist:
@@ -1649,7 +1637,8 @@ class MainWindow(QMainWindow):
         self.maximize_action.setText(text)
         self.maximize_action.setIcon(get_icon(icon))
         self.maximize_action.setToolTip(tip)
-        
+
+    @Slot()
     def maximize_dockwidget(self, restore=False):
         """Shortcut: Ctrl+Alt+Shift+M
         First call: maximize current dockwidget
@@ -1694,7 +1683,8 @@ class MainWindow(QMainWindow):
         else:
             icon = "window_fullscreen.png"
         self.fullscreen_action.setIcon(get_icon(icon))
-        
+
+    @Slot()
     def toggle_fullscreen(self):
         if self.isFullScreen():
             self.fullscreen_flag = False
@@ -1713,6 +1703,7 @@ class MainWindow(QMainWindow):
         if actions is not None:
             add_actions(toolbar, actions)
 
+    @Slot()
     def about(self):
         """About Spyder"""
         versions = get_versions()
@@ -1749,7 +1740,7 @@ class MainWindow(QMainWindow):
             facilitate the use of Python for scientific and engineering 
             software development. The popular Python distributions 
             <a href="http://code.google.com/p/pythonxy/">Python(x,y)</a> and 
-            <a href="http://winpython.sourceforge.net/">WinPython</a> 
+            <a href="https://winpython.github.io/">WinPython</a> 
             also contribute to this plan.
             <p>Python %s %dbits, Qt %s, %s %s on %s"""
             % (versions['spyder'], revlink, __project_url__,
@@ -1757,6 +1748,7 @@ class MainWindow(QMainWindow):
                versions['bitness'], versions['qt'], versions['qt_api'],
                versions['qt_api_ver'], versions['system']))
 
+    @Slot()
     def show_dependencies(self):
         """Show Spyder's Optional Dependencies dialog box"""
         from spyderlib.widgets.dependencies import DependenciesDialog
@@ -1765,6 +1757,7 @@ class MainWindow(QMainWindow):
         dlg.show()
         dlg.exec_()
 
+    @Slot()
     def report_issue(self):
         if PY3:
             from urllib.parse import quote
@@ -1805,7 +1798,8 @@ Please provide any additional information below.
         url = QUrl("http://code.google.com/p/spyderlib/issues/entry")
         url.addEncodedQueryItem("comment", quote(issue_template))
         QDesktopServices.openUrl(url)
-    
+
+    @Slot()
     def google_group(self):
         url = QUrl("http://groups.google.com/group/spyderlib")
         QDesktopServices.openUrl(url)
@@ -1831,7 +1825,8 @@ Please provide any additional information below.
             while not isinstance(plugin, EditorWidget):
                 plugin = plugin.parent()
             return plugin         
-    
+
+    @Slot()
     def find(self):
         """Global find callback"""
         plugin = self.get_current_editor_plugin()
@@ -1839,25 +1834,29 @@ Please provide any additional information below.
             plugin.find_widget.show()
             plugin.find_widget.search_text.setFocus()
             return plugin
-    
+
+    @Slot()
     def find_next(self):
         """Global find next callback"""
         plugin = self.get_current_editor_plugin()
         if plugin is not None:
             plugin.find_widget.find_next()
-            
+
+    @Slot()
     def find_previous(self):
         """Global find previous callback"""
         plugin = self.get_current_editor_plugin()
         if plugin is not None:
             plugin.find_widget.find_previous()
-        
+
+    @Slot()
     def replace(self):
         """Global replace callback"""
         plugin = self.find()
         if plugin is not None:
             plugin.find_widget.show_replace()
 
+    @Slot()
     def global_callback(self):
         """Global callback"""
         widget = QApplication.focusWidget()
@@ -1908,7 +1907,7 @@ Please provide any additional information below.
         console.raise_()
         console.execute_python_code(lines)
         if focus_to_editor:
-           self.editor.visibility_changed(True)
+            self.editor.visibility_changed(True)
         
     def open_file(self, fname, external=False):
         """
@@ -1920,9 +1919,10 @@ Please provide any additional information below.
         ext = osp.splitext(fname)[1]
         if ext in EDIT_EXT:
             self.editor.load(fname)
-        elif self.variableexplorer is not None and ext in IMPORT_EXT\
-             and ext in ('.spydata', '.mat', '.npy', '.h5'):
+        elif self.variableexplorer is not None and ext in IMPORT_EXT:
             self.variableexplorer.import_data(fname)
+        elif encoding.is_text_file(fname):
+            self.editor.load(fname)
         elif not external:
             fname = file_uri(fname)
             programs.start_file(fname)
@@ -1953,27 +1953,28 @@ Please provide any additional information below.
         sys_path = sys.path
         while sys_path[1] in self.get_spyder_pythonpath():
             sys_path.pop(1)
-        
+
+    @Slot()
     def path_manager_callback(self):
         """Spyder path manager"""
         from spyderlib.widgets.pathmanager import PathManager
         self.remove_path_from_sys_path()
         project_pathlist = self.projectexplorer.get_pythonpath()
         dialog = PathManager(self, self.path, project_pathlist, sync=True)
-        self.connect(dialog, SIGNAL('redirect_stdio(bool)'),
-                     self.redirect_internalshell_stdio)
+        dialog.redirect_stdio.connect(self.redirect_internalshell_stdio)
         dialog.exec_()
         self.add_path_to_sys_path()
         encoding.writelines(self.path, self.SPYDER_PATH) # Saving path
-        self.emit(SIGNAL("pythonpath_changed()"))
+        self.sig_pythonpath_changed.emit()
         
     def pythonpath_changed(self):
         """Project Explorer PYTHONPATH contribution has changed"""
         self.remove_path_from_sys_path()
         self.project_path = self.projectexplorer.get_pythonpath()
         self.add_path_to_sys_path()
-        self.emit(SIGNAL("pythonpath_changed()"))
-    
+        self.sig_pythonpath_changed.emit()
+
+    @Slot()
     def win_env(self):
         """Show Windows current user environment variables"""
         self.dialog_manager.show(WinUserEnvDialog(self))
@@ -2007,13 +2008,13 @@ Please provide any additional information below.
             if widget is not None:
                 widget.setVisible(CONF.get('main', '%s/enable' % name))
                 widget.set_interval(CONF.get('main', '%s/timeout' % name))
-        
+
+    @Slot()
     def edit_preferences(self):
         """Edit Spyder preferences"""
         from spyderlib.plugins.configdialog import ConfigDialog
         dlg = ConfigDialog(self)
-        self.connect(dlg, SIGNAL("size_change(QSize)"),
-                     lambda s: self.set_prefs_size(s))
+        dlg.size_change.connect(self.set_prefs_size)
         if self.prefs_dialog_size is not None:
             dlg.resize(self.prefs_dialog_size)
         for PrefPageClass in self.general_prefs:
@@ -2033,8 +2034,7 @@ Please provide any additional information below.
             dlg.set_current_index(self.prefs_index)
         dlg.show()
         dlg.check_all_settings()
-        self.connect(dlg.pages_widget, SIGNAL("currentChanged(int)"),
-                     self.__preference_page_changed)
+        dlg.pages_widget.currentChanged.connect(self.__preference_page_changed)
         dlg.exec_()
         
     def __preference_page_changed(self, index):
@@ -2080,6 +2080,7 @@ Please provide any additional information below.
             self.shortcut_data.pop(index)
 
     #---- Sessions
+    @Slot()
     def load_session(self, filename=None):
         """Load session"""
         if filename is None:
@@ -2091,7 +2092,8 @@ Please provide any additional information below.
                 return
         if self.close():
             self.next_session_name = filename
-    
+
+    @Slot()
     def save_session(self):
         """Save session and quit application"""
         self.redirect_internalshell_stdio(False)
@@ -2116,13 +2118,17 @@ Please provide any additional information below.
                 # See Issue 1275 for details on why errno EINTR is
                 # silently ignored here.
                 eintr = errno.WSAEINTR if os.name == 'nt' else errno.EINTR
+                # To avoid a traceback after closing on Windows
+                enotsock = errno.WSAENOTSOCK if os.name == 'nt' else errno.ENOTSOCK
                 if e.args[0] == eintr:
+                    continue
+                elif e.args[0] == enotsock:
                     continue
                 raise
             fname = req.recv(1024)
             if not self.light:
                 fname = fname.decode('utf-8')
-                self.emit(SIGNAL('open_external_file(QString)'), fname)
+                self.sig_open_external_file.emit(fname)
             req.sendall(b' ')
 
 
@@ -2251,14 +2257,12 @@ def run_spyder(app, options, args):
             main.open_external_file(a)
 
     # Open external files with our Mac app
-    if sys.platform == "darwin" and 'Spyder.app' in __file__:
-        main.connect(app, SIGNAL('open_external_file(QString)'),
-                     lambda fname: main.open_external_file(fname))
+    if running_in_mac_app():
+        app.sig_open_external_file.connect(main.open_external_file)
     
     # To give focus again to the last focused widget after restoring
     # the window
-    main.connect(app, SIGNAL('focusChanged(QWidget*, QWidget*)'),
-                 main.change_last_focused_widget)
+    app.focusChanged.connect(main.change_last_focused_widget)
 
     app.exec_()
     return main

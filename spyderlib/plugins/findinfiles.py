@@ -12,7 +12,7 @@
 # pylint: disable=R0201
 
 from spyderlib.qt.QtGui import QApplication
-from spyderlib.qt.QtCore import SIGNAL, Signal
+from spyderlib.qt.QtCore import Signal, Slot
 
 # Local imports
 from spyderlib.baseconfig import _
@@ -26,6 +26,10 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
     """Find in files DockWidget"""
     CONF_SECTION = 'find_in_files'
     sig_option_changed = Signal(str, object)
+    toggle_visibility = Signal(bool)
+    edit_goto = Signal(str, int, str)
+    redirect_stdio = Signal(bool)
+    
     def __init__(self, parent=None):
         supported_encodings = self.get_option('supported_encodings')
         
@@ -56,7 +60,7 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
         # Initialize plugin
         self.initialize_plugin()
         
-        self.connect(self, SIGNAL('toggle_visibility(bool)'), self.toggle)
+        self.toggle_visibility.connect(self.toggle)
         
     def toggle(self, state):
         """Toggle widget visibility"""
@@ -67,6 +71,7 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
         """Refresh search directory"""
         self.find_options.set_directory(getcwd())
 
+    @Slot()
     def findinfiles_callback(self):
         """Find in files callback"""
         widget = QApplication.focusWidget()
@@ -104,15 +109,12 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
         """Register plugin in Spyder's main window"""
         self.get_pythonpath_callback = self.main.get_spyder_pythonpath
         self.main.add_dockwidget(self)
-        self.connect(self, SIGNAL("edit_goto(QString,int,QString)"),
-                     self.main.editor.load)
-        self.connect(self, SIGNAL('redirect_stdio(bool)'),
-                     self.main.redirect_internalshell_stdio)
-        self.connect(self.main.workingdirectory,
-                     SIGNAL("refresh_findinfiles()"), self.refreshdir)
+        self.edit_goto.connect(self.main.editor.load)
+        self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
+        self.main.workingdirectory.refresh_findinfiles.connect(self.refreshdir)
         
         findinfiles_action = create_action(self, _("&Find in files"),
-                                   "Ctrl+Shift+F", 'findf.png',
+                                   icon='findf.png',
                                    triggered=self.findinfiles_callback,
                                    tip=_("Search text in multiple files"))        
         

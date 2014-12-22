@@ -23,12 +23,12 @@ from spyderlib import dependencies
 from spyderlib.baseconfig import _
 from spyderlib.config import CONF
 from spyderlib.py3compat import builtins, is_text_string, to_text_string
-from spyderlib.widgets.sourcecode.base import CELL_SEPARATORS
+from spyderlib.utils.sourcecode import CELL_LANGUAGES
 
 
 PYGMENTS_REQVER = '>=1.6'
-dependencies.add("pygments", _("Syntax highlighting for Matlab and other file "
-                               "types"),
+dependencies.add("pygments", _("Syntax highlighting for Matlab, Julia and other "
+                               "file types"),
                  required_version=PYGMENTS_REQVER)
 
 
@@ -90,13 +90,15 @@ class BaseSH(QSyntaxHighlighter):
         self.formats = None
         self.setup_formats(font)
         
+        self.cell_separators = None
+        
     def get_background_color(self):
         return QColor(self.background_color)
-        
+
     def get_foreground_color(self):
         """Return foreground ('normal' text) color"""
         return self.formats["normal"].foreground().color()
-        
+		
     def get_currentline_color(self):
         return QColor(self.currentline_color)
 
@@ -117,6 +119,10 @@ class BaseSH(QSyntaxHighlighter):
     
     def get_unmatched_p_color(self):
         return QColor(self.unmatched_p_color)
+
+    def get_comment_color(self):
+        """ Return color for the comments """
+        return self.formats['comment'].foreground().color()
     
     def get_color_name(self, fmt):
         """Return color name assigned to a given format"""
@@ -146,7 +152,7 @@ class BaseSH(QSyntaxHighlighter):
                 format.setFontWeight(QFont.Bold)
             format.setFontItalic(italic)
             self.formats[name] = format
-
+        
     def _check_color_scheme(self, color_scheme):
         if is_text_string(color_scheme):
             assert color_scheme in COLOR_SCHEME_NAMES
@@ -279,6 +285,7 @@ class PythonSH(BaseSH):
         BaseSH.__init__(self, parent, font, color_scheme)
         self.import_statements = {}
         self.found_cell_separators = False
+        self.cell_separators = CELL_LANGUAGES['Python']
 
     def highlightBlock(self, text):
         text = to_text_string(text)
@@ -331,7 +338,7 @@ class PythonSH(BaseSH):
                     else:
                         self.setFormat(start, end-start, self.formats[key])
                         if key == "comment":
-                            if text.lstrip().startswith(CELL_SEPARATORS):
+                            if text.lstrip().startswith(self.cell_separators):
                                 self.found_cell_separators = True
                                 oedata = OutlineExplorerData()
                                 oedata.text = to_text_string(text).strip()
@@ -386,7 +393,7 @@ class PythonSH(BaseSH):
                                                    self.formats["keyword"])
                     
             match = self.PROG.search(text, match.end())
-
+ 
         self.setCurrentBlockState(state)
         
         if oedata is not None:
@@ -696,6 +703,30 @@ class GetTextSH(GenericSH):
     # Syntax highlighting rules:
     PROG = re.compile(make_gettext_patterns(), re.S)
 
+#==============================================================================
+# yaml highlighter
+#==============================================================================
+
+def make_yaml_patterns():
+    "Strongly inspired from sublime highlighter "
+    kw = any("keyword", [r":|>|-|\||\[|\]|[A-Za-z][\w\s\-\_ ]+(?=:)"])
+    links = any("normal", [r"#:[^\n]*"])
+    comment = any("comment", [r"#[^\n]*"])
+    number = any("number",
+                 [r"\b[+-]?[0-9]+[lL]?\b",
+                  r"\b[+-]?0[xX][0-9A-Fa-f]+[lL]?\b",
+                  r"\b[+-]?[0-9]+(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?\b"])
+    sqstring = r"(\b[rRuU])?'[^'\\\n]*(\\.[^'\\\n]*)*'?"
+    dqstring = r'(\b[rRuU])?"[^"\\\n]*(\\.[^"\\\n]*)*"?'
+    string = any("string", [sqstring, dqstring])
+    return "|".join([kw, string, number, links, comment, 
+                     any("SYNC", [r"\n"])])
+
+class YamlSH(GenericSH):
+    """yaml Syntax Highlighter"""
+    # Syntax highlighting rules:
+    PROG = re.compile(make_yaml_patterns(), re.S)
+
 
 #==============================================================================
 # HTML highlighter
@@ -850,10 +881,14 @@ class JsSH(PygmentsSH):
     """Javascript highlighter"""
     _lang_name = 'js'
 
+class JsonSH(PygmentsSH):
+    """Json highlighter"""
+    _lang_name = 'json'
+
 class JuliaSH(PygmentsSH):
     """Julia highlighter"""
     _lang_name = 'julia'
-    
+        
 class CssSH(PygmentsSH):
     """CSS Syntax Highlighter"""
     _lang_name = 'css'

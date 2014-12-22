@@ -230,8 +230,8 @@ class _HoldingScopeFinder(object):
         current_scope = module_scope
         new_scope = current_scope
         while new_scope is not None and \
-              (new_scope.get_kind() == 'Module' or
-               self._get_scope_indents(new_scope) <= line_indents):
+                (new_scope.get_kind() == 'Module' or
+                 self._get_scope_indents(new_scope) <= line_indents):
             current_scope = new_scope
             if current_scope.get_start() == lineno and \
                current_scope.get_kind() != 'Module':
@@ -268,7 +268,7 @@ class _HoldingScopeFinder(object):
         else:
             body_indents = self._get_body_indents(scope)
         for l in self.logical_lines.generate_starts(
-            min(end + 1, self.lines.length()), self.lines.length() + 1):
+                min(end + 1, self.lines.length()), self.lines.length() + 1):
             if not self._is_empty_line(l):
                 if self.get_indents(l) < body_indents:
                     return end
@@ -287,6 +287,7 @@ class _HoldingScopeFinder(object):
     @property
     def logical_lines(self):
         return self.pymodule.logical_lines
+
 
 class TemporaryScope(Scope):
     """Currently used for list comprehensions and generator expressions

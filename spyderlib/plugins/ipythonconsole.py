@@ -14,18 +14,20 @@ Handles IPython clients (and in the future, will handle IPython kernels too
 # pylint: disable=R0911
 # pylint: disable=R0201
 
+# Stdlib imports
+import atexit
+import os
+import os.path as osp
+import sys
+
 # Qt imports
 from spyderlib.qt.QtGui import (QVBoxLayout, QHBoxLayout, QFormLayout, 
                                 QMessageBox, QGroupBox, QDialogButtonBox,
                                 QDialog, QTabWidget, QFontComboBox, 
-                                QCheckBox, QApplication, QLabel, 
-                                QLineEdit, QPushButton)
+                                QCheckBox, QApplication, QLabel,QLineEdit,
+                                QPushButton, QKeySequence)
 from spyderlib.qt.compat import getopenfilename
-from spyderlib.qt.QtCore import SIGNAL, Qt
-
-# Stdlib imports
-import sys
-import os.path as osp
+from spyderlib.qt.QtCore import Signal, Slot, Qt
 
 # IPython imports
 from IPython.core.application import get_ipython_dir
@@ -36,9 +38,14 @@ try: # IPython = '>=1.0'
 except ImportError:
     from IPython.frontend.qt.kernelmanager import QtKernelManager
 try: # IPython = "<=2.0"
-    from IPython.external.ssh import tunnel
+    from IPython.external.ssh import tunnel as zmqtunnel
+    import IPython.external.pexpect as pexpect
 except ImportError:
-    from zmq.ssh import tunnel
+    from zmq.ssh import tunnel as zmqtunnel
+    try:
+        import pexpect
+    except ImportError:
+        pexpect = None
 
 # Local imports
 from spyderlib import dependencies
@@ -55,19 +62,89 @@ from spyderlib.py3compat import to_text_string, u
 
 
 SYMPY_REQVER = '>=0.7.0'
-dependencies.add("sympy", _("Symbolic mathematics for the IPython Console"),
+dependencies.add("sympy", _("Symbolic mathematics in the IPython Console"),
                  required_version=SYMPY_REQVER)
 
 
-def tunnel_to_kernel(ci, hostname, sshkey=None, password=None, timeout=10):
-    """tunnel connections to a kernel via ssh. remote ports are specified in
-    the connection info ci."""
-    lports = tunnel.select_random_ports(4)
-    rports = ci['shell_port'], ci['iopub_port'], ci['stdin_port'], ci['hb_port']
-    remote_ip = ci['ip']
-    for lp, rp in zip(lports, rports):
-        tunnel.ssh_tunnel(lp, rp, hostname, remote_ip, sshkey, password, timeout)
-    return tuple(lports)
+# Replacing pyzmq openssh_tunnel method to work around the issue
+# https://github.com/zeromq/pyzmq/issues/589 which was solved in pyzmq
+# https://github.com/zeromq/pyzmq/pull/615
+def _stop_tunnel(cmd):
+    pexpect.run(cmd)
+
+def openssh_tunnel(self, lport, rport, server, remoteip='127.0.0.1',
+                   keyfile=None, password=None, timeout=0.4):
+    if pexpect is None:
+        raise ImportError("pexpect unavailable, use paramiko_tunnel")
+    ssh="ssh "
+    if keyfile:
+        ssh += "-i " + keyfile
+    
+    if ':' in server:
+        server, port = server.split(':')
+        ssh += " -p %s" % port
+    
+    cmd = "%s -O check %s" % (ssh, server)
+    (output, exitstatus) = pexpect.run(cmd, withexitstatus=True)
+    if not exitstatus:
+        pid = int(output[output.find("(pid=")+5:output.find(")")]) 
+        cmd = "%s -O forward -L 127.0.0.1:%i:%s:%i %s" % (
+            ssh, lport, remoteip, rport, server)
+        (output, exitstatus) = pexpect.run(cmd, withexitstatus=True)
+        if not exitstatus:
+            atexit.register(_stop_tunnel, cmd.replace("-O forward",
+                                                      "-O cancel",
+                                                      1))
+            return pid
+    cmd = "%s -f -S none -L 127.0.0.1:%i:%s:%i %s sleep %i" % (
+                                  ssh, lport, remoteip, rport, server, timeout)
+    
+    # pop SSH_ASKPASS from env
+    env = os.environ.copy()
+    env.pop('SSH_ASKPASS', None)
+    
+    ssh_newkey = 'Are you sure you want to continue connecting'
+    tunnel = pexpect.spawn(cmd, env=env)
+    failed = False
+    while True:
+        try:
+            i = tunnel.expect([ssh_newkey, '[Pp]assword:'], timeout=.1)
+            if i==0:
+                host = server.split('@')[-1]
+                question = _("The authenticity of host <b>%s</b> can't be "
+                             "established. Are you sure you want to continue "
+                             "connecting?") % host
+                reply = QMessageBox.question(self, _('Warning'), question,
+                                             QMessageBox.Yes | QMessageBox.No,
+                                             QMessageBox.No)
+                if reply == QMessageBox.Yes:
+                    tunnel.sendline('yes')
+                    continue
+                else:
+                    tunnel.sendline('no')
+                    raise RuntimeError(
+                       _("The authenticity of the host can't be established"))
+            if i==1 and password is not None:
+                tunnel.sendline(password) 
+        except pexpect.TIMEOUT:
+            continue
+        except pexpect.EOF:
+            if tunnel.exitstatus:
+                raise RuntimeError(_("Tunnel '%s' failed to start") % cmd)
+            else:
+                return tunnel.pid
+        else:
+            if failed or password is None:
+                raise RuntimeError(_("Could not connect to remote host"))
+                # TODO: Use this block when pyzmq bug #620 is fixed
+                # # Prompt a passphrase dialog to the user for a second attempt
+                # password, ok = QInputDialog.getText(self, _('Password'),
+                #             _('Enter password for: ') + server,
+                #             echo=QLineEdit.Password)
+                # if ok is False:
+                #      raise RuntimeError('Could not connect to remote host.') 
+            tunnel.sendline(password)
+            failed = True
 
 
 class IPythonConsoleConfigPage(PluginConfigPage):
@@ -148,8 +225,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                                      "Matplotlib or to develop \nGUIs with "
                                      "Spyder."))
         autoload_pylab_box.setEnabled(self.get_option('pylab') and mpl_present)
-        self.connect(pylab_box, SIGNAL("toggled(bool)"),
-                     autoload_pylab_box.setEnabled)
+        pylab_box.toggled.connect(autoload_pylab_box.setEnabled)
         
         pylab_layout = QVBoxLayout()
         pylab_layout.addWidget(pylab_box)
@@ -198,8 +274,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         backend_layout.addWidget(backend_box)
         backend_group.setLayout(backend_layout)
         backend_group.setEnabled(self.get_option('pylab') and mpl_present)
-        self.connect(pylab_box, SIGNAL("toggled(bool)"),
-                     backend_group.setEnabled)
+        pylab_box.toggled.connect(backend_group.setEnabled)
         
         # Inline backend Group
         inline_group = QGroupBox(_("Inline backend"))
@@ -231,8 +306,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         inline_layout.addWidget(height_spin)
         inline_group.setLayout(inline_layout)
         inline_group.setEnabled(self.get_option('pylab') and mpl_present)
-        self.connect(pylab_box, SIGNAL("toggled(bool)"),
-                     inline_group.setEnabled)
+        pylab_box.toggled.connect(inline_group.setEnabled)
 
         # --- Startup ---
         # Run lines Group
@@ -261,8 +335,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                            'startup/use_run_file', False)
         run_file_browser = self.create_browsefile('', 'startup/run_file', '')
         run_file_browser.setEnabled(False)
-        self.connect(file_radio, SIGNAL("toggled(bool)"),
-                     run_file_browser.setEnabled)
+        file_radio.toggled.connect(run_file_browser.setEnabled)
         
         run_file_layout = QVBoxLayout()
         run_file_layout.addWidget(run_file_label)
@@ -404,8 +477,7 @@ class KernelConnectionDialog(QDialog):
         self.cf.setPlaceholderText(_('Path to connection file or kernel id'))
         self.cf.setMinimumWidth(250)
         cf_open_btn = QPushButton(_('Browse'))
-        self.connect(cf_open_btn, SIGNAL('clicked()'),
-                     self.select_connection_file)
+        cf_open_btn.clicked.connect(self.select_connection_file)
 
         cf_layout = QHBoxLayout()
         cf_layout.addWidget(cf_label)
@@ -422,7 +494,7 @@ class KernelConnectionDialog(QDialog):
         self.kf = QLineEdit()
         self.kf.setPlaceholderText(_('Path to ssh key file'))
         kf_open_btn = QPushButton(_('Browse'))
-        self.connect(kf_open_btn, SIGNAL('clicked()'), self.select_ssh_key)
+        kf_open_btn.clicked.connect(self.select_ssh_key)
 
         kf_layout = QHBoxLayout()
         kf_layout.addWidget(self.kf)
@@ -442,8 +514,8 @@ class KernelConnectionDialog(QDialog):
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
             Qt.Horizontal, self)
 
-        self.connect(accept_btns, SIGNAL('accepted()'), self.accept)
-        self.connect(accept_btns, SIGNAL('rejected()'), self.reject)
+        accept_btns.accepted.connect(self.accept)
+        accept_btns.rejected.connect(self.reject)
 
         # Dialog layout
         layout = QVBoxLayout(self)
@@ -457,11 +529,11 @@ class KernelConnectionDialog(QDialog):
         def ssh_set_enabled(state):
             for wid in [self.hn, self.kf, kf_open_btn, self.pw]:
                 wid.setEnabled(state)
-            for i in xrange(ssh_form.rowCount()):
+            for i in range(ssh_form.rowCount()):
                 ssh_form.itemAt(2 * i).widget().setEnabled(state)
        
         ssh_set_enabled(self.rm_cb.checkState())
-        self.connect(self.rm_cb, SIGNAL('stateChanged(int)'), ssh_set_enabled)
+        self.rm_cb.stateChanged.connect(ssh_set_enabled)
 
     def select_connection_file(self):
         cf = getopenfilename(self, _('Open IPython connection file'),
@@ -500,6 +572,11 @@ class IPythonConsole(SpyderPluginWidget):
     CONF_SECTION = 'ipython_console'
     CONFIGWIDGET_CLASS = IPythonConsoleConfigPage
     DISABLE_ACTIONS_WHEN_HIDDEN = False
+    
+    # Signals
+    focus_changed = Signal()
+    edit_goto = Signal(str, int, str)
+    focus_changed = Signal()
 
     def __init__(self, parent):
         SpyderPluginWidget.__init__(self, parent)
@@ -511,6 +588,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.inspector = None          # Object inspector plugin
         self.historylog = None         # History log plugin
         self.variableexplorer = None   # Variable explorer plugin
+        self.editor = None             # Editor plugin
         
         self.clients = []
         
@@ -525,10 +603,8 @@ class IPythonConsole(SpyderPluginWidget):
             # a crash when the console is detached from the main window
             # Fixes Issue 561
             self.tabwidget.setDocumentMode(True)
-        self.connect(self.tabwidget, SIGNAL('currentChanged(int)'),
-                     self.refresh_plugin)
-        self.connect(self.tabwidget, SIGNAL('move_data(int,int)'),
-                     self.move_tab)
+        self.tabwidget.currentChanged.connect(self.refresh_plugin)
+        self.tabwidget.move_data.connect(self.move_tab)
                      
         self.tabwidget.set_close_function(self.close_client)
 
@@ -622,14 +698,22 @@ class IPythonConsole(SpyderPluginWidget):
         self.find_widget.set_editor(control)
         self.tabwidget.set_corner_widgets({Qt.TopRightCorner: widgets})
         self.main.last_console_plugin_focus_was_python = False
-        self.emit(SIGNAL('update_plugin_title()'))
+        self.update_plugin_title.emit()
 
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
-        create_client_action = create_action(self,
+        ctrl = "Cmd" if sys.platform == "darwin" else "Ctrl"
+        main_create_client_action = create_action(self,
                                 _("Open an &IPython console"),
                                 None, 'ipython_console.png',
+                                triggered=self.create_new_client,
+                                tip=_("Use %s+T when the console is selected "
+                                      "to open a new one") % ctrl)
+        create_client_action = create_action(self,
+                                _("Open an new console"),
+                                QKeySequence("Ctrl+T"), 'ipython_console.png',
                                 triggered=self.create_new_client)
+        create_client_action.setShortcutContext(Qt.WidgetWithChildrenShortcut)
 
         connect_to_kernel_action = create_action(self,
                _("Connect to an existing kernel"), None, None,
@@ -638,7 +722,7 @@ class IPythonConsole(SpyderPluginWidget):
         
         # Add the action to the 'Consoles' menu on the main window
         main_consoles_menu = self.main.consoles_menu_actions
-        main_consoles_menu.insert(0, create_client_action)
+        main_consoles_menu.insert(0, main_create_client_action)
         main_consoles_menu += [None, connect_to_kernel_action]
         
         # Plugin actions
@@ -654,16 +738,13 @@ class IPythonConsole(SpyderPluginWidget):
         self.inspector = self.main.inspector
         self.historylog = self.main.historylog
         self.variableexplorer = self.main.variableexplorer
-
-        self.connect(self, SIGNAL('focus_changed()'),
-                     self.main.plugin_focus_changed)
-
-        if self.main.editor is not None:
-            self.connect(self, SIGNAL("edit_goto(QString,int,QString)"),
-                         self.main.editor.load)
-            self.connect(self.main.editor,
-                         SIGNAL('run_in_current_ipyclient(QString,QString,QString,bool)'),
-                         self.run_script_in_current_client)
+        self.editor = self.main.editor
+        
+        self.focus_changed.connect(self.main.plugin_focus_changed)
+        if self.editor is not None:
+            self.edit_goto.connect(self.editor.load)
+            self.editor.run_in_current_ipyclient.connect(
+                                             self.run_script_in_current_client)
 
     #------ Public API (for clients) ------------------------------------------
     def get_clients(self):
@@ -732,6 +813,7 @@ class IPythonConsole(SpyderPluginWidget):
         if client is not None:
             client.shellwidget.write_to_stdin(line)
 
+    @Slot()
     def create_new_client(self, give_focus=True):
         """Create a new client"""
         client = IPythonClient(self, history_filename='history.py',
@@ -750,6 +832,9 @@ class IPythonConsole(SpyderPluginWidget):
         control = shellwidget._control
         page_control = shellwidget._page_control
 
+        # Create new clients with Ctrl+T shortcut
+        shellwidget.new_client.connect(self.create_new_client)
+        
         # Handle kernel interrupts
         extconsoles = self.extconsole.shellwidgets
         kernel_widget = None
@@ -771,7 +856,7 @@ class IPythonConsole(SpyderPluginWidget):
             return
         
         # For tracebacks
-        self.connect(control, SIGNAL("go_to_error(QString)"), self.go_to_error)
+        control.go_to_error.connect(self.go_to_error)
         
         # Handle kernel restarts asked by the user
         if kernel_widget is not None:
@@ -809,28 +894,22 @@ class IPythonConsole(SpyderPluginWidget):
         # Connect client to our history log
         if self.historylog is not None:
             self.historylog.add_history(client.history_filename)
-            self.connect(client, SIGNAL('append_to_history(QString,QString)'),
-                         self.historylog.append_to_history)
+            client.append_to_history.connect(self.historylog.append_to_history)
         
         # Set font for client
         client.set_font( self.get_plugin_font() )
         
         # Connect focus signal to client's control widget
-        self.connect(control, SIGNAL('focus_changed()'),
-                     lambda: self.emit(SIGNAL('focus_changed()')))
+        control.focus_changed.connect(lambda: self.focus_changed.emit())
         
         # Update the find widget if focus changes between control and
         # page_control
         self.find_widget.set_editor(control)
         if page_control:
-            self.connect(page_control, SIGNAL('focus_changed()'),
-                         lambda: self.emit(SIGNAL('focus_changed()')))
-            self.connect(control, SIGNAL('visibility_changed(bool)'),
-                         self.refresh_plugin)
-            self.connect(page_control, SIGNAL('visibility_changed(bool)'),
-                         self.refresh_plugin)
-            self.connect(page_control, SIGNAL('show_find_widget()'),
-                         self.find_widget.show)
+            page_control.focus_changed.connect(lambda: self.focus_changed.emit())
+            control.visibility_changed.connect(self.refresh_plugin)
+            page_control.visibility_changed.connect(self.refresh_plugin)
+            page_control.show_find_widget.connect(self.find_widget.show)
 
         # Update client name
         self.rename_client_tab(client)
@@ -871,7 +950,7 @@ class IPythonConsole(SpyderPluginWidget):
         # Note: client index may have changed after closing related widgets
         self.tabwidget.removeTab(self.tabwidget.indexOf(client))
         self.clients.remove(client)
-        self.emit(SIGNAL('update_plugin_title()'))
+        self.update_plugin_title.emit()
 
     def get_client_index_from_id(self, client_id):
         """Return client index from id"""
@@ -904,6 +983,22 @@ class IPythonConsole(SpyderPluginWidget):
         # kernel one
         return programs.is_module_installed('IPython', version=kernel_ver)
 
+    def ssh_tunnel(self, *args, **kwargs):
+        if sys.platform == 'win32':
+            return zmqtunnel.paramiko_tunnel(*args, **kwargs)
+        else:
+            return openssh_tunnel(self, *args, **kwargs)
+
+    def tunnel_to_kernel(self, ci, hostname, sshkey=None, password=None, timeout=10):
+        """tunnel connections to a kernel via ssh. remote ports are specified in
+        the connection info ci."""
+        lports = zmqtunnel.select_random_ports(4)
+        rports = ci['shell_port'], ci['iopub_port'], ci['stdin_port'], ci['hb_port']
+        remote_ip = ci['ip']
+        for lp, rp in zip(lports, rports):
+            self.ssh_tunnel(lp, rp, hostname, remote_ip, sshkey, password, timeout)
+        return tuple(lports)
+
     def create_kernel_manager_and_client(self, connection_file=None,
                                          hostname=None, sshkey=None,
                                          password=None):
@@ -915,7 +1010,7 @@ class IPythonConsole(SpyderPluginWidget):
             kernel_client.load_connection_file()
             if hostname is not None:
                 try:
-                    newports = tunnel_to_kernel(dict(ip=kernel_client.ip,
+                    newports = self.tunnel_to_kernel(dict(ip=kernel_client.ip,
                                           shell_port=kernel_client.shell_port,
                                           iopub_port=kernel_client.iopub_port,
                                           stdin_port=kernel_client.stdin_port,
@@ -925,7 +1020,8 @@ class IPythonConsole(SpyderPluginWidget):
                      kernel_client.stdin_port, kernel_client.hb_port) = newports
                 except Exception as e:
                     QMessageBox.critical(self, _('Connection error'), 
-                                     _('Could not open ssh tunnel\n') + str(e))
+                                       _("Could not open ssh tunnel. The "
+                                         "error was:\n\n") + to_text_string(e))
                     return None, None
             kernel_client.start_channels()
             # To rely on kernel's heartbeat to know when a kernel has died
@@ -935,7 +1031,7 @@ class IPythonConsole(SpyderPluginWidget):
             kernel_manager.load_connection_file()
             if hostname is not None:
                 try:
-                    newports = tunnel_to_kernel(dict(ip=kernel_manager.ip,
+                    newports = self.tunnel_to_kernel(dict(ip=kernel_manager.ip,
                                           shell_port=kernel_manager.shell_port,
                                           iopub_port=kernel_manager.iopub_port,
                                           stdin_port=kernel_manager.stdin_port,
@@ -963,6 +1059,7 @@ class IPythonConsole(SpyderPluginWidget):
             widget.kernel_manager = km
             widget.kernel_client = kc
 
+    @Slot()
     def create_client_for_kernel(self):
         """Create a client connected to an existing kernel"""
         (cf, hostname,
@@ -1075,7 +1172,7 @@ class IPythonConsole(SpyderPluginWidget):
         """
         client = self.clients.pop(index_from)
         self.clients.insert(index_to, client)
-        self.emit(SIGNAL('update_plugin_title()'))
+        self.update_plugin_title.emit()
 
     #------ Public API (for help) ---------------------------------------------
     def go_to_error(self, text):
@@ -1083,19 +1180,21 @@ class IPythonConsole(SpyderPluginWidget):
         match = get_error_match(to_text_string(text))
         if match:
             fname, lnb = match.groups()
-            self.emit(SIGNAL("edit_goto(QString,int,QString)"),
-                      osp.abspath(fname), int(lnb), '')
-    
+            self.edit_goto.emit(osp.abspath(fname), int(lnb), '')
+
+    @Slot()
     def show_intro(self):
         """Show intro to IPython help"""
         from IPython.core.usage import interactive_usage
         self.inspector.show_rich_text(interactive_usage)
-    
+
+    @Slot()
     def show_guiref(self):
         """Show qtconsole help"""
         from IPython.core.usage import gui_reference
         self.inspector.show_rich_text(gui_reference, collapse=True)
-    
+
+    @Slot()
     def show_quickref(self):
         """Show IPython Cheat Sheet"""
         from IPython.core.usage import quick_reference
