@@ -301,6 +301,8 @@ class SpyderPluginMixin(object):
         This method is called when pressing plugin's shortcut key"""
         if not self.ismaximized:
             self.dockwidget.show()
+        if not self.toggle_view_action.isChecked():
+            self.toggle_view_action.setChecked(True)
         self.visibility_changed(True)
 
     def visibility_changed(self, enable):
