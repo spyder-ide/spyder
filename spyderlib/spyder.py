@@ -1399,7 +1399,7 @@ class MainWindow(QMainWindow):
                             self.projectexplorer, self.inspector,
                             self.variableexplorer, self.historylog,
                             self.outlineexplorer, self.findinfiles,
-                            self.onlinehelp]+ self.thirdparty_plugins,
+                            self.onlinehelp] + self.thirdparty_plugins,
                            [None]]
         horizontal_layout = [[self.editor],
                              [self.ipyconsole, self.extconsole, self.console,
@@ -1420,8 +1420,8 @@ class MainWindow(QMainWindow):
 
         widgets_layout = layouts[index]
 
-
-        widgets_hidden = [self.findinfiles, self.console] + self.thirdparty_plugins
+        widgets_hidden = [self.findinfiles, self.console] +\
+            self.thirdparty_plugins
         widgets = [item for sublist in widgets_layout for item in sublist]
         while None in widgets:
             widgets.remove(None)
@@ -1509,7 +1509,6 @@ class MainWindow(QMainWindow):
                                           section='quick_layouts')
         # FIXME: What to do here to get the layout to display symmetricaly
 
-
     def toggle_previous_layout(self):
         """ """
         self.toggle_layout('previous')
@@ -1546,8 +1545,9 @@ class MainWindow(QMainWindow):
             current_index = 0
 
         new_index = (current_index + dic[direction]) % len(layout_index)
+        print(layout_index, new_index)
         self.quick_layout_switch(layout_index[new_index])
-
+        
     def quick_layout_set_menu(self):
         """ """
         get = CONF.get
@@ -1558,12 +1558,19 @@ class MainWindow(QMainWindow):
         ql_actions = [create_action(self, _('Spyder Default Layout'),
                                     triggered=lambda:
                                     self.quick_layout_switch('default'))]
+        
         for name in order:
             if name in active:
                 index = names.index(name)
-                qli_act = create_action(self, name,
-                                        triggered=lambda i=index:
-                                        self.quick_layout_switch(i))
+
+                # closure required so lambda works with the default parameter
+                def trigger(i=index, self=self):
+                    return lambda: self.quick_layout_switch(i)  
+                        
+                qli_act = create_action(self, name, triggered=trigger())
+
+                # not working!
+                # qli_act = create_action(self, name, triggered=lambda i=index: self.quick_layout_switch(i)
                 ql_actions += [qli_act]
 
         # FIXME: Add this definitions to init? or can be defines here only?
@@ -1572,16 +1579,15 @@ class MainWindow(QMainWindow):
                                      self.quick_layout_save(),
                                      context=Qt.ApplicationShortcut)
         self.ql_preferences = create_action(self, _("Layout preferences"),
-                                         triggered=lambda:
-                                         self.quick_layout_settings(),
-                                         context=Qt.ApplicationShortcut)
+                                            triggered=lambda:
+                                            self.quick_layout_settings(),
+                                            context=Qt.ApplicationShortcut)
         self.ql_reset = create_action(self, _('Reset window layouts'),
-                                    triggered=self.reset_window_layout)
+                                      triggered=self.reset_window_layout)
 
-
-        self.register_shortcut(self.ql_save, "_", "Save current layout")
+        self.register_shortcut(self.ql_save, "_", _("Save current layout"))
         self.register_shortcut(self.ql_preferences, "_",
-                               "Layout preferences")
+                               _("Layout preferences"))
 
         ql_actions += [None]
         ql_actions += [self.ql_save, self.ql_preferences, self.ql_reset]
@@ -1654,6 +1660,7 @@ class MainWindow(QMainWindow):
 
     def quick_layout_settings(self):
         """Layout settings dialog"""
+
         get = CONF.get
         set_ = CONF.set
 
@@ -1676,30 +1683,33 @@ class MainWindow(QMainWindow):
     def quick_layout_switch(self, index):
         """Switch to quick layout number *index*"""
         section = 'quick_layouts'
+        print([index], type(index))
+
 #        if self.current_quick_layout == index:
-        if True:
+#        if True:
 #            self.set_window_settings(*self.previous_layout_settings)
 #            self.current_quick_layout = None
 #        else:
-            try:
-                # TODO: if state is None, then this default layout is run
-                # for the first time and the configuration needs to be setup!
+        try:
+            # TODO: if state is None, then this default layout is run
+            # for the first time and the configuration needs to be setup!
+            settings = self.load_window_settings('layout_{}/'.format(index),
+                                                 section=section)
+            print('layout_{}/'.format(index))
+            (hexstate, window_size, prefs_dialog_size, pos, is_maximized,
+             is_fullscreen) = settings
+            if hexstate is None:
+                self.setup_default_layouts(index, settings)
                 settings = self.load_window_settings('layout_{}/'.format(index),
-                                                     section=section)
-                (hexstate, window_size, prefs_dialog_size, pos, is_maximized,
-                 is_fullscreen) = settings
-                if hexstate is None:
-                    self.setup_default_layouts(index, settings)
-                    settings = self.load_window_settings('layout_{}/'.format(index),
-                            section=section)
-            except cp.NoOptionError:
-                QMessageBox.critical(self, _("Warning"),
-                                     _("Quick switch layout #%d has not yet "
-                                       "been defined.") % index)
-                return
+                        section=section)
+        except cp.NoOptionError:
+            QMessageBox.critical(self, _("Warning"),
+                                 _("Quick switch layout #%d has not yet "
+                                   "been defined.") % index)
+            return
 #            self.previous_layout_settings = self.get_window_settings()
-            self.set_window_settings(*settings)
-            self.current_quick_layout = index
+        self.set_window_settings(*settings)
+        self.current_quick_layout = index
 
     def plugin_focus_changed(self):
         """Focus has changed from one plugin to another"""
