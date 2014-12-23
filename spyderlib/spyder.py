@@ -463,7 +463,7 @@ class MainWindow(QMainWindow):
         self.window_position = None
         self.state_before_maximizing = None
         self.current_quick_layout = None
-        self.previous_layout_settings = None
+        self.previous_layout_settings = None  # TODO: related to quick layouts
         self.last_plugin = None
         self.fullscreen_flag = None # isFullscreen does not work as expected
         # The following flag remember the maximized state even when
@@ -1350,26 +1350,28 @@ class MainWindow(QMainWindow):
             for plugin in (self.projectexplorer, self.outlineexplorer):
                 plugin.dockwidget.close()
 
-            # TODO: Organize the part below
-            # Now that the initial setup is done, copy the window settings, except
-            # for the hexstate in the quick layouts sections for the default
-            # layouts. Order and name of the default layouts is found in config.py
+            # Now that the initial setup is done, copy the window settings,
+            # except for the hexstate in the quick layouts sections for the
+            # default layouts. 
+            # Order and name of the default layouts is found in config.py
             section = 'quick_layouts'
             get_func = CONF.get_default if default else CONF.get
             order = get_func(section, 'order')
+            
+            # restore the original defaults if reset layouts is called
             if default:
                 CONF.set(section, 'active', order)
                 CONF.set(section, 'order', order)
                 CONF.set(section, 'names', order)
 
-            self.set_window_settings(hexstate, window_size, prefs_dialog_size, pos, is_maximized, is_fullscreen)
+            self.set_window_settings(hexstate, window_size, prefs_dialog_size,
+                                     pos, is_maximized, is_fullscreen)
             for index, name, in enumerate(order):
                 prefix = 'layout_{0}/'.format(index)
                 self.save_current_window_settings(prefix, section)
                 CONF.set(section, prefix+'state', None)
-            # FIXME: Try and see
-            # Store the initial default layout to be use later in restoring
-            # the initial options? Try and see
+
+            # store the initial layout as the default in spyder
             prefix = 'layout_default/'
             self.save_current_window_settings(prefix, section)
             self.current_quick_layout = 'default'
@@ -1513,7 +1515,9 @@ class MainWindow(QMainWindow):
 
         self.save_current_window_settings('layout_{}/'.format(index),
                                           section='quick_layouts')
-        # FIXME: What to do here to get the layout to display symmetricaly
+        # TODO: What to do here to get the layout to display symmetricaly
+        # by symmetry I mean the editor should occupy exactly half of the
+        # window and right now it occupies like 1/3
 
     def toggle_previous_layout(self):
         """ """
@@ -1573,9 +1577,10 @@ class MainWindow(QMainWindow):
                     return lambda: self.quick_layout_switch(i)  
                         
                 qli_act = create_action(self, name, triggered=trigger())
+                # closure above replaces the following which stopped working
+                # qli_act = create_action(self, name, triggered=lambda i=index:
+                #     self.quick_layout_switch(i)
 
-                # not working!
-                # qli_act = create_action(self, name, triggered=lambda i=index: self.quick_layout_switch(i)
                 ql_actions += [qli_act]
 
         self.ql_save = create_action(self, _("Save current layout"),
@@ -1604,10 +1609,6 @@ class MainWindow(QMainWindow):
         else:
             self.ql_preferences.setEnabled(True)
 
-    # FIXME: when run the second time it after first startup, it is
-    # messing up the configuration maybe it is good to save this states
-    # In a default place in the quicklayouts section, so that the reset will
-    # default to this characteristics!, the question can be changed
     @Slot()
     def reset_window_layout(self):
         """Reset window layout to default"""
@@ -1681,25 +1682,13 @@ class MainWindow(QMainWindow):
             set_(section, 'active', dlg.active)
             self.quick_layout_set_menu()
 
-    # FIXME: Include a condition to check if one of the default layouts was
-    # was selected for the first time and then recreate this layout in
-    # different methods, like the setup_layout one
     def quick_layout_switch(self, index):
         """Switch to quick layout number *index*"""
         section = 'quick_layouts'
-#        print([index], type(index))
 
-#        if self.current_quick_layout == index:
-#        if True:
-#            self.set_window_settings(*self.previous_layout_settings)
-#            self.current_quick_layout = None
-#        else:
         try:
-            # TODO: if state is None, then this default layout is run
-            # for the first time and the configuration needs to be setup!
             settings = self.load_window_settings('layout_{}/'.format(index),
                                                  section=section)
-#            print('layout_{}/'.format(index))
             (hexstate, window_size, prefs_dialog_size, pos, is_maximized,
              is_fullscreen) = settings
             if hexstate is None:
@@ -1711,9 +1700,16 @@ class MainWindow(QMainWindow):
                                  _("Quick switch layout #%d has not yet "
                                    "been defined.") % index)
             return
-#            self.previous_layout_settings = self.get_window_settings()
+            # TODO: is there any real use in calling the previous layout
+            # setting?
+            # self.previous_layout_settings = self.get_window_settings()
         self.set_window_settings(*settings)
         self.current_quick_layout = index
+
+        # make sure the flags are correctly set for visible panes
+        for plugin in self.widgetlist:
+            action = plugin.toggle_view_action
+            action.setChecked(plugin.dockwidget.isVisible())
 
     def plugin_focus_changed(self):
         """Focus has changed from one plugin to another"""
