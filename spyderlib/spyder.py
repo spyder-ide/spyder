@@ -514,8 +514,8 @@ class MainWindow(QMainWindow):
                                         context=Qt.ApplicationShortcut)
             self.register_shortcut(self.close_dockwidget_action, "_",
                                    "Close pane")
-            # FIXME:
-            # Custom Layouts Shortcuts
+
+            # custom layouts shortcuts
             self.toggle_next_layout_action = create_action(self,
                                         _("Toggle next layout"),
                                         triggered=self.toggle_next_layout,
@@ -1355,7 +1355,13 @@ class MainWindow(QMainWindow):
             # for the hexstate in the quick layouts sections for the default
             # layouts. Order and name of the default layouts is found in config.py
             section = 'quick_layouts'
-            order = CONF.get(section, 'order')
+            get_func = CONF.get_default if default else CONF.get
+            order = get_func(section, 'order')
+            if default:
+                CONF.set(section, 'active', order)
+                CONF.set(section, 'order', order)
+                CONF.set(section, 'names', order)
+
             self.set_window_settings(hexstate, window_size, prefs_dialog_size, pos, is_maximized, is_fullscreen)
             for index, name, in enumerate(order):
                 prefix = 'layout_{0}/'.format(index)
@@ -1367,6 +1373,7 @@ class MainWindow(QMainWindow):
             prefix = 'layout_default/'
             self.save_current_window_settings(prefix, section)
             self.current_quick_layout = 'default'
+            self.quick_layout_set_menu()
 
         self.set_window_settings(hexstate, window_size, prefs_dialog_size, pos,
                                  is_maximized, is_fullscreen)
@@ -1374,7 +1381,6 @@ class MainWindow(QMainWindow):
         for plugin in self.widgetlist:
             plugin.initialize_plugin_in_mainwindow_layout()
 
-    # TODO:
     def setup_default_layouts(self, index, settings):
         """Setup default layouts when run for the first time"""
         # Layout definition
@@ -1545,7 +1551,6 @@ class MainWindow(QMainWindow):
             current_index = 0
 
         new_index = (current_index + dic[direction]) % len(layout_index)
-        print(layout_index, new_index)
         self.quick_layout_switch(layout_index[new_index])
         
     def quick_layout_set_menu(self):
@@ -1573,7 +1578,6 @@ class MainWindow(QMainWindow):
                 # qli_act = create_action(self, name, triggered=lambda i=index: self.quick_layout_switch(i)
                 ql_actions += [qli_act]
 
-        # FIXME: Add this definitions to init? or can be defines here only?
         self.ql_save = create_action(self, _("Save current layout"),
                                      triggered=lambda:
                                      self.quick_layout_save(),
@@ -1683,7 +1687,7 @@ class MainWindow(QMainWindow):
     def quick_layout_switch(self, index):
         """Switch to quick layout number *index*"""
         section = 'quick_layouts'
-        print([index], type(index))
+#        print([index], type(index))
 
 #        if self.current_quick_layout == index:
 #        if True:
@@ -1695,7 +1699,7 @@ class MainWindow(QMainWindow):
             # for the first time and the configuration needs to be setup!
             settings = self.load_window_settings('layout_{}/'.format(index),
                                                  section=section)
-            print('layout_{}/'.format(index))
+#            print('layout_{}/'.format(index))
             (hexstate, window_size, prefs_dialog_size, pos, is_maximized,
              is_fullscreen) = settings
             if hexstate is None:
@@ -1846,7 +1850,6 @@ class MainWindow(QMainWindow):
     def create_toolbars_menu(self):
         order = ['file_toolbar', 'run_toolbar', 'debug_toolbar',
                  'main_toolbar', 'Global working directory', None,
-                 'layout',   # TODO:
                  'search_toolbar', 'edit_toolbar', 'source_toolbar']
         for toolbar in self.toolbarslist:
             action = toolbar.toggleViewAction()
