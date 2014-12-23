@@ -478,8 +478,8 @@ DEFAULTS = [
               '_/toggle previous layout': "Shift+Alt+PgUp",
               '_/save current layout': "Shift+Alt+S",
               '_/toggle default layout': "Shift+Alt+Home",
-              '_/layout preferences': "Shift+Alt+P",              
-              '_/quit': "Ctrl+Q",              
+              '_/layout preferences': "Shift+Alt+P",
+              '_/quit': "Ctrl+Q",
               # -- In plugins/editor
               '_/debug step over': "Ctrl+F10",
               '_/debug continue': "Ctrl+F12",
