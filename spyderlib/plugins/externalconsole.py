@@ -987,7 +987,7 @@ class ExternalConsole(SpyderPluginWidget):
             self.activateWindow()
             shellwidget.shell.setFocus()
     
-    def set_ipykernel_attrs(self, connection_file, kernel_widget, kernel_id):
+    def set_ipykernel_attrs(self, connection_file, kernel_widget, name):
         """Add the pid of the kernel process to an IPython kernel tab"""
         # Set connection file
         kernel_widget.connection_file = connection_file
@@ -1004,13 +1004,12 @@ class ExternalConsole(SpyderPluginWidget):
                 os.remove(connection_file)
             except OSError:
                 pass
-        atexit.register(cleanup_connection_file, connection_file)            
+        atexit.register(cleanup_connection_file, connection_file)   
         
-        # Set tab name according to kernel_id
+        # Set tab name according to client master name
         index = self.get_shell_index_from_id(id(kernel_widget))
-        text = to_text_string(self.tabwidget.tabText(index))
-        name = "%s %s" % (text, kernel_id)
-        self.tabwidget.setTabText(index, name)
+        tab_name = _("Kernel %s") % name
+        self.tabwidget.setTabText(index, tab_name)
     
     def register_ipyclient(self, connection_file, ipyclient, kernel_widget,
                            give_focus=True):
@@ -1026,8 +1025,8 @@ class ExternalConsole(SpyderPluginWidget):
             restart_kernel = False
         
         # Setting kernel widget attributes
-        kernel_id = osp.splitext(connection_file.split('/')[-1])[0].split('-')[-1] 
-        self.set_ipykernel_attrs(connection_file, kernel_widget, kernel_id)
+        name = ipyclient.name.split('/')[0]
+        self.set_ipykernel_attrs(connection_file, kernel_widget, name)
         
         # Creating the client
         ipyconsole = self.main.ipyconsole
