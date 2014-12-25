@@ -2330,8 +2330,7 @@ class EditorPluginExample(QSplitter):
         window.resize(self.size())
         window.show()
         self.register_editorwindow(window)
-        window.destroyed.connect(
-                     lambda win=window: self.unregister_editorwindow(win))
+        window.destroyed.connect(lambda: self.unregister_editorwindow(window))
 
     def register_editorwindow(self, window):
         if DEBUG_EDITOR:

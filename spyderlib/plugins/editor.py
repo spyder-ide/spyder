@@ -1215,8 +1215,7 @@ class Editor(SpyderPluginWidget):
         window.resize(self.size())
         window.show()
         self.register_editorwindow(window)
-        window.destroyed.connect(lambda win=window:
-                                 self.unregister_editorwindow(win))
+        window.destroyed.connect(lambda: self.unregister_editorwindow(window))
         return window
     
     def register_editorwindow(self, window):
