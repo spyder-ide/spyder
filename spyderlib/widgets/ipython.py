@@ -384,7 +384,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
     
     SEPARATOR = '%s##---(%s)---' % (os.linesep*2, time.ctime())
     
-    def __init__(self, plugin, history_filename, connection_file=None, 
+    def __init__(self, plugin, name, history_filename, connection_file=None, 
                  hostname=None, sshkey=None, password=None, 
                  kernel_widget_id=None, menu_actions=None):
         super(IPythonClient, self).__init__(plugin)
@@ -400,7 +400,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         self.hostname = hostname
         self.sshkey = sshkey
         self.password = password
-        self.name = ''
+        self.name = name
         self.get_option = plugin.get_option
         self.shellwidget = IPythonShellWidget(config=self.shellwidget_config(),
                                               local_kernel=False)
@@ -502,7 +502,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
     def get_name(self):
         """Return client name"""
         return ((_("Console") if self.hostname is None else self.hostname)
-            + " " + self.name)
+                + " " + self.name)
     
     def get_control(self):
         """Return the text widget (or similar) to give focus to"""

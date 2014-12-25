@@ -588,7 +588,8 @@ class IPythonConsole(SpyderPluginWidget):
         self.inspector = None          # Object inspector plugin
         self.historylog = None         # History log plugin
         self.variableexplorer = None   # Variable explorer plugin
-        
+
+        self.master_clients = 0
         self.clients = []
         
         # Initialize plugin
@@ -819,16 +820,17 @@ class IPythonConsole(SpyderPluginWidget):
 
     def create_new_client(self, give_focus=True):
         """Create a new client"""
-        client = IPythonClient(self, history_filename='history.py',
+        self.master_clients += 1
+        name = "%d/A" % self.master_clients
+        client = IPythonClient(self, name=name, history_filename='history.py',
                                menu_actions=self.menu_actions)
         self.add_tab(client, name=client.get_name())
         self.main.extconsole.start_ipykernel(client, give_focus=give_focus)
 
-    def register_client(self, client, name, restart=False, give_focus=True):
+    def register_client(self, client, restart=False, give_focus=True):
         """Register new client"""
         self.connect_client_to_kernel(client)
         client.show_shellwidget(give_focus=give_focus)
-        client.name = name
         
         # Local vars
         shellwidget = client.shellwidget
@@ -920,9 +922,6 @@ class IPythonConsole(SpyderPluginWidget):
                          self.refresh_plugin)
             self.connect(page_control, SIGNAL('show_find_widget()'),
                          self.find_widget.show)
-
-        # Update client name
-        self.rename_client_tab(client)
 
     def close_client(self, index=None, client=None, force=False):
         """Close client tab from index or widget (or close current tab)"""
@@ -1082,26 +1081,32 @@ class IPythonConsole(SpyderPluginWidget):
         # Verifying if the connection file exists - in the case of an empty
         # file name, the last used connection file is returned. 
         try:
-            cf = find_connection_file(cf, profile='default')
+            if not cf.startswith('kernel') and not cf.endswith('json'):
+                cf = to_text_string('kernel-' + cf + '.json')
+            find_connection_file(cf, profile='default')
         except (IOError, UnboundLocalError):
             QMessageBox.critical(self, _('IPython'),
                                  _("Unable to connect to IPython <b>%s") % cf)
             return
         
-        # Base client name: 
-        # remove path and extension, and use the last part when split by '-'
-        base_client_name = osp.splitext(cf.split('/')[-1])[0].split('-')[-1]
-        
-        # Generating the client name by appending /A, /B... until it is unique
+        # Getting the master name that corresponds to the client
+        # (i.e. the i in i/A)
         count = 0
-        while True:
-            client_name = base_client_name + '/' + chr(65 + count)
-            for cl in self.get_clients():
-                if cl.name == client_name: 
-                    break
-            else:
-                break
-            count += 1
+        master_name = None
+        for cl in self.get_clients():
+            if cf == cl.connection_file:
+                count += 1
+                if master_name is None:
+                    master_name = cl.name.split('/')[0]
+        
+        # If we couldn't find a client with the same connection file,
+        # it means this is an external kernel
+        if master_name is None:
+            self.master_clients += 1
+            master_name = to_text_string(self.master_clients)
+        
+        # Set full client name
+        name = master_name + '/' + chr(65+count)
         
         # Getting kernel_widget_id from the currently open kernels.
         kernel_widget_id = None
@@ -1122,7 +1127,7 @@ class IPythonConsole(SpyderPluginWidget):
             return
         
         # Creating the client
-        client = IPythonClient(self, history_filename='history.py',
+        client = IPythonClient(self, name=name, history_filename='history.py',
                                connection_file=cf,
                                kernel_widget_id=kernel_widget_id,
                                menu_actions=self.menu_actions,
@@ -1132,7 +1137,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.add_tab(client, name=client.get_name())
         
         # Connecting kernel and client
-        self.register_client(client, client_name)
+        self.register_client(client)
 
     def restart_kernel(self, client):
         """

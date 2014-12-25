@@ -1030,12 +1030,10 @@ class ExternalConsole(SpyderPluginWidget):
         self.set_ipykernel_attrs(connection_file, kernel_widget, kernel_id)
         
         # Creating the client
-        client_name = kernel_id + '/A'
         ipyconsole = self.main.ipyconsole
         ipyclient.connection_file = connection_file
         ipyclient.kernel_widget_id = id(kernel_widget)
-        ipyconsole.register_client(ipyclient, client_name,
-                                   restart=restart_kernel,
+        ipyconsole.register_client(ipyclient, restart=restart_kernel,
                                    give_focus=give_focus)
         
     def open_file_in_spyder(self, fname, lineno):
