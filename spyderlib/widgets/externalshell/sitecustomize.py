@@ -358,14 +358,17 @@ if os.environ.get("IPYTHON_KERNEL", "").lower() == "true":
             TestProgram.__init__(self, *args, **kwargs)
     unittest.main = IPyTesProgram
     
-    # Patch a Pandas function to make it recognize our IPython consoles as
-    # proper qtconsoles
-    # Fixes Issue 2015
+    # Pandas monkey-patches
     try:
+        # Make Pandas recognize our IPython consoles as proper qtconsoles
+        # Fixes Issue 2015
         def in_qtconsole():
             return True
         import pandas as pd
         pd.core.common.in_qtconsole = in_qtconsole
+        
+        # Set Pandas output encoding
+        pd.options.display.encoding = 'utf-8'
     except:
         pass
         
