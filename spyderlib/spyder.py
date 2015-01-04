@@ -1601,6 +1601,9 @@ class MainWindow(QMainWindow):
         self.save_current_window_settings(prefix)
         if CONF.get('main', 'single_instance'):
             self.open_files_server.close()
+        for plugin in self.thirdparty_plugins:
+            if not plugin.closing_plugin(cancelable):
+                return False
         for widget in self.widgetlist:
             if not widget.closing_plugin(cancelable):
                 return False
