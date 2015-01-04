@@ -507,11 +507,18 @@ class DirView(QTreeView):
         """Convert an IPython notebook to a Python script in editor"""
         if nbformat is not None:
             # Use writes_py if nbconvert is not available.
-            if nbexporter is None:
-                script = nbformat.current.writes_py(nbformat.current.read(
-                                                    open(fname, 'r'), 'ipynb'))
-            else:
-                script = nbexporter().from_filename(fname)[0]
+            try: 
+                if nbexporter is None:
+                    nb = nbformat.current.read(open(fname, 'r'), 'ipynb')
+                    script = nbformat.current.writes_py(nb)
+                else:
+                    script = nbexporter().from_filename(fname)[0]
+            except Exception as e:
+                QMessageBox.critical(self, _('Conversion error'), 
+                                     _("It was not possible to convert this "
+                                     "notebook. The error is:\n\n") + \
+                                     to_text_string(e))
+                return
             self.parent_widget.sig_new_file.emit(script)
     
     def convert(self, fnames=None):
