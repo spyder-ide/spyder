@@ -30,7 +30,8 @@ from spyderlib.qt.QtGui import (QColor, QMenu, QApplication, QSplitter, QFont,
                                 QInputDialog, QTextBlockUserData, QLineEdit,
                                 QKeySequence, QWidget, QVBoxLayout,
                                 QHBoxLayout, QDialog, QIntValidator,
-                                QDialogButtonBox, QGridLayout, QPaintEvent)
+                                QDialogButtonBox, QGridLayout, QPaintEvent,
+                                QMessageBox)
 from spyderlib.qt.QtCore import (Qt, Signal, QTimer, QRect, QRegExp, QSize,
                                  Slot)
 from spyderlib.qt.compat import to_qvariant
@@ -1841,7 +1842,14 @@ class CodeEditor(TextEditBaseWidget):
     def clear_all_output(self):
         """removes all ouput in the ipynb format (Json only)"""
         if self.is_json() and nbformat is not None:
-            nb = nbformat.current.reads(self.toPlainText(), 'json')
+            try:
+                nb = nbformat.current.reads(self.toPlainText(), 'json')
+            except Exception as e:
+                QMessageBox.critical(self, _('Removal error'), 
+                               _("It was not possible to remove outputs from "
+                                 "this notebook. The error is:\n\n") + \
+                                 to_text_string(e))
+                return
             if nb.worksheets:
                 for cell in nb.worksheets[0].cells:
                     if 'outputs' in cell:
@@ -1859,7 +1867,17 @@ class CodeEditor(TextEditBaseWidget):
     def convert_notebook(self):
         """Convert an IPython notebook to a Python script in editor"""
         if nbformat is not None:
-            nb = nbformat.current.reads(self.toPlainText(), 'json')
+            try:
+                try: # >3.0
+                    nb = nbformat.reads(self.toPlainText(), as_version=4)
+                except AttributeError:
+                    nb = nbformat.current.reads(self.toPlainText(), 'json')
+            except Exception as e:
+                QMessageBox.critical(self, _('Conversion error'), 
+                                     _("It was not possible to convert this "
+                                     "notebook. The error is:\n\n") + \
+                                     to_text_string(e))
+                return
             # Use writes_py if nbconvert is not available
             if nbexporter is None:
                 script = nbformat.current.writes_py(nb)
