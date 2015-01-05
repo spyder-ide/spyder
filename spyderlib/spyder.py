@@ -71,6 +71,7 @@ except ImportError:
 #==============================================================================
 # Qt imports
 #==============================================================================
+from spyderlib.qt import PYQT5
 from spyderlib.qt.QtGui import (QApplication, QMainWindow, QSplashScreen,
                                 QPixmap, QMessageBox, QMenu, QColor, QShortcut,
                                 QKeySequence, QDockWidget, QAction,
@@ -994,8 +995,10 @@ class MainWindow(QMainWindow):
             add_actions(web_resources, webres_actions)
             self.help_menu_actions.append(web_resources)
             # Qt assistant link
-            qta_exe = "assistant-qt4" if sys.platform.startswith('linux') else \
-                      "assistant"
+            if sys.platform.startswith('linux') and not PYQT5:
+                qta_exe = "assistant-qt4"
+            else:
+                qta_exe = "assistant"
             qta_act = create_program_action(self, _("Qt documentation"), 
                                             qta_exe)
             if qta_act:
