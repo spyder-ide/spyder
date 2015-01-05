@@ -263,16 +263,14 @@ else:
     #   * Installing an input hook: this feature is not yet supported 
     #     natively by PySide
     if os.environ.get("INSTALL_QT_INPUTHOOK", "").lower() == "true":
-        if os.environ["QT_API"] == 'pyqt':
-            if 'PyQt4' in sys.modules:
-                from PyQt4 import QtCore
-                # Removing PyQt's PyOS_InputHook implementation:
-                QtCore.pyqtRemoveInputHook()
-            elif 'PyQt5' in sys.modules:
-                from PyQt5 import QtCore
-                # Removing PyQt's PyOS_InputHook implementation:
-                QtCore.pyqtRemoveInputHook()
-
+        if os.environ["QT_API"] == 'pyqt5':
+            from PyQt5 import QtCore
+            # Removing PyQt's PyOS_InputHook implementation:
+            QtCore.pyqtRemoveInputHook()
+        elif os.environ["QT_API"] == 'pyqt':
+            from PyQt4 import QtCore
+            # Removing PyQt's PyOS_InputHook implementation:
+            QtCore.pyqtRemoveInputHook()
         elif os.environ["QT_API"] == 'pyside':
             from PySide import QtCore
             # XXX: when PySide will implement an input hook, we will have to 

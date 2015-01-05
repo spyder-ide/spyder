@@ -32,7 +32,8 @@ symbol (example: `python bootstrap.py -- --show-console`).
 Type `python bootstrap.py -- --help` to read about Spyder
 options.""")
 parser.add_option('--gui', default=None,
-                  help="GUI toolkit: pyqt (for PyQt4/PyQt5) or pyside (for PySide)")
+                  help="GUI toolkit: pyqt5 (for PyQt5), pyqt (for PyQt4) or "
+                       "pyside (for PySide)")
 parser.add_option('--hide-console', action='store_true',
                   default=False, help="Hide parent console window (Windows only)")
 parser.add_option('--test', dest="test", action='store_true', default=False,
@@ -43,7 +44,7 @@ parser.add_option('--debug', action='store_true',
                   default=False, help="Run Spyder in debug mode")
 options, args = parser.parse_args()
 
-assert options.gui in (None, 'pyqt', 'pyside'), \
+assert options.gui in (None, 'pyqt5', 'pyqt', 'pyside'), \
        "Invalid GUI toolkit option '%s'" % options.gui
 
 # For testing purposes
@@ -108,11 +109,16 @@ if osp.isdir(EXTPATH):
 # (Note: PyQt4 is still the officially supported GUI toolkit for Spyder)
 if options.gui is None:
     try:
-        import PySide  # analysis:ignore
-        print("02. PySide is detected, selecting (experimental)")
-        os.environ['QT_API'] = 'pyside'
-    except:
-        print("02. No PySide detected, using PyQt4 or PyQt5 if available")
+        import PyQt5  # analysis:ignore
+        print("02. PyQt5 is detected, selecting (experimental)")
+        os.environ['QT_API'] = 'pyqt5'
+    except ImportError:
+        try:
+            import PySide  # analysis:ignore
+            print("02. PySide is detected, selecting")
+            os.environ['QT_API'] = 'pyside'
+        except ImportError:
+            print("02. No PyQt5 or PySide detected, using PyQt4 if available")
 else:
     print ("02. Skipping GUI toolkit detection")
     os.environ['QT_API'] = options.gui

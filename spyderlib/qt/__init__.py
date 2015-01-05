@@ -10,15 +10,22 @@
 import os
 
 os.environ.setdefault('QT_API', 'pyqt')
-assert os.environ['QT_API'] in ('pyqt', 'pyside')
+assert os.environ['QT_API'] in ('pyqt5', 'pyqt', 'pyside')
 
 API = os.environ['QT_API']
-#API_NAME = {'pyqt': 'PyQt4', 'pyside': 'PySide'}[API]
+API_NAME = {'pyqt5': 'PyQt5', 'pyqt': 'PyQt4', 'pyside': 'PySide'}[API]
 
 PYQT5 = False
 
-
-if API == 'pyqt':
+if API == 'pyqt5':
+    try:
+        from PyQt5.QtCore import PYQT_VERSION_STR as __version__
+        is_old_pyqt = False
+        is_pyqt46 = False
+        PYQT5 = True
+    except ImportError:
+        pass
+elif API == 'pyqt':
     # Spyder 2.3 is compatible with both #1 and #2 PyQt API,
     # but to avoid issues with IPython and other Qt plugins
     # we choose to support only API #2 for 2.4+
@@ -32,27 +39,20 @@ if API == 'pyqt':
         pass
 
     try:
-        from PyQt4.QtCore import PYQT_VERSION_STR as __version__
+        from PyQt4.QtCore import PYQT_VERSION_STR as __version__ # analysis:ignore
+    except ImportError:
+        # Switching to PySide
+        API = os.environ['QT_API'] = 'pyside'
+        API_NAME = 'PySide'
+    else:
         is_old_pyqt = __version__.startswith(('4.4', '4.5', '4.6', '4.7'))
         is_pyqt46 = __version__.startswith('4.6')
-        API_NAME = 'PyQt4'
         import sip
         try:
-
             API_NAME += (" (API v%d)" % sip.getapi('QString'))
         except AttributeError:
             pass
 
-    except ImportError:
-        try:
-            from PyQt5.QtCore import PYQT_VERSION_STR as __version__
-            is_pyqt46 = False
-            API_NAME = 'PyQt5'
-            PYQT5 = True
-        except:
-            # Switching to PySide
-            API = os.environ['QT_API'] = 'pyside'
-            API_NAME = 'PySide'
 
 if API == 'pyside':
     try:

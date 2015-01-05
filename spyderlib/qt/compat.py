@@ -33,13 +33,12 @@ from spyderlib.py3compat import is_text_string, to_text_string, TEXT_TYPES
 
 PYQT_API_1 = False
 if os.environ['QT_API'] == 'pyqt':
-    if 'PyQt4' in sys.modules:
-        import sip
-        try:
-            PYQT_API_1 = sip.getapi('QVariant') == 1 # PyQt API #1
-        except AttributeError:
-            # PyQt <v4.6
-            PYQT_API_1 = True
+    import sip
+    try:
+        PYQT_API_1 = sip.getapi('QVariant') == 1 # PyQt API #1
+    except AttributeError:
+        # PyQt <v4.6
+        PYQT_API_1 = True
     def to_qvariant(pyobj=None):
         """Convert Python object to QVariant
         This is a transitional function from PyQt API #1 (QVariant exist) 
