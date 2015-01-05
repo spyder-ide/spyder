@@ -105,7 +105,7 @@ if osp.isdir(EXTPATH):
     print("                      and %s" % EXTPATH)
 
 
-# Selecting the GUI toolkit: PySide if installed, otherwise PyQt4 or PyQt5
+# Selecting the GUI toolkit: PyQt5 if installed, otherwise PySide or PyQt4
 # (Note: PyQt4 is still the officially supported GUI toolkit for Spyder)
 if options.gui is None:
     try:
