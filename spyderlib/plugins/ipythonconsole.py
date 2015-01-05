@@ -59,6 +59,7 @@ from spyderlib.widgets.ipython import IPythonClient
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 from spyderlib.py3compat import to_text_string, u
+from spyderlib.qt import PYQT5
 
 
 SYMPY_REQVER = '>=0.7.0'
@@ -148,6 +149,8 @@ def openssh_tunnel(self, lport, rport, server, remoteip='127.0.0.1',
 
 
 class IPythonConsoleConfigPage(PluginConfigPage):
+
+    append_to_history = Signal(str, str)
     
     def __init__(self, plugin, parent):
         PluginConfigPage.__init__(self, plugin, parent)
@@ -577,9 +580,14 @@ class IPythonConsole(SpyderPluginWidget):
     focus_changed = Signal()
     edit_goto = Signal(str, int, str)
     focus_changed = Signal()
+    show_message = Signal(str, int)
+    update_plugin_title = Signal()
 
     def __init__(self, parent):
-        SpyderPluginWidget.__init__(self, parent)
+        if PYQT5:
+            SpyderPluginWidget.__init__(self, parent, main = parent)
+        else:
+            SpyderPluginWidget.__init__(self, parent)
 
         self.tabwidget = None
         self.menu_actions = None

@@ -790,7 +790,7 @@ class MainWindow(QMainWindow):
             # Working directory plugin
             self.debug_print("  ..plugin: working directory")
             from spyderlib.plugins.workingdirectory import WorkingDirectory
-            self.workingdirectory = WorkingDirectory(self, self.init_workdir)
+            self.workingdirectory = WorkingDirectory(self, self.init_workdir, main=self)
             self.workingdirectory.register_plugin()
             self.toolbarslist.append(self.workingdirectory)
         
@@ -930,9 +930,10 @@ class MainWindow(QMainWindow):
                 spyder_doc = 'http://pythonhosted.org/spyder'
             else:
                 spyder_doc = file_uri(spyder_doc)
-            doc_action = create_bookmark_action(self, spyder_doc,
-                               _("Spyder documentation"), shortcut="F1",
-                               icon=get_std_icon('DialogHelpButton'))
+            doc_action = create_action( self, _("Spyder documentation"), shortcut="F1", 
+                                       icon=get_std_icon('DialogHelpButton'),
+                                       triggered=lambda : programs.start_file(spyder_doc))
+
             tut_action = create_action(self, _("Spyder tutorial"),
                                        triggered=self.inspector.show_tutorial)
             self.help_menu_actions = [doc_action, tut_action, None,

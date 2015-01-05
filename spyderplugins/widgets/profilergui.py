@@ -40,6 +40,7 @@ from spyderlib.widgets.comboboxes import PythonModulesComboBox
 from spyderlib.widgets.externalshell import baseshell
 from spyderlib.py3compat import to_text_string, getcwd
 _ = get_translation("p_profiler", dirname="spyderplugins")
+from spyderlib.qt.QtCore import QProcessEnvironment
 
 
 def is_profiler_installed():
@@ -213,7 +214,13 @@ class ProfilerWidget(QWidget):
             env = [to_text_string(_pth)
                    for _pth in self.process.systemEnvironment()]
             baseshell.add_pathlist_to_PYTHONPATH(env, pythonpath)
-            self.process.setEnvironment(env)
+            processEnvironment = QProcessEnvironment()
+            for envItem in env:
+                envName, separator, envValue = envItem.partition('=')
+                processEnvironment.insert(envName, envValue)
+            self.process.setProcessEnvironment(processEnvironment)                   
+
+
         
         self.output = ''
         self.error_output = ''

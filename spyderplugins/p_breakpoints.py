@@ -19,11 +19,16 @@ from spyderlib.utils.qthelpers import get_icon, create_action
 from spyderlib.plugins import SpyderPluginMixin
 from spyderplugins.widgets.breakpointsgui import BreakpointWidget
 from spyderlib.py3compat import to_text_string, is_text_string
+from spyderlib.qt.QtCore import Signal
 
 
 class Breakpoints(BreakpointWidget, SpyderPluginMixin):
     """Breakpoint list"""
     CONF_SECTION = 'breakpoints'
+    show_message = Signal(str, int)
+    update_plugin_title = Signal()
+
+
 #    CONFIGWIDGET_CLASS = BreakpointConfigPage
     def __init__(self, parent=None):
         BreakpointWidget.__init__(self, parent=parent)

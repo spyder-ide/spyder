@@ -90,6 +90,11 @@ class DependenciesTableModel(QAbstractTableModel):
                 color.setAlphaF(.25)
                 return to_qvariant(color)
 
+    def reset(self):
+        self.beginResetModel()
+        self.endResetModel()
+
+
 
 class DependenciesDelegate(QItemDelegate):
     def __init__(self, parent=None):

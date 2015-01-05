@@ -31,6 +31,7 @@ from spyderlib.widgets.explorer import FilteredDirView, listdir, fixpath
 from spyderlib.widgets.formlayout import fedit
 from spyderlib.widgets.pathmanager import PathManager
 from spyderlib.py3compat import to_text_string, getcwd, pickle
+from spyderlib.qt import PYQT5
 
 
 def has_children_files(path, include, exclude, show_all):
@@ -664,7 +665,10 @@ class ExplorerTreeWidget(FilteredDirView):
         self.show_hscrollbar = checked
         self.header().setStretchLastSection(not checked)
         self.header().setHorizontalScrollMode(QAbstractItemView.ScrollPerPixel)
-        self.header().setResizeMode(QHeaderView.ResizeToContents)
+        if PYQT5:
+            self.header().setSectionResizeMode(QHeaderView.ResizeToContents)
+        else:
+            self.header().setResizeMode(QHeaderView.ResizeToContents)
         
     def set_folder_names(self, folder_names):
         """Set folder names"""

@@ -45,6 +45,7 @@ from spyderlib.plugins.runconfig import (RunConfigDialog, RunConfigOneDialog,
                                          get_run_configuration,
                                          ALWAYS_OPEN_FIRST_RUN_OPTION)
 from spyderlib.py3compat import to_text_string, getcwd, qbytearray_to_str
+from spyderlib.qt import PYQT5
 
 
 def _load_all_breakpoints():
@@ -339,9 +340,15 @@ class Editor(SpyderPluginWidget):
     open_dir = Signal(str)
     breakpoints_saved = Signal()
     run_in_current_extconsole = Signal(str, str, str, bool)
+    show_message = Signal(str, int)
+    update_plugin_title = Signal()
+
     
     def __init__(self, parent, ignore_last_opened_files=False):
-        SpyderPluginWidget.__init__(self, parent)
+        if PYQT5:
+            SpyderPluginWidget.__init__(self, parent, main=parent)
+        else:
+            SpyderPluginWidget.__init__(self, parent)
         
         self.__set_eol_chars = True
         
@@ -1548,7 +1555,8 @@ class Editor(SpyderPluginWidget):
         if valid:
             self.set_option('max_recent_files', mrf)
     
-    @Slot()
+
+    @Slot(str, int, str, object)
     def load(self, filenames=None, goto=None, word='', editorwindow=None,
              processevents=True):
         """
@@ -1985,9 +1993,12 @@ class Editor(SpyderPluginWidget):
                 self.main.extconsole.execute_python_code(command)
             else:
                 self.main.ipyconsole.write_to_stdin(command)
+
                 focus_widget = self.main.ipyconsole.get_focus_widget()
+
                 if focus_widget:
                     focus_widget.setFocus()
+
         else:
             self.main.extconsole.execute_python_code(command)
     

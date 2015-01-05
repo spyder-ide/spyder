@@ -19,7 +19,7 @@ from xml.sax.saxutils import escape
 
 from spyderlib.qt.QtGui import (QTextCursor, QTextDocument, QApplication,
                                 QCursor, QToolTip)
-from spyderlib.qt.QtCore import Qt, QPoint, QRegExp
+from spyderlib.qt.QtCore import Qt, QPoint, QRegExp, Signal
 
 # Local imports
 from spyderlib.baseconfig import _
@@ -34,6 +34,8 @@ HISTORY_FILENAMES = []
 
 
 class BaseEditMixin(object):
+    
+    focus_changed = Signal()
     
     def __init__(self):
         self.eol_chars = None

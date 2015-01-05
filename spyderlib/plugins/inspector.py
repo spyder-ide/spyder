@@ -34,6 +34,7 @@ from spyderlib.widgets.browser import WebView
 from spyderlib.widgets.externalshell.pythonshell import ExtPythonShellWidget
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 from spyderlib.py3compat import to_text_string, get_meth_class_inst
+from spyderlib.qt import PYQT5
 
 #XXX: Hardcoded dependency on optional IPython plugin component
 #     that requires the hack to make this work without IPython
@@ -354,9 +355,16 @@ class ObjectInspector(SpyderPluginWidget):
     LOG_PATH = get_conf_path(CONF_SECTION)
     # Signals
     focus_changed = Signal()
+    show_message = Signal(str, int)
+    update_plugin_title = Signal()
+    focus_changed = Signal()
     
+
     def __init__(self, parent):
-        SpyderPluginWidget.__init__(self, parent)
+        if PYQT5:
+            SpyderPluginWidget.__init__(self, parent, main = parent)
+        else:
+            SpyderPluginWidget.__init__(self, parent)
         
         self.internal_shell = None
 
@@ -371,6 +379,7 @@ class ObjectInspector(SpyderPluginWidget):
         self.set_default_color_scheme()
 
         self.plain_text = PlainText(self)
+
         self.rich_text = RichText(self)
         
         color_scheme = get_color_scheme(self.get_option('color_scheme_name'))

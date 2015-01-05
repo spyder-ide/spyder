@@ -122,6 +122,7 @@ class InternalShell(PythonShellWidget):
     
     status = Signal(str)
     refresh = Signal()
+    go_to_error = Signal(str)
     focus_changed = Signal()
     
     def __init__(self, parent=None, namespace=None, commands=[], message=None,

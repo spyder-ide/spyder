@@ -284,6 +284,11 @@ class ArrayModel(QAbstractTableModel):
         else:
             return to_qvariant(labels[section])
 
+    def reset(self):
+        self.beginResetModel()
+        self.endResetModel()
+
+
 
 class ArrayDelegate(QItemDelegate):
     """Array Editor Item Delegate"""

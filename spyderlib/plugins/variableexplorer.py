@@ -86,6 +86,9 @@ class VariableExplorer(QStackedWidget, SpyderPluginMixin):
     CONF_SECTION = 'variable_explorer'
     CONFIGWIDGET_CLASS = VariableExplorerConfigPage
     sig_option_changed = Signal(str, object)
+    show_message = Signal(str, int)
+    update_plugin_title = Signal()
+
     def __init__(self, parent):
         QStackedWidget.__init__(self, parent)
         SpyderPluginMixin.__init__(self, parent)

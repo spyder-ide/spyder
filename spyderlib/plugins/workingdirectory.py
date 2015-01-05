@@ -29,6 +29,7 @@ from spyderlib.widgets.comboboxes import PathComboBox
 from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage
 from spyderlib.py3compat import to_text_string, getcwd
 
+from spyderlib.qt import PYQT5
 
 class WorkingDirectoryConfigPage(PluginConfigPage):
     def setup_page(self):
@@ -147,10 +148,17 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
     set_explorer_cwd = Signal(str)
     refresh_findinfiles = Signal()
     set_current_console_wd = Signal(str)
+    show_message = Signal(str, int)
+    update_plugin_title = Signal()
+
     
-    def __init__(self, parent, workdir=None):
-        QToolBar.__init__(self, parent)
-        SpyderPluginMixin.__init__(self, parent)
+    def __init__(self, parent, workdir=None, **kwds):
+        if PYQT5:
+            super().__init__(**kwds)
+        else:
+            QToolBar.__init__(self, parent)
+            SpyderPluginMixin.__init__(self, parent)
+
 
         # Initialize plugin
         self.initialize_plugin()

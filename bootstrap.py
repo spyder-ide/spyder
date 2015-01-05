@@ -32,7 +32,7 @@ symbol (example: `python bootstrap.py -- --show-console`).
 Type `python bootstrap.py -- --help` to read about Spyder
 options.""")
 parser.add_option('--gui', default=None,
-                  help="GUI toolkit: pyqt (for PyQt4) or pyside (for PySide)")
+                  help="GUI toolkit: pyqt (for PyQt4/PyQt5) or pyside (for PySide)")
 parser.add_option('--hide-console', action='store_true',
                   default=False, help="Hide parent console window (Windows only)")
 parser.add_option('--test', dest="test", action='store_true', default=False,
@@ -104,7 +104,7 @@ if osp.isdir(EXTPATH):
     print("                      and %s" % EXTPATH)
 
 
-# Selecting the GUI toolkit: PySide if installed, otherwise PyQt4
+# Selecting the GUI toolkit: PySide if installed, otherwise PyQt4 or PyQt5
 # (Note: PyQt4 is still the officially supported GUI toolkit for Spyder)
 if options.gui is None:
     try:
@@ -112,7 +112,7 @@ if options.gui is None:
         print("02. PySide is detected, selecting (experimental)")
         os.environ['QT_API'] = 'pyside'
     except:
-        print("02. No PySide detected, using PyQt4 if available")
+        print("02. No PySide detected, using PyQt4 or PyQt5 if available")
 else:
     print ("02. Skipping GUI toolkit detection")
     os.environ['QT_API'] = options.gui

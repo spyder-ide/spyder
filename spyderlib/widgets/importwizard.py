@@ -324,6 +324,9 @@ class PreviewTableModel(QAbstractTableModel):
         except Exception as instance:
             print(instance)
 
+    def reset(self):
+        self.beginResetModel()
+        self.endResetModel()
 
 class PreviewTable(QTableView):
     """Import wizard preview widget"""

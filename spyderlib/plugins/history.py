@@ -24,6 +24,7 @@ from spyderlib.widgets.sourcecode import codeeditor
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 from spyderlib.py3compat import to_text_string, is_text_string
+from spyderlib.qt import PYQT5
 
 
 class HistoryConfigPage(PluginConfigPage):
@@ -75,6 +76,9 @@ class HistoryLog(SpyderPluginWidget):
     CONFIGWIDGET_CLASS = HistoryConfigPage
     # Signals
     focus_changed = Signal()
+    show_message = Signal(str, int)
+    update_plugin_title = Signal()
+
     
     def __init__(self, parent):
         self.tabwidget = None
@@ -85,8 +89,10 @@ class HistoryLog(SpyderPluginWidget):
         self.editors = []
         self.filenames = []
         self.icons = []
-        
-        SpyderPluginWidget.__init__(self, parent)
+        if PYQT5:        
+            SpyderPluginWidget.__init__(self, parent, main = parent)
+        else:
+            SpyderPluginWidget.__init__(self, parent)
 
         # Initialize plugin
         self.initialize_plugin()

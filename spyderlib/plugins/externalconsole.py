@@ -41,6 +41,7 @@ from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 from spyderlib.plugins.runconfig import get_run_configuration
 from spyderlib.py3compat import to_text_string, is_text_string, getcwd
 from spyderlib import dependencies
+from spyderlib.qt import PYQT5
 
 MPL_REQVER = '>=1.0'
 dependencies.add("matplotlib", _("Interactive data plotting in the consoles"),
@@ -48,6 +49,7 @@ dependencies.add("matplotlib", _("Interactive data plotting in the consoles"),
 
 
 class ExternalConsoleConfigPage(PluginConfigPage):
+
     def __init__(self, plugin, parent):
         PluginConfigPage.__init__(self, plugin, parent)
         self.get_name = lambda: _("Console")
@@ -448,9 +450,16 @@ class ExternalConsole(SpyderPluginWidget):
     edit_goto = Signal(str, int, str, bool)
     focus_changed = Signal()
     redirect_stdio = Signal(bool)
+    show_message = Signal(str, int)
+    update_plugin_title = Signal()
+    go_to_error = Signal(str)
+
     
     def __init__(self, parent, light_mode):
-        SpyderPluginWidget.__init__(self, parent)
+        if PYQT5:
+            SpyderPluginWidget.__init__(self, parent, main = parent)
+        else:
+            SpyderPluginWidget.__init__(self, parent)
         self.light_mode = light_mode
         self.tabwidget = None
         self.menu_actions = None
@@ -693,7 +702,7 @@ class ExternalConsole(SpyderPluginWidget):
         # This is a unique form of the edit_goto signal that is intended to 
         # prevent keyboard input from accidentally entering the editor
         # during repeated, rapid entry of debugging commands.    
-        self.edit_got.emit(fname, lineno, '', False)
+        self.edit_goto.emit(fname, lineno, '', False)
         if shellwidget.is_ipykernel:
             # Focus client widget, not kernel
             ipw = self.main.ipyconsole.get_focus_widget()
