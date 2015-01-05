@@ -77,7 +77,6 @@ class IPythonControlWidget(TracebackLinksMixin, InspectObjectMixin, QTextEdit,
     """
     QT_CLASS = QTextEdit
     visibility_changed = Signal(bool)
-    focus_changed = Signal()
     go_to_error = Signal(str)
     focus_changed = Signal()
     

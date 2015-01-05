@@ -192,7 +192,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     BRACE_MATCHING_SCOPE = ('sof', 'eof')
     cell_separators = None
     focus_in = Signal()
-    focus_center = Signal()
     zoom_in = Signal()
     zoom_out = Signal()
     zoom_reset = Signal()

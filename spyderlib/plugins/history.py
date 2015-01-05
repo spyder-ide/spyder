@@ -74,11 +74,7 @@ class HistoryLog(SpyderPluginWidget):
     """
     CONF_SECTION = 'historylog'
     CONFIGWIDGET_CLASS = HistoryConfigPage
-    # Signals
     focus_changed = Signal()
-    show_message = Signal(str, int)
-    update_plugin_title = Signal()
-
     
     def __init__(self, parent):
         self.tabwidget = None

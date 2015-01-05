@@ -533,7 +533,6 @@ class ExternalPythonShell(ExternalShellBase):
             envName, separator, envValue = envItem.partition('=')
             processEnvironment.insert(envName, envValue)
         self.process.setProcessEnvironment(processEnvironment)                   
-#        self.process.setEnvironment(env)
         self.process.start(self.pythonexecutable, p_args)
         #-------------------------Python specific------------------------------
             

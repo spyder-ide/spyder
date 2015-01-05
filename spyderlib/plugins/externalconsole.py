@@ -450,9 +450,6 @@ class ExternalConsole(SpyderPluginWidget):
     edit_goto = Signal((str, int, str), (str, int, str, bool))
     focus_changed = Signal()
     redirect_stdio = Signal(bool)
-    show_message = Signal(str, int)
-    update_plugin_title = Signal()
-    go_to_error = Signal(str)
     
     def __init__(self, parent, light_mode):
         if PYQT5:

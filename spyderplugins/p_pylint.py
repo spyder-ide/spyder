@@ -76,8 +76,6 @@ class Pylint(PylintWidget, SpyderPluginMixin):
     CONF_SECTION = 'pylint'
     CONFIGWIDGET_CLASS = PylintConfigPage
     edit_goto = Signal(str, int, str)
-    show_message = Signal(str, int)
-    update_plugin_title = Signal()
 
     def __init__(self, parent=None):
         PylintWidget.__init__(self, parent=parent,

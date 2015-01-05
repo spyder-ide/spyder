@@ -340,8 +340,6 @@ class Editor(SpyderPluginWidget):
     open_dir = Signal(str)
     breakpoints_saved = Signal()
     run_in_current_extconsole = Signal(str, str, str, bool)
-    show_message = Signal(str, int)
-    update_plugin_title = Signal()
     
     def __init__(self, parent, ignore_last_opened_files=False):
         if PYQT5:

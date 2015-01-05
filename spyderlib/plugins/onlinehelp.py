@@ -22,9 +22,6 @@ class OnlineHelp(PydocBrowser, SpyderPluginMixin):
     Online Help Plugin
     """
     sig_option_changed = Signal(str, object)
-    show_message = Signal(str, int)
-    update_plugin_title = Signal()
-
     CONF_SECTION = 'onlinehelp'
     LOG_PATH = get_conf_path(CONF_SECTION)
 

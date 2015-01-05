@@ -44,9 +44,7 @@ class Console(SpyderPluginWidget):
     focus_changed = Signal()
     redirect_stdio = Signal(bool)
     edit_goto = Signal(str, int, str)
-    show_message = Signal(str, int)
-    update_plugin_title = Signal()
-
+    
     def __init__(self, parent=None, namespace=None, commands=[], message=None,
                  exitfunc=None, profile=False, multithreaded=False):
         if PYQT5:

@@ -31,8 +31,6 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
     removed_tree = Signal(str)
     renamed = Signal(str, str)
     redirect_stdio = Signal(bool)
-    show_message = Signal(str, int)
-    update_plugin_title = Signal()
     
     def __init__(self, parent=None):
         ProjectExplorerWidget.__init__(self, parent=parent,

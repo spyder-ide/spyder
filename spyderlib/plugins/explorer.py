@@ -35,8 +35,6 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
     create_module = Signal(str)
     run = Signal(str)
     open_dir = Signal(str)
-    show_message = Signal(str, int)
-    update_plugin_title = Signal()
     
     def __init__(self, parent=None):
         ExplorerWidget.__init__(self, parent=parent,

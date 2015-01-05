@@ -149,8 +149,6 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
     set_explorer_cwd = Signal(str)
     refresh_findinfiles = Signal()
     set_current_console_wd = Signal(str)
-    show_message = Signal(str, int)
-    update_plugin_title = Signal()
     
     def __init__(self, parent, workdir=None, **kwds):
         if PYQT5:

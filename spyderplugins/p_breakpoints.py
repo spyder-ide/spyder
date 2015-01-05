@@ -12,8 +12,6 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-from spyderlib.qt.QtCore import Signal
-
 # Local imports
 from spyderlib.baseconfig import get_translation
 _ = get_translation("p_breakpoints", dirname="spyderplugins")
@@ -26,8 +24,6 @@ from spyderlib.py3compat import to_text_string, is_text_string
 class Breakpoints(BreakpointWidget, SpyderPluginMixin):
     """Breakpoint list"""
     CONF_SECTION = 'breakpoints'
-    show_message = Signal(str, int)
-    update_plugin_title = Signal()
 
 #    CONFIGWIDGET_CLASS = BreakpointConfigPage
     def __init__(self, parent=None):
