@@ -54,9 +54,6 @@ class Profiler(ProfilerWidget, SpyderPluginMixin):
     edit_goto = Signal(str, int, str)
     show_message = Signal(str, int)
     update_plugin_title = Signal()
-
-
-
     
     def __init__(self, parent=None):
         ProfilerWidget.__init__(self, parent=parent,

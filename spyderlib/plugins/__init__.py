@@ -18,9 +18,14 @@ These plugins inherit the following classes
 # pylint: disable=R0911
 # pylint: disable=R0201
 
+# Qt imports
+from spyderlib.qt import PYQT5
 from spyderlib.qt.QtGui import (QDockWidget, QWidget, QShortcut, QCursor,
                                 QKeySequence, QMainWindow, QApplication)
 from spyderlib.qt.QtCore import Qt, Signal
+
+# Stdlib imports
+import sys
 
 # Local imports
 from spyderlib.utils.qthelpers import toggle_actions, get_icon, create_action
@@ -30,8 +35,6 @@ from spyderlib.userconfig import NoDefault
 from spyderlib.guiconfig import get_font, set_font
 from spyderlib.plugins.configdialog import SpyderConfigPage
 from spyderlib.py3compat import configparser, is_text_string
-import sys
-from spyderlib.qt import PYQT5
 
 
 class PluginConfigPage(SpyderConfigPage):
@@ -182,8 +185,7 @@ class SpyderPluginMixin(object):
         # We decided to create our own toggle action instead of using
         # the one that comes with dockwidget because it's not possible
         # to raise and focus the plugin with it.
-        self.toggle_view_action = None
- 
+        self.toggle_view_action = None 
         
     def initialize_plugin(self):
         """Initialize plugin: connect signals, setup actions, ..."""
@@ -354,7 +356,6 @@ class SpyderPluginMixin(object):
         """Set plugin font option"""
         set_font(font, self.CONF_SECTION, option)
 
-        
     def __show_message(self, message, timeout=0):
         """Show message in main window's status bar"""
         self.main.statusBar().showMessage(message, timeout)
@@ -418,6 +419,7 @@ class SpyderPluginWidget(QWidget, SpyderPluginMixin):
     sig_option_changed = Signal(str, object)
     show_message = Signal(str, int)
     update_plugin_title = Signal()
+
     if PYQT5:
         def __init__(self, parent, **kwds):
             super().__init__(**kwds)
@@ -425,7 +427,6 @@ class SpyderPluginWidget(QWidget, SpyderPluginMixin):
         def __init__(self, parent):
             QWidget.__init__(self, parent)
             SpyderPluginMixin.__init__(self, parent)
-
         
     def get_plugin_title(self):
         """

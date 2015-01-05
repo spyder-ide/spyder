@@ -321,7 +321,6 @@ class ArrayModel(QAbstractTableModel):
         self.endResetModel()
 
 
-
 class ArrayDelegate(QItemDelegate):
     """Array Editor Item Delegate"""
     def __init__(self, dtype, parent=None):

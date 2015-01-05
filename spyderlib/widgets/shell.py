@@ -969,7 +969,6 @@ class TerminalWidget(ShellBaseWidget):
     INITHISTORY = ['%s *** Spyder Terminal History Log ***' % COM, COM,]
     SEPARATOR = '%s%s ---(%s)---' % (os.linesep*2, COM, time.ctime())
     go_to_error = Signal(str)
-
     
     def __init__(self, parent, history_filename, profile=False):
         ShellBaseWidget.__init__(self, parent, history_filename, profile)

@@ -218,7 +218,6 @@ class ReadOnlyDictModel(QAbstractTableModel):
         self.beginResetModel()
         self.endResetModel()
 
-
     def columnCount(self, qindex=QModelIndex()):
         """Array column number"""
         return 4
@@ -318,7 +317,6 @@ class ReadOnlyDictModel(QAbstractTableModel):
     def reset(self):
         self.beginResetModel()
         self.endResetModel()
-
 
 class DictModel(ReadOnlyDictModel):
     """DictEditor Table Model"""

@@ -21,6 +21,7 @@ import os.path as osp
 import sys
 
 # Qt imports
+from spyderlib.qt import PYQT5
 from spyderlib.qt.QtGui import (QVBoxLayout, QHBoxLayout, QFormLayout, 
                                 QMessageBox, QGroupBox, QDialogButtonBox,
                                 QDialog, QTabWidget, QFontComboBox, 
@@ -59,7 +60,6 @@ from spyderlib.widgets.ipython import IPythonClient
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 from spyderlib.py3compat import to_text_string, u
-from spyderlib.qt import PYQT5
 
 
 SYMPY_REQVER = '>=0.7.0'

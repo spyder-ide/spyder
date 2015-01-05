@@ -79,9 +79,6 @@ class Pylint(PylintWidget, SpyderPluginMixin):
     show_message = Signal(str, int)
     update_plugin_title = Signal()
 
-
-
-    
     def __init__(self, parent=None):
         PylintWidget.__init__(self, parent=parent,
                               max_entries=self.get_option('max_entries', 50))

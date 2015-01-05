@@ -216,7 +216,6 @@ class ShortcutsModel(QAbstractTableModel):
         self.endResetModel()
 
 
-
 class ShortcutsDelegate(QItemDelegate):
     def __init__(self, parent=None):
         QItemDelegate.__init__(self, parent)

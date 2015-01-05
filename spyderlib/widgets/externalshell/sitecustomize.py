@@ -362,7 +362,6 @@ if os.environ.get("IPYTHON_KERNEL", "").lower() == "true":
             kwargs['testRunner'] = kwargs.pop('testRunner', test_runner)
             kwargs['exit'] = False
             TestProgram.__init__(self, *args, **kwargs)
-
     unittest.main = IPyTesProgram
     
     # Pandas monkey-patches

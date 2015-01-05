@@ -11,6 +11,7 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
+from spyderlib.qt import PYQT5
 from spyderlib.qt.QtGui import (QToolBar, QLabel, QGroupBox, QVBoxLayout,
                                 QHBoxLayout, QButtonGroup)
 from spyderlib.qt.QtCore import Signal, Slot
@@ -29,7 +30,6 @@ from spyderlib.widgets.comboboxes import PathComboBox
 from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage
 from spyderlib.py3compat import to_text_string, getcwd
 
-from spyderlib.qt import PYQT5
 
 class WorkingDirectoryConfigPage(PluginConfigPage):
     def setup_page(self):
@@ -141,6 +141,7 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
     CONF_SECTION = 'workingdir'
     CONFIGWIDGET_CLASS = WorkingDirectoryConfigPage
     LOG_PATH = get_conf_path(CONF_SECTION)
+
     sig_option_changed = Signal(str, object)
     set_previous_enabled = Signal(bool)
     set_next_enabled = Signal(bool)
@@ -150,7 +151,6 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
     set_current_console_wd = Signal(str)
     show_message = Signal(str, int)
     update_plugin_title = Signal()
-
     
     def __init__(self, parent, workdir=None, **kwds):
         if PYQT5:
@@ -158,7 +158,6 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         else:
             QToolBar.__init__(self, parent)
             SpyderPluginMixin.__init__(self, parent)
-
 
         # Initialize plugin
         self.initialize_plugin()

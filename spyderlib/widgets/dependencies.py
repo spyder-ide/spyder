@@ -95,7 +95,6 @@ class DependenciesTableModel(QAbstractTableModel):
         self.endResetModel()
 
 
-
 class DependenciesDelegate(QItemDelegate):
     def __init__(self, parent=None):
         QItemDelegate.__init__(self, parent)

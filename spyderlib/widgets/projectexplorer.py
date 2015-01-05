@@ -10,6 +10,7 @@
 
 from __future__ import print_function
 
+from spyderlib.qt import PYQT5
 from spyderlib.qt.QtGui import (QVBoxLayout, QLabel, QHBoxLayout, QWidget,
                                 QFileIconProvider, QMessageBox, QInputDialog,
                                 QLineEdit, QPushButton, QHeaderView,
@@ -31,7 +32,6 @@ from spyderlib.widgets.explorer import FilteredDirView, listdir, fixpath
 from spyderlib.widgets.formlayout import fedit
 from spyderlib.widgets.pathmanager import PathManager
 from spyderlib.py3compat import to_text_string, getcwd, pickle
-from spyderlib.qt import PYQT5
 
 
 def has_children_files(path, include, exclude, show_all):

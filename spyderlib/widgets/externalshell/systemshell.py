@@ -9,8 +9,8 @@
 import os
 
 from spyderlib.qt.QtGui import QMessageBox
-from spyderlib.qt.QtCore import QProcess, Signal, QTextCodec
-from spyderlib.qt.QtCore import QProcessEnvironment
+from spyderlib.qt.QtCore import (QProcess, Signal, QTextCodec,
+                                 QProcessEnvironment)
 LOCALE_CODEC = QTextCodec.codecForLocale()
 CP850_CODEC = QTextCodec.codecForName('cp850')
 

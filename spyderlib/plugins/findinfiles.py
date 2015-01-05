@@ -31,7 +31,6 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
     redirect_stdio = Signal(bool)
     show_message = Signal(str, int)
     update_plugin_title = Signal()
-
     
     def __init__(self, parent=None):
         supported_encodings = self.get_option('supported_encodings')

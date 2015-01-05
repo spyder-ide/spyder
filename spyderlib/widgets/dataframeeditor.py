@@ -360,7 +360,6 @@ class DataFrameModel(QAbstractTableModel):
         self.endResetModel()
 
 
-
 class DataFrameView(QTableView):
     """Data Frame view class"""
     def __init__(self, parent, model):

@@ -40,7 +40,6 @@ class ExtPythonShellWidget(PythonShellWidget):
     wait_for_ready_read = Signal()
     go_to_error = Signal(str)
     focus_changed = Signal()
-
     
     def __init__(self, parent, history_filename, profile=False):
         PythonShellWidget.__init__(self, parent, history_filename, profile)

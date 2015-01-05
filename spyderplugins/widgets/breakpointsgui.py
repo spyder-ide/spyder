@@ -117,7 +117,6 @@ class BreakpointTableModel(QAbstractTableModel):
         self.beginResetModel()
         self.endResetModel()
 
-
     
 class BreakpointDelegate(QItemDelegate):
     def __init__(self, parent=None):

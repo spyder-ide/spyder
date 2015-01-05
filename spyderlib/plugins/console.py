@@ -11,6 +11,7 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
+from spyderlib.qt import PYQT5
 from spyderlib.qt.QtGui import (QVBoxLayout, QFontDialog, QInputDialog,
                                 QLineEdit, QMenu)
 from spyderlib.qt.QtCore import Signal, Slot
@@ -34,8 +35,7 @@ from spyderlib.widgets.dicteditor import DictEditor
 from spyderlib.plugins import SpyderPluginWidget
 from spyderlib.py3compat import to_text_string, getcwd
 
-from spyderlib.qt import PYQT5
-    
+
 class Console(SpyderPluginWidget):
     """
     Console widget
@@ -46,7 +46,6 @@ class Console(SpyderPluginWidget):
     edit_goto = Signal(str, int, str)
     show_message = Signal(str, int)
     update_plugin_title = Signal()
-
 
     def __init__(self, parent=None, namespace=None, commands=[], message=None,
                  exitfunc=None, profile=False, multithreaded=False):
@@ -68,7 +67,6 @@ class Console(SpyderPluginWidget):
         self.shell.status.connect(lambda msg: self.show_message.emit(msg, 0))
         self.shell.go_to_error.connect(self.go_to_error)
         self.shell.focus_changed.connect(lambda: self.focus_changed.emit())
-
 
         # Redirecting some signals:
         self.shell.redirect_stdio.connect(lambda state:
@@ -94,7 +92,6 @@ class Console(SpyderPluginWidget):
             
         # Accepting drops
         self.setAcceptDrops(True)
-
         
     #------ Private API --------------------------------------------------------
     def set_historylog(self, historylog):

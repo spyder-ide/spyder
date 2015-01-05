@@ -6,6 +6,7 @@
 
 """Console History Plugin"""
 
+from spyderlib.qt import PYQT5
 from spyderlib.qt.QtGui import (QVBoxLayout, QFontDialog, QInputDialog,
                                 QToolButton, QMenu, QFontComboBox, QGroupBox)
 from spyderlib.qt.QtCore import Signal, Slot
@@ -24,7 +25,6 @@ from spyderlib.widgets.sourcecode import codeeditor
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 from spyderlib.py3compat import to_text_string, is_text_string
-from spyderlib.qt import PYQT5
 
 
 class HistoryConfigPage(PluginConfigPage):

@@ -11,6 +11,7 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
+from spyderlib.qt import PYQT5
 from spyderlib.qt.QtGui import (QVBoxLayout, QPrintDialog, QSplitter, QToolBar,
                                 QAction, QApplication, QDialog, QWidget,
                                 QPrinter, QActionGroup, QInputDialog, QMenu,
@@ -45,7 +46,6 @@ from spyderlib.plugins.runconfig import (RunConfigDialog, RunConfigOneDialog,
                                          get_run_configuration,
                                          ALWAYS_OPEN_FIRST_RUN_OPTION)
 from spyderlib.py3compat import to_text_string, getcwd, qbytearray_to_str
-from spyderlib.qt import PYQT5
 
 
 def _load_all_breakpoints():
@@ -342,7 +342,6 @@ class Editor(SpyderPluginWidget):
     run_in_current_extconsole = Signal(str, str, str, bool)
     show_message = Signal(str, int)
     update_plugin_title = Signal()
-
     
     def __init__(self, parent, ignore_last_opened_files=False):
         if PYQT5:
@@ -2000,12 +1999,9 @@ class Editor(SpyderPluginWidget):
                 self.main.extconsole.execute_python_code(command)
             else:
                 self.main.ipyconsole.write_to_stdin(command)
-
                 focus_widget = self.main.ipyconsole.get_focus_widget()
-
                 if focus_widget:
                     focus_widget.setFocus()
-
         else:
             self.main.extconsole.execute_python_code(command)
     
