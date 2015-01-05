@@ -159,30 +159,35 @@ if os.name == 'nt': # Windows platforms
 
 
 # For our MacOs X app
-if sys.platform == 'darwin' and 'Spyder.app' in __file__:
-    interpreter = os.environ.get('SPYDER_INTERPRETER')
-    if 'Spyder.app' not in interpreter:
-        # We added this file's dir to PYTHONPATH (in pythonshell.py)
-        # so that external interpreters can import this script, and
-        # now we are removing it
-        del os.environ['PYTHONPATH']
 
-        # Add a minimal library (with spyderlib) at the end of sys.path to
-        # be able to connect our monitor to the external console
-        app_pythonpath = 'Spyder.app/Contents/Resources/lib/python2.7'
-        full_pythonpath = [p for p in sys.path if p.endswith(app_pythonpath)]
-        if full_pythonpath:
-            sys.path.remove(full_pythonpath[0])
-            sys.path.append(full_pythonpath[0] + osp.sep + 'minimal-lib')
-    else:
-        # Add missing variables and methods to the app's site module
-        import site
-        import osx_app_site
-        osx_app_site.setcopyright()
-        osx_app_site.sethelper()
-        site._Printer = osx_app_site._Printer
-        site.USER_BASE = osx_app_site.getuserbase()
-        site.USER_SITE = osx_app_site.getusersitepackages()
+if sys.platform == 'darwin':
+    from spyderlib.baseconfig import MAC_APP_NAME
+    if MAC_APP_NAME in __file__:
+        interpreter = os.environ.get('SPYDER_INTERPRETER')
+        if MAC_APP_NAME not in interpreter:
+            # We added this file's dir to PYTHONPATH (in pythonshell.py)
+            # so that external interpreters can import this script, and
+            # now we are removing it
+            del os.environ['PYTHONPATH']
+
+            # Add a minimal library (with spyderlib) at the end of sys.path to
+            # be able to connect our monitor to the external console
+            py_ver = '%s.%s' % (sys.version_info[0], sys.version_info[1])
+            app_pythonpath = '%s/Contents/Resources/lib/python%s' (MAC_APP_NAME,
+                                                                   py_ver)
+            full_pythonpath = [p for p in sys.path if p.endswith(app_pythonpath)]
+            if full_pythonpath:
+                sys.path.remove(full_pythonpath[0])
+                sys.path.append(full_pythonpath[0] + osp.sep + 'minimal-lib')
+        else:
+            # Add missing variables and methods to the app's site module
+            import site
+            import osx_app_site
+            osx_app_site.setcopyright()
+            osx_app_site.sethelper()
+            site._Printer = osx_app_site._Printer
+            site.USER_BASE = osx_app_site.getuserbase()
+            site.USER_SITE = osx_app_site.getusersitepackages()
 
 
 mpl_backend = os.environ.get("MATPLOTLIB_BACKEND")
@@ -360,14 +365,17 @@ if os.environ.get("IPYTHON_KERNEL", "").lower() == "true":
 
     unittest.main = IPyTesProgram
     
-    # Patch a Pandas function to make it recognize our IPython consoles as
-    # proper qtconsoles
-    # Fixes Issue 2015
+    # Pandas monkey-patches
     try:
+        # Make Pandas recognize our IPython consoles as proper qtconsoles
+        # Fixes Issue 2015
         def in_qtconsole():
             return True
         import pandas as pd
         pd.core.common.in_qtconsole = in_qtconsole
+        
+        # Set Pandas output encoding
+        pd.options.display.encoding = 'utf-8'
     except:
         pass
         

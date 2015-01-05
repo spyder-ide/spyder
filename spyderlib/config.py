@@ -167,6 +167,7 @@ DEFAULTS = [
               'vertical_dockwidget_titlebars': False,
               'vertical_tabs': False,
               'animated_docks': True,
+              'prompt_on_exit': False,
               'window/size': (1260, 740),
               'window/position': (10, 10),
               'window/is_maximized': True,
@@ -240,8 +241,7 @@ DEFAULTS = [
               'show_elapsed_time': False,
               'show_icontext': False,
               'monitor/enabled': True,
-              'qt/install_inputhook': os.name == 'nt' \
-                                      or os.environ.get('QT_API') == 'pyside',
+              'qt/install_inputhook': True,
               'qt/api': 'default',
               'pyqt/api_version': 2,
               'pyqt/ignore_sip_setapi_errors': False,
@@ -434,8 +434,7 @@ DEFAULTS = [
               'wrap': True,
               'name_filters': NAME_FILTERS,
               'show_hidden': True,
-              'show_all': False,
-              'show_toolbar': True,
+              'show_all': True,
               'show_icontext': False,
               }),
             ('find_in_files',
@@ -517,6 +516,7 @@ DEFAULTS = [
               'editor/file list management': 'Ctrl+E',
               'editor/go to previous file': 'Ctrl+Tab',
               'editor/go to next file': 'Ctrl+Shift+Tab',
+              'editor/close file': "Ctrl+F4" if os.name == 'nt' else "Ctrl+W",
               # -- In spyder.py
               'editor/find text': "Ctrl+F",
               'editor/find next': "F3",
@@ -530,7 +530,6 @@ DEFAULTS = [
               'editor/save file': "Ctrl+S",
               'editor/save all': "Ctrl+Shift+S",
               'editor/print': "Ctrl+P",
-              'editor/close file': "Ctrl+F4" if os.name == 'nt' else "Ctrl+W",
               'editor/close all': "Ctrl+Shift+W",
               'editor/breakpoint': 'F12',
               'editor/conditional breakpoint': 'Shift+F12',
@@ -715,7 +714,7 @@ DEFAULTS = [
 # 2. If you want to *remove* options that are no longer needed in our codebase,
 #    you need to do a MAJOR update in version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '10.0.0'
+CONF_VERSION = '11.2.0'
 
 # XXX: Previously we had load=(not DEV) here but DEV was set to *False*.
 # Check if it *really* needs to be updated or not

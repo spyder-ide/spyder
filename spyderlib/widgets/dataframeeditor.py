@@ -17,7 +17,8 @@ from spyderlib.qt.QtCore import QAbstractTableModel, Qt, QModelIndex, Slot
 from spyderlib.qt.QtGui import (QDialog, QTableView, QColor, QGridLayout,
                                 QDialogButtonBox, QHBoxLayout, QPushButton,
                                 QCheckBox, QMessageBox, QInputDialog,
-                                QLineEdit, QApplication, QMenu)
+                                QLineEdit, QApplication, QMenu, QShortcut,
+                                QKeySequence)
 from spyderlib.qt.compat import to_qvariant, from_qvariant
 from spyderlib.utils.qthelpers import (qapplication, get_icon, create_action,
                                        add_actions, keybinding)
@@ -38,7 +39,9 @@ _sup_com = (complex, np.complex64, np.complex128)
 _bool_false = ['false', '0']
 
 
+LARGE_SIZE = 5e5
 LARGE_NROWS = 1e5
+LARGE_COLS = 60
 
 
 def bool_false_check(value):
@@ -61,15 +64,20 @@ class DataFrameModel(QAbstractTableModel):
     """ DataFrame Table Model"""
     
     ROWS_TO_LOAD = 500
+    COLS_TO_LOAD = 40
     
     def __init__(self, dataFrame, format="%.3g", parent=None):
         QAbstractTableModel.__init__(self)
         self.dialog = parent
         self.df = dataFrame
         self.df_index = dataFrame.index.tolist()
+        self.df_header = dataFrame.columns.tolist()
         self._format = format
-        self.bgcolor_enabled = True
         self.complex_intran = None
+        
+        self.total_rows = self.df.shape[0]
+        self.total_cols = self.df.shape[1]
+        size = self.total_rows * self.total_cols
 
         huerange = [.66, .99]  # Hue
         self.sat = .7  # Saturation
@@ -78,16 +86,30 @@ class DataFrameModel(QAbstractTableModel):
         self.hue0 = huerange[0]
         self.dhue = huerange[1]-huerange[0]
         self.max_min_col = None
-        self.max_min_col_update()
-        self.colum_avg_enabled = True
-        self.colum_avg(1)
-
-        # To define paging when the number of rows is large
-        self.total_rows = self.df.shape[0]
-        if self.total_rows > LARGE_NROWS:
-            self.rows_loaded = self.ROWS_TO_LOAD
+        if size < LARGE_SIZE:
+            self.max_min_col_update()
+            self.colum_avg_enabled = True
+            self.bgcolor_enabled = True
+            self.colum_avg(1)
         else:
-            self.rows_loaded = self.total_rows
+            self.colum_avg_enabled = False
+            self.bgcolor_enabled = False
+            self.colum_avg(0)
+
+        # Use paging when the total size, number of rows or number of
+        # columns is too large
+        if size > LARGE_SIZE:
+            self.rows_loaded = self.ROWS_TO_LOAD
+            self.cols_loaded = self.COLS_TO_LOAD
+        else:
+            if self.total_rows > LARGE_NROWS:
+                self.rows_loaded = self.ROWS_TO_LOAD
+            else:
+                self.rows_loaded = self.total_rows
+            if self.total_cols > LARGE_COLS:
+                self.cols_loaded = self.COLS_TO_LOAD
+            else:
+                self.cols_loaded = self.total_cols
 
     def max_min_col_update(self):
         """Determines the maximum and minimum number in each column"""
@@ -100,7 +122,10 @@ class DataFrameModel(QAbstractTableModel):
             self.complex_intran = self.df.applymap(lambda e:
                                                    isinstance(e, _sup_com))
             mask = float_intran & (~ self.complex_intran)
-            df_abs = self.df[self.complex_intran].abs()
+            try:
+                df_abs = self.df[self.complex_intran].abs()
+            except TypeError:
+                df_abs = self.df[self.complex_intran]
             max_c = df_abs.max(skipna=True)
             min_c = df_abs.min(skipna=True)
             df_real = self.df[mask]
@@ -146,8 +171,7 @@ class DataFrameModel(QAbstractTableModel):
             if section == 0:
                 return 'Index'
             else:
-                return to_qvariant(to_text_string(self.df.columns.tolist()
-                                                  [section-1]))
+                return to_qvariant(to_text_string(self.df_header[section-1]))
         else:
             return to_qvariant()
 
@@ -292,29 +316,44 @@ class DataFrameModel(QAbstractTableModel):
             return self.total_rows
         else:
             return self.rows_loaded
-    
-    def canFetchMore(self, index=QModelIndex()):
-        if self.total_rows > self.rows_loaded:
-            return True
-        else:
-            return False
- 
-    def fetchMore(self, index=QModelIndex()):
-        reminder = self.total_rows - self.rows_loaded
-        items_to_fetch = min(reminder, self.ROWS_TO_LOAD)
-        self.beginInsertRows(QModelIndex(), self.rows_loaded,
-                             self.rows_loaded + items_to_fetch - 1)
-        self.rows_loaded += items_to_fetch
-        self.endInsertRows()
+
+    def can_fetch_more(self, rows=False, columns=False):
+        if rows:
+            if self.total_rows > self.rows_loaded:
+                return True
+            else:
+                return False
+        if columns:
+            if self.total_cols > self.cols_loaded:
+                return True
+            else:
+                return False
+
+    def fetch_more(self, rows=False, columns=False):
+        if self.can_fetch_more(rows=rows):
+            reminder = self.total_rows - self.rows_loaded
+            items_to_fetch = min(reminder, self.ROWS_TO_LOAD)
+            self.beginInsertRows(QModelIndex(), self.rows_loaded,
+                                 self.rows_loaded + items_to_fetch - 1)
+            self.rows_loaded += items_to_fetch
+            self.endInsertRows()
+        if self.can_fetch_more(columns=columns):
+            reminder = self.total_cols - self.cols_loaded
+            items_to_fetch = min(reminder, self.COLS_TO_LOAD)
+            self.beginInsertColumns(QModelIndex(), self.cols_loaded,
+                                    self.cols_loaded + items_to_fetch - 1)
+            self.cols_loaded += items_to_fetch
+            self.endInsertColumns()
 
     def columnCount(self, index=QModelIndex()):
         """DataFrame column number"""
-        shape = self.df.shape
         # This is done to implement timeseries
-        if len(shape) == 1:
+        if len(self.df.shape) == 1:
             return 2
+        elif self.total_cols <= self.cols_loaded:
+            return self.total_cols + 1
         else:
-            return shape[1]+1
+            return self.cols_loaded + 1
 
     def reset(self):
         self.beginResetModel()
@@ -332,6 +371,19 @@ class DataFrameView(QTableView):
         self.header_class = self.horizontalHeader()
         self.header_class.sectionClicked.connect(self.sortByColumn)
         self.menu = self.setup_menu()
+        copy_sc = QShortcut(QKeySequence(QKeySequence.Copy), self,
+                            self.copy)
+        copy_sc.setContext(Qt.WidgetWithChildrenShortcut)
+        self.horizontalScrollBar().valueChanged.connect(
+                            lambda val: self.load_more_data(val, columns=True))
+        self.verticalScrollBar().valueChanged.connect(
+                               lambda val: self.load_more_data(val, rows=True))
+    
+    def load_more_data(self, value, rows=False, columns=False):
+        if rows and value == self.verticalScrollBar().maximum():
+            self.model().fetch_more(rows=rows)
+        if columns and value == self.horizontalScrollBar().maximum():
+            self.model().fetch_more(columns=columns)
 
     def sortByColumn(self, index):
         """ Implement a Column sort """
@@ -379,10 +431,11 @@ class DataFrameView(QTableView):
         [model.setData(i, '', change_type=func) for i in index_list]
 
     @Slot()
-    def copy(self, index=False, header=False):
+    def copy(self):
         """Copy text to clipboard"""
         (row_min, row_max,
          col_min, col_max) = get_idx_rect(self.selectedIndexes())
+        index = header = False
         if col_min == 0:
             col_min = 1
             index = True
@@ -391,7 +444,7 @@ class DataFrameView(QTableView):
             contents = '\n'.join(map(str, df.index.tolist()[slice(row_min,
                                                             row_max+1)]))
         else:  # To copy DataFrame
-            if df.shape[0] == row_max+1 and row_min == 0:
+            if (col_min == 0 or col_min == 1) and (df.shape[1] == col_max):
                 header = True
             obj = df.iloc[slice(row_min, row_max+1), slice(col_min-1, col_max)]
             output = io.StringIO()

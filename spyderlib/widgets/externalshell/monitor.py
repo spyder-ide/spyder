@@ -23,7 +23,7 @@ from spyderlib.baseconfig import get_conf_path, get_supported_types, DEBUG
 from spyderlib.py3compat import getcwd, is_text_string, pickle, _thread
 
 
-SUPPORTED_TYPES = get_supported_types()
+SUPPORTED_TYPES = {}
 
 LOG_FILENAME = get_conf_path('monitor.log')
 
@@ -48,6 +48,9 @@ def get_remote_data(data, settings, mode, more_excluded_names=None):
         * more_excluded_names: additional excluded names (list)
     """
     from spyderlib.widgets.dicteditorutils import globalsfilter
+    global SUPPORTED_TYPES
+    if not SUPPORTED_TYPES:
+        SUPPORTED_TYPES = get_supported_types()
     assert mode in list(SUPPORTED_TYPES.keys())
     excluded_names = settings['excluded_names']
     if more_excluded_names is not None:

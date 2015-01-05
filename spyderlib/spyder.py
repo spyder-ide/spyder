@@ -39,35 +39,6 @@ ORIGINAL_SYS_EXIT = sys.exit
 
 
 #==============================================================================
-# Test if IPython v0.13+ is installed to eventually switch to PyQt API #2
-#==============================================================================
-from spyderlib.baseconfig import _
-from spyderlib.ipythonconfig import IPYTHON_QT_INSTALLED, SUPPORTED_IPYTHON
-from spyderlib import dependencies
-
-dependencies.add("IPython", _("IPython Console integration"),
-                 required_version=SUPPORTED_IPYTHON)
-dependencies.add("zmq", _("IPython Console integration"),
-                 required_version='>=2.1.11')
-
-if IPYTHON_QT_INSTALLED:
-    # Importing IPython will eventually set the QT_API environment variable
-    import IPython  # analysis:ignore
-    if os.environ.get('QT_API', 'pyqt') == 'pyqt':
-        # If PyQt is the selected GUI toolkit (at this stage, only the
-        # bootstrap script has eventually set this option), switch to 
-        # PyQt API #2 by simply importing the IPython qt module
-        os.environ['QT_API'] = 'pyqt'
-        try:
-            from IPython.external import qt  #analysis:ignore
-        except ImportError:
-            # Avoid raising any error here: the spyderlib.requirements module
-            # will take care of it, in a user-friendly way (Tkinter message box
-            # if no GUI toolkit is installed)
-            pass
-
-
-#==============================================================================
 # Check requirements
 #==============================================================================
 from spyderlib import requirements
@@ -76,7 +47,7 @@ requirements.check_qt()
 
 
 #==============================================================================
-# Windows platforms only: support for hiding the attached console window
+# Windows only: support for hiding console window when started with python.exe
 #==============================================================================
 set_attached_console_visible = None
 is_attached_console_visible = None
@@ -116,9 +87,7 @@ from spyderlib.qt import QtSvg  # analysis:ignore
 
 
 #==============================================================================
-# Initial splash screen to reduce perceived startup time. 
-# It blends with the one of MainWindow (i.e. self.splash) and it's hidden
-# just before that one.
+# Splash screen 
 #==============================================================================
 from spyderlib.baseconfig import _, get_image_path
 SPLASH_APP = QApplication([''])
@@ -138,9 +107,12 @@ QApplication.processEvents()
 from spyderlib import __version__, __project_url__, __forum_url__, get_versions
 from spyderlib.baseconfig import (get_conf_path, get_module_data_path,
                                   get_module_source_path, STDERR, DEBUG, DEV,
-                                  debug_print, TEST, SUBFOLDER)
+                                  debug_print, TEST, SUBFOLDER, MAC_APP_NAME,
+                                  running_in_mac_app)
 from spyderlib.config import CONF, EDIT_EXT, IMPORT_EXT, OPEN_FILES_PORT
 from spyderlib.cli_options import get_options
+from spyderlib import dependencies
+from spyderlib.ipythonconfig import IPYTHON_QT_INSTALLED
 from spyderlib.userconfig import NoDefault
 from spyderlib.utils import encoding, programs
 from spyderlib.utils.iofuncs import load_session, save_session, reset_session
@@ -1171,11 +1143,11 @@ class MainWindow(QMainWindow):
         # In MacOS X 10.7 our app is not displayed after initialized (I don't
         # know why because this doesn't happen when started from the terminal),
         # so we need to resort to this hack to make it appear.
-        if sys.platform == 'darwin' and 'Spyder.app' in __file__:
+        if running_in_mac_app():
             import subprocess
-            idx = __file__.index('Spyder.app')
+            idx = __file__.index(MAC_APP_NAME)
             app_path = __file__[:idx]
-            subprocess.call(['open', app_path + 'Spyder.app'])
+            subprocess.call(['open', app_path + MAC_APP_NAME])
 
         # Server to maintain just one Spyder instance and open files in it if
         # the user tries to start other instances with
@@ -1200,9 +1172,10 @@ class MainWindow(QMainWindow):
         self.extconsole.setMinimumHeight(0)
         
         if not self.light:
-            # Hide Internal Console so that people doesn't use it instead of
+            # Hide Internal Console so that people don't use it instead of
             # the External or IPython ones
             if self.console.dockwidget.isVisible() and DEV is None:
+                self.console.toggle_view_action.setChecked(False)
                 self.console.dockwidget.hide()
         
             # Show the Object Inspector and Consoles by default
@@ -1619,6 +1592,12 @@ class MainWindow(QMainWindow):
         """Exit tasks"""
         if self.already_closed or self.is_starting_up:
             return True
+        if cancelable and CONF.get('main', 'prompt_on_exit'):
+            reply = QMessageBox.critical(self, 'Spyder',
+                                         'Do you really want to exit?',
+                                         QMessageBox.Yes, QMessageBox.No)
+            if reply == QMessageBox.No:
+                return False
         prefix = ('lightwindow' if self.light else 'window') + '/'
         self.save_current_window_settings(prefix)
         if CONF.get('main', 'single_instance'):
@@ -1930,9 +1909,6 @@ Please provide any additional information below.
         console.execute_python_code(lines)
         if focus_to_editor:
             self.editor.visibility_changed(True)
-
-    def new_file(self, text):
-        self.editor.new(text=text)
         
     def open_file(self, fname, external=False):
         """
@@ -2282,7 +2258,7 @@ def run_spyder(app, options, args):
             main.open_external_file(a)
 
     # Open external files with our Mac app
-    if sys.platform == "darwin" and 'Spyder.app' in __file__:
+    if running_in_mac_app():
         app.sig_open_external_file.connect(main.open_external_file)
     
     # To give focus again to the last focused widget after restoring

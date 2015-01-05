@@ -20,7 +20,7 @@ import time
 # Qt imports
 from spyderlib.qt.QtGui import (QTextEdit, QKeySequence, QWidget, QMenu,
                                 QHBoxLayout, QToolButton, QVBoxLayout,
-                                QMessageBox)
+                                QMessageBox, QShortcut)
 from spyderlib.qt.QtCore import Signal, Slot, Qt
 
 from spyderlib import pygments_patch
@@ -29,8 +29,10 @@ pygments_patch.apply()
 # IPython imports
 try:  # 1.0
     from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
+    from IPython.qt.console.ansi_code_processor import ANSI_OR_SPECIAL_PATTERN
 except ImportError: # 0.13
     from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
+    from IPython.frontend.qt.console.ansi_code_processor import ANSI_OR_SPECIAL_PATTERN
 from IPython.core.application import get_ipython_dir
 from IPython.core.oinspect import call_tip
 from IPython.config.loader import Config, load_pyconfig_files
@@ -49,6 +51,7 @@ from spyderlib.widgets.browser import WebView
 from spyderlib.widgets.calltip import CallTipWidget
 from spyderlib.widgets.mixins import (BaseEditMixin, InspectObjectMixin,
                                       SaveHistoryMixin, TracebackLinksMixin)
+
 
 #-----------------------------------------------------------------------------
 # Templates
@@ -174,6 +177,7 @@ class IPythonShellWidget(RichIPythonWidget):
     to provide missing functionality and a couple more keyboard shortcuts.
     """
     focus_changed = Signal()
+    new_client = Signal()
     
     def __init__(self, *args, **kw):
         # To override the Qt widget used by RichIPythonWidget
@@ -256,7 +260,10 @@ These commands were executed:
         """
         if self._reading:
             if programs.is_module_installed('IPython', '>=1.0'):
-                self.kernel_client.stdin_channel.input(line)
+                try:
+                    self.kernel_client.stdin_channel.input(line)
+                except AttributeError:
+                    self.kernel_client.input(line)
             else:
                 self.kernel_manager.stdin_channel.input(line)
     
@@ -271,7 +278,33 @@ These commands were executed:
                                   parent=self)
         clear_console = create_shortcut(self.clear_console, context='Console',
                                         name='Clear shell', parent=self)
+
+        # Fixed shortcuts
+        create_client = QShortcut(QKeySequence("Ctrl+T"), self,
+                                  lambda: self.new_client.emit())
+        create_client.setContext(Qt.WidgetWithChildrenShortcut)
+
         return [inspect, clear_console]
+    
+    def get_signature(self, content):
+        """Get signature from inspect reply content"""
+        data = content.get('data', {})
+        text = data.get('text/plain', '')
+        if text:
+            text = ANSI_OR_SPECIAL_PATTERN.sub('', text)
+            line = self._control.get_current_line_to_cursor()
+            name = line[:-1].split('.')[-1]
+            argspec = getargspecfromtext(text)
+            if argspec:
+                # This covers cases like np.abs, whose docstring is
+                # the same as np.absolute and because of that a proper
+                # signature can't be obtained correctly
+                signature = name + argspec
+            else:
+                signature = getsignaturefromtext(text, name)
+            return signature
+        else:
+            return ''
 
     #---- IPython private methods ---------------------------------------------
     def _context_menu_make(self, pos):
@@ -293,23 +326,16 @@ These commands were executed:
     def _handle_object_info_reply(self, rep):
         """
         Reimplement call tips to only show signatures, using the same style
-        from our Editor and External Console too.
+        from our Editor and External Console too
+        Note: For IPython 2-
         """
         self.log.debug("oinfo: %s", rep.get('content', ''))
         cursor = self._get_cursor()
         info = self._request_info.get('call_tip')
         if info and info.id == rep['parent_header']['msg_id'] and \
-                info.pos == cursor.position():
-            # Get the information for a call tip.  For now we format the call
-            # line as string, later we can pass False to format_call and
-            # syntax-highlight it ourselves for nicer formatting in the
-            # calltip.
+          info.pos == cursor.position():
             content = rep['content']
-            # if this is from pykernel, 'docstring' will be the only key
             if content.get('ismagic', False):
-                # Don't generate a call-tip for magics. Ideally, we should
-                # generate a tooltip, but not on ( like we do for actual
-                # callables.
                 call_info, doc = None, None
             else:
                 call_info, doc = call_tip(content, format_call=True)
@@ -326,6 +352,23 @@ These commands were executed:
             if call_info:
                 self._control.show_calltip(_("Arguments"), call_info,
                                            signature=True, color='#2D62FF')
+
+    def _handle_inspect_reply(self, rep):
+        """
+        Reimplement call tips to only show signatures, using the same style
+        from our Editor and External Console too
+        Note: For IPython 3+
+        """
+        cursor = self._get_cursor()
+        info = self._request_info.get('call_tip')
+        if info and info.id == rep['parent_header']['msg_id'] and \
+          info.pos == cursor.position():
+            content = rep['content']
+            if content.get('status') == 'ok' and content.get('found', False):
+                signature = self.get_signature(content)
+                if signature:
+                    self._control.show_calltip(_("Arguments"), signature,
+                                               signature=True, color='#2D62FF')
     
     #---- Qt methods ----------------------------------------------------------
     def focusInEvent(self, event):
@@ -354,7 +397,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
     SEPARATOR = '%s##---(%s)---' % (os.linesep*2, time.ctime())
     append_to_history = Signal(str, str)
     
-    def __init__(self, plugin, history_filename, connection_file=None, 
+    def __init__(self, plugin, name, history_filename, connection_file=None, 
                  hostname=None, sshkey=None, password=None, 
                  kernel_widget_id=None, menu_actions=None):
         super(IPythonClient, self).__init__(plugin)
@@ -370,7 +413,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         self.hostname = hostname
         self.sshkey = sshkey
         self.password = password
-        self.name = ''
+        self.name = name
         self.get_option = plugin.get_option
         self.shellwidget = IPythonShellWidget(config=self.shellwidget_config(),
                                               local_kernel=False)
@@ -473,7 +516,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
     def get_name(self):
         """Return client name"""
         return ((_("Console") if self.hostname is None else self.hostname)
-            + " " + self.name)
+                + " " + self.name)
     
     def get_control(self):
         """Return the text widget (or similar) to give focus to"""
@@ -486,14 +529,17 @@ class IPythonClient(QWidget, SaveHistoryMixin):
 
     def get_options_menu(self):
         """Return options menu"""
-        self.restart_action = create_action(self, _("Restart kernel"),
-                                            icon=get_icon('restart.png'),
-                                            triggered=self.restart_kernel)
+        restart_action = create_action(self, _("Restart kernel"),
+                                       shortcut=QKeySequence("Ctrl+."),
+                                       icon=get_icon('restart.png'),
+                                       triggered=self.restart_kernel)
+        restart_action.setShortcutContext(Qt.WidgetWithChildrenShortcut)
+        
         # Main menu
         if self.menu_actions is not None:
-            actions = [self.restart_action, None] + self.menu_actions
+            actions = [restart_action, None] + self.menu_actions
         else:
-            actions = [self.restart_action]
+            actions = [restart_action]
         return actions
     
     def get_toolbar_buttons(self):

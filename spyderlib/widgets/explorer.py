@@ -13,6 +13,7 @@
 
 from __future__ import with_statement
 
+from spyderlib.qt import is_pyqt46
 from spyderlib.qt.QtGui import (QVBoxLayout, QLabel, QHBoxLayout, QInputDialog,
                                 QFileSystemModel, QMenu, QWidget, QToolButton,
                                 QLineEdit, QMessageBox, QToolBar, QTreeView,
@@ -29,7 +30,7 @@ import shutil
 
 # Local imports
 from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions,
-                                       file_uri)
+                                       file_uri, get_std_icon)
 from spyderlib.utils import misc, encoding, programs, vcs
 from spyderlib.baseconfig import _
 from spyderlib.py3compat import to_text_string, getcwd, str_lower
@@ -92,7 +93,6 @@ class DirView(QTreeView):
         super(DirView, self).__init__(parent)
         self.name_filters = None
         self.parent_widget = parent
-        self.valid_types = None
         self.show_all = None
         self.menu = None
         self.common_actions = None
@@ -117,7 +117,8 @@ class DirView(QTreeView):
     def setup_view(self):
         """Setup view"""
         self.install_model()
-        self.fsmodel.directoryLoaded.connect(
+        if not is_pyqt46:
+            self.fsmodel.directoryLoaded.connect(
                                         lambda: self.resizeColumnToContents(0))
         self.setAnimated(False)
         self.setSortingEnabled(True)
@@ -161,13 +162,11 @@ class DirView(QTreeView):
                 return osp.dirname(fname)
         
     #---- Tree view widget
-    def setup(self, name_filters=['*.py', '*.pyw'],
-              valid_types= ('.py', '.pyw'), show_all=False):
+    def setup(self, name_filters=['*.py', '*.pyw'], show_all=False):
         """Setup tree widget"""
         self.setup_view()
         
         self.set_name_filters(name_filters)
-        self.valid_types = valid_types
         self.show_all = show_all
         
         # Setup context menu
@@ -240,8 +239,7 @@ class DirView(QTreeView):
                             for _fn in fnames])
         only_notebooks = all([osp.splitext(_fn)[1] == '.ipynb'
                               for _fn in fnames])
-        only_valid = all([osp.splitext(_fn)[1] in self.valid_types
-                          for _fn in fnames])
+        only_valid = all([encoding.is_text_file(_fn) for _fn in fnames])
         run_action = create_action(self, _("Run"), icon="run_small.png",
                                    triggered=self.run)
         edit_action = create_action(self, _("Edit"), icon="edit.png",
@@ -299,12 +297,12 @@ class DirView(QTreeView):
         else:
             _title = _("Open terminal here")
         action = create_action(self, _title, icon="cmdprompt.png",
-                               triggered=lambda fnames=fnames:
+                               triggered=lambda:
                                self.open_terminal(fnames))
         actions.append(action)
         _title = _("Open Python console here")
         action = create_action(self, _title, icon="python.png",
-                               triggered=lambda fnames=fnames:
+                               triggered=lambda:
                                self.open_interpreter(fnames))
         actions.append(action)
         return actions
@@ -427,8 +425,7 @@ class DirView(QTreeView):
         if fnames is None:
             fnames = self.get_selected_filenames()
         for fname in fnames:
-            ext = osp.splitext(fname)[1]
-            if osp.isfile(fname) and ext in self.valid_types:
+            if osp.isfile(fname) and encoding.is_text_file(fname):
                 self.parent_widget.sig_open_file.emit(fname)
             else:
                 self.open_outside_spyder([fname])
@@ -516,11 +513,18 @@ class DirView(QTreeView):
         """Convert an IPython notebook to a Python script in editor"""
         if nbformat is not None:
             # Use writes_py if nbconvert is not available.
-            if nbexporter is None:
-                script = nbformat.current.writes_py(nbformat.current.read(
-                                                    open(fname, 'r'), 'ipynb'))
-            else:
-                script = nbexporter().from_filename(fname)[0]
+            try: 
+                if nbexporter is None:
+                    nb = nbformat.current.read(open(fname, 'r'), 'ipynb')
+                    script = nbformat.current.writes_py(nb)
+                else:
+                    script = nbexporter().from_filename(fname)[0]
+            except Exception as e:
+                QMessageBox.critical(self, _('Conversion error'), 
+                                     _("It was not possible to convert this "
+                                     "notebook. The error is:\n\n") + \
+                                     to_text_string(e))
+                return
             self.parent_widget.sig_new_file.emit(script)
 
     @Slot()
@@ -748,7 +752,7 @@ class DirView(QTreeView):
                     self._to_be_loaded = []
                 self._to_be_loaded.append(path)
                 self.setExpanded(self.get_index(path), True)
-        if not self.__expanded_state:
+        if not self.__expanded_state and not is_pyqt46:
             self.fsmodel.directoryLoaded.disconnect(self.restore_directory_state)
                 
     def follow_directories_loaded(self, fname):
@@ -758,7 +762,8 @@ class DirView(QTreeView):
         path = osp.normpath(to_text_string(fname))
         if path in self._to_be_loaded:
             self._to_be_loaded.remove(path)
-        if self._to_be_loaded is not None and len(self._to_be_loaded) == 0:
+        if self._to_be_loaded is not None and len(self._to_be_loaded) == 0 \
+          and not is_pyqt46:
             self.fsmodel.directoryLoaded.disconnect(
                                         self.follow_directories_loaded)
             if self._scrollbar_positions is not None:
@@ -769,7 +774,7 @@ class DirView(QTreeView):
         """Restore all items expanded state"""
         if self.__expanded_state is not None:
             # In the old project explorer, the expanded state was a dictionnary:
-            if isinstance(self.__expanded_state, list):
+            if isinstance(self.__expanded_state, list) and not is_pyqt46:
                 self.fsmodel.directoryLoaded.connect(
                                                   self.restore_directory_state)
                 self.fsmodel.directoryLoaded.connect(
@@ -993,30 +998,26 @@ class ExplorerWidget(QWidget):
     sig_option_changed = Signal(str, object)
     sig_open_file = Signal(str)
     sig_new_file = Signal(str)
+    redirect_stdio = Signal(bool)
     
     def __init__(self, parent=None, name_filters=['*.py', '*.pyw'],
-                 valid_types=('.py', '.pyw'), show_all=False,
-                 show_cd_only=None, show_toolbar=True, show_icontext=True):
+                 show_all=False, show_cd_only=None, show_icontext=True):
         QWidget.__init__(self, parent)
         
         self.treewidget = ExplorerTreeWidget(self, show_cd_only=show_cd_only)
-        self.treewidget.setup(name_filters=name_filters,
-                              valid_types=valid_types, show_all=show_all)
+        self.treewidget.setup(name_filters=name_filters, show_all=show_all)
         self.treewidget.chdir(getcwd())
         
-        toolbar_action = create_action(self, _("Show toolbar"),
-                                       toggled=self.toggle_toolbar)
         icontext_action = create_action(self, _("Show icons and text"),
                                         toggled=self.toggle_icontext)
-        self.treewidget.common_actions += [None,
-                                           toolbar_action, icontext_action]
+        self.treewidget.common_actions += [None, icontext_action]
         
         # Setup toolbar
         self.toolbar = QToolBar(self)
         self.toolbar.setIconSize(QSize(16, 16))
         
         self.previous_action = create_action(self, text=_("Previous"),
-                            icon=get_icon('previous.png'),
+                            icon=get_std_icon("ArrowBack"),
                             triggered=self.treewidget.go_to_previous_directory)
         self.toolbar.addAction(self.previous_action)
         self.previous_action.setEnabled(False)
@@ -1024,16 +1025,17 @@ class ExplorerWidget(QWidget):
                                                self.previous_action.setEnabled)
         
         self.next_action = create_action(self, text=_("Next"),
-                            icon=get_icon('next.png'),
+                            icon=get_std_icon("ArrowForward"),
                             triggered=self.treewidget.go_to_next_directory)
         self.toolbar.addAction(self.next_action)
         self.next_action.setEnabled(False)
         self.treewidget.set_next_enabled.connect(self.next_action.setEnabled)
         
         parent_action = create_action(self, text=_("Parent"),
-                            icon=get_icon('up.png'),
+                            icon=get_std_icon("ArrowUp"),
                             triggered=self.treewidget.go_to_parent_directory)
         self.toolbar.addAction(parent_action)
+        self.toolbar.addSeparator()
 
         options_action = create_action(self, text='', tip=_("Options"),
                                        icon=get_icon('tooloptions.png'))
@@ -1044,8 +1046,6 @@ class ExplorerWidget(QWidget):
         add_actions(menu, self.treewidget.common_actions)
         options_action.setMenu(menu)
             
-        toolbar_action.setChecked(show_toolbar)
-        self.toggle_toolbar(show_toolbar)   
         icontext_action.setChecked(show_icontext)
         self.toggle_icontext(show_icontext)     
         
@@ -1055,21 +1055,16 @@ class ExplorerWidget(QWidget):
         self.setLayout(vlayout)
 
     @Slot(bool)
-    def toggle_toolbar(self, state):
-        """Toggle toolbar"""
-        self.sig_option_changed.emit('show_toolbar', state)
-        self.toolbar.setVisible(state)
-
-    @Slot(bool)
     def toggle_icontext(self, state):
         """Toggle icon text"""
         self.sig_option_changed.emit('show_icontext', state)
         for action in self.toolbar.actions():
-            widget = self.toolbar.widgetForAction(action)
-            if state:
-                widget.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
-            else:
-                widget.setToolButtonStyle(Qt.ToolButtonIconOnly)
+            if not action.isSeparator():
+                widget = self.toolbar.widgetForAction(action)
+                if state:
+                    widget.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
+                else:
+                    widget.setToolButtonStyle(Qt.ToolButtonIconOnly)
 
 
 class FileExplorerTest(QWidget):

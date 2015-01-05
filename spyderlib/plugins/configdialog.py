@@ -7,9 +7,8 @@
 """Configuration dialog / Preferences"""
 
 import os.path as osp
-import sys
 
-from spyderlib.baseconfig import _
+from spyderlib.baseconfig import _, running_in_mac_app
 from spyderlib.config import CONF
 from spyderlib.guiconfig import (CUSTOM_COLOR_SCHEME_NAME,
                                  set_default_color_scheme)
@@ -683,12 +682,13 @@ class MainConfigPage(GeneralConfigPage):
         margins_layout = QHBoxLayout()
         margins_layout.addWidget(margin_box)
         margins_layout.addWidget(margin_spin)
+        prompt_box = newcb(_("Prompt when exiting"), 'prompt_on_exit')
 
         # Decide if it's possible to activate or not singie instance mode
-        if sys.platform == "darwin" and 'Spyder.app' in __file__:
+        if running_in_mac_app():
             self.set_option("single_instance", True)
             single_instance_box.setEnabled(False)
-        
+
         interface_layout = QVBoxLayout()
         interface_layout.addWidget(style_combo)
         interface_layout.addWidget(single_instance_box)
@@ -697,6 +697,7 @@ class MainConfigPage(GeneralConfigPage):
         interface_layout.addWidget(animated_box)
         interface_layout.addWidget(tear_off_box)
         interface_layout.addLayout(margins_layout)
+        interface_layout.addWidget(prompt_box)
         interface_group.setLayout(interface_layout)
 
         # --- Status bar

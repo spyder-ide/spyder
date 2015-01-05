@@ -53,8 +53,6 @@ class ExternalConsoleConfigPage(PluginConfigPage):
     def __init__(self, plugin, parent):
         PluginConfigPage.__init__(self, plugin, parent)
         self.get_name = lambda: _("Console")
-        self.def_startup_radio = None
-        self.cus_startup_radio = None
         self.cus_exec_radio = None
         self.pyexec_edit = None
 
@@ -214,24 +212,24 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                                    "PYTHONSTARTUP environment variable which\n"
                                    "defines the script to be executed during "
                                    "the Python console startup."))
-        self.def_startup_radio = self.create_radiobutton(
+        def_startup_radio = self.create_radiobutton(
                                         _("Default PYTHONSTARTUP script"),
                                         'pythonstartup/default',
                                         button_group=pystartup_bg)
-        self.cus_startup_radio = self.create_radiobutton(
+        cus_startup_radio = self.create_radiobutton(
                                         _("Use the following startup script:"),
                                         'pythonstartup/custom',
                                         button_group=pystartup_bg)
         pystartup_file = self.create_browsefile('', 'pythonstartup', '',
                                                 filters=_("Python scripts")+\
                                                 " (*.py)")
-        self.def_startup_radio.toggled.connect(pystartup_file.setDisabled)
-        self.cus_startup_radio.toggled.connect(pystartup_file.setEnabled)
+        def_startup_radio.toggled.connect(pystartup_file.setDisabled)
+        cus_startup_radio.toggled.connect(pystartup_file.setEnabled)
         
         pystartup_layout = QVBoxLayout()
         pystartup_layout.addWidget(pystartup_label)
-        pystartup_layout.addWidget(self.def_startup_radio)
-        pystartup_layout.addWidget(self.cus_startup_radio)
+        pystartup_layout.addWidget(def_startup_radio)
+        pystartup_layout.addWidget(cus_startup_radio)
         pystartup_layout.addWidget(pystartup_file)
         pystartup_group.setLayout(pystartup_layout)
         
@@ -420,6 +418,8 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                 self.warn_python_compatibility(cust_pyexec)
 
     def warn_python_compatibility(self, pyexec):
+        if not osp.isfile(pyexec):
+            return
         spyder_version = sys.version_info[0]
         try:
             cmd = [pyexec, "-c", "import sys; print(sys.version_info[0])"]
@@ -446,8 +446,8 @@ class ExternalConsole(SpyderPluginWidget):
     CONF_SECTION = 'console'
     CONFIGWIDGET_CLASS = ExternalConsoleConfigPage
     DISABLE_ACTIONS_WHEN_HIDDEN = False
-    
-    edit_goto = Signal(str, int, str, bool)
+
+    edit_goto = Signal((str, int, str), (str, int, str, bool))
     focus_changed = Signal()
     redirect_stdio = Signal(bool)
     show_message = Signal(str, int)
@@ -702,7 +702,7 @@ class ExternalConsole(SpyderPluginWidget):
         # This is a unique form of the edit_goto signal that is intended to 
         # prevent keyboard input from accidentally entering the editor
         # during repeated, rapid entry of debugging commands.    
-        self.edit_goto.emit(fname, lineno, '', False)
+        self.edit_goto[str, int, str, bool].emit(fname, lineno, '', False)
         if shellwidget.is_ipykernel:
             # Focus client widget, not kernel
             ipw = self.main.ipyconsole.get_focus_widget()
@@ -981,7 +981,7 @@ class ExternalConsole(SpyderPluginWidget):
             self.activateWindow()
             shellwidget.shell.setFocus()
     
-    def set_ipykernel_attrs(self, connection_file, kernel_widget, kernel_id):
+    def set_ipykernel_attrs(self, connection_file, kernel_widget, name):
         """Add the pid of the kernel process to an IPython kernel tab"""
         # Set connection file
         kernel_widget.connection_file = connection_file
@@ -998,13 +998,12 @@ class ExternalConsole(SpyderPluginWidget):
                 os.remove(connection_file)
             except OSError:
                 pass
-        atexit.register(cleanup_connection_file, connection_file)            
+        atexit.register(cleanup_connection_file, connection_file)   
         
-        # Set tab name according to kernel_id
+        # Set tab name according to client master name
         index = self.get_shell_index_from_id(id(kernel_widget))
-        text = to_text_string(self.tabwidget.tabText(index))
-        name = "%s %s" % (text, kernel_id)
-        self.tabwidget.setTabText(index, name)
+        tab_name = _("Kernel %s") % name
+        self.tabwidget.setTabText(index, tab_name)
     
     def register_ipyclient(self, connection_file, ipyclient, kernel_widget,
                            give_focus=True):
@@ -1020,16 +1019,14 @@ class ExternalConsole(SpyderPluginWidget):
             restart_kernel = False
         
         # Setting kernel widget attributes
-        kernel_id = osp.splitext(connection_file.split('/')[-1])[0].split('-')[-1] 
-        self.set_ipykernel_attrs(connection_file, kernel_widget, kernel_id)
+        name = ipyclient.name.split('/')[0]
+        self.set_ipykernel_attrs(connection_file, kernel_widget, name)
         
         # Creating the client
-        client_name = kernel_id + '/A'
         ipyconsole = self.main.ipyconsole
         ipyclient.connection_file = connection_file
         ipyclient.kernel_widget_id = id(kernel_widget)
-        ipyconsole.register_client(ipyclient, client_name,
-                                   restart=restart_kernel,
+        ipyconsole.register_client(ipyclient, restart=restart_kernel,
                                    give_focus=give_focus)
         
     def open_file_in_spyder(self, fname, lineno):
@@ -1121,7 +1118,7 @@ class ExternalConsole(SpyderPluginWidget):
                 self.inspector.set_external_console(self)
             self.historylog = self.main.historylog
             self.edit_goto.connect(self.main.editor.load)
-            self.edit_goto.connect(
+            self.edit_goto[str, int, str, bool].connect(
                          lambda fname, lineno, word, processevents:
                          self.main.editor.load(fname, lineno, word,
                                                processevents=processevents))
@@ -1240,7 +1237,7 @@ class ExternalConsole(SpyderPluginWidget):
             self.dockwidget.hide()
     
     #------ Public API ---------------------------------------------------------
-    @Slot()
+    @Slot(str)
     def open_interpreter(self, wdir=None):
         """Open interpreter"""
         if wdir is None:
@@ -1265,7 +1262,7 @@ class ExternalConsole(SpyderPluginWidget):
                    interact=True, debug=False, python=True, ipykernel=True,
                    ipyclient=client, give_ipyclient_focus=give_focus)
 
-    @Slot()
+    @Slot(str)
     def open_terminal(self, wdir=None):
         """Open terminal"""
         if wdir is None:

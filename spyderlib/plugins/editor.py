@@ -518,7 +518,10 @@ class Editor(SpyderPluginWidget):
     def restore_scrollbar_position(self):
         """Restoring scrollbar position after main window is visible"""
         # Widget is now visible, we may center cursor on top level editor:
-        self.get_current_editor().centerCursor()
+        try:
+            self.get_current_editor().centerCursor()
+        except AttributeError:
+            pass
             
     #------ SpyderPluginWidget API ---------------------------------------------    
     def get_plugin_title(self):
@@ -639,11 +642,10 @@ class Editor(SpyderPluginWidget):
                 triggered=self.print_file)
         self.register_shortcut(self.print_action, context="Editor",
                                name="Print")
+        # Shortcut for close_action is defined in widgets/editor.py
         self.close_action = create_action(self, _("&Close"),
                 icon='fileclose.png', tip=_("Close current file"),
                 triggered=self.close_file)
-        self.register_shortcut(self.close_action, context="Editor",
-                               name="Close file")
         self.close_all_action = create_action(self, _("C&lose all"),
                 icon='filecloseall.png', tip=_("Close all opened files"),
                 triggered=self.close_all_files)
@@ -997,6 +999,9 @@ class Editor(SpyderPluginWidget):
         self.set_inspector(self.main.inspector)
         if self.main.outlineexplorer is not None:
             self.set_outlineexplorer(self.main.outlineexplorer)
+        editorstack = self.get_current_editorstack()
+        if not editorstack.data:
+            self.__load_temp_file()
         self.main.add_dockwidget(self)
     
         
@@ -1113,7 +1118,10 @@ class Editor(SpyderPluginWidget):
         editorstack.editor_focus_changed.connect(self.main.plugin_focus_changed)
         editorstack.zoom_in.connect(lambda: self.zoom(1))
         editorstack.zoom_out.connect(lambda: self.zoom(-1))
+        editorstack.zoom_reset.connect(lambda: self.zoom(0))
+        editorstack.sig_new_file.connect(lambda s: self.new(text=s))
         editorstack.sig_close_file.connect(self.close_file_in_all_editorstacks)
+        editorstack.sig_close_file[()].connect(self.close_file)
         editorstack.file_saved.connect(self.file_saved_in_editorstack)
         editorstack.file_renamed_in_data.connect(
                                       self.file_renamed_in_data_in_editorstack)
@@ -1214,8 +1222,7 @@ class Editor(SpyderPluginWidget):
         window.resize(self.size())
         window.show()
         self.register_editorwindow(window)
-        window.destroyed.connect(lambda win=window:
-                                 self.unregister_editorwindow(win))
+        window.destroyed.connect(lambda: self.unregister_editorwindow(window))
         return window
     
     def register_editorwindow(self, window):
@@ -2115,18 +2122,19 @@ class Editor(SpyderPluginWidget):
         editorstack = self.get_current_editorstack()
         editorstack.run_cell_and_advance()
 
-
-    #------ Zoom in/out
+    #------ Zoom in/out/reset
     def zoom(self, constant):
-        """Zoom in/out"""
-        font = self.get_plugin_font()
-        size = font.pointSize() + constant
-        if size > 0:
-            font.setPointSize(size)
-            for editorstack in self.editorstacks:
-                editorstack.set_default_font(font)
-            self.set_plugin_font(font)
-
+        """Zoom in/out/reset"""
+        editor = self.get_current_editorstack().get_current_editor()
+        if constant == 0:
+            font = self.get_plugin_font()
+            editor.set_font(font)
+        else:
+            font = editor.font()
+            size = font.pointSize() + constant
+            if size > 0:
+                font.setPointSize(size)
+                editor.set_font(font)
 
     #------ Options
     def apply_plugin_settings(self, options):

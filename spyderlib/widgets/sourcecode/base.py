@@ -31,6 +31,19 @@ from spyderlib.widgets.calltip import CallTipWidget
 from spyderlib.py3compat import to_text_string, str_lower, PY3
 
 
+def insert_text_to(cursor, text, fmt):
+    """Helper to print text, taking into account backspaces"""
+    while True:
+        index = text.find(chr(8))  # backspace
+        if index == -1:
+            break
+        cursor.insertText(text[:index], fmt)
+        if cursor.positionInBlock() > 0:
+            cursor.deletePreviousChar()
+        text = text[index+1:]
+    cursor.insertText(text, fmt)
+
+
 class CompletionWidget(QListWidget):
     """Completion list widget"""
     def __init__(self, parent, ancestor):
@@ -182,6 +195,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     focus_center = Signal()
     zoom_in = Signal()
     zoom_out = Signal()
+    zoom_reset = Signal()
     focus_changed = Signal()
     
     def __init__(self, parent=None):
@@ -1183,6 +1197,8 @@ class ConsoleBaseWidget(TextEditBaseWidget):
     #------Python shell
     def insert_text(self, text):
         """Reimplement TextEditBaseWidget method"""
+        # Eventually this maybe should wrap to insert_text_to if
+        # backspace-handling is required
         self.textCursor().insertText(text, self.default_style.format)
         
     def paste(self):
@@ -1203,6 +1219,9 @@ class ConsoleBaseWidget(TextEditBaseWidget):
         """
         cursor = self.textCursor()
         cursor.movePosition(QTextCursor.End)
+        if '\r' in text:    # replace \r\n with \n
+            text = text.replace('\r\n', '\n')
+            text = text.replace('\r', '\n')
         while True:
             index = text.find(chr(12))
             if index == -1:
@@ -1226,18 +1245,18 @@ class ConsoleBaseWidget(TextEditBaseWidget):
                 self.traceback_available.emit()
         elif prompt:
             # Show prompt in green
-            cursor.insertText(text, self.prompt_style.format)
+            insert_text_to(cursor, text, self.prompt_style.format)
         else:
             # Show other outputs in black
             last_end = 0
             for match in self.COLOR_PATTERN.finditer(text):
-                cursor.insertText(text[last_end:match.start()],
-                                  self.default_style.format)
+                insert_text_to(cursor, text[last_end:match.start()],
+                               self.default_style.format)
                 last_end = match.end()
                 for code in [int(_c) for _c in match.group(1).split(';')]:
                     self.ansi_handler.set_code(code)
                 self.default_style.format = self.ansi_handler.get_format()
-            cursor.insertText(text[last_end:], self.default_style.format)
+            insert_text_to(cursor, text[last_end:], self.default_style.format)
 #            # Slower alternative:
 #            segments = self.COLOR_PATTERN.split(text)
 #            cursor.insertText(segments.pop(0), self.default_style.format)
@@ -1249,7 +1268,7 @@ class ConsoleBaseWidget(TextEditBaseWidget):
 #                    cursor.insertText(text, self.default_style.format)
         self.set_cursor_position('eof')
         self.setCurrentCharFormat(self.default_style.format)
-    
+
     def set_pythonshell_font(self, font=None):
         """Python Shell only"""
         if font is None:

@@ -21,7 +21,7 @@ from spyderlib.qt.QtGui import (QHBoxLayout, QColor, QTableView, QItemDelegate,
                                 QMessageBox, QPushButton, QInputDialog, QMenu,
                                 QApplication, QKeySequence, QLabel, QComboBox,
                                 QSpinBox, QStackedWidget, QWidget, QVBoxLayout,
-                                QAbstractItemDelegate)
+                                QAbstractItemDelegate, QShortcut)
 from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, Slot)
                                  
 from spyderlib.qt.compat import to_qvariant, from_qvariant
@@ -77,7 +77,10 @@ SUPPORTED_FORMATS = {
                      'bool': '%r',
                      }
 
+
+LARGE_SIZE = 5e5
 LARGE_NROWS = 1e5
+LARGE_COLS = 60
 
 
 def is_float(dtype):
@@ -99,6 +102,7 @@ class ArrayModel(QAbstractTableModel):
     """Array Editor Table Model"""
     
     ROWS_TO_LOAD = 500
+    COLS_TO_LOAD = 40
     
     def __init__(self, data, format="%.3f", xlabels=None, ylabels=None,
                  readonly=False, parent=None):
@@ -127,6 +131,10 @@ class ArrayModel(QAbstractTableModel):
         self._data = data
         self._format = format
         
+        self.total_rows = self._data.shape[0]
+        self.total_cols = self._data.shape[1]
+        size = self.total_rows * self.total_cols
+        
         try:
             self.vmin = self.color_func(data).min()
             self.vmax = self.color_func(data).max()
@@ -142,13 +150,20 @@ class ArrayModel(QAbstractTableModel):
             self.dhue = None
             self.bgcolor_enabled = False
         
-        # To define paging when the number of rows is large
-        self.total_rows = self._data.shape[0]
-        if self.total_rows > LARGE_NROWS:
+        # Use paging when the total size, number of rows or number of
+        # columns is too large
+        if size > LARGE_SIZE:
             self.rows_loaded = self.ROWS_TO_LOAD
+            self.cols_loaded = self.COLS_TO_LOAD
         else:
-            self.rows_loaded = self.total_rows
-        
+            if self.total_rows > LARGE_NROWS:
+                self.rows_loaded = self.ROWS_TO_LOAD
+            else:
+                self.rows_loaded = self.total_rows
+            if self.total_cols > LARGE_COLS:
+                self.cols_loaded = self.COLS_TO_LOAD
+            else:
+                self.cols_loaded = self.total_cols
         
     def get_format(self):
         """Return current format"""
@@ -166,7 +181,10 @@ class ArrayModel(QAbstractTableModel):
 
     def columnCount(self, qindex=QModelIndex()):
         """Array column number"""
-        return self._data.shape[1]
+        if self.total_cols <= self.cols_loaded:
+            return self.total_cols
+        else:
+            return self.cols_loaded
 
     def rowCount(self, qindex=QModelIndex()):
         """Array row number"""
@@ -175,19 +193,33 @@ class ArrayModel(QAbstractTableModel):
         else:
             return self.rows_loaded
     
-    def canFetchMore(self, qindex=QModelIndex()):
-        if self.total_rows > self.rows_loaded:
-            return True
-        else:
-            return False
- 
-    def fetchMore(self, qindex=QModelIndex()):
-        reminder = self.total_rows - self.rows_loaded
-        items_to_fetch = min(reminder, self.ROWS_TO_LOAD)
-        self.beginInsertRows(QModelIndex(), self.rows_loaded,
-                             self.rows_loaded + items_to_fetch - 1)
-        self.rows_loaded += items_to_fetch
-        self.endInsertRows()
+    def can_fetch_more(self, rows=False, columns=False):
+        if rows:
+            if self.total_rows > self.rows_loaded:
+                return True
+            else:
+                return False
+        if columns:
+            if self.total_cols > self.cols_loaded:
+                return True
+            else:
+                return False
+
+    def fetch_more(self, rows=False, columns=False):
+        if self.can_fetch_more(rows=rows):
+            reminder = self.total_rows - self.rows_loaded
+            items_to_fetch = min(reminder, self.ROWS_TO_LOAD)
+            self.beginInsertRows(QModelIndex(), self.rows_loaded,
+                                 self.rows_loaded + items_to_fetch - 1)
+            self.rows_loaded += items_to_fetch
+            self.endInsertRows()
+        if self.can_fetch_more(columns=columns):
+            reminder = self.total_cols - self.cols_loaded
+            items_to_fetch = min(reminder, self.COLS_TO_LOAD)
+            self.beginInsertColumns(QModelIndex(), self.cols_loaded,
+                                    self.cols_loaded + items_to_fetch - 1)
+            self.cols_loaded += items_to_fetch
+            self.endInsertColumns()
 
     def bgcolor(self, state):
         """Toggle backgroundcolor"""
@@ -339,6 +371,19 @@ class ArrayView(QTableView):
         self.viewport().resize(min(total_width, 1024), self.height())
         self.shape = shape
         self.menu = self.setup_menu()
+        copy_sc = QShortcut(QKeySequence(QKeySequence.Copy), self,
+                            self.copy)
+        copy_sc.setContext(Qt.WidgetWithChildrenShortcut)
+        self.horizontalScrollBar().valueChanged.connect(
+                            lambda val: self.load_more_data(val, columns=True))
+        self.verticalScrollBar().valueChanged.connect(
+                               lambda val: self.load_more_data(val, rows=True))
+    
+    def load_more_data(self, value, rows=False, columns=False):
+        if rows and value == self.verticalScrollBar().maximum():
+            self.model().fetch_more(rows=rows)
+        if columns and value == self.horizontalScrollBar().maximum():
+            self.model().fetch_more(columns=columns)
   
     def resize_to_contents(self):
         """Resize cells to contents"""

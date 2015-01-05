@@ -11,7 +11,6 @@ from spyderlib.qt.QtCore import Signal, Slot
 
 # Local imports
 from spyderlib.baseconfig import _
-from spyderlib.config import VALID_EXT
 from spyderlib.utils.qthelpers import get_icon, create_action
 from spyderlib.widgets.projectexplorer import ProjectExplorerWidget
 from spyderlib.plugins import SpyderPluginMixin
@@ -38,7 +37,6 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
     def __init__(self, parent=None):
         ProjectExplorerWidget.__init__(self, parent=parent,
                     name_filters=self.get_option('name_filters'),
-                    valid_types=VALID_EXT,
                     show_all=self.get_option('show_all', False),
                     show_hscrollbar=self.get_option('show_hscrollbar'))
         SpyderPluginMixin.__init__(self, parent)
