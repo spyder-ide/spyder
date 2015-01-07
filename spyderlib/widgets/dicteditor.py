@@ -114,15 +114,14 @@ class ProxyObject(object):
 
 class ReadOnlyDictModel(QAbstractTableModel):
     """DictEditor Read-Only Table Model"""
-    def __init__(self, parent, data, title="", names=False,
-                 truncate=True, minmax=False, collvalue=True, remote=False):
+    def __init__(self, parent, data, title="", names=False, truncate=True,
+                 minmax=False, remote=False):
         QAbstractTableModel.__init__(self, parent)
         if data is None:
             data = {}
         self.names = names
         self.truncate = truncate
         self.minmax = minmax
-        self.collvalue = collvalue
         self.remote = remote
         self.header0 = None
         self._data = None
@@ -268,8 +267,7 @@ class ReadOnlyDictModel(QAbstractTableModel):
             value = value['view']
         display = value_to_display(value,
                                truncate=index.column() == 3 and self.truncate,
-                               minmax=self.minmax,
-                               collvalue=self.collvalue or index.column() != 3)
+                               minmax=self.minmax)
         if role == Qt.DisplayRole:
             return to_qvariant(display)
         elif role == Qt.EditRole:
@@ -565,7 +563,6 @@ class BaseTableView(QTableView):
         self.remove_action = None
         self.truncate_action = None
         self.minmax_action = None
-        self.collvalue_action = None
         self.inplace_action = None
         self.rename_action = None
         self.duplicate_action = None
@@ -580,13 +577,12 @@ class BaseTableView(QTableView):
         self.setSortingEnabled(True)
         self.sortByColumn(0, Qt.AscendingOrder)
     
-    def setup_menu(self, truncate, minmax, inplace, collvalue):
+    def setup_menu(self, truncate, minmax, inplace):
         """Setup context menu"""
         if self.truncate_action is not None:
             self.truncate_action.setChecked(truncate)
             self.minmax_action.setChecked(minmax)
             self.inplace_action.setChecked(inplace)
-            self.collvalue_action.setChecked(collvalue)
             return
         
         resize_action = create_action(self, _("Resize rows to contents"),
@@ -630,11 +626,6 @@ class BaseTableView(QTableView):
                                            toggled=self.toggle_minmax)
         self.minmax_action.setChecked(minmax)
         self.toggle_minmax(minmax)
-        self.collvalue_action = create_action(self,
-                                              _("Show collection contents"),
-                                              toggled=self.toggle_collvalue)
-        self.collvalue_action.setChecked(collvalue)
-        self.toggle_collvalue(collvalue)
         self.inplace_action = create_action(self, _("Always edit in-place"),
                                             toggled=self.toggle_inplace)
         self.inplace_action.setChecked(inplace)
@@ -655,7 +646,7 @@ class BaseTableView(QTableView):
                         self.copy_action, self.paste_action,
                         None, self.rename_action, self.duplicate_action,
                         None, resize_action, None, self.truncate_action,
-                        self.inplace_action, self.collvalue_action]
+                        self.inplace_action]
         if ndarray is not FakeObject:
             menu_actions.append(self.minmax_action)
         add_actions(menu, menu_actions)
@@ -849,11 +840,6 @@ class BaseTableView(QTableView):
         self.sig_option_changed.emit('minmax', state)
         self.model.minmax = state
         
-    def toggle_collvalue(self, state):
-        """Toggle value display for collections"""
-        self.sig_option_changed.emit('collvalue', state)
-        self.model.collvalue = state
-            
     def edit_item(self):
         """Edit item"""
         index = self.currentIndex()
@@ -1035,20 +1021,19 @@ class DictEditorTableView(BaseTableView):
     """DictEditor table view"""
     def __init__(self, parent, data, readonly=False, title="",
                  names=False, truncate=True, minmax=False,
-                 inplace=False, collvalue=True):
+                 inplace=False):
         BaseTableView.__init__(self, parent)
         self.dictfilter = None
         self.readonly = readonly or isinstance(data, tuple)
         DictModelClass = ReadOnlyDictModel if self.readonly else DictModel
         self.model = DictModelClass(self, data, title, names=names,
-                                    truncate=truncate, minmax=minmax,
-                                    collvalue=collvalue)
+                                    truncate=truncate, minmax=minmax)
         self.setModel(self.model)
         self.delegate = DictDelegate(self, inplace=inplace)
         self.setItemDelegate(self.delegate)
 
         self.setup_table()
-        self.menu = self.setup_menu(truncate, minmax, inplace, collvalue)
+        self.menu = self.setup_menu(truncate, minmax, inplace)
     
     #------ Remote/local API ---------------------------------------------------
     def remove_values(self, keys):
@@ -1258,7 +1243,7 @@ class RemoteDictDelegate(DictDelegate):
 class RemoteDictEditorTableView(BaseTableView):
     """DictEditor table view"""
     def __init__(self, parent, data, truncate=True, minmax=False,
-                 inplace=False, collvalue=True, remote_editing=False,
+                 inplace=False, remote_editing=False,
                  get_value_func=None, set_value_func=None,
                  new_value_func=None, remove_values_func=None,
                  copy_value_func=None, is_list_func=None, get_len_func=None,
@@ -1295,20 +1280,18 @@ class RemoteDictEditorTableView(BaseTableView):
         self.readonly = False
         self.model = DictModel(self, data, names=True,
                                truncate=truncate, minmax=minmax,
-                               collvalue=collvalue, remote=True)
+                               remote=True)
         self.setModel(self.model)
         self.delegate = RemoteDictDelegate(self, inplace,
                                            get_value_func, set_value_func)
         self.setItemDelegate(self.delegate)
         
         self.setup_table()
-        self.menu = self.setup_menu(truncate, minmax, inplace, collvalue,
-                                    remote_editing)
+        self.menu = self.setup_menu(truncate, minmax, inplace, remote_editing)
 
-    def setup_menu(self, truncate, minmax, inplace, collvalue, remote_editing):
+    def setup_menu(self, truncate, minmax, inplace, remote_editing):
         """Setup context menu"""
-        menu = BaseTableView.setup_menu(self, truncate, minmax,
-                                        inplace, collvalue)
+        menu = BaseTableView.setup_menu(self, truncate, minmax, inplace)
         if menu is None:
             self.remote_editing_action.setChecked(remote_editing)
             return

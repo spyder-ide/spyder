@@ -162,8 +162,7 @@ def unsorted_unique(lista):
 
 
 #----Display <--> Value
-def value_to_display(value, truncate=False, trunc_len=80, minmax=False,
-                     collvalue=True):
+def value_to_display(value, truncate=False, trunc_len=80, minmax=False):
     """Convert value for display purpose"""
     if minmax and isinstance(value, (ndarray, MaskedArray)):
         if value.size == 0:
@@ -188,10 +187,7 @@ def value_to_display(value, truncate=False, trunc_len=80, minmax=False,
             pass
     if not is_text_string(value):
         if isinstance(value, (list, tuple, dict, set)):
-            if not collvalue:            
-                value = address(value)
-            else:
-                value = CollectionRepr.repr(value)
+            value = CollectionRepr.repr(value)
         else:
             value = repr(value)
     if truncate and len(value) > trunc_len:

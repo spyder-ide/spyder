@@ -42,7 +42,6 @@ class VariableExplorerConfigPage(PluginConfigPage):
         display_data = [
                         ('truncate', _("Truncate values"), ''),
                         ('inplace', _("Always edit in-place"), ''),
-                        ('collvalue', _("Show collection contents"), ''),
                         ]
         if programs.is_module_installed('numpy'):
             display_data.append(('minmax', _("Show arrays min/max"), ''))
