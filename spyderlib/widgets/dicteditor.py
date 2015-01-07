@@ -51,6 +51,9 @@ from spyderlib.py3compat import (to_text_string, to_binary_string,
                                  is_text_string, is_binary_string, getcwd, u)
 
 
+LARGE_NROWS = 5000
+
+
 def display_to_value(value, default_value, ignore_errors=True):
     """Convert back to value"""
     value = from_qvariant(value, to_text_string)
@@ -114,6 +117,8 @@ class ProxyObject(object):
 
 class ReadOnlyDictModel(QAbstractTableModel):
     """DictEditor Read-Only Table Model"""
+    ROWS_TO_LOAD = 500
+
     def __init__(self, parent, data, title="", names=False, truncate=True,
                  minmax=False, remote=False):
         QAbstractTableModel.__init__(self, parent)
@@ -125,6 +130,7 @@ class ReadOnlyDictModel(QAbstractTableModel):
         self.remote = remote
         self.header0 = None
         self._data = None
+        self.total_rows = None
         self.showndata = None
         self.keys = None
         self.title = to_text_string(title) # in case title is not a string
@@ -141,10 +147,12 @@ class ReadOnlyDictModel(QAbstractTableModel):
     def set_data(self, data, dictfilter=None):
         """Set model data"""
         self._data = data
-        if dictfilter is not None and not self.remote and\
+
+        if dictfilter is not None and not self.remote and \
            isinstance(data, (tuple, list, dict)):
             data = dictfilter(data)
         self.showndata = data
+
         self.header0 = _("Index")
         if self.names:
             self.header0 = _("Name")
@@ -165,7 +173,9 @@ class ReadOnlyDictModel(QAbstractTableModel):
             self.title += _("Object")
             if not self.names:
                 self.header0 = _("Attribute")
+
         self.title += ' ('+str(len(self.keys))+' '+ _("elements")+')'
+
         if self.remote:
             self.sizes = [ data[self.keys[index]]['size']
                            for index in range(len(self.keys)) ]
@@ -176,6 +186,12 @@ class ReadOnlyDictModel(QAbstractTableModel):
                            for index in range(len(self.keys)) ]
             self.types = [ get_human_readable_type(data[self.keys[index]])
                            for index in range(len(self.keys)) ]
+
+        self.total_rows = len(self.keys)
+        if self.total_rows > LARGE_NROWS:
+            self.rows_loaded = self.ROWS_TO_LOAD
+        else:
+            self.rows_loaded = self.total_rows
         self.reset()
 
     def sort(self, column, order=Qt.AscendingOrder):
@@ -220,9 +236,26 @@ class ReadOnlyDictModel(QAbstractTableModel):
         """Array column number"""
         return 4
 
-    def rowCount(self, qindex=QModelIndex()):
+    def rowCount(self, index=QModelIndex()):
         """Array row number"""
-        return len(self.keys)
+        if self.total_rows <= self.rows_loaded:
+            return self.total_rows
+        else:
+            return self.rows_loaded
+    
+    def canFetchMore(self, index=QModelIndex()):
+        if self.total_rows > self.rows_loaded:
+            return True
+        else:
+            return False
+ 
+    def fetchMore(self, index=QModelIndex()):
+        reminder = self.total_rows - self.rows_loaded
+        items_to_fetch = min(reminder, self.ROWS_TO_LOAD)
+        self.beginInsertRows(QModelIndex(), self.rows_loaded,
+                             self.rows_loaded + items_to_fetch - 1)
+        self.rows_loaded += items_to_fetch
+        self.endInsertRows()
     
     def get_index_from_key(self, key):
         try:
@@ -543,7 +576,7 @@ class DictDelegate(QItemDelegate):
 
 
 class BaseTableView(QTableView):
-    """Base dictionnary editor table view"""
+    """Base dictionary editor table view"""
     sig_option_changed = Signal(str, object)
     sig_files_dropped = Signal(list)
     
@@ -1239,7 +1272,8 @@ class RemoteDictDelegate(DictDelegate):
         if index.isValid():
             name = index.model().keys[index.row()]
             self.set_value_func(name, value)
-        
+
+
 class RemoteDictEditorTableView(BaseTableView):
     """DictEditor table view"""
     def __init__(self, parent, data, truncate=True, minmax=False,
