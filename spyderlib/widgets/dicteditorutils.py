@@ -14,31 +14,24 @@ import re
 
 # Local imports
 from spyderlib.py3compat import (NUMERIC_TYPES, TEXT_TYPES, to_text_string,
-                                 is_text_string, is_binary_string)
+                                 is_text_string, is_binary_string, reprlib)
 from spyderlib.utils import programs
 from spyderlib import dependencies
 from spyderlib.baseconfig import _
 
-#----Numpy arrays support
+
 class FakeObject(object):
     """Fake class used in replacement of missing modules"""
     pass
+
+
+#----Numpy arrays support
 try:
     from numpy import ndarray
     from numpy import array, matrix #@UnusedImport (object eval)
     from numpy.ma import MaskedArray
 except ImportError:
     ndarray = array = matrix = MaskedArray = FakeObject  # analysis:ignore
-
-
-PANDAS_REQVER = '>=0.13.1'
-dependencies.add('pandas',  _("View and edit DataFrames and Series in the "
-                              "Variable Explorer"),
-                 required_version=PANDAS_REQVER)
-if programs.is_module_installed('pandas', PANDAS_REQVER):
-    from pandas import DataFrame, TimeSeries
-else:
-    DataFrame = TimeSeries = FakeObject      # analysis:ignore
 
 
 def get_numpy_dtype(obj):
@@ -61,6 +54,17 @@ def get_numpy_dtype(obj):
                 return
 
 
+#----Pandas support
+PANDAS_REQVER = '>=0.13.1'
+dependencies.add('pandas',  _("View and edit DataFrames and Series in the "
+                              "Variable Explorer"),
+                 required_version=PANDAS_REQVER)
+if programs.is_module_installed('pandas', PANDAS_REQVER):
+    from pandas import DataFrame, TimeSeries
+else:
+    DataFrame = TimeSeries = FakeObject      # analysis:ignore
+
+
 #----PIL Images support
 try:
     from spyderlib import pil_patch
@@ -74,6 +78,15 @@ def address(obj):
     """Return object address as a string: '<classname @ address>'"""
     return "<%s @ %s>" % (obj.__class__.__name__,
                           hex(id(obj)).upper().replace('X', 'x'))
+
+
+#----Set limits for the amount of elements in the repr of collections
+#    (lists, dicts, tuples and sets)
+CollectionsRepr = reprlib.Repr()
+CollectionsRepr.maxlist = 1000
+CollectionsRepr.maxdict = 1000
+CollectionsRepr.maxtuple = 1000
+CollectionsRepr.maxset = 1000
 
 
 #----date and datetime objects support
@@ -148,8 +161,7 @@ def unsorted_unique(lista):
 
 
 #----Display <--> Value
-def value_to_display(value, truncate=False, trunc_len=80, minmax=False,
-                     collvalue=True):
+def value_to_display(value, truncate=False, trunc_len=80, minmax=False):
     """Convert value for display purpose"""
     if minmax and isinstance(value, (ndarray, MaskedArray)):
         if value.size == 0:
@@ -173,8 +185,8 @@ def value_to_display(value, truncate=False, trunc_len=80, minmax=False,
         except:
             pass
     if not is_text_string(value):
-        if isinstance(value, (list, tuple, dict, set)) and not collvalue:            
-            value = address(value)
+        if isinstance(value, (list, tuple, dict, set)):
+            value = CollectionsRepr.repr(value)
         else:
             value = repr(value)
     if truncate and len(value) > trunc_len:
