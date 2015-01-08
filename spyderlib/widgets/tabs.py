@@ -271,9 +271,10 @@ class Tabs(BaseTabs):
             return sc
         tabsc = newsc("Ctrl+Tab", lambda: self.tab_navigate(1))
         tabshiftsc = newsc("Shift+Ctrl+Tab", lambda: self.tab_navigate(-1))
-        closesc = newsc("Ctrl+F4" if os.name == 'nt' else "Ctrl+W",
-                        lambda: self.emit(SIGNAL("close_tab(int)"),
-                                          self.currentIndex()))
+        closesc1 = newsc("Ctrl+W", lambda: self.emit(SIGNAL("close_tab(int)"),
+                                                     self.currentIndex()))
+        closesc2 = newsc("Ctrl+F4", lambda: self.emit(SIGNAL("close_tab(int)"),
+                                                      self.currentIndex()))
         
     def tab_navigate(self, delta=1):
         """Ctrl+Tab"""
