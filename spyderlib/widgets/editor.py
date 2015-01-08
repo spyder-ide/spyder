@@ -36,7 +36,7 @@ from spyderlib.utils.introspection.module_completion import (module_completion,
                                                       get_preferred_submodules)
 from spyderlib.baseconfig import _, DEBUG, STDOUT, STDERR
 from spyderlib.config import EDIT_FILTERS, EDIT_EXT, get_filter, EDIT_FILETYPES
-from spyderlib.guiconfig import create_shortcut
+from spyderlib.guiconfig import create_shortcut, new_shortcut
 from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions,
                                        mimedata2url, get_filetype_icon,
                                        create_toolbutton)
@@ -689,22 +689,17 @@ class EditorStack(QWidget):
                               name='Go to previous file', parent=self)
         tabshift = create_shortcut(self.go_to_next_file, context='Editor',
                                    name='Go to next file', parent=self)
-        close_file = create_shortcut(lambda: self.emit(SIGNAL('close_file()')),
-                                     context='Editor', name='Close file',
-                                     parent=self)
         # Fixed shortcuts
-        zoomin = QShortcut(QKeySequence(QKeySequence.ZoomIn), self,
-                           lambda: self.emit(SIGNAL('zoom_in()')))
-        zoomin.setContext(Qt.WidgetWithChildrenShortcut)
-        zoomout = QShortcut(QKeySequence(QKeySequence.ZoomOut), self,
-                           lambda: self.emit(SIGNAL('zoom_out()')))
-        zoomout.setContext(Qt.WidgetWithChildrenShortcut)
-        zoomreset = QShortcut(QKeySequence("Ctrl+0"), self,
-                              lambda: self.emit(SIGNAL('zoom_reset()')))
-        zoomreset.setContext(Qt.WidgetWithChildrenShortcut)
+        new_shortcut(QKeySequence.ZoomIn, self,
+                     lambda: self.emit(SIGNAL('zoom_in()')))
+        new_shortcut(QKeySequence.ZoomOut, self,
+                     lambda: self.emit(SIGNAL('zoom_out()')))
+        new_shortcut("Ctrl+0", self, lambda: self.emit(SIGNAL('zoom_reset()')))
+        new_shortcut("Ctrl+W", self, lambda: self.emit(SIGNAL('close_file()')))
+        new_shortcut("Ctrl+F4", self, lambda: self.emit(SIGNAL('close_file()')))
         # Return configurable ones
         return [inspect, breakpoint, cbreakpoint, gotoline, filelist, tab,
-                tabshift, close_file]
+                tabshift]
 
     def get_shortcut_data(self):
         """
