@@ -12,15 +12,14 @@
 # pylint: disable=R0201
 
 from spyderlib.qt.QtGui import (QHBoxLayout, QGridLayout, QCheckBox, QLabel,
-                                QWidget, QSizePolicy, QShortcut, QKeySequence,
-                                QTextCursor)
+                                QWidget, QSizePolicy, QTextCursor)
 from spyderlib.qt.QtCore import SIGNAL, Qt, QTimer
 
 import re
 
 # Local imports
 from spyderlib.baseconfig import _
-from spyderlib.guiconfig import create_shortcut
+from spyderlib.guiconfig import create_shortcut, new_shortcut
 from spyderlib.utils.qthelpers import (get_icon, get_std_icon,
                                        create_toolbutton)
 from spyderlib.widgets.comboboxes import PatternComboBox
@@ -167,8 +166,8 @@ class FindReplace(QWidget):
                                         context='Editor', name='Replace text',
                                         parent=parent)
         # Fixed
-        escape = QShortcut(QKeySequence("Escape"), self, self.hide)
-        escape.setContext(Qt.WidgetWithChildrenShortcut)
+        new_shortcut("Escape", self, self.hide)
+
         return [findnext, findprev, togglefind, togglereplace]
         
     def get_shortcut_data(self):
