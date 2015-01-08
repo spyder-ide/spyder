@@ -15,11 +15,8 @@ def is_qtconsole_installed():
     pyzmq_installed = programs.is_module_installed('zmq')
     if programs.is_module_installed('IPython.qt') and pyzmq_installed:
         return True
-    elif programs.is_module_installed('IPython.frontend.qt') and \
-      pyzmq_installed:
-        return True
     else:
         return False
 
-SUPPORTED_IPYTHON = '>=0.13'
+SUPPORTED_IPYTHON = '>=1.0'
 IPYTHON_QT_INSTALLED = is_qtconsole_installed()

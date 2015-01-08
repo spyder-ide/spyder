@@ -144,8 +144,7 @@ class ObjectInspectorConfigPage(PluginConfigPage):
                                           'connect/python_console')
         ipython_box = self.create_checkbox(_("IPython Console"),
                                            'connect/ipython_console')
-        ipython_installed = programs.is_module_installed('IPython', '>=0.13')
-        ipython_box.setEnabled(ipython_installed)
+        ipython_box.setEnabled(IPYTHON_QT_INSTALLED)
         
         connections_layout = QVBoxLayout()
         connections_layout.addWidget(connections_label)

@@ -34,16 +34,10 @@ from spyderlib.utils import misc, encoding, programs, vcs
 from spyderlib.baseconfig import _
 from spyderlib.py3compat import to_text_string, getcwd, str_lower
 
-if programs.is_module_installed('IPython'):
-    import IPython.nbformat as nbformat
-    import IPython.nbformat.current  # in IPython 0.13.2, current is not loaded
-                                     # with nbformat.
-    try:
-        from IPython.nbconvert import PythonExporter as nbexporter  # >= 1.0
-    except:
-        nbexporter = None
-else:
-    nbformat = None
+try:
+    from IPython.nbconvert import PythonExporter as nbexporter
+except:
+    nbexporter = None      # analysis:ignore
 
 
 def fixpath(path):
@@ -266,7 +260,7 @@ class DirView(QTreeView):
         if all([fixpath(osp.dirname(_fn)) == basedir for _fn in fnames]):
             actions.append(move_action)
         actions += [None]
-        if only_notebooks and nbformat is not None:
+        if only_notebooks and nbexporter is not None:
             actions.append(ipynb_convert_action)
         
         # VCS support is quite limited for now, so we are enabling the VCS
@@ -505,21 +499,15 @@ class DirView(QTreeView):
 
     def convert_notebook(self, fname):
         """Convert an IPython notebook to a Python script in editor"""
-        if nbformat is not None:
-            # Use writes_py if nbconvert is not available.
-            try: 
-                if nbexporter is None:
-                    nb = nbformat.current.read(open(fname, 'r'), 'ipynb')
-                    script = nbformat.current.writes_py(nb)
-                else:
-                    script = nbexporter().from_filename(fname)[0]
-            except Exception as e:
-                QMessageBox.critical(self, _('Conversion error'), 
-                                     _("It was not possible to convert this "
-                                     "notebook. The error is:\n\n") + \
-                                     to_text_string(e))
-                return
-            self.parent_widget.sig_new_file.emit(script)
+        try: 
+            script = nbexporter().from_filename(fname)[0]
+        except Exception as e:
+            QMessageBox.critical(self, _('Conversion error'), 
+                                 _("It was not possible to convert this "
+                                 "notebook. The error is:\n\n") + \
+                                 to_text_string(e))
+            return
+        self.parent_widget.sig_new_file.emit(script)
     
     def convert(self, fnames=None):
         """Convert IPython notebooks to Python scripts in editor"""
