@@ -83,11 +83,11 @@ def address(obj):
 
 #----Set limits for the amount of elements in the repr of collections
 #    (lists, dicts, tuples and sets)
-CollectionRepr = reprlib.Repr()
-CollectionRepr.maxlist = 1000
-CollectionRepr.maxdict = 1000
-CollectionRepr.maxtuple = 1000
-CollectionRepr.maxset = 1000
+CollectionsRepr = reprlib.Repr()
+CollectionsRepr.maxlist = 1000
+CollectionsRepr.maxdict = 1000
+CollectionsRepr.maxtuple = 1000
+CollectionsRepr.maxset = 1000
 
 
 #----date and datetime objects support
@@ -187,7 +187,7 @@ def value_to_display(value, truncate=False, trunc_len=80, minmax=False):
             pass
     if not is_text_string(value):
         if isinstance(value, (list, tuple, dict, set)):
-            value = CollectionRepr.repr(value)
+            value = CollectionsRepr.repr(value)
         else:
             value = repr(value)
     if truncate and len(value) > trunc_len:
