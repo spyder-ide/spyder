@@ -692,6 +692,7 @@ class EditorStack(QWidget):
         # Fixed shortcuts
         new_shortcut(QKeySequence.ZoomIn, self,
                      lambda: self.emit(SIGNAL('zoom_in()')))
+        new_shortcut("Ctrl+=", self, lambda: self.emit(SIGNAL('zoom_in()')))
         new_shortcut(QKeySequence.ZoomOut, self,
                      lambda: self.emit(SIGNAL('zoom_out()')))
         new_shortcut("Ctrl+0", self, lambda: self.emit(SIGNAL('zoom_reset()')))
