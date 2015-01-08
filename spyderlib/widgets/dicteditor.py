@@ -96,7 +96,7 @@ def display_to_value(value, default_value, ignore_errors=True):
         if ignore_errors:
             value = try_to_eval(value)
         else:
-            raise
+            return default_value
     return value
 
 
