@@ -92,10 +92,7 @@ class NamespaceBrowser(QWidget):
         self.autorefresh = autorefresh
         
         if self.editor is not None:
-            if self.is_internal_shell:
-                self.editor.setup_menu(truncate, minmax)
-            else:
-                self.editor.setup_menu(truncate, minmax, remote_editing)
+            self.editor.setup_menu(truncate, minmax)
             self.exclude_private_action.setChecked(exclude_private)
             self.exclude_uppercase_action.setChecked(exclude_uppercase)
             self.exclude_capitalized_action.setChecked(exclude_capitalized)
@@ -238,8 +235,6 @@ class NamespaceBrowser(QWidget):
                    editor.truncate_action]
         if is_module_installed('numpy'):
             actions.append(editor.minmax_action)
-        if not self.is_internal_shell:
-            actions.append(editor.remote_editing_action)
         add_actions(menu, actions)
         options_button.setMenu(menu)
         

@@ -1352,32 +1352,13 @@ class RemoteDictEditorTableView(BaseTableView):
         self.setItemDelegate(self.delegate)
         
         self.setup_table()
-        self.menu = self.setup_menu(truncate, minmax, remote_editing)
+        self.menu = self.setup_menu(truncate, minmax)
 
-    def setup_menu(self, truncate, minmax, remote_editing):
+    def setup_menu(self, truncate, minmax):
         """Setup context menu"""
         menu = BaseTableView.setup_menu(self, truncate, minmax)
-        if menu is None:
-            self.remote_editing_action.setChecked(remote_editing)
-            return
-        
-        self.remote_editing_action = create_action(self,
-                _( "Edit data in the remote process"),
-                tip=_("Editors are opened in the remote process for NumPy "
-                      "arrays, PIL images, lists, tuples and dictionaries.\n"
-                      "This avoids transfering large amount of data between "
-                      "the remote process and Spyder (through the socket)."),
-                toggled=self.toggle_remote_editing)
-        self.remote_editing_action.setChecked(remote_editing)
-        self.toggle_remote_editing(remote_editing)
-        add_actions(menu, (self.remote_editing_action,))
         return menu
             
-    def toggle_remote_editing(self, state):
-        """Toggle remote editing state"""
-        self.sig_option_changed.emit('remote_editing', state)
-        self.remote_editing_enabled = state
-
     def oedit_possible(self, key):
         if (self.is_list(key) or self.is_dict(key) 
             or self.is_array(key) or self.is_image(key)
