@@ -37,7 +37,7 @@ if DEBUG_MONITOR:
 REMOTE_SETTINGS = ('check_all', 'exclude_private', 'exclude_uppercase',
                    'exclude_capitalized', 'exclude_unsupported',
                    'excluded_names', 'truncate', 'minmax',
-                   'inplace', 'remote_editing', 'autorefresh')
+                   'remote_editing', 'autorefresh')
 
 def get_remote_data(data, settings, mode, more_excluded_names=None):
     """

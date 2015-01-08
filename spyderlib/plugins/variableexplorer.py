@@ -39,10 +39,7 @@ class VariableExplorerConfigPage(PluginConfigPage):
                         for option, text in filter_data]
 
         display_group = QGroupBox(_("Display"))
-        display_data = [
-                        ('truncate', _("Truncate values"), ''),
-                        ('inplace', _("Always edit in-place"), ''),
-                        ]
+        display_data = [('truncate', _("Truncate values"), '')]
         if programs.is_module_installed('numpy'):
             display_data.append(('minmax', _("Show arrays min/max"), ''))
         display_data.append(

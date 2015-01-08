@@ -406,9 +406,9 @@ class DictModel(ReadOnlyDictModel):
 
 class DictDelegate(QItemDelegate):
     """DictEditor Item Delegate"""
-    def __init__(self, parent=None, inplace=False):
+    
+    def __init__(self, parent=None):
         QItemDelegate.__init__(self, parent)
-        self.inplace = inplace
         self._editors = {} # keep references on opened editors
         
     def get_value(self, index):
@@ -435,7 +435,7 @@ class DictDelegate(QItemDelegate):
         readonly = isinstance(value, tuple) or self.parent().readonly \
                    or not is_known_type(value)
         #---editor = DictEditor
-        if isinstance(value, (list, tuple, dict)) and not self.inplace:
+        if isinstance(value, (list, tuple, dict)):
             editor = DictEditor()
             editor.setup(value, key, icon=self.parent().windowIcon(),
                          readonly=readonly)
@@ -443,8 +443,8 @@ class DictDelegate(QItemDelegate):
                                             key=key, readonly=readonly))
             return None
         #---editor = ArrayEditor
-        elif isinstance(value, (ndarray, MaskedArray))\
-             and ndarray is not FakeObject and not self.inplace:
+        elif isinstance(value, (ndarray, MaskedArray)) \
+          and ndarray is not FakeObject:
             if value.size == 0:
                 return None
             editor = ArrayEditor(parent)
@@ -478,7 +478,7 @@ class DictDelegate(QItemDelegate):
             return None
 
         #---editor = QDateTimeEdit
-        elif isinstance(value, datetime.datetime) and not self.inplace:
+        elif isinstance(value, datetime.datetime):
             editor = QDateTimeEdit(value, parent)
             editor.setCalendarPopup(True)
             editor.setFont(get_font('dicteditor'))
@@ -486,7 +486,7 @@ class DictDelegate(QItemDelegate):
                          self.commitAndCloseEditor)
             return editor
         #---editor = QDateEdit
-        elif isinstance(value, datetime.date) and not self.inplace:
+        elif isinstance(value, datetime.date):
             editor = QDateEdit(value, parent)
             editor.setCalendarPopup(True)
             editor.setFont(get_font('dicteditor'))
@@ -500,7 +500,7 @@ class DictDelegate(QItemDelegate):
                                             key=key, readonly=readonly))
             return None
         #---editor = QLineEdit
-        elif self.inplace or is_editable_type(value):
+        elif is_editable_type(value):
             editor = QLineEdit(parent)
             editor.setFont(get_font('dicteditor'))
             editor.setAlignment(Qt.AlignLeft)
@@ -617,7 +617,6 @@ class BaseTableView(QTableView):
         self.remove_action = None
         self.truncate_action = None
         self.minmax_action = None
-        self.inplace_action = None
         self.rename_action = None
         self.duplicate_action = None
         self.delegate = None
@@ -631,12 +630,11 @@ class BaseTableView(QTableView):
         self.setSortingEnabled(True)
         self.sortByColumn(0, Qt.AscendingOrder)
     
-    def setup_menu(self, truncate, minmax, inplace):
+    def setup_menu(self, truncate, minmax):
         """Setup context menu"""
         if self.truncate_action is not None:
             self.truncate_action.setChecked(truncate)
             self.minmax_action.setChecked(minmax)
-            self.inplace_action.setChecked(inplace)
             return
         
         resize_action = create_action(self, _("Resize rows to contents"),
@@ -680,13 +678,6 @@ class BaseTableView(QTableView):
                                            toggled=self.toggle_minmax)
         self.minmax_action.setChecked(minmax)
         self.toggle_minmax(minmax)
-        self.inplace_action = create_action(self, _("Always edit in-place"),
-                                            toggled=self.toggle_inplace)
-        self.inplace_action.setChecked(inplace)
-        if self.delegate is None:
-            self.inplace_action.setEnabled(False)
-        else:
-            self.toggle_inplace(inplace)
         self.rename_action = create_action(self, _( "Rename"),
                                            icon=get_icon('rename.png'),
                                            triggered=self.rename_item)
@@ -699,8 +690,7 @@ class BaseTableView(QTableView):
                         self.insert_action, self.remove_action,
                         self.copy_action, self.paste_action,
                         None, self.rename_action, self.duplicate_action,
-                        None, resize_action, None, self.truncate_action,
-                        self.inplace_action]
+                        None, resize_action, None, self.truncate_action]
         if ndarray is not FakeObject:
             menu_actions.append(self.minmax_action)
         add_actions(menu, menu_actions)
@@ -879,11 +869,6 @@ class BaseTableView(QTableView):
         else:
             event.ignore()
 
-    def toggle_inplace(self, state):
-        """Toggle in-place editor option"""
-        self.sig_option_changed.emit('inplace', state)
-        self.delegate.inplace = state
-        
     def toggle_truncate(self, state):
         """Toggle display truncating option"""
         self.sig_option_changed.emit('truncate', state)
@@ -1074,8 +1059,7 @@ class BaseTableView(QTableView):
 class DictEditorTableView(BaseTableView):
     """DictEditor table view"""
     def __init__(self, parent, data, readonly=False, title="",
-                 names=False, truncate=True, minmax=False,
-                 inplace=False):
+                 names=False, truncate=True, minmax=False):
         BaseTableView.__init__(self, parent)
         self.dictfilter = None
         self.readonly = readonly or isinstance(data, tuple)
@@ -1083,11 +1067,11 @@ class DictEditorTableView(BaseTableView):
         self.model = DictModelClass(self, data, title, names=names,
                                     truncate=truncate, minmax=minmax)
         self.setModel(self.model)
-        self.delegate = DictDelegate(self, inplace=inplace)
+        self.delegate = DictDelegate(self)
         self.setItemDelegate(self.delegate)
 
         self.setup_table()
-        self.menu = self.setup_menu(truncate, minmax, inplace)
+        self.menu = self.setup_menu(truncate, minmax)
     
     #------ Remote/local API ---------------------------------------------------
     def remove_values(self, keys):
@@ -1278,9 +1262,8 @@ class DictEditor(QDialog):
 #----Remote versions of DictDelegate and DictEditorTableView
 class RemoteDictDelegate(DictDelegate):
     """DictEditor Item Delegate"""
-    def __init__(self, parent=None, inplace=False,
-                 get_value_func=None, set_value_func=None):
-        DictDelegate.__init__(self, parent, inplace=inplace)
+    def __init__(self, parent=None, get_value_func=None, set_value_func=None):
+        DictDelegate.__init__(self, parent)
         self.get_value_func = get_value_func
         self.set_value_func = set_value_func
         
@@ -1297,8 +1280,7 @@ class RemoteDictDelegate(DictDelegate):
 
 class RemoteDictEditorTableView(BaseTableView):
     """DictEditor table view"""
-    def __init__(self, parent, data, truncate=True, minmax=False,
-                 inplace=False, remote_editing=False,
+    def __init__(self, parent, data, truncate=True, minmax=False, 
                  get_value_func=None, set_value_func=None,
                  new_value_func=None, remove_values_func=None,
                  copy_value_func=None, is_list_func=None, get_len_func=None,
@@ -1306,7 +1288,7 @@ class RemoteDictEditorTableView(BaseTableView):
                  get_array_shape_func=None, get_array_ndim_func=None,
                  oedit_func=None, plot_func=None, imshow_func=None,
                  is_data_frame_func=None, is_time_series_func=None,
-                 show_image_func=None):
+                 show_image_func=None, remote_editing=False):
         BaseTableView.__init__(self, parent)
         
         self.remote_editing_enabled = None
@@ -1337,16 +1319,15 @@ class RemoteDictEditorTableView(BaseTableView):
                                truncate=truncate, minmax=minmax,
                                remote=True)
         self.setModel(self.model)
-        self.delegate = RemoteDictDelegate(self, inplace,
-                                           get_value_func, set_value_func)
+        self.delegate = RemoteDictDelegate(self, get_value_func, set_value_func)
         self.setItemDelegate(self.delegate)
         
         self.setup_table()
-        self.menu = self.setup_menu(truncate, minmax, inplace, remote_editing)
+        self.menu = self.setup_menu(truncate, minmax, remote_editing)
 
-    def setup_menu(self, truncate, minmax, inplace, remote_editing):
+    def setup_menu(self, truncate, minmax, remote_editing):
         """Setup context menu"""
-        menu = BaseTableView.setup_menu(self, truncate, minmax, inplace)
+        menu = BaseTableView.setup_menu(self, truncate, minmax)
         if menu is None:
             self.remote_editing_action.setChecked(remote_editing)
             return
