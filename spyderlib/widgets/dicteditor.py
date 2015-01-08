@@ -117,7 +117,7 @@ class ProxyObject(object):
 
 class ReadOnlyDictModel(QAbstractTableModel):
     """DictEditor Read-Only Table Model"""
-    ROWS_TO_LOAD = 500
+    ROWS_TO_LOAD = 200
 
     def __init__(self, parent, data, title="", names=False, truncate=True,
                  minmax=False, remote=False):
@@ -136,8 +136,8 @@ class ReadOnlyDictModel(QAbstractTableModel):
         self.title = to_text_string(title) # in case title is not a string
         if self.title:
             self.title = self.title + ' - '
-        self.sizes = None
-        self.types = None
+        self.sizes = []
+        self.types = []
         self.set_data(data)
         
     def get_data(self):
@@ -176,23 +176,42 @@ class ReadOnlyDictModel(QAbstractTableModel):
 
         self.title += ' ('+str(len(self.keys))+' '+ _("elements")+')'
 
-        if self.remote:
-            self.sizes = [ data[self.keys[index]]['size']
-                           for index in range(len(self.keys)) ]
-            self.types = [ data[self.keys[index]]['type']
-                           for index in range(len(self.keys)) ]
-        else:
-            self.sizes = [ get_size(data[self.keys[index]])
-                           for index in range(len(self.keys)) ]
-            self.types = [ get_human_readable_type(data[self.keys[index]])
-                           for index in range(len(self.keys)) ]
-
         self.total_rows = len(self.keys)
         if self.total_rows > LARGE_NROWS:
             self.rows_loaded = self.ROWS_TO_LOAD
         else:
             self.rows_loaded = self.total_rows
+
+        self.set_size_and_type()
         self.reset()
+
+    def set_size_and_type(self, start=None, stop=None):
+        data = self._data
+        
+        if start is None and stop is None:
+            start = 0
+            stop = self.rows_loaded
+            fetch_more = False
+        else:
+            fetch_more = True
+        
+        if self.remote:
+            sizes = [ data[self.keys[index]]['size'] 
+                      for index in range(start, stop) ]
+            types = [ data[self.keys[index]]['type']
+                      for index in range(start, stop) ]
+        else:
+            sizes = [ get_size(data[self.keys[index]])
+                      for index in range(start, stop) ]
+            types = [ get_human_readable_type(data[self.keys[index]])
+                      for index in range(start, stop) ]
+
+        if fetch_more:
+            self.sizes = self.sizes + sizes
+            self.types = self.types + types
+        else:
+            self.sizes = sizes
+            self.types = types
 
     def sort(self, column, order=Qt.AscendingOrder):
         """Overriding sort method"""
@@ -252,6 +271,8 @@ class ReadOnlyDictModel(QAbstractTableModel):
     def fetchMore(self, index=QModelIndex()):
         reminder = self.total_rows - self.rows_loaded
         items_to_fetch = min(reminder, self.ROWS_TO_LOAD)
+        self.set_size_and_type(self.rows_loaded,
+                               self.rows_loaded + items_to_fetch)
         self.beginInsertRows(QModelIndex(), self.rows_loaded,
                              self.rows_loaded + items_to_fetch - 1)
         self.rows_loaded += items_to_fetch
