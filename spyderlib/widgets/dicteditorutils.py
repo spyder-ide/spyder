@@ -11,11 +11,10 @@ Utilities for the Dictionary Editor Widget and Dialog based on Qt
 from __future__ import print_function
 
 import re
-import repr as reprlib
 
 # Local imports
 from spyderlib.py3compat import (NUMERIC_TYPES, TEXT_TYPES, to_text_string,
-                                 is_text_string, is_binary_string)
+                                 is_text_string, is_binary_string, reprlib)
 from spyderlib.utils import programs
 from spyderlib import dependencies
 from spyderlib.baseconfig import _
