@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
 "POT-Creation-Date: 2014-11-26 06:56+COT\n"
-"PO-Revision-Date: 2014-11-26 07:17-0500\n"
+"PO-Revision-Date: 2015-01-08 00:08-0500\n"
 "Last-Translator: Carlos Cordoba <ccordoba12@gmail.com>\n"
 "Language-Team: Python\n"
 "Language: es\n"
@@ -2546,7 +2546,7 @@ msgstr "Mostrar contenidos de listas"
 #: spyderlib/plugins/variableexplorer.py:48
 #: spyderlib/widgets/dicteditor.py:629
 msgid "Show arrays min/max"
-msgstr "Mostrar el máximo y mínimo de listas"
+msgstr "Mostrar el máximo y mínimo de arreglos"
 
 #: spyderlib/plugins/variableexplorer.py:50
 #: spyderlib/widgets/dicteditor.py:1317
