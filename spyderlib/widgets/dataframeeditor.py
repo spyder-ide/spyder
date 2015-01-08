@@ -17,14 +17,13 @@ from spyderlib.qt.QtCore import QAbstractTableModel, Qt, QModelIndex, Slot
 from spyderlib.qt.QtGui import (QDialog, QTableView, QColor, QGridLayout,
                                 QDialogButtonBox, QHBoxLayout, QPushButton,
                                 QCheckBox, QMessageBox, QInputDialog,
-                                QLineEdit, QApplication, QMenu, QShortcut,
-                                QKeySequence)
+                                QLineEdit, QApplication, QMenu, QKeySequence)
 from spyderlib.qt.compat import to_qvariant, from_qvariant
 from spyderlib.utils.qthelpers import (qapplication, get_icon, create_action,
                                        add_actions, keybinding)
 
 from spyderlib.baseconfig import _
-from spyderlib.guiconfig import get_font
+from spyderlib.guiconfig import get_font, new_shortcut
 from spyderlib.py3compat import io, is_text_string, to_text_string
 from spyderlib.utils import encoding
 from spyderlib.widgets.arrayeditor import get_idx_rect
@@ -366,9 +365,7 @@ class DataFrameView(QTableView):
         self.header_class = self.horizontalHeader()
         self.header_class.sectionClicked.connect(self.sortByColumn)
         self.menu = self.setup_menu()
-        copy_sc = QShortcut(QKeySequence(QKeySequence.Copy), self,
-                            self.copy)
-        copy_sc.setContext(Qt.WidgetWithChildrenShortcut)
+        new_shortcut(QKeySequence.Copy, self, self.copy)
         self.horizontalScrollBar().valueChanged.connect(
                             lambda val: self.load_more_data(val, columns=True))
         self.verticalScrollBar().valueChanged.connect(
