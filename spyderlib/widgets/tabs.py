@@ -12,15 +12,14 @@
 # pylint: disable=R0201
 
 from spyderlib.qt.QtGui import (QTabWidget, QMenu, QDrag, QApplication,
-                                QTabBar, QShortcut, QKeySequence, QWidget,
-                                QHBoxLayout)
+                                QTabBar, QWidget, QHBoxLayout)
 from spyderlib.qt.QtCore import SIGNAL, Qt, QPoint, QMimeData, QByteArray
 
-import os
 import os.path as osp
 
 # Local imports
 from spyderlib.baseconfig import _
+from spyderlib.guiconfig import new_shortcut
 from spyderlib.utils.misc import get_common_path
 from spyderlib.utils.qthelpers import (add_actions, create_toolbutton,
                                        create_action, get_icon)
@@ -265,16 +264,13 @@ class Tabs(BaseTabs):
         self.connect(tab_bar, SIGNAL('move_tab(QString,int,int)'),
                      self.move_tab_from_another_tabwidget)
         self.setTabBar(tab_bar)
-        def newsc(keystr, triggered):
-            sc = QShortcut(QKeySequence(keystr), parent, triggered)
-            sc.setContext(Qt.WidgetWithChildrenShortcut)
-            return sc
-        tabsc = newsc("Ctrl+Tab", lambda: self.tab_navigate(1))
-        tabshiftsc = newsc("Shift+Ctrl+Tab", lambda: self.tab_navigate(-1))
-        closesc1 = newsc("Ctrl+W", lambda: self.emit(SIGNAL("close_tab(int)"),
-                                                     self.currentIndex()))
-        closesc2 = newsc("Ctrl+F4", lambda: self.emit(SIGNAL("close_tab(int)"),
-                                                      self.currentIndex()))
+        
+        new_shortcut("Ctrl+Tab", parent, lambda: self.tab_navigate(1))
+        new_shortcut("Shift+Ctrl+Tab", parent, lambda: self.tab_navigate(-1))
+        new_shortcut("Ctrl+W", parent, lambda: self.emit(SIGNAL("close_tab(int)"),
+                                                         self.currentIndex()))
+        new_shortcut("Ctrl+F4", parent, lambda: self.emit(SIGNAL("close_tab(int)"),
+                                                          self.currentIndex()))
         
     def tab_navigate(self, delta=1):
         """Ctrl+Tab"""
