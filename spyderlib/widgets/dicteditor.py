@@ -149,7 +149,7 @@ class ReadOnlyDictModel(QAbstractTableModel):
         self._data = data
 
         if dictfilter is not None and not self.remote and \
-           isinstance(data, (tuple, list, dict)):
+          isinstance(data, (tuple, list, dict)):
             data = dictfilter(data)
         self.showndata = data
 
@@ -419,10 +419,39 @@ class DictDelegate(QItemDelegate):
         if index.isValid():
             index.model().set_value(index, value)
 
+    def show_warning(self, index):
+        """
+        Decide if showing a warning when the user is trying to view
+        a big variable associated to a Tablemodel index
+
+        This avoids getting the variables' value to know its
+        size and type, using instead those already computed by
+        the TableModel.
+        
+        The problem is when a variable is too big, it can take a
+        lot of time just to get its value
+        """
+        try:
+            val_size = index.model().sizes[index.row()]
+            val_type = index.model().types[index.row()]
+        except:
+            return False
+        if val_type in ['list', 'tuple', 'dict'] and int(val_size) > 1e5:
+            return True
+        else:
+            return False
+
     def createEditor(self, parent, option, index):
         """Overriding method createEditor"""
         if index.column() < 3:
             return None
+        if self.show_warning(index):
+            answer = QMessageBox.warning(self.parent(), _("Warning"),
+                                      _("Opening this variable can be slow\n\n"
+                                        "Do you want to continue anyway?"),
+                                      QMessageBox.Yes | QMessageBox.No)
+            if answer == QMessageBox.No:
+                return None
         try:
             value = self.get_value(index)
         except Exception as msg:
