@@ -20,7 +20,8 @@ from spyderlib.qt.QtGui import (QColor, QLayout, QMenu, QApplication,
                                 QPixmap, QLabel, QWidget, QVBoxLayout,
                                 QHBoxLayout, QDialog, QMainWindow, QAction,
                                 QPushButton, QPainterPath, QSpacerItem, QPen,
-                                QGraphicsOpacityEffect, QRegion)
+                                QGraphicsOpacityEffect, QRegion,
+                                QComboBox)
 from spyderlib.qt.QtCore import (Qt, Signal, QPoint, QRectF,
                                  QPropertyAnimation, QEasingCurve)
 
@@ -66,7 +67,7 @@ def get_tours():
 
 
 def get_tour(index):
-    """For now this fucntion stores and retrieves the tours.
+    """For now this function stores and retrieves the tours.
 
     To add more tours a new variable needs to be created to hold the list of
     dics and the tours variable at the bottom of this function needs to be
@@ -461,6 +462,7 @@ class FadingTipBox(FadingDialog):
         self.holder = self.anim  # needed for qt to work
         self.parent = parent
 
+        self.frames = None
         self.color_top = QColor.fromRgb(230, 230, 230)
         self.color_back = QColor.fromRgb(255, 255, 255)
         self.offset_shadow = 0
@@ -485,6 +487,7 @@ class FadingTipBox(FadingDialog):
         self.label_image = QLabel()
 
         self.label_title = QLabel()
+        self.combo_title = QComboBox()
         self.label_current = QLabel()
         self.label_content = QLabel()
 
@@ -496,7 +499,7 @@ class FadingTipBox(FadingDialog):
         self.label_content.setWordWrap(True)
 
         self.widgets = [self.label_content, self.label_title,
-                        self.label_current,
+                        self.label_current, self.combo_title,
                         self.button_close, self.button_run, self.button_next,
                         self.button_previous, self.button_end,
                         self.button_home, self.button_current]
@@ -520,6 +523,20 @@ class FadingTipBox(FadingDialog):
                              color: rgbs(200,200,200,100%);
                              border-color: rgbs(200,200,200,100%);
                              }
+
+                             QComboBox {
+                             padding-left: 5px;
+                             background-color: rgbs(230,230,230,100%);
+                             border-width: 0px;
+                             border-radius: 0px;
+                             min-height:20px;
+                             max-height:20px;
+                             }
+
+                             QComboBox::drop-down  {
+                             subcontrol-origin: padding;
+                             subcontrol-position: top left;
+                             }
                              """
 
         for widget in self.widgets:
@@ -530,7 +547,8 @@ class FadingTipBox(FadingDialog):
         spacer2 = QSpacerItem(15, 15)
 
         layout_top = QHBoxLayout()
-        layout_top.addWidget(self.label_title)
+#        layout_top.addWidget(self.label_title)
+        layout_top.addWidget(self.combo_title)
         layout_top.addStretch()
         layout_top.addWidget(self.button_close)
         layout_top.addSpacerItem(spacer)
@@ -597,9 +615,15 @@ class FadingTipBox(FadingDialog):
             self.button_next.setDisabled(True)
             self.button_end.setDisabled(True)
 
-    def set_data(self, title, content, current, image, run):
+    def set_data(self, title, content, current, image, run, frames=None,
+                 step=None):
         """ """
         self.label_title.setText(title)
+        self.combo_title.clear()
+        self.combo_title.addItems(frames)
+        self.combo_title.setCurrentIndex(step)
+#        min_content_len = max([len(f) for f in frames])
+#        self.combo_title.setMinimumContentsLength(min_content_len)
 
         # Fix and try to see how it looks with a combo box
         self.label_current.setText(current)
@@ -774,6 +798,7 @@ class AnimatedTour(QWidget):
         self.tips.button_end.clicked.connect(self.last_step)
         self.tips.button_run.clicked.connect(
             lambda: self.tips.button_run.setDisabled(True))
+        self.tips.combo_title.currentIndexChanged.connect(self.go_to_step)
 
         # Main window move or resize
         self.parent.sig_resized.connect(self._resized)
@@ -875,6 +900,9 @@ class AnimatedTour(QWidget):
         current = '{0}/{1}'.format(step + 1, steps)
         frame = frames[step]
 
+        combobox_frames = ["{0}. {1}".format(i+1, f['title'])
+                           for i, f in enumerate(frames)]
+
         title, content, image = '', '', None
         widgets, dockwidgets, decoration = None, None, None
         run = None
@@ -918,7 +946,8 @@ class AnimatedTour(QWidget):
             run = frame['run']
             self.run = run
 
-        self.tips.set_data(title, content, current, image, run)
+        self.tips.set_data(title, content, current, image, run,
+                           frames=combobox_frames, step=step)
         self._check_buttons()
 
         # Make canvas black when starting a new place of decoration
@@ -1052,18 +1081,16 @@ class AnimatedTour(QWidget):
 
     def go_to_step(self, number, id_=None):
         """ """
-#        self._clear_canvas()
-#        self.step_current = number
-#        self.tips.fade_out(self._move_step)
+        self._clear_canvas()
+        self.step_current = number
+        self.tips.fade_out(self._move_step)
 
     def last_step(self):
         """ """
-        print('last step')
         self.go_to_step(self.steps - 1)
 
     def first_step(self):
         """ """
-        print('first step')
         self.go_to_step(0)
 
 # ----------------------------------------------------------------------------
