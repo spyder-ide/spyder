@@ -102,7 +102,8 @@ from spyderlib.qt.QtGui import (QApplication, QMainWindow, QSplashScreen,
                                 QPixmap, QMessageBox, QMenu, QColor, QShortcut,
                                 QKeySequence, QDockWidget, QAction,
                                 QDesktopServices)
-from spyderlib.qt.QtCore import SIGNAL, QPoint, Qt, QSize, QByteArray, QUrl
+from spyderlib.qt.QtCore import (SIGNAL, QPoint, Qt, QSize, QByteArray, QUrl,
+                                 Signal)
 from spyderlib.qt.compat import (from_qvariant, getopenfilename,
                                  getsavefilename)
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms 
@@ -300,6 +301,9 @@ class MainWindow(QMainWindow):
           _("WinPython"))
                 )
     
+    sig_resized = Signal("QResizeEvent")
+    sig_moved = Signal("QMoveEvent")
+
     def __init__(self, options=None):
         QMainWindow.__init__(self)
         
@@ -1605,7 +1609,7 @@ class MainWindow(QMainWindow):
         QMainWindow.resizeEvent(self, event)
 
         # To be used by the tour to be able to resize
-        self.emit(SIGNAL("resized(QResizeEvent)"), event)
+        self.sig_resized.emit(event)
         
     def moveEvent(self, event):
         """Reimplement Qt method"""
@@ -1614,7 +1618,7 @@ class MainWindow(QMainWindow):
         QMainWindow.moveEvent(self, event)
 
         # To be used by the tour to be able to move
-        self.emit(SIGNAL("moved(QMoveEvent)"), event)
+        self.sig_moved.emit(event)
     
     def hideEvent(self, event):
         """Reimplement Qt method"""
