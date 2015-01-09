@@ -384,7 +384,6 @@ class FadingCanvas(FadingDialog):
         self.path_full.addRect(0, 0, w, h)
 
         # Add the path
-        # FIX THIS!!!!  First add all widgets in one. and THEN substract
         if self.widgets is not None:
             for widget in self.widgets:
                 temp_path = QPainterPath()
@@ -933,8 +932,8 @@ class AnimatedTour(QWidget):
             # Get the widgets based on their name
             widgets, dockwidgets = self._process_widgets(widget_names,
                                                          self.spy_window)
-            self.widgets = widgets
-            self.dockwidgets = dockwidgets
+        self.widgets = widgets
+        self.dockwidgets = dockwidgets
 
         if 'decoration' in frame:
             widget_names = frames[step]['decoration']
@@ -1009,7 +1008,6 @@ class AnimatedTour(QWidget):
                     x = x_glob + width/2 - self.tips.width()/2
                     y = y_glob - delta - self.tips.height()
         else:
-            pass
             # Center on parent
             x = self.x_main + self.width_main/2 - self.tips.width()/2
             y = self.y_main + self.height_main/2 - self.tips.height()/2
