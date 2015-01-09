@@ -344,8 +344,9 @@ class MainWindow(QMainWindow):
         self.findinfiles = None
         self.thirdparty_plugins = []
         
-        # Tour  # FIXME: Should I consider it a plugin?? or?
-        self.tour = None        
+        # Tour  # TODO: Should I consider it a plugin?? or?
+        self.tour = None
+        self.tours_available = None
         
         # Preferences
         from spyderlib.plugins.configdialog import (MainConfigPage,
@@ -918,9 +919,10 @@ class MainWindow(QMainWindow):
             self.tour = tour.AnimatedTour(self)
             self.tours_menu = QMenu(_("Spyder tours"))
             self.tour_menu_actions = []
-            tours_available = tour.get_tours()
+            self.tours_available = tour.get_tours()
 
-            for i, tour_available in enumerate(tours_available):
+            for i, tour_available in enumerate(self.tours_available):
+                self.tours_available[i]['last'] = 0
                 tour_name = tour_available['name']
 
                 def trigger(i=i, self=self):  # closure needed!
@@ -2166,7 +2168,8 @@ Please provide any additional information below.
     # ---- Interactive Tours
     def show_tour(self, index):
         """ """
-        self.tour.set_tour(index, self)
+        frames = self.tours_available[index]
+        self.tour.set_tour(index, frames, self)
         self.tour.start_tour()
 
 #==============================================================================
