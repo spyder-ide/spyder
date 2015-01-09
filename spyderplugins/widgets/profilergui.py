@@ -72,7 +72,8 @@ class ProfilerWidget(QWidget):
         self.start_button = create_toolbutton(self, icon=get_icon('run.png'),
                                     text=_("Profile"),
                                     tip=_("Run profiler"),
-                                    triggered=self.start, text_beside_icon=True)
+                                    triggered=lambda : self.start(),
+                                    text_beside_icon=True)
         self.stop_button = create_toolbutton(self,
                                              icon=get_icon('stop.png'),
                                              text=_("Stop"),
