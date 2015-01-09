@@ -119,11 +119,11 @@ class ProfilerWidget(QWidget):
                             icon=get_icon('fileimport.png'),
                             triggered=self.compare,
                             tip=_('Load profiling data for comparison'))
-        self.clear_button = create_toolbutton(self, text_beside_icon=True, 
+        self.clear_button = create_toolbutton(self, text_beside_icon=True,
                                               text=_("Clear comparison"),
                                               icon=get_icon('eraser.png'),
-                                              triggered=self.clear)                  
-                            
+                                              triggered=self.clear)
+
         hlayout1 = QHBoxLayout()
         hlayout1.addWidget(self.filecombo)
         hlayout1.addWidget(browse_button)
@@ -150,7 +150,8 @@ class ProfilerWidget(QWidget):
         self.process = None
         self.set_running_state(False)
         self.start_button.setEnabled(False)
-        
+        self.clear_button.setEnabled(False)
+
         if not is_profiler_installed():
             # This should happen only on certain GNU/Linux distributions 
             # or when this a home-made Python build because the Python 
@@ -177,15 +178,17 @@ class ProfilerWidget(QWidget):
     def compare(self):
         filename, _selfilter = getopenfilename(self, _("Select script to compare"),
                                                getcwd(), _("Profiler result")+" (*.Result)")
-        if filename:                                           
+        if filename:
             self.datatree.compare(filename)
             self.show_data()
-            
+            self.clear_button.setEnabled(True)
+
     def clear(self):
         self.datatree.compare(None)
         self.datatree.hide_diff_cols(True)
-        self.show_data()    
-        
+        self.show_data()
+        self.clear_button.setEnabled(False)
+
     def analyze(self, filename, wdir=None, args=None, pythonpath=None):
         if not is_profiler_installed():
             return
