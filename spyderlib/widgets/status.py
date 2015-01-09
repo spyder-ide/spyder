@@ -9,7 +9,7 @@
 import os
 
 from spyderlib.qt.QtGui import QWidget, QHBoxLayout, QLabel
-from spyderlib.qt.QtCore import QTimer, SIGNAL
+from spyderlib.qt.QtCore import QTimer
 
 # Local import
 from spyderlib.baseconfig import _
@@ -56,7 +56,7 @@ class BaseTimerStatus(StatusBarWidget):
         layout.addSpacing(20)
         if self.is_supported():
             self.timer = QTimer()
-            self.connect(self.timer, SIGNAL('timeout()'), self.update_label)
+            self.timer.timeout.connect(self.update_label)
             self.timer.start(2000)
         else:
             self.timer = None

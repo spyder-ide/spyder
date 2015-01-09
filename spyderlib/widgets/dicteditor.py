@@ -21,15 +21,14 @@ from spyderlib.qt.QtGui import (QMessageBox, QTableView, QItemDelegate,
                                 QLineEdit, QVBoxLayout, QWidget, QColor,
                                 QDialog, QDateEdit, QDialogButtonBox, QMenu,
                                 QInputDialog, QDateTimeEdit, QApplication,
-                                QKeySequence)
-from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, SIGNAL,
-                                 SLOT, QDateTime, Signal)
+                                QKeySequence, QAbstractItemDelegate)
+from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, Signal,
+                                 QDateTime, Slot)
 from spyderlib.qt.compat import to_qvariant, from_qvariant, getsavefilename
 from spyderlib.utils.qthelpers import mimedata2url
 
 import sys
 import datetime
-import os
 
 # Local import
 from spyderlib.baseconfig import _
@@ -48,8 +47,11 @@ if DataFrame is not FakeObject:
     from spyderlib.widgets.dataframeeditor import DataFrameEditor
 from spyderlib.widgets.texteditor import TextEditor
 from spyderlib.widgets.importwizard import ImportWizard
-from spyderlib.py3compat import to_text_string, is_text_string, getcwd, u
-from spyderlib.utils.iofuncs import iofunctions
+from spyderlib.py3compat import (to_text_string, to_binary_string,
+                                 is_text_string, is_binary_string, getcwd, u)
+
+
+LARGE_NROWS = 5000
 
 
 def display_to_value(value, default_value, ignore_errors=True):
@@ -69,8 +71,8 @@ def display_to_value(value, default_value, ignore_errors=True):
                 value = np_dtype(complex(value))
             else:
                 value = np_dtype(value)
-        elif isinstance(default_value, str):
-            value = str(value)
+        elif is_binary_string(default_value):
+            value = to_binary_string(value, 'utf8')
         elif is_text_string(default_value):
             value = to_text_string(value)
         elif isinstance(default_value, complex):
@@ -94,7 +96,7 @@ def display_to_value(value, default_value, ignore_errors=True):
         if ignore_errors:
             value = try_to_eval(value)
         else:
-            raise
+            return default_value
     return value
 
 
@@ -115,25 +117,27 @@ class ProxyObject(object):
 
 class ReadOnlyDictModel(QAbstractTableModel):
     """DictEditor Read-Only Table Model"""
-    def __init__(self, parent, data, title="", names=False,
-                 truncate=True, minmax=False, collvalue=True, remote=False):
+    ROWS_TO_LOAD = 200
+
+    def __init__(self, parent, data, title="", names=False, truncate=True,
+                 minmax=False, remote=False):
         QAbstractTableModel.__init__(self, parent)
         if data is None:
             data = {}
         self.names = names
         self.truncate = truncate
         self.minmax = minmax
-        self.collvalue = collvalue
         self.remote = remote
         self.header0 = None
         self._data = None
+        self.total_rows = None
         self.showndata = None
         self.keys = None
         self.title = to_text_string(title) # in case title is not a string
         if self.title:
             self.title = self.title + ' - '
-        self.sizes = None
-        self.types = None
+        self.sizes = []
+        self.types = []
         self.set_data(data)
         
     def get_data(self):
@@ -143,10 +147,12 @@ class ReadOnlyDictModel(QAbstractTableModel):
     def set_data(self, data, dictfilter=None):
         """Set model data"""
         self._data = data
-        if dictfilter is not None and not self.remote and\
-           isinstance(data, (tuple, list, dict)):
+
+        if dictfilter is not None and not self.remote and \
+          isinstance(data, (tuple, list, dict)):
             data = dictfilter(data)
         self.showndata = data
+
         self.header0 = _("Index")
         if self.names:
             self.header0 = _("Name")
@@ -167,18 +173,45 @@ class ReadOnlyDictModel(QAbstractTableModel):
             self.title += _("Object")
             if not self.names:
                 self.header0 = _("Attribute")
+
         self.title += ' ('+str(len(self.keys))+' '+ _("elements")+')'
-        if self.remote:
-            self.sizes = [ data[self.keys[index]]['size']
-                           for index in range(len(self.keys)) ]
-            self.types = [ data[self.keys[index]]['type']
-                           for index in range(len(self.keys)) ]
+
+        self.total_rows = len(self.keys)
+        if self.total_rows > LARGE_NROWS:
+            self.rows_loaded = self.ROWS_TO_LOAD
         else:
-            self.sizes = [ get_size(data[self.keys[index]])
-                           for index in range(len(self.keys)) ]
-            self.types = [ get_human_readable_type(data[self.keys[index]])
-                           for index in range(len(self.keys)) ]
+            self.rows_loaded = self.total_rows
+
+        self.set_size_and_type()
         self.reset()
+
+    def set_size_and_type(self, start=None, stop=None):
+        data = self._data
+        
+        if start is None and stop is None:
+            start = 0
+            stop = self.rows_loaded
+            fetch_more = False
+        else:
+            fetch_more = True
+        
+        if self.remote:
+            sizes = [ data[self.keys[index]]['size'] 
+                      for index in range(start, stop) ]
+            types = [ data[self.keys[index]]['type']
+                      for index in range(start, stop) ]
+        else:
+            sizes = [ get_size(data[self.keys[index]])
+                      for index in range(start, stop) ]
+            types = [ get_human_readable_type(data[self.keys[index]])
+                      for index in range(start, stop) ]
+
+        if fetch_more:
+            self.sizes = self.sizes + sizes
+            self.types = self.types + types
+        else:
+            self.sizes = sizes
+            self.types = types
 
     def sort(self, column, order=Qt.AscendingOrder):
         """Overriding sort method"""
@@ -186,19 +219,31 @@ class ReadOnlyDictModel(QAbstractTableModel):
         if column == 0:
             self.sizes = sort_against(self.sizes, self.keys, reverse)
             self.types = sort_against(self.types, self.keys, reverse)
-            self.keys.sort(reverse=reverse)
+            try:
+                self.keys.sort(reverse=reverse)
+            except:
+                pass
         elif column == 1:
             self.keys = sort_against(self.keys, self.types, reverse)
             self.sizes = sort_against(self.sizes, self.types, reverse)
-            self.types.sort(reverse=reverse)
+            try:
+                self.types.sort(reverse=reverse)
+            except:
+                pass
         elif column == 2:
             self.keys = sort_against(self.keys, self.sizes, reverse)
             self.types = sort_against(self.types, self.sizes, reverse)
-            self.sizes.sort(reverse=reverse)
+            try:
+                self.sizes.sort(reverse=reverse)
+            except:
+                pass
         elif column == 3:
             self.keys = sort_against(self.keys, self.sizes, reverse)
             self.types = sort_against(self.types, self.sizes, reverse)
-            self.sizes.sort(reverse=reverse)
+            try:
+                self.sizes.sort(reverse=reverse)
+            except:
+                pass
         elif column == 4:
             values = [self._data[key] for key in self.keys]
             self.keys = sort_against(self.keys, values, reverse)
@@ -210,9 +255,28 @@ class ReadOnlyDictModel(QAbstractTableModel):
         """Array column number"""
         return 4
 
-    def rowCount(self, qindex=QModelIndex()):
+    def rowCount(self, index=QModelIndex()):
         """Array row number"""
-        return len(self.keys)
+        if self.total_rows <= self.rows_loaded:
+            return self.total_rows
+        else:
+            return self.rows_loaded
+    
+    def canFetchMore(self, index=QModelIndex()):
+        if self.total_rows > self.rows_loaded:
+            return True
+        else:
+            return False
+ 
+    def fetchMore(self, index=QModelIndex()):
+        reminder = self.total_rows - self.rows_loaded
+        items_to_fetch = min(reminder, self.ROWS_TO_LOAD)
+        self.set_size_and_type(self.rows_loaded,
+                               self.rows_loaded + items_to_fetch)
+        self.beginInsertRows(QModelIndex(), self.rows_loaded,
+                             self.rows_loaded + items_to_fetch - 1)
+        self.rows_loaded += items_to_fetch
+        self.endInsertRows()
     
     def get_index_from_key(self, key):
         try:
@@ -257,8 +321,7 @@ class ReadOnlyDictModel(QAbstractTableModel):
             value = value['view']
         display = value_to_display(value,
                                truncate=index.column() == 3 and self.truncate,
-                               minmax=self.minmax,
-                               collvalue=self.collvalue or index.column() != 3)
+                               minmax=self.minmax)
         if role == Qt.DisplayRole:
             return to_qvariant(display)
         elif role == Qt.EditRole:
@@ -336,16 +399,15 @@ class DictModel(ReadOnlyDictModel):
         value = display_to_value(value, self.get_value(index),
                                  ignore_errors=True)
         self.set_value(index, value)
-        self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
-                  index, index)
+        self.dataChanged.emit(index, index)
         return True
 
 
 class DictDelegate(QItemDelegate):
     """DictEditor Item Delegate"""
-    def __init__(self, parent=None, inplace=False):
+    
+    def __init__(self, parent=None):
         QItemDelegate.__init__(self, parent)
-        self.inplace = inplace
         self._editors = {} # keep references on opened editors
         
     def get_value(self, index):
@@ -356,10 +418,39 @@ class DictDelegate(QItemDelegate):
         if index.isValid():
             index.model().set_value(index, value)
 
+    def show_warning(self, index):
+        """
+        Decide if showing a warning when the user is trying to view
+        a big variable associated to a Tablemodel index
+
+        This avoids getting the variables' value to know its
+        size and type, using instead those already computed by
+        the TableModel.
+        
+        The problem is when a variable is too big, it can take a
+        lot of time just to get its value
+        """
+        try:
+            val_size = index.model().sizes[index.row()]
+            val_type = index.model().types[index.row()]
+        except:
+            return False
+        if val_type in ['list', 'tuple', 'dict'] and int(val_size) > 1e5:
+            return True
+        else:
+            return False
+
     def createEditor(self, parent, option, index):
         """Overriding method createEditor"""
         if index.column() < 3:
             return None
+        if self.show_warning(index):
+            answer = QMessageBox.warning(self.parent(), _("Warning"),
+                                      _("Opening this variable can be slow\n\n"
+                                        "Do you want to continue anyway?"),
+                                      QMessageBox.Yes | QMessageBox.No)
+            if answer == QMessageBox.No:
+                return None
         try:
             value = self.get_value(index)
         except Exception as msg:
@@ -372,7 +463,7 @@ class DictDelegate(QItemDelegate):
         readonly = isinstance(value, tuple) or self.parent().readonly \
                    or not is_known_type(value)
         #---editor = DictEditor
-        if isinstance(value, (list, tuple, dict)) and not self.inplace:
+        if isinstance(value, (list, tuple, dict)):
             editor = DictEditor()
             editor.setup(value, key, icon=self.parent().windowIcon(),
                          readonly=readonly)
@@ -380,8 +471,8 @@ class DictDelegate(QItemDelegate):
                                             key=key, readonly=readonly))
             return None
         #---editor = ArrayEditor
-        elif isinstance(value, (ndarray, MaskedArray))\
-             and ndarray is not FakeObject and not self.inplace:
+        elif isinstance(value, (ndarray, MaskedArray)) \
+          and ndarray is not FakeObject:
             if value.size == 0:
                 return None
             editor = ArrayEditor(parent)
@@ -415,20 +506,18 @@ class DictDelegate(QItemDelegate):
             return None
 
         #---editor = QDateTimeEdit
-        elif isinstance(value, datetime.datetime) and not self.inplace:
+        elif isinstance(value, datetime.datetime):
             editor = QDateTimeEdit(value, parent)
             editor.setCalendarPopup(True)
             editor.setFont(get_font('dicteditor'))
-            self.connect(editor, SIGNAL("returnPressed()"),
-                         self.commitAndCloseEditor)
+            editor.returnPressed.connect(self.commitAndCloseEditor)
             return editor
         #---editor = QDateEdit
-        elif isinstance(value, datetime.date) and not self.inplace:
+        elif isinstance(value, datetime.date):
             editor = QDateEdit(value, parent)
             editor.setCalendarPopup(True)
             editor.setFont(get_font('dicteditor'))
-            self.connect(editor, SIGNAL("returnPressed()"),
-                         self.commitAndCloseEditor)
+            editor.returnPressed.connect(self.commitAndCloseEditor)
             return editor
         #---editor = QTextEdit
         elif is_text_string(value) and len(value)>40:
@@ -437,12 +526,11 @@ class DictDelegate(QItemDelegate):
                                             key=key, readonly=readonly))
             return None
         #---editor = QLineEdit
-        elif self.inplace or is_editable_type(value):
+        elif is_editable_type(value):
             editor = QLineEdit(parent)
             editor.setFont(get_font('dicteditor'))
             editor.setAlignment(Qt.AlignLeft)
-            self.connect(editor, SIGNAL("returnPressed()"),
-                         self.commitAndCloseEditor)
+            editor.returnPressed.connect(self.commitAndCloseEditor)
             return editor
         #---editor = DictEditor for an arbitrary object
         else:
@@ -455,9 +543,9 @@ class DictDelegate(QItemDelegate):
             
     def create_dialog(self, editor, data):
         self._editors[id(editor)] = data
-        self.connect(editor, SIGNAL('accepted()'),
+        editor.accepted.connect(
                      lambda eid=id(editor): self.editor_accepted(eid))
-        self.connect(editor, SIGNAL('rejected()'),
+        editor.rejected.connect(
                      lambda eid=id(editor): self.editor_rejected(eid))
         editor.show()
         
@@ -476,14 +564,19 @@ class DictDelegate(QItemDelegate):
     def commitAndCloseEditor(self):
         """Overriding method commitAndCloseEditor"""
         editor = self.sender()
-        self.emit(SIGNAL("commitData(QWidget*)"), editor)
-        self.emit(SIGNAL("closeEditor(QWidget*)"), editor)
+        self.commitData.emit(editor)
+        self.closeEditor.emit(editor, QAbstractItemDelegate.NoHint)
 
     def setEditorData(self, editor, index):
         """Overriding method setEditorData
         Model --> Editor"""
         value = self.get_value(index)
         if isinstance(editor, QLineEdit):
+            if is_binary_string(value):
+                try:
+                    value = to_text_string(value, 'utf8')
+                except:
+                    pass
             if not is_text_string(value):
                 value = repr(value)
             editor.setText(value)
@@ -529,9 +622,10 @@ class DictDelegate(QItemDelegate):
 
 
 class BaseTableView(QTableView):
-    """Base dictionnary editor table view"""
+    """Base dictionary editor table view"""
     sig_option_changed = Signal(str, object)
     sig_files_dropped = Signal(list)
+    redirect_stdio = Signal(bool)
     
     def __init__(self, parent):
         QTableView.__init__(self, parent)
@@ -549,8 +643,6 @@ class BaseTableView(QTableView):
         self.remove_action = None
         self.truncate_action = None
         self.minmax_action = None
-        self.collvalue_action = None
-        self.inplace_action = None
         self.rename_action = None
         self.duplicate_action = None
         self.delegate = None
@@ -564,13 +656,11 @@ class BaseTableView(QTableView):
         self.setSortingEnabled(True)
         self.sortByColumn(0, Qt.AscendingOrder)
     
-    def setup_menu(self, truncate, minmax, inplace, collvalue):
+    def setup_menu(self, truncate, minmax):
         """Setup context menu"""
         if self.truncate_action is not None:
             self.truncate_action.setChecked(truncate)
             self.minmax_action.setChecked(minmax)
-            self.inplace_action.setChecked(inplace)
-            self.collvalue_action.setChecked(collvalue)
             return
         
         resize_action = create_action(self, _("Resize rows to contents"),
@@ -614,18 +704,6 @@ class BaseTableView(QTableView):
                                            toggled=self.toggle_minmax)
         self.minmax_action.setChecked(minmax)
         self.toggle_minmax(minmax)
-        self.collvalue_action = create_action(self,
-                                              _("Show collection contents"),
-                                              toggled=self.toggle_collvalue)
-        self.collvalue_action.setChecked(collvalue)
-        self.toggle_collvalue(collvalue)
-        self.inplace_action = create_action(self, _("Always edit in-place"),
-                                            toggled=self.toggle_inplace)
-        self.inplace_action.setChecked(inplace)
-        if self.delegate is None:
-            self.inplace_action.setEnabled(False)
-        else:
-            self.toggle_inplace(inplace)
         self.rename_action = create_action(self, _( "Rename"),
                                            icon=get_icon('rename.png'),
                                            triggered=self.rename_item)
@@ -638,8 +716,7 @@ class BaseTableView(QTableView):
                         self.insert_action, self.remove_action,
                         self.copy_action, self.paste_action,
                         None, self.rename_action, self.duplicate_action,
-                        None, resize_action, None, self.truncate_action,
-                        self.inplace_action, self.collvalue_action]
+                        None, resize_action, None, self.truncate_action]
         if ndarray is not FakeObject:
             menu_actions.append(self.minmax_action)
         add_actions(menu, menu_actions)
@@ -818,33 +895,28 @@ class BaseTableView(QTableView):
         else:
             event.ignore()
 
-    def toggle_inplace(self, state):
-        """Toggle in-place editor option"""
-        self.sig_option_changed.emit('inplace', state)
-        self.delegate.inplace = state
-        
+    @Slot(bool)
     def toggle_truncate(self, state):
         """Toggle display truncating option"""
         self.sig_option_changed.emit('truncate', state)
         self.model.truncate = state
-        
+
+    @Slot(bool)
     def toggle_minmax(self, state):
         """Toggle min/max display for numpy arrays"""
         self.sig_option_changed.emit('minmax', state)
         self.model.minmax = state
-        
-    def toggle_collvalue(self, state):
-        """Toggle value display for collections"""
-        self.sig_option_changed.emit('collvalue', state)
-        self.model.collvalue = state
-            
+
+    @Slot()
     def edit_item(self):
         """Edit item"""
         index = self.currentIndex()
         if not index.isValid():
             return
-        self.edit(index)
-    
+        # TODO: Remove hard coded "Value" column number (3 here)
+        self.edit(index.child(index.row(), 3))
+
+    @Slot()
     def remove_item(self):
         """Remove item"""
         indexes = self.selectedIndexes()
@@ -881,15 +953,18 @@ class BaseTableView(QTableView):
             self.copy_value(orig_key, new_key)
             if erase_original:
                 self.remove_values([orig_key])
-    
+
+    @Slot()
     def duplicate_item(self):
         """Duplicate item"""
         self.copy_item()
 
+    @Slot()
     def rename_item(self):
         """Rename item"""
         self.copy_item(True)
-    
+
+    @Slot()
     def insert_item(self):
         """Insert item"""
         index = self.currentIndex()
@@ -942,7 +1017,8 @@ class BaseTableView(QTableView):
                                      _("<b>Unable to plot data.</b>"
                                        "<br><br>Error message:<br>%s"
                                        ) % str(error))
-            
+
+    @Slot()
     def imshow_item(self):
         """Imshow item"""
         index = self.currentIndex()
@@ -958,17 +1034,18 @@ class BaseTableView(QTableView):
                                      _("<b>Unable to show image.</b>"
                                        "<br><br>Error message:<br>%s"
                                        ) % str(error))
-            
+
+    @Slot()
     def save_array(self):
         """Save array"""
         title = _( "Save array")
         if self.array_filename is None:
             self.array_filename = getcwd()
-        self.emit(SIGNAL('redirect_stdio(bool)'), False)
+        self.redirect_stdio.emit(False)
         filename, _selfilter = getsavefilename(self, title,
                                                self.array_filename,
                                                _("NumPy arrays")+" (*.npy)")
-        self.emit(SIGNAL('redirect_stdio(bool)'), True)
+        self.redirect_stdio.emit(True)
         if filename:
             self.array_filename = filename
             data = self.delegate.get_value( self.currentIndex() )
@@ -980,6 +1057,8 @@ class BaseTableView(QTableView):
                                      _("<b>Unable to save array</b>"
                                        "<br><br>Error message:<br>%s"
                                        ) % str(error))
+    
+    @Slot()
     def copy(self):
         """Copy text to clipboard"""
         clipboard = QApplication.clipboard()
@@ -1000,7 +1079,8 @@ class BaseTableView(QTableView):
         if editor.exec_():
             var_name, clip_data = editor.get_data()
             self.new_value(var_name, clip_data)
-    
+
+    @Slot()
     def paste(self):
         """Import text/data/code from clipboard"""
         clipboard = QApplication.clipboard()
@@ -1017,21 +1097,19 @@ class BaseTableView(QTableView):
 class DictEditorTableView(BaseTableView):
     """DictEditor table view"""
     def __init__(self, parent, data, readonly=False, title="",
-                 names=False, truncate=True, minmax=False,
-                 inplace=False, collvalue=True):
+                 names=False, truncate=True, minmax=False):
         BaseTableView.__init__(self, parent)
         self.dictfilter = None
         self.readonly = readonly or isinstance(data, tuple)
         DictModelClass = ReadOnlyDictModel if self.readonly else DictModel
         self.model = DictModelClass(self, data, title, names=names,
-                                    truncate=truncate, minmax=minmax,
-                                    collvalue=collvalue)
+                                    truncate=truncate, minmax=minmax)
         self.setModel(self.model)
-        self.delegate = DictDelegate(self, inplace=inplace)
+        self.delegate = DictDelegate(self)
         self.setItemDelegate(self.delegate)
 
         self.setup_table()
-        self.menu = self.setup_menu(truncate, minmax, inplace, collvalue)
+        self.menu = self.setup_menu(truncate, minmax)
     
     #------ Remote/local API ---------------------------------------------------
     def remove_values(self, keys):
@@ -1194,9 +1272,9 @@ class DictEditor(QDialog):
         if not readonly:
             buttons = buttons | QDialogButtonBox.Cancel
         bbox = QDialogButtonBox(buttons)
-        self.connect(bbox, SIGNAL("accepted()"), SLOT("accept()"))
+        bbox.accepted.connect(self.accept)
         if not readonly:
-            self.connect(bbox, SIGNAL("rejected()"), SLOT("reject()"))
+            bbox.rejected.connect(self.reject)
         layout.addWidget(bbox)
 
         constant = 121
@@ -1222,9 +1300,8 @@ class DictEditor(QDialog):
 #----Remote versions of DictDelegate and DictEditorTableView
 class RemoteDictDelegate(DictDelegate):
     """DictEditor Item Delegate"""
-    def __init__(self, parent=None, inplace=False,
-                 get_value_func=None, set_value_func=None):
-        DictDelegate.__init__(self, parent, inplace=inplace)
+    def __init__(self, parent=None, get_value_func=None, set_value_func=None):
+        DictDelegate.__init__(self, parent)
         self.get_value_func = get_value_func
         self.set_value_func = set_value_func
         
@@ -1237,11 +1314,11 @@ class RemoteDictDelegate(DictDelegate):
         if index.isValid():
             name = index.model().keys[index.row()]
             self.set_value_func(name, value)
-        
+
+
 class RemoteDictEditorTableView(BaseTableView):
     """DictEditor table view"""
-    def __init__(self, parent, data, truncate=True, minmax=False,
-                 inplace=False, collvalue=True, remote_editing=False,
+    def __init__(self, parent, data, truncate=True, minmax=False, 
                  get_value_func=None, set_value_func=None,
                  new_value_func=None, remove_values_func=None,
                  copy_value_func=None, is_list_func=None, get_len_func=None,
@@ -1249,7 +1326,7 @@ class RemoteDictEditorTableView(BaseTableView):
                  get_array_shape_func=None, get_array_ndim_func=None,
                  oedit_func=None, plot_func=None, imshow_func=None,
                  is_data_frame_func=None, is_time_series_func=None,
-                 show_image_func=None):
+                 show_image_func=None, remote_editing=False):
         BaseTableView.__init__(self, parent)
         
         self.remote_editing_enabled = None
@@ -1278,40 +1355,18 @@ class RemoteDictEditorTableView(BaseTableView):
         self.readonly = False
         self.model = DictModel(self, data, names=True,
                                truncate=truncate, minmax=minmax,
-                               collvalue=collvalue, remote=True)
+                               remote=True)
         self.setModel(self.model)
-        self.delegate = RemoteDictDelegate(self, inplace,
-                                           get_value_func, set_value_func)
+        self.delegate = RemoteDictDelegate(self, get_value_func, set_value_func)
         self.setItemDelegate(self.delegate)
         
         self.setup_table()
-        self.menu = self.setup_menu(truncate, minmax, inplace, collvalue,
-                                    remote_editing)
+        self.menu = self.setup_menu(truncate, minmax)
 
-    def setup_menu(self, truncate, minmax, inplace, collvalue, remote_editing):
+    def setup_menu(self, truncate, minmax):
         """Setup context menu"""
-        menu = BaseTableView.setup_menu(self, truncate, minmax,
-                                        inplace, collvalue)
-        if menu is None:
-            self.remote_editing_action.setChecked(remote_editing)
-            return
-        
-        self.remote_editing_action = create_action(self,
-                _( "Edit data in the remote process"),
-                tip=_("Editors are opened in the remote process for NumPy "
-                      "arrays, PIL images, lists, tuples and dictionaries.\n"
-                      "This avoids transfering large amount of data between "
-                      "the remote process and Spyder (through the socket)."),
-                toggled=self.toggle_remote_editing)
-        self.remote_editing_action.setChecked(remote_editing)
-        self.toggle_remote_editing(remote_editing)
-        add_actions(menu, (self.remote_editing_action,))
+        menu = BaseTableView.setup_menu(self, truncate, minmax)
         return menu
-            
-    def toggle_remote_editing(self, state):
-        """Toggle remote editing state"""
-        self.sig_option_changed.emit('remote_editing', state)
-        self.remote_editing_enabled = state
 
     def oedit_possible(self, key):
         if (self.is_list(key) or self.is_dict(key) 
@@ -1348,7 +1403,8 @@ def get_test_data():
     """Create test data"""
     import numpy as np
     from spyderlib.pil_patch import Image
-    image = Image.fromarray(np.random.random_integers(255, size=(100, 100)))
+    image = Image.fromarray(np.random.random_integers(255, size=(100, 100)),
+                            mode='P')
     testdict = {'d': 1, 'a': np.random.rand(10, 10), 'b': [1, 2]}
     testdate = datetime.date(1945, 5, 8)
     class Foobar(object):
@@ -1359,7 +1415,7 @@ def get_test_data():
     foobar = Foobar()
     return {'object': foobar,
             'str': 'kjkj kj k j j kj k jkj',
-            'unicode': u('éù'),
+            'unicode': to_text_string('éù', 'utf-8'),
             'list': [1, 3, [sorted, 5, 6], 'kjkj', None],
             'tuple': ([1, testdate, testdict], 'kjkj', None),
             'dict': testdict,
@@ -1382,7 +1438,7 @@ def get_test_data():
             'bool_scalar': np.bool(8),
             'unsupported1': np.arccos,
             'unsupported2': np.cast,
-            1: (1, 2, 3), -5: ("a", "b", "c"), 2.5: np.array((4.0, 6.0, 8.0)),            
+            #1: (1, 2, 3), -5: ("a", "b", "c"), 2.5: np.array((4.0, 6.0, 8.0)),            
             }
 
 def test():
@@ -1402,11 +1458,12 @@ def remote_editor_test():
     from pprint import pprint
     pprint(remote)
     app = qapplication()
-    dialog = DictEditor(remote, remote=True)
+    dialog = DictEditor()
+    dialog.setup(remote, remote=True)
     dialog.show()
     app.exec_()
     if dialog.result():
         print(dialog.get_value())
 
 if __name__ == "__main__":
-    test()
+    remote_editor_test()

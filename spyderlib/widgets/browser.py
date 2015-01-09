@@ -9,7 +9,7 @@
 from spyderlib.qt.QtGui import (QHBoxLayout, QWidget, QVBoxLayout,
                                 QProgressBar, QLabel, QMenu)
 from spyderlib.qt.QtWebKit import QWebView, QWebPage, QWebSettings
-from spyderlib.qt.QtCore import SIGNAL, QUrl
+from spyderlib.qt.QtCore import QUrl, Slot
 
 import sys
 
@@ -78,12 +78,14 @@ class WebView(QWebView):
     def get_zoom_factor(self):
         """Return zoom factor"""
         return self.zoom_factor
-            
+
+    @Slot()
     def zoom_out(self):
         """Zoom out"""
         self.zoom_factor = max(.1, self.zoom_factor-.1)
         self.apply_zoom_factor()
-    
+
+    @Slot()
     def zoom_in(self):
         """Zoom in"""
         self.zoom_factor += .1
@@ -120,12 +122,9 @@ class WebBrowser(QWidget):
         self.home_url = None
         
         self.webview = WebView(self)
-        self.connect(self.webview, SIGNAL("loadFinished(bool)"),
-                     self.load_finished)
-        self.connect(self.webview, SIGNAL("titleChanged(QString)"),
-                     self.setWindowTitle)
-        self.connect(self.webview, SIGNAL("urlChanged(QUrl)"),
-                     self.url_changed)
+        self.webview.loadFinished.connect(self.load_finished)
+        self.webview.titleChanged.connect(self.setWindowTitle)
+        self.webview.urlChanged.connect(self.url_changed)
                 
         home_button = create_toolbutton(self, icon=get_icon('home.png'),
                                         tip=_("Home"),
@@ -142,26 +141,21 @@ class WebBrowser(QWidget):
         next_button = pageact2btn(QWebPage.Forward)
         
         stop_button.setEnabled(False)
-        self.connect(self.webview, SIGNAL("loadStarted()"),
-                     lambda: stop_button.setEnabled(True))
-        self.connect(self.webview, SIGNAL("loadFinished(bool)"),
-                     lambda: stop_button.setEnabled(False))
+        self.webview.loadStarted.connect(lambda: stop_button.setEnabled(True))
+        self.webview.loadFinished.connect(lambda: stop_button.setEnabled(False))
         
         progressbar = QProgressBar(self)
         progressbar.setTextVisible(False)
         progressbar.hide()
-        self.connect(self.webview, SIGNAL("loadStarted()"), progressbar.show)
-        self.connect(self.webview, SIGNAL("loadProgress(int)"),
-                     progressbar.setValue)
-        self.connect(self.webview, SIGNAL("loadFinished(bool)"),
-                     lambda _state: progressbar.hide())
+        self.webview.loadStarted.connect(progressbar.show)
+        self.webview.loadProgress.connect(progressbar.setValue)
+        self.webview.loadFinished.connect(lambda _state: progressbar.hide())
         
         label = QLabel(self.get_label())
         
         self.url_combo = UrlComboBox(self)
-        self.connect(self.url_combo, SIGNAL('valid(bool)'),
-                     self.url_combo_activated)
-        self.connect(self.webview, SIGNAL("iconChanged()"), self.icon_changed)
+        self.url_combo.valid.connect(self.url_combo_activated)
+        self.webview.iconChanged.connect(self.icon_changed)
         
         self.find_widget = FindReplace(self)
         self.find_widget.set_editor(self.webview)
@@ -170,8 +164,7 @@ class WebBrowser(QWidget):
         find_button = create_toolbutton(self, icon='find.png',
                                         tip=_("Find text"),
                                         toggled=self.toggle_find_widget)
-        self.connect(self.find_widget, SIGNAL("visibility_changed(bool)"),
-                     find_button.setChecked)
+        self.find_widget.visibility_changed.connect(find_button.setChecked)
 
         hlayout = QHBoxLayout()
         for widget in (previous_button, next_button, home_button, find_button,
@@ -205,7 +198,8 @@ class WebBrowser(QWidget):
         else:
             url = url_or_text
         self.webview.load(url)
-        
+
+    @Slot()
     def go_home(self):
         """Go to home page"""
         if self.home_url is not None:
@@ -236,7 +230,8 @@ class WebBrowser(QWidget):
         self.url_combo.setItemIcon(self.url_combo.currentIndex(),
                                    self.webview.icon())
         self.setWindowIcon(self.webview.icon())
-        
+
+    @Slot(bool)
     def toggle_find_widget(self, state):
         if state:
             self.find_widget.show()

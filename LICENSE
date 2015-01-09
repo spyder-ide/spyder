@@ -126,7 +126,6 @@ spyderlib/images/actions/rename.png
 spyderlib/images/actions/replace.png
 spyderlib/images/actions/show.png
 spyderlib/images/actions/special_paste.png
-spyderlib/images/actions/stop.png
 spyderlib/images/actions/synchronize.png
 spyderlib/images/actions/tooloptions.png
 spyderlib/images/actions/undo.png
@@ -143,7 +142,6 @@ spyderlib/images/console/kill.png
 spyderlib/images/console/prompt.png
 spyderlib/images/console/restart.png
 spyderlib/images/console/syspath.png
-spyderlib/images/console/terminate.png
 spyderlib/images/editor/bug.png
 spyderlib/images/editor/close_panel.png
 spyderlib/images/editor/comment.png
@@ -321,6 +319,7 @@ spyderlib/images/editor/breakpoint_cond_small.png
 spyderlib/images/editor/breakpoint_small.png
 spyderlib/images/editor/debug.png
 spyderlib/images/console/terminated.png
+spyderlib/images/actions/stop.png
 
 
 [12] Creative Commons BY-SA license

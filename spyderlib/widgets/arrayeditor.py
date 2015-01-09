@@ -21,15 +21,15 @@ from spyderlib.qt.QtGui import (QHBoxLayout, QColor, QTableView, QItemDelegate,
                                 QMessageBox, QPushButton, QInputDialog, QMenu,
                                 QApplication, QKeySequence, QLabel, QComboBox,
                                 QSpinBox, QStackedWidget, QWidget, QVBoxLayout)
-from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, SIGNAL,
-                                 SLOT)
+from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, Slot)
+                                 
 from spyderlib.qt.compat import to_qvariant, from_qvariant
 
 import numpy as np
 
 # Local imports
 from spyderlib.baseconfig import _
-from spyderlib.guiconfig import get_font
+from spyderlib.guiconfig import get_font, new_shortcut
 from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
                                        qapplication, get_icon)
 from spyderlib.py3compat import io, to_text_string, is_text_string
@@ -76,6 +76,12 @@ SUPPORTED_FORMATS = {
                      'bool': '%r',
                      }
 
+
+LARGE_SIZE = 5e5
+LARGE_NROWS = 1e5
+LARGE_COLS = 60
+
+
 def is_float(dtype):
     """Return True if datatype dtype is a float kind"""
     return ('float' in dtype.name) or dtype.name in ['single', 'double']
@@ -93,6 +99,10 @@ def get_idx_rect(index_list):
 
 class ArrayModel(QAbstractTableModel):
     """Array Editor Table Model"""
+    
+    ROWS_TO_LOAD = 500
+    COLS_TO_LOAD = 40
+    
     def __init__(self, data, format="%.3f", xlabels=None, ylabels=None,
                  readonly=False, parent=None):
         QAbstractTableModel.__init__(self)
@@ -120,6 +130,10 @@ class ArrayModel(QAbstractTableModel):
         self._data = data
         self._format = format
         
+        self.total_rows = self._data.shape[0]
+        self.total_cols = self._data.shape[1]
+        size = self.total_rows * self.total_cols
+        
         try:
             self.vmin = self.color_func(data).min()
             self.vmax = self.color_func(data).max()
@@ -135,6 +149,20 @@ class ArrayModel(QAbstractTableModel):
             self.dhue = None
             self.bgcolor_enabled = False
         
+        # Use paging when the total size, number of rows or number of
+        # columns is too large
+        if size > LARGE_SIZE:
+            self.rows_loaded = self.ROWS_TO_LOAD
+            self.cols_loaded = self.COLS_TO_LOAD
+        else:
+            if self.total_rows > LARGE_NROWS:
+                self.rows_loaded = self.ROWS_TO_LOAD
+            else:
+                self.rows_loaded = self.total_rows
+            if self.total_cols > LARGE_COLS:
+                self.cols_loaded = self.COLS_TO_LOAD
+            else:
+                self.cols_loaded = self.total_cols
         
     def get_format(self):
         """Return current format"""
@@ -152,11 +180,45 @@ class ArrayModel(QAbstractTableModel):
 
     def columnCount(self, qindex=QModelIndex()):
         """Array column number"""
-        return self._data.shape[1]
+        if self.total_cols <= self.cols_loaded:
+            return self.total_cols
+        else:
+            return self.cols_loaded
 
     def rowCount(self, qindex=QModelIndex()):
         """Array row number"""
-        return self._data.shape[0]
+        if self.total_rows <= self.rows_loaded:
+            return self.total_rows
+        else:
+            return self.rows_loaded
+    
+    def can_fetch_more(self, rows=False, columns=False):
+        if rows:
+            if self.total_rows > self.rows_loaded:
+                return True
+            else:
+                return False
+        if columns:
+            if self.total_cols > self.cols_loaded:
+                return True
+            else:
+                return False
+
+    def fetch_more(self, rows=False, columns=False):
+        if self.can_fetch_more(rows=rows):
+            reminder = self.total_rows - self.rows_loaded
+            items_to_fetch = min(reminder, self.ROWS_TO_LOAD)
+            self.beginInsertRows(QModelIndex(), self.rows_loaded,
+                                 self.rows_loaded + items_to_fetch - 1)
+            self.rows_loaded += items_to_fetch
+            self.endInsertRows()
+        if self.can_fetch_more(columns=columns):
+            reminder = self.total_cols - self.cols_loaded
+            items_to_fetch = min(reminder, self.COLS_TO_LOAD)
+            self.beginInsertColumns(QModelIndex(), self.cols_loaded,
+                                    self.cols_loaded + items_to_fetch - 1)
+            self.cols_loaded += items_to_fetch
+            self.endInsertColumns()
 
     def bgcolor(self, state):
         """Toggle backgroundcolor"""
@@ -229,8 +291,7 @@ class ArrayModel(QAbstractTableModel):
         
         # Add change to self.changes
         self.changes[(i, j)] = val
-        self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
-                  index, index)
+        self.dataChanged.emit(index, index)
         if val > self.vmax:
             self.vmax = val
         if val < self.vmin:
@@ -275,15 +336,14 @@ class ArrayDelegate(QItemDelegate):
             editor.setAlignment(Qt.AlignCenter)
             if is_number(self.dtype):
                 editor.setValidator(QDoubleValidator(editor))
-            self.connect(editor, SIGNAL("returnPressed()"),
-                         self.commitAndCloseEditor)
+            editor.returnPressed.connect(self.commitAndCloseEditor)
             return editor
 
     def commitAndCloseEditor(self):
         """Commit and close editor"""
         editor = self.sender()
-        self.emit(SIGNAL("commitData(QWidget*)"), editor)
-        self.emit(SIGNAL("closeEditor(QWidget*)"), editor)
+        self.commitData.emit(editor)
+        self.closeEditor.emit(editor, QAbstractItemDelegate.NoHint)
 
     def setEditorData(self, editor, index):
         """Set editor widget's data"""
@@ -305,20 +365,20 @@ class ArrayView(QTableView):
         self.viewport().resize(min(total_width, 1024), self.height())
         self.shape = shape
         self.menu = self.setup_menu()
+        new_shortcut(QKeySequence.Copy, self, self.copy)
+        self.horizontalScrollBar().valueChanged.connect(
+                            lambda val: self.load_more_data(val, columns=True))
+        self.verticalScrollBar().valueChanged.connect(
+                               lambda val: self.load_more_data(val, rows=True))
+    
+    def load_more_data(self, value, rows=False, columns=False):
+        if rows and value == self.verticalScrollBar().maximum():
+            self.model().fetch_more(rows=rows)
+        if columns and value == self.horizontalScrollBar().maximum():
+            self.model().fetch_more(columns=columns)
   
     def resize_to_contents(self):
         """Resize cells to contents"""
-        size = 1
-        for dim in self.shape:
-            size *= dim
-        if size > 1e5:
-            answer = QMessageBox.warning(self, _("Array editor"),
-                                         _("Resizing cells of a table of such "
-                                           "size could take a long time.\n"
-                                           "Do you want to continue anyway?"),
-                                         QMessageBox.Yes | QMessageBox.No)
-            if answer == QMessageBox.No:
-                return
         self.resizeColumnsToContents()
         self.resizeRowsToContents()
 
@@ -356,7 +416,8 @@ class ArrayView(QTableView):
         contents = output.getvalue()
         output.close()
         return contents
-    
+
+    @Slot()
     def copy(self):
         """Copy text to clipboard"""
         cliptxt = self._sel_to_text( self.selectedIndexes() )
@@ -388,14 +449,14 @@ class ArrayEditorWidget(QWidget):
         # disable format button for int type
         btn.setEnabled(is_float(data.dtype))
         btn_layout.addWidget(btn)
-        self.connect(btn, SIGNAL("clicked()"), self.change_format)
+        btn.clicked.connect(self.change_format)
         btn = QPushButton(_( "Resize"))
         btn_layout.addWidget(btn)
-        self.connect(btn, SIGNAL("clicked()"), self.view.resize_to_contents)
+        btn.clicked.connect(self.view.resize_to_contents)
         bgcolor = QCheckBox(_( 'Background color'))
         bgcolor.setChecked(self.model.bgcolor_enabled)
         bgcolor.setEnabled(self.model.bgcolor_enabled)
-        self.connect(bgcolor, SIGNAL("stateChanged(int)"), self.model.bgcolor)
+        bgcolor.stateChanged.connect(self.model.bgcolor)
         btn_layout.addWidget(bgcolor)
         
         layout = QVBoxLayout()
@@ -513,8 +574,7 @@ class ArrayEditor(QDialog):
             self.stack.addWidget(ArrayEditorWidget(self, data, readonly,
                                                    xlabels, ylabels))
         self.arraywidget = self.stack.currentWidget()
-        self.connect(self.stack, SIGNAL('currentChanged(int)'),
-                     self.current_widget_changed)
+        self.stack.currentChanged.connect(self.current_widget_changed)
         self.layout.addWidget(self.stack, 1, 0)
 
         # Buttons configuration
@@ -537,14 +597,12 @@ class ArrayEditor(QDialog):
             if data.ndim == 3:
                 # QSpinBox
                 self.index_spin = QSpinBox(self, keyboardTracking=False)
-                self.connect(self.index_spin, SIGNAL('valueChanged(int)'),
-                             self.change_active_widget)
+                self.index_spin.valueChanged.connect(self.change_active_widget)
                 # QComboBox
                 names = [str(i) for i in range(3)]
                 ra_combo = QComboBox(self)
                 ra_combo.addItems(names)
-                self.connect(ra_combo, SIGNAL('currentIndexChanged(int)'),
-                             self.current_dim_changed)    
+                ra_combo.currentIndexChanged.connect(self.current_dim_changed)    
                 # Adding the widgets to layout
                 label = QLabel(_("Axis:"))
                 btn_layout.addWidget(label)
@@ -557,11 +615,10 @@ class ArrayEditor(QDialog):
                 self.slicing_label = QLabel()
                 btn_layout.addWidget(self.slicing_label)
                 # set the widget to display when launched
-                ra_combo.setCurrentIndex(self.last_dim)
+                self.current_dim_changed(self.last_dim)
             else:
                 ra_combo = QComboBox(self)
-                self.connect(ra_combo, SIGNAL('currentIndexChanged(int)'),
-                             self.stack.setCurrentIndex)
+                ra_combo.currentIndexChanged.connect(self.stack.setCurrentIndex)
                 ra_combo.addItems(names)
                 btn_layout.addWidget(ra_combo)
             if is_masked_array:
@@ -572,8 +629,8 @@ class ArrayEditor(QDialog):
                 btn_layout.addWidget(label)
             btn_layout.addStretch()
         bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        self.connect(bbox, SIGNAL("accepted()"), SLOT("accept()"))
-        self.connect(bbox, SIGNAL("rejected()"), SLOT("reject()"))
+        bbox.accepted.connect(self.accept)
+        bbox.rejected.connect(self.reject)
         btn_layout.addWidget(bbox)
         self.layout.addLayout(btn_layout, 2, 0)
 
@@ -631,6 +688,7 @@ class ArrayEditor(QDialog):
         self.index_spin.setRange(-self.data.shape[index],
                                  self.data.shape[index]-1)
 
+    @Slot()
     def accept(self):
         """Reimplement Qt method"""
         for index in range(self.stack.count()):
@@ -649,6 +707,7 @@ class ArrayEditor(QDialog):
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.reject()
 
+    @Slot()
     def reject(self):
         """Reimplement Qt method"""
         if self.arraywidget is not None:

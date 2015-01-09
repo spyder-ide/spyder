@@ -6,7 +6,7 @@ import warnings
 
 import rope.base.fscommands
 from rope.base import exceptions, taskhandle, prefs, history, pycore, utils
-from rope.base.resourceobserver import *
+import rope.base.resourceobserver as resourceobserver
 from rope.base.resources import File, Folder, _ResourceMatcher
 
 
@@ -258,7 +258,7 @@ class _FileListCacher(object):
     def __init__(self, project):
         self.project = project
         self.files = None
-        rawobserver = ResourceObserver(
+        rawobserver = resourceobserver.ResourceObserver(
             self._changed, self._invalid, self._invalid,
             self._invalid, self._invalid)
         self.project.add_observer(rawobserver)
@@ -334,7 +334,7 @@ class _DataFiles(object):
 
     def _can_compress(self):
         try:
-            import gzip
+            import gzip  # noqa
             return True
         except ImportError:
             return False

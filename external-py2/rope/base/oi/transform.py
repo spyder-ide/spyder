@@ -120,7 +120,6 @@ class TextualToPyObject(object):
             return None
 
     def builtin_to_pyobject(self, textual):
-        name = textual[1]
         method = getattr(self, 'builtin_%s_to_pyobject' % textual[1], None)
         if method is not None:
             return method(textual)
@@ -221,7 +220,7 @@ class TextualToPyObject(object):
 
 class DOITextualToPyObject(TextualToPyObject):
     """For transforming textual form to `PyObject`
-    
+
     The textual form DOI uses is different from rope's standard
     textual form.  The reason is that we cannot find the needed
     information by analyzing live objects.  This class can be
@@ -253,7 +252,8 @@ class DOITextualToPyObject(TextualToPyObject):
            isinstance(suspected, rope.base.pyobjects.PyClass):
             return suspected
         else:
-            lineno = self._find_occurrence(name, pymodule.get_resource().read())
+            lineno = self._find_occurrence(name,
+                                           pymodule.get_resource().read())
             if lineno is not None:
                 inner_scope = module_scope.get_inner_scope_for_line(lineno)
                 return inner_scope.pyobject

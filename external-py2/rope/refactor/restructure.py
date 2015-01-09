@@ -183,7 +183,7 @@ class Restructure(object):
         checks = {}
         for key, value in string_checks.items():
             is_pyname = not key.endswith('.object') and \
-                        not key.endswith('.type')
+                not key.endswith('.type')
             evaluated = self._evaluate(value, is_pyname=is_pyname)
             if evaluated is not None:
                 checks[key] = evaluated

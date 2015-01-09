@@ -79,7 +79,7 @@ class IntroduceParameter(object):
         lines = self.pymodule.lines
         start_line = self.pyfunction.get_scope().get_start()
         end_line = self.pymodule.logical_lines.\
-                   logical_line_in(start_line)[1]
+            logical_line_in(start_line)[1]
         start = lines.get_line_start(start_line)
         end = lines.get_line_end(end_line)
         start = self.pymodule.source_code.find('def', start) + 4

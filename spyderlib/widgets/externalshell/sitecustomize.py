@@ -1,5 +1,9 @@
-# -*- coding: utf-8 -*-
+#
+# IMPORTANT NOTE: Don't add a coding line here! It's not necessary for
+# site files
+#
 # Spyder's ExternalPythonShell sitecustomize
+#
 
 import sys
 import os
@@ -38,7 +42,35 @@ def _print(*objects, **options):
             print >>file, string,
 
 try:
+    # Python 2
     import __builtin__ as builtins
+    #==========================================================================
+    # These definitions of execfile for Python 2 are taken from the IPython
+    # project (present in IPython.utils.py3compat)
+    #
+    # Copyright (C) The IPython Development Team
+    # Distributed under the terms of the modified BSD license
+    #==========================================================================
+    if os.name == 'nt':
+        def encode(u):
+            return u.encode('utf8', 'replace')
+        def execfile(fname, glob=None, loc=None):
+            loc = loc if (loc is not None) else glob
+            scripttext = builtins.open(fname).read()+ '\n'
+            # compile converts unicode filename to str assuming
+            # ascii. Let's do the conversion before calling compile
+            if isinstance(fname, unicode):
+                filename = encode(fname)
+            else:
+                filename = fname
+            exec(compile(scripttext, filename, 'exec'), glob, loc)
+    else:
+        def execfile(fname, *where):
+            if isinstance(fname, unicode):
+                filename = fname.encode(sys.getfilesystemencoding())
+            else:
+                filename = fname
+            builtins.execfile(filename, *where)
 except ImportError:
     # Python 3
     import builtins
@@ -127,30 +159,35 @@ if os.name == 'nt': # Windows platforms
 
 
 # For our MacOs X app
-if sys.platform == 'darwin' and 'Spyder.app' in __file__:
-    interpreter = os.environ.get('SPYDER_INTERPRETER')
-    if 'Spyder.app' not in interpreter:
-        # We added this file's dir to PYTHONPATH (in pythonshell.py)
-        # so that external interpreters can import this script, and
-        # now we are removing it
-        del os.environ['PYTHONPATH']
 
-        # Add a minimal library (with spyderlib) at the end of sys.path to
-        # be able to connect our monitor to the external console
-        app_pythonpath = 'Spyder.app/Contents/Resources/lib/python2.7'
-        full_pythonpath = [p for p in sys.path if p.endswith(app_pythonpath)]
-        if full_pythonpath:
-            sys.path.remove(full_pythonpath[0])
-            sys.path.append(full_pythonpath[0] + osp.sep + 'minimal-lib')
-    else:
-        # Add missing variables and methods to the app's site module
-        import site
-        import osx_app_site
-        osx_app_site.setcopyright()
-        osx_app_site.sethelper()
-        site._Printer = osx_app_site._Printer
-        site.USER_BASE = osx_app_site.getuserbase()
-        site.USER_SITE = osx_app_site.getusersitepackages()
+if sys.platform == 'darwin':
+    from spyderlib.baseconfig import MAC_APP_NAME
+    if MAC_APP_NAME in __file__:
+        interpreter = os.environ.get('SPYDER_INTERPRETER')
+        if MAC_APP_NAME not in interpreter:
+            # We added this file's dir to PYTHONPATH (in pythonshell.py)
+            # so that external interpreters can import this script, and
+            # now we are removing it
+            del os.environ['PYTHONPATH']
+
+            # Add a minimal library (with spyderlib) at the end of sys.path to
+            # be able to connect our monitor to the external console
+            py_ver = '%s.%s' % (sys.version_info[0], sys.version_info[1])
+            app_pythonpath = '%s/Contents/Resources/lib/python%s' (MAC_APP_NAME,
+                                                                   py_ver)
+            full_pythonpath = [p for p in sys.path if p.endswith(app_pythonpath)]
+            if full_pythonpath:
+                sys.path.remove(full_pythonpath[0])
+                sys.path.append(full_pythonpath[0] + osp.sep + 'minimal-lib')
+        else:
+            # Add missing variables and methods to the app's site module
+            import site
+            import osx_app_site
+            osx_app_site.setcopyright()
+            osx_app_site.sethelper()
+            site._Printer = osx_app_site._Printer
+            site.USER_BASE = osx_app_site.getuserbase()
+            site.USER_SITE = osx_app_site.getusersitepackages()
 
 
 mpl_backend = os.environ.get("MATPLOTLIB_BACKEND")
@@ -172,28 +209,6 @@ if mpl_backend:
         pass
 
 
-# Set standard outputs encoding:
-# (otherwise, for example, print("é") will fail)
-encoding = None
-try:
-    import locale
-except ImportError:
-    pass
-else:
-    loc = locale.getdefaultlocale()
-    if loc[1]:
-        encoding = loc[1]
-
-if encoding is None:
-    encoding = "UTF-8"
-
-try:
-    sys.setdefaultencoding(encoding)
-    os.environ['SPYDER_ENCODING'] = encoding
-except AttributeError:
-    # Python 3
-    pass
-    
 try:
     import sitecustomize  #analysis:ignore
 except ImportError:
@@ -282,8 +297,7 @@ else:
             app = QtCore.QCoreApplication.instance()
             if app and app.thread() is QtCore.QThread.currentThread():
                 timer = QtCore.QTimer()
-                QtCore.QObject.connect(timer, QtCore.SIGNAL('timeout()'),
-                                       app, QtCore.SLOT('quit()'))
+                timer.timeout.connect(app.quit)
                 monitor.toggle_inputhook_flag(False)
                 while not monitor.inputhook_flag:
                     timer.start(50)
@@ -342,8 +356,22 @@ if os.environ.get("IPYTHON_KERNEL", "").lower() == "true":
             kwargs['testRunner'] = kwargs.pop('testRunner', test_runner)
             kwargs['exit'] = False
             TestProgram.__init__(self, *args, **kwargs)
-
     unittest.main = IPyTesProgram
+    
+    # Pandas monkey-patches
+    try:
+        # Make Pandas recognize our IPython consoles as proper qtconsoles
+        # Fixes Issue 2015
+        def in_qtconsole():
+            return True
+        import pandas as pd
+        pd.core.common.in_qtconsole = in_qtconsole
+        
+        # Set Pandas output encoding
+        pd.options.display.encoding = 'utf-8'
+    except:
+        pass
+        
 
 class SpyderPdb(pdb.Pdb):
     def set_spyder_breakpoints(self):
@@ -474,9 +502,9 @@ if os.environ.get("IGNORE_SIP_SETAPI_ERRORS", "").lower() == "true":
 
 # The following classes and functions are mainly intended to be used from 
 # an interactive Python session
-class UserModuleDeleter(object):
+class UserModuleReloader(object):
     """
-    User Module Deleter (UMD) aims at deleting user modules 
+    User Module Reloader (UMR) aims at deleting user modules 
     to force Python to deeply reload them during import
     
     pathlist [list]: blacklist in terms of module path
@@ -520,9 +548,9 @@ class UserModuleDeleter(object):
                     del sys.modules[modname]
         if verbose and log:
             _print("\x1b[4;33m%s\x1b[24m%s\x1b[0m"\
-                   % ("UMD has deleted", ": "+", ".join(log)))
+                   % ("Reloaded modules", ": "+", ".join(log)))
 
-__umd__ = None
+__umr__ = None
 
 
 def _get_globals():
@@ -550,16 +578,16 @@ def runfile(filename, args=None, wdir=None, namespace=None):
         # UnicodeError, TypeError --> eventually raised in Python 2
         # AttributeError --> systematically raised in Python 3
         pass
-    global __umd__
-    if os.environ.get("UMD_ENABLED", "").lower() == "true":
-        if __umd__ is None:
-            namelist = os.environ.get("UMD_NAMELIST", None)
+    global __umr__
+    if os.environ.get("UMR_ENABLED", "").lower() == "true":
+        if __umr__ is None:
+            namelist = os.environ.get("UMR_NAMELIST", None)
             if namelist is not None:
                 namelist = namelist.split(',')
-            __umd__ = UserModuleDeleter(namelist=namelist)
+            __umr__ = UserModuleReloader(namelist=namelist)
         else:
-            verbose = os.environ.get("UMD_VERBOSE", "").lower() == "true"
-            __umd__.run(verbose=verbose)
+            verbose = os.environ.get("UMR_VERBOSE", "").lower() == "true"
+            __umr__.run(verbose=verbose)
     if args is not None and not isinstance(args, basestring):
         raise TypeError("expected a character buffer object")
     if namespace is None:

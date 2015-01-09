@@ -1,7 +1,8 @@
 import copy
 
 import rope.base.exceptions
-from rope.base import pyobjects, taskhandle, evaluate, worder, codeanalyze, utils
+from rope.base import (pyobjects, taskhandle, evaluate, worder, codeanalyze,
+                       utils)
 from rope.base.change import ChangeContents, ChangeSet
 from rope.refactor import occurrences, functionutils
 
@@ -160,12 +161,15 @@ class _FunctionChangers(object):
     def change_call(self, primary, pyname, call):
         call_info = functionutils.CallInfo.read(
             primary, pyname, self.definition_info, call)
-        mapping = functionutils.ArgumentMapping(self.definition_info, call_info)
+        mapping = functionutils.ArgumentMapping(self.definition_info,
+                                                call_info)
 
-        for definition_info, changer in zip(self.changed_definition_infos, self.changers):
+        for definition_info, changer in zip(self.changed_definition_infos,
+                                            self.changers):
             changer.change_argument_mapping(definition_info, mapping)
 
-        return mapping.to_call_info(self.changed_definition_infos[-1]).to_string()
+        return mapping.to_call_info(
+            self.changed_definition_infos[-1]).to_string()
 
 
 class _ArgumentChanger(object):
@@ -190,12 +194,14 @@ class ArgumentRemover(_ArgumentChanger):
         if self.index < len(call_info.args_with_defaults):
             del call_info.args_with_defaults[self.index]
         elif self.index == len(call_info.args_with_defaults) and \
-           call_info.args_arg is not None:
+                call_info.args_arg is not None:
             call_info.args_arg = None
         elif (self.index == len(call_info.args_with_defaults) and
-            call_info.args_arg is None and call_info.keywords_arg is not None) or \
-           (self.index == len(call_info.args_with_defaults) + 1 and
-            call_info.args_arg is not None and call_info.keywords_arg is not None):
+              call_info.args_arg is None and
+              call_info.keywords_arg is not None) or \
+                (self.index == len(call_info.args_with_defaults) + 1 and
+                 call_info.args_arg is not None and
+                 call_info.keywords_arg is not None):
             call_info.keywords_arg = None
 
     def change_argument_mapping(self, definition_info, mapping):
@@ -291,11 +297,13 @@ class _ChangeCallsInModule(object):
     def get_changed_module(self):
         word_finder = worder.Worder(self.source)
         change_collector = codeanalyze.ChangeCollector(self.source)
-        for occurrence in self.occurrence_finder.find_occurrences(self.resource):
+        for occurrence in self.occurrence_finder.find_occurrences(
+                self.resource):
             if not occurrence.is_called() and not occurrence.is_defined():
                 continue
             start, end = occurrence.get_primary_range()
-            begin_parens, end_parens = word_finder.get_word_parens_range(end - 1)
+            begin_parens, end_parens = word_finder.\
+                get_word_parens_range(end - 1)
             if occurrence.is_called():
                 primary, pyname = occurrence.get_primary_and_pyname()
                 changed_call = self.call_changer.change_call(
