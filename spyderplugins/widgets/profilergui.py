@@ -459,7 +459,7 @@ class ProfilerDataTree(QTreeWidget):
             self.populate_tree(self, self.find_callees(rootkey))
             self.resizeColumnToContents(0)
             self.setSortingEnabled(True)
-            self.sortItems(1, Qt.DescendingOrder) # FIXME: hardcoded index
+            self.sortItems(1, Qt.AscendingOrder) # FIXME: hardcoded index
             self.change_view(1)
 
     def function_info(self, functionKey):
