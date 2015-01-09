@@ -521,6 +521,7 @@ class FadingTipBox(FadingDialog):
                         self.button_home, self.button_current]
 
         arrow = get_image_path('hide.png')
+
         self.stylesheet = """QPushButton {
                              background-color: rgbs(200,200,200,100%);
                              color: rgbs(0,0,0,100%);
@@ -752,9 +753,10 @@ class FadingTipBox(FadingDialog):
         self.raise_()
 
         if event.button() == Qt.RightButton:
+            pass
 #            clicked_widget = self.childAt(event.x(), event.y())
 #            if clicked_widget == self.label_current:
-            self.context_menu_requested(event)
+#            self.context_menu_requested(event)
 
     def context_menu_requested(self, event):
         """ """
