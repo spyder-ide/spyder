@@ -83,7 +83,7 @@ def get_tour(index):
                          environment. This tip panel supports rich text. <br>\
                          <br> it also supports image insertion to the right so\
                          far",
-             'image': 'spyder.png'},
+             'image': 'tour-spyder-logo.png'},
 
             {'title': "Widget display",
              'content': ("This show how a widget is displayed. The tip panel "
@@ -117,7 +117,7 @@ def get_tour(index):
                            "development environment for the Python language. "
                            "<br><br>Use the arrow keys or the mouse to move "
                            "into the tour."),
-              'image': 'spyder.png'},
+              'image': 'tour-spyder-logo.png'},
 
              {'title': _("The Editor"),
               'content': _("A powerful editor is a central piece of any good "
@@ -162,6 +162,12 @@ def get_tour(index):
               'content': _("Now lets interact with the <b>IPython Console</b>."
                            "<br><br><i>Decoration</i> included also."),
               'widgets': [sw.object_inspector],
+              'interact': True},
+
+             {'title': _("The Internal Console"),
+              'content': _("Now lets interact with the <b>IPython Console</b>."
+                           "<br><br><i>Decoration</i> included also."),
+              'widgets': [sw.console_internal],
               'interact': True},
              ]
 
