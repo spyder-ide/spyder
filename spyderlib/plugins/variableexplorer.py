@@ -39,19 +39,15 @@ class VariableExplorerConfigPage(PluginConfigPage):
                         for option, text in filter_data]
 
         display_group = QGroupBox(_("Display"))
-        display_data = [
-                        ('truncate', _("Truncate values"), ''),
-                        ('inplace', _("Always edit in-place"), ''),
-                        ('collvalue', _("Show collection contents"), ''),
-                        ]
+        display_data = [('truncate', _("Truncate values"), '')]
         if programs.is_module_installed('numpy'):
             display_data.append(('minmax', _("Show arrays min/max"), ''))
         display_data.append(
             ('remote_editing', _("Edit data in the remote process"),
              _("Editors are opened in the remote process for NumPy "
-                     "arrays, PIL images, lists, tuples and dictionaries.\n"
-                     "This avoids transfering large amount of data between "
-                     "the remote process and Spyder (through the socket)."))
+               "arrays, PIL images, lists, tuples and dictionaries.\n"
+               "This avoids transfering large amount of data between "
+               "the remote process and Spyder (through the socket)."))
                             )
         display_boxes = [self.create_checkbox(text, option, tip=tip)
                          for option, text, tip in display_data]

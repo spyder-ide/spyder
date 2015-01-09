@@ -12,14 +12,14 @@
 # pylint: disable=R0201
 
 from spyderlib.qt.QtGui import (QTabWidget, QMenu, QDrag, QApplication,
-                                QTabBar, QShortcut, QKeySequence, QWidget,
-                                QHBoxLayout)
+                                QTabBar, QWidget, QHBoxLayout)
 from spyderlib.qt.QtCore import Signal, Qt, QPoint, QMimeData, QByteArray
 
 import os.path as osp
 
 # Local imports
 from spyderlib.baseconfig import _
+from spyderlib.guiconfig import new_shortcut
 from spyderlib.utils.misc import get_common_path
 from spyderlib.utils.qthelpers import (add_actions, create_toolbutton,
                                        create_action, get_icon)
@@ -272,14 +272,13 @@ class Tabs(BaseTabs):
         tab_bar.sig_move_tab[(str, int, int)].connect(
                                           self.move_tab_from_another_tabwidget)
         self.setTabBar(tab_bar)
-        def newsc(keystr, triggered):
-            sc = QShortcut(QKeySequence(keystr), parent, triggered)
-            sc.setContext(Qt.WidgetWithChildrenShortcut)
-            return sc
-        tabsc = newsc("Ctrl+Tab", lambda: self.tab_navigate(1))
-        tabshiftsc = newsc("Shift+Ctrl+Tab", lambda: self.tab_navigate(-1))
-        closesc = newsc("Ctrl+F4",
-                        lambda: self.sig_close_tab.emit(self.currentIndex()))
+        
+        new_shortcut("Ctrl+Tab", parent, lambda: self.tab_navigate(1))
+        new_shortcut("Shift+Ctrl+Tab", parent, lambda: self.tab_navigate(-1))
+        new_shortcut("Ctrl+W", parent,
+                     lambda: self.sig_close_tab.emit(self.currentIndex()))
+        new_shortcut("Ctrl+F4", parent,
+                     lambda: self.sig_close_tab.emit(self.currentIndex()))
         
     def tab_navigate(self, delta=1):
         """Ctrl+Tab"""

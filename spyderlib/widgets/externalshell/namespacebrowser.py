@@ -63,8 +63,6 @@ class NamespaceBrowser(QWidget):
         self.excluded_names = None
         self.truncate = None
         self.minmax = None
-        self.collvalue = None
-        self.inplace = None
         self.remote_editing = None
         self.autorefresh = None
         
@@ -79,8 +77,8 @@ class NamespaceBrowser(QWidget):
     def setup(self, check_all=None, exclude_private=None,
               exclude_uppercase=None, exclude_capitalized=None,
               exclude_unsupported=None, excluded_names=None,
-              truncate=None, minmax=None, collvalue=None,
-              remote_editing=None, inplace=None, autorefresh=None):
+              truncate=None, minmax=None, remote_editing=None,
+              autorefresh=None):
         """Setup the namespace browser"""
         assert self.shellwidget is not None
         
@@ -92,17 +90,11 @@ class NamespaceBrowser(QWidget):
         self.excluded_names = excluded_names
         self.truncate = truncate
         self.minmax = minmax
-        self.collvalue = collvalue
-        self.inplace = inplace
         self.remote_editing = remote_editing
         self.autorefresh = autorefresh
         
         if self.editor is not None:
-            if self.is_internal_shell:
-                self.editor.setup_menu(truncate, minmax, inplace, collvalue)
-            else:
-                self.editor.setup_menu(truncate, minmax, inplace, collvalue,
-                                       remote_editing)
+            self.editor.setup_menu(truncate, minmax)
             self.exclude_private_action.setChecked(exclude_private)
             self.exclude_uppercase_action.setChecked(exclude_uppercase)
             self.exclude_capitalized_action.setChecked(exclude_capitalized)
@@ -117,12 +109,11 @@ class NamespaceBrowser(QWidget):
         # Dict editor:
         if self.is_internal_shell:
             self.editor = DictEditorTableView(self, None, truncate=truncate,
-                                              inplace=inplace, minmax=minmax,
-                                              collvalue=collvalue)
+                                              minmax=minmax)
         else:
             self.editor = RemoteDictEditorTableView(self, None,
-                            truncate=truncate, inplace=inplace, minmax=minmax,
-                            collvalue=collvalue, remote_editing=remote_editing,
+                            truncate=truncate, minmax=minmax,
+                            remote_editing=remote_editing,
                             get_value_func=self.get_value,
                             set_value_func=self.set_value,
                             new_value_func=self.set_value,
@@ -243,12 +234,9 @@ class NamespaceBrowser(QWidget):
         actions = [self.exclude_private_action, self.exclude_uppercase_action,
                    self.exclude_capitalized_action,
                    self.exclude_unsupported_action, None,
-                   editor.truncate_action, editor.inplace_action,
-                   editor.collvalue_action]
+                   editor.truncate_action]
         if is_module_installed('numpy'):
             actions.append(editor.minmax_action)
-        if not self.is_internal_shell:
-            actions.append(editor.remote_editing_action)
         add_actions(menu, actions)
         options_button.setMenu(menu)
         
