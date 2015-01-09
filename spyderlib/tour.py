@@ -520,6 +520,7 @@ class FadingTipBox(FadingDialog):
                         self.button_previous, self.button_end,
                         self.button_home, self.button_current]
 
+        arrow = get_image_path('hide.png')
         self.stylesheet = """QPushButton {
                              background-color: rgbs(200,200,200,100%);
                              color: rgbs(0,0,0,100%);
@@ -552,6 +553,11 @@ class FadingTipBox(FadingDialog):
                              QComboBox::drop-down  {
                              subcontrol-origin: padding;
                              subcontrol-position: top left;
+                             border-width: 0px;
+                             }
+
+                             QComboBox::down-arrow {
+                             image: url(""" + arrow + """);
                              }
                              """
 
