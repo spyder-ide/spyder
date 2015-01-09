@@ -278,12 +278,11 @@ class MainWindow(QMainWindow):
     # Signals
     restore_scrollbar_position = Signal()
     all_actions_defined = Signal()
-    sig_resized = Signal("QResizeEvent")
-    sig_moved = Signal("QMoveEvent")
-
     sig_pythonpath_changed = Signal()
     sig_open_external_file = Signal(str)
-    
+    sig_resized = Signal("QResizeEvent")  # related to interactive tour
+    sig_moved = Signal("QMoveEvent")      # related to interactive tour
+
     def __init__(self, options=None):
         QMainWindow.__init__(self)
         
@@ -920,12 +919,16 @@ class MainWindow(QMainWindow):
             self.tours_menu = QMenu(_("Spyder tours"))
             self.tour_menu_actions = []
             tours_available = tour.get_tours()
-            
+
             for i, tour_available in enumerate(tours_available):
-                temp = create_action(self, tour_available['name'],
-                                     tip=_(""),
-                                     triggered=lambda x=i: self.show_tour(x))
-                self.tour_menu_actions += [temp]
+                tour_name = tour_available['name']
+
+                def trigger(i=i, self=self):  # closure needed!
+                    return lambda: self.show_tour(i)
+
+                temp_action = create_action(self, tour_name, tip=_(""),
+                                            triggered=trigger())
+                self.tour_menu_actions += [temp_action]
 
             self.tours_menu.addActions(self.tour_menu_actions)
 
@@ -2160,8 +2163,7 @@ Please provide any additional information below.
                 self.sig_open_external_file.emit(fname)
             req.sendall(b' ')
 
-
-    #---- Interactive Tours
+    # ---- Interactive Tours
     def show_tour(self, index):
         """ """
         self.tour.set_tour(index, self)
