@@ -46,23 +46,19 @@ from spyderlib.guiconfig import get_font, create_shortcut
 from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
                                        mimedata2url, get_icon)
 from spyderlib.utils.dochelpers import getobj
-from spyderlib.utils import encoding, sourcecode, programs
+from spyderlib.utils import encoding, sourcecode
 from spyderlib.utils.sourcecode import ALL_LANGUAGES, CELL_LANGUAGES
 from spyderlib.widgets.editortools import PythonCFM
 from spyderlib.widgets.sourcecode.base import TextEditBaseWidget
 from spyderlib.widgets.sourcecode import syntaxhighlighters as sh
 from spyderlib.py3compat import to_text_string
 
-if programs.is_module_installed('IPython'):
+try:
     import IPython.nbformat as nbformat
-    import IPython.nbformat.current  # in IPython 0.13.2, current is not loaded
-                                     # with nbformat.
-    try:
-        from IPython.nbconvert import PythonExporter as nbexporter  # >= 1.0
-    except:
-        nbexporter = None
-else:
-    nbformat = None
+    import IPython.nbformat.current      # analysis:ignore
+    from IPython.nbconvert import PythonExporter as nbexporter
+except:
+    nbformat = None                      # analysis:ignore
 
 #%% This line is for cell execution testing
 # For debugging purpose:
@@ -1866,24 +1862,19 @@ class CodeEditor(TextEditBaseWidget):
     @Slot()
     def convert_notebook(self):
         """Convert an IPython notebook to a Python script in editor"""
-        if nbformat is not None:
-            try:
-                try: # >3.0
-                    nb = nbformat.reads(self.toPlainText(), as_version=4)
-                except AttributeError:
-                    nb = nbformat.current.reads(self.toPlainText(), 'json')
-            except Exception as e:
-                QMessageBox.critical(self, _('Conversion error'), 
-                                     _("It was not possible to convert this "
-                                     "notebook. The error is:\n\n") + \
-                                     to_text_string(e))
-                return
-            # Use writes_py if nbconvert is not available
-            if nbexporter is None:
-                script = nbformat.current.writes_py(nb)
-            else:
-                script = nbexporter().from_notebook_node(nb)[0]
-            self.sig_new_file.emit(script)
+        try:
+            try: # >3.0
+                nb = nbformat.reads(self.toPlainText(), as_version=4)
+            except AttributeError:
+                nb = nbformat.current.reads(self.toPlainText(), 'json')
+        except Exception as e:
+            QMessageBox.critical(self, _('Conversion error'), 
+                                 _("It was not possible to convert this "
+                                 "notebook. The error is:\n\n") + \
+                                 to_text_string(e))
+            return
+        script = nbexporter().from_notebook_node(nb)[0]
+        self.sig_new_file.emit(script)
 
     def indent(self, force=False):
         """
@@ -2270,8 +2261,10 @@ class CodeEditor(TextEditBaseWidget):
         self.clear_all_output_action = create_action(self,
                            _("Clear all ouput"), icon='ipython_console.png',
                            triggered=self.clear_all_output)
-        self.ipynb_convert_action = create_action(self, _("Convert to Python script"),
-                           triggered=self.convert_notebook, icon='python.png')
+        self.ipynb_convert_action = create_action(self,
+                                               _("Convert to Python script"),
+                                               triggered=self.convert_notebook,
+                                               icon='python.png')
         self.gotodef_action = create_action(self, _("Go to definition"),
                                    triggered=self.go_to_definition_from_cursor)
         self.run_selection_action = create_action(self,
@@ -2288,27 +2281,19 @@ class CodeEditor(TextEditBaseWidget):
                       QKeySequence("Ctrl+0"),
                       triggered=lambda: self.zoom_reset.emit())
         self.menu = QMenu(self)
+        actions_1 = [self.undo_action, self.redo_action, None, self.cut_action,
+                     self.copy_action, paste_action, self.delete_action, None]
+        actions_2 = [selectall_action, None, zoom_in_action, zoom_out_action,
+                     zoom_reset_action, None, toggle_comment_action, None,
+                     self.run_selection_action, self.gotodef_action]
         if nbformat is not None:
-            add_actions(self.menu, (self.undo_action, self.redo_action, None,
-                                    self.cut_action, self.copy_action,
-                                    paste_action, self.delete_action,
-                                    None, self.clear_all_output_action,
-                                    self.ipynb_convert_action, None,
-                                    selectall_action, None, zoom_in_action,
-                                    zoom_out_action, zoom_reset_action, None,
-                                    toggle_comment_action,
-                                    None, self.run_selection_action,
-                                    self.gotodef_action))
+            nb_actions = [self.clear_all_output_action,
+                          self.ipynb_convert_action, None]
+            actions = actions_1 + nb_actions + actions_2
+            add_actions(self.menu, actions)
         else:
-            add_actions(self.menu, (self.undo_action, self.redo_action, None,
-                                    self.cut_action, self.copy_action,
-                                    paste_action, self.delete_action,
-                                    None, selectall_action, None, zoom_in_action,
-                                    zoom_out_action, zoom_reset_action, None,
-                                    toggle_comment_action,
-                                    None, self.run_selection_action,
-                                    self.gotodef_action))
-
+            actions = actions_1 + actions_2
+            add_actions(self.menu, actions) 
 
         # Read-only context-menu
         self.readonly_menu = QMenu(self)
