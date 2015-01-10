@@ -10,7 +10,7 @@ from spyderlib.qt.QtGui import (QAction, QStyle, QWidget, QIcon, QApplication,
                                 QLabel, QVBoxLayout, QHBoxLayout, QLineEdit,
                                 QKeyEvent, QMenu, QKeySequence, QToolButton,
                                 QPixmap)
-from spyderlib.qt.QtCore import (SIGNAL, QObject, Qt, QLocale, QTranslator,
+from spyderlib.qt.QtCore import (Signal, QObject, Qt, QLocale, QTranslator,
                                  QLibraryInfo, QEvent)
 from spyderlib.qt.compat import to_qvariant, from_qvariant
 
@@ -20,7 +20,7 @@ import os.path as osp
 import sys
 
 # Local import
-from spyderlib.baseconfig import get_image_path
+from spyderlib.baseconfig import get_image_path, running_in_mac_app
 from spyderlib.guiconfig import get_shortcut
 from spyderlib.utils import programs
 from spyderlib.py3compat import is_text_string, to_text_string
@@ -68,20 +68,22 @@ def get_image_label(name, default="not_found.png"):
 
 class MacApplication(QApplication):
     """Subclass to be able to open external files with our Mac app"""
+    open_external_file = Signal(str)
+    
     def __init__(self, *args):
         QApplication.__init__(self, *args)
 
     def event(self, event):
         if event.type() == QEvent.FileOpen:
             fname = str(event.file())
-            self.emit(SIGNAL('open_external_file(QString)'), fname)
+            self.open_external_file.emit(fname)
         return QApplication.event(self, event)
 
 
 def qapplication(translate=True):
     """Return QApplication instance
     Creates it if it doesn't already exist"""
-    if sys.platform == "darwin" and 'Spyder.app' in __file__:
+    if running_in_mac_app():
         SpyderApplication = MacApplication
     else:
         SpyderApplication = QApplication
@@ -205,9 +207,9 @@ def create_toolbutton(parent, text=None, shortcut=None, icon=None, tip=None,
         button.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
     button.setAutoRaise(autoraise)
     if triggered is not None:
-        QObject.connect(button, SIGNAL('clicked()'), triggered)
+        button.clicked.connect(triggered)
     if toggled is not None:
-        QObject.connect(button, SIGNAL("toggled(bool)"), toggled)
+        button.toggled.connect(toggled)
         button.setCheckable(True)
     if shortcut is not None:
         button.setShortcut(shortcut)
@@ -240,9 +242,9 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
     """Create a QAction"""
     action = QAction(text, parent)
     if triggered is not None:
-        parent.connect(action, SIGNAL("triggered()"), triggered)
+        action.triggered.connect(triggered)
     if toggled is not None:
-        parent.connect(action, SIGNAL("toggled(bool)"), toggled)
+        action.toggled.connect(toggled)
         action.setCheckable(True)
     if icon is not None:
         if is_text_string(icon):
@@ -375,11 +377,11 @@ class DialogManager(QObject):
         else:
             dialog.show()
             self.dialogs[id(dialog)] = dialog
-            self.connect(dialog, SIGNAL('accepted()'),
-                         lambda eid=id(dialog): self.dialog_finished(eid))
-            self.connect(dialog, SIGNAL('rejected()'),
-                         lambda eid=id(dialog): self.dialog_finished(eid))
-        
+            dialog.accepted.connect(
+                              lambda eid=id(dialog): self.dialog_finished(eid))
+            dialog.rejected.connect(
+                              lambda eid=id(dialog): self.dialog_finished(eid))
+    
     def dialog_finished(self, dialog_id):
         """Manage non-modal dialog boxes"""
         return self.dialogs.pop(dialog_id)
@@ -445,7 +447,6 @@ def show_std_icons():
     app = qapplication()
     dialog = ShowStdIcons(None)
     dialog.show()
-    import sys
     sys.exit(app.exec_())
 
 

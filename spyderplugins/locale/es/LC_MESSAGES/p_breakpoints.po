@@ -6,7 +6,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 2.2\n"
-"POT-Creation-Date: 2013-10-12 19:49+COT\n"
+"POT-Creation-Date: 2014-11-26 06:56+COT\n"
 "PO-Revision-Date: 2013-05-07 17:37-0500\n"
 "Last-Translator: Carlos Cordoba <ccordoba12@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,30 +16,35 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: pygettext.py 1.5\n"
 
-#: spyderplugins/p_breakpoints.py:40
+#: spyderplugins/p_breakpoints.py:41
 msgid "Breakpoints"
 msgstr "Puntos de interrupción"
 
-#: spyderplugins/p_breakpoints.py:77
+#: spyderplugins/p_breakpoints.py:80
 msgid "List breakpoints"
 msgstr "Listar puntos de interrupción"
 
-#: spyderplugins/widgets/breakpointsgui.py:87
+#: spyderplugins/widgets/breakpointsgui.py:85
 msgid "Condition"
 msgstr "Condición"
 
-#: spyderplugins/widgets/breakpointsgui.py:87
+#: spyderplugins/widgets/breakpointsgui.py:85
 msgid "File"
 msgstr "Archivo"
 
-#: spyderplugins/widgets/breakpointsgui.py:87
+#: spyderplugins/widgets/breakpointsgui.py:85
 msgid "Line"
 msgstr "Línea"
 
-#: spyderplugins/widgets/breakpointsgui.py:161
+#: spyderplugins/widgets/breakpointsgui.py:158
+msgid "Clear breakpoints in all files"
+msgstr "Borrar los puntos de todos los archivos"
+
+#: spyderplugins/widgets/breakpointsgui.py:165
 msgid "Clear this breakpoint"
 msgstr "Eliminar este punto"
 
-#: spyderplugins/widgets/breakpointsgui.py:167
-msgid "Clear breakpoints in all files"
-msgstr "Borrar los puntos de todos los archivos"
+#: spyderplugins/widgets/breakpointsgui.py:172
+#, fuzzy
+msgid "Edit this breakpoint"
+msgstr "Eliminar este punto"

@@ -9,7 +9,7 @@
 """Profiler Plugin"""
 
 from spyderlib.qt.QtGui import QVBoxLayout, QGroupBox, QLabel
-from spyderlib.qt.QtCore import SIGNAL, Qt
+from spyderlib.qt.QtCore import Signal, Qt
 
 # Local imports
 from spyderlib.baseconfig import get_translation
@@ -51,6 +51,8 @@ class Profiler(ProfilerWidget, SpyderPluginMixin):
     """Profiler (after python's profile and pstats)"""
     CONF_SECTION = 'profiler'
     CONFIGWIDGET_CLASS = ProfilerConfigPage
+    edit_goto = Signal(str, int, str)
+    
     def __init__(self, parent=None):
         ProfilerWidget.__init__(self, parent=parent,
                               max_entries=self.get_option('max_entries', 50))
@@ -86,10 +88,8 @@ class Profiler(ProfilerWidget, SpyderPluginMixin):
 
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
-        self.connect(self, SIGNAL("edit_goto(QString,int,QString)"),
-                     self.main.editor.load)
-        self.connect(self, SIGNAL('redirect_stdio(bool)'),
-                     self.main.redirect_internalshell_stdio)
+        self.edit_goto.connect(self.main.editor.load)
+        self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
         self.main.add_dockwidget(self)
         
         profiler_act = create_action(self, _("Profile"),
@@ -97,7 +97,7 @@ class Profiler(ProfilerWidget, SpyderPluginMixin):
                                      triggered=self.run_profiler)
         profiler_act.setEnabled(is_profiler_installed())
         self.register_shortcut(profiler_act, context="Profiler",
-                               name="Run profiler", default="F10")
+                               name="Run profiler")
         
         self.main.run_menu_actions += [profiler_act]
         self.main.editor.pythonfile_dependent_actions += [profiler_act]

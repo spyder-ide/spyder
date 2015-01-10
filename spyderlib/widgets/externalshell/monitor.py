@@ -17,13 +17,13 @@ from spyderlib.utils.debug import log_last_error
 from spyderlib.utils.dochelpers import (getargtxt, getdoc, getsource,
                                         getobjdir, isdefined)
 from spyderlib.utils.bsdsocket import (communicate, read_packet, write_packet,
-                                       PACKET_NOT_RECEIVED)
+                                       PACKET_NOT_RECEIVED, PICKLE_HIGHEST_PROTOCOL)
 from spyderlib.utils.introspection.module_completion import module_completion
 from spyderlib.baseconfig import get_conf_path, get_supported_types, DEBUG
 from spyderlib.py3compat import getcwd, is_text_string, pickle, _thread
 
 
-SUPPORTED_TYPES = get_supported_types()
+SUPPORTED_TYPES = {}
 
 LOG_FILENAME = get_conf_path('monitor.log')
 
@@ -36,8 +36,8 @@ if DEBUG_MONITOR:
 
 REMOTE_SETTINGS = ('check_all', 'exclude_private', 'exclude_uppercase',
                    'exclude_capitalized', 'exclude_unsupported',
-                   'excluded_names', 'truncate', 'minmax', 'collvalue',
-                   'inplace', 'remote_editing', 'autorefresh')
+                   'excluded_names', 'truncate', 'minmax',
+                   'remote_editing', 'autorefresh')
 
 def get_remote_data(data, settings, mode, more_excluded_names=None):
     """
@@ -48,6 +48,9 @@ def get_remote_data(data, settings, mode, more_excluded_names=None):
         * more_excluded_names: additional excluded names (list)
     """
     from spyderlib.widgets.dicteditorutils import globalsfilter
+    global SUPPORTED_TYPES
+    if not SUPPORTED_TYPES:
+        SUPPORTED_TYPES = get_supported_types()
     assert mode in list(SUPPORTED_TYPES.keys())
     excluded_names = settings['excluded_names']
     if more_excluded_names is not None:
@@ -73,8 +76,7 @@ def make_remote_view(data, settings, more_excluded_names=None):
     remote = {}
     for key, value in list(data.items()):
         view = value_to_display(value, truncate=settings['truncate'],
-                                minmax=settings['minmax'],
-                                collvalue=settings['collvalue'])
+                                minmax=settings['minmax'])
         remote[key] = {'type':  get_human_readable_type(value),
                        'size':  get_size(value),
                        'color': get_color_name(value),
@@ -229,7 +231,7 @@ class Monitor(threading.Thread):
             self._mglobals = glbs
             return glbs
     
-    def get_current_namespace(self):
+    def get_current_namespace(self, with_magics=False):
         """Return current namespace, i.e. globals() if not debugging,
         or a dictionary containing both locals() and globals() 
         for current frame when debugging"""
@@ -244,7 +246,7 @@ class Monitor(threading.Thread):
         
         # Add magics to ns so we can show help about them on the Object
         # Inspector
-        if self.ip:
+        if self.ip and with_magics:
             line_magics = self.ip.magics_manager.magics['line']
             cell_magics = self.ip.magics_manager.magics['cell']
             ns.update(line_magics)
@@ -272,7 +274,7 @@ class Monitor(threading.Thread):
     
     def isdefined(self, obj, force_import=False):
         """Return True if object is defined in current namespace"""
-        ns = self.get_current_namespace()
+        ns = self.get_current_namespace(with_magics=True)
         return isdefined(obj, force_import=force_import, namespace=ns)
 
     def toggle_inputhook_flag(self, state):
@@ -335,7 +337,7 @@ class Monitor(threading.Thread):
         and *valid* is True if object evaluation did not raise any exception
         """
         assert is_text_string(text)
-        ns = self.get_current_namespace()
+        ns = self.get_current_namespace(with_magics=True)
         try:
             return eval(text, ns), True
         except:
@@ -518,7 +520,7 @@ class Monitor(threading.Thread):
     def run(self):
         self.ipython_shell = None
         while True:
-            output = pickle.dumps(None, pickle.HIGHEST_PROTOCOL)
+            output = pickle.dumps(None, PICKLE_HIGHEST_PROTOCOL)
             glbs = self.mglobals()
             try:
                 if DEBUG_MONITOR:
@@ -553,10 +555,10 @@ class Monitor(threading.Thread):
                 if self.pdb_obj is None:
                     lcls["_"] = result
                 # old com implementation: (see solution (1) in Issue 434)
-                output = pickle.dumps(result, pickle.HIGHEST_PROTOCOL)
+                output = pickle.dumps(result, PICKLE_HIGHEST_PROTOCOL)
 #                # new com implementation: (see solution (2) in Issue 434)
 #                output = pickle.dumps((command, result),
-#                                      pickle.HIGHEST_PROTOCOL)
+#                                      PICKLE_HIGHEST_PROTOCOL)
             except SystemExit:
                 break
             except:

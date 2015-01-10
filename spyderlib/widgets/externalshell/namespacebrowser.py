@@ -12,7 +12,7 @@ import socket
 from spyderlib.qt.QtGui import (QWidget, QVBoxLayout, QHBoxLayout, QMenu,
                                 QToolButton, QMessageBox, QApplication,
                                 QCursor, QInputDialog)
-from spyderlib.qt.QtCore import SIGNAL, Qt, Signal
+from spyderlib.qt.QtCore import Qt, Signal, Slot
 from spyderlib.qt.compat import getopenfilenames, getsavefilename
 
 # Local imports
@@ -40,6 +40,8 @@ SUPPORTED_TYPES = get_supported_types()
 class NamespaceBrowser(QWidget):
     """Namespace browser (global variables explorer widget)"""
     sig_option_changed = Signal(str, object)
+    sig_collapse = Signal()
+    
     def __init__(self, parent):
         QWidget.__init__(self, parent)
         
@@ -61,8 +63,6 @@ class NamespaceBrowser(QWidget):
         self.excluded_names = None
         self.truncate = None
         self.minmax = None
-        self.collvalue = None
-        self.inplace = None
         self.remote_editing = None
         self.autorefresh = None
         
@@ -77,8 +77,8 @@ class NamespaceBrowser(QWidget):
     def setup(self, check_all=None, exclude_private=None,
               exclude_uppercase=None, exclude_capitalized=None,
               exclude_unsupported=None, excluded_names=None,
-              truncate=None, minmax=None, collvalue=None,
-              remote_editing=None, inplace=None, autorefresh=None):
+              truncate=None, minmax=None, remote_editing=None,
+              autorefresh=None):
         """Setup the namespace browser"""
         assert self.shellwidget is not None
         
@@ -90,17 +90,11 @@ class NamespaceBrowser(QWidget):
         self.excluded_names = excluded_names
         self.truncate = truncate
         self.minmax = minmax
-        self.collvalue = collvalue
-        self.inplace = inplace
         self.remote_editing = remote_editing
         self.autorefresh = autorefresh
         
         if self.editor is not None:
-            if self.is_internal_shell:
-                self.editor.setup_menu(truncate, minmax, inplace, collvalue)
-            else:
-                self.editor.setup_menu(truncate, minmax, inplace, collvalue,
-                                       remote_editing)
+            self.editor.setup_menu(truncate, minmax)
             self.exclude_private_action.setChecked(exclude_private)
             self.exclude_uppercase_action.setChecked(exclude_uppercase)
             self.exclude_capitalized_action.setChecked(exclude_capitalized)
@@ -115,12 +109,11 @@ class NamespaceBrowser(QWidget):
         # Dict editor:
         if self.is_internal_shell:
             self.editor = DictEditorTableView(self, None, truncate=truncate,
-                                              inplace=inplace, minmax=minmax,
-                                              collvalue=collvalue)
+                                              minmax=minmax)
         else:
             self.editor = RemoteDictEditorTableView(self, None,
-                            truncate=truncate, inplace=inplace, minmax=minmax,
-                            collvalue=collvalue, remote_editing=remote_editing,
+                            truncate=truncate, minmax=minmax,
+                            remote_editing=remote_editing,
                             get_value_func=self.get_value,
                             set_value_func=self.set_value,
                             new_value_func=self.set_value,
@@ -131,12 +124,16 @@ class NamespaceBrowser(QWidget):
                             is_array_func=self.is_array,
                             is_image_func=self.is_image,
                             is_dict_func=self.is_dict,
+                            is_data_frame_func=self.is_data_frame,
+                            is_time_series_func=self.is_time_series,                       
                             get_array_shape_func=self.get_array_shape,
                             get_array_ndim_func=self.get_array_ndim,
                             oedit_func=self.oedit,
                             plot_func=self.plot, imshow_func=self.imshow,
                             show_image_func=self.show_image)
         self.editor.sig_option_changed.connect(self.sig_option_changed.emit)
+        self.editor.sig_files_dropped.connect(self.import_data)
+        
         
         # Setup layout
         hlayout = QHBoxLayout()
@@ -237,12 +234,9 @@ class NamespaceBrowser(QWidget):
         actions = [self.exclude_private_action, self.exclude_uppercase_action,
                    self.exclude_capitalized_action,
                    self.exclude_unsupported_action, None,
-                   editor.truncate_action, editor.inplace_action,
-                   editor.collvalue_action]
+                   editor.truncate_action]
         if is_module_installed('numpy'):
             actions.append(editor.minmax_action)
-        if not self.is_internal_shell:
-            actions.append(editor.remote_editing_action)
         add_actions(menu, actions)
         options_button.setMenu(menu)
         
@@ -264,7 +258,8 @@ class NamespaceBrowser(QWidget):
         self.is_visible = enable
         if enable:
             self.refresh_table()
-        
+
+    @Slot(bool)
     def toggle_auto_refresh(self, state):
         """Toggle auto refresh state"""
         self.autorefresh = state
@@ -304,7 +299,8 @@ class NamespaceBrowser(QWidget):
         for name in REMOTE_SETTINGS:
             settings[name] = getattr(self, name)
         return settings
-        
+
+    @Slot()
     def refresh_table(self):
         """Refresh variable table"""
         if self.is_visible and self.isVisible():
@@ -376,6 +372,16 @@ class NamespaceBrowser(QWidget):
     def is_image(self, name):
         """Return True if variable is a PIL.Image image"""
         return communicate(self._get_sock(), 'is_image("%s")' % name)
+    
+    def is_data_frame(self, name):
+        """Return True if variable is a data_frame"""
+        return communicate(self._get_sock(),
+             "isinstance(globals()['%s'], DataFrame)" % name)
+    
+    def is_time_series(self, name):
+        """Return True if variable is a data_frame"""
+        return communicate(self._get_sock(),
+             "isinstance(globals()['%s'], TimeSeries)" % name)   
         
     def get_array_shape(self, name):
         """Return array's shape"""
@@ -428,8 +434,9 @@ class NamespaceBrowser(QWidget):
         
     def collapse(self):
         """Collapse"""
-        self.emit(SIGNAL('collapse()'))
-        
+        self.sig_collapse.emit()
+
+    @Slot()
     def import_data(self, filenames=None):
         """Import data from text file"""
         title = _("Import data")
@@ -515,7 +522,7 @@ class NamespaceBrowser(QWidget):
                                        ) % (self.filename, error_message))
             self.refresh_table()
             
-    
+    @Slot()
     def save_data(self, filename=None):
         """Save data"""
         if filename is None:

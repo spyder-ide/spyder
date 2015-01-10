@@ -17,7 +17,7 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QPrintDialog, QSplitter, QToolBar,
                                 QAbstractPrintDialog, QGroupBox, QTabWidget,
                                 QLabel, QFontComboBox, QHBoxLayout,
                                 QKeySequence)
-from spyderlib.qt.QtCore import SIGNAL, QByteArray, Qt, Slot
+from spyderlib.qt.QtCore import Signal, QByteArray, Qt, Slot
 from spyderlib.qt.compat import to_qvariant, from_qvariant, getopenfilenames
 
 import os
@@ -112,21 +112,21 @@ class EditorConfigPage(PluginConfigPage):
         edgeline_box = newcb(_("Show vertical line after"), 'edge_line')
         edgeline_spin = self.create_spinbox("", _("characters"),
                                             'edge_line_column', 79, 1, 500)
-        self.connect(edgeline_box, SIGNAL("toggled(bool)"),
-                     edgeline_spin.setEnabled)
+        edgeline_box.toggled.connect(edgeline_spin.setEnabled)
         edgeline_spin.setEnabled(self.get_option('edge_line'))
         edgeline_layout = QHBoxLayout()
         edgeline_layout.addWidget(edgeline_box)
         edgeline_layout.addWidget(edgeline_spin)
         currentline_box = newcb(_("Highlight current line"),
-                                'highlight_current_line', default=True)
+                                'highlight_current_line')
+        currentcell_box = newcb(_("Highlight current cell"),
+                                'highlight_current_cell')
         occurence_box = newcb(_("Highlight occurences after"),
                               'occurence_highlighting', default=True)
         occurence_spin = self.create_spinbox("", " ms",
                                              'occurence_highlighting/timeout',
                                              min_=100, max_=1000000, step=100)
-        self.connect(occurence_box, SIGNAL("toggled(bool)"),
-                     occurence_spin.setEnabled)
+        occurence_box.toggled.connect(occurence_spin.setEnabled)
         occurence_spin.setEnabled(self.get_option('occurence_highlighting'))
         occurence_layout = QHBoxLayout()
         occurence_layout.addWidget(occurence_box)
@@ -141,6 +141,7 @@ class EditorConfigPage(PluginConfigPage):
         display_layout.addWidget(linenumbers_box)
         display_layout.addLayout(edgeline_layout)
         display_layout.addWidget(currentline_box)
+        display_layout.addWidget(currentcell_box)
         display_layout.addLayout(occurence_layout)
         display_layout.addWidget(wrap_mode_box)
         display_layout.addWidget(cs_combo)
@@ -148,7 +149,11 @@ class EditorConfigPage(PluginConfigPage):
 
         run_group = QGroupBox(_("Run"))
         saveall_box = newcb(_("Save all files before running script"),
-                            'save_all_before_run', True)
+                            'save_all_before_run')
+        
+        run_selection_group = QGroupBox(_("Run selection"))
+        focus_box = newcb(_("Maintain focus in the Editor after running cells or selections"),
+                            'focus_to_editor')
         
         introspection_group = QGroupBox(_("Introspection"))
         rope_is_installed = programs.is_module_installed('rope')
@@ -157,8 +162,6 @@ class EditorConfigPage(PluginConfigPage):
                                    'codecompletion/auto')
             case_comp_box = newcb(_("Case sensitive code completion"),
                                   'codecompletion/case_sensitive')
-            show_single_box = newcb(_("Show single completion"),
-                                    'codecompletion/show_single')
             comp_enter_box = newcb(_("Enter key selects completion"),
                                    'codecompletion/enter_key')
             calltips_box = newcb(_("Display balloon tips"), 'calltips')
@@ -234,7 +237,7 @@ class EditorConfigPage(PluginConfigPage):
         ancb_layout = QHBoxLayout()
         ancb_layout.addWidget(pyflakes_box)
         ancb_layout.addWidget(pep8_box)
-        todolist_box = newcb(_("Tasks (TODO, FIXME, XXX, HINT, TIP)"),
+        todolist_box = newcb(_("Tasks (TODO, FIXME, XXX, HINT, TIP, @todo)"),
                              'todo_list', default=True)
         realtime_radio = self.create_radiobutton(
                                             _("Perform analysis when "
@@ -243,7 +246,7 @@ class EditorConfigPage(PluginConfigPage):
         saveonly_radio = self.create_radiobutton(
                                             _("Perform analysis only "
                                                     "when saving file"),
-                                            'onsave_analysis', False)
+                                            'onsave_analysis')
         af_spin = self.create_spinbox("", " ms", 'realtime_analysis/timeout',
                                       min_=100, max_=1000000, step=100)
         af_layout = QHBoxLayout()
@@ -254,12 +257,15 @@ class EditorConfigPage(PluginConfigPage):
         run_layout.addWidget(saveall_box)
         run_group.setLayout(run_layout)
         
+        run_selection_layout = QVBoxLayout()
+        run_selection_layout.addWidget(focus_box)
+        run_selection_group.setLayout(run_selection_layout)
+        
         introspection_layout = QVBoxLayout()
         if rope_is_installed:
             introspection_layout.addWidget(calltips_box)
             introspection_layout.addWidget(completion_box)
             introspection_layout.addWidget(case_comp_box)
-            introspection_layout.addWidget(show_single_box)
             introspection_layout.addWidget(comp_enter_box)
             introspection_layout.addWidget(gotodef_box)
         else:
@@ -289,7 +295,7 @@ class EditorConfigPage(PluginConfigPage):
         eol_group = QGroupBox(_("End-of-line characters"))
         eol_label = QLabel(_("When opening a text file containing "
                              "mixed end-of-line characters (this may "
-                             "raise syntax errors in Python interpreter "
+                             "raise syntax errors in the consoles "
                              "on Windows platforms), Spyder may fix the "
                              "file automatically."))
         eol_label.setWordWrap(True)
@@ -307,8 +313,8 @@ class EditorConfigPage(PluginConfigPage):
                     _("Display"))
         tabs.addTab(self.create_tab(introspection_group, analysis_group),
                     _("Code Introspection/Analysis"))
-        tabs.addTab(self.create_tab(template_btn, run_group, sourcecode_group,
-                                    eol_group),
+        tabs.addTab(self.create_tab(template_btn, run_group, run_selection_group,
+                                    sourcecode_group, eol_group),
                     _("Advanced settings"))
         
         vlayout = QVBoxLayout()
@@ -325,6 +331,15 @@ class Editor(SpyderPluginWidget):
     TEMPFILE_PATH = get_conf_path('temp.py')
     TEMPLATE_PATH = get_conf_path('template.py')
     DISABLE_ACTIONS_WHEN_HIDDEN = False # SpyderPluginWidget class attribute
+    
+    # Signals
+    run_in_current_ipyclient = Signal(str, str, str, bool)
+    exec_in_extconsole = Signal(str, bool)
+    redirect_stdio = Signal(bool)
+    open_dir = Signal(str)
+    breakpoints_saved = Signal()
+    run_in_current_extconsole = Signal(str, str, str, bool)
+    
     def __init__(self, parent, ignore_last_opened_files=False):
         SpyderPluginWidget.__init__(self, parent)
         
@@ -384,12 +399,10 @@ class Editor(SpyderPluginWidget):
         self.menu_list = None
         
         # Setup new windows:
-        self.connect(self.main, SIGNAL('all_actions_defined()'),
-                     self.setup_other_windows)
+        self.main.all_actions_defined.connect(self.setup_other_windows)
 
         # Change module completions when PYTHONPATH changes
-        self.connect(self.main, SIGNAL("pythonpath_changed()"),
-                     self.set_path)
+        self.main.sig_pythonpath_changed.connect(self.set_path)
         
         # Find widget
         self.find_widget = FindReplace(self, enable_replace=True)
@@ -453,7 +466,8 @@ class Editor(SpyderPluginWidget):
         
     def set_projectexplorer(self, projectexplorer):
         self.projectexplorer = projectexplorer
-        
+
+    @Slot()
     def show_hide_project_explorer(self):
         if self.projectexplorer is not None:
             dw = self.projectexplorer.dockwidget
@@ -469,15 +483,15 @@ class Editor(SpyderPluginWidget):
         for editorstack in self.editorstacks:
             editorstack.set_outlineexplorer(self.outlineexplorer)
         self.editorstacks[0].initialize_outlineexplorer()
-        self.connect(self.outlineexplorer,
-                     SIGNAL("edit_goto(QString,int,QString)"),
-                     lambda filenames, goto, word:
-                     self.load(filenames=filenames, goto=goto, word=word,
-                               editorwindow=self))
-        self.connect(self.outlineexplorer, SIGNAL("edit(QString)"),
-                     lambda filenames:
-                     self.load(filenames=filenames, editorwindow=self))
-            
+        self.outlineexplorer.edit_goto.connect(
+                           lambda filenames, goto, word:
+                           self.load(filenames=filenames, goto=goto, word=word,
+                                     editorwindow=self))
+        self.outlineexplorer.edit.connect(
+                             lambda filenames:
+                             self.load(filenames=filenames, editorwindow=self))
+
+    @Slot()
     def show_hide_outline_explorer(self):
         if self.outlineexplorer is not None:
             dw = self.outlineexplorer.dockwidget
@@ -497,7 +511,10 @@ class Editor(SpyderPluginWidget):
     def restore_scrollbar_position(self):
         """Restoring scrollbar position after main window is visible"""
         # Widget is now visible, we may center cursor on top level editor:
-        self.get_current_editor().centerCursor()
+        try:
+            self.get_current_editor().centerCursor()
+        except AttributeError:
+            pass
             
     #------ SpyderPluginWidget API ---------------------------------------------    
     def get_plugin_title(self):
@@ -562,14 +579,13 @@ class Editor(SpyderPluginWidget):
                                 triggered=self.show_hide_outline_explorer,
                                 context=Qt.WidgetWithChildrenShortcut)
         self.register_shortcut(self.toggle_outline_action, context="Editor",
-                               name="Show/hide outline", default="Ctrl+Alt+O")
+                               name="Show/hide outline")
         self.toggle_project_action = create_action(self,
                                 _("Show/hide project explorer"),
                                 triggered=self.show_hide_project_explorer,
                                 context=Qt.WidgetWithChildrenShortcut)
         self.register_shortcut(self.toggle_project_action, context="Editor",
-                               name="Show/hide project explorer",
-                               default="Ctrl+Alt+P")
+                               name="Show/hide project explorer")
         self.addActions([self.toggle_outline_action, self.toggle_project_action])
         
         # ---- File menu and toolbar ----
@@ -577,7 +593,7 @@ class Editor(SpyderPluginWidget):
                 icon='filenew.png', tip=_("New file"),
                 triggered=self.new)
         self.register_shortcut(self.new_action, context="Editor",
-                               name="New file", default="Ctrl+N")
+                               name="New file")
         add_shortcut_to_tooltip(self.new_action, context="Editor",
                                 name="New file")
         
@@ -585,7 +601,7 @@ class Editor(SpyderPluginWidget):
                 icon='fileopen.png', tip=_("Open file"),
                 triggered=self.load)
         self.register_shortcut(self.open_action, context="Editor",
-                               name="Open file", default="Ctrl+O")
+                               name="Open file")
         add_shortcut_to_tooltip(self.open_action, context="Editor",
                                 name="Open file")
         
@@ -597,7 +613,7 @@ class Editor(SpyderPluginWidget):
                 icon='filesave.png', tip=_("Save file"),
                 triggered=self.save)
         self.register_shortcut(self.save_action, context="Editor",
-                               name="Save file", default="Ctrl+S")
+                               name="Save file")
         add_shortcut_to_tooltip(self.save_action, context="Editor",
                                 name="Save file")
         
@@ -605,7 +621,7 @@ class Editor(SpyderPluginWidget):
                 icon='save_all.png', tip=_("Save all files"),
                 triggered=self.save_all)
         self.register_shortcut(self.save_all_action, context="Editor",
-                               name="Save all", default="Ctrl+Shift+S")
+                               name="Save all")
         add_shortcut_to_tooltip(self.save_all_action, context="Editor",
                                 name="Save all")
         
@@ -618,17 +634,16 @@ class Editor(SpyderPluginWidget):
                 icon='print.png', tip=_("Print current file..."),
                 triggered=self.print_file)
         self.register_shortcut(self.print_action, context="Editor",
-        	name="Print", default="Ctrl+P")
+                               name="Print")
+        # Shortcut for close_action is defined in widgets/editor.py
         self.close_action = create_action(self, _("&Close"),
                 icon='fileclose.png', tip=_("Close current file"),
                 triggered=self.close_file)
-        self.register_shortcut(self.close_action, context="Editor",
-                               name="Close file", default="Ctrl+W")
         self.close_all_action = create_action(self, _("C&lose all"),
                 icon='filecloseall.png', tip=_("Close all opened files"),
                 triggered=self.close_all_files)
         self.register_shortcut(self.close_all_action, context="Editor",
-                               name="Close all", default="Ctrl+Shift+W")
+                               name="Close all")
 
         # ---- Debug menu ----
         set_clear_breakpoint_action = create_action(self,
@@ -637,15 +652,14 @@ class Editor(SpyderPluginWidget):
                                     triggered=self.set_or_clear_breakpoint,
                                     context=Qt.WidgetShortcut)
         self.register_shortcut(set_clear_breakpoint_action, context="Editor",
-                               name="Breakpoint", default="F12")
+                               name="Breakpoint")
         set_cond_breakpoint_action = create_action(self,
                             _("Set/Edit conditional breakpoint"),
                             icon=get_icon("breakpoint_cond_big.png"),
                             triggered=self.set_or_edit_conditional_breakpoint,
                             context=Qt.WidgetShortcut)
         self.register_shortcut(set_cond_breakpoint_action, context="Editor",
-                               name="Conditional breakpoint",
-                               default="Shift+F12")
+                               name="Conditional breakpoint")
         clear_all_breakpoints_action = create_action(self,
                                     _("Clear breakpoints in all files"),
                                     triggered=self.clear_all_breakpoints)
@@ -657,21 +671,19 @@ class Editor(SpyderPluginWidget):
                                            triggered=self.run_winpdb)
         self.winpdb_action.setEnabled(WINPDB_PATH is not None)
         self.register_shortcut(self.winpdb_action, context="Editor",
-                               name="Debug with winpdb", default="F7")
+                               name="Debug with winpdb")
         
         # --- Debug toolbar ---
         debug_action = create_action(self, _("&Debug"), icon='debug.png',
                                      tip=_("Debug file"),
                                      triggered=self.debug_file)
-        self.register_shortcut(debug_action, context="Editor",
-                               name="Debug", default="Ctrl+F5")
+        self.register_shortcut(debug_action, context="Editor", name="Debug")
         add_shortcut_to_tooltip(debug_action, context="Editor", name="Debug")
         
         debug_next_action = create_action(self, _("Step"), 
                icon='arrow-step-over.png', tip=_("Run current line"), 
                triggered=lambda: self.debug_command("next")) 
-        self.register_shortcut(debug_next_action, "_",
-                   "Debug Step Over", "Ctrl+F10")
+        self.register_shortcut(debug_next_action, "_", "Debug Step Over")
         add_shortcut_to_tooltip(debug_next_action, context="_",
                                 name="Debug Step Over")
 
@@ -679,8 +691,7 @@ class Editor(SpyderPluginWidget):
                icon='arrow-continue.png', tip=_("Continue execution until "
                                                 "next breakpoint"), 
                triggered=lambda: self.debug_command("continue"))                                                 
-        self.register_shortcut(debug_continue_action, "_",
-                   "Debug Continue", "Ctrl+F12")
+        self.register_shortcut(debug_continue_action, "_", "Debug Continue")
         add_shortcut_to_tooltip(debug_continue_action, context="_",
                                 name="Debug Continue")
 
@@ -688,8 +699,7 @@ class Editor(SpyderPluginWidget):
                icon='arrow-step-in.png', tip=_("Step into function or method "
                                                "of current line"), 
                triggered=lambda: self.debug_command("step"))                
-        self.register_shortcut(debug_step_action, "_",
-                   "Debug Step Into", "Ctrl+F11")
+        self.register_shortcut(debug_step_action, "_", "Debug Step Into")
         add_shortcut_to_tooltip(debug_step_action, context="_",
                                 name="Debug Step Into")
 
@@ -697,16 +707,14 @@ class Editor(SpyderPluginWidget):
                icon='arrow-step-out.png', tip=_("Run until current function "
                                                 "or method returns"), 
                triggered=lambda: self.debug_command("return"))               
-        self.register_shortcut(debug_return_action, "_",
-                   "Debug Step Return", "Ctrl+Shift+F11")
+        self.register_shortcut(debug_return_action, "_", "Debug Step Return")
         add_shortcut_to_tooltip(debug_return_action, context="_",
                                 name="Debug Step Return")
 
         debug_exit_action = create_action(self, _("Exit"),
                icon='stop_debug.png', tip=_("Exit Debug"), 
                triggered=lambda: self.debug_command("exit"))                                       
-        self.register_shortcut(debug_exit_action, "_",
-                   "Debug Exit", "Ctrl+Shift+F12")
+        self.register_shortcut(debug_exit_action, "_", "Debug Exit")
         add_shortcut_to_tooltip(debug_exit_action, context="_",
                                 name="Debug Exit")
 
@@ -722,8 +730,7 @@ class Editor(SpyderPluginWidget):
         run_action = create_action(self, _("&Run"), icon='run.png',
                                    tip=_("Run file"),
                                    triggered=self.run_file)
-        self.register_shortcut(run_action, context="Editor",
-                               name="Run", default="F5")
+        self.register_shortcut(run_action, context="Editor", name="Run")
         add_shortcut_to_tooltip(run_action, context="Editor", name="Run")
 
         configure_action = create_action(self,
@@ -732,7 +739,7 @@ class Editor(SpyderPluginWidget):
                                menurole=QAction.NoRole,
                                triggered=self.edit_run_configurations)
         self.register_shortcut(configure_action, context="Editor",
-                               name="Configure", default="F6")
+                               name="Configure")
         add_shortcut_to_tooltip(configure_action, context="Editor",
                                 name="Configure")
         
@@ -741,16 +748,18 @@ class Editor(SpyderPluginWidget):
                             tip=_("Run again last file"),
                             triggered=self.re_run_file)
         self.register_shortcut(re_run_action, context="Editor",
-                               name="Re-run last script", default="Ctrl+F6")
+                               name="Re-run last script")
         add_shortcut_to_tooltip(re_run_action, context="Editor",
                                 name="Re-run last script")
 
-        run_selected_action = create_action(self, _("Run &selection"),
+        run_selected_action = create_action(self, _("Run &selection or "
+                                                    "current line"),
                                             icon='run_selection.png',
-                                            tip=_("Run selection"),
+                                            tip=_("Run selection or "
+                                                  "current line"),
                                             triggered=self.run_selection)
         self.register_shortcut(run_selected_action, context="Editor",
-                               name="Run selection", default="F9")
+                               name="Run selection")
 
         run_cell_action = create_action(self,
                             _("Run cell"), icon='run_cell.png',
@@ -770,12 +779,11 @@ class Editor(SpyderPluginWidget):
         # --- Source code Toolbar ---
         self.todo_list_action = create_action(self,
                 _("Show todo list"), icon='todo_list.png',
-                tip=_("Show TODO/FIXME/XXX/HINT/TIP comments list"),
+                tip=_("Show TODO/FIXME/XXX/HINT/TIP/@todo comments list"),
                 triggered=self.go_to_next_todo)
         self.todo_menu = QMenu(self)
         self.todo_list_action.setMenu(self.todo_menu)
-        self.connect(self.todo_menu, SIGNAL("aboutToShow()"),
-                     self.update_todo_menu)
+        self.todo_menu.aboutToShow.connect(self.update_todo_menu)
         
         self.warning_list_action = create_action(self,
                 _("Show warning/error list"), icon='wng_list.png',
@@ -783,8 +791,7 @@ class Editor(SpyderPluginWidget):
                 triggered=self.go_to_next_warning)
         self.warning_menu = QMenu(self)
         self.warning_list_action.setMenu(self.warning_menu)
-        self.connect(self.warning_menu, SIGNAL("aboutToShow()"),
-                     self.update_warning_menu)
+        self.warning_menu.aboutToShow.connect(self.update_warning_menu)
         self.previous_warning_action = create_action(self,
                 _("Previous warning/error"), icon='prev_wng.png',
                 tip=_("Go to previous code analysis warning/error"),
@@ -800,23 +807,20 @@ class Editor(SpyderPluginWidget):
                 triggered=self.go_to_last_edit_location)
         self.register_shortcut(self.previous_edit_cursor_action,
                                context="Editor",
-                               name="Last edit location",
-                               default="Ctrl+Alt+Shift+Left")
+                               name="Last edit location")
         self.previous_cursor_action = create_action(self,
                 _("Previous cursor position"), icon='prev_cursor.png',
                 tip=_("Go to previous cursor position"),
                 triggered=self.go_to_previous_cursor_position)
         self.register_shortcut(self.previous_cursor_action,
                                context="Editor",
-                               name="Previous cursor position",
-                               default="Ctrl+Alt+Left")
+                               name="Previous cursor position")
         self.next_cursor_action = create_action(self,
                 _("Next cursor position"), icon='next_cursor.png',
                 tip=_("Go to next cursor position"),
                 triggered=self.go_to_next_cursor_position)
         self.register_shortcut(self.next_cursor_action,
-                               context="Editor", name="Next cursor position",
-                               default="Ctrl+Alt+Right")
+                               context="Editor", name="Next cursor position")
         
         # --- Edit Toolbar ---
         self.toggle_comment_action = create_action(self,
@@ -824,20 +828,20 @@ class Editor(SpyderPluginWidget):
                 tip=_("Comment current line or selection"),
                 triggered=self.toggle_comment, context=Qt.WidgetShortcut)
         self.register_shortcut(self.toggle_comment_action, context="Editor",
-                               name="Toggle comment", default="Ctrl+1")
+                               name="Toggle comment")
         blockcomment_action = create_action(self, _("Add &block comment"),
                 tip=_("Add block comment around "
                             "current line or selection"),
                 triggered=self.blockcomment, context=Qt.WidgetShortcut)
         self.register_shortcut(blockcomment_action, context="Editor",
-                               name="Blockcomment", default="Ctrl+4")
+                               name="Blockcomment")
         unblockcomment_action = create_action(self,
                 _("R&emove block comment"),
                 tip = _("Remove comment block around "
                               "current line or selection"),
                 triggered=self.unblockcomment, context=Qt.WidgetShortcut)
         self.register_shortcut(unblockcomment_action, context="Editor",
-                               name="Unblockcomment", default="Ctrl+5")
+                               name="Unblockcomment")
                 
         # ----------------------------------------------------------------------
         # The following action shortcuts are hard-coded in CodeEditor
@@ -881,7 +885,7 @@ class Editor(SpyderPluginWidget):
                                         triggered=self.go_to_line,
                                         context=Qt.WidgetShortcut)
         self.register_shortcut(gotoline_action, context="Editor",
-                               name="Go to line", default="Ctrl+L")
+                               name="Go to line")
 
         workdir_action = create_action(self,
                 _("Set console working directory"),
@@ -897,8 +901,7 @@ class Editor(SpyderPluginWidget):
             _("Clear this list"), tip=_("Clear recent files list"),
             triggered=self.clear_recent_files)
         self.recent_file_menu = QMenu(_("Open &recent"), self)
-        self.connect(self.recent_file_menu, SIGNAL("aboutToShow()"),
-                     self.update_recent_file_menu)
+        self.recent_file_menu.aboutToShow.connect(self.update_recent_file_menu)
 
         file_menu_actions = [self.new_action, self.open_action,
                              self.recent_file_menu, self.save_action,
@@ -980,19 +983,18 @@ class Editor(SpyderPluginWidget):
     
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
-        self.connect(self.main, SIGNAL('restore_scrollbar_position()'),
-                     self.restore_scrollbar_position)
-        self.connect(self.main.console,
-                     SIGNAL("edit_goto(QString,int,QString)"), self.load)
-        self.connect(self, SIGNAL('exec_in_extconsole(QString,bool)'),
-                     self.main.execute_in_external_console)
-        self.connect(self, SIGNAL('redirect_stdio(bool)'),
-                     self.main.redirect_internalshell_stdio)
-        self.connect(self, SIGNAL("open_dir(QString)"),
-                     self.main.workingdirectory.chdir)
+        self.main.restore_scrollbar_position.connect(
+                                               self.restore_scrollbar_position)
+        self.main.console.edit_goto.connect(self.load)
+        self.exec_in_extconsole.connect(self.main.execute_in_external_console)
+        self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
+        self.open_dir.connect(self.main.workingdirectory.chdir)
         self.set_inspector(self.main.inspector)
         if self.main.outlineexplorer is not None:
             self.set_outlineexplorer(self.main.outlineexplorer)
+        editorstack = self.get_current_editorstack()
+        if not editorstack.data:
+            self.__load_temp_file()
         self.main.add_dockwidget(self)
     
         
@@ -1039,21 +1041,16 @@ class Editor(SpyderPluginWidget):
             if self.outlineexplorer is not None:
                 editorstack.set_outlineexplorer(self.outlineexplorer)
             editorstack.set_find_widget(self.find_widget)
-            self.connect(editorstack, SIGNAL('reset_statusbar()'),
-                         self.readwrite_status.hide)
-            self.connect(editorstack, SIGNAL('reset_statusbar()'),
-                         self.encoding_status.hide)
-            self.connect(editorstack, SIGNAL('reset_statusbar()'),
-                         self.cursorpos_status.hide)
-            self.connect(editorstack, SIGNAL('readonly_changed(bool)'),
-                         self.readwrite_status.readonly_changed)
-            self.connect(editorstack, SIGNAL('encoding_changed(QString)'),
-                         self.encoding_status.encoding_changed)
-            self.connect(editorstack,
-                         SIGNAL('editor_cursor_position_changed(int,int)'),
-                         self.cursorpos_status.cursor_position_changed)
-            self.connect(editorstack, SIGNAL('refresh_eol_chars(QString)'),
-                         self.eol_status.eol_changed)
+            editorstack.reset_statusbar.connect(self.readwrite_status.hide)
+            editorstack.reset_statusbar.connect(self.encoding_status.hide)
+            editorstack.reset_statusbar.connect(self.cursorpos_status.hide)
+            editorstack.readonly_changed.connect(
+                                        self.readwrite_status.readonly_changed)
+            editorstack.encoding_changed.connect(
+                                         self.encoding_status.encoding_changed)
+            editorstack.sig_editor_cursor_position_changed.connect(
+                                 self.cursorpos_status.cursor_position_changed)
+            editorstack.refresh_eol_chars.connect(self.eol_status.eol_changed)
             
         editorstack.set_inspector(self.inspector)
         editorstack.set_io_actions(self.new_action, self.open_action,
@@ -1068,13 +1065,12 @@ class Editor(SpyderPluginWidget):
             ('set_linenumbers_enabled',             'line_numbers'),
             ('set_edgeline_enabled',                'edge_line'),
             ('set_edgeline_column',                 'edge_line_column'),
-            ('set_outlineexplorer_enabled',         'outline_explorer'),
             ('set_codecompletion_auto_enabled',     'codecompletion/auto'),
             ('set_codecompletion_case_enabled',     'codecompletion/case_sensitive'),
-            ('set_codecompletion_single_enabled',   'codecompletion/show_single'),
             ('set_codecompletion_enter_enabled',    'codecompletion/enter_key'),
             ('set_calltips_enabled',                'calltips'),
             ('set_go_to_definition_enabled',        'go_to_definition'),
+            ('set_focus_to_editor',                 'focus_to_editor'),
             ('set_close_parentheses_enabled',       'close_parentheses'),
             ('set_close_quotes_enabled',            'close_quotes'),
             ('set_add_colons_enabled',              'add_colons'),
@@ -1085,6 +1081,7 @@ class Editor(SpyderPluginWidget):
             ('set_tabmode_enabled',                 'tab_always_indent'),
             ('set_intelligent_backspace_enabled',   'intelligent_backspace'),
             ('set_highlight_current_line_enabled',  'highlight_current_line'),
+            ('set_highlight_current_cell_enabled',  'highlight_current_cell'),
             ('set_occurence_highlighting_enabled',  'occurence_highlighting'),
             ('set_occurence_highlighting_timeout',  'occurence_highlighting/timeout'),
             ('set_checkeolchars_enabled',           'check_eol_chars'),
@@ -1099,69 +1096,47 @@ class Editor(SpyderPluginWidget):
         color_scheme = get_color_scheme(self.get_option('color_scheme_name'))
         editorstack.set_default_font(self.get_plugin_font(), color_scheme)
         
-        self.connect(editorstack, SIGNAL('starting_long_process(QString)'),
-                     self.starting_long_process)
-        self.connect(editorstack, SIGNAL('ending_long_process(QString)'),
-                     self.ending_long_process)
+        editorstack.starting_long_process.connect(self.starting_long_process)
+        editorstack.ending_long_process.connect(self.ending_long_process)
         
         # Redirect signals
-        self.connect(editorstack, SIGNAL('redirect_stdio(bool)'),
-                     lambda state:
-                     self.emit(SIGNAL('redirect_stdio(bool)'), state))
-        self.connect(editorstack, SIGNAL('exec_in_extconsole(QString,bool)'),
-                     lambda text, option: self.emit(
-                     SIGNAL('exec_in_extconsole(QString,bool)'), text, option))
-        self.connect(editorstack, SIGNAL("update_plugin_title()"),
-                     lambda: self.emit(SIGNAL("update_plugin_title()")))
-
-        self.connect(editorstack, SIGNAL("editor_focus_changed()"),
-                     self.save_focus_editorstack)
-        self.connect(editorstack, SIGNAL('editor_focus_changed()'),
-                     self.main.plugin_focus_changed)
-
-        self.connect(editorstack, SIGNAL('zoom_in()'), lambda: self.zoom(1))
-        self.connect(editorstack, SIGNAL('zoom_out()'), lambda: self.zoom(-1))
-        
-        self.connect(editorstack, SIGNAL('close_file(QString,int)'),
-                     self.close_file_in_all_editorstacks)
-        self.connect(editorstack, SIGNAL('file_saved(QString,int,QString)'),
-                     self.file_saved_in_editorstack)
-        self.connect(editorstack,
-                     SIGNAL('file_renamed_in_data(QString,int,QString)'),
-                     self.file_renamed_in_data_in_editorstack)
-        
-        self.connect(editorstack, SIGNAL("create_new_window()"),
-                     self.create_new_window)
-        
-        self.connect(editorstack, SIGNAL('opened_files_list_changed()'),
-                     self.opened_files_list_changed)
-        self.connect(editorstack, SIGNAL('analysis_results_changed()'),
-                     self.analysis_results_changed)
-        self.connect(editorstack, SIGNAL('todo_results_changed()'),
-                     self.todo_results_changed)
-        self.connect(editorstack, SIGNAL('update_code_analysis_actions()'),
-                     self.update_code_analysis_actions)
-        self.connect(editorstack, SIGNAL('update_code_analysis_actions()'),
-                     self.update_todo_actions)
-        self.connect(editorstack,
-                     SIGNAL('refresh_file_dependent_actions()'),
-                     self.refresh_file_dependent_actions)
-        self.connect(editorstack, SIGNAL('refresh_save_all_action()'),
-                     self.refresh_save_all_action)
-        self.connect(editorstack, SIGNAL('refresh_eol_chars(QString)'),
-                     self.refresh_eol_chars)
-        
-        self.connect(editorstack, SIGNAL("save_breakpoints(QString,QString)"),
-                     self.save_breakpoints)
-        
-        self.connect(editorstack, SIGNAL('text_changed_at(QString,int)'),
-                     self.text_changed_at)
-        self.connect(editorstack, SIGNAL('current_file_changed(QString,int)'),
-                     self.current_file_changed)
-        
-        self.connect(editorstack, SIGNAL('plugin_load(QString)'), self.load)
-        self.connect(editorstack, SIGNAL("edit_goto(QString,int,QString)"),
-                     self.load)
+        editorstack.redirect_stdio.connect(
+                                 lambda state: self.redirect_stdio.emit(state))
+        editorstack.exec_in_extconsole.connect(
+                                    lambda text, option:
+                                    self.exec_in_extconsole.emit(text, option))
+        editorstack.update_plugin_title.connect(
+                                       lambda: self.update_plugin_title.emit())
+        editorstack.editor_focus_changed.connect(self.save_focus_editorstack)
+        editorstack.editor_focus_changed.connect(self.main.plugin_focus_changed)
+        editorstack.zoom_in.connect(lambda: self.zoom(1))
+        editorstack.zoom_out.connect(lambda: self.zoom(-1))
+        editorstack.zoom_reset.connect(lambda: self.zoom(0))
+        editorstack.sig_new_file.connect(lambda s: self.new(text=s))
+        editorstack.sig_close_file.connect(self.close_file_in_all_editorstacks)
+        editorstack.sig_close_file[()].connect(self.close_file)
+        editorstack.file_saved.connect(self.file_saved_in_editorstack)
+        editorstack.file_renamed_in_data.connect(
+                                      self.file_renamed_in_data_in_editorstack)
+        editorstack.create_new_window.connect(self.create_new_window)
+        editorstack.opened_files_list_changed.connect(
+                                                self.opened_files_list_changed)
+        editorstack.analysis_results_changed.connect(
+                                                 self.analysis_results_changed)
+        editorstack.todo_results_changed.connect(self.todo_results_changed)
+        editorstack.update_code_analysis_actions.connect(
+                                             self.update_code_analysis_actions)
+        editorstack.update_code_analysis_actions.connect(
+                                                      self.update_todo_actions)
+        editorstack.refresh_file_dependent_actions.connect(
+                                           self.refresh_file_dependent_actions)
+        editorstack.refresh_save_all_action.connect(self.refresh_save_all_action)
+        editorstack.refresh_eol_chars.connect(self.refresh_eol_chars)
+        editorstack.save_breakpoints.connect(self.save_breakpoints)
+        editorstack.text_changed_at.connect(self.text_changed_at)
+        editorstack.current_file_changed.connect(self.current_file_changed)
+        editorstack.plugin_load.connect(self.load)
+        editorstack.edit_goto.connect(self.load)
         
     def unregister_editorstack(self, editorstack):
         """Removing editorstack only if it's not the last remaining"""
@@ -1240,8 +1215,7 @@ class Editor(SpyderPluginWidget):
         window.resize(self.size())
         window.show()
         self.register_editorwindow(window)
-        self.connect(window, SIGNAL("destroyed()"),
-                     lambda win=window: self.unregister_editorwindow(win))
+        window.destroyed.connect(lambda: self.unregister_editorwindow(window))
         return window
     
     def register_editorwindow(self, window):
@@ -1428,7 +1402,7 @@ class Editor(SpyderPluginWidget):
         else:
             breakpoints = []
         save_breakpoints(filename, breakpoints)
-        self.emit(SIGNAL("breakpoints_saved()"))
+        self.breakpoints_saved.emit()
         
     #------ File I/O
     def __load_temp_file(self):
@@ -1444,12 +1418,13 @@ class Editor(SpyderPluginWidget):
             encoding.write(to_text_string(text), self.TEMPFILE_PATH, 'utf-8')
         self.load(self.TEMPFILE_PATH)
 
+    @Slot()
     def __set_workdir(self):
         """Set current script directory as working directory"""
         fname = self.get_current_filename()
         if fname is not None:
             directory = osp.dirname(osp.abspath(fname))
-            self.emit(SIGNAL("open_dir(QString)"), directory)
+            self.open_dir.emit(directory)
                 
     def __add_recent_file(self, fname):
         """Add to recent file list"""
@@ -1469,34 +1444,39 @@ class Editor(SpyderPluginWidget):
             editor = editorstack.clone_editor_from(finfo, set_current=False)
             self.register_widget_shortcuts("Editor", editor)
     
-    def new(self, fname=None, editorstack=None):
+    @Slot()
+    def new(self, fname=None, editorstack=None, text=None):
         """
         Create a new file - Untitled
         
         fname=None --> fname will be 'untitledXX.py' but do not create file
         fname=<basestring> --> create file
         """
-        # Creating template
-        text, enc = encoding.read(self.TEMPLATE_PATH)
-        encoding_match = re.search('-*- coding: ?([a-z0-9A-Z\-]*) -*-', text)
-        if encoding_match:
-            enc = encoding_match.group(1)
-        # Initialize template variables
-        # Windows
-        username = encoding.to_unicode_from_fs(os.environ.get('USERNAME',
-                                                              ''))
-        # Linux, Mac OS X
-        if not username:
-            username = encoding.to_unicode_from_fs(os.environ.get('USER',
-                                                                  '-'))
-        VARS = {
-            'date': time.ctime(),
-            'username': username,
-        }
-        try:
-            text = text % VARS
-        except:
-            pass
+        # If no text is provided, create default content
+        if text is None:
+            text, enc = encoding.read(self.TEMPLATE_PATH)
+            enc_match = re.search('-*- coding: ?([a-z0-9A-Z\-]*) -*-', text)
+            if enc_match:
+                enc = enc_match.group(1)
+            # Initialize template variables
+            # Windows
+            username = encoding.to_unicode_from_fs(os.environ.get('USERNAME',
+                                                                  ''))
+            # Linux, Mac OS X
+            if not username:
+                username = encoding.to_unicode_from_fs(os.environ.get('USER',
+                                                                      '-'))
+            VARS = {
+                'date': time.ctime(),
+                'username': username,
+            }
+            try:
+                text = text % VARS
+            except:
+                pass
+        else:
+            enc = encoding.read(self.TEMPLATE_PATH)[1]
+        
         create_fname = lambda n: to_text_string(_("untitled")) + ("%d.py" % n)
         # Creating editor widget
         if editorstack is None:
@@ -1559,11 +1539,13 @@ class Editor(SpyderPluginWidget):
         self.clear_recent_action.setEnabled(len(recent_files) > 0)
         add_actions(self.recent_file_menu, (None, self.max_recent_action,
                                             self.clear_recent_action))
-        
+
+    @Slot()
     def clear_recent_files(self):
         """Clear recent files list"""
         self.recent_files = []
-        
+
+    @Slot()
     def change_max_recent_files(self):
         "Change max recent files entries"""
         editorstack = self.get_current_editorstack()
@@ -1572,7 +1554,8 @@ class Editor(SpyderPluginWidget):
                                self.get_option('max_recent_files'), 1, 35)
         if valid:
             self.set_option('max_recent_files', mrf)
-        
+    
+    @Slot(str, int, str)
     def load(self, filenames=None, goto=None, word='', editorwindow=None,
              processevents=True):
         """
@@ -1600,7 +1583,7 @@ class Editor(SpyderPluginWidget):
                 c_fname = self.get_current_filename()
                 if c_fname is not None and c_fname != self.TEMPFILE_PATH:
                     basedir = osp.dirname(c_fname)
-            self.emit(SIGNAL('redirect_stdio(bool)'), False)
+            self.redirect_stdio.emit(False)
             parent_widget = self.get_current_editorstack()
             if filename0 is not None:
                 selectedfilter = get_filter(EDIT_FILETYPES,
@@ -1610,12 +1593,12 @@ class Editor(SpyderPluginWidget):
             filenames, _selfilter = getopenfilenames(parent_widget,
                                          _("Open file"), basedir, EDIT_FILTERS,
                                          selectedfilter=selectedfilter)
-            self.emit(SIGNAL('redirect_stdio(bool)'), True)
+            self.redirect_stdio.emit(True)
             if filenames:
                 filenames = [osp.normpath(fname) for fname in filenames]
                 if CONF.get('workingdir', 'editor/open/auto_set_to_basedir'):
                     directory = osp.dirname(filenames[0])
-                    self.emit(SIGNAL("open_dir(QString)"), directory)
+                    self.open_dir.emit(directory)
             else:
                 return
             
@@ -1677,6 +1660,7 @@ class Editor(SpyderPluginWidget):
             if processevents:
                 QApplication.processEvents()
 
+    @Slot()
     def print_file(self):
         """Print current file"""
         editor = self.get_current_editor()
@@ -1686,15 +1670,16 @@ class Editor(SpyderPluginWidget):
         printDialog = QPrintDialog(printer, editor)
         if editor.has_selected_text():
             printDialog.addEnabledOption(QAbstractPrintDialog.PrintSelection)
-        self.emit(SIGNAL('redirect_stdio(bool)'), False)
+        self.redirect_stdio.emit(False)
         answer = printDialog.exec_()
-        self.emit(SIGNAL('redirect_stdio(bool)'), True)
+        self.redirect_stdio.emit(True)
         if answer == QDialog.Accepted:
             self.starting_long_process(_("Printing..."))
             printer.setDocName(filename)
             editor.print_(printer)
             self.ending_long_process()
 
+    @Slot()
     def print_preview(self):
         """Print preview for current file"""
         from spyderlib.qt.QtGui import QPrintPreviewDialog
@@ -1703,39 +1688,44 @@ class Editor(SpyderPluginWidget):
                           header_font=self.get_plugin_font('printer_header'))
         preview = QPrintPreviewDialog(printer, self)
         preview.setWindowFlags(Qt.Window)
-        self.connect(preview, SIGNAL("paintRequested(QPrinter*)"),
-                     lambda printer: editor.print_(printer))
-        self.emit(SIGNAL('redirect_stdio(bool)'), False)
+        preview.paintRequested.connect(lambda printer: editor.print_(printer))
+        self.redirect_stdio.emit(False)
         preview.exec_()
-        self.emit(SIGNAL('redirect_stdio(bool)'), True)
+        self.redirect_stdio.emit(True)
 
+    @Slot()
     def close_file(self):
         """Close current file"""
         editorstack = self.get_current_editorstack()
         editorstack.close_file()
-            
+    
+    @Slot()
     def close_all_files(self):
         """Close all opened scripts"""
         self.editorstacks[0].close_all_files()
-                
+    
+    @Slot()
     def save(self, index=None, force=False):
         """Save file"""
         editorstack = self.get_current_editorstack()
         return editorstack.save(index=index, force=force)
-                
+    
+    @Slot()
     def save_as(self):
         """Save *as* the currently edited file"""
         editorstack = self.get_current_editorstack()
         if editorstack.save_as():
             fname = editorstack.get_current_filename()
             if CONF.get('workingdir', 'editor/save/auto_set_to_basedir'):
-                self.emit(SIGNAL("open_dir(QString)"), osp.dirname(fname))
+                self.open_dir.emit(osp.dirname(fname))
             self.__add_recent_file(fname)
-        
+    
+    @Slot()
     def save_all(self):
         """Save all opened files"""
         self.get_current_editorstack().save_all()
-        
+    
+    @Slot()
     def revert(self):
         """Revert the currently edited file from disk"""
         editorstack = self.get_current_editorstack()
@@ -1772,54 +1762,63 @@ class Editor(SpyderPluginWidget):
         
     
     #------ Source code
+    @Slot()
     def indent(self):
         """Indent current line or selection"""
         editor = self.get_current_editor()
         if editor is not None:
             editor.indent()
 
+    @Slot()
     def unindent(self):
         """Unindent current line or selection"""
         editor = self.get_current_editor()
         if editor is not None:
             editor.unindent()
-    
+
+    @Slot()
     def toggle_comment(self):
         """Comment current line or selection"""
         editor = self.get_current_editor()
         if editor is not None:
             editor.toggle_comment()
-    
+
+    @Slot()
     def blockcomment(self):
         """Block comment current line or selection"""
         editor = self.get_current_editor()
         if editor is not None:
             editor.blockcomment()
 
+    @Slot()
     def unblockcomment(self):
         """Un-block comment current line or selection"""
         editor = self.get_current_editor()
         if editor is not None:
             editor.unblockcomment()
-    
+
+    @Slot()
     def go_to_next_todo(self):
         editor = self.get_current_editor()
         position = editor.go_to_next_todo()
         filename = self.get_current_filename()
         self.add_cursor_position_to_history(filename, position)
-    
+
+    @Slot()
     def go_to_next_warning(self):
         editor = self.get_current_editor()
         position = editor.go_to_next_warning()
         filename = self.get_current_filename()
         self.add_cursor_position_to_history(filename, position)
-    
+
+    @Slot()
     def go_to_previous_warning(self):
         editor = self.get_current_editor()
         position = editor.go_to_previous_warning()
         filename = self.get_current_filename()
         self.add_cursor_position_to_history(filename, position)
-                
+
+    @Slot()
     def run_winpdb(self):
         """Run winpdb to debug current file"""
         if self.save():
@@ -1841,11 +1840,13 @@ class Editor(SpyderPluginWidget):
         editor = self.get_current_editor()
         if self.__set_eol_chars:
             editor.set_eol_chars(sourcecode.get_eol_chars_from_os_name(os_name))
-        
+
+    @Slot()
     def remove_trailing_spaces(self):
         editorstack = self.get_current_editorstack()
         editorstack.remove_trailing_spaces()
-        
+
+    @Slot()
     def fix_indentation(self):
         editorstack = self.get_current_editorstack()
         editorstack.fix_indentation()
@@ -1894,7 +1895,8 @@ class Editor(SpyderPluginWidget):
     def current_file_changed(self, filename, position):
         self.add_cursor_position_to_history(to_text_string(filename), position,
                                             fc=True)
-        
+
+    @Slot()
     def go_to_last_edit_location(self):
         if self.last_edit_cursor_pos is not None:
             filename, position = self.last_edit_cursor_pos
@@ -1932,35 +1934,41 @@ class Editor(SpyderPluginWidget):
                 editor.set_cursor_position(position)
         self.__ignore_cursor_position = False
         self.update_cursorpos_actions()
-            
+
+    @Slot()
     def go_to_previous_cursor_position(self):
         self.__move_cursor_position(-1)
-            
+
+    @Slot()
     def go_to_next_cursor_position(self):
         self.__move_cursor_position(1)
-        
+
+    @Slot()
     def go_to_line(self):
         """Open 'go to line' dialog"""
         editorstack = self.get_current_editorstack()
         if editorstack is not None:
             editorstack.go_to_line()
-            
+
+    @Slot()
     def set_or_clear_breakpoint(self):
         """Set/Clear breakpoint"""
         editorstack = self.get_current_editorstack()
         if editorstack is not None:
             editorstack.set_or_clear_breakpoint()
-            
+
+    @Slot()
     def set_or_edit_conditional_breakpoint(self):
         """Set/Edit conditional breakpoint"""
         editorstack = self.get_current_editorstack()
         if editorstack is not None:
             editorstack.set_or_edit_conditional_breakpoint()
-            
+
+    @Slot()
     def clear_all_breakpoints(self):
         """Clear breakpoints in all files"""
         clear_all_breakpoints()
-        self.emit(SIGNAL("breakpoints_saved()"))
+        self.breakpoints_saved.emit()
         editorstack = self.get_current_editorstack()
         if editorstack is not None:
             for data in editorstack.data:
@@ -1970,7 +1978,7 @@ class Editor(SpyderPluginWidget):
     def clear_breakpoint(self, filename, lineno):
         """Remove a single breakpoint"""
         clear_breakpoint(filename, lineno)
-        self.emit(SIGNAL("breakpoints_saved()"))
+        self.breakpoints_saved.emit()
         editorstack = self.get_current_editorstack()
         if editorstack is not None:
             index = self.is_file_opened(filename)
@@ -1991,10 +1999,10 @@ class Editor(SpyderPluginWidget):
             self.main.extconsole.execute_python_code(command)
     
     #------ Run Python script
+    @Slot()
     def edit_run_configurations(self):
         dialog = RunConfigDialog(self)
-        self.connect(dialog, SIGNAL("size_change(QSize)"),
-                     lambda s: self.set_dialog_size(s))
+        dialog.size_change.connect(lambda s: self.set_dialog_size(s))
         if self.dialog_size is not None:
             dialog.resize(self.dialog_size)
         fname = osp.abspath(self.get_current_filename())
@@ -2004,7 +2012,8 @@ class Editor(SpyderPluginWidget):
             if fname is not None:
                 self.load(fname)
                 self.run_file()
-        
+
+    @Slot()
     def run_file(self, debug=False):
         """Run script inside current interpreter or in a new one"""
         editorstack = self.get_current_editorstack()
@@ -2015,8 +2024,7 @@ class Editor(SpyderPluginWidget):
             runconf = get_run_configuration(fname)
             if runconf is None:
                 dialog = RunConfigOneDialog(self)
-                self.connect(dialog, SIGNAL("size_change(QSize)"),
-                             lambda s: self.set_dialog_size(s))
+                dialog.size_change.connect(lambda s: self.set_dialog_size(s))
                 if self.dialog_size is not None:
                     dialog.resize(self.dialog_size)
                 dialog.setup(fname)
@@ -2056,13 +2064,15 @@ class Editor(SpyderPluginWidget):
     def set_dialog_size(self, size):
         self.dialog_size = size
 
+    @Slot()
     def debug_file(self):
         """Debug current script"""
         self.run_file(debug=True)
-        
+
+    @Slot()
     def re_run_file(self):
         """Re-run last script"""
-        if self.get_option('save_all_before_run', True):
+        if self.get_option('save_all_before_run'):
             self.save_all()
         if self.__last_ec_exec is None:
             return
@@ -2071,49 +2081,49 @@ class Editor(SpyderPluginWidget):
         if current:
             if self.main.ipyconsole is not None:
                 if self.main.last_console_plugin_focus_was_python:
-                    self.emit(
-                      SIGNAL('run_in_current_extconsole(QString,QString,QString,bool)'),
-                      fname, wdir, args, debug)
+                    self.run_in_current_extconsole.emit(fname, wdir, args,
+                                                        debug)
                 else:
-                    self.emit(
-                      SIGNAL('run_in_current_ipyclient(QString,QString,QString,bool)'),
-                      fname, wdir, args, debug)
+                    self.run_in_current_ipyclient.emit(fname, wdir, args,
+                                                       debug)
             else:
-                self.emit(
-                  SIGNAL('run_in_current_extconsole(QString,QString,QString,bool)'),
-                  fname, wdir, args, debug)
+                self.run_in_current_extconsole.emit(fname, wdir, args, debug)
         else:
             self.main.open_external_console(fname, wdir, args, interact,
                                             debug, python, python_args,
                                             systerm)
 
+    @Slot()
     def run_selection(self):
         """Run selection or current line in external console"""
         editorstack = self.get_current_editorstack()
         editorstack.run_selection()
-    
+
+    @Slot()
     def run_cell(self):
         """Run current cell"""
         editorstack = self.get_current_editorstack()
         editorstack.run_cell()
 
+    @Slot()
     def run_cell_and_advance(self):
         """Run current cell and advance to the next one"""
         editorstack = self.get_current_editorstack()
         editorstack.run_cell_and_advance()
 
-
-    #------ Zoom in/out
+    #------ Zoom in/out/reset
     def zoom(self, constant):
-        """Zoom in/out"""
-        font = self.get_plugin_font()
-        size = font.pointSize() + constant
-        if size > 0:
-            font.setPointSize(size)
-            for editorstack in self.editorstacks:
-                editorstack.set_default_font(font)
-            self.set_plugin_font(font)
-
+        """Zoom in/out/reset"""
+        editor = self.get_current_editorstack().get_current_editor()
+        if constant == 0:
+            font = self.get_plugin_font()
+            editor.set_font(font)
+        else:
+            font = editor.font()
+            size = font.pointSize() + constant
+            if size > 0:
+                font.setPointSize(size)
+                editor.set_font(font)
 
     #------ Options
     def apply_plugin_settings(self, options):
@@ -2127,24 +2137,40 @@ class Editor(SpyderPluginWidget):
             font_o = self.get_plugin_font()
             currentline_n = 'highlight_current_line'
             currentline_o = self.get_option(currentline_n)
+            currentcell_n = 'highlight_current_cell'
+            currentcell_o = self.get_option(currentcell_n)            
             occurence_n = 'occurence_highlighting'
             occurence_o = self.get_option(occurence_n)
             occurence_timeout_n = 'occurence_highlighting/timeout'
             occurence_timeout_o = self.get_option(occurence_timeout_n)
+            focus_to_editor_n = 'focus_to_editor'
+            focus_to_editor_o = self.get_option(focus_to_editor_n)
+            
             for editorstack in self.editorstacks:
                 if font_n in options:
                     scs = color_scheme_o if color_scheme_n in options else None
                     editorstack.set_default_font(font_o, scs)
+                    completion_size = CONF.get('editor_appearance',
+                                               'completion/size')
+                    for finfo in editorstack.data:
+                        comp_widget = finfo.editor.completion_widget
+                        comp_widget.setup_appearance(completion_size, font_o)
                 elif color_scheme_n in options:
                     editorstack.set_color_scheme(color_scheme_o)
                 if currentline_n in options:
                     editorstack.set_highlight_current_line_enabled(
                                                                 currentline_o)
+                if currentcell_n in options:
+                    editorstack.set_highlight_current_cell_enabled(
+                                                                currentcell_o)              
                 if occurence_n in options:
                     editorstack.set_occurence_highlighting_enabled(occurence_o)
                 if occurence_timeout_n in options:
                     editorstack.set_occurence_highlighting_timeout(
                                                         occurence_timeout_o)
+                if focus_to_editor_n in options:
+                    editorstack.set_focus_to_editor(focus_to_editor_o)
+
             # --- everything else
             fpsorting_n = 'fullpath_sorting'
             fpsorting_o = self.get_option(fpsorting_n)
@@ -2168,8 +2194,6 @@ class Editor(SpyderPluginWidget):
             autocomp_o = self.get_option(autocomp_n)
             case_comp_n = 'codecompletion/case_sensitive'
             case_comp_o = self.get_option(case_comp_n)
-            show_single_n = 'codecompletion/show_single'
-            show_single_o = self.get_option(show_single_n)
             enter_key_n = 'codecompletion/enter_key'
             enter_key_o = self.get_option(enter_key_n)
             calltips_n = 'calltips'
@@ -2231,8 +2255,6 @@ class Editor(SpyderPluginWidget):
                     editorstack.set_codecompletion_auto_enabled(autocomp_o)
                 if case_comp_n in options:
                     editorstack.set_codecompletion_case_enabled(case_comp_o)
-                if show_single_n in options:
-                    editorstack.set_codecompletion_single_enabled(show_single_o)
                 if enter_key_n in options:
                     editorstack.set_codecompletion_enter_enabled(enter_key_o)
                 if calltips_n in options:

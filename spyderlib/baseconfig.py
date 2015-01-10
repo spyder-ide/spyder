@@ -21,6 +21,7 @@ import sys
 
 # Local imports
 from spyderlib import __version__
+from spyderlib.utils import encoding
 from spyderlib.py3compat import (is_unicode, TEXT_TYPES, INT_TYPES, PY3,
                                  to_text_string, is_text_string)
 
@@ -29,7 +30,7 @@ from spyderlib.py3compat import (is_unicode, TEXT_TYPES, INT_TYPES, PY3,
 # Only for development
 #==============================================================================
 # To activate/deactivate certain things for development
-# SPYDER_DEV is (and *only* have to be) set in bootstrap.py
+# SPYDER_DEV is (and *only* has to be) set in bootstrap.py
 DEV = os.environ.get('SPYDER_DEV')
 
 # For testing purposes
@@ -73,11 +74,34 @@ else:
 if PY3:
     SUBFOLDER = SUBFOLDER + '-py3'
 
+
+def get_home_dir():
+    """
+    Return user home directory
+    """
+    try:
+        # expanduser() returns a raw byte string which needs to be
+        # decoded with the codec that the OS is using to represent file paths.
+        path = encoding.to_unicode_from_fs(osp.expanduser('~'))
+    except:
+        path = ''
+    for env_var in ('HOME', 'USERPROFILE', 'TMP'):
+        if osp.isdir(path):
+            break
+        # os.environ.get() returns a raw byte string which needs to be
+        # decoded with the codec that the OS is using to represent environment
+        # variables.
+        path = encoding.to_unicode_from_fs(os.environ.get(env_var, ''))
+    if path:
+        return path
+    else:
+        raise RuntimeError('Please define environment variable $HOME')
+
+
 def get_conf_path(filename=None):
     """Return absolute path for configuration file with specified filename"""
     if TEST is None:
-        from spyderlib import userconfig
-        conf_dir = osp.join(userconfig.get_home_dir(), SUBFOLDER)
+        conf_dir = osp.join(get_home_dir(), SUBFOLDER)
     else:
          import tempfile
          conf_dir = osp.join(tempfile.gettempdir(), SUBFOLDER)
@@ -240,6 +264,11 @@ def get_supported_types():
         editable_types += [ndarray, matrix, generic]
     except ImportError:
         pass
+    try:
+        from pandas import DataFrame, TimeSeries
+        editable_types += [DataFrame, TimeSeries]
+    except ImportError:
+        pass
     picklable_types = editable_types[:]
     try:
         from spyderlib.pil_patch import Image
@@ -257,3 +286,18 @@ EXCLUDED_NAMES = ['nan', 'inf', 'infty', 'little_endian', 'colorbar_doc',
                   'typecodes', '__builtins__', '__main__', '__doc__', 'NaN',
                   'Inf', 'Infinity', 'sctypes', 'rcParams', 'rcParamsDefault',
                   'sctypeNA', 'typeNA', 'False_', 'True_',]
+
+#==============================================================================
+# Mac application utilities
+#==============================================================================
+
+if PY3:
+    MAC_APP_NAME = 'Spyder.app'
+else:
+    MAC_APP_NAME = 'Spyder-Py2.app'
+
+def running_in_mac_app():
+    if sys.platform == "darwin" and MAC_APP_NAME in __file__:
+        return True
+    else:
+        return False

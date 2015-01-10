@@ -10,9 +10,9 @@ import sys
 
 # Local imports
 from spyderlib.cli_options import get_options
-from spyderlib.baseconfig import get_conf_path
+from spyderlib.baseconfig import get_conf_path, running_in_mac_app
 from spyderlib.config import CONF
-from spyderlib.baseconfig import DEV
+from spyderlib.baseconfig import DEV, TEST
 from spyderlib.utils.external import lockfile
 from spyderlib.py3compat import is_unicode
 
@@ -63,14 +63,8 @@ def main():
     # Parse command line options
     options, args = get_options()
 
-    # Check if we are running from our Mac app
-    if sys.platform == "darwin" and 'Spyder.app' in __file__:
-        mac_app = True
-    else:
-        mac_app = False
-
     if CONF.get('main', 'single_instance') and not options.new_instance \
-      and not mac_app:
+      and not running_in_mac_app():
         # Minimal delay (0.1-0.2 secs) to avoid that several
         # instances started at the same time step in their
         # own foots while trying to create the lock file
@@ -86,7 +80,8 @@ def main():
             if args:
                 send_args_to_spyder(args)
         else:
-            atexit.register(lock.unlock)
+            if TEST is None:
+                atexit.register(lock.unlock)
             from spyderlib import spyder
             spyder.main()
     else:

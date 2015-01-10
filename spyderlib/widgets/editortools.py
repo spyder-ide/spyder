@@ -13,7 +13,7 @@ import os.path as osp
 
 from spyderlib.qt.QtGui import (QWidget, QTreeWidgetItem,  QHBoxLayout,
                                 QVBoxLayout)
-from spyderlib.qt.QtCore import Qt, SIGNAL
+from spyderlib.qt.QtCore import Qt, Signal, Slot
 from spyderlib.qt.compat import from_qvariant
 
 # Local import
@@ -116,6 +116,36 @@ class FunctionItem(TreeItem):
             self.setToolTip(0, _("Function defined at line %s"
                                  ) % str(self.line))
 
+class CommentItem(TreeItem):
+    def __init__(self, name, line, parent, preceding):
+        name = name.lstrip("# ")
+        TreeItem.__init__(self, name, line, parent, preceding)
+
+    def setup(self):
+        self.set_icon('blockcomment.png')
+        font = self.font(0)
+        font.setItalic(True)
+        self.setFont(0, font)
+        self.setToolTip(0, _("Line %s") % str(self.line))
+
+class CellItem(TreeItem):
+    def __init__(self, name, line, parent, preceding):
+        name = name.lstrip("#% ")
+        if name.startswith("<codecell>"):
+            name = name[10:].lstrip()
+        elif name.startswith("In["):
+            name = name[2:]
+            if name.endswith("]:"):
+                name = name[:-1]
+            name = name.strip()
+        TreeItem.__init__(self, name, line, parent, preceding)
+
+    def setup(self):
+        self.set_icon('cell.png')
+        font = self.font(0)
+        font.setItalic(True)
+        self.setFont(0, font)
+        self.setToolTip(0, _("Cell starts at line %s") % str(self.line))
 
 def get_item_children(item):
     children = [item.child(index) for index in range(item.childCount())]
@@ -182,7 +212,8 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         comment_act.setChecked(self.show_comments)
         actions = [fullpath_act, allfiles_act, comment_act, fromcursor_act]
         return actions
-    
+
+    @Slot(bool)
     def toggle_fullpath_mode(self, state):
         self.show_fullpath = state
         self.setTextElideMode(Qt.ElideMiddle if state else Qt.ElideRight)
@@ -196,14 +227,16 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         """
         for _it in self.get_top_level_items():
             _it.setHidden(_it is not item and not self.show_all_files)
-            
+
+    @Slot(bool)
     def toggle_show_all_files(self, state):
         self.show_all_files = state
         if self.current_editor is not None:
             editor_id = self.editor_ids[self.current_editor]
             item = self.editor_items[editor_id]
             self.__hide_or_show_root_items(item)
-            
+
+    @Slot(bool)
     def toggle_show_comments(self, state):
         self.show_comments = state
         self.update_all()
@@ -211,7 +244,8 @@ class OutlineExplorerTreeWidget(OneColumnTree):
     def set_fullpath_sorting(self, state):
         self.fullpath_sorting = state
         self.__sort_toplevel_items()
-        
+
+    @Slot()
     def go_to_cursor_position(self):
         if self.current_editor is not None:
             line = self.current_editor.get_cursor_line_number()
@@ -311,7 +345,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         previous_level = None
         
         oe_data = editor.highlighter.get_outlineexplorer_data()
-        
+        editor.has_cell_separators = oe_data.get('found_cell_separators', False)
         for block_nb in range(editor.get_line_count()):
             line_nb = block_nb+1
             data = oe_data.get(block_nb)
@@ -367,7 +401,14 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                         continue
                     else:
                         remove_from_tree_cache(tree_cache, line=line_nb)
-                item = TreeItem(data.text, line_nb, parent, preceding)
+                if data.is_comment():
+                    if data.def_type == data.CELL:
+                        item = CellItem(data.text, line_nb, parent, preceding)
+                    else:
+                        item = CommentItem(
+                            data.text, line_nb, parent, preceding)
+                else:
+                    item = TreeItem(data.text, line_nb, parent, preceding)
             elif class_name is not None:
                 if citem is not None:
                     if class_name == cname and level == clevel:
@@ -427,10 +468,9 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         root_item = self.get_root_item(item)
         self.freeze = True
         if line:
-            self.parent().emit(SIGNAL("edit_goto(QString,int,QString)"),
-                               root_item.path, line, item.text(0))
+            self.parent().edit_goto.emit(root_item.path, line, item.text(0))
         else:
-            self.parent().emit(SIGNAL("edit(QString)"), root_item.path)
+            self.parent().edit.emit(root_item.path)
         self.freeze = False
         parent = self.current_editor.parent()
         for editor_id, i_item in list(self.editor_items.items()):
@@ -450,13 +490,11 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
 
 class OutlineExplorerWidget(QWidget):
-    """
-    Class browser
+    """Class browser"""
+    edit_goto = Signal(str, int, str)
+    edit = Signal(str)
+    outlineexplorer_is_visible = Signal()
     
-    Signals:
-        SIGNAL("edit_goto(QString,int,QString)")
-        SIGNAL("edit(QString)")
-    """
     def __init__(self, parent=None, show_fullpath=True, fullpath_sorting=True,
                  show_all_files=True, show_comments=True):
         QWidget.__init__(self, parent)
@@ -483,7 +521,8 @@ class OutlineExplorerWidget(QWidget):
         layout.addLayout(btn_layout)
         layout.addWidget(self.treewidget)
         self.setLayout(layout)
-        
+
+    @Slot(bool)
     def toggle_visibility(self, state):
         self.setVisible(state)
         current_editor = self.treewidget.current_editor
@@ -491,7 +530,7 @@ class OutlineExplorerWidget(QWidget):
             current_editor.clearFocus()
             current_editor.setFocus()
             if state:
-                self.emit(SIGNAL("outlineexplorer_is_visible()"))
+                self.outlineexplorer_is_visible.emit()
         
     def setup_buttons(self):
         fromcursor_btn = create_toolbutton(self,

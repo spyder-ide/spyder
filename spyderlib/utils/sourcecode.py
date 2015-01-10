@@ -15,10 +15,12 @@ EOL_CHARS = (("\r\n", 'nt'), ("\n", 'posix'), ("\r", 'mac'))
 ALL_LANGUAGES = {
                  'Python': ('py', 'pyw', 'python', 'ipy'),
                  'Cython': ('pyx', 'pxi', 'pxd'),
+                 'Enaml': ('enaml',),
                  'Fortran77': ('f', 'for', 'f77'),
                  'Fortran': ('f90', 'f95', 'f2k'),
                  'Idl': ('pro',),
                  'Matlab': ('m',),
+                 'Julia': ('jl',),
                  'Diff': ('diff', 'patch', 'rej'),
                  'GetText': ('po', 'pot'),
                  'Nsis': ('nsi', 'nsh'),
@@ -26,14 +28,18 @@ ALL_LANGUAGES = {
                  'Css': ('css',),
                  'Xml': ('xml',),
                  'Js': ('js',),
+                 'Json': ('json', 'ipynb'),
                  'Cpp': ('c', 'cc', 'cpp', 'cxx', 'h', 'hh', 'hpp', 'hxx'),
                  'OpenCL': ('cl',),
                  'Batch': ('bat', 'cmd', 'nt'),
                  'Ini': ('properties', 'session', 'ini', 'inf', 'reg', 'url',
                          'cfg', 'cnf', 'aut', 'iss'),
+                 'Yaml':('yaml','yml'),
                  }
 
-PYTHON_LIKE_LANGUAGES = ('Python', 'Cython')             
+PYTHON_LIKE_LANGUAGES = ('Python', 'Cython', 'Enaml')
+
+CELL_LANGUAGES = {'Python': ('#%%', '# %%', '# <codecell>', '# In[')}
 
 def get_eol_chars(text):
     """Get text EOL characters"""

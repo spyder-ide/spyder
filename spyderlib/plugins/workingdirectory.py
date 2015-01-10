@@ -13,7 +13,7 @@
 
 from spyderlib.qt.QtGui import (QToolBar, QLabel, QGroupBox, QVBoxLayout,
                                 QHBoxLayout, QButtonGroup)
-from spyderlib.qt.QtCore import SIGNAL, Signal
+from spyderlib.qt.QtCore import Signal, Slot
 from spyderlib.qt.compat import getexistingdirectory
 
 import os
@@ -34,7 +34,7 @@ class WorkingDirectoryConfigPage(PluginConfigPage):
     def setup_page(self):
         about_label = QLabel(_("The <b>global working directory</b> is "
                     "the working directory for newly opened <i>consoles</i> "
-                    "(Python/IPython interpreters and terminals), for the "
+                    "(Python/IPython consoles and terminals), for the "
                     "<i>file explorer</i>, for the <i>find in files</i> "
                     "plugin and for new files created in the <i>editor</i>."))
         about_label.setWordWrap(True)
@@ -58,10 +58,8 @@ class WorkingDirectoryConfigPage(PluginConfigPage):
                                 button_group=startup_bg)
         thisdir_bd = self.create_browsedir("", 'startup/fixed_directory',
                                            getcwd())
-        self.connect(thisdir_radio, SIGNAL("toggled(bool)"),
-                     thisdir_bd.setEnabled)
-        self.connect(lastdir_radio, SIGNAL("toggled(bool)"),
-                     thisdir_bd.setDisabled)
+        thisdir_radio.toggled.connect(thisdir_bd.setEnabled)
+        lastdir_radio.toggled.connect(thisdir_bd.setDisabled)
         thisdir_layout = QHBoxLayout()
         thisdir_layout.addWidget(thisdir_radio)
         thisdir_layout.addWidget(thisdir_bd)
@@ -72,11 +70,11 @@ class WorkingDirectoryConfigPage(PluginConfigPage):
         editor_o_bg = QButtonGroup(editor_o_group)
         editor_o_radio1 = self.create_radiobutton(
                                 _("the current file directory"),
-                                'editor/open/browse_scriptdir', True,
+                                'editor/open/browse_scriptdir',
                                 button_group=editor_o_bg)
         editor_o_radio2 = self.create_radiobutton(
                                 _("the global working directory"),
-                                'editor/open/browse_workdir', False,
+                                'editor/open/browse_workdir', 
                                 button_group=editor_o_bg)
         
         editor_n_group = QGroupBox(_("New file"))
@@ -85,11 +83,11 @@ class WorkingDirectoryConfigPage(PluginConfigPage):
         editor_n_bg = QButtonGroup(editor_n_group)
         editor_n_radio1 = self.create_radiobutton(
                                 _("the current file directory"),
-                                'editor/new/browse_scriptdir', False,
+                                'editor/new/browse_scriptdir',
                                 button_group=editor_n_bg)
         editor_n_radio2 = self.create_radiobutton(
                                 _("the global working directory"),
-                                'editor/new/browse_workdir', True,
+                                'editor/new/browse_workdir',
                                 button_group=editor_n_bg)
         # Note: default values for the options above are set in plugin's
         #       constructor (see below)
@@ -97,9 +95,9 @@ class WorkingDirectoryConfigPage(PluginConfigPage):
         other_group = QGroupBox(_("Change to file base directory"))
         newcb = self.create_checkbox
         open_box = newcb(_("When opening a file"),
-                         'editor/open/auto_set_to_basedir', False)
+                         'editor/open/auto_set_to_basedir')
         save_box = newcb(_("When saving a file"),
-                         'editor/save/auto_set_to_basedir', False)
+                         'editor/save/auto_set_to_basedir')
         
         startup_layout = QVBoxLayout()
         startup_layout.addWidget(startup_label)
@@ -143,20 +141,19 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
     CONFIGWIDGET_CLASS = WorkingDirectoryConfigPage
     LOG_PATH = get_conf_path(CONF_SECTION)
     sig_option_changed = Signal(str, object)
+    set_previous_enabled = Signal(bool)
+    set_next_enabled = Signal(bool)
+    redirect_stdio = Signal(bool)
+    set_explorer_cwd = Signal(str)
+    refresh_findinfiles = Signal()
+    set_current_console_wd = Signal(str)
+    
     def __init__(self, parent, workdir=None):
         QToolBar.__init__(self, parent)
         SpyderPluginMixin.__init__(self, parent)
 
         # Initialize plugin
         self.initialize_plugin()
-        
-        # Setting default values for editor-related options
-        self.get_option('editor/open/browse_scriptdir', True)
-        self.get_option('editor/open/browse_workdir', False)
-        self.get_option('editor/new/browse_scriptdir', False)
-        self.get_option('editor/new/browse_workdir', True)
-        self.get_option('editor/open/auto_set_to_basedir', False)
-        self.get_option('editor/save/auto_set_to_basedir', False)
         
         self.setWindowTitle(self.get_plugin_title()) # Toolbar title
         self.setObjectName(self.get_plugin_title()) # Used to save Window state
@@ -178,24 +175,22 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         self.addAction(self.next_action)
         
         # Enable/disable previous/next actions
-        self.connect(self, SIGNAL("set_previous_enabled(bool)"),
-                     self.previous_action.setEnabled)
-        self.connect(self, SIGNAL("set_next_enabled(bool)"),
-                     self.next_action.setEnabled)
+        self.set_previous_enabled.connect(self.previous_action.setEnabled)
+        self.set_next_enabled.connect(self.next_action.setEnabled)
         
         # Path combo box
-        adjust = self.get_option('working_dir_adjusttocontents', False)
+        adjust = self.get_option('working_dir_adjusttocontents')
         self.pathedit = PathComboBox(self, adjust_to_contents=adjust)
         self.pathedit.setToolTip(_("This is the working directory for newly\n"
-                               "opened consoles (Python interpreters and\n"
+                               "opened consoles (Python/IPython consoles and\n"
                                "terminals), for the file explorer, for the\n"
                                "find in files plugin and for new files\n"
                                "created in the editor"))
-        self.connect(self.pathedit, SIGNAL("open_dir(QString)"), self.chdir)
-        self.pathedit.setMaxCount(self.get_option('working_dir_history', 20))
+        self.pathedit.open_dir.connect(self.chdir)
+        self.pathedit.setMaxCount(self.get_option('working_dir_history'))
         wdhistory = self.load_wdhistory( workdir )
         if workdir is None:
-            if self.get_option('startup/use_last_directory', True):
+            if self.get_option('startup/use_last_directory'):
                 if wdhistory:
                     workdir = wdhistory[0]
                 else:
@@ -245,10 +240,8 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
     
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
-        self.connect(self, SIGNAL('redirect_stdio(bool)'),
-                     self.main.redirect_internalshell_stdio)
-        self.connect(self.main.console.shell, SIGNAL("refresh()"),
-                     self.refresh_plugin)
+        self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
+        self.main.console.shell.refresh.connect(self.refresh_plugin)
         self.main.addToolBar(self)
         
     def refresh_plugin(self):
@@ -256,11 +249,10 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         curdir = getcwd()
         self.pathedit.add_text(curdir)
         self.save_wdhistory()
-        self.emit(SIGNAL("set_previous_enabled(bool)"),
-                  self.histindex is not None and self.histindex > 0)
-        self.emit(SIGNAL("set_next_enabled(bool)"),
-                  self.histindex is not None and \
-                  self.histindex < len(self.history)-1)
+        self.set_previous_enabled.emit(
+                             self.histindex is not None and self.histindex > 0)
+        self.set_next_enabled.emit(self.histindex is not None and \
+                                   self.histindex < len(self.history)-1)
 
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
@@ -287,26 +279,30 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         text = [ to_text_string( self.pathedit.itemText(index) ) \
                  for index in range(self.pathedit.count()) ]
         encoding.writelines(text, self.LOG_PATH)
-        
+    
+    @Slot()
     def select_directory(self):
         """Select directory"""
-        self.emit(SIGNAL('redirect_stdio(bool)'), False)
+        self.redirect_stdio.emit(False)
         directory = getexistingdirectory(self.main, _("Select directory"),
                                          getcwd())
         if directory:
             self.chdir(directory)
-        self.emit(SIGNAL('redirect_stdio(bool)'), True)
-        
+        self.redirect_stdio.emit(True)
+    
+    @Slot()
     def previous_directory(self):
         """Back to previous directory"""
         self.histindex -= 1
         self.chdir(browsing_history=True)
-        
+    
+    @Slot()
     def next_directory(self):
         """Return to next directory"""
         self.histindex += 1
         self.chdir(browsing_history=True)
-        
+    
+    @Slot()
     def parent_directory(self):
         """Change working directory to parent directory"""
         self.chdir(os.path.join(getcwd(), os.path.pardir))
@@ -333,9 +329,10 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         os.chdir( to_text_string(directory) )
         self.refresh_plugin()
         if refresh_explorer:
-            self.emit(SIGNAL("set_explorer_cwd(QString)"), directory)
-        self.emit(SIGNAL("refresh_findinfiles()"))
-        
+            self.set_explorer_cwd.emit(directory)
+        self.refresh_findinfiles.emit()
+    
+    @Slot()
     def set_as_current_console_wd(self):
         """Set as current console working directory"""
-        self.emit(SIGNAL("set_current_console_wd(QString)"), getcwd())
+        self.set_current_console_wd.emit(getcwd())

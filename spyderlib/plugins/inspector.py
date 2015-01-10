@@ -10,7 +10,8 @@ from spyderlib.qt.QtGui import (QHBoxLayout, QVBoxLayout, QLabel, QSizePolicy,
                                 QMenu, QToolButton, QGroupBox, QFontComboBox,
                                 QActionGroup, QFontDialog, QWidget, QComboBox,
                                 QLineEdit, QMessageBox)
-from spyderlib.qt.QtCore import SIGNAL, QUrl, QThread
+from spyderlib.qt.QtCore import Signal, Slot, QUrl, QThread
+from spyderlib.qt.QtWebKit import QWebPage
 
 import re
 import os.path as osp
@@ -19,7 +20,7 @@ import sys
 
 # Local imports
 from spyderlib import dependencies
-from spyderlib.baseconfig import get_conf_path, _
+from spyderlib.baseconfig import get_conf_path, get_module_source_path, _
 from spyderlib.ipythonconfig import IPYTHON_QT_INSTALLED
 from spyderlib.config import CONF
 from spyderlib.guiconfig import get_color_scheme, get_font, set_font
@@ -60,6 +61,9 @@ class ObjectComboBox(EditableComboBox):
     """
     QComboBox handling object names
     """
+    # Signals
+    valid = Signal(bool)
+    
     def __init__(self, parent):
         EditableComboBox.__init__(self, parent)
         self.object_inspector = parent
@@ -101,13 +105,13 @@ class ObjectComboBox(EditableComboBox):
             if editing:
                 # Combo box text is being modified: invalidate the entry
                 self.show_tip(self.tips[valid])
-                self.emit(SIGNAL('valid(bool)'), False)
+                self.valid.emit(False)
             else:
                 # A new item has just been selected
                 if valid:
                     self.selected()
                 else:
-                    self.emit(SIGNAL('valid(bool)'), False)
+                    self.valid.emit(False)
         else:
             self.set_default_style()
 
@@ -132,8 +136,12 @@ class ObjectInspectorConfigPage(PluginConfigPage):
         connections_label.setWordWrap(True)
         editor_box = self.create_checkbox(_("Editor"), 'connect/editor')
         rope_installed = programs.is_module_installed('rope')
-        jedi_installed = programs.is_module_installed('jedi', '>=0.7.0')
+        jedi_installed = programs.is_module_installed('jedi', '>=0.8.1')
         editor_box.setEnabled(rope_installed or jedi_installed)
+        if not rope_installed and not jedi_installed:
+            editor_tip = _("This feature requires the Rope or Jedi libraries.\n"
+                         "It seems you don't have either installed.")
+            editor_box.setToolTip(editor_tip)
         python_box = self.create_checkbox(_("Python Console"),
                                           'connect/python_console')
         ipython_box = self.create_checkbox(_("IPython Console"),
@@ -224,6 +232,9 @@ class PlainText(QWidget):
     """
     Read-only editor widget with find dialog
     """
+    # Signals
+    focus_changed = Signal()
+    
     def __init__(self, parent):
         QWidget.__init__(self, parent)
         self.editor = None
@@ -232,8 +243,7 @@ class PlainText(QWidget):
         self.editor = codeeditor.CodeEditor(self)
         self.editor.setup_editor(linenumbers=False, language='py',
                                  scrollflagarea=False, edge_line=False)
-        self.connect(self.editor, SIGNAL("focus_changed()"),
-                     lambda: self.emit(SIGNAL("focus_changed()")))
+        self.editor.focus_changed.connect(lambda: self.focus_changed.emit())
         self.editor.setReadOnly(True)
         
         # Find/replace widget
@@ -275,27 +285,37 @@ class SphinxThread(QThread):
     
     Parameters
     ----------
-    doc : dict
-        A dict containing the doc string components to be rendered.
+    doc : str or dict
+        A string containing a raw rst text or a dict containing
+        the doc string components to be rendered.
         See spyderlib.utils.dochelpers.getdoc for description.
+    context : dict
+        A dict containing the substitution variables for the
+        layout template
     html_text_no_doc : unicode
         Text to be rendered if doc string cannot be extracted.
     math_option : bool
         Use LaTeX math rendering.
         
     """
+    # Signals
+    error_msg = Signal(str)
+    html_ready = Signal(str)
+    
     def __init__(self, html_text_no_doc=''):
         super(SphinxThread, self).__init__()
+        self.doc = None
+        self.context = None
         self.html_text_no_doc = html_text_no_doc
-        self.doc = {}
         self.math_option = False
         
-    def render(self, doc, math_option=False):
-        """Start thread to render given doc string dictionary"""
+    def render(self, doc, context=None, math_option=False):
+        """Start thread to render a given documentation"""
         # If the thread is already running wait for it to finish before
         # starting it again.
         if self.wait():
             self.doc = doc
+            self.context = context
             self.math_option = math_option
             # This causes run() to be executed in separate thread
             self.start()
@@ -303,18 +323,25 @@ class SphinxThread(QThread):
     def run(self):
         html_text = self.html_text_no_doc
         doc = self.doc
-        if doc is not None and doc['docstring'] != '':
-            try:
-                context = generate_context(name=doc['name'],
-                                           argspec=doc['argspec'],
-                                           note=doc['note'],
-                                           math=self.math_option)
-                html_text = sphinxify(doc['docstring'], context)
-            except Exception as error:
-                self.emit(SIGNAL('error_msg(QString)'),
-                          to_text_string(error))
-                return
-        self.emit(SIGNAL('html_ready(QString)'), html_text)
+        if doc is not None:
+            if type(doc) is dict and 'docstring' in doc.keys() \
+              and doc['docstring'] != '':
+                try:
+                    context = generate_context(name=doc['name'],
+                                               argspec=doc['argspec'],
+                                               note=doc['note'],
+                                               math=self.math_option)
+                    html_text = sphinxify(doc['docstring'], context)
+                except Exception as error:
+                    self.error_msg.emit(to_text_string(error))
+                    return
+            elif self.context is not None:
+                try:
+                    html_text = sphinxify(doc, self.context)
+                except Exception as error:
+                    self.error_msg.emit(to_text_string(error))
+                    return
+        self.html_ready.emit(html_text)
 
 
 class ObjectInspector(SpyderPluginWidget):
@@ -324,6 +351,9 @@ class ObjectInspector(SpyderPluginWidget):
     CONF_SECTION = 'inspector'
     CONFIGWIDGET_CLASS = ObjectInspectorConfigPage
     LOG_PATH = get_conf_path(CONF_SECTION)
+    # Signals
+    focus_changed = Signal()
+    
     def __init__(self, parent):
         SpyderPluginWidget.__init__(self, parent)
         
@@ -379,10 +409,9 @@ class ObjectInspector(SpyderPluginWidget):
         layout_edit.addWidget(source_label)
         self.source_combo = QComboBox(self)
         self.source_combo.addItems([_("Console"), _("Editor")])
-        self.connect(self.source_combo, SIGNAL('currentIndexChanged(int)'),
-                     self.source_changed)
+        self.source_combo.currentIndexChanged.connect(self.source_changed)
         if (not programs.is_module_installed('rope') and 
-                not programs.is_module_installed('jedi', '>=0.7.0')):
+                not programs.is_module_installed('jedi', '>=0.8.1')):
             self.source_combo.hide()
             source_label.hide()
         layout_edit.addWidget(self.source_combo)
@@ -395,8 +424,8 @@ class ObjectInspector(SpyderPluginWidget):
         layout_edit.addWidget(self.object_edit)
         self.combo.setMaxCount(self.get_option('max_history_entries'))
         self.combo.addItems( self.load_history() )
-        self.connect(self.combo, SIGNAL("valid(bool)"),
-                     lambda valid: self.force_refresh())
+        self.combo.setItemText(0, '')
+        self.combo.valid.connect(lambda valid: self.force_refresh())
         
         # Plain text docstring option
         self.docstring = True
@@ -465,10 +494,15 @@ class ObjectInspector(SpyderPluginWidget):
         else:
             self._sphinx_thread = SphinxThread(
                                   html_text_no_doc=warning(self.no_doc_string))
-            self.connect(self._sphinx_thread, SIGNAL('html_ready(QString)'), 
-                         self._on_sphinx_thread_html_ready)
-            self.connect(self._sphinx_thread, SIGNAL('error_msg(QString)'),
-                         self._on_sphinx_thread_error_msg)
+            self._sphinx_thread.html_ready.connect(
+                                             self._on_sphinx_thread_html_ready)
+            self._sphinx_thread.error_msg.connect(
+                                              self._on_sphinx_thread_error_msg)
+        
+        # Render internal links
+        view = self.rich_text.webview
+        view.page().setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
+        view.linkClicked.connect(self.handle_link_clicks)
 
         self._starting_up = True
             
@@ -495,8 +529,7 @@ class ObjectInspector(SpyderPluginWidget):
     
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
-        self.connect(self, SIGNAL('focus_changed()'),
-                     self.main.plugin_focus_changed)
+        self.focus_changed.connect(self.main.plugin_focus_changed)
         self.main.add_dockwidget(self)
         self.main.console.set_inspector(self)
         self.internal_shell = self.main.console.shell
@@ -596,28 +629,6 @@ class ObjectInspector(SpyderPluginWidget):
                 self.switch_to_rich_text()
             else:
                 self.switch_to_plain_text()
-    
-    def show_intro_message(self):
-        intro_message = _("Here you can get help of any object by pressing "
-                          "%s in front of it, either on the Editor or the "
-                          "Console.%s"
-                          "Help can also be shown automatically after writing "
-                          "a left parenthesis next to an object. You can "
-                          "activate this behavior in %s.")
-        prefs = _("Preferences > Object Inspector")
-        if self.is_rich_text_mode():
-            title = _("Usage")
-            intro_message = intro_message % ("<b>Ctrl+I</b>", "<br><br>",
-                                             "<i>"+prefs+"</i>")
-            self.set_rich_text_html(usage(title, intro_message),
-                                    QUrl.fromLocalFile(CSS_PATH))
-        else:
-            install_sphinx = "\n\n%s" % _("Please consider installing Sphinx "
-                                          "to get documentation rendered in "
-                                          "rich text.")
-            intro_message = intro_message % ("Ctrl+I", "\n\n", prefs)
-            intro_message += install_sphinx
-            self.set_plain_text(intro_message, is_code=False)
         
     #------ Public API (related to rich/plain text widgets) --------------------
     @property
@@ -638,7 +649,8 @@ class ObjectInspector(SpyderPluginWidget):
     def set_plain_text_color_scheme(self, color_scheme):
         """Set plain text mode color scheme"""
         self.plain_text.set_color_scheme(color_scheme)
-        
+    
+    @Slot()
     def change_font(self):
         """Change console font"""
         font, valid = QFontDialog.getFont(get_font(self.CONF_SECTION), self,
@@ -646,7 +658,8 @@ class ObjectInspector(SpyderPluginWidget):
         if valid:
             self.set_plain_text_font(font)
             set_font(font, self.CONF_SECTION)
-            
+    
+    @Slot(bool)
     def toggle_wrap_mode(self, checked):
         """Toggle wrap mode"""
         self.plain_text.editor.toggle_wrap_mode(checked)
@@ -714,6 +727,66 @@ class ObjectInspector(SpyderPluginWidget):
         """Set rich text"""
         self.rich_text.set_html(html_text, base_url)
         self.save_text([self.rich_text.set_html, html_text, base_url])
+    
+    def show_intro_message(self):
+        intro_message = _("Here you can get help of any object by pressing "
+                          "%s in front of it, either on the Editor or the "
+                          "Console.%s"
+                          "Help can also be shown automatically after writing "
+                          "a left parenthesis next to an object. You can "
+                          "activate this behavior in %s.")
+        prefs = _("Preferences > Object Inspector")
+        if self.is_rich_text_mode():
+            title = _("Usage")
+            tutorial_message = _("New to Spyder? Read our")
+            tutorial = _("tutorial")
+            intro_message = intro_message % ("<b>Ctrl+I</b>", "<br><br>",
+                                             "<i>"+prefs+"</i>")
+            self.set_rich_text_html(usage(title, intro_message,
+                                          tutorial_message, tutorial),
+                                    QUrl.fromLocalFile(CSS_PATH))
+        else:
+            install_sphinx = "\n\n%s" % _("Please consider installing Sphinx "
+                                          "to get documentation rendered in "
+                                          "rich text.")
+            intro_message = intro_message % ("Ctrl+I", "\n\n", prefs)
+            intro_message += install_sphinx
+            self.set_plain_text(intro_message, is_code=False)
+    
+    def show_rich_text(self, text, collapse=False, img_path=''):
+        """Show text in rich mode"""
+        self.visibility_changed(True)
+        self.raise_()
+        self.switch_to_rich_text()
+        context = generate_context(collapse=collapse, img_path=img_path)
+        self.render_sphinx_doc(text, context)
+    
+    def show_plain_text(self, text):
+        """Show text in plain mode"""
+        self.visibility_changed(True)
+        self.raise_()
+        self.switch_to_plain_text()
+        self.set_plain_text(text, is_code=False)
+
+    @Slot()
+    def show_tutorial(self):
+        tutorial_path = get_module_source_path('spyderlib.utils.inspector')
+        img_path = osp.join(tutorial_path, 'static', 'images')
+        tutorial = osp.join(tutorial_path, 'tutorial.rst')
+        text = open(tutorial).read()
+        if sphinxify is not None:
+            self.show_rich_text(text, collapse=True, img_path=img_path)
+        else:
+            self.show_plain_text(text)
+
+    def handle_link_clicks(self, url):
+        url = to_text_string(url.toString())
+        if url == "spy://tutorial":
+            self.show_tutorial()
+        elif url.startswith('http'):
+            programs.start_file(url)
+        else:
+            self.rich_text.webview.load(QUrl(url))
         
     #------ Public API ---------------------------------------------------------
     def set_external_console(self, external_console):
@@ -803,7 +876,8 @@ class ObjectInspector(SpyderPluginWidget):
         open(self.LOG_PATH, 'w').write("\n".join( \
                 [to_text_string(self.combo.itemText(index))
                  for index in range(self.combo.count())] ))
-        
+    
+    @Slot(bool)
     def toggle_plain_text(self, checked):
         """Toggle plain text docstring"""
         if checked:
@@ -811,7 +885,8 @@ class ObjectInspector(SpyderPluginWidget):
             self.switch_to_plain_text()
             self.force_refresh()
         self.set_option('rich_mode', not checked)
-        
+    
+    @Slot(bool)
     def toggle_show_source(self, checked):
         """Toggle show source code"""
         if checked:
@@ -819,20 +894,23 @@ class ObjectInspector(SpyderPluginWidget):
         self.docstring = not checked
         self.force_refresh()
         self.set_option('rich_mode', not checked)
-        
+    
+    @Slot(bool)
     def toggle_rich_text(self, checked):
         """Toggle between sphinxified docstrings or plain ones"""
         if checked:
             self.docstring = not checked
             self.switch_to_rich_text()
         self.set_option('rich_mode', checked)
-        
+    
+    @Slot(bool)
     def toggle_auto_import(self, checked):
         """Toggle automatic import feature"""
         self.combo.validate_current_text()
         self.set_option('automatic_import', checked)
         self.force_refresh()
-        
+    
+    @Slot()
     def toggle_locked(self):
         """
         Toggle locked state
@@ -871,17 +949,19 @@ class ObjectInspector(SpyderPluginWidget):
                 self.shell = self.internal_shell
         return self.shell
         
-    def render_sphinx_doc(self, doc):
+    def render_sphinx_doc(self, doc, context=None):
         """Transform doc string dictionary to HTML and show it"""
         # Math rendering option could have changed
-        self._sphinx_thread.render(doc, self.get_option('math'))
+        self._sphinx_thread.render(doc, context, self.get_option('math'))
         
     def _on_sphinx_thread_html_ready(self, html_text):
         """Set our sphinx documentation based on thread result"""
+        self._sphinx_thread.wait()
         self.set_rich_text_html(html_text, QUrl.fromLocalFile(CSS_PATH))
 
     def _on_sphinx_thread_error_msg(self, error_msg):
         """ Display error message on Sphinx rich text failure"""
+        self._sphinx_thread.wait()
         self.plain_text_action.setChecked(True)
         QMessageBox.critical(self,
                     _('Object inspector'),

@@ -29,13 +29,15 @@ def path_to_resource(project, path, type=None):
         return project.get_folder(project_path)
     return None
 
+
 def relative(root, path):
     root = rope.base.project._realpath(root).replace(os.path.sep, '/')
     path = rope.base.project._realpath(path).replace(os.path.sep, '/')
     if path == root:
-    	return ''
+        return ''
     if path.startswith(root + '/'):
-    	return path[len(root) + 1:]
+        return path[len(root) + 1:]
+
 
 def report_change(project, path, old_content):
     """Report that the contents of file at `path` was changed
@@ -51,6 +53,7 @@ def report_change(project, path, old_content):
     if project.pycore.automatic_soa:
         rope.base.pycore.perform_soa_on_changed_scopes(project, resource,
                                                        old_content)
+
 
 def analyze_modules(project, task_handle=taskhandle.NullTaskHandle()):
     """Perform static object analysis on all python files in the project

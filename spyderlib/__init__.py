@@ -27,7 +27,7 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 """
 
-__version__ = '2.3.0dev'
+__version__ = '2.4.0dev'
 __license__ = __doc__
 __project_url__ = 'http://code.google.com/p/spyderlib'
 __forum_url__   = 'http://groups.google.com/group/spyderlib'
@@ -35,6 +35,12 @@ __forum_url__   = 'http://groups.google.com/group/spyderlib'
 # Dear (Debian, RPM, ...) package makers, please feel free to customize the
 # following path to module's data (images) and translations:
 DATAPATH = LOCALEPATH = DOCPATH = MATHJAXPATH = JQUERYPATH = ''
+
+
+import os
+# Directory of the current file
+__dir__ = os.path.dirname(os.path.abspath(__file__))
+
 
 def add_to_distribution(dist):
     """Add package to py2exe/cx_Freeze distribution object
@@ -50,24 +56,28 @@ def add_to_distribution(dist):
                                     '.qm', '.py',),
                                    copy_to_root=False)
 
-def get_versions():
+
+def get_versions(reporev=True):
     """Get version information for components used by Spyder"""
     import sys
-    import os.path as osp
     import platform
-    import spyderlib
-    from spyderlib.utils import vcs
-    spyderpath = spyderlib.__path__[0]
-    full, short, branch = vcs.get_hg_revision(osp.dirname(spyderpath))
+    import spyderlib.qt
+    import spyderlib.qt.QtCore
+
     revision = None
-    if full:
-        revision = '%s:%s' % (full, short)
+    if reporev:
+        from spyderlib.utils import vcs
+        full, short, branch = vcs.get_hg_revision(os.path.dirname(__dir__))
+        if full:
+            revision = '%s:%s' % (full, short)
+
     if not sys.platform == 'darwin':  # To avoid a crash with our Mac app
         system = platform.system()
     else:
         system = 'Darwin'
+    
     return {
-        'spyder': spyderlib.__version__,
+        'spyder': __version__,
         'python': platform.python_version(),  # "2.7.3"
         'bitness': 64 if sys.maxsize > 2**32 else 32,
         'qt': spyderlib.qt.QtCore.__version__,

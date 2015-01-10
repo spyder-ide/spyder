@@ -257,8 +257,10 @@ class _RealFinder(object):
                 return (self.raw[real_start:end], '', offset)
             last_dot_position = word_start
             if self.code[word_start] != '.':
-                last_dot_position = self._find_last_non_space_char(word_start - 1)
-            last_char_position = self._find_last_non_space_char(last_dot_position - 1)
+                last_dot_position = \
+                    self._find_last_non_space_char(word_start - 1)
+            last_char_position = \
+                self._find_last_non_space_char(last_dot_position - 1)
             if self.code[word_start].isspace():
                 word_start = offset
             return (self.raw[real_start:last_char_position + 1],
@@ -304,8 +306,8 @@ class _RealFinder(object):
         word_end = self._find_word_end(offset) + 1
         next_char = self._find_first_non_space_char(word_end)
         return next_char < len(self.code) and \
-               self.code[next_char] == '(' and \
-               not self.is_a_class_or_function_name_in_header(offset)
+            self.code[next_char] == '(' and \
+            not self.is_a_class_or_function_name_in_header(offset)
 
     def _find_import_end(self, start):
         return self._get_line_end(start)
@@ -337,7 +339,7 @@ class _RealFinder(object):
 
     def is_a_name_after_from_import(self, offset):
         try:
-            if len(self.code) > offset and  self.code[offset] == '\n':
+            if len(self.code) > offset and self.code[offset] == '\n':
                 line_start = self._get_line_start(offset - 1)
             else:
                 line_start = self._get_line_start(offset)
@@ -405,7 +407,6 @@ class _RealFinder(object):
 
     def find_parens_start_from_inside(self, offset):
         stop = self._get_line_start(offset)
-        opens = 1
         while offset > stop:
             if self.code[offset] == '(':
                 break
@@ -501,7 +502,7 @@ class _RealFinder(object):
         parens_start = self.find_parens_start_from_inside(offset)
         # XXX: only handling (x, y) = value
         return offset < equals_offset and \
-               self.code[start:parens_start].strip() == ''
+            self.code[start:parens_start].strip() == ''
 
     def get_function_and_args_in_header(self, offset):
         offset = self.find_function_offset(offset)
@@ -518,7 +519,7 @@ class _RealFinder(object):
         return self._find_first_non_space_char(def_)
 
     def get_lambda_and_args(self, offset):
-        offset = self.find_function_offset(offset, definition = 'lambda ')
-        lparens, rparens = self.get_word_parens_range(offset, opening=' ', closing=':')
+        offset = self.find_function_offset(offset, definition='lambda ')
+        lparens, rparens = self.get_word_parens_range(offset, opening=' ',
+                                                      closing=':')
         return self.raw[offset:rparens + 1]
-

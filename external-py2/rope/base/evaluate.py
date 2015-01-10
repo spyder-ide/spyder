@@ -6,6 +6,7 @@ from rope.base import ast, astutils, exceptions, pyobjects, arguments, worder
 
 BadIdentifierError = exceptions.BadIdentifierError
 
+
 def eval_location(pymodule, offset):
     """Find the pyname at the offset"""
     return eval_location2(pymodule, offset)[1]
@@ -40,7 +41,8 @@ def eval_str2(holding_scope, name):
         # parenthesizing for handling cases like 'a_var.\nattr'
         node = ast.parse('(%s)' % name)
     except SyntaxError:
-        raise BadIdentifierError('Not a resolvable python identifier selected.')
+        raise BadIdentifierError(
+            'Not a resolvable python identifier selected.')
     return eval_node2(holding_scope, node)
 
 
@@ -81,7 +83,8 @@ class ScopeNameFinder(object):
             keyword_name = self.worder.get_word_at(offset)
             pyobject = self.get_enclosing_function(offset)
             if isinstance(pyobject, pyobjects.PyFunction):
-                return (None, pyobject.get_parameters().get(keyword_name, None))
+                return (None,
+                        pyobject.get_parameters().get(keyword_name, None))
         # class body
         if self._is_defined_in_class_body(holding_scope, offset, lineno):
             class_scope = holding_scope
@@ -93,7 +96,8 @@ class ScopeNameFinder(object):
             except rope.base.exceptions.AttributeNotFoundError:
                 return (None, None)
         # function header
-        if self._is_function_name_in_function_header(holding_scope, offset, lineno):
+        if self._is_function_name_in_function_header(holding_scope,
+                                                     offset, lineno):
             name = self.worder.get_primary_at(offset).strip()
             return (None, holding_scope.parent[name])
         # from statement module
@@ -118,7 +122,7 @@ class ScopeNameFinder(object):
             if isinstance(pyobject, pyobjects.AbstractFunction):
                 return pyobject
             elif isinstance(pyobject, pyobjects.AbstractClass) and \
-                 '__init__' in pyobject:
+                    '__init__' in pyobject:
                 return pyobject['__init__'].get_object()
             elif '__call__' in pyobject:
                 return pyobject['__call__'].get_object()
@@ -157,6 +161,7 @@ class StatementEvaluator(object):
         primary, pyobject = self._get_primary_and_object_for_node(node.func)
         if pyobject is None:
             return
+
         def _get_returned(pyobject):
             args = arguments.create_arguments(primary, pyobject,
                                               node, self.scope)
@@ -295,7 +300,8 @@ class StatementEvaluator(object):
             return
         if function_name in pyobject:
             called = pyobject[function_name].get_object()
-            if not called or not isinstance(called, pyobjects.AbstractFunction):
+            if not called or \
+                    not isinstance(called, pyobjects.AbstractFunction):
                 return
             args = [node]
             if other_args:

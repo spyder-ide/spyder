@@ -81,7 +81,7 @@ class ImportTools(object):
         if isinstance(name, list):
             names = [(imported, None) for imported in name]
         else:
-            names = [(name, None),]
+            names = [(name, None), ]
         return FromImport(module_name, 0, tuple(names))
 
     def module_imports(self, module, imports_filter=None):
@@ -103,7 +103,8 @@ class ImportTools(object):
             if not import_stmt.readonly and \
                self._is_transformable_to_normal(import_stmt.import_info):
                 import_stmt.import_info = \
-                    NormalImport(((import_stmt.import_info.module_name, None),))
+                    NormalImport(((import_stmt.import_info.module_name,
+                                 None),))
         module_imports.remove_duplicates()
         return module_imports.get_changed_source()
 
@@ -187,10 +188,12 @@ class ImportTools(object):
 
     def _remove_self_imports(self, pymodule, import_filter=None):
         module_imports = self.module_imports(pymodule, import_filter)
-        to_be_fixed, to_be_renamed = module_imports.get_self_import_fix_and_rename_list()
+        to_be_fixed, to_be_renamed = \
+            module_imports.get_self_import_fix_and_rename_list()
         for name in to_be_fixed:
             try:
-                pymodule = self._rename_in_module(pymodule, name, '', till_dot=True)
+                pymodule = self._rename_in_module(pymodule, name, '',
+                                                  till_dot=True)
             except ValueError:
                 # There is a self import with direct access to it
                 return pymodule
@@ -200,7 +203,8 @@ class ImportTools(object):
         module_imports.get_self_import_fix_and_rename_list()
         source = module_imports.get_changed_source()
         if source is not None:
-            pymodule = self.pycore.get_string_module(source, pymodule.get_resource())
+            pymodule = self.pycore.get_string_module(source,
+                                                     pymodule.get_resource())
         return pymodule
 
     def _rename_in_module(self, pymodule, name, new_name, till_dot=False):
@@ -209,7 +213,8 @@ class ImportTools(object):
         occurrence_finder = occurrences.create_finder(
             self.pycore, old_name, old_pyname, imports=False)
         changes = rope.base.codeanalyze.ChangeCollector(pymodule.source_code)
-        for occurrence in occurrence_finder.find_occurrences(pymodule=pymodule):
+        for occurrence in occurrence_finder.find_occurrences(
+                pymodule=pymodule):
             start, end = occurrence.get_primary_range()
             if till_dot:
                 new_end = pymodule.source_code.index('.', end) + 1
@@ -222,7 +227,8 @@ class ImportTools(object):
             changes.add_change(start, end, new_name)
         source = changes.get_changed()
         if source is not None:
-            pymodule = self.pycore.get_string_module(source, pymodule.get_resource())
+            pymodule = self.pycore.get_string_module(source,
+                                                     pymodule.get_resource())
         return pymodule
 
     def sort_imports(self, pymodule, import_filter=None):

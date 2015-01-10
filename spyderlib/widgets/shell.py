@@ -19,15 +19,15 @@ import sys
 import keyword
 
 from spyderlib.qt.QtGui import (QMenu, QApplication, QToolTip, QKeySequence,
-                                QMessageBox, QTextCursor, QTextCharFormat,
-                                QShortcut)
-from spyderlib.qt.QtCore import (Qt, QCoreApplication, QTimer, SIGNAL,
-                                 Property)
+                                QMessageBox, QTextCursor, QTextCharFormat)
+from spyderlib.qt.QtCore import (Qt, QCoreApplication, QTimer, Signal,
+                                 Property, Slot)
 from spyderlib.qt.compat import getsavefilename
 
 # Local import
 from spyderlib.baseconfig import get_conf_path, _, STDERR, DEBUG
-from spyderlib.guiconfig import CONF, get_font
+from spyderlib.config import CONF
+from spyderlib.guiconfig import get_font, create_shortcut, get_shortcut
 from spyderlib.utils import encoding
 from spyderlib.utils.qthelpers import (keybinding, create_action, add_actions,
                                        restore_keyevent, get_icon)
@@ -42,6 +42,11 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
     """
     Shell base widget
     """
+    
+    redirect_stdio = Signal(bool)
+    sig_keyboard_interrupt = Signal()
+    execute = Signal(str)
+    append_to_history = Signal(str, str)
     
     def __init__(self, parent, history_filename, profile=False):
         """
@@ -77,19 +82,14 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
         self.__timestamp = 0.0
         self.__flushtimer = QTimer(self)
         self.__flushtimer.setSingleShot(True)
-        self.connect(self.__flushtimer, SIGNAL('timeout()'), self.flush)
+        self.__flushtimer.timeout.connect(self.flush)
 
         # Give focus to widget
         self.setFocus()
-                
-        # Calltips
-        calltip_size = CONF.get('shell_appearance', 'calltips/size')
-        calltip_font = get_font('shell_appearance', 'calltips')
-        self.setup_calltips(calltip_size, calltip_font)
         
         # Completion
         completion_size = CONF.get('shell_appearance', 'completion/size')
-        completion_font = get_font('shell_appearance', 'completion')
+        completion_font = get_font('console')
         self.completion_widget.setup_appearance(completion_size,
                                                 completion_font)
         # Cursor width
@@ -166,12 +166,14 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
         else:
             pline, pindex = self.current_prompt_pos
         self.setSelection(pline, pindex, line, index)
-            
+
+    @Slot()
     def clear_line(self):
         """Clear current line (without clearing console prompt)"""
         if self.current_prompt_pos is not None:
             self.remove_text(self.current_prompt_pos, 'eof')
-        
+
+    @Slot()
     def clear_terminal(self):
         """
         Clear terminal window
@@ -224,6 +226,7 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
         
         
     #------ Copy / Keyboard interrupt
+    @Slot()
     def copy(self):
         """Copy text to clipboard... or keyboard interrupt"""
         if self.has_selected_text():
@@ -233,27 +236,30 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
 
     def interrupt(self):
         """Keyboard interrupt"""
-        self.emit(SIGNAL("keyboard_interrupt()"))
+        self.sig_keyboard_interrupt.emit()
 
+    @Slot()
     def cut(self):
         """Cut text"""
         self.check_selection()
         if self.has_selected_text():
             ConsoleBaseWidget.cut(self)
 
+    @Slot()
     def delete(self):
         """Remove selected text"""
         self.check_selection()
         if self.has_selected_text():
             ConsoleBaseWidget.remove_selected_text(self)
-        
+
+    @Slot()
     def save_historylog(self):
         """Save current history log (all text in console)"""
         title = _("Save history log")
-        self.emit(SIGNAL('redirect_stdio(bool)'), False)
+        self.redirect_stdio.emit(False)
         filename, _selfilter = getsavefilename(self, title,
                     self.historylog_filename, "%s (*.log)" % _("History logs"))
-        self.emit(SIGNAL('redirect_stdio(bool)'), True)
+        self.redirect_stdio.emit(True)
         if filename:
             filename = osp.normpath(filename)
             try:
@@ -275,7 +281,7 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
         self.execute_command(command)
         
     def execute_command(self, command):
-        self.emit(SIGNAL("execute(QString)"), command)
+        self.execute.emit(command)
         self.add_to_history(command)
         self.new_input_line = True
         
@@ -284,7 +290,8 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
         self.set_cursor_position('eof')
         self.current_prompt_pos = self.get_position('cursor')
         self.new_input_line = False
-        
+
+    @Slot()
     def paste(self):
         """Reimplemented slot to handle multiline paste action"""
         if self.new_input_line:
@@ -656,10 +663,10 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
                         InspectObjectMixin):
     """Python shell widget"""
     QT_CLASS = ShellBaseWidget
-
     INITHISTORY = ['# -*- coding: utf-8 -*-',
                    '# *** Spyder Python Console History Log ***',]
     SEPARATOR = '%s##---(%s)---' % (os.linesep*2, time.ctime())
+    go_to_error = Signal(str)
     
     def __init__(self, parent, history_filename, profile=False):
         ShellBaseWidget.__init__(self, parent, history_filename, profile)
@@ -667,9 +674,14 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
         InspectObjectMixin.__init__(self)
 
         # Local shortcuts
-        self.inspectsc = QShortcut(QKeySequence("Ctrl+I"), self,
-                                   self.inspect_current_object)
-        self.inspectsc.setContext(Qt.WidgetWithChildrenShortcut)
+        self.shortcuts = self.create_shortcuts()
+    
+    def create_shortcuts(self):
+        inspectsc = create_shortcut(self.inspect_current_object,
+                                    context='Console',
+                                    name='Inspect current object',
+                                    parent=self)
+        return [inspectsc]
         
     def get_shortcut_data(self):
         """
@@ -678,10 +690,7 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
         text (string): action/shortcut description
         default (string): default key sequence
         """
-        return [
-                (self.inspectsc, "Inspect current object", "Ctrl+I"),
-                ]
-
+        return [sc.data for sc in self.shortcuts]
 
     #------ Context menu
     def setup_context_menu(self):
@@ -692,12 +701,14 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
                                      icon=get_icon('copywop.png'),
                                      triggered=self.copy_without_prompts)
         clear_line_action = create_action(self, _("Clear line"),
-                                     QKeySequence("Shift+Escape"),
+                                     QKeySequence(get_shortcut('console',
+                                                               'Clear line')),
                                      icon=get_icon('eraser.png'),
                                      tip=_("Clear line"),
                                      triggered=self.clear_line)
         clear_action = create_action(self, _("Clear shell"),
-                                     QKeySequence("Ctrl+L"),
+                                     QKeySequence(get_shortcut('console',
+                                                               'Clear shell')),
                                      icon=get_icon('clear.png'),
                                      tip=_("Clear shell contents "
                                            "('cls' command)"),
@@ -710,7 +721,8 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
         state = self.has_selected_text()
         self.copy_without_prompts_action.setEnabled(state)
         ShellBaseWidget.contextMenuEvent(self, event)
-        
+
+    @Slot()
     def copy_without_prompts(self):
         """Copy text to clipboard without prompts"""
         text = self.get_selected_text()

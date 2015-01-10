@@ -12,17 +12,17 @@
 # pylint: disable=R0201
 
 from spyderlib.qt.QtGui import (QHBoxLayout, QGridLayout, QCheckBox, QLabel,
-                                QWidget, QSizePolicy, QShortcut, QKeySequence,
-                                QTextCursor)
-from spyderlib.qt.QtCore import SIGNAL, Qt, QTimer
+                                QWidget, QSizePolicy, QTextCursor)
+from spyderlib.qt.QtCore import Signal, Slot, Qt, QTimer
 
 import re
 
 # Local imports
+from spyderlib.baseconfig import _
+from spyderlib.guiconfig import create_shortcut, new_shortcut
 from spyderlib.utils.qthelpers import (get_icon, get_std_icon,
                                        create_toolbutton)
 from spyderlib.widgets.comboboxes import PatternComboBox
-from spyderlib.baseconfig import _
 from spyderlib.py3compat import to_text_string
 
 
@@ -36,14 +36,11 @@ def is_position_inf(pos1, pos2):
 
 
 class FindReplace(QWidget):
-    """
-    Find widget
-    
-    Signals:
-        visibility_changed(bool)
-    """
+    """Find widget"""
     STYLE = {False: "background-color:rgb(255, 175, 90);",
              True: ""}
+    visibility_changed = Signal(bool)
+    
     def __init__(self, parent, enable_replace=False):
         QWidget.__init__(self, parent)
         self.enable_replace = enable_replace
@@ -61,49 +58,43 @@ class FindReplace(QWidget):
         # Find layout
         self.search_text = PatternComboBox(self, tip=_("Search string"),
                                            adjust_to_minimum=False)
-        self.connect(self.search_text, SIGNAL('valid(bool)'),
+        self.search_text.valid.connect(
                      lambda state:
                      self.find(changed=False, forward=True, rehighlight=False))
-        self.connect(self.search_text.lineEdit(),
-                     SIGNAL("textEdited(QString)"), self.text_has_been_edited)
+        self.search_text.lineEdit().textEdited.connect(
+                                                     self.text_has_been_edited)
         
         self.previous_button = create_toolbutton(self,
                                              triggered=self.find_previous,
-                                             icon=get_std_icon("ArrowBack"))
+                                             icon=get_std_icon("ArrowUp"))
         self.next_button = create_toolbutton(self,
                                              triggered=self.find_next,
-                                             icon=get_std_icon("ArrowForward"))
-        self.connect(self.next_button, SIGNAL('clicked()'),
-                     self.update_search_combo)
-        self.connect(self.previous_button, SIGNAL('clicked()'),
-                     self.update_search_combo)
+                                             icon=get_std_icon("ArrowDown"))
+        self.next_button.clicked.connect(self.update_search_combo)
+        self.previous_button.clicked.connect(self.update_search_combo)
 
         self.re_button = create_toolbutton(self, icon=get_icon("advanced.png"),
                                            tip=_("Regular expression"))
         self.re_button.setCheckable(True)
-        self.connect(self.re_button, SIGNAL("toggled(bool)"),
-                     lambda state: self.find())
+        self.re_button.toggled.connect(lambda state: self.find())
         
         self.case_button = create_toolbutton(self,
                                              icon=get_icon("upper_lower.png"),
                                              tip=_("Case Sensitive"))
         self.case_button.setCheckable(True)
-        self.connect(self.case_button, SIGNAL("toggled(bool)"),
-                     lambda state: self.find())
+        self.case_button.toggled.connect(lambda state: self.find())
                      
         self.words_button = create_toolbutton(self,
                                               icon=get_icon("whole_words.png"),
                                               tip=_("Whole words"))
         self.words_button.setCheckable(True)
-        self.connect(self.words_button, SIGNAL("toggled(bool)"),
-                     lambda state: self.find())
+        self.words_button.toggled.connect(lambda state: self.find())
                      
         self.highlight_button = create_toolbutton(self,
                                               icon=get_icon("highlight.png"),
                                               tip=_("Highlight matches"))
         self.highlight_button.setCheckable(True)
-        self.connect(self.highlight_button, SIGNAL("toggled(bool)"),
-                     self.toggle_highlighting)
+        self.highlight_button.toggled.connect(self.toggle_highlighting)
 
         hlayout = QHBoxLayout()
         self.widgets = [self.close_button, self.search_text,
@@ -124,10 +115,8 @@ class FindReplace(QWidget):
                                      icon=get_std_icon("DialogApplyButton"),
                                      triggered=self.replace_find,
                                      text_beside_icon=True)
-        self.connect(self.replace_button, SIGNAL('clicked()'),
-                     self.update_replace_combo)
-        self.connect(self.replace_button, SIGNAL('clicked()'),
-                     self.update_search_combo)
+        self.replace_button.clicked.connect(self.update_replace_combo)
+        self.replace_button.clicked.connect(self.update_search_combo)
         
         self.all_check = QCheckBox(_("Replace all"))
         
@@ -145,27 +134,29 @@ class FindReplace(QWidget):
         
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         
-        self.findnext_sc = QShortcut(QKeySequence("F3"), parent,
-                                     self.find_next)
-        self.findnext_sc.setContext(Qt.WidgetWithChildrenShortcut)
-        self.findprev_sc = QShortcut(QKeySequence("Shift+F3"), parent,
-                                     self.find_previous)
-        self.findprev_sc.setContext(Qt.WidgetWithChildrenShortcut)
-        self.togglefind_sc = QShortcut(QKeySequence("Ctrl+F"), parent,
-                                       self.show)
-        self.togglefind_sc.setContext(Qt.WidgetWithChildrenShortcut)
-        self.togglereplace_sc = QShortcut(QKeySequence("Ctrl+H"), parent,
-                                          self.toggle_replace_widgets)
-        self.togglereplace_sc.setContext(Qt.WidgetWithChildrenShortcut)
+        self.shortcuts = self.create_shortcuts(parent)
         
-        escape_sc = QShortcut(QKeySequence("Escape"), self, self.hide)
-        escape_sc.setContext(Qt.WidgetWithChildrenShortcut)
-
         self.highlight_timer = QTimer(self)
         self.highlight_timer.setSingleShot(True)
         self.highlight_timer.setInterval(1000)
-        self.connect(self.highlight_timer, SIGNAL("timeout()"),
-                     self.highlight_matches)
+        self.highlight_timer.timeout.connect(self.highlight_matches)
+        
+    def create_shortcuts(self, parent):
+        """Create shortcuts for this widget"""
+        # Configurable
+        findnext = create_shortcut(self.find_next, context='Editor',
+                                   name='Find next', parent=parent)
+        findprev = create_shortcut(self.find_previous, context='Editor',
+                                   name='Find previous', parent=parent)
+        togglefind = create_shortcut(self.show, context='Editor',
+                                     name='Find text', parent=parent)
+        togglereplace = create_shortcut(self.toggle_replace_widgets,
+                                        context='Editor', name='Replace text',
+                                        parent=parent)
+        # Fixed
+        new_shortcut("Escape", self, self.hide)
+
+        return [findnext, findprev, togglefind, togglereplace]
         
     def get_shortcut_data(self):
         """
@@ -174,16 +165,13 @@ class FindReplace(QWidget):
         text (string): action/shortcut description
         default (string): default key sequence
         """
-        return [(self.findnext_sc, "Find next", "F3"),
-                (self.findprev_sc, "Find previous", "Shift+F3"),
-                (self.togglefind_sc, "Find text", "Ctrl+F"),
-                (self.togglereplace_sc, "Replace text", "Ctrl+H"),]
+        return [sc.data for sc in self.shortcuts]
         
     def update_search_combo(self):
-        self.search_text.lineEdit().emit(SIGNAL('returnPressed()'))
+        self.search_text.lineEdit().returnPressed.emit()
         
     def update_replace_combo(self):
-        self.replace_text.lineEdit().emit(SIGNAL('returnPressed()'))
+        self.replace_text.lineEdit().returnPressed.emit()
     
     def toggle_replace_widgets(self):
         if self.enable_replace:
@@ -194,7 +182,8 @@ class FindReplace(QWidget):
             else:
                 self.show_replace()
                 self.replace_text.setFocus()
-                
+
+    @Slot(bool)
     def toggle_highlighting(self, state):
         """Toggle the 'highlight all results' feature"""
         if self.editor is not None:
@@ -206,7 +195,7 @@ class FindReplace(QWidget):
     def show(self):
         """Overrides Qt Method"""
         QWidget.show(self)
-        self.emit(SIGNAL("visibility_changed(bool)"), True)
+        self.visibility_changed.emit(True)
         if self.editor is not None:
             text = self.editor.get_selected_text()
             if len(text) > 0:
@@ -216,13 +205,14 @@ class FindReplace(QWidget):
             else:
                 self.search_text.lineEdit().selectAll()
             self.search_text.setFocus()
-        
+
+    @Slot()
     def hide(self):
         """Overrides Qt Method"""
         for widget in self.replace_widgets:
             widget.hide()
         QWidget.hide(self)
-        self.emit(SIGNAL("visibility_changed(bool)"), False)
+        self.visibility_changed.emit(False)
         if self.editor is not None:
             self.editor.setFocus()
             self.clear_matches()
@@ -267,14 +257,16 @@ class FindReplace(QWidget):
             self.refresh()
         if self.isHidden() and editor is not None:
             self.clear_matches()
-        
+
+    @Slot()
     def find_next(self):
         """Find next occurence"""
         state = self.find(changed=False, forward=True, rehighlight=False)
         self.editor.setFocus()
         self.search_text.add_current_text()
         return state
-        
+
+    @Slot()
     def find_previous(self):
         """Find previous occurence"""
         state = self.find(changed=False, forward=False, rehighlight=False)
@@ -324,7 +316,8 @@ class FindReplace(QWidget):
             else:
                 self.clear_matches()
             return found
-            
+
+    @Slot()
     def replace_find(self):
         """Replace and find"""
         if (self.editor is not None):
@@ -355,6 +348,12 @@ class FindReplace(QWidget):
                     cursor.beginEditBlock()
                 else:
                     position1 = self.editor.get_position('cursor')
+                    if is_position_inf(position1,
+                                       position0 + len(replace_text) -
+                                       len(search_text) + 1):
+                        # Identify wrapping even when the replace string
+                        # includes part of the search string
+                        wrapped = True
                     if wrapped:
                         if position1 == position or \
                            is_position_sup(position1, position):
@@ -364,8 +363,6 @@ class FindReplace(QWidget):
                     if position1 == position0:
                         # Avoid infinite loop: single found occurence
                         break
-                    if is_position_inf(position1, position0):
-                        wrapped = True
                     position0 = position1
                 if pattern is None:
                     cursor.removeSelectedText()

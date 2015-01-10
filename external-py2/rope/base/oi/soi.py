@@ -30,6 +30,7 @@ def infer_returned_object(pyfunction, args):
         return result
     return object_info.get_returned(pyfunction, args)
 
+
 @_ignore_inferred
 def infer_parameter_objects(pyfunction):
     """Infer the `PyObject`\s of parameters of this `PyFunction`"""
@@ -39,6 +40,7 @@ def infer_parameter_objects(pyfunction):
         result = _parameter_objects(pyfunction)
     _handle_first_parameter(pyfunction, result)
     return result
+
 
 def _handle_first_parameter(pyobject, parameters):
     kind = pyobject.get_kind()
@@ -53,6 +55,7 @@ def _handle_first_parameter(pyobject, parameters):
     if kind == 'classmethod':
         parameters[0] = pyobject.parent
 
+
 @_ignore_inferred
 def infer_assigned_object(pyname):
     if not pyname.assignments:
@@ -61,6 +64,7 @@ def infer_assigned_object(pyname):
         result = _infer_assignment(assignment, pyname.module)
         if result is not None:
             return result
+
 
 def get_passed_objects(pyfunction, parameter_index):
     object_info = pyfunction.pycore.object_info
@@ -71,6 +75,7 @@ def get_passed_objects(pyfunction, parameter_index):
         if len(statically_inferred) > parameter_index:
             result.append(statically_inferred[parameter_index])
     return result
+
 
 def _infer_returned(pyobject, args):
     if args:
@@ -99,11 +104,13 @@ def _infer_returned(pyobject, args):
         except rope.base.pyobjects.IsBeingInferredError:
             pass
 
+
 def _parameter_objects(pyobject):
     params = pyobject.get_param_names(special_args=False)
     return [rope.base.pyobjects.get_unknown()] * len(params)
 
 # handling `rope.base.pynames.AssignmentValue`
+
 
 @_ignore_inferred
 def _infer_assignment(assignment, pymodule):
@@ -115,6 +122,7 @@ def _infer_assignment(assignment, pymodule):
     if pyobject is None:
         return None
     return _follow_levels(assignment, pyobject)
+
 
 def _follow_levels(assignment, pyobject):
     for index in assignment.levels:
@@ -132,6 +140,7 @@ def _follow_levels(assignment, pyobject):
             break
     return pyobject
 
+
 @_ignore_inferred
 def _follow_pyname(assignment, pymodule, lineno=None):
     assign_node = assignment.ast_node
@@ -148,6 +157,7 @@ def _follow_pyname(assignment, pymodule, lineno=None):
             return pyname, result.get_type().get_property_object(
                 arguments.ObjectArguments([arg]))
         return pyname, result
+
 
 @_ignore_inferred
 def _follow_evaluations(assignment, pyname, pyobject):
@@ -180,6 +190,7 @@ def _get_lineno_for_node(assign_node):
        assign_node.lineno is not None:
         return assign_node.lineno
     return 1
+
 
 def _get_attribute(pyobject, name):
     if pyobject is not None and name in pyobject:

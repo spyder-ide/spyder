@@ -1,11 +1,11 @@
 """This module can be used for performing cross-project refactorings
 
-See the "cross-project refactorings" section of ``docs/library.txt``
+See the "cross-project refactorings" section of ``docs/library.rst``
 file.
 
 """
 
-from rope.base import resources, project, libutils
+from rope.base import resources, libutils
 
 
 class MultiProjectRefactoring(object):
@@ -57,7 +57,7 @@ class _MultiRefactoring(object):
         newkwds = dict((name, self._change_project_resource(project, value))
                        for name, value in kwds.items())
         return newargs, newkwds
-        
+
     def _change_project_resource(self, project, obj):
         if isinstance(obj, resources.Resource) and \
            obj.project != project:

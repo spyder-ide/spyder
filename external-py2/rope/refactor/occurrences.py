@@ -1,7 +1,8 @@
 import re
 
 import rope.base.pynames
-from rope.base import pynames, pyobjects, codeanalyze, evaluate, exceptions, utils, worder
+from rope.base import (pynames, pyobjects, codeanalyze, evaluate,
+                       exceptions, utils, worder)
 
 
 class Finder(object):
@@ -96,7 +97,8 @@ class Occurrence(object):
     @utils.saveit
     def get_primary_and_pyname(self):
         try:
-            return self.tools.name_finder.get_primary_and_pyname_at(self.offset)
+            return self.tools.name_finder.get_primary_and_pyname_at(
+                self.offset)
         except exceptions.BadIdentifierError:
             pass
 
@@ -109,11 +111,13 @@ class Occurrence(object):
         return self.tools.word_finder.is_a_function_being_called(self.offset)
 
     def is_defined(self):
-        return self.tools.word_finder.is_a_class_or_function_name_in_header(self.offset)
+        return self.tools.word_finder.is_a_class_or_function_name_in_header(
+            self.offset)
 
     def is_a_fixed_primary(self):
-        return self.tools.word_finder.is_a_class_or_function_name_in_header(self.offset) or \
-               self.tools.word_finder.is_a_name_after_from_import(self.offset)
+        return self.tools.word_finder.is_a_class_or_function_name_in_header(
+            self.offset) or \
+            self.tools.word_finder.is_a_name_after_from_import(self.offset)
 
     def is_written(self):
         return self.tools.word_finder.is_assigned_here(self.offset)
@@ -134,11 +138,14 @@ def same_pyname(expected, pyname):
         return False
     if expected == pyname:
         return True
-    if type(expected) not in (pynames.ImportedModule, pynames.ImportedName) and \
-       type(pyname) not in (pynames.ImportedModule, pynames.ImportedName):
+    if type(expected) not in (pynames.ImportedModule, pynames.ImportedName) \
+        and type(pyname) not in \
+            (pynames.ImportedModule, pynames.ImportedName):
         return False
-    return expected.get_definition_location() == pyname.get_definition_location() and \
-           expected.get_object() == pyname.get_object()
+    return expected.get_definition_location() == \
+        pyname.get_definition_location() and \
+        expected.get_object() == pyname.get_object()
+
 
 def unsure_pyname(pyname, unbound=True):
     """Return `True` if we don't know what this name references"""
@@ -258,8 +265,10 @@ class _TextualFinder(object):
             try:
                 found = source.index(self.name, current)
                 current = found + len(self.name)
-                if (found == 0 or not self._is_id_char(source[found - 1])) and \
-                   (current == len(source) or not self._is_id_char(source[current])):
+                if (found == 0 or
+                        not self._is_id_char(source[found - 1])) and \
+                    (current == len(source) or
+                        not self._is_id_char(source[current])):
                     yield found
             except ValueError:
                 break
@@ -282,7 +291,7 @@ class _TextualFinder(object):
 
     def _get_occurrence_pattern(self, name):
         occurrence_pattern = _TextualFinder.any('occurrence',
-                                                 ['\\b' + name + '\\b'])
+                                                ['\\b' + name + '\\b'])
         pattern = re.compile(occurrence_pattern + '|' + self.comment_pattern +
                              '|' + self.string_pattern)
         return pattern

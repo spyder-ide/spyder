@@ -10,14 +10,15 @@ Text Editor Dialog based on Qt
 
 from __future__ import print_function
 
-from spyderlib.qt.QtCore import Qt, SIGNAL, SLOT
+from spyderlib.qt.QtCore import Qt
 from spyderlib.qt.QtGui import QVBoxLayout, QTextEdit, QDialog, QDialogButtonBox
 
 # Local import
 from spyderlib.baseconfig import _
 from spyderlib.guiconfig import get_font
 from spyderlib.utils.qthelpers import get_icon
-from spyderlib.py3compat import to_text_string
+from spyderlib.py3compat import (to_text_string, to_binary_string,
+                                 is_binary_string)
 
 
 class TextEditor(QDialog):
@@ -34,14 +35,20 @@ class TextEditor(QDialog):
         
         self.text = None
         
-        self._conv = str if isinstance(text, str) else to_text_string
+        # Display text as unicode if it comes as bytes, so users see 
+        # its right representation
+        if is_binary_string(text):
+            self.is_binary = True
+            text = to_text_string(text, 'utf8')
+        else:
+            self.is_binary = False
         
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
 
         # Text edit
         self.edit = QTextEdit(parent)
-        self.connect(self.edit, SIGNAL('textChanged()'), self.text_changed)
+        self.edit.textChanged.connect(self.text_changed)
         self.edit.setReadOnly(readonly)
         self.edit.setPlainText(text)
         if font is None:
@@ -54,8 +61,8 @@ class TextEditor(QDialog):
         if not readonly:
             buttons = buttons | QDialogButtonBox.Cancel
         bbox = QDialogButtonBox(buttons)
-        self.connect(bbox, SIGNAL("accepted()"), SLOT("accept()"))
-        self.connect(bbox, SIGNAL("rejected()"), SLOT("reject()"))
+        bbox.accepted.connect(self.accept)
+        bbox.rejected.connect(self.reject)
         self.layout.addWidget(bbox)
         
         # Make the dialog act as a window
@@ -68,7 +75,11 @@ class TextEditor(QDialog):
     
     def text_changed(self):
         """Text has changed"""
-        self.text = self._conv(self.edit.toPlainText())
+        # Save text as bytes, if it was initially bytes
+        if self.is_binary:
+            self.text = to_binary_string(self.edit.toPlainText(), 'utf8')
+        else:
+            self.text = to_text_string(self.edit.toPlainText())
         
     def get_value(self):
         """Return modified text"""

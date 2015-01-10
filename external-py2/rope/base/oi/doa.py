@@ -26,7 +26,7 @@ class PythonFileRunner(object):
         env = dict(os.environ)
         file_path = self.file.real_path
         path_folders = self.pycore.get_source_folders() + \
-                       self.pycore.get_python_path_folders()
+            self.pycore.get_python_path_folders()
         env['PYTHONPATH'] = os.pathsep.join(folder.real_path
                                             for folder in path_folders)
         runmod_path = self.pycore.find_module('rope.base.oi.runmod').real_path
@@ -56,7 +56,8 @@ class PythonFileRunner(object):
             self.receiver = _SocketReceiver()
         else:
             self.receiver = _FIFOReceiver()
-        self.receiving_thread = threading.Thread(target=self._receive_information)
+        self.receiving_thread = threading.Thread(
+            target=self._receive_information)
         self.receiving_thread.setDaemon(True)
         self.receiving_thread.start()
 
@@ -114,7 +115,7 @@ class _SocketReceiver(_MessageReceiver):
             try:
                 self.server_socket.bind(('', self.data_port))
                 break
-            except socket.error, e:
+            except socket.error:
                 self.data_port += 1
         self.server_socket.listen(1)
 

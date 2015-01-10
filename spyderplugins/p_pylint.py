@@ -12,7 +12,7 @@
 # pylint: disable=R0201
 
 from spyderlib.qt.QtGui import QInputDialog, QVBoxLayout, QGroupBox, QLabel
-from spyderlib.qt.QtCore import SIGNAL, Qt
+from spyderlib.qt.QtCore import Signal, Qt
 
 # Local imports
 from spyderlib.baseconfig import get_translation
@@ -75,6 +75,8 @@ class Pylint(PylintWidget, SpyderPluginMixin):
     """Python source code analysis based on pylint"""
     CONF_SECTION = 'pylint'
     CONFIGWIDGET_CLASS = PylintConfigPage
+    edit_goto = Signal(str, int, str)
+    
     def __init__(self, parent=None):
         PylintWidget.__init__(self, parent=parent,
                               max_entries=self.get_option('max_entries', 50))
@@ -116,17 +118,15 @@ class Pylint(PylintWidget, SpyderPluginMixin):
 
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
-        self.connect(self, SIGNAL("edit_goto(QString,int,QString)"),
-                     self.main.editor.load)
-        self.connect(self, SIGNAL('redirect_stdio(bool)'),
-                     self.main.redirect_internalshell_stdio)
+        self.edit_goto.connect(self.main.editor.load)
+        self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
         self.main.add_dockwidget(self)
         
         pylint_act = create_action(self, _("Run static code analysis"),
                                    triggered=self.run_pylint)
         pylint_act.setEnabled(PYLINT_PATH is not None)
         self.register_shortcut(pylint_act, context="Pylint",
-                               name="Run analysis", default="F8")
+                               name="Run analysis")
         
         self.main.source_menu_actions += [None, pylint_act]
         self.main.editor.pythonfile_dependent_actions += [pylint_act]

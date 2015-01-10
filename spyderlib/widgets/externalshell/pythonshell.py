@@ -12,8 +12,7 @@ import os.path as osp
 import socket
 
 from spyderlib.qt.QtGui import QApplication, QMessageBox, QSplitter, QMenu
-from spyderlib.qt.QtCore import QProcess, SIGNAL, Qt, QTextCodec
-LOCALE_CODEC = QTextCodec.codecForLocale()
+from spyderlib.qt.QtCore import QProcess, Signal, Slot, Qt
 from spyderlib.qt.compat import getexistingdirectory
 
 # Local imports
@@ -23,17 +22,22 @@ from spyderlib.utils.qthelpers import (get_icon, get_std_icon, add_actions,
 from spyderlib.utils.environ import RemoteEnvDialog
 from spyderlib.utils.programs import get_python_args
 from spyderlib.utils.misc import get_python_executable
-from spyderlib.baseconfig import _, get_module_source_path, DEBUG
+from spyderlib.baseconfig import (_, get_module_source_path, DEBUG,
+                                  MAC_APP_NAME, running_in_mac_app)
 from spyderlib.widgets.shell import PythonShellWidget
 from spyderlib.widgets.externalshell.namespacebrowser import NamespaceBrowser
 from spyderlib.utils.bsdsocket import communicate, write_packet
 from spyderlib.widgets.externalshell.baseshell import (ExternalShellBase,
                                                    add_pathlist_to_PYTHONPATH)
 from spyderlib.widgets.dicteditor import DictEditor
-from spyderlib.py3compat import is_text_string, to_text_string
+from spyderlib.py3compat import (is_text_string, to_text_string,
+                                 to_binary_string)
 
 
 class ExtPythonShellWidget(PythonShellWidget):
+    
+    wait_for_ready_read = Signal()
+    
     def __init__(self, parent, history_filename, profile=False):
         PythonShellWidget.__init__(self, parent, history_filename, profile)
         self.path = []
@@ -45,7 +49,7 @@ class ExtPythonShellWidget(PythonShellWidget):
     def clear_terminal(self):
         """Reimplement ShellBaseWidget method"""
         self.clear()
-        self.emit(SIGNAL("execute(QString)"), "\n")
+        self.execute.emit("\n")
 
     def execute_lines(self, lines):
         """
@@ -66,7 +70,7 @@ class ExtPythonShellWidget(PythonShellWidget):
                 import time
                 time.sleep(0.025)
             else:
-                self.emit(SIGNAL("wait_for_ready_read()"))
+                self.wait_for_ready_read.emit()
             self.flush()
 
     #------ Code completion / Calltips
@@ -153,18 +157,25 @@ class ExtPythonShellWidget(PythonShellWidget):
 class ExternalPythonShell(ExternalShellBase):
     """External Shell widget: execute Python script in a separate process"""
     SHELL_CLASS = ExtPythonShellWidget
+    sig_pdb = Signal(str, int)
+    open_file = Signal(str, int)
+    ipython_kernel_start_error = Signal(str)
+    create_ipython_client = Signal(str)
+    started = Signal()
+    sig_finished = Signal()
+    
     def __init__(self, parent=None, fname=None, wdir=None,
                  interact=False, debug=False, path=[], python_args='',
                  ipykernel=False, arguments='', stand_alone=None,
-                 umd_enabled=True, umd_namelist=[], umd_verbose=True,
+                 umr_enabled=True, umr_namelist=[], umr_verbose=True,
                  pythonstartup=None, pythonexecutable=None,
-                 monitor_enabled=True, mpl_patch_enabled=True,
-                 mpl_backend=None, ets_backend='qt4', qt_api=None, pyqt_api=0,
-                 install_qt_inputhook=True, ignore_sip_setapi_errors=False,
-                 merge_output_channels=False, colorize_sys_stderr=False,
-                 autorefresh_timeout=3000, autorefresh_state=True,
-                 light_background=True, menu_actions=None,
-                 show_buttons_inside=True, show_elapsed_time=True):
+                 monitor_enabled=True, mpl_backend=None, ets_backend='qt4',
+                 qt_api=None, pyqt_api=0, install_qt_inputhook=True,
+                 ignore_sip_setapi_errors=False, merge_output_channels=False,
+                 colorize_sys_stderr=False, autorefresh_timeout=3000,
+                 autorefresh_state=True, light_background=True,
+                 menu_actions=None, show_buttons_inside=True,
+                 show_elapsed_time=True):
 
         assert qt_api in (None, 'pyqt', 'pyside')
 
@@ -173,10 +184,11 @@ class ExternalPythonShell(ExternalShellBase):
         self.dialog_manager = DialogManager()
         
         self.stand_alone = stand_alone # stand alone settings (None: plugin)
+        self.interact = interact
+        self.is_ipykernel = ipykernel
         self.pythonstartup = pythonstartup
         self.pythonexecutable = pythonexecutable
         self.monitor_enabled = monitor_enabled
-        self.mpl_patch_enabled = mpl_patch_enabled
         self.mpl_backend = mpl_backend
         self.ets_backend = ets_backend
         self.qt_api = qt_api
@@ -185,12 +197,11 @@ class ExternalPythonShell(ExternalShellBase):
         self.ignore_sip_setapi_errors = ignore_sip_setapi_errors
         self.merge_output_channels = merge_output_channels
         self.colorize_sys_stderr = colorize_sys_stderr
-        self.umd_enabled = umd_enabled
-        self.umd_namelist = umd_namelist
-        self.umd_verbose = umd_verbose
+        self.umr_enabled = umr_enabled
+        self.umr_namelist = umr_namelist
+        self.umr_verbose = umr_verbose
         self.autorefresh_timeout = autorefresh_timeout
         self.autorefresh_state = autorefresh_state
-        self.is_ipykernel = ipykernel
                 
         self.namespacebrowser_button = None
         self.cwd_button = None
@@ -221,7 +232,7 @@ class ExternalPythonShell(ExternalShellBase):
         self.connection_file = None
 
         if self.is_ipykernel:
-            interact = False
+            self.interact = False
             # Running our custom startup script for IPython kernels:
             # (see spyderlib/widgets/externalshell/start_ipython_kernel.py)
             self.fname = get_module_source_path(
@@ -230,7 +241,7 @@ class ExternalPythonShell(ExternalShellBase):
         self.shell.set_externalshell(self)
 
         self.toggle_globals_explorer(False)
-        self.interact_action.setChecked(interact)
+        self.interact_action.setChecked(self.interact)
         self.debug_action.setChecked(debug)
         
         self.introspection_socket = None
@@ -272,15 +283,16 @@ class ExternalPythonShell(ExternalShellBase):
                   toggled=self.toggle_globals_explorer, text_beside_icon=True)
         if self.terminate_button is None:
             self.terminate_button = create_toolbutton(self,
-                  text=_("Terminate"), icon=get_icon('terminate.png'),
-                  tip=_("""Attempts to terminate the process.
-The process may not exit as a result of clicking this button
-(it is given the chance to prompt the user for any unsaved files, etc)."""))
+                  text=_("Terminate"), icon=get_icon('stop.png'),
+                  tip=_("Attempts to stop the process. The process\n"
+                        "may not exit as a result of clicking this\n"
+                        "button (it is given the chance to prompt\n"
+                        "the user for any unsaved files, etc)."))
         buttons = []
         if self.namespacebrowser_button is not None:
             buttons.append(self.namespacebrowser_button)
-        buttons += [self.run_button, self.options_button,
-                    self.terminate_button, self.kill_button]
+        buttons += [self.run_button, self.terminate_button, self.kill_button,
+                    self.options_button]
         return buttons
 
     def get_options_menu(self):
@@ -323,12 +335,11 @@ The process may not exit as a result of clicking this button
             settings = self.stand_alone
             self.namespacebrowser.set_shellwidget(self)
             self.namespacebrowser.setup(**settings)
-            self.connect(self.namespacebrowser, SIGNAL('collapse()'),
+            self.namespacebrowser.sig_collapse.connect(
                          lambda: self.toggle_globals_explorer(False))
             # Shell splitter
             self.splitter = splitter = QSplitter(Qt.Vertical, self)
-            self.connect(self.splitter, SIGNAL('splitterMoved(int, int)'),
-                         self.splitter_moved)
+            self.splitter.splitterMoved.connect(self.splitter_moved)
             splitter.addWidget(self.shell)
             splitter.setCollapsible(0, False)
             splitter.addWidget(self.namespacebrowser)
@@ -373,11 +384,11 @@ The process may not exit as a result of clicking this button
     def configure_namespacebrowser(self):
         """Connect the namespace browser to the notification thread"""
         if self.notification_thread is not None:
-            self.connect(self.notification_thread,
-                         SIGNAL('refresh_namespace_browser()'),
+            self.notification_thread.refresh_namespace_browser.connect(
                          self.namespacebrowser.refresh_table)
             signal = self.notification_thread.sig_process_remote_view
-            signal.connect(self.namespacebrowser.process_remote_view)
+            signal.connect(lambda data:
+                           self.namespacebrowser.process_remote_view(data))
     
     def create_process(self):
         self.shell.clear()
@@ -387,14 +398,14 @@ The process may not exit as a result of clicking this button
             self.process.setProcessChannelMode(QProcess.MergedChannels)
         else:
             self.process.setProcessChannelMode(QProcess.SeparateChannels)
-        self.connect(self.shell, SIGNAL("wait_for_ready_read()"),
+        self.shell.wait_for_ready_read.connect(
                      lambda: self.process.waitForReadyRead(250))
         
         # Working directory
         if self.wdir is not None:
             self.process.setWorkingDirectory(self.wdir)
 
-        #-------------------------Python specific-------------------------------
+        #-------------------------Python specific------------------------------
         # Python arguments
         p_args = ['-u']
         if DEBUG >= 3:
@@ -409,6 +420,13 @@ The process may not exit as a result of clicking this button
         if self.pythonstartup:
             env.append('PYTHONSTARTUP=%s' % self.pythonstartup)
         
+        # Set standard input/output encoding for Python consoles
+        # (IPython handles it on its own)
+        # See http://stackoverflow.com/q/26312400/438386, specifically
+        # the comments of Martijn Pieters
+        if not self.is_ipykernel:
+            env.append('PYTHONIOENCODING=UTF-8')
+        
         # Monitor
         if self.monitor_enabled:
             env.append('SPYDER_SHELL_ID=%s' % id(self))
@@ -419,19 +437,15 @@ The process may not exit as a result of clicking this button
             introspection_server.register(self)
             notification_server = introspection.start_notification_server()
             self.notification_thread = notification_server.register(self)
-            self.connect(self.notification_thread, SIGNAL('pdb(QString,int)'),
-                         lambda fname, lineno:
-                         self.emit(SIGNAL('pdb(QString,int)'), fname, lineno))
-            self.connect(self.notification_thread,
-                         SIGNAL('new_ipython_kernel(QString)'),
-                         lambda args:
-                         self.emit(SIGNAL('create_ipython_client(QString)'),
-                         args))
-            self.connect(self.notification_thread,
-                         SIGNAL('open_file(QString,int)'),
-                         lambda fname, lineno:
-                         self.emit(SIGNAL('open_file(QString,int)'),
-                                   fname, lineno))
+            self.notification_thread.sig_pdb.connect(
+                                              lambda fname, lineno:
+                                              self.sig_pdb.emit(fname, lineno))
+            self.notification_thread.new_ipython_kernel.connect(
+                                         lambda args:
+                                         self.create_ipython_client.emit(args))
+            self.notification_thread.open_file.connect(
+                                            lambda fname, lineno:
+                                            self.open_file.emit(fname, lineno))
             if self.namespacebrowser is not None:
                 self.configure_namespacebrowser()
             env.append('SPYDER_I_PORT=%d' % introspection_server.port)
@@ -439,7 +453,6 @@ The process may not exit as a result of clicking this button
         
         # External modules options
         env.append('ETS_TOOLKIT=%s' % self.ets_backend)
-        env.append('MATPLOTLIB_PATCH=%r' % self.mpl_patch_enabled)
         if self.mpl_backend:
             env.append('MATPLOTLIB_BACKEND=%s' % self.mpl_backend)
         if self.qt_api:
@@ -458,9 +471,15 @@ The process may not exit as a result of clicking this button
         
         # User Module Deleter
         if self.is_interpreter:
-            env.append('UMD_ENABLED=%r' % self.umd_enabled)
-            env.append('UMD_NAMELIST=%s' % ','.join(self.umd_namelist))
-            env.append('UMD_VERBOSE=%r' % self.umd_verbose)
+            env.append('UMR_ENABLED=%r' % self.umr_enabled)
+            env.append('UMR_NAMELIST=%s' % ','.join(self.umr_namelist))
+            env.append('UMR_VERBOSE=%r' % self.umr_verbose)
+            env.append('MATPLOTLIB_ION=True')
+        else:
+            if self.interact:
+                env.append('MATPLOTLIB_ION=True')
+            else:
+                env.append('MATPLOTLIB_ION=False')
 
         # IPython kernel
         env.append('IPYTHON_KERNEL=%r' % self.is_ipykernel)
@@ -477,23 +496,17 @@ The process may not exit as a result of clicking this button
         # Adding path list to PYTHONPATH environment variable
         add_pathlist_to_PYTHONPATH(env, pathlist)
 
-        #-------------------------Python specific-------------------------------
+        #-------------------------Python specific------------------------------
                         
-        self.connect(self.process, SIGNAL("readyReadStandardOutput()"),
-                     self.write_output)
-        self.connect(self.process, SIGNAL("readyReadStandardError()"),
-                     self.write_error)
-        self.connect(self.process, SIGNAL("finished(int,QProcess::ExitStatus)"),
-                     self.finished)
-                     
-        self.connect(self, SIGNAL('finished()'), self.dialog_manager.close_all)
-
-        self.connect(self.terminate_button, SIGNAL("clicked()"),
-                     self.process.terminate)
-        self.connect(self.kill_button, SIGNAL("clicked()"),
-                     self.process.kill)
+        self.process.readyReadStandardOutput.connect(self.write_output)
+        self.process.readyReadStandardError.connect(self.write_error)
+        self.process.finished.connect(lambda ec, es=QProcess.ExitStatus:
+                                      self.finished(ec, es))
+        self.sig_finished.connect(self.dialog_manager.close_all)
+        self.terminate_button.clicked.connect(self.process.terminate)
+        self.kill_button.clicked.connect(self.process.kill)
         
-        #-------------------------Python specific-------------------------------
+        #-------------------------Python specific------------------------------
         # Fixes for our Mac app:
         # 1. PYTHONPATH and PYTHONHOME are set while bootstrapping the app,
         #    but their values are messing sys.path for external interpreters
@@ -502,9 +515,9 @@ The process may not exit as a result of clicking this button
         #    interpreter to use our sitecustomize script.
         # 3. Remove PYTHONOPTIMIZE from env so that we can have assert
         #    statements working with our interpreters (See Issue 1281)
-        if sys.platform == 'darwin' and 'Spyder.app' in __file__:
+        if running_in_mac_app():
             env.append('SPYDER_INTERPRETER=%s' % self.pythonexecutable)
-            if 'Spyder.app' not in self.pythonexecutable:
+            if MAC_APP_NAME not in self.pythonexecutable:
                 env = [p for p in env if not (p.startswith('PYTHONPATH') or \
                                               p.startswith('PYTHONHOME'))] # 1.
 
@@ -514,13 +527,13 @@ The process may not exit as a result of clicking this button
 
         self.process.setEnvironment(env)
         self.process.start(self.pythonexecutable, p_args)
-        #-------------------------Python specific-------------------------------
+        #-------------------------Python specific------------------------------
             
         running = self.process.waitForStarted(3000)
         self.set_running_state(running)
         if not running:
             if self.is_ipykernel:
-                self.emit(SIGNAL("ipython_kernel_start_error(QString)"),
+                self.ipython_kernel_start_error.emit(
                           _("The kernel failed to start!! That's all we know... "
                             "Please close this console and open a new one."))
             else:
@@ -528,21 +541,20 @@ The process may not exit as a result of clicking this button
                                      _("A Python console failed to start!"))
         else:
             self.shell.setFocus()
-            self.emit(SIGNAL('started()'))
+            self.started.emit()
         return self.process
 
     def finished(self, exit_code, exit_status):
         """Reimplement ExternalShellBase method"""
         if self.is_ipykernel and exit_code == 1:
-            self.emit(SIGNAL("ipython_kernel_start_error(QString)"),
-                      self.shell.get_text_with_eol())
+            self.ipython_kernel_start_error.emit(self.shell.get_text_with_eol())
         ExternalShellBase.finished(self, exit_code, exit_status)
         self.introspection_socket = None
 
     
-#===============================================================================
+#==============================================================================
 #    Input/Output
-#===============================================================================
+#==============================================================================
     def write_error(self):
         if os.name == 'nt':
             #---This is apparently necessary only on Windows (not sure though):
@@ -569,7 +581,7 @@ The process may not exit as a result of clicking this button
             text = 'evalsc(r"%s")\n' % text
         if not text.endswith('\n'):
             text += '\n'
-        self.process.write(LOCALE_CODEC.fromUnicode(text))
+        self.process.write(to_binary_string(text, 'utf8'))
         self.process.waitForBytesWritten(-1)
         
         # Eventually write prompt faster (when hitting Enter continuously)
@@ -588,9 +600,10 @@ The process may not exit as a result of clicking this button
             except socket.error:
                 pass
             
-#===============================================================================
+#==============================================================================
 #    Globals explorer
-#===============================================================================
+#==============================================================================
+    @Slot(bool)
     def toggle_globals_explorer(self, state):
         if self.stand_alone is not None:
             self.splitter.setSizes([1, 1 if state else 0])
@@ -601,24 +614,27 @@ The process may not exit as a result of clicking this button
     def splitter_moved(self, pos, index):
         self.namespacebrowser_button.setChecked( self.splitter.sizes()[1] )
 
-#===============================================================================
+#==============================================================================
 #    Misc.
-#===============================================================================
+#==============================================================================
+    @Slot()
     def set_current_working_directory(self):
         """Set current working directory"""
         cwd = self.shell.get_cwd()
-        self.emit(SIGNAL('redirect_stdio(bool)'), False)
+        self.redirect_stdio.emit(False)
         directory = getexistingdirectory(self, _("Select directory"), cwd)
         if directory:
             self.shell.set_cwd(directory)
-        self.emit(SIGNAL('redirect_stdio(bool)'), True)
+        self.redirect_stdio.emit(True)
 
+    @Slot()
     def show_env(self):
         """Show environment variables"""
         get_func = self.shell.get_env
         set_func = self.shell.set_env
         self.dialog_manager.show(RemoteEnvDialog(get_func, set_func))
-        
+
+    @Slot()
     def show_syspath(self):
         """Show sys.path contents"""
         editor = DictEditor()

@@ -6,13 +6,22 @@
 
 """Status bar widgets"""
 
+import os
+
 from spyderlib.qt.QtGui import QWidget, QHBoxLayout, QLabel
-from spyderlib.qt.QtCore import QTimer, SIGNAL
+from spyderlib.qt.QtCore import QTimer
 
 # Local import
 from spyderlib.baseconfig import _
 from spyderlib.guiconfig import get_font
 from spyderlib.py3compat import to_text_string
+from spyderlib import dependencies
+
+
+if not os.name == 'nt':
+    PSUTIL_REQVER = '>=0.3'
+    dependencies.add("psutil", _("CPU and memory usage info in the status bar"),
+                     required_version=PSUTIL_REQVER)
 
 
 class StatusBarWidget(QWidget):
@@ -47,7 +56,7 @@ class BaseTimerStatus(StatusBarWidget):
         layout.addSpacing(20)
         if self.is_supported():
             self.timer = QTimer()
-            self.connect(self.timer, SIGNAL('timeout()'), self.update_label)
+            self.timer.timeout.connect(self.update_label)
             self.timer.start(2000)
         else:
             self.timer = None
