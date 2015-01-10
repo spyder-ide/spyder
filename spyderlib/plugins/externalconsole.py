@@ -27,7 +27,7 @@ import sys
 import subprocess
 
 # Local imports
-from spyderlib.baseconfig import SCIENTIFIC_STARTUP, _
+from spyderlib.baseconfig import SCIENTIFIC_STARTUP, running_in_mac_app, _
 from spyderlib.config import CONF
 from spyderlib.utils import programs
 from spyderlib.utils.misc import (get_error_match, get_python_executable,
@@ -900,7 +900,10 @@ class ExternalConsole(SpyderPluginWidget):
                               lambda error: ipyclient.show_kernel_error(error))
                     
                     # Detect if kernel and frontend match or not
-                    if self.get_option('pythonexecutable/custom'):
+                    # Don't apply this for our Mac app because it's
+                    # failing, see Issue 2006
+                    if self.get_option('pythonexecutable/custom') and \
+                      not running_in_mac_app():
                         frontend_ver = programs.get_module_version('IPython')
                         old_vers = ['1', '2']
                         if any([frontend_ver.startswith(v) for v in old_vers]):
