@@ -977,18 +977,6 @@ class IPythonConsole(SpyderPluginWidget):
                 self.close_client(client=cl)
 
     #------ Public API (for kernels) ------------------------------------------
-    def kernel_and_frontend_match(self, connection_file):
-        # Determine kernel version
-        ci = get_connection_info(connection_file, unpack=True,
-                                 profile='default')
-        if u('control_port') in ci:
-            kernel_ver = '>=1.0'
-        else:
-            kernel_ver = '<1.0'
-        # is_module_installed checks if frontend version agrees with the
-        # kernel one
-        return programs.is_module_installed('IPython', version=kernel_ver)
-
     def ssh_tunnel(self, *args, **kwargs):
         if sys.platform == 'win32':
             return zmqtunnel.paramiko_tunnel(*args, **kwargs)
@@ -1090,20 +1078,8 @@ class IPythonConsole(SpyderPluginWidget):
         kernel_widget_id = None
         for sw in self.extconsole.shellwidgets:
             if sw.connection_file == cf.split('/')[-1]:  
-                kernel_widget_id = id(sw)                 
-        
-        # Verifying if frontend and kernel have compatible versions
-        if not self.kernel_and_frontend_match(cf):
-            QMessageBox.critical(self,
-                                 _("Mismatch between kernel and frontend"),
-                                 _("Your IPython frontend and kernel versions "
-                                   "are <b>incompatible!!</b>"
-                                   "<br><br>"
-                                   "We're sorry but we can't create an IPython "
-                                   "console for you."
-                                ), QMessageBox.Ok)
-            return
-        
+                kernel_widget_id = id(sw)
+
         # Creating the client
         client = IPythonClient(self, name=name, history_filename='history.py',
                                connection_file=cf,
