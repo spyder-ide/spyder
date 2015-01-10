@@ -151,10 +151,14 @@ class CodeInfo(object):
             while self.position:
                 base = self.source_code[self.position: self.position + 6]
                 if base.startswith('def ') or base.startswith('class '):
-                    if base.startswith('def '):
-                        self.position += 4
-                    else:
-                        self.position += 6
+                    while self.position < len(self.source_code) - 1:
+                        self.position += 1
+                        if self.source_code[self.position] == '(':
+                            self.position -= 1
+                            while self.source_code[self.position - 1] == ' ':
+                                self.position -= 1
+                            self.position += 1
+                            break
                     break
                 self.position -= 1
 
@@ -169,6 +173,9 @@ class CodeInfo(object):
             self.obj = tokens[-1]
         else:
             self.obj = None
+
+        import sys
+        print(self.obj, file=sys.__stderr__)
 
         self.full_obj = self.obj
 
@@ -306,7 +313,7 @@ class PluginManager(QObject):
         editor = info.editor
         if ((not editor.is_python_like())
                 or sourcecode.is_keyword(info.obj)
-                or editor.in_comment_or_string()):
+                or (editor.in_comment_or_string() and info.name != 'info')):
             desired = 'fallback'
 
         self.pending = (info, desired)
