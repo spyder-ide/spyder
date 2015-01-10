@@ -333,12 +333,12 @@ class Editor(SpyderPluginWidget):
     DISABLE_ACTIONS_WHEN_HIDDEN = False # SpyderPluginWidget class attribute
     
     # Signals
-    run_in_current_ipyclient = Signal(str, str, str, bool)
+    run_in_current_ipyclient = Signal(str, str, str, bool, bool)
     exec_in_extconsole = Signal(str, bool)
     redirect_stdio = Signal(bool)
     open_dir = Signal(str)
     breakpoints_saved = Signal()
-    run_in_current_extconsole = Signal(str, str, str, bool)
+    run_in_current_extconsole = Signal(str, str, str, bool, bool)
     
     def __init__(self, parent, ignore_last_opened_files=False):
         SpyderPluginWidget.__init__(self, parent)
