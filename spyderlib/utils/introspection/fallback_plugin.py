@@ -343,9 +343,9 @@ if __name__ == '__main__':
     comp = p.get_completions(CodeInfo('completions', code, len(code)))
     assert comp == ['sigMessageReady']
 
-    code = encoding.to_unicode('Ã¡lfa;Ã¡')
+    code = encoding.to_unicode('álfa;á')
     comp = p.get_completions(CodeInfo('completions', code, len(code)))
-    assert comp == [encoding.to_unicode('Ã¡lfa')]
+    assert comp == [encoding.to_unicode('álfa')]
 
     code = 'from numpy import one'
     comp = p.get_completions(CodeInfo('completions', code, len(code)))
