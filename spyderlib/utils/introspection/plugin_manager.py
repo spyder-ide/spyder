@@ -174,9 +174,6 @@ class CodeInfo(object):
         else:
             self.obj = None
 
-        import sys
-        print(self.obj, file=sys.__stderr__)
-
         self.full_obj = self.obj
 
         if self.obj:
