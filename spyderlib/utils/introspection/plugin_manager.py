@@ -127,13 +127,14 @@ class CodeInfo(object):
                                  re.UNICODE)
 
     def __init__(self, name, source_code, position, filename=None,
-            is_python_like=True, **kwargs):
+            is_python_like=True, in_comment_or_string=False, **kwargs):
         self.__dict__.update(kwargs)
         self.name = name
         self.filename = filename
         self.source_code = source_code
         self.position = position
         self.is_python_like = is_python_like
+        self.in_comment_or_string = in_comment_or_string
 
         if position == 0:
             self.lines = []
@@ -144,6 +145,19 @@ class CodeInfo(object):
             self._get_info()
 
     def _get_info(self):
+        # if in a comment, look for the previous definition
+        if self.in_comment_or_string:
+            # backtrack and look for a line that starts with def or class
+            while self.position:
+                base = self.source_code[self.position: self.position + 6]
+                if base.startswith('def ') or base.startswith('class '):
+                    if base.startswith('def '):
+                        self.position += 4
+                    else:
+                        self.position += 6
+                    break
+                self.position -= 1
+
         self.lines = self.source_code[:self.position].splitlines()
         self.line_num = len(self.lines)
 
@@ -231,6 +245,7 @@ class PluginManager(QObject):
 
         editor = self.editor_widget.get_current_editor()
         finfo = self.editor_widget.get_current_finfo()
+        in_comment_or_string = editor.in_comment_or_string()
 
         if position is None:
             position = editor.get_position('cursor')
@@ -240,7 +255,8 @@ class PluginManager(QObject):
         kwargs['editor_widget'] = self.editor_widget
 
         return CodeInfo(name, finfo.get_source_code(), position,
-            finfo.filename, editor.is_python_like, **kwargs)
+            finfo.filename, editor.is_python_like, in_comment_or_string,
+            **kwargs)
 
     def get_completions(self, automatic):
         """Get code completion"""
