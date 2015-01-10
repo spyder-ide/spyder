@@ -573,7 +573,6 @@ def _get_globals():
 
 
 is_ipython = os.environ.get("IPYTHON_KERNEL", "").lower() == "true"
-is_dedicated = not 'UMD_ENABLED' in os.environ
 
 
 def clear_post_mortem():
@@ -596,9 +595,6 @@ def post_mortem_excepthook(type, value, tb):
     """
     clear_post_mortem()
     traceback.print_exception(type, value, tb, file=sys.stderr)
-    if hasattr(sys, 'ps1') and is_dedicated:
-        # in interactive mode in dedicated interpreter, just exit after printing
-        return
     if not type == SyntaxError:
         # wait for stderr to print (stderr.flush does not work in this case)
         time.sleep(0.1)
