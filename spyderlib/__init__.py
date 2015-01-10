@@ -63,8 +63,8 @@ def get_versions(reporev=True):
     import platform
     # Hack to let IPython set QT_API, in case it's installed
     try:
-        from IPython.external import qt
-    except ImportError:
+        from IPython.external import qt     # analysis:ignore
+    except (ImportError, ValueError):
         pass
     import spyderlib.qt
     import spyderlib.qt.QtCore
