@@ -210,29 +210,6 @@ if mpl_backend:
     except ImportError:
         pass
 
-
-# Set standard outputs encoding:
-# (otherwise, for example, print("é") will fail)
-encoding = None
-try:
-    import locale
-except ImportError:
-    pass
-else:
-    loc = locale.getdefaultlocale()
-    if loc[1]:
-        encoding = loc[1]
-
-if encoding is None:
-    encoding = "UTF-8"
-
-try:
-    sys.setdefaultencoding(encoding)
-    os.environ['SPYDER_ENCODING'] = encoding
-except AttributeError:
-    # Python 3
-    pass
-
 try:
     import sitecustomize  #analysis:ignore
 except ImportError:
