@@ -14,6 +14,7 @@ import os
 
 # Local imports
 from spyderlib.baseconfig import _
+from spyderlib.py3compat import winreg
 from spyderlib.widgets.dicteditor import DictEditor
 
 
@@ -54,19 +55,14 @@ class EnvDialog(RemoteEnvDialog):
         RemoteEnvDialog.__init__(self, get_environ_func, set_environ_func)
 
 
-try:
-    #---- Windows platform
-    from _winreg import (OpenKey, EnumValue, QueryInfoKey,
-                         SetValueEx, QueryValueEx)
-    from _winreg import HKEY_CURRENT_USER, KEY_SET_VALUE, REG_EXPAND_SZ
-
+if os.name == 'nt':
     def get_user_env():
         """Return HKCU (current user) environment variables"""
         reg = dict()
-        key = OpenKey(HKEY_CURRENT_USER, "Environment")
-        for index in range(0, QueryInfoKey(key)[1]):
+        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment")
+        for index in range(0, winreg.QueryInfoKey(key)[1]):
             try:
-                value = EnumValue(key, index)
+                value = winreg.EnumValue(key, index)
                 reg[value[0]] = value[1]
             except:
                 break
@@ -76,15 +72,16 @@ try:
         """Set HKCU (current user) environment variables"""
         reg = listdict2envdict(reg)
         types = dict()
-        key = OpenKey(HKEY_CURRENT_USER, "Environment")
+        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment")
         for name in reg:
             try:
-                _x, types[name] = QueryValueEx(key, name)
+                _x, types[name] = winreg.QueryValueEx(key, name)
             except WindowsError:
-                types[name] = REG_EXPAND_SZ
-        key = OpenKey(HKEY_CURRENT_USER, "Environment", 0, KEY_SET_VALUE)
+                types[name] = winreg.REG_EXPAND_SZ
+        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment", 0,
+                             winreg.KEY_SET_VALUE)
         for name in reg:
-            SetValueEx(key, name, 0, types[name], reg[name])
+            winreg.SetValueEx(key, name, 0, types[name], reg[name])
         try:
             from win32gui import SendMessageTimeout
             from win32con import (HWND_BROADCAST, WM_SETTINGCHANGE,
@@ -121,10 +118,6 @@ try:
             """Reimplement Qt method"""
             set_user_env( listdict2envdict(self.get_value()), parent=self )
             QDialog.accept(self)
-
-except ImportError:
-    #---- Other platforms
-    pass
 
 
 def main():

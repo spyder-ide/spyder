@@ -31,7 +31,7 @@ from spyderlib.qt.QtCore import Signal, Slot, Qt
 
 # IPython imports
 from IPython.core.application import get_ipython_dir
-from IPython.lib.kernel import find_connection_file, get_connection_info
+from IPython.lib.kernel import find_connection_file
 
 from IPython.qt.manager import QtKernelManager
 try: # IPython = "<=2.0"
@@ -55,7 +55,7 @@ from spyderlib.widgets.tabs import Tabs
 from spyderlib.widgets.ipython import IPythonClient
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
-from spyderlib.py3compat import to_text_string, u
+from spyderlib.py3compat import to_text_string
 
 
 SYMPY_REQVER = '>=0.7.0'

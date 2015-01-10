@@ -399,6 +399,8 @@ class SpyderPdb(pdb.Pdb):
         if not frame:
             return
         fname = self.canonic(frame.f_code.co_filename)
+        if sys.version[0] == '2':
+            fname = unicode(fname, "utf-8")
         lineno = frame.f_lineno
         if isinstance(fname, basestring) and isinstance(lineno, int):
             if osp.isfile(fname) and monitor is not None:
@@ -472,6 +474,34 @@ def reset(self):
 def postcmd(self, stop, line):
     self.notify_spyder(self.curframe)
     return self._old_Pdb_postcmd(stop, line)
+
+# Breakpoints don't work for files with non-ascii chars in Python 2
+# Fixes Issue 1484
+if sys.version[0] == '2':
+    @monkeypatch_method(pdb.Pdb, 'Pdb')
+    def break_here(self, frame):
+        from bdb import effective
+        filename = self.canonic(frame.f_code.co_filename)
+        filename = unicode(filename, "utf-8")
+        if not filename in self.breaks:
+            return False
+        lineno = frame.f_lineno
+        if not lineno in self.breaks[filename]:
+            # The line itself has no breakpoint, but maybe the line is the
+            # first line of a function with breakpoint set by function name.
+            lineno = frame.f_code.co_firstlineno
+            if not lineno in self.breaks[filename]:
+                return False
+    
+        # flag says ok to delete temp. bp
+        (bp, flag) = effective(filename, lineno, frame)
+        if bp:
+            self.currentbp = bp.number
+            if (flag and bp.temporary):
+                self.do_clear(str(bp.number))
+            return True
+        else:
+            return False
 
 
 # Restoring (almost) original sys.path:
