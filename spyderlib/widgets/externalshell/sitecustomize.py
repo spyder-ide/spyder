@@ -335,7 +335,9 @@ else:
 # Monkey-patching pdb
 #===============================================================================
 
-if os.environ.get("IPYTHON_KERNEL", "").lower() == "true":
+IS_IPYTHON = os.environ.get("IPYTHON_KERNEL", "").lower() == "true"
+
+if IS_IPYTHON:
 
     #XXX If Matplotlib is not imported first, the next IPython import will fail
     try:
@@ -456,6 +458,8 @@ def user_return(self, frame, return_value):
 @monkeypatch_method(pdb.Pdb, 'Pdb')
 def interaction(self, frame, traceback):
     self.setup(frame, traceback)
+    if not IS_IPYTHON:
+        self.notify_spyder(frame) #-----Spyder-specific-----------------------
     self.print_stack_entry(self.stack[self.curindex])
     self.cmdloop()
     self.forget()
@@ -571,15 +575,11 @@ def _get_globals():
 # Handle Post Mortem Debugging and Traceback Linkage to Spyder
 #===============================================================================
 
-
-is_ipython = os.environ.get("IPYTHON_KERNEL", "").lower() == "true"
-
-
 def clear_post_mortem():
     """
     Remove the post mortem excepthook and replace with a standard one.
     """
-    if is_ipython:
+    if IS_IPYTHON:
         from IPython.core.getipython import get_ipython
         ipython_shell = get_ipython()
         if ipython_shell:
@@ -619,7 +619,7 @@ def set_post_mortem():
     """
     Enable the post mortem debugging excepthook.
     """
-    if is_ipython:
+    if IS_IPYTHON:
         from IPython.core.getipython import get_ipython
         def ipython_post_mortem_debug(shell, etype, evalue, tb,
                    tb_offset=None):
@@ -640,6 +640,7 @@ def runfile(filename, args=None, wdir=None, namespace=None, post_mortem=False):
     Run filename
     args: command line arguments (string)
     wdir: working directory
+    post_mortem: boolean, whether to enter post-mortem mode on error
     """
     try:
         filename = filename.decode('utf-8')
@@ -684,11 +685,12 @@ def runfile(filename, args=None, wdir=None, namespace=None, post_mortem=False):
 builtins.runfile = runfile
 
 
-def debugfile(filename, args=None, wdir=None):
+def debugfile(filename, args=None, wdir=None, post_mortem=False):
     """
     Debug filename
     args: command line arguments (string)
     wdir: working directory
+    post_mortem: boolean, included for compatiblity with runfile
     """
     debugger = pdb.Pdb()
     filename = debugger.canonic(filename)
