@@ -404,7 +404,8 @@ class SpyderPdb(pdb.Pdb):
         if isinstance(fname, basestring) and isinstance(lineno, int):
             if osp.isfile(fname) and monitor is not None:
                 monitor.notify_pdb_step(fname, lineno)
-
+                time.sleep(0.1)
+                
 pdb.Pdb = SpyderPdb
 
 #XXX: I know, this function is now also implemented as is in utils/misc.py but
@@ -455,7 +456,6 @@ def user_return(self, frame, return_value):
 @monkeypatch_method(pdb.Pdb, 'Pdb')
 def interaction(self, frame, traceback):
     self.setup(frame, traceback)
-    self.notify_spyder(frame) #-----Spyder-specific-------------------------
     self.print_stack_entry(self.stack[self.curindex])
     self.cmdloop()
     self.forget()
@@ -605,8 +605,13 @@ def post_mortem_excepthook(type, value, tb):
         p = pdb.Pdb()
         p.reset()
         frame = tb.tb_frame
+        prev = frame
         while frame.f_back:
+            prev = frame
             frame = frame.f_back
+        frame = prev
+        # wait for stdout to print
+        time.sleep(0.1)
         p.interaction(frame, tb)
 
 
