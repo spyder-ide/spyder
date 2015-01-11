@@ -613,7 +613,9 @@ class CondaPackagesTable(QTableView):
 
         if text != '':
             count_text = count_text + _('matching "{0}"').format(text)
-        self.parent.label_count.setText(count_text)
+
+        self.parent._update_status(status=count_text, hide=False)
+#        self.parent.status.setText()
 
     def search_string_changed(self, text):
         """ """
@@ -766,8 +768,9 @@ class CondaPackagesTable(QTableView):
             actions.append(create_action(self, _('Development'),
                                          icon=q_dev, triggered=lambda:
                                          self.open_url(dev)))
-        add_actions(menu, actions)
-        menu.popup(self.viewport().mapToGlobal(pos))
+        if len(actions):
+            add_actions(menu, actions)
+            menu.popup(self.viewport().mapToGlobal(pos))
 
     def open_url(self, url):
         """Open link from action in default operating system  browser"""
@@ -951,6 +954,7 @@ class SearchLineEdit(QLineEdit):
         self.textChanged.connect(self._toggle_visibility)
         self.textEdited.connect(self._toggle_visibility)
 
+        # layout
         layout = QHBoxLayout(self)
         layout.addWidget(self.button_clear, 0, Qt.AlignRight)
         layout.setSpacing(0)
@@ -965,7 +969,7 @@ class SearchLineEdit(QLineEdit):
 
     # public api
     # ----------
-    def clear_text(self, val):
+    def clear_text(self):
         """ """
         self.setText('')
         self.setFocus()
@@ -1011,9 +1015,9 @@ class CondaDependenciesModel(QAbstractTableModel):
             return Qt.ItemIsEnabled
         column = index.column()
         if column in [0, 1]:
-            return Qt.ItemFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
-        else:
             return Qt.ItemFlags(Qt.ItemIsEnabled)
+        else:
+            return Qt.ItemFlags(Qt.NoItemFlags)
 
     def data(self, index, role=Qt.DisplayRole):
         """Override Qt method"""
@@ -1134,19 +1138,21 @@ class CondaPackageActionDialog(QDialog):
             self.combobox_version.addItems(versions)
             self.widget_version = self.combobox_version
 
-        self.widgets = [self.checkbox, self.button_ok, self.widget_version]
-
         self.label.setText(labeltext)
         self.label_version.setAlignment(Qt.AlignLeft)
+        self.table_dependencies = QWidget(self)
 
         layout = QGridLayout()
         layout.addWidget(self.label, 0, 0, Qt.AlignVCenter | Qt.AlignLeft)
         layout.addWidget(self.widget_version, 0, 1, Qt.AlignVCenter |
                          Qt.AlignRight)
 
+        self.widgets = [self.checkbox, self.button_ok, self.widget_version,
+                        self.table_dependencies]
+        row_index = 1
         # Create a Table
         if action in [INSTALL, UPGRADE, DOWNGRADE]:
-            table = QTableView()
+            table = QTableView(self)
             dialog_size = QSize(dialog_size.width() + 40, 300)
             self.table_dependencies = table
             row_index = 1
@@ -1162,9 +1168,6 @@ class CondaPackageActionDialog(QDialog):
             table.setShowGrid(False)
             table.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
             table.horizontalHeader().setStretchLastSection(True)
-        else:
-            row_index = 1
-            self.table_dependencies = QWidget()
 
         layout.addWidget(self.table_dependencies, row_index + 2, 0, 1, 2,
                          Qt.AlignHCenter)
@@ -1233,6 +1236,11 @@ class CondaPackageActionDialog(QDialog):
             table = self.table_dependencies
             table.setModel(CondaDependenciesModel(self, {}))
             table.resizeColumnsToContents()
+            table.setDisabled(True)
+        else:
+            table = self.table_dependencies
+            table.setDisabled(False)
+
         for widget in self.widgets:
             widget.setDisabled(value)
 
@@ -1297,12 +1305,12 @@ class CondaPackagesWidget(QWidget):
         self.textbox_search = SearchLineEdit(self)
 
         self.table = CondaPackagesTable(self)
-        self.label_count = QLabel()
+        self.label_count = None
         self.status_bar = QLabel()
         self.progress_bar = QProgressBar()
 
         self.widgets = [self.button_update, self.combobox_filter,
-                        self.textbox_search, self.label_count, self.table]
+                        self.textbox_search, self.table]
 
         # setup widgets
         self.combobox_filter.addItems([k for k in COMBOBOX_VALUES_ORDERED])
@@ -1314,7 +1322,7 @@ class CondaPackagesWidget(QWidget):
         self.progress_bar.setMaximumHeight(16)
         self.progress_bar.setMaximumWidth(130)
 
-        self.label_count.setAlignment(Qt.AlignRight)
+#        self.label_count.setAlignment(Qt.AlignRight)
         self.setWindowTitle(_("Conda Packages"))
         self.setMinimumSize(QSize(480, 300))
 
@@ -1331,7 +1339,6 @@ class CondaPackagesWidget(QWidget):
 
         middle_layout = QVBoxLayout()
         middle_layout.addWidget(self.table)
-        middle_layout.addWidget(self.label_count)
 
         bottom_layout = QHBoxLayout()
         bottom_layout.addWidget(self.status_bar, Qt.AlignLeft)
@@ -1343,6 +1350,7 @@ class CondaPackagesWidget(QWidget):
         layout.addLayout(middle_layout)
         layout.addItem(QSpacerItem(250, 5))
         layout.addLayout(bottom_layout)
+        layout.addItem(QSpacerItem(250, 5))
 
         self.setLayout(layout)
 
@@ -1507,10 +1515,7 @@ class CondaPackagesWidget(QWidget):
         if status is not None:
             self._status = status
 
-        if hide:
-            self.status_bar.setText(self._status)
-        else:
-            self.status_bar.setText('')
+        self.status_bar.setText(self._status)
 
         if progress is not None:
             self.progress_bar.setMinimum(0)
