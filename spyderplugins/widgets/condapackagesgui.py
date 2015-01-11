@@ -23,31 +23,28 @@ import os.path as osp
 import json
 import shutil
 
-from spyderlib.qt.QtGui import (QGridLayout, QVBoxLayout, QHBoxLayout,
-                                QDialogButtonBox, QToolButton,
-                                QLineEdit, QComboBox, QProgressBar,
-                                QSpacerItem, QPushButton, QMenu,
-                                QPixmap, QIcon, QCheckBox,
-                                QWidget, QLabel, QSortFilterProxyModel,
-                                QTableView, QAbstractItemView,
-                                QFont, QDialog, QPalette, QDesktopServices)
+from spyderlib.qt.QtGui import (QGridLayout, QVBoxLayout, QHBoxLayout, QFont,
+                                QDialogButtonBox, QToolButton, QLineEdit,
+                                QComboBox, QProgressBar, QSpacerItem, QMenu,
+                                QPushButton, QPixmap, QIcon, QCheckBox, QLabel,
+                                QWidget, QSortFilterProxyModel, QTableView,
+                                QAbstractItemView, QDialog, QPalette,
+                                QDesktopServices)
 from spyderlib.qt.QtCore import (QSize, Qt, QAbstractTableModel, QModelIndex,
-                                 QPoint, QUrl, QObject, Slot,
-                                 Signal, QThread)
-
+                                 QPoint, QUrl, QObject, Slot, Signal, QThread)
 from spyderlib.qt.QtNetwork import QNetworkRequest, QNetworkAccessManager
-
 from spyderlib.qt.compat import to_qvariant
 
 from spyderlib.utils import programs
-from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions)
+from spyderlib.utils.qthelpers import get_icon, create_action, add_actions
 from spyderlib.baseconfig import (get_conf_path, get_translation,
                                   get_image_path, get_module_data_path)
-from spyderlib.py3compat import (to_text_string, u, is_unicode)
+from spyderlib.py3compat import to_text_string, u, is_unicode
 from spyderlib.py3compat import configparser as cp
-_ = get_translation("p_condapackages", dirname="spyderplugins")
 
 import conda_api_q
+
+_ = get_translation("p_condapackages", dirname="spyderplugins")
 
 CONDA_PATH = programs.find_program('conda')
 
@@ -120,8 +117,8 @@ def sort_versions(versions=(), reverse=False, sep=u'.'):
     return [n[-1] for n in new_versions]
 
 # Constants
-COLUMNS = (NAME, DESCRIPTION, VERSION, STATUS, URL, LICENSE,
-           INSTALL, REMOVE, UPGRADE, DOWNGRADE, ENDCOL) = list(range(11))
+COLUMNS = (NAME, DESCRIPTION, VERSION, STATUS, URL, LICENSE, INSTALL,
+           REMOVE, UPGRADE, DOWNGRADE, ENDCOL) = list(range(11))
 ACTION_COLUMNS = [INSTALL, REMOVE, UPGRADE, DOWNGRADE]
 TYPES = (INSTALLED, NOT_INSTALLED, UPGRADABLE, DOWNGRADABLE, ALL_INSTALLABLE,
          ALL, NOT_INSTALLABLE, MIXGRADABLE, CREATE, CLONE,
@@ -131,7 +128,6 @@ COMBOBOX_VALUES_ORDERED = [_(u'Installed'), _(u'Not installed'),
                            _(u'All instalable'), _(u'All')]
 COMBOBOX_VALUES = dict(zip(COMBOBOX_VALUES_ORDERED, TYPES))
 HIDE_COLUMNS = [STATUS, URL, LICENSE]
-#HIDE_COLUMNS = []
 ROOT = 'root'
 
 
@@ -157,11 +153,6 @@ class CondaPackagesModel(QAbstractTableModel):
             'remove.active': get_icon('conda_remove_active.png'),
             'remove.inactive': get_icon('conda_remove_inactive.png'),
             'remove.pressed': get_icon('conda_remove_pressed.png')}
-
-#    def _update_all(self):
-#        first = self.first_index()
-#        last = self.last_index()
-#        self.dataChanged.emit(first, last)
 
     def _update_cell(self, row, column):
         start = self.index(row, column)
@@ -497,7 +488,7 @@ class CondaPackagesTable(QTableView):
         self.current_index = None
 
         # To prevent triggering the keyrelease after closing a dialog
-        # bu hititng enter on it
+        # but hititng enter on it
         self.pressed_here = False
 
         self.source_model = None
@@ -615,7 +606,6 @@ class CondaPackagesTable(QTableView):
             count_text = count_text + _('matching "{0}"').format(text)
 
         self.parent._update_status(status=count_text, hide=False)
-#        self.parent.status.setText()
 
     def search_string_changed(self, text):
         """ """
@@ -632,7 +622,6 @@ class CondaPackagesTable(QTableView):
         self._filterbox = group
         self.filter_changed()
 
-    # Events
     def resizeEvent(self, event):
         """Override Qt method"""
         w = self.width()
@@ -682,11 +671,11 @@ class CondaPackagesTable(QTableView):
     def action_pressed(self, index):
         """ """
         # TODO: When not working fix the none type error
-        model_index = self.proxy_model.mapToSource(index)
         column = index.column()
         model_index = self.proxy_model.mapToSource(index)
-        self._model_index_clicked = model_index
         model = self.source_model
+
+        self._model_index_clicked = model_index
         self.valid = False
 
         if ((column == INSTALL and model.is_installable(model_index)) or
@@ -858,11 +847,9 @@ class DownloadManager(QObject):
         data = self._reply.rawHeaderPairs()
 
         for d in data:
-            # Python 2, on python 3 this will be bytes!
             key = to_text_string(d[0], encoding='ascii')
             value = to_text_string(d[1], encoding='ascii')
             headers[key.lower()] = value
-#            headers[str(d[0]).lower()] = str(d[1])
 
         if len(headers) != 0:
             header_filesize = int(headers['content-length'])
@@ -1111,6 +1098,7 @@ class CondaPackageActionDialog(QDialog):
                         DOWNGRADE: _("Downgrade package"),
                         REMOVE: _("Remove package"),
                         INSTALL: _("Install package")}
+
         # Versions might have duplicates from different builds
         versions = sort_versions(list(set(versions)), reverse=True)
 
@@ -1158,6 +1146,7 @@ class CondaPackageActionDialog(QDialog):
         self.widgets = [self.checkbox, self.button_ok, self.widget_version,
                         self.table_dependencies]
         row_index = 1
+
         # Create a Table
         if action in [INSTALL, UPGRADE, DOWNGRADE]:
             table = QTableView(self)
@@ -1225,11 +1214,6 @@ class CondaPackageActionDialog(QDialog):
             self._set_dependencies_table()
             self._set_gui_disabled(False)
 
-#            if 'linked' in dic:
-#                if len(dic['linked']) == 1 and (self.checkbox.checkState() ==
-#                                                Qt.Checked):
-#                    self.checkbox.setEnabled(False)
-
     def _set_dependencies_table(self):
         """ """
         table = self.table_dependencies
@@ -1254,7 +1238,7 @@ class CondaPackageActionDialog(QDialog):
 
 
 class CondaPackagesWidget(QWidget):
-    """Conda Packages widget"""
+    """Conda Packages Widget"""
     VERSION = '1.0.0'
 
     # Location of updated repo.json files from continuum/binstar
@@ -1298,8 +1282,8 @@ class CondaPackagesWidget(QWidget):
         # pyqt not working with ssl some bug here on the anaconda compilation
         # [['binstar_goanpeca_', 'https://conda.binstar.org/goanpeca']]
 
-        self._repo_name = None  # linux-64, win-32, etc...
-        self._channels = None  # [['filename', 'channel url'], ...]
+        self._repo_name = None   # linux-64, win-32, etc...
+        self._channels = None    # [['filename', 'channel url'], ...]
         self._repo_files = None  # [filepath, filepath, ...]
         self._packages = {}
         self._download_error = None
@@ -1314,7 +1298,6 @@ class CondaPackagesWidget(QWidget):
         self.textbox_search = SearchLineEdit(self)
 
         self.table = CondaPackagesTable(self)
-        self.label_count = None
         self.status_bar = QLabel()
         self.progress_bar = QProgressBar()
 
@@ -1331,7 +1314,6 @@ class CondaPackagesWidget(QWidget):
         self.progress_bar.setMaximumHeight(16)
         self.progress_bar.setMaximumWidth(130)
 
-#        self.label_count.setAlignment(Qt.AlignRight)
         self.setWindowTitle(_("Conda Packages"))
         self.setMinimumSize(QSize(480, 300))
 
@@ -1392,8 +1374,7 @@ class CondaPackagesWidget(QWidget):
             fname[0] = 'win'
         elif 'lin' in system:
             fname[0] = 'linux'
-        # FIXME: is this correct?
-        elif 'osx' in system or 'darwin' in system:
+        elif 'osx' in system or 'darwin' in system:  # TODO: is this correct?
             fname[0] = 'osx'
         else:
             return None
