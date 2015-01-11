@@ -9,7 +9,7 @@
 from spyderlib.qt.QtGui import QVBoxLayout, QHBoxLayout, QPushButton, QWidget
 
 from spyderlib.qt.QtCore import QProcess
-from spyderlib.py3compat import to_text_string, is_binary_string
+from spyderlib.py3compat import to_text_string
 
 import re
 import os
@@ -57,9 +57,10 @@ class CondaProcess(object):
     """conda-api modified to work with QProcess"""
     ROOT_PREFIX = None
 
-    def __init__(self, parent, on_finished=None):
+    def __init__(self, parent, on_finished=None, on_partial=None):
         self.parent = parent
         self.output = None
+        self.partial = None
         self.error = None
         self._parse = False
         self._function_called = ''
@@ -68,24 +69,35 @@ class CondaProcess(object):
         self._on_finished = on_finished
 
         self._process.finished.connect(self._call_conda_ready)
+        self._process.readyReadStandardOutput.connect(self._call_conda_partial)
 
         if on_finished is not None:
             self._process.finished.connect(on_finished)
+        if on_partial is not None:
+            self._process.readyReadStandardOutput.connect(on_partial)
 
         self.set_root_prefix()
 
-    def _call_conda_ready(self):
-        """function called when QProcess in _call_conda finishes task"""
+    def _call_conda_partial(self):
+        """ """
         stdout = to_text_string(self._process.readAllStandardOutput(),
                                 encoding='ascii')
         stderr = to_text_string(self._process.readAllStandardError(),
                                 encoding='ascii')
-        function = self._function_called
-
         if self._parse:
             self.output = json.loads(stdout)
         else:
             self.output = stdout
+
+        self.partial = self.output
+        self.stdout = self.output
+        self.error = stderr
+
+    def _call_conda_ready(self):
+        """function called when QProcess in _call_conda finishes task"""
+        function = self._function_called
+        stdout = self.stdout
+        stderr = self.error
 
         if function == 'get_conda_version':
             pat = re.compile(r'conda:?\s+(\d+\.\d\S+|unknown)')
@@ -452,7 +464,8 @@ class CondaProcess(object):
             raise TypeError('must specify a list of one or more packages to '
                             'install into existing environment')
 
-        cmd_list = ['install', '--yes', '--quiet']
+        cmd_list = ['install', '--yes', '--json']
+#        cmd_list = ['install', '--yes', '--quiet']        
         if name:
             cmd_list.extend(['--name', name])
         elif path:
