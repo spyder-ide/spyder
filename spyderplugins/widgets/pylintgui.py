@@ -36,12 +36,12 @@ from spyderlib.widgets.onecolumntree import OneColumnTree
 from spyderlib.widgets.texteditor import TextEditor
 from spyderlib.widgets.comboboxes import (PythonModulesComboBox,
                                           is_module_or_package)
-from spyderlib.py3compat import to_text_string, getcwd, pickle
+from spyderlib.py3compat import PY3, to_text_string, getcwd, pickle
 _ = get_translation("p_pylint", dirname="spyderplugins")
 
 
 PYLINT = 'pylint'
-if sys.version_info[0] == 3 and programs.find_program('pylint3'):
+if PY3 and programs.find_program('pylint3'):
     PYLINT = 'pylint3'
 
 PYLINT_PATH = programs.find_program(PYLINT)
