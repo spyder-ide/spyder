@@ -14,7 +14,6 @@ import os
 
 # Local imports
 from spyderlib.baseconfig import _
-from spyderlib.py3compat import winreg
 from spyderlib.widgets.dicteditor import DictEditor
 
 
@@ -55,7 +54,10 @@ class EnvDialog(RemoteEnvDialog):
         RemoteEnvDialog.__init__(self, get_environ_func, set_environ_func)
 
 
-if os.name == 'nt':
+# For Windows only
+try:
+    from spyderlib.py3compat import winreg
+
     def get_user_env():
         """Return HKCU (current user) environment variables"""
         reg = dict()
@@ -119,6 +121,8 @@ if os.name == 'nt':
             set_user_env( listdict2envdict(self.get_value()), parent=self )
             QDialog.accept(self)
 
+except ImportError:
+    pass
 
 def main():
     """Run Windows environment variable editor"""
