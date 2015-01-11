@@ -1264,7 +1264,8 @@ class CondaPackagesWidget(QWidget):
 
         self._status = ''  # Statusbar message
         self._conda_process = \
-            conda_api_q.CondaProcess(self, self._on_conda_process_ready)
+            conda_api_q.CondaProcess(self, self._on_conda_process_ready,
+                                     self._on_conda_process_partial)
         self._prefix = conda_api_q.CondaProcess.ROOT_PREFIX
 
         self._download_manager = DownloadManager(self,
@@ -1588,6 +1589,25 @@ class CondaPackagesWidget(QWidget):
             self._update_status(hide=False)
 
         self._setup_widget()
+
+    def _on_conda_process_partial(self):
+        """ """
+        try:
+            partial = self._conda_process.partial.split('\n')[0]
+            partial = json.loads(partial)
+        except:
+            partial = {'progress': 0, 'maxval': 0}
+
+        progress = partial['progress']
+        maxval = partial['maxval']
+
+        if 'fetch' in partial:
+            status = _('Downloading <b>') + partial['fetch'] + '</b>'
+        elif 'name' in partial:
+            status = _('Installing and linking <b>') + partial['name'] + '</b>'
+        else:
+            status = None
+        self._update_status(status=status, progress=[progress, maxval])
 
     # public api
     # ----------
