@@ -745,6 +745,8 @@ class CondaPackagesTable(QTableView):
 
         if 'mit' in license_.lower():
             lic = 'http://opensource.org/licenses/MIT'
+        elif 'bsd' == license_.lower():
+            lic = 'http://opensource.org/licenses/BSD-3-Clause'
         else:
             lic = None
 
@@ -1339,6 +1341,8 @@ class CondaPackagesWidget(QWidget):
         self.textbox_search.textChanged.connect(self.search_package)
 
         # layout setup
+        spacer_item = QSpacerItem(250, 5)
+
         top_layout = QHBoxLayout()
         top_layout.addWidget(self.combobox_filter)
         top_layout.addWidget(self.button_update)
@@ -1352,12 +1356,12 @@ class CondaPackagesWidget(QWidget):
         bottom_layout.addWidget(self.progress_bar, Qt.AlignRight)
 
         layout = QVBoxLayout()
-        layout.addItem(QSpacerItem(250, 5))
+        layout.addItem(spacer_item)
         layout.addLayout(top_layout)
         layout.addLayout(middle_layout)
-        layout.addItem(QSpacerItem(250, 5))
+        layout.addItem(spacer_item)
         layout.addLayout(bottom_layout)
-        layout.addItem(QSpacerItem(250, 5))
+        layout.addItem(spacer_item)
 
         self.setLayout(layout)
 
@@ -1613,7 +1617,10 @@ class CondaPackagesWidget(QWidget):
         elif 'name' in partial:
             status = _('Installing and linking <b>') + partial['name'] + '</b>'
         else:
+            progress = 0
+            maxval = 0
             status = None
+
         self._update_status(status=status, progress=[progress, maxval])
 
     # public api
