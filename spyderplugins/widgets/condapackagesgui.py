@@ -745,6 +745,8 @@ class CondaPackagesTable(QTableView):
 
         if 'mit' in license_.lower():
             lic = 'http://opensource.org/licenses/MIT'
+        else:
+            lic = None
 
         actions = []
 
@@ -752,6 +754,8 @@ class CondaPackagesTable(QTableView):
             actions.append(create_action(self, _('License: ' + license_),
                                          icon=QIcon(), triggered=lambda:
                                          self.open_url(lic)))
+            actions.append(None)
+
         if pypi != '':
             actions.append(create_action(self, _('Python Package Index'),
                                          icon=q_pypi, triggered=lambda:
@@ -774,6 +778,8 @@ class CondaPackagesTable(QTableView):
 
     def open_url(self, url):
         """Open link from action in default operating system  browser"""
+        if url is None:
+            return
         QDesktopServices.openUrl(QUrl(url))
 
 
@@ -1567,6 +1573,7 @@ class CondaPackagesWidget(QWidget):
             status = (_('Removing <b>') + dic['pkg'] + '</b>' + _(' from <i>')
                       + dic['name'] + '</i>')
             cp.remove(pkgs, name=name)
+
     # --- actions to be implemented in case of environment needs
         elif action == CREATE:
             status = _('Creating environment <b>') + dic['name'] + '</b>'
