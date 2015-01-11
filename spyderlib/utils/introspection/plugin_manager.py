@@ -151,14 +151,7 @@ class CodeInfo(object):
             while self.position:
                 base = self.source_code[self.position: self.position + 6]
                 if base.startswith('def ') or base.startswith('class '):
-                    while self.position < len(self.source_code) - 1:
-                        self.position += 1
-                        if self.source_code[self.position] == '(':
-                            self.position -= 1
-                            while self.source_code[self.position - 1] == ' ':
-                                self.position -= 1
-                            self.position += 1
-                            break
+                    self.position += base.index(' ') + 1
                     break
                 self.position -= 1
 
