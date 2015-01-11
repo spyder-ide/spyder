@@ -1011,7 +1011,7 @@ class CondaDependenciesModel(QAbstractTableModel):
             return Qt.ItemIsEnabled
         column = index.column()
         if column in [0, 1]:
-            return Qt.ItemFlags(Qt.ItemIsSelectable)  # Qt.NoItemFlags)
+            return Qt.ItemFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
         else:
             return Qt.ItemFlags(Qt.ItemIsEnabled)
 
@@ -1286,7 +1286,6 @@ class CondaPackagesWidget(QWidget):
         self._repo_files = None  # [filepath, filepath, ...]
         self._packages = {}
         self._download_error = None
-#        self._widget_setup_ready = False
         self._error = None
 
         # defined in self._setup() if None or in self.set_env method
@@ -1303,7 +1302,7 @@ class CondaPackagesWidget(QWidget):
         self.progress_bar = QProgressBar()
 
         self.widgets = [self.button_update, self.combobox_filter,
-                        self.textbox_search, self.table]
+                        self.textbox_search, self.label_count, self.table]
 
         # setup widgets
         self.combobox_filter.addItems([k for k in COMBOBOX_VALUES_ORDERED])
