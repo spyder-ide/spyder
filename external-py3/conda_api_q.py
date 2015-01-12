@@ -167,6 +167,7 @@ class CondaProcess(QObject):
 
     def _get_prefix_envname_helper(self, name, envs):
         """ """
+        global ROOTPREFIX
         if name == 'root':
             return ROOT_PREFIX
         for prefix in envs:
@@ -178,6 +179,7 @@ class CondaProcess(QObject):
         """ """
         # call conda with the list of extra arguments, and return the tuple
         # stdout, stderr
+        global ROOT_PREFIX
         if abspath:
             if sys.platform == 'win32':
                 python = join(ROOT_PREFIX, 'python.exe')
@@ -282,7 +284,6 @@ class CondaProcess(QObject):
             '''
             # adapted code
             # ------------
-            global ROOT_PREFIX
             if ROOT_PREFIX is None:
                 qprocess = QProcess()
                 cmd_list = ['conda', 'info', '--json']
