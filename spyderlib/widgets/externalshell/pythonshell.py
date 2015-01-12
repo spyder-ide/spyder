@@ -165,7 +165,8 @@ class ExternalPythonShell(ExternalShellBase):
     sig_finished = Signal()
     
     def __init__(self, parent=None, fname=None, wdir=None,
-                 interact=False, debug=False, post_mortem=False, path=[], python_args='',
+                 interact=False, debug=False, post_mortem=False,
+                 path=[], python_args='',
                  ipykernel=False, arguments='', stand_alone=None,
                  umr_enabled=True, umr_namelist=[], umr_verbose=True,
                  pythonstartup=None, pythonexecutable=None,
