@@ -11,7 +11,8 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-from spyderlib.qt.QtGui import QVBoxLayout, QGroupBox
+from spyderlib.qt.QtCore import Qt
+from spyderlib.qt.QtGui import QVBoxLayout, QGroupBox, QGridLayout
 
 # Local imports
 from spyderlib.baseconfig import get_translation
@@ -26,26 +27,50 @@ from spyderplugins.widgets.condapackagesgui import (CondaPackagesWidget,
 class CondaPackagesConfigPage(PluginConfigPage):
     """ """
     def setup_page(self):
-        settings_group = QGroupBox(_("Settings"))
-        update_box = self.create_checkbox(_("Update channel data on startup"),
-                                          'update_channel_startup',
-                                          default=True)
-        settings_layout = QVBoxLayout()
-        settings_layout.addWidget(update_box)
-        settings_group.setLayout(settings_layout)
+        network_group = QGroupBox(_("Network settings"))
+        self.checkbox_proxy = self.create_checkbox(_("Use network proxy"),
+                                                   'use_proxy_flag',
+                                                   default=False)
+        server = self.create_lineedit(_('Server'), 'server', default='',
+                                      alignment=Qt.Horizontal)
+        port = self.create_lineedit(_('Port'), 'port', default='',
+                                    alignment=Qt.Horizontal)
+        user = self.create_lineedit(_('User'), 'user', default='',
+                                    alignment=Qt.Horizontal)
+        password = self.create_lineedit(_('Password'), 'password', default='',
+                                        alignment=Qt.Horizontal)
 
-        network_group = QGroupBox(_("Network"))
-        proxy_box = self.create_checkbox(_("Use network proxy"),
-                                         'use_proxy_flag', default=True)
-        network_layout = QVBoxLayout()
-        network_layout.addWidget(proxy_box)
+        self.widgets = [server, port, user, password]
+
+        network_layout = QGridLayout()
+        network_layout.addWidget(self.checkbox_proxy, 0, 0)
+        network_layout.addWidget(server, 1, 0)
+        network_layout.addWidget(port, 1, 1)
+        network_layout.addWidget(user, 2, 0)
+        network_layout.addWidget(password, 2, 1)
         network_group.setLayout(network_layout)
 
         vlayout = QVBoxLayout()
-        vlayout.addWidget(settings_group)
         vlayout.addWidget(network_group)
         vlayout.addStretch(1)
         self.setLayout(vlayout)
+
+        # signals
+        self.checkbox_proxy.clicked.connect(self.proxy_settings)
+        self.proxy_settings()
+
+    def proxy_settings(self):
+        """ """
+        state = self.checkbox_proxy.checkState()
+        disabled = True
+
+        if state == 2:
+            disabled = False
+        elif state == 0:
+            disabled = True
+
+        for widget in self.widgets:
+            widget.setDisabled(disabled)
 
 
 class CondaPackages(CondaPackagesWidget, SpyderPluginMixin):
@@ -87,17 +112,15 @@ class CondaPackages(CondaPackagesWidget, SpyderPluginMixin):
 
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
-#        self.connect(self, SIGNAL("edit_goto(QString,int,QString)"),
-#                     self.main.editor.load)
-#        self.connect(self, SIGNAL('redirect_stdio(bool)'),
-#                     self.main.redirect_internalshell_stdio)
         self.main.add_dockwidget(self)
 
     def refresh_plugin(self):
         """Refresh pylint widget"""
+        pass
 
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
+        self.close_processes()
         return True
 
     def apply_plugin_settings(self, options):
