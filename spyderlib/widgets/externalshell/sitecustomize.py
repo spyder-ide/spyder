@@ -336,7 +336,6 @@ else:
 #===============================================================================
 
 IS_IPYTHON = os.environ.get("IPYTHON_KERNEL", "").lower() == "true"
-HAS_EXCEPTHOOK = os.environ.get("SPYDER_EXCEPTHOOK", False)
 
 
 if IS_IPYTHON:
@@ -379,7 +378,7 @@ if IS_IPYTHON:
         
 
 class SpyderPdb(pdb.Pdb):
-    send_notifcations = True
+    send_initial_notification = True
 
     def set_spyder_breakpoints(self):
         self.clear_all_breaks()
@@ -462,7 +461,7 @@ def user_return(self, frame, return_value):
 @monkeypatch_method(pdb.Pdb, 'Pdb')
 def interaction(self, frame, traceback):
     self.setup(frame, traceback)
-    if HAS_EXCEPTHOOK:
+    if self.send_initial_notification:
         self.notify_spyder(frame) #-----Spyder-specific-----------------------
     self.print_stack_entry(self.stack[self.curindex])
     self.cmdloop()
@@ -607,6 +606,7 @@ def post_mortem_excepthook(type, value, tb):
         _print('*' * 40)
         #  add ability to move between frames
         p = pdb.Pdb()
+        p.send_initial_notification = False
         p.reset()
         frame = tb.tb_frame
         prev = frame
@@ -635,7 +635,7 @@ def set_post_mortem():
 
 # Add post mortem debugging if requested and in a dedicated interpreter
 # existing interpreters use "runfile" below
-if HAS_EXCEPTHOOK:
+if "SPYDER_EXCEPTHOOK" in os.environ:
     set_post_mortem()
 
 
