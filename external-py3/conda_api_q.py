@@ -7,8 +7,7 @@
 """Conda Process based on conda-api and QProcess"""
 
 from spyderlib.qt.QtGui import QVBoxLayout, QHBoxLayout, QPushButton, QWidget
-
-from spyderlib.qt.QtCore import QProcess
+from spyderlib.qt.QtCore import QObject, QProcess
 from spyderlib.py3compat import to_text_string
 
 import re
@@ -53,14 +52,17 @@ class CondaEnvExistsError(CondaError):
     pass
 
 
-class CondaProcess(object):
+class CondaProcess(QObject):
     """conda-api modified to work with QProcess"""
     ROOT_PREFIX = None
+    ENCODING = 'ascii'
 
     def __init__(self, parent, on_finished=None, on_partial=None):
-        self.parent = parent
+        QObject.__init__(self, parent)
+        self._parent = parent
         self.output = None
         self.partial = None
+        self.stdout = None
         self.error = None
         self._parse = False
         self._function_called = ''
@@ -81,9 +83,9 @@ class CondaProcess(object):
     def _call_conda_partial(self):
         """ """
         stdout = to_text_string(self._process.readAllStandardOutput(),
-                                encoding='ascii')
+                                encoding=CondaProcess.ENCODING)
         stderr = to_text_string(self._process.readAllStandardError(),
-                                encoding='ascii')
+                                encoding=CondaProcess.ENCODING)
         if self._parse:
             self.output = json.loads(stdout)
         else:
@@ -92,12 +94,25 @@ class CondaProcess(object):
         self.partial = self.output
         self.stdout = self.output
         self.error = stderr
+        
+#        print(self.partial)
+#        print(self.error)
 
     def _call_conda_ready(self):
         """function called when QProcess in _call_conda finishes task"""
         function = self._function_called
-        stdout = self.stdout
-        stderr = self.error
+        
+        if self.stdout is None:
+            stdout = to_text_string(self._process.readAllStandardOutput(),
+                                    encoding=CondaProcess.ENCODING)
+        else:
+            stdout = self.stdout
+
+        if self.error is None:
+            stderr = to_text_string(self._process.readAllStandardError(),
+                                    encoding=CondaProcess.ENCODING)
+        else:
+            stderr = self.error
 
         if function == 'get_conda_version':
             pat = re.compile(r'conda:?\s+(\d+\.\d\S+|unknown)')
@@ -263,7 +278,7 @@ class CondaProcess(object):
                 qprocess.start(cmd_list[0], cmd_list[1:])
                 qprocess.waitForFinished()
                 output = to_text_string(qprocess.readAllStandardOutput(),
-                                        encoding='ascii')
+                                        encoding=CondaProcess.ENCODING)
                 info = json.loads(output)
                 CondaProcess.ROOT_PREFIX = info['root_prefix']
 
@@ -464,7 +479,7 @@ class CondaProcess(object):
             raise TypeError('must specify a list of one or more packages to '
                             'install into existing environment')
 
-        cmd_list = ['install', '--yes', '--json']
+        cmd_list = ['install', '--yes', '--json', '--force-pscheck']
 #        cmd_list = ['install', '--yes', '--quiet']        
         if name:
             cmd_list.extend(['--name', name])
@@ -533,7 +548,8 @@ class CondaProcess(object):
             (other information)
         }
         """
-        cmd_list = ['remove', '--json', '--quiet', '--yes']
+        cmd_list = ['remove', '--json', '--quiet', '--yes', '--force-pscheck']
+#        cmd_list = ['remove', '--json', '--quiet', '--yes']
 
         if not pkgs and not kwargs.get('all'):
             raise TypeError("Must specify at least one package to remove, \
@@ -918,6 +934,7 @@ class CondaProcess(object):
                             'install into existing environment')
 
         cmd_list = ['install', '--dry-run', '--json']
+        cmd_list = ['install', '--dry-run', '--json', '--force-pscheck']
 
         if not dep:
             cmd_list.extend(['--no-deps'])
@@ -936,12 +953,17 @@ class CondaProcess(object):
             self._call_and_parse(cmd_list)
 
 
+    def close(self):
+        """ """
+        self._process.kill()
+        self._process = None
+
 class TestWidget(QWidget):
     """ """
     def __init__(self, parent):
         QWidget.__init__(self, parent)
 
-        self.parent = parent
+        self._parent = parent
         self.cp = CondaProcess(self, self.on_finished)
 
         # widgets
