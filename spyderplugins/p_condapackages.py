@@ -15,7 +15,7 @@ from spyderlib.qt.QtCore import Qt
 from spyderlib.qt.QtGui import QVBoxLayout, QGroupBox, QGridLayout
 
 # Local imports
-from spyderlib.baseconfig import get_translation
+from spyderlib.baseconfig import get_translation, DEV
 _ = get_translation("p_condapackages", dirname="spyderplugins")
 from spyderlib.utils.qthelpers import get_icon
 from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage
@@ -134,5 +134,5 @@ class CondaPackages(CondaPackagesWidget, SpyderPluginMixin):
 # The following statements are required to register this 3rd party plugin:
 # =============================================================================
 # Only register plugin if conda is found on the system
-if CONDA_PATH:
+if CONDA_PATH and DEV:
     PLUGIN_CLASS = CondaPackages
