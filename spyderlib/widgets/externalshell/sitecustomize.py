@@ -597,7 +597,15 @@ def post_mortem_excepthook(type, value, tb):
     mortem debugging.
     """
     clear_post_mortem()
-    traceback.print_exception(type, value, tb, file=sys.stderr)
+    if IS_IPYTHON:
+        from IPython.core.getipython import get_ipython
+        ipython_shell = get_ipython()
+        ipython_shell.showtraceback((type, value, tb))
+        p = pdb.Pdb(ipython_shell.colors)
+    else:
+        traceback.print_exception(type, value, tb, file=sys.stderr)
+        p = pdb.Pdb()
+
     if not type == SyntaxError:
         # wait for stderr to print (stderr.flush does not work in this case)
         time.sleep(0.1)
@@ -605,7 +613,6 @@ def post_mortem_excepthook(type, value, tb):
         _print('Entering post mortem debugging...')
         _print('*' * 40)
         #  add ability to move between frames
-        p = pdb.Pdb()
         p.send_initial_notification = False
         p.reset()
         frame = tb.tb_frame
