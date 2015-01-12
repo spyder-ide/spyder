@@ -31,7 +31,8 @@ from spyderlib.qt.QtGui import (QGridLayout, QVBoxLayout, QHBoxLayout, QFont,
                                 QAbstractItemView, QDialog, QPalette,
                                 QDesktopServices)
 from spyderlib.qt.QtCore import (QSize, Qt, QAbstractTableModel, QModelIndex,
-                                 QPoint, QUrl, QObject, Slot, Signal, QThread)
+                                 QPoint, QUrl, QObject, Signal, QThread,
+                                 QMetaObject)
 from spyderlib.qt.QtNetwork import QNetworkRequest, QNetworkAccessManager
 from spyderlib.qt.compat import to_qvariant
 
@@ -135,7 +136,7 @@ class CondaPackagesModel(QAbstractTableModel):
     """Abstract Model to handle the packages in a conda environment"""
     def __init__(self, parent, packages_names, packages_versions, row_data):
         super(CondaPackagesModel, self).__init__(parent)
-        self.parent = parent
+        self._parent = parent
         self._packages_names = packages_names
         self._packages_versions = packages_versions
         self._rows = row_data
@@ -405,10 +406,12 @@ class MultiColumnSortFilterProxy(QSortFilterProxyModel):
     """
     def __init__(self, parent=None):
         super(MultiColumnSortFilterProxy, self).__init__(parent)
-        self.parent = parent
-        self.filter_string = ''
-        self.filter_status = ALL
-        self.filter_functions = {}
+        # if parent is stored as self.parent then PySide gives the following 
+        # TypeError: 'CondaPackagesTable' object is not callable
+        self._parent = parent
+        self._filter_string = ''
+        self._filter_status = ALL
+        self._filter_functions = {}
 
     def set_filter(self, text, status):
         """
@@ -417,8 +420,8 @@ class MultiColumnSortFilterProxy(QSortFilterProxyModel):
         status : int
             TODO: add description
         """
-        self.filter_string = text.lower()
-        self.filter_status = status
+        self._filter_string = text.lower()
+        self._filter_status = status
         self.invalidateFilter()
 
     def add_filter_function(self, name, new_function):
@@ -440,7 +443,7 @@ class MultiColumnSortFilterProxy(QSortFilterProxyModel):
                 'test_columns_1_and_2',
                 lambda r,s: (s in r[1] and s in r[2]))
         """
-        self.filter_functions[name] = new_function
+        self._filter_functions[name] = new_function
         self.invalidateFilter()
 
     def remove_filter_function(self, name):
@@ -448,8 +451,8 @@ class MultiColumnSortFilterProxy(QSortFilterProxyModel):
 
         name : hashable object
         """
-        if name in self.filter_functions.keys():
-            del self.filter_functions[name]
+        if name in self._filter_functions.keys():
+            del self._filter_functions[name]
             self.invalidateFilter()
 
     def filterAcceptsRow(self, row_num, parent):
@@ -461,9 +464,9 @@ class MultiColumnSortFilterProxy(QSortFilterProxyModel):
 
         # The source model should have a method called row()
         # which returns the table row as a python list.
-        tests = [func(model.row(row_num), self.filter_string,
-                 self.filter_status) for func in
-                 self.filter_functions.values()]
+        tests = [func(model.row(row_num), self._filter_string,
+                 self._filter_status) for func in
+                 self._filter_functions.values()]
 
         return False not in tests  # Changes this to any or all!
 
@@ -476,7 +479,7 @@ class CondaPackagesTable(QTableView):
 
     def __init__(self, parent):
         super(CondaPackagesTable, self).__init__(parent)
-        self.parent = parent
+        self._parent = parent
         self._searchbox = u''
         self._filterbox = ALL
         self.row_count = None
@@ -484,7 +487,7 @@ class CondaPackagesTable(QTableView):
         # To manage icon states
         self._model_index_clicked = None
         self.valid = False
-        self.column = None
+        self.column_ = None
         self.current_index = None
 
         # To prevent triggering the keyrelease after closing a dialog
@@ -503,14 +506,14 @@ class CondaPackagesTable(QTableView):
         self.setWordWrap(True)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
-        self.palette = QPalette()
+        self._palette = QPalette()
 
         # Header setup
-        hheader = self.horizontalHeader()
-        hheader.setResizeMode(hheader.Fixed)
-        self.setPalette(self.palette)
-        hheader.setStyleSheet("""QHeaderView {border: 0px;
+        self._hheader = self.horizontalHeader()
+        self._hheader.setResizeMode(self._hheader.Fixed)
+        self._hheader.setStyleSheet("""QHeaderView {border: 0px;
                                               border-radius: 0px;};""")
+        self.setPalette(self._palette)
         self.sortByColumn(NAME, Qt.AscendingOrder)
         self.setContextMenuPolicy(Qt.CustomContextMenu)
 
@@ -522,7 +525,7 @@ class CondaPackagesTable(QTableView):
                                                packages_versions, row_data)
         self.proxy_model.setSourceModel(self.source_model)
         self.hide_columns()
-
+        
         # Custom Proxy Model setup
         self.proxy_model.setDynamicSortFilter(True)
 
@@ -538,8 +541,8 @@ class CondaPackagesTable(QTableView):
         self.model().add_filter_function('status-search', filter_status)
         self.model().add_filter_function('text-search', filter_text)
 
-        vsb = self.verticalScrollBar()
-        vsb.valueChanged.connect(self.resize_rows)
+        # signals and slots
+        self.verticalScrollBar().valueChanged.connect(self.resize_rows)
 
     def resize_rows(self):
         """ """
@@ -590,8 +593,9 @@ class CondaPackagesTable(QTableView):
         else:
             group = to_text_string(group)
 
-        self.proxy_model.set_filter(text, group)
-        self.resize_rows()
+        if self.proxy_model is not None:
+            self.proxy_model.set_filter(text, group)
+            self.resize_rows()
 
         # update label count
         count = self.verticalHeader().count()
@@ -605,7 +609,7 @@ class CondaPackagesTable(QTableView):
         if text != '':
             count_text = count_text + _('matching "{0}"').format(text)
 
-        self.parent._update_status(status=count_text, hide=False)
+        self._parent._update_status(status=count_text, hide=False)
 
     def search_string_changed(self, text):
         """ """
@@ -670,25 +674,26 @@ class CondaPackagesTable(QTableView):
 
     def action_pressed(self, index):
         """ """
-        # TODO: When not working fix the none type error
         column = index.column()
-        model_index = self.proxy_model.mapToSource(index)
-        model = self.source_model
-
-        self._model_index_clicked = model_index
-        self.valid = False
-
-        if ((column == INSTALL and model.is_installable(model_index)) or
-           (column == REMOVE and model.is_removable(model_index)) or
-           (column == UPGRADE and model.is_upgradable(model_index)) or
-                (column == DOWNGRADE and model.is_downgradable(model_index))):
-
-            model.update_row_icon(model_index.row(), model_index.column())
-            self.valid = True
-            self.column = column
-        else:
-            self._model_index_clicked = None
+        
+        if self.proxy_model is not None:
+            model_index = self.proxy_model.mapToSource(index)
+            model = self.source_model
+    
+            self._model_index_clicked = model_index
             self.valid = False
+    
+            if ((column == INSTALL and model.is_installable(model_index)) or
+               (column == REMOVE and model.is_removable(model_index)) or
+               (column == UPGRADE and model.is_upgradable(model_index)) or
+                    (column == DOWNGRADE and model.is_downgradable(model_index))):
+    
+                model.update_row_icon(model_index.row(), model_index.column())
+                self.valid = True
+                self.column_ = column
+            else:
+                self._model_index_clicked = None
+                self.valid = False
 
     def action_released(self):
         """ """
@@ -701,9 +706,9 @@ class CondaPackagesTable(QTableView):
                 name = self.source_model.row(model_index.row())[NAME]
                 versions = self.source_model.get_package_versions(name)
                 version = self.source_model.get_package_version(name)
-                action = self.column
+                action = self.column_
 
-                self.parent._run_action(name, action, version, versions)
+                self._parent._run_action(name, action, version, versions)
 
     def context_menu_requested(self, event):
         """ Custom context menu"""
@@ -713,9 +718,9 @@ class CondaPackagesTable(QTableView):
 
         name, license_ = row[NAME], row[LICENSE]
         pos = QPoint(event.x(), event.y())
-        menu = QMenu(self)
+        self._menu = QMenu(self)
 
-        metadata = self.parent.get_package_metadata(name)
+        metadata = self._parent.get_package_metadata(name)
         pypi = metadata['pypi']
         home = metadata['home']
         dev = metadata['dev']
@@ -764,8 +769,8 @@ class CondaPackagesTable(QTableView):
                                          icon=q_dev, triggered=lambda:
                                          self.open_url(dev)))
         if len(actions):
-            add_actions(menu, actions)
-            menu.popup(self.viewport().mapToGlobal(pos))
+            add_actions(self._menu, actions)
+            self._menu.popup(self.viewport().mapToGlobal(pos))
 
     def open_url(self, url):
         """Open link from action in default operating system  browser"""
@@ -784,7 +789,7 @@ class DownloadManager(QObject):
     """
     def __init__(self, parent, on_finished_func, on_progress_func, save_path):
         super(DownloadManager, self).__init__(parent)
-        self.parent = parent
+        self._parent = parent
 
         self._on_finished_func = on_finished_func
         self._on_progress_func = on_progress_func
@@ -928,15 +933,16 @@ class SearchLineEdit(QLineEdit):
 
         if icon:
             self.setTextMargins(18, 0, 20, 0)
-            self.label = QLabel(self)
-            pixmap = QPixmap(get_image_path('conda_search.png', 'png'))
-            self.label.setPixmap(pixmap)
-            self.label.setStyleSheet('''border: 0px; padding-bottom: 2px;
-                                     padding-left: 1px;''')
+            self._label = QLabel(self)
+            self._pixmap_icon = QPixmap(get_image_path('conda_search.png',
+                                                       'png'))
+            self._label.setPixmap(self._pixmap_icon)
+            self._label.setStyleSheet('''border: 0px; padding-bottom: 2px;
+                                      padding-left: 1px;''')
 
-        pixmap = QPixmap(get_image_path(('conda_del.png')))
+        self._pixmap = QPixmap(get_image_path(('conda_del.png')))
         self.button_clear = QToolButton(self)
-        self.button_clear.setIcon(QIcon(pixmap))
+        self.button_clear.setIcon(QIcon(self._pixmap))
         self.button_clear.setIconSize(QSize(18, 18))
         self.button_clear.setCursor(Qt.ArrowCursor)
         self.button_clear.setStyleSheet("""QToolButton
@@ -950,10 +956,10 @@ class SearchLineEdit(QLineEdit):
         self.textEdited.connect(self._toggle_visibility)
 
         # layout
-        layout = QHBoxLayout(self)
-        layout.addWidget(self.button_clear, 0, Qt.AlignRight)
-        layout.setSpacing(0)
-        layout.setContentsMargins(0, 2, 2, 0)
+        self._layout = QHBoxLayout(self)
+        self._layout.addWidget(self.button_clear, 0, Qt.AlignRight)
+        self._layout.setSpacing(0)
+        self._layout.setContentsMargins(0, 2, 2, 0)
 
     def _toggle_visibility(self):
         """ """
@@ -974,7 +980,7 @@ class CondaDependenciesModel(QAbstractTableModel):
     """ """
     def __init__(self, parent, dic):
         super(CondaDependenciesModel, self).__init__(parent)
-        self.parent = parent
+        self._parent = parent
         self._packages = dic
         self._rows = []
         self._bold_rows = []
@@ -1066,7 +1072,7 @@ class CondaPackageActionDialog(QDialog):
     """ """
     def __init__(self, parent, env, name, action, version, versions):
         super(CondaPackageActionDialog, self).__init__(parent)
-        self.parent = parent
+        self._parent = parent
         self._env = env
         self._version_text = None
         self._name = name
@@ -1075,18 +1081,18 @@ class CondaPackageActionDialog(QDialog):
             conda_api_q.CondaProcess(self, self._on_process_finished)
 
         # widgets
-        self.label = QLabel()
+        self.label = QLabel(self)
         self.combobox_version = QComboBox()
-        self.label_version = QLabel()
+        self.label_version = QLabel(self)
         self.widget_version = None
         self.table_dependencies = None
 
         self.checkbox = QCheckBox(_('Install dependencies (recommended)'))
-        bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
+        self.bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
                                 Qt.Horizontal, self)
 
-        self.button_ok = bbox.button(QDialogButtonBox.Ok)
-        self.button_cancel = bbox.button(QDialogButtonBox.Cancel)
+        self.button_ok = self.bbox.button(QDialogButtonBox.Ok)
+        self.button_cancel = self.bbox.button(QDialogButtonBox.Cancel)
 
         self.button_cancel.setDefault(True)
         self.button_cancel.setAutoDefault(True)
@@ -1138,10 +1144,10 @@ class CondaPackageActionDialog(QDialog):
         self.label_version.setAlignment(Qt.AlignLeft)
         self.table_dependencies = QWidget(self)
 
-        layout = QGridLayout()
-        layout.addWidget(self.label, 0, 0, Qt.AlignVCenter | Qt.AlignLeft)
-        layout.addWidget(self.widget_version, 0, 1, Qt.AlignVCenter |
-                         Qt.AlignRight)
+        self._layout = QGridLayout()
+        self._layout.addWidget(self.label, 0, 0, Qt.AlignVCenter | Qt.AlignLeft)
+        self._layout.addWidget(self.widget_version, 0, 1, Qt.AlignVCenter |
+                               Qt.AlignRight)
 
         self.widgets = [self.checkbox, self.button_ok, self.widget_version,
                         self.table_dependencies]
@@ -1153,8 +1159,8 @@ class CondaPackageActionDialog(QDialog):
             dialog_size = QSize(dialog_size.width() + 40, 300)
             self.table_dependencies = table
             row_index = 1
-            layout.addItem(QSpacerItem(10, 5), row_index, 0)
-            layout.addWidget(self.checkbox, row_index + 1, 0, 1, 2)
+            self._layout.addItem(QSpacerItem(10, 5), row_index, 0)
+            self._layout.addWidget(self.checkbox, row_index + 1, 0, 1, 2)
             self.checkbox.setChecked(True)
             self._changed_version(versions[0])
 
@@ -1166,21 +1172,21 @@ class CondaPackageActionDialog(QDialog):
             table.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
             table.horizontalHeader().setStretchLastSection(True)
 
-        layout.addWidget(self.table_dependencies, row_index + 2, 0, 1, 2,
+        self._layout.addWidget(self.table_dependencies, row_index + 2, 0, 1, 2,
                          Qt.AlignHCenter)
-        layout.addItem(QSpacerItem(10, 5), row_index + 3, 0)
-        layout.addWidget(bbox, row_index + 6, 0, 1, 2, Qt.AlignHCenter)
+        self._layout.addItem(QSpacerItem(10, 5), row_index + 3, 0)
+        self._layout.addWidget(self.bbox, row_index + 6, 0, 1, 2, Qt.AlignHCenter)
 
         title = "{0}: {1}".format(action_title[action], name)
-        self.setLayout(layout)
+        self.setLayout(self._layout)
         self.setMinimumSize(dialog_size)
         self.setFixedSize(dialog_size)
         self.setWindowTitle(title)
         self.setModal(True)
 
         # signals and slots
-        bbox.accepted.connect(self.accept)
-        bbox.rejected.connect(self.close)
+        self.bbox.accepted.connect(self.accept)
+        self.bbox.rejected.connect(self.close)
         self.combobox_version.currentIndexChanged.connect(
             self._changed_version)
         self.checkbox.stateChanged.connect(self._changed_checkbox)
@@ -1252,8 +1258,7 @@ class CondaPackagesWidget(QWidget):
 
     def __init__(self, parent):
         super(CondaPackagesWidget, self).__init__(parent)
-        self.parent = parent
-
+        self._parent = parent
         self._status = ''  # Statusbar message
         self._conda_process = \
             conda_api_q.CondaProcess(self, self._on_conda_process_ready,
@@ -1264,14 +1269,13 @@ class CondaPackagesWidget(QWidget):
                                                  self._on_download_finished,
                                                  self._on_download_progress,
                                                  self.CONDA_CONF_PATH)
-        self._thread = QThread()
+        self._thread = QThread(self)
         self._worker = None
         self._db_metadata = cp.ConfigParser()
         self._db_file = CondaPackagesWidget.DATABASE_FILE
         self._db_metadata.readfp(open(osp.join(self.DATA_PATH, self._db_file)))
         self._packages_names = None
         self._row_data = None
-
         # Hardcoded channels for the moment
         self._default_channels = [
             ['_free_', 'http://repo.continuum.io/pkgs/free'],
@@ -1293,13 +1297,13 @@ class CondaPackagesWidget(QWidget):
         self._selected_env = None
 
         # widgets
-        self.combobox_filter = QComboBox()
+        self.combobox_filter = QComboBox(self)
         self.button_update = QPushButton(_('Update package index'))
         self.textbox_search = SearchLineEdit(self)
 
         self.table = CondaPackagesTable(self)
-        self.status_bar = QLabel()
-        self.progress_bar = QProgressBar()
+        self.status_bar = QLabel(self)
+        self.progress_bar = QProgressBar(self)
 
         self.widgets = [self.button_update, self.combobox_filter,
                         self.textbox_search, self.table]
@@ -1322,38 +1326,42 @@ class CondaPackagesWidget(QWidget):
         self.button_update.clicked.connect(self.update_package_index)
         self.textbox_search.textChanged.connect(self.search_package)
 
+        # NOTE: do not try to save the QSpacerItems in a variable for reuse
+        # it will crash python on exit if you do!
+
         # layout setup
-        spacer_item = QSpacerItem(250, 5)
+        self._spacer_w = 250
+        self._spacer_h = 5
 
-        top_layout = QHBoxLayout()
-        top_layout.addWidget(self.combobox_filter)
-        top_layout.addWidget(self.button_update)
-        top_layout.addWidget(self.textbox_search)
+        self._top_layout = QHBoxLayout()
+        self._top_layout.addWidget(self.combobox_filter)
+        self._top_layout.addWidget(self.button_update)
+        self._top_layout.addWidget(self.textbox_search)
 
-        middle_layout = QVBoxLayout()
-        middle_layout.addWidget(self.table)
+        self._middle_layout = QVBoxLayout()
+        self._middle_layout.addWidget(self.table)
 
-        bottom_layout = QHBoxLayout()
-        bottom_layout.addWidget(self.status_bar, Qt.AlignLeft)
-        bottom_layout.addWidget(self.progress_bar, Qt.AlignRight)
+        self._bottom_layout = QHBoxLayout()
+        self._bottom_layout.addWidget(self.status_bar, Qt.AlignLeft)
+        self._bottom_layout.addWidget(self.progress_bar, Qt.AlignRight)
 
-        layout = QVBoxLayout()
-        layout.addItem(spacer_item)
-        layout.addLayout(top_layout)
-        layout.addLayout(middle_layout)
-        layout.addItem(spacer_item)
-        layout.addLayout(bottom_layout)
-        layout.addItem(spacer_item)
+        self._layout = QVBoxLayout(self)
+        self._layout.addItem(QSpacerItem(self._spacer_w, self._spacer_h))
+        self._layout.addLayout(self._top_layout)
+        self._layout.addLayout(self._middle_layout)
+        self._layout.addItem(QSpacerItem(self._spacer_w, self._spacer_h))
+        self._layout.addLayout(self._bottom_layout)
+        self._layout.addItem(QSpacerItem(self._spacer_w, self._spacer_h))
 
-        self.setLayout(layout)
-
+        self.setLayout(self._layout)
         # setup
         if self._supports_architecture():
             self.update_package_index()
+            pass
         else:
             status = _('no packages supported for this architecture!')
             self._update_status(progress=[0, 0], hide=True, status=status)
-
+            
     def _supports_architecture(self):
         """ """
         self._set_repo_name()
@@ -1464,17 +1472,18 @@ class CondaPackagesWidget(QWidget):
         """ """
         if self._selected_env is None:
             self._selected_env = ROOT
+            
         self._thread.terminate()
+        self._thread = QThread(self)
         self._worker = Worker(self, self._repo_files, self._selected_env,
                               self._prefix)
-        thread = self._thread
-        worker = self._worker
-        worker.ready.connect(self._worker_ready)
-        worker.ready.connect(thread.quit)
-        worker.moveToThread(thread)
-        worker.status_updated.connect(self._update_status)
-        thread.started.connect(worker._prepare_model)
-        thread.start()
+        self._worker.sig_status_updated.connect(self._update_status)
+        self._worker.sig_ready.connect(self._worker_ready)
+        self._worker.sig_ready.connect(self._thread.quit)
+        self._worker.moveToThread(self._thread)
+
+        self._thread.started.connect(self._worker._prepare_model)        
+        self._thread.start()
 
     def _worker_ready(self):
         """ """
@@ -1578,7 +1587,7 @@ class CondaPackagesWidget(QWidget):
             status = _('there was an error')
             self._update_status(hide=False, status=status)
         else:
-            self._update_status(hide=False)
+            self._update_status(hide=True)
 
         self._setup_widget()
 
@@ -1639,6 +1648,12 @@ class CondaPackagesWidget(QWidget):
         # TODO: check if env exists!
         self._selected_env = env
         self._setup_widget()
+    
+    def close_processes(self):
+        """ """
+        self._thread.exit(0)
+        self._thread.quit()
+        self._conda_process.close()
 
 
 class Worker(QObject):
@@ -1646,12 +1661,12 @@ class Worker(QObject):
     an usefull format for the CondaPackagesModel class without blocking the GUI
     in case the number of packages or channels grows too large
     """
-    ready = Signal()
-    status_updated = Signal(str, bool, list)
+    sig_ready = Signal()
+    sig_status_updated = Signal(str, bool, list)
 
     def __init__(self, parent, repo_files, env, prefix):
         QObject.__init__(self)
-        self.parent = parent
+        self._parent = parent
         self._repo_files = repo_files
         self._env = env
         self._prefix = prefix
@@ -1663,7 +1678,6 @@ class Worker(QObject):
         # define helper function locally
         self._get_package_metadata = parent.get_package_metadata
 
-    @Slot()
     def _prepare_model(self):
         """ """
         self._load_packages()
@@ -1671,7 +1685,8 @@ class Worker(QObject):
 
     def _load_packages(self):
         """ """
-        self.status_updated.emit(_('Loading conda packages...'), True, [0, 0])
+        self.sig_status_updated.emit(_('Loading conda packages...'), True,
+                                     [0, 0])
         grouped_usable_packages = {}
         packages_all = []
 
@@ -1851,7 +1866,7 @@ class Worker(QObject):
         self.packages_names = self._packages_names
         self.packages_versions = self._packages_versions
 
-        self.ready.emit()
+        self.sig_ready.emit()
 
 # TODO:  update packages.ini file
 # TODO: Define some automatic tests that can include the following:
