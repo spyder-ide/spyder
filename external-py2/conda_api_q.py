@@ -1026,7 +1026,7 @@ class TestWidget(QWidget):
         self.button_package_info.clicked.connect(
             lambda: self.cp.package_info('spyder'))
         self.button_linked.clicked.connect(
-            lambda: linked(self.cp.ROOT_PREFIX))
+            lambda: linked(ROOT_PREFIX))
         self.button_pip.clicked.connect(lambda: self.cp.pip('root'))
 
         for widget in self.widgets_queue:
