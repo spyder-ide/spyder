@@ -810,7 +810,8 @@ class ExternalConsole(SpyderPluginWidget):
             else:
                 sa_settings = None
             shellwidget = ExternalPythonShell(self, fname, wdir,
-                           interact, debug, post_mortem=post_mortem, path=pythonpath,
+                           interact, debug, post_mortem=post_mortem, 
+                           path=pythonpath,
                            python_args=python_args,
                            ipykernel=ipykernel,
                            arguments=args, stand_alone=sa_settings,

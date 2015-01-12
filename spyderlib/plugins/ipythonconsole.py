@@ -771,7 +771,8 @@ class IPythonConsole(SpyderPluginWidget):
         if client is not None:
             return client
 
-    def run_script_in_current_client(self, filename, wdir, args, debug, post_mortem):
+    def run_script_in_current_client(self, filename, wdir, args, debug,
+            post_mortem):
         """Run script in current client, if any"""
         norm = lambda text: remove_backslashes(to_text_string(text))
         client = self.get_current_client()
