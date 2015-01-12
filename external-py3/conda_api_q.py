@@ -7,7 +7,7 @@
 """Conda Process based on conda-api and QProcess"""
 
 from spyderlib.qt.QtGui import QVBoxLayout, QHBoxLayout, QPushButton, QWidget
-from spyderlib.qt.QtCore import QObject, QProcess
+from spyderlib.qt.QtCore import QObject, QProcess, QByteArray
 from spyderlib.py3compat import to_text_string
 
 import re
@@ -18,6 +18,15 @@ from os.path import basename, isdir, join
 
 __version__ = '1.2.1'
 
+# global
+ROOT_PREFIX = None
+
+def handle_qbytearray(obj, encoding):
+    """ """
+    if isinstance(obj, QByteArray):
+        obj = obj.data()
+    
+    return to_text_string(obj, encoding=encoding)
 
 # functions not calling a QProcess, outside of the class
 # these could also be implemented as static methods...
@@ -54,7 +63,6 @@ class CondaEnvExistsError(CondaError):
 
 class CondaProcess(QObject):
     """conda-api modified to work with QProcess"""
-    ROOT_PREFIX = None
     ENCODING = 'ascii'
 
     def __init__(self, parent, on_finished=None, on_partial=None):
@@ -82,10 +90,12 @@ class CondaProcess(QObject):
 
     def _call_conda_partial(self):
         """ """
-        stdout = to_text_string(self._process.readAllStandardOutput(),
-                                encoding=CondaProcess.ENCODING)
-        stderr = to_text_string(self._process.readAllStandardError(),
-                                encoding=CondaProcess.ENCODING)
+        stdout = self._process.readAllStandardOutput()
+        stdout = handle_qbytearray(stdout, CondaProcess.ENCODING)
+        
+        stderr = self._process.readAllStandardError()
+        stderr = handle_qbytearray(stderr, CondaProcess.ENCODING)
+
         if self._parse:
             self.output = json.loads(stdout)
         else:
@@ -158,7 +168,7 @@ class CondaProcess(QObject):
     def _get_prefix_envname_helper(self, name, envs):
         """ """
         if name == 'root':
-            return CondaProcess.ROOT_PREFIX
+            return ROOT_PREFIX
         for prefix in envs:
             if basename(prefix) == name:
                 return prefix
@@ -170,12 +180,12 @@ class CondaProcess(QObject):
         # stdout, stderr
         if abspath:
             if sys.platform == 'win32':
-                python = join(CondaProcess.ROOT_PREFIX, 'python.exe')
-                conda = join(CondaProcess.ROOT_PREFIX,
+                python = join(ROOT_PREFIX, 'python.exe')
+                conda = join(ROOT_PREFIX,
                              'Scripts', 'conda-script.py')
             else:
-                python = join(CondaProcess.ROOT_PREFIX, 'bin/python')
-                conda = join(CondaProcess.ROOT_PREFIX, 'bin/conda')
+                python = join(ROOT_PREFIX, 'bin/python')
+                conda = join(ROOT_PREFIX, 'bin/conda')
             cmd_list = [python, conda]
         else:  # just use whatever conda is on the path
             cmd_list = ['conda']
@@ -236,10 +246,10 @@ class CondaProcess(QObject):
         This function should only be called once (right after importing
         conda_api).
         """
-#        global ROOT_PREFIX
+        global ROOT_PREFIX
 
         if prefix:
-            CondaProcess.ROOT_PREFIX = prefix
+            ROOT_PREFIX = prefix
         # find *some* conda instance, and then use info() to get 'root_prefix'
         else:
             pass
@@ -272,15 +282,17 @@ class CondaProcess(QObject):
             '''
             # adapted code
             # ------------
-            if CondaProcess.ROOT_PREFIX is None:
+            global ROOT_PREFIX
+            if ROOT_PREFIX is None:
                 qprocess = QProcess()
                 cmd_list = ['conda', 'info', '--json']
                 qprocess.start(cmd_list[0], cmd_list[1:])
                 qprocess.waitForFinished()
-                output = to_text_string(qprocess.readAllStandardOutput(),
-                                        encoding=CondaProcess.ENCODING)
-                info = json.loads(output)
-                CondaProcess.ROOT_PREFIX = info['root_prefix']
+
+                output = qprocess.readAllStandardOutput()
+                output = handle_qbytearray(output, CondaProcess.ENCODING)
+                info = json.loads(output)                
+                ROOT_PREFIX = info['root_prefix']
 
     def get_conda_version(self):
         """

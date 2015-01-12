@@ -32,7 +32,7 @@ from spyderlib.qt.QtGui import (QGridLayout, QVBoxLayout, QHBoxLayout, QFont,
                                 QDesktopServices)
 from spyderlib.qt.QtCore import (QSize, Qt, QAbstractTableModel, QModelIndex,
                                  QPoint, QUrl, QObject, Signal, QThread,
-                                 QMetaObject)
+                                 QByteArray)
 from spyderlib.qt.QtNetwork import QNetworkRequest, QNetworkAccessManager
 from spyderlib.qt.compat import to_qvariant
 
@@ -852,6 +852,8 @@ class DownloadManager(QObject):
         data = self._reply.rawHeaderPairs()
 
         for d in data:
+            if isinstance(d[0], QByteArray):
+                d = [d[0].data(), d[1].data()]
             key = to_text_string(d[0], encoding='ascii')
             value = to_text_string(d[1], encoding='ascii')
             headers[key.lower()] = value
@@ -895,6 +897,9 @@ class DownloadManager(QObject):
             os.mkdir(self._save_path)
 
         fullpath = osp.join(self._save_path, self._filename)
+
+        if isinstance(data, QByteArray):
+            data = data.data()
 
         with open(fullpath, 'wb') as f:
             f.write(data)
@@ -1263,7 +1268,7 @@ class CondaPackagesWidget(QWidget):
         self._conda_process = \
             conda_api_q.CondaProcess(self, self._on_conda_process_ready,
                                      self._on_conda_process_partial)
-        self._prefix = conda_api_q.CondaProcess.ROOT_PREFIX
+        self._prefix = conda_api_q.ROOT_PREFIX
 
         self._download_manager = DownloadManager(self,
                                                  self._on_download_finished,
