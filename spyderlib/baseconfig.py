@@ -50,11 +50,11 @@ def _get_debug_env():
     return int(debug_env)    
 DEBUG = _get_debug_env()
 
-def debug_print(message):
+def debug_print(*message):
     """Output debug messages to stdout"""
     if DEBUG:
         ss = STDOUT
-        print(message, file=ss)
+        print(*message, file=ss)
 
 #==============================================================================
 # Configuration paths
