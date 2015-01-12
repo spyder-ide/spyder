@@ -10,6 +10,8 @@ import os
 import os.path as osp
 import pdb
 import bdb
+import time
+import traceback
 
 
 # sys.argv can be missing when Python is embedded, taking care of it.
@@ -82,17 +84,17 @@ except ImportError:
 # Colorization of sys.stderr (standard Python interpreter)
 if os.environ.get("COLORIZE_SYS_STDERR", "").lower() == "true":
     class StderrProxy(object):
-        """Proxy to sys.stderr file object overriding only the `write` method 
-        to provide red colorization for the whole stream, and blue-underlined 
-        for traceback file links""" 
+        """Proxy to sys.stderr file object overriding only the `write` method
+        to provide red colorization for the whole stream, and blue-underlined
+        for traceback file links"""
         def __init__(self):
             self.old_stderr = sys.stderr
             self.__buffer = ''
             sys.stderr = self
-        
+
         def __getattr__(self, name):
             return getattr(self.old_stderr, name)
-            
+
         def write(self, text):
             if os.name == 'nt' and '\n' not in text:
                 self.__buffer += text
@@ -107,18 +109,18 @@ if os.environ.get("COLORIZE_SYS_STDERR", "").lower() == "true":
                     colored_text = '\x1b[31m'+text+'\x1b[0m'
                 self.old_stderr.write(colored_text)
             self.__buffer = ''
-    
+
     stderrproxy = StderrProxy()
 
 
-# Prepending this spyderlib package's path to sys.path to be sure 
+# Prepending this spyderlib package's path to sys.path to be sure
 # that another version of spyderlib won't be imported instead:
 spyderlib_path = osp.dirname(__file__)
 while not osp.isdir(osp.join(spyderlib_path, 'spyderlib')):
     spyderlib_path = osp.abspath(osp.join(spyderlib_path, os.pardir))
 if not spyderlib_path.startswith(sys.prefix):
-    # Spyder is not installed: moving its parent directory to the top of 
-    # sys.path to be sure that this spyderlib package will be imported in 
+    # Spyder is not installed: moving its parent directory to the top of
+    # sys.path to be sure that this spyderlib package will be imported in
     # the remote process (instead of another installed version of Spyder)
     while spyderlib_path in sys.path:
         sys.path.remove(spyderlib_path)
@@ -142,7 +144,7 @@ if pyqt_api:
 
 
 if os.name == 'nt': # Windows platforms
-            
+
     # Setting console encoding (otherwise Python does not recognize encoding)
     try:
         import locale, ctypes
@@ -208,7 +210,6 @@ if mpl_backend:
     except ImportError:
         pass
 
-
 try:
     import sitecustomize  #analysis:ignore
 except ImportError:
@@ -227,12 +228,12 @@ else:
                       float(os.environ['SPYDER_AR_TIMEOUT']),
                       os.environ["SPYDER_AR_STATE"].lower() == "true")
     monitor.start()
-    
+
     def open_in_spyder(source, lineno=1):
         """
-        Open a source file in Spyder's editor (it could be a filename or a 
+        Open a source file in Spyder's editor (it could be a filename or a
         Python module/package).
-        
+
         If you want to use IPython's %edit use %ed instead
         """
         try:
@@ -253,14 +254,14 @@ else:
         else:
             _print("Can't open file %s" % source, file=sys.stderr)
     builtins.open_in_spyder = open_in_spyder
-    
+
     # * PyQt4:
-    #   * Removing PyQt4 input hook which is not working well on Windows since 
+    #   * Removing PyQt4 input hook which is not working well on Windows since
     #     opening a subprocess do not attach a real console to it
     #     (with keyboard events...)
     #   * Replacing it with our own input hook
     # * PySide:
-    #   * Installing an input hook: this feature is not yet supported 
+    #   * Installing an input hook: this feature is not yet supported
     #     natively by PySide
     if os.environ.get("INSTALL_QT_INPUTHOOK", "").lower() == "true":
         if os.environ["QT_API"] == 'pyqt':
@@ -269,14 +270,14 @@ else:
             QtCore.pyqtRemoveInputHook()
         elif os.environ["QT_API"] == 'pyside':
             from PySide import QtCore
-            # XXX: when PySide will implement an input hook, we will have to 
+            # XXX: when PySide will implement an input hook, we will have to
             # remove it here
         else:
             assert False
 
         def qt_inputhook():
             """Qt input hook for Spyder's console
-            
+
             This input hook wait for available stdin data (notified by
             ExternalPythonShell through the monitor's inputhook_flag
             attribute), and in the meantime it processes Qt events."""
@@ -326,7 +327,7 @@ else:
         def displayhook(obj):
             sys.__displayhook__(obj)
             monitor.refresh()
-    
+
         sys.displayhook = displayhook
 
 
@@ -334,7 +335,10 @@ else:
 # Monkey-patching pdb
 #===============================================================================
 
-if os.environ.get("IPYTHON_KERNEL", "").lower() == "true":
+IS_IPYTHON = os.environ.get("IPYTHON_KERNEL", "").lower() == "true"
+
+
+if IS_IPYTHON:
 
     #XXX If Matplotlib is not imported first, the next IPython import will fail
     try:
@@ -374,6 +378,8 @@ if os.environ.get("IPYTHON_KERNEL", "").lower() == "true":
         
 
 class SpyderPdb(pdb.Pdb):
+    send_initial_notification = True
+
     def set_spyder_breakpoints(self):
         self.clear_all_breaks()
         #------Really deleting all breakpoints:
@@ -394,7 +400,7 @@ class SpyderPdb(pdb.Pdb):
                     i += 1
                     self.set_break(self.canonic(fname), linenumber,
                                    cond=condition)
-                    
+
     def notify_spyder(self, frame):
         if not frame:
             return
@@ -405,7 +411,8 @@ class SpyderPdb(pdb.Pdb):
         if isinstance(fname, basestring) and isinstance(lineno, int):
             if osp.isfile(fname) and monitor is not None:
                 monitor.notify_pdb_step(fname, lineno)
-
+                time.sleep(0.1)
+                
 pdb.Pdb = SpyderPdb
 
 #XXX: I know, this function is now also implemented as is in utils/misc.py but
@@ -418,10 +425,10 @@ def monkeypatch_method(cls, patch_name):
     # (Tue Jan 15 19:13:25 CET 2008)
     """
     Add the decorated method to the given class; replace as needed.
-    
+
     If the named method already exists on the given class, it will
-    be replaced, and a reference to the old method is created as 
-    cls._old<patch_name><name>. If the "_old_<patch_name>_<name>" attribute 
+    be replaced, and a reference to the old method is created as
+    cls._old<patch_name><name>. If the "_old_<patch_name>_<name>" attribute
     already exists, KeyError is raised.
     """
     def decorator(func):
@@ -452,11 +459,12 @@ def user_return(self, frame, return_value):
             return
         self._wait_for_mainpyfile = 0
     self._old_Pdb_user_return(frame, return_value)
-        
+
 @monkeypatch_method(pdb.Pdb, 'Pdb')
 def interaction(self, frame, traceback):
     self.setup(frame, traceback)
-    self.notify_spyder(frame) #-----Spyder-specific-------------------------
+    if self.send_initial_notification:
+        self.notify_spyder(frame) #-----Spyder-specific-----------------------
     self.print_stack_entry(self.stack[self.curindex])
     self.cmdloop()
     self.forget()
@@ -468,7 +476,7 @@ def reset(self):
         monitor.register_pdb_session(self)
     self.set_spyder_breakpoints()
 
-#XXX: notify spyder on any pdb command (is that good or too lazy? i.e. is more 
+#XXX: notify spyder on any pdb command (is that good or too lazy? i.e. is more
 #     specific behaviour desired?)
 @monkeypatch_method(pdb.Pdb, 'Pdb')
 def postcmd(self, stop, line):
@@ -506,7 +514,7 @@ if sys.version[0] == '2':
 
 # Restoring (almost) original sys.path:
 # (Note: do not remove spyderlib_path from sys.path because if Spyder has been
-#  installed using python setup.py install, then this could remove the 
+#  installed using python setup.py install, then this could remove the
 #  'site-packages' directory from sys.path!)
 try:
     sys.path.remove(osp.join(spyderlib_path,
@@ -530,13 +538,13 @@ if os.environ.get("IGNORE_SIP_SETAPI_ERRORS", "").lower() == "true":
         pass
 
 
-# The following classes and functions are mainly intended to be used from 
+# The following classes and functions are mainly intended to be used from
 # an interactive Python session
 class UserModuleReloader(object):
     """
     User Module Reloader (UMR) aims at deleting user modules 
     to force Python to deeply reload them during import
-    
+
     pathlist [list]: blacklist in terms of module path
     namelist [list]: blacklist in terms of module name
     """
@@ -555,12 +563,12 @@ class UserModuleReloader(object):
                 return True
         else:
             return set(modname.split('.')) & set(self.namelist)
-        
+
     def run(self, verbose=False):
         """
         Del user modules to force Python to deeply reload them
-        
-        Do not del modules which are considered as system modules, i.e. 
+
+        Do not del modules which are considered as system modules, i.e.
         modules installed in subdirectories of Python interpreter's binary
         Do not del C modules
         """
@@ -569,8 +577,8 @@ class UserModuleReloader(object):
             if modname not in self.previous_modules:
                 modpath = getattr(module, '__file__', None)
                 if modpath is None:
-                    # *module* is a C module that is statically linked into the 
-                    # interpreter. There is no way to know its path, so we 
+                    # *module* is a C module that is statically linked into the
+                    # interpreter. There is no way to know its path, so we
                     # choose to ignore it.
                     continue
                 if not self.is_module_blacklisted(modname, modpath):
@@ -596,11 +604,84 @@ def _get_globals():
     return namespace
 
 
-def runfile(filename, args=None, wdir=None, namespace=None):
+#===============================================================================
+# Handle Post Mortem Debugging and Traceback Linkage to Spyder
+#===============================================================================
+
+def clear_post_mortem():
+    """
+    Remove the post mortem excepthook and replace with a standard one.
+    """
+    if IS_IPYTHON:
+        from IPython.core.getipython import get_ipython
+        ipython_shell = get_ipython()
+        if ipython_shell:
+            ipython_shell.set_custom_exc((None,), None)
+    else:
+        sys.excepthook = sys.__excepthook__
+
+
+def post_mortem_excepthook(type, value, tb):
+    """
+    For post mortem exception handling, print a banner and enable post
+    mortem debugging.
+    """
+    clear_post_mortem()
+    if IS_IPYTHON:
+        from IPython.core.getipython import get_ipython
+        ipython_shell = get_ipython()
+        ipython_shell.showtraceback((type, value, tb))
+        p = pdb.Pdb(ipython_shell.colors)
+    else:
+        traceback.print_exception(type, value, tb, file=sys.stderr)
+        p = pdb.Pdb()
+
+    if not type == SyntaxError:
+        # wait for stderr to print (stderr.flush does not work in this case)
+        time.sleep(0.1)
+        _print('*' * 40)
+        _print('Entering post mortem debugging...')
+        _print('*' * 40)
+        #  add ability to move between frames
+        p.send_initial_notification = False
+        p.reset()
+        frame = tb.tb_frame
+        prev = frame
+        while frame.f_back:
+            prev = frame
+            frame = frame.f_back
+        frame = prev
+        # wait for stdout to print
+        time.sleep(0.1)
+        p.interaction(frame, tb)
+
+
+def set_post_mortem():
+    """
+    Enable the post mortem debugging excepthook.
+    """
+    if IS_IPYTHON:
+        from IPython.core.getipython import get_ipython
+        def ipython_post_mortem_debug(shell, etype, evalue, tb,
+                   tb_offset=None):
+            post_mortem_excepthook(etype, evalue, tb)
+        ipython_shell = get_ipython()
+        ipython_shell.set_custom_exc((Exception,), ipython_post_mortem_debug)
+    else:
+        sys.excepthook = post_mortem_excepthook
+
+# Add post mortem debugging if requested and in a dedicated interpreter
+# existing interpreters use "runfile" below
+if "SPYDER_EXCEPTHOOK" in os.environ:
+    set_post_mortem()
+
+
+def runfile(filename, args=None, wdir=None, namespace=None, post_mortem=False):
     """
     Run filename
     args: command line arguments (string)
     wdir: working directory
+    post_mortem: boolean, whether to enter post-mortem mode on error
     """
     try:
         filename = filename.decode('utf-8')
@@ -635,18 +716,22 @@ def runfile(filename, args=None, wdir=None, namespace=None):
             # AttributeError --> systematically raised in Python 3
             pass
         os.chdir(wdir)
+    if post_mortem:
+        set_post_mortem()
     execfile(filename, namespace)
+    clear_post_mortem()
     sys.argv = ['']
     namespace.pop('__file__')
-    
+
 builtins.runfile = runfile
 
 
-def debugfile(filename, args=None, wdir=None):
+def debugfile(filename, args=None, wdir=None, post_mortem=False):
     """
     Debug filename
     args: command line arguments (string)
     wdir: working directory
+    post_mortem: boolean, included for compatiblity with runfile
     """
     debugger = pdb.Pdb()
     filename = debugger.canonic(filename)
@@ -715,3 +800,4 @@ try:
 except KeyError:
     if os.environ.get('PYTHONPATH') is not None:
         del os.environ['PYTHONPATH']
+

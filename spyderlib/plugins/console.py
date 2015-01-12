@@ -228,6 +228,7 @@ class Console(SpyderPluginWidget):
                 filename = osp.basename(filename)
             else:
                 return
+        debug_print(args)
         filename = osp.abspath(filename)
         rbs = remove_backslashes
         command = "runfile('%s', args='%s')" % (rbs(filename), rbs(args))

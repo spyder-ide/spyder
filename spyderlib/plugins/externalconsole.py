@@ -650,7 +650,8 @@ class ExternalConsole(SpyderPluginWidget):
             else:
                 return shellwidgets[0].shell
         
-    def run_script_in_current_shell(self, filename, wdir, args, debug):
+    def run_script_in_current_shell(self, filename, wdir, args, debug, 
+                  post_mortem):
         """Run script in current shell, if any"""
         norm = lambda text: remove_backslashes(to_text_string(text))
         line = "%s('%s'" % ('debugfile' if debug else 'runfile',
@@ -659,6 +660,8 @@ class ExternalConsole(SpyderPluginWidget):
             line += ", args=r'%s'" % norm(args)
         if wdir:
             line += ", wdir=r'%s'" % norm(wdir)
+        if post_mortem:
+            line += ', post_mortem=True'
         line += ")"
         if not self.execute_python_code(line, interpreter_only=True):
             QMessageBox.warning(self, _('Warning'),
@@ -710,7 +713,7 @@ class ExternalConsole(SpyderPluginWidget):
     
     def start(self, fname, wdir=None, args='', interact=False, debug=False,
               python=True, ipykernel=False, ipyclient=None,
-              give_ipyclient_focus=True, python_args=''):
+              give_ipyclient_focus=True, python_args='', post_mortem=True):
         """
         Start new console
         
@@ -807,7 +810,8 @@ class ExternalConsole(SpyderPluginWidget):
             else:
                 sa_settings = None
             shellwidget = ExternalPythonShell(self, fname, wdir,
-                           interact, debug, path=pythonpath,
+                           interact, debug, post_mortem=post_mortem, 
+                           path=pythonpath,
                            python_args=python_args,
                            ipykernel=ipykernel,
                            arguments=args, stand_alone=sa_settings,

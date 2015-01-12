@@ -165,7 +165,8 @@ class ExternalPythonShell(ExternalShellBase):
     sig_finished = Signal()
     
     def __init__(self, parent=None, fname=None, wdir=None,
-                 interact=False, debug=False, path=[], python_args='',
+                 interact=False, debug=False, post_mortem=False,
+                 path=[], python_args='',
                  ipykernel=False, arguments='', stand_alone=None,
                  umr_enabled=True, umr_namelist=[], umr_verbose=True,
                  pythonstartup=None, pythonexecutable=None,
@@ -244,11 +245,14 @@ class ExternalPythonShell(ExternalShellBase):
         self.interact_action.setChecked(self.interact)
         self.debug_action.setChecked(debug)
         
+        
         self.introspection_socket = None
         self.is_interpreter = fname is None
         
         if self.is_interpreter:
             self.terminate_button.hide()
+            
+        self.post_mortem_action.setChecked(post_mortem and not self.is_interpreter)
         
         # Additional python path list
         self.path = path
@@ -303,9 +307,12 @@ class ExternalPythonShell(ExternalShellBase):
         self.debug_action.setCheckable(True)
         self.args_action = create_action(self, _("Arguments..."),
                                          triggered=self.get_arguments)
+        self.post_mortem_action = create_action(self, _("Post Mortem Debug"))
+        self.post_mortem_action.setCheckable(True)
         run_settings_menu = QMenu(_("Run settings"), self)
         add_actions(run_settings_menu,
-                    (self.interact_action, self.debug_action, self.args_action))
+                    (self.interact_action, self.debug_action, self.args_action,
+                     self.post_mortem_action))
         self.cwd_button = create_action(self, _("Working directory"),
                                 icon=get_std_icon('DirOpenIcon'),
                                 tip=_("Set current working directory"),
@@ -357,6 +364,7 @@ class ExternalPythonShell(ExternalShellBase):
         self.interact_action.setEnabled(not state and not self.is_interpreter)
         self.debug_action.setEnabled(not state and not self.is_interpreter)
         self.args_action.setEnabled(not state and not self.is_interpreter)
+        self.post_mortem_action.setEnabled(not state and not self.is_interpreter)
         if state:
             if self.arguments:
                 argstr = _("Arguments: %s") % self.arguments
@@ -420,13 +428,18 @@ class ExternalPythonShell(ExternalShellBase):
         if self.pythonstartup:
             env.append('PYTHONSTARTUP=%s' % self.pythonstartup)
         
+        #-------------------------Python specific-------------------------------
+        # Post mortem debugging
+        if self.post_mortem_action.isChecked():
+            env.append('SPYDER_EXCEPTHOOK=True')
+
         # Set standard input/output encoding for Python consoles
         # (IPython handles it on its own)
         # See http://stackoverflow.com/q/26312400/438386, specifically
         # the comments of Martijn Pieters
         if not self.is_ipykernel:
             env.append('PYTHONIOENCODING=UTF-8')
-        
+
         # Monitor
         if self.monitor_enabled:
             env.append('SPYDER_SHELL_ID=%s' % id(self))

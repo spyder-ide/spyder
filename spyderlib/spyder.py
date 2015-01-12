@@ -1876,7 +1876,7 @@ Please provide any additional information below.
             self.console.shell.interpreter.restore_stds()
         
     def open_external_console(self, fname, wdir, args, interact, debug, python,
-                              python_args, systerm):
+                              python_args, systerm, post_mortem=False):
         """Open external console"""
         if systerm:
             # Running script in an external system terminal
@@ -1894,7 +1894,7 @@ Please provide any additional information below.
             self.extconsole.start(
                 fname=to_text_string(fname), wdir=to_text_string(wdir),
                 args=to_text_string(args), interact=interact,
-                debug=debug, python=python,
+                debug=debug, python=python, post_mortem=post_mortem,
                 python_args=to_text_string(python_args) )
         
     def execute_in_external_console(self, lines, focus_to_editor):
