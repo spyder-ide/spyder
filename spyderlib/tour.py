@@ -20,8 +20,7 @@ from spyderlib.qt.QtGui import (QColor, QLayout, QMenu, QApplication,
                                 QPixmap, QLabel, QWidget, QVBoxLayout,
                                 QHBoxLayout, QDialog, QMainWindow, QAction,
                                 QPushButton, QPainterPath, QSpacerItem, QPen,
-                                QGraphicsOpacityEffect, QRegion,
-                                QComboBox)
+                                QGraphicsOpacityEffect, QRegion, QComboBox)
 from spyderlib.qt.QtCore import (Qt, Signal, QPoint, QRectF,
                                  QPropertyAnimation, QEasingCurve)
 
@@ -29,15 +28,12 @@ from spyderlib.qt.QtCore import (Qt, Signal, QPoint, QRectF,
 from spyderlib.baseconfig import _, get_image_path
 from spyderlib.utils.qthelpers import (create_action, add_actions)
 
-# FIXME: ISSUES:
-# On Linux the Tip panel after transitions (although appears on top) needs to
-# clicked to get the focus back... seems to be an issue of Qt and the window
-# Manager in Linux.
-
+# FIXME: Known issues
+# How to handle if an specific dockwidget does not exists/load, like ipython
+# on python3.3, should that frame be removed? should it display a warning?
 
 class SpyderWidgets(object):
     """List of supported widgets to highlight/decorate"""
-
     # Panes
     console_internal = 'console'
     console_external = 'extconsole'
@@ -118,11 +114,6 @@ def get_tour(index):
                            "<br><br>Use the arrow keys or the mouse to move "
                            "into the tour."),
               'image': 'tour-spyder-logo.png'},
-
-             {'title': _("The Editor"),
-              'content': _("A powerful editor is a central piece of any good "
-                           "IDE.<br><br> No interaction example."),
-              'widgets': [sw.editor]},
 
              {'title': _("The Editor"),
               'content': _("Decoration here is used to highlight the "
@@ -239,7 +230,7 @@ class FadingDialog(QDialog):
     sig_key_pressed = Signal()
 
     def __init__(self, parent, opacity, duration, easing_curve):
-        QDialog.__init__(self, parent)
+        super(FadingDialog, self).__init__(parent)
 
         self.parent = parent
         self.opacity_min = min(opacity)
@@ -258,17 +249,6 @@ class FadingDialog(QDialog):
         self._funcs_after_fade_out = []
 
         self.setModal(False)
-
-    def _set_fade_finished(self):
-        """ """
-        self._fade_running = False
-
-    def _fade_setup(self):
-        """ """
-        self._fade_running = True
-        self.effect = QGraphicsOpacityEffect(self)
-        self.setGraphicsEffect(self.effect)
-        self.anim = QPropertyAnimation(self.effect, "opacity")
 
     def _run(self, funcs):
         """ """
@@ -291,22 +271,18 @@ class FadingDialog(QDialog):
         """ """
         self._run(self._funcs_after_fade_out)
 
-    def set_funcs_before_fade_in(self, funcs):
+    def _set_fade_finished(self):
         """ """
-        self._funcs_before_fade_in = funcs
+        self._fade_running = False
 
-    def set_funcs_after_fade_in(self, funcs):
+    def _fade_setup(self):
         """ """
-        self._funcs_after_fade_in = funcs
+        self._fade_running = True
+        self.effect = QGraphicsOpacityEffect(self)
+        self.setGraphicsEffect(self.effect)
+        self.anim = QPropertyAnimation(self.effect, "opacity")
 
-    def set_funcs_before_fade_out(self, funcs):
-        """ """
-        self._funcs_before_fade_out = funcs
-
-    def set_funcs_after_fade_out(self, funcs):
-        """ """
-        self._funcs_after_fade_out = funcs
-
+    # --- public api
     def fade_in(self, on_finished_connect):
         """ """
         self._run_before_fade_in()
@@ -339,11 +315,28 @@ class FadingDialog(QDialog):
         """ """
         return self._fade_running
 
+    def set_funcs_before_fade_in(self, funcs):
+        """ """
+        self._funcs_before_fade_in = funcs
+
+    def set_funcs_after_fade_in(self, funcs):
+        """ """
+        self._funcs_after_fade_in = funcs
+
+    def set_funcs_before_fade_out(self, funcs):
+        """ """
+        self._funcs_before_fade_out = funcs
+
+    def set_funcs_after_fade_out(self, funcs):
+        """ """
+        self._funcs_after_fade_out = funcs
+
 
 class FadingCanvas(FadingDialog):
     """The black semi transparent canvas that covers the application"""
     def __init__(self, parent, opacity, duration, easing_curve, color):
-        FadingDialog.__init__(self, parent, opacity, duration, easing_curve)
+        super(FadingCanvas, self).__init__(parent, opacity, duration,
+                                           easing_curve)
         self.parent = parent
 
         self.color = color              # Canvas color
@@ -393,16 +386,18 @@ class FadingCanvas(FadingDialog):
         if self.widgets is not None:
             for widget in self.widgets:
                 temp_path = QPainterPath()
-                widget.raise_()
-                widget.show()
-                geo = widget.frameGeometry()
-                width, height = geo.width(), geo.height()
-                point = widget.mapTo(self.parent, QPoint(0, 0))
-                x, y = point.x(), point.y()
-
-                temp_path.addRect(QRectF(x, y, width, height))
-
-                temp_region = QRegion(x, y, width, height)
+                # if widget is not found... find more general way to handle
+                if widget is not None:
+                    widget.raise_()
+                    widget.show()
+                    geo = widget.frameGeometry()
+                    width, height = geo.width(), geo.height()
+                    point = widget.mapTo(self.parent, QPoint(0, 0))
+                    x, y = point.x(), point.y()
+    
+                    temp_path.addRect(QRectF(x, y, width, height))
+    
+                    temp_region = QRegion(x, y, width, height)
 
                 if self.interaction_on:
                     self.region_mask = self.region_mask.subtracted(temp_region)
@@ -474,7 +469,8 @@ class FadingCanvas(FadingDialog):
 class FadingTipBox(FadingDialog):
     """ """
     def __init__(self, parent, opacity, duration, easing_curve):
-        FadingDialog.__init__(self, parent, opacity, duration, easing_curve)
+        super(FadingTipBox, self).__init__(parent, opacity, duration,
+                                           easing_curve)
         self.holder = self.anim  # needed for qt to work
         self.parent = parent
 
@@ -522,7 +518,7 @@ class FadingTipBox(FadingDialog):
 
         arrow = get_image_path('hide.png')
 
-        self.stylesheet = """QPushButton {
+        self.stylesheet = '''QPushButton {
                              background-color: rgbs(200,200,200,100%);
                              color: rgbs(0,0,0,100%);
                              border-style: outset;
@@ -556,25 +552,25 @@ class FadingTipBox(FadingDialog):
                              subcontrol-position: top left;
                              border-width: 0px;
                              }
-
+                             
                              QComboBox::down-arrow {
-                             image: url(""" + arrow + """);
+                             image: url(''' + arrow + ''');
                              }
-                             """
+                             
+                             '''
+        # Windows fix, slashes should be always in unix-style
+        self.stylesheet = self.stylesheet.replace('\\', '/')
 
         for widget in self.widgets:
             widget.setFocusPolicy(Qt.NoFocus)
             widget.setStyleSheet(self.stylesheet)
 
-        spacer = QSpacerItem(self.offset_shadow, self.offset_shadow)
-        spacer2 = QSpacerItem(15, 15)
-
         layout_top = QHBoxLayout()
-#        layout_top.addWidget(self.label_title)
         layout_top.addWidget(self.combo_title)
         layout_top.addStretch()
         layout_top.addWidget(self.button_close)
-        layout_top.addSpacerItem(spacer)
+        layout_top.addSpacerItem(QSpacerItem(self.offset_shadow,
+                                             self.offset_shadow))
 
         layout_content = QHBoxLayout()
         layout_content.addWidget(self.label_content)
@@ -582,32 +578,34 @@ class FadingTipBox(FadingDialog):
         layout_content.addSpacerItem(QSpacerItem(5, 5))
 
         layout_run = QHBoxLayout()
-        layout_run.addStretch(1)
+        layout_run.addStretch()
         layout_run.addWidget(self.button_run)
-        layout_run.addStretch(1)
-        layout_run.addSpacerItem(spacer)
+        layout_run.addStretch()
+        layout_run.addSpacerItem(QSpacerItem(self.offset_shadow,
+                                             self.offset_shadow))
 
         layout_navigation = QHBoxLayout()
         layout_navigation.addWidget(self.button_home)
         layout_navigation.addWidget(self.button_previous)
-        layout_navigation.addStretch(1)
+        layout_navigation.addStretch()
         layout_navigation.addWidget(self.label_current)
-#        layout_navigation.addWidget(self.button_current)
-        layout_navigation.addStretch(1)
+        layout_navigation.addStretch()
         layout_navigation.addWidget(self.button_next)
         layout_navigation.addWidget(self.button_end)
-        layout_navigation.addSpacerItem(spacer)
+        layout_navigation.addSpacerItem(QSpacerItem(self.offset_shadow,
+                                                    self.offset_shadow))
 
         layout = QVBoxLayout()
         layout.addLayout(layout_top)
         layout.addStretch()
-        layout.addSpacerItem(spacer2)
+        layout.addSpacerItem(QSpacerItem(15, 15))
         layout.addLayout(layout_content)
         layout.addLayout(layout_run)
         layout.addStretch()
-        layout.addSpacerItem(spacer2)
+        layout.addSpacerItem(QSpacerItem(15, 15))
         layout.addLayout(layout_navigation)
-        layout.addSpacerItem(spacer)
+        layout.addSpacerItem(QSpacerItem(self.offset_shadow,
+                                         self.offset_shadow))
 
         layout.setSizeConstraint(QLayout.SetFixedSize)
 
@@ -788,6 +786,8 @@ class AnimatedTour(QWidget):
         QWidget.__init__(self, parent)
 
         self.parent = parent
+        
+        # variables to adjust 
         self.duration_canvas = [666, 666]
         self.duration_tips = [333, 333]
         self.opacity_canvas = [0.0, 0.7]
@@ -873,8 +873,9 @@ class AnimatedTour(QWidget):
         widgets = self.dockwidgets
         if widgets is not None:
             widget = widgets[0]
-            widget.show()
-            widget.raise_()
+            if widget is not None:
+                widget.show()
+                widget.raise_()
 
         self._locate_tip_box()
 
@@ -998,29 +999,30 @@ class AnimatedTour(QWidget):
         # Here is the tricky part to define the best position for the
         # tip widget
         if dockwidgets is not None:
-            geo = dockwidgets[0].geometry()
-            x, y, width, height = geo.x(), geo.y(), geo.width(), geo.height()
-
-            point = dockwidgets[0].mapToGlobal(QPoint(0, 0))
-            x_glob, y_glob = point.x(), point.y()
-
-            # Check if is too tall and put to the side
-            y_fac = (height / self.height_main) * 100
-
-            if y_fac > 60:  # FIXME:
-                if x < self.tips.width():
-                    x = x_glob + width + delta
-                    y = y_glob + height/2 - self.tips.height()/2
+            if dockwidgets[0] is not None:
+                geo = dockwidgets[0].geometry()
+                x, y, width, height = geo.x(), geo.y(), geo.width(), geo.height()
+    
+                point = dockwidgets[0].mapToGlobal(QPoint(0, 0))
+                x_glob, y_glob = point.x(), point.y()
+    
+                # Check if is too tall and put to the side
+                y_fac = (height / self.height_main) * 100
+    
+                if y_fac > 60:  # FIXME:
+                    if x < self.tips.width():
+                        x = x_glob + width + delta
+                        y = y_glob + height/2 - self.tips.height()/2
+                    else:
+                        x = x_glob - self.tips.width() - delta
+                        y = y_glob + height/2 - self.tips.height()/2
                 else:
-                    x = x_glob - self.tips.width() - delta
-                    y = y_glob + height/2 - self.tips.height()/2
-            else:
-                if y < self.tips.height():
-                    x = x_glob + width/2 - self.tips.width()/2
-                    y = y_glob + height + delta
-                else:
-                    x = x_glob + width/2 - self.tips.width()/2
-                    y = y_glob - delta - self.tips.height()
+                    if y < self.tips.height():
+                        x = x_glob + width/2 - self.tips.width()/2
+                        y = y_glob + height + delta
+                    else:
+                        x = x_glob + width/2 - self.tips.width()/2
+                        y = y_glob - delta - self.tips.height()
         else:
             # Center on parent
             x = self.x_main + self.width_main/2 - self.tips.width()/2
@@ -1059,6 +1061,7 @@ class AnimatedTour(QWidget):
             pos = self.tips.label_current.pos()
             self.tips.context_menu_requested(pos)
 
+    # --- public api
     def run_code(self):
         """ """
         codelines = self.run
@@ -1099,8 +1102,14 @@ class AnimatedTour(QWidget):
         """ """
         self.tips.fade_out(self._close_canvas)
         self.tips.show()
-        self.parent.tours_available[self.active_tour_index]['last'] =\
-            self.step_current
+
+        try:
+            # set the last played frame by updating the available tours in 
+            # parent. This info will be lost on restart.
+            self.parent.tours_available[self.active_tour_index]['last'] =\
+                self.step_current
+        except:
+            pass
 
     def next_step(self):
         """ """
@@ -1138,7 +1147,7 @@ class TestWindow(QMainWindow):
     sig_moved = Signal("QMoveEvent")
 
     def __init__(self):
-        QMainWindow.__init__(self)
+        super(TestWindow, self).__init__()
         self.setGeometry(300, 100, 400, 600)
         self.setWindowTitle('Exploring QMainWindow')
 
