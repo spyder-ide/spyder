@@ -898,6 +898,13 @@ class MatlabSH(PygmentsSH):
     _lang_name = 'matlab'
 
 
+class ScssSH(PygmentsSH):
+    """SCSS highlighter"""
+    # 'scss' seems to do nothing, so 'css' is a good temporal approximation
+    _lang_name = 'css'
+
+
+
 if __name__ == '__main__':
     # Test Python Outline Explorer comment regexps
     valid_comments = [
