@@ -89,7 +89,7 @@ from spyderlib.qt import QtSvg  # analysis:ignore
 #==============================================================================
 # Splash screen 
 #==============================================================================
-from spyderlib.baseconfig import _, get_image_path
+from spyderlib.baseconfig import _, get_image_path, DEV
 SPLASH_APP = QApplication([''])
 SPLASH = QSplashScreen(QPixmap(get_image_path('splash.png'), 'png'))
 SPLASH_FONT = SPLASH.font()
@@ -933,6 +933,9 @@ class MainWindow(QMainWindow):
                 self.tour_menu_actions += [temp_action]
 
             self.tours_menu.addActions(self.tour_menu_actions)
+
+            if not DEV:
+                self.tours_menu = None
 
             self.help_menu_actions = [doc_action, tut_action, self.tours_menu,
                                       None,
