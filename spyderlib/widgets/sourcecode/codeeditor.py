@@ -315,32 +315,15 @@ class CodeEditor(TextEditBaseWidget):
                  'Fortran77': (sh.Fortran77SH, 'c', None),
                  'Fortran': (sh.FortranSH, '!', None),
                  'Idl': (sh.IdlSH, ';', None),
-                 'Matlab': (sh.MatlabSH, '%', None),
                  'Diff': (sh.DiffSH, '', None),
                  'GetText': (sh.GetTextSH, '#', None),
                  'Nsis': (sh.NsisSH, '#', None),
                  'Html': (sh.HtmlSH, '', None),
-                 'Css': (sh.CssSH, '', None),
-                 'Scss': (sh.ScssSH, '', None),
-                 'Xml': (sh.XmlSH, '', None),
-                 'Js': (sh.JsSH, '//', None),
-                 'Json': (sh.JsonSH, '', None),
-                 'Julia': (sh.JuliaSH, '#', None),
                  'Yaml': (sh.YamlSH, '#', None),
                  'Cpp': (sh.CppSH, '//', None),
                  'OpenCL': (sh.OpenCLSH, '//', None),
-                 'Batch': (sh.BatchSH, 'rem ', None),
-                 'Ini': (sh.IniSH, '#', None),
                  'Enaml': (sh.EnamlSH, '#', PythonCFM),
                 }
-
-    try:
-        import pygments  # analysis:ignore
-    except ImportError:
-        # Removing all syntax highlighters requiring pygments to be installed
-        for key, (sh_class, comment_string, CFMatch) in list(LANGUAGES.items()):
-            if issubclass(sh_class, sh.PygmentsSH):
-                LANGUAGES.pop(key)
 
     TAB_ALWAYS_INDENTS = ('py', 'pyw', 'python', 'c', 'cpp', 'cl', 'h')
 

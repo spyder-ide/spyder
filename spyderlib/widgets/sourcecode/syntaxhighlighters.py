@@ -889,45 +889,6 @@ def guess_pygments_highlighter(filename):
     return GuessedPygmentsSH
 
 
-class BatchSH(PygmentsSH):
-    """Batch highlighter"""
-    _lang_name = 'bat'
-
-class IniSH(PygmentsSH):
-    """INI highlighter"""
-    _lang_name = 'ini'
-
-class XmlSH(PygmentsSH):
-    """XML highlighter"""
-    _lang_name = 'xml'
-
-class JsSH(PygmentsSH):
-    """Javascript highlighter"""
-    _lang_name = 'js'
-
-class JsonSH(PygmentsSH):
-    """Json highlighter"""
-    _lang_name = 'json'
-
-class JuliaSH(PygmentsSH):
-    """Julia highlighter"""
-    _lang_name = 'julia'
-        
-class CssSH(PygmentsSH):
-    """CSS Syntax Highlighter"""
-    _lang_name = 'css'
-
-class MatlabSH(PygmentsSH):
-    """Matlab highlighter"""
-    _lang_name = 'matlab'
-
-
-class ScssSH(PygmentsSH):
-    """SCSS highlighter"""
-    # 'scss' seems to do nothing, so 'css' is a good temporal approximation
-    _lang_name = 'css'
-
-
 
 if __name__ == '__main__':
     # Test Python Outline Explorer comment regexps
