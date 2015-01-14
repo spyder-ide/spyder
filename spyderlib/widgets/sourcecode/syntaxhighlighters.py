@@ -865,6 +865,30 @@ class PygmentsSH(BaseSH):
             ct += len(val)        
             self.setFormat(start, ct-start, self.formats[key])
 
+
+def guess_pygments_highlighter(filename):
+    """Factory to generate syntax highlighter for the given filename.
+
+    If a syntax highlighter is not available for a particular file, this
+    function will attempt to generate one based on the lexers in Pygments.  If
+    Pygments is not available or does not have an appropriate lexer, TextSH
+    will be returned instead.
+
+    """
+    try:
+        from pygments.lexers import get_lexer_for_filename
+        from pygments.util import ClassNotFound
+    except ImportError:
+        return TextSH
+    try:
+        lexer = get_lexer_for_filename(filename)
+    except ClassNotFound:
+        return TextSH
+    class GuessedPygmentsSH(PygmentsSH):
+        _lexer = lexer
+    return GuessedPygmentsSH
+
+
 class BatchSH(PygmentsSH):
     """Batch highlighter"""
     _lang_name = 'bat'

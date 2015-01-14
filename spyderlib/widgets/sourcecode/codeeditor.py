@@ -576,7 +576,7 @@ class CodeEditor(TextEditBaseWidget):
                      calltips=None, go_to_definition=False,
                      close_parentheses=True, close_quotes=False,
                      add_colons=True, auto_unindent=True, indent_chars=" "*4,
-                     tab_stop_width=40, cloned_from=None):
+                     tab_stop_width=40, cloned_from=None, filename=None):
         # Code completion and calltips
         self.set_codecompletion_auto(codecompletion_auto)
         self.set_codecompletion_case(codecompletion_case)
@@ -603,7 +603,7 @@ class CodeEditor(TextEditBaseWidget):
         self.setup_margins(linenumbers, markers)
 
         # Lexer
-        self.set_language(language)
+        self.set_language(language, filename)
 
         # Highlight current cell
         self.set_highlight_current_cell(highlight_current_cell)
@@ -688,7 +688,7 @@ class CodeEditor(TextEditBaseWidget):
         else:
             self.unhighlight_current_cell()
 
-    def set_language(self, language):
+    def set_language(self, language, filename=None):
         self.tab_indents = language in self.TAB_ALWAYS_INDENTS
         self.comment_string = ''
         sh_class = sh.TextSH
@@ -706,6 +706,9 @@ class CodeEditor(TextEditBaseWidget):
                     else:
                         self.classfunc_match = CFMatch()
                     break
+        if filename is not None and not self.supported_language:
+            sh_class = sh.guess_pygments_highlighter(filename)
+            self.support_language = sh_class is not sh.TextSH
         self._set_highlighter(sh_class)
 
     def _set_highlighter(self, sh_class):
@@ -1447,7 +1450,7 @@ class CodeEditor(TextEditBaseWidget):
         text, _enc = encoding.read(filename)
         if language is None:
             language = get_file_language(filename, text)
-        self.set_language(language)
+        self.set_language(language, filename)
         self.set_text(text)
 
     def append(self, text):

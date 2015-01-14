@@ -1719,7 +1719,8 @@ class EditorStack(QWidget):
                 auto_unindent=self.auto_unindent_enabled,
                 indent_chars=self.indent_chars,
                 tab_stop_width=self.tab_stop_width,
-                cloned_from=cloned_from)
+                cloned_from=cloned_from,
+                filename=fname)
         if cloned_from is None:
             editor.set_text(txt)
             editor.document().setModified(False)
