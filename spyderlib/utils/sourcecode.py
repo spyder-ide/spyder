@@ -26,6 +26,7 @@ ALL_LANGUAGES = {
                  'Nsis': ('nsi', 'nsh'),
                  'Html': ('htm', 'html'),
                  'Css': ('css',),
+                 'Scss': ('scss',),
                  'Xml': ('xml',),
                  'Js': ('js',),
                  'Json': ('json', 'ipynb'),

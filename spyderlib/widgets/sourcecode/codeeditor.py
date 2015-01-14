@@ -321,6 +321,7 @@ class CodeEditor(TextEditBaseWidget):
                  'Nsis': (sh.NsisSH, '#', None),
                  'Html': (sh.HtmlSH, '', None),
                  'Css': (sh.CssSH, '', None),
+                 'Scss': (sh.ScssSH, '', None),
                  'Xml': (sh.XmlSH, '', None),
                  'Js': (sh.JsSH, '//', None),
                  'Json': (sh.JsonSH, '', None),

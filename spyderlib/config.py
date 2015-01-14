@@ -42,7 +42,7 @@ EDIT_FILETYPES = (
     (_("reStructured Text files"), ('.txt', '.rst')),
     (_("gettext files"), ('.po', '.pot')),
     (_("NSIS files"), ('.nsi', '.nsh')),
-    (_("Web page files"), ('.css', '.htm', '.html',)),
+    (_("Web page files"), ('.scss', '.css', '.htm', '.html',)),
     (_("XML files"), ('.xml',)),
     (_("Javascript files"), ('.js',)),
     (_("Json files"), ('.json',)),
