@@ -11,6 +11,7 @@ Editor widget syntax highlighters based on QtGui.QSyntaxHighlighter
 
 from __future__ import print_function
 
+import os
 import re
 import keyword
 
@@ -40,6 +41,14 @@ COLOR_SCHEME_KEYS = ("background", "currentline", "currentcell", "occurence",
                      "normal", "keyword", "builtin", "definition",
                      "comment", "string", "number", "instance")
 COLOR_SCHEME_NAMES = CONF.get('color_schemes', 'names')
+# Mapping for file extensions that use Pygments highlighting but should use
+# different lexers than Pygments' autodetection suggests.  Keys are file
+# extensions, values are Pygments lexer names.
+CUSTOM_EXTENSION_LEXER = {'.ipynb': 'json', '.nt': 'bat', '.scss': 'css',
+                          '.properties': 'ini', '.session': 'ini',
+                          '.inf': 'ini', '.reg': 'ini', '.url': 'ini',
+                          '.cfg': 'ini', '.cnf': 'ini', '.aut': 'ini',
+                          '.iss': 'ini'}
 
 
 #==============================================================================
@@ -876,14 +885,19 @@ def guess_pygments_highlighter(filename):
 
     """
     try:
-        from pygments.lexers import get_lexer_for_filename
+        from pygments.lexers import get_lexer_for_filename, get_lexer_by_name
         from pygments.util import ClassNotFound
     except ImportError:
         return TextSH
-    try:
-        lexer = get_lexer_for_filename(filename)
-    except ClassNotFound:
-        return TextSH
+    root, ext = os.path.splitext(filename)
+    custom_lexer = CUSTOM_EXTENSION_LEXER.get(ext)
+    if custom_lexer is not None:
+        lexer = get_lexer_by_name(custom_lexer)
+    else:
+        try:
+            lexer = get_lexer_for_filename(filename)
+        except ClassNotFound:
+            return TextSH
     class GuessedPygmentsSH(PygmentsSH):
         _lexer = lexer
     return GuessedPygmentsSH
