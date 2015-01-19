@@ -2667,7 +2667,7 @@ class NumpyMatrixDialog(QDialog):
         # widgets
         self._text = QLineEdit(self)
 
-        style = "QDialog {margin:-20px;border: 2px solid grey; padding:0px;}"
+        style = "QDialog {margin:0px;border: 1px solid grey; padding:0px;  border-radius: 10px;}"
         self.setStyleSheet(style)
 
         # layout
