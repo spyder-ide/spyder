@@ -2664,18 +2664,27 @@ class NumpyMatrixDialog(QDialog):
     def __init__(self, parent):
         QDialog.__init__(self, parent)
         self.parent = parent
-        self.setWindowFlags(Qt.Popup)
+#        self.setWindowFlags()
+
         # widgets
         self._text = QLineEdit(self)
 
-        style = "QDialog {margin:0px;border: 1px solid grey; padding:0px;  border-radius: 10px;}"
+        style = """
+            QDialog {
+              margin:0px;
+              border: 1px solid grey;
+              padding:0px;
+              border-radius: 10px;
+            }"""
         self.setStyleSheet(style)
+        self.setWindowFlags(Qt.Window | Qt.Dialog | Qt.FramelessWindowHint)
+        self.setModal(True)
 
         # layout
         self._layout = QHBoxLayout()
         self._layout.addWidget(self._text)
         self.setLayout(self._layout)
-        self.setModal(True)
+
         self._text.setFocus()
 
     def keyPressEvent(self, event):
