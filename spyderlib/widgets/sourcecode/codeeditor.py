@@ -2680,17 +2680,26 @@ class NumpyMatrixDialog(QDialog):
     def keyPressEvent(self, event):
         """Override Qt method"""
         QDialog.keyPressEvent(self, event)
-        if event.key() in [Qt.Key_Enter, Qt.Key_Return]:
-            self.accept()
+        ctrl = event.modifiers() & Qt.ControlModifier
 
-    def accept(self):
+        if event.key() in [Qt.Key_Enter, Qt.Key_Return]:
+            if ctrl:
+                self.accept(array=False)
+            else:
+                self.accept(array=True)
+
+    def accept(self, array=True):
         """ """
         # cleans repeated spaces
-        exp = r'(\s*);(\s*)'
-        prefix = 'np.array([['
+        if array:
+            prefix = 'np.array([['
+        else:
+            prefix = 'np.matrix([['
+
         suffix = ']])'
         value = self._text.text().strip()
 
+        exp = r'(\s*);(\s*)'
         value = re.sub(exp, ";", value)
         value = re.sub("\s+", " ", value)
         value = re.sub("]$", "", value)
