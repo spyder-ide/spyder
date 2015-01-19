@@ -2664,7 +2664,6 @@ class NumpyMatrixDialog(QDialog):
     def __init__(self, parent):
         QDialog.__init__(self, parent)
         self.parent = parent
-#        self.setWindowFlags()
 
         # widgets
         self._text = QLineEdit(self)
@@ -2674,7 +2673,7 @@ class NumpyMatrixDialog(QDialog):
               margin:0px;
               border: 1px solid grey;
               padding:0px;
-              border-radius: 10px;
+              border-radius: 2px;
             }"""
         self.setStyleSheet(style)
         self.setWindowFlags(Qt.Window | Qt.Dialog | Qt.FramelessWindowHint)
