@@ -2708,26 +2708,27 @@ class NumpyMatrixDialog(QDialog):
         suffix = ']])'
         value = self._text.text().strip()
 
-        exp = r'(\s*);(\s*)'
-        value = re.sub(exp, ";", value)
-        value = re.sub("\s+", " ", value)
-        value = re.sub("]$", "", value)
-        value = re.sub("^\[", "", value)
+        if value != '':
+            exp = r'(\s*);(\s*)'
+            value = re.sub(exp, ";", value)
+            value = re.sub("\s+", " ", value)
+            value = re.sub("]$", "", value)
+            value = re.sub("^\[", "", value)
 
-        # replaces spaces by commas
-        value = value.replace(' ',  ', ')
+            # replaces spaces by commas
+            value = value.replace(' ',  ', ')
 
-        # replaces colon by braces
-        value = value.replace(';',  '], [')
+            # replaces colon by braces
+            value = value.replace(';',  '], [')
 
-        text = "{0}{1}{2}".format(prefix, value, suffix)
+            text = "{0}{1}{2}".format(prefix, value, suffix)
 
-        cursor = self.parent.textCursor()
-        cursor.beginEditBlock()
-        cursor.insertText(text)
-        cursor.endEditBlock()
+            cursor = self.parent.textCursor()
+            cursor.beginEditBlock()
+            cursor.insertText(text)
+            cursor.endEditBlock()
+
         self.close()
-
 
 #===============================================================================
 # CodeEditor's Printer
