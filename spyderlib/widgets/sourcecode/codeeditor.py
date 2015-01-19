@@ -33,7 +33,7 @@ from spyderlib.qt.QtGui import (QColor, QMenu, QApplication, QSplitter, QFont,
                                 QDialogButtonBox, QGridLayout, QPaintEvent,
                                 QMessageBox)
 from spyderlib.qt.QtCore import (Qt, Signal, QTimer, QRect, QRegExp, QSize,
-                                 Slot)
+                                 Slot, QPoint)
 from spyderlib.qt.compat import to_qvariant
 
 #%% This line is for cell execution testing
@@ -512,6 +512,11 @@ class CodeEditor(TextEditBaseWidget):
         self.verticalScrollBar().valueChanged.connect(
                                        lambda value: self.rehighlight_cells())
 
+        # Numpy Array Entering
+        self._entering_array = False
+
+
+
     def create_shortcuts(self):
         codecomp = create_shortcut(self.do_completion, context='Editor',
                                    name='Code Completion', parent=self)
@@ -533,9 +538,12 @@ class CodeEditor(TextEditBaseWidget):
                                        name='Blockcomment', parent=self)
         unblockcomment = create_shortcut(self.unblockcomment, context='Editor',
                                          name='Unblockcomment', parent=self)
+        enterarray = create_shortcut(self.enter_array, context='Editor',
+                                     name='Enter Numpy Array', parent=self)
+
         return [codecomp, duplicate_line, copyline, deleteline, movelineup,
                 movelinedown, gotodef, toggle_comment, blockcomment,
-                unblockcomment]
+                unblockcomment, enterarray]
 
     def get_shortcut_data(self):
         """
@@ -2624,6 +2632,84 @@ class CodeEditor(TextEditBaseWidget):
         :rtype: List of tuple(int, int, QtGui.QTextBlock)
         """
         return self.__visible_blocks
+
+    # --- Python/Numpy array input
+    def enter_array(self):
+        """ """
+        rect = self.cursorRect()
+        dlg = NumpyMatrixDialog(self)
+
+        x, y = rect.left(), rect.top()
+
+        # TODO: Temporal positioning
+        x = x + self.get_linenumberarea_width() - 10
+        y = y - dlg.height()/2 + 5
+
+        pos = QPoint(x, y)
+
+        dlg.move(self.mapToGlobal(pos))
+        if (not self._entering_array) and self.is_python():
+            self._entering_array = True
+            dlg.setWindowOpacity(0.80)
+            if dlg.exec_():
+                pass
+        else:
+            return
+        self._entering_array = False
+
+
+class NumpyMatrixDialog(QDialog):
+    """ """
+    def __init__(self, parent):
+        QDialog.__init__(self, parent)
+        self.parent = parent
+        self.setWindowFlags(Qt.ToolTip | Qt.Dialog)
+        # widgets
+        self._text = QLineEdit(self)
+
+        style = "QDialog {margin:-20px;border: 2px solid grey; padding:0px;}"
+        self.setStyleSheet(style)
+
+        # layout
+        self._layout = QHBoxLayout()
+        self._layout.addWidget(self._text)
+        self.setLayout(self._layout)
+        self.setModal(True)
+        self._text.setFocus()
+
+    def keyPressEvent(self, event):
+        """Override Qt method"""
+        QDialog.keyPressEvent(self, event)
+        if event.key() in [Qt.Key_Enter, Qt.Key_Return]:
+            self.accept()
+
+    def accept(self):
+        """ """
+        # cleans repeated spaces
+        exp = r'(\s*);(\s*)'
+        prefix = 'np.array([['
+        suffix = ']])'
+        value = self._text.text().strip()
+
+        value = re.sub(exp, ";", value)
+        value = re.sub("\s+", " ", value)
+        value = re.sub("]$", "", value)
+        value = re.sub("^\[", "", value)
+
+        # replaces spaces by commas
+        value = value.replace(' ',  ', ')
+
+        # replaces colon by braces
+        value = value.replace(';',  '], [')
+
+        text = "{0}{1}{2}".format(prefix, value, suffix)
+
+        cursor = self.parent.textCursor()
+        cursor.beginEditBlock()
+        cursor.insertText(text)
+        cursor.endEditBlock()
+        self.close()
+
 
 #===============================================================================
 # CodeEditor's Printer

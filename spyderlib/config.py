@@ -508,6 +508,7 @@ DEFAULTS = [
               'editor/toggle comment': "Ctrl+1",
               'editor/blockcomment': "Ctrl+4",
               'editor/unblockcomment': "Ctrl+5",
+              'editor/enter numpy array': "Ctrl+M",
               # -- In widgets/editor
               'editor/inspect current object': 'Ctrl+I',
               'editor/go to line': 'Ctrl+L',
