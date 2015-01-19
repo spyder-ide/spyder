@@ -2648,6 +2648,7 @@ class CodeEditor(TextEditBaseWidget):
         pos = QPoint(x, y)
 
         dlg.move(self.mapToGlobal(pos))
+#        dlg._text.setFocus()
         if (not self._entering_array) and self.is_python():
             self._entering_array = True
             dlg.setWindowOpacity(0.80)
@@ -2663,7 +2664,7 @@ class NumpyMatrixDialog(QDialog):
     def __init__(self, parent):
         QDialog.__init__(self, parent)
         self.parent = parent
-        self.setWindowFlags(Qt.ToolTip | Qt.Dialog)
+        self.setWindowFlags(Qt.Popup)
         # widgets
         self._text = QLineEdit(self)
 
