@@ -2764,7 +2764,9 @@ class NumpyMatrixDialog(QDialog):
         self._help_inline = _("""
            <b>Numpy Array/Matrix Helper</b><br>
            Type an array in Matlab    : <code>[1 2;3 4]</code><br>
-           or Spyder simplified syntax : <code>1 2/3 4</code>
+           or Spyder simplified syntax : <code>1 2;3 4</code>
+           <br><br>
+           <i>Hint: use two spaces or two tabs to generate a ';'</i>
            <br><br>
            Hit 'Enter' for array or 'Ctrl+Enter' for matrix
            """)
@@ -2838,7 +2840,6 @@ class NumpyMatrixDialog(QDialog):
 
         suffix = ']])'
         value = self._widget.text().strip()
-        value = value.replace(';', '/')
 
         if value != '':
             exp = r'(\s*)/(\s*)'
