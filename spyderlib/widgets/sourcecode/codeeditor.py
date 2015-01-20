@@ -2679,8 +2679,8 @@ class NumpyMatrixDialog(QDialog):
         icon = 'help.png'
         self._help = _("""
            <b>Numpy Array/Matrix Helper</b><br>
-           Type an array in Matlab: <code>[1 2;3 4]</code>
-           <br>or Spyder syntax: <code>1 2/3 4</code>
+           Type an array in Matlab    : <code>[1 2;3 4]</code><br>
+           or Spyder simplified syntax : <code>1 2/3 4</code>
            <br><br>
            Hit 'Enter' for array or 'Ctrl+Enter' for matrix
            """)
