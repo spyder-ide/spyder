@@ -2640,12 +2640,12 @@ class CodeEditor(TextEditBaseWidget):
     # --- Python/Numpy array input
     def enter_array_inline(self):
         """ """
-        print('inline')
+#        print('inline')
         self.enter_array(True)
 
     def enter_array_table(self):
         """ """
-        print('table')
+#        print('table')
         self.enter_array(False)
 
     def enter_array(self, inline):
@@ -2674,6 +2674,20 @@ class CodeEditor(TextEditBaseWidget):
 # -Fix positioning
 # -Use the same font as editor/console?
 # -Move this widget to a general location as another widget and generalize it?
+
+
+class NumpyMatrixInline(QLineEdit):
+    """ """
+    def __init__(self, parent):
+        QLineEdit.__init__(self, parent)
+        self._parent = parent
+
+    def keyPressEvent(self, event):
+        """ """
+        if event.key() in [Qt.Key_Tab]:
+            print('change to space')
+        else:
+            self.QLineEdit.keyPressEvent(self, event)
 
 
 class NumpyMatrixTable(QTableWidget):
@@ -2713,9 +2727,9 @@ class NumpyMatrixTable(QTableWidget):
         cols = self.columnCount()
 
         for r in range(rows):
-            self.setHorizontalHeaderItem(r, QTableWidgetItem(str(r)))
+            self.setVerticalHeaderItem(r, QTableWidgetItem(str(r)))
         for c in range(cols):
-            self.setVerticalHeaderItem(c, QTableWidgetItem(str(c)))
+            self.setHorizontalHeaderItem(c, QTableWidgetItem(str(c)))
             self.setColumnWidth(c, 40)
 
     def text(self):
@@ -2766,7 +2780,7 @@ class NumpyMatrixDialog(QDialog):
 
         if inline:
             self._button_help.setToolTip(self._help_inline)
-            self._text = QLineEdit(self)
+            self._text = NumpyMatrixInline(self)
             self._widget = self._text
         else:
             self._button_help.setToolTip(self._help_table)
@@ -2794,7 +2808,6 @@ class NumpyMatrixDialog(QDialog):
 
     def keyPressEvent(self, event):
         """Override Qt method"""
-        QDialog.keyPressEvent(self, event)
         ctrl = event.modifiers() & Qt.ControlModifier
 
         if event.key() in [Qt.Key_Enter, Qt.Key_Return]:
@@ -2802,6 +2815,8 @@ class NumpyMatrixDialog(QDialog):
                 self.accept(array=False)
             else:
                 self.accept(array=True)
+        else:
+            QDialog.keyPressEvent(self, event)
 
     def accept(self, array=True):
         """ """
