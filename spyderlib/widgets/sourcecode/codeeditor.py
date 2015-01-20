@@ -2682,18 +2682,16 @@ class NumpyMatrixInline(QLineEdit):
         QLineEdit.__init__(self, parent)
         self._parent = parent
 
-    def keyPressEvent(self, event):
-        """ """
-        if event.key() in [Qt.Key_Tab]:
-            print('change to space')
-        else:
-            QLineEdit.keyPressEvent(self, event)
-
     def event(self, event):
-        if event.type() == QEvent.KeyPress and event.key() == Qt.Key_Tab:
-            text = self.text() + ' '
-            self.setText(text)
-            return False
+        if event.type() == QEvent.KeyPress:
+            if (event.key() == Qt.Key_Tab or event.key() == Qt.Key_Space):
+                text = self.text()
+                if text[-1] == ' ':
+                    text = text[:-1] + '; '
+                else:
+                    text = text + ' '
+                self.setText(text)
+                return False
         return QWidget.event(self, event)
 
 
