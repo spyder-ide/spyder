@@ -2686,10 +2686,13 @@ class NumpyMatrixInline(QLineEdit):
         if event.type() == QEvent.KeyPress:
             if (event.key() == Qt.Key_Tab or event.key() == Qt.Key_Space):
                 text = self.text()
-                if text[-1] == ' ':
-                    text = text[:-1] + '; '
+                cursor = self.cursorPosition()
+
+                if cursor != 0 and text[cursor - 1] == ' ':
+                    text = text[:cursor] + '; ' + text[cursor:]
                 else:
-                    text = text + ' '
+                    text = text[:cursor] + ' ' + text[cursor:]
+                self.setCursorPosition(cursor)
                 self.setText(text)
                 return False
         return QWidget.event(self, event)
