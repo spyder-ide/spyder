@@ -31,7 +31,8 @@ from spyderlib.qt.QtGui import (QColor, QMenu, QApplication, QSplitter, QFont,
                                 QKeySequence, QWidget, QVBoxLayout,
                                 QHBoxLayout, QDialog, QIntValidator,
                                 QDialogButtonBox, QGridLayout, QPaintEvent,
-                                QMessageBox, QToolButton, QIcon)
+                                QMessageBox,
+                                QToolButton, QIcon, QTableWidget, QTableWidgetItem)
 from spyderlib.qt.QtCore import (Qt, Signal, QTimer, QRect, QRegExp, QSize,
                                  Slot, QPoint)
 from spyderlib.qt.compat import to_qvariant
@@ -538,18 +539,15 @@ class CodeEditor(TextEditBaseWidget):
                                        name='Blockcomment', parent=self)
         unblockcomment = create_shortcut(self.unblockcomment, context='Editor',
                                          name='Unblockcomment', parent=self)
-        enterarray = create_shortcut(self.enter_array, context='Editor',
-                                     name='Enter Numpy Array', parent=self)
-        enterarray_1 = create_shortcut(self.enter_array, context='Editor',
-                                       name='Enter Numpy Array 1', parent=self)
-        enterarray_2 = create_shortcut(self.enter_array, context='Editor',
-                                       name='Enter Numpy Array 2', parent=self)
-        enterarray_3 = create_shortcut(self.enter_array, context='Editor',
-                                       name='Enter Numpy Array 3', parent=self)
+
+        enternumpyinline = create_shortcut(self.enter_array_inline, context='Editor',
+                                     name='enter inline', parent=self)
+        enternumpytable = create_shortcut(self.enter_array_table, context='Editor',
+                                       name='enter numpy table', parent=self)
+
         return [codecomp, duplicate_line, copyline, deleteline, movelineup,
                 movelinedown, gotodef, toggle_comment, blockcomment,
-                unblockcomment, enterarray, enterarray_1, enterarray_2,
-                enterarray_3]
+                unblockcomment, enternumpyinline, enternumpytable]
 
     def get_shortcut_data(self):
         """
@@ -2640,24 +2638,31 @@ class CodeEditor(TextEditBaseWidget):
         return self.__visible_blocks
 
     # --- Python/Numpy array input
-    def enter_array(self):
+    def enter_array_inline(self):
+        """ """
+        print('inline')
+        self.enter_array(True)
+
+    def enter_array_table(self):
+        """ """
+        print('table')
+        self.enter_array(False)
+
+    def enter_array(self, inline):
         """ """
         rect = self.cursorRect()
-        dlg = NumpyMatrixDialog(self)
+        dlg = NumpyMatrixDialog(self, inline)
 
         x, y = rect.left(), rect.top() + (rect.bottom() - rect.top())/2
-
-#        x = x + self.get_linenumberarea_width() - 10
         x = x + self.compute_linenumberarea_width() - 14
         y = y - dlg.height()/2 - 3
 
         pos = QPoint(x, y)
 
         dlg.move(self.mapToGlobal(pos))
-#        dlg._text.setFocus()
         if (not self._entering_array) and self.is_python():
             self._entering_array = True
-            dlg.setWindowOpacity(0.80)
+            dlg.setWindowOpacity(0.90)
             if dlg.exec_():
                 pass
         else:
@@ -2671,13 +2676,73 @@ class CodeEditor(TextEditBaseWidget):
 # -Move this widget to a general location as another widget and generalize it?
 
 
-class NumpyMatrixDialog(QDialog):
+class NumpyMatrixTable(QTableWidget):
     """ """
     def __init__(self, parent):
+        QTableWidget.__init__(self, parent)
+        self._parent = parent
+        self.setRowCount(2)
+        self.setColumnCount(2)
+        self.reset_headers()
+        # signals
+        self.cellChanged.connect(self.cell_changed)
+
+    def keyPressEvent(self, event):
+        """ """
+        if event.key() in [Qt.Key_Enter, Qt.Key_Return]:
+            self._parent.keyPressEvent(event)
+        else:
+            QTableWidget.keyPressEvent(self, event)
+
+    def cell_changed(self, row, col):
+        """ """
+        value = self.item(row, col).text()
+        rows = self.rowCount()
+        cols = self.columnCount()
+
+        if value:
+            if row == rows - 1:
+                self.setRowCount(rows + 1)
+            if col == cols - 1:
+                self.setColumnCount(cols + 1)
+        self.reset_headers()
+
+    def reset_headers(self):
+        """ """
+        rows = self.rowCount()
+        cols = self.columnCount()
+
+        for r in range(rows):
+            self.setHorizontalHeaderItem(r, QTableWidgetItem(str(r)))
+        for c in range(cols):
+            self.setVerticalHeaderItem(c, QTableWidgetItem(str(c)))
+            self.setColumnWidth(c, 40)
+
+    def text(self):
+        """ """
+        text = []
+        rows = self.rowCount()
+        cols = self.columnCount()
+
+        for r in range(rows - 1):
+            for c in range(cols - 1):
+                value = self.item(r, c).text()
+                if value == '':
+                    value = '0'
+                text.append(' ')
+                text.append(value)
+            text.append(';')
+
+        return ''.join(text[:-1])  # to remove the final uneeded ;
+
+
+class NumpyMatrixDialog(QDialog):
+    """ """
+    def __init__(self, parent, inline=True):
         QDialog.__init__(self, parent)
         self.parent = parent
         icon = 'help.png'
-        self._help = _("""
+        self._help_inline = _("""
            <b>Numpy Array/Matrix Helper</b><br>
            Type an array in Matlab    : <code>[1 2;3 4]</code><br>
            or Spyder simplified syntax : <code>1 2/3 4</code>
@@ -2685,13 +2750,28 @@ class NumpyMatrixDialog(QDialog):
            Hit 'Enter' for array or 'Ctrl+Enter' for matrix
            """)
 
+        self._help_table = _("""
+           <b>Numpy Array/Matrix Helper</b><br>
+           Enter an array in the table. <br>
+           Use Tab to move between cells
+           <br><br>
+           Hit 'Enter' for array or 'Ctrl+Enter' for matrix
+           """)
+
         # widgets
-        self._text = QLineEdit(self)
         self._button_help = HelperToolButton()
-        self._button_help.setToolTip(self._help)
         self._button_help.setIcon(QIcon(get_image_path(icon)))
         self._button_help.setStyleSheet("QToolButton {border: 0px solid grey; \
             padding:0px;}")
+
+        if inline:
+            self._button_help.setToolTip(self._help_inline)
+            self._text = QLineEdit(self)
+            self._widget = self._text
+        else:
+            self._button_help.setToolTip(self._help_table)
+            self._table = NumpyMatrixTable(self)
+            self._widget = self._table
 
         style = """
             QDialog {
@@ -2706,11 +2786,11 @@ class NumpyMatrixDialog(QDialog):
 
         # layout
         self._layout = QHBoxLayout()
-        self._layout.addWidget(self._text)
+        self._layout.addWidget(self._widget)
         self._layout.addWidget(self._button_help)
         self.setLayout(self._layout)
 
-        self._text.setFocus()
+        self._widget.setFocus()
 
     def keyPressEvent(self, event):
         """Override Qt method"""
@@ -2732,7 +2812,7 @@ class NumpyMatrixDialog(QDialog):
             prefix = 'np.matrix([['
 
         suffix = ']])'
-        value = self._text.text().strip()
+        value = self._widget.text().strip()
         value = value.replace(';', '/')
 
         if value != '':
