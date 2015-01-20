@@ -31,7 +31,7 @@ from spyderlib.qt.QtGui import (QColor, QMenu, QApplication, QSplitter, QFont,
                                 QKeySequence, QWidget, QVBoxLayout,
                                 QHBoxLayout, QDialog, QIntValidator,
                                 QDialogButtonBox, QGridLayout, QPaintEvent,
-                                QMessageBox)
+                                QMessageBox, QToolButton, QIcon)
 from spyderlib.qt.QtCore import (Qt, Signal, QTimer, QRect, QRegExp, QSize,
                                  Slot, QPoint)
 from spyderlib.qt.compat import to_qvariant
@@ -2634,16 +2634,19 @@ class CodeEditor(TextEditBaseWidget):
         return self.__visible_blocks
 
     # --- Python/Numpy array input
+    # TODO: Fix positioning
+    # Set font based on caller? editor console?
+    # Move this widget to a general location?
     def enter_array(self):
         """ """
         rect = self.cursorRect()
         dlg = NumpyMatrixDialog(self)
 
-        x, y = rect.left(), rect.top()
+        x, y = rect.left(), rect.top() + (rect.bottom() - rect.top())/2
 
-        # TODO: Temporal positioning
-        x = x + self.get_linenumberarea_width() - 10
-        y = y - dlg.height()/2 + 5
+#        x = x + self.get_linenumberarea_width() - 10
+        x = x + self.compute_linenumberarea_width() - 14
+        y = y - dlg.height()/2 - 3
 
         pos = QPoint(x, y)
 
@@ -2664,9 +2667,21 @@ class NumpyMatrixDialog(QDialog):
     def __init__(self, parent):
         QDialog.__init__(self, parent)
         self.parent = parent
+        icon = 'help.png'
+        self._help = """
+           <b>Numpy Array/Matrix Helper</b><br>
+           Type an array in Matlab syntax.<br>
+           Hit 'Enter' for array or 'Ctrl+Enter' for matrix.<br><br>
+           Example: <code>  1 2;3 4</code>
+           """
 
         # widgets
         self._text = QLineEdit(self)
+        self._button_help = QToolButton()
+        self._button_help.setToolTip(self._help)
+        self._button_help.setIcon(QIcon(get_image_path(icon)))
+        self._button_help.setStyleSheet("QToolButton {border: 0px solid grey; \
+            padding:0px;}")
 
         style = """
             QDialog {
@@ -2682,9 +2697,18 @@ class NumpyMatrixDialog(QDialog):
         # layout
         self._layout = QHBoxLayout()
         self._layout.addWidget(self._text)
+        self._layout.addWidget(self._button_help)
         self.setLayout(self._layout)
 
         self._text.setFocus()
+
+        # signals
+        self._button_help.clicked.connect(self.help_click)
+
+    def help_click(self):
+        """ """
+        QToolTip.showText(self._button_help.mapToGlobal(QPoint(0, 0)),
+                          self._help)
 
     def keyPressEvent(self, event):
         """Override Qt method"""
