@@ -2745,7 +2745,12 @@ class NumpyMatrixTable(QTableWidget):
 
         for r in range(rows - 1):
             for c in range(cols - 1):
-                value = self.item(r, c).text()
+                item = self.item(r, c)
+                if item is not None:
+                    value = item.text()
+                else:
+                    value = '0'
+
                 if value == '':
                     value = '0'
                 text.append(' ')
@@ -2842,7 +2847,7 @@ class NumpyMatrixDialog(QDialog):
         value = self._widget.text().strip()
 
         if value != '':
-            exp = r'(\s*)/(\s*)'
+            exp = r'(\s*);(\s*)'
             value = re.sub(exp, ";", value)
             value = re.sub("\s+", " ", value)
             value = re.sub("]$", "", value)
