@@ -2686,7 +2686,7 @@ class NumpyMatrixDialog(QDialog):
 
         # widgets
         self._text = QLineEdit(self)
-        self._button_help = QToolButton()
+        self._button_help = HelperToolButton()
         self._button_help.setToolTip(self._help)
         self._button_help.setIcon(QIcon(get_image_path(icon)))
         self._button_help.setStyleSheet("QToolButton {border: 0px solid grey; \
@@ -2710,14 +2710,6 @@ class NumpyMatrixDialog(QDialog):
         self.setLayout(self._layout)
 
         self._text.setFocus()
-
-        # signals
-        self._button_help.clicked.connect(self.help_click)
-
-    def help_click(self):
-        """ """
-        QToolTip.showText(self._button_help.mapToGlobal(QPoint(0, 0)),
-                          self._help)
 
     def keyPressEvent(self, event):
         """Override Qt method"""
@@ -2763,6 +2755,36 @@ class NumpyMatrixDialog(QDialog):
             cursor.endEditBlock()
 
         self.close()
+
+
+class HelperToolButton(QToolButton):
+    """ """
+    def __init__(self):
+        QToolButton.__init__(self)
+
+    def setToolTip(self, text):
+        """ """
+        self._tip_text = text
+        self._tool_tip_visible = False
+
+    def toolTip(self):
+        """ """
+        return self._tip_text
+
+    def mousePressEvent(self, event):
+        """ """
+        if self._tool_tip_visible:
+            QToolTip.hideText()
+            self._tool_tip_visible = False
+        else:
+            self._tool_tip_visible = True
+
+    def mouseReleaseEvent(self, event):
+        """ """
+        if self._tool_tip_visible:
+            QToolTip.showText(self.mapToGlobal(QPoint(0, 0)),
+                              self._tip_text)
+
 
 #===============================================================================
 # CodeEditor's Printer
