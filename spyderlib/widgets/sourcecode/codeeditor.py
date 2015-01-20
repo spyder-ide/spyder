@@ -32,9 +32,9 @@ from spyderlib.qt.QtGui import (QColor, QMenu, QApplication, QSplitter, QFont,
                                 QHBoxLayout, QDialog, QIntValidator,
                                 QDialogButtonBox, QGridLayout, QPaintEvent,
                                 QMessageBox,
-                                QToolButton, QIcon, QTableWidget, QTableWidgetItem)
+                                QToolButton, QIcon, QTableWidget, QTableWidgetItem, QWidget)
 from spyderlib.qt.QtCore import (Qt, Signal, QTimer, QRect, QRegExp, QSize,
-                                 Slot, QPoint)
+                                 Slot, QPoint, QEvent)
 from spyderlib.qt.compat import to_qvariant
 
 #%% This line is for cell execution testing
@@ -2687,7 +2687,14 @@ class NumpyMatrixInline(QLineEdit):
         if event.key() in [Qt.Key_Tab]:
             print('change to space')
         else:
-            self.QLineEdit.keyPressEvent(self, event)
+            QLineEdit.keyPressEvent(self, event)
+
+    def event(self, event):
+        if event.type() == QEvent.KeyPress and event.key() == Qt.Key_Tab:
+            text = self.text() + ' '
+            self.setText(text)
+            return False
+        return QWidget.event(self, event)
 
 
 class NumpyMatrixTable(QTableWidget):
@@ -2817,6 +2824,11 @@ class NumpyMatrixDialog(QDialog):
                 self.accept(array=True)
         else:
             QDialog.keyPressEvent(self, event)
+
+    def event(self, event):
+        if event.type() == QEvent.KeyPress and event.key() == Qt.Key_Tab:
+            return False
+        return QWidget.event(self, event)
 
     def accept(self, array=True):
         """ """
