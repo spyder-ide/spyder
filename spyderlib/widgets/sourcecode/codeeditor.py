@@ -2677,12 +2677,13 @@ class NumpyMatrixDialog(QDialog):
         QDialog.__init__(self, parent)
         self.parent = parent
         icon = 'help.png'
-        self._help = """
+        self._help = _("""
            <b>Numpy Array/Matrix Helper</b><br>
-           Type an array in Matlab syntax.<br>
-           Hit 'Enter' for array or 'Ctrl+Enter' for matrix.<br><br>
-           Example: <code>  1 2;3 4</code>
-           """
+           Type an array in Matlab: <code>[1 2;3 4]</code>
+           <br>or Spyder syntax: <code>1 2/3 4</code>
+           <br><br>
+           Hit 'Enter' for array or 'Ctrl+Enter' for matrix
+           """)
 
         # widgets
         self._text = QLineEdit(self)
