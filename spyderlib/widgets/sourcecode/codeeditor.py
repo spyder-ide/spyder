@@ -540,10 +540,16 @@ class CodeEditor(TextEditBaseWidget):
                                          name='Unblockcomment', parent=self)
         enterarray = create_shortcut(self.enter_array, context='Editor',
                                      name='Enter Numpy Array', parent=self)
-
+        enterarray_1 = create_shortcut(self.enter_array, context='Editor',
+                                       name='Enter Numpy Array 1', parent=self)
+        enterarray_2 = create_shortcut(self.enter_array, context='Editor',
+                                       name='Enter Numpy Array 2', parent=self)
+        enterarray_3 = create_shortcut(self.enter_array, context='Editor',
+                                       name='Enter Numpy Array 3', parent=self)
         return [codecomp, duplicate_line, copyline, deleteline, movelineup,
                 movelinedown, gotodef, toggle_comment, blockcomment,
-                unblockcomment, enterarray]
+                unblockcomment, enterarray, enterarray_1, enterarray_2,
+                enterarray_3]
 
     def get_shortcut_data(self):
         """
@@ -2634,9 +2640,6 @@ class CodeEditor(TextEditBaseWidget):
         return self.__visible_blocks
 
     # --- Python/Numpy array input
-    # TODO: Fix positioning
-    # Set font based on caller? editor console?
-    # Move this widget to a general location?
     def enter_array(self):
         """ """
         rect = self.cursorRect()
@@ -2660,6 +2663,12 @@ class CodeEditor(TextEditBaseWidget):
         else:
             return
         self._entering_array = False
+
+# TODO: 
+# -Set font based on caller? editor console? and adjust size of widget
+# -Fix positioning
+# -Use the same font as editor/console?
+# -Move this widget to a general location as another widget and generalize it?
 
 
 class NumpyMatrixDialog(QDialog):
@@ -2731,9 +2740,10 @@ class NumpyMatrixDialog(QDialog):
 
         suffix = ']])'
         value = self._text.text().strip()
+        value = value.replace(';', '/')
 
         if value != '':
-            exp = r'(\s*);(\s*)'
+            exp = r'(\s*)/(\s*)'
             value = re.sub(exp, ";", value)
             value = re.sub("\s+", " ", value)
             value = re.sub("]$", "", value)
