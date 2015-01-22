@@ -966,11 +966,6 @@ class CondaProcess(QObject):
             self._call_and_parse(cmd_list)
 
 
-    def close(self):
-        """ """
-        self._process.kill()
-        self._process = None
-
 class TestWidget(QWidget):
     """ """
     def __init__(self, parent):

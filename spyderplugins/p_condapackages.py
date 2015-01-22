@@ -120,7 +120,6 @@ class CondaPackages(CondaPackagesWidget, SpyderPluginMixin):
 
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
-        self.close_processes()
         return True
 
     def apply_plugin_settings(self, options):
