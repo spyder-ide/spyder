@@ -1393,12 +1393,13 @@ class MainWindow(QMainWindow):
                            self.findinfiles] + self.thirdparty_plugins,
                           [self.explorer, self.projectexplorer, self.inspector,
                            self.onlinehelp]]
-        matlab_layout = [[self.editor],
+        matlab_layout = [[self.explorer],
+                         [self.outlineexplorer],
+                         [self.editor],
                          [self.ipyconsole, self.extconsole, self.console],
                          [self.variableexplorer, self.historylog,
-                          self.outlineexplorer,
                           self.findinfiles] + self.thirdparty_plugins,
-                         [self.explorer, self.projectexplorer, self.inspector,
+                         [self.projectexplorer, self.inspector,
                           self.onlinehelp]]
         vertical_layout = [[self.editor],
                            [None],
@@ -1442,7 +1443,7 @@ class MainWindow(QMainWindow):
                                  Qt.Horizontal)
 
         # Now arrange each cuadrant
-        for i in range(0, 4, 2):
+        for i in range(0, len(widgets_layout), 2):
             first = widgets_layout[i][0]
             second = widgets_layout[i+1][0]
             if first is not None and second is not None:
@@ -1453,7 +1454,7 @@ class MainWindow(QMainWindow):
             widget.toggle_view(True)
             action = widget.toggle_view_action
             action.setChecked(widget.dockwidget.isVisible())
-
+       
         # Tabify
         for cuadrant in widgets_layout:
             if cuadrant[0] is not None:
@@ -1481,8 +1482,14 @@ class MainWindow(QMainWindow):
                            self.search_toolbar]
         for toolbar in hidden_toolbars:
             toolbar.close()
-        for plugin in (self.projectexplorer, self.outlineexplorer):
-            plugin.dockwidget.close()
+        
+        if index == matlab:
+            closed_dockwidgets = (self.projectexplorer, )
+        else:
+            closed_dockwidgets = (self.projectexplorer, self.outlineexplorer)
+            
+        for plugin in closed_dockwidgets:
+                plugin.dockwidget.close()
 
         self.set_window_settings(*settings)
 
@@ -1518,6 +1525,14 @@ class MainWindow(QMainWindow):
         # TODO: What to do here to get the layout to display symmetricaly
         # by symmetry I mean the editor should occupy exactly half of the
         # window and right now it occupies like 1/3
+
+        # Custom settings
+#        if index == matlab:
+#            print('got it')
+#            widget = self.outlineexplorer
+#            widget.toggle_view(True)
+##            action = widget.toggle_view_action
+#            action.setChecked(True)
 
     def toggle_previous_layout(self):
         """ """
