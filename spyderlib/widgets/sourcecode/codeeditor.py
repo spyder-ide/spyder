@@ -2682,12 +2682,13 @@ class NumpyMatrixInline(QLineEdit):
         QLineEdit.__init__(self, parent)
         self._parent = parent
 
+    # to catch the Tab key event
     def event(self, event):
         if event.type() == QEvent.KeyPress:
             if (event.key() == Qt.Key_Tab or event.key() == Qt.Key_Space):
                 text = self.text()
                 cursor = self.cursorPosition()
-
+                # fix to include in "undo/redo" history
                 if cursor != 0 and text[cursor - 1] == ' ':
                     text = text[:cursor] + '; ' + text[cursor:]
                 else:
@@ -2712,6 +2713,7 @@ class NumpyMatrixTable(QTableWidget):
     def keyPressEvent(self, event):
         """ """
         if event.key() in [Qt.Key_Enter, Qt.Key_Return]:
+            QTableWidget.keyPressEvent(self, event)
             self._parent.keyPressEvent(event)
         else:
             QTableWidget.keyPressEvent(self, event)
@@ -2858,6 +2860,11 @@ class NumpyMatrixDialog(QDialog):
 
             # replaces spaces by commas
             value = value.replace(' ',  ', ')
+
+            # replaces not defined values
+            nan_values = ['nan', 'NAN', 'NaN', 'Na', 'NA', 'na']
+            for nan_value in nan_values:
+                value = value.replace(nan_value,  'np.nan')
 
             # replaces colon by braces
             value = value.replace(';',  '], [')
