@@ -24,7 +24,7 @@ class LayoutModel(QAbstractTableModel):
         super(LayoutModel, self).__init__(parent)
 
         # variables
-        self.parent = parent
+        self._parent = parent
         self.order = order
         self.active = active
         self._rows = []
@@ -82,8 +82,8 @@ class LayoutModel(QAbstractTableModel):
 
         if role == Qt.CheckStateRole:
             self.set_row(row, [name, not state])
-            self.parent.setCurrentIndex(index)
-            self.parent.setFocus()
+            self._parent.setCurrentIndex(index)
+            self._parent.setFocus()
             self.dataChanged.emit(index, index)
             return True
         elif role == Qt.EditRole:
@@ -118,44 +118,44 @@ class LayoutSaveDialog(QDialog):
         super(LayoutSaveDialog, self).__init__(parent)
 
         # variables
-        self.parent = parent
+        self._parent = parent
 
         # widgets
-        self.combo_box = QComboBox(self)
-        self.combo_box.addItems(order)
-        self.combo_box.setEditable(True)
-        self.combo_box.clearEditText()
-        self.button_box = QDialogButtonBox(QDialogButtonBox.Ok |
-                                           QDialogButtonBox.Cancel,
-                                           Qt.Horizontal, self)
-        self.button_ok = self.button_box.button(QDialogButtonBox.Ok)
-        self.button_cancel = self.button_box.button(QDialogButtonBox.Cancel)
+        self._combo_box = QComboBox(self)
+        self._combo_box.addItems(order)
+        self._combo_box.setEditable(True)
+        self._combo_box.clearEditText()
+        self._button_box = QDialogButtonBox(QDialogButtonBox.Ok |
+                                            QDialogButtonBox.Cancel,
+                                            Qt.Horizontal, self)
+        self._button_ok = self._button_box.button(QDialogButtonBox.Ok)
+        self._button_cancel = self._button_box.button(QDialogButtonBox.Cancel)
 
         # widget setup
-        self.button_ok.setEnabled(False)
-        self.dialog_size = QSize(300, 100)
+        self._button_ok.setEnabled(False)
+        self._dialog_size = QSize(300, 100)
         self.setWindowTitle('Save layout as')
         self.setModal(True)
-        self.setMinimumSize(self.dialog_size)
-        self.setFixedSize(self.dialog_size)
+        self.setMinimumSize(self._dialog_size)
+        self.setFixedSize(self._dialog_size)
 
         # layouts
-        layout = QVBoxLayout()
-        layout.addWidget(self.combo_box)
-        layout.addWidget(self.button_box)
-        self.setLayout(layout)
+        self._layout = QVBoxLayout()
+        self._layout.addWidget(self._combo_box)
+        self._layout.addWidget(self._button_box)
+        self.setLayout(self._layout)
 
         # signals and slots
-        self.button_box.accepted.connect(self.accept)
-        self.button_box.rejected.connect(self.close)
-        self.combo_box.editTextChanged.connect(self.check_text)
+        self._button_box.accepted.connect(self.accept)
+        self._button_box.rejected.connect(self.close)
+        self._combo_box.editTextChanged.connect(self.check_text)
 
     def check_text(self, text):
         """Disable empty layout name possibility"""
         if to_text_string(text) == u'':
-            self.button_ok.setEnabled(False)
+            self._button_ok.setEnabled(False)
         else:
-            self.button_ok.setEnabled(True)
+            self._button_ok.setEnabled(True)
 
 
 class LayoutSettingsDialog(QDialog):
@@ -164,7 +164,8 @@ class LayoutSettingsDialog(QDialog):
         super(LayoutSettingsDialog, self).__init__(parent)
 
         # variables
-        self.parent = parent
+        self._parent = parent
+        self._selection_model = None
         self.names = names
         self.order = order
         self.active = active
@@ -199,6 +200,9 @@ class LayoutSettingsDialog(QDialog):
         self.table.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.table.horizontalHeader().setStretchLastSection(True)
         self.table.setColumnHidden(1, True)
+        
+        # need to keep a reference for pyside not to segfault!
+        self._selection_model = self.table.selectionModel()
 
         # layout
         buttons_layout = QVBoxLayout()
@@ -224,9 +228,9 @@ class LayoutSettingsDialog(QDialog):
         self.button_delete.clicked.connect(self.delete_layout)
         self.button_move_up.clicked.connect(lambda: self.move_layout(True))
         self.button_move_down.clicked.connect(lambda: self.move_layout(False))
-        self.table.selectionModel().selectionChanged.connect(
-           lambda: self.selection_changed(None, None))
         self.table.model().dataChanged.connect(
+           lambda: self.selection_changed(None, None))
+        self._selection_model.selectionChanged.connect(
            lambda: self.selection_changed(None, None))
 
         # focus table
