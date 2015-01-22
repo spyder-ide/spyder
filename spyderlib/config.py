@@ -195,9 +195,9 @@ DEFAULTS = [
             ('quick_layouts',
              {
               'place_holder': '',
-              'names': ['Matlab', 'Rstudio', 'Vertical split', 'Horizontal split'],
-              'order': ['Matlab', 'Rstudio', 'Vertical split', 'Horizontal split'],
-              'active': ['Matlab', 'Rstudio', 'Vertical split', 'Horizontal split'],
+              'names': ['Matlab layout', 'Rstudio layout', 'Vertical split', 'Horizontal split'],
+              'order': ['Matlab layout', 'Rstudio layout', 'Vertical split', 'Horizontal split'],
+              'active': ['Matlab layout', 'Rstudio layout', 'Vertical split', 'Horizontal split'],
               }),
             ('editor_appearance',
              {
