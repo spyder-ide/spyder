@@ -121,41 +121,41 @@ class LayoutSaveDialog(QDialog):
         self._parent = parent
 
         # widgets
-        self._combo_box = QComboBox(self)
-        self._combo_box.addItems(order)
-        self._combo_box.setEditable(True)
-        self._combo_box.clearEditText()
-        self._button_box = QDialogButtonBox(QDialogButtonBox.Ok |
-                                            QDialogButtonBox.Cancel,
-                                            Qt.Horizontal, self)
-        self._button_ok = self._button_box.button(QDialogButtonBox.Ok)
-        self._button_cancel = self._button_box.button(QDialogButtonBox.Cancel)
+        self.combo_box = QComboBox(self)
+        self.combo_box.addItems(order)
+        self.combo_box.setEditable(True)
+        self.combo_box.clearEditText()
+        self.button_box = QDialogButtonBox(QDialogButtonBox.Ok |
+                                           QDialogButtonBox.Cancel,
+                                           Qt.Horizontal, self)
+        self.button_ok = self.button_box.button(QDialogButtonBox.Ok)
+        self.button_cancel = self.button_box.button(QDialogButtonBox.Cancel)
 
         # widget setup
-        self._button_ok.setEnabled(False)
-        self._dialog_size = QSize(300, 100)
+        self.button_ok.setEnabled(False)
+        self.dialog_size = QSize(300, 100)
         self.setWindowTitle('Save layout as')
         self.setModal(True)
-        self.setMinimumSize(self._dialog_size)
-        self.setFixedSize(self._dialog_size)
+        self.setMinimumSize(self.dialog_size)
+        self.setFixedSize(self.dialog_size)
 
         # layouts
-        self._layout = QVBoxLayout()
-        self._layout.addWidget(self._combo_box)
-        self._layout.addWidget(self._button_box)
-        self.setLayout(self._layout)
+        self.layout = QVBoxLayout()
+        self.layout.addWidget(self.combo_box)
+        self.layout.addWidget(self.button_box)
+        self.setLayout(self.layout)
 
         # signals and slots
-        self._button_box.accepted.connect(self.accept)
-        self._button_box.rejected.connect(self.close)
-        self._combo_box.editTextChanged.connect(self.check_text)
+        self.button_box.accepted.connect(self.accept)
+        self.button_box.rejected.connect(self.close)
+        self.combo_box.editTextChanged.connect(self.check_text)
 
     def check_text(self, text):
         """Disable empty layout name possibility"""
         if to_text_string(text) == u'':
-            self._button_ok.setEnabled(False)
+            self.button_ok.setEnabled(False)
         else:
-            self._button_ok.setEnabled(True)
+            self.button_ok.setEnabled(True)
 
 
 class LayoutSettingsDialog(QDialog):
