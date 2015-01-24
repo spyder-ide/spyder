@@ -1654,12 +1654,6 @@ class CondaPackagesWidget(QWidget):
         self._selected_env = env
         self._setup_widget()
     
-    def close_processes(self):
-        """ """
-        self._thread.exit(0)
-        self._thread.quit()
-        self._conda_process.close()
-
 
 class Worker(QObject):
     """ helper class to preprocess the repodata.json file(s) information into
