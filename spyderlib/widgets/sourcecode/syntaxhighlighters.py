@@ -43,12 +43,23 @@ COLOR_SCHEME_KEYS = ("background", "currentline", "currentcell", "occurence",
 COLOR_SCHEME_NAMES = CONF.get('color_schemes', 'names')
 # Mapping for file extensions that use Pygments highlighting but should use
 # different lexers than Pygments' autodetection suggests.  Keys are file
-# extensions, values are Pygments lexer names.
-CUSTOM_EXTENSION_LEXER = {'.ipynb': 'json', '.nt': 'bat', '.scss': 'css',
-                          '.properties': 'ini', '.session': 'ini',
-                          '.inf': 'ini', '.reg': 'ini', '.url': 'ini',
-                          '.cfg': 'ini', '.cnf': 'ini', '.aut': 'ini',
-                          '.iss': 'ini'}
+# extensions or tuples of extensions, values are Pygments lexer names.
+CUSTOM_EXTENSION_LEXER = {'.ipynb': 'json',
+                          '.nt': 'bat',
+                          '.scss': 'css',
+                          '.m': 'matlab',
+                          ('.properties', '.session', '.inf', '.reg', '.url',
+                           '.cfg', '.cnf', '.aut', '.iss'): 'ini'}
+# Convert custom extensions into a one-to-one mapping for easier lookup.
+_custom_extension_lexer_mapping = {}
+for key, value in CUSTOM_EXTENSION_LEXER.items():
+    # Single key is mapped unchanged.
+    if is_text_string(key):
+        _custom_extension_lexer_mapping[key] = value
+    # Tuple of keys is iterated over and each is mapped to value.
+    else:
+        for k in key:
+            _custom_extension_lexer_mapping[k] = value
 
 
 #==============================================================================
@@ -890,9 +901,8 @@ def guess_pygments_highlighter(filename):
     except ImportError:
         return TextSH
     root, ext = os.path.splitext(filename)
-    custom_lexer = CUSTOM_EXTENSION_LEXER.get(ext)
-    if custom_lexer is not None:
-        lexer = get_lexer_by_name(custom_lexer)
+    if ext in _custom_extension_lexer_mapping:
+        lexer = get_lexer_by_name(_custom_extension_lexer_mapping[ext])
     else:
         try:
             lexer = get_lexer_for_filename(filename)
