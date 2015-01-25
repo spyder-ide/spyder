@@ -707,7 +707,8 @@ class CodeEditor(TextEditBaseWidget):
         self._apply_highlighter_color_scheme()
 
     def is_json(self):
-        return self.highlighter_class is sh.JsonSH
+        return (isinstance(self.highlighter, sh.PygmentsSH) and
+                self.highlighter._lexer.name == 'JSON')
 
     def is_python(self):
         return self.highlighter_class is sh.PythonSH
