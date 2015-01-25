@@ -264,7 +264,11 @@ These commands were executed:
                                         name='Clear shell', parent=self)
 
         # Fixed shortcuts
-        new_shortcut("Ctrl+T", self, lambda: self.new_client.emit())       
+        new_shortcut("Ctrl+T", self, lambda: self.new_client.emit())
+        new_shortcut(SHORTCUT_INLINE, self,
+                     lambda: self._control.enter_array_inline())
+        new_shortcut(SHORTCUT_TABLE, self,
+                     lambda: self._control.enter_array_table())
 
         return [inspect, clear_console]
     
