@@ -48,6 +48,7 @@ from spyderlib.widgets.browser import WebView
 from spyderlib.widgets.calltip import CallTipWidget
 from spyderlib.widgets.mixins import (BaseEditMixin, InspectObjectMixin,
                                       SaveHistoryMixin, TracebackLinksMixin)
+from spyderlib.widgets.matrixeditor import (SHORTCUT_INLINE, SHORTCUT_TABLE)
 
 
 #-----------------------------------------------------------------------------
@@ -263,7 +264,7 @@ These commands were executed:
                                         name='Clear shell', parent=self)
 
         # Fixed shortcuts
-        new_shortcut("Ctrl+T", self, lambda: self.new_client.emit())
+        new_shortcut("Ctrl+T", self, lambda: self.new_client.emit())       
 
         return [inspect, clear_console]
     

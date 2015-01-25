@@ -27,13 +27,14 @@ from spyderlib.qt.compat import getsavefilename
 # Local import
 from spyderlib.baseconfig import get_conf_path, _, STDERR, DEBUG
 from spyderlib.config import CONF
-from spyderlib.guiconfig import get_font, create_shortcut, get_shortcut
+from spyderlib.guiconfig import get_font, create_shortcut, get_shortcut, new_shortcut
 from spyderlib.utils import encoding
 from spyderlib.utils.qthelpers import (keybinding, create_action, add_actions,
                                        restore_keyevent, get_icon)
 from spyderlib.widgets.sourcecode.base import ConsoleBaseWidget
 from spyderlib.widgets.mixins import (InspectObjectMixin, TracebackLinksMixin,
                                       SaveHistoryMixin)
+from spyderlib.widgets.matrixeditor import (SHORTCUT_INLINE, SHORTCUT_TABLE)
 from spyderlib.py3compat import (is_text_string, to_text_string, builtins,
                                  is_string)
 
@@ -677,6 +678,8 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
         self.shortcuts = self.create_shortcuts()
     
     def create_shortcuts(self):
+        new_shortcut(SHORTCUT_INLINE, self, lambda: self.enter_array_inline())
+        new_shortcut(SHORTCUT_TABLE, self, lambda: self.enter_array_table())        
         inspectsc = create_shortcut(self.inspect_current_object,
                                     context='Console',
                                     name='Inspect current object',
