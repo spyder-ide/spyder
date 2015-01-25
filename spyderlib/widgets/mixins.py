@@ -495,6 +495,9 @@ class BaseEditMixin(object):
                 return True
         return False
 
+    def is_editor(self):
+        return False
+
     # --- Numpy Matrix/Array Helper
     # 
     def enter_array_inline(self):
@@ -511,16 +514,20 @@ class BaseEditMixin(object):
         dlg = NumpyMatrixDialog(self, inline)
 
         x, y = rect.left(), rect.top() + (rect.bottom() - rect.top())/2
-#        x = x + self.compute_linenumberarea_width() - 14
-#        y = y - dlg.height()/2 - 3
+        x = x + self.get_linenumberarea_width() - 14
+        y = y - dlg.height()/2 - 3
 
         pos = QPoint(x, y)
 
         dlg.move(self.mapToGlobal(pos))
-#        if (not self._entering_array) and self.is_python():
-#            self._entering_array = True
         dlg.setWindowOpacity(0.90)
-        if dlg.exec_():
+
+        if self.is_editor():
+            python_check = (not self._entering_array) and self.is_python()
+        else:
+            python_check = True
+
+        if python_check and dlg.exec_():
             text = dlg.text()
             cursor = self.textCursor()
             cursor.beginEditBlock()
