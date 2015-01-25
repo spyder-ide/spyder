@@ -21,6 +21,7 @@ from spyderlib.qt.QtGui import (QToolTip, QLineEdit, QHBoxLayout,
                                 QDialog, QToolButton, QIcon, QTableWidget,
                                 QTableWidgetItem, QWidget)
 from spyderlib.qt.QtCore import (Qt, QPoint, QEvent)
+from spyderlib.utils.qthelpers import get_std_icon
 from spyderlib.baseconfig import _, get_image_path
 
 
@@ -125,8 +126,6 @@ class NumpyMatrixDialog(QDialog):
         self._parent = parent
         self._text = None
 
-        icon = 'help.png'
-
         self._help_inline = _("""
            <b>Numpy Array/Matrix Helper</b><br>
            Type an array in Matlab    : <code>[1 2;3 4]</code><br>
@@ -153,7 +152,7 @@ class NumpyMatrixDialog(QDialog):
 
         # widgets
         self._button_help = HelperToolButton()
-        self._button_help.setIcon(QIcon(get_image_path(icon)))
+        self._button_help.setIcon(get_std_icon('MessageBoxInformation'))
         self._button_help.setStyleSheet("QToolButton {border: 0px solid grey; \
             padding:0px;}")
 
