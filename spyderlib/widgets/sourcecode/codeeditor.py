@@ -2636,6 +2636,9 @@ class CodeEditor(TextEditBaseWidget):
         """
         return self.__visible_blocks
 
+    def is_editor(self):
+        return True
+
 
 #===============================================================================
 # CodeEditor's Printer
