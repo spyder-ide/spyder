@@ -10,19 +10,18 @@
 # -Set font based on caller? editor console? and adjust size of widget
 # -Fix positioning
 # -Use the same font as editor/console?
-# -Move this widget to a general location as another widget and generalize it?
 
 
 from __future__ import division
 
 import re
 
-from spyderlib.qt.QtGui import (QToolTip, QLineEdit, QHBoxLayout,
-                                QDialog, QToolButton, QIcon, QTableWidget,
-                                QTableWidgetItem, QWidget)
+from spyderlib.qt.QtGui import (QToolTip, QLineEdit, QHBoxLayout, QWidget,
+                                QDialog, QToolButton, QTableWidget,
+                                QTableWidgetItem)
 from spyderlib.qt.QtCore import (Qt, QPoint, QEvent)
 from spyderlib.utils.qthelpers import get_std_icon
-from spyderlib.baseconfig import _, get_image_path
+from spyderlib.baseconfig import _
 
 
 # Global shortcuts
