@@ -28,7 +28,7 @@ from spyderlib.utils.misc import get_error_match
 from spyderlib.utils.dochelpers import (getobj, getargspecfromtext,
                                         getsignaturefromtext)
 from spyderlib.py3compat import is_text_string, to_text_string, u
-
+from spyderlib.widgets.matrixeditor import NumpyMatrixDialog
 
 HISTORY_FILENAMES = []
 
@@ -494,6 +494,41 @@ class BaseEditMixin(object):
                 self.setTextCursor(found_cursor)
                 return True
         return False
+
+    # --- Numpy Matrix/Array Helper
+    # 
+    def enter_array_inline(self):
+        """ """
+        self._enter_array(True)
+
+    def enter_array_table(self):
+        """ """
+        self._enter_array(False)
+
+    def _enter_array(self, inline):
+        """ """
+        rect = self.cursorRect()
+        dlg = NumpyMatrixDialog(self, inline)
+
+        x, y = rect.left(), rect.top() + (rect.bottom() - rect.top())/2
+#        x = x + self.compute_linenumberarea_width() - 14
+#        y = y - dlg.height()/2 - 3
+
+        pos = QPoint(x, y)
+
+        dlg.move(self.mapToGlobal(pos))
+#        if (not self._entering_array) and self.is_python():
+#            self._entering_array = True
+        dlg.setWindowOpacity(0.90)
+        if dlg.exec_():
+            text = dlg.text()
+            cursor = self.textCursor()
+            cursor.beginEditBlock()
+            cursor.insertText(text)
+            cursor.endEditBlock()
+        else:
+            return
+        self._entering_array = False
 
 
 class TracebackLinksMixin(object):
