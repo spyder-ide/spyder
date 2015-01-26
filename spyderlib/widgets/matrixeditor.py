@@ -233,7 +233,7 @@ class NumpyMatrixDialog(QDialog):
             values = re.sub("\s+", " ", values)
             values = re.sub("]$", "", values)
             values = re.sub("^\[", "", values)
-            values = re.sub(ROW_SEPARATOR + r'$', '', values)
+            values = re.sub(ROW_SEPARATOR + r'*$', '', values)
 
             # replaces spaces by commas
             values = values.replace(' ',  ELEMENT_SEPARATOR)
