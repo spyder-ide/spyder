@@ -136,6 +136,9 @@ class NumpyMatrixDialog(QDialog):
         QDialog.__init__(self, parent)
         self._parent = parent
         self._text = None
+        
+        # TODO: add this as an option in the General Preferences?
+        self._force_float = True
 
         self._help_inline = _("""
            <b>Numpy Array/Matrix Helper</b><br>
@@ -241,22 +244,24 @@ class NumpyMatrixDialog(QDialog):
                 values = values.replace(nan_value,  'np.nan')
           
             # Convert numbers to floating point
-            new_values = []
-            rows = values.split(ROW_SEPARATOR)
-            for row in rows:
-                new_row = []
-                elements = row.split(ELEMENT_SEPARATOR)
-                for e in elements:
-                    num = e
-                    try:
-                        num = str(float(e))
-                    except:
-                        pass
-                    new_row.append(num)
-                new_values.append(ELEMENT_SEPARATOR.join(new_row))
-            new_values = ROW_SEPARATOR.join(new_values)
-            values = new_values.replace(ROW_SEPARATOR,  BRACES)
-            
+            if self._force_float:
+                new_values = []
+                rows = values.split(ROW_SEPARATOR)
+                for row in rows:
+                    new_row = []
+                    elements = row.split(ELEMENT_SEPARATOR)
+                    for e in elements:
+                        num = e
+                        try:
+                            num = str(float(e))
+                        except:
+                            pass
+                        new_row.append(num)
+                    new_values.append(ELEMENT_SEPARATOR.join(new_row))
+                new_values = ROW_SEPARATOR.join(new_values)
+                values = new_values
+
+            values = values.replace(ROW_SEPARATOR,  BRACES)
             text = "{0}{1}{2}".format(prefix, values, suffix)
 
             self._text = text
