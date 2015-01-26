@@ -171,8 +171,17 @@ class NumpyMatrixDialog(QDialog):
         # widgets
         self._button_help = HelperToolButton()
         self._button_help.setIcon(get_std_icon('MessageBoxInformation'))
-        self._button_help.setStyleSheet("QToolButton {border: 0px solid grey; \
-            padding:0px;}")
+
+        style = """
+            QToolButton {
+              border: 1px solid grey;
+              padding:0px;
+              border-radius: 2px;
+              background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                  stop: 0 #f6f7fa, stop: 1 #dadbde);
+            }
+            """
+        self._button_help.setStyleSheet(style)
 
         if inline:
             self._button_help.setToolTip(self._help_inline)
@@ -197,7 +206,7 @@ class NumpyMatrixDialog(QDialog):
         # layout
         self._layout = QHBoxLayout()
         self._layout.addWidget(self._widget)
-        self._layout.addWidget(self._button_help)
+        self._layout.addWidget(self._button_help, 1, Qt.AlignTop)
         self.setLayout(self._layout)
 
         self._widget.setFocus()
@@ -246,6 +255,17 @@ class NumpyMatrixDialog(QDialog):
             nan_values = ['nan', 'NAN', 'NaN', 'Na', 'NA', 'na']
             for nan_value in nan_values:
                 values = values.replace(nan_value,  'np.nan')
+
+            # Check for 1d arrays (only one element)
+            try:
+                str(float(values))
+                is_one_dimensional = True
+            except:
+                is_one_dimensional = False
+
+            if is_one_dimensional:
+                prefix = prefix[:-1]
+                suffix = suffix[:-1]
 
             # Convert numbers to floating point
             if self._force_float:
