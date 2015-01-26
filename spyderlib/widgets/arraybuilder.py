@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2015 Gonzalo Peña
+# Copyright © 2015 Gonzalo Peña-Castellanos (@goanpeca)
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
