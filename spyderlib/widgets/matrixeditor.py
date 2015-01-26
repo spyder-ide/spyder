@@ -68,6 +68,9 @@ class NumpyMatrixTable(QTableWidget):
         """ """
         if event.key() in [Qt.Key_Enter, Qt.Key_Return]:
             QTableWidget.keyPressEvent(self, event)
+            # To avoid having to enter one final tab
+            self.setDisabled(True)
+            self.setDisabled(False)
             self._parent.keyPressEvent(event)
         else:
             QTableWidget.keyPressEvent(self, event)
@@ -296,8 +299,8 @@ def test():
     dlg_inline = NumpyMatrixDialog(None, inline=True)
     dlg_table = NumpyMatrixDialog(None, inline=False)
 
-    if dlg_inline.exec_():
-        print(dlg_inline.text())
+#    if dlg_inline.exec_():
+#        print(dlg_inline.text())
 
     if dlg_table.exec_():
         print(dlg_table.text())
