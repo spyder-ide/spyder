@@ -510,7 +510,7 @@ class CodeEditor(TextEditBaseWidget):
         self.painted.connect(self._draw_editor_cell_divider)
 
         self.verticalScrollBar().valueChanged.connect(
-                                       lambda value: self.rehighlight_cells())
+                                       lambda value: self.rehighlight_cells())                                 
 
     def create_shortcuts(self):
         codecomp = create_shortcut(self.do_completion, context='Editor',
