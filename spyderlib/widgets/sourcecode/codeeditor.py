@@ -513,11 +513,6 @@ class CodeEditor(TextEditBaseWidget):
         self.verticalScrollBar().valueChanged.connect(
                                        lambda value: self.rehighlight_cells())
 
-        # Numpy Array Entering
-        self._entering_array = False
-
-
-
     def create_shortcuts(self):
         codecomp = create_shortcut(self.do_completion, context='Editor',
                                    name='Code Completion', parent=self)
