@@ -142,7 +142,7 @@ class NumpyMatrixDialog(QDialog):
         self._text = None
 
         # TODO: add this as an option in the General Preferences?
-        self._force_float = True
+        self._force_float = False
 
         self._help_inline = _("""
            <b>Numpy Array/Matrix Helper</b><br>
