@@ -277,6 +277,7 @@ class NumpyArrayDialog(QDialog):
             new_values = ROW_SEPARATOR.join(new_values)
             values = new_values
 
+            # Single rows are parsed as 1D arrays/matrices
             if nrows == 1:
                 prefix = prefix[:-1]
                 suffix = suffix.replace("]])", "])")
