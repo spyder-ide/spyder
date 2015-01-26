@@ -89,7 +89,7 @@ from spyderlib.qt import QtSvg  # analysis:ignore
 #==============================================================================
 # Splash screen
 #==============================================================================
-from spyderlib.baseconfig import _, get_image_path
+from spyderlib.baseconfig import _, get_image_path, DEV
 SPLASH_APP = QApplication([''])
 SPLASH = QSplashScreen(QPixmap(get_image_path('splash.png'), 'png'))
 SPLASH_FONT = SPLASH.font()
@@ -143,6 +143,7 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, get_icon,
                                        create_python_script_action, file_uri)
 from spyderlib.guiconfig import get_shortcut, remove_deprecated_shortcuts
 from spyderlib.otherplugins import get_spyderplugins_mods
+from spyderlib import tour # FIXME: Better place for this?
 
 
 #==============================================================================
@@ -279,6 +280,8 @@ class MainWindow(QMainWindow):
     all_actions_defined = Signal()
     sig_pythonpath_changed = Signal()
     sig_open_external_file = Signal(str)
+    sig_resized = Signal("QResizeEvent")  # related to interactive tour
+    sig_moved = Signal("QMoveEvent")      # related to interactive tour
 
     def __init__(self, options=None):
         QMainWindow.__init__(self)
@@ -341,6 +344,10 @@ class MainWindow(QMainWindow):
         self.findinfiles = None
         self.thirdparty_plugins = []
 
+        # Tour  # TODO: Should I consider it a plugin?? or?
+        self.tour = None
+        self.tours_available = None
+        
         # Preferences
         from spyderlib.plugins.configdialog import (MainConfigPage,
                                                     ColorSchemeConfigPage)
@@ -895,7 +902,7 @@ class MainWindow(QMainWindow):
 
             self.set_splash(_("Setting up main window..."))
 
-            # Help menu
+            # Help menu            
             dep_action = create_action(self, _("Optional dependencies..."),
                                        triggered=self.show_dependencies,
                                        icon='advanced.png')
@@ -931,7 +938,31 @@ class MainWindow(QMainWindow):
                                icon=get_std_icon('DialogHelpButton'))
             tut_action = create_action(self, _("Spyder tutorial"),
                                        triggered=self.inspector.show_tutorial)
-            self.help_menu_actions = [doc_action, tut_action, None,
+
+        #----- Tours
+            self.tour = tour.AnimatedTour(self)
+            self.tours_menu = QMenu(_("Spyder tours"))
+            self.tour_menu_actions = []
+            self.tours_available = tour.get_tours()
+
+            for i, tour_available in enumerate(self.tours_available):
+                self.tours_available[i]['last'] = 0
+                tour_name = tour_available['name']
+
+                def trigger(i=i, self=self):  # closure needed!
+                    return lambda: self.show_tour(i)
+
+                temp_action = create_action(self, tour_name, tip=_(""),
+                                            triggered=trigger())
+                self.tour_menu_actions += [temp_action]
+
+            self.tours_menu.addActions(self.tour_menu_actions)
+
+            if not DEV:
+                self.tours_menu = None
+
+            self.help_menu_actions = [doc_action, tut_action, self.tours_menu,
+                                      None,
                                       report_action, dep_action, support_action,
                                       None]
             # Python documentation
@@ -1805,12 +1836,18 @@ class MainWindow(QMainWindow):
             self.window_size = self.size()
         QMainWindow.resizeEvent(self, event)
 
+        # To be used by the tour to be able to resize
+        self.sig_resized.emit(event)
+        
     def moveEvent(self, event):
         """Reimplement Qt method"""
         if not self.isMaximized() and not self.fullscreen_flag:
             self.window_position = self.pos()
         QMainWindow.moveEvent(self, event)
 
+        # To be used by the tour to be able to move
+        self.sig_moved.emit(event)
+    
     def hideEvent(self, event):
         """Reimplement Qt method"""
         if not self.light:
@@ -1841,6 +1878,9 @@ class MainWindow(QMainWindow):
         self.save_current_window_settings(prefix)
         if CONF.get('main', 'single_instance'):
             self.open_files_server.close()
+        for plugin in self.thirdparty_plugins:
+            if not plugin.closing_plugin(cancelable):
+                return False
         for widget in self.widgetlist:
             if not widget.closing_plugin(cancelable):
                 return False
@@ -2113,7 +2153,7 @@ Please provide any additional information below.
             self.console.shell.interpreter.restore_stds()
 
     def open_external_console(self, fname, wdir, args, interact, debug, python,
-                              python_args, systerm):
+                              python_args, systerm, post_mortem=False):
         """Open external console"""
         if systerm:
             # Running script in an external system terminal
@@ -2131,7 +2171,7 @@ Please provide any additional information below.
             self.extconsole.start(
                 fname=to_text_string(fname), wdir=to_text_string(wdir),
                 args=to_text_string(args), interact=interact,
-                debug=debug, python=python,
+                debug=debug, python=python, post_mortem=post_mortem,
                 python_args=to_text_string(python_args) )
 
     def execute_in_external_console(self, lines, focus_to_editor):
@@ -2371,6 +2411,12 @@ Please provide any additional information below.
                 self.sig_open_external_file.emit(fname)
             req.sendall(b' ')
 
+    # ---- Interactive Tours
+    def show_tour(self, index):
+        """ """
+        frames = self.tours_available[index]
+        self.tour.set_tour(index, frames, self)
+        self.tour.start_tour()
 
 #==============================================================================
 # Utilities to create the 'main' function

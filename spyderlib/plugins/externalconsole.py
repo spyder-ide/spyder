@@ -27,7 +27,7 @@ import sys
 import subprocess
 
 # Local imports
-from spyderlib.baseconfig import SCIENTIFIC_STARTUP, _
+from spyderlib.baseconfig import SCIENTIFIC_STARTUP, running_in_mac_app, _
 from spyderlib.config import CONF
 from spyderlib.utils import programs
 from spyderlib.utils.misc import (get_error_match, get_python_executable,
@@ -650,7 +650,8 @@ class ExternalConsole(SpyderPluginWidget):
             else:
                 return shellwidgets[0].shell
         
-    def run_script_in_current_shell(self, filename, wdir, args, debug):
+    def run_script_in_current_shell(self, filename, wdir, args, debug, 
+                  post_mortem):
         """Run script in current shell, if any"""
         norm = lambda text: remove_backslashes(to_text_string(text))
         line = "%s('%s'" % ('debugfile' if debug else 'runfile',
@@ -659,6 +660,8 @@ class ExternalConsole(SpyderPluginWidget):
             line += ", args=r'%s'" % norm(args)
         if wdir:
             line += ", wdir=r'%s'" % norm(wdir)
+        if post_mortem:
+            line += ', post_mortem=True'
         line += ")"
         if not self.execute_python_code(line, interpreter_only=True):
             QMessageBox.warning(self, _('Warning'),
@@ -710,7 +713,7 @@ class ExternalConsole(SpyderPluginWidget):
     
     def start(self, fname, wdir=None, args='', interact=False, debug=False,
               python=True, ipykernel=False, ipyclient=None,
-              give_ipyclient_focus=True, python_args=''):
+              give_ipyclient_focus=True, python_args='', post_mortem=True):
         """
         Start new console
         
@@ -807,7 +810,8 @@ class ExternalConsole(SpyderPluginWidget):
             else:
                 sa_settings = None
             shellwidget = ExternalPythonShell(self, fname, wdir,
-                           interact, debug, path=pythonpath,
+                           interact, debug, post_mortem=post_mortem, 
+                           path=pythonpath,
                            python_args=python_args,
                            ipykernel=ipykernel,
                            arguments=args, stand_alone=sa_settings,
@@ -887,12 +891,16 @@ class ExternalConsole(SpyderPluginWidget):
                               lambda error: ipyclient.show_kernel_error(error))
                     
                     # Detect if kernel and frontend match or not
-                    if self.get_option('pythonexecutable/custom'):
+                    # Don't apply this for our Mac app because it's
+                    # failing, see Issue 2006
+                    if self.get_option('pythonexecutable/custom') and \
+                      not running_in_mac_app():
                         frontend_ver = programs.get_module_version('IPython')
-                        if '0.13' in frontend_ver:
-                            frontend_ver = '<1.0'
+                        old_vers = ['1', '2']
+                        if any([frontend_ver.startswith(v) for v in old_vers]):
+                            frontend_ver = '<3.0'
                         else:
-                            frontend_ver = '>=1.0'
+                            frontend_ver = '>=3.0'
                         pyexec = self.get_option('pythonexecutable')
                         kernel_and_frontend_match = \
                           programs.is_module_installed('IPython',
@@ -972,7 +980,7 @@ class ExternalConsole(SpyderPluginWidget):
             self.activateWindow()
             shellwidget.shell.setFocus()
     
-    def set_ipykernel_attrs(self, connection_file, kernel_widget, kernel_id):
+    def set_ipykernel_attrs(self, connection_file, kernel_widget, name):
         """Add the pid of the kernel process to an IPython kernel tab"""
         # Set connection file
         kernel_widget.connection_file = connection_file
@@ -989,13 +997,12 @@ class ExternalConsole(SpyderPluginWidget):
                 os.remove(connection_file)
             except OSError:
                 pass
-        atexit.register(cleanup_connection_file, connection_file)            
+        atexit.register(cleanup_connection_file, connection_file)   
         
-        # Set tab name according to kernel_id
+        # Set tab name according to client master name
         index = self.get_shell_index_from_id(id(kernel_widget))
-        text = to_text_string(self.tabwidget.tabText(index))
-        name = "%s %s" % (text, kernel_id)
-        self.tabwidget.setTabText(index, name)
+        tab_name = _("Kernel %s") % name
+        self.tabwidget.setTabText(index, tab_name)
     
     def register_ipyclient(self, connection_file, ipyclient, kernel_widget,
                            give_focus=True):
@@ -1011,16 +1018,14 @@ class ExternalConsole(SpyderPluginWidget):
             restart_kernel = False
         
         # Setting kernel widget attributes
-        kernel_id = osp.splitext(connection_file.split('/')[-1])[0].split('-')[-1] 
-        self.set_ipykernel_attrs(connection_file, kernel_widget, kernel_id)
+        name = ipyclient.name.split('/')[0]
+        self.set_ipykernel_attrs(connection_file, kernel_widget, name)
         
         # Creating the client
-        client_name = kernel_id + '/A'
         ipyconsole = self.main.ipyconsole
         ipyclient.connection_file = connection_file
         ipyclient.kernel_widget_id = id(kernel_widget)
-        ipyconsole.register_client(ipyclient, client_name,
-                                   restart=restart_kernel,
+        ipyconsole.register_client(ipyclient, restart=restart_kernel,
                                    give_focus=give_focus)
         
     def open_file_in_spyder(self, fname, lineno):

@@ -33,7 +33,7 @@ from spyderlib.utils import encoding, sourcecode, codeanalysis
 from spyderlib.utils import introspection
 from spyderlib.baseconfig import _, DEBUG, STDOUT, STDERR
 from spyderlib.config import EDIT_FILTERS, EDIT_EXT, get_filter, EDIT_FILETYPES
-from spyderlib.guiconfig import create_shortcut
+from spyderlib.guiconfig import create_shortcut, new_shortcut
 from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions,
                                        mimedata2url, get_filetype_icon,
                                        create_toolbutton)
@@ -546,22 +546,16 @@ class EditorStack(QWidget):
                               name='Go to previous file', parent=self)
         tabshift = create_shortcut(self.go_to_next_file, context='Editor',
                                    name='Go to next file', parent=self)
-        close_file = create_shortcut(lambda: self.sig_close_file[()].emit(),
-                                     context='Editor', name='Close file',
-                                     parent=self)
         # Fixed shortcuts
-        zoomin = QShortcut(QKeySequence(QKeySequence.ZoomIn), self,
-                           lambda: self.zoom_in.emit())
-        zoomin.setContext(Qt.WidgetWithChildrenShortcut)
-        zoomout = QShortcut(QKeySequence(QKeySequence.ZoomOut), self,
-                            lambda: self.zoom_out.emit())
-        zoomout.setContext(Qt.WidgetWithChildrenShortcut)
-        zoomreset = QShortcut(QKeySequence("Ctrl+0"), self,
-                              lambda: self.zoom_reset.emit())
-        zoomreset.setContext(Qt.WidgetWithChildrenShortcut)
+        new_shortcut(QKeySequence.ZoomIn, self, lambda: self.zoom_in.emit())
+        new_shortcut("Ctrl+=", self, lambda: self.zoom_in.emit())
+        new_shortcut(QKeySequence.ZoomOut, self, lambda: self.zoom_out.emit())
+        new_shortcut("Ctrl+0", self, lambda: self.zoom_reset.emit())
+        new_shortcut("Ctrl+W", self, lambda: self.sig_close_file[()].emit())
+        new_shortcut("Ctrl+F4", self, lambda: self.sig_close_file[()].emit())
         # Return configurable ones
         return [inspect, breakpoint, cbreakpoint, gotoline, filelist, tab,
-                tabshift, close_file]
+                tabshift]
 
     def get_shortcut_data(self):
         """
@@ -1725,7 +1719,8 @@ class EditorStack(QWidget):
                 auto_unindent=self.auto_unindent_enabled,
                 indent_chars=self.indent_chars,
                 tab_stop_width=self.tab_stop_width,
-                cloned_from=cloned_from)
+                cloned_from=cloned_from,
+                filename=fname)
         if cloned_from is None:
             editor.set_text(txt)
             editor.document().setModified(False)
@@ -2330,8 +2325,7 @@ class EditorPluginExample(QSplitter):
         window.resize(self.size())
         window.show()
         self.register_editorwindow(window)
-        window.destroyed.connect(
-                     lambda win=window: self.unregister_editorwindow(win))
+        window.destroyed.connect(lambda: self.unregister_editorwindow(window))
 
     def register_editorwindow(self, window):
         if DEBUG_EDITOR:

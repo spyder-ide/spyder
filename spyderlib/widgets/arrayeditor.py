@@ -20,8 +20,7 @@ from spyderlib.qt.QtGui import (QHBoxLayout, QColor, QTableView, QItemDelegate,
                                 QDoubleValidator, QDialog, QDialogButtonBox,
                                 QMessageBox, QPushButton, QInputDialog, QMenu,
                                 QApplication, QKeySequence, QLabel, QComboBox,
-                                QSpinBox, QStackedWidget, QWidget, QVBoxLayout,
-                                QAbstractItemDelegate, QShortcut)
+                                QSpinBox, QStackedWidget, QWidget, QVBoxLayout)
 from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, Slot)
                                  
 from spyderlib.qt.compat import to_qvariant, from_qvariant
@@ -30,7 +29,7 @@ import numpy as np
 
 # Local imports
 from spyderlib.baseconfig import _
-from spyderlib.guiconfig import get_font
+from spyderlib.guiconfig import get_font, new_shortcut
 from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
                                        qapplication, get_icon)
 from spyderlib.py3compat import io, to_text_string, is_text_string
@@ -366,9 +365,7 @@ class ArrayView(QTableView):
         self.viewport().resize(min(total_width, 1024), self.height())
         self.shape = shape
         self.menu = self.setup_menu()
-        copy_sc = QShortcut(QKeySequence(QKeySequence.Copy), self,
-                            self.copy)
-        copy_sc.setContext(Qt.WidgetWithChildrenShortcut)
+        new_shortcut(QKeySequence.Copy, self, self.copy)
         self.horizontalScrollBar().valueChanged.connect(
                             lambda val: self.load_more_data(val, columns=True))
         self.verticalScrollBar().valueChanged.connect(

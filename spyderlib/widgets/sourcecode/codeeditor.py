@@ -30,7 +30,8 @@ from spyderlib.qt.QtGui import (QColor, QMenu, QApplication, QSplitter, QFont,
                                 QInputDialog, QTextBlockUserData, QLineEdit,
                                 QKeySequence, QWidget, QVBoxLayout,
                                 QHBoxLayout, QDialog, QIntValidator,
-                                QDialogButtonBox, QGridLayout, QPaintEvent)
+                                QDialogButtonBox, QGridLayout, QPaintEvent,
+                                QMessageBox)
 from spyderlib.qt.QtCore import (Qt, Signal, QTimer, QRect, QRegExp, QSize,
                                  Slot)
 from spyderlib.qt.compat import to_qvariant
@@ -45,23 +46,19 @@ from spyderlib.guiconfig import get_font, create_shortcut
 from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
                                        mimedata2url, get_icon)
 from spyderlib.utils.dochelpers import getobj
-from spyderlib.utils import encoding, sourcecode, programs
+from spyderlib.utils import encoding, sourcecode
 from spyderlib.utils.sourcecode import ALL_LANGUAGES, CELL_LANGUAGES
 from spyderlib.widgets.editortools import PythonCFM
 from spyderlib.widgets.sourcecode.base import TextEditBaseWidget
 from spyderlib.widgets.sourcecode import syntaxhighlighters as sh
 from spyderlib.py3compat import to_text_string
 
-if programs.is_module_installed('IPython'):
+try:
     import IPython.nbformat as nbformat
-    import IPython.nbformat.current  # in IPython 0.13.2, current is not loaded
-                                     # with nbformat.
-    try:
-        from IPython.nbconvert import PythonExporter as nbexporter  # >= 1.0
-    except:
-        nbexporter = None
-else:
-    nbformat = None
+    import IPython.nbformat.current      # analysis:ignore
+    from IPython.nbconvert import PythonExporter as nbexporter
+except:
+    nbformat = None                      # analysis:ignore
 
 #%% This line is for cell execution testing
 # For debugging purpose:
@@ -318,31 +315,15 @@ class CodeEditor(TextEditBaseWidget):
                  'Fortran77': (sh.Fortran77SH, 'c', None),
                  'Fortran': (sh.FortranSH, '!', None),
                  'Idl': (sh.IdlSH, ';', None),
-                 'Matlab': (sh.MatlabSH, '%', None),
                  'Diff': (sh.DiffSH, '', None),
                  'GetText': (sh.GetTextSH, '#', None),
                  'Nsis': (sh.NsisSH, '#', None),
                  'Html': (sh.HtmlSH, '', None),
-                 'Css': (sh.CssSH, '', None),
-                 'Xml': (sh.XmlSH, '', None),
-                 'Js': (sh.JsSH, '//', None),
-                 'Json': (sh.JsonSH, '', None),
-                 'Julia': (sh.JuliaSH, '#', None),
                  'Yaml': (sh.YamlSH, '#', None),
                  'Cpp': (sh.CppSH, '//', None),
                  'OpenCL': (sh.OpenCLSH, '//', None),
-                 'Batch': (sh.BatchSH, 'rem ', None),
-                 'Ini': (sh.IniSH, '#', None),
                  'Enaml': (sh.EnamlSH, '#', PythonCFM),
                 }
-
-    try:
-        import pygments  # analysis:ignore
-    except ImportError:
-        # Removing all syntax highlighters requiring pygments to be installed
-        for key, (sh_class, comment_string, CFMatch) in list(LANGUAGES.items()):
-            if issubclass(sh_class, sh.PygmentsSH):
-                LANGUAGES.pop(key)
 
     TAB_ALWAYS_INDENTS = ('py', 'pyw', 'python', 'c', 'cpp', 'cl', 'h')
 
@@ -578,7 +559,7 @@ class CodeEditor(TextEditBaseWidget):
                      calltips=None, go_to_definition=False,
                      close_parentheses=True, close_quotes=False,
                      add_colons=True, auto_unindent=True, indent_chars=" "*4,
-                     tab_stop_width=40, cloned_from=None):
+                     tab_stop_width=40, cloned_from=None, filename=None):
         # Code completion and calltips
         self.set_codecompletion_auto(codecompletion_auto)
         self.set_codecompletion_case(codecompletion_case)
@@ -605,7 +586,7 @@ class CodeEditor(TextEditBaseWidget):
         self.setup_margins(linenumbers, markers)
 
         # Lexer
-        self.set_language(language)
+        self.set_language(language, filename)
 
         # Highlight current cell
         self.set_highlight_current_cell(highlight_current_cell)
@@ -690,7 +671,7 @@ class CodeEditor(TextEditBaseWidget):
         else:
             self.unhighlight_current_cell()
 
-    def set_language(self, language):
+    def set_language(self, language, filename=None):
         self.tab_indents = language in self.TAB_ALWAYS_INDENTS
         self.comment_string = ''
         sh_class = sh.TextSH
@@ -708,6 +689,9 @@ class CodeEditor(TextEditBaseWidget):
                     else:
                         self.classfunc_match = CFMatch()
                     break
+        if filename is not None and not self.supported_language:
+            sh_class = sh.guess_pygments_highlighter(filename)
+            self.support_language = sh_class is not sh.TextSH
         self._set_highlighter(sh_class)
 
     def _set_highlighter(self, sh_class):
@@ -723,7 +707,8 @@ class CodeEditor(TextEditBaseWidget):
         self._apply_highlighter_color_scheme()
 
     def is_json(self):
-        return self.highlighter_class is sh.JsonSH
+        return (isinstance(self.highlighter, sh.PygmentsSH) and
+                self.highlighter._lexer.name == 'JSON')
 
     def is_python(self):
         return self.highlighter_class is sh.PythonSH
@@ -1449,7 +1434,7 @@ class CodeEditor(TextEditBaseWidget):
         text, _enc = encoding.read(filename)
         if language is None:
             language = get_file_language(filename, text)
-        self.set_language(language)
+        self.set_language(language, filename)
         self.set_text(text)
 
     def append(self, text):
@@ -1841,7 +1826,14 @@ class CodeEditor(TextEditBaseWidget):
     def clear_all_output(self):
         """removes all ouput in the ipynb format (Json only)"""
         if self.is_json() and nbformat is not None:
-            nb = nbformat.current.reads(self.toPlainText(), 'json')
+            try:
+                nb = nbformat.current.reads(self.toPlainText(), 'json')
+            except Exception as e:
+                QMessageBox.critical(self, _('Removal error'), 
+                               _("It was not possible to remove outputs from "
+                                 "this notebook. The error is:\n\n") + \
+                                 to_text_string(e))
+                return
             if nb.worksheets:
                 for cell in nb.worksheets[0].cells:
                     if 'outputs' in cell:
@@ -1858,14 +1850,19 @@ class CodeEditor(TextEditBaseWidget):
     @Slot()
     def convert_notebook(self):
         """Convert an IPython notebook to a Python script in editor"""
-        if nbformat is not None:
-            nb = nbformat.current.reads(self.toPlainText(), 'json')
-            # Use writes_py if nbconvert is not available
-            if nbexporter is None:
-                script = nbformat.current.writes_py(nb)
-            else:
-                script = nbexporter().from_notebook_node(nb)[0]
-            self.sig_new_file.emit(script)
+        try:
+            try: # >3.0
+                nb = nbformat.reads(self.toPlainText(), as_version=4)
+            except AttributeError:
+                nb = nbformat.current.reads(self.toPlainText(), 'json')
+        except Exception as e:
+            QMessageBox.critical(self, _('Conversion error'), 
+                                 _("It was not possible to convert this "
+                                 "notebook. The error is:\n\n") + \
+                                 to_text_string(e))
+            return
+        script = nbexporter().from_notebook_node(nb)[0]
+        self.sig_new_file.emit(script)
 
     def indent(self, force=False):
         """
@@ -2252,8 +2249,10 @@ class CodeEditor(TextEditBaseWidget):
         self.clear_all_output_action = create_action(self,
                            _("Clear all ouput"), icon='ipython_console.png',
                            triggered=self.clear_all_output)
-        self.ipynb_convert_action = create_action(self, _("Convert to Python script"),
-                           triggered=self.convert_notebook, icon='python.png')
+        self.ipynb_convert_action = create_action(self,
+                                               _("Convert to Python script"),
+                                               triggered=self.convert_notebook,
+                                               icon='python.png')
         self.gotodef_action = create_action(self, _("Go to definition"),
                                    triggered=self.go_to_definition_from_cursor)
         self.run_selection_action = create_action(self,
@@ -2270,27 +2269,19 @@ class CodeEditor(TextEditBaseWidget):
                       QKeySequence("Ctrl+0"),
                       triggered=lambda: self.zoom_reset.emit())
         self.menu = QMenu(self)
+        actions_1 = [self.undo_action, self.redo_action, None, self.cut_action,
+                     self.copy_action, paste_action, self.delete_action, None]
+        actions_2 = [selectall_action, None, zoom_in_action, zoom_out_action,
+                     zoom_reset_action, None, toggle_comment_action, None,
+                     self.run_selection_action, self.gotodef_action]
         if nbformat is not None:
-            add_actions(self.menu, (self.undo_action, self.redo_action, None,
-                                    self.cut_action, self.copy_action,
-                                    paste_action, self.delete_action,
-                                    None, self.clear_all_output_action,
-                                    self.ipynb_convert_action, None,
-                                    selectall_action, None, zoom_in_action,
-                                    zoom_out_action, zoom_reset_action, None,
-                                    toggle_comment_action,
-                                    None, self.run_selection_action,
-                                    self.gotodef_action))
+            nb_actions = [self.clear_all_output_action,
+                          self.ipynb_convert_action, None]
+            actions = actions_1 + nb_actions + actions_2
+            add_actions(self.menu, actions)
         else:
-            add_actions(self.menu, (self.undo_action, self.redo_action, None,
-                                    self.cut_action, self.copy_action,
-                                    paste_action, self.delete_action,
-                                    None, selectall_action, None, zoom_in_action,
-                                    zoom_out_action, zoom_reset_action, None,
-                                    toggle_comment_action,
-                                    None, self.run_selection_action,
-                                    self.gotodef_action))
-
+            actions = actions_1 + actions_2
+            add_actions(self.menu, actions) 
 
         # Read-only context-menu
         self.readonly_menu = QMenu(self)
