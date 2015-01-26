@@ -101,6 +101,14 @@ class NumpyMatrixTable(QTableWidget):
         rows = self.rowCount()
         cols = self.columnCount()
 
+        # handle empty table case
+        if rows == 2 and cols == 2:
+            item = self.item(0, 0)
+            if item is None:
+                return ''
+            elif item.text() == '':
+                return ''
+
         for r in range(rows - 1):
             for c in range(cols - 1):
                 item = self.item(r, c)
@@ -233,6 +241,8 @@ class NumpyMatrixDialog(QDialog):
             text = "{0}{1}{2}".format(prefix, value, suffix)
 
             self._text = text
+        else:
+            self._text = ''
 
     def text(self):
         """ """
