@@ -242,7 +242,7 @@ class NumpyMatrixDialog(QDialog):
 
             self._text = text
         else:
-            self._text = ''
+            self._text = ''            
 
     def text(self):
         """ """
