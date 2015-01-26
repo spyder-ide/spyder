@@ -8,7 +8,7 @@
 Editor widget based on QtGui.QPlainTextEdit
 """
 
-#%% This line is for cell execution testing
+# %% This line is for cell execution testing
 # pylint: disable=C0103
 # pylint: disable=R0903
 # pylint: disable=R0911
@@ -32,14 +32,14 @@ from spyderlib.qt.QtGui import (QColor, QMenu, QApplication, QSplitter, QFont,
                                 QDialog, QIntValidator, QDialogButtonBox,
                                 QGridLayout, QPaintEvent, QMessageBox, QWidget)
 from spyderlib.qt.QtCore import (Qt, Signal, QTimer, QRect, QRegExp, QSize,
-                                 Slot, QPoint)
+                                 Slot)
 from spyderlib.qt.compat import to_qvariant
 
-#%% This line is for cell execution testing
+# %% This line is for cell execution testing
 # Local import
-#TODO: Try to separate this module from spyderlib to create a self
-#      consistent editor module (Qt source code and shell widgets library)
-from spyderlib.baseconfig import get_conf_path, _, DEBUG, get_image_path, debug_print
+# TODO: Try to separate this module from spyderlib to create a self
+#       consistent editor module (Qt source code and shell widgets library)
+from spyderlib.baseconfig import get_conf_path, _, DEBUG, get_image_path
 from spyderlib.config import CONF
 from spyderlib.guiconfig import get_font, create_shortcut, new_shortcut
 from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
@@ -50,8 +50,7 @@ from spyderlib.utils.sourcecode import ALL_LANGUAGES, CELL_LANGUAGES
 from spyderlib.widgets.editortools import PythonCFM
 from spyderlib.widgets.sourcecode.base import TextEditBaseWidget
 from spyderlib.widgets.sourcecode import syntaxhighlighters as sh
-from spyderlib.widgets.matrixeditor import (NumpyMatrixDialog,
-                                            SHORTCUT_INLINE, SHORTCUT_TABLE)
+from spyderlib.widgets.matrixeditor import SHORTCUT_INLINE, SHORTCUT_TABLE
 from spyderlib.py3compat import to_text_string
 
 try:
@@ -61,15 +60,15 @@ try:
 except:
     nbformat = None                      # analysis:ignore
 
-#%% This line is for cell execution testing
+# %% This line is for cell execution testing
 # For debugging purpose:
 LOG_FILENAME = get_conf_path('codeeditor.log')
 DEBUG_EDITOR = DEBUG >= 3
 
 
-#===============================================================================
+# =============================================================================
 # Go to line dialog box
-#===============================================================================
+# =============================================================================
 class GoToLineDialog(QDialog):
     def __init__(self, editor):
         QDialog.__init__(self, editor)
