@@ -4,9 +4,11 @@
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
-"""Numpy Matrix/Array Edit Helper Widget"""
+"""
+Numpy Matrix/Array Edit Helper Widget
+"""
 
-# TODO: 
+# TODO:
 # -Set font based on caller? editor console? and adjust size of widget
 # -Fix positioning
 # -Use the same font as editor/console?
@@ -30,6 +32,7 @@ ELEMENT_SEPARATOR = ', '
 ROW_SEPARATOR = ';'
 BRACES = '], ['
 
+
 class NumpyMatrixInline(QLineEdit):
     """ """
     def __init__(self, parent):
@@ -43,8 +46,9 @@ class NumpyMatrixInline(QLineEdit):
                 text = self.text()
                 cursor = self.cursorPosition()
                 # fix to include in "undo/redo" history
-                if cursor != 0 and text[cursor - 1] == ' ':
-                    text = text[:cursor - 1] + ROW_SEPARATOR + ' ' + text[cursor:]
+                if cursor != 0 and text[cursor-1] == ' ':
+                    text = text[:cursor-1] + ROW_SEPARATOR + ' ' +\
+                        text[cursor:]
                 else:
                     text = text[:cursor] + ' ' + text[cursor:]
                 self.setCursorPosition(cursor)
@@ -136,7 +140,7 @@ class NumpyMatrixDialog(QDialog):
         QDialog.__init__(self, parent)
         self._parent = parent
         self._text = None
-        
+
         # TODO: add this as an option in the General Preferences?
         self._force_float = True
 
@@ -242,7 +246,7 @@ class NumpyMatrixDialog(QDialog):
             nan_values = ['nan', 'NAN', 'NaN', 'Na', 'NA', 'na']
             for nan_value in nan_values:
                 values = values.replace(nan_value,  'np.nan')
-          
+
             # Convert numbers to floating point
             if self._force_float:
                 new_values = []
@@ -266,7 +270,7 @@ class NumpyMatrixDialog(QDialog):
 
             self._text = text
         else:
-            self._text = ''            
+            self._text = ''
 
     def text(self):
         """ """
@@ -292,8 +296,7 @@ class HelperToolButton(QToolButton):
 
     def mouseReleaseEvent(self, event):
         """ """
-        QToolTip.showText(self.mapToGlobal(QPoint(0, 0)),
-                          self._tip_text)
+        QToolTip.showText(self.mapToGlobal(QPoint(0, 0)), self._tip_text)
 
 
 def test():
