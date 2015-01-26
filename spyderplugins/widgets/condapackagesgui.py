@@ -1818,11 +1818,15 @@ class Worker(QObject):
             vals = self._packages_linked[n]
             canonical_name = vals[-1]
             current_ver = vals[1]
-            vers = self._packages_versions_number[n]
-            vers = sort_versions(list(set(vers)), reverse=True)
-
-            self._packages_upgradable[n] = not current_ver == vers[0]
-            self._packages_downgradable[n] = not current_ver == vers[-1]
+            
+            # fix error when package installed from other channels besides
+            # the standard ones
+            if n in self._packages_versions_number:
+                vers = self._packages_versions_number[n]
+                vers = sort_versions(list(set(vers)), reverse=True)
+    
+                self._packages_upgradable[n] = not current_ver == vers[0]
+                self._packages_downgradable[n] = not current_ver == vers[-1]
 
         for row, name in enumerate(self._packages_names):
             if name in self._packages_linked:
