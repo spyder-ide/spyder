@@ -510,16 +510,16 @@ class BaseEditMixin(object):
 
     def _enter_array(self, inline):
         """ """
-        dlg = NumpyMatrixDialog(self, inline)
         rect = self.cursorRect()
+        dlg = NumpyMatrixDialog(self, inline)
 
         x, y = rect.left(), rect.top() + (rect.bottom() - rect.top())/2
         x = x + self.get_linenumberarea_width() - 14
         y = y - dlg.height()/2 - 3
         pos = QPoint(x, y)
 
-        dlg.move(self.mapToGlobal(pos))
         dlg.setWindowOpacity(0.90)
+        dlg.move(self.mapToGlobal(pos))
 
         if self.is_editor():
             # called from editor
@@ -533,7 +533,7 @@ class BaseEditMixin(object):
             cursor = self.textCursor()
             cursor.beginEditBlock()
             cursor.insertText(text)
-
+            cursor.endEditBlock()
 
 class TracebackLinksMixin(object):
     
