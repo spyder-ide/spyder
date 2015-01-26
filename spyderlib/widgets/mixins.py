@@ -496,10 +496,10 @@ class BaseEditMixin(object):
         return False
 
     def is_editor(self):
+        """Needs to be overloaded in the codeeditor where it will be True"""
         return False
 
-    # --- Numpy Matrix/Array Helper
-    # 
+    # --- Numpy Matrix/Array Helper / matrixeditor.py
     def enter_array_inline(self):
         """ """
         self._enter_array(True)
@@ -510,32 +510,29 @@ class BaseEditMixin(object):
 
     def _enter_array(self, inline):
         """ """
-        rect = self.cursorRect()
         dlg = NumpyMatrixDialog(self, inline)
+        rect = self.cursorRect()
 
         x, y = rect.left(), rect.top() + (rect.bottom() - rect.top())/2
         x = x + self.get_linenumberarea_width() - 14
         y = y - dlg.height()/2 - 3
-
         pos = QPoint(x, y)
 
         dlg.move(self.mapToGlobal(pos))
         dlg.setWindowOpacity(0.90)
 
         if self.is_editor():
-            python_check = (not self._entering_array) and self.is_python()
+            # called from editor
+            python_like_check = self.is_python_like()
         else:
-            python_check = True
+            # called from a console
+            python_like_check = True
 
-        if python_check and dlg.exec_():
+        if python_like_check and dlg.exec_():
             text = dlg.text()
             cursor = self.textCursor()
             cursor.beginEditBlock()
             cursor.insertText(text)
-            cursor.endEditBlock()
-        else:
-            return
-        self._entering_array = False
 
 
 class TracebackLinksMixin(object):
