@@ -44,7 +44,7 @@ class NumpyMatrixInline(QLineEdit):
                 cursor = self.cursorPosition()
                 # fix to include in "undo/redo" history
                 if cursor != 0 and text[cursor - 1] == ' ':
-                    text = text[:cursor] + ROW_SEPARATOR + ' ' + text[cursor:]
+                    text = text[:cursor - 1] + ROW_SEPARATOR + ' ' + text[cursor:]
                 else:
                     text = text[:cursor] + ' ' + text[cursor:]
                 self.setCursorPosition(cursor)
@@ -225,11 +225,12 @@ class NumpyMatrixDialog(QDialog):
 
         if values != '':
             # cleans repeated spaces
-            exp = r'(\s*);(\s*)'
-            values = re.sub(exp, ";", values)
+            exp = r'(\s*)' + ROW_SEPARATOR + r'(\s*)'
+            values = re.sub(exp, ROW_SEPARATOR, values)
             values = re.sub("\s+", " ", values)
             values = re.sub("]$", "", values)
             values = re.sub("^\[", "", values)
+            values = re.sub(ROW_SEPARATOR + r'$', '', values)
 
             # replaces spaces by commas
             values = values.replace(' ',  ELEMENT_SEPARATOR)
@@ -299,8 +300,8 @@ def test():
     dlg_inline = NumpyMatrixDialog(None, inline=True)
     dlg_table = NumpyMatrixDialog(None, inline=False)
 
-#    if dlg_inline.exec_():
-#        print(dlg_inline.text())
+    if dlg_inline.exec_():
+        print(dlg_inline.text())
 
     if dlg_table.exec_():
         print(dlg_table.text())
