@@ -279,7 +279,7 @@ class NumpyMatrixDialog(QDialog):
 
             if nrows == 1:
                 prefix = prefix[:-1]
-                suffix = suffix[:-1]
+                suffix = suffix.replace("]])", "])")
 
             values = values.replace(ROW_SEPARATOR,  BRACES)
             text = "{0}{1}{2}".format(prefix, values, suffix)
