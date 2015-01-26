@@ -366,6 +366,7 @@ class MainWindow(QMainWindow):
 
         # Actions
         self.close_dockwidget_action = None
+        self.lock_dockwidget_action = None
         self.find_action = None
         self.find_next_action = None
         self.find_previous_action = None
@@ -465,6 +466,7 @@ class MainWindow(QMainWindow):
         self.is_starting_up = True
         self.is_setting_up = True
 
+        self.dockwidgets_locked = False
         self.floating_dockwidgets = []
         self.window_size = None
         self.window_position = None
@@ -521,6 +523,10 @@ class MainWindow(QMainWindow):
                                         context=Qt.ApplicationShortcut)
             self.register_shortcut(self.close_dockwidget_action, "_",
                                    "Close pane")
+
+            self.lock_dockwidget_action = create_action(self,
+                                        _("Lock panes"),
+                                        toggled=self.lock_dockwidgets)
 
             # custom layouts shortcuts
             self.toggle_next_layout_action = create_action(self,
@@ -1094,7 +1100,8 @@ class MainWindow(QMainWindow):
                 add_actions(self.view_menu, (None, cmd_act))
             add_actions(self.view_menu, (None, self.fullscreen_action,
                                          self.maximize_action,
-                                         self.close_dockwidget_action, None,
+                                         self.close_dockwidget_action,
+                                         self.lock_dockwidget_action, None,
                                          self.toggle_previous_layout_action,
                                          self.toggle_next_layout_action,
                                          self.quick_layout_menu))
@@ -2116,6 +2123,23 @@ class MainWindow(QMainWindow):
             if plugin.isAncestorOf(widget):
                 plugin.dockwidget.hide()
                 break
+
+    @Slot()
+    def lock_dockwidgets(self):
+        """ """
+        self.dockwidgets_locked = not self.dockwidgets_locked
+        status = self.dockwidgets_locked
+        self.lock_dockwidget_action.setChecked(status)
+        
+        if status:
+            flags = QDockWidget.DockWidgetClosable
+        else:
+            flags = (QDockWidget.DockWidgetClosable |
+                     QDockWidget.DockWidgetMovable |
+                     QDockWidget.DockWidgetFloatable)
+
+        for plugin in self.widgetlist:
+            plugin.dockwidget.setFeatures(flags)
 
     def __update_maximize_action(self):
         if self.state_before_maximizing is None:
