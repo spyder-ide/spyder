@@ -5,7 +5,7 @@
 # (see spyderlib/__init__.py for details)
 
 """
-Numpy Matrix/Array Edit Helper Widget
+Numpy Matrix/Array Builder Widget
 """
 
 # TODO:

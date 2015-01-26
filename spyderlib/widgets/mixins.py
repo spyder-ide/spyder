@@ -499,7 +499,7 @@ class BaseEditMixin(object):
         """Needs to be overloaded in the codeeditor where it will be True"""
         return False
 
-    # --- Numpy matrix/array helper / See 'spyderlib/widgets/matrixeditor.py'
+    # --- Numpy matrix/array helper / See 'spyderlib/widgets/arraybuilder.py'
     def enter_array_inline(self):
         """ """
         self._enter_array(True)
