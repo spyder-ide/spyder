@@ -28,6 +28,10 @@ from spyderlib.baseconfig import _
 SHORTCUT_INLINE = "Shift+Ctrl+*"
 SHORTCUT_TABLE = "Ctrl+*"
 
+# CONSTANTS
+ELEMENT_SEPARATOR = ', '
+ROW_SEPARATOR = ';'
+BRACES = '], ['
 
 class NumpyMatrixInline(QLineEdit):
     """ """
@@ -43,7 +47,7 @@ class NumpyMatrixInline(QLineEdit):
                 cursor = self.cursorPosition()
                 # fix to include in "undo/redo" history
                 if cursor != 0 and text[cursor - 1] == ' ':
-                    text = text[:cursor] + '; ' + text[cursor:]
+                    text = text[:cursor] + ROW_SEPARATOR + ' ' + text[cursor:]
                 else:
                     text = text[:cursor] + ' ' + text[cursor:]
                 self.setCursorPosition(cursor)
@@ -121,7 +125,7 @@ class NumpyMatrixTable(QTableWidget):
                     value = '0'
                 text.append(' ')
                 text.append(value)
-            text.append(';')
+            text.append(ROW_SEPARATOR)
 
         return ''.join(text[:-1])  # to remove the final uneeded ;
 
@@ -217,28 +221,42 @@ class NumpyMatrixDialog(QDialog):
             prefix = 'np.matrix([['
 
         suffix = ']])'
-        value = self._widget.text().strip()
+        values = self._widget.text().strip()
 
-        if value != '':
+        if values != '':
             # cleans repeated spaces
             exp = r'(\s*);(\s*)'
-            value = re.sub(exp, ";", value)
-            value = re.sub("\s+", " ", value)
-            value = re.sub("]$", "", value)
-            value = re.sub("^\[", "", value)
+            values = re.sub(exp, ";", values)
+            values = re.sub("\s+", " ", values)
+            values = re.sub("]$", "", values)
+            values = re.sub("^\[", "", values)
 
             # replaces spaces by commas
-            value = value.replace(' ',  ', ')
+            values = values.replace(' ',  ELEMENT_SEPARATOR)
 
             # replaces not defined values
             nan_values = ['nan', 'NAN', 'NaN', 'Na', 'NA', 'na']
             for nan_value in nan_values:
-                value = value.replace(nan_value,  'np.nan')
-
-            # replaces colon by braces
-            value = value.replace(';',  '], [')
-
-            text = "{0}{1}{2}".format(prefix, value, suffix)
+                values = values.replace(nan_value,  'np.nan')
+          
+            # convert one number to float to enforce floats?
+            new_values = []
+            rows = values.split(ROW_SEPARATOR)
+            for row in rows:
+                new_row = []
+                elements = row.split(ELEMENT_SEPARATOR)
+                for e in elements:
+                    num = e
+                    try:
+                        num = str(float(e))
+                    except:
+                        pass
+                    new_row.append(num)
+                new_values.append(ELEMENT_SEPARATOR.join(new_row))
+            new_values = ROW_SEPARATOR.join(new_values)
+            values = new_values.replace(ROW_SEPARATOR,  BRACES)
+            
+            text = "{0}{1}{2}".format(prefix, values, suffix)
 
             self._text = text
         else:
