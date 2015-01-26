@@ -27,7 +27,8 @@ from spyderlib.qt.compat import getsavefilename
 # Local import
 from spyderlib.baseconfig import get_conf_path, _, STDERR, DEBUG
 from spyderlib.config import CONF
-from spyderlib.guiconfig import get_font, create_shortcut, get_shortcut, new_shortcut
+from spyderlib.guiconfig import (get_font, create_shortcut, get_shortcut,
+                                 new_shortcut)
 from spyderlib.utils import encoding
 from spyderlib.utils.qthelpers import (keybinding, create_action, add_actions,
                                        restore_keyevent, get_icon)
