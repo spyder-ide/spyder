@@ -23,12 +23,9 @@ from spyderlib.qt.QtCore import (Qt, QPoint, QEvent)
 from spyderlib.utils.qthelpers import get_std_icon
 from spyderlib.baseconfig import _
 
-
-# Global shortcuts
+# Constants
 SHORTCUT_INLINE = "Shift+Ctrl+*"
 SHORTCUT_TABLE = "Ctrl+*"
-
-# CONSTANTS
 ELEMENT_SEPARATOR = ', '
 ROW_SEPARATOR = ';'
 BRACES = '], ['
@@ -239,7 +236,7 @@ class NumpyMatrixDialog(QDialog):
             for nan_value in nan_values:
                 values = values.replace(nan_value,  'np.nan')
           
-            # convert one number to float to enforce floats?
+            # Convert numbers to floating point
             new_values = []
             rows = values.split(ROW_SEPARATOR)
             for row in rows:
