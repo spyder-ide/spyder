@@ -28,7 +28,7 @@ from spyderlib.utils.misc import get_error_match
 from spyderlib.utils.dochelpers import (getobj, getargspecfromtext,
                                         getsignaturefromtext)
 from spyderlib.py3compat import is_text_string, to_text_string, u
-from spyderlib.widgets.matrixeditor import NumpyMatrixDialog
+from spyderlib.widgets.arraybuilder import NumpyArrayDialog
 
 HISTORY_FILENAMES = []
 
@@ -511,7 +511,7 @@ class BaseEditMixin(object):
     def _enter_array(self, inline):
         """ """
         rect = self.cursorRect()
-        dlg = NumpyMatrixDialog(self, inline)
+        dlg = NumpyArrayDialog(self, inline)
 
         x, y = rect.left(), rect.top() + (rect.bottom() - rect.top())/2
         x = x + self.get_linenumberarea_width() - 14

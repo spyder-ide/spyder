@@ -33,7 +33,7 @@ ROW_SEPARATOR = ';'
 BRACES = '], ['
 
 
-class NumpyMatrixInline(QLineEdit):
+class NumpyArrayInline(QLineEdit):
     """ """
     def __init__(self, parent):
         QLineEdit.__init__(self, parent)
@@ -57,7 +57,7 @@ class NumpyMatrixInline(QLineEdit):
         return QWidget.event(self, event)
 
 
-class NumpyMatrixTable(QTableWidget):
+class NumpyArrayTable(QTableWidget):
     """ """
     def __init__(self, parent):
         QTableWidget.__init__(self, parent)
@@ -134,7 +134,7 @@ class NumpyMatrixTable(QTableWidget):
         return ''.join(text[:-1])  # to remove the final uneeded ;
 
 
-class NumpyMatrixDialog(QDialog):
+class NumpyArrayDialog(QDialog):
     """ """
     def __init__(self, parent, inline=True):
         QDialog.__init__(self, parent)
@@ -185,11 +185,11 @@ class NumpyMatrixDialog(QDialog):
 
         if inline:
             self._button_help.setToolTip(self._help_inline)
-            self._text = NumpyMatrixInline(self)
+            self._text = NumpyArrayInline(self)
             self._widget = self._text
         else:
             self._button_help.setToolTip(self._help_table)
-            self._table = NumpyMatrixTable(self)
+            self._table = NumpyArrayTable(self)
             self._widget = self._table
 
         style = """
@@ -321,8 +321,8 @@ def test():
     app = qapplication()
     app.setStyle('Plastique')
 
-    dlg_inline = NumpyMatrixDialog(None, inline=True)
-    dlg_table = NumpyMatrixDialog(None, inline=False)
+    dlg_inline = NumpyArrayDialog(None, inline=True)
+    dlg_table = NumpyArrayDialog(None, inline=False)
 
     if dlg_inline.exec_():
         print(dlg_inline.text())
