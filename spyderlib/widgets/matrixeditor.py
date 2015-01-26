@@ -256,34 +256,30 @@ class NumpyMatrixDialog(QDialog):
             for nan_value in nan_values:
                 values = values.replace(nan_value,  'np.nan')
 
-            # Check for 1d arrays (only one element)
-            try:
-                str(float(values))
-                is_one_dimensional = True
-            except:
-                is_one_dimensional = False
-
-            if is_one_dimensional:
-                prefix = prefix[:-1]
-                suffix = suffix[:-1]
-
-            # Convert numbers to floating point
-            if self._force_float:
-                new_values = []
-                rows = values.split(ROW_SEPARATOR)
-                for row in rows:
-                    new_row = []
-                    elements = row.split(ELEMENT_SEPARATOR)
-                    for e in elements:
-                        num = e
+            new_values = []
+            rows = values.split(ROW_SEPARATOR)
+            nrows = len(rows)
+            ncols = []
+            for row in rows:
+                new_row = []
+                elements = row.split(ELEMENT_SEPARATOR)
+                ncols.append(len(elements))
+                for e in elements:
+                    num = e
+                    # Convert numbers to floating point
+                    if self._force_float:
                         try:
                             num = str(float(e))
                         except:
                             pass
-                        new_row.append(num)
-                    new_values.append(ELEMENT_SEPARATOR.join(new_row))
-                new_values = ROW_SEPARATOR.join(new_values)
-                values = new_values
+                    new_row.append(num)
+                new_values.append(ELEMENT_SEPARATOR.join(new_row))
+            new_values = ROW_SEPARATOR.join(new_values)
+            values = new_values
+
+            if nrows == 1:
+                prefix = prefix[:-1]
+                suffix = suffix[:-1]
 
             values = values.replace(ROW_SEPARATOR,  BRACES)
             text = "{0}{1}{2}".format(prefix, values, suffix)
