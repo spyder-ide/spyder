@@ -50,7 +50,7 @@ from spyderlib.utils.sourcecode import ALL_LANGUAGES, CELL_LANGUAGES
 from spyderlib.widgets.editortools import PythonCFM
 from spyderlib.widgets.sourcecode.base import TextEditBaseWidget
 from spyderlib.widgets.sourcecode import syntaxhighlighters as sh
-from spyderlib.widgets.matrixeditor import SHORTCUT_INLINE, SHORTCUT_TABLE
+from spyderlib.widgets.arraybuilder import SHORTCUT_INLINE, SHORTCUT_TABLE
 from spyderlib.py3compat import to_text_string
 
 try:

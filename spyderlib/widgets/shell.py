@@ -35,7 +35,7 @@ from spyderlib.utils.qthelpers import (keybinding, create_action, add_actions,
 from spyderlib.widgets.sourcecode.base import ConsoleBaseWidget
 from spyderlib.widgets.mixins import (InspectObjectMixin, TracebackLinksMixin,
                                       SaveHistoryMixin)
-from spyderlib.widgets.matrixeditor import (SHORTCUT_INLINE, SHORTCUT_TABLE)
+from spyderlib.widgets.arraybuilder import (SHORTCUT_INLINE, SHORTCUT_TABLE)
 from spyderlib.py3compat import (is_text_string, to_text_string, builtins,
                                  is_string)
 

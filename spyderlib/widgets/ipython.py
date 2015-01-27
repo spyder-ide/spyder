@@ -48,7 +48,7 @@ from spyderlib.widgets.browser import WebView
 from spyderlib.widgets.calltip import CallTipWidget
 from spyderlib.widgets.mixins import (BaseEditMixin, InspectObjectMixin,
                                       SaveHistoryMixin, TracebackLinksMixin)
-from spyderlib.widgets.matrixeditor import (SHORTCUT_INLINE, SHORTCUT_TABLE)
+from spyderlib.widgets.arraybuilder import (SHORTCUT_INLINE, SHORTCUT_TABLE)
 
 
 #-----------------------------------------------------------------------------
