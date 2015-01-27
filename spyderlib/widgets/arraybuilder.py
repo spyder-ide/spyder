@@ -63,6 +63,7 @@ class NumpyArrayInline(QLineEdit):
                     text = text[:cursor] + ' ' + text[cursor:]
                 self.setCursorPosition(cursor)
                 self.setText(text)
+                self.setCursorPosition(cursor + 1)
                 return False
         return QWidget.event(self, event)
 
