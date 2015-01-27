@@ -251,10 +251,8 @@ class NumpyArrayDialog(QDialog):
             # replaces spaces by commas
             values = values.replace(' ',  ELEMENT_SEPARATOR)
 
-            # replaces not defined values
+
             nan_values = ['nan', 'NAN', 'NaN', 'Na', 'NA', 'na']
-            for nan_value in nan_values:
-                values = values.replace(nan_value,  'np.nan')
 
             new_values = []
             rows = values.split(ROW_SEPARATOR)
@@ -266,6 +264,11 @@ class NumpyArrayDialog(QDialog):
                 ncols.append(len(elements))
                 for e in elements:
                     num = e
+
+                    # replaces not defined values
+                    if num in nan_values:
+                        num = 'np.nan'
+
                     # Convert numbers to floating point
                     if self._force_float:
                         try:
