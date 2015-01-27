@@ -19,7 +19,7 @@ import re
 
 from spyderlib.qt.QtGui import (QToolTip, QLineEdit, QHBoxLayout, QWidget,
                                 QDialog, QToolButton, QTableWidget,
-                                QTableWidgetItem, QLabel)
+                                QTableWidgetItem)
 from spyderlib.qt.QtCore import (Qt, QPoint, QEvent)
 from spyderlib.utils.qthelpers import get_std_icon
 from spyderlib.baseconfig import _
