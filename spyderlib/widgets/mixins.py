@@ -510,8 +510,9 @@ class BaseEditMixin(object):
 
     def _enter_array(self, inline):
         """ """
+        offset = self.get_position('cursor') - self.get_position('sol')
         rect = self.cursorRect()
-        dlg = NumpyArrayDialog(self, inline)
+        dlg = NumpyArrayDialog(self, inline, offset)
 
         # TODO: adapt to font size
         x = rect.left()

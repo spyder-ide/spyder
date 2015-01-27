@@ -13,7 +13,6 @@ Numpy Matrix/Array Builder Widget
 # -Fix positioning
 # -Use the same font as editor/console?
 
-
 from __future__ import division
 
 import re
@@ -147,11 +146,12 @@ class NumpyArrayTable(QTableWidget):
 
 class NumpyArrayDialog(QDialog):
     """ """
-    def __init__(self, parent, inline=True):
+    def __init__(self, parent, inline=True, offset=0):
         QDialog.__init__(self, parent)
         self._parent = parent
         self._text = None
         self._valid = None
+        self._offset = offset
 
         # TODO: add this as an option in the General Preferences?
         self._force_float = False
@@ -314,8 +314,12 @@ class NumpyArrayDialog(QDialog):
             if nrows == 1:
                 prefix = prefix[:-1]
                 suffix = suffix.replace("]])", "])")
+            
+            # Fix offset
+            offset = self._offset
+            braces = BRACES.replace(' ', '\n' + ' '*(offset + len(prefix) - 1))
 
-            values = values.replace(ROW_SEPARATOR,  BRACES)
+            values = values.replace(ROW_SEPARATOR,  braces)
             text = "{0}{1}{2}".format(prefix, values, suffix)
 
             self._text = text
