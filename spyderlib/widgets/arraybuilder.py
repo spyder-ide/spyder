@@ -199,8 +199,11 @@ class NumpyArrayDialog(QDialog):
               border-radius: 2px;
             }"""
         self.setStyleSheet(style)
+
+        # widget setup
         self.setWindowFlags(Qt.Window | Qt.Dialog | Qt.FramelessWindowHint)
         self.setModal(True)
+        self.setWindowOpacity(0.90)
 
         # layout
         self._layout = QHBoxLayout()
