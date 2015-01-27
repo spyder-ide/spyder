@@ -20,7 +20,7 @@ import re
 
 from spyderlib.qt.QtGui import (QToolTip, QLineEdit, QHBoxLayout, QWidget,
                                 QDialog, QToolButton, QTableWidget,
-                                QTableWidgetItem)
+                                QTableWidgetItem, QLabel)
 from spyderlib.qt.QtCore import (Qt, QPoint, QEvent)
 from spyderlib.utils.qthelpers import get_std_icon
 from spyderlib.baseconfig import _
@@ -39,6 +39,15 @@ class NumpyArrayInline(QLineEdit):
     def __init__(self, parent):
         QLineEdit.__init__(self, parent)
         self._parent = parent
+
+    def keyPressEvent(self, event):
+        """ """
+        if event.key() in [Qt.Key_Enter, Qt.Key_Return]:
+            self._parent.process_text()
+            if self._parent.is_valid():
+                self._parent.keyPressEvent(event)
+        else:
+            QLineEdit.keyPressEvent(self, event)
 
     # to catch the Tab key event
     def event(self, event):
@@ -141,6 +150,7 @@ class NumpyArrayDialog(QDialog):
         QDialog.__init__(self, parent)
         self._parent = parent
         self._text = None
+        self._valid = None
 
         # TODO: add this as an option in the General Preferences?
         self._force_float = False
@@ -168,6 +178,7 @@ class NumpyArrayDialog(QDialog):
            """)
 
         # widgets
+        self._button_warning = QToolButton()
         self._button_help = HelperToolButton()
         self._button_help.setIcon(get_std_icon('MessageBoxInformation'))
 
@@ -200,14 +211,25 @@ class NumpyArrayDialog(QDialog):
             }"""
         self.setStyleSheet(style)
 
+        style = """
+            QToolButton {
+              margin:1px;
+              border: 0px solid grey;
+              padding:0px;
+              border-radius: 0px;
+            }"""
+        self._button_warning.setStyleSheet(style)
+
         # widget setup
         self.setWindowFlags(Qt.Window | Qt.Dialog | Qt.FramelessWindowHint)
         self.setModal(True)
         self.setWindowOpacity(0.90)
+        self._widget.setMinimumWidth(200)
 
         # layout
         self._layout = QHBoxLayout()
         self._layout.addWidget(self._widget)
+        self._layout.addWidget(self._button_warning, 1, Qt.AlignTop)
         self._layout.addWidget(self._button_help, 1, Qt.AlignTop)
         self.setLayout(self._layout)
 
@@ -280,6 +302,12 @@ class NumpyArrayDialog(QDialog):
             new_values = ROW_SEPARATOR.join(new_values)
             values = new_values
 
+            # Check validity
+            if len(set(ncols)) == 1:
+                self._valid = True
+            else:
+                self._valid = False
+
             # Single rows are parsed as 1D arrays/matrices
             if nrows == 1:
                 prefix = prefix[:-1]
@@ -291,10 +319,27 @@ class NumpyArrayDialog(QDialog):
             self._text = text
         else:
             self._text = ''
+        self.update_warning()
+
+    def update_warning(self):
+        """ """
+        if not self.is_valid():
+            self._button_warning.setIcon(get_std_icon('MessageBoxWarning'))
+            self._button_warning.setToolTip(_('Array dimensions not valid'))
+        else:
+            self._button_warning.setToolTip('')
+
+    def is_valid(self):
+        """ """
+        return self._valid
 
     def text(self):
         """ """
         return self._text
+
+    def mousePressEvent(self, event):
+        """ """
+#        print(dir(event))
 
 
 class HelperToolButton(QToolButton):
