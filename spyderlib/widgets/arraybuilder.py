@@ -149,23 +149,21 @@ class NumpyArrayDialog(QDialog):
            Type an array in Matlab    : <code>[1 2;3 4]</code><br>
            or Spyder simplified syntax : <code>1 2;3 4</code>
            <br><br>
-           Hit 'Enter' for array or 'Ctrl+Enter' for matrix
+           Hit 'Enter' for array or 'Ctrl+Enter' for matrix.
            <br><br>
            <b>Hint:</b><br>
-           - <i>Use two spaces or two tabs to generate a ';'</i>
-           <br>
+           Use two spaces or two tabs to generate a ';'.
            """)
 
         self._help_table = _("""
            <b>Numpy Array/Matrix Helper</b><br>
            Enter an array in the table. <br>
-           Use Tab to move between cells
+           Use Tab to move between cells.
            <br><br>
-           Hit 'Enter' for array or 'Ctrl+Enter' for matrix
+           Hit 'Enter' for array or 'Ctrl+Enter' for matrix.
            <br><br>
            <b>Hint:</b><br>
-           - <i>Use two tabs at then end of a line to move to the next</i>
-           <br>
+           Use two tabs at the end of a row to move to the next row.
            """)
 
         # widgets
