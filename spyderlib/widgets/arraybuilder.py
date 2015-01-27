@@ -26,11 +26,12 @@ from spyderlib.utils.qthelpers import get_std_icon
 from spyderlib.baseconfig import _
 
 # Constants
-SHORTCUT_INLINE = "Shift+Ctrl+*"
-SHORTCUT_TABLE = "Ctrl+*"
+SHORTCUT_INLINE = "Shift+Ctrl+*"  # fixed shortcuts for editos and consoles
+SHORTCUT_TABLE = "Ctrl+*"         # fixed shortcuts for editos and consoles
 ELEMENT_SEPARATOR = ', '
 ROW_SEPARATOR = ';'
 BRACES = '], ['
+NAN_VALUES = ['nan', 'NAN', 'NaN', 'Na', 'NA', 'na']
 
 
 class NumpyArrayInline(QLineEdit):
@@ -249,9 +250,7 @@ class NumpyArrayDialog(QDialog):
             # replaces spaces by commas
             values = values.replace(' ',  ELEMENT_SEPARATOR)
 
-
-            nan_values = ['nan', 'NAN', 'NaN', 'Na', 'NA', 'na']
-
+            # iterate to find number of rows and columns
             new_values = []
             rows = values.split(ROW_SEPARATOR)
             nrows = len(rows)
@@ -264,7 +263,7 @@ class NumpyArrayDialog(QDialog):
                     num = e
 
                     # replaces not defined values
-                    if num in nan_values:
+                    if num in NAN_VALUES:
                         num = 'np.nan'
 
                     # Convert numbers to floating point
