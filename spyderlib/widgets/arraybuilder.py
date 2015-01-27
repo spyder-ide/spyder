@@ -238,6 +238,7 @@ class NumpyArrayDialog(QDialog):
 
     def keyPressEvent(self, event):
         """Override Qt method"""
+        QToolTip.hideText()
         ctrl = event.modifiers() & Qt.ControlModifier
 
         if event.key() in [Qt.Key_Enter, Qt.Key_Return]:
@@ -324,9 +325,12 @@ class NumpyArrayDialog(QDialog):
 
     def update_warning(self):
         """ """
+        widget = self._button_warning
         if not self.is_valid():
-            self._button_warning.setIcon(get_std_icon('MessageBoxWarning'))
-            self._button_warning.setToolTip(_('Array dimensions not valid'))
+            tip = _('Array dimensions not valid')
+            widget.setIcon(get_std_icon('MessageBoxWarning'))
+            widget.setToolTip(tip)
+            QToolTip.showText(self._widget.mapToGlobal(QPoint(0, 5)), tip)
         else:
             self._button_warning.setToolTip('')
 
