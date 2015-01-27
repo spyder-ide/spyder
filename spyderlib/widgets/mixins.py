@@ -526,12 +526,14 @@ class BaseEditMixin(object):
         # called from editor
         if self.is_editor():
             python_like_check = self.is_python_like()
+            suffix = '\n'
         # called from a console
         else:
             python_like_check = True
+            suffix = ''
 
         if python_like_check and dlg.exec_():
-            text = dlg.text()
+            text = dlg.text() + suffix
             if text != '':
                 cursor = self.textCursor()
                 cursor.beginEditBlock()

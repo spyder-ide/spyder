@@ -320,7 +320,7 @@ class NumpyArrayDialog(QDialog):
             braces = BRACES.replace(' ', '\n' + ' '*(offset + len(prefix) - 1))
 
             values = values.replace(ROW_SEPARATOR,  braces)
-            text = "{0}{1}{2}\n".format(prefix, values, suffix)
+            text = "{0}{1}{2}".format(prefix, values, suffix)
 
             self._text = text
         else:
