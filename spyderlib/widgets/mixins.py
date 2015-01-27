@@ -513,30 +513,33 @@ class BaseEditMixin(object):
         rect = self.cursorRect()
         dlg = NumpyArrayDialog(self, inline)
 
-        x, y = rect.left(), rect.top() + (rect.bottom() - rect.top())/2
+        # TODO: adapt to font size
+        x = rect.left()
         x = x + self.get_linenumberarea_width() - 14
+        y = rect.top() + (rect.bottom() - rect.top())/2
         y = y - dlg.height()/2 - 3
-        pos = QPoint(x, y)
 
-        dlg.setWindowOpacity(0.90)
+        pos = QPoint(x, y)
         dlg.move(self.mapToGlobal(pos))
 
+        # called from editor
         if self.is_editor():
-            # called from editor
             python_like_check = self.is_python_like()
+        # called from a console
         else:
-            # called from a console
             python_like_check = True
 
         if python_like_check and dlg.exec_():
             text = dlg.text()
-            cursor = self.textCursor()
-            cursor.beginEditBlock()
-            cursor.insertText(text)
-            cursor.endEditBlock()
+            if text != '':
+                cursor = self.textCursor()
+                cursor.beginEditBlock()
+                cursor.insertText(text)
+                cursor.endEditBlock()
+
 
 class TracebackLinksMixin(object):
-    
+    """ """
     QT_CLASS = None
     go_to_error = None
     
