@@ -70,7 +70,7 @@ class Key(object):
         modifiers = [mod1, mod2, mod3]
         assert all([mod in self.MODIFIERS for mod in modifiers])
         self.modifiers = sorted(modifiers)
-#        assert key in self.KEYS  # this will fail due to the same issue above
+        assert key in self.KEYS  # this will fail due to the same issue above
         self.key = key
 
     def __str__(self):
