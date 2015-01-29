@@ -195,6 +195,9 @@ DEFAULTS = [
             ('quick_layouts',
              {
               'place_holder': '',
+              'names': ['Matlab layout', 'Rstudio layout', 'Vertical split', 'Horizontal split'],
+              'order': ['Matlab layout', 'Rstudio layout', 'Vertical split', 'Horizontal split'],
+              'active': ['Matlab layout', 'Rstudio layout', 'Vertical split', 'Horizontal split'],
               }),
             ('editor_appearance',
              {
@@ -469,13 +472,12 @@ DEFAULTS = [
               '_/preferences': "Ctrl+Alt+Shift+P",
               '_/maximize pane': "Ctrl+Alt+Shift+M",
               '_/fullscreen mode': "F11",
+              '_/toggle next layout': "Shift+Alt+PgDown",
+              '_/toggle previous layout': "Shift+Alt+PgUp",
+              '_/save current layout': "Shift+Alt+S",
+              '_/toggle default layout': "Shift+Alt+Home",
+              '_/layout preferences': "Shift+Alt+P",
               '_/quit': "Ctrl+Q",
-              '_/switch to/from layout 1': "Shift+Alt+F1",
-              '_/set layout 1': "Ctrl+Shift+Alt+F1",
-              '_/switch to/from layout 2': "Shift+Alt+F2",
-              '_/set layout 2': "Ctrl+Shift+Alt+F2",
-              '_/switch to/from layout 3': "Shift+Alt+F3",
-              '_/set layout 3': "Ctrl+Shift+Alt+F3",
               # -- In plugins/editor
               '_/debug step over': "Ctrl+F10",
               '_/debug continue': "Ctrl+F12",
