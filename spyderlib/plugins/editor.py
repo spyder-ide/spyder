@@ -44,7 +44,7 @@ from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 from spyderlib.plugins.runconfig import (RunConfigDialog, RunConfigOneDialog,
                                          get_run_configuration,
                                          ALWAYS_OPEN_FIRST_RUN_OPTION)
-from spyderlib.py3compat import to_text_string, getcwd, qbytearray_to_str
+from spyderlib.py3compat import PY2, to_text_string, getcwd, qbytearray_to_str
 
 
 def _load_all_breakpoints():
@@ -663,7 +663,7 @@ class Editor(SpyderPluginWidget):
                                        clear_all_breakpoints_action))
         self.winpdb_action = create_action(self, _("Debug with winpdb"),
                                            triggered=self.run_winpdb)
-        self.winpdb_action.setEnabled(WINPDB_PATH is not None)
+        self.winpdb_action.setEnabled(WINPDB_PATH is not None and PY2)
         self.register_shortcut(self.winpdb_action, context="Editor",
                                name="Debug with winpdb")
         
