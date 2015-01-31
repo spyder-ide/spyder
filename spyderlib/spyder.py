@@ -2125,10 +2125,7 @@ Please provide any additional information below.
                 # silently ignored here.
                 eintr = errno.WSAEINTR if os.name == 'nt' else errno.EINTR
                 # To avoid a traceback after closing on Windows
-                enotsock = errno.WSAENOTSOCK if os.name == 'nt' else errno.ENOTSOCK
                 if e.args[0] == eintr:
-                    continue
-                elif e.args[0] == enotsock:
                     continue
                 raise
             fname = req.recv(1024)
