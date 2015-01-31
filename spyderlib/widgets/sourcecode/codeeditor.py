@@ -2518,7 +2518,7 @@ class CodeEditor(TextEditBaseWidget):
         self.ipynb_convert_action.setVisible(self.is_json())
         self.run_selection_action.setEnabled(nonempty_selection)
         self.run_selection_action.setVisible(self.is_python())
-        self.gotodef_action.setVisible(self.go_to_definition_enabled\
+        self.gotodef_action.setVisible(self.go_to_definition_enabled \
                                        and self.is_python_like())
 
         # Code duplication go_to_definition_from_cursor and mouse_move_event
@@ -2527,7 +2527,6 @@ class CodeEditor(TextEditBaseWidget):
         if len(text) == 0:
             cursor.select(QTextCursor.WordUnderCursor)
             text = to_text_string(cursor.selectedText())
-        self.gotodef_action.setEnabled(sourcecode.is_keyword(text))
 
         self.undo_action.setEnabled( self.document().isUndoAvailable())
         self.redo_action.setEnabled( self.document().isRedoAvailable())
