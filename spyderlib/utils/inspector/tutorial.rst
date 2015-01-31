@@ -908,7 +908,7 @@ Here are two lines you can use to quickly create a plot and test
 this::
 
     In [5]: import pylab
-    In [6]: pylab.plot(range(10), 'o'))
+    In [6]: pylab.plot(range(10), 'o')
 
 
 Plotting with the Python console
@@ -922,7 +922,7 @@ Here is a brief example that you can use to create and display a
 plot::
 
     >>> import pylab
-    >>> pylab.plot(range(10), 'o'))
+    >>> pylab.plot(range(10), 'o')
 
 If you execute your code in a dedicated console, you need to use
 matplotlib's or pylab's ``show()`` command in your code to make a plot
