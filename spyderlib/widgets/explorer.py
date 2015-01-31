@@ -32,7 +32,8 @@ from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions,
                                        file_uri, get_std_icon)
 from spyderlib.utils import misc, encoding, programs, vcs
 from spyderlib.baseconfig import _
-from spyderlib.py3compat import to_text_string, getcwd, str_lower
+from spyderlib.py3compat import (to_text_string, to_binary_string, getcwd,
+                                 str_lower)
 
 try:
     from IPython.nbconvert import PythonExporter as nbexporter
@@ -601,7 +602,8 @@ class DirView(QTreeView):
                 if is_package:
                     fname = osp.join(dirname, '__init__.py')
                     try:
-                        open(fname, 'wb').write('#')
+                        with open(fname, 'wb') as f:
+                            f.write(to_binary_string('#'))
                         return dirname
                     except EnvironmentError as error:
                         QMessageBox.critical(self, title,
@@ -652,7 +654,8 @@ class DirView(QTreeView):
             if osp.splitext(fname)[1] in ('.py', '.pyw', '.ipy'):
                 create_script(fname)
             else:
-                open(fname, 'wb').write('')
+                with open(fname, 'wb') as f:
+                    f.write(to_binary_string(''))
         fname = self.create_new_file(basedir, title, filters, create_func)
         if fname is not None:
             self.open([fname])
