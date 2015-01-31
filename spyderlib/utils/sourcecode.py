@@ -78,6 +78,7 @@ def is_builtin(text):
     return text in [str(name) for name in dir(builtins)
                     if not name.startswith('_')]
 
+
 def is_keyword(text):
     """Test if passed string is the name of a Python keyword"""
     import keyword
