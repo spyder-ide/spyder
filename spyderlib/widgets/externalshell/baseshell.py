@@ -234,6 +234,13 @@ class ExternalShellBase(QWidget):
         if ask_for_arguments and not self.get_arguments():
             self.set_running_state(False)
             return
+        try:
+            self.disconnect(self.terminate_button, SIGNAL("clicked()"),
+                            self.process.terminate)
+            self.disconnect(self.kill_button, SIGNAL("clicked()"),
+                            self.process.terminate)
+        except:
+            pass
         self.create_process()
 
     @Slot()
