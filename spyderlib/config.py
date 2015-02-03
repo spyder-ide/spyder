@@ -324,6 +324,7 @@ DEFAULTS = [
               'realtime_analysis/timeout': 2500,
               'outline_explorer': True,
               'line_numbers': True,
+              'blank_spaces': False,
               'edge_line': True,
               'edge_line_column': 79,
               'toolbox_panel': True,

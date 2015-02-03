@@ -31,7 +31,7 @@ from spyderlib.qt.QtGui import (QColor, QMenu, QApplication, QSplitter, QFont,
                                 QKeySequence, QWidget, QVBoxLayout,
                                 QHBoxLayout, QDialog, QIntValidator,
                                 QDialogButtonBox, QGridLayout, QPaintEvent,
-                                QMessageBox)
+                                QMessageBox, QTextOption)
 from spyderlib.qt.QtCore import (Qt, SIGNAL, Signal, QTimer, QRect, QRegExp,
                                  QSize, SLOT, Slot)
 from spyderlib.qt.compat import to_qvariant
@@ -369,6 +369,9 @@ class CodeEditor(TextEditBaseWidget):
         self.edge_line_enabled = True
         self.edge_line = EdgeLine(self)
 
+        # Blanks enabled
+        self.blanks_enabled = False
+
         # Markers
         self.markers_margin = True
         self.markers_margin_width = 15
@@ -566,11 +569,12 @@ class CodeEditor(TextEditBaseWidget):
                      highlight_current_cell=True, occurence_highlighting=True,
                      scrollflagarea=True, edge_line=True, edge_line_column=79,
                      codecompletion_auto=False, codecompletion_case=True,
-                     codecompletion_enter=False,
+                     codecompletion_enter=False, show_blanks=False,
                      calltips=None, go_to_definition=False,
                      close_parentheses=True, close_quotes=False,
                      add_colons=True, auto_unindent=True, indent_chars=" "*4,
                      tab_stop_width=40, cloned_from=None):
+        
         # Code completion and calltips
         self.set_codecompletion_auto(codecompletion_auto)
         self.set_codecompletion_case(codecompletion_case)
@@ -590,6 +594,9 @@ class CodeEditor(TextEditBaseWidget):
         # Edge line
         self.set_edge_line_enabled(edge_line)
         self.set_edge_line_column(edge_line_column)
+
+        # Blanks
+        self.set_blanks_enabled(show_blanks)
 
         # Line number area
         if cloned_from:
@@ -1264,7 +1271,19 @@ class CodeEditor(TextEditBaseWidget):
         """Set edge line column value"""
         self.edge_line.column = column
         self.edge_line.update()
-
+    
+    # -----blank spaces
+    def set_blanks_enabled(self, state):
+        """Toggle blanks visibility"""
+        self.blanks_enabled = state
+        option = self.document().defaultTextOption()
+        option.setFlags(option.flags() | \
+                        QTextOption.AddSpaceForLineAndParagraphSeparators)
+        if self.blanks_enabled:
+            option.setFlags(option.flags() | QTextOption.ShowTabsAndSpaces)
+        else:
+            option.setFlags(option.flags() & ~QTextOption.ShowTabsAndSpaces)
+        self.document().setDefaultTextOption(option)
 
     #-----scrollflagarea
     def set_scrollflagarea_enabled(self, state):
@@ -2661,7 +2680,7 @@ class TestWidget(QSplitter):
         self.editor = CodeEditor(self)
         self.editor.setup_editor(linenumbers=True, markers=True, tab_mode=False,
                                  font=QFont("Courier New", 10),
-                                 color_scheme='Pydev')
+                                 show_blanks=True, color_scheme='Pydev')
         self.addWidget(self.editor)
         from spyderlib.widgets.editortools import OutlineExplorerWidget
         self.classtree = OutlineExplorerWidget(self)

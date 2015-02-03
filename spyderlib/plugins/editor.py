@@ -109,6 +109,7 @@ class EditorConfigPage(PluginConfigPage):
         
         display_group = QGroupBox(_("Source code"))
         linenumbers_box = newcb(_("Show line numbers"), 'line_numbers')
+        blanks_box = newcb(_("Show blank spaces"), 'blank_spaces')
         edgeline_box = newcb(_("Show vertical line after"), 'edge_line')
         edgeline_spin = self.create_spinbox("", _("characters"),
                                             'edge_line_column', 79, 1, 500)
@@ -141,6 +142,7 @@ class EditorConfigPage(PluginConfigPage):
         
         display_layout = QVBoxLayout()
         display_layout.addWidget(linenumbers_box)
+        display_layout.addWidget(blanks_box)
         display_layout.addLayout(edgeline_layout)
         display_layout.addWidget(currentline_box)
         display_layout.addWidget(currentcell_box)
@@ -1068,6 +1070,7 @@ class Editor(SpyderPluginWidget):
             ('set_todolist_enabled',                'todo_list'),
             ('set_realtime_analysis_enabled',       'realtime_analysis'),
             ('set_realtime_analysis_timeout',       'realtime_analysis/timeout'),
+            ('set_blanks_enabled',                  'blank_spaces'),
             ('set_linenumbers_enabled',             'line_numbers'),
             ('set_edgeline_enabled',                'edge_line'),
             ('set_edgeline_column',                 'edge_line_column'),
@@ -2178,6 +2181,8 @@ class Editor(SpyderPluginWidget):
             tabbar_o = self.get_option(tabbar_n)
             linenb_n = 'line_numbers'
             linenb_o = self.get_option(linenb_n)
+            blanks_n = 'blank_spaces'
+            blanks_o = self.get_option(blanks_n)
             edgeline_n = 'edge_line'
             edgeline_o = self.get_option(edgeline_n)
             edgelinecol_n = 'edge_line_column'
@@ -2239,6 +2244,8 @@ class Editor(SpyderPluginWidget):
                 if linenb_n in options:
                     editorstack.set_linenumbers_enabled(linenb_o,
                                                         current_finfo=finfo)
+                if blanks_n in options:
+                    editorstack.set_blanks_enabled(blanks_o)
                 if edgeline_n in options:
                     editorstack.set_edgeline_enabled(edgeline_o)
                 if edgelinecol_n in options:
