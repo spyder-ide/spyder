@@ -475,6 +475,7 @@ class EditorStack(QWidget):
         self.realtime_analysis_enabled = False
         self.is_analysis_done = False
         self.linenumbers_enabled = True
+        self.blanks_enabled = False
         self.edgeline_enabled = True
         self.edgeline_column = 79
         self.codecompletion_auto_enabled = True
@@ -774,6 +775,12 @@ class EditorStack(QWidget):
             for finfo in self.data:
                 self.__update_editor_margins(finfo.editor)
 
+    def set_blanks_enabled(self, state):
+        self.blanks_enabled = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_blanks_enabled(state)
+        
     def set_edgeline_enabled(self, state):
         # CONF.get(self.CONF_SECTION, 'edge_line')
         self.edgeline_enabled = state
@@ -1699,6 +1706,7 @@ class EditorStack(QWidget):
         language = get_file_language(fname, txt)
         editor.setup_editor(
                 linenumbers=self.linenumbers_enabled,
+                show_blanks=self.blanks_enabled,
                 edge_line=self.edgeline_enabled,
                 edge_line_column=self.edgeline_column, language=language,
                 markers=self.has_markers(), font=self.default_font,
