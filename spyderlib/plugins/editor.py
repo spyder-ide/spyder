@@ -874,6 +874,8 @@ class Editor(SpyderPluginWidget):
         trailingspaces_action = create_action(self,
                                       _("Remove trailing spaces"),
                                       triggered=self.remove_trailing_spaces)
+        self.showblanks_action = create_action(self, _("Show blank spaces"),
+                                               toggled=self.toggle_show_blanks)
         fixindentation_action = create_action(self, _("Fix indentation"),
                       tip=_("Replace tab characters by space characters"),
                       triggered=self.fix_indentation)
@@ -949,8 +951,8 @@ class Editor(SpyderPluginWidget):
                                  debug_continue_action, debug_exit_action]
         self.main.debug_toolbar_actions += debug_toolbar_actions
         
-        source_menu_actions = [eol_menu, trailingspaces_action,
-                               fixindentation_action]
+        source_menu_actions = [eol_menu, self.showblanks_action,
+                               trailingspaces_action, fixindentation_action]
         self.main.source_menu_actions += source_menu_actions
         
         source_toolbar_actions = [self.todo_list_action,
@@ -1853,6 +1855,10 @@ class Editor(SpyderPluginWidget):
         editor = self.get_current_editor()
         if self.__set_eol_chars:
             editor.set_eol_chars(sourcecode.get_eol_chars_from_os_name(os_name))
+    
+    def toggle_show_blanks(self, checked):
+        editor = self.get_current_editor()
+        editor.set_blanks_enabled(checked)
         
     def remove_trailing_spaces(self):
         editorstack = self.get_current_editorstack()
@@ -2246,6 +2252,7 @@ class Editor(SpyderPluginWidget):
                                                         current_finfo=finfo)
                 if blanks_n in options:
                     editorstack.set_blanks_enabled(blanks_o)
+                    self.showblanks_action.setChecked(blanks_o)
                 if edgeline_n in options:
                     editorstack.set_edgeline_enabled(edgeline_o)
                 if edgelinecol_n in options:
