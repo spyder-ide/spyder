@@ -30,10 +30,7 @@ import os.path as osp
 
 # Local imports
 from spyderlib.utils import encoding, sourcecode, codeanalysis
-from spyderlib.utils.dochelpers import getsignaturefromtext
 from spyderlib.utils import introspection
-from spyderlib.utils.introspection.module_completion import (module_completion,
-                                                      get_preferred_submodules)
 from spyderlib.baseconfig import _, DEBUG, STDOUT, STDERR
 from spyderlib.config import EDIT_FILTERS, EDIT_EXT, get_filter, EDIT_FILETYPES
 from spyderlib.guiconfig import create_shortcut, new_shortcut
@@ -186,20 +183,6 @@ class AnalysisThread(QThread):
                 traceback.print_exc(file=STDERR)
 
 
-class GetSubmodulesThread(QThread):
-    """
-    A thread to generate a list of submodules to be passed to Rope
-    extension_modules preference
-    """
-    def __init__(self):
-        super(GetSubmodulesThread, self).__init__()
-        self.submods = []
-
-    def run(self):
-        self.submods = get_preferred_submodules()
-        self.emit(SIGNAL('submods_ready()'))
-
-
 class ThreadManager(QObject):
     """Analysis thread manager"""
     def __init__(self, parent, max_simultaneous_threads=2):
@@ -294,192 +277,24 @@ class FileInfo(QObject):
         self.encoding = encoding
         self.editor = editor
         self.path = []
-        self.submods_thread = GetSubmodulesThread()
-        self.introspection_plugin = introspection_plugin
 
         self.classes = (filename, None, None)
         self.analysis_results = []
         self.todo_results = []
         self.lastmodified = QFileInfo(filename).lastModified()
 
-        self.connect(editor, SIGNAL('trigger_code_completion(bool)'),                     
-                     self.trigger_code_completion)
-        self.connect(editor, SIGNAL('trigger_token_completion(bool)'),
-                     self.trigger_token_completion)
-        self.connect(editor, SIGNAL('show_object_info(int)'),
-                     self.show_object_info)
-        self.connect(editor, SIGNAL("go_to_definition(int)"),
-                     self.go_to_definition)
-        self.connect(editor, SIGNAL("go_to_definition_regex(int)"),
-                     self.go_to_definition_regex)
-        self.connect(editor, SIGNAL('textChanged()'),
+        self.connect(self.editor, SIGNAL('textChanged()'),
                      self.text_changed)
-        
-        self.connect(editor, SIGNAL('breakpoints_changed()'),
+        self.connect(self.editor, SIGNAL('breakpoints_changed()'),
                      self.breakpoints_changed)
-        self.connect(self.submods_thread, SIGNAL('submods_ready()'),
-                     self.update_extension_modules)
-        
+
         self.pyflakes_results = None
         self.pep8_results = None
 
-        self.submods_thread.start()
-    
-    def update_extension_modules(self):
-        self.introspection_plugin.set_pref('extension_modules',
-                                   self.submods_thread.submods)
-    
     def text_changed(self):
         """Editor's text has changed"""
         self.emit(SIGNAL('text_changed_at(QString,int)'),
                   self.filename, self.editor.get_position('cursor'))
-
-    def trigger_code_completion(self, automatic, token_based=False):
-        """Trigger code completion"""
-        source_code = self.get_source_code()
-        offset = self.editor.get_position('cursor')
-        text = self.editor.get_text('sol', 'cursor')
-
-        jedi = self.introspection_plugin.name == 'jedi'
-
-        comp_list = ''
-        if not jedi and text.lstrip().startswith('import '):
-            text = text.lstrip()
-            comp_list = module_completion(text, self.path)
-            words = text.split(' ')
-            if ',' in words[-1]:
-                words = words[-1].split(',')
-            completion_text = words[-1]
-        elif not jedi and text.lstrip().startswith('from '):
-            text = text.lstrip()
-            comp_list = module_completion(text, self.path)
-            words = text.split(' ')
-            if '(' in words[-1]:
-                words = words[:-2] + words[-1].split('(')
-            if ',' in words[-1]:
-                words = words[:-2] + words[-1].split(',')
-            completion_text = words[-1]
-        else:
-            if token_based:
-                func = self.introspection_plugin.get_token_completion_list
-            else:
-                func = self.introspection_plugin.get_completion_list
-            comp_list = func(source_code, offset, self.filename)
-            if comp_list:
-                completion_text = re.findall(r"[\w.]+", text, re.UNICODE)
-                if completion_text:
-                    completion_text = completion_text[-1]
-                else:
-                    comp_list = []
-                if '.' in completion_text:
-                    completion_text = completion_text.split('.')[-1]
-        if comp_list:
-            self.editor.show_completion_list(comp_list, completion_text,
-                                         automatic)
-
-    def trigger_token_completion(self, automatic):
-        """Trigger a completion using tokens only"""
-        self.trigger_code_completion(automatic, token_based=True)
-        
-        
-    def find_nearest_function_call(self, position):
-        """Find the nearest function call at or prior to current position"""
-        source_code = self.get_source_code()
-        position = min(len(source_code) - 1, position)
-        orig_pos = position
-        # find the first preceding opening parens (keep track of closing parens)
-        if not position or not source_code[position] == '(':
-            close_parens = 0
-            position -= 1
-            while position and not (source_code[position] == '(' and close_parens == 0):
-                if source_code[position] == ')':
-                    close_parens += 1
-                elif source_code[position] == '(' and close_parens:
-                    close_parens -= 1
-                position -= 1
-                if source_code[position] in ['\n', '\r']:
-                    position = orig_pos
-                    break
-        if position and source_code[position] == '(':
-            position -= 1
-                
-        return position
-
-    def show_object_info(self, position, auto=True):
-        """Show signature calltip and/or docstring in the Object Inspector"""
-        # auto is True means that this method was called automatically,
-        # i.e. the user has just entered an opening parenthesis -- in that 
-        # case, we don't want to force the object inspector to be visible, 
-        # to avoid polluting the window layout
-        source_code = self.get_source_code()
-        offset = self.find_nearest_function_call(position)
-        
-        # Get calltip and docs
-        helplist = self.introspection_plugin.get_calltip_and_docs(source_code,
-                                                         offset, self.filename)
-        if not helplist:
-            return
-        obj_fullname = ''
-        signature = ''
-        cts, doc_text = helplist
-        if cts:
-            cts = cts.replace('.__init__', '')
-            parpos = cts.find('(')
-            if parpos:
-                obj_fullname = cts[:parpos]
-                obj_name = obj_fullname.split('.')[-1]
-                cts = cts.replace(obj_fullname, obj_name)
-                signature = cts
-                if ('()' in cts) or ('(...)' in cts):
-                    # Either inspected object has no argument, or it's 
-                    # a builtin or an extension -- in this last case 
-                    # the following attempt may succeed:
-                    signature = getsignaturefromtext(doc_text, obj_name)
-        if not obj_fullname:
-            obj_fullname = sourcecode.get_primary_at(source_code, offset)
-        if obj_fullname and not obj_fullname.startswith('self.') and doc_text:
-            # doc_text was generated by utils.dochelpers.getdoc
-            if type(doc_text) is dict:
-                obj_fullname = doc_text['name']
-                argspec = doc_text['argspec']
-                note = doc_text['note']
-                doc_text = doc_text['docstring']
-            elif signature:
-                argspec_st = signature.find('(')
-                argspec = signature[argspec_st:]
-                module_end = obj_fullname.rfind('.')
-                module = obj_fullname[:module_end]
-                note = 'Present in %s module' % module
-            else:
-                argspec = ''
-                note = ''
-            self.emit(SIGNAL(
-                    "send_to_inspector(QString,QString,QString,QString,bool)"),
-                    obj_fullname, argspec, note, doc_text, not auto)
-        elif obj_fullname:
-            self.emit(SIGNAL(
-                    "send_to_inspector(QString,QString,QString,QString,bool)"),
-                    obj_fullname, '', '', '', not auto)
-        if signature:
-            self.editor.show_calltip('Arguments', signature, signature=True,
-                                     at_position=position)
-
-    def go_to_definition(self, position, regex=False):
-        """Go to definition"""
-        source_code = self.get_source_code()
-        offset = position
-        if regex:
-            func = self.introspection_plugin.get_definition_location_regex
-        else:
-            func = self.introspection_plugin.get_definition_location
-        fname, lineno = func(source_code, offset, self.filename)
-        if fname is not None and lineno is not None:
-            self.emit(SIGNAL("edit_goto(QString,int,QString)"),
-                      fname, lineno, "")
-
-    def go_to_definition_regex(self, position):
-        """Go to definition using regex lookups"""
-        self.go_to_definition(position, regex=True)
 
     def get_source_code(self):
         """Return associated editor source code"""
@@ -653,8 +468,13 @@ class EditorStack(QWidget):
         if ccs not in syntaxhighlighters.COLOR_SCHEME_NAMES:
             ccs = syntaxhighlighters.COLOR_SCHEME_NAMES[0]
         self.color_scheme = ccs
-        self.introspection_plugin = introspection.get_plugin(self)
-        
+        self.introspector = introspection.PluginManager(self)
+
+        self.introspector.send_to_inspector.connect(self.send_to_inspector)
+        self.introspector.edit_goto.connect(
+             lambda fname, lineno, name:
+             self.edit_goto.emit(fname, lineno, name))
+
         self.__file_status_flag = False
         
         # Real-time code analysis
@@ -816,17 +636,16 @@ class EditorStack(QWidget):
             
     def inspect_current_object(self):
         """Inspect current object in Object Inspector"""
-        if self.introspection_plugin:
+        if self.introspector:
             editor = self.get_current_editor()
             position = editor.get_position('cursor')
             finfo = self.get_current_finfo()
             self.inspector.switch_to_editor_source()
-            finfo.show_object_info(position, auto=False)
+            self.introspector.show_object_info(position, auto=False)
         else:
             text = self.get_current_editor().get_current_object()
             if text:
                 self.send_to_inspector(text, force=True)
-        
         
     #------ Editor Widget Settings
     def set_closable(self, state):
@@ -1451,7 +1270,7 @@ class EditorStack(QWidget):
             finfo.editor.document().setModified(False)
             self.modification_changed(index=index)
             self.analyze_script(index)
-            self.introspection_plugin.validate()
+            self.introspector.validate()
             
             #XXX CodeEditor-only: re-scan the whole text to rebuild outline 
             # explorer data from scratch (could be optimized because 
@@ -1800,7 +1619,7 @@ class EditorStack(QWidget):
         finfo.editor.set_text(txt)
         finfo.editor.document().setModified(False)
         finfo.editor.set_cursor_position(position)
-        self.introspection_plugin.validate()
+        self.introspector.validate()
 
         #XXX CodeEditor-only: re-scan the whole text to rebuild outline 
         # explorer data from scratch (could be optimized because 
@@ -1833,8 +1652,16 @@ class EditorStack(QWidget):
         Returns finfo object (instead of editor as in previous releases)
         """
         editor = codeeditor.CodeEditor(self)
+        introspector = self.introspector
+        self.connect(editor, SIGNAL("get_completions(bool)"),
+                     introspector.get_completions)
+        self.connect(editor, SIGNAL("show_object_info(int)"),
+                     introspector.show_object_info)
+        self.connect(editor, SIGNAL("go_to_definition(int)"),
+                     introspector.go_to_definition)
+
         finfo = FileInfo(fname, enc, editor, new, self.threadmanager,
-                         self.introspection_plugin)
+                         self.introspector)
         self.add_to_data(finfo, set_current)
         self.connect(finfo, SIGNAL(
                     "send_to_inspector(QString,QString,QString,QString,bool)"),
