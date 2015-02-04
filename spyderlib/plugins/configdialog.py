@@ -8,15 +8,7 @@
 
 import os.path as osp
 
-from spyderlib.baseconfig import _, running_in_mac_app
-from spyderlib.config import CONF
-from spyderlib.guiconfig import (CUSTOM_COLOR_SCHEME_NAME,
-                                 set_default_color_scheme)
-from spyderlib.utils.qthelpers import get_icon, get_std_icon
-from spyderlib.userconfig import NoDefault
-from spyderlib.widgets.colors import ColorLayout
-from spyderlib.widgets.sourcecode import syntaxhighlighters as sh
-
+from spyderlib.qt import API
 from spyderlib.qt.QtGui import (QWidget, QDialog, QListWidget, QListWidgetItem,
                                 QVBoxLayout, QStackedWidget, QListView,
                                 QHBoxLayout, QDialogButtonBox, QCheckBox,
@@ -28,6 +20,15 @@ from spyderlib.qt.QtGui import (QWidget, QDialog, QListWidget, QListWidgetItem,
 from spyderlib.qt.QtCore import Qt, QSize, Signal, Slot
 from spyderlib.qt.compat import (to_qvariant, from_qvariant,
                                  getexistingdirectory, getopenfilename)
+
+from spyderlib.baseconfig import _, running_in_mac_app
+from spyderlib.config import CONF
+from spyderlib.guiconfig import (CUSTOM_COLOR_SCHEME_NAME,
+                                 set_default_color_scheme)
+from spyderlib.utils.qthelpers import get_icon, get_std_icon
+from spyderlib.userconfig import NoDefault
+from spyderlib.widgets.colors import ColorLayout
+from spyderlib.widgets.sourcecode import syntaxhighlighters as sh
 from spyderlib.py3compat import to_text_string, is_text_string, getcwd
 
 
@@ -269,8 +270,13 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         """Load settings from configuration file"""
         for checkbox, (option, default) in list(self.checkboxes.items()):
             checkbox.setChecked(self.get_option(option, default))
-            checkbox.clicked.connect(lambda opt=option: 
-                                     self.has_been_modified(opt))
+            # Checkboxes work differently for PySide and PyQt
+            if API == 'pyqt':
+                checkbox.clicked.connect(lambda _foo, opt=option:
+                                         self.has_been_modified(opt))
+            else:
+                checkbox.clicked.connect(lambda opt=option:
+                                         self.has_been_modified(opt))
         for radiobutton, (option, default) in list(self.radiobuttons.items()):
             radiobutton.setChecked(self.get_option(option, default))
             radiobutton.toggled.connect(lambda _foo, opt=option:
@@ -326,10 +332,18 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             btn.clicked.connect(lambda opt=option: self.has_been_modified(opt))
             edit.textChanged.connect(lambda _foo, opt=option:
                                      self.has_been_modified(opt))
-            cb_bold.clicked.connect(lambda opt=option: 
-                                    self.has_been_modified(opt))
-            cb_italic.clicked.connect(lambda opt=option:
-                                      self.has_been_modified(opt))
+            if API == 'pyqt':
+                cb_bold.clicked.connect(lambda _foo, opt=option:
+                                        self.has_been_modified(opt))
+            else:
+                cb_bold.clicked.connect(lambda opt=option:
+                                        self.has_been_modified(opt))
+            if API == 'pyqt':
+                cb_italic.clicked.connect(lambda _foo, opt=option:
+                                          self.has_been_modified(opt))
+            else:
+                cb_italic.clicked.connect(lambda opt=option:
+                                          self.has_been_modified(opt))
     
     def save_to_conf(self):
         """Save settings to configuration file"""
