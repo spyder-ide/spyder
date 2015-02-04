@@ -7,5 +7,5 @@
 """
 Introspection utilities used by Spyder
 """
-from .base import get_plugin
 from . import module_completion
+from .plugin_manager import PluginManager
