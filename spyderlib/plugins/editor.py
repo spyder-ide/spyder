@@ -1846,7 +1846,7 @@ class Editor(SpyderPluginWidget):
         if self.__set_eol_chars:
             editor.set_eol_chars(sourcecode.get_eol_chars_from_os_name(os_name))
 
-    @Slot()
+    @Slot(bool)
     def toggle_show_blanks(self, checked):
         editor = self.get_current_editor()
         editor.set_blanks_enabled(checked)
