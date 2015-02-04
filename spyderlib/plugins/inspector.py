@@ -133,13 +133,12 @@ class ObjectInspectorConfigPage(PluginConfigPage):
         connections_label.setWordWrap(True)
         editor_box = self.create_checkbox(_("Editor"), 'connect/editor')
         rope_installed = programs.is_module_installed('rope')
-        jedi_installed = programs.is_module_installed('jedi', '>=0.8.0')
+        jedi_installed = programs.is_module_installed('jedi', '>=0.8.1')
         editor_box.setEnabled(rope_installed or jedi_installed)
-        # TODO: Don't forget to add Jedi here
-        if not rope_installed:
-            rope_tip = _("This feature requires the Rope library.\n"
-                         "It seems you don't have it installed.")
-            editor_box.setToolTip(rope_tip)
+        if not rope_installed and not jedi_installed:
+            editor_tip = _("This feature requires the Rope or Jedi libraries.\n"
+                           "It seems you don't have either installed.")
+            editor_box.setToolTip(editor_tip)
         python_box = self.create_checkbox(_("Python Console"),
                                           'connect/python_console')
         ipython_box = self.create_checkbox(_("IPython Console"),
@@ -402,7 +401,7 @@ class ObjectInspector(SpyderPluginWidget):
         self.connect(self.source_combo, SIGNAL('currentIndexChanged(int)'),
                      self.source_changed)
         if (not programs.is_module_installed('rope') and 
-                not programs.is_module_installed('jedi', '>=0.7.0')):
+                not programs.is_module_installed('jedi', '>=0.8.1')):
             self.source_combo.hide()
             source_label.hide()
         layout_edit.addWidget(self.source_combo)
@@ -941,10 +940,12 @@ class ObjectInspector(SpyderPluginWidget):
         
     def _on_sphinx_thread_html_ready(self, html_text):
         """Set our sphinx documentation based on thread result"""
+        self._sphinx_thread.wait()
         self.set_rich_text_html(html_text, QUrl.fromLocalFile(CSS_PATH))
 
     def _on_sphinx_thread_error_msg(self, error_msg):
         """ Display error message on Sphinx rich text failure"""
+        self._sphinx_thread.wait()
         self.plain_text_action.setChecked(True)
         QMessageBox.critical(self,
                     _('Object inspector'),
