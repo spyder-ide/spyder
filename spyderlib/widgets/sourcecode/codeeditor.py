@@ -509,7 +509,7 @@ class CodeEditor(TextEditBaseWidget):
                      lambda value: self.rehighlight_cells())
 
     def create_shortcuts(self):
-        codecomp = create_shortcut(self.do_code_completion, context='Editor',
+        codecomp = create_shortcut(self.do_completion, context='Editor',
                                    name='Code completion', parent=self)
         duplicate_line = create_shortcut(self.duplicate_line, context='Editor',
                                          name='Duplicate line', parent=self)
