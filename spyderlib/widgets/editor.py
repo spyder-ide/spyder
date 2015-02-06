@@ -473,7 +473,8 @@ class EditorStack(QWidget):
         self.introspector.send_to_inspector.connect(self.send_to_inspector)
         self.introspector.edit_goto.connect(
              lambda fname, lineno, name:
-             self.edit_goto.emit(fname, lineno, name))
+             self.emit(SIGNAL("edit_goto(QString,int,QString)"),
+                              fname, lineno, name))
 
         self.__file_status_flag = False
         
