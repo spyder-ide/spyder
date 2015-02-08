@@ -326,7 +326,8 @@ else:
         # console (does not notify at every prompt)
         def displayhook(obj):
             sys.__displayhook__(obj)
-            monitor.refresh()
+            # This statement was causing Issue 1930
+            # monitor.refresh()
 
         sys.displayhook = displayhook
 
