@@ -584,7 +584,8 @@ class ExternalPythonShell(ExternalShellBase):
             
         if not is_text_string(text):
             text = to_text_string(text)
-        if self.install_qt_inputhook and self.introspection_socket is not None:
+        if self.mpl_backend == 'Qt4Agg' and os.name == 'nt' and \
+          self.introspection_socket is not None:
             communicate(self.introspection_socket,
                         "toggle_inputhook_flag(True)")
 #            # Socket-based alternative (see input hook in sitecustomize.py):
