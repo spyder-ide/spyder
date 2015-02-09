@@ -272,22 +272,8 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         if has_pyside and not has_pyqt4:
             self.set_option('qt/api', 'pyside')
         
-        qt_hook_box = newcb(_("Install Spyder's input hook for Qt"),
-                        'qt/install_inputhook',
-                        tip=_("PyQt installs an input hook that allows<br> "
-                              "creating and interacting with Qt widgets "
-                              "in an interactive console without "
-                              "blocking it. On Windows platforms, it "
-                              "is strongly recommended to replace it "
-                              "by Spyder's. Regarding PySide, note that "
-                              "it does not install an input hook, so it "
-                              "is required to enable this feature in "
-                              "order to be able to manipulate PySide/Qt" 
-                              "objects interactively."))
-        
         qt_layout = QVBoxLayout()
         qt_layout.addWidget(qt_setapi_box)
-        qt_layout.addWidget(qt_hook_box)
         qt_group.setLayout(qt_layout)
         qt_group.setEnabled(has_pyqt4 or has_pyside)
         
@@ -782,7 +768,6 @@ class ExternalConsole(SpyderPluginWidget):
             qt_api = self.get_option('qt/api')
             if qt_api not in ('pyqt', 'pyside'):
                 qt_api = None
-            install_qt_inputhook = self.get_option('qt/install_inputhook')
             pyqt_api = self.get_option('pyqt/api_version')
             ignore_sip_setapi_errors = self.get_option(
                                             'pyqt/ignore_sip_setapi_errors')
@@ -822,7 +807,6 @@ class ExternalConsole(SpyderPluginWidget):
                            monitor_enabled=monitor_enabled,
                            mpl_backend=mpl_backend,
                            qt_api=qt_api, pyqt_api=pyqt_api,
-                           install_qt_inputhook=install_qt_inputhook,
                            ignore_sip_setapi_errors=ignore_sip_setapi_errors,
                            merge_output_channels=merge_output_channels,
                            colorize_sys_stderr=colorize_sys_stderr,
