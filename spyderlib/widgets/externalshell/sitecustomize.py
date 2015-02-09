@@ -326,6 +326,9 @@ if mpl_backend:
 
         # Setting the right input hook according to mpl_backend,
         # but only for our Python consoles
+        # IMPORTANT NOTE: Don't try to abstract the steps to set a PyOS
+        # input hook callback in a function. It will *crash* the
+        # interpreter!!
         if os.environ.get("IPYTHON_KERNEL", "").lower() != "true":
             if mpl_backend == "Qt4Agg" and os.name == 'nt' and \
               monitor is not None:
