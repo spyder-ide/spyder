@@ -160,7 +160,7 @@ class ExternalPythonShell(ExternalShellBase):
                  umr_enabled=True, umr_namelist=[], umr_verbose=True,
                  pythonstartup=None, pythonexecutable=None,
                  monitor_enabled=True, mpl_backend=None, ets_backend='qt4',
-                 qt_api=None, pyqt_api=0, install_qt_inputhook=True,
+                 qt_api=None, pyqt_api=0,
                  ignore_sip_setapi_errors=False, merge_output_channels=False,
                  colorize_sys_stderr=False, autorefresh_timeout=3000,
                  autorefresh_state=True, light_background=True,
@@ -183,7 +183,6 @@ class ExternalPythonShell(ExternalShellBase):
         self.ets_backend = ets_backend
         self.qt_api = qt_api
         self.pyqt_api = pyqt_api
-        self.install_qt_inputhook = install_qt_inputhook
         self.ignore_sip_setapi_errors = ignore_sip_setapi_errors
         self.merge_output_channels = merge_output_channels
         self.colorize_sys_stderr = colorize_sys_stderr
@@ -453,7 +452,6 @@ class ExternalPythonShell(ExternalShellBase):
             env.append('MATPLOTLIB_BACKEND=%s' % self.mpl_backend)
         if self.qt_api:
             env.append('QT_API=%s' % self.qt_api)
-        env.append('INSTALL_QT_INPUTHOOK=%s' % self.install_qt_inputhook)
         env.append('COLORIZE_SYS_STDERR=%s' % self.colorize_sys_stderr)
 #        # Socket-based alternative (see input hook in sitecustomize.py):
 #        if self.install_qt_inputhook:

@@ -138,9 +138,7 @@ def oedit(obj, modal=True, namespace=None):
     else:
         keeper.create_dialog(dialog, obj_name, end_func)
         import os
-        qt_inputhook = os.environ.get("INSTALL_QT_INPUTHOOK",
-                                      "").lower() == "true"
-        if os.name == 'nt' and not qt_inputhook:
+        if os.name == 'nt':
             app.exec_()
 
 
