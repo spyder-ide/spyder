@@ -46,7 +46,7 @@ class FallbackPlugin(IntrospectionPlugin):
                 start = base.rfind('.') + 1
             else:
                 start = 0
- 
+
             items = [i[start:len(base)] + i[len(base):].split('.')[0]
                      for i in items]
             # get path completions
@@ -99,6 +99,21 @@ class FallbackPlugin(IntrospectionPlugin):
                 line_nr = get_definition_with_regex(code, token)
 
         return filename, line_nr
+
+    def get_info(self, info):
+        """Get a formatted calltip and docstring from Fallback"""
+        if info.name == 'info' and info.docstring:
+            if info.filename:
+                filename = os.path.basename(info.filename)
+                filename = os.path.splitext(filename)[0]
+            else:
+                filename = '<module>'
+            resp = dict(docstring=info.docstring,
+                        name=filename,
+                        note='',
+                        argspec='',
+                        calltip=None)
+            return resp
 
 
 @memoize

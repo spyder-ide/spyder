@@ -52,13 +52,6 @@ class RequestHandler(QObject):
                 if plugin.name in self.pending:
                     self._finalize(plugin.name, self.pending[plugin.name])
                     return
-        elif self.info.name == 'info' and self.info.docstring:
-            resp = dict(docstring=self.info.docstring,
-                        name=self.info.filename or '<module>',
-                        note='',
-                        argspec='',
-                        calltip=None)
-            self._finalize('fallback', resp)
         self.waiting = False
 
     def _handle_incoming(self, name):
@@ -355,11 +348,13 @@ class PluginManager(QObject):
 
         if desired:
             plugins = [self.plugins[desired]]
-        elif info.name == 'definition' and not info.editor.is_python():
+        elif (info.name == 'definition' and not info.editor.is_python()
+              or info.name == 'info'):
             plugins = [p for p in self.plugins.values() if not p.busy]
         else:
             # use all but the fallback
-            plugins = [p for p in list(self.plugins.values())[:-1] if not p.busy]
+            plugins = [p for p in list(self.plugins.values())[:-1]
+                       if not p. busy]
 
         self.request = RequestHandler(info, plugins)
         self.request.introspection_complete.connect(
