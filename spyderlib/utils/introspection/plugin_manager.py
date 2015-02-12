@@ -52,6 +52,13 @@ class RequestHandler(QObject):
                 if plugin.name in self.pending:
                     self._finalize(plugin.name, self.pending[plugin.name])
                     return
+        elif self.info.name == 'info' and self.info.docstring:
+            resp = dict(docstring=self.info.docstring,
+                        name=self.info.filename or '<module>',
+                        note='',
+                        argspec='',
+                        calltip=None)
+            self._finalize('fallback', resp)
         self.waiting = False
 
     def _handle_incoming(self, name):
@@ -132,28 +139,37 @@ class CodeInfo(object):
         self.name = name
         self.filename = filename
         self.source_code = source_code
-        self.position = position
         self.is_python_like = is_python_like
         self.in_comment_or_string = in_comment_or_string
+        self.position = position
+
+        # if in a comment, look for the previous definition
+        if in_comment_or_string:
+            # if this is a docstring, find it, set as our
+            self.docstring = self._get_docstring()
+            # backtrack and look for a line that starts with def or class
+            while position:
+                base = self.source_code[position: position + 6]
+                if base.startswith('def ') or base.startswith('class '):
+                    position += base.index(' ') + 1
+                    break
+                position -= 1
+        else:
+            self.docstring = None
+
+        self.position = position
 
         if position == 0:
             self.lines = []
+            self.column = 0
             self.line_num = 0
+            self.line = ''
             self.obj = None
             self.full_obj = None
         else:
             self._get_info()
 
     def _get_info(self):
-        # if in a comment, look for the previous definition
-        if self.in_comment_or_string:
-            # backtrack and look for a line that starts with def or class
-            while self.position:
-                base = self.source_code[self.position: self.position + 6]
-                if base.startswith('def ') or base.startswith('class '):
-                    self.position += base.index(' ') + 1
-                    break
-                self.position -= 1
 
         self.lines = self.source_code[:self.position].splitlines()
         self.line_num = len(self.lines)
@@ -188,11 +204,28 @@ class CodeInfo(object):
         """
         Split our source code into valid identifiers.
 
-        P"""
+        """
         if position is None:
             position = self.offset
         text = self.source_code[:position]
         return re.findall(self.id_regex, text)
+
+    def _get_docstring(self):
+        """Find the docstring we are currently in"""
+        left = self.position
+        while left:
+            if self.source_code[left: left + 3] in ['"""', "'''"]:
+                left += 3
+                break
+            left -= 1
+        right = self.position
+        while right < len(self.source_code):
+            if self.source_code[right - 3: right] in ['"""', "'''"]:
+                right -= 3
+                break
+            right += 1
+        if left and right < len(self.source_code):
+            return self.source_code[left: right]
 
     def __eq__(self, other):
         try:
