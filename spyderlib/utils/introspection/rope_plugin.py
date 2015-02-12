@@ -47,15 +47,15 @@ ROPE_PREFS = {'ignore_syntax_errors': True,
 class RopePlugin(IntrospectionPlugin):
     """
     Rope based introspection plugin for jedi
-    
+
     Editor's code completion, go-to-definition and help
     """
-    
+
     project = None
-    
+
     # ---- IntrospectionPlugin API --------------------------------------------
     name = 'rope'
-    
+
     def load_plugin(self):
         """Load the Rope introspection plugin"""
         if not programs.is_module_installed('rope', ROPE_REQVER):
@@ -181,6 +181,9 @@ class RopePlugin(IntrospectionPlugin):
                 module = obj_fullname[:module_end]
                 note = 'Present in %s module' % module
 
+        if not doc_text and not calltip:
+            return
+
         return dict(name=obj_fullname, argspec=argspec, note=note,
             docstring=doc_text, calltip=calltip)
 
@@ -268,7 +271,7 @@ class RopePlugin(IntrospectionPlugin):
 if __name__ == '__main__':
 
     from spyderlib.utils.introspection.plugin_manager import CodeInfo
-    
+
     p = RopePlugin()
     p.load_plugin()
 
@@ -276,16 +279,16 @@ if __name__ == '__main__':
     docs = p.get_info(CodeInfo('info', source_code, len(source_code),
                                            __file__))
     assert 'ones(' in docs['calltip'] and 'ones(' in docs['docstring']
-    
+
     source_code = "import numpy; n"
     completions = p.get_completions(CodeInfo('completions', source_code,
         len(source_code), __file__))
-    assert 'numpy' in completions 
-    
+    assert 'numpy' in completions
+
     source_code = "import matplotlib.pyplot as plt; plt.imsave"
     path, line_nr = p.get_definition(CodeInfo('definition', source_code,
         len(source_code), __file__))
-    assert 'pyplot.py' in path 
+    assert 'pyplot.py' in path
 
     code = '''
 def test(a, b):

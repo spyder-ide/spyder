@@ -59,6 +59,8 @@ class RequestHandler(QObject):
         if self.result:
             return
         result = self._threads[name].result
+        if not result:
+            return
         if name == self.plugins[0].name or not self.waiting:
             self._finalize(name, result)
         else:
@@ -75,7 +77,7 @@ class RequestHandler(QObject):
         self.waiting = False
         self.pending = None
         delta = time.time() - self._start_time
-        debug_print('%s request from %s complete: "%s" in %.1f sec'
+        debug_print('%s request from %s finished: "%s" in %.1f sec'
             % (self.info.name, name, str(result)[:100], delta))
         self.introspection_complete.emit()
 
