@@ -102,7 +102,7 @@ class FallbackPlugin(IntrospectionPlugin):
 
     def get_info(self, info):
         """Get a formatted calltip and docstring from Fallback"""
-        if info.name == 'info' and info.docstring:
+        if info.docstring:
             if info.filename:
                 filename = os.path.basename(info.filename)
                 filename = os.path.splitext(filename)[0]

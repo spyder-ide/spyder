@@ -46,7 +46,7 @@ class RequestHandler(QObject):
             self._make_async_call(plugin, code_info)
 
     def _handle_timeout(self):
-        debug_print('got timeout')
+        debug_print('got timeout: %s' % self.plugins)
         if self.pending:
             for plugin in self.plugins:
                 if plugin.name in self.pending:
@@ -59,10 +59,9 @@ class RequestHandler(QObject):
         if self.result:
             return
         result = self._threads[name].result
-        if not result:
-            return
         if name == self.plugins[0].name or not self.waiting:
-            self._finalize(name, result)
+            if result:
+                self._finalize(name, result)
         else:
             self.pending[name] = result
 
@@ -326,7 +325,7 @@ class PluginManager(QObject):
 
     def _handle_request(self, info, desired=None):
         """Handle an incoming request from the user."""
-        debug_print('%s request:' % info.name)
+        debug_print('%s request' % info.name)
 
         editor = info.editor
         if ((not editor.is_python_like())
