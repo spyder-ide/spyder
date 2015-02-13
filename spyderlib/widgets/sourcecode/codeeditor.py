@@ -30,8 +30,8 @@ from spyderlib.qt.QtGui import (QColor, QMenu, QApplication, QSplitter, QFont,
                                 QInputDialog, QTextBlockUserData, QLineEdit,
                                 QKeySequence, QVBoxLayout, QHBoxLayout,
                                 QDialog, QIntValidator, QDialogButtonBox,
-                                QGridLayout, QPaintEvent, QMessageBox, QWidget)
-                                QMessageBox)
+                                QGridLayout, QPaintEvent, QMessageBox, QWidget,
+                                QMessageBox, QTextOption)
 from spyderlib.qt.QtCore import (Qt, Signal, QTimer, QRect, QRegExp, QSize,
                                  Slot)
 from spyderlib.qt.compat import to_qvariant
