@@ -19,22 +19,12 @@ ALL_LANGUAGES = {
                  'Fortran77': ('f', 'for', 'f77'),
                  'Fortran': ('f90', 'f95', 'f2k'),
                  'Idl': ('pro',),
-                 'Matlab': ('m',),
-                 'Julia': ('jl',),
                  'Diff': ('diff', 'patch', 'rej'),
                  'GetText': ('po', 'pot'),
                  'Nsis': ('nsi', 'nsh'),
                  'Html': ('htm', 'html'),
-                 'Css': ('css',),
-                 'Scss': ('scss',),
-                 'Xml': ('xml',),
-                 'Js': ('js',),
-                 'Json': ('json', 'ipynb'),
                  'Cpp': ('c', 'cc', 'cpp', 'cxx', 'h', 'hh', 'hpp', 'hxx'),
                  'OpenCL': ('cl',),
-                 'Batch': ('bat', 'cmd', 'nt'),
-                 'Ini': ('properties', 'session', 'ini', 'inf', 'reg', 'url',
-                         'cfg', 'cnf', 'aut', 'iss'),
                  'Yaml':('yaml','yml'),
                  }
 
@@ -78,6 +68,7 @@ def is_builtin(text):
     from spyderlib.py3compat import builtins
     return text in [str(name) for name in dir(builtins)
                     if not name.startswith('_')]
+
 
 def is_keyword(text):
     """Test if passed string is the name of a Python keyword"""

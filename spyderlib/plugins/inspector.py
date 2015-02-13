@@ -140,7 +140,7 @@ class ObjectInspectorConfigPage(PluginConfigPage):
         editor_box.setEnabled(rope_installed or jedi_installed)
         if not rope_installed and not jedi_installed:
             editor_tip = _("This feature requires the Rope or Jedi libraries.\n"
-                         "It seems you don't have either installed.")
+                           "It seems you don't have either installed.")
             editor_box.setToolTip(editor_tip)
         python_box = self.create_checkbox(_("Python Console"),
                                           'connect/python_console')

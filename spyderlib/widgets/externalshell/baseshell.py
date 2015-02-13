@@ -222,7 +222,10 @@ class ExternalShellBase(QWidget):
         else:
             if self.state_label is not None:
                 self.state_label.setText(_('Terminated.'))
-            self.timer.timeout.disconnect(self.show_time)
+            try:
+                self.timer.timeout.disconnect(self.show_time)
+            except:
+                pass
 
     def set_buttons_runnning_state(self, state):
         self.run_button.setVisible(not state and not self.is_ipykernel)
@@ -234,6 +237,11 @@ class ExternalShellBase(QWidget):
         if ask_for_arguments and not self.get_arguments():
             self.set_running_state(False)
             return
+        try:
+            self.terminate_button.clicked.disconnect(self.process.terminate)
+            self.kill_button.clicked.disconnect(self.process.terminate)
+        except:
+            pass
         self.create_process()
 
     @Slot()

@@ -282,10 +282,10 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         format_box = self.create_combobox(_("Format:")+"   ", formats,
                                        'pylab/inline/figure_format', default=0)
         resolution_spin = self.create_spinbox(
-                          _("Resolution:")+"  ", " "+_("dpi"),
-                          'pylab/inline/resolution', min_=56, max_=112, step=1,
-                          tip=_("Only used when the format is PNG. Default is "
-                                "72"))
+                        _("Resolution:")+"  ", " "+_("dpi"),
+                        'pylab/inline/resolution', min_=50, max_=150, step=0.1,
+                        tip=_("Only used when the format is PNG. Default is "
+                              "72"))
         width_spin = self.create_spinbox(
                           _("Width:")+"  ", " "+_("inches"),
                           'pylab/inline/width', min_=2, max_=20, step=1,
