@@ -8,7 +8,7 @@
 Editor widget based on QtGui.QPlainTextEdit
 """
 
-#%% This line is for cell execution testing
+# %% This line is for cell execution testing
 # pylint: disable=C0103
 # pylint: disable=R0903
 # pylint: disable=R0911
@@ -28,21 +28,21 @@ from spyderlib.qt.QtGui import (QColor, QMenu, QApplication, QSplitter, QFont,
                                 QBrush, QTextDocument, QTextCharFormat,
                                 QPixmap, QPrinter, QToolTip, QCursor, QLabel,
                                 QInputDialog, QTextBlockUserData, QLineEdit,
-                                QKeySequence, QWidget, QVBoxLayout,
-                                QHBoxLayout, QDialog, QIntValidator,
-                                QDialogButtonBox, QGridLayout, QPaintEvent,
+                                QKeySequence, QVBoxLayout, QHBoxLayout,
+                                QDialog, QIntValidator, QDialogButtonBox,
+                                QGridLayout, QPaintEvent, QMessageBox, QWidget,
                                 QMessageBox, QTextOption)
 from spyderlib.qt.QtCore import (Qt, Signal, QTimer, QRect, QRegExp, QSize,
                                  Slot)
 from spyderlib.qt.compat import to_qvariant
 
-#%% This line is for cell execution testing
+# %% This line is for cell execution testing
 # Local import
-#TODO: Try to separate this module from spyderlib to create a self
-#      consistent editor module (Qt source code and shell widgets library)
-from spyderlib.baseconfig import get_conf_path, _, DEBUG, get_image_path, debug_print
+# TODO: Try to separate this module from spyderlib to create a self
+#       consistent editor module (Qt source code and shell widgets library)
+from spyderlib.baseconfig import get_conf_path, _, DEBUG, get_image_path
 from spyderlib.config import CONF
-from spyderlib.guiconfig import get_font, create_shortcut
+from spyderlib.guiconfig import get_font, create_shortcut, new_shortcut
 from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
                                        mimedata2url, get_icon)
 from spyderlib.utils.dochelpers import getobj
@@ -51,6 +51,7 @@ from spyderlib.utils.sourcecode import ALL_LANGUAGES, CELL_LANGUAGES
 from spyderlib.widgets.editortools import PythonCFM
 from spyderlib.widgets.sourcecode.base import TextEditBaseWidget
 from spyderlib.widgets.sourcecode import syntaxhighlighters as sh
+from spyderlib.widgets.arraybuilder import SHORTCUT_INLINE, SHORTCUT_TABLE
 from spyderlib.py3compat import to_text_string
 
 try:
@@ -60,15 +61,15 @@ try:
 except:
     nbformat = None                      # analysis:ignore
 
-#%% This line is for cell execution testing
+# %% This line is for cell execution testing
 # For debugging purpose:
 LOG_FILENAME = get_conf_path('codeeditor.log')
 DEBUG_EDITOR = DEBUG >= 3
 
 
-#===============================================================================
+# =============================================================================
 # Go to line dialog box
-#===============================================================================
+# =============================================================================
 class GoToLineDialog(QDialog):
     def __init__(self, editor):
         QDialog.__init__(self, editor)
@@ -496,7 +497,7 @@ class CodeEditor(TextEditBaseWidget):
         self.painted.connect(self._draw_editor_cell_divider)
 
         self.verticalScrollBar().valueChanged.connect(
-                                       lambda value: self.rehighlight_cells())
+                                       lambda value: self.rehighlight_cells())                                 
 
     def create_shortcuts(self):
         codecomp = create_shortcut(self.do_completion, context='Editor',
@@ -519,6 +520,11 @@ class CodeEditor(TextEditBaseWidget):
                                        name='Blockcomment', parent=self)
         unblockcomment = create_shortcut(self.unblockcomment, context='Editor',
                                          name='Unblockcomment', parent=self)
+
+        # Fixed shortcuts
+        new_shortcut(SHORTCUT_INLINE, self, lambda: self.enter_array_inline())
+        new_shortcut(SHORTCUT_TABLE, self, lambda: self.enter_array_table())
+
         return [codecomp, duplicate_line, copyline, deleteline, movelineup,
                 movelinedown, gotodef, toggle_comment, blockcomment,
                 unblockcomment]
@@ -2629,6 +2635,10 @@ class CodeEditor(TextEditBaseWidget):
         :rtype: List of tuple(int, int, QtGui.QTextBlock)
         """
         return self.__visible_blocks
+
+    def is_editor(self):
+        return True
+
 
 #===============================================================================
 # CodeEditor's Printer

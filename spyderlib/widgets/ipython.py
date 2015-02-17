@@ -48,6 +48,7 @@ from spyderlib.widgets.browser import WebView
 from spyderlib.widgets.calltip import CallTipWidget
 from spyderlib.widgets.mixins import (BaseEditMixin, InspectObjectMixin,
                                       SaveHistoryMixin, TracebackLinksMixin)
+from spyderlib.widgets.arraybuilder import (SHORTCUT_INLINE, SHORTCUT_TABLE)
 
 
 #-----------------------------------------------------------------------------
@@ -264,6 +265,10 @@ These commands were executed:
 
         # Fixed shortcuts
         new_shortcut("Ctrl+T", self, lambda: self.new_client.emit())
+        new_shortcut(SHORTCUT_INLINE, self,
+                     lambda: self._control.enter_array_inline())
+        new_shortcut(SHORTCUT_TABLE, self,
+                     lambda: self._control.enter_array_table())
 
         return [inspect, clear_console]
     
