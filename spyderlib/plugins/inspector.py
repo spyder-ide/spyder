@@ -140,14 +140,13 @@ class ObjectInspectorConfigPage(PluginConfigPage):
         editor_box.setEnabled(rope_installed or jedi_installed)
         if not rope_installed and not jedi_installed:
             editor_tip = _("This feature requires the Rope or Jedi libraries.\n"
-                         "It seems you don't have either installed.")
+                           "It seems you don't have either installed.")
             editor_box.setToolTip(editor_tip)
         python_box = self.create_checkbox(_("Python Console"),
                                           'connect/python_console')
         ipython_box = self.create_checkbox(_("IPython Console"),
                                            'connect/ipython_console')
-        ipython_installed = programs.is_module_installed('IPython', '>=0.13')
-        ipython_box.setEnabled(ipython_installed)
+        ipython_box.setEnabled(IPYTHON_QT_INSTALLED)
 
         connections_layout = QVBoxLayout()
         connections_layout.addWidget(connections_label)

@@ -31,21 +31,18 @@ from spyderlib.qt.QtCore import Signal, Slot, Qt
 
 # IPython imports
 from IPython.core.application import get_ipython_dir
-from IPython.lib.kernel import find_connection_file, get_connection_info
+from IPython.lib.kernel import find_connection_file
 
-try: # IPython = '>=1.0'
-    from IPython.qt.manager import QtKernelManager
-except ImportError:
-    from IPython.frontend.qt.kernelmanager import QtKernelManager
+from IPython.qt.manager import QtKernelManager
 try: # IPython = "<=2.0"
     from IPython.external.ssh import tunnel as zmqtunnel
     import IPython.external.pexpect as pexpect
 except ImportError:
-    from zmq.ssh import tunnel as zmqtunnel
+    from zmq.ssh import tunnel as zmqtunnel      # analysis:ignore
     try:
-        import pexpect
+        import pexpect                           # analysis:ignore
     except ImportError:
-        pexpect = None
+        pexpect = None                           # analysis:ignore
 
 # Local imports
 from spyderlib import dependencies
@@ -58,7 +55,7 @@ from spyderlib.widgets.tabs import Tabs
 from spyderlib.widgets.ipython import IPythonClient
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
-from spyderlib.py3compat import to_text_string, u
+from spyderlib.py3compat import to_text_string
 
 
 SYMPY_REQVER = '>=0.7.0'
@@ -285,10 +282,10 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         format_box = self.create_combobox(_("Format:")+"   ", formats,
                                        'pylab/inline/figure_format', default=0)
         resolution_spin = self.create_spinbox(
-                          _("Resolution:")+"  ", " "+_("dpi"),
-                          'pylab/inline/resolution', min_=56, max_=112, step=1,
-                          tip=_("Only used when the format is PNG. Default is "
-                                "72"))
+                        _("Resolution:")+"  ", " "+_("dpi"),
+                        'pylab/inline/resolution', min_=50, max_=150, step=0.1,
+                        tip=_("Only used when the format is PNG. Default is "
+                              "72"))
         width_spin = self.create_spinbox(
                           _("Width:")+"  ", " "+_("inches"),
                           'pylab/inline/width', min_=2, max_=20, step=1,
@@ -771,7 +768,8 @@ class IPythonConsole(SpyderPluginWidget):
         if client is not None:
             return client
 
-    def run_script_in_current_client(self, filename, wdir, args, debug):
+    def run_script_in_current_client(self, filename, wdir, args, debug,
+            post_mortem):
         """Run script in current client, if any"""
         norm = lambda text: remove_backslashes(to_text_string(text))
         client = self.get_current_client()
@@ -784,6 +782,8 @@ class IPythonConsole(SpyderPluginWidget):
                     line += ", args='%s'" % norm(args)
                 if wdir:
                     line += ", wdir='%s'" % norm(wdir)
+                if post_mortem:
+                    line += ", post_mortem=True"
                 line += ")"
             else: # External kernels, use %run
                 line = "%run "
@@ -970,18 +970,6 @@ class IPythonConsole(SpyderPluginWidget):
                 self.close_client(client=cl)
 
     #------ Public API (for kernels) ------------------------------------------
-    def kernel_and_frontend_match(self, connection_file):
-        # Determine kernel version
-        ci = get_connection_info(connection_file, unpack=True,
-                                 profile='default')
-        if u('control_port') in ci:
-            kernel_ver = '>=1.0'
-        else:
-            kernel_ver = '<1.0'
-        # is_module_installed checks if frontend version agrees with the
-        # kernel one
-        return programs.is_module_installed('IPython', version=kernel_ver)
-
     def ssh_tunnel(self, *args, **kwargs):
         if sys.platform == 'win32':
             return zmqtunnel.paramiko_tunnel(*args, **kwargs)
@@ -1004,46 +992,27 @@ class IPythonConsole(SpyderPluginWidget):
         """Create kernel manager and client"""
         cf = find_connection_file(connection_file, profile='default')
         kernel_manager = QtKernelManager(connection_file=cf, config=None)
-        if programs.is_module_installed('IPython', '>=1.0'):
-            kernel_client = kernel_manager.client()
-            kernel_client.load_connection_file()
-            if hostname is not None:
-                try:
-                    newports = self.tunnel_to_kernel(dict(ip=kernel_client.ip,
-                                          shell_port=kernel_client.shell_port,
-                                          iopub_port=kernel_client.iopub_port,
-                                          stdin_port=kernel_client.stdin_port,
-                                          hb_port=kernel_client.hb_port),
-                                          hostname, sshkey, password)
-                    (kernel_client.shell_port, kernel_client.iopub_port,
-                     kernel_client.stdin_port, kernel_client.hb_port) = newports
-                except Exception as e:
-                    QMessageBox.critical(self, _('Connection error'), 
-                                       _("Could not open ssh tunnel. The "
-                                         "error was:\n\n") + to_text_string(e))
-                    return None, None
-            kernel_client.start_channels()
-            # To rely on kernel's heartbeat to know when a kernel has died
-            kernel_client.hb_channel.unpause()
-            return kernel_manager, kernel_client
-        else:
-            kernel_manager.load_connection_file()
-            if hostname is not None:
-                try:
-                    newports = self.tunnel_to_kernel(dict(ip=kernel_manager.ip,
-                                          shell_port=kernel_manager.shell_port,
-                                          iopub_port=kernel_manager.iopub_port,
-                                          stdin_port=kernel_manager.stdin_port,
-                                          hb_port=kernel_manager.hb_port),
-                                          hostname, sshkey, password)
-                    (kernel_manager.shell_port, kernel_manager.iopub_port,
-                     kernel_manager.stdin_port, kernel_manager.hb_port) = newports
-                except Exception as e:
-                    QMessageBox.critical(self, _('Connection error'), 
-                                     _('Could not open ssh tunnel\n') + str(e))
-                    return None, None
-            kernel_manager.start_channels()
-            return kernel_manager, None
+        kernel_client = kernel_manager.client()
+        kernel_client.load_connection_file()
+        if hostname is not None:
+            try:
+                newports = self.tunnel_to_kernel(dict(ip=kernel_client.ip,
+                                      shell_port=kernel_client.shell_port,
+                                      iopub_port=kernel_client.iopub_port,
+                                      stdin_port=kernel_client.stdin_port,
+                                      hb_port=kernel_client.hb_port),
+                                      hostname, sshkey, password)
+                (kernel_client.shell_port, kernel_client.iopub_port,
+                 kernel_client.stdin_port, kernel_client.hb_port) = newports
+            except Exception as e:
+                QMessageBox.critical(self, _('Connection error'), 
+                                   _("Could not open ssh tunnel. The "
+                                     "error was:\n\n") + to_text_string(e))
+                return None, None
+        kernel_client.start_channels()
+        # To rely on kernel's heartbeat to know when a kernel has died
+        kernel_client.hb_channel.unpause()
+        return kernel_manager, kernel_client
 
     def connect_client_to_kernel(self, client):
         """
@@ -1103,20 +1072,8 @@ class IPythonConsole(SpyderPluginWidget):
         kernel_widget_id = None
         for sw in self.extconsole.shellwidgets:
             if sw.connection_file == cf.split('/')[-1]:  
-                kernel_widget_id = id(sw)                 
-        
-        # Verifying if frontend and kernel have compatible versions
-        if not self.kernel_and_frontend_match(cf):
-            QMessageBox.critical(self,
-                                 _("Mismatch between kernel and frontend"),
-                                 _("Your IPython frontend and kernel versions "
-                                   "are <b>incompatible!!</b>"
-                                   "<br><br>"
-                                   "We're sorry but we can't create an IPython "
-                                   "console for you."
-                                ), QMessageBox.Ok)
-            return
-        
+                kernel_widget_id = id(sw)
+
         # Creating the client
         client = IPythonClient(self, name=name, history_filename='history.py',
                                connection_file=cf,
@@ -1246,4 +1203,3 @@ class IPythonConsole(SpyderPluginWidget):
 #            elif shellwidget:
 #                shellwidget.shell.drop_pathlist(pathlist)
 #        event.acceptProposedAction()
-

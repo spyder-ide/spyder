@@ -20,10 +20,10 @@ from __future__ import with_statement
 
 from spyderlib.qt.QtGui import (QHBoxLayout, QWidget, QMessageBox, QVBoxLayout,
                                 QLabel, QTreeWidget, QTreeWidgetItem,
-                                QApplication)
+                                QApplication, QColor)
 from spyderlib.qt.QtCore import Signal, QProcess, QByteArray, Qt, QTextCodec
 locale_codec = QTextCodec.codecForLocale()
-from spyderlib.qt.compat import getopenfilename
+from spyderlib.qt.compat import getopenfilename, getsavefilename
 
 import sys
 import os
@@ -72,7 +72,8 @@ class ProfilerWidget(QWidget):
         self.start_button = create_toolbutton(self, icon=get_icon('run.png'),
                                     text=_("Profile"),
                                     tip=_("Run profiler"),
-                                    triggered=self.start, text_beside_icon=True)
+                                    triggered=lambda : self.start(),
+                                    text_beside_icon=True)
         self.stop_button = create_toolbutton(self,
                                              icon=get_icon('stop.png'),
                                              text=_("Stop"),
@@ -107,6 +108,21 @@ class ProfilerWidget(QWidget):
                                                triggered=lambda dD=1:
                                                self.datatree.change_view(dD),
                                                tip=_('Expand one level down'))
+                                
+        self.save_button = create_toolbutton(self, text_beside_icon=True,
+                                             text=_("Save data"),
+                                             icon=get_icon('filesave.png'),
+                                             triggered=self.save_data,
+                                             tip=_('Save profiling data'))
+        self.load_button = create_toolbutton(self, text_beside_icon=True,
+                            text=_("Load data"),
+                            icon=get_icon('fileimport.png'),
+                            triggered=self.compare,
+                            tip=_('Load profiling data for comparison'))
+        self.clear_button = create_toolbutton(self, text_beside_icon=True,
+                                              text=_("Clear comparison"),
+                                              icon=get_icon('eraser.png'),
+                                              triggered=self.clear)
 
         hlayout1 = QHBoxLayout()
         hlayout1.addWidget(self.filecombo)
@@ -121,6 +137,9 @@ class ProfilerWidget(QWidget):
         hlayout2.addWidget(self.datelabel)
         hlayout2.addStretch()
         hlayout2.addWidget(self.log_button)
+        hlayout2.addWidget(self.save_button)
+        hlayout2.addWidget(self.load_button)
+        hlayout2.addWidget(self.clear_button)
         
         layout = QVBoxLayout()
         layout.addLayout(hlayout1)
@@ -131,7 +150,8 @@ class ProfilerWidget(QWidget):
         self.process = None
         self.set_running_state(False)
         self.start_button.setEnabled(False)
-        
+        self.clear_button.setEnabled(False)
+
         if not is_profiler_installed():
             # This should happen only on certain GNU/Linux distributions 
             # or when this a home-made Python build because the Python 
@@ -145,7 +165,30 @@ class ProfilerWidget(QWidget):
             self.datelabel.setText(text)
         else:
             pass # self.show_data()
-        
+            
+    def save_data(self):
+        """Save data"""
+        title = _( "Save profiler result")
+        filename, _selfilter = getsavefilename(self, title,
+                                               getcwd(),
+                                               _("Profiler result")+" (*.Result)")
+        if filename:
+            self.datatree.save_data(filename)
+            
+    def compare(self):
+        filename, _selfilter = getopenfilename(self, _("Select script to compare"),
+                                               getcwd(), _("Profiler result")+" (*.Result)")
+        if filename:
+            self.datatree.compare(filename)
+            self.show_data()
+            self.clear_button.setEnabled(True)
+
+    def clear(self):
+        self.datatree.compare(None)
+        self.datatree.hide_diff_cols(True)
+        self.show_data()
+        self.clear_button.setEnabled(False)
+
     def analyze(self, filename, wdir=None, args=None, pythonpath=None):
         if not is_profiler_installed():
             return
@@ -285,9 +328,10 @@ class ProfilerWidget(QWidget):
         if not filename:
             return
 
-        self.datatree.load_data(self.DATAPATH)
         self.datelabel.setText(_('Sorting data, please wait...'))
         QApplication.processEvents()
+        
+        self.datatree.load_data(self.DATAPATH)
         self.datatree.show_tree()
             
         text_style = "<span style=\'color: #444444\'><b>%s </b></span>"
@@ -330,8 +374,9 @@ class ProfilerDataTree(QTreeWidget):
     # (must be improbable as a filename to avoid splitting the filename itself)
     def __init__(self, parent=None):
         QTreeWidget.__init__(self, parent)
-        self.header_list = [_('Function/Module'), _('Total Time'),
-                            _('Local Time'), _('Calls'), _('File:line')]
+        self.header_list = [_('Function/Module'), _('Total Time'), _('Diff'),
+                            _('Local Time'), _('Diff'), _('Calls'), _('Diff'),
+                            _('File:line')]
         self.icon_list = {'module':      'python.png',
                          'function':    'function.png',
                          'builtin':     'python_t.png',
@@ -342,6 +387,7 @@ class ProfilerDataTree(QTreeWidget):
         self.item_list = None
         self.items_to_be_shown = None
         self.current_view_depth = None
+        self.compare_file = None
         self.setColumnCount(len(self.header_list))
         self.setHeaderLabels(self.header_list)
         self.initialize_view()
@@ -369,14 +415,34 @@ class ProfilerDataTree(QTreeWidget):
         """Load profiler data saved by profile/cProfile module"""
         import pstats
         self.profdata = pstats.Stats(profdatafile)
+        stats_indi = [pstats.Stats(profdatafile),]
+        
+        if self.compare_file is not None:
+            stats_indi.append(pstats.Stats(self.compare_file))
+        map(lambda x: x.calc_callees().stats, stats_indi)
+        self.profdata.add(profdatafile+"1")
         self.profdata.calc_callees()
+        self.stats1 = stats_indi
         self.stats = self.profdata.stats
+        
+    def compare(self,filename):
+        self.hide_diff_cols(False)
+        self.compare_file = filename
+        
+    def hide_diff_cols(self, hide):
+        for i in (2,4,6):
+            self.setColumnHidden(i, hide)
+    
+    def save_data(self, filename):
+        """"""
+        self.stats1[0].dump_stats(filename)
 
     def find_root(self):
         """Find a function without a caller"""
         self.profdata.sort_stats("cumulative")
         for func in self.profdata.fcn_list:
-            if ('~', 0, '<built-in method exec>') != func: 
+            if ('~', 0) != func[0:2] and not func[2].startswith(
+                    '<built-in method exec>'):
                 # This skips the profiler function at the top of the list
                 # it does only occur in Python 3
                 return func
@@ -397,7 +463,7 @@ class ProfilerDataTree(QTreeWidget):
             self.populate_tree(self, self.find_callees(rootkey))
             self.resizeColumnToContents(0)
             self.setSortingEnabled(True)
-            self.sortItems(1, Qt.DescendingOrder) # FIXME: hardcoded index
+            self.sortItems(1, Qt.AscendingOrder) # FIXME: hardcoded index
             self.change_view(1)
 
     def function_info(self, functionKey):
@@ -418,13 +484,38 @@ class ProfilerDataTree(QTreeWidget):
                 node_type = 'constructor'                
             file_and_line = '%s : %d' % (filename, line_number)
         return filename, line_number, function_name, file_and_line, node_type
-    
+        
+    def color_string(self, args):
+        x, format = args
+        diff_str = ""
+        color = "black"
+        if len(x) == 2 and self.compare_file is not None:
+            difference = x[0] - x[1]
+            if difference < 0:
+                diff_str = "".join(['',format[1] % difference])
+                color = "green"
+            elif difference > 0:
+                diff_str = "".join(['+',format[1] % difference])
+                color = "red"
+        return [format[0] % x[0], [diff_str, color]]
+
+
+    def format_output(self,child_key):
+        """ Formats the data"""
+        if True:
+            data = [x.stats.get(child_key,[0,0,0,0,0]) for x in self.stats1]
+            return map(self.color_string,zip(list(zip(*data))[1:4], [["%i"]*2, ["%.3f","%.3f"], ["%.3f","%.3f"]]))
+            
     def populate_tree(self, parentItem, children_list):
         """Recursive method to create each item (and associated data) in the tree."""
         for child_key in children_list:
             self.item_depth += 1
             (filename, line_number, function_name, file_and_line, node_type
              ) = self.function_info(child_key)
+
+            ((total_calls, total_calls_dif), (loc_time, loc_time_dif), (cum_time,
+             cum_time_dif)) = self.format_output(child_key)
+
             (primcalls, total_calls, loc_time, cum_time, callers
              ) = self.stats[child_key]
             child_item = TreeWidgetItem(parentItem)
@@ -438,27 +529,39 @@ class ProfilerDataTree(QTreeWidget):
 
             child_item.setToolTip(1, _('Time in function '\
                                        '(including sub-functions)'))
-            #child_item.setData(1, Qt.DisplayRole, cum_time)
-            child_item.setData(1, Qt.DisplayRole, '%.3f' % cum_time)
-            child_item.setTextAlignment(1, Qt.AlignCenter)
+            child_item.setData(1, Qt.DisplayRole, cum_time)
+            child_item.setTextAlignment(1, Qt.AlignRight)
+            
+            child_item.setData(2, Qt.DisplayRole, cum_time_dif[0])
+            child_item.setTextColor(2, QColor(cum_time_dif[1]))
+            child_item.setTextAlignment(2, Qt.AlignLeft)
 
-            child_item.setToolTip(2, _('Local time in function '\
+            child_item.setToolTip(3, _('Local time in function '\
                                       '(not in sub-functions)'))
-            #child_item.setData(2, Qt.DisplayRole, loc_time)
-            child_item.setData(2, Qt.DisplayRole, '%.3f' % loc_time)
-            child_item.setTextAlignment(2, Qt.AlignCenter)
 
-            child_item.setToolTip(3, _('Total number of calls '\
+            child_item.setData(3, Qt.DisplayRole, loc_time)
+            child_item.setTextAlignment(3, Qt.AlignRight)
+            
+            child_item.setData(4, Qt.DisplayRole, loc_time_dif[0])
+            child_item.setTextColor(4, QColor(loc_time_dif[1]))
+            child_item.setTextAlignment(4, Qt.AlignLeft)
+
+            child_item.setToolTip(5, _('Total number of calls '\
                                        '(including recursion)'))
-            child_item.setData(3, Qt.DisplayRole, total_calls)
-            child_item.setTextAlignment(3, Qt.AlignCenter)
 
-            child_item.setToolTip(4, _('File:line '\
+            child_item.setData(5, Qt.DisplayRole, total_calls)
+            child_item.setTextAlignment(5, Qt.AlignRight)
+            
+            child_item.setData(6, Qt.DisplayRole, total_calls_dif[0])
+            child_item.setTextColor(6, QColor(total_calls_dif[1]))
+            child_item.setTextAlignment(6, Qt.AlignLeft)
+
+            child_item.setToolTip(7, _('File:line '\
                                        'where function is defined'))
-            child_item.setData(4, Qt.DisplayRole, file_and_line)
+            child_item.setData(7, Qt.DisplayRole, file_and_line)
             #child_item.setExpanded(True)
             if self.is_recursive(child_item):
-                child_item.setData(4, Qt.DisplayRole, '(%s)' % _('recursion'))
+                child_item.setData(7, Qt.DisplayRole, '(%s)' % _('recursion'))
                 child_item.setDisabled(True)
             else:
                 callees = self.find_callees(child_key)

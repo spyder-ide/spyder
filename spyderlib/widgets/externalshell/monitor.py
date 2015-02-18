@@ -224,7 +224,7 @@ class Monitor(threading.Thread):
                             dict(command="ipykernel",
                                  data=self.ipykernel.connection_file))
             if self.ipython_shell is None and '__ipythonshell__' in glbs:
-                # IPython 0.13+ kernel
+                # IPython kernel
                 self.ipython_shell = glbs['__ipythonshell__']
                 glbs = self.ipython_shell.user_ns
                 self.ip = self.ipython_shell.get_ipython()

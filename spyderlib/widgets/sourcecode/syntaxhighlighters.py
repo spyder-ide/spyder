@@ -11,6 +11,7 @@ Editor widget syntax highlighters based on QtGui.QSyntaxHighlighter
 
 from __future__ import print_function
 
+import os
 import re
 import keyword
 
@@ -40,6 +41,25 @@ COLOR_SCHEME_KEYS = ("background", "currentline", "currentcell", "occurence",
                      "normal", "keyword", "builtin", "definition",
                      "comment", "string", "number", "instance")
 COLOR_SCHEME_NAMES = CONF.get('color_schemes', 'names')
+# Mapping for file extensions that use Pygments highlighting but should use
+# different lexers than Pygments' autodetection suggests.  Keys are file
+# extensions or tuples of extensions, values are Pygments lexer names.
+CUSTOM_EXTENSION_LEXER = {'.ipynb': 'json',
+                          '.nt': 'bat',
+                          '.scss': 'css',
+                          '.m': 'matlab',
+                          ('.properties', '.session', '.inf', '.reg', '.url',
+                           '.cfg', '.cnf', '.aut', '.iss'): 'ini'}
+# Convert custom extensions into a one-to-one mapping for easier lookup.
+_custom_extension_lexer_mapping = {}
+for key, value in CUSTOM_EXTENSION_LEXER.items():
+    # Single key is mapped unchanged.
+    if is_text_string(key):
+        _custom_extension_lexer_mapping[key] = value
+    # Tuple of keys is iterated over and each is mapped to value.
+    else:
+        for k in key:
+            _custom_extension_lexer_mapping[k] = value
 
 
 #==============================================================================
@@ -865,37 +885,33 @@ class PygmentsSH(BaseSH):
             ct += len(val)        
             self.setFormat(start, ct-start, self.formats[key])
 
-class BatchSH(PygmentsSH):
-    """Batch highlighter"""
-    _lang_name = 'bat'
 
-class IniSH(PygmentsSH):
-    """INI highlighter"""
-    _lang_name = 'ini'
+def guess_pygments_highlighter(filename):
+    """Factory to generate syntax highlighter for the given filename.
 
-class XmlSH(PygmentsSH):
-    """XML highlighter"""
-    _lang_name = 'xml'
+    If a syntax highlighter is not available for a particular file, this
+    function will attempt to generate one based on the lexers in Pygments.  If
+    Pygments is not available or does not have an appropriate lexer, TextSH
+    will be returned instead.
 
-class JsSH(PygmentsSH):
-    """Javascript highlighter"""
-    _lang_name = 'js'
+    """
+    try:
+        from pygments.lexers import get_lexer_for_filename, get_lexer_by_name
+        from pygments.util import ClassNotFound
+    except ImportError:
+        return TextSH
+    root, ext = os.path.splitext(filename)
+    if ext in _custom_extension_lexer_mapping:
+        lexer = get_lexer_by_name(_custom_extension_lexer_mapping[ext])
+    else:
+        try:
+            lexer = get_lexer_for_filename(filename)
+        except ClassNotFound:
+            return TextSH
+    class GuessedPygmentsSH(PygmentsSH):
+        _lexer = lexer
+    return GuessedPygmentsSH
 
-class JsonSH(PygmentsSH):
-    """Json highlighter"""
-    _lang_name = 'json'
-
-class JuliaSH(PygmentsSH):
-    """Julia highlighter"""
-    _lang_name = 'julia'
-        
-class CssSH(PygmentsSH):
-    """CSS Syntax Highlighter"""
-    _lang_name = 'css'
-
-class MatlabSH(PygmentsSH):
-    """Matlab highlighter"""
-    _lang_name = 'matlab'
 
 
 if __name__ == '__main__':

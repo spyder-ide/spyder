@@ -27,7 +27,7 @@ import sys
 import subprocess
 
 # Local imports
-from spyderlib.baseconfig import SCIENTIFIC_STARTUP, _
+from spyderlib.baseconfig import SCIENTIFIC_STARTUP, running_in_mac_app, _
 from spyderlib.config import CONF
 from spyderlib.utils import programs
 from spyderlib.utils.misc import (get_error_match, get_python_executable,
@@ -272,22 +272,8 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         if has_pyside and not has_pyqt4:
             self.set_option('qt/api', 'pyside')
         
-        qt_hook_box = newcb(_("Install Spyder's input hook for Qt"),
-                        'qt/install_inputhook',
-                        tip=_("PyQt installs an input hook that allows<br> "
-                              "creating and interacting with Qt widgets "
-                              "in an interactive console without "
-                              "blocking it. On Windows platforms, it "
-                              "is strongly recommended to replace it "
-                              "by Spyder's. Regarding PySide, note that "
-                              "it does not install an input hook, so it "
-                              "is required to enable this feature in "
-                              "order to be able to manipulate PySide/Qt" 
-                              "objects interactively."))
-        
         qt_layout = QVBoxLayout()
         qt_layout.addWidget(qt_setapi_box)
-        qt_layout.addWidget(qt_hook_box)
         qt_group.setLayout(qt_layout)
         qt_group.setEnabled(has_pyqt4 or has_pyside)
         
@@ -650,7 +636,8 @@ class ExternalConsole(SpyderPluginWidget):
             else:
                 return shellwidgets[0].shell
         
-    def run_script_in_current_shell(self, filename, wdir, args, debug):
+    def run_script_in_current_shell(self, filename, wdir, args, debug, 
+                  post_mortem):
         """Run script in current shell, if any"""
         norm = lambda text: remove_backslashes(to_text_string(text))
         line = "%s('%s'" % ('debugfile' if debug else 'runfile',
@@ -659,6 +646,8 @@ class ExternalConsole(SpyderPluginWidget):
             line += ", args=r'%s'" % norm(args)
         if wdir:
             line += ", wdir=r'%s'" % norm(wdir)
+        if post_mortem:
+            line += ', post_mortem=True'
         line += ")"
         if not self.execute_python_code(line, interpreter_only=True):
             QMessageBox.warning(self, _('Warning'),
@@ -710,7 +699,7 @@ class ExternalConsole(SpyderPluginWidget):
     
     def start(self, fname, wdir=None, args='', interact=False, debug=False,
               python=True, ipykernel=False, ipyclient=None,
-              give_ipyclient_focus=True, python_args=''):
+              give_ipyclient_focus=True, python_args='', post_mortem=True):
         """
         Start new console
         
@@ -779,7 +768,6 @@ class ExternalConsole(SpyderPluginWidget):
             qt_api = self.get_option('qt/api')
             if qt_api not in ('pyqt', 'pyside'):
                 qt_api = None
-            install_qt_inputhook = self.get_option('qt/install_inputhook')
             pyqt_api = self.get_option('pyqt/api_version')
             ignore_sip_setapi_errors = self.get_option(
                                             'pyqt/ignore_sip_setapi_errors')
@@ -807,7 +795,8 @@ class ExternalConsole(SpyderPluginWidget):
             else:
                 sa_settings = None
             shellwidget = ExternalPythonShell(self, fname, wdir,
-                           interact, debug, path=pythonpath,
+                           interact, debug, post_mortem=post_mortem, 
+                           path=pythonpath,
                            python_args=python_args,
                            ipykernel=ipykernel,
                            arguments=args, stand_alone=sa_settings,
@@ -818,7 +807,6 @@ class ExternalConsole(SpyderPluginWidget):
                            monitor_enabled=monitor_enabled,
                            mpl_backend=mpl_backend,
                            qt_api=qt_api, pyqt_api=pyqt_api,
-                           install_qt_inputhook=install_qt_inputhook,
                            ignore_sip_setapi_errors=ignore_sip_setapi_errors,
                            merge_output_channels=merge_output_channels,
                            colorize_sys_stderr=colorize_sys_stderr,
@@ -887,12 +875,16 @@ class ExternalConsole(SpyderPluginWidget):
                               lambda error: ipyclient.show_kernel_error(error))
                     
                     # Detect if kernel and frontend match or not
-                    if self.get_option('pythonexecutable/custom'):
+                    # Don't apply this for our Mac app because it's
+                    # failing, see Issue 2006
+                    if self.get_option('pythonexecutable/custom') and \
+                      not running_in_mac_app():
                         frontend_ver = programs.get_module_version('IPython')
-                        if '0.13' in frontend_ver:
-                            frontend_ver = '<1.0'
+                        old_vers = ['1', '2']
+                        if any([frontend_ver.startswith(v) for v in old_vers]):
+                            frontend_ver = '<3.0'
                         else:
-                            frontend_ver = '>=1.0'
+                            frontend_ver = '>=3.0'
                         pyexec = self.get_option('pythonexecutable')
                         kernel_and_frontend_match = \
                           programs.is_module_installed('IPython',

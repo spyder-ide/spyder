@@ -54,7 +54,16 @@ class Key(object):
                          Qt.MetaModifier: "Meta"}
     KEYS = {}
     for attr in KEYSTRINGS:
-        KEYS[getattr(Qt, "Key_"+attr)] = attr
+        # ISSUE
+        # This is needed to cope with a strange behaviour of Qt.
+        # Qt.Key_PageUp/Qt.Key_PageDown when string parsed use PgDown/PgUp
+        attr2 = attr
+        if attr == 'PageDown':
+            attr2 = 'PgDown'
+        elif attr == 'PageUp':
+            attr2 = 'PgUp'
+
+        KEYS[getattr(Qt, "Key_"+attr)] = attr2
 
     def __init__(self, key, mod1=Qt.NoModifier, mod2=Qt.NoModifier,
                  mod3=Qt.NoModifier):
@@ -63,7 +72,7 @@ class Key(object):
         self.modifiers = sorted(modifiers)
         assert key in self.KEYS
         self.key = key
-        
+
     def __str__(self):
         tlist = []
         for mod in sorted(list(set(self.modifiers))):
