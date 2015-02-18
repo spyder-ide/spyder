@@ -1798,14 +1798,33 @@ class CodeEditor(TextEditBaseWidget):
             return
         cursor = self.textCursor()
         block_nb = cursor.blockNumber()
+        # find the line that contains our scope
+        diff = 0
+        add_indent = False
         for prevline in range(block_nb-1, -1, -1):
             cursor.movePosition(QTextCursor.PreviousBlock)
             prevtext = to_text_string(cursor.block().text()).rstrip()
             if not prevtext.strip().startswith('#'):
-                break
+                if prevtext.strip().endswith(')'):
+                    comment_or_string = True  # prevent further parsing
+                elif prevtext.strip().endswith(':'):
+                    add_indent = True
+                    comment_or_string = True
+                if prevtext.count(')') > prevtext.count('('):
+                    diff = prevtext.count(')') - prevtext.count('(')
+                    continue
+                elif diff:
+                    diff += prevtext.count(')') - prevtext.count('(')
+                    if not diff:
+                        break
+                else:
+                    break
 
         indent = self.get_block_indentation(block_nb)
         correct_indent = self.get_block_indentation(prevline)
+
+        if add_indent:
+            correct_indent += len(self.indent_chars)
 
         if not comment_or_string:
             if prevtext.endswith(':'):
@@ -1829,8 +1848,11 @@ class CodeEditor(TextEditBaseWidget):
                             else:
                                 break
                 else:
-                    prevexpr = re.split(r'\(|\{|\[', prevtext)[-1]
-                    correct_indent = len(prevtext)-len(prevexpr)
+                    if prevtext.strip():
+                        prevexpr = re.split(r'\(|\{|\[', prevtext)[-1]
+                        correct_indent = len(prevtext)-len(prevexpr)
+                    else:
+                        correct_indent = len(prevtext)
 
         if (forward and indent >= correct_indent) or \
            (not forward and indent <= correct_indent):
