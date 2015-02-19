@@ -249,7 +249,8 @@ class ReadOnlyDictModel(QAbstractTableModel):
             self.keys = sort_against(self.keys, values, reverse)
             self.sizes = sort_against(self.sizes, values, reverse)
             self.types = sort_against(self.types, values, reverse)
-        self.reset()
+        self.beginResetModel()
+        self.endResetModel()
 
     def columnCount(self, qindex=QModelIndex()):
         """Array column number"""
@@ -365,6 +366,9 @@ class ReadOnlyDictModel(QAbstractTableModel):
             return Qt.ItemIsEnabled
         return Qt.ItemFlags(QAbstractTableModel.flags(self, index)|
                             Qt.ItemIsEditable)
+    def reset(self):
+        self.beginResetModel()
+        self.endResetModel()
 
 class DictModel(ReadOnlyDictModel):
     """DictEditor Table Model"""

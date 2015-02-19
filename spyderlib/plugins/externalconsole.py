@@ -12,6 +12,7 @@
 # pylint: disable=R0201
 
 # Qt imports
+from spyderlib.qt import PYQT5
 from spyderlib.qt.QtGui import (QVBoxLayout, QMessageBox, QInputDialog,
                                 QLineEdit, QPushButton, QGroupBox, QLabel,
                                 QTabWidget, QFontComboBox, QHBoxLayout,
@@ -48,6 +49,7 @@ dependencies.add("matplotlib", _("Interactive data plotting in the consoles"),
 
 
 class ExternalConsoleConfigPage(PluginConfigPage):
+
     def __init__(self, plugin, parent):
         PluginConfigPage.__init__(self, plugin, parent)
         self.get_name = lambda: _("Console")
@@ -436,7 +438,10 @@ class ExternalConsole(SpyderPluginWidget):
     redirect_stdio = Signal(bool)
     
     def __init__(self, parent, light_mode):
-        SpyderPluginWidget.__init__(self, parent)
+        if PYQT5:
+            SpyderPluginWidget.__init__(self, parent, main = parent)
+        else:
+            SpyderPluginWidget.__init__(self, parent)
         self.light_mode = light_mode
         self.tabwidget = None
         self.menu_actions = None

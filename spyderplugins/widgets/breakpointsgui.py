@@ -113,6 +113,10 @@ class BreakpointTableModel(QAbstractTableModel):
             else:
                 return to_qvariant()
 
+    def reset(self):
+        self.beginResetModel()
+        self.endResetModel()
+
     
 class BreakpointDelegate(QItemDelegate):
     def __init__(self, parent=None):

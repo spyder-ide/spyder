@@ -220,6 +220,10 @@ class ShortcutsModel(QAbstractTableModel):
             return True
         return False
 
+    def reset(self):
+        self.beginResetModel()
+        self.endResetModel()
+
 
 class ShortcutsDelegate(QItemDelegate):
     def __init__(self, parent=None):

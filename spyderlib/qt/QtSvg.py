@@ -6,7 +6,9 @@
 
 import os
 
-if os.environ['QT_API'] == 'pyqt':
-    from PyQt4.QtSvg import *  # analysis:ignore
+if os.environ['QT_API'] == 'pyqt5':
+    from PyQt5.QtSvg import *                                 # analysis:ignore
+elif os.environ['QT_API'] == 'pyqt':
+    from PyQt4.QtSvg import *                                 # analysis:ignore
 else:
-    from PySide.QtSvg import *  # analysis:ignore
+    from PySide.QtSvg import *                                # analysis:ignore

@@ -6,7 +6,11 @@
 
 import os
 
-if os.environ['QT_API'] == 'pyqt':
-    from PyQt4.QtWebKit import *  # analysis:ignore
+if os.environ['QT_API'] == 'pyqt5':
+    from PyQt5.QtWebKitWidgets import QWebPage, QWebView      # analysis:ignore
+    from PyQt5.QtWebKit import QWebSettings                   # analysis:ignore
+elif os.environ['QT_API'] == 'pyqt':
+    from PyQt4.QtWebKit import (QWebPage, QWebView,           # analysis:ignore
+                                QWebSettings)
 else:
-    from PySide.QtWebKit import *  # analysis:ignore
+    from PySide.QtWebKit import *                             # analysis:ignore

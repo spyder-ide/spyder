@@ -11,7 +11,7 @@ from spyderlib.qt.QtGui import (QAction, QStyle, QWidget, QIcon, QApplication,
                                 QKeyEvent, QMenu, QKeySequence, QToolButton,
                                 QPixmap)
 from spyderlib.qt.QtCore import (Signal, QObject, Qt, QLocale, QTranslator,
-                                 QLibraryInfo, QEvent)
+                                 QLibraryInfo, QEvent, Slot)
 from spyderlib.qt.compat import to_qvariant, from_qvariant
 
 import os
@@ -311,8 +311,13 @@ def set_item_user_text(item, text):
 
 def create_bookmark_action(parent, url, title, icon=None, shortcut=None):
     """Create bookmark action"""
+    
+    @Slot()
+    def open_url():
+        return programs.start_file(url)
+    
     return create_action( parent, title, shortcut=shortcut, icon=icon,
-                          triggered=lambda u=url: programs.start_file(u) )
+                          triggered=open_url)
 
 
 def create_module_bookmark_actions(parent, bookmarks):

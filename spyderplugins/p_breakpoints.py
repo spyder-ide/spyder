@@ -24,6 +24,7 @@ from spyderlib.py3compat import to_text_string, is_text_string
 class Breakpoints(BreakpointWidget, SpyderPluginMixin):
     """Breakpoint list"""
     CONF_SECTION = 'breakpoints'
+
 #    CONFIGWIDGET_CLASS = BreakpointConfigPage
     def __init__(self, parent=None):
         BreakpointWidget.__init__(self, parent=parent)

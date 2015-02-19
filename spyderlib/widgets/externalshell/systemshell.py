@@ -9,7 +9,8 @@
 import os
 
 from spyderlib.qt.QtGui import QMessageBox
-from spyderlib.qt.QtCore import QProcess, Signal, QTextCodec
+from spyderlib.qt.QtCore import (QProcess, Signal, QTextCodec,
+                                 QProcessEnvironment)
 LOCALE_CODEC = QTextCodec.codecForLocale()
 CP850_CODEC = QTextCodec.codecForName('cp850')
 
@@ -58,8 +59,15 @@ class ExternalSystemShell(ExternalShellBase):
         # PYTHONPATH (in case we use Python in this terminal, e.g. py2exe)
         env = [to_text_string(_path)
                for _path in self.process.systemEnvironment()]
+
+        processEnvironment = QProcessEnvironment()
+        for envItem in env:
+            envName, separator, envValue = envItem.partition('=')
+            processEnvironment.insert(envName, envValue)
+
         add_pathlist_to_PYTHONPATH(env, self.path)
-        self.process.setEnvironment(env)
+        self.process.setProcessEnvironment(processEnvironment)                   
+
         
         # Working directory
         if self.wdir is not None:

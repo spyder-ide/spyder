@@ -257,8 +257,13 @@ else:
             _print("Can't open file %s" % source, file=sys.stderr)
     builtins.open_in_spyder = open_in_spyder
 
-    if os.environ["QT_API"] == 'pyqt':
+    if os.environ["QT_API"] == 'pyqt5':
+        from PyQt5 import QtCore
+        # Removing PyQt's PyOS_InputHook implementation:
+        QtCore.pyqtRemoveInputHook()
+    elif os.environ["QT_API"] == 'pyqt':
         from PyQt4 import QtCore
+        QtCore.pyqtRemoveInputHook()
     elif os.environ["QT_API"] == 'pyside':
         from PySide import QtCore          #analysis:ignore
 

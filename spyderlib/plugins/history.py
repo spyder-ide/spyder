@@ -6,6 +6,7 @@
 
 """Console History Plugin"""
 
+from spyderlib.qt import PYQT5
 from spyderlib.qt.QtGui import (QVBoxLayout, QFontDialog, QInputDialog,
                                 QToolButton, QMenu, QFontComboBox, QGroupBox)
 from spyderlib.qt.QtCore import Signal, Slot
@@ -73,7 +74,6 @@ class HistoryLog(SpyderPluginWidget):
     """
     CONF_SECTION = 'historylog'
     CONFIGWIDGET_CLASS = HistoryConfigPage
-    # Signals
     focus_changed = Signal()
     
     def __init__(self, parent):
@@ -85,8 +85,10 @@ class HistoryLog(SpyderPluginWidget):
         self.editors = []
         self.filenames = []
         self.icons = []
-        
-        SpyderPluginWidget.__init__(self, parent)
+        if PYQT5:        
+            SpyderPluginWidget.__init__(self, parent, main = parent)
+        else:
+            SpyderPluginWidget.__init__(self, parent)
 
         # Initialize plugin
         self.initialize_plugin()

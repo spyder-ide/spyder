@@ -18,9 +18,14 @@ These plugins inherit the following classes
 # pylint: disable=R0911
 # pylint: disable=R0201
 
+# Qt imports
+from spyderlib.qt import PYQT5
 from spyderlib.qt.QtGui import (QDockWidget, QWidget, QShortcut, QCursor,
                                 QKeySequence, QMainWindow, QApplication)
 from spyderlib.qt.QtCore import Qt, Signal
+
+# Stdlib imports
+import sys
 
 # Local imports
 from spyderlib.utils.qthelpers import toggle_actions, get_icon, create_action
@@ -30,7 +35,6 @@ from spyderlib.userconfig import NoDefault
 from spyderlib.guiconfig import get_font, set_font
 from spyderlib.plugins.configdialog import SpyderConfigPage
 from spyderlib.py3compat import configparser, is_text_string
-import sys
 
 
 class PluginConfigPage(SpyderConfigPage):
@@ -154,9 +158,12 @@ class SpyderPluginMixin(object):
     show_message = None
     update_plugin_title = None
 
-    def __init__(self, main):
+    def __init__(self, main = None, **kwds):
         """Bind widget to a QMainWindow instance"""
-        super(SpyderPluginMixin, self).__init__()
+        if PYQT5:
+            super().__init__(**kwds)
+        else:
+            super(SpyderPluginMixin, self).__init__()
         assert self.CONF_SECTION is not None
         self.main = main
         self.default_margins = None
@@ -178,7 +185,7 @@ class SpyderPluginMixin(object):
         # We decided to create our own toggle action instead of using
         # the one that comes with dockwidget because it's not possible
         # to raise and focus the plugin with it.
-        self.toggle_view_action = None
+        self.toggle_view_action = None 
         
     def initialize_plugin(self):
         """Initialize plugin: connect signals, setup actions, ..."""
@@ -348,7 +355,7 @@ class SpyderPluginMixin(object):
     def set_plugin_font(self, font, option=None):
         """Set plugin font option"""
         set_font(font, self.CONF_SECTION, option)
-        
+
     def __show_message(self, message, timeout=0):
         """Show message in main window's status bar"""
         self.main.statusBar().showMessage(message, timeout)
@@ -412,10 +419,14 @@ class SpyderPluginWidget(QWidget, SpyderPluginMixin):
     sig_option_changed = Signal(str, object)
     show_message = Signal(str, int)
     update_plugin_title = Signal()
-    
-    def __init__(self, parent):
-        QWidget.__init__(self, parent)
-        SpyderPluginMixin.__init__(self, parent)
+
+    if PYQT5:
+        def __init__(self, parent, **kwds):
+            super().__init__(**kwds)
+    else:    
+        def __init__(self, parent):
+            QWidget.__init__(self, parent)
+            SpyderPluginMixin.__init__(self, parent)
         
     def get_plugin_title(self):
         """

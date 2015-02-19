@@ -11,6 +11,7 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
+from spyderlib.qt import PYQT5
 from spyderlib.qt.QtGui import (QVBoxLayout, QFontDialog, QInputDialog,
                                 QLineEdit, QMenu)
 from spyderlib.qt.QtCore import Signal, Slot
@@ -34,7 +35,7 @@ from spyderlib.widgets.dicteditor import DictEditor
 from spyderlib.plugins import SpyderPluginWidget
 from spyderlib.py3compat import to_text_string, getcwd
 
-    
+
 class Console(SpyderPluginWidget):
     """
     Console widget
@@ -46,7 +47,10 @@ class Console(SpyderPluginWidget):
     
     def __init__(self, parent=None, namespace=None, commands=[], message=None,
                  exitfunc=None, profile=False, multithreaded=False):
-        SpyderPluginWidget.__init__(self, parent)
+        if PYQT5:
+            SpyderPluginWidget.__init__(self, parent, main = parent)
+        else:
+            SpyderPluginWidget.__init__(self, parent)
         
         debug_print("    ..internal console: initializing")
         self.dialog_manager = DialogManager()
@@ -61,13 +65,14 @@ class Console(SpyderPluginWidget):
         self.shell.status.connect(lambda msg: self.show_message.emit(msg, 0))
         self.shell.go_to_error.connect(self.go_to_error)
         self.shell.focus_changed.connect(lambda: self.focus_changed.emit())
+
         # Redirecting some signals:
         self.shell.redirect_stdio.connect(lambda state:
                                           self.redirect_stdio.emit(state))
         
         # Initialize plugin
         self.initialize_plugin()
-                
+
         # Find/replace widget
         self.find_widget = FindReplace(self)
         self.find_widget.set_editor(self.shell)

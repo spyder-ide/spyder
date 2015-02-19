@@ -20,6 +20,7 @@ from spyderlib.py3compat import is_text_string
 class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
     """Project explorer plugin"""
     CONF_SECTION = 'project_explorer'
+
     open_terminal = Signal(str)
     open_interpreter = Signal(str)
     pythonpath_changed = Signal()

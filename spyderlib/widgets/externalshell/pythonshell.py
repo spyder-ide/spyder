@@ -13,6 +13,7 @@ import socket
 
 from spyderlib.qt.QtGui import QApplication, QMessageBox, QSplitter, QMenu
 from spyderlib.qt.QtCore import QProcess, Signal, Slot, Qt
+from spyderlib.qt.QtCore import QProcessEnvironment
 from spyderlib.qt.compat import getexistingdirectory
 
 # Local imports
@@ -37,6 +38,8 @@ from spyderlib.py3compat import (is_text_string, to_text_string,
 class ExtPythonShellWidget(PythonShellWidget):
     
     wait_for_ready_read = Signal()
+    go_to_error = Signal(str)
+    focus_changed = Signal()
     
     def __init__(self, parent, history_filename, profile=False):
         PythonShellWidget.__init__(self, parent, history_filename, profile)
@@ -536,7 +539,11 @@ class ExternalPythonShell(ExternalShellBase):
 
             env = [p for p in env if not p.startswith('PYTHONOPTIMIZE')]   # 3.
 
-        self.process.setEnvironment(env)
+        processEnvironment = QProcessEnvironment()
+        for envItem in env:
+            envName, separator, envValue = envItem.partition('=')
+            processEnvironment.insert(envName, envValue)
+        self.process.setProcessEnvironment(processEnvironment)                   
         self.process.start(self.pythonexecutable, p_args)
         #-------------------------Python specific------------------------------
             

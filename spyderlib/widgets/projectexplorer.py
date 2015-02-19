@@ -10,6 +10,7 @@
 
 from __future__ import print_function
 
+from spyderlib.qt import PYQT5
 from spyderlib.qt.QtGui import (QVBoxLayout, QLabel, QHBoxLayout, QWidget,
                                 QFileIconProvider, QMessageBox, QInputDialog,
                                 QLineEdit, QPushButton, QHeaderView,
@@ -664,7 +665,10 @@ class ExplorerTreeWidget(FilteredDirView):
         self.show_hscrollbar = checked
         self.header().setStretchLastSection(not checked)
         self.header().setHorizontalScrollMode(QAbstractItemView.ScrollPerPixel)
-        self.header().setResizeMode(QHeaderView.ResizeToContents)
+        if PYQT5:
+            self.header().setSectionResizeMode(QHeaderView.ResizeToContents)
+        else:
+            self.header().setResizeMode(QHeaderView.ResizeToContents)
         
     def set_folder_names(self, folder_names):
         """Set folder names"""

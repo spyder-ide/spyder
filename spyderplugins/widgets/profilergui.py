@@ -21,7 +21,8 @@ from __future__ import with_statement
 from spyderlib.qt.QtGui import (QHBoxLayout, QWidget, QMessageBox, QVBoxLayout,
                                 QLabel, QTreeWidget, QTreeWidgetItem,
                                 QApplication, QColor)
-from spyderlib.qt.QtCore import Signal, QProcess, QByteArray, Qt, QTextCodec
+from spyderlib.qt.QtCore import (Signal, QProcess, QByteArray, Qt, QTextCodec,
+                                 QProcessEnvironment)
 locale_codec = QTextCodec.codecForLocale()
 from spyderlib.qt.compat import getopenfilename, getsavefilename
 
@@ -256,7 +257,11 @@ class ProfilerWidget(QWidget):
             env = [to_text_string(_pth)
                    for _pth in self.process.systemEnvironment()]
             baseshell.add_pathlist_to_PYTHONPATH(env, pythonpath)
-            self.process.setEnvironment(env)
+            processEnvironment = QProcessEnvironment()
+            for envItem in env:
+                envName, separator, envValue = envItem.partition('=')
+                processEnvironment.insert(envName, envValue)
+            self.process.setProcessEnvironment(processEnvironment)
         
         self.output = ''
         self.error_output = ''

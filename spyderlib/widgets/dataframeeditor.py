@@ -354,6 +354,10 @@ class DataFrameModel(QAbstractTableModel):
         else:
             return self.cols_loaded + 1
 
+    def reset(self):
+        self.beginResetModel()
+        self.endResetModel()
+
 
 class DataFrameView(QTableView):
     """Data Frame view class"""

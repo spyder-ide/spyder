@@ -6,6 +6,7 @@
 
 """Object Inspector Plugin"""
 
+from spyderlib.qt import PYQT5
 from spyderlib.qt.QtGui import (QHBoxLayout, QVBoxLayout, QLabel, QSizePolicy,
                                 QMenu, QToolButton, QGroupBox, QFontComboBox,
                                 QActionGroup, QFontDialog, QWidget, QComboBox,
@@ -352,11 +353,13 @@ class ObjectInspector(SpyderPluginWidget):
     CONF_SECTION = 'inspector'
     CONFIGWIDGET_CLASS = ObjectInspectorConfigPage
     LOG_PATH = get_conf_path(CONF_SECTION)
-    # Signals
     focus_changed = Signal()
 
     def __init__(self, parent):
-        SpyderPluginWidget.__init__(self, parent)
+        if PYQT5:
+            SpyderPluginWidget.__init__(self, parent, main = parent)
+        else:
+            SpyderPluginWidget.__init__(self, parent)
 
         self.internal_shell = None
 

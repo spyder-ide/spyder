@@ -76,7 +76,7 @@ class Pylint(PylintWidget, SpyderPluginMixin):
     CONF_SECTION = 'pylint'
     CONFIGWIDGET_CLASS = PylintConfigPage
     edit_goto = Signal(str, int, str)
-    
+
     def __init__(self, parent=None):
         PylintWidget.__init__(self, parent=parent,
                               max_entries=self.get_option('max_entries', 50))
