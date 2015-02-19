@@ -20,19 +20,15 @@ import time
 # Qt imports
 from spyderlib.qt.QtGui import (QTextEdit, QKeySequence, QWidget, QMenu,
                                 QHBoxLayout, QToolButton, QVBoxLayout,
-                                QMessageBox, QShortcut)
+                                QMessageBox)
 from spyderlib.qt.QtCore import Signal, Slot, Qt
 
 from spyderlib import pygments_patch
 pygments_patch.apply()
 
 # IPython imports
-try:  # 1.0
-    from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
-    from IPython.qt.console.ansi_code_processor import ANSI_OR_SPECIAL_PATTERN
-except ImportError: # 0.13
-    from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
-    from IPython.frontend.qt.console.ansi_code_processor import ANSI_OR_SPECIAL_PATTERN
+from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
+from IPython.qt.console.ansi_code_processor import ANSI_OR_SPECIAL_PATTERN
 from IPython.core.application import get_ipython_dir
 from IPython.core.oinspect import call_tip
 from IPython.config.loader import Config, load_pyconfig_files
@@ -41,7 +37,8 @@ from IPython.config.loader import Config, load_pyconfig_files
 from spyderlib.baseconfig import (get_conf_path, get_image_path,
                                   get_module_source_path, _)
 from spyderlib.config import CONF
-from spyderlib.guiconfig import create_shortcut, get_font, get_shortcut
+from spyderlib.guiconfig import (create_shortcut, get_font, get_shortcut,
+                                 new_shortcut)
 from spyderlib.utils.dochelpers import getargspecfromtext, getsignaturefromtext
 from spyderlib.utils.qthelpers import (get_std_icon, create_toolbutton,
                                        add_actions, create_action, get_icon,
@@ -51,6 +48,7 @@ from spyderlib.widgets.browser import WebView
 from spyderlib.widgets.calltip import CallTipWidget
 from spyderlib.widgets.mixins import (BaseEditMixin, InspectObjectMixin,
                                       SaveHistoryMixin, TracebackLinksMixin)
+from spyderlib.widgets.arraybuilder import (SHORTCUT_INLINE, SHORTCUT_TABLE)
 
 
 #-----------------------------------------------------------------------------
@@ -213,19 +211,9 @@ class IPythonShellWidget(RichIPythonWidget):
         autoload_pylab_o = CONF.get('ipython_console', 'pylab/autoload', True)
         mpl_installed = programs.is_module_installed('matplotlib')
         if mpl_installed and (pylab_o and autoload_pylab_o):
-            backend_o = CONF.get('ipython_console', 'pylab/backend', 0)
-            backends = {0: 'module://IPython.zmq.pylab.backend_inline',
-                        1: 'Qt4Agg', 2: 'Qt4Agg', 3: 'MacOSX', 4: 'GTKAgg',
-                        5: 'WXAgg', 6: 'TKAgg'}
-            pylab_013_message = """
-Welcome to pylab, a matplotlib-based Python environment [backend: %s].
-For more information, type 'help(pylab)'.\n""" % backends[backend_o]
-            pylab_1_message = """
-Populating the interactive namespace from numpy and matplotlib"""
-            if programs.is_module_installed('IPython', '>=1.0'):
-                banner = banner + pylab_1_message
-            else:
-                banner = banner + pylab_013_message
+            pylab_message = ("\nPopulating the interactive namespace from "
+                             "numpy and matplotlib")
+            banner = banner + pylab_message
         
         sympy_o = CONF.get('ipython_console', 'symbolic_math', True)
         if sympy_o:
@@ -258,13 +246,10 @@ These commands were executed:
         but only if the kernel is currently looking for raw input.
         """
         if self._reading:
-            if programs.is_module_installed('IPython', '>=1.0'):
-                try:
-                    self.kernel_client.stdin_channel.input(line)
-                except AttributeError:
-                    self.kernel_client.input(line)
-            else:
-                self.kernel_manager.stdin_channel.input(line)
+            try:
+                self.kernel_client.stdin_channel.input(line)
+            except AttributeError:
+                self.kernel_client.input(line)
     
     def set_background_color(self):
         lightbg_o = CONF.get('ipython_console', 'light_color')
@@ -279,9 +264,11 @@ These commands were executed:
                                         name='Clear shell', parent=self)
 
         # Fixed shortcuts
-        create_client = QShortcut(QKeySequence("Ctrl+T"), self,
-                                  lambda: self.new_client.emit())
-        create_client.setContext(Qt.WidgetWithChildrenShortcut)
+        new_shortcut("Ctrl+T", self, lambda: self.new_client.emit())
+        new_shortcut(SHORTCUT_INLINE, self,
+                     lambda: self._control.enter_array_inline())
+        new_shortcut(SHORTCUT_TABLE, self,
+                     lambda: self._control.enter_array_table())
 
         return [inspect, clear_console]
     
@@ -755,9 +742,6 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         Reimplement Qt method to stop sending the custom_restart_kernel_died
         signal
         """
-        if programs.is_module_installed('IPython', '>=1.0'):
-            kc = self.shellwidget.kernel_client
-            if kc is not None:
-                kc.hb_channel.pause()
-        else:
-            self.shellwidget.custom_restart = False
+        kc = self.shellwidget.kernel_client
+        if kc is not None:
+            kc.hb_channel.pause()

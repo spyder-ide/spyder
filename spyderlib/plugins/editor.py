@@ -45,7 +45,7 @@ from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 from spyderlib.plugins.runconfig import (RunConfigDialog, RunConfigOneDialog,
                                          get_run_configuration,
                                          ALWAYS_OPEN_FIRST_RUN_OPTION)
-from spyderlib.py3compat import to_text_string, getcwd, qbytearray_to_str
+from spyderlib.py3compat import PY2, to_text_string, getcwd, qbytearray_to_str
 
 
 def _load_all_breakpoints():
@@ -110,6 +110,7 @@ class EditorConfigPage(PluginConfigPage):
         
         display_group = QGroupBox(_("Source code"))
         linenumbers_box = newcb(_("Show line numbers"), 'line_numbers')
+        blanks_box = newcb(_("Show blank spaces"), 'blank_spaces')
         edgeline_box = newcb(_("Show vertical line after"), 'edge_line')
         edgeline_spin = self.create_spinbox("", _("characters"),
                                             'edge_line_column', 79, 1, 500)
@@ -140,6 +141,7 @@ class EditorConfigPage(PluginConfigPage):
         
         display_layout = QVBoxLayout()
         display_layout.addWidget(linenumbers_box)
+        display_layout.addWidget(blanks_box)
         display_layout.addLayout(edgeline_layout)
         display_layout.addWidget(currentline_box)
         display_layout.addWidget(currentcell_box)
@@ -334,12 +336,12 @@ class Editor(SpyderPluginWidget):
     DISABLE_ACTIONS_WHEN_HIDDEN = False # SpyderPluginWidget class attribute
     
     # Signals
-    run_in_current_ipyclient = Signal(str, str, str, bool)
+    run_in_current_ipyclient = Signal(str, str, str, bool, bool)
     exec_in_extconsole = Signal(str, bool)
     redirect_stdio = Signal(bool)
     open_dir = Signal(str)
     breakpoints_saved = Signal()
-    run_in_current_extconsole = Signal(str, str, str, bool)
+    run_in_current_extconsole = Signal(str, str, str, bool, bool)
     
     def __init__(self, parent, ignore_last_opened_files=False):
         if PYQT5:
@@ -673,7 +675,7 @@ class Editor(SpyderPluginWidget):
                                        clear_all_breakpoints_action))
         self.winpdb_action = create_action(self, _("Debug with winpdb"),
                                            triggered=self.run_winpdb)
-        self.winpdb_action.setEnabled(WINPDB_PATH is not None)
+        self.winpdb_action.setEnabled(WINPDB_PATH is not None and PY2)
         self.register_shortcut(self.winpdb_action, context="Editor",
                                name="Debug with winpdb")
         
@@ -880,6 +882,8 @@ class Editor(SpyderPluginWidget):
         trailingspaces_action = create_action(self,
                                       _("Remove trailing spaces"),
                                       triggered=self.remove_trailing_spaces)
+        self.showblanks_action = create_action(self, _("Show blank spaces"),
+                                               toggled=self.toggle_show_blanks)
         fixindentation_action = create_action(self, _("Fix indentation"),
                       tip=_("Replace tab characters by space characters"),
                       triggered=self.fix_indentation)
@@ -954,8 +958,8 @@ class Editor(SpyderPluginWidget):
                                  debug_continue_action, debug_exit_action]
         self.main.debug_toolbar_actions += debug_toolbar_actions
         
-        source_menu_actions = [eol_menu, trailingspaces_action,
-                               fixindentation_action]
+        source_menu_actions = [eol_menu, self.showblanks_action,
+                               trailingspaces_action, fixindentation_action]
         self.main.source_menu_actions += source_menu_actions
         
         source_toolbar_actions = [self.todo_list_action,
@@ -1066,6 +1070,7 @@ class Editor(SpyderPluginWidget):
             ('set_todolist_enabled',                'todo_list'),
             ('set_realtime_analysis_enabled',       'realtime_analysis'),
             ('set_realtime_analysis_timeout',       'realtime_analysis/timeout'),
+            ('set_blanks_enabled',                  'blank_spaces'),
             ('set_linenumbers_enabled',             'line_numbers'),
             ('set_edgeline_enabled',                'edge_line'),
             ('set_edgeline_column',                 'edge_line_column'),
@@ -1846,6 +1851,11 @@ class Editor(SpyderPluginWidget):
         if self.__set_eol_chars:
             editor.set_eol_chars(sourcecode.get_eol_chars_from_os_name(os_name))
 
+    @Slot(bool)
+    def toggle_show_blanks(self, checked):
+        editor = self.get_current_editor()
+        editor.set_blanks_enabled(checked)
+
     @Slot()
     def remove_trailing_spaces(self):
         editorstack = self.get_current_editorstack()
@@ -2051,13 +2061,14 @@ class Editor(SpyderPluginWidget):
             args = runconf.get_arguments()
             python_args = runconf.get_python_arguments()
             interact = runconf.interact
+            post_mortem = runconf.post_mortem
             current = runconf.current
             systerm = runconf.systerm
             
             python = True # Note: in the future, it may be useful to run
             # something in a terminal instead of a Python interp.
             self.__last_ec_exec = (fname, wdir, args, interact, debug,
-                                   python, python_args, current, systerm)
+                                   python, python_args, current, systerm, post_mortem)
             self.re_run_file()
             if not interact and not debug:
                 # If external console dockwidget is hidden, it will be
@@ -2082,21 +2093,22 @@ class Editor(SpyderPluginWidget):
         if self.__last_ec_exec is None:
             return
         (fname, wdir, args, interact, debug,
-         python, python_args, current, systerm) = self.__last_ec_exec
+         python, python_args, current, systerm, post_mortem) = self.__last_ec_exec
         if current:
             if self.main.ipyconsole is not None:
                 if self.main.last_console_plugin_focus_was_python:
                     self.run_in_current_extconsole.emit(fname, wdir, args,
-                                                        debug)
+                                                        debug, post_mortem)
                 else:
                     self.run_in_current_ipyclient.emit(fname, wdir, args,
-                                                       debug)
+                                                       debug, post_mortem)
             else:
-                self.run_in_current_extconsole.emit(fname, wdir, args, debug)
+                self.run_in_current_extconsole.emit(fname, wdir, args, debug,
+                                                    post_mortem)
         else:
             self.main.open_external_console(fname, wdir, args, interact,
                                             debug, python, python_args,
-                                            systerm)
+                                            systerm, post_mortem)
 
     @Slot()
     def run_selection(self):
@@ -2183,6 +2195,8 @@ class Editor(SpyderPluginWidget):
             tabbar_o = self.get_option(tabbar_n)
             linenb_n = 'line_numbers'
             linenb_o = self.get_option(linenb_n)
+            blanks_n = 'blank_spaces'
+            blanks_o = self.get_option(blanks_n)
             edgeline_n = 'edge_line'
             edgeline_o = self.get_option(edgeline_n)
             edgelinecol_n = 'edge_line_column'
@@ -2244,6 +2258,9 @@ class Editor(SpyderPluginWidget):
                 if linenb_n in options:
                     editorstack.set_linenumbers_enabled(linenb_o,
                                                         current_finfo=finfo)
+                if blanks_n in options:
+                    editorstack.set_blanks_enabled(blanks_o)
+                    self.showblanks_action.setChecked(blanks_o)
                 if edgeline_n in options:
                     editorstack.set_edgeline_enabled(edgeline_o)
                 if edgelinecol_n in options:

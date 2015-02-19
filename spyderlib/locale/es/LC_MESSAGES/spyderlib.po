@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
 "POT-Creation-Date: 2014-11-26 06:56+COT\n"
-"PO-Revision-Date: 2014-11-26 07:17-0500\n"
+"PO-Revision-Date: 2015-01-08 10:38-0500\n"
 "Last-Translator: Carlos Cordoba <ccordoba12@gmail.com>\n"
 "Language-Team: Python\n"
 "Language: es\n"
@@ -2546,7 +2546,7 @@ msgstr "Mostrar contenidos de listas"
 #: spyderlib/plugins/variableexplorer.py:48
 #: spyderlib/widgets/dicteditor.py:629
 msgid "Show arrays min/max"
-msgstr "Mostrar el máximo y mínimo de listas"
+msgstr "Mostrar el máximo y mínimo de arreglos"
 
 #: spyderlib/plugins/variableexplorer.py:50
 #: spyderlib/widgets/dicteditor.py:1317
@@ -2561,10 +2561,10 @@ msgid ""
 "This avoids transfering large amount of data between the remote process and "
 "Spyder (through the socket)."
 msgstr ""
-"Es mejor abrir el editor de variables en un proceso remoto para\n"
-"modificar arreglos de NumPy, imágenes de PIL, listas, tuplas y\n"
-"diccionarios. Esto impide transferir grandes cantidades de datos\n"
-"entre el proceso remoto y Spyder."
+"Esta opción permite modificar arreglos de NumPy, imágenes de\n"
+"de PIL/Pillow, Dataframes, y listas, tuplas y diccionarios en el\n"
+"proceso remoto. Esto impide transferir grandes cantidades de\n"
+"datos entre el proceso remoto y Spyder."
 
 #: spyderlib/plugins/variableexplorer.py:162
 msgid "Variable explorer"

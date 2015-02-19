@@ -28,7 +28,7 @@ from spyderlib.utils.misc import get_error_match
 from spyderlib.utils.dochelpers import (getobj, getargspecfromtext,
                                         getsignaturefromtext)
 from spyderlib.py3compat import is_text_string, to_text_string, u
-
+from spyderlib.widgets.arraybuilder import NumpyArrayDialog
 
 HISTORY_FILENAMES = []
 
@@ -495,9 +495,54 @@ class BaseEditMixin(object):
                 return True
         return False
 
+    def is_editor(self):
+        """Needs to be overloaded in the codeeditor where it will be True"""
+        return False
+
+    # --- Numpy matrix/array helper / See 'spyderlib/widgets/arraybuilder.py'
+    def enter_array_inline(self):
+        """ """
+        self._enter_array(True)
+
+    def enter_array_table(self):
+        """ """
+        self._enter_array(False)
+
+    def _enter_array(self, inline):
+        """ """
+        offset = self.get_position('cursor') - self.get_position('sol')
+        rect = self.cursorRect()
+        dlg = NumpyArrayDialog(self, inline, offset)
+
+        # TODO: adapt to font size
+        x = rect.left()
+        x = x + self.get_linenumberarea_width() - 14
+        y = rect.top() + (rect.bottom() - rect.top())/2
+        y = y - dlg.height()/2 - 3
+
+        pos = QPoint(x, y)
+        dlg.move(self.mapToGlobal(pos))
+
+        # called from editor
+        if self.is_editor():
+            python_like_check = self.is_python_like()
+            suffix = '\n'
+        # called from a console
+        else:
+            python_like_check = True
+            suffix = ''
+
+        if python_like_check and dlg.exec_():
+            text = dlg.text() + suffix
+            if text != '':
+                cursor = self.textCursor()
+                cursor.beginEditBlock()
+                cursor.insertText(text)
+                cursor.endEditBlock()
+
 
 class TracebackLinksMixin(object):
-    
+    """ """
     QT_CLASS = None
     go_to_error = None
     

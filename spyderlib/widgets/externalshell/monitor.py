@@ -36,8 +36,8 @@ if DEBUG_MONITOR:
 
 REMOTE_SETTINGS = ('check_all', 'exclude_private', 'exclude_uppercase',
                    'exclude_capitalized', 'exclude_unsupported',
-                   'excluded_names', 'truncate', 'minmax', 'collvalue',
-                   'inplace', 'remote_editing', 'autorefresh')
+                   'excluded_names', 'truncate', 'minmax',
+                   'remote_editing', 'autorefresh')
 
 def get_remote_data(data, settings, mode, more_excluded_names=None):
     """
@@ -76,8 +76,7 @@ def make_remote_view(data, settings, more_excluded_names=None):
     remote = {}
     for key, value in list(data.items()):
         view = value_to_display(value, truncate=settings['truncate'],
-                                minmax=settings['minmax'],
-                                collvalue=settings['collvalue'])
+                                minmax=settings['minmax'])
         remote[key] = {'type':  get_human_readable_type(value),
                        'size':  get_size(value),
                        'color': get_color_name(value),
@@ -225,7 +224,7 @@ class Monitor(threading.Thread):
                             dict(command="ipykernel",
                                  data=self.ipykernel.connection_file))
             if self.ipython_shell is None and '__ipythonshell__' in glbs:
-                # IPython 0.13+ kernel
+                # IPython kernel
                 self.ipython_shell = glbs['__ipythonshell__']
                 glbs = self.ipython_shell.user_ns
                 self.ip = self.ipython_shell.get_ipython()

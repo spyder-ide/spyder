@@ -42,7 +42,7 @@ EDIT_FILETYPES = (
     (_("reStructured Text files"), ('.txt', '.rst')),
     (_("gettext files"), ('.po', '.pot')),
     (_("NSIS files"), ('.nsi', '.nsh')),
-    (_("Web page files"), ('.css', '.htm', '.html',)),
+    (_("Web page files"), ('.scss', '.css', '.htm', '.html',)),
     (_("XML files"), ('.xml',)),
     (_("Javascript files"), ('.js',)),
     (_("Json files"), ('.json',)),
@@ -195,6 +195,9 @@ DEFAULTS = [
             ('quick_layouts',
              {
               'place_holder': '',
+              'names': ['Matlab layout', 'Rstudio layout', 'Vertical split', 'Horizontal split'],
+              'order': ['Matlab layout', 'Rstudio layout', 'Vertical split', 'Horizontal split'],
+              'active': ['Matlab layout', 'Rstudio layout', 'Vertical split', 'Horizontal split'],
               }),
             ('editor_appearance',
              {
@@ -241,7 +244,6 @@ DEFAULTS = [
               'show_elapsed_time': False,
               'show_icontext': False,
               'monitor/enabled': True,
-              'qt/install_inputhook': True,
               'qt/api': 'default',
               'pyqt/api_version': 2,
               'pyqt/ignore_sip_setapi_errors': False,
@@ -302,10 +304,8 @@ DEFAULTS = [
               'exclude_uppercase': True,
               'exclude_capitalized': False,
               'exclude_unsupported': True,
-              'inplace': False,
               'truncate': True,
               'minmax': False,
-              'collvalue': True,
               'remote_editing': False,
               }),
             ('editor',
@@ -327,6 +327,7 @@ DEFAULTS = [
               'realtime_analysis/timeout': 2500,
               'outline_explorer': True,
               'line_numbers': True,
+              'blank_spaces': False,
               'edge_line': True,
               'edge_line_column': 79,
               'toolbox_panel': True,
@@ -471,13 +472,12 @@ DEFAULTS = [
               '_/preferences': "Ctrl+Alt+Shift+P",
               '_/maximize pane': "Ctrl+Alt+Shift+M",
               '_/fullscreen mode': "F11",
+              '_/toggle next layout': "Shift+Alt+PgDown",
+              '_/toggle previous layout': "Shift+Alt+PgUp",
+              '_/save current layout': "Shift+Alt+S",
+              '_/toggle default layout': "Shift+Alt+Home",
+              '_/layout preferences': "Shift+Alt+P",
               '_/quit': "Ctrl+Q",
-              '_/switch to/from layout 1': "Shift+Alt+F1",
-              '_/set layout 1': "Ctrl+Shift+Alt+F1",
-              '_/switch to/from layout 2': "Shift+Alt+F2",
-              '_/set layout 2': "Ctrl+Shift+Alt+F2",
-              '_/switch to/from layout 3': "Shift+Alt+F3",
-              '_/set layout 3': "Ctrl+Shift+Alt+F3",
               # -- In plugins/editor
               '_/debug step over': "Ctrl+F10",
               '_/debug continue': "Ctrl+F12",
@@ -516,7 +516,6 @@ DEFAULTS = [
               'editor/file list management': 'Ctrl+E',
               'editor/go to previous file': 'Ctrl+Tab',
               'editor/go to next file': 'Ctrl+Shift+Tab',
-              'editor/close file': "Ctrl+F4" if os.name == 'nt' else "Ctrl+W",
               # -- In spyder.py
               'editor/find text': "Ctrl+F",
               'editor/find next': "F3",
@@ -714,7 +713,7 @@ DEFAULTS = [
 # 2. If you want to *remove* options that are no longer needed in our codebase,
 #    you need to do a MAJOR update in version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '11.2.0'
+CONF_VERSION = '16.0.0'
 
 # XXX: Previously we had load=(not DEV) here but DEV was set to *False*.
 # Check if it *really* needs to be updated or not

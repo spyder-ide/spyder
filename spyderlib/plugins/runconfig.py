@@ -51,7 +51,8 @@ class RunConfiguration(object):
         self.current = None
         self.systerm = None
         self.interact = None
-        self.show_kill_warning = None
+        self.show_kill_warning =None
+        self.post_mortem = None
         self.python_args = None
         self.python_args_enabled = None
         self.set(CONF.get('run', 'defaultconfiguration', default={}))
@@ -76,6 +77,7 @@ class RunConfiguration(object):
                            CONF.get('run', SYSTERM_INTERPRETER_OPTION, False))
         self.interact = options.get('interact', False)
         self.show_kill_warning = options.get('show_kill_warning', True)
+        self.post_mortem = options.get('post_mortem', False)
         self.python_args = options.get('python_args', '')
         self.python_args_enabled = options.get('python_args/enabled', False)
         
@@ -89,6 +91,7 @@ class RunConfiguration(object):
                 'systerm': self.systerm,
                 'interact': self.interact,
                 'show_kill_warning': self.show_kill_warning,
+                'post_mortem': self.post_mortem,
                 'python_args/enabled': self.python_args_enabled,
                 'python_args': self.python_args,
                 }
@@ -171,6 +174,9 @@ class RunConfigOptions(QWidget):
         browse_btn.clicked.connect(self.select_directory)
         wd_layout.addWidget(browse_btn)
         common_layout.addLayout(wd_layout, 1, 1)
+        self.post_mortem_cb = QCheckBox(_("Enter post mortem debugging"
+                                          " for uncaught exceptions"))
+        common_layout.addWidget(self.post_mortem_cb)
         
         # --- Interpreter ---
         interpreter_group = QGroupBox(_("Console"))
@@ -194,6 +200,7 @@ class RunConfigOptions(QWidget):
         
         self.show_kill_warning_cb = QCheckBox(_("Show warning when killing"
                                                 " running process"))
+
         new_layout.addWidget(self.show_kill_warning_cb, 2, 0, 1, -1)
         self.pclo_cb = QCheckBox(_("Command line options:"))
         new_layout.addWidget(self.pclo_cb, 3, 0)
@@ -204,7 +211,6 @@ class RunConfigOptions(QWidget):
                                     "other options you set here"))
         new_layout.addWidget(self.pclo_edit, 3, 1)
         
-        #TODO: Add option for "Post-mortem debugging"
 
         # Checkbox to preserve the old behavior, i.e. always open the dialog
         # on first run
@@ -247,6 +253,7 @@ class RunConfigOptions(QWidget):
             self.dedicated_radio.setChecked(True)
         self.interact_cb.setChecked(self.runconf.interact)
         self.show_kill_warning_cb.setChecked(self.runconf.show_kill_warning)
+        self.post_mortem_cb.setChecked(self.runconf.post_mortem)
         self.pclo_cb.setChecked(self.runconf.python_args_enabled)
         self.pclo_edit.setText(self.runconf.python_args)
     
@@ -259,6 +266,7 @@ class RunConfigOptions(QWidget):
         self.runconf.systerm = self.systerm_radio.isChecked()
         self.runconf.interact = self.interact_cb.isChecked()
         self.runconf.show_kill_warning = self.show_kill_warning_cb.isChecked()
+        self.runconf.post_mortem = self.post_mortem_cb.isChecked()
         self.runconf.python_args_enabled = self.pclo_cb.isChecked()
         self.runconf.python_args = to_text_string(self.pclo_edit.text())
         return self.runconf.get()
