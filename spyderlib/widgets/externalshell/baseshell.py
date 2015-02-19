@@ -232,7 +232,7 @@ class ExternalShellBase(QWidget):
         self.run_button.setVisible(not state and not self.is_ipykernel)
         self.kill_button.setVisible(state)
 
-    @Slot()
+    @Slot(bool)
     def start_shell(self, ask_for_arguments=False):
         """Start shell"""
         if ask_for_arguments and not self.get_arguments():

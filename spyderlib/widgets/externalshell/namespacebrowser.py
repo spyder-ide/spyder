@@ -436,7 +436,7 @@ class NamespaceBrowser(QWidget):
         """Collapse"""
         self.sig_collapse.emit()
 
-    @Slot()
+    @Slot(list)
     def import_data(self, filenames=None):
         """Import data from text file"""
         title = _("Import data")
@@ -452,12 +452,10 @@ class NamespaceBrowser(QWidget):
         elif is_text_string(filenames):
             filenames = [filenames]
 
-            
         for filename in filenames:
-            
             self.filename = to_text_string(filename)
             ext = osp.splitext(self.filename)[1].lower()
-            
+
             if ext not in iofunctions.load_funcs:
                 buttons = QMessageBox.Yes | QMessageBox.Cancel
                 answer = QMessageBox.question(self, title,
