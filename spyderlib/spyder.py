@@ -1196,7 +1196,7 @@ class MainWindow(QMainWindow):
             subprocess.call(['open', app_path + MAC_APP_NAME])
 
         # Server to maintain just one Spyder instance and open files in it if
-        # the user tries to start other instances w
+        # the user tries to start other instances with
         # $ spyder foo.py
         if CONF.get('main', 'single_instance') and not self.new_instance:
             t = threading.Thread(target=self.start_open_files_server)
