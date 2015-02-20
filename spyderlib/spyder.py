@@ -1196,7 +1196,7 @@ class MainWindow(QMainWindow):
             subprocess.call(['open', app_path + MAC_APP_NAME])
 
         # Server to maintain just one Spyder instance and open files in it if
-        # the user tries to start other instances with
+        # the user tries to start other instances w
         # $ spyder foo.py
         if CONF.get('main', 'single_instance') and not self.new_instance:
             t = threading.Thread(target=self.start_open_files_server)
@@ -2293,8 +2293,9 @@ Please provide any additional information below.
        versions['system'],
        dependencies.status())
 
-        url = QUrl("http://code.google.com/p/spyderlib/issues/entry")
-        url.addEncodedQueryItem("comment", quote(issue_template))
+        url = QUrl("https://github.com/spyder-ide/spyder/issues/new")
+
+        url.addEncodedQueryItem("body", quote(issue_template))
         QDesktopServices.openUrl(url)
 
     @Slot()
