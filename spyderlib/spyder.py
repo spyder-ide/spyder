@@ -1783,20 +1783,28 @@ class MainWindow(QMainWindow):
             if full:
                 revlink = " (%s:r%s)" % (short, full)
         issue_template = """\
-Spyder Version:  %s%s
-Python Version:  %s
-Qt Version    :  %s, %s %s on %s
-%s
+## Description
 
-What steps will reproduce the problem?
+* *What steps will reproduce the problem?*
 1.
 2.
 3.
 
-What is the expected output? What do you see instead?
+* *What is the expected output? What do you see instead?*
 
 
-Please provide any additional information below.
+* *Please provide any additional information below*
+
+
+## Version and main components
+
+* Spyder Version:  %s%s
+* Python Version:  %s
+* Qt Version    :  %s, %s %s on %s
+
+## Dependencies
+
+%s
 """ % (versions['spyder'],
        revlink,
        versions['python'],
