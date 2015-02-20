@@ -2294,7 +2294,6 @@ Please provide any additional information below.
        dependencies.status())
 
         url = QUrl("https://github.com/spyder-ide/spyder/issues/new")
-
         url.addEncodedQueryItem("body", quote(issue_template))
         QDesktopServices.openUrl(url)
 
