@@ -193,7 +193,7 @@ Example of Spyder binary installers for Windows:
     
 * For bug reports and feature requests
            
-    <http://code.google.com/p/spyderlib/issues>
+    <https://github.com/spyder-ide/spyder/issues>
 
 * For discussions and troubleshooting:
 

@@ -42,7 +42,7 @@ def get_icon(name, default=None, resample=False):
     resample: if True, manually resample icon pixmaps for usual sizes
     (16, 24, 32, 48, 96, 128, 256). This is recommended for QMainWindow icons 
     created from SVG images on non-Windows platforms due to a Qt bug (see 
-    http://code.google.com/p/spyderlib/issues/detail?id=1314)."""
+    Issue 1314)."""
     if default is None:
         icon = QIcon(get_image_path(name))
     elif isinstance(default, QIcon):

@@ -29,7 +29,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 __version__ = '2.3.3dev'
 __license__ = __doc__
-__project_url__ = 'http://code.google.com/p/spyderlib'
+__project_url__ = 'https://github.com/spyder-ide/spyder'
 __forum_url__   = 'http://groups.google.com/group/spyderlib'
 
 # Dear (Debian, RPM, ...) package makers, please feel free to customize the

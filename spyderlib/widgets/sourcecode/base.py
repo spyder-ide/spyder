@@ -988,8 +988,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     
     def wheelEvent(self, event):
         """Reimplemented to emit zoom in/out signals when Ctrl is pressed"""
-        # This feature is disabled on MacOS, see Issue 1510:
-        # http://code.google.com/p/spyderlib/issues/detail?id=1510
+        # This feature is disabled on MacOS, see Issue 1510
         if sys.platform != 'darwin':
             if event.modifiers() & Qt.ControlModifier:
                 if event.delta() < 0:
