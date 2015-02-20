@@ -1806,8 +1806,8 @@ Please provide any additional information below.
        versions['system'],
        dependencies.status())
        
-        url = QUrl("http://code.google.com/p/spyderlib/issues/entry")
-        url.addEncodedQueryItem("comment", quote(issue_template))
+        url = QUrl("https://github.com/spyder-ide/spyder/issues/new")
+        url.addEncodedQueryItem("body", quote(issue_template))
         QDesktopServices.openUrl(url)
     
     def google_group(self):
