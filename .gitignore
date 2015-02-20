@@ -1,0 +1,6 @@
+# Compiled python files
+*.py[oc]
+
+# gedit files
+*~
+
