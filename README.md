@@ -56,7 +56,7 @@ The easiest way to install Spyder is:
 * On Windows:
 
     - Using one of our executable installers, which can be found
-      [here](https://bitbucket.org/spyder-ide/spyderlib/downloads).
+      [here](https://github.com/spyder-ide/spyder/releases).
     - Or using one of these scientific Python distributions:
         1. [Python(x,y)](http://pythonxy.googlecode.com)
         2. [WinPython](https://winpython.github.io/)
@@ -65,7 +65,7 @@ The easiest way to install Spyder is:
 * On Mac OSX:
 
     - Using our DMG installer, which can be found
-      [here](https://bitbucket.org/spyder-ide/spyderlib/downloads).
+      [here](https://github.com/spyder-ide/spyder/releases).
     - Using the [Anaconda Distribution](http://continuum.io/downloads).
     - Through [MacPorts](http://www.macports.org/).
             
@@ -80,7 +80,7 @@ The easiest way to install Spyder is:
 
 You can also install Spyder from its zip source package. For that you need to
 download and uncompress the file called `spyder-x.y.z.zip`, which can be
-found [here](https://bitbucket.org/spyder-ide/spyderlib/downloads). Then you need to
+found [here](https://github.com/spyder-ide/spyder/releases). Then you need to
 use the integrated `setup.py` script that comes with it and which is based
 on the Python standard library `distutils` module, with the following command:
 
@@ -149,7 +149,6 @@ greater than 2.6.
 
 * Pep8 (style analysis).
 
-
 ## Running from source
 
 It is possible to run Spyder directly (i.e. without installation)
@@ -161,39 +160,15 @@ Spyder's bootstrap script like this:
 This is especially useful for beta-testing, troubleshooting 
 and development of Spyder itself.
 
-
-## Build Windows installers
-
-From the source package, you may build Windows installers to distribute
-Spyder on all supported platforms and versions of Python.
-
-Spyder has a single code base supporting both Python 2 and Python 3 but
-the Windows installer will target a specific version of Python because
-of the two external libraries included in the Windows installers
-('pyflakes' and 'rope') which have specific versions for Python 2 and 3.
- 
-Moreover, despite the fact that Spyder code base supports all Python
-architectures (32 and 64bit), the Windows installers will also target
-specific architectures because of a limitation of the way `distutils`
-works (see <http://bugs.python.org/issue6792>).
-
-Example of Spyder binary installers for Windows:
-
-* Python 2.7 and 32bit: spyder-2.3.0-win32-py2.7.exe
-* Python 2.7 and 64bit: spyder-2.3.0-win-amd64-py2.7.exe
-* Python 3.3 and 32bit: spyder-2.3.0-win32-py3.3.exe
-* Python 3.3 and 64bit: spyder-2.3.0-win-amd64-py3.3.exe
-
-
 ## More information
 
 * For code development please go to
 
-    <https://bitbucket.org/spyder-ide/spyderlib/>
+    <https://github.com/spyder-ide/spyder>
     
 * For bug reports and feature requests
            
-    <http://code.google.com/p/spyderlib/issues>
+    <https://github.com/spyder-ide/spyder/issues>
 
 * For discussions and troubleshooting:
 

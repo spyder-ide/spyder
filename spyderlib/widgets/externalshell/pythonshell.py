@@ -68,7 +68,6 @@ class ExtPythonShellWidget(PythonShellWidget):
             # Workaround for Issue 502
             # Emmiting wait_for_ready_read was making the console hang
             # in Mac OS X
-            # See http://code.google.com/p/spyderlib/issues/detail?id=502
             if sys.platform.startswith("darwin"):
                 import time
                 time.sleep(0.025)

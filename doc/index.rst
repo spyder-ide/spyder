@@ -17,7 +17,7 @@ debugging console directly in the layout of your graphical user interface.
 
 Spyder websites:
 
-* Downloads, bug reports and feature requests: http://spyderlib.googlecode.com
+* Downloads, bug reports and feature requests: https://github.com/spyder-ide/spyder
 * Discussions: http://groups.google.com/group/spyderlib
             
 

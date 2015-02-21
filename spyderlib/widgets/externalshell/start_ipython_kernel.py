@@ -57,8 +57,7 @@ def kernel_config():
     # ---- Spyder config ----
     spy_cfg = Config()
     
-    # Until we implement Issue 1052:
-    # http://code.google.com/p/spyderlib/issues/detail?id=1052
+    # Until we implement Issue 1052
     spy_cfg.InteractiveShell.xmode = 'Plain'
     
     # Pylab configuration
