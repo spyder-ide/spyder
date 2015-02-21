@@ -1723,10 +1723,9 @@ class MainWindow(QMainWindow):
         # Show Mercurial revision for development version
         revlink = ''
         if versions['revision']:
-            revlink = " (<a href='http://code.google.com/p/spyderlib/source/"\
-                      "detail?r=%s'>%s</a>)" % (
-                         versions['revision'].split(':')[0].strip('+'),
-                         versions['revision'])
+            rev = versions['revision']
+            revlink = " (<a href='https://github.com/spyder-ide/spyder/"\
+                      "commit/%s'>Commit: %s</a>)" % (rev, rev)
         QMessageBox.about(self,
             _("About %s") % "Spyder",
             """<b>Spyder %s</b> %s
