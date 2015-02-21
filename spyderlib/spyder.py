@@ -1801,7 +1801,7 @@ class MainWindow(QMainWindow):
 * Python Version:  %s
 * Qt Version    :  %s, %s %s on %s
 
-## Dependencies
+## Optional dependencies
 
 %s
 """ % (versions['spyder'],
