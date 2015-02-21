@@ -1744,7 +1744,7 @@ class MainWindow(QMainWindow):
             The Oxygen icon theme</a>.
             <p>Spyder's community:
             <ul><li>Bug reports and feature requests: 
-            <a href="%s">Google Code</a>
+            <a href="%s">Github</a>
             </li><li>Discussions around the project: 
             <a href="%s">Google Group</a>
             </li></ul>
