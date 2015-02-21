@@ -18,7 +18,7 @@ two alternatives:
    `site <http://continuum.io/downloads.html>`_.
 
 #. Use our dmg installer, which can be found
-   `here <https://bitbucket.org/spyder-ide/spyderlib/downloads>`_.
+   `here <https://github.com/spyder-ide/spyder/releases>`_.
 
   .. note::
    
@@ -130,7 +130,7 @@ If you want to install Spyder directly, you need to follow these steps:
 
    You need to download and install the .exe file that corresponds to your Python
    version and architecture from
-   `this page <https://bitbucket.org/spyder-ide/spyderlib/downloads>`_.
+   `this page <https://github.com/spyder-ide/spyder/releases>`_.
 
 
 Updating Spyder
@@ -236,16 +236,16 @@ Installing the development version
 
 If you want to try the next Spyder version, you have to:
 
-#. Install `Mercurial <http://mercurial.selenic.com/>`_, a simple and powerful
+#. Install `Git <http://git-scm.com/downloads>`_, a powerful
    source control management tool.
 
 #. Clone the Spyder source code repository with the command:
 
-   ``hg clone https://bitbucket.org/spyder-ide/spyderlib``
+   ``git clone https://github.com/spyder-ide/spyder.git``
 
 #. To keep your repository up-to-date, run
 
-   ``hg pull -u``
+   ``git pull``
    
    inside the cloned directory.
 
@@ -262,6 +262,6 @@ Help and support
 Spyder websites:
 
 * For bug reports and feature requests you can go to our
-  `website <http://spyderlib.googlecode.com>`_.
+  `website <https://github.com/spyder-ide/spyder/issues>`_.
 * For discussions and help requests, you can suscribe to our
   `Google Group <http://groups.google.com/group/spyderlib>`_.
