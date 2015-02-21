@@ -79,7 +79,7 @@ from spyderlib.qt import PYQT5
 from spyderlib.qt.QtGui import (QApplication, QMainWindow, QSplashScreen,
                                 QPixmap, QMessageBox, QMenu, QColor, QShortcut,
                                 QKeySequence, QDockWidget, QAction,
-                                QDesktopServices)
+                                QDesktopServices, QIcon)
 from spyderlib.qt.QtCore import (Signal, QPoint, Qt, QSize, QByteArray, QUrl,
                                  Slot, QTimer)
 from spyderlib.qt.compat import (from_qvariant, getopenfilename,
@@ -449,7 +449,11 @@ class MainWindow(QMainWindow):
         self.setWindowTitle(title)
         icon_name = 'spyder_light.svg' if self.light else 'spyder.svg'
         # Resampling SVG icon only on non-Windows platforms (see Issue 1314):
-        self.setWindowIcon(get_icon(icon_name, resample=os.name != 'nt'))
+        if os.name=='nt':
+            QApplication.setWindowIcon(QIcon('spyder.png'))
+        else:
+            self.setWindowIcon(get_icon(icon_name, resample=os.name != 'nt'))
+
         if set_windows_appusermodelid != None:
             res = set_windows_appusermodelid()
             debug_print("appusermodelid: " + str(res))
