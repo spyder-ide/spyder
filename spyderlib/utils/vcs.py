@@ -14,6 +14,7 @@ import subprocess
 # Local imports
 from spyderlib.utils import programs
 from spyderlib.utils.misc import abspardir
+from spyderlib.py3compat import PY3
 
 
 SUPPORTED = [
@@ -120,7 +121,12 @@ def get_git_revision(repopath):
         commit = subprocess.Popen([git, 'rev-parse', '--short', 'HEAD'],
                                   stdout=subprocess.PIPE,
                                   cwd=repopath).communicate()
-        return commit[0][:-1]
+        if PY3:
+            commit = str(commit[0][:-1])
+            commit = commit[2:-1]
+        else:
+            commit = commit[0][:-1]
+        return commit
     except (subprocess.CalledProcessError, AssertionError, AttributeError):
         return None
 
