@@ -1734,7 +1734,7 @@ class MainWindow(QMainWindow):
             <br>Licensed under the terms of the MIT License
             <p>Created by Pierre Raybaut
             <br>Developed and maintained by the 
-            <a href="%s/people/list">Spyder Development Team</a>
+            <a href="%s/blob/master/AUTHORS">Spyder Development Team</a>
             <br>Many thanks to all the Spyder beta-testers and regular users.
             <p>Most of the icons come from the Crystal Project 
             (&copy; 2006-2007 Everaldo Coelho). Other icons by 
