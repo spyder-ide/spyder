@@ -60,6 +60,10 @@ if os.name == 'nt':
     from spyderlib.utils.windows import (set_attached_console_visible,
                                          is_attached_console_visible,
                                          set_windows_appusermodelid)
+    # Prevents Spyder from begin grouped with all other python.exe
+    # and pythonw.exe processes on the windows taskbar.
+    import ctypes
+    ctypes.windll.shell32._SetCurrentProcessExplicitAppUserModelID('Spyder')
 
 
 #==============================================================================
