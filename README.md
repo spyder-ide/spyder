@@ -149,7 +149,6 @@ greater than 2.6.
 
 * Pep8 (style analysis).
 
-
 ## Running from source
 
 It is possible to run Spyder directly (i.e. without installation)
@@ -160,30 +159,6 @@ Spyder's bootstrap script like this:
 
 This is especially useful for beta-testing, troubleshooting 
 and development of Spyder itself.
-
-
-## Build Windows installers
-
-From the source package, you may build Windows installers to distribute
-Spyder on all supported platforms and versions of Python.
-
-Spyder has a single code base supporting both Python 2 and Python 3 but
-the Windows installer will target a specific version of Python because
-of the two external libraries included in the Windows installers
-('pyflakes' and 'rope') which have specific versions for Python 2 and 3.
- 
-Moreover, despite the fact that Spyder code base supports all Python
-architectures (32 and 64bit), the Windows installers will also target
-specific architectures because of a limitation of the way `distutils`
-works (see <http://bugs.python.org/issue6792>).
-
-Example of Spyder binary installers for Windows:
-
-* Python 2.7 and 32bit: spyder-2.3.0-win32-py2.7.exe
-* Python 2.7 and 64bit: spyder-2.3.0-win-amd64-py2.7.exe
-* Python 3.3 and 32bit: spyder-2.3.0-win32-py3.3.exe
-* Python 3.3 and 64bit: spyder-2.3.0-win-amd64-py3.3.exe
-
 
 ## More information
 
