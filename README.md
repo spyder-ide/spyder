@@ -56,7 +56,7 @@ The easiest way to install Spyder is:
 * On Windows:
 
     - Using one of our executable installers, which can be found
-      [here](https://bitbucket.org/spyder-ide/spyderlib/downloads).
+      [here](https://github.com/spyder-ide/spyder/releases).
     - Or using one of these scientific Python distributions:
         1. [Python(x,y)](http://pythonxy.googlecode.com)
         2. [WinPython](https://winpython.github.io/)
@@ -65,7 +65,7 @@ The easiest way to install Spyder is:
 * On Mac OSX:
 
     - Using our DMG installer, which can be found
-      [here](https://bitbucket.org/spyder-ide/spyderlib/downloads).
+      [here](https://github.com/spyder-ide/spyder/releases).
     - Using the [Anaconda Distribution](http://continuum.io/downloads).
     - Through [MacPorts](http://www.macports.org/).
             
@@ -80,7 +80,7 @@ The easiest way to install Spyder is:
 
 You can also install Spyder from its zip source package. For that you need to
 download and uncompress the file called `spyder-x.y.z.zip`, which can be
-found [here](https://bitbucket.org/spyder-ide/spyderlib/downloads). Then you need to
+found [here](https://github.com/spyder-ide/spyder/releases). Then you need to
 use the integrated `setup.py` script that comes with it and which is based
 on the Python standard library `distutils` module, with the following command:
 
@@ -189,7 +189,7 @@ Example of Spyder binary installers for Windows:
 
 * For code development please go to
 
-    <https://bitbucket.org/spyder-ide/spyderlib/>
+    <https://github.com/spyder-ide/spyder>
     
 * For bug reports and feature requests
            
