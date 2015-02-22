@@ -29,7 +29,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 __version__ = '2.4.0dev'
 __license__ = __doc__
-__project_url__ = 'http://code.google.com/p/spyderlib'
+__project_url__ = 'https://github.com/spyder-ide/spyder'
 __forum_url__   = 'http://groups.google.com/group/spyderlib'
 
 # Dear (Debian, RPM, ...) package makers, please feel free to customize the
@@ -67,9 +67,7 @@ def get_versions(reporev=True):
     revision = None
     if reporev:
         from spyderlib.utils import vcs
-        full, short, branch = vcs.get_hg_revision(os.path.dirname(__dir__))
-        if full:
-            revision = '%s:%s' % (full, short)
+        revision = vcs.get_git_revision(os.path.dirname(__dir__))
 
     if not sys.platform == 'darwin':  # To avoid a crash with our Mac app
         system = platform.system()
@@ -84,5 +82,5 @@ def get_versions(reporev=True):
         'qt_api': spyderlib.qt.API_NAME,      # PySide or PyQt4
         'qt_api_ver': spyderlib.qt.__version__,
         'system': system,   # Linux, Windows, ...
-        'revision': revision,  # '9fdf926eccce+:2430+'
+        'revision': revision,  # '9fdf926eccce'
     }

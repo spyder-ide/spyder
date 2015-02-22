@@ -8,7 +8,7 @@
 Bootstrapping Spyder
 
 Detect environment and execute Spyder from source checkout
-http://code.google.com/p/spyderlib/issues/detail?id=741
+See Issue 741
 """
 
 # pylint: disable=C0103
@@ -64,7 +64,7 @@ os.environ['SPYDER_DEV'] = 'True'
 # --- Test environment for surprises
 
 # Warn if Spyder is located on non-ASCII path
-# http://code.google.com/p/spyderlib/issues/detail?id=812
+# See Issue 812
 try:
     osp.join(DEVPATH, 'test')
 except UnicodeDecodeError:

@@ -628,7 +628,7 @@ class Fortran77SH(FortranSH):
 # IDL highlighter
 #
 # Contribution from Stuart Mumford (Littlemumford) - 02/02/2012
-# See Issue #850: http://code.google.com/p/spyderlib/issues/detail?id=850
+# See Issue #850
 #==============================================================================
 def make_idl_patterns():
     "Strongly inspired from idlelib.ColorDelegator.make_pat"

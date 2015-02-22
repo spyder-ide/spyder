@@ -2216,10 +2216,9 @@ class MainWindow(QMainWindow):
         # Show Mercurial revision for development version
         revlink = ''
         if versions['revision']:
-            revlink = " (<a href='http://code.google.com/p/spyderlib/source/"\
-                      "detail?r=%s'>%s</a>)" % (
-                         versions['revision'].split(':')[0].strip('+'),
-                         versions['revision'])
+            rev = versions['revision']
+            revlink = " (<a href='https://github.com/spyder-ide/spyder/"\
+                      "commit/%s'>Commit: %s</a>)" % (rev, rev)
         QMessageBox.about(self,
             _("About %s") % "Spyder",
             """<b>Spyder %s</b> %s
@@ -2228,7 +2227,7 @@ class MainWindow(QMainWindow):
             <br>Licensed under the terms of the MIT License
             <p>Created by Pierre Raybaut
             <br>Developed and maintained by the
-            <a href="%s/people/list">Spyder Development Team</a>
+            <a href="%s/blob/master/AUTHORS">Spyder Development Team</a>
             <br>Many thanks to all the Spyder beta-testers and regular users.
             <p>Most of the icons come from the Crystal Project
             (&copy; 2006-2007 Everaldo Coelho). Other icons by
@@ -2238,7 +2237,7 @@ class MainWindow(QMainWindow):
             The Oxygen icon theme</a>.
             <p>Spyder's community:
             <ul><li>Bug reports and feature requests:
-            <a href="%s">Google Code</a>
+            <a href="%s">Github</a>
             </li><li>Discussions around the project:
             <a href="%s">Google Group</a>
             </li></ul>
@@ -2278,20 +2277,28 @@ class MainWindow(QMainWindow):
             if full:
                 revlink = " (%s:r%s)" % (short, full)
         issue_template = """\
-Spyder Version:  %s%s
-Python Version:  %s
-Qt Version    :  %s, %s %s on %s
-%s
+## Description
 
-What steps will reproduce the problem?
+* *What steps will reproduce the problem?*
 1.
 2.
 3.
 
-What is the expected output? What do you see instead?
+* *What is the expected output? What do you see instead?*
 
 
-Please provide any additional information below.
+* *Please provide any additional information below*
+
+
+## Version and main components
+
+* Spyder Version:  %s%s
+* Python Version:  %s
+* Qt Version    :  %s, %s %s on %s
+
+## Optional dependencies
+
+%s
 """ % (versions['spyder'],
        revlink,
        versions['python'],

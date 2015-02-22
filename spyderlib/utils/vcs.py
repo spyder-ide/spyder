@@ -14,6 +14,7 @@ import subprocess
 # Local imports
 from spyderlib.utils import programs
 from spyderlib.utils.misc import abspardir
+from spyderlib.py3compat import PY3
 
 
 SUPPORTED = [
@@ -110,9 +111,29 @@ def get_hg_revision(repopath):
         return (None, None, None)
 
 
+def get_git_revision(repopath):
+    """Return Git revision for the repository located at repopath
+       Result is the latest commit hash, with None on error
+    """
+    try:
+        git = programs.find_program('git')
+        assert git is not None and osp.isdir(osp.join(repopath, '.git'))
+        commit = subprocess.Popen([git, 'rev-parse', '--short', 'HEAD'],
+                                  stdout=subprocess.PIPE,
+                                  cwd=repopath).communicate()
+        if PY3:
+            commit = str(commit[0][:-1])
+            commit = commit[2:-1]
+        else:
+            commit = commit[0][:-1]
+        return commit
+    except (subprocess.CalledProcessError, AssertionError, AttributeError):
+        return None
+
+
 if __name__ == '__main__':
     print(get_vcs_root(osp.dirname(__file__)))
     print(get_vcs_root(r'D:\Python\ipython\IPython\kernel'))
     #run_vcs_tool(r'D:\Python\userconfig\userconfig', 'commit')
-    print(get_hg_revision(osp.dirname(__file__)+"/../.."))
-    print(get_hg_revision('/'))
+    print(get_git_revision(osp.dirname(__file__)+"/../.."))
+    print(get_git_revision('/'))
