@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
 "POT-Creation-Date: 2015-02-22 14:42+COT\n"
-"PO-Revision-Date: 2015-01-08 10:38-0500\n"
+"PO-Revision-Date: 2015-02-22 14:55-0500\n"
 "Last-Translator: Carlos Cordoba <ccordoba12@gmail.com>\n"
 "Language-Team: Python\n"
 "Language: es\n"
@@ -471,7 +471,7 @@ msgstr "Mostrar números de líneas"
 
 #: spyderlib/plugins/editor.py:112 spyderlib/plugins/editor.py:877
 msgid "Show blank spaces"
-msgstr ""
+msgstr "Mostrar espacios en blanco"
 
 #: spyderlib/plugins/editor.py:113
 msgid "Show vertical line after"
@@ -1547,9 +1547,8 @@ msgid "Terminal"
 msgstr "Terminal"
 
 #: spyderlib/plugins/externalconsole.py:999
-#, fuzzy
 msgid "Kernel %s"
-msgstr "Núcleo"
+msgstr "Núcleo %s"
 
 #: spyderlib/plugins/externalconsole.py:1079
 msgid "Open a &Python console"
@@ -1697,13 +1696,12 @@ msgstr ""
 "decidir a que panel desea conectarlo para activar esta característica."
 
 #: spyderlib/plugins/inspector.py:139
-#, fuzzy
 msgid ""
 "This feature requires the Rope or Jedi libraries.\n"
 "It seems you don't have either installed."
 msgstr ""
-"Esta característica requiere la librería Rope.\n"
-"Al parecer no la tiene instalada."
+"Esta característica requiere las librerías Rope o Jedi.\n"
+"Al parecer no tiene ninguna instalada."
 
 #: spyderlib/plugins/inspector.py:142
 msgid "Python Console"
@@ -2262,12 +2260,11 @@ msgstr "Abrir una terminal de IPython"
 
 #: spyderlib/plugins/ipythonconsole.py:709
 msgid "Use %s+T when the console is selected to open a new one"
-msgstr ""
+msgstr "Usar %s+T para abrir una nueva terminal"
 
 #: spyderlib/plugins/ipythonconsole.py:712
-#, fuzzy
 msgid "Open an new console"
-msgstr "Abrir una terminal de IPython"
+msgstr "Abrir una nueva terminal"
 
 #: spyderlib/plugins/ipythonconsole.py:719
 msgid "Open a new IPython console connected to an existing kernel"
@@ -3117,9 +3114,8 @@ msgstr ""
 "favor véala en texto plano."
 
 #: spyderlib/utils/introspection/jedi_plugin.py:32
-#, fuzzy
 msgid "(Experimental) Editor's code completion, go-to-definition and help"
-msgstr "Completado del código y ayuda en el Editor"
+msgstr "(Experimental) Completado del código y ayuda en el Editor"
 
 #: spyderlib/utils/introspection/rope_plugin.py:36
 msgid "Editor's code completion, go-to-definition and help"
@@ -3437,13 +3433,12 @@ msgid "Value"
 msgstr "Valor"
 
 #: spyderlib/widgets/dicteditor.py:450
-#, fuzzy
 msgid ""
 "Opening this variable can be slow\n"
 "\n"
 "Do you want to continue anyway?"
 msgstr ""
-"Abrir e inspeccionar este %s puede tomar mucho tiempo\n"
+"Abrir e inspeccionar esta variable puede tomar mucho tiempo\n"
 "\n"
 "¿Desea continuar de todas formas?"
 
@@ -3821,9 +3816,8 @@ msgstr "<b>No fue posible %s <i>%s</i></b><br><br>Mensaje de error:<br>%s"
 
 #: spyderlib/widgets/explorer.py:506
 #: spyderlib/widgets/sourcecode/codeeditor.py:1883
-#, fuzzy
 msgid "Conversion error"
-msgstr "Error de conexión"
+msgstr "Error de conversión"
 
 #: spyderlib/widgets/explorer.py:507
 #: spyderlib/widgets/sourcecode/codeeditor.py:1884
@@ -3831,6 +3825,8 @@ msgid ""
 "It was not possible to convert this notebook. The error is:\n"
 "\n"
 msgstr ""
+"No fue posible convertir este notebook. El error es:\n"
+"\n"
 
 #: spyderlib/widgets/explorer.py:525
 msgid "New name:"
@@ -4831,15 +4827,16 @@ msgid "To do"
 msgstr "To do"
 
 #: spyderlib/widgets/sourcecode/codeeditor.py:1857
-#, fuzzy
 msgid "Removal error"
-msgstr "Error de importación"
+msgstr "Error de remoción"
 
 #: spyderlib/widgets/sourcecode/codeeditor.py:1858
 msgid ""
 "It was not possible to remove outputs from this notebook. The error is:\n"
 "\n"
 msgstr ""
+"No fue posible remover las outputs de este notebook. El error es:\n"
+"\n"
 
 #: spyderlib/widgets/sourcecode/codeeditor.py:2273
 msgid "Clear all ouput"
@@ -4850,9 +4847,8 @@ msgid "Go to definition"
 msgstr "Ir a la definición"
 
 #: spyderlib/widgets/sourcecode/codeeditor.py:2291
-#, fuzzy
 msgid "Zoom reset"
-msgstr "Alejar"
+msgstr "Restaurar"
 
 #: spyderlib/widgets/sourcecode/syntaxhighlighters.py:30
 msgid "Syntax highlighting for Matlab, Julia and other file types"
