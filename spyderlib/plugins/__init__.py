@@ -458,7 +458,7 @@ class SpyderPluginWidget(QWidget, SpyderPluginMixin):
         Return True or False whether the plugin may be closed immediately or not
         Note: returned value is ignored if *cancelable* is False
         """
-        raise NotImplementedError
+        return True
         
     def refresh_plugin(self):
         """Refresh widget"""
