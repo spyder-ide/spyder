@@ -1107,11 +1107,9 @@ class MainWindow(QMainWindow):
 
             # Adding external tools action to "Tools" menu
             if self.external_tools_menu_actions:
-                external_tools_act = create_action(self, _("External Tools"),
-                                                   icon="ext_tools.png")
+                external_tools_act = create_action(self, _("External Tools"))
                 external_tools_act.setMenu(self.external_tools_menu)
                 self.tools_menu_actions += [None, external_tools_act]
-                self.main_toolbar_actions.append(external_tools_act)
 
             # Filling out menu/toolbar entries:
             add_actions(self.file_menu, self.file_menu_actions)
@@ -2216,6 +2214,7 @@ class MainWindow(QMainWindow):
             """<b>Spyder %s</b> %s
             <br>The Scientific PYthon Development EnviRonment
             <p>Copyright &copy; 2009-2012 Pierre Raybaut
+            <br>Copyright &copy; 2010-1015 The Spyder Development Team
             <br>Licensed under the terms of the MIT License
             <p>Created by Pierre Raybaut
             <br>Developed and maintained by the
@@ -2224,20 +2223,18 @@ class MainWindow(QMainWindow):
             <p>Most of the icons come from the Crystal Project
             (&copy; 2006-2007 Everaldo Coelho). Other icons by
             <a href="http://p.yusukekamiyamane.com/"> Yusuke Kamiyamane</a>
-            (All rights reserved) and by
+            (all rights reserved) and by 
             <a href="http://www.oxygen-icons.org/">
             The Oxygen icon theme</a>.
-            <p>Spyder's community:
-            <ul><li>Bug reports and feature requests:
-            <a href="%s">Github</a>
-            </li><li>Discussions around the project:
-            <a href="%s">Google Group</a>
-            </li></ul>
+            <p>For bug reports and feature requests, please go
+            to our <a href="%s">Github website</a>. For discussions around the
+            project, please go to our <a href="%s">Google Group</a>
             <p>This project is part of a larger effort to promote and
             facilitate the use of Python for scientific and engineering
             software development. The popular Python distributions
-            <a href="http://code.google.com/p/pythonxy/">Python(x,y)</a> and
-            <a href="https://winpython.github.io/">WinPython</a>
+            <a href="http://continuum.io/downloads">Anaconda</a>,
+            <a href="https://winpython.github.io/">WinPython</a> and
+            <a href="http://code.google.com/p/pythonxy/">Python(x,y)</a>
             also contribute to this plan.
             <p>Python %s %dbits, Qt %s, %s %s on %s"""
             % (versions['spyder'], revlink, __project_url__,
