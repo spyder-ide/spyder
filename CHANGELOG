@@ -1,5 +1,69 @@
 = History of changes =
 
+== Version 2.3.3 ==
+
+=== New features since v2.3.2 ===
+
+* Editor
+    * Use the Jedi library to do code completions
+    * Add Ctrl+= as a shortcut to do Zoom in and Ctrl+0 to reset zoom
+    * Add an option to show blank spaces, under the Source menu. There is also an option to make this permanent under `Preferences > Editor`.
+
+  * IPython Console
+    * Don't print DataFrames as html tables because this won't be supported since IPython 3.0
+    * Drop support for IPython 0.13
+    * Support the upcoming 3.0 version
+    * Add Ctrl+T as shortcut to open new consoles
+    * Simplify how consoles are named
+
+  * Variable Explorer
+    * More optimizations to handle big DataFrames and NumPy arrays (i.e. with more than 1e6 elements).
+
+  * Main Window
+    * Add Ctrl+W and Ctrl+F4 to close tabs in all platforms
+    * Show shortcuts to move to each pane in `View > Panes`
+
+=== Bug fixes (since v2.3.2) ===
+
+  * Issue  670  Visual help for indentation: draw spaces and tabs
+  * Issue  987  Allow the file explorer to open any file into the editor as text
+  * Issue  1213  Augment or replace rope with Jedi
+  * Issue  1461  Kill button 'clicked' signal is connected but never disconnected on the python shell
+  * Issue  1469  Add support to get code completions for compiled modules (e.g. OpenCV)
+  * Issue  1484  Debug ignores breakpoints, if there's no ASCII characters in a file path
+  * Issue  1574  Creating file gives TypeError on Python 3
+  * Issue  1718  Keyboard shortcut to come back to normal zoom level
+  * Issue  1808  Shortcuts to create and close IPython consoles
+  * Issue  1911  Transition to git and github
+  * Issue  1930  Evaluating cell or selection in Python consoles takes ages
+  * Issue  1946  Spyder with GTK/GTKAgg backend on GNOME freezes
+  * Issue  1987  Matplotlib backend in Mac can't be changed when using PySide
+  * Issue  1990  exception in spyder internal console when typing 'exit(' in editor
+  * Issue  1993  autocomplete in the middle of a word
+  * Issue  2006  Your IPython frontend and kernel versions are incompatible
+  * Issue  2019  Winpdb (F7) doesn't work in Python 3
+  * Issue  2022  TkAgg backend unresponsive window on Linux and OS X
+  * Issue  2040  Improve inline backend options
+  * Issue  2049  Pandas Dataframe not opening in Variable Explorer
+  * Issue  2064  "About spyder" and "Report issue ..." output errors
+  * Issue  2072  Unable to bring up tutorial
+  * Issue  2074  Profiler - sorting by Total Time sorts by string order, not numeric order
+  * Issue  2080  Bug on Variable Explorer while viewing DataFrames, with timestamp columns
+  * Issue  2082  Missing py27 dmg download
+  * Issue  2092  PYTHON pathmanager on windows 8 does not work properly
+  * Issue  2105  Spyder 2.3.2 freezes when viewing big collections on the Variable Explorer
+  * Issue  2108  UnicodeDecodeError in the Internal console when trying to run a file with non-ascii chars and synatx errors in it
+  * Issue  2109  Go to definition menu item inactive with rope present.
+  * Issue  2126  iPython console rendering of pandas.DataFrame._repr_html_() note in changelog
+  * Issue  2139  Small typo in Help : Plotting examples 
+  * Issue  2143  Closing takes a long time with Python 3.4
+  * Issue  2160  UnicodeDecodeError when inspecting pandas DataFrame in ipython console
+  * Issue  2190  Update French translations for 2.3.3
+
+
+----
+
+
 == Version 2.3.2 ==
 
 === New features since v2.3.1 ===
