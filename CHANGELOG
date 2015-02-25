@@ -12,12 +12,12 @@
     * Don't print DataFrames as html tables because this won't be supported since IPython 3.0
     * Drop support for IPython 0.13
     * Support the upcoming 3.0 version
-    * Add Ctrl+T as shortcut to open new consoles
+    * Add `Ctrl+T` as shortcut to open new consoles
     * Simplify how consoles are named
 * Variable Explorer
     * More optimizations to handle big DataFrames and NumPy arrays (i.e. with more than 1e6 elements).
 * Main Window
-    * Add Ctrl+W and Ctrl+F4 to close tabs in all platforms
+    * Add `Ctrl+W` and `Ctrl+F4` to close tabs in all platforms
     * Show shortcuts to move to each pane in `View > Panes`
 
 ### Bug fixes (since v2.3.2)
