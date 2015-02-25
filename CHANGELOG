@@ -536,18 +536,18 @@
 
 ### Bug fixes (since v2.1.13)
 
-* Spyder startup: fixed PyQt minimum version requirement test (the old poor comparison algorithm was considering that v4.10 was older than v4.4...) (See issue 1291)
+* Spyder startup: fixed PyQt minimum version requirement test (the old poor comparison algorithm was considering that v4.10 was older than v4.4...) (See [Issue 1291](/spyder-ide/spyder/issues/1291))
 * Console: Matplotlib was always imported even when the Matplotlib's Patch option was not available (i.e. the Matplotlib installed version was not compatible with the patch). As a consequence, even when disabling every console advanced option in preferences, the preloaded module list was huge
 * Editor:
     * When closing Spyder with unsaved modified files, Spyder was asking confirmation as many times as there were editor windows. Only one confirmation is necessary because, with current editor design, all editor windows are synced.
     * When creating two new files, saving one of them will lead to temporarily mask the leading '`*`' indicating the fact that the other untitled file was not already saved. This is simply a display issue: internally, it is clear that the file is in a non-saved state and Spyder will ask for it to be saved when trying to close the file
     * Multiple windows: when saving a new untitled file, other editor windows were getting confused on file list order -- eventually leading to data loss
-    * Open file dialog: default file type filter now matches the current file (See Issue 1201)
+    * Open file dialog: default file type filter now matches the current file (See [Issue 1201](/spyder-ide/spyder/issues/1201))
 * Fixed "PyQt Reference Guide" link
 
 ### Other changes (since v2.1.13)
 
-* Editor: Ctrl+MouseWheel is now zooming in/out the editor text size (see Issue 1270)
+* Editor: Ctrl+MouseWheel is now zooming in/out the editor text size (see [Issue 1270](/spyder-ide/spyder/issues/1270))
 * About dialog box: changed the "This project is part of Python(x,y)" part to more general words (which are also closer to the initial meaning of this sentence) including a citation of WinPython
 
 
@@ -558,24 +558,24 @@
 
 ### Bug fixes (since v2.1.12)
 
-* Fixed issue 1158: "pip install spyder" fails on non-Windows platforms due to a bug in pip installation process (missing spyderlib_win_postinstall.py script)
+* Fixed [Issue 1158](/spyder-ide/spyder/issues/1158): "pip install spyder" fails on non-Windows platforms due to a bug in pip installation process (missing spyderlib_win_postinstall.py script)
 * File Explorer/Windows/Fixed "remove tree" feature: added an error handler in shutil.rmtree to be able to remove a non-empty folder with shutil.rmtree is not working on Windows when it contains read-only files
-* (See Issue 1106) Fixed "error: unpack requires a string argument of length 8" related to socket communication between Spyder and the remote Python process
+* (See [Issue 1106](/spyder-ide/spyder/issues/1106)) Fixed "error: unpack requires a string argument of length 8" related to socket communication between Spyder and the remote Python process
 * Editor:
-    * After splitting horizontally or vertically the editor window, filenames were not synchronized when saving a file as another name (see Issue 1120)
-    * Fixed error when trying to "Save as..." a file with extension to a file without any extension (see Issue 1183)
-    * pep8 code analysis: a new line character was abusively added by Spyder to source code before analyzing it because it's necessary for pyflakes but it's not for pep8! (see Issue 1123)
-    * Fixed UnboundLocalError when clicking on "Search/Replace" button if both search pattern and replace pattern fields are empty (see Issue 1188)
-* Pylint plugin/tree widget: "go to line" was not working when filename contained additionnal dots (see Issue 1179)
-* Fixed critical bug when an invalid/unsupported version of pyflakes is installed (see Issue 1181)
-* Editor/block comments: fixed remaining PyQt API v2 compatibility issues (see Issue 905)
-* Variable explorer: more flexible name fixing algorithm (even if it's not a good practice to use reference names with upper case letters, we do not remove them anymore) -- See Issue 1169
+    * After splitting horizontally or vertically the editor window, filenames were not synchronized when saving a file as another name (see [Issue 1120](/spyder-ide/spyder/issues/1120))
+    * Fixed error when trying to "Save as..." a file with extension to a file without any extension (see [Issue 1183](/spyder-ide/spyder/issues/1183))
+    * pep8 code analysis: a new line character was abusively added by Spyder to source code before analyzing it because it's necessary for pyflakes but it's not for pep8! (see [Issue 1123](/spyder-ide/spyder/issues/1123))
+    * Fixed UnboundLocalError when clicking on "Search/Replace" button if both search pattern and replace pattern fields are empty (see [Issue 1188](/spyder-ide/spyder/issues/1188))
+* Pylint plugin/tree widget: "go to line" was not working when filename contained additionnal dots (see [Issue 1179](/spyder-ide/spyder/issues/1179))
+* Fixed critical bug when an invalid/unsupported version of pyflakes is installed (see [Issue 1181](/spyder-ide/spyder/issues/1181))
+* Editor/block comments: fixed remaining PyQt API v2 compatibility issues (see [Issue 905](/spyder-ide/spyder/issues/905))
+* Variable explorer: more flexible name fixing algorithm (even if it's not a good practice to use reference names with upper case letters, we do not remove them anymore) -- See [Issue 1169](/spyder-ide/spyder/issues/1169)
 
 ### Other changes (since v2.1.12)
 
 * Spyder about dialog box: added Python build architecture (32 or 64 bits)
 * Find in files: fixed default 'exclude pattern' which was accidently excluding all files starting with 'build' instead of simply excluding 'build' folders as intended
-* For the sake of consistency, now using single-clicks for activating entries of all tree widgets in Spyder ("Find in files" and "Pylint" are now consistent with the "Outline" explorer) -- See Issue 1180
+* For the sake of consistency, now using single-clicks for activating entries of all tree widgets in Spyder ("Find in files" and "Pylint" are now consistent with the "Outline" explorer) -- See [Issue 1180](/spyder-ide/spyder/issues/1180)
 
 
 ----
@@ -585,10 +585,10 @@
 
 ### Bug fixes (since v2.1.11)
 
-* Spyder settings: sometimes (virus protection?) the .ini file can't be written, and removing the .ini file before writing seems to help, as suggested [here](https://groups.google.com/forum/#!msg/spyderlib/a_P9JBJEZeE/gOK_Pr2WbE8J) (see Issue 1086)
-* Fixed Home/End key behaviour inconsistency on MacOS X (See Issue 495)
-* Internal console: new option "Pop up internal console when errors were intercepted" -- default: False, which avoids loosing focus when a traceback is shown in the internal console... but features may also fail silently! (bugs could stay hidden a while before being taken care of) -- See Issue 1016
-* Fixed "TypeError: file_saved(long,long).emit(): argument 1 has unexpected type 'long'" error occuring on some Linux 32-bit platforms -- See Issue 1094
+* Spyder settings: sometimes (virus protection?) the .ini file can't be written, and removing the .ini file before writing seems to help, as suggested [here](https://groups.google.com/forum/#!msg/spyderlib/a_P9JBJEZeE/gOK_Pr2WbE8J) (see [Issue 1086](/spyder-ide/spyder/issues/1086))
+* Fixed Home/End key behaviour inconsistency on MacOS X (See [Issue 495](/spyder-ide/spyder/issues/495))
+* Internal console: new option "Pop up internal console when errors were intercepted" -- default: False, which avoids loosing focus when a traceback is shown in the internal console... but features may also fail silently! (bugs could stay hidden a while before being taken care of) -- See [Issue 1016](/spyder-ide/spyder/issues/1016)
+* Fixed "TypeError: file_saved(long,long).emit(): argument 1 has unexpected type 'long'" error occuring on some Linux 32-bit platforms -- See [Issue 1094](/spyder-ide/spyder/issues/1094)
 * Console: find/replace widget "Search next/previous occurence" feature was broken
 
 ### Other changes (since v2.1.11)
@@ -609,7 +609,7 @@
 ### Bug fixes (since v2.1.10)
 
 * Critical bugs:
-    * Editor (Issue 960): cannot open/save files from GUI (QFileDialog issue with PyQt4 v4.6)
+    * Editor ([Issue 960](/spyder-ide/spyder/issues/960)): cannot open/save files from GUI (QFileDialog issue with PyQt4 v4.6)
 * General:
     * Spyder menu bar: fixed menu ordering issue with Ubuntu/Unity
     * All console widgets: Shell widget: fixed "Clear terminal" (Ctrl+L) shortcut
@@ -628,7 +628,7 @@
 * Project explorer was sometimes producing AttributeError when loading because of the workspace was not defined at the beginning of the class constructor
 * pyflakes code analysis function:
     * Handling files with invalid \x or null chars
-    * This fixes a part of Issue 1016 by handling the following pyflakes bugs:
+    * This fixes a part of [Issue 1016](/spyder-ide/spyder/issues/1016) by handling the following pyflakes bugs:
       * http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=674796
       * http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=674797
 
@@ -656,9 +656,9 @@
     * Fixed Preferences Dialog flickering issue introduced with revision a4e1565e93c5
     * Run configuration dialog: fixed Tab focus order behavior
     * Fixed "Run > Configure..." and "PYTHONPATH management" entry locations on MacOSX
-    * Updated bootstrap script and Qt library selection logic to accomodate launch of Spyder using PySide while PyQt is also installed (Issue 1013, see Issue 975 for additional background).
-    * Fixed several encoding problems preventing Spyder from launching when the user's home directory contains non-ASCII characters (Issue 812, Issue 1027).
-    * Debugging: Issue 684: Debug with winpdb will now use the command line options and working directory specified in the General Setting section of the Run Configuration dialog
+    * Updated bootstrap script and Qt library selection logic to accomodate launch of Spyder using PySide while PyQt is also installed ([Issue 1013](/spyder-ide/spyder/issues/1013), see Issue 975 for additional background).
+    * Fixed several encoding problems preventing Spyder from launching when the user's home directory contains non-ASCII characters ([Issue 812](/spyder-ide/spyder/issues/812), Issue 1027).
+    * Debugging: [Issue 684](/spyder-ide/spyder/issues/684): Debug with winpdb will now use the command line options and working directory specified in the General Setting section of the Run Configuration dialog
 * Console:
     * Changed "Clear shell" shortcut to "Ctrl+L" to avoid conflict with the Windows Task Manager shortcut on Windows platforms
     * Preferences/Advanced options: added option to start an IPython kernel at startup
@@ -710,7 +710,7 @@
 * (Experimental) IPython plugin:
     * Fixed compatibility issues with PyQt4 and IPython 0.12
     * Fixed multiple instances issue (it was not possible to open more than one IPython frontend) and other issues
-    * IPython kernel connections were unpredictable (Issue 977)
+    * IPython kernel connections were unpredictable ([Issue 977](/spyder-ide/spyder/issues/977))
 * Dictionary editor (Variable explorer): fixed UnboundLocalError when context menu is called on an empty table
 * Object inspector failed to show an error message due to unicode error
 * Project Explorer:
@@ -738,7 +738,7 @@
 ### Bug fixes (since v2.1.6)
 
 * Main window:
-    * Detached dockwidgets were not painted after restarting Spyder (Issue 880)
+    * Detached dockwidgets were not painted after restarting Spyder ([Issue 880](/spyder-ide/spyder/issues/880))
 * Console:
     * Enhanced Python interpreter: %clear command was broken since v2.1.5
 * Object inspector's rich text mode: fixed unexpected indent error
@@ -765,7 +765,7 @@
 
 ### Bug fixes (since v2.1.5)
 
-* Critical bug on certain Windows platforms (not sure yet if it's related to a particular version of PyQt or something else): all plugins (dockwidgets) were shown detached (or hidden) from the mainwindow at startup (this is related to the attempt fixing Issue 880)
+* Critical bug on certain Windows platforms (not sure yet if it's related to a particular version of PyQt or something else): all plugins (dockwidgets) were shown detached (or hidden) from the mainwindow at startup (this is related to the attempt fixing [Issue 880](/spyder-ide/spyder/issues/880))
 
 
 ----
@@ -778,16 +778,16 @@
 * Detached dockwidgets (Console, ...) were not painted after restarting Spyder
 * Editor/Outline-bugfix: duplicate entries were shown when the editor was synchronizing file contents with disk
 * File/Project explorer:
-    * Fixed regression regarding Issue 740 (fixed in v2.1.0, re-introduced in v2.1.2): couldn't open files with non-ascii characters in their names
+    * Fixed regression regarding [Issue 740](/spyder-ide/spyder/issues/740) (fixed in v2.1.0, re-introduced in v2.1.2): couldn't open files with non-ascii characters in their names
     * SCM support: commit/log actions were not working when right-clicking on a file instead of a folder
 * Console:
-    * Monitor/Introspection: fixed socket communication issue due to a MemoryError -- This error was mixing communication messages, causing various problems described in Issue 857 and Issue 858. This bug was reported by ruoyu0088, who also tried (and succeeded) to fix it and suggested a workaround which is implemented in this release
-    * Fix critical console hang on OS X when using the "Run selection or current block feature" (see Issue 502)
+    * Monitor/Introspection: fixed socket communication issue due to a MemoryError -- This error was mixing communication messages, causing various problems described in [Issue 857](/spyder-ide/spyder/issues/847) and [Issue 857](/spyder-ide/spyder/issues/858). This bug was reported by ruoyu0088, who also tried (and succeeded) to fix it and suggested a workaround which is implemented in this release
+    * Fix critical console hang on OS X when using the "Run selection or current block feature" (see [Issue 502](/spyder-ide/spyder/issues/502))
     * Apply the right scheme color to the IPython console when there weren't any options provided by the user or when the only option was "-colors LightBG"
 * Windows platforms:
     * "Preferences" dialog was not shown if account username contained non-ASCII characters
 * Object Inspector:
-    * Show signatures for docstrings sent from the Editor (see Issue 690)
+    * Show signatures for docstrings sent from the Editor (see [Issue 690](/spyder-ide/spyder/issues/690))
 
 ### Other changes (since v2.1.4)
 
@@ -804,7 +804,7 @@
     * New options for standard Python interpreters (no effect on IPython):
         * "Merge process standard output/error channels": merging the output channels of the process means that the standard error won't be written in red anymore, but this has the effect of speeding up display
         * "Colorize standard error channel using ANSI escape codes": this method is the only way to have colorized standard error channel when the output channels have been merged
-* Internal console (Issue 868): output is now immediately available
+* Internal console ([Issue 868](/spyder-ide/spyder/issues/868)): output is now immediately available
 * "Maximize current plugin" action: now automatically shows the "Outline" plugin when maximizing the "Editor" plugin
 * Editor/Outline comment separators: allow space betwee hash and dash, e.g "# --- Outline Separator"
 
@@ -861,7 +861,7 @@
     * Patched external path library to avoid a crash with a user HOME directory with non-ascii characters
     * Doc/README: warning the user about the fact that the 'python setup.py install' method does not uninstall a previous version
 * Console:
-    * Fixed "AccessInit: hash collision: 3 for both 1 and 1" error (see Issue 595)
+    * Fixed "AccessInit: hash collision: 3 for both 1 and 1" error (see [Issue 595](/spyder-ide/spyder/issues/595))
 * Project explorer:
     * empty workspace/critical bugfix: impossible to create/import projects from context menu (this bug was introduced with a recent revision and stayed unnoticed until then because one has to test this from an empty workspace)
     * it is now possible to rename projects (safely)
@@ -873,7 +873,7 @@
 * Editor:
     * Fix empty username in new file template on OS X (patch by Christoph Gohle)
 * Object inspector:
-    * Rich text mode was not showing headings when invoked from editor (Issue 690)
+    * Rich text mode was not showing headings when invoked from editor ([Issue 690](/spyder-ide/spyder/issues/690))
 
 ### Enhancements (since v2.1.1)
 
@@ -939,7 +939,7 @@ Since version 2.1:
     * New HDF5 plugin by [DavidAnthonyPowell](http://code.google.com/u/DavidAnthonyPowell/): import/export HDF5 files to/from the variable explorer
     * Dictionary editor/Variable explorer:
         * Added support for more NumPy data types
-        * Added action "Resize rows to contents" (partially implements feature requested with Issue 807)
+        * Added action "Resize rows to contents" (partially implements feature requested with [Issue 807](/spyder-ide/spyder/issues/807))
 * *Editor*:
     * find/replace:
         * added support for *multiline* regular expression search pattern
@@ -949,7 +949,7 @@ Since version 2.1:
     * support for "2 spaces" and "tabs" indentation characters
     * new code analysis feature: added support for the [pep8](http://pypi.python.org/pypi/pep8) style guide checker
     * "Comment" and "Uncomment" actions were replaced by a single "Comment/Uncommment" toggle action
-    * (Fixes  Issue 811 ) "Run configuration": added "Run in an external system terminal" option
+    * (Fixes  [Issue 811](/spyder-ide/spyder/issues/811) ) "Run configuration": added "Run in an external system terminal" option
 * *File explorer* and *Project explorer*:
     * great performance improvement (using a multithreaded file system model)
     * Added minimalist SCM support (Mercurial and git are currently supported)
@@ -982,7 +982,7 @@ Since version 2.1:
     * Fixed segmentation faults occuring after using the vertical-horizontal splitting feature
     * If a file name had non-ascii characters then code completion (and all other rope-based features) in the editor stopped working
     * Code analysis: fixed tasks pattern (for example, previous one was matching "TIP" in "MULTIPLICATION"... now it will match only single "TIP:" or "TIP ")
-    * (Fixes  Issue 704) Outline was showing the delimiters of block comments ('#------...-'), causing nesting inconsistencies because block comments are not indented properly with respect to the code around
+    * (Fixes  [Issue 704](/spyder-ide/spyder/issues/704)) Outline was showing the delimiters of block comments ('#------...-'), causing nesting inconsistencies because block comments are not indented properly with respect to the code around
     * Fixed several bugs with the "Run selection or current block" feature.
 * Object inspector:
     * Rich text mode was failing for non-ascii docstrings
@@ -997,19 +997,19 @@ Since version 2.1:
 
 ### Bug fixes (since v2.0.11)
 
-* (Fixes Issue 476) Editor/bugfix: print preview was not working
+* (Fixes [Issue 476](/spyder-ide/spyder/issues/476)) Editor/bugfix: print preview was not working
 * Completion widget/bugfix (editor/console): combo box was truncated by main window depending on its size
 * widgets.sourcecode.base.TextEditBaseWidget/bugfix: parenting to None was not working
 * Console/Text wrap mode: character wrapping was not implemented since we switched from QTextEdit to QPlainTextEdit
-* (Fixes Issue 649) Patch submitted by [DavidAnthonyPowell](http://code.google.com/u/DavidAnthonyPowell/) - Syntax highlighter does not recognise imaginary, binary or octal numbers
+* (Fixes [Issue 649](/spyder-ide/spyder/issues/649)) Patch submitted by [DavidAnthonyPowell](http://code.google.com/u/DavidAnthonyPowell/) - Syntax highlighter does not recognise imaginary, binary or octal numbers
 * Spyder's layout: fixed window position/size issues when maximized/fullscreen mode was active
 * Object inspector: fixed minor bug (simple traceback in the internal console) when handling a sphinx error
-* (Fixes Issue 667) Editor/bugfix: Shift+Enter inserted lines that did not get line numbers
-* (Fixes Issue 672) Editor: TODO/FIXME were not detected if not followed by ':' (HINT/TIP were properly detected)
+* (Fixes [Issue 667](/spyder-ide/spyder/issues/667)) Editor/bugfix: Shift+Enter inserted lines that did not get line numbers
+* (Fixes [Issue 672](/spyder-ide/spyder/issues/672)) Editor: TODO/FIXME were not detected if not followed by ':' (HINT/TIP were properly detected)
 
 ### Enhancements (since v2.0.11)
 
-* (Fixes Issue 655) Editor/pyflakes-powered code analysis: warnings are now ignored for lines containing "pyflakes:ignore"
+* (Fixes [Issue 655](/spyder-ide/spyder/issues/655)) Editor/pyflakes-powered code analysis: warnings are now ignored for lines containing "pyflakes:ignore"
 
 ### Other changes (since v2.0.11)
 
@@ -1023,15 +1023,15 @@ Since version 2.1:
 
 ### Bug fixes (since v2.0.9)
 
-* (Fixes Issue 616) Pylint plugin: tree widget header text was not updated when analyizing a new script (the last analyzed script name was still shown)
+* (Fixes [Issue 616](/spyder-ide/spyder/issues/616)) Pylint plugin: tree widget header text was not updated when analyizing a new script (the last analyzed script name was still shown)
 * Editor/completion widget/bugfix: pressing shift was hiding the completion combo box
-* (Fixes Issue 630) Added missing default settings for "Spyder light" (only necessary when installing from scratch and without any remaining .spyder.ini file)
+* (Fixes [Issue 630](/spyder-ide/spyder/issues/630)) Added missing default settings for "Spyder light" (only necessary when installing from scratch and without any remaining .spyder.ini file)
 * Editor/Console-bugfix: info tooltips (calltips) were hidden right after being shown (i.e. when typing any character after the left parenthesis)
-* (Fixes Issue 631) Drag and drop of files into editor on Linux was pasting path instead of opening the file
-* (Fixes Issue 640) Editor: block comment was not working correctly at end of file
+* (Fixes [Issue 631](/spyder-ide/spyder/issues/631)) Drag and drop of files into editor on Linux was pasting path instead of opening the file
+* (Fixes [Issue 640](/spyder-ide/spyder/issues/640)) Editor: block comment was not working correctly at end of file
 * Code completion widget (Editor/Console) - bugfix: parenting to the ancestor widget was necessary on Linux
-* (Fixes Issue 546) (Contributor: [Alex Fargus](http://code.google.com/u/alex.fargus/)) C/Cpp syntax highlighting bugfix
-* (Fixes Issue 646) IPython integration: fixed pyreadline monkey-patch for pyreadline v1.7
+* (Fixes [Issue 546](/spyder-ide/spyder/issues/546)) (Contributor: [Alex Fargus](http://code.google.com/u/alex.fargus/)) C/Cpp syntax highlighting bugfix
+* (Fixes [Issue 646](/spyder-ide/spyder/issues/646)) IPython integration: fixed pyreadline monkey-patch for pyreadline v1.7
 
 ### Enhancements (since v2.0.9)
 
@@ -1048,19 +1048,19 @@ Since version 2.1:
 
 * Console: added option to ignore PyQt/sip errors when trying to set sip API (fixed Enthought Tool Suite 3.6.0 compatibility issue)
 * utils.dochelpers.getargtxt/bugfix: retrieving builtin function arguments was no longer working
-* (Fixes Issue 499) Editor-related keyboard shortcuts were not applied after opening files
-* (Fixes Issue 575) Tab scroll buttons were not shown on OS X resulting in clamped/changing window sizes
-* (Fixes Issue 574) Debugging: Spyder only synced at debugger breakpoints
-* (Fixes Issue 576) "Source / Remove trailing spaces" was removing newline at the end of file (+ added support for "undo")
-* (Fixes Issue 582) Console: changing font preferences was requiring a restart to be fully taken into account
-* (Fixes Issue 562) Spyder was unable to restore editor's outline explorer tree when mixed ' and " characters were found in tree entries
-* (Fixes Issue 590) Shell/"Clear line" shortcut was not correct: this is actually "Shift+Escape" (not "Escape")
-* (Fixes Issue 591) History log was systematically erased when updating Spyder version
+* (Fixes [Issue 499](/spyder-ide/spyder/issues/499)) Editor-related keyboard shortcuts were not applied after opening files
+* (Fixes [Issue 575](/spyder-ide/spyder/issues/575)) Tab scroll buttons were not shown on OS X resulting in clamped/changing window sizes
+* (Fixes [Issue 574](/spyder-ide/spyder/issues/574)) Debugging: Spyder only synced at debugger breakpoints
+* (Fixes [Issue 576](/spyder-ide/spyder/issues/576)) "Source / Remove trailing spaces" was removing newline at the end of file (+ added support for "undo")
+* (Fixes [Issue 582](/spyder-ide/spyder/issues/582)) Console: changing font preferences was requiring a restart to be fully taken into account
+* (Fixes [Issue 562](/spyder-ide/spyder/issues/562)) Spyder was unable to restore editor's outline explorer tree when mixed ' and " characters were found in tree entries
+* (Fixes [Issue 590](/spyder-ide/spyder/issues/590)) Shell/"Clear line" shortcut was not correct: this is actually "Shift+Escape" (not "Escape")
+* (Fixes [Issue 591](/spyder-ide/spyder/issues/591)) History log was systematically erased when updating Spyder version
 * Outline explorer/bugfix: when opening file, the 'show/hide all files' option was not applied (this was then applied when switching from a file to another)
-* (Fixes Issue 602) Backported from v2.1 a couple of bugfixes related to Editor and multiple panels
+* (Fixes [Issue 602](/spyder-ide/spyder/issues/602)) Backported from v2.1 a couple of bugfixes related to Editor and multiple panels
 * Object inspector: when raised automatically above other dockwidgets, plugin refresh was unnecessarily triggered
 * Editor/code completion-bugfix: some key events (e.g. Ctrl+V) were lost during code completion-related hang-up
-* (Fixes Issue 599) Multiline text pasting was not working in a newly opened console (i.e. first prompt)
+* (Fixes [Issue 599](/spyder-ide/spyder/issues/599)) Multiline text pasting was not working in a newly opened console (i.e. first prompt)
 
 ### Enhancements (since v2.0.8)
 
@@ -1071,9 +1071,9 @@ Since version 2.1:
 * Added action "Reset window layout" in "View" menu to reset main window layout to default
 * Documentation: added page on debugging
 * Editor: added syntax highlighters for diff/patch files (.diff, .patch, .rej) and gettext files (.po, .pot)
-* (Fixes Issue 537) Global working directory toolbar: removed label considering the fact that the toolbar widgets are quite explicit on its role (and the combo box tooltip is explaining it in detail)
-* (Fixes Issue 598) Added a .desktop file in source package
-* (Fixes Issue 87) Editor plugin's title now show the current script filename
+* (Fixes [Issue 537](/spyder-ide/spyder/issues/537)) Global working directory toolbar: removed label considering the fact that the toolbar widgets are quite explicit on its role (and the combo box tooltip is explaining it in detail)
+* (Fixes [Issue 598](/spyder-ide/spyder/issues/598)) Added a .desktop file in source package
+* (Fixes [Issue 87](/spyder-ide/spyder/issues/87)) Editor plugin's title now show the current script filename
 
 
 ----
