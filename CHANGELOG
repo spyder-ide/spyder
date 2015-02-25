@@ -609,7 +609,7 @@
 ### Bug fixes (since v2.1.10)
 
 * Critical bugs:
-    * Editor (Issue 960): cannot open/save files from GUI (QFileDialog issue with !PyQt4 v4.6)
+    * Editor (Issue 960): cannot open/save files from GUI (QFileDialog issue with PyQt4 v4.6)
 * General:
     * Spyder menu bar: fixed menu ordering issue with Ubuntu/Unity
     * All console widgets: Shell widget: fixed "Clear terminal" (Ctrl+L) shortcut
@@ -621,11 +621,11 @@
     * Code analysis thread manager: handling errors while executing threads
     * "Replace all" was not regrouping changes into a single undo/redo step
     * "Find/Replace": replacements were not done for case unsensitive searches
-    * Position of the 79-chars edge line is now more accurate on Linux, the older processed position was inaccurate with some font size of the classic "!DejaVu Sans Mono" monospace font
-* !IPython:
+    * Position of the 79-chars edge line is now more accurate on Linux, the older processed position was inaccurate with some font size of the classic "DejaVu Sans Mono" monospace font
+* IPython:
     * Version detection was broken so Preferences...Console...External Modules was incorreclty hiding the command line options line edit
-    * Because the detection was not working correctly, it was not possible to start an !IPython kernel with the just released !IPython 0.13
-* Project explorer was sometimes producing !AttributeError when loading because of the workspace was not defined at the beginning of the class constructor
+    * Because the detection was not working correctly, it was not possible to start an IPython kernel with the just released IPython 0.13
+* Project explorer was sometimes producing AttributeError when loading because of the workspace was not defined at the beginning of the class constructor
 * pyflakes code analysis function:
     * Handling files with invalid \x or null chars
     * This fixes a part of Issue 1016 by handling the following pyflakes bugs:
@@ -648,11 +648,11 @@
 ### Bug fixes (since v2.1.9)
 
 * Critical bugs:
-    * Spyder crashed at startup/!TypeError: `_isdir()` takes exactly 1 argument (0 given). Affects only Windows platforms with Python 3.2.2+ or 2.7.3+)
+    * Spyder crashed at startup/TypeError: `_isdir()` takes exactly 1 argument (0 given). Affects only Windows platforms with Python 3.2.2+ or 2.7.3+)
     * Spyder was freezing when working with netCDF4 objects in the interactive console
     * Console: h5py was systematically imported to avoid crashes with the HDF5 plugin (Variable Explorer's I/O plugin). These ugly workarounds introduced with revision 3affc82ce081 were removed in this changeset to avoid side effects like DLL version conflict on Windows platforms. The main risk of this change is to break the HDF5 plugin on some configurations. But this is the best compromise.
 * General:
-    * Fixed regression: when no Qt library is installed (!PyQt/!PySide), warning the user with a Tkinter dialog box (if possible)
+    * Fixed regression: when no Qt library is installed (PyQt/PySide), warning the user with a Tkinter dialog box (if possible)
     * Fixed Preferences Dialog flickering issue introduced with revision a4e1565e93c5
     * Run configuration dialog: fixed Tab focus order behavior
     * Fixed "Run > Configure..." and "PYTHONPATH management" entry locations on MacOSX
@@ -696,11 +696,11 @@
 ### Bug fixes (since v2.1.8)
 
 * Run configuration/bugfix: command line options were not properly parsed
-* Preferences dialog was not showing up with !PySide installed *and* without !PyQt4
+* Preferences dialog was not showing up with PySide installed *and* without PyQt4
 * Editor:
     * Closing additional editor window produced traceback and primary editor breakdown
     * File/Open: embedded editor popped up even if there is one in a separate window
-    * Selecting a part of a word raises an !IndexError exception
+    * Selecting a part of a word raises an IndexError exception
     * Revert option was prompting for user input even on an unmodified buffer
     * Added missing .f77 file extensions for Fortran files filter
     * Occurence highlighting was not working when cursor was at the left side of a word and if the next character was ':', ',' or '(' (or any other character not matching the "word regexp")
@@ -708,10 +708,10 @@
     * Console was unusable (endless tracebacks) when monitor was disabled
     * File drag'n drop was not working (should execute dropped file)
 * (Experimental) IPython plugin:
-    * Fixed compatibility issues with !PyQt4 and IPython 0.12
+    * Fixed compatibility issues with PyQt4 and IPython 0.12
     * Fixed multiple instances issue (it was not possible to open more than one IPython frontend) and other issues
     * IPython kernel connections were unpredictable (Issue 977)
-* Dictionary editor (Variable explorer): fixed !UnboundLocalError when context menu is called on an empty table
+* Dictionary editor (Variable explorer): fixed UnboundLocalError when context menu is called on an empty table
 * Object inspector failed to show an error message due to unicode error
 * Project Explorer:
     * "Show all files" option was broken after restarting Spyder
@@ -742,7 +742,7 @@
 * Console:
     * Enhanced Python interpreter: %clear command was broken since v2.1.5
 * Object inspector's rich text mode: fixed unexpected indent error
-* !IPython plugin: fixed compatibility issue with latest v0.12dev (thanks to Boris Gorelik)
+* IPython plugin: fixed compatibility issue with latest v0.12dev (thanks to Boris Gorelik)
 
 ### Other changes (since v2.1.6)
 
@@ -781,9 +781,9 @@
     * Fixed regression regarding Issue 740 (fixed in v2.1.0, re-introduced in v2.1.2): couldn't open files with non-ascii characters in their names
     * SCM support: commit/log actions were not working when right-clicking on a file instead of a folder
 * Console:
-    * Monitor/Introspection: fixed socket communication issue due to a !MemoryError -- This error was mixing communication messages, causing various problems described in Issue 857 and Issue 858. This bug was reported by ruoyu0088, who also tried (and succeeded) to fix it and suggested a workaround which is implemented in this release
+    * Monitor/Introspection: fixed socket communication issue due to a MemoryError -- This error was mixing communication messages, causing various problems described in Issue 857 and Issue 858. This bug was reported by ruoyu0088, who also tried (and succeeded) to fix it and suggested a workaround which is implemented in this release
     * Fix critical console hang on OS X when using the "Run selection or current block feature" (see Issue 502)
-    * Apply the right scheme color to the !IPython console when there weren't any options provided by the user or when the only option was "-colors LightBG"
+    * Apply the right scheme color to the IPython console when there weren't any options provided by the user or when the only option was "-colors LightBG"
 * Windows platforms:
     * "Preferences" dialog was not shown if account username contained non-ASCII characters
 * Object Inspector:
@@ -801,7 +801,7 @@
         * Added new "Qt (PyQt/PySide)" settings group in "External modules" tab
         * It is now possible to select the Qt-Python bindings library: default (i.e. depends on the QT_API environment variable), PyQt or PySide
         * The PyQt input hook has been adapted for PySide, so it is now possible to do interactive (non-blocking) plotting with PySide
-    * New options for standard Python interpreters (no effect on !IPython):
+    * New options for standard Python interpreters (no effect on IPython):
         * "Merge process standard output/error channels": merging the output channels of the process means that the standard error won't be written in red anymore, but this has the effect of speeding up display
         * "Colorize standard error channel using ANSI escape codes": this method is the only way to have colorized standard error channel when the output channels have been merged
 * Internal console (Issue 868): output is now immediately available
@@ -861,11 +861,11 @@
     * Patched external path library to avoid a crash with a user HOME directory with non-ascii characters
     * Doc/README: warning the user about the fact that the 'python setup.py install' method does not uninstall a previous version
 * Console:
-    * Fixed "!AccessInit: hash collision: 3 for both 1 and 1" error (see Issue 595)
+    * Fixed "AccessInit: hash collision: 3 for both 1 and 1" error (see Issue 595)
 * Project explorer:
     * empty workspace/critical bugfix: impossible to create/import projects from context menu (this bug was introduced with a recent revision and stayed unnoticed until then because one has to test this from an empty workspace)
     * it is now possible to rename projects (safely)
-    * now handling the I/O errors (e.g. read-only configuration files) occuring when loading/saving projects or the workspace: warning the user when an !IOError exception was raised and mention the projects which could not be saved properly
+    * now handling the I/O errors (e.g. read-only configuration files) occuring when loading/saving projects or the workspace: warning the user when an IOError exception was raised and mention the projects which could not be saved properly
 * File/Project explorer:
     * keyboard shortcut 'F2' (rename file/directory) was broken
     * the "Open" action (context menu) was failing silently for directories (expected behavior: open an external file explorer to browse the directory)
@@ -879,14 +879,14 @@
 
 * File/Project explorer:
     * Added "Delete" keyboard shortcut to remove selected file(s)/folder(s)
-    * SCM integration: added support for !TortoiseHg v2 (only v1 was supported)
+    * SCM integration: added support for TortoiseHg v2 (only v1 was supported)
 * Console/Matplotlib options: the backend may now be set separately from the Matplotlib patch
 
 ### Other changes (since v2.1.1)
 
 * Console:
     * The Matplotlib patch is only applied for Matplotlib <=v1.0
-    * !PyQt API version issues (error like "!ValueError: API 'QString' has already been set to version 1"): the "ignore setapi errors" option is disabled by default, to avoid masking these errors and associated tracebacks
+    * PyQt API version issues (error like "ValueError: API 'QString' has already been set to version 1"): the "ignore setapi errors" option is disabled by default, to avoid masking these errors and associated tracebacks
 
 
 ----
@@ -903,9 +903,9 @@ http://spyder-ide.blogspot.com/
 
 Since version 2.1:
 * Spyder is now compatible with:
-    * !PyQt's API v1 (i.e. compatible with !PyQt 4.4 and 4.5), the default Python 2 API
-    * *and* !PyQt's API v2 (this is the future: default Python 3 API and !PySide-compatible API)
-    * *and* with !PySide (!PySide support is still experimental as this library is still young but its stability is evolving rapidly)
+    * PyQt's API v1 (i.e. compatible with PyQt 4.4 and 4.5), the default Python 2 API
+    * *and* PyQt's API v2 (this is the future: default Python 3 API and PySide-compatible API)
+    * *and* with PySide (PySide support is still experimental as this library is still young but its stability is evolving rapidly)
 * Editor/code analysis: Spyder now requires *pyflakes v0.5.0* (included in Windows installers).
 
 ### New features since v2.0.12
@@ -932,8 +932,8 @@ Since version 2.1:
         * added support for basic special commands (%pwd, %ls, %clear) and system commands (starting with '!', e.g. !dir or !ls)
         * added ["scientific" startup script](http://spyder-ide.blogspot.com/2011/09/new-enhanced-scientific-python.html) with support for numpy, scipy and matplotlib
     * Preferences (External modules tab):
-        * added an option to set !PyQt API to v1 or v2 -- this avoids issues with Enthought Tool Suite or any other library/program using !PyQt API v2 which is *not* the default API for Python 2
-        * changed matplotlib patch to fix compatiblity issue with !PyQt API v2
+        * added an option to set PyQt API to v1 or v2 -- this avoids issues with Enthought Tool Suite or any other library/program using PyQt API v2 which is *not* the default API for Python 2
+        * changed matplotlib patch to fix compatiblity issue with PyQt API v2
     * Preferences (Advanced Settings tab): added option "Python executable" to customize path to Python interpreter executable binary
 * *Variable explorer*:
     * New HDF5 plugin by [DavidAnthonyPowell](http://code.google.com/u/DavidAnthonyPowell/): import/export HDF5 files to/from the variable explorer
@@ -959,25 +959,25 @@ Since version 2.1:
     * added option to save file before analyzing it
 * Spyder's console embedded in your application (spyderlib.widgets.internalshell):
     * in traceback, a clickable link now opens the associated file in Spyder (if application was launched from Spyder with monitor enabled)
-    * Application sample embedding Spyder's internal shell: upgraded to guidata v1.4+ (simplified build script a lot!)
+    * Application sample embedding Spyder's internal shell: upgraded to guidata v1.4+ (simplified build script a lot)
 * Windows platforms specific changes:
     * (requires pywin32) Hiding the attached console window:
         * allow running Spyder with 'python.exe' without visible console (this avoid using 'pythonw.exe' which does not attach a console to the process, hence preventing standard I/O to be redirected in a subprocess executed within Spyder, e.g. in your own program)
         * the attached console may be shown/hidden from menu entry "View > Attached console window (debugging)"
-* Major change for Windows/!PyQt users: standard Python interpreter now supports interactive GUI manipulations thanks to a new Spyder-specific input hook (replacing !PyQt's input hook which is not working within Spyder on Windows platforms) -- the input hook works even better than !PyQt's builtin input hook (with a Python interpreter opened outside Spyder)!
+* Major change for Windows/PyQt users: standard Python interpreter now supports interactive GUI manipulations thanks to a new Spyder-specific input hook (replacing PyQt's input hook which is not working within Spyder on Windows platforms) -- the input hook works even better than PyQt's builtin input hook (with a Python interpreter opened outside Spyder)
 * Spyder's stand-alone version building process was improved. This version is now available on project's download page.
 
 ### Bug fixes (since v2.0.12)
 
 * Spyder's main window:
-    * !QtDesigner and !QtLinguist were not detected on Fedora
+    * QtDesigner and QtLinguist were not detected on Fedora
     * Console/Editor: code completion widget was partially hidden when working on two monitors and if Spyder's window was on the right screen
     * Fixed bugs due to too early/frequent calls to plugin refresh methods during startup
 * Console:
     * IPython Interpreter: Turn off autoindent magic to avoid indentation errors with code with inline comments
 * Editor:
     * Fortran syntax highlighter was made case insensitive
-    * Fixed !IndentationError when running first line of a file
+    * Fixed IndentationError when running first line of a file
     * Read only files allowed ".", "[", "(", etc. to be entered into the text editor
     * Fixed segmentation faults occuring after using the vertical-horizontal splitting feature
     * If a file name had non-ascii characters then code completion (and all other rope-based features) in the editor stopped working
