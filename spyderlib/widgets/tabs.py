@@ -64,7 +64,7 @@ class TabBar(QTabBar):
             mimeData.setData("tabwidget-id",
                              QByteArray.number(parent_widget_id))
             mimeData.setData("tabbar-id", QByteArray.number(self_id))
-            mimeData.setData("source-index",
+            mimeData.setData("source-index", 
                          QByteArray.number(self.tabAt(self.__drag_start_pos)))
             drag.setMimeData(mimeData)
             drag.exec_()
@@ -89,9 +89,9 @@ class TabBar(QTabBar):
         if mimeData.data("tabbar-id").toLong()[0] != id(self):
             tabwidget_from = str(mimeData.data("tabwidget-id").toLong()[0])
 
-            # We pass self object ID as a QString, because otherwise it would
-            # depend on the platform: long for 64bit, int for 32bit. Replacing
-            # by long all the time is not working on some 32bit platforms
+            # We pass self object ID as a QString, because otherwise it would 
+            # depend on the platform: long for 64bit, int for 32bit. Replacing 
+            # by long all the time is not working on some 32bit platforms 
             # (see Issue 1094, Issue 1098)
             self.sig_move_tab[(str, int, int)].emit(tabwidget_from, index_from,
                                                     index_to)
@@ -314,7 +314,7 @@ class Tabs(BaseTabs):
     def move_tab_from_another_tabwidget(self, tabwidget_from,
                                         index_from, index_to):
         """Move tab from a tabwidget to another"""
-
+            
         # We pass self object IDs as QString objs, because otherwise it would
         # depend on the platform: long for 64bit, int for 32bit. Replacing
         # by long all the time is not working on some 32bit platforms
