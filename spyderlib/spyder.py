@@ -63,7 +63,7 @@ if os.name == 'nt':
     # Prevents Spyder from begin grouped with all other python.exe
     # and pythonw.exe processes on the windows taskbar.
     import ctypes
-    ctypes.windll.shell32._SetCurrentProcessExplicitAppUserModelID('Spyder')
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('Spyder')
 
 
 #==============================================================================
