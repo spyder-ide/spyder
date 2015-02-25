@@ -261,14 +261,14 @@ class BaseTabs(QTabWidget):
                                              tip=_("Close current tab"))
             self.setCornerWidget(close_button if state else None)
 
-
+        
 class Tabs(BaseTabs):
     """BaseTabs widget with movable tabs and tab navigation shortcuts"""
     # Signals
     move_data = Signal(int, int)
     move_tab_finished = Signal()
     sig_move_tab = Signal(str, str, int, int)
-
+    
     def __init__(self, parent, actions=None, menu=None,
                  corner_widgets=None, menu_use_tooltips=False):
         BaseTabs.__init__(self, parent, actions, menu,
@@ -285,7 +285,7 @@ class Tabs(BaseTabs):
                      lambda: self.sig_close_tab.emit(self.currentIndex()))
         new_shortcut("Ctrl+F4", parent,
                      lambda: self.sig_close_tab.emit(self.currentIndex()))
-
+        
     def tab_navigate(self, delta=1):
         """Ctrl+Tab"""
         if delta > 0 and self.currentIndex() == self.count()-1:
@@ -303,18 +303,18 @@ class Tabs(BaseTabs):
         tip, text = self.tabToolTip(index_from), self.tabText(index_from)
         icon, widget = self.tabIcon(index_from), self.widget(index_from)
         current_widget = self.currentWidget()
-
+        
         self.removeTab(index_from)
         self.insertTab(index_to, widget, icon, text)
         self.setTabToolTip(index_to, tip)
-
+        
         self.setCurrentWidget(current_widget)
         self.move_tab_finished.emit()
 
     def move_tab_from_another_tabwidget(self, tabwidget_from,
                                         index_from, index_to):
         """Move tab from a tabwidget to another"""
-            
+        
         # We pass self object IDs as QString objs, because otherwise it would
         # depend on the platform: long for 64bit, int for 32bit. Replacing
         # by long all the time is not working on some 32bit platforms
