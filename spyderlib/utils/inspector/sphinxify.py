@@ -23,6 +23,7 @@ import os.path as osp
 import shutil
 import sys
 from tempfile import mkdtemp
+import zlib
 
 # 3rd party imports
 from docutils.utils import SystemMessage as SystemMessage
@@ -157,6 +158,9 @@ def sphinxify(docstring, context, buildername='html'):
     An Sphinx-processed string, in either HTML or plain text format, depending
     on the value of `buildername`
     """
+    # this is a workaround to a bug in Anaconda with zlib
+    compressor = zlib.compressobj(9)
+    compressor.compress('hello'.encode('utf-8'))
 
     srcdir = mkdtemp()
     srcdir = encoding.to_unicode_from_fs(srcdir)
