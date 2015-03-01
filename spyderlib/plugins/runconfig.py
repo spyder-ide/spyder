@@ -181,8 +181,8 @@ class RunConfigOptions(QWidget):
         browse_btn.clicked.connect(self.select_directory)
         wd_layout.addWidget(browse_btn)
         common_layout.addLayout(wd_layout, 1, 1)
-        self.post_mortem_cb = QCheckBox(_("Enter post mortem debugging"
-                                          " for uncaught exceptions"))
+        self.post_mortem_cb = QCheckBox(_("Enter debugging mode when "
+                                          "errors appear during execution"))
         common_layout.addWidget(self.post_mortem_cb)
         
         # --- Interpreter ---
@@ -498,7 +498,9 @@ class RunConfigPage(GeneralConfigPage):
         thisdir_layout.addWidget(thisdir_radio)
         thisdir_layout.addWidget(thisdir_bd)
 
-        post_mortem = self.create_checkbox(_("Enter post mortem debugging for uncaught exceptions"), 'post_mortem', False)
+        post_mortem = self.create_checkbox(
+             _("Enter debugging mode when errors appear during execution"),
+             'post_mortem', False)
 
         general_layout = QVBoxLayout()
         general_layout.addLayout(command_layout)
@@ -509,11 +511,16 @@ class RunConfigPage(GeneralConfigPage):
         general_group.setLayout(general_layout)
 
         dedicated_group = QGroupBox(_("Dedicated Python console"))
-        interact_after = self.create_checkbox(_("Interact with the Python console after execution"), 'interact', False)
-        show_warning = self.create_checkbox(_("Show warning when killing running processes"), 'show_kill_warning', True)
+        interact_after = self.create_checkbox(
+            _("Interact with the Python console after execution"),
+            'interact', False)
+        show_warning = self.create_checkbox(
+            _("Show warning when killing running processes"),
+            'show_kill_warning', True)
 
-        py_command_options_enabled = self.create_checkbox(_("Command line options:"),
-                                     'python_args_enabled', True)
+        py_command_options_enabled = self.create_checkbox(
+            _("Command line options:"),
+            'python_args_enabled', True)
         py_command_options = self.create_lineedit('', 'python_args', '')
         py_command_layout = QHBoxLayout()
         py_command_layout.addWidget(py_command_options_enabled)
