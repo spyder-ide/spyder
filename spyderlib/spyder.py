@@ -115,12 +115,17 @@ from spyderlib.qt import QtSvg  # analysis:ignore
 
 
 #==============================================================================
-# Initial splash screen to reduce perceived startup time. 
-# It blends with the one of MainWindow (i.e. self.splash) and it's hidden
-# just before that one.
+# Create our QApplication instance here because it's needed to render the
+# splash screen created below
+#==============================================================================
+from spyderlib.utils.qthelpers import qapplication
+MAIN_APP = qapplication()
+
+
+#==============================================================================
+# Create splash screen out of MainWindow to reduce perceived startup time. 
 #==============================================================================
 from spyderlib.baseconfig import _, get_image_path
-SPLASH_APP = QApplication([''])
 SPLASH = QSplashScreen(QPixmap(get_image_path('splash.png'), 'png'))
 SPLASH_FONT = SPLASH.font()
 SPLASH_FONT.setPixelSize(10)
@@ -167,8 +172,8 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, get_icon,
                                        create_module_bookmark_actions,
                                        create_bookmark_action,
                                        create_program_action, DialogManager,
-                                       keybinding, qapplication,
-                                       create_python_script_action, file_uri)
+                                       keybinding, create_python_script_action,
+                                       file_uri)
 from spyderlib.guiconfig import get_shortcut, remove_deprecated_shortcuts
 from spyderlib.otherplugins import get_spyderplugins_mods
 
@@ -2144,6 +2149,9 @@ class MainWindow(QMainWindow):
 #==============================================================================
 def initialize():
     """Initialize Qt, patching sys.exit and eventually setting up ETS"""
+    # This doesn't create our QApplication, just holds a reference to
+    # MAIN_APP, created above to show our splash screen as early as
+    # possible
     app = qapplication()
     
     #----Monkey patching PyQt4.QtGui.QApplication
