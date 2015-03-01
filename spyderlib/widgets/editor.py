@@ -547,13 +547,15 @@ class EditorStack(QWidget):
                               name='Go to previous file', parent=self)
         tabshift = create_shortcut(self.go_to_next_file, context='Editor',
                                    name='Go to next file', parent=self)
+
         # Fixed shortcuts
         new_shortcut(QKeySequence.ZoomIn, self, lambda: self.zoom_in.emit())
         new_shortcut("Ctrl+=", self, lambda: self.zoom_in.emit())
         new_shortcut(QKeySequence.ZoomOut, self, lambda: self.zoom_out.emit())
         new_shortcut("Ctrl+0", self, lambda: self.zoom_reset.emit())
-        new_shortcut("Ctrl+W", self, lambda: self.sig_close_file[()].emit())
         new_shortcut("Ctrl+F4", self, lambda: self.sig_close_file[()].emit())
+        new_shortcut("Ctrl+W", self, lambda: self.sig_close_file[()].emit())
+
         # Return configurable ones
         return [inspect, breakpoint, cbreakpoint, gotoline, filelist, tab,
                 tabshift]

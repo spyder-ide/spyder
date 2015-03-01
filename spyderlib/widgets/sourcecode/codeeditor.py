@@ -21,6 +21,8 @@ import re
 import sre_constants
 import os.path as osp
 import time
+import functools
+from unicodedata import category
 
 from spyderlib.qt import is_pyqt46
 from spyderlib.qt.QtGui import (QColor, QMenu, QApplication, QSplitter, QFont,
@@ -42,14 +44,16 @@ from spyderlib.qt.compat import to_qvariant
 #       consistent editor module (Qt source code and shell widgets library)
 from spyderlib.baseconfig import get_conf_path, _, DEBUG, get_image_path
 from spyderlib.config import CONF
-from spyderlib.guiconfig import get_font, create_shortcut, new_shortcut
-from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
-                                       mimedata2url, get_icon)
+from spyderlib.guiconfig import (get_font, create_shortcut, new_shortcut,
+                                 get_shortcut)
+from spyderlib.utils.qthelpers import (add_actions, create_action,
+                                       mimedata2url, get_icon, keybinding)
 from spyderlib.utils.dochelpers import getobj
 from spyderlib.utils import encoding, sourcecode
 from spyderlib.utils.sourcecode import ALL_LANGUAGES, CELL_LANGUAGES
 from spyderlib.widgets.editortools import PythonCFM
 from spyderlib.widgets.sourcecode.base import TextEditBaseWidget
+from spyderlib.widgets.sourcecode.kill_ring import QtKillRing
 from spyderlib.widgets.sourcecode import syntaxhighlighters as sh
 from spyderlib.widgets.arraybuilder import SHORTCUT_INLINE, SHORTCUT_TABLE
 from spyderlib.py3compat import to_text_string
@@ -65,6 +69,12 @@ except:
 LOG_FILENAME = get_conf_path('codeeditor.log')
 DEBUG_EDITOR = DEBUG >= 3
 
+
+def is_letter_or_number(char):
+    """ Returns whether the specified unicode character is a letter or a number.
+    """
+    cat = category(char)
+    return cat.startswith('L') or cat.startswith('N')
 
 # =============================================================================
 # Go to line dialog box
@@ -441,6 +451,7 @@ class CodeEditor(TextEditBaseWidget):
         self.supported_cell_language = False
         self.classfunc_match = None
         self.comment_string = None
+        self._kill_ring = QtKillRing(self)
 
         # Block user data
         self.blockuserdata_list = []
@@ -519,13 +530,71 @@ class CodeEditor(TextEditBaseWidget):
         unblockcomment = create_shortcut(self.unblockcomment, context='Editor',
                                          name='Unblockcomment', parent=self)
 
+        def cb_maker(attr):
+            """Make a callback for cursor move event type, (e.g. "Start")
+            """
+            def cursor_move_event():
+                cursor = self.textCursor()
+                move_type = getattr(QTextCursor, attr)
+                cursor.movePosition(move_type)
+                self.setTextCursor(cursor)
+            return cursor_move_event
+
+        line_start = create_shortcut(cb_maker('StartOfLine'), context='Editor',
+                                     name='Start of line', parent=self)
+        line_end = create_shortcut(cb_maker('EndOfLine'), context='Editor',
+                                   name='End of line', parent=self)
+
+        prev_line = create_shortcut(cb_maker('Up'), context='Editor',
+                                    name='Previous line', parent=self)
+        next_line = create_shortcut(cb_maker('Down'), context='Editor',
+                                    name='Next line', parent=self)
+
+        prev_char = create_shortcut(cb_maker('Left'), context='Editor',
+                                    name='Previous char', parent=self)
+        next_char = create_shortcut(cb_maker('Right'), context='Editor',
+                                    name='Next char', parent=self)
+
+        prev_word = create_shortcut(cb_maker('StartOfWord'), context='Editor',
+                                    name='Previous word', parent=self)
+        next_word = create_shortcut(cb_maker('EndOfWord'), context='Editor',
+                                    name='Next word', parent=self)
+
+        kill_line_end = create_shortcut(self.kill_line_end, context='Editor',
+                                        name='Kill to line end', parent=self)
+        kill_line_start = create_shortcut(self.kill_line_start,
+                                          context='Editor',
+                                          name='Kill to line start',
+                                          parent=self)
+        yank = create_shortcut(self._kill_ring.yank, context='Editor',
+                               name='Yank', parent=self)
+        kill_ring_rotate = create_shortcut(self._kill_ring.rotate,
+                                           context='Editor',
+                                           name='Rotate kill ring',
+                                           parent=self)
+
+        kill_prev_word = create_shortcut(self.kill_prev_word, context='Editor',
+                                         name='Kill previous word',
+                                         parent=self)
+        kill_next_word = create_shortcut(self.kill_next_word, context='Editor',
+                                         name='Kill next word', parent=self)
+
+        start_doc = create_shortcut(cb_maker('Start'), context='Editor',
+                                    name='Start of Document', parent=self)
+
+        end_doc = create_shortcut(cb_maker('End'), context='Editor',
+                                  name='End of document', parent=self)
+
         # Fixed shortcuts
         new_shortcut(SHORTCUT_INLINE, self, lambda: self.enter_array_inline())
         new_shortcut(SHORTCUT_TABLE, self, lambda: self.enter_array_table())
 
         return [codecomp, duplicate_line, copyline, deleteline, movelineup,
                 movelinedown, gotodef, toggle_comment, blockcomment,
-                unblockcomment]
+                unblockcomment, line_start, line_end, prev_line, next_line,
+                prev_char, next_char, prev_word, next_word, kill_line_end,
+                kill_line_start, yank, kill_ring_rotate, kill_prev_word,
+                kill_next_word, start_doc, end_doc]
 
     def get_shortcut_data(self):
         """
@@ -2080,6 +2149,82 @@ class CodeEditor(TextEditBaseWidget):
             cursor3.removeSelectedText()
         cursor3.endEditBlock()
 
+    #------Kill ring handlers
+    # Taken from Jupyter's QtConsole
+    # Copyright (c) 2001-2015, IPython Development Team
+    # Copyright (c) 2015-, Jupyter Development Team
+    def kill_line_end(self):
+        """Kill the text on the current line from the cursor forward"""
+        cursor = self.textCursor()
+        cursor.clearSelection()
+        cursor.movePosition(QTextCursor.EndOfLine, QTextCursor.KeepAnchor)
+        if not cursor.hasSelection():
+            # Line deletion
+            cursor.movePosition(QTextCursor.NextBlock,
+                                QTextCursor.KeepAnchor)
+        self._kill_ring.kill_cursor(cursor)
+        self.setTextCursor(cursor)
+
+    def kill_line_start(self):
+        """Kill the text on the current line from the cursor backward"""
+        cursor = self.textCursor()
+        cursor.clearSelection()
+        cursor.movePosition(QTextCursor.StartOfBlock,
+                            QTextCursor.KeepAnchor)
+        self._kill_ring.kill_cursor(cursor)
+        self.setTextCursor(cursor)
+
+    def _get_word_start_cursor(self, position):
+        """Find the start of the word to the left of the given position. If a
+           sequence of non-word characters precedes the first word, skip over
+           them. (This emulates the behavior of bash, emacs, etc.)
+        """
+        document = self.document()
+        position -= 1
+        while (position and not
+               is_letter_or_number(document.characterAt(position))):
+            position -= 1
+        while position and is_letter_or_number(document.characterAt(position)):
+            position -= 1
+        cursor = self.textCursor()
+        cursor.setPosition(position + 1)
+        return cursor
+
+    def _get_word_end_cursor(self, position):
+        """Find the end of the word to the right of the given position. If a
+           sequence of non-word characters precedes the first word, skip over
+           them. (This emulates the behavior of bash, emacs, etc.)
+        """
+        document = self.document()
+        cursor = self.textCursor()
+        position = cursor.position()
+        cursor.movePosition(QTextCursor.End)
+        end = cursor.position()
+        while (position < end and
+               not is_letter_or_number(document.characterAt(position))):
+            position += 1
+        while (position < end and
+               is_letter_or_number(document.characterAt(position))):
+            position += 1
+        cursor.setPosition(position)
+        return cursor
+
+    def kill_prev_word(self):
+        """Kill the previous word"""
+        position = self.textCursor().position()
+        cursor = self._get_word_start_cursor(position)
+        cursor.setPosition(position, QTextCursor.KeepAnchor)
+        self._kill_ring.kill_cursor(cursor)
+        self.setTextCursor(cursor)
+
+    def kill_next_word(self):
+        """Kill the next word"""
+        position = self.textCursor().position()
+        cursor = self._get_word_end_cursor(position)
+        cursor.setPosition(position, QTextCursor.KeepAnchor)
+        self._kill_ring.kill_cursor(cursor)
+        self.setTextCursor(cursor)
+
     #------Autoinsertion of quotes/colons
     def __get_current_color(self):
         """Get the syntax highlighting color for the current cursor position"""
@@ -2272,7 +2417,7 @@ class CodeEditor(TextEditBaseWidget):
         self.copy_action = create_action(self, _("Copy"),
                            shortcut=keybinding('Copy'),
                            icon=get_icon('editcopy.png'), triggered=self.copy)
-        paste_action = create_action(self, _("Paste"),
+        self.paste_action = create_action(self, _("Paste"),
                            shortcut=keybinding('Paste'),
                            icon=get_icon('editpaste.png'), triggered=self.paste)
         self.delete_action = create_action(self, _("Delete"),
@@ -2284,9 +2429,9 @@ class CodeEditor(TextEditBaseWidget):
                            icon=get_icon('selectall.png'),
                            triggered=self.selectAll)
         toggle_comment_action = create_action(self,
-                           _("Comment")+"/"+_("Uncomment"),
-                           icon=get_icon("comment.png"),
-                           triggered=self.toggle_comment)
+                                _("Comment")+"/"+_("Uncomment"),
+                                icon=get_icon("comment.png"),
+                                triggered=self.toggle_comment)
         self.clear_all_output_action = create_action(self,
                            _("Clear all ouput"), icon='ipython_console.png',
                            triggered=self.clear_all_output)
@@ -2301,20 +2446,23 @@ class CodeEditor(TextEditBaseWidget):
                         icon='run_selection.png',
                         triggered=lambda: self.run_selection.emit())
         zoom_in_action = create_action(self, _("Zoom in"),
-                      QKeySequence(QKeySequence.ZoomIn), icon='zoom_in.png',
+                         QKeySequence(QKeySequence.ZoomIn), icon='zoom_in.png',
                       triggered=lambda: self.zoom_in.emit())
         zoom_out_action = create_action(self, _("Zoom out"),
-                      QKeySequence(QKeySequence.ZoomOut), icon='zoom_out.png',
+                      QKeySequence(QKeySequence.ZoomOut),
+                      icon='zoom_out.png',
                       triggered=lambda: self.zoom_out.emit())
         zoom_reset_action = create_action(self, _("Zoom reset"),
                       QKeySequence("Ctrl+0"),
                       triggered=lambda: self.zoom_reset.emit())
         self.menu = QMenu(self)
         actions_1 = [self.undo_action, self.redo_action, None, self.cut_action,
-                     self.copy_action, paste_action, self.delete_action, None]
-        actions_2 = [selectall_action, None, zoom_in_action, zoom_out_action,
-                     zoom_reset_action, None, toggle_comment_action, None,
-                     self.run_selection_action, self.gotodef_action]
+                     self.copy_action, self.paste_action, self.delete_action,
+                     None]
+        actions_2 = [selectall_action, None, zoom_in_action,
+                     zoom_out_action,
+                     zoom_reset_action, None, toggle_comment_action,
+                     None, self.run_selection_action, self.gotodef_action]
         if nbformat is not None:
             nb_actions = [self.clear_all_output_action,
                           self.ipynb_convert_action, None]
@@ -2322,7 +2470,7 @@ class CodeEditor(TextEditBaseWidget):
             add_actions(self.menu, actions)
         else:
             actions = actions_1 + actions_2
-            add_actions(self.menu, actions) 
+            add_actions(self.menu, actions)
 
         # Read-only context-menu
         self.readonly_menu = QMenu(self)
@@ -2340,6 +2488,30 @@ class CodeEditor(TextEditBaseWidget):
             self.__clear_occurences()
         if QToolTip.isVisible():
             self.hide_tooltip_if_necessary(key)
+
+        # Handle the Qt Builtin key sequences
+        checks = [('SelectAll', 'Select All'),
+                  ('Copy', 'Copy'),
+                  ('Cut', 'Cut'),
+                  ('Paste', 'Paste')]
+
+        for qname, name in checks:
+            seq = getattr(QKeySequence, qname)
+            sc = get_shortcut('editor', name)
+            default = QKeySequence(seq).toString()
+            if event == seq and sc != default:
+                # if we have overridden it, call our action
+                for shortcut in self.shortcuts:
+                    qsc, name, keystr = shortcut.data
+                    if keystr == default:
+                        qsc.activated.emit()
+                        event.ignore()
+                        return
+
+                # otherwise, pass it on to parent
+                event.ignore()
+                return
+
         if key in (Qt.Key_Enter, Qt.Key_Return):
             if not shift and not ctrl:
                 if self.add_colons_enabled and self.is_python_like() and \

@@ -592,33 +592,45 @@ class MainWindow(QMainWindow):
                                             context=Qt.WidgetShortcut)
             self.register_shortcut(self.replace_action, "Editor",
                                    "Replace text")
+
             def create_edit_action(text, tr_text, icon_name):
                 textseq = text.split(' ')
                 method_name = textseq[0].lower()+"".join(textseq[1:])
-                return create_action(self, tr_text,
-                                     shortcut=keybinding(text.replace(' ', '')),
-                                     icon=get_icon(icon_name),
-                                     triggered=self.global_callback,
-                                     data=method_name,
-                                     context=Qt.WidgetShortcut)
+                action = create_action(self, tr_text,
+                                    shortcut=keybinding(text.replace(' ', '')),
+                                    icon=get_icon(icon_name),
+                                    triggered=self.global_callback,
+                                    data=method_name,
+                                    context=Qt.WidgetShortcut)
+                self.register_shortcut(action, "Editor", text)
+                return action
+
             self.undo_action = create_edit_action("Undo", _("Undo"),
                                                   'undo.png')
+
             self.redo_action = create_edit_action("Redo", _("Redo"), 'redo.png')
+
             self.copy_action = create_edit_action("Copy", _("Copy"),
                                                   'editcopy.png')
+
             self.cut_action = create_edit_action("Cut", _("Cut"), 'editcut.png')
+
             self.paste_action = create_edit_action("Paste", _("Paste"),
                                                    'editpaste.png')
+
             self.delete_action = create_edit_action("Delete", _("Delete"),
                                                     'editdelete.png')
+
             self.selectall_action = create_edit_action("Select All",
                                                        _("Select All"),
                                                        'selectall.png')
+
             self.edit_menu_actions = [self.undo_action, self.redo_action,
                                       None, self.cut_action, self.copy_action,
                                       self.paste_action, self.delete_action,
                                       None, self.selectall_action]
-            self.search_menu_actions = [self.find_action, self.find_next_action,
+            self.search_menu_actions = [self.find_action, 
+                                        self.find_next_action,
                                         self.find_previous_action,
                                         self.replace_action]
             self.search_toolbar_actions = [self.find_action,
