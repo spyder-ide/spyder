@@ -88,10 +88,17 @@ from spyderlib.qt import QtSvg  # analysis:ignore
 
 
 #==============================================================================
-# Splash screen
+# Create our QApplication instance here because it's needed to render the
+# splash screen created below
+#==============================================================================
+from spyderlib.utils.qthelpers import qapplication
+MAIN_APP = qapplication()
+
+
+#==============================================================================
+# Create splash screen out of MainWindow to reduce perceived startup time. 
 #==============================================================================
 from spyderlib.baseconfig import _, get_image_path, DEV
-SPLASH_APP = QApplication([''])
 SPLASH = QSplashScreen(QPixmap(get_image_path('splash.png'), 'png'))
 SPLASH_FONT = SPLASH.font()
 SPLASH_FONT.setPixelSize(10)
@@ -140,8 +147,8 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, get_icon,
                                        create_module_bookmark_actions,
                                        create_bookmark_action,
                                        create_program_action, DialogManager,
-                                       keybinding, qapplication,
-                                       create_python_script_action, file_uri)
+                                       keybinding, create_python_script_action,
+                                       file_uri)
 from spyderlib.guiconfig import get_shortcut, remove_deprecated_shortcuts
 from spyderlib.otherplugins import get_spyderplugins_mods
 from spyderlib import tour # FIXME: Better place for this?
@@ -2214,7 +2221,7 @@ class MainWindow(QMainWindow):
             """<b>Spyder %s</b> %s
             <br>The Scientific PYthon Development EnviRonment
             <p>Copyright &copy; 2009-2012 Pierre Raybaut
-            <br>Copyright &copy; 2010-1015 The Spyder Development Team
+            <br>Copyright &copy; 2010-2015 The Spyder Development Team
             <br>Licensed under the terms of the MIT License
             <p>Created by Pierre Raybaut
             <br>Developed and maintained by the
@@ -2642,6 +2649,9 @@ class MainWindow(QMainWindow):
 #==============================================================================
 def initialize():
     """Initialize Qt, patching sys.exit and eventually setting up ETS"""
+    # This doesn't create our QApplication, just holds a reference to
+    # MAIN_APP, created above to show our splash screen as early as
+    # possible
     app = qapplication()
 
     #----Monkey patching PyQt4.QtGui.QApplication
