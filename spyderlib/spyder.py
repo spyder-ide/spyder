@@ -1729,7 +1729,7 @@ class MainWindow(QMainWindow):
             """<b>Spyder %s</b> %s
             <br>The Scientific PYthon Development EnviRonment
             <p>Copyright &copy; 2009-2012 Pierre Raybaut
-            <br>Copyright &copy; 2010-1015 The Spyder Development Team
+            <br>Copyright &copy; 2010-2015 The Spyder Development Team
             <br>Licensed under the terms of the MIT License
             <p>Created by Pierre Raybaut
             <br>Developed and maintained by the 
