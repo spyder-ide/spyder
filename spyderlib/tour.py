@@ -818,6 +818,7 @@ class AnimatedTour(QWidget):
                                  self.duration_tips, self.easing_curve)
 
         # Widgets setup
+        # Needed to fix issue #2204
         self.setAttribute(Qt.WA_TransparentForMouseEvents)
 
         # Signals and slots
