@@ -8,8 +8,8 @@ import os
 
 if os.environ['QT_API'] == 'pyqt':
     from PyQt4.QtCore import *  # analysis:ignore
-    from PyQt4.Qt import QCoreApplication  # analysis:ignore
-    from PyQt4.Qt import Qt  # analysis:ignore
+    from PyQt4.QtCore import QCoreApplication  # analysis:ignore
+    from PyQt4.QtCore import Qt  # analysis:ignore
     from PyQt4.QtCore import pyqtSignal as Signal  # analysis:ignore
     from PyQt4.QtCore import pyqtSlot as Slot  # analysis:ignore
     from PyQt4.QtCore import pyqtProperty as Property  # analysis:ignore
