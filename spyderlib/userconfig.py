@@ -253,8 +253,13 @@ class UserConfig(DefaultsConfig):
         try:
             if PY2:
                 # Python 2
-                with codecs.open(self.filename(), encoding='utf-8') as configfile:
-                    self.readfp(configfile)
+                fname = self.filename()
+                if osp.isfile(fname):
+                    try:
+                        with codecs.open(fname, encoding='utf-8') as configfile:
+                            self.readfp(configfile)
+                    except IOError:
+                        print("Failed reading file", fname)
             else:
                 # Python 3
                 self.read(self.filename(), encoding='utf-8')
