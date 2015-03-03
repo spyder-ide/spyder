@@ -62,10 +62,8 @@ class RunConfiguration(object):
             self.wdir_enabled = True
         
     def set(self, options):
-        self.args = options.get('args',
-            CONF.get('run', 'args', ''))
-        self.args_enabled = options.get('args/enabled',
-            CONF.get('run', 'args_enabled', False))
+        self.args = options.get('args', '')
+        self.args_enabled = options.get('args/enabled', False)
         if CONF.get('run', WDIR_USE_FIXED_DIR_OPTION, False):
             default_wdir = CONF.get('run', WDIR_FIXED_DIR_OPTION, getcwd())
             self.wdir = options.get('workdir', default_wdir)
@@ -83,10 +81,8 @@ class RunConfiguration(object):
                            CONF.get('run', 'show_kill_warning', False))
         self.post_mortem = options.get('post_mortem',
                            CONF.get('run', 'post_mortem', False))
-        self.python_args = options.get('python_args',
-                           CONF.get('run', 'python_args', ''))
-        self.python_args_enabled = options.get('python_args/enabled',
-                           CONF.get('run', 'python_args_enabled', False))
+        self.python_args = options.get('python_args', '')
+        self.python_args_enabled = options.get('python_args/enabled', False)
         
     def get(self):
         return {
@@ -475,13 +471,6 @@ class RunConfigPage(GeneralConfigPage):
         interpreter_layout.addWidget(self.systerm_radio)
         
         general_group = QGroupBox("General settings")
-        command_options_enabled = self.create_checkbox(_("Command line options:"),
-                                     'args_enabled', True)
-        command_options = self.create_lineedit('', 'args', '')
-        command_layout = QHBoxLayout()
-        command_layout.addWidget(command_options_enabled)
-        command_layout.addWidget(command_options)
-
         wdir_bg = QButtonGroup(general_group)
         wdir_label = QLabel(_("Default working directory is:"))
         wdir_label.setWordWrap(True)
@@ -503,7 +492,6 @@ class RunConfigPage(GeneralConfigPage):
              'post_mortem', False)
 
         general_layout = QVBoxLayout()
-        general_layout.addLayout(command_layout)
         general_layout.addWidget(wdir_label)
         general_layout.addWidget(dirname_radio)
         general_layout.addLayout(thisdir_layout)
@@ -518,18 +506,9 @@ class RunConfigPage(GeneralConfigPage):
             _("Show warning when killing running processes"),
             'show_kill_warning', True)
 
-        py_command_options_enabled = self.create_checkbox(
-            _("Command line options:"),
-            'python_args_enabled', True)
-        py_command_options = self.create_lineedit('', 'python_args', '')
-        py_command_layout = QHBoxLayout()
-        py_command_layout.addWidget(py_command_options_enabled)
-        py_command_layout.addWidget(py_command_options)
-
         dedicated_layout = QVBoxLayout()
         dedicated_layout.addWidget(interact_after)
         dedicated_layout.addWidget(show_warning)
-        dedicated_layout.addLayout(py_command_layout)
         dedicated_group.setLayout(dedicated_layout)
 
         firstrun_cb = self.create_checkbox(
