@@ -69,7 +69,7 @@ class RequestHandler(QObject):
 
     def _make_async_call(self, plugin, info):
         """Trigger an introspection job in a thread"""
-        self._threads[plugin.name] = thread = IntrospectionThread(plugin, info)
+        self._threads[str(plugin.name)] = thread = IntrospectionThread(plugin, info)
         thread.request_handled.connect(self._handle_incoming)
         thread.start()
 
