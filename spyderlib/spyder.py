@@ -948,7 +948,15 @@ class MainWindow(QMainWindow):
                                        triggered=lambda : programs.start_file(spyder_doc))
 
             tut_action = create_action(self, _("Spyder tutorial"),
-                                       triggered=self.inspector.show_tutorial)
+                                       triggered=lambda: self.inspector.interactive_tutorial('tutorial.rst'))
+
+        #----- Other interactive tutorials
+            self.tutorials_menu = QMenu(_("Other tutorials"))
+            self.tutorials_menu_actions = []
+            interactive_git_action = create_action(self, _("Git tutorial"),
+                                       triggered=lambda: self.inspector.interactive_tutorial('git_tutorial.rst'))
+            self.tutorials_menu_actions.append(interactive_git_action)
+            self.tutorials_menu.addActions(self.tutorials_menu_actions)
 
         #----- Tours
             self.tour = tour.AnimatedTour(self)
@@ -972,7 +980,7 @@ class MainWindow(QMainWindow):
             if not DEV:
                 self.tours_menu = None
 
-            self.help_menu_actions = [doc_action, tut_action, self.tours_menu,
+            self.help_menu_actions = [doc_action, tut_action, self.tutorials_menu, self.tours_menu,
                                       None,
                                       report_action, dep_action, support_action,
                                       None]
