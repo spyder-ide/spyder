@@ -55,6 +55,8 @@ class RequestHandler(QObject):
         self.waiting = False
 
     def _handle_incoming(self, name):
+        # coerce to a str in case it is a QString
+        name = str(name)
         self._threads[name].wait()
         if self.result:
             return
