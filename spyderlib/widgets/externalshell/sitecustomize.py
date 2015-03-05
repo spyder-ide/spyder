@@ -188,8 +188,8 @@ if sys.platform == 'darwin':
             # Add a minimal library (with spyderlib) at the end of sys.path to
             # be able to connect our monitor to the external console
             py_ver = '%s.%s' % (sys.version_info[0], sys.version_info[1])
-            app_pythonpath = '%s/Contents/Resources/lib/python%s' (MAC_APP_NAME,
-                                                                   py_ver)
+            app_pythonpath = '%s/Contents/Resources/lib/python%s' % (MAC_APP_NAME,
+                                                                     py_ver)
             full_pythonpath = [p for p in sys.path if p.endswith(app_pythonpath)]
             if full_pythonpath:
                 sys.path.remove(full_pythonpath[0])
