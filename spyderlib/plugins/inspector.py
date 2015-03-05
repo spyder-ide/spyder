@@ -773,8 +773,8 @@ class ObjectInspector(SpyderPluginWidget):
         self.set_plain_text(text, is_code=False)
 
     @Slot()
-    def interactive_tutorial(self, tutorial_name):
-        tutorial_path = get_module_source_path('spyderlib.utils.inspector')
+    def show_tutorial(self, tutorial_name, source_path='spyderlib.utils.inspector'):
+        tutorial_path = get_module_source_path(source_path)
         img_path = osp.join(tutorial_path, 'static', 'images')
         tutorial = osp.join(tutorial_path, tutorial_name)
         text = open(tutorial).read()

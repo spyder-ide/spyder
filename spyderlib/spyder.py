@@ -948,13 +948,14 @@ class MainWindow(QMainWindow):
                                        triggered=lambda : programs.start_file(spyder_doc))
 
             tut_action = create_action(self, _("Spyder tutorial"),
-                                       triggered=lambda: self.inspector.interactive_tutorial('tutorial.rst'))
+                                       triggered=lambda: self.inspector.show_tutorial('tutorial.rst'))
 
         #----- Other interactive tutorials
-            self.tutorials_menu = QMenu(_("Other tutorials"))
+        # tutorials are located in the spyderlib.utils.inspector directory
+            self.tutorials_menu = QMenu(_("Scientific tutorials"))
             self.tutorials_menu_actions = []
-            interactive_git_action = create_action(self, _("Git tutorial"),
-                                       triggered=lambda: self.inspector.interactive_tutorial('git_tutorial.rst'))
+            interactive_git_action = create_action(self, _("Version Control System tutorial"),
+                                       triggered=lambda: self.inspector.show_tutorial('git_tutorial.rst'))
             self.tutorials_menu_actions.append(interactive_git_action)
             self.tutorials_menu.addActions(self.tutorials_menu_actions)
 
