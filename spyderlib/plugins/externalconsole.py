@@ -254,8 +254,12 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         monitor_group.setLayout(monitor_layout)
         
         # Qt Group
-        opts = [(_("Default library"), 'default'), ('PyQt4', 'pyqt'),
-                ('PySide', 'pyside')]
+        opts = [
+            (_("Default library"), 'default'),
+            ('PyQt5', 'pyqt5'),
+            ('PyQt4', 'pyqt'),
+            ('PySide', 'pyside'),
+        ]
         qt_group = QGroupBox(_("Qt (PyQt/PySide)"))
         qt_setapi_box = self.create_combobox(
                          _("Qt-Python bindings library selection:"), opts,
