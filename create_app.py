@@ -206,7 +206,11 @@ def _get_env():
     else:
         envstr = sp.Popen('printenv', shell=True,
                           stdout=sp.PIPE).communicate()[0]
-    env = [a.split('=') for a in envstr.decode().strip().split('\n')]
+    try:
+        env_vars = envstr.decode().strip().split('\n')
+    except UnicodeDecodeError:
+        env_vars = envstr.decode(encoding='utf-8').strip().split('\n')
+    env = [a.split('=') for a in env_vars if '=' in a]
     os.environ.update(env)
 try:
     _get_env()
