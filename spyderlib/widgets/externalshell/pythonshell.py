@@ -476,10 +476,9 @@ class ExternalPythonShell(ExternalShellBase):
 
         # IPython kernel
         env.append('IPYTHON_KERNEL=%r' % self.is_ipykernel)
-            
-        pathlist = []
 
-        # Fix encoding with custom "sitecustomize.py"
+        # Add sitecustomize path to path list 
+        pathlist = []
         scpath = osp.dirname(osp.abspath(__file__))
         pathlist.append(scpath)
         
@@ -510,8 +509,8 @@ class ExternalPythonShell(ExternalShellBase):
         # 1. PYTHONPATH and PYTHONHOME are set while bootstrapping the app,
         #    but their values are messing sys.path for external interpreters
         #    (e.g. EPD) so we need to remove them from the environment.
-        # 2. Add this file's dir to PYTHONPATH. This will make every external
-        #    interpreter to use our sitecustomize script.
+        # 2. Set PYTHONPATH again but without grabbing entries defined in the
+        #    environment (Fixes Issue 1321)
         # 3. Remove PYTHONOPTIMIZE from env so that we can have assert
         #    statements working with our interpreters (See Issue 1281)
         if running_in_mac_app():
@@ -520,8 +519,7 @@ class ExternalPythonShell(ExternalShellBase):
                 env = [p for p in env if not (p.startswith('PYTHONPATH') or \
                                               p.startswith('PYTHONHOME'))] # 1.
 
-                env.append('PYTHONPATH=%s' % osp.dirname(__file__))        # 2.
-
+                add_pathlist_to_PYTHONPATH(env, pathlist, drop_env=True)   # 2.
             env = [p for p in env if not p.startswith('PYTHONOPTIMIZE')]   # 3.
 
         self.process.setEnvironment(env)
