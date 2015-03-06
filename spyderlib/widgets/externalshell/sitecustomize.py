@@ -182,16 +182,11 @@ if sys.platform == 'darwin':
     if MAC_APP_NAME in __file__:
         interpreter = os.environ.get('SPYDER_INTERPRETER')
         if MAC_APP_NAME not in interpreter:
-            # We added this file's dir to PYTHONPATH (in pythonshell.py)
-            # so that external interpreters can import this script, and
-            # now we are removing it
-            del os.environ['PYTHONPATH']
-
             # Add a minimal library (with spyderlib) at the end of sys.path to
             # be able to connect our monitor to the external console
             py_ver = '%s.%s' % (sys.version_info[0], sys.version_info[1])
-            app_pythonpath = '%s/Contents/Resources/lib/python%s' (MAC_APP_NAME,
-                                                                   py_ver)
+            app_pythonpath = '%s/Contents/Resources/lib/python%s' % (MAC_APP_NAME,
+                                                                     py_ver)
             full_pythonpath = [p for p in sys.path if p.endswith(app_pythonpath)]
             if full_pythonpath:
                 sys.path.remove(full_pythonpath[0])

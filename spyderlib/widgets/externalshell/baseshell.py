@@ -28,14 +28,14 @@ from spyderlib.baseconfig import get_conf_path, _
 from spyderlib.py3compat import is_text_string, to_text_string
 
 
-def add_pathlist_to_PYTHONPATH(env, pathlist):
+def add_pathlist_to_PYTHONPATH(env, pathlist, drop_env=False):
     # PyQt API 1/2 compatibility-related tests:
     assert isinstance(env, list)
     assert all([is_text_string(path) for path in env])
     
     pypath = "PYTHONPATH"
     pathstr = os.pathsep.join(pathlist)
-    if os.environ.get(pypath) is not None:
+    if os.environ.get(pypath) is not None and not drop_env:
         for index, var in enumerate(env[:]):
             if var.startswith(pypath+'='):
                 env[index] = var.replace(pypath+'=',
