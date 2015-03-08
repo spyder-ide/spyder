@@ -1044,8 +1044,8 @@ class IPythonConsole(SpyderPluginWidget):
             self._create_client_for_kernel(cf, hostname, kf, pw)
 
     def _create_client_for_kernel(self, cf, hostname, kf, pw):
-        # Verifying if the connection file exists - in the case of an empty
-        # file name, the last used connection file is returned. 
+        # Verifying if the connection file exists
+        cf = osp.basename(cf)
         try:
             if not cf.startswith('kernel') and not cf.endswith('json'):
                 cf = to_text_string('kernel-' + cf + '.json')
