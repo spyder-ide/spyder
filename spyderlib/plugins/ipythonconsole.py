@@ -938,7 +938,8 @@ class IPythonConsole(SpyderPluginWidget):
                                                        client.kernel_widget_id)
             if idx is not None:
                 close_all = True
-                if self.get_option('ask_before_closing'):
+                if len(self.get_related_clients(client)) > 0 and \
+                  self.get_option('ask_before_closing'):
                     ans = QMessageBox.question(self, self.get_plugin_title(),
                            _("%s will be closed.\n"
                              "Do you want to kill the associated kernel "
@@ -969,12 +970,22 @@ class IPythonConsole(SpyderPluginWidget):
         index = self.get_client_index_from_id(id(client))
         self.tabwidget.setTabText(index, client.get_name())
 
+    def get_related_clients(self, client):
+        """
+        Get all other clients that are connected to the same kernel as `client`
+        """
+        related_clients = []
+        for cl in self.get_clients():
+            if cl.connection_file == client.connection_file and \
+              cl is not client:
+                related_clients.append(cl)
+        return related_clients
+
     def close_related_clients(self, client):
         """Close all clients related to *client*, except itself"""
-        for cl in self.clients[:]:
-            if cl is not client and \
-              cl.connection_file == client.connection_file:
-                self.close_client(client=cl)
+        related_clients = self.get_related_clients(client)
+        for cl in related_clients:
+            self.close_client(client=cl)
 
     #------ Public API (for kernels) ------------------------------------------
     def ssh_tunnel(self, *args, **kwargs):
@@ -1066,7 +1077,7 @@ class IPythonConsole(SpyderPluginWidget):
                     master_name = cl.name.split('/')[0]
         
         # If we couldn't find a client with the same connection file,
-        # it means this is an external kernel
+        # it means this is a new master client
         if master_name is None:
             self.master_clients += 1
             master_name = to_text_string(self.master_clients)
