@@ -930,23 +930,23 @@ class IPythonConsole(SpyderPluginWidget):
         # Check if related clients or kernels are opened
         # and eventually ask before closing them
         if not force and isinstance(client, IPythonClient):
-            idx = self.extconsole.get_shell_index_from_id(
+            kernel_index = self.extconsole.get_shell_index_from_id(
                                                        client.kernel_widget_id)
-            if idx is not None:
-                close_all = True
-                if self.get_option('ask_before_closing'):
-                    ans = QMessageBox.question(self, self.get_plugin_title(),
-                           _("%s will be closed.\n"
-                             "Do you want to kill the associated kernel "
-                             "and all of its clients?") % client.get_name(),
-                           QMessageBox.Yes|QMessageBox.No|QMessageBox.Cancel)
-                    if ans == QMessageBox.Cancel:
-                        return
-                    close_all = ans == QMessageBox.Yes
-                if close_all:
-                    self.extconsole.close_console(index=idx,
+            close_all = True
+            if len(self.get_related_clients(client)) > 0 and \
+              self.get_option('ask_before_closing'):
+                ans = QMessageBox.question(self, self.get_plugin_title(),
+                       _("Do you want to close all other clients connected to "
+                         "the same kernel as this one?"),
+                       QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel)
+                if ans == QMessageBox.Cancel:
+                    return
+                close_all = ans == QMessageBox.Yes
+            if close_all:
+                if kernel_index is not None:
+                    self.extconsole.close_console(index=kernel_index,
                                                   from_ipyclient=True)
-                    self.close_related_clients(client)
+                self.close_related_clients(client)
         client.close()
         
         # Note: client index may have changed after closing related widgets
@@ -965,12 +965,22 @@ class IPythonConsole(SpyderPluginWidget):
         index = self.get_client_index_from_id(id(client))
         self.tabwidget.setTabText(index, client.get_name())
 
+    def get_related_clients(self, client):
+        """
+        Get all other clients that are connected to the same kernel as `client`
+        """
+        related_clients = []
+        for cl in self.get_clients():
+            if cl.connection_file == client.connection_file and \
+              cl is not client:
+                related_clients.append(cl)
+        return related_clients
+
     def close_related_clients(self, client):
         """Close all clients related to *client*, except itself"""
-        for cl in self.clients[:]:
-            if cl is not client and \
-              cl.connection_file == client.connection_file:
-                self.close_client(client=cl)
+        related_clients = self.get_related_clients(client)
+        for cl in related_clients:
+            self.close_client(client=cl, force=True)
 
     #------ Public API (for kernels) ------------------------------------------
     def ssh_tunnel(self, *args, **kwargs):
@@ -1041,8 +1051,8 @@ class IPythonConsole(SpyderPluginWidget):
             self._create_client_for_kernel(cf, hostname, kf, pw)
 
     def _create_client_for_kernel(self, cf, hostname, kf, pw):
-        # Verifying if the connection file exists - in the case of an empty
-        # file name, the last used connection file is returned. 
+        # Verifying if the connection file exists
+        cf = osp.basename(cf)
         try:
             if not cf.startswith('kernel') and not cf.endswith('json'):
                 cf = to_text_string('kernel-' + cf + '.json')
@@ -1054,22 +1064,24 @@ class IPythonConsole(SpyderPluginWidget):
         
         # Getting the master name that corresponds to the client
         # (i.e. the i in i/A)
-        count = 0
         master_name = None
+        slave_ord = ord('A') - 1
         for cl in self.get_clients():
             if cf == cl.connection_file:
-                count += 1
                 if master_name is None:
                     master_name = cl.name.split('/')[0]
+                new_slave_ord = ord(cl.name.split('/')[1])
+                if new_slave_ord > slave_ord:
+                    slave_ord = new_slave_ord
         
         # If we couldn't find a client with the same connection file,
-        # it means this is an external kernel
+        # it means this is a new master client
         if master_name is None:
             self.master_clients += 1
             master_name = to_text_string(self.master_clients)
         
         # Set full client name
-        name = master_name + '/' + chr(65+count)
+        name = master_name + '/' + chr(slave_ord + 1)
         
         # Getting kernel_widget_id from the currently open kernels.
         kernel_widget_id = None
