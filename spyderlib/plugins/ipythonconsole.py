@@ -934,24 +934,23 @@ class IPythonConsole(SpyderPluginWidget):
         # Check if related clients or kernels are opened
         # and eventually ask before closing them
         if not force and isinstance(client, IPythonClient):
-            idx = self.extconsole.get_shell_index_from_id(
+            kernel_index = self.extconsole.get_shell_index_from_id(
                                                        client.kernel_widget_id)
-            if idx is not None:
-                close_all = True
-                if len(self.get_related_clients(client)) > 0 and \
-                  self.get_option('ask_before_closing'):
-                    ans = QMessageBox.question(self, self.get_plugin_title(),
-                           _("%s will be closed.\n"
-                             "Do you want to kill the associated kernel "
-                             "and all of its clients?") % client.get_name(),
-                           QMessageBox.Yes|QMessageBox.No|QMessageBox.Cancel)
-                    if ans == QMessageBox.Cancel:
-                        return
-                    close_all = ans == QMessageBox.Yes
-                if close_all:
-                    self.extconsole.close_console(index=idx,
+            close_all = True
+            if len(self.get_related_clients(client)) > 0 and \
+              self.get_option('ask_before_closing'):
+                ans = QMessageBox.question(self, self.get_plugin_title(),
+                       _("Do you want to close all other clients connected to "
+                         "the same kernel as this one?"),
+                       QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel)
+                if ans == QMessageBox.Cancel:
+                    return
+                close_all = ans == QMessageBox.Yes
+            if close_all:
+                if kernel_index is not None:
+                    self.extconsole.close_console(index=kernel_index,
                                                   from_ipyclient=True)
-                    self.close_related_clients(client)
+                self.close_related_clients(client)
         client.close()
         
         # Note: client index may have changed after closing related widgets
@@ -985,7 +984,7 @@ class IPythonConsole(SpyderPluginWidget):
         """Close all clients related to *client*, except itself"""
         related_clients = self.get_related_clients(client)
         for cl in related_clients:
-            self.close_client(client=cl)
+            self.close_client(client=cl, force=True)
 
     #------ Public API (for kernels) ------------------------------------------
     def ssh_tunnel(self, *args, **kwargs):
