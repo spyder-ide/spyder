@@ -8,7 +8,7 @@
 Create a stand-alone Mac OS X app using py2app
 
 To be used like this:
-$ python setup.py build_doc     (to update the docs)
+$ python setup.py build         (to update the docs)
 $ python create_app.py py2app   (to build the app)
 """
 
@@ -33,6 +33,9 @@ from spyderlib.utils.programs import find_program
 
 
 PY2 = sys.version[0] == '2'
+
+# To cope with a bug in py2app 0.9
+sys.setrecursionlimit(1500)
 
 #==============================================================================
 # Auxiliary functions
@@ -73,7 +76,8 @@ EXCLUDES = DEPS + ['mercurial']
 PACKAGES = ['spyderlib', 'spyderplugins', 'sphinx', 'jinja2', 'docutils',
             'IPython', 'zmq', 'pygments', 'rope', 'distutils', 'PIL', 'PyQt4',
             'sklearn', 'skimage', 'pandas', 'sympy', 'pyflakes', 'psutil',
-            'mpl_toolkits', 'nose', 'patsy','statsmodels', 'seaborn']
+            'mpl_toolkits', 'nose', 'patsy','statsmodels', 'seaborn',
+            'networkx']
 
 INCLUDES = get_stdlib_modules()
 EDIT_EXT = [ext[1:] for ext in EDIT_EXT]
