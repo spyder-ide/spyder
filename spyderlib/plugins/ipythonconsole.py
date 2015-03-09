@@ -1067,13 +1067,15 @@ class IPythonConsole(SpyderPluginWidget):
         
         # Getting the master name that corresponds to the client
         # (i.e. the i in i/A)
-        count = 0
         master_name = None
+        slave_ord = ord('A') - 1
         for cl in self.get_clients():
             if cf == cl.connection_file:
-                count += 1
                 if master_name is None:
                     master_name = cl.name.split('/')[0]
+                new_slave_ord = ord(cl.name.split('/')[1])
+                if new_slave_ord > slave_ord:
+                    slave_ord = new_slave_ord
         
         # If we couldn't find a client with the same connection file,
         # it means this is a new master client
@@ -1082,7 +1084,7 @@ class IPythonConsole(SpyderPluginWidget):
             master_name = to_text_string(self.master_clients)
         
         # Set full client name
-        name = master_name + '/' + chr(65+count)
+        name = master_name + '/' + chr(slave_ord + 1)
         
         # Getting kernel_widget_id from the currently open kernels.
         kernel_widget_id = None
