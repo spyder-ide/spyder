@@ -48,6 +48,8 @@ from spyderlib.utils.programs import check_version
 from spyderlib.py3compat import configparser as cp
 from spyderlib.py3compat import PY2, is_text_string, to_text_string
 
+if PY2:
+    import codecs
 
 #==============================================================================
 # Auxiliary classes
@@ -113,7 +115,7 @@ class DefaultsConfig(cp.ConfigParser):
         def _write_file(fname):
             if PY2:
                 # Python 2
-                with open(fname, 'w') as configfile:
+                with codecs.open(fname, 'w', encoding='utf-8') as configfile:
                     self._write(configfile)
             else:
                 # Python 3
@@ -251,7 +253,13 @@ class UserConfig(DefaultsConfig):
         try:
             if PY2:
                 # Python 2
-                self.read(self.filename())
+                fname = self.filename()
+                if osp.isfile(fname):
+                    try:
+                        with codecs.open(fname, encoding='utf-8') as configfile:
+                            self.readfp(configfile)
+                    except IOError:
+                        print("Failed reading file", fname)
             else:
                 # Python 3
                 self.read(self.filename(), encoding='utf-8')
