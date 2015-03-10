@@ -60,15 +60,24 @@ def kernel_config():
     # Until we implement Issue 1052
     spy_cfg.InteractiveShell.xmode = 'Plain'
     
+    # Run lines of code at startup
+    run_lines_o = CONF.get('ipython_console', 'startup/run_lines')
+    if run_lines_o:
+        spy_cfg.IPKernelApp.exec_lines = [x.strip() for x in run_lines_o.split(',')]
+    else:
+        spy_cfg.IPKernelApp.exec_lines = []
+    
     # Pylab configuration
     mpl_installed = is_module_installed('matplotlib')
     pylab_o = CONF.get('ipython_console', 'pylab')
     
     if mpl_installed and pylab_o:
+        # Set matplotlib backend
         backend_o = CONF.get('ipython_console', 'pylab/backend', 0)
         backends = {0: 'inline', 1: 'auto', 2: 'qt', 3: 'osx', 4: 'gtk',
                     5: 'wx', 6: 'tk'}
-        spy_cfg.IPKernelApp.pylab = backends[backend_o]
+        mpl_magic = "%matplotlib {0}".format( backends[backend_o] )
+        spy_cfg.IPKernelApp.exec_lines.append(mpl_magic)
         
         # Automatically load Pylab and Numpy
         autoload_pylab_o = CONF.get('ipython_console', 'pylab/autoload')
@@ -99,11 +108,6 @@ def kernel_config():
            height_o = float(CONF.get('ipython_console', 'pylab/inline/height'))
            spy_cfg.InlineBackend.rc['figure.figsize'] = (width_o, height_o)
     
-    # Run lines of code at startup
-    run_lines_o = CONF.get('ipython_console', 'startup/run_lines')
-    if run_lines_o:
-        spy_cfg.IPKernelApp.exec_lines = [x.strip() for x in run_lines_o.split(',')]
-    
     # Run a file at startup
     use_file_o = CONF.get('ipython_console', 'startup/use_run_file')
     run_file_o = CONF.get('ipython_console', 'startup/run_file')
@@ -126,10 +130,7 @@ def kernel_config():
     if sympy_o:
         lines, extension = sympy_config()
         if lines is not None:
-            if run_lines_o:
-                spy_cfg.IPKernelApp.exec_lines.append(lines)
-            else:
-                spy_cfg.IPKernelApp.exec_lines = [lines]
+            spy_cfg.IPKernelApp.exec_lines.append(lines)
             if extension:
                 spy_cfg.IPKernelApp.extra_extension = extension
                 spy_cfg.LaTeXTool.backends = ['dvipng', 'matplotlib']
@@ -199,12 +200,6 @@ del ipk_temp
 # __ipythonkernel__ to not have problems while starting kernels
 change_edit_magic(__ipythonshell__)
 __ipythonshell__.register_magic_function(varexp)
-
-# Remove pylab modules from namespace
-if not __ipythonkernel__.pylab_import_all:
-    [__ipythonshell__.user_ns.pop(m, '') for m in ('matplotlib', 'mlab', 'np',
-                                                   'numpy', 'plt', 'pyplot',
-                                                   'pylab')]
 
 # To make %pylab load numpy and pylab even if the user has
 # set autoload_pylab_o to False *but* nevertheless use it in
