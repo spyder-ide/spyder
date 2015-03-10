@@ -648,9 +648,9 @@ class ExternalConsole(SpyderPluginWidget):
         line = "%s('%s'" % ('debugfile' if debug else 'runfile',
                             norm(filename))
         if args:
-            line += ", args=r'%s'" % norm(args)
+            line += ", args='%s'" % norm(args)
         if wdir:
-            line += ", wdir=r'%s'" % norm(wdir)
+            line += ", wdir='%s'" % norm(wdir)
         if post_mortem:
             line += ', post_mortem=True'
         line += ")"

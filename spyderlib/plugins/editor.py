@@ -2036,6 +2036,10 @@ class Editor(SpyderPluginWidget):
             editor = self.get_current_editor()
             fname = osp.abspath(self.get_current_filename())
             
+            # Escape single and double quotes in fname (Fixes Issue 2158)
+            fname = fname.replace("'", r"\'")
+            fname = fname.replace('"', r'\"')
+            
             runconf = get_run_configuration(fname)
             if runconf is None:
                 dialog = RunConfigOneDialog(self)
