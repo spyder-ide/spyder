@@ -13,29 +13,11 @@ import os.path as osp
 
 def sympy_config():
     """Sympy configuration"""
-    from spyderlib.utils.programs import is_module_installed    
-    lines_new = """
+    lines = """
 from sympy.interactive import init_session
 init_session()
-"""    
-    lines_old = """
-from __future__ import division
-from sympy import *
-x, y, z, t = symbols('x y z t')
-k, m, n = symbols('k m n', integer=True)
-f, g, h = symbols('f g h', cls=Function)
 """
-    if is_module_installed('sympy', '>=0.7.3'):
-        extension = None
-        return lines_new, extension
-    elif is_module_installed('sympy', '=0.7.2'):
-        extension = 'sympy.interactive.ipythonprinting'
-        return lines_old, extension
-    elif is_module_installed('sympy', '>=0.7.0;<0.7.2'):
-        extension = 'sympyprinting'
-        return lines_old, extension
-    else:
-        return None, None
+    return lines
 
 
 def kernel_config():
@@ -128,13 +110,9 @@ def kernel_config():
     # Sympy loading
     sympy_o = CONF.get('ipython_console', 'symbolic_math')
     if sympy_o:
-        lines, extension = sympy_config()
-        if lines is not None:
-            spy_cfg.IPKernelApp.exec_lines.append(lines)
-            if extension:
-                spy_cfg.IPKernelApp.extra_extension = extension
-                spy_cfg.LaTeXTool.backends = ['dvipng', 'matplotlib']
-    
+        lines = sympy_config()
+        spy_cfg.IPKernelApp.exec_lines.append(lines)
+
     # Merge IPython and Spyder configs. Spyder prefs will have prevalence
     # over IPython ones
     ip_cfg._merge(spy_cfg)
