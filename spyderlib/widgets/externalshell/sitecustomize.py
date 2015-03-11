@@ -791,47 +791,42 @@ builtins.debugfile = debugfile
 def evalsc(command):
     """Evaluate special commands
     (analog to IPython's magic commands but far less powerful/complete)"""
-    assert command.startswith(('%', '!'))
-    system_command = command.startswith('!')
-    command = command[1:].strip()
-    if system_command:
-        # System command
-        if command.startswith('cd '):
-            evalsc('%'+command)
-        else:
-            from subprocess import Popen, PIPE
-            Popen(command, shell=True, stdin=PIPE)
-            _print('\n')
-    else:
-        # General command
-        namespace = _get_globals()
-        import re
-        clear_match = re.match(r"^clear ([a-zA-Z0-9_, ]+)", command)
-        cd_match = re.match(r"^cd \"?\'?([a-zA-Z0-9_\ \:\\\/\.]+)", command)
-        if cd_match:
-            os.chdir(eval('r"%s"' % cd_match.groups()[0].strip()))
-        elif clear_match:
-            varnames = clear_match.groups()[0].replace(' ', '').split(',')
-            for varname in varnames:
-                try:
-                    namespace.pop(varname)
-                except KeyError:
-                    pass
-        elif command in ('cd', 'pwd'):
+    assert command.startswith('%')
+    
+    from subprocess import Popen, PIPE
+    namespace = _get_globals()
+    command = command[1:].strip()  # Remove leading %
+
+    import re
+    clear_match = re.match(r"^clear ([a-zA-Z0-9_, ]+)", command)
+    cd_match = re.match(r"^cd \"?\'?([a-zA-Z0-9_\ \:\\\/\.]+)", command)
+
+    if cd_match:
+        os.chdir(eval('r"%s"' % cd_match.groups()[0].strip()))
+    elif clear_match:
+        varnames = clear_match.groups()[0].replace(' ', '').split(',')
+        for varname in varnames:
             try:
-                _print(os.getcwdu())
-            except AttributeError:
-                _print(os.getcwd())
-        elif command == 'ls':
-            if os.name == 'nt':
-                evalsc('!dir')
-            else:
-                evalsc('!ls')
-        elif command == 'scientific':
-            from spyderlib import baseconfig
-            execfile(baseconfig.SCIENTIFIC_STARTUP, namespace)
+                namespace.pop(varname)
+            except KeyError:
+                pass
+    elif command in ('cd', 'pwd'):
+        try:
+            _print(os.getcwdu())
+        except AttributeError:
+            _print(os.getcwd())
+    elif command == 'ls':
+        if os.name == 'nt':
+            Popen('dir', shell=True, stdin=PIPE)
+            _print('\n')
         else:
-            raise NotImplementedError("Unsupported command: '%s'" % command)
+            Popen('ls', shell=True, stdin=PIPE)
+            _print('\n')
+    elif command == 'scientific':
+        from spyderlib import baseconfig
+        execfile(baseconfig.SCIENTIFIC_STARTUP, namespace)
+    else:
+        raise NotImplementedError("Unsupported command: '%s'" % command)
 
 builtins.evalsc = evalsc
 

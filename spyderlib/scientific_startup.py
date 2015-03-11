@@ -124,9 +124,11 @@ computing and visualization. It tries to import the following modules:
 
     infos += """
 Within Spyder, this interpreter also provides:
-    * special commands (e.g. %ls, %pwd, %clear)
-    * system commands, i.e. all commands starting with '!' are subprocessed
-      (e.g. !dir on Windows or !ls on Linux, and so on)
+    * special commands (e.g. %ls, %cd, %pwd, %clear)
+      - %ls:      List files in the current directory
+      - %cd dir:  Change to directory dir
+      - %pwd:     Show current directory
+      - %clear x: Remove variable x from namespace
 """
     try:
         # Python 2

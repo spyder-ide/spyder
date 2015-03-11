@@ -593,7 +593,8 @@ class ExternalPythonShell(ExternalShellBase):
 #            # Socket-based alternative (see input hook in sitecustomize.py):
 #            while self.local_server.hasPendingConnections():
 #                self.local_server.nextPendingConnection().write('go!')
-        if text.startswith(('%', '!')):
+        if any([text == cmd for cmd in ['%ls', '%pwd', '%scientific']]) or \
+          any([text.startswith(cmd) for cmd in ['%cd', '%clear']]):
             text = 'evalsc(r"%s")\n' % text
         if not text.endswith('\n'):
             text += '\n'
