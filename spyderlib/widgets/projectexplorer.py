@@ -124,7 +124,7 @@ class Project(object):
             # Old format (Spyder 2.0-2.1 for Python 2)
             with open(fname, 'U') as fdesc:
                 data = pickle.loads(fdesc.read())
-        except (pickle.PickleError, TypeError, UnicodeDecodeError):
+        except (pickle.PickleError, TypeError, UnicodeDecodeError, AttributeError):
             try:
                 # New format (Spyder >=2.2 for Python 2 and Python 3)
                 with open(fname, 'rb') as fdesc:
