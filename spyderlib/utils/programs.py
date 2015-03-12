@@ -167,7 +167,15 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
         if PY2:
             cmd = encoding.to_fs_from_unicode(cmd)
             wdir = encoding.to_fs_from_unicode(wdir)
-        subprocess.Popen(cmd, shell=True, cwd=wdir)
+        try:
+            subprocess.Popen(cmd, shell=True, cwd=wdir)
+        except WindowsError:
+            from spyderlib.qt.QtGui import QMessageBox
+            from spyderlib.baseconfig import _
+            QMessageBox.critical(None, _('Run'),
+                                 _("It was not possible to run this file in "
+                                   "an external terminal"),
+                                 QMessageBox.Ok)
     elif os.name == 'posix':
         cmd = 'gnome-terminal'
         if is_program_installed(cmd):
