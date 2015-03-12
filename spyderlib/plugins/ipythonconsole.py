@@ -161,10 +161,6 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         banner_box = newcb(_("Display initial banner"), 'show_banner',
                       tip=_("This option lets you hide the message shown at\n"
                             "the top of the console when it's opened."))
-        gui_comp_box = newcb(_("Use a completion widget"),
-                             'use_gui_completion',
-                             tip=_("Use a widget instead of plain text "
-                                   "output for tab completion"))
         pager_box = newcb(_("Use a pager to display additional text inside "
                             "the console"), 'use_pager',
                             tip=_("Useful if you don't want to fill the "
@@ -177,11 +173,21 @@ class IPythonConsoleConfigPage(PluginConfigPage):
 
         interface_layout = QVBoxLayout()
         interface_layout.addWidget(banner_box)
-        interface_layout.addWidget(gui_comp_box)
         interface_layout.addWidget(pager_box)
         interface_layout.addWidget(calltips_box)
         interface_layout.addWidget(ask_box)
         interface_group.setLayout(interface_layout)
+
+        comp_group = QGroupBox(_("Completion Widget"))
+        comp_label = QLabel(_("Decide what type of completion to use"))
+        comp_label.setWordWrap(True)
+        completers = [("plain", 0), ("droplist", 1), ("ncurses", 2)]
+        comp_box = self.create_combobox(_("Completion:")+"   ", completers,
+                                        'completion_widget', default=0)
+        comp_layout = QVBoxLayout()
+        comp_layout.addWidget(comp_label)
+        comp_layout.addWidget(comp_box)
+        comp_group.setLayout(comp_layout)
 
         # Background Color Group
         bg_group = QGroupBox(_("Background color"))
@@ -435,8 +441,8 @@ class IPythonConsoleConfigPage(PluginConfigPage):
 
         # --- Tabs organization ---
         tabs = QTabWidget()
-        tabs.addTab(self.create_tab(font_group, interface_group, bg_group,
-                                    source_code_group), _("Display"))
+        tabs.addTab(self.create_tab(font_group, interface_group, comp_group,
+                                    bg_group, source_code_group), _("Display"))
         tabs.addTab(self.create_tab(pylab_group, backend_group, inline_group),
                                     _("Graphics"))
         tabs.addTab(self.create_tab(run_lines_group, run_file_group),

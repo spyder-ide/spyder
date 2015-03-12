@@ -271,7 +271,7 @@ DEFAULTS = [
               'font/italic': False,
               'font/bold': False,
               'show_banner': True,
-              'use_gui_completion': True,
+              'completion_widget': 0,
               'use_pager': False,
               'show_calltips': True,
               'ask_before_closing': True,
