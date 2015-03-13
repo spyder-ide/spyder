@@ -444,7 +444,7 @@ class PluginManager(QObject):
 
         if resp['name']:
             if not resp['docstring']:
-                resp['docstring'] = '<no docstring>'
+                resp['docstring'] = 'No documentation available.'
 
             self.send_to_inspector.emit(
                 resp['name'], resp['argspec'],
