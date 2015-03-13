@@ -7,7 +7,7 @@ import os
 import imp
 import time
 
-from spyderlib.baseconfig import DEBUG, get_conf_path, debug_print
+from spyderlib.baseconfig import _, DEBUG, get_conf_path, debug_print
 from spyderlib.utils.introspection.module_completion import (
     get_preferred_submodules)
 from spyderlib.utils import sourcecode
@@ -444,7 +444,7 @@ class PluginManager(QObject):
 
         if resp['name']:
             if not resp['docstring']:
-                resp['docstring'] = 'No documentation available.'
+                resp['docstring'] = _('No documentation available.')
 
             self.send_to_inspector.emit(
                 resp['name'], resp['argspec'],
