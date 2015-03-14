@@ -17,7 +17,7 @@ from spyderlib.qt.QtGui import QApplication
 from spyderlib.qt.QtCore import Signal, QThread, QObject, QTimer
 
 
-PLUGINS = ['jedi', 'rope', 'fallback']
+PLUGINS = ['rope', 'jedi', 'fallback']
 
 LOG_FILENAME = get_conf_path('introspection.log')
 DEBUG_EDITOR = DEBUG >= 3
@@ -443,9 +443,6 @@ class PluginManager(QObject):
                                      at_position=prev_info.position)
 
         if resp['name']:
-            if not resp['argspec'] and resp['calltip']:
-                resp['argspec'] = resp['calltip'][resp['calltip'].index('('):]
-
             self.send_to_inspector.emit(
                 resp['name'], resp['argspec'],
                 resp['note'], resp['docstring'],
