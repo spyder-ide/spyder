@@ -334,6 +334,7 @@ class SphinxThread(QThread):
                                                img_path=self.img_path)
                     html_text = sphinxify(doc['docstring'], context)
                     if doc['docstring'] == '':
+                        html_text += '<hr>'
                         html_text += self.html_text_no_doc
 
                 except Exception as error:
