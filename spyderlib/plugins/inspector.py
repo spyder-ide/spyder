@@ -43,13 +43,13 @@ if IPYTHON_QT_INSTALLED:
 else:
     IPythonControlWidget = None  # analysis:ignore
 
-# Check for Sphinx presence to activate rich text mode
-if programs.is_module_installed('sphinx', '>=0.6.6'):
-    sphinx_version = programs.get_module_version('sphinx')
+# Check if we can import Sphinx to activate rich text mode
+try:
     from spyderlib.utils.inspector.sphinxify import (CSS_PATH, sphinxify,
                                                      warning, generate_context,
                                                      usage)
-else:
+    sphinx_version = programs.get_module_version('sphinx')
+except ImportError:
     sphinxify = sphinx_version = None  # analysis:ignore
 
 # To add sphinx dependency to the Dependencies dialog
