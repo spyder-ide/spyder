@@ -20,6 +20,7 @@ def apply():
     
     # Patching IPython's patch of RegLexer (Oh God!!)
     from pygments.lexer import _TokenType, Text, Error
+    from spyderlib.py3compat import to_text_string
     try:
         from IPython.qt.console.pygments_highlighter import RegexLexer
     except ImportError:
@@ -69,7 +70,7 @@ def apply():
                         pos += 1
                         statestack = ['root']
                         statetokens = tokendefs['root']
-                        yield pos, Text, u'\n'
+                        yield pos, Text, to_text_string('\n')
                         continue
                     yield pos, Error, text[pos]
                     pos += 1
