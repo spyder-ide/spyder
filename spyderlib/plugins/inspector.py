@@ -21,7 +21,7 @@ import sys
 
 # Local imports
 from spyderlib import dependencies
-from spyderlib.baseconfig import get_conf_path, get_module_source_path, _, debug_print
+from spyderlib.baseconfig import get_conf_path, get_module_source_path, _
 from spyderlib.ipythonconfig import IPYTHON_QT_INSTALLED
 from spyderlib.config import CONF
 from spyderlib.guiconfig import get_color_scheme, get_font, set_font
@@ -334,7 +334,7 @@ class SphinxThread(QThread):
                                                img_path=self.img_path)
                     html_text = sphinxify(doc['docstring'], context)
                     if doc['docstring'] == '':
-                        html_text += '<hr>'
+                        html_text += '<div class="hr"></div>'
                         html_text += self.html_text_no_doc
 
                 except Exception as error:
