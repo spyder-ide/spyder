@@ -709,7 +709,7 @@ class IPythonConsole(SpyderPluginWidget):
                                 tip=_("Use %s+T when the console is selected "
                                       "to open a new one") % ctrl)
         create_client_action = create_action(self,
-                                _("Open an new console"),
+                                _("Open a new console"),
                                 QKeySequence("Ctrl+T"), 'ipython_console.png',
                                 triggered=self.create_new_client)
         create_client_action.setShortcutContext(Qt.WidgetWithChildrenShortcut)
