@@ -507,7 +507,10 @@ if sys.version[0] == '2':
     def break_here(self, frame):
         from bdb import effective
         filename = self.canonic(frame.f_code.co_filename)
-        filename = unicode(filename, "utf-8")
+        try:
+            filename = unicode(filename, "utf-8")
+        except TypeError:
+            pass
         if not filename in self.breaks:
             return False
         lineno = frame.f_lineno
