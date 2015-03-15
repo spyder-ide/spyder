@@ -187,8 +187,16 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
             run_program(cmd, ['--workdir', wdir, '-e'] + p_args,
                         cwd=wdir)
             return
-        # TODO: Add a fallback to xterm for Linux and the necessary code for
-        #       OSX
+        cmd = 'xfce4-terminal'
+        if is_program_installed(cmd):
+            run_program(cmd, ['--working-directory', wdir, '-x'] + p_args,
+                        cwd=wdir)
+            return
+        cmd = 'xterm'
+        if is_program_installed(cmd):
+            run_program(cmd, ['-e'] + p_args + [wdir])
+            return		
+        # TODO: Add a fallback to OSX
     else:
         raise NotImplementedError
 
