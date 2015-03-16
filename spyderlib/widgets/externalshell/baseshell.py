@@ -291,7 +291,6 @@ class ExternalShellBase(QWidget):
     
     def write_output(self):
         self.shell.write(self.get_stdout(), flush=True)
-        QApplication.processEvents()
         
     def send_to_process(self, qstr):
         raise NotImplementedError
