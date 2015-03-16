@@ -229,15 +229,11 @@ These commands were executed:
         self.execute("%clear")
         
     def write_to_stdin(self, line):
-        """
-        Send raw characters to the IPython kernel through stdin
-        but only if the kernel is currently looking for raw input.
-        """
-        if self._reading:
-            try:
-                self.kernel_client.stdin_channel.input(line)
-            except AttributeError:
-                self.kernel_client.input(line)
+        """Send raw characters to the IPython kernel through stdin"""
+        try:
+            self.kernel_client.stdin_channel.input(line)
+        except AttributeError:
+            self.kernel_client.input(line)
     
     def set_background_color(self):
         lightbg_o = CONF.get('ipython_console', 'light_color')

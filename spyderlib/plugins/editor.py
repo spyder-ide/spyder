@@ -47,12 +47,14 @@ from spyderlib.plugins.runconfig import (RunConfigDialog, RunConfigOneDialog,
 from spyderlib.py3compat import PY2, to_text_string, getcwd, qbytearray_to_str
 
 
+
 def _load_all_breakpoints():
     bp_dict = CONF.get('run', 'breakpoints', {})
     for filename in list(bp_dict.keys()):
         if not osp.isfile(filename):
             bp_dict.pop(filename)
     return bp_dict
+
 
 def load_breakpoints(filename):
     breakpoints = _load_all_breakpoints().get(filename, [])
@@ -61,6 +63,7 @@ def load_breakpoints(filename):
         breakpoints = [(lineno, None) for lineno in breakpoints]
     return breakpoints
 
+
 def save_breakpoints(filename, breakpoints):
     if not osp.isfile(filename):
         return
@@ -68,8 +71,10 @@ def save_breakpoints(filename, breakpoints):
     bp_dict[filename] = breakpoints
     CONF.set('run', 'breakpoints', bp_dict)
 
+
 def clear_all_breakpoints():
     CONF.set('run', 'breakpoints', {})
+
 
 def clear_breakpoint(filename, lineno):
     breakpoints = load_breakpoints(filename)
@@ -78,6 +83,7 @@ def clear_breakpoint(filename, lineno):
             if breakpoint[0] == lineno:
                 breakpoints.remove(breakpoint)
         save_breakpoints(filename, breakpoints)
+
 
 WINPDB_PATH = programs.find_program('winpdb')
 
@@ -2081,6 +2087,10 @@ class Editor(SpyderPluginWidget):
     def debug_file(self):
         """Debug current script"""
         self.run_file(debug=True)
+        editor = self.get_current_editor()
+        if editor.get_breakpoints():
+            time.sleep(0.5)
+            self.debug_command('continue')
         
     def re_run_file(self):
         """Re-run last script"""
