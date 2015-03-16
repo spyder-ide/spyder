@@ -425,7 +425,6 @@ class CodeEditor(TextEditBaseWidget):
         self.color_scheme = ccs
 
         self.highlight_current_line_enabled = False
-        self.highlight_current_cell_enabled = False
 
         # Scrollbar flag area
         self.scrollflagarea_enabled = None
