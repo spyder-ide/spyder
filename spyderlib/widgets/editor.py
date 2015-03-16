@@ -1876,7 +1876,9 @@ class EditorStack(QWidget):
         """Reimplement Qt method
         Inform Qt about the types of data that the widget accepts"""
         source = event.mimeData()
-        if source.hasUrls():
+        # The second check is necessary on Windows, where source.hasUrls()
+        # can return True but source.urls() is []
+        if source.hasUrls() and source.urls():
             if mimedata2url(source, extlist=EDIT_EXT):
                 event.acceptProposedAction()
             else:
@@ -1887,6 +1889,12 @@ class EditorStack(QWidget):
                 else:
                     event.ignore()
         elif source.hasText():
+            event.acceptProposedAction()
+        elif os.name == 'nt':
+            # This covers cases like dragging from compressed files,
+            # which can be opened by the Editor if they are plain
+            # text, but doesn't come with url info.
+            # Fixes Issue 2032
             event.acceptProposedAction()
         else:
             event.ignore()
