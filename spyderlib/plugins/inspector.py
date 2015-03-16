@@ -354,7 +354,7 @@ class ObjectInspector(SpyderPluginWidget):
         # Initialize plugin
         self.initialize_plugin()
 
-        self.no_doc_string = _("No documentation available")
+        self.no_doc_string = _("No further documentation available")
         
         self._last_console_cb = None
         self._last_editor_cb = None
