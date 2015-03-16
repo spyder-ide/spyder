@@ -74,8 +74,10 @@ def checkPath(filename, reporter=None):
     if reporter is None:
         reporter = modReporter._makeDefaultReporter()
     try:
-        with open(filename, 'U') as f:
-            codestr = f.read() + '\n'
+        with open(filename, 'rb') as f:
+            codestr = f.read()
+        if sys.version_info < (2, 7):
+            codestr += '\n'     # Work around for Python <= 2.6
     except UnicodeError:
         reporter.unexpectedError(filename, 'problem decoding source')
         return 1
@@ -122,7 +124,7 @@ def checkRecursive(paths, reporter):
 
 def main(prog=None):
     parser = OptionParser(prog=prog, version=__version__)
-    __, args = parser.parse_args()
+    (__, args) = parser.parse_args()
     reporter = modReporter._makeDefaultReporter()
     if args:
         warnings = checkRecursive(args, reporter)
