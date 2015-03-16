@@ -1,4 +1,11 @@
+# -*- coding: utf-8 -*-
+#
+# Copyright © 2015 The Spyder development team
+# Licensed under the terms of the MIT License
+# (see spyderlib/__init__.py for details)
+
 from __future__ import print_function
+
 import re
 from collections import OrderedDict
 import functools
@@ -443,9 +450,6 @@ class PluginManager(QObject):
                                      at_position=prev_info.position)
 
         if resp['name']:
-            if not resp['docstring']:
-                resp['docstring'] = '<no docstring>'
-
             self.send_to_inspector.emit(
                 resp['name'], resp['argspec'],
                 resp['note'], resp['docstring'],

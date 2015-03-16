@@ -218,17 +218,21 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                     break
             if mainwin is not None:
                 parent = mainwin
+
         self.completion_widget = CompletionWidget(self, parent)
         self.codecompletion_auto = False
         self.codecompletion_case = True
         self.codecompletion_enter = False
+        self.completion_text = ""
+
+        self.calltip_widget = CallTipWidget(self, hide_timer_on=True)
         self.calltips = True
         self.calltip_position = None
+
         self.has_cell_separators = False
-        self.completion_text = ""
-        self.calltip_widget = CallTipWidget(self, hide_timer_on=True)
+        self.highlight_current_cell_enabled = False
         
-        # The color values may be overridden by the syntax highlighter 
+        # The color values may be overridden by the syntax highlighter
         # Highlight current line color
         self.currentline_color = QColor(Qt.red).lighter(190)
         self.currentcell_color = QColor(Qt.red).lighter(194)
@@ -302,7 +306,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     #------Highlight current cell
     def highlight_current_cell(self):
         """Highlight current cell"""
-        if self.cell_separators is None:
+        if self.cell_separators is None or \
+          not self.highlight_current_cell_enabled:
             return
         selection = QTextEdit.ExtraSelection()
         selection.format.setProperty(QTextFormat.FullWidthSelection,

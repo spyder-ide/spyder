@@ -126,3 +126,10 @@ class UnusedVariable(Message):
     def __init__(self, filename, loc, names):
         Message.__init__(self, filename, loc)
         self.message_args = (names,)
+
+
+class ReturnWithArgsInsideGenerator(Message):
+    """
+    Indicates a return statement with arguments inside a generator.
+    """
+    message = '\'return\' with argument inside generator'

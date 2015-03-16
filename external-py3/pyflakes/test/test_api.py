@@ -15,7 +15,7 @@ from pyflakes.api import (
     checkRecursive,
     iterSourceCode,
 )
-from pyflakes.test.harness import TestCase, skipIf
+from pyflakes.test.harness import TestCase
 
 if sys.version_info < (3,):
     from cStringIO import StringIO
@@ -159,11 +159,11 @@ class TestReporter(TestCase):
         """
         err = StringIO()
         reporter = Reporter(None, err)
-        reporter.syntaxError('foo.py', 'a problem', 3, 4, 'bad line of source')
+        reporter.syntaxError('foo.py', 'a problem', 3, 7, 'bad line of source')
         self.assertEqual(
-            ("foo.py:3: a problem\n"
+            ("foo.py:3:8: a problem\n"
              "bad line of source\n"
-             "     ^\n"),
+             "       ^\n"),
             err.getvalue())
 
     def test_syntaxErrorNoOffset(self):
@@ -192,12 +192,12 @@ class TestReporter(TestCase):
             'more bad lines of source',
         ]
         reporter = Reporter(None, err)
-        reporter.syntaxError('foo.py', 'a problem', 3, len(lines[0]) + 5,
+        reporter.syntaxError('foo.py', 'a problem', 3, len(lines[0]) + 7,
                              '\n'.join(lines))
         self.assertEqual(
-            ("foo.py:3: a problem\n" +
+            ("foo.py:3:7: a problem\n" +
              lines[-1] + "\n" +
-             "     ^\n"),
+             "      ^\n"),
             err.getvalue())
 
     def test_unexpectedError(self):
@@ -320,9 +320,9 @@ def baz():
         self.assertHasErrors(
             sourcePath,
             ["""\
-%s:8: invalid syntax
+%s:8:11: invalid syntax
     '''quux'''
-           ^
+          ^
 """ % (sourcePath,)])
 
     def test_eofSyntaxError(self):
@@ -334,9 +334,23 @@ def baz():
         self.assertHasErrors(
             sourcePath,
             ["""\
-%s:1: unexpected EOF while parsing
+%s:1:9: unexpected EOF while parsing
 def foo(
-         ^
+        ^
+""" % (sourcePath,)])
+
+    def test_eofSyntaxErrorWithTab(self):
+        """
+        The error reported for source files which end prematurely causing a
+        syntax error reflects the cause for the syntax error.
+        """
+        sourcePath = self.makeTempFile("if True:\n\tfoo =")
+        self.assertHasErrors(
+            sourcePath,
+            ["""\
+%s:2:7: invalid syntax
+\tfoo =
+\t     ^
 """ % (sourcePath,)])
 
     def test_nonDefaultFollowsDefaultSyntaxError(self):
@@ -350,13 +364,14 @@ def foo(bar=baz, bax):
     pass
 """
         sourcePath = self.makeTempFile(source)
-        last_line = '        ^\n' if sys.version_info >= (3, 2) else ''
+        last_line = '       ^\n' if sys.version_info >= (3, 2) else ''
+        column = '8:' if sys.version_info >= (3, 2) else ''
         self.assertHasErrors(
             sourcePath,
             ["""\
-%s:1: non-default argument follows default argument
+%s:1:%s non-default argument follows default argument
 def foo(bar=baz, bax):
-%s""" % (sourcePath, last_line)])
+%s""" % (sourcePath, column, last_line)])
 
     def test_nonKeywordAfterKeywordSyntaxError(self):
         """
@@ -368,13 +383,14 @@ def foo(bar=baz, bax):
 foo(bar=baz, bax)
 """
         sourcePath = self.makeTempFile(source)
-        last_line = '             ^\n' if sys.version_info >= (3, 2) else ''
+        last_line = '            ^\n' if sys.version_info >= (3, 2) else ''
+        column = '13:' if sys.version_info >= (3, 2) else ''
         self.assertHasErrors(
             sourcePath,
             ["""\
-%s:1: non-keyword arg after keyword arg
+%s:1:%s non-keyword arg after keyword arg
 foo(bar=baz, bax)
-%s""" % (sourcePath, last_line)])
+%s""" % (sourcePath, column, last_line)])
 
     def test_invalidEscape(self):
         """
@@ -386,11 +402,11 @@ foo(bar=baz, bax)
         if ver < (3,):
             decoding_error = "%s: problem decoding source\n" % (sourcePath,)
         else:
-            last_line = '       ^\n' if ver >= (3, 2) else ''
+            last_line = '      ^\n' if ver >= (3, 2) else ''
             # Column has been "fixed" since 3.2.4 and 3.3.1
             col = 1 if ver >= (3, 3, 1) or ((3, 2, 4) <= ver < (3, 3)) else 2
             decoding_error = """\
-%s:1: (unicode error) 'unicodeescape' codec can't decode bytes \
+%s:1:7: (unicode error) 'unicodeescape' codec can't decode bytes \
 in position 0-%d: truncated \\xXX escape
 foo = '\\xyz'
 %s""" % (sourcePath, col, last_line)
@@ -421,7 +437,18 @@ foo = '\\xyz'
         self.assertEqual(
             errors, [('flake', str(UnusedImport(sourcePath, Node(1), 'foo')))])
 
-    @skipIf(sys.version_info >= (3,), "not relevant")
+    def test_encodedFileUTF8(self):
+        """
+        If source file declares the correct encoding, no error is reported.
+        """
+        SNOWMAN = unichr(0x2603)
+        source = ("""\
+# coding: utf-8
+x = "%s"
+""" % SNOWMAN).encode('utf-8')
+        sourcePath = self.makeTempFile(source)
+        self.assertHasErrors(sourcePath, [])
+
     def test_misencodedFileUTF8(self):
         """
         If a source file contains bytes which cannot be decoded, this is

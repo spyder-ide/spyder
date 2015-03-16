@@ -124,7 +124,7 @@ class EditorConfigPage(PluginConfigPage):
         currentcell_box = newcb(_("Highlight current cell"),
                                 'highlight_current_cell')
         occurence_box = newcb(_("Highlight occurences after"),
-                              'occurence_highlighting', default=True)
+                              'occurence_highlighting')
         occurence_spin = self.create_spinbox("", " ms",
                                              'occurence_highlighting/timeout',
                                              min_=100, max_=1000000, step=100)
@@ -2188,7 +2188,7 @@ class Editor(SpyderPluginWidget):
                     editorstack.set_occurence_highlighting_enabled(occurence_o)
                 if occurence_timeout_n in options:
                     editorstack.set_occurence_highlighting_timeout(
-                                                        occurence_timeout_o)
+                                                           occurence_timeout_o)
                 if focus_to_editor_n in options:
                     editorstack.set_focus_to_editor(focus_to_editor_o)
 
