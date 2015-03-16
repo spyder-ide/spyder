@@ -573,7 +573,8 @@ class CodeEditor(TextEditBaseWidget):
                      calltips=None, go_to_definition=False,
                      close_parentheses=True, close_quotes=False,
                      add_colons=True, auto_unindent=True, indent_chars=" "*4,
-                     tab_stop_width=40, cloned_from=None):
+                     tab_stop_width=40, cloned_from=None,
+                     occurence_timeout=1500):
         
         # Code completion and calltips
         self.set_codecompletion_auto(codecompletion_auto)
@@ -614,6 +615,7 @@ class CodeEditor(TextEditBaseWidget):
 
         # Occurence highlighting
         self.set_occurence_highlighting(occurence_highlighting)
+        self.set_occurence_timeout(occurence_timeout)
 
         # Tab always indents (even when cursor is not at the begin of line)
         self.set_tab_mode(tab_mode)

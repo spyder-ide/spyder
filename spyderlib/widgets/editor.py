@@ -1697,6 +1697,7 @@ class EditorStack(QWidget):
                 highlight_current_line=self.highlight_current_line_enabled,
                 highlight_current_cell=self.highlight_current_cell_enabled,
                 occurence_highlighting=self.occurence_highlighting_enabled,
+                occurence_timeout=self.occurence_highlighting_timeout,
                 codecompletion_auto=self.codecompletion_auto_enabled,
                 codecompletion_case=self.codecompletion_case_enabled,
                 codecompletion_enter=self.codecompletion_enter_enabled,
