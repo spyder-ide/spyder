@@ -940,8 +940,8 @@ class IPythonConsole(SpyderPluginWidget):
             if len(self.get_related_clients(client)) > 0 and \
               self.get_option('ask_before_closing'):
                 ans = QMessageBox.question(self, self.get_plugin_title(),
-                       _("Do you want to close all other clients connected to "
-                         "the same kernel as this one?"),
+                       _("Do you want to close all other consoles connected "
+                         "to the same kernel as this one?"),
                        QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel)
                 if ans == QMessageBox.Cancel:
                     return
