@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
 "POT-Creation-Date: 2015-03-16 10:25+COT\n"
-"PO-Revision-Date: 2015-02-22 14:55-0500\n"
+"PO-Revision-Date: 2015-03-16 10:30-0500\n"
 "Last-Translator: Carlos Cordoba <ccordoba12@gmail.com>\n"
 "Language-Team: Python\n"
 "Language: es\n"
@@ -1729,9 +1729,8 @@ msgid "Sphinx %s is currently installed."
 msgstr "Sphinx %s está instalado actualmente."
 
 #: spyderlib/plugins/inspector.py:357
-#, fuzzy
 msgid "No further documentation available"
-msgstr "No existe documentación disponible"
+msgstr "No existe más documentación disponible"
 
 #: spyderlib/plugins/inspector.py:396
 msgid "Source"
@@ -2265,7 +2264,6 @@ msgid "Use %s+T when the console is selected to open a new one"
 msgstr "Usar %s+T para abrir una nueva terminal"
 
 #: spyderlib/plugins/ipythonconsole.py:712
-#, fuzzy
 msgid "Open a new console"
 msgstr "Abrir una nueva terminal"
 
@@ -2286,6 +2284,7 @@ msgid ""
 "Do you want to close all other consoles connected to the same kernel as this "
 "one?"
 msgstr ""
+"¿Desea cerrar todas las otras terminales conectadas al mismo núcleo que ésta?"
 
 #: spyderlib/plugins/ipythonconsole.py:1025
 msgid "Connection error"
@@ -3179,11 +3178,8 @@ msgid "<b>Unsupported file type '%s'</b>"
 msgstr "<b>Tipo de archivo no soportado '%s'</b>"
 
 #: spyderlib/utils/programs.py:176
-#, fuzzy
 msgid "It was not possible to run this file in an external terminal"
-msgstr ""
-"No fue posible convertir este notebook. El error es:\n"
-"\n"
+msgstr "No fue posible ejecutar este archivo en una terminal del sistema"
 
 #: spyderlib/widgets/arrayeditor.py:449 spyderlib/widgets/arrayeditor.py:482
 #: spyderlib/widgets/dataframeeditor.py:492
