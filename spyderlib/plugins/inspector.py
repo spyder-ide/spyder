@@ -325,8 +325,7 @@ class SphinxThread(QThread):
         html_text = self.html_text_no_doc
         doc = self.doc
         if doc is not None:
-            if type(doc) is dict and 'docstring' in doc.keys() \
-              and doc['docstring'] != '':
+            if type(doc) is dict and 'docstring' in doc.keys():
                 try:
                     context = generate_context(name=doc['name'],
                                                argspec=doc['argspec'],
@@ -334,6 +333,10 @@ class SphinxThread(QThread):
                                                math=self.math_option,
                                                img_path=self.img_path)
                     html_text = sphinxify(doc['docstring'], context)
+                    if doc['docstring'] == '':
+                        html_text += '<div class="hr"></div>'
+                        html_text += self.html_text_no_doc
+
                 except Exception as error:
                     self.error_msg.emit(to_text_string(error))
                     return

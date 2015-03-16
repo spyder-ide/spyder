@@ -443,9 +443,6 @@ class PluginManager(QObject):
                                      at_position=prev_info.position)
 
         if resp['name']:
-            if not resp['docstring']:
-                resp['docstring'] = '<no docstring>'
-
             self.send_to_inspector.emit(
                 resp['name'], resp['argspec'],
                 resp['note'], resp['docstring'],
