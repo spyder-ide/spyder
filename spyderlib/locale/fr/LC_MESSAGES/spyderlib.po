@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
 "POT-Creation-Date: 2015-03-16 10:25+COT\n"
-"PO-Revision-Date: 2015-02-24 16:01-0000\n"
+"PO-Revision-Date: 2015-03-16 22:59-0500\n"
 "Last-Translator: Sylvain Corlay <sylvain.corlay@gmail.com>\n"
 "Language-Team: Python\n"
 "Language: fr\n"
@@ -1732,7 +1732,6 @@ msgid "Sphinx %s is currently installed."
 msgstr "Sphinx %s n'est pas installé."
 
 #: spyderlib/plugins/inspector.py:357
-#, fuzzy
 msgid "No further documentation available"
 msgstr "Aucune documentation disponible"
 
@@ -2280,6 +2279,8 @@ msgid ""
 "Do you want to close all other consoles connected to the same kernel as this "
 "one?"
 msgstr ""
+"Voulez-vous fermer les toutes les autres consoles connectées au même noyau "
+"que celle-ci ?"
 
 #: spyderlib/plugins/ipythonconsole.py:1025
 msgid "Connection error"
@@ -3181,11 +3182,8 @@ msgid "<b>Unsupported file type '%s'</b>"
 msgstr "<b>Type de fichier non pris en charge '%s'</b>"
 
 #: spyderlib/utils/programs.py:176
-#, fuzzy
 msgid "It was not possible to run this file in an external terminal"
-msgstr ""
-"Impossible de convertir ce notebook. Message d'erreur:\n"
-"\n"
+msgstr "Impossible d'exécuter ce fichier dans un terminal externe"
 
 #: spyderlib/widgets/arrayeditor.py:449 spyderlib/widgets/arrayeditor.py:482
 #: spyderlib/widgets/dataframeeditor.py:492
