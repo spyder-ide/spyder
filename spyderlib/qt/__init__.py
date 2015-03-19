@@ -15,6 +15,8 @@ assert os.environ['QT_API'] in ('pyqt5', 'pyqt', 'pyside')
 API = os.environ['QT_API']
 API_NAME = {'pyqt5': 'PyQt5', 'pyqt': 'PyQt4', 'pyside': 'PySide'}[API]
 
+import qtawesome as qta
+
 PYQT5 = False
 
 if API == 'pyqt5':

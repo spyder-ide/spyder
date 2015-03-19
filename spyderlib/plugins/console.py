@@ -16,6 +16,7 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QFontDialog, QInputDialog,
                                 QLineEdit, QMenu)
 from spyderlib.qt.QtCore import Signal, Slot
 from spyderlib.qt.compat import getopenfilename
+from spyderlib.qt import qta
 
 import os
 import sys
@@ -126,7 +127,8 @@ class Console(SpyderPluginWidget):
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         quit_action = create_action(self, _("&Quit"),
-                                    icon='exit.png', tip=_("Quit"),
+                                    icon=qta.icon('fa.power-off'), 
+                                    tip=_("Quit"),
                                     triggered=self.quit)
         self.register_shortcut(quit_action, "_", "Quit", "Ctrl+Q")
         run_action = create_action(self, _("&Run..."), None,

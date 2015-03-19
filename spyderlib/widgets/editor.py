@@ -22,6 +22,7 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QMessageBox, QMenu, QFont,
 from spyderlib.qt.QtCore import (Signal, Qt, QFileInfo, QThread, QObject,
                                  QByteArray, QSize, QPoint, QTimer, Slot)
 from spyderlib.qt.compat import getsavefilename
+from spyderlib.qt import qta
 
 import os
 import sys
@@ -99,7 +100,7 @@ class FileListDialog(QDialog):
         btn_layout.addStretch()
 
         close_btn = create_toolbutton(self, text=_("&Close file"),
-              icon=get_icon("fileclose.png"),
+              icon=qta.icon('fa.close'),
               autoraise=False, text_beside_icon=True,
               triggered=lambda: self.close_file.emit(
                                   self.indexes[self.listwidget.currentRow()]))

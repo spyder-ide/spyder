@@ -16,6 +16,7 @@ from spyderlib.qt.QtGui import (QToolBar, QLabel, QGroupBox, QVBoxLayout,
                                 QHBoxLayout, QButtonGroup)
 from spyderlib.qt.QtCore import Signal, Slot
 from spyderlib.qt.compat import getexistingdirectory
+from spyderlib.qt import qta
 
 import os
 import os.path as osp
@@ -167,7 +168,7 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         self.history = []
         self.histindex = None
         self.previous_action = create_action(self, "previous", None,
-                                     get_icon('previous.png'), _('Back'),
+                                     qta.icon('fa.arrow-left'), _('Back'),
                                      triggered=self.previous_directory)
         self.addAction(self.previous_action)
         
@@ -175,7 +176,7 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         self.history = []
         self.histindex = None
         self.next_action = create_action(self, "next", None,
-                                     get_icon('next.png'), _('Next'),
+                                     qta.icon('fa.arrow-right'), _('Next'),
                                      triggered=self.next_directory)
         self.addAction(self.next_action)
         
@@ -211,13 +212,13 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         
         # Browse action
         browse_action = create_action(self, "browse", None,
-                                      get_std_icon('DirOpenIcon'),
+                                      qta.icon('fa.folder'),
                                       _('Browse a working directory'),
                                       triggered=self.select_directory)
         self.addAction(browse_action)
         
         # Set current console working directory action
-        setwd_action = create_action(self, icon=get_icon('set_workdir.png'),
+        setwd_action = create_action(self, icon=qta.icon('fa.check'),
                                      text=_("Set as current console's "
                                                   "working directory"),
                                      triggered=self.set_as_current_console_wd)
@@ -225,7 +226,7 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         
         # Parent dir action
         parent_action = create_action(self, "parent", None,
-                                      get_icon('up.png'),
+                                      qta.icon('fa.arrow-up'),
                                       _('Change to parent directory'),
                                       triggered=self.parent_directory)
         self.addAction(parent_action)

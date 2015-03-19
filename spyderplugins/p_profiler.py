@@ -10,6 +10,7 @@
 
 from spyderlib.qt.QtGui import QVBoxLayout, QGroupBox, QLabel
 from spyderlib.qt.QtCore import Signal, Qt
+from spyderlib.qt import qta
 
 # Local imports
 from spyderlib.baseconfig import get_translation
@@ -93,7 +94,7 @@ class Profiler(ProfilerWidget, SpyderPluginMixin):
         self.main.add_dockwidget(self)
         
         profiler_act = create_action(self, _("Profile"),
-                                     icon=get_icon('profiler.png'),
+                                     icon=qta.icon('fa.clock-o'),
                                      triggered=self.run_profiler)
         profiler_act.setEnabled(is_profiler_installed())
         self.register_shortcut(profiler_act, context="Profiler",

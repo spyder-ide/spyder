@@ -20,6 +20,7 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QPrintDialog, QSplitter, QToolBar,
                                 QKeySequence)
 from spyderlib.qt.QtCore import Signal, QByteArray, Qt, Slot
 from spyderlib.qt.compat import to_qvariant, from_qvariant, getopenfilenames
+from spyderlib.qt import qta
 
 import os
 import time
@@ -602,7 +603,11 @@ class Editor(SpyderPluginWidget):
         
         # ---- File menu and toolbar ----
         self.new_action = create_action(self, _("&New file..."),
-                icon='filenew.png', tip=_("New file"),
+                icon=qta.icon_stack(['fa.file-o', 'fa.plus'], 
+                                    options=[{}, 
+                                             {'scale_factor': 0.5, 
+                                              'offset': (0.0, 0.15)}]), 
+                                    tip=_("New file"),
                 triggered=self.new)
         self.register_shortcut(self.new_action, context="Editor",
                                name="New file")
@@ -610,7 +615,7 @@ class Editor(SpyderPluginWidget):
                                 name="New file")
         
         self.open_action = create_action(self, _("&Open..."),
-                icon='fileopen.png', tip=_("Open file"),
+                icon=qta.icon('fa.folder-open-o'), tip=_("Open file"),
                 triggered=self.load)
         self.register_shortcut(self.open_action, context="Editor",
                                name="Open file")
@@ -622,7 +627,7 @@ class Editor(SpyderPluginWidget):
                 triggered=self.revert)
         
         self.save_action = create_action(self, _("&Save"),
-                icon='filesave.png', tip=_("Save file"),
+                icon=qta.icon('fa.save'), tip=_("Save file"),
                 triggered=self.save)
         self.register_shortcut(self.save_action, context="Editor",
                                name="Save file")
@@ -630,7 +635,13 @@ class Editor(SpyderPluginWidget):
                                 name="Save file")
         
         self.save_all_action = create_action(self, _("Sav&e all"),
-                icon='save_all.png', tip=_("Save all files"),
+                icon=qta.icon_stack(['fa.save', 'fa.save'],
+                                    options=[{'offset': (-0.2, -0.2), 
+                                              'scale_factor': 0.6}, 
+                                             {'offset': (0.2, 0.2), 
+                                              'scale_factor': 0.6}]),
+                                    tip=_("Save all files"),
+                                             
                 triggered=self.save_all)
         self.register_shortcut(self.save_all_action, context="Editor",
                                name="Save all")
@@ -638,24 +649,33 @@ class Editor(SpyderPluginWidget):
                                 name="Save all")
         
         save_as_action = create_action(self, _("Save &as..."), None,
-                'filesaveas.png', _("Save current file as..."),
+                qta.icon_stack(['fa.save', 'fa.pencil'],
+                options=[{'offset': (-0.2, -0.2), 
+                          'scale_factor': 0.6},
+                         {'offset': (0.2, 0.2),
+                          'scale_factor': 0.6}]),
+                tip=_("Save current file as..."),
                 triggered=self.save_as)
         self.register_shortcut(save_as_action, "Editor", "Save As")
 
         print_preview_action = create_action(self, _("Print preview..."),
                 tip=_("Print preview..."), triggered=self.print_preview)
         self.print_action = create_action(self, _("&Print..."),
-                icon='print.png', tip=_("Print current file..."),
+                icon=qta.icon('fa.print'), tip=_("Print current file..."),
                 triggered=self.print_file)
         self.register_shortcut(self.print_action, context="Editor",
                                name="Print")
         # Shortcut for close_action is defined in widgets/editor.py
         self.close_action = create_action(self, _("&Close"),
-                icon='fileclose.png', tip=_("Close current file"),
+                icon=qta.icon('fa.close'), tip=_("Close current file"),
                 triggered=self.close_file)
 
         self.close_all_action = create_action(self, _("C&lose all"),
-                icon='filecloseall.png', tip=_("Close all opened files"),
+                icon=qta.icon_stack(['fa.close', 'fa.close', 'fa.close'], 
+                                    options=[{'scale_factor': 0.6, 'offset': (0.3, -0.3)},
+                                             {'scale_factor': 0.6, 'offset': (-0.3, -0.3)}, 
+                                             {'scale_factor': 0.6, 'offset': (0.3, 0.3)}]),
+                tip=_("Close all opened files"),
                 triggered=self.close_all_files)
         self.register_shortcut(self.close_all_action, context="Editor",
                                name="Close all")
@@ -689,45 +709,45 @@ class Editor(SpyderPluginWidget):
                                name="Debug with winpdb")
         
         # --- Debug toolbar ---
-        debug_action = create_action(self, _("&Debug"), icon='debug.png',
+        debug_action = create_action(self, _("&Debug"), icon=qta.icon('fa.bug', color='darkred'),
                                      tip=_("Debug file"),
                                      triggered=self.debug_file)
         self.register_shortcut(debug_action, context="Editor", name="Debug")
         add_shortcut_to_tooltip(debug_action, context="Editor", name="Debug")
         
         debug_next_action = create_action(self, _("Step"), 
-               icon='arrow-step-over.png', tip=_("Run current line"), 
+               icon=qta.icon('spyder.step-forward', color='darkred'), tip=_("Run current line"), 
                triggered=lambda: self.debug_command("next")) 
         self.register_shortcut(debug_next_action, "_", "Debug Step Over")
         add_shortcut_to_tooltip(debug_next_action, context="_",
                                 name="Debug Step Over")
 
         debug_continue_action = create_action(self, _("Continue"),
-               icon='arrow-continue.png', tip=_("Continue execution until "
-                                                "next breakpoint"), 
+               icon=qta.icon('spyder.continue', color='darkred'), tip=_("Continue execution until "
+                                                       "next breakpoint"), 
                triggered=lambda: self.debug_command("continue"))                                                 
         self.register_shortcut(debug_continue_action, "_", "Debug Continue")
         add_shortcut_to_tooltip(debug_continue_action, context="_",
                                 name="Debug Continue")
 
         debug_step_action = create_action(self, _("Step Into"), 
-               icon='arrow-step-in.png', tip=_("Step into function or method "
-                                               "of current line"), 
+               icon=qta.icon('spyder.step-into', color='darkred'), tip=_("Step into function or method "
+                                                        "of current line"), 
                triggered=lambda: self.debug_command("step"))                
         self.register_shortcut(debug_step_action, "_", "Debug Step Into")
         add_shortcut_to_tooltip(debug_step_action, context="_",
                                 name="Debug Step Into")
 
         debug_return_action = create_action(self, _("Step Return"), 
-               icon='arrow-step-out.png', tip=_("Run until current function "
-                                                "or method returns"), 
+               icon=qta.icon('spyder.step-out', color='darkred'), tip=_("Run until current function "
+                                                       "or method returns"), 
                triggered=lambda: self.debug_command("return"))               
         self.register_shortcut(debug_return_action, "_", "Debug Step Return")
         add_shortcut_to_tooltip(debug_return_action, context="_",
                                 name="Debug Step Return")
 
         debug_exit_action = create_action(self, _("Exit"),
-               icon='stop_debug.png', tip=_("Exit Debug"), 
+               icon=qta.icon('spyder.stop', color='darkred'), tip=_("Exit Debug"), 
                triggered=lambda: self.debug_command("exit"))                                       
         self.register_shortcut(debug_exit_action, "_", "Debug Exit")
         add_shortcut_to_tooltip(debug_exit_action, context="_",
@@ -742,14 +762,16 @@ class Editor(SpyderPluginWidget):
         add_actions(debug_control_menu, debug_control_menu_actions)   
         
         # --- Run toolbar ---
-        run_action = create_action(self, _("&Run"), icon='run.png',
+        run_action = create_action(self, _("&Run"), icon=qta.icon('spyder.run', color='green'),
                                    tip=_("Run file"),
                                    triggered=self.run_file)
         self.register_shortcut(run_action, context="Editor", name="Run")
         add_shortcut_to_tooltip(run_action, context="Editor", name="Run")
 
-        configure_action = create_action(self,
-                               _("&Configure..."), icon='run_settings.png',
+        configure_action = create_action(self, _("&Configure..."), 
+                                         icon=qta.icon_stack(['fa.wrench', 'spyder.run'],
+                                                             [{'offset':(-0.1, -0.1), 'scale_factor': 0.7}, 
+                                                              {'offset': (0.0, 0.2), 'color': 'green'}]),
                                tip=_("Run settings"),
                                menurole=QAction.NoRole,
                                triggered=self.edit_run_configurations)
@@ -759,7 +781,8 @@ class Editor(SpyderPluginWidget):
                                 name="Configure")
         
         re_run_action = create_action(self,
-                            _("Re-run &last script"), icon='run_again.png',
+                            _("Re-run &last script"), icon=qta.icon_stack(['fa.repeat', 'spyder.run'], 
+                                                                          [{'offset':(-0.1, -0.1), 'scale_factor': 0.7}, {'offset':(0.1, 0.2), 'color': 'green'}]),
                             tip=_("Run again last file"),
                             triggered=self.re_run_file)
         self.register_shortcut(re_run_action, context="Editor",
@@ -777,7 +800,12 @@ class Editor(SpyderPluginWidget):
                                name="Run selection")
 
         run_cell_action = create_action(self,
-                            _("Run cell"), icon='run_cell.png',
+                            _("Run cell"), 
+                            icon=qta.icon_stack(['spyder.cell', 'spyder.run-one-inplace'], 
+                                                options=[{'scale_factor': 0.7,
+                                                          'offset': (-0.2, -0.3)}, 
+                                                         {'color': 'green', 
+                                                          'offset': (0.0, 0.1)}]),
                             shortcut=QKeySequence("Ctrl+Enter"),
                             tip=_("Run current cell (Ctrl+Enter)\n"
                                   "[Use #%% to create cells]"),
@@ -785,7 +813,11 @@ class Editor(SpyderPluginWidget):
 
         run_cell_advance_action = create_action(self,
                             _("Run cell and advance"),
-                            icon='run_cell_advance.png',
+                            icon=qta.icon_stack(['spyder.cell', 'spyder.run-one'], 
+                                                options=[{'scale_factor': 0.7,
+                                                          'offset': (-0.2, -0.3)}, 
+                                                         {'color': 'green', 
+                                                          'offset': (0.0, 0.1)}]),
                             shortcut=QKeySequence("Shift+Enter"),
                             tip=_("Run current cell and go to "
                                   "the next one (Shift+Enter)"),
@@ -863,11 +895,11 @@ class Editor(SpyderPluginWidget):
         # keyPressEvent handler (the shortcut is here only to inform user):
         # (context=Qt.WidgetShortcut -> disable shortcut for other widgets)
         self.indent_action = create_action(self,
-                _("Indent"), "Tab", icon='indent.png',
+                _("Indent"), "Tab", icon=qta.icon('ei.indent-left'),
                 tip=_("Indent current line or selection"),
                 triggered=self.indent, context=Qt.WidgetShortcut)
         self.unindent_action = create_action(self,
-                _("Unindent"), "Shift+Tab", icon='unindent.png',
+                _("Unindent"), "Shift+Tab", icon=qta.icon('ei.indent-right'),
                 tip=_("Unindent current line or selection"),
                 triggered=self.unindent, context=Qt.WidgetShortcut)
         # ----------------------------------------------------------------------
@@ -898,7 +930,7 @@ class Editor(SpyderPluginWidget):
                       triggered=self.fix_indentation)
 
         gotoline_action = create_action(self, _("Go to line..."),
-                                        icon=get_icon("gotoline.png"),
+                                        icon=qta.icon('fa.sort-numeric-asc'),
                                         triggered=self.go_to_line,
                                         context=Qt.WidgetShortcut)
         self.register_shortcut(gotoline_action, context="Editor",

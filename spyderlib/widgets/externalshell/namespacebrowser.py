@@ -14,6 +14,7 @@ from spyderlib.qt.QtGui import (QWidget, QVBoxLayout, QHBoxLayout, QMenu,
                                 QCursor, QInputDialog)
 from spyderlib.qt.QtCore import Qt, Signal, Slot
 from spyderlib.qt.compat import getopenfilenames, getsavefilename
+from spyderlib.qt import qta
 
 # Local imports
 from spyderlib.widgets.externalshell.monitor import (
@@ -184,7 +185,7 @@ class NamespaceBrowser(QWidget):
                                         icon=get_icon('fileimport.png'),
                                         triggered=self.import_data)
         self.save_button = create_toolbutton(self, text=_("Save data"),
-                            icon=get_icon('filesave.png'),
+                            icon=qta.icon('fa.save'),
                             triggered=lambda: self.save_data(self.filename))
         self.save_button.setEnabled(False)
         save_as_button = create_toolbutton(self,

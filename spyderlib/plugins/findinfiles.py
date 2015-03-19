@@ -13,6 +13,7 @@
 
 from spyderlib.qt.QtGui import QApplication
 from spyderlib.qt.QtCore import Signal, Slot
+from spyderlib.qt import qta
 
 # Local imports
 from spyderlib.baseconfig import _
@@ -114,7 +115,9 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
         self.main.workingdirectory.refresh_findinfiles.connect(self.refreshdir)
         
         findinfiles_action = create_action(self, _("&Find in files"),
-                                   icon='findf.png',
+                                   icon=qta.icon_stack(['fa.file-o', 'fa.search'],
+                                                       options=[{'scale_factor': 1.0}, 
+                                                                {'scale_factor': 0.6}]),
                                    triggered=self.findinfiles_callback,
                                    tip=_("Search text in multiple files"))        
         

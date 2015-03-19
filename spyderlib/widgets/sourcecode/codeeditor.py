@@ -37,6 +37,7 @@ from spyderlib.qt.QtGui import (QColor, QMenu, QApplication, QSplitter, QFont,
 from spyderlib.qt.QtCore import (Qt, Signal, QTimer, QRect, QRegExp, QSize,
                                  Slot)
 from spyderlib.qt.compat import to_qvariant
+from spyderlib.qt import qta
 
 # %% This line is for cell execution testing
 # Local import
@@ -2407,7 +2408,7 @@ class CodeEditor(TextEditBaseWidget):
         """Setup context menu"""
         self.undo_action = create_action(self, _("Undo"),
                            shortcut=keybinding('Undo'),
-                           icon=get_icon('undo.png'), triggered=self.undo)
+                           icon=get_icon('redo.png'), triggered=self.undo)
         self.redo_action = create_action(self, _("Redo"),
                            shortcut=keybinding('Redo'),
                            icon=get_icon('redo.png'), triggered=self.redo)

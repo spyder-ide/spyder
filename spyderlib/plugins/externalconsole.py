@@ -19,6 +19,7 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QMessageBox, QInputDialog,
                                 QButtonGroup)
 from spyderlib.qt.QtCore import Signal, Slot, Qt
 from spyderlib.qt.compat import getopenfilename
+from spyderlib.qt import qta
 
 # Stdlib imports
 import atexit
@@ -951,8 +952,8 @@ class ExternalConsole(SpyderPluginWidget):
                 tab_name = _("Terminal")
             self.terminal_count += 1
             tab_name += (" %d" % self.terminal_count)
-            tab_icon1 = get_icon('cmdprompt.png')
-            tab_icon2 = get_icon('cmdprompt_t.png')
+            tab_icon1 = qta.icon('fa.terminal')
+            tab_icon2 = qta.icon('fa.terminal')
         self.shellwidgets.insert(index, shellwidget)
         self.filenames.insert(index, fname)
         self.icons.insert(index, (tab_icon1, tab_icon2))
@@ -1082,7 +1083,7 @@ class ExternalConsole(SpyderPluginWidget):
         """Return a list of actions related to plugin"""
         interpreter_action = create_action(self,
                             _("Open a &Python console"), None,
-                            'python.png', triggered=self.open_interpreter)
+                            qta.icon('spyder.python-logo'), triggered=self.open_interpreter)
         if os.name == 'nt':
             text = _("Open &command prompt")
             tip = _("Open a Windows command prompt")

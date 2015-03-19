@@ -1,0 +1,21 @@
+{
+    "continue": "0xE000",
+    "debug": "0xE001",
+    "run": "0xE002",
+    "run-cell": "0xE003",
+    "run-cell-inplace": "0xE004",
+    "step-forward": "0xE005",
+    "step-into": "0xE006",
+    "step-out": "0xE007",
+    "step-over": "0xE008",
+    "stop": "0xE009",
+    "cell": "0xE00A",
+    "run-one-inplace": "0xE00B",
+    "run-one": "0xE00C",
+    "python-logo": "0xE00D",
+    "python-logo-up": "0xE00E",
+    "spyder-logo": "0xE00F",
+    "spyder-logo-web": "0xE010",
+    "spyder-logo-snake": "0xE011",
+    "spyder-logo-background": "0xE012"
+}
