@@ -24,7 +24,7 @@ from spyderlib.qt.QtGui import (QWidget, QDialog, QListWidget, QListWidgetItem,
                                 QPushButton, QFontComboBox, QGroupBox,
                                 QComboBox, QColor, QGridLayout, QTabWidget,
                                 QRadioButton, QButtonGroup, QSplitter,
-                                QStyleFactory, QScrollArea)
+                                QStyleFactory, QScrollArea, QDoubleSpinBox)
 from spyderlib.qt.QtCore import Qt, QSize, SIGNAL, SLOT, Slot
 from spyderlib.qt.compat import (to_qvariant, from_qvariant,
                                  getexistingdirectory, getopenfilename)
@@ -275,8 +275,12 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                          lambda _foo, opt=option: self.has_been_modified(opt))
         for spinbox, (option, default) in list(self.spinboxes.items()):
             spinbox.setValue(self.get_option(option, default))
-            self.connect(spinbox, SIGNAL('valueChanged(int)'),
-                         lambda _foo, opt=option: self.has_been_modified(opt))
+            if type(spinbox) is QSpinBox:
+                self.connect(spinbox, SIGNAL('valueChanged(int)'),
+                             lambda _foo, opt=option: self.has_been_modified(opt))
+            else:
+                self.connect(spinbox, SIGNAL('valueChanged(double)'),
+                             lambda _foo, opt=option: self.has_been_modified(opt))
         for combobox, (option, default) in list(self.comboboxes.items()):
             value = self.get_option(option, default)
             for index in range(combobox.count()):
@@ -489,13 +493,19 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             slabel = QLabel(suffix)
         else:
             slabel = None
-        spinbox = QSpinBox()
+        if step is not None:
+            if type(step) is int:
+                spinbox = QSpinBox()
+            else:
+                spinbox = QDoubleSpinBox()
+                spinbox.setDecimals(1)
+            spinbox.setSingleStep(step)
+        else:
+            spinbox = QSpinBox()
         if min_ is not None:
             spinbox.setMinimum(min_)
         if max_ is not None:
             spinbox.setMaximum(max_)
-        if step is not None:
-            spinbox.setSingleStep(step)
         if tip is not None:
             spinbox.setToolTip(tip)
         self.spinboxes[spinbox] = (option, default)
