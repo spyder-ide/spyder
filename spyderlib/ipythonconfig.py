@@ -13,7 +13,9 @@ from spyderlib.utils import programs
 
 def is_qtconsole_installed():
     pyzmq_installed = programs.is_module_installed('zmq')
-    if programs.is_module_installed('IPython.qt') and pyzmq_installed:
+    pygments_installed = programs.is_module_installed('pygments')
+    if programs.is_module_installed('IPython.qt') and pyzmq_installed \
+      and pygments_installed:
         return True
     else:
         return False
