@@ -217,7 +217,7 @@ except ImportError:
 try:
     import matplotlib
 except ImportError:
-    pass
+    matplotlib = None   # analysis:ignore
 
 #==============================================================================
 # Communication between Spyder and the remote process
@@ -311,56 +311,55 @@ else:
 #==============================================================================
 # Matplotlib settings
 #==============================================================================
-mpl_backend = os.environ.get("MATPLOTLIB_BACKEND")
-mpl_ion = os.environ.get("MATPLOTLIB_ION", "")
-if mpl_backend:
-    try:
-        import matplotlib
-        import ctypes
-        from spyderlib.widgets.externalshell import inputhooks
-        
-        # To have mpl docstrings as rst
-        matplotlib.rcParams['docstring.hardcopy'] = True
+if matplotlib is not None:
+    mpl_backend = os.environ.get("MATPLOTLIB_BACKEND", "")
+    mpl_ion = os.environ.get("MATPLOTLIB_ION", "")
+    if not mpl_backend:
+        mpl_backend = 'Qt4Agg'
 
-        # Activate interactive mode when needed
-        if mpl_ion.lower() == "true":
-            matplotlib.rcParams['interactive'] = True
+    import ctypes
+    from spyderlib.widgets.externalshell import inputhooks
+    
+    # To have mpl docstrings as rst
+    matplotlib.rcParams['docstring.hardcopy'] = True
 
-        # Setting the user defined backend
-        matplotlib.use(mpl_backend)
+    # Activate interactive mode when needed
+    if mpl_ion.lower() == "true":
+        matplotlib.rcParams['interactive'] = True
 
-        # Setting the right input hook according to mpl_backend,
-        # but only for our Python consoles
-        # IMPORTANT NOTE: Don't try to abstract the steps to set a PyOS
-        # input hook callback in a function. It will *crash* the
-        # interpreter!!
-        if os.environ.get("IPYTHON_KERNEL", "").lower() != "true":
-            if mpl_backend == "Qt4Agg" and os.name == 'nt' and \
-              monitor is not None:
-                # Removing PyQt4 input hook which is not working well on
-                # Windows since opening a subprocess does not attach a real
-                # console to it (with keyboard events...)
-                if os.environ["QT_API"] == 'pyqt': 
-                    inputhooks.remove_pyqt_inputhook()
-                # Using our own input hook
-                # NOTE: it's not working correctly for some configurations
-                # (See issue 1831)
-                callback = inputhooks.set_pyft_callback(qt_nt_inputhook)
-                pyos_ih = inputhooks.get_pyos_inputhook()
-                pyos_ih.value = ctypes.cast(callback, ctypes.c_void_p).value
-            elif mpl_backend == "Qt4Agg" and os.environ["QT_API"] == 'pyside':
-                # PySide doesn't have an input hook, so we need to install one
-                # to be able to show plots.
-                # Note: This only works well for Posix systems
-                callback = inputhooks.set_pyft_callback(inputhooks.qt4)
-                pyos_ih = inputhooks.get_pyos_inputhook()
-                pyos_ih.value = ctypes.cast(callback, ctypes.c_void_p).value
-            elif mpl_backend != "Qt4Agg" and os.environ["QT_API"] == 'pyqt':
-                # Matplotlib backends install their own input hooks, so we
-                # need to remove the PyQt one to make them work
+    # Setting the user defined backend
+    matplotlib.use(mpl_backend)
+
+    # Setting the right input hook according to mpl_backend,
+    # but only for our Python consoles
+    # IMPORTANT NOTE: Don't try to abstract the steps to set a PyOS
+    # input hook callback in a function. It will *crash* the
+    # interpreter!!
+    if os.environ.get("IPYTHON_KERNEL", "").lower() != "true":
+        if mpl_backend == "Qt4Agg" and os.name == 'nt' and \
+          monitor is not None:
+            # Removing PyQt4 input hook which is not working well on
+            # Windows since opening a subprocess does not attach a real
+            # console to it (with keyboard events...)
+            if os.environ["QT_API"] == 'pyqt': 
                 inputhooks.remove_pyqt_inputhook()
-    except ImportError:
-        pass
+            # Using our own input hook
+            # NOTE: it's not working correctly for some configurations
+            # (See issue 1831)
+            callback = inputhooks.set_pyft_callback(qt_nt_inputhook)
+            pyos_ih = inputhooks.get_pyos_inputhook()
+            pyos_ih.value = ctypes.cast(callback, ctypes.c_void_p).value
+        elif mpl_backend == "Qt4Agg" and os.environ["QT_API"] == 'pyside':
+            # PySide doesn't have an input hook, so we need to install one
+            # to be able to show plots.
+            # Note: This only works well for Posix systems
+            callback = inputhooks.set_pyft_callback(inputhooks.qt4)
+            pyos_ih = inputhooks.get_pyos_inputhook()
+            pyos_ih.value = ctypes.cast(callback, ctypes.c_void_p).value
+        elif mpl_backend != "Qt4Agg" and os.environ["QT_API"] == 'pyqt':
+            # Matplotlib backends install their own input hooks, so we
+            # need to remove the PyQt one to make them work
+            inputhooks.remove_pyqt_inputhook()
 
 
 #==============================================================================
@@ -368,12 +367,7 @@ if mpl_backend:
 #==============================================================================
 if os.environ.get("IPYTHON_KERNEL", "").lower() == "true":
 
-    #XXX If Matplotlib is not imported first, the next IPython import will fail
-    try:
-        import matplotlib  # analysis:ignore
-    except ImportError:
-        pass
-
+    # Use ipydb as the debugger to patch on IPython consoles
     from IPython.core.debugger import Pdb as ipyPdb
     pdb.Pdb = ipyPdb
 
