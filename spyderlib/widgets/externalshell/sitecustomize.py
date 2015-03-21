@@ -324,18 +324,17 @@ if matplotlib is not None:
     if mpl_ion.lower() == "true":
         matplotlib.rcParams['interactive'] = True
 
-    # Setting the user defined backend
-    matplotlib.use(mpl_backend)
-
-    # Setting the right input hook according to mpl_backend,
-    # but only for our Python consoles
-    # IMPORTANT NOTE: Don't try to abstract the steps to set a PyOS
-    # input hook callback in a function. It will *crash* the
-    # interpreter!!
     if os.environ.get("IPYTHON_KERNEL", "").lower() != "true":
         import ctypes
         from spyderlib.widgets.externalshell import inputhooks
 
+        # Setting the user defined backend
+        matplotlib.use(mpl_backend)
+
+        # Setting the right input hook according to mpl_backend,
+        # IMPORTANT NOTE: Don't try to abstract the steps to set a PyOS
+        # input hook callback in a function. It will *crash* the
+        # interpreter!!
         if mpl_backend == "Qt4Agg" and os.name == 'nt' and \
           monitor is not None:
             # Removing PyQt4 input hook which is not working well on
