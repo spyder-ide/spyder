@@ -27,6 +27,8 @@ parser = argparse.ArgumentParser(description='Script to print the list of '
                                  'milestone')
 parser.add_argument('-m', action="store", dest="milestone", default='',
                     help='Milestone')
+parser.add_argument('-f', action="store", dest="format", default='wiki',
+                    help='Format for print, either wiki or release')
 results = parser.parse_args()
 
 # Creating the main class to interact with Github
@@ -53,28 +55,32 @@ issues = repo.issues.get(milestone=milestone_number, state='closed',
                          per_page='500')
 
 # Printing issues
-print('\nIssues\n')
+print('\n**Issues**\n')
 number_of_issues = 0
 for i in issues:
     pr = i.get('pull_request', '')
     if not pr:
         number_of_issues += 1
         number = i['number']
-        # This is the format necessary to paste the output on the Github wiki
-        issue_link = "[Issue %d](/spyder-ide/spyder/issues/%d)" % (number,
-                                                                   number)
+        if results.format == 'wiki':
+            issue_link = "[Issue %d](/spyder-ide/spyder/issues/%d)" % (number,
+                                                                       number)
+        else:
+            issue_link = "Issue #%d" % number
         print(issue_link + ' - ' + i['title'])
 print('\nIn this release they were closed %d issues' % number_of_issues)
 
 # Printing pull requests
-print('\nPull requests\n')
+print('\n**Pull requests**\n')
 number_of_prs = 0
 for i in issues:
     pr = i.get('pull_request', '')
     if pr:
         number_of_prs += 1
         number = i['number']
-        # This is the format necessary to paste the output on the Github wiki
-        pr_link = "[PR %d](/spyder-ide/spyder/pull/%d)" % (number, number)
+        if results.format == 'wiki':
+            pr_link = "[PR %d](/spyder-ide/spyder/pull/%d)" % (number, number)
+        else:
+            pr_link = "PR #%d" % number
         print(pr_link + ' - ' + i['title'])
 print('\nIn this release they were merged %d pull requests' % number_of_prs)
