@@ -27,8 +27,8 @@ parser = argparse.ArgumentParser(description='Script to print the list of '
                                  'milestone')
 parser.add_argument('-m', action="store", dest="milestone", default='',
                     help='Milestone')
-parser.add_argument('-f', action="store", dest="format", default='wiki',
-                    help='Format for print, either wiki or release')
+parser.add_argument('-f', action="store", dest="format", default='changelog',
+                    help='Format for print, either changelog or release')
 results = parser.parse_args()
 
 # Creating the main class to interact with Github
@@ -62,7 +62,7 @@ for i in issues:
     if not pr:
         number_of_issues += 1
         number = i['number']
-        if results.format == 'wiki':
+        if results.format == 'changelog':
             issue_link = "[Issue %d](/spyder-ide/spyder/issues/%d)" % (number,
                                                                        number)
         else:
@@ -78,7 +78,7 @@ for i in issues:
     if pr:
         number_of_prs += 1
         number = i['number']
-        if results.format == 'wiki':
+        if results.format == 'changelog':
             pr_link = "[PR %d](/spyder-ide/spyder/pull/%d)" % (number, number)
         else:
             pr_link = "PR #%d" % number
