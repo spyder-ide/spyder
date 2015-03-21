@@ -8,9 +8,11 @@
 Spyder, the Scientific PYthon Development EnviRonment
 =====================================================
 
-Developped and maintained by Pierre Raybaut
+Developped and maintained by the Spyder Development
+Team
 
-Copyright © 2009-2012 Pierre Raybaut
+Copyright © 2009 - 2015 Pierre Raybaut
+Copyright © 2010 - 2015 The Spyder Development Team
 Licensed under the terms of the MIT License
 (see spyderlib/__init__.py for details)
 """
@@ -1733,24 +1735,24 @@ class MainWindow(QMainWindow):
             _("About %s") % "Spyder",
             """<b>Spyder %s</b> %s
             <br>The Scientific PYthon Development EnviRonment
-            <p>Copyright &copy; 2009-2012 Pierre Raybaut
-            <br>Copyright &copy; 2010-2015 The Spyder Development Team
+            <p>Copyright &copy; 2009 - 2015 Pierre Raybaut
+            <br>Copyright &copy; 2010 - 2015 The Spyder Development Team
             <br>Licensed under the terms of the MIT License
             <p>Created by Pierre Raybaut
-            <br>Developed and maintained by the 
+            <br>Developed and maintained by the
             <a href="%s/blob/master/AUTHORS">Spyder Development Team</a>
             <br>Many thanks to all the Spyder beta-testers and regular users.
-            <p>Most of the icons come from the Crystal Project 
-            (&copy; 2006-2007 Everaldo Coelho). Other icons by 
-            <a href="http://p.yusukekamiyamane.com/"> Yusuke Kamiyamane</a> 
-            (all rights reserved) and by 
+            <p>Most of the icons come from the Crystal Project
+            (&copy; 2006-2007 Everaldo Coelho). Other icons by
+            <a href="http://p.yusukekamiyamane.com/"> Yusuke Kamiyamane</a>
+            (all rights reserved) and by
             <a href="http://www.oxygen-icons.org/">
             The Oxygen icon theme</a>.
             <p>For bug reports and feature requests, please go
             to our <a href="%s">Github website</a>. For discussions around the
             project, please go to our <a href="%s">Google Group</a>
             <p>This project is part of a larger effort to promote and
-            facilitate the use of Python for scientific and engineering 
+            facilitate the use of Python for scientific and engineering
             software development. The popular Python distributions
             <a href="http://continuum.io/downloads">Anaconda</a>,
             <a href="https://winpython.github.io/">WinPython</a> and
