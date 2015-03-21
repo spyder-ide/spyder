@@ -317,9 +317,6 @@ if matplotlib is not None:
     if not mpl_backend:
         mpl_backend = 'Qt4Agg'
 
-    import ctypes
-    from spyderlib.widgets.externalshell import inputhooks
-    
     # To have mpl docstrings as rst
     matplotlib.rcParams['docstring.hardcopy'] = True
 
@@ -336,6 +333,9 @@ if matplotlib is not None:
     # input hook callback in a function. It will *crash* the
     # interpreter!!
     if os.environ.get("IPYTHON_KERNEL", "").lower() != "true":
+        import ctypes
+        from spyderlib.widgets.externalshell import inputhooks
+
         if mpl_backend == "Qt4Agg" and os.name == 'nt' and \
           monitor is not None:
             # Removing PyQt4 input hook which is not working well on
