@@ -210,6 +210,16 @@ except ImportError:
 
 
 #==============================================================================
+# Importing matplotlib before creating the monitor.
+# This prevents a kernel crash with the inline backend in our IPython
+# consoles on Linux and Python 3 (Fixes Issue 2257)
+#==============================================================================
+try:
+    import matplotlib
+except ImportError:
+    pass
+
+#==============================================================================
 # Communication between Spyder and the remote process
 #==============================================================================
 if os.environ.get('SPYDER_SHELL_ID') is None:
