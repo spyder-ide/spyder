@@ -270,7 +270,8 @@ else:
         
         This input hook wait for available stdin data (notified by
         ExternalPythonShell through the monitor's inputhook_flag
-        attribute), and in the meantime it processes Qt events."""
+        attribute), and in the meantime it processes Qt events.
+        """
         # Refreshing variable explorer, except on first input hook call:
         # (otherwise, on slow machines, this may freeze Spyder)
         monitor.refresh_from_inputhook()
