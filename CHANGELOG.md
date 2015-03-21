@@ -1,5 +1,67 @@
 # History of changes
 
+## Version 2.3.4
+
+### New features since v2.3.3
+
+* Debugging
+    * After pressing the Debug button (or `Ctrl+F5`) move to the first breakpoint
+* IPython Console
+    * Drop support for Sympy versions less than 0.7.3
+* Python Console
+    * Remove support to run system commands with ! (like !diff)
+* Editor
+    * Accept drops from compressed files on Windows
+
+### Bug fixes (since v2.3.2)
+
+**Issues**
+
+[Issue 2259](/spyder-ide/spyder/issues/2259) - spyder crashes if ipython installed but not pygments
+[Issue 2257](/spyder-ide/spyder/issues/2257) - Cannot plot inline in IPython console on Linux
+[Issue 2252](/spyder-ide/spyder/issues/2252) - Update French translations for 2.3.4
+[Issue 2245](/spyder-ide/spyder/issues/2245) - Importing a module with debugger causes "TypeError: decoding Unicode is not supported"
+[Issue 2239](/spyder-ide/spyder/issues/2239) - SyntaxErrors with Python 3.2
+[Issue 2234](/spyder-ide/spyder/issues/2234) - Object Inspector is not showing "No documentation available" for objects without docstring
+[Issue 2227](/spyder-ide/spyder/issues/2227) - IPython does not work with brewed or virtualenv Python(s) in MacOSX
+[Issue 2223](/spyder-ide/spyder/issues/2223) - Spyder2.3.3 Code completion breaks
+[Issue 2207](/spyder-ide/spyder/issues/2207) - Spyder's WM_CLASS is empty, resulting in unexpected behavior for task managers
+[Issue 2203](/spyder-ide/spyder/issues/2203) - Code completion issue with Jedi
+[Issue 2197](/spyder-ide/spyder/issues/2197) - IPython consoles are not named correctly when connecting to existing kernels and passing the full kernel path
+[Issue 2158](/spyder-ide/spyder/issues/2158) - runfile with path containing apostrophes (quotes) will not work
+[Issue 2151](/spyder-ide/spyder/issues/2151) - Long NumPy arrays throw off errors
+[Issue 2146](/spyder-ide/spyder/issues/2146) - Special character "!" is not processed correctly when debugging in Python consoles
+[Issue 2081](/spyder-ide/spyder/issues/2081) - Spyder crashes on Windows because of non-ascii chars in working directory
+[Issue 2058](/spyder-ide/spyder/issues/2058) - Don't execute external commands (!) when running pdb in python consoles
+[Issue 2034](/spyder-ide/spyder/issues/2034) - Execute until first breakpoint when pressing the Debug button
+[Issue 2032](/spyder-ide/spyder/issues/2032) - Dragging (not dropping) file from 7zip over spyder window causes TypeError in dragEnterEvent
+[Issue 1952](/spyder-ide/spyder/issues/1952) - spyderlib.utils.external overrides modules for script execution
+[Issue 1948](/spyder-ide/spyder/issues/1948) - spyder 2.3 ipython console startup code or file not working
+[Issue 1856](/spyder-ide/spyder/issues/1856) - Running in external system terminals is not working on Windows and Python 3
+[Issue 1845](/spyder-ide/spyder/issues/1845) - Spyder crashes on launch trying to load the project config file (.spyderproject)
+[Issue 1568](/spyder-ide/spyder/issues/1568) - raw_input borks with '!'
+[Issue 1529](/spyder-ide/spyder/issues/1529) - Plot A List Of Floats In Variable Explorer Not Possible
+[Issue 1380](/spyder-ide/spyder/issues/1380) - Problems with sitecustomize because of pickleshare library
+[Issue 1366](/spyder-ide/spyder/issues/1366) - "Highlight occurrences" setting is lost after IDE restart
+[Issue 1359](/spyder-ide/spyder/issues/1359) - Mac app - Sometimes it's not possible to get the user env vars
+[Issue 1321](/spyder-ide/spyder/issues/1321) - The PYTHONPATH manager on the Mac app does not work with the EPD64 interpreter
+[Issue 1151](/spyder-ide/spyder/issues/1151) - Ctrl-C doesn't copy to clipboard in object inspector
+
+In this release they were closed 29 issues
+
+**Pull requests**
+
+[PR 2255](/spyder-ide/spyder/pull/2255) - Update French translations
+[PR 2242](/spyder-ide/spyder/pull/2242) - Improve message for no docstring
+[PR 2233](/spyder-ide/spyder/pull/2233) - catch a reason to crash on startup
+[PR 2224](/spyder-ide/spyder/pull/2224) - Fix a bug in completion if callback value is not converted to string
+[PR 2219](/spyder-ide/spyder/pull/2219) - Open configuration file with utf-8 encoding on Windows and Python 2 
+[PR 2214](/spyder-ide/spyder/pull/2214) - Fix zlib segmentation fault in Anaconda 3.4 Linux
+
+In this release they were merged 6 pull requests
+
+----
+
 ## Version 2.3.3
 
 ### New features since v2.3.2

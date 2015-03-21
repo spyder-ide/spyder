@@ -594,7 +594,7 @@ class ExternalPythonShell(ExternalShellBase):
 #            while self.local_server.hasPendingConnections():
 #                self.local_server.nextPendingConnection().write('go!')
         if any([text == cmd for cmd in ['%ls', '%pwd', '%scientific']]) or \
-          any([text.startswith(cmd) for cmd in ['%cd', '%clear']]):
+          any([text.startswith(cmd) for cmd in ['%cd ', '%clear ']]):
             text = 'evalsc(r"%s")\n' % text
         if not text.endswith('\n'):
             text += '\n'
