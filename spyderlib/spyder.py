@@ -41,7 +41,7 @@ ORIGINAL_SYS_EXIT = sys.exit
 
 
 #==============================================================================
-# Test if IPython v0.13+ is installed to eventually switch to PyQt API #2
+# Test if IPython is installed to eventually switch to PyQt API #2
 #==============================================================================
 from spyderlib.baseconfig import _
 from spyderlib.ipythonconfig import IPYTHON_QT_INSTALLED, SUPPORTED_IPYTHON
