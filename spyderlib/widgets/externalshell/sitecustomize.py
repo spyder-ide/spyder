@@ -394,7 +394,7 @@ if os.environ.get("IPYTHON_KERNEL", "").lower() == "true":
         
         # Set Pandas output encoding
         pd.options.display.encoding = 'utf-8'
-    except:
+    except (ImportError, AttributeError):
         pass
         
 
