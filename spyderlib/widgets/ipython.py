@@ -38,7 +38,7 @@ from spyderlib.config import CONF
 from spyderlib.guiconfig import (create_shortcut, get_font, get_shortcut,
                                  new_shortcut)
 from spyderlib.utils.dochelpers import getargspecfromtext, getsignaturefromtext
-from spyderlib.utils.qthelpers import (get_std_icon, create_toolbutton,
+from spyderlib.utils.qthelpers import (create_toolbutton,
                                        add_actions, create_action, get_icon,
                                        restore_keyevent)
 from spyderlib.utils import programs, sourcecode
@@ -554,7 +554,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         inspect_action = create_action(self, _("Inspect current object"),
                                     QKeySequence(get_shortcut('console',
                                                     'inspect current object')),
-                                    icon=get_std_icon('MessageBoxInformation'),
+                                    icon=qta.icon('fa.info'),
                                     triggered=self.inspect_object)
         clear_line_action = create_action(self, _("Clear line or block"),
                                           QKeySequence("Shift+Escape"),

@@ -17,6 +17,7 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QLabel, QHBoxLayout, QWidget,
                                 QAbstractItemView)
 from spyderlib.qt.QtCore import Qt, QFileInfo, Slot, Signal
 from spyderlib.qt.compat import getexistingdirectory
+from spyderlib.qt import qta
 
 import os
 import re
@@ -26,7 +27,7 @@ import xml.etree.ElementTree as ElementTree
 
 # Local imports
 from spyderlib.utils import misc
-from spyderlib.utils.qthelpers import get_icon, get_std_icon, create_action
+from spyderlib.utils.qthelpers import get_icon, create_action
 from spyderlib.baseconfig import _, STDERR, get_image_path
 from spyderlib.widgets.explorer import FilteredDirView, listdir, fixpath
 from spyderlib.widgets.formlayout import fedit
@@ -51,17 +52,17 @@ def is_drive_path(path):
 def get_dir_icon(dirname, project):
     """Return appropriate directory icon"""
     if is_drive_path(dirname):
-        return get_std_icon('DriveHDIcon')
+        return qta.icon('fa.hdd-o')
     prefix = 'pp_' if dirname in project.get_pythonpath() else ''
     if dirname == project.root_path:
         if project.is_opened():
-            return get_icon(prefix+'project.png')
+            return get_icon(prefix + 'project.png')
         else:
             return get_icon('project_closed.png')
     elif osp.isfile(osp.join(dirname, '__init__.py')):
-        return get_icon(prefix+'package.png')
+        return get_icon(prefix + 'package.png')
     else:
-        return get_icon(prefix+'folder.png')
+        return get_icon(prefix + 'folder.png')
 
 
 class Project(object):
@@ -555,7 +556,7 @@ class ExplorerTreeWidget(FilteredDirView):
         """Return actions for submenu 'Import...'"""
         import_folder_act = create_action(self,
                                 text=_('Existing directory'),
-                                icon=get_std_icon('DirOpenIcon'),
+                                icon=qta.icon('fa.folder-open-o'),
                                 triggered=self.import_existing_directory)
         import_spyder_act = create_action(self,
                                 text=_('Existing Spyder project'),
@@ -1225,7 +1226,7 @@ class WorkspaceSelector(QWidget):
                                   +'<br><br>'+self.TIP)
         self.line_edit.setReadOnly(True)
         self.line_edit.setDisabled(True)
-        self.browse_btn = QPushButton(get_std_icon('DirOpenIcon'), "", self)
+        self.browse_btn = QPushButton(qta.icon('fa.folder-open-o'), '', self)
         self.browse_btn.setToolTip(self.TITLE)
         self.browse_btn.clicked.connect(self.select_directory)
         layout = QHBoxLayout()

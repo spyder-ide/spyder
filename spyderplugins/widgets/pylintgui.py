@@ -18,6 +18,7 @@ from spyderlib.qt.QtGui import (QHBoxLayout, QWidget, QTreeWidgetItem,
 from spyderlib.qt.QtCore import Signal, QProcess, QByteArray, QTextCodec
 locale_codec = QTextCodec.codecForLocale()
 from spyderlib.qt.compat import getopenfilename
+from spyderlib.qt import qta
 
 import sys
 import os
@@ -112,7 +113,7 @@ class ResultsTree(OneColumnTree):
                    (_('Refactor'),
                     get_icon('refactor.png'), self.results['R:']),
                    (_('Warning'),
-                    get_icon('warning.png'), self.results['W:']),
+                    qta.icon('fa.warning'), self.results['W:']),
                    (_('Error'),
                     get_icon('error.png'), self.results['E:']))
         for title, icon, messages in results:
@@ -190,19 +191,19 @@ class PylintWidget(QWidget):
             self.remove_obsolete_items()
             self.filecombo.addItems(self.get_filenames())
         
-        self.start_button = create_toolbutton(self, icon=get_icon('run.png'),
+        self.start_button = create_toolbutton(self, icon=qta.icon('fa.play'),
                                     text=_("Analyze"),
                                     tip=_("Run analysis"),
                                     triggered=self.start, text_beside_icon=True)
         self.stop_button = create_toolbutton(self,
-                                             icon=get_icon('stop.png'),
+                                             icon=qta.icon('fa.stop'),
                                              text=_("Stop"),
                                              tip=_("Stop current analysis"),
                                              text_beside_icon=True)
         self.filecombo.valid.connect(self.start_button.setEnabled)
         self.filecombo.valid.connect(self.show_data)
 
-        browse_button = create_toolbutton(self, icon=get_icon('fileopen.png'),
+        browse_button = create_toolbutton(self, icon=qta.icon('fa.folder-open-o'),
                                tip=_('Select Python file'),
                                triggered=self.select_file)
 

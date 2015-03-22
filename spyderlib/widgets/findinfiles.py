@@ -316,8 +316,8 @@ class FindOptions(QWidget):
         self.search_text = PatternComboBox(self, search_text,
                                            _("Search pattern"))
         self.edit_regexp = create_toolbutton(self,
-                                             icon=get_icon("advanced.png"),
-                                             tip=_("Regular expression"))
+                                             icon=qta.icon('fa.cog'),
+                                             tip=_('Regular expression'))
         self.edit_regexp.setCheckable(True)
         self.edit_regexp.setChecked(search_text_regexp)
         self.more_widgets = ()
@@ -327,7 +327,7 @@ class FindOptions(QWidget):
         self.more_options.setChecked(more_options)
         
         self.ok_button = create_toolbutton(self, text=_("Search"),
-                                icon=get_std_icon("DialogApplyButton"),
+                                icon=qta.icon('fa.check'),
                                 triggered=lambda: self.find.emit(),
                                 tip=_("Start search"),
                                 text_beside_icon=True)
@@ -350,8 +350,8 @@ class FindOptions(QWidget):
            and include_idx < self.include_pattern.count():
             self.include_pattern.setCurrentIndex(include_idx)
         self.include_regexp = create_toolbutton(self,
-                                            icon=get_icon("advanced.png"),
-                                            tip=_("Regular expression"))
+                                            icon=qta.icon('fa.cog'),
+                                            tip=_('Regular expression'))
         self.include_regexp.setCheckable(True)
         self.include_regexp.setChecked(include_regexp)
         include_label = QLabel(_("Include:"))
@@ -362,8 +362,8 @@ class FindOptions(QWidget):
            and exclude_idx < self.exclude_pattern.count():
             self.exclude_pattern.setCurrentIndex(exclude_idx)
         self.exclude_regexp = create_toolbutton(self,
-                                            icon=get_icon("advanced.png"),
-                                            tip=_("Regular expression"))
+                                            icon=qta.icon('fa.cog'),
+                                            tip=_('Regular expression'))
         self.exclude_regexp.setCheckable(True)
         self.exclude_regexp.setChecked(exclude_regexp)
         exclude_label = QLabel(_("Exclude:"))
@@ -393,7 +393,7 @@ class FindOptions(QWidget):
         self.dir_combo.open_dir.connect(self.set_directory)
         self.python_path.toggled.connect(self.dir_combo.setDisabled)
         self.hg_manifest.toggled.connect(self.dir_combo.setDisabled)
-        browse = create_toolbutton(self, icon=get_std_icon('DirOpenIcon'),
+        browse = create_toolbutton(self, icon=qta.icon('fa.folder-open-o'),
                                    tip=_('Browse a search directory'),
                                    triggered=self.select_directory)
         for widget in [self.python_path, self.hg_manifest, self.custom_dir,
@@ -620,7 +620,7 @@ class ResultsBrowser(OneColumnTree):
                 displayed_name = dirname
             item = QTreeWidgetItem(parent, [displayed_name],
                                    QTreeWidgetItem.Type)
-            item.setIcon(0, get_std_icon('DirClosedIcon'))
+            item.setIcon(0, qta.icon('fa.folder-o'))
             return item
         dirs = {}
         for dirname in sorted(list(dir_set)):

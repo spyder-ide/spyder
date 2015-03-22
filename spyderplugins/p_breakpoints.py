@@ -15,11 +15,11 @@
 # Local imports
 from spyderlib.baseconfig import get_translation
 _ = get_translation("p_breakpoints", dirname="spyderplugins")
-from spyderlib.utils.qthelpers import get_icon, create_action
+from spyderlib.utils.qthelpers import create_action
 from spyderlib.plugins import SpyderPluginMixin
 from spyderplugins.widgets.breakpointsgui import BreakpointWidget
 from spyderlib.py3compat import to_text_string, is_text_string
-
+from spyderlib.qt import qta
 
 class Breakpoints(BreakpointWidget, SpyderPluginMixin):
     """Breakpoint list"""
@@ -41,7 +41,7 @@ class Breakpoints(BreakpointWidget, SpyderPluginMixin):
     
     def get_plugin_icon(self):
         """Return widget icon"""
-        return get_icon('bug.png')
+        return qta.icon('fa.bug')
     
     def get_focus_widget(self):
         """

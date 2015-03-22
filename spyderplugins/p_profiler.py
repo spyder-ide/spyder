@@ -15,7 +15,7 @@ from spyderlib.qt import qta
 # Local imports
 from spyderlib.baseconfig import get_translation
 _ = get_translation("p_profiler", dirname="spyderplugins")
-from spyderlib.utils.qthelpers import get_icon, create_action
+from spyderlib.utils.qthelpers import create_action
 from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage, runconfig
 
 from spyderplugins.widgets.profilergui import (ProfilerWidget,
@@ -69,7 +69,7 @@ class Profiler(ProfilerWidget, SpyderPluginMixin):
 
     def get_plugin_icon(self):
         """Return widget icon"""
-        return get_icon('profiler.png')
+        return qta.icon('fa.clock-o')
     
     def get_focus_widget(self):
         """

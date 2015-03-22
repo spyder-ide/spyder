@@ -14,6 +14,7 @@
 from spyderlib.qt.QtGui import (QHBoxLayout, QGridLayout, QCheckBox, QLabel,
                                 QWidget, QSizePolicy, QTextCursor)
 from spyderlib.qt.QtCore import Signal, Slot, Qt, QTimer
+from spyderlib.qt import qta
 
 import re
 
@@ -52,7 +53,7 @@ class FindReplace(QWidget):
         self.setLayout(glayout)
         
         self.close_button = create_toolbutton(self, triggered=self.hide,
-                                      icon=get_std_icon("DialogCloseButton"))
+                                      icon=qta.icon('fa.close'))
         glayout.addWidget(self.close_button, 0, 0)
         
         # Find layout
@@ -66,14 +67,14 @@ class FindReplace(QWidget):
         
         self.previous_button = create_toolbutton(self,
                                              triggered=self.find_previous,
-                                             icon=get_std_icon("ArrowUp"))
+                                             icon=qta.icon('fa.arrow-up'))
         self.next_button = create_toolbutton(self,
                                              triggered=self.find_next,
-                                             icon=get_std_icon("ArrowDown"))
+                                             icon=qta.icon('fa.arrow-down'))
         self.next_button.clicked.connect(self.update_search_combo)
         self.previous_button.clicked.connect(self.update_search_combo)
 
-        self.re_button = create_toolbutton(self, icon=get_icon("advanced.png"),
+        self.re_button = create_toolbutton(self, icon=qta.icon('fa.cog'),
                                            tip=_("Regular expression"))
         self.re_button.setCheckable(True)
         self.re_button.toggled.connect(lambda state: self.find())
@@ -108,11 +109,11 @@ class FindReplace(QWidget):
         # Replace layout
         replace_with = QLabel(_("Replace with:"))
         self.replace_text = PatternComboBox(self, adjust_to_minimum=False,
-                                            tip=_("Replace string"))
+                                            tip=_('Replace string'))
         
         self.replace_button = create_toolbutton(self,
-                                     text=_("Replace/find"),
-                                     icon=get_std_icon("DialogApplyButton"),
+                                     text=_('Replace/find'),
+                                     icon=qta.icon('fa.check'),
                                      triggered=self.replace_find,
                                      text_beside_icon=True)
         self.replace_button.clicked.connect(self.update_replace_combo)

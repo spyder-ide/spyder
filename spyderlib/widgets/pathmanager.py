@@ -13,13 +13,14 @@ from spyderlib.qt.QtGui import (QDialog, QListWidget, QDialogButtonBox,
                                 QListWidgetItem)
 from spyderlib.qt.QtCore import Qt, Signal, Slot
 from spyderlib.qt.compat import getexistingdirectory
+from spyderlib.qt import qta
 
 import os
 import sys
 import os.path as osp
 
 # Local imports
-from spyderlib.utils.qthelpers import get_icon, get_std_icon, create_toolbutton
+from spyderlib.utils.qthelpers import get_icon, create_toolbutton
 from spyderlib.baseconfig import _
 from spyderlib.py3compat import getcwd
 
@@ -178,7 +179,7 @@ class PathManager(QDialog):
         self.listwidget.clear()
         for name in self.pathlist+self.ro_pathlist:
             item = QListWidgetItem(name)
-            item.setIcon(get_std_icon('DirClosedIcon'))
+            item.setIcon(qta.icon('fa.folder-o'))
             if name in self.ro_pathlist:
                 item.setFlags(Qt.NoItemFlags)
             self.listwidget.addItem(item)
