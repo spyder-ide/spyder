@@ -21,6 +21,7 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QLabel, QHBoxLayout, QInputDialog,
 from spyderlib.qt.QtCore import (Qt, Signal, QMimeData, QSize, QDir, QUrl,
                                  QTimer, Slot)
 from spyderlib.qt.compat import getsavefilename, getexistingdirectory
+from spyderlib.qt import qta
 
 import os
 import sys
@@ -1012,7 +1013,7 @@ class ExplorerWidget(QWidget):
         self.toolbar.setIconSize(QSize(16, 16))
         
         self.previous_action = create_action(self, text=_("Previous"),
-                            icon=get_std_icon("ArrowBack"),
+                            icon=qta.icon('fa.arrow-circle-left'),
                             triggered=self.treewidget.go_to_previous_directory)
         self.toolbar.addAction(self.previous_action)
         self.previous_action.setEnabled(False)
@@ -1020,14 +1021,14 @@ class ExplorerWidget(QWidget):
                                                self.previous_action.setEnabled)
         
         self.next_action = create_action(self, text=_("Next"),
-                            icon=get_std_icon("ArrowForward"),
+                            icon=qta.icon('fa.arrow-circle-right'),
                             triggered=self.treewidget.go_to_next_directory)
         self.toolbar.addAction(self.next_action)
         self.next_action.setEnabled(False)
         self.treewidget.set_next_enabled.connect(self.next_action.setEnabled)
         
         parent_action = create_action(self, text=_("Parent"),
-                            icon=get_std_icon("ArrowUp"),
+                            icon=qta.icon('fa.arrow-circle-up'),
                             triggered=self.treewidget.go_to_parent_directory)
         self.toolbar.addAction(parent_action)
         self.toolbar.addSeparator()
