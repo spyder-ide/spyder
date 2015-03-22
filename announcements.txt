@@ -27,8 +27,8 @@ release the first beta of our next major release (expected to be ready on July!)
 
 Don’t forget to follow Spyder updates/news:
 
-    * on the project website: https://github.com/spyder-ide/spyder
-    * and on our official blog: http://spyder-ide.blogspot.com/
+* on the project website: https://github.com/spyder-ide/spyder
+* and on our official blog: http://spyder-ide.blogspot.com/
 
 Last, but not least, we welcome any contribution that helps making Spyder an
 efficient scientific development/computing environment. Join us to help creating
@@ -75,8 +75,8 @@ release the first beta of our next major release (expected to be ready on July!)
 
 Don’t forget to follow Spyder updates/news:
 
-    * on the project website: https://github.com/spyder-ide/spyder
-    * and on our official blog: http://spyder-ide.blogspot.com/
+* on the project website: https://github.com/spyder-ide/spyder
+* and on our official blog: http://spyder-ide.blogspot.com/
 
 Last, but not least, we welcome any contribution that helps making Spyder an
 efficient scientific development/computing environment. Join us to help creating
@@ -123,8 +123,9 @@ merged 30 pull requests from 11 authors and added almost 1000 commits between
 these two releases.
 
 Don't forget to follow Spyder updates/news:
-  * on the project website: https://github.com/spyder-ide/spyder
-  * and on our official blog: http://spyder-ide.blogspot.com/
+  
+* on the project website: https://github.com/spyder-ide/spyder
+* and on our official blog: http://spyder-ide.blogspot.com/
 
 Last, but not least, we welcome any contribution that helps making Spyder an
 efficient scientific development/computing environment. Join us to help creating
