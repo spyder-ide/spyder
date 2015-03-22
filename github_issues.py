@@ -63,10 +63,10 @@ for i in issues:
         number_of_issues += 1
         number = i['number']
         if results.format == 'changelog':
-            issue_link = "[Issue %d](/spyder-ide/spyder/issues/%d)" % (number,
-                                                                       number)
+            issue_link = "* [Issue %d](/spyder-ide/spyder/issues/%d)" % (number,
+                                                                         number)
         else:
-            issue_link = "Issue #%d" % number
+            issue_link = "* Issue #%d" % number
         print(issue_link + ' - ' + i['title'])
 print('\nIn this release they were closed %d issues' % number_of_issues)
 
@@ -79,8 +79,9 @@ for i in issues:
         number_of_prs += 1
         number = i['number']
         if results.format == 'changelog':
-            pr_link = "[PR %d](/spyder-ide/spyder/pull/%d)" % (number, number)
+            pr_link = "* [PR %d](/spyder-ide/spyder/pull/%d)" % (number,
+                                                                 number)
         else:
-            pr_link = "PR #%d" % number
+            pr_link = "* PR #%d" % number
         print(pr_link + ' - ' + i['title'])
 print('\nIn this release they were merged %d pull requests' % number_of_prs)
