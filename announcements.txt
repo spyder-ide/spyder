@@ -20,7 +20,7 @@ introduces several new features:
     * Accept drops from compressed files on Windows
 
 We also fixed almost 30 bugs and merged 6 pull requests. For a full list of fixes
-see our changelog: https://github.com/spyder-ide/spyder/CHANGELOG.md
+see our changelog: https://github.com/spyder-ide/spyder/blob/master/CHANGELOG.md
 
 This is going to be the last release in 2.3 series. Very soon we are going to
 release the first beta of our next major release (expected to be ready on July!)
@@ -68,7 +68,7 @@ introduces several new features:
     * Accept drops from compressed files on Windows
 
 We also fixed almost 30 bugs and merged 6 pull requests. For a full list of
-fixes see our changelog: https://github.com/spyder-ide/spyder/CHANGELOG.md
+fixes see our changelog: https://github.com/spyder-ide/spyder/blob/master/CHANGELOG.md
 
 This is going to be the last release in 2.3 series. Very soon we are going to
 release the first beta of our next major release (expected to be ready on July!)
@@ -115,7 +115,7 @@ major enhancements and new features:
      - Improve how calltips are shown
    * Better looking Object Inspector
    * Several refinements to the user interface to make it easier and more intuitive
-   * And many other changes: https://github.com/spyder-ide/spyder/CHANGELOG.md
+   * And many other changes: https://github.com/spyder-ide/spyder/blob/master/CHANGELOG.md
 
 Spyder 2.2 has been a huge success (being downloaded more than 400,000 times!)
 and we hope 2.3 will be as successful as it. For that we fixed 70 important bugs,
