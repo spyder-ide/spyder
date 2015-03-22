@@ -24,7 +24,7 @@ import os.path as osp
 # Local imports
 from spyderlib.utils import encoding
 from spyderlib.baseconfig import get_conf_path, _
-from spyderlib.utils.qthelpers import get_icon, get_std_icon, create_action
+from spyderlib.utils.qthelpers import create_action
 
 # Package local imports
 from spyderlib.widgets.comboboxes import PathComboBox
@@ -238,7 +238,7 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
     
     def get_plugin_icon(self):
         """Return widget icon"""
-        return get_std_icon('DirOpenIcon')
+        return qta.icon('fa.folder-open-o')
         
     def get_plugin_actions(self):
         """Setup actions"""

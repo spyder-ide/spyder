@@ -148,9 +148,8 @@ except ImportError:
     WinUserEnvDialog = None  # analysis:ignore
 
 from spyderlib.utils.qthelpers import (create_action, add_actions, get_icon,
-                                       get_std_icon, add_shortcut_to_tooltip,
+                                       add_shortcut_to_tooltip,
                                        create_module_bookmark_actions,
-                                       create_bookmark_action,
                                        create_program_action, DialogManager,
                                        keybinding, create_python_script_action,
                                        file_uri)

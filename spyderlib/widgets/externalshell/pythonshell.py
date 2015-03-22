@@ -15,9 +15,10 @@ from spyderlib.qt.QtGui import QApplication, QMessageBox, QSplitter, QMenu
 from spyderlib.qt.QtCore import QProcess, Signal, Slot, Qt
 from spyderlib.qt.QtCore import QProcessEnvironment
 from spyderlib.qt.compat import getexistingdirectory
+from spyderlib.qt import qta
 
 # Local imports
-from spyderlib.utils.qthelpers import (get_icon, get_std_icon, add_actions,
+from spyderlib.utils.qthelpers import (get_icon, add_actions,
                                        create_toolbutton, create_action,
                                        DialogManager)
 from spyderlib.utils.environ import RemoteEnvDialog
@@ -315,7 +316,7 @@ class ExternalPythonShell(ExternalShellBase):
                     (self.interact_action, self.debug_action, self.args_action,
                      self.post_mortem_action))
         self.cwd_button = create_action(self, _("Working directory"),
-                                icon=get_std_icon('DirOpenIcon'),
+                                icon=qta.icon('fa.folder-open-o'),
                                 tip=_("Set current working directory"),
                                 triggered=self.set_current_working_directory)
         self.env_button = create_action(self, _("Environment variables"),

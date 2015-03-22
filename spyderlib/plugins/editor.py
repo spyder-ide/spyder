@@ -34,8 +34,7 @@ from spyderlib.config import CONF, EDIT_FILTERS, get_filter, EDIT_FILETYPES
 from spyderlib.guiconfig import get_color_scheme
 from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions,
-                                       get_std_icon, get_filetype_icon,
-                                       add_shortcut_to_tooltip)
+                                       get_filetype_icon, add_shortcut_to_tooltip)
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.status import (ReadWriteStatus, EOLStatus,
                                       EncodingStatus, CursorPositionStatus)
@@ -683,20 +682,20 @@ class Editor(SpyderPluginWidget):
         # ---- Debug menu ----
         set_clear_breakpoint_action = create_action(self,
                                     _("Set/Clear breakpoint"),
-                                    icon=get_icon("breakpoint_big.png"),
+                                    icon=qta.icon('fa.circle', color='darkred'),
                                     triggered=self.set_or_clear_breakpoint,
                                     context=Qt.WidgetShortcut)
         self.register_shortcut(set_clear_breakpoint_action, context="Editor",
                                name="Breakpoint")
         set_cond_breakpoint_action = create_action(self,
                             _("Set/Edit conditional breakpoint"),
-                            icon=get_icon("breakpoint_cond_big.png"),
+                            icon=qta.icon('fa.question-circle', color='darkred'),
                             triggered=self.set_or_edit_conditional_breakpoint,
                             context=Qt.WidgetShortcut)
         self.register_shortcut(set_cond_breakpoint_action, context="Editor",
                                name="Conditional breakpoint")
         clear_all_breakpoints_action = create_action(self,
-                                    _("Clear breakpoints in all files"),
+                                    _('Clear breakpoints in all files'),
                                     triggered=self.clear_all_breakpoints)
         breakpoints_menu = QMenu(_("Breakpoints"), self)
         add_actions(breakpoints_menu, (set_clear_breakpoint_action,
@@ -938,7 +937,7 @@ class Editor(SpyderPluginWidget):
 
         workdir_action = create_action(self,
                 _("Set console working directory"),
-                icon=get_std_icon('DirOpenIcon'),
+                icon=qta.icon('fa.folder-open-o'),
                 tip=_("Set current console (and file explorer) working "
                             "directory to current script directory"),
                 triggered=self.__set_workdir)

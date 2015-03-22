@@ -173,16 +173,16 @@ class NamespaceBrowser(QWidget):
                           
         toolbar = []
 
-        refresh_button = create_toolbutton(self, text=_("Refresh"),
+        refresh_button = create_toolbutton(self, text=_('Refresh'),
                                            icon=qta.icon('fa.repeat'),
                                            triggered=self.refresh_table)
         self.auto_refresh_button = create_toolbutton(self,
-                                           text=_("Refresh periodically"),
+                                           text=_('Refresh periodically'),
                                            icon=qta.icon_stack(['fa.repeat', 'fa.clock-o'],
                                                                options=[{}, {'scale_factor': 0.5}]),
                                            toggled=self.toggle_auto_refresh)
         self.auto_refresh_button.setChecked(autorefresh)
-        load_button = create_toolbutton(self, text=_("Import data"),
+        load_button = create_toolbutton(self, text=_('Import data'),
                                         icon=qta.icon('fa.download'),
                                         triggered=self.import_data)
         self.save_button = create_toolbutton(self, text=_("Save data"),

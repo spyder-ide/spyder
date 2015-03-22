@@ -18,6 +18,7 @@ from spyderlib.qt.QtGui import (QHBoxLayout, QWidget, QTreeWidgetItem,
 from spyderlib.qt.QtCore import (Signal, Slot, Qt, QThread, QMutexLocker,
                                  QMutex)
 from spyderlib.qt.compat import getexistingdirectory
+from spyderlib.qt import qta
 
 import sys
 import os
@@ -332,7 +333,7 @@ class FindOptions(QWidget):
                                 text_beside_icon=True)
         self.ok_button.clicked.connect(self.update_combos)
         self.stop_button = create_toolbutton(self, text=_("Stop"),
-                                icon=get_icon("stop.png"),
+                                icon=qta.icon('fa.stop'),
                                 triggered=lambda: self.stop.emit(),
                                 tip=_("Stop search"),
                                 text_beside_icon=True)

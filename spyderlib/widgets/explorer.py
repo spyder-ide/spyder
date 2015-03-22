@@ -30,8 +30,7 @@ import os.path as osp
 import shutil
 
 # Local imports
-from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions,
-                                       file_uri, get_std_icon)
+from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions, file_uri)
 from spyderlib.utils import misc, encoding, programs, vcs
 from spyderlib.baseconfig import _
 from spyderlib.py3compat import (to_text_string, to_binary_string, getcwd,

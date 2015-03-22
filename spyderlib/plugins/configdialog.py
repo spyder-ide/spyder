@@ -27,7 +27,7 @@ from spyderlib.baseconfig import (_, running_in_mac_app, LANGUAGE_CODES,
 from spyderlib.config import CONF
 from spyderlib.guiconfig import (CUSTOM_COLOR_SCHEME_NAME,
                                  set_default_color_scheme)
-from spyderlib.utils.qthelpers import get_icon, get_std_icon
+from spyderlib.utils.qthelpers import get_icon
 from spyderlib.userconfig import NoDefault
 from spyderlib.widgets.colors import ColorLayout
 from spyderlib.widgets.sourcecode import syntaxhighlighters as sh
