@@ -13,6 +13,7 @@ from spyderlib.qt.QtGui import (QHBoxLayout, QVBoxLayout, QLabel, QSizePolicy,
                                 QLineEdit, QMessageBox)
 from spyderlib.qt.QtCore import Signal, Slot, QUrl, QThread
 from spyderlib.qt.QtWebKit import QWebPage
+from spyderlib.qt import qta
 
 import re
 import os.path as osp
@@ -933,7 +934,7 @@ class ObjectInspector(SpyderPluginWidget):
 
     def _update_lock_icon(self):
         """Update locked state icon"""
-        icon = get_icon("lock.png" if self.locked else "lock_open.png")
+        icon = qta.icon('fa.lock') if self.locked else qta.icon('fa.unlock-alt')
         self.locked_button.setIcon(icon)
         tip = _("Unlock") if self.locked else _("Lock")
         self.locked_button.setToolTip(tip)

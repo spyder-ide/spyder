@@ -174,15 +174,16 @@ class NamespaceBrowser(QWidget):
         toolbar = []
 
         refresh_button = create_toolbutton(self, text=_("Refresh"),
-                                           icon=get_icon('reload.png'),
+                                           icon=qta.icon('fa.repeat'),
                                            triggered=self.refresh_table)
         self.auto_refresh_button = create_toolbutton(self,
                                            text=_("Refresh periodically"),
-                                           icon=get_icon('auto_reload.png'),
+                                           icon=qta.icon_stack(['fa.repeat', 'fa.clock-o'],
+                                                               options=[{}, {'scale_factor': 0.5}]),
                                            toggled=self.toggle_auto_refresh)
         self.auto_refresh_button.setChecked(autorefresh)
         load_button = create_toolbutton(self, text=_("Import data"),
-                                        icon=get_icon('fileimport.png'),
+                                        icon=qta.icon('fa.download'),
                                         triggered=self.import_data)
         self.save_button = create_toolbutton(self, text=_("Save data"),
                             icon=qta.icon('fa.save'),
@@ -190,7 +191,11 @@ class NamespaceBrowser(QWidget):
         self.save_button.setEnabled(False)
         save_as_button = create_toolbutton(self,
                                            text=_("Save data as..."),
-                                           icon=get_icon('filesaveas.png'),
+                                           icon=qta.icon_stack(['fa.save', 'fa.pencil'],
+                                                               options=[{'offset': (-0.2, -0.2), 
+                                                                         'scale_factor': 0.6},
+                                                                        {'offset': (0.2, 0.2),
+                                                                         'scale_factor': 0.6}]),                                           
                                            triggered=self.save_data)
         toolbar += [refresh_button, self.auto_refresh_button, load_button,
                     self.save_button, save_as_button]

@@ -23,6 +23,7 @@ from spyderlib.qt.QtGui import (QHBoxLayout, QWidget, QMessageBox, QVBoxLayout,
                                 QApplication, QColor)
 from spyderlib.qt.QtCore import (Signal, QProcess, QByteArray, Qt, QTextCodec,
                                  QProcessEnvironment)
+from spyderlib.qt import qta
 locale_codec = QTextCodec.codecForLocale()
 from spyderlib.qt.compat import getopenfilename, getsavefilename
 
@@ -70,13 +71,13 @@ class ProfilerWidget(QWidget):
         
         self.filecombo = PythonModulesComboBox(self)
         
-        self.start_button = create_toolbutton(self, icon=get_icon('run.png'),
+        self.start_button = create_toolbutton(self, icon=qta.icon('fa.play'),
                                     text=_("Profile"),
                                     tip=_("Run profiler"),
                                     triggered=lambda : self.start(),
                                     text_beside_icon=True)
         self.stop_button = create_toolbutton(self,
-                                             icon=get_icon('stop.png'),
+                                             icon=qta.icon('fa.stop'),
                                              text=_("Stop"),
                                              tip=_("Stop current profiling"),
                                              text_beside_icon=True)
@@ -85,13 +86,13 @@ class ProfilerWidget(QWidget):
         # FIXME: The combobox emits this signal on almost any event
         #        triggering show_data() too early, too often. 
 
-        browse_button = create_toolbutton(self, icon=get_icon('fileopen.png'),
-                               tip=_('Select Python script'),
-                               triggered=self.select_file)
+        browse_button = create_toolbutton(self, icon=qta.icon('fa.folder-open-o'),
+                                          tip=_('Select Python script'),
+                                          triggered=self.select_file)
 
         self.datelabel = QLabel()
 
-        self.log_button = create_toolbutton(self, icon=get_icon('log.png'),
+        self.log_button = create_toolbutton(self, icon=qta.icon('fa.file-text-o'),
                                             text=_("Output"),
                                             text_beside_icon=True,
                                             tip=_("Show program's output"),
@@ -100,29 +101,29 @@ class ProfilerWidget(QWidget):
         self.datatree = ProfilerDataTree(self)
 
         self.collapse_button = create_toolbutton(self,
-                                                 icon=get_icon('collapse.png'),
+                                                 icon=qta.icon('fa.compress'),
                                                  triggered=lambda dD=-1:
                                                  self.datatree.change_view(dD),
                                                  tip=_('Collapse one level up'))
         self.expand_button = create_toolbutton(self,
-                                               icon=get_icon('expand.png'),
+                                               icon=qta.icon('fa.expand'),
                                                triggered=lambda dD=1:
                                                self.datatree.change_view(dD),
                                                tip=_('Expand one level down'))
                                 
         self.save_button = create_toolbutton(self, text_beside_icon=True,
                                              text=_("Save data"),
-                                             icon=get_icon('filesave.png'),
+                                             icon=qta.icon('fa.save'),
                                              triggered=self.save_data,
                                              tip=_('Save profiling data'))
         self.load_button = create_toolbutton(self, text_beside_icon=True,
                             text=_("Load data"),
-                            icon=get_icon('fileimport.png'),
+                            icon=qta.icon('fa.download'),
                             triggered=self.compare,
                             tip=_('Load profiling data for comparison'))
         self.clear_button = create_toolbutton(self, text_beside_icon=True,
                                               text=_("Clear comparison"),
-                                              icon=get_icon('eraser.png'),
+                                              icon=qta.icon('fa.eraser'),
                                               triggered=self.clear)
 
         hlayout1 = QHBoxLayout()

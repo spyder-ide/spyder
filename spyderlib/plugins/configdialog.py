@@ -20,6 +20,7 @@ from spyderlib.qt.QtGui import (QWidget, QDialog, QListWidget, QListWidgetItem,
 from spyderlib.qt.QtCore import Qt, QSize, Signal, Slot
 from spyderlib.qt.compat import (to_qvariant, from_qvariant,
                                  getexistingdirectory, getopenfilename)
+from spyderlib.qt import qta
 
 from spyderlib.baseconfig import (_, running_in_mac_app, LANGUAGE_CODES,
                                   save_lang_conf, load_lang_conf)
@@ -163,8 +164,8 @@ class ConfigDialog(QDialog):
 
         self.setLayout(vlayout)
 
-        self.setWindowTitle(_("Preferences"))
-        self.setWindowIcon(get_icon("configure.png"))
+        self.setWindowTitle(_('Preferences'))
+        self.setWindowIcon(qta.icon('fa.wrench'))
 
         # Ensures that the config is present on spyder first run
         CONF.set('main', 'interface_language', load_lang_conf())
@@ -463,7 +464,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                 break
         msg = _("Invalid directory path")
         self.validate_data[edit] = (osp.isdir, msg)
-        browse_btn = QPushButton(get_std_icon('DirOpenIcon'), "", self)
+        browse_btn = QPushButton(qta.icon('fa.folder-open-o'), '', self)
         browse_btn.setToolTip(_("Select directory"))
         browse_btn.clicked.connect(lambda: self.select_directory(edit))
         layout = QHBoxLayout()
@@ -491,9 +492,9 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         for edit in self.lineedits:
             if widget.isAncestorOf(edit):
                 break
-        msg = _("Invalid file path")
+        msg = _('Invalid file path')
         self.validate_data[edit] = (osp.isfile, msg)
-        browse_btn = QPushButton(get_std_icon('FileIcon'), "", self)
+        browse_btn = QPushButton(qta.icon('fa.folder-open-o'), '', self)
         browse_btn.setToolTip(_("Select file"))
         browse_btn.clicked.connect(lambda: self.select_file(edit, filters))
         layout = QHBoxLayout()

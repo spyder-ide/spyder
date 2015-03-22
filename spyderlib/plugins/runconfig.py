@@ -14,6 +14,7 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QDialog, QWidget, QGroupBox,
                                 QButtonGroup)
 from spyderlib.qt.QtCore import Signal, Slot, Qt, QSize
 from spyderlib.qt.compat import getexistingdirectory
+from spyderlib.qt import qta
 
 import os.path as osp
 
@@ -172,7 +173,7 @@ class RunConfigOptions(QWidget):
         self.wd_cb.toggled.connect(self.wd_edit.setEnabled)
         self.wd_edit.setEnabled(False)
         wd_layout.addWidget(self.wd_edit)
-        browse_btn = QPushButton(get_std_icon('DirOpenIcon'), "", self)
+        browse_btn = QPushButton(qta.icon('fa.folder-open-o'), '', self)
         browse_btn.setToolTip(_("Select directory"))
         browse_btn.clicked.connect(self.select_directory)
         wd_layout.addWidget(browse_btn)

@@ -22,6 +22,7 @@ from spyderlib.qt.QtGui import (QTextEdit, QKeySequence, QWidget, QMenu,
                                 QHBoxLayout, QToolButton, QVBoxLayout,
                                 QMessageBox)
 from spyderlib.qt.QtCore import Signal, Slot, Qt
+from spyderlib.qt import qta
 
 # IPython imports
 from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
@@ -382,8 +383,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         
         # stop button and icon
         self.stop_button = None
-        self.stop_icon = get_icon("stop.png")
-        
+        self.stop_icon = qta.icon('fa.stop')        
         self.connection_file = connection_file
         self.kernel_widget_id = kernel_widget_id
         self.hostname = hostname
@@ -507,7 +507,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         """Return options menu"""
         restart_action = create_action(self, _("Restart kernel"),
                                        shortcut=QKeySequence("Ctrl+."),
-                                       icon=get_icon('restart.png'),
+                                       icon=qta.icon('fa.repeat'),
                                        triggered=self.restart_kernel)
         restart_action.setShortcutContext(Qt.WidgetWithChildrenShortcut)
         
