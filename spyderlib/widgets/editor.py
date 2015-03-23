@@ -68,7 +68,7 @@ class FileListDialog(QDialog):
 
         self.indexes = None
 
-        self.setWindowIcon(get_icon('filelist.png'))
+        self.setWindowIcon(qta.icon('fa.list'))
         self.setWindowTitle(_("File list management"))
 
         self.setModal(True)
@@ -453,10 +453,10 @@ class EditorStack(QWidget):
         self.data = []
 
         filelist_action = create_action(self, _("File list management"),
-                                 icon=get_icon('filelist.png'),
+                                 icon=qta.icon('fa.list'),
                                  triggered=self.open_filelistdialog)
-        copy_to_cb_action = create_action(self, _("Copy path to clipboard"),
-                icon="editcopy.png",
+        copy_to_cb_action = create_action(self, _('Copy path to clipboard'),
+                icon=qta.icon('fa.copy'),
                 triggered=lambda:
                 QApplication.clipboard().setText(self.get_current_filename()))
         self.menu_actions = actions+[None, filelist_action, copy_to_cb_action]
@@ -580,7 +580,7 @@ class EditorStack(QWidget):
         self.menu.aboutToShow.connect(self.__setup_menu)
 
 #        self.filelist_btn = create_toolbutton(self,
-#                             icon=get_icon('filelist.png'),
+#                             icon=qta.icon('fa.list'),
 #                             tip=_("File list management"),
 #                             triggered=self.open_filelistdialog)
 #

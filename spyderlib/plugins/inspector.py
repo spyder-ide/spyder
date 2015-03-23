@@ -521,7 +521,7 @@ class ObjectInspector(SpyderPluginWidget):
 
     def get_plugin_icon(self):
         """Return widget icon"""
-        return get_icon('inspector.png')
+        return qta.icon('fa.search')
 
     def get_focus_widget(self):
         """

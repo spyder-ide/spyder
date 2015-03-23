@@ -942,7 +942,7 @@ class ExternalConsole(SpyderPluginWidget):
                     tab_icon2 = get_icon('python_t.png')
             else:
                 tab_name = osp.basename(fname)
-                tab_icon1 = get_icon('run.png')
+                tab_icon1 = qta.icon('fa.play')
                 tab_icon2 = get_icon('terminated.png')
         else:
             fname = id(shellwidget)
@@ -1070,7 +1070,7 @@ class ExternalConsole(SpyderPluginWidget):
     
     def get_plugin_icon(self):
         """Return widget icon"""
-        return get_icon('console.png')
+        return qta.icon('fa.terminal')
     
     def get_focus_widget(self):
         """

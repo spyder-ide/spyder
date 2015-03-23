@@ -709,8 +709,7 @@ class MainWindow(QMainWindow):
                                     name="Preferences")
             spyder_path_action = create_action(self,
                                     _("PYTHONPATH manager"),
-                                    None, icon=qta.icon_stack(['fa.file-o', 'fa.plus', 'fa.minus'],
-                                                              options=[{}, {'offset': (0.0, 0.15), 'scale_factor': 0.5}, {'offset': (0.0, 0.35), 'scale_factor': 0.5}]),
+                                    None, icon=qta.icon('spyder.python-logo'),
                                     triggered=self.path_manager_callback,
                                     tip=_("Python Path Manager"),
                                     menurole=QAction.ApplicationSpecificRole)

@@ -112,13 +112,13 @@ class PathManager(QDialog):
     
     def setup_bottom_toolbar(self, layout, sync=True):
         toolbar = []
-        add_button = create_toolbutton(self, text=_("Add path"),
-                                       icon=get_icon('edit_add.png'),
+        add_button = create_toolbutton(self, text=_('Add path'),
+                                       icon=qta.icon('fa.plus'),
                                        triggered=self.add_path,
                                        text_beside_icon=True)
         toolbar.append(add_button)
-        remove_button = create_toolbutton(self, text=_("Remove path"),
-                                          icon=get_icon('edit_remove.png'),
+        remove_button = create_toolbutton(self, text=_('Remove path'),
+                                          icon=qta.icon('fa.minus'),
                                           triggered=self.remove_path,
                                           text_beside_icon=True)
         toolbar.append(remove_button)
