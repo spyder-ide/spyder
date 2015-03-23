@@ -231,8 +231,8 @@ class NamespaceBrowser(QWidget):
                 self.sig_option_changed.emit('exclude_unsupported', state))
         self.exclude_unsupported_action.setChecked(exclude_unsupported)
         
-        options_button = create_toolbutton(self, text=_("Options"),
-                                           icon=get_icon('tooloptions.png'))
+        options_button = create_toolbutton(self, text=_('Options'),
+                                           icon=qta.icon('fa.cog'))
         toolbar.append(options_button)
         options_button.setPopupMode(QToolButton.InstantPopup)
         menu = QMenu(self)

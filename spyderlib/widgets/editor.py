@@ -572,8 +572,8 @@ class EditorStack(QWidget):
 
     def setup_editorstack(self, parent, layout):
         """Setup editorstack's layout"""
-        menu_btn = create_toolbutton(self, icon=get_icon("tooloptions.png"),
-                                     tip=_("Options"))
+        menu_btn = create_toolbutton(self, icon=qta.icon('fa.cog'),
+                                     tip=_('Options'))
         self.menu = QMenu(self)
         menu_btn.setMenu(self.menu)
         menu_btn.setPopupMode(menu_btn.InstantPopup)

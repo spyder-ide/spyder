@@ -10,6 +10,7 @@ from spyderlib.qt import PYQT5
 from spyderlib.qt.QtGui import (QVBoxLayout, QFontDialog, QInputDialog,
                                 QToolButton, QMenu, QFontComboBox, QGroupBox)
 from spyderlib.qt.QtCore import Signal, Slot
+from spyderlib.qt import qta
 
 import os.path as osp
 
@@ -102,8 +103,8 @@ class HistoryLog(SpyderPluginWidget):
         layout.addWidget(self.tabwidget)
 
         # Menu as corner widget
-        options_button = create_toolbutton(self, text=_("Options"),
-                                           icon=get_icon('tooloptions.png'))
+        options_button = create_toolbutton(self, text=_('Options'),
+                                           icon=qta.icon('fa.cog'))
         options_button.setPopupMode(QToolButton.InstantPopup)
         menu = QMenu(self)
         add_actions(menu, self.menu_actions)

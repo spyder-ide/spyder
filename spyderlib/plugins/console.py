@@ -27,7 +27,7 @@ import os.path as osp
 from spyderlib.baseconfig import _, debug_print
 from spyderlib.config import CONF
 from spyderlib.utils.misc import get_error_match, remove_backslashes
-from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions,
+from spyderlib.utils.qthelpers import (create_action, add_actions,
                                        mimedata2url, DialogManager)
 from spyderlib.utils.environ import EnvDialog
 from spyderlib.widgets.internalshell import InternalShell
@@ -175,7 +175,7 @@ class Console(SpyderPluginWidget):
                                                     'codecompletion/enter_key'))
         
         option_menu = QMenu(_('Internal console settings'), self)
-        option_menu.setIcon(get_icon('tooloptions.png'))
+        option_menu.setIcon(qta.icon('fa.cog'))
         add_actions(option_menu, (buffer_action, font_action, wrap_action,
                                   calltips_action, codecompletion_action,
                                   codecompenter_action, exteditor_action))

@@ -18,6 +18,8 @@ from spyderlib.qt.QtGui import (QWidget, QVBoxLayout, QHBoxLayout, QMenu,
                                 QLabel, QInputDialog, QLineEdit, QToolButton)
 from spyderlib.qt.QtCore import (QProcess, Signal, QByteArray, QTimer, Qt,
                                  QTextCodec, Slot)
+from spyderlib.qt import qta
+
 LOCALE_CODEC = QTextCodec.codecForLocale()
 
 # Local imports
@@ -148,8 +150,8 @@ class ExternalShellBase(QWidget):
         if self.options_button is None:
             options = self.get_options_menu()
             if options:
-                self.options_button = create_toolbutton(self, text=_("Options"),
-                                            icon=get_icon('tooloptions.png'))
+                self.options_button = create_toolbutton(self, text=_('Options'),
+                                            icon=qta.icon('fa.cog'))
                 self.options_button.setPopupMode(QToolButton.InstantPopup)
                 menu = QMenu(self)
                 add_actions(menu, options)

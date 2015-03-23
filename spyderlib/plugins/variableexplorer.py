@@ -8,11 +8,11 @@
 
 from spyderlib.qt.QtGui import QStackedWidget, QGroupBox, QVBoxLayout
 from spyderlib.qt.QtCore import Signal
+from spyderlib.qt import qta
 
 # Local imports
 from spyderlib.baseconfig import _
 from spyderlib.config import CONF
-from spyderlib.utils.qthelpers import get_icon
 from spyderlib.utils import programs
 from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage
 from spyderlib.widgets.externalshell.monitor import REMOTE_SETTINGS
@@ -160,7 +160,7 @@ class VariableExplorer(QStackedWidget, SpyderPluginMixin):
 
     def get_plugin_icon(self):
         """Return plugin icon"""
-        return get_icon('dictedit.png')
+        return qta.icon('fa.list')
     
     def get_focus_widget(self):
         """

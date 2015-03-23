@@ -1032,8 +1032,8 @@ class ExplorerWidget(QWidget):
         self.toolbar.addAction(parent_action)
         self.toolbar.addSeparator()
 
-        options_action = create_action(self, text='', tip=_("Options"),
-                                       icon=get_icon('tooloptions.png'))
+        options_action = create_action(self, text='', tip=_('Options'),
+                                       icon=qta.icon('fa.cog'))
         self.toolbar.addAction(options_action)
         widget = self.toolbar.widgetForAction(options_action)
         widget.setPopupMode(QToolButton.InstantPopup)
