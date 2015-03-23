@@ -465,8 +465,10 @@ class MainWindow(QMainWindow):
         if DEBUG:
             title += " [DEBUG MODE %d]" % DEBUG
         self.setWindowTitle(title)
-        icon = qta.icon('spyder.spyder-logo-web') if self.light else qta.icon_stack(['spyder.spyder-logo-web', 'spyder.spyder-logo-snake'],
-                                                                                    [{}, {'color': 'red'}])
+        icon = qta.icon_stack(['spyder.spyder-logo-background', 'spyder.spyder-logo-web'], 
+                              [{'color': '#414141'}, {'color': '#fafafa'}]) if self.light\
+          else qta.icon_stack(['spyder.spyder-logo-background', 'spyder.spyder-logo-web', 'spyder.spyder-logo-snake'],
+                              [{'color': '#414141'}, {'color': '#fafafa'}, {'color': '#ee0000'}])
         # Resampling SVG icon only on non-Windows platforms (see Issue 1314):
         self.setWindowIcon(icon)
         if set_windows_appusermodelid != None:
