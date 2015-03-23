@@ -14,7 +14,7 @@
 from spyderlib.qt import PYQT5
 from spyderlib.qt.QtGui import (QToolBar, QLabel, QGroupBox, QVBoxLayout,
                                 QHBoxLayout, QButtonGroup)
-from spyderlib.qt.QtCore import Signal, Slot
+from spyderlib.qt.QtCore import Signal, Slot, QSize
 from spyderlib.qt.compat import getexistingdirectory
 from spyderlib.qt import qta
 
@@ -248,6 +248,8 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         """Register plugin in Spyder's main window"""
         self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
         self.main.console.shell.refresh.connect(self.refresh_plugin)
+        iconsize = 20
+        self.setIconSize(QSize(iconsize, iconsize))
         self.main.addToolBar(self)
         
     def refresh_plugin(self):

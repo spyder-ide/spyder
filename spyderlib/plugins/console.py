@@ -174,7 +174,7 @@ class Console(SpyderPluginWidget):
         codecompenter_action.setChecked(self.get_option(
                                                     'codecompletion/enter_key'))
         
-        option_menu = QMenu(_("Internal console settings"), self)
+        option_menu = QMenu(_('Internal console settings'), self)
         option_menu.setIcon(get_icon('tooloptions.png'))
         add_actions(option_menu, (buffer_action, font_action, wrap_action,
                                   calltips_action, codecompletion_action,
