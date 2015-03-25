@@ -13,6 +13,7 @@ import sys
 import os
 import os.path as osp
 from time import time, strftime, gmtime
+from string import ascii_lowercase
 
 from spyderlib.qt.QtGui import (QApplication, QWidget, QVBoxLayout,
                                 QHBoxLayout, QMenu, QLabel, QInputDialog,
@@ -297,7 +298,7 @@ class ExternalShellBase(QWidget):
         raise NotImplementedError
         
     def send_ctrl_to_process(self, letter):
-        char = chr("abcdefghijklmnopqrstuvwxyz".index(letter) + 1)
+        char = chr(ascii_lowercase.index(letter) + 1)
         byte_array = QByteArray()
         byte_array.append(char)
         self.process.write(byte_array)
