@@ -336,10 +336,10 @@ class MainWindow(QMainWindow):
                                         tip=_("Load Spyder session"))
         self.save_session_action = create_action(self,
                                         _("Save session and quit..."),
-                                        None, qta.icon_stack(['fa.save', 'fa.close'], 
-                                                             [{'scale_factor': 0.8, 
-                                                               'offset': (-0.1, -0.1)}, 
-                                                              {'offset': (0.2, 0.2)}]),
+                                        None, qta.icon(['fa.save', 'fa.close'], 
+                                                       options=[{'scale_factor': 0.8, 
+                                                                 'offset': (-0.1, -0.1)}, 
+                                                                {'offset': (0.2, 0.2)}]),
                                         triggered=self.save_session,
                                         tip=_("Save current session "
                                               "and quit application"))
@@ -465,10 +465,10 @@ class MainWindow(QMainWindow):
         if DEBUG:
             title += " [DEBUG MODE %d]" % DEBUG
         self.setWindowTitle(title)
-        icon = qta.icon_stack(['spyder.spyder-logo-background', 'spyder.spyder-logo-web'], 
-                              [{'color': '#414141'}, {'color': '#fafafa'}]) if self.light\
-          else qta.icon_stack(['spyder.spyder-logo-background', 'spyder.spyder-logo-web', 'spyder.spyder-logo-snake'],
-                              [{'color': '#414141'}, {'color': '#fafafa'}, {'color': '#ee0000'}])
+        icon = qta.icon(['spyder.spyder-logo-background', 'spyder.spyder-logo-web'], 
+                        options=[{'color': '#414141'}, {'color': '#fafafa'}]) if self.light\
+          else qta.icon(['spyder.spyder-logo-background', 'spyder.spyder-logo-web', 'spyder.spyder-logo-snake'],
+                        options=[{'color': '#414141'}, {'color': '#fafafa'}, {'color': '#ee0000'}])
         # Resampling SVG icon only on non-Windows platforms (see Issue 1314):
         self.setWindowIcon(icon)
         if set_windows_appusermodelid != None:
@@ -584,21 +584,21 @@ class MainWindow(QMainWindow):
                                              context=Qt.WidgetShortcut)
             self.register_shortcut(self.find_action, "Editor", "Find text")
             self.find_next_action = create_action(self, _("Find &next"),
-                  icon=qta.icon_stack(['fa.search', 'fa.long-arrow-down'], 
-                                      options=[{'scale_factor': 0.6,
-                                                'offset': (0.3, 0.0)}, 
-                                               {'offset': (-0.3, 0.0)}]), 
+                  icon=qta.icon(['fa.search', 'fa.long-arrow-down'], 
+                                options=[{'scale_factor': 0.6,
+                                          'offset': (0.3, 0.0)}, 
+                                         {'offset': (-0.3, 0.0)}]), 
                   triggered=self.find_next,
                   context=Qt.WidgetShortcut)
             self.register_shortcut(self.find_next_action, "Editor",
                                    "Find next")
             self.find_previous_action = create_action(self,
                         _("Find &previous"),
-                        icon=qta.icon_stack(['fa.search', 'fa.long-arrow-up'],
-                                            options=[{'scale_factor': 0.6,
-                                                      'offset': (0.3, 0.0)}, 
-                                                     {'offset': (-0.3, 0.0)}]),
-                                            triggered=self.find_previous,
+                        icon=qta.icon(['fa.search', 'fa.long-arrow-up'],
+                                      options=[{'scale_factor': 0.6,
+                                                'offset': (0.3, 0.0)}, 
+                                               {'offset': (-0.3, 0.0)}]),
+                                      triggered=self.find_previous,
                         context=Qt.WidgetShortcut)
             self.register_shortcut(self.find_previous_action, "Editor",
                                    "Find previous")
@@ -2217,15 +2217,15 @@ class MainWindow(QMainWindow):
         if self.state_before_maximizing is None:
             text = _("Maximize current pane")
             tip = _("Maximize current pane")
-            icon = qta.icon_stack(['fa.columns', 'fa.caret-right'],
-                                  options=[{}, {'scale_factor': 1.0,
-                                                'offset': (0.22, 0.05)}])
+            icon = qta.icon(['fa.columns', 'fa.caret-right'],
+                            options=[{}, {'scale_factor': 1.0,
+                                          'offset': (0.22, 0.05)}])
         else:
             text = _("Restore current pane")
             tip = _("Restore pane to its original size")
-            icon = qta.icon_stack(['fa.columns', 'fa.caret-left'],
-                                  options=[{}, {'scale_factor': 1.0,
-                                                'offset': (0.22, 0.05)}])
+            icon = qta.icon(['fa.columns', 'fa.caret-left'],
+                            options=[{}, {'scale_factor': 1.0,
+                                          'offset': (0.22, 0.05)}])
         self.maximize_action.setText(text)
         self.maximize_action.setIcon(icon)
         self.maximize_action.setToolTip(tip)

@@ -602,11 +602,11 @@ class Editor(SpyderPluginWidget):
         
         # ---- File menu and toolbar ----
         self.new_action = create_action(self, _("&New file..."),
-                icon=qta.icon_stack(['fa.file-o', 'fa.plus'], 
-                                    options=[{}, 
-                                             {'scale_factor': 0.5, 
-                                              'offset': (0.0, 0.15)}]), 
-                                    tip=_("New file"),
+                icon=qta.icon(['fa.file-o', 'fa.plus'], 
+                              options=[{}, 
+                                       {'scale_factor': 0.5, 
+                                        'offset': (0.0, 0.15)}]), 
+                              tip=_("New file"),
                 triggered=self.new)
         self.register_shortcut(self.new_action, context="Editor",
                                name="New file")
@@ -634,12 +634,12 @@ class Editor(SpyderPluginWidget):
                                 name="Save file")
         
         self.save_all_action = create_action(self, _("Sav&e all"),
-                icon=qta.icon_stack(['fa.save', 'fa.save'],
-                                    options=[{'offset': (-0.2, -0.2), 
-                                              'scale_factor': 0.6}, 
-                                             {'offset': (0.2, 0.2), 
-                                              'scale_factor': 0.6}]),
-                                    tip=_("Save all files"),
+                icon=qta.icon(['fa.save', 'fa.save'],
+                              options=[{'offset': (-0.2, -0.2), 
+                                        'scale_factor': 0.6}, 
+                                       {'offset': (0.2, 0.2), 
+                                        'scale_factor': 0.6}]),
+                              tip=_("Save all files"),
                                              
                 triggered=self.save_all)
         self.register_shortcut(self.save_all_action, context="Editor",
@@ -648,7 +648,7 @@ class Editor(SpyderPluginWidget):
                                 name="Save all")
         
         save_as_action = create_action(self, _("Save &as..."), None,
-                qta.icon_stack(['fa.save', 'fa.pencil'],
+                qta.icon(['fa.save', 'fa.pencil'],
                 options=[{'offset': (-0.2, -0.2), 
                           'scale_factor': 0.6},
                          {'offset': (0.2, 0.2),
@@ -670,10 +670,10 @@ class Editor(SpyderPluginWidget):
                 triggered=self.close_file)
 
         self.close_all_action = create_action(self, _("C&lose all"),
-                icon=qta.icon_stack(['fa.close', 'fa.close', 'fa.close'], 
-                                    options=[{'scale_factor': 0.6, 'offset': (0.3, -0.3)},
-                                             {'scale_factor': 0.6, 'offset': (-0.3, -0.3)}, 
-                                             {'scale_factor': 0.6, 'offset': (0.3, 0.3)}]),
+                icon=qta.icon(['fa.close', 'fa.close', 'fa.close'], 
+                              options=[{'scale_factor': 0.6, 'offset': (0.3, -0.3)},
+                                       {'scale_factor': 0.6, 'offset': (-0.3, -0.3)}, 
+                                       {'scale_factor': 0.6, 'offset': (0.3, 0.3)}]),
                 tip=_("Close all opened files"),
                 triggered=self.close_all_files)
         self.register_shortcut(self.close_all_action, context="Editor",
@@ -768,9 +768,9 @@ class Editor(SpyderPluginWidget):
         add_shortcut_to_tooltip(run_action, context="Editor", name="Run")
 
         configure_action = create_action(self, _("&Configure..."), 
-                                         icon=qta.icon_stack(['fa.wrench', 'spyder.run'],
-                                                             [{'offset':(-0.1, -0.1), 'scale_factor': 0.7}, 
-                                                              {'offset': (0.0, 0.2), 'color': 'green'}]),
+                                         icon=qta.icon(['fa.wrench', 'spyder.run'],
+                                                       options=[{'offset':(-0.1, -0.1), 'scale_factor': 0.7}, 
+                                                               {'offset': (0.0, 0.2), 'color': 'green'}]),
                                tip=_("Run settings"),
                                menurole=QAction.NoRole,
                                triggered=self.edit_run_configurations)
@@ -780,8 +780,8 @@ class Editor(SpyderPluginWidget):
                                 name="Configure")
         
         re_run_action = create_action(self,
-                            _("Re-run &last script"), icon=qta.icon_stack(['fa.repeat', 'spyder.run'], 
-                                                                          [{'offset':(-0.1, -0.1), 'scale_factor': 0.7}, {'offset':(0.1, 0.2), 'color': 'green'}]),
+                            _("Re-run &last script"), icon=qta.icon(['fa.repeat', 'spyder.run'], 
+                                                                    options=[{'offset':(-0.1, -0.1), 'scale_factor': 0.7}, {'offset':(0.1, 0.2), 'color': 'green'}]),
                             tip=_("Run again last file"),
                             triggered=self.re_run_file)
         self.register_shortcut(re_run_action, context="Editor",
@@ -800,11 +800,11 @@ class Editor(SpyderPluginWidget):
 
         run_cell_action = create_action(self,
                             _("Run cell"), 
-                            icon=qta.icon_stack(['spyder.cell', 'spyder.run-one-inplace'], 
-                                                options=[{'scale_factor': 0.7,
-                                                          'offset': (-0.2, -0.2)}, 
-                                                         {'color': 'green', 
-                                                          'offset': (0.0, 0.1)}]),
+                            icon=qta.icon(['spyder.cell', 'spyder.run-one-inplace'], 
+                                          options=[{'scale_factor': 0.7,
+                                                    'offset': (-0.2, -0.2)}, 
+                                                   {'color': 'green', 
+                                                    'offset': (0.0, 0.1)}]),
                             shortcut=QKeySequence("Ctrl+Enter"),
                             tip=_("Run current cell (Ctrl+Enter)\n"
                                   "[Use #%% to create cells]"),
@@ -812,11 +812,11 @@ class Editor(SpyderPluginWidget):
 
         run_cell_advance_action = create_action(self,
                             _("Run cell and advance"),
-                            icon=qta.icon_stack(['spyder.cell', 'spyder.run-one'], 
-                                                options=[{'scale_factor': 0.7,
-                                                          'offset': (-0.2, -0.2)}, 
-                                                         {'color': 'green', 
-                                                          'offset': (0.0, 0.1)}]),
+                            icon=qta.icon(['spyder.cell', 'spyder.run-one'], 
+                                          options=[{'scale_factor': 0.7,
+                                                    'offset': (-0.2, -0.2)}, 
+                                                   {'color': 'green', 
+                                                    'offset': (0.0, 0.1)}]),
                             shortcut=QKeySequence("Shift+Enter"),
                             tip=_("Run current cell and go to "
                                   "the next one (Shift+Enter)"),
