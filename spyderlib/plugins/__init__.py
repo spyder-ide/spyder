@@ -21,23 +21,25 @@ These plugins inherit the following classes
 # Standard library imports
 import inspect
 import os
+import sys
 
 # Third party imports
 from spyderlib.qt import PYQT5
-from spyderlib.qt.QtCore import Qt, Signal, QObject, QEvent, QPoint
+from spyderlib.qt.QtCore import (Qt, Signal, QPoint, QSize, QObject, QEvent)
 from spyderlib.qt.QtGui import (QDockWidget, QWidget, QShortcut, QCursor,
                                 QKeySequence, QMainWindow, QApplication,
-                                QTabBar)
+                                QLabel, QPainter, QToolButton, QFrame, QStyle,
+                                QVBoxLayout, QHBoxLayout, QTabBar)
 
 # Local imports
-from spyderlib.utils.qthelpers import create_action, toggle_actions
-from spyderlib.config.base import _
+from spyderlib.utils import icon_manager as ima
+from spyderlib.utils.qthelpers import toggle_actions, get_icon, create_action
+from spyderlib.config.base import _, debug_print
 from spyderlib.config.gui import get_font, set_font
 from spyderlib.config.main import CONF
 from spyderlib.config.user import NoDefault
 from spyderlib.plugins.configdialog import SpyderConfigPage
-from spyderlib.py3compat import configparser, is_text_string
-from spyderlib.utils import icon_manager as ima
+from spyderlib.py3compat import configparser, is_text_string, to_text_string
 
 
 class PluginConfigPage(SpyderConfigPage):
@@ -50,12 +52,233 @@ class PluginConfigPage(SpyderConfigPage):
         self.set_font = plugin.set_plugin_font
         self.apply_settings = plugin.apply_plugin_settings
         SpyderConfigPage.__init__(self, parent)
-    
+
     def get_name(self):
         return self.plugin.get_plugin_title()
 
     def get_icon(self):
         return self.plugin.get_plugin_icon()
+
+
+class DirectionLabel(QLabel):
+    """A QLabel that can be set to horizontal or vertical."""
+    def __init__(self, *args, **kwargs):
+        super(DirectionLabel, self).__init__(*args, **kwargs)
+        self._parent = kwargs.get('parent', 0)
+        self._horizontal = True
+        self._offset = TitleButton.HEIGHT*3 + TitleButton.SPACING*4 + 10
+
+    def paintEvent(self, event):
+        """Overloaded Qt method."""
+        if self._horizontal:
+            QLabel.paintEvent(self, event)
+        else:
+            painter = QPainter(self)
+
+            text = to_text_string(self.text())
+            fm = self.fontMetrics()
+            font_height = fm.height()
+            h = self._parent.height()
+
+            # TODO: Check that this is acurate
+            painter.translate(font_height, h - self._offset)
+            painter.rotate(270)
+            painter.drawText(QPoint(0, 0), text)
+
+    def sizeHint(self):
+        """Overloaded Qt method."""
+        return QSize(24, 24)
+
+    # Public api
+    def set_horizontal(self, horizontal=True):
+        """Set the direction to horizontal if True, or vertical if False."""
+        self._horizontal = horizontal
+
+
+class TitleButton(QToolButton):
+    """A generic tool button for pane options."""
+    WIDTH = 16
+    HEIGHT = 18
+    SPACING = 0
+
+    def __init__(self, parent=0):
+        super(TitleButton, self).__init__(parent=parent)
+        self.setContentsMargins(0, 0, 0, 0)
+        self.setIconSize(QSize(self.WIDTH, self.HEIGHT))
+
+    def sizeHint(self):
+        """Overloaded Qt method"""
+        return QSize(self.WIDTH, self.HEIGHT)
+
+
+class SpyderTitleBarWidget(QFrame):
+    """ """
+    MIN_LENGTH = 24
+    MAX_LENGTH = 16777215
+
+    def __init__(self, title, parent=0):
+        super(SpyderTitleBarWidget, self).__init__(parent=parent)
+        self.dockwidget = parent
+        self._content_margins = (1, 0, 1, 0)
+        self._title = title
+
+        self.setLayout(QHBoxLayout())
+        self._set_layout()
+        self.set_content_margins(self._content_margins)
+
+    def _is_vertical(self):
+        """
+        Returns True if the current orientation of the title bar is verical.
+        """
+        features = self.dockwidget.features()
+        return features & QDockWidget.DockWidgetVerticalTitleBar
+
+    def _clear_layout(self, layout):
+        """Remove the current layout of the title bar."""
+        if layout is not None:
+            while layout.count():
+                item = layout.takeAt(0)
+                widget = item.widget()
+                if widget is not None:
+                    widget.deleteLater()
+                else:
+                    self._clear_layout(item.layout())
+
+    def _update(self):
+        """Update the look and feel of pane buttons."""
+        style = QApplication.style()
+        icon_close = style.standardIcon(QStyle.SP_DockWidgetCloseButton)
+        icon_float = style.standardIcon(QStyle.SP_TitleBarNormalButton)
+        icon_maximize = style.standardIcon(QStyle.SP_TitleBarMaxButton)
+
+        # Widget setup
+        self._button_close.setAutoRaise(True)
+        self._button_float.setAutoRaise(True)
+        self._button_maximize.setAutoRaise(True)
+
+        self._button_close.setIcon(icon_close)
+        self._button_float.setIcon(icon_float)
+        self._button_maximize.setIcon(icon_maximize)
+
+        self.set_content_margins(self._content_margins)
+
+    def _set_layout(self):
+        """Reset the layout of the title bar based on dock options."""
+        if self.layout().count():
+            layout = self.layout().takeAt(0)
+            self._clear_layout(layout)
+            layout.deleteLater()
+
+        self._label_title = DirectionLabel(self._title, parent=self)
+        self._button_close = TitleButton(parent=self)
+        self._button_maximize = TitleButton(parent=self)
+        self._button_float = TitleButton(parent=self)
+
+        # Add tooltips
+        self._button_close.setToolTip(_("Close pane"))
+        self._button_float.setToolTip(_("Float pane"))
+        self._button_maximize.setToolTip(_("Maximize pane"))
+
+        if self.dockwidget.isFloating():
+            self.setFrameStyle(QFrame.NoFrame)
+            b = 2  # FIXME: find the adequate metrics here...
+        elif not self.dockwidget.locked:
+            self.setFrameStyle(QFrame.StyledPanel)
+            b = 0
+        else:
+            self.setFrameStyle(QFrame.NoFrame)
+            b = 2  # FIXME: find the adequate metrics here...
+
+        if self._is_vertical():
+            self._content_margins = (0+b, 1+b, 0+b, 1+b)
+            layout = QVBoxLayout()
+
+            widgets = [self._button_close, self._button_float,
+                       self._button_maximize, self._label_title]
+
+            self._label_title.set_horizontal(False)
+            self._orientation = Qt.Vertical
+            self.setMaximumHeight(self.MAX_LENGTH)
+            self.setMaximumWidth(self.MIN_LENGTH)
+        else:
+            self._content_margins = (1+b, 0+b, 1+b, 0+b)
+            layout = QHBoxLayout()
+
+            widgets = [self._label_title, None, self._button_maximize,
+                       self._button_float, self._button_close]
+
+            self._label_title.set_horizontal(True)
+            self._orientation = Qt.Horizontal
+            self.setMaximumHeight(self.MIN_LENGTH)
+            self.setMaximumWidth(self.MAX_LENGTH)
+
+        if self.dockwidget.isFloating():
+            self._button_float.setToolTip(_("Restore pane"))
+            widgets_enable = [self._label_title, self._button_float]
+        elif self.dockwidget.maximized:
+            self._button_maximize.setToolTip(_("Restore pane"))
+            widgets_enable = [self._label_title, self._button_maximize]
+        else:
+            widgets_enable = widgets
+
+        for w in widgets:
+            if w:
+                layout.addWidget(w)
+                w.setEnabled(False)
+            else:
+                layout.addStretch()
+
+        for w in widgets_enable:
+            if w:
+                w.setEnabled(True)
+
+        if self.layout() is None:
+            self.setLayout(layout)
+        else:
+            self.layout().insertLayout(0, layout)
+
+        # Signals and slots
+        self._button_float.clicked.connect(self.dockwidget.float_window)
+        self._button_close.clicked.connect(self.dockwidget.close)
+        self._button_maximize.clicked.connect(self.dockwidget.maximize)
+
+        self._update()
+
+    # Qt overloads
+    def sizeHint(self):
+        """Overloaded Qt method"""
+        if self._is_vertical():
+            return QSize(self.MIN_LENGTH, self.MIN_LENGTH*3)
+        else:
+            return QSize(self.MIN_LENGTH, self.MIN_LENGTH)
+
+    def minimumSizeHint(self):
+        """Overloaded Qt method"""
+        return self.sizeHint()
+
+    def mouseDoubleClickEvent(self, event):
+        """Overloaded Qt method"""
+        self.dockwidget.float_window()
+
+    # Public api
+    def update_features(self):
+        """Reset layout when features change."""
+        if not (self._is_vertical() and self._orientation == Qt.Vertical or
+           not self._is_vertical() and self._orientation == Qt.Horizontal):
+            self._set_layout()
+
+    def set_title(self, value):
+        """Set the title of the title bar."""
+        self._title = value
+        self._label_title.setText(self._title)
+
+    def set_content_margins(self, margins=None):
+        """Set the content margins of the title bar."""
+        if margins is None:
+            margins = self._content_margins
+        self._content_margins = margins
+        self.layout().setSpacing(TitleButton.SPACING)
+        self.layout().setContentsMargins(*margins)
 
 
 class TabFilter(QObject):
@@ -66,7 +289,7 @@ class TabFilter(QObject):
     This filter also holds the methods needed for the detection of a drag and
     the movement of tabs.
     """
-    def __init__(self, dock_tabbar, main):
+    def __init__(self, dock_tabbar, dockwidget, main):
         QObject.__init__(self)
         self.dock_tabbar = dock_tabbar
         self.main = main
@@ -197,16 +420,35 @@ class TabFilter(QObject):
 
 class SpyderDockWidget(QDockWidget):
     """Subclass to override needed methods"""
+    # Custom signals
     plugin_closed = Signal()
 
-    def __init__(self, title, parent):
+    # Class variables
+    FEATURES = QDockWidget.DockWidgetClosable
+    ALLOWED_AREAS = Qt.AllDockWidgetAreas
+    LOCATION = Qt.LeftDockWidgetArea
+
+    def __init__(self, title, parent, get_focus_func):
         super(SpyderDockWidget, self).__init__(title, parent)
 
         # Needed for the installation of the event filter
         self.title = title
         self.main = parent
         self.dock_tabbar = None
+        self.maximized = False
+        self.locked = None
 
+        # This is needed for the new maximize button in the custom title bar
+        self._flags = self.windowFlags()
+        self.custom_titlebar = SpyderTitleBarWidget(title, self)
+        self.get_focus_widget = get_focus_func
+
+        # Widget setup
+        self.setTitleBarWidget(self.custom_titlebar)
+
+        # Signals and slots
+        self.featuresChanged.connect(self.custom_titlebar.update_features)
+        self.dockLocationChanged.connect(self.fix_tab_name)
         # To track dockwidget changes the filter is installed when dockwidget
         # visibility changes. This installs the filter on startup and also
         # on dockwidgets that are undocked and then docked to a new location.
@@ -219,13 +461,95 @@ class SpyderDockWidget(QDockWidget):
         """
         self.plugin_closed.emit()
 
+    def setWindowTitle(self, title):
+        """Override Qt method"""
+        # This is needed due to the custom title bar
+        if self.isFloating():
+            super(SpyderDockWidget, self).setWindowTitle(self.main.windowTitle())
+        else:
+            super(SpyderDockWidget, self).setWindowTitle(self.title)
+        self.custom_titlebar.set_title(title)
+
+    def fix_tab_name(self):
+        """
+        This method is needed for windows user double clicking on the titlebar
+        of a floating dockwidget.
+        """
+        if self.dock_tabbar is not None:
+            for index in range(self.dock_tabbar.count()):
+                if self.main.windowTitle() == self.dock_tabbar.tabText(index):
+                    self.update_dockwidget()
+                    break
+
+    def update_dockwidget(self, show=True, maximized=False):
+        """Update dockwidget (pane) titlebar and enabled buttons."""
+        debug_print('updating', self.title, self.isFloating())
+        features = self.FEATURES
+        vertical_title = CONF.get('main', 'vertical_dockwidget_titlebars')
+        hide_dock_titlebar = CONF.get('main', 'hide_dock_titlebar')
+        locked = self.main.dockwidgets_locked
+
+        if vertical_title:
+            features = features | QDockWidget.DockWidgetVerticalTitleBar
+        if not locked:
+            features = features | QDockWidget.DockWidgetMovable
+
+        self.maximized = maximized
+        self.locked = locked
+        self.custom_titlebar._set_layout()
+        if not maximized:
+            self.setTitleBarWidget(self.custom_titlebar)
+
+        if self.isFloating():
+            show = True
+            # When a dockwidget is set to float, this prevents the dockwidget
+            # from redocking if the window is moved on top of any part of the
+            # spyder application.
+            self.setAllowedAreas(Qt.BottomDockWidgetArea)
+            self.setWindowFlags(Qt.Window)
+            self.setFeatures(features | QDockWidget.DockWidgetFloatable)
+        else:
+            self.setAllowedAreas(self.ALLOWED_AREAS)
+            self.setFeatures(features)
+            self.setWindowFlags(self._flags)
+
+        self.setWindowTitle(self.title)
+
+        if locked and hide_dock_titlebar and not self.isFloating():
+            self.setTitleBarWidget(QWidget())
+
+        if show:
+            self.show()
+            self.raise_()
+
+    def float_window(self):
+        """Float dockwidget (pane) as an independent window."""
+        self.setFloating(not self.isFloating())
+        self.update_dockwidget()
+
+    def maximize(self):
+        """Maximize dockwidget (pane)."""
+        self.get_focus_widget().setFocus()
+        self.main.maximize_dockwidget()
+        self.maximized = not self.maximized
+
+    def get_dock_tabbars(self):
+        """Returns a list of QTabBars in the main window."""
+        tabbars = self.main.findChildren(QTabBar)
+        dock_tabbars = []
+        for tabbar in tabbars:
+            if '.QTabBar' in str(tabbar):
+                dock_tabbars.append(tabbar)
+        return dock_tabbars
+
+    # This method is needed to allow tab reordering
     def install_tab_event_filter(self, value):
         """
         Install an event filter to capture mouse events in the tabs of a
         QTabBar holding tabified dockwidgets.
         """
         dock_tabbar = None
-        tabbars = self.main.findChildren(QTabBar)
+        tabbars = self.get_dock_tabbars()
         for tabbar in tabbars:
             for tab in range(tabbar.count()):
                 title = tabbar.tabText(tab)
@@ -237,8 +561,9 @@ class SpyderDockWidget(QDockWidget):
             # Install filter only once per QTabBar
             if getattr(self.dock_tabbar, 'filter', None) is None:
                 self.dock_tabbar.filter = TabFilter(self.dock_tabbar,
-                                                    self.main)
+                                                    self, self.main)
                 self.dock_tabbar.installEventFilter(self.dock_tabbar.filter)
+            self.fix_tab_name()
 
 
 class SpyderPluginMixin(object):
@@ -256,9 +581,6 @@ class SpyderPluginMixin(object):
     CONF_SECTION = None
     CONFIGWIDGET_CLASS = None
     IMG_PATH = 'images'
-    ALLOWED_AREAS = Qt.AllDockWidgetAreas
-    LOCATION = Qt.LeftDockWidgetArea
-    FEATURES = QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetFloatable
     DISABLE_ACTIONS_WHEN_HIDDEN = True
 
     # Signals
@@ -355,21 +677,23 @@ class SpyderPluginMixin(object):
 ##         # or non-Windows platforms (lot of warnings are printed out)
 ##         # (so in those cases, we use the default window flags: Qt.Widget):
 ##         flags = Qt.Widget if is_old_pyqt or os.name != 'nt' else Qt.Window
-        dock = SpyderDockWidget(self.get_plugin_title(), self.main)#, flags)
+        dock = SpyderDockWidget(self.get_plugin_title(), parent=self.main,
+                                get_focus_func=self.get_focus_widget)#, flags)
 
         dock.setObjectName(self.__class__.__name__+"_dw")
-        dock.setAllowedAreas(self.ALLOWED_AREAS)
-        dock.setFeatures(self.FEATURES)
+        dock.setAllowedAreas(dock.ALLOWED_AREAS)
+        dock.setFeatures(dock.FEATURES)
         dock.setWidget(self)
         self.update_margins()
         dock.visibilityChanged.connect(self.visibility_changed)
         dock.plugin_closed.connect(self.plugin_closed)
         self.dockwidget = dock
+        self.update_margins()
         if self.shortcut is not None:
             sc = QShortcut(QKeySequence(self.shortcut), self.main,
                             self.switch_to_plugin)
             self.register_shortcut(sc, "_", "Switch to %s" % self.CONF_SECTION)
-        return (dock, self.LOCATION)
+        return (dock, dock.LOCATION)
     
     def create_mainwindow(self):
         """
