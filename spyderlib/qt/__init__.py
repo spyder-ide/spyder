@@ -33,6 +33,11 @@ elif API == 'pyqt':
     try:
         sip.setapi('QString', 2)
         sip.setapi('QVariant', 2)
+        sip.setapi('QDate', 2)
+        sip.setapi('QDateTime', 2)
+        sip.setapi('QTextStream', 2)
+        sip.setapi('QTime', 2)
+        sip.setapi('QUrl', 2)
     except AttributeError:
         # PyQt < v4.6. The actual check is done by requirements.check_qt()
         # call from spyder.py
