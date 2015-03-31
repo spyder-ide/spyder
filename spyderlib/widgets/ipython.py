@@ -23,9 +23,6 @@ from spyderlib.qt.QtGui import (QTextEdit, QKeySequence, QWidget, QMenu,
                                 QMessageBox)
 from spyderlib.qt.QtCore import Signal, Slot, Qt
 
-from spyderlib import pygments_patch
-pygments_patch.apply()
-
 # IPython imports
 from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
 from IPython.qt.console.ansi_code_processor import ANSI_OR_SPECIAL_PATTERN
