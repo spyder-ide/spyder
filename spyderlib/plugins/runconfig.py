@@ -21,7 +21,6 @@ import os.path as osp
 # Local imports
 from spyderlib.baseconfig import _
 from spyderlib.config import CONF
-from spyderlib.utils.qthelpers import get_icon
 from spyderlib.plugins.configdialog import GeneralConfigPage
 from spyderlib.py3compat import to_text_string, getcwd
 
@@ -303,7 +302,9 @@ class BaseRunConfigDialog(QDialog):
         # a segmentation fault on UNIX or an application crash on Windows
         self.setAttribute(Qt.WA_DeleteOnClose)
 
-        self.setWindowIcon(get_icon("run_settings.png"))
+        self.setWindowIcon(qta.icon(['fa.wrench', 'spyder.run'],
+                                    options=[{'offset':(-0.1, -0.1), 'scale_factor': 0.7}, 
+                                             {'offset': (0.0, 0.2), 'color': 'green'}]))
         layout = QVBoxLayout()
         self.setLayout(layout)
     
@@ -442,7 +443,7 @@ class RunConfigPage(GeneralConfigPage):
     CONF_SECTION = "run"
 
     NAME = _("Run")
-    ICON = "run.png"
+    ICON = qta.icon('fa.play')
     
     def setup_page(self):
         run_dlg = _("Run Settings")

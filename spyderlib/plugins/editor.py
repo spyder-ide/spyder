@@ -94,7 +94,7 @@ class EditorConfigPage(PluginConfigPage):
         return _("Editor")
         
     def get_icon(self):
-        return get_icon("edit24.png")
+        return qta.icon('fa.edit')
     
     def setup_page(self):
         template_btn = self.create_button(_("Edit template for new modules"),
@@ -539,7 +539,7 @@ class Editor(SpyderPluginWidget):
     
     def get_plugin_icon(self):
         """Return widget icon"""
-        return get_icon('edit.png')
+        return qta.icon('fa.edit')
     
     def get_focus_widget(self):
         """
@@ -1345,7 +1345,7 @@ class Editor(SpyderPluginWidget):
         for message, line_number in check_results:
             error = 'syntax' in message
             text = message[:1].upper()+message[1:]
-            icon = get_icon('error.png' if error else 'warning.png')
+            icon = qta.icon('fa.times-circle' if error else 'fa.warning')
             slot = lambda _l=line_number: self.load(filename, goto=_l)
             action = create_action(self, text=text, icon=icon, triggered=slot)
             self.warning_menu.addAction(action)
@@ -1371,7 +1371,7 @@ class Editor(SpyderPluginWidget):
         self.todo_menu.clear()
         filename = self.get_current_filename()
         for text, line0 in results:
-            icon = get_icon('todo.png')
+            icon = qta.icon('fa.check', color='blue')
             slot = lambda _l=line0: self.load(filename, goto=_l)
             action = create_action(self, text=text, icon=icon, triggered=slot)
             self.todo_menu.addAction(action)

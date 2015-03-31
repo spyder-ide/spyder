@@ -10,11 +10,12 @@ from spyderlib.qt.QtGui import (QHBoxLayout, QWidget, QVBoxLayout,
                                 QProgressBar, QLabel, QMenu)
 from spyderlib.qt.QtWebKit import QWebView, QWebPage, QWebSettings
 from spyderlib.qt.QtCore import QUrl, Slot
+from spyderlib.qt import qta
 
 import sys
 
 # Local imports
-from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions,
+from spyderlib.utils.qthelpers import (create_action, add_actions,
                                        create_toolbutton, action2button)
 from spyderlib.baseconfig import DEV, _
 from spyderlib.widgets.comboboxes import UrlComboBox
@@ -28,10 +29,10 @@ class WebView(QWebView):
         QWebView.__init__(self, parent)
         self.zoom_factor = 1.
         self.zoom_out_action = create_action(self, _("Zoom out"),
-                                             icon=get_icon('zoom_out.png'),
+                                             icon=qta.icon('fa.search-minus'),
                                              triggered=self.zoom_out)
         self.zoom_in_action = create_action(self, _("Zoom in"),
-                                            icon=get_icon('zoom_in.png'),
+                                            icon=qta.icon('fa.search-plus'),
                                             triggered=self.zoom_in)
         
     def find_text(self, text, changed=True,
@@ -126,7 +127,7 @@ class WebBrowser(QWidget):
         self.webview.titleChanged.connect(self.setWindowTitle)
         self.webview.urlChanged.connect(self.url_changed)
                 
-        home_button = create_toolbutton(self, icon=get_icon('home.png'),
+        home_button = create_toolbutton(self, icon=qta.icon('fa.home'),
                                         tip=_("Home"),
                                         triggered=self.go_home)
         
@@ -161,7 +162,7 @@ class WebBrowser(QWidget):
         self.find_widget.set_editor(self.webview)
         self.find_widget.hide()
 
-        find_button = create_toolbutton(self, icon='find.png',
+        find_button = create_toolbutton(self, icon=qta.icon('fa.search'),
                                         tip=_("Find text"),
                                         toggled=self.toggle_find_widget)
         self.find_widget.visibility_changed.connect(find_button.setChecked)

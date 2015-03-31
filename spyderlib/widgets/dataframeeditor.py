@@ -19,6 +19,7 @@ from spyderlib.qt.QtGui import (QDialog, QTableView, QColor, QGridLayout,
                                 QCheckBox, QMessageBox, QInputDialog,
                                 QLineEdit, QApplication, QMenu, QKeySequence)
 from spyderlib.qt.compat import to_qvariant, from_qvariant
+from spyderlib.qt import qta
 from spyderlib.utils.qthelpers import (qapplication, get_icon, create_action,
                                        add_actions, keybinding)
 
@@ -402,9 +403,9 @@ class DataFrameView(QTableView):
 
     def setup_menu(self):
         """Setup context menu"""
-        copy_action = create_action(self, _( "Copy"),
-                                    shortcut=keybinding("Copy"),
-                                    icon=get_icon('editcopy.png'),
+        copy_action = create_action(self, _('Copy'),
+                                    shortcut=keybinding('Copy'),
+                                    icon=qta.icon('fa.copy'),
                                     triggered=self.copy,
                                     context=Qt.WidgetShortcut)
         functions = ((_("To bool"), bool), (_("To complex"), complex),

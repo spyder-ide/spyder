@@ -173,7 +173,7 @@ class DirView(QTreeView):
         """Setup context menu common actions"""
         # Filters
         filters_action = create_action(self, _("Edit filename filters..."),
-                                       None, get_icon('filter.png'),
+                                       None, qta.icon('fa.filter'),
                                        triggered=self.edit_filter)
         # Show all files
         all_action = create_action(self, _("Show all files"),
@@ -237,20 +237,20 @@ class DirView(QTreeView):
         only_valid = all([encoding.is_text_file(_fn) for _fn in fnames])
         run_action = create_action(self, _("Run"), icon="run_small.png",
                                    triggered=self.run)
-        edit_action = create_action(self, _("Edit"), icon="edit.png",
+        edit_action = create_action(self, _("Edit"), icon=qta.icon('fa.edit'),
                                     triggered=self.clicked)
         move_action = create_action(self, _("Move..."),
                                     icon="move.png",
                                     triggered=self.move)
         delete_action = create_action(self, _("Delete..."),
-                                      icon="delete.png",
+                                      icon=qta.icon('fa.eraser'),
                                       triggered=self.delete)
         rename_action = create_action(self, _("Rename..."),
                                       icon="rename.png",
                                       triggered=self.rename)
         open_action = create_action(self, _("Open"), triggered=self.open)
         ipynb_convert_action = create_action(self, _("Convert to Python script"),
-                                             icon="python.png",
+                                             icon=qta.icon('spyder.python-logo'),
                                              triggered=self.convert_notebooks)
         
         actions = []
@@ -291,12 +291,12 @@ class DirView(QTreeView):
             _title = _("Open command prompt here")
         else:
             _title = _("Open terminal here")
-        action = create_action(self, _title, icon="cmdprompt.png",
+        action = create_action(self, _title, icon=qta.icon('fa.terminal'),
                                triggered=lambda:
                                self.open_terminal(fnames))
         actions.append(action)
         _title = _("Open Python console here")
-        action = create_action(self, _title, icon="python.png",
+        action = create_action(self, _title, icon=qta.icon('spyder.python-logo'),
                                triggered=lambda:
                                self.open_interpreter(fnames))
         actions.append(action)

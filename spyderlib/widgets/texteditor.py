@@ -12,11 +12,11 @@ from __future__ import print_function
 
 from spyderlib.qt.QtCore import Qt
 from spyderlib.qt.QtGui import QVBoxLayout, QTextEdit, QDialog, QDialogButtonBox
+from spyderlib.qt import qta
 
 # Local import
 from spyderlib.baseconfig import _
 from spyderlib.guiconfig import get_font
-from spyderlib.utils.qthelpers import get_icon
 from spyderlib.py3compat import (to_text_string, to_binary_string,
                                  is_binary_string)
 
@@ -68,7 +68,7 @@ class TextEditor(QDialog):
         # Make the dialog act as a window
         self.setWindowFlags(Qt.Window)
         
-        self.setWindowIcon(get_icon('edit.png'))
+        self.setWindowIcon(qta.icon('fa.edit'))
         self.setWindowTitle(_("Text editor") + \
                             "%s" % (" - "+str(title) if str(title) else ""))
         self.resize(size[0], size[1])

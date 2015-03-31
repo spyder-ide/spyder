@@ -24,6 +24,7 @@ from spyderlib.qt.QtGui import (QMessageBox, QTableView, QItemDelegate,
                                 QKeySequence, QAbstractItemDelegate)
 from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, Signal,
                                  QDateTime, Slot)
+from spyderlib.qt import qta
 from spyderlib.qt.compat import to_qvariant, from_qvariant, getsavefilename
 from spyderlib.utils.qthelpers import mimedata2url
 
@@ -668,35 +669,35 @@ class BaseTableView(QTableView):
         resize_action = create_action(self, _("Resize rows to contents"),
                                       triggered=self.resizeRowsToContents)
         self.paste_action = create_action(self, _("Paste"),
-                                          icon=get_icon('editpaste.png'),
+                                          icon=qta.icon('fa.paste'),
                                           triggered=self.paste)
         self.copy_action = create_action(self, _("Copy"),
-                                         icon=get_icon('editcopy.png'),
+                                         icon=qta.icon('fa.copy'),
                                          triggered=self.copy)                                      
         self.edit_action = create_action(self, _("Edit"),
-                                         icon=get_icon('edit.png'),
+                                         icon=qta.icon('fa.edit'),
                                          triggered=self.edit_item)
         self.plot_action = create_action(self, _("Plot"),
-                                    icon=get_icon('plot.png'),
+                                    icon=qta.icon('fa.line-chart'),
                                     triggered=lambda: self.plot_item('plot'))
         self.plot_action.setVisible(False)
         self.hist_action = create_action(self, _("Histogram"),
-                                    icon=get_icon('hist.png'),
+                                    icon=qta.icon('fa.bar-chart'),
                                     triggered=lambda: self.plot_item('hist'))
         self.hist_action.setVisible(False)
         self.imshow_action = create_action(self, _("Show image"),
-                                           icon=get_icon('imshow.png'),
+                                           icon=qta.icon('fa.image'),
                                            triggered=self.imshow_item)
         self.imshow_action.setVisible(False)
         self.save_array_action = create_action(self, _("Save array"),
-                                               icon=get_icon('filesave.png'),
+                                               icon=qta.icon('fa.save'),
                                                triggered=self.save_array)
         self.save_array_action.setVisible(False)
         self.insert_action = create_action(self, _("Insert"),
                                            icon=get_icon('insert.png'),
                                            triggered=self.insert_item)
         self.remove_action = create_action(self, _("Remove"),
-                                           icon=get_icon('editdelete.png'),
+                                           icon=qta.icon('fa.eraser'),
                                            triggered=self.remove_item)
         self.truncate_action = create_action(self, _("Truncate values"),
                                              toggled=self.toggle_truncate)
@@ -706,10 +707,10 @@ class BaseTableView(QTableView):
                                            toggled=self.toggle_minmax)
         self.minmax_action.setChecked(minmax)
         self.toggle_minmax(minmax)
-        self.rename_action = create_action(self, _( "Rename"),
+        self.rename_action = create_action(self, _("Rename"),
                                            icon=get_icon('rename.png'),
                                            triggered=self.rename_item)
-        self.duplicate_action = create_action(self, _( "Duplicate"),
+        self.duplicate_action = create_action(self, _("Duplicate"),
                                               icon=get_icon('edit_add.png'),
                                               triggered=self.duplicate_item)
         menu = QMenu(self)

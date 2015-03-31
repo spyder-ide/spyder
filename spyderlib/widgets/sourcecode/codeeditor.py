@@ -2414,16 +2414,16 @@ class CodeEditor(TextEditBaseWidget):
                            icon=get_icon('redo.png'), triggered=self.redo)
         self.cut_action = create_action(self, _("Cut"),
                            shortcut=keybinding('Cut'),
-                           icon=get_icon('editcut.png'), triggered=self.cut)
+                           icon=qta.icon('fa.cut'), triggered=self.cut)
         self.copy_action = create_action(self, _("Copy"),
                            shortcut=keybinding('Copy'),
-                           icon=get_icon('editcopy.png'), triggered=self.copy)
+                           icon=qta.icon('fa.copy'), triggered=self.copy)
         self.paste_action = create_action(self, _("Paste"),
                            shortcut=keybinding('Paste'),
-                           icon=get_icon('editpaste.png'), triggered=self.paste)
+                           icon=qta.icon('fa.paste'), triggered=self.paste)
         self.delete_action = create_action(self, _("Delete"),
                            shortcut=keybinding('Delete'),
-                           icon=get_icon('editdelete.png'),
+                           icon=qta.icon('fa.eraser'),
                            triggered=self.delete)
         selectall_action = create_action(self, _("Select All"),
                            shortcut=keybinding('SelectAll'),
@@ -2876,7 +2876,8 @@ class TestWidget(QSplitter):
                     lambda _fn, line, word: self.editor.go_to_line(line, word))
         self.setStretchFactor(0, 4)
         self.setStretchFactor(1, 1)
-        self.setWindowIcon(get_icon('spyder.svg'))
+        self.setWindowIcon(qta.icon(['spyder.spyder-logo-background', 'spyder.spyder-logo-web', 'spyder.spyder-logo-snake'],
+                           options=[{'color': '#414141'}, {'color': '#fafafa'}, {'color': '#ee0000'}]))
 
     def load(self, filename):
         self.editor.set_text_from_file(filename)

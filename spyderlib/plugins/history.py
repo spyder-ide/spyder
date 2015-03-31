@@ -217,7 +217,7 @@ class HistoryLog(SpyderPluginWidget):
         editor = codeeditor.CodeEditor(self)
         if osp.splitext(filename)[1] == '.py':
             language = 'py'
-            icon = get_icon('python.png')
+            icon = qta.icon('spyder.python-logo')
         else:
             language = 'bat'
             icon = get_icon('cmdprompt.png')

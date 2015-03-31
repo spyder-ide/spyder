@@ -31,7 +31,7 @@ import traceback
 # Local imports
 from spyderlib.utils.vcs import is_hg_installed, get_vcs_root
 from spyderlib.utils.misc import abspardir, get_common_path
-from spyderlib.utils.qthelpers import (get_icon, get_std_icon,
+from spyderlib.utils.qthelpers import (get_icon,
                                        create_toolbutton, get_filetype_icon)
 from spyderlib.baseconfig import _
 from spyderlib.widgets.comboboxes import PathComboBox, PatternComboBox
@@ -664,7 +664,7 @@ class ResultsBrowser(OneColumnTree):
                 item = QTreeWidgetItem(file_item,
                            ["%d (%s): %s" % (lineno, colno_str, line.rstrip())],
                            QTreeWidgetItem.Type)
-                item.setIcon(0, get_icon('arrow.png'))
+                item.setIcon(0, qta.icon('fa.arrow-right'))
                 self.data[id(item)] = (filename, lineno)
         # Removing empty directories
         top_level_items = [self.topLevelItem(index)

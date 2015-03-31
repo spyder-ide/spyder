@@ -89,7 +89,7 @@ class FileListDialog(QDialog):
         self.listwidget.itemActivated.connect(self.edit_file)
 
         btn_layout = QHBoxLayout()
-        edit_btn = create_toolbutton(self, icon=get_icon('edit.png'),
+        edit_btn = create_toolbutton(self, icon=qta.icon('fa.edit'),
                      text=_("&Edit file"), autoraise=False,
                      triggered=self.edit_file, text_beside_icon=True)
         edit_btn.setMinimumHeight(28)

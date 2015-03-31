@@ -8,10 +8,11 @@
 
 from spyderlib.qt.QtGui import QFontDialog
 from spyderlib.qt.QtCore import Signal, Slot
+from spyderlib.qt import qta
 
 # Local imports
 from spyderlib.baseconfig import _
-from spyderlib.utils.qthelpers import get_icon, create_action
+from spyderlib.utils.qthelpers import create_action
 from spyderlib.widgets.projectexplorer import ProjectExplorerWidget
 from spyderlib.plugins import SpyderPluginMixin
 from spyderlib.py3compat import is_text_string
@@ -61,7 +62,7 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         new_project_act = create_action(self, text=_('New project...'),
-                                        icon=get_icon('project_expanded.png'),
+                                        icon=qta.icon('fa.font'),
                                         triggered=self.create_new_project)
 
         font_action = create_action(self, _("&Font..."),

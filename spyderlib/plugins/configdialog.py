@@ -580,10 +580,10 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         if tip is not None:
             clayout.setToolTip(tip)
         cb_bold = QCheckBox()
-        cb_bold.setIcon(get_icon("bold.png"))
+        cb_bold.setIcon(qta.icon('fa.bold'))
         cb_bold.setToolTip(_("Bold"))
         cb_italic = QCheckBox()
-        cb_italic.setIcon(get_icon("italic.png"))
+        cb_italic.setIcon(qta.icon('fa.italic'))
         cb_italic.setToolTip(_("Italic"))
         self.scedits[(clayout, cb_bold, cb_italic)] = (option, default)
         if without_layout:
@@ -680,7 +680,7 @@ class GeneralConfigPage(SpyderConfigPage):
     
     def get_icon(self):
         """Loads page icon named by self.ICON"""
-        return get_icon(self.ICON)
+        return self.ICON
 
     def apply_settings(self, options):
         raise NotImplementedError
@@ -719,7 +719,7 @@ class MainConfigPage(GeneralConfigPage):
     CONF_SECTION = "main"
     
     NAME = _("General")
-    ICON = "genprefs.png"
+    ICON = qta.icon('fa.cogs')
 
     def setup_page(self):
         newcb = self.create_checkbox
@@ -867,7 +867,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
     CONF_SECTION = "color_schemes"
     
     NAME = _("Syntax coloring")
-    ICON = "genprefs.png"
+    ICON = qta.icon('fa.cogs')
     
     def setup_page(self):
         tabs = QTabWidget()
