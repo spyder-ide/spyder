@@ -42,6 +42,7 @@ import os.path as osp
 import shutil
 import time
 
+from spyderlib import __version__
 from spyderlib.baseconfig import (DEV, TEST, get_module_source_path,
                                   get_home_dir)
 from spyderlib.utils.programs import check_version
@@ -154,7 +155,21 @@ class DefaultsConfig(cp.ConfigParser):
             if 'defaults' in self.name:
                 folder = osp.join(folder, 'defaults')
             try:
-                os.makedirs(folder)
+                # Copying old config dir for Spyder 3.0. The new config
+                # dir for 3.0+ is going to be simply ~/.spyder{-py3}
+                if __version__.split('.')[0] == '3':
+                    if PY2:
+                        old_confdir = '.spyder2'
+                    else:
+                        old_confdir = '.spyder2-py3'
+                    old_confdir = osp.join(get_home_dir(), old_confdir)
+                    new_confdir = osp.join(get_home_dir(), self.subfolder)
+                    if osp.isdir(old_confdir) and not osp.isdir(new_confdir):
+                        shutil.copytree(old_confdir, new_confdir)
+                    else:
+                        os.makedirs(folder)
+                else:
+                    os.makedirs(folder)
             except os.error:
                 # Folder (or one of its parents) already exists
                 pass

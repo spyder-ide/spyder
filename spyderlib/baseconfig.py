@@ -20,7 +20,6 @@ import os
 import sys
 
 # Local imports
-from spyderlib import __version__
 from spyderlib.utils import encoding
 from spyderlib.py3compat import (is_unicode, TEXT_TYPES, INT_TYPES, PY3,
                                  to_text_string, is_text_string)
@@ -61,7 +60,7 @@ def debug_print(*message):
 #==============================================================================
 # Spyder settings dir
 if TEST is None:
-    SUBFOLDER = '.spyder%s' % __version__.split('.')[0]
+    SUBFOLDER = '.spyder'
 else:
     SUBFOLDER = 'spyder_test'
 
