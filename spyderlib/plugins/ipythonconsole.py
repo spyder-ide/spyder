@@ -33,17 +33,14 @@ from spyderlib.qt.QtCore import Signal, Slot, Qt
 # IPython imports
 from IPython.core.application import get_ipython_dir
 from IPython.lib.kernel import find_connection_file
-
 from IPython.qt.manager import QtKernelManager
-try: # IPython = "<=2.0"
-    from IPython.external.ssh import tunnel as zmqtunnel
-    import IPython.external.pexpect as pexpect
+
+# Ssh imports
+from zmq.ssh import tunnel as zmqtunnel
+try:
+    import pexpect
 except ImportError:
-    from zmq.ssh import tunnel as zmqtunnel      # analysis:ignore
-    try:
-        import pexpect                           # analysis:ignore
-    except ImportError:
-        pexpect = None                           # analysis:ignore
+    pexpect = None
 
 # Local imports
 from spyderlib import dependencies
