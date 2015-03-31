@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
+# Std imports
+import atexit
 import os
 import os.path as osp
+import random
 import socket
 import time
-import atexit
-import random
-import sys
 
 # Local imports
 from spyderlib.cli_options import get_options
