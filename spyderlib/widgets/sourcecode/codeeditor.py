@@ -1871,27 +1871,24 @@ class CodeEditor(TextEditBaseWidget):
 
     @Slot()
     def clear_all_output(self):
-        """removes all ouput in the ipynb format (Json only)"""
-        if self.is_json() and nbformat is not None:
-            try:
-                nb = nbformat.reads(self.toPlainText(), as_version=4)
-                if nb.cells:
-                    for cell in nb.cells:
-                        if 'outputs' in cell:
-                            cell['outputs'] = []
-                        if 'prompt_number' in cell:
-                            cell['prompt_number'] = None
-            except Exception as e:
-                QMessageBox.critical(self, _('Removal error'),
-                               _("It was not possible to remove outputs from "
-                                 "this notebook. The error is:\n\n") + \
-                                 to_text_string(e))
-                return
+        """Removes all ouput in the ipynb format (Json only)"""
+        try:
+            nb = nbformat.reads(self.toPlainText(), as_version=4)
+            if nb.cells:
+                for cell in nb.cells:
+                    if 'outputs' in cell:
+                        cell['outputs'] = []
+                    if 'prompt_number' in cell:
+                        cell['prompt_number'] = None
             # We do the following rather than using self.setPlainText
             # to benefit from QTextEdit's undo/redo feature.
             self.selectAll()
             self.insertPlainText(nbformat.writes(nb))
-        else:
+        except Exception as e:
+            QMessageBox.critical(self, _('Removal error'),
+                           _("It was not possible to remove outputs from "
+                             "this notebook. The error is:\n\n") + \
+                             to_text_string(e))
             return
 
     @Slot()
@@ -1899,13 +1896,13 @@ class CodeEditor(TextEditBaseWidget):
         """Convert an IPython notebook to a Python script in editor"""
         try:
             nb = nbformat.reads(self.toPlainText(), as_version=4)
+            script = nbexporter().from_notebook_node(nb)[0]
         except Exception as e:
             QMessageBox.critical(self, _('Conversion error'),
                                  _("It was not possible to convert this "
                                  "notebook. The error is:\n\n") + \
                                  to_text_string(e))
             return
-        script = nbexporter().from_notebook_node(nb)[0]
         self.sig_new_file.emit(script)
 
     def indent(self, force=False):
@@ -2558,8 +2555,10 @@ class CodeEditor(TextEditBaseWidget):
         self.copy_action.setEnabled(nonempty_selection)
         self.cut_action.setEnabled(nonempty_selection)
         self.delete_action.setEnabled(nonempty_selection)
-        self.clear_all_output_action.setVisible(self.is_json())
-        self.ipynb_convert_action.setVisible(self.is_json())
+        self.clear_all_output_action.setVisible(self.is_json() and \
+                                                nbformat is not None)
+        self.ipynb_convert_action.setVisible(self.is_json() and \
+                                             nbformat is not None)
         self.run_selection_action.setEnabled(nonempty_selection)
         self.run_selection_action.setVisible(self.is_python())
         self.gotodef_action.setVisible(self.go_to_definition_enabled \
