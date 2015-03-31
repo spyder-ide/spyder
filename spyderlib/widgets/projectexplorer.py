@@ -1099,7 +1099,8 @@ class ExplorerTreeWidget(FilteredDirView):
             lines += l
         QMessageBox.information(self, _("Project Explorer"),
                                 _("Statistics on source files only:<br>"
-                                  "(Python, Cython, IPython, Enaml, C/C++, Fortran)<br><br>"
+                                  "(Python, Cython, IPython, Enaml,"
+                                  "C/C++, Fortran)<br><br>"
                                   "<b>%s</b> files.<br>"
                                   "<b>%s</b> lines of code."
                                   ) % (str(files), str(lines)))
