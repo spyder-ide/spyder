@@ -251,7 +251,7 @@ class DirView(QTreeView):
         open_action = create_action(self, _("Open"), triggered=self.open)
         ipynb_convert_action = create_action(self, _("Convert to Python script"),
                                              icon="python.png",
-                                             triggered=self.convert)
+                                             triggered=self.convert_notebooks)
         
         actions = []
         if only_modules:
@@ -517,10 +517,9 @@ class DirView(QTreeView):
         self.parent_widget.sig_new_file.emit(script)
 
     @Slot()
-    def convert(self, fnames=None):
+    def convert_notebooks(self):
         """Convert IPython notebooks to Python scripts in editor"""
-        if fnames is None:
-            fnames = self.get_selected_filenames()
+        fnames = self.get_selected_filenames()
         if not isinstance(fnames, (tuple, list)):
             fnames = [fnames]
         for fname in fnames:
