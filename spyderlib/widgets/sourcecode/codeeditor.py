@@ -56,7 +56,6 @@ from spyderlib.py3compat import to_text_string
 
 try:
     import IPython.nbformat as nbformat
-    import IPython.nbformat.current      # analysis:ignore
     from IPython.nbconvert import PythonExporter as nbexporter
 except:
     nbformat = None                      # analysis:ignore
@@ -1875,23 +1874,23 @@ class CodeEditor(TextEditBaseWidget):
         """removes all ouput in the ipynb format (Json only)"""
         if self.is_json() and nbformat is not None:
             try:
-                nb = nbformat.current.reads(self.toPlainText(), 'json')
+                nb = nbformat.reads(self.toPlainText(), as_version=4)
+                if nb.cells:
+                    for cell in nb.cells:
+                        if 'outputs' in cell:
+                            cell['outputs'] = []
+                        if 'prompt_number' in cell:
+                            cell['prompt_number'] = None
             except Exception as e:
-                QMessageBox.critical(self, _('Removal error'), 
+                QMessageBox.critical(self, _('Removal error'),
                                _("It was not possible to remove outputs from "
                                  "this notebook. The error is:\n\n") + \
                                  to_text_string(e))
                 return
-            if nb.worksheets:
-                for cell in nb.worksheets[0].cells:
-                    if 'outputs' in cell:
-                        cell['outputs'] = []
-                    if 'prompt_number' in cell:
-                        cell['prompt_number'] = None
             # We do the following rather than using self.setPlainText
             # to benefit from QTextEdit's undo/redo feature.
             self.selectAll()
-            self.insertPlainText(nbformat.current.writes(nb, 'json'))
+            self.insertPlainText(nbformat.writes(nb))
         else:
             return
 
@@ -1899,12 +1898,9 @@ class CodeEditor(TextEditBaseWidget):
     def convert_notebook(self):
         """Convert an IPython notebook to a Python script in editor"""
         try:
-            try: # >3.0
-                nb = nbformat.reads(self.toPlainText(), as_version=4)
-            except AttributeError:
-                nb = nbformat.current.reads(self.toPlainText(), 'json')
+            nb = nbformat.reads(self.toPlainText(), as_version=4)
         except Exception as e:
-            QMessageBox.critical(self, _('Conversion error'), 
+            QMessageBox.critical(self, _('Conversion error'),
                                  _("It was not possible to convert this "
                                  "notebook. The error is:\n\n") + \
                                  to_text_string(e))
