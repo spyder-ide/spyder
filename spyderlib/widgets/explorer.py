@@ -978,9 +978,14 @@ class ExplorerTreeWidget(DirView):
                 self.history.append(directory)
             self.histindex = len(self.history)-1
         directory = to_text_string(directory)
-        os.chdir(directory)
-        self.parent_widget.open_dir.emit(directory)
-        self.refresh(new_path=directory, force_current=True)
+        try:
+            os.chdir(directory)
+            self.parent_widget.open_dir.emit(directory)
+            self.refresh(new_path=directory, force_current=True)
+        except PermissionError:
+            QMessageBox.critical(self.parent_widget, "Error",
+                                 _("You don't have the right permissions to "
+                                   "open this directory"))
 
 
 class ExplorerWidget(QWidget):
