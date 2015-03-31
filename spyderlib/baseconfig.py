@@ -59,6 +59,10 @@ def debug_print(*message):
 # Configuration paths
 #==============================================================================
 # Spyder settings dir
+# NOTE: During the 2.x.x series this dir was named .spyder2, but
+# since 3.0+ we've reverted back to use .spyder to simplify major
+# updates in version (required when we break change APIs by Linux
+# packagers)
 if TEST is None:
     SUBFOLDER = '.spyder'
 else:
