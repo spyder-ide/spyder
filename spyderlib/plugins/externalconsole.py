@@ -278,7 +278,7 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         has_pyside = programs.is_module_installed('PySide',
                                                   interpreter=interpreter)
         if has_pyqt4 and not has_pyqt5:
-            self.set_option('qt/api', 'pyqt4')
+            self.set_option('qt/api', 'pyqt')
         elif has_pyside and not (has_pyqt5 or has_pyqt4):
             self.set_option('qt/api', 'pyside')
         
