@@ -158,12 +158,9 @@ class SpyderPluginMixin(object):
     show_message = None
     update_plugin_title = None
 
-    def __init__(self, main = None, **kwds):
+    def __init__(self, main=None, **kwds):
         """Bind widget to a QMainWindow instance"""
-        if PYQT5:
-            super().__init__(**kwds)
-        else:
-            super(SpyderPluginMixin, self).__init__()
+        super(SpyderPluginMixin, self).__init__(**kwds)
         assert self.CONF_SECTION is not None
         self.main = main
         self.default_margins = None
@@ -422,8 +419,8 @@ class SpyderPluginWidget(QWidget, SpyderPluginMixin):
 
     if PYQT5:
         def __init__(self, parent, **kwds):
-            super().__init__(**kwds)
-    else:    
+            super(SpyderPluginWidget, self).__init__(parent, **kwds)
+    else:
         def __init__(self, parent):
             QWidget.__init__(self, parent)
             SpyderPluginMixin.__init__(self, parent)
