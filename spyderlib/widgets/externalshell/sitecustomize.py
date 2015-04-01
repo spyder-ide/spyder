@@ -340,7 +340,7 @@ if matplotlib is not None:
 
         # Setting the right input hook according to mpl_backend,
         # IMPORTANT NOTE: Don't try to abstract the steps to set a PyOS
-        # input hook callback in a function. It will *crash* the
+        # input hook callback in a function. It will **crash** the
         # interpreter!!
         if mpl_backend == "Qt4Agg" and os.name == 'nt' and \
           monitor is not None:
@@ -355,9 +355,13 @@ if matplotlib is not None:
             callback = inputhooks.set_pyft_callback(qt_nt_inputhook)
             pyos_ih = inputhooks.get_pyos_inputhook()
             pyos_ih.value = ctypes.cast(callback, ctypes.c_void_p).value
-        elif mpl_backend == "Qt4Agg" and os.environ["QT_API"] == 'pyside':
-            # PySide doesn't have an input hook, so we need to install one
-            # to be able to show plots.
+        elif mpl_backend == "Qt4Agg":
+            # PyQt4 input hook stopped working after we moved to the new
+            # style for signals and slots, so we need to install our own
+            if os.environ["QT_API"] == 'pyqt':
+                inputhooks.remove_pyqt_inputhook()
+            # This works for both PySide (which doesn't have an input hook)
+            # and PyQt4 (whose input hook needs to be replaced, see above).
             # Note: This only works well for Posix systems
             callback = inputhooks.set_pyft_callback(inputhooks.qt4)
             pyos_ih = inputhooks.get_pyos_inputhook()
