@@ -23,6 +23,7 @@ import os.path as osp
 import shutil
 import sys
 from tempfile import mkdtemp
+from xml.sax.saxutils import escape
 
 # 3rd party imports
 from docutils.utils import SystemMessage as SystemMessage
@@ -177,7 +178,9 @@ def sphinxify(docstring, context, buildername='html'):
     
     # Add a class to several characters on the argspec. This way we can
     # highlight them using css, in a similar way to what IPython does.
-    argspec = context['argspec']
+    # NOTE: Before doing this, we escape common html chars so that they
+    # don't interfere with the rest of html present in the page
+    argspec = escape(context['argspec'])
     for char in ['=', ',', '(', ')', '*', '**']:
         argspec = argspec.replace(char,
                          '<span class="argspec-highlight">' + char + '</span>')
