@@ -734,15 +734,23 @@ class MainWindow(QMainWindow):
             self.debug_print("  ..sift?")
             gdgq_act = []
             if is_module_installed('guidata'):
-                from guidata import configtools
-                from guidata import config  # (loading icons) analysis:ignore
-                guidata_icon = configtools.get_icon('guidata.svg')
-                guidata_act = create_python_script_action(self,
-                               _("guidata examples"), guidata_icon, "guidata",
-                               osp.join("tests", "__init__"))
+                try:
+                    from guidata import configtools
+                    from guidata import config       # analysis:ignore
+                    guidata_icon = configtools.get_icon('guidata.svg')
+                    guidata_act = create_python_script_action(self,
+                                           _("guidata examples"), guidata_icon,
+                                           "guidata",
+                                           osp.join("tests", "__init__"))
+                except AssertionError:
+                    # Guidata doesn't support PyQt5 yet and it fails
+                    # with an AssertionError when imported using those
+                    # bindings (see issue 2274)
+                    guidata_act = configtools = None
                 if guidata_act:
                     gdgq_act += [guidata_act]
-                if is_module_installed('guiqwt'):
+                # We need guidata.configtools for this to work
+                if configtools and is_module_installed('guiqwt'):
                     from guiqwt import config  # analysis:ignore
                     guiqwt_icon = configtools.get_icon('guiqwt.svg')
                     guiqwt_act = create_python_script_action(self,
