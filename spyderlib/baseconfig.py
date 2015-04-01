@@ -7,9 +7,8 @@
 """
 Spyder base configuration management
 
-As opposed to spyderlib/config.py, this configuration script deals 
-exclusively with non-GUI features configuration only
-(in other words, we won't import any PyQt object here, avoiding any 
+This file only deals with non-GUI configuration features
+(in other words, we won't import any PyQt object here, avoiding any
 sip API incompatibility issue in spyderlib's non-gui modules)
 """
 
