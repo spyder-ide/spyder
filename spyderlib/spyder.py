@@ -79,7 +79,7 @@ from spyderlib.qt.QtGui import (QApplication, QMainWindow, QSplashScreen,
                                 QKeySequence, QDockWidget, QAction,
                                 QDesktopServices)
 from spyderlib.qt.QtCore import (Signal, QPoint, Qt, QSize, QByteArray, QUrl,
-                                 Slot, QTimer)
+                                 Slot, QTimer, QCoreApplication)
 from spyderlib.qt.compat import (from_qvariant, getopenfilename,
                                  getsavefilename)
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms
@@ -2781,6 +2781,7 @@ def run_spyder(app, options, args):
     # Open external files with our Mac app
     if running_in_mac_app():
         app.sig_open_external_file.connect(main.open_external_file)
+        QCoreApplication.setAttribute(Qt.AA_DontShowIconsInMenus, True)
 
     # To give focus again to the last focused widget after restoring
     # the window
