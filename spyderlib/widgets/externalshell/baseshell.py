@@ -207,7 +207,7 @@ class ExternalShellBase(QWidget):
 
         try:
             self.timer.timeout.disconnect(self.show_time)
-        except RuntimeError:
+        except (RuntimeError, TypeError):
              pass
     
     def set_running_state(self, state=True):
@@ -225,7 +225,7 @@ class ExternalShellBase(QWidget):
                 self.state_label.setText(_('Terminated.'))
             try:
                 self.timer.timeout.disconnect(self.show_time)
-            except:
+            except (RuntimeError, TypeError):
                 pass
 
     def set_buttons_runnning_state(self, state):
@@ -241,7 +241,7 @@ class ExternalShellBase(QWidget):
         try:
             self.terminate_button.clicked.disconnect(self.process.terminate)
             self.kill_button.clicked.disconnect(self.process.terminate)
-        except:
+        except (AttributeError, RuntimeError, TypeError):
             pass
         self.create_process()
 
