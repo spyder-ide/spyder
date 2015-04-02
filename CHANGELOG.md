@@ -2,7 +2,7 @@
 
 ## Version 2.3.4
 
-### New features since v2.3.3
+### New features
 
 * Debugging
     * After pressing the Debug button (or `Ctrl+F5`) move to the first breakpoint
@@ -13,7 +13,7 @@
 * Editor
     * Accept drops from compressed files on Windows
 
-### Bug fixes (since v2.3.3)
+### Bug fixes
 
 **Issues**
 
@@ -66,7 +66,7 @@ In this release they were merged 6 pull requests
 
 ## Version 2.3.3
 
-### New features since v2.3.2
+### New features
 
 * Editor
     * Use the [Jedi](http://http://jedi.jedidjah.ch) library to do code completions
@@ -84,7 +84,7 @@ In this release they were merged 6 pull requests
     * Add `Ctrl+W` and `Ctrl+F4` to close tabs in all platforms
     * Show shortcuts to move to each pane in `View > Panes`
 
-### Bug fixes (since v2.3.2)
+### Bug fixes
 
 * [Issue 670](/spyder-ide/spyder/issues/670) - Visual help for indentation: draw spaces and tabs
 * [Issue 987](/spyder-ide/spyder/issues/987) - Allow the file explorer to open any file into the editor as text
@@ -127,7 +127,7 @@ In this release they were merged 6 pull requests
 
 ## Version 2.3.2
 
-### New features since v2.3.1
+### New features
 
 * Editor
     * Improve cells visualization
@@ -145,7 +145,7 @@ In this release they were merged 6 pull requests
 * Python Console
     * Fixes various issues with unicode
 
-### Bug fixes (since v2.3.1)
+### Bug fixes
 
 * [Issue 556](/spyder-ide/spyder/issues/556) - Deal with DOS/Windows encoding
 * [Issue 681](/spyder-ide/spyder/issues/681) - Allow printing Unicode characters
@@ -192,7 +192,7 @@ In this release they were merged 6 pull requests
 
 ## Version 2.3.1
 
-### New features since v2.3.0
+### New features
 
 * Variable Explorer
     * Support for Pandas DataFrame's and TimeSerie's types
@@ -208,7 +208,7 @@ In this release they were merged 6 pull requests
 * Main Window
     * Improve style on Mac
 
-### Bug fixes (since v2.3.1)
+### Bug fixes
 
 * [Issue 93](/spyder-ide/spyder/issues/93) - Variable explorer: allow array editor to deal with arrays with more than 2 dimensions
 * [Issue 1160](/spyder-ide/spyder/issues/1160) - Variable Explorer: add support for pandas objects
@@ -232,9 +232,9 @@ In this release they were merged 6 pull requests
 
 ## Version 2.3.0
 
-### New features since v2.2
+### New features
 
-* Python 3 support
+* **Python 3 support**
 * Editor
     * Use the Tab key to do code completions
     * Highlight cells, i.e. portions of a file delimited by separators of the form `# %%`
@@ -258,7 +258,7 @@ In this release they were merged 6 pull requests
     * Improve startup time
     * Develop a new way to update configuration defaults (that doesn't involve resetting user settings)
 
-### Bug fixes (since v2.2)
+### Bug fixes
 
 * [Issue 696](/spyder-ide/spyder/issues/696) - Use Tab to do code completion in the Editor
 * [Issue 944](/spyder-ide/spyder/issues/944) - Add Python 3 support
@@ -335,7 +335,7 @@ In this release they were merged 6 pull requests
 
 ## Version 2.2.5
 
-### Bug fixes (since v2.2.4)
+### Bug fixes
 
 * [Issue 1322](/spyder-ide/spyder/issues/1322) - Problems with scientific_startup in other interpreters from the one Spyder is running on
 * [Issue 1337](/spyder-ide/spyder/issues/1337) - Mac app - Update to Qt 4.8.4 for HDPI
@@ -350,7 +350,7 @@ In this release they were merged 6 pull requests
 * [Issue 1595](/spyder-ide/spyder/issues/1595) - Fail to start an ipython console when variable explorer autorefresh is turned off in Preferences
 * [Issue 1596](/spyder-ide/spyder/issues/1596) - Spelling mistake in dialog ('loose' --> 'lose')
 
-### Other Changes (since v2.2.4)
+### Other Changes
 
 * Update our Mac application to the latest versions of Python, Qt and PyQt (now it's based in Homebrew).
 * Several important compatibility fixes for PySide.
@@ -360,7 +360,7 @@ In this release they were merged 6 pull requests
 
 ## Version 2.2.4
 
-### Bug fixes (since v2.2.3)
+### Bug fixes
 
 * [Issue 347](/spyder-ide/spyder/issues/347) - Matplotlib hangs on Mac if using PySide
 * [Issue 1265](/spyder-ide/spyder/issues/1265) - Create a Debug menu to easily show how to set breakpoints
@@ -369,7 +369,7 @@ In this release they were merged 6 pull requests
 * [Issue 1531](/spyder-ide/spyder/issues/1531) - Pyflakes version check is looking for 0.5.0 only
 * [Issue 1539](/spyder-ide/spyder/issues/1539) - /tmp/spyder is owned by the first user on the server to launch spyder
 
-### Other Changes (since v2.2.3)
+### Other Changes
 
 * Make Spyder compatible with SymPy 0.7.3+
 * Add shortcuts to the tooltips of all toolbars
@@ -379,7 +379,7 @@ In this release they were merged 6 pull requests
 
 ## Version 2.2.3
 
-### Bug fixes (since v2.2.2)
+### Bug fixes
 
 * [Issue 634](/spyder-ide/spyder/issues/634) - Debugging: Lingering break points
 * [Issue 639](/spyder-ide/spyder/issues/639) - Project Explorer: horizontal size issue (added an optional horizontal scrollbar. This option may be enabled/disabled in the widget context menu)
@@ -392,7 +392,7 @@ In this release they were merged 6 pull requests
 * [Issue 1526](/spyder-ide/spyder/issues/1526) - Build script (setup.py) includes the wrong version of pyflakes/rope in Windows installer
 * [Issue 1527](/spyder-ide/spyder/issues/1527) - please include the LICENSE file in the source package
 
-### Other Changes (since v2.2.2)
+### Other Changes
 
 * New "Run selection" (F9), "Run cell" (Ctrl+Enter) and "Run cell and advance" (Shift+Enter) actions in "Run" menu entry, as a replacement to the old "Run selection or block" and "Run block and advance" actions.
 * Added "Optional Dependencies" dialog box in "?" menu.
@@ -412,7 +412,7 @@ In this release they were merged 6 pull requests
 
 ## Version 2.2.2
 
-### Bug fixes (since v2.2.1)
+### Bug fixes
 
 * [Issue 1497](/spyder-ide/spyder/issues/1497) - Spyder 2.2.1 does not work with Python < 2.7
 * [Issue 1498](/spyder-ide/spyder/issues/1498) - TypeError thrown by IPython Console when the pager is off
@@ -420,7 +420,7 @@ In this release they were merged 6 pull requests
 * [Issue 1509](/spyder-ide/spyder/issues/1509) - Add support for javascript syntax highlighting
 * [Issue 1510](/spyder-ide/spyder/issues/1510) - Problems with zooming in/out
 
-### Other Changes (since v2.2.1)
+### Other Changes
 
 * Add new icons to the Run, Debug and Main toolbars
 * Update Pylint plugin to work with pylint 1.0
@@ -431,7 +431,7 @@ In this release they were merged 6 pull requests
 
 ## Version 2.2.1
 
-### Bug fixes (since v2.2.0)
+### Bug fixes
 
 * [Issue 1231](/spyder-ide/spyder/issues/1231) - Some strange messages are printed in the terminal when Spyder is running
 * [Issue 1318](/spyder-ide/spyder/issues/1318) - Mac app - Unable to use the keyboard when completion widget is displayed and the app loses focus
@@ -446,7 +446,7 @@ In this release they were merged 6 pull requests
 * [Issue 1470](/spyder-ide/spyder/issues/1470) - Preferences size is not saved when using PySide
 * [Issue 1472](/spyder-ide/spyder/issues/1472) - matplotlib plot's docstring is not rendered correctly in the Object Inspector
 
-### Other Changes (since v2.2.0)
+### Other Changes
 
 * All scientific libraries in our Mac application were updated to their latest releases.
 * The _Run Settings_ dialog has now its own icon. Before it was the same as the _Preferences_ pane one.
@@ -457,16 +457,16 @@ In this release they were merged 6 pull requests
 
 ## Version 2.2.0
 
-### New features since v2.1
+### New features
 
-* Better integration with IPython.
+* **Better integration with IPython**.
     * A dedicated preferences page from which you can set its most important options
     * An easy way to manage IPython kernels inside Spyder (i.e. interrupts and restarts).
     * Each console can be configured separately (which is not possible in IPython-qtconsole)
     * Each console is now connected to the Object Inspector and the History log.
     * Learn how to use IPython reading its documentation on the Object Inspector.
     * Find text in the console and pager using our Find Widget.
-* A new MacOS X Application
+* A new **MacOS X Application**
     * We now provide a DMG for simple drag and drop installation.
     * The App comes with its own interpreter, which has the main Python scientific libraries preinstalled: Numpy, SciPy, Matplotlib, IPython, Pandas, Sympy, Scikit-learn and Scikit-image.
 * A much improved debugging experience
@@ -484,12 +484,12 @@ In this release they were merged 6 pull requests
     * Several improvements to its style.
     * It can now show mathematical equations written in Latex, using the MathJax Sphinx plugin.
     * Rich text docs are now rendered in a thread to avoid UI lookup.
-* Single instance mode
+* **Single instance mode**
     * Users can now open Python scripts from their file explorer on the currently available instance.
     * Linux users can also open their files from the terminal.
 * Spanish translation of the interface
 
-### Bug fixes (since v2.1)
+### Bug fixes
 
 * [Issue 318](/spyder-ide/spyder/issues/318) - Create a widget to list all breakpoints
 * [Issue 349](/spyder-ide/spyder/issues/349) - Add "Run selection or current block" action to Editor's context menu
@@ -598,7 +598,7 @@ In this release they were merged 6 pull requests
 
 ## Version 2.1.13.1
 
-### Bug fixes (since v2.1.13)
+### Bug fixes
 
 * Spyder startup: fixed PyQt minimum version requirement test (the old poor comparison algorithm was considering that v4.10 was older than v4.4...) (See [Issue 1291](/spyder-ide/spyder/issues/1291))
 * Console: Matplotlib was always imported even when the Matplotlib's Patch option was not available (i.e. the Matplotlib installed version was not compatible with the patch). As a consequence, even when disabling every console advanced option in preferences, the preloaded module list was huge
@@ -609,7 +609,7 @@ In this release they were merged 6 pull requests
     * Open file dialog: default file type filter now matches the current file (See [Issue 1201](/spyder-ide/spyder/issues/1201))
 * Fixed "PyQt Reference Guide" link
 
-### Other changes (since v2.1.13)
+### Other changes
 
 * Editor: Ctrl+MouseWheel is now zooming in/out the editor text size (see [Issue 1270](/spyder-ide/spyder/issues/1270))
 * About dialog box: changed the "This project is part of Python(x,y)" part to more general words (which are also closer to the initial meaning of this sentence) including a citation of WinPython
@@ -620,7 +620,7 @@ In this release they were merged 6 pull requests
 
 ## Version 2.1.13
 
-### Bug fixes (since v2.1.12)
+### Bug fixes
 
 * Fixed [Issue 1158](/spyder-ide/spyder/issues/1158): "pip install spyder" fails on non-Windows platforms due to a bug in pip installation process (missing spyderlib_win_postinstall.py script)
 * File Explorer/Windows/Fixed "remove tree" feature: added an error handler in shutil.rmtree to be able to remove a non-empty folder with shutil.rmtree is not working on Windows when it contains read-only files
@@ -635,7 +635,7 @@ In this release they were merged 6 pull requests
 * Editor/block comments: fixed remaining PyQt API v2 compatibility issues (see [Issue 905](/spyder-ide/spyder/issues/905))
 * Variable explorer: more flexible name fixing algorithm (even if it's not a good practice to use reference names with upper case letters, we do not remove them anymore) -- See [Issue 1169](/spyder-ide/spyder/issues/1169)
 
-### Other changes (since v2.1.12)
+### Other changes
 
 * Spyder about dialog box: added Python build architecture (32 or 64 bits)
 * Find in files: fixed default 'exclude pattern' which was accidently excluding all files starting with 'build' instead of simply excluding 'build' folders as intended
@@ -647,7 +647,7 @@ In this release they were merged 6 pull requests
 
 ## Version 2.1.12
 
-### Bug fixes (since v2.1.11)
+### Bug fixes
 
 * Spyder settings: sometimes (virus protection?) the .ini file can't be written, and removing the .ini file before writing seems to help, as suggested [here](https://groups.google.com/forum/#!msg/spyderlib/a_P9JBJEZeE/gOK_Pr2WbE8J) (see [Issue 1086](/spyder-ide/spyder/issues/1086))
 * Fixed Home/End key behaviour inconsistency on MacOS X (See [Issue 495](/spyder-ide/spyder/issues/495))
@@ -655,7 +655,7 @@ In this release they were merged 6 pull requests
 * Fixed "TypeError: file_saved(long,long).emit(): argument 1 has unexpected type 'long'" error occuring on some Linux 32-bit platforms -- See [Issue 1094](/spyder-ide/spyder/issues/1094)
 * Console: find/replace widget "Search next/previous occurence" feature was broken
 
-### Other changes (since v2.1.11)
+### Other changes
 
 * Portable version of Spyder (inside WinPython):
     * Spyder '?' menu: added documentation detection (.chm, .pdf) in sys.prefix\Doc (Windows-only)
@@ -670,7 +670,7 @@ In this release they were merged 6 pull requests
 
 ### Version 2.1.11
 
-### Bug fixes (since v2.1.10)
+### Bug fixes
 
 * Critical bugs:
     * Editor ([Issue 960](/spyder-ide/spyder/issues/960)): cannot open/save files from GUI (QFileDialog issue with PyQt4 v4.6)
@@ -696,7 +696,7 @@ In this release they were merged 6 pull requests
       * http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=674796
       * http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=674797
 
-### Other changes (since v2.1.10)
+### Other changes
 
 * Installer for Windows (bdist_wininst/bdist_msi):
     * added Start Menu shortcuts
@@ -709,7 +709,7 @@ In this release they were merged 6 pull requests
 
 ## Version 2.1.10
 
-### Bug fixes (since v2.1.9)
+### Bug fixes
 
 * Critical bugs:
     * Spyder crashed at startup/TypeError: `_isdir()` takes exactly 1 argument (0 given). Affects only Windows platforms with Python 3.2.2+ or 2.7.3+)
@@ -738,7 +738,7 @@ In this release they were merged 6 pull requests
 * File/Project explorer: fixed [by shchelokovskyy] Git commit/browse support
 * Find in files: fixed crash due to a bug in the common prefix finder function
 
-### Other changes (since v2.1.9)
+### Other changes
 
 * Checked Spyder's `rope` patch compatibility with rope v0.9.4
 * IPython plugin (experimental):
@@ -757,7 +757,7 @@ In this release they were merged 6 pull requests
 
 ## Version 2.1.9
 
-### Bug fixes (since v2.1.8)
+### Bug fixes
 
 * Run configuration/bugfix: command line options were not properly parsed
 * Preferences dialog was not showing up with PySide installed *and* without PyQt4
@@ -787,7 +787,7 @@ In this release they were merged 6 pull requests
 
 ## Version 2.1.8
 
-### Bug fixes (since v2.1.7)
+### Bug fixes
 
 * Editor/Source code toolbar:
     * "Show task list" and "Go to the next task" actions: the "Show TODO/FIXME/XXX/HINT/TIP comments list" button was not working
@@ -799,7 +799,7 @@ In this release they were merged 6 pull requests
 
 ## Version 2.1.7
 
-### Bug fixes (since v2.1.6)
+### Bug fixes
 
 * Main window:
     * Detached dockwidgets were not painted after restarting Spyder ([Issue 880](/spyder-ide/spyder/issues/880))
@@ -808,7 +808,7 @@ In this release they were merged 6 pull requests
 * Object inspector's rich text mode: fixed unexpected indent error
 * IPython plugin: fixed compatibility issue with latest v0.12dev (thanks to Boris Gorelik)
 
-### Other changes (since v2.1.6)
+### Other changes
 
 * Variable explorer/Array editor: added support for masked arrays
 * Showing Spyder's internal console automatically when there is a traceback
@@ -827,7 +827,7 @@ In this release they were merged 6 pull requests
 
 ## Version 2.1.6
 
-### Bug fixes (since v2.1.5)
+### Bug fixes
 
 * Critical bug on certain Windows platforms (not sure yet if it's related to a particular version of PyQt or something else): all plugins (dockwidgets) were shown detached (or hidden) from the mainwindow at startup (this is related to the attempt fixing [Issue 880](/spyder-ide/spyder/issues/880))
 
@@ -837,7 +837,7 @@ In this release they were merged 6 pull requests
 
 ## Version 2.1.5
 
-### Bug fixes (since v2.1.4)
+### Bug fixes
 
 * Detached dockwidgets (Console, ...) were not painted after restarting Spyder
 * Editor/Outline-bugfix: duplicate entries were shown when the editor was synchronizing file contents with disk
@@ -853,7 +853,7 @@ In this release they were merged 6 pull requests
 * Object Inspector:
     * Show signatures for docstrings sent from the Editor (see [Issue 690](/spyder-ide/spyder/issues/690))
 
-### Other changes (since v2.1.4)
+### Other changes
 
 * Debugging: when a non-empty SPYDER_DEBUG environment variable exists, Spyder switch to debug mode (log files are created in user's home directory and debug prints are available in the terminal)
 * Variable explorer/Dictionary editor: added option to plot histogram from a 1-D array
@@ -878,12 +878,12 @@ In this release they were merged 6 pull requests
 
 ## Version 2.1.4
 
-### Bug fixes (since v2.1.3)
+### Bug fixes
 
 * Console:
     * *Critical bugfix* for IPython support: variable explorer link was broken (regression introduced with v2.1.3)
 
-### Other changes (since v2.1.3)
+### Other changes
 
 * Console:
     * option "Open an IPython interperter at startup" is now *explicitely* disabled for IPython v0.11+ (these versions of IPython are not fully supported through Spyder's console plugin)
@@ -894,12 +894,12 @@ In this release they were merged 6 pull requests
 
 ## Version 2.1.3
 
-### Enhancements (since v2.1.2)
+### Enhancements
 
 * Variable explorer performance were improved, especially when dealing with very long sequences -- See [this discussion](http://groups.google.com/group/spyderlib/browse_thread/thread/3a7ef892695e417a)
 * Variable explorer / dictionary editor: added support for unknown objects -- this allows browsing any object attributes -- This is still experimental.
 
-### Bug fixes (since v2.1.2)
+### Bug fixes
 
 * General:
     * Spyder preferences/bugfix: comboboxes with keys other than strings (e.g. the PyQt API selection combo box) were not initialized properly
@@ -919,7 +919,7 @@ In this release they were merged 6 pull requests
 
 ## Version 2.1.2
 
-### Bug fixes (since v2.1.1)
+### Bug fixes
 
 * General:
     * Patched external path library to avoid a crash with a user HOME directory with non-ascii characters
@@ -939,14 +939,14 @@ In this release they were merged 6 pull requests
 * Object inspector:
     * Rich text mode was not showing headings when invoked from editor ([Issue 690](/spyder-ide/spyder/issues/690))
 
-### Enhancements (since v2.1.1)
+### Enhancements
 
 * File/Project explorer:
     * Added "Delete" keyboard shortcut to remove selected file(s)/folder(s)
     * SCM integration: added support for TortoiseHg v2 (only v1 was supported)
 * Console/Matplotlib options: the backend may now be set separately from the Matplotlib patch
 
-### Other changes (since v2.1.1)
+### Other changes
 
 * Console:
     * The Matplotlib patch is only applied for Matplotlib <=v1.0
@@ -958,7 +958,7 @@ In this release they were merged 6 pull requests
 
 ## Version 2.1.1
 
-_Note:_ v2.1.1 is a minor update of v2.1.0 (licence issues and minor bug fixes
+_Note:_ v2.1.1 is a minor update of v2.1.0 (licence issues and minor bug fixes)
 
 Follow Spyder news on our official blog:
 http://spyder-ide.blogspot.com/
@@ -1059,7 +1059,7 @@ Since version 2.1:
 
 ## Version 2.0.12
 
-### Bug fixes (since v2.0.11)
+### Bug fixes
 
 * (Fixes [Issue 476](/spyder-ide/spyder/issues/476)) Editor/bugfix: print preview was not working
 * Completion widget/bugfix (editor/console): combo box was truncated by main window depending on its size
@@ -1071,11 +1071,11 @@ Since version 2.1:
 * (Fixes [Issue 667](/spyder-ide/spyder/issues/667)) Editor/bugfix: Shift+Enter inserted lines that did not get line numbers
 * (Fixes [Issue 672](/spyder-ide/spyder/issues/672)) Editor: TODO/FIXME were not detected if not followed by ':' (HINT/TIP were properly detected)
 
-### Enhancements (since v2.0.11)
+### Enhancements
 
 * (Fixes [Issue 655](/spyder-ide/spyder/issues/655)) Editor/pyflakes-powered code analysis: warnings are now ignored for lines containing "pyflakes:ignore"
 
-### Other changes (since v2.0.11)
+### Other changes
 
 * Internal console (Spyder debugging only): turned off the multithreaded mode
 
@@ -1108,7 +1108,7 @@ Since version 2.1:
 
 ## Version 2.0.9
 
-### Bug fixes (since v2.0.8)
+### Bug fixes
 
 * Console: added option to ignore PyQt/sip errors when trying to set sip API (fixed Enthought Tool Suite 3.6.0 compatibility issue)
 * utils.dochelpers.getargtxt/bugfix: retrieving builtin function arguments was no longer working
@@ -1126,7 +1126,7 @@ Since version 2.1:
 * Editor/code completion-bugfix: some key events (e.g. Ctrl+V) were lost during code completion-related hang-up
 * (Fixes [Issue 599](/spyder-ide/spyder/issues/599)) Multiline text pasting was not working in a newly opened console (i.e. first prompt)
 
-### Enhancements (since v2.0.8)
+### Enhancements
 
 * Major change/Translations: moved from 'QtLinguist' to 'gettext' (localizing Spyder should now be easier)
 * Console: increased default maximum line count (buffer depth) up to 10,000 lines (instead of only 300 lines)
@@ -1183,7 +1183,7 @@ Since version 2.1:
 
 ## Version 2.0.6
 
-### Bug fixes (since v2.0.5)
+### Bug fixes
 
 * Console: menu entries "Environment variables", "Current working directory" and "Show sys.path" were not disabled when the Monitor was turned off
 * Preferences dialog box/Keyboard shortcuts:
@@ -1194,7 +1194,7 @@ Since version 2.1:
 * Editor: code completion was sometimes very slow when editing files within a Spyder project
 * Code editor: fixed "Delete line" feature (Ctrl+D) / was not working with multiline selection
 
-### Other changes (since v2.0.5)
+### Other changes
 
 * Editor/80-column vertical edge line: added options to show/hide this line and change the column number
 * Editor: added "Comment"/"Uncomment" actions to context menu
