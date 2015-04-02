@@ -383,10 +383,10 @@ class ProfilerDataTree(QTreeWidget):
         self.header_list = [_('Function/Module'), _('Total Time'), _('Diff'),
                             _('Local Time'), _('Diff'), _('Calls'), _('Diff'),
                             _('File:line')]
-        self.icon_list = {'module':      'python.png',
-                         'function':    'function.png',
-                         'builtin':     'python_t.png',
-                         'constructor': 'class.png'}
+        self.icon_list = {'module': qta.icon('spyder.python-logo'),
+                         'function': get_icon('function.png'),
+                         'builtin': qta.icon('spyder.python-logo', color='gray'),
+                         'constructor': get_icon('class.png')}
         self.profdata = None   # To be filled by self.load_data()
         self.stats = None      # To be filled by self.load_data()
         self.item_depth = None
@@ -530,7 +530,7 @@ class ProfilerDataTree(QTreeWidget):
             # FIXME: indexes to data should be defined by a dictionary on init
             child_item.setToolTip(0, 'Function or module name')
             child_item.setData(0, Qt.DisplayRole, function_name)
-            child_item.setIcon(0, get_icon(self.icon_list[node_type]))
+            child_item.setIcon(0, self.icon_list[node_type])
 
             child_item.setToolTip(1, _('Time in function '\
                                        '(including sub-functions)'))

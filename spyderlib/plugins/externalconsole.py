@@ -939,11 +939,11 @@ class ExternalConsole(SpyderPluginWidget):
                     self.python_count += 1
                     tab_name = "Python %d" % self.python_count
                     tab_icon1 = qta.icon('spyder.python-logo')
-                    tab_icon2 = get_icon('python_t.png')
+                    tab_icon2 = qta.icon('spyder.python-logo', color='gray')
             else:
                 tab_name = osp.basename(fname)
                 tab_icon1 = qta.icon('fa.play')
-                tab_icon2 = get_icon('terminated.png')
+                tab_icon2 = qta.icon('fa.circle')
         else:
             fname = id(shellwidget)
             if os.name == 'nt':

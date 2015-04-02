@@ -2217,15 +2217,11 @@ class MainWindow(QMainWindow):
         if self.state_before_maximizing is None:
             text = _("Maximize current pane")
             tip = _("Maximize current pane")
-            icon = qta.icon(['fa.columns', 'fa.caret-right'],
-                            options=[{}, {'scale_factor': 1.0,
-                                          'offset': (0.22, 0.05)}])
+            icon = get_icon('maximize.png')
         else:
             text = _("Restore current pane")
             tip = _("Restore pane to its original size")
-            icon = qta.icon(['fa.columns', 'fa.caret-left'],
-                            options=[{}, {'scale_factor': 1.0,
-                                          'offset': (0.22, 0.05)}])
+            icon = get_icon('unmaximize.png')
         self.maximize_action.setText(text)
         self.maximize_action.setIcon(icon)
         self.maximize_action.setToolTip(tip)

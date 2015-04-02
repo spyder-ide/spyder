@@ -2408,10 +2408,10 @@ class CodeEditor(TextEditBaseWidget):
         """Setup context menu"""
         self.undo_action = create_action(self, _("Undo"),
                            shortcut=keybinding('Undo'),
-                           icon=get_icon('redo.png'), triggered=self.undo)
+                           icon=qta.icon('fa.arrow-right'), triggered=self.undo)
         self.redo_action = create_action(self, _("Redo"),
                            shortcut=keybinding('Redo'),
-                           icon=get_icon('redo.png'), triggered=self.redo)
+                           icon=get_icon('fa.arrow-left'), triggered=self.redo)
         self.cut_action = create_action(self, _("Cut"),
                            shortcut=keybinding('Cut'),
                            icon=qta.icon('fa.cut'), triggered=self.cut)
@@ -2439,7 +2439,7 @@ class CodeEditor(TextEditBaseWidget):
         self.ipynb_convert_action = create_action(self,
                                                _("Convert to Python script"),
                                                triggered=self.convert_notebook,
-                                               icon='python.png')
+                                               icon=qta.icon('spyder.python-logo'))
         self.gotodef_action = create_action(self, _("Go to definition"),
                                    triggered=self.go_to_definition_from_cursor)
         self.run_selection_action = create_action(self,

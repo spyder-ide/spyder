@@ -359,7 +359,7 @@ class ExternalPythonShell(ExternalShellBase):
             return splitter
     
     def get_icon(self):
-        return get_icon('python.png')
+        return qta.icon('spyder.python-logo')
 
     def set_buttons_runnning_state(self, state):
         ExternalShellBase.set_buttons_runnning_state(self, state)

@@ -558,7 +558,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
                                     triggered=self.inspect_object)
         clear_line_action = create_action(self, _("Clear line or block"),
                                           QKeySequence("Shift+Escape"),
-                                          icon=get_icon('eraser.png'),
+                                          icon=qta.icon('fa.eraser'),
                                           triggered=self.clear_line)
         clear_console_action = create_action(self, _("Clear console"),
                                              QKeySequence(get_shortcut('console',

@@ -15,6 +15,7 @@ from spyderlib.qt.QtGui import (QWidget, QTreeWidgetItem,  QHBoxLayout,
                                 QVBoxLayout)
 from spyderlib.qt.QtCore import Qt, Signal, Slot
 from spyderlib.qt.compat import from_qvariant
+from spyderlib.qt import qta
 
 # Local import
 from spyderlib.baseconfig import _, STDOUT
@@ -51,7 +52,7 @@ class FileRootItem(QTreeWidgetItem):
     def __init__(self, path, treewidget):
         QTreeWidgetItem.__init__(self, treewidget, QTreeWidgetItem.Type)
         self.path = path
-        self.setIcon(0, get_icon('python.png'))
+        self.setIcon(0, qta.icon('spyder.python-logo'))
         self.setToolTip(0, path)
         set_item_user_text(self, path)
         

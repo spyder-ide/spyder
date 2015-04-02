@@ -708,13 +708,13 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
         clear_line_action = create_action(self, _("Clear line"),
                                      QKeySequence(get_shortcut('console',
                                                                'Clear line')),
-                                     icon=get_icon('eraser.png'),
+                                     icon=qta.icon('fa.eraser'),
                                      tip=_("Clear line"),
                                      triggered=self.clear_line)
         clear_action = create_action(self, _("Clear shell"),
                                      QKeySequence(get_shortcut('console',
                                                                'Clear shell')),
-                                     icon=get_icon('clear.png'),
+                                     icon=qta.icon('fa.times'),
                                      tip=_("Clear shell contents "
                                            "('cls' command)"),
                                      triggered=self.clear_terminal)

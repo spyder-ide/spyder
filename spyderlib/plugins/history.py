@@ -19,8 +19,7 @@ from spyderlib.utils import encoding
 from spyderlib.baseconfig import _
 from spyderlib.config import CONF
 from spyderlib.guiconfig import get_color_scheme
-from spyderlib.utils.qthelpers import (get_icon, create_action,
-                                       create_toolbutton, add_actions)
+from spyderlib.utils.qthelpers import (create_action, create_toolbutton, add_actions)
 from spyderlib.widgets.tabs import Tabs
 from spyderlib.widgets.sourcecode import codeeditor
 from spyderlib.widgets.findreplace import FindReplace
@@ -30,7 +29,7 @@ from spyderlib.py3compat import to_text_string, is_text_string
 
 class HistoryConfigPage(PluginConfigPage):
     def get_icon(self):
-        return get_icon('history24.png')
+        return qta.icon('fa.history')
     
     def setup_page(self):
         settings_group = QGroupBox(_("Settings"))
@@ -127,7 +126,7 @@ class HistoryLog(SpyderPluginWidget):
     
     def get_plugin_icon(self):
         """Return widget icon"""
-        return get_icon('history.png')
+        return qta.icon('fa.history')
     
     def get_focus_widget(self):
         """
@@ -220,7 +219,7 @@ class HistoryLog(SpyderPluginWidget):
             icon = qta.icon('spyder.python-logo')
         else:
             language = 'bat'
-            icon = get_icon('cmdprompt.png')
+            icon = qta.icon('fa.terminal')
         editor.setup_editor(linenumbers=False, language=language,
                             scrollflagarea=False)
         editor.focus_changed.connect(lambda: self.focus_changed.emit())
