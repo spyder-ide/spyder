@@ -2778,10 +2778,13 @@ def run_spyder(app, options, args):
         for a in args:
             main.open_external_file(a)
 
+    # Don't show icons in menus for Mac
+    if sys.platform == 'darwin':
+        QCoreApplication.setAttribute(Qt.AA_DontShowIconsInMenus, True)
+
     # Open external files with our Mac app
     if running_in_mac_app():
         app.sig_open_external_file.connect(main.open_external_file)
-        QCoreApplication.setAttribute(Qt.AA_DontShowIconsInMenus, True)
 
     # To give focus again to the last focused widget after restoring
     # the window
