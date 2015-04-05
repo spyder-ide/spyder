@@ -16,6 +16,7 @@ They are also used in Spyder through the Plugin interface
 
 from spyderlib.qt.QtCore import Slot
 from spyderlib.qt.QtGui import QTreeWidget, QMenu
+from spyderlib.qt import qta
 
 # Local imports
 from spyderlib.baseconfig import _
@@ -58,24 +59,24 @@ class OneColumnTree(QTreeWidget):
         """Setup context menu common actions"""
         self.collapse_all_action = create_action(self,
                                      text=_('Collapse all'),
-                                     icon=get_icon('collapse.png'),
+                                     icon=qta.icon('spyder.inward'),
                                      triggered=self.collapseAll)
         self.expand_all_action = create_action(self,
                                      text=_('Expand all'),
-                                     icon=get_icon('expand.png'),
+                                     icon=qta.icon('fa.arrows-alt'),
                                      triggered=self.expandAll)
         self.restore_action = create_action(self,
                                      text=_('Restore'),
                                      tip=_('Restore original tree layout'),
-                                     icon=get_icon('restore.png'),
+                                     icon=qta.icon('fa.level-up'),
                                      triggered=self.restore)
         self.collapse_selection_action = create_action(self,
                                      text=_('Collapse selection'),
-                                     icon=get_icon('collapse_selection.png'),
+                                     icon=qta.icon('fa.minus-square-o'),
                                      triggered=self.collapse_selection)
         self.expand_selection_action = create_action(self,
                                      text=_('Expand selection'),
-                                     icon=get_icon('expand_selection.png'),
+                                     icon=qta.icon('fa.plus-square-o'),
                                      triggered=self.expand_selection)
         return [self.collapse_all_action, self.expand_all_action,
                 self.restore_action, None,

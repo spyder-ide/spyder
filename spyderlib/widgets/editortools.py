@@ -200,7 +200,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
     def get_actions_from_items(self, items):
         """Reimplemented OneColumnTree method"""
         fromcursor_act = create_action(self, text=_('Go to cursor position'),
-                        icon=get_icon('fromcursor.png'),
+                        icon=qta.icon('fa.hand-o-right'),
                         triggered=self.go_to_cursor_position)
         fullpath_act = create_action(self, text=_( 'Show absolute path'),
                         toggled=self.toggle_fullpath_mode)
@@ -535,7 +535,7 @@ class OutlineExplorerWidget(QWidget):
         
     def setup_buttons(self):
         fromcursor_btn = create_toolbutton(self,
-                             icon=get_icon("fromcursor.png"),
+                             icon=qta.icon('fa.hand-o-right'),
                              tip=_('Go to cursor position'),
                              triggered=self.treewidget.go_to_cursor_position)
         collapse_btn = create_toolbutton(self)
