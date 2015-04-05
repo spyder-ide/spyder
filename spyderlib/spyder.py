@@ -634,7 +634,7 @@ class MainWindow(QMainWindow):
 
             self.selectall_action = create_edit_action("Select All",
                                                        _("Select All"),
-                                                       'selectall.png')
+                                                       qta.icon('spyder.text-select-all'))
 
             self.edit_menu_actions = [self.undo_action, self.redo_action,
                                       None, self.cut_action, self.copy_action,

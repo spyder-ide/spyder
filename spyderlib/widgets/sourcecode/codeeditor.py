@@ -47,8 +47,8 @@ from spyderlib.baseconfig import get_conf_path, _, DEBUG, get_image_path
 from spyderlib.config import CONF
 from spyderlib.guiconfig import (get_font, create_shortcut, new_shortcut,
                                  get_shortcut)
-from spyderlib.utils.qthelpers import (add_actions, create_action,
-                                       mimedata2url, get_icon, keybinding)
+from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
+                                       mimedata2url)
 from spyderlib.utils.dochelpers import getobj
 from spyderlib.utils import encoding, sourcecode
 from spyderlib.utils.sourcecode import ALL_LANGUAGES, CELL_LANGUAGES
@@ -2427,7 +2427,7 @@ class CodeEditor(TextEditBaseWidget):
                            triggered=self.delete)
         selectall_action = create_action(self, _("Select All"),
                            shortcut=keybinding('SelectAll'),
-                           icon=get_icon('selectall.png'),
+                           icon=qta.icon('spyder.text-select-all'),
                            triggered=self.selectAll)
         toggle_comment_action = create_action(self,
                                 _("Comment")+"/"+_("Uncomment"),
@@ -2444,7 +2444,7 @@ class CodeEditor(TextEditBaseWidget):
                                    triggered=self.go_to_definition_from_cursor)
         self.run_selection_action = create_action(self,
                         _("Run &selection or current line"),
-                        icon='run_selection.png',
+                        icon=qta.icon('spyder.run-selection'),
                         triggered=lambda: self.run_selection.emit())
         zoom_in_action = create_action(self, _("Zoom in"),
                       QKeySequence(QKeySequence.ZoomIn), icon=qta.icon('fa.search-plus'),

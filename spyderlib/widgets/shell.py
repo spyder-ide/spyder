@@ -141,7 +141,7 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
                                     triggered=self.delete)
         selectall_action = create_action(self, _("Select All"),
                                     shortcut=keybinding('SelectAll'),
-                                    icon=get_icon('selectall.png'),
+                                    icon=qta.icon('spyder.text-select-all'),
                                     triggered=self.selectAll)
         add_actions(self.menu, (self.cut_action, self.copy_action,
                                 paste_action, self.delete_action, None,

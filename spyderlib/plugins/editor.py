@@ -797,7 +797,7 @@ class Editor(SpyderPluginWidget):
 
         run_selected_action = create_action(self, _("Run &selection or "
                                                     "current line"),
-                                            icon='run_selection.png',
+                                            icon=qta.icon('spyder.run-selection'),
                                             tip=_("Run selection or "
                                                   "current line"),
                                             triggered=self.run_selection)
