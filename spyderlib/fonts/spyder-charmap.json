@@ -20,5 +20,7 @@
     "spyder-logo-background": "0xE012",
     "inward": "0xE013",
     "rows": "0xE014",
-    "window": "0xE015"
+    "window": "0xE015",
+    "maximize-pane": "0xE016",
+    "minimize-pane": "0xE017"
 }

@@ -2217,11 +2217,11 @@ class MainWindow(QMainWindow):
         if self.state_before_maximizing is None:
             text = _("Maximize current pane")
             tip = _("Maximize current pane")
-            icon = get_icon('maximize.png')
+            icon = qta.icon('spyder.maximize-pane')
         else:
             text = _("Restore current pane")
             tip = _("Restore pane to its original size")
-            icon = get_icon('unmaximize.png')
+            icon = qta.icon('spyder.minimize-pane')
         self.maximize_action.setText(text)
         self.maximize_action.setIcon(icon)
         self.maximize_action.setToolTip(tip)
@@ -2267,9 +2267,9 @@ class MainWindow(QMainWindow):
 
     def __update_fullscreen_action(self):
         if self.isFullScreen():
-            icon = qta.icon('ei.resize-small')
+            icon = qta.icon('spyder.inward')
         else:
-            icon = qta.icon('ei.resize-full')
+            icon = qta.icon('fa.arrows-alt')
         if is_text_string(icon):
             icon = get_icon(icon)
         self.fullscreen_action.setIcon(icon)
