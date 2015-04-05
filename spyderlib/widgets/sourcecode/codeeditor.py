@@ -2434,7 +2434,7 @@ class CodeEditor(TextEditBaseWidget):
                                 icon=qta.icon('fa.comment'),
                                 triggered=self.toggle_comment)
         self.clear_all_output_action = create_action(self,
-                           _("Clear all ouput"), icon='ipython_console.png',
+                           _("Clear all ouput"), icon=qta.icon('spyder.ipython-logo'),
                            triggered=self.clear_all_output)
         self.ipynb_convert_action = create_action(self,
                                                _("Convert to Python script"),

@@ -248,7 +248,7 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         """Register plugin in Spyder's main window"""
         self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
         self.main.console.shell.refresh.connect(self.refresh_plugin)
-        iconsize = 28
+        iconsize = 20
         self.setIconSize(QSize(iconsize, iconsize))
         self.main.addToolBar(self)
         

@@ -914,8 +914,8 @@ class ExternalConsole(SpyderPluginWidget):
                     # versions match
                     if kernel_and_frontend_match:
                         tab_name = _("Kernel")
-                        tab_icon1 = get_icon('ipython_console.png')
-                        tab_icon2 = get_icon('ipython_console_t.png')
+                        tab_icon1 = qta.icon('spyder.ipython-logo')
+                        tab_icon2 = qta.icon('spyder.ipython-logo', color='gray')
                         shellwidget.create_ipython_client.connect(
                                      lambda cf: self.register_ipyclient(cf,
                                               ipyclient,
