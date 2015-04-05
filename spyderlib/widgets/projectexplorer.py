@@ -556,7 +556,7 @@ class ExplorerTreeWidget(FilteredDirView):
         """Return actions for submenu 'Import...'"""
         import_folder_act = create_action(self,
                                 text=_('Existing directory'),
-                                icon=qta.icon('fa.folder-open-o'),
+                                icon=qta.icon('fa.folder-open'),
                                 triggered=self.import_existing_directory)
         import_spyder_act = create_action(self,
                                 text=_('Existing Spyder project'),
@@ -1226,7 +1226,7 @@ class WorkspaceSelector(QWidget):
                                   +'<br><br>'+self.TIP)
         self.line_edit.setReadOnly(True)
         self.line_edit.setDisabled(True)
-        self.browse_btn = QPushButton(qta.icon('fa.folder-open-o'), '', self)
+        self.browse_btn = QPushButton(qta.icon('fa.folder-open'), '', self)
         self.browse_btn.setToolTip(self.TITLE)
         self.browse_btn.clicked.connect(self.select_directory)
         layout = QHBoxLayout()

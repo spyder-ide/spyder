@@ -464,7 +464,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                 break
         msg = _("Invalid directory path")
         self.validate_data[edit] = (osp.isdir, msg)
-        browse_btn = QPushButton(qta.icon('fa.folder-open-o'), '', self)
+        browse_btn = QPushButton(qta.icon('fa.folder-open'), '', self)
         browse_btn.setToolTip(_("Select directory"))
         browse_btn.clicked.connect(lambda: self.select_directory(edit))
         layout = QHBoxLayout()
@@ -494,7 +494,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                 break
         msg = _('Invalid file path')
         self.validate_data[edit] = (osp.isfile, msg)
-        browse_btn = QPushButton(qta.icon('fa.folder-open-o'), '', self)
+        browse_btn = QPushButton(qta.icon('fa.folder-open'), '', self)
         browse_btn.setToolTip(_("Select file"))
         browse_btn.clicked.connect(lambda: self.select_file(edit, filters))
         layout = QHBoxLayout()

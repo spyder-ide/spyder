@@ -602,10 +602,11 @@ class Editor(SpyderPluginWidget):
         
         # ---- File menu and toolbar ----
         self.new_action = create_action(self, _("&New file..."),
-                icon=qta.icon(['fa.file-o', 'fa.plus'], 
+                icon=qta.icon(['fa.file', 'fa.plus'], 
                               options=[{}, 
                                        {'scale_factor': 0.5, 
-                                        'offset': (0.0, 0.1)}]), 
+                                        'offset': (0.0, 0.1),
+                                        'color': '#DDD'}]), 
                               tip=_("New file"),
                 triggered=self.new)
         self.register_shortcut(self.new_action, context="Editor",
@@ -614,7 +615,7 @@ class Editor(SpyderPluginWidget):
                                 name="New file")
         
         self.open_action = create_action(self, _("&Open..."),
-                icon=qta.icon('fa.folder-open-o'), tip=_("Open file"),
+                icon=qta.icon('fa.folder-open'), tip=_("Open file"),
                 triggered=self.load)
         self.register_shortcut(self.open_action, context="Editor",
                                name="Open file")
@@ -877,7 +878,7 @@ class Editor(SpyderPluginWidget):
         
         # --- Edit Toolbar ---
         self.toggle_comment_action = create_action(self,
-                _("Comment")+"/"+_("Uncomment"), icon='comment.png',
+                _("Comment")+"/"+_("Uncomment"), icon=qta.icon('fa.comment'),
                 tip=_("Comment current line or selection"),
                 triggered=self.toggle_comment, context=Qt.WidgetShortcut)
         self.register_shortcut(self.toggle_comment_action, context="Editor",
@@ -944,7 +945,7 @@ class Editor(SpyderPluginWidget):
 
         workdir_action = create_action(self,
                 _("Set console working directory"),
-                icon=qta.icon('fa.folder-open-o'),
+                icon=qta.icon('fa.folder-open'),
                 tip=_("Set current console (and file explorer) working "
                             "directory to current script directory"),
                 triggered=self.__set_workdir)

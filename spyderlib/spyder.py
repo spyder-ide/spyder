@@ -622,12 +622,11 @@ class MainWindow(QMainWindow):
                 self.register_shortcut(action, "Editor", text)
                 return action
 
-            self.undo_action = create_edit_action("Undo", _("Undo"),
-                                                  'undo.png')
-
-            self.redo_action = create_edit_action("Redo", _("Redo"), 'redo.png')
-
-            self.copy_action = create_edit_action("Copy", _("Copy"), qta.icon('fa.files-o'))
+            self.undo_action = create_edit_action('Undo', _('Undo'),
+                                                  qta.icon('fa.undo'))
+            self.redo_action = create_edit_action('Redo', _('Redo'), 
+                                                  qta.icon('fa.repeat'))
+            self.copy_action = create_edit_action('Copy', _('Copy'), qta.icon('fa.files-o'))
             self.cut_action = create_edit_action('Cut', _('Cut'), qta.icon('fa.scissors'))
             self.paste_action = create_edit_action('Paste', _('Paste'), qta.icon('fa.clipboard'))
             self.delete_action = create_edit_action('Delete', _('Delete'),

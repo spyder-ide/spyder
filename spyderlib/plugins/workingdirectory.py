@@ -238,7 +238,7 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
     
     def get_plugin_icon(self):
         """Return widget icon"""
-        return qta.icon('fa.folder-open-o')
+        return qta.icon('fa.folder-open')
         
     def get_plugin_actions(self):
         """Setup actions"""

@@ -393,7 +393,7 @@ class FindOptions(QWidget):
         self.dir_combo.open_dir.connect(self.set_directory)
         self.python_path.toggled.connect(self.dir_combo.setDisabled)
         self.hg_manifest.toggled.connect(self.dir_combo.setDisabled)
-        browse = create_toolbutton(self, icon=qta.icon('fa.folder-open-o'),
+        browse = create_toolbutton(self, icon=qta.icon('fa.folder-open'),
                                    tip=_('Browse a search directory'),
                                    triggered=self.select_directory)
         for widget in [self.python_path, self.hg_manifest, self.custom_dir,
