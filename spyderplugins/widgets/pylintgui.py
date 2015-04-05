@@ -115,7 +115,7 @@ class ResultsTree(OneColumnTree):
                    (_('Warning'),
                     qta.icon('fa.warning'), self.results['W:']),
                    (_('Error'),
-                    get_icon('error.png'), self.results['E:']))
+                    qta.icon('fa.exclamation-circle'), self.results['E:']))
         for title, icon, messages in results:
             title += ' (%d message%s)' % (len(messages),
                                           's' if len(messages)>1 else '')
@@ -156,7 +156,7 @@ class ResultsTree(OneColumnTree):
                 else:
                     text = "%d : %s" % (lineno, message)
                 msg_item = QTreeWidgetItem(parent, [text], QTreeWidgetItem.Type)
-                msg_item.setIcon(0, get_icon('arrow.png'))
+                msg_item.setIcon(0, qta.icon('fa.arrow-right'))
                 self.data[id(msg_item)] = (modname, lineno)
 
 
@@ -203,7 +203,7 @@ class PylintWidget(QWidget):
         self.filecombo.valid.connect(self.start_button.setEnabled)
         self.filecombo.valid.connect(self.show_data)
 
-        browse_button = create_toolbutton(self, icon=qta.icon('fa.folder-open-o'),
+        browse_button = create_toolbutton(self, icon=qta.icon('fa.folder-open'),
                                tip=_('Select Python file'),
                                triggered=self.select_file)
 

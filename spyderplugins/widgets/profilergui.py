@@ -86,7 +86,7 @@ class ProfilerWidget(QWidget):
         # FIXME: The combobox emits this signal on almost any event
         #        triggering show_data() too early, too often. 
 
-        browse_button = create_toolbutton(self, icon=qta.icon('fa.folder-open-o'),
+        browse_button = create_toolbutton(self, icon=qta.icon('fa.folder-open'),
                                           tip=_('Select Python script'),
                                           triggered=self.select_file)
 

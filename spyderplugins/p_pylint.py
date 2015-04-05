@@ -13,11 +13,12 @@
 
 from spyderlib.qt.QtGui import QInputDialog, QVBoxLayout, QGroupBox, QLabel
 from spyderlib.qt.QtCore import Signal, Qt
+from spyderlib.qt import qta
 
 # Local imports
 from spyderlib.baseconfig import get_translation
 _ = get_translation("p_pylint", dirname="spyderplugins")
-from spyderlib.utils.qthelpers import get_icon, create_action
+from spyderlib.utils.qthelpers import create_action
 from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage
 
 from spyderplugins.widgets.pylintgui import PylintWidget, PYLINT_PATH
@@ -92,7 +93,9 @@ class Pylint(PylintWidget, SpyderPluginMixin):
     
     def get_plugin_icon(self):
         """Return widget icon"""
-        return get_icon('pylint.png')
+        return qta.icon(['fa.search', 'fa.check'], options=[{'offset': (0.0, -0.125)}, 
+                                                            {'color': 'green',
+                                                             'offset': (0.125, 0.25)}])
     
     def get_focus_widget(self):
         """
