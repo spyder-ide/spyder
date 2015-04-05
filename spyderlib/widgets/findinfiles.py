@@ -423,12 +423,12 @@ class FindOptions(QWidget):
                 if state and self.isVisible() or not state:
                     layout.itemAt(index).widget().setVisible(state)
         if state:
-            icon_name = 'options_less.png'
+            icon = qta.icon('fa.minus-square')
             tip = _('Hide advanced options')
         else:
-            icon_name = 'options_more.png'
+            icon = qta.icon('fa.plus-square')
             tip = _('Show advanced options')
-        self.more_options.setIcon(get_icon(icon_name))
+        self.more_options.setIcon(icon)
         self.more_options.setToolTip(tip)
         
     def update_combos(self):

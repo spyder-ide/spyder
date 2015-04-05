@@ -18,5 +18,7 @@
     "spyder-logo-web": "0xE010",
     "spyder-logo-snake": "0xE011",
     "spyder-logo-background": "0xE012",
-    "inward": "0xE013"
+    "inward": "0xE013",
+    "rows": "0xE014",
+    "window": "0xE015"
 }

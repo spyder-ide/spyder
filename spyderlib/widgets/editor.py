@@ -1108,19 +1108,19 @@ class EditorStack(QWidget):
     def __get_split_actions(self):
         # New window
         self.newwindow_action = create_action(self, _("New window"),
-                icon="newwindow.png", tip=_("Create a new editor window"),
+                icon=qta.icon('spyder.window'), tip=_("Create a new editor window"),
                 triggered=lambda: self.create_new_window.emit())
         # Splitting
         self.versplit_action = create_action(self, _("Split vertically"),
-                icon="versplit.png",
+                icon=qta.icon('spyder.rows'),
                 tip=_("Split vertically this editor window"),
                 triggered=lambda: self.split_vertically.emit())
         self.horsplit_action = create_action(self, _("Split horizontally"),
-                icon="horsplit.png",
+                icon=qta.icon('fa.columns'),
                 tip=_("Split horizontally this editor window"),
                 triggered=lambda: self.split_horizontally.emit())
         self.close_action = create_action(self, _("Close this panel"),
-                icon="close_panel.png", triggered=self.close)
+                icon=qta.icon('fa.close'), triggered=self.close)
         return [None, self.newwindow_action, None,
                 self.versplit_action, self.horsplit_action, self.close_action]
 
