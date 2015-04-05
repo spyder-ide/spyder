@@ -2411,7 +2411,7 @@ class CodeEditor(TextEditBaseWidget):
                            icon=qta.icon('fa.arrow-right'), triggered=self.undo)
         self.redo_action = create_action(self, _("Redo"),
                            shortcut=keybinding('Redo'),
-                           icon=get_icon('fa.arrow-left'), triggered=self.redo)
+                           icon=qta.icon('fa.arrow-left'), triggered=self.redo)
         self.cut_action = create_action(self, _("Cut"),
                            shortcut=keybinding('Cut'),
                            icon=qta.icon('fa.cut'), triggered=self.cut)
@@ -2431,7 +2431,7 @@ class CodeEditor(TextEditBaseWidget):
                            triggered=self.selectAll)
         toggle_comment_action = create_action(self,
                                 _("Comment")+"/"+_("Uncomment"),
-                                icon=get_icon("comment.png"),
+                                icon=qta.icon('fa.comment'),
                                 triggered=self.toggle_comment)
         self.clear_all_output_action = create_action(self,
                            _("Clear all ouput"), icon='ipython_console.png',
@@ -2447,11 +2447,10 @@ class CodeEditor(TextEditBaseWidget):
                         icon='run_selection.png',
                         triggered=lambda: self.run_selection.emit())
         zoom_in_action = create_action(self, _("Zoom in"),
-                         QKeySequence(QKeySequence.ZoomIn), icon='zoom_in.png',
+                      QKeySequence(QKeySequence.ZoomIn), icon=qta.icon('fa.search-plus'),
                       triggered=lambda: self.zoom_in.emit())
         zoom_out_action = create_action(self, _("Zoom out"),
-                      QKeySequence(QKeySequence.ZoomOut),
-                      icon='zoom_out.png',
+                      QKeySequence(QKeySequence.ZoomOut), icon=qta.icon('fa.search-minus'),
                       triggered=lambda: self.zoom_out.emit())
         zoom_reset_action = create_action(self, _("Zoom reset"),
                       QKeySequence("Ctrl+0"),
