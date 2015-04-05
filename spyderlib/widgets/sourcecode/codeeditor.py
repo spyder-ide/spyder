@@ -2559,7 +2559,6 @@ class CodeEditor(TextEditBaseWidget):
                                                 nbformat is not None)
         self.ipynb_convert_action.setVisible(self.is_json() and \
                                              nbformat is not None)
-        self.run_selection_action.setEnabled(nonempty_selection)
         self.run_selection_action.setVisible(self.is_python())
         self.gotodef_action.setVisible(self.go_to_definition_enabled \
                                        and self.is_python_like())
