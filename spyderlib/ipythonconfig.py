@@ -22,10 +22,12 @@ dependencies.add("zmq", _("IPython Console integration"),
                  required_version=ZMQ_REQVER)
 
 def is_qtconsole_installed():
+    ipython_installed = programs.is_module_installed('IPython.qt',
+                                                     version=IPYTHON_REQVER)
     pyzmq_installed = programs.is_module_installed('zmq', version=ZMQ_REQVER)
     pygments_installed = programs.is_module_installed('pygments')
-    if programs.is_module_installed('IPython.qt', IPYTHON_REQVER) and \
-      pyzmq_installed and pygments_installed:    
+
+    if ipython_installed and pyzmq_installed and pygments_installed:    
         return True
     else:
         return False
