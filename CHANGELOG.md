@@ -9,7 +9,7 @@
 * IPython Console
     * Drop support for Sympy versions less than 0.7.3
 * Python Console
-    * Remove support to run system commands with ! (like !diff)
+    * Remove support to run system commands with ! (like `!diff`)
 * Editor
     * Accept drops from compressed files on Windows
 
