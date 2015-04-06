@@ -260,7 +260,7 @@ class ExternalConsoleConfigPage(PluginConfigPage):
             ('PyQt4', 'pyqt'),
             ('PySide', 'pyside'),
         ]
-        qt_group = QGroupBox(_("Qt (PyQt/PySide)"))
+        qt_group = QGroupBox(_("Qt Bindings"))
         qt_setapi_box = self.create_combobox(
                          _("Qt-Python bindings library selection:"), opts,
                          'qt/api', default='default',
@@ -322,10 +322,10 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         mpl_group = QGroupBox(_("Matplotlib"))
         mpl_backend_box = newcb('', 'matplotlib/backend/enabled', True)
         mpl_backend_edit = self.create_lineedit(_("GUI backend:"),
-                                'matplotlib/backend/value', "Qt5Agg",
+                                'matplotlib/backend/value',
                                 tip=_("Set the GUI toolkit used by <br>"
                                       "Matplotlib to show figures "
-                                      "(default: Qt5Agg)"),
+                                      "(default: Qt4Agg)"),
                                 alignment=Qt.Horizontal)
         mpl_backend_box.toggled.connect(mpl_backend_edit.setEnabled)
         mpl_backend_layout = QHBoxLayout()
@@ -343,7 +343,7 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         # ETS Group
         ets_group = QGroupBox(_("Enthought Tool Suite"))
         ets_label = QLabel(_("Enthought Tool Suite (ETS) supports "
-                             "PyQt5 (qt5) and wxPython (wx) graphical "
+                             "PyQt4 (qt4) and wxPython (wx) graphical "
                              "user interfaces."))
         ets_label.setWordWrap(True)
         ets_edit = self.create_lineedit(_("ETS_TOOLKIT:"), 'ets_backend',
