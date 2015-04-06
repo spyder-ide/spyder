@@ -38,9 +38,8 @@ from spyderlib.config import CONF
 from spyderlib.guiconfig import (create_shortcut, get_font, get_shortcut,
                                  new_shortcut)
 from spyderlib.utils.dochelpers import getargspecfromtext, getsignaturefromtext
-from spyderlib.utils.qthelpers import (create_toolbutton,
-                                       add_actions, create_action, get_icon,
-                                       restore_keyevent)
+from spyderlib.utils.qthelpers import (create_toolbutton, add_actions, 
+                                       create_action, restore_keyevent)
 from spyderlib.utils import programs, sourcecode
 from spyderlib.widgets.browser import WebView
 from spyderlib.widgets.calltip import CallTipWidget
@@ -563,9 +562,9 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         clear_console_action = create_action(self, _("Clear console"),
                                              QKeySequence(get_shortcut('console',
                                                                'clear shell')),
-                                             icon=get_icon('clear.png'),
+                                             icon=qta.icon('fa.close'),
                                              triggered=self.clear_console)
-        quit_action = create_action(self, _("&Quit"), icon='exit.png',
+        quit_action = create_action(self, _("&Quit"), icon=qta.icon('fa.power-off'),
                                     triggered=self.exit_callback)
         add_actions(menu, (None, inspect_action, clear_line_action,
                            clear_console_action, None, quit_action))

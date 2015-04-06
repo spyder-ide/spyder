@@ -24,7 +24,7 @@ from spyderlib.qt.QtGui import (QDockWidget, QWidget, QShortcut, QCursor,
                                 QKeySequence, QMainWindow, QApplication,
                                 QTabBar)
 from spyderlib.qt.QtCore import Qt, Signal, QObject, QEvent, QPoint
-
+from spyderlib.qt import qta
 
 # Stdlib imports
 import sys
@@ -607,7 +607,7 @@ class SpyderPluginWidget(QWidget, SpyderPluginMixin):
               (see SpyderPluginMixin.create_mainwindow)
               and for configuration dialog widgets creation
         """
-        return get_icon('qt.png')
+        return qta.icon('spyder.treeview')
     
     def get_focus_widget(self):
         """

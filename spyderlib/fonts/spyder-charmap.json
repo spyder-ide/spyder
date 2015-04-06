@@ -25,5 +25,6 @@
     "minimize-pane": "0xE017",
     "ipython-logo": "0xE018",
     "run-selection": "0xE019",
-    "text-select-all": "0xE01A"
+    "text-select-all": "0xE01A",
+    "treeview": "0xE01B"
 }
