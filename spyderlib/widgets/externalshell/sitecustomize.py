@@ -443,7 +443,7 @@ class SpyderPdb(pdb.Pdb):
         fname = self.canonic(frame.f_code.co_filename)
         if sys.version[0] == '2':
             try:
-                filename = unicode(filename, "utf-8")
+                fname = unicode(fname, "utf-8")
             except TypeError:
                 pass
         lineno = frame.f_lineno
