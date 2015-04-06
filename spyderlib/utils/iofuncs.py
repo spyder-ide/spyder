@@ -22,10 +22,13 @@ import warnings
 import json
 import inspect
 import dis
+
+# If pandas fails to import here (for any reason), Spyder
+# will crash at startup (e.g. see Issue 2300)
 try:
     import pandas as pd
-except ImportError:
-    pd = None
+except:
+    pd = None            #analysis:ignore
 
 # Local imports
 from spyderlib.py3compat import pickle, to_text_string, getcwd, PY2
