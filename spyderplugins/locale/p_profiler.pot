@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2014-11-26 06:56+COT\n"
+"POT-Creation-Date: 2015-03-21 12:42+COT\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -99,43 +99,43 @@ msgstr ""
 msgid "Sorting data, please wait..."
 msgstr ""
 
-#: spyderplugins/widgets/profilergui.py:323
+#: spyderplugins/widgets/profilergui.py:335
 msgid "Function/Module"
 msgstr ""
 
-#: spyderplugins/widgets/profilergui.py:323
+#: spyderplugins/widgets/profilergui.py:335
 msgid "Total Time"
 msgstr ""
 
-#: spyderplugins/widgets/profilergui.py:324
+#: spyderplugins/widgets/profilergui.py:336
 msgid "Calls"
 msgstr ""
 
-#: spyderplugins/widgets/profilergui.py:324
+#: spyderplugins/widgets/profilergui.py:336
 msgid "File:line"
 msgstr ""
 
-#: spyderplugins/widgets/profilergui.py:324
+#: spyderplugins/widgets/profilergui.py:336
 msgid "Local Time"
 msgstr ""
 
-#: spyderplugins/widgets/profilergui.py:431
+#: spyderplugins/widgets/profilergui.py:443
 msgid "Time in function (including sub-functions)"
 msgstr ""
 
-#: spyderplugins/widgets/profilergui.py:437
+#: spyderplugins/widgets/profilergui.py:449
 msgid "Local time in function (not in sub-functions)"
 msgstr ""
 
-#: spyderplugins/widgets/profilergui.py:443
+#: spyderplugins/widgets/profilergui.py:455
 msgid "Total number of calls (including recursion)"
 msgstr ""
 
-#: spyderplugins/widgets/profilergui.py:448
+#: spyderplugins/widgets/profilergui.py:460
 msgid "File:line where function is defined"
 msgstr ""
 
-#: spyderplugins/widgets/profilergui.py:453
+#: spyderplugins/widgets/profilergui.py:465
 msgid "recursion"
 msgstr ""
 

@@ -1,13 +1,111 @@
-Spyder v2.3.0 -- 07/11/2013
-===========================
+Minor release to list
+=====================
 
 Hi all,
 
-On the behalf of Spyder's development team (https://github.com/spyder-ide/spyder/blob/master/AUTHORS), I'm pleased to announce that Spyder 2.3 has been released and is available for Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
+On the behalf of Spyder’s development team (https://github.com/spyder-ide/spyder/blob/master/AUTHORS),
+I’m pleased to announce that Spyder 2.3.4 has been released and is available for
+Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-Spyder is a free, open-source (MIT license) interactive development environment for the Python language with advanced editing, interactive testing, debugging and introspection features. It was designed to provide MATLAB-like features (integrated help, interactive console, variable explorer with GUI-based editors for NumPy arrays and Pandas dataframes), it is strongly oriented towards scientific computing and software development.
+This release represents almost one month of development since version 2.3.3 and
+introduces several new features:
 
-This release represents 14 months of development since version 2.2 and introduces major enhancements and new features:
+* Debugging
+    * After pressing the Debug button (or `Ctrl+F5`) move to the first breakpoint
+* IPython Console
+    * Drop support for Sympy versions less than 0.7.3
+* Python Console
+    * Remove support to run system commands with ! (like !diff)
+* Editor
+    * Accept drops from compressed files on Windows
+
+We also fixed almost 30 bugs and merged 6 pull requests. For a full list of fixes
+see our changelog: https://github.com/spyder-ide/spyder/blob/master/CHANGELOG.md
+
+This is going to be the last release in 2.3 series. Very soon we are going to
+release the first beta of our next major release (expected to be ready on July!)
+
+Don’t forget to follow Spyder updates/news:
+
+* on the project website: https://github.com/spyder-ide/spyder
+* and on our official blog: http://spyder-ide.blogspot.com/
+
+Last, but not least, we welcome any contribution that helps making Spyder an
+efficient scientific development/computing environment. Join us to help creating
+your favorite environment!
+
+Enjoy!
+-Carlos
+
+
+----
+
+
+Minor release others
+====================
+
+On the behalf of Spyder’s development team (https://github.com/spyder-ide/spyder/blob/master/AUTHORS),
+I’m pleased to announce that Spyder 2.3.4 has been released and is available for
+Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
+
+Spyder is a free, open-source (MIT license) interactive development environment
+for the Python language with advanced editing, interactive testing, debugging
+and introspection features. It was designed to provide MATLAB-like features
+(integrated help, interactive console, variable explorer with GUI-based editors
+for NumPy arrays and Pandas dataframes), it is strongly oriented towards scientific
+computing and software development.
+
+This release represents almost one month of development since version 2.3.3 and
+introduces several new features:
+
+* Debugging
+    * After pressing the Debug button (or `Ctrl+F5`) move to the first breakpoint
+* IPython Console
+    * Drop support for Sympy versions less than 0.7.3
+* Python Console
+    * Remove support to run system commands with ! (like !diff)
+* Editor
+    * Accept drops from compressed files on Windows
+
+We also fixed almost 30 bugs and merged 6 pull requests. For a full list of
+fixes see our changelog: https://github.com/spyder-ide/spyder/blob/master/CHANGELOG.md
+
+This is going to be the last release in 2.3 series. Very soon we are going to
+release the first beta of our next major release (expected to be ready on July!)
+
+Don’t forget to follow Spyder updates/news:
+
+* on the project website: https://github.com/spyder-ide/spyder
+* and on our official blog: http://spyder-ide.blogspot.com/
+
+Last, but not least, we welcome any contribution that helps making Spyder an
+efficient scientific development/computing environment. Join us to help creating
+your favorite environment!
+
+Enjoy!
+-Carlos
+
+----
+
+
+Major release to others
+=======================
+
+Hi all,
+
+On the behalf of Spyder's development team (https://github.com/spyder-ide/spyder/blob/master/AUTHORS),
+I'm pleased to announce that Spyder 2.3 has been released and is available for
+Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
+
+Spyder is a free, open-source (MIT license) interactive development environment
+for the Python language with advanced editing, interactive testing, debugging
+and introspection features. It was designed to provide MATLAB-like features
+(integrated help, interactive console, variable explorer with GUI-based editors
+for NumPy arrays and Pandas dataframes), it is strongly oriented towards
+scientific computing and software development.
+
+This release represents 14 months of development since version 2.2 and introduces
+major enhancements and new features:
 
    * Python 3 support (versions 3.2, 3.3 and 3.4 are supported).
    * Various Editor improvements:
@@ -17,15 +115,21 @@ This release represents 14 months of development since version 2.2 and introduce
      - Improve how calltips are shown
    * Better looking Object Inspector
    * Several refinements to the user interface to make it easier and more intuitive
-   * And many other changes: https://github.com/spyder-ide/spyder/wiki/Changelog
+   * And many other changes: https://github.com/spyder-ide/spyder/blob/master/CHANGELOG.md
 
-Spyder 2.2 has been a huge success (being downloaded more than 400,000 times!) and we hope 2.3 will be as successful as it. For that we fixed 70 important bugs, merged 30 pull requests from 11 authors and added almost 1000 commits between these two releases.
+Spyder 2.2 has been a huge success (being downloaded more than 400,000 times!)
+and we hope 2.3 will be as successful as it. For that we fixed 70 important bugs,
+merged 30 pull requests from 11 authors and added almost 1000 commits between
+these two releases.
 
 Don't forget to follow Spyder updates/news:
-  * on the project website: https://github.com/spyder-ide/spyder
-  * and on our official blog: http://spyder-ide.blogspot.com/
+  
+* on the project website: https://github.com/spyder-ide/spyder
+* and on our official blog: http://spyder-ide.blogspot.com/
 
-Last, but not least, we welcome any contribution that helps making Spyder an efficient scientific development/computing environment. Join us to help creating your favorite environment!
+Last, but not least, we welcome any contribution that helps making Spyder an
+efficient scientific development/computing environment. Join us to help creating
+your favorite environment!
 
 Enjoy!
 -Carlos

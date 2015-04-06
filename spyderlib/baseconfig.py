@@ -7,9 +7,8 @@
 """
 Spyder base configuration management
 
-As opposed to spyderlib/config.py, this configuration script deals 
-exclusively with non-GUI features configuration only
-(in other words, we won't import any PyQt object here, avoiding any 
+This file only deals with non-GUI configuration features
+(in other words, we won't import any PyQt object here, avoiding any
 sip API incompatibility issue in spyderlib's non-gui modules)
 """
 
@@ -20,7 +19,6 @@ import os
 import sys
 
 # Local imports
-from spyderlib import __version__
 from spyderlib.utils import encoding
 from spyderlib.py3compat import (is_unicode, TEXT_TYPES, INT_TYPES, PY3,
                                  to_text_string, is_text_string)
@@ -60,8 +58,12 @@ def debug_print(*message):
 # Configuration paths
 #==============================================================================
 # Spyder settings dir
+# NOTE: During the 2.x.x series this dir was named .spyder2, but
+# since 3.0+ we've reverted back to use .spyder to simplify major
+# updates in version (required when we change APIs by Linux
+# packagers)
 if TEST is None:
-    SUBFOLDER = '.spyder%s' % __version__.split('.')[0]
+    SUBFOLDER = '.spyder'
 else:
     SUBFOLDER = 'spyder_test'
 

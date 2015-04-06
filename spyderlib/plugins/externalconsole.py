@@ -254,8 +254,12 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         monitor_group.setLayout(monitor_layout)
         
         # Qt Group
-        opts = [(_("Default library"), 'default'), ('PyQt4', 'pyqt'),
-                ('PySide', 'pyside')]
+        opts = [
+            (_("Default library"), 'default'),
+            ('PyQt5', 'pyqt5'),
+            ('PyQt4', 'pyqt'),
+            ('PySide', 'pyside'),
+        ]
         qt_group = QGroupBox(_("Qt (PyQt/PySide)"))
         qt_setapi_box = self.create_combobox(
                          _("Qt-Python bindings library selection:"), opts,
@@ -267,19 +271,23 @@ class ExternalConsoleConfigPage(PluginConfigPage):
             interpreter = get_python_executable()
         else:
             interpreter = self.get_option('pythonexecutable')
+        has_pyqt5 = programs.is_module_installed('PyQt5',
+                                                 interpreter=interpreter)
         has_pyqt4 = programs.is_module_installed('PyQt4',
                                                  interpreter=interpreter)
         has_pyside = programs.is_module_installed('PySide',
                                                   interpreter=interpreter)
-        if has_pyside and not has_pyqt4:
+        if has_pyqt4 and not has_pyqt5:
+            self.set_option('qt/api', 'pyqt')
+        elif has_pyside and not (has_pyqt5 or has_pyqt4):
             self.set_option('qt/api', 'pyside')
         
         qt_layout = QVBoxLayout()
         qt_layout.addWidget(qt_setapi_box)
         qt_group.setLayout(qt_layout)
-        qt_group.setEnabled(has_pyqt4 or has_pyside)
+        qt_group.setEnabled(has_pyqt5 or has_pyqt4 or has_pyside)
         
-        # PyQt Group
+        # PyQt4 Group
         if has_pyqt4:
             pyqt_group = QGroupBox(_("PyQt"))
             setapi_box = self.create_combobox(
@@ -314,10 +322,10 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         mpl_group = QGroupBox(_("Matplotlib"))
         mpl_backend_box = newcb('', 'matplotlib/backend/enabled', True)
         mpl_backend_edit = self.create_lineedit(_("GUI backend:"),
-                                'matplotlib/backend/value', "Qt4Agg",
+                                'matplotlib/backend/value', "Qt5Agg",
                                 tip=_("Set the GUI toolkit used by <br>"
                                       "Matplotlib to show figures "
-                                      "(default: Qt4Agg)"),
+                                      "(default: Qt5Agg)"),
                                 alignment=Qt.Horizontal)
         mpl_backend_box.toggled.connect(mpl_backend_edit.setEnabled)
         mpl_backend_layout = QHBoxLayout()
@@ -335,7 +343,7 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         # ETS Group
         ets_group = QGroupBox(_("Enthought Tool Suite"))
         ets_label = QLabel(_("Enthought Tool Suite (ETS) supports "
-                             "PyQt4 (qt4) and wxPython (wx) graphical "
+                             "PyQt5 (qt5) and wxPython (wx) graphical "
                              "user interfaces."))
         ets_label.setWordWrap(True)
         ets_edit = self.create_lineedit(_("ETS_TOOLKIT:"), 'ets_backend',
@@ -367,15 +375,18 @@ class ExternalConsoleConfigPage(PluginConfigPage):
     def _auto_change_qt_api(self, pyexec):
         """Change automatically Qt API depending on
         selected Python executable"""
+        has_pyqt5 = programs.is_module_installed('PyQt5', interpreter=pyexec)
         has_pyqt4 = programs.is_module_installed('PyQt4', interpreter=pyexec)
         has_pyside = programs.is_module_installed('PySide', interpreter=pyexec)
         for cb in self.comboboxes:
             if self.comboboxes[cb][0] == 'qt/api':
                 qt_setapi_cb = cb
-        if has_pyside and not has_pyqt4:
-            qt_setapi_cb.setCurrentIndex(2)
-        elif has_pyqt4 and not has_pyside:
+        if has_pyqt5:
             qt_setapi_cb.setCurrentIndex(1)
+        elif has_pyside and not has_pyqt4:
+            qt_setapi_cb.setCurrentIndex(3)
+        elif has_pyqt4 and not has_pyside:
+            qt_setapi_cb.setCurrentIndex(2)
         else:
             qt_setapi_cb.setCurrentIndex(0)
 
@@ -648,9 +659,9 @@ class ExternalConsole(SpyderPluginWidget):
         line = "%s('%s'" % ('debugfile' if debug else 'runfile',
                             norm(filename))
         if args:
-            line += ", args=r'%s'" % norm(args)
+            line += ", args='%s'" % norm(args)
         if wdir:
-            line += ", wdir=r'%s'" % norm(wdir)
+            line += ", wdir='%s'" % norm(wdir)
         if post_mortem:
             line += ', post_mortem=True'
         line += ")"

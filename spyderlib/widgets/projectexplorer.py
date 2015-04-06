@@ -124,7 +124,8 @@ class Project(object):
             # Old format (Spyder 2.0-2.1 for Python 2)
             with open(fname, 'U') as fdesc:
                 data = pickle.loads(fdesc.read())
-        except (pickle.PickleError, TypeError, UnicodeDecodeError):
+        except (pickle.PickleError, TypeError, UnicodeDecodeError,
+                AttributeError):
             try:
                 # New format (Spyder >=2.2 for Python 2 and Python 3)
                 with open(fname, 'rb') as fdesc:
@@ -1098,7 +1099,8 @@ class ExplorerTreeWidget(FilteredDirView):
             lines += l
         QMessageBox.information(self, _("Project Explorer"),
                                 _("Statistics on source files only:<br>"
-                                  "(Python, C/C++, Fortran)<br><br>"
+                                  "(Python, Cython, IPython, Enaml,"
+                                  "C/C++, Fortran)<br><br>"
                                   "<b>%s</b> files.<br>"
                                   "<b>%s</b> lines of code."
                                   ) % (str(files), str(lines)))

@@ -86,9 +86,9 @@ def count_lines(path, extensions=None, excluded_dirnames=None):
     of *path* with names ending with *extensions*
     Directory names *excluded_dirnames* will be ignored"""
     if extensions is None:
-        extensions = ['.py', '.pyw', '.ipy', '.c', '.h', '.cpp', '.hpp',
-                      '.inc', '.', '.hh', '.hxx', '.cc', '.cxx', '.cl',
-                      '.f', '.for', '.f77', '.f90', '.f95', '.f2k']
+        extensions = ['.py', '.pyw', '.ipy', '.enaml', '.c', '.h', '.cpp', 
+                      '.hpp', '.inc', '.', '.hh', '.hxx', '.cc', '.cxx', 
+                      '.cl', '.f', '.for', '.f77', '.f90', '.f95', '.f2k']
     if excluded_dirnames is None:
         excluded_dirnames = ['build', 'dist', '.hg', '.svn']
     def get_filelines(path):

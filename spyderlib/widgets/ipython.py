@@ -23,9 +23,6 @@ from spyderlib.qt.QtGui import (QTextEdit, QKeySequence, QWidget, QMenu,
                                 QMessageBox)
 from spyderlib.qt.QtCore import Signal, Slot, Qt
 
-from spyderlib import pygments_patch
-pygments_patch.apply()
-
 # IPython imports
 from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
 from IPython.qt.console.ansi_code_processor import ANSI_OR_SPECIAL_PATTERN
@@ -236,21 +233,14 @@ These commands were executed:
         banner = 'Python %s on %s -- IPython %s' % (py_ver, sys.platform,
                                                     version)
         return banner
-    
+
     def clear_console(self):
         self.execute("%clear")
-        
+
     def write_to_stdin(self, line):
-        """
-        Send raw characters to the IPython kernel through stdin
-        but only if the kernel is currently looking for raw input.
-        """
-        if self._reading:
-            try:
-                self.kernel_client.stdin_channel.input(line)
-            except AttributeError:
-                self.kernel_client.input(line)
-    
+        """Send raw characters to the IPython kernel through stdin"""
+        self.kernel_client.input(line)
+
     def set_background_color(self):
         lightbg_o = CONF.get('ipython_console', 'light_color')
         if not lightbg_o:

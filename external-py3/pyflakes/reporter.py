@@ -2,6 +2,7 @@
 Provide the Reporter class.
 """
 
+import re
 import sys
 
 
@@ -45,7 +46,7 @@ class Reporter(object):
         @ptype msg: C{unicode}
         @param lineno: The line number where the syntax error occurred.
         @ptype lineno: C{int}
-        @param offset: The column on which the syntax error occurred.
+        @param offset: The column on which the syntax error occurred, or None.
         @ptype offset: C{int}
         @param text: The source code containing the syntax error.
         @ptype text: C{unicode}
@@ -53,11 +54,15 @@ class Reporter(object):
         line = text.splitlines()[-1]
         if offset is not None:
             offset = offset - (len(text) - len(line))
-        self._stderr.write('%s:%d: %s\n' % (filename, lineno, msg))
+            self._stderr.write('%s:%d:%d: %s\n' %
+                               (filename, lineno, offset + 1, msg))
+        else:
+            self._stderr.write('%s:%d: %s\n' % (filename, lineno, msg))
         self._stderr.write(line)
         self._stderr.write('\n')
         if offset is not None:
-            self._stderr.write(" " * (offset + 1) + "^\n")
+            self._stderr.write(re.sub(r'\S', ' ', line[:offset]) +
+                               "^\n")
 
     def flake(self, message):
         """

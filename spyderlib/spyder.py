@@ -8,9 +8,11 @@
 Spyder, the Scientific PYthon Development EnviRonment
 =====================================================
 
-Developped and maintained by Pierre Raybaut
+Developped and maintained by the Spyder Development
+Team
 
-Copyright © 2009-2012 Pierre Raybaut
+Copyright © 2009 - 2015 Pierre Raybaut
+Copyright © 2010 - 2015 The Spyder Development Team
 Licensed under the terms of the MIT License
 (see spyderlib/__init__.py for details)
 """
@@ -81,7 +83,7 @@ from spyderlib.qt.QtGui import (QApplication, QMainWindow, QSplashScreen,
                                 QKeySequence, QDockWidget, QAction,
                                 QDesktopServices, QIcon)
 from spyderlib.qt.QtCore import (Signal, QPoint, Qt, QSize, QByteArray, QUrl,
-                                 Slot, QTimer)
+                                 Slot, QTimer, QCoreApplication)
 from spyderlib.qt.compat import (from_qvariant, getopenfilename,
                                  getsavefilename)
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms
@@ -92,10 +94,17 @@ from spyderlib.qt import QtSvg  # analysis:ignore
 
 
 #==============================================================================
-# Splash screen
+# Create our QApplication instance here because it's needed to render the
+# splash screen created below
+#==============================================================================
+from spyderlib.utils.qthelpers import qapplication
+MAIN_APP = qapplication()
+
+
+#==============================================================================
+# Create splash screen out of MainWindow to reduce perceived startup time. 
 #==============================================================================
 from spyderlib.baseconfig import _, get_image_path, DEV
-SPLASH_APP = QApplication([''])
 SPLASH = QSplashScreen(QPixmap(get_image_path('splash.png'), 'png'))
 SPLASH_FONT = SPLASH.font()
 SPLASH_FONT.setPixelSize(10)
@@ -144,8 +153,8 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, get_icon,
                                        create_module_bookmark_actions,
                                        create_bookmark_action,
                                        create_program_action, DialogManager,
-                                       keybinding, qapplication,
-                                       create_python_script_action, file_uri)
+                                       keybinding, create_python_script_action,
+                                       file_uri)
 from spyderlib.guiconfig import get_shortcut, remove_deprecated_shortcuts
 from spyderlib.otherplugins import get_spyderplugins_mods
 from spyderlib import tour # FIXME: Better place for this?
@@ -301,6 +310,7 @@ class MainWindow(QMainWindow):
         self.multithreaded = options.multithreaded
         self.light = options.light
         self.new_instance = options.new_instance
+        self.test_travis = os.environ.get('SPYDER_TEST_TRAVIS', None)
 
         self.debug_print("Start of MainWindow constructor")
 
@@ -457,6 +467,14 @@ class MainWindow(QMainWindow):
         if set_windows_appusermodelid != None:
             res = set_windows_appusermodelid()
             debug_print("appusermodelid: " + str(res))
+
+        # Setting QTimer if running in travis
+        if self.test_travis is not None:
+            global MAIN_APP
+            timer_shutdown_time = int(os.environ['SPYDER_TEST_TRAVIS_TIMER'])
+            self.timer_shutdown = QTimer(self)
+            self.timer_shutdown.timeout.connect(MAIN_APP.quit)
+            self.timer_shutdown.start(timer_shutdown_time)
 
         # Showing splash screen
         self.splash = SPLASH
@@ -732,28 +750,36 @@ class MainWindow(QMainWindow):
             # Guidata and Sift
             self.debug_print("  ..sift?")
             gdgq_act = []
-            if is_module_installed('guidata'):
+            # Guidata and Guiqwt don't support PyQt5 yet and they fail
+            # with an AssertionError when imported using those bindings
+            # (see issue 2274)
+            try:
                 from guidata import configtools
-                from guidata import config  # (loading icons) analysis:ignore
+                from guidata import config       # analysis:ignore
                 guidata_icon = configtools.get_icon('guidata.svg')
                 guidata_act = create_python_script_action(self,
-                               _("guidata examples"), guidata_icon, "guidata",
+                                       _("guidata examples"), guidata_icon,
+                                       "guidata",
+                                       osp.join("tests", "__init__"))
+                gdgq_act += [guidata_act]
+            except (ImportError, AssertionError):
+                pass
+            try:
+                from guidata import configtools
+                from guiqwt import config  # analysis:ignore
+                guiqwt_icon = configtools.get_icon('guiqwt.svg')
+                guiqwt_act = create_python_script_action(self,
+                               _("guiqwt examples"), guiqwt_icon, "guiqwt",
                                osp.join("tests", "__init__"))
-                if guidata_act:
-                    gdgq_act += [guidata_act]
-                if is_module_installed('guiqwt'):
-                    from guiqwt import config  # analysis:ignore
-                    guiqwt_icon = configtools.get_icon('guiqwt.svg')
-                    guiqwt_act = create_python_script_action(self,
-                                   _("guiqwt examples"), guiqwt_icon, "guiqwt",
-                                   osp.join("tests", "__init__"))
-                    if guiqwt_act:
-                        gdgq_act += [guiqwt_act]
-                    sift_icon = configtools.get_icon('sift.svg')
-                    sift_act = create_python_script_action(self, _("Sift"),
-                               sift_icon, "guiqwt", osp.join("tests", "sift"))
-                    if sift_act:
-                        gdgq_act += [sift_act]
+                if guiqwt_act:
+                    gdgq_act += [guiqwt_act]
+                sift_icon = configtools.get_icon('sift.svg')
+                sift_act = create_python_script_action(self, _("Sift"),
+                           sift_icon, "guiqwt", osp.join("tests", "sift"))
+                if sift_act:
+                    gdgq_act += [sift_act]
+            except (ImportError, AssertionError):
+                pass
             if gdgq_act:
                 self.external_tools_menu_actions += [None] + gdgq_act
 
@@ -1115,11 +1141,9 @@ class MainWindow(QMainWindow):
 
             # Adding external tools action to "Tools" menu
             if self.external_tools_menu_actions:
-                external_tools_act = create_action(self, _("External Tools"),
-                                                   icon="ext_tools.png")
+                external_tools_act = create_action(self, _("External Tools"))
                 external_tools_act.setMenu(self.external_tools_menu)
                 self.tools_menu_actions += [None, external_tools_act]
-                self.main_toolbar_actions.append(external_tools_act)
 
             # Filling out menu/toolbar entries:
             add_actions(self.file_menu, self.file_menu_actions)
@@ -2223,7 +2247,8 @@ class MainWindow(QMainWindow):
             _("About %s") % "Spyder",
             """<b>Spyder %s</b> %s
             <br>The Scientific PYthon Development EnviRonment
-            <p>Copyright &copy; 2009-2012 Pierre Raybaut
+            <p>Copyright &copy; 2009 - 2015 Pierre Raybaut
+            <br>Copyright &copy; 2010 - 2015 The Spyder Development Team
             <br>Licensed under the terms of the MIT License
             <p>Created by Pierre Raybaut
             <br>Developed and maintained by the
@@ -2232,20 +2257,18 @@ class MainWindow(QMainWindow):
             <p>Most of the icons come from the Crystal Project
             (&copy; 2006-2007 Everaldo Coelho). Other icons by
             <a href="http://p.yusukekamiyamane.com/"> Yusuke Kamiyamane</a>
-            (All rights reserved) and by
+            (all rights reserved) and by
             <a href="http://www.oxygen-icons.org/">
             The Oxygen icon theme</a>.
-            <p>Spyder's community:
-            <ul><li>Bug reports and feature requests:
-            <a href="%s">Github</a>
-            </li><li>Discussions around the project:
-            <a href="%s">Google Group</a>
-            </li></ul>
+            <p>For bug reports and feature requests, please go
+            to our <a href="%s">Github website</a>. For discussions around the
+            project, please go to our <a href="%s">Google Group</a>
             <p>This project is part of a larger effort to promote and
             facilitate the use of Python for scientific and engineering
             software development. The popular Python distributions
-            <a href="http://code.google.com/p/pythonxy/">Python(x,y)</a> and
-            <a href="https://winpython.github.io/">WinPython</a>
+            <a href="http://continuum.io/downloads">Anaconda</a>,
+            <a href="https://winpython.github.io/">WinPython</a> and
+            <a href="http://code.google.com/p/pythonxy/">Python(x,y)</a>
             also contribute to this plan.
             <p>Python %s %dbits, Qt %s, %s %s on %s"""
             % (versions['spyder'], revlink, __project_url__,
@@ -2269,13 +2292,10 @@ class MainWindow(QMainWindow):
         else:
             from urllib import quote     # analysis:ignore
         versions = get_versions()
-        # Get Mercurial revision for development version
-        revlink = ''
+        # Get git revision for development version
+        revision = ''
         if versions['revision']:
-            full, short = versions['revision'].split(':')
-            full = full.strip('+')
-            if full:
-                revlink = " (%s:r%s)" % (short, full)
+            revision = versions['revision']
         issue_template = """\
 ## Description
 
@@ -2292,7 +2312,7 @@ class MainWindow(QMainWindow):
 
 ## Version and main components
 
-* Spyder Version:  %s%s
+* Spyder Version:  %s %s
 * Python Version:  %s
 * Qt Version    :  %s, %s %s on %s
 
@@ -2300,7 +2320,7 @@ class MainWindow(QMainWindow):
 
 %s
 """ % (versions['spyder'],
-       revlink,
+       revision,
        versions['python'],
        versions['qt'],
        versions['qt_api'],
@@ -2653,6 +2673,9 @@ class MainWindow(QMainWindow):
 #==============================================================================
 def initialize():
     """Initialize Qt, patching sys.exit and eventually setting up ETS"""
+    # This doesn't create our QApplication, just holds a reference to
+    # MAIN_APP, created above to show our splash screen as early as
+    # possible
     app = qapplication()
 
     #----Monkey patching PyQt4.QtGui.QApplication
@@ -2771,6 +2794,10 @@ def run_spyder(app, options, args):
     if args:
         for a in args:
             main.open_external_file(a)
+
+    # Don't show icons in menus for Mac
+    if sys.platform == 'darwin':
+        QCoreApplication.setAttribute(Qt.AA_DontShowIconsInMenus, True)
 
     # Open external files with our Mac app
     if running_in_mac_app():

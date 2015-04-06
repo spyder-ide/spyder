@@ -229,11 +229,17 @@ class BaseTabs(QTabWidget):
         handled = False
         if ctrl and self.count() > 0:
             index = self.currentIndex()
-            if key == Qt.Key_PageUp and index > 0:
-                self.setCurrentIndex(index-1)
+            if key == Qt.Key_PageUp:
+                if index > 0:
+                    self.setCurrentIndex(index - 1)
+                else:
+                    self.setCurrentIndex(self.count() - 1)
                 handled = True
-            elif key == Qt.Key_PageDown and index < self.count()-1:
-                self.setCurrentIndex(index+1)
+            elif key == Qt.Key_PageDown:
+                if index < self.count() - 1:
+                    self.setCurrentIndex(index + 1)
+                else:
+                    self.setCurrentIndex(0)
                 handled = True
         if not handled:
             QTabWidget.keyPressEvent(self, event)

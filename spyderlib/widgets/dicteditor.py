@@ -996,9 +996,9 @@ class BaseTableView(QTableView):
             
     def __prepare_plot(self):
         try:
-            import guiqwt.pyplot #analysis:ignore
+            import guiqwt.pyplot   #analysis:ignore
             return True
-        except ImportError:
+        except (ImportError, AssertionError):
             try:
                 if 'matplotlib' not in sys.modules:
                     import matplotlib

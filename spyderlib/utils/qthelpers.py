@@ -89,10 +89,13 @@ def qapplication(translate=True):
         SpyderApplication = QApplication
     
     app = SpyderApplication.instance()
-    if not app:
+    if app is None:
         # Set Application name for Gnome 3
         # https://groups.google.com/forum/#!topic/pyside/24qxvwfrRDs
         app = SpyderApplication(['Spyder'])
+
+        # Set application name for KDE (See issue 2207)
+        app.setApplicationName('Spyder')
     if translate:
         install_translator(app)
     return app

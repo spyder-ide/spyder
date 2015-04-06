@@ -13,29 +13,11 @@ import os.path as osp
 
 def sympy_config():
     """Sympy configuration"""
-    from spyderlib.utils.programs import is_module_installed    
-    lines_new = """
+    lines = """
 from sympy.interactive import init_session
 init_session()
-"""    
-    lines_old = """
-from __future__ import division
-from sympy import *
-x, y, z, t = symbols('x y z t')
-k, m, n = symbols('k m n', integer=True)
-f, g, h = symbols('f g h', cls=Function)
 """
-    if is_module_installed('sympy', '>=0.7.3'):
-        extension = None
-        return lines_new, extension
-    elif is_module_installed('sympy', '=0.7.2'):
-        extension = 'sympy.interactive.ipythonprinting'
-        return lines_old, extension
-    elif is_module_installed('sympy', '>=0.7.0;<0.7.2'):
-        extension = 'sympyprinting'
-        return lines_old, extension
-    else:
-        return None, None
+    return lines
 
 
 def kernel_config():
@@ -60,15 +42,24 @@ def kernel_config():
     # Until we implement Issue 1052
     spy_cfg.InteractiveShell.xmode = 'Plain'
     
+    # Run lines of code at startup
+    run_lines_o = CONF.get('ipython_console', 'startup/run_lines')
+    if run_lines_o:
+        spy_cfg.IPKernelApp.exec_lines = [x.strip() for x in run_lines_o.split(',')]
+    else:
+        spy_cfg.IPKernelApp.exec_lines = []
+    
     # Pylab configuration
     mpl_installed = is_module_installed('matplotlib')
     pylab_o = CONF.get('ipython_console', 'pylab')
     
     if mpl_installed and pylab_o:
+        # Set matplotlib backend
         backend_o = CONF.get('ipython_console', 'pylab/backend', 0)
         backends = {0: 'inline', 1: 'auto', 2: 'qt', 3: 'osx', 4: 'gtk',
                     5: 'wx', 6: 'tk'}
-        spy_cfg.IPKernelApp.pylab = backends[backend_o]
+        mpl_magic = "%matplotlib {0}".format( backends[backend_o] )
+        spy_cfg.IPKernelApp.exec_lines.append(mpl_magic)
         
         # Automatically load Pylab and Numpy
         autoload_pylab_o = CONF.get('ipython_console', 'pylab/autoload')
@@ -99,11 +90,6 @@ def kernel_config():
            height_o = float(CONF.get('ipython_console', 'pylab/inline/height'))
            spy_cfg.InlineBackend.rc['figure.figsize'] = (width_o, height_o)
     
-    # Run lines of code at startup
-    run_lines_o = CONF.get('ipython_console', 'startup/run_lines')
-    if run_lines_o:
-        spy_cfg.IPKernelApp.exec_lines = [x.strip() for x in run_lines_o.split(',')]
-    
     # Run a file at startup
     use_file_o = CONF.get('ipython_console', 'startup/use_run_file')
     run_file_o = CONF.get('ipython_console', 'startup/run_file')
@@ -124,16 +110,9 @@ def kernel_config():
     # Sympy loading
     sympy_o = CONF.get('ipython_console', 'symbolic_math')
     if sympy_o:
-        lines, extension = sympy_config()
-        if lines is not None:
-            if run_lines_o:
-                spy_cfg.IPKernelApp.exec_lines.append(lines)
-            else:
-                spy_cfg.IPKernelApp.exec_lines = [lines]
-            if extension:
-                spy_cfg.IPKernelApp.extra_extension = extension
-                spy_cfg.LaTeXTool.backends = ['dvipng', 'matplotlib']
-    
+        lines = sympy_config()
+        spy_cfg.IPKernelApp.exec_lines.append(lines)
+
     # Merge IPython and Spyder configs. Spyder prefs will have prevalence
     # over IPython ones
     ip_cfg._merge(spy_cfg)
@@ -199,12 +178,6 @@ del ipk_temp
 # __ipythonkernel__ to not have problems while starting kernels
 change_edit_magic(__ipythonshell__)
 __ipythonshell__.register_magic_function(varexp)
-
-# Remove pylab modules from namespace
-if not __ipythonkernel__.pylab_import_all:
-    [__ipythonshell__.user_ns.pop(m, '') for m in ('matplotlib', 'mlab', 'np',
-                                                   'numpy', 'plt', 'pyplot',
-                                                   'pylab')]
 
 # To make %pylab load numpy and pylab even if the user has
 # set autoload_pylab_o to False *but* nevertheless use it in

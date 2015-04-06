@@ -4,10 +4,12 @@ from pyflakes import messages as m
 from pyflakes.test.test_other import Test as TestOther
 from pyflakes.test.test_imports import Test as TestImports
 from pyflakes.test.test_undefined_names import Test as TestUndefinedNames
-from pyflakes.test.harness import skip
+from pyflakes.test.harness import TestCase, skip
 
 
-class Test(TestOther, TestImports, TestUndefinedNames):
+class _DoctestMixin(object):
+
+    withDoctest = True
 
     def doctestify(self, input):
         lines = []
@@ -33,37 +35,15 @@ class Test(TestOther, TestImports, TestUndefinedNames):
         return doctestificator % "\n       ".join(lines)
 
     def flakes(self, input, *args, **kw):
-        return super(Test, self).flakes(self.doctestify(input),
-                                        *args, **kw)
+        return super(_DoctestMixin, self).flakes(self.doctestify(input), *args, **kw)
 
-    def test_doubleNestingReportsClosestName(self):
-        """
-        Lines in doctest are a bit different so we can't use the test
-        from TestUndefinedNames
-        """
-        exc = super(Test, self).flakes('''
-        def doctest_stuff():
-            """
-                >>> def a():
-                ...     x = 1
-                ...     def b():
-                ...         x = 2 # line 7 in the file
-                ...         def c():
-                ...             x
-                ...             x = 3
-                ...             return x
-                ...         return x
-                ...     return x
 
-            """
-        ''', m.UndefinedLocal).messages[0]
-        self.assertEqual(exc.message_args, ('x', 7))
+class Test(TestCase):
 
-    def test_futureImport(self):
-        """XXX This test can't work in a doctest"""
+    withDoctest = True
 
     def test_importBeforeDoctest(self):
-        super(Test, self).flakes("""
+        self.flakes("""
         import foo
 
         def doctest_stuff():
@@ -74,7 +54,7 @@ class Test(TestOther, TestImports, TestUndefinedNames):
 
     @skip("todo")
     def test_importBeforeAndInDoctest(self):
-        super(Test, self).flakes('''
+        self.flakes('''
         import foo
 
         def doctest_stuff():
@@ -87,7 +67,7 @@ class Test(TestOther, TestImports, TestUndefinedNames):
         ''', m.Redefined)
 
     def test_importInDoctestAndAfter(self):
-        super(Test, self).flakes('''
+        self.flakes('''
         def doctest_stuff():
             """
                 >>> import foo
@@ -99,7 +79,7 @@ class Test(TestOther, TestImports, TestUndefinedNames):
         ''')
 
     def test_offsetInDoctests(self):
-        exc = super(Test, self).flakes('''
+        exc = self.flakes('''
 
         def doctest_stuff():
             """
@@ -111,7 +91,7 @@ class Test(TestOther, TestImports, TestUndefinedNames):
         self.assertEqual(exc.col, 12)
 
     def test_offsetInLambdasInDoctests(self):
-        exc = super(Test, self).flakes('''
+        exc = self.flakes('''
 
         def doctest_stuff():
             """
@@ -123,7 +103,7 @@ class Test(TestOther, TestImports, TestUndefinedNames):
         self.assertEqual(exc.col, 20)
 
     def test_offsetAfterDoctests(self):
-        exc = super(Test, self).flakes('''
+        exc = self.flakes('''
 
         def doctest_stuff():
             """
@@ -137,7 +117,7 @@ class Test(TestOther, TestImports, TestUndefinedNames):
         self.assertEqual(exc.col, 0)
 
     def test_syntaxErrorInDoctest(self):
-        exceptions = super(Test, self).flakes(
+        exceptions = self.flakes(
             '''
             def doctest_stuff():
                 """
@@ -160,7 +140,7 @@ class Test(TestOther, TestImports, TestUndefinedNames):
         self.assertEqual(exc.col, 18)
 
     def test_indentationErrorInDoctest(self):
-        exc = super(Test, self).flakes('''
+        exc = self.flakes('''
         def doctest_stuff():
             """
                 >>> if True:
@@ -171,7 +151,7 @@ class Test(TestOther, TestImports, TestUndefinedNames):
         self.assertEqual(exc.col, 16)
 
     def test_offsetWithMultiLineArgs(self):
-        (exc1, exc2) = super(Test, self).flakes(
+        (exc1, exc2) = self.flakes(
             '''
             def doctest_stuff(arg1,
                               arg2,
@@ -189,7 +169,7 @@ class Test(TestOther, TestImports, TestUndefinedNames):
         self.assertEqual(exc2.col, 12)
 
     def test_doctestCanReferToFunction(self):
-        super(Test, self).flakes("""
+        self.flakes("""
         def foo():
             '''
                 >>> foo
@@ -197,7 +177,7 @@ class Test(TestOther, TestImports, TestUndefinedNames):
         """)
 
     def test_doctestCanReferToClass(self):
-        super(Test, self).flakes("""
+        self.flakes("""
         class Foo():
             '''
                 >>> Foo
@@ -207,3 +187,70 @@ class Test(TestOther, TestImports, TestUndefinedNames):
                     >>> Foo
                 '''
         """)
+
+    def test_noOffsetSyntaxErrorInDoctest(self):
+        exceptions = self.flakes(
+            '''
+            def buildurl(base, *args, **kwargs):
+                """
+                >>> buildurl('/blah.php', ('a', '&'), ('b', '=')
+                '/blah.php?a=%26&b=%3D'
+                >>> buildurl('/blah.php', a='&', 'b'='=')
+                '/blah.php?b=%3D&a=%26'
+                """
+                pass
+            ''',
+            m.DoctestSyntaxError,
+            m.DoctestSyntaxError).messages
+        exc = exceptions[0]
+        self.assertEqual(exc.lineno, 4)
+        exc = exceptions[1]
+        self.assertEqual(exc.lineno, 6)
+
+    def test_singleUnderscoreInDoctest(self):
+        self.flakes('''
+        def func():
+            """A docstring
+
+            >>> func()
+            1
+            >>> _
+            1
+            """
+            return 1
+        ''')
+
+
+class TestOther(_DoctestMixin, TestOther):
+    pass
+
+
+class TestImports(_DoctestMixin, TestImports):
+
+    def test_futureImport(self):
+        """XXX This test can't work in a doctest"""
+
+    def test_futureImportUsed(self):
+        """XXX This test can't work in a doctest"""
+
+
+class TestUndefinedNames(_DoctestMixin, TestUndefinedNames):
+
+    def test_doubleNestingReportsClosestName(self):
+        """
+        Lines in doctest are a bit different so we can't use the test
+        from TestUndefinedNames
+        """
+        exc = self.flakes('''
+        def a():
+            x = 1
+            def b():
+                x = 2 # line 7 in the file
+                def c():
+                    x
+                    x = 3
+                    return x
+                return x
+            return x
+        ''', m.UndefinedLocal).messages[0]
+        self.assertEqual(exc.message_args, ('x', 7))

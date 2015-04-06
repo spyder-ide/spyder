@@ -453,7 +453,8 @@ class CythonSH(PythonSH):
 #==============================================================================
 class EnamlSH(PythonSH):
     """Enaml Syntax Highlighter"""
-    ADDITIONAL_KEYWORDS = ["enamldef", "template", "attr", "event", "const", "alias"]
+    ADDITIONAL_KEYWORDS = ["enamldef", "template", "attr", "event", "const", "alias",
+                           "func"]
     ADDITIONAL_BUILTINS = []
     PROG = re.compile(make_python_patterns(ADDITIONAL_KEYWORDS,
                                            ADDITIONAL_BUILTINS), re.S)

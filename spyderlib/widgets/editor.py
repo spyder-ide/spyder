@@ -1716,6 +1716,7 @@ class EditorStack(QWidget):
                 highlight_current_line=self.highlight_current_line_enabled,
                 highlight_current_cell=self.highlight_current_cell_enabled,
                 occurence_highlighting=self.occurence_highlighting_enabled,
+                occurence_timeout=self.occurence_highlighting_timeout,
                 codecompletion_auto=self.codecompletion_auto_enabled,
                 codecompletion_case=self.codecompletion_case_enabled,
                 codecompletion_enter=self.codecompletion_enter_enabled,
@@ -1876,7 +1877,9 @@ class EditorStack(QWidget):
         """Reimplement Qt method
         Inform Qt about the types of data that the widget accepts"""
         source = event.mimeData()
-        if source.hasUrls():
+        # The second check is necessary on Windows, where source.hasUrls()
+        # can return True but source.urls() is []
+        if source.hasUrls() and source.urls():
             if mimedata2url(source, extlist=EDIT_EXT):
                 event.acceptProposedAction()
             else:
@@ -1887,6 +1890,12 @@ class EditorStack(QWidget):
                 else:
                     event.ignore()
         elif source.hasText():
+            event.acceptProposedAction()
+        elif os.name == 'nt':
+            # This covers cases like dragging from compressed files,
+            # which can be opened by the Editor if they are plain
+            # text, but doesn't come with url info.
+            # Fixes Issue 2032
             event.acceptProposedAction()
         else:
             event.ignore()

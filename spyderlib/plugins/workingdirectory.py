@@ -152,7 +152,7 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
     
     def __init__(self, parent, workdir=None, **kwds):
         if PYQT5:
-            super().__init__(**kwds)
+            super(WorkingDirectory, self).__init__(parent, **kwds)
         else:
             QToolBar.__init__(self, parent)
             SpyderPluginMixin.__init__(self, parent)

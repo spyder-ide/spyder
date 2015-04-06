@@ -1,53 +1,36 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-#    userconfig License Agreement (MIT License)
-#    ------------------------------------------
-#    
-#    Copyright © 2009-2012 Pierre Raybaut
-#    Copyright © 2014 The Spyder Development Team
-#    
-#    Permission is hereby granted, free of charge, to any person
-#    obtaining a copy of this software and associated documentation
-#    files (the "Software"), to deal in the Software without
-#    restriction, including without limitation the rights to use,
-#    copy, modify, merge, publish, distribute, sublicense, and/or sell
-#    copies of the Software, and to permit persons to whom the
-#    Software is furnished to do so, subject to the following
-#    conditions:
-#    
-#    The above copyright notice and this permission notice shall be
-#    included in all copies or substantial portions of the Software.
-#    
-#    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-#    EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-#    OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-#    NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-#    HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-#    WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-#    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-#    OTHER DEALINGS IN THE SOFTWARE.
-
+#
+# Copyright © 2009-2013 Pierre Raybaut
+# Copyright © 2014-2015 The Spyder Development Team
+# Licensed under the terms of the MIT License
+# (see spyderlib/__init__.py for details)    
 
 """
-This module provides user configuration file (.ini file) management features
-based on ``ConfigParser`` (present in the standard library).
+This module provides user configuration file management features for Spyder
+
+It's based on the ConfigParser module (present in the standard library).
 """
 
 from __future__ import print_function
 
+# Std imports
 import os
 import re
 import os.path as osp
 import shutil
 import time
 
+# Local imports
+from spyderlib import __version__
 from spyderlib.baseconfig import (DEV, TEST, get_module_source_path,
                                   get_home_dir)
 from spyderlib.utils.programs import check_version
 from spyderlib.py3compat import configparser as cp
 from spyderlib.py3compat import PY2, is_text_string, to_text_string
 
+# Std imports for Python 2
+if PY2:
+    import codecs
 
 #==============================================================================
 # Auxiliary classes
@@ -75,7 +58,7 @@ class DefaultsConfig(cp.ConfigParser):
         The one from configparser fails for non-ascii Windows accounts
         """
         if self._defaults:
-            fp.write("[%s]\n" % DEFAULTSECT)
+            fp.write("[%s]\n" % cp.DEFAULTSECT)
             for (key, value) in self._defaults.items():
                 fp.write("%s = %s\n" % (key, str(value).replace('\n', '\n\t')))
             fp.write("\n")
@@ -113,7 +96,7 @@ class DefaultsConfig(cp.ConfigParser):
         def _write_file(fname):
             if PY2:
                 # Python 2
-                with open(fname, 'w') as configfile:
+                with codecs.open(fname, 'w', encoding='utf-8') as configfile:
                     self._write(configfile)
             else:
                 # Python 3
@@ -152,7 +135,21 @@ class DefaultsConfig(cp.ConfigParser):
             if 'defaults' in self.name:
                 folder = osp.join(folder, 'defaults')
             try:
-                os.makedirs(folder)
+                # Copying old config dir for Spyder 3.0. The new config
+                # dir for 3.0+ is going to be simply ~/.spyder{-py3}
+                if __version__.split('.')[0] == '3':
+                    if PY2:
+                        old_confdir = '.spyder2'
+                    else:
+                        old_confdir = '.spyder2-py3'
+                    old_confdir = osp.join(get_home_dir(), old_confdir)
+                    new_confdir = osp.join(get_home_dir(), self.subfolder)
+                    if osp.isdir(old_confdir) and not osp.isdir(new_confdir):
+                        shutil.copytree(old_confdir, new_confdir)
+                    else:
+                        os.makedirs(folder)
+                else:
+                    os.makedirs(folder)
             except os.error:
                 # Folder (or one of its parents) already exists
                 pass
@@ -251,7 +248,13 @@ class UserConfig(DefaultsConfig):
         try:
             if PY2:
                 # Python 2
-                self.read(self.filename())
+                fname = self.filename()
+                if osp.isfile(fname):
+                    try:
+                        with codecs.open(fname, encoding='utf-8') as configfile:
+                            self.readfp(configfile)
+                    except IOError:
+                        print("Failed reading file", fname)
             else:
                 # Python 3
                 self.read(self.filename(), encoding='utf-8')

@@ -182,16 +182,11 @@ if sys.platform == 'darwin':
     if MAC_APP_NAME in __file__:
         interpreter = os.environ.get('SPYDER_INTERPRETER')
         if MAC_APP_NAME not in interpreter:
-            # We added this file's dir to PYTHONPATH (in pythonshell.py)
-            # so that external interpreters can import this script, and
-            # now we are removing it
-            del os.environ['PYTHONPATH']
-
             # Add a minimal library (with spyderlib) at the end of sys.path to
             # be able to connect our monitor to the external console
             py_ver = '%s.%s' % (sys.version_info[0], sys.version_info[1])
-            app_pythonpath = '%s/Contents/Resources/lib/python%s' (MAC_APP_NAME,
-                                                                   py_ver)
+            app_pythonpath = '%s/Contents/Resources/lib/python%s' % (MAC_APP_NAME,
+                                                                     py_ver)
             full_pythonpath = [p for p in sys.path if p.endswith(app_pythonpath)]
             if full_pythonpath:
                 sys.path.remove(full_pythonpath[0])
@@ -215,6 +210,16 @@ try:
 except ImportError:
     pass
 
+
+#==============================================================================
+# Importing matplotlib before creating the monitor.
+# This prevents a kernel crash with the inline backend in our IPython
+# consoles on Linux and Python 3 (Fixes Issue 2257)
+#==============================================================================
+try:
+    import matplotlib
+except ImportError:
+    matplotlib = None   # analysis:ignore
 
 #==============================================================================
 # Communication between Spyder and the remote process
@@ -272,7 +277,8 @@ else:
         
         This input hook wait for available stdin data (notified by
         ExternalPythonShell through the monitor's inputhook_flag
-        attribute), and in the meantime it processes Qt events."""
+        attribute), and in the meantime it processes Qt events.
+        """
         # Refreshing variable explorer, except on first input hook call:
         # (otherwise, on slow machines, this may freeze Spyder)
         monitor.refresh_from_inputhook()
@@ -312,56 +318,58 @@ else:
 #==============================================================================
 # Matplotlib settings
 #==============================================================================
-mpl_backend = os.environ.get("MATPLOTLIB_BACKEND")
-mpl_ion = os.environ.get("MATPLOTLIB_ION", "")
-if mpl_backend:
-    try:
-        import matplotlib
+if matplotlib is not None:
+    mpl_backend = os.environ.get("MATPLOTLIB_BACKEND", "")
+    mpl_ion = os.environ.get("MATPLOTLIB_ION", "")
+    if not mpl_backend:
+        mpl_backend = 'Qt4Agg'
+
+    # To have mpl docstrings as rst
+    matplotlib.rcParams['docstring.hardcopy'] = True
+
+    # Activate interactive mode when needed
+    if mpl_ion.lower() == "true":
+        matplotlib.rcParams['interactive'] = True
+
+    if os.environ.get("IPYTHON_KERNEL", "").lower() != "true":
         import ctypes
         from spyderlib.widgets.externalshell import inputhooks
-        
-        # To have mpl docstrings as rst
-        matplotlib.rcParams['docstring.hardcopy'] = True
-
-        # Activate interactive mode when needed
-        if mpl_ion.lower() == "true":
-            matplotlib.rcParams['interactive'] = True
 
         # Setting the user defined backend
         matplotlib.use(mpl_backend)
 
         # Setting the right input hook according to mpl_backend,
-        # but only for our Python consoles
         # IMPORTANT NOTE: Don't try to abstract the steps to set a PyOS
-        # input hook callback in a function. It will *crash* the
+        # input hook callback in a function. It will **crash** the
         # interpreter!!
-        if os.environ.get("IPYTHON_KERNEL", "").lower() != "true":
-            if mpl_backend == "Qt4Agg" and os.name == 'nt' and \
-              monitor is not None:
-                # Removing PyQt4 input hook which is not working well on
-                # Windows since opening a subprocess does not attach a real
-                # console to it (with keyboard events...)
-                if os.environ["QT_API"] == 'pyqt': 
-                    inputhooks.remove_pyqt_inputhook()
-                # Using our own input hook
-                # NOTE: it's not working correctly for some configurations
-                # (See issue 1831)
-                callback = inputhooks.set_pyft_callback(qt_nt_inputhook)
-                pyos_ih = inputhooks.get_pyos_inputhook()
-                pyos_ih.value = ctypes.cast(callback, ctypes.c_void_p).value
-            elif mpl_backend == "Qt4Agg" and os.environ["QT_API"] == 'pyside':
-                # PySide doesn't have an input hook, so we need to install one
-                # to be able to show plots.
-                # Note: This only works well for Posix systems
-                callback = inputhooks.set_pyft_callback(inputhooks.qt4)
-                pyos_ih = inputhooks.get_pyos_inputhook()
-                pyos_ih.value = ctypes.cast(callback, ctypes.c_void_p).value
-            elif mpl_backend != "Qt4Agg" and os.environ["QT_API"] == 'pyqt':
-                # Matplotlib backends install their own input hooks, so we
-                # need to remove the PyQt one to make them work
+        if mpl_backend == "Qt4Agg" and os.name == 'nt' and \
+          monitor is not None:
+            # Removing PyQt4 input hook which is not working well on
+            # Windows since opening a subprocess does not attach a real
+            # console to it (with keyboard events...)
+            if os.environ["QT_API"] == 'pyqt': 
                 inputhooks.remove_pyqt_inputhook()
-    except ImportError:
-        pass
+            # Using our own input hook
+            # NOTE: it's not working correctly for some configurations
+            # (See issue 1831)
+            callback = inputhooks.set_pyft_callback(qt_nt_inputhook)
+            pyos_ih = inputhooks.get_pyos_inputhook()
+            pyos_ih.value = ctypes.cast(callback, ctypes.c_void_p).value
+        elif mpl_backend == "Qt4Agg":
+            # PyQt4 input hook stopped working after we moved to the new
+            # style for signals and slots, so we need to install our own
+            if os.environ["QT_API"] == 'pyqt':
+                inputhooks.remove_pyqt_inputhook()
+            # This works for both PySide (which doesn't have an input hook)
+            # and PyQt4 (whose input hook needs to be replaced, see above).
+            # Note: This only works well for Posix systems
+            callback = inputhooks.set_pyft_callback(inputhooks.qt4)
+            pyos_ih = inputhooks.get_pyos_inputhook()
+            pyos_ih.value = ctypes.cast(callback, ctypes.c_void_p).value
+        elif mpl_backend != "Qt4Agg" and os.environ["QT_API"] == 'pyqt':
+            # Matplotlib backends install their own input hooks, so we
+            # need to remove the PyQt one to make them work
+            inputhooks.remove_pyqt_inputhook()
 
 
 #==============================================================================
@@ -370,12 +378,7 @@ if mpl_backend:
 IS_IPYTHON = os.environ.get("IPYTHON_KERNEL", "").lower() == "true"
 
 if IS_IPYTHON:
-    #XXX If Matplotlib is not imported first, the next IPython import will fail
-    try:
-        import matplotlib  # analysis:ignore
-    except ImportError:
-        pass
-
+    # Use ipydb as the debugger to patch on IPython consoles
     from IPython.core.debugger import Pdb as ipyPdb
     pdb.Pdb = ipyPdb
 
@@ -403,7 +406,7 @@ if IS_IPYTHON:
         
         # Set Pandas output encoding
         pd.options.display.encoding = 'utf-8'
-    except:
+    except (ImportError, AttributeError):
         pass
         
 
@@ -439,7 +442,10 @@ class SpyderPdb(pdb.Pdb):
             return
         fname = self.canonic(frame.f_code.co_filename)
         if sys.version[0] == '2':
-            fname = unicode(fname, "utf-8")
+            try:
+                fname = unicode(fname, "utf-8")
+            except TypeError:
+                pass
         lineno = frame.f_lineno
         if isinstance(fname, basestring) and isinstance(lineno, int):
             if osp.isfile(fname) and monitor is not None:
@@ -523,7 +529,10 @@ if sys.version[0] == '2':
     def break_here(self, frame):
         from bdb import effective
         filename = self.canonic(frame.f_code.co_filename)
-        filename = unicode(filename, "utf-8")
+        try:
+            filename = unicode(filename, "utf-8")
+        except TypeError:
+            pass
         if not filename in self.breaks:
             return False
         lineno = frame.f_lineno
@@ -796,47 +805,42 @@ builtins.debugfile = debugfile
 def evalsc(command):
     """Evaluate special commands
     (analog to IPython's magic commands but far less powerful/complete)"""
-    assert command.startswith(('%', '!'))
-    system_command = command.startswith('!')
-    command = command[1:].strip()
-    if system_command:
-        # System command
-        if command.startswith('cd '):
-            evalsc('%'+command)
-        else:
-            from subprocess import Popen, PIPE
-            Popen(command, shell=True, stdin=PIPE)
-            _print('\n')
-    else:
-        # General command
-        namespace = _get_globals()
-        import re
-        clear_match = re.match(r"^clear ([a-zA-Z0-9_, ]+)", command)
-        cd_match = re.match(r"^cd \"?\'?([a-zA-Z0-9_\ \:\\\/\.]+)", command)
-        if cd_match:
-            os.chdir(eval('r"%s"' % cd_match.groups()[0].strip()))
-        elif clear_match:
-            varnames = clear_match.groups()[0].replace(' ', '').split(',')
-            for varname in varnames:
-                try:
-                    namespace.pop(varname)
-                except KeyError:
-                    pass
-        elif command in ('cd', 'pwd'):
+    assert command.startswith('%')
+    
+    from subprocess import Popen, PIPE
+    namespace = _get_globals()
+    command = command[1:].strip()  # Remove leading %
+
+    import re
+    clear_match = re.match(r"^clear ([a-zA-Z0-9_, ]+)", command)
+    cd_match = re.match(r"^cd \"?\'?([a-zA-Z0-9_\ \:\\\/\.]+)", command)
+
+    if cd_match:
+        os.chdir(eval('r"%s"' % cd_match.groups()[0].strip()))
+    elif clear_match:
+        varnames = clear_match.groups()[0].replace(' ', '').split(',')
+        for varname in varnames:
             try:
-                _print(os.getcwdu())
-            except AttributeError:
-                _print(os.getcwd())
-        elif command == 'ls':
-            if os.name == 'nt':
-                evalsc('!dir')
-            else:
-                evalsc('!ls')
-        elif command == 'scientific':
-            from spyderlib import baseconfig
-            execfile(baseconfig.SCIENTIFIC_STARTUP, namespace)
+                namespace.pop(varname)
+            except KeyError:
+                pass
+    elif command in ('cd', 'pwd'):
+        try:
+            _print(os.getcwdu())
+        except AttributeError:
+            _print(os.getcwd())
+    elif command == 'ls':
+        if os.name == 'nt':
+            Popen('dir', shell=True, stdin=PIPE)
+            _print('\n')
         else:
-            raise NotImplementedError("Unsupported command: '%s'" % command)
+            Popen('ls', shell=True, stdin=PIPE)
+            _print('\n')
+    elif command == 'scientific':
+        from spyderlib import baseconfig
+        execfile(baseconfig.SCIENTIFIC_STARTUP, namespace)
+    else:
+        raise NotImplementedError("Unsupported command: '%s'" % command)
 
 builtins.evalsc = evalsc
 

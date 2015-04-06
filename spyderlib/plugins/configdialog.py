@@ -16,7 +16,7 @@ from spyderlib.qt.QtGui import (QWidget, QDialog, QListWidget, QListWidgetItem,
                                 QPushButton, QFontComboBox, QGroupBox,
                                 QComboBox, QColor, QGridLayout, QTabWidget,
                                 QRadioButton, QButtonGroup, QSplitter,
-                                QStyleFactory, QScrollArea)
+                                QStyleFactory, QScrollArea, QDoubleSpinBox)
 from spyderlib.qt.QtCore import Qt, QSize, Signal, Slot
 from spyderlib.qt.compat import (to_qvariant, from_qvariant,
                                  getexistingdirectory, getopenfilename)
@@ -505,13 +505,19 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             slabel = QLabel(suffix)
         else:
             slabel = None
-        spinbox = QSpinBox()
+        if step is not None:
+            if type(step) is int:
+                spinbox = QSpinBox()
+            else:
+                spinbox = QDoubleSpinBox()
+                spinbox.setDecimals(1)
+            spinbox.setSingleStep(step)
+        else:
+            spinbox = QSpinBox()
         if min_ is not None:
             spinbox.setMinimum(min_)
         if max_ is not None:
             spinbox.setMaximum(max_)
-        if step is not None:
-            spinbox.setSingleStep(step)
         if tip is not None:
             spinbox.setToolTip(tip)
         self.spinboxes[spinbox] = (option, default)

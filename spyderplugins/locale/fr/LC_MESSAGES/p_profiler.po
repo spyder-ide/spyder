@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
-"POT-Creation-Date: 2014-11-26 06:56+COT\n"
+"POT-Creation-Date: 2015-03-21 12:42+COT\n"
 "PO-Revision-Date: 2011-04-11 21:41+2\n"
 "Last-Translator: Pierre Raybaut\n"
 "Language-Team: Python\n"
@@ -99,42 +99,42 @@ msgstr "Le processus n'a pas pu démarrer"
 msgid "Sorting data, please wait..."
 msgstr "Classement des résultats en cours..."
 
-#: spyderplugins/widgets/profilergui.py:323
+#: spyderplugins/widgets/profilergui.py:335
 msgid "Function/Module"
 msgstr "Fonction/Module"
 
-#: spyderplugins/widgets/profilergui.py:323
+#: spyderplugins/widgets/profilergui.py:335
 msgid "Total Time"
 msgstr "Durée totale"
 
-#: spyderplugins/widgets/profilergui.py:324
+#: spyderplugins/widgets/profilergui.py:336
 msgid "Calls"
 msgstr "Appels"
 
-#: spyderplugins/widgets/profilergui.py:324
+#: spyderplugins/widgets/profilergui.py:336
 msgid "File:line"
 msgstr "Fichier:ligne"
 
-#: spyderplugins/widgets/profilergui.py:324
+#: spyderplugins/widgets/profilergui.py:336
 msgid "Local Time"
 msgstr "Durée locale"
 
-#: spyderplugins/widgets/profilergui.py:431
+#: spyderplugins/widgets/profilergui.py:443
 msgid "Time in function (including sub-functions)"
 msgstr "Temps écoulé dans la fonction (sous-fonctions comprises)"
 
-#: spyderplugins/widgets/profilergui.py:437
+#: spyderplugins/widgets/profilergui.py:449
 msgid "Local time in function (not in sub-functions)"
 msgstr "Temps écoulé dans la fonction (hors sous-fonctions)"
 
-#: spyderplugins/widgets/profilergui.py:443
+#: spyderplugins/widgets/profilergui.py:455
 msgid "Total number of calls (including recursion)"
 msgstr "Nombre total d'appels (récursion comprise)"
 
-#: spyderplugins/widgets/profilergui.py:448
+#: spyderplugins/widgets/profilergui.py:460
 msgid "File:line where function is defined"
 msgstr "Fichier:ligne de définition de la fonction"
 
-#: spyderplugins/widgets/profilergui.py:453
+#: spyderplugins/widgets/profilergui.py:465
 msgid "recursion"
 msgstr "récursion"

@@ -1,4 +1,11 @@
+# -*- coding: utf-8 -*-
+#
+# Copyright © 2015 The Spyder development team
+# Licensed under the terms of the MIT License
+# (see spyderlib/__init__.py for details)
+
 from __future__ import print_function
+
 import re
 from collections import OrderedDict
 import functools
@@ -17,7 +24,7 @@ from spyderlib.qt.QtGui import QApplication
 from spyderlib.qt.QtCore import Signal, QThread, QObject, QTimer
 
 
-PLUGINS = ['jedi', 'rope', 'fallback']
+PLUGINS = ['rope', 'jedi', 'fallback']
 
 LOG_FILENAME = get_conf_path('introspection.log')
 DEBUG_EDITOR = DEBUG >= 3
@@ -55,6 +62,8 @@ class RequestHandler(QObject):
         self.waiting = False
 
     def _handle_incoming(self, name):
+        # coerce to a str in case it is a QString
+        name = str(name)
         self._threads[name].wait()
         if self.result:
             return
@@ -67,7 +76,7 @@ class RequestHandler(QObject):
 
     def _make_async_call(self, plugin, info):
         """Trigger an introspection job in a thread"""
-        self._threads[plugin.name] = thread = IntrospectionThread(plugin, info)
+        self._threads[str(plugin.name)] = thread = IntrospectionThread(plugin, info)
         thread.request_handled.connect(self._handle_incoming)
         thread.start()
 
@@ -441,9 +450,6 @@ class PluginManager(QObject):
                                      at_position=prev_info.position)
 
         if resp['name']:
-            if not resp['docstring']:
-                resp['docstring'] = '<no docstring>'
-
             self.send_to_inspector.emit(
                 resp['name'], resp['argspec'],
                 resp['note'], resp['docstring'],

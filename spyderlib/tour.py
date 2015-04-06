@@ -787,7 +787,7 @@ class AnimatedTour(QWidget):
 
         self.parent = parent
         
-        # variables to adjust 
+        # Variables to adjust 
         self.duration_canvas = [666, 666]
         self.duration_tips = [333, 333]
         self.opacity_canvas = [0.0, 0.7]
@@ -810,13 +810,18 @@ class AnimatedTour(QWidget):
 
         self.is_tour_set = False
 
+        # Widgets
         self.canvas = FadingCanvas(self.parent, self.opacity_canvas,
                                    self.duration_canvas, self.easing_curve,
                                    self.color)
         self.tips = FadingTipBox(self.parent, self.opacity_tips,
                                  self.duration_tips, self.easing_curve)
 
-        # signals and slots
+        # Widgets setup
+        # Needed to fix issue #2204
+        self.setAttribute(Qt.WA_TransparentForMouseEvents)
+
+        # Signals and slots
         self.tips.button_next.clicked.connect(self.next_step)
         self.tips.button_previous.clicked.connect(self.previous_step)
         self.tips.button_close.clicked.connect(self.close_tour)

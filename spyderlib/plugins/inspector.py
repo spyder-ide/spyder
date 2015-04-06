@@ -43,13 +43,13 @@ if IPYTHON_QT_INSTALLED:
 else:
     IPythonControlWidget = None  # analysis:ignore
 
-# Check for Sphinx presence to activate rich text mode
-if programs.is_module_installed('sphinx', '>=0.6.6'):
-    sphinx_version = programs.get_module_version('sphinx')
+# Check if we can import Sphinx to activate rich text mode
+try:
     from spyderlib.utils.inspector.sphinxify import (CSS_PATH, sphinxify,
                                                      warning, generate_context,
                                                      usage)
-else:
+    sphinx_version = programs.get_module_version('sphinx')
+except ImportError:
     sphinxify = sphinx_version = None  # analysis:ignore
 
 # To add sphinx dependency to the Dependencies dialog
@@ -325,8 +325,7 @@ class SphinxThread(QThread):
         html_text = self.html_text_no_doc
         doc = self.doc
         if doc is not None:
-            if type(doc) is dict and 'docstring' in doc.keys() \
-              and doc['docstring'] != '':
+            if type(doc) is dict and 'docstring' in doc.keys():
                 try:
                     context = generate_context(name=doc['name'],
                                                argspec=doc['argspec'],
@@ -334,6 +333,10 @@ class SphinxThread(QThread):
                                                math=self.math_option,
                                                img_path=self.img_path)
                     html_text = sphinxify(doc['docstring'], context)
+                    if doc['docstring'] == '':
+                        html_text += '<div class="hr"></div>'
+                        html_text += self.html_text_no_doc
+
                 except Exception as error:
                     self.error_msg.emit(to_text_string(error))
                     return
@@ -366,7 +369,7 @@ class ObjectInspector(SpyderPluginWidget):
         # Initialize plugin
         self.initialize_plugin()
 
-        self.no_doc_string = _("No documentation available")
+        self.no_doc_string = _("No further documentation available")
 
         self._last_console_cb = None
         self._last_editor_cb = None
