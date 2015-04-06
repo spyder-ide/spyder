@@ -14,9 +14,8 @@ import os
 import os.path as osp
 from time import time, strftime, gmtime
 
-from spyderlib.qt.QtGui import (QApplication, QWidget, QVBoxLayout,
-                                QHBoxLayout, QMenu, QLabel, QInputDialog,
-                                QLineEdit, QToolButton)
+from spyderlib.qt.QtGui import (QWidget, QVBoxLayout, QHBoxLayout, QMenu,
+                                QLabel, QInputDialog, QLineEdit, QToolButton)
 from spyderlib.qt.QtCore import (QProcess, Signal, QByteArray, QTimer, Qt,
                                  QTextCodec, Slot)
 LOCALE_CODEC = QTextCodec.codecForLocale()
@@ -288,13 +287,16 @@ class ExternalShellBase(QWidget):
         while self.process.bytesAvailable():
             qba += self.process.readAllStandardError()
         return self.transcode(qba)
-    
+
     def write_output(self):
         self.shell.write(self.get_stdout(), flush=True)
-        
+        # Commenting the line below improves crashes on long
+        # output. See Issue 2251
+        # QApplication.processEvents()
+
     def send_to_process(self, qstr):
         raise NotImplementedError
-        
+
     def send_ctrl_to_process(self, letter):
         char = chr("abcdefghijklmnopqrstuvwxyz".index(letter) + 1)
         byte_array = QByteArray()
