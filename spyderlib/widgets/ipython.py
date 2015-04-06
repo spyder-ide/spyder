@@ -233,17 +233,14 @@ These commands were executed:
         banner = 'Python %s on %s -- IPython %s' % (py_ver, sys.platform,
                                                     version)
         return banner
-    
+
     def clear_console(self):
         self.execute("%clear")
-        
+
     def write_to_stdin(self, line):
         """Send raw characters to the IPython kernel through stdin"""
-        try:
-            self.kernel_client.stdin_channel.input(line)
-        except AttributeError:
-            self.kernel_client.input(line)
-    
+        self.kernel_client.input(line)
+
     def set_background_color(self):
         lightbg_o = CONF.get('ipython_console', 'light_color')
         if not lightbg_o:
