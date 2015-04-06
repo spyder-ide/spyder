@@ -742,36 +742,36 @@ class MainWindow(QMainWindow):
             # Guidata and Sift
             self.debug_print("  ..sift?")
             gdgq_act = []
-            if is_module_installed('guidata'):
-                try:
-                    from guidata import configtools
-                    from guidata import config       # analysis:ignore
-                    guidata_icon = configtools.get_icon('guidata.svg')
-                    guidata_act = create_python_script_action(self,
-                                           _("guidata examples"), guidata_icon,
-                                           "guidata",
-                                           osp.join("tests", "__init__"))
-                except AssertionError:
-                    # Guidata doesn't support PyQt5 yet and it fails
-                    # with an AssertionError when imported using those
-                    # bindings (see issue 2274)
-                    guidata_act = configtools = None
-                if guidata_act:
-                    gdgq_act += [guidata_act]
-                # We need guidata.configtools for this to work
-                if configtools and is_module_installed('guiqwt'):
-                    from guiqwt import config  # analysis:ignore
-                    guiqwt_icon = configtools.get_icon('guiqwt.svg')
-                    guiqwt_act = create_python_script_action(self,
-                                   _("guiqwt examples"), guiqwt_icon, "guiqwt",
-                                   osp.join("tests", "__init__"))
-                    if guiqwt_act:
-                        gdgq_act += [guiqwt_act]
-                    sift_icon = configtools.get_icon('sift.svg')
-                    sift_act = create_python_script_action(self, _("Sift"),
-                               sift_icon, "guiqwt", osp.join("tests", "sift"))
-                    if sift_act:
-                        gdgq_act += [sift_act]
+            # Guidata and Guiqwt don't support PyQt5 yet and they fail
+            # with an AssertionError when imported using those bindings
+            # (see issue 2274)
+            try:
+                from guidata import configtools
+                from guidata import config       # analysis:ignore
+                guidata_icon = configtools.get_icon('guidata.svg')
+                guidata_act = create_python_script_action(self,
+                                       _("guidata examples"), guidata_icon,
+                                       "guidata",
+                                       osp.join("tests", "__init__"))
+                gdgq_act += [guidata_act]
+            except (ImportError, AssertionError):
+                pass
+            try:
+                from guidata import configtools
+                from guiqwt import config  # analysis:ignore
+                guiqwt_icon = configtools.get_icon('guiqwt.svg')
+                guiqwt_act = create_python_script_action(self,
+                               _("guiqwt examples"), guiqwt_icon, "guiqwt",
+                               osp.join("tests", "__init__"))
+                if guiqwt_act:
+                    gdgq_act += [guiqwt_act]
+                sift_icon = configtools.get_icon('sift.svg')
+                sift_act = create_python_script_action(self, _("Sift"),
+                           sift_icon, "guiqwt", osp.join("tests", "sift"))
+                if sift_act:
+                    gdgq_act += [sift_act]
+            except (ImportError, AssertionError):
+                pass
             if gdgq_act:
                 self.external_tools_menu_actions += [None] + gdgq_act
 
