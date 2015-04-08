@@ -30,6 +30,7 @@ import os.path as osp
 import re
 import socket
 import shutil
+import subprocess
 import sys
 import threading
 
@@ -853,10 +854,16 @@ class MainWindow(QMainWindow):
                                         icon='exit.png', tip=_("Quit"),
                                         triggered=self.console.quit)
             self.register_shortcut(quit_action, "_", "Quit")
+            restart_action = create_action(self, _("&Restart"),
+                                           icon='restart.png',
+                                           tip=_("Restart"),
+                                           triggered=self.restart)
+            self.register_shortcut(restart_action, "_", "Restart")
+
             self.file_menu_actions += [self.load_temp_session_action,
                                        self.load_session_action,
                                        self.save_session_action,
-                                       None, quit_action]
+                                       None, restart_action, quit_action]
             self.set_splash("")
 
             self.debug_print("  ..widgets")
@@ -2652,6 +2659,61 @@ class MainWindow(QMainWindow):
                 fname = fname.decode('utf-8')
                 self.sig_open_external_file.emit(fname)
             req.sendall(b' ')
+
+    # ---- Quit and restart
+    def restart(self):
+        """ """
+        # Get start path to use in restart script
+        spyder_start_directory = osp.dirname(osp.abspath(__file__))
+        spyder_folder = osp.split(spyder_start_directory)[0]
+        restart_script = osp.join(spyder_start_directory, 'spyder_restart.py')
+
+        # Get any initial argument passed when spyder was started
+        # Variables defined in bootstrap.py and spyderlib\start_app.py
+        env = os.environ.copy()
+        bootstrap_args = env.pop('SPYDER_BOOTSTRAP_ARGS', None)
+        spyder_args = env.pop('SPYDER_ARGS')
+
+        # Get current process and python running spyder
+        pid = os.getpid()
+        python = sys.executable
+
+        # Check if started with bootstrap.py
+        is_bootstrap = False
+        if bootstrap_args is not None:
+            spyder_args = bootstrap_args
+            is_bootstrap = True
+
+        # Pass args as environment variables to restarter subprocess
+        env['SPYDER_ARGS'] = spyder_args
+        env['SPYDER_PID'] = str(pid)
+        env['SPYDER_IS_BOOTSTRAP'] = str(is_bootstrap)
+        env['SPYDER_FOLDER'] = spyder_folder
+
+        # Build the command and popen arguments depending on the OS
+        import platform
+        system = platform.system().lower()
+
+        startupinfo = None
+        if system.startswith('win'):
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            shell = False
+        elif system.startswith('linux'):
+            shell = True
+        elif system.startswith('darwin'):
+            shell = True
+
+        command = '"{0}" "{1}"'
+        command = command.format(python, restart_script)
+
+        try:
+            subprocess.Popen(command, shell=shell, env=env,
+                             startupinfo=startupinfo)
+            self.console.quit()
+        except Exception as error:
+            print(error)
+            print(command)
 
     # ---- Interactive Tours
     def show_tour(self, index):
