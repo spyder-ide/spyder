@@ -419,16 +419,15 @@ class ProfilerDataTree(QTreeWidget):
     def load_data(self, profdatafile):
         """Load profiler data saved by profile/cProfile module"""
         import pstats
-        self.profdata = pstats.Stats(profdatafile)
         stats_indi = [pstats.Stats(profdatafile),]
+        self.profdata = stats_indi[0]
         
         if self.compare_file is not None:
             stats_indi.append(pstats.Stats(self.compare_file))
-        map(lambda x: x.calc_callees().stats, stats_indi)
-        self.profdata.add(profdatafile+"1")
+        map(lambda x: x.calc_callees(), stats_indi)
         self.profdata.calc_callees()
         self.stats1 = stats_indi
-        self.stats = self.profdata.stats
+        self.stats = stats_indi[0].stats
         
     def compare(self,filename):
         self.hide_diff_cols(False)
