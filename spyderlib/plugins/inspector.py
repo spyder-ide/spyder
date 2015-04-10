@@ -757,6 +757,8 @@ class ObjectInspector(SpyderPluginWidget):
                                           "to get documentation rendered in "
                                           "rich text.")
             intro_message = intro_message % ("Ctrl+I", "\n\n", prefs)
+            if sys.platform == 'darwin':
+                intro_message = intro_message.replace("Ctrl+I", "Cmd+I")
             intro_message += install_sphinx
             self.set_plain_text(intro_message, is_code=False)
 
