@@ -158,7 +158,7 @@ class CodeInfo(object):
                     break
                 position -= 1
         else:
-            self.docstring = None
+            self.docstring = ''
 
         self.position = position
 
@@ -167,8 +167,8 @@ class CodeInfo(object):
             self.column = 0
             self.line_num = 0
             self.line = ''
-            self.obj = None
-            self.full_obj = None
+            self.obj = ''
+            self.full_obj = ''
         else:
             self._get_info()
 
@@ -229,6 +229,7 @@ class CodeInfo(object):
             right += 1
         if left and right < len(self.source_code):
             return self.source_code[left: right]
+        return ''
 
     def __eq__(self, other):
         try:
