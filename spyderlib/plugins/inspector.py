@@ -749,6 +749,8 @@ class ObjectInspector(SpyderPluginWidget):
             tutorial = _("tutorial")
             intro_message = intro_message % ("<b>Ctrl+I</b>", "<br><br>",
                                              "<i>"+prefs+"</i>")
+            if sys.platform == 'darwin':
+                intro_message = intro_message.replace("Ctrl+I", "Cmd+I")
             self.set_rich_text_html(usage(title, intro_message,
                                           tutorial_message, tutorial),
                                     QUrl.fromLocalFile(CSS_PATH))
