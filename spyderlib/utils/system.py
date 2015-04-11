@@ -16,50 +16,40 @@ from spyderlib.utils import programs
 
 
 __SYSTEM = platform.system.lower()
-
-IS_WIN = os.name == 'nt'
-IS_MAC = __SYSTEM.startswith('darwin')
-IS_LINUX = __SYSTEM.startswith('linux')
-IS_POSIX = not IS_WIN
-
-# Ubuntu
-IS_UBUNTU = False
-if IS_LINUX and osp.isfile('/etc/lsb-release'):
+__IS_WIN = os.name == 'nt'
+__IS_MAC = __SYSTEM.startswith('darwin')
+__IS_LINUX = __SYSTEM.startswith('linux')
+__IS_POSIX = not __IS_WIN
+__IS_UBUNTU = False
+if __IS_LINUX and osp.isfile('/etc/lsb-release'):
     release_info = open('/etc/lsb-release').read()
     if 'Ubuntu' in release_info:
-        IS_UBUNTU = True
+        __IS_UBUNTU = True
 
 
 def is_win():
     """ """
-    return os.name == 'nt'
+    return __IS_WIN
 
 
 def is_mac():
     """ """
-    return __SYSTEM.startswith('darwin')
+    return __IS_MAC
 
 
 def is_linux():
     """ """
-    return __SYSTEM.startswith('linux')
+    return __IS_LINUX
 
 
 def is_posix():
     """ """
-    return not is_win()
+    return __IS_POSIX
 
 
 def is_ubuntu():
     """ """
-    if is_linux() and osp.isfile('/etc/lsb-release'):
-        release_info = open('/etc/lsb-release').read()
-        if 'Ubuntu' in release_info:
-            return True
-        else:
-            return False
-    else:
-        return False
+    return __IS_UBUNTU
 
 
 def windows_memory_usage():
