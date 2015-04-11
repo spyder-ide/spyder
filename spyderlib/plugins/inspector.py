@@ -743,14 +743,17 @@ class ObjectInspector(SpyderPluginWidget):
                           "a left parenthesis next to an object. You can "
                           "activate this behavior in %s.")
         prefs = _("Preferences > Object Inspector")
+        if sys.platform == 'darwin':
+            shortcut = "Cmd+I"
+        else:
+            shortcut = "Ctrl+I"
+
         if self.is_rich_text_mode():
             title = _("Usage")
             tutorial_message = _("New to Spyder? Read our")
             tutorial = _("tutorial")
-            intro_message = intro_message % ("<b>Ctrl+I</b>", "<br><br>",
+            intro_message = intro_message % ("<b>"+shortcut+"</b>", "<br><br>",
                                              "<i>"+prefs+"</i>")
-            if sys.platform == 'darwin':
-                intro_message = intro_message.replace("Ctrl+I", "Cmd+I")
             self.set_rich_text_html(usage(title, intro_message,
                                           tutorial_message, tutorial),
                                     QUrl.fromLocalFile(CSS_PATH))
@@ -758,9 +761,7 @@ class ObjectInspector(SpyderPluginWidget):
             install_sphinx = "\n\n%s" % _("Please consider installing Sphinx "
                                           "to get documentation rendered in "
                                           "rich text.")
-            intro_message = intro_message % ("Ctrl+I", "\n\n", prefs)
-            if sys.platform == 'darwin':
-                intro_message = intro_message.replace("Ctrl+I", "Cmd+I")
+            intro_message = intro_message % (shortcut, "\n\n", prefs)
             intro_message += install_sphinx
             self.set_plain_text(intro_message, is_code=False)
 
