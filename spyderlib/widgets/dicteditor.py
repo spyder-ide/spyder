@@ -929,15 +929,9 @@ class BaseTableView(QTableView):
         for index in indexes:
             if not index.isValid():
                 return
-        one = _("Do you want to remove selected item?")
-        more = _("Do you want to remove all selected items?")
-        answer = QMessageBox.question(self, _( "Remove"),
-                                      one if len(indexes) == 1 else more,
-                                      QMessageBox.Yes | QMessageBox.No)
-        if answer == QMessageBox.Yes:
-            idx_rows = unsorted_unique([idx.row() for idx in indexes])
-            keys = [ self.model.keys[idx_row] for idx_row in idx_rows ]
-            self.remove_values(keys)
+        idx_rows = unsorted_unique([idx.row() for idx in indexes])
+        keys = [ self.model.keys[idx_row] for idx_row in idx_rows ]
+        self.remove_values(keys)
 
     def copy_item(self, erase_original=False):
         """Copy item"""
