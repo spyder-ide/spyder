@@ -19,7 +19,7 @@ from spyderlib.qt.QtGui import (QTextCursor, QColor, QFont, QApplication,
                                 QTextEdit, QTextCharFormat, QToolTip,
                                 QListWidget, QPlainTextEdit, QPalette,
                                 QMainWindow, QTextOption, QMouseEvent,
-                                QTextFormat, QClipboard)
+                                QTextFormat, QClipboard, QAbstractItemView)
 from spyderlib.qt.QtCore import Signal, Slot, Qt, QEventLoop, QEvent, QPoint
 from spyderlib.qt.compat import to_qvariant
 
@@ -163,6 +163,8 @@ class CompletionWidget(QListWidget):
                     completion_text = completion_text.lower()
                 if completion.startswith(completion_text):
                     self.setCurrentRow(row)
+                    self.scrollTo(self.currentIndex(),
+                                  QAbstractItemView.PositionAtTop)
                     break
             else:
                 self.hide()
