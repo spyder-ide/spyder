@@ -971,7 +971,7 @@ class MainWindow(QMainWindow):
 
         #----- Tours
             self.tour = tour.AnimatedTour(self)
-            self.tours_menu = QMenu(_("Spyder tours"))
+            self.tours_menu = QMenu(_("Interactive tours"))
             self.tour_menu_actions = []
             self.tours_available = tour.get_tours()
 
