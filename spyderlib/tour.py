@@ -203,7 +203,7 @@ def get_tour(index):
 #
 #                      ]
 
-    feat24 = [{'title': "New features in Spyder 2.4",
+    feat30 = [{'title': "New features in Spyder 3.0",
                'content': _("<b>Spyder</b> is an interactive development "
                             "environment based on bla"),
                'image': 'spyder.png'},
@@ -215,7 +215,7 @@ def get_tour(index):
               ]
 
     tours = [{'name': _('Introduction tour'), 'tour': intro},
-             {'name': _('New features in version 2.4'), 'tour': feat24}]
+             {'name': _('New features in version 3.0'), 'tour': feat30}]
 
     if index is None:
         return tours
