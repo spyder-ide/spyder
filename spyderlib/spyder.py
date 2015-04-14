@@ -975,7 +975,7 @@ class MainWindow(QMainWindow):
             self.tour_menu_actions = []
             # TODO: Only show intro tour for now. When we are close to finish
             # 3.0, we will finish and show the other tour
-            self.tours_available = [tour.get_tours()[0]]
+            self.tours_available = tour.get_tours(0)
 
             for i, tour_available in enumerate(self.tours_available):
                 self.tours_available[i]['last'] = 0
