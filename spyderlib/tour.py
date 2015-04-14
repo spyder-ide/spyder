@@ -35,9 +35,9 @@ from spyderlib.utils.qthelpers import (create_action, add_actions)
 class SpyderWidgets(object):
     """List of supported widgets to highlight/decorate"""
     # Panes
-    console_internal = 'console'
-    console_external = 'extconsole'
-    console_ipython = 'ipyconsole'
+    internal_console = 'console'
+    external_console = 'extconsole'
+    ipython_console = 'ipyconsole'
     editor = 'editor'
     editor_line_number_area = 'editor.get_current_editor().linenumberarea'
     editor_scroll_flag_area = 'editor.get_current_editor().scrollflagarea'
@@ -136,14 +136,14 @@ def get_tour(index):
                            "things in <b>Spyder</b>.<br><br>"
                            "Click when ready and pay close attention to the "
                            "variable explorer"),
-              'widgets': [sw.console_ipython],
+              'widgets': [sw.ipython_console],
               'run': ['a = 2', 'b = 4.0']
               },
 
              {'title': _("The Python console"),
               'content': _("Now lets interact with the <b>IPython Console</b>."
                            "<br><br><i>Decoration</i> included also."),
-              'widgets': [sw.console_external],
+              'widgets': [sw.external_console],
               'interact': True},
 
              {'title': _("The Variable Explorer"),
@@ -167,7 +167,7 @@ def get_tour(index):
              {'title': _("The Internal Console"),
               'content': _("Now lets interact with the <b>IPython Console</b>."
                            "<br><br><i>Decoration</i> included also."),
-              'widgets': [sw.console_internal],
+              'widgets': [sw.internal_console],
               'interact': True},
              ]
 
