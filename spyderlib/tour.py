@@ -60,17 +60,26 @@ class SpyderWidgets(object):
     menu_edit = ''
 
 
-def get_tours():
-    """ """
-    return get_tour(None)
+def get_tours(index=None):
+    """
+    Get the list of available tours (if index=None), or the your given by
+    index
+    """
+    return get_tour(index)
 
 
 def get_tour(index):
-    """For now this function stores and retrieves the tours.
+    """
+    This function generates a list of tours.
+    
+    The index argument is used to retrieve a particular tour. If None is
+    passed, it will return the full list of tours. If instead -1 is given,
+    this function will return a test tour
 
     To add more tours a new variable needs to be created to hold the list of
-    dics and the tours variable at the bottom of this function needs to be
-    updated accordingly"""
+    dicts and the tours variable at the bottom of this function needs to be
+    updated accordingly
+    """
     sw = SpyderWidgets
 
     # This test should serve as example of keys to use in the tour frame dics
@@ -219,10 +228,10 @@ def get_tour(index):
 
     if index is None:
         return tours
-    elif index == 'test':
-        return test
+    elif index == -1:
+        return [test]
     else:
-        return tours[index]['tour']
+        return [tours[index]]
 
 
 class FadingDialog(QDialog):
