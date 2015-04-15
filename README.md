@@ -44,6 +44,14 @@ Spyder may also be used as a PyQt4/PySide extension library (module
 `spyderlib`). For example, the Python interactive shell widget used in
 Spyder may be embedded in your own PyQt4/PySide application.
 
+## Running from source
+
+It is possible to run Spyder from the source code checkout, given
+that you have PyQt or PySide installed. Just run:
+
+    python bootstrap.py
+
+This is useful if you want to learn how Spyder works and enhance it.
 
 ## Installation
     
@@ -148,17 +156,6 @@ greater than 2.6.
 * Pylint (static code analysis).
 
 * Pep8 (style analysis).
-
-## Running from source
-
-It is possible to run Spyder directly (i.e. without installation)
-from the unpacked zip folder (see *Installing from source*) using
-Spyder's bootstrap script like this:
-
-    python bootstrap.py
-
-This is especially useful for beta-testing, troubleshooting 
-and development of Spyder itself.
 
 ## More information
 
