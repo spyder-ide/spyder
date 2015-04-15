@@ -81,6 +81,7 @@ def get_tour(index):
     updated accordingly
     """
     sw = SpyderWidgets
+    qtconsole_link = "http://ipython.org/ipython-doc/stable/interactive/qtconsole.html"
 
     # This test should serve as example of keys to use in the tour frame dics
     test = [{'title': "Welcome to Spyder introduction tour",
@@ -117,40 +118,71 @@ def get_tour(index):
              'interact': False},
             ]
 
-    intro = [{'title': _("Welcome to Spyder introduction tour"),
-              'content': _("<b>Spyder</b> is a powerful interactive "
-                           "development environment for the Python language. "
-                           "<br><br>Use the arrow keys or the mouse to move "
-                           "into the tour."),
+    intro = [{'title': _("Welcome to the Introduction tour"),
+              'content': _("<b>Spyder</b> is a powerful Interactive "
+                           "Development Environment (or IDE) for the Python "
+                           "programming language.<br><br>"
+                           "Here we are going to guide you through its most "
+                           "important features.<br><br>"
+                           "Please use the arrow keys or click on the buttons "
+                           "below to move across the tour."),
               'image': 'tour-spyder-logo.png'},
 
              {'title': _("The Editor"),
-              'content': _("Decoration here is used to highlight the "
-                           "<b>Line Number Area</b> "
-                           "<br><br> No interaction example."),
+              'content': _("This is the pane where you write code. It comes "
+                           "with a line number area (highlighted here in red), "
+                           "where Spyder shows warnings and syntax errors that "
+                           "help you to detect potential problems before "
+                           "running the code.<br><br>"
+                           "You can also set debug breakpoints in this area "
+                           "by doing a double click next to a non-empty line."),
               'widgets': [sw.editor],
               'decoration': [sw.editor_line_number_area]},
 
              {'title': _("The IPython console"),
-              'content': _("Now lets try to run some code to show the nice "
-                           "things in <b>Spyder</b>.<br><br>"
-                           "Click when ready and pay close attention to the "
-                           "variable explorer"),
+              'content': _("This is one of panes where you can run or "
+                           "execute your code. This console comes with several "
+                           "useful features that greatly improve your "
+                           "programming workflow (like syntax highlighting and "
+                           "inline plots). You can read in depth about them "
+                           "<a href=\"%s\">here</a>.<br><br>"
+                           "It's also important to note that you can open as "
+                           "many consoles as you want, by going to the "
+                           "menu entry<br><br>"
+                           "<i>Consoles > Open an IPython console</i>.<br><br>"
+                           "Please click on the button below to run some simple "
+                           "code in this console. This will be useful to show "
+                           "you other important Spyder features." % \
+                           qtconsole_link),
               'widgets': [sw.ipython_console],
-              'run': ['a = 2', 'b = 4.0']
+              'run': ["li = list(range(100))", "d = {'a': 1, 'b': 2}"]
               },
-
-             {'title': _("The Python console"),
-              'content': _("Now lets interact with the <b>IPython Console</b>."
-                           "<br><br><i>Decoration</i> included also."),
-              'widgets': [sw.external_console],
-              'interact': True},
-
+              
              {'title': _("The Variable Explorer"),
-              'content': _("Now lets interact with the <b>IPython Console</b>."
-                           "<br><br><i>Decoration</i> included also."),
+              'content': _("In this pane you can view and edit the variables "
+                           "generated during the execution of a program, or "
+                           "those entered directly in one of Spyder's "
+                           "consoles.<br><br>"
+                           "As you can see, the <b>Variable Explorer</b> shows "
+                           "the variables generated during the last step of "
+                           "this tour. By doing a mouse double-click on any "
+                           "of them, a new window will be opened, where you "
+                           "can inspect and modify its contents."),
               'widgets': [sw.variable_explorer],
               'interact': True},
+
+             {'title': _("The Python console"),
+              'content': _("You can also run your code on a <b>Python console</b>. "
+                           "These consoles are useful because they are created "
+                           "much faster than an IPython console, and let you "
+                           "run each file in a dedicated console<br><br>"
+                           "By pressing the button below, you will notice that "
+                           "<b>Python consoles</b> are also connected to the "
+                           "Variable Explorer, and that the last one only shows "
+                           "the variables of the currently focused console."),
+              'widgets': [sw.external_console, sw.variable_explorer],
+              'run': ["a = 2", "s='Hello, world!'"],
+              },
 
              {'title': _("The File Explorer"),
               'content': _("Now lets interact with the <b>IPython Console</b>."
