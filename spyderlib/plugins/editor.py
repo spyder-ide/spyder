@@ -33,7 +33,7 @@ from spyderlib.baseconfig import get_conf_path, _
 from spyderlib.config import CONF, EDIT_FILTERS, get_filter, EDIT_FILETYPES
 from spyderlib.guiconfig import get_color_scheme
 from spyderlib.utils import programs
-from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions,
+from spyderlib.utils.qthelpers import (create_action, add_actions,
                                        get_filetype_icon, add_shortcut_to_tooltip)
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.status import (ReadWriteStatus, EOLStatus,

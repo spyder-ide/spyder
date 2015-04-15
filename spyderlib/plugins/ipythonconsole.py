@@ -49,7 +49,7 @@ from spyderlib.baseconfig import _
 from spyderlib.config import CONF
 from spyderlib.utils.misc import get_error_match, remove_backslashes
 from spyderlib.utils import programs
-from spyderlib.utils.qthelpers import get_icon, create_action
+from spyderlib.utils.qthelpers import create_action
 from spyderlib.widgets.tabs import Tabs
 from spyderlib.widgets.ipython import IPythonClient
 from spyderlib.widgets.findreplace import FindReplace

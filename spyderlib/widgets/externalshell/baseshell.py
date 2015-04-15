@@ -23,8 +23,8 @@ from spyderlib.qt import qta
 LOCALE_CODEC = QTextCodec.codecForLocale()
 
 # Local imports
-from spyderlib.utils.qthelpers import (get_icon, create_toolbutton,
-                                       create_action, add_actions)
+from spyderlib.utils.qthelpers import (create_toolbutton, create_action, 
+                                       add_actions)
 from spyderlib.baseconfig import get_conf_path, _
 from spyderlib.py3compat import is_text_string, to_text_string
 
@@ -138,12 +138,12 @@ class ExternalShellBase(QWidget):
     def get_toolbar_buttons(self):
         if self.run_button is None:
             self.run_button = create_toolbutton(self, text=_("Run"),
-                                             icon=get_icon('run.png'),
+                                             icon=qta.icon('fa.play'),
                                              tip=_("Run again this program"),
                                              triggered=self.start_shell)
         if self.kill_button is None:
             self.kill_button = create_toolbutton(self, text=_("Kill"),
-                                     icon=get_icon('kill.png'),
+                                     icon=qta.icon('fa.warning'),
                                      tip=_("Kills the current process, "
                                            "causing it to exit immediately"))
         buttons = [self.run_button]
