@@ -89,24 +89,21 @@ The easiest way to install Spyder is:
 
 * Cross-platoform way from source
 
-You can also install Spyder from its zip source package. For that you need to
-download and uncompress the file called `spyder-x.y.z.zip`, which can be
-found [here](https://github.com/spyder-ide/spyder/releases). Then you need to
-use the integrated `setup.py` script that comes with it and which is based
-on the Python standard library `distutils` module, with the following command:
+You can install Spyder from its zip source package named `spyder-x.y.z.zip`
+[here](https://github.com/spyder-ide/spyder/releases). Then you need to
+use standard Python `setup.py` script:
 
     python setup.py install
 
-Note that `distutils` does *not* uninstall previous versions of Python 
-packages: it simply copies files on top of an existing installation. 
-When using this command, it is thus highly recommended to uninstall 
-manually any previous version of Spyder by removing the associated 
-directories ('spyderlib' and 'spyderplugins') from your site-packages 
-directory).
+Note that `setup.py` script doens't know how uninstall previous versions
+of Python packages: it simply copies files on top of an existing
+installation. So the better way is to use `pip` package manager:
 
-From the [Python package index](http://pypi.python.org/pypi), you also
-may install Spyder *and* upgrade an existing installation using `pip`
-with this command
+    pip install .
+
+Note the `.` at the end of command. `pip` can also install Spyder from
+the [Python package index](http://pypi.python.org/pypi) *and* upgrade an
+existing installation
 
     pip install --upgrade spyder
 
