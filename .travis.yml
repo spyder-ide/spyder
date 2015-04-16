@@ -55,6 +55,7 @@ install:
   - ./continuous_integration/travis_install.sh;
   - export PATH="$HOME/miniconda/bin:$PATH";
   - source activate test-environment;
+  - pip install -e git+https://github.com/spyder-ide/qtawesome.git#egg=QtAwesome
   - QT_API=$USE_QT_API;
 
 script:  
