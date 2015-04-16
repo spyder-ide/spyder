@@ -150,11 +150,11 @@ class HistoryLog(SpyderPluginWidget):
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         history_action = create_action(self, _("History..."),
-                                       None, 'history.png',
+                                       None, qta.icon('fa.history'),
                                        _("Set history maximum entries"),
                                        triggered=self.change_history_depth)
         font_action = create_action(self, _("&Font..."), None,
-                                    'font.png', _("Set shell font style"),
+                                    qta.icon('fa.font'), _("Set shell font style"),
                                     triggered=self.change_font)
         self.wrap_action = create_action(self, _("Wrap lines"),
                                     toggled=self.toggle_wrap_mode)

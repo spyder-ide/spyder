@@ -284,12 +284,12 @@ class ExternalPythonShell(ExternalShellBase):
         if self.namespacebrowser_button is None \
            and self.stand_alone is not None:
             self.namespacebrowser_button = create_toolbutton(self,
-                  text=_("Variables"), icon=get_icon('dictedit.png'),
+                  text=_("Variables"), icon=qta.icon('fa.th-list'),
                   tip=_("Show/hide global variables explorer"),
                   toggled=self.toggle_globals_explorer, text_beside_icon=True)
         if self.terminate_button is None:
             self.terminate_button = create_toolbutton(self,
-                  text=_("Terminate"), icon=get_icon('stop.png'),
+                  text=_("Terminate"), icon=qta.icon('fa.stop'),
                   tip=_("Attempts to stop the process. The process\n"
                         "may not exit as a result of clicking this\n"
                         "button (it is given the chance to prompt\n"
@@ -324,7 +324,7 @@ class ExternalPythonShell(ExternalShellBase):
                                         triggered=self.show_env)
         self.syspath_button = create_action(self,
                                             _("Show sys.path contents"),
-                                            icon=get_icon('syspath.png'),
+                                            icon=qta.icon(['fa.folder-o', 'fa.cog'], options=[{}, {'scale_factor': 0.75}]),
                                             triggered=self.show_syspath)
         actions = [run_settings_menu, self.show_time_action, None,
                    self.cwd_button, self.env_button, self.syspath_button]
@@ -657,5 +657,5 @@ class ExternalPythonShell(ExternalShellBase):
         """Show sys.path contents"""
         editor = DictEditor()
         editor.setup(self.shell.get_syspath(), title="sys.path", readonly=True,
-                     width=600, icon='syspath.png')
+                     width=600, icon=qta.icon(['fa.folder-o', 'fa.cog'], options=[{}, {'scale_factor': 0.75}]))
         self.dialog_manager.show(editor)

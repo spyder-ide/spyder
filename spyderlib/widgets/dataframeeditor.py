@@ -20,7 +20,7 @@ from spyderlib.qt.QtGui import (QDialog, QTableView, QColor, QGridLayout,
                                 QLineEdit, QApplication, QMenu, QKeySequence)
 from spyderlib.qt.compat import to_qvariant, from_qvariant
 from spyderlib.qt import qta
-from spyderlib.utils.qthelpers import (qapplication, get_icon, create_action,
+from spyderlib.utils.qthelpers import (qapplication, create_action,
                                        add_actions, keybinding)
 
 from spyderlib.baseconfig import _
@@ -471,7 +471,7 @@ class DataFrameEditor(QDialog):
         """
         self.layout = QGridLayout()
         self.setLayout(self.layout)
-        self.setWindowIcon(get_icon('arredit.png'))
+        self.setWindowIcon(qta.icon('fa.th'))
         if title:
             title = to_text_string(title)  # in case title is not a string
         else:

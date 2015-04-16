@@ -623,7 +623,7 @@ class Editor(SpyderPluginWidget):
                                 name="Open file")
         
         self.revert_action = create_action(self, _("&Revert"),
-                icon='revert.png', tip=_("Revert file from disk"),
+                icon=qta.icon('fa.undo'), tip=_("Revert file from disk"),
                 triggered=self.revert)
         
         self.save_action = create_action(self, _("&Save"),
@@ -832,7 +832,9 @@ class Editor(SpyderPluginWidget):
         
         # --- Source code Toolbar ---
         self.todo_list_action = create_action(self,
-                _("Show todo list"), icon='todo_list.png',
+                _("Show todo list"), icon=qta.icon(['fa.th-list', 'fa.check'], 
+                                                   options=[{'color': 'blue'},
+                                                            {'color': 'orange'}]),
                 tip=_("Show TODO/FIXME/XXX/HINT/TIP/@todo comments list"),
                 triggered=self.go_to_next_todo)
         self.todo_menu = QMenu(self)
@@ -840,37 +842,51 @@ class Editor(SpyderPluginWidget):
         self.todo_menu.aboutToShow.connect(self.update_todo_menu)
         
         self.warning_list_action = create_action(self,
-                _("Show warning/error list"), icon='wng_list.png',
+                _("Show warning/error list"), icon=
+                qta.icon(['fa.th-list', 'fa.warning'],
+                         options=[{'color': 'blue'}, 
+                                  {'scale_factor': 0.75,
+                                   'color': 'orange'}]),
                 tip=_("Show code analysis warnings/errors"),
                 triggered=self.go_to_next_warning)
         self.warning_menu = QMenu(self)
         self.warning_list_action.setMenu(self.warning_menu)
         self.warning_menu.aboutToShow.connect(self.update_warning_menu)
         self.previous_warning_action = create_action(self,
-                _("Previous warning/error"), icon='prev_wng.png',
+                _("Previous warning/error"), icon=
+                qta.icon(['fa.arrow-left', 'fa.warning'],
+                         options=[{'color': 'blue'}, 
+                                  {'offset': (0.0, 0.2),
+                                   'scale_factor': 0.75,
+                                   'color': 'orange'}]),
                 tip=_("Go to previous code analysis warning/error"),
                 triggered=self.go_to_previous_warning)
         self.next_warning_action = create_action(self,
-                _("Next warning/error"), icon='next_wng.png',
+                _("Next warning/error"), icon=
+                qta.icon(['fa.arrow-right', 'fa.warning'],
+                         options=[{'color': 'blue'}, 
+                                  {'offset': (0.0, 0.2),
+                                   'scale_factor': 0.75,
+                                   'color': 'orange'}]),
                 tip=_("Go to next code analysis warning/error"),
                 triggered=self.go_to_next_warning)
         
         self.previous_edit_cursor_action = create_action(self,
-                _("Last edit location"), icon='last_edit_location.png',
+                _("Last edit location"), icon=qta.icon('fa.caret-up'),
                 tip=_("Go to last edit location"),
                 triggered=self.go_to_last_edit_location)
         self.register_shortcut(self.previous_edit_cursor_action,
                                context="Editor",
                                name="Last edit location")
         self.previous_cursor_action = create_action(self,
-                _("Previous cursor position"), icon='prev_cursor.png',
+                _("Previous cursor position"), icon=qta.icon('fa.hand-o-left'),
                 tip=_("Go to previous cursor position"),
                 triggered=self.go_to_previous_cursor_position)
         self.register_shortcut(self.previous_cursor_action,
                                context="Editor",
                                name="Previous cursor position")
         self.next_cursor_action = create_action(self,
-                _("Next cursor position"), icon='next_cursor.png',
+                _("Next cursor position"), icon=qta.icon('fa.hand-o-right'),
                 tip=_("Go to next cursor position"),
                 triggered=self.go_to_next_cursor_position)
         self.register_shortcut(self.next_cursor_action,

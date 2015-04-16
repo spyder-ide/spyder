@@ -13,6 +13,7 @@
 
 from spyderlib.qt.QtGui import QFontDialog
 from spyderlib.qt.QtCore import Signal, Slot
+from spyderlib.qt import qta
 
 import os.path as osp
 
@@ -63,7 +64,7 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         # Font
-        font_action = create_action(self, _("&Font..."), None, 'font.png',
+        font_action = create_action(self, _("&Font..."), None, qta.icon('fa.font'),
                                     _("Set font style"),
                                     triggered=self.change_font)
         self.treewidget.common_actions.append(font_action)

@@ -209,7 +209,7 @@ class PylintWidget(QWidget):
 
         self.ratelabel = QLabel()
         self.datelabel = QLabel()
-        self.log_button = create_toolbutton(self, icon=get_icon('log.png'),
+        self.log_button = create_toolbutton(self, icon=qta.icon('fa.bar-chart'),
                                     text=_("Output"),
                                     text_beside_icon=True,
                                     tip=_("Complete output"),

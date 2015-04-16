@@ -27,8 +27,8 @@ from spyderlib.widgets.dicteditorutils import globalsfilter
 from spyderlib.utils import encoding
 from spyderlib.utils.misc import fix_reference_name
 from spyderlib.utils.programs import is_module_installed
-from spyderlib.utils.qthelpers import (get_icon, create_toolbutton,
-                                       add_actions, create_action)
+from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
+                                       create_action)
 from spyderlib.utils.iofuncs import iofunctions
 from spyderlib.widgets.importwizard import ImportWizard
 from spyderlib.baseconfig import _, get_supported_types

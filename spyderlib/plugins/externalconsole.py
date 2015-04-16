@@ -1094,7 +1094,7 @@ class ExternalConsole(SpyderPluginWidget):
                                         triggered=self.open_terminal)
         run_action = create_action(self,
                             _("&Run..."), None,
-                            'run_small.png', _("Run a Python script"),
+                            qta.icon('fa.play', color='green'), _("Run a Python script"),
                             triggered=self.run_script)
 
         consoles_menu_actions = [interpreter_action]

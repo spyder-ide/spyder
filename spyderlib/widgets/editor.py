@@ -35,7 +35,7 @@ from spyderlib.utils import introspection
 from spyderlib.baseconfig import _, DEBUG, STDOUT, STDERR
 from spyderlib.config import EDIT_FILTERS, EDIT_EXT, get_filter, EDIT_FILETYPES
 from spyderlib.guiconfig import create_shortcut, new_shortcut
-from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions,
+from spyderlib.utils.qthelpers import (create_action, add_actions,
                                        mimedata2url, get_filetype_icon,
                                        create_toolbutton)
 from spyderlib.widgets.tabs import BaseTabs
@@ -585,12 +585,12 @@ class EditorStack(QWidget):
 #                             triggered=self.open_filelistdialog)
 #
 #        self.previous_btn = create_toolbutton(self,
-#                             icon=get_icon('previous.png'),
+#                             icon=qta.icon('fa.arrow-left'),
 #                             tip=_("Previous file"),
 #                             triggered=self.go_to_previous_file)
 #
 #        self.next_btn = create_toolbutton(self,
-#                             icon=get_icon('next.png'),
+#                             icon=qta.icon('fa.arrow-right'),
 #                             tip=_("Next file"),
 #                             triggered=self.go_to_next_file)
 

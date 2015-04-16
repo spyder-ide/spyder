@@ -381,12 +381,11 @@ class CodeEditor(TextEditBaseWidget):
         # Markers
         self.markers_margin = True
         self.markers_margin_width = 15
-        self.error_pixmap = QPixmap(get_image_path('error.png'), 'png')
-        self.warning_pixmap = QPixmap(get_image_path('warning.png'), 'png')
-        self.todo_pixmap = QPixmap(get_image_path('todo.png'), 'png')
-        self.bp_pixmap = QPixmap(get_image_path('breakpoint_small.png'), 'png')
-        self.bpc_pixmap = QPixmap(get_image_path('breakpoint_cond_small.png'),
-                                                 'png')
+        self.error_pixmap = qta.icon('fa.exclamation-circle').pixmap(QSize(14, 14))
+        self.warning_pixmap = qta.icon('fa.warning').pixmap(QSize(14, 14))
+        self.todo_pixmap = qta.icon('fa.check', color='blue').pixmap(QSize(14, 14))
+        self.bp_pixmap = qta.icon('fa.circle', color='darkred').pixmap(QSize(14, 14))
+        self.bpc_pixmap = qta.icon('fa.question-circle', color='darkred').pixmap(QSize(14, 14))
 
         # Line number area management
         self.linenumbers_margin = True

@@ -132,17 +132,18 @@ class Console(SpyderPluginWidget):
                                     triggered=self.quit)
         self.register_shortcut(quit_action, "_", "Quit", "Ctrl+Q")
         run_action = create_action(self, _("&Run..."), None,
-                            'run_small.png', _("Run a Python script"),
+                            qta.icon('fa.play', color='green'),
+                            _("Run a Python script"),
                             triggered=self.run_script)
         environ_action = create_action(self,
                             _("Environment variables..."),
-                            icon = 'environ.png',
+                            icon='environ.png',
                             tip=_("Show and edit environment variables"
                                         " (for current session)"),
                             triggered=self.show_env)
         syspath_action = create_action(self,
                             _("Show sys.path contents..."),
-                            icon = 'syspath.png',
+                            icon=qta.icon(['fa.folder-o', 'fa.cog'], options=[{}, {'scale_factor': 0.75}]),
                             tip=_("Show (read-only) sys.path"),
                             triggered=self.show_syspath)
         buffer_action = create_action(self,
@@ -151,7 +152,7 @@ class Console(SpyderPluginWidget):
                             triggered=self.change_max_line_count)
         font_action = create_action(self,
                             _("&Font..."), None,
-                            'font.png', _("Set shell font style"),
+                            qta.icon('fa.font'), _("Set shell font style"),
                             triggered=self.change_font)
         exteditor_action = create_action(self,
                             _("External editor path..."), None, None,
@@ -218,7 +219,7 @@ class Console(SpyderPluginWidget):
         """Show sys.path"""
         editor = DictEditor()
         editor.setup(sys.path, title="sys.path", readonly=True,
-                     width=600, icon='syspath.png')
+                     width=600, icon=qta.icon(['fa.folder-o', 'fa.cog'], options=[{}, {'scale_factor': 0.75}]))
         self.dialog_manager.show(editor)
     
     @Slot()

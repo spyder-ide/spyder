@@ -31,8 +31,7 @@ import traceback
 # Local imports
 from spyderlib.utils.vcs import is_hg_installed, get_vcs_root
 from spyderlib.utils.misc import abspardir, get_common_path
-from spyderlib.utils.qthelpers import (get_icon,
-                                       create_toolbutton, get_filetype_icon)
+from spyderlib.utils.qthelpers import create_toolbutton, get_filetype_icon
 from spyderlib.baseconfig import _
 from spyderlib.widgets.comboboxes import PathComboBox, PatternComboBox
 from spyderlib.widgets.onecolumntree import OneColumnTree

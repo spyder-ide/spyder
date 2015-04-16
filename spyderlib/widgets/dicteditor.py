@@ -35,8 +35,7 @@ import datetime
 from spyderlib.baseconfig import _
 from spyderlib.guiconfig import get_font
 from spyderlib.utils.misc import fix_reference_name
-from spyderlib.utils.qthelpers import (get_icon, add_actions, create_action,
-                                       qapplication)
+from spyderlib.utils.qthelpers import add_actions, create_action, qapplication
 from spyderlib.widgets.dicteditorutils import (sort_against, get_size,
                get_human_readable_type, value_to_display, get_color_name,
                is_known_type, FakeObject, Image, ndarray, array, MaskedArray,
@@ -694,7 +693,7 @@ class BaseTableView(QTableView):
                                                triggered=self.save_array)
         self.save_array_action.setVisible(False)
         self.insert_action = create_action(self, _("Insert"),
-                                           icon=get_icon('insert.png'),
+                                           icon=qta.icon('fa.sign-in'),
                                            triggered=self.insert_item)
         self.remove_action = create_action(self, _("Remove"),
                                            icon=qta.icon('fa.eraser'),
@@ -708,10 +707,10 @@ class BaseTableView(QTableView):
         self.minmax_action.setChecked(minmax)
         self.toggle_minmax(minmax)
         self.rename_action = create_action(self, _("Rename"),
-                                           icon=get_icon('rename.png'),
+                                           icon=qta.icon('fa.pencil'),
                                            triggered=self.rename_item)
         self.duplicate_action = create_action(self, _("Duplicate"),
-                                              icon=get_icon('edit_add.png'),
+                                              icon=qta.icon('fa.copy'),
                                               triggered=self.duplicate_item)
         menu = QMenu(self)
         menu_actions = [self.edit_action, self.plot_action, self.hist_action,
@@ -1249,7 +1248,7 @@ class DictEditor(QDialog):
         self.widget = None
         
     def setup(self, data, title='', readonly=False, width=500,
-              icon='dictedit.png', remote=False, parent=None):
+              icon=qta.icon('fa.th-list'), remote=False, parent=None):
         if isinstance(data, dict):
             # dictionnary
             self.data_copy = data.copy()
@@ -1287,8 +1286,6 @@ class DictEditor(QDialog):
         self.resize(width, height)
         
         self.setWindowTitle(self.widget.get_title())
-        if is_text_string(icon):
-            icon = get_icon(icon)
         self.setWindowIcon(icon)
         # Make the dialog act as a window
         self.setWindowFlags(Qt.Window)

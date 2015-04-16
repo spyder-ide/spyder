@@ -62,11 +62,11 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         new_project_act = create_action(self, text=_('New project...'),
-                                        icon=qta.icon('fa.font'),
+                                        icon=qta.icon('fa.plus'),
                                         triggered=self.create_new_project)
 
         font_action = create_action(self, _("&Font..."),
-                                    None, 'font.png', _("Set font style"),
+                                    None, qta.icon('fa.font'), _("Set font style"),
                                     triggered=self.change_font)
         self.treewidget.common_actions += (None, font_action)
         

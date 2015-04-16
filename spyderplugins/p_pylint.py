@@ -108,7 +108,7 @@ class Pylint(PylintWidget, SpyderPluginMixin):
         """Return a list of actions related to plugin"""
         # Font
         history_action = create_action(self, _("History..."),
-                                       None, 'history.png',
+                                       None, qta.icon('fa.history'),
                                        _("Set history maximum entries"),
                                        triggered=self.change_history_depth)
         self.treewidget.common_actions += (None, history_action)

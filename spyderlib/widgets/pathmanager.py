@@ -20,7 +20,7 @@ import sys
 import os.path as osp
 
 # Local imports
-from spyderlib.utils.qthelpers import get_icon, create_toolbutton
+from spyderlib.utils.qthelpers import create_toolbutton
 from spyderlib.baseconfig import _
 from spyderlib.py3compat import getcwd
 
@@ -46,7 +46,7 @@ class PathManager(QDialog):
         self.last_path = getcwd()
         
         self.setWindowTitle(_("PYTHONPATH manager"))
-        self.setWindowIcon(get_icon('pythonpath.png'))
+        self.setWindowIcon(qta.icon('spyder.python-logo'))
         self.resize(500, 300)
         
         self.selection_widgets = []
@@ -84,25 +84,25 @@ class PathManager(QDialog):
         toolbar = []
         movetop_button = create_toolbutton(self,
                                     text=_("Move to top"),
-                                    icon=get_icon('2uparrow.png'),
+                                    icon=qta.icon('fa.angle-double-up'),
                                     triggered=lambda: self.move_to(absolute=0),
                                     text_beside_icon=True)
         toolbar.append(movetop_button)
         moveup_button = create_toolbutton(self,
                                     text=_("Move up"),
-                                    icon=get_icon('1uparrow.png'),
+                                    icon=qta.icon('fa.angle-up'),
                                     triggered=lambda: self.move_to(relative=-1),
                                     text_beside_icon=True)
         toolbar.append(moveup_button)
         movedown_button = create_toolbutton(self,
                                     text=_("Move down"),
-                                    icon=get_icon('1downarrow.png'),
+                                    icon=qta.icon('fa.angle-down'),
                                     triggered=lambda: self.move_to(relative=1),
                                     text_beside_icon=True)
         toolbar.append(movedown_button)
         movebottom_button = create_toolbutton(self,
                                     text=_("Move to bottom"),
-                                    icon=get_icon('2downarrow.png'),
+                                    icon=qta.icon('fa.angle-double-down'),
                                     triggered=lambda: self.move_to(absolute=1),
                                     text_beside_icon=True)
         toolbar.append(movebottom_button)
@@ -128,7 +128,7 @@ class PathManager(QDialog):
         if os.name == 'nt' and sync:
             self.sync_button = create_toolbutton(self,
                   text=_("Synchronize..."),
-                  icon=get_icon('synchronize.png'), triggered=self.synchronize,
+                  icon=qta.icon('fa.download'), triggered=self.synchronize,
                   tip=_("Synchronize Spyder's path list with PYTHONPATH "
                               "environment variable"),
                   text_beside_icon=True)

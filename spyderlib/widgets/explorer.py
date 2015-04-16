@@ -206,14 +206,14 @@ class DirView(QTreeView):
         """Return actions for submenu 'New...'"""
         if not fnames:
             return []
-        new_file_act = create_action(self, _("File..."), icon='filenew.png',
+        new_file_act = create_action(self, _("File..."), icon=get_icon('filenew.png'),
                                      triggered=lambda:
                                      self.new_file(fnames[-1]))
-        new_module_act = create_action(self, _("Module..."), icon='py.png',
+        new_module_act = create_action(self, _("Module..."), icon=get_icon('py.png'),
                                        triggered=lambda:
                                          self.new_module(fnames[-1]))
         new_folder_act = create_action(self, _("Folder..."),
-                                       icon='folder_new.png',
+                                       icon=get_icon('folder_new.png'),
                                        triggered=lambda:
                                         self.new_folder(fnames[-1]))
         new_package_act = create_action(self, _("Package..."),
@@ -235,7 +235,7 @@ class DirView(QTreeView):
         only_notebooks = all([osp.splitext(_fn)[1] == '.ipynb'
                               for _fn in fnames])
         only_valid = all([encoding.is_text_file(_fn) for _fn in fnames])
-        run_action = create_action(self, _("Run"), icon="run_small.png",
+        run_action = create_action(self, _("Run"), icon=qta.icon('fa.play', color='green'),
                                    triggered=self.run)
         edit_action = create_action(self, _("Edit"), icon=qta.icon('fa.edit'),
                                     triggered=self.clicked)

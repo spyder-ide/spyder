@@ -386,7 +386,7 @@ class ObjectInspector(SpyderPluginWidget):
 
         # Add entries to read-only editor context-menu
         font_action = create_action(self, _("&Font..."), None,
-                                    'font.png', _("Set font style"),
+                                    qta.icon('fa.font'), _("Set font style"),
                                     triggered=self.change_font)
         self.wrap_action = create_action(self, _("Wrap lines"),
                                          toggled=self.toggle_wrap_mode)
