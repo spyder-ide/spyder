@@ -2,7 +2,7 @@
 
 Copyright © 2009-2013 Pierre Raybaut.
 Licensed under the terms of the MIT License
-(see `spyderlib/__init__.py` for details)
+(see `LICENSE` for details)
 
 
 ## Overview
@@ -46,12 +46,15 @@ Spyder may be embedded in your own PyQt4/PySide application.
 
 ## Running from source
 
-It is possible to run Spyder from the source code checkout, given
-that you have PyQt or PySide installed. Just run:
+The fastest way to run Spyder is to get the source code, install PyQt
+or PySide, and run:
 
     python bootstrap.py
 
-This is useful if you want to learn how Spyder works and enhance it.
+You may want to do this for fixing bugs in Spyder, adding new
+features, learning how Spyder works or just getting a taste of it.
+Make sure you use a stable branch though, because `master` may not
+always be clean.
 
 ## Installation
     
@@ -84,7 +87,7 @@ The easiest way to install Spyder is:
     - Using the [Anaconda Distribution](http://continuum.io/downloads).
     - Installing from source (see below).
 
-### Installing from source
+* Cross-platoform way from source
 
 You can also install Spyder from its zip source package. For that you need to
 download and uncompress the file called `spyder-x.y.z.zip`, which can be
