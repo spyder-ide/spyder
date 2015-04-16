@@ -75,9 +75,12 @@ class RunConfiguration(object):
                            CONF.get('run', CURRENT_INTERPRETER_OPTION, True))
         self.systerm = options.get('systerm',
                            CONF.get('run', SYSTERM_INTERPRETER_OPTION, False))
-        self.interact = options.get('interact', False)
-        self.show_kill_warning = options.get('show_kill_warning', True)
-        self.post_mortem = options.get('post_mortem', False)
+        self.interact = options.get('interact',
+                           CONF.get('run', 'interact', False))
+        self.show_kill_warning = options.get('show_kill_warning', 
+                           CONF.get('run', 'show_kill_warning', False))
+        self.post_mortem = options.get('post_mortem',
+                           CONF.get('run', 'post_mortem', False))
         self.python_args = options.get('python_args', '')
         self.python_args_enabled = options.get('python_args/enabled', False)
         
@@ -174,8 +177,8 @@ class RunConfigOptions(QWidget):
         browse_btn.clicked.connect(self.select_directory)
         wd_layout.addWidget(browse_btn)
         common_layout.addLayout(wd_layout, 1, 1)
-        self.post_mortem_cb = QCheckBox(_("Enter post mortem debugging"
-                                          " for uncaught exceptions"))
+        self.post_mortem_cb = QCheckBox(_("Enter debugging mode when "
+                                          "errors appear during execution"))
         common_layout.addWidget(self.post_mortem_cb)
         
         # --- Interpreter ---
@@ -467,8 +470,8 @@ class RunConfigPage(GeneralConfigPage):
         interpreter_layout.addWidget(self.dedicated_radio)
         interpreter_layout.addWidget(self.systerm_radio)
         
-        wdir_group = QGroupBox(_("Working directory"))
-        wdir_bg = QButtonGroup(wdir_group)
+        general_group = QGroupBox("General settings")
+        wdir_bg = QButtonGroup(general_group)
         wdir_label = QLabel(_("Default working directory is:"))
         wdir_label.setWordWrap(True)
         dirname_radio = self.create_radiobutton(_("the script directory"),
@@ -484,11 +487,29 @@ class RunConfigPage(GeneralConfigPage):
         thisdir_layout.addWidget(thisdir_radio)
         thisdir_layout.addWidget(thisdir_bd)
 
-        wdir_layout = QVBoxLayout()
-        wdir_layout.addWidget(wdir_label)
-        wdir_layout.addWidget(dirname_radio)
-        wdir_layout.addLayout(thisdir_layout)
-        wdir_group.setLayout(wdir_layout)
+        post_mortem = self.create_checkbox(
+             _("Enter debugging mode when errors appear during execution"),
+             'post_mortem', False)
+
+        general_layout = QVBoxLayout()
+        general_layout.addWidget(wdir_label)
+        general_layout.addWidget(dirname_radio)
+        general_layout.addLayout(thisdir_layout)
+        general_layout.addWidget(post_mortem)
+        general_group.setLayout(general_layout)
+
+        dedicated_group = QGroupBox(_("Dedicated Python console"))
+        interact_after = self.create_checkbox(
+            _("Interact with the Python console after execution"),
+            'interact', False)
+        show_warning = self.create_checkbox(
+            _("Show warning when killing running processes"),
+            'show_kill_warning', True)
+
+        dedicated_layout = QVBoxLayout()
+        dedicated_layout.addWidget(interact_after)
+        dedicated_layout.addWidget(show_warning)
+        dedicated_group.setLayout(dedicated_layout)
 
         firstrun_cb = self.create_checkbox(
                             ALWAYS_OPEN_FIRST_RUN % _("Run Settings dialog"),
@@ -498,7 +519,8 @@ class RunConfigPage(GeneralConfigPage):
         vlayout.addWidget(about_label)
         vlayout.addSpacing(10)
         vlayout.addWidget(interpreter_group)
-        vlayout.addWidget(wdir_group)
+        vlayout.addWidget(general_group)
+        vlayout.addWidget(dedicated_group)
         vlayout.addWidget(firstrun_cb)
         vlayout.addStretch(1)
         self.setLayout(vlayout)
