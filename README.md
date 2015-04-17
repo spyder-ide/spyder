@@ -53,8 +53,6 @@ or PySide, and run:
 
 You may want to do this for fixing bugs in Spyder, adding new
 features, learning how Spyder works or just getting a taste of it.
-Make sure you use a stable branch though, because `master` may not
-always be clean.
 
 ## Installation
     
@@ -87,7 +85,7 @@ The easiest way to install Spyder is:
     - Using the [Anaconda Distribution](http://continuum.io/downloads).
     - Installing from source (see below).
 
-* Cross-platoform way from source
+* Cross-platform way from source
 
 You can install Spyder from its zip source package named `spyder-x.y.z.zip`
 [here](https://github.com/spyder-ide/spyder/releases). Then you need to
@@ -95,7 +93,7 @@ use standard Python `setup.py` script:
 
     python setup.py install
 
-Note that `setup.py` script doens't know how uninstall previous versions
+Note that `setup.py` is not able to uninstall previous versions
 of Python packages: it simply copies files on top of an existing
 installation. So the better way is to use `pip` package manager:
 
