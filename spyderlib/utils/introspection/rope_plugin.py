@@ -65,9 +65,9 @@ class RopePlugin(IntrospectionPlugin):
         self.create_rope_project(root_path=get_conf_path())
 
     def get_completions(self, info):
-        """Get a list of completions using Rope"""
+        """Get a list of (completion, type) tuples using Rope"""
         if self.project is None:
-            return
+            return []
         filename = info.filename
         source_code = info.source_code
         offset = info.position
@@ -93,10 +93,11 @@ class RopePlugin(IntrospectionPlugin):
             proposals = rope.contrib.codeassist.sorted_proposals(proposals)
             if DEBUG_EDITOR:
                 log_dt(LOG_FILENAME, "code_assist/sorted_proposals", t0)
-            return [proposal.name for proposal in proposals]
+            return [(proposal.name, proposal.type) for proposal in proposals]
         except Exception as _error:  #analysis:ignore
             if DEBUG_EDITOR:
                 log_last_error(LOG_FILENAME, "get_completion_list")
+        return []
 
     def get_info(self, info):
         """Get a formatted calltip and docstring from Rope"""
@@ -284,7 +285,7 @@ if __name__ == '__main__':
     source_code = "import numpy; n"
     completions = p.get_completions(CodeInfo('completions', source_code,
         len(source_code), __file__))
-    assert 'numpy' in completions
+    assert ('numpy', 'module') in completions
 
     source_code = "import matplotlib.pyplot as plt; plt.imsave"
     path, line_nr = p.get_definition(CodeInfo('definition', source_code,

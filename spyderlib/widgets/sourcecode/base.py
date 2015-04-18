@@ -19,9 +19,11 @@ from spyderlib.qt.QtGui import (QTextCursor, QColor, QFont, QApplication,
                                 QTextEdit, QTextCharFormat, QToolTip,
                                 QListWidget, QPlainTextEdit, QPalette,
                                 QMainWindow, QTextOption, QMouseEvent,
-                                QTextFormat, QClipboard, QAbstractItemView)
+                                QTextFormat, QClipboard, QAbstractItemView,
+                                QListWidgetItem)
 from spyderlib.qt.QtCore import Signal, Slot, Qt, QEventLoop, QEvent, QPoint
 from spyderlib.qt.compat import to_qvariant
+from spyderlib.utils.qthelpers import get_icon
 
 
 # Local imports
@@ -61,13 +63,26 @@ class CompletionWidget(QListWidget):
         self.setFont(font)
         
     def show_list(self, completion_list, automatic=True):
+        types = [c[1] for c in completion_list]
+        completion_list = [c[0] for c in completion_list]
         if len(completion_list) == 1 and not automatic:
             self.textedit.insert_completion(completion_list[0])
             return
-        
+
         self.completion_list = completion_list
         self.clear()
-        self.addItems(completion_list)
+
+        lut = dict(instance='class.png', method='method.png',
+                   function='function.png', attribute='attribute.png')
+
+        for (c, t) in zip(completion_list, types):
+            if t in lut:
+                self.addItem(QListWidgetItem(get_icon(lut[t]), c))
+            elif t == 'class':
+                self.addItem(QListWidgetItem(get_icon(lut['instance']), c))
+            else:
+                self.addItem(c)
+
         self.setCurrentRow(0)
         
         QApplication.processEvents(QEventLoop.ExcludeUserInputEvents)
@@ -882,15 +897,17 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     def show_completion_list(self, completions, completion_text="",
                              automatic=True):
         """Display the possible completions"""
-        if len(completions) == 0 or completions == [completion_text]:
+        c = completions
+        if len(c) == 0 or (len(c) == 1 and c[0][0] == completion_text):
             return
         self.completion_text = completion_text
         # Sorting completion list (entries starting with underscore are 
         # put at the end of the list):
-        underscore = set([comp for comp in completions
+        underscore = set([(comp, t) for (comp, t) in completions
                           if comp.startswith('_')])
-        completions = sorted(set(completions)-underscore, key=str_lower)+\
-                      sorted(underscore, key=str_lower)
+
+        completions = sorted(set(completions)-underscore, key=lambda x: str_lower(x[0]))+\
+                      sorted(underscore, key=lambda x: str_lower(x[0]))
         self.show_completion_widget(completions, automatic=automatic)
         
     def select_completion_list(self):

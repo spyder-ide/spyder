@@ -418,7 +418,8 @@ class PluginManager(QObject):
             return
 
         if info.full_obj and len(info.full_obj) > len(info.obj):
-            new_list = [c for c in comp_list if c.startswith(info.full_obj)]
+            new_list = [(c, t) for (c, t) in comp_list
+                        if c.startswith(info.full_obj)]
             if new_list:
                 pos = info.editor.get_position('cursor')
                 new_pos = pos + len(info.full_obj) - len(info.obj)
@@ -429,8 +430,9 @@ class PluginManager(QObject):
         if '.' in completion_text:
             completion_text = completion_text.split('.')[-1]
 
-        comp_list = [c.split('.')[-1]  for c in comp_list]
-        comp_list = [c for c in comp_list if c.startswith(completion_text)]
+        comp_list = [(c.split('.')[-1], t) for (c, t) in comp_list]
+        comp_list = [(c, t) for (c, t) in comp_list
+                     if c.startswith(completion_text)]
 
         info.editor.show_completion_list(comp_list, completion_text,
                                          prev_info.automatic)
