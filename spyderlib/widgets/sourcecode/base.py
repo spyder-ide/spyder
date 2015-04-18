@@ -72,13 +72,14 @@ class CompletionWidget(QListWidget):
         self.completion_list = completion_list
         self.clear()
 
-        lut = dict(instance='attribute.png', method='method.png',
-                   statement='attribute.png', function='function.png',
-                   attribute='attribute.png')
-        lut['class'] = 'class.png'
+        icon_lut = {'instance': 'attribute.png',
+                    'statement': 'attribute.png',
+                    'method': 'method.png',
+                    'function': 'function.png',
+                    'class': 'class.png'}
 
         for (c, t) in zip(completion_list, types):
-            icon = lut.get(t, 'no_match.png')
+            icon = icon_lut.get(t, 'no_match.png')
             self.addItem(QListWidgetItem(get_icon(icon), c))
 
         self.setCurrentRow(0)
