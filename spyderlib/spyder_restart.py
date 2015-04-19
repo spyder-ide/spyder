@@ -1,19 +1,64 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+#
+# Copyright © 2015 The Spyder Development Team
+# Licensed under the terms of the MIT License
+# (see spyderlib/__init__.py for details)
+
 """
 Restart Spyder
 
 A helper script to allow for spyder to restart
 """
 
+import ast
 import os
 import os.path as osp
 import sys
-import platform
 import subprocess
 import time
 
 from spyderlib.py3compat import to_text_string
+
+
+def _is_pid_running_on_windows(pid):
+    """Check if a process is running on windows systems based on the pid."""
+    pid = str(pid)
+
+    # Hide flashing command prompt
+    startupinfo = subprocess.STARTUPINFO()
+    startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+
+    process = subprocess.Popen(r'tasklist /fi "PID eq {0}"'.format(pid),
+                               stdout=subprocess.PIPE,
+                               stderr=subprocess.STDOUT,
+                               startupinfo=startupinfo)
+    stdoutdata, stderrdata = process.communicate()
+    stdoutdata = to_text_string(stdoutdata)
+    process.kill()
+    check = pid in stdoutdata
+
+    return check
+
+
+def _is_pid_running_on_unix(pid):
+    """Check if a process is running on unix systems based on the pid."""
+    try:
+        # On unix systems os.kill with a 0 as second argument only pokes the
+        # process (if it exists) and does not kill it
+        os.kill(pid, 0)
+    except OSError:
+        return False
+    else:
+        return True
+
+
+def is_pid_running(pid):
+    """Check if a process is running based on the pid."""
+    # Adjust the command and/or arguments to subprocess depending on the OS
+    if os.name == 'nt':
+        return _is_pid_running_on_windows(pid)
+    else:
+        return _is_pid_running_on_unix(pid)
 
 
 def main():
@@ -27,16 +72,20 @@ def main():
         error = "This script can only be called from within a Spyder instance"
         raise RuntimeError(error)
 
-    # Fix variables
-    args = eval(spyder_args)
-    args = ' '.join(args)
-    is_bootstrap = eval(is_bootstrap)
-    pid = eval(pid)
+    # Variables were stored as string literals in the environment, so to use
+    # them we need to parse them.
+    is_bootstrap = ast.literal_eval(is_bootstrap)
+    pid = int(pid)
+    args = ast.literal_eval(spyder_args)
 
-    # Fix args
-    # Maybe --new-instance should always be included to cope with corner cases
-    # where someone has one running version without and and another with
-    # If the user the one without (--new...) it would not start
+    # Enforce the --new-instance flag when running spyder
+    if '--' not in args:
+        args.append('--')
+
+    args.append('--new-instance')
+
+    # Arrange arguments
+    args = ' '.join(args)
 
     python = sys.executable
 
@@ -49,23 +98,17 @@ def main():
 
     command = '"{0}" "{1}" {2}'.format(python, spyder, args)
 
-    # Adjust the command depending on the OS
-    system = platform.system().lower()
-    if system.startswith('win'):
+    # Adjust the command and/or arguments to subprocess depending on the OS
+    if os.name == 'nt':
         shell = False
-        is_pid_running = _is_pid_running_on_windows
-    elif system.startswith('linux'):
+    else:
         shell = True
-        is_pid_running = _is_pid_running_on_unix
-    elif system.startswith('darwin'):
-        shell = True
-        is_pid_running = _is_pid_running_on_unix
 
     # Wait for original process to end before launching the new instance
     while True:
         if not is_pid_running(pid):
             break
-        time.sleep(0.2)
+        time.sleep(0.2)  # Throttling control
 
     env = os.environ.copy()
     try:
@@ -74,32 +117,6 @@ def main():
         print(command)
         print(error)
         time.sleep(15)
-
-
-def _is_pid_running_on_windows(pid):
-    """Check For the existence of a windows pid."""
-    pid = str(pid)
-    startupinfo = subprocess.STARTUPINFO()
-    startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-    process = subprocess.Popen(r'tasklist /fi "PID eq {0}"'.format(pid),
-                               stdout=subprocess.PIPE,
-                               stderr=subprocess.STDOUT,
-                               startupinfo=startupinfo)
-    stdoutdata, stderrdata = process.communicate()
-    stdoutdata = to_text_string(stdoutdata)
-    process.kill()
-    check = pid in stdoutdata
-    return check
-
-
-def _is_pid_running_on_unix(pid):
-    """Check For the existence of a unix pid."""
-    try:
-        os.kill(pid, 0)
-    except OSError:
-        return False
-    else:
-        return True
 
 
 if __name__ == '__main__':

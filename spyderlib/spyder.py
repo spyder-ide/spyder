@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright © 2009-2013 Pierre Raybaut
+# Copyright © 2013-2015 The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -119,7 +120,7 @@ from spyderlib import __version__, __project_url__, __forum_url__, get_versions
 from spyderlib.baseconfig import (get_conf_path, get_module_data_path,
                                   get_module_source_path, STDERR, DEBUG, DEV,
                                   debug_print, TEST, SUBFOLDER, MAC_APP_NAME,
-                                  running_in_mac_app)
+                                  running_in_mac_app, get_module_path)
 from spyderlib.config import CONF, EDIT_EXT, IMPORT_EXT, OPEN_FILES_PORT
 from spyderlib.cli_options import get_options
 from spyderlib import dependencies
@@ -2662,9 +2663,9 @@ class MainWindow(QMainWindow):
 
     # ---- Quit and restart
     def restart(self):
-        """ """
+        """Quit and Restart Spyder application"""
         # Get start path to use in restart script
-        spyder_start_directory = osp.dirname(osp.abspath(__file__))
+        spyder_start_directory  = get_module_path('spyderlib')
         spyder_folder = osp.split(spyder_start_directory)[0]
         restart_script = osp.join(spyder_start_directory, 'spyder_restart.py')
 
@@ -2679,39 +2680,38 @@ class MainWindow(QMainWindow):
         python = sys.executable
 
         # Check if started with bootstrap.py
-        is_bootstrap = False
         if bootstrap_args is not None:
             spyder_args = bootstrap_args
             is_bootstrap = True
+        else:
+            is_bootstrap = False
 
-        # Pass args as environment variables to restarter subprocess
+        # Pass variables as environment variables (str) to restarter subprocess
         env['SPYDER_ARGS'] = spyder_args
         env['SPYDER_PID'] = str(pid)
         env['SPYDER_IS_BOOTSTRAP'] = str(is_bootstrap)
         env['SPYDER_FOLDER'] = spyder_folder
 
         # Build the command and popen arguments depending on the OS
-        import platform
-        system = platform.system().lower()
-
-        startupinfo = None
-        if system.startswith('win'):
+        if os.name == 'nt':
+            # Hide flashing command prompt
             startupinfo = subprocess.STARTUPINFO()
             startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
             shell = False
-        elif system.startswith('linux'):
-            shell = True
-        elif system.startswith('darwin'):
+        else:
+            startupinfo = None
             shell = True
 
         command = '"{0}" "{1}"'
         command = command.format(python, restart_script)
 
         try:
-            subprocess.Popen(command, shell=shell, env=env,
-                             startupinfo=startupinfo)
-            self.console.quit()
+            if self.closing(True):
+                subprocess.Popen(command, shell=shell, env=env,
+                                 startupinfo=startupinfo)
+                self.console.quit()
         except Exception as error:
+            # Any logger we can use in case there is an error?
             print(error)
             print(command)
 
