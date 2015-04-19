@@ -76,7 +76,8 @@ class CompletionWidget(QListWidget):
                     'statement': 'attribute.png',
                     'method': 'method.png',
                     'function': 'function.png',
-                    'class': 'class.png'}
+                    'class': 'class.png',
+                    'module': 'module.png'}
 
         for (c, t) in zip(completion_list, types):
             icon = icon_lut.get(t, 'no_match.png')
@@ -905,8 +906,9 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         underscore = set([(comp, t) for (comp, t) in completions
                           if comp.startswith('_')])
 
-        completions = sorted(set(completions)-underscore, key=lambda x: str_lower(x[0]))+\
-                      sorted(underscore, key=lambda x: str_lower(x[0]))
+        completions = sorted(set(completions) - underscore,
+                             key=lambda x: str_lower(x[0]))
+        completions += sorted(underscore, key=lambda x: str_lower(x[0]))
         self.show_completion_widget(completions, automatic=automatic)
         
     def select_completion_list(self):
