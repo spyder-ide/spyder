@@ -806,9 +806,8 @@ class Editor(SpyderPluginWidget):
 
         run_cell_action = create_action(self,
                             _("Run cell"),
-                            icon=qta.icon(['spyder.cell', 'spyder.run-one-inplace'], 
-                                          options=[{'scale_factor': 0.75,
-                                                    'offset': (-0.125, -0.25)}, 
+                            icon=qta.icon(['fa.list-alt', 'spyder.run-one-inplace'], 
+                                          options=[{'color': 'grey'},
                                                    {'color': 'green',
                                                     'scale_factor': 0.75,
                                                     'offset': (0.125, 0.125)}]),
@@ -819,9 +818,8 @@ class Editor(SpyderPluginWidget):
 
         run_cell_advance_action = create_action(self,
                             _("Run cell and advance"),
-                            icon=qta.icon(['spyder.cell', 'spyder.run-one'], 
-                                          options=[{'scale_factor': 0.75,
-                                                    'offset': (-0.125, -0.25)}, 
+                            icon=qta.icon(['fa.list-alt', 'spyder.run-one'], 
+                                          options=[{'color': 'grey'},
                                                    {'color': 'green',
                                                     'scale_factor': 0.75,
                                                     'offset': (0.125, 0.125)}]),
@@ -834,7 +832,9 @@ class Editor(SpyderPluginWidget):
         self.todo_list_action = create_action(self,
                 _("Show todo list"), icon=qta.icon(['fa.th-list', 'fa.check'], 
                                                    options=[{'color': 'blue'},
-                                                            {'color': 'orange'}]),
+                                                            {'offset': (0.0, 0.2),
+                                                             'color': 'orange',
+                                                             'color_disabled': '#face7e'}]),
                 tip=_("Show TODO/FIXME/XXX/HINT/TIP/@todo comments list"),
                 triggered=self.go_to_next_todo)
         self.todo_menu = QMenu(self)
@@ -845,8 +845,10 @@ class Editor(SpyderPluginWidget):
                 _("Show warning/error list"), icon=
                 qta.icon(['fa.th-list', 'fa.warning'],
                          options=[{'color': 'blue'}, 
-                                  {'scale_factor': 0.75,
-                                   'color': 'orange'}]),
+                                  {'offset': (0.0, 0.2),
+                                   'scale_factor': 0.75,
+                                   'color': 'orange',
+                                   'color_disabled': '#face7e'}]),
                 tip=_("Show code analysis warnings/errors"),
                 triggered=self.go_to_next_warning)
         self.warning_menu = QMenu(self)
@@ -858,7 +860,8 @@ class Editor(SpyderPluginWidget):
                          options=[{'color': 'blue'}, 
                                   {'offset': (0.0, 0.2),
                                    'scale_factor': 0.75,
-                                   'color': 'orange'}]),
+                                   'color': 'orange',
+                                   'color_disabled': '#face7e'}]),
                 tip=_("Go to previous code analysis warning/error"),
                 triggered=self.go_to_previous_warning)
         self.next_warning_action = create_action(self,
@@ -867,7 +870,8 @@ class Editor(SpyderPluginWidget):
                          options=[{'color': 'blue'}, 
                                   {'offset': (0.0, 0.2),
                                    'scale_factor': 0.75,
-                                   'color': 'orange'}]),
+                                   'color': 'orange',
+                                   'color_disabled': '#face7e'}]),
                 tip=_("Go to next code analysis warning/error"),
                 triggered=self.go_to_next_warning)
         
