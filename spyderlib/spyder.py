@@ -2690,7 +2690,7 @@ class MainWindow(QMainWindow):
         # Define the custom QMessageBox
         box = MessageCheckBox()
         box.setWindowTitle(_("Spyder updates"))
-        box.set_checkbox_text(_("Check for updates on startup?"))
+        box.set_checkbox_text(_("Check for updates on startup"))
         box.setStandardButtons(QMessageBox.Ok)
         box.setDefaultButton(QMessageBox.Ok)
         box.setIcon(QMessageBox.Information)

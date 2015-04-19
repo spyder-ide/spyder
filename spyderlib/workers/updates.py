@@ -7,27 +7,44 @@
 
 import json
 
+
 from spyderlib import __version__
 from spyderlib.baseconfig import _
 from spyderlib.py3compat import PY3
-from spyderlib.qt.QtGui import (QMessageBox, QCheckBox)
+from spyderlib.qt.QtGui import QMessageBox, QCheckBox, QSpacerItem, QVBoxLayout
 from spyderlib.qt.QtCore import Signal, Qt, QObject
+from spyderlib.utils.programs import check_version
+
+
+if PY3:
+    from urllib.request import urlopen
+    from urllib.error import URLError, HTTPError
+else:
+    from urllib2 import urlopen, URLError, HTTPError
 
 
 class MessageCheckBox(QMessageBox):
     """
-    A QMessageBox derived widget that includes a QCheckBox under the message
-    and on top of the buttons.
+    A QMessageBox derived widget that includes a QCheckBox aligned to the right
+    under the message and on top of the buttons.
     """
     def __init__(self, *args, **kwargs):
         super(MessageCheckBox, self).__init__(*args, **kwargs)
 
         self._checkbox = QCheckBox()
 
+        # Set layout to include checkbox
+        size = 9
+        check_layout = QVBoxLayout()
+        check_layout.addItem(QSpacerItem(size, size))
+        check_layout.addWidget(self._checkbox, 0, Qt.AlignRight)
+        check_layout.addItem(QSpacerItem(size, size))
+
         # Access the Layout of the MessageBox to add the Checkbox
         layout = self.layout()
-        layout.addWidget(self._checkbox, 1, 1, Qt.AlignRight)
+        layout.addLayout(check_layout, 1, 1)
 
+    # --- Public API
     # Methods to access the checkbox
     def is_checked(self):
         return self._checkbox.isChecked()
@@ -80,38 +97,36 @@ class WorkerUpdates(QObject):
             return False
 
     def check_update_available(self, version, releases):
-        """ """
-        from spyderlib.utils.programs import check_version
+        """Checks if there is an update available.
 
+        It takes as parameters the current version of Spyder and a list of
+        valid cleaned releases in chronological order (what github api returns
+        by default). Example: ['2.3.4', '2.3.3' ...]"""
         if self.is_stable_version(version):
             # Remove non stable versions from the list
             releases = [r for r in releases if self.is_stable_version(r)]
 
-        latest = releases[0]
         latest_release = releases[0]
 
         if version.endswith('dev'):
             return (False, latest_release)
 
-        if self.is_stable_version(latest) and \
-                version.startswith(latest) and latest != version:
-            # Modify the last part so that i.e. 3.0.0 is bigger than 3.0.0rc2
-            parts = latest.split('.')
+        # check_version is based on LooseVersion, so a small hack is needed so
+        # that LooseVersion understands that '3.0.0' is in fact bigger than
+        # '3.0.0rc1'
+        if self.is_stable_version(latest_release) and \
+          version.startswith(latest_release) and latest_release != version:
+            parts = latest_release.split('.')
             parts = parts[:-1] + [parts[-1] + 'z']
-            latest = '.'.join(parts)
+            latest_mod = '.'.join(parts)
+        else:
+            latest_mod = releases[0]
 
-        return (check_version(version, latest, '<'), latest_release)
+        return (check_version(version, latest_mod, '<'), latest_release)
 
     def start(self):
-        """ """
-        if PY3:
-            from urllib.request import urlopen
-            from urllib.error import URLError, HTTPError
-        else:
-            from urllib2 import urlopen, URLError, HTTPError
-
+        """Main method of the WorkerUpdates worker"""
         self.url = 'https://api.github.com/repos/spyder-ide/spyder/releases'
-
         self.update_available = False
         self.latest_release = __version__
 
@@ -127,22 +142,32 @@ class WorkerUpdates(QObject):
                 version = __version__
                 result = self.check_update_available(version, releases)
                 self.update_available, self.latest_release = result
-            except Exception as error:
-                #print(error)
+            except Exception:
                 error_msg = _('Unable to retrieve information.')
-        except HTTPError as error:
+        except HTTPError:
             error_msg = _('Unable to retrieve information.')
-            msg = 'HTTPError = ' + str(error.code)
-            #print(msg)
-        except URLError as error:
+        except URLError:
             error_msg = _('Unable to connect to the internet. <br><br>Make '
                           'sure the connection is working properly.')
-            msg = 'URLError = ' + str(error.reason)
-            #print(msg)
-        except Exception as error:
+        except Exception:
             error_msg = _('Unable to check for updates.')
-            msg = error
-            #print(msg)
 
         self.error = error_msg
         self.sig_ready.emit()
+
+
+def test_msgcheckbox():
+    from spyderlib.utils.qthelpers import qapplication
+    app = qapplication()
+    app.setStyle('Plastique')
+    box = MessageCheckBox()
+    box.setWindowTitle(_("Spyder updates"))
+    box.setText("Testing checkbox")
+    box.set_checkbox_text("Check for updates on startup?")
+    box.setStandardButtons(QMessageBox.Ok)
+    box.setDefaultButton(QMessageBox.Ok)
+    box.setIcon(QMessageBox.Information)
+    box.exec_()
+
+if __name__ == '__main__':
+    test_msgcheckbox()
