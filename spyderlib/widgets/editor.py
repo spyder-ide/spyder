@@ -47,7 +47,7 @@ from spyderlib.widgets.sourcecode.base import TextEditBaseWidget  #analysis:igno
 from spyderlib.widgets.sourcecode.codeeditor import Printer  #analysis:ignore
 from spyderlib.widgets.sourcecode.codeeditor import get_file_language
 from spyderlib.py3compat import to_text_string, qbytearray_to_str, u
-
+from spyderlib.widgets.html_delegate import HTMLDelegate
 
 DEBUG_EDITOR = DEBUG >= 3
 
@@ -93,6 +93,7 @@ class FileListDialog(QDialog):
         edit_layout.addWidget(self.edit)
         
         self.listwidget = QListWidget(self)
+        self.listwidget.setItemDelegate(HTMLDelegate(self))
         self.listwidget.setResizeMode(QListWidget.Adjust)
         self.listwidget.itemSelectionChanged.connect(self.item_selection_changed)
         self.listwidget.itemActivated.connect(self.handle_edit_file)
@@ -156,9 +157,8 @@ class FileListDialog(QDialog):
                 if text == current_text:
                     new_current_index = lw_index
                 lw_index += 1
-                # TODO: find out how to render rich text in the QListWidgetItem
-                #if len(filter_text) > 0:
-                #    text = text.replace(filter_text,'<b>' + filter_text + '</b>')
+                if len(filter_text) > 0:
+                    text = text.replace(filter_text,'<b>' + filter_text + '</b>')
                 item = QListWidgetItem(self.tabs.tabIcon(index),
                                        text, self.listwidget)
                 item.setSizeHint(QSize(0, 25))
