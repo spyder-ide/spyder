@@ -2666,11 +2666,10 @@ class MainWindow(QMainWindow):
         """Quit and Restart Spyder application"""
         # Get start path to use in restart script
         spyder_start_directory  = get_module_path('spyderlib')
-        spyder_folder = osp.split(spyder_start_directory)[0]
-        restart_script = osp.join(spyder_start_directory, 'spyder_restart.py')
+        restart_script = osp.join(spyder_start_directory, 'restart_app.py')
 
         # Get any initial argument passed when spyder was started
-        # Variables defined in bootstrap.py and spyderlib\start_app.py
+        # Note: Variables defined in bootstrap.py and spyderlib\start_app.py
         env = os.environ.copy()
         bootstrap_args = env.pop('SPYDER_BOOTSTRAP_ARGS', None)
         spyder_args = env.pop('SPYDER_ARGS')
@@ -2690,7 +2689,6 @@ class MainWindow(QMainWindow):
         env['SPYDER_ARGS'] = spyder_args
         env['SPYDER_PID'] = str(pid)
         env['SPYDER_IS_BOOTSTRAP'] = str(is_bootstrap)
-        env['SPYDER_FOLDER'] = spyder_folder
 
         # Build the command and popen arguments depending on the OS
         if os.name == 'nt':
@@ -2711,7 +2709,8 @@ class MainWindow(QMainWindow):
                                  startupinfo=startupinfo)
                 self.console.quit()
         except Exception as error:
-            # Any logger we can use in case there is an error?
+            # If there is an error with subprocess, Spyder should not quit and
+            # the error can be inspected in the internal console
             print(error)
             print(command)
 
