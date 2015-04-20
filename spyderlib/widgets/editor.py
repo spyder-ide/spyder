@@ -86,7 +86,7 @@ class FileListDialog(QDialog):
         self.listwidget.setResizeMode(QListWidget.Adjust)
         self.listwidget.itemSelectionChanged.connect(self.item_selection_changed)
         self.listwidget.itemActivated.connect(self.handle_edit_file)
-        self.original_row = None
+        self.original_index = None
         self.rejected.connect(self.handle_rejection)
         btn_layout = QHBoxLayout()
         edit_btn = create_toolbutton(self, icon=ima.icon('edit'),
@@ -122,8 +122,8 @@ class FileListDialog(QDialog):
         self.buttons = (edit_btn, close_btn)
 
     def handle_rejection(self):
-        if self.original_row is not None:
-            self.edit_file.emit(self.original_row)
+        if self.original_index is not None:
+            self.edit_file.emit(self.original_index)
 
     def handle_edit_file(self):
         row = self.listwidget.currentRow()
@@ -132,6 +132,9 @@ class FileListDialog(QDialog):
             self.accept()
     
     def item_selection_changed(self):
+        if self.original_index is None:
+            self.original_index = self.tabs.currentIndex()
+
         row = self.listwidget.currentRow()  
         if self.listwidget.count() > 0 and row >= 0:
             self.edit_file.emit(self.indexes[row])
@@ -154,7 +157,7 @@ class FileListDialog(QDialog):
             current_text = ""
         self.listwidget.clear()
         self.indexes = []
-        self.original_row = new_current_index = stack_index
+        new_current_index = stack_index
         filter_text = to_text_string(self.edit.text())
         lw_index = 0
         for index in range(count):
