@@ -2,7 +2,7 @@
 
 Copyright © 2009-2013 Pierre Raybaut.
 Licensed under the terms of the MIT License
-(see `spyderlib/__init__.py` for details)
+(see `LICENSE` for details)
 
 
 ## Overview
@@ -44,6 +44,15 @@ Spyder may also be used as a PyQt4/PySide extension library (module
 `spyderlib`). For example, the Python interactive shell widget used in
 Spyder may be embedded in your own PyQt4/PySide application.
 
+## Running from source
+
+The fastest way to run Spyder is to get the source code, install PyQt
+or PySide, and run:
+
+    python bootstrap.py
+
+You may want to do this for fixing bugs in Spyder, adding new
+features, learning how Spyder works or just getting a taste of it.
 
 ## Installation
     
@@ -76,26 +85,23 @@ The easiest way to install Spyder is:
     - Using the [Anaconda Distribution](http://continuum.io/downloads).
     - Installing from source (see below).
 
-### Installing from source
+* Cross-platform way from source
 
-You can also install Spyder from its zip source package. For that you need to
-download and uncompress the file called `spyder-x.y.z.zip`, which can be
-found [here](https://github.com/spyder-ide/spyder/releases). Then you need to
-use the integrated `setup.py` script that comes with it and which is based
-on the Python standard library `distutils` module, with the following command:
+You can install Spyder from its zip source package named `spyder-x.y.z.zip`
+[here](https://github.com/spyder-ide/spyder/releases). Then you need to
+use standard Python `setup.py` script:
 
     python setup.py install
 
-Note that `distutils` does *not* uninstall previous versions of Python 
-packages: it simply copies files on top of an existing installation. 
-When using this command, it is thus highly recommended to uninstall 
-manually any previous version of Spyder by removing the associated 
-directories ('spyderlib' and 'spyderplugins') from your site-packages 
-directory).
+Note that `setup.py` is not able to uninstall previous versions
+of Python packages: it simply copies files on top of an existing
+installation. So the better way is to use `pip` package manager:
 
-From the [Python package index](http://pypi.python.org/pypi), you also
-may install Spyder *and* upgrade an existing installation using `pip`
-with this command
+    pip install .
+
+Note the `.` at the end of command. `pip` can also install Spyder from
+the [Python package index](http://pypi.python.org/pypi) *and* upgrade an
+existing installation
 
     pip install --upgrade spyder
 
@@ -148,17 +154,6 @@ greater than 2.6.
 * Pylint (static code analysis).
 
 * Pep8 (style analysis).
-
-## Running from source
-
-It is possible to run Spyder directly (i.e. without installation)
-from the unpacked zip folder (see *Installing from source*) using
-Spyder's bootstrap script like this:
-
-    python bootstrap.py
-
-This is especially useful for beta-testing, troubleshooting 
-and development of Spyder itself.
 
 ## More information
 
