@@ -109,6 +109,15 @@ class FileListDialog(QDialog):
         self.fullpath_sorting = fullpath_sorting
         self.edit.selectAll()
         self.edit.setFocus() 
+        self_rect = self.geometry()
+        left = parent.geometry().width()/2 - self_rect.width()
+        top = 0
+        while parent:
+            geo = parent.geometry()
+            top += geo.top()
+            left += geo.left()
+            parent = parent.parent()
+        self.move(left,top)#parent_rect.center()-self_rect.center(),parent_rect.top())
 
     def handle_up_down(self,up_down):
         row = self.listwidget.currentRow() + up_down
