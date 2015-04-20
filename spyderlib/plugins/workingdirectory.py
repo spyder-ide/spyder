@@ -212,7 +212,7 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         
         # Browse action
         browse_action = create_action(self, "browse", None,
-                                      qta.icon('fa.folder'),
+                                      qta.icon('fa.folder-open'),
                                       _('Browse a working directory'),
                                       triggered=self.select_directory)
         self.addAction(browse_action)

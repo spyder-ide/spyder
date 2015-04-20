@@ -602,11 +602,9 @@ class Editor(SpyderPluginWidget):
         
         # ---- File menu and toolbar ----
         self.new_action = create_action(self, _("&New file..."),
-                icon=qta.icon(['fa.file', 'fa.plus'], 
-                              options=[{}, 
-                                       {'scale_factor': 0.5, 
-                                        'offset': (0.0, 0.1),
-                                        'color': '#DDD'}]),
+                icon=qta.icon(['fa.file-o', 'fa.plus'], 
+                              options=[{}, {'scale_factor': 0.5, 
+                                        'offset': (0.0, 0.1)}]),
                               tip=_("New file"),
                 triggered=self.new)
         self.register_shortcut(self.new_action, context="Editor",
@@ -709,21 +707,21 @@ class Editor(SpyderPluginWidget):
                                name="Debug with winpdb")
         
         # --- Debug toolbar ---
-        debug_action = create_action(self, _("&Debug"), icon=qta.icon('fa.bug', color='darkred'),
+        debug_action = create_action(self, _("&Debug"), icon=qta.icon('fa.bug', color='#3775a9'),
                                      tip=_("Debug file"),
                                      triggered=self.debug_file)
         self.register_shortcut(debug_action, context="Editor", name="Debug")
         add_shortcut_to_tooltip(debug_action, context="Editor", name="Debug")
         
         debug_next_action = create_action(self, _("Step"), 
-               icon=qta.icon('spyder.step-forward', color='darkred'), tip=_("Run current line"), 
+               icon=qta.icon('spyder.step-forward', color='#3775a9'), tip=_("Run current line"), 
                triggered=lambda: self.debug_command("next")) 
         self.register_shortcut(debug_next_action, "_", "Debug Step Over")
         add_shortcut_to_tooltip(debug_next_action, context="_",
                                 name="Debug Step Over")
 
         debug_continue_action = create_action(self, _("Continue"),
-               icon=qta.icon('spyder.continue', color='darkred'), tip=_("Continue execution until "
+               icon=qta.icon('spyder.continue', color='#3775a9'), tip=_("Continue execution until "
                                                        "next breakpoint"), 
                triggered=lambda: self.debug_command("continue"))                                                 
         self.register_shortcut(debug_continue_action, "_", "Debug Continue")
@@ -731,7 +729,7 @@ class Editor(SpyderPluginWidget):
                                 name="Debug Continue")
 
         debug_step_action = create_action(self, _("Step Into"), 
-               icon=qta.icon('spyder.step-into', color='darkred'), tip=_("Step into function or method "
+               icon=qta.icon('spyder.step-into', color='#3775a9'), tip=_("Step into function or method "
                                                         "of current line"), 
                triggered=lambda: self.debug_command("step"))                
         self.register_shortcut(debug_step_action, "_", "Debug Step Into")
@@ -739,7 +737,7 @@ class Editor(SpyderPluginWidget):
                                 name="Debug Step Into")
 
         debug_return_action = create_action(self, _("Step Return"), 
-               icon=qta.icon('spyder.step-out', color='darkred'), tip=_("Run until current function "
+               icon=qta.icon('spyder.step-out', color='#3775a9'), tip=_("Run until current function "
                                                        "or method returns"), 
                triggered=lambda: self.debug_command("return"))               
         self.register_shortcut(debug_return_action, "_", "Debug Step Return")
@@ -747,7 +745,7 @@ class Editor(SpyderPluginWidget):
                                 name="Debug Step Return")
 
         debug_exit_action = create_action(self, _("Exit"),
-               icon=qta.icon('spyder.stop', color='darkred'), tip=_("Exit Debug"), 
+               icon=qta.icon('spyder.stop', color='#3775a9'), tip=_("Exit Debug"), 
                triggered=lambda: self.debug_command("exit"))                                       
         self.register_shortcut(debug_exit_action, "_", "Debug Exit")
         add_shortcut_to_tooltip(debug_exit_action, context="_",
@@ -806,11 +804,7 @@ class Editor(SpyderPluginWidget):
 
         run_cell_action = create_action(self,
                             _("Run cell"),
-                            icon=qta.icon(['fa.list-alt', 'spyder.run-one-inplace'], 
-                                          options=[{'color': 'grey'},
-                                                   {'color': 'green',
-                                                    'scale_factor': 0.75,
-                                                    'offset': (0.125, 0.125)}]),
+                            icon=qta.icon('spyder.run-one-inplace', color='green'),
                             shortcut=QKeySequence("Ctrl+Enter"),
                             tip=_("Run current cell (Ctrl+Enter)\n"
                                   "[Use #%% to create cells]"),
@@ -818,11 +812,7 @@ class Editor(SpyderPluginWidget):
 
         run_cell_advance_action = create_action(self,
                             _("Run cell and advance"),
-                            icon=qta.icon(['fa.list-alt', 'spyder.run-one'], 
-                                          options=[{'color': 'grey'},
-                                                   {'color': 'green',
-                                                    'scale_factor': 0.75,
-                                                    'offset': (0.125, 0.125)}]),
+                            icon=qta.icon('spyder.run-one', color='green'),
                             shortcut=QKeySequence("Shift+Enter"),
                             tip=_("Run current cell and go to "
                                   "the next one (Shift+Enter)"),

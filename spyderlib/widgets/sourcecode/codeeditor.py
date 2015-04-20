@@ -2438,7 +2438,10 @@ class CodeEditor(TextEditBaseWidget):
         self.ipynb_convert_action = create_action(self,
                                                _("Convert to Python script"),
                                                triggered=self.convert_notebook,
-                                               icon=qta.icon('spyder.python-logo'))
+                                               icon=qta.icon(['spyder.python-logo-up', 
+                                                              'spyder.python-logo-down'],
+                                                             options=[{'color': '#3775a9'}, 
+                                                                      {'color': '#ffd444'}]))
         self.gotodef_action = create_action(self, _("Go to definition"),
                                    triggered=self.go_to_definition_from_cursor)
         self.run_selection_action = create_action(self,

@@ -216,7 +216,10 @@ class HistoryLog(SpyderPluginWidget):
         editor = codeeditor.CodeEditor(self)
         if osp.splitext(filename)[1] == '.py':
             language = 'py'
-            icon = qta.icon('spyder.python-logo')
+            icon = qta.icon(['spyder.python-logo-up', 
+                             'spyder.python-logo-down'],
+                            options=[{'color': '#3775a9'}, 
+                                     {'color': '#ffd444'}])
         else:
             language = 'bat'
             icon = qta.icon('fa.terminal')

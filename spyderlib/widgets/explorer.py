@@ -30,7 +30,7 @@ import os.path as osp
 import shutil
 
 # Local imports
-from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions, file_uri)
+from spyderlib.utils.qthelpers import create_action, add_actions, file_uri
 from spyderlib.utils import misc, encoding, programs, vcs
 from spyderlib.baseconfig import _
 from spyderlib.py3compat import (to_text_string, to_binary_string, getcwd,
@@ -207,25 +207,26 @@ class DirView(QTreeView):
         if not fnames:
             return []
         new_file_act = create_action(self, _("File..."), 
-                                     icon=qta.icon(['fa.file', 'fa.plus'], 
-                                                   options=[{}, 
-                                                            {'scale_factor': 0.5, 
-                                                             'offset': (0.0, 0.1),
-                                                             'color': '#DDD'}]),
+                                     icon=qta.icon(['fa.file-o', 'fa.plus'], 
+                                                   options=[{}, {'scale_factor': 0.5, 
+                                                             'offset': (0.0, 0.1)}]),
                                      triggered=lambda:
                                      self.new_file(fnames[-1]))
-        new_module_act = create_action(self, _("Module..."), 
-                                       icon=qta.icon(['fa.file-o', 'spyder.python-logo'], 
+        new_module_act = create_action(self, _("Module..."),
+                                       icon=qta.icon(['fa.file-o',
+                                                      'spyder.python-logo-up', 
+                                                      'spyder.python-logo-down'], 
                                                      options=[{'offset': (0.0, -0.1)},
-                                                              {'offset': (0.0, 0.125)}]),
+                                                              {'color': '#3775a9',
+                                                               'offset': (0.0, 0.125)},
+                                                              {'color': '#ffd444',
+                                                               'offset': (0.0, 0.125)}]),
                                        triggered=lambda:
                                          self.new_module(fnames[-1]))
         new_folder_act = create_action(self, _("Folder..."),
-                                       icon=qta.icon(['fa.folder', 'fa.plus'], 
-                                                     options=[{}, 
-                                                              {'scale_factor': 0.5, 
-                                                               'offset': (0.0, 0.1),
-                                                               'color': '#DDD'}]),
+                                       icon=qta.icon(['fa.folder-o', 'fa.plus'], 
+                                                     options=[{}, {'scale_factor': 0.5, 
+                                                               'offset': (0.0, 0.1)}]),
                                        triggered=lambda:
                                         self.new_folder(fnames[-1]))
         new_package_act = create_action(self, _("Package..."),
@@ -260,11 +261,14 @@ class DirView(QTreeView):
                                       icon=qta.icon('fa.eraser'),
                                       triggered=self.delete)
         rename_action = create_action(self, _("Rename..."),
-                                      icon=get_icon("rename.png"),
+                                      icon=qta.icon('fa.edit'),
                                       triggered=self.rename)
         open_action = create_action(self, _("Open"), triggered=self.open)
         ipynb_convert_action = create_action(self, _("Convert to Python script"),
-                                             icon=qta.icon('spyder.python-logo'),
+                                             icon=qta.icon(['spyder.python-logo-up', 
+                                                            'spyder.python-logo-down'],
+                                                           options=[{'color': '#3775a9'}, 
+                                                                    {'color': '#ffd444'}]),
                                              triggered=self.convert_notebooks)
         
         actions = []
@@ -310,7 +314,10 @@ class DirView(QTreeView):
                                self.open_terminal(fnames))
         actions.append(action)
         _title = _("Open Python console here")
-        action = create_action(self, _title, icon=qta.icon('spyder.python-logo'),
+        action = create_action(self, _title, icon=qta.icon(['spyder.python-logo-up', 
+                                                            'spyder.python-logo-down'],
+                                                           options=[{'color': '#3775a9'}, 
+                                                                    {'color': '#ffd444'}]),
                                triggered=lambda:
                                self.open_interpreter(fnames))
         actions.append(action)

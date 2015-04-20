@@ -383,7 +383,10 @@ class ProfilerDataTree(QTreeWidget):
         self.header_list = [_('Function/Module'), _('Total Time'), _('Diff'),
                             _('Local Time'), _('Diff'), _('Calls'), _('Diff'),
                             _('File:line')]
-        self.icon_list = {'module': qta.icon('spyder.python-logo'),
+        self.icon_list = {'module': qta.icon(['spyder.python-logo-up', 
+                                              'spyder.python-logo-down'],
+                                             options=[{'color': '#3775a9'}, 
+                                                      {'color': '#ffd444'}]),
                          'function': qta.icon('spyder.circle-letter-f', color='orange'),
                          'builtin': qta.icon('spyder.python-logo', color='gray'),
                          'constructor': qta.icon('spyder.circle-letter-c', color='blue')}

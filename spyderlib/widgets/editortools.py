@@ -52,7 +52,10 @@ class FileRootItem(QTreeWidgetItem):
     def __init__(self, path, treewidget):
         QTreeWidgetItem.__init__(self, treewidget, QTreeWidgetItem.Type)
         self.path = path
-        self.setIcon(0, qta.icon('spyder.python-logo'))
+        self.setIcon(0, qta.icon(['spyder.python-logo-up', 
+                                  'spyder.python-logo-down'],
+                                 options=[{'color': '#3775a9'}, 
+                                          {'color': '#ffd444'}]))
         self.setToolTip(0, path)
         set_item_user_text(self, path)
         

@@ -938,7 +938,10 @@ class ExternalConsole(SpyderPluginWidget):
                 else:
                     self.python_count += 1
                     tab_name = "Python %d" % self.python_count
-                    tab_icon1 = qta.icon('spyder.python-logo')
+                    tab_icon1 = qta.icon(['spyder.python-logo-up', 
+                                          'spyder.python-logo-down'], options=[
+                                         {'color': '#3775a9'}, 
+                                         {'color': '#ffd444'}])
                     tab_icon2 = qta.icon('spyder.python-logo', color='gray')
             else:
                 tab_name = osp.basename(fname)
@@ -1083,7 +1086,11 @@ class ExternalConsole(SpyderPluginWidget):
         """Return a list of actions related to plugin"""
         interpreter_action = create_action(self,
                             _("Open a &Python console"), None,
-                            qta.icon('spyder.python-logo'), triggered=self.open_interpreter)
+                            qta.icon(['spyder.python-logo-up', 
+                                      'spyder.python-logo-down'], options=[
+                                     {'color': '#3775a9'}, 
+                                     {'color': '#ffd444'}]),
+                            triggered=self.open_interpreter)
         if os.name == 'nt':
             text = _("Open &command prompt")
             tip = _("Open a Windows command prompt")

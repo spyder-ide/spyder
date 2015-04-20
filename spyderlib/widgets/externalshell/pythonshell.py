@@ -358,7 +358,10 @@ class ExternalPythonShell(ExternalShellBase):
             return splitter
     
     def get_icon(self):
-        return qta.icon('spyder.python-logo')
+        return qta.icon(['spyder.python-logo-up', 
+                         'spyder.python-logo-down'], options=[
+                        {'color': '#3775a9'}, 
+                        {'color': '#ffd444'}])
 
     def set_buttons_runnning_state(self, state):
         ExternalShellBase.set_buttons_runnning_state(self, state)

@@ -46,7 +46,10 @@ class PathManager(QDialog):
         self.last_path = getcwd()
         
         self.setWindowTitle(_("PYTHONPATH manager"))
-        self.setWindowIcon(qta.icon('spyder.python-logo'))
+        self.setWindowIcon(qta.icon(['spyder.python-logo-up', 
+                                     'spyder.python-logo-down'],
+                                    options=[{'color': '#3775a9'}, 
+                                             {'color': '#ffd444'}]))
         self.resize(500, 300)
         
         self.selection_widgets = []

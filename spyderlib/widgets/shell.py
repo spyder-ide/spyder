@@ -32,7 +32,7 @@ from spyderlib.guiconfig import (get_font, create_shortcut, get_shortcut,
                                  new_shortcut)
 from spyderlib.utils import encoding
 from spyderlib.utils.qthelpers import (keybinding, create_action, add_actions,
-                                       restore_keyevent, get_icon)
+                                       restore_keyevent)
 from spyderlib.widgets.sourcecode.base import ConsoleBaseWidget
 from spyderlib.widgets.mixins import (InspectObjectMixin, TracebackLinksMixin,
                                       SaveHistoryMixin)
@@ -703,7 +703,7 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
         ShellBaseWidget.setup_context_menu(self)
         self.copy_without_prompts_action = create_action(self,
                                      _("Copy without prompts"),
-                                     icon=get_icon('copywop.png'),
+                                     icon=qta.icon(['fa.terminal']),
                                      triggered=self.copy_without_prompts)
         clear_line_action = create_action(self, _("Clear line"),
                                      QKeySequence(get_shortcut('console',

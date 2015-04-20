@@ -560,7 +560,12 @@ class ExplorerTreeWidget(FilteredDirView):
                                 triggered=self.import_existing_directory)
         import_spyder_act = create_action(self,
                                 text=_('Existing Spyder project'),
-                                icon=get_icon('spyder.svg'),
+                                icon=qta.icon(['spyder.spyder-logo-background', 
+                                               'spyder.spyder-logo-web', 
+                                               'spyder.spyder-logo-snake'],
+                                              options=[{'color': '#414141'},
+                                                       {'color': '#fafafa'},
+                                                       {'color': '#ee0000'}]),
                                 triggered=self.import_existing_project)
         import_pydev_act = create_action(self,
                                 text=_('Existing Pydev project'),

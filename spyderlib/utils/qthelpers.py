@@ -13,6 +13,7 @@ from spyderlib.qt.QtGui import (QAction, QStyle, QWidget, QIcon, QApplication,
 from spyderlib.qt.QtCore import (Signal, QObject, Qt, QLocale, QTranslator,
                                  QLibraryInfo, QEvent, Slot)
 from spyderlib.qt.compat import to_qvariant, from_qvariant
+from spyderlib.qt import qta
 
 import os
 import re
@@ -417,7 +418,7 @@ def get_filetype_icon(fname):
     ext = osp.splitext(fname)[1]
     if ext.startswith('.'):
         ext = ext[1:]
-    return get_icon( "%s.png" % ext, get_std_icon('FileIcon') )
+    return get_icon( "%s.png" % ext, qta.icon('fa.file-o') )
 
 
 class ShowStdIcons(QWidget):
