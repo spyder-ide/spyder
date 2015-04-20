@@ -2646,6 +2646,11 @@ class MainWindow(QMainWindow):
                 # To avoid a traceback after closing on Windows
                 if e.args[0] == eintr:
                     continue
+                # handle a connection abort on close error
+                enotsock = (errno.WSAENOTSOCK if os.name == 'nt'
+                            else errno.ENOTSOCK)
+                if e.args[0] in [errno.ECONNABORTED, enotsock]:
+                    return
                 raise
             fname = req.recv(1024)
             if not self.light:
