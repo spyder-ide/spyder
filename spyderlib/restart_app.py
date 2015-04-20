@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
 # Copyright © 2015 The Spyder Development Team
@@ -7,14 +8,14 @@
 """
 Restart Spyder
 
-A helper script to allow for spyder to restart
+A helper script that allows Spyder to restart from within the application.
 """
 
 import ast
 import os
 import os.path as osp
-import sys
 import subprocess
+import sys
 import time
 
 from spyderlib.py3compat import to_text_string
@@ -54,7 +55,7 @@ def _is_pid_running_on_unix(pid):
 
 def is_pid_running(pid):
     """Check if a process is running based on the pid."""
-    # Adjust the command and/or arguments to subprocess depending on the OS
+    # Select the correct function depending on the OS
     if os.name == 'nt':
         return _is_pid_running_on_windows(pid)
     else:
@@ -62,31 +63,35 @@ def is_pid_running(pid):
 
 
 def main():
-    # Variables defined in spyderlib\spyder.py 'restart()' method
+    # Note: Variables defined in spyderlib\spyder.py 'restart()' method
     spyder_args = os.environ.pop('SPYDER_ARGS', None)
     pid = os.environ.pop('SPYDER_PID', None)
     is_bootstrap = os.environ.pop('SPYDER_IS_BOOTSTRAP', None)
-    spyder_folder = os.environ.pop('SPYDER_FOLDER', None)
 
-    if any([not spyder_args, not pid, not is_bootstrap, not spyder_folder]):
+    # Get the spyder base folder based on this file
+    spyder_folder = osp.split(osp.dirname(osp.abspath(__file__)))[0]
+
+    if any([not spyder_args, not pid, not is_bootstrap]):
         error = "This script can only be called from within a Spyder instance"
         raise RuntimeError(error)
 
     # Variables were stored as string literals in the environment, so to use
-    # them we need to parse them.
+    # them we need to parse them in a safe manner.
     is_bootstrap = ast.literal_eval(is_bootstrap)
     pid = int(pid)
     args = ast.literal_eval(spyder_args)
 
     # Enforce the --new-instance flag when running spyder
-    if '--' not in args:
-        args.append('--')
+    if '--new-instance' not in args:
+        if is_bootstrap and not '--' in args:
+            args = args + ['--', '--new-instance']
+        else:
+            args.append('--new-instance')
 
-    args.append('--new-instance')
-
-    # Arrange arguments
+    # Arrange arguments to be passed to the restarter subprocess
     args = ' '.join(args)
 
+    # Get python excutable running this script
     python = sys.executable
 
     # Build the command
@@ -99,10 +104,7 @@ def main():
     command = '"{0}" "{1}" {2}'.format(python, spyder, args)
 
     # Adjust the command and/or arguments to subprocess depending on the OS
-    if os.name == 'nt':
-        shell = False
-    else:
-        shell = True
+    shell = os.name != 'nt'
 
     # Wait for original process to end before launching the new instance
     while True:
