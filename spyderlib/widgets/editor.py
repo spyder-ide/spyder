@@ -75,7 +75,7 @@ class FileListDialog(QDialog):
         # (e.g. the editor's analysis thread in Spyder), thus leading to
         # a segmentation fault on UNIX or an application crash on Windows
         self.setAttribute(Qt.WA_DeleteOnClose)
-
+        self.setWindowFlags(Qt.Dialog | Qt.FramelessWindowHint) #self.windowFlags()
         self.indexes = None
 
         self.setWindowIcon(ima.icon('filelist'))
