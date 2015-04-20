@@ -454,7 +454,7 @@ class EditorStack(QWidget):
 
         self.data = []
 
-        filelist_action = create_action(self, _("File list management"),
+        filelist_action = create_action(self, _("Fast file switcher"),
                                  icon=ima.icon('filelist'),
                                  triggered=self.open_filelistdialog)
         copy_to_cb_action = create_action(self, _('Copy path to clipboard'),
