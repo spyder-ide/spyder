@@ -18,9 +18,9 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QMessageBox, QMenu, QFont,
                                 QAction, QApplication, QWidget, QHBoxLayout,
                                 QLabel, QKeySequence, QMainWindow,
                                 QSplitter, QListWidget, QListWidgetItem,
-                                QDialog, QLineEdit)
+                                QDialog, QLineEdit, QKeyEvent)
 from spyderlib.qt.QtCore import (Signal, Qt, QFileInfo, QThread, QObject,
-                                 QByteArray, QSize, QPoint, QTimer, Slot)
+                                 QByteArray, QSize, QPoint, QTimer, Slot, QEvent)
 from spyderlib.qt.compat import getsavefilename
 import spyderlib.utils.icon_manager as ima
 
@@ -52,8 +52,19 @@ from spyderlib.py3compat import to_text_string, qbytearray_to_str, u
 DEBUG_EDITOR = DEBUG >= 3
 
 
+class UpDownFilter(QObject):
+    up_down = Signal(int)
+    def eventFilter(self,src, e):
+        if isinstance(e,QKeyEvent) and e.type() == QEvent.KeyPress:
+            if e.key() == Qt.Key_Up:
+                self.up_down.emit(-1)
+            elif e.key() == Qt.Key_Down:
+                self.up_down.emit(+1)
+        #Call Base Class Method to Continue Normal Event Processing
+        return super(UpDownFilter,self).eventFilter(src, e)
+
 class FileListDialog(QDialog):
-    close_file = Signal(int)
+    close_file = Signal(int) # No longer used, TODO: reimplement more compactly
     edit_file = Signal(int)
 
     def __init__(self, parent, tabs, fullpath_sorting):
@@ -68,58 +79,38 @@ class FileListDialog(QDialog):
         self.indexes = None
 
         self.setWindowIcon(ima.icon('filelist'))
-        self.setWindowTitle(_("File list management"))
+        self.setWindowTitle(_("Fast switch files"))
 
         self.setModal(True)
 
-        flabel = QLabel(_("Filter:"))
         self.edit = QLineEdit(self)
+        self.up_down_filter = UpDownFilter()
+        self.up_down_filter.up_down.connect(self.handle_up_down)
+        self.edit.installEventFilter(self.up_down_filter)
         self.edit.returnPressed.connect(self.handle_edit_file)
         self.edit.textChanged.connect(lambda text: self.synchronize(0))
-        fhint = QLabel(_("(press <b>Enter</b> to edit file)"))
         edit_layout = QHBoxLayout()
-        edit_layout.addWidget(flabel)
         edit_layout.addWidget(self.edit)
-        edit_layout.addWidget(fhint)
-
+        
         self.listwidget = QListWidget(self)
         self.listwidget.setResizeMode(QListWidget.Adjust)
         self.listwidget.itemSelectionChanged.connect(self.item_selection_changed)
         self.listwidget.itemActivated.connect(self.handle_edit_file)
         self.original_index = None
         self.rejected.connect(self.handle_rejection)
-        btn_layout = QHBoxLayout()
-        edit_btn = create_toolbutton(self, icon=ima.icon('edit'),
-                     text=_("&Edit file"), autoraise=False,
-                     triggered=self.handle_edit_file, text_beside_icon=True)
-        edit_btn.setMinimumHeight(28)
-        btn_layout.addWidget(edit_btn)
-
-        btn_layout.addStretch()
-        btn_layout.addSpacing(150)
-        btn_layout.addStretch()
-
-        close_btn = create_toolbutton(self, text=_("&Close file"),
-              icon=ima.icon('fileclose'),
-              autoraise=False, text_beside_icon=True,
-              triggered=lambda: self.close_file.emit(
-                                  self.indexes[self.listwidget.currentRow()]))
-        close_btn.setMinimumHeight(28)
-        btn_layout.addWidget(close_btn)
-
-        hint = QLabel(_("Hint: press <b>Alt</b> to show accelerators"))
-        hint.setAlignment(Qt.AlignCenter)
 
         vlayout = QVBoxLayout()
         vlayout.addLayout(edit_layout)
         vlayout.addWidget(self.listwidget)
-        vlayout.addLayout(btn_layout)
-        vlayout.addWidget(hint)
         self.setLayout(vlayout)
 
         self.tabs = tabs
         self.fullpath_sorting = fullpath_sorting
-        self.buttons = (edit_btn, close_btn)
+
+    def handle_up_down(self,up_down):
+        row = self.listwidget.currentRow() + up_down
+        if 0 <= row < self.listwidget.count():
+            self.listwidget.setCurrentRow(row)
 
     def handle_rejection(self):
         if self.original_index is not None:
@@ -138,9 +129,6 @@ class FileListDialog(QDialog):
         row = self.listwidget.currentRow()  
         if self.listwidget.count() > 0 and row >= 0:
             self.edit_file.emit(self.indexes[row])
-
-        for btn in self.buttons:
-            btn.setEnabled(self.listwidget.currentRow() >= 0)
 
     def synchronize(self, stack_index):
         count = self.tabs.count()
@@ -166,6 +154,9 @@ class FileListDialog(QDialog):
                 if text == current_text:
                     new_current_index = lw_index
                 lw_index += 1
+                # TODO: find out how to render rich text in the QListWidgetItem
+                #if len(filter_text) > 0:
+                #    text = text.replace(filter_text,'<b>' + filter_text + '</b>')
                 item = QListWidgetItem(self.tabs.tabIcon(index),
                                        text, self.listwidget)
                 item.setSizeHint(QSize(0, 25))
@@ -173,8 +164,7 @@ class FileListDialog(QDialog):
                 self.indexes.append(index)
         if new_current_index < self.listwidget.count():
             self.listwidget.setCurrentRow(new_current_index)
-        for btn in self.buttons:
-            btn.setEnabled(lw_index > 0)
+
 
 
 class AnalysisThread(QThread):
