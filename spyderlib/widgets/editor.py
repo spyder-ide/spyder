@@ -74,7 +74,7 @@ class FileListDialog(QDialog):
 
         flabel = QLabel(_("Filter:"))
         self.edit = QLineEdit(self)
-        self.edit.returnPressed.connect(self.edit_file)
+        self.edit.returnPressed.connect(self.handle_edit_file)
         self.edit.textChanged.connect(lambda text: self.synchronize(0))
         fhint = QLabel(_("(press <b>Enter</b> to edit file)"))
         edit_layout = QHBoxLayout()
@@ -85,12 +85,12 @@ class FileListDialog(QDialog):
         self.listwidget = QListWidget(self)
         self.listwidget.setResizeMode(QListWidget.Adjust)
         self.listwidget.itemSelectionChanged.connect(self.item_selection_changed)
-        self.listwidget.itemActivated.connect(self.edit_file)
+        self.listwidget.itemActivated.connect(self.handle_edit_file)
 
         btn_layout = QHBoxLayout()
         edit_btn = create_toolbutton(self, icon=ima.icon('edit'),
                      text=_("&Edit file"), autoraise=False,
-                     triggered=self.edit_file, text_beside_icon=True)
+                     triggered=self.handle_edit_file, text_beside_icon=True)
         edit_btn.setMinimumHeight(28)
         btn_layout.addWidget(edit_btn)
 
@@ -120,13 +120,13 @@ class FileListDialog(QDialog):
         self.fullpath_sorting = fullpath_sorting
         self.buttons = (edit_btn, close_btn)
 
-    @Slot()
-    def edit_file(self):
+    #@Slot()
+    def handle_edit_file(self):
         row = self.listwidget.currentRow()
         if self.listwidget.count() > 0 and row >= 0:
             self.edit_file.emit(self.indexes[row])
             self.accept()
-
+    
     def item_selection_changed(self):
         for btn in self.buttons:
             btn.setEnabled(self.listwidget.currentRow() >= 0)
