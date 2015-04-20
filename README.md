@@ -1,8 +1,10 @@
 # Spyder - The Scientific PYthon Development EnviRonment
 
 Copyright © 2009-2013 Pierre Raybaut.
-Licensed under the terms of the MIT License
-(see `LICENSE` for details)
+
+Copyright © 2013-2015 The Spyder Development Team.
+
+Licensed under the terms of the MIT License (see `LICENSE` for details)
 
 
 ## Overview
