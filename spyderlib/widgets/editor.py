@@ -106,6 +106,8 @@ class FileListDialog(QDialog):
 
         self.tabs = tabs
         self.fullpath_sorting = fullpath_sorting
+        self.edit.selectAll()
+        self.edit.setFocus() 
 
     def handle_up_down(self,up_down):
         row = self.listwidget.currentRow() + up_down
