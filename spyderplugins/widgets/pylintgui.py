@@ -109,9 +109,9 @@ class ResultsTree(OneColumnTree):
         self.data = {}
         # Populating tree
         results = ((_('Convention'),
-                   qta.icon('spyder.circle-letter-c', color='blue'), self.results['C:']),
+                   qta.icon('spyder.circle-letter-c', color='#3775a9'), self.results['C:']),
                    (_('Refactor'),
-                   qta.icon('spyder.circle-letter-r', color='blue'), self.results['R:']),
+                   qta.icon('spyder.circle-letter-r', color='#3775a9'), self.results['R:']),
                    (_('Warning'),
                     qta.icon('fa.warning'), self.results['W:']),
                    (_('Error'),

@@ -821,7 +821,7 @@ class Editor(SpyderPluginWidget):
         # --- Source code Toolbar ---
         self.todo_list_action = create_action(self,
                 _("Show todo list"), icon=qta.icon(['fa.th-list', 'fa.check'], 
-                                                   options=[{'color': 'blue'},
+                                                   options=[{'color': '#3775a9'},
                                                             {'offset': (0.0, 0.2),
                                                              'color': 'orange',
                                                              'color_disabled': '#face7e'}]),
@@ -834,7 +834,7 @@ class Editor(SpyderPluginWidget):
         self.warning_list_action = create_action(self,
                 _("Show warning/error list"), icon=
                 qta.icon(['fa.th-list', 'fa.warning'],
-                         options=[{'color': 'blue'}, 
+                         options=[{'color': '#3775a9'}, 
                                   {'offset': (0.0, 0.2),
                                    'scale_factor': 0.75,
                                    'color': 'orange',
@@ -847,7 +847,7 @@ class Editor(SpyderPluginWidget):
         self.previous_warning_action = create_action(self,
                 _("Previous warning/error"), icon=
                 qta.icon(['fa.arrow-left', 'fa.warning'],
-                         options=[{'color': 'blue'}, 
+                         options=[{'color': '#3775a9'}, 
                                   {'offset': (0.0, 0.2),
                                    'scale_factor': 0.75,
                                    'color': 'orange',
@@ -857,7 +857,7 @@ class Editor(SpyderPluginWidget):
         self.next_warning_action = create_action(self,
                 _("Next warning/error"), icon=
                 qta.icon(['fa.arrow-right', 'fa.warning'],
-                         options=[{'color': 'blue'}, 
+                         options=[{'color': '#3775a9'}, 
                                   {'offset': (0.0, 0.2),
                                    'scale_factor': 0.75,
                                    'color': 'orange',
@@ -1389,7 +1389,7 @@ class Editor(SpyderPluginWidget):
         self.todo_menu.clear()
         filename = self.get_current_filename()
         for text, line0 in results:
-            icon = qta.icon('fa.check', color='blue')
+            icon = qta.icon('fa.check', color='#3775a9')
             slot = lambda _l=line0: self.load(filename, goto=_l)
             action = create_action(self, text=text, icon=icon, triggered=slot)
             self.todo_menu.addAction(action)

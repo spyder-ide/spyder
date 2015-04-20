@@ -389,7 +389,7 @@ class ProfilerDataTree(QTreeWidget):
                                                       {'color': '#ffd444'}]),
                          'function': qta.icon('spyder.circle-letter-f', color='orange'),
                          'builtin': qta.icon('spyder.python-logo', color='gray'),
-                         'constructor': qta.icon('spyder.circle-letter-c', color='blue')}
+                         'constructor': qta.icon('spyder.circle-letter-c', color='#3775a9')}
         self.profdata = None   # To be filled by self.load_data()
         self.stats = None      # To be filled by self.load_data()
         self.item_depth = None

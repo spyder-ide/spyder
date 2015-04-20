@@ -383,7 +383,7 @@ class CodeEditor(TextEditBaseWidget):
         self.markers_margin_width = 15
         self.error_pixmap = qta.icon('fa.exclamation-circle').pixmap(QSize(14, 14))
         self.warning_pixmap = qta.icon('fa.warning').pixmap(QSize(14, 14))
-        self.todo_pixmap = qta.icon('fa.check', color='blue').pixmap(QSize(14, 14))
+        self.todo_pixmap = qta.icon('fa.check', color='#3775a9').pixmap(QSize(14, 14))
         self.bp_pixmap = qta.icon('fa.circle', color='darkred').pixmap(QSize(14, 14))
         self.bpc_pixmap = qta.icon('fa.question-circle', color='darkred').pixmap(QSize(14, 14))
 

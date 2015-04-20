@@ -98,7 +98,7 @@ class TreeItem(QTreeWidgetItem):
 
 class ClassItem(TreeItem):
     def setup(self):
-        self.set_icon(qta.icon('spyder.circle-letter-c', color='blue'))
+        self.set_icon(qta.icon('spyder.circle-letter-c', color='#3775a9'))
         self.setToolTip(0, _("Class defined at line %s") % str(self.line))
 
 class FunctionItem(TreeItem):
@@ -110,9 +110,9 @@ class FunctionItem(TreeItem):
             self.setToolTip(0, _("Method defined at line %s") % str(self.line))
             name = to_text_string(self.text(0))
             if name.startswith('__'):
-                self.set_icon(qta.icon('fa.minus-circle', color='lightgreen'))
+                self.set_icon(qta.icon('fa.minus-circle', color='#7ea67e'))
             elif name.startswith('_'):
-                self.set_icon(qta.icon('fa.minus-circle', color='lightgreen'))
+                self.set_icon(qta.icon('fa.minus-circle', color='#7ea67e'))
             else:
                 self.set_icon(qta.icon('spyder.circle-letter-m', color='green'))
         else:
