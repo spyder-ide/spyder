@@ -13,7 +13,7 @@ from spyderlib.baseconfig import _
 from spyderlib.py3compat import PY3
 from spyderlib.qt.QtGui import QMessageBox, QCheckBox, QSpacerItem, QVBoxLayout
 from spyderlib.qt.QtCore import Signal, Qt, QObject
-from spyderlib.utils.programs import check_version
+from spyderlib.utils.programs import check_version, is_stable_version
 
 
 if PY3:
@@ -79,50 +79,23 @@ class WorkerUpdates(QObject):
         self.error = feedback
         self.latest_release = None
 
-    def is_stable_version(self, version):
-        """
-        A stable version has no letters in the final part, it has only numbers.
-
-        Stable version example: 1.2, 1.3.4, 1.0.5
-        Not stable version: 1.2alpha, 1.3.4beta, 0.1.0rc1, 3.0.0dev
-        """
-        if not isinstance(version, tuple):
-            version = version.split('.')
-        last_part = version[-1]
-
-        try:
-            int(last_part)
-            return True
-        except ValueError:
-            return False
-
     def check_update_available(self, version, releases):
         """Checks if there is an update available.
 
         It takes as parameters the current version of Spyder and a list of
         valid cleaned releases in chronological order (what github api returns
-        by default). Example: ['2.3.4', '2.3.3' ...]"""
-        if self.is_stable_version(version):
+        by default). Example: ['2.3.4', '2.3.3' ...]
+        """
+        if is_stable_version(version):
             # Remove non stable versions from the list
-            releases = [r for r in releases if self.is_stable_version(r)]
+            releases = [r for r in releases if is_stable_version(r)]
 
         latest_release = releases[0]
 
         if version.endswith('dev'):
             return (False, latest_release)
 
-        # check_version is based on LooseVersion, so a small hack is needed so
-        # that LooseVersion understands that '3.0.0' is in fact bigger than
-        # '3.0.0rc1'
-        if self.is_stable_version(latest_release) and \
-          version.startswith(latest_release) and latest_release != version:
-            parts = latest_release.split('.')
-            parts = parts[:-1] + [parts[-1] + 'z']
-            latest_mod = '.'.join(parts)
-        else:
-            latest_mod = releases[0]
-
-        return (check_version(version, latest_mod, '<'), latest_release)
+        return (check_version(version, latest_release, '<'), latest_release)
 
     def start(self):
         """Main method of the WorkerUpdates worker"""
@@ -135,11 +108,15 @@ class WorkerUpdates(QObject):
             page = urlopen(self.url)
             try:
                 data = page.read()
+
+                # Needed step for python3 compatibility
                 if not isinstance(data, str):
                     data = data.decode()
+
                 data = json.loads(data)
                 releases = [item['tag_name'].replace('v', '') for item in data]
                 version = __version__
+
                 result = self.check_update_available(version, releases)
                 self.update_available, self.latest_release = result
             except Exception:
@@ -159,7 +136,6 @@ class WorkerUpdates(QObject):
 def test_msgcheckbox():
     from spyderlib.utils.qthelpers import qapplication
     app = qapplication()
-    app.setStyle('Plastique')
     box = MessageCheckBox()
     box.setWindowTitle(_("Spyder updates"))
     box.setText("Testing checkbox")
