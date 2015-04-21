@@ -537,7 +537,7 @@ DEFAULTS = [
               # -- In widgets/editor
               'editor/inspect current object': 'Ctrl+I',
               'editor/go to line': 'Ctrl+L',
-              'editor/file list management': 'Ctrl+E',
+              '_/file switcher': 'Ctrl+P',
               'editor/go to previous file': 'Ctrl+Tab',
               'editor/go to next file': 'Ctrl+Shift+Tab',
               # -- In spyder.py
@@ -560,7 +560,7 @@ DEFAULTS = [
               'editor/save file': "Ctrl+S",
               'editor/save all': "Ctrl+Alt+S",
               'editor/save as': 'Ctrl+Shift+S',
-              'editor/print': "Ctrl+P",
+              'editor/print': "Ctrl+E",
               'editor/close all': "Ctrl+Shift+W",
               'editor/breakpoint': 'F12',
               'editor/conditional breakpoint': 'Shift+F12',
