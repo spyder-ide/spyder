@@ -152,7 +152,7 @@ class FileListDialog(QDialog):
                                          if self.fullpath_sorting
                                          else Qt.ElideRight)
         current_row = self.listwidget.currentRow()
-        current_index = self.indexes[current_row] if current_row >= 0 else None
+        current_index = self.indexes[current_row] if current_row >= 0 else stack_index
         self.listwidget.clear()
         self.indexes = []
         filter_text = to_text_string(self.edit.text()).lower()
