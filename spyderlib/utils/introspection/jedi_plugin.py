@@ -56,7 +56,9 @@ class JediPlugin(IntrospectionPlugin):
     def get_completions(self, info):
         """Return a list of (completion, type) tuples"""
         completions = self.get_jedi_object('completions', info)
-        return [(c.word, c.type) for c in completions]
+        completions = [(c.word, c.type) for c in completions]
+        debug_print(str(completions)[:100])
+        return completions
 
     def get_info(self, info):
         """
