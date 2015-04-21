@@ -359,10 +359,12 @@ class MainWindow(QMainWindow):
         self.tour = None
         self.tours_available = None
 
-        # Check for updates Thread and Worker
+        # Check for updates Thread and Worker, refereces needed to prevent
+        # segfaulting
         self.check_updates_action = None
         self.thread_updates = None
         self.worker_updates = None
+        self.flag_updates_feedback = True
 
         # Preferences
         from spyderlib.plugins.configdialog import (MainConfigPage,
@@ -1285,6 +1287,7 @@ class MainWindow(QMainWindow):
 
         # Check for spyder updates
         if DEV is None and CONF.get('main', 'check_updates_on_startup'):
+            self.flag_updates_feedback = False 
             self.check_updates()
 
         self.is_setting_up = False
@@ -2679,9 +2682,14 @@ class MainWindow(QMainWindow):
         """Called by WorkerUpdates when ready"""
         from spyderlib.workers.updates import MessageCheckBox
 
+        # feedback` = False is used on startup, so only positive feedback is
+        # given. `feedback` = True is used when after startup (when using the
+        # menu action, and gives feeback if updates are, or are not found.
+        feedback = self.flag_updates_feedback
+
+        # Get results from worker
         update_available = self.worker_updates.update_available
         latest_release = self.worker_updates.latest_release
-        feedback = self.worker_updates.feedback
         error_msg = self.worker_updates.error
 
         url_r = 'https://github.com/spyder-ide/spyder/releases'
@@ -2731,6 +2739,9 @@ class MainWindow(QMainWindow):
 
         # Enable check_updates_action after the thread has finished
         self.check_updates_action.setDisabled(False)
+        
+        # Provide feeback when clicking menu if check on startup is on
+        self.flag_updates_feedback = True
 
     def check_updates(self):
         """
@@ -2741,19 +2752,11 @@ class MainWindow(QMainWindow):
         # Disable check_updates_action while the thread is working
         self.check_updates_action.setDisabled(True)
 
-        # feedback` = False is used on startup, so only positive feedback is
-        # given. `feedback` = True is used when using the menu action, and
-        # gives feeback if updates are, or are not found.
-        feedback = False
-
-        if DEV:
-            feedback = True
-        elif self.thread_updates is not None:
+        if self.thread_updates is not None:
             self.thread_updates.terminate()
-            feedback = True
 
         self.thread_updates = QThread(self)
-        self.worker_updates = WorkerUpdates(self, feedback)
+        self.worker_updates = WorkerUpdates(self)
         self.worker_updates.sig_ready.connect(self._check_updates_ready)
         self.worker_updates.sig_ready.connect(self.thread_updates.quit)
         self.worker_updates.moveToThread(self.thread_updates)

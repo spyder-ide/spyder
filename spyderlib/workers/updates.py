@@ -72,11 +72,10 @@ class WorkerUpdates(QObject):
     """
     sig_ready = Signal()
 
-    def __init__(self, parent, feedback):
+    def __init__(self, parent):
         QObject.__init__(self)
         self._parent = parent
-        self.feedback = feedback
-        self.error = feedback
+        self.error = None
         self.latest_release = None
 
     def check_update_available(self, version, releases):
