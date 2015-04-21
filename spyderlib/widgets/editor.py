@@ -76,6 +76,7 @@ class FileListDialog(QDialog):
         # a segmentation fault on UNIX or an application crash on Windows
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.setWindowFlags(Qt.Dialog | Qt.FramelessWindowHint) 
+        self.setWindowOpacity(0.8)
         self.indexes = None
 
         self.setWindowIcon(ima.icon('filelist'))
