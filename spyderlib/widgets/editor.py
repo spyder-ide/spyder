@@ -66,6 +66,7 @@ class UpDownFilter(QObject):
 class FileListDialog(QDialog):
     close_file = Signal(int) # No longer used, TODO: reimplement more compactly
     edit_file = Signal(int)
+    edit_line = Signal(int)
 
     def __init__(self, parent, tabs, fullpath_sorting):
         QDialog.__init__(self, parent)
@@ -93,12 +94,14 @@ class FileListDialog(QDialog):
         edit_layout = QHBoxLayout()
         edit_layout.addWidget(self.edit)
         
+        self.edit_line.connect(self.handle_edit_line)
         self.listwidget = QListWidget(self)
         self.listwidget.setItemDelegate(HTMLDelegate(self))
         self.listwidget.setResizeMode(QListWidget.Adjust)
         self.listwidget.itemSelectionChanged.connect(self.item_selection_changed)
         self.listwidget.itemActivated.connect(self.handle_edit_file)
         self.original_index = None
+        self.line_num = -1
         self.rejected.connect(self.handle_rejection)
 
         vlayout = QVBoxLayout()
@@ -135,6 +138,11 @@ class FileListDialog(QDialog):
             self.edit_file.emit(self.indexes[row])
             self.accept()
 
+    def handle_edit_line(self, line_num):
+        self.line_num = line_num # we record it for use when switching items in the list
+        if line_num >= 0:
+            self.parent().get_current_editor().go_to_line(line_num)
+
     def item_selection_changed(self):
         if self.original_index is None:
             self.original_index = self.tabs.currentIndex()
@@ -142,6 +150,9 @@ class FileListDialog(QDialog):
         row = self.listwidget.currentRow()  
         if self.listwidget.count() > 0 and row >= 0:
             self.edit_file.emit(self.indexes[row])
+
+        self.edit_line.emit(self.line_num)
+
 
     def synchronize(self, stack_index):
         count = self.tabs.count()
@@ -156,6 +167,11 @@ class FileListDialog(QDialog):
         self.listwidget.clear()
         self.indexes = []
         filter_text = to_text_string(self.edit.text()).lower()
+        if ':' in filter_text:
+            filter_text, line_num = filter_text.split(':',1)
+        else:
+            line_num  = ""
+
         for index in range(count):
             text = to_text_string(self.tabs.tabText(index))
             if len(filter_text) == 0 or filter_text in text.lower():
@@ -170,7 +186,11 @@ class FileListDialog(QDialog):
             self.listwidget.setCurrentRow(self.indexes.index(current_index))
         elif len(self.indexes) > 0:
             self.listwidget.setCurrentRow(0)
-
+        try:
+            line_num = int(line_num)
+            self.edit_line.emit(line_num) 
+        except ValueError:
+            self.edit_line.emit(-1)
 
 
 class AnalysisThread(QThread):
