@@ -168,6 +168,7 @@ DEFAULTS = [
               'vertical_tabs': False,
               'animated_docks': True,
               'prompt_on_exit': False,
+              'lock_panes_on_startup': False,
               'window/size': (1260, 740),
               'window/position': (10, 10),
               'window/is_maximized': True,
@@ -469,6 +470,7 @@ DEFAULTS = [
               # ---- Global ----
               # -- In spyder.py
               '_/close pane': "Shift+Ctrl+F4",
+              '_/lock panes': "Shift+Ctrl+F5",
               '_/preferences': "Ctrl+Alt+Shift+P",
               '_/maximize pane': "Ctrl+Alt+Shift+M",
               '_/fullscreen mode': "F11",

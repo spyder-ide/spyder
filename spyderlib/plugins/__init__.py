@@ -148,9 +148,7 @@ class SpyderPluginMixin(object):
     CONFIGWIDGET_CLASS = None
     ALLOWED_AREAS = Qt.AllDockWidgetAreas
     LOCATION = Qt.LeftDockWidgetArea
-    FEATURES = QDockWidget.DockWidgetClosable | \
-               QDockWidget.DockWidgetFloatable | \
-               QDockWidget.DockWidgetMovable
+    FEATURES = QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetFloatable
     DISABLE_ACTIONS_WHEN_HIDDEN = True
 
     # Signals

@@ -376,8 +376,8 @@ class MainWindow(QMainWindow):
         self.dialog_layout_settings = LayoutSettingsDialog
 
         # Actions
+        self.lock_dockwidgets_action = None
         self.close_dockwidget_action = None
-        self.lock_dockwidget_action = None
         self.find_action = None
         self.find_next_action = None
         self.find_previous_action = None
@@ -485,7 +485,8 @@ class MainWindow(QMainWindow):
         self.is_starting_up = True
         self.is_setting_up = True
 
-        self.dockwidgets_locked = False
+        self.dockwidgets_locked = CONF.get('main', 'lock_panes_on_startup',
+                                           False)
         self.floating_dockwidgets = []
         self.window_size = None
         self.window_position = None
@@ -542,7 +543,11 @@ class MainWindow(QMainWindow):
                                         context=Qt.ApplicationShortcut)
             self.register_shortcut(self.close_dockwidget_action, "_",
                                    "Close pane")
-
+            self.lock_dockwidgets_action = create_action(self, _("Lock panes"),
+                                            toggled=self.toggle_lock_dockwidgets,
+                                            context=Qt.ApplicationShortcut)
+            self.register_shortcut(self.lock_dockwidgets_action, "_",
+                                       "Lock panes")
             # custom layouts shortcuts
             self.toggle_next_layout_action = create_action(self,
                                         _("Toggle next layout"),
@@ -1126,7 +1131,8 @@ class MainWindow(QMainWindow):
                 add_actions(self.view_menu, (None, cmd_act))
             add_actions(self.view_menu, (None, self.fullscreen_action,
                                          self.maximize_action,
-                                         self.close_dockwidget_action, None,
+                                         self.close_dockwidget_action,
+                                         self.lock_dockwidgets_action, None,
                                          self.toggle_previous_layout_action,
                                          self.toggle_next_layout_action,
                                          self.quick_layout_menu))
@@ -1242,6 +1248,10 @@ class MainWindow(QMainWindow):
         self.extconsole.setMinimumHeight(0)
 
         if not self.light:
+            # Update lock status of dockidgets (panes)
+            self.lock_dockwidgets_action.setChecked(self.dockwidgets_locked)
+            self.apply_panes_settings()
+
             # Hide Internal Console so that people don't use it instead of
             # the External or IPython ones
             if self.console.dockwidget.isVisible() and DEV is None:
@@ -2147,6 +2157,11 @@ class MainWindow(QMainWindow):
                 plugin.dockwidget.hide()
                 break
 
+    def toggle_lock_dockwidgets(self, value):
+        """Lock/Unlock dockwidgets"""
+        self.dockwidgets_locked = value
+        self.apply_panes_settings()
+
     def __update_maximize_action(self):
         if self.state_before_maximizing is None:
             text = _("Maximize current pane")
@@ -2517,14 +2532,20 @@ class MainWindow(QMainWindow):
             default = default|QMainWindow.AnimatedDocks
         self.setDockOptions(default)
 
+        self.apply_panes_settings()
+        self.apply_statusbar_settings()
+
+    def apply_panes_settings(self):
+        """Update dockwidgets features settings"""
+        # Update toggle action on menu
         for child in self.widgetlist:
             features = child.FEATURES
             if CONF.get('main', 'vertical_dockwidget_titlebars'):
-                features = features|QDockWidget.DockWidgetVerticalTitleBar
+                features = features | QDockWidget.DockWidgetVerticalTitleBar
+            if not self.dockwidgets_locked:
+                features = features | QDockWidget.DockWidgetMovable
             child.dockwidget.setFeatures(features)
             child.update_margins()
-
-        self.apply_statusbar_settings()
 
     def apply_statusbar_settings(self):
         """Update status bar widgets settings"""
