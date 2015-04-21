@@ -54,7 +54,7 @@ DEBUG_EDITOR = DEBUG >= 3
 
 class UpDownFilter(QObject):
     up_down = Signal(int)
-    def eventFilter(self,src, e):
+    def eventFilter(self, src, e):
         if isinstance(e,QKeyEvent) and e.type() == QEvent.KeyPress:
             if e.key() == Qt.Key_Up:
                 self.up_down.emit(-1)
@@ -75,7 +75,7 @@ class FileListDialog(QDialog):
         # (e.g. the editor's analysis thread in Spyder), thus leading to
         # a segmentation fault on UNIX or an application crash on Windows
         self.setAttribute(Qt.WA_DeleteOnClose)
-        self.setWindowFlags(Qt.Dialog | Qt.FramelessWindowHint) #self.windowFlags()
+        self.setWindowFlags(Qt.Dialog | Qt.FramelessWindowHint) 
         self.indexes = None
 
         self.setWindowIcon(ima.icon('filelist'))
@@ -117,9 +117,9 @@ class FileListDialog(QDialog):
             top += geo.top()
             left += geo.left()
             parent = parent.parent()
-        self.move(left,top)#parent_rect.center()-self_rect.center(),parent_rect.top())
+        self.move(left, top)
 
-    def handle_up_down(self,up_down):
+    def handle_up_down(self, up_down):
         row = self.listwidget.currentRow() + up_down
         if 0 <= row < self.listwidget.count():
             self.listwidget.setCurrentRow(row)
@@ -133,7 +133,7 @@ class FileListDialog(QDialog):
         if self.listwidget.count() > 0 and row >= 0:
             self.edit_file.emit(self.indexes[row])
             self.accept()
-    
+
     def item_selection_changed(self):
         if self.original_index is None:
             self.original_index = self.tabs.currentIndex()
