@@ -6,6 +6,7 @@ import os
 import os.path as osp
 import random
 import socket
+import sys
 import time
 
 # Local imports
@@ -62,6 +63,9 @@ def main():
 
     # Parse command line options
     options, args = get_options()
+
+    # Store variable to be used in self.restart (restart spyder instance)
+    os.environ['SPYDER_ARGS'] = str(sys.argv[1:])
 
     if CONF.get('main', 'single_instance') and not options.new_instance \
       and not running_in_mac_app():

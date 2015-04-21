@@ -48,6 +48,9 @@ parser.add_option('--test-travis', dest="shutdown_time", default=None,
 
 options, args = parser.parse_args()
 
+# Store variable to be used in self.restart (restart spyder instance)
+os.environ['SPYDER_BOOTSTRAP_ARGS'] = str(sys.argv[1:])
+
 assert options.gui in (None, 'pyqt5', 'pyqt', 'pyside'), \
        "Invalid GUI toolkit option '%s'" % options.gui
 
