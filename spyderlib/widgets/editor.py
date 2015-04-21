@@ -151,21 +151,13 @@ class FileListDialog(QDialog):
                                          if self.fullpath_sorting
                                          else Qt.ElideRight)
         current_row = self.listwidget.currentRow()
-        if current_row >= 0:
-            current_text = to_text_string(self.listwidget.currentItem().text())
-        else:
-            current_text = ""
+        current_index = self.indexes[current_row] if current_row >= 0 else None
         self.listwidget.clear()
         self.indexes = []
-        new_current_index = stack_index
-        filter_text = to_text_string(self.edit.text())
-        lw_index = 0
+        filter_text = to_text_string(self.edit.text()).lower()
         for index in range(count):
             text = to_text_string(self.tabs.tabText(index))
-            if len(filter_text) == 0 or filter_text in text:
-                if text == current_text:
-                    new_current_index = lw_index
-                lw_index += 1
+            if len(filter_text) == 0 or filter_text in text.lower():
                 if len(filter_text) > 0:
                     text = text.replace(filter_text,'<b>' + filter_text + '</b>')
                 item = QListWidgetItem(self.tabs.tabIcon(index),
@@ -173,8 +165,8 @@ class FileListDialog(QDialog):
                 item.setSizeHint(QSize(0, 25))
                 self.listwidget.addItem(item)
                 self.indexes.append(index)
-        if new_current_index < self.listwidget.count():
-            self.listwidget.setCurrentRow(new_current_index)
+        if current_index is not None and current_index in self.indexes:
+            self.listwidget.setCurrentRow(self.indexes.index(current_index))
 
 
 
