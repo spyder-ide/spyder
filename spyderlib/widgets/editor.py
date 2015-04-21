@@ -105,9 +105,13 @@ class FileListDialog(QDialog):
         self.line_num = -1
         self.rejected.connect(self.handle_rejection)
 
+        hint_text = QLabel(_("Press <b>Enter</b> to switch files or <b>Esc</b> to cancel.<br>" +\
+                            "Type to filter filenames. Use <b>:number</b> to go to a line, e.g. 'main:42'"))
+        hint_text.setAlignment(Qt.AlignCenter)
         vlayout = QVBoxLayout()
         vlayout.addLayout(edit_layout)
         vlayout.addWidget(self.listwidget)
+        vlayout.addWidget(hint_text)
         self.setLayout(vlayout)
 
         self.tabs = tabs
