@@ -17,10 +17,6 @@ class HTMLDelegate(QtGui.QStyledItemDelegate):
 
         ctx = QtGui.QAbstractTextDocumentLayout.PaintContext()
 
-        # Highlighting text if item is selected
-        #if (optionV4.state & QStyle::State_Selected)
-            #ctx.palette.setColor(QPalette::Text, optionV4.palette.color(QPalette::Active, QPalette::HighlightedText));
-
         textRect = style.subElementRect(QtGui.QStyle.SE_ItemViewItemText, options)
         painter.save()
         painter.translate(textRect.topLeft())
