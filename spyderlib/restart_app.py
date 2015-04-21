@@ -63,6 +63,8 @@ def is_pid_running(pid):
         return _is_pid_running_on_unix(pid)
 
 
+# Note: Copied from py3compat because we can't rely on Spyder
+# being installed when using bootstrap.py
 def to_text_string(obj, encoding=None):
     """Convert `obj` to (unicode) text string"""
     if PY2:
