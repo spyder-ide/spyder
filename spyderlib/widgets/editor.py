@@ -76,7 +76,7 @@ class FileListDialog(QDialog):
         # a segmentation fault on UNIX or an application crash on Windows
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.setWindowFlags(Qt.Dialog | Qt.FramelessWindowHint) 
-        self.setWindowOpacity(0.8)
+        self.setWindowOpacity(0.9)
         self.indexes = None
 
         self.setWindowIcon(ima.icon('filelist'))
@@ -118,7 +118,7 @@ class FileListDialog(QDialog):
             top += geo.top()
             left += geo.left()
             parent = parent.parent()
-        self.move(left, top)
+        self.move(left, top + 32) # TODO: need to lookup tab height properly rather than hardcode
 
     def handle_up_down(self, up_down):
         row = self.listwidget.currentRow() + up_down
@@ -166,8 +166,10 @@ class FileListDialog(QDialog):
                 item.setSizeHint(QSize(0, 25))
                 self.listwidget.addItem(item)
                 self.indexes.append(index)
-        if current_index is not None and current_index in self.indexes:
+        if current_index in self.indexes:
             self.listwidget.setCurrentRow(self.indexes.index(current_index))
+        elif len(self.indexes) > 0:
+            self.listwidget.setCurrentRow(0)
 
 
 
@@ -654,6 +656,8 @@ class EditorStack(QWidget):
     @Slot()
     def open_filelistdialog(self):
         """Open file list management dialog box"""
+        if self.tabs.count() == 0:
+            return
         self.filelist_dlg = dlg = FileListDialog(self, self.tabs,
                                                  self.fullpath_sorting_enabled)
         dlg.edit_file.connect(self.set_stack_index)
