@@ -168,7 +168,7 @@ DEFAULTS = [
               'vertical_tabs': False,
               'animated_docks': True,
               'prompt_on_exit': False,
-              'lock_panes_on_startup': False,
+              'panes_locked': False,
               'window/size': (1260, 740),
               'window/position': (10, 10),
               'window/is_maximized': True,

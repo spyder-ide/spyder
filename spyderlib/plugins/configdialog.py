@@ -688,8 +688,6 @@ class MainConfigPage(GeneralConfigPage):
                              'vertical_dockwidget_titlebars')
         verttabs_box = newcb(_("Vertical dockwidget tabs"),
                              'vertical_tabs')
-        lockpanes_box = newcb(_("Lock panes on startup"),
-                              'lock_panes_on_startup')
         animated_box = newcb(_("Animated toolbars and dockwidgets"),
                              'animated_docks')
         tear_off_box = newcb(_("Tear off menus"), 'tear_off_menus',
@@ -720,7 +718,6 @@ class MainConfigPage(GeneralConfigPage):
         interface_layout.addWidget(tear_off_box)
         interface_layout.addLayout(margins_layout)
         interface_layout.addWidget(prompt_box)
-        interface_layout.addWidget(lockpanes_box)
         interface_group.setLayout(interface_layout)
 
         # --- Status bar

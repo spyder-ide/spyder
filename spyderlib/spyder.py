@@ -485,8 +485,7 @@ class MainWindow(QMainWindow):
         self.is_starting_up = True
         self.is_setting_up = True
 
-        self.dockwidgets_locked = CONF.get('main', 'lock_panes_on_startup',
-                                           False)
+        self.dockwidgets_locked = CONF.get('main', 'panes_locked', False)
         self.floating_dockwidgets = []
         self.window_size = None
         self.window_position = None
@@ -2161,6 +2160,7 @@ class MainWindow(QMainWindow):
         """Lock/Unlock dockwidgets"""
         self.dockwidgets_locked = value
         self.apply_panes_settings()
+        CONF.set('main', 'panes_locked', value)
 
     def __update_maximize_action(self):
         if self.state_before_maximizing is None:
