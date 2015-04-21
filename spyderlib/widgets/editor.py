@@ -101,6 +101,7 @@ class FileListDialog(QDialog):
         self.listwidget.itemSelectionChanged.connect(self.item_selection_changed)
         self.listwidget.itemActivated.connect(self.handle_edit_file)
         self.original_index = None
+        self.original_line_num = None
         self.line_num = -1
         self.rejected.connect(self.handle_rejection)
 
@@ -131,6 +132,8 @@ class FileListDialog(QDialog):
     def handle_rejection(self):
         if self.original_index is not None:
             self.edit_file.emit(self.original_index)
+        if self.original_line_num is not None:
+            self.parent().get_current_editor().go_to_line(self.original_line_num)
 
     def handle_edit_file(self):
         row = self.listwidget.currentRow()
@@ -140,12 +143,16 @@ class FileListDialog(QDialog):
 
     def handle_edit_line(self, line_num):
         self.line_num = line_num # we record it for use when switching items in the list
-        if line_num >= 0:
+        if self.original_line_num is None:
+            self.original_line_num = self.parent().get_current_editor().get_cursor_line_number()
+        if line_num >= 0 and len(self.indexes) > 0:
             self.parent().get_current_editor().go_to_line(line_num)
 
     def item_selection_changed(self):
         if self.original_index is None:
             self.original_index = self.tabs.currentIndex()
+        if self.original_line_num is None:
+            self.original_line_num = self.parent().get_current_editor().get_cursor_line_number()
 
         row = self.listwidget.currentRow()  
         if self.listwidget.count() > 0 and row >= 0:
