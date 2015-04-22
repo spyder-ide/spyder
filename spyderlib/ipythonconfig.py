@@ -13,7 +13,7 @@ from spyderlib import dependencies
 from spyderlib.baseconfig import _
 
 
-IPYTHON_REQVER = '>=3.0'
+IPYTHON_REQVER = '>=2.0'
 ZMQ_REQVER = '>=13.0.0'
 
 dependencies.add("IPython", _("IPython Console integration"),

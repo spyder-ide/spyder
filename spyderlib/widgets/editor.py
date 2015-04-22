@@ -64,8 +64,7 @@ class UpDownFilter(QObject):
         return super(UpDownFilter,self).eventFilter(src, e)
 
 class FileListDialog(QDialog):
-    close_file = Signal(int) # No longer used, TODO: reimplement more compactly
-    edit_file = Signal(int)
+    close_file = Signal(int)
     edit_line = Signal(int)
 
     def __init__(self, parent, tabs, fullpath_sorting):
@@ -91,6 +90,8 @@ class FileListDialog(QDialog):
         self.edit.installEventFilter(self.up_down_filter)
         self.edit.returnPressed.connect(self.handle_edit_file)
         self.edit.textChanged.connect(lambda text: self.synchronize(0))
+        new_shortcut("Ctrl+W", self, lambda: self.close_file.emit(self.indexes[self.listwidget.currentRow()]))
+        
         edit_layout = QHBoxLayout()
         edit_layout.addWidget(self.edit)
         
@@ -106,7 +107,8 @@ class FileListDialog(QDialog):
         self.rejected.connect(self.handle_rejection)
 
         hint_text = QLabel(_("Press <b>Enter</b> to switch files or <b>Esc</b> to cancel.<br>" +\
-                            "Type to filter filenames. Use <b>:number</b> to go to a line, e.g. 'main:42'"))
+                            "Type to filter filenames. Use <b>:number</b> to go to a line, e.g. 'main:42'.<br>" +\
+                            "Press <b>Ctrl+W</b> to close current tab."))
         hint_text.setAlignment(Qt.AlignCenter)
         vlayout = QVBoxLayout()
         vlayout.addLayout(edit_layout)
@@ -1258,8 +1260,10 @@ class EditorStack(QWidget):
                 if index < new_index:
                     new_index -= 1
                 self.set_stack_index(new_index)
-        if self.get_stack_count() == 0:
-            self.sig_new_file[()].emit()
+
+        if self.filelist_dlg is not None:
+            self.filelist_dlg.synchronize(self.get_stack_index())
+
         return is_ok
 
     def close_all_files(self):
