@@ -51,9 +51,12 @@ spyderlib/images/whole_words.png
 spyderlib/images/win_env.png
 spyderlib/images/actions/hist.png
 spyderlib/images/actions/window_nofullscreen.png
+spyderlib/images/editor/attribute.png
 spyderlib/images/editor/filelist.png
 spyderlib/images/editor/function.png
 spyderlib/images/editor/method.png
+spyderlib/images/editor/module.png
+spyderlib/images/editor/no_match.png
 spyderlib/images/editor/private1.png
 spyderlib/images/editor/private2.png
 spyderlib/images/editor/cell.png

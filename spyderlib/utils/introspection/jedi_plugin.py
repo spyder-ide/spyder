@@ -54,10 +54,11 @@ class JediPlugin(IntrospectionPlugin):
         self._warmup_thread.start()
 
     def get_completions(self, info):
-        """Return a list of completion strings"""
+        """Return a list of (completion, type) tuples"""
         completions = self.get_jedi_object('completions', info)
+        completions = [(c.word, c.type) for c in completions]
         debug_print(str(completions)[:100])
-        return [c.word for c in completions]
+        return completions
 
     def get_info(self, info):
         """
@@ -267,7 +268,7 @@ if __name__ == '__main__':
     source_code = "import n"
     completions = p.get_completions(CodeInfo('completions', source_code,
         len(source_code)))
-    assert 'numpy' in completions
+    assert ('numpy', 'module') in completions
 
     source_code = "import matplotlib.pyplot as plt; plt.imsave"
     path, line_nr = p.get_definition(CodeInfo('definition', source_code,

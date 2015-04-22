@@ -29,7 +29,7 @@ class FallbackPlugin(IntrospectionPlugin):
     name = 'fallback'
 
     def get_completions(self, info):
-        """Return a list of completion strings
+        """Return a list of (completion, type) tuples
 
         Simple completion based on python-like identifiers and whitespace
         """
@@ -54,7 +54,7 @@ class FallbackPlugin(IntrospectionPlugin):
             match = re.search('''[ "\']([\w\.\\\\/]+)\Z''', info.line)
             if match:
                 items += _complete_path(match.groups()[0])
-        return list(sorted(items))
+        return [(i, '') for i in sorted(items)]
 
     def get_definition(self, info):
         """
