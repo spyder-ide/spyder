@@ -108,6 +108,8 @@ class FileListDialog(QDialog):
         self.original_path = None
         self.original_line_num = None
         self.line_num = -1
+        self.line_num_modified_for_path = None
+        
         self.rejected.connect(self.handle_rejection)
 
         hint_text = QLabel(_("Press <b>Enter</b> to switch files or <b>Esc</b> to cancel.<br>" +\
@@ -130,7 +132,7 @@ class FileListDialog(QDialog):
             top += geo.top()
             left += geo.left()
             parent = parent.parent()
-        self.move(left, top + 32) # TODO: need to lookup tab height properly rather than hardcode
+        self.move(left, top + self.tabs.tabBar().geometry().height() + 1) #the +1 is a hack
 
     def filtered_index_to_full(self,idx):
         # Note we assume idx is valid and the two mappings are valid
@@ -142,10 +144,9 @@ class FileListDialog(QDialog):
             self.listwidget.setCurrentRow(row)
 
     def handle_rejection(self):
+        self.edit_line.emit(-1) # reset line number for current tab (if there was a change)
         if self.original_path is not None:
             self.edit_file.emit(self.full_index_to_path.index(self.original_path))
-        if self.original_line_num is not None:
-            self.parent().get_current_editor().go_to_line(self.original_line_num)
 
     def handle_edit_file(self):
         row = self.listwidget.currentRow()
@@ -153,23 +154,36 @@ class FileListDialog(QDialog):
             self.edit_file.emit(self.filtered_index_to_full(row))
             self.accept()
 
+    def current_path(self):
+        if self.listwidget.currentRow() >=0:
+            return  self.filtered_index_to_path[self.listwidget.currentRow()]
+        else:
+            return None
+            
     def handle_edit_line(self, line_num):
+        current_path = self.current_path()
+        
+        # If we've changed path since last doing a goto line, we need to reset that previous file
+        if self.line_num_modified_for_path is not None and current_path != self.line_num_modified_for_path:
+            if self.line_num_modified_for_path in self.full_index_to_path:
+                self.tabs.widget(self.full_index_to_path.index(self.line_num_modified_for_path)).go_to_line(self.original_line_num)
+            self.line_num_modified_for_path = None
+            self.original_line_num = None
+            
         self.line_num = line_num # we record it for use when switching items in the list
-        if self.original_line_num is None:
-            self.original_line_num = self.parent().get_current_editor().get_cursor_line_number()
+
+        # Apply the line num to the current file, recording the original location if need be            
         if line_num >= 0 and len(self.filtered_index_to_path) > 0:
+            if self.original_line_num is None:
+                self.original_line_num = self.parent().get_current_editor().get_cursor_line_number()
+                self.line_num_modified_for_path = current_path
             self.parent().get_current_editor().go_to_line(line_num)
 
-    def item_selection_changed(self):
-        if self.original_line_num is None:
-            self.original_line_num = self.parent().get_current_editor().get_cursor_line_number()
-
+    def item_selection_changed(self):            
         row = self.listwidget.currentRow()  
         if self.listwidget.count() > 0 and row >= 0:
             self.edit_file.emit(self.filtered_index_to_full(row))
-
-        self.edit_line.emit(self.line_num)
-
+            self.edit_line.emit(self.line_num) # if this is -1 it does nothing
 
     def synchronize(self, stack_index):
         """
@@ -182,10 +196,8 @@ class FileListDialog(QDialog):
             
         if stack_index is not None:
             current_path = self.original_path = self.tab_data[stack_index].filename
-        elif self.listwidget.currentRow() >=0:
-            current_path = self.filtered_index_to_path[self.listwidget.currentRow()]
         else:
-            current_path = None
+            current_path = self.current_path() # could be None
         
         self.listwidget.clear()
         self.full_index_to_path = [getattr(td,'filename',None) for td in self.tab_data]
@@ -205,7 +217,7 @@ class FileListDialog(QDialog):
                 self.listwidget.addItem(item)
                 self.filtered_index_to_path.append(path)
                 
-        if current_path in self.filtered_index_to_path:
+        if current_path is not None and current_path in self.filtered_index_to_path:
             self.listwidget.setCurrentRow(self.filtered_index_to_path.index(current_path))
         elif len(self.filtered_index_to_path) > 0:
             self.listwidget.setCurrentRow(0)
