@@ -65,9 +65,10 @@ class UpDownFilter(QObject):
 
 class FileListDialog(QDialog):
     close_file = Signal(int)
+    edit_file = Signal(int)
     edit_line = Signal(int)
 
-    def __init__(self, parent, tabs, fullpath_sorting):
+    def __init__(self, parent, tabs, tab_data):
         QDialog.__init__(self, parent)
 
         # Destroying the C++ object right after closing the dialog box,
@@ -75,22 +76,25 @@ class FileListDialog(QDialog):
         # (e.g. the editor's analysis thread in Spyder), thus leading to
         # a segmentation fault on UNIX or an application crash on Windows
         self.setAttribute(Qt.WA_DeleteOnClose)
+        
         self.setWindowFlags(Qt.Dialog | Qt.FramelessWindowHint) 
         self.setWindowOpacity(0.9)
-        self.indexes = None
-
         self.setWindowIcon(ima.icon('filelist'))
         self.setWindowTitle(_("Fast switch files"))
-
         self.setModal(True)
 
+        self.tabs = tabs
+        self.tab_data = tab_data
+        self.filtered_index_to_path = None
+        self.full_index_to_path = None
+        
         self.edit = QLineEdit(self)
         self.up_down_filter = UpDownFilter()
         self.up_down_filter.up_down.connect(self.handle_up_down)
         self.edit.installEventFilter(self.up_down_filter)
         self.edit.returnPressed.connect(self.handle_edit_file)
-        self.edit.textChanged.connect(lambda text: self.synchronize(0))
-        new_shortcut("Ctrl+W", self, lambda: self.close_file.emit(self.indexes[self.listwidget.currentRow()]))
+        self.edit.textChanged.connect(lambda text: self.synchronize(None))
+        new_shortcut("Ctrl+W", self, lambda: self.close_file.emit(self.filtered_index_to_full(self.listwidget.currentRow())))
         
         edit_layout = QHBoxLayout()
         edit_layout.addWidget(self.edit)
@@ -101,7 +105,7 @@ class FileListDialog(QDialog):
         self.listwidget.setResizeMode(QListWidget.Adjust)
         self.listwidget.itemSelectionChanged.connect(self.item_selection_changed)
         self.listwidget.itemActivated.connect(self.handle_edit_file)
-        self.original_index = None
+        self.original_path = None
         self.original_line_num = None
         self.line_num = -1
         self.rejected.connect(self.handle_rejection)
@@ -116,8 +120,6 @@ class FileListDialog(QDialog):
         vlayout.addWidget(hint_text)
         self.setLayout(vlayout)
 
-        self.tabs = tabs
-        self.fullpath_sorting = fullpath_sorting
         self.edit.selectAll()
         self.edit.setFocus() 
         self_rect = self.geometry()
@@ -130,62 +132,69 @@ class FileListDialog(QDialog):
             parent = parent.parent()
         self.move(left, top + 32) # TODO: need to lookup tab height properly rather than hardcode
 
+    def filtered_index_to_full(self,idx):
+        # Note we assume idx is valid and the two mappings are valid
+        return self.full_index_to_path.index(self.filtered_index_to_path[idx])
+        
     def handle_up_down(self, up_down):
         row = self.listwidget.currentRow() + up_down
         if 0 <= row < self.listwidget.count():
             self.listwidget.setCurrentRow(row)
 
     def handle_rejection(self):
-        if self.original_index is not None:
-            self.edit_file.emit(self.original_index)
+        if self.original_path is not None:
+            self.edit_file.emit(self.full_index_to_path.index(self.original_path))
         if self.original_line_num is not None:
             self.parent().get_current_editor().go_to_line(self.original_line_num)
 
     def handle_edit_file(self):
         row = self.listwidget.currentRow()
         if self.listwidget.count() > 0 and row >= 0:
-            self.edit_file.emit(self.indexes[row])
+            self.edit_file.emit(self.filtered_index_to_full(row))
             self.accept()
 
     def handle_edit_line(self, line_num):
         self.line_num = line_num # we record it for use when switching items in the list
         if self.original_line_num is None:
             self.original_line_num = self.parent().get_current_editor().get_cursor_line_number()
-        if line_num >= 0 and len(self.indexes) > 0:
+        if line_num >= 0 and len(self.filtered_index_to_path) > 0:
             self.parent().get_current_editor().go_to_line(line_num)
 
     def item_selection_changed(self):
-        if self.original_index is None:
-            self.original_index = self.tabs.currentIndex()
         if self.original_line_num is None:
             self.original_line_num = self.parent().get_current_editor().get_cursor_line_number()
 
         row = self.listwidget.currentRow()  
         if self.listwidget.count() > 0 and row >= 0:
-            self.edit_file.emit(self.indexes[row])
+            self.edit_file.emit(self.filtered_index_to_full(row))
 
         self.edit_line.emit(self.line_num)
 
 
     def synchronize(self, stack_index):
+        """
+        stack_index is either an index into the tab list or None.
+        """
         count = self.tabs.count()
         if count == 0:
             self.accept()
             return
-        self.listwidget.setTextElideMode(Qt.ElideMiddle
-                                         if self.fullpath_sorting
-                                         else Qt.ElideRight)
-        current_row = self.listwidget.currentRow()
-        current_index = self.indexes[current_row] if current_row >= 0 else stack_index
-        self.listwidget.clear()
-        self.indexes = []
-        filter_text = to_text_string(self.edit.text()).lower()
-        if ':' in filter_text:
-            filter_text, line_num = filter_text.split(':',1)
+            
+        if stack_index is not None:
+            current_path = self.original_path = self.tab_data[stack_index].filename
+        elif self.listwidget.currentRow() >=0:
+            current_path = self.filtered_index_to_path[self.listwidget.currentRow()]
         else:
-            line_num  = ""
+            current_path = None
+        
+        self.listwidget.clear()
+        self.full_index_to_path = [getattr(td,'filename',None) for td in self.tab_data]
+        self.filtered_index_to_path = []
+        
+        filter_text = to_text_string(self.edit.text()).lower()
+        filter_text, line_num = filter_text.split(':',1) if ':' in filter_text else (filter_text, "")
 
-        for index in range(count):
+        for index,path in enumerate(self.full_index_to_path):
             text = to_text_string(self.tabs.tabText(index))
             if len(filter_text) == 0 or filter_text in text.lower():
                 if len(filter_text) > 0:
@@ -194,10 +203,11 @@ class FileListDialog(QDialog):
                                        text, self.listwidget)
                 item.setSizeHint(QSize(0, 25))
                 self.listwidget.addItem(item)
-                self.indexes.append(index)
-        if current_index in self.indexes:
-            self.listwidget.setCurrentRow(self.indexes.index(current_index))
-        elif len(self.indexes) > 0:
+                self.filtered_index_to_path.append(path)
+                
+        if current_path in self.filtered_index_to_path:
+            self.listwidget.setCurrentRow(self.filtered_index_to_path.index(current_path))
+        elif len(self.filtered_index_to_path) > 0:
             self.listwidget.setCurrentRow(0)
         try:
             line_num = int(line_num)
@@ -688,8 +698,7 @@ class EditorStack(QWidget):
         """Open file list management dialog box"""
         if self.tabs.count() == 0:
             return
-        self.filelist_dlg = dlg = FileListDialog(self, self.tabs,
-                                                 self.fullpath_sorting_enabled)
+        self.filelist_dlg = dlg = FileListDialog(self, self.tabs,self.data)
         dlg.edit_file.connect(self.set_stack_index)
         dlg.close_file.connect(self.close_file)
         dlg.synchronize(self.get_stack_index())
@@ -1260,10 +1269,6 @@ class EditorStack(QWidget):
                 if index < new_index:
                     new_index -= 1
                 self.set_stack_index(new_index)
-
-        if self.filelist_dlg is not None:
-            self.filelist_dlg.synchronize(self.get_stack_index())
-
         return is_ok
 
     def close_all_files(self):
