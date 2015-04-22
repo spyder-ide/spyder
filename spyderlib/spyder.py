@@ -364,7 +364,7 @@ class MainWindow(QMainWindow):
         self.check_updates_action = None
         self.thread_updates = None
         self.worker_updates = None
-        self.flag_updates_feedback = True
+        self.give_updates_feedback = True
 
         # Preferences
         from spyderlib.plugins.configdialog import (MainConfigPage,
@@ -1287,7 +1287,7 @@ class MainWindow(QMainWindow):
 
         # Check for spyder updates
         if DEV is None and CONF.get('main', 'check_updates_on_startup'):
-            self.flag_updates_feedback = False 
+            self.give_updates_feedback = False 
             self.check_updates()
 
         self.is_setting_up = False
@@ -2685,7 +2685,7 @@ class MainWindow(QMainWindow):
         # feedback` = False is used on startup, so only positive feedback is
         # given. `feedback` = True is used when after startup (when using the
         # menu action, and gives feeback if updates are, or are not found.
-        feedback = self.flag_updates_feedback
+        feedback = self.give_updates_feedback
 
         # Get results from worker
         update_available = self.worker_updates.update_available
@@ -2741,7 +2741,7 @@ class MainWindow(QMainWindow):
         self.check_updates_action.setDisabled(False)
         
         # Provide feeback when clicking menu if check on startup is on
-        self.flag_updates_feedback = True
+        self.give_updates_feedback = True
 
     def check_updates(self):
         """
