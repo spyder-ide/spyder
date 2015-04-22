@@ -81,7 +81,7 @@ from spyderlib.qt.QtGui import (QApplication, QMainWindow, QSplashScreen,
                                 QKeySequence, QDockWidget, QAction,
                                 QDesktopServices)
 from spyderlib.qt.QtCore import (Signal, QPoint, Qt, QSize, QByteArray, QUrl,
-                                 Slot, QTimer, QCoreApplication)
+                                 Slot, QTimer, QCoreApplication, QThread)
 from spyderlib.qt.compat import (from_qvariant, getopenfilename,
                                  getsavefilename)
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms
@@ -360,7 +360,14 @@ class MainWindow(QMainWindow):
         # Tour  # TODO: Should I consider it a plugin?? or?
         self.tour = None
         self.tours_available = None
-        
+
+        # Check for updates Thread and Worker, refereces needed to prevent
+        # segfaulting
+        self.check_updates_action = None
+        self.thread_updates = None
+        self.worker_updates = None
+        self.give_updates_feedback = True
+
         # Preferences
         from spyderlib.plugins.configdialog import (MainConfigPage,
                                                     ColorSchemeConfigPage)
@@ -950,6 +957,10 @@ class MainWindow(QMainWindow):
             support_action = create_action(self,
                                            _("Spyder support..."),
                                            triggered=self.google_group)
+            self.check_updates_action = create_action(self,
+                                                      _("Check for updates"),
+                                                      triggered=self.check_updates)
+
             # Spyder documentation
             doc_path = get_module_data_path('spyderlib', relpath="doc",
                                             attr_name='DOCPATH')
@@ -1001,7 +1012,8 @@ class MainWindow(QMainWindow):
 
             self.help_menu_actions = [doc_action, tut_action, self.tours_menu,
                                       None,
-                                      report_action, dep_action, support_action,
+                                      report_action, dep_action,
+                                      support_action, self.check_updates_action,
                                       None]
             # Python documentation
             if get_python_doc_path() is not None:
@@ -1281,8 +1293,13 @@ class MainWindow(QMainWindow):
                 except AttributeError:
                     pass
 
+        # Check for spyder updates
+        if DEV is None and CONF.get('main', 'check_updates_on_startup'):
+            self.give_updates_feedback = False 
+            self.check_updates()
+
         self.is_setting_up = False
-        
+
     def load_window_settings(self, prefix, default=False, section='main'):
         """Load window layout settings from userconfig-based configuration
         with *prefix*, under *section*
@@ -2725,6 +2742,93 @@ class MainWindow(QMainWindow):
         frames = self.tours_available[index]
         self.tour.set_tour(index, frames, self)
         self.tour.start_tour()
+
+    # ---- Check for Spyder Updates
+    def _check_updates_ready(self):
+        """Called by WorkerUpdates when ready"""
+        from spyderlib.workers.updates import MessageCheckBox
+
+        # feedback` = False is used on startup, so only positive feedback is
+        # given. `feedback` = True is used when after startup (when using the
+        # menu action, and gives feeback if updates are, or are not found.
+        feedback = self.give_updates_feedback
+
+        # Get results from worker
+        update_available = self.worker_updates.update_available
+        latest_release = self.worker_updates.latest_release
+        error_msg = self.worker_updates.error
+
+        url_r = 'https://github.com/spyder-ide/spyder/releases'
+        url_i = 'http://pythonhosted.org/spyder/installation.html'
+
+        # Define the custom QMessageBox
+        box = MessageCheckBox()
+        box.setWindowTitle(_("Spyder updates"))
+        box.set_checkbox_text(_("Check for updates on startup"))
+        box.setStandardButtons(QMessageBox.Ok)
+        box.setDefaultButton(QMessageBox.Ok)
+        box.setIcon(QMessageBox.Information)
+
+        # Adjust the checkbox depending on the stored configuration
+        section, option = 'main', 'check_updates_on_startup'
+        check_updates = CONF.get(section, option)
+        box.set_checked(check_updates)
+
+        if error_msg is not None:
+            msg = error_msg
+            box.setText(msg)
+            box.set_check_visible(False)
+            box.exec_()
+            check_updates = box.is_checked()
+        else:
+            if update_available:
+                msg = _("<b>Spyder {0} is available!</b> <br><br>Please use "
+                        "your package manager to update Spyder or go to our "
+                        "<a href=\"{1}\">Releases</a> page to download this "
+                        "new version. <br><br>If you are not sure how to "
+                        "proceed to update Spyder please refer to our "
+                        " <a href=\"{2}\">Installation</a> instructions."
+                        "" .format(latest_release, url_r, url_i))
+                box.setText(msg)
+                box.set_check_visible(True)
+                box.exec_()
+                check_updates = box.is_checked()
+            elif feedback:
+                msg = _("Spyder is up to date.")
+                box.setText(msg)
+                box.set_check_visible(False)
+                box.exec_()
+                check_updates = box.is_checked()
+
+        # Update checkbox based on user interaction
+        CONF.set(section, option, check_updates)
+
+        # Enable check_updates_action after the thread has finished
+        self.check_updates_action.setDisabled(False)
+        
+        # Provide feeback when clicking menu if check on startup is on
+        self.give_updates_feedback = True
+
+    def check_updates(self):
+        """
+        Check for spyder updates on github releases using a QThread.
+        """
+        from spyderlib.workers.updates import WorkerUpdates
+
+        # Disable check_updates_action while the thread is working
+        self.check_updates_action.setDisabled(True)
+
+        if self.thread_updates is not None:
+            self.thread_updates.terminate()
+
+        self.thread_updates = QThread(self)
+        self.worker_updates = WorkerUpdates(self)
+        self.worker_updates.sig_ready.connect(self._check_updates_ready)
+        self.worker_updates.sig_ready.connect(self.thread_updates.quit)
+        self.worker_updates.moveToThread(self.thread_updates)
+        self.thread_updates.started.connect(self.worker_updates.start)
+        self.thread_updates.start()
+
 
 #==============================================================================
 # Utilities to create the 'main' function

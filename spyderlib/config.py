@@ -190,7 +190,8 @@ DEFAULTS = [
               'cpu_usage/timeout': 2000,
               'use_custom_margin': True,
               'custom_margin': 0,
-              'show_internal_console_if_traceback': True
+              'show_internal_console_if_traceback': True,
+              'check_updates_on_startup': True
               }),
             ('quick_layouts',
              {

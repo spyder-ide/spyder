@@ -757,14 +757,23 @@ class MainConfigPage(GeneralConfigPage):
         debug_layout = QVBoxLayout()
         debug_layout.addWidget(popup_console_box)
         debug_group.setLayout(debug_layout)
+
+        # --- Spyder updates
+        update_group = QGroupBox(_("Updates"))
+        check_updates = newcb(_("Check for updates on startup"),
+                              'check_updates_on_startup')
+        update_layout = QVBoxLayout()
+        update_layout.addWidget(check_updates)
+        update_group.setLayout(update_layout)
         
         vlayout = QVBoxLayout()
         vlayout.addWidget(interface_group)
         vlayout.addWidget(sbar_group)
         vlayout.addWidget(debug_group)
+        vlayout.addWidget(update_group)
         vlayout.addStretch(1)
         self.setLayout(vlayout)
-        
+
     def apply_settings(self, options):
         self.main.apply_settings()
 

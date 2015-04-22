@@ -201,6 +201,24 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
         raise NotImplementedError
 
 
+def is_stable_version(version):
+    """
+    A stable version has no letters in the final component, but only numbers.
+
+    Stable version example: 1.2, 1.3.4, 1.0.5
+    Not stable version: 1.2alpha, 1.3.4beta, 0.1.0rc1, 3.0.0dev
+    """
+    if not isinstance(version, tuple):
+        version = version.split('.')
+    last_part = version[-1]
+
+    try:
+        int(last_part)
+        return True
+    except ValueError:
+        return False
+
+
 def check_version(actver, version, cmp_op):
     """
     Check version string of an active module against a required version.
@@ -216,6 +234,13 @@ def check_version(actver, version, cmp_op):
     """
     if isinstance(actver, tuple):
         actver = '.'.join([str(i) for i in actver])
+
+    # A small hack is needed so that LooseVersion understands that for example
+    # version = '3.0.0' is in fact bigger than actver = '3.0.0rc1'
+    if is_stable_version(version) and actver.startswith(version) and\
+      version != actver:
+        version = version + 'z'
+
     try:
         if cmp_op == '>':
             return LooseVersion(actver) > LooseVersion(version)
