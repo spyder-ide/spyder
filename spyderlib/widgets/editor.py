@@ -63,6 +63,78 @@ class UpDownFilter(QObject):
         #Call Base Class Method to Continue Normal Event Processing
         return super(UpDownFilter,self).eventFilter(src, e)
 
+def shorten_paths(path_list,target_len=50):
+    """
+    Takes a list of paths and tries to intelligently shorten them all to ``target_len``
+    number of characters. If the path ends in an actual file this will be removed.
+    The "intelligence" requires looking at the whole list of paths to work out what
+    is ambiguous.
+    
+    TODO: at the end, if the path is too long, should do a more dumb kind of shortening.
+    """
+    
+    # convert the path strings to a list of tokens indices
+    # and start building the new_path using the drive 
+    path_list = path_list[:] # clone locally
+    path_tokens = []
+    new_path_list = []
+    for ii, path in enumerate(path_list):
+        drive, path = osp.splitdrive(osp.dirname(path))
+        new_path_list.append(drive + osp.sep)
+        path_list[ii] = toks = []
+        for part in path.split(osp.sep):
+            if len(part) == 0:
+                continue
+            if part not in path_tokens:
+                path_tokens.append(part)
+            toks.append(path_tokens.index(part))
+        
+    def recurse_level(level_idx):
+        s = 0
+        while len(level_idx):
+            k, group = 0, level_idx
+            while True:            
+                # If we've gone beyond the end of one or more in the group, then abort this iteration
+                # TODO: the logic for this isn't quite right yet
+                prospective_group = {idx: toks for idx, toks in group.iteritems() if len(toks) == k}
+                if len(prospective_group) > 0:
+                    if k == 0: 
+                        return
+                    else:
+                        break            
+                # If all n still match on the kth token then keep going, otherwise abort this iteration
+                k_val = group[next(iter(group))][k]
+                prospective_group = {idx: toks for idx, toks in group.iteritems() if toks[k] == k_val}
+                if len(prospective_group) == len(group) or len(group) == len(level_idx):
+                    group = prospective_group
+                    if s == 0 and len(group) < len(level_idx):
+                        s = k
+                    k += 1
+                else:
+                    break        
+            if k == 0:
+                group = prospective_group
+            sample_idx = next(iter(group))
+            if s == 0:
+                short_form = path_tokens[group[sample_idx][s]]
+            else:
+                short_form = path_tokens[group[sample_idx][s-1]] + os.sep + path_tokens[group[sample_idx][s]]
+                if s > 1:
+                    short_form = "..." + os.sep + short_form
+            if k == s+2:
+                short_form += os.sep + path_tokens[group[sample_idx][k-1]] 
+            elif k > s+2:
+                short_form += os.sep + "..." + os.sep + path_tokens[group[sample_idx][k-1]] 
+                
+            for idx in group:
+                new_path_list[idx] += short_form + os.sep
+                del level_idx[idx]
+            recurse_level({idx: toks[k:] for idx, toks in group.iteritems()})
+                        
+    recurse_level(dict(enumerate(path_list)))
+    return new_path_list
+        
+    
 class FileListDialog(QDialog):
     close_file = Signal(int)
     edit_file = Signal(int)
@@ -102,7 +174,6 @@ class FileListDialog(QDialog):
         self.edit_line.connect(self.handle_edit_line)
         self.listwidget = QListWidget(self)
         self.listwidget.setItemDelegate(HTMLDelegate(self))
-        self.listwidget.setResizeMode(QListWidget.Adjust)
         self.listwidget.itemSelectionChanged.connect(self.item_selection_changed)
         self.listwidget.itemActivated.connect(self.handle_edit_file)
         self.original_path = None
@@ -195,22 +266,24 @@ class FileListDialog(QDialog):
             return
             
         if stack_index is not None:
-            current_path = self.original_path = self.tab_data[stack_index].filename
+            self.full_index_to_path = [getattr(td,'filename',None) for td in self.tab_data]
+            current_path = self.original_path  = self.full_index_to_path[stack_index]
+            self.full_index_to_short_path = shorten_paths(self.full_index_to_path)        
         else:
             current_path = self.current_path() # could be None
         
         self.listwidget.clear()
-        self.full_index_to_path = [getattr(td,'filename',None) for td in self.tab_data]
         self.filtered_index_to_path = []
         
         filter_text = to_text_string(self.edit.text()).lower()
         filter_text, line_num = filter_text.split(':',1) if ':' in filter_text else (filter_text, "")
 
-        for index,path in enumerate(self.full_index_to_path):
+        for index, path in enumerate(self.full_index_to_path):
             text = to_text_string(self.tabs.tabText(index))
             if len(filter_text) == 0 or filter_text in text.lower():
                 if len(filter_text) > 0:
                     text = text.replace(filter_text,'<b>' + filter_text + '</b>')
+                text += "<br>in: " + self.full_index_to_short_path[index]
                 item = QListWidgetItem(self.tabs.tabIcon(index),
                                        text, self.listwidget)
                 item.setSizeHint(QSize(0, 25))
