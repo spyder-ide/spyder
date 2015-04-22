@@ -160,7 +160,7 @@ class VariableExplorer(QStackedWidget, SpyderPluginMixin):
 
     def get_plugin_icon(self):
         """Return plugin icon"""
-        return qta.icon('fa.list')
+        return qta.icon('fa.th-list')
     
     def get_focus_widget(self):
         """
