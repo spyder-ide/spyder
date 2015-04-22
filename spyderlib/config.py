@@ -18,7 +18,7 @@ import os.path as osp
 # Local import
 from spyderlib.userconfig import UserConfig
 from spyderlib.baseconfig import (CHECK_ALL, EXCLUDED_NAMES, SUBFOLDER,
-                                  get_home_dir, _)
+                                  get_home_dir, _, load_lang_conf)
 from spyderlib.utils import iofuncs, codeanalysis
 
 
@@ -169,6 +169,7 @@ DEFAULTS = [
               'animated_docks': True,
               'prompt_on_exit': False,
               'panes_locked': True,
+              'interface_language': load_lang_conf(),
               'window/size': (1260, 740),
               'window/position': (10, 10),
               'window/is_maximized': True,

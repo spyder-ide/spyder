@@ -21,7 +21,8 @@ from spyderlib.qt.QtCore import Qt, QSize, Signal, Slot
 from spyderlib.qt.compat import (to_qvariant, from_qvariant,
                                  getexistingdirectory, getopenfilename)
 
-from spyderlib.baseconfig import _, running_in_mac_app
+from spyderlib.baseconfig import (_, running_in_mac_app, LANGUAGE_CODES,
+                                  get_available_translations, save_lang_conf)
 from spyderlib.config import CONF
 from spyderlib.guiconfig import (CUSTOM_COLOR_SCHEME_NAME,
                                  set_default_color_scheme)
@@ -90,6 +91,12 @@ class ConfigPage(QWidget):
             self.save_to_conf()
             if self.apply_callback is not None:
                 self.apply_callback()
+            # Since the language cannot be retrieved by CONF and the language
+            # is needed before loading CONF, this is an extra method needed to
+            # ensure when changes are applied, they are copied to a specific
+            # file storing the language value.
+            if getattr(self, 'save_lang', False):
+                self.save_lang()
             self.set_modified(False)
     
     def load_from_conf(self):
@@ -192,6 +199,7 @@ class ConfigDialog(QDialog):
         self.apply_btn.setEnabled(widget.is_modified)
         
     def add_page(self, widget):
+        setattr(widget, 'parent_config_dialog', self)
         self.check_settings.connect(widget.check_settings)
         widget.show_this_page.connect(lambda row=self.contents_widget.count():
                                       self.contents_widget.setCurrentRow(row))
@@ -238,6 +246,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         self.coloredits = {}
         self.scedits = {}
         self.changed_options = set()
+        self.options_restart = set()
         self.default_button_group = None
         
     def apply_settings(self, options):
@@ -301,6 +310,9 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             combobox.setCurrentIndex(index)
             combobox.currentIndexChanged.connect(lambda _foo, opt=option:
                                                  self.has_been_modified(opt))
+            if combobox.restart_required:
+                self.options_restart.add(option)
+                
         for (fontbox, sizebox), option in list(self.fontboxes.items()):
             font = self.get_font(option)
             fontbox.setCurrentFont(font)
@@ -344,7 +356,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             else:
                 cb_italic.clicked.connect(lambda opt=option:
                                           self.has_been_modified(opt))
-    
+
     def save_to_conf(self):
         """Save settings to configuration file"""
         for checkbox, (option, _default) in list(self.checkboxes.items()):
@@ -374,7 +386,11 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
     def has_been_modified(self, option):
         self.set_modified(True)
         self.changed_options.add(option)
-    
+
+        # If the option requires restart, prompt the user
+        if option in self.options_restart:
+            self.prompt_restart_required(option)
+
     def create_checkbox(self, text, option, default=NoDefault,
                         tip=None, msg_warning=None, msg_info=None,
                         msg_if_enabled=False):
@@ -579,7 +595,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         return widget
     
     def create_combobox(self, text, choices, option, default=NoDefault,
-                        tip=None):
+                        tip=None, restart=False):
         """choices: couples (name, key)"""
         label = QLabel(text)
         combobox = QComboBox()
@@ -595,6 +611,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         layout.setContentsMargins(0, 0, 0, 0)
         widget = QWidget(self)
         widget.setLayout(layout)
+        combobox.restart_required = restart
         return widget
     
     def create_fontgroup(self, option=None, text=None,
@@ -661,13 +678,27 @@ class GeneralConfigPage(SpyderConfigPage):
     def apply_settings(self, options):
         raise NotImplementedError
 
+    def apply_restart_actions(self, option):
+        """Actions to be applied if the user accepts restarting right away."""
+        raise NotImplementedError
+
+    def prompt_restart_required(self, option):
+        """Prompt the user with a request to restart."""
+        answer = QMessageBox.information(self, _("Information"),
+                                         _("To change this setting Spyder "
+                                           "needs to restart.\n\n"
+                                           "Do you wish to restart now?\n"),
+                                         QMessageBox.Yes | QMessageBox.No)
+        if answer == QMessageBox.Yes:
+            self.apply_restart_actions(option)
+
 
 class MainConfigPage(GeneralConfigPage):
     CONF_SECTION = "main"
     
     NAME = _("General")
     ICON = "genprefs.png"
-    
+
     def setup_page(self):
         newcb = self.create_checkbox
 
@@ -704,6 +735,13 @@ class MainConfigPage(GeneralConfigPage):
         margins_layout.addWidget(margin_spin)
         prompt_box = newcb(_("Prompt when exiting"), 'prompt_on_exit')
 
+        # Language chooser
+        langs = get_available_translations()
+        choices = list(zip([LANGUAGE_CODES[key] for key in langs], langs))
+        language_combo = self.create_combobox(_('Language'), choices,
+                                              'interface_language',
+                                              restart=True)
+
         # Decide if it's possible to activate or not singie instance mode
         if running_in_mac_app():
             self.set_option("single_instance", True)
@@ -711,6 +749,7 @@ class MainConfigPage(GeneralConfigPage):
 
         interface_layout = QVBoxLayout()
         interface_layout.addWidget(style_combo)
+        interface_layout.addWidget(language_combo)
         interface_layout.addWidget(single_instance_box)
         interface_layout.addWidget(vertdock_box)
         interface_layout.addWidget(verttabs_box)
@@ -776,6 +815,22 @@ class MainConfigPage(GeneralConfigPage):
 
     def apply_settings(self, options):
         self.main.apply_settings()
+
+    def apply_restart_actions(self, option):
+        self.apply_changes()
+        if option == 'interface_language':
+            self.save_lang()
+        self.main.restart()
+
+    def save_lang(self):
+        """Get selected language setting and save to '.langconfig file'."""
+        for combobox, (option, _default) in list(self.comboboxes.items()):
+            if option == 'interface_language':
+                data = combobox.itemData(combobox.currentIndex())
+                value = from_qvariant(data, to_text_string)
+                break
+        save_lang_conf(value)
+        self.set_option('interface_language', value)
 
 
 class ColorSchemeConfigPage(GeneralConfigPage):
