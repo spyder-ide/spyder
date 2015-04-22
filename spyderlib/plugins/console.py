@@ -143,7 +143,7 @@ class Console(SpyderPluginWidget):
                             triggered=self.show_env)
         syspath_action = create_action(self,
                             _("Show sys.path contents..."),
-                            icon=qta.icon(['fa.folder-o', 'fa.cog'], options=[{}, {'scale_factor': 0.75}]),
+                            icon=qta.icon('fa.cogs'),
                             tip=_("Show (read-only) sys.path"),
                             triggered=self.show_syspath)
         buffer_action = create_action(self,
@@ -219,7 +219,7 @@ class Console(SpyderPluginWidget):
         """Show sys.path"""
         editor = DictEditor()
         editor.setup(sys.path, title="sys.path", readonly=True,
-                     width=600, icon=qta.icon(['fa.folder-o', 'fa.cog'], options=[{}, {'scale_factor': 0.75}]))
+                     width=600, icon=qta.icon('fa.cogs'))
         self.dialog_manager.show(editor)
     
     @Slot()

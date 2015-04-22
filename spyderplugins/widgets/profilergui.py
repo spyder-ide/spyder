@@ -34,7 +34,7 @@ import time
 
 # Local imports
 from spyderlib.utils.qthelpers import (create_toolbutton, get_item_user_text,
-                                       set_item_user_text, get_icon)
+                                       set_item_user_text)
 from spyderlib.utils.programs import shell_split
 from spyderlib.baseconfig import get_conf_path, get_translation
 from spyderlib.widgets.texteditor import TextEditor
@@ -384,9 +384,9 @@ class ProfilerDataTree(QTreeWidget):
                             _('Local Time'), _('Diff'), _('Calls'), _('Diff'),
                             _('File:line')]
         self.icon_list = {'module': qta.icon('spyder.python-logo'),
-                         'function': get_icon('function.png'),
+                         'function': qta.icon('spyder.circle-letter-f', color='orange'),
                          'builtin': qta.icon('spyder.python-logo', color='gray'),
-                         'constructor': get_icon('class.png')}
+                         'constructor': qta.icon('spyder.circle-letter-c', color='blue')}
         self.profdata = None   # To be filled by self.load_data()
         self.stats = None      # To be filled by self.load_data()
         self.item_depth = None

@@ -18,9 +18,8 @@ from spyderlib.qt.compat import getexistingdirectory
 from spyderlib.qt import qta
 
 # Local imports
-from spyderlib.utils.qthelpers import (get_icon, add_actions,
-                                       create_toolbutton, create_action,
-                                       DialogManager)
+from spyderlib.utils.qthelpers import (add_actions, create_toolbutton,
+                                       create_action, DialogManager)
 from spyderlib.utils.environ import RemoteEnvDialog
 from spyderlib.utils.programs import get_python_args
 from spyderlib.utils.misc import get_python_executable
@@ -320,11 +319,11 @@ class ExternalPythonShell(ExternalShellBase):
                                 tip=_("Set current working directory"),
                                 triggered=self.set_current_working_directory)
         self.env_button = create_action(self, _("Environment variables"),
-                                        icon=get_icon('environ.png'),
+                                        icon=qta.icon('fa.th-list'),
                                         triggered=self.show_env)
         self.syspath_button = create_action(self,
                                             _("Show sys.path contents"),
-                                            icon=qta.icon(['fa.folder-o', 'fa.cog'], options=[{}, {'scale_factor': 0.75}]),
+                                            icon=qta.icon('fa.cogs'),
                                             triggered=self.show_syspath)
         actions = [run_settings_menu, self.show_time_action, None,
                    self.cwd_button, self.env_button, self.syspath_button]
@@ -657,5 +656,5 @@ class ExternalPythonShell(ExternalShellBase):
         """Show sys.path contents"""
         editor = DictEditor()
         editor.setup(self.shell.get_syspath(), title="sys.path", readonly=True,
-                     width=600, icon=qta.icon(['fa.folder-o', 'fa.cog'], options=[{}, {'scale_factor': 0.75}]))
+                     width=600, icon=qta.icon('fa.cogs'))
         self.dialog_manager.show(editor)

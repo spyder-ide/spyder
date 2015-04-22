@@ -606,7 +606,7 @@ class Editor(SpyderPluginWidget):
                               options=[{}, 
                                        {'scale_factor': 0.5, 
                                         'offset': (0.0, 0.1),
-                                        'color': '#DDD'}]), 
+                                        'color': '#DDD'}]),
                               tip=_("New file"),
                 triggered=self.new)
         self.register_shortcut(self.new_action, context="Editor",

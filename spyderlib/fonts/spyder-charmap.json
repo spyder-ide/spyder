@@ -26,5 +26,12 @@
     "ipython-logo": "0xE018",
     "run-selection": "0xE019",
     "text-select-all": "0xE01A",
-    "treeview": "0xE01B"
+    "treeview": "0xE01B",
+    "circle-letter-a": "0xE01F",
+    "circle-letter-c": "0xE020",
+    "circle-letter-f": "0xE021",
+    "circle-hash": "0xE022",
+    "circle-letter-m": "0xE023",
+    "circle-percent": "0xE024",
+    "circle-letter-r": "0xE025"
 }

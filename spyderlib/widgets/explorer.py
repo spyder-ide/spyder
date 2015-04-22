@@ -206,18 +206,32 @@ class DirView(QTreeView):
         """Return actions for submenu 'New...'"""
         if not fnames:
             return []
-        new_file_act = create_action(self, _("File..."), icon=get_icon('filenew.png'),
+        new_file_act = create_action(self, _("File..."), 
+                                     icon=qta.icon(['fa.file', 'fa.plus'], 
+                                                   options=[{}, 
+                                                            {'scale_factor': 0.5, 
+                                                             'offset': (0.0, 0.1),
+                                                             'color': '#DDD'}]),
                                      triggered=lambda:
                                      self.new_file(fnames[-1]))
-        new_module_act = create_action(self, _("Module..."), icon=get_icon('py.png'),
+        new_module_act = create_action(self, _("Module..."), 
+                                       icon=qta.icon(['fa.file-o', 'spyder.python-logo'], 
+                                                     options=[{'offset': (0.0, -0.1)},
+                                                              {'offset': (0.0, 0.125)}]),
                                        triggered=lambda:
                                          self.new_module(fnames[-1]))
         new_folder_act = create_action(self, _("Folder..."),
-                                       icon=get_icon('folder_new.png'),
+                                       icon=qta.icon(['fa.folder', 'fa.plus'], 
+                                                     options=[{}, 
+                                                              {'scale_factor': 0.5, 
+                                                               'offset': (0.0, 0.1),
+                                                               'color': '#DDD'}]),
                                        triggered=lambda:
                                         self.new_folder(fnames[-1]))
         new_package_act = create_action(self, _("Package..."),
-                                        icon=get_icon('package_collapsed.png'),
+                                        icon=qta.icon(['fa.folder-o', 'spyder.python-logo'], 
+                                                      options=[{'offset': (0.0, -0.125)},
+                                                               {'offset': (0.0, 0.125)}]),
                                         triggered=lambda:
                                          self.new_package(fnames[-1]))
         return [new_file_act, new_folder_act, None,
@@ -246,7 +260,7 @@ class DirView(QTreeView):
                                       icon=qta.icon('fa.eraser'),
                                       triggered=self.delete)
         rename_action = create_action(self, _("Rename..."),
-                                      icon="rename.png",
+                                      icon=get_icon("rename.png"),
                                       triggered=self.rename)
         open_action = create_action(self, _("Open"), triggered=self.open)
         ipynb_convert_action = create_action(self, _("Convert to Python script"),
@@ -273,11 +287,11 @@ class DirView(QTreeView):
         dirname = fnames[0] if osp.isdir(fnames[0]) else osp.dirname(fnames[0])
         if len(fnames) == 1 and vcs.is_vcs_repository(dirname):
             vcs_ci = create_action(self, _("Commit"),
-                                   icon="vcs_commit.png",
+                                   icon=qta.icon('fa.check', color='green'),
                                    triggered=lambda fnames=[dirname]:
                                    self.vcs_command(fnames, 'commit'))
             vcs_log = create_action(self, _("Browse repository"),
-                                    icon="vcs_browse.png",
+                                    icon=qta.icon('fa.search', color='green'),
                                     triggered=lambda fnames=[dirname]:
                                     self.vcs_command(fnames, 'browse'))
             actions += [None, vcs_ci, vcs_log]
