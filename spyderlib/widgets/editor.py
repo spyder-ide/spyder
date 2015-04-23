@@ -422,6 +422,8 @@ class EditorStack(QWidget):
                                       context='Editor',
                                       name='Conditional breakpoint',
                                       parent=self)
+        gotoline = create_shortcut(self.go_to_line, context='Editor',
+                                   name='Go to line', parent=self)
         tab = create_shortcut(self.go_to_previous_file, context='Editor',
                               name='Go to previous file', parent=self)
         tabshift = create_shortcut(self.go_to_next_file, context='Editor',
@@ -436,7 +438,8 @@ class EditorStack(QWidget):
         new_shortcut("Ctrl+F4", self, self.close_file)
 
         # Return configurable ones
-        return [inspect, breakpoint, cbreakpoint, tab, tabshift]
+        return [inspect, breakpoint, cbreakpoint, gotoline, tab,
+                tabshift]
 
     def get_shortcut_data(self):
         """
@@ -542,7 +545,12 @@ class EditorStack(QWidget):
         """Synchronize file list dialog box with editor widget tabs"""
         if self.fileswitcher_dlg is not None:
             self.fileswitcher_dlg.synchronize(self.get_stack_index())
-
+            
+    def go_to_line(self):
+        """Go to line dialog"""
+        if self.data:
+            self.get_current_editor().exec_gotolinedialog()
+            
     def set_or_clear_breakpoint(self):
         """Set/clear breakpoint"""
         if self.data:
