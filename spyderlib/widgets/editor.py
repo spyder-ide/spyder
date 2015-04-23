@@ -197,8 +197,11 @@ class FileListDialog(QDialog):
 
         self.edit.selectAll()
         self.edit.setFocus() 
-        self_rect = self.geometry()
-        left = parent.geometry().width()/2 - self_rect.width()
+        geo = parent.geometry()
+        width = min(500,0.8*geo.width())
+        self.listwidget.setMinimumWidth(width)
+
+        left = parent.geometry().width()/2 - width/2
         top = 0
         while parent:
             geo = parent.geometry()
@@ -284,8 +287,9 @@ class FileListDialog(QDialog):
             text = to_text_string(self.tabs.tabText(index))
             if len(filter_text) == 0 or filter_text in text.lower():
                 if len(filter_text) > 0:
-                    text = text.replace(filter_text,'<b>' + filter_text + '</b>')
-                text += "<br>in: " + self.full_index_to_short_path[index]
+                    text = text.replace(filter_text,'<u>' + filter_text + '</u>')
+                text = "<b>" + text + "</b>"
+                text += " in: " + self.full_index_to_short_path[index]
                 item = QListWidgetItem(self.tabs.tabIcon(index),
                                        text, self.listwidget)
                 item.setSizeHint(QSize(0, 25))
