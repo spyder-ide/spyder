@@ -111,7 +111,8 @@ def shorten_paths(path_list,target_len=50):
             for idx in level_idx:
                 new_path_list[idx] += short_form + os.sep
                 level_idx[idx] = level_idx[idx][s:]
-                
+    
+        level_len = len(level_idx)                
         # Group the remaining bit after the common prefix, shorten, and recurse
         while len(level_idx):
             k, group = 0, level_idx  # k is the length of the group's common prefix
@@ -123,9 +124,9 @@ def shorten_paths(path_list,target_len=50):
                         group = prospective_group
                     break            
                 # If all n still match on the kth token then keep going, otherwise abort this iteration
-                k_val = group[next(iter(group))][k]
-                prospective_group = {idx: toks for idx, toks in group.iteritems() if toks[k] == k_val}
-                if len(prospective_group) == len(group) or len(group) == len(level_idx):
+                _, sample_toks = next(group.iteritems())
+                prospective_group = {idx: toks for idx, toks in group.iteritems() if toks[k] == sample_toks[k]}
+                if len(prospective_group) == len(group) or k == 0:
                     group = prospective_group
                     k += 1
                 else:
@@ -269,7 +270,10 @@ class FileListDialog(QDialog):
     def item_selection_changed(self):            
         row = self.listwidget.currentRow()  
         if self.listwidget.count() > 0 and row >= 0:
-            self.edit_file.emit(self.filtered_index_to_full(row))
+            try:
+                self.edit_file.emit(self.filtered_index_to_full(row))
+            except ValueError:
+                pass
             self.edit_line.emit(self.line_num) # if this is -1 it does nothing
 
     def synchronize(self, stack_index):
