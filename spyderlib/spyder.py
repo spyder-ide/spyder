@@ -2466,7 +2466,7 @@ class MainWindow(QMainWindow):
 
     def call_file_switcher(self):
         if len(self.editor.editorstacks) > 0:
-            self.editor.get_current_editorstack().open_filelistdialog()
+            self.editor.get_current_editorstack().open_fileswitcher_dlg()
 
     def redirect_internalshell_stdio(self, state):
         if state:
