@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+#
+# Augmented file switcher by DM, 2015 (based on original in widgets/editor.py)
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -6,13 +8,14 @@ from __future__ import print_function
 
 from spyderlib.baseconfig import _
 from spyderlib.qt.QtGui import (QVBoxLayout, QHBoxLayout,
-                                QLabel, QListWidget, QListWidgetItem,
+                                QListWidget, QListWidgetItem,
                                 QDialog, QLineEdit, QKeyEvent,
                                 QStyledItemDelegate, QStyleOptionViewItemV4, 
                                 QApplication, QTextDocument, QStyle,
-                                QAbstractTextDocumentLayout)
+                                QAbstractTextDocumentLayout, QToolButton,
+                                QToolTip)
 from spyderlib.qt.QtCore import (Signal, Qt,  QObject,
-                                  QSize, QEvent)
+                                  QSize, QEvent, QPoint)
 
 import os
 import os.path as osp
@@ -20,6 +23,7 @@ import os.path as osp
 # Local imports
 from spyderlib.guiconfig import  new_shortcut
 from spyderlib.py3compat import to_text_string
+from spyderlib.utils.qthelpers import get_std_icon
 
 class HTMLDelegate(QStyledItemDelegate):
     """ Taken from http://stackoverflow.com/a/5443112/2399799
@@ -157,8 +161,30 @@ def shorten_paths(path_list):
                         
     recurse_level(dict(enumerate(path_list)))
     return [path[:-1] for path in new_path_list] #trim final sep
+
+
         
-    
+class HelperToolButton(QToolButton):
+    """ """
+    def __init__(self):
+        QToolButton.__init__(self)
+
+    def setToolTip(self, text):
+        """ """
+        self._tip_text = text
+
+    def toolTip(self):
+        """ """
+        return self._tip_text
+
+    def mousePressEvent(self, event):
+        """ """
+        QToolTip.hideText()
+
+    def mouseReleaseEvent(self, event):
+        """ """
+        QToolTip.showText(self.mapToGlobal(QPoint(0, 0)), self._tip_text)
+        
 class FileSwitcher(QDialog):
     close_file = Signal(int)
     edit_file = Signal(int)
@@ -182,21 +208,40 @@ class FileSwitcher(QDialog):
         self.filtered_index_to_path = None
         self.full_index_to_path = None
         self.path_to_line_count = None
-        
+
+        edit_layout = QHBoxLayout()         
         self.edit = QLineEdit(self)
         self.up_down_filter = UpDownFilter()
         self.up_down_filter.up_down.connect(self.handle_up_down)
         self.edit.installEventFilter(self.up_down_filter)
         self.edit.returnPressed.connect(self.handle_edit_file)
         self.edit.textChanged.connect(lambda text: self.synchronize(None))
-        new_shortcut("Ctrl+W", self, lambda: \
-                self.close_file.emit(self.filtered_index_to_full(\
-                                                self.listwidget.currentRow())))
-        
-        edit_layout = QHBoxLayout()
+
         edit_layout.addWidget(self.edit)
+        self.button_help = HelperToolButton()
+        self.button_help.setIcon(get_std_icon('MessageBoxInformation'))
+        style = """
+            QToolButton {
+              border: 1px solid grey;
+              padding:0px;
+              border-radius: 2px;
+              background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                  stop: 0 #f6f7fa, stop: 1 #dadbde);
+            }
+            """
+        self.button_help.setStyleSheet(style)
+        help_str = _("""
+            Press <b>Enter</b> to switch files.<br>
+            Or <b>Esc</b> to cancel.<br>
+            Type to filter filenames.<br>
+            Use <b>:number</b> to go to a line,<br>
+            e.g. 'main:42'.<br>
+            Press <b>Ctrl+W</b> to close current tab.
+            """)
+        self.button_help.setToolTip(help_str)
+        edit_layout.addWidget(self.button_help)
         
-        self.edit_line.connect(self.handle_edit_line)
+        
         self.listwidget = QListWidget(self)
         self.listwidget.setItemDelegate(HTMLDelegate(self))
         self.listwidget.itemSelectionChanged.connect(self.item_selection_changed)
@@ -206,17 +251,15 @@ class FileSwitcher(QDialog):
         self.line_num = -1
         self.line_num_modified_for_path = None
         
+        self.edit_line.connect(self.handle_edit_line)        
         self.rejected.connect(self.handle_rejection)
-
-        # TODO: convert this into a help tooltip
-        hint_text = QLabel(_("Press <b>Enter</b> to switch files or <b>Esc</b> to cancel.<br>" +\
-                            "Type to filter filenames. Use <b>:number</b> to go to a line, e.g. 'main:42'.<br>" +\
-                            "Press <b>Ctrl+W</b> to close current tab."))
-        hint_text.setAlignment(Qt.AlignCenter)
+        new_shortcut("Ctrl+W", self, lambda: \
+                self.close_file.emit(self.filtered_index_to_full(\
+                                                self.listwidget.currentRow())))
+         
         vlayout = QVBoxLayout()
         vlayout.addLayout(edit_layout)
         vlayout.addWidget(self.listwidget)
-        vlayout.addWidget(hint_text)
         self.setLayout(vlayout)
 
         self.edit.selectAll()
@@ -342,7 +385,8 @@ class FileSwitcher(QDialog):
                     text = text.replace(filter_text,'<u>' + filter_text + '</u>')
                 text = "<b>" + text + "</b>"
                 if trying_for_line_num:
-                    text += " [" + str(self.path_to_line_count[path]) + " lines] "
+                    text += " [" + str(self.path_to_line_count[path]) + " " \
+                                    + _("lines") + "] "
                 text += "<br><span style='font-size:10px'>" \
                       + self.full_index_to_short_path[index] + "</span>"
                 item = QListWidgetItem(self.tabs.tabIcon(index),
