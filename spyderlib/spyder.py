@@ -549,17 +549,17 @@ class MainWindow(QMainWindow):
                                        "Lock panes")
             # custom layouts shortcuts
             self.toggle_next_layout_action = create_action(self,
-                                        _("Toggle next layout"),
+                                        _("Use next layout"),
                                         triggered=self.toggle_next_layout,
                                         context=Qt.ApplicationShortcut)
             self.toggle_previous_layout_action = create_action(self,
-                                        _("Toggle previous layout"),
+                                        _("Use previous layout"),
                                         triggered=self.toggle_previous_layout,
                                         context=Qt.ApplicationShortcut)
             self.register_shortcut(self.toggle_next_layout_action, "_",
-                                   "Toggle next layout")
+                                   "Use next layout")
             self.register_shortcut(self.toggle_previous_layout_action, "_",
-                                   "Toggle previous layout")
+                                   "Use previous layout")
 
 
             _text = _("&Find text")
@@ -1117,24 +1117,27 @@ class MainWindow(QMainWindow):
             # View menu
             self.plugins_menu = QMenu(_("Panes"), self)
             self.toolbars_menu = QMenu(_("Toolbars"), self)
-            self.view_menu.addMenu(self.plugins_menu)
-            self.view_menu.addMenu(self.toolbars_menu)
-            self.quick_layout_menu = QMenu(_("Custom window layouts"), self)
+            self.quick_layout_menu = QMenu(_("Window layouts"), self)
             self.quick_layout_set_menu()
 
+            self.view_menu.addMenu(self.plugins_menu)  # Panes
+            add_actions(self.view_menu, (self.lock_dockwidgets_action,
+                                         self.close_dockwidget_action,
+                                         self.maximize_action,
+                                         None))
+            self.view_menu.addMenu(self.toolbars_menu)
+            add_actions(self.view_menu, (None,
+                                         self.quick_layout_menu,
+                                         self.toggle_previous_layout_action,
+                                         self.toggle_next_layout_action,
+                                         None,
+                                         self.fullscreen_action))
             if set_attached_console_visible is not None:
                 cmd_act = create_action(self,
                                     _("Attached console window (debugging)"),
                                     toggled=set_attached_console_visible)
                 cmd_act.setChecked(is_attached_console_visible())
                 add_actions(self.view_menu, (None, cmd_act))
-            add_actions(self.view_menu, (None, self.fullscreen_action,
-                                         self.maximize_action,
-                                         self.close_dockwidget_action,
-                                         self.lock_dockwidgets_action, None,
-                                         self.toggle_previous_layout_action,
-                                         self.toggle_next_layout_action,
-                                         self.quick_layout_menu))
 
             # Adding external tools action to "Tools" menu
             if self.external_tools_menu_actions:
