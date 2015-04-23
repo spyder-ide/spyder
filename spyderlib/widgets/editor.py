@@ -73,21 +73,15 @@ def shorten_paths(path_list,target_len=50):
     TODO: at the end, if the path is too long, should do a more dumb kind of shortening.
     """
     
-    # convert the path strings to a list of tokens indices
+    # convert the path strings to a list of tokens 
     # and start building the new_path using the drive 
     path_list = path_list[:] # clone locally
-    path_tokens = []
     new_path_list = []
     for ii, path in enumerate(path_list):
         drive, path = osp.splitdrive(osp.dirname(path))
         new_path_list.append(drive + osp.sep)
-        path_list[ii] = toks = []
-        for part in path.split(osp.sep):
-            if len(part) == 0:
-                continue
-            if part not in path_tokens:
-                path_tokens.append(part)
-            toks.append(path_tokens.index(part))
+        path_list[ii] = [part for part in path.split(osp.sep) if len(part) > 0]
+            
     def recurse_level(level_idx):
         # if toks are all empty we need not have reucrsed here
         if all(len(toks) == 0 for _, toks in level_idx.iteritems()):
@@ -109,11 +103,11 @@ def shorten_paths(path_list,target_len=50):
             short_form = ''
         else:
             if s == 1:
-                short_form = path_tokens[sample_toks[0]]
+                short_form = sample_toks[0]
             elif s == 2:
-                short_form = path_tokens[sample_toks[0]] + os.sep + path_tokens[sample_toks[1]]
+                short_form = sample_toks[0] + os.sep + sample_toks[1]
             else:
-                short_form = "..." + os.sep + path_tokens[sample_toks[s-1]]
+                short_form = "..." + os.sep + sample_toks[s-1]
             for idx in level_idx:
                 new_path_list[idx] += short_form + os.sep
                 level_idx[idx] = level_idx[idx][s:]
@@ -140,11 +134,11 @@ def shorten_paths(path_list,target_len=50):
             if k == 0:
                 short_form = ''
             if k == 1:
-                short_form = path_tokens[sample_toks[0]] 
+                short_form = sample_toks[0] 
             elif k == 2:
-                short_form  = path_tokens[sample_toks[0]] + os.sep + path_tokens[sample_toks[1]] 
+                short_form  = sample_toks[0] + os.sep + sample_toks[1]
             elif k > 2:
-                short_form =  path_tokens[sample_toks[0]] + "..." + os.sep + path_tokens[sample_toks[k-1]] 
+                short_form =  sample_toks[0] + "..." + os.sep + sample_toks[k-1]
             for idx in group.keys():
                 new_path_list[idx] += short_form + (os.sep if k > 0 else '')
                 del level_idx[idx]
