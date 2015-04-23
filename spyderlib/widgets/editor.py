@@ -95,12 +95,14 @@ def shorten_paths(path_list,target_len=50):
             k, group = 0, level_idx
             while True:            
                 # If we've gone beyond the end of one or more in the group, then abort this iteration
-                # TODO: the logic for this isn't quite right yet
                 prospective_group = {idx: toks for idx, toks in group.iteritems() if len(toks) == k}
                 if len(prospective_group) > 0:
                     if k == 0: 
                         return
                     else:
+                        group = prospective_group
+                        if s == 0 and len(group) < len(level_idx):
+                            s = k-1
                         break            
                 # If all n still match on the kth token then keep going, otherwise abort this iteration
                 k_val = group[next(iter(group))][k]
