@@ -747,6 +747,7 @@ DEFAULTS = [
 # 3. You don't need to touch this value if you're just adding a new option
 CONF_VERSION = '18.1.0'
 
+
 # XXX: Previously we had load=(not DEV) here but DEV was set to *False*.
 # Check if it *really* needs to be updated or not
 CONF = UserConfig('spyder', defaults=DEFAULTS, load=True, version=CONF_VERSION,
