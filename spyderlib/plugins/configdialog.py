@@ -684,16 +684,16 @@ class MainConfigPage(GeneralConfigPage):
                                     tip=_("Set this to open external<br> "
                                           "Python files in an already running "
                                           "instance (Requires a restart)"))
-        vertdock_box = newcb(_("Vertical dockwidget title bars"),
+        vertdock_box = newcb(_("Vertical title bars in panes"),
                              'vertical_dockwidget_titlebars')
-        verttabs_box = newcb(_("Vertical dockwidget tabs"),
+        verttabs_box = newcb(_("Vertical tabs in panes"),
                              'vertical_tabs')
-        animated_box = newcb(_("Animated toolbars and dockwidgets"),
+        animated_box = newcb(_("Animated toolbars and panes"),
                              'animated_docks')
         tear_off_box = newcb(_("Tear off menus"), 'tear_off_menus',
                              tip=_("Set this to detach any<br> "
                                    "menu from the main window"))
-        margin_box = newcb(_("Custom dockwidget margin:"),
+        margin_box = newcb(_("Custom margin for panes:"),
                            'use_custom_margin')
         margin_spin = self.create_spinbox("", "pixels", 'custom_margin',
                                           0, 0, 30)
