@@ -210,7 +210,7 @@ class FileListDialog(QDialog):
         self.edit.selectAll()
         self.edit.setFocus() 
         geo = parent.geometry()
-        width = min(500,0.8*geo.width())
+        width = min(300,0.8*geo.width())
         self.listwidget.setMinimumWidth(width)
 
         left = parent.geometry().width()/2 - width/2
@@ -319,7 +319,7 @@ class FileListDialog(QDialog):
                 text = "<b>" + text + "</b>"
                 if trying_for_line_num:
                     text += " [" + str(self.path_to_line_count[path]) + " lines] "
-                text += " in: " + self.full_index_to_short_path[index]
+                text += "<br><span style='font-size:10px'>" + self.full_index_to_short_path[index] + "</span>"
                 item = QListWidgetItem(self.tabs.tabIcon(index),
                                        text, self.listwidget)
                 item.setToolTip(path)
