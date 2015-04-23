@@ -88,48 +88,65 @@ def shorten_paths(path_list,target_len=50):
             if part not in path_tokens:
                 path_tokens.append(part)
             toks.append(path_tokens.index(part))
-        
     def recurse_level(level_idx):
-        s = 0
+        # if toks are all empty we need not have reucrsed here
+        if all(len(toks) == 0 for _, toks in level_idx.iteritems()):
+            return
+        
+        # firstly, find the longest common prefix for all in the level
+        # s = len of longest common prefix
+        _, sample_toks = next(level_idx.iteritems())
+        if len(sample_toks) == 0:
+            s = 0
+        else:
+            for s, sample_val in enumerate(sample_toks):
+                if not all(len(toks) > s and toks[s] == sample_val \
+                                    for _, toks in level_idx.iteritems()):
+                    break
+
+        # Shorten longest common prefix
+        if s == 0:
+            short_form = ''
+        else:
+            if s == 1:
+                short_form = path_tokens[sample_toks[0]]
+            elif s == 2:
+                short_form = path_tokens[sample_toks[0]] + os.sep + path_tokens[sample_toks[1]]
+            else:
+                short_form = "..." + os.sep + path_tokens[sample_toks[s-1]]
+            for idx in level_idx:
+                new_path_list[idx] += short_form + os.sep
+                level_idx[idx] = level_idx[idx][s:]
+                
+        # Group the remaining bit after the common prefix, shorten, and recurse
         while len(level_idx):
-            k, group = 0, level_idx
+            k, group = 0, level_idx  # k is the length of the group's common prefix
             while True:            
                 # If we've gone beyond the end of one or more in the group, then abort this iteration
                 prospective_group = {idx: toks for idx, toks in group.iteritems() if len(toks) == k}
                 if len(prospective_group) > 0:
-                    if k == 0: 
-                        return
-                    else:
+                    if k == 0:
                         group = prospective_group
-                        if s == 0 and len(group) < len(level_idx):
-                            s = k-1
-                        break            
+                    break            
                 # If all n still match on the kth token then keep going, otherwise abort this iteration
                 k_val = group[next(iter(group))][k]
                 prospective_group = {idx: toks for idx, toks in group.iteritems() if toks[k] == k_val}
                 if len(prospective_group) == len(group) or len(group) == len(level_idx):
                     group = prospective_group
-                    if s == 0 and len(group) < len(level_idx):
-                        s = k
                     k += 1
                 else:
                     break        
+            _, sample_toks = next(group.iteritems())
             if k == 0:
-                group = prospective_group
-            sample_idx = next(iter(group))
-            if s == 0:
-                short_form = path_tokens[group[sample_idx][s]]
-            else:
-                short_form = path_tokens[group[sample_idx][s-1]] + os.sep + path_tokens[group[sample_idx][s]]
-                if s > 1:
-                    short_form = "..." + os.sep + short_form
-            if k == s+2:
-                short_form += os.sep + path_tokens[group[sample_idx][k-1]] 
-            elif k > s+2:
-                short_form += os.sep + "..." + os.sep + path_tokens[group[sample_idx][k-1]] 
-                
-            for idx in group:
-                new_path_list[idx] += short_form + os.sep
+                short_form = ''
+            if k == 1:
+                short_form = path_tokens[sample_toks[0]] 
+            elif k == 2:
+                short_form  = path_tokens[sample_toks[0]] + os.sep + path_tokens[sample_toks[1]] 
+            elif k > 2:
+                short_form =  path_tokens[sample_toks[0]] + "..." + os.sep + path_tokens[sample_toks[k-1]] 
+            for idx in group.keys():
+                new_path_list[idx] += short_form + (os.sep if k > 0 else '')
                 del level_idx[idx]
             recurse_level({idx: toks[k:] for idx, toks in group.iteritems()})
                         
