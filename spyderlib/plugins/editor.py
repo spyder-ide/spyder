@@ -962,6 +962,7 @@ class Editor(SpyderPluginWidget):
         
         self.search_menu_actions = [gotoline_action]
         self.main.search_menu_actions += self.search_menu_actions
+        self.main.search_toolbar_actions += [gotoline_action]
           
         # ---- Run menu/toolbar construction ----
         run_menu_actions = [run_action, run_cell_action,

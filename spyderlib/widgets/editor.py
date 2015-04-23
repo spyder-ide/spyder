@@ -545,12 +545,12 @@ class EditorStack(QWidget):
         """Synchronize file list dialog box with editor widget tabs"""
         if self.fileswitcher_dlg is not None:
             self.fileswitcher_dlg.synchronize(self.get_stack_index())
-            
+
     def go_to_line(self):
         """Go to line dialog"""
         if self.data:
             self.get_current_editor().exec_gotolinedialog()
-            
+
     def set_or_clear_breakpoint(self):
         """Set/clear breakpoint"""
         if self.data:
