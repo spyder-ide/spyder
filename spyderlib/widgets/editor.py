@@ -112,7 +112,6 @@ def shorten_paths(path_list,target_len=50):
                 new_path_list[idx] += short_form + os.sep
                 level_idx[idx] = level_idx[idx][s:]
     
-        level_len = len(level_idx)                
         # Group the remaining bit after the common prefix, shorten, and recurse
         while len(level_idx):
             k, group = 0, level_idx  # k is the length of the group's common prefix
@@ -146,7 +145,7 @@ def shorten_paths(path_list,target_len=50):
             recurse_level({idx: toks[k:] for idx, toks in group.iteritems()})
                         
     recurse_level(dict(enumerate(path_list)))
-    return new_path_list
+    return [path[:-1] for path in new_path_list] #trim final sep
         
     
 class FileListDialog(QDialog):
@@ -173,6 +172,7 @@ class FileListDialog(QDialog):
         self.tab_data = tab_data
         self.filtered_index_to_path = None
         self.full_index_to_path = None
+        self.path_to_line_count = None
         
         self.edit = QLineEdit(self)
         self.up_down_filter = UpDownFilter()
@@ -252,6 +252,7 @@ class FileListDialog(QDialog):
         current_path = self.current_path()
         
         # If we've changed path since last doing a goto line, we need to reset that previous file
+        # TODO: I think this may be slightly buggy, but it's not majorly important
         if self.line_num_modified_for_path is not None and current_path != self.line_num_modified_for_path:
             if self.line_num_modified_for_path in self.full_index_to_path:
                 self.tabs.widget(self.full_index_to_path.index(self.line_num_modified_for_path)).go_to_line(self.original_line_num)
@@ -265,7 +266,8 @@ class FileListDialog(QDialog):
             if self.original_line_num is None:
                 self.original_line_num = self.parent().get_current_editor().get_cursor_line_number()
                 self.line_num_modified_for_path = current_path
-            self.parent().get_current_editor().go_to_line(line_num)
+            editor = self.parent().get_current_editor()
+            editor.go_to_line(min(line_num, editor.get_line_count()))
 
     def item_selection_changed(self):            
         row = self.listwidget.currentRow()  
@@ -286,27 +288,41 @@ class FileListDialog(QDialog):
             return
             
         if stack_index is not None:
+            # cache full paths, and short paths and invalidate line couts
             self.full_index_to_path = [getattr(td,'filename',None) for td in self.tab_data]
             current_path = self.original_path  = self.full_index_to_path[stack_index]
-            self.full_index_to_short_path = shorten_paths(self.full_index_to_path)        
+            self.full_index_to_short_path = shorten_paths(self.full_index_to_path)  
+            self.path_to_line_count = None # we only get this on demand
         else:
             current_path = self.current_path() # could be None
+                
+        # get filter text and optional line number
+        filter_text = to_text_string(self.edit.text()).lower()
+        trying_for_line_num = (':' in filter_text)
+        filter_text, line_num = filter_text.split(':',1) if trying_for_line_num else (filter_text, "")
+        try:
+            line_num = int(line_num)
+        except ValueError:
+            line_num = -1
+
+        # cache line counts if we need now them
+        if trying_for_line_num and self.path_to_line_count is None:
+            self.path_to_line_count = {path: self.tabs.widget(idx).get_line_count() for idx, path in enumerate(self.full_index_to_path)}
         
         self.listwidget.clear()
         self.filtered_index_to_path = []
-        
-        filter_text = to_text_string(self.edit.text()).lower()
-        filter_text, line_num = filter_text.split(':',1) if ':' in filter_text else (filter_text, "")
-
         for index, path in enumerate(self.full_index_to_path):
             text = to_text_string(self.tabs.tabText(index))
             if len(filter_text) == 0 or filter_text in text.lower():
                 if len(filter_text) > 0:
                     text = text.replace(filter_text,'<u>' + filter_text + '</u>')
                 text = "<b>" + text + "</b>"
+                if trying_for_line_num:
+                    text += " [" + str(self.path_to_line_count[path]) + " lines] "
                 text += " in: " + self.full_index_to_short_path[index]
                 item = QListWidgetItem(self.tabs.tabIcon(index),
                                        text, self.listwidget)
+                item.setToolTip(path)
                 item.setSizeHint(QSize(0, 25))
                 self.listwidget.addItem(item)
                 self.filtered_index_to_path.append(path)
@@ -315,11 +331,7 @@ class FileListDialog(QDialog):
             self.listwidget.setCurrentRow(self.filtered_index_to_path.index(current_path))
         elif len(self.filtered_index_to_path) > 0:
             self.listwidget.setCurrentRow(0)
-        try:
-            line_num = int(line_num)
-            self.edit_line.emit(line_num) 
-        except ValueError:
-            self.edit_line.emit(-1)
+        self.edit_line.emit(line_num) # could be -1
 
 
 class AnalysisThread(QThread):
