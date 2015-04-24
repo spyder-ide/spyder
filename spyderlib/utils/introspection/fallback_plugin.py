@@ -37,6 +37,7 @@ class FallbackPlugin(IntrospectionPlugin):
         if (info.line.strip().startswith(('import ', 'from ')) and
                 info.is_python_like):
             items += module_completion(info.line, [info.filename])
+            return [(i, 'module') for i in sorted(items)]
         elif info.obj:
             base = info.obj
             tokens = set(info.split_words(-1))
@@ -54,7 +55,7 @@ class FallbackPlugin(IntrospectionPlugin):
             match = re.search('''[ "\']([\w\.\\\\/]+)\Z''', info.line)
             if match:
                 items += _complete_path(match.groups()[0])
-        return [(i, '') for i in sorted(items)]
+            return [(i, '') for i in sorted(items)]
 
     def get_definition(self, info):
         """
