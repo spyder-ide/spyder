@@ -71,6 +71,9 @@ class RequestHandler(QObject):
         if name == self.plugins[0].name or not self.waiting:
             if result:
                 self._finalize(name, result)
+            else:
+                debug_print('No valid responses acquired')
+                self.introspection_complete.emit()
         else:
             self.pending[name] = result
 
