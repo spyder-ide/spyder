@@ -34,10 +34,15 @@ class FallbackPlugin(IntrospectionPlugin):
         Simple completion based on python-like identifiers and whitespace
         """
         items = []
-        if (info.line.strip().startswith(('import', 'from')) and
-                info.is_python_like):
+        line = info.line.strip()
+        is_from = line.startswith('from')
+        if ((line.startswith('import') or is_from and ' import' not in line)
+                and info.is_python_like):
             items += module_completion(info.line, [info.filename])
             return [(i, 'module') for i in sorted(items)]
+        elif is_from and info.is_python_like:
+            items += module_completion(info.line, [info.filename])
+            return [(i, '') for i in sorted(items)]
         elif info.obj:
             base = info.obj
             tokens = set(info.split_words(-1))
