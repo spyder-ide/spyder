@@ -958,8 +958,8 @@ class MainWindow(QMainWindow):
                                            _("Spyder support..."),
                                            triggered=self.google_group)
             self.check_updates_action = create_action(self,
-                                                      _("Check for updates"),
-                                                      triggered=self.check_updates)
+                                                  _("Check for updates..."),
+                                                  triggered=self.check_updates)
 
             # Spyder documentation
             doc_path = get_module_data_path('spyderlib', relpath="doc",
@@ -1013,7 +1013,7 @@ class MainWindow(QMainWindow):
             self.help_menu_actions = [doc_action, tut_action, self.tours_menu,
                                       None,
                                       report_action, dep_action,
-                                      support_action, self.check_updates_action,
+                                      self.check_updates_action, support_action,
                                       None]
             # Python documentation
             if get_python_doc_path() is not None:
