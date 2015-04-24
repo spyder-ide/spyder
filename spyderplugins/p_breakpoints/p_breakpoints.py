@@ -14,10 +14,10 @@
 
 # Local imports
 from spyderlib.config.base import get_translation
-_ = get_translation("p_breakpoints", dirname="spyderplugins")
+_ = get_translation("p_breakpoints", dirname="spyderplugins.p_breakpoints")
 from spyderlib.utils.qthelpers import create_action
 from spyderlib.plugins import SpyderPluginMixin
-from spyderplugins.widgets.breakpointsgui import BreakpointWidget
+from .widgets.breakpointsgui import BreakpointWidget
 from spyderlib.py3compat import to_text_string, is_text_string
 import spyderlib.utils.icon_manager as ima
 

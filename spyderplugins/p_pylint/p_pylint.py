@@ -17,11 +17,11 @@ import spyderlib.utils.icon_manager as ima
 
 # Local imports
 from spyderlib.config.base import get_translation
-_ = get_translation("p_pylint", dirname="spyderplugins")
+_ = get_translation("p_pylint", dirname="spyderplugins.p_pylint")
 from spyderlib.utils.qthelpers import create_action
 from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage
 
-from spyderplugins.widgets.pylintgui import PylintWidget, PYLINT_PATH
+from .widgets.pylintgui import PylintWidget, PYLINT_PATH
 
 
 class PylintConfigPage(PluginConfigPage):
