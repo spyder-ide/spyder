@@ -246,6 +246,7 @@ editor, Python console, etc.""",
       package_data={LIBNAME: get_package_data(LIBNAME, EXTLIST),
                     'spyderplugins':
                     get_package_data('spyderplugins', EXTLIST)},
+      namespace_packages=['spyderplugins'],
       requires=["rope (>=0.9.2)", "sphinx (>=0.6.0)", "PyQt4 (>=4.4)"],
       scripts=[osp.join('scripts', fname) for fname in SCRIPTS],
       data_files=get_data_files(),
