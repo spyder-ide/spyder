@@ -21,9 +21,9 @@ from spyderlib.qt.QtGui import (QMessageBox, QTableView, QItemDelegate,
                                 QLineEdit, QVBoxLayout, QWidget, QColor,
                                 QDialog, QDateEdit, QDialogButtonBox, QMenu,
                                 QInputDialog, QDateTimeEdit, QApplication,
-                                QKeySequence, QAbstractItemDelegate)
+                                QKeySequence, QAbstractItemDelegate, QToolTip)
 from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, Signal,
-                                 QDateTime, Slot)
+                                 QDateTime, Slot, QPoint)
 from spyderlib.qt.compat import to_qvariant, from_qvariant, getsavefilename
 from spyderlib.utils.qthelpers import mimedata2url
 
@@ -406,6 +406,10 @@ class DictModel(ReadOnlyDictModel):
         self.dataChanged.emit(index, index)
         return True
 
+    def get_str(self,index):
+        row = index.row()
+        return _("<u>%s</u><br>%s<br><b>type:</b> %s<br><b>size:</b> %s")\
+                    % (self.keys[row], self._data[self.keys[row]]['view'], self.types[row],self.sizes[row])
 
 class DictDelegate(QItemDelegate):
     """DictEditor Item Delegate"""
@@ -651,6 +655,7 @@ class BaseTableView(QTableView):
         self.duplicate_action = None
         self.delegate = None
         self.setAcceptDrops(True)
+        self.setMouseTracking(True)
         
     def setup_table(self):
         """Setup table"""
@@ -823,7 +828,16 @@ class BaseTableView(QTableView):
         if data is not None:
             self.model.set_data(data, self.dictfilter)
             self.sortByColumn(0, Qt.AscendingOrder)
-
+            
+    def mouseMoveEvent(self, event):
+        index_over = self.indexAt(event.pos())
+        if not index_over.isValid():
+            QToolTip.hideText()
+        else:
+            QToolTip.showText(self.mapToGlobal(event.pos() + QPoint(0, 10)),
+                              index_over.model().get_str(index_over))
+        QTableView.mouseMoveEvent(self, event)
+        
     def mousePressEvent(self, event):
         """Reimplement Qt method"""
         if event.button() != Qt.LeftButton:
