@@ -17,7 +17,7 @@ from spyderlib.qt.QtCore import Signal, Qt
 # Local imports
 from spyderlib.baseconfig import get_translation
 _ = get_translation("p_pylint", dirname="spyderplugins.p_pylint")
-from spyderlib.utils.qthelpers import get_icon, create_action
+from spyderlib.utils.qthelpers import create_action
 from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage
 
 from .widgets.pylintgui import PylintWidget, PYLINT_PATH
@@ -92,7 +92,7 @@ class Pylint(PylintWidget, SpyderPluginMixin):
     
     def get_plugin_icon(self):
         """Return widget icon"""
-        return get_icon('pylint.png')
+        return self.get_icon('pylint.png')
     
     def get_focus_widget(self):
         """

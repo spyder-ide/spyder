@@ -14,7 +14,7 @@ from spyderlib.qt.QtCore import Signal, Qt
 # Local imports
 from spyderlib.baseconfig import get_translation
 _ = get_translation("p_profiler", dirname="spyderplugins.p_profiler")
-from spyderlib.utils.qthelpers import get_icon, create_action
+from spyderlib.utils.qthelpers import create_action
 from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage, runconfig
 
 from .widgets.profilergui import (ProfilerWidget,
@@ -68,7 +68,7 @@ class Profiler(ProfilerWidget, SpyderPluginMixin):
 
     def get_plugin_icon(self):
         """Return widget icon"""
-        return get_icon('profiler.png')
+        return self.get_icon('profiler.png')
     
     def get_focus_widget(self):
         """
@@ -93,7 +93,7 @@ class Profiler(ProfilerWidget, SpyderPluginMixin):
         self.main.add_dockwidget(self)
         
         profiler_act = create_action(self, _("Profile"),
-                                     icon=get_icon('profiler.png'),
+                                     icon=self.get_icon('profiler.png'),
                                      triggered=self.run_profiler)
         profiler_act.setEnabled(is_profiler_installed())
         self.register_shortcut(profiler_act, context="Profiler",
