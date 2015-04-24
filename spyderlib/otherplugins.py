@@ -28,26 +28,31 @@ if programs.is_module_installed("spyderplugins"):
         PLUGIN_PATH = None
 
 
-def get_spyderplugins(prefix, extension):
+def get_spyderplugins(prefix):
     """Scan directory of `spyderplugins` package and
-    return the list of module names matching *prefix* and *extension*"""
+    return the list of module names matching *prefix*"""
     plist = []
     if PLUGIN_PATH is not None:
         for name in os.listdir(PLUGIN_PATH):
-            modname, ext = osp.splitext(name)
-            if prefix is not None and not name.startswith(prefix):
+            if not name.startswith(prefix):
                 continue
-            if extension is not None and ext != extension:
-                continue
+            if osp.isdir(osp.join(PLUGIN_PATH, name)):
+                if not osp.isfile(osp.join(PLUGIN_PATH, name, "__init__.py")):
+                    continue
+                modname = name
+            else:
+                modname, ext = osp.splitext(name)
+                if ext != ".py":
+                    continue
             plist.append(modname)
     return plist
 
 
-def get_spyderplugins_mods(prefix, extension):
-    """Import modules that match *prefix* and *extension* from
+def get_spyderplugins_mods(prefix):
+    """Import modules that match *prefix* from
     `spyderplugins` package and return the list"""
     modlist = []
-    for modname in get_spyderplugins(prefix, extension):
+    for modname in get_spyderplugins(prefix):
         name = 'spyderplugins.%s' % modname
         try:
             __import__(name)

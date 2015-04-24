@@ -507,7 +507,7 @@ class IOFunctions(object):
     def get_3rd_party_funcs(self):
         other_funcs = []
         from spyderlib.otherplugins import get_spyderplugins_mods
-        for mod in get_spyderplugins_mods(prefix='io_', extension='.py'):
+        for mod in get_spyderplugins_mods(prefix="io_"):
             try:
                 other_funcs.append((mod.FORMAT_EXT, mod.FORMAT_NAME,
                                     mod.FORMAT_LOAD, mod.FORMAT_SAVE))
