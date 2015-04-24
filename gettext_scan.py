@@ -8,12 +8,12 @@ from gettext_helpers import do_rescan, do_rescan_files
 
 if __name__ == "__main__":
     do_rescan("spyderlib")
-    do_rescan_files(["spyderplugins/p_pylint.py",
-                     "spyderplugins/widgets/pylintgui.py"],
-                     "p_pylint", "spyderplugins")
-    do_rescan_files(["spyderplugins/p_profiler.py",
-                     "spyderplugins/widgets/profilergui.py"],
-                     "p_profiler", "spyderplugins")
-    do_rescan_files(["spyderplugins/p_breakpoints.py",
-                     "spyderplugins/widgets/breakpointsgui.py"],
-                     "p_breakpoints", "spyderplugins")
+    do_rescan_files(["spyderplugins/p_pylint/p_pylint.py",
+                     "spyderplugins/p_pylint/widgets/pylintgui.py"],
+                     "p_pylint", "spyderplugins/p_pylint")
+    do_rescan_files(["spyderplugins/p_profiler/p_profiler.py",
+                     "spyderplugins/p_profiler/widgets/profilergui.py"],
+                     "p_profiler", "spyderplugins/p_profiler")
+    do_rescan_files(["spyderplugins/p_breakpoints/p_breakpoints.py",
+                     "spyderplugins/p_breakpoints/widgets/breakpointsgui.py"],
+                     "p_breakpoints", "spyderplugins/p_breakpoints")
