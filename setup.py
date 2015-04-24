@@ -276,6 +276,7 @@ editor, Python console, etc.""",
       package_data={LIBNAME: get_package_data(LIBNAME, EXTLIST),
                     'spyderplugins':
                     get_package_data('spyderplugins', EXTLIST)},
+      namespace_packages=['spyderplugins'],
       scripts=[osp.join('scripts', fname) for fname in SCRIPTS],
       data_files=get_data_files(),
       options={"bdist_wininst":
