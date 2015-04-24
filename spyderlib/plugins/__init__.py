@@ -26,6 +26,10 @@ from spyderlib.qt.QtGui import (QDockWidget, QWidget, QShortcut, QCursor,
 from spyderlib.qt.QtCore import Qt, Signal, QObject, QEvent, QPoint
 import spyderlib.utils.icon_manager as ima
 
+# Stdlib imports
+import sys
+import inspect
+
 # Local imports
 from spyderlib.utils.qthelpers import toggle_actions, get_icon, create_action
 from spyderlib.config.base import _
@@ -34,6 +38,7 @@ from spyderlib.config.user import NoDefault
 from spyderlib.config.gui import get_font, set_font
 from spyderlib.plugins.configdialog import SpyderConfigPage
 from spyderlib.py3compat import configparser, is_text_string
+from spyderlib.utils.external.path import path as Path
 
 
 class PluginConfigPage(SpyderConfigPage):
@@ -251,6 +256,7 @@ class SpyderPluginMixin(object):
     """
     CONF_SECTION = None
     CONFIGWIDGET_CLASS = None
+    IMG_PATH = "images"
     ALLOWED_AREAS = Qt.AllDockWidgetAreas
     LOCATION = Qt.LeftDockWidgetArea
     FEATURES = QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetFloatable
@@ -265,6 +271,7 @@ class SpyderPluginMixin(object):
         """Bind widget to a QMainWindow instance"""
         super(SpyderPluginMixin, self).__init__(**kwds)
         assert self.CONF_SECTION is not None
+        self.PLUGIN_PATH = Path(inspect.getfile(self.__class__)).parent
         self.main = main
         self.default_margins = None
         self.plugin_actions = None
@@ -372,9 +379,9 @@ class SpyderPluginMixin(object):
         """
         self.mainwindow = mainwindow = QMainWindow()
         mainwindow.setAttribute(Qt.WA_DeleteOnClose)
-        icon = self.get_widget_icon()
+        icon = self.get_plugin_icon()
         if is_text_string(icon):
-            icon = get_icon(icon)
+            icon = self.get_icon(icon)
         mainwindow.setWindowIcon(icon)
         mainwindow.setWindowTitle(self.get_plugin_title())
         mainwindow.setCentralWidget(self)
@@ -455,6 +462,18 @@ class SpyderPluginMixin(object):
     def set_plugin_font(self, font, option=None):
         """Set plugin font option"""
         set_font(font, self.CONF_SECTION, option)
+
+    def get_icon(self, icon_name):
+        """
+        Search icon.
+        THe icon is searched first in the plugin images directory, then in
+        spyders's IMG_PATH.
+        """
+        icon_path = self.PLUGIN_PATH / self.IMG_PATH / icon_name
+        if icon_path.isfile():
+            return QIcon(icon_path)
+        else:
+            return get_icon(icon_name)
 
     def __show_message(self, message, timeout=0):
         """Show message in main window's status bar"""
