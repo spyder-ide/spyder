@@ -13,11 +13,11 @@ from spyderlib.qt.QtCore import Signal, Qt
 
 # Local imports
 from spyderlib.baseconfig import get_translation
-_ = get_translation("p_profiler", dirname="spyderplugins")
+_ = get_translation("p_profiler", dirname="spyderplugins.p_profiler")
 from spyderlib.utils.qthelpers import get_icon, create_action
 from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage, runconfig
 
-from spyderplugins.widgets.profilergui import (ProfilerWidget,
+from .widgets.profilergui import (ProfilerWidget,
                                                is_profiler_installed)
 
 
