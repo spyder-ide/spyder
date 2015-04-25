@@ -29,7 +29,7 @@ class FakeObject(object):
 #----Numpy arrays support
 try:
     from numpy import sum as np_sum
-    from numpy import ndarray, isnan, nanmax, nanmin, nanmean
+    from numpy import ndarray, isnan, nanmax, nanmin, nanmean, nan
     from numpy import array, matrix #@UnusedImport (object eval)
     from numpy.ma import MaskedArray
 except ImportError:
@@ -163,14 +163,11 @@ def unsorted_unique(lista):
 
 
 @contextmanager
-def ignore(*exceptions):
-    yield
-"""    
+def ignore(*exceptions):  
     try:
         yield
     except exceptions:
         pass
-"""
  
 def make_meta_dict(value):
     meta = OrderedDict()
@@ -183,6 +180,8 @@ def make_meta_dict(value):
             with ignore(Exception): 
                 meta['masked'] = str(value.size - value.count())                
         with ignore(Exception):
+            # next line will throw ValueError if dtype does not support nans
+            test_nan = array(nan, dtype=value.dtype) # analysis:ignore
             n_nan = np_sum(isnan(value))
             meta['NaNs'] = n_nan                    
         with ignore(Exception):
@@ -190,11 +189,11 @@ def make_meta_dict(value):
         with ignore(Exception):
             n_bytes = value.nbytes
             if n_bytes < 1024*2:
-                meta['size'] = str(n_bytes) + 'B' 
+                meta['memory'] = str(n_bytes) + 'B' 
             elif n_bytes < (1024**2)*2:
-                meta['size'] = str(round(n_bytes/(1024.0), 1)) + 'KB' 
+                meta['memory'] = str(round(n_bytes/(1024.0), 1)) + 'KB' 
             else:
-                meta['size'] = str(round(n_bytes/(1024.0**2), 1)) + 'MB' 
+                meta['memory'] = str(round(n_bytes/(1024.0**2), 1)) + 'MB' 
     return meta
     
 #----Display <--> Value

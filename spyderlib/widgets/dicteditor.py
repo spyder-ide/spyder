@@ -667,7 +667,7 @@ class InfoPane(QDialog):
         geo = parent.geometry()
         parent_width = geo.width()
         parent_left = geo.left()
-        self_width = 300        
+        self_width = 380        
         self_height = 300        
         self.setMinimumSize(self_width, self_height)                
         self.setMaximumSize(self_width, self_height)
