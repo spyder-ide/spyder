@@ -1,3 +1,3 @@
 # -*- coding: utf-8 -*-
 
-from .p_profiler import PLUGIN_CLASS
+from .profiler import PLUGIN_CLASS
