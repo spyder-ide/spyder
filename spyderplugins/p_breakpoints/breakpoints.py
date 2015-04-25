@@ -113,10 +113,3 @@ class Breakpoints(BreakpointWidget, SpyderPluginMixin):
             self.dockwidget.setVisible(True)
             self.dockwidget.setFocus()
             self.dockwidget.raise_()
-
-
-#==============================================================================
-# The following statements are required to register this 3rd party plugin:
-#==============================================================================
-PLUGIN_CLASS = Breakpoints
-

@@ -139,10 +139,3 @@ class Profiler(ProfilerWidget, SpyderPluginMixin):
                 args = runconf.args
         ProfilerWidget.analyze(self, filename, wdir=wdir, args=args,
                                pythonpath=pythonpath)
-
-
-#===============================================================================
-# The following statements are required to register this 3rd party plugin:
-#===============================================================================
-PLUGIN_CLASS = Profiler
-
