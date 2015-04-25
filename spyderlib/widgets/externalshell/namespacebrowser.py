@@ -112,7 +112,7 @@ class NamespaceBrowser(QWidget):
                                               minmax=minmax)
         else:
             self.editor = RemoteDictEditorTableView(self, None,
-                            truncate=truncate, minmax=minmax,
+                            truncate=truncate, minmax=minmax, compact=True, 
                             remote_editing=remote_editing,
                             get_value_func=self.get_value,
                             set_value_func=self.set_value,
@@ -133,7 +133,6 @@ class NamespaceBrowser(QWidget):
                             show_image_func=self.show_image)
         self.editor.sig_option_changed.connect(self.sig_option_changed.emit)
         self.editor.sig_files_dropped.connect(self.import_data)
-        self.editor.setCompactMode(True)
         
         # Setup layout
         hlayout = QHBoxLayout()

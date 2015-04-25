@@ -22,7 +22,7 @@ from spyderlib.qt.QtGui import (QMessageBox, QTableView, QItemDelegate,
                                 QDialog, QDateEdit, QDialogButtonBox, QMenu,
                                 QInputDialog, QDateTimeEdit, QApplication,
                                 QKeySequence, QAbstractItemDelegate, QLabel,
-                                QToolTip)
+                                QToolTip, QHeaderView)
 from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, Signal,
                                  QDateTime, Slot)
 from spyderlib.qt.compat import to_qvariant, from_qvariant, getsavefilename
@@ -121,12 +121,13 @@ class ReadOnlyDictModel(QAbstractTableModel):
     ROWS_TO_LOAD = 200
 
     def __init__(self, parent, data, title="", names=False, truncate=True,
-                 minmax=False, remote=False):
+                 minmax=False, remote=False, compact=False):
         QAbstractTableModel.__init__(self, parent)
         if data is None:
             data = {}
         self.names = names
         self.truncate = truncate
+        self.compact = compact
         self.minmax = minmax
         self.remote = remote
         self.header0 = None
@@ -697,31 +698,26 @@ class BaseTableView(QTableView):
         self.delegate = None
         self.setAcceptDrops(True)
         self.info_pane = None 
-        self.setCompactMode(False)
+        self.only_show_column = 0
         
-    def setCompactMode(self, new_val):
-        self.compact_mode = new_val
-        self.setMouseTracking(self.compact_mode)
-        self.only_show_column = 0 if self.compact_mode else None # if None then show all
-        if self.info_pane is None and self.compact_mode:
-            self.info_pane = InfoPane(self)
-        if self.model:
-            self.showRequestedColumns()
-            
     def resizeEvent(self, event):
-        if self.compact_mode:
+        if self.model.compact:
             self.info_pane.update_position()
         QTableView.resizeEvent(self, event)
         
     def showRequestedColumns(self):
-        if self.only_show_column is not None:
+        if self.model.compact:
             for col in xrange(self.model.columnCount()):
                 if col != self.only_show_column:
                     self.setColumnHidden(col,True)
+        else:
+            for col in xrange(self.model.columnCount()):
+                self.setColumnHidden(col,False)  
         
     def setModel(self, model):
         QTableView.setModel(self, model)
         self.showRequestedColumns()
+        self.resizeRowsToContents()
             
     def setup_table(self):
         """Setup table"""
@@ -731,13 +727,18 @@ class BaseTableView(QTableView):
         self.setSortingEnabled(True)
         self.sortByColumn(0, Qt.AscendingOrder)
     
-    def setup_menu(self, truncate, minmax):
+    def setup_menu(self):
         """Setup context menu"""
         if self.truncate_action is not None:
-            self.truncate_action.setChecked(truncate)
-            self.minmax_action.setChecked(minmax)
+            self.truncate_action.setChecked(self.model.truncate)
+            self.minmax_action.setChecked(self.model.minmax)
+            self.compact_action.setChecked(self.model.compact)
             return
         
+        self.compact_action = create_action(self, _("Compact mode"),
+                                            toggled=self.toggle_compact)
+        self.compact_action.setChecked(self.model.compact)
+        self.toggle_compact(self.model.compact)
         resize_action = create_action(self, _("Resize rows to contents"),
                                       triggered=self.resizeRowsToContents)
         self.paste_action = create_action(self, _("Paste"),
@@ -773,12 +774,12 @@ class BaseTableView(QTableView):
                                            triggered=self.remove_item)
         self.truncate_action = create_action(self, _("Truncate values"),
                                              toggled=self.toggle_truncate)
-        self.truncate_action.setChecked(truncate)
-        self.toggle_truncate(truncate)
+        self.truncate_action.setChecked(self.model.truncate)
+        self.toggle_truncate(self.model.truncate)
         self.minmax_action = create_action(self, _("Show arrays min/max"),
                                            toggled=self.toggle_minmax)
-        self.minmax_action.setChecked(minmax)
-        self.toggle_minmax(minmax)
+        self.minmax_action.setChecked(self.model.minmax)
+        self.toggle_minmax(self.model.minmax)
         self.rename_action = create_action(self, _( "Rename"),
                                            icon=get_icon('rename.png'),
                                            triggered=self.rename_item)
@@ -791,14 +792,16 @@ class BaseTableView(QTableView):
                         self.insert_action, self.remove_action,
                         self.copy_action, self.paste_action,
                         None, self.rename_action, self.duplicate_action,
-                        None, resize_action, None, self.truncate_action]
+                        None, resize_action, self.compact_action,
+                        None, self.truncate_action,
+                        ]
         if ndarray is not FakeObject:
             menu_actions.append(self.minmax_action)
         add_actions(menu, menu_actions)
         self.empty_ws_menu = QMenu(self)
         add_actions(self.empty_ws_menu,
                     [self.insert_action, self.paste_action,
-                     None, resize_action])
+                     None, resize_action, None, self.compact_action])
         return menu
     
     #------ Remote/local API ---------------------------------------------------
@@ -896,17 +899,17 @@ class BaseTableView(QTableView):
             self.sortByColumn(0, Qt.AscendingOrder)
             
     def enterEvent(self,event):
-        if self.compact_mode:
+        if self.model.compact:
             self.info_pane.show()
         QTableView.enterEvent(self,event)
         
     def leaveEvent(self,event):
-        if self.compact_mode:
+        if self.model.compact:
             self.info_pane.hide()
         QTableView.leaveEvent(self,event)
         
     def mouseMoveEvent(self, event):
-        if self.compact_mode:            
+        if self.model.compact:            
             index_over = self.indexAt(event.pos())
             if index_over.isValid():
                 self.info_pane.showText(index_over.model().get_str(index_over))
@@ -992,6 +995,19 @@ class BaseTableView(QTableView):
         """Toggle display truncating option"""
         self.sig_option_changed.emit('truncate', state)
         self.model.truncate = state
+
+    @Slot(bool)
+    def toggle_compact(self, state):
+        """Toggle compact view"""
+        self.sig_option_changed.emit('compact', state)
+        self.model.compact = state
+        self.setMouseTracking(state)
+        if self.info_pane is None and state:
+            self.info_pane = InfoPane(self)
+        if state:
+           self.info_pane.update_position()
+        self.showRequestedColumns()
+        self.resizeColumnsToContents()
 
     @Slot(bool)
     def toggle_minmax(self, state):
@@ -1189,19 +1205,20 @@ class BaseTableView(QTableView):
 class DictEditorTableView(BaseTableView):
     """DictEditor table view"""
     def __init__(self, parent, data, readonly=False, title="",
-                 names=False, truncate=True, minmax=False):
+                 names=False, truncate=True, minmax=False, compact=False):
         BaseTableView.__init__(self, parent)
         self.dictfilter = None
         self.readonly = readonly or isinstance(data, tuple)
         DictModelClass = ReadOnlyDictModel if self.readonly else DictModel
         self.model = DictModelClass(self, data, title, names=names,
-                                    truncate=truncate, minmax=minmax)
+                                    truncate=truncate, minmax=minmax,
+                                    compact=compact)
         self.setModel(self.model)
         self.delegate = DictDelegate(self)
         self.setItemDelegate(self.delegate)
 
         self.setup_table()
-        self.menu = self.setup_menu(truncate, minmax)
+        self.menu = self.setup_menu()
     
     #------ Remote/local API ---------------------------------------------------
     def remove_values(self, keys):
@@ -1411,7 +1428,7 @@ class RemoteDictDelegate(DictDelegate):
 class RemoteDictEditorTableView(BaseTableView):
     """DictEditor table view"""
     def __init__(self, parent, data, truncate=True, minmax=False, 
-                 get_value_func=None, set_value_func=None,
+                 compact=False, get_value_func=None, set_value_func=None,
                  new_value_func=None, remove_values_func=None,
                  copy_value_func=None, is_list_func=None, get_len_func=None,
                  is_array_func=None, is_image_func=None, is_dict_func=None,
@@ -1447,17 +1464,17 @@ class RemoteDictEditorTableView(BaseTableView):
         self.readonly = False
         self.model = DictModel(self, data, names=True,
                                truncate=truncate, minmax=minmax,
-                               remote=True)
+                               compact=compact, remote=True)
         self.setModel(self.model)
         self.delegate = RemoteDictDelegate(self, get_value_func, set_value_func)
         self.setItemDelegate(self.delegate)
         
         self.setup_table()
-        self.menu = self.setup_menu(truncate, minmax)
+        self.menu = self.setup_menu()
 
-    def setup_menu(self, truncate, minmax):
+    def setup_menu(self):
         """Setup context menu"""
-        menu = BaseTableView.setup_menu(self, truncate, minmax)
+        menu = BaseTableView.setup_menu(self)
         return menu
 
     def oedit_possible(self, key):
