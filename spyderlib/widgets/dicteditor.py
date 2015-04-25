@@ -1006,6 +1006,10 @@ class BaseTableView(QTableView):
             self.info_pane = InfoPane(self)
         if state:
            self.info_pane.update_position()
+           self.verticalHeader().setResizeMode(QHeaderView.ResizeToContents)
+        else:
+            self.verticalHeader().setResizeMode(QHeaderView.Interactive)
+            
         self.showRequestedColumns()
         self.resizeColumnsToContents()
 
