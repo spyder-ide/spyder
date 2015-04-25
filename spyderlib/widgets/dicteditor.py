@@ -633,7 +633,8 @@ class InfoPane(QDialog):
     def __init__(self, parent):
         QDialog.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose | Qt.WA_ShowWithoutActivating)        
-        self.setWindowFlags(Qt.Dialog | Qt.FramelessWindowHint) 
+        self.setWindowFlags(Qt.Tool | Qt.FramelessWindowHint \
+                            | Qt.WindowStaysOnTopHint) 
         self.setWindowOpacity(0.9)
         
         self.setPalette(QToolTip.palette())
