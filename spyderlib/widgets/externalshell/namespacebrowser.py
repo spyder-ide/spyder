@@ -133,7 +133,7 @@ class NamespaceBrowser(QWidget):
                             show_image_func=self.show_image)
         self.editor.sig_option_changed.connect(self.sig_option_changed.emit)
         self.editor.sig_files_dropped.connect(self.import_data)
-        
+        self.editor.setCompactMode(True)
         
         # Setup layout
         hlayout = QHBoxLayout()

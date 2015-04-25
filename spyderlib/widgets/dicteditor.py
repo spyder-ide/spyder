@@ -655,6 +655,7 @@ class InfoPane(QDialog):
         w = 300        
         h = 300        
         self.setMinimumSize(w, h)                
+        self.setMaximumSize(w, h)
         if 'left' in self.position:
             left -= w
   
@@ -694,21 +695,33 @@ class BaseTableView(QTableView):
         self.duplicate_action = None
         self.delegate = None
         self.setAcceptDrops(True)
-        self.setMouseTracking(True)
-        self.only_show_column = 0 # if None then show all
-        self.info_pane = InfoPane(self)
-
+        self.info_pane = None 
+        self.setCompactMode(False)
+        
+    def setCompactMode(self, new_val):
+        self.compact_mode = new_val
+        self.setMouseTracking(self.compact_mode)
+        self.only_show_column = 0 if self.compact_mode else None # if None then show all
+        if self.info_pane is None and self.compact_mode:
+            self.info_pane = InfoPane(self)
+        if self.model:
+            self.showRequestedColumns()
+            
     def resizeEvent(self, event):
-        self.info_pane.update_position()
+        if self.compact_mode:
+            self.info_pane.update_position()
         QTableView.resizeEvent(self, event)
+        
+    def showRequestedColumns(self):
+        if self.only_show_column is not None:
+            for col in xrange(self.model.columnCount()):
+                if col != self.only_show_column:
+                    self.setColumnHidden(col,True)
         
     def setModel(self, model):
         QTableView.setModel(self, model)
-        if self.only_show_column is not None:
-            for col in xrange(model.columnCount()):
-                if col != self.only_show_column:
-                    self.setColumnHidden(col,True)
-                    
+        self.showRequestedColumns()
+            
     def setup_table(self):
         """Setup table"""
         self.horizontalHeader().setStretchLastSection(True)
@@ -882,18 +895,21 @@ class BaseTableView(QTableView):
             self.sortByColumn(0, Qt.AscendingOrder)
             
     def enterEvent(self,event):
-        self.info_pane.show()
+        if self.compact_mode:
+            self.info_pane.show()
         QTableView.enterEvent(self,event)
         
     def leaveEvent(self,event):
-        self.info_pane.hide()
+        if self.compact_mode:
+            self.info_pane.hide()
         QTableView.leaveEvent(self,event)
         
     def mouseMoveEvent(self, event):
-        index_over = self.indexAt(event.pos())
-        if index_over.isValid():
-            self.info_pane.showText(index_over.model().get_str(index_over))
-        QTableView.mouseMoveEvent(self, event)
+        if self.compact_mode:            
+            index_over = self.indexAt(event.pos())
+            if index_over.isValid():
+                self.info_pane.showText(index_over.model().get_str(index_over))
+            QTableView.mouseMoveEvent(self, event)
         
     def mousePressEvent(self, event):
         """Reimplement Qt method"""
