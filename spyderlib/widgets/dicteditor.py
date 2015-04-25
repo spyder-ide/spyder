@@ -645,8 +645,6 @@ class InfoPane(QDialog):
                                     | Qt.AlignRight)
         vlayout.addWidget(self.main_text)
         self.setLayout(vlayout)
-
-        self.position = ('left','top')
         self.update_position()
         
     def update_position(self):
@@ -654,18 +652,25 @@ class InfoPane(QDialog):
         top = 0
         parent = self.parent()
         geo = parent.geometry()
-        w = 300        
-        h = 300        
-        self.setMinimumSize(w, h)                
-        self.setMaximumSize(w, h)
-        if 'left' in self.position:
-            left -= w
-  
+        parent_width = geo.width()
+        parent_left = geo.left()
+        self_width = 300        
+        self_height = 300        
+        self.setMinimumSize(self_width, self_height)                
+        self.setMaximumSize(self_width, self_height)
         while parent:
             geo = parent.geometry()
             top += geo.top()
             left += geo.left()
             parent = parent.parent()
+        window_width = geo.width()
+        
+        # Work out whether there is more space to the left or right of the parent
+        right_space = window_width - (parent_left + parent_width)    
+        if right_space > left:
+            left += parent_width
+        else:
+            left -= self_width
         self.move(left, top) 
 
     def showText(self, text):
