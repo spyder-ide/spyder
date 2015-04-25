@@ -41,7 +41,8 @@ from spyderlib.widgets.dicteditorutils import (sort_against, get_size,
                get_human_readable_type, value_to_display, get_color_name,
                is_known_type, FakeObject, Image, ndarray, array, MaskedArray,
                unsorted_unique, try_to_eval, datestr_to_datetime,
-               get_numpy_dtype, is_editable_type, DataFrame, TimeSeries)
+               get_numpy_dtype, is_editable_type, DataFrame, TimeSeries, 
+               make_meta_dict)
 if ndarray is not FakeObject:
     from spyderlib.widgets.arrayeditor import ArrayEditor
 if DataFrame is not FakeObject:
@@ -325,7 +326,7 @@ class ReadOnlyDictModel(QAbstractTableModel):
         display = value_to_display(value,
                                truncate=index.column() == 3 and self.truncate \
                                and not self.compact,
-                               minmax=self.minmax)
+                               minmax=self.minmax and not self.compact)
         if role == Qt.DisplayRole:
             return to_qvariant(display)
         elif role == Qt.EditRole:
@@ -415,6 +416,8 @@ class DictModel(ReadOnlyDictModel):
             size_str = ' x '.join([str(x) for x in self.sizes[row]])
         except TypeError:
             size_str = self.sizes[row]
+        meta_dict = ""#value_to_display(value, meta_dict=True)
+        
         return _("<h2>%s</h2><b>type:</b> %s | <b>size:</b> %s<br><br>%s")\
                     % (self.keys[row], self.types[row], size_str,
                        self._data[self.keys[row]]['view'].replace('\n','<br>'))
@@ -683,6 +686,9 @@ class InfoPane(QDialog):
         self.move(left, top) 
 
     def showText(self, text):
+        # if text is super long then QLabel deals really badly with it, so truncate it
+        if len(text) > 2000:
+            text = text[:2000].rstrip() + ' ...'
         self.main_text.setText(text)
         
 class BaseTableView(QTableView):
@@ -713,6 +719,7 @@ class BaseTableView(QTableView):
         self.setAcceptDrops(True)
         self.info_pane = None 
         self.only_show_column = 0
+        self.info_pane_index = None
         
     def resizeEvent(self, event):
         if self.model.compact:
@@ -840,6 +847,10 @@ class BaseTableView(QTableView):
         """Return sequence length"""
         raise NotImplementedError
         
+    def get_meta_dict(self, key):
+        """Return dict of meta data"""
+        raise NotImplementedError
+        
     def is_array(self, key):
         """Return True if variable is a numpy array"""
         raise NotImplementedError
@@ -916,18 +927,22 @@ class BaseTableView(QTableView):
     def enterEvent(self,event):
         if self.model.compact:
             self.info_pane.show()
+            self.info_pane.showText("")
+            self.info_pane_index = None
         QTableView.enterEvent(self,event)
         
     def leaveEvent(self,event):
         if self.model.compact:
             self.info_pane.hide()
+        self.info_pane_index = None
         QTableView.leaveEvent(self,event)
         
     def mouseMoveEvent(self, event):
         if self.model.compact:            
             index_over = self.indexAt(event.pos())
-            if index_over.isValid():
+            if index_over.isValid() and index_over.row() != self.info_pane_index:
                 self.info_pane.showText(index_over.model().get_str(index_over))
+                self.info_pane_index = index_over.row()
             QTableView.mouseMoveEvent(self, event)
         
     def mousePressEvent(self, event):
@@ -1270,6 +1285,11 @@ class DictEditorTableView(BaseTableView):
         data = self.model.get_data()
         return len(data[key])
         
+    def get_meta_dict(self, key):
+        """Return dict of meta data"""
+        data = self.model.get_data()
+        return make_meta_dict(data)
+        
     def is_array(self, key):
         """Return True if variable is a numpy array"""
         data = self.model.get_data()
@@ -1455,7 +1475,8 @@ class RemoteDictEditorTableView(BaseTableView):
                  get_array_shape_func=None, get_array_ndim_func=None,
                  oedit_func=None, plot_func=None, imshow_func=None,
                  is_data_frame_func=None, is_time_series_func=None,
-                 show_image_func=None, remote_editing=False):
+                 show_image_func=None, remote_editing=False, 
+                 get_meta_dict_func=None):
         BaseTableView.__init__(self, parent)
         
         self.remote_editing_enabled = None

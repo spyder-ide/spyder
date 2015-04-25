@@ -122,6 +122,7 @@ class NamespaceBrowser(QWidget):
                             is_list_func=self.is_list,
                             get_len_func=self.get_len,
                             is_array_func=self.is_array,
+                            get_meta_dict_func=self.get_meta_dict,
                             is_image_func=self.is_image,
                             is_dict_func=self.is_dict,
                             is_data_frame_func=self.is_data_frame,
@@ -363,7 +364,11 @@ class NamespaceBrowser(QWidget):
     def get_len(self, name):
         """Return sequence length"""
         return communicate(self._get_sock(), "len(%s)" % name)
-        
+
+    def get_meta_dict(self, name):
+        """Return dict of meta data"""
+        return communicate(self._get_sock(), 'get_meta_dict("%s")' % name)
+            
     def is_array(self, name):
         """Return True if variable is a NumPy array"""
         return communicate(self._get_sock(), 'is_array("%s")' % name)
