@@ -715,10 +715,11 @@ class BaseTableView(QTableView):
             for col in xrange(self.model.columnCount()):
                 if col != self.only_show_column:
                     self.setColumnHidden(col,True)
+            self.horizontalHeader().setVisible(False)
         else:
             for col in xrange(self.model.columnCount()):
                 self.setColumnHidden(col,False)  
-        
+            self.horizontalHeader().setVisible(True)
     def setModel(self, model):
         QTableView.setModel(self, model)
         self.showRequestedColumns()
