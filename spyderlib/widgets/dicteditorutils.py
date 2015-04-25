@@ -29,7 +29,7 @@ class FakeObject(object):
 #----Numpy arrays support
 try:
     from numpy import sum as np_sum
-    from numpy import ndarray, is_nan, nanmax, nanmin, nanmean
+    from numpy import ndarray, isnan, nanmax, nanmin, nanmean
     from numpy import array, matrix #@UnusedImport (object eval)
     from numpy.ma import MaskedArray
 except ImportError:
@@ -176,7 +176,7 @@ def make_meta_dict(value):
             with ignore(Exception): 
                 meta['masked'] = str(value.size - value.count())                
             with ignore(Exception):
-                n_nan = np_sum(is_nan(value))
+                n_nan = np_sum(isnan(value))
                 meta['NaNs'] = n_nan                    
             with ignore(Exception):
                 meta['max'] = nanmax(value)
