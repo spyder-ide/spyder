@@ -21,9 +21,10 @@ from spyderlib.qt.QtGui import (QMessageBox, QTableView, QItemDelegate,
                                 QLineEdit, QVBoxLayout, QWidget, QColor,
                                 QDialog, QDateEdit, QDialogButtonBox, QMenu,
                                 QInputDialog, QDateTimeEdit, QApplication,
-                                QKeySequence, QAbstractItemDelegate, QToolTip)
+                                QKeySequence, QAbstractItemDelegate, QLabel,
+                                QToolTip)
 from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, Signal,
-                                 QDateTime, Slot, QPoint)
+                                 QDateTime, Slot)
 from spyderlib.qt.compat import to_qvariant, from_qvariant, getsavefilename
 from spyderlib.utils.qthelpers import mimedata2url
 
@@ -628,7 +629,45 @@ class DictDelegate(QItemDelegate):
             raise RuntimeError("Unsupported editor widget")
         self.set_value(index, value)
 
+class InfoPane(QDialog):
+    def __init__(self, parent):
+        QDialog.__init__(self, parent)
+        self.setAttribute(Qt.WA_DeleteOnClose)        
+        self.setWindowFlags(Qt.Dialog | Qt.FramelessWindowHint) 
+        self.setWindowOpacity(0.9)
+        
+        self.setPalette(QToolTip.palette())
+        vlayout = QVBoxLayout()
+        self.main_text = QLabel()
+        self.main_text.setAlignment(Qt.AlignTop \
+                                    | Qt.AlignRight)
+        vlayout.addWidget(self.main_text)
+        self.setLayout(vlayout)
 
+        self.position = ('left','top')
+        self.update_position()
+        
+    def update_position(self):
+        left = 0
+        top = 0
+        parent = self.parent()
+        geo = parent.geometry()
+        w = 300        
+        h = 300        
+        self.setMinimumSize(w, h)                
+        if 'left' in self.position:
+            left -= w
+  
+        while parent:
+            geo = parent.geometry()
+            top += geo.top()
+            left += geo.left()
+            parent = parent.parent()
+        self.move(left, top) 
+
+    def showText(self, text):
+        self.main_text.setText(text)
+        
 class BaseTableView(QTableView):
     """Base dictionary editor table view"""
     sig_option_changed = Signal(str, object)
@@ -656,7 +695,16 @@ class BaseTableView(QTableView):
         self.delegate = None
         self.setAcceptDrops(True)
         self.setMouseTracking(True)
-        
+        self.only_show_column = 0 # if None then show all
+        self.info_pane = InfoPane(self)
+
+    def setModel(self, model):
+        QTableView.setModel(self, model)
+        if self.only_show_column is not None:
+            for col in xrange(model.columnCount()):
+                if col != self.only_show_column:
+                    self.setColumnHidden(col,True)
+                    
     def setup_table(self):
         """Setup table"""
         self.horizontalHeader().setStretchLastSection(True)
@@ -829,13 +877,18 @@ class BaseTableView(QTableView):
             self.model.set_data(data, self.dictfilter)
             self.sortByColumn(0, Qt.AscendingOrder)
             
+    def enterEvent(self,event):
+        self.info_pane.show()
+        QTableView.enterEvent(self,event)
+        
+    def leaveEvent(self,event):
+        self.info_pane.hide()
+        QTableView.leaveEvent(self,event)
+        
     def mouseMoveEvent(self, event):
         index_over = self.indexAt(event.pos())
-        if not index_over.isValid():
-            QToolTip.hideText()
-        else:
-            QToolTip.showText(self.mapToGlobal(event.pos() + QPoint(0, 10)),
-                              index_over.model().get_str(index_over))
+        if index_over.isValid():
+            self.info_pane.showText(index_over.model().get_str(index_over))
         QTableView.mouseMoveEvent(self, event)
         
     def mousePressEvent(self, event):
