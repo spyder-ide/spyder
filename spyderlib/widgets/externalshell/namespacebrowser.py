@@ -78,7 +78,7 @@ class NamespaceBrowser(QWidget):
               exclude_uppercase=None, exclude_capitalized=None,
               exclude_unsupported=None, excluded_names=None,
               truncate=None, minmax=None, remote_editing=None,
-              autorefresh=None):
+              autorefresh=None, compact=None):
         """Setup the namespace browser"""
         assert self.shellwidget is not None
         
@@ -90,6 +90,7 @@ class NamespaceBrowser(QWidget):
         self.excluded_names = excluded_names
         self.truncate = truncate
         self.minmax = minmax
+        self.compact = compact
         self.remote_editing = remote_editing
         self.autorefresh = autorefresh
         

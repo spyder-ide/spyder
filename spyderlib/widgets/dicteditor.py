@@ -410,16 +410,21 @@ class DictModel(ReadOnlyDictModel):
         self.dataChanged.emit(index, index)
         return True
 
-    def get_str(self,index):
+    def get_str(self, index, get_meta_dict_foo):
         row = index.row()
         try:
             size_str = ' x '.join([str(x) for x in self.sizes[row]])
         except TypeError:
             size_str = self.sizes[row]
-        meta_dict = ""#value_to_display(value, meta_dict=True)
-        
-        return _("<h2>%s</h2><b>type:</b> %s | <b>size:</b> %s<br><br>%s")\
-                    % (self.keys[row], self.types[row], size_str,
+        meta_dict = get_meta_dict_foo(self.keys[row])
+        if len(meta_dict) > 0:
+            meta_str = ' | '.join(["<b>%s:</b>&nbsp;%s" % (k,v) \
+                                for k,v in meta_dict.iteritems()])
+            meta_str = '<br><br>' + meta_str
+        else:
+            meta_str = ''
+        return _("<h2>%s</h2><b>type:</b> %s | <b>size:</b> %s%s<br><br>%s")\
+                    % (self.keys[row], self.types[row], size_str, meta_str,
                        self._data[self.keys[row]]['view'].replace('\n','<br>'))
 
 class DictDelegate(QItemDelegate):
@@ -941,7 +946,10 @@ class BaseTableView(QTableView):
         if self.model.compact:            
             index_over = self.indexAt(event.pos())
             if index_over.isValid() and index_over.row() != self.info_pane_index:
-                self.info_pane.showText(index_over.model().get_str(index_over))
+                self.info_pane.showText(
+                        index_over.model()\
+                                  .get_str(index_over, self.get_meta_dict)
+                        )
                 self.info_pane_index = index_over.row()
             QTableView.mouseMoveEvent(self, event)
         
@@ -1491,6 +1499,7 @@ class RemoteDictEditorTableView(BaseTableView):
         self.get_len = get_len_func
         self.is_array = is_array_func
         self.is_image = is_image_func
+        self.get_meta_dict = get_meta_dict_func
         self.is_dict = is_dict_func
         self.get_array_shape = get_array_shape_func
         self.get_array_ndim = get_array_ndim_func

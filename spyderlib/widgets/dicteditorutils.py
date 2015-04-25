@@ -12,7 +12,7 @@ from __future__ import print_function
 
 import re
 from contextlib import contextmanager
-
+from collections import OrderedDict
 # Local imports
 from spyderlib.py3compat import (NUMERIC_TYPES, TEXT_TYPES, to_text_string,
                                  is_text_string, is_binary_string, reprlib)
@@ -164,34 +164,37 @@ def unsorted_unique(lista):
 
 @contextmanager
 def ignore(*exceptions):
+    yield
+"""    
     try:
         yield
     except exceptions:
         pass
-    
+"""
+ 
 def make_meta_dict(value):
-    meta = {}
+    meta = OrderedDict()
     if isinstance(value, (ndarray, MaskedArray)):   
+        with ignore(Exception):
+            meta['min'] = nanmin(value)                
+        with ignore(Exception):
+            meta['max'] = nanmax(value)
         if isinstance(value,MaskedArray):
             with ignore(Exception): 
                 meta['masked'] = str(value.size - value.count())                
-            with ignore(Exception):
-                n_nan = np_sum(isnan(value))
-                meta['NaNs'] = n_nan                    
-            with ignore(Exception):
-                meta['max'] = nanmax(value)
-            with ignore(Exception):
-                meta['min'] = nanmin(value)
-            with ignore(Exception):
-                meta['mean'] = nanmean(value)
-            with ignore(Exception):
-                n_bytes = value.nbytes
-                if n_bytes < 1024*2:
-                    meta['size'] = str(n_bytes) + 'B' 
-                elif n_bytes < (1024**2)*2:
-                    meta['size'] = str(int(n_bytes/(1024**2))) + 'KB' 
-                else:
-                    meta['size'] = str(int(n_bytes/(1024**3))) + 'MB' 
+        with ignore(Exception):
+            n_nan = np_sum(isnan(value))
+            meta['NaNs'] = n_nan                    
+        with ignore(Exception):
+            meta['mean'] = nanmean(value)
+        with ignore(Exception):
+            n_bytes = value.nbytes
+            if n_bytes < 1024*2:
+                meta['size'] = str(n_bytes) + 'B' 
+            elif n_bytes < (1024**2)*2:
+                meta['size'] = str(round(n_bytes/(1024.0), 1)) + 'KB' 
+            else:
+                meta['size'] = str(round(n_bytes/(1024.0**2), 1)) + 'MB' 
     return meta
     
 #----Display <--> Value

@@ -36,7 +36,7 @@ if DEBUG_MONITOR:
 
 REMOTE_SETTINGS = ('check_all', 'exclude_private', 'exclude_uppercase',
                    'exclude_capitalized', 'exclude_unsupported',
-                   'excluded_names', 'truncate', 'minmax',
+                   'excluded_names', 'truncate', 'minmax', 'compact',
                    'remote_editing', 'autorefresh')
 
 def get_remote_data(data, settings, mode, more_excluded_names=None):
@@ -75,7 +75,8 @@ def make_remote_view(data, settings, more_excluded_names=None):
                            more_excluded_names=more_excluded_names)
     remote = {}
     for key, value in list(data.items()):
-        view = value_to_display(value, truncate=settings['truncate'],
+        view = value_to_display(value, truncate=settings['truncate'] \
+                                        and not settings['compact'],
                                 minmax=settings['minmax'])
         remote[key] = {'type':  get_human_readable_type(value),
                        'size':  get_size(value),
