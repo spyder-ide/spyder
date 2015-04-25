@@ -1,3 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from .breakpoints import PLUGIN_CLASS
+#==============================================================================
+# The following statement is required to register this 3rd party plugin:
+#==============================================================================
+from .breakpoints import Breakpoints as PLUGIN_CLASS

@@ -1,3 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from .profiler import PLUGIN_CLASS
+#==============================================================================
+# The following statement is required to register this 3rd party plugin:
+#==============================================================================
+from .profiler import Profiler as PLUGIN_CLASS
