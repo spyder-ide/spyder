@@ -155,6 +155,7 @@ class Monitor(threading.Thread):
                        "setlocal": self.setlocal,
                        "is_array": self.is_array,
                        "is_image": self.is_image,
+                       "get_meta_dict": self.get_meta_dict,
                        "get_globals_keys": self.get_globals_keys,
                        "getmodcomplist": self.getmodcomplist,
                        "getcdlistdir": _getcdlistdir,
@@ -384,6 +385,15 @@ class Monitor(threading.Thread):
         return module_completion(name, path)
                 
     #------ Other
+    def get_meta_dict(self, name):
+        """Returns dict with min/max/nans etc. for the given object"""
+        from spyderlib.widgets.dicteditorutils import make_meta_dict
+        try:
+            ns = self.get_current_namespace()
+            return make_meta_dict(ns[name])
+        except Exception:
+            return {}
+            
     def is_array(self, name):
         """Return True if object is an instance of class numpy.ndarray"""
         ns = self.get_current_namespace()

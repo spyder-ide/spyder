@@ -11,6 +11,7 @@ Utilities for the Dictionary Editor Widget and Dialog based on Qt
 from __future__ import print_function
 
 import re
+from contextlib import contextmanager
 
 # Local imports
 from spyderlib.py3compat import (NUMERIC_TYPES, TEXT_TYPES, to_text_string,
@@ -27,7 +28,8 @@ class FakeObject(object):
 
 #----Numpy arrays support
 try:
-    from numpy import ndarray
+    from numpy import sum as np_sum
+    from numpy import ndarray, is_nan, nanmax, nanmin, nanmean
     from numpy import array, matrix #@UnusedImport (object eval)
     from numpy.ma import MaskedArray
 except ImportError:
@@ -160,6 +162,38 @@ def unsorted_unique(lista):
     return list(set(lista))
 
 
+@contextmanager
+def ignore(*exceptions):
+    try:
+        yield
+    except exceptions:
+        pass
+    
+def make_meta_dict(value):
+    meta = {}
+    if isinstance(value, (ndarray, MaskedArray)):   
+        if isinstance(value,MaskedArray):
+            with ignore(Exception): 
+                meta['masked'] = str(value.size - value.count())                
+            with ignore(Exception):
+                n_nan = np_sum(is_nan(value))
+                meta['NaNs'] = n_nan                    
+            with ignore(Exception):
+                meta['max'] = nanmax(value)
+            with ignore(Exception):
+                meta['min'] = nanmin(value)
+            with ignore(Exception):
+                meta['mean'] = nanmean(value)
+            with ignore(Exception):
+                n_bytes = value.nbytes
+                if n_bytes < 1024*2:
+                    meta['size'] = str(n_bytes) + 'B' 
+                elif n_bytes < (1024**2)*2:
+                    meta['size'] = str(int(n_bytes/(1024**2))) + 'KB' 
+                else:
+                    meta['size'] = str(int(n_bytes/(1024**3))) + 'MB' 
+    return meta
+    
 #----Display <--> Value
 def value_to_display(value, truncate=False, trunc_len=80, minmax=False):
     """Convert value for display purpose"""
