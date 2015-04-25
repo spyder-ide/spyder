@@ -632,7 +632,7 @@ class DictDelegate(QItemDelegate):
 class InfoPane(QDialog):
     def __init__(self, parent):
         QDialog.__init__(self, parent)
-        self.setAttribute(Qt.WA_DeleteOnClose)        
+        self.setAttribute(Qt.WA_DeleteOnClose | Qt.WA_ShowWithoutActivating)        
         self.setWindowFlags(Qt.Dialog | Qt.FramelessWindowHint) 
         self.setWindowOpacity(0.9)
         
@@ -698,6 +698,10 @@ class BaseTableView(QTableView):
         self.only_show_column = 0 # if None then show all
         self.info_pane = InfoPane(self)
 
+    def resizeEvent(self, event):
+        self.info_pane.update_position()
+        QTableView.resizeEvent(self, event)
+        
     def setModel(self, model):
         QTableView.setModel(self, model)
         if self.only_show_column is not None:
