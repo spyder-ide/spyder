@@ -94,7 +94,7 @@ class NamespaceBrowser(QWidget):
         self.autorefresh = autorefresh
         
         if self.editor is not None:
-            self.editor.setup_menu(truncate, minmax)
+            self.editor.setup_menu()
             self.exclude_private_action.setChecked(exclude_private)
             self.exclude_uppercase_action.setChecked(exclude_uppercase)
             self.exclude_capitalized_action.setChecked(exclude_capitalized)

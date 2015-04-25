@@ -323,7 +323,8 @@ class ReadOnlyDictModel(QAbstractTableModel):
         if index.column() == 3 and self.remote:
             value = value['view']
         display = value_to_display(value,
-                               truncate=index.column() == 3 and self.truncate,
+                               truncate=index.column() == 3 and self.truncate \
+                               and not self.compact,
                                minmax=self.minmax)
         if role == Qt.DisplayRole:
             return to_qvariant(display)
@@ -410,8 +411,13 @@ class DictModel(ReadOnlyDictModel):
 
     def get_str(self,index):
         row = index.row()
-        return _("<u>%s</u><br>%s<br><b>type:</b> %s<br><b>size:</b> %s")\
-                    % (self.keys[row], self._data[self.keys[row]]['view'], self.types[row],self.sizes[row])
+        try:
+            size_str = ' x '.join([str(x) for x in self.sizes[row]])
+        except TypeError:
+            size_str = self.sizes[row]
+        return _("<h2>%s</h2><b>type:</b> %s | <b>size:</b> %s<br><br>%s")\
+                    % (self.keys[row], self.types[row], size_str,
+                       self._data[self.keys[row]]['view'].replace('\n','<br>'))
 
 class DictDelegate(QItemDelegate):
     """DictEditor Item Delegate"""
@@ -641,8 +647,7 @@ class InfoPane(QDialog):
         self.setPalette(QToolTip.palette())
         vlayout = QVBoxLayout()
         self.main_text = QLabel()
-        self.main_text.setAlignment(Qt.AlignTop \
-                                    | Qt.AlignRight)
+        self.main_text.setWordWrap(True)        
         vlayout.addWidget(self.main_text)
         self.setLayout(vlayout)
         self.update_position()
@@ -669,8 +674,12 @@ class InfoPane(QDialog):
         right_space = window_width - (parent_left + parent_width)    
         if right_space > left:
             left += parent_width
+            self.main_text.setAlignment(Qt.AlignTop \
+                                    | Qt.AlignLeft)
         else:
             left -= self_width
+            self.main_text.setAlignment(Qt.AlignTop \
+                                    | Qt.AlignRight)
         self.move(left, top) 
 
     def showText(self, text):
@@ -1011,14 +1020,15 @@ class BaseTableView(QTableView):
         if self.info_pane is None and state:
             self.info_pane = InfoPane(self)
         if state:
-           self.info_pane.update_position()
-           self.verticalHeader().setResizeMode(QHeaderView.ResizeToContents)
+            self.toggle_truncate(False)
+            self.info_pane.update_position()
+            self.verticalHeader().setResizeMode(QHeaderView.ResizeToContents)
         else:
             self.verticalHeader().setResizeMode(QHeaderView.Interactive)
             
         self.showRequestedColumns()
         self.resizeColumnsToContents()
-
+        
     @Slot(bool)
     def toggle_minmax(self, state):
         """Toggle min/max display for numpy arrays"""
