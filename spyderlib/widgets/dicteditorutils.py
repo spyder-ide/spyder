@@ -28,10 +28,10 @@ class FakeObject(object):
 
 #----Numpy arrays support
 try:
-    from numpy import sum as np_sum
-    from numpy import ndarray, isnan, nanmax, nanmin, nanmean, nan
     from numpy import array, matrix #@UnusedImport (object eval)
     from numpy.ma import MaskedArray
+    from numpy import sum as np_sum
+    from numpy import ndarray, isnan, nanmax, nanmin, nanmean, nan, ma
 except ImportError:
     ndarray = array = matrix = MaskedArray = FakeObject  # analysis:ignore
 
@@ -194,6 +194,24 @@ def make_meta_dict(value):
                 meta['memory'] = str(round(n_bytes/(1024.0), 1)) + 'KB' 
             else:
                 meta['memory'] = str(round(n_bytes/(1024.0**2), 1)) + 'MB' 
+
+        with ignore(Exception):
+            if value.ndim == 2 and value.shape[0] > 6 and value.shape[1] > 6:
+                # we have a 2D array which is bigger than 6x6, so make a thumbnail
+                from io import BytesIO
+                from PIL import Image
+                from base64 import b64encode
+                from matplotlib import cm
+                from matplotlib.colors import Normalize
+                b = BytesIO()  
+                if not ma.isMaskedArray(value):
+                    value = ma.array(value, mask=isnan(value))  
+                img = Image.fromarray(cm.jet(Normalize()(value), bytes=True))
+                img.thumbnail((128,128))
+                img.save(b, format='png')
+                meta['html'] = '<img alt="2d array" src="data:image/png;base64,' + \
+                                b64encode(b.getvalue()) + '" />'
+       
     return meta
     
 #----Display <--> Value

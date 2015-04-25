@@ -22,7 +22,7 @@ from spyderlib.qt.QtGui import (QMessageBox, QTableView, QItemDelegate,
                                 QDialog, QDateEdit, QDialogButtonBox, QMenu,
                                 QInputDialog, QDateTimeEdit, QApplication,
                                 QKeySequence, QAbstractItemDelegate, QLabel,
-                                QToolTip, QHeaderView)
+                                QToolTip, QHeaderView, QImage)
 from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, Signal,
                                  QDateTime, Slot)
 from spyderlib.qt.compat import to_qvariant, from_qvariant, getsavefilename
@@ -410,23 +410,33 @@ class DictModel(ReadOnlyDictModel):
         self.dataChanged.emit(index, index)
         return True
 
-    def get_str(self, index, get_meta_dict_foo):
+    def get_full_info(self, index, get_meta_dict_foo):
         row = index.row()
         try:
             size_str = ' x '.join([str(x) for x in self.sizes[row]])
         except TypeError:
             size_str = self.sizes[row]
+
+        value = self._data[self.keys[row]]['view']
+        if len(value) > 2000:
+            value = value[:2000].rstrip() + "..." # QLabel strugles with long strings
+
         meta_dict = get_meta_dict_foo(self.keys[row])
         if len(meta_dict) > 0:
             meta_str = ' | '.join(["<b>%s:</b>&nbsp;%s" % (k,v) \
-                                for k,v in meta_dict.iteritems()])
+                                for k,v in meta_dict.iteritems() \
+                                if k != 'html'])
             meta_str = '<br><br>' + meta_str
+            if 'html' in meta_dict:
+                meta_str += '<br><br>' + meta_dict['html']
+                value = '' # we could show value as well, but there's not much space
         else:
             meta_str = ''
+        
         return _("<h2>%s</h2><b>type:</b> %s | <b>size:</b> %s%s<br><br>%s")\
                     % (self.keys[row], self.types[row], size_str, meta_str,
-                       self._data[self.keys[row]]['view'].replace('\n','<br>'))
-
+                       value.replace('\n','<br>'))
+            
 class DictDelegate(QItemDelegate):
     """DictEditor Item Delegate"""
     
@@ -691,9 +701,6 @@ class InfoPane(QDialog):
         self.move(left, top) 
 
     def showText(self, text):
-        # if text is super long then QLabel deals really badly with it, so truncate it
-        if len(text) > 2000:
-            text = text[:2000].rstrip() + ' ...'
         self.main_text.setText(text)
         
 class BaseTableView(QTableView):
@@ -946,10 +953,9 @@ class BaseTableView(QTableView):
         if self.model.compact:            
             index_over = self.indexAt(event.pos())
             if index_over.isValid() and index_over.row() != self.info_pane_index:
-                self.info_pane.showText(
-                        index_over.model()\
-                                  .get_str(index_over, self.get_meta_dict)
-                        )
+                self.info_pane.showText(index_over.model()\
+                                                  .get_full_info(index_over,
+                                        self.get_meta_dict))
                 self.info_pane_index = index_over.row()
             QTableView.mouseMoveEvent(self, event)
         
