@@ -563,10 +563,13 @@ class MainWindow(QMainWindow):
                                             context=Qt.WidgetShortcut)
             self.register_shortcut(self.replace_action, "Editor",
                                    "Replace text")
-            self.file_switcher_action = create_action(self, _('File switcher...'), ima.icon='filelist',
-                                        tip=_('Fast switch between files'), triggered=self.call_file_switcher,
-                                        context=Qt.ApplicationShortcut)
-            self.register_shortcut(self.file_switcher_action, "_", "file switcher")
+            self.file_switcher_action = create_action(self, _('File switcher...'),
+                                            icon=ima.icon('filelist'),
+                                            tip=_('Fast switch between files'),
+                                            triggered=self.call_file_switcher,
+                                            context=Qt.ApplicationShortcut)
+            self.register_shortcut(self.file_switcher_action, "_",
+                                   "file switcher")
             self.file_menu_actions.append(self.file_switcher_action)
             def create_edit_action(text, tr_text, icon):
                 textseq = text.split(' ')
