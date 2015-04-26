@@ -38,7 +38,7 @@ from spyderlib.widgets.variableexplorer.texteditor import TextEditor
 from spyderlib.widgets.comboboxes import (PythonModulesComboBox,
                                           is_module_or_package)
 from spyderlib.py3compat import PY3, to_text_string, getcwd, pickle
-_ = get_translation("p_pylint", dirname="spyderplugins")
+_ = get_translation("p_pylint", dirname="spyderplugins.p_pylint")
 
 
 PYLINT = 'pylint'
