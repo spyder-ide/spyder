@@ -388,13 +388,10 @@ class Monitor(threading.Thread):
     #------ Other
     def get_meta_dict(self, name):
         """Returns dict with min/max/nans etc. for the given object"""
-        from spyderlib.widgets.dicteditorutils import make_meta_dict
-        try:
-            ns = self.get_current_namespace()
-            return make_meta_dict(ns[name])
-        except Exception:
-            return {}
-            
+        from spyderlib.utils.makemetadict import make_meta_dict
+        ns = self.get_current_namespace()
+        return make_meta_dict(ns[name]) if name in ns else {}
+        
     def is_array(self, name):
         """Return True if object is an instance of class numpy.ndarray"""
         ns = self.get_current_namespace()

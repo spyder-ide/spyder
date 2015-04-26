@@ -11,8 +11,7 @@ Utilities for the Dictionary Editor Widget and Dialog based on Qt
 from __future__ import print_function
 
 import re
-from contextlib import contextmanager
-from collections import OrderedDict
+
 # Local imports
 from spyderlib.py3compat import (NUMERIC_TYPES, TEXT_TYPES, to_text_string,
                                  is_text_string, is_binary_string, reprlib)
@@ -30,8 +29,7 @@ class FakeObject(object):
 try:
     from numpy import array, matrix #@UnusedImport (object eval)
     from numpy.ma import MaskedArray
-    from numpy import sum as np_sum
-    from numpy import ndarray, isnan, nanmax, nanmin, nanmean, nan, ma
+    from numpy import ndarray
 except ImportError:
     ndarray = array = matrix = MaskedArray = FakeObject  # analysis:ignore
 
@@ -162,57 +160,6 @@ def unsorted_unique(lista):
     return list(set(lista))
 
 
-@contextmanager
-def ignore(*exceptions):  
-    try:
-        yield
-    except exceptions:
-        pass
- 
-def make_meta_dict(value):
-    meta = OrderedDict()
-    if isinstance(value, (ndarray, MaskedArray)):   
-        with ignore(Exception):
-            meta['min'] = nanmin(value)                
-        with ignore(Exception):
-            meta['max'] = nanmax(value)
-        if isinstance(value,MaskedArray):
-            with ignore(Exception): 
-                meta['masked'] = str(value.size - value.count())                
-        with ignore(Exception):
-            # next line will throw ValueError if dtype does not support nans
-            test_nan = array(nan, dtype=value.dtype) # analysis:ignore
-            n_nan = np_sum(isnan(value))
-            meta['NaNs'] = n_nan                    
-        with ignore(Exception):
-            meta['mean'] = nanmean(value)
-        with ignore(Exception):
-            n_bytes = value.nbytes
-            if n_bytes < 1024*2:
-                meta['memory'] = str(n_bytes) + 'B' 
-            elif n_bytes < (1024**2)*2:
-                meta['memory'] = str(round(n_bytes/(1024.0), 1)) + 'KB' 
-            else:
-                meta['memory'] = str(round(n_bytes/(1024.0**2), 1)) + 'MB' 
-
-        with ignore(Exception):
-            if value.ndim == 2 and value.shape[0] > 6 and value.shape[1] > 6:
-                # we have a 2D array which is bigger than 6x6, so make a thumbnail
-                from io import BytesIO
-                from PIL import Image
-                from base64 import b64encode
-                from matplotlib import cm
-                from matplotlib.colors import Normalize
-                b = BytesIO()  
-                if not ma.isMaskedArray(value):
-                    value = ma.array(value, mask=isnan(value))  
-                img = Image.fromarray(cm.jet(Normalize()(value), bytes=True))
-                img.thumbnail((128,128))
-                img.save(b, format='png')
-                meta['html'] = '<img alt="2d array" src="data:image/png;base64,' + \
-                                b64encode(b.getvalue()) + '" />'
-       
-    return meta
     
 #----Display <--> Value
 def value_to_display(value, truncate=False, trunc_len=80, minmax=False):

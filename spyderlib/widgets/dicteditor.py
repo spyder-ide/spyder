@@ -22,7 +22,7 @@ from spyderlib.qt.QtGui import (QMessageBox, QTableView, QItemDelegate,
                                 QDialog, QDateEdit, QDialogButtonBox, QMenu,
                                 QInputDialog, QDateTimeEdit, QApplication,
                                 QKeySequence, QAbstractItemDelegate, QLabel,
-                                QToolTip, QHeaderView, QImage)
+                                QToolTip, QHeaderView)
 from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, Signal,
                                  QDateTime, Slot)
 from spyderlib.qt.compat import to_qvariant, from_qvariant, getsavefilename
@@ -41,8 +41,7 @@ from spyderlib.widgets.dicteditorutils import (sort_against, get_size,
                get_human_readable_type, value_to_display, get_color_name,
                is_known_type, FakeObject, Image, ndarray, array, MaskedArray,
                unsorted_unique, try_to_eval, datestr_to_datetime,
-               get_numpy_dtype, is_editable_type, DataFrame, TimeSeries, 
-               make_meta_dict)
+               get_numpy_dtype, is_editable_type, DataFrame, TimeSeries)
 if ndarray is not FakeObject:
     from spyderlib.widgets.arrayeditor import ArrayEditor
 if DataFrame is not FakeObject:
@@ -52,6 +51,7 @@ from spyderlib.widgets.importwizard import ImportWizard
 from spyderlib.py3compat import (to_text_string, to_binary_string,
                                  is_text_string, is_binary_string, getcwd, u)
 
+from spyderlib.utils.makemetadict import make_meta_dict
 
 LARGE_NROWS = 5000
 
