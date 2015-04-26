@@ -1,0 +1,25 @@
+# Set the default behavior, in case people don't have core.autocrlf set.
+* text=auto
+
+# Explicitly declare text files you want to always be normalized and converted
+# to native line endings on checkout.
+#*.py text
+#*.rst text
+#*.txt text
+#*.bat text
+#*.in text
+#*.md text
+#*.sh text
+#*.pyw text
+#*.po text
+
+# Declare files that will always have CRLF line endings on checkout.
+# *.sln text eol=crlf
+
+# Denote all files that are truly binary and should not be modified.
+#*.png binary
+#*.jpg binary
+#*.ico binary
+#*.pnd binary
+#*.xcf binary
+#*.icns binary
