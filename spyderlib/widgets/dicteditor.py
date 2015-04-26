@@ -417,7 +417,12 @@ class DictModel(ReadOnlyDictModel):
         except TypeError:
             size_str = self.sizes[row]
 
-        value = self._data[self.keys[row]]['view']
+        value = self._data[self.keys[row]]
+        if self.remote:
+            value = value['view']
+        else:
+            value = str(value)
+            
         if len(value) > 2000:
             value = value[:2000].rstrip() + "..." # QLabel strugles with long strings
 
