@@ -199,7 +199,6 @@ class ConfigDialog(QDialog):
         self.apply_btn.setEnabled(widget.is_modified)
         
     def add_page(self, widget):
-        setattr(widget, 'parent_config_dialog', self)
         self.check_settings.connect(widget.check_settings)
         widget.show_this_page.connect(lambda row=self.contents_widget.count():
                                       self.contents_widget.setCurrentRow(row))
