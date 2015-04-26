@@ -422,20 +422,23 @@ class DictModel(ReadOnlyDictModel):
             value = value[:2000].rstrip() + "..." # QLabel strugles with long strings
 
         meta_dict = get_meta_dict_foo(self.keys[row])
+        html_str = meta_str = value_str = "" 
+        if 'html' in meta_dict:
+            if meta_dict['html'] is not None:
+                html_str = '<br><br>' + meta_dict['html']
+            del meta_dict['html']
+        if 'value' in meta_dict:
+            value = meta_dict['value'] 
+            del meta_dict['value']
+        if value is not None:
+            value_str = "<br><br>" + str(value).replace('\n','<br>')
         if len(meta_dict) > 0:
-            meta_str = ' | '.join(["<b>%s:</b>&nbsp;%s" % (k,v) \
-                                for k,v in meta_dict.iteritems() \
-                                if k != 'html'])
-            meta_str = '<br><br>' + meta_str
-            if 'html' in meta_dict:
-                meta_str += '<br><br>' + meta_dict['html']
-                value = '' # we could show value as well, but there's not much space
-        else:
-            meta_str = ''
-        
-        return _("<h2>%s</h2><b>type:</b> %s | <b>size:</b> %s%s<br><br>%s")\
-                    % (self.keys[row], self.types[row], size_str, meta_str,
-                       value.replace('\n','<br>'))
+            meta_str = '<br><br>' + ' | '.join(["<b>%s:</b>&nbsp;%s" % (k,v) \
+                                            for k,v in meta_dict.iteritems()])
+            
+        return _("<h2>%s</h2><b>type:</b> %s | <b>size:</b> %s%s%s%s")\
+                    % (self.keys[row], self.types[row], size_str,
+                       meta_str, html_str, value_str )
             
 class DictDelegate(QItemDelegate):
     """DictEditor Item Delegate"""
