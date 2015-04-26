@@ -19,7 +19,7 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QMessageBox, QInputDialog,
                                 QButtonGroup)
 from spyderlib.qt.QtCore import Signal, Slot, Qt
 from spyderlib.qt.compat import getopenfilename
-from spyderlib.qt import qta
+import spyderlib.qt.icon_manager as ima
 
 # Stdlib imports
 import atexit
@@ -914,8 +914,8 @@ class ExternalConsole(SpyderPluginWidget):
                     # versions match
                     if kernel_and_frontend_match:
                         tab_name = _("Kernel")
-                        tab_icon1 = qta.icon('spyder.ipython-logo')
-                        tab_icon2 = qta.icon('spyder.ipython-logo', color='gray')
+                        tab_icon1 = ima.icon('ipython_console')
+                        tab_icon2 = ima.icon('ipython_console_t')
                         shellwidget.create_ipython_client.connect(
                                      lambda cf: self.register_ipyclient(cf,
                                               ipyclient,
@@ -938,15 +938,12 @@ class ExternalConsole(SpyderPluginWidget):
                 else:
                     self.python_count += 1
                     tab_name = "Python %d" % self.python_count
-                    tab_icon1 = qta.icon(['spyder.python-logo-up', 
-                                          'spyder.python-logo-down'], options=[
-                                         {'color': '#3775a9'}, 
-                                         {'color': '#ffd444'}])
-                    tab_icon2 = qta.icon('spyder.python-logo', color='gray')
+                    tab_icon1 = ima.icon('python')
+                    tab_icon2 = ima.icon('python_t')
             else:
                 tab_name = osp.basename(fname)
-                tab_icon1 = qta.icon('fa.play')
-                tab_icon2 = qta.icon('fa.circle')
+                tab_icon1 = ima.icon('run')
+                tab_icon2 = ima.icon('terminated')
         else:
             fname = id(shellwidget)
             if os.name == 'nt':
@@ -955,8 +952,8 @@ class ExternalConsole(SpyderPluginWidget):
                 tab_name = _("Terminal")
             self.terminal_count += 1
             tab_name += (" %d" % self.terminal_count)
-            tab_icon1 = qta.icon('fa.terminal')
-            tab_icon2 = qta.icon('fa.terminal')
+            tab_icon1 = ima.icon('cmdprompt')
+            tab_icon2 = ima.icon('cmdprompt_t')
         self.shellwidgets.insert(index, shellwidget)
         self.filenames.insert(index, fname)
         self.icons.insert(index, (tab_icon1, tab_icon2))
@@ -1073,7 +1070,7 @@ class ExternalConsole(SpyderPluginWidget):
     
     def get_plugin_icon(self):
         """Return widget icon"""
-        return qta.icon('fa.terminal')
+        return ima.icon('console')
     
     def get_focus_widget(self):
         """
@@ -1086,10 +1083,7 @@ class ExternalConsole(SpyderPluginWidget):
         """Return a list of actions related to plugin"""
         interpreter_action = create_action(self,
                             _("Open a &Python console"), None,
-                            qta.icon(['spyder.python-logo-up', 
-                                      'spyder.python-logo-down'], options=[
-                                     {'color': '#3775a9'}, 
-                                     {'color': '#ffd444'}]),
+                            ima.icon('python'),
                             triggered=self.open_interpreter)
         if os.name == 'nt':
             text = _("Open &command prompt")
@@ -1101,7 +1095,7 @@ class ExternalConsole(SpyderPluginWidget):
                                         triggered=self.open_terminal)
         run_action = create_action(self,
                             _("&Run..."), None,
-                            qta.icon('fa.play', color='green'), _("Run a Python script"),
+                            ima.icon('run_small'), _("Run a Python script"),
                             triggered=self.run_script)
 
         consoles_menu_actions = [interpreter_action]

@@ -24,7 +24,7 @@ from spyderlib.qt.QtGui import (QMessageBox, QTableView, QItemDelegate,
                                 QKeySequence, QAbstractItemDelegate)
 from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, Signal,
                                  QDateTime, Slot)
-from spyderlib.qt import qta
+import spyderlib.qt.icon_manager as ima
 from spyderlib.qt.compat import to_qvariant, from_qvariant, getsavefilename
 from spyderlib.utils.qthelpers import mimedata2url
 
@@ -668,35 +668,35 @@ class BaseTableView(QTableView):
         resize_action = create_action(self, _("Resize rows to contents"),
                                       triggered=self.resizeRowsToContents)
         self.paste_action = create_action(self, _("Paste"),
-                                          icon=qta.icon('fa.paste'),
+                                          icon=ima.icon('editpaste'),
                                           triggered=self.paste)
         self.copy_action = create_action(self, _("Copy"),
-                                         icon=qta.icon('fa.copy'),
+                                         icon=ima.icon('editcopy'),
                                          triggered=self.copy)                                      
         self.edit_action = create_action(self, _("Edit"),
-                                         icon=qta.icon('fa.edit'),
+                                         icon=ima.icon('edit'),
                                          triggered=self.edit_item)
         self.plot_action = create_action(self, _("Plot"),
-                                    icon=qta.icon('fa.line-chart'),
+                                    icon=ima.icon('plot'),
                                     triggered=lambda: self.plot_item('plot'))
         self.plot_action.setVisible(False)
         self.hist_action = create_action(self, _("Histogram"),
-                                    icon=qta.icon('fa.bar-chart'),
+                                    icon=ima.icon('hist'),
                                     triggered=lambda: self.plot_item('hist'))
         self.hist_action.setVisible(False)
         self.imshow_action = create_action(self, _("Show image"),
-                                           icon=qta.icon('fa.image'),
+                                           icon=ima.icon('imshow'),
                                            triggered=self.imshow_item)
         self.imshow_action.setVisible(False)
         self.save_array_action = create_action(self, _("Save array"),
-                                               icon=qta.icon('fa.save'),
+                                               icon=ima.icon('filesave'),
                                                triggered=self.save_array)
         self.save_array_action.setVisible(False)
         self.insert_action = create_action(self, _("Insert"),
-                                           icon=qta.icon('fa.sign-in'),
+                                           icon=ima.icon('insert'),
                                            triggered=self.insert_item)
         self.remove_action = create_action(self, _("Remove"),
-                                           icon=qta.icon('fa.eraser'),
+                                           icon=ima.icon('editdelete'),
                                            triggered=self.remove_item)
         self.truncate_action = create_action(self, _("Truncate values"),
                                              toggled=self.toggle_truncate)
@@ -707,10 +707,10 @@ class BaseTableView(QTableView):
         self.minmax_action.setChecked(minmax)
         self.toggle_minmax(minmax)
         self.rename_action = create_action(self, _("Rename"),
-                                           icon=qta.icon('fa.pencil'),
+                                           icon=ima.icon('rename'),
                                            triggered=self.rename_item)
         self.duplicate_action = create_action(self, _("Duplicate"),
-                                              icon=qta.icon('fa.copy'),
+                                              icon=ima.icon('edit_add'),
                                               triggered=self.duplicate_item)
         menu = QMenu(self)
         menu_actions = [self.edit_action, self.plot_action, self.hist_action,
@@ -1248,7 +1248,7 @@ class DictEditor(QDialog):
         self.widget = None
         
     def setup(self, data, title='', readonly=False, width=500,
-              icon=qta.icon('fa.th-list'), remote=False, parent=None):
+              icon=ima.icon('dictedit'), remote=False, parent=None):
         if isinstance(data, dict):
             # dictionnary
             self.data_copy = data.copy()

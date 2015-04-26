@@ -20,7 +20,7 @@ import re
 from spyderlib.qt.QtGui import (QToolTip, QLineEdit, QHBoxLayout, QWidget,
                                 QDialog, QToolButton, QTableWidget,
                                 QTableWidgetItem)
-from spyderlib.qt import qta
+import spyderlib.qt.icon_manager as ima
 
 from spyderlib.qt.QtCore import (Qt, QPoint, QEvent)
 from spyderlib.baseconfig import _
@@ -182,7 +182,7 @@ class NumpyArrayDialog(QDialog):
         # widgets
         self._button_warning = QToolButton()
         self._button_help = HelperToolButton()
-        self._button_help.setIcon(qta.icon('fa.info'))
+        self._button_help.setIcon(ima.icon('MessageBoxInformation'))
 
         style = """
             QToolButton {
@@ -333,7 +333,7 @@ class NumpyArrayDialog(QDialog):
         widget = self._button_warning
         if not self.is_valid():
             tip = _('Array dimensions not valid')
-            widget.setIcon(qta.icon('fa.warning'))
+            widget.setIcon(ima.icon('MessageBoxWarning'))
             widget.setToolTip(tip)
             QToolTip.showText(self._widget.mapToGlobal(QPoint(0, 5)), tip)
         else:

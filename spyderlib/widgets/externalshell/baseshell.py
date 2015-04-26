@@ -18,7 +18,7 @@ from spyderlib.qt.QtGui import (QWidget, QVBoxLayout, QHBoxLayout, QMenu,
                                 QLabel, QInputDialog, QLineEdit, QToolButton)
 from spyderlib.qt.QtCore import (QProcess, Signal, QByteArray, QTimer, Qt,
                                  QTextCodec, Slot)
-from spyderlib.qt import qta
+import spyderlib.qt.icon_manager as ima
 
 LOCALE_CODEC = QTextCodec.codecForLocale()
 
@@ -138,12 +138,12 @@ class ExternalShellBase(QWidget):
     def get_toolbar_buttons(self):
         if self.run_button is None:
             self.run_button = create_toolbutton(self, text=_("Run"),
-                                             icon=qta.icon('fa.play'),
+                                             icon=ima.icon('run'),
                                              tip=_("Run again this program"),
                                              triggered=self.start_shell)
         if self.kill_button is None:
             self.kill_button = create_toolbutton(self, text=_("Kill"),
-                                     icon=qta.icon('fa.warning'),
+                                     icon=ima.icon('kill'),
                                      tip=_("Kills the current process, "
                                            "causing it to exit immediately"))
         buttons = [self.run_button]
@@ -151,7 +151,7 @@ class ExternalShellBase(QWidget):
             options = self.get_options_menu()
             if options:
                 self.options_button = create_toolbutton(self, text=_('Options'),
-                                            icon=qta.icon('fa.cog'))
+                                            icon=ima.icon('tooloptions'))
                 self.options_button.setPopupMode(QToolButton.InstantPopup)
                 menu = QMenu(self)
                 add_actions(menu, options)
@@ -209,7 +209,7 @@ class ExternalShellBase(QWidget):
         try:
             self.timer.timeout.disconnect(self.show_time)
         except (RuntimeError, TypeError):
-             pass
+            pass
     
     def set_running_state(self, state=True):
         self.set_buttons_runnning_state(state)

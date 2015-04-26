@@ -19,7 +19,7 @@ from spyderlib.utils.qthelpers import create_action
 from spyderlib.plugins import SpyderPluginMixin
 from spyderplugins.widgets.breakpointsgui import BreakpointWidget
 from spyderlib.py3compat import to_text_string, is_text_string
-from spyderlib.qt import qta
+import spyderlib.qt.icon_manager as ima
 
 class Breakpoints(BreakpointWidget, SpyderPluginMixin):
     """Breakpoint list"""
@@ -41,7 +41,7 @@ class Breakpoints(BreakpointWidget, SpyderPluginMixin):
     
     def get_plugin_icon(self):
         """Return widget icon"""
-        return qta.icon('fa.bug')
+        return ima.icon('bug')
     
     def get_focus_widget(self):
         """

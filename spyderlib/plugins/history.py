@@ -10,7 +10,7 @@ from spyderlib.qt import PYQT5
 from spyderlib.qt.QtGui import (QVBoxLayout, QFontDialog, QInputDialog,
                                 QToolButton, QMenu, QFontComboBox, QGroupBox)
 from spyderlib.qt.QtCore import Signal, Slot
-from spyderlib.qt import qta
+import spyderlib.qt.icon_manager as ima
 
 import os.path as osp
 
@@ -29,7 +29,7 @@ from spyderlib.py3compat import to_text_string, is_text_string
 
 class HistoryConfigPage(PluginConfigPage):
     def get_icon(self):
-        return qta.icon('fa.history')
+        return ima.icon('history')
     
     def setup_page(self):
         settings_group = QGroupBox(_("Settings"))
@@ -103,7 +103,7 @@ class HistoryLog(SpyderPluginWidget):
 
         # Menu as corner widget
         options_button = create_toolbutton(self, text=_('Options'),
-                                           icon=qta.icon('fa.cog'))
+                                           icon=ima.icon('tooloptions'))
         options_button.setPopupMode(QToolButton.InstantPopup)
         menu = QMenu(self)
         add_actions(menu, self.menu_actions)
@@ -126,7 +126,7 @@ class HistoryLog(SpyderPluginWidget):
     
     def get_plugin_icon(self):
         """Return widget icon"""
-        return qta.icon('fa.history')
+        return ima.icon('history')
     
     def get_focus_widget(self):
         """
@@ -150,11 +150,11 @@ class HistoryLog(SpyderPluginWidget):
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         history_action = create_action(self, _("History..."),
-                                       None, qta.icon('fa.history'),
+                                       None, ima.icon('history'),
                                        _("Set history maximum entries"),
                                        triggered=self.change_history_depth)
         font_action = create_action(self, _("&Font..."), None,
-                                    qta.icon('fa.font'), _("Set shell font style"),
+                                    ima.icon('font'), _("Set shell font style"),
                                     triggered=self.change_font)
         self.wrap_action = create_action(self, _("Wrap lines"),
                                     toggled=self.toggle_wrap_mode)
@@ -216,13 +216,10 @@ class HistoryLog(SpyderPluginWidget):
         editor = codeeditor.CodeEditor(self)
         if osp.splitext(filename)[1] == '.py':
             language = 'py'
-            icon = qta.icon(['spyder.python-logo-up', 
-                             'spyder.python-logo-down'],
-                            options=[{'color': '#3775a9'}, 
-                                     {'color': '#ffd444'}])
+            icon = ima.icon('python')
         else:
             language = 'bat'
-            icon = qta.icon('fa.terminal')
+            icon = ima.icon('cmdprompt')
         editor.setup_editor(linenumbers=False, language=language,
                             scrollflagarea=False)
         editor.focus_changed.connect(lambda: self.focus_changed.emit())

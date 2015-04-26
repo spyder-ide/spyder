@@ -3067,9 +3067,6 @@ def main():
                                      or options.optimize)
 
     app = initialize()
-    directory = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                             'fonts')
-    qta.load_font('spyder', 'spyder.ttf', 'spyder-charmap.json', directory=directory)
     if options.reset_session:
         # <!> Remove all configuration files!
         reset_session()

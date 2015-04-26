@@ -18,7 +18,7 @@ from spyderlib.baseconfig import _
 from spyderlib.widgets.editortools import OutlineExplorerWidget
 from spyderlib.plugins import SpyderPluginMixin
 from spyderlib.py3compat import is_text_string
-from spyderlib.qt import qta
+import spyderlib.qt.icon_manager as ima
 
 
 class OutlineExplorer(OutlineExplorerWidget, SpyderPluginMixin):
@@ -49,7 +49,7 @@ class OutlineExplorer(OutlineExplorerWidget, SpyderPluginMixin):
 
     def get_plugin_icon(self):
         """Return widget icon"""
-        return qta.icon('spyder.treeview')
+        return ima.icon('outline_explorer')
     
     def get_focus_widget(self):
         """

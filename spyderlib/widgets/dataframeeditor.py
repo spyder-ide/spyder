@@ -19,7 +19,7 @@ from spyderlib.qt.QtGui import (QDialog, QTableView, QColor, QGridLayout,
                                 QCheckBox, QMessageBox, QInputDialog,
                                 QLineEdit, QApplication, QMenu, QKeySequence)
 from spyderlib.qt.compat import to_qvariant, from_qvariant
-from spyderlib.qt import qta
+import spyderlib.qt.icon_manager as ima
 from spyderlib.utils.qthelpers import (qapplication, create_action,
                                        add_actions, keybinding)
 
@@ -405,7 +405,7 @@ class DataFrameView(QTableView):
         """Setup context menu"""
         copy_action = create_action(self, _('Copy'),
                                     shortcut=keybinding('Copy'),
-                                    icon=qta.icon('fa.copy'),
+                                    icon=ima.icon('editcopy'),
                                     triggered=self.copy,
                                     context=Qt.WidgetShortcut)
         functions = ((_("To bool"), bool), (_("To complex"), complex),
@@ -471,7 +471,7 @@ class DataFrameEditor(QDialog):
         """
         self.layout = QGridLayout()
         self.setLayout(self.layout)
-        self.setWindowIcon(qta.icon('fa.th'))
+        self.setWindowIcon(ima.icon('arredit'))
         if title:
             title = to_text_string(title)  # in case title is not a string
         else:

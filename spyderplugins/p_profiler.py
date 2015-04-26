@@ -10,7 +10,7 @@
 
 from spyderlib.qt.QtGui import QVBoxLayout, QGroupBox, QLabel
 from spyderlib.qt.QtCore import Signal, Qt
-from spyderlib.qt import qta
+import spyderlib.qt.icon_manager as ima
 
 # Local imports
 from spyderlib.baseconfig import get_translation
@@ -69,7 +69,7 @@ class Profiler(ProfilerWidget, SpyderPluginMixin):
 
     def get_plugin_icon(self):
         """Return widget icon"""
-        return qta.icon('fa.clock-o')
+        return ima.icon('profiler')
     
     def get_focus_widget(self):
         """
@@ -94,7 +94,7 @@ class Profiler(ProfilerWidget, SpyderPluginMixin):
         self.main.add_dockwidget(self)
         
         profiler_act = create_action(self, _("Profile"),
-                                     icon=qta.icon('fa.clock-o'),
+                                     icon=ima.icon('profiler'),
                                      triggered=self.run_profiler)
         profiler_act.setEnabled(is_profiler_installed())
         self.register_shortcut(profiler_act, context="Profiler",

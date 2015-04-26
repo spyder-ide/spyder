@@ -8,7 +8,7 @@
 
 from spyderlib.qt.QtGui import QFontDialog
 from spyderlib.qt.QtCore import Signal, Slot
-from spyderlib.qt import qta
+import spyderlib.qt.icon_manager as ima
 
 # Local imports
 from spyderlib.baseconfig import _
@@ -62,11 +62,11 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         new_project_act = create_action(self, text=_('New project...'),
-                                        icon=qta.icon('fa.plus'),
+                                        icon=ima.icon('project_expanded'),
                                         triggered=self.create_new_project)
 
         font_action = create_action(self, _("&Font..."),
-                                    None, qta.icon('fa.font'), _("Set font style"),
+                                    None, ima.icon('font'), _("Set font style"),
                                     triggered=self.change_font)
         self.treewidget.common_actions += (None, font_action)
         

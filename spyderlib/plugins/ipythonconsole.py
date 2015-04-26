@@ -29,7 +29,7 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QHBoxLayout, QFormLayout,
                                 QPushButton, QKeySequence)
 from spyderlib.qt.compat import getopenfilename
 from spyderlib.qt.QtCore import Signal, Slot, Qt
-from spyderlib.qt import qta
+import spyderlib.qt.icon_manager as ima
 
 # IPython imports
 from IPython.core.application import get_ipython_dir
@@ -665,7 +665,7 @@ class IPythonConsole(SpyderPluginWidget):
     
     def get_plugin_icon(self):
         """Return widget icon"""
-        return qta.icon('spyder.ipython-logo')
+        return ima.icon('ipython_console')
     
     def get_focus_widget(self):
         """
@@ -710,13 +710,13 @@ class IPythonConsole(SpyderPluginWidget):
         ctrl = "Cmd" if sys.platform == "darwin" else "Ctrl"
         main_create_client_action = create_action(self,
                                 _("Open an &IPython console"),
-                                None, qta.icon('spyder.ipython-logo'),
+                                None, ima.icon('ipython_console'),
                                 triggered=self.create_new_client,
                                 tip=_("Use %s+T when the console is selected "
                                       "to open a new one") % ctrl)
         create_client_action = create_action(self,
                                 _("Open a new console"),
-                                QKeySequence("Ctrl+T"), qta.icon('spyder.ipython-logo'),
+                                QKeySequence("Ctrl+T"), ima.icon('ipython_console'),
                                 triggered=self.create_new_client)
         create_client_action.setShortcutContext(Qt.WidgetWithChildrenShortcut)
 
@@ -1138,7 +1138,7 @@ class IPythonConsole(SpyderPluginWidget):
     def add_tab(self, widget, name):
         """Add tab"""
         self.clients.append(widget)
-        index = self.tabwidget.addTab(widget, qta.icon('spyder.ipython-logo'),
+        index = self.tabwidget.addTab(widget, ima.icon('ipython_console'),
                                       name)
         self.tabwidget.setCurrentIndex(index)
         if self.dockwidget and not self.ismaximized:

@@ -21,7 +21,7 @@ from spyderlib.widgets.externalshell.baseshell import (ExternalShellBase,
                                                    add_pathlist_to_PYTHONPATH)
 from spyderlib.widgets.shell import TerminalWidget
 from spyderlib.py3compat import to_text_string, is_text_string
-from spyderlib.qt import qta
+import spyderlib.qt.icon_manager as ima
 
 
 class ExternalSystemShell(ExternalShellBase):
@@ -48,7 +48,7 @@ class ExternalSystemShell(ExternalShellBase):
         self.connection_file = None
 
     def get_icon(self):
-        return qta.icon('fa.terminal')
+        return ima.icon('cmdprompt')
     
     def create_process(self):
         self.shell.clear()

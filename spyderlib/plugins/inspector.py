@@ -13,7 +13,7 @@ from spyderlib.qt.QtGui import (QHBoxLayout, QVBoxLayout, QLabel, QSizePolicy,
                                 QLineEdit, QMessageBox)
 from spyderlib.qt.QtCore import Signal, Slot, QUrl, QThread
 from spyderlib.qt.QtWebKit import QWebPage
-from spyderlib.qt import qta
+import spyderlib.qt.icon_manager as ima
 
 import re
 import os.path as osp
@@ -386,7 +386,7 @@ class ObjectInspector(SpyderPluginWidget):
 
         # Add entries to read-only editor context-menu
         font_action = create_action(self, _("&Font..."), None,
-                                    qta.icon('fa.font'), _("Set font style"),
+                                    ima.icon('font'), _("Set font style"),
                                     triggered=self.change_font)
         self.wrap_action = create_action(self, _("Wrap lines"),
                                          toggled=self.toggle_wrap_mode)
@@ -470,7 +470,7 @@ class ObjectInspector(SpyderPluginWidget):
 
         # Option menu
         options_button = create_toolbutton(self, text=_('Options'),
-                                           icon=qta.icon('fa.cog'))
+                                           icon=ima.icon('tooloptions'))
         options_button.setPopupMode(QToolButton.InstantPopup)
         menu = QMenu(self)
         add_actions(menu, [self.rich_text_action, self.plain_text_action,
@@ -521,7 +521,7 @@ class ObjectInspector(SpyderPluginWidget):
 
     def get_plugin_icon(self):
         """Return widget icon"""
-        return qta.icon('fa.search')
+        return ima.icon('inspector')
 
     def get_focus_widget(self):
         """
@@ -934,7 +934,7 @@ class ObjectInspector(SpyderPluginWidget):
 
     def _update_lock_icon(self):
         """Update locked state icon"""
-        icon = qta.icon('fa.lock') if self.locked else qta.icon('fa.unlock-alt')
+        icon = ima.icon('lock') if self.locked else ima.icon('lock_open')
         self.locked_button.setIcon(icon)
         tip = _("Unlock") if self.locked else _("Lock")
         self.locked_button.setToolTip(tip)

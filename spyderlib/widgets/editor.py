@@ -22,7 +22,7 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QMessageBox, QMenu, QFont,
 from spyderlib.qt.QtCore import (Signal, Qt, QFileInfo, QThread, QObject,
                                  QByteArray, QSize, QPoint, QTimer, Slot)
 from spyderlib.qt.compat import getsavefilename
-from spyderlib.qt import qta
+import spyderlib.qt.icon_manager as ima
 
 import os
 import sys
@@ -68,7 +68,7 @@ class FileListDialog(QDialog):
 
         self.indexes = None
 
-        self.setWindowIcon(qta.icon('fa.list'))
+        self.setWindowIcon(ima.icon('filelist'))
         self.setWindowTitle(_("File list management"))
 
         self.setModal(True)
@@ -89,7 +89,7 @@ class FileListDialog(QDialog):
         self.listwidget.itemActivated.connect(self.edit_file)
 
         btn_layout = QHBoxLayout()
-        edit_btn = create_toolbutton(self, icon=qta.icon('fa.edit'),
+        edit_btn = create_toolbutton(self, icon=ima.icon('edit'),
                      text=_("&Edit file"), autoraise=False,
                      triggered=self.edit_file, text_beside_icon=True)
         edit_btn.setMinimumHeight(28)
@@ -100,7 +100,7 @@ class FileListDialog(QDialog):
         btn_layout.addStretch()
 
         close_btn = create_toolbutton(self, text=_("&Close file"),
-              icon=qta.icon('fa.close'),
+              icon=ima.icon('fileclose'),
               autoraise=False, text_beside_icon=True,
               triggered=lambda: self.close_file.emit(
                                   self.indexes[self.listwidget.currentRow()]))
@@ -453,10 +453,10 @@ class EditorStack(QWidget):
         self.data = []
 
         filelist_action = create_action(self, _("File list management"),
-                                 icon=qta.icon('fa.list'),
+                                 icon=ima.icon('filelist'),
                                  triggered=self.open_filelistdialog)
         copy_to_cb_action = create_action(self, _('Copy path to clipboard'),
-                icon=qta.icon('fa.copy'),
+                icon=ima.icon('editcopy'),
                 triggered=lambda:
                 QApplication.clipboard().setText(self.get_current_filename()))
         self.menu_actions = actions+[None, filelist_action, copy_to_cb_action]
@@ -572,7 +572,7 @@ class EditorStack(QWidget):
 
     def setup_editorstack(self, parent, layout):
         """Setup editorstack's layout"""
-        menu_btn = create_toolbutton(self, icon=qta.icon('fa.cog'),
+        menu_btn = create_toolbutton(self, icon=ima.icon('tooloptions'),
                                      tip=_('Options'))
         self.menu = QMenu(self)
         menu_btn.setMenu(self.menu)
@@ -1108,19 +1108,19 @@ class EditorStack(QWidget):
     def __get_split_actions(self):
         # New window
         self.newwindow_action = create_action(self, _("New window"),
-                icon=qta.icon('spyder.window'), tip=_("Create a new editor window"),
+                icon=ima.icon('newwindow'), tip=_("Create a new editor window"),
                 triggered=lambda: self.create_new_window.emit())
         # Splitting
         self.versplit_action = create_action(self, _("Split vertically"),
-                icon=qta.icon('spyder.rows'),
+                icon=ima.icon('versplit'),
                 tip=_("Split vertically this editor window"),
                 triggered=lambda: self.split_vertically.emit())
         self.horsplit_action = create_action(self, _("Split horizontally"),
-                icon=qta.icon('fa.columns'),
+                icon=ima.icon('horsplit'),
                 tip=_("Split horizontally this editor window"),
                 triggered=lambda: self.split_horizontally.emit())
         self.close_action = create_action(self, _("Close this panel"),
-                icon=qta.icon('fa.close'), triggered=self.close)
+                icon=ima.icon('close_panel'), triggered=self.close)
         return [None, self.newwindow_action, None,
                 self.versplit_action, self.horsplit_action, self.close_action]
 

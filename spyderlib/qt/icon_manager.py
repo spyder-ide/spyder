@@ -1,6 +1,10 @@
+import os
 import qtawesome as qta
 from spyderlib.qt.QtGui import QIcon
 
+directory = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                             '../fonts')
+qta.load_font('spyder', 'spyder.ttf', 'spyder-charmap.json', directory=directory)
 
 _icons = {
     'configure':               qta.icon('fa.wrench'),
@@ -45,8 +49,8 @@ _icons = {
     'prev_cursor':             qta.icon('fa.hand-o-left'),
     'next_cursor':             qta.icon('fa.hand-o-right'),
     'comment':                 qta.icon('fa.comment'),
-    'indent':                  qta.icon('ei.indent-left'),
-    'unindent':                qta.icon('ei.indent-right'),
+    'indent':                  qta.icon('fa.indent'),
+    'unindent':                qta.icon('fa.outdent'),
     'gotoline':                qta.icon('fa.sort-numeric-asc'),
     'error':                   qta.icon('fa.times-circle'),
     'warning':                 qta.icon('fa.warning'),
@@ -61,7 +65,7 @@ _icons = {
     'console':                 qta.icon('fa.terminal'),
     'findf':                   qta.icon(['fa.file-o', 'fa.search'], options=[{'scale_factor': 1.0}, {'scale_factor': 0.6}]),
     'history24':               qta.icon('fa.history'),
-    'tooloptions':             qta.icon('fa.cog'),
+    'history':                 qta.icon('fa.history'),
     'inspector':               qta.icon('fa.search'),
     'lock':                    qta.icon('fa.lock'),
     'lock_open':               qta.icon('fa.unlock-alt'),
@@ -94,11 +98,9 @@ _icons = {
     'unmaximize':              qta.icon('spyder.minimize-pane'),
     'window_nofullscreen':     qta.icon('spyder.inward'),
     'window_fullscreen':       qta.icon('fa.arrows-alt'),
-    'MessageBoxInformation':   qta.icon('fa.info'),
     'MessageBoxWarning':       qta.icon('fa.warning'),
     'arredit':                 qta.icon('fa.table'),
-    'zoom_out':                qta.icon('fa.search-minus'),
-    'zoom_in':                 qta.icon('fa.search-plus'),
+    'zoom_out':                qta.icon('fa.search-plus'),
     'home':                    qta.icon('fa.home'),
     'find':                    qta.icon('fa.search'),
     'plot':                    qta.icon('fa.line-chart'),
@@ -107,7 +109,7 @@ _icons = {
     'insert':                  qta.icon('fa.sign-in'),
     'rename':                  qta.icon('fa.pencil'),
     'edit_add':                qta.icon('fa.copy'),
-    'arredit':                 qta.icon('fa.th'),
+    'browse_tab':              qta.icon('fa.folder-o'),
     'filelist':                qta.icon('fa.list'), 
     'newwindow':               qta.icon('spyder.window'),
     'versplit':                qta.icon('spyder.rows'),
@@ -129,6 +131,7 @@ _icons = {
     'kill':                    qta.icon('fa.warning'),
     'reload':                  qta.icon('fa.repeat'),
     'auto_reload':             qta.icon(['fa.repeat', 'fa.clock-o'], options=[{'scale_factor': 0.75, 'offset': (-0.1, -0.1)}, {'scale_factor': 0.5, 'offset': (0.25, 0.25)}]),
+    'profiler':                qta.icon('fa.clock-o'),
     'fileimport':              qta.icon('fa.download'),
     'environ':                 qta.icon('fa.th-list'),
     'options_less':            qta.icon('fa.minus-square'),
@@ -151,6 +154,11 @@ _icons = {
     'collapse_selection':      qta.icon('fa.minus-square-o'),
     'expand_selection':        qta.icon('fa.plus-square-o'),
     'copywop':                 qta.icon(['fa.terminal']),
+    'editpaste':               qta.icon('fa.paste'),
+    'editcopy':                qta.icon('fa.copy'),
+    'edit':                    qta.icon('fa.edit'),
+    'convention':              qta.icon('spyder.circle-letter-c', color='#3775a9'),
+    'refactor':                qta.icon('spyder.circle-letter-r', color='#3775a9'),
 }
 
 def icon(name):

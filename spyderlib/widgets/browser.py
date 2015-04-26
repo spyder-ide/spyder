@@ -10,8 +10,7 @@ from spyderlib.qt.QtGui import (QHBoxLayout, QWidget, QVBoxLayout,
                                 QProgressBar, QLabel, QMenu)
 from spyderlib.qt.QtWebKit import QWebView, QWebPage, QWebSettings
 from spyderlib.qt.QtCore import QUrl, Slot
-from spyderlib.qt import qta
-
+import spyderlib.qt.icon_manager as ima
 import sys
 
 # Local imports
@@ -29,10 +28,10 @@ class WebView(QWebView):
         QWebView.__init__(self, parent)
         self.zoom_factor = 1.
         self.zoom_out_action = create_action(self, _("Zoom out"),
-                                             icon=qta.icon('fa.search-minus'),
+                                             icon=ima.icon('zoom_out'),
                                              triggered=self.zoom_out)
         self.zoom_in_action = create_action(self, _("Zoom in"),
-                                            icon=qta.icon('fa.search-plus'),
+                                            icon=ima.icon('zoom_in'),
                                             triggered=self.zoom_in)
         
     def find_text(self, text, changed=True,
@@ -127,7 +126,7 @@ class WebBrowser(QWidget):
         self.webview.titleChanged.connect(self.setWindowTitle)
         self.webview.urlChanged.connect(self.url_changed)
                 
-        home_button = create_toolbutton(self, icon=qta.icon('fa.home'),
+        home_button = create_toolbutton(self, icon=ima.icon('home'),
                                         tip=_("Home"),
                                         triggered=self.go_home)
         
@@ -162,7 +161,7 @@ class WebBrowser(QWidget):
         self.find_widget.set_editor(self.webview)
         self.find_widget.hide()
 
-        find_button = create_toolbutton(self, icon=qta.icon('fa.search'),
+        find_button = create_toolbutton(self, icon=ima.icon('find'),
                                         tip=_("Find text"),
                                         toggled=self.toggle_find_widget)
         self.find_widget.visibility_changed.connect(find_button.setChecked)

@@ -14,7 +14,7 @@ from spyderlib.qt.QtGui import (QWidget, QVBoxLayout, QHBoxLayout, QMenu,
                                 QCursor, QInputDialog)
 from spyderlib.qt.QtCore import Qt, Signal, Slot
 from spyderlib.qt.compat import getopenfilenames, getsavefilename
-from spyderlib.qt import qta
+import spyderlib.qt.icon_manager as ima
 
 # Local imports
 from spyderlib.widgets.externalshell.monitor import (
@@ -174,31 +174,23 @@ class NamespaceBrowser(QWidget):
         toolbar = []
 
         refresh_button = create_toolbutton(self, text=_('Refresh'),
-                                           icon=qta.icon('fa.repeat'),
+                                           icon=ima.icon('reload'),
                                            triggered=self.refresh_table)
         self.auto_refresh_button = create_toolbutton(self,
                                            text=_('Refresh periodically'),
-                                           icon=qta.icon(['fa.repeat', 'fa.clock-o'],
-                                                         options=[{'scale_factor': 0.75,
-                                                                   'offset': (-0.1, -0.1)}, 
-                                                                  {'scale_factor': 0.5,
-                                                                   'offset': (0.25, 0.25)}]),
+                                           icon=ima.icon('auto_reload'),
                                            toggled=self.toggle_auto_refresh)
         self.auto_refresh_button.setChecked(autorefresh)
         load_button = create_toolbutton(self, text=_('Import data'),
-                                        icon=qta.icon('fa.download'),
+                                        icon=ima.icon('fileimport'),
                                         triggered=self.import_data)
         self.save_button = create_toolbutton(self, text=_("Save data"),
-                            icon=qta.icon('fa.save'),
+                            icon=ima.icon('filesave'),
                             triggered=lambda: self.save_data(self.filename))
         self.save_button.setEnabled(False)
         save_as_button = create_toolbutton(self,
                                            text=_("Save data as..."),
-                                           icon=qta.icon(['fa.save', 'fa.pencil'],
-                                                         options=[{'offset': (-0.2, -0.2), 
-                                                                   'scale_factor': 0.6},
-                                                                  {'offset': (0.2, 0.2),
-                                                                   'scale_factor': 0.6}]),                                           
+                                           icon=ima.icon('filesaveas'),                                           
                                            triggered=self.save_data)
         toolbar += [refresh_button, self.auto_refresh_button, load_button,
                     self.save_button, save_as_button]
@@ -235,7 +227,7 @@ class NamespaceBrowser(QWidget):
         self.exclude_unsupported_action.setChecked(exclude_unsupported)
         
         options_button = create_toolbutton(self, text=_('Options'),
-                                           icon=qta.icon('fa.cog'))
+                                           icon=ima.icon('tooloptions'))
         toolbar.append(options_button)
         options_button.setPopupMode(QToolButton.InstantPopup)
         menu = QMenu(self)

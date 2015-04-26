@@ -8,7 +8,7 @@
 
 from spyderlib.qt.QtGui import QStackedWidget, QGroupBox, QVBoxLayout
 from spyderlib.qt.QtCore import Signal
-from spyderlib.qt import qta
+import spyderlib.qt.icon_manager as ima
 
 # Local imports
 from spyderlib.baseconfig import _
@@ -160,7 +160,7 @@ class VariableExplorer(QStackedWidget, SpyderPluginMixin):
 
     def get_plugin_icon(self):
         """Return plugin icon"""
-        return qta.icon('fa.th-list')
+        return ima.icon('dictedit')
     
     def get_focus_widget(self):
         """

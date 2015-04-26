@@ -60,7 +60,6 @@ elif API == 'pyqt':
 
 import qtawesome as qta
 
-
 if API == 'pyside':
     try:
         from PySide import __version__  # analysis:ignore

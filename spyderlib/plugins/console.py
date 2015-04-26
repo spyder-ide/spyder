@@ -16,7 +16,7 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QFontDialog, QInputDialog,
                                 QLineEdit, QMenu)
 from spyderlib.qt.QtCore import Signal, Slot
 from spyderlib.qt.compat import getopenfilename
-from spyderlib.qt import qta
+import spyderlib.qt.icon_manager as ima
 
 import os
 import sys
@@ -127,12 +127,12 @@ class Console(SpyderPluginWidget):
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         quit_action = create_action(self, _("&Quit"),
-                                    icon=qta.icon('fa.power-off'), 
+                                    icon=ima.icon('exit'), 
                                     tip=_("Quit"),
                                     triggered=self.quit)
         self.register_shortcut(quit_action, "_", "Quit", "Ctrl+Q")
         run_action = create_action(self, _("&Run..."), None,
-                            qta.icon('fa.play', color='green'),
+                            ima.icon('run_small'),
                             _("Run a Python script"),
                             triggered=self.run_script)
         environ_action = create_action(self,
@@ -143,7 +143,7 @@ class Console(SpyderPluginWidget):
                             triggered=self.show_env)
         syspath_action = create_action(self,
                             _("Show sys.path contents..."),
-                            icon=qta.icon('fa.cogs'),
+                            icon=ima.icon('syspath'),
                             tip=_("Show (read-only) sys.path"),
                             triggered=self.show_syspath)
         buffer_action = create_action(self,
@@ -152,7 +152,7 @@ class Console(SpyderPluginWidget):
                             triggered=self.change_max_line_count)
         font_action = create_action(self,
                             _("&Font..."), None,
-                            qta.icon('fa.font'), _("Set shell font style"),
+                            ima.icon('font'), _("Set shell font style"),
                             triggered=self.change_font)
         exteditor_action = create_action(self,
                             _("External editor path..."), None, None,
@@ -176,7 +176,7 @@ class Console(SpyderPluginWidget):
                                                     'codecompletion/enter_key'))
         
         option_menu = QMenu(_('Internal console settings'), self)
-        option_menu.setIcon(qta.icon('fa.cog'))
+        option_menu.setIcon(ima.icon('tooloptions'))
         add_actions(option_menu, (buffer_action, font_action, wrap_action,
                                   calltips_action, codecompletion_action,
                                   codecompenter_action, exteditor_action))
@@ -219,7 +219,7 @@ class Console(SpyderPluginWidget):
         """Show sys.path"""
         editor = DictEditor()
         editor.setup(sys.path, title="sys.path", readonly=True,
-                     width=600, icon=qta.icon('fa.cogs'))
+                     width=600, icon=ima.icon('syspath'))
         self.dialog_manager.show(editor)
     
     @Slot()

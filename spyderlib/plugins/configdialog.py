@@ -20,7 +20,7 @@ from spyderlib.qt.QtGui import (QWidget, QDialog, QListWidget, QListWidgetItem,
 from spyderlib.qt.QtCore import Qt, QSize, Signal, Slot
 from spyderlib.qt.compat import (to_qvariant, from_qvariant,
                                  getexistingdirectory, getopenfilename)
-from spyderlib.qt import qta
+import spyderlib.qt.icon_manager as ima
 
 from spyderlib.baseconfig import (_, running_in_mac_app, LANGUAGE_CODES,
                                   save_lang_conf, load_lang_conf)
@@ -165,7 +165,7 @@ class ConfigDialog(QDialog):
         self.setLayout(vlayout)
 
         self.setWindowTitle(_('Preferences'))
-        self.setWindowIcon(qta.icon('fa.wrench'))
+        self.setWindowIcon(ima.icon('configure'))
 
         # Ensures that the config is present on spyder first run
         CONF.set('main', 'interface_language', load_lang_conf())
@@ -464,7 +464,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                 break
         msg = _("Invalid directory path")
         self.validate_data[edit] = (osp.isdir, msg)
-        browse_btn = QPushButton(qta.icon('fa.folder-open'), '', self)
+        browse_btn = QPushButton(ima.icon('DirOpenIcon'), '', self)
         browse_btn.setToolTip(_("Select directory"))
         browse_btn.clicked.connect(lambda: self.select_directory(edit))
         layout = QHBoxLayout()
@@ -494,7 +494,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                 break
         msg = _('Invalid file path')
         self.validate_data[edit] = (osp.isfile, msg)
-        browse_btn = QPushButton(qta.icon('fa.folder-open'), '', self)
+        browse_btn = QPushButton(ima.icon('FileIcon'), '', self)
         browse_btn.setToolTip(_("Select file"))
         browse_btn.clicked.connect(lambda: self.select_file(edit, filters))
         layout = QHBoxLayout()
@@ -580,10 +580,10 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         if tip is not None:
             clayout.setToolTip(tip)
         cb_bold = QCheckBox()
-        cb_bold.setIcon(qta.icon('fa.bold'))
+        cb_bold.setIcon(ima.icon('bold'))
         cb_bold.setToolTip(_("Bold"))
         cb_italic = QCheckBox()
-        cb_italic.setIcon(qta.icon('fa.italic'))
+        cb_italic.setIcon(ima.icon('italic'))
         cb_italic.setToolTip(_("Italic"))
         self.scedits[(clayout, cb_bold, cb_italic)] = (option, default)
         if without_layout:
@@ -719,7 +719,7 @@ class MainConfigPage(GeneralConfigPage):
     CONF_SECTION = "main"
     
     NAME = _("General")
-    ICON = qta.icon('fa.cogs')
+    ICON = ima.icon('genprefs')
 
     def setup_page(self):
         newcb = self.create_checkbox
@@ -867,7 +867,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
     CONF_SECTION = "color_schemes"
     
     NAME = _("Syntax coloring")
-    ICON = qta.icon('fa.cogs')
+    ICON = ima.icon('genprefs')
     
     def setup_page(self):
         tabs = QTabWidget()

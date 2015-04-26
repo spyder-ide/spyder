@@ -14,7 +14,7 @@
 from spyderlib.qt.QtGui import (QTabWidget, QMenu, QDrag, QApplication,
                                 QTabBar, QWidget, QHBoxLayout)
 from spyderlib.qt.QtCore import Signal, Qt, QPoint, QMimeData, QByteArray
-from spyderlib.qt import qta
+import spyderlib.qt.icon_manager as ima
 
 import os.path as osp
 
@@ -130,7 +130,7 @@ class BaseTabs(QTabWidget):
         corner_widgets.setdefault(Qt.TopLeftCorner, [])
         corner_widgets.setdefault(Qt.TopRightCorner, [])
         self.browse_button = create_toolbutton(self,
-                                          icon=qta.icon('fa.folder-o'),
+                                          icon=ima.icon('browse_tab'),
                                           tip=_("Browse tabs"))
         self.browse_tabs_menu = QMenu(self)
         self.browse_button.setMenu(self.browse_tabs_menu)
@@ -258,7 +258,7 @@ class BaseTabs(QTabWidget):
         except AttributeError:
             # Workaround for Qt < 4.5
             close_button = create_toolbutton(self, triggered=func,
-                                             icon=gta.icon('fa.close'),
+                                             icon=ima.icon('fileclose'),
                                              tip=_("Close current tab"))
             self.setCornerWidget(close_button if state else None)
 

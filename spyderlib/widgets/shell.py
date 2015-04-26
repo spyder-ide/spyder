@@ -23,6 +23,7 @@ from spyderlib.qt.QtGui import (QMenu, QApplication, QToolTip, QKeySequence,
 from spyderlib.qt.QtCore import (Qt, QCoreApplication, QTimer, Signal,
                                  Property, Slot)
 from spyderlib.qt.compat import getsavefilename
+import spyderlib.qt.icon_manager as ima
 from spyderlib.qt import qta
 
 # Local import
@@ -120,28 +121,28 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
         self.menu = QMenu(self)
         self.cut_action = create_action(self, _("Cut"),
                                         shortcut=keybinding('Cut'),
-                                        icon=qta.icon('fa.cut'),
+                                        icon=ima.icon('editcut'),
                                         triggered=self.cut)
         self.copy_action = create_action(self, _("Copy"),
                                          shortcut=keybinding('Copy'),
-                                         icon=qta.icon('fa.copy'),
+                                         icon=ima.icon('editcopy'),
                                          triggered=self.copy)
         paste_action = create_action(self, _("Paste"),
                                      shortcut=keybinding('Paste'),
-                                     icon=qta.icon('fa.paste'),
+                                     icon=ima.icon('editpaste'),
                                      triggered=self.paste)
         save_action = create_action(self, _("Save history log..."),
-                                    icon=qta.icon('fa.save'),
+                                    icon=ima.icon('filesave'),
                                     tip=_("Save current history log (i.e. all "
                                           "inputs and outputs) in a text file"),
                                     triggered=self.save_historylog)
         self.delete_action = create_action(self, _("Delete"),
                                     shortcut=keybinding('Delete'),
-                                    icon=qta.icon('fa.eraser'),
+                                    icon=ima.icon('editdelete'),
                                     triggered=self.delete)
         selectall_action = create_action(self, _("Select All"),
                                     shortcut=keybinding('SelectAll'),
-                                    icon=qta.icon('spyder.text-select-all'),
+                                    icon=ima.icon('selectall'),
                                     triggered=self.selectAll)
         add_actions(self.menu, (self.cut_action, self.copy_action,
                                 paste_action, self.delete_action, None,

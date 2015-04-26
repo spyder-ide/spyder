@@ -24,7 +24,7 @@ from spyderlib.qt.QtGui import (QHBoxLayout, QColor, QTableView, QItemDelegate,
 from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, Slot)
                                  
 from spyderlib.qt.compat import to_qvariant, from_qvariant
-from spyderlib.qt import qta
+import spyderlib.qt.icon_manager as ima
 
 import numpy as np
 
@@ -391,7 +391,7 @@ class ArrayView(QTableView):
         """Setup context menu"""
         self.copy_action = create_action(self, _('Copy'),
                                          shortcut=keybinding('Copy'),
-                                         icon=qta.icon('fa.copy'),
+                                         icon=ima.icon('editcopy'),
                                          triggered=self.copy,
                                          context=Qt.WidgetShortcut)
         menu = QMenu(self)
@@ -550,7 +550,7 @@ class ArrayEditor(QDialog):
         
         self.layout = QGridLayout()
         self.setLayout(self.layout)
-        self.setWindowIcon(qta.icon('fa.table'))
+        self.setWindowIcon(ima.icon('arredit'))
         if title:
             title = to_text_string(title) # in case title is not a string
         else:
