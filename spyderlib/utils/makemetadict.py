@@ -133,7 +133,19 @@ def make_numpy_meta_dict(value):
         
     return meta         
     
-    
+def make_pil_meta_dict(value):
+    with ignore(Exception):
+        from io import BytesIO
+        from base64 import b64encode
+        b = BytesIO()
+        value = value.copy()
+        value.thumbnail((128,128))
+        value.save(b, format='png')
+        return {'html': '<img alt="PIL Image"'\
+                    + ' src="data:image/png;base64,' \
+                    +  b64encode(b.getvalue()) + '" />',
+                'value': None}
+        
 def make_meta_dict_user(value):
     """
     This function is called when the user moves over a variable in the 
@@ -173,10 +185,17 @@ def make_meta_dict_user(value):
     except ImportError:
         DataFrame = TimeSeries = DudObject  # analysis:ignore
 
+    try:
+        from PIL import Image
+    except ImportError:
+        Image = DudObject # analysis:ignore
+        
     if isinstance(value, (ndarray, MaskedArray)):   
         meta.update(make_numpy_meta_dict(value))
     elif isinstance(value, DataFrame):
         meta['value'] = value.describe().to_html().replace('\n','')
+    elif isinstance(value, Image.Image):
+        meta.update(make_pil_meta_dict(value))
     elif hasattr(value, '_repr_html_'):
         html = value._repr_html_()
         if html is not None and len(html) > 0:
