@@ -15,8 +15,8 @@ from __future__ import print_function
 
 from spyderlib.qt import is_pyqt46
 from spyderlib.qt.QtGui import (QVBoxLayout, QMessageBox, QMenu, QFont,
-                                QAction, QApplication, QWidget, 
-                                 QKeySequence, QMainWindow, QSplitter)
+                                QAction, QApplication, QWidget,
+                                QKeySequence, QMainWindow, QSplitter)
 from spyderlib.qt.QtCore import (Signal, Qt, QFileInfo, QThread, QObject,
                                  QByteArray, QSize, QPoint, QTimer, Slot)
 from spyderlib.qt.compat import getsavefilename
@@ -334,14 +334,15 @@ class EditorStack(QWidget):
         self.find_widget = None
 
         self.data = []
-        fileswitcher_action = create_action(self, _("Fast file switcher"),
-                                 icon=ima.icon('filelist'),
-                                 triggered=self.open_fileswitcher_dlg)
-        copy_to_cb_action = create_action(self, _('Copy path to clipboard'),
+        fileswitcher_action = create_action(self, _("File switcher..."),
+                        icon=get_icon('filelist.png'),
+                        triggered=self.open_fileswitcher_dlg)
+        copy_to_cb_action = create_action(self, _("Copy path to clipboard"),
                 icon=ima.icon('editcopy'),
                 triggered=lambda:
                 QApplication.clipboard().setText(self.get_current_filename()))
-        self.menu_actions = actions+[None, fileswitcher_action, copy_to_cb_action]
+        self.menu_actions = actions+[None, fileswitcher_action,
+                                     copy_to_cb_action]
         self.outlineexplorer = None
         self.inspector = None
         self.unregister_callback = None
@@ -534,7 +535,7 @@ class EditorStack(QWidget):
         """Open file list management dialog box"""
         if self.tabs.count() == 0:
             return
-        self.fileswitcher_dlg = dlg = FileSwitcher(self, self.tabs,self.data)
+        self.fileswitcher_dlg = dlg = FileSwitcher(self, self.tabs, self.data)
         dlg.edit_file.connect(self.set_stack_index)
         dlg.close_file.connect(self.close_file)
         dlg.synchronize(self.get_stack_index())
