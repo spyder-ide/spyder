@@ -679,7 +679,6 @@ class InfoPane(QDialog):
         parent = self.parent()
         geo = parent.geometry()
         parent_width = geo.width()
-        parent_left = geo.left()
         self_width = 380        
         self_height = 300        
         self.setMinimumSize(self_width, self_height)                
@@ -690,9 +689,9 @@ class InfoPane(QDialog):
             left += geo.left()
             parent = parent.parent()
         window_width = geo.width()
-        
+
         # Work out whether there is more space to the left or right of the parent
-        right_space = window_width - (parent_left + parent_width)    
+        right_space = window_width - (left + parent_width)    
         if right_space > left:
             left += parent_width
             self.main_text.setAlignment(Qt.AlignTop \
@@ -704,6 +703,9 @@ class InfoPane(QDialog):
         self.move(left, top) 
 
     def showText(self, text):
+        # Note that we really out to hook into the move/resize events of all
+        # the ancestors of this widget, but instead we just do this update here..
+        self.update_position()  
         self.main_text.setText(text)
         
 class BaseTableView(QTableView):
