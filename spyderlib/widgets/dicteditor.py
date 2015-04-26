@@ -479,7 +479,8 @@ class DictDelegate(QItemDelegate):
 
     def createEditor(self, parent, option, index):
         """Overriding method createEditor"""
-        if index.column() < 3:
+        compact = index.model().compact
+        if not compact and index.column() < 3:
             return None
         if self.show_warning(index):
             answer = QMessageBox.warning(self.parent(), _("Warning"),
@@ -986,7 +987,8 @@ class BaseTableView(QTableView):
         if index_clicked.isValid():
             row = index_clicked.row()
             # TODO: Remove hard coded "Value" column number (3 here)
-            index_clicked = index_clicked.child(row, 3)
+            index_clicked = index_clicked.child(row, self.only_show_column
+                                                 if self.model.compact else 3)
             self.edit(index_clicked)
         else:
             event.accept()
@@ -1076,7 +1078,9 @@ class BaseTableView(QTableView):
         if not index.isValid():
             return
         # TODO: Remove hard coded "Value" column number (3 here)
-        self.edit(index.child(index.row(), 3))
+        self.edit(index.child(index.row(), 
+                              self.only_show_column if self.model.compact\
+                              else 3))
 
     @Slot()
     def remove_item(self):
