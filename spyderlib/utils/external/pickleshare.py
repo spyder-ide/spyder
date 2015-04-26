@@ -35,7 +35,7 @@ License: MIT open source license.
 
 from __future__ import print_function
 
-from spyderlib.utils.external.path import path as Path
+from spyderlib.utils.external.path import Path
 from spyderlib.py3compat import pickle, MutableMapping
 
 import os
