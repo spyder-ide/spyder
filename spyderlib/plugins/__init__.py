@@ -21,8 +21,10 @@ These plugins inherit the following classes
 # Qt imports
 from spyderlib.qt import PYQT5
 from spyderlib.qt.QtGui import (QDockWidget, QWidget, QShortcut, QCursor,
-                                QKeySequence, QMainWindow, QApplication)
-from spyderlib.qt.QtCore import Qt, Signal
+                                QKeySequence, QMainWindow, QApplication,
+                                QTabBar)
+from spyderlib.qt.QtCore import Qt, Signal, QObject, QEvent
+
 
 # Stdlib imports
 import sys
@@ -121,6 +123,10 @@ class SpyderDockWidget(QDockWidget):
 
     def __init__(self, *args, **kwargs):
         super(SpyderDockWidget, self).__init__(*args, **kwargs)
+        self.visibilityChanged.connect(self.install_tab_event_filter)
+        self.title = args[0]
+        self.main = args[1]
+        self.bar = None
         if sys.platform == 'darwin':
             self.setStyleSheet(self.DARWIN_STYLE)
 
@@ -130,6 +136,94 @@ class SpyderDockWidget(QDockWidget):
         window menu can be updated correctly
         """
         self.plugin_closed.emit()
+
+    def install_tab_event_filter(self, value):
+        bar = None
+        tabbars = self.main.findChildren(QTabBar)
+        for tabbar in tabbars:
+            for tab in range(tabbar.count()):
+                title = tabbar.tabText(tab)
+                if title == self.title:
+                    bar = tabbar
+                    break
+        if self.bar is None and bar is not None:
+            self.bar = bar
+            self.bar.setAcceptDrops(True)
+
+            if getattr(self.bar, 'filter', None) is None:
+                self.bar.filter = TabFilter(self.bar, self.main)
+                self.bar.installEventFilter(self.bar.filter)
+
+
+class TabFilter(QObject):
+    """
+    """
+    def __init__(self, tabbar, main):
+        QObject.__init__(self)
+        self.tabbar = tabbar
+        self.main = main
+        self.moving = False
+
+    def eventFilter(self,  obj,  event):
+        event_type = event.type()
+        if event_type == QEvent.MouseButtonPress:
+            self.tab_pressed(event)
+        if event_type == QEvent.MouseMove:
+            self.tab_moved(event)
+            return True
+        if event_type == QEvent.MouseButtonRelease:
+            self.tab_released(event)
+            return True
+        return False
+
+    def tab_released(self, event):
+        QApplication.restoreOverrideCursor()
+        self.moving = False
+
+    def tab_pressed(self, event):
+        if event.button() == Qt.LeftButton:
+            start_tab = self.tabbar.tabAt(event.pos())
+            self.start_widget = self.get_widget(start_tab)
+            self.widgets = self.get_widgets()
+
+    def tab_moved(self, event):
+        # If the left button isn't pressed anymore then return
+        if not event.buttons() & Qt.LeftButton:
+            return
+        if not self.moving:
+            QApplication.setOverrideCursor(Qt.OpenHandCursor)
+            self.moving = True
+        pos = event.pos()
+        end_tab = self.tabbar.tabAt(pos)
+        self.end_widget = self.get_widget(end_tab)
+
+        if self.start_widget is not self.end_widget and\
+           self.end_widget is not None:
+            self.move_tab()
+
+    def move_tab(self):
+        widgets = self.widgets
+        start = widgets.index(self.start_widget)
+        end = widgets.index(self.end_widget)
+
+        widgets[start], widgets[end] = widgets[end], widgets[start]
+
+        for i in range(len(self.widgets)-1):
+            self.main.tabify_plugins(widgets[i], widgets[i+1])
+        self.widgets = self.get_widgets()
+        self.start_widget.dockwidget.raise_()
+
+    def get_widget(self, index):
+        for widget in self.main.widgetlist:
+            if widget.get_plugin_title() == self.tabbar.tabText(index):
+                return widget
+
+    def get_widgets(self):
+        widgets = []
+        for index in range(self.tabbar.count()):
+            widget = self.get_widget(index)
+            widgets.append(widget)
+        return widgets
 
 
 class SpyderPluginMixin(object):
