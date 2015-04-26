@@ -546,7 +546,7 @@ class MainWindow(QMainWindow):
                                             toggled=self.toggle_lock_dockwidgets,
                                             context=Qt.ApplicationShortcut)
             self.register_shortcut(self.lock_dockwidgets_action, "_",
-                                       "Lock panes")
+                                       "lock unlock panes")
             # custom layouts shortcuts
             self.toggle_next_layout_action = create_action(self,
                                         _("Use next layout"),
