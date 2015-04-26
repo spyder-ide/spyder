@@ -205,14 +205,14 @@ def get_image_path(name, default="not_found.png"):
 #==============================================================================
 # Translations
 #==============================================================================
-LANG_FILE = osp.join(get_conf_path(), '.langconfig')
+LANG_FILE = osp.join(get_conf_path(), 'langconfig')
 DEFAULT_LANGUAGE = 'en'
 
 # This needs to be updated every time a new language is added to spyder.
 LANGUAGE_CODES = {'en': u'English',
                   'fr': u'Français',
                   'es': u'Español',
-                  'pt_BR': u'Português (brasileiro)'
+                  'pt_BR': u'Português'
                   }
 
 
@@ -231,8 +231,8 @@ def get_available_translations():
     # is added, to ensure LANGUAGE_CODES is updated.
     for lang in langs:
         if lang not in LANGUAGE_CODES:
-            error = _('Update LANGUAGE_CODES if a new translation has been '
-                      'added to Spyder')
+            error = _('Update LANGUAGE_CODES (inside baseconfig.py) if a new '
+                      'translation has been added to Spyder')
             raise Exception(error)
     return langs
 
