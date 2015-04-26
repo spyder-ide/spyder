@@ -55,6 +55,10 @@ from spyderlib.utils.makemetadict import make_meta_dict
 
 LARGE_NROWS = 5000
 
+def escape_for_html(s):
+    return str(s).replace('&', '&amp;')\
+                 .replace('<','&lt;')\
+                 .replace('>','&gt;')
 
 def display_to_value(value, default_value, ignore_errors=True):
     """Convert back to value"""
@@ -436,14 +440,17 @@ class DictModel(ReadOnlyDictModel):
             value = meta_dict['value'] 
             del meta_dict['value']
         if value is not None:
-            value_str = "<br><br>" + str(value).replace('\n','<br>')
+            value_str = "<br><br>" + escape_for_html(value)\
+                                            .replace('\n','<br>')
         if len(meta_dict) > 0:
-            meta_str = '<br><br>' + ' | '.join(["<b>%s:</b>&nbsp;%s" % (k,v) \
-                                            for k,v in meta_dict.iteritems()])
-            
+            meta_str = '<br><br>'\
+                + ' | '.join(["<b>%s:</b>&nbsp;%s"\
+                              % (escape_for_html(k), escape_for_html(v)) \
+                              for k, v in meta_dict.iteritems()])
+                        
         return _("<h2>%s</h2><b>type:</b> %s | <b>size:</b> %s%s%s%s")\
                     % (self.keys[row], self.types[row], size_str,
-                       meta_str, html_str, value_str )
+                       meta_str, html_str, value_str)
             
 class DictDelegate(QItemDelegate):
     """DictEditor Item Delegate"""

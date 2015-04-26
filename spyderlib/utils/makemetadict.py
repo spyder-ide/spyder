@@ -193,7 +193,8 @@ def make_meta_dict_user(value):
     if isinstance(value, (ndarray, MaskedArray)):   
         meta.update(make_numpy_meta_dict(value))
     elif isinstance(value, DataFrame):
-        meta['value'] = value.describe().to_html().replace('\n','')
+        meta['html'] = value.describe().to_html()
+        meta['value'] = None
     elif isinstance(value, Image.Image):
         meta.update(make_pil_meta_dict(value))
     elif hasattr(value, '_repr_html_'):
