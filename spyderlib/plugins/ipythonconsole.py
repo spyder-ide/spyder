@@ -181,7 +181,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         comp_group = QGroupBox(_("Completion Widget"))
         comp_label = QLabel(_("Decide what type of completion to use"))
         comp_label.setWordWrap(True)
-        completers = [("plain", 0), ("droplist", 1), ("ncurses", 2)]
+        completers = [("Graphical", 0), ("Terminal", 1), ("Plain", 2)]
         comp_box = self.create_combobox(_("Completion:")+"   ", completers,
                                         'completion_widget', default=0)
         comp_layout = QVBoxLayout()
