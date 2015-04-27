@@ -153,7 +153,7 @@ _qtaargs = {
     'DialogHelpButton':        [('fa.life-ring',), {}],
     'MessageBoxInformation':   [('fa.info',), {}],
     'DirOpenIcon':             [('fa.folder-open',), {}],
-    'FileIcon2':               [('fa.file-o',), {}],   # QtHelper
+    'FileIcon':               [('fa.file-o',), {}],   # QtHelper
     'DriveHDIcon':             [('fa.hdd-o',), {}],
     'arrow':                   [('fa.arrow-right',), {}],
     'collapse':                [('spyder.inward',), {}],

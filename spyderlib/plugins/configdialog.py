@@ -494,7 +494,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                 break
         msg = _('Invalid file path')
         self.validate_data[edit] = (osp.isfile, msg)
-        browse_btn = QPushButton(ima.icon('FileIcon2'), '', self)
+        browse_btn = QPushButton(ima.icon('FileIcon'), '', self)
         browse_btn.setToolTip(_("Select file"))
         browse_btn.clicked.connect(lambda: self.select_file(edit, filters))
         layout = QHBoxLayout()

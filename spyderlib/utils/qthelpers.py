@@ -418,7 +418,7 @@ def get_filetype_icon(fname):
     ext = osp.splitext(fname)[1]
     if ext.startswith('.'):
         ext = ext[1:]
-    return get_icon( "%s.png" % ext, ima.icon('FileIcon2') )
+    return get_icon( "%s.png" % ext, ima.icon('FileIcon') )
 
 
 class ShowStdIcons(QWidget):

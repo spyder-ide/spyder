@@ -703,7 +703,7 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
         ShellBaseWidget.setup_context_menu(self)
         self.copy_without_prompts_action = create_action(self,
                                      _("Copy without prompts"),
-                                     icon=ima.icon('cmdprompt'),
+                                     icon=ima.icon('copywop'),
                                      triggered=self.copy_without_prompts)
         clear_line_action = create_action(self, _("Clear line"),
                                      QKeySequence(get_shortcut('console',
