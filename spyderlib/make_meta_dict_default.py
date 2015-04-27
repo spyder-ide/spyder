@@ -30,6 +30,9 @@ def make_meta_dict(value):
     the caller, and a default empty dict will be returned.  The exception 
     stacktrace will be printed.    
     """
+    if isinstance(value, (bool, int, float, tuple, list, set, dict)):
+        return {}
+        
     meta = OrderedDict()
     class DudObject():
         pass
