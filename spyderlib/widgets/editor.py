@@ -385,6 +385,8 @@ class FileInfo(QObject):
             self.save_breakpoints.emit(self.filename, repr(breakpoints))
 
 
+EDITOR_STACKS = None
+
 class EditorStack(QWidget):
     reset_statusbar = Signal()
     readonly_changed = Signal(bool)
@@ -418,10 +420,11 @@ class EditorStack(QWidget):
     split_vertically = Signal()
     split_horizontally = Signal()
     sig_new_file = Signal(str)
+    sig_tabs_reordered = Signal(int, int)
 
     def __init__(self, parent, actions):
         QWidget.__init__(self, parent)
-
+        
         self.setAttribute(Qt.WA_DeleteOnClose)
 
         self.threadmanager = ThreadManager(self)
@@ -598,6 +601,7 @@ class EditorStack(QWidget):
         corner_widgets = {Qt.TopRightCorner: [menu_btn]}
         self.tabs = BaseTabs(self, menu=self.menu, menu_use_tooltips=True,
                              corner_widgets=corner_widgets)
+
         self.tabs.set_close_function(self.close_file)
         if hasattr(self.tabs, 'setDocumentMode') \
            and not sys.platform == 'darwin':
@@ -607,6 +611,11 @@ class EditorStack(QWidget):
             self.tabs.setDocumentMode(True)
         self.tabs.currentChanged.connect(self.current_changed)
         layout.addWidget(self.tabs)
+
+        # Needed for rearranging tabs by dragging and droping
+        self.tabbar = self.tabs.tabBar()
+        self.moving_tab = False
+        self.moving_end_tab = None
 
     def add_corner_widgets_to_tabbar(self, widgets):
         self.tabs.add_corner_widgets(widgets)
@@ -945,7 +954,7 @@ class EditorStack(QWidget):
         self.fullpath_sorting_enabled = state
         if self.data:
             finfo = self.data[self.get_stack_index()]
-            self.data.sort(key=self.__get_sorting_func())
+#            self.data.sort(key=self.__get_sorting_func())
             new_index = self.data.index(finfo)
             self.__repopulate_stack()
             self.set_stack_index(new_index)
@@ -1027,7 +1036,7 @@ class EditorStack(QWidget):
 
     def add_to_data(self, finfo, set_current):
         self.data.append(finfo)
-        self.data.sort(key=self.__get_sorting_func())
+#        self.data.sort(key=self.__get_sorting_func())
         index = self.data.index(finfo)
         fname, editor = finfo.filename, finfo.editor
         self.tabs.insertTab(index, editor, get_filetype_icon(fname),
@@ -1065,7 +1074,7 @@ class EditorStack(QWidget):
         set_new_index = index == self.get_stack_index()
         current_fname = self.get_current_filename()
         finfo.filename = new_filename
-        self.data.sort(key=self.__get_sorting_func())
+#        self.data.sort(key=self.__get_sorting_func())
         new_index = self.data.index(finfo)
         self.__repopulate_stack()
         if set_new_index:
@@ -1424,7 +1433,6 @@ class EditorStack(QWidget):
 #        count = self.get_stack_count()
 #        for btn in (self.filelist_btn, self.previous_btn, self.next_btn):
 #            btn.setEnabled(count > 1)
-
         editor = self.get_current_editor()
         if index != -1:
             editor.setFocus()
@@ -1916,6 +1924,40 @@ class EditorStack(QWidget):
             if editor is not None:
                 editor.insert_text( source.text() )
         event.acceptProposedAction()
+
+    #------ Tab reordering
+    # These methods are called from an event filter installed in 
+    # spyderlib\widets\tabs.py -> BaseTabs
+    def tab_pressed(self, event):
+        """ """
+        if event.button() == Qt.LeftButton:
+            self.moving_start_tab = self.tabbar.tabAt(event.pos())
+            self.moving_end_tab = None
+            self.tabbar.setCurrentIndex(self.moving_start_tab)
+            self.tabs.currentWidget().setFocus()
+
+    def tab_moved(self, event):
+        """ """
+        # If left button is not pressed then return
+        if not event.buttons() & Qt.LeftButton:
+            self.moving_end_tab = None
+            return
+        if not self.moving_tab:
+            QApplication.setOverrideCursor(Qt.ClosedHandCursor)
+            self.moving_tab = True
+        pos = event.pos()
+        self.moving_end_tab = self.tabbar.tabAt(pos)
+
+    def tab_released(self, event):
+        """ """
+        if self.moving_end_tab is not None:
+            if self.moving_start_tab is not self.moving_end_tab:
+                # This signal is connected to the Editor plugin and fires
+                # a method that reorders ALL openned editorstacks
+                self.sig_tabs_reordered.emit(self.moving_start_tab,
+                                             self.moving_end_tab)
+        QApplication.restoreOverrideCursor()
+        self.moving_tab = False
 
 
 class EditorSplitter(QSplitter):

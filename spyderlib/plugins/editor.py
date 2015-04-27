@@ -348,6 +348,7 @@ class Editor(SpyderPluginWidget):
     open_dir = Signal(str)
     breakpoints_saved = Signal()
     run_in_current_extconsole = Signal(str, str, str, bool, bool)
+    sig_tabs_reordered = Signal(int, int)
     
     def __init__(self, parent, ignore_last_opened_files=False):
         if PYQT5:
@@ -439,7 +440,10 @@ class Editor(SpyderPluginWidget):
         self.splitter.setStretchFactor(1, 1)
         layout.addWidget(self.splitter)
         self.setLayout(layout)
-        
+
+        # Tabs reordering
+        self.sig_tabs_reordered.connect(self.tabs_reordered)
+
         # Editor's splitter state
         state = self.get_option('splitter_state', None)
         if state is not None:
@@ -1046,6 +1050,9 @@ class Editor(SpyderPluginWidget):
     def register_editorstack(self, editorstack):
         self.editorstacks.append(editorstack)
         
+        # Needed for tabs reordering calls
+        editorstack.sig_tabs_reordered.connect(self.sig_tabs_reordered)
+
         self.register_widget_shortcuts("Editor", editorstack)
         
         if self.isAncestorOf(editorstack):
@@ -1192,6 +1199,26 @@ class Editor(SpyderPluginWidget):
             if str(id(editorstack)) != editorstack_id_str:
                 editorstack.rename_in_data(index, filename)
 
+    def tabs_reordered(self, start, end):
+        """ """
+        if start < 0 or end < 0:
+            return
+        else:
+            steps = abs(end - start)
+            sign = (end - start) / steps
+            
+            for editorstack in self.editorstacks :
+                data = editorstack.data
+                editorstack.blockSignals(True)
+    
+                for i in range(start, end, sign*1):
+                    editorstack.tabbar.moveTab(i, i+sign)
+                    data[i], data[i+sign] = data[i+sign], data[i]
+    
+                editorstack.blockSignals(False)
+                editorstack.refresh()
+                editorstack.tabbar.setCurrentIndex(start)
+                editorstack.tabbar.setCurrentIndex(end)
 
     #------ Handling editor windows    
     def setup_other_windows(self):

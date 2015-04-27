@@ -13,7 +13,7 @@
 
 from spyderlib.qt.QtGui import (QTabWidget, QMenu, QDrag, QApplication,
                                 QTabBar, QWidget, QHBoxLayout)
-from spyderlib.qt.QtCore import Signal, Qt, QPoint, QMimeData, QByteArray
+from spyderlib.qt.QtCore import Signal, Qt, QPoint, QMimeData, QByteArray, QObject, QEvent
 
 import os.path as osp
 
@@ -102,6 +102,27 @@ class TabBar(QTabBar):
             event.acceptProposedAction()
         QTabBar.dropEvent(self, event)
         
+
+class TabFilter(QObject):
+    """
+    """
+    def __init__(self, editor_stack):
+        QObject.__init__(self)
+        self.editor_stack = editor_stack
+
+    def eventFilter(self,  obj,  event):
+        event_type = event.type()
+        if event_type == QEvent.MouseButtonPress:
+            self.editor_stack.tab_pressed(event)
+            return True
+        if event_type == QEvent.MouseMove:
+            self.editor_stack.tab_moved(event)
+            return True
+        if event_type == QEvent.MouseButtonRelease:
+            self.editor_stack.tab_released(event)
+            return True
+        return False
+
         
 class BaseTabs(QTabWidget):
     """TabWidget with context menu and corner widgets"""
@@ -112,7 +133,8 @@ class BaseTabs(QTabWidget):
         QTabWidget.__init__(self, parent)
         
         self.setUsesScrollButtons(True)
-        
+        self.filter = TabFilter(parent)
+        self.tabBar().installEventFilter(self.filter)
         self.corner_widgets = {}
         self.menu_use_tooltips = menu_use_tooltips
         
@@ -220,6 +242,7 @@ class BaseTabs(QTabWidget):
                 self.sig_close_tab.emit(index)
                 event.accept()
                 return
+
         QTabWidget.mousePressEvent(self, event)
         
     def keyPressEvent(self, event):
