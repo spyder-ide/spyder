@@ -21,7 +21,7 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QLabel, QHBoxLayout, QInputDialog,
 from spyderlib.qt.QtCore import (Qt, Signal, QMimeData, QSize, QDir, QUrl,
                                  QTimer, Slot)
 from spyderlib.qt.compat import getsavefilename, getexistingdirectory
-from spyderlib.qt import qta
+import spyderlib.qt.icon_manager as ima
 
 import os
 import sys
@@ -173,7 +173,7 @@ class DirView(QTreeView):
         """Setup context menu common actions"""
         # Filters
         filters_action = create_action(self, _("Edit filename filters..."),
-                                       None, qta.icon('fa.filter'),
+                                       None, ima.icon('filter'),
                                        triggered=self.edit_filter)
         # Show all files
         all_action = create_action(self, _("Show all files"),
@@ -207,32 +207,19 @@ class DirView(QTreeView):
         if not fnames:
             return []
         new_file_act = create_action(self, _("File..."), 
-                                     icon=qta.icon(['fa.file-o', 'fa.plus'], 
-                                                   options=[{}, {'scale_factor': 0.5, 
-                                                             'offset': (0.0, 0.1)}]),
+                                     icon=ima.icon('filenew'),
                                      triggered=lambda:
                                      self.new_file(fnames[-1]))
         new_module_act = create_action(self, _("Module..."),
-                                       icon=qta.icon(['fa.file-o',
-                                                      'spyder.python-logo-up', 
-                                                      'spyder.python-logo-down'], 
-                                                     options=[{'offset': (0.0, -0.1)},
-                                                              {'color': '#3775a9',
-                                                               'offset': (0.0, 0.125)},
-                                                              {'color': '#ffd444',
-                                                               'offset': (0.0, 0.125)}]),
+                                       icon=ima.icon('spyder'),
                                        triggered=lambda:
                                          self.new_module(fnames[-1]))
         new_folder_act = create_action(self, _("Folder..."),
-                                       icon=qta.icon(['fa.folder-o', 'fa.plus'], 
-                                                     options=[{}, {'scale_factor': 0.5, 
-                                                               'offset': (0.0, 0.1)}]),
+                                       icon=ima.icon('folder_new'),
                                        triggered=lambda:
                                         self.new_folder(fnames[-1]))
         new_package_act = create_action(self, _("Package..."),
-                                        icon=qta.icon(['fa.folder-o', 'spyder.python-logo'], 
-                                                      options=[{'offset': (0.0, -0.125)},
-                                                               {'offset': (0.0, 0.125)}]),
+                                        icon=ima.icon('package_new'),
                                         triggered=lambda:
                                          self.new_package(fnames[-1]))
         return [new_file_act, new_folder_act, None,
@@ -250,25 +237,22 @@ class DirView(QTreeView):
         only_notebooks = all([osp.splitext(_fn)[1] == '.ipynb'
                               for _fn in fnames])
         only_valid = all([encoding.is_text_file(_fn) for _fn in fnames])
-        run_action = create_action(self, _("Run"), icon=qta.icon('fa.play', color='green'),
+        run_action = create_action(self, _("Run"), icon=ima.icon('run'),
                                    triggered=self.run)
-        edit_action = create_action(self, _("Edit"), icon=qta.icon('fa.edit'),
+        edit_action = create_action(self, _("Edit"), icon=ima.icon('edit'),
                                     triggered=self.clicked)
         move_action = create_action(self, _("Move..."),
                                     icon="move.png",
                                     triggered=self.move)
         delete_action = create_action(self, _("Delete..."),
-                                      icon=qta.icon('fa.eraser'),
+                                      icon=ima.icon('editdelete'),
                                       triggered=self.delete)
         rename_action = create_action(self, _("Rename..."),
-                                      icon=qta.icon('fa.edit'),
+                                      icon=ima.icon('rename'),
                                       triggered=self.rename)
         open_action = create_action(self, _("Open"), triggered=self.open)
         ipynb_convert_action = create_action(self, _("Convert to Python script"),
-                                             icon=qta.icon(['spyder.python-logo-up', 
-                                                            'spyder.python-logo-down'],
-                                                           options=[{'color': '#3775a9'}, 
-                                                                    {'color': '#ffd444'}]),
+                                             icon=ima.icon('python'),
                                              triggered=self.convert_notebooks)
         
         actions = []
@@ -291,11 +275,11 @@ class DirView(QTreeView):
         dirname = fnames[0] if osp.isdir(fnames[0]) else osp.dirname(fnames[0])
         if len(fnames) == 1 and vcs.is_vcs_repository(dirname):
             vcs_ci = create_action(self, _("Commit"),
-                                   icon=qta.icon('fa.check', color='green'),
+                                   icon=ima.icon('vcs_commit'),
                                    triggered=lambda fnames=[dirname]:
                                    self.vcs_command(fnames, 'commit'))
             vcs_log = create_action(self, _("Browse repository"),
-                                    icon=qta.icon('fa.search', color='green'),
+                                    icon=ima.icon('vcs_browse'),
                                     triggered=lambda fnames=[dirname]:
                                     self.vcs_command(fnames, 'browse'))
             actions += [None, vcs_ci, vcs_log]
@@ -309,15 +293,12 @@ class DirView(QTreeView):
             _title = _("Open command prompt here")
         else:
             _title = _("Open terminal here")
-        action = create_action(self, _title, icon=qta.icon('fa.terminal'),
+        action = create_action(self, _title, icon=ima.icon('cmdprompt'),
                                triggered=lambda:
                                self.open_terminal(fnames))
         actions.append(action)
         _title = _("Open Python console here")
-        action = create_action(self, _title, icon=qta.icon(['spyder.python-logo-up', 
-                                                            'spyder.python-logo-down'],
-                                                           options=[{'color': '#3775a9'}, 
-                                                                    {'color': '#ffd444'}]),
+        action = create_action(self, _title, icon=ima.icon('python'),
                                triggered=lambda:
                                self.open_interpreter(fnames))
         actions.append(action)
@@ -1033,7 +1014,7 @@ class ExplorerWidget(QWidget):
         self.toolbar.setIconSize(QSize(16, 16))
         
         self.previous_action = create_action(self, text=_("Previous"),
-                            icon=qta.icon('fa.arrow-circle-left'),
+                            icon=ima.icon('ArrowBack'),
                             triggered=self.treewidget.go_to_previous_directory)
         self.toolbar.addAction(self.previous_action)
         self.previous_action.setEnabled(False)
@@ -1041,20 +1022,20 @@ class ExplorerWidget(QWidget):
                                                self.previous_action.setEnabled)
         
         self.next_action = create_action(self, text=_("Next"),
-                            icon=qta.icon('fa.arrow-circle-right'),
+                            icon=ima.icon('ArrowForward'),
                             triggered=self.treewidget.go_to_next_directory)
         self.toolbar.addAction(self.next_action)
         self.next_action.setEnabled(False)
         self.treewidget.set_next_enabled.connect(self.next_action.setEnabled)
         
         parent_action = create_action(self, text=_("Parent"),
-                            icon=qta.icon('fa.arrow-circle-up'),
+                            icon=ima.icon('ArrowUp'),
                             triggered=self.treewidget.go_to_parent_directory)
         self.toolbar.addAction(parent_action)
         self.toolbar.addSeparator()
 
         options_action = create_action(self, text='', tip=_('Options'),
-                                       icon=qta.icon('fa.cog'))
+                                       icon=ima.icon('tooloptions'))
         self.toolbar.addAction(options_action)
         widget = self.toolbar.widgetForAction(options_action)
         widget.setPopupMode(QToolButton.InstantPopup)

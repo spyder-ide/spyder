@@ -15,7 +15,7 @@ from spyderlib.qt.QtGui import (QWidget, QTreeWidgetItem,  QHBoxLayout,
                                 QVBoxLayout)
 from spyderlib.qt.QtCore import Qt, Signal, Slot
 from spyderlib.qt.compat import from_qvariant
-from spyderlib.qt import qta
+import spyderlib.qt.icon_manager as ima
 
 # Local import
 from spyderlib.baseconfig import _, STDOUT
@@ -52,10 +52,7 @@ class FileRootItem(QTreeWidgetItem):
     def __init__(self, path, treewidget):
         QTreeWidgetItem.__init__(self, treewidget, QTreeWidgetItem.Type)
         self.path = path
-        self.setIcon(0, qta.icon(['spyder.python-logo-up', 
-                                  'spyder.python-logo-down'],
-                                 options=[{'color': '#3775a9'}, 
-                                          {'color': '#ffd444'}]))
+        self.setIcon(0, ima.icon('python'))
         self.setToolTip(0, path)
         set_item_user_text(self, path)
         
@@ -98,7 +95,7 @@ class TreeItem(QTreeWidgetItem):
 
 class ClassItem(TreeItem):
     def setup(self):
-        self.set_icon(qta.icon('spyder.circle-letter-c', color='#3775a9'))
+        self.set_icon(ima.icon('class'))
         self.setToolTip(0, _("Class defined at line %s") % str(self.line))
 
 class FunctionItem(TreeItem):
@@ -110,13 +107,13 @@ class FunctionItem(TreeItem):
             self.setToolTip(0, _("Method defined at line %s") % str(self.line))
             name = to_text_string(self.text(0))
             if name.startswith('__'):
-                self.set_icon(qta.icon('fa.minus-circle', color='#7ea67e'))
+                self.set_icon(ima.icon('private2'))
             elif name.startswith('_'):
-                self.set_icon(qta.icon('fa.minus-circle', color='#7ea67e'))
+                self.set_icon(ima.icon('private1'))
             else:
-                self.set_icon(qta.icon('spyder.circle-letter-m', color='green'))
+                self.set_icon(ima.icon('method'))
         else:
-            self.set_icon(qta.icon('spyder.circle-letter-f', color='orange'))
+            self.set_icon(ima.icon('function'))
             self.setToolTip(0, _("Function defined at line %s"
                                  ) % str(self.line))
 
@@ -126,7 +123,7 @@ class CommentItem(TreeItem):
         TreeItem.__init__(self, name, line, parent, preceding)
 
     def setup(self):
-        self.set_icon(qta.icon('spyder.circle-hash', color='grey'))
+        self.set_icon(ima.icon('blockcomment'))
         font = self.font(0)
         font.setItalic(True)
         self.setFont(0, font)
@@ -145,7 +142,7 @@ class CellItem(TreeItem):
         TreeItem.__init__(self, name, line, parent, preceding)
 
     def setup(self):
-        self.set_icon(qta.icon('spyder.circle-percent', color='red'))
+        self.set_icon(ima.icon('cell'))
         font = self.font(0)
         font.setItalic(True)
         self.setFont(0, font)
@@ -203,7 +200,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
     def get_actions_from_items(self, items):
         """Reimplemented OneColumnTree method"""
         fromcursor_act = create_action(self, text=_('Go to cursor position'),
-                        icon=qta.icon('fa.hand-o-right'),
+                        icon=ima.icon('fromcursor'),
                         triggered=self.go_to_cursor_position)
         fullpath_act = create_action(self, text=_( 'Show absolute path'),
                         toggled=self.toggle_fullpath_mode)
@@ -538,7 +535,7 @@ class OutlineExplorerWidget(QWidget):
         
     def setup_buttons(self):
         fromcursor_btn = create_toolbutton(self,
-                             icon=qta.icon('fa.hand-o-right'),
+                             icon=ima.icon('fromcursor'),
                              tip=_('Go to cursor position'),
                              triggered=self.treewidget.go_to_cursor_position)
         collapse_btn = create_toolbutton(self)

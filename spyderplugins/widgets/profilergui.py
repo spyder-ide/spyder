@@ -124,7 +124,7 @@ class ProfilerWidget(QWidget):
                             tip=_('Load profiling data for comparison'))
         self.clear_button = create_toolbutton(self, text_beside_icon=True,
                                               text=_("Clear comparison"),
-                                              icon=ima.icon('eraser'),
+                                              icon=ima.icon('editdelete'),
                                               triggered=self.clear)
 
         hlayout1 = QHBoxLayout()

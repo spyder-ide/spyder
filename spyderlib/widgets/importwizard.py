@@ -19,7 +19,7 @@ from spyderlib.qt.QtGui import (QTableView, QVBoxLayout, QHBoxLayout,
 from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, Signal,
                                  Slot)
 from spyderlib.qt.compat import to_qvariant
-from spyderlib.qt import qta
+import spyderlib.qt.icon_manager as ima
 
 from functools import partial as ft_partial
 
@@ -487,7 +487,7 @@ class ImportWizard(QDialog):
             title = _("Import wizard")
         self.setWindowTitle(title)
         if icon is None:
-            self.setWindowIcon(qta.icon('fa.download'))
+            self.setWindowIcon(ima.icon('fileimport'))
         if contents_title is None:
             contents_title = _("Raw text")
 

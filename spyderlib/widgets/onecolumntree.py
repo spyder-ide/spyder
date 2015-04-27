@@ -71,7 +71,7 @@ class OneColumnTree(QTreeWidget):
                                      triggered=self.restore)
         self.collapse_selection_action = create_action(self,
                                      text=_('Collapse selection'),
-                                     icon=ima.icon('fcollapse_selection'),
+                                     icon=ima.icon('collapse_selection'),
                                      triggered=self.collapse_selection)
         self.expand_selection_action = create_action(self,
                                      text=_('Expand selection'),

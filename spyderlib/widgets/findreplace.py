@@ -14,7 +14,7 @@
 from spyderlib.qt.QtGui import (QHBoxLayout, QGridLayout, QCheckBox, QLabel,
                                 QWidget, QSizePolicy, QTextCursor)
 from spyderlib.qt.QtCore import Signal, Slot, Qt, QTimer
-from spyderlib.qt import qta
+import spyderlib.qt.icon_manager as ima
 
 import re
 
@@ -53,7 +53,7 @@ class FindReplace(QWidget):
         self.setLayout(glayout)
         
         self.close_button = create_toolbutton(self, triggered=self.hide,
-                                      icon=qta.icon('fa.close'))
+                                      icon=ima.icon('DialogCloseButton'))
         glayout.addWidget(self.close_button, 0, 0)
         
         # Find layout
@@ -67,14 +67,14 @@ class FindReplace(QWidget):
         
         self.previous_button = create_toolbutton(self,
                                              triggered=self.find_previous,
-                                             icon=qta.icon('fa.arrow-up'))
+                                             icon=ima.icon('up'))
         self.next_button = create_toolbutton(self,
                                              triggered=self.find_next,
-                                             icon=qta.icon('fa.arrow-down'))
+                                             icon=ima.icon('down'))
         self.next_button.clicked.connect(self.update_search_combo)
         self.previous_button.clicked.connect(self.update_search_combo)
 
-        self.re_button = create_toolbutton(self, icon=qta.icon('fa.cog'),
+        self.re_button = create_toolbutton(self, icon=ima.icon('advanced'),
                                            tip=_("Regular expression"))
         self.re_button.setCheckable(True)
         self.re_button.toggled.connect(lambda state: self.find())
@@ -113,7 +113,7 @@ class FindReplace(QWidget):
         
         self.replace_button = create_toolbutton(self,
                                      text=_('Replace/find'),
-                                     icon=qta.icon('fa.check'),
+                                     icon=ima.icon('DialogApplyButton'),
                                      triggered=self.replace_find,
                                      text_beside_icon=True)
         self.replace_button.clicked.connect(self.update_replace_combo)

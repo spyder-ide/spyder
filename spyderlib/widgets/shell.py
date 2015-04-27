@@ -24,7 +24,6 @@ from spyderlib.qt.QtCore import (Qt, QCoreApplication, QTimer, Signal,
                                  Property, Slot)
 from spyderlib.qt.compat import getsavefilename
 import spyderlib.qt.icon_manager as ima
-from spyderlib.qt import qta
 
 # Local import
 from spyderlib.baseconfig import get_conf_path, _, STDERR, DEBUG
@@ -704,18 +703,18 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
         ShellBaseWidget.setup_context_menu(self)
         self.copy_without_prompts_action = create_action(self,
                                      _("Copy without prompts"),
-                                     icon=qta.icon(['fa.terminal']),
+                                     icon=ima.icon('cmdprompt'),
                                      triggered=self.copy_without_prompts)
         clear_line_action = create_action(self, _("Clear line"),
                                      QKeySequence(get_shortcut('console',
                                                                'Clear line')),
-                                     icon=qta.icon('fa.eraser'),
+                                     icon=ima.icon('editdelete'),
                                      tip=_("Clear line"),
                                      triggered=self.clear_line)
         clear_action = create_action(self, _("Clear shell"),
                                      QKeySequence(get_shortcut('console',
                                                                'Clear shell')),
-                                     icon=qta.icon('fa.times'),
+                                     icon=ima.icon('editclear'),
                                      tip=_("Clear shell contents "
                                            "('cls' command)"),
                                      triggered=self.clear_terminal)

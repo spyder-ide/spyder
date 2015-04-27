@@ -58,8 +58,6 @@ elif API == 'pyqt':
         except AttributeError:
             pass
 
-import qtawesome as qta
-
 if API == 'pyside':
     try:
         from PySide import __version__  # analysis:ignore

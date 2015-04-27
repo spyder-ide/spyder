@@ -580,17 +580,17 @@ class EditorStack(QWidget):
         self.menu.aboutToShow.connect(self.__setup_menu)
 
 #        self.filelist_btn = create_toolbutton(self,
-#                             icon=qta.icon('fa.list'),
+#                             icon=ima.icon('filelist'),
 #                             tip=_("File list management"),
 #                             triggered=self.open_filelistdialog)
 #
 #        self.previous_btn = create_toolbutton(self,
-#                             icon=qta.icon('fa.arrow-left'),
+#                             icon=ima.icon('previous'),
 #                             tip=_("Previous file"),
 #                             triggered=self.go_to_previous_file)
 #
 #        self.next_btn = create_toolbutton(self,
-#                             icon=qta.icon('fa.arrow-right'),
+#                             icon=ima.icon('next'),
 #                             tip=_("Next file"),
 #                             triggered=self.go_to_next_file)
 

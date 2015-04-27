@@ -31,7 +31,7 @@ import subprocess
 from spyderlib import dependencies
 from spyderlib.utils import programs
 from spyderlib.utils.encoding import to_unicode_from_fs
-from spyderlib.utils.qthelpers import get_icon, create_toolbutton
+from spyderlib.utils.qthelpers import create_toolbutton
 from spyderlib.baseconfig import get_conf_path, get_translation
 from spyderlib.widgets.onecolumntree import OneColumnTree
 from spyderlib.widgets.texteditor import TextEditor
@@ -146,7 +146,7 @@ class ResultsTree(OneColumnTree):
                     if parent is None:
                         item = QTreeWidgetItem(title_item, [module],
                                                QTreeWidgetItem.Type)
-                        item.setIcon(0, get_icon('py.png'))
+                        item.setIcon(0, ima.icon('python'))
                         modules[modname] = item
                         parent = item
                 else:

@@ -871,7 +871,7 @@ class Editor(SpyderPluginWidget):
                 tip=_("Indent current line or selection"),
                 triggered=self.indent, context=Qt.WidgetShortcut)
         self.unindent_action = create_action(self,
-                _("Unindent"), "Shift+Tab", icon=ima.icon('outdent'),
+                _("Unindent"), "Shift+Tab", icon=ima.icon('unindent'),
                 tip=_("Unindent current line or selection"),
                 triggered=self.unindent, context=Qt.WidgetShortcut)
         # ----------------------------------------------------------------------

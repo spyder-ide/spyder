@@ -17,7 +17,7 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QLabel, QHBoxLayout, QWidget,
                                 QAbstractItemView)
 from spyderlib.qt.QtCore import Qt, QFileInfo, Slot, Signal
 from spyderlib.qt.compat import getexistingdirectory
-from spyderlib.qt import qta
+import spyderlib.qt.icon_manager as ima
 
 import os
 import re
@@ -52,7 +52,7 @@ def is_drive_path(path):
 def get_dir_icon(dirname, project):
     """Return appropriate directory icon"""
     if is_drive_path(dirname):
-        return qta.icon('fa.hdd-o')
+        return ima.icon('DriveHDIcon')
     prefix = 'pp_' if dirname in project.get_pythonpath() else ''
     if dirname == project.root_path:
         if project.is_opened():
@@ -556,16 +556,11 @@ class ExplorerTreeWidget(FilteredDirView):
         """Return actions for submenu 'Import...'"""
         import_folder_act = create_action(self,
                                 text=_('Existing directory'),
-                                icon=qta.icon('fa.folder-open'),
+                                icon=ima.icon('DirOpenIcon'),
                                 triggered=self.import_existing_directory)
         import_spyder_act = create_action(self,
                                 text=_('Existing Spyder project'),
-                                icon=qta.icon(['spyder.spyder-logo-background', 
-                                               'spyder.spyder-logo-web', 
-                                               'spyder.spyder-logo-snake'],
-                                              options=[{'color': '#414141'},
-                                                       {'color': '#fafafa'},
-                                                       {'color': '#ee0000'}]),
+                                icon=ima.icon('spyder'),
                                 triggered=self.import_existing_project)
         import_pydev_act = create_action(self,
                                 text=_('Existing Pydev project'),
@@ -1231,7 +1226,7 @@ class WorkspaceSelector(QWidget):
                                   +'<br><br>'+self.TIP)
         self.line_edit.setReadOnly(True)
         self.line_edit.setDisabled(True)
-        self.browse_btn = QPushButton(qta.icon('fa.folder-open'), '', self)
+        self.browse_btn = QPushButton(ima.icon('DirOpenIcon'), '', self)
         self.browse_btn.setToolTip(self.TITLE)
         self.browse_btn.clicked.connect(self.select_directory)
         layout = QHBoxLayout()

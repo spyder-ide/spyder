@@ -22,7 +22,7 @@ from spyderlib.qt.QtGui import (QTextEdit, QKeySequence, QWidget, QMenu,
                                 QHBoxLayout, QToolButton, QVBoxLayout,
                                 QMessageBox)
 from spyderlib.qt.QtCore import Signal, Slot, Qt
-from spyderlib.qt import qta
+import spyderlib.qt.icon_manager as ima
 
 # IPython imports
 from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
@@ -382,7 +382,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         
         # stop button and icon
         self.stop_button = None
-        self.stop_icon = qta.icon('fa.stop')        
+        self.stop_icon = ima.icon('stop')        
         self.connection_file = connection_file
         self.kernel_widget_id = kernel_widget_id
         self.hostname = hostname
@@ -506,7 +506,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         """Return options menu"""
         restart_action = create_action(self, _("Restart kernel"),
                                        shortcut=QKeySequence("Ctrl+."),
-                                       icon=qta.icon('fa.repeat'),
+                                       icon=ima.icon('restart'),
                                        triggered=self.restart_kernel)
         restart_action.setShortcutContext(Qt.WidgetWithChildrenShortcut)
         
@@ -537,7 +537,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
             options = self.get_options_menu()
             if options:
                 self.options_button = create_toolbutton(self,
-                        text=_('Options'), icon=qta.icon('fa.cog'))
+                        text=_('Options'), icon=ima.icon('tooloptions'))
                 self.options_button.setPopupMode(QToolButton.InstantPopup)
                 menu = QMenu(self)
                 add_actions(menu, options)
@@ -553,18 +553,18 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         inspect_action = create_action(self, _("Inspect current object"),
                                     QKeySequence(get_shortcut('console',
                                                     'inspect current object')),
-                                    icon=qta.icon('fa.info'),
+                                    icon=ima.icon('MessageBoxInformation'),
                                     triggered=self.inspect_object)
         clear_line_action = create_action(self, _("Clear line or block"),
                                           QKeySequence("Shift+Escape"),
-                                          icon=qta.icon('fa.eraser'),
+                                          icon=ima.icon('editdelete'),
                                           triggered=self.clear_line)
         clear_console_action = create_action(self, _("Clear console"),
                                              QKeySequence(get_shortcut('console',
                                                                'clear shell')),
-                                             icon=qta.icon('fa.close'),
+                                             icon=ima.icon('editclear'),
                                              triggered=self.clear_console)
-        quit_action = create_action(self, _("&Quit"), icon=qta.icon('fa.power-off'),
+        quit_action = create_action(self, _("&Quit"), icon=ima.icon('exit'),
                                     triggered=self.exit_callback)
         add_actions(menu, (None, inspect_action, clear_line_action,
                            clear_console_action, None, quit_action))

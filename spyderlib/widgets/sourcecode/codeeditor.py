@@ -37,7 +37,7 @@ from spyderlib.qt.QtGui import (QColor, QMenu, QApplication, QSplitter, QFont,
 from spyderlib.qt.QtCore import (Qt, Signal, QTimer, QRect, QRegExp, QSize,
                                  Slot)
 from spyderlib.qt.compat import to_qvariant
-from spyderlib.qt import qta
+import spyderlib.qt.icon_manager as ima
 
 # %% This line is for cell execution testing
 # Local import
@@ -381,11 +381,11 @@ class CodeEditor(TextEditBaseWidget):
         # Markers
         self.markers_margin = True
         self.markers_margin_width = 15
-        self.error_pixmap = qta.icon('fa.exclamation-circle').pixmap(QSize(14, 14))
-        self.warning_pixmap = qta.icon('fa.warning').pixmap(QSize(14, 14))
-        self.todo_pixmap = qta.icon('fa.check', color='#3775a9').pixmap(QSize(14, 14))
-        self.bp_pixmap = qta.icon('fa.circle', color='darkred').pixmap(QSize(14, 14))
-        self.bpc_pixmap = qta.icon('fa.question-circle', color='darkred').pixmap(QSize(14, 14))
+        self.error_pixmap = ima.icon('error').pixmap(QSize(14, 14))
+        self.warning_pixmap = ima.icon('warning').pixmap(QSize(14, 14))
+        self.todo_pixmap = ima.icon('todo').pixmap(QSize(14, 14))
+        self.bp_pixmap = ima.icon('breakpoint_big').pixmap(QSize(14, 14))
+        self.bpc_pixmap = ima.icon('breakpoint_cond_big').pixmap(QSize(14, 14))
 
         # Line number area management
         self.linenumbers_margin = True
@@ -2407,52 +2407,49 @@ class CodeEditor(TextEditBaseWidget):
         """Setup context menu"""
         self.undo_action = create_action(self, _("Undo"),
                            shortcut=keybinding('Undo'),
-                           icon=qta.icon('fa.arrow-right'), triggered=self.undo)
+                           icon=ima.icon('undo'), triggered=self.undo)
         self.redo_action = create_action(self, _("Redo"),
                            shortcut=keybinding('Redo'),
-                           icon=qta.icon('fa.arrow-left'), triggered=self.redo)
+                           icon=ima.icon('redo'), triggered=self.redo)
         self.cut_action = create_action(self, _("Cut"),
                            shortcut=keybinding('Cut'),
-                           icon=qta.icon('fa.cut'), triggered=self.cut)
+                           icon=ima.icon('editcut'), triggered=self.cut)
         self.copy_action = create_action(self, _("Copy"),
                            shortcut=keybinding('Copy'),
-                           icon=qta.icon('fa.copy'), triggered=self.copy)
+                           icon=ima.icon('editcopy'), triggered=self.copy)
         self.paste_action = create_action(self, _("Paste"),
                            shortcut=keybinding('Paste'),
-                           icon=qta.icon('fa.paste'), triggered=self.paste)
+                           icon=ima.icon('editpaste'), triggered=self.paste)
         self.delete_action = create_action(self, _("Delete"),
                            shortcut=keybinding('Delete'),
-                           icon=qta.icon('fa.eraser'),
+                           icon=ima.icon('editdelete'),
                            triggered=self.delete)
         selectall_action = create_action(self, _("Select All"),
                            shortcut=keybinding('SelectAll'),
-                           icon=qta.icon('spyder.text-select-all'),
+                           icon=ima.icon('selectall'),
                            triggered=self.selectAll)
         toggle_comment_action = create_action(self,
                                 _("Comment")+"/"+_("Uncomment"),
-                                icon=qta.icon('fa.comment'),
+                                icon=ima.icon('comment'),
                                 triggered=self.toggle_comment)
         self.clear_all_output_action = create_action(self,
-                           _("Clear all ouput"), icon=qta.icon('spyder.ipython-logo'),
+                           _("Clear all ouput"), icon=ima.icon('ipython_console'),
                            triggered=self.clear_all_output)
         self.ipynb_convert_action = create_action(self,
                                                _("Convert to Python script"),
                                                triggered=self.convert_notebook,
-                                               icon=qta.icon(['spyder.python-logo-up', 
-                                                              'spyder.python-logo-down'],
-                                                             options=[{'color': '#3775a9'}, 
-                                                                      {'color': '#ffd444'}]))
+                                               icon=ima.icon('python'))
         self.gotodef_action = create_action(self, _("Go to definition"),
                                    triggered=self.go_to_definition_from_cursor)
         self.run_selection_action = create_action(self,
                         _("Run &selection or current line"),
-                        icon=qta.icon('spyder.run-selection'),
+                        icon=ima.icon('run_selection'),
                         triggered=lambda: self.run_selection.emit())
         zoom_in_action = create_action(self, _("Zoom in"),
-                      QKeySequence(QKeySequence.ZoomIn), icon=qta.icon('fa.search-plus'),
+                      QKeySequence(QKeySequence.ZoomIn), icon=ima.icon('zoom_in'),
                       triggered=lambda: self.zoom_in.emit())
         zoom_out_action = create_action(self, _("Zoom out"),
-                      QKeySequence(QKeySequence.ZoomOut), icon=qta.icon('fa.search-minus'),
+                      QKeySequence(QKeySequence.ZoomOut), icon=ima.icon('zoom_out'),
                       triggered=lambda: self.zoom_out.emit())
         zoom_reset_action = create_action(self, _("Zoom reset"),
                       QKeySequence("Ctrl+0"),
@@ -2877,9 +2874,8 @@ class TestWidget(QSplitter):
                     lambda _fn, line, word: self.editor.go_to_line(line, word))
         self.setStretchFactor(0, 4)
         self.setStretchFactor(1, 1)
-        self.setWindowIcon(qta.icon(['spyder.spyder-logo-background', 'spyder.spyder-logo-web', 'spyder.spyder-logo-snake'],
-                           options=[{'color': '#414141'}, {'color': '#fafafa'}, {'color': '#ee0000'}]))
-
+        self.setWindowIcon(ima.icon('spyder'))
+                           
     def load(self, filename):
         self.editor.set_text_from_file(filename)
         self.setWindowTitle("%s - %s (%s)" % (_("Editor"),

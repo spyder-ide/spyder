@@ -39,7 +39,7 @@ from spyderlib.baseconfig import get_conf_path, _, DEBUG
 from spyderlib.config import CONF
 from spyderlib.widgets.shell import PythonShellWidget
 from spyderlib.py3compat import to_text_string, getcwd, to_binary_string, u
-from spyderlib.qt import qta
+import spyderlib.qt.icon_manager as ima
 
 
 def create_banner(message):
@@ -256,7 +256,7 @@ class InternalShell(PythonShellWidget):
         """Reimplement PythonShellWidget method"""
         PythonShellWidget.setup_context_menu(self)
         self.help_action = create_action(self, _("Help..."),
-                           icon=qta.icon('fa.question'),
+                           icon=ima.icon('DialogHelpButton'),
                            triggered=self.help)
         self.menu.addAction(self.help_action)
 
