@@ -170,7 +170,8 @@ _qtaargs = {
     '2uparrow':                [('fa.angle-double-up',), {}],
     '1uparrow':                [('fa.angle-up',), {}],
     '2downarrow':              [('fa.angle-double-down',), {}],
-    '1downarrow':              [('fa.angle-down',), {}],
+    '1downarrow':              [('fa.angle-down',), {}],    
+    'pylint':                  [(['fa.search', 'fa.check'],), {'options': [{}, {'offset': (0.125, 0.125), 'color': 'orange'}]}],
 }
 
 def icon(name):
