@@ -1,12 +1,9 @@
 import os
 import qtawesome as qta
-from spyderlib.qt.QtGui import QIcon
-
 
 _resource = {
     'directory': os.path.join(os.path.dirname(os.path.realpath(__file__)), '../fonts'),
     'loaded': False,
-    'icons': {},
 }
 
 _qtaargs = {
@@ -34,7 +31,7 @@ _qtaargs = {
     'filecloseall':            [(['fa.close', 'fa.close', 'fa.close'],), {'options': [{'scale_factor': 0.6, 'offset': (0.3, -0.3)},  {'scale_factor': 0.6, 'offset': (-0.3, -0.3)}, {'scale_factor': 0.6, 'offset': (0.3, 0.3)}]}],
     'breakpoint_big':          [('fa.circle',), {'color': 'darkred'} ],
     'breakpoint_cond_big':     [('fa.question-circle',), {'color':  'darkred'},],
-    'debug':                   [('fa.bug',), {'color': '#3775a9'}],
+    'debug':                   [('spyder.debug',), {'color': '#3775a9'}],
     'arrow-step-over':         [('spyder.step-forward',), {'color': '#3775a9'}],
     'arrow-continue':          [('spyder.continue',), {'color': '#3775a9'}],
     'arrow-step-in':           [('spyder.step-into',), {'color': '#3775a9'}],
@@ -44,8 +41,8 @@ _qtaargs = {
     'run_settings':            [(['fa.wrench', 'spyder.run'],), {'options': [{'offset':(-0.1, -0.1), 'scale_factor': 0.75}, {'offset': (0.0, 0.125), 'color': 'green','scale_factor': 0.75}]}],
     'run_again':               [(['fa.repeat', 'spyder.run'],), {'options': [{'offset':(-0.1, -0.1), 'scale_factor': 0.75}, {'offset':(0.1, 0.125), 'color': 'green', 'scale_factor': 0.75}]}],
     'run_selection':           [('spyder.run-selection',), {}],
-    'run_cell':                [('spyder.run-one-inplace',), {'color':'green'}],
-    'run_cell_advance':        [('spyder.run-one',), {'color':'green'}],
+    'run_cell':                [(['fa.th-list', 'spyder.run-one-inplace'],), {'options': [{'color': '#AAAAAA'}, {'color':'green'}]}],
+    'run_cell_advance':        [(['fa.th-list', 'spyder.run-one'],), {'options': [{'color': '#AAAAAA'}, {'color':'green'}]}],
     'todo_list':               [(['fa.th-list', 'fa.check'],), {'options': [{'color': '#3775a9'}, {'offset': (0.0, 0.2), 'color': 'orange', 'color_disabled': '#face7e'}]}],
     'wng_list':                [(['fa.th-list', 'fa.warning'],), {'options': [{'color': '#3775a9'}, {'offset': (0.0, 0.2), 'scale_factor': 0.75, 'color': 'orange', 'color_disabled': '#face7e'}]}],
     'prev_wng':                [(['fa.arrow-left', 'fa.warning'],), {'options': [{'color': '#3775a9'}, {'offset': (0.0, 0.2), 'scale_factor': 0.75, 'color': 'orange', 'color_disabled': '#face7e'}]}],
