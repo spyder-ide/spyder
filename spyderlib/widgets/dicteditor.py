@@ -674,11 +674,6 @@ class InfoPane(QDialog):
     def __init__(self, parent):
         QDialog.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose | Qt.WA_ShowWithoutActivating)        
-        self.setWindowFlags(Qt.Tool | Qt.FramelessWindowHint \
-                            | Qt.WindowStaysOnTopHint) 
-        self.setWindowOpacity(0.9)
-        
-        self.setPalette(QToolTip.palette())
         vlayout = QVBoxLayout()
         self.main_text = QLabel()
         self.main_text.setWordWrap(True)        
@@ -686,6 +681,14 @@ class InfoPane(QDialog):
         self.setLayout(vlayout)
         self.update_position()
         
+        # Style the dialog to look like a tooltip (more or less)
+        self.setWindowFlags(Qt.Tool | Qt.FramelessWindowHint \
+                            | Qt.WindowStaysOnTopHint) 
+        self.setWindowOpacity(0.9)        
+        self.setPalette(QToolTip.palette())
+        self.setStyleSheet("QDialog {border: 1px solid black}")
+
+
     def update_position(self):
         left = 0
         top = 0
