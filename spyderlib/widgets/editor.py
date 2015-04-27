@@ -978,7 +978,6 @@ class EditorStack(QWidget):
         self.fullpath_sorting_enabled = state
         if self.data:
             finfo = self.data[self.get_stack_index()]
-#            self.data.sort(key=self.__get_sorting_func())
             new_index = self.data.index(finfo)
             self.__repopulate_stack()
             self.set_stack_index(new_index)
@@ -1060,7 +1059,6 @@ class EditorStack(QWidget):
 
     def add_to_data(self, finfo, set_current):
         self.data.append(finfo)
-#        self.data.sort(key=self.__get_sorting_func())
         index = self.data.index(finfo)
         fname, editor = finfo.filename, finfo.editor
         self.tabs.insertTab(index, editor, get_filetype_icon(fname),
@@ -1098,7 +1096,6 @@ class EditorStack(QWidget):
         set_new_index = index == self.get_stack_index()
         current_fname = self.get_current_filename()
         finfo.filename = new_filename
-#        self.data.sort(key=self.__get_sorting_func())
         new_index = self.data.index(finfo)
         self.__repopulate_stack()
         if set_new_index:
