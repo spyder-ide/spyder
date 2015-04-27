@@ -154,10 +154,8 @@ class SpyderDockWidget(QDockWidget):
                 if title == self.title:
                     bar = tabbar
                     break
-        if self.bar is None and bar is not None:
+        if bar is not None:
             self.bar = bar
-            #self.bar.setAcceptDrops(True)
-
             if getattr(self.bar, 'filter', None) is None:
                 self.bar.filter = TabFilter(self.bar, self.main)
                 self.bar.installEventFilter(self.bar.filter)
