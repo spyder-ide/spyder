@@ -105,6 +105,8 @@ class TabBar(QTabBar):
 
 class TabFilter(QObject):
     """
+    This event filter is installed on the QTabBar of BaseTabs to allow for
+    reordering of tabs in the editorstacks.
     """
     def __init__(self, editor_stack):
         QObject.__init__(self)
@@ -133,7 +135,7 @@ class BaseTabs(QTabWidget):
         QTabWidget.__init__(self, parent)
         
         self.setUsesScrollButtons(True)
-        self.filter = TabFilter(parent)
+        self.filter = TabFilter(parent)  # Need to keep reference
         self.tabBar().installEventFilter(self.filter)
         self.corner_widgets = {}
         self.menu_use_tooltips = menu_use_tooltips

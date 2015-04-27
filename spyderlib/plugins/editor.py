@@ -1200,7 +1200,10 @@ class Editor(SpyderPluginWidget):
                 editorstack.rename_in_data(index, filename)
 
     def tabs_reordered(self, start, end):
-        """ """
+        """
+        When tabs are reordered in a stackeditor this method adjusts tabs
+        in all the stackkeditors
+        """
         if start < 0 or end < 0:
             return
         else:
@@ -1211,7 +1214,7 @@ class Editor(SpyderPluginWidget):
                 data = editorstack.data
                 editorstack.blockSignals(True)
     
-                for i in range(start, end, sign*1):
+                for i in range(start, end, sign):
                     editorstack.tabbar.moveTab(i, i+sign)
                     data[i], data[i+sign] = data[i+sign], data[i]
     

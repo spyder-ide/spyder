@@ -1948,14 +1948,15 @@ class EditorStack(QWidget):
         pos = event.pos()
         self.moving_end_tab = self.tabbar.tabAt(pos)
 
+        if self.moving_start_tab is not self.moving_end_tab:
+            # This signal is connected to the Editor plugin and fires
+            # a method that reorders ALL openned editorstacks
+            self.sig_tabs_reordered.emit(self.moving_start_tab,
+                                         self.moving_end_tab)
+            self.moving_start_tab = self.moving_end_tab
+
     def tab_released(self, event):
         """ """
-        if self.moving_end_tab is not None:
-            if self.moving_start_tab is not self.moving_end_tab:
-                # This signal is connected to the Editor plugin and fires
-                # a method that reorders ALL openned editorstacks
-                self.sig_tabs_reordered.emit(self.moving_start_tab,
-                                             self.moving_end_tab)
         QApplication.restoreOverrideCursor()
         self.moving_tab = False
 
