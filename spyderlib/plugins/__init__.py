@@ -123,12 +123,16 @@ class SpyderDockWidget(QDockWidget):
 
     def __init__(self, *args, **kwargs):
         super(SpyderDockWidget, self).__init__(*args, **kwargs)
-        self.visibilityChanged.connect(self.install_tab_event_filter)
+        if sys.platform == 'darwin':
+            self.setStyleSheet(self.DARWIN_STYLE)
+
+        # Needed for the installation of the event filter
         self.title = args[0]
         self.main = args[1]
         self.bar = None
-        if sys.platform == 'darwin':
-            self.setStyleSheet(self.DARWIN_STYLE)
+
+        # Update the QTabBar everytime dockwidget visibility changes
+        self.visibilityChanged.connect(self.install_tab_event_filter)
 
     def closeEvent(self, event):
         """
@@ -138,6 +142,10 @@ class SpyderDockWidget(QDockWidget):
         self.plugin_closed.emit()
 
     def install_tab_event_filter(self, value):
+        """
+        Install an event filter to capture mouse events in the tabs of a
+        QTabBar holding tabified dockwidgets.
+        """
         bar = None
         tabbars = self.main.findChildren(QTabBar)
         for tabbar in tabbars:
@@ -148,7 +156,7 @@ class SpyderDockWidget(QDockWidget):
                     break
         if self.bar is None and bar is not None:
             self.bar = bar
-            self.bar.setAcceptDrops(True)
+            #self.bar.setAcceptDrops(True)
 
             if getattr(self.bar, 'filter', None) is None:
                 self.bar.filter = TabFilter(self.bar, self.main)
@@ -157,17 +165,44 @@ class SpyderDockWidget(QDockWidget):
 
 class TabFilter(QObject):
     """
+    Filter event attached to each QTabBar that holds 2 or more dockwidgets in
+    charge of handling tab rearangement.
+
+    This filter also holds the methods needed for the detection of a drag and
+    the movement of tabs.
     """
     def __init__(self, tabbar, main):
         QObject.__init__(self)
         self.tabbar = tabbar
         self.main = main
         self.moving = False
+        self.start_tab = None
+        self.end_tab = None
+
+    # Helper methods
+    def _get_widget(self, index):
+        """Get widget (Plugin) reference based on tab index."""
+        for widget in self.main.widgetlist:
+            if widget.get_plugin_title() == self.tabbar.tabText(index):
+                return widget
+
+    def _get_widgets(self):
+        """
+        Get a list of all the widgets (Plugins) references in the QTabBar to
+        which this event filter was attached.
+        """
+        widgets = []
+        for index in range(self.tabbar.count()):
+            widget = self._get_widget(index)
+            widgets.append(widget)
+        return widgets
 
     def eventFilter(self,  obj,  event):
+        """Filter mouse press events."""
         event_type = event.type()
         if event_type == QEvent.MouseButtonPress:
             self.tab_pressed(event)
+            return False
         if event_type == QEvent.MouseMove:
             self.tab_moved(event)
             return True
@@ -176,54 +211,49 @@ class TabFilter(QObject):
             return True
         return False
 
-    def tab_released(self, event):
-        QApplication.restoreOverrideCursor()
-        self.moving = False
-
     def tab_pressed(self, event):
+        """Method called when a tab from a QTabBar has been pressed."""
         if event.button() == Qt.LeftButton:
-            start_tab = self.tabbar.tabAt(event.pos())
-            self.start_widget = self.get_widget(start_tab)
-            self.widgets = self.get_widgets()
+            self.start_tab = self.tabbar.tabAt(event.pos())
 
     def tab_moved(self, event):
+        """
+        Method called when a tab from a QTabBar has been moved.
+        """
         # If the left button isn't pressed anymore then return
         if not event.buttons() & Qt.LeftButton:
             return
         if not self.moving:
-            QApplication.setOverrideCursor(Qt.OpenHandCursor)
+            QApplication.setOverrideCursor(Qt.ClosedHandCursor)
             self.moving = True
+
         pos = event.pos()
-        end_tab = self.tabbar.tabAt(pos)
-        self.end_widget = self.get_widget(end_tab)
+        self.end_tab = self.tabbar.tabAt(pos)
+        if self.end_tab < 0:
+            self.end_tab = self.start_tab
 
-        if self.start_widget is not self.end_widget and\
-           self.end_widget is not None:
-            self.move_tab()
+        if self.start_tab != self.end_tab:
+            self.move_tab(self.start_tab, self.end_tab)
+            self.start_tab = self.end_tab
 
-    def move_tab(self):
-        widgets = self.widgets
-        start = widgets.index(self.start_widget)
-        end = widgets.index(self.end_widget)
+    def tab_released(self, event):
+        """Method called when a tab from a QTabBar has been released."""
+        QApplication.restoreOverrideCursor()
+        self.moving = False
 
+    def move_tab(self, start_tab, end_tab):
+        """Move a tab from a start to and end position ."""
+        widgets = self._get_widgets()
+        start_widget = self._get_widget(start_tab)
+        end_widget = self._get_widget(end_tab)
+
+        start = widgets.index(start_widget)
+        end = widgets.index(end_widget)
         widgets[start], widgets[end] = widgets[end], widgets[start]
 
-        for i in range(len(self.widgets)-1):
+        for i in range(len(widgets)-1):
             self.main.tabify_plugins(widgets[i], widgets[i+1])
-        self.widgets = self.get_widgets()
-        self.start_widget.dockwidget.raise_()
-
-    def get_widget(self, index):
-        for widget in self.main.widgetlist:
-            if widget.get_plugin_title() == self.tabbar.tabText(index):
-                return widget
-
-    def get_widgets(self):
-        widgets = []
-        for index in range(self.tabbar.count()):
-            widget = self.get_widget(index)
-            widgets.append(widget)
-        return widgets
+        start_widget.dockwidget.raise_()
 
 
 class SpyderPluginMixin(object):
