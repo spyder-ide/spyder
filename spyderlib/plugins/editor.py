@@ -348,7 +348,7 @@ class Editor(SpyderPluginWidget):
     open_dir = Signal(str)
     breakpoints_saved = Signal()
     run_in_current_extconsole = Signal(str, str, str, bool, bool)
-    sig_tabs_reordered = Signal(int, int)
+    sig_tab_moved = Signal(int, int)
     
     def __init__(self, parent, ignore_last_opened_files=False):
         if PYQT5:
@@ -442,7 +442,7 @@ class Editor(SpyderPluginWidget):
         self.setLayout(layout)
 
         # Tabs reordering
-        self.sig_tabs_reordered.connect(self.tabs_reordered)
+        self.sig_tab_moved.connect(self.move_tabs)
 
         # Editor's splitter state
         state = self.get_option('splitter_state', None)
@@ -1051,7 +1051,7 @@ class Editor(SpyderPluginWidget):
         self.editorstacks.append(editorstack)
         
         # Needed for tabs reordering calls
-        editorstack.sig_tabs_reordered.connect(self.sig_tabs_reordered)
+        editorstack.sig_tab_moved.connect(self.sig_tab_moved)
 
         self.register_widget_shortcuts("Editor", editorstack)
         
@@ -1199,24 +1199,32 @@ class Editor(SpyderPluginWidget):
             if str(id(editorstack)) != editorstack_id_str:
                 editorstack.rename_in_data(index, filename)
 
-    def tabs_reordered(self, start, end):
+    def move_tabs(self, start, end):
         """
         When tabs are reordered in a stackeditor this method adjusts tabs
-        in all the stackkeditors
+        in all the stackkeditors.
+
+        If needed can also be used programmatically (directly).
         """
+        # Lower bound check
         if start < 0 or end < 0:
             return
         else:
             steps = abs(end - start)
-            sign = (end - start) / steps
+            step = (end - start) / steps
             
-            for editorstack in self.editorstacks :
+            for editorstack in self.editorstacks:
                 data = editorstack.data
                 editorstack.blockSignals(True)
-    
-                for i in range(start, end, sign):
-                    editorstack.tabbar.moveTab(i, i+sign)
-                    data[i], data[i+sign] = data[i+sign], data[i]
+
+                # If used directly an upper bound check is needed
+                count = editorstack.tabbar.count()
+                if start > count or end > count:
+                    break
+
+                for i in range(start, end, step):
+                    editorstack.tabbar.moveTab(i, i+step)
+                    data[i], data[i+step] = data[i+step], data[i]
     
                 editorstack.blockSignals(False)
                 editorstack.refresh()
