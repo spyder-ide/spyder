@@ -63,6 +63,8 @@ def make_meta_dict(value):
             if html is not None and len(html) > 0:
                 meta['html'] = html
                 meta['value'] = None
+    else:
+        meta.update(make_meta_dict_docstring(value))
     return meta
     
 @contextmanager
@@ -178,6 +180,26 @@ def make_numpy_meta_dict(value):
         meta['value'] = None # if we have a plot we dont need to show the raw data
         
     return meta         
+
+
+def make_meta_dict_docstring(value):
+    try:
+        from spyderlib.utils.inspector.sphinxify import (sphinxify,
+                                                         generate_context)
+        from spyderlib.utils.dochelpers import getdoc
+    except ImportError:
+        return {}
+    
+    doc = getdoc(value)
+    if doc is not None and type(doc) is dict and 'docstring' in doc.keys():
+        try:
+            context = generate_context(name=doc['name'],
+                                       argspec=doc['argspec'],
+                                       note=doc['note'])
+            gen_html = sphinxify(doc['docstring'], context)
+            return {'html': "<hr><div align=left margin-top=0px>" + gen_html + "</div>", 'value': None}
+        except Exception:
+            return {}
     
 def make_pil_meta_dict(value):
     with ignore(Exception):
