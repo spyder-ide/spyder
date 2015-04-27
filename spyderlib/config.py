@@ -308,6 +308,8 @@ DEFAULTS = [
               'truncate': True,
               'minmax': False,
               'remote_editing': False,
+              'makemetadict/default': True,
+              'makemetadict/custom': False
               }),
             ('editor',
              {
