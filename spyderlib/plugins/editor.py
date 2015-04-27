@@ -105,12 +105,12 @@ class EditorConfigPage(PluginConfigPage):
                                     text=_("Text and margin font style"),
                                     fontfilters=QFontComboBox.MonospacedFonts)
         newcb = self.create_checkbox
-        fpsorting_box = newcb(_("Sort files according to full path"),
-                              'fullpath_sorting')
+#        fpsorting_box = newcb(_("Sort files according to full path"),
+#                              'fullpath_sorting')
         showtabbar_box = newcb(_("Show tab bar"), 'show_tab_bar')
 
         interface_layout = QVBoxLayout()
-        interface_layout.addWidget(fpsorting_box)
+#        interface_layout.addWidget(fpsorting_box)
         interface_layout.addWidget(showtabbar_box)
         interface_group.setLayout(interface_layout)
         
