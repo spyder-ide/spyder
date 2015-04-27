@@ -717,9 +717,10 @@ class InfoPane(QDialog):
 
     def showText(self, text):
         # Note that we really out to hook into the move/resize events of all
-        # the ancestors of this widget, but instead we just do this update here..
+        # the ancestors of this widget, but instead we just do this update here
         self.update_position()  
         self.main_text.setText(text)
+        self.setVisible(len(text) > 0)
         
 class BaseTableView(QTableView):
     """Base dictionary editor table view"""
