@@ -85,7 +85,7 @@ _qtaargs = {
     'find':                    [('fa.search',), {}],
     'findnext':                [(['fa.search', 'fa.long-arrow-down'],), {'options':[{'scale_factor': 0.6, 'offset': (0.3, 0.0)}, {'offset': (-0.3, 0.0)}]}],
     'findprevious':            [(['fa.search', 'fa.long-arrow-up'],), {'options':[{'scale_factor': 0.6, 'offset': (0.3, 0.0)}, {'offset': (-0.3, 0.0)}]}],
-    'replace':                 [('fa.retweet',), {}],
+    'replace':                 [('fa.exchange',), {}],
     'undo':                    [('fa.undo',), {}],
     'redo':                    [('fa.repeat',), {}],
     'restart':                 [('fa.repeat',), {}],

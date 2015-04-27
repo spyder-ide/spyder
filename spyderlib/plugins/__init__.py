@@ -607,7 +607,7 @@ class SpyderPluginWidget(QWidget, SpyderPluginMixin):
               (see SpyderPluginMixin.create_mainwindow)
               and for configuration dialog widgets creation
         """
-        return ima.icon('spyder.treeview')
+        return ima.icon('outline_explorer')
     
     def get_focus_widget(self):
         """
