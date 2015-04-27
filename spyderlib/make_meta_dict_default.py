@@ -58,10 +58,11 @@ def make_meta_dict(value):
     elif isinstance(value, Image.Image):
         meta.update(make_pil_meta_dict(value))
     elif hasattr(value, '_repr_html_'):
-        html = value._repr_html_()
-        if html is not None and len(html) > 0:
-            meta['html'] = html
-            meta['value'] = None
+        with ignore(Exception):
+            html = value._repr_html_()
+            if html is not None and len(html) > 0:
+                meta['html'] = html
+                meta['value'] = None
     return meta
     
 @contextmanager
