@@ -178,12 +178,12 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         interface_layout.addWidget(ask_box)
         interface_group.setLayout(interface_layout)
 
-        comp_group = QGroupBox(_("Completion Widget"))
+        comp_group = QGroupBox(_("Completion Type"))
         comp_label = QLabel(_("Decide what type of completion to use"))
         comp_label.setWordWrap(True)
         completers = [("Graphical", 0), ("Terminal", 1), ("Plain", 2)]
         comp_box = self.create_combobox(_("Completion:")+"   ", completers,
-                                        'completion_widget', default=0)
+                                        'completion_type', default=0)
         comp_layout = QVBoxLayout()
         comp_layout.addWidget(comp_label)
         comp_layout.addWidget(comp_box)

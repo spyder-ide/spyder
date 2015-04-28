@@ -682,9 +682,9 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         spy_cfg.IPythonWidget.kind = 'rich'
         
         # Gui completion widget
-        completion_widget_o = CONF.get('ipython_console', 'completion_widget')
+        completion_type_o = CONF.get('ipython_console', 'completion_type')
         completions = {0: "droplist", 1: "ncurses", 2: "plain"}
-        spy_cfg.IPythonWidget.gui_completion = completions[completion_widget_o]
+        spy_cfg.IPythonWidget.gui_completion = completions[completion_type_o]
 
         # Pager
         pager_o = self.get_option('use_pager')
