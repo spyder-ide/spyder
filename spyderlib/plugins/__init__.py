@@ -134,7 +134,7 @@ class TabFilter(QObject):
         self.moving = False
 
     def move_tab(self, start_tab, end_tab):
-        """Move a tab from a start to and end position ."""
+        """Move a tab from a start to and end position."""
         plugins = self._get_plugins()
         start_plugin = self._get_plugin(start_tab)
         end_plugin = self._get_plugin(end_tab)
@@ -212,17 +212,19 @@ class SpyderDockWidget(QDockWidget):
 
     plugin_closed = Signal()
 
-    def __init__(self, *args, **kwargs):
-        super(SpyderDockWidget, self).__init__(*args, **kwargs)
+    def __init__(self, title, parent):
+        super(SpyderDockWidget, self).__init__(title, parent)
         if sys.platform == 'darwin':
             self.setStyleSheet(self.DARWIN_STYLE)
 
         # Needed for the installation of the event filter
-        self.title = args[0]
-        self.main = args[1]
+        self.title = title
+        self.main = parent
         self.dock_tabbar = None
 
-        # Update the QTabBar everytime dockwidget visibility changes
+        # To track dockwidget changes the filter is installed when dockwidget
+        # visibility changes. This installs the filter on startup and also
+        # on dockwidgets that are undocked and then docked to a new location.
         self.visibilityChanged.connect(self.install_tab_event_filter)
 
     def closeEvent(self, event):
@@ -247,6 +249,7 @@ class SpyderDockWidget(QDockWidget):
                     break
         if dock_tabbar is not None:
             self.dock_tabbar = dock_tabbar
+            # Install filter only once per QTabBar
             if getattr(self.dock_tabbar, 'filter', None) is None:
                 self.dock_tabbar.filter = TabFilter(self.dock_tabbar,
                                                     self.main)
