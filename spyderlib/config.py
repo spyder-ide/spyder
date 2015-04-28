@@ -168,6 +168,7 @@ DEFAULTS = [
               'vertical_tabs': False,
               'animated_docks': True,
               'prompt_on_exit': False,
+              'panes_locked': True,
               'window/size': (1260, 740),
               'window/position': (10, 10),
               'window/is_maximized': True,
@@ -470,11 +471,12 @@ DEFAULTS = [
               # ---- Global ----
               # -- In spyder.py
               '_/close pane': "Shift+Ctrl+F4",
+              '_/lock unlock panes': "Shift+Ctrl+F5",
               '_/preferences': "Ctrl+Alt+Shift+P",
               '_/maximize pane': "Ctrl+Alt+Shift+M",
               '_/fullscreen mode': "F11",
-              '_/toggle next layout': "Shift+Alt+PgDown",
-              '_/toggle previous layout': "Shift+Alt+PgUp",
+              '_/use next layout': "Shift+Alt+PgDown",
+              '_/use previous layout': "Shift+Alt+PgUp",
               '_/save current layout': "Shift+Alt+S",
               '_/toggle default layout': "Shift+Alt+Home",
               '_/layout preferences': "Shift+Alt+P",
@@ -715,7 +717,7 @@ DEFAULTS = [
 # 2. If you want to *remove* options that are no longer needed in our codebase,
 #    you need to do a MAJOR update in version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '16.1.0'
+CONF_VERSION = '17.0.0'
 
 # XXX: Previously we had load=(not DEV) here but DEV was set to *False*.
 # Check if it *really* needs to be updated or not
