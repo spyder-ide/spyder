@@ -68,7 +68,7 @@ def get_spyderplugins_mods(prefix):
         for modname in user_plugins:
             _import_plugin(modname, modlist)
     finally:
-        del sys.path[0]
+        sys.path.remove(USERPLUGIN_PATH)
 
     # Load system plugins not already loaded
     for modname in _get_spyderplugins(PLUGIN_PATH, prefix):
