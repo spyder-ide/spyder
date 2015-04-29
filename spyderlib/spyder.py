@@ -1141,8 +1141,9 @@ class MainWindow(QMainWindow):
                     plugin = mod.PLUGIN_CLASS(self)
                     self.thirdparty_plugins.append(plugin)
                     plugin.register_plugin()
-                except AttributeError as error:
+                except Exception as error:
                     print("%s: %s" % (mod, str(error)), file=STDERR)
+                    traceback.print_exc(file=STDERR)
 
 
     #----- View
