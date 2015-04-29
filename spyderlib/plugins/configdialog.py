@@ -27,7 +27,6 @@ from spyderlib.baseconfig import (_, running_in_mac_app, LANGUAGE_CODES,
 from spyderlib.config import CONF
 from spyderlib.guiconfig import (CUSTOM_COLOR_SCHEME_NAME,
                                  set_default_color_scheme)
-from spyderlib.utils.qthelpers import get_icon
 from spyderlib.userconfig import NoDefault
 from spyderlib.widgets.colors import ColorLayout
 from spyderlib.widgets.sourcecode import syntaxhighlighters as sh
@@ -732,6 +731,11 @@ class MainConfigPage(GeneralConfigPage):
                                            'windows_style',
                                            default=self.main.default_style)
 
+        themes = ['Spyder 2', 'Spyder 3']
+        icon_choices = list(zip(themes, [theme.lower() for theme in themes]))
+        icons_combo = self.create_combobox(_('Icon theme'), icon_choices,
+                                           'icon_theme', default='spyder 3')
+
         single_instance_box = newcb(_("Use a single instance"),
                                     'single_instance',
                                     tip=_("Set this to open external<br> "
@@ -769,6 +773,7 @@ class MainConfigPage(GeneralConfigPage):
             single_instance_box.setEnabled(False)
 
         interface_layout = QVBoxLayout()
+        interface_layout.addWidget(icons_combo)
         interface_layout.addWidget(style_combo)
         interface_layout.addWidget(language_combo)
         interface_layout.addWidget(single_instance_box)

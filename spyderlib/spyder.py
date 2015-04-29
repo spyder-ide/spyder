@@ -118,7 +118,7 @@ QApplication.processEvents()
 #==============================================================================
 from spyderlib import __version__, __project_url__, __forum_url__, get_versions
 from spyderlib.baseconfig import (get_conf_path, get_module_data_path,
-                                  get_module_source_path, STDERR, DEBUG, DEV,
+                                  get_module_source_path, STDERR, DEBUG,
                                   debug_print, TEST, SUBFOLDER, MAC_APP_NAME,
                                   running_in_mac_app, get_module_path)
 from spyderlib.config import CONF, EDIT_EXT, IMPORT_EXT, OPEN_FILES_PORT
@@ -2573,7 +2573,7 @@ class MainWindow(QMainWindow):
         """Apply settings changed in 'Preferences' dialog box"""
         qapp = QApplication.instance()
         qapp.setStyle(CONF.get('main', 'windows_style', self.default_style))
-
+        
         default = self.DOCKOPTIONS
         if CONF.get('main', 'vertical_tabs'):
             default = default|QMainWindow.VerticalTabs

@@ -1,5 +1,9 @@
 import os
 import qtawesome as qta
+from spyderlib.baseconfig import get_image_path
+from spyderlib.config import CONF
+from spyderlib.qt.QtGui import QIcon
+
 
 _resource = {
     'directory': os.path.join(os.path.dirname(os.path.realpath(__file__)), '../fonts'),
@@ -55,8 +59,8 @@ _qtaargs = {
     'unindent':                [('fa.outdent',), {}],
     'gotoline':                [('fa.sort-numeric-asc',), {}],
     'error':                   [('fa.times-circle',), {}],
-    'warning':                 [('fa.warning',), {}],
-    'todo':                    [('fa.check',), {'color':'#3775a9'}],
+    'warning':                 [('fa.warning',), {'color': 'orange'}],
+    'todo':                    [('fa.check',), {'color': 'orange'}],
     'ipython_console':         [('spyder.ipython-logo',), {}],
     'ipython_console_t':       [('spyder.ipython-logo',), {'color':'gray'}],
     'python':                  [(['spyder.python-logo-up', 'spyder.python-logo-down'],), {'options': [{'color': '#3775a9'}, {'color': '#ffd444'}]}],
@@ -153,7 +157,7 @@ _qtaargs = {
     'DialogHelpButton':        [('fa.life-ring',), {}],
     'MessageBoxInformation':   [('fa.info',), {}],
     'DirOpenIcon':             [('fa.folder-open',), {}],
-    'FileIcon':               [('fa.file-o',), {}],   # QtHelper
+    'FileIcon':                [('fa.file-o',), {}],
     'DriveHDIcon':             [('fa.hdd-o',), {}],
     'arrow':                   [('fa.arrow-right',), {}],
     'collapse':                [('spyder.inward',), {}],
@@ -174,9 +178,38 @@ _qtaargs = {
     'pylint':                  [(['fa.search', 'fa.check'],), {'options': [{}, {'offset': (0.125, 0.125), 'color': 'orange'}]}],
 }
 
+
+def get_icon(name, default=None, resample=False):
+    """Return image inside a QIcon object
+    default: default image name or icon
+    resample: if True, manually resample icon pixmaps for usual sizes
+    (16, 24, 32, 48, 96, 128, 256). This is recommended for QMainWindow icons 
+    created from SVG images on non-Windows platforms due to a Qt bug (see 
+    Issue 1314)."""
+    if default is None:
+        icon = QIcon(get_image_path(name))
+    elif isinstance(default, QIcon):
+        icon_path = get_image_path(name, default=None)
+        icon = default if icon_path is None else QIcon(icon_path)
+    else:
+        icon = QIcon(get_image_path(name, default))
+    if resample:
+        icon0 = QIcon()
+        for size in (16, 24, 32, 48, 96, 128, 256, 512):
+            icon0.addPixmap(icon.pixmap(size, size))
+        return icon0 
+    else:
+        return icon
+
 def icon(name):
-    if not _resource['loaded']:
-        qta.load_font('spyder', 'spyder.ttf', 'spyder-charmap.json', directory=_resource['directory'])
-        _resource['loaded'] = True
-    args, kwargs = _qtaargs[name]
-    return qta.icon(*args, **kwargs)
+    theme =  CONF.get('main', 'icon_theme')
+    if theme == 'spyder 3':
+        if not _resource['loaded']:
+            qta.load_font('spyder', 'spyder.ttf', 'spyder-charmap.json', directory=_resource['directory'])
+            _resource['loaded'] = True
+        args, kwargs = _qtaargs[name]
+        return qta.icon(*args, **kwargs)
+    elif theme == 'spyder 2':
+        icon = get_icon(name + '.png')
+        return icon if icon is not None else QIcon()
+    
