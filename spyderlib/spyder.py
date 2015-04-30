@@ -1136,7 +1136,7 @@ class MainWindow(QMainWindow):
             self.apply_statusbar_settings()
 
             # Third-party plugins
-            for mod in get_spyderplugins_mods(prefix="p_"):
+            for mod in get_spyderplugins_mods():
                 try:
                     plugin = mod.PLUGIN_CLASS(self)
                     self.thirdparty_plugins.append(plugin)

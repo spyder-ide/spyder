@@ -16,32 +16,17 @@ from spyderlib.utils import programs
 from spyderlib.baseconfig import get_conf_path
 from spyderlib.utils.external.path import path as Path
 
-# Calculate path to `spyderplugins` package, where Spyder looks for all 3rd
-# party plugin modules
-PLUGIN_PATH = None
-if programs.is_module_installed("spyderplugins"):
-    import spyderplugins
-    PLUGIN_PATH = Path(spyderplugins.__path__[0]).abspath()
-    if not PLUGIN_PATH.isdir():
-        # py2exe/cx_Freeze distribution: ignoring extra plugins
-        PLUGIN_PATH = None
 
-USERPLUGIN_PATH = Path(get_conf_path("userplugins"))
-USERPLUGIN_PATH.makedirs_p()
-sys.path.append(USERPLUGIN_PATH)
-
-
-def _get_spyderplugins(plugin_path, prefix):
+def _get_spyderplugins(plugin_path):
     """Scan directory of `spyderplugins` package and
     return the list of module names matching *prefix*"""
     plist = []
-    if PLUGIN_PATH is not None:
-        for dirname in plugin_path.dirs(pattern=prefix + "*"):
-            if not (dirname / "__init__.py").isfile():
-                continue
-            plist.append(dirname.name)
-        for name in plugin_path.files(pattern=prefix + "*.py"):
-            plist.append(name.namebase)
+    for dirname in plugin_path.dirs():
+        if not (dirname / "__init__.py").isfile():
+            continue
+        plist.append(dirname.name)
+    for name in plugin_path.files(pattern="*.py"):
+        plist.append(name.namebase)
     return plist
 
 
@@ -56,23 +41,39 @@ def _import_plugin(name, modlist):
         traceback.print_exc(file=sys.stderr)
 
 
-def get_spyderplugins_mods(prefix):
-    """Import modules that match *prefix* from
-    `spyderplugins` package and return the list"""
+def get_spyderplugins_mods(io=False):
+    """Import modules from plugins package and return the list"""
+
+    if io:
+        user_plugin_namsepace = "userioplugins"
+        plugin_namsepace = "spyderioplugins"
+    else:
+        user_plugin_namsepace = "userplugins"
+        plugin_namsepace = "spyderplugins"
+
     modlist = []
 
     # Load user plugins
-    user_plugins = _get_spyderplugins(USERPLUGIN_PATH, prefix)
-    sys.path.insert(0, USERPLUGIN_PATH)
+    user_plugin_path = Path(get_conf_path(user_plugin_namsepace))
+    user_plugin_path.makedirs_p()
+    user_plugins = _get_spyderplugins(user_plugin_path)
+    sys.path.insert(0, user_plugin_path)
     try:
         for modname in user_plugins:
             _import_plugin(modname, modlist)
     finally:
-        sys.path.remove(USERPLUGIN_PATH)
+        sys.path.remove(user_plugin_path)
 
     # Load system plugins not already loaded
-    for modname in _get_spyderplugins(PLUGIN_PATH, prefix):
-        if modname not in user_plugins:
-            name = 'spyderplugins.%s' % modname
-            _import_plugin(name, modlist)
+    if programs.is_module_installed(plugin_namsepace):
+        plugin_module = __import__(plugin_namsepace)
+        # list() is needed since python 3.3
+        plugin_path = Path(list(plugin_module.__path__)[0]).abspath()
+        # py2exe/cx_Freeze distribution: ignoring extra plugins
+        if plugin_path.isdir():
+            for modname in _get_spyderplugins(plugin_path):
+                if modname not in user_plugins:
+                    name = '%s.%s' % (plugin_namsepace, modname)
+                    _import_plugin(name, modlist)
+
     return modlist
