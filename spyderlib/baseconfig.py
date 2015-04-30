@@ -181,9 +181,9 @@ def add_image_path(path):
         return
     global IMG_PATH
     IMG_PATH.append(path)
-    for _root, dirs, _files in os.walk(path):
-        for dir in dirs:
-            IMG_PATH.append(osp.join(path, dir))
+    for dirpath, dirnames, _filenames in os.walk(path):
+        for dirname in dirnames:
+            IMG_PATH.append(osp.join(dirpath, dirname))
 
 add_image_path(get_module_data_path('spyderlib', relpath='images'))
 
