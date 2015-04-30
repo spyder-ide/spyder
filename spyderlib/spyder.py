@@ -878,7 +878,7 @@ class MainWindow(QMainWindow):
                                         triggered=self.console.quit)
             self.register_shortcut(quit_action, "_", "Quit")
             restart_action = create_action(self, _("&Restart"),
-                                           icon='restart.png',
+                                           icon=ima.icon('restart'),
                                            tip=_("Restart"),
                                            triggered=self.restart)
             self.register_shortcut(restart_action, "_", "Restart")

@@ -41,7 +41,7 @@ _qtaargs = {
     'arrow-step-in':           [('spyder.step-into',), {'color': '#3775a9'}],
     'arrow-step-out':          [('spyder.step-out',), {'color': '#3775a9'}],
     'stop_debug':              [('spyder.stop',), {'color': '#3775a9'}],
-    'run':                     [('spyder.run',), {'color': 'green'}],
+    'run':                     [('fa.play',), {'color': 'green'}],
     'run_settings':            [(['fa.wrench', 'spyder.run'],), {'options': [{'offset':(-0.1, -0.1), 'scale_factor': 0.75}, {'offset': (0.0, 0.125), 'color': 'green','scale_factor': 0.75}]}],
     'run_again':               [(['fa.repeat', 'spyder.run'],), {'options': [{'offset':(-0.1, -0.1), 'scale_factor': 0.75}, {'offset':(0.1, 0.125), 'color': 'green', 'scale_factor': 0.75}]}],
     'run_selection':           [('spyder.run-selection',), {}],
@@ -176,6 +176,9 @@ _qtaargs = {
     '2downarrow':              [('fa.angle-double-down',), {}],
     '1downarrow':              [('fa.angle-down',), {}],    
     'pylint':                  [(['fa.search', 'fa.check'],), {'options': [{}, {'offset': (0.125, 0.125), 'color': 'orange'}]}],
+    'attribute':               [('spyder.circle-letter-a',), {'color': 'magenta'}],
+    'module':                  [('spyder.circle-letter-m',), {'color': '#daa520'}],
+    'no_match':                [('fa.circle',), {'color': 'gray'}],
 }
 
 
