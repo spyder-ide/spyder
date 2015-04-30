@@ -3038,7 +3038,7 @@ def main():
                                    args=[spyderlib.__path__[0]], p_args=['-O'])
         return
 
-    if CONF.get('main', 'crash', False):
+    if CONF.get('main', 'crash', False) and not DEV:
         CONF.set('main', 'crash', False)
         SPLASH.hide()
         QMessageBox.information(None, "Spyder",
