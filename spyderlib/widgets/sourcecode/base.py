@@ -811,12 +811,17 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             start_pos = cursor.position()
             cursor.movePosition(QTextCursor.NextBlock)
             end_pos = cursor.position()
+            # check if on last line
+            if end_pos == start_pos:
+                cursor.movePosition(QTextCursor.End)
+                cursor.insertText(os.linesep)
+            end_pos = cursor.position()
         cursor.setPosition(start_pos)
         cursor.setPosition(end_pos, QTextCursor.KeepAnchor)
-        
+
         sel_text = to_text_string(cursor.selectedText())
         cursor.removeSelectedText()
-        
+
         if after_current_line:
             text = to_text_string(cursor.block().text())
             start_pos += len(text)+1
