@@ -1853,9 +1853,9 @@ class MainWindow(QMainWindow):
 
             if name in names:
                 answer = QMessageBox.warning(self, _("Warning"),
-                                             _("Layout <b>{0}</b> will be \
+                                             _("Layout <b>%s</b> will be \
                                                overwritten. Do you want to \
-                                               continue?".format(name)),
+                                               continue?") % name,
                                              QMessageBox.Yes | QMessageBox.No)
                 index = order.index(name)
             else:
@@ -2806,13 +2806,13 @@ class MainWindow(QMainWindow):
             check_updates = box.is_checked()
         else:
             if update_available:
-                msg = _("<b>Spyder {0} is available!</b> <br><br>Please use "
+                msg = _("<b>Spyder %s is available!</b> <br><br>Please use "
                         "your package manager to update Spyder or go to our "
-                        "<a href=\"{1}\">Releases</a> page to download this "
+                        "<a href=\"%s\">Releases</a> page to download this "
                         "new version. <br><br>If you are not sure how to "
                         "proceed to update Spyder please refer to our "
-                        " <a href=\"{2}\">Installation</a> instructions."
-                        "" .format(latest_release, url_r, url_i))
+                        " <a href=\"%s\">Installation</a> instructions."
+                        "") % (latest_release, url_r, url_i)
                 box.setText(msg)
                 box.set_check_visible(True)
                 box.exec_()
