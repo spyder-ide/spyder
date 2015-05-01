@@ -9,8 +9,9 @@
 # http://stackoverflow.com/questions/22745076/libpng-warning-iccp-known-incorrect-srgb-profile
 # http://tex.stackexchange.com/questions/125612/warning-pdflatex-libpng-warning-iccp-known-incorrect-srgb-profile
 #
-# browse to the toplevel directory of the spyder git repo
-cd ..
+# make sure to run this from the top level spyder repo dir in order to catch
+# all the png files
+#
 # fix all png files in the current directory (and sub-dirs) using ImageMagick:
 find . -type f -name "*.png" -exec convert {} -strip {} \;
 
