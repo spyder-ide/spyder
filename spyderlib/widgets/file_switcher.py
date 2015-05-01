@@ -9,20 +9,20 @@ from __future__ import print_function
 import os
 import os.path as osp
 
-from spyderlib.qt.QtCore import Signal, Qt, QObject, QSize, QEvent, QPoint
+from spyderlib.qt.QtCore import Signal, Qt, QObject, QSize, QEvent
 from spyderlib.qt.QtGui import (QVBoxLayout, QHBoxLayout,
                                 QListWidget, QListWidgetItem,
-                                QDialog, QLineEdit, QKeyEvent,
-                                QStyledItemDelegate, QStyleOptionViewItemV4,
-                                QApplication, QTextDocument, QStyle,
-                                QAbstractTextDocumentLayout, QToolButton,
-                                QToolTip)
+                                QDialog, QLineEdit, QStyledItemDelegate,
+                                QStyleOptionViewItemV4, QApplication,
+                                QTextDocument, QStyle,
+                                QAbstractTextDocumentLayout)
 
 # Local imports
 from spyderlib.baseconfig import _
 from spyderlib.guiconfig import new_shortcut
 from spyderlib.py3compat import to_text_string
 from spyderlib.utils.qthelpers import get_std_icon
+from spyderlib.widgets.helperwidgets import HelperToolButton
 
 
 def shorten_paths(path_list):
@@ -32,7 +32,7 @@ def shorten_paths(path_list):
     likely what they care about.  Note that this operates on a list of paths
     not individual paths.
 
-    If the path ends in an actual file this will be removed.
+    If the path ends in an actual file name, it will be trimmed off.
 
     TODO: at the end, if the path is too long, should do a more dumb kind of
     shortening, but not completely dumb.
@@ -45,22 +45,22 @@ def shorten_paths(path_list):
     for ii, path in enumerate(path_list):
         drive, path = osp.splitdrive(osp.dirname(path))
         new_path_list.append(drive + osp.sep)
-        path_list[ii] = [part for part in path.split(osp.sep) if len(part) > 0]
+        path_list[ii] = [part for part in path.split(osp.sep) if part]
 
     def recurse_level(level_idx):
         # if toks are all empty we need not have reucrsed here
-        if all(len(toks) == 0 for _, toks in level_idx.iteritems()):
+        if not any(level_idx.values()):
             return
 
         # firstly, find the longest common prefix for all in the level
         # s = len of longest common prefix
-        _, sample_toks = next(level_idx.iteritems())
-        if len(sample_toks) == 0:
+        sample_toks = level_idx.values()[0]
+        if not sample_toks:
             s = 0
         else:
             for s, sample_val in enumerate(sample_toks):
                 if not all(len(toks) > s and toks[s] == sample_val
-                           for _, toks in level_idx.iteritems()):
+                           for toks in level_idx.values()):
                     break
 
         # Shorten longest common prefix
@@ -78,20 +78,20 @@ def shorten_paths(path_list):
                 level_idx[idx] = level_idx[idx][s:]
 
         # Group the remaining bit after the common prefix, shorten, and recurse
-        while len(level_idx):
+        while level_idx:
             k, group = 0, level_idx  # k is length of the group's common prefix
             while True:
                 # Abort if we've gone beyond end of one or more in the group
                 prospective_group = {idx: toks for idx, toks
-                                     in group.iteritems() if len(toks) == k}
-                if len(prospective_group) > 0:
-                    if k == 0:
+                                     in group.items() if len(toks) == k}
+                if prospective_group:
+                    if k == 0:  # we spit out the group with no suffix
                         group = prospective_group
                     break
                 # Only keep going if all n still match on the kth token
                 _, sample_toks = next(group.iteritems())
                 prospective_group = {idx: toks for idx, toks
-                                     in group.iteritems()
+                                     in group.items()
                                      if toks[k] == sample_toks[k]}
                 if len(prospective_group) == len(group) or k == 0:
                     group = prospective_group
@@ -101,19 +101,19 @@ def shorten_paths(path_list):
             _, sample_toks = next(group.iteritems())
             if k == 0:
                 short_form = ''
-            if k == 1:
+            elif k == 1:
                 short_form = sample_toks[0]
             elif k == 2:
                 short_form = sample_toks[0] + os.sep + sample_toks[1]
-            elif k > 2:
+            else:  # k > 2
                 short_form = sample_toks[0] + "..." + os.sep + sample_toks[k-1]
             for idx in group.keys():
                 new_path_list[idx] += short_form + (os.sep if k > 0 else '')
                 del level_idx[idx]
-            recurse_level({idx: toks[k:] for idx, toks in group.iteritems()})
+            recurse_level({idx: toks[k:] for idx, toks in group.items()})
 
     recurse_level(dict(enumerate(path_list)))
-    return [path[:-1] for path in new_path_list]  # trim final sep
+    return [path.rstrip(os.sep) for path in new_path_list]
 
 
 class HTMLDelegate(QStyledItemDelegate):
@@ -125,8 +125,8 @@ class HTMLDelegate(QStyledItemDelegate):
         options = QStyleOptionViewItemV4(option)
         self.initStyleOption(options, index)
 
-        style = QApplication.style() if options.widget is None\
-            else options.widget.style()
+        style = (QApplication.style() if options.widget is None
+                 else options.widget.style())
 
         doc = QTextDocument()
         doc.setHtml(options.text)
@@ -157,43 +157,21 @@ class HTMLDelegate(QStyledItemDelegate):
 class UpDownFilter(QObject):
     """Use with ``installEventFilter`` to get up/down arrow key press signal.
     """
-    up_down = Signal(int)
+    sig_up_down = Signal(int)
 
     def eventFilter(self, src, e):
-        if isinstance(e, QKeyEvent) and e.type() == QEvent.KeyPress:
+        if e.type() == QEvent.KeyPress:
             if e.key() == Qt.Key_Up:
-                self.up_down.emit(-1)
+                self.sig_up_down.emit(-1)
             elif e.key() == Qt.Key_Down:
-                self.up_down.emit(+1)
+                self.sig_up_down.emit(+1)
         return super(UpDownFilter, self).eventFilter(src, e)
 
 
-class HelperToolButton(QToolButton):
-    """ """
-    def __init__(self):
-        QToolButton.__init__(self)
-
-    def setToolTip(self, text):
-        """ """
-        self._tip_text = text
-
-    def toolTip(self):
-        """ """
-        return self._tip_text
-
-    def mousePressEvent(self, event):
-        """ """
-        QToolTip.hideText()
-
-    def mouseReleaseEvent(self, event):
-        """ """
-        QToolTip.showText(self.mapToGlobal(QPoint(0, 0)), self._tip_text)
-
-
 class FileSwitcher(QDialog):
-    close_file = Signal(int)
-    edit_file = Signal(int)
-    edit_line = Signal(int)
+    sig_close_file = Signal(int)
+    sig_edit_file = Signal(int)
+    sig_edit_line = Signal(int)
 
     def __init__(self, parent, tabs, tab_data):
         QDialog.__init__(self, parent)
@@ -217,9 +195,9 @@ class FileSwitcher(QDialog):
         edit_layout = QHBoxLayout()
         self.edit = QLineEdit(self)
         self.up_down_filter = UpDownFilter()
-        self.up_down_filter.up_down.connect(self.handle_up_down)
+        self.up_down_filter.sig_up_down.connect(self.handle_sig_up_down)
         self.edit.installEventFilter(self.up_down_filter)
-        self.edit.returnPressed.connect(self.handle_edit_file)
+        self.edit.returnPressed.connect(self.handle_sig_edit_file)
         self.edit.textChanged.connect(lambda text: self.synchronize(None))
 
         edit_layout.addWidget(self.edit)
@@ -248,20 +226,22 @@ class FileSwitcher(QDialog):
 
         self.listwidget = QListWidget(self)
         self.listwidget.setItemDelegate(HTMLDelegate(self))
-        self.listwidget.itemSelectionChanged\
-                       .connect(self.item_selection_changed)
-        self.listwidget.itemActivated.connect(self.handle_edit_file)
+        self.listwidget.itemSelectionChanged.connect(
+            self.item_selection_changed)
+        self.listwidget.itemActivated.connect(self.handle_sig_edit_file)
         self.original_path = None
         self.original_line_num = None
         self.line_num = -1
         self.line_num_modified_for_path = None
 
-        self.edit_line.connect(self.handle_edit_line)
+        self.sig_edit_line.connect(self.handle_sig_edit_line)
         self.rejected.connect(self.handle_rejection)
-        new_shortcut("Ctrl+W", self, lambda:
-                     self.close_file.emit(
-                         self.filtered_index_to_full(
-                             self.listwidget.currentRow())))
+
+        def close_tab():
+            self.sig_close_file.emit(
+                 self.filtered_index_to_full(
+                     self.listwidget.currentRow()))
+        new_shortcut("Ctrl+W", self, close_tab)
 
         vlayout = QVBoxLayout()
         vlayout.addLayout(edit_layout)
@@ -283,27 +263,34 @@ class FileSwitcher(QDialog):
             parent = parent.parent()
         self.move(left,
                   top + self.tabs.tabBar().geometry().height() + 1)
-        # Note: the +1px on the top is a hack
+        # Note: the +1px on the top makes it look a little better
 
     def filtered_index_to_full(self, idx):
-        # Note we assume idx is valid and the two mappings are valid
+        """ Note we assume idx is valid and the two mappings are valid
+        """
         return self.full_index_to_path.index(self.filtered_index_to_path[idx])
 
-    def handle_up_down(self, up_down):
-        row = self.listwidget.currentRow() + up_down
+    def handle_sig_up_down(self, sig_up_down):
+        row = self.listwidget.currentRow() + sig_up_down
         if 0 <= row < self.listwidget.count():
             self.listwidget.setCurrentRow(row)
 
     def handle_rejection(self):
-        self.edit_line.emit(-1)  # reset line number for current tab, if change
-        if self.original_path is not None:
-            self.edit_file.emit(self.full_index_to_path
-                                .index(self.original_path))
+        self.listwidget.clear()  # this means there is no longer a current_path
 
-    def handle_edit_file(self):
+        # reset line number for current tab, if it was changed
+        self.sig_edit_line.emit(-1)
+
+        # reset tab choice, if it was changed
+        if self.original_path is not None:
+            target_tab_idx = self.sig_edit_file.emit(
+                self.full_index_to_path.index(self.original_path))
+            self.sig_edit_file.emit(target_tab_idx)
+
+    def handle_sig_edit_file(self):
         row = self.listwidget.currentRow()
-        if self.listwidget.count() > 0 and row >= 0:
-            self.edit_file.emit(self.filtered_index_to_full(row))
+        if self.listwidget.count() and row >= 0:
+            self.sig_edit_file.emit(self.filtered_index_to_full(row))
             self.accept()
 
     def current_path(self):
@@ -312,18 +299,17 @@ class FileSwitcher(QDialog):
         else:
             return None
 
-    def handle_edit_line(self, line_num):
+    def handle_sig_edit_line(self, line_num):
         current_path = self.current_path()
 
         # If we've changed path since last doing a goto line,
         # we need to reset that previous file
-        # TODO: I think this may be slightly buggy, (but not super important)
-        if self.line_num_modified_for_path is not None \
-                and current_path != self.line_num_modified_for_path:
+        if (self.line_num_modified_for_path is not None and
+                current_path != self.line_num_modified_for_path):
             if self.line_num_modified_for_path in self.full_index_to_path:
-                self.tabs.widget(self.full_index_to_path.index(
-                                        self.line_num_modified_for_path))\
-                                .go_to_line(self.original_line_num)
+                tab = self.tabs.widget(self.full_index_to_path.index(
+                    self.line_num_modified_for_path))
+                tab.go_to_line(self.original_line_num)
             self.line_num_modified_for_path = None
             self.original_line_num = None
 
@@ -331,7 +317,7 @@ class FileSwitcher(QDialog):
 
         # Apply the line num to the current file, recording the
         # original location if need be
-        if line_num >= 0 and len(self.filtered_index_to_path) > 0:
+        if line_num >= 0 and self.filtered_index_to_path:
             if self.original_line_num is None:
                 self.original_line_num = self.parent().get_current_editor()\
                                                       .get_cursor_line_number()
@@ -341,19 +327,19 @@ class FileSwitcher(QDialog):
 
     def item_selection_changed(self):
         row = self.listwidget.currentRow()
-        if self.listwidget.count() > 0 and row >= 0:
+        if self.listwidget.count() and row >= 0:
             try:
-                self.edit_file.emit(self.filtered_index_to_full(row))
+                self.sig_edit_file.emit(self.filtered_index_to_full(row))
             except ValueError:
                 pass
-            self.edit_line.emit(self.line_num)  # if this is -1 it does nothing
+            self.sig_edit_line.emit(self.line_num)  # if this is -1 it does nothing
 
     def synchronize(self, stack_index):
         """
         stack_index is either an index into the tab list or None.
         """
         count = self.tabs.count()
-        if count == 0:
+        if not count:
             self.accept()
             return
 
@@ -372,8 +358,8 @@ class FileSwitcher(QDialog):
         # get filter text and optional line number
         filter_text = to_text_string(self.edit.text()).lower()
         trying_for_line_num = (':' in filter_text)
-        filter_text, line_num = filter_text.split(':', 1) \
-            if trying_for_line_num else (filter_text, "")
+        filter_text, line_num = (filter_text.split(':', 1)
+                                 if trying_for_line_num else (filter_text, ""))
         try:
             line_num = int(line_num)
         except ValueError:
@@ -381,24 +367,24 @@ class FileSwitcher(QDialog):
 
         # cache line counts if we need now them
         if trying_for_line_num and self.path_to_line_count is None:
-            self.path_to_line_count = \
-                {path: self.tabs.widget(idx).get_line_count()
-                 for idx, path in enumerate(self.full_index_to_path)}
+            self.path_to_line_count = {
+                path: self.tabs.widget(idx).get_line_count()
+                for idx, path in enumerate(self.full_index_to_path)}
 
         self.listwidget.clear()
         self.filtered_index_to_path = []
         for index, path in enumerate(self.full_index_to_path):
             text = to_text_string(self.tabs.tabText(index))
-            if len(filter_text) == 0 or filter_text in text.lower():
-                if len(filter_text) > 0:
+            if not filter_text or filter_text in text.lower():
+                if filter_text:
                     text = text.replace(filter_text,
                                         '<u>' + filter_text + '</u>')
                 text = "<b>" + text + "</b>"
                 if trying_for_line_num:
-                    text += " [" + str(self.path_to_line_count[path]) + " " \
-                                    + _("lines") + "] "
-                text += "<br><span style='font-size:10px'>" \
-                    + self.full_index_to_short_path[index] + "</span>"
+                    text += " [{0:} {1:}]".format(
+                        self.path_to_line_count[path], _("lines"))
+                text += "<br><span style='font-size:10px'>{0:}</span>".format(
+                    self.full_index_to_short_path[index])
                 item = QListWidgetItem(self.tabs.tabIcon(index),
                                        text, self.listwidget)
                 item.setToolTip(path)
@@ -406,10 +392,10 @@ class FileSwitcher(QDialog):
                 self.listwidget.addItem(item)
                 self.filtered_index_to_path.append(path)
 
-        if current_path is not None \
-                and current_path in self.filtered_index_to_path:
-            self.listwidget.setCurrentRow(self.filtered_index_to_path
-                                              .index(current_path))
-        elif len(self.filtered_index_to_path) > 0:
+        if (current_path is not None and
+                current_path in self.filtered_index_to_path):
+            self.listwidget.setCurrentRow(
+                self.filtered_index_to_path.index(current_path))
+        elif self.filtered_index_to_path:
             self.listwidget.setCurrentRow(0)
-        self.edit_line.emit(line_num)  # could be -1
+        self.sig_edit_line.emit(line_num)  # Note that line_num may =-1

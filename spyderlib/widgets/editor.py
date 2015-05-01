@@ -335,14 +335,14 @@ class EditorStack(QWidget):
 
         self.data = []
         fileswitcher_action = create_action(self, _("File switcher..."),
-                        icon=get_icon('filelist.png'),
-                        triggered=self.open_fileswitcher_dlg)
+                icon=get_icon('filelist.png'),
+                triggered=self.open_fileswitcher_dlg)
         copy_to_cb_action = create_action(self, _("Copy path to clipboard"),
                 icon=ima.icon('editcopy'),
                 triggered=lambda:
                 QApplication.clipboard().setText(self.get_current_filename()))
-        self.menu_actions = actions+[None, fileswitcher_action,
-                                     copy_to_cb_action]
+        self.menu_actions = actions + [None, fileswitcher_action,
+                                       copy_to_cb_action]
         self.outlineexplorer = None
         self.inspector = None
         self.unregister_callback = None
@@ -533,11 +533,11 @@ class EditorStack(QWidget):
     @Slot()
     def open_fileswitcher_dlg(self):
         """Open file list management dialog box"""
-        if self.tabs.count() == 0:
+        if not self.tabs.count():
             return
         self.fileswitcher_dlg = dlg = FileSwitcher(self, self.tabs, self.data)
-        dlg.edit_file.connect(self.set_stack_index)
-        dlg.close_file.connect(self.close_file)
+        dlg.sig_edit_file.connect(self.set_stack_index)
+        dlg.sig_close_file.connect(self.close_file)
         dlg.synchronize(self.get_stack_index())
         dlg.exec_()
         self.fileswitcher_dlg = None
