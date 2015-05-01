@@ -26,7 +26,8 @@ def _get_spyderplugins(plugin_path):
             continue
         plist.append(dirname.name)
     for name in plugin_path.files(pattern="*.py"):
-        plist.append(name.namebase)
+        if name.name != "__init__.py":
+            plist.append(name.namebase)
     return plist
 
 
