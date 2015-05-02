@@ -22,17 +22,22 @@ KEY_C1 = KEY_C0 + r"\command"
 
 
 # ability to run spyder-win-post-install outside of bdist_wininst installer
-# copied from pywin32-win-post-install
+# copied from pywin32-win-post-install.py
+# http://pywin32.hg.sourceforge.net/hgweb/pywin32/pywin32/file/default/pywin32_postinstall.py
 try:
     # When this script is run from inside the bdist_wininst installer,
     # file_created() and directory_created() are additional builtin
     # functions which write lines to Python23\pywin32-install.log. This is
     # a list of actions for the uninstaller, the format is inspired by what
     # the Wise installer also creates.
+    # https://docs.python.org/2/distutils/builtdist.html#the-postinstallation-script
     file_created
     is_bdist_wininst = True
 except NameError:
     is_bdist_wininst = False # we know what it is not - but not what it is :)
+    # file_created() and directory_created() functions do nothing if post install script
+    # isn't run from bdist_wininst installer, instead if shortcuts and start menu directory
+    # exist, they are removed when the post install script is called with the -remote option
     def file_created(file):
         pass
     def directory_created(directory):
