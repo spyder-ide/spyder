@@ -900,8 +900,11 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     def show_completion_list(self, completions, completion_text="",
                              automatic=True):
         """Display the possible completions"""
-        c = completions
-        if len(c) == 0 or (len(c) == 1 and c[0][0] == completion_text):
+        if not completions:
+            return
+        if not isinstance(completions[0], tuple):
+            completions = [(c, '') for c in completions]
+        if len(completions) == 1 and completions[0][0] == completion_text:
             return
         self.completion_text = completion_text
         # Sorting completion list (entries starting with underscore are 
