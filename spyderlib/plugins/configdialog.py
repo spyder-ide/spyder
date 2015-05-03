@@ -22,7 +22,7 @@ from spyderlib.qt.compat import (to_qvariant, from_qvariant,
                                  getexistingdirectory, getopenfilename)
 
 from spyderlib.baseconfig import (_, running_in_mac_app, LANGUAGE_CODES,
-                                  get_available_translations, save_lang_conf)
+                                  save_lang_conf)
 from spyderlib.config import CONF
 from spyderlib.guiconfig import (CUSTOM_COLOR_SCHEME_NAME,
                                  set_default_color_scheme)
@@ -91,7 +91,6 @@ class ConfigPage(QWidget):
             self.save_to_conf()
             if self.apply_callback is not None:
                 self.apply_callback()
-            self.set_modified(False)
 
             # Since the language cannot be retrieved by CONF and the language
             # is needed before loading CONF, this is an extra method needed to
@@ -104,6 +103,7 @@ class ConfigPage(QWidget):
                 if restart_option in self.changed_options:
                     self.prompt_restart_required()
                     break  # Ensure a single popup is displayed
+            self.set_modified(False)
 
     def load_from_conf(self):
         """Load settings from configuration file"""
@@ -753,8 +753,7 @@ class MainConfigPage(GeneralConfigPage):
         prompt_box = newcb(_("Prompt when exiting"), 'prompt_on_exit')
 
         # Language chooser
-        langs = get_available_translations()
-        choices = list(zip([LANGUAGE_CODES[key] for key in langs], langs))
+        choices = sorted([(val, key) for key, val in LANGUAGE_CODES.items()])
         language_combo = self.create_combobox(_('Language'), choices,
                                               'interface_language',
                                               restart=True)

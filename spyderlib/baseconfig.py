@@ -205,10 +205,11 @@ def get_image_path(name, default="not_found.png"):
 #==============================================================================
 # Translations
 #==============================================================================
-LANG_FILE = osp.join(get_conf_path(), 'langconfig')
+LANG_FILE = get_conf_path('langconfig')
 DEFAULT_LANGUAGE = 'en'
 
-# This needs to be updated every time a new language is added to spyder.
+# This needs to be updated every time a new language is added to spyder, and is
+# used by the Preferences configuration to populate the Language QComboBox
 LANGUAGE_CODES = {'en': u'English',
                   'fr': u'Français',
                   'es': u'Español',
@@ -219,7 +220,9 @@ LANGUAGE_CODES = {'en': u'English',
 def get_available_translations():
     """
     List available translations for spyder based on the folders found in the
-    locale folder.
+    locale folder. This function checks if LANGUAGE_CODES contain the same
+    information that is found in the 'locale' folder to ensure that when a new
+    language is added, LANGUAGE_CODES is updated.
     """
     locale_path = get_module_data_path("spyderlib", relpath="locale",
                                        attr_name='LOCALEPATH')
