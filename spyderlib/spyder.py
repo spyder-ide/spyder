@@ -118,7 +118,7 @@ QApplication.processEvents()
 #==============================================================================
 from spyderlib import __version__, __project_url__, __forum_url__, get_versions
 from spyderlib.baseconfig import (get_conf_path, get_module_data_path,
-                                  get_module_source_path, STDERR, DEBUG, DEV,
+                                  get_module_source_path, STDERR, DEBUG,
                                   debug_print, TEST, SUBFOLDER, MAC_APP_NAME,
                                   running_in_mac_app, get_module_path)
 from spyderlib.config import CONF, EDIT_EXT, IMPORT_EXT, OPEN_FILES_PORT
@@ -149,7 +149,6 @@ except ImportError:
 from spyderlib.utils.qthelpers import (create_action, add_actions, get_icon,
                                        get_std_icon, add_shortcut_to_tooltip,
                                        create_module_bookmark_actions,
-                                       create_bookmark_action,
                                        create_program_action, DialogManager,
                                        keybinding, create_python_script_action,
                                        file_uri)
@@ -985,7 +984,7 @@ class MainWindow(QMainWindow):
                 spyder_doc = 'http://pythonhosted.org/spyder'
             else:
                 spyder_doc = file_uri(spyder_doc)
-            doc_action = create_action( self, _("Spyder documentation"), shortcut="F1", 
+            doc_action = create_action(self, _("Spyder documentation"), shortcut="F1", 
                                        icon=get_std_icon('DialogHelpButton'),
                                        triggered=lambda : programs.start_file(spyder_doc))
 
@@ -1242,7 +1241,6 @@ class MainWindow(QMainWindow):
         # know why because this doesn't happen when started from the terminal),
         # so we need to resort to this hack to make it appear.
         if running_in_mac_app():
-            import subprocess
             idx = __file__.index(MAC_APP_NAME)
             app_path = __file__[:idx]
             subprocess.call(['open', app_path + MAC_APP_NAME])
