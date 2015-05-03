@@ -2743,6 +2743,9 @@ class MainWindow(QMainWindow):
             startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
             shell = False
         else:
+            # This environment variable is needed so that the new python
+            # process spawned with Popen sets this as the default encoding
+            env['PYTHONIOENCODING'] = 'utf-8'
             startupinfo = None
             shell = True
 
