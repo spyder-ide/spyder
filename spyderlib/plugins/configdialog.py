@@ -98,8 +98,10 @@ class ConfigPage(QWidget):
             if getattr(self, 'save_lang', False):
                 self.save_lang()
 
-            if self.options_restart:
-                self.prompt_restart_required()
+            for restart_option in self.restart_options:
+                if restart_option in self.changed_options:
+                    self.prompt_restart_required()
+                    break
 
             self.set_modified(False)
     
@@ -249,7 +251,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         self.coloredits = {}
         self.scedits = {}
         self.changed_options = set()
-        self.options_restart = dict()  # Dict to store name and localized text
+        self.restart_options = dict()  # Dict to store name and localized text
         self.default_button_group = None
         
     def apply_settings(self, options):
@@ -314,7 +316,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             combobox.currentIndexChanged.connect(lambda _foo, opt=option:
                                                  self.has_been_modified(opt))
             if combobox.restart_required:
-                self.options_restart[option] = combobox.label_text
+                self.restart_options[option] = combobox.label_text
 
         for (fontbox, sizebox), option in list(self.fontboxes.items()):
             font = self.get_font(option)
@@ -389,10 +391,6 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
     def has_been_modified(self, option):
         self.set_modified(True)
         self.changed_options.add(option)
-
-        # If the option requires restart, prompt the user
-#        if option in self.options_restart:
-#            self.prompt_restart_required(option)
 
     def create_checkbox(self, text, option, default=NoDefault,
                         tip=None, msg_warning=None, msg_info=None,
@@ -684,7 +682,9 @@ class GeneralConfigPage(SpyderConfigPage):
 
     def prompt_restart_required(self):
         """Prompt the user with a request to restart."""
-        options = self.options_restart
+        restart_opt = self.restart_options
+        changed_opt = self.changed_options
+        options = [restart_opt[o] for o in changed_opt if o in restart_opt]
 
         if len(options) == 1:
             msg_start = _("Spyder needs to restart to change the following "
@@ -695,8 +695,8 @@ class GeneralConfigPage(SpyderConfigPage):
         msg_end = _("Do you wish to restart now?")
 
         msg_options = ""
-        for option, localized_option in options.items():
-            msg_options += "<li>{0}</li>".format(localized_option)
+        for option in options:
+            msg_options += "<li>{0}</li>".format(option)
 
         msg_title = _("Information")
         msg = "{0}<ul>{1}</ul><br>{2}".format(msg_start, msg_options, msg_end)
