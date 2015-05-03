@@ -137,9 +137,9 @@ class TabFilter(QObject):
 
         if event.button() == Qt.RightButton:
             if self.from_index == -1:
-                self.show_nontab_menu()
+                self.show_nontab_menu(event)
             else:
-                self.show_tab_menu()
+                self.show_tab_menu(event)
 
     def tab_moved(self, event):
         """Method called when a tab from a QTabBar has been moved."""
@@ -183,13 +183,14 @@ class TabFilter(QObject):
             self.main.tabify_plugins(plugins[i], plugins[i+1])
         from_plugin.dockwidget.raise_()
 
-    def show_tab_menu(self):
+    def show_tab_menu(self, event):
         """Show the context menu assigned to tabs."""
-        pass
+        self.show_nontab_menu(event)
 
-    def show_nontab_menu(self):
+    def show_nontab_menu(self, event):
         """Show the context menu assigned to nontabs section."""
-        pass
+        menu = self.main.createPopupMenu()
+        menu.exec_(self.dock_tabbar.mapToGlobal(event.pos()))
 
 
 class SpyderDockWidget(QDockWidget):
