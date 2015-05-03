@@ -65,8 +65,6 @@ class TabFilter(QObject):
     This filter also holds the methods needed for the detection of a drag and
     the movement of tabs.
     """
-    sig_tab_moved = Signal(int, int)
-
     def __init__(self, dock_tabbar, main):
         QObject.__init__(self)
         self.dock_tabbar = dock_tabbar
@@ -84,8 +82,8 @@ class TabFilter(QObject):
 
     def _get_plugins(self):
         """
-        Get a list of all the plugins references in the QTabBar to which this
-        event filter was attached.
+        Get a list of all plugin references in the QTabBar to which this
+        event filter is attached.
         """
         plugins = []
         for index in range(self.dock_tabbar.count()):
@@ -95,7 +93,9 @@ class TabFilter(QObject):
 
     def _fix_cursor(self, from_index, to_index):
         """Fix mouse cursor position to adjust for different tab sizes."""
+        # The direction is +1 (moving to the right) or -1 (moving to the left)
         direction = abs(to_index - from_index)/(to_index - from_index)
+
         tab_width = self.dock_tabbar.tabRect(to_index).width()
         tab_x_min = self.dock_tabbar.tabRect(to_index).x()
         tab_x_max = tab_x_min + tab_width
@@ -114,7 +114,11 @@ class TabFilter(QObject):
             cursor.setPos(new_pos)
 
     def eventFilter(self,  obj,  event):
-        """Filter mouse press events."""
+        """Filter mouse press events.
+
+        Events that are captured and not propagated return True. Events that
+        are not captured and are propagated return False.
+        """
         event_type = event.type()
         if event_type == QEvent.MouseButtonPress:
             self.tab_pressed(event)
@@ -155,7 +159,6 @@ class TabFilter(QObject):
 
         from_index, to_index = self.from_index, self.to_index
         if from_index != to_index and from_index != -1 and to_index != -1:
-            self.sig_tab_moved.emit(from_index, to_index)
             self.move_tab(from_index, to_index)
             self._fix_cursor(from_index, to_index)
             self.from_index = to_index
@@ -182,9 +185,11 @@ class TabFilter(QObject):
 
     def show_tab_menu(self):
         """Show the context menu assigned to tabs."""
+        pass
 
     def show_nontab_menu(self):
         """Show the context menu assigned to nontabs section."""
+        pass
 
 
 class SpyderDockWidget(QDockWidget):
