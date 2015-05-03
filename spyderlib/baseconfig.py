@@ -256,13 +256,13 @@ def get_interface_language():
         language = DEFAULT_LANGUAGE
     else:
         spyder_languages = get_available_translations()
-        for spyder_language in spyder_languages:
-            if locale_language == spyder_language:
+        for lang in spyder_languages:
+            if locale_language == lang:
                 language = locale_language
                 break
-            elif locale_language.startswith(spyder_language) or\
-                    spyder_language.startswith(locale_language):
-                language = spyder_language
+            elif locale_language.startswith(lang) or \
+              lang.startswith(locale_language):
+                language = lang
                 break
 
     return language
@@ -298,8 +298,8 @@ def get_translation(modname, dirname=None):
 
     # fixup environment var LANG, LANGUAGE
     language = load_lang_conf()
-    os.environ["LANG"] = language      # Works in windows
-    os.environ["LANGUAGE"] = language  # Works in ubuntu
+    os.environ["LANG"] = language      # Works on Windows
+    os.environ["LANGUAGE"] = language  # Works on Linux
 
     import gettext
     try:

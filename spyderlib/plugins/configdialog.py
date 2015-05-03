@@ -91,6 +91,8 @@ class ConfigPage(QWidget):
             self.save_to_conf()
             if self.apply_callback is not None:
                 self.apply_callback()
+            self.set_modified(False)
+
             # Since the language cannot be retrieved by CONF and the language
             # is needed before loading CONF, this is an extra method needed to
             # ensure that when changes are applied, they are copied to a
@@ -101,10 +103,8 @@ class ConfigPage(QWidget):
             for restart_option in self.restart_options:
                 if restart_option in self.changed_options:
                     self.prompt_restart_required()
-                    break
+                    break  # Ensure a single popup is displayed
 
-            self.set_modified(False)
-    
     def load_from_conf(self):
         """Load settings from configuration file"""
         raise NotImplementedError
@@ -682,9 +682,9 @@ class GeneralConfigPage(SpyderConfigPage):
 
     def prompt_restart_required(self):
         """Prompt the user with a request to restart."""
-        restart_opt = self.restart_options
-        changed_opt = self.changed_options
-        options = [restart_opt[o] for o in changed_opt if o in restart_opt]
+        restart_opts = self.restart_options
+        changed_opts = self.changed_options
+        options = [restart_opts[o] for o in changed_opts if o in restart_opts]
 
         if len(options) == 1:
             msg_start = _("Spyder needs to restart to change the following "
