@@ -93,10 +93,14 @@ class ConfigPage(QWidget):
                 self.apply_callback()
             # Since the language cannot be retrieved by CONF and the language
             # is needed before loading CONF, this is an extra method needed to
-            # ensure when changes are applied, they are copied to a specific
-            # file storing the language value.
+            # ensure that when changes are applied, they are copied to a
+            # specific file storing the language value.
             if getattr(self, 'save_lang', False):
                 self.save_lang()
+
+            if self.options_restart:
+                self.prompt_restart_required()
+
             self.set_modified(False)
     
     def load_from_conf(self):
@@ -245,7 +249,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         self.coloredits = {}
         self.scedits = {}
         self.changed_options = set()
-        self.options_restart = set()
+        self.options_restart = dict()  # Dict to store name and localized text
         self.default_button_group = None
         
     def apply_settings(self, options):
@@ -310,8 +314,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             combobox.currentIndexChanged.connect(lambda _foo, opt=option:
                                                  self.has_been_modified(opt))
             if combobox.restart_required:
-                self.options_restart.add(option)
-                
+                self.options_restart[option] = combobox.label_text
+
         for (fontbox, sizebox), option in list(self.fontboxes.items()):
             font = self.get_font(option)
             fontbox.setCurrentFont(font)
@@ -387,8 +391,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         self.changed_options.add(option)
 
         # If the option requires restart, prompt the user
-        if option in self.options_restart:
-            self.prompt_restart_required(option)
+#        if option in self.options_restart:
+#            self.prompt_restart_required(option)
 
     def create_checkbox(self, text, option, default=NoDefault,
                         tip=None, msg_warning=None, msg_info=None,
@@ -611,6 +615,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         widget = QWidget(self)
         widget.setLayout(layout)
         combobox.restart_required = restart
+        combobox.label_text = text
         return widget
     
     def create_fontgroup(self, option=None, text=None,
@@ -677,19 +682,32 @@ class GeneralConfigPage(SpyderConfigPage):
     def apply_settings(self, options):
         raise NotImplementedError
 
-    def apply_restart_actions(self, option):
-        """Actions to be applied if the user accepts restarting right away."""
-        raise NotImplementedError
-
-    def prompt_restart_required(self, option):
+    def prompt_restart_required(self):
         """Prompt the user with a request to restart."""
-        answer = QMessageBox.information(self, _("Information"),
-                                         _("To change this setting Spyder "
-                                           "needs to restart.\n\n"
-                                           "Do you wish to restart now?\n"),
+        options = self.options_restart
+
+        if len(options) == 1:
+            msg_start = _("Spyder needs to restart to change the following "
+                          "setting:")
+        else:
+            msg_start = _("Spyder needs to restart to change the following "
+                          "settings:")
+        msg_end = _("Do you wish to restart now?")
+
+        msg_options = ""
+        for option, localized_option in options.items():
+            msg_options += "<li>{0}</li>".format(localized_option)
+
+        msg_title = _("Information")
+        msg = "{0}<ul>{1}</ul><br>{2}".format(msg_start, msg_options, msg_end)
+        answer = QMessageBox.information(self, msg_title, msg,
                                          QMessageBox.Yes | QMessageBox.No)
         if answer == QMessageBox.Yes:
-            self.apply_restart_actions(option)
+            self.restart()
+
+    def restart(self):
+        """Restart Spyder."""
+        self.main.restart()
 
 
 class MainConfigPage(GeneralConfigPage):
@@ -814,12 +832,6 @@ class MainConfigPage(GeneralConfigPage):
 
     def apply_settings(self, options):
         self.main.apply_settings()
-
-    def apply_restart_actions(self, option):
-        self.apply_changes()
-        if option == 'interface_language':
-            self.save_lang()
-        self.main.restart()
 
     def save_lang(self):
         """Get selected language setting and save to '.langconfig file'."""
