@@ -115,9 +115,9 @@ For more details on supported platforms, please refer to our
 
 ## Dependencies
 
-*Imnportant note*: Most if not all the dependencies listed below come
-with Python(x,y), WinPython and Anaconda, so you don't need to install
-them separately when installing one of these scientific Python
+**Imnportant note**: Most if not all the dependencies listed below come
+with *Python(x,y)*, *WinPython* and *Anaconda*, so you don't need to install
+them separately when installing one of these Scientific Python
 distributions.
 
 ### Build dependencies
