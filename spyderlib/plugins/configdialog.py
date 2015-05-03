@@ -834,7 +834,9 @@ class MainConfigPage(GeneralConfigPage):
         self.main.apply_settings()
 
     def save_lang(self):
-        """Get selected language setting and save to '.langconfig file'."""
+        """
+        Get selected language setting and save to language configuration file.
+        """
         for combobox, (option, _default) in list(self.comboboxes.items()):
             if option == 'interface_language':
                 data = combobox.itemData(combobox.currentIndex())
