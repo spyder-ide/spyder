@@ -23,7 +23,7 @@ from spyderlib.qt import PYQT5
 from spyderlib.qt.QtGui import (QDockWidget, QWidget, QShortcut, QCursor,
                                 QKeySequence, QMainWindow, QApplication,
                                 QTabBar)
-from spyderlib.qt.QtCore import Qt, Signal, QObject, QEvent
+from spyderlib.qt.QtCore import Qt, Signal, QObject, QEvent, QPoint
 
 
 # Stdlib imports
@@ -65,13 +65,15 @@ class TabFilter(QObject):
     This filter also holds the methods needed for the detection of a drag and
     the movement of tabs.
     """
+    sig_tab_moved = Signal(int, int)
+
     def __init__(self, dock_tabbar, main):
         QObject.__init__(self)
         self.dock_tabbar = dock_tabbar
         self.main = main
         self.moving = False
-        self.start_tab = None
-        self.end_tab = None
+        self.from_index = None
+        self.to_index = None
 
     # Helper methods
     def _get_plugin(self, index):
@@ -91,6 +93,26 @@ class TabFilter(QObject):
             plugins.append(plugin)
         return plugins
 
+    def _fix_cursor(self, from_index, to_index):
+        """Fix mouse cursor position to adjust for different tab sizes."""
+        direction = abs(to_index - from_index)/(to_index - from_index)
+        tab_width = self.dock_tabbar.tabRect(to_index).width()
+        tab_x_min = self.dock_tabbar.tabRect(to_index).x()
+        tab_x_max = tab_x_min + tab_width
+        previous_width = self.dock_tabbar.tabRect(to_index - direction).width()
+
+        delta = previous_width - tab_width
+        if delta > 0:
+            delta = delta * direction
+        else:
+            delta = 0
+        cursor = QCursor()
+        pos = self.dock_tabbar.mapFromGlobal(cursor.pos())
+        x, y = pos.x(), pos.y()
+        if x < tab_x_min or x > tab_x_max:
+            new_pos = self.dock_tabbar.mapToGlobal(QPoint(x + delta, y))
+            cursor.setPos(new_pos)
+
     def eventFilter(self,  obj,  event):
         """Filter mouse press events."""
         event_type = event.type()
@@ -107,45 +129,62 @@ class TabFilter(QObject):
 
     def tab_pressed(self, event):
         """Method called when a tab from a QTabBar has been pressed."""
-        if event.button() == Qt.LeftButton:
-            self.start_tab = self.dock_tabbar.tabAt(event.pos())
+        self.from_index = self.dock_tabbar.tabAt(event.pos())
+
+        if event.button() == Qt.RightButton:
+            if self.from_index == -1:
+                self.show_nontab_menu()
+            else:
+                self.show_tab_menu()
 
     def tab_moved(self, event):
         """Method called when a tab from a QTabBar has been moved."""
         # If the left button isn't pressed anymore then return
         if not event.buttons() & Qt.LeftButton:
+            self.to_index = None
             return
-        if not self.moving:
+
+        self.to_index = self.dock_tabbar.tabAt(event.pos())
+
+        if not self.moving and self.from_index != -1 and self.to_index != -1:
             QApplication.setOverrideCursor(Qt.ClosedHandCursor)
             self.moving = True
 
-        pos = event.pos()
-        self.end_tab = self.dock_tabbar.tabAt(pos)
-        if self.end_tab < 0:
-            self.end_tab = self.start_tab
+        if self.to_index == -1:
+            self.to_index = self.from_index
 
-        if self.start_tab != self.end_tab:
-            self.move_tab(self.start_tab, self.end_tab)
-            self.start_tab = self.end_tab
+        from_index, to_index = self.from_index, self.to_index
+        if from_index != to_index and from_index != -1 and to_index != -1:
+            self.sig_tab_moved.emit(from_index, to_index)
+            self.move_tab(from_index, to_index)
+            self._fix_cursor(from_index, to_index)
+            self.from_index = to_index
 
     def tab_released(self, event):
         """Method called when a tab from a QTabBar has been released."""
         QApplication.restoreOverrideCursor()
         self.moving = False
 
-    def move_tab(self, start_tab, end_tab):
-        """Move a tab from a start to and end position."""
+    def move_tab(self, from_index, to_index):
+        """Move a tab from a given index to a given index position."""
         plugins = self._get_plugins()
-        start_plugin = self._get_plugin(start_tab)
-        end_plugin = self._get_plugin(end_tab)
+        from_plugin = self._get_plugin(from_index)
+        to_plugin = self._get_plugin(to_index)
 
-        start = plugins.index(start_plugin)
-        end = plugins.index(end_plugin)
-        plugins[start], plugins[end] = plugins[end], plugins[start]
+        from_idx = plugins.index(from_plugin)
+        to_idx = plugins.index(to_plugin)
+
+        plugins[from_idx], plugins[to_idx] = plugins[to_idx], plugins[from_idx]
 
         for i in range(len(plugins)-1):
             self.main.tabify_plugins(plugins[i], plugins[i+1])
-        start_plugin.dockwidget.raise_()
+        from_plugin.dockwidget.raise_()
+
+    def show_tab_menu(self):
+        """Show the context menu assigned to tabs."""
+
+    def show_nontab_menu(self):
+        """Show the context menu assigned to nontabs section."""
 
 
 class SpyderDockWidget(QDockWidget):
