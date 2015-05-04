@@ -296,6 +296,11 @@ class DirView(QTreeView):
                                triggered=lambda fnames=fnames:
                                self.open_interpreter(fnames))
         actions.append(action)
+        _title = _("Find from here...")
+        action = create_action(self, _title, icon="find.png",
+                               triggered=lambda:
+                               self.find_from_here(fnames))
+        actions.append(action)
         return actions
         
     def create_context_menu_actions(self):
@@ -437,7 +442,12 @@ class DirView(QTreeView):
         """Open interpreter"""
         for path in sorted(fnames):
             self.parent_widget.emit(SIGNAL("open_interpreter(QString)"), path)
-        
+
+    def find_from_here(self, fnames):
+        """Switch to find dialog"""
+        self.parent_widget.main.findinfiles.find_options.set_directory(fnames[0])
+        self.parent_widget.main.findinfiles.findinfiles_callback()
+
     def run(self, fnames=None):
         """Run Python scripts"""
         if fnames is None:
