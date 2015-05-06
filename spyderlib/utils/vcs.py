@@ -113,22 +113,35 @@ def get_hg_revision(repopath):
 
 def get_git_revision(repopath):
     """Return Git revision for the repository located at repopath
-       Result is the latest commit hash, with None on error
+       Result is a tuple (latest commit hash, branch), with None values on
+       error
     """
     try:
         git = programs.find_program('git')
         assert git is not None and osp.isdir(osp.join(repopath, '.git'))
+
+        # Revision
         commit = subprocess.Popen([git, 'rev-parse', '--short', 'HEAD'],
                                   stdout=subprocess.PIPE,
                                   cwd=repopath).communicate()
+        commit = commit[0][:-1]
         if PY3:
-            commit = str(commit[0][:-1])
-            commit = commit[2:-1]
+            commit = str(commit)[2:-1]
+
+        # Branch
+        branches = subprocess.Popen([git, 'branch'],
+                                     stdout=subprocess.PIPE,
+                                     cwd=repopath).communicate()
+        branches = branches[0].split('\n')
+        active_branch = [b for b in branches if b.startswith('*')]
+        if len(active_branch) != 1:
+            branch = None
         else:
-            commit = commit[0][:-1]
-        return commit
+            branch = active_branch[0].split(None, 1)[1]
+
+        return commit, branch
     except (subprocess.CalledProcessError, AssertionError, AttributeError):
-        return None
+        return None, None
 
 
 if __name__ == '__main__':

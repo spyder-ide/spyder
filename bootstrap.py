@@ -100,8 +100,8 @@ if sys.excepthook != sys.__excepthook__:
 
 # --- Continue
 
-from spyderlib.utils.vcs import get_hg_revision
-print("Revision %s:%s, Branch: %s" % get_hg_revision(DEVPATH))
+from spyderlib.utils.vcs import get_git_revision
+print("Revision %s, Branch: %s" % get_git_revision(DEVPATH))
 
 sys.path.insert(0, DEVPATH)
 print("01. Patched sys.path with %s" % DEVPATH)
