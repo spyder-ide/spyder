@@ -132,7 +132,10 @@ def get_git_revision(repopath):
         branches = subprocess.Popen([git, 'branch'],
                                      stdout=subprocess.PIPE,
                                      cwd=repopath).communicate()
-        branches = branches[0].split('\n')
+        branches = branches[0]
+        if PY3:
+            branches = str(branches)
+        branches = branches.split('\n')
         active_branch = [b for b in branches if b.startswith('*')]
         if len(active_branch) != 1:
             branch = None
