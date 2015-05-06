@@ -477,9 +477,12 @@ class PluginManager(QObject):
         Post a message to the main window status bar with a timeout in ms
         """
         if self.editor_widget:
-            statusbar = self.editor_widget.window().statusBar()
-            statusbar.showMessage(message, timeout)
-            QApplication.processEvents()
+            try:
+                statusbar = self.editor_widget.window().statusBar()
+                statusbar.showMessage(message, timeout)
+                QApplication.processEvents()
+            except AttributeError:
+                pass
 
 
 def memoize(obj):
