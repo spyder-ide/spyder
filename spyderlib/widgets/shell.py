@@ -884,6 +884,9 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
         text = to_text_string(self.get_current_line_to_cursor())
         last_obj = self.get_last_obj()
         
+        if not text:
+            return
+
         if text.startswith('import '):
             obj_list = self.get_module_completion(text)
             words = text.split(' ')
