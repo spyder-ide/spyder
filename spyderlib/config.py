@@ -530,10 +530,8 @@ DEFAULTS = [
               'editor/rotate kill ring': 'Shift+Meta+Y',
               'editor/kill previous word': 'Meta+Backspace',
               'editor/kill next word': 'Meta+D',
-              'editor/start of document': 'Meta+Less' if not MAC else \
-                                          'Ctrl+Up',
-              'editor/end of document': 'Meta+Greater' if not MAC else \
-                                        'Ctrl+Down',
+              'editor/start of document': 'Ctrl+Up',
+              'editor/end of document': 'Ctrl+Down',
               # -- In widgets/editor
               'editor/inspect current object': 'Ctrl+I',
               'editor/go to line': 'Ctrl+L',
