@@ -1270,9 +1270,6 @@ class MainWindow(QMainWindow):
         if not self.light:
             # Update lock status of dockidgets (panes)
             self.lock_dockwidgets_action.setChecked(self.dockwidgets_locked)
-
-            # Update lock status of dockidgets (panes)
-            self.lock_dockwidgets_action.setChecked(self.dockwidgets_locked)
             self.apply_panes_settings()
 
             # Hide Internal Console so that people don't use it instead of
