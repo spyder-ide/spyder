@@ -185,6 +185,7 @@ DEFAULTS = [
               # settings within the "light mode")
               'lightwindow/prefs_dialog_size': (745, 411),
 
+              'show_status_bar': True,
               'memory_usage/enable': True,
               'memory_usage/timeout': 2000,
               'cpu_usage/enable': False,

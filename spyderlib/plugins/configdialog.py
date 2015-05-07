@@ -722,6 +722,8 @@ class MainConfigPage(GeneralConfigPage):
 
         # --- Status bar
         sbar_group = QGroupBox(_("Status bar"))
+        show_status_bar = newcb(_("Show status bar"), 'show_status_bar')
+
         memory_box = newcb(_("Show memory usage every"), 'memory_usage/enable',
                            tip=self.main.mem_status.toolTip())
         memory_spin = self.create_spinbox("", " ms", 'memory_usage/timeout',
@@ -743,7 +745,18 @@ class MainConfigPage(GeneralConfigPage):
         cpu_layout.addWidget(cpu_spin)
         cpu_layout.setEnabled(self.main.cpu_status.is_supported())
         
+        show_status_bar_option = self.get_option('show_status_bar')
+        show_status_bar.toggled.connect(memory_box.setEnabled)
+        show_status_bar.toggled.connect(memory_spin.setEnabled)
+        show_status_bar.toggled.connect(cpu_box.setEnabled)
+        show_status_bar.toggled.connect(cpu_spin.setEnabled)
+        memory_box.setEnabled(show_status_bar_option)
+        memory_spin.setEnabled(show_status_bar_option)
+        cpu_box.setEnabled(show_status_bar_option)
+        cpu_spin.setEnabled(show_status_bar_option)
+
         sbar_layout = QVBoxLayout()
+        sbar_layout.addWidget(show_status_bar)
         sbar_layout.addLayout(memory_layout)
         sbar_layout.addLayout(cpu_layout)
         sbar_group.setLayout(sbar_layout)
