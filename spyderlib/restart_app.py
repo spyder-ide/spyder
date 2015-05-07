@@ -89,11 +89,12 @@ def main():
     spyder_args = os.environ.pop('SPYDER_ARGS', None)
     pid = os.environ.pop('SPYDER_PID', None)
     is_bootstrap = os.environ.pop('SPYDER_IS_BOOTSTRAP', None)
+    reset = os.environ.pop('SPYDER_RESET', None)
 
     # Get the spyder base folder based on this file
     spyder_folder = osp.split(osp.dirname(osp.abspath(__file__)))[0]
 
-    if any([not spyder_args, not pid, not is_bootstrap]):
+    if any([not spyder_args, not pid, not is_bootstrap, not reset]):
         error = "This script can only be called from within a Spyder instance"
         raise RuntimeError(error)
 
@@ -102,6 +103,7 @@ def main():
     is_bootstrap = ast.literal_eval(is_bootstrap)
     pid = int(pid)
     args = ast.literal_eval(spyder_args)
+    reset = ast.literal_eval(reset)
 
     # Enforce the --new-instance flag when running spyder
     if '--new-instance' not in args:
@@ -110,8 +112,15 @@ def main():
         else:
             args.append('--new-instance')
 
-    # Arrange arguments to be passed to the restarter subprocess
+    # Create the arguments needed for reseting
+    if '--' in args:
+        args_reset = ['--', '--reset']
+    else:
+        args_reset = ['--reset']
+
+    # Arrange arguments to be passed to the restarter and reset subprocess
     args = ' '.join(args)
+    args_reset = ' '.join(args_reset)
 
     # Get python excutable running this script
     python = sys.executable
@@ -135,6 +144,28 @@ def main():
         time.sleep(0.2)  # Throttling control
 
     env = os.environ.copy()
+
+    # Reset spyder if needed
+    if reset:
+        # Build reset command
+        command_reset = '"{0}" "{1}" {2}'.format(python, spyder, args_reset)
+
+        # Try to reset
+        try:
+            p = subprocess.Popen(command_reset, shell=shell)
+            pid_reset = p.pid
+        except Exception as error:
+            print(command)
+            print(error)
+            time.sleep(15)
+
+        # Wait for reset process to end before restarting
+        while True:
+            if not is_pid_running(pid_reset):
+                break
+            time.sleep(0.2)  # Throttling control
+    
+    # Try to restart
     try:
         subprocess.Popen(command, shell=shell, env=env)
     except Exception as error:
