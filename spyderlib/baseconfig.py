@@ -14,6 +14,7 @@ sip API incompatibility issue in spyderlib's non-gui modules)
 
 from __future__ import print_function
 
+import codecs
 import locale
 import os.path as osp
 import os
@@ -40,7 +41,8 @@ TEST = os.environ.get('SPYDER_TEST')
 #==============================================================================
 # Debug helpers
 #==============================================================================
-STDOUT = sys.stdout
+# This is needed after restarting and using debug_print
+STDOUT = sys.stdout if PY3 else codecs.getwriter('utf-8')(sys.stdout)
 STDERR = sys.stderr
 def _get_debug_env():
     debug_env = os.environ.get('SPYDER_DEBUG', '')
@@ -53,7 +55,13 @@ def debug_print(*message):
     """Output debug messages to stdout"""
     if DEBUG:
         ss = STDOUT
-        print(*message, file=ss)
+        if PY3:
+            # This is needed after restarting and using debug_print
+            for m in message:
+                ss.buffer.write(str(m).encode('utf-8'))
+            print('', file=ss)
+        else:
+            print(*message, file=ss)
 
 #==============================================================================
 # Configuration paths
