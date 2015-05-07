@@ -350,6 +350,7 @@ class MainWindow(QMainWindow):
 
         # Actions
         self.lock_dockwidgets_action = None
+        self.toggle_toolbars_action = None
         self.close_dockwidget_action = None
         self.find_action = None
         self.find_next_action = None
@@ -397,6 +398,7 @@ class MainWindow(QMainWindow):
 
         # Toolbars
         self.toolbarslist = []
+        self.visible_toolbars = []
         self.main_toolbar = None
         self.main_toolbar_actions = []
         self.file_toolbar = None
@@ -1125,7 +1127,11 @@ class MainWindow(QMainWindow):
                                          self.close_dockwidget_action,
                                          self.maximize_action,
                                          None))
+            self.toggle_toolbars_action = create_action(self,
+                                    _("Toggle toolbar visibility"),
+                                    toggled=self.toggle_toolbars)
             self.view_menu.addMenu(self.toolbars_menu)
+            self.view_menu.addAction(self.toggle_toolbars_action)
             add_actions(self.view_menu, (None,
                                          self.quick_layout_menu,
                                          self.toggle_previous_layout_action,
@@ -1382,6 +1388,7 @@ class MainWindow(QMainWindow):
         """Tabify plugin dockwigdets"""
         self.tabifyDockWidget(first.dockwidget, second.dockwidget)
 
+    # --- Layouts 
     def setup_layout(self, default=False):
         """Setup window layout"""
         prefix = ('lightwindow' if self.light else 'window') + '/'
@@ -1908,6 +1915,19 @@ class MainWindow(QMainWindow):
         for plugin in self.widgetlist:
             action = plugin.toggle_view_action
             action.setChecked(plugin.dockwidget.isVisible())
+
+    # --- Other
+    def toggle_toolbars(self, value):
+        """ """
+        if not value:
+            self.visible_toolbars = []
+            for toolbar in self.toolbarslist:
+                if toolbar.toggleViewAction().isChecked():         
+                    self.visible_toolbars.append(toolbar)
+
+        for toolbar in self.visible_toolbars:
+            toolbar.toggleViewAction().setChecked(value)
+            toolbar.setVisible(value)
 
     def plugin_focus_changed(self):
         """Focus has changed from one plugin to another"""
