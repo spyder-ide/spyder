@@ -41,8 +41,11 @@ _ = get_translation("p_pylint", dirname="spyderplugins")
 
 
 PYLINT = 'pylint'
-if PY3 and programs.find_program('pylint3'):
-    PYLINT = 'pylint3'
+if PY3:
+    if programs.find_program('pylint3'):
+        PYLINT = 'pylint3'
+    elif programs.find_program('python3-pylint'):
+        PYLINT = 'python3-pylint'
 
 PYLINT_PATH = programs.find_program(PYLINT)
 
