@@ -2577,11 +2577,17 @@ class MainWindow(QMainWindow):
 
     def apply_statusbar_settings(self):
         """Update status bar widgets settings"""
-        for widget, name in ((self.mem_status, 'memory_usage'),
-                             (self.cpu_status, 'cpu_usage')):
-            if widget is not None:
-                widget.setVisible(CONF.get('main', '%s/enable' % name))
-                widget.set_interval(CONF.get('main', '%s/timeout' % name))
+        show_status_bar = CONF.get('main', 'show_status_bar')
+        self.statusBar().setVisible(show_status_bar)
+
+        if show_status_bar:
+            for widget, name in ((self.mem_status, 'memory_usage'),
+                                 (self.cpu_status, 'cpu_usage')):
+                if widget is not None:
+                    widget.setVisible(CONF.get('main', '%s/enable' % name))
+                    widget.set_interval(CONF.get('main', '%s/timeout' % name))
+        else:
+            return
 
     @Slot()
     def edit_preferences(self):
