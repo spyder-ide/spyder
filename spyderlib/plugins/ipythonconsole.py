@@ -183,7 +183,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         comp_label.setWordWrap(True)
         completers = [("Graphical", 0), ("Terminal", 1), ("Plain", 2)]
         comp_box = self.create_combobox(_("Completion:")+"   ", completers,
-                                        'completion_type', default=0)
+                                        'completion_type')
         comp_layout = QVBoxLayout()
         comp_layout.addWidget(comp_label)
         comp_layout.addWidget(comp_box)
