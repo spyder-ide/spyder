@@ -34,6 +34,7 @@ import shutil
 import subprocess
 import sys
 import threading
+import traceback
 
 
 #==============================================================================
@@ -2607,9 +2608,12 @@ class MainWindow(QMainWindow):
                        self.onlinehelp, self.explorer, self.findinfiles
                        ]+self.thirdparty_plugins:
             if plugin is not None:
-                widget = plugin.create_configwidget(dlg)
-                if widget is not None:
-                    dlg.add_page(widget)
+                try:
+                    widget = plugin.create_configwidget(dlg)
+                    if widget is not None:
+                        dlg.add_page(widget)
+                except Exception:
+                    traceback.print_exc(file=sys.stderr)
         if self.prefs_index is not None:
             dlg.set_current_index(self.prefs_index)
         dlg.show()
