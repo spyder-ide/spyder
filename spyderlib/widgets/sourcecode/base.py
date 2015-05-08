@@ -816,6 +816,9 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             if end_pos == start_pos:
                 cursor.movePosition(QTextCursor.End)
                 end_pos = cursor.position()
+                if start_pos == end_pos:
+                    cursor.endEditBlock()
+                    return
                 add_linesep = True
         cursor.setPosition(start_pos)
         cursor.setPosition(end_pos, QTextCursor.KeepAnchor)
