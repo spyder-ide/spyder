@@ -830,6 +830,10 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
         if after_current_line:
             text = to_text_string(cursor.block().text())
+            if not text:
+                cursor.insertText(sel_text)
+                cursor.endEditBlock()
+                return
             start_pos += len(text)+1
             end_pos += len(text)+1
             cursor.movePosition(QTextCursor.NextBlock)
