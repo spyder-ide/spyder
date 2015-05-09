@@ -792,6 +792,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         cursor = self.textCursor()
         cursor.beginEditBlock()
         start_pos, end_pos = self.__save_selection()
+        add_linesep = False
         if to_text_string(cursor.selectedText()):
             # Check if start_pos is at the start of a block
             cursor.setPosition(start_pos)
@@ -811,22 +812,41 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             start_pos = cursor.position()
             cursor.movePosition(QTextCursor.NextBlock)
             end_pos = cursor.position()
+            # check if on last line
+            if end_pos == start_pos:
+                cursor.movePosition(QTextCursor.End)
+                end_pos = cursor.position()
+                if start_pos == end_pos:
+                    cursor.endEditBlock()
+                    return
+                add_linesep = True
         cursor.setPosition(start_pos)
         cursor.setPosition(end_pos, QTextCursor.KeepAnchor)
-        
+
         sel_text = to_text_string(cursor.selectedText())
+        if add_linesep:
+            sel_text += os.linesep
         cursor.removeSelectedText()
-        
+
         if after_current_line:
             text = to_text_string(cursor.block().text())
+            if not text:
+                cursor.insertText(sel_text)
+                cursor.endEditBlock()
+                return
             start_pos += len(text)+1
             end_pos += len(text)+1
             cursor.movePosition(QTextCursor.NextBlock)
+            if cursor.position() < start_pos:
+                cursor.movePosition(QTextCursor.End)
+                sel_text = os.linesep + sel_text
+                end_pos -= 1
         else:
             cursor.movePosition(QTextCursor.PreviousBlock)
             text = to_text_string(cursor.block().text())
             start_pos -= len(text)+1
             end_pos -= len(text)+1
+
         cursor.insertText(sel_text)
 
         cursor.endEditBlock()
