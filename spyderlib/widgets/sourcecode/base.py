@@ -216,6 +216,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     zoom_out = Signal()
     zoom_reset = Signal()
     focus_changed = Signal()
+    eol_chars_changed = Signal(str)
     
     def __init__(self, parent=None):
         QPlainTextEdit.__init__(self, parent)

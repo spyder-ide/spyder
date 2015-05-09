@@ -1634,6 +1634,9 @@ class EditorStack(QWidget):
         self.refresh_save_all_action.emit()
         # Refreshing eol mode
         eol_chars = finfo.editor.get_line_separator()
+        self.refresh_eol(eol_chars)
+
+    def refresh_eol(self, eol_chars):
         os_name = sourcecode.get_os_name_from_eol_chars(eol_chars)
         self.refresh_eol_chars.emit(os_name)
 
@@ -1746,6 +1749,7 @@ class EditorStack(QWidget):
         editor.zoom_in.connect(lambda: self.zoom_in.emit())
         editor.zoom_out.connect(lambda: self.zoom_out.emit())
         editor.zoom_reset.connect(lambda: self.zoom_reset.emit())
+        editor.eol_chars_changed.connect(lambda eol_chars: self.refresh_eol(eol_chars))
         if self.outlineexplorer is not None:
             # Removing editor reference from outline explorer settings:
             editor.destroyed.connect(lambda obj=editor:
