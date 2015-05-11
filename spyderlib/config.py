@@ -196,7 +196,9 @@ DEFAULTS = [
               'use_custom_margin': True,
               'custom_margin': 0,
               'show_internal_console_if_traceback': True,
-              'check_updates_on_startup': True
+              'check_updates_on_startup': True,
+              'last_visible_toolbars': [],
+              'toolbars_visible': True,
               }),
             ('quick_layouts',
              {

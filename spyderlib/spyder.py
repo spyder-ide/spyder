@@ -397,8 +397,8 @@ class MainWindow(QMainWindow):
         self.cpu_status = None
 
         # Toolbars
-        self.toolbarslist = []
         self.visible_toolbars = []
+        self.toolbarslist = []
         self.main_toolbar = None
         self.main_toolbar_actions = []
         self.file_toolbar = None
@@ -1255,6 +1255,11 @@ class MainWindow(QMainWindow):
         self.extconsole.setMinimumHeight(0)
 
         if not self.light:
+            # Update toolbar visibility status
+            self.load_last_visible_toolbars()
+            toolbars_visible = CONF.get('main', 'toolbars_visible')
+            self.toggle_toolbars_action.setChecked(toolbars_visible)
+
             # Update lock status of dockidgets (panes)
             self.lock_dockwidgets_action.setChecked(self.dockwidgets_locked)
             self.apply_panes_settings()
@@ -1917,18 +1922,55 @@ class MainWindow(QMainWindow):
             action.setChecked(plugin.dockwidget.isVisible())
 
     # --- Other
+    def save_visible_toolbars(self):
+        """ """
+        print('save')
+        temp = []
+        for toolbar in self.visible_toolbars:
+            temp.append(toolbar.objectName())
+        CONF.set('main', 'last_visible_toolbars', temp)
+
+    def load_last_visible_toolbars(self):
+        """ """
+        print('load')
+        toolbars_names = CONF.get('main', 'last_visible_toolbars')
+        print(toolbars_names, type(toolbars_names))
+        if not toolbars_names:
+            self.get_visible_toolbars()
+        else:
+            dic = {}
+            for toolbar in self.toolbarslist:
+                dic[toolbar.objectName()] = toolbar
+    
+            self.visible_toolbars = []            
+            toolbars_names = CONF.get('main', 'last_visible_toolbars')
+            for name in toolbars_names:
+                if name in dic:
+                    self.visible_toolbars.append(dic[name])
+        print(self.visible_toolbars)
+
+    def get_visible_toolbars(self):
+        self.visible_toolbars = []
+        for toolbar in self.toolbarslist:
+            if toolbar.toggleViewAction().isChecked():
+                self.visible_toolbars.append(toolbar)
+        print(self.visible_toolbars)
+
     def toggle_toolbars(self, value):
         """ """
+        print('toggled', value)
+        print(self.visible_toolbars)
+        CONF.set('main', 'toolbars_visible', value)
         if not value:
-            self.visible_toolbars = []
-            for toolbar in self.toolbarslist:
-                if toolbar.toggleViewAction().isChecked():         
-                    self.visible_toolbars.append(toolbar)
+            pass
+            self.get_visible_toolbars()
+        else:
+            self.save_visible_toolbars()
 
         for toolbar in self.visible_toolbars:
             toolbar.toggleViewAction().setChecked(value)
             toolbar.setVisible(value)
-
+            
     def plugin_focus_changed(self):
         """Focus has changed from one plugin to another"""
         if self.light:
