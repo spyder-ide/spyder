@@ -111,8 +111,10 @@ NAME_FILTERS = ['*' + _ext for _ext in VALID_EXT + SHOW_EXT if _ext]+\
 # it to open external files
 OPEN_FILES_PORT = 21128
 
-# Ctrl key
-CTRL = "Meta" if sys.platform == 'darwin' else "Ctrl"
+# OS Specific
+WIN = os.name == 'nt'
+MAC = sys.platform == 'darwin'
+CTRL = "Meta" if MAC else "Ctrl"
 
 
 #==============================================================================
@@ -504,9 +506,9 @@ DEFAULTS = [
               # ---- Editor ----
               # -- In codeeditor
               'editor/code completion': CTRL+'+Space',
-              'editor/duplicate line': "Ctrl+Alt+Up" if os.name == 'nt' else \
+              'editor/duplicate line': "Ctrl+Alt+Up" if WIN else \
                                        "Shift+Alt+Up",
-              'editor/copy line': "Ctrl+Alt+Down" if os.name == 'nt' else \
+              'editor/copy line': "Ctrl+Alt+Down" if WIN else \
                                   "Shift+Alt+Down",
               'editor/delete line': 'Ctrl+D',
               'editor/move line up': "Alt+Up",
@@ -515,6 +517,22 @@ DEFAULTS = [
               'editor/toggle comment': "Ctrl+1",
               'editor/blockcomment': "Ctrl+4",
               'editor/unblockcomment': "Ctrl+5",
+              'editor/start of line': "Meta+A",
+              'editor/end of line': "Meta+E",
+              'editor/previous line': "Meta+P",
+              'editor/next line': "Meta+N",
+              'editor/previous char': "Meta+B",
+              'editor/next char': "Meta+F",
+              'editor/previous word': "Meta+Left",
+              'editor/next word': "Meta+Right",
+              'editor/kill to line end': "Meta+K",
+              'editor/kill to line start': "Meta+U",
+              'editor/yank': 'Meta+Y',
+              'editor/rotate kill ring': 'Shift+Meta+Y',
+              'editor/kill previous word': 'Meta+Backspace',
+              'editor/kill next word': 'Meta+D',
+              'editor/start of document': 'Ctrl+Up',
+              'editor/end of document': 'Ctrl+Down',
               # -- In widgets/editor
               'editor/inspect current object': 'Ctrl+I',
               'editor/go to line': 'Ctrl+L',
@@ -526,13 +544,21 @@ DEFAULTS = [
               'editor/find next': "F3",
               'editor/find previous': "Shift+F3",
               'editor/replace text': "Ctrl+H",
+              'editor/undo': 'Ctrl+U',
+              'editor/redo': 'Ctrl+Y',
+              'editor/cut': 'Ctrl+X',
+              'editor/copy': 'Ctrl+C',
+              'editor/paste': 'Ctrl+V',
+              'editor/delete': 'Delete',
+              'editor/select all': "Ctrl+A",
               # -- In plugins/editor
               'editor/show/hide outline': "Ctrl+Alt+O",
               'editor/show/hide project explorer': "Ctrl+Alt+P",
               'editor/new file': "Ctrl+N",
               'editor/open file': "Ctrl+O",
               'editor/save file': "Ctrl+S",
-              'editor/save all': "Ctrl+Shift+S",
+              'editor/save all': "Ctrl+Alt+S",
+              'editor/save as': 'Ctrl+Shift+S',
               'editor/print': "Ctrl+P",
               'editor/close all': "Ctrl+Shift+W",
               'editor/breakpoint': 'F12',
@@ -718,7 +744,7 @@ DEFAULTS = [
 # 2. If you want to *remove* options that are no longer needed in our codebase,
 #    you need to do a MAJOR update in version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '17.0.0'
+CONF_VERSION = '18.1.0'
 
 # XXX: Previously we had load=(not DEV) here but DEV was set to *False*.
 # Check if it *really* needs to be updated or not

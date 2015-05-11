@@ -640,6 +640,8 @@ class Editor(SpyderPluginWidget):
         save_as_action = create_action(self, _("Save &as..."), None,
                 'filesaveas.png', _("Save current file as..."),
                 triggered=self.save_as)
+        self.register_shortcut(save_as_action, "Editor", "Save As")
+
         print_preview_action = create_action(self, _("Print preview..."),
                 tip=_("Print preview..."), triggered=self.print_preview)
         self.print_action = create_action(self, _("&Print..."),
@@ -651,6 +653,7 @@ class Editor(SpyderPluginWidget):
         self.close_action = create_action(self, _("&Close"),
                 icon='fileclose.png', tip=_("Close current file"),
                 triggered=self.close_file)
+
         self.close_all_action = create_action(self, _("C&lose all"),
                 icon='filecloseall.png', tip=_("Close all opened files"),
                 triggered=self.close_all_files)
