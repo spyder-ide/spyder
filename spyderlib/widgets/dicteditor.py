@@ -514,14 +514,12 @@ class DictDelegate(QItemDelegate):
             editor = QDateTimeEdit(value, parent)
             editor.setCalendarPopup(True)
             editor.setFont(get_font('dicteditor'))
-            editor.returnPressed.connect(self.commitAndCloseEditor)
             return editor
         #---editor = QDateEdit
         elif isinstance(value, datetime.date):
             editor = QDateEdit(value, parent)
             editor.setCalendarPopup(True)
             editor.setFont(get_font('dicteditor'))
-            editor.returnPressed.connect(self.commitAndCloseEditor)
             return editor
         #---editor = QTextEdit
         elif is_text_string(value) and len(value)>40:
