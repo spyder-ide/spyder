@@ -2377,7 +2377,14 @@ class MainWindow(QMainWindow):
        dependencies.status())
 
         url = QUrl("https://github.com/spyder-ide/spyder/issues/new")
-        url.addEncodedQueryItem("body", quote(issue_template))
+        if PYQT5:
+            from spyderlib.qt.QtCore import QUrlQuery
+            query = QUrlQuery()
+            query.addQueryItem("body", quote(issue_template))
+            url.setQuery(query)
+        else:
+            url.addEncodedQueryItem("body", quote(issue_template))
+            
         QDesktopServices.openUrl(url)
 
     @Slot()
