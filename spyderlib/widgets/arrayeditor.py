@@ -135,8 +135,8 @@ class ArrayModel(QAbstractTableModel):
         size = self.total_rows * self.total_cols
         
         try:
-            self.vmin = self.color_func(data).min()
-            self.vmax = self.color_func(data).max()
+            self.vmin = np.nanmin(self.color_func(data))
+            self.vmax = np.nanmax(self.color_func(data))
             if self.vmax == self.vmin:
                 self.vmin -= 1
             self.hue0 = huerange[0]
