@@ -29,6 +29,8 @@ def _get_spyderplugins(plugin_path, plugins_namsepace, modnames, modlist):
     if not namsepace_path.exists():
         return
     for dirname in namsepace_path.dirs():
+        if dirname.name == "__pycache__":
+            continue
         _import_plugin(dirname.name, plugins_namsepace, namsepace_path,
                        modnames, modlist)
     for name in namsepace_path.files(pattern="*.py"):
