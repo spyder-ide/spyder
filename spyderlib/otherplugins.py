@@ -14,7 +14,7 @@ import imp
 
 # Local imports
 from spyderlib.baseconfig import get_conf_path
-from spyderlib.utils.external.path import path as Path
+from spyderlib.utils.external.path import Path
 
 INIT_PY = """# -*- coding: utf-8 -*-
 
