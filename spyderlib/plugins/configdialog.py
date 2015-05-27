@@ -95,9 +95,10 @@ class ConfigPage(QWidget):
             # Since the language cannot be retrieved by CONF and the language
             # is needed before loading CONF, this is an extra method needed to
             # ensure that when changes are applied, they are copied to a
-            # specific file storing the language value.
-            if getattr(self, 'save_lang', False):
-                self.save_lang()
+            # specific file storing the language value. This only applies to
+            # the main section config.
+            if self.CONF_SECTION == u'main':
+                self._save_lang()
 
             for restart_option in self.restart_options:
                 if restart_option in self.changed_options:
@@ -832,7 +833,7 @@ class MainConfigPage(GeneralConfigPage):
     def apply_settings(self, options):
         self.main.apply_settings()
 
-    def save_lang(self):
+    def _save_lang(self):
         """
         Get selected language setting and save to language configuration file.
         """
