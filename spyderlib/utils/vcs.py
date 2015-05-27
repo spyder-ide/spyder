@@ -8,6 +8,7 @@
 
 from __future__ import print_function
 
+import sys
 import os.path as osp
 import subprocess
 
@@ -38,7 +39,7 @@ SUPPORTED = [
 class ActionToolNotFound(RuntimeError):
     """Exception to transmit information about supported tools for
        failed attempt to execute given action"""
-       
+
     def __init__(self, vcsname, action, tools):
         RuntimeError.__init__(self)
         self.vcsname = vcsname
@@ -124,9 +125,9 @@ def get_git_revision(repopath):
         commit = subprocess.Popen([git, 'rev-parse', '--short', 'HEAD'],
                                   stdout=subprocess.PIPE,
                                   cwd=repopath).communicate()
-        commit = commit[0][:-1]
+        commit = commit[0].strip()
         if PY3:
-            commit = str(commit)[2:-1]
+            commit = commit.decode(sys.getdefaultencoding())
 
         # Branch
         branches = subprocess.Popen([git, 'branch'],
@@ -134,7 +135,7 @@ def get_git_revision(repopath):
                                      cwd=repopath).communicate()
         branches = branches[0]
         if PY3:
-            branches = str(branches)
+            branches = branches.decode(sys.getdefaultencoding())
         branches = branches.split('\n')
         active_branch = [b for b in branches if b.startswith('*')]
         if len(active_branch) != 1:
