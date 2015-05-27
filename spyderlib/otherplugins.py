@@ -25,29 +25,29 @@ __import__('pkg_resources').declare_namespace(__name__)
 def _get_spyderplugins(plugin_path, plugins_namsepace, modnames, modlist):
     """Scan the directory `plugin_path` for plugins_namsepace package and
     loads its submodules."""
-    namsepace_path = Path(plugin_path) / plugins_namsepace
-    if not namsepace_path.exists():
+    namespace_path = Path(plugin_path) / plugins_namsepace
+    if not namespace_path.exists():
         return
-    for dirname in namsepace_path.dirs():
+    for dirname in namespace_path.dirs():
         if dirname.name == "__pycache__":
             continue
-        _import_plugin(dirname.name, plugins_namsepace, namsepace_path,
+        _import_plugin(dirname.name, plugins_namsepace, namespace_path,
                        modnames, modlist)
-    for name in namsepace_path.files(pattern="*.py"):
+    for name in namespace_path.files(pattern="*.py"):
         if name.name == "__init__.py":
             continue
-        _import_plugin(name.namebase, plugins_namsepace, namsepace_path,
+        _import_plugin(name.namebase, plugins_namsepace, namespace_path,
                        modnames, modlist)
 
 
-def _import_plugin(name, plugins_namsepace, namsepace_path, modnames, modlist):
+def _import_plugin(name, plugins_namsepace, namespace_path, modnames, modlist):
     """Import the plugin `plugins_namsepace`.`name`, add it to `modlist` and
     adds its name to `modname`."""
     submodule_name = "%s.%s" % (plugins_namsepace, name)
     if submodule_name in modnames:
         return
     try:
-        info = imp.find_module(name, [namsepace_path])
+        info = imp.find_module(name, [namespace_path])
         submodule = imp.load_module(submodule_name, *info)
         modlist.append(submodule)
         modnames.append(submodule_name)
