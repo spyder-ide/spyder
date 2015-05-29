@@ -14,6 +14,8 @@ sip API incompatibility issue in spyderlib's non-gui modules)
 
 from __future__ import print_function
 
+import codecs
+import locale
 import os.path as osp
 import os
 import sys
@@ -39,7 +41,8 @@ TEST = os.environ.get('SPYDER_TEST')
 #==============================================================================
 # Debug helpers
 #==============================================================================
-STDOUT = sys.stdout
+# This is needed after restarting and using debug_print
+STDOUT = sys.stdout if PY3 else codecs.getwriter('utf-8')(sys.stdout)
 STDERR = sys.stderr
 def _get_debug_env():
     debug_env = os.environ.get('SPYDER_DEBUG', '')
@@ -52,7 +55,13 @@ def debug_print(*message):
     """Output debug messages to stdout"""
     if DEBUG:
         ss = STDOUT
-        print(*message, file=ss)
+        if PY3:
+            # This is needed after restarting and using debug_print
+            for m in message:
+                ss.buffer.write(str(m).encode('utf-8'))
+            print('', file=ss)
+        else:
+            print(*message, file=ss)
 
 #==============================================================================
 # Configuration paths
@@ -204,18 +213,105 @@ def get_image_path(name, default="not_found.png"):
 #==============================================================================
 # Translations
 #==============================================================================
+LANG_FILE = get_conf_path('langconfig')
+DEFAULT_LANGUAGE = 'en'
+
+# This needs to be updated every time a new language is added to spyder, and is
+# used by the Preferences configuration to populate the Language QComboBox
+LANGUAGE_CODES = {'en': u'English',
+                  'fr': u'Français',
+                  'es': u'Español',
+                  'pt_BR': u'Português'
+                  }
+
+
+def get_available_translations():
+    """
+    List available translations for spyder based on the folders found in the
+    locale folder. This function checks if LANGUAGE_CODES contain the same
+    information that is found in the 'locale' folder to ensure that when a new
+    language is added, LANGUAGE_CODES is updated.
+    """
+    locale_path = get_module_data_path("spyderlib", relpath="locale",
+                                       attr_name='LOCALEPATH')
+    listdir = os.listdir(locale_path)
+    langs = [d for d in listdir if osp.isdir(osp.join(locale_path, d))]
+    langs = [DEFAULT_LANGUAGE] + langs
+
+    # Check that there is a language code available in case a new translation
+    # is added, to ensure LANGUAGE_CODES is updated.
+    for lang in langs:
+        if lang not in LANGUAGE_CODES:
+            error = _('Update LANGUAGE_CODES (inside baseconfig.py) if a new '
+                      'translation has been added to Spyder')
+            raise Exception(error)
+    return langs
+
+
+def get_interface_language():
+    """
+    If Spyder has a translation available for the locale language, it will
+    return the version provided by Spyder adjusted for language subdifferences,
+    otherwise it will return DEFAULT_LANGUAGE.
+
+    Example:
+    1.) Spyder provides ('en',  'fr', 'es' and 'pt_BR'), if the locale is
+    either 'en_US' or 'en' or 'en_UK', this function will return 'en'
+
+    2.) Spyder provides ('en',  'fr', 'es' and 'pt_BR'), if the locale is
+    either 'pt' or 'pt_BR', this function will return 'pt_BR'
+    """
+    locale_language = locale.getdefaultlocale()[0]
+
+    if locale_language is None:
+        language = DEFAULT_LANGUAGE
+    else:
+        spyder_languages = get_available_translations()
+        for lang in spyder_languages:
+            if locale_language == lang:
+                language = locale_language
+                break
+            elif locale_language.startswith(lang) or \
+              lang.startswith(locale_language):
+                language = lang
+                break
+
+    return language
+
+
+def save_lang_conf(value):
+    """Save language setting to language config file"""
+    with open(LANG_FILE, 'w') as f:
+        f.write(value)
+
+
+def load_lang_conf():
+    """
+    Load language setting from language config file if it exists, otherwise
+    try to use the local settings if Spyder provides a translation, or
+    return the default if no translation provided.
+    """
+    if osp.isfile(LANG_FILE):
+        with open(LANG_FILE, 'r') as f:
+            lang = f.read()
+    else:
+        lang = get_interface_language()
+        save_lang_conf(lang)
+    return lang
+
+
 def get_translation(modname, dirname=None):
     """Return translation callback for module *modname*"""
     if dirname is None:
         dirname = modname
     locale_path = get_module_data_path(dirname, relpath="locale",
                                        attr_name='LOCALEPATH')
-    # fixup environment var LANG in case it's unknown
-    if "LANG" not in os.environ:
-        import locale
-        lang = locale.getdefaultlocale()[0]
-        if lang is not None:
-            os.environ["LANG"] = lang
+
+    # fixup environment var LANG, LANGUAGE
+    language = load_lang_conf()
+    os.environ["LANG"] = language      # Works on Windows
+    os.environ["LANGUAGE"] = language  # Works on Linux
+
     import gettext
     try:
         _trans = gettext.translation(modname, locale_path, codeset="utf-8")
