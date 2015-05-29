@@ -18,7 +18,7 @@ import os.path as osp
 # Local import
 from spyderlib.userconfig import UserConfig
 from spyderlib.baseconfig import (CHECK_ALL, EXCLUDED_NAMES, SUBFOLDER,
-                                  get_home_dir, _, load_lang_conf)
+                                  get_home_dir, _)
 from spyderlib.utils import iofuncs, codeanalysis
 
 
@@ -723,9 +723,6 @@ CONF_VERSION = '17.0.0'
 # Check if it *really* needs to be updated or not
 CONF = UserConfig('spyder', defaults=DEFAULTS, load=True, version=CONF_VERSION,
                   subfolder=SUBFOLDER, backup=True, raw_mode=True)
-
-# Ensures that the config is present on spyder first run
-CONF.set('main', 'interface_language', load_lang_conf())
 
 # Removing old .spyder.ini location:
 old_location = osp.join(get_home_dir(), '.spyder.ini')

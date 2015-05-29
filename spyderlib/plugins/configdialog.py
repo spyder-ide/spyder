@@ -22,7 +22,7 @@ from spyderlib.qt.compat import (to_qvariant, from_qvariant,
                                  getexistingdirectory, getopenfilename)
 
 from spyderlib.baseconfig import (_, running_in_mac_app, LANGUAGE_CODES,
-                                  save_lang_conf)
+                                  save_lang_conf, load_lang_conf)
 from spyderlib.config import CONF
 from spyderlib.guiconfig import (CUSTOM_COLOR_SCHEME_NAME,
                                  set_default_color_scheme)
@@ -165,6 +165,9 @@ class ConfigDialog(QDialog):
 
         self.setWindowTitle(_("Preferences"))
         self.setWindowIcon(get_icon("configure.png"))
+
+        # Ensures that the config is present on spyder first run
+        CONF.set('main', 'interface_language', load_lang_conf())
         
     def get_current_index(self):
         """Return current page index"""
