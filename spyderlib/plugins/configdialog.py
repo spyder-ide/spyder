@@ -734,7 +734,8 @@ class MainConfigPage(GeneralConfigPage):
         themes = ['Spyder 2', 'Spyder 3']
         icon_choices = list(zip(themes, [theme.lower() for theme in themes]))
         icons_combo = self.create_combobox(_('Icon theme'), icon_choices,
-                                           'icon_theme', default='spyder 3')
+                                           'icon_theme', default='spyder 3',
+                                           restart=True)
 
         single_instance_box = newcb(_("Use a single instance"),
                                     'single_instance',
@@ -773,8 +774,8 @@ class MainConfigPage(GeneralConfigPage):
             single_instance_box.setEnabled(False)
 
         interface_layout = QVBoxLayout()
-        interface_layout.addWidget(icons_combo)
         interface_layout.addWidget(style_combo)
+        interface_layout.addWidget(icons_combo)
         interface_layout.addWidget(language_combo)
         interface_layout.addWidget(single_instance_box)
         interface_layout.addWidget(vertdock_box)
