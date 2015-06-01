@@ -429,7 +429,10 @@ class SpyderPdb(pdb.Pdb):
             return
         fname = self.canonic(frame.f_code.co_filename)
         if sys.version[0] == '2':
-            fname = unicode(fname, "utf-8")
+            try:
+                fname = unicode(fname, "utf-8")
+            except TypeError:
+                pass
         lineno = frame.f_lineno
         if isinstance(fname, basestring) and isinstance(lineno, int):
             if osp.isfile(fname) and monitor is not None:
