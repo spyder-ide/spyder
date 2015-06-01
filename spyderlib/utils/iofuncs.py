@@ -23,8 +23,10 @@ import json
 import inspect
 import dis
 
-# If pandas fails to import here (for any reason), Spyder
-# will crash at startup (e.g. see Issue 2300)
+# - If pandas fails to import here (for any reason), Spyder
+#   will crash at startup (e.g. see Issue 2300)
+# - This also prevents Spyder to start IPython kernels
+#   (see Issue 2456)
 try:
     import pandas as pd
 except:

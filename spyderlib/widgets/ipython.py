@@ -269,7 +269,8 @@ These commands were executed:
         if text:
             text = ANSI_OR_SPECIAL_PATTERN.sub('', text)
             line = self._control.get_current_line_to_cursor()
-            name = line[:-1].split('.')[-1]
+            name = line[:-1].split('(')[-1]   # Take last token after a (
+            name = name.split('.')[-1]        # Then take last token after a .
             argspec = getargspecfromtext(text)
             if argspec:
                 # This covers cases like np.abs, whose docstring is

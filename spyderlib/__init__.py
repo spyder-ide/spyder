@@ -3,7 +3,8 @@
 Spyder License Agreement (MIT License)
 --------------------------------------
 
-Copyright (c) 2009-2012 Pierre Raybaut
+Copyright (c) 2009-2013 Pierre Raybaut
+Copyright (c) 2013-2015 The Spyder Development Team
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
