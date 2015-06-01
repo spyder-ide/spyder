@@ -57,7 +57,7 @@ class JediPlugin(IntrospectionPlugin):
         """Return a list of completion strings"""
         completions = self.get_jedi_object('completions', info)
         debug_print(str(completions)[:100])
-        return [c.word for c in completions]
+        return [c.name for c in completions]
 
     def get_info(self, info):
         """
