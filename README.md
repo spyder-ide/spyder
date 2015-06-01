@@ -103,8 +103,8 @@ best way to install from source is to use the `pip` package manager:
 
     pip install .
 
-Note the `.` at the end of this command. `pip` can also install Spyder from
-the [Python package index](http://pypi.python.org/pypi) *and* upgrade an
+Note the dot (`.`) at the end of this command. `pip` can also install Spyder
+from the [Python package index](http://pypi.python.org/pypi) *and* upgrade an
 existing installation
 
     pip install --upgrade spyder
