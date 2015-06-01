@@ -6,7 +6,6 @@ import socket
 import time
 import atexit
 import random
-import sys
 
 # Local imports
 from spyderlib.cli_options import get_options
