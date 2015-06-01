@@ -275,8 +275,6 @@ def get_interface_language():
               lang.startswith(locale_language):
                 language = lang
                 break
-            else:
-                language = DEFAULT_LANGUAGE
 
     return language
 
