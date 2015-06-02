@@ -263,9 +263,9 @@ def get_interface_language():
     """
     locale_language = locale.getdefaultlocale()[0]
 
-    if locale_language is None:
-        language = DEFAULT_LANGUAGE
-    else:
+    language = DEFAULT_LANGUAGE
+
+    if locale_language is not None:
         spyder_languages = get_available_translations()
         for lang in spyder_languages:
             if locale_language == lang:
@@ -275,8 +275,6 @@ def get_interface_language():
               lang.startswith(locale_language):
                 language = lang
                 break
-            else:
-                language = DEFAULT_LANGUAGE
 
     return language
 
