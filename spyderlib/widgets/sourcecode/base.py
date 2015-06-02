@@ -927,7 +927,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         if len(completions) == 1 and completions[0][0] == completion_text:
             return
         self.completion_text = completion_text
-        # Sorting completion list (entries starting with underscore are 
+        # Sorting completion list (entries starting with underscore are
         # put at the end of the list):
         underscore = set([(comp, t) for (comp, t) in completions
                           if comp.startswith('_')])

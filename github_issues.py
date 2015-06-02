@@ -28,7 +28,9 @@ parser = argparse.ArgumentParser(description='Script to print the list of '
 parser.add_argument('-m', action="store", dest="milestone", default='',
                     help='Milestone')
 parser.add_argument('-f', action="store", dest="format", default='changelog',
-                    help='Format for print, either changelog or release')
+                    help="Format for print, either 'changelog' (for our "
+                         "Changelog.md file) or 'release' (for the Github "
+                         "Releases page)")
 results = parser.parse_args()
 
 # Creating the main class to interact with Github
