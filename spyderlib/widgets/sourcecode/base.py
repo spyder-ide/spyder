@@ -864,10 +864,11 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     def show_completion_list(self, completions, completion_text="",
                              automatic=True):
         """Display the possible completions"""
-        if len(completions) == 0 or completions == [completion_text]:
+        if completions is None or len(completions) == 0 or \
+          completions == [completion_text]:
             return
         self.completion_text = completion_text
-        # Sorting completion list (entries starting with underscore are 
+        # Sorting completion list (entries starting with underscore are
         # put at the end of the list):
         underscore = set([comp for comp in completions
                           if comp.startswith('_')])
