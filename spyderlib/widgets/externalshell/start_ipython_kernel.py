@@ -11,12 +11,13 @@ import sys
 import os.path as osp
 
 
-def sympy_config():
+def sympy_config(mpl_backend):
     """Sympy configuration"""
     lines = """
 from sympy.interactive import init_session
 init_session()
-"""
+%matplotlib {0}
+""".format(mpl_backend)
     return lines
 
 
@@ -58,9 +59,10 @@ def kernel_config():
         backend_o = CONF.get('ipython_console', 'pylab/backend', 0)
         backends = {0: 'inline', 1: 'auto', 2: 'qt', 3: 'osx', 4: 'gtk',
                     5: 'wx', 6: 'tk'}
-        mpl_magic = "%matplotlib {0}".format( backends[backend_o] )
-        spy_cfg.IPKernelApp.exec_lines.append(mpl_magic)
-        
+        mpl_backend = backends[backend_o]
+        spy_cfg.IPKernelApp.exec_lines.append(
+                                         "%matplotlib {0}".format(mpl_backend))
+
         # Automatically load Pylab and Numpy
         autoload_pylab_o = CONF.get('ipython_console', 'pylab/autoload')
         spy_cfg.IPKernelApp.pylab_import_all = autoload_pylab_o
@@ -110,7 +112,7 @@ def kernel_config():
     # Sympy loading
     sympy_o = CONF.get('ipython_console', 'symbolic_math')
     if sympy_o:
-        lines = sympy_config()
+        lines = sympy_config(mpl_backend)
         spy_cfg.IPKernelApp.exec_lines.append(lines)
 
     # Merge IPython and Spyder configs. Spyder prefs will have prevalence
