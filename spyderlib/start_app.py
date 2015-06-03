@@ -83,6 +83,9 @@ def main():
         if not lock.lock():
             if args:
                 send_args_to_spyder(args)
+            else:
+                print("Spyder is already running. If you want to open a new \n"
+                      "instance, please pass to it the --new-instance option")
         else:
             if TEST is None:
                 atexit.register(lock.unlock)
