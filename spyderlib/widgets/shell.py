@@ -11,12 +11,13 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
+import keyword
+import locale
 import os
-import time
 import os.path as osp
 import re
 import sys
-import keyword
+import time
 
 from spyderlib.qt.QtGui import (QMenu, QApplication, QToolTip, QKeySequence,
                                 QMessageBox, QTextCursor, QTextCharFormat)
@@ -35,7 +36,7 @@ from spyderlib.widgets.sourcecode.base import ConsoleBaseWidget
 from spyderlib.widgets.mixins import (InspectObjectMixin, TracebackLinksMixin,
                                       SaveHistoryMixin)
 from spyderlib.py3compat import (is_text_string, to_text_string, builtins,
-                                 is_string)
+                                 is_string, PY3)
 
 
 class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
@@ -578,7 +579,16 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
 
     def flush(self, error=False, prompt=False):
         """Flush buffer, write text to console"""
-        text = "".join(self.__buffer)
+        # Fix for Issue 2452 
+        if PY3:
+            try:
+                text = "".join(self.__buffer)
+            except TypeError:
+                text = b"".join(self.__buffer)
+                text = text.decode( locale.getdefaultlocale()[1] )
+        else:
+            text = "".join(self.__buffer)
+
         self.__buffer = []
         self.insert_text(text, at_end=True, error=error, prompt=prompt)
         QCoreApplication.processEvents()
