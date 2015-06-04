@@ -56,6 +56,7 @@ install:
   - export PATH="$HOME/miniconda/bin:$PATH";
   - source activate test-environment;
   - QT_API=$USE_QT_API;
+  - pip install pylint
 
 script:  
   - python bootstrap.py --test-travis 30
