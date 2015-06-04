@@ -60,4 +60,6 @@ install:
 
 script:  
   - python bootstrap.py --test-travis 30
+  # this needs to be run on all modules, not just spyderlib/
+  - pylint --reports=n --disable=all --enable=trailing-whitespace,mixed-line-endings,unexpected-line-ending-format --expected-line-ending-format=LF spyderlib
 
