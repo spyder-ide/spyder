@@ -1,5 +1,5 @@
 import os
-import qtawesome as qta
+from spyderlib.external import qtawesome as qta
 from spyderlib.baseconfig import get_image_path
 from spyderlib.config import CONF
 from spyderlib.qt.QtGui import QIcon
