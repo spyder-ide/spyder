@@ -275,7 +275,9 @@ editor, Python console, etc.""",
       packages=get_packages(),
       package_data={LIBNAME: get_package_data(LIBNAME, EXTLIST),
                     'spyderplugins':
-                    get_package_data('spyderplugins', EXTLIST)},
+                        get_package_data('spyderplugins', EXTLIST),
+                    'spyderioplugins':
+                        get_package_data('spyderioplugins', EXTLIST)},
       namespace_packages=['spyderplugins', 'spyderioplugins'],
       scripts=[osp.join('scripts', fname) for fname in SCRIPTS],
       data_files=get_data_files(),
