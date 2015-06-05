@@ -201,7 +201,8 @@ def get_packages():
                 dstdir = osp.join(LIBNAME, 'utils', 'external', name)
                 shutil.copytree(srcdir, dstdir)
                 atexit.register(shutil.rmtree, osp.abspath(dstdir))
-    packages = get_subpackages(LIBNAME)+get_subpackages('spyderplugins')
+    packages = (get_subpackages(LIBNAME) + get_subpackages('spyderplugins')
+                + get_subpackages('spyderioplugins'))
     return packages
 
 # NOTE: the '[...]_win_post_install.py' script is installed even on non-Windows
@@ -245,7 +246,9 @@ editor, Python console, etc.""",
       packages=get_packages(),
       package_data={LIBNAME: get_package_data(LIBNAME, EXTLIST),
                     'spyderplugins':
-                    get_package_data('spyderplugins', EXTLIST)},
+                        get_package_data('spyderplugins', EXTLIST),
+                    'spyderioplugins':
+                        get_package_data('spyderioplugins', EXTLIST)},
       namespace_packages=['spyderplugins', 'spyderioplugins'],
       requires=["rope (>=0.9.2)", "sphinx (>=0.6.0)", "PyQt4 (>=4.4)"],
       scripts=[osp.join('scripts', fname) for fname in SCRIPTS],
