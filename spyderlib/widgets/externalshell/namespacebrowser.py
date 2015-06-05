@@ -78,7 +78,7 @@ class NamespaceBrowser(QWidget):
               exclude_uppercase=None, exclude_capitalized=None,
               exclude_unsupported=None, excluded_names=None,
               truncate=None, minmax=None, remote_editing=None,
-              autorefresh=None):
+              autorefresh=None, compact=None):
         """Setup the namespace browser"""
         assert self.shellwidget is not None
         
@@ -90,11 +90,12 @@ class NamespaceBrowser(QWidget):
         self.excluded_names = excluded_names
         self.truncate = truncate
         self.minmax = minmax
+        self.compact = compact
         self.remote_editing = remote_editing
         self.autorefresh = autorefresh
         
         if self.editor is not None:
-            self.editor.setup_menu(truncate, minmax)
+            self.editor.setup_menu()
             self.exclude_private_action.setChecked(exclude_private)
             self.exclude_uppercase_action.setChecked(exclude_uppercase)
             self.exclude_capitalized_action.setChecked(exclude_capitalized)
@@ -112,7 +113,7 @@ class NamespaceBrowser(QWidget):
                                               minmax=minmax)
         else:
             self.editor = RemoteDictEditorTableView(self, None,
-                            truncate=truncate, minmax=minmax,
+                            truncate=truncate, minmax=minmax, compact=True, 
                             remote_editing=remote_editing,
                             get_value_func=self.get_value,
                             set_value_func=self.set_value,
@@ -122,6 +123,7 @@ class NamespaceBrowser(QWidget):
                             is_list_func=self.is_list,
                             get_len_func=self.get_len,
                             is_array_func=self.is_array,
+                            get_meta_dict_func=self.get_meta_dict,
                             is_image_func=self.is_image,
                             is_dict_func=self.is_dict,
                             is_data_frame_func=self.is_data_frame,
@@ -133,7 +135,6 @@ class NamespaceBrowser(QWidget):
                             show_image_func=self.show_image)
         self.editor.sig_option_changed.connect(self.sig_option_changed.emit)
         self.editor.sig_files_dropped.connect(self.import_data)
-        
         
         # Setup layout
         hlayout = QHBoxLayout()
@@ -364,7 +365,11 @@ class NamespaceBrowser(QWidget):
     def get_len(self, name):
         """Return sequence length"""
         return communicate(self._get_sock(), "len(%s)" % name)
-        
+
+    def get_meta_dict(self, name):
+        """Return dict of meta data"""
+        return communicate(self._get_sock(), 'get_meta_dict("%s")' % name)
+            
     def is_array(self, name):
         """Return True if variable is a NumPy array"""
         return communicate(self._get_sock(), 'is_array("%s")' % name)

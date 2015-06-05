@@ -27,9 +27,9 @@ class FakeObject(object):
 
 #----Numpy arrays support
 try:
-    from numpy import ndarray
     from numpy import array, matrix #@UnusedImport (object eval)
     from numpy.ma import MaskedArray
+    from numpy import ndarray
 except ImportError:
     ndarray = array = matrix = MaskedArray = FakeObject  # analysis:ignore
 
@@ -160,6 +160,7 @@ def unsorted_unique(lista):
     return list(set(lista))
 
 
+    
 #----Display <--> Value
 def value_to_display(value, truncate=False, trunc_len=80, minmax=False):
     """Convert value for display purpose"""

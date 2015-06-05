@@ -36,7 +36,7 @@ if DEBUG_MONITOR:
 
 REMOTE_SETTINGS = ('check_all', 'exclude_private', 'exclude_uppercase',
                    'exclude_capitalized', 'exclude_unsupported',
-                   'excluded_names', 'truncate', 'minmax',
+                   'excluded_names', 'truncate', 'minmax', 'compact',
                    'remote_editing', 'autorefresh')
 
 def get_remote_data(data, settings, mode, more_excluded_names=None):
@@ -75,7 +75,8 @@ def make_remote_view(data, settings, more_excluded_names=None):
                            more_excluded_names=more_excluded_names)
     remote = {}
     for key, value in list(data.items()):
-        view = value_to_display(value, truncate=settings['truncate'],
+        view = value_to_display(value, truncate=settings['truncate'] \
+                                        and not settings['compact'],
                                 minmax=settings['minmax'])
         remote[key] = {'type':  get_human_readable_type(value),
                        'size':  get_size(value),
@@ -155,6 +156,7 @@ class Monitor(threading.Thread):
                        "setlocal": self.setlocal,
                        "is_array": self.is_array,
                        "is_image": self.is_image,
+                       "get_meta_dict": self.get_meta_dict,
                        "get_globals_keys": self.get_globals_keys,
                        "getmodcomplist": self.getmodcomplist,
                        "getcdlistdir": _getcdlistdir,
@@ -384,6 +386,12 @@ class Monitor(threading.Thread):
         return module_completion(name, path)
                 
     #------ Other
+    def get_meta_dict(self, name):
+        """Returns dict with min/max/nans etc. for the given object"""
+        from spyderlib.utils.makemetadict import make_meta_dict
+        ns = self.get_current_namespace()
+        return make_meta_dict(ns[name]) if name in ns else {}
+        
     def is_array(self, name):
         """Return True if object is an instance of class numpy.ndarray"""
         ns = self.get_current_namespace()

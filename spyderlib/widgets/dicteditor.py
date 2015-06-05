@@ -21,7 +21,8 @@ from spyderlib.qt.QtGui import (QMessageBox, QTableView, QItemDelegate,
                                 QLineEdit, QVBoxLayout, QWidget, QColor,
                                 QDialog, QDateEdit, QDialogButtonBox, QMenu,
                                 QInputDialog, QDateTimeEdit, QApplication,
-                                QKeySequence, QAbstractItemDelegate)
+                                QKeySequence, QAbstractItemDelegate, QLabel,
+                                QToolTip, QHeaderView)
 from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, Signal,
                                  QDateTime, Slot)
 from spyderlib.qt.compat import to_qvariant, from_qvariant, getsavefilename
@@ -50,9 +51,14 @@ from spyderlib.widgets.importwizard import ImportWizard
 from spyderlib.py3compat import (to_text_string, to_binary_string,
                                  is_text_string, is_binary_string, getcwd, u)
 
+from spyderlib.utils.makemetadict import make_meta_dict
 
 LARGE_NROWS = 5000
 
+def escape_for_html(s):
+    return str(s).replace('&', '&amp;')\
+                 .replace('<','&lt;')\
+                 .replace('>','&gt;')
 
 def display_to_value(value, default_value, ignore_errors=True):
     """Convert back to value"""
@@ -120,12 +126,13 @@ class ReadOnlyDictModel(QAbstractTableModel):
     ROWS_TO_LOAD = 200
 
     def __init__(self, parent, data, title="", names=False, truncate=True,
-                 minmax=False, remote=False):
+                 minmax=False, remote=False, compact=False):
         QAbstractTableModel.__init__(self, parent)
         if data is None:
             data = {}
         self.names = names
         self.truncate = truncate
+        self.compact = compact
         self.minmax = minmax
         self.remote = remote
         self.header0 = None
@@ -321,8 +328,9 @@ class ReadOnlyDictModel(QAbstractTableModel):
         if index.column() == 3 and self.remote:
             value = value['view']
         display = value_to_display(value,
-                               truncate=index.column() == 3 and self.truncate,
-                               minmax=self.minmax)
+                               truncate=index.column() == 3 and self.truncate \
+                               and not self.compact,
+                               minmax=self.minmax and not self.compact)
         if role == Qt.DisplayRole:
             return to_qvariant(display)
         elif role == Qt.EditRole:
@@ -406,7 +414,44 @@ class DictModel(ReadOnlyDictModel):
         self.dataChanged.emit(index, index)
         return True
 
+    def get_full_info(self, index, get_meta_dict_foo):
+        row = index.row()
+        try:
+            size_str = ' x '.join([str(x) for x in self.sizes[row]])
+        except TypeError:
+            size_str = self.sizes[row]
 
+        value = self._data[self.keys[row]]
+        if self.remote:
+            value = value['view']
+        else:
+            value = str(value)
+            
+        if len(value) > 2000:
+            value = value[:2000].rstrip() + "..." # QLabel strugles with long strings
+
+        meta_dict = get_meta_dict_foo(self.keys[row])
+        html_str = meta_str = value_str = "" 
+        if 'html' in meta_dict:
+            if meta_dict['html'] is not None:
+                html_str = '<br><br>' + meta_dict['html']
+            del meta_dict['html']
+        if 'value' in meta_dict:
+            value = meta_dict['value'] 
+            del meta_dict['value']
+        if value is not None:
+            value_str = "<br><br>" + escape_for_html(value)\
+                                            .replace('\n','<br>')
+        if len(meta_dict) > 0:
+            meta_str = '<br><br>'\
+                + ' | '.join(["<b>%s:</b>&nbsp;%s"\
+                              % (escape_for_html(k), escape_for_html(v)) \
+                              for k, v in meta_dict.iteritems()])
+                        
+        return _("<h2>%s</h2><b>type:</b> %s | <b>size:</b> %s%s%s%s")\
+                    % (self.keys[row], self.types[row], size_str,
+                       meta_str, html_str, value_str)
+            
 class DictDelegate(QItemDelegate):
     """DictEditor Item Delegate"""
     
@@ -446,7 +491,8 @@ class DictDelegate(QItemDelegate):
 
     def createEditor(self, parent, option, index):
         """Overriding method createEditor"""
-        if index.column() < 3:
+        compact = index.model().compact
+        if not compact and index.column() < 3:
             return None
         if self.show_warning(index):
             answer = QMessageBox.warning(self.parent(), _("Warning"),
@@ -622,7 +668,61 @@ class DictDelegate(QItemDelegate):
             raise RuntimeError("Unsupported editor widget")
         self.set_value(index, value)
 
+class InfoPane(QDialog):
+    def __init__(self, parent):
+        QDialog.__init__(self, parent)
+        self.setAttribute(Qt.WA_DeleteOnClose | Qt.WA_ShowWithoutActivating)        
+        vlayout = QVBoxLayout()
+        self.main_text = QLabel()
+        self.main_text.setWordWrap(True)        
+        vlayout.addWidget(self.main_text)
+        self.setLayout(vlayout)
+        self.update_position()
+        
+        # Style the dialog to look like a tooltip (more or less)
+        self.setWindowFlags(Qt.Tool | Qt.FramelessWindowHint \
+                            | Qt.WindowStaysOnTopHint) 
+        self.setWindowOpacity(0.9)        
+        self.setPalette(QToolTip.palette())
+        self.setStyleSheet("QDialog {border: 1px solid black}")
 
+
+    def update_position(self):
+        left = 0
+        top = 0
+        parent = self.parent()
+        geo = parent.geometry()
+        parent_width = geo.width()
+        self_width = 380        
+        self_height = 300        
+        self.setMinimumSize(self_width, self_height)                
+        self.setMaximumSize(self_width, self_height)
+        while parent:
+            geo = parent.geometry()
+            top += geo.top()
+            left += geo.left()
+            parent = parent.parent()
+        window_width = geo.width()
+
+        # Work out whether there is more space to the left or right of the parent
+        right_space = window_width - (left + parent_width)    
+        if right_space > left:
+            left += parent_width
+            self.main_text.setAlignment(Qt.AlignTop \
+                                    | Qt.AlignLeft)
+        else:
+            left -= self_width
+            self.main_text.setAlignment(Qt.AlignTop \
+                                    | Qt.AlignRight)
+        self.move(left, top) 
+
+    def showText(self, text):
+        # Note that we really out to hook into the move/resize events of all
+        # the ancestors of this widget, but instead we just do this update here
+        self.update_position()  
+        self.main_text.setText(text)
+        self.setVisible(len(text) > 0)
+        
 class BaseTableView(QTableView):
     """Base dictionary editor table view"""
     sig_option_changed = Signal(str, object)
@@ -649,7 +749,30 @@ class BaseTableView(QTableView):
         self.duplicate_action = None
         self.delegate = None
         self.setAcceptDrops(True)
+        self.info_pane = None 
+        self.only_show_column = 0
+        self.info_pane_index = None
         
+    def resizeEvent(self, event):
+        if self.model.compact:
+            self.info_pane.update_position()
+        QTableView.resizeEvent(self, event)
+        
+    def showRequestedColumns(self):
+        if self.model.compact:
+            for col in xrange(self.model.columnCount()):
+                if col != self.only_show_column:
+                    self.setColumnHidden(col,True)
+            self.horizontalHeader().setVisible(False)
+        else:
+            for col in xrange(self.model.columnCount()):
+                self.setColumnHidden(col,False)  
+            self.horizontalHeader().setVisible(True)
+    def setModel(self, model):
+        QTableView.setModel(self, model)
+        self.showRequestedColumns()
+        self.resizeRowsToContents()
+            
     def setup_table(self):
         """Setup table"""
         self.horizontalHeader().setStretchLastSection(True)
@@ -658,13 +781,18 @@ class BaseTableView(QTableView):
         self.setSortingEnabled(True)
         self.sortByColumn(0, Qt.AscendingOrder)
     
-    def setup_menu(self, truncate, minmax):
+    def setup_menu(self):
         """Setup context menu"""
         if self.truncate_action is not None:
-            self.truncate_action.setChecked(truncate)
-            self.minmax_action.setChecked(minmax)
+            self.truncate_action.setChecked(self.model.truncate)
+            self.minmax_action.setChecked(self.model.minmax)
+            self.compact_action.setChecked(self.model.compact)
             return
         
+        self.compact_action = create_action(self, _("Compact mode"),
+                                            toggled=self.toggle_compact)
+        self.compact_action.setChecked(self.model.compact)
+        self.toggle_compact(self.model.compact)
         resize_action = create_action(self, _("Resize rows to contents"),
                                       triggered=self.resizeRowsToContents)
         self.paste_action = create_action(self, _("Paste"),
@@ -700,12 +828,12 @@ class BaseTableView(QTableView):
                                            triggered=self.remove_item)
         self.truncate_action = create_action(self, _("Truncate values"),
                                              toggled=self.toggle_truncate)
-        self.truncate_action.setChecked(truncate)
-        self.toggle_truncate(truncate)
+        self.truncate_action.setChecked(self.model.truncate)
+        self.toggle_truncate(self.model.truncate)
         self.minmax_action = create_action(self, _("Show arrays min/max"),
                                            toggled=self.toggle_minmax)
-        self.minmax_action.setChecked(minmax)
-        self.toggle_minmax(minmax)
+        self.minmax_action.setChecked(self.model.minmax)
+        self.toggle_minmax(self.model.minmax)
         self.rename_action = create_action(self, _( "Rename"),
                                            icon=get_icon('rename.png'),
                                            triggered=self.rename_item)
@@ -718,14 +846,16 @@ class BaseTableView(QTableView):
                         self.insert_action, self.remove_action,
                         self.copy_action, self.paste_action,
                         None, self.rename_action, self.duplicate_action,
-                        None, resize_action, None, self.truncate_action]
+                        None, resize_action, self.compact_action,
+                        None, self.truncate_action,
+                        ]
         if ndarray is not FakeObject:
             menu_actions.append(self.minmax_action)
         add_actions(menu, menu_actions)
         self.empty_ws_menu = QMenu(self)
         add_actions(self.empty_ws_menu,
                     [self.insert_action, self.paste_action,
-                     None, resize_action])
+                     None, resize_action, None, self.compact_action])
         return menu
     
     #------ Remote/local API ---------------------------------------------------
@@ -747,6 +877,10 @@ class BaseTableView(QTableView):
         
     def get_len(self, key):
         """Return sequence length"""
+        raise NotImplementedError
+        
+    def get_meta_dict(self, key):
+        """Return dict of meta data"""
         raise NotImplementedError
         
     def is_array(self, key):
@@ -821,7 +955,30 @@ class BaseTableView(QTableView):
         if data is not None:
             self.model.set_data(data, self.dictfilter)
             self.sortByColumn(0, Qt.AscendingOrder)
-
+            
+    def enterEvent(self,event):
+        if self.model.compact:
+            self.info_pane.show()
+            self.info_pane.showText("")
+            self.info_pane_index = None
+        QTableView.enterEvent(self,event)
+        
+    def leaveEvent(self,event):
+        if self.model.compact:
+            self.info_pane.hide()
+        self.info_pane_index = None
+        QTableView.leaveEvent(self,event)
+        
+    def mouseMoveEvent(self, event):
+        if self.model.compact:            
+            index_over = self.indexAt(event.pos())
+            if index_over.isValid() and index_over.row() != self.info_pane_index:
+                self.info_pane.showText(index_over.model()\
+                                                  .get_full_info(index_over,
+                                        self.get_meta_dict))
+                self.info_pane_index = index_over.row()
+            QTableView.mouseMoveEvent(self, event)
+        
     def mousePressEvent(self, event):
         """Reimplement Qt method"""
         if event.button() != Qt.LeftButton:
@@ -844,7 +1001,8 @@ class BaseTableView(QTableView):
         if index_clicked.isValid():
             row = index_clicked.row()
             # TODO: Remove hard coded "Value" column number (3 here)
-            index_clicked = index_clicked.child(row, 3)
+            index_clicked = index_clicked.child(row, self.only_show_column
+                                                 if self.model.compact else 3)
             self.edit(index_clicked)
         else:
             event.accept()
@@ -904,6 +1062,24 @@ class BaseTableView(QTableView):
         self.model.truncate = state
 
     @Slot(bool)
+    def toggle_compact(self, state):
+        """Toggle compact view"""
+        self.sig_option_changed.emit('compact', state)
+        self.model.compact = state
+        self.setMouseTracking(state)
+        if self.info_pane is None and state:
+            self.info_pane = InfoPane(self)
+        if state:
+            self.toggle_truncate(False)
+            self.info_pane.update_position()
+            self.verticalHeader().setResizeMode(QHeaderView.ResizeToContents)
+        else:
+            self.verticalHeader().setResizeMode(QHeaderView.Interactive)
+            
+        self.showRequestedColumns()
+        self.resizeColumnsToContents()
+        
+    @Slot(bool)
     def toggle_minmax(self, state):
         """Toggle min/max display for numpy arrays"""
         self.sig_option_changed.emit('minmax', state)
@@ -916,7 +1092,9 @@ class BaseTableView(QTableView):
         if not index.isValid():
             return
         # TODO: Remove hard coded "Value" column number (3 here)
-        self.edit(index.child(index.row(), 3))
+        self.edit(index.child(index.row(), 
+                              self.only_show_column if self.model.compact\
+                              else 3))
 
     @Slot()
     def remove_item(self):
@@ -1099,19 +1277,20 @@ class BaseTableView(QTableView):
 class DictEditorTableView(BaseTableView):
     """DictEditor table view"""
     def __init__(self, parent, data, readonly=False, title="",
-                 names=False, truncate=True, minmax=False):
+                 names=False, truncate=True, minmax=False, compact=False):
         BaseTableView.__init__(self, parent)
         self.dictfilter = None
         self.readonly = readonly or isinstance(data, tuple)
         DictModelClass = ReadOnlyDictModel if self.readonly else DictModel
         self.model = DictModelClass(self, data, title, names=names,
-                                    truncate=truncate, minmax=minmax)
+                                    truncate=truncate, minmax=minmax,
+                                    compact=compact)
         self.setModel(self.model)
         self.delegate = DictDelegate(self)
         self.setItemDelegate(self.delegate)
 
         self.setup_table()
-        self.menu = self.setup_menu(truncate, minmax)
+        self.menu = self.setup_menu()
     
     #------ Remote/local API ---------------------------------------------------
     def remove_values(self, keys):
@@ -1142,6 +1321,11 @@ class DictEditorTableView(BaseTableView):
         """Return sequence length"""
         data = self.model.get_data()
         return len(data[key])
+        
+    def get_meta_dict(self, key):
+        """Return dict of meta data"""
+        data = self.model.get_data()
+        return make_meta_dict(data)
         
     def is_array(self, key):
         """Return True if variable is a numpy array"""
@@ -1321,14 +1505,15 @@ class RemoteDictDelegate(DictDelegate):
 class RemoteDictEditorTableView(BaseTableView):
     """DictEditor table view"""
     def __init__(self, parent, data, truncate=True, minmax=False, 
-                 get_value_func=None, set_value_func=None,
+                 compact=False, get_value_func=None, set_value_func=None,
                  new_value_func=None, remove_values_func=None,
                  copy_value_func=None, is_list_func=None, get_len_func=None,
                  is_array_func=None, is_image_func=None, is_dict_func=None,
                  get_array_shape_func=None, get_array_ndim_func=None,
                  oedit_func=None, plot_func=None, imshow_func=None,
                  is_data_frame_func=None, is_time_series_func=None,
-                 show_image_func=None, remote_editing=False):
+                 show_image_func=None, remote_editing=False, 
+                 get_meta_dict_func=None):
         BaseTableView.__init__(self, parent)
         
         self.remote_editing_enabled = None
@@ -1343,6 +1528,7 @@ class RemoteDictEditorTableView(BaseTableView):
         self.get_len = get_len_func
         self.is_array = is_array_func
         self.is_image = is_image_func
+        self.get_meta_dict = get_meta_dict_func
         self.is_dict = is_dict_func
         self.get_array_shape = get_array_shape_func
         self.get_array_ndim = get_array_ndim_func
@@ -1357,17 +1543,17 @@ class RemoteDictEditorTableView(BaseTableView):
         self.readonly = False
         self.model = DictModel(self, data, names=True,
                                truncate=truncate, minmax=minmax,
-                               remote=True)
+                               compact=compact, remote=True)
         self.setModel(self.model)
         self.delegate = RemoteDictDelegate(self, get_value_func, set_value_func)
         self.setItemDelegate(self.delegate)
         
         self.setup_table()
-        self.menu = self.setup_menu(truncate, minmax)
+        self.menu = self.setup_menu()
 
-    def setup_menu(self, truncate, minmax):
+    def setup_menu(self):
         """Setup context menu"""
-        menu = BaseTableView.setup_menu(self, truncate, minmax)
+        menu = BaseTableView.setup_menu(self)
         return menu
 
     def oedit_possible(self, key):

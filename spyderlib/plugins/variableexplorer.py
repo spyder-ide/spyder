@@ -6,7 +6,8 @@
 
 """Namespace Browser Plugin"""
 
-from spyderlib.qt.QtGui import QStackedWidget, QGroupBox, QVBoxLayout
+from spyderlib.qt.QtGui import (QStackedWidget, QGroupBox, QVBoxLayout, 
+                                QButtonGroup, QLabel)
 from spyderlib.qt.QtCore import Signal
 
 # Local imports
@@ -67,10 +68,44 @@ class VariableExplorerConfigPage(PluginConfigPage):
             display_layout.addWidget(box)
         display_group.setLayout(display_layout)
 
+
+        # METADICT replacement
+        makemeta_group = QGroupBox(_("make_meta_dict replacement"))
+        makemeta_bg = QButtonGroup(makemeta_group)
+        makemeta_label = QLabel(_("This option will override the "
+                                   "default make_meta_dict function which "
+                                   "defines what to display in the tooltip "
+                                   "when you move the cursor over a variable "
+                                   "in the variable explorer.\n"
+                                   "Note changes are not reflect until after "
+                                   "the application has been restarted."))
+        makemeta_label.setWordWrap(True)        
+        def_makemeta_radio = self.create_radiobutton(
+                                        _("Default make_meta_dict function"),
+                                        'makemetadict/default',
+                                        button_group=makemeta_bg)
+        cus_makemeta_radio = self.create_radiobutton(
+                                _("Use make_meta_dict function in script:"),
+                                  'makemetadict/custom',
+                                  button_group=makemeta_bg)
+        makemeta_file = self.create_browsefile('', 'make_meta_dict', '',
+                                                filters=_("Python scripts")+\
+                                                " (*.py)")
+        def_makemeta_radio.toggled.connect(makemeta_file.setDisabled)
+        cus_makemeta_radio.toggled.connect(makemeta_file.setEnabled)
+        
+        makemeta_layout = QVBoxLayout()
+        makemeta_layout.addWidget(makemeta_label)
+        makemeta_layout.addWidget(def_makemeta_radio)
+        makemeta_layout.addWidget(cus_makemeta_radio)
+        makemeta_layout.addWidget(makemeta_file)
+        makemeta_group.setLayout(makemeta_layout)
+        
         vlayout = QVBoxLayout()
         vlayout.addWidget(ar_group)
         vlayout.addWidget(filter_group)
         vlayout.addWidget(display_group)
+        vlayout.addWidget(makemeta_group)
         vlayout.addStretch(1)
         self.setLayout(vlayout)
 
