@@ -532,7 +532,7 @@ class MainWindow(QMainWindow):
         debug_print(message)
 
     #---- Window setup
-    def create_toolbar(self, title, object_name, iconsize=32):
+    def create_toolbar(self, title, object_name, iconsize=24):
         """Create and return toolbar with *title* and *object_name*"""
         toolbar = self.addToolBar(title)
         toolbar.setObjectName(object_name)
