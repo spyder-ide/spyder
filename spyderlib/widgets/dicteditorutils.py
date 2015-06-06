@@ -73,6 +73,14 @@ except ImportError:
     Image = FakeObject  # analysis:ignore
 
 
+#----BeautifulSoup support (see Issue 2448)
+try:
+    import bs4
+    NavigableString = bs4.element.NavigableString
+except ImportError:
+    NavigableString = FakeObject  # analysis:ignore
+
+
 #----Misc.
 def address(obj):
     """Return object address as a string: '<classname @ address>'"""
@@ -179,6 +187,9 @@ def value_to_display(value, truncate=False, trunc_len=80, minmax=False):
         cols = value.columns
         cols = [to_text_string(c) for c in cols]
         return 'Column names: ' + ', '.join(list(cols))
+    if isinstance(value, NavigableString):
+        # Fixes Issue 2448
+        return to_text_string(value)
     if is_binary_string(value):
         try:
             value = to_text_string(value, 'utf8')
