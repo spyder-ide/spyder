@@ -86,7 +86,7 @@ def create_dialog(obj, obj_name):
          and DataFrame is not FakeObject:
         dialog = DataFrameEditor()
         if not dialog.setup_and_check(obj):
-            return		
+            return
     elif is_text_string(obj):
         dialog = TextEditor(obj, title=obj_name, readonly=readonly)
     else:

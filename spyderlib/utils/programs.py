@@ -195,7 +195,7 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
         cmd = 'xterm'
         if is_program_installed(cmd):
             run_program(cmd, ['-e'] + p_args + [wdir])
-            return		
+            return
         # TODO: Add a fallback to OSX
     else:
         raise NotImplementedError

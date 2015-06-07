@@ -118,7 +118,7 @@ class BaseSH(QSyntaxHighlighter):
     def get_foreground_color(self):
         """Return foreground ('normal' text) color"""
         return self.formats["normal"].foreground().color()
-		
+
     def get_currentline_color(self):
         return QColor(self.currentline_color)
 
