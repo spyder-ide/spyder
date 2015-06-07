@@ -19,13 +19,15 @@ from spyderlib.py3compat import is_unicode
 
 
 def send_args_to_spyder(args):
-    """Simple socket client used to send the args passed to the Spyder 
+    """
+    Simple socket client used to send the args passed to the Spyder 
     executable to an already running instance.
-    
+
     Args can be Python scripts or files with these extensions: .spydata, .mat,
-    .npy, or .h5, which can be imported by the Variable Explorer."""
+    .npy, or .h5, which can be imported by the Variable Explorer.
+    """
     port = CONF.get('main', 'open_files_port')
-    
+
     # Wait ~50 secs for the server to be up
     # Taken from http://stackoverflow.com/a/4766598/438386
     for _x in range(200):
@@ -45,10 +47,13 @@ def send_args_to_spyder(args):
 
 
 def main():
-    """Start Spyder application. If single instance mode is turned on (default
-    behavior) and an instance of Spyder is already running, this will just 
-    parse and send command line options to the application."""
+    """
+    Start Spyder application.
 
+    If single instance mode is turned on (default behavior) and an instance of
+    Spyder is already running, this will just parse and send command line
+    options to the application.
+    """
     # Renaming old configuration files (the '.' prefix has been removed)
     # (except for .spyder.ini --> spyder.ini, which is done in userconfig.py)
     if DEV is None:
