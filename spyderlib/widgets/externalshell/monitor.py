@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """External shell's monitor"""
 
-#TODO: The "disable auto-refresh when variable explorer is hidden" feature 
-#      broken since we removed the "shell" widget reference from notification 
+#TODO: The "disable auto-refresh when variable explorer is hidden" feature
+#      broken since we removed the "shell" widget reference from notification
 #      thread. We must find another mechanism to avoid refreshing systematically
 #      remote views for all consoles...!
 
@@ -82,7 +82,7 @@ def make_remote_view(data, settings, more_excluded_names=None):
                        'color': get_color_name(value),
                        'view':  view}
     return remote
-    
+
 
 def monitor_save_globals(sock, settings, filename):
     """Save globals() to file"""
@@ -125,31 +125,31 @@ class Monitor(threading.Thread):
 
         self.ipykernel = None
         self.ipython_shell = None
-        
+
         self.pdb_obj = None
-        
+
         self.timeout = None
         self.set_timeout(timeout)
         self.auto_refresh = auto_refresh
         self.refresh_after_eval = False
         self.remote_view_settings = None
-        
+
         self.inputhook_flag = False
         self.first_inputhook_call = True
-        
+
         # To grab the IPython internal namespace
         self.ip = None
-        
+
         # Connecting to introspection server
         self.i_request = socket.socket( socket.AF_INET )
         self.i_request.connect( (host, introspection_port) )
         write_packet(self.i_request, shell_id)
-        
+
         # Connecting to notification server
         self.n_request = socket.socket( socket.AF_INET )
         self.n_request.connect( (host, notification_port) )
         write_packet(self.n_request, shell_id)
-        
+
         self._mlocals = {
                        "refresh": self.enable_refresh_after_eval,
                        "setlocal": self.setlocal,
@@ -230,10 +230,10 @@ class Monitor(threading.Thread):
                 self.ip = self.ipython_shell.get_ipython()
             self._mglobals = glbs
             return glbs
-    
+
     def get_current_namespace(self, with_magics=False):
         """Return current namespace, i.e. globals() if not debugging,
-        or a dictionary containing both locals() and globals() 
+        or a dictionary containing both locals() and globals()
         for current frame when debugging"""
         ns = {}
         glbs = self.mglobals()
@@ -243,7 +243,7 @@ class Monitor(threading.Thread):
         else:
             ns.update(glbs)
             ns.update(self.pdb_locals)
-        
+
         # Add magics to ns so we can show help about them on the Object
         # Inspector
         if self.ip and with_magics:
@@ -251,9 +251,9 @@ class Monitor(threading.Thread):
             cell_magics = self.ip.magics_manager.magics['cell']
             ns.update(line_magics)
             ns.update(cell_magics)
-        
+
         return ns
-    
+
     def get_reference_namespace(self, name):
         """Return namespace where reference name is defined,
         eventually returns the globals() if reference has not yet been defined"""
@@ -266,12 +266,12 @@ class Monitor(threading.Thread):
                 return lcls
             else:
                 return glbs
-    
+
     def get_globals_keys(self):
         """Return globals() keys or globals() and locals() keys if debugging"""
         ns = self.get_current_namespace()
         return list(ns.keys())
-    
+
     def isdefined(self, obj, force_import=False):
         """Return True if object is defined in current namespace"""
         ns = self.get_current_namespace(with_magics=True)
@@ -279,27 +279,27 @@ class Monitor(threading.Thread):
 
     def toggle_inputhook_flag(self, state):
         """Toggle the input hook flag
-        
+
         The only purpose of this flag is to unblock the PyOS_InputHook
         callback when text is available in stdin (see sitecustomize.py)"""
         self.inputhook_flag = state
-        
+
     def set_timeout(self, timeout):
         """Set monitor timeout (in milliseconds!)"""
         self.timeout = float(timeout)/1000.
-        
+
     def set_auto_refresh(self, state):
         """Enable/disable namespace browser auto refresh feature"""
         self.auto_refresh = state
-        
+
     def enable_refresh_after_eval(self):
         self.refresh_after_eval = True
-        
+
     #------ Notifications
     def refresh(self):
         """Refresh variable explorer in ExternalPythonShell"""
         communicate(self.n_request, dict(command="refresh"))
-        
+
     def refresh_from_inputhook(self):
         """Refresh variable explorer from the PyOS_InputHook.
         See sitecustomize.py"""
@@ -309,7 +309,7 @@ class Monitor(threading.Thread):
             self.first_inputhook_call = False
         else:
             self.refresh()
-        
+
     def register_pdb_session(self, pdb_obj):
         self.pdb_obj = pdb_obj
 
@@ -322,13 +322,13 @@ class Monitor(threading.Thread):
         """Set all Spyder breakpoints in active pdb session"""
         if not self.pdb_obj:
             return
-        self.pdb_obj.set_spyder_breakpoints()    
-    
+        self.pdb_obj.set_spyder_breakpoints()
+
     def notify_open_file(self, fname, lineno=1):
         """Open file in Spyder's editor"""
         communicate(self.n_request,
                     dict(command="open_file", data=(fname, lineno)))
-        
+
     #------ Code completion / Calltips
     def _eval(self, text):
         """
@@ -342,47 +342,47 @@ class Monitor(threading.Thread):
             return eval(text, ns), True
         except:
             return None, False
-            
+
     def get_dir(self, objtxt):
         """Return dir(object)"""
         obj, valid = self._eval(objtxt)
         if valid:
             return getobjdir(obj)
-                
+
     def iscallable(self, objtxt):
         """Is object callable?"""
         obj, valid = self._eval(objtxt)
         if valid:
             return callable(obj)
-    
+
     def get_arglist(self, objtxt):
         """Get func/method argument list"""
         obj, valid = self._eval(objtxt)
         if valid:
             return getargtxt(obj)
-    
+
     def get__doc__(self, objtxt):
         """Get object __doc__"""
         obj, valid = self._eval(objtxt)
         if valid:
             return obj.__doc__
-    
+
     def get_doc(self, objtxt):
         """Get object documentation dictionary"""
         obj, valid = self._eval(objtxt)
         if valid:
             return getdoc(obj)
-    
+
     def get_source(self, objtxt):
         """Get object source"""
         obj, valid = self._eval(objtxt)
         if valid:
             return getsource(obj)
-            
+
     def getmodcomplist(self, name, path):
         """Return module completion list for object named *name*"""
         return module_completion(name, path)
-                
+
     #------ Other
     def is_array(self, name):
         """Return True if object is an instance of class numpy.ndarray"""
@@ -405,7 +405,7 @@ class Monitor(threading.Thread):
     def getcwd(self):
         """Return current working directory"""
         return getcwd()
-    
+
     def setcwd(self, dirname):
         """Set current working directory"""
         try:
@@ -413,11 +413,11 @@ class Monitor(threading.Thread):
         except (UnicodeError, TypeError):
             pass
         return os.chdir(dirname)
-            
+
     def getenv(self):
         """Return os.environ"""
         return os.environ.copy()
-        
+
     def setenv(self):
         """Set os.environ"""
         env = read_packet(self.i_request)
@@ -426,15 +426,15 @@ class Monitor(threading.Thread):
     def getsyspath(self):
         """Return sys.path[:]"""
         import sys
-        return sys.path[:]        
-        
+        return sys.path[:]
+
     def setlocal(self, name, value):
         """
         Set local reference value
         Not used right now - could be useful in the future
         """
         self._mlocals[name] = value
-        
+
     def set_remote_view_settings(self):
         """
         Set the namespace remote view settings
@@ -442,7 +442,7 @@ class Monitor(threading.Thread):
         """
         self.remote_view_settings = read_packet(self.i_request)
         self.enable_refresh_after_eval()
-        
+
     def update_remote_view(self):
         """
         Return remote view of globals()
@@ -454,7 +454,7 @@ class Monitor(threading.Thread):
             remote_view = make_remote_view(ns, settings, more_excluded_names)
             communicate(self.n_request,
                         dict(command="remote_view", data=remote_view))
-        
+
     def saveglobals(self):
         """Save globals() into filename"""
         ns = self.get_current_namespace()
@@ -465,7 +465,7 @@ class Monitor(threading.Thread):
         data = get_remote_data(ns, settings, mode='picklable',
                                more_excluded_names=more_excluded_names).copy()
         return iofunctions.save(data, filename)
-        
+
     def loadglobals(self):
         """Load globals() from filename"""
         glbs = self.mglobals()
@@ -485,14 +485,14 @@ class Monitor(threading.Thread):
         except Exception as error:
             return str(error)
         self.refresh_after_eval = True
-        
+
     def getglobal(self, name):
         """
         Get global reference value
         """
         ns = self.get_current_namespace()
         return ns[name]
-        
+
     def setglobal(self, name):
         """
         Set global reference value
@@ -500,7 +500,7 @@ class Monitor(threading.Thread):
         ns = self.get_reference_namespace(name)
         ns[name] = read_packet(self.i_request)
         self.refresh_after_eval = True
-        
+
     def delglobal(self, name):
         """
         Del global reference
@@ -508,7 +508,7 @@ class Monitor(threading.Thread):
         ns = self.get_reference_namespace(name)
         ns.pop(name)
         self.refresh_after_eval = True
-        
+
     def copyglobal(self, orig_name, new_name):
         """
         Copy global reference
@@ -516,7 +516,7 @@ class Monitor(threading.Thread):
         ns = self.get_reference_namespace(orig_name)
         ns[new_name] = ns[orig_name]
         self.refresh_after_eval = True
-        
+
     def run(self):
         self.ipython_shell = None
         while True:

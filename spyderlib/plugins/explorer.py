@@ -35,7 +35,7 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
     create_module = Signal(str)
     run = Signal(str)
     open_dir = Signal(str)
-    
+
     def __init__(self, parent=None):
         ExplorerWidget.__init__(self, parent=parent,
                                 name_filters=self.get_option('name_filters'),
@@ -45,21 +45,21 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
 
         # Initialize plugin
         self.initialize_plugin()
-        
+
         self.set_font(self.get_plugin_font())
-        
-    #------ SpyderPluginWidget API ---------------------------------------------    
+
+    #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
         return _("File explorer")
-    
+
     def get_focus_widget(self):
         """
         Return the widget to give focus to when
         this plugin's dockwidget is raised on top-level
         """
         return self.treewidget
-    
+
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         # Font
@@ -68,7 +68,7 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
                                     triggered=self.change_font)
         self.treewidget.common_actions.append(font_action)
         return []
-    
+
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         self.main.add_dockwidget(self)
@@ -94,21 +94,21 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
 
         self.sig_open_file.connect(self.main.open_file)
         self.sig_new_file.connect(lambda t: self.main.editor.new(text=t))
-        
+
     def refresh_plugin(self, new_path=None, force_current=True):
         """Refresh explorer widget"""
         self.treewidget.update_history(new_path)
         self.treewidget.refresh(new_path, force_current=force_current)
-        
+
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         return True
-        
-    #------ Public API ---------------------------------------------------------        
+
+    #------ Public API ---------------------------------------------------------
     def chdir(self, directory):
         """Set working directory"""
         self.treewidget.chdir(directory)
-    
+
     @Slot()
     def change_font(self):
         """Change font"""
@@ -117,7 +117,7 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
         if valid:
             self.set_font(font)
             self.set_plugin_font(font)
-            
+
     def set_font(self, font):
         """Set explorer widget font"""
         self.setFont(font)

@@ -36,19 +36,19 @@ from spyderlib.py3compat import (is_text_string, to_text_string,
 
 
 class ExtPythonShellWidget(PythonShellWidget):
-    
+
     wait_for_ready_read = Signal()
     go_to_error = Signal(str)
     focus_changed = Signal()
-    
+
     def __init__(self, parent, history_filename, profile=False):
         PythonShellWidget.__init__(self, parent, history_filename, profile)
         self.path = []
-    
+
     def set_externalshell(self, externalshell):
         # ExternalShellBase instance:
         self.externalshell = externalshell
-        
+
     def clear_terminal(self):
         """Reimplement ShellBaseWidget method"""
         self.clear()
@@ -83,12 +83,12 @@ class ExtPythonShellWidget(PythonShellWidget):
         try:
             return communicate(sock, command, settings=settings)
         except socket.error:
-            # Process was just closed            
+            # Process was just closed
             pass
         except MemoryError:
             # Happens when monitor is not ready on slow machines
             pass
-            
+
     def get_dir(self, objtxt):
         """Return dir(object)"""
         return self.ask_monitor("__get_dir__('%s')" % objtxt)
@@ -96,57 +96,57 @@ class ExtPythonShellWidget(PythonShellWidget):
     def get_globals_keys(self):
         """Return shell globals() keys"""
         return self.ask_monitor("get_globals_keys()")
-    
+
     def get_cdlistdir(self):
         """Return shell current directory list dir"""
         return self.ask_monitor("getcdlistdir()")
-            
+
     def iscallable(self, objtxt):
         """Is object callable?"""
         return self.ask_monitor("__iscallable__('%s')" % objtxt)
-    
+
     def get_arglist(self, objtxt):
         """Get func/method argument list"""
         return self.ask_monitor("__get_arglist__('%s')" % objtxt)
-            
+
     def get__doc__(self, objtxt):
         """Get object __doc__"""
         return self.ask_monitor("__get__doc____('%s')" % objtxt)
-    
+
     def get_doc(self, objtxt):
         """Get object documentation dictionary"""
         return self.ask_monitor("__get_doc__('%s')" % objtxt)
-    
+
     def get_source(self, objtxt):
         """Get object source"""
         return self.ask_monitor("__get_source__('%s')" % objtxt)
-    
+
     def is_defined(self, objtxt, force_import=False):
         """Return True if object is defined"""
         return self.ask_monitor("isdefined('%s', force_import=%s)"
                                 % (objtxt, force_import))
-        
+
     def get_module_completion(self, objtxt):
         """Return module completion list associated to object name"""
         return self.ask_monitor("getmodcomplist('%s', %s)" % \
                                                            (objtxt, self.path))
-    
+
     def get_cwd(self):
         """Return shell current working directory"""
         return self.ask_monitor("getcwd()")
-    
+
     def set_cwd(self, dirname):
         """Set shell current working directory"""
         return self.ask_monitor("setcwd(r'%s')" % dirname)
-        
+
     def get_env(self):
         """Return environment variables: os.environ"""
         return self.ask_monitor("getenv()")
-        
+
     def set_env(self, env):
         """Set environment variables via os.environ"""
         return self.ask_monitor('setenv()', settings=[env])
-        
+
     def get_syspath(self):
         """Return sys.path[:]"""
         return self.ask_monitor("getsyspath()")
@@ -154,7 +154,7 @@ class ExtPythonShellWidget(PythonShellWidget):
     def set_spyder_breakpoints(self):
         """Set Spyder breakpoints into debugging session"""
         return self.ask_monitor("set_spyder_breakpoints()")
-        
+
 
 class ExternalPythonShell(ExternalShellBase):
     """External Shell widget: execute Python script in a separate process"""
@@ -165,7 +165,7 @@ class ExternalPythonShell(ExternalShellBase):
     create_ipython_client = Signal(str)
     started = Signal()
     sig_finished = Signal()
-    
+
     def __init__(self, parent=None, fname=None, wdir=None,
                  interact=False, debug=False, post_mortem=False,
                  path=[], python_args='',
@@ -183,9 +183,9 @@ class ExternalPythonShell(ExternalShellBase):
         assert qt_api in (None, 'pyqt', 'pyside')
 
         self.namespacebrowser = None # namespace browser widget!
-        
+
         self.dialog_manager = DialogManager()
-        
+
         self.stand_alone = stand_alone # stand alone settings (None: plugin)
         self.interact = interact
         self.is_ipykernel = ipykernel
@@ -204,7 +204,7 @@ class ExternalPythonShell(ExternalShellBase):
         self.umr_verbose = umr_verbose
         self.autorefresh_timeout = autorefresh_timeout
         self.autorefresh_state = autorefresh_state
-                
+
         self.namespacebrowser_button = None
         self.cwd_button = None
         self.env_button = None
@@ -212,7 +212,7 @@ class ExternalPythonShell(ExternalShellBase):
         self.terminate_button = None
 
         self.notification_thread = None
-        
+
         ExternalShellBase.__init__(self, parent=parent, fname=fname, wdir=wdir,
                                    history_filename='history.py',
                                    light_background=light_background,
@@ -227,10 +227,10 @@ class ExternalPythonShell(ExternalShellBase):
         if python_args:
             assert is_text_string(python_args)
             self.python_args = python_args
-        
+
         assert is_text_string(arguments)
         self.arguments = arguments
-        
+
         self.connection_file = None
 
         if self.is_ipykernel:
@@ -239,33 +239,33 @@ class ExternalPythonShell(ExternalShellBase):
             # (see spyderlib/widgets/externalshell/start_ipython_kernel.py)
             self.fname = get_module_source_path(
                 'spyderlib.widgets.externalshell', 'start_ipython_kernel.py')
-        
+
         self.shell.set_externalshell(self)
 
         self.toggle_globals_explorer(False)
         self.interact_action.setChecked(self.interact)
         self.debug_action.setChecked(debug)
-        
-        
+
+
         self.introspection_socket = None
         self.is_interpreter = fname is None
-        
+
         if self.is_interpreter:
             self.terminate_button.hide()
-            
+
         self.post_mortem_action.setChecked(post_mortem and not self.is_interpreter)
-        
+
         # Additional python path list
         self.path = path
         self.shell.path = path
-        
+
     def set_introspection_socket(self, introspection_socket):
         self.introspection_socket = introspection_socket
         if self.namespacebrowser is not None:
             settings = self.namespacebrowser.get_view_settings()
             communicate(introspection_socket,
                         'set_remote_view_settings()', settings=[settings])
-        
+
     def set_autorefresh_timeout(self, interval):
         if self.introspection_socket is not None:
             try:
@@ -273,11 +273,11 @@ class ExternalPythonShell(ExternalShellBase):
                             "set_monitor_timeout(%d)" % interval)
             except socket.error:
                 pass
-        
+
     def closeEvent(self, event):
         self.quit_monitor()
         ExternalShellBase.closeEvent(self, event)
-        
+
     def get_toolbar_buttons(self):
         ExternalShellBase.get_toolbar_buttons(self)
         if self.namespacebrowser_button is None \
@@ -334,7 +334,7 @@ class ExternalPythonShell(ExternalShellBase):
     def is_interpreter(self):
         """Return True if shellwidget is a Python interpreter"""
         return self.is_interpreter
-        
+
     def get_shell_widget(self):
         if self.stand_alone is None:
             return self.shell
@@ -356,7 +356,7 @@ class ExternalPythonShell(ExternalShellBase):
             splitter.setHandleWidth(5)
             splitter.setSizes([2, 1])
             return splitter
-    
+
     def get_icon(self):
         return get_icon('python.png')
 
@@ -381,7 +381,7 @@ class ExternalPythonShell(ExternalShellBase):
             btn.setEnabled(state and self.monitor_enabled)
         if self.namespacebrowser_button is not None:
             self.namespacebrowser_button.setEnabled(state)
-    
+
     def set_namespacebrowser(self, namespacebrowser):
         """
         Set namespace browser *widget*
@@ -389,7 +389,7 @@ class ExternalPythonShell(ExternalShellBase):
         """
         self.namespacebrowser = namespacebrowser
         self.configure_namespacebrowser()
-        
+
     def configure_namespacebrowser(self):
         """Connect the namespace browser to the notification thread"""
         if self.notification_thread is not None:
@@ -398,10 +398,10 @@ class ExternalPythonShell(ExternalShellBase):
             signal = self.notification_thread.sig_process_remote_view
             signal.connect(lambda data:
                            self.namespacebrowser.process_remote_view(data))
-    
+
     def create_process(self):
         self.shell.clear()
-            
+
         self.process = QProcess(self)
         if self.merge_output_channels:
             self.process.setProcessChannelMode(QProcess.MergedChannels)
@@ -409,7 +409,7 @@ class ExternalPythonShell(ExternalShellBase):
             self.process.setProcessChannelMode(QProcess.SeparateChannels)
         self.shell.wait_for_ready_read.connect(
                      lambda: self.process.waitForReadyRead(250))
-        
+
         # Working directory
         if self.wdir is not None:
             self.process.setWorkingDirectory(self.wdir)
@@ -423,12 +423,12 @@ class ExternalPythonShell(ExternalShellBase):
                                   self.interact_action.isChecked(),
                                   self.debug_action.isChecked(),
                                   self.arguments)
-        
+
         env = [to_text_string(_path)
                for _path in self.process.systemEnvironment()]
         if self.pythonstartup:
             env.append('PYTHONSTARTUP=%s' % self.pythonstartup)
-        
+
         #-------------------------Python specific-------------------------------
         # Post mortem debugging
         if self.post_mortem_action.isChecked():
@@ -464,7 +464,7 @@ class ExternalPythonShell(ExternalShellBase):
                 self.configure_namespacebrowser()
             env.append('SPYDER_I_PORT=%d' % introspection_server.port)
             env.append('SPYDER_N_PORT=%d' % notification_server.port)
-        
+
         # External modules options
         env.append('ETS_TOOLKIT=%s' % self.ets_backend)
         if self.mpl_backend:
@@ -481,7 +481,7 @@ class ExternalPythonShell(ExternalShellBase):
             env.append('PYQT_API=%d' % self.pyqt_api)
         env.append('IGNORE_SIP_SETAPI_ERRORS=%s'
                    % self.ignore_sip_setapi_errors)
-        
+
         # User Module Deleter
         if self.is_interpreter:
             env.append('UMR_ENABLED=%r' % self.umr_enabled)
@@ -497,19 +497,19 @@ class ExternalPythonShell(ExternalShellBase):
         # IPython kernel
         env.append('IPYTHON_KERNEL=%r' % self.is_ipykernel)
 
-        # Add sitecustomize path to path list 
+        # Add sitecustomize path to path list
         pathlist = []
         scpath = osp.dirname(osp.abspath(__file__))
         pathlist.append(scpath)
-        
+
         # Adding Spyder path
         pathlist += self.path
-        
+
         # Adding path list to PYTHONPATH environment variable
         add_pathlist_to_PYTHONPATH(env, pathlist)
 
         #-------------------------Python specific------------------------------
-                        
+
         self.process.readyReadStandardOutput.connect(self.write_output)
         self.process.readyReadStandardError.connect(self.write_error)
         self.process.finished.connect(lambda ec, es=QProcess.ExitStatus:
@@ -517,7 +517,7 @@ class ExternalPythonShell(ExternalShellBase):
         self.sig_finished.connect(self.dialog_manager.close_all)
         self.terminate_button.clicked.connect(self.process.terminate)
         self.kill_button.clicked.connect(self.process.kill)
-        
+
         #-------------------------Python specific------------------------------
         # Fixes for our Mac app:
         # 1. PYTHONPATH and PYTHONHOME are set while bootstrapping the app,
@@ -540,10 +540,10 @@ class ExternalPythonShell(ExternalShellBase):
         for envItem in env:
             envName, separator, envValue = envItem.partition('=')
             processEnvironment.insert(envName, envValue)
-        self.process.setProcessEnvironment(processEnvironment)                   
+        self.process.setProcessEnvironment(processEnvironment)
         self.process.start(self.pythonexecutable, p_args)
         #-------------------------Python specific------------------------------
-            
+
         running = self.process.waitForStarted(3000)
         self.set_running_state(running)
         if not running:
@@ -566,7 +566,7 @@ class ExternalPythonShell(ExternalShellBase):
         ExternalShellBase.finished(self, exit_code, exit_status)
         self.introspection_socket = None
 
-    
+
 #==============================================================================
 #    Input/Output
 #==============================================================================
@@ -579,11 +579,11 @@ class ExternalPythonShell(ExternalShellBase):
                 self.write_output()
         self.shell.write_error(self.get_stderr())
         QApplication.processEvents()
-        
+
     def send_to_process(self, text):
         if not self.is_running():
             return
-            
+
         if not is_text_string(text):
             text = to_text_string(text)
         if self.mpl_backend == 'Qt4Agg' and os.name == 'nt' and \
@@ -600,23 +600,23 @@ class ExternalPythonShell(ExternalShellBase):
             text += '\n'
         self.process.write(to_binary_string(text, 'utf8'))
         self.process.waitForBytesWritten(-1)
-        
+
         # Eventually write prompt faster (when hitting Enter continuously)
         # -- necessary/working on Windows only:
         if os.name == 'nt':
             self.write_error()
-        
+
     def keyboard_interrupt(self):
         if self.introspection_socket is not None:
             communicate(self.introspection_socket, "thread.interrupt_main()")
-        
+
     def quit_monitor(self):
         if self.introspection_socket is not None:
             try:
                 write_packet(self.introspection_socket, "thread.exit()")
             except socket.error:
                 pass
-            
+
 #==============================================================================
 #    Globals explorer
 #==============================================================================
@@ -627,7 +627,7 @@ class ExternalPythonShell(ExternalShellBase):
             self.namespacebrowser_button.setChecked(state)
             if state and self.namespacebrowser is not None:
                 self.namespacebrowser.refresh_table()
-        
+
     def splitter_moved(self, pos, index):
         self.namespacebrowser_button.setChecked( self.splitter.sizes()[1] )
 

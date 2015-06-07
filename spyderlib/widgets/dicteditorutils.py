@@ -199,7 +199,7 @@ def try_to_eval(value):
         return eval(value)
     except (NameError, SyntaxError, ImportError):
         return value
-    
+
 def get_size(item):
     """Return size of an item of arbitrary type"""
     if isinstance(item, (list, tuple, dict)):
@@ -218,11 +218,11 @@ def get_type_string(item):
     if isinstance(item, DataFrame):
         return "DataFrame"
     if isinstance(item, TimeSeries):
-        return "TimeSeries"    
+        return "TimeSeries"
     found = re.findall(r"<(?:type|class) '(\S*)'>", str(type(item)))
     if found:
         return found[0]
-    
+
 
 def is_known_type(item):
     """Return True if object has a known type"""

@@ -104,16 +104,16 @@ class ProxyObject(object):
     """Dictionary proxy to an unknown object"""
     def __init__(self, obj):
         self.__obj__ = obj
-    
+
     def __len__(self):
         return len(dir(self.__obj__))
-    
+
     def __getitem__(self, key):
         return getattr(self.__obj__, key)
-    
+
     def __setitem__(self, key, value):
         setattr(self.__obj__, key, value)
-        
+
 
 class ReadOnlyDictModel(QAbstractTableModel):
     """DictEditor Read-Only Table Model"""
@@ -139,11 +139,11 @@ class ReadOnlyDictModel(QAbstractTableModel):
         self.sizes = []
         self.types = []
         self.set_data(data)
-        
+
     def get_data(self):
         """Return model data"""
         return self._data
-            
+
     def set_data(self, data, dictfilter=None):
         """Set model data"""
         self._data = data
@@ -187,16 +187,16 @@ class ReadOnlyDictModel(QAbstractTableModel):
 
     def set_size_and_type(self, start=None, stop=None):
         data = self._data
-        
+
         if start is None and stop is None:
             start = 0
             stop = self.rows_loaded
             fetch_more = False
         else:
             fetch_more = True
-        
+
         if self.remote:
-            sizes = [ data[self.keys[index]]['size'] 
+            sizes = [ data[self.keys[index]]['size']
                       for index in range(start, stop) ]
             types = [ data[self.keys[index]]['type']
                       for index in range(start, stop) ]
@@ -262,13 +262,13 @@ class ReadOnlyDictModel(QAbstractTableModel):
             return self.total_rows
         else:
             return self.rows_loaded
-    
+
     def canFetchMore(self, index=QModelIndex()):
         if self.total_rows > self.rows_loaded:
             return True
         else:
             return False
- 
+
     def fetchMore(self, index=QModelIndex()):
         reminder = self.total_rows - self.rows_loaded
         items_to_fetch = min(reminder, self.ROWS_TO_LOAD)
@@ -278,17 +278,17 @@ class ReadOnlyDictModel(QAbstractTableModel):
                              self.rows_loaded + items_to_fetch - 1)
         self.rows_loaded += items_to_fetch
         self.endInsertRows()
-    
+
     def get_index_from_key(self, key):
         try:
             return self.createIndex(self.keys.index(key), 0)
         except ValueError:
             return QModelIndex()
-    
+
     def get_key(self, index):
         """Return current key"""
         return self.keys[index.row()]
-    
+
     def get_value(self, index):
         """Return current value"""
         if index.column() == 0:
@@ -343,7 +343,7 @@ class ReadOnlyDictModel(QAbstractTableModel):
             else:
                 return to_qvariant(get_font('dicteditor'))
         return to_qvariant()
-    
+
     def headerData(self, section, orientation, role=Qt.DisplayRole):
         """Overriding method headerData"""
         if role != Qt.DisplayRole:
@@ -372,7 +372,7 @@ class ReadOnlyDictModel(QAbstractTableModel):
 
 class DictModel(ReadOnlyDictModel):
     """DictEditor Table Model"""
-    
+
     def set_value(self, index, value):
         """Set value"""
         self._data[ self.keys[index.row()] ] = value
@@ -409,15 +409,15 @@ class DictModel(ReadOnlyDictModel):
 
 class DictDelegate(QItemDelegate):
     """DictEditor Item Delegate"""
-    
+
     def __init__(self, parent=None):
         QItemDelegate.__init__(self, parent)
         self._editors = {} # keep references on opened editors
-        
+
     def get_value(self, index):
         if index.isValid():
             return index.model().get_value(index)
-    
+
     def set_value(self, index, value):
         if index.isValid():
             index.model().set_value(index, value)
@@ -430,7 +430,7 @@ class DictDelegate(QItemDelegate):
         This avoids getting the variables' value to know its
         size and type, using instead those already computed by
         the TableModel.
-        
+
         The problem is when a variable is too big, it can take a
         lot of time just to get its value
         """
@@ -504,7 +504,7 @@ class DictDelegate(QItemDelegate):
              and DataFrame is not FakeObject:
             editor = DataFrameEditor()
             if not editor.setup_and_check(value):
-                return	
+                return
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
                                             key=key, readonly=readonly))
             return None
@@ -542,7 +542,7 @@ class DictDelegate(QItemDelegate):
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
                                             key=key, readonly=readonly))
             return None
-            
+
     def create_dialog(self, editor, data):
         self._editors[id(editor)] = data
         editor.accepted.connect(
@@ -550,7 +550,7 @@ class DictDelegate(QItemDelegate):
         editor.rejected.connect(
                      lambda eid=id(editor): self.editor_rejected(eid))
         editor.show()
-        
+
     def editor_accepted(self, editor_id):
         data = self._editors[editor_id]
         if not data['readonly']:
@@ -559,7 +559,7 @@ class DictDelegate(QItemDelegate):
             conv_func = data.get('conv', lambda v: v)
             self.set_value(index, conv_func(value))
         self._editors.pop(editor_id)
-        
+
     def editor_rejected(self, editor_id):
         self._editors.pop(editor_id)
 
@@ -593,7 +593,7 @@ class DictDelegate(QItemDelegate):
         if not hasattr(model, "set_value"):
             # Read-only mode
             return
-        
+
         if isinstance(editor, QLineEdit):
             value = editor.text()
             try:
@@ -628,7 +628,7 @@ class BaseTableView(QTableView):
     sig_option_changed = Signal(str, object)
     sig_files_dropped = Signal(list)
     redirect_stdio = Signal(bool)
-    
+
     def __init__(self, parent):
         QTableView.__init__(self, parent)
         self.array_filename = None
@@ -649,7 +649,7 @@ class BaseTableView(QTableView):
         self.duplicate_action = None
         self.delegate = None
         self.setAcceptDrops(True)
-        
+
     def setup_table(self):
         """Setup table"""
         self.horizontalHeader().setStretchLastSection(True)
@@ -657,14 +657,14 @@ class BaseTableView(QTableView):
         # Sorting columns
         self.setSortingEnabled(True)
         self.sortByColumn(0, Qt.AscendingOrder)
-    
+
     def setup_menu(self, truncate, minmax):
         """Setup context menu"""
         if self.truncate_action is not None:
             self.truncate_action.setChecked(truncate)
             self.minmax_action.setChecked(minmax)
             return
-        
+
         resize_action = create_action(self, _("Resize rows to contents"),
                                       triggered=self.resizeRowsToContents)
         self.paste_action = create_action(self, _("Paste"),
@@ -672,7 +672,7 @@ class BaseTableView(QTableView):
                                           triggered=self.paste)
         self.copy_action = create_action(self, _("Copy"),
                                          icon=get_icon('editcopy.png'),
-                                         triggered=self.copy)                                      
+                                         triggered=self.copy)
         self.edit_action = create_action(self, _("Edit"),
                                          icon=get_icon('edit.png'),
                                          triggered=self.edit_item)
@@ -727,7 +727,7 @@ class BaseTableView(QTableView):
                     [self.insert_action, self.paste_action,
                      None, resize_action])
         return menu
-    
+
     #------ Remote/local API ---------------------------------------------------
     def remove_values(self, keys):
         """Remove values from data"""
@@ -736,19 +736,19 @@ class BaseTableView(QTableView):
     def copy_value(self, orig_key, new_key):
         """Copy value"""
         raise NotImplementedError
-    
+
     def new_value(self, key, value):
         """Create new value in data"""
         raise NotImplementedError
-        
+
     def is_list(self, key):
         """Return True if variable is a list or a tuple"""
         raise NotImplementedError
-        
+
     def get_len(self, key):
         """Return sequence length"""
         raise NotImplementedError
-        
+
     def is_array(self, key):
         """Return True if variable is a numpy array"""
         raise NotImplementedError
@@ -756,36 +756,36 @@ class BaseTableView(QTableView):
     def is_image(self, key):
         """Return True if variable is a PIL.Image image"""
         raise NotImplementedError
-    
+
     def is_dict(self, key):
         """Return True if variable is a dictionary"""
         raise NotImplementedError
-        
+
     def get_array_shape(self, key):
         """Return array's shape"""
         raise NotImplementedError
-        
+
     def get_array_ndim(self, key):
         """Return array's ndim"""
         raise NotImplementedError
-    
+
     def oedit(self, key):
         """Edit item"""
         raise NotImplementedError
-    
+
     def plot(self, key, funcname):
         """Plot item"""
         raise NotImplementedError
-    
+
     def imshow(self, key):
         """Show item's image"""
         raise NotImplementedError
-    
+
     def show_image(self, key):
         """Show image (item is a PIL image)"""
         raise NotImplementedError
     #---------------------------------------------------------------------------
-            
+
     def refresh_menu(self):
         """Refresh context menu"""
         index = self.currentIndex()
@@ -793,7 +793,7 @@ class BaseTableView(QTableView):
         self.edit_action.setEnabled( condition )
         self.remove_action.setEnabled( condition )
         self.refresh_plot_entries(index)
-        
+
     def refresh_plot_entries(self, index):
         if index.isValid():
             key = self.model.get_key(index)
@@ -810,12 +810,12 @@ class BaseTableView(QTableView):
         self.hist_action.setVisible(condition_hist or is_list)
         self.imshow_action.setVisible(condition_imshow)
         self.save_array_action.setVisible(is_array)
-        
+
     def adjust_columns(self):
         """Resize two first columns to contents"""
         for col in range(3):
             self.resizeColumnToContents(col)
-        
+
     def set_data(self, data):
         """Set table data"""
         if data is not None:
@@ -837,7 +837,7 @@ class BaseTableView(QTableView):
         else:
             self.clearSelection()
             event.accept()
-    
+
     def mouseDoubleClickEvent(self, event):
         """Reimplement Qt method"""
         index_clicked = self.indexAt(event.pos())
@@ -848,7 +848,7 @@ class BaseTableView(QTableView):
             self.edit(index_clicked)
         else:
             event.accept()
-    
+
     def keyPressEvent(self, event):
         """Reimplement Qt methods"""
         if event.key() == Qt.Key_Delete:
@@ -861,7 +861,7 @@ class BaseTableView(QTableView):
             self.paste()
         else:
             QTableView.keyPressEvent(self, event)
-        
+
     def contextMenuEvent(self, event):
         """Reimplement Qt method"""
         if self.model.showndata:
@@ -878,7 +878,7 @@ class BaseTableView(QTableView):
             event.accept()
         else:
             event.ignore()
-    
+
     def dragMoveEvent(self, event):
         """Allow user to move files"""
         if mimedata2url(event.mimeData()):
@@ -991,7 +991,7 @@ class BaseTableView(QTableView):
                                             QLineEdit.Normal)
         if valid and to_text_string(value):
             self.new_value(key, try_to_eval(to_text_string(value)))
-            
+
     def __prepare_plot(self):
         try:
             import guiqwt.pyplot   #analysis:ignore
@@ -1059,7 +1059,7 @@ class BaseTableView(QTableView):
                                      _("<b>Unable to save array</b>"
                                        "<br><br>Error message:<br>%s"
                                        ) % str(error))
-    
+
     @Slot()
     def copy(self):
         """Copy text to clipboard"""
@@ -1070,7 +1070,7 @@ class BaseTableView(QTableView):
                 continue
             clipl.append(to_text_string(self.delegate.get_value(idx)))
         clipboard.setText(u('\n').join(clipl))
-    
+
     def import_from_string(self, text, title=None):
         """Import data from string"""
         data = self.model.get_data()
@@ -1094,7 +1094,7 @@ class BaseTableView(QTableView):
         else:
             QMessageBox.warning(self, _( "Empty clipboard"),
                                 _("Nothing to be imported from clipboard."))
-        
+
 
 class DictEditorTableView(BaseTableView):
     """DictEditor table view"""
@@ -1112,7 +1112,7 @@ class DictEditorTableView(BaseTableView):
 
         self.setup_table()
         self.menu = self.setup_menu(truncate, minmax)
-    
+
     #------ Remote/local API ---------------------------------------------------
     def remove_values(self, keys):
         """Remove values from data"""
@@ -1126,54 +1126,54 @@ class DictEditorTableView(BaseTableView):
         data = self.model.get_data()
         data[new_key] = data[orig_key]
         self.set_data(data)
-    
+
     def new_value(self, key, value):
         """Create new value in data"""
         data = self.model.get_data()
         data[key] = value
         self.set_data(data)
-        
+
     def is_list(self, key):
         """Return True if variable is a list or a tuple"""
         data = self.model.get_data()
         return isinstance(data[key], (tuple, list))
-        
+
     def get_len(self, key):
         """Return sequence length"""
         data = self.model.get_data()
         return len(data[key])
-        
+
     def is_array(self, key):
         """Return True if variable is a numpy array"""
         data = self.model.get_data()
         return isinstance(data[key], (ndarray, MaskedArray))
-        
+
     def is_image(self, key):
         """Return True if variable is a PIL.Image image"""
         data = self.model.get_data()
         return isinstance(data[key], Image)
-    
+
     def is_dict(self, key):
         """Return True if variable is a dictionary"""
         data = self.model.get_data()
         return isinstance(data[key], dict)
-        
+
     def get_array_shape(self, key):
         """Return array's shape"""
         data = self.model.get_data()
         return data[key].shape
-        
+
     def get_array_ndim(self, key):
         """Return array's ndim"""
         data = self.model.get_data()
         return data[key].ndim
-    
+
     def oedit(self, key):
         """Edit item"""
         data = self.model.get_data()
         from spyderlib.widgets.objecteditor import oedit
         oedit(data[key])
-    
+
     def plot(self, key, funcname):
         """Plot item"""
         data = self.model.get_data()
@@ -1181,7 +1181,7 @@ class DictEditorTableView(BaseTableView):
         plt.figure()
         getattr(plt, funcname)(data[key])
         plt.show()
-    
+
     def imshow(self, key):
         """Show item's image"""
         data = self.model.get_data()
@@ -1189,13 +1189,13 @@ class DictEditorTableView(BaseTableView):
         plt.figure()
         plt.imshow(data[key])
         plt.show()
-            
+
     def show_image(self, key):
         """Show image (item is a PIL image)"""
         data = self.model.get_data()
         data[key].show()
     #---------------------------------------------------------------------------
-        
+
     def refresh_menu(self):
         """Refresh context menu"""
         data = self.model.get_data()
@@ -1206,7 +1206,7 @@ class DictEditorTableView(BaseTableView):
         self.remove_action.setEnabled( condition )
         self.insert_action.setEnabled( not self.readonly )
         self.refresh_plot_entries(index)
-        
+
     def set_filter(self, dictfilter=None):
         """Set table dict filter"""
         self.dictfilter = dictfilter
@@ -1223,11 +1223,11 @@ class DictEditorWidget(QWidget):
         layout = QVBoxLayout()
         layout.addWidget(self.editor)
         self.setLayout(layout)
-        
+
     def set_data(self, data):
         """Set DictEditor data"""
         self.editor.set_data(data)
-        
+
     def get_title(self):
         """Get model title"""
         return self.editor.model.title
@@ -1237,16 +1237,16 @@ class DictEditor(QDialog):
     """Dictionary/List Editor Dialog"""
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
-        
+
         # Destroying the C++ object right after closing the dialog box,
         # otherwise it may be garbage-collected in another QThread
         # (e.g. the editor's analysis thread in Spyder), thus leading to
         # a segmentation fault on UNIX or an application crash on Windows
         self.setAttribute(Qt.WA_DeleteOnClose)
-        
+
         self.data_copy = None
         self.widget = None
-        
+
     def setup(self, data, title='', readonly=False, width=500,
               icon='dictedit.png', remote=False, parent=None):
         if isinstance(data, dict):
@@ -1264,11 +1264,11 @@ class DictEditor(QDialog):
             datalen = len(dir(data))
         self.widget = DictEditorWidget(self, self.data_copy, title=title,
                                        readonly=readonly, remote=remote)
-        
+
         layout = QVBoxLayout()
         layout.addWidget(self.widget)
         self.setLayout(layout)
-        
+
         # Buttons configuration
         buttons = QDialogButtonBox.Ok
         if not readonly:
@@ -1284,14 +1284,14 @@ class DictEditor(QDialog):
         error_margin = 20
         height = constant + row_height*min([20, datalen]) + error_margin
         self.resize(width, height)
-        
+
         self.setWindowTitle(self.widget.get_title())
         if is_text_string(icon):
             icon = get_icon(icon)
         self.setWindowIcon(icon)
         # Make the dialog act as a window
         self.setWindowFlags(Qt.Window)
-        
+
     def get_value(self):
         """Return modified copy of dictionary or list"""
         # It is import to avoid accessing Qt C++ object as it has probably
@@ -1306,12 +1306,12 @@ class RemoteDictDelegate(DictDelegate):
         DictDelegate.__init__(self, parent)
         self.get_value_func = get_value_func
         self.set_value_func = set_value_func
-        
+
     def get_value(self, index):
         if index.isValid():
             name = index.model().keys[index.row()]
             return self.get_value_func(name)
-    
+
     def set_value(self, index, value):
         if index.isValid():
             name = index.model().keys[index.row()]
@@ -1320,7 +1320,7 @@ class RemoteDictDelegate(DictDelegate):
 
 class RemoteDictEditorTableView(BaseTableView):
     """DictEditor table view"""
-    def __init__(self, parent, data, truncate=True, minmax=False, 
+    def __init__(self, parent, data, truncate=True, minmax=False,
                  get_value_func=None, set_value_func=None,
                  new_value_func=None, remove_values_func=None,
                  copy_value_func=None, is_list_func=None, get_len_func=None,
@@ -1330,9 +1330,9 @@ class RemoteDictEditorTableView(BaseTableView):
                  is_data_frame_func=None, is_time_series_func=None,
                  show_image_func=None, remote_editing=False):
         BaseTableView.__init__(self, parent)
-        
+
         self.remote_editing_enabled = None
-        
+
         self.remove_values = remove_values_func
         self.copy_value = copy_value_func
         self.new_value = new_value_func
@@ -1350,7 +1350,7 @@ class RemoteDictEditorTableView(BaseTableView):
         self.plot = plot_func
         self.imshow = imshow_func
         self.show_image = show_image_func
-        
+
         self.dictfilter = None
         self.model = None
         self.delegate = None
@@ -1361,7 +1361,7 @@ class RemoteDictEditorTableView(BaseTableView):
         self.setModel(self.model)
         self.delegate = RemoteDictDelegate(self, get_value_func, set_value_func)
         self.setItemDelegate(self.delegate)
-        
+
         self.setup_table()
         self.menu = self.setup_menu(truncate, minmax)
 
@@ -1371,17 +1371,17 @@ class RemoteDictEditorTableView(BaseTableView):
         return menu
 
     def oedit_possible(self, key):
-        if (self.is_list(key) or self.is_dict(key) 
+        if (self.is_list(key) or self.is_dict(key)
             or self.is_array(key) or self.is_image(key)
             or self.is_data_frame(key) or self.is_time_series(key)):
-            # If this is a remote dict editor, the following avoid 
+            # If this is a remote dict editor, the following avoid
             # transfering large amount of data through the socket
             return True
-            
+
     def edit_item(self):
         """
         Reimplement BaseTableView's method to edit item
-        
+
         Some supported data types are directly edited in the remote process,
         thus avoiding to transfer large amount of data through the socket from
         the remote process to Spyder
@@ -1440,7 +1440,7 @@ def get_test_data():
             'bool_scalar': np.bool(8),
             'unsupported1': np.arccos,
             'unsupported2': np.cast,
-            #1: (1, 2, 3), -5: ("a", "b", "c"), 2.5: np.array((4.0, 6.0, 8.0)),            
+            #1: (1, 2, 3), -5: ("a", "b", "c"), 2.5: np.array((4.0, 6.0, 8.0)),
             }
 
 def test():
@@ -1451,7 +1451,7 @@ def test():
     dialog.show()
     app.exec_()
     print("out:", dialog.get_value())
-    
+
 def remote_editor_test():
     """Remote dictionary editor test"""
     from spyderlib.plugins.variableexplorer import VariableExplorer

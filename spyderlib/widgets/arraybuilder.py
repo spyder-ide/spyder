@@ -314,7 +314,7 @@ class NumpyArrayDialog(QDialog):
             if nrows == 1:
                 prefix = prefix[:-1]
                 suffix = suffix.replace("]])", "])")
-            
+
             # Fix offset
             offset = self._offset
             braces = BRACES.replace(' ', '\n' + ' '*(offset + len(prefix) - 1))

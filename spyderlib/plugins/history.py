@@ -30,7 +30,7 @@ from spyderlib.py3compat import to_text_string, is_text_string
 class HistoryConfigPage(PluginConfigPage):
     def get_icon(self):
         return get_icon('history24.png')
-    
+
     def setup_page(self):
         settings_group = QGroupBox(_("Settings"))
         hist_spin = self.create_spinbox(
@@ -59,7 +59,7 @@ class HistoryConfigPage(PluginConfigPage):
         sourcecode_layout.addWidget(go_to_eof_box)
         sourcecode_layout.addWidget(cs_combo)
         sourcecode_group.setLayout(sourcecode_layout)
-        
+
         vlayout = QVBoxLayout()
         vlayout.addWidget(settings_group)
         vlayout.addWidget(font_group)
@@ -75,26 +75,26 @@ class HistoryLog(SpyderPluginWidget):
     CONF_SECTION = 'historylog'
     CONFIGWIDGET_CLASS = HistoryConfigPage
     focus_changed = Signal()
-    
+
     def __init__(self, parent):
         self.tabwidget = None
         self.menu_actions = None
         self.dockviewer = None
         self.wrap_action = None
-        
+
         self.editors = []
         self.filenames = []
         self.icons = []
-        if PYQT5:        
+        if PYQT5:
             SpyderPluginWidget.__init__(self, parent, main = parent)
         else:
             SpyderPluginWidget.__init__(self, parent)
 
         # Initialize plugin
         self.initialize_plugin()
-        
+
         self.set_default_color_scheme()
-        
+
         layout = QVBoxLayout()
         self.tabwidget = Tabs(self, self.menu_actions)
         self.tabwidget.currentChanged.connect(self.refresh_plugin)
@@ -109,36 +109,36 @@ class HistoryLog(SpyderPluginWidget):
         add_actions(menu, self.menu_actions)
         options_button.setMenu(menu)
         self.tabwidget.setCornerWidget(options_button)
-        
+
         # Find/replace widget
         self.find_widget = FindReplace(self)
         self.find_widget.hide()
         self.register_widget_shortcuts("Editor", self.find_widget)
-        
+
         layout.addWidget(self.find_widget)
-        
+
         self.setLayout(layout)
-            
-    #------ SpyderPluginWidget API ---------------------------------------------    
+
+    #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
         return _('History log')
-    
+
     def get_plugin_icon(self):
         """Return widget icon"""
         return get_icon('history.png')
-    
+
     def get_focus_widget(self):
         """
         Return the widget to give focus to when
         this plugin's dockwidget is raised on top-level
         """
         return self.tabwidget.currentWidget()
-        
+
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         return True
-    
+
     def refresh_plugin(self):
         """Refresh tabwidget"""
         if self.tabwidget.count():
@@ -146,7 +146,7 @@ class HistoryLog(SpyderPluginWidget):
         else:
             editor = None
         self.find_widget.set_editor(editor)
-        
+
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         history_action = create_action(self, _("History..."),
@@ -165,7 +165,7 @@ class HistoryLog(SpyderPluginWidget):
     def on_first_registration(self):
         """Action to be performed on first plugin registration"""
         self.main.tabify_plugins(self.main.extconsole, self)
-    
+
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         self.focus_changed.connect(self.main.plugin_focus_changed)
@@ -190,7 +190,7 @@ class HistoryLog(SpyderPluginWidget):
                 editor.set_color_scheme(color_scheme_o)
             if wrap_n in options:
                 editor.toggle_wrap_mode(wrap_o)
-        
+
     #------ Private API --------------------------------------------------------
     def move_tab(self, index_from, index_to):
         """
@@ -199,11 +199,11 @@ class HistoryLog(SpyderPluginWidget):
         filename = self.filenames.pop(index_from)
         editor = self.editors.pop(index_from)
         icon = self.icons.pop(index_from)
-        
+
         self.filenames.insert(index_to, filename)
         self.editors.insert(index_to, editor)
         self.icons.insert(index_to, icon)
-        
+
     #------ Public API ---------------------------------------------------------
     def add_history(self, filename):
         """
@@ -231,7 +231,7 @@ class HistoryLog(SpyderPluginWidget):
         text, _ = encoding.read(filename)
         editor.set_text(text)
         editor.set_cursor_position('eof')
-        
+
         self.editors.append(editor)
         self.filenames.append(filename)
         self.icons.append(icon)
@@ -240,7 +240,7 @@ class HistoryLog(SpyderPluginWidget):
         self.tabwidget.setTabToolTip(index, filename)
         self.tabwidget.setTabIcon(index, icon)
         self.tabwidget.setCurrentIndex(index)
-        
+
     def append_to_history(self, filename, command):
         """
         Append an entry to history filename
@@ -254,7 +254,7 @@ class HistoryLog(SpyderPluginWidget):
         if self.get_option('go_to_eof'):
             self.editors[index].set_cursor_position('eof')
         self.tabwidget.setCurrentIndex(index)
-    
+
     @Slot()
     def change_history_depth(self):
         "Change history max entries"""
@@ -264,7 +264,7 @@ class HistoryLog(SpyderPluginWidget):
                                        10, 10000)
         if valid:
             self.set_option('max_entries', depth)
-    
+
     @Slot()
     def change_font(self):
         """Change console font"""
@@ -274,7 +274,7 @@ class HistoryLog(SpyderPluginWidget):
             for editor in self.editors:
                 editor.set_font(font)
             self.set_plugin_font(font)
-    
+
     @Slot(bool)
     def toggle_wrap_mode(self, checked):
         """Toggle wrap mode"""

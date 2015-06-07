@@ -28,7 +28,7 @@ class ExternalSystemShell(ExternalShellBase):
     """External Shell widget: execute Python script in a separate process"""
     SHELL_CLASS = TerminalWidget
     started = Signal()
-    
+
     def __init__(self, parent=None, wdir=None, path=[], light_background=True,
                  menu_actions=None, show_buttons_inside=True,
                  show_elapsed_time=True):
@@ -38,10 +38,10 @@ class ExternalSystemShell(ExternalShellBase):
                                    menu_actions=menu_actions,
                                    show_buttons_inside=show_buttons_inside,
                                    show_elapsed_time=show_elapsed_time)
-        
+
         # Additional python path list
         self.path = path
-        
+
         # For compatibility with the other shells that can live in the external
         # console
         self.is_ipykernel = False
@@ -49,13 +49,13 @@ class ExternalSystemShell(ExternalShellBase):
 
     def get_icon(self):
         return get_icon('cmdprompt.png')
-    
+
     def create_process(self):
         self.shell.clear()
-            
+
         self.process = QProcess(self)
         self.process.setProcessChannelMode(QProcess.MergedChannels)
-        
+
         # PYTHONPATH (in case we use Python in this terminal, e.g. py2exe)
         env = [to_text_string(_path)
                for _path in self.process.systemEnvironment()]
@@ -66,33 +66,33 @@ class ExternalSystemShell(ExternalShellBase):
             processEnvironment.insert(envName, envValue)
 
         add_pathlist_to_PYTHONPATH(env, self.path)
-        self.process.setProcessEnvironment(processEnvironment)                   
+        self.process.setProcessEnvironment(processEnvironment)
 
-        
+
         # Working directory
         if self.wdir is not None:
             self.process.setWorkingDirectory(self.wdir)
-            
+
         # Shell arguments
         if os.name == 'nt':
             p_args = ['/Q']
         else:
             p_args = ['-i']
-            
+
         if self.arguments:
             p_args.extend( shell_split(self.arguments) )
-        
+
         self.process.readyReadStandardOutput.connect(self.write_output)
         self.process.finished.connect(self.finished)
         self.kill_button.clicked.connect(self.process.kill)
-        
+
         if os.name == 'nt':
             self.process.start('cmd.exe', p_args)
         else:
             # Using bash:
             self.process.start('bash', p_args)
             self.send_to_process('PS1="\\u@\\h:\\w> "\n')
-            
+
         running = self.process.waitForStarted()
         self.set_running_state(running)
         if not running:
@@ -101,9 +101,9 @@ class ExternalSystemShell(ExternalShellBase):
         else:
             self.shell.setFocus()
             self.started.emit()
-            
+
         return self.process
-    
+
 #===============================================================================
 #    Input/Output
 #===============================================================================
@@ -112,7 +112,7 @@ class ExternalSystemShell(ExternalShellBase):
             return to_text_string( CP850_CODEC.toUnicode(qba.data()) )
         else:
             return ExternalShellBase.transcode(self, qba)
-    
+
     def send_to_process(self, text):
         if not is_text_string(text):
             text = to_text_string(text)
@@ -127,7 +127,7 @@ class ExternalSystemShell(ExternalShellBase):
         else:
             self.process.write(LOCALE_CODEC.fromUnicode(text))
         self.process.waitForBytesWritten(-1)
-        
+
     def keyboard_interrupt(self):
         # This does not work on Windows:
         # (unfortunately there is no easy way to send a Ctrl+C to cmd.exe)
@@ -149,4 +149,4 @@ class ExternalSystemShell(ExternalShellBase):
 #                                              x.dwProcessID)
 #        else:
 #            self.send_ctrl_to_process('c')
-                
+

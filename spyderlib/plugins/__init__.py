@@ -49,7 +49,7 @@ class PluginConfigPage(SpyderConfigPage):
         self.set_font = plugin.set_plugin_font
         self.apply_settings = plugin.apply_plugin_settings
         SpyderConfigPage.__init__(self, parent)
-    
+
     def get_name(self):
         return self.plugin.get_plugin_title()
 
@@ -200,16 +200,16 @@ class SpyderDockWidget(QDockWidget):
         padding: 0px;
         margin: 2px;
     }
-    
+
     QTabWidget::pane {
         border: 3px solid rgb(235, 235, 235);
         border-bottom: 0;
     }
-    
+
     QTabWidget::tab-bar {
         left: 5px;
     }
-    
+
     QTabBar::tab {
         background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
                                     stop: 0 #b1b1b1, stop: 0.07 #b3b3b3,
@@ -223,7 +223,7 @@ class SpyderDockWidget(QDockWidget):
         min-width: 8ex;
         padding: 3px;
     }
-    
+
     QTabBar::tab:selected {
         background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
                                     stop: 0 #dfdfdf, stop: 0.1 #dddddd,
@@ -237,19 +237,19 @@ class SpyderDockWidget(QDockWidget):
         border-bottom-left-radius: 3px;
         border-bottom-right-radius: 3px;
     }
-    
+
     QTabBar::tab:first {
         margin-left: 0;
     }
-    
+
     QTabBar::tab:last {
         margin-right: 0;
     }
-    
+
     QTabBar::tab:only-one {
         margin: 0;
     }
-    
+
     QToolButton {
         border: none;
     }
@@ -305,7 +305,7 @@ class SpyderPluginMixin(object):
     """
     Useful methods to bind widgets to the main window
     See SpyderPluginWidget class for required widget interface
-    
+
     Signals:
         * sig_option_changed
              Example:
@@ -349,8 +349,8 @@ class SpyderPluginMixin(object):
         # We decided to create our own toggle action instead of using
         # the one that comes with dockwidget because it's not possible
         # to raise and focus the plugin with it.
-        self.toggle_view_action = None 
-        
+        self.toggle_view_action = None
+
     def initialize_plugin(self):
         """Initialize plugin: connect signals, setup actions, ..."""
         self.plugin_actions = self.get_plugin_actions()
@@ -367,8 +367,8 @@ class SpyderPluginMixin(object):
         """Action to be performed on first plugin registration"""
         # Was written to handle the very first plugin position in Spyder's
         # main window layout, but this could also be used for other things
-        # (see for example the IPython console plugin for which this method 
-        #  had to be written to handle the fact that this plugin was 
+        # (see for example the IPython console plugin for which this method
+        #  had to be written to handle the fact that this plugin was
         #  introduced between v2.1 and v2.2)
         raise NotImplementedError
 
@@ -381,7 +381,7 @@ class SpyderPluginMixin(object):
             except NotImplementedError:
                 return
             self.set_option('first_time', False)
-        
+
     def update_margins(self):
         layout = self.layout()
         if self.default_margins is None:
@@ -391,7 +391,7 @@ class SpyderPluginMixin(object):
             layout.setContentsMargins(*[margin]*4)
         else:
             layout.setContentsMargins(*self.default_margins)
-            
+
     def __update_plugin_title(self):
         """Update plugin title, i.e. dockwidget or mainwindow title"""
         if self.dockwidget is not None:
@@ -401,7 +401,7 @@ class SpyderPluginMixin(object):
         else:
             return
         win.setWindowTitle(self.get_plugin_title())
-        
+
     def create_dockwidget(self):
         """Add to parent QMainWindow as a dock widget"""
 
@@ -428,7 +428,7 @@ class SpyderPluginMixin(object):
                             self.switch_to_plugin)
             self.register_shortcut(sc, "_", "Switch to %s" % self.CONF_SECTION)
         return (dock, self.LOCATION)
-    
+
     def create_mainwindow(self):
         """
         Create a QMainWindow instance containing this plugin
@@ -444,7 +444,7 @@ class SpyderPluginMixin(object):
         mainwindow.setCentralWidget(self)
         self.refresh_plugin()
         return mainwindow
-    
+
     def create_configwidget(self, parent):
         """Create configuration dialog box page widget"""
         if self.CONFIGWIDGET_CLASS is not None:
@@ -455,7 +455,7 @@ class SpyderPluginMixin(object):
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
         raise NotImplementedError
-    
+
     def register_shortcut(self, qaction_or_qshortcut, context, name,
                           default=NoDefault):
         """
@@ -464,7 +464,7 @@ class SpyderPluginMixin(object):
         """
         self.main.register_shortcut(qaction_or_qshortcut,
                                     context, name, default)
-        
+
     def register_widget_shortcuts(self, context, widget):
         """
         Register widget shortcuts
@@ -472,7 +472,7 @@ class SpyderPluginMixin(object):
         """
         for qshortcut, name, default in widget.get_shortcut_data():
             self.register_shortcut(qshortcut, context, name, default)
-    
+
     def switch_to_plugin(self):
         """Switch to plugin
         This method is called when pressing plugin's shortcut key"""
@@ -495,7 +495,7 @@ class SpyderPluginMixin(object):
         self.isvisible = enable and visible
         if self.isvisible:
             self.refresh_plugin()   # To give focus to the plugin's widget
-    
+
     def plugin_closed(self):
         """DockWidget was closed"""
         self.toggle_view_action.setChecked(False)
@@ -511,11 +511,11 @@ class SpyderPluginMixin(object):
     def get_option(self, option, default=NoDefault):
         """Get a plugin option from configuration file"""
         return CONF.get(self.CONF_SECTION, option, default)
-    
+
     def get_plugin_font(self, option=None):
         """Return plugin font option"""
         return get_font(self.CONF_SECTION, option)
-    
+
     def set_plugin_font(self, font, option=None):
         """Set plugin font option"""
         set_font(font, self.CONF_SECTION, option)
@@ -532,7 +532,7 @@ class SpyderPluginMixin(object):
         self.__show_message(message)
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         QApplication.processEvents()
-        
+
     def ending_long_process(self, message=""):
         """
         Clearing main window's status bar
@@ -541,7 +541,7 @@ class SpyderPluginMixin(object):
         QApplication.restoreOverrideCursor()
         self.__show_message(message, timeout=2000)
         QApplication.processEvents()
-        
+
     def set_default_color_scheme(self, name='Spyder'):
         """Set default color scheme (only once)"""
         color_scheme_name = self.get_option('color_scheme_name', None)
@@ -550,7 +550,7 @@ class SpyderPluginMixin(object):
             if name not in names:
                 name = names[0]
             self.set_option('color_scheme_name', name)
-    
+
     def create_toggle_view_action(self):
         """Associate a toggle view action with each plugin"""
         title = self.get_plugin_title()
@@ -565,7 +565,7 @@ class SpyderPluginMixin(object):
             action = create_action(self, title, toggled=lambda checked:
                                                 self.toggle_view(checked))
         self.toggle_view_action = action
-    
+
     def toggle_view(self, checked):
         """Toggle view"""
         if checked:
@@ -591,7 +591,7 @@ class SpyderPluginWidget(QWidget, SpyderPluginMixin):
         def __init__(self, parent):
             QWidget.__init__(self, parent)
             SpyderPluginMixin.__init__(self, parent)
-        
+
     def get_plugin_title(self):
         """
         Return plugin title
@@ -599,7 +599,7 @@ class SpyderPluginWidget(QWidget, SpyderPluginMixin):
         is more flexible here than using a class attribute
         """
         raise NotImplementedError
-    
+
     def get_plugin_icon(self):
         """
         Return plugin icon (QIcon instance)
@@ -608,14 +608,14 @@ class SpyderPluginWidget(QWidget, SpyderPluginMixin):
               and for configuration dialog widgets creation
         """
         return get_icon('qt.png')
-    
+
     def get_focus_widget(self):
         """
         Return the widget to give focus to when
         this plugin's dockwidget is raised on top-level
         """
         pass
-        
+
     def closing_plugin(self, cancelable=False):
         """
         Perform actions before parent main window is closed
@@ -623,11 +623,11 @@ class SpyderPluginWidget(QWidget, SpyderPluginMixin):
         Note: returned value is ignored if *cancelable* is False
         """
         return True
-        
+
     def refresh_plugin(self):
         """Refresh widget"""
         raise NotImplementedError
-    
+
     def get_plugin_actions(self):
         """
         Return a list of actions related to plugin
@@ -635,7 +635,7 @@ class SpyderPluginWidget(QWidget, SpyderPluginMixin):
               and they will be disabled when it's hidden
         """
         raise NotImplementedError
-    
+
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         raise NotImplementedError

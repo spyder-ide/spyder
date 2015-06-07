@@ -24,7 +24,7 @@ AccessInit: hash collision: 3 for both 1 and 1
 ===============================================================================
 
 Another example on Windows (actually that's the same, but this is the exact
-case encountered with Spyder when the global working directory is the 
+case encountered with Spyder when the global working directory is the
 site-packages directory):
 ===============================================================================
 C:\Python27\Lib\site-packages>python

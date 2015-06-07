@@ -24,7 +24,7 @@ from spyderlib.py3compat import is_text_string
 class OutlineExplorer(OutlineExplorerWidget, SpyderPluginMixin):
     CONF_SECTION = 'outline_explorer'
     sig_option_changed = Signal(str, object)
-    
+
     def __init__(self, parent=None, fullpath_sorting=True):
         show_fullpath = self.get_option('show_fullpath')
         show_all_files = self.get_option('show_all_files')
@@ -38,11 +38,11 @@ class OutlineExplorer(OutlineExplorerWidget, SpyderPluginMixin):
 
         # Initialize plugin
         self.initialize_plugin()
-        
+
         self.treewidget.header().hide()
         self.load_config()
-        
-    #------ SpyderPluginWidget API ---------------------------------------------    
+
+    #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
         return _("Outline")
@@ -50,28 +50,28 @@ class OutlineExplorer(OutlineExplorerWidget, SpyderPluginMixin):
     def get_plugin_icon(self):
         """Return widget icon"""
         return get_icon('outline_explorer.png')
-    
+
     def get_focus_widget(self):
         """
         Return the widget to give focus to when
         this plugin's dockwidget is raised on top-level
         """
         return self.treewidget
-    
+
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         return []
-    
+
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         self.main.restore_scrollbar_position.connect(
                                                self.restore_scrollbar_position)
         self.main.add_dockwidget(self)
-        
+
     def refresh_plugin(self):
         """Refresh project explorer widget"""
         pass
-        
+
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         self.save_config()
@@ -83,7 +83,7 @@ class OutlineExplorer(OutlineExplorerWidget, SpyderPluginMixin):
         SpyderPluginMixin.visibility_changed(self, enable)
         if enable:
             self.outlineexplorer_is_visible.emit()
-            
+
     #------ Public API ---------------------------------------------------------
     def restore_scrollbar_position(self):
         """Restoring scrollbar position after main window is visible"""
@@ -98,7 +98,7 @@ class OutlineExplorer(OutlineExplorerWidget, SpyderPluginMixin):
         self.set_option('expanded_state', self.treewidget.get_expanded_state())
         self.set_option('scrollbar_position',
                         self.treewidget.get_scrollbar_position())
-        
+
     def load_config(self):
         """Load configuration: tree widget state"""
         expanded_state = self.get_option('expanded_state', None)

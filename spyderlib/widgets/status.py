@@ -31,7 +31,7 @@ class StatusBarWidget(QWidget):
         self.label_font = font = get_font('editor')
         font.setPointSize(self.font().pointSize())
         font.setBold(True)
-        
+
         layout = QHBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
@@ -61,12 +61,12 @@ class BaseTimerStatus(StatusBarWidget):
         else:
             self.timer = None
             self.hide()
-    
+
     def set_interval(self, interval):
         """Set timer interval (ms)"""
         if self.timer is not None:
             self.timer.setInterval(interval)
-    
+
     def import_test(self):
         """Raise ImportError if feature is not supported"""
         raise NotImplementedError
@@ -78,11 +78,11 @@ class BaseTimerStatus(StatusBarWidget):
             return True
         except ImportError:
             return False
-    
+
     def get_value(self):
         """Return value (e.g. CPU or memory usage)"""
         raise NotImplementedError
-        
+
     def update_label(self):
         """Update status label widget, if widget is visible"""
         if self.isVisible():
@@ -130,7 +130,7 @@ class ReadWriteStatus(StatusBarWidget):
         self.readwrite.setFont(self.label_font)
         layout.addWidget(self.readwrite)
         layout.addSpacing(20)
-        
+
     def readonly_changed(self, readonly):
         readwrite = "R" if readonly else "RW"
         self.readwrite.setText(readwrite.ljust(3))
@@ -144,7 +144,7 @@ class EOLStatus(StatusBarWidget):
         self.eol.setFont(self.label_font)
         layout.addWidget(self.eol)
         layout.addSpacing(20)
-        
+
     def eol_changed(self, os_name):
         os_name = to_text_string(os_name)
         self.eol.setText({"nt": "CRLF", "posix": "LF"}.get(os_name, "CR"))
@@ -158,7 +158,7 @@ class EncodingStatus(StatusBarWidget):
         self.encoding.setFont(self.label_font)
         layout.addWidget(self.encoding)
         layout.addSpacing(20)
-        
+
     def encoding_changed(self, encoding):
         self.encoding.setText(str(encoding).upper().ljust(15))
 
@@ -175,7 +175,7 @@ class CursorPositionStatus(StatusBarWidget):
         self.column.setFont(self.label_font)
         layout.addWidget(self.column)
         self.setLayout(layout)
-        
+
     def cursor_position_changed(self, line, index):
         self.line.setText("%-6d" % (line+1))
         self.column.setText("%-4d" % (index+1))
@@ -196,6 +196,6 @@ def test():
         swidgets.append(swidget)
     win.show()
     app.exec_()
-    
+
 if __name__ == "__main__":
     test()

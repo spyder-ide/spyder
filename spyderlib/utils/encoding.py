@@ -69,10 +69,10 @@ def to_unicode_from_fs(string):
             else:
                 return unic
     return string
-    
+
 def to_fs_from_unicode(unic):
     """
-    Return a byte string version of unic encoded using the file 
+    Return a byte string version of unic encoded using the file
     system encoding.
     """
     if is_unicode(unic):
@@ -92,9 +92,9 @@ def to_fs_from_unicode(unic):
 # Codecs for working with files and text.
 CODING_RE = re.compile(r"coding[:=]\s*([-\w_.]+)")
 CODECS = ['utf-8', 'iso8859-1',  'iso8859-15', 'koi8-r',
-          'koi8-u', 'iso8859-2', 'iso8859-3', 'iso8859-4', 'iso8859-5', 
-          'iso8859-6', 'iso8859-7', 'iso8859-8', 'iso8859-9', 
-          'iso8859-10', 'iso8859-13', 'iso8859-14', 'latin-1', 
+          'koi8-u', 'iso8859-2', 'iso8859-3', 'iso8859-4', 'iso8859-5',
+          'iso8859-6', 'iso8859-7', 'iso8859-8', 'iso8859-9',
+          'iso8859-10', 'iso8859-13', 'iso8859-14', 'latin-1',
           'utf-16']
 
 def get_coding(text):
@@ -147,7 +147,7 @@ def encode(text, orig_coding):
     """
     if orig_coding == 'utf-8-bom':
         return BOM_UTF8 + text.encode("utf-8"), 'utf-8-bom'
-    
+
     # Try declared coding spec
     coding = get_coding(text)
     if coding:
@@ -163,16 +163,16 @@ def encode(text, orig_coding):
             return text.encode(coding), coding
         except (UnicodeError, LookupError):
             pass
-    
+
     # Try saving as ASCII
     try:
         return text.encode('ascii'), 'ascii'
     except UnicodeError:
         pass
-    
+
     # Save as UTF-8 without BOM
     return text.encode('utf-8'), 'utf-8'
-    
+
 def to_unicode(string):
     """Convert a string to unicode"""
     if not is_unicode(string):
@@ -186,7 +186,7 @@ def to_unicode(string):
             else:
                 return unic
     return string
-    
+
 
 def write(text, filename, encoding='utf-8', mode='wb'):
     """
@@ -225,9 +225,9 @@ def readlines(filename, encoding='utf-8'):
 def is_text_file(filename):
     """
     Test if the given path is a text-like file.
-    
+
     Adapted from: http://stackoverflow.com/a/3002505
-    
+
     Original Authors: Trent Mick <TrentM@ActiveState.com>
                       Jorge Orpinel <jorge@orpinel.com>
     """

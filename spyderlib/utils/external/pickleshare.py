@@ -2,16 +2,16 @@
 
 """ PickleShare - a small 'shelve' like datastore with concurrency support
 
-Like shelve, a PickleShareDB object acts like a normal dictionary. Unlike 
-shelve, many processes can access the database simultaneously. Changing a 
-value in database is immediately visible to other processes accessing the 
+Like shelve, a PickleShareDB object acts like a normal dictionary. Unlike
+shelve, many processes can access the database simultaneously. Changing a
+value in database is immediately visible to other processes accessing the
 same database.
 
 Concurrency is possible because the values are stored in separate files. Hence
 the "database" is a directory where *all* files are governed by PickleShare.
 
 Example usage::
-    
+
     from pickleshare import *
     db = PickleShareDB('~/testpickleshare')
     db.clear()
@@ -22,8 +22,8 @@ Example usage::
     print db.keys()
     del db['aku ankka']
 
-This module is certainly not ZODB, but can be used for low-load 
-(non-mission-critical) situations where tiny code size trumps the 
+This module is certainly not ZODB, but can be used for low-load
+(non-mission-critical) situations where tiny code size trumps the
 advanced features of a "real" object database.
 
 Installation guide: easy_install pickleshare
@@ -58,7 +58,7 @@ class PickleShareDB(MutableMapping):
             self.root.makedirs()
         # cache has { 'key' : (obj, orig_mod_time) }
         self.cache = {}
-    
+
     #==========================================================================
     # Only affects Python 3
     def __iter__(self):
@@ -82,10 +82,10 @@ class PickleShareDB(MutableMapping):
             obj = pickle.load(fil.open('rb'))
         except:
             raise KeyError(key)
-            
+
         self.cache[fil] = (obj, mtime)
         return obj
-    
+
     def __setitem__(self, key, value):
         """ db['key'] = 5 """
         fil = self.root / key
@@ -100,7 +100,7 @@ class PickleShareDB(MutableMapping):
         except OSError as e:
             if e.errno != errno.ENOENT:
                 raise
-    
+
     def hset(self, hashroot, key, value):
         """ hashed set """
         hroot = self.root / hashroot
@@ -109,27 +109,27 @@ class PickleShareDB(MutableMapping):
         hfile = hroot / gethashfile(key)
         d = self.get(hfile, {})
         d.update( {key : value})
-        self[hfile] = d                
+        self[hfile] = d
 
-    
-    
+
+
     def hget(self, hashroot, key, default = _sentinel, fast_only = True):
         """ hashed get """
         hroot = self.root / hashroot
         hfile = hroot / gethashfile(key)
-        
+
         d = self.get(hfile, _sentinel )
         #print "got dict",d,"from",hfile
         if d is _sentinel:
             if fast_only:
                 if default is _sentinel:
                     raise KeyError(key)
-                    
+
                 return default
-            
+
             # slow mode ok, works even after hcompress()
             d = self.hdict(hashroot)
-        
+
         return d.get(key, default)
 
     def hdict(self, hashroot):
@@ -140,9 +140,9 @@ class PickleShareDB(MutableMapping):
         if last.endswith('xx'):
             # print "using xx"
             hfiles = [last] + hfiles[:-1]
-            
+
         all = {}
-        
+
         for f in hfiles:
             # print "using",f
             try:
@@ -150,17 +150,17 @@ class PickleShareDB(MutableMapping):
             except KeyError:
                 print("Corrupt", f, "deleted - hset is not threadsafe!")
                 del self[f]
-                
+
             self.uncache(f)
-        
+
         return all
-    
+
     def hcompress(self, hashroot):
         """ Compress category 'hashroot', so hset is fast again
-        
+
         hget will fail if fast_only is True for compressed items (that were
         hset before hcompress).
-        
+
         """
         hfiles = self.keys(hashroot + "/*")
         all = {}
@@ -168,16 +168,16 @@ class PickleShareDB(MutableMapping):
             # print "using",f
             all.update(self[f])
             self.uncache(f)
-            
+
         self[hashroot + '/xx'] = all
         for f in hfiles:
             p = self.root / f
             if p.basename() == 'xx':
                 continue
             p.remove()
-            
-            
-        
+
+
+
     def __delitem__(self, key):
         """ del db["key"] """
         fil = self.root / key
@@ -188,14 +188,14 @@ class PickleShareDB(MutableMapping):
             # notfound and permission denied are ok - we
             # lost, the other process wins the conflict
             pass
-        
+
     def _normalized(self, p):
         """ Make a key suitable for user's eyes """
         return str(self.root.relpathto(p)).replace('\\', '/')
-    
+
     def keys(self, globpat = None):
         """ All keys in DB, or all keys matching a glob"""
-        
+
         if globpat is None:
             files = self.root.walkfiles()
         else:
@@ -204,31 +204,31 @@ class PickleShareDB(MutableMapping):
 
     def uncache(self,*items):
         """ Removes all, or specified items from cache
-        
+
         Use this after reading a large amount of large objects
         to free up memory, when you won't be needing the objects
         for a while.
-         
+
         """
         if not items:
             self.cache = {}
         for it in items:
             self.cache.pop(it, None)
-            
+
     def waitget(self,key, maxwaittime = 60 ):
         """ Wait (poll) for a key to get a value
-        
+
         Will wait for `maxwaittime` seconds before raising a KeyError.
         The call exits normally if the `key` field in db gets a value
         within the timeout period.
-        
+
         Use this for synchronizing different processes or for ensuring
-        that an unfortunately timed "db['key'] = newvalue" operation 
-        in another process (which causes all 'get' operation to cause a 
-        KeyError for the duration of pickling) won't screw up your program 
-        logic. 
+        that an unfortunately timed "db['key'] = newvalue" operation
+        in another process (which causes all 'get' operation to cause a
+        KeyError for the duration of pickling) won't screw up your program
+        logic.
         """
-        
+
         wtimes = [0.2] * 3 + [0.5] * 2 + [1]
         tries = 0
         waited = 0
@@ -238,24 +238,24 @@ class PickleShareDB(MutableMapping):
                 return val
             except KeyError:
                 pass
-            
+
             if waited > maxwaittime:
                 raise KeyError(key)
-            
+
             time.sleep(wtimes[tries])
             waited+=wtimes[tries]
             if tries < len(wtimes) -1:
                 tries+=1
-    
+
     def getlink(self, folder):
         """ Get a convenient link for accessing items  """
         return PickleShareLink(self, folder)
-    
+
     def __repr__(self):
         return "PickleShareDB('%s')" % self.root
-        
-        
-                
+
+
+
 class PickleShareLink:
     """ A shortdand for accessing nested PickleShare data conveniently.
 
@@ -264,11 +264,11 @@ class PickleShareLink:
         lnk = db.getlink('myobjects/test')
         lnk.foo = 2
         lnk.bar = lnk.foo + 5
-    
+
     """
-    def __init__(self, db, keydir ):    
+    def __init__(self, db, keydir ):
         self.__dict__.update(locals())
-        
+
     def __getattr__(self, key):
         return self.__dict__['db'][self.__dict__['keydir']+'/' + key]
     def __setattr__(self, key, val):
@@ -279,8 +279,8 @@ class PickleShareLink:
         return "<PickleShareLink '%s': %s>" % (
             self.__dict__['keydir'],
             ";".join([Path(k).basename() for k in keys]))
-            
-        
+
+
 def test():
     db = PickleShareDB('~/testpickleshare')
     db.clear()
@@ -316,22 +316,22 @@ def stress():
 
             if j%33 == 0:
                 time.sleep(0.02)
-            
+
             db[str(j)] = db.get(str(j), []) + [(i, j, "proc %d" % os.getpid())]
             db.hset('hash', j, db.hget('hash', j, 15) + 1 )
-            
+
         print(i, end=' ')
         sys.stdout.flush()
         if i % 10 == 0:
             db.uncache()
-    
+
 def main():
     import textwrap
     usage = textwrap.dedent("""\
-    pickleshare - manage PickleShare databases 
-    
+    pickleshare - manage PickleShare databases
+
     Usage:
-        
+
         pickleshare dump /path/to/db > dump.txt
         pickleshare load /path/to/db < dump.txt
         pickleshare test /path/to/db
@@ -341,7 +341,7 @@ def main():
     if len(sys.argv) < 2:
         print(usage)
         return
-        
+
     cmd = sys.argv[1]
     args = sys.argv[2:]
     if cmd == 'dump':
@@ -363,8 +363,8 @@ def main():
     elif cmd == 'test':
         test()
         stress()
-    
+
 if __name__== "__main__":
     main()
-    
-    
+
+

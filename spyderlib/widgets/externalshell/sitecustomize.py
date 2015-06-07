@@ -49,7 +49,7 @@ def _print(*objects, **options):
 
 #==============================================================================
 # Execfile functions
-# 
+#
 # The definitions for Python 2 on Windows were taken from the IPython
 # project (present in IPython.utils.py3compat)
 # Copyright (C) The IPython Development Team
@@ -88,7 +88,7 @@ except ImportError:
 
 
 #==============================================================================
-# Colorization of sys.stderr (standard Python interpreter) 
+# Colorization of sys.stderr (standard Python interpreter)
 #==============================================================================
 if os.environ.get("COLORIZE_SYS_STDERR", "").lower() == "true":
     class StderrProxy(object):
@@ -274,7 +274,7 @@ else:
 
     def qt_nt_inputhook():
         """Qt input hook for Windows
-        
+
         This input hook wait for available stdin data (notified by
         ExternalPythonShell through the monitor's inputhook_flag
         attribute), and in the meantime it processes Qt events.
@@ -313,7 +313,7 @@ else:
 #            socket.read(3)
 #            socket.disconnectFromServer()
         return 0
-    
+
 
 #==============================================================================
 # Matplotlib settings
@@ -347,7 +347,7 @@ if matplotlib is not None:
             # Removing PyQt4 input hook which is not working well on
             # Windows since opening a subprocess does not attach a real
             # console to it (with keyboard events...)
-            if os.environ["QT_API"] == 'pyqt': 
+            if os.environ["QT_API"] == 'pyqt':
                 inputhooks.remove_pyqt_inputhook()
             # Using our own input hook
             # NOTE: it's not working correctly for some configurations
@@ -394,7 +394,7 @@ if IS_IPYTHON:
             kwargs['exit'] = False
             TestProgram.__init__(self, *args, **kwargs)
     unittest.main = IPyTesProgram
-    
+
     # Pandas monkey-patches
     try:
         # Make Pandas recognize our IPython consoles as proper qtconsoles
@@ -403,12 +403,12 @@ if IS_IPYTHON:
             return True
         import pandas as pd
         pd.core.common.in_qtconsole = in_qtconsole
-        
+
         # Set Pandas output encoding
         pd.options.display.encoding = 'utf-8'
     except (ImportError, AttributeError):
         pass
-        
+
 
 #==============================================================================
 # Pdb adjustments
@@ -451,7 +451,7 @@ class SpyderPdb(pdb.Pdb):
             if osp.isfile(fname) and monitor is not None:
                 monitor.notify_pdb_step(fname, lineno)
                 time.sleep(0.1)
-                
+
 pdb.Pdb = SpyderPdb
 
 #XXX: I know, this function is now also implemented as is in utils/misc.py but
@@ -542,7 +542,7 @@ if sys.version[0] == '2':
             lineno = frame.f_code.co_firstlineno
             if not lineno in self.breaks[filename]:
                 return False
-    
+
         # flag says ok to delete temp. bp
         (bp, flag) = effective(filename, lineno, frame)
         if bp:
@@ -569,7 +569,7 @@ except ValueError:
 
 #==============================================================================
 # Ignore PyQt4's sip API changes (this should be used wisely -e.g. for
-# debugging- as dynamic API change is not supported by PyQt) 
+# debugging- as dynamic API change is not supported by PyQt)
 #==============================================================================
 if os.environ.get("IGNORE_SIP_SETAPI_ERRORS", "").lower() == "true":
     try:
@@ -590,7 +590,7 @@ if os.environ.get("IGNORE_SIP_SETAPI_ERRORS", "").lower() == "true":
 #==============================================================================
 class UserModuleReloader(object):
     """
-    User Module Reloader (UMR) aims at deleting user modules 
+    User Module Reloader (UMR) aims at deleting user modules
     to force Python to deeply reload them during import
 
     pathlist [list]: blacklist in terms of module path
@@ -602,7 +602,7 @@ class UserModuleReloader(object):
         spy_modules = ['sitecustomize', 'spyderlib', 'spyderplugins']
         mpl_modules = ['matplotlib', 'tkinter', 'Tkinter', 'gtk']
         self.namelist = namelist + spy_modules + mpl_modules
-        
+
         if pathlist is None:
             pathlist = []
         self.pathlist = pathlist
@@ -806,7 +806,7 @@ def evalsc(command):
     """Evaluate special commands
     (analog to IPython's magic commands but far less powerful/complete)"""
     assert command.startswith('%')
-    
+
     from subprocess import Popen, PIPE
     namespace = _get_globals()
     command = command[1:].strip()  # Remove leading %

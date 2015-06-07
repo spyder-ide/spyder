@@ -74,7 +74,7 @@ def get_versions(reporev=True):
         system = platform.system()
     else:
         system = 'Darwin'
-    
+
     return {
         'spyder': __version__,
         'python': platform.python_version(),  # "2.7.3"

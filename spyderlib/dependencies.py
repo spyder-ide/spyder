@@ -48,7 +48,7 @@ class Dependency(object):
             return '%s (%s)' % (self.installed_version, self.OK)
         else:
             return '%s (%s)' % (self.installed_version, self.NOK)
-    
+
     def get_status(self):
         """Return dependency status (string)"""
         if self.check():

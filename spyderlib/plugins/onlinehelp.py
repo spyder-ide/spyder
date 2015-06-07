@@ -34,11 +34,11 @@ class OnlineHelp(PydocBrowser, SpyderPluginMixin):
         self.initialize_plugin()
 
         self.register_widget_shortcuts("Editor", self.find_widget)
-        
+
         self.webview.set_zoom_factor(self.get_option('zoom_factor'))
         self.url_combo.setMaxCount(self.get_option('max_history_entries'))
         self.url_combo.addItems( self.load_history() )
-        
+
     #------ Public API ---------------------------------------------------------
     def load_history(self, obj=None):
         """Load history from a text file in user home directory"""
@@ -48,7 +48,7 @@ class OnlineHelp(PydocBrowser, SpyderPluginMixin):
         else:
             history = []
         return history
-    
+
     def save_history(self):
         """Save history to a text file in user home directory"""
         open(self.LOG_PATH, 'w').write("\n".join( \
@@ -61,12 +61,12 @@ class OnlineHelp(PydocBrowser, SpyderPluginMixin):
         SpyderPluginMixin.visibility_changed(self, enable)
         if enable and not self.is_server_running():
             self.initialize()
-    
+
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
         return _('Online help')
-    
+
     def get_focus_widget(self):
         """
         Return the widget to give focus to when
@@ -74,22 +74,22 @@ class OnlineHelp(PydocBrowser, SpyderPluginMixin):
         """
         self.url_combo.lineEdit().selectAll()
         return self.url_combo
-        
+
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         self.save_history()
         self.set_option('zoom_factor', self.webview.get_zoom_factor())
         return True
-        
+
     def refresh_plugin(self):
         """Refresh widget"""
         pass
-    
+
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         return []
-    
+
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         self.main.add_dockwidget(self)
-        
+

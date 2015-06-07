@@ -31,7 +31,7 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
     removed_tree = Signal(str)
     renamed = Signal(str, str)
     redirect_stdio = Signal(bool)
-    
+
     def __init__(self, parent=None):
         ProjectExplorerWidget.__init__(self, parent=parent,
                     name_filters=self.get_option('name_filters'),
@@ -45,19 +45,19 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         self.treewidget.header().hide()
         self.set_font(self.get_plugin_font())
         self.load_config()
-        
-    #------ SpyderPluginWidget API ---------------------------------------------    
+
+    #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
         return _("Project explorer")
-    
+
     def get_focus_widget(self):
         """
         Return the widget to give focus to when
         this plugin's dockwidget is raised on top-level
         """
         return self.treewidget
-    
+
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         new_project_act = create_action(self, text=_('New project...'),
@@ -68,11 +68,11 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
                                     None, 'font.png', _("Set font style"),
                                     triggered=self.change_font)
         self.treewidget.common_actions += (None, font_action)
-        
+
         self.main.file_menu_actions.insert(1, new_project_act)
-        
+
         return []
-    
+
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         self.main.pythonpath_changed()
@@ -89,17 +89,17 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         self.main.add_dockwidget(self)
 
         self.sig_open_file.connect(self.main.open_file)
-        
+
     def refresh_plugin(self):
         """Refresh project explorer widget"""
         pass
-        
+
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         self.save_config()
         self.closing_widget()
         return True
-        
+
     #------ Public API ---------------------------------------------------------
     @Slot()
     def create_new_project(self):
@@ -112,13 +112,13 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
             self.dockwidget.update()
 
     def projects_were_closed(self):
-        """Project were just closed: checking if related files are opened in 
+        """Project were just closed: checking if related files are opened in
         the editor and closing them"""
         for fname in self.main.editor.get_filenames():
             if self.treewidget.workspace.is_file_in_closed_project(fname):
                 self.main.editor.close_file_from_name(fname)
 
-    @Slot()    
+    @Slot()
     def change_font(self):
         """Change font"""
         font, valid = QFontDialog.getFont(self.get_plugin_font(), self,
@@ -126,18 +126,18 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         if valid:
             self.set_font(font)
             self.set_plugin_font(font)
-            
+
     def set_font(self, font):
         """Set project explorer widget font"""
         self.treewidget.setFont(font)
-        
+
     def save_config(self):
         """Save configuration: opened projects & tree widget state"""
         self.set_option('workspace', self.get_workspace())
         self.set_option('expanded_state', self.treewidget.get_expanded_state())
         self.set_option('scrollbar_position',
                         self.treewidget.get_scrollbar_position())
-        
+
     def load_config(self):
         """Load configuration: opened projects & tree widget state"""
         self.set_workspace(self.get_option('workspace', None))
@@ -149,7 +149,7 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
             expanded_state = None
         if expanded_state is not None:
             self.treewidget.set_expanded_state(expanded_state)
-        
+
     def restore_scrollbar_position(self):
         """Restoring scrollbar position after main window is visible"""
         scrollbar_pos = self.get_option('scrollbar_position', None)

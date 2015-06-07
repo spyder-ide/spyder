@@ -54,12 +54,12 @@ def create_banner(message):
 class SysOutput(QObject):
     """Handle standard I/O queue"""
     data_avail = Signal()
-    
+
     def __init__(self):
         QObject.__init__(self)
         self.queue = []
         self.lock = threading.Lock()
-        
+
     def write(self, val):
         self.lock.acquire()
         self.queue.append(val)
@@ -72,7 +72,7 @@ class SysOutput(QObject):
         self.queue = []
         self.lock.release()
         return s
-    
+
     # We need to add this method to fix Issue 1789
     def flush(self):
         pass
@@ -82,34 +82,34 @@ class WidgetProxyData(object):
 
 class WidgetProxy(QObject):
     """Handle Shell widget refresh signal"""
-    
+
     sig_new_prompt = Signal(str)
     sig_set_readonly = Signal(bool)
     sig_edit = Signal(str, bool)
     sig_wait_input = Signal(str)
-    
+
     def __init__(self, input_condition):
         QObject.__init__(self)
         self.input_data = None
         self.input_condition = input_condition
-        
+
     def new_prompt(self, prompt):
         self.sig_new_prompt.emit(prompt)
-        
+
     def set_readonly(self, state):
         self.sig_set_readonly.emit(state)
-        
+
     def edit(self, filename, external_editor=False):
         self.sig_edit.emit(filename, external_editor)
-    
+
     def data_available(self):
         """Return True if input data is available"""
         return self.input_data is not WidgetProxyData
-    
+
     def wait_input(self, prompt=''):
         self.input_data = WidgetProxyData
         self.sig_wait_input.emit(prompt)
-    
+
     def end_input(self, cmd):
         self.input_condition.acquire()
         self.input_data = cmd
@@ -119,42 +119,42 @@ class WidgetProxy(QObject):
 
 class InternalShell(PythonShellWidget):
     """Shell base widget: link between PythonShellWidget and Interpreter"""
-    
+
     status = Signal(str)
     refresh = Signal()
     go_to_error = Signal(str)
     focus_changed = Signal()
-    
+
     def __init__(self, parent=None, namespace=None, commands=[], message=None,
                  max_line_count=300, font=None, exitfunc=None, profile=False,
                  multithreaded=True, light_background=True):
         PythonShellWidget.__init__(self, parent,
                                    get_conf_path('history_internal.py'),
                                    profile)
-        
+
         self.set_light_background(light_background)
         self.multithreaded = multithreaded
         self.setMaximumBlockCount(max_line_count)
-        
+
         # For compatibility with ExtPythonShellWidget
         self.is_ipykernel = False
-        
+
         if font is not None:
             self.set_font(font)
-        
+
         # Allow raw_input support:
         self.input_loop = None
         self.input_mode = False
-        
+
         # KeyboardInterrupt support
         self.interrupted = False # used only for not-multithreaded mode
         self.sig_keyboard_interrupt.connect(self.keyboard_interrupt)
-        
+
         # Code completion / calltips
         getcfg = lambda option: CONF.get('internal_console', option)
         case_sensitive = getcfg('codecompletion/case_sensitive')
         self.set_codecompletion_case(case_sensitive)
-        
+
         # keyboard events management
         self.eventqueue = []
 
@@ -164,10 +164,10 @@ class InternalShell(PythonShellWidget):
         self.message = message
         self.interpreter = None
         self.start_interpreter(namespace)
-        
+
         # Clear status bar
         self.status.emit('')
-        
+
         # Embedded shell -- requires the monitor (which installs the
         # 'open_in_spyder' function in builtins)
         if hasattr(builtins, 'open_in_spyder'):
@@ -177,7 +177,7 @@ class InternalShell(PythonShellWidget):
     def start_interpreter(self, namespace):
         """Start Python interpreter"""
         self.clear()
-        
+
         if self.interpreter is not None:
             self.interpreter.closing()
         self.interpreter = Interpreter(namespace, self.exitfunc,
@@ -190,7 +190,7 @@ class InternalShell(PythonShellWidget):
         self.interpreter.widget_proxy.sig_wait_input.connect(self.wait_input)
         if self.multithreaded:
             self.interpreter.start()
-        
+
         # Interpreter banner
         banner = create_banner(self.message)
         self.write(banner, prompt=True)
@@ -198,7 +198,7 @@ class InternalShell(PythonShellWidget):
         # Initial commands
         for cmd in self.commands:
             self.run_command(cmd, history=False, new_prompt=False)
-                
+
         # First prompt
         self.new_prompt(self.interpreter.p1)
         self.refresh.emit()
@@ -211,28 +211,28 @@ class InternalShell(PythonShellWidget):
         if self.multithreaded:
             self.interpreter.stdin_write.write('\n')
         self.interpreter.restore_stds()
-        
+
     def edit_script(self, filename, external_editor):
         filename = to_text_string(filename)
         if external_editor:
             self.external_editor(filename)
         else:
-            self.parent().edit_script(filename)            
-                                    
+            self.parent().edit_script(filename)
+
     def stdout_avail(self):
         """Data is available in stdout, let's empty the queue and write it!"""
         data = self.interpreter.stdout_write.empty_queue()
         if data:
             self.write(data)
-        
+
     def stderr_avail(self):
         """Data is available in stderr, let's empty the queue and write it!"""
         data = self.interpreter.stderr_write.empty_queue()
         if data:
             self.write(data, error=True)
             self.flush(error=True)
-    
-    
+
+
     #------Raw input support
     def wait_input(self, prompt=''):
         """Wait for input (raw_input support)"""
@@ -242,7 +242,7 @@ class InternalShell(PythonShellWidget):
         self.input_loop = QEventLoop()
         self.input_loop.exec_()
         self.input_loop = None
-    
+
     def end_input(self, cmd):
         """End of wait_input mode"""
         self.input_mode = False
@@ -346,13 +346,13 @@ class InternalShell(PythonShellWidget):
             # Event was accepted in self.preprocess_keyevent
             return
         self.postprocess_keyevent(event)
-        
+
     def __flush_eventqueue(self):
         """Flush keyboard event queue"""
         while self.eventqueue:
             past_event = self.eventqueue.pop(0)
             self.postprocess_keyevent(past_event)
-        
+
     #------ Command execution
     def keyboard_interrupt(self):
         """Simulate keyboard interrupt"""
@@ -379,7 +379,7 @@ class InternalShell(PythonShellWidget):
             self.write(line+os.linesep, flush=True)
             self.execute_command(line+"\n")
             self.flush()
-        
+
     def execute_command(self, cmd):
         """
         Execute a command
@@ -395,7 +395,7 @@ class InternalShell(PythonShellWidget):
             self.clear_terminal()
             return
         self.run_command(cmd)
-       
+
     def run_command(self, cmd, history=True, new_prompt=True):
         """Run command in interpreter"""
         if not cmd:
@@ -407,51 +407,51 @@ class InternalShell(PythonShellWidget):
         if not self.multithreaded:
             self.interpreter.run_line()
             self.refresh.emit()
-    
-    
+
+
     #------ Code completion / Calltips
     def _eval(self, text):
         """Is text a valid object?"""
         return self.interpreter.eval(text)
-                
+
     def get_dir(self, objtxt):
         """Return dir(object)"""
         obj, valid = self._eval(objtxt)
         if valid:
             return getobjdir(obj)
-        
+
     def get_globals_keys(self):
         """Return shell globals() keys"""
         return list(self.interpreter.namespace.keys())
-        
+
     def get_cdlistdir(self):
         """Return shell current directory list dir"""
         return os.listdir(getcwd())
-                
+
     def iscallable(self, objtxt):
         """Is object callable?"""
         obj, valid = self._eval(objtxt)
         if valid:
             return callable(obj)
-    
+
     def get_arglist(self, objtxt):
         """Get func/method argument list"""
         obj, valid = self._eval(objtxt)
         if valid:
             return getargtxt(obj)
-    
+
     def get__doc__(self, objtxt):
         """Get object __doc__"""
         obj, valid = self._eval(objtxt)
         if valid:
             return obj.__doc__
-    
+
     def get_doc(self, objtxt):
         """Get object documentation dictionary"""
         obj, valid = self._eval(objtxt)
         if valid:
             return getdoc(obj)
-    
+
     def get_source(self, objtxt):
         """Get object source"""
         obj, valid = self._eval(objtxt)

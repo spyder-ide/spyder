@@ -181,9 +181,9 @@ DEFAULTS = [
               'lightwindow/is_maximized': False,
               'lightwindow/is_fullscreen': False,
 
-              # The following setting is currently not used but necessary from 
+              # The following setting is currently not used but necessary from
               # a programmatical point of view (see spyder.py):
-              # (may become useful in the future if we add a button to change 
+              # (may become useful in the future if we add a button to change
               # settings within the "light mode")
               'lightwindow/prefs_dialog_size': (745, 411),
 
@@ -663,7 +663,7 @@ DEFAULTS = [
               #         Name             Color     Bold  Italic
               'scintilla/background':  "#ffffff",
               'scintilla/currentline': "#e1f0d1",
-              'scintilla/currentcell': "#edfcdc",  
+              'scintilla/currentcell': "#edfcdc",
               'scintilla/occurence':   "#ffff99",
               'scintilla/ctrlclick':   "#0000ff",
               'scintilla/sideareas':   "#efefef",
@@ -681,7 +681,7 @@ DEFAULTS = [
               #       Name            Color     Bold  Italic
               'spyder/background':  "#ffffff",
               'spyder/currentline': "#f7ecf8",
-              'spyder/currentcell': "#fdfdde",              
+              'spyder/currentcell': "#fdfdde",
               'spyder/occurence':   "#ffff99",
               'spyder/ctrlclick':   "#0000ff",
               'spyder/sideareas':   "#efefef",

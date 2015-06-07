@@ -62,7 +62,7 @@ def fix_indentation(text):
     """Replace tabs by spaces"""
     return text.replace('\t', ' '*4)
 
-    
+
 def is_builtin(text):
     """Test if passed string is the name of a Python builtin object"""
     from spyderlib.py3compat import builtins
@@ -74,11 +74,11 @@ def is_keyword(text):
     """Test if passed string is the name of a Python keyword"""
     import keyword
     return text in keyword.kwlist
-    
-    
+
+
 def get_primary_at(source_code, offset, retry=True):
     """Return Python object in *source_code* at *offset*
-    Periods to the left of the cursor are carried forward 
+    Periods to the left of the cursor are carried forward
       e.g. 'functools.par^tial' would yield 'functools.partial'
     Retry prevents infinite recursion: retry only once
     """
@@ -117,7 +117,7 @@ def get_identifiers(source_code):
 if __name__ == '__main__':
     code = 'import functools\nfunctools.partial'
     assert get_primary_at(code, len(code)) == 'functools.partial'
-    assert get_identifiers(code) == ['import', 'functools', 
+    assert get_identifiers(code) == ['import', 'functools',
                                      'functools.partial']
     assert split_source(code) == ['import functools', 'functools.partial']
     code = code.replace('\n', '\r\n')

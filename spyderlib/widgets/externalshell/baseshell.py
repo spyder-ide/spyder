@@ -31,7 +31,7 @@ def add_pathlist_to_PYTHONPATH(env, pathlist, drop_env=False):
     # PyQt API 1/2 compatibility-related tests:
     assert isinstance(env, list)
     assert all([is_text_string(path) for path in env])
-    
+
     pypath = "PYTHONPATH"
     pathstr = os.pathsep.join(pathlist)
     if os.environ.get(pypath) is not None and not drop_env:
@@ -42,7 +42,7 @@ def add_pathlist_to_PYTHONPATH(env, pathlist, drop_env=False):
         env.append('OLD_PYTHONPATH='+os.environ[pypath])
     else:
         env.append(pypath+'='+pathstr)
-    
+
 
 #TODO: code refactoring/cleaning (together with systemshell.py and pythonshell.py)
 class ExternalShellBase(QWidget):
@@ -50,28 +50,28 @@ class ExternalShellBase(QWidget):
     SHELL_CLASS = None
     redirect_stdio = Signal(bool)
     sig_finished = Signal()
-    
+
     def __init__(self, parent=None, fname=None, wdir=None,
                  history_filename=None, show_icontext=True,
                  light_background=True, menu_actions=None,
                  show_buttons_inside=True, show_elapsed_time=True):
         QWidget.__init__(self, parent)
-        
+
         self.menu_actions = menu_actions
-        
+
         self.run_button = None
         self.kill_button = None
         self.options_button = None
         self.icontext_action = None
 
         self.show_elapsed_time = show_elapsed_time
-        
+
         self.fname = fname
         if wdir is None:
             wdir = osp.dirname(osp.abspath(fname))
         self.wdir = wdir if osp.isdir(wdir) else None
         self.arguments = ""
-        
+
         self.shell = self.SHELL_CLASS(parent, get_conf_path(history_filename))
         self.shell.set_light_background(light_background)
         self.shell.execute.connect(self.send_to_process)
@@ -79,10 +79,10 @@ class ExternalShellBase(QWidget):
         # Redirecting some SIGNALs:
         self.shell.redirect_stdio.connect(
                      lambda state: self.redirect_stdio.emit(state))
-        
+
         self.state_label = None
         self.time_label = None
-                
+
         vlayout = QVBoxLayout()
         toolbar_buttons = self.get_toolbar_buttons()
         if show_buttons_inside:
@@ -108,7 +108,7 @@ class ExternalShellBase(QWidget):
         self.timer = QTimer(self)
 
         self.process = None
-        
+
         self.is_closing = False
 
         if show_buttons_inside:
@@ -119,20 +119,20 @@ class ExternalShellBase(QWidget):
         self.show_elapsed_time = state
         if self.time_label is not None:
             self.time_label.setVisible(state)
-            
+
     def create_time_label(self):
         """Create elapsed time label widget (if necessary) and return it"""
         if self.time_label is None:
             self.time_label = QLabel()
         return self.time_label
-    
+
     def update_time_label_visibility(self):
         self.time_label.setVisible(self.show_elapsed_time)
-        
+
     def is_running(self):
         if self.process is not None:
             return self.process.state() == QProcess.Running
-        
+
     def get_toolbar_buttons(self):
         if self.run_button is None:
             self.run_button = create_toolbutton(self, text=_("Run"),
@@ -158,7 +158,7 @@ class ExternalShellBase(QWidget):
             buttons.append(self.options_button)
         buttons.append(self.kill_button)
         return buttons
-            
+
     def set_icontext_visible(self, state):
         """Set icon text visibility"""
         for widget in self.get_toolbar_buttons():
@@ -166,7 +166,7 @@ class ExternalShellBase(QWidget):
                 widget.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
             else:
                 widget.setToolButtonStyle(Qt.ToolButtonIconOnly)
-    
+
     def get_options_menu(self):
         self.show_time_action = create_action(self, _("Show elapsed time"),
                                           toggled=self.set_elapsed_time_visible)
@@ -175,13 +175,13 @@ class ExternalShellBase(QWidget):
         if self.menu_actions is not None:
             actions += [None]+self.menu_actions
         return actions
-    
+
     def get_shell_widget(self):
         return self.shell
-    
+
     def get_icon(self):
         raise NotImplementedError
-        
+
     def show_time(self, end=False):
         if self.time_label is None:
             return
@@ -197,7 +197,7 @@ class ExternalShellBase(QWidget):
         text = "<span style=\'color: %s\'><b>%s" \
                "</b></span>" % (color, strftime(format, gmtime(elapsed_time)))
         self.time_label.setText(text)
-        
+
     def closeEvent(self, event):
         if self.process is not None:
             self.is_closing = True
@@ -208,7 +208,7 @@ class ExternalShellBase(QWidget):
             self.timer.timeout.disconnect(self.show_time)
         except (RuntimeError, TypeError):
              pass
-    
+
     def set_running_state(self, state=True):
         self.set_buttons_runnning_state(state)
         self.shell.setReadOnly(not state)
@@ -218,7 +218,7 @@ class ExternalShellBase(QWidget):
                    "<span style=\'color: #44AA44\'><b>Running...</b></span>"))
             self.t0 = time()
             self.timer.timeout.connect(self.show_time)
-            self.timer.start(1000)        
+            self.timer.start(1000)
         else:
             if self.state_label is not None:
                 self.state_label.setText(_('Terminated.'))
@@ -253,10 +253,10 @@ class ExternalShellBase(QWidget):
         if valid:
             self.arguments = to_text_string(arguments)
         return valid
-    
+
     def create_process(self):
         raise NotImplementedError
-    
+
     def finished(self, exit_code, exit_status):
         self.shell.flush()
         self.sig_finished.emit()
@@ -264,7 +264,7 @@ class ExternalShellBase(QWidget):
             return
         self.set_running_state(False)
         self.show_time(end=True)
-    
+
 #===============================================================================
 #    Input/Output
 #===============================================================================
@@ -273,14 +273,14 @@ class ExternalShellBase(QWidget):
             return to_text_string(qba.data(), 'utf8')
         except UnicodeDecodeError:
             return qba.data()
-    
+
     def get_stdout(self):
         self.process.setReadChannel(QProcess.StandardOutput)
         qba = QByteArray()
         while self.process.bytesAvailable():
             qba += self.process.readAllStandardOutput()
         return self.transcode(qba)
-    
+
     def get_stderr(self):
         self.process.setReadChannel(QProcess.StandardError)
         qba = QByteArray()
@@ -304,7 +304,7 @@ class ExternalShellBase(QWidget):
         self.process.write(byte_array)
         self.process.waitForBytesWritten(-1)
         self.shell.write(LOCALE_CODEC.toUnicode(byte_array), flush=True)
-        
+
     def keyboard_interrupt(self):
         raise NotImplementedError
 

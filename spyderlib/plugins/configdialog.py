@@ -55,7 +55,7 @@ class ConfigPage(QWidget):
         QWidget.__init__(self, parent)
         self.apply_callback = apply_callback
         self.is_modified = False
-        
+
     def initialize(self):
         """
         Initialize configuration page:
@@ -64,27 +64,27 @@ class ConfigPage(QWidget):
         """
         self.setup_page()
         self.load_from_conf()
-        
+
     def get_name(self):
         """Return configuration page name"""
         raise NotImplementedError
-    
+
     def get_icon(self):
         """Return configuration page icon (24x24)"""
         raise NotImplementedError
-    
+
     def setup_page(self):
         """Setup configuration page widget"""
         raise NotImplementedError
-        
+
     def set_modified(self, state):
         self.is_modified = state
         self.apply_button_enabled.emit(state)
-    
+
     def is_valid(self):
         """Return True if all widget contents are valid"""
         raise NotImplementedError
-    
+
     def apply_changes(self):
         """Apply changes callback"""
         if self.is_modified:
@@ -109,7 +109,7 @@ class ConfigPage(QWidget):
     def load_from_conf(self):
         """Load settings from configuration file"""
         raise NotImplementedError
-    
+
     def save_to_conf(self):
         """Save settings to configuration file"""
         raise NotImplementedError
@@ -117,14 +117,14 @@ class ConfigPage(QWidget):
 
 class ConfigDialog(QDialog):
     """Spyder configuration ('Preferences') dialog box"""
-    
+
     # Signals
     check_settings = Signal()
     size_change = Signal(QSize)
-    
+
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
-        
+
         # Destroying the C++ object right after closing the dialog box,
         # otherwise it may be garbage-collected in another QThread
         # (e.g. the editor's analysis thread in Spyder), thus leading to
@@ -141,7 +141,7 @@ class ConfigDialog(QDialog):
         bbox.accepted.connect(self.accept)
         bbox.rejected.connect(self.reject)
         bbox.clicked.connect(self.button_clicked)
-        
+
         self.pages_widget = QStackedWidget()
         self.pages_widget.currentChanged.connect(self.current_page_changed)
 
@@ -168,15 +168,15 @@ class ConfigDialog(QDialog):
 
         # Ensures that the config is present on spyder first run
         CONF.set('main', 'interface_language', load_lang_conf())
-        
+
     def get_current_index(self):
         """Return current page index"""
         return self.contents_widget.currentRow()
-        
+
     def set_current_index(self, index):
         """Set current page index"""
         self.contents_widget.setCurrentRow(index)
-        
+
     def get_page(self, index=None):
         """Return page widget"""
         if index is None:
@@ -184,7 +184,7 @@ class ConfigDialog(QDialog):
         else:
             widget = self.pages_widget.widget(index)
         return widget.widget()
-    
+
     @Slot()
     def accept(self):
         """Reimplement Qt method"""
@@ -194,7 +194,7 @@ class ConfigDialog(QDialog):
                 return
             configpage.apply_changes()
         QDialog.accept(self)
-        
+
     def button_clicked(self, button):
         if button is self.apply_btn:
             # Apply button was clicked
@@ -202,12 +202,12 @@ class ConfigDialog(QDialog):
             if not configpage.is_valid():
                 return
             configpage.apply_changes()
-            
+
     def current_page_changed(self, index):
         widget = self.get_page(index)
         self.apply_btn.setVisible(widget.apply_callback is not None)
         self.apply_btn.setEnabled(widget.is_modified)
-        
+
     def add_page(self, widget):
         self.check_settings.connect(widget.check_settings)
         widget.show_this_page.connect(lambda row=self.contents_widget.count():
@@ -222,12 +222,12 @@ class ConfigDialog(QDialog):
         item.setText(widget.get_name())
         item.setFlags(Qt.ItemIsSelectable|Qt.ItemIsEnabled)
         item.setSizeHint(QSize(0, 25))
-        
+
     def check_all_settings(self):
         """This method is called to check all configuration page settings
         after configuration dialog has been shown"""
         self.check_settings.emit()
-    
+
     def resizeEvent(self, event):
         """
         Reimplement Qt method to be able to save the widget's size from the
@@ -257,20 +257,20 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         self.changed_options = set()
         self.restart_options = dict()  # Dict to store name and localized text
         self.default_button_group = None
-        
+
     def apply_settings(self, options):
         raise NotImplementedError
-    
+
     def check_settings(self):
-        """This method is called to check settings after configuration 
+        """This method is called to check settings after configuration
         dialog has been shown"""
         pass
-        
+
     def set_modified(self, state):
         ConfigPage.set_modified(self, state)
         if not state:
             self.changed_options = set()
-        
+
     def is_valid(self):
         """Return True if all widget contents are valid"""
         for lineedit in self.lineedits:
@@ -283,7 +283,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                                      QMessageBox.Ok)
                     return False
         return True
-        
+
     def load_from_conf(self):
         """Load settings from configuration file"""
         for checkbox, (option, default) in list(self.checkboxes.items()):
@@ -311,8 +311,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             value = self.get_option(option, default)
             for index in range(combobox.count()):
                 data = from_qvariant(combobox.itemData(index), to_text_string)
-                # For PyQt API v2, it is necessary to convert `data` to 
-                # unicode in case the original type was not a string, like an 
+                # For PyQt API v2, it is necessary to convert `data` to
+                # unicode in case the original type was not a string, like an
                 # integer for example (see spyderlib.qt.compat.from_qvariant):
                 if to_text_string(data) == to_text_string(value):
                     break
@@ -390,7 +390,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             bold = cb_bold.isChecked()
             italic = cb_italic.isChecked()
             self.set_option(option, (color, bold, italic))
-    
+
     @Slot(str)
     def has_been_modified(self, option):
         self.set_modified(True)
@@ -414,7 +414,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                                                 msg_info, QMessageBox.Ok)
             checkbox.clicked.connect(show_message)
         return checkbox
-    
+
     def create_radiobutton(self, text, option, default=NoDefault,
                            tip=None, msg_warning=None, msg_info=None,
                            msg_if_enabled=False, button_group=None):
@@ -438,7 +438,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                                                 msg_info, QMessageBox.Ok)
             radiobutton.toggled.connect(show_message)
         return radiobutton
-    
+
     def create_lineedit(self, text, option, default=NoDefault,
                         tip=None, alignment=Qt.Vertical):
         label = QLabel(text)
@@ -454,7 +454,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         widget = QWidget(self)
         widget.setLayout(layout)
         return widget
-    
+
     def create_browsedir(self, text, option, default=NoDefault, tip=None):
         widget = self.create_lineedit(text, option, default,
                                       alignment=Qt.Horizontal)
@@ -483,7 +483,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         directory = getexistingdirectory(self, title, basedir)
         if directory:
             edit.setText(directory)
-    
+
     def create_browsefile(self, text, option, default=NoDefault, tip=None,
                           filters=None):
         widget = self.create_lineedit(text, option, default,
@@ -515,7 +515,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         filename, _selfilter = getopenfilename(self, title, basedir, filters)
         if filename:
             edit.setText(filename)
-    
+
     def create_spinbox(self, prefix, suffix, option, default=NoDefault,
                        min_=None, max_=None, step=None, tip=None):
         if prefix:
@@ -551,7 +551,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         widget = QWidget(self)
         widget.setLayout(layout)
         return widget
-    
+
     def create_coloredit(self, text, option, default=NoDefault, tip=None,
                          without_layout=False):
         label = QLabel(text)
@@ -570,7 +570,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         widget = QWidget(self)
         widget.setLayout(layout)
         return widget
-    
+
     def create_scedit(self, text, option, default=NoDefault, tip=None,
                       without_layout=False):
         label = QLabel(text)
@@ -598,7 +598,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         widget = QWidget(self)
         widget.setLayout(layout)
         return widget
-    
+
     def create_combobox(self, text, choices, option, default=NoDefault,
                         tip=None, restart=False):
         """choices: couples (name, key)"""
@@ -619,7 +619,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         combobox.restart_required = restart
         combobox.label_text = text
         return widget
-    
+
     def create_fontgroup(self, option=None, text=None,
                          tip=None, fontfilters=None):
         """Option=None -> setting plugin font"""
@@ -642,13 +642,13 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         if tip is not None:
             group.setToolTip(tip)
         return group
-    
+
     def create_button(self, text, callback):
         btn = QPushButton(text)
         btn.clicked.connect(callback)
         btn.clicked.connect(lambda opt='': self.has_been_modified(opt))
         return btn
-    
+
     def create_tab(self, *widgets):
         """Create simple tab widget page: widgets added in a vertical layout"""
         widget = QWidget()
@@ -676,7 +676,7 @@ class GeneralConfigPage(SpyderConfigPage):
     def get_name(self):
         """Configuration page name"""
         return self.NAME
-    
+
     def get_icon(self):
         """Loads page icon named by self.ICON"""
         return get_icon(self.ICON)
@@ -716,7 +716,7 @@ class GeneralConfigPage(SpyderConfigPage):
 
 class MainConfigPage(GeneralConfigPage):
     CONF_SECTION = "main"
-    
+
     NAME = _("General")
     ICON = "genprefs.png"
 
@@ -803,7 +803,7 @@ class MainConfigPage(GeneralConfigPage):
         cpu_layout.addWidget(cpu_box)
         cpu_layout.addWidget(cpu_spin)
         cpu_layout.setEnabled(self.main.cpu_status.is_supported())
-        
+
         status_bar_o = self.get_option('show_status_bar')
         show_status_bar.toggled.connect(memory_box.setEnabled)
         show_status_bar.toggled.connect(memory_spin.setEnabled)
@@ -825,7 +825,7 @@ class MainConfigPage(GeneralConfigPage):
         popup_console_box = newcb(_("Pop up internal console when internal "
                                     "errors appear"),
                                   'show_internal_console_if_traceback')
-        
+
         debug_layout = QVBoxLayout()
         debug_layout.addWidget(popup_console_box)
         debug_group.setLayout(debug_layout)
@@ -837,7 +837,7 @@ class MainConfigPage(GeneralConfigPage):
         update_layout = QVBoxLayout()
         update_layout.addWidget(check_updates)
         update_group.setLayout(update_layout)
-        
+
         vlayout = QVBoxLayout()
         vlayout.addWidget(interface_group)
         vlayout.addWidget(sbar_group)
@@ -864,10 +864,10 @@ class MainConfigPage(GeneralConfigPage):
 
 class ColorSchemeConfigPage(GeneralConfigPage):
     CONF_SECTION = "color_schemes"
-    
+
     NAME = _("Syntax coloring")
     ICON = "genprefs.png"
-    
+
     def setup_page(self):
         tabs = QTabWidget()
         names = self.get_option("names")
@@ -922,16 +922,16 @@ class ColorSchemeConfigPage(GeneralConfigPage):
                 tabs.addTab(self.create_tab(cs_group, def_btn), tabname)
             else:
                 tabs.addTab(self.create_tab(cs_group), tabname)
-        
+
         vlayout = QVBoxLayout()
         vlayout.addWidget(tabs)
         self.setLayout(vlayout)
-        
+
     @Slot(str)
     def reset_to_default(self, name):
         set_default_color_scheme(name, replace=True)
         self.load_from_conf()
-            
+
     def apply_settings(self, options):
         self.main.editor.apply_plugin_settings(['color_scheme_name'])
         if self.main.historylog is not None:
