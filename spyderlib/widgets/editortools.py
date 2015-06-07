@@ -15,7 +15,7 @@ from spyderlib.qt.QtGui import (QWidget, QTreeWidgetItem,  QHBoxLayout,
                                 QVBoxLayout)
 from spyderlib.qt.QtCore import Qt, Signal, Slot
 from spyderlib.qt.compat import from_qvariant
-import spyderlib.qt.icon_manager as ima
+import spyderlib.utils.icon_manager as ima
 
 # Local import
 from spyderlib.baseconfig import _, STDOUT

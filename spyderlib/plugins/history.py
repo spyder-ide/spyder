@@ -10,7 +10,7 @@ from spyderlib.qt import PYQT5
 from spyderlib.qt.QtGui import (QVBoxLayout, QFontDialog, QInputDialog,
                                 QToolButton, QMenu, QFontComboBox, QGroupBox)
 from spyderlib.qt.QtCore import Signal, Slot
-import spyderlib.qt.icon_manager as ima
+import spyderlib.utils.icon_manager as ima
 
 import os.path as osp
 

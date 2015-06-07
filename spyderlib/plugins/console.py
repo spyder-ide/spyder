@@ -16,7 +16,7 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QFontDialog, QInputDialog,
                                 QLineEdit, QMenu)
 from spyderlib.qt.QtCore import Signal, Slot
 from spyderlib.qt.compat import getopenfilename
-import spyderlib.qt.icon_manager as ima
+import spyderlib.utils.icon_manager as ima
 
 import os
 import sys
@@ -137,7 +137,7 @@ class Console(SpyderPluginWidget):
                             triggered=self.run_script)
         environ_action = create_action(self,
                             _("Environment variables..."),
-                            icon='environ.png',
+                            icon=ima.icon('environ'),
                             tip=_("Show and edit environment variables"
                                         " (for current session)"),
                             triggered=self.show_env)

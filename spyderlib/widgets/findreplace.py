@@ -14,7 +14,7 @@
 from spyderlib.qt.QtGui import (QHBoxLayout, QGridLayout, QCheckBox, QLabel,
                                 QWidget, QSizePolicy, QTextCursor)
 from spyderlib.qt.QtCore import Signal, Slot, Qt, QTimer
-import spyderlib.qt.icon_manager as ima
+import spyderlib.utils.icon_manager as ima
 
 import re
 

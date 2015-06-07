@@ -37,7 +37,7 @@ from spyderlib.qt.QtGui import (QColor, QMenu, QApplication, QSplitter, QFont,
 from spyderlib.qt.QtCore import (Qt, Signal, QTimer, QRect, QRegExp, QSize,
                                  Slot)
 from spyderlib.qt.compat import to_qvariant
-import spyderlib.qt.icon_manager as ima
+import spyderlib.utils.icon_manager as ima
 
 # %% This line is for cell execution testing
 # Local import

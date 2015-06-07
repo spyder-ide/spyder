@@ -10,7 +10,7 @@
 
 from spyderlib.qt.QtGui import QVBoxLayout, QGroupBox, QLabel
 from spyderlib.qt.QtCore import Signal, Qt
-import spyderlib.qt.icon_manager as ima
+import spyderlib.utils.icon_manager as ima
 
 # Local imports
 from spyderlib.baseconfig import get_translation

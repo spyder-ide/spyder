@@ -12,7 +12,7 @@ from __future__ import print_function
 
 from spyderlib.qt.QtCore import Qt
 from spyderlib.qt.QtGui import QVBoxLayout, QTextEdit, QDialog, QDialogButtonBox
-import spyderlib.qt.icon_manager as ima
+import spyderlib.utils.icon_manager as ima
 
 # Local import
 from spyderlib.baseconfig import _

@@ -24,7 +24,7 @@ from spyderlib.qt.QtGui import (QHBoxLayout, QWidget, QMessageBox, QVBoxLayout,
 from spyderlib.qt.QtCore import (Signal, QProcess, QByteArray, Qt, QTextCodec,
                                  QProcessEnvironment)
 
-import spyderlib.qt.icon_manager as ima
+import spyderlib.utils.icon_manager as ima
 locale_codec = QTextCodec.codecForLocale()
 from spyderlib.qt.compat import getopenfilename, getsavefilename
 

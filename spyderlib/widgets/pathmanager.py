@@ -13,7 +13,7 @@ from spyderlib.qt.QtGui import (QDialog, QListWidget, QDialogButtonBox,
                                 QListWidgetItem)
 from spyderlib.qt.QtCore import Qt, Signal, Slot
 from spyderlib.qt.compat import getexistingdirectory
-import spyderlib.qt.icon_manager as ima
+import spyderlib.utils.icon_manager as ima
 
 import os
 import sys

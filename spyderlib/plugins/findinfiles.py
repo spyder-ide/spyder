@@ -13,7 +13,7 @@
 
 from spyderlib.qt.QtGui import QApplication
 from spyderlib.qt.QtCore import Signal, Slot
-import spyderlib.qt.icon_manager as ima
+import spyderlib.utils.icon_manager as ima
 
 # Local imports
 from spyderlib.baseconfig import _

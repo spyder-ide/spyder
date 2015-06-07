@@ -39,7 +39,7 @@ from spyderlib.baseconfig import get_conf_path, _, DEBUG
 from spyderlib.config import CONF
 from spyderlib.widgets.shell import PythonShellWidget
 from spyderlib.py3compat import to_text_string, getcwd, to_binary_string, u
-import spyderlib.qt.icon_manager as ima
+import spyderlib.utils.icon_manager as ima
 
 
 def create_banner(message):

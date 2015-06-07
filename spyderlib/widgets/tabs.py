@@ -14,7 +14,7 @@
 from spyderlib.qt.QtGui import (QTabWidget, QMenu, QDrag, QApplication,
                                 QTabBar, QWidget, QHBoxLayout)
 from spyderlib.qt.QtCore import Signal, Qt, QPoint, QMimeData, QByteArray
-import spyderlib.qt.icon_manager as ima
+import spyderlib.utils.icon_manager as ima
 
 import os.path as osp
 

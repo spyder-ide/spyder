@@ -19,7 +19,7 @@ from spyderlib.utils.qthelpers import create_action
 from spyderlib.plugins import SpyderPluginMixin
 from spyderplugins.widgets.breakpointsgui import BreakpointWidget
 from spyderlib.py3compat import to_text_string, is_text_string
-import spyderlib.qt.icon_manager as ima
+import spyderlib.utils.icon_manager as ima
 
 class Breakpoints(BreakpointWidget, SpyderPluginMixin):
     """Breakpoint list"""

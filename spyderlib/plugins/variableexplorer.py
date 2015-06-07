@@ -8,7 +8,7 @@
 
 from spyderlib.qt.QtGui import QStackedWidget, QGroupBox, QVBoxLayout
 from spyderlib.qt.QtCore import Signal
-import spyderlib.qt.icon_manager as ima
+import spyderlib.utils.icon_manager as ima
 
 # Local imports
 from spyderlib.baseconfig import _

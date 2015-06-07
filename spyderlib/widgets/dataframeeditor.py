@@ -19,7 +19,7 @@ from spyderlib.qt.QtGui import (QDialog, QTableView, QColor, QGridLayout,
                                 QCheckBox, QMessageBox, QInputDialog,
                                 QLineEdit, QApplication, QMenu, QKeySequence)
 from spyderlib.qt.compat import to_qvariant, from_qvariant
-import spyderlib.qt.icon_manager as ima
+import spyderlib.utils.icon_manager as ima
 from spyderlib.utils.qthelpers import (qapplication, create_action,
                                        add_actions, keybinding)
 

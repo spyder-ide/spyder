@@ -21,7 +21,7 @@ from spyderlib.widgets.externalshell.baseshell import (ExternalShellBase,
                                                    add_pathlist_to_PYTHONPATH)
 from spyderlib.widgets.shell import TerminalWidget
 from spyderlib.py3compat import to_text_string, is_text_string
-import spyderlib.qt.icon_manager as ima
+import spyderlib.utils.icon_manager as ima
 
 
 class ExternalSystemShell(ExternalShellBase):

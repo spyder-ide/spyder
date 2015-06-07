@@ -89,8 +89,8 @@ from spyderlib.qt.compat import (from_qvariant, getopenfilename,
 # when PySide is selected by the QT_API environment variable and when PyQt4
 # is also installed (or any other Qt-based application prepending a directory
 # containing incompatible Qt DLLs versions in PATH):
-from spyderlib.qt import QtSvg # analysis:ignore
-import spyderlib.qt.icon_manager as ima
+from spyderlib.qt import QtSvg  # analysis:ignore
+import spyderlib.utils.icon_manager as ima
 
 #==============================================================================
 # Create our QApplication instance here because it's needed to render the

@@ -13,8 +13,8 @@ from spyderlib.qt.QtGui import (QAction, QStyle, QWidget, QIcon, QApplication,
 from spyderlib.qt.QtCore import (Signal, QObject, Qt, QLocale, QTranslator,
                                  QLibraryInfo, QEvent, Slot)
 from spyderlib.qt.compat import to_qvariant, from_qvariant
-import spyderlib.qt.icon_manager as ima
-from spyderlib.qt.icon_manager import get_icon
+import spyderlib.utils.icon_manager as ima
+from spyderlib.utils.icon_manager import get_icon
 
 import os
 import re

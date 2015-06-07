@@ -16,7 +16,7 @@ They are also used in Spyder through the Plugin interface
 
 from spyderlib.qt.QtCore import Slot
 from spyderlib.qt.QtGui import QTreeWidget, QMenu
-import spyderlib.qt.icon_manager as ima
+import spyderlib.utils.icon_manager as ima
 
 # Local imports
 from spyderlib.baseconfig import _

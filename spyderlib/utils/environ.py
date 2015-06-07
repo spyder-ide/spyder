@@ -9,7 +9,7 @@ Environment variable utilities
 """
 
 from spyderlib.qt.QtGui import QDialog, QMessageBox
-import spyderlib.qt.icon_manager as ima
+import spyderlib.utils.icon_manager as ima
 
 import os
 

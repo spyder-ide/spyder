@@ -11,7 +11,7 @@ from spyderlib.qt.QtGui import (QDialog, QTableView, QItemDelegate, QColor,
                                 QApplication, QLabel, QDialogButtonBox)
 from spyderlib.qt.QtCore import Qt, QModelIndex, QAbstractTableModel
 from spyderlib.qt.compat import to_qvariant
-import spyderlib.qt.icon_manager as ima
+import spyderlib.utils.icon_manager as ima
 import sys
 
 # Local imports

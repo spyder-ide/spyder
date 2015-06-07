@@ -13,7 +13,7 @@
 
 from spyderlib.qt.QtGui import QInputDialog, QVBoxLayout, QGroupBox, QLabel
 from spyderlib.qt.QtCore import Signal, Qt
-from spyderlib.qt import icon_manager as ima 
+import spyderlib.utils.icon_manager as ima 
 
 # Local imports
 from spyderlib.baseconfig import get_translation

@@ -18,7 +18,7 @@ from spyderlib.qt.QtGui import (QHBoxLayout, QWidget, QTreeWidgetItem,
 from spyderlib.qt.QtCore import (Signal, Slot, Qt, QThread, QMutexLocker,
                                  QMutex)
 from spyderlib.qt.compat import getexistingdirectory
-import spyderlib.qt.icon_manager as ima
+import spyderlib.utils.icon_manager as ima
 
 import sys
 import os

@@ -19,7 +19,7 @@ from spyderlib.qt.QtGui import (QTableView, QVBoxLayout, QHBoxLayout,
 from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, Signal,
                                  Slot)
 from spyderlib.qt.compat import to_qvariant
-import spyderlib.qt.icon_manager as ima
+import spyderlib.utils.icon_manager as ima
 
 from functools import partial as ft_partial
 

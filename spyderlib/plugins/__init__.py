@@ -24,7 +24,7 @@ from spyderlib.qt.QtGui import (QDockWidget, QWidget, QShortcut, QCursor,
                                 QKeySequence, QMainWindow, QApplication,
                                 QTabBar)
 from spyderlib.qt.QtCore import Qt, Signal, QObject, QEvent, QPoint
-import spyderlib.qt.icon_manager as ima
+import spyderlib.utils.icon_manager as ima
 
 # Stdlib imports
 import sys

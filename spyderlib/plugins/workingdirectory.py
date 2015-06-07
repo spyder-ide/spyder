@@ -16,7 +16,7 @@ from spyderlib.qt.QtGui import (QToolBar, QLabel, QGroupBox, QVBoxLayout,
                                 QHBoxLayout, QButtonGroup)
 from spyderlib.qt.QtCore import Signal, Slot, QSize
 from spyderlib.qt.compat import getexistingdirectory
-import spyderlib.qt.icon_manager as ima
+import spyderlib.utils.icon_manager as ima
 
 import os
 import os.path as osp

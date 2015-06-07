@@ -20,7 +20,7 @@ import re
 from spyderlib.qt.QtGui import (QToolTip, QLineEdit, QHBoxLayout, QWidget,
                                 QDialog, QToolButton, QTableWidget,
                                 QTableWidgetItem)
-import spyderlib.qt.icon_manager as ima
+import spyderlib.utils.icon_manager as ima
 
 from spyderlib.qt.QtCore import (Qt, QPoint, QEvent)
 from spyderlib.baseconfig import _

@@ -18,7 +18,7 @@ from spyderlib.qt.QtGui import (QWidget, QVBoxLayout, QHBoxLayout, QMenu,
                                 QLabel, QInputDialog, QLineEdit, QToolButton)
 from spyderlib.qt.QtCore import (QProcess, Signal, QByteArray, QTimer, Qt,
                                  QTextCodec, Slot)
-import spyderlib.qt.icon_manager as ima
+import spyderlib.utils.icon_manager as ima
 
 LOCALE_CODEC = QTextCodec.codecForLocale()
 

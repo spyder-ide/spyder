@@ -23,7 +23,7 @@ from spyderlib.qt.QtGui import (QMenu, QApplication, QToolTip, QKeySequence,
 from spyderlib.qt.QtCore import (Qt, QCoreApplication, QTimer, Signal,
                                  Property, Slot)
 from spyderlib.qt.compat import getsavefilename
-import spyderlib.qt.icon_manager as ima
+import spyderlib.utils.icon_manager as ima
 
 # Local import
 from spyderlib.baseconfig import get_conf_path, _, STDERR, DEBUG

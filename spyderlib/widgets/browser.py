@@ -10,7 +10,7 @@ from spyderlib.qt.QtGui import (QHBoxLayout, QWidget, QVBoxLayout,
                                 QProgressBar, QLabel, QMenu)
 from spyderlib.qt.QtWebKit import QWebView, QWebPage, QWebSettings
 from spyderlib.qt.QtCore import QUrl, Slot
-import spyderlib.qt.icon_manager as ima
+import spyderlib.utils.icon_manager as ima
 import sys
 
 # Local imports
