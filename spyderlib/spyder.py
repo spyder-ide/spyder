@@ -462,8 +462,9 @@ class MainWindow(QMainWindow):
         if DEBUG:
             title += " [DEBUG MODE %d]" % DEBUG
         self.setWindowTitle(title)
-        icon = ima.icon('spyder_light') if self.light\
-          else ima.icon('spyder')
+        resample = os.name != 'nt'
+        icon = ima.icon('spyder_light', resample=resample) if self.light\
+          else ima.icon('spyder', resample=resample)
         # Resampling SVG icon only on non-Windows platforms (see Issue 1314):
         self.setWindowIcon(icon)
         if set_windows_appusermodelid != None:
