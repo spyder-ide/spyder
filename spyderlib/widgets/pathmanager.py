@@ -46,7 +46,7 @@ class PathManager(QDialog):
         self.last_path = getcwd()
         
         self.setWindowTitle(_("PYTHONPATH manager"))
-        self.setWindowIcon(ima.icon('python'))
+        self.setWindowIcon(ima.icon('pythonpath'))
         self.resize(500, 300)
         
         self.selection_widgets = []

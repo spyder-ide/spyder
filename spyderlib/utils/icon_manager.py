@@ -65,6 +65,7 @@ _qtaargs = {
     'ipython_console_t':       [('spyder.ipython-logo',), {'color':'gray'}],
     'python':                  [('spyder.python-logo-up', 'spyder.python-logo-down'), {'options': [{'color': '#3775a9'}, {'color': '#ffd444'}]}],
     'python_t':                [('spyder.python-logo',), {'color':'gray'}],
+    'pythonpath':              [('spyder.python-logo-up', 'spyder.python-logo-down'), {'options': [{'color': '#3775a9'}, {'color': '#ffd444'}]}],
     'terminated':              [('fa.circle',), {}],
     'cmdprompt':               [('fa.terminal',), {}],
     'cmdprompt_t':             [('fa.terminal',), {'color':'gray'}],
