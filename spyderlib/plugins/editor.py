@@ -802,21 +802,18 @@ class Editor(SpyderPluginWidget):
         self.todo_menu.aboutToShow.connect(self.update_todo_menu)
         
         self.warning_list_action = create_action(self,
-                _("Show warning/error list"), icon=
-                ima.icon('wng_list'),
+                _("Show warning/error list"), icon=ima.icon('wng_list'),
                 tip=_("Show code analysis warnings/errors"),
                 triggered=self.go_to_next_warning)
         self.warning_menu = QMenu(self)
         self.warning_list_action.setMenu(self.warning_menu)
         self.warning_menu.aboutToShow.connect(self.update_warning_menu)
         self.previous_warning_action = create_action(self,
-                _("Previous warning/error"), icon=
-                ima.icon('prev_wng'),
+                _("Previous warning/error"), icon=ima.icon('prev_wng'),
                 tip=_("Go to previous code analysis warning/error"),
                 triggered=self.go_to_previous_warning)
         self.next_warning_action = create_action(self,
-                _("Next warning/error"), icon=
-                ima.icon('next_wng'),
+                _("Next warning/error"), icon=ima.icon('next_wng'),
                 tip=_("Go to next code analysis warning/error"),
                 triggered=self.go_to_next_warning)
         

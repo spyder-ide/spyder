@@ -619,7 +619,7 @@ class ResultsBrowser(OneColumnTree):
                 displayed_name = dirname
             item = QTreeWidgetItem(parent, [displayed_name],
                                    QTreeWidgetItem.Type)
-            item.setIcon(0, ima.icon('DirOpenIcon'))
+            item.setIcon(0, ima.icon('DirClosedIcon'))
             return item
         dirs = {}
         for dirname in sorted(list(dir_set)):

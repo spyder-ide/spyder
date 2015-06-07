@@ -89,6 +89,7 @@ from spyderlib.qt.compat import (from_qvariant, getopenfilename,
 # when PySide is selected by the QT_API environment variable and when PyQt4
 # is also installed (or any other Qt-based application prepending a directory
 # containing incompatible Qt DLLs versions in PATH):
+from spyderlib.qt import QtSvg # analysis:ignore
 import spyderlib.qt.icon_manager as ima
 
 #==============================================================================
@@ -335,7 +336,7 @@ class MainWindow(QMainWindow):
                                         tip=_("Load Spyder session"))
         self.save_session_action = create_action(self,
                                         _("Save session and quit..."),
-                                        None, ima.icon('filesaveas2'),
+                                        None, ima.icon('filesaveas'),
                                         triggered=self.save_session,
                                         tip=_("Save current session "
                                               "and quit application"))
@@ -614,9 +615,12 @@ class MainWindow(QMainWindow):
                                                   ima.icon('undo'))
             self.redo_action = create_edit_action('Redo', _('Redo'), 
                                                   ima.icon('redo'))
-            self.copy_action = create_edit_action('Copy', _('Copy'), ima.icon('editcopy'))
-            self.cut_action = create_edit_action('Cut', _('Cut'), ima.icon('editcut'))
-            self.paste_action = create_edit_action('Paste', _('Paste'), ima.icon('editpaste'))
+            self.copy_action = create_edit_action('Copy', _('Copy'),
+                                                  ima.icon('editcopy'))
+            self.cut_action = create_edit_action('Cut', _('Cut'),
+                                                 ima.icon('editcut'))
+            self.paste_action = create_edit_action('Paste', _('Paste'),
+                                                   ima.icon('editpaste'))
             self.delete_action = create_edit_action('Delete', _('Delete'),
                                                     ima.icon('editdelete'))
 

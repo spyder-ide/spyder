@@ -190,7 +190,7 @@ class NamespaceBrowser(QWidget):
         self.save_button.setEnabled(False)
         save_as_button = create_toolbutton(self,
                                            text=_("Save data as..."),
-                                           icon=ima.icon('filesaveas'),                                           
+                                           icon=ima.icon('filesaveas'),
                                            triggered=self.save_data)
         toolbar += [refresh_button, self.auto_refresh_button, load_button,
                     self.save_button, save_as_button]
