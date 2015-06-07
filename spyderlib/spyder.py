@@ -2259,9 +2259,9 @@ class MainWindow(QMainWindow):
 
     def __update_fullscreen_action(self):
         if self.isFullScreen():
-            icon = ima.icon('collapse')
+            icon = ima.icon('window_nofullscreen')
         else:
-            icon = ima.icon('expand')
+            icon = ima.icon('window_fullscreen')
         if is_text_string(icon):
             icon = get_icon(icon)
         self.fullscreen_action.setIcon(icon)
