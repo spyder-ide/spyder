@@ -48,7 +48,7 @@ def check_with_pyflakes(source_code, filename=None):
         except TypeError:
             # Python 3
             source_code += to_binary_string('\n')
-            
+
         import _ast
         from pyflakes.checker import Checker
         # First, compile into an AST and handle syntax errors.
@@ -131,12 +131,12 @@ def check(args, source_code, filename=None, options=None):
         args += options
     if any(['pyflakes' in arg for arg in args]):
         #  Pyflakes requires an ending new line (pep8 don't! -- see Issue 1123)
-        #  Note: this code is not used right now as it is faster to invoke 
-        #  pyflakes in current Python interpreter (see `check_with_pyflakes` 
+        #  Note: this code is not used right now as it is faster to invoke
+        #  pyflakes in current Python interpreter (see `check_with_pyflakes`
         #  function above) than calling it through a subprocess
         source_code += '\n'
     if filename is None:
-        # Creating a temporary file because file does not exist yet 
+        # Creating a temporary file because file does not exist yet
         # or is not up-to-date
         tempfd = tempfile.NamedTemporaryFile(suffix=".py", delete=False)
         tempfd.write(source_code)

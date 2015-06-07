@@ -69,7 +69,7 @@ try:
             except:
                 break
         return envdict2listdict(reg)
-    
+
     def set_user_env(reg, parent=None):
         """Set HKCU (current user) environment variables"""
         reg = listdict2envdict(reg)
@@ -95,7 +95,7 @@ try:
                         _("Module <b>pywin32 was not found</b>.<br>"
                           "Please restart this Windows <i>session</i> "
                           "(not the computer) for changes to take effect."))
-            
+
     class WinUserEnvDialog(DictEditor):
         """Windows User Environment Variables Editor"""
         def __init__(self, parent=None):
@@ -115,7 +115,7 @@ try:
                           "from a Windows shortcut, otherwise restart any "
                           "application from which you may have executed it, "
                           "like <i>Python(x,y) Home</i> for example)"))
-            
+
         def accept(self):
             """Reimplement Qt method"""
             set_user_env( listdict2envdict(self.get_value()), parent=self )

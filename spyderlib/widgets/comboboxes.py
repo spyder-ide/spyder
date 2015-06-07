@@ -25,7 +25,7 @@ from spyderlib.py3compat import to_text_string
 class BaseComboBox(QComboBox):
     """Editable combo box base class"""
     valid = Signal(bool)
-    
+
     def __init__(self, parent):
         QComboBox.__init__(self, parent)
         self.setEditable(True)
@@ -54,13 +54,13 @@ class BaseComboBox(QComboBox):
         Return None if validation can't be done
         """
         pass
-        
+
     def selected(self):
         """Action to be executed when a valid item has been selected"""
         self.valid.emit(True)
-        
+
     def add_text(self, text):
-        """Add text to combo box: add a new item if text is not found in 
+        """Add text to combo box: add a new item if text is not found in
         combo box items"""
         index = self.findText(text)
         while index != -1:
@@ -77,18 +77,18 @@ class BaseComboBox(QComboBox):
                 self.setCurrentIndex(0)
         else:
             self.setCurrentIndex(0)
-            
+
     def add_current_text(self):
         """Add current text to combo box history (convenient method)"""
         self.add_text(self.currentText())
-            
+
     def add_current_text_if_valid(self):
         """Add current text to combo box history if valid"""
         valid = self.is_valid(self.currentText())
         if valid or valid is None:
             self.add_current_text()
             return True
-        
+
 
 class PatternComboBox(BaseComboBox):
     """Search pattern combo box"""
@@ -117,23 +117,23 @@ class EditableComboBox(BaseComboBox):
         self.set_default_style()
         self.tips = {True: _("Press enter to validate this entry"),
                      False: _('This entry is incorrect')}
-        
+
     def show_tip(self, tip=""):
         """Show tip"""
         QToolTip.showText(self.mapToGlobal(self.pos()), tip, self)
-        
+
     def set_default_style(self):
         """Set widget style to default"""
         self.font.setBold(False)
         self.setFont(self.font)
         self.setStyleSheet("")
         self.show_tip()
-        
+
     def selected(self):
         """Action to be executed when a valid item has been selected"""
         BaseComboBox.selected(self)
         self.set_default_style()
-        
+
     def validate(self, qstr, editing=True):
         """Validate entered path"""
         valid = self.is_valid(qstr)
@@ -156,14 +156,14 @@ class EditableComboBox(BaseComboBox):
                     self.valid.emit(False)
         else:
             self.set_default_style()
-            
+
 
 class PathComboBox(EditableComboBox):
     """
     QComboBox handling path locations
     """
     open_dir = Signal(str)
-    
+
     def __init__(self, parent, adjust_to_contents=False):
         EditableComboBox.__init__(self, parent)
         if adjust_to_contents:
@@ -175,13 +175,13 @@ class PathComboBox(EditableComboBox):
                      False: _('This path is incorrect.\n'
                                     'Enter a correct directory path,\n'
                                     'then press enter to validate')}
-        
+
     def is_valid(self, qstr=None):
         """Return True if string is valid"""
         if qstr is None:
             qstr = self.currentText()
         return osp.isdir( to_text_string(qstr) )
-    
+
     def selected(self):
         """Action to be executed when a valid item has been selected"""
         EditableComboBox.selected(self)
@@ -195,7 +195,7 @@ class UrlComboBox(PathComboBox):
     def __init__(self, parent, adjust_to_contents=False):
         PathComboBox.__init__(self, parent, adjust_to_contents)
         self.editTextChanged.disconnect(self.validate)
-        
+
     def is_valid(self, qstr=None):
         """Return True if string is valid"""
         if qstr is None:
@@ -217,13 +217,13 @@ class PythonModulesComboBox(PathComboBox):
     """
     def __init__(self, parent, adjust_to_contents=False):
         PathComboBox.__init__(self, parent, adjust_to_contents)
-        
+
     def is_valid(self, qstr=None):
         """Return True if string is valid"""
         if qstr is None:
             qstr = self.currentText()
         return is_module_or_package(to_text_string(qstr))
-    
+
     def selected(self):
         """Action to be executed when a valid item has been selected"""
         EditableComboBox.selected(self)

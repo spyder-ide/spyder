@@ -44,14 +44,14 @@ class Console(SpyderPluginWidget):
     focus_changed = Signal()
     redirect_stdio = Signal(bool)
     edit_goto = Signal(str, int, str)
-    
+
     def __init__(self, parent=None, namespace=None, commands=[], message=None,
                  exitfunc=None, profile=False, multithreaded=False):
         if PYQT5:
             SpyderPluginWidget.__init__(self, parent, main = parent)
         else:
             SpyderPluginWidget.__init__(self, parent)
-        
+
         debug_print("    ..internal console: initializing")
         self.dialog_manager = DialogManager()
 
@@ -69,7 +69,7 @@ class Console(SpyderPluginWidget):
         # Redirecting some signals:
         self.shell.redirect_stdio.connect(lambda state:
                                           self.redirect_stdio.emit(state))
-        
+
         # Initialize plugin
         self.initialize_plugin()
 
@@ -84,20 +84,20 @@ class Console(SpyderPluginWidget):
         layout.addWidget(self.shell)
         layout.addWidget(self.find_widget)
         self.setLayout(layout)
-        
+
         # Parameters
         self.shell.toggle_wrap_mode(self.get_option('wrap'))
-            
+
         # Accepting drops
         self.setAcceptDrops(True)
-        
+
     #------ Private API --------------------------------------------------------
     def set_historylog(self, historylog):
         """Bind historylog instance to this console
         Not used anymore since v2.0"""
         historylog.add_history(self.shell.history_filename)
         self.shell.append_to_history.connect(historylog.append_to_history)
-        
+
     def set_inspector(self, inspector):
         """Bind inspector instance to this console"""
         self.shell.inspector = inspector
@@ -106,23 +106,23 @@ class Console(SpyderPluginWidget):
     def get_plugin_title(self):
         """Return widget title"""
         return _('Internal console')
-    
+
     def get_focus_widget(self):
         """
         Return the widget to give focus to when
         this plugin's dockwidget is raised on top-level
         """
         return self.shell
-        
+
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         self.dialog_manager.close_all()
         self.shell.exit_interpreter()
         return True
-        
+
     def refresh_plugin(self):
         pass
-    
+
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         quit_action = create_action(self, _("&Quit"),
@@ -171,46 +171,46 @@ class Console(SpyderPluginWidget):
                                     toggled=self.toggle_codecompletion_enter)
         codecompenter_action.setChecked(self.get_option(
                                                     'codecompletion/enter_key'))
-        
+
         option_menu = QMenu(_("Internal console settings"), self)
         option_menu.setIcon(get_icon('tooloptions.png'))
         add_actions(option_menu, (buffer_action, font_action, wrap_action,
                                   calltips_action, codecompletion_action,
                                   codecompenter_action, exteditor_action))
-                    
+
         plugin_actions = [None, run_action, environ_action, syspath_action,
                           option_menu, None, quit_action]
-        
+
         # Add actions to context menu
         add_actions(self.shell.menu, plugin_actions)
-        
+
         return plugin_actions
-    
+
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         self.focus_changed.connect(self.main.plugin_focus_changed)
         self.main.add_dockwidget(self)
         # Connecting the following signal once the dockwidget has been created:
         self.shell.traceback_available.connect(self.traceback_available)
-    
+
     def traceback_available(self):
-        """Traceback is available in the internal console: showing the 
+        """Traceback is available in the internal console: showing the
         internal console automatically to warn the user"""
         if CONF.get('main', 'show_internal_console_if_traceback', False):
             self.dockwidget.show()
             self.dockwidget.raise_()
-        
+
     #------ Public API ---------------------------------------------------------
     @Slot()
     def quit(self):
         """Quit mainwindow"""
         self.main.close()
-    
+
     @Slot()
     def show_env(self):
         """Show environment variables"""
         self.dialog_manager.show(EnvDialog())
-    
+
     @Slot()
     def show_syspath(self):
         """Show sys.path"""
@@ -218,7 +218,7 @@ class Console(SpyderPluginWidget):
         editor.setup(sys.path, title="sys.path", readonly=True,
                      width=600, icon='syspath.png')
         self.dialog_manager.show(editor)
-    
+
     @Slot()
     def run_script(self, filename=None, silent=False, set_focus=False,
                    args=None):
@@ -245,14 +245,14 @@ class Console(SpyderPluginWidget):
         self.shell.write(command+'\n')
         self.shell.run_command(command)
 
-            
+
     def go_to_error(self, text):
         """Go to error if relevant"""
         match = get_error_match(to_text_string(text))
         if match:
             fname, lnb = match.groups()
             self.edit_script(fname, int(lnb))
-            
+
     def edit_script(self, filename=None, goto=-1):
         """Edit script"""
         # Called from InternalShell
@@ -262,12 +262,12 @@ class Console(SpyderPluginWidget):
             return
         if filename is not None:
             self.edit_goto.emit(osp.abspath(filename), goto, '')
-        
+
     def execute_lines(self, lines):
         """Execute lines and give focus to shell"""
         self.shell.execute_lines(to_text_string(lines))
         self.shell.setFocus()
-    
+
     @Slot()
     def change_font(self):
         """Change console font"""
@@ -276,7 +276,7 @@ class Console(SpyderPluginWidget):
         if valid:
             self.shell.set_font(font)
             self.set_plugin_font(font)
-    
+
     @Slot()
     def change_max_line_count(self):
         "Change maximum line count"""
@@ -297,32 +297,32 @@ class Console(SpyderPluginWidget):
                           self.get_option('external_editor/path'))
         if valid:
             self.set_option('external_editor/path', to_text_string(path))
-    
+
     @Slot(bool)
     def toggle_wrap_mode(self, checked):
         """Toggle wrap mode"""
         self.shell.toggle_wrap_mode(checked)
         self.set_option('wrap', checked)
-    
+
     @Slot(bool)
     def toggle_calltips(self, checked):
         """Toggle calltips"""
         self.shell.set_calltips(checked)
         self.set_option('calltips', checked)
-    
+
     @Slot(bool)
     def toggle_codecompletion(self, checked):
         """Toggle automatic code completion"""
         self.shell.set_codecompletion_auto(checked)
         self.set_option('codecompletion/auto', checked)
-    
+
     @Slot(bool)
     def toggle_codecompletion_enter(self, checked):
         """Toggle Enter key for code completion"""
         self.shell.set_codecompletion_enter(checked)
         self.set_option('codecompletion/enter_key', checked)
-                
-    #----Drag and drop                    
+
+    #----Drag and drop
     def dragEnterEvent(self, event):
         """Reimplement Qt method
         Inform Qt about the types of data that the widget accepts"""
@@ -334,7 +334,7 @@ class Console(SpyderPluginWidget):
                 event.ignore()
         elif source.hasText():
             event.acceptProposedAction()
-            
+
     def dropEvent(self, event):
         """Reimplement Qt method
         Unpack dropped data and handle it"""

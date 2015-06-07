@@ -27,7 +27,7 @@ def kernel_config():
     from IPython.core.application import get_ipython_dir
     from spyderlib.config import CONF
     from spyderlib.utils.programs import is_module_installed
-    
+
     # ---- IPython config ----
     try:
         profile_path = osp.join(get_ipython_dir(), 'profile_default')
@@ -36,24 +36,24 @@ def kernel_config():
                                       profile_path)
     except:
         ip_cfg = Config()
-    
+
     # ---- Spyder config ----
     spy_cfg = Config()
-    
+
     # Until we implement Issue 1052
     spy_cfg.InteractiveShell.xmode = 'Plain'
-    
+
     # Run lines of code at startup
     run_lines_o = CONF.get('ipython_console', 'startup/run_lines')
     if run_lines_o:
         spy_cfg.IPKernelApp.exec_lines = [x.strip() for x in run_lines_o.split(',')]
     else:
         spy_cfg.IPKernelApp.exec_lines = []
-    
+
     # Pylab configuration
     mpl_installed = is_module_installed('matplotlib')
     pylab_o = CONF.get('ipython_console', 'pylab')
-    
+
     if mpl_installed and pylab_o:
         # Set matplotlib backend
         backend_o = CONF.get('ipython_console', 'pylab/backend', 0)
@@ -66,7 +66,7 @@ def kernel_config():
         # Automatically load Pylab and Numpy
         autoload_pylab_o = CONF.get('ipython_console', 'pylab/autoload')
         spy_cfg.IPKernelApp.pylab_import_all = autoload_pylab_o
-        
+
         # Inline backend configuration
         if backends[backend_o] == 'inline':
            # Figure format
@@ -74,7 +74,7 @@ def kernel_config():
                                'pylab/inline/figure_format', 0)
            formats = {0: 'png', 1: 'svg'}
            spy_cfg.InlineBackend.figure_format = formats[format_o]
-           
+
            # Resolution
            spy_cfg.InlineBackend.rc = {'figure.figsize': (6.0, 4.0),
                                    'savefig.dpi': 72,
@@ -83,32 +83,32 @@ def kernel_config():
                                    'figure.facecolor': 'white',
                                    'figure.edgecolor': 'white'
                                    }
-           resolution_o = CONF.get('ipython_console', 
+           resolution_o = CONF.get('ipython_console',
                                    'pylab/inline/resolution')
            spy_cfg.InlineBackend.rc['savefig.dpi'] = resolution_o
-           
+
            # Figure size
            width_o = float(CONF.get('ipython_console', 'pylab/inline/width'))
            height_o = float(CONF.get('ipython_console', 'pylab/inline/height'))
            spy_cfg.InlineBackend.rc['figure.figsize'] = (width_o, height_o)
-    
+
     # Run a file at startup
     use_file_o = CONF.get('ipython_console', 'startup/use_run_file')
     run_file_o = CONF.get('ipython_console', 'startup/run_file')
     if use_file_o and run_file_o:
         spy_cfg.IPKernelApp.file_to_run = run_file_o
-    
+
     # Autocall
     autocall_o = CONF.get('ipython_console', 'autocall')
     spy_cfg.ZMQInteractiveShell.autocall = autocall_o
-    
+
     # To handle the banner by ourselves in IPython 3+
     spy_cfg.ZMQInteractiveShell.banner1 = ''
-    
+
     # Greedy completer
     greedy_o = CONF.get('ipython_console', 'greedy_completer')
     spy_cfg.IPCompleter.greedy = greedy_o
-    
+
     # Sympy loading
     sympy_o = CONF.get('ipython_console', 'symbolic_math')
     if sympy_o:
@@ -133,7 +133,7 @@ def change_edit_magic(shell):
 def varexp(line):
     """
     Spyder's variable explorer magic
-    
+
     Used to generate plots, histograms and images of the variables displayed
     on it.
     """
@@ -169,8 +169,8 @@ ipk_temp.initialize()
 # Variable Explorer
 __ipythonshell__ = ipk_temp.shell
 
-# Issue 977 : Since kernel.initialize() has completed execution, 
-# we can now allow the monitor to communicate the availablility of 
+# Issue 977 : Since kernel.initialize() has completed execution,
+# we can now allow the monitor to communicate the availablility of
 # the kernel to accept front end connections.
 __ipythonkernel__ = ipk_temp
 del ipk_temp

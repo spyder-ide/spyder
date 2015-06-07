@@ -506,7 +506,7 @@ class CodeEditor(TextEditBaseWidget):
         self.painted.connect(self._draw_editor_cell_divider)
 
         self.verticalScrollBar().valueChanged.connect(
-                                       lambda value: self.rehighlight_cells())                                 
+                                       lambda value: self.rehighlight_cells())
 
     def create_shortcuts(self):
         codecomp = create_shortcut(self.do_completion, context='Editor',
@@ -637,7 +637,7 @@ class CodeEditor(TextEditBaseWidget):
                      add_colons=True, auto_unindent=True, indent_chars=" "*4,
                      tab_stop_width=40, cloned_from=None, filename=None,
                      occurence_timeout=1500):
-        
+
         # Code completion and calltips
         self.set_codecompletion_auto(codecompletion_auto)
         self.set_codecompletion_case(codecompletion_case)
@@ -1331,7 +1331,7 @@ class CodeEditor(TextEditBaseWidget):
         """Set edge line column value"""
         self.edge_line.column = column
         self.edge_line.update()
-    
+
     # -----blank spaces
     def set_blanks_enabled(self, state):
         """Toggle blanks visibility"""

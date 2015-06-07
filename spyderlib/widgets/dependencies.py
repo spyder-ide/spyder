@@ -24,16 +24,16 @@ class DependenciesTableModel(QAbstractTableModel):
         QAbstractTableModel.__init__(self, parent)
         self.dependencies = None
         self.set_data(dependencies)
-    
+
     def set_data(self, dependencies):
         """Set model data"""
         self.dependencies = dependencies
-        self.reset()   
-    
+        self.reset()
+
     def rowCount(self, qindex=QModelIndex()):
         """Array row number"""
         return len(self.dependencies)
-    
+
     def columnCount(self, qindex=QModelIndex()):
         """Array column count"""
         return 4
@@ -61,13 +61,13 @@ class DependenciesTableModel(QAbstractTableModel):
             return to_qvariant( headers[i_column] )
         else:
             return to_qvariant()
-    
+
     def get_value(self, index):
         """Return current value"""
         dep = self.dependencies[index.row()]
         return (dep.modname, dep.required_version,
                 dep.get_installed_version(), dep.features)[index.column()]
-    
+
     def data(self, index, role=Qt.DisplayRole):
         """Return data at table index"""
         if not index.isValid():
@@ -108,7 +108,7 @@ class DependenciesTableView(QTableView):
         self.delegate = DependenciesDelegate(self)
         self.setItemDelegate(self.delegate)
         self.setup_table()
-        
+
     def setup_table(self):
         """Setup table"""
         self.horizontalHeader().setStretchLastSection(True)
@@ -117,11 +117,11 @@ class DependenciesTableView(QTableView):
         # Sorting columns
         self.setSortingEnabled(False)
         self.sortByColumn(0, Qt.DescendingOrder)
-    
+
     def adjust_columns(self):
         """Resize three first columns to contents"""
         for col in range(3):
-            self.resizeColumnToContents(col)    
+            self.resizeColumnToContents(col)
 
 class DependenciesDialog(QDialog):
     def __init__(self, parent):
@@ -165,12 +165,12 @@ class DependenciesDialog(QDialog):
 
         self.setLayout(vlayout)
         self.resize(630, 420)
-        
+
     def set_data(self, dependencies):
         self.view.model.set_data(dependencies)
         self.view.adjust_columns()
         self.view.sortByColumn(0, Qt.DescendingOrder)
-    
+
     def copy_to_clipboard(self):
         from spyderlib.dependencies import status
         QApplication.clipboard().setText(status())
@@ -179,13 +179,13 @@ class DependenciesDialog(QDialog):
 def test():
     """Run dependency widget test"""
     from spyderlib import dependencies
-    
+
     # Test sample
     dependencies.add("IPython", "Enhanced Python interpreter", ">=0.13")
     dependencies.add("matplotlib", "Interactive data plotting", ">=1.0")
     dependencies.add("sympy", "Symbolic Mathematics", ">=10.0")
     dependencies.add("foo", "Non-existent module", ">=1.0")
-    
+
     from spyderlib.utils.qthelpers import qapplication
     app = qapplication()
     dlg = DependenciesDialog(None)

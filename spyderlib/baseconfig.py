@@ -48,7 +48,7 @@ def _get_debug_env():
     debug_env = os.environ.get('SPYDER_DEBUG', '')
     if not debug_env.isdigit():
         debug_env = bool(debug_env)
-    return int(debug_env)    
+    return int(debug_env)
 DEBUG = _get_debug_env()
 
 def debug_print(*message):
@@ -122,7 +122,7 @@ def get_conf_path(filename=None):
         return conf_dir
     else:
         return osp.join(conf_dir, filename)
-        
+
 
 def get_module_path(modname):
     """Return module *modname* base path"""
@@ -132,7 +132,7 @@ def get_module_path(modname):
 def get_module_data_path(modname, relpath=None, attr_name='DATAPATH'):
     """Return module *modname* data path
     Note: relpath is ignored if module has an attribute named *attr_name*
-    
+
     Handles py2exe/cx_Freeze distributions"""
     datapath = getattr(sys.modules[modname], attr_name, '')
     if datapath:
@@ -152,12 +152,12 @@ def get_module_data_path(modname, relpath=None, attr_name='DATAPATH'):
 
 def get_module_source_path(modname, basename=None):
     """Return module *modname* source path
-    If *basename* is specified, return *modname.basename* path where 
+    If *basename* is specified, return *modname.basename* path where
     *modname* is a package containing the module *basename*
-    
+
     *basename* is a filename (not a module name), so it must include the
     file extension: .py or .pyw
-    
+
     Handles py2exe/cx_Freeze distributions"""
     srcpath = get_module_path(modname)
     parentdir = osp.join(srcpath, osp.pardir)
@@ -343,14 +343,14 @@ _ = get_translation("spyderlib")
 
 def get_supported_types():
     """
-    Return a dictionnary containing types lists supported by the 
+    Return a dictionnary containing types lists supported by the
     namespace browser:
     dict(picklable=picklable_types, editable=editables_types)
-         
+
     See:
     get_remote_data function in spyderlib/widgets/externalshell/monitor.py
     get_internal_shell_filter method in namespacebrowser.py
-    
+
     Note:
     If you update this list, don't forget to update doc/variablexplorer.rst
     """

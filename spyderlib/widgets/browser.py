@@ -33,7 +33,7 @@ class WebView(QWebView):
         self.zoom_in_action = create_action(self, _("Zoom in"),
                                             icon=get_icon('zoom_in.png'),
                                             triggered=self.zoom_in)
-        
+
     def find_text(self, text, changed=True,
                   forward=True, case=False, words=False,
                   regexp=False):
@@ -44,11 +44,11 @@ class WebView(QWebView):
         if case:
             findflag = findflag | QWebPage.FindCaseSensitively
         return self.findText(text, findflag)
-    
+
     def get_selected_text(self):
         """Return text selected by current text cursor"""
         return self.selectedText()
-        
+
     def set_font(self, font, fixed_font=None):
         settings = self.page().settings()
         for fontfamily in (settings.StandardFont, settings.SerifFont,
@@ -60,7 +60,7 @@ class WebView(QWebView):
         size = font.pointSize()
         settings.setFontSize(settings.DefaultFontSize, size)
         settings.setFontSize(settings.DefaultFixedFontSize, size)
-        
+
     def apply_zoom_factor(self):
         """Apply zoom factor"""
         if hasattr(self, 'setZoomFactor'):
@@ -69,12 +69,12 @@ class WebView(QWebView):
         else:
             # Qt v4.4
             self.setTextSizeMultiplier(self.zoom_factor)
-        
+
     def set_zoom_factor(self, zoom_factor):
         """Set zoom factor"""
         self.zoom_factor = zoom_factor
         self.apply_zoom_factor()
-    
+
     def get_zoom_factor(self):
         """Return zoom factor"""
         return self.zoom_factor
@@ -90,12 +90,12 @@ class WebView(QWebView):
         """Zoom in"""
         self.zoom_factor += .1
         self.apply_zoom_factor()
-    
+
     #------ QWebView API -------------------------------------------------------
     def createWindow(self, webwindowtype):
         import webbrowser
         webbrowser.open(to_text_string(self.url().toString()))
-        
+
     def contextMenuEvent(self, event):
         menu = QMenu(self)
         actions = [self.pageAction(QWebPage.Back),
@@ -110,7 +110,7 @@ class WebView(QWebView):
         add_actions(menu, actions)
         menu.popup(event.globalPos())
         event.accept()
-                
+
 
 class WebBrowser(QWidget):
     """
@@ -118,45 +118,45 @@ class WebBrowser(QWidget):
     """
     def __init__(self, parent=None):
         QWidget.__init__(self, parent)
-        
+
         self.home_url = None
-        
+
         self.webview = WebView(self)
         self.webview.loadFinished.connect(self.load_finished)
         self.webview.titleChanged.connect(self.setWindowTitle)
         self.webview.urlChanged.connect(self.url_changed)
-                
+
         home_button = create_toolbutton(self, icon=get_icon('home.png'),
                                         tip=_("Home"),
                                         triggered=self.go_home)
-        
+
         zoom_out_button = action2button(self.webview.zoom_out_action)
         zoom_in_button = action2button(self.webview.zoom_in_action)
-        
+
         pageact2btn = lambda prop: action2button(self.webview.pageAction(prop),
                                                  parent=self.webview)
         refresh_button = pageact2btn(QWebPage.Reload)
         stop_button = pageact2btn(QWebPage.Stop)
         previous_button = pageact2btn(QWebPage.Back)
         next_button = pageact2btn(QWebPage.Forward)
-        
+
         stop_button.setEnabled(False)
         self.webview.loadStarted.connect(lambda: stop_button.setEnabled(True))
         self.webview.loadFinished.connect(lambda: stop_button.setEnabled(False))
-        
+
         progressbar = QProgressBar(self)
         progressbar.setTextVisible(False)
         progressbar.hide()
         self.webview.loadStarted.connect(progressbar.show)
         self.webview.loadProgress.connect(progressbar.setValue)
         self.webview.loadFinished.connect(lambda _state: progressbar.hide())
-        
+
         label = QLabel(self.get_label())
-        
+
         self.url_combo = UrlComboBox(self)
         self.url_combo.valid.connect(self.url_combo_activated)
         self.webview.iconChanged.connect(self.icon_changed)
-        
+
         self.find_widget = FindReplace(self)
         self.find_widget.set_editor(self.webview)
         self.find_widget.hide()
@@ -171,26 +171,26 @@ class WebBrowser(QWidget):
                        label, self.url_combo, zoom_out_button, zoom_in_button,
                        refresh_button, progressbar, stop_button):
             hlayout.addWidget(widget)
-        
+
         layout = QVBoxLayout()
         layout.addLayout(hlayout)
         layout.addWidget(self.webview)
         layout.addWidget(self.find_widget)
         self.setLayout(layout)
-                
+
     def get_label(self):
         """Return address label text"""
         return _("Address:")
-            
+
     def set_home_url(self, text):
         """Set home URL"""
         self.home_url = QUrl(text)
-        
+
     def set_url(self, url):
         """Set current URL"""
         self.url_changed(url)
         self.go_to(url)
-        
+
     def go_to(self, url_or_text):
         """Go to page *address*"""
         if is_text_string(url_or_text):
@@ -204,28 +204,28 @@ class WebBrowser(QWidget):
         """Go to home page"""
         if self.home_url is not None:
             self.set_url(self.home_url)
-        
+
     def text_to_url(self, text):
         """Convert text address into QUrl object"""
         return QUrl(text)
-        
+
     def url_combo_activated(self, valid):
         """Load URL from combo box first item"""
         text = to_text_string(self.url_combo.currentText())
         self.go_to(self.text_to_url(text))
-        
+
     def load_finished(self, ok):
         if not ok:
             self.webview.setHtml(_("Unable to load page"))
-            
+
     def url_to_text(self, url):
         """Convert QUrl object to displayed text in combo box"""
         return url.toString()
-            
+
     def url_changed(self, url):
         """Displayed URL has changed -> updating URL combo box"""
         self.url_combo.add_text(self.url_to_text(url))
-            
+
     def icon_changed(self):
         self.url_combo.setItemIcon(self.url_combo.currentIndex(),
                                    self.webview.icon())

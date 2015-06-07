@@ -108,10 +108,10 @@ def run_python_script(package=None, module=None, args=[], p_args=[]):
 
 def shell_split(text):
     """Split the string `text` using shell-like syntax
-    
-    This avoids breaking single/double-quoted strings (e.g. containing 
+
+    This avoids breaking single/double-quoted strings (e.g. containing
     strings with spaces). This function is almost equivalent to the shlex.split
-    function (see standard library `shlex`) except that it is supporting 
+    function (see standard library `shlex`) except that it is supporting
     unicode strings (shlex does not support unicode until Python 2.7.3)."""
     assert is_text_string(text)  # in case a QString is passed...
     pattern = r'(\s+|(?<!\\)".*?(?<!\\)"|(?<!\\)\'.*?(?<!\\)\')'
@@ -134,7 +134,7 @@ def get_python_args(fname, python_args, interact, debug, end_args):
     if fname is not None:
         if os.name == 'nt' and debug:
             # When calling pdb on Windows, one has to replace backslashes by
-            # slashes to avoid confusion with escape characters (otherwise, 
+            # slashes to avoid confusion with escape characters (otherwise,
             # for example, '\t' will be interpreted as a tabulation):
             p_args.append(osp.normpath(fname).replace(os.sep, '/'))
         else:
@@ -147,17 +147,17 @@ def get_python_args(fname, python_args, interact, debug, end_args):
 def run_python_script_in_terminal(fname, wdir, args, interact,
                                   debug, python_args):
     """Run Python script in an external system terminal"""
-    
+
     # If fname has spaces on it it can't be ran on Windows, so we have to
     # enclose it in quotes. Also wdir can come with / as os.sep, so we
     # need to take care of it
     if os.name == 'nt':
         fname = '"' + fname + '"'
         wdir = wdir.replace('/', '\\')
-    
+
     p_args = ['python']
     p_args += get_python_args(fname, python_args, interact, debug, args)
-    
+
     if os.name == 'nt':
         cmd = 'start cmd.exe /c "cd %s && ' % wdir + ' '.join(p_args) + '"'
         # Command line and cwd have to be converted to the filesystem
@@ -227,7 +227,7 @@ def check_version(actver, version, cmp_op):
     it is assumed that the dependency is satisfied.
     Users on dev branches are responsible for keeping their own packages up to
     date.
-    
+
     Copyright (C) 2013  The IPython Development Team
 
     Distributed under the terms of the BSD License.
@@ -267,19 +267,19 @@ def get_module_version(module_name):
 def is_module_installed(module_name, version=None, installed_version=None,
                         interpreter=None):
     """Return True if module *module_name* is installed
-    
-    If version is not None, checking module version 
+
+    If version is not None, checking module version
     (module must have an attribute named '__version__')
-    
+
     version may starts with =, >=, > or < to specify the exact requirement ;
     multiple conditions may be separated by ';' (e.g. '>=0.13;<1.0')
-    
-    interpreter: check if a module is installed with a given version 
+
+    interpreter: check if a module is installed with a given version
     in a determined interpreter"""
     if interpreter:
         if not osp.isdir(TEMPDIR):
             os.mkdir(TEMPDIR)
-        
+
         if osp.isfile(interpreter) and ('python' in interpreter):
             checkver = inspect.getsource(check_version)
             get_modver = inspect.getsource(get_module_version)
@@ -338,7 +338,7 @@ def is_module_installed(module_name, version=None, installed_version=None,
             assert symb in ('>=', '>', '=', '<', '<='),\
                     "Invalid version condition '%s'" % symb
             version = version[match.start():]
-            
+
             return check_version(actver, version, symb)
 
 

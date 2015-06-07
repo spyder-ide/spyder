@@ -27,7 +27,7 @@ def is_qtconsole_installed():
     pyzmq_installed = programs.is_module_installed('zmq', version=ZMQ_REQVER)
     pygments_installed = programs.is_module_installed('pygments')
 
-    if ipython_installed and pyzmq_installed and pygments_installed:    
+    if ipython_installed and pyzmq_installed and pygments_installed:
         return True
     else:
         return False

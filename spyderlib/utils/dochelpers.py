@@ -73,25 +73,25 @@ def getdoc(obj):
     docstring:
       It's docstring
     """
-    
+
     docstring = inspect.getdoc(obj) or inspect.getcomments(obj) or ''
-    
+
     # Most of the time doc will only contain ascii characters, but there are
     # some docstrings that contain non-ascii characters. Not all source files
     # declare their encoding in the first line, so querying for that might not
     # yield anything, either. So assume the most commonly used
-    # multi-byte file encoding (which also covers ascii). 
+    # multi-byte file encoding (which also covers ascii).
     try:
         docstring = to_text_string(docstring)
     except:
         pass
-    
+
     # Doc dict keys
     doc = {'name': '',
            'argspec': '',
            'note': '',
            'docstring': docstring}
-    
+
     if callable(obj):
         try:
             name = obj.__name__
@@ -129,8 +129,8 @@ def getdoc(obj):
                 # rich text "Definition:" field. We'll carefully remove this
                 # redundancy but only under a strict set of conditions:
                 # Remove the starting charaters of the 'doc' portion *iff*
-                # the non-whitespace characters on the first line 
-                # match *exactly* the combined function title 
+                # the non-whitespace characters on the first line
+                # match *exactly* the combined function title
                 # and argspec we determined above.
                 signature = doc['name'] + doc['argspec']
                 docstring_blocks = doc['docstring'].split("\n\n")
@@ -140,11 +140,11 @@ def getdoc(obj):
                                                      signature, '', 1).lstrip()
             else:
                 doc['argspec'] = '(...)'
-        
+
         # Remove self from argspec
         argspec = doc['argspec']
         doc['argspec'] = argspec.replace('(self)', '()').replace('(self, ', '(')
-        
+
     return doc
 
 
@@ -196,7 +196,7 @@ def getargspecfromtext(text):
     """
     Try to get the formatted argspec of a callable from the first block of its
     docstring
-    
+
     This will return something like
     '(foo, bar, k=1)'
     """
@@ -240,12 +240,12 @@ def getargs(obj):
     args, _, _ = inspect.getargs(func_obj.func_code)
     if not args:
         return getargsfromdoc(obj)
-    
+
     # Supporting tuple arguments in def statement:
     for i_arg, arg in enumerate(args):
         if isinstance(arg, list):
             args[i_arg] = "(%s)" % ", ".join(arg)
-            
+
     defaults = get_func_defaults(func_obj)
     if defaults is not None:
         for index, default in enumerate(defaults):
@@ -318,7 +318,7 @@ def isdefined(obj, force_import=False, namespace=None):
                 return False
         base += '.'+attr
     return True
-    
+
 
 if __name__ == "__main__":
     class Test(object):

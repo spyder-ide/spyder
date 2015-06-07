@@ -40,13 +40,13 @@ class IntrospectionServer(threading.Thread):
         global SPYDER_PORT
         self.port = SPYDER_PORT = select_port(default_port=SPYDER_PORT)
         SPYDER_PORT += 1
-        
+
     def register(self, shell):
         """Register introspection server
         See notification server below"""
         shell_id = str(id(shell))
         self.shells[shell_id] = shell
-    
+
     def send_socket(self, shell_id, sock):
         """Send socket to the appropriate object for later communication"""
         shell = self.shells[shell_id]
@@ -54,13 +54,13 @@ class IntrospectionServer(threading.Thread):
         if DEBUG_INTROSPECTION:
             logging.debug('Introspection server: shell [%r] port [%r]'
                           % (shell, self.port))
-        
+
     def run(self):
         """Start server"""
         sock = socket.socket(socket.AF_INET)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.bind( ("127.0.0.1", self.port) )
-        
+
         while True:
             sock.listen(2)
             try:
@@ -81,7 +81,7 @@ class NotificationServer(IntrospectionServer):
     def __init__(self):
         IntrospectionServer.__init__(self)
         self.notification_threads = {}
-        
+
     def register(self, shell):
         """Register notification server
         See pythonshell.ExternalPythonShell.create_process"""
@@ -89,7 +89,7 @@ class NotificationServer(IntrospectionServer):
         shell_id = str(id(shell))
         n_thread = self.notification_threads[shell_id] = NotificationThread()
         return n_thread
-    
+
     def send_socket(self, shell_id, sock):
         """Send socket to the appropriate object for later communication"""
         n_thread = self.notification_threads[shell_id]
@@ -104,7 +104,7 @@ INTROSPECTION_SERVER = None
 def start_introspection_server():
     """
     Start introspection server (only one time)
-    This server is dedicated to introspection features, i.e. Spyder is calling 
+    This server is dedicated to introspection features, i.e. Spyder is calling
     it to retrieve informations on remote objects
     """
     global INTROSPECTION_SERVER
@@ -124,8 +124,8 @@ NOTIFICATION_SERVER = None
 def start_notification_server():
     """
     Start notify server (only one time)
-    This server is dedicated to notification features, i.e. remote objects 
-    are notifying Spyder about anything relevant like debugging data (pdb) 
+    This server is dedicated to notification features, i.e. remote objects
+    are notifying Spyder about anything relevant like debugging data (pdb)
     or "this is the right moment to refresh variable explorer" (syshook)
     """
     global NOTIFICATION_SERVER
@@ -142,15 +142,15 @@ class NotificationThread(QThread):
     open_file = Signal(str, int)
     new_ipython_kernel = Signal(str)
     refresh_namespace_browser = Signal()
-    
+
     def __init__(self):
         QThread.__init__(self)
         self.notify_socket = None
-        
+
     def set_notify_socket(self, notify_socket):
         """Set the notification socket"""
         self.notify_socket = notify_socket
-        
+
     def run(self):
         """Start notification thread"""
         while True:
@@ -163,12 +163,12 @@ class NotificationThread(QThread):
                 except:
                     # This except statement is intended to handle a struct.error
                     # (but when writing 'except struct.error', it doesn't work)
-                    # Note: struct.error is raised when the communication has 
-                    # been interrupted and the received data is not a string 
+                    # Note: struct.error is raised when the communication has
+                    # been interrupted and the received data is not a string
                     # of length 8 as required by struct.unpack (see read_packet)
                     break
                 if cdict is None:
-                    # Another notification thread has just terminated and 
+                    # Another notification thread has just terminated and
                     # then wrote 'None' in the notification socket
                     # (see the 'finally' statement below)
                     continue
@@ -199,6 +199,6 @@ class NotificationThread(QThread):
                 try:
                     write_packet(self.notify_socket, output)
                 except:
-                    # The only reason why it should fail is that Spyder is 
+                    # The only reason why it should fail is that Spyder is
                     # closing while this thread is still alive
                     break

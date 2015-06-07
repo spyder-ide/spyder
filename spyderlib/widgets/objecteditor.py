@@ -21,10 +21,10 @@ class DialogKeeper(QObject):
         QObject.__init__(self)
         self.dialogs = {}
         self.namespace = None
-        
+
     def set_namespace(self, namespace):
         self.namespace = namespace
-    
+
     def create_dialog(self, dialog, refname, func):
         self.dialogs[id(dialog)] = dialog, refname, func
         dialog.accepted.connect(
@@ -34,12 +34,12 @@ class DialogKeeper(QObject):
         dialog.show()
         dialog.activateWindow()
         dialog.raise_()
-        
+
     def editor_accepted(self, dialog_id):
         dialog, refname, func = self.dialogs[dialog_id]
         self.namespace[refname] = func(dialog)
         self.dialogs.pop(dialog_id)
-        
+
     def editor_rejected(self, dialog_id):
         self.dialogs.pop(dialog_id)
 
@@ -48,11 +48,11 @@ keeper = DialogKeeper()
 
 def create_dialog(obj, obj_name):
     """Creates the editor dialog and returns a tuple (dialog, func) where func
-    is the function to be called with the dialog instance as argument, after 
+    is the function to be called with the dialog instance as argument, after
     quitting the dialog box
-    
+
     The role of this intermediate function is to allow easy monkey-patching.
-    (uschmitt suggested this indirection here so that he can monkey patch 
+    (uschmitt suggested this indirection here so that he can monkey patch
     oedit to show eMZed related data)
     """
     # Local import
@@ -64,7 +64,7 @@ def create_dialog(obj, obj_name):
     from spyderlib.widgets.arrayeditor import ArrayEditor
     if DataFrame is not FakeObject:
         from spyderlib.widgets.dataframeeditor import DataFrameEditor
-    
+
     conv_func = lambda data: data
     readonly = not is_known_type(obj)
     if isinstance(obj, ndarray) and ndarray is not FakeObject:
@@ -104,17 +104,17 @@ def oedit(obj, modal=True, namespace=None):
     (if Cancel is pressed, return None)
 
     The object 'obj' is a container
-    
+
     Supported container types:
     dict, list, tuple, str/unicode or numpy.array
-    
+
     (instantiate a new QApplication if necessary,
     so it can be called directly from the interpreter)
     """
     # Local import
     from spyderlib.utils.qthelpers import qapplication
     app = qapplication()
-    
+
     if modal:
         obj_name = ''
     else:
@@ -126,12 +126,12 @@ def oedit(obj, modal=True, namespace=None):
         obj = namespace[obj_name]
         # keep QApplication reference alive in the Python interpreter:
         namespace['__qapp__'] = app
-    
+
     result = create_dialog(obj, obj_name)
     if result is None:
         return
     dialog, end_func = result
-    
+
     if modal:
         if dialog.exec_():
             return end_func(dialog)
@@ -167,6 +167,6 @@ def test():
     print(oedit(np.random.rand(10, 10)))
     print(oedit(oedit.__doc__))
     print(example)
-    
+
 if __name__ == "__main__":
     test()

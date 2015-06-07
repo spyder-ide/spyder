@@ -57,42 +57,42 @@ class Interpreter(InteractiveConsole, threading.Thread):
         """
         InteractiveConsole.__init__(self, namespace)
         threading.Thread.__init__(self)
-        
+
         self._id = None
-        
+
         self.exit_flag = False
         self.debug = debug
-        
+
         # Execution Status
         self.more = False
-        
+
         if exitfunc is not None:
             atexit.register(exitfunc)
-        
+
         self.namespace = self.locals
         self.namespace['__name__'] = '__main__'
         self.namespace['execfile'] = self.execfile
         self.namespace['runfile'] = self.runfile
         self.namespace['raw_input'] = self.raw_input_replacement
         self.namespace['help'] = self.help_replacement
-                    
-        # Capture all interactive input/output 
+
+        # Capture all interactive input/output
         self.initial_stdout = sys.stdout
         self.initial_stderr = sys.stderr
         self.initial_stdin = sys.stdin
-        
+
         # Create communication pipes
         pr, pw = os.pipe()
         self.stdin_read = os.fdopen(pr, "r")
         self.stdin_write = os.fdopen(pw, "wb", 0)
         self.stdout_write = Output()
         self.stderr_write = Output()
-        
+
         self.input_condition = threading.Condition()
         self.widget_proxy = WidgetProxy(self.input_condition)
-        
+
         self.redirect_stds()
-        
+
 
     #------ Standard input/output
     def redirect_stds(self):
@@ -101,7 +101,7 @@ class Interpreter(InteractiveConsole, threading.Thread):
             sys.stdout = self.stdout_write
             sys.stderr = self.stderr_write
             sys.stdin = self.stdin_read
-        
+
     def restore_stds(self):
         """Restore stds"""
         if not self.debug:
@@ -118,7 +118,7 @@ class Interpreter(InteractiveConsole, threading.Thread):
         inp = self.widget_proxy.input_data
         self.input_condition.release()
         return inp
-        
+
     def help_replacement(self, text=None, interactive=False):
         """For help builtin function emulation"""
         if text is not None and not interactive:
@@ -182,7 +182,7 @@ has the same effect as typing a particular string at the help> prompt.
         elif cd_match:
             cmd = 'import os; os.chdir(r"%s")' % cd_match.groups()[0].strip()
         # -- End of Special commands type I
-            
+
         # -- Special commands type II
         #    (don't need code execution in interpreter)
         xedit_match = re.match(special_pattern % 'xedit', cmd)
@@ -227,24 +227,24 @@ has the same effect as typing a particular string at the help> prompt.
 #            self.widget_proxy.set_readonly(True)
             self.more = self.push(cmd)
 #            self.widget_proxy.set_readonly(False)
-        
+
         if new_prompt:
             self.widget_proxy.new_prompt(self.p2 if self.more else self.p1)
         if not self.more:
             self.resetbuffer()
-        
+
     def run(self):
         """Wait for input and run it"""
         while not self.exit_flag:
             self.run_line()
-            
+
     def run_line(self):
         line = self.stdin_read.readline()
         if self.exit_flag:
             return
         # Remove last character which is always '\n':
         self.run_command(line[:-1])
-        
+
     def get_thread_id(self):
         """Return thread id"""
         if self._id is None:
@@ -252,7 +252,7 @@ has the same effect as typing a particular string at the help> prompt.
                 if obj is self:
                     self._id = thread_id
         return self._id
-        
+
     def raise_keyboard_interrupt(self):
         if self.isAlive():
             ctypes.pythonapi.PyThreadState_SetAsyncExc(self.get_thread_id(),
@@ -260,12 +260,12 @@ has the same effect as typing a particular string at the help> prompt.
             return True
         else:
             return False
-            
-            
+
+
     def closing(self):
         """Actions to be done before restarting this interpreter"""
         pass
-        
+
     def execfile(self, filename):
         """Exec filename"""
         source = open(filename, 'r').read()
@@ -279,7 +279,7 @@ has the same effect as typing a particular string at the help> prompt.
             InteractiveConsole.showsyntaxerror(self, filename)
         else:
             self.runcode(code)
-        
+
     def runfile(self, filename, args=None):
         """
         Run filename
@@ -295,7 +295,7 @@ has the same effect as typing a particular string at the help> prompt.
         self.execfile(filename)
         sys.argv = ['']
         self.namespace.pop('__file__')
-        
+
     def eval(self, text):
         """
         Evaluate text and return (obj, valid)
@@ -307,31 +307,31 @@ has the same effect as typing a particular string at the help> prompt.
             return eval(text, self.locals), True
         except:
             return None, False
-        
+
     def is_defined(self, objtxt, force_import=False):
         """Return True if object is defined"""
         return isdefined(objtxt, force_import=force_import,
                          namespace=self.locals)
-        
+
     #===========================================================================
     # InteractiveConsole API
     #===========================================================================
     def push(self, line):
         """
         Push a line of source text to the interpreter
-        
-        The line should not have a trailing newline; it may have internal 
-        newlines. The line is appended to a buffer and the interpreter’s 
-        runsource() method is called with the concatenated contents of the 
-        buffer as source. If this indicates that the command was executed 
-        or invalid, the buffer is reset; otherwise, the command is incomplete, 
-        and the buffer is left as it was after the line was appended. 
-        The return value is True if more input is required, False if the line 
+
+        The line should not have a trailing newline; it may have internal
+        newlines. The line is appended to a buffer and the interpreter’s
+        runsource() method is called with the concatenated contents of the
+        buffer as source. If this indicates that the command was executed
+        or invalid, the buffer is reset; otherwise, the command is incomplete,
+        and the buffer is left as it was after the line was appended.
+        The return value is True if more input is required, False if the line
         was dealt with in some way (this is the same as runsource()).
         """
         return InteractiveConsole.push(self, "#coding=utf-8\n" + line)
-        
+
     def resetbuffer(self):
         """Remove any unhandled source text from the input buffer"""
         InteractiveConsole.resetbuffer(self)
-        
+

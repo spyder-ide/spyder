@@ -101,7 +101,7 @@ MAIN_APP = qapplication()
 
 
 #==============================================================================
-# Create splash screen out of MainWindow to reduce perceived startup time. 
+# Create splash screen out of MainWindow to reduce perceived startup time.
 #==============================================================================
 from spyderlib.baseconfig import _, get_image_path, DEV
 SPLASH = QSplashScreen(QPixmap(get_image_path('splash.png'), 'png'))
@@ -630,7 +630,7 @@ class MainWindow(QMainWindow):
                                       None, self.cut_action, self.copy_action,
                                       self.paste_action, self.delete_action,
                                       None, self.selectall_action]
-            self.search_menu_actions = [self.find_action, 
+            self.search_menu_actions = [self.find_action,
                                         self.find_next_action,
                                         self.find_previous_action,
                                         self.replace_action]
@@ -962,7 +962,7 @@ class MainWindow(QMainWindow):
 
             self.set_splash(_("Setting up main window..."))
 
-            # Help menu            
+            # Help menu
             dep_action = create_action(self, _("Optional dependencies..."),
                                        triggered=self.show_dependencies,
                                        icon='advanced.png')
@@ -997,7 +997,7 @@ class MainWindow(QMainWindow):
                 spyder_doc = 'http://pythonhosted.org/spyder'
             else:
                 spyder_doc = file_uri(spyder_doc)
-            doc_action = create_action(self, _("Spyder documentation"), shortcut="F1", 
+            doc_action = create_action(self, _("Spyder documentation"), shortcut="F1",
                                        icon=get_std_icon('DialogHelpButton'),
                                        triggered=lambda : programs.start_file(spyder_doc))
 
@@ -1318,7 +1318,7 @@ class MainWindow(QMainWindow):
 
         # Check for spyder updates
         if DEV is None and CONF.get('main', 'check_updates_on_startup'):
-            self.give_updates_feedback = False 
+            self.give_updates_feedback = False
             self.check_updates()
 
         self.is_setting_up = False
@@ -1419,7 +1419,7 @@ class MainWindow(QMainWindow):
         prefix = ('lightwindow' if self.light else 'window') + '/'
         settings = self.load_window_settings(prefix, default)
         hexstate = settings[0]
-        
+
         self.first_spyder_run = False
         if hexstate is None and not self.light:
             # First Spyder execution:
@@ -1429,12 +1429,12 @@ class MainWindow(QMainWindow):
 
             # Now that the initial setup is done, copy the window settings,
             # except for the hexstate in the quick layouts sections for the
-            # default layouts. 
+            # default layouts.
             # Order and name of the default layouts is found in config.py
             section = 'quick_layouts'
             get_func = CONF.get_default if default else CONF.get
             order = get_func(section, 'order')
-            
+
             # restore the original defaults if reset layouts is called
             if default:
                 CONF.set(section, 'active', order)
@@ -1444,7 +1444,7 @@ class MainWindow(QMainWindow):
             for index, name, in enumerate(order):
                 prefix = 'layout_{0}/'.format(index)
                 self.save_current_window_settings(prefix, section)
-                CONF.set(section, prefix+'state', None)        
+                CONF.set(section, prefix+'state', None)
 
             # store the initial layout as the default in spyder
             prefix = 'layout_default/'
@@ -1452,7 +1452,7 @@ class MainWindow(QMainWindow):
             self.save_current_window_settings(prefix, section)
             self.current_quick_layout = 'default'
             CONF.set(section, prefix+'state', None)
-            
+
             # Regenerate menu
             self.quick_layout_set_menu()
 
@@ -1461,16 +1461,16 @@ class MainWindow(QMainWindow):
         for plugin in self.widgetlist:
             plugin.initialize_plugin_in_mainwindow_layout()
 
-     # for reference   
+     # for reference
 #    def setup_layout(self, default=False):
 #        """Setup window layout"""
 #        prefix = ('lightwindow' if self.light else 'window') + '/'
 #        (hexstate, window_size, prefs_dialog_size, pos, is_maximized,
 #         is_fullscreen) = self.load_window_settings(prefix, default)
-#        
+#
 #        if hexstate is None and not self.light:
 #            # First Spyder execution:
-#            # trying to set-up the dockwidget/toolbar positions to the best 
+#            # trying to set-up the dockwidget/toolbar positions to the best
 #            # appearance possible
 #            splitting = (
 #                         (self.projectexplorer, self.editor, Qt.Horizontal),
@@ -1511,8 +1511,8 @@ class MainWindow(QMainWindow):
 #                                 is_maximized, is_fullscreen)
 #
 #        for plugin in self.widgetlist:
-#            plugin.initialize_plugin_in_mainwindow_layout()        
-       
+#            plugin.initialize_plugin_in_mainwindow_layout()
+
     def setup_default_layouts(self, index, settings):
         """Setup default layouts when run for the first time"""
         self.set_window_settings(*settings)
@@ -1549,7 +1549,7 @@ class MainWindow(QMainWindow):
                     [[explorer_project]],
                     # column 1
                     [[editor]],
-                    # column 2                                        
+                    # column 2
                     [[outline]],
                     # column 3
                     [[inspector, explorer_variable, helper, explorer_file,
@@ -1565,7 +1565,7 @@ class MainWindow(QMainWindow):
                                         [0.55, 0.45],          # column 2, row heights
                                         [1.0]],   # column 0, row heights
                     'hidden widgets': [outline],
-                    'hidden toolbars': [],                               
+                    'hidden toolbars': [],
                     }
         r_layout = {'widgets': [
                     # column 0
@@ -1580,7 +1580,7 @@ class MainWindow(QMainWindow):
                     'height fraction': [[0.55, 0.45],   # column 0, row heights
                                         [0.55, 0.45]],  # column 1, row heights
                     'hidden widgets': [outline],
-                    'hidden toolbars': [],                               
+                    'hidden toolbars': [],
                     }
         # Matlab
         m_layout = {'widgets': [
@@ -1642,7 +1642,7 @@ class MainWindow(QMainWindow):
 
         layout = layouts[index]
 
-        widgets_layout = layout['widgets']         
+        widgets_layout = layout['widgets']
         widgets = []
         for column in widgets_layout :
             for row in column:
@@ -1663,7 +1663,7 @@ class MainWindow(QMainWindow):
                 self.splitDockWidget(first.dockwidget, second.dockwidget,
                                      Qt.Horizontal)
 
-        # arrange rows vertically 
+        # arrange rows vertically
         for column in widgets_layout :
             for i in range(len(column) - 1):
                 first_row, second_row = column[i], column[i+1]
@@ -1712,7 +1712,7 @@ class MainWindow(QMainWindow):
 #            widget.setMaximumWidth(new_width)
 #            widget.updateGeometry()
 #            print(c, widgets_layout[c][0][0], new_width)
-        
+
         # fix column height
         for c, column in enumerate(widgets_layout):
             for r in range(len(column) - 1):
@@ -2128,7 +2128,7 @@ class MainWindow(QMainWindow):
 
         # To be used by the tour to be able to resize
         self.sig_resized.emit(event)
-        
+
     def moveEvent(self, event):
         """Reimplement Qt method"""
         if not self.isMaximized() and not self.fullscreen_flag:
@@ -2137,7 +2137,7 @@ class MainWindow(QMainWindow):
 
         # To be used by the tour to be able to move
         self.sig_moved.emit(event)
-    
+
     def hideEvent(self, event):
         """Reimplement Qt method"""
         if not self.light:
@@ -2347,9 +2347,9 @@ class MainWindow(QMainWindow):
 
 **What steps will reproduce the problem?**
 
-1. 
-2. 
-3. 
+1.
+2.
+3.
 
 **What is the expected output? What do you see instead?**
 
@@ -2384,7 +2384,7 @@ class MainWindow(QMainWindow):
             url.setQuery(query)
         else:
             url.addEncodedQueryItem("body", quote(issue_template))
-            
+
         QDesktopServices.openUrl(url)
 
     @Slot()
@@ -2858,7 +2858,7 @@ class MainWindow(QMainWindow):
 
         # Enable check_updates_action after the thread has finished
         self.check_updates_action.setDisabled(False)
-        
+
         # Provide feeback when clicking menu if check on startup is on
         self.give_updates_feedback = True
 

@@ -90,7 +90,7 @@ def generate_context(name='', argspec='', note='', math=False, collapse=False,
                      img_path=''):
     """
     Generate the html_context dictionary for our Sphinx conf file.
-    
+
     This is a set of variables to be passed to the Jinja template engine and
     that are used to control how the webpage is rendered in connection with
     Sphinx
@@ -109,12 +109,12 @@ def generate_context(name='', argspec='', note='', math=False, collapse=False,
         plain text.
     collapse : bool
         Collapse sections
-    
+
     Returns
     -------
     A dict of strings to be used by Jinja to generate the webpage
     """
-    
+
     context = \
     {
       # Arg dependent variables
@@ -124,7 +124,7 @@ def generate_context(name='', argspec='', note='', math=False, collapse=False,
       'note': note,
       'collapse': collapse,
       'img_path': img_path,
-      
+
       # Static variables
       'css_path': CSS_PATH,
       'js_path': JS_PATH,
@@ -133,7 +133,7 @@ def generate_context(name='', argspec='', note='', math=False, collapse=False,
       'right_sphinx_version': '' if sphinx.__version__ < "1.1" else 'true',
       'platform': sys.platform
     }
-    
+
     return context
 
 
@@ -175,7 +175,7 @@ def sphinxify(docstring, context, buildername='html'):
     # docstrings
     if context['right_sphinx_version'] and context['math_on']:
         docstring = docstring.replace('\\\\', '\\\\\\\\')
-    
+
     # Add a class to several characters on the argspec. This way we can
     # highlight them using css, in a similar way to what IPython does.
     # NOTE: Before doing this, we escape common html chars so that they
@@ -189,7 +189,7 @@ def sphinxify(docstring, context, buildername='html'):
     doc_file = codecs.open(rst_name, 'w', encoding='utf-8')
     doc_file.write(docstring)
     doc_file.close()
-    
+
     temp_confdir = False
     if temp_confdir:
         # TODO: This may be inefficient. Find a faster way to do it.
@@ -240,14 +240,14 @@ def generate_configuration(directory):
     directory : str
         Base directory to use
     """
-    
+
     # conf.py file for Sphinx
     conf = osp.join(get_module_source_path('spyderlib.utils.inspector'),
                     'conf.py')
 
     # Docstring layout page (in Jinja):
     layout = osp.join(osp.join(CONFDIR_PATH, 'templates'), 'layout.html')
-    
+
     os.makedirs(osp.join(directory, 'templates'))
     os.makedirs(osp.join(directory, 'static'))
     shutil.copy(conf, directory)

@@ -102,7 +102,7 @@ def module_list(path):
 def get_root_modules(paths):
     """
     Returns list of names of all modules from PYTHONPATH folders.
-    
+
     paths : list
         A list of additional paths that Spyder adds to PYTHONPATH. They are
         comming from our PYTHONPATH manager and from the currently selected
@@ -110,14 +110,14 @@ def get_root_modules(paths):
     """
     modules = []
     spy_modules = []
-    
+
     for path in paths:
         spy_modules += module_list(path)
     spy_modules = set(spy_modules)
     if '__init__' in spy_modules:
         spy_modules.remove('__init__')
     spy_modules = list(spy_modules)
-    
+
     if 'rootmodules' in modules_db:
         return spy_modules + modules_db['rootmodules']
 
@@ -125,12 +125,12 @@ def get_root_modules(paths):
     modules = list(sys.builtin_module_names)
     # TODO: Change this sys.path for console's interpreter sys.path
     for path in sys.path:
-        modules += module_list(path)        
+        modules += module_list(path)
         if time() - t > TIMEOUT_GIVEUP:
             print("Module list generation is taking too long, we give up.\n")
             modules_db['rootmodules'] = []
             return []
-    
+
     modules = set(modules)
     excluded_modules = ['__init__'] + spy_modules
     for mod in excluded_modules:
@@ -158,7 +158,7 @@ def get_submodules(mod):
         return []
     except:
         return [mod]
-    
+
     return submodules
 
 
@@ -209,7 +209,7 @@ def dot_completion(mod, paths):
 def module_completion(line, paths=[]):
     """
     Returns a list containing the completion possibilities for an import line.
-    
+
     The line looks like this :
     'import xml.d'
     'from xml.dom import'
@@ -217,7 +217,7 @@ def module_completion(line, paths=[]):
 
     words = line.split(' ')
     nwords = len(words)
-    
+
     # from whatever <tab> -> 'import '
     if nwords == 3 and words[0] == 'from':
         if words[2].startswith('i') or words[2] == '':
@@ -230,7 +230,7 @@ def module_completion(line, paths=[]):
         if nwords == 2 and words[1] == '':
             return get_root_modules(paths)
         if ',' == words[-1][-1]:
-            return [' ']       
+            return [' ']
         mod = words[-1].split('.')
         return dot_completion(mod, paths)
 
@@ -253,9 +253,9 @@ def module_completion(line, paths=[]):
             return [x for x in completion_list if x.startswith(words[-1])]
         else:
             return completion_list
-    
+
     return []
-        
+
 
 def reset():
     """Clear root modules database"""
@@ -270,7 +270,7 @@ def get_preferred_submodules():
     """
     if 'submodules' in modules_db:
         return modules_db['submodules']
-    
+
     mods = ['numpy', 'scipy', 'sympy', 'pandas', 'networkx', 'statsmodels',
             'matplotlib', 'sklearn', 'skimage', 'mpmath', 'os', 'PIL',
             'OpenGL', 'array', 'audioop', 'binascii', 'cPickle', 'cStringIO',
@@ -284,7 +284,7 @@ def get_preferred_submodules():
     for m in mods:
         submods = get_submodules(m)
         submodules += submods
-    
+
     modules_db['submodules'] = submodules
     return submodules
 
@@ -298,7 +298,7 @@ if __name__ == "__main__":
     # replicate them here.
     # We've chosen to use xml on most tests because it's on the standard
     # library. This way we can ensure they work on all plataforms.
-    
+
     assert sorted(module_completion('import xml.')) == \
         ['xml.dom', 'xml.etree', 'xml.parsers', 'xml.sax']
 

@@ -68,7 +68,7 @@ class Project(object):
     """Spyder project"""
     CONFIG_NAME = '.spyderproject'
     CONFIG_ATTR = ('name', 'related_projects', 'relative_pythonpath', 'opened')
-    
+
     def __init__(self):
         self.name = None
         self.root_path = None
@@ -89,7 +89,7 @@ class Project(object):
             if not osp.isdir(self.root_path):
                 os.mkdir(self.root_path)
             self.save()
-            
+
     def rename(self, new_name):
         """Rename project and rename its root path accordingly"""
         old_name = self.name
@@ -109,14 +109,14 @@ class Project(object):
         """Set PYTHONPATH list relative paths"""
         self.pythonpath = [osp.abspath(osp.join(self.root_path, path))
                            for path in value]
-        
+
     relative_pythonpath = property(_get_relative_pythonpath,
                                    _set_relative_pythonpath)
-        
+
     def __get_project_config_path(self):
         """Return project configuration path"""
         return osp.join(self.root_path, self.CONFIG_NAME)
-        
+
     def load(self):
         """Load project data"""
         fname = self.__get_project_config_path()
@@ -142,7 +142,7 @@ class Project(object):
         for attr in self.CONFIG_ATTR:
             setattr(self, attr, data[attr])
         self.save()
-    
+
     def save(self):
         """Save project data"""
         data = {}
@@ -153,59 +153,59 @@ class Project(object):
                 pickle.dump(data, fdesc, 2)
         except (IOError, OSError):
             self.ioerror_flag = True
-        
+
     def delete(self):
         """Delete project"""
         os.remove(self.__get_project_config_path())
-        
+
     #------Misc.
     def get_related_projects(self):
         """Return related projects path list"""
         return self.related_projects
-    
+
     def set_related_projects(self, related_projects):
         """Set related projects"""
         self.related_projects = related_projects
         self.save()
-        
+
     def open(self):
         """Open project"""
         self.opened = True
         self.save()
-        
+
     def close(self):
         """Close project"""
         self.opened = False
         self.save()
-        
+
     def is_opened(self):
         """Return True if project is opened"""
         return self.opened
-    
+
     def is_file_in_project(self, fname):
         """Return True if file *fname* is in one of the project subfolders"""
         fixed_root = fixpath(self.root_path)
         return fixpath(fname) == fixed_root \
                or fixpath(osp.dirname(fname)).startswith(fixed_root)
-               
+
     def is_root_path(self, dirname):
         """Return True if dirname is project's root path"""
         return fixpath(dirname) == fixpath(self.root_path)
-    
+
     def is_in_pythonpath(self, dirname):
         """Return True if dirname is in project's PYTHONPATH"""
         return fixpath(dirname) in [fixpath(_p) for _p in self.pythonpath]
-        
+
     #------Python Path
     def get_pythonpath(self):
         """Return a copy of pythonpath attribute"""
         return self.pythonpath[:]
-    
+
     def set_pythonpath(self, pythonpath):
         """Set project's PYTHONPATH"""
         self.pythonpath = pythonpath
         self.save()
-        
+
     def remove_from_pythonpath(self, path):
         """Remove path from project's PYTHONPATH
         Return True if path was removed, False if it was not found"""
@@ -216,7 +216,7 @@ class Project(object):
             return True
         else:
             return False
-        
+
     def add_to_pythonpath(self, path):
         """Add path to project's PYTHONPATH
         Return True if path was added, False if it was already there"""
@@ -234,13 +234,13 @@ class Workspace(object):
     Set of projects with common root path parent directory"""
     CONFIG_NAME = '.spyderworkspace'
     CONFIG_ATTR = ('name', 'project_paths', )
-    
+
     def __init__(self):
         self.name = None
         self.root_path = None
         self.projects = []
         self.ioerror_flag = False
-        
+
     def _get_project_paths(self):
         """Return workspace projects root path list"""
         # Convert project absolute paths to paths relative to Workspace root
@@ -257,13 +257,13 @@ class Workspace(object):
             else:
                 root_path = osp.join(self.root_path, path)
             self.add_project(root_path)
-            
+
     project_paths = property(_get_project_paths, _set_project_paths)
-    
+
     def is_valid(self):
         """Return True if workspace is valid (i.e. root path is defined)"""
         return self.root_path is not None and osp.isdir(self.root_path)
-    
+
     def is_empty(self):
         """Return True if workspace is empty (i.e. no project)"""
         if not self.is_valid():
@@ -280,16 +280,16 @@ class Workspace(object):
             self.load()
         else:
             self.save()
-            
+
     def set_name(self, name):
         """Set workspace name"""
         self.name = name
         self.save()
-        
+
     def __get_workspace_config_path(self):
         """Return project configuration path"""
         return osp.join(self.root_path, self.CONFIG_NAME)
-        
+
     def load(self):
         """Load workspace data"""
         fname = self.__get_workspace_config_path()
@@ -308,7 +308,7 @@ class Workspace(object):
         for attr in self.CONFIG_ATTR:
             setattr(self, attr, data[attr])
         self.save()
-    
+
     def save(self):
         """Save workspace data"""
         data = {}
@@ -319,14 +319,14 @@ class Workspace(object):
                 pickle.dump(data, fdesc, 2)
         except (IOError, OSError):
             self.ioerror_flag = True
-        
+
     def delete(self):
         """Delete workspace"""
         os.remove(self.__get_workspace_config_path())
-        
+
     #------Misc.
     def get_ioerror_warning_message(self):
-        """Return a warning message if IOError exception was raised when 
+        """Return a warning message if IOError exception was raised when
         loading/saving the workspace or one of its projects"""
         txt = ""
         projlist = [_p.name for _p in self.projects if _p.ioerror_flag]
@@ -339,20 +339,20 @@ class Workspace(object):
         if projlist:
             txt += _("the following projects:<br>%s") % ", ".join(projlist)
         return txt
-        
+
     def is_file_in_workspace(self, fname):
         """Return True if file *fname* is in one of the projects"""
         return any([proj.is_file_in_project(fname) for proj in self.projects])
-        
+
     def is_file_in_closed_project(self, fname):
         """Return True if file *fname* is in one of the closed projects"""
         return any([proj.is_file_in_project(fname) for proj in self.projects
                     if not proj.is_opened()])
-    
+
     def is_in_pythonpath(self, dirname):
         """Return True if dirname is in workspace's PYTHONPATH"""
         return any([proj.is_in_pythonpath(dirname) for proj in self.projects])
-    
+
     def has_project(self, root_path_or_name):
         """Return True if workspace has a project
         with given root path or name"""
@@ -365,7 +365,7 @@ class Workspace(object):
         for project in self.projects:
             if project.is_file_in_project(fname):
                 return project
-        
+
     def get_project_from_name(self, name):
         """Return project's object from name"""
         for project in self.projects:
@@ -375,7 +375,7 @@ class Workspace(object):
     def get_folder_names(self):
         """Return all project folder names (root path basename)"""
         return [osp.basename(proj.root_path) for proj in self.projects]
-        
+
     def add_project(self, root_path):
         """Create project from root path, add it to workspace
         Return the created project instance"""
@@ -388,7 +388,7 @@ class Workspace(object):
             return
         self.projects.append(project)
         self.save()
-        
+
     def open_projects(self, projects, open_related=True):
         """Open projects"""
         for project in projects:
@@ -400,20 +400,20 @@ class Workspace(object):
                         if relproj.name == projname:
                             self.open_projects(relproj, open_related=False)
         self.save()
-        
+
     def close_projects(self, projects):
         """Close projects"""
         for project in projects:
             project.close()
         self.save()
-        
+
     def remove_projects(self, projects):
         """Remove projects"""
         for project in projects:
             project.delete()
             self.projects.pop(self.projects.index(project))
         self.save()
-        
+
     def close_unrelated_projects(self, projects):
         """Close unrelated projects"""
         unrelated_projects = []
@@ -429,7 +429,7 @@ class Workspace(object):
         self.close_projects(unrelated_projects)
         self.save()
         return unrelated_projects
-        
+
     def rename_project(self, project, new_name):
         """Rename project, update the related projects if necessary"""
         old_name = project.name
@@ -440,11 +440,11 @@ class Workspace(object):
                 proj.set_related_projects(relproj)
         project.rename(new_name)
         self.save()
-        
+
     def get_other_projects(self, project):
         """Return all projects, except given project"""
         return [_p for _p in self.projects if _p is not project]
-        
+
     #------Python Path
     def get_pythonpath(self):
         """Return global PYTHONPATH (for all opened projects"""
@@ -472,7 +472,7 @@ def get_pydev_project_infos(project_path):
             related_projects.append(element.text)
         elif element.tag == 'name' and name is None:
             name = element.text
-            
+
     return name, related_projects, path
 
 
@@ -481,7 +481,7 @@ class IconProvider(QFileIconProvider):
     def __init__(self, treeview):
         super(IconProvider, self).__init__()
         self.treeview = treeview
-        
+
     @Slot(int)
     @Slot(QFileInfo)
     def icon(self, icontype_or_qfileinfo):
@@ -508,24 +508,24 @@ class IconProvider(QFileIconProvider):
 
 class ExplorerTreeWidget(FilteredDirView):
     """Explorer tree widget
-    
+
     workspace: this is the explorer tree widget root path
     (this attribute name is specific to project explorer)"""
 
     select_workspace = Signal()
-    
+
     def __init__(self, parent, show_hscrollbar=True):
         FilteredDirView.__init__(self, parent)
-        
+
         self.workspace = Workspace()
-        
+
         self.fsmodel.modelReset.connect(self.reset_icon_provider)
         self.reset_icon_provider()
 
         self.last_folder = None
-        
+
         self.setSelectionMode(FilteredDirView.ExtendedSelection)
-        
+
         self.setHeaderHidden(True)
 
         self.show_hscrollbar = show_hscrollbar
@@ -550,7 +550,7 @@ class ExplorerTreeWidget(FilteredDirView):
         else:
             new_actions = FilteredDirView.create_file_new_actions(self, fnames)
             return [new_project_act, None]+new_actions
-        
+
     def create_file_import_actions(self, fnames):
         """Return actions for submenu 'Import...'"""
         import_folder_act = create_action(self,
@@ -566,7 +566,7 @@ class ExplorerTreeWidget(FilteredDirView):
                                 icon=get_icon('pydev.png'),
                                 triggered=self.import_existing_pydev_project)
         return [import_folder_act, import_spyder_act, import_pydev_act]
-        
+
     def create_file_manage_actions(self, fnames):
         """Reimplement DirView method"""
         only_folders = all([osp.isdir(_fn) for _fn in fnames])
@@ -604,7 +604,7 @@ class ExplorerTreeWidget(FilteredDirView):
         state = self.workspace is not None\
                 and len(self.workspace.projects) > 1
         relproj_act.setEnabled(state)
-                    
+
         add_to_path_act = create_action(self,
                             text=_('Add to PYTHONPATH'),
                             icon=get_icon('add_to_path.png'),
@@ -628,7 +628,7 @@ class ExplorerTreeWidget(FilteredDirView):
             if any([_proj.is_opened() for _proj in projects]):
                 actions += [close_act, close_unrelated_act]
             actions += [manage_path_act, relproj_act, None]
-        
+
         if only_folders:
             if any_folder_not_in_path:
                 actions += [add_to_path_act]
@@ -637,7 +637,7 @@ class ExplorerTreeWidget(FilteredDirView):
         actions += [None, properties_act, None]
         actions += FilteredDirView.create_file_manage_actions(self, fnames)
         return actions
-        
+
     def create_context_menu_actions(self):
         """Reimplement DirView method"""
         if self.workspace.is_valid():
@@ -670,14 +670,14 @@ class ExplorerTreeWidget(FilteredDirView):
             self.header().setSectionResizeMode(QHeaderView.ResizeToContents)
         else:
             self.header().setResizeMode(QHeaderView.ResizeToContents)
-        
+
     def set_folder_names(self, folder_names):
         """Set folder names"""
         self.setUpdatesEnabled(False)
         FilteredDirView.set_folder_names(self, folder_names)
         self.reset_icon_provider()
         self.setUpdatesEnabled(True)
-        
+
     def reset_icon_provider(self):
         """Reset file system model icon provider
         The purpose of this is to refresh files/directories icons"""
@@ -692,7 +692,7 @@ class ExplorerTreeWidget(FilteredDirView):
                     _("The workspace was unable to load or save %s<br><br>"
                       "Please check if you have the permission to write the "
                       "associated configuration files.") % txt)
-        
+
     def set_workspace(self, root_path):
         """Set project explorer's workspace directory"""
         self.workspace = Workspace()
@@ -707,9 +707,9 @@ class ExplorerTreeWidget(FilteredDirView):
             self.hideColumn(index)
         self.set_folder_names(self.workspace.get_folder_names())
 
-        # The following fixes Issue 952: if we don't reset the "show all" 
-        # option here, we will lose the feature because we have just rebuilt 
-        # the fsmodel object from scratch. This would happen in particular 
+        # The following fixes Issue 952: if we don't reset the "show all"
+        # option here, we will lose the feature because we have just rebuilt
+        # the fsmodel object from scratch. This would happen in particular
         # when setting the workspace option in the project explorer widget
         # (see spyderlib/widgets/projectexplorer.py).
         self.set_show_all(self.show_all)
@@ -718,15 +718,15 @@ class ExplorerTreeWidget(FilteredDirView):
 #        print "folders:", self.workspace.get_folder_names()
 #        print "is_valid:", self.workspace.is_valid()
 #        print "is_empty:", self.workspace.is_empty()
-        
+
     def get_workspace(self):
         """Return project explorer's workspace directory"""
         return self.workspace.root_path
-    
+
     def is_in_workspace(self, fname):
         """Return True if file/directory is in workspace"""
         return self.workspace.is_file_in_workspace(fname)
-    
+
     def get_project_path_from_name(self, name):
         """Return project root path from name, knowing the workspace path"""
         return osp.join(self.get_workspace(), name)
@@ -734,15 +734,15 @@ class ExplorerTreeWidget(FilteredDirView):
     def get_source_project(self, fname):
         """Return project which contains source *fname*"""
         return self.workspace.get_source_project(fname)
-        
+
     def get_project_from_name(self, name):
         """Return project's object from name"""
         return self.workspace.get_project_from_name(name)
-        
+
     def get_pythonpath(self):
         """Return global PYTHONPATH (for all opened projects"""
         return self.workspace.get_pythonpath()
-        
+
     def add_project(self, folder, silent=False):
         """Add project to tree"""
         if not self.is_valid_project_root_path(folder, silent=silent):
@@ -771,15 +771,15 @@ class ExplorerTreeWidget(FilteredDirView):
                                        ) % (_('copy'), folder,
                                             to_text_string(error)))
             folder = dst
-        
+
         project = self.workspace.add_project(folder)
         self.set_folder_names(self.workspace.get_folder_names())
         self.parent_widget.pythonpath_changed.emit()
-        
+
         self.check_for_io_errors()
-        
+
         return project
-        
+
     def open_projects(self, projects, open_related=True):
         """Open projects"""
         self.workspace.open_projects(projects, open_related)
@@ -787,7 +787,7 @@ class ExplorerTreeWidget(FilteredDirView):
         self.reset_icon_provider()
         for project in projects:
             self.update(self.get_index(project.root_path))
-        
+
     def close_projects(self, projects):
         """Close projects"""
         self.workspace.close_projects(projects)
@@ -798,13 +798,13 @@ class ExplorerTreeWidget(FilteredDirView):
             index = self.get_index(project.root_path)
             self.update(index)
             self.collapse(index)
-        
+
     def remove_projects(self, projects):
         """Remove projects"""
         self.workspace.remove_projects(projects)
         self.set_folder_names(self.workspace.get_folder_names())
         self.parent_widget.pythonpath_changed.emit()
-        
+
     def close_unrelated_projects(self, projects):
         """Close unrelated projects"""
         unrelated_projects = self.workspace.close_unrelated_projects(projects)
@@ -812,7 +812,7 @@ class ExplorerTreeWidget(FilteredDirView):
             self.reset_icon_provider()
             for project in unrelated_projects:
                 self.update(self.get_index(project.root_path))
-        
+
     def is_valid_project_root_path(self, root_path, silent=False):
         """Return True root_path is a valid project root path"""
         fixed_wr = fixpath(self.root_path)  # workspace root path
@@ -833,7 +833,7 @@ class ExplorerTreeWidget(FilteredDirView):
                                       "directory of the workspace:<br>"
                                       "<b>%s</b>") % self.get_workspace())
         return True
-    
+
     def _select_project_name(self, title, default=None):
         """Select project name"""
         name = '' if default is None else default
@@ -886,7 +886,7 @@ class ExplorerTreeWidget(FilteredDirView):
                                           QMessageBox.Yes|QMessageBox.Cancel)
             if answer == QMessageBox.Yes:
                 self.select_workspace.emit()
-        
+
     def _select_existing_directory(self):
         """Select existing source code directory,
         to be used as a new project root path
@@ -915,7 +915,7 @@ class ExplorerTreeWidget(FilteredDirView):
         if folder is None:
             return
         self.add_project(folder)
-    
+
     def __select_existing_project(self, typename, configname):
         """Select existing project"""
         title = _('Import existing project')
@@ -996,13 +996,13 @@ class ExplorerTreeWidget(FilteredDirView):
                 self.set_folder_names(self.workspace.get_folder_names())
             else:
                 self.remove_path_from_project_pythonpath(project, fname)
-    
+
     def remove_tree(self, dirname):
         """Remove whole directory tree"""
         FilteredDirView.remove_tree(self, dirname)
         project = self.get_source_project(dirname)
         self.remove_path_from_project_pythonpath(project, dirname)
-    
+
     def delete_file(self, fname, multiple, yes_to_all):
         """Delete file"""
         if multiple:
@@ -1022,7 +1022,7 @@ class ExplorerTreeWidget(FilteredDirView):
         else:
             return FilteredDirView.delete_file(self, fname, multiple,
                                                yes_to_all)
-    
+
     def add_to_path(self, fnames):
         """Add fnames to path"""
         indexes = []
@@ -1035,13 +1035,13 @@ class ExplorerTreeWidget(FilteredDirView):
             self.reset_icon_provider()
             for index in indexes:
                 self.update(index)
-    
+
     def remove_path_from_project_pythonpath(self, project, path):
         """Remove path from project's PYTHONPATH"""
         ok = project.remove_from_pythonpath(path)
         self.parent_widget.pythonpath_changed.emit()
         return ok
-    
+
     def remove_from_path(self, fnames):
         """Remove from path"""
         indexes = []
@@ -1053,7 +1053,7 @@ class ExplorerTreeWidget(FilteredDirView):
             self.reset_icon_provider()
             for index in indexes:
                 self.update(index)
-    
+
     def manage_path(self, projects):
         """Manage path"""
         for project in projects:
@@ -1062,7 +1062,7 @@ class ExplorerTreeWidget(FilteredDirView):
             dlg.exec_()
             project.set_pythonpath(dlg.get_path_list())
             self.parent_widget.pythonpath_changed.emit()
-    
+
     def edit_related_projects(self, projects):
         """Edit related projects"""
         title = _('Related projects')
@@ -1083,7 +1083,7 @@ class ExplorerTreeWidget(FilteredDirView):
                         name = other_projects[index].name
                         related_projects.append(name)
                 project.set_related_projects(related_projects)
-    
+
     def show_properties(self, fnames):
         """Show properties"""
         pathlist = sorted(fnames)
@@ -1104,7 +1104,7 @@ class ExplorerTreeWidget(FilteredDirView):
                                   "<b>%s</b> files.<br>"
                                   "<b>%s</b> lines of code."
                                   ) % (str(files), str(lines)))
-            
+
     #---- Internal drag & drop
     def dragMoveEvent(self, event):
         """Reimplement Qt method"""
@@ -1124,10 +1124,10 @@ class ExplorerTreeWidget(FilteredDirView):
         action = event.dropAction()
         if action not in (Qt.MoveAction, Qt.CopyAction):
             return
-        
+
 #        # QTreeView must not remove the source items even in MoveAction mode:
 #        event.setDropAction(Qt.CopyAction)
-        
+
         dst = self.get_filename(self.indexAt(event.pos()))
         yes_to_all, no_to_all = None, None
         src_list = [to_text_string(url.toString())
@@ -1203,7 +1203,7 @@ class WorkspaceSelector(QWidget):
             "<b>.spyderproject</b>) with project settings (PYTHONPATH, linked "
             "projects, ...).<br>"
             )
-    
+
     selected_workspace = Signal(str)
 
     def __init__(self, parent):
@@ -1212,11 +1212,11 @@ class WorkspaceSelector(QWidget):
         self.create_btn = None
         self.line_edit = None
         self.first_time = True
-        
+
     def set_workspace(self, path):
         """Set workspace directory"""
         self.line_edit.setText(path)
-        
+
     def setup_widget(self):
         """Setup workspace selector widget"""
         self.line_edit = QLineEdit()
@@ -1233,7 +1233,7 @@ class WorkspaceSelector(QWidget):
         layout.addWidget(self.browse_btn)
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
-    
+
     def select_directory(self):
         """Select directory"""
         if self.first_time:
@@ -1267,14 +1267,14 @@ class ProjectExplorerWidget(QWidget):
     """Project Explorer"""
     sig_option_changed = Signal(str, object)
     sig_open_file = Signal(str)
-    
+
     def __init__(self, parent, name_filters=['*.py', '*.pyw'],
                  show_all=False, show_hscrollbar=True):
         QWidget.__init__(self, parent)
         self.treewidget = None
         self.selector = None
         self.setup_layout(name_filters, show_all, show_hscrollbar)
-        
+
     def setup_layout(self, name_filters, show_all, show_hscrollbar):
         """Setup project explorer widget layout"""
         self.selector = WorkspaceSelector(self)
@@ -1285,33 +1285,33 @@ class ProjectExplorerWidget(QWidget):
                                              show_hscrollbar=show_hscrollbar)
         self.treewidget.setup(name_filters=name_filters, show_all=show_all)
         self.treewidget.select_workspace.connect(self.selector.select_directory)
-        
+
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.selector)
         layout.addWidget(self.treewidget)
         self.setLayout(layout)
-        
+
     def set_workspace(self, path):
         """Set current workspace"""
         path = osp.normpath(to_text_string(path))
         if path is not None and osp.isdir(path):
             self.treewidget.set_workspace(path)
             self.selector.set_workspace(path)
-    
+
     def check_for_io_errors(self):
-        """Check for I/O errors that may occured when loading/saving 
+        """Check for I/O errors that may occured when loading/saving
         projects or the workspace itself and warn the user"""
         self.treewidget.check_for_io_errors()
-            
+
     def get_workspace(self):
         """Return current workspace path"""
         return self.treewidget.get_workspace()
-        
+
     def closing_widget(self):
         """Perform actions before widget is closed"""
         pass
-        
+
     def add_project(self, project):
         """Add project"""
         return self.treewidget.add_project(project)
@@ -1319,7 +1319,7 @@ class ProjectExplorerWidget(QWidget):
     def get_pythonpath(self):
         """Return PYTHONPATH"""
         return self.treewidget.get_pythonpath()
-    
+
     def get_source_project(self, fname):
         """Return project which contains source *fname*"""
         return self.treewidget.get_source_project(fname)
@@ -1330,7 +1330,7 @@ class Test(QWidget):
         QWidget.__init__(self)
         vlayout = QVBoxLayout()
         self.setLayout(vlayout)
-        
+
         self.explorer = ProjectExplorerWidget(None, show_all=True)
         self.explorer.set_workspace(r'D:/Python')
 #        p1 = self.explorer.add_project(r"D:/Python/spyder")
@@ -1338,9 +1338,9 @@ class Test(QWidget):
 #        p1.save()
 #        self.treewidget.close_projects(p1)
 #        _p2 = self.explorer.add_project(r"D:\Python\test_project")
-        
+
         vlayout.addWidget(self.explorer)
-        
+
         hlayout1 = QHBoxLayout()
         vlayout.addLayout(hlayout1)
         label = QLabel("<b>Open file:</b>")
@@ -1349,7 +1349,7 @@ class Test(QWidget):
         self.label1 = QLabel()
         hlayout1.addWidget(self.label1)
         self.explorer.sig_open_file.connect(self.label1.setText)
-        
+
         hlayout3 = QHBoxLayout()
         vlayout.addLayout(hlayout3)
         label = QLabel("<b>Option changed:</b>")

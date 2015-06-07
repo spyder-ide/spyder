@@ -29,17 +29,17 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
     toggle_visibility = Signal(bool)
     edit_goto = Signal(str, int, str)
     redirect_stdio = Signal(bool)
-    
+
     def __init__(self, parent=None):
         supported_encodings = self.get_option('supported_encodings')
-        
-        search_path = self.get_option('search_path', None)        
+
+        search_path = self.get_option('search_path', None)
         self.search_text_samples = self.get_option('search_text_samples')
         search_text = self.get_option('search_text')
         search_text = [txt for txt in search_text \
                        if txt not in self.search_text_samples]
         search_text += self.search_text_samples
-        
+
         search_text_regexp = self.get_option('search_text_regexp')
         include = self.get_option('include')
         include_idx = self.get_option('include_idx', None)
@@ -56,17 +56,17 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
                                    supported_encodings,
                                    in_python_path, more_options)
         SpyderPluginMixin.__init__(self, parent)
-        
+
         # Initialize plugin
         self.initialize_plugin()
-        
+
         self.toggle_visibility.connect(self.toggle)
-        
+
     def toggle(self, state):
         """Toggle widget visibility"""
         if self.dockwidget:
             self.dockwidget.setVisible(state)
-    
+
     def refreshdir(self):
         """Refresh search directory"""
         self.find_options.set_directory(getcwd())
@@ -88,23 +88,23 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
         self.set_search_text(text)
         if text:
             self.find()
-        
-    #------ SpyderPluginWidget API ---------------------------------------------    
+
+    #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
         return _("Find in files")
-    
+
     def get_focus_widget(self):
         """
         Return the widget to give focus to when
         this plugin's dockwidget is raised on top-level
         """
         return self.find_options.search_text
-    
+
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         return []
-    
+
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         self.get_pythonpath_callback = self.main.get_spyder_pythonpath
@@ -112,19 +112,19 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
         self.edit_goto.connect(self.main.editor.load)
         self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
         self.main.workingdirectory.refresh_findinfiles.connect(self.refreshdir)
-        
+
         findinfiles_action = create_action(self, _("&Find in files"),
                                    icon='findf.png',
                                    triggered=self.findinfiles_callback,
-                                   tip=_("Search text in multiple files"))        
-        
+                                   tip=_("Search text in multiple files"))
+
         self.main.search_menu_actions += [None, findinfiles_action]
         self.main.search_toolbar_actions += [None, findinfiles_action]
-    
+
     def refresh_plugin(self):
         """Refresh widget"""
         pass
-        
+
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         self.closing_widget()  # stop search thread and clean-up

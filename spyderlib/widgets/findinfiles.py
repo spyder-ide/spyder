@@ -108,7 +108,7 @@ from spyderlib.py3compat import to_text_string, getcwd
 class SearchThread(QThread):
     """Find in files search thread"""
     sig_finished = Signal(bool)
-    
+
     def __init__(self, parent):
         QThread.__init__(self, parent)
         self.mutex = QMutex()
@@ -126,7 +126,7 @@ class SearchThread(QThread):
         self.text_re = None
         self.completed = None
         self.get_pythonpath_callback = None
-        
+
     def initialize(self, path, python_path, hg_manifest,
                    include, exclude, texts, text_re):
         self.rootpath = path
@@ -138,7 +138,7 @@ class SearchThread(QThread):
         self.text_re = text_re
         self.stopped = False
         self.completed = False
-        
+
     def run(self):
         try:
             self.filenames = []
@@ -151,14 +151,14 @@ class SearchThread(QThread):
             if ok:
                 self.find_string_in_files()
         except Exception:
-            # Important note: we have to handle unexpected exceptions by 
+            # Important note: we have to handle unexpected exceptions by
             # ourselves because they won't be catched by the main thread
             # (known QThread limitation/bug)
             traceback.print_exc()
             self.error_flag = _("Unexpected error: see internal console")
         self.stop()
         self.sig_finished.emit(self.completed)
-        
+
     def stop(self):
         with QMutexLocker(self.mutex):
             self.stopped = True
@@ -170,7 +170,7 @@ class SearchThread(QThread):
         if os.name == "nt":
             # The following avoid doublons on Windows platforms:
             # (e.g. "d:\Python" in PYTHONPATH environment variable,
-            #  and  "D:\Python" in Spyder's python path would lead 
+            #  and  "D:\Python" in Spyder's python path would lead
             #  to two different search folders)
             winpathlist = []
             lcpathlist = []
@@ -210,7 +210,7 @@ class SearchThread(QThread):
                 self.error_flag = _("invalid regular expression")
                 return False
         return True
-    
+
     def find_files_in_path(self, path):
         if self.pathlist is None:
             self.pathlist = []
@@ -234,7 +234,7 @@ class SearchThread(QThread):
                 self.error_flag = _("invalid regular expression")
                 return False
         return True
-        
+
     def find_string_in_files(self):
         self.results = {}
         self.nb = 0
@@ -280,7 +280,7 @@ class SearchThread(QThread):
             except re.error:
                 self.error_flag = _("invalid regular expression")
         self.completed = True
-    
+
     def get_results(self):
         return self.results, self.pathlist, self.nb, self.error_flag
 
@@ -289,16 +289,16 @@ class FindOptions(QWidget):
     """Find widget with options"""
     find = Signal()
     stop = Signal()
-    
+
     def __init__(self, parent, search_text, search_text_regexp, search_path,
                  include, include_idx, include_regexp,
                  exclude, exclude_idx, exclude_regexp,
                  supported_encodings, in_python_path, more_options):
         QWidget.__init__(self, parent)
-        
+
         if search_path is None:
             search_path = getcwd()
-        
+
         if not isinstance(search_text, (list, tuple)):
             search_text = [search_text]
         if not isinstance(search_path, (list, tuple)):
@@ -324,7 +324,7 @@ class FindOptions(QWidget):
                                               toggled=self.toggle_more_options)
         self.more_options.setCheckable(True)
         self.more_options.setChecked(more_options)
-        
+
         self.ok_button = create_toolbutton(self, text=_("Search"),
                                 icon=get_std_icon("DialogApplyButton"),
                                 triggered=lambda: self.find.emit(),
@@ -379,7 +379,7 @@ class FindOptions(QWidget):
         self.python_path.setChecked(in_python_path)
         self.python_path.setToolTip(_(
                           "Search in all directories listed in sys.path which"
-                          " are outside the Python installation directory"))        
+                          " are outside the Python installation directory"))
         self.hg_manifest = QRadioButton(_("Hg repository"), self)
         self.detect_hg_repository()
         self.hg_manifest.setToolTip(
@@ -398,12 +398,12 @@ class FindOptions(QWidget):
         for widget in [self.python_path, self.hg_manifest, self.custom_dir,
                        self.dir_combo, browse]:
             hlayout3.addWidget(widget)
-            
+
         self.search_text.valid.connect(lambda valid: self.find.emit())
         self.include_pattern.valid.connect(lambda valid: self.find.emit())
         self.exclude_pattern.valid.connect(lambda valid: self.find.emit())
         self.dir_combo.valid.connect(lambda valid: self.find.emit())
-            
+
         vlayout = QVBoxLayout()
         vlayout.setContentsMargins(0, 0, 0, 0)
         vlayout.addLayout(hlayout1)
@@ -412,7 +412,7 @@ class FindOptions(QWidget):
         self.more_widgets = (hlayout2, hlayout3)
         self.toggle_more_options(more_options)
         self.setLayout(vlayout)
-                
+
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
 
     @Slot(bool)
@@ -429,12 +429,12 @@ class FindOptions(QWidget):
             tip = _('Show advanced options')
         self.more_options.setIcon(get_icon(icon_name))
         self.more_options.setToolTip(tip)
-        
+
     def update_combos(self):
         self.search_text.lineEdit().returnPressed.emit()
         self.include_pattern.lineEdit().returnPressed.emit()
         self.exclude_pattern.lineEdit().returnPressed.emit()
-        
+
     def detect_hg_repository(self, path=None):
         if path is None:
             path = getcwd()
@@ -442,13 +442,13 @@ class FindOptions(QWidget):
         self.hg_manifest.setEnabled(hg_repository)
         if not hg_repository and self.hg_manifest.isChecked():
             self.custom_dir.setChecked(True)
-        
+
     def set_search_text(self, text):
         if text:
             self.search_text.add_text(text)
             self.search_text.lineEdit().selectAll()
         self.search_text.setFocus()
-        
+
     def get_options(self, all=False):
         # Getting options
         utext = to_text_string(self.search_text.currentText())
@@ -471,13 +471,13 @@ class FindOptions(QWidget):
         python_path = self.python_path.isChecked()
         hg_manifest = self.hg_manifest.isChecked()
         path = osp.abspath( to_text_string( self.dir_combo.currentText() ) )
-        
+
         # Finding text occurences
         if not include_re:
             include = fnmatch.translate(include)
         if not exclude_re:
             exclude = fnmatch.translate(exclude)
-            
+
         if all:
             search_text = [to_text_string(self.search_text.itemText(index)) \
                            for index in range(self.search_text.count())]
@@ -507,12 +507,12 @@ class FindOptions(QWidget):
         if directory:
             self.set_directory(directory)
         self.parent().redirect_stdio.emit(True)
-        
+
     def set_directory(self, directory):
         path = to_text_string(osp.abspath(to_text_string(directory)))
         self.dir_combo.setEditText(path)
         self.detect_hg_repository(path)
-        
+
     def keyPressEvent(self, event):
         """Reimplemented to handle key events"""
         ctrl = event.modifiers() & Qt.ControlModifier
@@ -537,7 +537,7 @@ class ResultsBrowser(OneColumnTree):
         self.data = None
         self.set_title('')
         self.root_items = None
-        
+
     def activated(self, item):
         """Double-click event"""
         itemdata = self.data.get(id(self.currentItem()))
@@ -548,7 +548,7 @@ class ResultsBrowser(OneColumnTree):
     def clicked(self, item):
         """Click event"""
         self.activated(item)
-        
+
     def set_results(self, search_text, results, pathlist, nb,
                     error_flag, completed):
         self.search_text = search_text
@@ -560,7 +560,7 @@ class ResultsBrowser(OneColumnTree):
         self.refresh()
         if not self.error_flag and self.nb:
             self.restore()
-        
+
     def refresh(self):
         """
         Refreshing search results panel
@@ -586,7 +586,7 @@ class ResultsBrowser(OneColumnTree):
         self.set_title(title+text)
         self.clear()
         self.data = {}
-        
+
         if not self.results: # First search interrupted *or* No result
             return
 
@@ -595,7 +595,7 @@ class ResultsBrowser(OneColumnTree):
         for filename in sorted(self.results.keys()):
             dirname = osp.abspath(osp.dirname(filename))
             dir_set.add(dirname)
-                
+
         # Root path
         root_path_list = None
         _common = get_common_path(list(dir_set))
@@ -686,12 +686,12 @@ class FindInFilesWidget(QWidget):
                  supported_encodings=("utf-8", "iso-8859-1", "cp1252"),
                  in_python_path=False, more_options=False):
         QWidget.__init__(self, parent)
-        
+
         self.setWindowTitle(_('Find in files'))
 
         self.search_thread = None
         self.get_pythonpath_callback = None
-        
+
         self.find_options = FindOptions(self, search_text, search_text_regexp,
                                         search_path,
                                         include, include_idx, include_regexp,
@@ -700,9 +700,9 @@ class FindInFilesWidget(QWidget):
                                         more_options)
         self.find_options.find.connect(self.find)
         self.find_options.stop.connect(self.stop_and_reset_thread)
-        
+
         self.result_browser = ResultsBrowser(self)
-        
+
         collapse_btn = create_toolbutton(self)
         collapse_btn.setDefaultAction(self.result_browser.collapse_all_action)
         expand_btn = create_toolbutton(self)
@@ -715,24 +715,24 @@ class FindInFilesWidget(QWidget):
 #        expand_sel_btn = create_toolbutton(self)
 #        expand_sel_btn.setDefaultAction(
 #                                self.result_browser.expand_selection_action)
-        
+
         btn_layout = QVBoxLayout()
         btn_layout.setAlignment(Qt.AlignTop)
         for widget in [collapse_btn, expand_btn, restore_btn]:
 #                       collapse_sel_btn, expand_sel_btn]:
             btn_layout.addWidget(widget)
-        
+
         hlayout = QHBoxLayout()
         hlayout.addWidget(self.result_browser)
         hlayout.addLayout(btn_layout)
-        
+
         layout = QVBoxLayout()
         left, _x, right, bottom = layout.getContentsMargins()
         layout.setContentsMargins(left, 0, right, bottom)
         layout.addWidget(self.find_options)
         layout.addLayout(hlayout)
         self.setLayout(layout)
-            
+
     def set_search_text(self, text):
         """Set search pattern"""
         self.find_options.set_search_text(text)
@@ -751,7 +751,7 @@ class FindInFilesWidget(QWidget):
         self.search_thread.start()
         self.find_options.ok_button.setEnabled(False)
         self.find_options.stop_button.setEnabled(True)
-            
+
     def stop_and_reset_thread(self, ignore_results=False):
         """Stop current search thread and clean-up"""
         if self.search_thread is not None:
@@ -763,11 +763,11 @@ class FindInFilesWidget(QWidget):
                 self.search_thread.wait()
             self.search_thread.setParent(None)
             self.search_thread = None
-        
+
     def closing_widget(self):
         """Perform actions before widget is closed"""
         self.stop_and_reset_thread(ignore_results=True)
-        
+
     def search_complete(self, completed):
         """Current search thread has finished"""
         self.find_options.ok_button.setEnabled(True)
@@ -783,8 +783,8 @@ class FindInFilesWidget(QWidget):
             self.result_browser.set_results(search_text, results, pathlist,
                                             nb, error_flag, completed)
             self.result_browser.show()
-            
-            
+
+
 def test():
     """Run Find in Files widget test"""
     from spyderlib.utils.qthelpers import qapplication
@@ -792,7 +792,7 @@ def test():
     widget = FindInFilesWidget(None)
     widget.show()
     sys.exit(app.exec_())
-    
+
 if __name__ == '__main__':
     test()
-    
+

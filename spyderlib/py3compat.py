@@ -8,7 +8,7 @@
 spyderlib.py3compat
 -------------------
 
-Transitional module providing compatibility functions intended to help 
+Transitional module providing compatibility functions intended to help
 migrating from Python 2 to Python 3.
 
 This module should be fully compatible with:

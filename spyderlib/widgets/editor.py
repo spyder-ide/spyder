@@ -782,7 +782,7 @@ class EditorStack(QWidget):
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_blanks_enabled(state)
-        
+
     def set_edgeline_enabled(self, state):
         # CONF.get(self.CONF_SECTION, 'edge_line')
         self.edgeline_enabled = state

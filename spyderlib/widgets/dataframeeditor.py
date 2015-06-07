@@ -61,10 +61,10 @@ def global_max(col_vals, index):
 
 class DataFrameModel(QAbstractTableModel):
     """ DataFrame Table Model"""
-    
+
     ROWS_TO_LOAD = 500
     COLS_TO_LOAD = 40
-    
+
     def __init__(self, dataFrame, format="%.3g", parent=None):
         QAbstractTableModel.__init__(self)
         self.dialog = parent
@@ -73,7 +73,7 @@ class DataFrameModel(QAbstractTableModel):
         self.df_header = dataFrame.columns.tolist()
         self._format = format
         self.complex_intran = None
-        
+
         self.total_rows = self.df.shape[0]
         self.total_cols = self.df.shape[1]
         size = self.total_rows * self.total_cols
@@ -374,7 +374,7 @@ class DataFrameView(QTableView):
                             lambda val: self.load_more_data(val, columns=True))
         self.verticalScrollBar().valueChanged.connect(
                                lambda val: self.load_more_data(val, rows=True))
-    
+
     def load_more_data(self, value, rows=False, columns=False):
         if rows and value == self.verticalScrollBar().maximum():
             self.model().fetch_more(rows=rows)

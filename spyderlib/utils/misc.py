@@ -47,11 +47,11 @@ def move_file(source, dest):
 
 def onerror(function, path, excinfo):
     """Error handler for `shutil.rmtree`.
-    
-    If the error is due to an access error (read-only file), it 
+
+    If the error is due to an access error (read-only file), it
     attempts to add write permission and then retries.
     If the error is for another reason, it re-raises the error.
-    
+
     Usage: `shutil.rmtree(path, onerror=onerror)"""
     if not os.access(path, os.W_OK):
         # Is the error an access error?
@@ -86,8 +86,8 @@ def count_lines(path, extensions=None, excluded_dirnames=None):
     of *path* with names ending with *extensions*
     Directory names *excluded_dirnames* will be ignored"""
     if extensions is None:
-        extensions = ['.py', '.pyw', '.ipy', '.enaml', '.c', '.h', '.cpp', 
-                      '.hpp', '.inc', '.', '.hh', '.hxx', '.cc', '.cxx', 
+        extensions = ['.py', '.pyw', '.ipy', '.enaml', '.c', '.h', '.cpp',
+                      '.hpp', '.inc', '.', '.hh', '.hxx', '.cc', '.cxx',
                       '.cl', '.f', '.for', '.f77', '.f90', '.f95', '.f2k']
     if excluded_dirnames is None:
         excluded_dirnames = ['build', 'dist', '.hg', '.svn']
@@ -142,10 +142,10 @@ def remove_backslashes(path):
     """Remove backslashes in *path*
 
     For Windows platforms only.
-    Returns the path unchanged on other platforms.    
-    
-    This is especially useful when formatting path strings on 
-    Windows platforms for which folder paths may contain backslashes 
+    Returns the path unchanged on other platforms.
+
+    This is especially useful when formatting path strings on
+    Windows platforms for which folder paths may contain backslashes
     and provoke unicode decoding errors in Python 3 (or in Python 2
     when future 'unicode_literals' symbol has been imported)."""
     if os.name == 'nt':
@@ -179,10 +179,10 @@ def monkeypatch_method(cls, patch_name):
     # (Tue Jan 15 19:13:25 CET 2008)
     """
     Add the decorated method to the given class; replace as needed.
-    
+
     If the named method already exists on the given class, it will
-    be replaced, and a reference to the old method is created as 
-    cls._old<patch_name><name>. If the "_old_<patch_name>_<name>" attribute 
+    be replaced, and a reference to the old method is created as
+    cls._old<patch_name><name>. If the "_old_<patch_name>_<name>" attribute
     already exists, KeyError is raised.
     """
     def decorator(func):

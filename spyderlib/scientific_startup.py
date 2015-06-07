@@ -89,10 +89,10 @@ if os.environ.get('QT_API') != 'pyside':
 def setscientific():
     """Set 'scientific' in __builtin__"""
     infos = ""
-    
+
     if __has_numpy:
         infos += """
-This is a standard Python interpreter with preloaded tools for scientific 
+This is a standard Python interpreter with preloaded tools for scientific
 computing and visualization. It tries to import the following modules:
 
 >>> import numpy as np  # NumPy (multidimensional arrays, linear algebra, ...)"""
@@ -107,7 +107,7 @@ computing and visualization. It tries to import the following modules:
 >>> import matplotlib.pyplot as plt  # Matplotlib's pyplot: MATLAB-like syntax
 >>> from pylab import *              # Matplotlib's pylab interface
 >>> ion()                            # Turned on Matplotlib's interactive mode"""
-    
+
     try:
         import guiqwt  #analysis:ignore
         infos += """
@@ -118,7 +118,7 @@ computing and visualization. It tries to import the following modules:
 >>> plt_.ion()                    # Turned on guiqwt's interactive mode"""
     except ImportError:
         pass
-    
+
     if __has_numpy:
         infos += "\n"
 

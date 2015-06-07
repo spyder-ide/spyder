@@ -22,13 +22,13 @@ from spyderlib.py3compat import to_text_string, PY3
 class PydocServer(QThread):
     """Pydoc server"""
     server_started = Signal()
-    
+
     def __init__(self, port=7464):
         QThread.__init__(self)
         self.port = port
         self.server = None
         self.complete = False
-        
+
     def run(self):
         import pydoc
         if PY3:
@@ -41,10 +41,10 @@ class PydocServer(QThread):
     def callback(self, server):
         self.server = server
         self.server_started.emit()
-        
+
     def completer(self):
         self.complete = True
-        
+
     def quit_server(self):
         if PY3:
             # Python 3
@@ -60,34 +60,34 @@ class PydocBrowser(WebBrowser):
     pydoc widget
     """
     DEFAULT_PORT = 30128
-    
+
     def __init__(self, parent):
         WebBrowser.__init__(self, parent)
         self.server = None
         self.port = None
-        
+
     def initialize(self):
         """Start pydoc server"""
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         QApplication.processEvents()
         self.start_server()
         # Initializing continues in `initialize_continued` method...
-    
+
     def initialize_continued(self):
         """Load home page"""
         self.go_home()
         QApplication.restoreOverrideCursor()
-        
+
     def is_server_running(self):
         """Return True if pydoc server is already running"""
         return self.server is not None
-        
+
     def closeEvent(self, event):
         self.server.quit_server()
 #        while not self.server.complete: #XXX Is it really necessary?
 #            pass
         event.accept()
-        
+
     #------ Public API -----------------------------------------------------
     def start_server(self):
         """Start pydoc server"""
@@ -105,18 +105,18 @@ class PydocBrowser(WebBrowser):
     def get_label(self):
         """Return address label text"""
         return _("Module or package:")
-    
+
     def reload(self):
         """Reload page"""
         self.start_server()
         WebBrowser.reload(self)
-        
+
     def text_to_url(self, text):
         """Convert text address into QUrl object"""
         if text.startswith('/'):
             text = text[1:]
         return QUrl(self.home_url.toString()+text+'.html')
-    
+
     def url_to_text(self, url):
         """Convert QUrl object to displayed text in combo box"""
         return osp.splitext(to_text_string(url.path()))[0][1:]

@@ -3,7 +3,7 @@
 # Copyright © 2009-2013 Pierre Raybaut
 # Copyright © 2014-2015 The Spyder Development Team
 # Licensed under the terms of the MIT License
-# (see spyderlib/__init__.py for details)    
+# (see spyderlib/__init__.py for details)
 
 """
 This module provides user configuration file management features for Spyder
@@ -72,7 +72,7 @@ class DefaultsConfig(cp.ConfigParser):
                     key = " = ".join((key, value.replace('\n', '\n\t')))
                 fp.write("%s\n" % (key))
             fp.write("\n")
-    
+
     def _set(self, section, option, value, verbose):
         """
         Private set method
@@ -163,13 +163,13 @@ class DefaultsConfig(cp.ConfigParser):
                 except OSError:
                     pass
             return new
-    
+
     def set_defaults(self, defaults):
         for section, options in defaults:
             for option in options:
                 new_value = options[ option ]
                 self._set(section, option, new_value, False)
-        
+
 
 #==============================================================================
 # User config class
@@ -182,7 +182,7 @@ class UserConfig(DefaultsConfig):
               *or* list of tuples (section_name, options)
     version: version of the configuration file (X.Y.Z format)
     subfolder: configuration file will be saved in %home%/subfolder/%name%.ini
-    
+
     Note that 'get' and 'set' arguments number and type
     differ from the overriden methods
     """
@@ -232,11 +232,11 @@ class UserConfig(DefaultsConfig):
             if defaults is None:
                 # If no defaults are defined, set .ini file settings as default
                 self.set_as_defaults()
-        
+
     def get_version(self, version='0.0.0'):
         """Return configuration (not application!) version"""
         return self.get(self.DEFAULT_SECTION_NAME, 'version', version)
-        
+
     def set_version(self, version='0.0.0', save=True):
         """Set configuration (not application!) version"""
         self.set(self.DEFAULT_SECTION_NAME, 'version', version, save=save)
@@ -260,7 +260,7 @@ class UserConfig(DefaultsConfig):
                 self.read(self.filename(), encoding='utf-8')
         except cp.MissingSectionHeaderError:
             print("Warning: File contains no section headers.")
-    
+
     def __load_old_defaults(self, old_version):
         """Read old defaults"""
         old_defaults = cp.ConfigParser()
@@ -268,10 +268,10 @@ class UserConfig(DefaultsConfig):
             path = get_module_source_path('spyderlib')
         else:
             path = osp.dirname(self.filename())
-        path = osp.join(path, 'defaults') 
+        path = osp.join(path, 'defaults')
         old_defaults.read(osp.join(path, 'defaults-'+old_version+'.ini'))
         return old_defaults
-    
+
     def __save_new_defaults(self, defaults, new_version, subfolder):
         """Save new defaults"""
         new_defaults = DefaultsConfig(name='defaults-'+new_version,
@@ -279,7 +279,7 @@ class UserConfig(DefaultsConfig):
         if not osp.isfile(new_defaults.filename()):
             new_defaults.set_defaults(defaults)
             new_defaults._save()
-    
+
     def __update_defaults(self, defaults, old_version, verbose=False):
         """Update defaults after a change in version"""
         old_defaults = self.__load_old_defaults(old_version)
@@ -293,7 +293,7 @@ class UserConfig(DefaultsConfig):
                 if old_value is None or \
                   to_text_string(new_value) != old_value:
                     self._set(section, option, new_value, verbose)
-    
+
     def __remove_deprecated_options(self, old_version):
         """
         Remove options which are present in the .ini file but not in defaults
@@ -334,7 +334,7 @@ class UserConfig(DefaultsConfig):
                     self._set(sec, option, value, verbose)
         if save:
             self._save()
-        
+
     def __check_section_option(self, section, option):
         """
         Private method to check section and option types
@@ -359,7 +359,7 @@ class UserConfig(DefaultsConfig):
                     return options[ option ]
         else:
             return NoDefault
-                
+
     def get(self, section, option, default=NoDefault):
         """
         Get an option
@@ -374,14 +374,14 @@ class UserConfig(DefaultsConfig):
                 raise cp.NoSectionError(section)
             else:
                 self.add_section(section)
-        
+
         if not self.has_option(section, option):
             if default is NoDefault:
                 raise cp.NoOptionError(option, section)
             else:
                 self.set(section, option, default)
                 return default
-            
+
         value = cp.ConfigParser.get(self, section, option, raw=self.raw)
         default_value = self.get_default(section, option)
         if isinstance(default_value, bool):
@@ -439,11 +439,11 @@ class UserConfig(DefaultsConfig):
         self._set(section, option, value, verbose)
         if save:
             self._save()
-            
+
     def remove_section(self, section):
         cp.ConfigParser.remove_section(self, section)
         self._save()
-            
+
     def remove_option(self, section, option):
         cp.ConfigParser.remove_option(self, section, option)
         self._save()
