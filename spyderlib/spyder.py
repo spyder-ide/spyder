@@ -131,7 +131,7 @@ from spyderlib.utils import encoding, programs
 from spyderlib.utils.iofuncs import load_session, save_session, reset_session
 from spyderlib.utils.programs import is_module_installed
 from spyderlib.utils.introspection import module_completion
-from spyderlib.utils.misc import select_port
+from spyderlib.utils.misc import select_port, timestamp
 from spyderlib.py3compat import (PY3, to_text_string, is_text_string, getcwd,
                                  u, qbytearray_to_str, configparser as cp)
 
@@ -2980,6 +2980,12 @@ class Spy(object):
         return get_versions()
 
 
+class Stats(object):
+    # start_time is a signal from bootstrap.py scripts to report
+    # application initialization time to console
+    start_time=None
+
+
 def run_spyder(app, options, args):
     """
     Create and show Spyder's main window
@@ -3021,6 +3027,12 @@ def run_spyder(app, options, args):
     # To give focus again to the last focused widget after restoring
     # the window
     app.focusChanged.connect(main.change_last_focused_widget)
+
+    # Print initialization stats if asked
+    if Stats.start_time:
+        # Unfortunately, at this stage stdout and stderr are redirected,
+        # so this message is only printed to Spyder Internal Console
+        print("Initialization completed in " + timestamp(Stats.start_time, time.time()))
 
     app.exec_()
     return main

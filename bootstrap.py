@@ -22,18 +22,6 @@ import sys
 import optparse
 
 
-# --- Helper methods
-
-def timestamp(start, end):
-    """Get timestamp like 00:00:02.4950 from start and end times that
-       are collected with time.time()
-    """
-    time_lapse = end - start
-    return (time.strftime("%H:%M:%S.", time.gmtime(time_lapse)) +
-        # gmtime() converts float into tuple, but loses milliseconds
-        ("%.4f" % time_lapse).split('.')[1])
-
-
 # --- Parse command line
 
 parser = optparse.OptionParser(
@@ -115,6 +103,7 @@ if sys.excepthook != sys.__excepthook__:
 time_import_start = time.time()
 
 from spyderlib.utils.vcs import get_git_revision
+from spyderlib.utils.misc import timestamp
 print("Revision %s, Branch: %s" % get_git_revision(DEVPATH))
 
 sys.path.insert(0, DEVPATH)
@@ -198,4 +187,5 @@ if options.shutdown_time is not None:
     os.environ['SPYDER_TEST_TRAVIS_TIMER'] = str(timer_seconds*1000)
     print("\nSpyder will automatically shut down in {} seconds.\n".format(timer_seconds))
 
-start_app.main()
+# Tell Spyder to report into console when application init completes
+start_app.main(report_time=time_stop)

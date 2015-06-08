@@ -46,9 +46,12 @@ def send_args_to_spyder(args):
         break
 
 
-def main():
+def main(report_time=None):
     """
     Start Spyder application.
+
+    `report_time` tells Spyder to report when application init completes. The
+    parameter should float with time.time() of application start time.
 
     If single instance mode is turned on (default behavior) and an instance of
     Spyder is already running, this will just parse and send command line
@@ -95,6 +98,8 @@ def main():
             if TEST is None:
                 atexit.register(lock.unlock)
             from spyderlib import spyder
+            if report_time:
+                spyder.Stats.start_time = report_time
             spyder.main()
     else:
         from spyderlib import spyder

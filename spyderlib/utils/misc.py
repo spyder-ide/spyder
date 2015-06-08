@@ -11,6 +11,21 @@ import os.path as osp
 import sys
 import stat
 
+# --- Date/Time
+
+import time
+
+def timestamp(start, end):
+    """Get timestamp like 00:00:02.4950 from start and end times that
+       are collected with time.time()
+    """
+    time_lapse = end - start
+    return (time.strftime("%H:%M:%S.", time.gmtime(time_lapse)) +
+        # gmtime() converts float into tuple, but loses milliseconds
+        ("%.4f" % time_lapse).split('.')[1])
+
+
+# --- Filesystem
 
 def __remove_pyc_pyo(fname):
     """Eventually remove .pyc and .pyo files associated to a Python script"""
