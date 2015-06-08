@@ -1788,26 +1788,28 @@ class MainWindow(QMainWindow):
         issue_template = """\
 ## Description
 
-* *What steps will reproduce the problem?*
-1.
-2.
-3.
+**What steps will reproduce the problem?**
 
-* *What is the expected output? What do you see instead?*
+1. 
+2. 
+3. 
+
+**What is the expected output? What do you see instead?**
 
 
-* *Please provide any additional information below*
+**Please provide any additional information below**
 
 
 ## Version and main components
 
-* Spyder Version:  %s%s
-* Python Version:  %s
-* Qt Version    :  %s, %s %s on %s
+* Spyder Version: %s %s
+* Python Version: %s
+* Qt Versions:  %s, %s %s on %s
 
 ## Optional dependencies
-
+```
 %s
+```
 """ % (versions['spyder'],
        revlink,
        versions['python'],
