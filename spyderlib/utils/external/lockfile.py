@@ -16,7 +16,7 @@ import errno, os
 
 from time import time as _uniquefloat
 
-from spyderlib.py3compat import PY2, to_binary_string, to_text_string
+from spyderlib.py3compat import PY2, to_binary_string
 
 def unique():
     if PY2:
@@ -63,7 +63,7 @@ else:
         # that the process is still running.
         return is_running or exit_code.value == STILL_ACTIVE
 
-    def kill(pid, signal):
+    def kill(pid, signal):                    # analysis:ignore
         if not _is_pid_running(pid):
             raise OSError(errno.ESRCH, None)
         else:
@@ -130,7 +130,6 @@ class FilesystemLock:
     def __init__(self, name):
         self.name = name
 
-
     def lock(self):
         """
         Acquire this lock.
@@ -193,7 +192,6 @@ class FilesystemLock:
             self.locked = True
             self.clean = clean
             return True
-
 
     def unlock(self):
         """
