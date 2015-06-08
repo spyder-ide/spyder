@@ -22,6 +22,18 @@ import sys
 import optparse
 
 
+# --- Helper methods
+
+def timestamp(start, end):
+    """Get timestamp like 00:00:02.4950 from start and end times that
+       are collected with time.time()
+    """
+    time_lapse = end - start
+    return (time.strftime("%H:%M:%S.", time.gmtime(time_lapse)) +
+        # gmtime() converts float into tuple, but loses milliseconds
+        ("%.4f" % time_lapse).split('.')[1])
+
+
 # --- Parse command line
 
 parser = optparse.OptionParser(
@@ -100,6 +112,8 @@ if sys.excepthook != sys.__excepthook__:
 
 # --- Continue
 
+time_import_start = time.time()
+
 from spyderlib.utils.vcs import get_git_revision
 print("Revision %s, Branch: %s" % get_git_revision(DEVPATH))
 
@@ -110,6 +124,8 @@ EXTPATH = osp.join(DEVPATH, 'external-py' + sys.version[0])
 if osp.isdir(EXTPATH):
     sys.path.insert(0, EXTPATH)
     print("                      and %s" % EXTPATH)
+
+time_import_utils = time.time()
 
 
 # Selecting the GUI toolkit: PyQt5 if installed, otherwise PySide or PyQt4
@@ -140,6 +156,8 @@ if options.debug:
     # this way of interaction suxx, because there is no feedback
     # if operation is successful
 
+time_ui_detection = time.time()
+
 
 # Checking versions (among other things, this has the effect of setting the
 # QT_API environment variable if this has not yet been done just above)
@@ -149,6 +167,8 @@ print("03. Imported Spyder %s" % versions['spyder'])
 print("    [Python %s %dbits, Qt %s, %s %s on %s]" % \
       (versions['python'], versions['bitness'], versions['qt'],
        versions['qt_api'], versions['qt_api_ver'], versions['system']))
+
+time_versions = time.time()
 
 
 # --- Executing Spyder
@@ -160,11 +180,15 @@ if not options.hide_console and os.name == 'nt':
 print("04. Executing spyder.main()")
 from spyderlib import start_app
 
-time_lapse = time.time()-time_start
-print("Bootstrap completed in " +
-    time.strftime("%H:%M:%S.", time.gmtime(time_lapse)) +  
-    # gmtime() converts float into tuple, but loses milliseconds
-    ("%.4f" % time_lapse).split('.')[1])
+
+time_stop = time.time()
+print("Bootstrap completed in " + timestamp(time_start, time_stop))
+print("  init     " + timestamp(time_start, time_import_start))
+print("  utils    " + timestamp(time_import_start, time_import_utils))
+print("  ui       " + timestamp(time_import_utils, time_ui_detection))
+print("  versions " + timestamp(time_ui_detection, time_versions))
+print("  startapp " + timestamp(time_versions, time_stop))
+
 
 # Set variable to start timer inside spyder application
 if options.shutdown_time is not None:
