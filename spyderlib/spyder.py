@@ -1778,13 +1778,10 @@ class MainWindow(QMainWindow):
         else:
             from urllib import quote     # analysis:ignore
         versions = get_versions()
-        # Get Mercurial revision for development version
-        revlink = ''
+        # Get git revision for development version
+        revision = ''
         if versions['revision']:
-            full, short = versions['revision'].split(':')
-            full = full.strip('+')
-            if full:
-                revlink = " (%s:r%s)" % (short, full)
+            revision = versions['revision']
         issue_template = """\
 ## Description
 
@@ -1811,7 +1808,7 @@ class MainWindow(QMainWindow):
 %s
 ```
 """ % (versions['spyder'],
-       revlink,
+       revision,
        versions['python'],
        versions['qt'],
        versions['qt_api'],
