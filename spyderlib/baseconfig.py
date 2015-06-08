@@ -196,10 +196,6 @@ def add_image_path(path):
 
 add_image_path(get_module_data_path('spyderlib', relpath='images'))
 
-from spyderlib.otherplugins import PLUGIN_PATH
-if PLUGIN_PATH is not None:
-    add_image_path(osp.join(PLUGIN_PATH, 'images'))
-
 def get_image_path(name, default="not_found.png"):
     """Return image absolute path"""
     for img_path in IMG_PATH:

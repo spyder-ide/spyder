@@ -16,11 +16,11 @@ from spyderlib.qt.QtCore import Signal, Qt
 
 # Local imports
 from spyderlib.baseconfig import get_translation
-_ = get_translation("p_pylint", dirname="spyderplugins")
-from spyderlib.utils.qthelpers import get_icon, create_action
+_ = get_translation("p_pylint", dirname="spyderplugins.p_pylint")
+from spyderlib.utils.qthelpers import create_action
 from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage
 
-from spyderplugins.widgets.pylintgui import PylintWidget, PYLINT_PATH
+from .widgets.pylintgui import PylintWidget, PYLINT_PATH
 
 
 class PylintConfigPage(PluginConfigPage):
@@ -92,7 +92,7 @@ class Pylint(PylintWidget, SpyderPluginMixin):
     
     def get_plugin_icon(self):
         """Return widget icon"""
-        return get_icon('pylint.png')
+        return self.get_icon('pylint.png')
     
     def get_focus_widget(self):
         """
@@ -169,10 +169,3 @@ class Pylint(PylintWidget, SpyderPluginMixin):
             self.dockwidget.setFocus()
             self.dockwidget.raise_()
         PylintWidget.analyze(self, filename)
-
-
-#==============================================================================
-# The following statements are required to register this 3rd party plugin:
-#==============================================================================
-PLUGIN_CLASS = Pylint
-

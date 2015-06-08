@@ -40,7 +40,7 @@ from spyderlib.widgets.texteditor import TextEditor
 from spyderlib.widgets.comboboxes import PythonModulesComboBox
 from spyderlib.widgets.externalshell import baseshell
 from spyderlib.py3compat import to_text_string, getcwd
-_ = get_translation("p_profiler", dirname="spyderplugins")
+_ = get_translation("p_profiler", dirname="spyderplugins.p_profiler")
 
 
 def is_profiler_installed():

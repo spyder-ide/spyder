@@ -27,7 +27,7 @@ from spyderlib.config import CONF
 from spyderlib.utils.qthelpers import create_action, add_actions
 
 
-_ = get_translation("p_breakpoints", dirname="spyderplugins")
+_ = get_translation("p_breakpoints", dirname="spyderplugins.p_breakpoints")
 
 
 class BreakpointTableModel(QAbstractTableModel):

@@ -8,52 +8,73 @@
 Spyder third-party plugins configuration management
 """
 
-import os
-import os.path as osp
 import sys
 import traceback
+import imp
 
 # Local imports
-from spyderlib.utils import programs
+from spyderlib.baseconfig import get_conf_path
+from spyderlib.utils.external.path import Path
+
+INIT_PY = """# -*- coding: utf-8 -*-
+
+# Declare as a namespace package
+__import__('pkg_resources').declare_namespace(__name__)
+"""
+
+def _get_spyderplugins(plugin_path, plugins_namsepace, modnames, modlist):
+    """Scan the directory `plugin_path` for plugins_namsepace package and
+    loads its submodules."""
+    namespace_path = Path(plugin_path) / plugins_namsepace
+    if not namespace_path.exists():
+        return
+    for dirname in namespace_path.dirs():
+        if dirname.name == "__pycache__":
+            continue
+        _import_plugin(dirname.name, plugins_namsepace, namespace_path,
+                       modnames, modlist)
+    for name in namespace_path.files(pattern="*.py"):
+        if name.name == "__init__.py":
+            continue
+        _import_plugin(name.namebase, plugins_namsepace, namespace_path,
+                       modnames, modlist)
 
 
-# Calculate path to `spyderplugins` package, where Spyder looks for all 3rd
-# party plugin modules
-PLUGIN_PATH = None
-if programs.is_module_installed("spyderplugins"):
-    import spyderplugins
-    PLUGIN_PATH = osp.abspath(spyderplugins.__path__[0])
-    if not osp.isdir(PLUGIN_PATH):
-        # py2exe/cx_Freeze distribution: ignoring extra plugins
-        PLUGIN_PATH = None
+def _import_plugin(name, plugins_namsepace, namespace_path, modnames, modlist):
+    """Import the plugin `plugins_namsepace`.`name`, add it to `modlist` and
+    adds its name to `modname`."""
+    submodule_name = "%s.%s" % (plugins_namsepace, name)
+    if submodule_name in modnames:
+        return
+    try:
+        info = imp.find_module(name, [namespace_path])
+        submodule = imp.load_module(submodule_name, *info)
+        modlist.append(submodule)
+        modnames.append(submodule_name)
+    except Exception:
+        sys.stderr.write(
+            "ERROR: 3rd party plugin import failed for `%s`\n"
+            % submodule_name)
+        traceback.print_exc(file=sys.stderr)
 
 
-def get_spyderplugins(prefix, extension):
-    """Scan directory of `spyderplugins` package and
-    return the list of module names matching *prefix* and *extension*"""
-    plist = []
-    if PLUGIN_PATH is not None:
-        for name in os.listdir(PLUGIN_PATH):
-            modname, ext = osp.splitext(name)
-            if prefix is not None and not name.startswith(prefix):
-                continue
-            if extension is not None and ext != extension:
-                continue
-            plist.append(modname)
-    return plist
+def get_spyderplugins_mods(io=False):
+    """Import modules from plugins package and return the list"""
+    if io:
+        plugins_namsepace = "spyderioplugins"
+    else:
+        plugins_namsepace = "spyderplugins"
+    # Import parent module
+    __import__(plugins_namsepace)
 
+    # Create user directory
+    user_conf_path = Path(get_conf_path())
+    user_plugin_path = user_conf_path / plugins_namsepace
+    user_plugin_path.makedirs_p()
+    (user_plugin_path / "__init__.py").write_text(INIT_PY)
 
-def get_spyderplugins_mods(prefix, extension):
-    """Import modules that match *prefix* and *extension* from
-    `spyderplugins` package and return the list"""
     modlist = []
-    for modname in get_spyderplugins(prefix, extension):
-        name = 'spyderplugins.%s' % modname
-        try:
-            __import__(name)
-            modlist.append(sys.modules[name])
-        except Exception:
-            sys.stderr.write(
-                "ERROR: 3rd party plugin import failed for `%s`\n" % modname)
-            traceback.print_exc(file=sys.stderr)
+    modnames = []
+    for directory in [user_conf_path] + sys.path:
+        _get_spyderplugins(directory, plugins_namsepace, modnames, modlist)
     return modlist
