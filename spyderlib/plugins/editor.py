@@ -105,12 +105,9 @@ class EditorConfigPage(PluginConfigPage):
                                     text=_("Text and margin font style"),
                                     fontfilters=QFontComboBox.MonospacedFonts)
         newcb = self.create_checkbox
-        fpsorting_box = newcb(_("Sort files according to full path"),
-                              'fullpath_sorting')
         showtabbar_box = newcb(_("Show tab bar"), 'show_tab_bar')
 
         interface_layout = QVBoxLayout()
-        interface_layout.addWidget(fpsorting_box)
         interface_layout.addWidget(showtabbar_box)
         interface_group.setLayout(interface_layout)
         
@@ -348,6 +345,7 @@ class Editor(SpyderPluginWidget):
     open_dir = Signal(str)
     breakpoints_saved = Signal()
     run_in_current_extconsole = Signal(str, str, str, bool, bool)
+    sig_tab_moved = Signal(int, int)
     
     def __init__(self, parent, ignore_last_opened_files=False):
         if PYQT5:
@@ -439,7 +437,10 @@ class Editor(SpyderPluginWidget):
         self.splitter.setStretchFactor(1, 1)
         layout.addWidget(self.splitter)
         self.setLayout(layout)
-        
+
+        # Tabs reordering
+        self.sig_tab_moved.connect(self.move_tabs)
+
         # Editor's splitter state
         state = self.get_option('splitter_state', None)
         if state is not None:
@@ -1049,6 +1050,9 @@ class Editor(SpyderPluginWidget):
     def register_editorstack(self, editorstack):
         self.editorstacks.append(editorstack)
         
+        # Needed for tabs reordering calls
+        editorstack.sig_tab_moved.connect(self.sig_tab_moved)
+
         self.register_widget_shortcuts("Editor", editorstack)
         
         if self.isAncestorOf(editorstack):
@@ -1195,6 +1199,37 @@ class Editor(SpyderPluginWidget):
             if str(id(editorstack)) != editorstack_id_str:
                 editorstack.rename_in_data(index, filename)
 
+    def move_tabs(self, start, end):
+        """
+        When tabs are reordered in a stackeditor this method adjusts tabs
+        in all the stackkeditors.
+
+        If needed can also be used programmatically (directly).
+        """
+        # Lower bound check
+        if start < 0 or end < 0:
+            return
+        else:
+            steps = abs(end - start)
+            step = (end - start) / steps
+            
+            for editorstack in self.editorstacks:
+                data = editorstack.data
+                editorstack.blockSignals(True)
+
+                # If used directly an upper bound check is needed
+                count = editorstack.tabbar.count()
+                if start > count or end > count:
+                    break
+
+                for i in range(start, end, step):
+                    editorstack.tabbar.moveTab(i, i+step)
+                    data[i], data[i+step] = data[i+step], data[i]
+    
+                editorstack.blockSignals(False)
+                editorstack.refresh()
+                editorstack.tabbar.setCurrentIndex(start)
+                editorstack.tabbar.setCurrentIndex(end)
 
     #------ Handling editor windows    
     def setup_other_windows(self):

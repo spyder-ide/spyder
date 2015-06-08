@@ -101,7 +101,7 @@ class TabBar(QTabBar):
             self.sig_move_tab.emit(index_from, index_to)
             event.acceptProposedAction()
         QTabBar.dropEvent(self, event)
-        
+
         
 class BaseTabs(QTabWidget):
     """TabWidget with context menu and corner widgets"""
@@ -112,7 +112,6 @@ class BaseTabs(QTabWidget):
         QTabWidget.__init__(self, parent)
         
         self.setUsesScrollButtons(True)
-        
         self.corner_widgets = {}
         self.menu_use_tooltips = menu_use_tooltips
         
@@ -220,6 +219,7 @@ class BaseTabs(QTabWidget):
                 self.sig_close_tab.emit(index)
                 event.accept()
                 return
+
         QTabWidget.mousePressEvent(self, event)
         
     def keyPressEvent(self, event):
