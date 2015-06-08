@@ -160,11 +160,11 @@ class EditorConfigPage(PluginConfigPage):
         run_group = QGroupBox(_("Run"))
         saveall_box = newcb(_("Save all files before running script"),
                             'save_all_before_run')
-        
+
         run_selection_group = QGroupBox(_("Run selection"))
-        focus_box = newcb(_("Maintain focus in the Editor after running cells or selections"),
-                            'focus_to_editor')
-        
+        focus_box = newcb(_("Maintain focus in the Editor after running cells "
+                            "or selections"), 'focus_to_editor')
+
         introspection_group = QGroupBox(_("Introspection"))
         rope_is_installed = programs.is_module_installed('rope')
         if rope_is_installed:

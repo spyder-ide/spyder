@@ -1908,13 +1908,14 @@ class MainWindow(QMainWindow):
                 args=to_text_string(args), interact=interact,
                 debug=debug, python=python,
                 python_args=to_text_string(python_args) )
-        
+
     def execute_in_external_console(self, lines, focus_to_editor):
-        """Execute lines in external or IPython console 
-        and eventually set focus to editor"""
+        """
+        Execute lines in external or IPython console and eventually set focus
+        to the editor
+        """
         console = self.extconsole
-        if self.ipyconsole is None\
-           or self.last_console_plugin_focus_was_python:
+        if self.ipyconsole is None or self.last_console_plugin_focus_was_python:
             console = self.extconsole
         else:
             console = self.ipyconsole
