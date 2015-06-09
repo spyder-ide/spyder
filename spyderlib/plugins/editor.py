@@ -1137,7 +1137,8 @@ class Editor(SpyderPluginWidget):
         self.connect(editorstack, SIGNAL('zoom_out()'), lambda: self.zoom(-1))
         self.connect(editorstack, SIGNAL('zoom_reset()'), lambda: self.zoom(0))
         self.connect(editorstack, SIGNAL('close_file()'), self.close_file)
-        
+        self.connect(editorstack, SIGNAL('sig_new_file()'), self.new)
+
         self.connect(editorstack, SIGNAL('close_file(QString,int)'),
                      self.close_file_in_all_editorstacks)
         self.connect(editorstack, SIGNAL('file_saved(QString,int,QString)'),
@@ -1733,7 +1734,9 @@ class Editor(SpyderPluginWidget):
         """Close current file"""
         editorstack = self.get_current_editorstack()
         editorstack.close_file()
-            
+        if editorstack.get_stack_count() == 0:
+            self.new()
+
     def close_all_files(self):
         """Close all opened scripts"""
         self.editorstacks[0].close_all_files()

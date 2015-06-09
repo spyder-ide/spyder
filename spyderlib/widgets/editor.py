@@ -16,7 +16,7 @@ from __future__ import print_function
 from spyderlib.qt import is_pyqt46
 from spyderlib.qt.QtGui import (QVBoxLayout, QMessageBox, QMenu, QFont,
                                 QAction, QApplication, QWidget, QHBoxLayout,
-                                QLabel, QKeySequence, QShortcut, QMainWindow,
+                                QLabel, QKeySequence, QMainWindow,
                                 QSplitter, QListWidget, QListWidgetItem,
                                 QDialog, QLineEdit)
 from spyderlib.qt.QtCore import (SIGNAL, Qt, QFileInfo, QThread, QObject,
@@ -25,7 +25,6 @@ from spyderlib.qt.compat import getsavefilename
 
 import os
 import sys
-import re
 import os.path as osp
 
 # Local imports
@@ -640,7 +639,6 @@ class EditorStack(QWidget):
         if self.introspector:
             editor = self.get_current_editor()
             position = editor.get_position('cursor')
-            finfo = self.get_current_finfo()
             self.inspector.switch_to_editor_source()
             self.introspector.show_object_info(position, auto=False)
         else:
@@ -1184,8 +1182,10 @@ class EditorStack(QWidget):
                 if index < new_index:
                     new_index -= 1
                 self.set_stack_index(new_index)
+        if self.get_stack_count() == 0:
+            self.emit(SIGNAL('sig_new_file()'))
         return is_ok
-    
+
     def close_all_files(self):
         """Close all opened scripts"""
         while self.close_file():
