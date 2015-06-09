@@ -517,8 +517,8 @@ class EditorStack(QWidget):
         new_shortcut(QKeySequence.ZoomOut, self,
                      lambda: self.emit(SIGNAL('zoom_out()')))
         new_shortcut("Ctrl+0", self, lambda: self.emit(SIGNAL('zoom_reset()')))
-        new_shortcut("Ctrl+W", self, lambda: self.emit(SIGNAL('close_file()')))
-        new_shortcut("Ctrl+F4", self, lambda: self.emit(SIGNAL('close_file()')))
+        new_shortcut("Ctrl+W", self, self.close_file)
+        new_shortcut("Ctrl+F4", self, self.close_file)
         # Return configurable ones
         return [inspect, breakpoint, cbreakpoint, gotoline, filelist, tab,
                 tabshift]

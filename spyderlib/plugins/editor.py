@@ -1136,7 +1136,6 @@ class Editor(SpyderPluginWidget):
         self.connect(editorstack, SIGNAL('zoom_in()'), lambda: self.zoom(1))
         self.connect(editorstack, SIGNAL('zoom_out()'), lambda: self.zoom(-1))
         self.connect(editorstack, SIGNAL('zoom_reset()'), lambda: self.zoom(0))
-        self.connect(editorstack, SIGNAL('close_file()'), self.close_file)
         self.connect(editorstack, SIGNAL('sig_new_file()'), self.new)
 
         self.connect(editorstack, SIGNAL('close_file(QString,int)'),
