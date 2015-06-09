@@ -16,7 +16,7 @@ from __future__ import print_function
 from spyderlib.qt import is_pyqt46
 from spyderlib.qt.QtGui import (QVBoxLayout, QMessageBox, QMenu, QFont,
                                 QAction, QApplication, QWidget, QHBoxLayout,
-                                QLabel, QKeySequence, QShortcut, QMainWindow,
+                                QLabel, QKeySequence, QMainWindow,
                                 QSplitter, QListWidget, QListWidgetItem,
                                 QDialog, QLineEdit)
 from spyderlib.qt.QtCore import (Signal, Qt, QFileInfo, QThread, QObject,
@@ -25,7 +25,6 @@ from spyderlib.qt.compat import getsavefilename
 
 import os
 import sys
-import re
 import os.path as osp
 
 # Local imports
@@ -400,7 +399,7 @@ class EditorStack(QWidget):
     zoom_in = Signal()
     zoom_out = Signal()
     zoom_reset = Signal()
-    sig_close_file = Signal((str, int), ())
+    sig_close_file = Signal(str, int)
     file_saved = Signal(str, int, str)
     file_renamed_in_data = Signal(str, int, str)
     create_new_window = Signal()
@@ -417,7 +416,7 @@ class EditorStack(QWidget):
     edit_goto = Signal(str, int, str)
     split_vertically = Signal()
     split_horizontally = Signal()
-    sig_new_file = Signal(str)
+    sig_new_file = Signal((str,), ())
 
     def __init__(self, parent, actions):
         QWidget.__init__(self, parent)
@@ -553,8 +552,8 @@ class EditorStack(QWidget):
         new_shortcut("Ctrl+=", self, lambda: self.zoom_in.emit())
         new_shortcut(QKeySequence.ZoomOut, self, lambda: self.zoom_out.emit())
         new_shortcut("Ctrl+0", self, lambda: self.zoom_reset.emit())
-        new_shortcut("Ctrl+F4", self, lambda: self.sig_close_file[()].emit())
-        new_shortcut("Ctrl+W", self, lambda: self.sig_close_file[()].emit())
+        new_shortcut("Ctrl+W", self, self.close_file)
+        new_shortcut("Ctrl+F4", self, self.close_file)
 
         # Return configurable ones
         return [inspect, breakpoint, cbreakpoint, gotoline, filelist, tab,
@@ -1217,6 +1216,8 @@ class EditorStack(QWidget):
                 if index < new_index:
                     new_index -= 1
                 self.set_stack_index(new_index)
+        if self.get_stack_count() == 0:
+            self.sig_new_file[()].emit()
         return is_ok
 
     def close_all_files(self):

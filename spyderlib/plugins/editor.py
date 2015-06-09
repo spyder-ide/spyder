@@ -1131,8 +1131,8 @@ class Editor(SpyderPluginWidget):
         editorstack.zoom_out.connect(lambda: self.zoom(-1))
         editorstack.zoom_reset.connect(lambda: self.zoom(0))
         editorstack.sig_new_file.connect(lambda s: self.new(text=s))
+        editorstack.sig_new_file[()].connect(self.new)
         editorstack.sig_close_file.connect(self.close_file_in_all_editorstacks)
-        editorstack.sig_close_file[()].connect(self.close_file)
         editorstack.file_saved.connect(self.file_saved_in_editorstack)
         editorstack.file_renamed_in_data.connect(
                                       self.file_renamed_in_data_in_editorstack)
@@ -1717,7 +1717,9 @@ class Editor(SpyderPluginWidget):
         """Close current file"""
         editorstack = self.get_current_editorstack()
         editorstack.close_file()
-    
+        if editorstack.get_stack_count() == 0:
+            self.new()
+
     @Slot()
     def close_all_files(self):
         """Close all opened scripts"""
@@ -2146,15 +2148,15 @@ class Editor(SpyderPluginWidget):
         editorstack.run_cell_and_advance()
 
     #------ Zoom in/out/reset
-    def zoom(self, constant):
+    def zoom(self, factor):
         """Zoom in/out/reset"""
         editor = self.get_current_editorstack().get_current_editor()
-        if constant == 0:
+        if factor == 0:
             font = self.get_plugin_font()
             editor.set_font(font)
         else:
             font = editor.font()
-            size = font.pointSize() + constant
+            size = font.pointSize() + factor
             if size > 0:
                 font.setPointSize(size)
                 editor.set_font(font)

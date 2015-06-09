@@ -1790,7 +1790,6 @@ class CodeEditor(TextEditBaseWidget):
     def __is_cursor_at_start_of_block(self, cursor):
         cursor.movePosition(QTextCursor.StartOfBlock)
 
-
     def remove_suffix(self, suffix):
         """
         Remove suffix from current line (there should not be any selection)
@@ -2083,7 +2082,6 @@ class CodeEditor(TextEditBaseWidget):
         if self.has_selected_text():
             self.extend_selection_to_complete_lines()
             start_pos, end_pos = cursor.selectionStart(), cursor.selectionEnd()
-            cursor.setPosition(start_pos)
         else:
             start_pos = end_pos = cursor.position()
         cursor.beginEditBlock()
@@ -2095,6 +2093,7 @@ class CodeEditor(TextEditBaseWidget):
             if cursor.atEnd():
                 break
             cursor.movePosition(QTextCursor.NextBlock)
+            end_pos += len(self.comment_string + " ")
         cursor.setPosition(end_pos)
         cursor.movePosition(QTextCursor.EndOfBlock)
         if cursor.atEnd():

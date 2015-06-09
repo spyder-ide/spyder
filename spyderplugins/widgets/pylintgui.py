@@ -61,7 +61,7 @@ def get_pylint_version():
                                shell=True if os.name == 'nt' else False)
     lines = to_unicode_from_fs(process.stdout.read()).splitlines()
     if lines:
-        regex = '({0}|pylint-script.py) ([0-9\.]*)'.format(PYLINT)
+        regex = '({0}*|pylint-script.py) ([0-9\.]*)'.format(PYLINT)
         match = re.match(regex, lines[0])
         if match is not None:
             return match.groups()[1]
