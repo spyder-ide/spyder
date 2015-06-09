@@ -36,11 +36,18 @@ from spyderlib.widgets.onecolumntree import OneColumnTree
 from spyderlib.widgets.texteditor import TextEditor
 from spyderlib.widgets.comboboxes import (PythonModulesComboBox,
                                           is_module_or_package)
-from spyderlib.py3compat import to_text_string, getcwd, pickle
+from spyderlib.py3compat import PY3, to_text_string, getcwd, pickle
 _ = get_translation("p_pylint", dirname="spyderplugins")
 
 
-PYLINT_PATH = programs.find_program('pylint')
+PYLINT = 'pylint'
+if PY3:
+    if programs.find_program('pylint3'):
+        PYLINT = 'pylint3'
+    elif programs.find_program('python3-pylint'):
+        PYLINT = 'python3-pylint'
+
+PYLINT_PATH = programs.find_program(PYLINT)
 
 
 def get_pylint_version():
@@ -48,13 +55,14 @@ def get_pylint_version():
     global PYLINT_PATH
     if PYLINT_PATH is None:
         return
-    process = subprocess.Popen(['pylint', '--version'],
+    process = subprocess.Popen([PYLINT, '--version'],
                                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                cwd=osp.dirname(PYLINT_PATH),
                                shell=True if os.name == 'nt' else False)
     lines = to_unicode_from_fs(process.stdout.read()).splitlines()
     if lines:
-        match = re.match('(pylint|pylint-script.py) ([0-9\.]*)', lines[0])
+        regex = '({0}*|pylint-script.py) ([0-9\.]*)'.format(PYLINT)
+        match = re.match(regex, lines[0])
         if match is not None:
             return match.groups()[1]
 
