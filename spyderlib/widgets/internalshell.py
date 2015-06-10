@@ -28,7 +28,7 @@ from spyderlib.qt.QtCore import Signal, Slot, QObject, QEventLoop
 
 # Local import
 from spyderlib import get_versions
-from spyderlib.utils.qthelpers import create_action, get_std_icon
+from spyderlib.utils.qthelpers import create_action
 from spyderlib.interpreter import Interpreter
 from spyderlib.utils.dochelpers import getargtxt, getsource, getdoc, getobjdir
 from spyderlib.utils.misc import get_error_match
@@ -39,6 +39,7 @@ from spyderlib.baseconfig import get_conf_path, _, DEBUG
 from spyderlib.config import CONF
 from spyderlib.widgets.shell import PythonShellWidget
 from spyderlib.py3compat import to_text_string, getcwd, to_binary_string, u
+import spyderlib.utils.icon_manager as ima
 
 
 def create_banner(message):
@@ -255,7 +256,7 @@ class InternalShell(PythonShellWidget):
         """Reimplement PythonShellWidget method"""
         PythonShellWidget.setup_context_menu(self)
         self.help_action = create_action(self, _("Help..."),
-                           icon=get_std_icon('DialogHelpButton'),
+                           icon=ima.icon('DialogHelpButton'),
                            triggered=self.help)
         self.menu.addAction(self.help_action)
 

@@ -15,10 +15,10 @@ from spyderlib.qt.QtCore import Signal
 
 # Local imports
 from spyderlib.baseconfig import _
-from spyderlib.utils.qthelpers import get_icon
 from spyderlib.widgets.editortools import OutlineExplorerWidget
 from spyderlib.plugins import SpyderPluginMixin
 from spyderlib.py3compat import is_text_string
+import spyderlib.utils.icon_manager as ima
 
 
 class OutlineExplorer(OutlineExplorerWidget, SpyderPluginMixin):
@@ -49,7 +49,7 @@ class OutlineExplorer(OutlineExplorerWidget, SpyderPluginMixin):
 
     def get_plugin_icon(self):
         """Return widget icon"""
-        return get_icon('outline_explorer.png')
+        return ima.icon('outline_explorer')
     
     def get_focus_widget(self):
         """

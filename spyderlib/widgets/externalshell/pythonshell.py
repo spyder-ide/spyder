@@ -15,11 +15,11 @@ from spyderlib.qt.QtGui import QApplication, QMessageBox, QSplitter, QMenu
 from spyderlib.qt.QtCore import QProcess, Signal, Slot, Qt
 from spyderlib.qt.QtCore import QProcessEnvironment
 from spyderlib.qt.compat import getexistingdirectory
+import spyderlib.utils.icon_manager as ima
 
 # Local imports
-from spyderlib.utils.qthelpers import (get_icon, get_std_icon, add_actions,
-                                       create_toolbutton, create_action,
-                                       DialogManager)
+from spyderlib.utils.qthelpers import (add_actions, create_toolbutton,
+                                       create_action, DialogManager)
 from spyderlib.utils.environ import RemoteEnvDialog
 from spyderlib.utils.programs import get_python_args
 from spyderlib.utils.misc import get_python_executable
@@ -283,12 +283,12 @@ class ExternalPythonShell(ExternalShellBase):
         if self.namespacebrowser_button is None \
            and self.stand_alone is not None:
             self.namespacebrowser_button = create_toolbutton(self,
-                  text=_("Variables"), icon=get_icon('dictedit.png'),
+                  text=_("Variables"), icon=ima.icon('dictedit'),
                   tip=_("Show/hide global variables explorer"),
                   toggled=self.toggle_globals_explorer, text_beside_icon=True)
         if self.terminate_button is None:
             self.terminate_button = create_toolbutton(self,
-                  text=_("Terminate"), icon=get_icon('stop.png'),
+                  text=_("Terminate"), icon=ima.icon('stop'),
                   tip=_("Attempts to stop the process. The process\n"
                         "may not exit as a result of clicking this\n"
                         "button (it is given the chance to prompt\n"
@@ -315,15 +315,15 @@ class ExternalPythonShell(ExternalShellBase):
                     (self.interact_action, self.debug_action, self.args_action,
                      self.post_mortem_action))
         self.cwd_button = create_action(self, _("Working directory"),
-                                icon=get_std_icon('DirOpenIcon'),
+                                icon=ima.icon('DirOpenIcon'),
                                 tip=_("Set current working directory"),
                                 triggered=self.set_current_working_directory)
         self.env_button = create_action(self, _("Environment variables"),
-                                        icon=get_icon('environ.png'),
+                                        icon=ima.icon('environ'),
                                         triggered=self.show_env)
         self.syspath_button = create_action(self,
                                             _("Show sys.path contents"),
-                                            icon=get_icon('syspath.png'),
+                                            icon=ima.icon('syspath'),
                                             triggered=self.show_syspath)
         actions = [run_settings_menu, self.show_time_action, None,
                    self.cwd_button, self.env_button, self.syspath_button]
@@ -358,7 +358,7 @@ class ExternalPythonShell(ExternalShellBase):
             return splitter
     
     def get_icon(self):
-        return get_icon('python.png')
+        return ima.icon('python')
 
     def set_buttons_runnning_state(self, state):
         ExternalShellBase.set_buttons_runnning_state(self, state)
@@ -656,5 +656,5 @@ class ExternalPythonShell(ExternalShellBase):
         """Show sys.path contents"""
         editor = DictEditor()
         editor.setup(self.shell.get_syspath(), title="sys.path", readonly=True,
-                     width=600, icon='syspath.png')
+                     width=600, icon=ima.icon('syspath'))
         self.dialog_manager.show(editor)

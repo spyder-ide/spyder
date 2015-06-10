@@ -15,11 +15,12 @@ from spyderlib.qt.QtGui import (QWidget, QTreeWidgetItem,  QHBoxLayout,
                                 QVBoxLayout)
 from spyderlib.qt.QtCore import Qt, Signal, Slot
 from spyderlib.qt.compat import from_qvariant
+import spyderlib.utils.icon_manager as ima
 
 # Local import
 from spyderlib.baseconfig import _, STDOUT
-from spyderlib.utils.qthelpers import (get_icon, create_action,
-                                       create_toolbutton, set_item_user_text)
+from spyderlib.utils.qthelpers import (create_action, create_toolbutton,
+                                       set_item_user_text)
 from spyderlib.widgets.onecolumntree import OneColumnTree
 from spyderlib.py3compat import to_text_string
 
@@ -51,7 +52,7 @@ class FileRootItem(QTreeWidgetItem):
     def __init__(self, path, treewidget):
         QTreeWidgetItem.__init__(self, treewidget, QTreeWidgetItem.Type)
         self.path = path
-        self.setIcon(0, get_icon('python.png'))
+        self.setIcon(0, ima.icon('python'))
         self.setToolTip(0, path)
         set_item_user_text(self, path)
         
@@ -86,15 +87,15 @@ class TreeItem(QTreeWidgetItem):
         set_item_user_text(self, parent_text+'/'+name)
         self.line = line
         
-    def set_icon(self, icon_name):
-        self.setIcon(0, get_icon(icon_name))
+    def set_icon(self, icon):
+        self.setIcon(0, icon)
         
     def setup(self):
         self.setToolTip(0, _("Line %s") % str(self.line))
 
 class ClassItem(TreeItem):
     def setup(self):
-        self.set_icon('class.png')
+        self.set_icon(ima.icon('class'))
         self.setToolTip(0, _("Class defined at line %s") % str(self.line))
 
 class FunctionItem(TreeItem):
@@ -106,13 +107,13 @@ class FunctionItem(TreeItem):
             self.setToolTip(0, _("Method defined at line %s") % str(self.line))
             name = to_text_string(self.text(0))
             if name.startswith('__'):
-                self.set_icon('private2.png')
+                self.set_icon(ima.icon('private2'))
             elif name.startswith('_'):
-                self.set_icon('private1.png')
+                self.set_icon(ima.icon('private1'))
             else:
-                self.set_icon('method.png')
+                self.set_icon(ima.icon('method'))
         else:
-            self.set_icon('function.png')
+            self.set_icon(ima.icon('function'))
             self.setToolTip(0, _("Function defined at line %s"
                                  ) % str(self.line))
 
@@ -122,7 +123,7 @@ class CommentItem(TreeItem):
         TreeItem.__init__(self, name, line, parent, preceding)
 
     def setup(self):
-        self.set_icon('blockcomment.png')
+        self.set_icon(ima.icon('blockcomment'))
         font = self.font(0)
         font.setItalic(True)
         self.setFont(0, font)
@@ -141,7 +142,7 @@ class CellItem(TreeItem):
         TreeItem.__init__(self, name, line, parent, preceding)
 
     def setup(self):
-        self.set_icon('cell.png')
+        self.set_icon(ima.icon('cell'))
         font = self.font(0)
         font.setItalic(True)
         self.setFont(0, font)
@@ -199,7 +200,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
     def get_actions_from_items(self, items):
         """Reimplemented OneColumnTree method"""
         fromcursor_act = create_action(self, text=_('Go to cursor position'),
-                        icon=get_icon('fromcursor.png'),
+                        icon=ima.icon('fromcursor'),
                         triggered=self.go_to_cursor_position)
         fullpath_act = create_action(self, text=_( 'Show absolute path'),
                         toggled=self.toggle_fullpath_mode)
@@ -534,7 +535,7 @@ class OutlineExplorerWidget(QWidget):
         
     def setup_buttons(self):
         fromcursor_btn = create_toolbutton(self,
-                             icon=get_icon("fromcursor.png"),
+                             icon=ima.icon('fromcursor'),
                              tip=_('Go to cursor position'),
                              triggered=self.treewidget.go_to_cursor_position)
         collapse_btn = create_toolbutton(self)

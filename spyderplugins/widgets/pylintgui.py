@@ -18,6 +18,7 @@ from spyderlib.qt.QtGui import (QHBoxLayout, QWidget, QTreeWidgetItem,
 from spyderlib.qt.QtCore import Signal, QProcess, QByteArray, QTextCodec
 locale_codec = QTextCodec.codecForLocale()
 from spyderlib.qt.compat import getopenfilename
+import spyderlib.utils.icon_manager as ima
 
 import sys
 import os
@@ -30,7 +31,7 @@ import subprocess
 from spyderlib import dependencies
 from spyderlib.utils import programs
 from spyderlib.utils.encoding import to_unicode_from_fs
-from spyderlib.utils.qthelpers import get_icon, create_toolbutton
+from spyderlib.utils.qthelpers import create_toolbutton
 from spyderlib.baseconfig import get_conf_path, get_translation
 from spyderlib.widgets.onecolumntree import OneColumnTree
 from spyderlib.widgets.texteditor import TextEditor
@@ -109,13 +110,13 @@ class ResultsTree(OneColumnTree):
         self.data = {}
         # Populating tree
         results = ((_('Convention'),
-                    get_icon('convention.png'), self.results['C:']),
+                   ima.icon('convention'), self.results['C:']),
                    (_('Refactor'),
-                    get_icon('refactor.png'), self.results['R:']),
+                   ima.icon('refactor'), self.results['R:']),
                    (_('Warning'),
-                    get_icon('warning.png'), self.results['W:']),
+                   ima.icon('warning'), self.results['W:']),
                    (_('Error'),
-                    get_icon('error.png'), self.results['E:']))
+                   ima.icon('error'), self.results['E:']))
         for title, icon, messages in results:
             title += ' (%d message%s)' % (len(messages),
                                           's' if len(messages)>1 else '')
@@ -146,7 +147,7 @@ class ResultsTree(OneColumnTree):
                     if parent is None:
                         item = QTreeWidgetItem(title_item, [module],
                                                QTreeWidgetItem.Type)
-                        item.setIcon(0, get_icon('py.png'))
+                        item.setIcon(0, ima.icon('python'))
                         modules[modname] = item
                         parent = item
                 else:
@@ -156,7 +157,7 @@ class ResultsTree(OneColumnTree):
                 else:
                     text = "%d : %s" % (lineno, message)
                 msg_item = QTreeWidgetItem(parent, [text], QTreeWidgetItem.Type)
-                msg_item.setIcon(0, get_icon('arrow.png'))
+                msg_item.setIcon(0, ima.icon('arrow'))
                 self.data[id(msg_item)] = (modname, lineno)
 
 
@@ -191,25 +192,25 @@ class PylintWidget(QWidget):
             self.remove_obsolete_items()
             self.filecombo.addItems(self.get_filenames())
         
-        self.start_button = create_toolbutton(self, icon=get_icon('run.png'),
+        self.start_button = create_toolbutton(self, icon=ima.icon('run'),
                                     text=_("Analyze"),
                                     tip=_("Run analysis"),
                                     triggered=self.start, text_beside_icon=True)
         self.stop_button = create_toolbutton(self,
-                                             icon=get_icon('stop.png'),
+                                             icon=ima.icon('stop'),
                                              text=_("Stop"),
                                              tip=_("Stop current analysis"),
                                              text_beside_icon=True)
         self.filecombo.valid.connect(self.start_button.setEnabled)
         self.filecombo.valid.connect(self.show_data)
 
-        browse_button = create_toolbutton(self, icon=get_icon('fileopen.png'),
+        browse_button = create_toolbutton(self, icon=ima.icon('fileopen'),
                                tip=_('Select Python file'),
                                triggered=self.select_file)
 
         self.ratelabel = QLabel()
         self.datelabel = QLabel()
-        self.log_button = create_toolbutton(self, icon=get_icon('log.png'),
+        self.log_button = create_toolbutton(self, icon=ima.icon('log'),
                                     text=_("Output"),
                                     text_beside_icon=True,
                                     tip=_("Complete output"),

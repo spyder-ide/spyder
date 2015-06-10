@@ -37,6 +37,7 @@ from spyderlib.qt.QtGui import (QColor, QMenu, QApplication, QSplitter, QFont,
 from spyderlib.qt.QtCore import (Qt, Signal, QTimer, QRect, QRegExp, QSize,
                                  Slot)
 from spyderlib.qt.compat import to_qvariant
+import spyderlib.utils.icon_manager as ima
 
 # %% This line is for cell execution testing
 # Local import
@@ -46,8 +47,8 @@ from spyderlib.baseconfig import get_conf_path, _, DEBUG, get_image_path
 from spyderlib.config import CONF
 from spyderlib.guiconfig import (get_font, create_shortcut, new_shortcut,
                                  get_shortcut)
-from spyderlib.utils.qthelpers import (add_actions, create_action,
-                                       mimedata2url, get_icon, keybinding)
+from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
+                                       mimedata2url)
 from spyderlib.utils.dochelpers import getobj
 from spyderlib.utils import encoding, sourcecode
 from spyderlib.utils.sourcecode import ALL_LANGUAGES, CELL_LANGUAGES
@@ -380,12 +381,11 @@ class CodeEditor(TextEditBaseWidget):
         # Markers
         self.markers_margin = True
         self.markers_margin_width = 15
-        self.error_pixmap = QPixmap(get_image_path('error.png'), 'png')
-        self.warning_pixmap = QPixmap(get_image_path('warning.png'), 'png')
-        self.todo_pixmap = QPixmap(get_image_path('todo.png'), 'png')
-        self.bp_pixmap = QPixmap(get_image_path('breakpoint_small.png'), 'png')
-        self.bpc_pixmap = QPixmap(get_image_path('breakpoint_cond_small.png'),
-                                                 'png')
+        self.error_pixmap = ima.icon('error').pixmap(QSize(14, 14))
+        self.warning_pixmap = ima.icon('warning').pixmap(QSize(14, 14))
+        self.todo_pixmap = ima.icon('todo').pixmap(QSize(14, 14))
+        self.bp_pixmap = ima.icon('breakpoint_big').pixmap(QSize(14, 14))
+        self.bpc_pixmap = ima.icon('breakpoint_cond_big').pixmap(QSize(14, 14))
 
         # Line number area management
         self.linenumbers_margin = True
@@ -2406,50 +2406,49 @@ class CodeEditor(TextEditBaseWidget):
         """Setup context menu"""
         self.undo_action = create_action(self, _("Undo"),
                            shortcut=keybinding('Undo'),
-                           icon=get_icon('undo.png'), triggered=self.undo)
+                           icon=ima.icon('undo'), triggered=self.undo)
         self.redo_action = create_action(self, _("Redo"),
                            shortcut=keybinding('Redo'),
-                           icon=get_icon('redo.png'), triggered=self.redo)
+                           icon=ima.icon('redo'), triggered=self.redo)
         self.cut_action = create_action(self, _("Cut"),
                            shortcut=keybinding('Cut'),
-                           icon=get_icon('editcut.png'), triggered=self.cut)
+                           icon=ima.icon('editcut'), triggered=self.cut)
         self.copy_action = create_action(self, _("Copy"),
                            shortcut=keybinding('Copy'),
-                           icon=get_icon('editcopy.png'), triggered=self.copy)
+                           icon=ima.icon('editcopy'), triggered=self.copy)
         self.paste_action = create_action(self, _("Paste"),
                            shortcut=keybinding('Paste'),
-                           icon=get_icon('editpaste.png'), triggered=self.paste)
+                           icon=ima.icon('editpaste'), triggered=self.paste)
         self.delete_action = create_action(self, _("Delete"),
                            shortcut=keybinding('Delete'),
-                           icon=get_icon('editdelete.png'),
+                           icon=ima.icon('editdelete'),
                            triggered=self.delete)
         selectall_action = create_action(self, _("Select All"),
                            shortcut=keybinding('SelectAll'),
-                           icon=get_icon('selectall.png'),
+                           icon=ima.icon('selectall'),
                            triggered=self.selectAll)
         toggle_comment_action = create_action(self,
                                 _("Comment")+"/"+_("Uncomment"),
-                                icon=get_icon("comment.png"),
+                                icon=ima.icon('comment'),
                                 triggered=self.toggle_comment)
         self.clear_all_output_action = create_action(self,
-                           _("Clear all ouput"), icon='ipython_console.png',
+                           _("Clear all ouput"), icon=ima.icon('ipython_console'),
                            triggered=self.clear_all_output)
         self.ipynb_convert_action = create_action(self,
                                                _("Convert to Python script"),
                                                triggered=self.convert_notebook,
-                                               icon='python.png')
+                                               icon=ima.icon('python'))
         self.gotodef_action = create_action(self, _("Go to definition"),
                                    triggered=self.go_to_definition_from_cursor)
         self.run_selection_action = create_action(self,
                         _("Run &selection or current line"),
-                        icon='run_selection.png',
+                        icon=ima.icon('run_selection'),
                         triggered=lambda: self.run_selection.emit())
         zoom_in_action = create_action(self, _("Zoom in"),
-                         QKeySequence(QKeySequence.ZoomIn), icon='zoom_in.png',
+                      QKeySequence(QKeySequence.ZoomIn), icon=ima.icon('zoom_in'),
                       triggered=lambda: self.zoom_in.emit())
         zoom_out_action = create_action(self, _("Zoom out"),
-                      QKeySequence(QKeySequence.ZoomOut),
-                      icon='zoom_out.png',
+                      QKeySequence(QKeySequence.ZoomOut), icon=ima.icon('zoom_out'),
                       triggered=lambda: self.zoom_out.emit())
         zoom_reset_action = create_action(self, _("Zoom reset"),
                       QKeySequence("Ctrl+0"),
@@ -2874,8 +2873,8 @@ class TestWidget(QSplitter):
                     lambda _fn, line, word: self.editor.go_to_line(line, word))
         self.setStretchFactor(0, 4)
         self.setStretchFactor(1, 1)
-        self.setWindowIcon(get_icon('spyder.svg'))
-
+        self.setWindowIcon(ima.icon('spyder'))
+ 
     def load(self, filename):
         self.editor.set_text_from_file(filename)
         self.setWindowTitle("%s - %s (%s)" % (_("Editor"),

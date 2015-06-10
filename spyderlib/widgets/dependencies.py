@@ -11,11 +11,11 @@ from spyderlib.qt.QtGui import (QDialog, QTableView, QItemDelegate, QColor,
                                 QApplication, QLabel, QDialogButtonBox)
 from spyderlib.qt.QtCore import Qt, QModelIndex, QAbstractTableModel
 from spyderlib.qt.compat import to_qvariant
+import spyderlib.utils.icon_manager as ima
 import sys
 
 # Local imports
 from spyderlib.baseconfig import _
-from spyderlib.utils.qthelpers import get_icon
 from spyderlib import __version__
 
 
@@ -128,7 +128,7 @@ class DependenciesDialog(QDialog):
         QDialog.__init__(self, parent)
         self.setWindowTitle("Spyder %s: %s" % (__version__,
                                                _("Optional Dependencies")))
-        self.setWindowIcon(get_icon('advanced.png'))
+        self.setWindowIcon(ima.icon('tooloptions'))
         self.setModal(True)
 
         self.view = DependenciesTableView(self, [])

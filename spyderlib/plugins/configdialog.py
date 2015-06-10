@@ -20,13 +20,13 @@ from spyderlib.qt.QtGui import (QWidget, QDialog, QListWidget, QListWidgetItem,
 from spyderlib.qt.QtCore import Qt, QSize, Signal, Slot
 from spyderlib.qt.compat import (to_qvariant, from_qvariant,
                                  getexistingdirectory, getopenfilename)
+import spyderlib.utils.icon_manager as ima
 
 from spyderlib.baseconfig import (_, running_in_mac_app, LANGUAGE_CODES,
                                   save_lang_conf, load_lang_conf)
 from spyderlib.config import CONF
 from spyderlib.guiconfig import (CUSTOM_COLOR_SCHEME_NAME,
                                  set_default_color_scheme)
-from spyderlib.utils.qthelpers import get_icon, get_std_icon
 from spyderlib.userconfig import NoDefault
 from spyderlib.widgets.colors import ColorLayout
 from spyderlib.widgets.sourcecode import syntaxhighlighters as sh
@@ -163,8 +163,8 @@ class ConfigDialog(QDialog):
 
         self.setLayout(vlayout)
 
-        self.setWindowTitle(_("Preferences"))
-        self.setWindowIcon(get_icon("configure.png"))
+        self.setWindowTitle(_('Preferences'))
+        self.setWindowIcon(ima.icon('configure'))
 
         # Ensures that the config is present on spyder first run
         CONF.set('main', 'interface_language', load_lang_conf())
@@ -463,7 +463,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                 break
         msg = _("Invalid directory path")
         self.validate_data[edit] = (osp.isdir, msg)
-        browse_btn = QPushButton(get_std_icon('DirOpenIcon'), "", self)
+        browse_btn = QPushButton(ima.icon('DirOpenIcon'), '', self)
         browse_btn.setToolTip(_("Select directory"))
         browse_btn.clicked.connect(lambda: self.select_directory(edit))
         layout = QHBoxLayout()
@@ -491,9 +491,9 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         for edit in self.lineedits:
             if widget.isAncestorOf(edit):
                 break
-        msg = _("Invalid file path")
+        msg = _('Invalid file path')
         self.validate_data[edit] = (osp.isfile, msg)
-        browse_btn = QPushButton(get_std_icon('FileIcon'), "", self)
+        browse_btn = QPushButton(ima.icon('FileIcon'), '', self)
         browse_btn.setToolTip(_("Select file"))
         browse_btn.clicked.connect(lambda: self.select_file(edit, filters))
         layout = QHBoxLayout()
@@ -579,10 +579,10 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         if tip is not None:
             clayout.setToolTip(tip)
         cb_bold = QCheckBox()
-        cb_bold.setIcon(get_icon("bold.png"))
+        cb_bold.setIcon(ima.icon('bold'))
         cb_bold.setToolTip(_("Bold"))
         cb_italic = QCheckBox()
-        cb_italic.setIcon(get_icon("italic.png"))
+        cb_italic.setIcon(ima.icon('italic'))
         cb_italic.setToolTip(_("Italic"))
         self.scedits[(clayout, cb_bold, cb_italic)] = (option, default)
         if without_layout:
@@ -679,7 +679,7 @@ class GeneralConfigPage(SpyderConfigPage):
     
     def get_icon(self):
         """Loads page icon named by self.ICON"""
-        return get_icon(self.ICON)
+        return self.ICON
 
     def apply_settings(self, options):
         raise NotImplementedError
@@ -718,7 +718,7 @@ class MainConfigPage(GeneralConfigPage):
     CONF_SECTION = "main"
     
     NAME = _("General")
-    ICON = "genprefs.png"
+    ICON = ima.icon('genprefs')
 
     def setup_page(self):
         newcb = self.create_checkbox
@@ -730,6 +730,11 @@ class MainConfigPage(GeneralConfigPage):
         style_combo = self.create_combobox(_('Qt windows style'), choices,
                                            'windows_style',
                                            default=self.main.default_style)
+
+        themes = ['Spyder 2', 'Spyder 3']
+        icon_choices = list(zip(themes, [theme.lower() for theme in themes]))
+        icons_combo = self.create_combobox(_('Icon theme'), icon_choices,
+                                           'icon_theme', restart=True)
 
         single_instance_box = newcb(_("Use a single instance"),
                                     'single_instance',
@@ -769,6 +774,7 @@ class MainConfigPage(GeneralConfigPage):
 
         interface_layout = QVBoxLayout()
         interface_layout.addWidget(style_combo)
+        interface_layout.addWidget(icons_combo)
         interface_layout.addWidget(language_combo)
         interface_layout.addWidget(single_instance_box)
         interface_layout.addWidget(vertdock_box)
@@ -866,7 +872,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
     CONF_SECTION = "color_schemes"
     
     NAME = _("Syntax coloring")
-    ICON = "genprefs.png"
+    ICON = ima.icon('genprefs')
     
     def setup_page(self):
         tabs = QTabWidget()

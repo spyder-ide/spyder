@@ -22,6 +22,7 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QMessageBox, QMenu, QFont,
 from spyderlib.qt.QtCore import (Signal, Qt, QFileInfo, QThread, QObject,
                                  QByteArray, QSize, QPoint, QTimer, Slot)
 from spyderlib.qt.compat import getsavefilename
+import spyderlib.utils.icon_manager as ima
 
 import os
 import sys
@@ -33,7 +34,7 @@ from spyderlib.utils import introspection
 from spyderlib.baseconfig import _, DEBUG, STDOUT, STDERR
 from spyderlib.config import EDIT_FILTERS, EDIT_EXT, get_filter, EDIT_FILETYPES
 from spyderlib.guiconfig import create_shortcut, new_shortcut
-from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions,
+from spyderlib.utils.qthelpers import (create_action, add_actions,
                                        mimedata2url, get_filetype_icon,
                                        create_toolbutton)
 from spyderlib.widgets.tabs import BaseTabs
@@ -66,7 +67,7 @@ class FileListDialog(QDialog):
 
         self.indexes = None
 
-        self.setWindowIcon(get_icon('filelist.png'))
+        self.setWindowIcon(ima.icon('filelist'))
         self.setWindowTitle(_("File list management"))
 
         self.setModal(True)
@@ -87,7 +88,7 @@ class FileListDialog(QDialog):
         self.listwidget.itemActivated.connect(self.edit_file)
 
         btn_layout = QHBoxLayout()
-        edit_btn = create_toolbutton(self, icon=get_icon('edit.png'),
+        edit_btn = create_toolbutton(self, icon=ima.icon('edit'),
                      text=_("&Edit file"), autoraise=False,
                      triggered=self.edit_file, text_beside_icon=True)
         edit_btn.setMinimumHeight(28)
@@ -98,7 +99,7 @@ class FileListDialog(QDialog):
         btn_layout.addStretch()
 
         close_btn = create_toolbutton(self, text=_("&Close file"),
-              icon=get_icon("fileclose.png"),
+              icon=ima.icon('fileclose'),
               autoraise=False, text_beside_icon=True,
               triggered=lambda: self.close_file.emit(
                                   self.indexes[self.listwidget.currentRow()]))
@@ -451,10 +452,10 @@ class EditorStack(QWidget):
         self.data = []
 
         filelist_action = create_action(self, _("File list management"),
-                                 icon=get_icon('filelist.png'),
+                                 icon=ima.icon('filelist'),
                                  triggered=self.open_filelistdialog)
-        copy_to_cb_action = create_action(self, _("Copy path to clipboard"),
-                icon="editcopy.png",
+        copy_to_cb_action = create_action(self, _('Copy path to clipboard'),
+                icon=ima.icon('editcopy'),
                 triggered=lambda:
                 QApplication.clipboard().setText(self.get_current_filename()))
         self.menu_actions = actions+[None, filelist_action, copy_to_cb_action]
@@ -570,25 +571,25 @@ class EditorStack(QWidget):
 
     def setup_editorstack(self, parent, layout):
         """Setup editorstack's layout"""
-        menu_btn = create_toolbutton(self, icon=get_icon("tooloptions.png"),
-                                     tip=_("Options"))
+        menu_btn = create_toolbutton(self, icon=ima.icon('tooloptions'),
+                                     tip=_('Options'))
         self.menu = QMenu(self)
         menu_btn.setMenu(self.menu)
         menu_btn.setPopupMode(menu_btn.InstantPopup)
         self.menu.aboutToShow.connect(self.__setup_menu)
 
 #        self.filelist_btn = create_toolbutton(self,
-#                             icon=get_icon('filelist.png'),
+#                             icon=ima.icon('filelist'),
 #                             tip=_("File list management"),
 #                             triggered=self.open_filelistdialog)
 #
 #        self.previous_btn = create_toolbutton(self,
-#                             icon=get_icon('previous.png'),
+#                             icon=ima.icon('previous'),
 #                             tip=_("Previous file"),
 #                             triggered=self.go_to_previous_file)
 #
 #        self.next_btn = create_toolbutton(self,
-#                             icon=get_icon('next.png'),
+#                             icon=ima.icon('next'),
 #                             tip=_("Next file"),
 #                             triggered=self.go_to_next_file)
 
@@ -1106,19 +1107,19 @@ class EditorStack(QWidget):
     def __get_split_actions(self):
         # New window
         self.newwindow_action = create_action(self, _("New window"),
-                icon="newwindow.png", tip=_("Create a new editor window"),
+                icon=ima.icon('newwindow'), tip=_("Create a new editor window"),
                 triggered=lambda: self.create_new_window.emit())
         # Splitting
         self.versplit_action = create_action(self, _("Split vertically"),
-                icon="versplit.png",
+                icon=ima.icon('versplit'),
                 tip=_("Split vertically this editor window"),
                 triggered=lambda: self.split_vertically.emit())
         self.horsplit_action = create_action(self, _("Split horizontally"),
-                icon="horsplit.png",
+                icon=ima.icon('horsplit'),
                 tip=_("Split horizontally this editor window"),
                 triggered=lambda: self.split_horizontally.emit())
         self.close_action = create_action(self, _("Close this panel"),
-                icon="close_panel.png", triggered=self.close)
+                icon=ima.icon('close_panel'), triggered=self.close)
         return [None, self.newwindow_action, None,
                 self.versplit_action, self.horsplit_action, self.close_action]
 

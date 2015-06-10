@@ -19,6 +19,7 @@ from spyderlib.qt.QtGui import (QTableView, QVBoxLayout, QHBoxLayout,
 from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, Signal,
                                  Slot)
 from spyderlib.qt.compat import to_qvariant
+import spyderlib.utils.icon_manager as ima
 
 from functools import partial as ft_partial
 
@@ -30,7 +31,7 @@ except ImportError:
 # Local import
 from spyderlib.baseconfig import _
 from spyderlib.utils import programs
-from spyderlib.utils.qthelpers import get_icon, add_actions, create_action
+from spyderlib.utils.qthelpers import add_actions, create_action
 from spyderlib.py3compat import (TEXT_TYPES, INT_TYPES, to_text_string, u,
                                  zip_longest, io)
 
@@ -486,7 +487,7 @@ class ImportWizard(QDialog):
             title = _("Import wizard")
         self.setWindowTitle(title)
         if icon is None:
-            self.setWindowIcon(get_icon("fileimport.png"))
+            self.setWindowIcon(ima.icon('fileimport'))
         if contents_title is None:
             contents_title = _("Raw text")
 

@@ -24,6 +24,7 @@ from spyderlib.qt.QtGui import (QHBoxLayout, QColor, QTableView, QItemDelegate,
 from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, Slot)
                                  
 from spyderlib.qt.compat import to_qvariant, from_qvariant
+import spyderlib.utils.icon_manager as ima
 
 import numpy as np
 
@@ -31,7 +32,7 @@ import numpy as np
 from spyderlib.baseconfig import _
 from spyderlib.guiconfig import get_font, new_shortcut
 from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
-                                       qapplication, get_icon)
+                                       qapplication)
 from spyderlib.py3compat import io, to_text_string, is_text_string
 
 # Note: string and unicode data types will be formatted with '%s' (see below)
@@ -388,9 +389,9 @@ class ArrayView(QTableView):
 
     def setup_menu(self):
         """Setup context menu"""
-        self.copy_action = create_action(self, _( "Copy"),
-                                         shortcut=keybinding("Copy"),
-                                         icon=get_icon('editcopy.png'),
+        self.copy_action = create_action(self, _('Copy'),
+                                         shortcut=keybinding('Copy'),
+                                         icon=ima.icon('editcopy'),
                                          triggered=self.copy,
                                          context=Qt.WidgetShortcut)
         menu = QMenu(self)
@@ -549,7 +550,7 @@ class ArrayEditor(QDialog):
         
         self.layout = QGridLayout()
         self.setLayout(self.layout)
-        self.setWindowIcon(get_icon('arredit.png'))
+        self.setWindowIcon(ima.icon('arredit'))
         if title:
             title = to_text_string(title) # in case title is not a string
         else:

@@ -29,6 +29,7 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QHBoxLayout, QFormLayout,
                                 QPushButton, QKeySequence)
 from spyderlib.qt.compat import getopenfilename
 from spyderlib.qt.QtCore import Signal, Slot, Qt
+import spyderlib.utils.icon_manager as ima
 
 # IPython imports
 from IPython.core.application import get_ipython_dir
@@ -48,7 +49,7 @@ from spyderlib.baseconfig import _
 from spyderlib.config import CONF
 from spyderlib.utils.misc import get_error_match, remove_backslashes
 from spyderlib.utils import programs
-from spyderlib.utils.qthelpers import get_icon, create_action
+from spyderlib.utils.qthelpers import create_action
 from spyderlib.widgets.tabs import Tabs
 from spyderlib.widgets.ipython import IPythonClient
 from spyderlib.widgets.findreplace import FindReplace
@@ -664,7 +665,7 @@ class IPythonConsole(SpyderPluginWidget):
     
     def get_plugin_icon(self):
         """Return widget icon"""
-        return get_icon('ipython_console.png')
+        return ima.icon('ipython_console')
     
     def get_focus_widget(self):
         """
@@ -709,13 +710,13 @@ class IPythonConsole(SpyderPluginWidget):
         ctrl = "Cmd" if sys.platform == "darwin" else "Ctrl"
         main_create_client_action = create_action(self,
                                 _("Open an &IPython console"),
-                                None, 'ipython_console.png',
+                                None, ima.icon('ipython_console'),
                                 triggered=self.create_new_client,
                                 tip=_("Use %s+T when the console is selected "
                                       "to open a new one") % ctrl)
         create_client_action = create_action(self,
                                 _("Open a new console"),
-                                QKeySequence("Ctrl+T"), 'ipython_console.png',
+                                QKeySequence("Ctrl+T"), ima.icon('ipython_console'),
                                 triggered=self.create_new_client)
         create_client_action.setShortcutContext(Qt.WidgetWithChildrenShortcut)
 
@@ -1137,7 +1138,7 @@ class IPythonConsole(SpyderPluginWidget):
     def add_tab(self, widget, name):
         """Add tab"""
         self.clients.append(widget)
-        index = self.tabwidget.addTab(widget, get_icon('ipython_console.png'),
+        index = self.tabwidget.addTab(widget, ima.icon('ipython_console'),
                                       name)
         self.tabwidget.setCurrentIndex(index)
         if self.dockwidget and not self.ismaximized:

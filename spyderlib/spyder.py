@@ -90,7 +90,7 @@ from spyderlib.qt.compat import (from_qvariant, getopenfilename,
 # is also installed (or any other Qt-based application prepending a directory
 # containing incompatible Qt DLLs versions in PATH):
 from spyderlib.qt import QtSvg  # analysis:ignore
-
+import spyderlib.utils.icon_manager as ima
 
 #==============================================================================
 # Create our QApplication instance here because it's needed to render the
@@ -148,7 +148,7 @@ except ImportError:
     WinUserEnvDialog = None  # analysis:ignore
 
 from spyderlib.utils.qthelpers import (create_action, add_actions, get_icon,
-                                       get_std_icon, add_shortcut_to_tooltip,
+                                       add_shortcut_to_tooltip,
                                        create_module_bookmark_actions,
                                        create_program_action, DialogManager,
                                        keybinding, create_python_script_action,
@@ -331,12 +331,12 @@ class MainWindow(QMainWindow):
                                         self.load_session(TEMP_SESSION_PATH))
         self.load_session_action = create_action(self,
                                         _("Load session..."),
-                                        None, 'fileopen.png',
+                                        None, ima.icon('fileopen'),
                                         triggered=self.load_session,
                                         tip=_("Load Spyder session"))
         self.save_session_action = create_action(self,
                                         _("Save session and quit..."),
-                                        None, 'filesaveas.png',
+                                        None, ima.icon('filesaveas'),
                                         triggered=self.save_session,
                                         tip=_("Save current session "
                                               "and quit application"))
@@ -462,9 +462,11 @@ class MainWindow(QMainWindow):
         if DEBUG:
             title += " [DEBUG MODE %d]" % DEBUG
         self.setWindowTitle(title)
-        icon_name = 'spyder_light.svg' if self.light else 'spyder.svg'
+        resample = os.name != 'nt'
+        icon = ima.icon('spyder_light', resample=resample) if self.light\
+          else ima.icon('spyder', resample=resample)
         # Resampling SVG icon only on non-Windows platforms (see Issue 1314):
-        self.setWindowIcon(get_icon(icon_name, resample=os.name != 'nt'))
+        self.setWindowIcon(icon)
         if set_windows_appusermodelid != None:
             res = set_windows_appusermodelid()
             debug_print("appusermodelid: " + str(res))
@@ -536,7 +538,7 @@ class MainWindow(QMainWindow):
         """Create and return toolbar with *title* and *object_name*"""
         toolbar = self.addToolBar(title)
         toolbar.setObjectName(object_name)
-        toolbar.setIconSize( QSize(iconsize, iconsize) )
+        toolbar.setIconSize(QSize(iconsize, iconsize))
         self.toolbarslist.append(toolbar)
         return toolbar
 
@@ -546,7 +548,8 @@ class MainWindow(QMainWindow):
         if not self.light:
             self.debug_print("  ..core actions")
             self.close_dockwidget_action = create_action(self,
-                                        _("Close current pane"),
+                                        icon=ima.icon('DialogCloseButton'),
+                                        text=_("Close current pane"),
                                         triggered=self.close_current_dockwidget,
                                         context=Qt.ApplicationShortcut)
             self.register_shortcut(self.close_dockwidget_action, "_",
@@ -572,59 +575,59 @@ class MainWindow(QMainWindow):
 
 
             _text = _("&Find text")
-            self.find_action = create_action(self, _text, icon='find.png',
+            self.find_action = create_action(self, _text, icon=ima.icon('find'),
                                              tip=_text, triggered=self.find,
                                              context=Qt.WidgetShortcut)
             self.register_shortcut(self.find_action, "Editor", "Find text")
             self.find_next_action = create_action(self, _("Find &next"),
-                  icon='findnext.png', triggered=self.find_next,
+                  icon=ima.icon('findnext'), 
+                  triggered=self.find_next,
                   context=Qt.WidgetShortcut)
             self.register_shortcut(self.find_next_action, "Editor",
                                    "Find next")
             self.find_previous_action = create_action(self,
                         _("Find &previous"),
-                        icon='findprevious.png', triggered=self.find_previous,
+                        icon=ima.icon('findprevious'),
+                                      triggered=self.find_previous,
                         context=Qt.WidgetShortcut)
             self.register_shortcut(self.find_previous_action, "Editor",
                                    "Find previous")
             _text = _("&Replace text")
-            self.replace_action = create_action(self, _text, icon='replace.png',
+            self.replace_action = create_action(self, _text, 
+                                            icon=ima.icon('replace'),
                                             tip=_text, triggered=self.replace,
                                             context=Qt.WidgetShortcut)
             self.register_shortcut(self.replace_action, "Editor",
                                    "Replace text")
 
-            def create_edit_action(text, tr_text, icon_name):
+            def create_edit_action(text, tr_text, icon):
                 textseq = text.split(' ')
                 method_name = textseq[0].lower()+"".join(textseq[1:])
                 action = create_action(self, tr_text,
                                     shortcut=keybinding(text.replace(' ', '')),
-                                    icon=get_icon(icon_name),
+                                    icon=icon,
                                     triggered=self.global_callback,
                                     data=method_name,
                                     context=Qt.WidgetShortcut)
                 self.register_shortcut(action, "Editor", text)
                 return action
 
-            self.undo_action = create_edit_action("Undo", _("Undo"),
-                                                  'undo.png')
-
-            self.redo_action = create_edit_action("Redo", _("Redo"), 'redo.png')
-
-            self.copy_action = create_edit_action("Copy", _("Copy"),
-                                                  'editcopy.png')
-
-            self.cut_action = create_edit_action("Cut", _("Cut"), 'editcut.png')
-
-            self.paste_action = create_edit_action("Paste", _("Paste"),
-                                                   'editpaste.png')
-
-            self.delete_action = create_edit_action("Delete", _("Delete"),
-                                                    'editdelete.png')
+            self.undo_action = create_edit_action('Undo', _('Undo'),
+                                                  ima.icon('undo'))
+            self.redo_action = create_edit_action('Redo', _('Redo'), 
+                                                  ima.icon('redo'))
+            self.copy_action = create_edit_action('Copy', _('Copy'),
+                                                  ima.icon('editcopy'))
+            self.cut_action = create_edit_action('Cut', _('Cut'),
+                                                 ima.icon('editcut'))
+            self.paste_action = create_edit_action('Paste', _('Paste'),
+                                                   ima.icon('editpaste'))
+            self.delete_action = create_edit_action('Delete', _('Delete'),
+                                                    ima.icon('editdelete'))
 
             self.selectall_action = create_edit_action("Select All",
                                                        _("Select All"),
-                                                       'selectall.png')
+                                                       ima.icon('selectall'))
 
             self.edit_menu_actions = [self.undo_action, self.redo_action,
                                       None, self.cut_action, self.copy_action,
@@ -693,14 +696,14 @@ class MainWindow(QMainWindow):
             self.debug_print("  ..tools")
             # Tools + External Tools
             prefs_action = create_action(self, _("Pre&ferences"),
-                                         icon='configure.png',
+                                         icon=ima.icon('configure'),
                                          triggered=self.edit_preferences)
             self.register_shortcut(prefs_action, "_", "Preferences")
             add_shortcut_to_tooltip(prefs_action, context="_",
                                     name="Preferences")
             spyder_path_action = create_action(self,
                                     _("PYTHONPATH manager"),
-                                    None, 'pythonpath_mgr.png',
+                                    None, icon=ima.icon('pythonpath'),
                                     triggered=self.path_manager_callback,
                                     tip=_("Python Path Manager"),
                                     menurole=QAction.ApplicationSpecificRole)
@@ -875,11 +878,12 @@ class MainWindow(QMainWindow):
 
             # Populating file menu entries
             quit_action = create_action(self, _("&Quit"),
-                                        icon='exit.png', tip=_("Quit"),
+                                        icon=ima.icon('exit'), 
+                                        tip=_("Quit"),
                                         triggered=self.console.quit)
             self.register_shortcut(quit_action, "_", "Quit")
             restart_action = create_action(self, _("&Restart"),
-                                           icon='restart.png',
+                                           icon=ima.icon('restart'),
                                            tip=_("Restart"),
                                            triggered=self.restart)
             self.register_shortcut(restart_action, "_", "Restart")
@@ -965,10 +969,10 @@ class MainWindow(QMainWindow):
             # Help menu            
             dep_action = create_action(self, _("Optional dependencies..."),
                                        triggered=self.show_dependencies,
-                                       icon='advanced.png')
+                                       icon=ima.icon('advanced'))
             report_action = create_action(self,
                                           _("Report issue..."),
-                                          icon=get_icon('bug.png'),
+                                          icon=ima.icon('bug'),
                                           triggered=self.report_issue)
             support_action = create_action(self,
                                            _("Spyder support..."),
@@ -997,8 +1001,8 @@ class MainWindow(QMainWindow):
                 spyder_doc = 'http://pythonhosted.org/spyder'
             else:
                 spyder_doc = file_uri(spyder_doc)
-            doc_action = create_action(self, _("Spyder documentation"), shortcut="F1", 
-                                       icon=get_std_icon('DialogHelpButton'),
+            doc_action = create_action( self, _("Spyder documentation"), shortcut="F1", 
+                                       icon=ima.icon('DialogHelpButton'),
                                        triggered=lambda : programs.start_file(spyder_doc))
 
             tut_action = create_action(self, _("Spyder tutorial"),
@@ -1125,7 +1129,7 @@ class MainWindow(QMainWindow):
             # About Spyder
             about_action = create_action(self,
                                     _("About %s...") % "Spyder",
-                                    icon=get_std_icon('MessageBoxInformation'),
+                                    icon=ima.icon('MessageBoxInformation'),
                                     triggered=self.about)
             self.help_menu_actions += [None, about_action]
 
@@ -2205,13 +2209,13 @@ class MainWindow(QMainWindow):
         if self.state_before_maximizing is None:
             text = _("Maximize current pane")
             tip = _("Maximize current pane")
-            icon = "maximize.png"
+            icon = ima.icon('maximize')
         else:
             text = _("Restore current pane")
             tip = _("Restore pane to its original size")
-            icon = "unmaximize.png"
+            icon = ima.icon('unmaximize')
         self.maximize_action.setText(text)
-        self.maximize_action.setIcon(get_icon(icon))
+        self.maximize_action.setIcon(icon)
         self.maximize_action.setToolTip(tip)
 
     @Slot()
@@ -2255,10 +2259,12 @@ class MainWindow(QMainWindow):
 
     def __update_fullscreen_action(self):
         if self.isFullScreen():
-            icon = "window_nofullscreen.png"
+            icon = ima.icon('window_nofullscreen')
         else:
-            icon = "window_fullscreen.png"
-        self.fullscreen_action.setIcon(get_icon(icon))
+            icon = ima.icon('window_fullscreen')
+        if is_text_string(icon):
+            icon = get_icon(icon)
+        self.fullscreen_action.setIcon(icon)
 
     @Slot()
     def toggle_fullscreen(self):
@@ -2573,7 +2579,7 @@ class MainWindow(QMainWindow):
         """Apply settings changed in 'Preferences' dialog box"""
         qapp = QApplication.instance()
         qapp.setStyle(CONF.get('main', 'windows_style', self.default_style))
-
+        
         default = self.DOCKOPTIONS
         if CONF.get('main', 'vertical_tabs'):
             default = default|QMainWindow.VerticalTabs

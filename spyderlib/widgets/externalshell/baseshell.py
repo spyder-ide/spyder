@@ -18,11 +18,13 @@ from spyderlib.qt.QtGui import (QWidget, QVBoxLayout, QHBoxLayout, QMenu,
                                 QLabel, QInputDialog, QLineEdit, QToolButton)
 from spyderlib.qt.QtCore import (QProcess, Signal, QByteArray, QTimer, Qt,
                                  QTextCodec, Slot)
+import spyderlib.utils.icon_manager as ima
+
 LOCALE_CODEC = QTextCodec.codecForLocale()
 
 # Local imports
-from spyderlib.utils.qthelpers import (get_icon, create_toolbutton,
-                                       create_action, add_actions)
+from spyderlib.utils.qthelpers import (create_toolbutton, create_action, 
+                                       add_actions)
 from spyderlib.baseconfig import get_conf_path, _
 from spyderlib.py3compat import is_text_string, to_text_string
 
@@ -136,20 +138,20 @@ class ExternalShellBase(QWidget):
     def get_toolbar_buttons(self):
         if self.run_button is None:
             self.run_button = create_toolbutton(self, text=_("Run"),
-                                             icon=get_icon('run.png'),
+                                             icon=ima.icon('run'),
                                              tip=_("Run again this program"),
                                              triggered=self.start_shell)
         if self.kill_button is None:
             self.kill_button = create_toolbutton(self, text=_("Kill"),
-                                     icon=get_icon('kill.png'),
+                                     icon=ima.icon('kill'),
                                      tip=_("Kills the current process, "
                                            "causing it to exit immediately"))
         buttons = [self.run_button]
         if self.options_button is None:
             options = self.get_options_menu()
             if options:
-                self.options_button = create_toolbutton(self, text=_("Options"),
-                                            icon=get_icon('tooloptions.png'))
+                self.options_button = create_toolbutton(self, text=_('Options'),
+                                            icon=ima.icon('tooloptions'))
                 self.options_button.setPopupMode(QToolButton.InstantPopup)
                 menu = QMenu(self)
                 add_actions(menu, options)
@@ -207,7 +209,7 @@ class ExternalShellBase(QWidget):
         try:
             self.timer.timeout.disconnect(self.show_time)
         except (RuntimeError, TypeError):
-             pass
+            pass
     
     def set_running_state(self, state=True):
         self.set_buttons_runnning_state(state)

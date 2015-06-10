@@ -14,8 +14,9 @@
 from spyderlib.qt import PYQT5
 from spyderlib.qt.QtGui import (QToolBar, QLabel, QGroupBox, QVBoxLayout,
                                 QHBoxLayout, QButtonGroup)
-from spyderlib.qt.QtCore import Signal, Slot
+from spyderlib.qt.QtCore import Signal, Slot, QSize
 from spyderlib.qt.compat import getexistingdirectory
+import spyderlib.utils.icon_manager as ima
 
 import os
 import os.path as osp
@@ -23,7 +24,7 @@ import os.path as osp
 # Local imports
 from spyderlib.utils import encoding
 from spyderlib.baseconfig import get_conf_path, _
-from spyderlib.utils.qthelpers import get_icon, get_std_icon, create_action
+from spyderlib.utils.qthelpers import create_action
 
 # Package local imports
 from spyderlib.widgets.comboboxes import PathComboBox
@@ -167,7 +168,7 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         self.history = []
         self.histindex = None
         self.previous_action = create_action(self, "previous", None,
-                                     get_icon('previous.png'), _('Back'),
+                                     ima.icon('previous'), _('Back'),
                                      triggered=self.previous_directory)
         self.addAction(self.previous_action)
         
@@ -175,7 +176,7 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         self.history = []
         self.histindex = None
         self.next_action = create_action(self, "next", None,
-                                     get_icon('next.png'), _('Next'),
+                                     ima.icon('next'), _('Next'),
                                      triggered=self.next_directory)
         self.addAction(self.next_action)
         
@@ -211,13 +212,13 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         
         # Browse action
         browse_action = create_action(self, "browse", None,
-                                      get_std_icon('DirOpenIcon'),
+                                      ima.icon('DirOpenIcon'),
                                       _('Browse a working directory'),
                                       triggered=self.select_directory)
         self.addAction(browse_action)
         
         # Set current console working directory action
-        setwd_action = create_action(self, icon=get_icon('set_workdir.png'),
+        setwd_action = create_action(self, icon=ima.icon('set_workdir'),
                                      text=_("Set as current console's "
                                                   "working directory"),
                                      triggered=self.set_as_current_console_wd)
@@ -225,7 +226,7 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         
         # Parent dir action
         parent_action = create_action(self, "parent", None,
-                                      get_icon('up.png'),
+                                      ima.icon('up'),
                                       _('Change to parent directory'),
                                       triggered=self.parent_directory)
         self.addAction(parent_action)
@@ -237,7 +238,7 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
     
     def get_plugin_icon(self):
         """Return widget icon"""
-        return get_std_icon('DirOpenIcon')
+        return ima.icon('DirOpenIcon')
         
     def get_plugin_actions(self):
         """Setup actions"""
@@ -247,6 +248,8 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         """Register plugin in Spyder's main window"""
         self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
         self.main.console.shell.refresh.connect(self.refresh_plugin)
+        iconsize = 24 
+        self.setIconSize(QSize(iconsize, iconsize))
         self.main.addToolBar(self)
         
     def refresh_plugin(self):

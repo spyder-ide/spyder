@@ -22,6 +22,7 @@ from spyderlib.qt.QtGui import (QTextEdit, QKeySequence, QWidget, QMenu,
                                 QHBoxLayout, QToolButton, QVBoxLayout,
                                 QMessageBox)
 from spyderlib.qt.QtCore import Signal, Slot, Qt
+import spyderlib.utils.icon_manager as ima
 
 # IPython imports
 from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
@@ -37,9 +38,8 @@ from spyderlib.config import CONF
 from spyderlib.guiconfig import (create_shortcut, get_font, get_shortcut,
                                  new_shortcut)
 from spyderlib.utils.dochelpers import getargspecfromtext, getsignaturefromtext
-from spyderlib.utils.qthelpers import (get_std_icon, create_toolbutton,
-                                       add_actions, create_action, get_icon,
-                                       restore_keyevent)
+from spyderlib.utils.qthelpers import (create_toolbutton, add_actions, 
+                                       create_action, restore_keyevent)
 from spyderlib.utils import programs, sourcecode
 from spyderlib.widgets.browser import WebView
 from spyderlib.widgets.calltip import CallTipWidget
@@ -383,8 +383,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         
         # stop button and icon
         self.stop_button = None
-        self.stop_icon = get_icon("stop.png")
-        
+        self.stop_icon = ima.icon('stop')        
         self.connection_file = connection_file
         self.kernel_widget_id = kernel_widget_id
         self.hostname = hostname
@@ -508,7 +507,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         """Return options menu"""
         restart_action = create_action(self, _("Restart kernel"),
                                        shortcut=QKeySequence("Ctrl+."),
-                                       icon=get_icon('restart.png'),
+                                       icon=ima.icon('restart'),
                                        triggered=self.restart_kernel)
         restart_action.setShortcutContext(Qt.WidgetWithChildrenShortcut)
         
@@ -539,7 +538,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
             options = self.get_options_menu()
             if options:
                 self.options_button = create_toolbutton(self,
-                        text=_("Options"), icon=get_icon('tooloptions.png'))
+                        text=_('Options'), icon=ima.icon('tooloptions'))
                 self.options_button.setPopupMode(QToolButton.InstantPopup)
                 menu = QMenu(self)
                 add_actions(menu, options)
@@ -555,18 +554,18 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         inspect_action = create_action(self, _("Inspect current object"),
                                     QKeySequence(get_shortcut('console',
                                                     'inspect current object')),
-                                    icon=get_std_icon('MessageBoxInformation'),
+                                    icon=ima.icon('MessageBoxInformation'),
                                     triggered=self.inspect_object)
         clear_line_action = create_action(self, _("Clear line or block"),
                                           QKeySequence("Shift+Escape"),
-                                          icon=get_icon('eraser.png'),
+                                          icon=ima.icon('editdelete'),
                                           triggered=self.clear_line)
         clear_console_action = create_action(self, _("Clear console"),
                                              QKeySequence(get_shortcut('console',
                                                                'clear shell')),
-                                             icon=get_icon('clear.png'),
+                                             icon=ima.icon('editclear'),
                                              triggered=self.clear_console)
-        quit_action = create_action(self, _("&Quit"), icon='exit.png',
+        quit_action = create_action(self, _("&Quit"), icon=ima.icon('exit'),
                                     triggered=self.exit_callback)
         add_actions(menu, (None, inspect_action, clear_line_action,
                            clear_console_action, None, quit_action))

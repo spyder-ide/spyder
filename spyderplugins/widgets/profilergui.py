@@ -23,6 +23,8 @@ from spyderlib.qt.QtGui import (QHBoxLayout, QWidget, QMessageBox, QVBoxLayout,
                                 QApplication, QColor)
 from spyderlib.qt.QtCore import (Signal, QProcess, QByteArray, Qt, QTextCodec,
                                  QProcessEnvironment)
+
+import spyderlib.utils.icon_manager as ima
 locale_codec = QTextCodec.codecForLocale()
 from spyderlib.qt.compat import getopenfilename, getsavefilename
 
@@ -33,7 +35,7 @@ import time
 
 # Local imports
 from spyderlib.utils.qthelpers import (create_toolbutton, get_item_user_text,
-                                       set_item_user_text, get_icon)
+                                       set_item_user_text)
 from spyderlib.utils.programs import shell_split
 from spyderlib.baseconfig import get_conf_path, get_translation
 from spyderlib.widgets.texteditor import TextEditor
@@ -70,13 +72,13 @@ class ProfilerWidget(QWidget):
         
         self.filecombo = PythonModulesComboBox(self)
         
-        self.start_button = create_toolbutton(self, icon=get_icon('run.png'),
+        self.start_button = create_toolbutton(self, icon=ima.icon('run'),
                                     text=_("Profile"),
                                     tip=_("Run profiler"),
                                     triggered=lambda : self.start(),
                                     text_beside_icon=True)
         self.stop_button = create_toolbutton(self,
-                                             icon=get_icon('stop.png'),
+                                             icon=ima.icon('stop'),
                                              text=_("Stop"),
                                              tip=_("Stop current profiling"),
                                              text_beside_icon=True)
@@ -85,13 +87,13 @@ class ProfilerWidget(QWidget):
         # FIXME: The combobox emits this signal on almost any event
         #        triggering show_data() too early, too often. 
 
-        browse_button = create_toolbutton(self, icon=get_icon('fileopen.png'),
-                               tip=_('Select Python script'),
-                               triggered=self.select_file)
+        browse_button = create_toolbutton(self, icon=ima.icon('fileopen'),
+                                          tip=_('Select Python script'),
+                                          triggered=self.select_file)
 
         self.datelabel = QLabel()
 
-        self.log_button = create_toolbutton(self, icon=get_icon('log.png'),
+        self.log_button = create_toolbutton(self, icon=ima.icon('log'),
                                             text=_("Output"),
                                             text_beside_icon=True,
                                             tip=_("Show program's output"),
@@ -100,29 +102,29 @@ class ProfilerWidget(QWidget):
         self.datatree = ProfilerDataTree(self)
 
         self.collapse_button = create_toolbutton(self,
-                                                 icon=get_icon('collapse.png'),
+                                                 icon=ima.icon('collapse'),
                                                  triggered=lambda dD=-1:
                                                  self.datatree.change_view(dD),
                                                  tip=_('Collapse one level up'))
         self.expand_button = create_toolbutton(self,
-                                               icon=get_icon('expand.png'),
+                                               icon=ima.icon('expand'),
                                                triggered=lambda dD=1:
                                                self.datatree.change_view(dD),
                                                tip=_('Expand one level down'))
                                 
         self.save_button = create_toolbutton(self, text_beside_icon=True,
                                              text=_("Save data"),
-                                             icon=get_icon('filesave.png'),
+                                             icon=ima.icon('filesave'),
                                              triggered=self.save_data,
                                              tip=_('Save profiling data'))
         self.load_button = create_toolbutton(self, text_beside_icon=True,
                             text=_("Load data"),
-                            icon=get_icon('fileimport.png'),
+                            icon=ima.icon('fileimport'),
                             triggered=self.compare,
                             tip=_('Load profiling data for comparison'))
         self.clear_button = create_toolbutton(self, text_beside_icon=True,
                                               text=_("Clear comparison"),
-                                              icon=get_icon('eraser.png'),
+                                              icon=ima.icon('editdelete'),
                                               triggered=self.clear)
 
         hlayout1 = QHBoxLayout()
@@ -382,10 +384,10 @@ class ProfilerDataTree(QTreeWidget):
         self.header_list = [_('Function/Module'), _('Total Time'), _('Diff'),
                             _('Local Time'), _('Diff'), _('Calls'), _('Diff'),
                             _('File:line')]
-        self.icon_list = {'module':      'python.png',
-                         'function':    'function.png',
-                         'builtin':     'python_t.png',
-                         'constructor': 'class.png'}
+        self.icon_list = {'module': ima.icon('python'),
+                         'function': ima.icon('function'),
+                         'builtin': ima.icon('python_t'),
+                         'constructor': ima.icon('class')}
         self.profdata = None   # To be filled by self.load_data()
         self.stats = None      # To be filled by self.load_data()
         self.item_depth = None
@@ -529,7 +531,7 @@ class ProfilerDataTree(QTreeWidget):
             # FIXME: indexes to data should be defined by a dictionary on init
             child_item.setToolTip(0, 'Function or module name')
             child_item.setData(0, Qt.DisplayRole, function_name)
-            child_item.setIcon(0, get_icon(self.icon_list[node_type]))
+            child_item.setIcon(0, self.icon_list[node_type])
 
             child_item.setToolTip(1, _('Time in function '\
                                        '(including sub-functions)'))

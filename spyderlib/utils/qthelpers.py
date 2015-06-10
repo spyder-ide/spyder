@@ -13,6 +13,8 @@ from spyderlib.qt.QtGui import (QAction, QStyle, QWidget, QIcon, QApplication,
 from spyderlib.qt.QtCore import (Signal, QObject, Qt, QLocale, QTranslator,
                                  QLibraryInfo, QEvent, Slot)
 from spyderlib.qt.compat import to_qvariant, from_qvariant
+import spyderlib.utils.icon_manager as ima
+from spyderlib.utils.icon_manager import get_icon
 
 import os
 import re
@@ -35,28 +37,6 @@ from spyderlib.py3compat import is_text_string, to_text_string
 #    self.connect(self.listwidget, SIGNAL('option_changed'),
 #                 lambda *args: self.emit(SIGNAL('option_changed'), *args))
 
-
-def get_icon(name, default=None, resample=False):
-    """Return image inside a QIcon object
-    default: default image name or icon
-    resample: if True, manually resample icon pixmaps for usual sizes
-    (16, 24, 32, 48, 96, 128, 256). This is recommended for QMainWindow icons 
-    created from SVG images on non-Windows platforms due to a Qt bug (see 
-    Issue 1314)."""
-    if default is None:
-        icon = QIcon(get_image_path(name))
-    elif isinstance(default, QIcon):
-        icon_path = get_image_path(name, default=None)
-        icon = default if icon_path is None else QIcon(icon_path)
-    else:
-        icon = QIcon(get_image_path(name, default))
-    if resample:
-        icon0 = QIcon()
-        for size in (16, 24, 32, 48, 96, 128, 256, 512):
-            icon0.addPixmap(icon.pixmap(size, size))
-        return icon0 
-    else:
-        return icon
 
 
 def get_image_label(name, default="not_found.png"):
@@ -417,7 +397,7 @@ def get_filetype_icon(fname):
     ext = osp.splitext(fname)[1]
     if ext.startswith('.'):
         ext = ext[1:]
-    return get_icon( "%s.png" % ext, get_std_icon('FileIcon') )
+    return get_icon( "%s.png" % ext, ima.icon('FileIcon') )
 
 
 class ShowStdIcons(QWidget):

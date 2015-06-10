@@ -14,13 +14,13 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QDialog, QWidget, QGroupBox,
                                 QButtonGroup)
 from spyderlib.qt.QtCore import Signal, Slot, Qt, QSize
 from spyderlib.qt.compat import getexistingdirectory
+import spyderlib.utils.icon_manager as ima
 
 import os.path as osp
 
 # Local imports
 from spyderlib.baseconfig import _
 from spyderlib.config import CONF
-from spyderlib.utils.qthelpers import get_icon, get_std_icon
 from spyderlib.plugins.configdialog import GeneralConfigPage
 from spyderlib.py3compat import to_text_string, getcwd
 
@@ -172,7 +172,7 @@ class RunConfigOptions(QWidget):
         self.wd_cb.toggled.connect(self.wd_edit.setEnabled)
         self.wd_edit.setEnabled(False)
         wd_layout.addWidget(self.wd_edit)
-        browse_btn = QPushButton(get_std_icon('DirOpenIcon'), "", self)
+        browse_btn = QPushButton(ima.icon('DirOpenIcon'), '', self)
         browse_btn.setToolTip(_("Select directory"))
         browse_btn.clicked.connect(self.select_directory)
         wd_layout.addWidget(browse_btn)
@@ -302,7 +302,7 @@ class BaseRunConfigDialog(QDialog):
         # a segmentation fault on UNIX or an application crash on Windows
         self.setAttribute(Qt.WA_DeleteOnClose)
 
-        self.setWindowIcon(get_icon("run_settings.png"))
+        self.setWindowIcon(ima.icon('run_settings'))
         layout = QVBoxLayout()
         self.setLayout(layout)
     
@@ -441,7 +441,7 @@ class RunConfigPage(GeneralConfigPage):
     CONF_SECTION = "run"
 
     NAME = _("Run")
-    ICON = "run.png"
+    ICON = ima.icon('run')
     
     def setup_page(self):
         run_dlg = _("Run Settings")

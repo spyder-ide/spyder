@@ -13,11 +13,12 @@
 
 from spyderlib.qt.QtGui import QInputDialog, QVBoxLayout, QGroupBox, QLabel
 from spyderlib.qt.QtCore import Signal, Qt
+import spyderlib.utils.icon_manager as ima 
 
 # Local imports
 from spyderlib.baseconfig import get_translation
 _ = get_translation("p_pylint", dirname="spyderplugins")
-from spyderlib.utils.qthelpers import get_icon, create_action
+from spyderlib.utils.qthelpers import create_action
 from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage
 
 from spyderplugins.widgets.pylintgui import PylintWidget, PYLINT_PATH
@@ -92,7 +93,7 @@ class Pylint(PylintWidget, SpyderPluginMixin):
     
     def get_plugin_icon(self):
         """Return widget icon"""
-        return get_icon('pylint.png')
+        return ima.icon('pylint')
     
     def get_focus_widget(self):
         """
@@ -105,7 +106,7 @@ class Pylint(PylintWidget, SpyderPluginMixin):
         """Return a list of actions related to plugin"""
         # Font
         history_action = create_action(self, _("History..."),
-                                       None, 'history.png',
+                                       None, ima.icon('history'),
                                        _("Set history maximum entries"),
                                        triggered=self.change_history_depth)
         self.treewidget.common_actions += (None, history_action)

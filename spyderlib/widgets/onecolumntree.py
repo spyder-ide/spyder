@@ -16,11 +16,11 @@ They are also used in Spyder through the Plugin interface
 
 from spyderlib.qt.QtCore import Slot
 from spyderlib.qt.QtGui import QTreeWidget, QMenu
+import spyderlib.utils.icon_manager as ima
 
 # Local imports
 from spyderlib.baseconfig import _
-from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions,
-                                       get_item_user_text)
+from spyderlib.utils.qthelpers import create_action, add_actions, get_item_user_text
 
 
 class OneColumnTree(QTreeWidget):
@@ -58,24 +58,24 @@ class OneColumnTree(QTreeWidget):
         """Setup context menu common actions"""
         self.collapse_all_action = create_action(self,
                                      text=_('Collapse all'),
-                                     icon=get_icon('collapse.png'),
+                                     icon=ima.icon('collapse'),
                                      triggered=self.collapseAll)
         self.expand_all_action = create_action(self,
                                      text=_('Expand all'),
-                                     icon=get_icon('expand.png'),
+                                     icon=ima.icon('expand'),
                                      triggered=self.expandAll)
         self.restore_action = create_action(self,
                                      text=_('Restore'),
                                      tip=_('Restore original tree layout'),
-                                     icon=get_icon('restore.png'),
+                                     icon=ima.icon('restore'),
                                      triggered=self.restore)
         self.collapse_selection_action = create_action(self,
                                      text=_('Collapse selection'),
-                                     icon=get_icon('collapse_selection.png'),
+                                     icon=ima.icon('collapse_selection'),
                                      triggered=self.collapse_selection)
         self.expand_selection_action = create_action(self,
                                      text=_('Expand selection'),
-                                     icon=get_icon('expand_selection.png'),
+                                     icon=ima.icon('expand_selection'),
                                      triggered=self.expand_selection)
         return [self.collapse_all_action, self.expand_all_action,
                 self.restore_action, None,

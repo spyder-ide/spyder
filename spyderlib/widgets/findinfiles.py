@@ -18,6 +18,7 @@ from spyderlib.qt.QtGui import (QHBoxLayout, QWidget, QTreeWidgetItem,
 from spyderlib.qt.QtCore import (Signal, Slot, Qt, QThread, QMutexLocker,
                                  QMutex)
 from spyderlib.qt.compat import getexistingdirectory
+import spyderlib.utils.icon_manager as ima
 
 import sys
 import os
@@ -30,8 +31,7 @@ import traceback
 # Local imports
 from spyderlib.utils.vcs import is_hg_installed, get_vcs_root
 from spyderlib.utils.misc import abspardir, get_common_path
-from spyderlib.utils.qthelpers import (get_icon, get_std_icon,
-                                       create_toolbutton, get_filetype_icon)
+from spyderlib.utils.qthelpers import create_toolbutton, get_filetype_icon
 from spyderlib.baseconfig import _
 from spyderlib.widgets.comboboxes import PathComboBox, PatternComboBox
 from spyderlib.widgets.onecolumntree import OneColumnTree
@@ -315,8 +315,8 @@ class FindOptions(QWidget):
         self.search_text = PatternComboBox(self, search_text,
                                            _("Search pattern"))
         self.edit_regexp = create_toolbutton(self,
-                                             icon=get_icon("advanced.png"),
-                                             tip=_("Regular expression"))
+                                             icon=ima.icon('advanced'),
+                                             tip=_('Regular expression'))
         self.edit_regexp.setCheckable(True)
         self.edit_regexp.setChecked(search_text_regexp)
         self.more_widgets = ()
@@ -326,13 +326,13 @@ class FindOptions(QWidget):
         self.more_options.setChecked(more_options)
         
         self.ok_button = create_toolbutton(self, text=_("Search"),
-                                icon=get_std_icon("DialogApplyButton"),
+                                icon=ima.icon('DialogApplyButton'),
                                 triggered=lambda: self.find.emit(),
                                 tip=_("Start search"),
                                 text_beside_icon=True)
         self.ok_button.clicked.connect(self.update_combos)
         self.stop_button = create_toolbutton(self, text=_("Stop"),
-                                icon=get_icon("stop.png"),
+                                icon=ima.icon('stop'),
                                 triggered=lambda: self.stop.emit(),
                                 tip=_("Stop search"),
                                 text_beside_icon=True)
@@ -349,8 +349,8 @@ class FindOptions(QWidget):
            and include_idx < self.include_pattern.count():
             self.include_pattern.setCurrentIndex(include_idx)
         self.include_regexp = create_toolbutton(self,
-                                            icon=get_icon("advanced.png"),
-                                            tip=_("Regular expression"))
+                                            icon=ima.icon('advanced'),
+                                            tip=_('Regular expression'))
         self.include_regexp.setCheckable(True)
         self.include_regexp.setChecked(include_regexp)
         include_label = QLabel(_("Include:"))
@@ -361,8 +361,8 @@ class FindOptions(QWidget):
            and exclude_idx < self.exclude_pattern.count():
             self.exclude_pattern.setCurrentIndex(exclude_idx)
         self.exclude_regexp = create_toolbutton(self,
-                                            icon=get_icon("advanced.png"),
-                                            tip=_("Regular expression"))
+                                            icon=ima.icon('advanced'),
+                                            tip=_('Regular expression'))
         self.exclude_regexp.setCheckable(True)
         self.exclude_regexp.setChecked(exclude_regexp)
         exclude_label = QLabel(_("Exclude:"))
@@ -392,7 +392,7 @@ class FindOptions(QWidget):
         self.dir_combo.open_dir.connect(self.set_directory)
         self.python_path.toggled.connect(self.dir_combo.setDisabled)
         self.hg_manifest.toggled.connect(self.dir_combo.setDisabled)
-        browse = create_toolbutton(self, icon=get_std_icon('DirOpenIcon'),
+        browse = create_toolbutton(self, icon=ima.icon('DirOpenIcon'),
                                    tip=_('Browse a search directory'),
                                    triggered=self.select_directory)
         for widget in [self.python_path, self.hg_manifest, self.custom_dir,
@@ -422,12 +422,12 @@ class FindOptions(QWidget):
                 if state and self.isVisible() or not state:
                     layout.itemAt(index).widget().setVisible(state)
         if state:
-            icon_name = 'options_less.png'
+            icon = ima.icon('options_less')
             tip = _('Hide advanced options')
         else:
-            icon_name = 'options_more.png'
+            icon = ima.icon('options_more')
             tip = _('Show advanced options')
-        self.more_options.setIcon(get_icon(icon_name))
+        self.more_options.setIcon(icon)
         self.more_options.setToolTip(tip)
         
     def update_combos(self):
@@ -619,7 +619,7 @@ class ResultsBrowser(OneColumnTree):
                 displayed_name = dirname
             item = QTreeWidgetItem(parent, [displayed_name],
                                    QTreeWidgetItem.Type)
-            item.setIcon(0, get_std_icon('DirClosedIcon'))
+            item.setIcon(0, ima.icon('DirClosedIcon'))
             return item
         dirs = {}
         for dirname in sorted(list(dir_set)):
@@ -663,7 +663,7 @@ class ResultsBrowser(OneColumnTree):
                 item = QTreeWidgetItem(file_item,
                            ["%d (%s): %s" % (lineno, colno_str, line.rstrip())],
                            QTreeWidgetItem.Type)
-                item.setIcon(0, get_icon('arrow.png'))
+                item.setIcon(0, ima.icon('arrow'))
                 self.data[id(item)] = (filename, lineno)
         # Removing empty directories
         top_level_items = [self.topLevelItem(index)

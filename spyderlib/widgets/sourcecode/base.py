@@ -23,7 +23,7 @@ from spyderlib.qt.QtGui import (QTextCursor, QColor, QFont, QApplication,
                                 QListWidgetItem)
 from spyderlib.qt.QtCore import Signal, Slot, Qt, QEventLoop, QEvent, QPoint
 from spyderlib.qt.compat import to_qvariant
-from spyderlib.utils.qthelpers import get_icon
+import spyderlib.utils.icon_manager as ima
 
 
 # Local imports
@@ -72,17 +72,17 @@ class CompletionWidget(QListWidget):
         self.completion_list = completion_list
         self.clear()
 
-        icons_map = {'instance': 'attribute.png',
-                     'statement': 'attribute.png',
-                     'method': 'method.png',
-                     'function': 'function.png',
-                     'class': 'class.png',
-                     'module': 'module.png'}
+        icons_map = {'instance': 'attribute',
+                     'statement': 'attribute',
+                     'method': 'method',
+                     'function': 'function',
+                     'class': 'class',
+                     'module': 'module'}
 
         if any(types):
             for (c, t) in zip(completion_list, types):
-                icon = icons_map.get(t, 'no_match.png')
-                self.addItem(QListWidgetItem(get_icon(icon), c))
+                icon = icons_map.get(t, 'no_match')
+                self.addItem(QListWidgetItem(ima.icon(icon), c))
         else:
             self.addItems(completion_list)
 

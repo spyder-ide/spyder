@@ -12,6 +12,7 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QComboBox, QItemDelegate,
                                 QTableView, QMessageBox, QPushButton)
 from spyderlib.qt.QtCore import Qt, QSize, QAbstractTableModel, QModelIndex
 from spyderlib.qt.compat import to_qvariant, from_qvariant
+import spyderlib.utils.icon_manager as ima
 
 import sys
 
@@ -343,7 +344,7 @@ class ShortcutsConfigPage(GeneralConfigPage):
     CONF_SECTION = "shortcuts"
     
     NAME = _("Keyboard shortcuts")
-    ICON = "genprefs.png"
+    ICON = ima.icon('genprefs')
     
     def setup_page(self):
         self.table = ShortcutsTable(self)

@@ -14,6 +14,7 @@ from spyderlib.qt.QtGui import (QWidget, QVBoxLayout, QHBoxLayout, QMenu,
                                 QCursor, QInputDialog)
 from spyderlib.qt.QtCore import Qt, Signal, Slot
 from spyderlib.qt.compat import getopenfilenames, getsavefilename
+import spyderlib.utils.icon_manager as ima
 
 # Local imports
 from spyderlib.widgets.externalshell.monitor import (
@@ -26,8 +27,8 @@ from spyderlib.widgets.dicteditorutils import globalsfilter
 from spyderlib.utils import encoding
 from spyderlib.utils.misc import fix_reference_name
 from spyderlib.utils.programs import is_module_installed
-from spyderlib.utils.qthelpers import (get_icon, create_toolbutton,
-                                       add_actions, create_action)
+from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
+                                       create_action)
 from spyderlib.utils.iofuncs import iofunctions
 from spyderlib.widgets.importwizard import ImportWizard
 from spyderlib.baseconfig import _, get_supported_types
@@ -172,24 +173,24 @@ class NamespaceBrowser(QWidget):
                           
         toolbar = []
 
-        refresh_button = create_toolbutton(self, text=_("Refresh"),
-                                           icon=get_icon('reload.png'),
+        refresh_button = create_toolbutton(self, text=_('Refresh'),
+                                           icon=ima.icon('reload'),
                                            triggered=self.refresh_table)
         self.auto_refresh_button = create_toolbutton(self,
-                                           text=_("Refresh periodically"),
-                                           icon=get_icon('auto_reload.png'),
+                                           text=_('Refresh periodically'),
+                                           icon=ima.icon('auto_reload'),
                                            toggled=self.toggle_auto_refresh)
         self.auto_refresh_button.setChecked(autorefresh)
-        load_button = create_toolbutton(self, text=_("Import data"),
-                                        icon=get_icon('fileimport.png'),
+        load_button = create_toolbutton(self, text=_('Import data'),
+                                        icon=ima.icon('fileimport'),
                                         triggered=self.import_data)
         self.save_button = create_toolbutton(self, text=_("Save data"),
-                            icon=get_icon('filesave.png'),
+                            icon=ima.icon('filesave'),
                             triggered=lambda: self.save_data(self.filename))
         self.save_button.setEnabled(False)
         save_as_button = create_toolbutton(self,
                                            text=_("Save data as..."),
-                                           icon=get_icon('filesaveas.png'),
+                                           icon=ima.icon('filesaveas'),
                                            triggered=self.save_data)
         toolbar += [refresh_button, self.auto_refresh_button, load_button,
                     self.save_button, save_as_button]
@@ -225,8 +226,8 @@ class NamespaceBrowser(QWidget):
                 self.sig_option_changed.emit('exclude_unsupported', state))
         self.exclude_unsupported_action.setChecked(exclude_unsupported)
         
-        options_button = create_toolbutton(self, text=_("Options"),
-                                           icon=get_icon('tooloptions.png'))
+        options_button = create_toolbutton(self, text=_('Options'),
+                                           icon=ima.icon('tooloptions'))
         toolbar.append(options_button)
         options_button.setPopupMode(QToolButton.InstantPopup)
         menu = QMenu(self)

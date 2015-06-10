@@ -13,6 +13,7 @@ from spyderlib.qt.QtGui import (QHBoxLayout, QVBoxLayout, QLabel, QSizePolicy,
                                 QLineEdit, QMessageBox)
 from spyderlib.qt.QtCore import Signal, Slot, QUrl, QThread
 from spyderlib.qt.QtWebKit import QWebPage
+import spyderlib.utils.icon_manager as ima
 
 import re
 import os.path as osp
@@ -26,8 +27,8 @@ from spyderlib.ipythonconfig import IPYTHON_QT_INSTALLED
 from spyderlib.config import CONF
 from spyderlib.guiconfig import get_color_scheme, get_font, set_font
 from spyderlib.utils import programs
-from spyderlib.utils.qthelpers import (get_icon, create_toolbutton,
-                                       add_actions, create_action)
+from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
+                                       create_action)
 from spyderlib.widgets.comboboxes import EditableComboBox
 from spyderlib.widgets.sourcecode import codeeditor
 from spyderlib.widgets.findreplace import FindReplace
@@ -385,7 +386,7 @@ class ObjectInspector(SpyderPluginWidget):
 
         # Add entries to read-only editor context-menu
         font_action = create_action(self, _("&Font..."), None,
-                                    'font.png', _("Set font style"),
+                                    ima.icon('font'), _("Set font style"),
                                     triggered=self.change_font)
         self.wrap_action = create_action(self, _("Wrap lines"),
                                          toggled=self.toggle_wrap_mode)
@@ -468,8 +469,8 @@ class ObjectInspector(SpyderPluginWidget):
         self._update_lock_icon()
 
         # Option menu
-        options_button = create_toolbutton(self, text=_("Options"),
-                                           icon=get_icon('tooloptions.png'))
+        options_button = create_toolbutton(self, text=_('Options'),
+                                           icon=ima.icon('tooloptions'))
         options_button.setPopupMode(QToolButton.InstantPopup)
         menu = QMenu(self)
         add_actions(menu, [self.rich_text_action, self.plain_text_action,
@@ -520,7 +521,7 @@ class ObjectInspector(SpyderPluginWidget):
 
     def get_plugin_icon(self):
         """Return widget icon"""
-        return get_icon('inspector.png')
+        return ima.icon('inspector')
 
     def get_focus_widget(self):
         """
@@ -933,7 +934,7 @@ class ObjectInspector(SpyderPluginWidget):
 
     def _update_lock_icon(self):
         """Update locked state icon"""
-        icon = get_icon("lock.png" if self.locked else "lock_open.png")
+        icon = ima.icon('lock') if self.locked else ima.icon('lock_open')
         self.locked_button.setIcon(icon)
         tip = _("Unlock") if self.locked else _("Lock")
         self.locked_button.setToolTip(tip)
