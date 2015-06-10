@@ -2,7 +2,7 @@ import os
 from spyderlib.external import qtawesome as qta
 from spyderlib.baseconfig import get_image_path
 from spyderlib.config import CONF
-from spyderlib.qt.QtGui import QIcon
+from spyderlib.qt.QtGui import QIcon, QWidget, QStyle
 
 
 _resource = {
@@ -183,6 +183,18 @@ _qtaargs = {
 }
 
 
+def get_std_icon(name, size=None):
+    """Get standard platform icon
+    Call 'show_std_icons()' for details"""
+    if not name.startswith('SP_'):
+        name = 'SP_' + name
+    icon = QWidget().style().standardIcon(getattr(QStyle, name))
+    if size is None:
+        return icon
+    else:
+        return QIcon(icon.pixmap(size, size))
+
+
 def get_icon(name, default=None, resample=False):
     """Return image inside a QIcon object
     default: default image name or icon
@@ -190,11 +202,17 @@ def get_icon(name, default=None, resample=False):
     (16, 24, 32, 48, 96, 128, 256). This is recommended for QMainWindow icons 
     created from SVG images on non-Windows platforms due to a Qt bug (see 
     Issue 1314)."""
-    if default is None:
-        icon = QIcon(get_image_path(name))
+
+    icon_path = get_image_path(name, default=None)
+    if icon_path is not None:
+        icon = QIcon(icon_path)
     elif isinstance(default, QIcon):
-        icon_path = get_image_path(name, default=None)
-        icon = default if icon_path is None else QIcon(icon_path)
+        icon = default
+    elif default is None:
+        try:
+            icon = get_std_icon(name[:-4])
+        except AttributeError:
+            icon = QIcon(get_image_path(name, default))
     else:
         icon = QIcon(get_image_path(name, default))
     if resample:
