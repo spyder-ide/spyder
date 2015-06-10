@@ -734,8 +734,7 @@ class MainConfigPage(GeneralConfigPage):
         themes = ['Spyder 2', 'Spyder 3']
         icon_choices = list(zip(themes, [theme.lower() for theme in themes]))
         icons_combo = self.create_combobox(_('Icon theme'), icon_choices,
-                                           'icon_theme', default='spyder 3',
-                                           restart=True)
+                                           'icon_theme', restart=True)
 
         single_instance_box = newcb(_("Use a single instance"),
                                     'single_instance',

@@ -163,7 +163,7 @@ else:
 DEFAULTS = [
             ('main',
              {
-              'icon_theme': 'spyder 3',
+              'icon_theme': 'spyder 2',
               'single_instance': True,
               'open_files_port': OPEN_FILES_PORT,
               'tear_off_menus': False,
