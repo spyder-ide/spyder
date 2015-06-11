@@ -153,6 +153,7 @@ def main():
         # Try to reset
         try:
             p = subprocess.Popen(command_reset, shell=shell)
+            p.communicate()
             pid_reset = p.pid
         except Exception as error:
             print(command)
