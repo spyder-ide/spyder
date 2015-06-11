@@ -53,20 +53,24 @@ def kernel_config():
     # Pylab configuration
     mpl_installed = is_module_installed('matplotlib')
     pylab_o = CONF.get('ipython_console', 'pylab')
-    
+
     if mpl_installed and pylab_o:
-        # Set matplotlib backend
+        # Get matplotlib backend
         backend_o = CONF.get('ipython_console', 'pylab/backend', 0)
         backends = {0: 'inline', 1: 'auto', 2: 'qt', 3: 'osx', 4: 'gtk',
                     5: 'wx', 6: 'tk'}
         mpl_backend = backends[backend_o]
-        spy_cfg.IPKernelApp.exec_lines.append(
+
+        # Automatically load Pylab and Numpy, or only set Matplotlib
+        # backend
+        autoload_pylab_o = CONF.get('ipython_console', 'pylab/autoload')
+        if autoload_pylab_o:
+            spy_cfg.IPKernelApp.exec_lines.append(
+                                              "%pylab {0}".format(mpl_backend))
+        else:
+            spy_cfg.IPKernelApp.exec_lines.append(
                                          "%matplotlib {0}".format(mpl_backend))
 
-        # Automatically load Pylab and Numpy
-        autoload_pylab_o = CONF.get('ipython_console', 'pylab/autoload')
-        spy_cfg.IPKernelApp.pylab_import_all = autoload_pylab_o
-        
         # Inline backend configuration
         if backends[backend_o] == 'inline':
            # Figure format
@@ -180,11 +184,6 @@ del ipk_temp
 # __ipythonkernel__ to not have problems while starting kernels
 change_edit_magic(__ipythonshell__)
 __ipythonshell__.register_magic_function(varexp)
-
-# To make %pylab load numpy and pylab even if the user has
-# set autoload_pylab_o to False *but* nevertheless use it in
-# the interactive session.
-__ipythonkernel__.pylab_import_all = True
 
 # Start the (infinite) kernel event loop.
 __ipythonkernel__.start()
