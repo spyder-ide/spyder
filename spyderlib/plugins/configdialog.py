@@ -128,7 +128,6 @@ class ConfigDialog(QDialog):
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
 
-        self._parent = parent
         self.main = parent
 
         # Widgets

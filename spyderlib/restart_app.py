@@ -17,7 +17,6 @@ import os.path as osp
 import subprocess
 import sys
 import time
-import traceback
 
 
 PY2 = sys.version[0] == '2'
@@ -64,6 +63,48 @@ def is_pid_running(pid):
         return _is_pid_running_on_unix(pid)
 
 
+def error_message(type_, error=None):
+    """Launch a message box with a predefined error message.
+
+    Parameters
+    ----------
+    type : str ['close', 'reset', 'restart']
+    """
+    import spyderlib.utils.icon_manager as ima
+    from spyderlib.baseconfig import _
+    from spyderlib.qt.QtGui import QMessageBox, QDialog
+    from spyderlib.utils.qthelpers import qapplication
+
+    messages = {'close': _("The previous instance of Spyder has not closed."
+                             "\nRestart aborted."),
+                'reset': _("Spyder could not reset to factory defaults.\n"
+                           "Restart aborted."),
+                'restart': _("Spyder could not restart.\n"
+                             "Restart aborted.")}
+    titles = {'close': _("Spyder exit error"),
+              'reset': _("Spyder reset error"),
+              'restart': _("Spyder restart error")}
+
+
+    if error:
+        e = error.__repr__()
+        message = messages[type_] + _("\n\n{0}".format(e))
+    else:
+        message = messages[type_]
+
+    title = titles[type_]
+    app = qapplication()
+    resample = os.name != 'nt'
+    # Resampling SVG icon only on non-Windows platforms (see Issue 1314):
+    icon = ima.icon('spyder', resample=resample)
+    app.setWindowIcon(icon)
+    dlg = QDialog()
+    dlg.setVisible(False)
+    dlg.show()
+    QMessageBox.warning(None, title, message, QMessageBox.Ok)
+    raise Exception(message)
+
+
 # Note: Copied from py3compat because we can't rely on Spyder
 # being installed when using bootstrap.py
 def to_text_string(obj, encoding=None):
@@ -108,7 +149,7 @@ def main():
 
     # Enforce the --new-instance flag when running spyder
     if '--new-instance' not in args:
-        if is_bootstrap and not '--' in args:
+        if is_bootstrap and '--' not in args:
             args = args + ['--', '--new-instance']
         else:
             args.append('--new-instance')
@@ -139,41 +180,60 @@ def main():
     shell = os.name != 'nt'
 
     # Wait for original process to end before launching the new instance
-    while True:
+    max_counter = 1500  # Max loops to perform before aborting
+    counter = 0
+    while counter < max_counter:  # This is equivalent to ~ 5 minute (1500*0.2)
         if not is_pid_running(pid):
             break
         time.sleep(0.2)  # Throttling control
+        counter += 1
+
+    if counter == max_counter:
+        error_message(type_='close')
 
     env = os.environ.copy()
 
+    reset_ok = True
+
     # Reset spyder if needed
+    # -------------------------------------------------------------------------
     if reset:
         # Build reset command
         command_reset = '"{0}" "{1}" {2}'.format(python, spyder, args_reset)
 
-        # Try to reset
         try:
             p = subprocess.Popen(command_reset, shell=shell)
             p.communicate()
             pid_reset = p.pid
         except Exception as error:
-            print(command)
-            traceback.print_exc()
-            time.sleep(15)
+            p.kill()
+            error_message(type_='reset', error=error)
 
+        counter = 0
+        max_counter = 50
         # Wait for reset process to end before restarting
-        while True:
+        while counter < max_counter:  # This is ~= 10 seconds (50*0.2)
             if not is_pid_running(pid_reset):
                 break
             time.sleep(0.2)  # Throttling control
-    
-    # Try to restart
-    try:
-        subprocess.Popen(command, shell=shell, env=env)
-    except Exception as error:
-        print(command)
-        print(error)
-        time.sleep(15)
+            counter += 1
+
+        if counter == max_counter:
+            # The rest subprocess took too long and it is killed
+            p.kill()
+            reset_ok = False
+
+    # Restart
+    # -------------------------------------------------------------------------
+    if reset_ok:
+        # Try to restart
+        try:
+            p = subprocess.Popen(command, shell=shell, env=env)
+        except Exception as error:
+            p.kill()
+            error_message(type_='restart', error=error)
+    else:
+        error_message(type_='reset')
 
 
 if __name__ == '__main__':

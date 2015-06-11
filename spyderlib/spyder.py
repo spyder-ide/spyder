@@ -679,7 +679,7 @@ class MainWindow(QMainWindow):
                                               "available in PYTHONPATH"))
             reset_spyder_action = create_action(
                 self, _("Reset Spyder to factory defaults"),
-                triggered=lambda: self.reset_spyder())
+                triggered=self.reset_spyder)
             self.tools_menu_actions = [prefs_action, spyder_path_action]
             if WinUserEnvDialog is not None:
                 winenv_action = create_action(self,
