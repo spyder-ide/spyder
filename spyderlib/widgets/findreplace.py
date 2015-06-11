@@ -66,10 +66,10 @@ class FindReplace(QWidget):
         
         self.previous_button = create_toolbutton(self,
                                              triggered=self.find_previous,
-                                             icon=ima.icon('up'))
+                                             icon=ima.icon('ArrowUp'))
         self.next_button = create_toolbutton(self,
                                              triggered=self.find_next,
-                                             icon=ima.icon('down'))
+                                             icon=ima.icon('ArrowDown'))
         self.next_button.clicked.connect(self.update_search_combo)
         self.previous_button.clicked.connect(self.update_search_combo)
 
