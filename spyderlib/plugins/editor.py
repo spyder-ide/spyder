@@ -406,12 +406,14 @@ class Editor(SpyderPluginWidget):
         # Change module completions when PYTHONPATH changes
         self.connect(self.main, SIGNAL("pythonpath_changed()"),
                      self.set_path)
-        
+
         # Find widget
         self.find_widget = FindReplace(self, enable_replace=True)
         self.find_widget.hide()
+        self.connect(self.find_widget, SIGNAL("visibility_changed(bool)"),
+                     lambda vs: self.rehighlight_cells())
         self.register_widget_shortcuts("Editor", self.find_widget)
-        
+
         # Tabbed editor widget + Find/Replace widget
         editor_widgets = QWidget(self)
         editor_layout = QVBoxLayout()
@@ -1042,9 +1044,8 @@ class Editor(SpyderPluginWidget):
     #------ Handling editorstacks
     def register_editorstack(self, editorstack):
         self.editorstacks.append(editorstack)
-        
         self.register_widget_shortcuts("Editor", editorstack)
-        
+
         if self.isAncestorOf(editorstack):
             # editorstack is a child of the Editor plugin
             self.set_last_focus_editorstack(self, editorstack)
@@ -1433,7 +1434,13 @@ class Editor(SpyderPluginWidget):
                 and results is not None and len(results)
         self.todo_list_action.setEnabled(state)
 
-            
+    def rehighlight_cells(self):
+        """Rehighlight cells of current editor"""
+        editor = self.get_current_editor()
+        editor.rehighlight_cells()
+        QApplication.processEvents()
+
+
     #------ Breakpoints
     def save_breakpoints(self, filename, breakpoints):
         filename = to_text_string(filename)
