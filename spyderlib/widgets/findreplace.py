@@ -21,8 +21,7 @@ import re
 # Local imports
 from spyderlib.baseconfig import _
 from spyderlib.guiconfig import create_shortcut, new_shortcut
-from spyderlib.utils.qthelpers import (get_icon, get_std_icon,
-                                       create_toolbutton)
+from spyderlib.utils.qthelpers import get_icon, create_toolbutton
 from spyderlib.widgets.comboboxes import PatternComboBox
 from spyderlib.py3compat import to_text_string
 
@@ -67,10 +66,10 @@ class FindReplace(QWidget):
         
         self.previous_button = create_toolbutton(self,
                                              triggered=self.find_previous,
-                                             icon=ima.icon('up'))
+                                             icon=ima.icon('ArrowUp'))
         self.next_button = create_toolbutton(self,
                                              triggered=self.find_next,
-                                             icon=ima.icon('down'))
+                                             icon=ima.icon('ArrowDown'))
         self.next_button.clicked.connect(self.update_search_combo)
         self.previous_button.clicked.connect(self.update_search_combo)
 

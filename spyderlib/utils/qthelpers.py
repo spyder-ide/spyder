@@ -14,7 +14,7 @@ from spyderlib.qt.QtCore import (Signal, QObject, Qt, QLocale, QTranslator,
                                  QLibraryInfo, QEvent, Slot)
 from spyderlib.qt.compat import to_qvariant, from_qvariant
 import spyderlib.utils.icon_manager as ima
-from spyderlib.utils.icon_manager import get_icon
+from spyderlib.utils.icon_manager import get_icon, get_std_icon
 
 import os
 import re
@@ -380,18 +380,6 @@ class DialogManager(QObject):
             dlg.reject()
 
         
-def get_std_icon(name, size=None):
-    """Get standard platform icon
-    Call 'show_std_icons()' for details"""
-    if not name.startswith('SP_'):
-        name = 'SP_'+name
-    icon = QWidget().style().standardIcon( getattr(QStyle, name) )
-    if size is None:
-        return icon
-    else:
-        return QIcon( icon.pixmap(size, size) )
-
-
 def get_filetype_icon(fname):
     """Return file type icon"""
     ext = osp.splitext(fname)[1]
