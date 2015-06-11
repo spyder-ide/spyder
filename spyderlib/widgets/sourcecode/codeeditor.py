@@ -21,19 +21,18 @@ import re
 import sre_constants
 import os.path as osp
 import time
-import functools
 from unicodedata import category
 
 from spyderlib.qt import is_pyqt46
 from spyderlib.qt.QtGui import (QColor, QMenu, QApplication, QSplitter, QFont,
                                 QTextEdit, QTextFormat, QPainter, QTextCursor,
                                 QBrush, QTextDocument, QTextCharFormat,
-                                QPixmap, QPrinter, QToolTip, QCursor, QLabel,
+                                QPrinter, QToolTip, QCursor, QLabel,
                                 QInputDialog, QTextBlockUserData, QLineEdit,
                                 QKeySequence, QVBoxLayout, QHBoxLayout,
                                 QDialog, QIntValidator, QDialogButtonBox,
                                 QGridLayout, QPaintEvent, QMessageBox, QWidget,
-                                QMessageBox, QTextOption)
+                                QTextOption)
 from spyderlib.qt.QtCore import (Qt, Signal, QTimer, QRect, QRegExp, QSize,
                                  Slot)
 from spyderlib.qt.compat import to_qvariant
@@ -43,7 +42,7 @@ import spyderlib.utils.icon_manager as ima
 # Local import
 # TODO: Try to separate this module from spyderlib to create a self
 #       consistent editor module (Qt source code and shell widgets library)
-from spyderlib.baseconfig import get_conf_path, _, DEBUG, get_image_path
+from spyderlib.baseconfig import get_conf_path, _, DEBUG
 from spyderlib.config import CONF
 from spyderlib.guiconfig import (get_font, create_shortcut, new_shortcut,
                                  get_shortcut)
