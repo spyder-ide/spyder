@@ -24,9 +24,11 @@ import spyderlib.utils.icon_manager as ima
 
 from spyderlib.baseconfig import (_, running_in_mac_app, LANGUAGE_CODES,
                                   save_lang_conf, load_lang_conf)
+from spyderlib.baseconfig import _, running_in_mac_app
 from spyderlib.config import CONF
 from spyderlib.guiconfig import (CUSTOM_COLOR_SCHEME_NAME,
                                  set_default_color_scheme)
+from spyderlib.utils.qthelpers import get_icon, get_std_icon
 from spyderlib.userconfig import NoDefault
 from spyderlib.widgets.colors import ColorLayout
 from spyderlib.widgets.sourcecode import syntaxhighlighters as sh
@@ -106,6 +108,7 @@ class ConfigPage(QWidget):
                     break  # Ensure a single popup is displayed
             self.set_modified(False)
 
+    
     def load_from_conf(self):
         """Load settings from configuration file"""
         raise NotImplementedError
@@ -124,6 +127,21 @@ class ConfigDialog(QDialog):
     
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
+
+        self._parent = parent
+        self.main = parent
+
+        # Widgets
+        self.pages_widget = QStackedWidget()
+        self.contents_widget = QListWidget()
+        self.button_reset = QPushButton(_('Reset to defaults'))
+
+        bbox = QDialogButtonBox(QDialogButtonBox.Ok|QDialogButtonBox.Apply
+                                |QDialogButtonBox.Cancel)
+        self.apply_btn = bbox.button(QDialogButtonBox.Apply)
+
+        # Widgets setup
+
         
         # Destroying the C++ object right after closing the dialog box,
         # otherwise it may be garbage-collected in another QThread
@@ -154,6 +172,7 @@ class ConfigDialog(QDialog):
         hsplitter.addWidget(self.pages_widget)
 
         btnlayout = QHBoxLayout()
+        btnlayout.addWidget(self.button_reset)
         btnlayout.addStretch(1)
         btnlayout.addWidget(bbox)
 
@@ -169,6 +188,15 @@ class ConfigDialog(QDialog):
         # Ensures that the config is present on spyder first run
         CONF.set('main', 'interface_language', load_lang_conf())
         
+        # Signals and slots
+        self.button_reset.clicked.connect(self.main.reset_spyder)
+        self.pages_widget.currentChanged.connect(self.current_page_changed)
+        self.contents_widget.currentRowChanged.connect(
+                                             self.pages_widget.setCurrentIndex)
+        bbox.accepted.connect(self.accept)
+        bbox.rejected.connect(self.reject)
+        bbox.clicked.connect(self.button_clicked)
+         
     def get_current_index(self):
         """Return current page index"""
         return self.contents_widget.currentRow()
