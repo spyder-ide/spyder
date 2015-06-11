@@ -149,6 +149,7 @@ class ConfigDialog(QDialog):
         # a segmentation fault on UNIX or an application crash on Windows
         self.setAttribute(Qt.WA_DeleteOnClose)
 
+        self.button_reset = QPushButton(_("Reset to defaults"))
         self.contents_widget = QListWidget()
         self.contents_widget.setMovement(QListView.Static)
         self.contents_widget.setSpacing(1)
@@ -184,6 +185,8 @@ class ConfigDialog(QDialog):
 
         self.setWindowTitle(_('Preferences'))
         self.setWindowIcon(ima.icon('configure'))
+
+        self.button_reset.clicked.connect(self.main.reset_spyder)
 
         # Ensures that the config is present on spyder first run
         CONF.set('main', 'interface_language', load_lang_conf())
