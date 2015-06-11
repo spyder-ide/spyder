@@ -446,7 +446,11 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         
     def stop_button_click_handler(self):
         self.stop_button.setDisabled(True)
-        self.interrupt_kernel()
+        # Interrupt computations or stop debugging
+        if not self.shellwidget._reading:
+            self.interrupt_kernel()
+        else:
+            self.shellwidget.write_to_stdin('exit')
 
     def show_kernel_error(self, error):
         """Show kernel initialization errors in infowidget"""
