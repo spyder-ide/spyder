@@ -17,6 +17,7 @@ import os.path as osp
 import subprocess
 import sys
 import time
+import traceback
 
 
 PY2 = sys.version[0] == '2'
@@ -157,7 +158,7 @@ def main():
             pid_reset = p.pid
         except Exception as error:
             print(command)
-            print(error)
+            traceback.print_exc()
             time.sleep(15)
 
         # Wait for reset process to end before restarting
