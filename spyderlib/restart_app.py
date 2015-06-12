@@ -181,7 +181,7 @@ def main():
     shell = os.name != 'nt'
 
     # Wait for original process to end before launching the new instance
-    for counter in range(range(60*5/SLEEP_TIME)):  # Number in seconds (60*5)
+    for counter in range(60*5/SLEEP_TIME):  # Number in seconds (60*5)
         if not is_pid_running(pid):
             break
         time.sleep(SLEEP_TIME)  # Throttling control
