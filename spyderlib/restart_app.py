@@ -193,8 +193,6 @@ def main():
 
     # Reset spyder if needed
     # -------------------------------------------------------------------------
-    reset_ok = True
-
     if reset:
         command_reset = '"{0}" "{1}" {2}'.format(python, spyder, args_reset)
 
@@ -214,18 +212,15 @@ def main():
         else:
             # The rest subprocess took too long and it is killed
             p.kill()
-            reset_ok = False
+            launch_error_message(type_=RESET_ERROR)
 
     # Restart
     # -------------------------------------------------------------------------
-    if reset_ok:
-        try:
-            p = subprocess.Popen(command, shell=shell, env=env)
-        except Exception as error:
-            p.kill()
-            launch_error_message(type_=RESTART_ERROR, error=error)
-    else:
-        launch_error_message(type_=RESET_ERROR)
+    try:
+        p = subprocess.Popen(command, shell=shell, env=env)
+    except Exception as error:
+        p.kill()
+        launch_error_message(type_=RESTART_ERROR, error=error)
 
 
 if __name__ == '__main__':
