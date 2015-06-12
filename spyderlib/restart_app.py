@@ -21,7 +21,8 @@ import time
 
 PY2 = sys.version[0] == '2'
 CLOSE_ERROR, RESET_ERROR, RESTART_ERROR = list(range(3))
-SLEEP_TIME = 0.2
+SLEEP_TIME = 0.2  # Seconds
+
 
 def _is_pid_running_on_windows(pid):
     """Check if a process is running on windows systems based on the pid."""
@@ -189,7 +190,6 @@ def main():
         launch_error_message(type_=CLOSE_ERROR)
 
     env = os.environ.copy()
-
 
     # Reset spyder if needed
     # -------------------------------------------------------------------------
