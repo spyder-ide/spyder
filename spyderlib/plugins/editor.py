@@ -21,8 +21,9 @@ from spyderlib.qt.QtCore import SIGNAL, QByteArray, Qt, Slot
 from spyderlib.qt.compat import to_qvariant, from_qvariant, getopenfilenames
 
 import os
-import time
 import re
+import sys
+import time
 import os.path as osp
 
 # Local imports
@@ -765,9 +766,15 @@ class Editor(SpyderPluginWidget):
         self.register_shortcut(run_selected_action, context="Editor",
                                name="Run selection")
 
+        if sys.platform == 'darwin':
+            run_cell_sc = Qt.META + Qt.Key_Return
+        else:
+            run_cell_sc = Qt.CTRL + Qt.Key_Return
+        run_cell_advance_sc = Qt.SHIFT + Qt.Key_Return
+
         run_cell_action = create_action(self,
                             _("Run cell"), icon='run_cell.png',
-                            shortcut=QKeySequence("Ctrl+Enter"),
+                            shortcut=QKeySequence(run_cell_sc),
                             tip=_("Run current cell (Ctrl+Enter)\n"
                                   "[Use #%% to create cells]"),
                             triggered=self.run_cell)
@@ -775,7 +782,7 @@ class Editor(SpyderPluginWidget):
         run_cell_advance_action = create_action(self,
                             _("Run cell and advance"),
                             icon='run_cell_advance.png',
-                            shortcut=QKeySequence("Shift+Enter"),
+                            shortcut=QKeySequence(run_cell_advance_sc),
                             tip=_("Run current cell and go to "
                                   "the next one (Shift+Enter)"),
                             triggered=self.run_cell_and_advance)
