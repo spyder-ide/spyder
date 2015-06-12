@@ -20,6 +20,7 @@ import time
 
 
 PY2 = sys.version[0] == '2'
+CLOSE_ERROR, RESET_ERROR, RESTART_ERROR = list(range(3))
 
 
 def _is_pid_running_on_windows(pid):
@@ -63,28 +64,27 @@ def is_pid_running(pid):
         return _is_pid_running_on_unix(pid)
 
 
-def error_message(type_, error=None):
+def launch_error_message(type_, error=None):
     """Launch a message box with a predefined error message.
 
     Parameters
     ----------
-    type : str ['close', 'reset', 'restart']
+    type : int [CLOSE_ERROR, RESET_ERROR, RESTART_ERROR]
     """
-    import spyderlib.utils.icon_manager as ima
     from spyderlib.baseconfig import _
     from spyderlib.qt.QtGui import QMessageBox, QDialog
+    from spyderlib.utils import icon_manager as ima
     from spyderlib.utils.qthelpers import qapplication
 
-    messages = {'close': _("The previous instance of Spyder has not closed."
-                             "\nRestart aborted."),
-                'reset': _("Spyder could not reset to factory defaults.\n"
-                           "Restart aborted."),
-                'restart': _("Spyder could not restart.\n"
-                             "Restart aborted.")}
-    titles = {'close': _("Spyder exit error"),
-              'reset': _("Spyder reset error"),
-              'restart': _("Spyder restart error")}
-
+    messages = {CLOSE_ERROR: _("The previous instance of Spyder has not "
+                               "closed.\nRestart aborted."),
+                RESET_ERROR: _("Spyder could not reset to factory defaults.\n"
+                               "Restart aborted."),
+                RESTART_ERROR: _("Spyder could not restart.\n"
+                                 "Restart aborted.")}
+    titles = {CLOSE_ERROR: _("Spyder exit error"),
+              RESET_ERROR: _("Spyder reset error"),
+              RESTART_ERROR: _("Spyder restart error")}
 
     if error:
         e = error.__repr__()
@@ -101,8 +101,8 @@ def error_message(type_, error=None):
     dlg = QDialog()
     dlg.setVisible(False)
     dlg.show()
-    QMessageBox.warning(None, title, message, QMessageBox.Ok)
-    raise Exception(message)
+    QMessageBox.warning(dlg, title, message, QMessageBox.Ok)
+    raise RuntimeError(message)
 
 
 # Note: Copied from py3compat because we can't rely on Spyder
@@ -143,7 +143,7 @@ def main():
     # Variables were stored as string literals in the environment, so to use
     # them we need to parse them in a safe manner.
     is_bootstrap = ast.literal_eval(is_bootstrap)
-    pid = int(pid)
+    pid = ast.literal_eval(pid)
     args = ast.literal_eval(spyder_args)
     reset = ast.literal_eval(reset)
 
@@ -180,25 +180,22 @@ def main():
     shell = os.name != 'nt'
 
     # Wait for original process to end before launching the new instance
-    max_counter = 1500  # Max loops to perform before aborting
-    counter = 0
-    while counter < max_counter:  # This is equivalent to ~ 5 minute (1500*0.2)
+    for counter in range(1500):  # This is equivalent to ~ 5 minute (1500*0.2)
         if not is_pid_running(pid):
             break
         time.sleep(0.2)  # Throttling control
-        counter += 1
-
-    if counter == max_counter:
-        error_message(type_='close')
+    else:
+        # The old spyder instance took too long to close and restart aborts
+        launch_error_message(type_=CLOSE_ERROR)
 
     env = os.environ.copy()
 
-    reset_ok = True
 
     # Reset spyder if needed
     # -------------------------------------------------------------------------
+    reset_ok = True
+
     if reset:
-        # Build reset command
         command_reset = '"{0}" "{1}" {2}'.format(python, spyder, args_reset)
 
         try:
@@ -207,18 +204,14 @@ def main():
             pid_reset = p.pid
         except Exception as error:
             p.kill()
-            error_message(type_='reset', error=error)
+            launch_error_message(type_=RESET_ERROR, error=error)
 
-        counter = 0
-        max_counter = 50
         # Wait for reset process to end before restarting
-        while counter < max_counter:  # This is ~= 10 seconds (50*0.2)
+        for counter in range(300):  # This is ~= 1 minute (300*0.2)
             if not is_pid_running(pid_reset):
                 break
             time.sleep(0.2)  # Throttling control
-            counter += 1
-
-        if counter == max_counter:
+        else:
             # The rest subprocess took too long and it is killed
             p.kill()
             reset_ok = False
@@ -226,14 +219,13 @@ def main():
     # Restart
     # -------------------------------------------------------------------------
     if reset_ok:
-        # Try to restart
         try:
             p = subprocess.Popen(command, shell=shell, env=env)
         except Exception as error:
             p.kill()
-            error_message(type_='restart', error=error)
+            launch_error_message(type_=RESTART_ERROR, error=error)
     else:
-        error_message(type_='reset')
+        launch_error_message(type_=RESET_ERROR)
 
 
 if __name__ == '__main__':
