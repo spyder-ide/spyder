@@ -21,7 +21,7 @@ import time
 
 PY2 = sys.version[0] == '2'
 CLOSE_ERROR, RESET_ERROR, RESTART_ERROR = list(range(3))
-
+SLEEP_TIME = 0.2
 
 def _is_pid_running_on_windows(pid):
     """Check if a process is running on windows systems based on the pid."""
@@ -69,7 +69,7 @@ def launch_error_message(type_, error=None):
 
     Parameters
     ----------
-    type : int [CLOSE_ERROR, RESET_ERROR, RESTART_ERROR]
+    type_ : int [CLOSE_ERROR, RESET_ERROR, RESTART_ERROR]
     """
     from spyderlib.baseconfig import _
     from spyderlib.qt.QtGui import QMessageBox, QDialog
@@ -180,10 +180,10 @@ def main():
     shell = os.name != 'nt'
 
     # Wait for original process to end before launching the new instance
-    for counter in range(1500):  # This is equivalent to ~ 5 minute (1500*0.2)
+    for counter in range(range(60*5/SLEEP_TIME)):  # Number in seconds (60*5)
         if not is_pid_running(pid):
             break
-        time.sleep(0.2)  # Throttling control
+        time.sleep(SLEEP_TIME)  # Throttling control
     else:
         # The old spyder instance took too long to close and restart aborts
         launch_error_message(type_=CLOSE_ERROR)
@@ -207,10 +207,10 @@ def main():
             launch_error_message(type_=RESET_ERROR, error=error)
 
         # Wait for reset process to end before restarting
-        for counter in range(300):  # This is ~= 1 minute (300*0.2)
+        for counter in range(60/SLEEP_TIME):  # Number in seconds (60)
             if not is_pid_running(pid_reset):
                 break
-            time.sleep(0.2)  # Throttling control
+            time.sleep(SLEEP_TIME)  # Throttling control
         else:
             # The rest subprocess took too long and it is killed
             p.kill()
