@@ -74,6 +74,7 @@ APP = [APP_MAIN_SCRIPT]
 DEPS = ['pylint', 'logilab', 'astroid', 'pep8', 'setuptools']
 EXCLUDES = DEPS + ['mercurial']
 PACKAGES = ['spyderlib', 'spyderplugins', 'sphinx', 'jinja2', 'docutils',
+            'alabaster', 'babel', 'snowballstemmer', 'sphinx_rtd_theme',
             'IPython', 'zmq', 'pygments', 'rope', 'distutils', 'PIL', 'PyQt4',
             'sklearn', 'skimage', 'pandas', 'sympy', 'pyflakes', 'psutil',
             'nose', 'patsy','statsmodels', 'seaborn', 'networkx']
