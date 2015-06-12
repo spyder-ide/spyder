@@ -106,7 +106,8 @@ from spyderlib.qt.QtGui import (QApplication, QMainWindow, QSplashScreen,
                                 QPixmap, QMessageBox, QMenu, QColor, QShortcut,
                                 QKeySequence, QDockWidget, QAction,
                                 QDesktopServices)
-from spyderlib.qt.QtCore import SIGNAL, QPoint, Qt, QSize, QByteArray, QUrl
+from spyderlib.qt.QtCore import (SIGNAL, QPoint, Qt, QSize, QByteArray, QUrl,
+                                 QCoreApplication)
 from spyderlib.qt.compat import (from_qvariant, getopenfilename,
                                  getsavefilename)
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms 
@@ -2272,6 +2273,10 @@ def run_spyder(app, options, args):
     if args:
         for a in args:
             main.open_external_file(a)
+
+    # Don't show icons in menus for Mac
+    if sys.platform == 'darwin':
+        QCoreApplication.setAttribute(Qt.AA_DontShowIconsInMenus, True)
 
     # Open external files with our Mac app
     if running_in_mac_app():
