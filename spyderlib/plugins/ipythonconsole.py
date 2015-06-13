@@ -33,7 +33,7 @@ import spyderlib.utils.icon_manager as ima
 
 # IPython imports
 from IPython.core.application import get_ipython_dir
-from IPython.lib.kernel import find_connection_file
+from IPython.kernel.connect import find_connection_file
 from IPython.qt.manager import QtKernelManager
 
 # Ssh imports
