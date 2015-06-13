@@ -181,7 +181,8 @@ def main():
     shell = os.name != 'nt'
 
     # Wait for original process to end before launching the new instance
-    for counter in range(60*5/SLEEP_TIME):  # Number in seconds (60*5)
+    wait_time = 60*5  # Seconds
+    for counter in range(int(wait_time/SLEEP_TIME)):
         if not is_pid_running(pid):
             break
         time.sleep(SLEEP_TIME)  # Throttling control
@@ -191,21 +192,22 @@ def main():
 
     env = os.environ.copy()
 
-    # Reset spyder if needed
+    # Reset Spyder (if required)
     # -------------------------------------------------------------------------
     if reset:
         command_reset = '"{0}" "{1}" {2}'.format(python, spyder, args_reset)
 
         try:
             p = subprocess.Popen(command_reset, shell=shell)
+        except Exception as error:
+            launch_error_message(type_=RESET_ERROR, error=error)
+        else:
             p.communicate()
             pid_reset = p.pid
-        except Exception as error:
-            p.kill()
-            launch_error_message(type_=RESET_ERROR, error=error)
 
         # Wait for reset process to end before restarting
-        for counter in range(60/SLEEP_TIME):  # Number in seconds (60)
+        wait_time = 60  # Seconds
+        for counter in range(int(wait_time/SLEEP_TIME)):
             if not is_pid_running(pid_reset):
                 break
             time.sleep(SLEEP_TIME)  # Throttling control
@@ -219,7 +221,6 @@ def main():
     try:
         p = subprocess.Popen(command, shell=shell, env=env)
     except Exception as error:
-        p.kill()
         launch_error_message(type_=RESTART_ERROR, error=error)
 
 
