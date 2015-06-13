@@ -1058,8 +1058,6 @@ class IPythonConsole(SpyderPluginWidget):
         # Verifying if the connection file exists
         cf = osp.basename(cf)
         try:
-            if not cf.startswith('kernel') and not cf.endswith('json'):
-                cf = to_text_string('kernel-' + cf + '.json')
             find_connection_file(cf, profile='default')
         except (IOError, UnboundLocalError):
             QMessageBox.critical(self, _('IPython'),
