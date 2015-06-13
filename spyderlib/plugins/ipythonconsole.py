@@ -1068,7 +1068,8 @@ class IPythonConsole(SpyderPluginWidget):
         master_name = None
         slave_ord = ord('A') - 1
         for cl in self.get_clients():
-            if cf == cl.connection_file:
+            if cf in cl.connection_file:
+                cf = cl.connection_file
                 if master_name is None:
                     master_name = cl.name.split('/')[0]
                 new_slave_ord = ord(cl.name.split('/')[1])
