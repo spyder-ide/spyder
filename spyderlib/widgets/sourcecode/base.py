@@ -460,6 +460,17 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         else:
             return super(TextEditBaseWidget, self).toPlainText()
 
+    def keyPressEvent(self, event):
+        text, key = event.text(), event.key()
+        ctrl = event.modifiers() & Qt.ControlModifier
+        meta = event.modifiers() & Qt.MetaModifier
+        # Use our own copy method for {Ctrl,Cmd}+C to avoid Qt
+        # copying text in HTML (See Issue 2285)
+        if (ctrl or meta) and key == Qt.Key_C:
+            self.copy()
+        else:
+            super(TextEditBaseWidget, self).keyPressEvent(event)
+
     #------Text: get, set, ...
     def get_selection_as_executable_code(self):
         """Return selected text as a processed text,
