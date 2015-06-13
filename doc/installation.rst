@@ -22,7 +22,8 @@ two alternatives:
 
   .. note::
    
-     The minimal MacOS X version to run our dmg is Lion (10.7)
+     The minimal MacOS X version to run our dmg is Mavericks (10.9) since
+     Spyder 2.3.5. Previous versions work on Lion (10.7) or higher.
 
 
 The hard way
