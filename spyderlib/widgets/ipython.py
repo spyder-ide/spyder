@@ -367,7 +367,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
     IPython client or frontend for Spyder
 
     This is a widget composed of a shell widget (i.e. RichIPythonWidget
-    + our additions = IPythonShellWidget) and an WebView info widget to 
+    + our additions = IPythonShellWidget) and a WebView info widget to 
     print kernel error and other messages.
     """
     
@@ -455,6 +455,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
 
     @Slot()
     def stop_button_click_handler(self):
+        """Method to handle what to do when the stop button is pressed"""
         self.stop_button.setDisabled(True)
         # Interrupt computations or stop debugging
         if not self.shellwidget._reading:
@@ -489,6 +490,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         self.infowidget.setHtml(page)
     
     def show_restart_animation(self):
+        """Show loading_page while restarting the kernel"""
         self.shellwidget.hide()
         self.infowidget.setHtml(self.loading_page)
         self.infowidget.show()
@@ -581,6 +583,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         self.shellwidget.font = font
     
     def set_infowidget_font(self):
+        """Set font for infowidget"""
         font = get_font('inspector', 'rich_text')
         self.infowidget.set_font(font)
     
@@ -621,6 +624,10 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         self.history = self.shellwidget._history
     
     def set_backend_for_mayavi(self, command):
+        """
+        Mayavi plots require the Qt backend, so we try to detect if one is
+        generated to change backends
+        """
         calling_mayavi = False
         lines = command.splitlines()
         for l in lines:
@@ -661,7 +668,8 @@ class IPythonClient(QWidget, SaveHistoryMixin):
             self.namespacebrowser.refresh_table()
     
     def shellwidget_config(self):
-        """Generate a Config instance for shell widgets using our config
+        """
+        Generate a Config instance for shell widgets using our config
         system
         
         This lets us create each widget with its own config (as opposed to
@@ -720,6 +728,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
     
     #------ Private API -------------------------------------------------------
     def _create_loading_page(self):
+        """Create html page to show while the kernel is created"""
         loading_template = Template(LOADING)
         loading_img = get_image_path('loading_sprites.png')
         if os.name == 'nt':
