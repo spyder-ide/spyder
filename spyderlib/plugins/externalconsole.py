@@ -29,7 +29,7 @@ import subprocess
 # Local imports
 from spyderlib.baseconfig import SCIENTIFIC_STARTUP, running_in_mac_app, _
 from spyderlib.config import CONF
-from spyderlib.utils import programs
+from spyderlib.utils import encoding, programs
 from spyderlib.utils.misc import (get_error_match, get_python_executable,
                                   remove_backslashes, is_python_script)
 from spyderlib.utils.qthelpers import get_icon, create_action, mimedata2url
@@ -668,8 +668,9 @@ class ExternalConsole(SpyderPluginWidget):
         """Set current shell working directory"""
         shellwidget = self.__find_python_shell()
         if shellwidget is not None:
-            shellwidget.shell.set_cwd(to_text_string(directory))
-        
+            directory = encoding.to_unicode_from_fs(directory)
+            shellwidget.shell.set_cwd(directory)
+
     def execute_python_code(self, lines, interpreter_only=False):
         """Execute Python code in an already opened Python interpreter"""
         shellwidget = self.__find_python_shell(
