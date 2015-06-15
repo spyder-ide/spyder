@@ -757,13 +757,13 @@ class ShortcutsConfigPage(GeneralConfigPage):
         vlayout = QVBoxLayout()
         hlayout.addWidget(self.label_finder)
         hlayout.addWidget(self.finder)
-        vlayout.addLayout(hlayout)
         vlayout.addWidget(self.table)
+        vlayout.addLayout(hlayout)
         vlayout.addWidget(self.reset_btn)
         self.setLayout(vlayout)
 
-        self.setTabOrder(self.finder, self.table)
-        self.setTabOrder(self.table, self.reset_btn)
+        self.setTabOrder(self.table, self.finder)
+        self.setTabOrder(self.finder, self.reset_btn)
 
         # Signals and slots
         self.table.proxy_model.dataChanged.connect(
