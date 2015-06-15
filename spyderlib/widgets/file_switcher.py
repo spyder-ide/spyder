@@ -252,10 +252,6 @@ class FileSwitcher(QDialog):
                   top + self.tabs.tabBar().geometry().height() + 1)
         # Note: the +1px on the top makes it look a little better
 
-    def focusOutEvent(self, evt):
-        QDialog.focusOutEvent(self)
-        self.accept()
-
     def filtered_index_to_full(self, idx):
         """ Note we assume idx is valid and the two mappings are valid
         """
