@@ -721,9 +721,9 @@ class ShortcutsTable(QTableView):
         if key in [Qt.Key_Enter, Qt.Key_Return]:
             self.show_editor()
         elif key in [Qt.Key_Tab]:
-            self.parent().reset_btn.setFocus()
-        elif key in [Qt.Key_Backtab]:
             self.finder.setFocus()
+        elif key in [Qt.Key_Backtab]:
+            self.parent().reset_btn.setFocus()
         elif key in [Qt.Key_Up, Qt.Key_Down, Qt.Key_Left, Qt.Key_Right]:
             super(ShortcutsTable, self).keyPressEvent(event)
         elif key not in [Qt.Key_Escape, Qt.Key_Space]:
