@@ -11,7 +11,6 @@
 #
 # make sure to run this from the top level spyder repo dir in order to catch
 # all the png files
-cd $(dirname $0)/..
 echo "Searching recursively for all png files in:" `pwd`
 # fix all png files in the current directory (and sub-dirs) using ImageMagick:
 find . -type f -name "*.png" -exec convert {} -strip {} \;
