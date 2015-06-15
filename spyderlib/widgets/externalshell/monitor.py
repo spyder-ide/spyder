@@ -405,15 +405,11 @@ class Monitor(threading.Thread):
     def getcwd(self):
         """Return current working directory"""
         return getcwd()
-    
+
     def setcwd(self, dirname):
         """Set current working directory"""
-        try:
-            dirname = dirname.decode('utf-8')
-        except (UnicodeError, TypeError):
-            pass
         return os.chdir(dirname)
-            
+
     def getenv(self):
         """Return os.environ"""
         return os.environ.copy()
