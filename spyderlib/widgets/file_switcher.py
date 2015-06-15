@@ -21,7 +21,6 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QHBoxLayout,
 from spyderlib.baseconfig import _
 from spyderlib.guiconfig import new_shortcut
 from spyderlib.py3compat import to_text_string
-from spyderlib.utils.qthelpers import get_std_icon
 from spyderlib.widgets.helperwidgets import HelperToolButton
 
 
@@ -197,17 +196,6 @@ class FileSwitcher(QDialog):
 
         edit_layout.addWidget(self.edit)
         self.button_help = HelperToolButton()
-        self.button_help.setIcon(get_std_icon('MessageBoxInformation'))
-        style = """
-            QToolButton {
-              border: 1px solid grey;
-              padding:0px;
-              border-radius: 2px;
-              background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                  stop: 0 #f6f7fa, stop: 1 #dadbde);
-            }
-            """
-        self.button_help.setStyleSheet(style)
         help_str = _("""
             Press <b>Enter</b> to switch files or <b>Esc</b> to cancel.<br><br>
             Type to filter filenames.<br><br>
