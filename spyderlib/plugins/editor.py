@@ -917,13 +917,14 @@ class Editor(SpyderPluginWidget):
         fixindentation_action = create_action(self, _("Fix indentation"),
                       tip=_("Replace tab characters by space characters"),
                       triggered=self.fix_indentation)
+
         gotoline_action = create_action(self, _("Go to line..."),
                                         icon=ima.icon('gotoline'),
-
                                         triggered=self.go_to_line,
                                         context=Qt.WidgetShortcut)
         self.register_shortcut(gotoline_action, context="Editor",
                                name="Go to line")
+
         workdir_action = create_action(self,
                 _("Set console working directory"),
                 icon=ima.icon('DirOpenIcon'),
