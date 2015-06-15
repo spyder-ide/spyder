@@ -25,7 +25,7 @@ from spyderlib.utils.qthelpers import get_std_icon
 from spyderlib.widgets.helperwidgets import HelperToolButton
 
 
-def shorten_paths(path_list):
+def shorten_paths(path_list, is_unsaved):
     """
     Takes a list of paths and tries to "intelligently" shorten them all.  The
     aim is to make it clear to the user where the paths differ, as that is
@@ -42,10 +42,14 @@ def shorten_paths(path_list):
     # and start building the new_path using the drive
     path_list = path_list[:]  # clone locally
     new_path_list = []
-    for ii, path in enumerate(path_list):
-        drive, path = osp.splitdrive(osp.dirname(path))
-        new_path_list.append(drive + osp.sep)
-        path_list[ii] = [part for part in path.split(osp.sep) if part]
+    for ii, (path, is_unsav) in enumerate(zip(path_list, is_unsaved)):
+        if is_unsav:
+            new_path_list.append(_('unsaved file'))
+            path_list[ii] = None
+        else:
+            drive, path = osp.splitdrive(osp.dirname(path))
+            new_path_list.append(drive + osp.sep)
+            path_list[ii] = [part for part in path.split(osp.sep) if part]
 
     def recurse_level(level_idx):
         # if toks are all empty we need not have reucrsed here
@@ -112,7 +116,7 @@ def shorten_paths(path_list):
                 del level_idx[idx]
             recurse_level({idx: toks[k:] for idx, toks in group.items()})
 
-    recurse_level(dict(enumerate(path_list)))
+    recurse_level({i: pl for i, pl in enumerate(path_list) if pl})
     return [path.rstrip(os.sep) for path in new_path_list]
 
 
@@ -214,11 +218,9 @@ class FileSwitcher(QDialog):
             """
         self.button_help.setStyleSheet(style)
         help_str = _("""
-            Press <b>Enter</b> to switch files.<br>
-            Or <b>Esc</b> to cancel.<br>
-            Type to filter filenames.<br>
-            Use <b>:number</b> to go to a line,<br>
-            e.g. 'main:42'.<br>
+            Press <b>Enter</b> to switch files or <b>Esc</b> to cancel.<br><br>
+            Type to filter filenames.<br><br>
+            Use <b>:number</b> to go to a line, e.g. 'main:42'.<br><br>
             Press <b>Ctrl+W</b> to close current tab.
             """)
         self.button_help.setToolTip(help_str)
@@ -349,8 +351,11 @@ class FileSwitcher(QDialog):
                                        for td in self.tab_data]
             current_path = self.original_path = \
                 self.full_index_to_path[stack_index]
+            full_index_to_is_unsaved = [getattr(td, 'newly_created', False)
+                                        for td in self.tab_data]
             self.full_index_to_short_path = \
-                shorten_paths(self.full_index_to_path)
+                shorten_paths(self.full_index_to_path,
+                              full_index_to_is_unsaved)
             self.path_to_line_count = None  # we only get this on demand
         else:
             current_path = self.current_path()  # could be None
