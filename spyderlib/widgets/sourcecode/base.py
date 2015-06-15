@@ -79,6 +79,7 @@ class CompletionWidget(QListWidget):
                      'class': 'class',
                      'module': 'module'}
 
+        self.type_list = types
         if any(types):
             for (c, t) in zip(completion_list, types):
                 icon = icons_map.get(t, 'no_match')
@@ -155,6 +156,11 @@ class CompletionWidget(QListWidget):
         if (key in (Qt.Key_Return, Qt.Key_Enter) and self.enter_select) \
            or key == Qt.Key_Tab:
             self.item_selected()
+            if self.type_list[self.currentRow()] not in ['class', 'function',
+                                                         'method']:
+                return
+            if self.textedit.close_parentheses_enabled:
+                self.textedit.handle_close_parentheses('')
         elif key in (Qt.Key_Return, Qt.Key_Enter,
                      Qt.Key_Left, Qt.Key_Right) or text in ('.', ':'):
             self.hide()
