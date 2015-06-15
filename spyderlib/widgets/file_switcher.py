@@ -179,17 +179,8 @@ class FileSwitcher(QDialog):
 
     def __init__(self, parent, tabs, tab_data):
         QDialog.__init__(self, parent)
-
-        # Destroying the C++ object right after closing the dialog box,
-        # otherwise it may be garbage-collected in another QThread
-        # (e.g. the editor's analysis thread in Spyder), thus leading to
-        # a segmentation fault on UNIX or an application crash on Windows
-        self.setAttribute(Qt.WA_DeleteOnClose)
-
-        self.setWindowFlags(Qt.Dialog | Qt.FramelessWindowHint)
+        self.setWindowFlags(Qt.Popup | Qt.FramelessWindowHint)
         self.setWindowOpacity(0.9)
-        self.setModal(True)
-
         self.tabs = tabs
         self.tab_data = tab_data
         self.filtered_index_to_path = None
@@ -250,6 +241,12 @@ class FileSwitcher(QDialog):
         vlayout.addWidget(self.listwidget)
         self.setLayout(vlayout)
 
+    def show(self, stack_index):
+        QDialog.show(self)
+        self.edit.setText("")
+        self.synchronize(stack_index)
+
+        parent = self.parent()
         self.edit.selectAll()
         self.edit.setFocus()
         geo = parent.geometry()
@@ -266,6 +263,10 @@ class FileSwitcher(QDialog):
         self.move(left,
                   top + self.tabs.tabBar().geometry().height() + 1)
         # Note: the +1px on the top makes it look a little better
+
+    def focusOutEvent(self, evt):
+        QDialog.focusOutEvent(self)
+        self.accept()
 
     def filtered_index_to_full(self, idx):
         """ Note we assume idx is valid and the two mappings are valid
