@@ -610,11 +610,13 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             combobox.addItem(name, to_qvariant(key))
         self.comboboxes[combobox] = (option, default)
         layout = QHBoxLayout()
-        for subwidget in (label, combobox):
-            layout.addWidget(subwidget)
+        layout.addWidget(label)
+        layout.addWidget(combobox)
         layout.addStretch(1)
         layout.setContentsMargins(0, 0, 0, 0)
         widget = QWidget(self)
+        widget.label = label
+        widget.combobox = combobox
         widget.setLayout(layout)
         combobox.restart_required = restart
         combobox.label_text = text
@@ -736,6 +738,12 @@ class MainConfigPage(GeneralConfigPage):
         icons_combo = self.create_combobox(_('Icon theme'), icon_choices,
                                            'icon_theme', restart=True)
 
+        languages = LANGUAGE_CODES.items()
+        language_choices = sorted([(val, key) for key, val in languages])
+        language_combo = self.create_combobox(_('Language'), language_choices,
+                                              'interface_language',
+                                              restart=True)
+
         single_instance_box = newcb(_("Use a single instance"),
                                     'single_instance',
                                     tip=_("Set this to open external<br> "
@@ -761,21 +769,25 @@ class MainConfigPage(GeneralConfigPage):
         margins_layout.addWidget(margin_spin)
         prompt_box = newcb(_("Prompt when exiting"), 'prompt_on_exit')
 
-        # Language chooser
-        choices = sorted([(val, key) for key, val in LANGUAGE_CODES.items()])
-        language_combo = self.create_combobox(_('Language'), choices,
-                                              'interface_language',
-                                              restart=True)
-
         # Decide if it's possible to activate or not singie instance mode
         if running_in_mac_app():
             self.set_option("single_instance", True)
             single_instance_box.setEnabled(False)
 
+        # Layout interface
+        comboboxes_layout = QHBoxLayout()
+        cbs_layout = QGridLayout()
+        cbs_layout.addWidget(style_combo.label, 0, 0)
+        cbs_layout.addWidget(style_combo.combobox, 0, 1)
+        cbs_layout.addWidget(icons_combo.label, 1, 0)
+        cbs_layout.addWidget(icons_combo.combobox, 1, 1)
+        cbs_layout.addWidget(language_combo.label, 2, 0)
+        cbs_layout.addWidget(language_combo.combobox, 2, 1)
+        comboboxes_layout.addLayout(cbs_layout)
+        comboboxes_layout.addStretch(1)
+        
         interface_layout = QVBoxLayout()
-        interface_layout.addWidget(style_combo)
-        interface_layout.addWidget(icons_combo)
-        interface_layout.addWidget(language_combo)
+        interface_layout.addLayout(comboboxes_layout)
         interface_layout.addWidget(single_instance_box)
         interface_layout.addWidget(vertdock_box)
         interface_layout.addWidget(verttabs_box)
@@ -795,20 +807,18 @@ class MainConfigPage(GeneralConfigPage):
                                           min_=100, max_=1000000, step=100)
         memory_box.toggled.connect(memory_spin.setEnabled)
         memory_spin.setEnabled(self.get_option('memory_usage/enable'))
-        memory_layout = QHBoxLayout()
-        memory_layout.addWidget(memory_box)
-        memory_layout.addWidget(memory_spin)
-        memory_layout.setEnabled(self.main.mem_status.is_supported())
+        memory_box.setEnabled(self.main.mem_status.is_supported())
+        memory_spin.setEnabled(self.main.mem_status.is_supported())
+
         cpu_box = newcb(_("Show CPU usage every"), 'cpu_usage/enable',
                         tip=self.main.cpu_status.toolTip())
         cpu_spin = self.create_spinbox("", " ms", 'cpu_usage/timeout',
                                        min_=100, max_=1000000, step=100)
         cpu_box.toggled.connect(cpu_spin.setEnabled)
         cpu_spin.setEnabled(self.get_option('cpu_usage/enable'))
-        cpu_layout = QHBoxLayout()
-        cpu_layout.addWidget(cpu_box)
-        cpu_layout.addWidget(cpu_spin)
-        cpu_layout.setEnabled(self.main.cpu_status.is_supported())
+
+        cpu_box.setEnabled(self.main.cpu_status.is_supported())
+        cpu_spin.setEnabled(self.main.cpu_status.is_supported())
         
         status_bar_o = self.get_option('show_status_bar')
         show_status_bar.toggled.connect(memory_box.setEnabled)
@@ -820,10 +830,16 @@ class MainConfigPage(GeneralConfigPage):
         cpu_box.setEnabled(status_bar_o)
         cpu_spin.setEnabled(status_bar_o)
 
+        # Layout status bar
+        cpu_memory_layout = QGridLayout()
+        cpu_memory_layout.addWidget(memory_box, 0, 0)
+        cpu_memory_layout.addWidget(memory_spin, 0, 1)
+        cpu_memory_layout.addWidget(cpu_box, 1, 0)
+        cpu_memory_layout.addWidget(cpu_spin, 1, 1)
+
         sbar_layout = QVBoxLayout()
         sbar_layout.addWidget(show_status_bar)
-        sbar_layout.addLayout(memory_layout)
-        sbar_layout.addLayout(cpu_layout)
+        sbar_layout.addLayout(cpu_memory_layout)
         sbar_group.setLayout(sbar_layout)
 
         # --- Debugging
