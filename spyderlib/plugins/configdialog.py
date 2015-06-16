@@ -518,12 +518,15 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
     
     def create_spinbox(self, prefix, suffix, option, default=NoDefault,
                        min_=None, max_=None, step=None, tip=None):
+        widget = QWidget(self)
         if prefix:
             plabel = QLabel(prefix)
+            widget.plabel = plabel
         else:
             plabel = None
         if suffix:
             slabel = QLabel(suffix)
+            widget.slabel = slabel
         else:
             slabel = None
         if step is not None:
@@ -548,7 +551,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                 layout.addWidget(subwidget)
         layout.addStretch(1)
         layout.setContentsMargins(0, 0, 0, 0)
-        widget = QWidget(self)
+        widget.spinbox = spinbox
         widget.setLayout(layout)
         return widget
     
@@ -769,7 +772,7 @@ class MainConfigPage(GeneralConfigPage):
         margins_layout.addWidget(margin_spin)
         prompt_box = newcb(_("Prompt when exiting"), 'prompt_on_exit')
 
-        # Decide if it's possible to activate or not singie instance mode
+        # Decide if it's possible to activate or not single instance mode
         if running_in_mac_app():
             self.set_option("single_instance", True)
             single_instance_box.setEnabled(False)

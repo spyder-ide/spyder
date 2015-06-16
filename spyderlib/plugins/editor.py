@@ -17,7 +17,7 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QPrintDialog, QSplitter, QToolBar,
                                 QPrinter, QActionGroup, QInputDialog, QMenu,
                                 QAbstractPrintDialog, QGroupBox, QTabWidget,
                                 QLabel, QFontComboBox, QHBoxLayout,
-                                QKeySequence)
+                                QKeySequence, QGridLayout)
 from spyderlib.qt.QtCore import Signal, QByteArray, Qt, Slot
 from spyderlib.qt.compat import to_qvariant, from_qvariant, getopenfilenames
 import spyderlib.utils.icon_manager as ima
@@ -123,9 +123,7 @@ class EditorConfigPage(PluginConfigPage):
                                             'edge_line_column', 79, 1, 500)
         edgeline_box.toggled.connect(edgeline_spin.setEnabled)
         edgeline_spin.setEnabled(self.get_option('edge_line'))
-        edgeline_layout = QHBoxLayout()
-        edgeline_layout.addWidget(edgeline_box)
-        edgeline_layout.addWidget(edgeline_spin)
+
         currentline_box = newcb(_("Highlight current line"),
                                 'highlight_current_line')
         currentcell_box = newcb(_("Highlight current cell"),
@@ -137,25 +135,31 @@ class EditorConfigPage(PluginConfigPage):
                                              min_=100, max_=1000000, step=100)
         occurence_box.toggled.connect(occurence_spin.setEnabled)
         occurence_spin.setEnabled(self.get_option('occurence_highlighting'))
-        occurence_layout = QHBoxLayout()
-        occurence_layout.addWidget(occurence_box)
-        occurence_layout.addWidget(occurence_spin)
+
         wrap_mode_box = newcb(_("Wrap lines"), 'wrap')
         names = CONF.get('color_schemes', 'names')
         choices = list(zip(names, names))
         cs_combo = self.create_combobox(_("Syntax color scheme: "),
                                         choices, 'color_scheme_name')
         
-        display_layout = QVBoxLayout()
-        display_layout.addWidget(linenumbers_box)
-        display_layout.addWidget(blanks_box)
-        display_layout.addLayout(edgeline_layout)
-        display_layout.addWidget(currentline_box)
-        display_layout.addWidget(currentcell_box)
-        display_layout.addLayout(occurence_layout)
-        display_layout.addWidget(wrap_mode_box)
-        display_layout.addWidget(cs_combo)
-        display_group.setLayout(display_layout)
+        display_layout = QGridLayout()
+        display_layout.addWidget(linenumbers_box, 0, 0)
+        display_layout.addWidget(blanks_box, 1, 0)
+        display_layout.addWidget(edgeline_box, 2, 0)
+        display_layout.addWidget(edgeline_spin.spinbox, 2, 1)
+        display_layout.addWidget(edgeline_spin.slabel, 2, 2)
+        display_layout.addWidget(currentline_box, 3, 0)
+        display_layout.addWidget(currentcell_box, 4, 0)
+        display_layout.addWidget(occurence_box, 5, 0)
+        display_layout.addWidget(occurence_spin.spinbox, 5, 1)
+        display_layout.addWidget(occurence_spin.slabel, 5, 2)
+        display_layout.addWidget(wrap_mode_box, 6, 0)
+        display_layout.addWidget(cs_combo.label, 7, 0)
+        display_layout.addWidget(cs_combo.combobox, 7, 1)
+        display_h_layout = QHBoxLayout()
+        display_h_layout.addLayout(display_layout)
+        display_h_layout.addStretch(1)
+        display_group.setLayout(display_h_layout)
 
         run_group = QGroupBox(_("Run"))
         saveall_box = newcb(_("Save all files before running script"),
@@ -295,8 +299,16 @@ class EditorConfigPage(PluginConfigPage):
         sourcecode_layout.addWidget(autounindent_box)
         sourcecode_layout.addWidget(add_colons_box)
         sourcecode_layout.addWidget(close_quotes_box)
-        sourcecode_layout.addWidget(indent_chars_box)
-        sourcecode_layout.addWidget(tabwidth_spin)
+        indent_tab_layout = QHBoxLayout()
+        indent_tab_grid_layout = QGridLayout()
+        indent_tab_grid_layout.addWidget(indent_chars_box.label, 0, 0)
+        indent_tab_grid_layout.addWidget(indent_chars_box.combobox, 0, 1)
+        indent_tab_grid_layout.addWidget(tabwidth_spin.plabel, 1, 0)
+        indent_tab_grid_layout.addWidget(tabwidth_spin.spinbox, 1, 1)
+        indent_tab_grid_layout.addWidget(tabwidth_spin.slabel, 1, 2)
+        indent_tab_layout.addLayout(indent_tab_grid_layout)
+        indent_tab_layout.addStretch(1)
+        sourcecode_layout.addLayout(indent_tab_layout)
         sourcecode_layout.addWidget(tab_mode_box)
         sourcecode_layout.addWidget(ibackspace_box)
         sourcecode_layout.addWidget(removetrail_box)
