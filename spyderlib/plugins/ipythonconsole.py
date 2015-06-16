@@ -27,6 +27,7 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QHBoxLayout, QFormLayout,
                                 QDialog, QTabWidget, QFontComboBox, 
                                 QCheckBox, QApplication, QLabel,QLineEdit,
                                 QPushButton, QKeySequence, QWidget)
+                                QPushButton, QKeySequence, QGridLayout)
 from spyderlib.qt.compat import getopenfilename
 from spyderlib.qt.QtCore import Signal, Slot, Qt
 import spyderlib.utils.icon_manager as ima
@@ -300,13 +301,25 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                           'pylab/inline/height', min_=1, max_=20, step=1,
                           tip=_("Default is 4"))
         
-        inline_layout = QVBoxLayout()
-        inline_layout.addWidget(inline_label)
-        inline_layout.addWidget(format_box)
-        inline_layout.addWidget(resolution_spin)
-        inline_layout.addWidget(width_spin)
-        inline_layout.addWidget(height_spin)
-        inline_group.setLayout(inline_layout)
+        inline_v_layout = QVBoxLayout()
+        inline_v_layout.addWidget(inline_label)
+        inline_layout = QGridLayout()
+        inline_layout.addWidget(format_box.label, 1, 0)
+        inline_layout.addWidget(format_box.combobox, 1, 1)
+        inline_layout.addWidget(resolution_spin.plabel, 2, 0)
+        inline_layout.addWidget(resolution_spin.spinbox, 2, 1)
+        inline_layout.addWidget(resolution_spin.slabel, 2, 2)
+        inline_layout.addWidget(width_spin.plabel, 3, 0)
+        inline_layout.addWidget(width_spin.spinbox, 3, 1)
+        inline_layout.addWidget(width_spin.slabel, 3, 2)
+        inline_layout.addWidget(height_spin.plabel, 4, 0)
+        inline_layout.addWidget(height_spin.spinbox, 4, 1)
+        inline_layout.addWidget(height_spin.slabel, 4, 2)
+        inline_h_layout = QHBoxLayout()
+        inline_h_layout.addLayout(inline_layout)
+        inline_h_layout.addStretch(1)
+        inline_v_layout.addLayout(inline_h_layout)
+        inline_group.setLayout(inline_v_layout)
         inline_group.setEnabled(self.get_option('pylab') and mpl_present)
         pylab_box.toggled.connect(inline_group.setEnabled)
 
@@ -613,15 +626,7 @@ class IPythonConsole(SpyderPluginWidget):
                      
         self.tabwidget.set_close_function(self.close_client)
 
-        if sys.platform == 'darwin':
-            tab_container = QWidget()
-            tab_container.setObjectName('tab-container')
-            tab_layout = QHBoxLayout(tab_container)
-            tab_layout.setContentsMargins(0, 0, 0, 0)
-            tab_layout.addWidget(self.tabwidget)
-            layout.addWidget(tab_container)
-        else:
-            layout.addWidget(self.tabwidget)
+        layout.addWidget(self.tabwidget)
 
         # Find/replace widget
         self.find_widget = FindReplace(self)
@@ -1015,7 +1020,7 @@ class IPythonConsole(SpyderPluginWidget):
                                          hostname=None, sshkey=None,
                                          password=None):
         """Create kernel manager and client"""
-        cf = find_connection_file(connection_file)
+        cf = find_connection_file(connection_file, profile='default')
         kernel_manager = QtKernelManager(connection_file=cf, config=None)
         kernel_client = kernel_manager.client()
         kernel_client.load_connection_file()
@@ -1066,7 +1071,9 @@ class IPythonConsole(SpyderPluginWidget):
         # Verifying if the connection file exists
         cf = osp.basename(cf)
         try:
-            find_connection_file(cf)
+            if not cf.startswith('kernel') and not cf.endswith('json'):
+                cf = to_text_string('kernel-' + cf + '.json')
+            find_connection_file(cf, profile='default')
         except (IOError, UnboundLocalError):
             QMessageBox.critical(self, _('IPython'),
                                  _("Unable to connect to IPython <b>%s") % cf)
@@ -1077,8 +1084,7 @@ class IPythonConsole(SpyderPluginWidget):
         master_name = None
         slave_ord = ord('A') - 1
         for cl in self.get_clients():
-            if cf in cl.connection_file:
-                cf = cl.connection_file
+            if cf == cl.connection_file:
                 if master_name is None:
                     master_name = cl.name.split('/')[0]
                 new_slave_ord = ord(cl.name.split('/')[1])
