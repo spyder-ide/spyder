@@ -33,7 +33,7 @@ import spyderlib.utils.icon_manager as ima
 
 # IPython imports
 from IPython.core.application import get_ipython_dir
-from IPython.lib.kernel import find_connection_file
+from IPython.kernel.connect import find_connection_file
 from IPython.qt.manager import QtKernelManager
 
 # Ssh imports
@@ -1007,7 +1007,7 @@ class IPythonConsole(SpyderPluginWidget):
                                          hostname=None, sshkey=None,
                                          password=None):
         """Create kernel manager and client"""
-        cf = find_connection_file(connection_file, profile='default')
+        cf = find_connection_file(connection_file)
         kernel_manager = QtKernelManager(connection_file=cf, config=None)
         kernel_client = kernel_manager.client()
         kernel_client.load_connection_file()
@@ -1058,7 +1058,7 @@ class IPythonConsole(SpyderPluginWidget):
         # Verifying if the connection file exists
         cf = osp.basename(cf)
         try:
-            find_connection_file(cf, profile='default')
+            find_connection_file(cf)
         except (IOError, UnboundLocalError):
             QMessageBox.critical(self, _('IPython'),
                                  _("Unable to connect to IPython <b>%s") % cf)
