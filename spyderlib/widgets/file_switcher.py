@@ -8,6 +8,7 @@
 from __future__ import print_function
 import os
 import os.path as osp
+import re
 
 from spyderlib.qt.QtCore import Signal, Qt, QObject, QSize, QEvent
 from spyderlib.qt.QtGui import (QVBoxLayout, QHBoxLayout,
@@ -117,6 +118,25 @@ def shorten_paths(path_list, is_unsaved):
 
     recurse_level({i: pl for i, pl in enumerate(path_list) if pl})
     return [path.rstrip(os.sep) for path in new_path_list]
+
+
+def BuildFuzzyFormatter(needle):
+    """Matches on the first occurance of the letters in needle in order,
+    wrapping those letters with <b></b> tags. If no match is found None
+    is returend.
+    """
+    re_exons = re.compile(''.join("([^" + re.escape(c) + "]*)" + re.escape(c)
+                                  for c in needle) + '(.*)')
+
+    def func(text):
+        exons = re_exons.match(text)
+        if not exons:
+            return
+        exons = exons.groups()
+        ret = ''.join(e + i for e, i in
+                      zip(exons, ['<b>' + c + '</b>'for c in needle]))
+        return ret + exons[-1]
+    return func
 
 
 class HTMLDelegate(QStyledItemDelegate):
@@ -278,7 +298,7 @@ class FileSwitcher(QDialog):
         row = self.listwidget.currentRow()
         if self.listwidget.count() and row >= 0:
             self.sig_edit_file.emit(self.filtered_index_to_full(row))
-            self.accept()
+            self.hide()
 
     def current_path(self):
         if self.listwidget.currentRow() >= 0:
@@ -327,7 +347,7 @@ class FileSwitcher(QDialog):
         """
         count = self.tabs.count()
         if not count:
-            self.accept()
+            self.hide()
             return
 
         if stack_index is not None:
@@ -363,17 +383,18 @@ class FileSwitcher(QDialog):
 
         self.listwidget.clear()
         self.filtered_index_to_path = []
+        if filter_text:
+            filter_formatter = BuildFuzzyFormatter(filter_text)
         for index, path in enumerate(self.full_index_to_path):
             text = to_text_string(self.tabs.tabText(index))
-            if not filter_text or filter_text in text.lower():
-                if filter_text:
-                    text = text.replace(filter_text,
-                                        '<u>' + filter_text + '</u>')
-                text = "<b>" + text + "</b>"
+            if filter_text:
+                text = filter_formatter(text)
+            if not filter_text or text:
                 if trying_for_line_num:
                     text += " [{0:} {1:}]".format(
                         self.path_to_line_count[path], _("lines"))
-                text += "<br><span style='font-size:10px'>{0:}</span>".format(
+                text = '<big>' + text + '</big>'
+                text += "<br><i>{0:}</i>".format(
                     self.full_index_to_short_path[index])
                 item = QListWidgetItem(self.tabs.tabIcon(index),
                                        text, self.listwidget)
