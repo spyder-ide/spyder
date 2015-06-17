@@ -307,11 +307,14 @@ def get_translation(modname, dirname=None):
     locale_path = get_module_data_path(dirname, relpath="locale",
                                        attr_name='LOCALEPATH')
 
-    # fixup environment var LANG, LANGUAGE
+    # If LANG is defined in ubuntu, a warning message is displayed, so in unix
+    # systems we define the LANGUAGE variable.
     language = load_lang_conf()
-    os.environ["LANG"] = language      # Works on Windows
-    os.environ["LANGUAGE"] = language  # Works on Linux
-
+    if os.name == 'nt':
+        os.environ["LANG"] = language      # Works on Windows
+    else:
+        os.environ["LANGUAGE"] = language  # Works on Linux
+ 
     import gettext
     try:
         _trans = gettext.translation(modname, locale_path, codeset="utf-8")
