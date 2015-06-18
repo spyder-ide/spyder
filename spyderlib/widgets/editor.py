@@ -1646,8 +1646,8 @@ class EditorStack(QWidget):
                 return
         self.reload(index)
         
-    def create_new_editor(self, fname, enc, txt,
-                          set_current, new=False, cloned_from=None):
+    def create_new_editor(self, fname, enc, txt, set_current, new=False,
+                          cloned_from=None):
         """
         Create a new editor instance
         Returns finfo object (instead of editor as in previous releases)
