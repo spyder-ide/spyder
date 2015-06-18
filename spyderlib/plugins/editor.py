@@ -1747,8 +1747,6 @@ class Editor(SpyderPluginWidget):
         """Close current file"""
         editorstack = self.get_current_editorstack()
         editorstack.close_file()
-        if editorstack.get_stack_count() == 0:
-            self.new()
 
     def close_all_files(self):
         """Close all opened scripts"""
