@@ -20,7 +20,7 @@ import time
 
 
 PY2 = sys.version[0] == '2'
-CLOSE_ERROR, RESET_ERROR, RESTART_ERROR = list(range(3))
+CLOSE_ERROR, RESET_ERROR, RESTART_ERROR = list(range(1, 4, 1))
 SLEEP_TIME = 0.2  # Seconds
 
 
