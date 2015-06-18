@@ -219,7 +219,7 @@ def main():
     # Restart
     # -------------------------------------------------------------------------
     try:
-        p = subprocess.Popen(command, shell=shell, env=env)
+        subprocess.Popen(command, shell=shell, env=env)
     except Exception as error:
         launch_error_message(type_=RESTART_ERROR, error=error)
 
