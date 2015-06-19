@@ -563,6 +563,8 @@ class EditorStack(QWidget):
         corner_widgets = {Qt.TopRightCorner: [menu_btn]}
         self.tabs = BaseTabs(self, menu=self.menu, menu_use_tooltips=True,
                              corner_widgets=corner_widgets)
+        if sys.platform == 'darwin':
+            self.tabs.tabBar().setObjectName('mac-style')
         self.tabs.set_close_function(self.close_file)
         if hasattr(self.tabs, 'setDocumentMode') \
            and not sys.platform == 'darwin':
