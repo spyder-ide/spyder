@@ -252,40 +252,6 @@ def get_focus_widget_properties():
 #TODO: Improve the stylesheet below for separator handles to be visible
 #      (in Qt, these handles are by default not visible on Windows!)
 STYLESHEET="""
-/*
-QSplitter::handle {
-    margin-left: 4px;
-    margin-right: 4px;
-}
-
-QSplitter::handle:horizontal {
-    width: 1px;
-    border-width: 0px;
-    background-color: lightgray;
-}
-
-QSplitter::handle:vertical {
-    border-top: 2px ridge lightgray;
-    border-bottom: 2px;
-}
-
-QMainWindow::separator:vertical {
-    margin-left: 1px;
-    margin-top: 25px;
-    margin-bottom: 25px;
-    border-left: 2px groove lightgray;
-    border-right: 1px;
-}
-
-QMainWindow::separator:horizontal {
-    margin-top: 1px;
-    margin-left: 5px;
-    margin-right: 5px;
-    border-top: 2px groove lightgray;
-    border-bottom: 2px;
-}
-*/
-
 QMainWindow::separator {
     width: 3px;
     height: 3px;
@@ -299,6 +265,20 @@ QMainWindow::separator:hover {
 
 QToolButton {
     border: none;
+}
+
+QSplitter::handle:horizontal {
+    border: 1px solid darkgrey;
+    width: 2px;
+}
+
+QSplitter::handle:vertical {
+    border: 1px solid darkgrey;
+    height: 2px;
+}
+
+QSplitter::handle:pressed {
+    background: darkgrey;
 }
 """
 
