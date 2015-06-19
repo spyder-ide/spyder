@@ -452,6 +452,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             edit.setToolTip(tip)
         self.lineedits[edit] = (option, default)
         widget = QWidget(self)
+        widget.label = label
+        widget.textbox = edit 
         widget.setLayout(layout)
         return widget
     
