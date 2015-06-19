@@ -252,6 +252,7 @@ def get_focus_widget_properties():
 #TODO: Improve the stylesheet below for separator handles to be visible
 #      (in Qt, these handles are by default not visible on Windows!)
 STYLESHEET="""
+/*
 QSplitter::handle {
     margin-left: 4px;
     margin-right: 4px;
@@ -282,6 +283,16 @@ QMainWindow::separator:horizontal {
     margin-right: 5px;
     border-top: 2px groove lightgray;
     border-bottom: 2px;
+}
+*/
+
+QMainWindow::separator {
+    width: 3px;
+    height: 3px;
+}
+
+QMainWindow::separator:hover {
+    background: #9BD2F2;
 }
 """
 
@@ -325,8 +336,6 @@ class MainWindow(QMainWindow):
         self.new_instance = options.new_instance
         
         self.debug_print("Start of MainWindow constructor")
-        
-#        self.setStyleSheet(STYLESHEET)
 
         # Shortcut management data
         self.shortcut_data = []
@@ -1140,7 +1149,13 @@ class MainWindow(QMainWindow):
             if isinstance(child, QMenu):
                 self.connect(child, SIGNAL("aboutToShow()"),
                              self.update_edit_menu)
-        
+
+        # Use a custom stylesheet for Mac (for now). Set it here to
+        # avoid a Qt painting bug if it's set before the Editor is
+        # created. The bug only occurs on Mac.
+        #if sys.platform == 'darwin':
+        self.setStyleSheet(STYLESHEET)
+
         self.debug_print("*** End of MainWindow setup ***")
         self.is_starting_up = False
         
