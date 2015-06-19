@@ -296,6 +296,10 @@ QMainWindow::separator {
 QMainWindow::separator:hover {
     background: darkgrey;
 }
+
+QToolButton {
+    border: none;
+}
 """
 
 

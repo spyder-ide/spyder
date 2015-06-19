@@ -107,10 +107,6 @@ class SpyderDockWidget(QDockWidget):
     QTabBar::tab:only-one {
         margin: 0;
     }
-    
-    QToolButton {
-        border: none;
-    }
     """
 
     def __init__(self, *args, **kwargs):
