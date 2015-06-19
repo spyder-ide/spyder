@@ -247,96 +247,6 @@ def get_focus_widget_properties():
 
 
 #==============================================================================
-# Qt Stylesheet for MainWindow
-#==============================================================================
-#TODO: Improve the stylesheet below for separator handles to be visible
-#      (in Qt, these handles are by default not visible on Windows!)
-MAC_STYLESHEET="""
-QMainWindow::separator {
-    width: 3px;
-    height: 3px;
-    border: 1px solid lightgrey;
-    border-radius: 1px;
-}
-
-QMainWindow::separator:hover {
-    background: darkgrey;
-}
-
-QToolButton {
-    border: none;
-}
-
-QSplitter::handle:horizontal {
-    border: 1px solid darkgrey;
-    width: 2px;
-}
-
-QSplitter::handle:vertical {
-    border: 1px solid darkgrey;
-    height: 2px;
-}
-
-QSplitter::handle:pressed {
-    background: darkgrey;
-}
-
-QTabWidget::pane#mac-style {
-    border: 3px solid rgb(235, 235, 235);
-    border-bottom: 0;
-}
-
-QTabWidget::tab-bar#plugin-tab {
-    left: 5px;
-}
-
-QTabBar::tab#plugin-tab {
-    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                stop: 0 #b1b1b1, stop: 0.07 #b3b3b3,
-                                stop: 0.33 #b3b3b3, stop: 0.4 #b0b0b0,
-                                stop: 0.47 #b3b3b3, stop: 1.0 #b2b2b2);
-    border: 1px solid #787878;
-    border-top-color: transparent;
-    border-bottom-color: transparent;
-    margin-left: -1px;
-    margin-right: -1px;
-    min-width: 8ex;
-    padding: 3px;
-}
-
-QTabBar::tab:selected#plugin-tab {
-    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                stop: 0 #dfdfdf, stop: 0.1 #dddddd,
-                                stop: 0.12 #dfdfdf, stop: 0.22 #e0e0e0,
-                                stop: 0.33 #dedede, stop: 0.47 #dedede,
-                                stop: 0.49 #e0e0e0, stop: 0.59 #dddddd,
-                                stop: 0.61 #dfdfdf, stop: 0.73 #dedede,
-                                stop: 0.80 #e0e0e0, stop: 1.0 #dedede);
-    border: 1px solid #787878;
-    border-top-color: transparent;
-    border-bottom-left-radius: 3px;
-    border-bottom-right-radius: 3px;
-}
-
-QTabBar::tab:first#plugin-tab {
-    margin-left: 0;
-}
-
-QTabBar::tab:last#plugin-tab {
-    margin-right: 0;
-}
-
-QTabBar::tab:only-one#plugin-tab {
-    margin: 0;
-}
-
-QTabBar::scroller#plugin-tab {
-    width: 22px;
-}
-"""
-
-
-#==============================================================================
 # Main Window
 #==============================================================================
 class MainWindow(QMainWindow):
@@ -1193,7 +1103,9 @@ class MainWindow(QMainWindow):
         # avoid a Qt painting bug if it's set before the Editor is
         # created. The bug only occurs on Mac.
         if sys.platform == 'darwin':
-            self.setStyleSheet(MAC_STYLESHEET)
+            spy_path = get_module_source_path('spyderlib')
+            mac_style = open(osp.join(spy_path, 'mac_stylesheet.qss')).read()
+            self.setStyleSheet(mac_style)
 
         self.debug_print("*** End of MainWindow setup ***")
         self.is_starting_up = False
