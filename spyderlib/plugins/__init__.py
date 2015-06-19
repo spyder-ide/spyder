@@ -54,17 +54,6 @@ class PluginConfigPage(SpyderConfigPage):
 
 class SpyderDockWidget(QDockWidget):
     """Subclass to override needed methods"""
-    DARWIN_STYLE = """
-    QDockWidget::close-button, QDockWidget::float-button {
-        padding: 0px;
-        margin: 2px;
-    }
-    """
-
-    def __init__(self, *args, **kwargs):
-        super(SpyderDockWidget, self).__init__(*args, **kwargs)
-        if sys.platform == 'darwin':
-            self.setStyleSheet(self.DARWIN_STYLE)
 
     def closeEvent(self, event):
         """

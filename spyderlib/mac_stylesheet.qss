@@ -3,6 +3,9 @@
 * Copyright (c) 2015- The Spyder Development Team
 */
 
+
+/* ---------------- Dock widget and QSplitter separators --------------- */
+
 QMainWindow::separator {
     width: 3px;
     height: 3px;
@@ -31,6 +34,9 @@ QSplitter::handle:vertical {
 QSplitter::handle:pressed {
     background: darkgrey;
 }
+
+
+/* ----------------- Tabs ------------------ */
 
 QWidget#tab-container {
     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
@@ -107,4 +113,12 @@ QTabBar#plugin-tab QToolButton::left-arrow {
 QTabBar#plugin-tab QToolButton::right-arrow {
     background: lightgrey;
     image: url(spyderlib/images/chevron-right.png);
+}
+
+
+/* ------------------ Dock widgets ------------------- */
+
+QDockWidget::close-button, QDockWidget::float-button {
+    padding: 0px;
+    margin: 2px;
 }
