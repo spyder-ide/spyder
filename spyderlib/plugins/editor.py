@@ -223,35 +223,33 @@ class EditorConfigPage(PluginConfigPage):
                                'always_remove_trailing_spaces', default=False)
         
         analysis_group = QGroupBox(_("Analysis"))
-        pep8_url = '<a href="http://www.python.org/dev/peps/pep-0008/">PEP8</a>'
-        analysis_label = QLabel(_("<u>Note</u>: add <b>analysis:ignore</b> in "
-                                  "a comment to ignore code/style analysis "
-                                  "warnings. For more informations on style "
-                                  "guide for Python code, please refer to the "
-                                  "%s page.") % pep8_url)
-        analysis_label.setWordWrap(True)
+        pep_url = '<a href="http://www.python.org/dev/peps/pep-0008/">PEP8</a>'
+        pep8_label = QLabel(_("<i>(Refer to the {} page)</i>").format(pep_url))
+        pep8_label.setOpenExternalLinks(True)
         is_pyflakes = codeanalysis.is_pyflakes_installed()
         is_pep8 = codeanalysis.get_checker_executable('pep8') is not None
-        analysis_label.setEnabled(is_pyflakes or is_pep8)
-        pyflakes_box = newcb(_("Code analysis")+" (pyflakes)",
+        pyflakes_box = newcb(_("Real time code analysis")+" (pyflakes)",
                       'code_analysis/pyflakes', default=True,
-                      tip=_("If enabled, Python source code will be analyzed\n"
-                            "using pyflakes, lines containing errors or \n"
-                            "warnings will be highlighted"))
+                      tip=_("<p>If enabled, Python source code will be analyzed"
+                            "using pyflakes, lines containing errors or "
+                            "warnings will be highlighted.</p>"
+                            "<p><u>Note</u>: add <b>analysis:ignore</b> in "
+                            "a comment to ignore code analysis "
+                            "warnings.</p>"))
         pyflakes_box.setEnabled(is_pyflakes)
         if not is_pyflakes:
             pyflakes_box.setToolTip(_("Code analysis requires pyflakes %s+") %
                                     codeanalysis.PYFLAKES_REQVER)
-        pep8_box = newcb(_("Style analysis")+' (pep8)',
+        pep8_box = newcb(_("Real time style analysis")+' (pep8)',
                       'code_analysis/pep8', default=False,
-                      tip=_('If enabled, Python source code will be analyzed\n'
-                            'using pep8, lines that are not following PEP8\n'
-                            'style guide will be highlighted'))
+                      tip=_("<p>If enabled, Python source code will be analyzed"
+                            "using pep8, lines that are not following PEP8 "
+                            "style guide will be highlighted.</p>"
+                            "<p><u>Note</u>: add <b>analysis:ignore</b> in "
+                            "a comment to ignore style analysis "
+                            "warnings.</p>"))
         pep8_box.setEnabled(is_pep8)
-        ancb_layout = QHBoxLayout()
-        ancb_layout.addWidget(pyflakes_box)
-        ancb_layout.addWidget(pep8_box)
-        todolist_box = newcb(_("Tasks (TODO, FIXME, XXX, HINT, TIP, @todo)"),
+        todolist_box = newcb(_("Code annotations (TODO, FIXME, XXX, HINT, TIP, @todo)"),
                              'todo_list', default=True)
         realtime_radio = self.create_radiobutton(
                                             _("Perform analysis when "
@@ -287,8 +285,11 @@ class EditorConfigPage(PluginConfigPage):
         introspection_group.setLayout(introspection_layout)
         
         analysis_layout = QVBoxLayout()
-        analysis_layout.addWidget(analysis_label)
-        analysis_layout.addLayout(ancb_layout)
+        analysis_layout.addWidget(pyflakes_box)
+        analysis_pep_layout = QHBoxLayout() 
+        analysis_pep_layout.addWidget(pep8_box)
+        analysis_pep_layout.addWidget(pep8_label)
+        analysis_layout.addLayout(analysis_pep_layout)
         analysis_layout.addWidget(todolist_box)
         analysis_layout.addLayout(af_layout)
         analysis_layout.addWidget(saveonly_radio)
