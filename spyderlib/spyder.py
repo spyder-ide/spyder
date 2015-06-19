@@ -289,10 +289,12 @@ QMainWindow::separator:horizontal {
 QMainWindow::separator {
     width: 3px;
     height: 3px;
+    border: 1px solid lightgrey;
+    border-radius: 1px;
 }
 
 QMainWindow::separator:hover {
-    background: #9BD2F2;
+    background: darkgrey;
 }
 """
 
