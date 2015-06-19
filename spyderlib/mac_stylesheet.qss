@@ -32,7 +32,7 @@ QSplitter::handle:pressed {
     background: darkgrey;
 }
 
-QTabWidget::pane#mac-style {
+QTabWidget::pane#plugin-tab {
     border: 3px solid rgb(235, 235, 235);
     border-bottom: 0;
 }
