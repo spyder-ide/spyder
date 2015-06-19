@@ -565,6 +565,7 @@ class EditorStack(QWidget):
                              corner_widgets=corner_widgets)
         self.tabs.tabBar().setObjectName('plugin-tab')
         self.tabs.set_close_function(self.close_file)
+
         if hasattr(self.tabs, 'setDocumentMode') \
            and not sys.platform == 'darwin':
             # Don't set document mode to true on OSX because it generates
@@ -573,7 +574,16 @@ class EditorStack(QWidget):
             self.tabs.setDocumentMode(True)
         self.connect(self.tabs, SIGNAL('currentChanged(int)'),
                      self.current_changed)
-        layout.addWidget(self.tabs)
+
+        if sys.platform == 'darwin':
+            tab_container = QWidget()
+            tab_container.setObjectName('tab-container')
+            tab_layout = QHBoxLayout(tab_container)
+            tab_layout.setContentsMargins(0, 0, 0, 0)
+            tab_layout.addWidget(self.tabs)
+            layout.addWidget(tab_container)
+        else:
+            layout.addWidget(self.tabs)
         
     def add_corner_widgets_to_tabbar(self, widgets):
         self.tabs.add_corner_widgets(widgets)

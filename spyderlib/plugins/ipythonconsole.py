@@ -25,7 +25,7 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QHBoxLayout, QFormLayout,
                                 QMessageBox, QGroupBox, QDialogButtonBox,
                                 QDialog, QTabWidget, QFontComboBox, 
                                 QCheckBox, QApplication, QLabel,QLineEdit,
-                                QPushButton, QKeySequence)
+                                QPushButton, QKeySequence, QWidget)
 from spyderlib.qt.compat import getopenfilename
 from spyderlib.qt.QtCore import SIGNAL, Qt
 
@@ -606,7 +606,15 @@ class IPythonConsole(SpyderPluginWidget):
                      
         self.tabwidget.set_close_function(self.close_client)
 
-        layout.addWidget(self.tabwidget)
+        if sys.platform == 'darwin':
+            tab_container = QWidget()
+            tab_container.setObjectName('tab-container')
+            tab_layout = QHBoxLayout(tab_container)
+            tab_layout.setContentsMargins(0, 0, 0, 0)
+            tab_layout.addWidget(self.tabwidget)
+            layout.addWidget(tab_container)
+        else:
+            layout.addWidget(self.tabwidget)
 
         # Find/replace widget
         self.find_widget = FindReplace(self)

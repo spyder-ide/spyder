@@ -32,9 +32,21 @@ QSplitter::handle:pressed {
     background: darkgrey;
 }
 
+QWidget#tab-container {
+    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                stop: 0 #b1b1b1, stop: 0.07 #b3b3b3,
+                                stop: 0.33 #b3b3b3, stop: 0.4 #b0b0b0,
+                                stop: 0.47 #b3b3b3, stop: 1.0 #b2b2b2);
+}
+
 QTabWidget::pane#plugin-tab {
-    border: 3px solid rgb(235, 235, 235);
-    border-bottom: 0;
+    border-top: 1px solid qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                stop: 0 #b1b1b1, stop: 0.07 #b3b3b3,
+                                stop: 0.33 #b3b3b3, stop: 0.4 #b0b0b0,
+                                stop: 0.47 #b3b3b3, stop: 1.0 #b2b2b2);
+    border-bottom: 0px;
+    border-left: 0px;
+    border-right: 0px;
 }
 
 QTabWidget::tab-bar#plugin-tab {
@@ -64,6 +76,7 @@ QTabBar::tab:selected#plugin-tab {
                                 stop: 0.61 #dfdfdf, stop: 0.73 #dedede,
                                 stop: 0.80 #e0e0e0, stop: 1.0 #dedede);
     border: 1px solid #787878;
+    border-top: 0px;
     border-top-color: transparent;
     border-bottom-left-radius: 3px;
     border-bottom-right-radius: 3px;
