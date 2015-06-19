@@ -7,10 +7,12 @@
 """Console History Plugin"""
 
 from spyderlib.qt.QtGui import (QVBoxLayout, QFontDialog, QInputDialog,
-                                QToolButton, QMenu, QFontComboBox, QGroupBox)
+                                QToolButton, QMenu, QFontComboBox, QGroupBox,
+                                QHBoxLayout, QWidget)
 from spyderlib.qt.QtCore import SIGNAL
 
 import os.path as osp
+import sys
 
 # Local imports
 from spyderlib.utils import encoding
@@ -96,7 +98,16 @@ class HistoryLog(SpyderPluginWidget):
                      self.refresh_plugin)
         self.connect(self.tabwidget, SIGNAL('move_data(int,int)'),
                      self.move_tab)
-        layout.addWidget(self.tabwidget)
+
+        if sys.platform == 'darwin':
+            tab_container = QWidget()
+            tab_container.setObjectName('tab-container')
+            tab_layout = QHBoxLayout(tab_container)
+            tab_layout.setContentsMargins(0, 0, 0, 0)
+            tab_layout.addWidget(self.tabwidget)
+            layout.addWidget(tab_container)
+        else:
+            layout.addWidget(self.tabwidget)
 
         # Menu as corner widget
         options_button = create_toolbutton(self, text=_("Options"),
