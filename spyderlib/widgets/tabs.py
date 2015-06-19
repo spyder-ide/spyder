@@ -32,9 +32,7 @@ class TabBar(QTabBar):
     def __init__(self, parent, ancestor):
         QTabBar.__init__(self, parent)
         self.ancestor = ancestor
-        
-        if sys.platform == 'darwin':
-            self.setObjectName('mac-style')
+        self.setObjectName('plugin-tab')
             
         # Dragging tabs
         self.__drag_start_pos = QPoint()
@@ -110,10 +108,7 @@ class BaseTabs(QTabWidget):
     def __init__(self, parent, actions=None, menu=None,
                  corner_widgets=None, menu_use_tooltips=False):
         QTabWidget.__init__(self, parent)
-        
-        if sys.platform == 'darwin':
-            self.setObjectName('mac-style')
-        
+        self.setObjectName('plugin-tab')
         self.setUsesScrollButtons(True)
         
         self.corner_widgets = {}

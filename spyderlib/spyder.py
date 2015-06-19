@@ -286,11 +286,11 @@ QTabWidget::pane#mac-style {
     border-bottom: 0;
 }
 
-QTabWidget::tab-bar#mac-style {
+QTabWidget::tab-bar#plugin-tab {
     left: 5px;
 }
 
-QTabBar::tab#mac-style {
+QTabBar::tab#plugin-tab {
     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
                                 stop: 0 #b1b1b1, stop: 0.07 #b3b3b3,
                                 stop: 0.33 #b3b3b3, stop: 0.4 #b0b0b0,
@@ -304,7 +304,7 @@ QTabBar::tab#mac-style {
     padding: 3px;
 }
 
-QTabBar::tab:selected#mac-style {
+QTabBar::tab:selected#plugin-tab {
     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
                                 stop: 0 #dfdfdf, stop: 0.1 #dddddd,
                                 stop: 0.12 #dfdfdf, stop: 0.22 #e0e0e0,
@@ -318,16 +318,20 @@ QTabBar::tab:selected#mac-style {
     border-bottom-right-radius: 3px;
 }
 
-QTabBar::tab:first#mac-style {
+QTabBar::tab:first#plugin-tab {
     margin-left: 0;
 }
 
-QTabBar::tab:last#mac-style {
+QTabBar::tab:last#plugin-tab {
     margin-right: 0;
 }
 
-QTabBar::tab:only-one#mac-style {
+QTabBar::tab:only-one#plugin-tab {
     margin: 0;
+}
+
+QTabBar::scroller#plugin-tab {
+    width: 22px;
 }
 """
 
