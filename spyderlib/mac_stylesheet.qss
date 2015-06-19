@@ -63,7 +63,7 @@ QTabBar::tab#plugin-tab {
     border-bottom-color: transparent;
     margin-left: -1px;
     margin-right: -1px;
-    min-width: 8ex;
+    min-width: 15ex;
     padding: 3px;
 }
 
@@ -96,4 +96,15 @@ QTabBar::tab:only-one#plugin-tab {
 
 QTabBar::scroller#plugin-tab {
     width: 22px;
+}
+
+QTabBar#plugin-tab QToolButton::left-arrow {
+    background: lightgrey;
+    border-right: 1px solid darkgrey;
+    image: url(spyderlib/images/chevron-left.png);
+}
+
+QTabBar#plugin-tab QToolButton::right-arrow {
+    background: lightgrey;
+    image: url(spyderlib/images/chevron-right.png);
 }
