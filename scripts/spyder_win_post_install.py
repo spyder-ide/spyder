@@ -24,6 +24,9 @@ KEY_C1 = KEY_C0 + r"\command"
 # ability to run spyder-win-post-install outside of bdist_wininst installer
 # copied from pywin32-win-post-install.py
 # http://pywin32.hg.sourceforge.net/hgweb/pywin32/pywin32/file/default/pywin32_postinstall.py
+ver_string = "%d.%d" % (sys.version_info[0], sys.version_info[1])
+root_key_name = "Software\\Python\\PythonCore\\" + ver_string
+
 try:
     # When this script is run from inside the bdist_wininst installer,
     # file_created() and directory_created() are additional builtin
