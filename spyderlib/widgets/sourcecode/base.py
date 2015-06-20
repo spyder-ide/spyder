@@ -242,6 +242,15 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         palette.setColor(QPalette.Text, foreground)
         self.setPalette(palette)
 
+        # Set the right background color when changing color schemes
+        # or creating new Editor windows. This seems to be a Qt bug.
+        # Fixes Issue 2028
+        if sys.platform == 'darwin':
+            if self.objectName():
+                style = "QPlainTextEdit#%s {background: %s;}" % \
+                        (self.objectName(), background.name())
+                self.setStyleSheet(style)
+
 
     #------Extra selections
     def get_extra_selections(self, key):
