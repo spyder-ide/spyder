@@ -283,8 +283,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         # Fixes Issue 2028
         if sys.platform == 'darwin':
             if self.objectName():
-                style = "QPlainTextEdit#%s {background: %s;}" % \
-                        (self.objectName(), background.name())
+                style = "QPlainTextEdit#%s {background: %s; color: %s;}" % \
+                        (self.objectName(), background.name(), foreground.name())
                 self.setStyleSheet(style)
 
 
