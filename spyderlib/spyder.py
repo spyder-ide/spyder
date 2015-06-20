@@ -286,6 +286,12 @@ class MainWindow(QMainWindow):
         
         self.debug_print("Start of MainWindow constructor")
 
+        # Use a custom Qt stylesheet
+        if sys.platform == 'darwin':
+            spy_path = get_module_source_path('spyderlib')
+            mac_style = open(osp.join(spy_path, 'mac_stylesheet.qss')).read()
+            self.setStyleSheet(mac_style)
+
         # Shortcut management data
         self.shortcut_data = []
         
@@ -1098,14 +1104,6 @@ class MainWindow(QMainWindow):
             if isinstance(child, QMenu):
                 self.connect(child, SIGNAL("aboutToShow()"),
                              self.update_edit_menu)
-
-        # Use a custom stylesheet for Mac (for now). Set it here to
-        # avoid a Qt painting bug if it's set before the Editor is
-        # created. The bug only occurs on Mac.
-        if sys.platform == 'darwin':
-            spy_path = get_module_source_path('spyderlib')
-            mac_style = open(osp.join(spy_path, 'mac_stylesheet.qss')).read()
-            self.setStyleSheet(mac_style)
 
         self.debug_print("*** End of MainWindow setup ***")
         self.is_starting_up = False
