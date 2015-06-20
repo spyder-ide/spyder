@@ -222,9 +222,7 @@ if __name__=='__main__':
             try:
                 install()
             except OSError:
-                # TODO: remove this because using user's startmenu not common
-                print("Failed to create Start Menu items, try running "\
-                      "installer as administrator.", file=sys.stderr)
+                print("Failed to create Start Menu items.", file=sys.stderr)
         elif sys.argv[1] == '-remove':
             remove()
         else:
