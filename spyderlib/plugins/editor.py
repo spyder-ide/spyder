@@ -228,7 +228,7 @@ class EditorConfigPage(PluginConfigPage):
         pep8_label.setOpenExternalLinks(True)
         is_pyflakes = codeanalysis.is_pyflakes_installed()
         is_pep8 = codeanalysis.get_checker_executable('pep8') is not None
-        pyflakes_box = newcb(_("Real time code analysis")+" (pyflakes)",
+        pyflakes_box = newcb(_("Real-time code analysis"),
                       'code_analysis/pyflakes', default=True,
                       tip=_("<p>If enabled, Python source code will be analyzed"
                             "using pyflakes, lines containing errors or "
@@ -240,7 +240,7 @@ class EditorConfigPage(PluginConfigPage):
         if not is_pyflakes:
             pyflakes_box.setToolTip(_("Code analysis requires pyflakes %s+") %
                                     codeanalysis.PYFLAKES_REQVER)
-        pep8_box = newcb(_("Real time style analysis")+' (pep8)',
+        pep8_box = newcb(_("Real-time code style analysis"),
                       'code_analysis/pep8', default=False,
                       tip=_("<p>If enabled, Python source code will be analyzed"
                             "using pep8, lines that are not following PEP8 "
