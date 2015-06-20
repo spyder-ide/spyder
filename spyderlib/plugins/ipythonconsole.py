@@ -26,8 +26,8 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QHBoxLayout, QFormLayout,
                                 QMessageBox, QGroupBox, QDialogButtonBox,
                                 QDialog, QTabWidget, QFontComboBox, 
                                 QCheckBox, QApplication, QLabel,QLineEdit,
-                                QPushButton, QKeySequence, QWidget)
-                                QPushButton, QKeySequence, QGridLayout)
+                                QPushButton, QKeySequence, QWidget,
+                                QGridLayout)
 from spyderlib.qt.compat import getopenfilename
 from spyderlib.qt.QtCore import Signal, Slot, Qt
 import spyderlib.utils.icon_manager as ima
@@ -630,7 +630,15 @@ class IPythonConsole(SpyderPluginWidget):
                      
         self.tabwidget.set_close_function(self.close_client)
 
-        layout.addWidget(self.tabwidget)
+        if sys.platform == 'darwin':
+            tab_container = QWidget()
+            tab_container.setObjectName('tab-container')
+            tab_layout = QHBoxLayout(tab_container)
+            tab_layout.setContentsMargins(0, 0, 0, 0)
+            tab_layout.addWidget(self.tabwidget)
+            layout.addWidget(tab_container)
+        else:
+            layout.addWidget(self.tabwidget)
 
         # Find/replace widget
         self.find_widget = FindReplace(self)
@@ -1024,7 +1032,7 @@ class IPythonConsole(SpyderPluginWidget):
                                          hostname=None, sshkey=None,
                                          password=None):
         """Create kernel manager and client"""
-        cf = find_connection_file(connection_file, profile='default')
+        cf = find_connection_file(connection_file)
         kernel_manager = QtKernelManager(connection_file=cf, config=None)
         kernel_client = kernel_manager.client()
         kernel_client.load_connection_file()
@@ -1075,9 +1083,7 @@ class IPythonConsole(SpyderPluginWidget):
         # Verifying if the connection file exists
         cf = osp.basename(cf)
         try:
-            if not cf.startswith('kernel') and not cf.endswith('json'):
-                cf = to_text_string('kernel-' + cf + '.json')
-            find_connection_file(cf, profile='default')
+            find_connection_file(cf)
         except (IOError, UnboundLocalError):
             QMessageBox.critical(self, _('IPython'),
                                  _("Unable to connect to IPython <b>%s") % cf)
@@ -1088,7 +1094,8 @@ class IPythonConsole(SpyderPluginWidget):
         master_name = None
         slave_ord = ord('A') - 1
         for cl in self.get_clients():
-            if cf == cl.connection_file:
+            if cf in cl.connection_file:
+                cf = cl.connection_file
                 if master_name is None:
                     master_name = cl.name.split('/')[0]
                 new_slave_ord = ord(cl.name.split('/')[1])
