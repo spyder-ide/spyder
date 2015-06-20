@@ -177,43 +177,45 @@ def remove():
         except WindowsError:
             pass
         else:
-            print("Successfully removed Spyder shortcuts from Windows "\
-                  "Explorer context menu.", file=sys.stdout)
-    # clean up desktop
-    desktop_folder = get_special_folder_path("CSIDL_DESKTOPDIRECTORY")
-    fname = osp.join(desktop_folder, 'Spyder.lnk')
-    if osp.isfile(fname):
-        try:
-            os.remove(fname)
-        except OSError:
-            print("Failed to remove %s; you may be able to remove it "\
-                  "manually." % fname, file=sys.stderr)
-        else:
-            print("Successfully removed Spyder shortcuts from your desktop.",
-                  file=sys.stdout)
-    # clean up startmenu
-    start_menu = osp.join(get_special_folder_path('CSIDL_PROGRAMS'),
-                          'Spyder (Py%i.%i %i bit)' % (sys.version_info[0],
-                                                       sys.version_info[1],
-                                                       struct.calcsize('P')*8))
-    if osp.isdir(start_menu):
-        for fname in os.listdir(start_menu):
+            if not is_bdist_wininst:
+                print("Successfully removed Spyder shortcuts from Windows "\
+                      "Explorer context menu.", file=sys.stdout)
+    if not is_bdist_wininst:
+        # clean up desktop
+        desktop_folder = get_special_folder_path("CSIDL_DESKTOPDIRECTORY")
+        fname = osp.join(desktop_folder, 'Spyder.lnk')
+        if osp.isfile(fname):
             try:
-                os.remove(osp.join(start_menu,fname))
+                os.remove(fname)
             except OSError:
                 print("Failed to remove %s; you may be able to remove it "\
                       "manually." % fname, file=sys.stderr)
             else:
-                print("Successfully removed Spyder shortcuts from your "\
+                print("Successfully removed Spyder shortcuts from your desktop.",
+                      file=sys.stdout)
+        # clean up startmenu
+        start_menu = osp.join(get_special_folder_path('CSIDL_PROGRAMS'),
+                              'Spyder (Py%i.%i %i bit)' % (sys.version_info[0],
+                                                           sys.version_info[1],
+                                                           struct.calcsize('P')*8))
+        if osp.isdir(start_menu):
+            for fname in os.listdir(start_menu):
+                try:
+                    os.remove(osp.join(start_menu,fname))
+                except OSError:
+                    print("Failed to remove %s; you may be able to remove it "\
+                          "manually." % fname, file=sys.stderr)
+                else:
+                    print("Successfully removed Spyder shortcuts from your "\
+                          " start menu.", file=sys.stdout)
+            try:
+                os.rmdir(start_menu)
+            except OSError:
+                print("Failed to remove %s; you may be able to remove it "\
+                      "manually." % fname, file=sys.stderr)
+            else:
+                print("Successfully removed Spyder shortcut folder from your "\
                       " start menu.", file=sys.stdout)
-        try:
-            os.rmdir(start_menu)
-        except OSError:
-            print("Failed to remove %s; you may be able to remove it "\
-                  "manually." % fname, file=sys.stderr)
-        else:
-            print("Successfully removed Spyder shortcut folder from your "\
-                  " start menu.", file=sys.stdout)
 
 
 if __name__=='__main__':
