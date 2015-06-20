@@ -8,11 +8,13 @@
 
 from spyderlib.qt import PYQT5
 from spyderlib.qt.QtGui import (QVBoxLayout, QFontDialog, QInputDialog,
-                                QToolButton, QMenu, QFontComboBox, QGroupBox)
+                                QToolButton, QMenu, QFontComboBox, QGroupBox,
+                                QHBoxLayout, QWidget)
 from spyderlib.qt.QtCore import Signal, Slot
 import spyderlib.utils.icon_manager as ima
 
 import os.path as osp
+import sys
 
 # Local imports
 from spyderlib.utils import encoding
@@ -99,7 +101,16 @@ class HistoryLog(SpyderPluginWidget):
         self.tabwidget = Tabs(self, self.menu_actions)
         self.tabwidget.currentChanged.connect(self.refresh_plugin)
         self.tabwidget.move_data.connect(self.move_tab)
-        layout.addWidget(self.tabwidget)
+
+        if sys.platform == 'darwin':
+            tab_container = QWidget()
+            tab_container.setObjectName('tab-container')
+            tab_layout = QHBoxLayout(tab_container)
+            tab_layout.setContentsMargins(0, 0, 0, 0)
+            tab_layout.addWidget(self.tabwidget)
+            layout.addWidget(tab_container)
+        else:
+            layout.addWidget(self.tabwidget)
 
         # Menu as corner widget
         options_button = create_toolbutton(self, text=_('Options'),

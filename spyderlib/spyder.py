@@ -224,46 +224,6 @@ def get_focus_widget_properties():
 
 
 #==============================================================================
-# Qt Stylesheet for MainWindow
-#==============================================================================
-#TODO: Improve the stylesheet below for separator handles to be visible
-#      (in Qt, these handles are by default not visible on Windows!)
-STYLESHEET="""
-QSplitter::handle {
-    margin-left: 4px;
-    margin-right: 4px;
-}
-
-QSplitter::handle:horizontal {
-    width: 1px;
-    border-width: 0px;
-    background-color: lightgray;
-}
-
-QSplitter::handle:vertical {
-    border-top: 2px ridge lightgray;
-    border-bottom: 2px;
-}
-
-QMainWindow::separator:vertical {
-    margin-left: 1px;
-    margin-top: 25px;
-    margin-bottom: 25px;
-    border-left: 2px groove lightgray;
-    border-right: 1px;
-}
-
-QMainWindow::separator:horizontal {
-    margin-top: 1px;
-    margin-left: 5px;
-    margin-right: 5px;
-    border-top: 2px groove lightgray;
-    border-bottom: 2px;
-}
-"""
-
-
-#==============================================================================
 # Main Window
 #==============================================================================
 class MainWindow(QMainWindow):
@@ -311,8 +271,6 @@ class MainWindow(QMainWindow):
         self.test_travis = os.environ.get('SPYDER_TEST_TRAVIS', None)
 
         self.debug_print("Start of MainWindow constructor")
-
-#        self.setStyleSheet(STYLESHEET)
 
         # Shortcut management data
         self.shortcut_data = []
@@ -1226,6 +1184,14 @@ class MainWindow(QMainWindow):
         for child in self.menuBar().children():
             if isinstance(child, QMenu):
                 child.aboutToShow.connect(self.update_edit_menu)
+
+        # Use a custom stylesheet for Mac (for now). Set it here to
+        # avoid a Qt painting bug if it's set before the Editor is
+        # created. The bug only occurs on Mac.
+        if sys.platform == 'darwin':
+            spy_path = get_module_source_path('spyderlib')
+            mac_style = open(osp.join(spy_path, 'mac_stylesheet.qss')).read()
+            self.setStyleSheet(mac_style)
 
         self.debug_print("*** End of MainWindow setup ***")
         self.is_starting_up = False

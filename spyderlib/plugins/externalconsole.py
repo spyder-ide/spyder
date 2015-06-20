@@ -16,7 +16,7 @@ from spyderlib.qt import PYQT5
 from spyderlib.qt.QtGui import (QVBoxLayout, QMessageBox, QInputDialog,
                                 QLineEdit, QPushButton, QGroupBox, QLabel,
                                 QTabWidget, QFontComboBox, QHBoxLayout,
-                                QButtonGroup)
+                                QButtonGroup, QWidget)
 from spyderlib.qt.QtCore import Signal, Slot, Qt
 from spyderlib.qt.compat import getopenfilename
 import spyderlib.utils.icon_manager as ima
@@ -518,7 +518,15 @@ class ExternalConsole(SpyderPluginWidget):
                      
         self.tabwidget.set_close_function(self.close_console)
 
-        layout.addWidget(self.tabwidget)
+        if sys.platform == 'darwin':
+            tab_container = QWidget()
+            tab_container.setObjectName('tab-container')
+            tab_layout = QHBoxLayout(tab_container)
+            tab_layout.setContentsMargins(0, 0, 0, 0)
+            tab_layout.addWidget(self.tabwidget)
+            layout.addWidget(tab_container)
+        else:
+            layout.addWidget(self.tabwidget)
         
         # Find/replace widget
         self.find_widget = FindReplace(self)
