@@ -12,7 +12,7 @@ try:
     import _winreg as winreg
 except ImportError:
     # Python 3
-    import winreg
+    import winreg  # analysis:ignore
 
 
 EWS = "Edit with Spyder"
@@ -34,13 +34,15 @@ try:
     # a list of actions for the uninstaller, the format is inspired by what
     # the Wise installer also creates.
     # https://docs.python.org/2/distutils/builtdist.html#the-postinstallation-script
-    file_created
+    file_created  # analysis:ignore
     is_bdist_wininst = True
 except NameError:
     is_bdist_wininst = False # we know what it is not - but not what it is :)
-    # file_created() and directory_created() functions do nothing if post install script
-    # isn't run from bdist_wininst installer, instead if shortcuts and start menu directory
-    # exist, they are removed when the post install script is called with the -remote option
+
+    # file_created() and directory_created() functions do nothing if post
+    # install script isn't run from bdist_wininst installer, instead if
+    # shortcuts and start menu directory exist, they are removed when the
+    # post install script is called with the -remote option
     def file_created(file):
         pass
     def directory_created(directory):
@@ -50,15 +52,15 @@ except NameError:
             winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,
                            root_key_name, 0, winreg.KEY_CREATE_SUB_KEY)
             return winreg.HKEY_LOCAL_MACHINE
-        except OSError, details:
+        except OSError:
             # Either not exist, or no permissions to create subkey means
             # must be HKCU
             return winreg.HKEY_CURRENT_USER
 try:
-    create_shortcut
+    create_shortcut  # analysis:ignore
 except NameError:
-    # Create a function with the same signature as create_shortcut provided
-    # by bdist_wininst
+    # Create a function with the same signature as create_shortcut
+    # provided by bdist_wininst
     def create_shortcut(path, description, filename,
                         arguments="", workdir="", iconpath="", iconindex=0):
         try:
@@ -67,7 +69,7 @@ except NameError:
             print("PyWin32 is required to run windows postinstall manually.",
                   file=sys.stderr)
             sys.exit(1)  # pywin32 required
-        from win32com.shell import shell, shellcon
+        from win32com.shell import shell, shellcon  # analysis:ignore
 
         ilink = pythoncom.CoCreateInstance(shell.CLSID_ShellLink, None,
                                            pythoncom.CLSCTX_INPROC_SERVER,
@@ -86,15 +88,17 @@ except NameError:
 
     # Support the same list of "path names" as bdist_wininst.
     def get_special_folder_path(path_name):
-        import pythoncom
+        import pythoncom  # analysis:ignore
         from win32com.shell import shell, shellcon
-
-        for maybe in """
-            CSIDL_COMMON_STARTMENU CSIDL_STARTMENU CSIDL_COMMON_APPDATA
-            CSIDL_LOCAL_APPDATA CSIDL_APPDATA CSIDL_COMMON_DESKTOPDIRECTORY
-            CSIDL_DESKTOPDIRECTORY CSIDL_COMMON_STARTUP CSIDL_STARTUP
-            CSIDL_COMMON_PROGRAMS CSIDL_PROGRAMS CSIDL_PROGRAM_FILES_COMMON
-            CSIDL_PROGRAM_FILES CSIDL_FONTS""".split():
+        
+        path_names = ['CSIDL_COMMON_STARTMENU', 'CSIDL_STARTMENU',
+                      'CSIDL_COMMON_APPDATA', 'CSIDL_LOCAL_APPDATA',
+                      'CSIDL_APPDATA', 'CSIDL_COMMON_DESKTOPDIRECTORY',
+                      'CSIDL_DESKTOPDIRECTORY', 'CSIDL_COMMON_STARTUP',
+                      'CSIDL_STARTUP', 'CSIDL_COMMON_PROGRAMS',
+                      'CSIDL_PROGRAMS', 'CSIDL_PROGRAM_FILES_COMMON',
+                      'CSIDL_PROGRAM_FILES', 'CSIDL_FONTS']
+        for maybe in path_names:
             if maybe == path_name:
                 csidl = getattr(shellcon, maybe)
                 return shell.SHGetSpecialFolderPath(0, csidl, False)
