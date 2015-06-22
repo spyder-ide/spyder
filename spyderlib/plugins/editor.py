@@ -767,10 +767,10 @@ class Editor(SpyderPluginWidget):
                                name="Run selection")
 
         if sys.platform == 'darwin':
-            run_cell_sc = Qt.META + Qt.Key_Return
+            run_cell_sc = Qt.META + Qt.Key_Enter
         else:
-            run_cell_sc = Qt.CTRL + Qt.Key_Return
-        run_cell_advance_sc = Qt.SHIFT + Qt.Key_Return
+            run_cell_sc = Qt.CTRL + Qt.Key_Enter
+        run_cell_advance_sc = Qt.SHIFT + Qt.Key_Enter
 
         run_cell_action = create_action(self,
                             _("Run cell"), icon='run_cell.png',
