@@ -1,6 +1,9 @@
 Minor release to list
 =====================
 
+Subject: [ANN] Spyder 2.3.5 is released!
+
+
 Hi all,
 
 On the behalf of Spyder’s development team (https://github.com/spyder-ide/spyder/blob/master/AUTHORS),
@@ -19,7 +22,7 @@ and introduces several new features:
     * Several fixes to prevent startup crashes
 
 We also fixed 22 bugs and merged 8 pull requests. For a full list of fixes
-see our changelog: https://github.com/spyder-ide/spyder/CHANGELOG.md
+see our changelog: https://github.com/spyder-ide/spyder/blob/2.3/CHANGELOG.md
 
 Don’t forget to follow Spyder updates/news:
 
@@ -39,6 +42,9 @@ Enjoy!
 
 Minor release others
 ====================
+
+Subject: [ANN] Spyder 2.3.5 is released!
+
 
 On the behalf of Spyder’s development team (https://github.com/spyder-ide/spyder/blob/master/AUTHORS),
 I’m pleased to announce that Spyder 2.3.5 has been released and is available for
@@ -63,7 +69,7 @@ and introduces several new features:
     * Several fixes to prevent startup crashes
 
 We also fixed 22 bugs and merged 8 pull requests. For a full list of fixes see
-our changelog: https://github.com/spyder-ide/spyder/CHANGELOG.md
+our changelog: https://github.com/spyder-ide/spyder/blob/2.3/CHANGELOG.md
 
 Don’t forget to follow Spyder updates/news:
 
@@ -82,6 +88,9 @@ Enjoy!
 
 Major release to others
 =======================
+
+Subject: [ANN] Spyder 3.0 is released!
+
 
 Hi all,
 
@@ -107,7 +116,7 @@ major enhancements and new features:
      - Improve how calltips are shown
    * Better looking Object Inspector
    * Several refinements to the user interface to make it easier and more intuitive
-   * And many other changes: https://github.com/spyder-ide/spyder/CHANGELOG.md
+   * And many other changes: https://github.com/spyder-ide/spyder/blob/2.3/CHANGELOG.md
 
 Spyder 2.2 has been a huge success (being downloaded more than 400,000 times!)
 and we hope 2.3 will be as successful as it. For that we fixed 70 important bugs,
