@@ -66,9 +66,9 @@ except NameError:
         try:
             import pythoncom
         except ImportError:
-            print("PyWin32 is required to run windows postinstall manually.",
+            print("pywin32 is required to run this script manually",
                   file=sys.stderr)
-            sys.exit(1)  # pywin32 required
+            sys.exit(1)
         from win32com.shell import shell, shellcon  # analysis:ignore
 
         ilink = pythoncom.CoCreateInstance(shell.CLSID_ShellLink, None,
@@ -88,7 +88,12 @@ except NameError:
 
     # Support the same list of "path names" as bdist_wininst.
     def get_special_folder_path(path_name):
-        import pythoncom  # analysis:ignore
+        try:
+            import pythoncom
+        except ImportError:
+            print("pywin32 is required to run this script manually",
+                  file=sys.stderr)
+            sys.exit(1)
         from win32com.shell import shell, shellcon
         
         path_names = ['CSIDL_COMMON_STARTMENU', 'CSIDL_STARTMENU',
@@ -234,3 +239,6 @@ if __name__=='__main__':
         else:
             print("Unknown command line option %s" % sys.argv[1],
                   file=sys.stderr)
+    else:
+        print("You need to pass either -install or -remove as options to "\
+              "this script", file=sys.stderr)
