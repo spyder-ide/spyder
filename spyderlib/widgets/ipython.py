@@ -78,20 +78,20 @@ class IPythonControlWidget(TracebackLinksMixin, InspectObjectMixin, QTextEdit,
         BaseEditMixin.__init__(self)
         TracebackLinksMixin.__init__(self)
         InspectObjectMixin.__init__(self)
-        self.found_results = []
+
         self.calltip_widget = CallTipWidget(self, hide_timer_on=True)
+        self.found_results = []
+
         # To not use Spyder calltips obtained through the monitor
         self.calltips = False
-        
-    
+
     def showEvent(self, event):
         """Reimplement Qt Method"""
         self.emit(SIGNAL("visibility_changed(bool)"), True)
-    
+
     def _key_question(self, text):
         """ Action for '?' and '(' """
-        parent = self.parentWidget()
-        self.current_prompt_pos = parent._prompt_pos
+        self.current_prompt_pos = self.parentWidget()._prompt_pos
         if self.get_current_line_to_cursor():
             last_obj = self.get_last_obj()
             if last_obj and not last_obj.isdigit():
@@ -101,7 +101,6 @@ class IPythonControlWidget(TracebackLinksMixin, InspectObjectMixin, QTextEdit,
     def keyPressEvent(self, event):
         """Reimplement Qt Method - Basic keypress event handler"""
         event, text, key, ctrl, shift = restore_keyevent(event)
-        
         if key == Qt.Key_Question and not self.has_selected_text():
             self._key_question(text)
         elif key == Qt.Key_ParenLeft and not self.has_selected_text():
@@ -252,9 +251,10 @@ These commands were executed:
                      lambda: self.emit(SIGNAL("new_ipyclient()")))
 
         return [inspect, clear_console]
-    
+
     def get_signature(self, content):
         """Get signature from inspect reply content"""
+        self._control.current_prompt_pos = self._prompt_pos
         data = content.get('data', {})
         text = data.get('text/plain', '')
         if text:
