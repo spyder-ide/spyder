@@ -1,5 +1,63 @@
 # History of changes
 
+## Version 2.3.5
+
+### New features
+
+* Editor
+    * Add support for Jedi 0.9
+* IPython Console
+    * Add initial support for IPython/Jupyter 4.0
+* Main Window
+    * Improve how Spyder looks in MacOS X
+    * Several fixes to prevent startup crashes
+
+### Bug fixes
+
+**Issues**
+
+* [Issue 2468](/spyder-ide/spyder/issues/2468) - 'Connect to existing kernel' fails if json file not in PWD
+* [Issue 2466](/spyder-ide/spyder/issues/2466) - No Notification of Running Instance
+* [Issue 2463](/spyder-ide/spyder/issues/2463) - Failure to preserve Matplotlib backend when using symbolic math
+* [Issue 2456](/spyder-ide/spyder/issues/2456) - Launching IPython console fails because of errors importing Pandas or Matplotlib
+* [Issue 2452](/spyder-ide/spyder/issues/2452) - os.system causes TypeError in Python 3
+* [Issue 2448](/spyder-ide/spyder/issues/2448) - Spyder crashes using Variable Explorer with BeautifulSoup
+* [Issue 2446](/spyder-ide/spyder/issues/2446) - When importing putting two periods in a row produces an error in a Python console
+* [Issue 2363](/spyder-ide/spyder/issues/2363) - Spyder fails to start because of problems with lockfile
+* [Issue 2356](/spyder-ide/spyder/issues/2356) - Block comment incorporating whitespace excludes last line
+* [Issue 2341](/spyder-ide/spyder/issues/2341) - IPython console: "sre_constants.error: unbalanced parenthesis" while typing
+* [Issue 2314](/spyder-ide/spyder/issues/2314) - Cell highlighting not updated after closing the FindReplace widget
+* [Issue 2302](/spyder-ide/spyder/issues/2302) - Closing all files in editor shouldn't leave it empty
+* [Issue 2299](/spyder-ide/spyder/issues/2299) - IPython preference "Automatically load Pylab and Numpy Modules" not followed
+* [Issue 2298](/spyder-ide/spyder/issues/2298) - Cannot stop executing when runing a flask app with debug=True
+* [Issue 2285](/spyder-ide/spyder/issues/2285) - Copying from Spyder and pasting into LibreOffice displays strange comments
+* [Issue 2228](/spyder-ide/spyder/issues/2228) - Shortcut to run cells on Mac is not working
+* [Issue 2188](/spyder-ide/spyder/issues/2188) - can't run win_post_install from pip
+* [Issue 2171](/spyder-ide/spyder/issues/2171) - Spyder Mac apps (for Python 2 and 3) hang on startup with OSX 10.9.5
+* [Issue 2028](/spyder-ide/spyder/issues/2028) - Background color of theme is not set properly on Mac OSX
+* [Issue 1957](/spyder-ide/spyder/issues/1957) - Python 3 Mac app can't start Python or IPython consoles
+* [Issue 1844](/spyder-ide/spyder/issues/1844) - "Set as current console's working directory" button not working on Python 3
+* [Issue 1615](/spyder-ide/spyder/issues/1615) - Mac app - Matplotlib does not work with Canopy
+
+In this release they were closed 22 issues
+
+**Pull requests**
+
+* [PR 2486](/spyder-ide/spyder/pull/2486) - Stop using IPython.lib.kernel 0.13.2 shim and add initial support for Jupyter
+* [PR 2484](/spyder-ide/spyder/pull/2484) - Remove unnecessary changes to detected kernel json file when connecting to external kernels
+* [PR 2434](/spyder-ide/spyder/pull/2434) - Match for pylint when parsing pylint version
+* [PR 2411](/spyder-ide/spyder/pull/2411) - Improve github issue template
+* [PR 2377](/spyder-ide/spyder/pull/2377) - Fix the fact that spyder_win_post_install.py can't be run from pip
+* [PR 2293](/spyder-ide/spyder/pull/2293) - Hide menu icons on Mac OS X
+* [PR 2247](/spyder-ide/spyder/pull/2247) - Add support to run Python programs on xfce and xterm external terminals
+* [PR 2216](/spyder-ide/spyder/pull/2216) - Fix broken png files: libpng 1.6.2 and newer has stricter iCCP rules
+
+In this release they were merged 8 pull requests
+
+
+----
+
+
 ## Version 2.3.4
 
 ### New features

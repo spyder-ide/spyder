@@ -1,29 +1,28 @@
 Minor release to list
 =====================
 
+Subject: [ANN] Spyder 2.3.5 is released!
+
+
 Hi all,
 
 On the behalf of Spyder’s development team (https://github.com/spyder-ide/spyder/blob/master/AUTHORS),
 I’m pleased to announce that Spyder 2.3.4 has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release represents almost one month of development since version 2.3.3 and
-introduces several new features:
+This release represents almost three months of development since version 2.3.4
+and introduces several new features:
 
-* Debugging
-    * After pressing the Debug button (or `Ctrl+F5`) move to the first breakpoint
-* IPython Console
-    * Drop support for Sympy versions less than 0.7.3
-* Python Console
-    * Remove support to run system commands with ! (like !diff)
 * Editor
-    * Accept drops from compressed files on Windows
+    * Add support for Jedi 0.9
+* IPython Console
+    * Add initial support for IPython/Jupyter 4.0
+* Main Window
+    * Improve how Spyder looks in MacOS X
+    * Several fixes to prevent startup crashes
 
-We also fixed almost 30 bugs and merged 6 pull requests. For a full list of fixes
-see our changelog: https://github.com/spyder-ide/spyder/blob/master/CHANGELOG.md
-
-This is going to be the last release in 2.3 series. Very soon we are going to
-release the first beta of our next major release (expected to be ready on July!)
+We also fixed 22 bugs and merged 8 pull requests. For a full list of fixes
+see our changelog: https://github.com/spyder-ide/spyder/blob/2.3/CHANGELOG.md
 
 Don’t forget to follow Spyder updates/news:
 
@@ -44,8 +43,11 @@ Enjoy!
 Minor release others
 ====================
 
+Subject: [ANN] Spyder 2.3.5 is released!
+
+
 On the behalf of Spyder’s development team (https://github.com/spyder-ide/spyder/blob/master/AUTHORS),
-I’m pleased to announce that Spyder 2.3.4 has been released and is available for
+I’m pleased to announce that Spyder 2.3.5 has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
 Spyder is a free, open-source (MIT license) interactive development environment
@@ -55,23 +57,19 @@ and introspection features. It was designed to provide MATLAB-like features
 for NumPy arrays and Pandas dataframes), it is strongly oriented towards scientific
 computing and software development.
 
-This release represents almost one month of development since version 2.3.3 and
-introduces several new features:
+This release represents almost three months of development since version 2.3.4
+and introduces several new features:
 
-* Debugging
-    * After pressing the Debug button (or `Ctrl+F5`) move to the first breakpoint
-* IPython Console
-    * Drop support for Sympy versions less than 0.7.3
-* Python Console
-    * Remove support to run system commands with ! (like !diff)
 * Editor
-    * Accept drops from compressed files on Windows
+    * Add support for Jedi 0.9
+* IPython Console
+    * Add initial support for IPython/Jupyter 4.0
+* Main Window
+    * Improve how Spyder looks in MacOS X
+    * Several fixes to prevent startup crashes
 
-We also fixed almost 30 bugs and merged 6 pull requests. For a full list of
-fixes see our changelog: https://github.com/spyder-ide/spyder/blob/master/CHANGELOG.md
-
-This is going to be the last release in 2.3 series. Very soon we are going to
-release the first beta of our next major release (expected to be ready on July!)
+We also fixed 22 bugs and merged 8 pull requests. For a full list of fixes see
+our changelog: https://github.com/spyder-ide/spyder/blob/2.3/CHANGELOG.md
 
 Don’t forget to follow Spyder updates/news:
 
@@ -90,6 +88,9 @@ Enjoy!
 
 Major release to others
 =======================
+
+Subject: [ANN] Spyder 3.0 is released!
+
 
 Hi all,
 
@@ -115,7 +116,7 @@ major enhancements and new features:
      - Improve how calltips are shown
    * Better looking Object Inspector
    * Several refinements to the user interface to make it easier and more intuitive
-   * And many other changes: https://github.com/spyder-ide/spyder/blob/master/CHANGELOG.md
+   * And many other changes: https://github.com/spyder-ide/spyder/blob/2.3/CHANGELOG.md
 
 Spyder 2.2 has been a huge success (being downloaded more than 400,000 times!)
 and we hope 2.3 will be as successful as it. For that we fixed 70 important bugs,

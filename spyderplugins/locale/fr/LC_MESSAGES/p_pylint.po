@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
-"POT-Creation-Date: 2015-03-21 12:42+COT\n"
+"POT-Creation-Date: 2015-06-21 23:28+COT\n"
 "PO-Revision-Date: 2011-04-11 21:41+2\n"
 "Last-Translator: Pierre Raybaut\n"
 "Language-Team: Python\n"
@@ -47,7 +47,7 @@ msgstr "Résultats"
 msgid "Results are stored here:"
 msgstr "Les résultats sont stockés ici :"
 
-#: spyderplugins/p_pylint.py:89 spyderplugins/widgets/pylintgui.py:64
+#: spyderplugins/p_pylint.py:89 spyderplugins/widgets/pylintgui.py:72
 msgid "Static code analysis"
 msgstr "Analyse de code statique"
 
@@ -67,90 +67,90 @@ msgstr "Démarrer l'analyse de code statique"
 msgid "Maximum entries"
 msgstr "Nombre maximum d'entrées"
 
-#: spyderplugins/widgets/pylintgui.py:99
+#: spyderplugins/widgets/pylintgui.py:107
 msgid "Results for "
 msgstr "Résultats pour "
 
-#: spyderplugins/widgets/pylintgui.py:104
+#: spyderplugins/widgets/pylintgui.py:112
 msgid "Convention"
 msgstr "Convention"
 
-#: spyderplugins/widgets/pylintgui.py:106
+#: spyderplugins/widgets/pylintgui.py:114
 msgid "Refactor"
 msgstr "Factorisation"
 
-#: spyderplugins/widgets/pylintgui.py:108
+#: spyderplugins/widgets/pylintgui.py:116
 msgid "Warning"
 msgstr "Avertissement"
 
-#: spyderplugins/widgets/pylintgui.py:110
-#: spyderplugins/widgets/pylintgui.py:344
-#: spyderplugins/widgets/pylintgui.py:372
+#: spyderplugins/widgets/pylintgui.py:118
+#: spyderplugins/widgets/pylintgui.py:352
+#: spyderplugins/widgets/pylintgui.py:380
 msgid "Error"
 msgstr "Erreur"
 
-#: spyderplugins/widgets/pylintgui.py:187
+#: spyderplugins/widgets/pylintgui.py:195
 msgid "Analyze"
 msgstr "Analyser"
 
-#: spyderplugins/widgets/pylintgui.py:188
+#: spyderplugins/widgets/pylintgui.py:196
 msgid "Run analysis"
 msgstr "Analyser le code source"
 
-#: spyderplugins/widgets/pylintgui.py:192
+#: spyderplugins/widgets/pylintgui.py:200
 msgid "Stop"
 msgstr "Arrêter"
 
-#: spyderplugins/widgets/pylintgui.py:193
+#: spyderplugins/widgets/pylintgui.py:201
 msgid "Stop current analysis"
 msgstr "Arrêter l'analyse en cours"
 
-#: spyderplugins/widgets/pylintgui.py:200
-#: spyderplugins/widgets/pylintgui.py:269
+#: spyderplugins/widgets/pylintgui.py:208
+#: spyderplugins/widgets/pylintgui.py:277
 msgid "Select Python file"
 msgstr "Sélectionner un fichier Python"
 
-#: spyderplugins/widgets/pylintgui.py:206
+#: spyderplugins/widgets/pylintgui.py:214
 msgid "Output"
 msgstr "Sortie"
 
-#: spyderplugins/widgets/pylintgui.py:208
+#: spyderplugins/widgets/pylintgui.py:216
 msgid "Complete output"
 msgstr "Sortie complète"
 
-#: spyderplugins/widgets/pylintgui.py:242
+#: spyderplugins/widgets/pylintgui.py:250
 msgid "Pylint script was not found. Please add \"%s\" to PATH."
 msgstr "Le script pylint est introuvable. Merci d'ajouter \"%s\" au PATH."
 
-#: spyderplugins/widgets/pylintgui.py:245
+#: spyderplugins/widgets/pylintgui.py:253
 msgid "Please install <b>pylint</b>:"
 msgstr "Merci d'installer au préalable <b>pylint</b> :"
 
-#: spyderplugins/widgets/pylintgui.py:270
+#: spyderplugins/widgets/pylintgui.py:278
 msgid "Python files"
 msgstr "Fichiers Python"
 
-#: spyderplugins/widgets/pylintgui.py:306
+#: spyderplugins/widgets/pylintgui.py:314
 msgid "Pylint output"
 msgstr "Analyse Pylint"
 
-#: spyderplugins/widgets/pylintgui.py:345
+#: spyderplugins/widgets/pylintgui.py:353
 msgid "Process failed to start"
 msgstr "Le processus n'a pas pu démarrer"
 
-#: spyderplugins/widgets/pylintgui.py:446
+#: spyderplugins/widgets/pylintgui.py:454
 msgid "Source code has not been rated yet."
 msgstr "Le code source n'a pas encore été analysé."
 
-#: spyderplugins/widgets/pylintgui.py:452
+#: spyderplugins/widgets/pylintgui.py:460
 msgid "Analysis did not succeed (see output for more details)."
 msgstr "L'analyse n'a pas réussi (voir la sortie pour plus de détails)."
 
-#: spyderplugins/widgets/pylintgui.py:465
+#: spyderplugins/widgets/pylintgui.py:473
 msgid "Global evaluation:"
 msgstr "Évaluation globale :"
 
-#: spyderplugins/widgets/pylintgui.py:469
+#: spyderplugins/widgets/pylintgui.py:477
 msgid "previous run:"
 msgstr "analyse précédente :"
 
