@@ -26,7 +26,8 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QHBoxLayout, QFormLayout,
                                 QMessageBox, QGroupBox, QDialogButtonBox,
                                 QDialog, QTabWidget, QFontComboBox, 
                                 QCheckBox, QApplication, QLabel,QLineEdit,
-                                QPushButton, QKeySequence, QWidget)
+                                QPushButton, QKeySequence, QWidget,
+                                QGridLayout)
 from spyderlib.qt.compat import getopenfilename
 from spyderlib.qt.QtCore import Signal, Slot, Qt
 import spyderlib.utils.icon_manager as ima
@@ -300,13 +301,25 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                           'pylab/inline/height', min_=1, max_=20, step=1,
                           tip=_("Default is 4"))
         
-        inline_layout = QVBoxLayout()
-        inline_layout.addWidget(inline_label)
-        inline_layout.addWidget(format_box)
-        inline_layout.addWidget(resolution_spin)
-        inline_layout.addWidget(width_spin)
-        inline_layout.addWidget(height_spin)
-        inline_group.setLayout(inline_layout)
+        inline_v_layout = QVBoxLayout()
+        inline_v_layout.addWidget(inline_label)
+        inline_layout = QGridLayout()
+        inline_layout.addWidget(format_box.label, 1, 0)
+        inline_layout.addWidget(format_box.combobox, 1, 1)
+        inline_layout.addWidget(resolution_spin.plabel, 2, 0)
+        inline_layout.addWidget(resolution_spin.spinbox, 2, 1)
+        inline_layout.addWidget(resolution_spin.slabel, 2, 2)
+        inline_layout.addWidget(width_spin.plabel, 3, 0)
+        inline_layout.addWidget(width_spin.spinbox, 3, 1)
+        inline_layout.addWidget(width_spin.slabel, 3, 2)
+        inline_layout.addWidget(height_spin.plabel, 4, 0)
+        inline_layout.addWidget(height_spin.spinbox, 4, 1)
+        inline_layout.addWidget(height_spin.slabel, 4, 2)
+        inline_h_layout = QHBoxLayout()
+        inline_h_layout.addLayout(inline_layout)
+        inline_h_layout.addStretch(1)
+        inline_v_layout.addLayout(inline_h_layout)
+        inline_group.setLayout(inline_v_layout)
         inline_group.setEnabled(self.get_option('pylab') and mpl_present)
         pylab_box.toggled.connect(inline_group.setEnabled)
 
@@ -436,8 +449,12 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         
         prompts_layout = QVBoxLayout()
         prompts_layout.addWidget(prompts_label)
-        prompts_layout.addWidget(in_prompt_edit)
-        prompts_layout.addWidget(out_prompt_edit)
+        prompts_g_layout  = QGridLayout()
+        prompts_g_layout.addWidget(in_prompt_edit.label, 0, 0)
+        prompts_g_layout.addWidget(in_prompt_edit.textbox, 0, 1)
+        prompts_g_layout.addWidget(out_prompt_edit.label, 1, 0)
+        prompts_g_layout.addWidget(out_prompt_edit.textbox, 1, 1)
+        prompts_layout.addLayout(prompts_g_layout)
         prompts_group.setLayout(prompts_layout)
 
         # --- Tabs organization ---
