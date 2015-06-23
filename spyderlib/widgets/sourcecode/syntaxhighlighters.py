@@ -435,7 +435,7 @@ class PythonSH(BaseSH):
                     )
                     self.setFormat(posoffset, 1, color_foreground_new)
                 
-                pos = text.find(" ", pos+1)
+                pos = text.find(space_character, pos+1)
         
         self.setCurrentBlockState(state)
         
