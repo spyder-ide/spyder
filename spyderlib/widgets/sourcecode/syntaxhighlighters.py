@@ -414,6 +414,29 @@ class PythonSH(BaseSH):
                     
             match = self.PROG.search(text, match.end())
  
+        # Make blank space less apparent by setting the foreground
+        # color closer to the background color.
+        # This only has an effect when "Show blank space" is turned on.
+        for space_character in [" ", "\t"]:
+            pos = text.find(space_character, 0)
+            while pos >= 0:
+                posoffset = pos + offset
+                if posoffset >= 0:
+                    format = self.format(posoffset)
+                    color_foreground = format.foreground().color()
+                    color_background = format.background().color()
+                    # Blend the colors.
+                    fr, fg, fb = 0.3, 0.3, 0.3
+                    color_foreground_new = QColor(
+                        fr*color_foreground.red() + (1-fr)*color_background.red(),
+                        fg*color_foreground.green() + (1-fg)*color_background.green(),
+                        fb*color_foreground.blue() + (1-fb)*color_background.blue(),
+                        255,
+                    )
+                    self.setFormat(posoffset, 1, color_foreground_new)
+                
+                pos = text.find(" ", pos+1)
+        
         self.setCurrentBlockState(state)
         
         if oedata is not None:
