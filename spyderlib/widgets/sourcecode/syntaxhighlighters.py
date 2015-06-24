@@ -84,8 +84,12 @@ class BaseSH(QSyntaxHighlighter):
     """Base Syntax Highlighter Class"""
     # Syntax highlighting rules:
     PROG = None
+    BLANKPROG = re.compile("\s+")
     # Syntax highlighting states (from one text block to another):
     NORMAL = 0
+    # Syntax highlighting parameters.
+    BLANK_ALPHA_FACTOR = 0.31
+    
     def __init__(self, parent, font=None, color_scheme='Spyder'):
         QSyntaxHighlighter.__init__(self, parent)
         
@@ -187,10 +191,28 @@ class BaseSH(QSyntaxHighlighter):
             self.color_scheme = color_scheme
         self.setup_formats()
         self.rehighlight()
-
+    
     def highlightBlock(self, text):
         raise NotImplementedError
-            
+
+    def highlight_spaces(self, text, offset=0):
+        """
+        Make blank space less apparent by setting the foreground alpha.
+        This only has an effect when 'Show blank space' is turned on.
+        Derived classes could call this function at the end of
+        highlightBlock().
+        """
+        match = self.BLANKPROG.search(text, offset)
+        while match:
+            start, end = match.span()
+            start = max([0, start+offset])
+            end = max([0, end+offset])
+            format = self.format(start)
+            color_foreground = format.foreground().color()
+            color_foreground.setAlphaF(self.BLANK_ALPHA_FACTOR * color_foreground.alphaF())
+            self.setFormat(start, end-start, color_foreground)
+            match = self.BLANKPROG.search(text, match.end())
+    
     def get_outlineexplorer_data(self):
         return self.outlineexplorer_data
 
@@ -202,9 +224,9 @@ class BaseSH(QSyntaxHighlighter):
 
 
 class TextSH(BaseSH):
-    """Simple Text Syntax Highlighter Class (do nothing)"""
+    """Simple Text Syntax Highlighter Class (only highlight spaces)"""
     def highlightBlock(self, text):
-        pass
+        self.highlight_spaces(text)
 
 
 class GenericSH(BaseSH):
@@ -225,6 +247,8 @@ class GenericSH(BaseSH):
                     self.setFormat(start, end-start, self.formats[key])
                     
             match = self.PROG.search(text, match.end())
+        
+        self.highlight_spaces(text)
 
 
 #==============================================================================
@@ -413,20 +437,8 @@ class PythonSH(BaseSH):
                                                    self.formats["keyword"])
                     
             match = self.PROG.search(text, match.end())
- 
-        # Make blank space less apparent by setting the foreground alpha.
-        # This only has an effect when "Show blank space" is turned on.
-        re_blank = re.compile("\s+")
-        match = re_blank.search(text, offset)
-        while match:
-            start, end = match.span()
-            start = max([0, start+offset])
-            end = max([0, end+offset])
-            format = self.format(start)
-            color_foreground = format.foreground().color()
-            color_foreground.setAlpha(80)
-            self.setFormat(start, end-start, color_foreground)
-            match = re_blank.search(text, match.end())
+        
+        self.highlight_spaces(text, offset)
         
         self.setCurrentBlockState(state)
         
@@ -550,7 +562,9 @@ class CppSH(BaseSH):
                         self.setFormat(start, end-start, self.formats[key])
                     
             match = self.PROG.search(text, match.end())
-
+        
+        self.highlight_spaces(text)
+        
         last_state = self.INSIDE_COMMENT if inside_comment else self.NORMAL
         self.setCurrentBlockState(last_state)
 
@@ -625,6 +639,8 @@ class FortranSH(BaseSH):
                                            self.formats["definition"])
                     
             match = self.PROG.search(text, match.end())
+        
+        self.highlight_spaces(text)
 
 class Fortran77SH(FortranSH):
     """Fortran 77 Syntax Highlighter"""
@@ -632,6 +648,7 @@ class Fortran77SH(FortranSH):
         text = to_text_string(text)
         if text.startswith(("c", "C")):
             self.setFormat(0, len(text), self.formats["comment"])
+            self.highlight_spaces(text)
         else:
             FortranSH.highlightBlock(self, text)
             self.setFormat(0, 5, self.formats["comment"])
@@ -687,7 +704,8 @@ class DiffSH(BaseSH):
             self.setFormat(0, len(text), self.formats["number"])
         elif text.startswith("@"):
             self.setFormat(0, len(text), self.formats["builtin"])
-
+        
+        self.highlight_spaces(text)
 
 #==============================================================================
 # NSIS highlighter
@@ -817,6 +835,8 @@ class BaseWebSH(BaseSH):
             
             match = self.PROG.search(text, match.end())
             match_count += 1
+        
+        self.highlight_spaces(text)
 
 def make_html_patterns():
     """Strongly inspired from idlelib.ColorDelegator.make_pat """
@@ -899,7 +919,8 @@ class PygmentsSH(BaseSH):
             start = ct
             ct += len(val)        
             self.setFormat(start, ct-start, self.formats[key])
-
+        
+        self.highlight_spaces(text)
 
 def guess_pygments_highlighter(filename):
     """Factory to generate syntax highlighter for the given filename.
