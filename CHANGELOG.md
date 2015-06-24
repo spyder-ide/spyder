@@ -1,6 +1,9 @@
 # History of changes
 
-## Version 2.3.5
+## Version 2.3.5.2
+
+**Note**: Versions 2.3.5 and 2.3.5.1 have serious startup bugs on Windows and Mac respectively.
+Hence they are not listed here.
 
 ### New features
 
