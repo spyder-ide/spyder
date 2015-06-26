@@ -192,7 +192,7 @@ class BaseSH(QSyntaxHighlighter):
             self.color_scheme = color_scheme
         self.setup_formats()
         self.rehighlight()
-    
+
     def highlightBlock(self, text):
         raise NotImplementedError
 
