@@ -16,7 +16,8 @@ import re
 import keyword
 
 from spyderlib.qt.QtGui import (QColor, QApplication, QFont,
-                                QSyntaxHighlighter, QCursor, QTextCharFormat)
+                                QSyntaxHighlighter, QCursor, QTextCharFormat,
+                                QTextOption)
 from spyderlib.qt.QtCore import Qt
 
 # Local imports
@@ -202,16 +203,18 @@ class BaseSH(QSyntaxHighlighter):
         Derived classes could call this function at the end of
         highlightBlock().
         """
-        match = self.BLANKPROG.search(text, offset)
-        while match:
-            start, end = match.span()
-            start = max([0, start+offset])
-            end = max([0, end+offset])
-            format = self.format(start)
-            color_foreground = format.foreground().color()
-            color_foreground.setAlphaF(self.BLANK_ALPHA_FACTOR * color_foreground.alphaF())
-            self.setFormat(start, end-start, color_foreground)
-            match = self.BLANKPROG.search(text, match.end())
+        show_blanks = self.document().defaultTextOption().flags() & QTextOption.ShowTabsAndSpaces
+        if show_blanks:
+            match = self.BLANKPROG.search(text, offset)
+            while match:
+                start, end = match.span()
+                start = max([0, start+offset])
+                end = max([0, end+offset])
+                format = self.format(start)
+                color_foreground = format.foreground().color()
+                color_foreground.setAlphaF(self.BLANK_ALPHA_FACTOR * color_foreground.alphaF())
+                self.setFormat(start, end-start, color_foreground)
+                match = self.BLANKPROG.search(text, match.end())
     
     def get_outlineexplorer_data(self):
         return self.outlineexplorer_data
