@@ -1356,6 +1356,8 @@ class CodeEditor(TextEditBaseWidget):
         else:
             option.setFlags(option.flags() & ~QTextOption.ShowTabsAndSpaces)
         self.document().setDefaultTextOption(option)
+        # Rehighlight to make the spaces less apparent.
+        self.rehighlight()
 
     #-----scrollflagarea
     def set_scrollflagarea_enabled(self, state):
