@@ -40,7 +40,7 @@ _qtaargs = {
     'arrow-continue':          [('spyder.continue',), {'color': '#3775a9'}],
     'arrow-step-in':           [('spyder.step-into',), {'color': '#3775a9'}],
     'arrow-step-out':          [('spyder.step-out',), {'color': '#3775a9'}],
-    'stop_debug':              [('spyder.stop',), {'color': '#3775a9'}],
+    'stop_debug':              [('fa.stop',), {'color': '#3775a9'}],
     'run':                     [('fa.play',), {'color': 'green'}],
     'run_settings':            [('fa.wrench', 'spyder.run'), {'options': [{'offset':(-0.1, -0.1), 'scale_factor': 0.75}, {'offset': (0.0, 0.125), 'color': 'green','scale_factor': 0.75}]}],
     'run_again':               [('fa.repeat', 'spyder.run'), {'options': [{'offset':(-0.1, -0.1), 'scale_factor': 0.75}, {'offset':(0.1, 0.125), 'color': 'green', 'scale_factor': 0.75}]}],
