@@ -441,9 +441,9 @@ class PythonSH(BaseSH):
                     
             match = self.PROG.search(text, match.end())
         
-        self.highlight_spaces(text, offset)
-        
         self.setCurrentBlockState(state)
+        
+        self.highlight_spaces(text, offset)
         
         if oedata is not None:
             block_nb = self.currentBlock().blockNumber()
@@ -453,6 +453,36 @@ class PythonSH(BaseSH):
             block_nb = self.currentBlock().blockNumber()
             self.import_statements[block_nb] = import_stmt
             
+    def highlight_spaces(self, text, offset=0):
+        """
+        Make blank space less apparent by setting the foreground alpha.
+        
+        This only has an effect when 'Show blank space' is turned on.
+        Overloaded to make indentation spaces of docstrings look normal.
+        """
+        show_blanks = self.document().defaultTextOption().flags() & QTextOption.ShowTabsAndSpaces
+        inside_string = self.previousBlockState() in (
+            self.INSIDE_SQSTRING,
+            self.INSIDE_DQSTRING,
+            self.INSIDE_SQ3STRING,
+            self.INSIDE_DQ3STRING,
+        )
+        if show_blanks:
+            match = self.BLANKPROG.search(text, offset)
+            while match:
+                start, end = match.span()
+                start = max([0, start+offset])
+                end = max([0, end+offset])
+                if inside_string and start == 0:
+                    self.setFormat(start, end, self.formats["normal"])
+
+                format = self.format(start)
+                color_foreground = format.foreground().color()
+                color_foreground.setAlphaF(self.BLANK_ALPHA_FACTOR * color_foreground.alphaF())
+                self.setFormat(start, end-start, color_foreground)
+                
+                match = self.BLANKPROG.search(text, match.end())
+    
     def get_import_statements(self):
         return list(self.import_statements.values())
             
