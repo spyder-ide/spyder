@@ -212,8 +212,10 @@ class BaseSH(QSyntaxHighlighter):
                 start, end = match.span()
                 start = max([0, start+offset])
                 end = max([0, end+offset])
+                # Format trailing spaces at the end of the line. 
                 if end == len(text) and format_trailing is not None:
                     self.setFormat(start, end, format_trailing)
+                # Format leading spaces, e.g. indentation.
                 if start == 0 and format_leading is not None:
                     self.setFormat(start, end, format_leading)
                 format = self.format(start)
@@ -449,10 +451,9 @@ class PythonSH(BaseSH):
         
         self.setCurrentBlockState(state)
         
-        # Use normal format for indentation.
+        # Use normal format for indentation and trailing spaces.
         self.formats['leading'] = self.formats['normal']
-        # Use number format for trailing spaces.
-        self.formats['trailing'] = self.formats['number']
+        self.formats['trailing'] = self.formats['normal']
         self.highlight_spaces(text, offset)
         
         if oedata is not None:
