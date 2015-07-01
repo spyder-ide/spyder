@@ -20,8 +20,11 @@ import time
 
 
 PY2 = sys.version[0] == '2'
+SLEEP_TIME = 0.2  # Seconds for throttling control
+
+# Possible error codes when restarting/reseting spyder
+# Start in 1 cause the error code is used in an if clause
 CLOSE_ERROR, RESET_ERROR, RESTART_ERROR = list(range(1, 4, 1))
-SLEEP_TIME = 0.2  # Seconds
 
 
 def _is_pid_running_on_windows(pid):
@@ -65,35 +68,38 @@ def is_pid_running(pid):
         return _is_pid_running_on_unix(pid)
 
 
-def launch_error_message(type_, error=None):
+def launch_error_message(error_type, error=None):
     """Launch a message box with a predefined error message.
 
     Parameters
     ----------
-    type_ : int [CLOSE_ERROR, RESET_ERROR, RESTART_ERROR]
+    error_type : int [CLOSE_ERROR, RESET_ERROR, RESTART_ERROR]
+        Possible error codes when restarting/reseting spyder.
+    error : Exception
+        Actual Python exception error caught.
     """
     from spyderlib.baseconfig import _
     from spyderlib.qt.QtGui import QMessageBox, QDialog
     from spyderlib.utils import icon_manager as ima
     from spyderlib.utils.qthelpers import qapplication
 
-    messages = {CLOSE_ERROR: _("The previous instance of Spyder has not "
-                               "closed.\nRestart aborted."),
+    messages = {CLOSE_ERROR: _("It was not possible to close the previous "
+                               "Spyder instance.\nRestart aborted."),
                 RESET_ERROR: _("Spyder could not reset to factory defaults.\n"
                                "Restart aborted."),
-                RESTART_ERROR: _("Spyder could not restart.\n"
-                                 "Restart aborted.")}
+                RESTART_ERROR: _("It was not possible restart Spyder.\n"
+                                 "Operation aborted.")}
     titles = {CLOSE_ERROR: _("Spyder exit error"),
               RESET_ERROR: _("Spyder reset error"),
               RESTART_ERROR: _("Spyder restart error")}
 
     if error:
         e = error.__repr__()
-        message = messages[type_] + _("\n\n{0}".format(e))
+        message = messages[error_type] + _("\n\n{0}".format(e))
     else:
-        message = messages[type_]
+        message = messages[error_type]
 
-    title = titles[type_]
+    title = titles[error_type]
     app = qapplication()
     resample = os.name != 'nt'
     # Resampling SVG icon only on non-Windows platforms (see Issue 1314):
@@ -180,7 +186,9 @@ def main():
     # Adjust the command and/or arguments to subprocess depending on the OS
     shell = os.name != 'nt'
 
-    # Wait for original process to end before launching the new instance
+    # Before launching a new Spyder instance we need to make sure that the
+    # previous one has closed. We wait for a fixed and "reasonable" amount of
+    # time and check, otherwise an error is launched
     wait_time = 60*5  # Seconds
     for counter in range(int(wait_time/SLEEP_TIME)):
         if not is_pid_running(pid):
@@ -205,14 +213,16 @@ def main():
             p.communicate()
             pid_reset = p.pid
 
-        # Wait for reset process to end before restarting
+        # Before launching a new Spyder instance we need to make sure that the
+        # reset subprocess has closed. We wait for a fixed and "reasonable"
+        # amount of time and check, otherwise an error is launched.
         wait_time = 60  # Seconds
         for counter in range(int(wait_time/SLEEP_TIME)):
             if not is_pid_running(pid_reset):
                 break
             time.sleep(SLEEP_TIME)  # Throttling control
         else:
-            # The rest subprocess took too long and it is killed
+            # The reset subprocess took too long and it is killed
             p.kill()
             launch_error_message(type_=RESET_ERROR)
 

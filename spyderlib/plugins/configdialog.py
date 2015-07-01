@@ -24,11 +24,9 @@ import spyderlib.utils.icon_manager as ima
 
 from spyderlib.baseconfig import (_, running_in_mac_app, LANGUAGE_CODES,
                                   save_lang_conf, load_lang_conf)
-from spyderlib.baseconfig import _, running_in_mac_app
 from spyderlib.config import CONF
 from spyderlib.guiconfig import (CUSTOM_COLOR_SCHEME_NAME,
                                  set_default_color_scheme)
-from spyderlib.utils.qthelpers import get_icon, get_std_icon
 from spyderlib.userconfig import NoDefault
 from spyderlib.widgets.colors import ColorLayout
 from spyderlib.widgets.sourcecode import syntaxhighlighters as sh
@@ -108,7 +106,6 @@ class ConfigPage(QWidget):
                     break  # Ensure a single popup is displayed
             self.set_modified(False)
 
-    
     def load_from_conf(self):
         """Load settings from configuration file"""
         raise NotImplementedError
