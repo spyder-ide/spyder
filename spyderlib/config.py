@@ -197,7 +197,6 @@ DEFAULTS = [
               'custom_margin': 0,
               'show_internal_console_if_traceback': True,
               'check_updates_on_startup': True,
-              'last_visible_toolbars': [],
               'toolbars_visible': True,
               }),
             ('quick_layouts',
@@ -486,6 +485,7 @@ DEFAULTS = [
               '_/save current layout': "Shift+Alt+S",
               '_/toggle default layout': "Shift+Alt+Home",
               '_/layout preferences': "Shift+Alt+P",
+              '_/show toolbars': "Ctrl+Shift+T",
               '_/restart': "Shift+Alt+R",
               '_/quit': "Ctrl+Q",
               # -- In plugins/editor
