@@ -18,13 +18,17 @@ import subprocess
 import sys
 import time
 
+from spyderlib.baseconfig import _, get_image_path
+from spyderlib.qt.QtCore import Qt, QTimer
+from spyderlib.qt.QtGui import (QColor, QMessageBox, QPixmap, QSplashScreen,
+                                QWidget, QApplication)
+from spyderlib.utils import icon_manager as ima
+from spyderlib.utils.qthelpers import qapplication
+
 
 PY2 = sys.version[0] == '2'
 SLEEP_TIME = 0.2  # Seconds for throttling control
-
-# Possible error codes when restarting/reseting spyder
-# Start in 1 cause the error code is used in an if clause
-CLOSE_ERROR, RESET_ERROR, RESTART_ERROR = list(range(1, 4, 1))
+CLOSE_ERROR, RESET_ERROR, RESTART_ERROR = [1, 2, 3]  # Spyder error codes
 
 
 def _is_pid_running_on_windows(pid):
@@ -68,50 +72,6 @@ def is_pid_running(pid):
         return _is_pid_running_on_unix(pid)
 
 
-def launch_error_message(error_type, error=None):
-    """Launch a message box with a predefined error message.
-
-    Parameters
-    ----------
-    error_type : int [CLOSE_ERROR, RESET_ERROR, RESTART_ERROR]
-        Possible error codes when restarting/reseting spyder.
-    error : Exception
-        Actual Python exception error caught.
-    """
-    from spyderlib.baseconfig import _
-    from spyderlib.qt.QtGui import QMessageBox, QDialog
-    from spyderlib.utils import icon_manager as ima
-    from spyderlib.utils.qthelpers import qapplication
-
-    messages = {CLOSE_ERROR: _("It was not possible to close the previous "
-                               "Spyder instance.\nRestart aborted."),
-                RESET_ERROR: _("Spyder could not reset to factory defaults.\n"
-                               "Restart aborted."),
-                RESTART_ERROR: _("It was not possible restart Spyder.\n"
-                                 "Operation aborted.")}
-    titles = {CLOSE_ERROR: _("Spyder exit error"),
-              RESET_ERROR: _("Spyder reset error"),
-              RESTART_ERROR: _("Spyder restart error")}
-
-    if error:
-        e = error.__repr__()
-        message = messages[error_type] + _("\n\n{0}".format(e))
-    else:
-        message = messages[error_type]
-
-    title = titles[error_type]
-    app = qapplication()
-    resample = os.name != 'nt'
-    # Resampling SVG icon only on non-Windows platforms (see Issue 1314):
-    icon = ima.icon('spyder', resample=resample)
-    app.setWindowIcon(icon)
-    dlg = QDialog()
-    dlg.setVisible(False)
-    dlg.show()
-    QMessageBox.warning(dlg, title, message, QMessageBox.Ok)
-    raise RuntimeError(message)
-
-
 # Note: Copied from py3compat because we can't rely on Spyder
 # being installed when using bootstrap.py
 def to_text_string(obj, encoding=None):
@@ -131,6 +91,79 @@ def to_text_string(obj, encoding=None):
             return obj
         else:
             return str(obj, encoding)
+
+
+class Restarter(QWidget):
+    """Widget in charge of displaying the splash information screen and the
+       error messages.
+    """
+    def __init__(self):
+        super(Restarter, self).__init__()
+        self.ellipsis = ['', '.', '..', '...', '..', '.']
+
+        # Widgets
+        self.timer_ellipsis = QTimer(self)
+        self.splash = QSplashScreen(QPixmap(get_image_path('splash.png'),
+                                    'png'))
+
+        # Widget setup
+        self.setVisible(False)
+
+        font = self.splash.font()
+        font.setPixelSize(10)
+        self.splash.setFont(font)
+        self.splash.show()
+
+        self.timer_ellipsis.timeout.connect(self.animate_ellipsis)
+
+    def _show_message(self, text):
+        """Show message on splash screen."""
+        self.splash.showMessage(text, Qt.AlignBottom | Qt.AlignCenter |
+                                Qt.AlignAbsolute, QColor(Qt.white))
+
+    def animate_ellipsis(self):
+        """Animate dots at the end of the splash screen message."""
+        ellipsis = self.ellipsis.pop(0)
+        text = ' '*len(ellipsis) + self.splash_text + ellipsis
+        self.ellipsis.append(ellipsis)
+        self._show_message(text)
+
+    def set_splash_message(self, text):
+        """Sets the text in the bottom of the Splash screen."""
+        self.splash_text = text
+        self._show_message(text)
+        self.timer_ellipsis.start(1000)
+
+    def launch_error_message(self, error_type, error=None):
+        """Launch a message box with a predefined error message.
+
+        Parameters
+        ----------
+        error_type : int [CLOSE_ERROR, RESET_ERROR, RESTART_ERROR]
+            Possible error codes when restarting/reseting spyder.
+        error : Exception
+            Actual Python exception error caught.
+        """
+        messages = {CLOSE_ERROR: _("It was not possible to close the previous "
+                                   "Spyder instance.\nRestart aborted."),
+                    RESET_ERROR: _("Spyder could not reset to factory "
+                                   "defaults.\nRestart aborted."),
+                    RESTART_ERROR: _("It was not possible to restart Spyder.\n"
+                                     "Operation aborted.")}
+        titles = {CLOSE_ERROR: _("Spyder exit error"),
+                  RESET_ERROR: _("Spyder reset error"),
+                  RESTART_ERROR: _("Spyder restart error")}
+
+        if error:
+            e = error.__repr__()
+            message = messages[error_type] + _("\n\n{0}".format(e))
+        else:
+            message = messages[error_type]
+
+        title = titles[error_type]
+        self.splash.hide()
+        QMessageBox.warning(self, title, message, QMessageBox.Ok)
+        raise RuntimeError(message)
 
 
 def main():
@@ -186,29 +219,42 @@ def main():
     # Adjust the command and/or arguments to subprocess depending on the OS
     shell = os.name != 'nt'
 
+    # Splash screen
+    # -------------------------------------------------------------------------
+    # Start Qt Splash to inform the user of the current status
+    app = qapplication()
+    restarter = Restarter()
+    resample = os.name != 'nt'
+    # Resampling SVG icon only on non-Windows platforms (see Issue 1314):
+    icon = ima.icon('spyder', resample=resample)
+    app.setWindowIcon(icon)
+    restarter.set_splash_message(_('Closing Spyder'))
+
     # Before launching a new Spyder instance we need to make sure that the
     # previous one has closed. We wait for a fixed and "reasonable" amount of
     # time and check, otherwise an error is launched
-    wait_time = 60*5  # Seconds
+    wait_time = 60*3  # Seconds
     for counter in range(int(wait_time/SLEEP_TIME)):
         if not is_pid_running(pid):
             break
         time.sleep(SLEEP_TIME)  # Throttling control
+        QApplication.processEvents()  # Needed to refresh the splash
     else:
         # The old spyder instance took too long to close and restart aborts
-        launch_error_message(type_=CLOSE_ERROR)
+        restarter.launch_error_message(error_type=CLOSE_ERROR)
 
     env = os.environ.copy()
 
     # Reset Spyder (if required)
     # -------------------------------------------------------------------------
     if reset:
+        restarter.set_splash_message(_('Resetting Spyder to defaults'))
         command_reset = '"{0}" "{1}" {2}'.format(python, spyder, args_reset)
 
         try:
             p = subprocess.Popen(command_reset, shell=shell)
         except Exception as error:
-            launch_error_message(type_=RESET_ERROR, error=error)
+            restarter.launch_error_message(error_type=RESET_ERROR, error=error)
         else:
             p.communicate()
             pid_reset = p.pid
@@ -221,17 +267,24 @@ def main():
             if not is_pid_running(pid_reset):
                 break
             time.sleep(SLEEP_TIME)  # Throttling control
+            QApplication.processEvents()  # Needed to refresh the splash
         else:
             # The reset subprocess took too long and it is killed
-            p.kill()
-            launch_error_message(type_=RESET_ERROR)
+            try:
+                p.kill()
+            except OSError as error:
+                restarter.launch_error_message(error_type=RESET_ERROR,
+                                               error=error)
+            else:
+                restarter.launch_error_message(error_type=RESET_ERROR)
 
     # Restart
     # -------------------------------------------------------------------------
+    restarter.set_splash_message(_('Restarting'))
     try:
         subprocess.Popen(command, shell=shell, env=env)
     except Exception as error:
-        launch_error_message(type_=RESTART_ERROR, error=error)
+        restarter.launch_error_message(error_type=RESTART_ERROR, error=error)
 
 
 if __name__ == '__main__':
