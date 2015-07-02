@@ -1922,30 +1922,27 @@ class MainWindow(QMainWindow):
             action = plugin.toggle_view_action
             action.setChecked(plugin.dockwidget.isVisible())
 
-    # --- Other
+    # --- Show/Hide toolbars
     def _update_show_toolbars_action(self):
-        """ """
+        """Update the text displayed in the menu entry."""
         if self.toolbars_visible:
             text = _("Hide toolbars")
             tip = _("Hide toolbars")
-#            icon = ima.icon('maximize')
         else:
             text = _("Show toolbars")
             tip = _("Show toolbars")
-#            icon = ima.icon('unmaximize')
         self.show_toolbars_action.setText(text)
         self.show_toolbars_action.setToolTip(tip)
-#        self.show_toolbars_actionsetIcon(icon)
 
     def save_visible_toolbars(self):
-        """ """
+        """Saves the name of the visible toolbars in the .ini file."""
         toolbars = []
         for toolbar in self.visible_toolbars:
             toolbars.append(toolbar.objectName())
         CONF.set('main', 'last_visible_toolbars', toolbars)
 
     def get_visible_toolbars(self):
-        """ """
+        """Collects the visible toolbars."""
         toolbars = []
         for toolbar in self.toolbarslist:
             if toolbar.toggleViewAction().isChecked():
@@ -1953,14 +1950,14 @@ class MainWindow(QMainWindow):
         self.visible_toolbars = toolbars
 
     def load_last_visible_toolbars(self):
-        """ """
+        """Loads the last visible toolbars from the .ini file."""
         toolbars_names = CONF.get('main', 'last_visible_toolbars', default=[])
 
         if toolbars_names:
             dic = {}
             for toolbar in self.toolbarslist:
                 dic[toolbar.objectName()] = toolbar
-    
+
             toolbars = []
             for name in toolbars_names:
                 if name in dic:
@@ -1971,7 +1968,7 @@ class MainWindow(QMainWindow):
         self._update_show_toolbars_action()
 
     def show_toolbars(self):
-        """ """
+        """Show/Hides toolbars."""
         value = not self.toolbars_visible
         CONF.set('main', 'toolbars_visible', value)
         if value:
@@ -1986,6 +1983,7 @@ class MainWindow(QMainWindow):
         self.toolbars_visible = value
         self._update_show_toolbars_action()
 
+    # --- Other
     def plugin_focus_changed(self):
         """Focus has changed from one plugin to another"""
         if self.light:
