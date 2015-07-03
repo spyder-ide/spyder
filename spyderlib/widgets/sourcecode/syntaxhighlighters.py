@@ -203,7 +203,8 @@ class BaseSH(QSyntaxHighlighter):
         Derived classes could call this function at the end of
         highlightBlock().
         """
-        show_blanks = self.document().defaultTextOption().flags() & QTextOption.ShowTabsAndSpaces
+        flags_text = self.document().defaultTextOption().flags()
+        show_blanks =  flags_text & QTextOption.ShowTabsAndSpaces
         if show_blanks:
             format_leading = self.formats.get("leading", None)
             format_trailing = self.formats.get("trailing", None)
@@ -220,7 +221,8 @@ class BaseSH(QSyntaxHighlighter):
                     self.setFormat(start, end, format_leading)
                 format = self.format(start)
                 color_foreground = format.foreground().color()
-                color_foreground.setAlphaF(self.BLANK_ALPHA_FACTOR * color_foreground.alphaF())
+                alpha_new = self.BLANK_ALPHA_FACTOR * color_foreground.alphaF()
+                color_foreground.setAlphaF(alpha_new)
                 self.setFormat(start, end-start, color_foreground)
                 match = self.BLANKPROG.search(text, match.end())
     
