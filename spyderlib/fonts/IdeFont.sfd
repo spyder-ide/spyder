@@ -22,7 +22,7 @@ OS2Version: 0
 OS2_WeightWidthSlopeOnly: 0
 OS2_UseTypoMetrics: 1
 CreationTime: 1428196570
-ModificationTime: 1435373138
+ModificationTime: 1435857337
 OS2TypoAscent: 0
 OS2TypoAOffset: 1
 OS2TypoDescent: 0
@@ -77,23 +77,26 @@ EndSplineSet
 Validated: 1
 EndChar
 
-StartChar: uniE002
-Encoding: 57346 57346 1
-Width: 1408
+StartChar: uniE009
+Encoding: 57353 57353 1
+Width: 1536
 Flags: HW
 LayerCount: 2
 Fore
 SplineSet
-1384 609 m 2
- 56 -129 l 2
- 41 -138 28 -139 16 -132 c 128
- 6 -125 0 -113 0 -96 c 2
- 0 1376 l 2
- 0 1393 6 1405 16 1412 c 128
- 28 1419 41 1418 56 1409 c 2
- 1384 671 l 2
- 1399 662 1407 652 1407 640 c 128
- 1407 628 1399 618 1384 609 c 2
+1536 1344 m 2
+ 1536 -64 l 2
+ 1536 -81 1530 -96 1517 -109 c 128
+ 1504 -122 1489 -128 1472 -128 c 2
+ 64 -128 l 2
+ 47 -128 32 -122 19 -109 c 128
+ 6 -96 0 -81 0 -64 c 2
+ 0 1344 l 2
+ 0 1361 6 1376 19 1389 c 128
+ 32 1402 47 1408 64 1408 c 2
+ 1472 1408 l 2
+ 1489 1408 1504 1402 1517 1389 c 128
+ 1530 1376 1536 1361 1536 1344 c 2
 EndSplineSet
 Validated: 1
 EndChar
@@ -1693,6 +1696,106 @@ SplineSet
  1155 1343 l 2
  1155 1360 1161 1375 1174 1388 c 0
  1187 1401 1202 1407 1219 1407 c 2
+EndSplineSet
+Validated: 1
+EndChar
+
+StartChar: uniE03A
+Encoding: 57402 57402 32
+Width: 1792
+VWidth: 0
+Flags: HO
+LayerCount: 2
+Fore
+SplineSet
+-51 1562 m 2
+ 1331 1562 l 2
+ 1374 1562 1408 1529 1408 1487 c 2
+ 1408 -155 l 2
+ 1408 -197 1374 -230 1331 -230 c 2
+ -51 -230 l 2
+ -94 -230 -128 -197 -128 -155 c 2
+ -128 1487 l 2
+ -128 1529 -94 1562 -51 1562 c 2
+EndSplineSet
+EndChar
+
+StartChar: uniE03B
+Encoding: 57403 57403 33
+Width: 1792
+VWidth: 0
+Flags: H
+LayerCount: 2
+Fore
+SplineSet
+64 1178 m 2
+ 832 1178 l 2
+ 867 1178 896 1149 896 1114 c 2
+ 896 474 l 2
+ 896 439 867 410 832 410 c 2
+ 64 410 l 2
+ 29 410 0 439 0 474 c 2
+ 0 1114 l 2
+ 0 1149 29 1178 64 1178 c 2
+EndSplineSet
+Validated: 1
+EndChar
+
+StartChar: uniE03C
+Encoding: 57404 57404 34
+Width: 1792
+VWidth: 0
+Flags: H
+LayerCount: 2
+Fore
+SplineSet
+1063 166 m 2
+ 1052 155 1043 152 1035 155 c 0
+ 1028 159 1024 167 1024 182 c 2
+ 1024 1407 l 2
+ 1024 1421 1028 1430 1035 1433 c 0
+ 1043 1437 1052 1433 1063 1423 c 2
+ 1685 832 l 2
+ 1689 827 1693 822 1696 816 c 1
+ 1696 1380 l 2
+ 1696 1395 1702 1407 1713 1418 c 0
+ 1724 1428 1737 1433 1752 1433 c 2
+ 1864 1433 l 2
+ 1879 1433 1892 1428 1903 1418 c 0
+ 1914 1407 1920 1395 1920 1380 c 2
+ 1920 208 l 2
+ 1920 194 1914 182 1903 171 c 0
+ 1892 160 1879 155 1864 155 c 2
+ 1752 155 l 2
+ 1737 155 1724 160 1713 171 c 0
+ 1702 182 1696 194 1696 208 c 2
+ 1696 773 l 1
+ 1693 767 1689 762 1685 757 c 2
+ 1063 166 l 2
+EndSplineSet
+Validated: 1
+EndChar
+
+StartChar: uniE03D
+Encoding: 57405 57405 35
+Width: 1792
+VWidth: 0
+Flags: H
+LayerCount: 2
+Fore
+SplineSet
+-128 794 m 1
+ 0 794 l 1
+ 0 742 l 1
+ 0 154 l 1
+ 128 154 l 1
+ 128 282 l 1
+ 384 90 l 1
+ 128 -102 l 1
+ 128 26 l 1
+ 52 26 -41 26 -128 26 c 1
+ -128 90 l 1
+ -128 794 l 1
 EndSplineSet
 Validated: 1
 EndChar
