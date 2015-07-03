@@ -22,7 +22,7 @@ OS2Version: 0
 OS2_WeightWidthSlopeOnly: 0
 OS2_UseTypoMetrics: 1
 CreationTime: 1428196570
-ModificationTime: 1435857337
+ModificationTime: 1435958087
 OS2TypoAscent: 0
 OS2TypoAOffset: 1
 OS2TypoDescent: 0
@@ -44,7 +44,7 @@ DisplaySize: -48
 AntiAlias: 1
 FitToEm: 1
 WinInfo: 57267 27 9
-BeginChars: 1114112 32
+BeginChars: 1114112 38
 
 StartChar: uniE000
 Encoding: 57344 57344 0
@@ -1704,7 +1704,7 @@ StartChar: uniE03A
 Encoding: 57402 57402 32
 Width: 1792
 VWidth: 0
-Flags: HO
+Flags: H
 LayerCount: 2
 Fore
 SplineSet
@@ -1718,6 +1718,7 @@ SplineSet
  -128 1487 l 2
  -128 1529 -94 1562 -51 1562 c 2
 EndSplineSet
+Validated: 1
 EndChar
 
 StartChar: uniE03B
@@ -1796,6 +1797,55 @@ SplineSet
  52 26 -41 26 -128 26 c 1
  -128 90 l 1
  -128 794 l 1
+EndSplineSet
+Validated: 1
+EndChar
+
+StartChar: uniE03E
+Encoding: 57406 57406 36
+Width: 1792
+VWidth: 0
+Flags: H
+LayerCount: 2
+Fore
+SplineSet
+128 1242 m 2
+ 768 1242 l 2
+ 839 1242 896 1185 896 1114 c 1
+ 896 1149 867 1178 832 1178 c 2
+ 64 1178 l 2
+ 29 1178 0 1149 0 1114 c 1
+ 0 1185 57 1242 128 1242 c 2
+0 474 m 1
+ 0 439 29 410 64 410 c 2
+ 832 410 l 2
+ 867 410 896 439 896 474 c 1
+ 896 403 839 346 768 346 c 2
+ 128 346 l 2
+ 57 346 0 403 0 474 c 1
+EndSplineSet
+Validated: 1
+EndChar
+
+StartChar: uniE03F
+Encoding: 57407 57407 37
+Width: 1792
+VWidth: 0
+Flags: H
+LayerCount: 2
+Fore
+SplineSet
+1408 1434 m 1
+ 1459 1434 l 2
+ 1502 1434 1536 1401 1536 1359 c 2
+ 1536 -283 l 2
+ 1536 -325 1502 -358 1459 -358 c 2
+ 77 -358 l 2
+ 34 -358 -0 -325 0 -283 c 2
+ 0 -230 l 1
+ 1331 -230 l 2
+ 1374 -230 1408 -197 1408 -155 c 2
+ 1408 1434 l 1
 EndSplineSet
 Validated: 1
 EndChar
