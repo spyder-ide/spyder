@@ -1246,8 +1246,9 @@ class EditorStack(QWidget):
     def close_all_right(self):
         """ Close all files opened to the right """
         num = self.get_stack_index()
-        for i in range(num):
-            self.close_file(0)
+        n = self.get_stack_count()
+        for i in range(num, n-1):
+            self.close_file(num+1)
     
     def close_all_but_this(self):
         """Close all files but the current one"""
