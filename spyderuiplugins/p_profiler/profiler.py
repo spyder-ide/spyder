@@ -14,7 +14,7 @@ import spyderlib.utils.icon_manager as ima
 
 # Local imports
 from spyderlib.config.base import get_translation
-_ = get_translation("p_profiler", dirname="spyderplugins.p_profiler")
+_ = get_translation("p_profiler", dirname="spyderuiplugins.p_profiler")
 from spyderlib.utils.qthelpers import create_action
 from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage, runconfig
 

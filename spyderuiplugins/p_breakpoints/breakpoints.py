@@ -14,7 +14,7 @@
 
 # Local imports
 from spyderlib.config.base import get_translation
-_ = get_translation("p_breakpoints", dirname="spyderplugins.p_breakpoints")
+_ = get_translation("p_breakpoints", dirname="spyderuiplugins.p_breakpoints")
 from spyderlib.utils.qthelpers import create_action
 from spyderlib.plugins import SpyderPluginMixin
 from .widgets.breakpointsgui import BreakpointWidget

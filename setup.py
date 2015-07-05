@@ -274,11 +274,11 @@ editor, Python console, etc.""",
       platforms=['any'],
       packages=get_packages(),
       package_data={LIBNAME: get_package_data(LIBNAME, EXTLIST),
-                    'spyderplugins':
-                        get_package_data('spyderplugins', EXTLIST),
+                    'spyderuiplugins':
+                        get_package_data('spyderuiplugins', EXTLIST),
                     'spyderioplugins':
                         get_package_data('spyderioplugins', EXTLIST)},
-      namespace_packages=['spyderplugins', 'spyderioplugins'],
+      namespace_packages=['spyderuiplugins', 'spyderioplugins'],
       scripts=[osp.join('scripts', fname) for fname in SCRIPTS],
       data_files=get_data_files(),
       options={"bdist_wininst":

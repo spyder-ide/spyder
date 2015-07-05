@@ -63,7 +63,7 @@ def get_spyderplugins_mods(io=False):
     if io:
         plugins_namsepace = "spyderioplugins"
     else:
-        plugins_namsepace = "spyderplugins"
+        plugins_namsepace = "spyderuiplugins"
     # Import parent module
     __import__(plugins_namsepace)
 
