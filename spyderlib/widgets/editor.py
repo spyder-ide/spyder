@@ -458,7 +458,13 @@ class EditorStack(QWidget):
                 icon=ima.icon('editcopy'),
                 triggered=lambda:
                 QApplication.clipboard().setText(self.get_current_filename()))
-        self.menu_actions = actions+[None, filelist_action, copy_to_cb_action]
+        close_right = create_action(self, _("Close all to the right"), 
+                    icon=ima.icon('filelist'),
+                    triggered=self.close_all_right)
+        close_all_but_this = create_action(self, _("Close all but this"), 
+                    icon=ima.icon('filelist'),
+                    triggered=self.close_all_but_this)
+        self.menu_actions = actions+[None, filelist_action, copy_to_cb_action, None, close_right, close_all_but_this]
         self.outlineexplorer = None
         self.inspector = None
         self.unregister_callback = None
@@ -1237,6 +1243,17 @@ class EditorStack(QWidget):
         while self.close_file():
             pass
 
+    def close_all_right(self):
+        """ Close all files opened to the right """
+        num = self.get_stack_index()
+        for i in range(num):
+            self.close_file(0)
+    
+    def close_all_but_this(self):
+        """Close all files but the current one"""
+        self.close_all_right()
+        for i in range(1, self.get_stack_count()):
+            self.close_file(1)
 
     #------ Save
     def save_if_changed(self, cancelable=False, index=None):
