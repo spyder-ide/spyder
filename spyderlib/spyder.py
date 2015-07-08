@@ -2755,7 +2755,10 @@ class MainWindow(QMainWindow):
         env['SPYDER_PID'] = str(pid)
         env['SPYDER_IS_BOOTSTRAP'] = str(is_bootstrap)
         env['SPYDER_RESET'] = str(reset)
-        env['PYTHONPATH'] = ':'.join(sys.path)
+        if os.name == 'nt':
+            env['PYTHONPATH'] = ';'.join(sys.path)
+        else:
+            env['PYTHONPATH'] = ':'.join(sys.path)
 
         # Build the command and popen arguments depending on the OS
         if os.name == 'nt':
