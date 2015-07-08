@@ -174,6 +174,7 @@ class ShortcutEditor(QDialog):
         self.text_current_sequence = QLabel(sequence)
         self.label_new_sequence = QLabel(_("New shortcut:"))
         self.text_new_sequence = CustomLineEdit(self)
+        self.text_new_sequence.setPlaceholderText(sequence)
         self.helper_button = HelperToolButton()
 
         bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
