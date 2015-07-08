@@ -85,7 +85,7 @@ class HTMLDelegate(QStyledItemDelegate):
         self._margin = margin
 
     def paint(self, painter, option, index):
-        options = QStyleOptionViewItemV4(option)
+        options = QStyleOptionViewItem(option)
         self.initStyleOption(options, index)
 
         style = (QApplication.style() if options.widget is None
@@ -109,7 +109,7 @@ class HTMLDelegate(QStyledItemDelegate):
         painter.restore()
 
     def sizeHint(self, option, index):
-        options = QStyleOptionViewItemV4(option)
+        options = QStyleOptionViewItem(option)
         self.initStyleOption(options, index)
 
         doc = QTextDocument()
