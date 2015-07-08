@@ -10,7 +10,7 @@ Restart Spyder
 
 A helper script that allows to restart (and also reset) Spyder from within the
 running application.
-my """
+"""
 
 import ast
 import os
