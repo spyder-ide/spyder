@@ -8,8 +8,9 @@
 """
 Restart Spyder
 
-A helper script that allows Spyder to restart from within the application.
-"""
+A helper script that allows to restart (and also reset) Spyder from within the
+running application.
+my """
 
 import ast
 import os
@@ -17,6 +18,7 @@ import os.path as osp
 import subprocess
 import sys
 import time
+
 
 from spyderlib.baseconfig import _, get_image_path
 from spyderlib.qt.QtCore import Qt, QTimer
@@ -27,6 +29,7 @@ from spyderlib.utils.qthelpers import qapplication
 
 
 PY2 = sys.version[0] == '2'
+IS_WINDOWS = os.name == 'nt'
 SLEEP_TIME = 0.2  # Seconds for throttling control
 CLOSE_ERROR, RESET_ERROR, RESTART_ERROR = [1, 2, 3]  # Spyder error codes
 
@@ -132,7 +135,7 @@ class Restarter(QWidget):
         """Sets the text in the bottom of the Splash screen."""
         self.splash_text = text
         self._show_message(text)
-        self.timer_ellipsis.start(1000)
+        self.timer_ellipsis.start(500)
 
     def launch_error_message(self, error_type, error=None):
         """Launch a message box with a predefined error message.
@@ -167,6 +170,18 @@ class Restarter(QWidget):
 
 
 def main():
+    # Splash screen
+    # -------------------------------------------------------------------------
+    # Start Qt Splash to inform the user of the current status
+    app = qapplication()
+    restarter = Restarter()
+    resample = not IS_WINDOWS
+    # Resampling SVG icon only on non-Windows platforms (see Issue 1314):
+    icon = ima.icon('spyder', resample=resample)
+    app.setWindowIcon(icon)
+    restarter.set_splash_message(_('Closing Spyder'))
+
+    # Get variables
     # Note: Variables defined in spyderlib\spyder.py 'restart()' method
     spyder_args = os.environ.pop('SPYDER_ARGS', None)
     pid = os.environ.pop('SPYDER_PID', None)
@@ -176,7 +191,7 @@ def main():
     # Get the spyder base folder based on this file
     spyder_folder = osp.split(osp.dirname(osp.abspath(__file__)))[0]
 
-    if any([not spyder_args, not pid, not is_bootstrap, not reset]):
+    if not any([spyder_args, pid, is_bootstrap, reset]):
         error = "This script can only be called from within a Spyder instance"
         raise RuntimeError(error)
 
@@ -217,23 +232,12 @@ def main():
     command = '"{0}" "{1}" {2}'.format(python, spyder, args)
 
     # Adjust the command and/or arguments to subprocess depending on the OS
-    shell = os.name != 'nt'
-
-    # Splash screen
-    # -------------------------------------------------------------------------
-    # Start Qt Splash to inform the user of the current status
-    app = qapplication()
-    restarter = Restarter()
-    resample = os.name != 'nt'
-    # Resampling SVG icon only on non-Windows platforms (see Issue 1314):
-    icon = ima.icon('spyder', resample=resample)
-    app.setWindowIcon(icon)
-    restarter.set_splash_message(_('Closing Spyder'))
+    shell = not IS_WINDOWS
 
     # Before launching a new Spyder instance we need to make sure that the
     # previous one has closed. We wait for a fixed and "reasonable" amount of
     # time and check, otherwise an error is launched
-    wait_time = 60*3  # Seconds
+    wait_time = 60*5 if IS_WINDOWS else 60*3 # Seconds
     for counter in range(int(wait_time/SLEEP_TIME)):
         if not is_pid_running(pid):
             break
@@ -252,7 +256,7 @@ def main():
         command_reset = '"{0}" "{1}" {2}'.format(python, spyder, args_reset)
 
         try:
-            p = subprocess.Popen(command_reset, shell=shell)
+            p = subprocess.Popen(command_reset, shell=shell, env=env)
         except Exception as error:
             restarter.launch_error_message(error_type=RESET_ERROR, error=error)
         else:
