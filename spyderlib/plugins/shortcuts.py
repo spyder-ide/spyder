@@ -16,7 +16,7 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QTableView, QMessageBox,
                                 QDialogButtonBox, QLabel, QGridLayout,
                                 QLineEdit, QAbstractItemView,
                                 QSortFilterProxyModel, QStyledItemDelegate,
-                                QStyleOptionViewItemV4, QApplication,
+                                QStyleOptionViewItem, QApplication,
                                 QTextDocument, QStyle, QSpacerItem,
                                 QAbstractTextDocumentLayout,
                                 QRegExpValidator, QToolTip,
@@ -283,7 +283,6 @@ class ShortcutEditor(QDialog):
 
         if key in [Qt.Key_Left, Qt.Key_Right, Qt.Key_Up,
                    Qt.Key_Down]:
-
             if self.button_ok.hasFocus():
                 self.button_cancel.setFocus()
             else:
@@ -293,7 +292,7 @@ class ShortcutEditor(QDialog):
         """Qt override"""
         self.npressed -= 1
         if self.npressed <= 0:
-            if len(self.keys) == 1 and list(self.keys)[0] == Qt.Key_Tab:
+            if len(self.keys) == 1 and (list(self.keys)[0] == Qt.Key_Tab):
                 self.toggle_state()
 
             if not self.edit_state:
@@ -416,7 +415,7 @@ class Shortcut(object):
         set_shortcut(self.context, self.name, self.key)
 
 
-CONTEXT, NAME, SEQUENCE = list(range(3))
+CONTEXT, NAME, SEQUENCE = [0, 1, 2]
 
 
 class ShortcutsModel(QAbstractTableModel):
@@ -514,7 +513,7 @@ class ShortcutsModel(QAbstractTableModel):
             elif section == NAME:
                 return to_qvariant(_("Name"))
             elif section == SEQUENCE:
-                return to_qvariant(_("Sequence"))
+                return to_qvariant(_("Shortcut"))
         return to_qvariant()
 
     def rowCount(self, index=QModelIndex()):
