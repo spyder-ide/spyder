@@ -67,6 +67,9 @@ class CompletionWidget(QListWidget):
         completion_list = [c[0] for c in completion_list]
         if len(completion_list) == 1 and not automatic:
             self.textedit.insert_completion(completion_list[0])
+            if self.textedit.close_parentheses_enabled:
+                if types[0] in ['class', 'function', 'method']:
+                    self.textedit.handle_close_parentheses('')
             return
 
         self.completion_list = completion_list
