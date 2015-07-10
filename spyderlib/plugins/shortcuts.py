@@ -32,7 +32,9 @@ from spyderlib.guiconfig import (get_shortcut, set_shortcut,
                                  iter_shortcuts, reset_shortcuts)
 from spyderlib.plugins.configdialog import GeneralConfigPage
 from spyderlib.utils.qthelpers import get_std_icon
+from spyderlib.utils.stringmatching import get_search_regex, get_search_scores
 from spyderlib.widgets.arraybuilder import HelperToolButton
+
 
 MODIFIERS = {Qt.Key_Shift: Qt.SHIFT,
              Qt.Key_Control: Qt.CTRL,
@@ -59,22 +61,6 @@ VALID_KEYS = [getattr(Qt, 'Key_{0}'.format(k)) for k in KEYSTRINGS+SINGLE_KEYS]
 # Valid finder chars. To be improved
 VALID_ACCENT_CHARS = "ÁÉÍOÚáéíúóàèìòùÀÈÌÒÙâêîôûÂÊÎÔÛäëïöüÄËÏÖÜñÑ"
 VALID_FINDER_CHARS = "[A-Za-z\s{0}]".format(VALID_ACCENT_CHARS)
-
-
-class CustomLineEdit(QLineEdit):
-    """QLineEdit that filters its key press and release events."""
-    def __init__(self, parent):
-        super(CustomLineEdit, self).__init__(parent)
-        self.setReadOnly(True)
-        self.setFocusPolicy(Qt.NoFocus)
-
-    def keyPressEvent(self, e):
-        """Qt Override."""
-        self.parent().keyPressEvent(e)
-
-    def keyReleaseEvent(self, e):
-        """Qt Override."""
-        self.parent().keyReleaseEvent(e)
 
 
 # TODO: Move to another place for common use widgets afterwards.
@@ -120,6 +106,23 @@ class HTMLDelegate(QStyledItemDelegate):
         doc.setTextWidth(options.rect.width())
 
         return QSize(doc.idealWidth(), doc.size().height())
+
+
+# %%
+class CustomLineEdit(QLineEdit):
+    """QLineEdit that filters its key press and release events."""
+    def __init__(self, parent):
+        super(CustomLineEdit, self).__init__(parent)
+        self.setReadOnly(True)
+        self.setFocusPolicy(Qt.NoFocus)
+
+    def keyPressEvent(self, e):
+        """Qt Override"""
+        self.parent().keyPressEvent(e)
+
+    def keyReleaseEvent(self, e):
+        """Qt Override"""
+        self.parent().keyReleaseEvent(e)
 
 
 class ShortcutFinder(QLineEdit):
@@ -406,7 +409,11 @@ class ShortcutEditor(QDialog):
 
 
 class Shortcut(object):
+    """Shortcut convenience class for holding shortcut context, name,
+    original ordering index, key sequence for the shortcut and localized text.
+    """
     def __init__(self, context, name, key=None):
+        self.index = 0  # Sorted index. Populated when loading shortcuts
         self.context = context
         self.name = name
         self.key = key
@@ -421,7 +428,7 @@ class Shortcut(object):
         set_shortcut(self.context, self.name, self.key)
 
 
-CONTEXT, NAME, SEQUENCE = [0, 1, 2]
+CONTEXT, NAME, SEQUENCE, SEARCH_SCORE = [0, 1, 2, 3]
 
 
 class ShortcutsModel(QAbstractTableModel):
@@ -430,6 +437,8 @@ class ShortcutsModel(QAbstractTableModel):
         self._parent = parent
 
         self.shortcuts = []
+        self.scores = []
+        self.rich_text = []
         self.letters = ''
         self.label = QLabel()
         self.widths = []
@@ -438,37 +447,6 @@ class ShortcutsModel(QAbstractTableModel):
         palette = parent.palette()
         self.text_color = palette.text().color().name()
         self.text_color_highlight = palette.highlightedText().color().name()
-
-    def _enrich_text(self, text, color):
-        """Highlight (bold) letters from the shortcut finder.
-
-        Parameters
-        ----------
-        test : str
-            pass
-        color : str
-            pass
-        """
-        template = '<b>{0}</b>'
-
-        if not self.letters:
-            new_text = text
-        elif self.letters in text:
-            temp_text = text.replace(self.letters, template)
-            new_text = temp_text.format(self.letters)
-        else:
-            new_text = [l for l in text]
-            temp_text = [l.lower() for l in text]
-            for l in self.letters:
-                if l != u'' and l in temp_text:
-                    index = temp_text.index(l)
-                    new_text[index] = template.format(text[index])
-                    temp_text = [' ']*(index + 1) + temp_text[index+1:]
-            new_text = ''.join(new_text)
-
-#        new_text = new_text
-        new_text = '<p style="color:{0}">{1}</p>'.format(color, new_text)
-        return new_text
 
     def current_index(self):
         """Get the currently selected index in the parent table view."""
@@ -489,11 +467,11 @@ class ShortcutsModel(QAbstractTableModel):
 
     def data(self, index, role=Qt.DisplayRole):
         """Qt Override."""
-        if not index.isValid() or \
-           not (0 <= index.row() < len(self.shortcuts)):
+        row = index.row()
+        if not index.isValid() or not (0 <= row < len(self.shortcuts)):
             return to_qvariant()
 
-        shortcut = self.shortcuts[index.row()]
+        shortcut = self.shortcuts[row]
         key = shortcut.key
         column = index.column()
 
@@ -503,14 +481,18 @@ class ShortcutsModel(QAbstractTableModel):
             elif column == NAME:
                 color = self.text_color
                 if self._parent == QApplication.focusWidget():
-                    if self.current_index().row() == index.row():
+                    if self.current_index().row() == row:
                         color = self.text_color_highlight
                     else:
                         color = self.text_color
-                return to_qvariant(self._enrich_text(shortcut.name, color))
+                text = self.rich_text[row]
+                text = '<p style="color:{0}">{1}</p>'.format(color, text)
+                return to_qvariant(text)
             elif column == SEQUENCE:
                 text = QKeySequence(key).toString(QKeySequence.NativeText)
                 return to_qvariant(text)
+            elif column == SEARCH_SCORE:
+                return to_qvariant(self.scores[row])
         elif role == Qt.TextAlignmentRole:
             return to_qvariant(int(Qt.AlignHCenter | Qt.AlignVCenter))
         return to_qvariant()
@@ -530,6 +512,8 @@ class ShortcutsModel(QAbstractTableModel):
                 return to_qvariant(_("Name"))
             elif section == SEQUENCE:
                 return to_qvariant(_("Shortcut"))
+            elif section == SEARCH_SCORE:
+                return to_qvariant(_("Score"))
         return to_qvariant()
 
     def rowCount(self, index=QModelIndex()):
@@ -538,7 +522,7 @@ class ShortcutsModel(QAbstractTableModel):
 
     def columnCount(self, index=QModelIndex()):
         """Qt Override."""
-        return 3
+        return 4
 
     def setData(self, index, value, role=Qt.EditRole):
         """Qt Override."""
@@ -555,6 +539,9 @@ class ShortcutsModel(QAbstractTableModel):
     def update_search_letters(self, text):
         """Update search letters with text input in search box."""
         self.letters = text
+        names = [shortcut.name for shortcut in self.shortcuts]
+        results = get_search_scores(text, names, template='<b>{0}</b>')
+        self.rich_text, self.scores = zip(*results)
         self.reset()
 
     def update_active_row(self):
@@ -580,10 +567,11 @@ class CustomSortFilterProxy(QSortFilterProxyModel):
 
     def set_filter(self, text):
         """Set regular expression for filter."""
-        fuzzy_text = [ch for ch in text if ch != ' ']
-        fuzzy_text = '.*'.join(fuzzy_text)
-        regex = '({0})'.format(fuzzy_text)
-        self.pattern = re.compile(regex)
+        self.pattern = get_search_regex(text)
+        if self.pattern:
+            self._parent.setSortingEnabled(False)
+        else:
+            self._parent.setSortingEnabled(True)
         self.invalidateFilter()
 
     def filterAcceptsRow(self, row_num, parent):
@@ -614,10 +602,11 @@ class ShortcutsTable(QTableView):
         self.proxy_model.setFilterCaseSensitivity(Qt.CaseInsensitive)
         self.setModel(self.proxy_model)
 
+        self.hideColumn(SEARCH_SCORE)
         self.setItemDelegateForColumn(NAME, HTMLDelegate(self, margin=9))
         self.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.setSelectionMode(QAbstractItemView.SingleSelection)
-
+        self.setSortingEnabled(True)
         self.setEditTriggers(QAbstractItemView.AllEditTriggers)
         self.selectionModel().selectionChanged.connect(self.selection)
 
@@ -654,9 +643,15 @@ class ShortcutsTable(QTableView):
             shortcut = Shortcut(context, name, keystr)
             shortcuts.append(shortcut)
         shortcuts = sorted(shortcuts, key=lambda x: x.context+x.name)
+        # Store the original order of shortcuts
+        for i, shortcut in enumerate(shortcuts):
+            shortcut.index = i
         self.source_model.shortcuts = shortcuts
+        self.source_model.scores = [0]*len(shortcuts)
+        self.source_model.rich_text = [s.name for s in shortcuts]
         self.source_model.reset()
         self.adjust_cells()
+        self.sortByColumn(SEARCH_SCORE, Qt.AscendingOrder)
 
     def check_shortcuts(self):
         """Check shortcuts for conflicts."""
@@ -711,6 +706,7 @@ class ShortcutsTable(QTableView):
 
         self.proxy_model.set_filter(text)
         self.source_model.update_search_letters(text)
+        self.sortByColumn(SEARCH_SCORE)
 
         if self.last_regex != regex:
             self.selectRow(0)
