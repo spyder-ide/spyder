@@ -22,7 +22,7 @@ OS2Version: 0
 OS2_WeightWidthSlopeOnly: 0
 OS2_UseTypoMetrics: 1
 CreationTime: 1428196570
-ModificationTime: 1436545438
+ModificationTime: 1436545053
 OS2TypoAscent: 0
 OS2TypoAOffset: 1
 OS2TypoDescent: 0
@@ -36,7 +36,6 @@ HheadAscent: 0
 HheadAOffset: 1
 HheadDescent: 0
 HheadDOffset: 1
-OS2Vendor: 'PfEd'
 DEI: 91125
 Encoding: UnicodeFull
 UnicodeInterp: none
@@ -1836,19 +1835,19 @@ Flags: HO
 LayerCount: 2
 Fore
 SplineSet
-64 1626 m 2
- 1472 1626 l 2
- 1543 1626 1600 1569 1600 1498 c 2
- 1600 -166 l 2
- 1600 -237 1543 -294 1472 -294 c 2
- 64 -294 l 2
- -7 -294 -64 -237 -64 -166 c 2
- -64 1498 l 2
- -64 1569 -7 1626 64 1626 c 2
+-38 1690 m 2
+ 1574 1690 l 2
+ 1624 1690 1664 1652 1664 1604 c 2
+ 1664 -272 l 2
+ 1664 -320 1624 -358 1574 -358 c 2
+ -38 -358 l 2
+ -88 -358 -128 -320 -128 -272 c 2
+ -128 1604 l 2
+ -128 1652 -88 1690 -38 1690 c 2
 77 1562 m 2
- 34 1562 0 1529 0 1487 c 2
- 0 -155 l 2
- 0 -197 34 -230 77 -230 c 2
+ 34 1562 -0 1529 -0 1487 c 2
+ -0 -155 l 2
+ -0 -197 34 -230 77 -230 c 2
  1459 -230 l 2
  1502 -230 1536 -197 1536 -155 c 2
  1536 1487 l 2
