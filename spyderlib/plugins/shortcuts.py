@@ -19,10 +19,9 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QTableView, QMessageBox,
                                 QStyleOptionViewItem, QApplication,
                                 QTextDocument, QStyle, QSpacerItem,
                                 QAbstractTextDocumentLayout,
-                                QRegExpValidator, QToolTip,
-                                QHBoxLayout)
+                                QRegExpValidator, QHBoxLayout)
 from spyderlib.qt.QtCore import (Qt, QAbstractTableModel, QModelIndex, QSize,
-                                 QPoint, QRegExp)
+                                 QRegExp)
 from spyderlib.qt.compat import to_qvariant, from_qvariant
 import spyderlib.utils.icon_manager as ima
 
@@ -42,7 +41,7 @@ MODIFIERS = {Qt.Key_Shift: Qt.SHIFT,
              Qt.Key_Meta: Qt.META}
 
 # Valid shortcut keys
-SINGLE_KEYS = ["F{}".format(_i) for _i in range(1, 36)] + ["Delete", "Escape"]
+SINGLE_KEYS = ["F{}".format(_i) for _i in range(1, 36)] + ["Delete", "Escape"] 
 KEYSTRINGS = ["Tab", "Backtab", "Backspace", "Return", "Enter",
               "Pause", "Print", "Clear", "Home", "End", "Left",
               "Up", "Right", "Down", "PageUp", "PageDown"] + \
@@ -158,6 +157,9 @@ class ShortcutFinder(QLineEdit):
             super(ShortcutFinder, self).keyPressEvent(event)
 
 
+NO_WARNING, SEQUENCE_LENGTH, SEQUENCE_CONFLICT, INVALID_KEY = [0, 1, 2, 3]
+
+
 class ShortcutEditor(QDialog):
     """A dialog for entering key sequences."""
     def __init__(self, parent, context, name, sequence, shortcuts):
@@ -185,11 +187,12 @@ class ShortcutEditor(QDialog):
         self.text_new_sequence = CustomLineEdit(self)
         self.text_new_sequence.setPlaceholderText(sequence)
         self.helper_button = HelperToolButton()
+        self.label_warning = QLabel('<br><br>')
 
         bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         self.button_ok = bbox.button(QDialogButtonBox.Ok)
         self.button_cancel = bbox.button(QDialogButtonBox.Cancel)
-
+        
         # Setup widgets
         self.setWindowTitle(_('Shortcut: {0}').format(name))
         self.button_ok.setFocusPolicy(Qt.NoFocus)
@@ -205,6 +208,8 @@ class ShortcutEditor(QDialog):
               border-radius: 0px;
             }"""
         self.helper_button.setStyleSheet(style)
+        self.text_new_sequence.setFocusPolicy(Qt.NoFocus)
+        self.label_warning.setFocusPolicy(Qt.NoFocus)
 
         # Layout
         spacing = 24
@@ -216,6 +221,7 @@ class ShortcutEditor(QDialog):
         layout_sequence.addWidget(self.label_new_sequence, 3, 0)
         layout_sequence.addWidget(self.helper_button, 3, 1)
         layout_sequence.addWidget(self.text_new_sequence, 3, 2)
+        layout_sequence.addWidget(self.label_warning, 4, 2, 1, 2)
 
         layout = QVBoxLayout()
         layout.addLayout(layout_sequence)
@@ -230,11 +236,16 @@ class ShortcutEditor(QDialog):
     def keyPressEvent(self, e):
         """Qt override."""
         key = e.key()
+        # Check if valid keys
+        if key not in VALID_KEYS:
+            self.invalid_key_flag = True
+            return
 
         self.npressed += 1
         self.key_non_modifiers.append(key)
         self.key_modifiers.add(key)
         self.key_text.append(e.text())
+        self.invalid_key_flag = False
 
         debug_print('key {0}, npressed: {1}'.format(key, self.npressed))
 
@@ -247,10 +258,6 @@ class ShortcutEditor(QDialog):
                 key == Qt.Key_Shift or
                 key == Qt.Key_Alt or
                 key == Qt.Key_Meta):
-            return
-
-        # Check if valid keys
-        if key not in VALID_KEYS:
             return
 
         modifiers = e.modifiers()
@@ -285,10 +292,9 @@ class ShortcutEditor(QDialog):
     def nonedit_keyrelease(self, e):
         """Key release event for non-edit state."""
         key = e.key()
-
-        if key == Qt.Key_Escape:
-#            self.close()
-            pass
+        if key in [Qt.Key_Escape]:
+            self.close()
+            return
 
         if key in [Qt.Key_Left, Qt.Key_Right, Qt.Key_Up,
                    Qt.Key_Down]:
@@ -301,8 +307,16 @@ class ShortcutEditor(QDialog):
         """Qt override."""
         self.npressed -= 1
         if self.npressed <= 0:
-            if len(self.keys) == 1 and (list(self.keys)[0] == Qt.Key_Tab):
+            key = e.key()
+
+            if len(self.keys) == 1 and key == Qt.Key_Tab:
                 self.toggle_state()
+
+            if len(self.keys) == 1 and key == Qt.Key_Escape:
+                self.close()
+
+            if len(self.keys) == 1 and key in [Qt.Key_Return, Qt.Key_Enter]:
+                self.accept()
 
             if not self.edit_state:
                 self.nonedit_keyrelease(e)
@@ -327,43 +341,65 @@ class ShortcutEditor(QDialog):
                 conflicts.append(shortcut)
         return conflicts
 
-    def update_warning(self, reset=False):
+    def update_warning(self, warning_type=NO_WARNING, conflicts=[]):
         """Update warning label to reflect conflict status of new shortcut"""
-        conflicts = self.check_conflicts()
-        if reset:
-            conflicts = []
-
         widget = self.helper_button
+        widget_message = self.label_warning
 
-        if conflicts:
-            tip_title = _('The new entered shorcut conflicts with:') + '\n'
+        if warning_type == NO_WARNING:
+            warn = False
+            tip = '<br><br>'
+        elif warning_type == SEQUENCE_CONFLICT:
+            template = '<i>{0}<b>{1}</b></i>'
+            tip_title = _('The new shorcut conflicts with:') + '<br>'
             tip_body = ''
             for s in conflicts:
-                tip_body += ' - {0}: {1}\n'.format(s.context, s.name)
-            tip = '{0}{1}'.format(tip_title, tip_body)
+                tip_body += ' - {0}: {1}<br>'.format(s.context, s.name)
+            tip = template.format(tip_title, tip_body)
+            warn = True
+        elif warning_type == SEQUENCE_LENGTH:
+            template = '<i>{0}</i>'
+            tip = _('A compound sequence can have {break} a maximum of '
+                    '4 subsequences.{break}').format(**{'break': '<br>'})
+            warn = True
+        elif warning_type == INVALID_KEY:
+            template = '<i>{0}</i>'
+            tip = _('Invalid key entered') + '<br>'
+            warn = True
+
+        if warn:
             widget.setIcon(get_std_icon('MessageBoxWarning'))
-            widget.setToolTip(tip)
-            QToolTip.showText(widget.mapToGlobal(QPoint(0, 5)), tip)
         else:
-            widget.setToolTip('')
-            QToolTip.hideText()
             widget.setIcon(get_std_icon('DialogApplyButton'))
+
+        widget_message.setText(tip)
 
     def set_sequence(self, sequence):
         """Set the new shortcut and update buttons."""
         if self.sequence != sequence:
             self.button_ok.setEnabled(True)
-            reset = False
+            different_sequence = True
         else:
             self.button_ok.setEnabled(False)
-            reset = True
+            different_sequence = False
 
         self.text_new_sequence.setText(sequence)
         self.new_sequence = sequence
-        self.update_warning(reset=reset)
+
+        conflicts = self.check_conflicts()
+        if conflicts and different_sequence:
+            warning_type = SEQUENCE_CONFLICT
+        else:
+            warning_type = NO_WARNING
+
+        self.update_warning(warning_type=warning_type, conflicts=conflicts)
 
     def validate_sequence(self):
         """Provide additional checks for accepting or rejecting shortcuts."""
+        if self.invalid_key_flag:
+            self.update_warning(warning_type=INVALID_KEY)
+            return
+
         for mod in MODIFIERS:
             non_mod = set(self.key_non_modifiers)
             non_mod.discard(mod)
@@ -393,8 +429,9 @@ class ShortcutEditor(QDialog):
 
         # QKeySequence accepts a maximum of 4 different sequences
         if len(self.keys) > 4:
-            # If the user enters more than 4, take the first 4 only
-            self.keys = set([0, 1, 2, 3])
+            # Update warning
+            self.update_warning(warning_type=SEQUENCE_LENGTH)
+            return
 
         keys = []
         for i in range(len(self.keys)):
@@ -405,6 +442,7 @@ class ShortcutEditor(QDialog):
             keys.append(key_seq)
 
         sequence = QKeySequence(*keys)
+
         self.set_sequence(sequence.toString())
 
 
