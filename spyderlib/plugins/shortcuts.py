@@ -15,24 +15,21 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QTableView, QMessageBox,
                                 QPushButton, QKeySequence, QDialog,
                                 QDialogButtonBox, QLabel, QGridLayout,
                                 QLineEdit, QAbstractItemView,
-                                QSortFilterProxyModel, QStyledItemDelegate,
-                                QStyleOptionViewItem, QApplication,
-                                QTextDocument, QStyle, QSpacerItem,
-                                QAbstractTextDocumentLayout,
-                                QRegExpValidator, QHBoxLayout)
-from spyderlib.qt.QtCore import (Qt, QAbstractTableModel, QModelIndex, QSize,
-                                 QRegExp)
+                                QSortFilterProxyModel, QApplication,
+                                QSpacerItem, QRegExpValidator, QHBoxLayout)
+from spyderlib.qt.QtCore import Qt, QAbstractTableModel, QModelIndex, QRegExp
 from spyderlib.qt.compat import to_qvariant, from_qvariant
-import spyderlib.utils.icon_manager as ima
 
 # Local imports
 from spyderlib.baseconfig import _, debug_print
 from spyderlib.guiconfig import (get_shortcut, set_shortcut,
                                  iter_shortcuts, reset_shortcuts)
 from spyderlib.plugins.configdialog import GeneralConfigPage
+from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.qthelpers import get_std_icon
 from spyderlib.utils.stringmatching import get_search_regex, get_search_scores
 from spyderlib.widgets.arraybuilder import HelperToolButton
+from spyderlib.widgets.helperwidgets import HTMLDelegate
 
 
 MODIFIERS = {Qt.Key_Shift: Qt.SHIFT,
@@ -41,7 +38,7 @@ MODIFIERS = {Qt.Key_Shift: Qt.SHIFT,
              Qt.Key_Meta: Qt.META}
 
 # Valid shortcut keys
-SINGLE_KEYS = ["F{}".format(_i) for _i in range(1, 36)] + ["Delete", "Escape"] 
+SINGLE_KEYS = ["F{}".format(_i) for _i in range(1, 36)] + ["Delete", "Escape"]
 KEYSTRINGS = ["Tab", "Backtab", "Backspace", "Return", "Enter",
               "Pause", "Print", "Clear", "Home", "End", "Left",
               "Up", "Right", "Down", "PageUp", "PageDown"] + \
@@ -62,52 +59,6 @@ VALID_ACCENT_CHARS = "ÁÉÍOÚáéíúóàèìòùÀÈÌÒÙâêîôûÂÊÎÔ�
 VALID_FINDER_CHARS = "[A-Za-z\s{0}]".format(VALID_ACCENT_CHARS)
 
 
-# TODO: Move to another place for common use widgets afterwards.
-class HTMLDelegate(QStyledItemDelegate):
-    """With this delegate, a QListWidgetItem or a QTableItem can render HTML.
-
-    Taken from http://stackoverflow.com/a/5443112/2399799
-    """
-    def __init__(self, parent, margin=0):
-        super(HTMLDelegate, self).__init__(parent)
-        self._margin = margin
-
-    def paint(self, painter, option, index):
-        options = QStyleOptionViewItem(option)
-        self.initStyleOption(options, index)
-
-        style = (QApplication.style() if options.widget is None
-                 else options.widget.style())
-
-        doc = QTextDocument()
-        doc.setDocumentMargin(self._margin)
-        doc.setHtml(options.text)
-
-        options.text = ""
-        style.drawControl(QStyle.CE_ItemViewItem, options, painter)
-
-        ctx = QAbstractTextDocumentLayout.PaintContext()
-
-        textRect = style.subElementRect(QStyle.SE_ItemViewItemText, options)
-        painter.save()
-        painter.translate(textRect.topLeft())
-        painter.setClipRect(textRect.translated(-textRect.topLeft()))
-        doc.documentLayout().draw(painter, ctx)
-
-        painter.restore()
-
-    def sizeHint(self, option, index):
-        options = QStyleOptionViewItem(option)
-        self.initStyleOption(options, index)
-
-        doc = QTextDocument()
-        doc.setHtml(options.text)
-        doc.setTextWidth(options.rect.width())
-
-        return QSize(doc.idealWidth(), doc.size().height())
-
-
-# %%
 class CustomLineEdit(QLineEdit):
     """QLineEdit that filters its key press and release events."""
     def __init__(self, parent):
@@ -192,7 +143,7 @@ class ShortcutEditor(QDialog):
         bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         self.button_ok = bbox.button(QDialogButtonBox.Ok)
         self.button_cancel = bbox.button(QDialogButtonBox.Cancel)
-        
+
         # Setup widgets
         self.setWindowTitle(_('Shortcut: {0}').format(name))
         self.button_ok.setFocusPolicy(Qt.NoFocus)
