@@ -237,7 +237,7 @@ def main():
     # Before launching a new Spyder instance we need to make sure that the
     # previous one has closed. We wait for a fixed and "reasonable" amount of
     # time and check, otherwise an error is launched
-    wait_time = 60*5 if IS_WINDOWS else 60*3 # Seconds
+    wait_time = 90 if IS_WINDOWS else 30  # Seconds
     for counter in range(int(wait_time/SLEEP_TIME)):
         if not is_pid_running(pid):
             break
