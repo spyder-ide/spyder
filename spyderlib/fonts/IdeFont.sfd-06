@@ -22,7 +22,7 @@ OS2Version: 0
 OS2_WeightWidthSlopeOnly: 0
 OS2_UseTypoMetrics: 1
 CreationTime: 1428196570
-ModificationTime: 1436545438
+ModificationTime: 1436544657
 OS2TypoAscent: 0
 OS2TypoAOffset: 1
 OS2TypoDescent: 0
@@ -1719,14 +1719,13 @@ SplineSet
  0 1487 l 2
  0 1529 34 1562 77 1562 c 2
 EndSplineSet
-Validated: 1
 EndChar
 
 StartChar: uniE03B
 Encoding: 57403 57403 33
 Width: 1792
 VWidth: 0
-Flags: H
+Flags: HO
 LayerCount: 2
 Fore
 SplineSet
@@ -1740,7 +1739,6 @@ SplineSet
  0 1114 l 2
  0 1149 29 1178 64 1178 c 2
 EndSplineSet
-Validated: 1
 EndChar
 
 StartChar: uniE03C
@@ -1810,51 +1808,44 @@ Flags: H
 LayerCount: 2
 Fore
 SplineSet
-128 1242 m 2
- 1408 1242 l 2
- 1479 1242 1536 1185 1536 1114 c 1
- 1536 1149 1507 1178 1472 1178 c 2
- 64 1178 l 2
- 29 1178 0 1149 0 1114 c 1
- 0 1185 57 1242 128 1242 c 2
-0 474 m 1
- 0 439 29 410 64 410 c 2
- 1472 410 l 2
- 1507 410 1536 439 1536 474 c 1
- 1536 403 1479 346 1408 346 c 2
- 128 346 l 2
- 57 346 0 403 0 474 c 1
+0 1242 m 2
+ 1280 1242 l 2
+ 1351 1242 1408 1185 1408 1114 c 1
+ 1408 1149 1379 1178 1344 1178 c 2
+ -64 1178 l 2
+ -99 1178 -128 1149 -128 1114 c 1
+ -128 1185 -71 1242 0 1242 c 2
+-128 474 m 1
+ -128 439 -99 410 -64 410 c 2
+ 1344 410 l 2
+ 1379 410 1408 439 1408 474 c 1
+ 1408 403 1351 346 1280 346 c 2
+ 0 346 l 2
+ -71 346 -128 403 -128 474 c 1
 EndSplineSet
-Validated: 1
 EndChar
 
 StartChar: uniE03F
 Encoding: 57407 57407 37
 Width: 1792
 VWidth: 0
-Flags: HO
+Flags: H
 LayerCount: 2
 Fore
 SplineSet
-64 1626 m 2
- 1472 1626 l 2
- 1543 1626 1600 1569 1600 1498 c 2
- 1600 -166 l 2
- 1600 -237 1543 -294 1472 -294 c 2
- 64 -294 l 2
- -7 -294 -64 -237 -64 -166 c 2
- -64 1498 l 2
- -64 1569 -7 1626 64 1626 c 2
-77 1562 m 2
- 34 1562 0 1529 0 1487 c 2
- 0 -155 l 2
- 0 -197 34 -230 77 -230 c 2
- 1459 -230 l 2
- 1502 -230 1536 -197 1536 -155 c 2
- 1536 1487 l 2
- 1536 1529 1502 1562 1459 1562 c 2
- 77 1562 l 2
+1408 1434 m 1
+ 1459 1434 l 2
+ 1502 1434 1536 1401 1536 1359 c 2
+ 1536 -283 l 2
+ 1536 -325 1502 -358 1459 -358 c 2
+ 77 -358 l 2
+ 34 -358 -0 -325 0 -283 c 2
+ 0 -230 l 1
+ 1331 -230 l 2
+ 1374 -230 1408 -197 1408 -155 c 2
+ 1408 1434 l 1
 EndSplineSet
+Validated: 1
 EndChar
 EndChars
 EndSplineFont
