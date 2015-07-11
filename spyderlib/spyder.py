@@ -2726,11 +2726,11 @@ class MainWindow(QMainWindow):
     def restart(self, reset=False):
         """
         Quit and Restart Spyder application.
-        
+
         If reset True it allows to reset spyder on restart.
         """
         # Get start path to use in restart script
-        spyder_start_directory  = get_module_path('spyderlib')
+        spyder_start_directory = get_module_path('spyderlib')
         restart_script = osp.join(spyder_start_directory, 'restart_app.py')
 
         # Get any initial argument passed when spyder was started
@@ -2755,10 +2755,12 @@ class MainWindow(QMainWindow):
         env['SPYDER_PID'] = str(pid)
         env['SPYDER_IS_BOOTSTRAP'] = str(is_bootstrap)
         env['SPYDER_RESET'] = str(reset)
-        if os.name == 'nt':
-            env['PYTHONPATH'] = ';'.join(sys.path)
-        else:
-            env['PYTHONPATH'] = ':'.join(sys.path)
+
+        if DEV:
+            if os.name == 'nt':
+                env['PYTHONPATH'] = ';'.join(sys.path)
+            else:
+                env['PYTHONPATH'] = ':'.join(sys.path)
 
         # Build the command and popen arguments depending on the OS
         if os.name == 'nt':
