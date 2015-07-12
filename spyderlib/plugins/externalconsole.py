@@ -287,37 +287,6 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         qt_layout.addWidget(qt_setapi_box)
         qt_group.setLayout(qt_layout)
         qt_group.setEnabled(has_pyqt5 or has_pyqt4 or has_pyside)
-        
-        # PyQt4 Group
-        if has_pyqt4:
-            pyqt_group = QGroupBox(_("PyQt"))
-            setapi_box = self.create_combobox(
-                _("API selection for QString and QVariant objects:"),
-                ((_("Default API"), 0), (_("API #1"), 1), (_("API #2"), 2)),
-                'pyqt/api_version', default=0,
-                tip=_("PyQt API #1 is the default <br>"
-                      "API for Python 2. PyQt API #2 is "
-                      "the default API for Python 3 and "
-                      "is compatible with PySide."))
-            ignore_api_box = newcb(_("Ignore API change errors (sip.setapi)"),
-                                     'pyqt/ignore_sip_setapi_errors',
-                               tip=_("Enabling this option will ignore <br>"
-                                     "errors when changing PyQt API. As "
-                                     "PyQt does not support dynamic API "
-                                     "changes, it is strongly recommended "
-                                     "to use this feature wisely, e.g. "
-                                     "for debugging purpose."))
-            try:
-                from sip import setapi #analysis:ignore
-            except ImportError:
-                setapi_box.setDisabled(True)
-                ignore_api_box.setDisabled(True)
-            
-            pyqt_layout = QVBoxLayout()
-            pyqt_layout.addWidget(setapi_box)
-            pyqt_layout.addWidget(ignore_api_box)
-            pyqt_group.setLayout(pyqt_layout)
-            qt_layout.addWidget(pyqt_group)
 
         # Matplotlib Group
         mpl_group = QGroupBox(_("Graphics"))
@@ -469,15 +438,10 @@ class ExternalConsole(SpyderPluginWidget):
         self.inspector = None # Object inspector plugin
         self.historylog = None # History log plugin
         self.variableexplorer = None # Variable explorer plugin
-        
+
         self.python_count = 0
         self.terminal_count = 0
 
-        try:
-            from sip import setapi #analysis:ignore
-        except ImportError:
-            self.set_option('pyqt/ignore_sip_setapi_errors', False)
-        
         # Python executable selection (initializing default values as well)
         executable = self.get_option('pythonexecutable',
                                      get_python_executable())
@@ -799,9 +763,6 @@ class ExternalConsole(SpyderPluginWidget):
             qt_api = self.get_option('qt/api')
             if qt_api not in ('pyqt', 'pyside'):
                 qt_api = None
-            pyqt_api = self.get_option('pyqt/api_version')
-            ignore_sip_setapi_errors = self.get_option(
-                                            'pyqt/ignore_sip_setapi_errors')
             merge_output_channels = self.get_option('merge_output_channels')
             colorize_sys_stderr = self.get_option('colorize_sys_stderr')
             umr_enabled = self.get_option('umr/enabled')
@@ -836,9 +797,7 @@ class ExternalConsole(SpyderPluginWidget):
                            umr_enabled=umr_enabled, umr_namelist=umr_namelist,
                            umr_verbose=umr_verbose, ets_backend=ets_backend,
                            monitor_enabled=monitor_enabled,
-                           mpl_backend=mpl_backend,
-                           qt_api=qt_api, pyqt_api=pyqt_api,
-                           ignore_sip_setapi_errors=ignore_sip_setapi_errors,
+                           mpl_backend=mpl_backend, qt_api=qt_api,
                            merge_output_channels=merge_output_channels,
                            colorize_sys_stderr=colorize_sys_stderr,
                            autorefresh_timeout=ar_timeout,

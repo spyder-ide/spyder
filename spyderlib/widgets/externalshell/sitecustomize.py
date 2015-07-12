@@ -139,23 +139,6 @@ os.environ['SPYDER_PARENT_DIR'] = spyderlib_path
 
 
 #==============================================================================
-# Set PyQt4 API to #1 or #2
-#==============================================================================
-pyqt_api = int(os.environ.get("PYQT_API", "0"))
-if pyqt_api:
-    try:
-        import sip
-        try:
-            for qtype in ('QString', 'QVariant'):
-                sip.setapi(qtype, pyqt_api)
-        except AttributeError:
-            # Old version of sip
-            pass
-    except ImportError:
-        pass
-
-
-#==============================================================================
 # Setting console encoding (otherwise Python does not recognize encoding)
 # for Windows platforms
 #==============================================================================
@@ -562,24 +545,6 @@ try:
                              "spyderlib", "widgets", "externalshell"))
 except ValueError:
     pass
-
-
-#==============================================================================
-# Ignore PyQt4's sip API changes (this should be used wisely -e.g. for
-# debugging- as dynamic API change is not supported by PyQt) 
-#==============================================================================
-if os.environ.get("IGNORE_SIP_SETAPI_ERRORS", "").lower() == "true":
-    try:
-        import sip
-        from sip import setapi as original_setapi
-        def patched_setapi(name, no):
-            try:
-                original_setapi(name, no)
-            except ValueError as msg:
-                _print("Warning/PyQt4-Spyder (%s)" % str(msg), file=sys.stderr)
-        sip.setapi = patched_setapi
-    except ImportError:
-        pass
 
 
 #==============================================================================

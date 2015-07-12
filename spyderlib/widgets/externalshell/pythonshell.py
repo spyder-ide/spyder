@@ -173,8 +173,7 @@ class ExternalPythonShell(ExternalShellBase):
                  umr_enabled=True, umr_namelist=[], umr_verbose=True,
                  pythonstartup=None, pythonexecutable=None,
                  monitor_enabled=True, mpl_backend=None, ets_backend='qt4',
-                 qt_api=None, pyqt_api=0,
-                 ignore_sip_setapi_errors=False, merge_output_channels=False,
+                 qt_api=None, merge_output_channels=False,
                  colorize_sys_stderr=False, autorefresh_timeout=3000,
                  autorefresh_state=True, light_background=True,
                  menu_actions=None, show_buttons_inside=True,
@@ -195,8 +194,6 @@ class ExternalPythonShell(ExternalShellBase):
         self.mpl_backend = mpl_backend
         self.ets_backend = ets_backend
         self.qt_api = qt_api
-        self.pyqt_api = pyqt_api
-        self.ignore_sip_setapi_errors = ignore_sip_setapi_errors
         self.merge_output_channels = merge_output_channels
         self.colorize_sys_stderr = colorize_sys_stderr
         self.umr_enabled = umr_enabled
@@ -478,11 +475,7 @@ class ExternalPythonShell(ExternalShellBase):
 #            from PyQt4.QtNetwork import QLocalServer
 #            self.local_server = QLocalServer()
 #            self.local_server.listen(str(id(self)))
-        if self.pyqt_api:
-            env.append('PYQT_API=%d' % self.pyqt_api)
-        env.append('IGNORE_SIP_SETAPI_ERRORS=%s'
-                   % self.ignore_sip_setapi_errors)
-        
+
         # User Module Deleter
         if self.is_interpreter:
             env.append('UMR_ENABLED=%r' % self.umr_enabled)
