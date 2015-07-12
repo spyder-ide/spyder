@@ -261,9 +261,9 @@ class ExternalConsoleConfigPage(PluginConfigPage):
             ('PyQt4', 'pyqt'),
             ('PySide', 'pyside'),
         ]
-        qt_group = QGroupBox(_("Qt Bindings"))
+        qt_group = QGroupBox(_("Qt-Python Bindings"))
         qt_setapi_box = self.create_combobox(
-                         _("Qt-Python bindings library selection:"), opts,
+                         _("Library:") + "   ", opts,
                          'qt/api', default='default',
                          tip=_("This option will act on<br> "
                                "libraries such as Matplotlib, guidata "
@@ -282,7 +282,7 @@ class ExternalConsoleConfigPage(PluginConfigPage):
             self.set_option('qt/api', 'pyqt')
         elif has_pyside and not (has_pyqt5 or has_pyqt4):
             self.set_option('qt/api', 'pyside')
-        
+
         qt_layout = QVBoxLayout()
         qt_layout.addWidget(qt_setapi_box)
         qt_group.setLayout(qt_layout)
@@ -761,7 +761,7 @@ class ExternalConsole(SpyderPluginWidget):
             mpl_backend = self.get_option('matplotlib/backend/value')
             ets_backend = self.get_option('ets_backend')
             qt_api = self.get_option('qt/api')
-            if qt_api not in ('pyqt', 'pyside'):
+            if qt_api not in ('pyqt', 'pyside', 'pyqt5'):
                 qt_api = None
             merge_output_channels = self.get_option('merge_output_channels')
             colorize_sys_stderr = self.get_option('colorize_sys_stderr')
