@@ -321,8 +321,8 @@ else:
 if matplotlib is not None:
     mpl_backend = os.environ.get("MATPLOTLIB_BACKEND", "")
     mpl_ion = os.environ.get("MATPLOTLIB_ION", "")
-    if not mpl_backend:
-        mpl_backend = 'Qt4Agg'
+    if not mpl_backend or mpl_backend.lower() == 'none':
+        mpl_backend = None
 
     # To have mpl docstrings as rst
     matplotlib.rcParams['docstring.hardcopy'] = True
@@ -331,7 +331,8 @@ if matplotlib is not None:
     if mpl_ion.lower() == "true":
         matplotlib.rcParams['interactive'] = True
 
-    if os.environ.get("IPYTHON_KERNEL", "").lower() != "true":
+    if os.environ.get("IPYTHON_KERNEL", "").lower() != "true" and \
+      mpl_backend is not None:
         import ctypes
         from spyderlib.widgets.externalshell import inputhooks
 
