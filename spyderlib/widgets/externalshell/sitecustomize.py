@@ -262,16 +262,6 @@ else:
             _print("Can't open file %s" % source, file=sys.stderr)
     builtins.open_in_spyder = open_in_spyder
 
-    if os.environ["QT_API"] == 'pyqt5':
-        from PyQt5 import QtCore
-        # Removing PyQt's PyOS_InputHook implementation:
-        QtCore.pyqtRemoveInputHook()
-    elif os.environ["QT_API"] == 'pyqt':
-        from PyQt4 import QtCore
-        QtCore.pyqtRemoveInputHook()
-    elif os.environ["QT_API"] == 'pyside':
-        from PySide import QtCore          #analysis:ignore
-
     def qt_nt_inputhook():
         """Qt input hook for Windows
         
@@ -279,6 +269,14 @@ else:
         ExternalPythonShell through the monitor's inputhook_flag
         attribute), and in the meantime it processes Qt events.
         """
+        # Qt imports
+        if os.environ["QT_API"] == 'pyqt5':
+            from PyQt5 import QtCore
+        elif os.environ["QT_API"] == 'pyqt':
+            from PyQt4 import QtCore           # analysis:ignore
+        elif os.environ["QT_API"] == 'pyside':
+            from PySide import QtCore          # analysis:ignore
+
         # Refreshing variable explorer, except on first input hook call:
         # (otherwise, on slow machines, this may freeze Spyder)
         monitor.refresh_from_inputhook()
@@ -355,13 +353,9 @@ if matplotlib is not None:
             callback = inputhooks.set_pyft_callback(qt_nt_inputhook)
             pyos_ih = inputhooks.get_pyos_inputhook()
             pyos_ih.value = ctypes.cast(callback, ctypes.c_void_p).value
-        elif mpl_backend == "Qt4Agg":
-            # PyQt4 input hook stopped working after we moved to the new
-            # style for signals and slots, so we need to install our own
-            if os.environ["QT_API"] == 'pyqt':
-                inputhooks.remove_pyqt_inputhook()
-            # This works for both PySide (which doesn't have an input hook)
-            # and PyQt4 (whose input hook needs to be replaced, see above).
+        elif mpl_backend == "Qt4Agg" and os.environ["QT_API"] == 'pyside':
+            # PySide doesn't have an input hook, so we need to install one
+            # to be able to show plots
             # Note: This only works well for Posix systems
             callback = inputhooks.set_pyft_callback(inputhooks.qt4)
             pyos_ih = inputhooks.get_pyos_inputhook()
