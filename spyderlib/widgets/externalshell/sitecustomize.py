@@ -304,8 +304,17 @@ else:
 if matplotlib is not None:
     mpl_backend = os.environ.get("MATPLOTLIB_BACKEND", "")
     mpl_ion = os.environ.get("MATPLOTLIB_ION", "")
+
+    # Setting no backend if the user asks for it
     if not mpl_backend or mpl_backend.lower() == 'none':
         mpl_backend = None
+
+    # Set backend automatically
+    if mpl_backend.lower() == 'automatic':
+        if os.environ["QT_API"] == 'pyqt5':
+            mpl_backend = 'Qt5Agg'
+        else:
+            mpl_backend = 'Qt4Agg'
 
     # To have mpl docstrings as rst
     matplotlib.rcParams['docstring.hardcopy'] = True

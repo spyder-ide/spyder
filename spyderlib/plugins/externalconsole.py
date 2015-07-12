@@ -291,15 +291,15 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         # Matplotlib Group
         mpl_group = QGroupBox(_("Graphics"))
         mpl_label = QLabel(_("Decide which backend to use to display graphics. "
-                              "If unsure, please select the <b>Qt</b> "
+                              "If unsure, please select the <b>Automatic</b> "
                               "backend.<br><br>"
-                              "<b>Note:</b> We support a very limited amount "
+                              "<b>Note:</b> We support a very limited number "
                               "of backends in our Python consoles. If you "
                               "prefer to work with a different one, please use "
                               "an IPython console."))
         mpl_label.setWordWrap(True)
 
-        backends = [("Qt", 0), ("None", 1)]
+        backends = [("Automatic", 0), ("None", 1)]
         if programs.is_module_installed('_tkinter'):
             backends.append( ("Tkinter", 2) )
         if sys.platform == 'darwin':

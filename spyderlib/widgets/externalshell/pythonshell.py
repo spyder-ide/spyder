@@ -465,7 +465,7 @@ class ExternalPythonShell(ExternalShellBase):
         # External modules options
         env.append('ETS_TOOLKIT=%s' % self.ets_backend)
         if self.mpl_backend is not None:
-            backends = {0: 'Qt4Agg', 1: 'None', 2: 'TkAgg', 3: 'MacOSX'}
+            backends = {0: 'Automatic', 1: 'None', 2: 'TkAgg', 3: 'MacOSX'}
             env.append('MATPLOTLIB_BACKEND=%s' % backends[self.mpl_backend])
         if self.qt_api:
             env.append('QT_API=%s' % self.qt_api)
