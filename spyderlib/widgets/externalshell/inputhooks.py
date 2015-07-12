@@ -87,6 +87,7 @@ def remove_pyqt_inputhook():
     if os.environ["QT_API"] == 'pyqt':
         QtCore.pyqtRemoveInputHook()
 
+
 #------------------------------------------------------------------------------
 # Input hooks
 #------------------------------------------------------------------------------
@@ -106,7 +107,7 @@ def qt4():
         allow_CTRL_C()
         app = QtCore.QCoreApplication.instance()
         if not app:
-            app = QtGui.QApplication([" "])
+            return 0
         app.processEvents(QtCore.QEventLoop.AllEvents, 300)
         if not stdin_ready():
             # Generally a program would run QCoreApplication::exec()
