@@ -280,17 +280,18 @@ else:
         # Refreshing variable explorer, except on first input hook call:
         # (otherwise, on slow machines, this may freeze Spyder)
         monitor.refresh_from_inputhook()
-        if os.name == 'nt':
-            try:
-                # This call fails for Python without readline support
-                # (or on Windows platforms) when PyOS_InputHook is called
-                # for the second consecutive time, because the 100-bytes
-                # stdin buffer is full.
-                # For more details, see the `PyOS_StdioReadline` function
-                # in Python source code (Parser/myreadline.c)
-                sys.stdin.tell()
-            except IOError:
-                return 0
+        try:
+            # This call fails for Python without readline support
+            # (or on Windows platforms) when PyOS_InputHook is called
+            # for the second consecutive time, because the 100-bytes
+            # stdin buffer is full.
+            # For more details, see the `PyOS_StdioReadline` function
+            # in Python source code (Parser/myreadline.c)
+            sys.stdin.tell()
+        except IOError:
+            return 0
+
+        # Input hook
         app = QtCore.QCoreApplication.instance()
         if app and app.thread() is QtCore.QThread.currentThread():
             timer = QtCore.QTimer()
@@ -300,16 +301,17 @@ else:
                 timer.start(50)
                 QtCore.QCoreApplication.exec_()
                 timer.stop()
-#            # Socket-based alternative:
-#            socket = QtNetwork.QLocalSocket()
-#            socket.connectToServer(os.environ['SPYDER_SHELL_ID'])
-#            socket.waitForConnected(-1)
-#            while not socket.waitForReadyRead(10):
-#                timer.start(50)
-#                QtCore.QCoreApplication.exec_()
-#                timer.stop()
-#            socket.read(3)
-#            socket.disconnectFromServer()
+
+            # Socket-based alternative:
+            #socket = QtNetwork.QLocalSocket()
+            #socket.connectToServer(os.environ['SPYDER_SHELL_ID'])
+            #socket.waitForConnected(-1)
+            #while not socket.waitForReadyRead(10):
+            #    timer.start(50)
+            #    QtCore.QCoreApplication.exec_()
+            #    timer.stop()
+            #socket.read(3)
+            #socket.disconnectFromServer()
         return 0
     
 
