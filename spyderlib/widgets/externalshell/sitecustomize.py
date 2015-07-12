@@ -596,9 +596,9 @@ class UserModuleReloader(object):
         if namelist is None:
             namelist = []
         spy_modules = ['sitecustomize', 'spyderlib', 'spyderplugins']
-        mpl_modules = ['matplotlib', 'tkinter', 'Tkinter', 'gtk']
+        mpl_modules = ['matplotlib', 'tkinter', 'Tkinter']
         self.namelist = namelist + spy_modules + mpl_modules
-        
+
         if pathlist is None:
             pathlist = []
         self.pathlist = pathlist

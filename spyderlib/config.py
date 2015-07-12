@@ -253,10 +253,7 @@ DEFAULTS = [
               'qt/api': 'default',
               'pyqt/api_version': 2,
               'pyqt/ignore_sip_setapi_errors': False,
-              'matplotlib/backend/enabled': True,
-              'matplotlib/backend/value': 'MacOSX' if (sys.platform == 'darwin' \
-                                           and os.environ.get('QT_API') == 'pyside')\
-                                           else 'Qt4Agg',
+              'matplotlib/backend/value': 0,
               'umr/enabled': True,
               'umr/verbose': True,
               'umr/namelist': ['guidata', 'guiqwt'],
@@ -745,7 +742,7 @@ DEFAULTS = [
 # 2. If you want to *remove* options that are no longer needed in our codebase,
 #    you need to do a MAJOR update in version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '18.1.0'
+CONF_VERSION = '19.0.0'
 
 # XXX: Previously we had load=(not DEV) here but DEV was set to *False*.
 # Check if it *really* needs to be updated or not

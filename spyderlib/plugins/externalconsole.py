@@ -318,29 +318,37 @@ class ExternalConsoleConfigPage(PluginConfigPage):
             pyqt_layout.addWidget(ignore_api_box)
             pyqt_group.setLayout(pyqt_layout)
             qt_layout.addWidget(pyqt_group)
-        
+
         # Matplotlib Group
-        mpl_group = QGroupBox(_("Matplotlib"))
-        mpl_backend_box = newcb('', 'matplotlib/backend/enabled', True)
-        mpl_backend_edit = self.create_lineedit(_("GUI backend:"),
-                                'matplotlib/backend/value',
-                                tip=_("Set the GUI toolkit used by <br>"
-                                      "Matplotlib to show figures "
-                                      "(default: Qt4Agg)"),
-                                alignment=Qt.Horizontal)
-        mpl_backend_box.toggled.connect(mpl_backend_edit.setEnabled)
-        mpl_backend_layout = QHBoxLayout()
-        mpl_backend_layout.addWidget(mpl_backend_box)
-        mpl_backend_layout.addWidget(mpl_backend_edit)
-        mpl_backend_edit.setEnabled(
-                                self.get_option('matplotlib/backend/enabled'))
+        mpl_group = QGroupBox(_("Graphics"))
+        mpl_label = QLabel(_("Decide which backend to use to display graphics. "
+                              "If unsure, please select the <b>Qt</b> "
+                              "backend.<br><br>"
+                              "<b>Note:</b> We support a very limited amount "
+                              "of backends in our Python consoles. If you "
+                              "prefer to work with a different one, please use "
+                              "an IPython console."))
+        mpl_label.setWordWrap(True)
+
+        backends = [("Qt", 0)]
+        if programs.is_module_installed('_tkinter'):
+            backends.append( ("Tkinter", 1) )
+        if sys.platform == 'darwin':
+            backends.append( ("Mac OSX", 2) )
+        backends = tuple(backends)
+
+        mpl_backend_box = self.create_combobox( _("Backend:")+"   ", backends,
+                                       'matplotlib/backend/value',
+                                       tip=_("This option will be applied the "
+                                             "next time a console is opened."))
+
         mpl_installed = programs.is_module_installed('matplotlib')
-        
         mpl_layout = QVBoxLayout()
-        mpl_layout.addLayout(mpl_backend_layout)
+        mpl_layout.addWidget(mpl_label)
+        mpl_layout.addWidget(mpl_backend_box)
         mpl_group.setLayout(mpl_layout)
         mpl_group.setEnabled(mpl_installed)
-        
+
         # ETS Group
         ets_group = QGroupBox(_("Enthought Tool Suite"))
         ets_label = QLabel(_("Enthought Tool Suite (ETS) supports "
@@ -786,10 +794,7 @@ class ExternalConsole(SpyderPluginWidget):
             else:
                 pythonstartup = self.get_option('pythonstartup', None)
             monitor_enabled = self.get_option('monitor/enabled')
-            if self.get_option('matplotlib/backend/enabled'):
-                mpl_backend = self.get_option('matplotlib/backend/value')
-            else:
-                mpl_backend = None
+            mpl_backend = self.get_option('matplotlib/backend/value')
             ets_backend = self.get_option('ets_backend')
             qt_api = self.get_option('qt/api')
             if qt_api not in ('pyqt', 'pyside'):
