@@ -198,6 +198,39 @@ class FindReplace(QWidget):
         self.visibility_changed.emit(True)
         if self.editor is not None:
             text = self.editor.get_selected_text()
+            
+            # If no text is highlighted for search, use whatever word is under the cursor
+            if len(text)==0:
+                try:
+                    # Get line text and cursor position
+                    line_number, index = self.editor.get_cursor_line_column()
+                    block = self.editor.document().findBlockByNumber(line_number)
+                    data = str( block.text() )
+                    ibeg = index
+                    # Limit the search for the beginning of the word to a "reasonable" amount
+                    while (ibeg>0) and (ibeg>index-80):
+                        if (data[ibeg].isalnum()) or (data[ibeg]=='_'):
+                            ibeg -= 1
+                        else:
+                            ibeg += 1
+                            break
+                    
+                    iend = index
+                    # Limit the search for the end of the word to a "reasonable" amount
+                    while (iend<len(data)) and (iend<index+80):
+                        if (data[iend].isalnum()) or (data[iend]=='_'):
+                            iend += 1
+                        else:
+                            break
+                    
+                    text = data[ibeg:iend]
+                    
+                except:
+                    # If this fails for any reason, don't worry about it
+                    #  Just let the user type whatever they want into the search entry box
+                    pass
+            
+            # Now that text value is sorted out, use it for the search
             if len(text) > 0:
                 self.search_text.setEditText(text)
                 self.search_text.lineEdit().selectAll()
