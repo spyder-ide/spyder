@@ -742,7 +742,7 @@ class ShortcutsConfigPage(GeneralConfigPage):
     CONF_SECTION = "shortcuts"
 
     NAME = _("Keyboard shortcuts")
-    ICON = ima.icon('genprefs')
+    ICON = ima.icon('keyboard')
 
     def setup_page(self):
         # Widgets

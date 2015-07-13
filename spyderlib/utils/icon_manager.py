@@ -21,6 +21,7 @@ _qtaargs = {
     'stop':                    [('fa.stop',), {}],
     'syspath':                 [('fa.cogs',), {}],
     'font':                    [('fa.font',), {}],
+    'keyboard':                [('fa.keyboard-o',), {}],
     'tooloptions':             [('fa.cog',), {}],
     'edit24':                  [('fa.edit',), {}],
     'edit':                    [('fa.edit',), {}],
