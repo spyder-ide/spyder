@@ -35,13 +35,13 @@ def is_position_inf(pos1, pos2):
     """Return True is pos1 < pos2"""
     return pos1 < pos2
 
-def is_a_var_char(c):
+def is_valid_var_char (c):
     """Return True if c is a valid variable character, False otherwise"""
     return c.isalnum() or (c == '_')
-MAX_SEARCH_LIMIT = 80  # Used in Find/Replace default word logic
 
 class FindReplace(QWidget):
     """Find widget"""
+    MAX_SEARCH_LIMIT = 80  # Used in Find/Replace default word logic
     STYLE = {False: "background-color:rgb(255, 175, 90);",
              True: ""}
     visibility_changed = Signal(bool)
@@ -213,20 +213,20 @@ class FindReplace(QWidget):
                     data = to_text_string(block.text())
                     if index < len(data):
                         ibeg = index
-                        i_limit = max(0, index - MAX_SEARCH_LIMIT)
+                        i_limit = max(0, index - FindReplace.MAX_SEARCH_LIMIT)
                         # Limit the search for the beginning of the word to a "reasonable" amount
                         while (ibeg > i_limit):
-                            if is_a_var_char(data[ibeg]):
+                            if is_valid_var_char (data[ibeg]):
                                 ibeg -= 1
                             else:
                                 ibeg += 1
                                 break
 
                         iend = index
-                        i_limit = min(len(data), index + MAX_SEARCH_LIMIT)
+                        i_limit = min(len(data), index + FindReplace.MAX_SEARCH_LIMIT)
                         # Limit the search for the end of the word to a "reasonable" amount
                         while (iend < i_limit):
-                            if is_a_var_char(data[iend]):
+                            if is_valid_var_char (data[iend]):
                                 iend += 1
                             else:
                                 break
