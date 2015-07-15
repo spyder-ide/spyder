@@ -8,8 +8,15 @@
 """Transitional package (PyQt4 --> PySide)"""
 
 import os
+import imp
 
-os.environ.setdefault('QT_API', 'pyqt')
+try:
+    #be friendly with Pyqt5
+    are_you_here = __import__('PyQt5')
+    os.environ.setdefault('QT_API','pyqt5')
+except:
+    os.environ.setdefault('QT_API', 'pyqt')
+
 assert os.environ['QT_API'] in ('pyqt5', 'pyqt', 'pyside')
 
 API = os.environ['QT_API']
