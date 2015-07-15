@@ -8,7 +8,6 @@
 """Transitional package (PyQt4 --> PySide)"""
 
 import os
-import imp
 
 try:
     #be friendly with Pyqt5
