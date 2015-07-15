@@ -73,7 +73,7 @@ _qtaargs = {
     'terminated':              [('fa.circle',), {}],
     'cmdprompt':               [('fa.terminal',), {}],
     'cmdprompt_t':             [('fa.terminal',), {'color':'gray'}],
-    'console':                 [('fa.terminal',), {}],
+    'console':                 [('spyder.python-logo-up', 'spyder.python-logo-down'), {'options': [{'color': '#3775a9'}, {'color': '#ffd444'}]}],
     'findf':                   [('fa.file-o', 'fa.search'), {'options': [{'scale_factor': 1.0}, {'scale_factor': 0.6}]}],
     'history24':               [('fa.history',), {}],
     'history':                 [('fa.history',), {}],
