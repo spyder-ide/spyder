@@ -485,7 +485,7 @@ DEFAULTS = [
               '_/save current layout': "Shift+Alt+S",
               '_/toggle default layout': "Shift+Alt+Home",
               '_/layout preferences': "Shift+Alt+P",
-              '_/show toolbars': "Ctrl+Shift+T",
+              '_/show toolbars': "Alt+Shift+T",
               '_/restart': "Shift+Alt+R",
               '_/quit': "Ctrl+Q",
               # -- In plugins/editor
