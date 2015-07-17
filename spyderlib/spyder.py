@@ -677,6 +677,9 @@ class MainWindow(QMainWindow):
                                                   module_completion.reset(),
                                         tip=_("Refresh list of module names "
                                               "available in PYTHONPATH"))
+            reset_spyder_action = create_action(
+                self, _("Reset Spyder to factory defaults"),
+                triggered=self.reset_spyder)
             self.tools_menu_actions = [prefs_action, spyder_path_action]
             if WinUserEnvDialog is not None:
                 winenv_action = create_action(self,
@@ -687,7 +690,8 @@ class MainWindow(QMainWindow):
                               "(i.e. for all sessions)"),
                         triggered=self.win_env)
                 self.tools_menu_actions.append(winenv_action)
-            self.tools_menu_actions += [None, update_modules_action]
+            self.tools_menu_actions += [reset_spyder_action, None,
+                                        update_modules_action]
 
             # External Tools submenu
             self.external_tools_menu = QMenu(_("External Tools"))
@@ -2707,11 +2711,26 @@ class MainWindow(QMainWindow):
                 self.sig_open_external_file.emit(fname)
             req.sendall(b' ')
 
-    # ---- Quit and restart
-    def restart(self):
-        """Quit and Restart Spyder application"""
+    # ---- Quit and restart, and reset spyder defaults
+    def reset_spyder(self):
+        """
+        Quit and reset Spyder and then Restart application.
+        """
+        answer = QMessageBox.warning(self, _("Warning"),
+             _("Spyder will restart and reset to default settings: <br><br>"
+               "Do you want to continue?"),
+             QMessageBox.Yes | QMessageBox.No)
+        if answer == QMessageBox.Yes:
+            self.restart(reset=True)
+
+    def restart(self, reset=False):
+        """
+        Quit and Restart Spyder application.
+
+        If reset True it allows to reset spyder on restart.
+        """
         # Get start path to use in restart script
-        spyder_start_directory  = get_module_path('spyderlib')
+        spyder_start_directory = get_module_path('spyderlib')
         restart_script = osp.join(spyder_start_directory, 'restart_app.py')
 
         # Get any initial argument passed when spyder was started
@@ -2735,6 +2754,13 @@ class MainWindow(QMainWindow):
         env['SPYDER_ARGS'] = spyder_args
         env['SPYDER_PID'] = str(pid)
         env['SPYDER_IS_BOOTSTRAP'] = str(is_bootstrap)
+        env['SPYDER_RESET'] = str(reset)
+
+        if DEV:
+            if os.name == 'nt':
+                env['PYTHONPATH'] = ';'.join(sys.path)
+            else:
+                env['PYTHONPATH'] = ':'.join(sys.path)
 
         # Build the command and popen arguments depending on the OS
         if os.name == 'nt':
