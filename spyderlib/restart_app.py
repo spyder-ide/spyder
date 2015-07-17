@@ -21,12 +21,12 @@ import time
 
 
 from spyderlib.baseconfig import _, get_image_path
+from spyderlib.py3compat import to_text_string
 from spyderlib.qt.QtCore import Qt, QTimer
 from spyderlib.qt.QtGui import (QColor, QMessageBox, QPixmap, QSplashScreen,
                                 QWidget, QApplication)
 from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.qthelpers import qapplication
-
 
 PY2 = sys.version[0] == '2'
 IS_WINDOWS = os.name == 'nt'
@@ -73,27 +73,6 @@ def is_pid_running(pid):
         return _is_pid_running_on_windows(pid)
     else:
         return _is_pid_running_on_unix(pid)
-
-
-# Note: Copied from py3compat because we can't rely on Spyder
-# being installed when using bootstrap.py
-def to_text_string(obj, encoding=None):
-    """Convert `obj` to (unicode) text string"""
-    if PY2:
-        # Python 2
-        if encoding is None:
-            return unicode(obj)
-        else:
-            return unicode(obj, encoding)
-    else:
-        # Python 3
-        if encoding is None:
-            return str(obj)
-        elif isinstance(obj, str):
-            # In case this function is not used properly, this could happen
-            return obj
-        else:
-            return str(obj, encoding)
 
 
 class Restarter(QWidget):
