@@ -650,7 +650,7 @@ def clear_post_mortem():
         from IPython.core.getipython import get_ipython
         ipython_shell = get_ipython()
         if ipython_shell:
-            ipython_shell.set_custom_exc((None,), None)
+            ipython_shell.set_custom_exc((), None)
     else:
         sys.excepthook = sys.__excepthook__
 
