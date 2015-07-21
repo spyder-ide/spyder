@@ -350,6 +350,7 @@ class MainWindow(QMainWindow):
 
         # Actions
         self.lock_dockwidgets_action = None
+        self.show_toolbars_action = None
         self.close_dockwidget_action = None
         self.find_action = None
         self.find_next_action = None
@@ -396,6 +397,7 @@ class MainWindow(QMainWindow):
         self.cpu_status = None
 
         # Toolbars
+        self.visible_toolbars = []
         self.toolbarslist = []
         self.main_toolbar = None
         self.main_toolbar_actions = []
@@ -1129,7 +1131,13 @@ class MainWindow(QMainWindow):
                                          self.close_dockwidget_action,
                                          self.maximize_action,
                                          None))
+            self.show_toolbars_action = create_action(self,
+                                    _("Show toolbars"),
+                                    triggered=self.show_toolbars)
+            self.register_shortcut(self.show_toolbars_action, "_",
+                                   "Show toolbars")
             self.view_menu.addMenu(self.toolbars_menu)
+            self.view_menu.addAction(self.show_toolbars_action)
             add_actions(self.view_menu, (None,
                                          self.quick_layout_menu,
                                          self.toggle_previous_layout_action,
@@ -1253,6 +1261,10 @@ class MainWindow(QMainWindow):
         self.extconsole.setMinimumHeight(0)
 
         if not self.light:
+            # Update toolbar visibility status
+            self.toolbars_visible = CONF.get('main', 'toolbars_visible')
+            self.load_last_visible_toolbars()
+
             # Update lock status of dockidgets (panes)
             self.lock_dockwidgets_action.setChecked(self.dockwidgets_locked)
             self.apply_panes_settings()
@@ -1386,6 +1398,7 @@ class MainWindow(QMainWindow):
         """Tabify plugin dockwigdets"""
         self.tabifyDockWidget(first.dockwidget, second.dockwidget)
 
+    # --- Layouts 
     def setup_layout(self, default=False):
         """Setup window layout"""
         prefix = ('lightwindow' if self.light else 'window') + '/'
@@ -1913,6 +1926,68 @@ class MainWindow(QMainWindow):
             action = plugin.toggle_view_action
             action.setChecked(plugin.dockwidget.isVisible())
 
+    # --- Show/Hide toolbars
+    def _update_show_toolbars_action(self):
+        """Update the text displayed in the menu entry."""
+        if self.toolbars_visible:
+            text = _("Hide toolbars")
+            tip = _("Hide toolbars")
+        else:
+            text = _("Show toolbars")
+            tip = _("Show toolbars")
+        self.show_toolbars_action.setText(text)
+        self.show_toolbars_action.setToolTip(tip)
+
+    def save_visible_toolbars(self):
+        """Saves the name of the visible toolbars in the .ini file."""
+        toolbars = []
+        for toolbar in self.visible_toolbars:
+            toolbars.append(toolbar.objectName())
+        CONF.set('main', 'last_visible_toolbars', toolbars)
+
+    def get_visible_toolbars(self):
+        """Collects the visible toolbars."""
+        toolbars = []
+        for toolbar in self.toolbarslist:
+            if toolbar.toggleViewAction().isChecked():
+                toolbars.append(toolbar)
+        self.visible_toolbars = toolbars
+
+    def load_last_visible_toolbars(self):
+        """Loads the last visible toolbars from the .ini file."""
+        toolbars_names = CONF.get('main', 'last_visible_toolbars', default=[])
+
+        if toolbars_names:
+            dic = {}
+            for toolbar in self.toolbarslist:
+                dic[toolbar.objectName()] = toolbar
+
+            toolbars = []
+            for name in toolbars_names:
+                if name in dic:
+                    toolbars.append(dic[name])
+            self.visible_toolbars = toolbars
+        else:
+            self.get_visible_toolbars()
+        self._update_show_toolbars_action()
+
+    def show_toolbars(self):
+        """Show/Hides toolbars."""
+        value = not self.toolbars_visible
+        CONF.set('main', 'toolbars_visible', value)
+        if value:
+            self.save_visible_toolbars()
+        else:
+            self.get_visible_toolbars()
+
+        for toolbar in self.visible_toolbars:
+            toolbar.toggleViewAction().setChecked(value)
+            toolbar.setVisible(value)
+
+        self.toolbars_visible = value
+        self._update_show_toolbars_action()
+
+    # --- Other
     def plugin_focus_changed(self):
         """Focus has changed from one plugin to another"""
         if self.light:
@@ -2147,6 +2222,8 @@ class MainWindow(QMainWindow):
             if not widget.closing_plugin(cancelable):
                 return False
         self.dialog_manager.close_all()
+        if self.toolbars_visible:
+            self.save_visible_toolbars()
         self.already_closed = True
         return True
 
