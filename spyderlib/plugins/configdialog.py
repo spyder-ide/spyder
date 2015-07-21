@@ -900,7 +900,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
     CONF_SECTION = "color_schemes"
     
     NAME = _("Syntax coloring")
-    ICON = ima.icon('genprefs')
+    ICON = ima.icon('eyedropper')
     
     def setup_page(self):
         tabs = QTabWidget()
