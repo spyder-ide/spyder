@@ -12,10 +12,13 @@ import os
 import sys
 
 # Qt imports
-if os.environ["QT_API"] == 'pyqt':
-    from PyQt4 import QtCore, QtGui
+if os.environ["QT_API"] == 'pyqt5':
+    from PyQt5 import QtCore
+elif os.environ["QT_API"] == 'pyqt':
+    from PyQt4 import QtCore
 elif os.environ["QT_API"] == 'pyside':
-    from PySide import QtCore, QtGui   # analysis:ignore
+    from PySide import QtCore
+
 
 #-----------------------------------------------------------------------------
 # Utilities
