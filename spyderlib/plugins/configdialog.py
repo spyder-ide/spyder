@@ -124,36 +124,37 @@ class ConfigDialog(QDialog):
     
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
-        
+
+        self.main = parent
+
+        # Widgets
+        self.pages_widget = QStackedWidget()
+        self.contents_widget = QListWidget()
+        self.button_reset = QPushButton(_('Reset to defaults'))
+
+        bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Apply |
+                                QDialogButtonBox.Cancel)
+        self.apply_btn = bbox.button(QDialogButtonBox.Apply)
+
+        # Widgets setup
         # Destroying the C++ object right after closing the dialog box,
         # otherwise it may be garbage-collected in another QThread
         # (e.g. the editor's analysis thread in Spyder), thus leading to
         # a segmentation fault on UNIX or an application crash on Windows
         self.setAttribute(Qt.WA_DeleteOnClose)
-
-        self.contents_widget = QListWidget()
+        self.setWindowTitle(_('Preferences'))
+        self.setWindowIcon(ima.icon('configure'))
         self.contents_widget.setMovement(QListView.Static)
         self.contents_widget.setSpacing(1)
-
-        bbox = QDialogButtonBox(QDialogButtonBox.Ok|QDialogButtonBox.Apply
-                                |QDialogButtonBox.Cancel)
-        self.apply_btn = bbox.button(QDialogButtonBox.Apply)
-        bbox.accepted.connect(self.accept)
-        bbox.rejected.connect(self.reject)
-        bbox.clicked.connect(self.button_clicked)
-        
-        self.pages_widget = QStackedWidget()
-        self.pages_widget.currentChanged.connect(self.current_page_changed)
-
-        self.contents_widget.currentRowChanged.connect(
-                                             self.pages_widget.setCurrentIndex)
         self.contents_widget.setCurrentRow(0)
 
+        # Layout
         hsplitter = QSplitter()
         hsplitter.addWidget(self.contents_widget)
         hsplitter.addWidget(self.pages_widget)
 
         btnlayout = QHBoxLayout()
+        btnlayout.addWidget(self.button_reset)
         btnlayout.addStretch(1)
         btnlayout.addWidget(bbox)
 
@@ -163,12 +164,18 @@ class ConfigDialog(QDialog):
 
         self.setLayout(vlayout)
 
-        self.setWindowTitle(_('Preferences'))
-        self.setWindowIcon(ima.icon('configure'))
+        # Signals and slots
+        self.button_reset.clicked.connect(self.main.reset_spyder)
+        self.pages_widget.currentChanged.connect(self.current_page_changed)
+        self.contents_widget.currentRowChanged.connect(
+                                             self.pages_widget.setCurrentIndex)
+        bbox.accepted.connect(self.accept)
+        bbox.rejected.connect(self.reject)
+        bbox.clicked.connect(self.button_clicked)
 
         # Ensures that the config is present on spyder first run
         CONF.set('main', 'interface_language', load_lang_conf())
-        
+
     def get_current_index(self):
         """Return current page index"""
         return self.contents_widget.currentRow()
@@ -893,7 +900,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
     CONF_SECTION = "color_schemes"
     
     NAME = _("Syntax coloring")
-    ICON = ima.icon('genprefs')
+    ICON = ima.icon('eyedropper')
     
     def setup_page(self):
         tabs = QTabWidget()
