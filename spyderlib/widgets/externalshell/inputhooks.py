@@ -11,12 +11,14 @@ import ctypes
 import os
 import sys
 
+QT_API = os.environ["QT_API"]
+
 # Qt imports
-if os.environ["QT_API"] == 'pyqt5':
+if QT_API == 'pyqt5':
     from PyQt5 import QtCore
-elif os.environ["QT_API"] == 'pyqt':
+elif QT_API == 'pyqt':
     from PyQt4 import QtCore
-elif os.environ["QT_API"] == 'pyside':
+elif QT_API == 'pyside':
     from PySide import QtCore
 
 
@@ -87,8 +89,10 @@ def set_pyft_callback(callback):
     return callback
 
 def remove_pyqt_inputhook():
-    if os.environ["QT_API"] == 'pyqt':
+    if QT_API == 'pyqt' or QT_API == 'pyqt5':
         QtCore.pyqtRemoveInputHook()
+    else:
+        pass
 
 
 #------------------------------------------------------------------------------
