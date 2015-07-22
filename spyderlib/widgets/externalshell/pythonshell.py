@@ -460,13 +460,14 @@ class ExternalPythonShell(ExternalShellBase):
                 self.configure_namespacebrowser()
             env.append('SPYDER_I_PORT=%d' % introspection_server.port)
             env.append('SPYDER_N_PORT=%d' % notification_server.port)
-        
+
         # External modules options
-        env.append('ETS_TOOLKIT=%s' % self.ets_backend)
+        if not self.is_ipykernel:
+            env.append('ETS_TOOLKIT=%s' % self.ets_backend)
         if self.mpl_backend is not None:
             backends = {0: 'Automatic', 1: 'None', 2: 'TkAgg', 3: 'MacOSX'}
             env.append('MATPLOTLIB_BACKEND=%s' % backends[self.mpl_backend])
-        if self.qt_api:
+        if self.qt_api and not self.is_ipykernel:
             env.append('QT_API=%s' % self.qt_api)
         env.append('COLORIZE_SYS_STDERR=%s' % self.colorize_sys_stderr)
 #        # Socket-based alternative (see input hook in sitecustomize.py):
