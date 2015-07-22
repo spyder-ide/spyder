@@ -44,6 +44,7 @@ from spyderlib.plugins.runconfig import get_run_configuration
 from spyderlib.py3compat import to_text_string, is_text_string, getcwd
 from spyderlib import dependencies
 
+
 MPL_REQVER = '>=1.0'
 dependencies.add("matplotlib", _("Interactive data plotting in the consoles"),
                  required_version=MPL_REQVER)
@@ -272,21 +273,10 @@ class ExternalConsoleConfigPage(PluginConfigPage):
             interpreter = get_python_executable()
         else:
             interpreter = self.get_option('pythonexecutable')
-        has_pyqt5 = programs.is_module_installed('PyQt5',
-                                                 interpreter=interpreter)
-        has_pyqt4 = programs.is_module_installed('PyQt4',
-                                                 interpreter=interpreter)
-        has_pyside = programs.is_module_installed('PySide',
-                                                  interpreter=interpreter)
-        if has_pyqt4 and not has_pyqt5:
-            self.set_option('qt/api', 'pyqt')
-        elif has_pyside and not (has_pyqt5 or has_pyqt4):
-            self.set_option('qt/api', 'pyside')
 
         qt_layout = QVBoxLayout()
         qt_layout.addWidget(qt_setapi_box)
         qt_group.setLayout(qt_layout)
-        qt_group.setEnabled(has_pyqt5 or has_pyqt4 or has_pyside)
 
         # Matplotlib Group
         mpl_group = QGroupBox(_("Graphics"))
@@ -350,34 +340,12 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         vlayout.addWidget(tabs)
         self.setLayout(vlayout)
 
-    def _auto_change_qt_api(self, pyexec):
-        """Change automatically Qt API depending on
-        selected Python executable"""
-        has_pyqt5 = programs.is_module_installed('PyQt5', interpreter=pyexec)
-        has_pyqt4 = programs.is_module_installed('PyQt4', interpreter=pyexec)
-        has_pyside = programs.is_module_installed('PySide', interpreter=pyexec)
-        for cb in self.comboboxes:
-            if self.comboboxes[cb][0] == 'qt/api':
-                qt_setapi_cb = cb
-        if has_pyqt5:
-            qt_setapi_cb.setCurrentIndex(1)
-        elif has_pyside and not has_pyqt4:
-            qt_setapi_cb.setCurrentIndex(3)
-        elif has_pyqt4 and not has_pyside:
-            qt_setapi_cb.setCurrentIndex(2)
-        else:
-            qt_setapi_cb.setCurrentIndex(0)
-
     def python_executable_changed(self, pyexec):
         """Custom Python executable value has been changed"""
         if not self.cus_exec_radio.isChecked():
             return
         if not is_text_string(pyexec):
             pyexec = to_text_string(pyexec.toUtf8(), 'utf-8')
-        old_pyexec = self.get_option("pythonexecutable",
-                                     get_python_executable())
-        if pyexec != old_pyexec:
-            self._auto_change_qt_api(pyexec)
         self.warn_python_compatibility(pyexec)
 
     def python_executable_switched(self, custom):
@@ -387,8 +355,6 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         if not is_text_string(cust_pyexec):
             cust_pyexec = to_text_string(cust_pyexec.toUtf8(), 'utf-8')
         if def_pyexec != cust_pyexec:
-            pyexec = cust_pyexec if custom else def_pyexec
-            self._auto_change_qt_api(pyexec)
             if custom:
                 self.warn_python_compatibility(cust_pyexec)
 
