@@ -269,10 +269,6 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                          tip=_("This option will act on<br> "
                                "libraries such as Matplotlib, guidata "
                                "or ETS"))
-        if self.get_option('pythonexecutable/default'):
-            interpreter = get_python_executable()
-        else:
-            interpreter = self.get_option('pythonexecutable')
 
         qt_layout = QVBoxLayout()
         qt_layout.addWidget(qt_setapi_box)
@@ -316,15 +312,20 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         ets_label.setWordWrap(True)
         ets_edit = self.create_lineedit(_("ETS_TOOLKIT:"), 'ets_backend',
                                         alignment=Qt.Horizontal)
-        
+
         ets_layout = QVBoxLayout()
         ets_layout.addWidget(ets_label)
         ets_layout.addWidget(ets_edit)
         ets_group.setLayout(ets_layout)
+
+        if self.get_option('pythonexecutable/default'):
+            interpreter = get_python_executable()
+        else:
+            interpreter = self.get_option('pythonexecutable')
         ets_group.setEnabled(programs.is_module_installed(
                                                     "enthought.etsconfig.api",
                                                     interpreter=interpreter))
-        
+
         tabs = QTabWidget()
         tabs.addTab(self.create_tab(font_group, interface_group, display_group,
                                     bg_group),
