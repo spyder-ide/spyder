@@ -361,7 +361,8 @@ if matplotlib is not None:
             callback = inputhooks.set_pyft_callback(inputhooks.qt4)
             pyos_ih = inputhooks.get_pyos_inputhook()
             pyos_ih.value = ctypes.cast(callback, ctypes.c_void_p).value
-        elif mpl_backend != "Qt4Agg" and (qt_api == 'pyqt' or qt_api == 'pyqt5'):
+        elif (mpl_backend != "Qt4Agg" and qt_api == 'pyqt') \
+          or (mpl_backend != "Qt5Agg" and qt_api == 'pyqt5'):
             # Matplotlib backends install their own input hooks, so we
             # need to remove the PyQt one to make them work
             inputhooks.remove_pyqt_inputhook()
