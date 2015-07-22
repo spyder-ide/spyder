@@ -331,7 +331,7 @@ def load_dictionary(filename):
             # Old format (Spyder 2.0-2.1 for Python 2)
             with open(pickle_filename, 'U') as fdesc:
                 data = pickle.loads(fdesc.read())
-        except (pickle.PickleError, TypeError):
+        except (pickle.PickleError, TypeError, UnicodeDecodeError):
             # New format (Spyder >=2.2 for Python 2 and Python 3)
             with open(pickle_filename, 'rb') as fdesc:
                 data = pickle.loads(fdesc.read())
