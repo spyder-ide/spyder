@@ -179,12 +179,11 @@ class ExternalPythonShell(ExternalShellBase):
                  menu_actions=None, show_buttons_inside=True,
                  show_elapsed_time=True):
 
-        assert qt_api in (None, 'pyqt', 'pyside')
+        assert qt_api in (None, 'pyqt', 'pyside', 'pyqt5')
 
         self.namespacebrowser = None # namespace browser widget!
-        
         self.dialog_manager = DialogManager()
-        
+
         self.stand_alone = stand_alone # stand alone settings (None: plugin)
         self.interact = interact
         self.is_ipykernel = ipykernel
@@ -577,11 +576,11 @@ class ExternalPythonShell(ExternalShellBase):
     def send_to_process(self, text):
         if not self.is_running():
             return
-            
+
         if not is_text_string(text):
             text = to_text_string(text)
-        if self.mpl_backend == 'Qt4Agg' and os.name == 'nt' and \
-          self.introspection_socket is not None:
+        if (self.mpl_backend == 'Qt4Agg' or self.mpl_backend == 'Qt5Agg') \
+          and os.name == 'nt' and self.introspection_socket is not None:
             communicate(self.introspection_socket,
                         "toggle_inputhook_flag(True)")
 #            # Socket-based alternative (see input hook in sitecustomize.py):
