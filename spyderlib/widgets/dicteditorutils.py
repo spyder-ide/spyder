@@ -91,10 +91,10 @@ def address(obj):
 #----Set limits for the amount of elements in the repr of collections
 #    (lists, dicts, tuples and sets)
 CollectionsRepr = reprlib.Repr()
-CollectionsRepr.maxlist = 1000
-CollectionsRepr.maxdict = 1000
-CollectionsRepr.maxtuple = 1000
-CollectionsRepr.maxset = 1000
+CollectionsRepr.maxlist = 10
+CollectionsRepr.maxdict = 10
+CollectionsRepr.maxtuple = 10
+CollectionsRepr.maxset = 10
 
 
 #----date and datetime objects support
