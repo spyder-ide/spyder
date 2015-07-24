@@ -2587,20 +2587,8 @@ class CodeEditor(TextEditBaseWidget):
             self.stdkey_end(shift, ctrl)
         elif text == '(' and not self.has_selected_text():
             self.hide_completion_widget()
-            position = self.get_position('cursor')
-            s_trailing_text = self.get_text('cursor', 'eol').strip()
-            if self.close_parentheses_enabled and \
-              (len(s_trailing_text) == 0 or \
-              s_trailing_text[0] in (',', ')', ']', '}')):
-                self.insert_text('()')
-                cursor = self.textCursor()
-                cursor.movePosition(QTextCursor.PreviousCharacter)
-                self.setTextCursor(cursor)
-            else:
-                self.insert_text(text)
-            if self.is_python_like() and self.get_text('sol', 'cursor') and \
-              self.calltips:
-                self.sig_show_object_info.emit(position)
+            if self.close_parentheses_enabled:
+                self.handle_close_parentheses(text)
         elif text in ('[', '{') and not self.has_selected_text() \
           and self.close_parentheses_enabled:
             s_trailing_text = self.get_text('cursor', 'eol').strip()
@@ -2668,6 +2656,22 @@ class CodeEditor(TextEditBaseWidget):
             TextEditBaseWidget.keyPressEvent(self, event)
             if self.is_completion_widget_visible() and text:
                 self.completion_text += text
+
+    def handle_close_parentheses(self, text):
+        if not self.close_parentheses_enabled:
+            return
+        position = self.get_position('cursor')
+        rest = self.get_text('cursor', 'eol').rstrip()
+        if not rest or rest[0] in (',', ')', ']', '}'):
+            self.insert_text('()')
+            cursor = self.textCursor()
+            cursor.movePosition(QTextCursor.PreviousCharacter)
+            self.setTextCursor(cursor)
+        else:
+            self.insert_text(text)
+        if self.is_python_like() and self.get_text('sol', 'cursor') and \
+                self.calltips:
+            self.sig_show_object_info.emit(position)
 
     def mouseMoveEvent(self, event):
         """Underline words when pressing <CONTROL>"""
