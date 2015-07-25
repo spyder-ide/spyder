@@ -503,8 +503,8 @@ class DictDelegate(QItemDelegate):
         elif isinstance(value, (DataFrame, TimeSeries))\
              and DataFrame is not FakeObject:
             editor = DataFrameEditor()
-            if not editor.setup_and_check(value):
-                return	
+            if not editor.setup_and_check(value, title=key):
+                return
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
                                             key=key, readonly=readonly))
             return None
