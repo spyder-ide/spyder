@@ -551,7 +551,7 @@ class ArrayEditor(QDialog):
         self.setLayout(self.layout)
         self.setWindowIcon(ima.icon('arredit'))
         if title:
-            title = to_text_string(title) # in case title is not a string
+            title = to_text_string(title) + " - " + _("NumPy array")
         else:
             title = _("Array editor")
         if readonly:
