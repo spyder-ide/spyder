@@ -25,7 +25,7 @@ from spyderlib.utils.qthelpers import (qapplication, create_action,
 
 from spyderlib.baseconfig import _
 from spyderlib.guiconfig import get_font, new_shortcut
-from spyderlib.py3compat import io, is_text_string, to_text_string
+from spyderlib.py3compat import io, is_text_string, to_text_string, PY2
 from spyderlib.utils import encoding
 from spyderlib.widgets.arrayeditor import get_idx_rect
 
@@ -170,6 +170,18 @@ class DataFrameModel(QAbstractTableModel):
         if orientation == Qt.Horizontal:
             if section == 0:
                 return 'Index'
+            elif section == 1 and PY2:
+                # Get rid of possible BOM utf-8 data present at the
+                # beginning of a file, which gets attached to the first
+                # column header when headers are present in the first
+                # row.
+                # Fixes Issue 2514
+                try:
+                    header = to_text_string(self.df_header[0],
+                                            encoding='utf-8-sig')
+                except UnicodeDecodeError:
+                    header = to_text_string(self.df_header[0])
+                return to_qvariant(header)
             else:
                 return to_qvariant(to_text_string(self.df_header[section-1]))
         else:
