@@ -551,10 +551,11 @@ if sys.version[0] == '2':
 
 
 #==============================================================================
-# # Restoring (almost) original sys.path:
-# (Note: do not remove spyderlib_path from sys.path because if Spyder has been
-#  installed using python setup.py install, then this could remove the
-#  'site-packages' directory from sys.path!)
+# Restoring (almost) original sys.path:
+#
+# NOTE: do not remove spyderlib_path from sys.path because if Spyder has been
+# installed using python setup.py install, then this could remove the
+# 'site-packages' directory from sys.path!
 #==============================================================================
 try:
     sys.path.remove(osp.join(spyderlib_path,
