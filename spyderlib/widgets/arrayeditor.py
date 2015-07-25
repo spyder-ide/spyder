@@ -529,16 +529,15 @@ class ArrayEditor(QDialog):
             self.error(_("Array is empty"))
             return False
         if data.ndim > 3:
-            self.error(_("Arrays with more than 3 dimensions "
-                               "are not supported"))
+            self.error(_("Arrays with more than 3 dimensions are not supported"))
             return False
         if xlabels is not None and len(xlabels) != self.data.shape[1]:
-            self.error(_("The 'xlabels' argument length "
-						 	   "do no match array column number"))
+            self.error(_("The 'xlabels' argument length do no match array "
+                         "column number"))
             return False
         if ylabels is not None and len(ylabels) != self.data.shape[0]:
-            self.error(_("The 'ylabels' argument length "
-							   "do no match array row number"))
+            self.error(_("The 'ylabels' argument length do no match array row "
+                         "number"))
             return False
         if not is_record_array:
             dtn = data.dtype.name
