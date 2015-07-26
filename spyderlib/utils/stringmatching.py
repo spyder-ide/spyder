@@ -47,39 +47,44 @@ def get_search_regex(query, ignore_case=True):
 
 
 def get_search_score(query, choice, ignore_case=True, apply_regex=True,
-                     template='{0}'):
-    """ Returns a tuples with the enriched text (if a template is provided)
-    and a score for the match.
+                     template='{}'):
+    """Returns a tuple with the enriched text (if a template is provided) and
+    a score for the match.
 
     Parameters
     ----------
     query : str
-        String with letters to seacrh in choice (in order of appearance).
-    choice : string 
-        Sentences/words in which to search for the 'query' letters.
-    ignore_case : True
+        String with letters to search in choice (in order of appearance).
+    choice : str
+        Sentence/words in which to search for the 'query' letters.
+    ignore_case : bool, optional
         Optional value perform a case insensitive search (True by default).
-    apply_regex : True
-        Optional value (True by default) to perform a regex search. Usefull
+    apply_regex : bool, optional
+        Optional value (True by default) to perform a regex search. Useful
         when this function is called directly.
-    template : str
+    template : str, optional
         Optional template string to surround letters found in choices. This is
         useful when using a rich text editor ('{}' by default).
         Examples: '<b>{}</b>', '<code>{}</code>', '<i>{}</i>'
 
     Returns
     -------
-    results : tupple
-        Tupples where the first item is the text (enriched if a template was
+    results : tuple
+        Tuples where the first item is the text (enriched if a template was
         used) and the second item is a search score.
 
     Notes
     -----
-    The score if given according the following considerations:
-    - Letters in one word and no spaces with exact match
-    - Letters in one word and no spaces with partial match
-    - Letters in one word but with skip letters
-    - Letters in two or more words
+    The score is given according the following precedence (high to low):
+
+    - Letters in one word and no spaces with exact match.
+      Example: 'up' in 'up stroke'
+    - Letters in one word and no spaces with partial match.
+      Example: 'up' in 'upstream stroke'    
+    - Letters in one word but with skip letters.
+      Example: 'cls' in 'close up'    
+    - Letters in two or more words.
+      Example: 'cls' in 'car lost'    
     """
     result = (choice, NOT_FOUND_SCORE)
  
@@ -172,20 +177,20 @@ def get_search_scores(query, choices, ignore_case=True, template='{}',
     Parameters
     ----------
     query : str
-        String with letters to seacrh in each choice (in order of appearance).
+        String with letters to search in each choice (in order of appearance).
     choices : list of str
         List of sentences/words in which to search for the 'query' letters.
-    ignore_case : True
+    ignore_case : bool, optional
         Optional value perform a case insensitive search (True by default).
-    template : str
+    template : str, optional
         Optional template string to surround letters found in choices. This is
         useful when using a rich text editor ('{}' by default).
         Examples: '<b>{}</b>', '<code>{}</code>', '<i>{}</i>'
 
     Returns
     -------
-    results : list of tupples
-        List of tupples where the first item is the text (enriched if a
+    results : list of tuples
+        List of tuples where the first item is the text (enriched if a
         template was used) and a search score. Lower scores means better match.
     """
     pattern = get_search_regex(query, ignore_case)
@@ -213,7 +218,37 @@ def get_search_scores(query, choices, ignore_case=True, template='{}',
 
 def test():
     template = '<b>{0}</b>'
-    names = ['close pane', 'debug continue', 'debug exit', 'debug step into', 'debug step over', 'debug step return', 'fullscreen mode', 'layout preferences', 'lock unlock panes', 'maximize pane', 'preferences', 'quit', 'restart', 'save current layout', 'switch to breakpoints', 'switch to console', 'switch to editor', 'switch to explorer', 'switch to find_in_files', 'switch to historylog', 'switch to inspector', 'switch to ipython_console', 'switch to onlinehelp', 'switch to outline_explorer', 'switch to project_explorer', 'switch to variable_explorer', 'toggle default layout', 'use next layout', 'use previous layout', 'clear line', 'clear shell', 'inspect current object', 'blockcomment', 'breakpoint', 'close all', 'code completion', 'conditional breakpoint', 'configure', 'copy', 'copy line', 'cut', 'debug', 'debug with winpdb', 'delete', 'delete line', 'duplicate line', 'end of document', 'end of line', 'file list management', 'find next', 'find previous', 'find text', 'go to definition', 'go to line', 'go to next file', 'go to previous file', 'inspect current object', 'kill next word', 'kill previous word', 'kill to line end', 'kill to line start', 'last edit location', 'move line down', 'move line up', 'new file', 'next char', 'next cursor position', 'next line', 'next word', 'open file', 'paste', 'previous char', 'previous cursor position', 'previous line', 'previous word', 'print', 're-run last script', 'redo', 'replace text', 'rotate kill ring', 'run', 'run selection', 'save all', 'save as', 'save file', 'select all', 'show/hide outline', 'show/hide project explorer', 'start of document', 'start of line', 'toggle comment', 'unblockcomment', 'undo', 'yank', 'run profiler', 'run analysis']
+    names = ['close pane', 'debug continue', 'debug exit', 'debug step into',
+             'debug step over', 'debug step return', 'fullscreen mode',
+             'layout preferences', 'lock unlock panes', 'maximize pane',
+             'preferences', 'quit', 'restart', 'save current layout',
+             'switch to breakpoints', 'switch to console', 'switch to editor',
+             'switch to explorer', 'switch to find_in_files',
+             'switch to historylog', 'switch to inspector',
+             'switch to ipython_console', 'switch to onlinehelp',
+             'switch to outline_explorer', 'switch to project_explorer',
+             'switch to variable_explorer', 'toggle default layout',
+             'use next layout', 'use previous layout', 'clear line',
+             'clear shell', 'inspect current object', 'blockcomment',
+             'breakpoint', 'close all', 'code completion',
+             'conditional breakpoint', 'configure', 'copy', 'copy line', 'cut',
+             'debug', 'debug with winpdb', 'delete', 'delete line',
+             'duplicate line', 'end of document', 'end of line',
+             'file list management', 'find next', 'find previous', 'find text',
+             'go to definition', 'go to line', 'go to next file',
+             'go to previous file', 'inspect current object', 'kill next word',
+             'kill previous word', 'kill to line end', 'kill to line start',
+             'last edit location', 'move line down', 'move line up',
+             'new file', 'next char', 'next cursor position', 'next line',
+             'next word', 'open file', 'paste', 'previous char',
+             'previous cursor position', 'previous line', 'previous word',
+             'print', 're-run last script', 'redo', 'replace text',
+             'rotate kill ring', 'run', 'run selection', 'save all', 'save as',
+             'save file', 'select all', 'show/hide outline',
+             'show/hide project explorer', 'start of document',
+             'start of line', 'toggle comment', 'unblockcomment', 'undo',
+             'yank', 'run profiler', 'run analysis']
+
     a = get_search_scores('lay', names, template=template, )
     b = get_search_scores('lay', names, template=template, valid_only=True,
                           sort=True)
