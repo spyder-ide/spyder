@@ -5,7 +5,7 @@
 # (see spyderlib/__init__.py for details)
 
 """
-
+Helper widgets.
 """
 
 from spyderlib.qt.QtCore import QPoint, QSize

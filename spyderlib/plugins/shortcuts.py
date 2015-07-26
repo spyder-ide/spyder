@@ -263,12 +263,16 @@ class ShortcutEditor(QDialog):
 
             if len(self.keys) == 1 and key == Qt.Key_Tab:
                 self.toggle_state()
+                return
 
             if len(self.keys) == 1 and key == Qt.Key_Escape:
-                self.close()
+                self.set_sequence('')
+                self.toggle_state()
+                return
 
             if len(self.keys) == 1 and key in [Qt.Key_Return, Qt.Key_Enter]:
-                self.accept()
+                self.toggle_state()
+                return
 
             if not self.edit_state:
                 self.nonedit_keyrelease(e)
@@ -330,12 +334,16 @@ class ShortcutEditor(QDialog):
 
     def set_sequence(self, sequence):
         """Set the new shortcut and update buttons."""
-        if self.sequence != sequence:
+        if not sequence or self.sequence == sequence:
+            self.button_ok.setEnabled(False)
+            different_sequence = False          
+#        elif self.sequence != sequence:
+        else:
             self.button_ok.setEnabled(True)
             different_sequence = True
-        else:
-            self.button_ok.setEnabled(False)
-            different_sequence = False
+#        else:
+#            self.button_ok.setEnabled(False)
+#            different_sequence = False
 
         self.text_new_sequence.setText(sequence)
         self.new_sequence = sequence
