@@ -183,7 +183,7 @@ def get_tour(index):
                            "<b>Python consoles</b> are also connected to the "
                            "Variable Explorer, and that the last one only shows "
                            "the variables of the currently focused console."),
-              'widgets': [sw.external_console, sw.variable_explorer],
+              'widgets': [sw.external_console],
               'run': ["a = 2", "s='Hello, world!'"],
               },
 
