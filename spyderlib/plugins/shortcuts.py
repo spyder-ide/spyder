@@ -28,8 +28,8 @@ from spyderlib.plugins.configdialog import GeneralConfigPage
 from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.qthelpers import get_std_icon
 from spyderlib.utils.stringmatching import get_search_regex, get_search_scores
-from spyderlib.widgets.arraybuilder import HelperToolButton
 from spyderlib.widgets.helperwidgets import HTMLDelegate
+from spyderlib.widgets.helperwidgets import HelperToolButton
 
 
 MODIFIERS = {Qt.Key_Shift: Qt.SHIFT,
@@ -108,6 +108,7 @@ class ShortcutFinder(QLineEdit):
             super(ShortcutFinder, self).keyPressEvent(event)
 
 
+# Error codes for the shortcut editor dialog
 NO_WARNING, SEQUENCE_LENGTH, SEQUENCE_CONFLICT, INVALID_KEY = [0, 1, 2, 3]
 
 
@@ -138,7 +139,7 @@ class ShortcutEditor(QDialog):
         self.text_new_sequence = CustomLineEdit(self)
         self.text_new_sequence.setPlaceholderText(sequence)
         self.helper_button = HelperToolButton()
-        self.label_warning = QLabel('<br><br>')
+        self.label_warning = QLabel('<br>')
 
         bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         self.button_ok = bbox.button(QDialogButtonBox.Ok)
@@ -309,6 +310,8 @@ class ShortcutEditor(QDialog):
             tip = template.format(tip_title, tip_body)
             warn = True
         elif warning_type == SEQUENCE_LENGTH:
+            # Sequences with 5 keysequences (i.e. Ctrl+1, Ctrl+2, Ctrl+3,
+            # Ctrl+4, Ctrl+5) are invalid
             template = '<i>{0}</i>'
             tip = _('A compound sequence can have {break} a maximum of '
                     '4 subsequences.{break}').format(**{'break': '<br>'})
@@ -481,6 +484,10 @@ class ShortcutsModel(QAbstractTableModel):
                 text = QKeySequence(key).toString(QKeySequence.NativeText)
                 return to_qvariant(text)
             elif column == SEARCH_SCORE:
+                # Treating search scores as a table column simplifies the
+                # sorting once a score for a specific string in the finder
+                # has been defined. This column however should always remain
+                # hidden.
                 return to_qvariant(self.scores[row])
         elif role == Qt.TextAlignmentRole:
             return to_qvariant(int(Qt.AlignHCenter | Qt.AlignVCenter))
@@ -581,6 +588,9 @@ class CustomSortFilterProxy(QSortFilterProxyModel):
 class ShortcutsTable(QTableView):
     def __init__(self, parent=None):
         QTableView.__init__(self, parent)
+        self._parent = parent
+        self.finder = None
+
         self.source_model = ShortcutsModel(self)
         self.proxy_model = CustomSortFilterProxy(self)
         self.last_regex = ''
@@ -640,7 +650,7 @@ class ShortcutsTable(QTableView):
         self.source_model.rich_text = [s.name for s in shortcuts]
         self.source_model.reset()
         self.adjust_cells()
-        self.sortByColumn(SEARCH_SCORE, Qt.AscendingOrder)
+        self.sortByColumn(CONTEXT, Qt.AscendingOrder)
 
     def check_shortcuts(self):
         """Check shortcuts for conflicts."""
@@ -695,13 +705,13 @@ class ShortcutsTable(QTableView):
 
         self.proxy_model.set_filter(text)
         self.source_model.update_search_letters(text)
-        self.sortByColumn(SEARCH_SCORE)
+        self.sortByColumn(SEARCH_SCORE, Qt.AscendingOrder)
 
         if self.last_regex != regex:
             self.selectRow(0)
         self.last_regex = regex
 
-    def next_row(self, cycle=True):
+    def next_row(self):
         """Move to next row from currently selected row."""
         row = self.currentIndex().row()
         rows = self.proxy_model.rowCount()
@@ -709,7 +719,7 @@ class ShortcutsTable(QTableView):
             row = -1
         self.selectRow(row + 1)
 
-    def previous_row(self, cycle=True):
+    def previous_row(self):
         """Move to previous row from currently selected row."""
         row = self.currentIndex().row()
         rows = self.proxy_model.rowCount()
@@ -734,6 +744,8 @@ class ShortcutsTable(QTableView):
                 if re.search(VALID_FINDER_CHARS, text) is not None:
                     self.finder.setFocus()
                     self.finder.set_text(text)
+        elif key in [Qt.Key_Escape]:
+            self.finder.keyPressEvent(event)
 
     def mouseDoubleClickEvent(self, event):
         """Qt Override."""
