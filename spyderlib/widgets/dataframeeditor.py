@@ -220,7 +220,7 @@ class DataFrameModel(QAbstractTableModel):
         # handeling when index contains nan, so fallback uses iloc
         try:
             value = self.df.iat[row, column]
-        except KeyError:
+        except (KeyError, TypeError):
             value = self.df.iloc[row, column]
         return value
 
