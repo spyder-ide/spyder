@@ -125,35 +125,38 @@ def get_tour(index):
                            "Here we are going to guide you through its most "
                            "important features.<br><br>"
                            "Please use the arrow keys or click on the buttons "
-                           "below to move across the tour."),
+                           "below to move along the tour."),
               'image': 'tour-spyder-logo.png'},
 
              {'title': _("The Editor"),
-              'content': _("This is the pane where you write code. It comes "
+              'content': _("This is the pane where you write Python code before "
+                           "evaluating it. You can get automatic suggestions "
+                           "and completions while writing, by pressing the "
+                           "<b>Tab</b> key next to a given text.<br><br>"
+                           "The Editor comes "
                            "with a line number area (highlighted here in red), "
-                           "where Spyder shows warnings and syntax errors that "
-                           "help you to detect potential problems before "
+                           "where Spyder shows warnings and syntax errors. They "
+                           "can help you to detect potential problems before "
                            "running the code.<br><br>"
-                           "You can also set debug breakpoints in this area "
-                           "by doing a double click next to a non-empty line."),
+                           "You can also set debug breakpoints in the line "
+                           "number area, by doing a double click next to "
+                           "a non-empty line."),
               'widgets': [sw.editor],
               'decoration': [sw.editor_line_number_area]},
 
              {'title': _("The IPython console"),
               'content': _("This is one of panes where you can run or "
-                           "execute your code. This console comes with several "
+                           "execute the code you wrote on the Editor. To do it "
+                           "you need to press the <b>F5</b> key.<br><br>"
+                           "This console comes with several "
                            "useful features that greatly improve your "
                            "programming workflow (like syntax highlighting and "
-                           "inline plots). You can read in depth about them "
-                           "<a href=\"%s\">here</a>.<br><br>"
-                           "It's also important to note that you can open as "
-                           "many consoles as you want, by going to the "
-                           "menu entry<br><br>"
-                           "<i>Consoles > Open an IPython console</i>.<br><br>"
+                           "inline plots). If you want to know more about them, "
+                           "please follow this <a href=\"{0}\">link</a>.<br><br>"
                            "Please click on the button below to run some simple "
                            "code in this console. This will be useful to show "
-                           "you other important Spyder features." % \
-                           qtconsole_link),
+                           "you other important features.".format(
+                           qtconsole_link)),
               'widgets': [sw.ipython_console],
               'run': ["li = list(range(100))", "d = {'a': 1, 'b': 2}"]
               },
