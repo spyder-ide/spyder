@@ -340,14 +340,10 @@ class ShortcutEditor(QDialog):
         """Set the new shortcut and update buttons."""
         if not sequence or self.sequence == sequence:
             self.button_ok.setEnabled(False)
-            different_sequence = False          
-#        elif self.sequence != sequence:
+            different_sequence = False
         else:
             self.button_ok.setEnabled(True)
             different_sequence = True
-#        else:
-#            self.button_ok.setEnabled(False)
-#            different_sequence = False
 
         self.text_new_sequence.setText(sequence)
         self.new_sequence = sequence
