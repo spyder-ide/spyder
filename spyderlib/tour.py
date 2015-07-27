@@ -35,7 +35,6 @@ from spyderlib.utils.qthelpers import (create_action, add_actions)
 class SpyderWidgets(object):
     """List of supported widgets to highlight/decorate"""
     # Panes
-    internal_console = 'console'
     external_console = 'extconsole'
     ipython_console = 'ipyconsole'
     editor = 'editor'
@@ -44,6 +43,7 @@ class SpyderWidgets(object):
     file_explorer = 'explorer'
     object_inspector = 'inspector'
     variable_explorer = 'variableexplorer'
+    history_log = "historylog"
 
     # Toolbars
     toolbars = ''
@@ -211,10 +211,10 @@ def get_tour(index):
               'widgets': [sw.file_explorer],
               'interact': True},
 
-             {'title': _("The Internal Console"),
-              'content': _("Now lets interact with the <b>IPython Console</b>."
-                           "<br><br><i>Decoration</i> included also."),
-              'widgets': [sw.internal_console],
+             {'title': _("The History Log"),
+              'content': _("This pane records all commands introduced in "
+                           "the Python and IPython consoles."),
+              'widgets': [sw.history_log],
               'interact': True},
              ]
 
