@@ -189,16 +189,26 @@ def get_tour(index):
               'run': ["a = 2", "s='Hello, world!'"],
               },
 
-             {'title': _("The File Explorer"),
-              'content': _("Now lets interact with the <b>IPython Console</b>."
-                           "<br><br><i>Decoration</i> included also."),
-              'widgets': [sw.file_explorer],
+             {'title': _("The Object Inspector"),
+              'content': _("This pane displays documentation of the "
+                           "functions, classes, methods or modules you are "
+                           "currently using in the Editor or the Consoles.<br><br>"
+                           "To use it, you need to press <b>Ctrl+I</b> in "
+                           "front of an object. If that object has some "
+                           "documentation associated with it, it will be "
+                           "displayed here."),
+              'widgets': [sw.object_inspector],
               'interact': True},
 
-             {'title': _("The Object Inspector"),
-              'content': _("Now lets interact with the <b>IPython Console</b>."
-                           "<br><br><i>Decoration</i> included also."),
-              'widgets': [sw.object_inspector],
+             {'title': _("The File Explorer"),
+              'content': _("This pane lets you navigate through the directories "
+                           "and files present in your computer.<br><br>"
+                           "You can also open any of these files with its "
+                           "corresponding application, by doing a double "
+                           "click on it.<br><br>"
+                           "There is one exception to this rule: plain-text "
+                           "files will always be opened in the Spyder Editor."),
+              'widgets': [sw.file_explorer],
               'interact': True},
 
              {'title': _("The Internal Console"),
