@@ -333,6 +333,7 @@ class ShortcutEditor(QDialog):
             widget.show()
             widget_message.show()
             widget.setIcon(get_std_icon('MessageBoxWarning'))
+            self.button_ok.setEnabled(False)
         else:
             widget.setIcon(get_std_icon('DialogApplyButton'))
 
