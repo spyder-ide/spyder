@@ -306,7 +306,7 @@ class ShortcutEditor(QDialog):
 
         if warning_type == NO_WARNING:
             warn = False
-            tip = ''
+            tip = 'This shortcut is correct!'
         elif warning_type == SEQUENCE_CONFLICT:
             template = '<i>{0}<b>{1}</b></i>'
             tip_title = _('The new shorcut conflicts with:') + '<br>'
