@@ -329,8 +329,8 @@ class ShortcutEditor(QDialog):
             tip = _('Invalid key entered') + '<br>'
             warn = True
 
+        widget.show()
         if warn:
-            widget.show()
             widget_message.show()
             widget.setIcon(get_std_icon('MessageBoxWarning'))
             self.button_ok.setEnabled(False)
