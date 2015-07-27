@@ -268,8 +268,8 @@ class ShortcutEditor(QDialog):
 
             if len(self.keys) == 1 and key == Qt.Key_Escape:
                 self.set_sequence('')
-                self.toggle_state()
-                return
+                self.label_warning.setText(_("Please introduce a different "
+                                             "shortcut"))
 
             if len(self.keys) == 1 and key in [Qt.Key_Return, Qt.Key_Enter]:
                 self.toggle_state()
@@ -279,7 +279,7 @@ class ShortcutEditor(QDialog):
                 self.nonedit_keyrelease(e)
             else:
                 debug_print('keys: {}'.format(self.keys))
-                if self.keys:
+                if self.keys and key != Qt.Key_Escape:
                     self.validate_sequence()
                 self.keys = set()
                 self.key_modifiers = set()
