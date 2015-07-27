@@ -130,9 +130,10 @@ class ShortcutEditor(QDialog):
         self.shortcuts = shortcuts
 
         # Widgets
-        self.label_info = QLabel(_("Press the new shortcut and select 'Ok': \n"
-                                   "(Press 'Tab' once to switch focus between "
-                                   "shortcut entry and buttons)"))
+        self.label_info = QLabel()
+        self.label_info.setText(_("Press the new shortcut and select 'Ok': \n"
+             "(Press 'Tab' once to switch focus between the shortcut entry \n"
+             "and the buttons below it)"))
         self.label_current_sequence = QLabel(_("Current shortcut:"))
         self.text_current_sequence = QLabel(sequence)
         self.label_new_sequence = QLabel(_("New shortcut:"))
