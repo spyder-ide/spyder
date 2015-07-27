@@ -139,7 +139,8 @@ class ShortcutEditor(QDialog):
         self.text_new_sequence = CustomLineEdit(self)
         self.text_new_sequence.setPlaceholderText(sequence)
         self.helper_button = HelperToolButton()
-        self.label_warning = QLabel('<br>')
+        self.label_warning = QLabel()
+        self.label_warning.hide()
 
         bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         self.button_ok = bbox.button(QDialogButtonBox.Ok)
@@ -326,6 +327,7 @@ class ShortcutEditor(QDialog):
             warn = True
 
         if warn:
+            widget_message.show()
             widget.setIcon(get_std_icon('MessageBoxWarning'))
         else:
             widget.setIcon(get_std_icon('DialogApplyButton'))
