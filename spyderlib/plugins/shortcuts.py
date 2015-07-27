@@ -302,9 +302,6 @@ class ShortcutEditor(QDialog):
 
     def update_warning(self, warning_type=NO_WARNING, conflicts=[]):
         """Update warning label to reflect conflict status of new shortcut"""
-        widget = self.helper_button
-        widget_message = self.label_warning
-
         if warning_type == NO_WARNING:
             warn = False
             tip = 'This shortcut is correct!'
@@ -329,15 +326,15 @@ class ShortcutEditor(QDialog):
             tip = _('Invalid key entered') + '<br>'
             warn = True
 
-        widget.show()
+        self.helper_button.show()
         if warn:
-            widget_message.show()
-            widget.setIcon(get_std_icon('MessageBoxWarning'))
+            self.label_warning.show()
+            self.helper_button.setIcon(get_std_icon('MessageBoxWarning'))
             self.button_ok.setEnabled(False)
         else:
-            widget.setIcon(get_std_icon('DialogApplyButton'))
+            self.helper_button.setIcon(get_std_icon('DialogApplyButton'))
 
-        widget_message.setText(tip)
+        self.label_warning.setText(tip)
 
     def set_sequence(self, sequence):
         """Set the new shortcut and update buttons."""
