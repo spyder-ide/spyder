@@ -164,24 +164,26 @@ def get_tour(index):
              {'title': _("The Variable Explorer"),
               'content': _("In this pane you can view and edit the variables "
                            "generated during the execution of a program, or "
-                           "those entered directly in one of Spyder's "
+                           "those entered directly in one of Spyder "
                            "consoles.<br><br>"
-                           "As you can see, the <b>Variable Explorer</b> shows "
+                           "As you can see, the Variable Explorer is showing "
                            "the variables generated during the last step of "
-                           "this tour. By doing a mouse double-click on any "
+                           "this tour. By doing a double-click on any "
                            "of them, a new window will be opened, where you "
-                           "can inspect and modify its contents."),
+                           "can inspect and modify their contents."),
               'widgets': [sw.variable_explorer],
               'interact': True},
 
              {'title': _("The Python console"),
-              'content': _("You can also run your code on a <b>Python console</b>. "
-                           "These consoles are useful because they are created "
-                           "much faster than an IPython console, and let you "
-                           "run each file in a dedicated console<br><br>"
-                           "By pressing the button below, you will notice that "
-                           "<b>Python consoles</b> are also connected to the "
-                           "Variable Explorer, and that the last one only shows "
+              'content': _("You can also run your code on a Python console. "
+                           "These consoles are useful because they let you "
+                           "run a file in a console dedicated only to it."
+                           "To select this behavior, please press the <b>F6</b> "
+                           "key.<br><br>"
+                           "By pressing the button below and then focusing the "
+                           "Variable Explorer, you will notice that "
+                           "Python consoles are also connected to that pane, "
+                           "and that the Variable Explorer only shows "
                            "the variables of the currently focused console."),
               'widgets': [sw.external_console],
               'run': ["a = 2", "s='Hello, world!'"],
