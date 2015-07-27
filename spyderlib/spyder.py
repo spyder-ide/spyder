@@ -980,9 +980,11 @@ class MainWindow(QMainWindow):
 
         #----- Tours
             self.tour = tour.AnimatedTour(self)
-            self.tours_menu = QMenu(_("Spyder tours"))
+            self.tours_menu = QMenu(_("Interactive tours"))
             self.tour_menu_actions = []
-            self.tours_available = tour.get_tours()
+            # TODO: Only show intro tour for now. When we are close to finish
+            # 3.0, we will finish and show the other tour
+            self.tours_available = tour.get_tours(0)
 
             for i, tour_available in enumerate(self.tours_available):
                 self.tours_available[i]['last'] = 0

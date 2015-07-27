@@ -35,15 +35,15 @@ from spyderlib.utils.qthelpers import (create_action, add_actions)
 class SpyderWidgets(object):
     """List of supported widgets to highlight/decorate"""
     # Panes
-    console_internal = 'console'
-    console_external = 'extconsole'
-    console_ipython = 'ipyconsole'
+    external_console = 'extconsole'
+    ipython_console = 'ipyconsole'
     editor = 'editor'
     editor_line_number_area = 'editor.get_current_editor().linenumberarea'
     editor_scroll_flag_area = 'editor.get_current_editor().scrollflagarea'
     file_explorer = 'explorer'
     object_inspector = 'inspector'
     variable_explorer = 'variableexplorer'
+    history_log = "historylog"
 
     # Toolbars
     toolbars = ''
@@ -60,18 +60,28 @@ class SpyderWidgets(object):
     menu_edit = ''
 
 
-def get_tours():
-    """ """
-    return get_tour(None)
+def get_tours(index=None):
+    """
+    Get the list of available tours (if index=None), or the your given by
+    index
+    """
+    return get_tour(index)
 
 
 def get_tour(index):
-    """For now this function stores and retrieves the tours.
+    """
+    This function generates a list of tours.
+    
+    The index argument is used to retrieve a particular tour. If None is
+    passed, it will return the full list of tours. If instead -1 is given,
+    this function will return a test tour
 
     To add more tours a new variable needs to be created to hold the list of
-    dics and the tours variable at the bottom of this function needs to be
-    updated accordingly"""
+    dicts and the tours variable at the bottom of this function needs to be
+    updated accordingly
+    """
     sw = SpyderWidgets
+    qtconsole_link = "http://ipython.org/ipython-doc/stable/interactive/qtconsole.html"
 
     # This test should serve as example of keys to use in the tour frame dics
     test = [{'title': "Welcome to Spyder introduction tour",
@@ -108,57 +118,103 @@ def get_tour(index):
              'interact': False},
             ]
 
-    intro = [{'title': _("Welcome to Spyder introduction tour"),
-              'content': _("<b>Spyder</b> is a powerful interactive "
-                           "development environment for the Python language. "
-                           "<br><br>Use the arrow keys or the mouse to move "
-                           "into the tour."),
+    intro = [{'title': _("Welcome to the Introduction tour"),
+              'content': _("<b>Spyder</b> is a powerful Interactive "
+                           "Development Environment (or IDE) for the Python "
+                           "programming language.<br><br>"
+                           "Here we are going to guide you through its most "
+                           "important features.<br><br>"
+                           "Please use the arrow keys or click on the buttons "
+                           "below to move along the tour."),
               'image': 'tour-spyder-logo.png'},
 
              {'title': _("The Editor"),
-              'content': _("Decoration here is used to highlight the "
-                           "<b>Line Number Area</b> "
-                           "<br><br> No interaction example."),
+              'content': _("This is the pane where you write Python code before "
+                           "evaluating it. You can get automatic suggestions "
+                           "and completions while writing, by pressing the "
+                           "<b>Tab</b> key next to a given text.<br><br>"
+                           "The Editor comes "
+                           "with a line number area (highlighted here in red), "
+                           "where Spyder shows warnings and syntax errors. They "
+                           "can help you to detect potential problems before "
+                           "running the code.<br><br>"
+                           "You can also set debug breakpoints in the line "
+                           "number area, by doing a double click next to "
+                           "a non-empty line."),
               'widgets': [sw.editor],
               'decoration': [sw.editor_line_number_area]},
 
              {'title': _("The IPython console"),
-              'content': _("Now lets try to run some code to show the nice "
-                           "things in <b>Spyder</b>.<br><br>"
-                           "Click when ready and pay close attention to the "
-                           "variable explorer"),
-              'widgets': [sw.console_ipython],
-              'run': ['a = 2', 'b = 4.0']
+              'content': _("This is one of panes where you can run or "
+                           "execute the code you wrote on the Editor. To do it "
+                           "you need to press the <b>F5</b> key.<br><br>"
+                           "This console comes with several "
+                           "useful features that greatly improve your "
+                           "programming workflow (like syntax highlighting and "
+                           "inline plots). If you want to know more about them, "
+                           "please follow this <a href=\"{0}\">link</a>.<br><br>"
+                           "Please click on the button below to run some simple "
+                           "code in this console. This will be useful to show "
+                           "you other important features.".format(
+                           qtconsole_link)),
+              'widgets': [sw.ipython_console],
+              'run': ["li = list(range(100))", "d = {'a': 1, 'b': 2}"]
               },
-
-             {'title': _("The Python console"),
-              'content': _("Now lets interact with the <b>IPython Console</b>."
-                           "<br><br><i>Decoration</i> included also."),
-              'widgets': [sw.console_external],
-              'interact': True},
-
+              
              {'title': _("The Variable Explorer"),
-              'content': _("Now lets interact with the <b>IPython Console</b>."
-                           "<br><br><i>Decoration</i> included also."),
+              'content': _("In this pane you can view and edit the variables "
+                           "generated during the execution of a program, or "
+                           "those entered directly in one of Spyder "
+                           "consoles.<br><br>"
+                           "As you can see, the Variable Explorer is showing "
+                           "the variables generated during the last step of "
+                           "this tour. By doing a double-click on any "
+                           "of them, a new window will be opened, where you "
+                           "can inspect and modify their contents."),
               'widgets': [sw.variable_explorer],
               'interact': True},
 
-             {'title': _("The File Explorer"),
-              'content': _("Now lets interact with the <b>IPython Console</b>."
-                           "<br><br><i>Decoration</i> included also."),
-              'widgets': [sw.file_explorer],
-              'interact': True},
+             {'title': _("The Python console"),
+              'content': _("You can also run your code on a Python console. "
+                           "These consoles are useful because they let you "
+                           "run a file in a console dedicated only to it."
+                           "To select this behavior, please press the <b>F6</b> "
+                           "key.<br><br>"
+                           "By pressing the button below and then focusing the "
+                           "Variable Explorer, you will notice that "
+                           "Python consoles are also connected to that pane, "
+                           "and that the Variable Explorer only shows "
+                           "the variables of the currently focused console."),
+              'widgets': [sw.external_console],
+              'run': ["a = 2", "s='Hello, world!'"],
+              },
 
              {'title': _("The Object Inspector"),
-              'content': _("Now lets interact with the <b>IPython Console</b>."
-                           "<br><br><i>Decoration</i> included also."),
+              'content': _("This pane displays documentation of the "
+                           "functions, classes, methods or modules you are "
+                           "currently using in the Editor or the Consoles.<br><br>"
+                           "To use it, you need to press <b>Ctrl+I</b> in "
+                           "front of an object. If that object has some "
+                           "documentation associated with it, it will be "
+                           "displayed here."),
               'widgets': [sw.object_inspector],
               'interact': True},
 
-             {'title': _("The Internal Console"),
-              'content': _("Now lets interact with the <b>IPython Console</b>."
-                           "<br><br><i>Decoration</i> included also."),
-              'widgets': [sw.console_internal],
+             {'title': _("The File Explorer"),
+              'content': _("This pane lets you navigate through the directories "
+                           "and files present in your computer.<br><br>"
+                           "You can also open any of these files with its "
+                           "corresponding application, by doing a double "
+                           "click on it.<br><br>"
+                           "There is one exception to this rule: plain-text "
+                           "files will always be opened in the Spyder Editor."),
+              'widgets': [sw.file_explorer],
+              'interact': True},
+
+             {'title': _("The History Log"),
+              'content': _("This pane records all commands introduced in "
+                           "the Python and IPython consoles."),
+              'widgets': [sw.history_log],
               'interact': True},
              ]
 
@@ -203,7 +259,7 @@ def get_tour(index):
 #
 #                      ]
 
-    feat24 = [{'title': "New features in Spyder 2.4",
+    feat30 = [{'title': "New features in Spyder 3.0",
                'content': _("<b>Spyder</b> is an interactive development "
                             "environment based on bla"),
                'image': 'spyder.png'},
@@ -215,14 +271,14 @@ def get_tour(index):
               ]
 
     tours = [{'name': _('Introduction tour'), 'tour': intro},
-             {'name': _('New features in version 2.4'), 'tour': feat24}]
+             {'name': _('New features in version 3.0'), 'tour': feat30}]
 
     if index is None:
         return tours
-    elif index == 'test':
-        return test
+    elif index == -1:
+        return [test]
     else:
-        return tours[index]['tour']
+        return [tours[index]]
 
 
 class FadingDialog(QDialog):
