@@ -165,7 +165,7 @@ class ShortcutEditor(QDialog):
         self.label_warning.setFocusPolicy(Qt.NoFocus)
 
         # Layout
-        spacing = 24
+        spacing = 5
         layout_sequence = QGridLayout()
         layout_sequence.addWidget(self.label_info, 0, 0, 1, 3)
         layout_sequence.addItem(QSpacerItem(spacing, spacing), 1, 0, 1, 2)
@@ -305,13 +305,14 @@ class ShortcutEditor(QDialog):
 
         if warning_type == NO_WARNING:
             warn = False
-            tip = '<br><br>'
+            tip = ''
         elif warning_type == SEQUENCE_CONFLICT:
             template = '<i>{0}<b>{1}</b></i>'
             tip_title = _('The new shorcut conflicts with:') + '<br>'
             tip_body = ''
             for s in conflicts:
                 tip_body += ' - {0}: {1}<br>'.format(s.context, s.name)
+            tip_body = tip_body[:-4]  # Removing last <br>
             tip = template.format(tip_title, tip_body)
             warn = True
         elif warning_type == SEQUENCE_LENGTH:
