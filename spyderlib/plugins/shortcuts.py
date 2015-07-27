@@ -130,16 +130,19 @@ class ShortcutEditor(QDialog):
         self.shortcuts = shortcuts
 
         # Widgets
-        self.label_info = QLabel(_("Press the new shortcut and select 'Ok': \n"
-                                   "(Press 'Tab' once to switch focus between "
-                                   "shortcut entry and buttons)"))
+        self.label_info = QLabel()
+        self.label_info.setText(_("Press the new shortcut and select 'Ok': \n"
+             "(Press 'Tab' once to switch focus between the shortcut entry \n"
+             "and the buttons below it)"))
         self.label_current_sequence = QLabel(_("Current shortcut:"))
         self.text_current_sequence = QLabel(sequence)
         self.label_new_sequence = QLabel(_("New shortcut:"))
         self.text_new_sequence = CustomLineEdit(self)
         self.text_new_sequence.setPlaceholderText(sequence)
         self.helper_button = HelperToolButton()
-        self.label_warning = QLabel('<br>')
+        self.helper_button.hide()
+        self.label_warning = QLabel()
+        self.label_warning.hide()
 
         bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         self.button_ok = bbox.button(QDialogButtonBox.Ok)
@@ -164,7 +167,7 @@ class ShortcutEditor(QDialog):
         self.label_warning.setFocusPolicy(Qt.NoFocus)
 
         # Layout
-        spacing = 24
+        spacing = 5
         layout_sequence = QGridLayout()
         layout_sequence.addWidget(self.label_info, 0, 0, 1, 3)
         layout_sequence.addItem(QSpacerItem(spacing, spacing), 1, 0, 1, 2)
@@ -267,8 +270,8 @@ class ShortcutEditor(QDialog):
 
             if len(self.keys) == 1 and key == Qt.Key_Escape:
                 self.set_sequence('')
-                self.toggle_state()
-                return
+                self.label_warning.setText(_("Please introduce a different "
+                                             "shortcut"))
 
             if len(self.keys) == 1 and key in [Qt.Key_Return, Qt.Key_Enter]:
                 self.toggle_state()
@@ -278,7 +281,7 @@ class ShortcutEditor(QDialog):
                 self.nonedit_keyrelease(e)
             else:
                 debug_print('keys: {}'.format(self.keys))
-                if self.keys:
+                if self.keys and key != Qt.Key_Escape:
                     self.validate_sequence()
                 self.keys = set()
                 self.key_modifiers = set()
@@ -299,18 +302,16 @@ class ShortcutEditor(QDialog):
 
     def update_warning(self, warning_type=NO_WARNING, conflicts=[]):
         """Update warning label to reflect conflict status of new shortcut"""
-        widget = self.helper_button
-        widget_message = self.label_warning
-
         if warning_type == NO_WARNING:
             warn = False
-            tip = '<br><br>'
+            tip = 'This shortcut is correct!'
         elif warning_type == SEQUENCE_CONFLICT:
             template = '<i>{0}<b>{1}</b></i>'
             tip_title = _('The new shorcut conflicts with:') + '<br>'
             tip_body = ''
             for s in conflicts:
                 tip_body += ' - {0}: {1}<br>'.format(s.context, s.name)
+            tip_body = tip_body[:-4]  # Removing last <br>
             tip = template.format(tip_title, tip_body)
             warn = True
         elif warning_type == SEQUENCE_LENGTH:
@@ -325,25 +326,24 @@ class ShortcutEditor(QDialog):
             tip = _('Invalid key entered') + '<br>'
             warn = True
 
+        self.helper_button.show()
         if warn:
-            widget.setIcon(get_std_icon('MessageBoxWarning'))
+            self.label_warning.show()
+            self.helper_button.setIcon(get_std_icon('MessageBoxWarning'))
+            self.button_ok.setEnabled(False)
         else:
-            widget.setIcon(get_std_icon('DialogApplyButton'))
+            self.helper_button.setIcon(get_std_icon('DialogApplyButton'))
 
-        widget_message.setText(tip)
+        self.label_warning.setText(tip)
 
     def set_sequence(self, sequence):
         """Set the new shortcut and update buttons."""
         if not sequence or self.sequence == sequence:
             self.button_ok.setEnabled(False)
-            different_sequence = False          
-#        elif self.sequence != sequence:
+            different_sequence = False
         else:
             self.button_ok.setEnabled(True)
             different_sequence = True
-#        else:
-#            self.button_ok.setEnabled(False)
-#            different_sequence = False
 
         self.text_new_sequence.setText(sequence)
         self.new_sequence = sequence
