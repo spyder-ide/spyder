@@ -842,14 +842,13 @@ class ExternalConsole(SpyderPluginWidget):
                             frontend_ver = '<3.0'
                         else:
                             frontend_ver = '>=3.0'
-                        pyexec = self.get_option('pythonexecutable')
                         kernel_and_frontend_match = \
                           programs.is_module_installed('IPython',
-                                                       version=frontend_ver,
-                                                       interpreter=pyexec)
+                                                  version=frontend_ver,
+                                                  interpreter=pythonexecutable)
                     else:
                         kernel_and_frontend_match = True
-                    
+
                     # Create a a kernel tab only if frontend and kernel
                     # versions match
                     if kernel_and_frontend_match:
