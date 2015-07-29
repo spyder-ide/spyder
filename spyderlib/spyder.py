@@ -1496,7 +1496,7 @@ class MainWindow(QMainWindow):
                     'height fraction': [[1.0],          # column 0, row heights
                                         [1.0],          # column 1, row heights
                                         [1.0],          # column 2, row heights
-                                        [0.55, 0.45]],  # column 3, row heights
+                                        [0.50, 0.50]],  # column 3, row heights
                     'hidden widgets': [outline],
                     'hidden toolbars': [],                               
                     }
@@ -1666,7 +1666,7 @@ class MainWindow(QMainWindow):
         self._custom_layout_timer = QTimer(self)
         self._custom_layout_timer.timeout.connect(self.layout_fix_timer)
         self._custom_layout_timer.setSingleShot(True)
-        self._custom_layout_timer.start(100)
+        self._custom_layout_timer.start(5000)
 
     def layout_fix_timer(self):
         """Fixes the height of docks after a new layout is set."""
