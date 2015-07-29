@@ -414,11 +414,15 @@ class ArrayView(QTableView):
         """Copy an array portion to a unicode string"""
         row_min, row_max, col_min, col_max = get_idx_rect(cell_range)
         _data = self.model().get_data()
-        output = io.StringIO()
+        import sys
+        if sys.version_info[0] < 3:
+            output = io.StringIO()
+        else:
+            output = io.BytesIO()
         np.savetxt(output,
                   _data[row_min:row_max+1, col_min:col_max+1],
                   delimiter='\t')
-        contents = output.getvalue()
+        contents = output.getvalue().decode('utf-8')
         output.close()
         return contents
 
