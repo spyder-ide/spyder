@@ -160,11 +160,12 @@ if os.name == 'nt':
 #==============================================================================
 # Settings for our MacOs X app
 #==============================================================================
+IS_EXT_INTERPRETER = os.environ.get('EXTERNAL_INTERPRETER', '').lower() == "true"
+
 if sys.platform == 'darwin':
     from spyderlib.baseconfig import MAC_APP_NAME
     if MAC_APP_NAME in __file__:
-        interpreter = os.environ.get('SPYDER_INTERPRETER')
-        if MAC_APP_NAME not in interpreter:
+        if IS_EXT_INTERPRETER.lower() == "true":
             # Add a minimal library (with spyderlib) at the end of sys.path to
             # be able to connect our monitor to the external console
             py_ver = '%s.%s' % (sys.version_info[0], sys.version_info[1])

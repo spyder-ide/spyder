@@ -718,8 +718,10 @@ class ExternalConsole(SpyderPluginWidget):
         if python:
             if self.get_option('pythonexecutable/default'):
                 pythonexecutable = get_python_executable()
+                external_interpreter = False
             else:
                 pythonexecutable = self.get_option('pythonexecutable')
+                external_interpreter = True
             if self.get_option('pythonstartup/default') or ipykernel:
                 pythonstartup = None
             else:
@@ -761,6 +763,7 @@ class ExternalConsole(SpyderPluginWidget):
                            arguments=args, stand_alone=sa_settings,
                            pythonstartup=pythonstartup,
                            pythonexecutable=pythonexecutable,
+                           external_interpreter=external_interpreter,
                            umr_enabled=umr_enabled, umr_namelist=umr_namelist,
                            umr_verbose=umr_verbose, ets_backend=ets_backend,
                            monitor_enabled=monitor_enabled,

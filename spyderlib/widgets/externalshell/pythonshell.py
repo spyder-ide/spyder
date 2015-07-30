@@ -172,6 +172,7 @@ class ExternalPythonShell(ExternalShellBase):
                  ipykernel=False, arguments='', stand_alone=None,
                  umr_enabled=True, umr_namelist=[], umr_verbose=True,
                  pythonstartup=None, pythonexecutable=None,
+                 external_interpreter=False,
                  monitor_enabled=True, mpl_backend=None, ets_backend='qt4',
                  qt_api=None, merge_output_channels=False,
                  colorize_sys_stderr=False, autorefresh_timeout=3000,
@@ -189,6 +190,7 @@ class ExternalPythonShell(ExternalShellBase):
         self.is_ipykernel = ipykernel
         self.pythonstartup = pythonstartup
         self.pythonexecutable = pythonexecutable
+        self.external_interpreter = external_interpreter
         self.monitor_enabled = monitor_enabled
         self.mpl_backend = mpl_backend
         self.ets_backend = ets_backend
@@ -491,7 +493,10 @@ class ExternalPythonShell(ExternalShellBase):
         # IPython kernel
         env.append('IPYTHON_KERNEL=%r' % self.is_ipykernel)
 
-        # Add sitecustomize path to path list 
+        # External interpreter
+        env.append('EXTERNAL_INTERPRETER=%r' % self.external_interpreter)
+
+        # Add sitecustomize path to path list
         pathlist = []
         scpath = osp.dirname(osp.abspath(__file__))
         pathlist.append(scpath)
@@ -522,7 +527,6 @@ class ExternalPythonShell(ExternalShellBase):
         # 3. Remove PYTHONOPTIMIZE from env so that we can have assert
         #    statements working with our interpreters (See Issue 1281)
         if running_in_mac_app():
-            env.append('SPYDER_INTERPRETER=%s' % self.pythonexecutable)
             if MAC_APP_NAME not in self.pythonexecutable:
                 env = [p for p in env if not (p.startswith('PYTHONPATH') or \
                                               p.startswith('PYTHONHOME'))] # 1.
