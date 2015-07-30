@@ -1496,7 +1496,7 @@ class MainWindow(QMainWindow):
                     'height fraction': [[1.0],          # column 0, row heights
                                         [1.0],          # column 1, row heights
                                         [1.0],          # column 2, row heights
-                                        [0.50, 0.50]],  # column 3, row heights
+                                        [0.46, 0.54]],  # column 3, row heights
                     'hidden widgets': [outline],
                     'hidden toolbars': [],                               
                     }
