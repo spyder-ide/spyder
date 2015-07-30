@@ -1410,6 +1410,7 @@ class MainWindow(QMainWindow):
         self.first_spyder_run = False
         if hexstate is None and not self.light:
             # First Spyder execution:
+            self.setWindowState(Qt.WindowMaximized)
             self.first_spyder_run = True
             self.setup_default_layouts('default', settings)
             self.extconsole.setMinimumHeight(250)
@@ -1442,63 +1443,10 @@ class MainWindow(QMainWindow):
             
             # Regenerate menu
             self.quick_layout_set_menu()
-
         self.set_window_settings(*settings)
 
         for plugin in self.widgetlist:
             plugin.initialize_plugin_in_mainwindow_layout()
-
-     # for reference   
-#    def setup_layout(self, default=False):
-#        """Setup window layout"""
-#        prefix = ('lightwindow' if self.light else 'window') + '/'
-#        (hexstate, window_size, prefs_dialog_size, pos, is_maximized,
-#         is_fullscreen) = self.load_window_settings(prefix, default)
-#        
-#        if hexstate is None and not self.light:
-#            # First Spyder execution:
-#            # trying to set-up the dockwidget/toolbar positions to the best 
-#            # appearance possible
-#            splitting = (
-#                         (self.projectexplorer, self.editor, Qt.Horizontal),
-#                         (self.editor, self.outlineexplorer, Qt.Horizontal),
-#                         (self.outlineexplorer, self.inspector, Qt.Horizontal),
-#                         (self.inspector, self.console, Qt.Vertical),
-#                         )
-#            for first, second, orientation in splitting:
-#                if first is not None and second is not None:
-#                    self.splitDockWidget(first.dockwidget, second.dockwidget,
-#                                         orientation)
-#            for first, second in ((self.console, self.extconsole),
-#                                  (self.extconsole, self.ipyconsole),
-#                                  (self.ipyconsole, self.historylog),
-#                                  (self.inspector, self.variableexplorer),
-#                                  (self.variableexplorer, self.onlinehelp),
-#                                  (self.onlinehelp, self.explorer),
-#                                  (self.explorer, self.findinfiles),
-#                                  ):
-#                if first is not None and second is not None:
-#                    self.tabify_plugins(first, second)
-#            for plugin in [self.findinfiles, self.onlinehelp, self.console,
-#                           ]+self.thirdparty_plugins:
-#                if plugin is not None:
-#                    plugin.dockwidget.close()
-#            for plugin in (self.inspector, self.extconsole):
-#                if plugin is not None:
-#                    plugin.dockwidget.raise_()
-#            self.extconsole.setMinimumHeight(250)
-#            hidden_toolbars = [self.source_toolbar, self.edit_toolbar,
-#                               self.search_toolbar]
-#            for toolbar in hidden_toolbars:
-#                toolbar.close()
-#            for plugin in (self.projectexplorer, self.outlineexplorer):
-#                plugin.dockwidget.close()
-#
-#        self.set_window_settings(hexstate, window_size, prefs_dialog_size, pos,
-#                                 is_maximized, is_fullscreen)
-#
-#        for plugin in self.widgetlist:
-#            plugin.initialize_plugin_in_mainwindow_layout()        
        
     def setup_default_layouts(self, index, settings):
         """Setup default layouts when run for the first time"""
@@ -1543,14 +1491,14 @@ class MainWindow(QMainWindow):
                       finder] + plugins,
                      [console_int, console_ext, console_ipy, history]]
                     ],
-                    'width fraction': [0.0,
+                    'width fraction': [0.0,             # column 0 width
                                        0.55,            # column 1 width
-                                       0.0,
+                                       0.0,             # column 2 width
                                        0.45],           # column 3 width
                     'height fraction': [[1.0],          # column 0, row heights
-                                        [1.0],   # column 1, row heights
-                                        [0.55, 0.45],          # column 2, row heights
-                                        [1.0]],   # column 0, row heights
+                                        [1.0],          # column 1, row heights
+                                        [1.0],          # column 2, row heights
+                                        [0.46, 0.54]],  # column 3, row heights
                     'hidden widgets': [outline],
                     'hidden toolbars': [],                               
                     }
@@ -1637,7 +1585,7 @@ class MainWindow(QMainWindow):
                     if widget is not None:
                         widgets.append(widget)
 
-        # make every widget visible
+        # Make every widget visible
         for widget in widgets:
             widget.toggle_view(True)
             action = widget.toggle_view_action
@@ -1650,7 +1598,7 @@ class MainWindow(QMainWindow):
                 self.splitDockWidget(first.dockwidget, second.dockwidget,
                                      Qt.Horizontal)
 
-        # arrange rows vertically 
+        # Arrange rows vertically 
         for column in widgets_layout :
             for i in range(len(column) - 1):
                 first_row, second_row = column[i], column[i+1]
@@ -1658,7 +1606,7 @@ class MainWindow(QMainWindow):
                     self.splitDockWidget(first_row[0].dockwidget,
                                          second_row[0].dockwidget,
                                          Qt.Vertical)
-        # tabify
+        # Tabify
         for column in widgets_layout :
             for row in column:
                 for i in range(len(row) - 1):
@@ -1666,17 +1614,17 @@ class MainWindow(QMainWindow):
                     if first is not None and second is not None:
                         self.tabify_plugins(first, second)
 
-                # raise front widget pero row
+                # Raise front widget per row
                 row[0].dockwidget.show()
                 row[0].dockwidget.raise_()
 
-        # hide toolbars
+        # Hide toolbars
         hidden_toolbars = global_hidden_toolbars + layout['hidden toolbars']
         for toolbar in hidden_toolbars:
             if toolbar is not None:
                 toolbar.close()
 
-        # hide widgets
+        # Hide widgets
         hidden_widgets = global_hidden_widgets + layout['hidden widgets']
         for widget in hidden_widgets:
             if widget is not None:
@@ -1703,34 +1651,37 @@ class MainWindow(QMainWindow):
         # fix column height
         for c, column in enumerate(widgets_layout):
             for r in range(len(column) - 1):
-                widget = column[r][0].dockwidget
-                min_h, max_h = widget.minimumHeight(), widget.maximumHeight()
-
+                widget = column[r][0]
+                dockwidget = widget.dockwidget
+                dock_min_h = dockwidget.minimumHeight()
+                dock_max_h = dockwidget.maximumHeight()
                 info = {'widget': widget,
-                        'min height': min_h,
-                        'max height': max_h}
+                        'dock min height': dock_min_h,
+                        'dock max height': dock_max_h}
                 self._layout_widget_info.append(info)
-                new_height = int(layout['height fraction'][c][r] * height * 0.95)
-                widget.setMinimumHeight(new_height)
-                widget.setMaximumHeight(new_height)
+                # The 0.95 factor is to adjust height based on usefull
+                # estimated area in the window
+                new_height = int(layout['height fraction'][c][r]*height*0.95)
+                dockwidget.setMinimumHeight(new_height)
+                dockwidget.setMaximumHeight(new_height)
 
         self._custom_layout_timer = QTimer(self)
         self._custom_layout_timer.timeout.connect(self.layout_fix_timer)
         self._custom_layout_timer.setSingleShot(True)
-        self._custom_layout_timer.start(100)
+        self._custom_layout_timer.start(5000)
 
     def layout_fix_timer(self):
-        """ """
+        """Fixes the height of docks after a new layout is set."""
         info = self._layout_widget_info
         for i in info:
-            widget = i['widget']
-            if 'min width' in i:
-                widget.setMinimumWidth(i['min width'])
-                widget.setMaximumWidth(i['max width'])
-            if 'min height' in i:
-                widget.setMinimumHeight(i['min height'])
-                widget.setMaximumHeight(i['max height'])
-            widget.updateGeometry()
+            dockwidget = i['widget'].dockwidget
+            if 'dock min width' in i:
+                dockwidget.setMinimumWidth(i['dock min width'])
+                dockwidget.setMaximumWidth(i['dock max width'])
+            if 'dock min height' in i:
+                dockwidget.setMinimumHeight(i['dock min height'])
+                dockwidget.setMaximumHeight(i['dock max height'])
+            dockwidget.updateGeometry()
 
         self.setUpdatesEnabled(True)
 
