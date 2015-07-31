@@ -67,9 +67,12 @@ class CompletionWidget(QListWidget):
         completion_list = [c[0] for c in completion_list]
         if len(completion_list) == 1 and not automatic:
             self.textedit.insert_completion(completion_list[0])
-            if self.textedit.close_parentheses_enabled:
-                if types[0] in ['class', 'function', 'method']:
-                    self.textedit.handle_close_parentheses('')
+            try:
+                if self.textedit.close_parentheses_enabled:
+                    if types[0] in ['class', 'function', 'method']:
+                        self.textedit.handle_close_parentheses('')
+            except AttributeError:
+                pass
             return
 
         self.completion_list = completion_list
@@ -162,8 +165,11 @@ class CompletionWidget(QListWidget):
             if self.type_list[self.currentRow()] not in ['class', 'function',
                                                          'method']:
                 return
-            if self.textedit.close_parentheses_enabled:
-                self.textedit.handle_close_parentheses('')
+            try:
+                if self.textedit.close_parentheses_enabled:
+                    self.textedit.handle_close_parentheses('')
+            except AttributeError:
+                pass
         elif key in (Qt.Key_Return, Qt.Key_Enter,
                      Qt.Key_Left, Qt.Key_Right) or text in ('.', ':'):
             self.hide()
