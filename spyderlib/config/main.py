@@ -16,9 +16,9 @@ import sys
 import os.path as osp
 
 # Local import
-from spyderlib.userconfig import UserConfig
-from spyderlib.baseconfig import (CHECK_ALL, EXCLUDED_NAMES, SUBFOLDER,
-                                  get_home_dir, _)
+from spyderlib.config.user import UserConfig
+from spyderlib.config.base import (CHECK_ALL, EXCLUDED_NAMES, SUBFOLDER,
+                                   get_home_dir, _)
 from spyderlib.utils import iofuncs, codeanalysis
 
 

@@ -11,9 +11,8 @@ import time
 
 # Local imports
 from spyderlib.cli_options import get_options
-from spyderlib.baseconfig import get_conf_path, running_in_mac_app
-from spyderlib.config import CONF
-from spyderlib.baseconfig import DEV, TEST
+from spyderlib.config.base import get_conf_path, running_in_mac_app, DEV, TEST
+from spyderlib.config.main import CONF
 from spyderlib.utils.external import lockfile
 from spyderlib.py3compat import is_unicode
 

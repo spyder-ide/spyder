@@ -23,7 +23,7 @@ import os.path as osp
 
 # Local imports
 from spyderlib.utils import encoding
-from spyderlib.baseconfig import get_conf_path, _
+from spyderlib.config.base import get_conf_path, _
 from spyderlib.utils.qthelpers import create_action
 
 # Package local imports

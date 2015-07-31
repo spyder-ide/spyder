@@ -27,7 +27,7 @@ from time import time
 import sys
 from zipimport import zipimporter
 
-from spyderlib.baseconfig import get_conf_path, running_in_mac_app
+from spyderlib.config.base import get_conf_path, running_in_mac_app
 from spyderlib.utils.external.pickleshare import PickleShareDB
 
 #-----------------------------------------------------------------------------

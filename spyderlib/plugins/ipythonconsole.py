@@ -46,8 +46,8 @@ except ImportError:
 
 # Local imports
 from spyderlib import dependencies
-from spyderlib.baseconfig import _
-from spyderlib.config import CONF
+from spyderlib.config.base import _
+from spyderlib.config.main import CONF
 from spyderlib.utils.misc import get_error_match, remove_backslashes
 from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import create_action

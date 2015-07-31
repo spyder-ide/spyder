@@ -25,7 +25,7 @@ from spyderlib.qt.QtCore import (Qt, Signal, QPoint, QRectF,
                                  QPropertyAnimation, QEasingCurve)
 
 # Local import
-from spyderlib.baseconfig import _, get_image_path
+from spyderlib.config.base import _, get_image_path
 from spyderlib.utils.qthelpers import (create_action, add_actions)
 
 # FIXME: Known issues

@@ -14,7 +14,7 @@ highlighter spyderlib.widgets.sourcecode.syntaxhighlighters.PythonSH
 from spyderlib.qt.QtCore import Signal
 
 # Local imports
-from spyderlib.baseconfig import _
+from spyderlib.config.base import _
 from spyderlib.widgets.editortools import OutlineExplorerWidget
 from spyderlib.plugins import SpyderPluginMixin
 from spyderlib.py3compat import is_text_string

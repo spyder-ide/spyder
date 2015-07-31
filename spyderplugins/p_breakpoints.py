@@ -13,7 +13,7 @@
 # pylint: disable=R0201
 
 # Local imports
-from spyderlib.baseconfig import get_translation
+from spyderlib.config.base import get_translation
 _ = get_translation("p_breakpoints", dirname="spyderplugins")
 from spyderlib.utils.qthelpers import create_action
 from spyderlib.plugins import SpyderPluginMixin

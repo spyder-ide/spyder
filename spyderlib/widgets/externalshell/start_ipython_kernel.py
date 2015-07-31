@@ -25,7 +25,7 @@ def kernel_config():
     """Create a config object with IPython kernel options"""
     from IPython.config.loader import Config, load_pyconfig_files
     from IPython.core.application import get_ipython_dir
-    from spyderlib.config import CONF
+    from spyderlib.config.config import CONF
     from spyderlib.utils.programs import is_module_installed
     
     # ---- IPython config ----

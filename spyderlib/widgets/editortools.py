@@ -18,7 +18,7 @@ from spyderlib.qt.compat import from_qvariant
 import spyderlib.utils.icon_manager as ima
 
 # Local import
-from spyderlib.baseconfig import _, STDOUT
+from spyderlib.config.base import _, STDOUT
 from spyderlib.utils.qthelpers import (create_action, create_toolbutton,
                                        set_item_user_text)
 from spyderlib.widgets.onecolumntree import OneColumnTree

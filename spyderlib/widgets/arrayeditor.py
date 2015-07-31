@@ -29,8 +29,8 @@ import spyderlib.utils.icon_manager as ima
 import numpy as np
 
 # Local imports
-from spyderlib.baseconfig import _
-from spyderlib.guiconfig import get_font, new_shortcut
+from spyderlib.config.base import _
+from spyderlib.config.gui import get_font, new_shortcut
 from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
                                        qapplication)
 from spyderlib.py3compat import io, to_text_string, is_text_string

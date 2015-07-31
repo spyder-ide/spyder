@@ -31,7 +31,7 @@ from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
                                        create_action)
 from spyderlib.utils.iofuncs import iofunctions
 from spyderlib.widgets.importwizard import ImportWizard
-from spyderlib.baseconfig import _, get_supported_types
+from spyderlib.config.base import _, get_supported_types
 from spyderlib.py3compat import is_text_string, to_text_string, getcwd
 
 

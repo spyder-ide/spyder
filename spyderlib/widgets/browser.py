@@ -14,7 +14,7 @@ from spyderlib.qt.QtGui import (QHBoxLayout, QWidget, QVBoxLayout,
 from spyderlib.qt.QtWebKit import QWebView, QWebPage, QWebSettings
 
 # Local imports
-from spyderlib.baseconfig import DEV, _
+from spyderlib.config.base import DEV, _
 from spyderlib.utils.qthelpers import (create_action, add_actions,
                                        create_toolbutton, action2button)
 from spyderlib.utils import icon_manager as ima

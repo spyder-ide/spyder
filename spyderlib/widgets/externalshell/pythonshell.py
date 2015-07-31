@@ -23,7 +23,7 @@ from spyderlib.utils.qthelpers import (add_actions, create_toolbutton,
 from spyderlib.utils.environ import RemoteEnvDialog
 from spyderlib.utils.programs import get_python_args
 from spyderlib.utils.misc import get_python_executable
-from spyderlib.baseconfig import (_, get_module_source_path, DEBUG,
+from spyderlib.config.base import (_, get_module_source_path, DEBUG,
                                   MAC_APP_NAME, running_in_mac_app)
 from spyderlib.widgets.shell import PythonShellWidget
 from spyderlib.widgets.externalshell.namespacebrowser import NamespaceBrowser

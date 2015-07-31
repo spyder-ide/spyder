@@ -171,7 +171,7 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
             subprocess.Popen(cmd, shell=True, cwd=wdir)
         except WindowsError:
             from spyderlib.qt.QtGui import QMessageBox
-            from spyderlib.baseconfig import _
+            from spyderlib.config.base import _
             QMessageBox.critical(None, _('Run'),
                                  _("It was not possible to run this file in "
                                    "an external terminal"),

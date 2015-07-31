@@ -32,7 +32,7 @@ import shutil
 # Local imports
 from spyderlib.utils.qthelpers import create_action, add_actions, file_uri
 from spyderlib.utils import misc, encoding, programs, vcs
-from spyderlib.baseconfig import _
+from spyderlib.config.base import _
 from spyderlib.py3compat import (to_text_string, to_binary_string, getcwd,
                                  str_lower)
 

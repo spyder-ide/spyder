@@ -42,10 +42,10 @@ import spyderlib.utils.icon_manager as ima
 # Local import
 # TODO: Try to separate this module from spyderlib to create a self
 #       consistent editor module (Qt source code and shell widgets library)
-from spyderlib.baseconfig import get_conf_path, _, DEBUG
-from spyderlib.config import CONF
-from spyderlib.guiconfig import (get_font, create_shortcut, new_shortcut,
-                                 get_shortcut)
+from spyderlib.config.base import get_conf_path, _, DEBUG
+from spyderlib.config.main import CONF
+from spyderlib.config.gui import (get_font, create_shortcut, new_shortcut,
+                                  get_shortcut)
 from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
                                        mimedata2url)
 from spyderlib.utils.dochelpers import getobj

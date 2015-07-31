@@ -9,7 +9,7 @@ import json
 
 
 from spyderlib import __version__
-from spyderlib.baseconfig import _
+from spyderlib.config.base import _
 from spyderlib.py3compat import PY3
 from spyderlib.qt.QtCore import Signal, QObject
 from spyderlib.utils.programs import check_version, is_stable_version

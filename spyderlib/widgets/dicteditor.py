@@ -32,8 +32,8 @@ import sys
 import datetime
 
 # Local import
-from spyderlib.baseconfig import _
-from spyderlib.guiconfig import get_font
+from spyderlib.config.base import _
+from spyderlib.config.gui import get_font
 from spyderlib.utils.misc import fix_reference_name
 from spyderlib.utils.qthelpers import add_actions, create_action, qapplication
 from spyderlib.widgets.dicteditorutils import (sort_against, get_size,

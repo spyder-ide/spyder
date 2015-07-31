@@ -29,7 +29,7 @@ except ImportError:
     pd = None
 
 # Local import
-from spyderlib.baseconfig import _
+from spyderlib.config.base import _
 from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import add_actions, create_action
 from spyderlib.py3compat import (TEXT_TYPES, INT_TYPES, to_text_string, u,

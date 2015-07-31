@@ -14,6 +14,7 @@ Numpy Matrix/Array Builder Widget
 # -Use the same font as editor/console?
 
 from __future__ import division
+
 import re
 
 from spyderlib.qt.QtCore import (QEvent, QPoint, Qt)
@@ -21,7 +22,7 @@ from spyderlib.qt.QtGui import (QDialog, QHBoxLayout, QLineEdit, QTableWidget,
                                 QTableWidgetItem, QToolButton, QToolTip,
                                 QWidget)
 
-from spyderlib.baseconfig import _
+from spyderlib.config.base import _
 from spyderlib.utils import icon_manager as ima
 from spyderlib.widgets.helperwidgets import HelperToolButton
 

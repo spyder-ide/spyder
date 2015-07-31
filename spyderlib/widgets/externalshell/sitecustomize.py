@@ -163,7 +163,7 @@ if os.name == 'nt':
 IS_EXT_INTERPRETER = os.environ.get('EXTERNAL_INTERPRETER', '').lower() == "true"
 
 if sys.platform == 'darwin':
-    from spyderlib.baseconfig import MAC_APP_NAME
+    from spyderlib.config.base import MAC_APP_NAME
     if MAC_APP_NAME in __file__:
         if IS_EXT_INTERPRETER.lower() == "true":
             # Add a minimal library (with spyderlib) at the end of sys.path to
@@ -454,7 +454,7 @@ class SpyderPdb(pdb.Pdb):
         bdb.Breakpoint.bplist = {}
         bdb.Breakpoint.bpbynumber = [None]
         #------
-        from spyderlib.config import CONF
+        from spyderlib.config.config import CONF
         CONF.load_from_ini()
         if CONF.get('run', 'breakpoints/enabled', True):
             breakpoints = CONF.get('run', 'breakpoints', {})

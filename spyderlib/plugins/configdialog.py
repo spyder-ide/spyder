@@ -22,12 +22,12 @@ from spyderlib.qt.compat import (to_qvariant, from_qvariant,
                                  getexistingdirectory, getopenfilename)
 import spyderlib.utils.icon_manager as ima
 
-from spyderlib.baseconfig import (_, running_in_mac_app, LANGUAGE_CODES,
-                                  save_lang_conf, load_lang_conf)
-from spyderlib.config import CONF
-from spyderlib.guiconfig import (CUSTOM_COLOR_SCHEME_NAME,
-                                 set_default_color_scheme)
-from spyderlib.userconfig import NoDefault
+from spyderlib.config.base import (_, running_in_mac_app, LANGUAGE_CODES,
+                                   save_lang_conf, load_lang_conf)
+from spyderlib.config.main import CONF
+from spyderlib.config.gui import (CUSTOM_COLOR_SCHEME_NAME,
+                                  set_default_color_scheme)
+from spyderlib.config.user import NoDefault
 from spyderlib.widgets.colors import ColorLayout
 from spyderlib.widgets.sourcecode import syntaxhighlighters as sh
 from spyderlib.py3compat import to_text_string, is_text_string, getcwd

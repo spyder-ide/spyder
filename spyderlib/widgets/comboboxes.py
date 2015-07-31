@@ -18,7 +18,7 @@ from spyderlib.qt.QtCore import Signal, Qt, QUrl, QTimer
 import os.path as osp
 
 # Local imports
-from spyderlib.baseconfig import _
+from spyderlib.config.base import _
 from spyderlib.py3compat import to_text_string
 
 

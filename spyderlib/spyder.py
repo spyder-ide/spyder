@@ -103,7 +103,7 @@ MAIN_APP = qapplication()
 #==============================================================================
 # Create splash screen out of MainWindow to reduce perceived startup time. 
 #==============================================================================
-from spyderlib.baseconfig import _, get_image_path, DEV
+from spyderlib.config.base import _, get_image_path, DEV
 SPLASH = QSplashScreen(QPixmap(get_image_path('splash.png'), 'png'))
 SPLASH_FONT = SPLASH.font()
 SPLASH_FONT.setPixelSize(10)
@@ -118,15 +118,15 @@ QApplication.processEvents()
 # Local utility imports
 #==============================================================================
 from spyderlib import __version__, __project_url__, __forum_url__, get_versions
-from spyderlib.baseconfig import (get_conf_path, get_module_data_path,
-                                  get_module_source_path, STDERR, DEBUG,
-                                  debug_print, TEST, SUBFOLDER, MAC_APP_NAME,
-                                  running_in_mac_app, get_module_path)
-from spyderlib.config import CONF, EDIT_EXT, IMPORT_EXT, OPEN_FILES_PORT
+from spyderlib.config.base import (get_conf_path, get_module_data_path,
+                                   get_module_source_path, STDERR, DEBUG,
+                                   debug_print, TEST, SUBFOLDER, MAC_APP_NAME,
+                                   running_in_mac_app, get_module_path)
+from spyderlib.config.main import CONF, EDIT_EXT, IMPORT_EXT, OPEN_FILES_PORT
 from spyderlib.cli_options import get_options
 from spyderlib import dependencies
-from spyderlib.ipythonconfig import IPYTHON_QT_INSTALLED
-from spyderlib.userconfig import NoDefault
+from spyderlib.config.ipython import IPYTHON_QT_INSTALLED
+from spyderlib.config.user import NoDefault
 from spyderlib.utils import encoding, programs
 from spyderlib.utils.iofuncs import load_session, save_session, reset_session
 from spyderlib.utils.programs import is_module_installed
@@ -153,7 +153,7 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, get_icon,
                                        create_program_action, DialogManager,
                                        keybinding, create_python_script_action,
                                        file_uri)
-from spyderlib.guiconfig import get_shortcut, remove_deprecated_shortcuts
+from spyderlib.config.gui import get_shortcut, remove_deprecated_shortcuts
 from spyderlib.otherplugins import get_spyderplugins_mods
 from spyderlib import tour # FIXME: Better place for this?
 
