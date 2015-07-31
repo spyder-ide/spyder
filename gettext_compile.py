@@ -8,6 +8,6 @@ from gettext_helpers import do_compile
 
 if __name__ == "__main__":
     do_compile("spyderlib")
-    do_compile("p_pylint", "spyderuiplugins/p_pylint")
-    do_compile("p_profiler", "spyderuiplugins/p_profiler")
-    do_compile("p_breakpoints", "spyderuiplugins/p_breakpoints")
+    do_compile("pylint", "spyplugins/ui/pylint")
+    do_compile("profiler", "spyplugins/ui/profiler")
+    do_compile("breakpoints", "spyplugins/ui/breakpoints")

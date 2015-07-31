@@ -22,28 +22,30 @@ INIT_PY = """# -*- coding: utf-8 -*-
 __import__('pkg_resources').declare_namespace(__name__)
 """
 
-def _get_spyderplugins(plugin_path, plugins_namsepace, modnames, modlist):
-    """Scan the directory `plugin_path` for plugins_namsepace package and
+def _get_spyderplugins(plugin_path, base_namespace, plugins_namespace,
+                       modnames, modlist):
+    """Scan the directory `plugin_path` for plugins_namespace package and
     loads its submodules."""
-    namespace_path = Path(plugin_path) / plugins_namsepace
+    namespace_path = Path(plugin_path) / base_namespace / plugins_namespace
     if not namespace_path.exists():
         return
     for dirname in namespace_path.dirs():
         if dirname.name == "__pycache__":
             continue
-        _import_plugin(dirname.name, plugins_namsepace, namespace_path,
-                       modnames, modlist)
+        _import_plugin(dirname.name, base_namespace, plugins_namespace,
+                       namespace_path, modnames, modlist)
     for name in namespace_path.files(pattern="*.py"):
         if name.name == "__init__.py":
             continue
-        _import_plugin(name.namebase, plugins_namsepace, namespace_path,
-                       modnames, modlist)
+        _import_plugin(name.namebase, base_namespace, plugins_namespace,
+                       namespace_path, modnames, modlist)
 
 
-def _import_plugin(name, plugins_namsepace, namespace_path, modnames, modlist):
+def _import_plugin(name, base_namespace, plugin_namespace, namespace_path,
+                   modnames, modlist):
     """Import the plugin `plugins_namsepace`.`name`, add it to `modlist` and
     adds its name to `modname`."""
-    submodule_name = "%s.%s" % (plugins_namsepace, name)
+    submodule_name = "%s.%s.%s" % (base_namespace, plugin_namespace, name)
     if submodule_name in modnames:
         return
     try:
@@ -60,21 +62,29 @@ def _import_plugin(name, plugins_namsepace, namespace_path, modnames, modlist):
 
 def get_spyderplugins_mods(io=False):
     """Import modules from plugins package and return the list"""
+    base_namespace = "spyplugins"
+
     if io:
-        plugins_namsepace = "spyderioplugins"
+        plugins_namespace = "io"
     else:
-        plugins_namsepace = "spyderuiplugins"
+        plugins_namespace = "ui"
+
+    namespace = '.'.join([base_namespace, plugins_namespace])
     # Import parent module
-    __import__(plugins_namsepace)
+    __import__(namespace)
 
     # Create user directory
     user_conf_path = Path(get_conf_path())
-    user_plugin_path = user_conf_path / plugins_namsepace
+    user_plugin_basepath = user_conf_path / base_namespace
+    user_plugin_path = user_conf_path / base_namespace / plugins_namespace
     user_plugin_path.makedirs_p()
+    (user_plugin_basepath / "__init__.py").write_text(INIT_PY)
     (user_plugin_path / "__init__.py").write_text(INIT_PY)
 
     modlist = []
     modnames = []
     for directory in [user_conf_path] + sys.path:
-        _get_spyderplugins(directory, plugins_namsepace, modnames, modlist)
+        _get_spyderplugins(directory, base_namespace, plugins_namespace,
+                           modnames, modlist)
     return modlist
+
