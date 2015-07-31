@@ -305,6 +305,8 @@ else:
 #==============================================================================
 # Matplotlib settings
 #==============================================================================
+IS_IPYTHON = os.environ.get("IPYTHON_KERNEL", "").lower() == "true"
+
 if matplotlib is not None:
     mpl_backend = os.environ.get("MATPLOTLIB_BACKEND", "")
     mpl_ion = os.environ.get("MATPLOTLIB_ION", "")
@@ -358,8 +360,7 @@ if matplotlib is not None:
     if mpl_ion.lower() == "true":
         matplotlib.rcParams['interactive'] = True
 
-    if os.environ.get("IPYTHON_KERNEL", "").lower() != "true" and \
-      mpl_backend is not None:
+    if not IS_IPYTHON and mpl_backend is not None:
         import ctypes
         from spyderlib.widgets.externalshell import inputhooks
 
@@ -404,8 +405,6 @@ if matplotlib is not None:
 #==============================================================================
 # IPython adjustments
 #==============================================================================
-IS_IPYTHON = os.environ.get("IPYTHON_KERNEL", "").lower() == "true"
-
 if IS_IPYTHON:
     # Use ipydb as the debugger to patch on IPython consoles
     from IPython.core.debugger import Pdb as ipyPdb
