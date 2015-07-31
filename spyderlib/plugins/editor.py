@@ -459,7 +459,8 @@ class Editor(SpyderPluginWidget):
         # Editor's splitter state
         state = self.get_option('splitter_state', None)
         if state is not None:
-            self.splitter.restoreState( QByteArray().fromHex(str(state)) )
+            self.splitter.restoreState( QByteArray().fromHex(
+                    str(state).encode('utf-8')) )
         
         self.recent_files = self.get_option('recent_files', [])
         
