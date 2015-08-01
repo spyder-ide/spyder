@@ -49,7 +49,7 @@ from spyderlib.widgets.texteditor import TextEditor
 from spyderlib.widgets.importwizard import ImportWizard
 from spyderlib.py3compat import (to_text_string, to_binary_string,
                                  is_text_string, is_binary_string, getcwd, u,
-                                 PY3,io)
+                                 PY3, io)
 
 
 LARGE_NROWS = 5000
@@ -1084,13 +1084,12 @@ class BaseTableView(QTableView):
             except ImportError:
                 pass # skip this part
             else:
-                if isinstance(obj,np.ndarray):
+                if isinstance(obj, np.ndarray):
                     if PY3:
                         output = io.BytesIO()
                     else:
                         output = io.StringIO()
-                    np.savetxt(output,obj,
-                               delimiter='\t')
+                    np.savetxt(output,obj, delimiter='\t')
                 obj = output.getvalue().decode('utf-8')
                     
             clipl.append(to_text_string(obj))
