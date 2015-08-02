@@ -135,20 +135,35 @@ class NamespaceBrowser(QWidget):
         self.editor.sig_option_changed.connect(self.sig_option_changed.emit)
         self.editor.sig_files_dropped.connect(self.import_data)
         
-        
+        # Menu
+        options_button = create_toolbutton(self, text=_('Options'),
+                                           icon=ima.icon('tooloptions'))
+        options_button.setPopupMode(QToolButton.InstantPopup)
+        menu = QMenu(self)
+        editor = self.editor
+        actions = [self.exclude_private_action, self.exclude_uppercase_action,
+                   self.exclude_capitalized_action,
+                   self.exclude_unsupported_action, None,
+                   editor.truncate_action]
+        if is_module_installed('numpy'):
+            actions.append(editor.minmax_action)
+        add_actions(menu, actions)
+        options_button.setMenu(menu)
+
         # Setup layout
-        hlayout = QHBoxLayout()
-        vlayout = QVBoxLayout()
+        layout = QVBoxLayout()
+        blayout = QHBoxLayout()
         toolbar = self.setup_toolbar(exclude_private, exclude_uppercase,
                                      exclude_capitalized, exclude_unsupported,
                                      autorefresh)
-        vlayout.setAlignment(Qt.AlignTop)
         for widget in toolbar:
-            vlayout.addWidget(widget)
-        hlayout.addWidget(self.editor)
-        hlayout.addLayout(vlayout)
-        self.setLayout(hlayout)
-        hlayout.setContentsMargins(0, 0, 0, 0)
+            blayout.addWidget(widget)
+        blayout.addStretch()
+        blayout.addWidget(options_button)
+        layout.addLayout(blayout)
+        layout.addWidget(self.editor)
+        self.setLayout(layout)
+        layout.setContentsMargins(0, 0, 0, 0)
 
         self.sig_option_changed.connect(self.option_changed)
         
@@ -225,21 +240,6 @@ class NamespaceBrowser(QWidget):
                 toggled=lambda state:
                 self.sig_option_changed.emit('exclude_unsupported', state))
         self.exclude_unsupported_action.setChecked(exclude_unsupported)
-        
-        options_button = create_toolbutton(self, text=_('Options'),
-                                           icon=ima.icon('tooloptions'))
-        toolbar.append(options_button)
-        options_button.setPopupMode(QToolButton.InstantPopup)
-        menu = QMenu(self)
-        editor = self.editor
-        actions = [self.exclude_private_action, self.exclude_uppercase_action,
-                   self.exclude_capitalized_action,
-                   self.exclude_unsupported_action, None,
-                   editor.truncate_action]
-        if is_module_installed('numpy'):
-            actions.append(editor.minmax_action)
-        add_actions(menu, actions)
-        options_button.setMenu(menu)
         
         self.setup_in_progress = False
         
@@ -553,4 +553,3 @@ class NamespaceBrowser(QWidget):
                             _("<b>Unable to save current workspace</b>"
                               "<br><br>Error message:<br>%s") % error_message)
         self.save_button.setEnabled(self.filename is not None)
-        
