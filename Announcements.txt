@@ -154,13 +154,15 @@ We've been working on this version for about 10 months now and as far as we know
 it's working very well. There are still several bugs to squash but we encourage all
 people who like the bleeding edge to give it a try.
 
-This release has a lot of cool new features. For a complete list, please see here:
+Perhaps the most important feature of this release is that it comes with support for
+PyQt5. It also comes with several other important and interesting enhancements to our
+graphical interface. For a complete list, please see here:
 
 https://github.com/spyder-ide/spyder/wiki/Beta-version-changelog
 
-This beta version comes a bit more than a month after our last stable release (2.3.5.2)
-and it already containts several important bugfixes, specially regarding viewing
-DataFrames in the Variable Explorer.
+This beta version is released a bit more than a month after our last stable release
+(2.3.5.2) and it already contains several important bugfixes, specially regarding
+viewing DataFrames in the Variable Explorer.
 
 Enjoy!
 -Carlos
