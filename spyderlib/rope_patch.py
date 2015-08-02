@@ -29,12 +29,12 @@ Patching rope:
 
 def apply():
     """Monkey patching rope
-    
+
     See [1], [2], [3], [4] and [5] in module docstring."""
     import rope
-    if rope.VERSION not in ('0.10.2', '0.9.4-1', '0.9.4', '0.9.3', '0.9.2'):
+    if rope.VERSION not in ('0.10.2', '0.9.4-1', '0.9.4'):
         raise ImportError("rope %s can't be patched" % rope.VERSION)
-    
+
     # [1] Patching project.Project for compatibility with py2exe/cx_Freeze
     #     distributions
     from spyderlib.baseconfig import is_py2exe_or_cx_Freeze

@@ -24,7 +24,7 @@ try:
         from spyderlib import rope_patch
         rope_patch.apply()
     except ImportError:
-        # rope 0.9.2/0.9.3 is not installed
+        # rope is not installed
         pass
     import rope.base.libutils
     import rope.contrib.codeassist
@@ -32,7 +32,7 @@ except ImportError:
     pass
 
 
-ROPE_REQVER = '>=0.9.2'
+ROPE_REQVER = '>=0.9.4'
 dependencies.add('rope',
                  _("Editor's code completion, go-to-definition and help"),
                  required_version=ROPE_REQVER)
@@ -256,8 +256,6 @@ class RopePlugin(IntrospectionPlugin):
                 log_last_error(LOG_FILENAME,
                                "create_rope_project: %r" % root_path)
         except TypeError:
-            # Compatibility with new Mercurial API (>= 1.3).
-            # New versions of rope (> 0.9.2) already handle this issue
             self.project = None
             if DEBUG_EDITOR:
                 log_last_error(LOG_FILENAME,
