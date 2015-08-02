@@ -2826,7 +2826,7 @@ class MainWindow(QMainWindow):
     # ---- Check for Spyder Updates
     def _check_updates_ready(self):
         """Called by WorkerUpdates when ready"""
-        from spyderlib.workers.updates import MessageCheckBox
+        from spyderlib.widgets.helperwidgets import MessageCheckBox
 
         # feedback` = False is used on startup, so only positive feedback is
         # given. `feedback` = True is used when after startup (when using the
