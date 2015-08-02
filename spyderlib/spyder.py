@@ -1357,7 +1357,8 @@ class MainWindow(QMainWindow):
         if not self.light:
             # Window layout
             if hexstate:
-                self.restoreState( QByteArray().fromHex(str(hexstate)) )
+                self.restoreState( QByteArray().fromHex(
+                        str(hexstate).encode('utf-8')) )
                 # [Workaround for Issue 880]
                 # QDockWidget objects are not painted if restored as floating
                 # windows, so we must dock them before showing the mainwindow.

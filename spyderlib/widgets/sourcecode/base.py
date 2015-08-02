@@ -1093,10 +1093,16 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         # This feature is disabled on MacOS, see Issue 1510
         if sys.platform != 'darwin':
             if event.modifiers() & Qt.ControlModifier:
-                if event.delta() < 0:
-                    self.zoom_out.emit()
-                elif event.delta() > 0:
-                    self.zoom_in.emit()
+                if hasattr(event, 'angleDelta'):
+                    if event.angleDelta().y() < 0:
+                        self.zoom_out.emit()
+                    elif event.angleDelta().y() > 0:
+                        self.zoom_in.emit()
+                elif hasattr(event, 'delta'):
+                    if event.delta() < 0:
+                        self.zoom_out.emit()
+                    elif event.delta() > 0:
+                        self.zoom_in.emit()
                 return
         QPlainTextEdit.wheelEvent(self, event)
         self.highlight_current_cell()

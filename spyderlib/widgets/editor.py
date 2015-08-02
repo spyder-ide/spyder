@@ -2063,7 +2063,8 @@ class EditorSplitter(QSplitter):
             editorstack.set_current_filename(cfname)
         hexstate = settings.get('hexstate')
         if hexstate is not None:
-            self.restoreState( QByteArray().fromHex(str(hexstate)) )
+            self.restoreState( QByteArray().fromHex(
+                    str(hexstate).encode('utf-8')) )
         sizes = settings.get('sizes')
         if sizes is not None:
             self.setSizes(sizes)
@@ -2243,7 +2244,8 @@ class EditorMainWindow(QMainWindow):
             self.move( QPoint(*pos) )
         hexstate = settings.get('hexstate')
         if hexstate is not None:
-            self.restoreState( QByteArray().fromHex(str(hexstate)) )
+            self.restoreState( QByteArray().fromHex(
+                    str(hexstate).encode('utf-8')) )
         if settings.get('is_maximized'):
             self.setWindowState(Qt.WindowMaximized)
         if settings.get('is_fullscreen'):
