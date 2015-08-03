@@ -24,19 +24,18 @@ from spyderlib.widgets.helperwidgets import HelperToolButton, HTMLDelegate
 
 def shorten_paths(path_list, is_unsaved):
     """
-    Takes a list of paths and tries to "intelligently" shorten them all.  The
+    Takes a list of paths and tries to "intelligently" shorten them all. The
     aim is to make it clear to the user where the paths differ, as that is
-    likely what they care about.  Note that this operates on a list of paths
-    not individual paths.
+    likely what they care about. Note that this operates on a list of paths
+    not on individual paths.
 
     If the path ends in an actual file name, it will be trimmed off.
-
-    TODO: at the end, if the path is too long, should do a more dumb kind of
-    shortening, but not completely dumb.
     """
+    # TODO: at the end, if the path is too long, should do a more dumb kind of
+    # shortening, but not completely dumb.
 
-    # convert the path strings to a list of tokens
-    # and start building the new_path using the drive
+    # Convert the path strings to a list of tokens and start building the
+    # new_path using the drive
     path_list = path_list[:]  # clone locally
     new_path_list = []
     for ii, (path, is_unsav) in enumerate(zip(path_list, is_unsaved)):
@@ -49,11 +48,11 @@ def shorten_paths(path_list, is_unsaved):
             path_list[ii] = [part for part in path.split(osp.sep) if part]
 
     def recurse_level(level_idx):
-        # if toks are all empty we need not have reucrsed here
+        # If toks are all empty we need not have reucrsed here
         if not any(level_idx.values()):
             return
 
-        # firstly, find the longest common prefix for all in the level
+        # Firstly, find the longest common prefix for all in the level
         # s = len of longest common prefix
         sample_toks = level_idx.values()[0]
         if not sample_toks:
@@ -114,13 +113,14 @@ def shorten_paths(path_list, is_unsaved):
             recurse_level({idx: toks[k:] for idx, toks in group.items()})
 
     recurse_level({i: pl for i, pl in enumerate(path_list) if pl})
+
     return [path.rstrip(os.sep) for path in new_path_list]
 
 
 def BuildFuzzyFormatter(needle):
-    """Matches on the first occurance of the letters in needle in order,
-    wrapping those letters with <b></b> tags. If no match is found None
-    is returend.
+    """
+    Matches on the first occurance of the letters in needle in order, wrapping
+    those letters with <b></b> tags. If no match is found None is returned.
     """
     re_exons = re.compile(''.join("([^" + re.escape(c) + "]*)" + re.escape(c)
                                   for c in needle) + '(.*)')
@@ -137,7 +137,8 @@ def BuildFuzzyFormatter(needle):
 
 
 class UpDownFilter(QObject):
-    """Use with ``installEventFilter`` to get up/down arrow key press signal.
+    """
+    Use with `installEventFilter` to get up/down arrow key press signal.
     """
     sig_up_down = Signal(int)
 
@@ -151,6 +152,7 @@ class UpDownFilter(QObject):
 
 
 class FileSwitcher(QDialog):
+    """A Sublime-like file switcher."""
     sig_close_file = Signal(int)
     sig_edit_file = Signal(int)
     sig_edit_line = Signal(int)
@@ -232,7 +234,8 @@ class FileSwitcher(QDialog):
         # Note: the +1px on the top makes it look a little better
 
     def filtered_index_to_full(self, idx):
-        """ Note we assume idx is valid and the two mappings are valid
+        """
+        Note we assume idx is valid and the two mappings are valid.
         """
         return self.full_index_to_path.index(self.filtered_index_to_path[idx])
 
@@ -242,12 +245,12 @@ class FileSwitcher(QDialog):
             self.listwidget.setCurrentRow(row)
 
     def handle_rejection(self):
-        self.listwidget.clear()  # this means there is no longer a current_path
+        self.listwidget.clear()  # This means there is no longer a current_path
 
-        # reset line number for current tab, if it was changed
+        # Reset line number for current tab, if it was changed
         self.sig_edit_line.emit(-1)
 
-        # reset tab choice, if it was changed
+        # Reset tab choice, if it was changed
         if self.original_path is not None:
             target_tab_idx = self.sig_edit_file.emit(
                 self.full_index_to_path.index(self.original_path))
@@ -268,8 +271,8 @@ class FileSwitcher(QDialog):
     def handle_sig_edit_line(self, line_num):
         current_path = self.current_path()
 
-        # If we've changed path since last doing a goto line,
-        # we need to reset that previous file
+        # If we've changed path since last doing a goto line, we need to reset
+        # that previous file
         if (self.line_num_modified_for_path is not None and
                 current_path != self.line_num_modified_for_path):
             if self.line_num_modified_for_path in self.full_index_to_path:
@@ -281,8 +284,8 @@ class FileSwitcher(QDialog):
 
         self.line_num = line_num  # record it for use when switching items
 
-        # Apply the line num to the current file, recording the
-        # original location if need be
+        # Apply the line num to the current file, recording the original
+        # location if need be
         if line_num >= 0 and self.filtered_index_to_path:
             if self.original_line_num is None:
                 self.original_line_num = self.parent().get_current_editor()\
@@ -335,7 +338,7 @@ class FileSwitcher(QDialog):
         except ValueError:
             line_num = -1
 
-        # cache line counts if we need now them
+        # Cache line counts if we need now them
         if trying_for_line_num and self.path_to_line_count is None:
             self.path_to_line_count = {
                 path: self.tabs.widget(idx).get_line_count()
