@@ -489,6 +489,7 @@ DEFAULTS = [
               '_/debug step into': "Ctrl+F11",
               '_/debug step return': "Ctrl+Shift+F11",
               '_/debug exit': "Ctrl+Shift+F12",
+              '_/file switcher': 'Ctrl+P',
               # -- In plugins/init
               '_/switch to inspector': "Ctrl+Shift+H",
               '_/switch to outline_explorer': "Ctrl+Shift+O",
@@ -534,7 +535,6 @@ DEFAULTS = [
               # -- In widgets/editor
               'editor/inspect current object': 'Ctrl+I',
               'editor/go to line': 'Ctrl+L',
-              '_/file switcher': 'Ctrl+P',
               'editor/go to previous file': 'Ctrl+Tab',
               'editor/go to next file': 'Ctrl+Shift+Tab',
               # -- In spyder.py
