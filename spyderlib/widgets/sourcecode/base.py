@@ -69,7 +69,9 @@ class CompletionWidget(QListWidget):
             self.textedit.insert_completion(completion_list[0])
             try:
                 if self.textedit.close_parentheses_enabled:
-                    if types[0] in ['class', 'function', 'method']:
+                    leading_text = self.textedit.get_text('sol', 'cursor')
+                    if ('=' in leading_text and
+                            types[0] in ['class', 'function', 'method']):
                         self.textedit.handle_close_parentheses('')
             except AttributeError:
                 pass
@@ -164,6 +166,9 @@ class CompletionWidget(QListWidget):
             self.item_selected()
             if self.type_list[self.currentRow()] not in ['class', 'function',
                                                          'method']:
+                return
+            leading_text = self.textedit.get_text('sol', 'cursor')
+            if '=' not in leading_text:
                 return
             try:
                 if self.textedit.close_parentheses_enabled:
