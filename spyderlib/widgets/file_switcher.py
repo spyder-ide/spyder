@@ -13,16 +13,13 @@ import re
 from spyderlib.qt.QtCore import Signal, Qt, QObject, QSize, QEvent
 from spyderlib.qt.QtGui import (QVBoxLayout, QHBoxLayout,
                                 QListWidget, QListWidgetItem,
-                                QDialog, QLineEdit, QStyledItemDelegate,
-                                QStyleOptionViewItemV4, QApplication,
-                                QTextDocument, QStyle,
-                                QAbstractTextDocumentLayout)
+                                QDialog, QLineEdit)
 
 # Local imports
 from spyderlib.baseconfig import _
 from spyderlib.guiconfig import new_shortcut
 from spyderlib.py3compat import to_text_string
-from spyderlib.widgets.helperwidgets import HelperToolButton
+from spyderlib.widgets.helperwidgets import HelperToolButton, HTMLDelegate
 
 
 def shorten_paths(path_list, is_unsaved):
@@ -37,11 +34,11 @@ def shorten_paths(path_list, is_unsaved):
     TODO: at the end, if the path is too long, should do a more dumb kind of
     shortening, but not completely dumb.
     """
-
-    # convert the path strings to a list of tokens
-    # and start building the new_path using the drive
+    # Convert the path strings to a list of tokens and start building the
+    # new_path using the drive
     path_list = path_list[:]  # clone locally
     new_path_list = []
+
     for ii, (path, is_unsav) in enumerate(zip(path_list, is_unsaved)):
         if is_unsav:
             new_path_list.append(_('unsaved file'))
@@ -52,11 +49,11 @@ def shorten_paths(path_list, is_unsaved):
             path_list[ii] = [part for part in path.split(osp.sep) if part]
 
     def recurse_level(level_idx):
-        # if toks are all empty we need not have reucrsed here
+        # If toks are all empty we need not have reucrsed here
         if not any(level_idx.values()):
             return
 
-        # firstly, find the longest common prefix for all in the level
+        # Firstly, find the longest common prefix for all in the level
         # s = len of longest common prefix
         sample_toks = level_idx.values()[0]
         if not sample_toks:
@@ -117,6 +114,7 @@ def shorten_paths(path_list, is_unsaved):
             recurse_level({idx: toks[k:] for idx, toks in group.items()})
 
     recurse_level({i: pl for i, pl in enumerate(path_list) if pl})
+
     return [path.rstrip(os.sep) for path in new_path_list]
 
 
@@ -139,44 +137,6 @@ def BuildFuzzyFormatter(needle):
     return func
 
 
-class HTMLDelegate(QStyledItemDelegate):
-    """With this delegate, a QListWidgetItem can render HTML.
-
-    Taken from http://stackoverflow.com/a/5443112/2399799
-    """
-    def paint(self, painter, option, index):
-        options = QStyleOptionViewItemV4(option)
-        self.initStyleOption(options, index)
-
-        style = (QApplication.style() if options.widget is None
-                 else options.widget.style())
-
-        doc = QTextDocument()
-        doc.setHtml(options.text)
-
-        options.text = ""
-        style.drawControl(QStyle.CE_ItemViewItem, options, painter)
-
-        ctx = QAbstractTextDocumentLayout.PaintContext()
-
-        textRect = style.subElementRect(QStyle.SE_ItemViewItemText, options)
-        painter.save()
-        painter.translate(textRect.topLeft())
-        painter.setClipRect(textRect.translated(-textRect.topLeft()))
-        doc.documentLayout().draw(painter, ctx)
-
-        painter.restore()
-
-    def sizeHint(self, option, index):
-        options = QStyleOptionViewItemV4(option)
-        self.initStyleOption(options, index)
-
-        doc = QTextDocument()
-        doc.setHtml(options.text)
-        doc.setTextWidth(options.rect.width())
-        return QSize(doc.idealWidth(), doc.size().height())
-
-
 class UpDownFilter(QObject):
     """Use with ``installEventFilter`` to get up/down arrow key press signal.
     """
@@ -192,6 +152,7 @@ class UpDownFilter(QObject):
 
 
 class FileSwitcher(QDialog):
+    """A sublime like file switcher dialog."""
     sig_close_file = Signal(int)
     sig_edit_file = Signal(int)
     sig_edit_line = Signal(int)
@@ -339,7 +300,8 @@ class FileSwitcher(QDialog):
                 self.sig_edit_file.emit(self.filtered_index_to_full(row))
             except ValueError:
                 pass
-            self.sig_edit_line.emit(self.line_num)  # if this is -1 it does nothing
+            # If this is -1 it does nothing
+            self.sig_edit_line.emit(self.line_num)
 
     def synchronize(self, stack_index):
         """
