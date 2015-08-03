@@ -10,7 +10,7 @@ from spyderlib.qt import PYQT5
 from spyderlib.qt.QtGui import (QHBoxLayout, QVBoxLayout, QLabel, QSizePolicy,
                                 QMenu, QToolButton, QGroupBox, QFontComboBox,
                                 QActionGroup, QFontDialog, QWidget, QComboBox,
-                                QLineEdit, QMessageBox, QFrame)
+                                QLineEdit, QMessageBox)
 from spyderlib.qt.QtCore import Signal, Slot, QUrl, QThread
 from spyderlib.qt.QtWebKit import QWebPage
 import spyderlib.utils.icon_manager as ima
@@ -32,7 +32,7 @@ from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
 from spyderlib.widgets.comboboxes import EditableComboBox
 from spyderlib.widgets.sourcecode import codeeditor
 from spyderlib.widgets.findreplace import FindReplace
-from spyderlib.widgets.browser import WebView
+from spyderlib.widgets.browser import FrameWebView
 from spyderlib.widgets.externalshell.pythonshell import ExtPythonShellWidget
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 from spyderlib.py3compat import to_text_string, get_meth_class_inst
@@ -198,41 +198,6 @@ class ObjectInspectorConfigPage(PluginConfigPage):
         vlayout.addStretch(1)
         self.setLayout(vlayout)
 
-
-class FrameWebView(QFrame):
-    """
-    Framed QWebView for UI consistency in Spyder.
-    """
-    linkClicked = Signal(QUrl)
-
-    def __init__(self, parent):
-        QFrame.__init__(self, parent)
-
-        self._webview = WebView(self)
-
-        layout = QHBoxLayout()
-        layout.addWidget(self._webview)
-        layout.setContentsMargins(0, 0, 0, 0)
-        self.setLayout(layout)
-
-        self.setFrameStyle(QFrame.StyledPanel | QFrame.Sunken)
-
-        self._webview.linkClicked.connect(self.linkClicked)
-
-    def set_font(self, font, fixed_font=None):
-        self._webview.set_font(font, fixed_font=fixed_font)
-
-    def setHtml(self, html_text, base_url):
-        self._webview.setHtml(html_text, base_url)
-
-    def url(self):
-        return self._webview.url()
-
-    def load(self, url):
-        self._webview.load(url)
-
-    def page(self):
-        return self._webview.page()
 
 
 class RichText(QWidget):
