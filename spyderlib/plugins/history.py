@@ -112,6 +112,8 @@ class HistoryLog(SpyderPluginWidget):
         else:
             layout.addWidget(self.tabwidget)
 
+        self.tabwidget.setStyleSheet("QTabWidget::pane {border: 0;}")
+
         # Menu as corner widget
         options_button = create_toolbutton(self, text=_('Options'),
                                            icon=ima.icon('tooloptions'))
