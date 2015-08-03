@@ -13,16 +13,13 @@ import re
 from spyderlib.qt.QtCore import Signal, Qt, QObject, QSize, QEvent
 from spyderlib.qt.QtGui import (QVBoxLayout, QHBoxLayout,
                                 QListWidget, QListWidgetItem,
-                                QDialog, QLineEdit, QStyledItemDelegate,
-                                QStyleOptionViewItemV4, QApplication,
-                                QTextDocument, QStyle,
-                                QAbstractTextDocumentLayout)
+                                QDialog, QLineEdit)
 
 # Local imports
 from spyderlib.baseconfig import _
 from spyderlib.guiconfig import new_shortcut
 from spyderlib.py3compat import to_text_string
-from spyderlib.widgets.helperwidgets import HelperToolButton
+from spyderlib.widgets.helperwidgets import HelperToolButton, HTMLDelegate
 
 
 def shorten_paths(path_list, is_unsaved):
@@ -137,44 +134,6 @@ def BuildFuzzyFormatter(needle):
                       zip(exons, ['<b>' + c + '</b>'for c in needle]))
         return ret + exons[-1]
     return func
-
-
-class HTMLDelegate(QStyledItemDelegate):
-    """With this delegate, a QListWidgetItem can render HTML.
-
-    Taken from http://stackoverflow.com/a/5443112/2399799
-    """
-    def paint(self, painter, option, index):
-        options = QStyleOptionViewItemV4(option)
-        self.initStyleOption(options, index)
-
-        style = (QApplication.style() if options.widget is None
-                 else options.widget.style())
-
-        doc = QTextDocument()
-        doc.setHtml(options.text)
-
-        options.text = ""
-        style.drawControl(QStyle.CE_ItemViewItem, options, painter)
-
-        ctx = QAbstractTextDocumentLayout.PaintContext()
-
-        textRect = style.subElementRect(QStyle.SE_ItemViewItemText, options)
-        painter.save()
-        painter.translate(textRect.topLeft())
-        painter.setClipRect(textRect.translated(-textRect.topLeft()))
-        doc.documentLayout().draw(painter, ctx)
-
-        painter.restore()
-
-    def sizeHint(self, option, index):
-        options = QStyleOptionViewItemV4(option)
-        self.initStyleOption(options, index)
-
-        doc = QTextDocument()
-        doc.setHtml(options.text)
-        doc.setTextWidth(options.rect.width())
-        return QSize(doc.idealWidth(), doc.size().height())
 
 
 class UpDownFilter(QObject):
@@ -339,7 +298,8 @@ class FileSwitcher(QDialog):
                 self.sig_edit_file.emit(self.filtered_index_to_full(row))
             except ValueError:
                 pass
-            self.sig_edit_line.emit(self.line_num)  # if this is -1 it does nothing
+            # If this is -1 it does nothing
+            self.sig_edit_line.emit(self.line_num)
 
     def synchronize(self, stack_index):
         """
