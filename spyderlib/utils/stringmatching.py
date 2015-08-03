@@ -12,6 +12,7 @@ import re
 
 
 NOT_FOUND_SCORE = -1
+NO_SCORE = 0
 
 
 def get_search_regex(query, ignore_case=True):
@@ -80,20 +81,22 @@ def get_search_score(query, choice, ignore_case=True, apply_regex=True,
     - Letters in one word and no spaces with exact match.
       Example: 'up' in 'up stroke'
     - Letters in one word and no spaces with partial match.
-      Example: 'up' in 'upstream stroke'    
+      Example: 'up' in 'upstream stroke'
     - Letters in one word but with skip letters.
-      Example: 'cls' in 'close up'    
-    - Letters in two or more words.
-      Example: 'cls' in 'car lost'    
+      Example: 'cls' in 'close up'
+    - Letters in two or more words
+      Example: 'cls' in 'car lost'
     """
-    result = (choice, NOT_FOUND_SCORE)
- 
+    original_choice = choice
+    result = (original_choice, NOT_FOUND_SCORE)
+
     # Handle empty string case
     if not query:
         return result
 
     if ignore_case:
         query = query.lower()
+        choice = choice.lower()
 
     if apply_regex:
         pattern = get_search_regex(query, ignore_case=ignore_case)
@@ -109,9 +112,14 @@ def get_search_score(query, choice, ignore_case=True, apply_regex=True,
         partial_words = [query in word for word in choice.split(u' ')]
 
         if any(exact_words) or any(partial_words):
-            score += choice.find(query)
+            pos_start = choice.find(query)
+            pos_end = pos_start + len(query)
+            score += pos_start
             text = choice.replace(query, sep*len(query), 1)
-            enriched_text = choice.replace(query, template.format(query), 1)
+
+            enriched_text = original_choice[:pos_start] +\
+                template.format(original_choice[pos_start:pos_end]) +\
+                original_choice[pos_end:]
 
         if any(exact_words):
             # Check if the query words exists in a word with exact match
@@ -121,17 +129,18 @@ def get_search_score(query, choice, ignore_case=True, apply_regex=True,
             score += 100
         else:
             # Check letter by letter
-            text = [l for l in choice]
+            text = [l for l in original_choice]
             if ignore_case:
-                temp_text = text[:]
+                temp_text = [l.lower() for l in original_choice]
             else:
-                temp_text = [l.lower() for l in choice]
+                temp_text = text[:]
 
+            # Give points to start of string
             score += temp_text.index(query[0])
 
             # Find the query letters and replace them by `sep`, also apply
             # template as needed for enricching the letters in the text
-            enriched_text = temp_text[:]
+            enriched_text = text[:]
             for char in query:
                 if char != u'' and char in temp_text:
                     index = temp_text.index(char)
@@ -170,7 +179,7 @@ def get_search_score(query, choice, ignore_case=True, apply_regex=True,
 def get_search_scores(query, choices, ignore_case=True, template='{}',
                       valid_only=False, sort=False):
     """Search for query inside choices and return a list of tuples.
-    
+
     Returns a list of tuples of text with the enriched text (if a template is
     provided) and a score for the match. Lower scores imply a better match.
 
@@ -193,16 +202,21 @@ def get_search_scores(query, choices, ignore_case=True, template='{}',
         List of tuples where the first item is the text (enriched if a
         template was used) and a search score. Lower scores means better match.
     """
+    # First remove spaces from query
+    query = query.replace(' ', '')
     pattern = get_search_regex(query, ignore_case)
     results = []
 
     for choice in choices:
         r = re.search(pattern, choice)
-        if r:
+        if query and r:
             result = get_search_score(query, choice, ignore_case=ignore_case,
                                       apply_regex=False, template=template)
         else:
-            result = (choice, NOT_FOUND_SCORE)
+            if query:
+                result = (choice, NOT_FOUND_SCORE)
+            else:
+                result = (choice, NO_SCORE)
 
         if valid_only:
             if result[-1] != NOT_FOUND_SCORE:
