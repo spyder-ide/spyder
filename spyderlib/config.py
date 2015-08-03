@@ -252,12 +252,7 @@ DEFAULTS = [
               'show_icontext': False,
               'monitor/enabled': True,
               'qt/api': 'default',
-              'pyqt/api_version': 2,
-              'pyqt/ignore_sip_setapi_errors': False,
-              'matplotlib/backend/enabled': True,
-              'matplotlib/backend/value': 'MacOSX' if (sys.platform == 'darwin' \
-                                           and os.environ.get('QT_API') == 'pyside')\
-                                           else 'Qt4Agg',
+              'matplotlib/backend/value': 0,
               'umr/enabled': True,
               'umr/verbose': True,
               'umr/namelist': ['guidata', 'guiqwt'],
@@ -485,6 +480,7 @@ DEFAULTS = [
               '_/save current layout': "Shift+Alt+S",
               '_/toggle default layout': "Shift+Alt+Home",
               '_/layout preferences': "Shift+Alt+P",
+              '_/show toolbars': "Alt+Shift+T",
               '_/restart': "Shift+Alt+R",
               '_/quit': "Ctrl+Q",
               # -- In plugins/editor
@@ -493,6 +489,7 @@ DEFAULTS = [
               '_/debug step into': "Ctrl+F11",
               '_/debug step return': "Ctrl+Shift+F11",
               '_/debug exit': "Ctrl+Shift+F12",
+              '_/file switcher': 'Ctrl+P',
               # -- In plugins/init
               '_/switch to inspector': "Ctrl+Shift+H",
               '_/switch to outline_explorer': "Ctrl+Shift+O",
@@ -538,7 +535,6 @@ DEFAULTS = [
               # -- In widgets/editor
               'editor/inspect current object': 'Ctrl+I',
               'editor/go to line': 'Ctrl+L',
-              'editor/file list management': 'Ctrl+E',
               'editor/go to previous file': 'Ctrl+Tab',
               'editor/go to next file': 'Ctrl+Shift+Tab',
               # -- In spyder.py
@@ -746,7 +742,7 @@ DEFAULTS = [
 # 2. If you want to *remove* options that are no longer needed in our codebase,
 #    you need to do a MAJOR update in version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '18.1.0'
+CONF_VERSION = '21.0.0'
 
 # XXX: Previously we had load=(not DEV) here but DEV was set to *False*.
 # Check if it *really* needs to be updated or not
