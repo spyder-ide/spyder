@@ -43,7 +43,8 @@ class HelperToolButton(QToolButton):
         QToolTip.hideText()
 
     def mouseReleaseEvent(self, event):
-        QToolTip.showText(self.mapToGlobal(QPoint(0, 0)), self._tip_text)
+        QToolTip.showText(self.mapToGlobal(QPoint(0, self.height())),
+                          self._tip_text)
 
 
 class HTMLDelegate(QStyledItemDelegate):
