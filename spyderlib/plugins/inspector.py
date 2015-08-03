@@ -10,7 +10,7 @@ from spyderlib.qt import PYQT5
 from spyderlib.qt.QtGui import (QHBoxLayout, QVBoxLayout, QLabel, QSizePolicy,
                                 QMenu, QToolButton, QGroupBox, QFontComboBox,
                                 QActionGroup, QFontDialog, QWidget, QComboBox,
-                                QLineEdit, QMessageBox)
+                                QLineEdit, QMessageBox, QFrame)
 from spyderlib.qt.QtCore import Signal, Slot, QUrl, QThread
 from spyderlib.qt.QtWebKit import QWebPage
 import spyderlib.utils.icon_manager as ima
@@ -199,6 +199,42 @@ class ObjectInspectorConfigPage(PluginConfigPage):
         self.setLayout(vlayout)
 
 
+class FrameWebView(QFrame):
+    """
+    Framed QWebView for UI consistency in Spyder.
+    """
+    linkClicked = Signal(QUrl)
+
+    def __init__(self, parent):
+        QFrame.__init__(self, parent)
+
+        self._webview = WebView(self)
+
+        layout = QHBoxLayout()
+        layout.addWidget(self._webview)
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(layout)
+
+        self.setFrameStyle(QFrame.StyledPanel | QFrame.Sunken)
+
+        self._webview.linkClicked.connect(self.linkClicked)
+
+    def set_font(self, font, fixed_font=None):
+        self._webview.set_font(font, fixed_font=fixed_font)
+
+    def setHtml(self, html_text, base_url):
+        self._webview.setHtml(html_text, base_url)
+
+    def url(self):
+        return self._webview.url()
+
+    def load(self, url):
+        self._webview.load(url)
+
+    def page(self):
+        return self._webview.page()
+
+
 class RichText(QWidget):
     """
     WebView widget with find dialog
@@ -206,7 +242,7 @@ class RichText(QWidget):
     def __init__(self, parent):
         QWidget.__init__(self, parent)
 
-        self.webview = WebView(self)
+        self.webview = FrameWebView(self)
         self.find_widget = FindReplace(self)
         self.find_widget.set_editor(self.webview)
         self.find_widget.hide()
