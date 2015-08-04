@@ -996,21 +996,21 @@ class ExplorerWidget(QWidget):
     sig_open_file = Signal(str)
     sig_new_file = Signal(str)
     redirect_stdio = Signal(bool)
-    
+
     def __init__(self, parent=None, name_filters=['*.py', '*.pyw'],
                  show_all=False, show_cd_only=None, show_icontext=True):
         QWidget.__init__(self, parent)
 
-        # Widgets        
+        # Widgets
         self.treewidget = ExplorerTreeWidget(self, show_cd_only=show_cd_only)
         button_previous = QToolButton(self)
         button_next = QToolButton(self)
         button_parent = QToolButton(self)
-        self._button_menu = QToolButton(self)
+        self.button_menu = QToolButton(self)
         menu = QMenu(self)
 
-        self._action_widgets = [button_previous, button_next, button_parent,
-                                self._button_menu]
+        self.action_widgets = [button_previous, button_next, button_parent,
+                               self.button_menu]
 
         # Actions
         icontext_action = create_action(self, _("Show icons and text"),
@@ -1028,37 +1028,37 @@ class ExplorerWidget(QWidget):
 
         # Setup widgets
         self.treewidget.setup(name_filters=name_filters, show_all=show_all)
-        self.treewidget.chdir(getcwd())        
+        self.treewidget.chdir(getcwd())
         self.treewidget.common_actions += [None, icontext_action]
-                
+
         button_previous.setDefaultAction(previous_action)
-        previous_action.setEnabled(False)        
-  
+        previous_action.setEnabled(False)
+
         button_next.setDefaultAction(next_action)
         next_action.setEnabled(False)
 
         button_parent.setDefaultAction(parent_action)
-        
-        self._button_menu.setIcon(ima.icon('tooloptions'))
-        self._button_menu.setPopupMode(QToolButton.InstantPopup)
-        self._button_menu.setMenu(menu)
+
+        self.button_menu.setIcon(ima.icon('tooloptions'))
+        self.button_menu.setPopupMode(QToolButton.InstantPopup)
+        self.button_menu.setMenu(menu)
         add_actions(menu, self.treewidget.common_actions)
         options_action.setMenu(menu)
- 
-        self.toggle_icontext(show_icontext)     
+
+        self.toggle_icontext(show_icontext)
         icontext_action.setChecked(show_icontext)
 
-        for widget in self._action_widgets:
+        for widget in self.action_widgets:
             widget.setAutoRaise(True)
             widget.setIconSize(QSize(16, 16))
 
-        # Layouts       
+        # Layouts
         blayout = QHBoxLayout()
         blayout.addWidget(button_previous)
         blayout.addWidget(button_next)
         blayout.addWidget(button_parent)
         blayout.addStretch()
-        blayout.addWidget(self._button_menu)
+        blayout.addWidget(self.button_menu)
 
         layout = QVBoxLayout()
         layout.addLayout(blayout)
@@ -1074,8 +1074,8 @@ class ExplorerWidget(QWidget):
     def toggle_icontext(self, state):
         """Toggle icon text"""
         self.sig_option_changed.emit('show_icontext', state)
-        for widget in self._action_widgets:
-            if widget is not self._button_menu:
+        for widget in self.action_widgets:
+            if widget is not self.button_menu:
                 if state:
                     widget.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
                 else:
