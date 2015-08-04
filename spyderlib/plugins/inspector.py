@@ -199,7 +199,6 @@ class ObjectInspectorConfigPage(PluginConfigPage):
         self.setLayout(vlayout)
 
 
-
 class RichText(QWidget):
     """
     WebView widget with find dialog

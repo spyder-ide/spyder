@@ -8,12 +8,10 @@
 
 import sys
 
-
 from spyderlib.qt.QtCore import QUrl, Slot, Signal
 from spyderlib.qt.QtGui import (QHBoxLayout, QWidget, QVBoxLayout,
                                 QProgressBar, QLabel, QMenu, QFrame)
 from spyderlib.qt.QtWebKit import QWebView, QWebPage, QWebSettings
-
 
 # Local imports
 from spyderlib.baseconfig import DEV, _
