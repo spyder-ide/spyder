@@ -20,7 +20,6 @@ from spyderlib.baseconfig import _
 from spyderlib.utils.qthelpers import get_std_icon
 
 
-
 class HelperToolButton(QToolButton):
     """Subclasses QToolButton, to provide a simple tooltip on mousedown.
     """
