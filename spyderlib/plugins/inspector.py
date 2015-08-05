@@ -32,7 +32,7 @@ from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
 from spyderlib.widgets.comboboxes import EditableComboBox
 from spyderlib.widgets.sourcecode import codeeditor
 from spyderlib.widgets.findreplace import FindReplace
-from spyderlib.widgets.browser import WebView
+from spyderlib.widgets.browser import FrameWebView
 from spyderlib.widgets.externalshell.pythonshell import ExtPythonShellWidget
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 from spyderlib.py3compat import to_text_string, get_meth_class_inst
@@ -206,7 +206,7 @@ class RichText(QWidget):
     def __init__(self, parent):
         QWidget.__init__(self, parent)
 
-        self.webview = WebView(self)
+        self.webview = FrameWebView(self)
         self.find_widget = FindReplace(self)
         self.find_widget.set_editor(self.webview)
         self.find_widget.hide()
