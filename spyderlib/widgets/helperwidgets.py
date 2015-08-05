@@ -8,12 +8,17 @@
 Helper widgets.
 """
 
-from spyderlib.qt.QtCore import QPoint, QSize
+from spyderlib.qt.QtCore import QPoint, QSize, Qt
 from spyderlib.qt.QtGui import (QToolButton, QToolTip,
                                 QStyledItemDelegate, QApplication,
                                 QTextDocument, QStyleOptionViewItem,
-                                QAbstractTextDocumentLayout, QStyle)
+                                QAbstractTextDocumentLayout, QStyle,
+                                QVBoxLayout, QSpacerItem,
+                                QMessageBox, QCheckBox)
+
+from spyderlib.baseconfig import _
 from spyderlib.utils.qthelpers import get_std_icon
+
 
 
 class HelperToolButton(QToolButton):
@@ -44,6 +49,48 @@ class HelperToolButton(QToolButton):
 
     def mouseReleaseEvent(self, event):
         QToolTip.showText(self.mapToGlobal(QPoint(0, 0)), self._tip_text)
+
+
+class MessageCheckBox(QMessageBox):
+    """
+    A QMessageBox derived widget that includes a QCheckBox aligned to the right
+    under the message and on top of the buttons.
+    """
+    def __init__(self, *args, **kwargs):
+        super(MessageCheckBox, self).__init__(*args, **kwargs)
+
+        self._checkbox = QCheckBox()
+
+        # Set layout to include checkbox
+        size = 9
+        check_layout = QVBoxLayout()
+        check_layout.addItem(QSpacerItem(size, size))
+        check_layout.addWidget(self._checkbox, 0, Qt.AlignRight)
+        check_layout.addItem(QSpacerItem(size, size))
+
+        # Access the Layout of the MessageBox to add the Checkbox
+        layout = self.layout()
+        layout.addLayout(check_layout, 1, 1)
+
+    # --- Public API
+    # Methods to access the checkbox
+    def is_checked(self):
+        return self._checkbox.isChecked()
+
+    def set_checked(self, value):
+        return self._checkbox.setChecked(value)
+
+    def set_check_visible(self, value):
+        self._checkbox.setVisible(value)
+
+    def is_check_visible(self):
+        self._checkbox.isVisible()
+
+    def checkbox_text(self):
+        self._checkbox.text()
+
+    def set_checkbox_text(self, text):
+        self._checkbox.setText(text)
 
 
 class HTMLDelegate(QStyledItemDelegate):
@@ -88,3 +135,20 @@ class HTMLDelegate(QStyledItemDelegate):
         doc.setTextWidth(options.rect.width())
 
         return QSize(doc.idealWidth(), doc.size().height())
+
+
+def test_msgcheckbox():
+    from spyderlib.utils.qthelpers import qapplication
+    app = qapplication()
+    box = MessageCheckBox()
+    box.setWindowTitle(_("Spyder updates"))
+    box.setText("Testing checkbox")
+    box.set_checkbox_text("Check for updates on startup?")
+    box.setStandardButtons(QMessageBox.Ok)
+    box.setDefaultButton(QMessageBox.Ok)
+    box.setIcon(QMessageBox.Information)
+    box.exec_()
+
+
+if __name__ == '__main__':
+    test_msgcheckbox()
