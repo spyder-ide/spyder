@@ -14,20 +14,21 @@ Numpy Matrix/Array Builder Widget
 # -Use the same font as editor/console?
 
 from __future__ import division
-
 import re
 
-from spyderlib.qt.QtGui import (QToolTip, QLineEdit, QHBoxLayout, QWidget,
-                                QDialog, QToolButton, QTableWidget,
-                                QTableWidgetItem)
-import spyderlib.utils.icon_manager as ima
+from spyderlib.qt.QtCore import (QEvent, QPoint, Qt)
+from spyderlib.qt.QtGui import (QDialog, QHBoxLayout, QLineEdit, QTableWidget,
+                                QTableWidgetItem, QToolButton, QToolTip,
+                                QWidget)
 
-from spyderlib.qt.QtCore import (Qt, QPoint, QEvent)
 from spyderlib.baseconfig import _
+from spyderlib.utils import icon_manager as ima
+from spyderlib.widgets.helperwidgets import HelperToolButton
+
 
 # Constants
-SHORTCUT_INLINE = "Shift+Ctrl+*"  # fixed shortcuts for editos and consoles
-SHORTCUT_TABLE = "Ctrl+*"         # fixed shortcuts for editos and consoles
+SHORTCUT_INLINE = "Shift+Ctrl+*"  # Fixed shortcuts for editor and consoles
+SHORTCUT_TABLE = "Ctrl+*"         # Fixed shortcuts for editor and consoles
 ELEMENT_SEPARATOR = ', '
 ROW_SEPARATOR = ';'
 BRACES = '], ['
@@ -349,29 +350,7 @@ class NumpyArrayDialog(QDialog):
 
     def mousePressEvent(self, event):
         """ """
-#        print(dir(event))
-
-
-class HelperToolButton(QToolButton):
-    """ """
-    def __init__(self):
-        QToolButton.__init__(self)
-
-    def setToolTip(self, text):
-        """ """
-        self._tip_text = text
-
-    def toolTip(self):
-        """ """
-        return self._tip_text
-
-    def mousePressEvent(self, event):
-        """ """
-        QToolTip.hideText()
-
-    def mouseReleaseEvent(self, event):
-        """ """
-        QToolTip.showText(self.mapToGlobal(QPoint(0, 0)), self._tip_text)
+        pass
 
 
 def test():
