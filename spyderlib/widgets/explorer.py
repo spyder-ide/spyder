@@ -16,7 +16,7 @@ from __future__ import with_statement
 from spyderlib.qt import is_pyqt46
 from spyderlib.qt.QtGui import (QVBoxLayout, QLabel, QHBoxLayout, QInputDialog,
                                 QFileSystemModel, QMenu, QWidget, QToolButton,
-                                QLineEdit, QMessageBox, QToolBar, QTreeView,
+                                QLineEdit, QMessageBox, QTreeView,
                                 QDrag, QSortFilterProxyModel)
 from spyderlib.qt.QtCore import (Qt, Signal, QMimeData, QSize, QDir, QUrl,
                                  QTimer, Slot)
@@ -996,68 +996,86 @@ class ExplorerWidget(QWidget):
     sig_open_file = Signal(str)
     sig_new_file = Signal(str)
     redirect_stdio = Signal(bool)
-    
+
     def __init__(self, parent=None, name_filters=['*.py', '*.pyw'],
                  show_all=False, show_cd_only=None, show_icontext=True):
         QWidget.__init__(self, parent)
-        
+
+        # Widgets
         self.treewidget = ExplorerTreeWidget(self, show_cd_only=show_cd_only)
-        self.treewidget.setup(name_filters=name_filters, show_all=show_all)
-        self.treewidget.chdir(getcwd())
-        
+        button_previous = QToolButton(self)
+        button_next = QToolButton(self)
+        button_parent = QToolButton(self)
+        self.button_menu = QToolButton(self)
+        menu = QMenu(self)
+
+        self.action_widgets = [button_previous, button_next, button_parent,
+                               self.button_menu]
+
+        # Actions
         icontext_action = create_action(self, _("Show icons and text"),
                                         toggled=self.toggle_icontext)
-        self.treewidget.common_actions += [None, icontext_action]
-        
-        # Setup toolbar
-        self.toolbar = QToolBar(self)
-        self.toolbar.setIconSize(QSize(16, 16))
-        
-        self.previous_action = create_action(self, text=_("Previous"),
+        previous_action = create_action(self, text=_("Previous"),
                             icon=ima.icon('ArrowBack'),
                             triggered=self.treewidget.go_to_previous_directory)
-        self.toolbar.addAction(self.previous_action)
-        self.previous_action.setEnabled(False)
-        self.treewidget.set_previous_enabled.connect(
-                                               self.previous_action.setEnabled)
-        
-        self.next_action = create_action(self, text=_("Next"),
+        next_action = create_action(self, text=_("Next"),
                             icon=ima.icon('ArrowForward'),
                             triggered=self.treewidget.go_to_next_directory)
-        self.toolbar.addAction(self.next_action)
-        self.next_action.setEnabled(False)
-        self.treewidget.set_next_enabled.connect(self.next_action.setEnabled)
-        
         parent_action = create_action(self, text=_("Parent"),
                             icon=ima.icon('ArrowUp'),
                             triggered=self.treewidget.go_to_parent_directory)
-        self.toolbar.addAction(parent_action)
-        self.toolbar.addSeparator()
+        options_action = create_action(self, text='', tip=_('Options'))
 
-        options_action = create_action(self, text='', tip=_('Options'),
-                                       icon=ima.icon('tooloptions'))
-        self.toolbar.addAction(options_action)
-        widget = self.toolbar.widgetForAction(options_action)
-        widget.setPopupMode(QToolButton.InstantPopup)
-        menu = QMenu(self)
+        # Setup widgets
+        self.treewidget.setup(name_filters=name_filters, show_all=show_all)
+        self.treewidget.chdir(getcwd())
+        self.treewidget.common_actions += [None, icontext_action]
+
+        button_previous.setDefaultAction(previous_action)
+        previous_action.setEnabled(False)
+
+        button_next.setDefaultAction(next_action)
+        next_action.setEnabled(False)
+
+        button_parent.setDefaultAction(parent_action)
+
+        self.button_menu.setIcon(ima.icon('tooloptions'))
+        self.button_menu.setPopupMode(QToolButton.InstantPopup)
+        self.button_menu.setMenu(menu)
         add_actions(menu, self.treewidget.common_actions)
         options_action.setMenu(menu)
-            
+
+        self.toggle_icontext(show_icontext)
         icontext_action.setChecked(show_icontext)
-        self.toggle_icontext(show_icontext)     
-        
-        vlayout = QVBoxLayout()
-        vlayout.addWidget(self.toolbar)
-        vlayout.addWidget(self.treewidget)
-        self.setLayout(vlayout)
+
+        for widget in self.action_widgets:
+            widget.setAutoRaise(True)
+            widget.setIconSize(QSize(16, 16))
+
+        # Layouts
+        blayout = QHBoxLayout()
+        blayout.addWidget(button_previous)
+        blayout.addWidget(button_next)
+        blayout.addWidget(button_parent)
+        blayout.addStretch()
+        blayout.addWidget(self.button_menu)
+
+        layout = QVBoxLayout()
+        layout.addLayout(blayout)
+        layout.addWidget(self.treewidget)
+        self.setLayout(layout)
+
+        # Signals and slots
+        self.treewidget.set_previous_enabled.connect(
+                                               previous_action.setEnabled)
+        self.treewidget.set_next_enabled.connect(next_action.setEnabled)
 
     @Slot(bool)
     def toggle_icontext(self, state):
         """Toggle icon text"""
         self.sig_option_changed.emit('show_icontext', state)
-        for action in self.toolbar.actions():
-            if not action.isSeparator():
-                widget = self.toolbar.widgetForAction(action)
+        for widget in self.action_widgets:
+            if widget is not self.button_menu:
                 if state:
                     widget.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
                 else:
