@@ -16,7 +16,7 @@ from spyderlib.qt.QtGui import (QToolButton, QToolTip,
                                 QVBoxLayout, QSpacerItem,
                                 QMessageBox, QCheckBox)
 
-from spyderlib.baseconfig import _
+from spyderlib.config.base import _
 from spyderlib.utils.qthelpers import get_std_icon
 
 
