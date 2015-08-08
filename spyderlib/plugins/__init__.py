@@ -28,10 +28,10 @@ import spyderlib.utils.icon_manager as ima
 
 # Local imports
 from spyderlib.utils.qthelpers import toggle_actions, get_icon, create_action
-from spyderlib.baseconfig import _
-from spyderlib.config import CONF
-from spyderlib.userconfig import NoDefault
-from spyderlib.guiconfig import get_font, set_font
+from spyderlib.config.base import _
+from spyderlib.config.main import CONF
+from spyderlib.config.user import NoDefault
+from spyderlib.config.gui import get_font, set_font
 from spyderlib.plugins.configdialog import SpyderConfigPage
 from spyderlib.py3compat import configparser, is_text_string
 

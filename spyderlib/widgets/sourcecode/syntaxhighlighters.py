@@ -22,8 +22,8 @@ from spyderlib.qt.QtCore import Qt
 
 # Local imports
 from spyderlib import dependencies
-from spyderlib.baseconfig import _
-from spyderlib.config import CONF
+from spyderlib.config.base import _
+from spyderlib.config.main import CONF
 from spyderlib.py3compat import builtins, is_text_string, to_text_string
 from spyderlib.utils.sourcecode import CELL_LANGUAGES
 

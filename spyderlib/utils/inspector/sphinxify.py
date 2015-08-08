@@ -32,7 +32,7 @@ import sphinx
 from sphinx.application import Sphinx
 
 # Local imports
-from spyderlib.baseconfig import (_, get_module_data_path,
+from spyderlib.config.base import (_, get_module_data_path,
                                   get_module_source_path)
 from spyderlib.utils import encoding
 

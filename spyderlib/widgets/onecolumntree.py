@@ -19,7 +19,7 @@ from spyderlib.qt.QtGui import QTreeWidget, QMenu
 import spyderlib.utils.icon_manager as ima
 
 # Local imports
-from spyderlib.baseconfig import _
+from spyderlib.config.base import _
 from spyderlib.utils.qthelpers import create_action, add_actions, get_item_user_text
 
 

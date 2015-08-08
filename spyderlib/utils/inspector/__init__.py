@@ -12,5 +12,5 @@ Configuration files for the object inspector rich text mode
 """
 
 import sys
-from spyderlib.baseconfig import get_module_source_path
+from spyderlib.config.base import get_module_source_path
 sys.path.insert(0, get_module_source_path(__name__))

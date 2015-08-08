@@ -21,9 +21,9 @@ from spyderlib.qt.QtCore import Qt, QAbstractTableModel, QModelIndex, QRegExp
 from spyderlib.qt.compat import to_qvariant, from_qvariant
 
 # Local imports
-from spyderlib.baseconfig import _, debug_print
-from spyderlib.guiconfig import (get_shortcut, set_shortcut,
-                                 iter_shortcuts, reset_shortcuts)
+from spyderlib.config.base import _, debug_print
+from spyderlib.config.gui import (get_shortcut, set_shortcut,
+                                  iter_shortcuts, reset_shortcuts)
 from spyderlib.plugins.configdialog import GeneralConfigPage
 from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.qthelpers import get_std_icon

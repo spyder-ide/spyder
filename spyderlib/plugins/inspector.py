@@ -22,10 +22,10 @@ import sys
 
 # Local imports
 from spyderlib import dependencies
-from spyderlib.baseconfig import get_conf_path, get_module_source_path, _
-from spyderlib.ipythonconfig import IPYTHON_QT_INSTALLED
-from spyderlib.config import CONF
-from spyderlib.guiconfig import get_color_scheme, get_font, set_font
+from spyderlib.config.base import get_conf_path, get_module_source_path, _
+from spyderlib.config.ipython import IPYTHON_QT_INSTALLED
+from spyderlib.config.main import CONF
+from spyderlib.config.gui import get_color_scheme, get_font, set_font
 from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
                                        create_action)

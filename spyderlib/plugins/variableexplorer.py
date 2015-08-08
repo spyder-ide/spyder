@@ -11,8 +11,8 @@ from spyderlib.qt.QtCore import Signal, Slot
 import spyderlib.utils.icon_manager as ima
 
 # Local imports
-from spyderlib.baseconfig import _
-from spyderlib.config import CONF
+from spyderlib.config.base import _
+from spyderlib.config.main import CONF
 from spyderlib.utils import programs
 from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage
 from spyderlib.widgets.externalshell.monitor import REMOTE_SETTINGS

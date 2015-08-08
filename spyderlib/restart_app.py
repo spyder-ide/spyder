@@ -20,7 +20,7 @@ import sys
 import time
 
 
-from spyderlib.baseconfig import _, get_image_path
+from spyderlib.config.base import _, get_image_path
 from spyderlib.py3compat import to_text_string
 from spyderlib.qt.QtCore import Qt, QTimer
 from spyderlib.qt.QtGui import (QColor, QMessageBox, QPixmap, QSplashScreen,

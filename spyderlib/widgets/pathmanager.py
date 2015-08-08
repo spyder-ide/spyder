@@ -21,7 +21,7 @@ import os.path as osp
 
 # Local imports
 from spyderlib.utils.qthelpers import create_toolbutton
-from spyderlib.baseconfig import _
+from spyderlib.config.base import _
 from spyderlib.py3compat import getcwd
 
 

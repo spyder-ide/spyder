@@ -29,8 +29,8 @@ import sys
 import subprocess
 
 # Local imports
-from spyderlib.baseconfig import SCIENTIFIC_STARTUP, running_in_mac_app, _
-from spyderlib.config import CONF
+from spyderlib.config.base import SCIENTIFIC_STARTUP, running_in_mac_app, _
+from spyderlib.config.main import CONF
 from spyderlib.utils import encoding, programs
 from spyderlib.utils.misc import (get_error_match, get_python_executable,
                                   remove_backslashes, is_python_script)

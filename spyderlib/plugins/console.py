@@ -24,8 +24,8 @@ import os.path as osp
 
 
 # Local imports
-from spyderlib.baseconfig import _, debug_print
-from spyderlib.config import CONF
+from spyderlib.config.base import _, debug_print
+from spyderlib.config.main import CONF
 from spyderlib.utils.misc import get_error_match, remove_backslashes
 from spyderlib.utils.qthelpers import (create_action, add_actions,
                                        mimedata2url, DialogManager)

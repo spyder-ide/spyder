@@ -14,7 +14,7 @@ import spyderlib.utils.icon_manager as ima
 import os
 
 # Local imports
-from spyderlib.baseconfig import _
+from spyderlib.config.base import _
 from spyderlib.widgets.dicteditor import DictEditor
 
 

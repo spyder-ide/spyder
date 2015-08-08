@@ -8,7 +8,7 @@
 
 import sys
 
-from spyderlib.baseconfig import _
+from spyderlib.config.base import _
 
 from spyderlib.qt.QtGui import (QVBoxLayout, QHBoxLayout, QDialogButtonBox,
                                 QGroupBox, QComboBox, QPushButton, QDialog,

@@ -11,7 +11,7 @@ from spyderlib.qt.QtCore import Signal, Slot
 import spyderlib.utils.icon_manager as ima
 
 # Local imports
-from spyderlib.baseconfig import _
+from spyderlib.config.base import _
 from spyderlib.utils.qthelpers import create_action
 from spyderlib.widgets.projectexplorer import ProjectExplorerWidget
 from spyderlib.plugins import SpyderPluginMixin

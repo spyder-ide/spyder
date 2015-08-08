@@ -37,13 +37,13 @@ def apply():
 
     # [1] Patching project.Project for compatibility with py2exe/cx_Freeze
     #     distributions
-    from spyderlib.baseconfig import is_py2exe_or_cx_Freeze
+    from spyderlib.config.base import is_py2exe_or_cx_Freeze
     if is_py2exe_or_cx_Freeze():
         from rope.base import project
         class PatchedProject(project.Project):
             def _default_config(self):
                 # py2exe/cx_Freeze distribution
-                from spyderlib.baseconfig import get_module_source_path
+                from spyderlib.config.base import get_module_source_path
                 fname = get_module_source_path('spyderlib',
                                                'default_config.py')
                 return open(fname, 'rb').read()

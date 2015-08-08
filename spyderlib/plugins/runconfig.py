@@ -19,8 +19,8 @@ import spyderlib.utils.icon_manager as ima
 import os.path as osp
 
 # Local imports
-from spyderlib.baseconfig import _
-from spyderlib.config import CONF
+from spyderlib.config.base import _
+from spyderlib.config.main import CONF
 from spyderlib.plugins.configdialog import GeneralConfigPage
 from spyderlib.py3compat import to_text_string, getcwd
 

@@ -10,7 +10,7 @@ IPython configuration variables needed by Spyder
 
 from spyderlib.utils import programs
 from spyderlib import dependencies
-from spyderlib.baseconfig import _
+from spyderlib.config.base import _
 
 
 IPYTHON_REQVER = '>=3.0'

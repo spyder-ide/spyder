@@ -19,8 +19,8 @@ import spyderlib.utils.icon_manager as ima
 import re
 
 # Local imports
-from spyderlib.baseconfig import _
-from spyderlib.guiconfig import create_shortcut, new_shortcut
+from spyderlib.config.base import _
+from spyderlib.config.gui import create_shortcut, new_shortcut
 from spyderlib.utils.qthelpers import get_icon, create_toolbutton
 from spyderlib.widgets.comboboxes import PatternComboBox
 from spyderlib.py3compat import to_text_string

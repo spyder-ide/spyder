@@ -27,10 +27,10 @@ from spyderlib.qt.compat import getsavefilename
 import spyderlib.utils.icon_manager as ima
 
 # Local import
-from spyderlib.baseconfig import get_conf_path, _, STDERR, DEBUG
-from spyderlib.config import CONF
-from spyderlib.guiconfig import (get_font, create_shortcut, get_shortcut,
-                                 new_shortcut)
+from spyderlib.config.base import get_conf_path, _, STDERR, DEBUG
+from spyderlib.config.main import CONF
+from spyderlib.config.gui import (get_font, create_shortcut, get_shortcut,
+                                  new_shortcut)
 from spyderlib.utils import encoding
 from spyderlib.utils.qthelpers import (keybinding, create_action, add_actions,
                                        restore_keyevent)

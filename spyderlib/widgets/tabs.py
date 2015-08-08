@@ -20,8 +20,8 @@ import os.path as osp
 import sys
 
 # Local imports
-from spyderlib.baseconfig import _
-from spyderlib.guiconfig import new_shortcut
+from spyderlib.config.base import _
+from spyderlib.config.gui import new_shortcut
 from spyderlib.utils.misc import get_common_path
 from spyderlib.utils.qthelpers import (add_actions, create_toolbutton,
                                        create_action)

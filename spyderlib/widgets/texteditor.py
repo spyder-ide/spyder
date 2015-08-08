@@ -15,8 +15,8 @@ from spyderlib.qt.QtGui import QVBoxLayout, QTextEdit, QDialog, QDialogButtonBox
 import spyderlib.utils.icon_manager as ima
 
 # Local import
-from spyderlib.baseconfig import _
-from spyderlib.guiconfig import get_font
+from spyderlib.config.base import _
+from spyderlib.config.gui import get_font
 from spyderlib.py3compat import (to_text_string, to_binary_string,
                                  is_binary_string)
 

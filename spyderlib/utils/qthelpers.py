@@ -22,8 +22,8 @@ import os.path as osp
 import sys
 
 # Local import
-from spyderlib.baseconfig import get_image_path, running_in_mac_app
-from spyderlib.guiconfig import get_shortcut
+from spyderlib.config.base import get_image_path, running_in_mac_app
+from spyderlib.config.gui import get_shortcut
 from spyderlib.utils import programs
 from spyderlib.py3compat import is_text_string, to_text_string
 

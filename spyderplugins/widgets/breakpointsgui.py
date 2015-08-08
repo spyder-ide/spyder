@@ -22,8 +22,8 @@ import sys
 import os.path as osp
 
 # Local imports
-from spyderlib.baseconfig import get_translation
-from spyderlib.config import CONF
+from spyderlib.config.base import get_translation
+from spyderlib.config.main import CONF
 from spyderlib.utils.qthelpers import create_action, add_actions
 
 

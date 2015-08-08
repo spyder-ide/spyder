@@ -13,7 +13,7 @@ from spyderlib.qt.QtCore import Signal, Qt
 import spyderlib.utils.icon_manager as ima
 
 # Local imports
-from spyderlib.baseconfig import get_translation
+from spyderlib.config.base import get_translation
 _ = get_translation("p_profiler", dirname="spyderplugins")
 from spyderlib.utils.qthelpers import create_action
 from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage, runconfig

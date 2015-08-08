@@ -68,7 +68,7 @@ from spyderlib.qt.QtCore import Qt, Signal, QSize, Slot, Property
 import datetime
 
 # Local imports
-from spyderlib.baseconfig import _, DEBUG, STDERR
+from spyderlib.config.base import _, DEBUG, STDERR
 from spyderlib.py3compat import is_text_string, to_text_string, is_string, u
 
 DEBUG_FORMLAYOUT = DEBUG >= 2

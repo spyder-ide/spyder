@@ -13,7 +13,7 @@ import sys
 import os.path as osp
 
 # Local imports
-from spyderlib.baseconfig import _
+from spyderlib.config.base import _
 from spyderlib.widgets.browser import WebBrowser
 from spyderlib.utils.misc import select_port
 from spyderlib.py3compat import to_text_string, PY3

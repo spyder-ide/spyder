@@ -25,7 +25,7 @@ LOCALE_CODEC = QTextCodec.codecForLocale()
 # Local imports
 from spyderlib.utils.qthelpers import (create_toolbutton, create_action, 
                                        add_actions)
-from spyderlib.baseconfig import get_conf_path, _
+from spyderlib.config.base import get_conf_path, _
 from spyderlib.py3compat import is_text_string, to_text_string
 
 
