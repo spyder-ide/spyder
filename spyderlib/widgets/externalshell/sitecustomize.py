@@ -454,7 +454,7 @@ class SpyderPdb(pdb.Pdb):
         bdb.Breakpoint.bplist = {}
         bdb.Breakpoint.bpbynumber = [None]
         #------
-        from spyderlib.config.config import CONF
+        from spyderlib.config.main import CONF
         CONF.load_from_ini()
         if CONF.get('run', 'breakpoints/enabled', True):
             breakpoints = CONF.get('run', 'breakpoints', {})
@@ -848,8 +848,8 @@ def evalsc(command):
             Popen('ls', shell=True, stdin=PIPE)
             _print('\n')
     elif command == 'scientific':
-        from spyderlib import baseconfig
-        execfile(baseconfig.SCIENTIFIC_STARTUP, namespace)
+        from spyderlib.config import base
+        execfile(base.SCIENTIFIC_STARTUP, namespace)
     else:
         raise NotImplementedError("Unsupported command: '%s'" % command)
 

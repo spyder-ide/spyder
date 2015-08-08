@@ -23,7 +23,7 @@ from spyderlib.qt.compat import to_qvariant, from_qvariant
 # Local imports
 from spyderlib.config.base import _, debug_print
 from spyderlib.config.gui import (get_shortcut, set_shortcut,
-                                 iter_shortcuts, reset_shortcuts)
+                                  iter_shortcuts, reset_shortcuts)
 from spyderlib.plugins.configdialog import GeneralConfigPage
 from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.qthelpers import get_std_icon

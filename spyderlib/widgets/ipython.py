@@ -37,7 +37,7 @@ from spyderlib.config.base import (get_conf_path, get_image_path,
                                    get_module_source_path, _)
 from spyderlib.config.main import CONF
 from spyderlib.config.gui import (create_shortcut, get_font, get_shortcut,
-                                 new_shortcut)
+                                  new_shortcut)
 from spyderlib.utils.dochelpers import getargspecfromtext, getsignaturefromtext
 from spyderlib.utils.qthelpers import (create_toolbutton, add_actions, 
                                        create_action, restore_keyevent)

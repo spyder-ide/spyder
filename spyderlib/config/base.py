@@ -242,7 +242,7 @@ def get_available_translations():
     # is added, to ensure LANGUAGE_CODES is updated.
     for lang in langs:
         if lang not in LANGUAGE_CODES:
-            error = _('Update LANGUAGE_CODES (inside baseconfig.py) if a new '
+            error = _('Update LANGUAGE_CODES (inside config/base.py) if a new '
                       'translation has been added to Spyder')
             raise Exception(error)
     return langs

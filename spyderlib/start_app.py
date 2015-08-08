@@ -54,7 +54,7 @@ def main():
     options to the application.
     """
     # Renaming old configuration files (the '.' prefix has been removed)
-    # (except for .spyder.ini --> spyder.ini, which is done in userconfig.py)
+    # (except for .spyder.ini --> spyder.ini, which is done in config/user.py)
     if DEV is None:
         cpath = get_conf_path()
         for fname in os.listdir(cpath):
