@@ -15,8 +15,8 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QHBoxLayout,
                                 QDialog, QLineEdit, QRegExpValidator)
 
 # Local imports
-from spyderlib.baseconfig import _
-from spyderlib.guiconfig import new_shortcut
+from spyderlib.config.base import _
+from spyderlib.config.gui import new_shortcut
 from spyderlib.py3compat import to_text_string
 from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.stringmatching import get_search_scores
