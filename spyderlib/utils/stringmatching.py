@@ -173,7 +173,7 @@ def get_search_score(query, choice, ignore_case=True, apply_regex=True,
             score += pat.count(u' ')*10000
             score += pat.count(let)*100
 
-    return enriched_text, score
+    return original_choice, enriched_text, score
 
 
 def get_search_scores(query, choices, ignore_case=True, template='{}',
@@ -214,9 +214,9 @@ def get_search_scores(query, choices, ignore_case=True, template='{}',
                                       apply_regex=False, template=template)
         else:
             if query:
-                result = (choice, NOT_FOUND_SCORE)
+                result = (choice, choice, NOT_FOUND_SCORE)
             else:
-                result = (choice, NO_SCORE)
+                result = (choice, choice, NO_SCORE)
 
         if valid_only:
             if result[-1] != NOT_FOUND_SCORE:
