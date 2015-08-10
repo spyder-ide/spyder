@@ -23,6 +23,49 @@ from spyderlib.utils.stringmatching import get_search_scores
 from spyderlib.widgets.helperwidgets import HelperToolButton, HTMLDelegate
 
 
+def get_symbol_icons(symbols):
+    """ """
+    class_icon = ima.icon('class')
+    method_icon = ima.icon('method')
+    function_icon = ima.icon('function')
+    private_icon = ima.icon('private1')
+    super_private_icon = ima.icon('private2')
+
+    # line-1, name, fold level
+    fold_levels = sorted(list(set([s[-1] for s in symbols])))
+    parents = [None]*len(symbols)
+    icons = [None]*len(symbols)
+    indexes = []
+    for level in fold_levels:
+        for index, item in enumerate(symbols):
+            line, name, fold_level = item
+            if index in indexes:
+                continue
+
+            if fold_level == level:
+                indexes.append(index)
+                parent = item
+            else:
+                parents[index] = parent
+
+    for index, item in enumerate(symbols):
+        parent = parents[index]
+        if item[1].startswith('def '):
+            icons[index] = function_icon
+        elif item[1].startswith('class '):
+            icons[index] = class_icon
+
+        if parent is not None:
+            if parent[1].startswith('class '):
+                if item[1].startswith('def __'):
+                    icons[index] = super_private_icon
+                elif item[1].startswith('def _'):
+                    icons[index] = private_icon
+                else:
+                    icons[index] = method_icon
+    return icons
+
+
 def shorten_paths(path_list, is_unsaved):
     """
     Takes a list of paths and tries to "intelligently" shorten them all. The
@@ -562,46 +605,3 @@ class FileSwitcher(QDialog):
             max_width = max([fm.width(l) for l in content])
             self.list.setMinimumWidth(max_width + extra)
             self.set_position()
-
-
-def get_symbol_icons(symbols):
-    """ """
-    class_icon = ima.icon('class')
-    method_icon = ima.icon('method')
-    function_icon = ima.icon('function')
-    private_icon = ima.icon('private1')
-    super_private_icon = ima.icon('private2')
-
-    # line-1, name, fold level
-    fold_levels = sorted(list(set([s[-1] for s in symbols])))
-    parents = [None]*len(symbols)
-    icons = [None]*len(symbols)
-    indexes = []
-    for level in fold_levels:
-        for index, item in enumerate(symbols):
-            line, name, fold_level = item
-            if index in indexes:
-                continue
-
-            if fold_level == level:
-                indexes.append(index)
-                parent = item
-            else:
-                parents[index] = parent
-
-    for index, item in enumerate(symbols):
-        parent = parents[index]
-        if item[1].startswith('def '):
-            icons[index] = function_icon
-        elif item[1].startswith('class '):
-            icons[index] = class_icon
-
-        if parent is not None:
-            if parent[1].startswith('class '):
-                if item[1].startswith('def __'):
-                    icons[index] = super_private_icon
-                elif item[1].startswith('def _'):
-                    icons[index] = private_icon
-                else:
-                    icons[index] = method_icon
-    return icons

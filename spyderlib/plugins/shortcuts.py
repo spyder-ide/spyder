@@ -439,6 +439,7 @@ class ShortcutsModel(QAbstractTableModel):
         self.shortcuts = []
         self.scores = []
         self.rich_text = []
+        self.normal_text = []
         self.letters = ''
         self.label = QLabel()
         self.widths = []
@@ -545,7 +546,7 @@ class ShortcutsModel(QAbstractTableModel):
         self.letters = text
         names = [shortcut.name for shortcut in self.shortcuts]
         results = get_search_scores(text, names, template='<b>{0}</b>')
-        self.rich_text, self.scores = zip(*results)
+        self.normal_text, self.rich_text, self.scores = zip(*results)
         self.reset()
 
     def update_active_row(self):
