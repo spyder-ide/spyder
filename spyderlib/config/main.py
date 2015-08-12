@@ -553,6 +553,7 @@ DEFAULTS = [
               'editor/show/hide outline': "Ctrl+Alt+O",
               'editor/show/hide project explorer': "Ctrl+Alt+P",
               'editor/new file': "Ctrl+N",
+              'Editor/Open last closed':"Ctrl+Shift+N",
               'editor/open file': "Ctrl+O",
               'editor/save file': "Ctrl+S",
               'editor/save all': "Ctrl+Alt+S",
