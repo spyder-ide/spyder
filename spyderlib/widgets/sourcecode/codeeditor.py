@@ -1883,6 +1883,7 @@ class CodeEditor(TextEditBaseWidget):
         # find the line that contains our scope
         diff = 0
         add_indent = False
+        prevline = None
         for prevline in range(block_nb-1, -1, -1):
             cursor.movePosition(QTextCursor.PreviousBlock)
             prevtext = to_text_string(cursor.block().text()).rstrip()
@@ -1903,6 +1904,10 @@ class CodeEditor(TextEditBaseWidget):
                     break
 
         indent = self.get_block_indentation(block_nb)
+        
+        if not prevline:
+            return False
+
         correct_indent = self.get_block_indentation(prevline)
 
         if add_indent:
