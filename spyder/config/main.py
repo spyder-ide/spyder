@@ -159,7 +159,7 @@ DEFAULTS = [
               'pylab': True,
               'pylab/autoload': False,
               'pylab/backend': 0,
-              'pylab/inline/figucre_format': 0,
+              'pylab/inline/figure_format': 0,
               'pylab/inline/resolution': 72,
               'pylab/inline/width': 6,
               'pylab/inline/height': 4,
