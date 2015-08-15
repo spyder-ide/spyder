@@ -16,7 +16,8 @@ from __future__ import print_function
 from spyderlib.qt import is_pyqt46
 from spyderlib.qt.QtGui import (QVBoxLayout, QMessageBox, QMenu, QFont,
                                 QAction, QApplication, QWidget,
-                                QKeySequence, QMainWindow, QSplitter)
+                                QKeySequence, QMainWindow, QSplitter,
+                                QHBoxLayout)
 from spyderlib.qt.QtCore import (Signal, Qt, QFileInfo, QThread, QObject,
                                  QByteArray, QSize, QPoint, QTimer, Slot)
 from spyderlib.qt.compat import getsavefilename
@@ -542,17 +543,16 @@ class EditorStack(QWidget):
                 break
             except AttributeError:
                 e = e.parent()
-        if not self.fileswitcher_dlg:
-            self.fileswitcher_dlg = FileSwitcher(self, self.tabs, self.data)
-            self.fileswitcher_dlg.sig_goto_file.connect(self.set_stack_index)
-            self.fileswitcher_dlg.sig_close_file.connect(self.close_file)
-        self.fileswitcher_dlg.show(self.get_stack_index())
+        self.fileswitcher_dlg = FileSwitcher(self, self.tabs, self.data)
+        self.fileswitcher_dlg.sig_goto_file.connect(self.set_stack_index)
+        self.fileswitcher_dlg.sig_close_file.connect(self.close_file)
+        self.fileswitcher_dlg.show()
 
     def update_fileswitcher_dlg(self):
         """Synchronize file list dialog box with editor widget tabs"""
         if self.fileswitcher_dlg is not None and \
                 self.fileswitcher_dlg.isVisible():
-            self.fileswitcher_dlg.setup(self.get_stack_index())
+            self.fileswitcher_dlg.setup()
 
     def go_to_line(self):
         """Go to line dialog"""

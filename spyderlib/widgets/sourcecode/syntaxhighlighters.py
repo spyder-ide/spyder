@@ -330,15 +330,13 @@ class OutlineExplorerData(object):
         if self.def_type == self.FUNCTION:
             return self.def_name
 
-    def get_full_name(self):
-        template = '{0} {1}'
-
+    def get_token(self):
         if self.def_type == self.FUNCTION:
             token = self.FUNCTION_TOKEN
         elif self.def_type == self.CLASS:
             token = self.CLASS_TOKEN
 
-        return template.format(token, self.def_name)
+        return token
 
 
 class PythonSH(BaseSH):
