@@ -6,6 +6,7 @@
 # (see spyderlib/__init__.py for details)
 
 from __future__ import print_function
+
 import os
 import os.path as osp
 

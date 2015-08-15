@@ -536,13 +536,6 @@ class EditorStack(QWidget):
         """Open file list management dialog box"""
         if not self.tabs.count():
             return
-        e = self
-        while True:
-            try:
-                e.switch_to_plugin()
-                break
-            except AttributeError:
-                e = e.parent()
         self.fileswitcher_dlg = FileSwitcher(self, self.tabs, self.data)
         self.fileswitcher_dlg.sig_goto_file.connect(self.set_stack_index)
         self.fileswitcher_dlg.sig_close_file.connect(self.close_file)
@@ -550,8 +543,7 @@ class EditorStack(QWidget):
 
     def update_fileswitcher_dlg(self):
         """Synchronize file list dialog box with editor widget tabs"""
-        if self.fileswitcher_dlg is not None and \
-                self.fileswitcher_dlg.isVisible():
+        if self.fileswitcher_dlg:
             self.fileswitcher_dlg.setup()
 
     def go_to_line(self):
@@ -1118,6 +1110,9 @@ class EditorStack(QWidget):
                 if index < new_index:
                     new_index -= 1
                 self.set_stack_index(new_index)
+        if self.get_stack_count() == 0:
+            self.sig_new_file[()].emit()
+
         return is_ok
 
     def close_all_files(self):
@@ -1242,7 +1237,7 @@ class EditorStack(QWidget):
         filename, _selfilter = getsavefilename(self, _("Save Python script"),
                                original_filename, EDIT_FILTERS, selectedfilter)
         self.redirect_stdio.emit(True)
-        if filename:
+            if filename:
             return osp.normpath(filename)
 
     def save_as(self, index=None):
