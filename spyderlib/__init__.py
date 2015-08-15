@@ -62,11 +62,6 @@ def get_versions(reporev=True):
     """Get version information for components used by Spyder"""
     import sys
     import platform
-    # Hack to let IPython set QT_API, in case it's installed
-    try:
-        from IPython.external import qt     # analysis:ignore
-    except (ImportError, ValueError):
-        pass
     import spyderlib.qt
     import spyderlib.qt.QtCore
 

@@ -15,16 +15,19 @@ API = os.environ['QT_API']
 API_NAME = {'pyqt': 'PyQt4', 'pyside': 'PySide'}[API]
 
 if API == 'pyqt':
-    # We do not force QString, QVariant, ... API to #1 or #2 anymore 
-    # as spyderlib is now compatible with both APIs
-#    import sip
-#    try:
-#        sip.setapi('QString', 2)
-#        sip.setapi('QVariant', 2)
-#    except AttributeError:
-#        # PyQt < v4.6: in future version, we should warn the user 
-#        # that PyQt is outdated and won't be supported by Spyder >v2.1
-#        pass
+    # Since Spyder 2.3.6 we only support API #2
+    import sip
+    try:
+        sip.setapi('QString', 2)
+        sip.setapi('QVariant', 2)
+        sip.setapi('QDate', 2)
+        sip.setapi('QDateTime', 2)
+        sip.setapi('QTextStream', 2)
+        sip.setapi('QTime', 2)
+        sip.setapi('QUrl', 2)
+    except AttributeError:
+        pass
+
     try:
         from PyQt4.QtCore import PYQT_VERSION_STR as __version__
     except ImportError:
@@ -32,7 +35,6 @@ if API == 'pyqt':
         API = os.environ['QT_API'] = 'pyside'
         API_NAME = 'PySide'
     else:
-        __version_info__ = tuple(__version__.split('.')+['final', 1])
         is_old_pyqt = __version__.startswith(('4.4', '4.5', '4.6', '4.7'))
         is_pyqt46 = __version__.startswith('4.6')
         import sip

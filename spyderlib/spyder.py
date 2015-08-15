@@ -41,7 +41,15 @@ ORIGINAL_SYS_EXIT = sys.exit
 
 
 #==============================================================================
-# Test if IPython is installed to eventually switch to PyQt API #2
+# Check requirements
+#==============================================================================
+from spyderlib import requirements
+requirements.check_path()
+requirements.check_qt()
+
+
+#==============================================================================
+# IPython dependencies
 #==============================================================================
 from spyderlib.baseconfig import _
 from spyderlib.ipythonconfig import IPYTHON_QT_INSTALLED, SUPPORTED_IPYTHON
@@ -51,30 +59,6 @@ dependencies.add("IPython", _("IPython Console integration"),
                  required_version=SUPPORTED_IPYTHON)
 dependencies.add("zmq", _("IPython Console integration"),
                  required_version='>=2.1.11')
-
-if IPYTHON_QT_INSTALLED:
-    # Importing IPython will eventually set the QT_API environment variable
-    import IPython  # analysis:ignore
-    if os.environ.get('QT_API', 'pyqt') == 'pyqt':
-        # If PyQt is the selected GUI toolkit (at this stage, only the
-        # bootstrap script has eventually set this option), switch to 
-        # PyQt API #2 by simply importing the IPython qt module
-        os.environ['QT_API'] = 'pyqt'
-        try:
-            from IPython.external import qt  #analysis:ignore
-        except ImportError:
-            # Avoid raising any error here: the spyderlib.requirements module
-            # will take care of it, in a user-friendly way (Tkinter message box
-            # if no GUI toolkit is installed)
-            pass
-
-
-#==============================================================================
-# Check requirements
-#==============================================================================
-from spyderlib import requirements
-requirements.check_path()
-requirements.check_qt()
 
 
 #==============================================================================
@@ -128,7 +112,7 @@ MAIN_APP = qapplication()
 #==============================================================================
 # Create splash screen out of MainWindow to reduce perceived startup time. 
 #==============================================================================
-from spyderlib.baseconfig import _, get_image_path
+from spyderlib.baseconfig import get_image_path
 SPLASH = QSplashScreen(QPixmap(get_image_path('splash.png'), 'png'))
 SPLASH_FONT = SPLASH.font()
 SPLASH_FONT.setPixelSize(10)
