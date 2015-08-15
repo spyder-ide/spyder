@@ -13,23 +13,44 @@ from spyderlib import dependencies
 from spyderlib.config.base import _
 
 
+# Constants
 IPYTHON_REQVER = '>=3.0'
 ZMQ_REQVER = '>=13.0.0'
+QTCONSOLE_REQVER = '>=4.0'
 
+
+# Dependencies
 dependencies.add("IPython", _("IPython Console integration"),
                  required_version=IPYTHON_REQVER)
 dependencies.add("zmq", _("IPython Console integration"),
                  required_version=ZMQ_REQVER)
 
+
+# Jupyter 4.0 requirements
+ipy4_installed = programs.is_module_installed('IPython', '>=4.0')
+if ipy4_installed:
+    dependencies.add("qtconsole", _("IPython Console integration"),
+                     required_version=QTCONSOLE_REQVER)
+
+
+# Auxiliary functions
 def is_qtconsole_installed():
-    ipython_installed = programs.is_module_installed('IPython.qt',
-                                                     version=IPYTHON_REQVER)
+    ipyqt_installed = programs.is_module_installed('IPython.qt',
+                                                   version=IPYTHON_REQVER)
     pyzmq_installed = programs.is_module_installed('zmq', version=ZMQ_REQVER)
     pygments_installed = programs.is_module_installed('pygments')
 
-    if ipython_installed and pyzmq_installed and pygments_installed:    
-        return True
+    if ipyqt_installed and pyzmq_installed and pygments_installed:
+        if ipy4_installed:
+            if programs.is_module_installed('qtconsole'):
+                return True
+            else:
+                return False
+        else:
+            return True
     else:
         return False
 
+
+# Main check for IPython presence
 IPYTHON_QT_INSTALLED = is_qtconsole_installed()
