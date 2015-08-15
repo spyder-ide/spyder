@@ -49,19 +49,6 @@ requirements.check_qt()
 
 
 #==============================================================================
-# IPython dependencies
-#==============================================================================
-from spyderlib.baseconfig import _
-from spyderlib.ipythonconfig import IPYTHON_QT_INSTALLED, SUPPORTED_IPYTHON
-from spyderlib import dependencies
-
-dependencies.add("IPython", _("IPython Console integration"),
-                 required_version=SUPPORTED_IPYTHON)
-dependencies.add("zmq", _("IPython Console integration"),
-                 required_version='>=2.1.11')
-
-
-#==============================================================================
 # Windows platforms only: support for hiding the attached console window
 #==============================================================================
 set_attached_console_visible = None
@@ -112,7 +99,7 @@ MAIN_APP = qapplication()
 #==============================================================================
 # Create splash screen out of MainWindow to reduce perceived startup time. 
 #==============================================================================
-from spyderlib.baseconfig import get_image_path
+from spyderlib.baseconfig import _, get_image_path
 SPLASH = QSplashScreen(QPixmap(get_image_path('splash.png'), 'png'))
 SPLASH_FONT = SPLASH.font()
 SPLASH_FONT.setPixelSize(10)
@@ -133,6 +120,8 @@ from spyderlib.baseconfig import (get_conf_path, get_module_data_path,
                                   running_in_mac_app)
 from spyderlib.config import CONF, EDIT_EXT, IMPORT_EXT, OPEN_FILES_PORT
 from spyderlib.cli_options import get_options
+from spyderlib import dependencies
+from spyderlib.ipythonconfig import IPYTHON_QT_INSTALLED
 from spyderlib.userconfig import NoDefault
 from spyderlib.utils import encoding, programs
 from spyderlib.utils.iofuncs import load_session, save_session, reset_session
