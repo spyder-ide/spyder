@@ -1237,7 +1237,7 @@ class EditorStack(QWidget):
         filename, _selfilter = getsavefilename(self, _("Save Python script"),
                                original_filename, EDIT_FILTERS, selectedfilter)
         self.redirect_stdio.emit(True)
-            if filename:
+        if filename:
             return osp.normpath(filename)
 
     def save_as(self, index=None):
