@@ -17,7 +17,7 @@ from spyderlib.qt.QtCore import Signal, QEvent, QObject, QRegExp, QSize, Qt
 
 # Local imports
 from spyderlib.config.base import _
-from spyderlib.py3compat import to_text_string
+from spyderlib.py3compat import iteritems, to_text_string
 from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.stringmatching import get_search_scores
 from spyderlib.widgets.helperwidgets import HelperToolButton, HTMLDelegate
@@ -122,7 +122,7 @@ def shorten_paths(path_list, is_unsaved):
 
         # Firstly, find the longest common prefix for all in the level
         # s = len of longest common prefix
-        sample_toks = level_idx.values()[0]
+        sample_toks = list(level_idx.values())[0]
         if not sample_toks:
             s = 0
         else:
@@ -157,7 +157,7 @@ def shorten_paths(path_list, is_unsaved):
                         group = prospective_group
                     break
                 # Only keep going if all n still match on the kth token
-                _, sample_toks = next(group.iteritems())
+                _, sample_toks = next(iteritems(group))
                 prospective_group = {idx: toks for idx, toks
                                      in group.items()
                                      if toks[k] == sample_toks[k]}
@@ -166,7 +166,7 @@ def shorten_paths(path_list, is_unsaved):
                     k += 1
                 else:
                     break
-            _, sample_toks = next(group.iteritems())
+            _, sample_toks = next(iteritems(group))
             if k == 0:
                 short_form = ''
             elif k == 1:
