@@ -29,7 +29,7 @@ def process_python_symbol_data(oedata):
     symbol_list = []
     for key in oedata:
         val = oedata[key]
-        if val and val != 'found_cell_separators':
+        if val and key != 'found_cell_separators':
             if val.is_class_or_function():
                 symbol_list.append((key, val.def_name, val.fold_level,
                                     val.get_token()))
@@ -528,8 +528,7 @@ class FileSwitcher(QDialog):
         for index, score in enumerate(scores):
             text, rich_text, score_value = score
             line, fold_level, token = line_fold_token[index]
-            lines.append(text + ' '*(fold_level + 2))
-
+            lines.append(text)
             if score_value != -1:
                 results.append((score_value, line, text, rich_text,
                                 fold_level, icons[index], token))
