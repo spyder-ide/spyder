@@ -308,7 +308,7 @@ else:
 IS_IPYTHON = os.environ.get("IPYTHON_KERNEL", "").lower() == "true"
 
 if matplotlib is not None:
-    mpl_backend = os.environ.get("MATPLOTLIB_BACKEND", "")
+    mpl_backend = os.environ.get("SPY_MPL_BACKEND", "")
     mpl_ion = os.environ.get("MATPLOTLIB_ION", "")
 
     # Setting no backend if the user asks for it

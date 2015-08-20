@@ -468,7 +468,7 @@ class ExternalPythonShell(ExternalShellBase):
             env.append('ETS_TOOLKIT=%s' % self.ets_backend)
         if self.mpl_backend is not None:
             backends = {0: 'Automatic', 1: 'None', 2: 'TkAgg', 3: 'MacOSX'}
-            env.append('MATPLOTLIB_BACKEND=%s' % backends[self.mpl_backend])
+            env.append('SPY_MPL_BACKEND=%s' % backends[self.mpl_backend])
         if self.qt_api and not self.is_ipykernel:
             env.append('QT_API=%s' % self.qt_api)
         env.append('COLORIZE_SYS_STDERR=%s' % self.colorize_sys_stderr)
