@@ -304,6 +304,9 @@ def make_python_patterns(additional_keywords=[], additional_builtins=[]):
 
 class OutlineExplorerData(object):
     CLASS, FUNCTION, STATEMENT, COMMENT, CELL = list(range(5))
+    FUNCTION_TOKEN = 'def'
+    CLASS_TOKEN = 'class'
+
     def __init__(self):
         self.text = None
         self.fold_level = None
@@ -312,6 +315,9 @@ class OutlineExplorerData(object):
         
     def is_not_class_nor_function(self):
         return self.def_type not in (self.CLASS, self.FUNCTION)
+
+    def is_class_or_function(self):
+        return self.def_type in (self.CLASS, self.FUNCTION)
     
     def is_comment(self):
         return self.def_type in (self.COMMENT, self.CELL)
@@ -323,7 +329,16 @@ class OutlineExplorerData(object):
     def get_function_name(self):
         if self.def_type == self.FUNCTION:
             return self.def_name
-    
+
+    def get_token(self):
+        if self.def_type == self.FUNCTION:
+            token = self.FUNCTION_TOKEN
+        elif self.def_type == self.CLASS:
+            token = self.CLASS_TOKEN
+
+        return token
+
+
 class PythonSH(BaseSH):
     """Python Syntax Highlighter"""
     # Syntax highlighting rules:
@@ -421,6 +436,7 @@ class PythonSH(BaseSH):
                                     oedata.def_type = self.DEF_TYPES[
                                                         to_text_string(value)]
                                     oedata.def_name = text[start1:end1]
+                                    oedata.color = self.formats["definition"]
                             elif value in ("elif", "else", "except", "finally",
                                            "for", "if", "try", "while",
                                            "with"):
