@@ -10,6 +10,11 @@
 import sys
 import os.path as osp
 
+# TODO: Move to Jupyter imports in 3.1
+import warnings
+from IPython.utils.shimmodule import ShimWarning
+warnings.simplefilter('ignore', ShimWarning)
+
 
 def sympy_config(mpl_backend):
     """Sympy configuration"""

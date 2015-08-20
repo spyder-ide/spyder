@@ -28,7 +28,10 @@ from spyderlib import pygments_patch
 pygments_patch.apply()
 
 # IPython imports
-from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
+try:
+    from qtconsole.rich_jupyter_widget import RichJupyterWidget as RichIPythonWidget
+except ImportError:
+    from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
 from IPython.qt.console.ansi_code_processor import ANSI_OR_SPECIAL_PATTERN
 from IPython.core.application import get_ipython_dir
 from IPython.core.oinspect import call_tip
