@@ -74,6 +74,15 @@ except ImportError:
 
 
 #==============================================================================
+# Don't show IPython ShimWarning's to our users
+# TODO: Move to Jupyter imports in 3.1
+#==============================================================================
+import warnings
+from IPython.utils.shimmodule import ShimWarning
+warnings.simplefilter('ignore', ShimWarning)
+
+
+#==============================================================================
 # Qt imports
 #==============================================================================
 from spyderlib.qt import PYQT5
