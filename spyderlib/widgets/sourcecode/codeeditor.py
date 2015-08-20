@@ -1903,11 +1903,10 @@ class CodeEditor(TextEditBaseWidget):
                 else:
                     break
 
-        indent = self.get_block_indentation(block_nb)
-        
         if not prevline:
             return False
 
+        indent = self.get_block_indentation(block_nb)
         correct_indent = self.get_block_indentation(prevline)
 
         if add_indent:
