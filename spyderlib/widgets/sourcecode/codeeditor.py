@@ -1812,11 +1812,15 @@ class CodeEditor(TextEditBaseWidget):
             return
         cursor = self.textCursor()
         block_nb = cursor.blockNumber()
+        prevline = None
         for prevline in range(block_nb-1, -1, -1):
             cursor.movePosition(QTextCursor.PreviousBlock)
             prevtext = to_text_string(cursor.block().text()).rstrip()
             if not prevtext.strip().startswith('#'):
                 break
+
+        if not prevline:
+            return False
 
         indent = self.get_block_indentation(block_nb)
         correct_indent = self.get_block_indentation(prevline)
