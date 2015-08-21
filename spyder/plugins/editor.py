@@ -629,23 +629,17 @@ class Editor(SpyderPluginWidget):
                 triggered=self.new,
                 context=Qt.WidgetShortcut)
         self.register_shortcut(self.new_action, context="Editor",
-<<<<<<< 8be0e5c23b58231f3e982dd659dd4f9532a06375:spyder/plugins/editor.py
                                name="New file", add_sc_to_tip=True)
 
-=======
-                               name="New file")
         add_shortcut_to_tooltip(self.new_action, context="Editor",
                                 name="New file")
         
         self.open_last_closed = create_action(self, _("O&pen last closed"),
-                icon=ima.icon('filenew'), tip=_("Open last closed"),
+                tip=_("Open last closed"),
                 triggered=self.open_last_closed)
         self.register_shortcut(self.open_last_closed, context="Editor",
                                name="Open last closed")
-        add_shortcut_to_tooltip(self.open_last_closed, context="Editor",
-                                name="Open last closed")
         
->>>>>>> added open last closed tab option:spyderlib/plugins/editor.py
         self.open_action = create_action(self, _("&Open..."),
                 icon=ima.icon('fileopen'), tip=_("Open file"),
                 triggered=self.load,
@@ -980,9 +974,8 @@ class Editor(SpyderPluginWidget):
         self.recent_file_menu = QMenu(_("Open &recent"), self)
         self.recent_file_menu.aboutToShow.connect(self.update_recent_file_menu)
 
-<<<<<<< 8be0e5c23b58231f3e982dd659dd4f9532a06375:spyder/plugins/editor.py
         file_menu_actions = [self.new_action,
-                             None,
+			     self.open_last_closed,
                              self.open_action,
                              self.recent_file_menu,
                              None,
@@ -1000,15 +993,6 @@ class Editor(SpyderPluginWidget):
                              self.close_all_action,
                              None]                     
 
-=======
-        file_menu_actions = [self.new_action, self.open_last_closed, self.open_action,
-                             self.recent_file_menu, self.save_action,
-                             self.save_all_action, save_as_action,
-                             self.revert_action, 
-                             None, print_preview_action, self.print_action,
-                             None, self.close_action,
-                             self.close_all_action, None]
->>>>>>> added open last closed tab option:spyderlib/plugins/editor.py
         self.main.file_menu_actions += file_menu_actions
         file_toolbar_actions = [self.new_action, self.open_action,
                                 self.save_action, self.save_all_action,
@@ -1931,7 +1915,6 @@ class Editor(SpyderPluginWidget):
         """Revert the currently edited file from disk"""
         editorstack = self.get_current_editorstack()
         editorstack.revert()
-<<<<<<< 8be0e5c23b58231f3e982dd659dd4f9532a06375:spyder/plugins/editor.py
 
     @Slot()
     def find(self):
@@ -1958,15 +1941,12 @@ class Editor(SpyderPluginWidget):
         editorstack = self.get_current_editorstack()
         editorstack.find_widget.show_replace()
 
-=======
-    
     @Slot()
     def open_last_closed(self):
-		""" Reopens the last closed tab """
-		file_to_open = self.recent_files[-1]
-		self.load(file_to_open)
+	""" Reopens the last closed tab """
+	file_to_open = self.recent_files[-1]
+	self.load(file_to_open)
     
->>>>>>> added open last closed tab option:spyderlib/plugins/editor.py
     #------ Explorer widget
     def close_file_from_name(self, filename):
         """Close file from its name"""
