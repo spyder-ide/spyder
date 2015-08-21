@@ -48,7 +48,7 @@ try:
                                                      warning, generate_context,
                                                      usage)
     sphinx_version = programs.get_module_version('sphinx')
-except ImportError:
+except (ImportError, TypeError):
     sphinxify = sphinx_version = None  # analysis:ignore
 
 # To add sphinx dependency to the Dependencies dialog
