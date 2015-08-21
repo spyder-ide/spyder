@@ -627,12 +627,10 @@ class Editor(SpyderPluginWidget):
                                 name="New file")
         
         self.open_last_closed = create_action(self, _("O&pen last closed"),
-                icon=ima.icon('filenew'), tip=_("Open last closed"),
+                tip=_("Open last closed"),
                 triggered=self.open_last_closed)
         self.register_shortcut(self.open_last_closed, context="Editor",
                                name="Open last closed")
-        add_shortcut_to_tooltip(self.open_last_closed, context="Editor",
-                                name="Open last closed")
         
         self.open_action = create_action(self, _("&Open..."),
                 icon=ima.icon('fileopen'), tip=_("Open file"),
@@ -952,7 +950,7 @@ class Editor(SpyderPluginWidget):
         self.recent_file_menu = QMenu(_("Open &recent"), self)
         self.recent_file_menu.aboutToShow.connect(self.update_recent_file_menu)
 
-        file_menu_actions = [self.new_action, self.open_last_closed, self.open_action,
+        file_menu_actions = [self.new_action,self.open_action,
                              self.recent_file_menu, self.save_action,
                              self.save_all_action, save_as_action,
                              self.revert_action, 
@@ -1789,9 +1787,9 @@ class Editor(SpyderPluginWidget):
     
     @Slot()
     def open_last_closed(self):
-		""" Reopens the last closed tab """
-		file_to_open = self.recent_files[-1]
-		self.load(file_to_open)
+	""" Reopens the last closed tab """
+	file_to_open = self.recent_files[-1]
+	self.load(file_to_open)
     
     #------ Explorer widget
     def close_file_from_name(self, filename):
