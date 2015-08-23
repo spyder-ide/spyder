@@ -858,7 +858,23 @@ class IPythonConsole(SpyderPluginWidget):
         if kernel_widget is None:
             shellwidget.custom_interrupt_requested.connect(
                                                       client.interrupt_message)
-        
+
+        # Connect to our variable explorer
+        if kernel_widget is not None and self.variableexplorer is not None:
+            nsb = self.variableexplorer.currentWidget()
+            # When the autorefresh button is active, our kernels
+            # start to consume more and more CPU during time
+            # Fix Issue 1450
+            # ----------------
+            # When autorefresh is off by default we need the next
+            # line so that kernels don't start to consume CPU
+            # Fix Issue 1595
+            nsb.auto_refresh_button.setChecked(True)
+            nsb.auto_refresh_button.setChecked(False)
+            nsb.auto_refresh_button.setEnabled(False)
+            nsb.set_ipyclient(client)
+            client.set_namespacebrowser(nsb)
+
         # If we are restarting the kernel we need to rename
         # the client tab and do no more from here on
         if restart:
@@ -885,22 +901,6 @@ class IPythonConsole(SpyderPluginWidget):
             control.set_inspector_enabled(CONF.get('inspector',
                                                    'connect/ipython_console'))
 
-        # Connect to our variable explorer
-        if kernel_widget is not None and self.variableexplorer is not None:
-            nsb = self.variableexplorer.currentWidget()
-            # When the autorefresh button is active, our kernels
-            # start to consume more and more CPU during time
-            # Fix Issue 1450
-            # ----------------
-            # When autorefresh is off by default we need the next
-            # line so that kernels don't start to consume CPU
-            # Fix Issue 1595
-            nsb.auto_refresh_button.setChecked(True)
-            nsb.auto_refresh_button.setChecked(False)
-            nsb.auto_refresh_button.setEnabled(False)
-            nsb.set_ipyclient(client)
-            client.set_namespacebrowser(nsb)
-        
         # Connect client to our history log
         if self.historylog is not None:
             self.historylog.add_history(client.history_filename)
