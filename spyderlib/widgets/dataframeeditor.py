@@ -217,10 +217,10 @@ class DataFrameModel(QAbstractTableModel):
     def get_value(self, row, column):
         """Returns the value of the DataFrame"""
         # To increase the performance iat is used but that requires error
-        # handeling when index contains nan, so fallback uses iloc
+        # handling, so fallback uses iloc
         try:
             value = self.df.iat[row, column]
-        except KeyError:
+        except:
             value = self.df.iloc[row, column]
         return value
 
