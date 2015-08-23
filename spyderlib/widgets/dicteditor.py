@@ -51,7 +51,7 @@ from spyderlib.py3compat import (to_text_string, to_binary_string,
                                  is_text_string, is_binary_string, getcwd, u)
 
 
-LARGE_NROWS = 5000
+LARGE_NROWS = 100
 
 
 def display_to_value(value, default_value, ignore_errors=True):
@@ -117,7 +117,7 @@ class ProxyObject(object):
 
 class ReadOnlyDictModel(QAbstractTableModel):
     """DictEditor Read-Only Table Model"""
-    ROWS_TO_LOAD = 200
+    ROWS_TO_LOAD = 50
 
     def __init__(self, parent, data, title="", names=False, truncate=True,
                  minmax=False, remote=False):
@@ -1271,9 +1271,9 @@ class DictEditor(QDialog):
         constant = 121
         row_height = 30
         error_margin = 20
-        height = constant + row_height*min([20, datalen]) + error_margin
+        height = constant + row_height*min([15, datalen]) + error_margin
         self.resize(width, height)
-        
+
         self.setWindowTitle(self.widget.get_title())
         if is_text_string(icon):
             icon = get_icon(icon)
