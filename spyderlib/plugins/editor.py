@@ -1508,6 +1508,7 @@ class Editor(SpyderPluginWidget):
         """
         # If no text is provided, create default content
         if text is None:
+            default_content = True
             text, enc = encoding.read(self.TEMPLATE_PATH)
             enc_match = re.search('-*- coding: ?([a-z0-9A-Z\-]*) -*-', text)
             if enc_match:
@@ -1529,8 +1530,9 @@ class Editor(SpyderPluginWidget):
             except:
                 pass
         else:
+            default_content = False
             enc = encoding.read(self.TEMPLATE_PATH)[1]
-        
+
         create_fname = lambda n: to_text_string(_("untitled")) + ("%d.py" % n)
         # Creating editor widget
         if editorstack is None:
@@ -1560,14 +1562,15 @@ class Editor(SpyderPluginWidget):
         # Creating the editor widget in the first editorstack (the one that
         # can't be destroyed), then cloning this editor widget in all other
         # editorstacks:
-        finfo = self.editorstacks[0].new(fname, enc, text)
+        finfo = self.editorstacks[0].new(fname, enc, text, default_content)
         finfo.path = self.main.get_spyder_pythonpath()
         self._clone_file_everywhere(finfo)
         current_editor = current_es.set_current_filename(finfo.filename)
         self.register_widget_shortcuts("Editor", current_editor)
+        finfo.default = False
         if not created_from_here:
             self.save(force=True)
-                
+
     def edit_template(self):
         """Edit new file template"""
         self.load(self.TEMPLATE_PATH)

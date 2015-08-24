@@ -273,6 +273,7 @@ class FileInfo(QObject):
         self.threadmanager = threadmanager
         self.filename = filename
         self.newly_created = new
+        self.default = False      # Default untitled file
         self.encoding = encoding
         self.editor = editor
         self.path = []
@@ -1058,7 +1059,7 @@ class EditorStack(QWidget):
     def set_stack_title(self, index, is_modified):
         finfo = self.data[index]
         fname = finfo.filename
-        is_modified = is_modified or finfo.newly_created
+        is_modified = (is_modified or finfo.newly_created) and not finfo.default
         is_readonly = finfo.editor.isReadOnly()
         tab_text = self.get_tab_text(fname, is_modified, is_readonly)
         tab_tip = self.get_tab_tip(fname, is_modified, is_readonly)
@@ -1782,8 +1783,8 @@ class EditorStack(QWidget):
                 self.inspector.set_editor_doc(doc, force_refresh=force)
             editor = self.get_current_editor()
             editor.setFocus()
-    
-    def new(self, filename, encoding, text):
+
+    def new(self, filename, encoding, text, default_content=False):
         """
         Create new filename with *encoding* and *text*
         """
@@ -1791,8 +1792,11 @@ class EditorStack(QWidget):
                                        set_current=False, new=True)
         finfo.editor.set_cursor_position('eof')
         finfo.editor.insert_text(os.linesep)
+        if default_content:
+            finfo.default = True
+            finfo.editor.document().setModified(False)
         return finfo
-        
+
     def load(self, filename, set_current=True):
         """
         Load filename, create an editor instance and return it
