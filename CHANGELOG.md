@@ -10,6 +10,8 @@
     * Don't refresh it when focused to avoid slow downs when working with big data
     * Add variable name to DataFrame editor
     * Fix several crashes and freezes when working with DataFrames
+* Under the hood
+    * Use PyQt4 API #2 by default (API #1 is not supported anymore). This is necessary to support IPython/Jupyter 4.0
 
 ### Bug fixes
 
