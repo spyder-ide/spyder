@@ -136,7 +136,7 @@ greater than 2.6.
 
 * Matplotlib (2D/3D plotting)
 
-* IPython 1.0+ (enhanced Python interpreter)
+* IPython 3.0- or qtconsole 4.0+ (enhanced Python interpreter)
 
     In Ubuntu you need to install `ipython-qtconsole`, on Fedora
     `ipython-gui` and on Gentoo `ipython` with the `qt4` USE flag.
