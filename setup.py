@@ -20,6 +20,7 @@ import sys
 import re
 import shutil
 
+import setuptools
 from distutils.core import setup
 from distutils.command.build import build
 from distutils.command.install_data import install_data
@@ -248,6 +249,11 @@ editor, Python console, etc.""",
                     get_package_data('spyderplugins', EXTLIST)},
       requires=["rope (>=0.9.2)", "sphinx (>=0.6.0)", "PyQt4 (>=4.4)"],
       scripts=[osp.join('scripts', fname) for fname in SCRIPTS],
+      entry_points={
+          'console_scripts': [
+              'spyder = spyderlib.start_app:main'
+          ]
+      },    
       data_files=get_data_files(),
       options={"bdist_wininst":
                {"install_script": "%s_win_post_install.py" % NAME,
