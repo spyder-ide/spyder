@@ -1,5 +1,47 @@
 # History of changes
 
+## Version 2.3.6
+
+### New features
+
+* IPython Console
+    * Make it fully compatible with IPython/Jupyter 4.0
+* Variable Explorer
+    * Don't refresh it when focused to avoid slow downs when working with big data
+    * Add variable name to DataFrame editor
+    * Fix several crashes and freezes when working with DataFrames
+* Under the hood
+    * Use PyQt4 API #2 by default (API #1 is not supported anymore). This is necessary to support IPython/Jupyter 4.0
+
+### Bug fixes
+
+**Issues**
+
+* [Issue 2625](../../issues/2625) - Multiple untitled files generate at close
+* [Issue 2614](../../issues/2614) - Indenting at the first position in file fails/crashes
+* [Issue 2608](../../issues/2608) - Crash after update IPython to 4.0
+* [Issue 2596](../../issues/2596) - Call tips and auto completion tips go out of screen on a second monitor
+* [Issue 2593](../../issues/2593) - Having a lof of data in the Variable explorer slows down Spyder considerably
+* [Issue 2566](../../issues/2566) - Spyder crash on launch with Babel 2.0/Python 3.4
+* [Issue 2560](../../issues/2560) - List of pandas dataframes in variable explorer slows down Spyder
+* [Issue 2517](../../issues/2517) - Variable explorer auto-refreshes after kernel restarts
+* [Issue 2514](../../issues/2514) - DataFrames with headers that contain BOM utf-8 data are freezing/crashing Spyder (in Python 2)
+* [Issue 2491](../../issues/2491) - Spyder crashes when displaying DataFrames with duplicate column names in the Variable Explorer
+* [Issue 2413](../../issues/2413) - Don't ask to confirm exit on default untitled files
+* [Issue 2315](../../issues/2315) - Display object name in DataFrame editor
+
+In this release they were closed 12 issues
+
+**Pull requests**
+
+* [PR 2639](../../pull/2639) - Fix missing exception on Windows when importing data on the Variable Explorer
+* [PR 2617](../../pull/2617) - Show call tips at right position when there are multiple screens
+* [PR 2615](../../pull/2615) - Fix error when indenting on the first line of a file
+
+
+----
+
+
 ## Version 2.3.5.2
 
 **Note**: Versions 2.3.5 and 2.3.5.1 have serious startup bugs on Windows and Mac respectively.

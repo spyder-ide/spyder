@@ -132,7 +132,7 @@ a Python version greater than 2.6 (Python 3.2 is not supported anymore).
 
 ### Recommended modules
 
-* **IPython** 3.0+ (enhanced Python interpreter)
+* **IPython** 3.0- or qtconsole 4.0+ (enhanced Python interpreter)
 * **Rope** v0.9.4+ and/or **Jedi** 0.8 + (editor code completion, calltips
   and go-to-definition)
 * **Pyflakes** v0.5.0+ (real-time code analysis)

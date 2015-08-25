@@ -166,8 +166,9 @@ Recommended modules
 
 We recommend you to install these modules to get the most out of Spyder:
 
-* `IPython <http://ipython.org/install.html#downloads>`_ -- for an enhanced Python
-  interpreter.
+* `IPython <http://ipython.org/install.html#downloads>`_ 3.0 or less, or
+  `qtconsole <http://jupyter.org/qtconsole/stable/>`_ 4.0 or higher -- for an
+  enhanced Python interpreter.
   
  .. note::
   
