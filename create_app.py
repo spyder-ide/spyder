@@ -34,13 +34,13 @@ from spyderlib.utils.programs import find_program
 
 PY2 = sys.version[0] == '2'
 
-# To cope with a bug in py2app 0.9
+
+# To deal with a bug in py2app 0.9
 sys.setrecursionlimit(1500)
 
 #==============================================================================
 # Auxiliary functions
 #==============================================================================
-
 def get_stdlib_modules():
     """
     Returns a list containing the names of all the modules available in the
@@ -63,10 +63,10 @@ def get_stdlib_modules():
     modules = list(modules)
     return modules
 
+
 #==============================================================================
 # App creation
 #==============================================================================
-
 APP_MAIN_SCRIPT = MAC_APP_NAME[:-4] + '.py'
 shutil.copyfile('scripts/spyder', APP_MAIN_SCRIPT)
 
@@ -75,7 +75,10 @@ DEPS = ['pylint', 'logilab', 'astroid', 'pep8', 'setuptools']
 EXCLUDES = DEPS + ['mercurial']
 PACKAGES = ['spyderlib', 'spyderplugins', 'sphinx', 'jinja2', 'docutils',
             'alabaster', 'babel', 'snowballstemmer', 'sphinx_rtd_theme',
-            'IPython', 'zmq', 'pygments', 'rope', 'distutils', 'PIL', 'PyQt4',
+            'IPython', 'ipykernel', 'ipython_genutils', 'jupyter_client',
+            'jupyter_core', 'traitlets', 'qtconsole', 'pexpect',
+            'jsonschema', 'nbconvert', 'nbformat',
+            'zmq', 'pygments', 'rope', 'distutils', 'PIL', 'PyQt4',
             'sklearn', 'skimage', 'pandas', 'sympy', 'pyflakes', 'psutil',
             'nose', 'patsy','statsmodels', 'seaborn', 'networkx']
 
@@ -105,10 +108,10 @@ setup(
 # Remove script for app
 os.remove(APP_MAIN_SCRIPT)
 
+
 #==============================================================================
 # Post-app creation
 #==============================================================================
-
 py_ver = '%s.%s' % (sys.version_info[0], sys.version_info[1])
 
 # Main paths
@@ -152,6 +155,13 @@ for i in deps:
     else:
         shutil.copy2(osp.join(system_python_lib, i),
                      osp.join(app_python_lib, i))
+
+# Copy path.py for IPython
+IPYDEPS = ['path.py', 'simplegeneric.py', 'decorator.py', 'mistune.py',
+           'mistune.so', 'pickleshare.py']
+for dep in IPYDEPS:
+    shutil.copyfile(osp.join(system_python_lib, dep),
+                    osp.join(app_python_lib, dep))
 
 # Function to adjust the interpreter used by PROGRAMS
 # (to be added to __boot.py__)
