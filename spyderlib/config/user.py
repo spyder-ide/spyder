@@ -13,10 +13,10 @@ It's based on the ConfigParser module (present in the standard library).
 
 from __future__ import print_function
 
-# Std imports
+# Standard library imports
 import os
-import re
 import os.path as osp
+import re
 import shutil
 import time
 
@@ -24,11 +24,11 @@ import time
 from spyderlib import __version__
 from spyderlib.config.base import (DEV, TEST, get_module_source_path,
                                    get_home_dir)
-from spyderlib.utils.programs import check_version
 from spyderlib.py3compat import configparser as cp
 from spyderlib.py3compat import PY2, is_text_string, to_text_string
+from spyderlib.utils.programs import check_version
 
-# Std imports for Python 2
+# Standard library imports for Python 2
 if PY2:
     import codecs
 
@@ -57,6 +57,7 @@ class DefaultsConfig(cp.ConfigParser):
         Private write method for Python 2
         The one from configparser fails for non-ascii Windows accounts
         """
+        # self._defaults is an attribute of ConfigParser
         if self._defaults:
             fp.write("[%s]\n" % cp.DEFAULTSECT)
             for (key, value) in self._defaults.items():
@@ -117,8 +118,27 @@ class DefaultsConfig(cp.ConfigParser):
                 raise(e)
 
     def filename(self):
+        """Defines the name of the configuration file to use."""
+        self._filename = getattr(self, '_filename', None)
+        self._root_path = getattr(self, '_root_path', None)
+
+        if self._filename is None and self._root_path is None:
+            return self._filename_global()
+        else:
+            return self._filename_projects()
+
+    def _filename_projects(self):
+        """Create a .ini filename located in the current project directory.
+
+        This .ini files stores the specific project preferences for each
+        project created with spyder.
         """
-        Create a .ini filename located in user home directory
+        return osp.join(self._root_path, self._filename)
+
+    def _filename_global(self):
+        """Create a .ini filename located in user home directory.
+
+        This .ini files stores the global spyder preferences.
         """
         if TEST is None:
             folder = get_home_dir()
@@ -169,7 +189,7 @@ class DefaultsConfig(cp.ConfigParser):
             for option in options:
                 new_value = options[ option ]
                 self._set(section, option, new_value, False)
-        
+
 
 #==============================================================================
 # User config class
@@ -187,6 +207,7 @@ class UserConfig(DefaultsConfig):
     differ from the overriden methods
     """
     DEFAULT_SECTION_NAME = 'main'
+
     def __init__(self, name, defaults=None, load=True, version=None,
                  subfolder=None, backup=False, raw_mode=False,
                  remove_obsolete=False):
@@ -194,6 +215,7 @@ class UserConfig(DefaultsConfig):
         self.raw = 1 if raw_mode else 0
         if (version is not None) and (re.match('^(\d+).(\d+).(\d+)$', version) is None):
             raise ValueError("Version number %r is incorrect - must be in X.Y.Z format" % version)
+
         if isinstance(defaults, dict):
             defaults = [ (self.DEFAULT_SECTION_NAME, defaults) ]
         self.defaults = defaults
@@ -212,7 +234,7 @@ class UserConfig(DefaultsConfig):
             _major = lambda _t: _t[:_t.find('.')]
             _minor = lambda _t: _t[:_t.rfind('.')]
             # Save new defaults
-            self.__save_new_defaults(defaults, version, subfolder)
+            self._save_new_defaults(defaults, version, subfolder)
             # Updating defaults only if major/minor version is different
             if _minor(version) != _minor(old_ver):
                 if backup:
@@ -223,10 +245,10 @@ class UserConfig(DefaultsConfig):
                 if check_version(old_ver, '2.4.0', '<'):
                     self.reset_to_defaults(save=False)
                 else:
-                    self.__update_defaults(defaults, old_ver)
+                    self._update_defaults(defaults, old_ver)
                 # Remove deprecated options if major version has changed
                 if remove_obsolete or _major(version) != _major(old_ver):
-                    self.__remove_deprecated_options(old_ver)
+                    self._remove_deprecated_options(old_ver)
                 # Set new version number
                 self.set_version(version, save=False)
             if defaults is None:
@@ -261,7 +283,7 @@ class UserConfig(DefaultsConfig):
         except cp.MissingSectionHeaderError:
             print("Warning: File contains no section headers.")
     
-    def __load_old_defaults(self, old_version):
+    def _load_old_defaults(self, old_version):
         """Read old defaults"""
         old_defaults = cp.ConfigParser()
         if check_version(old_version, '3.0.0', '<='):
@@ -272,7 +294,7 @@ class UserConfig(DefaultsConfig):
         old_defaults.read(osp.join(path, 'defaults-'+old_version+'.ini'))
         return old_defaults
     
-    def __save_new_defaults(self, defaults, new_version, subfolder):
+    def _save_new_defaults(self, defaults, new_version, subfolder):
         """Save new defaults"""
         new_defaults = DefaultsConfig(name='defaults-'+new_version,
                                       subfolder=subfolder)
@@ -280,9 +302,9 @@ class UserConfig(DefaultsConfig):
             new_defaults.set_defaults(defaults)
             new_defaults._save()
     
-    def __update_defaults(self, defaults, old_version, verbose=False):
+    def _update_defaults(self, defaults, old_version, verbose=False):
         """Update defaults after a change in version"""
-        old_defaults = self.__load_old_defaults(old_version)
+        old_defaults = self._load_old_defaults(old_version)
         for section, options in defaults:
             for option in options:
                 new_value = options[ option ]
@@ -294,11 +316,11 @@ class UserConfig(DefaultsConfig):
                   to_text_string(new_value) != old_value:
                     self._set(section, option, new_value, verbose)
     
-    def __remove_deprecated_options(self, old_version):
+    def _remove_deprecated_options(self, old_version):
         """
         Remove options which are present in the .ini file but not in defaults
         """
-        old_defaults = self.__load_old_defaults(old_version)
+        old_defaults = self._load_old_defaults(old_version)
         for section in old_defaults.sections():
             for option, _ in old_defaults.items(section, raw=self.raw):
                 if self.get_default(section, option) is NoDefault:
@@ -335,7 +357,7 @@ class UserConfig(DefaultsConfig):
         if save:
             self._save()
         
-    def __check_section_option(self, section, option):
+    def _check_section_option(self, section, option):
         """
         Private method to check section and option types
         """
@@ -352,7 +374,7 @@ class UserConfig(DefaultsConfig):
         Get Default value for a given (section, option)
         -> useful for type checking in 'get' method
         """
-        section = self.__check_section_option(section, option)
+        section = self._check_section_option(section, option)
         for sec, options in self.defaults:
             if sec == section:
                 if option in options:
@@ -367,7 +389,7 @@ class UserConfig(DefaultsConfig):
         default: default value (if not specified, an exception
         will be raised if option doesn't exist)
         """
-        section = self.__check_section_option(section, option)
+        section = self._check_section_option(section, option)
 
         if not self.has_section(section):
             if default is NoDefault:
@@ -408,7 +430,7 @@ class UserConfig(DefaultsConfig):
         Set Default value for a given (section, option)
         -> called when a new (section, option) is set and no default exists
         """
-        section = self.__check_section_option(section, option)
+        section = self._check_section_option(section, option)
         for sec, options in self.defaults:
             if sec == section:
                 options[ option ] = default_value
@@ -418,7 +440,7 @@ class UserConfig(DefaultsConfig):
         Set an option
         section=None: attribute a default section name
         """
-        section = self.__check_section_option(section, option)
+        section = self._check_section_option(section, option)
         default_value = self.get_default(section, option)
         if default_value is NoDefault:
             # This let us save correctly string value options with
