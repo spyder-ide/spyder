@@ -16,21 +16,21 @@ API_NAME = {'pyqt': 'PyQt4', 'pyside': 'PySide'}[API]
 
 if API == 'pyqt':
     # Since Spyder 2.3.6 we only support API #2
-    import sip
     try:
-        sip.setapi('QString', 2)
-        sip.setapi('QVariant', 2)
-        sip.setapi('QDate', 2)
-        sip.setapi('QDateTime', 2)
-        sip.setapi('QTextStream', 2)
-        sip.setapi('QTime', 2)
-        sip.setapi('QUrl', 2)
-    except AttributeError:
-        pass
-
-    try:
+        import sip
+        try:
+            sip.setapi('QString', 2)
+            sip.setapi('QVariant', 2)
+            sip.setapi('QDate', 2)
+            sip.setapi('QDateTime', 2)
+            sip.setapi('QTextStream', 2)
+            sip.setapi('QTime', 2)
+            sip.setapi('QUrl', 2)
+        except AttributeError:
+            pass
+        
         from PyQt4.QtCore import PYQT_VERSION_STR as __version__
-    except ImportError:
+    except ImportError: # May fail on sip or on PyQt4 import
         # Switching to PySide
         API = os.environ['QT_API'] = 'pyside'
         API_NAME = 'PySide'
