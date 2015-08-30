@@ -150,7 +150,6 @@ _qtaargs = {
     'kill':                    [('fa.warning',), {}],
     'reload':                  [('fa.repeat',), {}],
     'auto_reload':             [('fa.repeat', 'fa.clock-o'), {'options': [{'scale_factor': 0.75, 'offset': (-0.1, -0.1)}, {'scale_factor': 0.5, 'offset': (0.25, 0.25)}]}],
-    'profiler':                [('fa.clock-o',), {}],
     'fileimport':              [('fa.download',), {}],
     'environ':                 [('fa.th-list',), {}],
     'options_less':            [('fa.minus-square',), {}],
@@ -184,10 +183,16 @@ _qtaargs = {
     '1uparrow':                [('fa.angle-up',), {}],
     '2downarrow':              [('fa.angle-double-down',), {}],
     '1downarrow':              [('fa.angle-down',), {}],    
-    'pylint':                  [('fa.search', 'fa.check'), {'options': [{}, {'offset': (0.125, 0.125), 'color': 'orange'}]}],
     'attribute':               [('spyder.circle-letter-a',), {'color': 'magenta'}],
     'module':                  [('spyder.circle-letter-m',), {'color': '#daa520'}],
     'no_match':                [('fa.circle',), {'color': 'gray'}],
+    'no_match':                [('fa.circle',), {'color': 'gray'}],
+    # Third party plugins
+    # ---
+    'profiler':                [('fa.clock-o',), {}],
+    'pylint':                  [('fa.search', 'fa.check'), {'options': [{}, {'offset': (0.125, 0.125), 'color': 'orange'}]}],
+    'condapackages':           [('fa.archive',), {}],
+    'spyplugins.ui.example':    [('fa.eye',), {}],
 }
 
 
@@ -245,6 +250,7 @@ def icon(name, resample=False, icon_path=None):
         icon = get_icon(name + '.png', resample=resample)
         if icon_path:
             icon_path = Path(icon_path) / (name + '.png')
+            print(icon_path)
             if icon_path.isfile():
                 icon = QIcon(icon_path)
         return icon if icon is not None else QIcon()

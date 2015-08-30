@@ -256,7 +256,7 @@ class SpyderPluginMixin(object):
     """
     CONF_SECTION = None
     CONFIGWIDGET_CLASS = None
-    IMG_PATH = "images"
+    IMG_PATH = 'images'
     ALLOWED_AREAS = Qt.AllDockWidgetAreas
     LOCATION = Qt.LeftDockWidgetArea
     FEATURES = QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetFloatable
