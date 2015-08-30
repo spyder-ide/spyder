@@ -29,21 +29,21 @@ elif API == 'pyqt':
     # Spyder 2.3 is compatible with both #1 and #2 PyQt API,
     # but to avoid issues with IPython and other Qt plugins
     # we choose to support only API #2 for 2.4+
-    import sip
     try:
-        sip.setapi('QString', 2)
-        sip.setapi('QVariant', 2)
-        sip.setapi('QDate', 2)
-        sip.setapi('QDateTime', 2)
-        sip.setapi('QTextStream', 2)
-        sip.setapi('QTime', 2)
-        sip.setapi('QUrl', 2)
-    except AttributeError:
-        # PyQt < v4.6. The actual check is done by requirements.check_qt()
-        # call from spyder.py
-        pass
+        import sip
+        try:
+            sip.setapi('QString', 2)
+            sip.setapi('QVariant', 2)
+            sip.setapi('QDate', 2)
+            sip.setapi('QDateTime', 2)
+            sip.setapi('QTextStream', 2)
+            sip.setapi('QTime', 2)
+            sip.setapi('QUrl', 2)
+        except AttributeError:
+            # PyQt < v4.6. The actual check is done by requirements.check_qt()
+            # call from spyder.py
+            pass
 
-    try:
         from PyQt4.QtCore import PYQT_VERSION_STR as __version__ # analysis:ignore
     except ImportError:
         # Switching to PySide
