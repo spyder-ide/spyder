@@ -2,11 +2,11 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR ORGANIZATION
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-# 
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: 2.2\n"
-"POT-Creation-Date: 2015-10-04 10:37+COT\n"
+"POT-Creation-Date: 2015-08-29 22:49+COT\n"
 "PO-Revision-Date: 2013-05-07 17:37-0500\n"
 "Last-Translator: Carlos Cordoba <ccordoba12@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,11 +16,11 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: pygettext.py 1.5\n"
 
-#: spyplugins/ui/breakpoints/breakpoints.py:40
+#: spyplugins/ui/breakpoints/breakpoints.py:41
 msgid "Breakpoints"
 msgstr "Puntos de interrupción"
 
-#: spyplugins/ui/breakpoints/breakpoints.py:74
+#: spyplugins/ui/breakpoints/breakpoints.py:75
 msgid "List breakpoints"
 msgstr "Listar puntos de interrupción"
 

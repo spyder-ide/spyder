@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 2.3\n"
-"POT-Creation-Date: 2015-07-31 18:08+COT\n"
+"POT-Creation-Date: 2015-08-29 22:49+COT\n"
 "PO-Revision-Date: 2015-02-26 03:04-0400\n"
 "Last-Translator: Valter Nazianzeno <manipuladordedados@gmail.com>\n"
 "Language-Team: pt_BR\n"
@@ -18,213 +18,219 @@ msgstr ""
 "X-Generator: Poedit 1.7.4\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 
-#: spyderlib/baseconfig.py:241
+#: spyderlib/config/base.py:241
 msgid ""
-"Update LANGUAGE_CODES (inside baseconfig.py) if a new translation has been "
+"Update LANGUAGE_CODES (inside config/base.py) if a new translation has been "
 "added to Spyder"
 msgstr ""
 
-#: spyderlib/config.py:29
-msgid "Python files"
-msgstr "Arquivos Python"
-
-#: spyderlib/config.py:30
-msgid "Cython/Pyrex files"
-msgstr "Arquivos Cython/Pyrex"
-
-#: spyderlib/config.py:31
-msgid "C files"
-msgstr "Arquivos C"
-
-#: spyderlib/config.py:32
-msgid "C++ files"
-msgstr "Arquivos C++"
-
-#: spyderlib/config.py:33
-msgid "OpenCL files"
-msgstr "Arquivos OpenCL"
-
-#: spyderlib/config.py:34
-msgid "Fortran files"
-msgstr "Arquivos Fortran"
-
-#: spyderlib/config.py:35
-msgid "IDL files"
-msgstr "Arquivos IDL"
-
-#: spyderlib/config.py:36
-msgid "MATLAB files"
-msgstr "Arquivos MATLAB"
-
-#: spyderlib/config.py:37
-msgid "Julia files"
-msgstr "Arquivos Julia"
-
-#: spyderlib/config.py:38
-msgid "Yaml files"
-msgstr "Arquivos Yaml"
-
-#: spyderlib/config.py:39
-msgid "Patch and diff files"
-msgstr "Arquivos Patch e diff"
-
-#: spyderlib/config.py:40
-msgid "Batch files"
-msgstr "Arquivos Batch"
-
-#: spyderlib/config.py:41 spyderlib/utils/iofuncs.py:500
-msgid "Text files"
-msgstr "Arquivos de texto"
-
-#: spyderlib/config.py:42
-msgid "reStructured Text files"
-msgstr "Arquivos de texto reeStruturado"
-
-#: spyderlib/config.py:43
-msgid "gettext files"
-msgstr "Arquivos gettext "
-
-#: spyderlib/config.py:44
-msgid "NSIS files"
-msgstr "Arquivos NSIS "
-
-#: spyderlib/config.py:45
-msgid "Web page files"
-msgstr "Arquivos de Páginas web"
-
-#: spyderlib/config.py:46
-msgid "XML files"
-msgstr "Arquivos XML"
-
-#: spyderlib/config.py:47
-msgid "Javascript files"
-msgstr "Arquivos Javascript"
-
-#: spyderlib/config.py:48
-msgid "Json files"
-msgstr "Arquivos Json"
-
-#: spyderlib/config.py:49
-msgid "IPython notebooks"
-msgstr "Notebooks do IPython"
-
-#: spyderlib/config.py:50
-msgid "Enaml files"
-msgstr "Arquivos Enaml"
-
-#: spyderlib/config.py:51
-msgid "Configuration files"
-msgstr "Arquivos de Configuração"
-
-#: spyderlib/config.py:58 spyderlib/widgets/explorer.py:660
-msgid "All files"
-msgstr "Todos os arquivos"
-
-#: spyderlib/ipythonconfig.py:19 spyderlib/ipythonconfig.py:21
+#: spyderlib/config/ipython.py:23 spyderlib/config/ipython.py:25
+#: spyderlib/config/ipython.py:32
 msgid "IPython Console integration"
 msgstr "Integração com console IPython"
 
+#: spyderlib/config/main.py:29
+msgid "Python files"
+msgstr "Arquivos Python"
+
+#: spyderlib/config/main.py:30
+msgid "Cython/Pyrex files"
+msgstr "Arquivos Cython/Pyrex"
+
+#: spyderlib/config/main.py:31
+msgid "C files"
+msgstr "Arquivos C"
+
+#: spyderlib/config/main.py:32
+msgid "C++ files"
+msgstr "Arquivos C++"
+
+#: spyderlib/config/main.py:33
+msgid "OpenCL files"
+msgstr "Arquivos OpenCL"
+
+#: spyderlib/config/main.py:34
+msgid "Fortran files"
+msgstr "Arquivos Fortran"
+
+#: spyderlib/config/main.py:35
+msgid "IDL files"
+msgstr "Arquivos IDL"
+
+#: spyderlib/config/main.py:36
+msgid "MATLAB files"
+msgstr "Arquivos MATLAB"
+
+#: spyderlib/config/main.py:37
+msgid "Julia files"
+msgstr "Arquivos Julia"
+
+#: spyderlib/config/main.py:38
+msgid "Yaml files"
+msgstr "Arquivos Yaml"
+
+#: spyderlib/config/main.py:39
+msgid "Patch and diff files"
+msgstr "Arquivos Patch e diff"
+
+#: spyderlib/config/main.py:40
+msgid "Batch files"
+msgstr "Arquivos Batch"
+
+#: spyderlib/config/main.py:41 spyderlib/utils/iofuncs.py:500
+msgid "Text files"
+msgstr "Arquivos de texto"
+
+#: spyderlib/config/main.py:42
+msgid "reStructured Text files"
+msgstr "Arquivos de texto reeStruturado"
+
+#: spyderlib/config/main.py:43
+msgid "gettext files"
+msgstr "Arquivos gettext "
+
+#: spyderlib/config/main.py:44
+msgid "NSIS files"
+msgstr "Arquivos NSIS "
+
+#: spyderlib/config/main.py:45
+msgid "Web page files"
+msgstr "Arquivos de Páginas web"
+
+#: spyderlib/config/main.py:46
+msgid "XML files"
+msgstr "Arquivos XML"
+
+#: spyderlib/config/main.py:47
+msgid "Javascript files"
+msgstr "Arquivos Javascript"
+
+#: spyderlib/config/main.py:48
+msgid "Json files"
+msgstr "Arquivos Json"
+
+#: spyderlib/config/main.py:49
+msgid "IPython notebooks"
+msgstr "Notebooks do IPython"
+
+#: spyderlib/config/main.py:50
+msgid "Enaml files"
+msgstr "Arquivos Enaml"
+
+#: spyderlib/config/main.py:51
+msgid "Configuration files"
+msgstr "Arquivos de Configuração"
+
+#: spyderlib/config/main.py:58 spyderlib/widgets/explorer.py:660
+msgid "All files"
+msgstr "Todos os arquivos"
+
 #: spyderlib/plugins/__init__.py:513 spyderlib/plugins/editor.py:95
-#: spyderlib/plugins/editor.py:550 spyderlib/plugins/editor.py:1598
+#: spyderlib/plugins/editor.py:551 spyderlib/plugins/editor.py:1600
 #: spyderlib/plugins/inspector.py:139 spyderlib/plugins/inspector.py:419
-#: spyderlib/widgets/editor.py:471
+#: spyderlib/widgets/editor.py:357
 #: spyderlib/widgets/sourcecode/codeeditor.py:95
-#: spyderlib/widgets/sourcecode/codeeditor.py:2892
+#: spyderlib/widgets/sourcecode/codeeditor.py:2902
 msgid "Editor"
 msgstr "Editor"
 
-#: spyderlib/plugins/configdialog.py:166
+#: spyderlib/plugins/configdialog.py:133
+#, fuzzy
+msgid "Reset to defaults"
+msgstr "Restaurar os valores padrões."
+
+#: spyderlib/plugins/configdialog.py:145
 msgid "Preferences"
 msgstr "Preferências"
 
-#: spyderlib/plugins/configdialog.py:466
+#: spyderlib/plugins/configdialog.py:473
 msgid "Invalid directory path"
 msgstr "Caminho de diretório inválido"
 
-#: spyderlib/plugins/configdialog.py:469 spyderlib/plugins/configdialog.py:484
+#: spyderlib/plugins/configdialog.py:476 spyderlib/plugins/configdialog.py:491
 #: spyderlib/plugins/runconfig.py:176 spyderlib/plugins/runconfig.py:240
 #: spyderlib/plugins/workingdirectory.py:295 spyderlib/widgets/explorer.py:574
-#: spyderlib/widgets/externalshell/pythonshell.py:642
+#: spyderlib/widgets/externalshell/pythonshell.py:640
 #: spyderlib/widgets/findinfiles.py:505 spyderlib/widgets/pathmanager.py:223
 #: spyderlib/widgets/projectexplorer.py:899
 msgid "Select directory"
 msgstr "Selecionar diretório"
 
-#: spyderlib/plugins/configdialog.py:496
+#: spyderlib/plugins/configdialog.py:503
 msgid "Invalid file path"
 msgstr "Caminho de arquivo inválido "
 
-#: spyderlib/plugins/configdialog.py:499 spyderlib/plugins/configdialog.py:516
+#: spyderlib/plugins/configdialog.py:506 spyderlib/plugins/configdialog.py:523
 msgid "Select file"
 msgstr "Selecionar arquivo"
 
-#: spyderlib/plugins/configdialog.py:515
+#: spyderlib/plugins/configdialog.py:522
 msgid "All files (*)"
 msgstr "Todos os arquivos (*)"
 
-#: spyderlib/plugins/configdialog.py:588 spyderlib/widgets/formlayout.py:214
+#: spyderlib/plugins/configdialog.py:595 spyderlib/widgets/formlayout.py:214
 msgid "Bold"
 msgstr "Negrito"
 
-#: spyderlib/plugins/configdialog.py:591 spyderlib/widgets/formlayout.py:209
+#: spyderlib/plugins/configdialog.py:598 spyderlib/widgets/formlayout.py:209
 msgid "Italic"
 msgstr "Itálico"
 
-#: spyderlib/plugins/configdialog.py:633
+#: spyderlib/plugins/configdialog.py:640
 msgid "Font: "
 msgstr "Fonte:"
 
-#: spyderlib/plugins/configdialog.py:637
+#: spyderlib/plugins/configdialog.py:644
 msgid "Size: "
 msgstr "Tamanho:"
 
-#: spyderlib/plugins/configdialog.py:646 spyderlib/plugins/history.py:48
+#: spyderlib/plugins/configdialog.py:653 spyderlib/plugins/history.py:48
 msgid "Font style"
 msgstr "Estilo de fonte"
 
-#: spyderlib/plugins/configdialog.py:701
+#: spyderlib/plugins/configdialog.py:708
 msgid "Spyder needs to restart to change the following setting:"
 msgstr ""
 
-#: spyderlib/plugins/configdialog.py:704
+#: spyderlib/plugins/configdialog.py:711
 msgid "Spyder needs to restart to change the following settings:"
 msgstr ""
 
-#: spyderlib/plugins/configdialog.py:706
+#: spyderlib/plugins/configdialog.py:713
 msgid "Do you wish to restart now?"
 msgstr ""
 
-#: spyderlib/plugins/configdialog.py:712
+#: spyderlib/plugins/configdialog.py:719
 msgid "Information"
 msgstr ""
 
-#: spyderlib/plugins/configdialog.py:727
+#: spyderlib/plugins/configdialog.py:734
 msgid "General"
 msgstr "Geral"
 
-#: spyderlib/plugins/configdialog.py:734 spyderlib/plugins/editor.py:104
-#: spyderlib/plugins/externalconsole.py:66
+#: spyderlib/plugins/configdialog.py:741 spyderlib/plugins/editor.py:104
+#: spyderlib/plugins/externalconsole.py:67
 #: spyderlib/plugins/ipythonconsole.py:162
 msgid "Interface"
 msgstr "Interface"
 
-#: spyderlib/plugins/configdialog.py:737
+#: spyderlib/plugins/configdialog.py:744
 msgid "Qt windows style"
 msgstr "Tema do Qt"
 
-#: spyderlib/plugins/configdialog.py:743
+#: spyderlib/plugins/configdialog.py:750
 msgid "Icon theme"
 msgstr ""
 
-#: spyderlib/plugins/configdialog.py:748
+#: spyderlib/plugins/configdialog.py:755
 msgid "Language"
 msgstr ""
 
-#: spyderlib/plugins/configdialog.py:752
+#: spyderlib/plugins/configdialog.py:759
 msgid "Use a single instance"
 msgstr "Usar uma única instância "
 
-#: spyderlib/plugins/configdialog.py:754
+#: spyderlib/plugins/configdialog.py:761
 msgid ""
 "Set this to open external<br> Python files in an already running instance "
 "(Requires a restart)"
@@ -232,143 +238,143 @@ msgstr ""
 "Selecione esta opção<br> para abrir arquivos externos de Python nessa "
 "instância atual (Requer que seja reiniciado)"
 
-#: spyderlib/plugins/configdialog.py:757
+#: spyderlib/plugins/configdialog.py:764
 #, fuzzy
 msgid "Vertical title bars in panes"
 msgstr "Abas de título verticais para os componentes"
 
-#: spyderlib/plugins/configdialog.py:759
+#: spyderlib/plugins/configdialog.py:766
 msgid "Vertical tabs in panes"
 msgstr ""
 
-#: spyderlib/plugins/configdialog.py:761
+#: spyderlib/plugins/configdialog.py:768
 #, fuzzy
 msgid "Animated toolbars and panes"
 msgstr "Aba de ferramentas e componentes animados"
 
-#: spyderlib/plugins/configdialog.py:763
+#: spyderlib/plugins/configdialog.py:770
 msgid "Tear off menus"
 msgstr "Separar os menus"
 
-#: spyderlib/plugins/configdialog.py:764
+#: spyderlib/plugins/configdialog.py:771
 msgid "Set this to detach any<br> menu from the main window"
 msgstr "Habilite esta opção<br> se deseja separar os menus da janela principal"
 
-#: spyderlib/plugins/configdialog.py:766
+#: spyderlib/plugins/configdialog.py:773
 msgid "Custom margin for panes:"
 msgstr ""
 
-#: spyderlib/plugins/configdialog.py:775
+#: spyderlib/plugins/configdialog.py:782
 msgid "Prompt when exiting"
 msgstr ""
 
-#: spyderlib/plugins/configdialog.py:806
+#: spyderlib/plugins/configdialog.py:813
 msgid "Status bar"
 msgstr "Barra de status"
 
-#: spyderlib/plugins/configdialog.py:807
+#: spyderlib/plugins/configdialog.py:814
 #, fuzzy
 msgid "Show status bar"
 msgstr "Mostrar barra de abas"
 
-#: spyderlib/plugins/configdialog.py:809
+#: spyderlib/plugins/configdialog.py:816
 msgid "Show memory usage every"
 msgstr "Mostrar uso da memória a cada"
 
-#: spyderlib/plugins/configdialog.py:818
+#: spyderlib/plugins/configdialog.py:825
 msgid "Show CPU usage every"
 msgstr "Mostrar uso da CPU a cada"
 
-#: spyderlib/plugins/configdialog.py:851
+#: spyderlib/plugins/configdialog.py:858
 msgid "Debugging"
 msgstr "Depuração"
 
-#: spyderlib/plugins/configdialog.py:852
+#: spyderlib/plugins/configdialog.py:859
 msgid "Pop up internal console when internal errors appear"
 msgstr "Mostrar o terminal interno quando houver erros"
 
-#: spyderlib/plugins/configdialog.py:861
+#: spyderlib/plugins/configdialog.py:868
 msgid "Updates"
 msgstr ""
 
-#: spyderlib/plugins/configdialog.py:862 spyderlib/spyder.py:2792
+#: spyderlib/plugins/configdialog.py:869 spyderlib/spyder.py:2872
 msgid "Check for updates on startup"
 msgstr ""
 
-#: spyderlib/plugins/configdialog.py:895
+#: spyderlib/plugins/configdialog.py:902
 msgid "Syntax coloring"
 msgstr "Sintaxe colorida"
 
-#: spyderlib/plugins/configdialog.py:904
+#: spyderlib/plugins/configdialog.py:911
 msgid "Background:"
 msgstr "Fundo:"
 
-#: spyderlib/plugins/configdialog.py:905
+#: spyderlib/plugins/configdialog.py:912
 #: spyderlib/widgets/sourcecode/codeeditor.py:104
 msgid "Current line:"
 msgstr "Linha atual:"
 
-#: spyderlib/plugins/configdialog.py:906
+#: spyderlib/plugins/configdialog.py:913
 msgid "Current cell:"
 msgstr "Célula selecionada:"
 
-#: spyderlib/plugins/configdialog.py:907
+#: spyderlib/plugins/configdialog.py:914
 msgid "Occurence:"
 msgstr "Ocorrência:"
 
-#: spyderlib/plugins/configdialog.py:908
+#: spyderlib/plugins/configdialog.py:915
 msgid "Link:"
 msgstr "Link:"
 
-#: spyderlib/plugins/configdialog.py:909
+#: spyderlib/plugins/configdialog.py:916
 msgid "Side areas:"
 msgstr "Áreas laterais:"
 
-#: spyderlib/plugins/configdialog.py:910
+#: spyderlib/plugins/configdialog.py:917
 msgid "Matched parentheses:"
 msgstr "Parênteses fechados:"
 
-#: spyderlib/plugins/configdialog.py:911
+#: spyderlib/plugins/configdialog.py:918
 msgid "Unmatched parentheses:"
 msgstr "Parênteses abertos:"
 
-#: spyderlib/plugins/configdialog.py:912
+#: spyderlib/plugins/configdialog.py:919
 msgid "Normal text:"
 msgstr "Texto normal:"
 
-#: spyderlib/plugins/configdialog.py:913
+#: spyderlib/plugins/configdialog.py:920
 msgid "Keyword:"
 msgstr "Palavra chave:"
 
-#: spyderlib/plugins/configdialog.py:914
+#: spyderlib/plugins/configdialog.py:921
 msgid "Builtin:"
 msgstr "Objeto integrado:"
 
-#: spyderlib/plugins/configdialog.py:915
+#: spyderlib/plugins/configdialog.py:922
 msgid "Definition:"
 msgstr "Definição:"
 
-#: spyderlib/plugins/configdialog.py:916
+#: spyderlib/plugins/configdialog.py:923
 msgid "Comment:"
 msgstr "Comentário:"
 
-#: spyderlib/plugins/configdialog.py:917
+#: spyderlib/plugins/configdialog.py:924
 msgid "String:"
 msgstr "String:"
 
-#: spyderlib/plugins/configdialog.py:918
+#: spyderlib/plugins/configdialog.py:925
 msgid "Number:"
 msgstr "Número:"
 
-#: spyderlib/plugins/configdialog.py:919
+#: spyderlib/plugins/configdialog.py:926
 msgid "Instance:"
 msgstr "Instância:"
 
-#: spyderlib/plugins/configdialog.py:925
+#: spyderlib/plugins/configdialog.py:932
 msgid "Color scheme"
 msgstr "Esquema de cores"
 
-#: spyderlib/plugins/configdialog.py:947 spyderlib/plugins/shortcuts.py:355
+#: spyderlib/plugins/configdialog.py:954 spyderlib/plugins/shortcuts.py:776
 msgid "Reset to default values"
 msgstr "Restaurar os valores padrões."
 
@@ -376,20 +382,20 @@ msgstr "Restaurar os valores padrões."
 msgid "Internal console"
 msgstr "Console interno"
 
-#: spyderlib/plugins/console.py:129 spyderlib/spyder.py:844
-#: spyderlib/widgets/ipython.py:592
+#: spyderlib/plugins/console.py:129 spyderlib/spyder.py:869
+#: spyderlib/widgets/ipython.py:595
 msgid "&Quit"
 msgstr "&Sair"
 
-#: spyderlib/plugins/console.py:131 spyderlib/spyder.py:846
+#: spyderlib/plugins/console.py:131 spyderlib/spyder.py:871
 msgid "Quit"
 msgstr "Sair"
 
-#: spyderlib/plugins/console.py:134 spyderlib/plugins/externalconsole.py:1106
+#: spyderlib/plugins/console.py:134 spyderlib/plugins/externalconsole.py:1039
 msgid "&Run..."
 msgstr "E&xecutar"
 
-#: spyderlib/plugins/console.py:136 spyderlib/plugins/externalconsole.py:1107
+#: spyderlib/plugins/console.py:136 spyderlib/plugins/externalconsole.py:1040
 msgid "Run a Python script"
 msgstr "Executar um script Python"
 
@@ -413,18 +419,18 @@ msgstr "Mostrar conteúdo da sys.path em modo de leitura"
 msgid "Buffer..."
 msgstr "Buffer..."
 
-#: spyderlib/plugins/console.py:151 spyderlib/plugins/externalconsole.py:86
+#: spyderlib/plugins/console.py:151 spyderlib/plugins/externalconsole.py:87
 #: spyderlib/plugins/history.py:41
 msgid "Set maximum line count"
 msgstr "Definir número máximo de linhas"
 
 #: spyderlib/plugins/console.py:154 spyderlib/plugins/explorer.py:67
-#: spyderlib/plugins/history.py:167 spyderlib/plugins/inspector.py:388
+#: spyderlib/plugins/history.py:169 spyderlib/plugins/inspector.py:388
 #: spyderlib/plugins/projectexplorer.py:68
 msgid "&Font..."
 msgstr "&Fonte..."
 
-#: spyderlib/plugins/console.py:155 spyderlib/plugins/history.py:168
+#: spyderlib/plugins/console.py:155 spyderlib/plugins/history.py:170
 msgid "Set shell font style"
 msgstr "Definir tipo de fonte do shell"
 
@@ -437,25 +443,25 @@ msgid "Set external editor executable path"
 msgstr "Definir caminho de editor externo"
 
 #: spyderlib/plugins/console.py:162 spyderlib/plugins/editor.py:139
-#: spyderlib/plugins/externalconsole.py:87 spyderlib/plugins/history.py:44
-#: spyderlib/plugins/history.py:170 spyderlib/plugins/inspector.py:180
+#: spyderlib/plugins/externalconsole.py:88 spyderlib/plugins/history.py:44
+#: spyderlib/plugins/history.py:172 spyderlib/plugins/inspector.py:180
 #: spyderlib/plugins/inspector.py:391
 msgid "Wrap lines"
 msgstr "Ajuste de linha automático"
 
 #: spyderlib/plugins/console.py:165 spyderlib/plugins/editor.py:181
-#: spyderlib/plugins/externalconsole.py:132
+#: spyderlib/plugins/externalconsole.py:133
 #: spyderlib/plugins/ipythonconsole.py:172
 msgid "Display balloon tips"
 msgstr "Mostrar sugestões"
 
 #: spyderlib/plugins/console.py:169 spyderlib/plugins/editor.py:175
-#: spyderlib/plugins/externalconsole.py:126
+#: spyderlib/plugins/externalconsole.py:127
 msgid "Automatic code completion"
 msgstr "Completar código automáticamente"
 
 #: spyderlib/plugins/console.py:173 spyderlib/plugins/editor.py:179
-#: spyderlib/plugins/externalconsole.py:130
+#: spyderlib/plugins/externalconsole.py:131
 msgid "Enter key selects completion"
 msgstr "A tecla Enter seleciona o resultado a completar"
 
@@ -463,17 +469,17 @@ msgstr "A tecla Enter seleciona o resultado a completar"
 msgid "Internal console settings"
 msgstr "Configurações do console interno"
 
-#: spyderlib/plugins/console.py:231 spyderlib/plugins/externalconsole.py:1287
+#: spyderlib/plugins/console.py:231 spyderlib/plugins/externalconsole.py:1220
 msgid "Run Python script"
 msgstr "Executar script Python"
 
-#: spyderlib/plugins/console.py:232 spyderlib/plugins/externalconsole.py:225
-#: spyderlib/plugins/externalconsole.py:1288 spyderlib/widgets/explorer.py:675
+#: spyderlib/plugins/console.py:232 spyderlib/plugins/externalconsole.py:226
+#: spyderlib/plugins/externalconsole.py:1221 spyderlib/widgets/explorer.py:675
 msgid "Python scripts"
 msgstr "Scripts Python"
 
 #: spyderlib/plugins/console.py:278 spyderlib/plugins/explorer.py:117
-#: spyderlib/plugins/history.py:283 spyderlib/plugins/inspector.py:665
+#: spyderlib/plugins/history.py:285 spyderlib/plugins/inspector.py:665
 #: spyderlib/plugins/projectexplorer.py:126
 msgid "Select a new font"
 msgstr "Selecionar uma nova fonte"
@@ -511,8 +517,8 @@ msgid "Show tab bar"
 msgstr "Mostrar barra de abas"
 
 #: spyderlib/plugins/editor.py:118 spyderlib/plugins/editor.py:195
-#: spyderlib/plugins/externalconsole.py:82
-#: spyderlib/plugins/externalconsole.py:125 spyderlib/plugins/history.py:43
+#: spyderlib/plugins/externalconsole.py:83
+#: spyderlib/plugins/externalconsole.py:126 spyderlib/plugins/history.py:43
 #: spyderlib/plugins/inspector.py:179 spyderlib/plugins/ipythonconsole.py:206
 msgid "Source code"
 msgstr "Código fonte"
@@ -521,7 +527,7 @@ msgstr "Código fonte"
 msgid "Show line numbers"
 msgstr "Mostrar número de linhas"
 
-#: spyderlib/plugins/editor.py:120 spyderlib/plugins/editor.py:917
+#: spyderlib/plugins/editor.py:120 spyderlib/plugins/editor.py:916
 msgid "Show blank spaces"
 msgstr ""
 
@@ -552,7 +558,7 @@ msgstr "Esquema de cores da sintaxe:"
 
 #: spyderlib/plugins/editor.py:164 spyderlib/plugins/runconfig.py:321
 #: spyderlib/plugins/runconfig.py:443 spyderlib/plugins/runconfig.py:448
-#: spyderlib/spyder.py:2443 spyderlib/utils/programs.py:175
+#: spyderlib/spyder.py:2501 spyderlib/utils/programs.py:175
 #: spyderlib/widgets/explorer.py:240
 #: spyderlib/widgets/externalshell/baseshell.py:140
 msgid "Run"
@@ -570,11 +576,11 @@ msgstr "Executar seleção"
 msgid "Maintain focus in the Editor after running cells or selections"
 msgstr "Manter o foco no editor depois de executar células ou seleções"
 
-#: spyderlib/plugins/editor.py:172 spyderlib/plugins/externalconsole.py:366
+#: spyderlib/plugins/editor.py:172 spyderlib/plugins/externalconsole.py:334
 msgid "Introspection"
 msgstr "Introspecção"
 
-#: spyderlib/plugins/editor.py:177 spyderlib/plugins/externalconsole.py:128
+#: spyderlib/plugins/editor.py:177 spyderlib/plugins/externalconsole.py:129
 msgid "Case sensitive code completion"
 msgstr "Diferenciar entre maiúsculas e minusculas ao completar código"
 
@@ -743,7 +749,7 @@ msgstr ""
 msgid "Fix automatically and show warning message box"
 msgstr "Corrigir automaticamente e exibir uma mensagem de aviso"
 
-#: spyderlib/plugins/editor.py:336 spyderlib/plugins/externalconsole.py:364
+#: spyderlib/plugins/editor.py:336 spyderlib/plugins/externalconsole.py:332
 #: spyderlib/plugins/ipythonconsole.py:463
 #: spyderlib/plugins/variableexplorer.py:41
 msgid "Display"
@@ -753,208 +759,208 @@ msgstr "Visualização"
 msgid "Code Introspection/Analysis"
 msgstr "Análise e introspecção de código"
 
-#: spyderlib/plugins/editor.py:341 spyderlib/plugins/externalconsole.py:368
+#: spyderlib/plugins/editor.py:341 spyderlib/plugins/externalconsole.py:336
 msgid "Advanced settings"
 msgstr "Configurações avançadas"
 
-#: spyderlib/plugins/editor.py:606 spyderlib/widgets/editortools.py:510
+#: spyderlib/plugins/editor.py:607 spyderlib/widgets/editortools.py:510
 msgid "Show/hide outline explorer"
 msgstr "Mostrar/esconder o explorador de código"
 
-#: spyderlib/plugins/editor.py:612
+#: spyderlib/plugins/editor.py:613
 msgid "Show/hide project explorer"
 msgstr "Mostrar/esconder o explorador de projetos"
 
-#: spyderlib/plugins/editor.py:620
+#: spyderlib/plugins/editor.py:621
 msgid "&New file..."
 msgstr "&Novo arquivo..."
 
-#: spyderlib/plugins/editor.py:621 spyderlib/plugins/workingdirectory.py:82
+#: spyderlib/plugins/editor.py:622 spyderlib/plugins/workingdirectory.py:82
 #: spyderlib/widgets/explorer.py:652 spyderlib/widgets/explorer.py:659
 msgid "New file"
 msgstr "Novo arquivo"
 
-#: spyderlib/plugins/editor.py:628
+#: spyderlib/plugins/editor.py:629
 msgid "&Open..."
 msgstr "&Abrir..."
 
-#: spyderlib/plugins/editor.py:629 spyderlib/plugins/editor.py:1641
+#: spyderlib/plugins/editor.py:630 spyderlib/plugins/editor.py:1643
 #: spyderlib/plugins/workingdirectory.py:69
 msgid "Open file"
 msgstr "Abrir arquivo"
 
-#: spyderlib/plugins/editor.py:636
+#: spyderlib/plugins/editor.py:637
 msgid "&Revert"
 msgstr "Resta&urar"
 
-#: spyderlib/plugins/editor.py:637
+#: spyderlib/plugins/editor.py:638
 msgid "Revert file from disk"
 msgstr "Reverter arquivo do disco"
 
-#: spyderlib/plugins/editor.py:640
+#: spyderlib/plugins/editor.py:641
 msgid "&Save"
 msgstr "&Salvar"
 
-#: spyderlib/plugins/editor.py:641
+#: spyderlib/plugins/editor.py:642
 msgid "Save file"
 msgstr "Salvar arquivo"
 
-#: spyderlib/plugins/editor.py:648
+#: spyderlib/plugins/editor.py:649
 msgid "Sav&e all"
 msgstr "Sal&var tudo"
 
-#: spyderlib/plugins/editor.py:649
+#: spyderlib/plugins/editor.py:650
 msgid "Save all files"
 msgstr "Salvar todos os arquivos"
 
-#: spyderlib/plugins/editor.py:657
+#: spyderlib/plugins/editor.py:658
 msgid "Save &as..."
 msgstr "Salvar c&omo..."
 
-#: spyderlib/plugins/editor.py:658
+#: spyderlib/plugins/editor.py:659
 msgid "Save current file as..."
 msgstr "Salvar arquivo atual como..."
 
-#: spyderlib/plugins/editor.py:662 spyderlib/plugins/editor.py:663
+#: spyderlib/plugins/editor.py:663 spyderlib/plugins/editor.py:664
 msgid "Print preview..."
 msgstr "Pré-visualizar impressão..."
 
-#: spyderlib/plugins/editor.py:664
+#: spyderlib/plugins/editor.py:665
 msgid "&Print..."
 msgstr "&Imprimir..."
 
-#: spyderlib/plugins/editor.py:665
+#: spyderlib/plugins/editor.py:666
 msgid "Print current file..."
 msgstr "Imprimir o arquivo atual..."
 
-#: spyderlib/plugins/editor.py:670
+#: spyderlib/plugins/editor.py:669
 msgid "&Close"
 msgstr "&Fechar"
 
-#: spyderlib/plugins/editor.py:671
+#: spyderlib/plugins/editor.py:670
 msgid "Close current file"
 msgstr "Fechar arquivo atual"
 
-#: spyderlib/plugins/editor.py:674
+#: spyderlib/plugins/editor.py:673
 msgid "C&lose all"
 msgstr "Fechar &tudo"
 
-#: spyderlib/plugins/editor.py:675
+#: spyderlib/plugins/editor.py:674
 msgid "Close all opened files"
 msgstr "Fechar todos os arquivos abertos"
 
-#: spyderlib/plugins/editor.py:682
+#: spyderlib/plugins/editor.py:681
 msgid "Set/Clear breakpoint"
 msgstr "Adicionar ou limpar um ponto de interrupção"
 
-#: spyderlib/plugins/editor.py:689
+#: spyderlib/plugins/editor.py:688
 msgid "Set/Edit conditional breakpoint"
 msgstr "Adicionar ou editar um ponto de interrupção condicional"
 
-#: spyderlib/plugins/editor.py:696
+#: spyderlib/plugins/editor.py:695
 msgid "Clear breakpoints in all files"
 msgstr "Limpar pontos de interrupção em todos os arquivos"
 
-#: spyderlib/plugins/editor.py:698
+#: spyderlib/plugins/editor.py:697
 msgid "Breakpoints"
 msgstr "Pontos de interrupção (Breakpoints)"
 
-#: spyderlib/plugins/editor.py:702
+#: spyderlib/plugins/editor.py:701
 msgid "Debug with winpdb"
 msgstr "Depurar com winpdb"
 
-#: spyderlib/plugins/editor.py:709 spyderlib/spyder.py:638
+#: spyderlib/plugins/editor.py:708 spyderlib/spyder.py:659
 msgid "&Debug"
 msgstr "&Depurar"
 
-#: spyderlib/plugins/editor.py:710
+#: spyderlib/plugins/editor.py:709
 msgid "Debug file"
 msgstr "Depurar arquivo"
 
-#: spyderlib/plugins/editor.py:714
+#: spyderlib/plugins/editor.py:713
 msgid "Step"
 msgstr "Executar linha"
 
-#: spyderlib/plugins/editor.py:715
+#: spyderlib/plugins/editor.py:714
 msgid "Run current line"
 msgstr "Executar linha selecionada"
 
-#: spyderlib/plugins/editor.py:721
+#: spyderlib/plugins/editor.py:720
 msgid "Continue"
 msgstr "Continuar"
 
-#: spyderlib/plugins/editor.py:722
+#: spyderlib/plugins/editor.py:721
 msgid "Continue execution until next breakpoint"
 msgstr "Continuar a execução até o próximo ponto de interrupção"
 
-#: spyderlib/plugins/editor.py:729
+#: spyderlib/plugins/editor.py:728
 msgid "Step Into"
 msgstr "Ingressar na função/método"
 
-#: spyderlib/plugins/editor.py:730
+#: spyderlib/plugins/editor.py:729
 msgid "Step into function or method of current line"
 msgstr "Ingressar na função ou método da linha atual"
 
-#: spyderlib/plugins/editor.py:737
+#: spyderlib/plugins/editor.py:736
 msgid "Step Return"
 msgstr "Sair da função/método"
 
-#: spyderlib/plugins/editor.py:738
+#: spyderlib/plugins/editor.py:737
 msgid "Run until current function or method returns"
 msgstr "Executar até que a função ou método atual terminem"
 
-#: spyderlib/plugins/editor.py:745
+#: spyderlib/plugins/editor.py:744
 msgid "Exit"
 msgstr "Sair"
 
-#: spyderlib/plugins/editor.py:746
+#: spyderlib/plugins/editor.py:745
 msgid "Exit Debug"
 msgstr "Terminar depuração"
 
-#: spyderlib/plugins/editor.py:757
+#: spyderlib/plugins/editor.py:756
 msgid "Debugging control"
 msgstr "Controle de depuração"
 
-#: spyderlib/plugins/editor.py:761 spyderlib/plugins/editor.py:1237
-#: spyderlib/spyder.py:633
+#: spyderlib/plugins/editor.py:760 spyderlib/plugins/editor.py:1236
+#: spyderlib/spyder.py:654
 msgid "&Run"
 msgstr "E&xecutar"
 
-#: spyderlib/plugins/editor.py:762
+#: spyderlib/plugins/editor.py:761
 msgid "Run file"
 msgstr "Executar arquivo"
 
-#: spyderlib/plugins/editor.py:767
+#: spyderlib/plugins/editor.py:766
 msgid "&Configure..."
 msgstr "&Configurar..."
 
-#: spyderlib/plugins/editor.py:769
-#: spyderlib/widgets/externalshell/pythonshell.py:313
+#: spyderlib/plugins/editor.py:768
+#: spyderlib/widgets/externalshell/pythonshell.py:311
 msgid "Run settings"
 msgstr "Executar configurações"
 
-#: spyderlib/plugins/editor.py:777
+#: spyderlib/plugins/editor.py:776
 msgid "Re-run &last script"
 msgstr "Executar &novamente o último script"
 
-#: spyderlib/plugins/editor.py:779
+#: spyderlib/plugins/editor.py:778
 msgid "Run again last file"
 msgstr "Executar novamente o mesmo arquivo"
 
-#: spyderlib/plugins/editor.py:786
-#: spyderlib/widgets/sourcecode/codeeditor.py:2456
+#: spyderlib/plugins/editor.py:785
+#: spyderlib/widgets/sourcecode/codeeditor.py:2462
 msgid "Run &selection or current line"
 msgstr "Executar &seleção ou linha atual"
 
-#: spyderlib/plugins/editor.py:789
+#: spyderlib/plugins/editor.py:788
 msgid "Run selection or current line"
 msgstr "Executar seleção ou linha atual"
 
-#: spyderlib/plugins/editor.py:802
+#: spyderlib/plugins/editor.py:801
 msgid "Run cell"
 msgstr "Executar célula"
 
-#: spyderlib/plugins/editor.py:805
+#: spyderlib/plugins/editor.py:804
 msgid ""
 "Run current cell (Ctrl+Enter)\n"
 "[Use #%% to create cells]"
@@ -962,155 +968,155 @@ msgstr ""
 "Executar a célula atual (Ctrl+Enter)\n"
 "[Usar #%% para criar células]"
 
-#: spyderlib/plugins/editor.py:810
+#: spyderlib/plugins/editor.py:809
 msgid "Run cell and advance"
 msgstr "Executar célula e avançar"
 
-#: spyderlib/plugins/editor.py:813
+#: spyderlib/plugins/editor.py:812
 msgid "Run current cell and go to the next one (Shift+Enter)"
 msgstr "Executar célula atual e ir para a próxima (Shift+Enter)"
 
-#: spyderlib/plugins/editor.py:819
+#: spyderlib/plugins/editor.py:818
 msgid "Show todo list"
 msgstr "Mostrar lista de tarefas"
 
-#: spyderlib/plugins/editor.py:820
+#: spyderlib/plugins/editor.py:819
 msgid "Show TODO/FIXME/XXX/HINT/TIP/@todo comments list"
 msgstr ""
 "Mostrar a lista de comentários dos\n"
 "TODO/FIXME/XXX/HINT/TIP/@todo"
 
-#: spyderlib/plugins/editor.py:827
+#: spyderlib/plugins/editor.py:826
 msgid "Show warning/error list"
 msgstr "Mostrar lista de erros e avisos"
 
-#: spyderlib/plugins/editor.py:828
+#: spyderlib/plugins/editor.py:827
 msgid "Show code analysis warnings/errors"
 msgstr "Mostrar erros e avisos da análise de código"
 
-#: spyderlib/plugins/editor.py:834
+#: spyderlib/plugins/editor.py:833
 msgid "Previous warning/error"
 msgstr "Aviso ou erro anterior"
 
-#: spyderlib/plugins/editor.py:835
+#: spyderlib/plugins/editor.py:834
 msgid "Go to previous code analysis warning/error"
 msgstr "Ir para linha anterior de aviso ou erro"
 
-#: spyderlib/plugins/editor.py:838
+#: spyderlib/plugins/editor.py:837
 msgid "Next warning/error"
 msgstr "Próximo aviso ou erro"
 
-#: spyderlib/plugins/editor.py:839
+#: spyderlib/plugins/editor.py:838
 msgid "Go to next code analysis warning/error"
 msgstr "Ir para próxima linha de aviso ou erro"
 
-#: spyderlib/plugins/editor.py:843
+#: spyderlib/plugins/editor.py:842
 msgid "Last edit location"
 msgstr "Última posição da edição"
 
-#: spyderlib/plugins/editor.py:844
+#: spyderlib/plugins/editor.py:843
 msgid "Go to last edit location"
 msgstr "Ir para posição anterior da edição"
 
-#: spyderlib/plugins/editor.py:850
+#: spyderlib/plugins/editor.py:849
 msgid "Previous cursor position"
 msgstr "Posição anterior do cursor"
 
-#: spyderlib/plugins/editor.py:851
+#: spyderlib/plugins/editor.py:850
 msgid "Go to previous cursor position"
 msgstr "Ir a posição anterior do cursor"
 
-#: spyderlib/plugins/editor.py:857
+#: spyderlib/plugins/editor.py:856
 msgid "Next cursor position"
 msgstr "Próxima posição do cursor"
 
-#: spyderlib/plugins/editor.py:858
+#: spyderlib/plugins/editor.py:857
 msgid "Go to next cursor position"
 msgstr "Ir para a próxima posição do cursor"
 
-#: spyderlib/plugins/editor.py:865
-#: spyderlib/widgets/sourcecode/codeeditor.py:2443
+#: spyderlib/plugins/editor.py:864
+#: spyderlib/widgets/sourcecode/codeeditor.py:2449
 msgid "Comment"
 msgstr "Comentar"
 
-#: spyderlib/plugins/editor.py:865
-#: spyderlib/widgets/sourcecode/codeeditor.py:2443
+#: spyderlib/plugins/editor.py:864
+#: spyderlib/widgets/sourcecode/codeeditor.py:2449
 msgid "Uncomment"
 msgstr "Descomentar"
 
-#: spyderlib/plugins/editor.py:866
+#: spyderlib/plugins/editor.py:865
 msgid "Comment current line or selection"
 msgstr "Comentar linha ou seleção atual"
 
-#: spyderlib/plugins/editor.py:870
+#: spyderlib/plugins/editor.py:869
 msgid "Add &block comment"
 msgstr "Adicionar &bloco de comentário "
 
-#: spyderlib/plugins/editor.py:871
+#: spyderlib/plugins/editor.py:870
 msgid "Add block comment around current line or selection"
 msgstr "Adicionar bloco de comentário ao redor da linha ou seleção atual"
 
-#: spyderlib/plugins/editor.py:877
+#: spyderlib/plugins/editor.py:876
 msgid "R&emove block comment"
 msgstr "R&emover bloco de comentário"
 
-#: spyderlib/plugins/editor.py:878
+#: spyderlib/plugins/editor.py:877
 msgid "Remove comment block around current line or selection"
 msgstr "Remover bloco de comentário ao redor da linha ou seleção atual"
 
-#: spyderlib/plugins/editor.py:889
+#: spyderlib/plugins/editor.py:888
 msgid "Indent"
 msgstr "Indentar"
 
-#: spyderlib/plugins/editor.py:890
+#: spyderlib/plugins/editor.py:889
 msgid "Indent current line or selection"
 msgstr "Indentar a linha ou seleção atual"
 
-#: spyderlib/plugins/editor.py:893
+#: spyderlib/plugins/editor.py:892
 msgid "Unindent"
 msgstr "Desfazer indentação"
 
-#: spyderlib/plugins/editor.py:894
+#: spyderlib/plugins/editor.py:893
 msgid "Unindent current line or selection"
 msgstr "Desfazer indentação da linha ou seleção atual"
 
-#: spyderlib/plugins/editor.py:899
+#: spyderlib/plugins/editor.py:898
 msgid "Carriage return and line feed (Windows)"
 msgstr "Carriage return e salto de linha (Windows)"
 
-#: spyderlib/plugins/editor.py:902
+#: spyderlib/plugins/editor.py:901
 msgid "Line feed (UNIX)"
 msgstr "Salto de linha (UNIX)"
 
-#: spyderlib/plugins/editor.py:905
+#: spyderlib/plugins/editor.py:904
 msgid "Carriage return (Mac)"
 msgstr "Carriage return (Mac)"
 
-#: spyderlib/plugins/editor.py:911
+#: spyderlib/plugins/editor.py:910
 msgid "Convert end-of-line characters"
 msgstr "Converter caracteres de fim de linha"
 
-#: spyderlib/plugins/editor.py:915
+#: spyderlib/plugins/editor.py:914
 msgid "Remove trailing spaces"
 msgstr "Remover espaços em branco"
 
-#: spyderlib/plugins/editor.py:919
+#: spyderlib/plugins/editor.py:918
 msgid "Fix indentation"
 msgstr "Consertar indentação"
 
-#: spyderlib/plugins/editor.py:920
+#: spyderlib/plugins/editor.py:919
 msgid "Replace tab characters by space characters"
 msgstr "Substituir caracteres de tabulação por espaços"
 
-#: spyderlib/plugins/editor.py:923
+#: spyderlib/plugins/editor.py:922
 msgid "Go to line..."
 msgstr "Ir para linha..."
 
-#: spyderlib/plugins/editor.py:931
+#: spyderlib/plugins/editor.py:930
 msgid "Set console working directory"
 msgstr "Definir diretório de trabalho"
 
-#: spyderlib/plugins/editor.py:933
+#: spyderlib/plugins/editor.py:932
 msgid ""
 "Set current console (and file explorer) working directory to current script "
 "directory"
@@ -1118,87 +1124,87 @@ msgstr ""
 "Definir o diretório de trabalho do console (e do explorador de arquivos) "
 "para o diretório do script atual."
 
-#: spyderlib/plugins/editor.py:938
+#: spyderlib/plugins/editor.py:937
 msgid "Maximum number of recent files..."
 msgstr "Número máximo de arquivos recentes..."
 
-#: spyderlib/plugins/editor.py:941
+#: spyderlib/plugins/editor.py:940
 msgid "Clear recent files list"
 msgstr "Limpar lista de arquivos recentes"
 
-#: spyderlib/plugins/editor.py:941
+#: spyderlib/plugins/editor.py:940
 msgid "Clear this list"
 msgstr "Limpar esta lista"
 
-#: spyderlib/plugins/editor.py:943
+#: spyderlib/plugins/editor.py:942
 msgid "Open &recent"
 msgstr "Abrir &recente"
 
-#: spyderlib/plugins/editor.py:1225 spyderlib/spyder.py:614
+#: spyderlib/plugins/editor.py:1224 spyderlib/spyder.py:635
 msgid "File toolbar"
 msgstr "Barra de arquivo"
 
-#: spyderlib/plugins/editor.py:1226 spyderlib/spyder.py:624
+#: spyderlib/plugins/editor.py:1225 spyderlib/spyder.py:645
 msgid "Search toolbar"
 msgstr "Barra de pesquisa"
 
-#: spyderlib/plugins/editor.py:1227 spyderlib/spyder.py:629
+#: spyderlib/plugins/editor.py:1226 spyderlib/spyder.py:650
 msgid "Source toolbar"
 msgstr "Barra de código"
 
-#: spyderlib/plugins/editor.py:1228 spyderlib/spyder.py:634
+#: spyderlib/plugins/editor.py:1227 spyderlib/spyder.py:655
 msgid "Run toolbar"
 msgstr "Barra de execução "
 
-#: spyderlib/plugins/editor.py:1229 spyderlib/spyder.py:639
+#: spyderlib/plugins/editor.py:1228 spyderlib/spyder.py:660
 msgid "Debug toolbar"
 msgstr "Barra de depuração"
 
-#: spyderlib/plugins/editor.py:1230 spyderlib/spyder.py:619
+#: spyderlib/plugins/editor.py:1229 spyderlib/spyder.py:640
 msgid "Edit toolbar"
 msgstr "Barra de edição"
 
-#: spyderlib/plugins/editor.py:1233 spyderlib/spyder.py:612
+#: spyderlib/plugins/editor.py:1232 spyderlib/spyder.py:633
 msgid "&File"
 msgstr "&Arquivo"
 
-#: spyderlib/plugins/editor.py:1234 spyderlib/spyder.py:618
+#: spyderlib/plugins/editor.py:1233 spyderlib/spyder.py:639
 msgid "&Edit"
 msgstr "&Editar"
 
-#: spyderlib/plugins/editor.py:1235 spyderlib/spyder.py:623
+#: spyderlib/plugins/editor.py:1234 spyderlib/spyder.py:644
 msgid "&Search"
 msgstr "&Pesquisar"
 
-#: spyderlib/plugins/editor.py:1236 spyderlib/spyder.py:628
+#: spyderlib/plugins/editor.py:1235 spyderlib/spyder.py:649
 msgid "Sour&ce"
 msgstr "Códi&go"
 
-#: spyderlib/plugins/editor.py:1238 spyderlib/spyder.py:646
+#: spyderlib/plugins/editor.py:1237 spyderlib/spyder.py:667
 msgid "&Tools"
 msgstr "&Ferramentas"
 
-#: spyderlib/plugins/editor.py:1239
+#: spyderlib/plugins/editor.py:1238
 msgid "?"
 msgstr "?"
 
-#: spyderlib/plugins/editor.py:1459
+#: spyderlib/plugins/editor.py:1458
 msgid "Spyder Editor"
 msgstr "Spyder Editor"
 
-#: spyderlib/plugins/editor.py:1460
+#: spyderlib/plugins/editor.py:1459
 msgid "This is a temporary script file."
 msgstr "Este é um arquivo de script temporário."
 
-#: spyderlib/plugins/editor.py:1526
+#: spyderlib/plugins/editor.py:1527
 msgid "untitled"
 msgstr "Sem título"
 
-#: spyderlib/plugins/editor.py:1599
+#: spyderlib/plugins/editor.py:1601
 msgid "Maximum number of recent files"
 msgstr "Número máximo de arquivos recentes"
 
-#: spyderlib/plugins/editor.py:1724
+#: spyderlib/plugins/editor.py:1726
 msgid "Printing..."
 msgstr "Imprimindo..."
 
@@ -1211,46 +1217,46 @@ msgstr "Explorador de arquivos"
 msgid "Set font style"
 msgstr "Definir estilo da fonte"
 
-#: spyderlib/plugins/externalconsole.py:48
+#: spyderlib/plugins/externalconsole.py:49
 msgid "Interactive data plotting in the consoles"
 msgstr "Mostrar dados interativos no console"
 
-#: spyderlib/plugins/externalconsole.py:56
-#: spyderlib/plugins/externalconsole.py:1072
+#: spyderlib/plugins/externalconsole.py:57
+#: spyderlib/plugins/externalconsole.py:1005
 #: spyderlib/plugins/inspector.py:419 spyderlib/plugins/runconfig.py:185
 #: spyderlib/plugins/runconfig.py:455
 #: spyderlib/widgets/externalshell/baseshell.py:107
-#: spyderlib/widgets/ipython.py:518
+#: spyderlib/widgets/ipython.py:521
 msgid "Console"
 msgstr "Console"
 
-#: spyderlib/plugins/externalconsole.py:70
+#: spyderlib/plugins/externalconsole.py:71
 msgid "One tab per script"
 msgstr "Uma aba por script"
 
-#: spyderlib/plugins/externalconsole.py:71
+#: spyderlib/plugins/externalconsole.py:72
 #: spyderlib/widgets/externalshell/baseshell.py:173
 msgid "Show elapsed time"
 msgstr "Mostrar tempo de execução"
 
-#: spyderlib/plugins/externalconsole.py:72 spyderlib/widgets/explorer.py:1008
+#: spyderlib/plugins/externalconsole.py:73 spyderlib/widgets/explorer.py:1016
 msgid "Show icons and text"
 msgstr "Mostrar ícones e texto"
 
-#: spyderlib/plugins/externalconsole.py:84
+#: spyderlib/plugins/externalconsole.py:85
 msgid "Buffer: "
 msgstr "Buffer:"
 
-#: spyderlib/plugins/externalconsole.py:84
+#: spyderlib/plugins/externalconsole.py:85
 #: spyderlib/plugins/ipythonconsole.py:208
 msgid " lines"
 msgstr "linhas"
 
-#: spyderlib/plugins/externalconsole.py:89
+#: spyderlib/plugins/externalconsole.py:90
 msgid "Merge process standard output/error channels"
 msgstr "Combinar os canais de saída/erro do processo"
 
-#: spyderlib/plugins/externalconsole.py:91
+#: spyderlib/plugins/externalconsole.py:92
 msgid ""
 "Merging the output channels of the process means that\n"
 "the standard error won't be written in red anymore,\n"
@@ -1260,11 +1266,11 @@ msgstr ""
 "o erro padrão não será escrito em vermelho, mas isso ajuda a\n"
 "melhorar a velocidade em que aparece o texto no console."
 
-#: spyderlib/plugins/externalconsole.py:95
+#: spyderlib/plugins/externalconsole.py:96
 msgid "Colorize standard error channel using ANSI escape codes"
 msgstr "Colorir o canal de error padrão utilizando códigos de escape ANSI "
 
-#: spyderlib/plugins/externalconsole.py:97
+#: spyderlib/plugins/externalconsole.py:98
 msgid ""
 "This method is the only way to have colorized standard\n"
 "error channel when the output channels have been merged."
@@ -1272,14 +1278,14 @@ msgstr ""
 "Este método é a única forma de ter cor no canal de erro\n"
 "padrão quando os canais de saída forem combinados."
 
-#: spyderlib/plugins/externalconsole.py:113
+#: spyderlib/plugins/externalconsole.py:114
 #: spyderlib/plugins/ipythonconsole.py:195
 #: spyderlib/widgets/arrayeditor.py:461
-#: spyderlib/widgets/dataframeeditor.py:504
+#: spyderlib/widgets/dataframeeditor.py:516
 msgid "Background color"
 msgstr "Cor de fundo"
 
-#: spyderlib/plugins/externalconsole.py:114
+#: spyderlib/plugins/externalconsole.py:115
 msgid ""
 "This option will be applied the next time a Python console or a terminal is "
 "opened."
@@ -1287,15 +1293,15 @@ msgstr ""
 "Esta opção será ativada na próxima vez que um console Python ou um terminal "
 "for aberto."
 
-#: spyderlib/plugins/externalconsole.py:117
+#: spyderlib/plugins/externalconsole.py:118
 msgid "Light background (white color)"
 msgstr "Fundo claro (cor branca)"
 
-#: spyderlib/plugins/externalconsole.py:142
+#: spyderlib/plugins/externalconsole.py:143
 msgid "User Module Reloader (UMR)"
 msgstr "Recarregador de Módulos do Usuário (RMU)"
 
-#: spyderlib/plugins/externalconsole.py:143
+#: spyderlib/plugins/externalconsole.py:144
 msgid ""
 "UMR forces Python to reload modules which were imported when executing a \n"
 "script in the external console with the 'runfile' function."
@@ -1303,11 +1309,11 @@ msgstr ""
 "O RMU força o Python a recarregar os módulos que foram importados\n"
 "durante a execução de um arquivo no console com a função 'runfile'."
 
-#: spyderlib/plugins/externalconsole.py:146
+#: spyderlib/plugins/externalconsole.py:147
 msgid "Enable UMR"
 msgstr "Ativar RMU"
 
-#: spyderlib/plugins/externalconsole.py:147
+#: spyderlib/plugins/externalconsole.py:148
 msgid ""
 "This option will enable the User Module Reloader (UMR) in Python/IPython "
 "consoles. UMR forces Python to reload deeply modules during import when "
@@ -1331,46 +1337,46 @@ msgstr ""
 "ter que utilizar o atributo <b>Qt.WA_DeleteOnClose</b> em sua janela "
 "principal, utilizando o método <b>setAttribute</b>)."
 
-#: spyderlib/plugins/externalconsole.py:163
+#: spyderlib/plugins/externalconsole.py:164
 msgid "Show reloaded modules list"
 msgstr "Mostrar lista de módulos que foram recarregados"
 
-#: spyderlib/plugins/externalconsole.py:164
+#: spyderlib/plugins/externalconsole.py:165
 msgid "Please note that these changes will be applied only to new consoles"
 msgstr ""
 "Por favor tenha em nota que as mudanças só serão aplicadas em novos consoles"
 
-#: spyderlib/plugins/externalconsole.py:168
+#: spyderlib/plugins/externalconsole.py:169
 msgid "Set UMR excluded (not reloaded) modules"
 msgstr "Definir lista de módulos excluídos pelo RMU"
 
-#: spyderlib/plugins/externalconsole.py:179
+#: spyderlib/plugins/externalconsole.py:180
 msgid "Python executable"
 msgstr "Executável Python"
 
-#: spyderlib/plugins/externalconsole.py:181
+#: spyderlib/plugins/externalconsole.py:182
 msgid ""
 "Select the Python interpreter executable binary in which Spyder will run "
 "scripts:"
 msgstr "Selecione o caminho do interpretador Python que deseja utilizar:"
 
-#: spyderlib/plugins/externalconsole.py:184
+#: spyderlib/plugins/externalconsole.py:185
 msgid "Default (i.e. the same as Spyder's)"
 msgstr "Padrão (o mesmo do Spyder)"
 
-#: spyderlib/plugins/externalconsole.py:188
+#: spyderlib/plugins/externalconsole.py:189
 msgid "Use the following Python interpreter:"
 msgstr "Usar o seguinte interpretador:"
 
-#: spyderlib/plugins/externalconsole.py:192
+#: spyderlib/plugins/externalconsole.py:193
 msgid "Executables"
 msgstr "Executáveis "
 
-#: spyderlib/plugins/externalconsole.py:210
+#: spyderlib/plugins/externalconsole.py:211
 msgid "PYTHONSTARTUP replacement"
 msgstr "Substituto do PYTHONSTARTUP"
 
-#: spyderlib/plugins/externalconsole.py:212
+#: spyderlib/plugins/externalconsole.py:213
 msgid ""
 "This option will override the PYTHONSTARTUP environment variable which\n"
 "defines the script to be executed during the Python console startup."
@@ -1379,19 +1385,19 @@ msgstr ""
 "define o script que é executado durante a inicialização do console\n"
 "Python."
 
-#: spyderlib/plugins/externalconsole.py:217
+#: spyderlib/plugins/externalconsole.py:218
 msgid "Default PYTHONSTARTUP script"
 msgstr "Script PYTHONSTARTUP padrão"
 
-#: spyderlib/plugins/externalconsole.py:221
+#: spyderlib/plugins/externalconsole.py:222
 msgid "Use the following startup script:"
 msgstr "Usar o seguinte script de inicialização:"
 
-#: spyderlib/plugins/externalconsole.py:238
+#: spyderlib/plugins/externalconsole.py:239
 msgid "Monitor"
 msgstr "Monitor"
 
-#: spyderlib/plugins/externalconsole.py:239
+#: spyderlib/plugins/externalconsole.py:240
 msgid ""
 "The monitor provides introspection features to console: code completion, "
 "calltips and variable explorer. Because it relies on several modules, "
@@ -1402,91 +1408,57 @@ msgstr ""
 "depende de vários módulos adicionais, desativando o monitor é possível "
 "acelerar a inicialização do console."
 
-#: spyderlib/plugins/externalconsole.py:246
+#: spyderlib/plugins/externalconsole.py:247
 msgid "Enable monitor"
 msgstr "Ativar monitor"
 
-#: spyderlib/plugins/externalconsole.py:259
+#: spyderlib/plugins/externalconsole.py:260
 msgid "Default library"
 msgstr "Biblioteca padrão"
 
-#: spyderlib/plugins/externalconsole.py:264
-msgid "Qt Bindings"
-msgstr ""
-
-#: spyderlib/plugins/externalconsole.py:266
-msgid "Qt-Python bindings library selection:"
+#: spyderlib/plugins/externalconsole.py:265
+#, fuzzy
+msgid "Qt-Python Bindings"
 msgstr "Seleção da biblioteca de ligação entre o Qt e Python:"
 
-#: spyderlib/plugins/externalconsole.py:268
+#: spyderlib/plugins/externalconsole.py:267
+msgid "Library:"
+msgstr ""
+
+#: spyderlib/plugins/externalconsole.py:269
 msgid ""
 "This option will act on<br> libraries such as Matplotlib, guidata or ETS"
 msgstr ""
 "Esta opção trará efeitos <br> em bibliotecas como Matplotlib, guidata ou ETS"
 
-#: spyderlib/plugins/externalconsole.py:293
-msgid "PyQt"
-msgstr "PyQt"
+#: spyderlib/plugins/externalconsole.py:278
+#: spyderlib/plugins/ipythonconsole.py:465
+msgid "Graphics"
+msgstr "Gráficos"
+
+#: spyderlib/plugins/externalconsole.py:279
+msgid ""
+"Decide which backend to use to display graphics. If unsure, please select "
+"the <b>Automatic</b> backend.<br><br><b>Note:</b> We support a very limited "
+"number of backends in our Python consoles. If you prefer to work with a "
+"different one, please use an IPython console."
+msgstr ""
 
 #: spyderlib/plugins/externalconsole.py:295
-msgid "API selection for QString and QVariant objects:"
-msgstr "Seleção da API para objetos QString e QVariant:"
+#: spyderlib/plugins/ipythonconsole.py:270
+msgid "Backend:"
+msgstr "Saída:"
 
-#: spyderlib/plugins/externalconsole.py:296
-msgid "API #1"
-msgstr "API #1"
+#: spyderlib/plugins/externalconsole.py:297
+#: spyderlib/plugins/ipythonconsole.py:272
+msgid "This option will be applied the next time a console is opened."
+msgstr "Esta opção será aplicada na próxima vez que um console for aberto."
 
-#: spyderlib/plugins/externalconsole.py:296
-msgid "API #2"
-msgstr "API #1"
-
-#: spyderlib/plugins/externalconsole.py:296
-msgid "Default API"
-msgstr "API Padrão"
-
-#: spyderlib/plugins/externalconsole.py:298
-msgid ""
-"PyQt API #1 is the default <br>API for Python 2. PyQt API #2 is the default "
-"API for Python 3 and is compatible with PySide."
-msgstr ""
-"A API #1 de PyQt é a API padrão <br>para o Python 2. A API #2 do PyQt é a "
-"API padrão para o Python 3 e é compatível com o PySide."
-
-#: spyderlib/plugins/externalconsole.py:302
-msgid "Ignore API change errors (sip.setapi)"
-msgstr "Ignorar erros de mudança de API (sip.setapi)"
-
-#: spyderlib/plugins/externalconsole.py:304
-msgid ""
-"Enabling this option will ignore <br>errors when changing PyQt API. As PyQt "
-"does not support dynamic API changes, it is strongly recommended to use this "
-"feature wisely, e.g. for debugging purpose."
-msgstr ""
-"Ativando esta opção serão ignorados <br>os erros gerados ao mudar a API do "
-"PyQt. Dado que o PyQt não suporta mudanças dinâmicas da API, é recomendável "
-"usar essa funcionalidade com certo cuidado, por exemplo, para propósitos de "
-"depuração."
-
-#: spyderlib/plugins/externalconsole.py:323
-msgid "Matplotlib"
-msgstr "Matplotlib"
-
-#: spyderlib/plugins/externalconsole.py:325
-msgid "GUI backend:"
-msgstr "Saída gráfica:"
-
-#: spyderlib/plugins/externalconsole.py:327
-msgid ""
-"Set the GUI toolkit used by <br>Matplotlib to show figures (default: Qt4Agg)"
-msgstr ""
-"Definir interface gráfica usada pelo <br>Matplotlib para mostrar imagens "
-"(padrão: Qt4Agg)"
-
-#: spyderlib/plugins/externalconsole.py:345
+#: spyderlib/plugins/externalconsole.py:308
 msgid "Enthought Tool Suite"
 msgstr "Enthought Tool Suite"
 
-#: spyderlib/plugins/externalconsole.py:346
+#: spyderlib/plugins/externalconsole.py:309
 msgid ""
 "Enthought Tool Suite (ETS) supports PyQt4 (qt4) and wxPython (wx) graphical "
 "user interfaces."
@@ -1494,25 +1466,25 @@ msgstr ""
 "Enthought Tool Suite (ETS) suporta as bibliotecas gráficas PyQt4 (qt4) e \n"
 "wxPython (wx)."
 
-#: spyderlib/plugins/externalconsole.py:350
+#: spyderlib/plugins/externalconsole.py:313
 msgid "ETS_TOOLKIT:"
 msgstr "ETS_TOOLKIT:"
 
-#: spyderlib/plugins/externalconsole.py:370
+#: spyderlib/plugins/externalconsole.py:338
 msgid "External modules"
 msgstr "Módulos externos"
 
-#: spyderlib/plugins/externalconsole.py:430
-#: spyderlib/plugins/externalconsole.py:678
+#: spyderlib/plugins/externalconsole.py:374
+#: spyderlib/plugins/externalconsole.py:617
 #: spyderlib/plugins/ipythonconsole.py:114
-#: spyderlib/plugins/ipythonconsole.py:832 spyderlib/spyder.py:1813
-#: spyderlib/spyder.py:1835 spyderlib/spyder.py:1898
+#: spyderlib/plugins/ipythonconsole.py:832 spyderlib/spyder.py:1803
+#: spyderlib/spyder.py:1825 spyderlib/spyder.py:1888 spyderlib/spyder.py:2774
 #: spyderlib/utils/environ.py:95 spyderlib/utils/environ.py:108
 #: spyderlib/widgets/dicteditor.py:452
 msgid "Warning"
 msgstr "Aviso"
 
-#: spyderlib/plugins/externalconsole.py:431
+#: spyderlib/plugins/externalconsole.py:375
 msgid ""
 "You selected a <b>Python %d</b> interpreter for the console but Spyder is "
 "running on <b>Python %d</b>!.<br><br>Although this is possible, we recommend "
@@ -1526,11 +1498,11 @@ msgstr ""
 "interpretador selecionado, para evitar ver falsos erros e avisos no Editor "
 "devido a sintaxe incompatível entre estas duas versões do Python."
 
-#: spyderlib/plugins/externalconsole.py:599
+#: spyderlib/plugins/externalconsole.py:538
 msgid "Trying to kill a kernel?"
 msgstr "Tentando matar um kernel?"
 
-#: spyderlib/plugins/externalconsole.py:600
+#: spyderlib/plugins/externalconsole.py:539
 msgid ""
 "You can't close this kernel because it has one or more consoles connected to "
 "it.<br><br>You need to close them instead or you can kill the kernel using "
@@ -1540,7 +1512,7 @@ msgstr ""
 "ele.<br><br>Você deve fechá-lo previamente ou pode terminar o processo "
 "usando o segundo botão da direita para esquerda."
 
-#: spyderlib/plugins/externalconsole.py:679
+#: spyderlib/plugins/externalconsole.py:618
 msgid ""
 "No Python console is currently selected to run <b>%s</b>.<br><br>Please "
 "select or open a new Python console and try again."
@@ -1548,7 +1520,7 @@ msgstr ""
 "Nenhum console Python foi selecionado para executar <b>%s</b>.<br><br>Por "
 "favor selecione ou abra um novo console Python e tente novamente."
 
-#: spyderlib/plugins/externalconsole.py:759
+#: spyderlib/plugins/externalconsole.py:698
 msgid ""
 "%s is already running in a separate process.\n"
 "Do you want to kill the process before starting a new one?"
@@ -1556,11 +1528,11 @@ msgstr ""
 "%s já está sendo executado em um processo separado.\n"
 "Você deseja matar o processo antes de iniciar um novo?"
 
-#: spyderlib/plugins/externalconsole.py:925
+#: spyderlib/plugins/externalconsole.py:858
 msgid "Kernel"
 msgstr "Kernel"
 
-#: spyderlib/plugins/externalconsole.py:935
+#: spyderlib/plugins/externalconsole.py:868
 msgid ""
 "Either:<ol><li>Your IPython frontend and kernel versions are "
 "<b>incompatible</b> or</li><li>You <b>don't have</b> IPython installed in "
@@ -1572,44 +1544,44 @@ msgstr ""
 "em seu interpretador externo.</li></ol>Nós lamentamos, mas não podemos criar "
 "um console do IPython para você."
 
-#: spyderlib/plugins/externalconsole.py:959
+#: spyderlib/plugins/externalconsole.py:892
 msgid "Command Window"
 msgstr "Janela de comando"
 
-#: spyderlib/plugins/externalconsole.py:961
+#: spyderlib/plugins/externalconsole.py:894
 msgid "Terminal"
 msgstr "Terminal"
 
-#: spyderlib/plugins/externalconsole.py:1014
+#: spyderlib/plugins/externalconsole.py:947
 #, fuzzy
 msgid "Kernel %s"
 msgstr "Kernel"
 
-#: spyderlib/plugins/externalconsole.py:1094
+#: spyderlib/plugins/externalconsole.py:1027
 msgid "Open a &Python console"
 msgstr "Abrir um console &Python"
 
-#: spyderlib/plugins/externalconsole.py:1098
+#: spyderlib/plugins/externalconsole.py:1031
 msgid "Open &command prompt"
 msgstr "Abrir &prompt de comando"
 
-#: spyderlib/plugins/externalconsole.py:1099
+#: spyderlib/plugins/externalconsole.py:1032
 msgid "Open a Windows command prompt"
 msgstr "Abrir o prompt de comando do Windows"
 
-#: spyderlib/plugins/externalconsole.py:1101
+#: spyderlib/plugins/externalconsole.py:1034
 msgid "Open a &terminal"
 msgstr "Abrir um &terminal"
 
-#: spyderlib/plugins/externalconsole.py:1102
+#: spyderlib/plugins/externalconsole.py:1035
 msgid "Open a terminal window"
 msgstr "Abrir uma janela de terminal"
 
-#: spyderlib/plugins/externalconsole.py:1263
+#: spyderlib/plugins/externalconsole.py:1196
 msgid "Open an IPython console"
 msgstr "Abrir um console IPython"
 
-#: spyderlib/plugins/externalconsole.py:1264
+#: spyderlib/plugins/externalconsole.py:1197
 msgid ""
 "The console monitor was disabled: the IPython kernel will be started as "
 "expected, but an IPython console will have to be connected manually to the "
@@ -1618,13 +1590,13 @@ msgstr ""
 "O monitor está desativado, por tanto será criado um kernel do IPython, mas "
 "você deverá conectar manualmente um interpretador ao mesmo."
 
-#: spyderlib/plugins/externalconsole.py:1296
-#: spyderlib/plugins/externalconsole.py:1309
-#: spyderlib/plugins/externalconsole.py:1313
+#: spyderlib/plugins/externalconsole.py:1229
+#: spyderlib/plugins/externalconsole.py:1242
+#: spyderlib/plugins/externalconsole.py:1246
 msgid "UMR"
 msgstr "RMU"
 
-#: spyderlib/plugins/externalconsole.py:1297
+#: spyderlib/plugins/externalconsole.py:1230
 msgid ""
 "UMR excluded modules:\n"
 "(example: guidata, guiqwt)"
@@ -1632,7 +1604,7 @@ msgstr ""
 "Módulos excluídos pelo RMU:\n"
 "(Exemplo: guidata, guiqwt)"
 
-#: spyderlib/plugins/externalconsole.py:1310
+#: spyderlib/plugins/externalconsole.py:1243
 msgid ""
 "The following modules are not installed on your machine:\n"
 "%s"
@@ -1640,7 +1612,7 @@ msgstr ""
 "Os seguintes módulos não estão instalados no seu computador:\n"
 "%s"
 
-#: spyderlib/plugins/externalconsole.py:1314
+#: spyderlib/plugins/externalconsole.py:1247
 msgid ""
 "Please note that these changes will be applied only to new Python/IPython "
 "consoles"
@@ -1676,31 +1648,31 @@ msgstr "Profundidade do histórico: "
 msgid "Scroll automatically to last entry"
 msgstr "Ir automaticamente para a última entrada"
 
-#: spyderlib/plugins/history.py:116 spyderlib/plugins/inspector.py:472
-#: spyderlib/widgets/editor.py:575 spyderlib/widgets/explorer.py:1037
+#: spyderlib/plugins/history.py:118 spyderlib/plugins/inspector.py:472
+#: spyderlib/widgets/editor.py:459 spyderlib/widgets/explorer.py:1027
 #: spyderlib/widgets/externalshell/baseshell.py:153
-#: spyderlib/widgets/externalshell/namespacebrowser.py:229
-#: spyderlib/widgets/ipython.py:565
+#: spyderlib/widgets/externalshell/namespacebrowser.py:139
+#: spyderlib/widgets/ipython.py:568
 msgid "Options"
 msgstr "Opções"
 
-#: spyderlib/plugins/history.py:136
+#: spyderlib/plugins/history.py:138
 msgid "History log"
 msgstr "Log do histórico "
 
-#: spyderlib/plugins/history.py:163
+#: spyderlib/plugins/history.py:165
 msgid "History..."
 msgstr "Histórico..."
 
-#: spyderlib/plugins/history.py:165
+#: spyderlib/plugins/history.py:167
 msgid "Set history maximum entries"
 msgstr "Definir número máximo de entradas para armazenar"
 
-#: spyderlib/plugins/history.py:272
+#: spyderlib/plugins/history.py:274
 msgid "History"
 msgstr "Histórico"
 
-#: spyderlib/plugins/history.py:273
+#: spyderlib/plugins/history.py:275
 msgid "Maximum entries"
 msgstr "Número máximo de entradas"
 
@@ -2000,14 +1972,6 @@ msgstr ""
 "favor selecione <b>%s</b> para colocar os gráficos no console ou <b>%s</b> "
 "para interagir com eles (através de zoom) em uma janela separada."
 
-#: spyderlib/plugins/ipythonconsole.py:270
-msgid "Backend:"
-msgstr "Saída:"
-
-#: spyderlib/plugins/ipythonconsole.py:272
-msgid "This option will be applied the next time a console is opened."
-msgstr "Esta opção será aplicada na próxima vez que um console for aberto."
-
 #: spyderlib/plugins/ipythonconsole.py:283
 msgid "Inline backend"
 msgstr "Saída em linha"
@@ -2054,7 +2018,7 @@ msgstr "Altura:"
 msgid "Default is 4"
 msgstr "O padrão é 4"
 
-#: spyderlib/plugins/ipythonconsole.py:328 spyderlib/tour.py:496
+#: spyderlib/plugins/ipythonconsole.py:328 spyderlib/tour.py:552
 msgid "Run code"
 msgstr "Executar código"
 
@@ -2207,10 +2171,6 @@ msgid ""
 "Default is<br>Out[&lt;span class=\"out-prompt-number\"&gt;%i&lt;/span&gt;]:"
 msgstr ""
 "O Padrão é<br>Out[&lt;span class=\"out-prompt-number\"&gt;%i&lt;/span&gt;]: "
-
-#: spyderlib/plugins/ipythonconsole.py:465
-msgid "Graphics"
-msgstr "Gráficos"
 
 #: spyderlib/plugins/ipythonconsole.py:467
 #: spyderlib/plugins/workingdirectory.py:44
@@ -2487,41 +2447,77 @@ msgstr "Mostrar um aviso quando matar o processo"
 msgid "Run Settings dialog"
 msgstr "Configurações de execução"
 
-#: spyderlib/plugins/shortcuts.py:187
+#: spyderlib/plugins/shortcuts.py:134
+msgid ""
+"Press the new shortcut and select 'Ok': \n"
+"(Press 'Tab' once to switch focus between the shortcut entry \n"
+"and the buttons below it)"
+msgstr ""
+
+#: spyderlib/plugins/shortcuts.py:137
+#, fuzzy
+msgid "Current shortcut:"
+msgstr "Célula selecionada:"
+
+#: spyderlib/plugins/shortcuts.py:139
+#, fuzzy
+msgid "New shortcut:"
+msgstr "Teclas de atalho"
+
+#: spyderlib/plugins/shortcuts.py:152
+msgid "Shortcut: {0}"
+msgstr ""
+
+#: spyderlib/plugins/shortcuts.py:273
+msgid "Please introduce a different shortcut"
+msgstr ""
+
+#: spyderlib/plugins/shortcuts.py:310
+msgid "The new shorcut conflicts with:"
+msgstr ""
+
+#: spyderlib/plugins/shortcuts.py:321
+msgid ""
+"A compound sequence can have {break} a maximum of 4 subsequences.{break}"
+msgstr ""
+
+#: spyderlib/plugins/shortcuts.py:326
+#, fuzzy
+msgid "Invalid key entered"
+msgstr "Caminho de arquivo inválido "
+
+#: spyderlib/plugins/shortcuts.py:515
 msgid "Context"
 msgstr "Contexto"
 
-#: spyderlib/plugins/shortcuts.py:189 spyderlib/widgets/dicteditor.py:158
+#: spyderlib/plugins/shortcuts.py:517 spyderlib/widgets/dicteditor.py:158
 msgid "Name"
 msgstr "Nome"
 
-#: spyderlib/plugins/shortcuts.py:191
-msgid "Mod1"
-msgstr "Mod1"
+#: spyderlib/plugins/shortcuts.py:519
+msgid "Shortcut"
+msgstr ""
 
-#: spyderlib/plugins/shortcuts.py:193
-msgid "Mod2"
-msgstr "Mod2"
+#: spyderlib/plugins/shortcuts.py:521
+msgid "Score"
+msgstr ""
 
-#: spyderlib/plugins/shortcuts.py:195
-msgid "Mod3"
-msgstr "Mod3"
-
-#: spyderlib/plugins/shortcuts.py:197 spyderlib/widgets/dicteditor.py:169
-msgid "Key"
-msgstr "Chave"
-
-#: spyderlib/plugins/shortcuts.py:333
+#: spyderlib/plugins/shortcuts.py:681
 msgid "Conflicts"
 msgstr "Conflitos"
 
-#: spyderlib/plugins/shortcuts.py:334
+#: spyderlib/plugins/shortcuts.py:682
 msgid "The following conflicts have been detected:"
 msgstr "Os seguintes conflitos foram detectados:"
 
-#: spyderlib/plugins/shortcuts.py:346
+#: spyderlib/plugins/shortcuts.py:767
 msgid "Keyboard shortcuts"
 msgstr "Teclas de atalho"
+
+#: spyderlib/plugins/shortcuts.py:775
+#, fuzzy
+msgid "Search: "
+msgstr "Procurar"
 
 #: spyderlib/plugins/variableexplorer.py:24
 msgid "Autorefresh"
@@ -2544,32 +2540,32 @@ msgid "Filter"
 msgstr "Filtro"
 
 #: spyderlib/plugins/variableexplorer.py:33
-#: spyderlib/widgets/externalshell/namespacebrowser.py:199
+#: spyderlib/widgets/externalshell/namespacebrowser.py:214
 msgid "Exclude private references"
 msgstr "Excluir variáveis privadas"
 
 #: spyderlib/plugins/variableexplorer.py:34
-#: spyderlib/widgets/externalshell/namespacebrowser.py:214
+#: spyderlib/widgets/externalshell/namespacebrowser.py:229
 msgid "Exclude capitalized references"
 msgstr "Excluir variáveis que começam em maiúsculas"
 
 #: spyderlib/plugins/variableexplorer.py:35
-#: spyderlib/widgets/externalshell/namespacebrowser.py:207
+#: spyderlib/widgets/externalshell/namespacebrowser.py:222
 msgid "Exclude all-uppercase references"
 msgstr "Excluir variáveis em maiúscula "
 
 #: spyderlib/plugins/variableexplorer.py:36
-#: spyderlib/widgets/externalshell/namespacebrowser.py:222
+#: spyderlib/widgets/externalshell/namespacebrowser.py:237
 msgid "Exclude unsupported data types"
 msgstr "Excluir tipos de dados não suportados"
 
 #: spyderlib/plugins/variableexplorer.py:42
-#: spyderlib/widgets/dicteditor.py:701
+#: spyderlib/widgets/dicteditor.py:708
 msgid "Truncate values"
 msgstr "Abreviar valores"
 
 #: spyderlib/plugins/variableexplorer.py:44
-#: spyderlib/widgets/dicteditor.py:705
+#: spyderlib/widgets/dicteditor.py:712
 msgid "Show arrays min/max"
 msgstr "Mostrar o minimo e máximo de matrizes"
 
@@ -2590,7 +2586,7 @@ msgstr ""
 "quantidades de dados\n"
 "entre o processo remoto e o Spyder."
 
-#: spyderlib/plugins/variableexplorer.py:159
+#: spyderlib/plugins/variableexplorer.py:183
 msgid "Variable explorer"
 msgstr "Explorador de variáveis"
 
@@ -2657,7 +2653,7 @@ msgid "Back"
 msgstr "Anterior"
 
 #: spyderlib/plugins/workingdirectory.py:179
-#: spyderlib/widgets/explorer.py:1024 spyderlib/widgets/importwizard.py:529
+#: spyderlib/widgets/explorer.py:1021 spyderlib/widgets/importwizard.py:529
 msgid "Next"
 msgstr "Próximo"
 
@@ -2692,167 +2688,228 @@ msgstr "Mudar para diretório superior"
 msgid "Global working directory"
 msgstr "Diretório de trabalho global"
 
-#: spyderlib/spyder.py:112
+#: spyderlib/restart_app.py:129
+msgid ""
+"It was not possible to close the previous Spyder instance.\n"
+"Restart aborted."
+msgstr ""
+
+#: spyderlib/restart_app.py:131
+msgid ""
+"Spyder could not reset to factory defaults.\n"
+"Restart aborted."
+msgstr ""
+
+#: spyderlib/restart_app.py:133
+msgid ""
+"It was not possible to restart Spyder.\n"
+"Operation aborted."
+msgstr ""
+
+#: spyderlib/restart_app.py:135
+#, fuzzy
+msgid "Spyder exit error"
+msgstr "Spyder Editor"
+
+#: spyderlib/restart_app.py:136
+#, fuzzy
+msgid "Spyder reset error"
+msgstr "Spyder Editor"
+
+#: spyderlib/restart_app.py:137
+#, fuzzy
+msgid "Spyder restart error"
+msgstr "Tutorial do Spyder"
+
+#: spyderlib/restart_app.py:161
+msgid "Closing Spyder"
+msgstr ""
+
+#: spyderlib/restart_app.py:234
+#, fuzzy
+msgid "Resetting Spyder to defaults"
+msgstr "Restaurar os valores padrões."
+
+#: spyderlib/restart_app.py:266
+#, fuzzy
+msgid "Restarting"
+msgstr "Restaurar"
+
+#: spyderlib/spyder.py:124
 msgid "Initializing..."
 msgstr "Inicializando..."
 
-#: spyderlib/spyder.py:235
+#: spyderlib/spyder.py:247
 msgid "Numpy and Scipy documentation"
 msgstr "Documentação do Numpy e Scipy"
 
-#: spyderlib/spyder.py:237 spyderlib/spyder.py:1057
+#: spyderlib/spyder.py:249 spyderlib/spyder.py:1084
 msgid "Matplotlib documentation"
 msgstr "Documentação do Matplotlib"
 
-#: spyderlib/spyder.py:240
+#: spyderlib/spyder.py:252
 msgid "PyQt4 Reference Guide"
 msgstr "Guia de referência do PyQt4"
 
-#: spyderlib/spyder.py:243
+#: spyderlib/spyder.py:255
 msgid "PyQt4 API Reference"
 msgstr "Referência da API do PyQt4"
 
-#: spyderlib/spyder.py:245
+#: spyderlib/spyder.py:257
 msgid "Python(x,y)"
 msgstr "Python(x,y)"
 
-#: spyderlib/spyder.py:247
+#: spyderlib/spyder.py:259
 msgid "WinPython"
 msgstr "WinPython"
 
-#: spyderlib/spyder.py:293
+#: spyderlib/spyder.py:305
 msgid "Reload last session"
 msgstr "Recarregar última sessão"
 
-#: spyderlib/spyder.py:297
+#: spyderlib/spyder.py:309
 msgid "Load session..."
 msgstr "Carregar sessão..."
 
-#: spyderlib/spyder.py:300
+#: spyderlib/spyder.py:312
 msgid "Load Spyder session"
 msgstr "Carregar sessão do Spyder"
 
-#: spyderlib/spyder.py:302
+#: spyderlib/spyder.py:314
 msgid "Save session and quit..."
 msgstr "Salvar sessão e sair..."
 
-#: spyderlib/spyder.py:305
+#: spyderlib/spyder.py:317
 msgid "Save current session and quit application"
 msgstr "Salvar sessão atual e sair do aplicativo"
 
-#: spyderlib/spyder.py:516
+#: spyderlib/spyder.py:530
 msgid "Close current pane"
 msgstr "Fechar painel atual"
 
-#: spyderlib/spyder.py:521
+#: spyderlib/spyder.py:535
 msgid "Lock panes"
 msgstr ""
 
-#: spyderlib/spyder.py:528
+#: spyderlib/spyder.py:542
 #, fuzzy
 msgid "Use next layout"
 msgstr "Reiniciar esquema dos componentes"
 
-#: spyderlib/spyder.py:532
+#: spyderlib/spyder.py:546
 #, fuzzy
 msgid "Use previous layout"
 msgstr "Reiniciar esquema dos componentes"
 
-#: spyderlib/spyder.py:541
+#: spyderlib/spyder.py:555
 msgid "&Find text"
 msgstr "&Procurar"
 
-#: spyderlib/spyder.py:546
+#: spyderlib/spyder.py:560
 msgid "Find &next"
 msgstr "P&rocurar próximo"
 
-#: spyderlib/spyder.py:553
+#: spyderlib/spyder.py:567
 msgid "Find &previous"
 msgstr "Procurar &anterior"
 
-#: spyderlib/spyder.py:559
+#: spyderlib/spyder.py:573
 msgid "&Replace text"
 msgstr "&Substituir"
 
-#: spyderlib/spyder.py:579 spyderlib/widgets/sourcecode/codeeditor.py:2419
+#: spyderlib/spyder.py:580 spyderlib/widgets/editor.py:339
+#, fuzzy
+msgid "File switcher..."
+msgstr "Arquivo..."
+
+#: spyderlib/spyder.py:582
+msgid "Fast switch between files"
+msgstr ""
+
+#: spyderlib/spyder.py:600 spyderlib/widgets/sourcecode/codeeditor.py:2425
 msgid "Undo"
 msgstr "Desfazer"
 
-#: spyderlib/spyder.py:581 spyderlib/widgets/sourcecode/codeeditor.py:2422
+#: spyderlib/spyder.py:602 spyderlib/widgets/sourcecode/codeeditor.py:2428
 msgid "Redo"
 msgstr "Refazer"
 
-#: spyderlib/spyder.py:583 spyderlib/widgets/arrayeditor.py:392
-#: spyderlib/widgets/dataframeeditor.py:406
-#: spyderlib/widgets/dicteditor.py:673 spyderlib/widgets/shell.py:126
-#: spyderlib/widgets/sourcecode/codeeditor.py:2428
+#: spyderlib/spyder.py:604 spyderlib/widgets/arrayeditor.py:392
+#: spyderlib/widgets/dataframeeditor.py:418
+#: spyderlib/widgets/dicteditor.py:680 spyderlib/widgets/shell.py:126
+#: spyderlib/widgets/sourcecode/codeeditor.py:2434
 msgid "Copy"
 msgstr "Copiar"
 
-#: spyderlib/spyder.py:585 spyderlib/widgets/shell.py:122
-#: spyderlib/widgets/sourcecode/codeeditor.py:2425
+#: spyderlib/spyder.py:606 spyderlib/widgets/shell.py:122
+#: spyderlib/widgets/sourcecode/codeeditor.py:2431
 msgid "Cut"
 msgstr "Recortar"
 
-#: spyderlib/spyder.py:587 spyderlib/widgets/dicteditor.py:670
+#: spyderlib/spyder.py:608 spyderlib/widgets/dicteditor.py:677
 #: spyderlib/widgets/shell.py:130
-#: spyderlib/widgets/sourcecode/codeeditor.py:2431
+#: spyderlib/widgets/sourcecode/codeeditor.py:2437
 msgid "Paste"
 msgstr "Colar"
 
-#: spyderlib/spyder.py:589 spyderlib/widgets/explorer.py:470
+#: spyderlib/spyder.py:610 spyderlib/widgets/explorer.py:470
 #: spyderlib/widgets/projectexplorer.py:1015 spyderlib/widgets/shell.py:139
-#: spyderlib/widgets/sourcecode/codeeditor.py:2434
+#: spyderlib/widgets/sourcecode/codeeditor.py:2440
 msgid "Delete"
 msgstr "Deletar"
 
-#: spyderlib/spyder.py:593 spyderlib/widgets/shell.py:143
-#: spyderlib/widgets/sourcecode/codeeditor.py:2438
+#: spyderlib/spyder.py:614 spyderlib/widgets/shell.py:143
+#: spyderlib/widgets/sourcecode/codeeditor.py:2444
 msgid "Select All"
 msgstr "Selecionar tudo"
 
-#: spyderlib/spyder.py:643
+#: spyderlib/spyder.py:664
 msgid "C&onsoles"
 msgstr "C&onsoles"
 
-#: spyderlib/spyder.py:649
+#: spyderlib/spyder.py:670
 msgid "&View"
 msgstr "&Ver"
 
-#: spyderlib/spyder.py:652
+#: spyderlib/spyder.py:673
 msgid "&Help"
 msgstr "A&juda"
 
-#: spyderlib/spyder.py:657
+#: spyderlib/spyder.py:678
 msgid "Welcome to Spyder!"
 msgstr "Bem-vindo ao Spyder!"
 
-#: spyderlib/spyder.py:662
+#: spyderlib/spyder.py:683
 msgid "Pre&ferences"
 msgstr "Pre&ferências"
 
-#: spyderlib/spyder.py:669 spyderlib/widgets/pathmanager.py:48
+#: spyderlib/spyder.py:690 spyderlib/widgets/pathmanager.py:48
 #: spyderlib/widgets/projectexplorer.py:598
 msgid "PYTHONPATH manager"
 msgstr "Gerenciar PYTHONPATH"
 
-#: spyderlib/spyder.py:672
+#: spyderlib/spyder.py:693
 msgid "Python Path Manager"
 msgstr "Gerenciador de caminhos do Python"
 
-#: spyderlib/spyder.py:675
+#: spyderlib/spyder.py:696
 msgid "Update module names list"
 msgstr "Atualizar a lista de nomes dos módulos"
 
-#: spyderlib/spyder.py:678
+#: spyderlib/spyder.py:699
 msgid "Refresh list of module names available in PYTHONPATH"
 msgstr "Atualizar a lista de nomes dos módulos disponíveis no PYTHONPATH"
 
-#: spyderlib/spyder.py:683
+#: spyderlib/spyder.py:702
+#, fuzzy
+msgid "Reset Spyder to factory defaults"
+msgstr "Restaurar os valores padrões."
+
+#: spyderlib/spyder.py:707
 msgid "Current user environment variables..."
 msgstr "Variáveis de ambiente do usuário atual..."
 
-#: spyderlib/spyder.py:685
+#: spyderlib/spyder.py:709
 msgid ""
 "Show and edit current user environment variables in Windows registry (i.e. "
 "for all sessions)"
@@ -2862,55 +2919,55 @@ msgstr ""
 "registro do Windows (para todas\n"
 "as sessões)"
 
-#: spyderlib/spyder.py:693 spyderlib/spyder.py:1145
+#: spyderlib/spyder.py:718 spyderlib/spyder.py:1178
 msgid "External Tools"
 msgstr "Ferramentas externas"
 
-#: spyderlib/spyder.py:697
+#: spyderlib/spyder.py:722
 msgid "Python(x,y) launcher"
 msgstr "Lançador do Python(x,y)"
 
-#: spyderlib/spyder.py:704
+#: spyderlib/spyder.py:729
 msgid "WinPython control panel"
 msgstr "Painel de controle WinPython"
 
-#: spyderlib/spyder.py:713
+#: spyderlib/spyder.py:738
 msgid "Qt Designer"
 msgstr "Qt Designer"
 
-#: spyderlib/spyder.py:718
+#: spyderlib/spyder.py:743
 msgid "Qt Linguist"
 msgstr "Qt Linguist"
 
-#: spyderlib/spyder.py:724
+#: spyderlib/spyder.py:749
 msgid "Qt examples"
 msgstr "Exemplos do Qt"
 
-#: spyderlib/spyder.py:745
+#: spyderlib/spyder.py:770
 msgid "guidata examples"
 msgstr "Exemplos do guidata"
 
-#: spyderlib/spyder.py:756
+#: spyderlib/spyder.py:781
 msgid "guiqwt examples"
 msgstr "Exemplos do guiqwt"
 
-#: spyderlib/spyder.py:761
+#: spyderlib/spyder.py:786
 msgid "Sift"
 msgstr "Sift"
 
-#: spyderlib/spyder.py:771
+#: spyderlib/spyder.py:796
 msgid "ViTables"
 msgstr "ViTables"
 
-#: spyderlib/spyder.py:785
+#: spyderlib/spyder.py:810
 msgid "Fullscreen mode"
 msgstr "Modo tela cheia"
 
-#: spyderlib/spyder.py:797
+#: spyderlib/spyder.py:822
 msgid "Main toolbar"
 msgstr "Barra principal"
 
-#: spyderlib/spyder.py:806
+#: spyderlib/spyder.py:831
 msgid ""
 "Spyder Internal Console\n"
 "\n"
@@ -2932,190 +2989,195 @@ msgstr ""
 "\n"
 "Por favor não execute seu código neste console\n"
 
-#: spyderlib/spyder.py:823
+#: spyderlib/spyder.py:848
 msgid "Loading object inspector..."
 msgstr "Carregando inspetor de objetos..."
 
-#: spyderlib/spyder.py:830
+#: spyderlib/spyder.py:855
 msgid "Loading outline explorer..."
 msgstr "Carregando o explorador de código..."
 
-#: spyderlib/spyder.py:838
+#: spyderlib/spyder.py:863
 msgid "Loading editor..."
 msgstr "Carregando editor..."
 
-#: spyderlib/spyder.py:849
+#: spyderlib/spyder.py:874
 #, fuzzy
 msgid "&Restart"
 msgstr "Restaurar"
 
-#: spyderlib/spyder.py:851
+#: spyderlib/spyder.py:876
 #, fuzzy
 msgid "Restart"
 msgstr "Restaurar"
 
-#: spyderlib/spyder.py:870
+#: spyderlib/spyder.py:895
 msgid "Loading file explorer..."
 msgstr "Carregando explorador de arquivos..."
 
-#: spyderlib/spyder.py:877
+#: spyderlib/spyder.py:902
 msgid "Loading history plugin..."
 msgstr "Carregando histórico..."
 
-#: spyderlib/spyder.py:888
+#: spyderlib/spyder.py:913
 msgid "Loading online help..."
 msgstr "Carregando ajuda online..."
 
-#: spyderlib/spyder.py:894
+#: spyderlib/spyder.py:919
 msgid "Loading project explorer..."
 msgstr "Carregando explorador de projetos..."
 
-#: spyderlib/spyder.py:905
+#: spyderlib/spyder.py:930
 msgid "Loading external console..."
 msgstr "Carregando console externo..."
 
-#: spyderlib/spyder.py:914
+#: spyderlib/spyder.py:939
 msgid "Loading namespace browser..."
 msgstr "Carregando explorador de variáveis..."
 
-#: spyderlib/spyder.py:921
+#: spyderlib/spyder.py:946
 msgid "Loading IPython console..."
 msgstr "Carregando console IPython..."
 
-#: spyderlib/spyder.py:931
+#: spyderlib/spyder.py:956
 msgid "Setting up main window..."
 msgstr "Configurando tela principal..."
 
-#: spyderlib/spyder.py:934
+#: spyderlib/spyder.py:959
 msgid "Optional dependencies..."
 msgstr "Dependências opcionais... "
 
-#: spyderlib/spyder.py:938
+#: spyderlib/spyder.py:963
 msgid "Report issue..."
 msgstr "Reportar problema..."
 
-#: spyderlib/spyder.py:942
+#: spyderlib/spyder.py:967
 msgid "Spyder support..."
 msgstr "Suporte do Spyder..."
 
-#: spyderlib/spyder.py:945
+#: spyderlib/spyder.py:970
 msgid "Check for updates..."
 msgstr ""
 
-#: spyderlib/spyder.py:968
+#: spyderlib/spyder.py:993
 msgid "Spyder documentation"
 msgstr "Documentação do Spyder"
 
-#: spyderlib/spyder.py:972
+#: spyderlib/spyder.py:997
 msgid "Spyder tutorial"
 msgstr "Tutorial do Spyder"
 
-#: spyderlib/spyder.py:977
+#: spyderlib/spyder.py:1002
 #, fuzzy
-msgid "Spyder tours"
-msgstr "Spyder Editor"
+msgid "Interactive tours"
+msgstr "Introspecção"
 
-#: spyderlib/spyder.py:1004
+#: spyderlib/spyder.py:1031
 msgid "Python documentation"
 msgstr "Documentação do Python"
 
-#: spyderlib/spyder.py:1010 spyderlib/spyder.py:1049
+#: spyderlib/spyder.py:1037 spyderlib/spyder.py:1076
 msgid "IPython documentation"
 msgstr "Documentação do IPython"
 
-#: spyderlib/spyder.py:1011
+#: spyderlib/spyder.py:1038
 msgid "Intro to IPython"
 msgstr "Introdução ao IPython"
 
-#: spyderlib/spyder.py:1013
+#: spyderlib/spyder.py:1040
 msgid "Quick reference"
 msgstr "Referência rápida"
 
-#: spyderlib/spyder.py:1015
+#: spyderlib/spyder.py:1042
 msgid "Console help"
 msgstr "Ajuda do console"
 
-#: spyderlib/spyder.py:1047
+#: spyderlib/spyder.py:1074
 msgid "Python(x,y) documentation folder"
 msgstr "Pasta de documentação do Python(x,y)"
 
-#: spyderlib/spyder.py:1051
+#: spyderlib/spyder.py:1078
 msgid "guidata documentation"
 msgstr "Documentação do guidata "
 
-#: spyderlib/spyder.py:1054
+#: spyderlib/spyder.py:1081
 msgid "guiqwt documentation"
 msgstr "Documentação do guiqwt"
 
-#: spyderlib/spyder.py:1060
+#: spyderlib/spyder.py:1087
 msgid "NumPy documentation"
 msgstr "Documentação do NumPy"
 
-#: spyderlib/spyder.py:1062
+#: spyderlib/spyder.py:1089
 msgid "NumPy reference guide"
 msgstr "Guia de referência do NumPy"
 
-#: spyderlib/spyder.py:1064
+#: spyderlib/spyder.py:1091
 msgid "NumPy user guide"
 msgstr "Guia do usuário do NumPy"
 
-#: spyderlib/spyder.py:1066
+#: spyderlib/spyder.py:1093
 msgid "SciPy documentation"
 msgstr "Documentação do SciPy"
 
-#: spyderlib/spyder.py:1073
+#: spyderlib/spyder.py:1100
 msgid "Installed Python modules"
 msgstr "Módulos instalados do Python"
 
-#: spyderlib/spyder.py:1077
+#: spyderlib/spyder.py:1104
 msgid "Online documentation"
 msgstr "Documentação online"
 
-#: spyderlib/spyder.py:1089
+#: spyderlib/spyder.py:1116
 msgid "Qt documentation"
 msgstr "Documentação do Qt"
 
-#: spyderlib/spyder.py:1095
+#: spyderlib/spyder.py:1122
 msgid "About %s..."
 msgstr "Sobre o %s..."
 
-#: spyderlib/spyder.py:1119
+#: spyderlib/spyder.py:1146
 msgid "Panes"
 msgstr "Painéis"
 
-#: spyderlib/spyder.py:1120
+#: spyderlib/spyder.py:1147
 msgid "Toolbars"
 msgstr "Barra de ferramentas"
 
-#: spyderlib/spyder.py:1121
+#: spyderlib/spyder.py:1148
 #, fuzzy
 msgid "Window layouts"
 msgstr "Esquema personalizado dos componentes"
 
-#: spyderlib/spyder.py:1138
+#: spyderlib/spyder.py:1157 spyderlib/spyder.py:1910 spyderlib/spyder.py:1911
+#, fuzzy
+msgid "Show toolbars"
+msgstr "Mostrar barra de ferramentas"
+
+#: spyderlib/spyder.py:1171
 msgid "Attached console window (debugging)"
 msgstr "Janela do console anexada (depuração)"
 
-#: spyderlib/spyder.py:1766
+#: spyderlib/spyder.py:1756
 msgid "Spyder Default Layout"
 msgstr ""
 
-#: spyderlib/spyder.py:1784 spyderlib/spyder.py:1795
+#: spyderlib/spyder.py:1774 spyderlib/spyder.py:1785
 #, fuzzy
 msgid "Save current layout"
 msgstr "Salvar arquivo atual como..."
 
-#: spyderlib/spyder.py:1788 spyderlib/spyder.py:1797
+#: spyderlib/spyder.py:1778 spyderlib/spyder.py:1787
 #, fuzzy
 msgid "Layout preferences"
 msgstr "Preferências"
 
-#: spyderlib/spyder.py:1792
+#: spyderlib/spyder.py:1782
 #, fuzzy
 msgid "Reset to spyder default"
 msgstr "Restaurar os valores padrões."
 
-#: spyderlib/spyder.py:1814
+#: spyderlib/spyder.py:1804
 msgid ""
 "Window layout will be reset to default settings: this affects window "
 "position, size and dockwidgets.\n"
@@ -3125,56 +3187,69 @@ msgstr ""
 "afeta a posição, tamanho e componentes da janela.\n"
 "Deseja continuar?"
 
-#: spyderlib/spyder.py:1836
+#: spyderlib/spyder.py:1826
 msgid ""
 "Layout <b>%s</b> will be                                                "
 "overwritten. Do you want to                                                "
 "continue?"
 msgstr ""
 
-#: spyderlib/spyder.py:1899
+#: spyderlib/spyder.py:1889
 #, fuzzy
 msgid "Quick switch layout #%s has not yet been defined."
 msgstr "Ainda não foi definido o esquema do componente #%d."
 
-#: spyderlib/spyder.py:2175 spyderlib/spyder.py:2176
+#: spyderlib/spyder.py:1907 spyderlib/spyder.py:1908
+#, fuzzy
+msgid "Hide toolbars"
+msgstr "Barra de arquivo"
+
+#: spyderlib/spyder.py:2229 spyderlib/spyder.py:2230
 msgid "Maximize current pane"
 msgstr "Maximizar painel atual"
 
-#: spyderlib/spyder.py:2179
+#: spyderlib/spyder.py:2233
 msgid "Restore current pane"
 msgstr "Restaurar painel atual"
 
-#: spyderlib/spyder.py:2180
+#: spyderlib/spyder.py:2234
 msgid "Restore pane to its original size"
 msgstr "Restaurar painel ao seu tamanho original"
 
-#: spyderlib/spyder.py:2264
+#: spyderlib/spyder.py:2318
 msgid "About %s"
 msgstr "Sobre o %s"
 
-#: spyderlib/spyder.py:2444
+#: spyderlib/spyder.py:2502
 msgid "Running an external system terminal is not supported on platform %s."
 msgstr "Executar um terminal externo não é suportado na plataforma %s."
 
-#: spyderlib/spyder.py:2663
+#: spyderlib/spyder.py:2721
 msgid "Open session"
 msgstr "Abrir sessão"
 
-#: spyderlib/spyder.py:2664 spyderlib/spyder.py:2676
+#: spyderlib/spyder.py:2722 spyderlib/spyder.py:2734
 msgid "Spyder sessions"
 msgstr "Sessões do Spyder"
 
-#: spyderlib/spyder.py:2675
+#: spyderlib/spyder.py:2733
 msgid "Save session"
 msgstr "Salvar sessão"
 
-#: spyderlib/spyder.py:2791 spyderlib/workers/updates.py:139
+#: spyderlib/spyder.py:2775
+#, fuzzy
+msgid ""
+"Spyder will restart and reset to default settings: <br><br>Do you want to "
+"continue?"
+msgstr ""
+"O seguinte diretório não está vazio:<br><b>%s</b><br><br>Deseja continuar?"
+
+#: spyderlib/spyder.py:2871 spyderlib/widgets/helperwidgets.py:144
 #, fuzzy
 msgid "Spyder updates"
 msgstr "Arquivos data do Spyder"
 
-#: spyderlib/spyder.py:2810
+#: spyderlib/spyder.py:2890
 msgid ""
 "<b>Spyder %s is available!</b> <br><br>Please use your package manager to "
 "update Spyder or go to our <a href=\"%s\">Releases</a> page to download this "
@@ -3182,95 +3257,135 @@ msgid ""
 "please refer to our  <a href=\"%s\">Installation</a> instructions."
 msgstr ""
 
-#: spyderlib/spyder.py:2822
+#: spyderlib/spyder.py:2902
 #, fuzzy
 msgid "Spyder is up to date."
 msgstr "Suporte do Spyder..."
 
-#: spyderlib/tour.py:111 spyderlib/tour.py:211
+#: spyderlib/tour.py:121
 #, fuzzy
-msgid "Welcome to Spyder introduction tour"
+msgid "Welcome to the Introduction tour"
 msgstr "Bem-vindo ao Spyder!"
 
-#: spyderlib/tour.py:112
+#: spyderlib/tour.py:122
 msgid ""
-"<b>Spyder</b> is a powerful interactive development environment for the "
-"Python language. <br><br>Use the arrow keys or the mouse to move into the "
-"tour."
+"<b>Spyder</b> is a powerful Interactive Development Environment (or IDE) for "
+"the Python programming language.<br><br>Here we are going to guide you "
+"through its most important features.<br><br>Please use the arrow keys or "
+"click on the buttons below to move along the tour."
 msgstr ""
 
-#: spyderlib/tour.py:118
+#: spyderlib/tour.py:131
 #, fuzzy
 msgid "The Editor"
 msgstr "Editor de texto"
 
-#: spyderlib/tour.py:119
+#: spyderlib/tour.py:132
 msgid ""
-"Decoration here is used to highlight the <b>Line Number Area</b> <br><br> No "
-"interaction example."
+"This is the pane where you write Python code before evaluating it. You can "
+"get automatic suggestions and completions while writing, by pressing the "
+"<b>Tab</b> key next to a given text.<br><br>The Editor comes with a line "
+"number area (highlighted here in red), where Spyder shows warnings and "
+"syntax errors. They can help you to detect potential problems before running "
+"the code.<br><br>You can also set debug breakpoints in the line number area, "
+"by doing a double click next to a non-empty line."
 msgstr ""
 
-#: spyderlib/tour.py:125
+#: spyderlib/tour.py:147
 #, fuzzy
 msgid "The IPython console"
 msgstr "Console IPython"
 
-#: spyderlib/tour.py:126
-msgid ""
-"Now lets try to run some code to show the nice things in <b>Spyder</b>."
-"<br><br>Click when ready and pay close attention to the variable explorer"
-msgstr ""
-
-#: spyderlib/tour.py:134
-#, fuzzy
-msgid "The Python console"
-msgstr "Console IPython"
-
-#: spyderlib/tour.py:135 spyderlib/tour.py:141 spyderlib/tour.py:147
-#: spyderlib/tour.py:153 spyderlib/tour.py:159
-msgid ""
-"Now lets interact with the <b>IPython Console</b>.<br><br><i>Decoration</i> "
-"included also."
-msgstr ""
-
-#: spyderlib/tour.py:140
+#: spyderlib/tour.py:164
 #, fuzzy
 msgid "The Variable Explorer"
 msgstr "Explorador de variáveis"
 
-#: spyderlib/tour.py:146
-#, fuzzy
-msgid "The File Explorer"
-msgstr "Explorador de arquivos"
+#: spyderlib/tour.py:165
+msgid ""
+"In this pane you can view and edit the variables generated during the "
+"execution of a program, or those entered directly in one of Spyder consoles."
+"<br><br>As you can see, the Variable Explorer is showing the variables "
+"generated during the last step of this tour. By doing a double-click on any "
+"of them, a new window will be opened, where you can inspect and modify their "
+"contents."
+msgstr ""
 
-#: spyderlib/tour.py:152
+#: spyderlib/tour.py:177
+#, fuzzy
+msgid "The Python console"
+msgstr "Console IPython"
+
+#: spyderlib/tour.py:178
+msgid ""
+"You can also run your code on a Python console. These consoles are useful "
+"because they let you run a file in a console dedicated only to it.To select "
+"this behavior, please press the <b>F6</b> key.<br><br>By pressing the button "
+"below and then focusing the Variable Explorer, you will notice that Python "
+"consoles are also connected to that pane, and that the Variable Explorer "
+"only shows the variables of the currently focused console."
+msgstr ""
+
+#: spyderlib/tour.py:192
 #, fuzzy
 msgid "The Object Inspector"
 msgstr "Inspetor de objetos"
 
-#: spyderlib/tour.py:158
-#, fuzzy
-msgid "The Internal Console"
-msgstr "Console interno"
+#: spyderlib/tour.py:193
+msgid ""
+"This pane displays documentation of the functions, classes, methods or "
+"modules you are currently using in the Editor or the Consoles.<br><br>To use "
+"it, you need to press <b>Ctrl+I</b> in front of an object. If that object "
+"has some documentation associated with it, it will be displayed here."
+msgstr ""
 
-#: spyderlib/tour.py:207
+#: spyderlib/tour.py:203
+#, fuzzy
+msgid "The File Explorer"
+msgstr "Explorador de arquivos"
+
+#: spyderlib/tour.py:204
+msgid ""
+"This pane lets you navigate through the directories and files present in "
+"your computer.<br><br>You can also open any of these files with its "
+"corresponding application, by doing a double click on it.<br><br>There is "
+"one exception to this rule: plain-text files will always be opened in the "
+"Spyder Editor."
+msgstr ""
+
+#: spyderlib/tour.py:214
+#, fuzzy
+msgid "The History Log"
+msgstr "Log do histórico "
+
+#: spyderlib/tour.py:215
+msgid ""
+"This pane records all commands introduced in the Python and IPython consoles."
+msgstr ""
+
+#: spyderlib/tour.py:263
 msgid "<b>Spyder</b> is an interactive development environment based on bla"
 msgstr ""
 
-#: spyderlib/tour.py:212
+#: spyderlib/tour.py:267
+#, fuzzy
+msgid "Welcome to Spyder introduction tour"
+msgstr "Bem-vindo ao Spyder!"
+
+#: spyderlib/tour.py:268
 msgid "Spyder is an interactive development environment based on bla"
 msgstr ""
 
-#: spyderlib/tour.py:217
+#: spyderlib/tour.py:273
 #, fuzzy
 msgid "Introduction tour"
 msgstr "Introspecção"
 
-#: spyderlib/tour.py:218
-msgid "New features in version 2.4"
+#: spyderlib/tour.py:274
+msgid "New features in version 3.0"
 msgstr ""
 
-#: spyderlib/tour.py:765
+#: spyderlib/tour.py:821
 #, fuzzy
 msgid "Go to step: "
 msgstr "Ir para a linha:"
@@ -3339,7 +3454,7 @@ msgstr "Todos os arquivos (*.*)"
 msgid "Spyder data files"
 msgstr "Arquivos data do Spyder"
 
-#: spyderlib/utils/iofuncs.py:496 spyderlib/widgets/dicteditor.py:1049
+#: spyderlib/utils/iofuncs.py:496 spyderlib/widgets/dicteditor.py:1056
 msgid "NumPy arrays"
 msgstr "Matrizes do NumPy"
 
@@ -3387,7 +3502,7 @@ msgstr "<b>Tipo de arquivo não suportado '%s'</b>"
 msgid "It was not possible to run this file in an external terminal"
 msgstr ""
 
-#: spyderlib/widgets/arraybuilder.py:160
+#: spyderlib/widgets/arraybuilder.py:162
 msgid ""
 "\n"
 "           <b>Numpy Array/Matrix Helper</b><br>\n"
@@ -3401,7 +3516,7 @@ msgid ""
 "           "
 msgstr ""
 
-#: spyderlib/widgets/arraybuilder.py:171
+#: spyderlib/widgets/arraybuilder.py:173
 msgid ""
 "\n"
 "           <b>Numpy Array/Matrix Helper</b><br>\n"
@@ -3415,36 +3530,36 @@ msgid ""
 "           "
 msgstr ""
 
-#: spyderlib/widgets/arraybuilder.py:335
+#: spyderlib/widgets/arraybuilder.py:337
 msgid "Array dimensions not valid"
 msgstr ""
 
 #: spyderlib/widgets/arrayeditor.py:453 spyderlib/widgets/arrayeditor.py:486
-#: spyderlib/widgets/dataframeeditor.py:496
-#: spyderlib/widgets/dataframeeditor.py:536
+#: spyderlib/widgets/dataframeeditor.py:508
+#: spyderlib/widgets/dataframeeditor.py:548
 msgid "Format"
 msgstr "Formato"
 
 #: spyderlib/widgets/arrayeditor.py:458
-#: spyderlib/widgets/dataframeeditor.py:500
+#: spyderlib/widgets/dataframeeditor.py:512
 msgid "Resize"
 msgstr "Redimensionar"
 
 #: spyderlib/widgets/arrayeditor.py:487
-#: spyderlib/widgets/dataframeeditor.py:537
+#: spyderlib/widgets/dataframeeditor.py:549
 msgid "Float formatting"
 msgstr "Formatação de ponto flutuante"
 
 #: spyderlib/widgets/arrayeditor.py:494
-#: spyderlib/widgets/dataframeeditor.py:545 spyderlib/widgets/explorer.py:587
+#: spyderlib/widgets/dataframeeditor.py:557 spyderlib/widgets/explorer.py:587
 #: spyderlib/widgets/explorer.py:689
-#: spyderlib/widgets/externalshell/pythonshell.py:555
+#: spyderlib/widgets/externalshell/pythonshell.py:553
 #: spyderlib/widgets/externalshell/systemshell.py:99
 msgid "Error"
 msgstr "Error"
 
 #: spyderlib/widgets/arrayeditor.py:495
-#: spyderlib/widgets/dataframeeditor.py:546
+#: spyderlib/widgets/dataframeeditor.py:558
 msgid "Format (%s) is incorrect"
 msgstr "O formato (%s) está incorreto"
 
@@ -3456,63 +3571,68 @@ msgstr "A matriz está vazia"
 msgid "Arrays with more than 3 dimensions are not supported"
 msgstr "Matrizes com mais de 3 dimensões não são suportadas"
 
-#: spyderlib/widgets/arrayeditor.py:536
+#: spyderlib/widgets/arrayeditor.py:535
 msgid "The 'xlabels' argument length do no match array column number"
 msgstr ""
 "O argumento de comprimento 'xlabels' não corresponde com o número de colunas "
 "da matriz"
 
-#: spyderlib/widgets/arrayeditor.py:540
+#: spyderlib/widgets/arrayeditor.py:539
 msgid "The 'ylabels' argument length do no match array row number"
 msgstr ""
 "O argumento de comprimento 'ylabels' não corresponde com o número de linhas "
 "da matriz"
 
-#: spyderlib/widgets/arrayeditor.py:547
+#: spyderlib/widgets/arrayeditor.py:546
 msgid "%s arrays"
 msgstr "%s matrizes"
 
-#: spyderlib/widgets/arrayeditor.py:548
+#: spyderlib/widgets/arrayeditor.py:547
 msgid "%s are currently not supported"
 msgstr "%s não é suportado no momento"
 
-#: spyderlib/widgets/arrayeditor.py:557 spyderlib/widgets/arrayeditor.py:711
+#: spyderlib/widgets/arrayeditor.py:554
+#, fuzzy
+msgid "NumPy array"
+msgstr "Matrizes do NumPy"
+
+#: spyderlib/widgets/arrayeditor.py:556 spyderlib/widgets/arrayeditor.py:710
 msgid "Array editor"
 msgstr "Editor de matrizes"
 
-#: spyderlib/widgets/arrayeditor.py:559
+#: spyderlib/widgets/arrayeditor.py:558
 msgid "read only"
 msgstr "somente leitura"
 
-#: spyderlib/widgets/arrayeditor.py:589
+#: spyderlib/widgets/arrayeditor.py:588
 msgid "Record array fields:"
 msgstr "Campos de matrizes registradas:"
 
-#: spyderlib/widgets/arrayeditor.py:601
+#: spyderlib/widgets/arrayeditor.py:600
 msgid "Data"
 msgstr "Dados"
 
-#: spyderlib/widgets/arrayeditor.py:601
+#: spyderlib/widgets/arrayeditor.py:600
 msgid "Mask"
 msgstr "Máscara"
 
-#: spyderlib/widgets/arrayeditor.py:601
+#: spyderlib/widgets/arrayeditor.py:600
 msgid "Masked data"
 msgstr "Dados mascarados"
 
-#: spyderlib/widgets/arrayeditor.py:612
+#: spyderlib/widgets/arrayeditor.py:611
 msgid "Axis:"
 msgstr "Eixo:"
 
-#: spyderlib/widgets/arrayeditor.py:617
+#: spyderlib/widgets/arrayeditor.py:616
 msgid "Index:"
 msgstr "Índice:"
 
-#: spyderlib/widgets/arrayeditor.py:630
+#: spyderlib/widgets/arrayeditor.py:629
 msgid "<u>Warning</u>: changes are applied separately"
 msgstr "<u>Aviso</u>: mudanças são aplicadas de forma separada"
 
-#: spyderlib/widgets/arrayeditor.py:631
+#: spyderlib/widgets/arrayeditor.py:630
 msgid ""
 "For performance reasons, changes applied to masked array won't be reflected "
 "in array's data (and vice-versa)."
@@ -3522,29 +3642,29 @@ msgstr ""
 "refletidas nos dados da matriz\n"
 "(e vice-versa)."
 
-#: spyderlib/widgets/browser.py:30
-#: spyderlib/widgets/sourcecode/codeeditor.py:2462
+#: spyderlib/widgets/browser.py:31
+#: spyderlib/widgets/sourcecode/codeeditor.py:2468
 msgid "Zoom out"
 msgstr "Menos zoom"
 
-#: spyderlib/widgets/browser.py:33
-#: spyderlib/widgets/sourcecode/codeeditor.py:2459
+#: spyderlib/widgets/browser.py:34
+#: spyderlib/widgets/sourcecode/codeeditor.py:2465
 msgid "Zoom in"
 msgstr "Mais zoom"
 
-#: spyderlib/widgets/browser.py:130
+#: spyderlib/widgets/browser.py:131
 msgid "Home"
 msgstr "Página inicial"
 
-#: spyderlib/widgets/browser.py:165
+#: spyderlib/widgets/browser.py:166
 msgid "Find text"
 msgstr "Buscar texto"
 
-#: spyderlib/widgets/browser.py:183
+#: spyderlib/widgets/browser.py:184
 msgid "Address:"
 msgstr "Endereço:"
 
-#: spyderlib/widgets/browser.py:219
+#: spyderlib/widgets/browser.py:220
 msgid "Unable to load page"
 msgstr "Não foi possível carregar a página"
 
@@ -3570,31 +3690,31 @@ msgstr ""
 "Digite um caminho correto,\n"
 "depois aperte enter para validar"
 
-#: spyderlib/widgets/dataframeeditor.py:411
+#: spyderlib/widgets/dataframeeditor.py:423
 msgid "To bool"
 msgstr "Para booleano"
 
-#: spyderlib/widgets/dataframeeditor.py:411
+#: spyderlib/widgets/dataframeeditor.py:423
 msgid "To complex"
 msgstr "Para complexo"
 
-#: spyderlib/widgets/dataframeeditor.py:412
+#: spyderlib/widgets/dataframeeditor.py:424
 msgid "To float"
 msgstr "Para flutuante"
 
-#: spyderlib/widgets/dataframeeditor.py:412
+#: spyderlib/widgets/dataframeeditor.py:424
 msgid "To int"
 msgstr "Para inteiro"
 
-#: spyderlib/widgets/dataframeeditor.py:413
+#: spyderlib/widgets/dataframeeditor.py:425
 msgid "To str"
 msgstr "Para string"
 
-#: spyderlib/widgets/dataframeeditor.py:478
+#: spyderlib/widgets/dataframeeditor.py:490
 msgid "%s editor"
 msgstr "Editor de %s"
 
-#: spyderlib/widgets/dataframeeditor.py:510
+#: spyderlib/widgets/dataframeeditor.py:522
 msgid "Column min/max"
 msgstr "Min/max de coluna"
 
@@ -3652,6 +3772,10 @@ msgstr "Lista"
 msgid "Dictionary"
 msgstr "Dicionário "
 
+#: spyderlib/widgets/dicteditor.py:169
+msgid "Key"
+msgstr "Chave"
+
 #: spyderlib/widgets/dicteditor.py:175
 msgid "Attribute"
 msgstr "Atributo"
@@ -3683,7 +3807,7 @@ msgstr ""
 "\n"
 "Deseja continuar mesmo assim?"
 
-#: spyderlib/widgets/dicteditor.py:461 spyderlib/widgets/dicteditor.py:605
+#: spyderlib/widgets/dicteditor.py:461 spyderlib/widgets/dicteditor.py:612
 msgid "Edit item"
 msgstr "Editar item"
 
@@ -3691,192 +3815,168 @@ msgstr "Editar item"
 msgid "<b>Unable to retrieve data.</b><br><br>Error message:<br>%s"
 msgstr "<b>Não foi possível obter os dados.</b><br><br>Mensagem de erro:<br>%s"
 
-#: spyderlib/widgets/dicteditor.py:606
+#: spyderlib/widgets/dicteditor.py:613
 msgid "<b>Unable to assign data to item.</b><br><br>Error message:<br>%s"
 msgstr ""
 "<b>Não foi possível atribuir dados ao item.</b><br><br>Mensagem de erro:<br>"
 "%s"
 
-#: spyderlib/widgets/dicteditor.py:668
+#: spyderlib/widgets/dicteditor.py:675
 msgid "Resize rows to contents"
 msgstr "Redimensionar linhas para o conteúdo "
 
-#: spyderlib/widgets/dicteditor.py:676 spyderlib/widgets/explorer.py:242
+#: spyderlib/widgets/dicteditor.py:683 spyderlib/widgets/explorer.py:242
 msgid "Edit"
 msgstr "Editar"
 
-#: spyderlib/widgets/dicteditor.py:679 spyderlib/widgets/dicteditor.py:1018
-#: spyderlib/widgets/dicteditor.py:1035
+#: spyderlib/widgets/dicteditor.py:686 spyderlib/widgets/dicteditor.py:1025
+#: spyderlib/widgets/dicteditor.py:1042
 msgid "Plot"
 msgstr "Gráfico"
 
-#: spyderlib/widgets/dicteditor.py:683
+#: spyderlib/widgets/dicteditor.py:690
 msgid "Histogram"
 msgstr "Histograma"
 
-#: spyderlib/widgets/dicteditor.py:687
+#: spyderlib/widgets/dicteditor.py:694
 msgid "Show image"
 msgstr "Mostrar imagem"
 
-#: spyderlib/widgets/dicteditor.py:691 spyderlib/widgets/dicteditor.py:1043
+#: spyderlib/widgets/dicteditor.py:698 spyderlib/widgets/dicteditor.py:1050
 msgid "Save array"
 msgstr "Salvar matriz"
 
-#: spyderlib/widgets/dicteditor.py:695 spyderlib/widgets/dicteditor.py:982
-#: spyderlib/widgets/dicteditor.py:990
+#: spyderlib/widgets/dicteditor.py:702 spyderlib/widgets/dicteditor.py:989
+#: spyderlib/widgets/dicteditor.py:997
 msgid "Insert"
 msgstr "Inserir"
 
-#: spyderlib/widgets/dicteditor.py:698 spyderlib/widgets/dicteditor.py:932
+#: spyderlib/widgets/dicteditor.py:705 spyderlib/widgets/dicteditor.py:939
 msgid "Remove"
 msgstr "Remover"
 
-#: spyderlib/widgets/dicteditor.py:709 spyderlib/widgets/dicteditor.py:949
+#: spyderlib/widgets/dicteditor.py:716 spyderlib/widgets/dicteditor.py:956
 #: spyderlib/widgets/explorer.py:532 spyderlib/widgets/explorer.py:540
 #: spyderlib/widgets/explorer.py:551
 msgid "Rename"
 msgstr "Renomear"
 
-#: spyderlib/widgets/dicteditor.py:712
+#: spyderlib/widgets/dicteditor.py:719
 msgid "Duplicate"
 msgstr "Duplicar"
 
-#: spyderlib/widgets/dicteditor.py:930
+#: spyderlib/widgets/dicteditor.py:937
 msgid "Do you want to remove selected item?"
 msgstr "Você deseja remover o item selecionado?"
 
-#: spyderlib/widgets/dicteditor.py:931
+#: spyderlib/widgets/dicteditor.py:938
 msgid "Do you want to remove all selected items?"
 msgstr "Você deseja remover todos os itens selecionados?"
 
-#: spyderlib/widgets/dicteditor.py:949 spyderlib/widgets/dicteditor.py:982
+#: spyderlib/widgets/dicteditor.py:956 spyderlib/widgets/dicteditor.py:989
 msgid "Key:"
 msgstr "Chave:"
 
-#: spyderlib/widgets/dicteditor.py:990
+#: spyderlib/widgets/dicteditor.py:997
 msgid "Value:"
 msgstr "Valor:"
 
-#: spyderlib/widgets/dicteditor.py:1006
+#: spyderlib/widgets/dicteditor.py:1013
 msgid "Import error"
 msgstr "Erro de importação"
 
-#: spyderlib/widgets/dicteditor.py:1007
+#: spyderlib/widgets/dicteditor.py:1014
 msgid "Please install <b>matplotlib</b> or <b>guiqwt</b>."
 msgstr "Por favor instale <b>matplotlib</b> ou <b>guiqwt</b>."
 
-#: spyderlib/widgets/dicteditor.py:1019
+#: spyderlib/widgets/dicteditor.py:1026
 msgid "<b>Unable to plot data.</b><br><br>Error message:<br>%s"
 msgstr ""
 "<b>Não foi possível mostrar os dados.</b><br><br>Mensagem de erro:<br>%s"
 
-#: spyderlib/widgets/dicteditor.py:1036
+#: spyderlib/widgets/dicteditor.py:1043
 msgid "<b>Unable to show image.</b><br><br>Error message:<br>%s"
 msgstr ""
 "<b>Não foi possível mostrar o gráfico.</b><br><br>Mensagem de erro:<br>%s"
 
-#: spyderlib/widgets/dicteditor.py:1059
+#: spyderlib/widgets/dicteditor.py:1066
 msgid "<b>Unable to save array</b><br><br>Error message:<br>%s"
 msgstr "<b>Não foi possível salvar matriz</b><br><br>Mensagem de erro:<br>%s"
 
-#: spyderlib/widgets/dicteditor.py:1078
+#: spyderlib/widgets/dicteditor.py:1085
 msgid "Clipboard contents"
 msgstr "Conteúdo da área de transferência "
 
-#: spyderlib/widgets/dicteditor.py:1093
+#: spyderlib/widgets/dicteditor.py:1100
 msgid "Import from clipboard"
 msgstr "Importar da área de transferência "
 
-#: spyderlib/widgets/dicteditor.py:1095
+#: spyderlib/widgets/dicteditor.py:1102
 msgid "Empty clipboard"
 msgstr "Área de transferência vazia"
 
-#: spyderlib/widgets/dicteditor.py:1096
+#: spyderlib/widgets/dicteditor.py:1103
 msgid "Nothing to be imported from clipboard."
 msgstr "Não há nada para ser importado da área de transferência."
 
-#: spyderlib/widgets/dicteditorutils.py:59
+#: spyderlib/widgets/dicteditorutils.py:60
 msgid "View and edit DataFrames and Series in the Variable Explorer"
 msgstr "Ver e editar DataFrames e Series no Explorador de Variáveis"
 
-#: spyderlib/widgets/editor.py:71 spyderlib/widgets/editor.py:454
-msgid "File list management"
-msgstr "Gerenciador da lista de arquivos"
-
-#: spyderlib/widgets/editor.py:75
-msgid "Filter:"
-msgstr "Filtro:"
-
-#: spyderlib/widgets/editor.py:79
-msgid "(press <b>Enter</b> to edit file)"
-msgstr "(Aperte <b>Enter</b> para editar)"
-
-#: spyderlib/widgets/editor.py:92
-msgid "&Edit file"
-msgstr "&Editar arrquivo"
-
-#: spyderlib/widgets/editor.py:101
-msgid "&Close file"
-msgstr "&Fechar arquivo"
-
-#: spyderlib/widgets/editor.py:109
-msgid "Hint: press <b>Alt</b> to show accelerators"
-msgstr "Sugestão: aperte <b>Alt</b> para mostrar aceleradores"
-
-#: spyderlib/widgets/editor.py:457
+#: spyderlib/widgets/editor.py:342
 msgid "Copy path to clipboard"
 msgstr "Copiar caminho para área de transferência"
 
-#: spyderlib/widgets/editor.py:1023
+#: spyderlib/widgets/editor.py:906
 msgid "Temporary file"
 msgstr "Arquivo temporário "
 
-#: spyderlib/widgets/editor.py:1120
+#: spyderlib/widgets/editor.py:1003
 msgid "New window"
 msgstr "Nova janela"
 
-#: spyderlib/widgets/editor.py:1121
+#: spyderlib/widgets/editor.py:1004
 msgid "Create a new editor window"
 msgstr "Criar uma nova janela de edição"
 
-#: spyderlib/widgets/editor.py:1124
+#: spyderlib/widgets/editor.py:1007
 msgid "Split vertically"
 msgstr "Dividir verticalmente"
 
-#: spyderlib/widgets/editor.py:1126
+#: spyderlib/widgets/editor.py:1009
 msgid "Split vertically this editor window"
 msgstr "Dividir verticalmente esta janela de edição"
 
-#: spyderlib/widgets/editor.py:1128
+#: spyderlib/widgets/editor.py:1011
 msgid "Split horizontally"
 msgstr "Dividir horizontalmente"
 
-#: spyderlib/widgets/editor.py:1130
+#: spyderlib/widgets/editor.py:1013
 msgid "Split horizontally this editor window"
 msgstr "Dividir horizontalmente esta janela de edição"
 
-#: spyderlib/widgets/editor.py:1132
+#: spyderlib/widgets/editor.py:1015
 msgid "Close this panel"
 msgstr "Fechar este painel"
 
-#: spyderlib/widgets/editor.py:1269
+#: spyderlib/widgets/editor.py:1153
 msgid "<b>%s</b> has been modified.<br>Do you want to save changes?"
 msgstr "<b>%s</b> foi modificado.<br>Deseja salvar as mudanças?"
 
-#: spyderlib/widgets/editor.py:1331
+#: spyderlib/widgets/editor.py:1215
 msgid "Save"
 msgstr "Salvar"
 
-#: spyderlib/widgets/editor.py:1332
+#: spyderlib/widgets/editor.py:1216
 msgid "<b>Unable to save script '%s'</b><br><br>Error message:<br>%s"
 msgstr ""
 "<b>Não foi possível salvar o script '%s'</b><br><br>Mensagem de erro:<br>%s"
 
-#: spyderlib/widgets/editor.py:1354
+#: spyderlib/widgets/editor.py:1238
 msgid "Save Python script"
 msgstr "Salvar script Python"
 
-#: spyderlib/widgets/editor.py:1568
+#: spyderlib/widgets/editor.py:1452
 msgid ""
 "<b>%s</b> is unavailable (this file may have been removed, moved or renamed "
 "outside Spyder).<br>Do you want to close it?"
@@ -3884,7 +3984,7 @@ msgstr ""
 "<b>%s</b> está indisponível (o arquivo pode ter sido removido, movido ou "
 "renomeado fora do Spyder).<br>Deseja fechar?"
 
-#: spyderlib/widgets/editor.py:1588
+#: spyderlib/widgets/editor.py:1472
 msgid ""
 "<b>%s</b> has been modified outside Spyder.<br>Do you want to reload it and "
 "lose all your changes?"
@@ -3892,7 +3992,7 @@ msgstr ""
 "<b>%s</b> foi modificado fora do Spyder.<br>Você deseja recarregar ele e "
 "perder todas as modificações?"
 
-#: spyderlib/widgets/editor.py:1684
+#: spyderlib/widgets/editor.py:1568
 msgid ""
 "All changes to <b>%s</b> will be lost.<br>Do you want to revert file from "
 "disk?"
@@ -3900,11 +4000,11 @@ msgstr ""
 "Todas as modificações do <b>%s</b> foram perdidas.<br>Você deseja reverter o "
 "arquivo do disco?"
 
-#: spyderlib/widgets/editor.py:1821
+#: spyderlib/widgets/editor.py:1708
 msgid "Loading %s..."
 msgstr "Carregando %s..."
 
-#: spyderlib/widgets/editor.py:1831
+#: spyderlib/widgets/editor.py:1718
 msgid ""
 "<b>%s</b> contains mixed end-of-line characters.<br>Spyder will fix this "
 "automatically."
@@ -3912,11 +4012,11 @@ msgstr ""
 "<b>%s</b> contém vários tipos de caracteres de fim de linha.<br>O Spyder irá "
 "corrigir automaticamente."
 
-#: spyderlib/widgets/editor.py:2195
+#: spyderlib/widgets/editor.py:2083
 msgid "Close window"
 msgstr "Fechar janela"
 
-#: spyderlib/widgets/editor.py:2197
+#: spyderlib/widgets/editor.py:2085
 msgid "Close this window"
 msgstr "Fechar esta janela"
 
@@ -4001,7 +4101,7 @@ msgid "Open"
 msgstr "Abrir"
 
 #: spyderlib/widgets/explorer.py:254
-#: spyderlib/widgets/sourcecode/codeeditor.py:2450
+#: spyderlib/widgets/sourcecode/codeeditor.py:2456
 msgid "Convert to Python script"
 msgstr "Converter para um script Python"
 
@@ -4054,13 +4154,13 @@ msgid "<b>Unable to %s <i>%s</i></b><br><br>Error message:<br>%s"
 msgstr "<b>Não foi possível %s <i>%s</i></b><br><br>Mensagem de erro:<br>%s"
 
 #: spyderlib/widgets/explorer.py:514
-#: spyderlib/widgets/sourcecode/codeeditor.py:1981
+#: spyderlib/widgets/sourcecode/codeeditor.py:1987
 #, fuzzy
 msgid "Conversion error"
 msgstr "Erro de conexão"
 
 #: spyderlib/widgets/explorer.py:515
-#: spyderlib/widgets/sourcecode/codeeditor.py:1982
+#: spyderlib/widgets/sourcecode/codeeditor.py:1988
 msgid ""
 "It was not possible to convert this notebook. The error is:\n"
 "\n"
@@ -4138,11 +4238,11 @@ msgstr "Mostrar somente o diretório atual"
 msgid "You don't have the right permissions to open this directory"
 msgstr ""
 
-#: spyderlib/widgets/explorer.py:1016 spyderlib/widgets/importwizard.py:525
+#: spyderlib/widgets/explorer.py:1018 spyderlib/widgets/importwizard.py:525
 msgid "Previous"
 msgstr "Anterior"
 
-#: spyderlib/widgets/explorer.py:1031
+#: spyderlib/widgets/explorer.py:1024
 msgid "Parent"
 msgstr "Superior"
 
@@ -4167,7 +4267,7 @@ msgid "Terminated."
 msgstr "Finalizado."
 
 #: spyderlib/widgets/externalshell/baseshell.py:251
-#: spyderlib/widgets/ipython.py:348 spyderlib/widgets/ipython.py:365
+#: spyderlib/widgets/ipython.py:351 spyderlib/widgets/ipython.py:368
 #: spyderlib/widgets/mixins.py:656
 msgid "Arguments"
 msgstr "Argumentos"
@@ -4176,44 +4276,44 @@ msgstr "Argumentos"
 msgid "Command line arguments:"
 msgstr "Argumentos da linha de comando:"
 
-#: spyderlib/widgets/externalshell/namespacebrowser.py:176
+#: spyderlib/widgets/externalshell/namespacebrowser.py:191
 msgid "Refresh"
 msgstr "Atualizar"
 
-#: spyderlib/widgets/externalshell/namespacebrowser.py:180
+#: spyderlib/widgets/externalshell/namespacebrowser.py:195
 msgid "Refresh periodically"
 msgstr "Atualizar periodicamente"
 
-#: spyderlib/widgets/externalshell/namespacebrowser.py:184
-#: spyderlib/widgets/externalshell/namespacebrowser.py:443
+#: spyderlib/widgets/externalshell/namespacebrowser.py:199
+#: spyderlib/widgets/externalshell/namespacebrowser.py:453
 msgid "Import data"
 msgstr "Importar data"
 
-#: spyderlib/widgets/externalshell/namespacebrowser.py:187
-#: spyderlib/widgets/externalshell/namespacebrowser.py:531
-#: spyderlib/widgets/externalshell/namespacebrowser.py:552
+#: spyderlib/widgets/externalshell/namespacebrowser.py:202
+#: spyderlib/widgets/externalshell/namespacebrowser.py:541
+#: spyderlib/widgets/externalshell/namespacebrowser.py:562
 msgid "Save data"
 msgstr "Salvar data"
 
-#: spyderlib/widgets/externalshell/namespacebrowser.py:192
+#: spyderlib/widgets/externalshell/namespacebrowser.py:207
 msgid "Save data as..."
 msgstr "Salvar data como..."
 
-#: spyderlib/widgets/externalshell/namespacebrowser.py:200
+#: spyderlib/widgets/externalshell/namespacebrowser.py:215
 msgid "Exclude references which name starts with an underscore"
 msgstr "Excluir variáveis cujo nomes comecem com sublinhado"
 
-#: spyderlib/widgets/externalshell/namespacebrowser.py:208
+#: spyderlib/widgets/externalshell/namespacebrowser.py:223
 msgid "Exclude references which name is uppercase"
 msgstr ""
 "Excluir variáveis cujo nome esteja\n"
 "completamente em maiúsculas"
 
-#: spyderlib/widgets/externalshell/namespacebrowser.py:215
+#: spyderlib/widgets/externalshell/namespacebrowser.py:230
 msgid "Exclude references which name starts with an uppercase character"
 msgstr "Excluir variáveis cujo nome comece com maiúsculas. "
 
-#: spyderlib/widgets/externalshell/namespacebrowser.py:223
+#: spyderlib/widgets/externalshell/namespacebrowser.py:238
 msgid ""
 "Exclude references to unsupported data types (i.e. which won't be handled/"
 "saved correctly)"
@@ -4222,11 +4322,11 @@ msgstr ""
 "(aqueles que não podem ser manipulados e armazenados\n"
 " corretamente)"
 
-#: spyderlib/widgets/externalshell/namespacebrowser.py:338
+#: spyderlib/widgets/externalshell/namespacebrowser.py:347
 msgid "Object <b>%s</b> is not picklable"
 msgstr "O objeto <b>%s</b> não é picklable"
 
-#: spyderlib/widgets/externalshell/namespacebrowser.py:463
+#: spyderlib/widgets/externalshell/namespacebrowser.py:473
 msgid ""
 "<b>Unsupported file extension '%s'</b><br><br>Would you like to import it "
 "anyway (by selecting a known file format)?"
@@ -4234,33 +4334,33 @@ msgstr ""
 "<b>Tipo de arquivo não suportado '%s'</b><br><br>Deseja importar mesmo assim "
 "(selecionando um formato conhecido)?"
 
-#: spyderlib/widgets/externalshell/namespacebrowser.py:471
+#: spyderlib/widgets/externalshell/namespacebrowser.py:481
 msgid "Open file as:"
 msgstr "Abrir arquivo como:"
 
-#: spyderlib/widgets/externalshell/namespacebrowser.py:519
+#: spyderlib/widgets/externalshell/namespacebrowser.py:529
 msgid "<b>Unable to load '%s'</b><br><br>Error message:<br>%s"
 msgstr "<b>Não foi possível carregar '%s'</b><br><br>Mensagem de erro:<br>%s"
 
-#: spyderlib/widgets/externalshell/namespacebrowser.py:553
+#: spyderlib/widgets/externalshell/namespacebrowser.py:563
 msgid "<b>Unable to save current workspace</b><br><br>Error message:<br>%s"
 msgstr ""
 "<b>Não foi possível salvar o espaço de trabalho atual</b><br><br>Mensagem de "
 "erro:<br>%s"
 
-#: spyderlib/widgets/externalshell/pythonshell.py:286
+#: spyderlib/widgets/externalshell/pythonshell.py:284
 msgid "Variables"
 msgstr "Variáveis"
 
-#: spyderlib/widgets/externalshell/pythonshell.py:287
+#: spyderlib/widgets/externalshell/pythonshell.py:285
 msgid "Show/hide global variables explorer"
 msgstr "Mostrar/esconder o explorador de variáveis "
 
-#: spyderlib/widgets/externalshell/pythonshell.py:291
+#: spyderlib/widgets/externalshell/pythonshell.py:289
 msgid "Terminate"
 msgstr "Finalizar"
 
-#: spyderlib/widgets/externalshell/pythonshell.py:292
+#: spyderlib/widgets/externalshell/pythonshell.py:290
 msgid ""
 "Attempts to stop the process. The process\n"
 "may not exit as a result of clicking this\n"
@@ -4272,48 +4372,48 @@ msgstr ""
 "(pode ser possível que se peça ao usuário\n"
 "para guardar arquivos ainda não salvos, etc)."
 
-#: spyderlib/widgets/externalshell/pythonshell.py:305
+#: spyderlib/widgets/externalshell/pythonshell.py:303
 msgid "Interact"
 msgstr "Interagir"
 
-#: spyderlib/widgets/externalshell/pythonshell.py:307
+#: spyderlib/widgets/externalshell/pythonshell.py:305
 msgid "Debug"
 msgstr "Depurar"
 
-#: spyderlib/widgets/externalshell/pythonshell.py:309
-#: spyderlib/widgets/externalshell/pythonshell.py:375
+#: spyderlib/widgets/externalshell/pythonshell.py:307
+#: spyderlib/widgets/externalshell/pythonshell.py:373
 msgid "Arguments..."
 msgstr "Argumentos..."
 
-#: spyderlib/widgets/externalshell/pythonshell.py:311
+#: spyderlib/widgets/externalshell/pythonshell.py:309
 msgid "Post Mortem Debug"
 msgstr ""
 
-#: spyderlib/widgets/externalshell/pythonshell.py:317
+#: spyderlib/widgets/externalshell/pythonshell.py:315
 msgid "Working directory"
 msgstr "Diretório de trabalho"
 
-#: spyderlib/widgets/externalshell/pythonshell.py:319
+#: spyderlib/widgets/externalshell/pythonshell.py:317
 msgid "Set current working directory"
 msgstr "Definir diretório de trabalho"
 
-#: spyderlib/widgets/externalshell/pythonshell.py:321
+#: spyderlib/widgets/externalshell/pythonshell.py:319
 msgid "Environment variables"
 msgstr "Variáveis de ambiente"
 
-#: spyderlib/widgets/externalshell/pythonshell.py:325
+#: spyderlib/widgets/externalshell/pythonshell.py:323
 msgid "Show sys.path contents"
 msgstr "Mostrar conteúdo do sys.path"
 
-#: spyderlib/widgets/externalshell/pythonshell.py:371
+#: spyderlib/widgets/externalshell/pythonshell.py:369
 msgid "Arguments: %s"
 msgstr "Argumentos: %s"
 
-#: spyderlib/widgets/externalshell/pythonshell.py:373
+#: spyderlib/widgets/externalshell/pythonshell.py:371
 msgid "No argument"
 msgstr "Sem argumento"
 
-#: spyderlib/widgets/externalshell/pythonshell.py:552
+#: spyderlib/widgets/externalshell/pythonshell.py:550
 msgid ""
 "The kernel failed to start!! That's all we know... Please close this console "
 "and open a new one."
@@ -4321,13 +4421,32 @@ msgstr ""
 "O kernel falhou ao iniciar!! Isso é tudo que sabemos... Por favor feche este "
 "console e abra um novo."
 
-#: spyderlib/widgets/externalshell/pythonshell.py:556
+#: spyderlib/widgets/externalshell/pythonshell.py:554
 msgid "A Python console failed to start!"
 msgstr "Não foi possível iniciar um console Python!"
 
 #: spyderlib/widgets/externalshell/systemshell.py:100
 msgid "Process failed to start"
 msgstr "O processo falhou ao iniciar."
+
+#: spyderlib/widgets/file_switcher.py:109
+#, fuzzy
+msgid "unsaved file"
+msgstr "Salvar arquivo"
+
+#: spyderlib/widgets/file_switcher.py:229
+msgid ""
+"Press <b>Enter</b> to switch files or <b>Esc</b> to cancel.<br><br>Type to "
+"filter filenames.<br><br>Use <b>:number</b> to go to a line, e.g. "
+"<b><code>main:42</code></b><br>Use <b>@symbol_text</b> to go to a symbol, e."
+"g. <b><code>@init</code></b><br><br> Press <b>Ctrl+W</b> to close current "
+"tab.<br>"
+msgstr ""
+
+#: spyderlib/widgets/file_switcher.py:481
+#, fuzzy
+msgid "lines"
+msgstr "linhas"
 
 #: spyderlib/widgets/findinfiles.py:158
 msgid "Unexpected error: see internal console"
@@ -4359,7 +4478,7 @@ msgstr "Procurar"
 msgid "Start search"
 msgstr "Iniciar busca"
 
-#: spyderlib/widgets/findinfiles.py:334 spyderlib/widgets/ipython.py:552
+#: spyderlib/widgets/findinfiles.py:334 spyderlib/widgets/ipython.py:555
 msgid "Stop"
 msgstr "Parar"
 
@@ -4625,31 +4744,31 @@ msgstr "Ajuda do Python:"
 msgid "GUI-based editor:"
 msgstr "Editor gráfico:"
 
-#: spyderlib/widgets/ipython.py:503
+#: spyderlib/widgets/ipython.py:506
 msgid "An error ocurred while starting the kernel"
 msgstr "Um erro ocorreu enquanto o kernel era inicializado"
 
-#: spyderlib/widgets/ipython.py:532
+#: spyderlib/widgets/ipython.py:535
 msgid "Restart kernel"
 msgstr "Reiniciar kernel"
 
-#: spyderlib/widgets/ipython.py:554
+#: spyderlib/widgets/ipython.py:557
 msgid "Stop the current command"
 msgstr "Parar o comando atual"
 
-#: spyderlib/widgets/ipython.py:578
+#: spyderlib/widgets/ipython.py:581
 msgid "Inspect current object"
 msgstr "Inspecionar objeto"
 
-#: spyderlib/widgets/ipython.py:583
+#: spyderlib/widgets/ipython.py:586
 msgid "Clear line or block"
 msgstr "Limpar linha ou bloco"
 
-#: spyderlib/widgets/ipython.py:587
+#: spyderlib/widgets/ipython.py:590
 msgid "Clear console"
 msgstr "Limpar console"
 
-#: spyderlib/widgets/ipython.py:637
+#: spyderlib/widgets/ipython.py:640
 msgid ""
 "It seems the kernel died unexpectedly. Use 'Restart kernel' to continue "
 "using this console."
@@ -4657,19 +4776,19 @@ msgstr ""
 "Parece que o kernel morreu inesperadamente. Use 'Reiniciar kernel\" para "
 "continuar usando o console."
 
-#: spyderlib/widgets/ipython.py:657
+#: spyderlib/widgets/ipython.py:660
 msgid "Changing backend to Qt for Mayavi"
 msgstr "Mudando a saída gráfica do Qt para Mayavi"
 
-#: spyderlib/widgets/ipython.py:666
+#: spyderlib/widgets/ipython.py:669
 msgid "Kernel process is either remote or unspecified. Cannot interrupt"
 msgstr "O kernel é remoto ou não está especificado. Não é possível interromper"
 
-#: spyderlib/widgets/ipython.py:675
+#: spyderlib/widgets/ipython.py:678
 msgid "Kernel process is either remote or unspecified. Cannot restart."
 msgstr "O kernel é remoto ou não está especificado. Não é possível reiniciar."
 
-#: spyderlib/widgets/ipython.py:754
+#: spyderlib/widgets/ipython.py:757
 msgid "Connecting to kernel..."
 msgstr "Conectando ao kernel..."
 
@@ -5047,39 +5166,39 @@ msgstr "Ponto de interrupção"
 msgid "Condition:"
 msgstr "Condição:"
 
-#: spyderlib/widgets/sourcecode/codeeditor.py:1677
+#: spyderlib/widgets/sourcecode/codeeditor.py:1679
 msgid "Code analysis"
 msgstr "Análise de código"
 
-#: spyderlib/widgets/sourcecode/codeeditor.py:1731
+#: spyderlib/widgets/sourcecode/codeeditor.py:1733
 msgid "To do"
 msgstr "To do"
 
-#: spyderlib/widgets/sourcecode/codeeditor.py:1968
+#: spyderlib/widgets/sourcecode/codeeditor.py:1974
 #, fuzzy
 msgid "Removal error"
 msgstr "Erro de importação"
 
-#: spyderlib/widgets/sourcecode/codeeditor.py:1969
+#: spyderlib/widgets/sourcecode/codeeditor.py:1975
 msgid ""
 "It was not possible to remove outputs from this notebook. The error is:\n"
 "\n"
 msgstr ""
 
-#: spyderlib/widgets/sourcecode/codeeditor.py:2447
+#: spyderlib/widgets/sourcecode/codeeditor.py:2453
 msgid "Clear all ouput"
 msgstr "Limpar todas as saídas "
 
-#: spyderlib/widgets/sourcecode/codeeditor.py:2453
+#: spyderlib/widgets/sourcecode/codeeditor.py:2459
 msgid "Go to definition"
 msgstr "Ver definição"
 
-#: spyderlib/widgets/sourcecode/codeeditor.py:2465
+#: spyderlib/widgets/sourcecode/codeeditor.py:2471
 #, fuzzy
 msgid "Zoom reset"
 msgstr "Menos zoom"
 
-#: spyderlib/widgets/sourcecode/syntaxhighlighters.py:31
+#: spyderlib/widgets/sourcecode/syntaxhighlighters.py:32
 msgid "Syntax highlighting for Matlab, Julia and other file types"
 msgstr "Sintaxe colorida para arquivos do tipo Matlab, Julia e outros tipos"
 
@@ -5139,20 +5258,99 @@ msgstr "Fechar aba atual"
 msgid "Text editor"
 msgstr "Editor de texto"
 
-#: spyderlib/workers/updates.py:122 spyderlib/workers/updates.py:124
+#: spyderlib/workers/updates.py:79 spyderlib/workers/updates.py:81
 msgid "Unable to retrieve information."
 msgstr ""
 
-#: spyderlib/workers/updates.py:126
+#: spyderlib/workers/updates.py:83
 msgid ""
 "Unable to connect to the internet. <br><br>Make sure the connection is "
 "working properly."
 msgstr ""
 
-#: spyderlib/workers/updates.py:129
+#: spyderlib/workers/updates.py:86
 #, fuzzy
 msgid "Unable to check for updates."
 msgstr "Não foi possível carregar a página"
+
+#~ msgid "PyQt"
+#~ msgstr "PyQt"
+
+#~ msgid "API selection for QString and QVariant objects:"
+#~ msgstr "Seleção da API para objetos QString e QVariant:"
+
+#~ msgid "API #1"
+#~ msgstr "API #1"
+
+#~ msgid "API #2"
+#~ msgstr "API #1"
+
+#~ msgid "Default API"
+#~ msgstr "API Padrão"
+
+#~ msgid ""
+#~ "PyQt API #1 is the default <br>API for Python 2. PyQt API #2 is the "
+#~ "default API for Python 3 and is compatible with PySide."
+#~ msgstr ""
+#~ "A API #1 de PyQt é a API padrão <br>para o Python 2. A API #2 do PyQt é a "
+#~ "API padrão para o Python 3 e é compatível com o PySide."
+
+#~ msgid "Ignore API change errors (sip.setapi)"
+#~ msgstr "Ignorar erros de mudança de API (sip.setapi)"
+
+#~ msgid ""
+#~ "Enabling this option will ignore <br>errors when changing PyQt API. As "
+#~ "PyQt does not support dynamic API changes, it is strongly recommended to "
+#~ "use this feature wisely, e.g. for debugging purpose."
+#~ msgstr ""
+#~ "Ativando esta opção serão ignorados <br>os erros gerados ao mudar a API "
+#~ "do PyQt. Dado que o PyQt não suporta mudanças dinâmicas da API, é "
+#~ "recomendável usar essa funcionalidade com certo cuidado, por exemplo, "
+#~ "para propósitos de depuração."
+
+#~ msgid "Matplotlib"
+#~ msgstr "Matplotlib"
+
+#~ msgid "GUI backend:"
+#~ msgstr "Saída gráfica:"
+
+#~ msgid ""
+#~ "Set the GUI toolkit used by <br>Matplotlib to show figures (default: "
+#~ "Qt4Agg)"
+#~ msgstr ""
+#~ "Definir interface gráfica usada pelo <br>Matplotlib para mostrar imagens "
+#~ "(padrão: Qt4Agg)"
+
+#~ msgid "Mod1"
+#~ msgstr "Mod1"
+
+#~ msgid "Mod2"
+#~ msgstr "Mod2"
+
+#~ msgid "Mod3"
+#~ msgstr "Mod3"
+
+#, fuzzy
+#~ msgid "The Internal Console"
+#~ msgstr "Console interno"
+
+#~ msgid "File list management"
+#~ msgstr "Gerenciador da lista de arquivos"
+
+#~ msgid "Filter:"
+#~ msgstr "Filtro:"
+
+#~ msgid "(press <b>Enter</b> to edit file)"
+#~ msgstr "(Aperte <b>Enter</b> para editar)"
+
+#~ msgid "&Edit file"
+#~ msgstr "&Editar arrquivo"
+
+#~ msgid "&Close file"
+#~ msgstr "&Fechar arquivo"
+
+#~ msgid "Hint: press <b>Alt</b> to show accelerators"
+#~ msgstr "Sugestão: aperte <b>Alt</b> para mostrar aceleradores"
 
 #~ msgid "Vertical dockwidget tabs"
 #~ msgstr "Componentes em abas verticais"
@@ -5235,9 +5433,6 @@ msgstr "Não foi possível carregar a página"
 
 #~ msgid "Set layout %d"
 #~ msgstr "Definir esquema %d"
-
-#~ msgid "Show toolbar"
-#~ msgstr "Mostrar barra de ferramentas"
 
 #~ msgid "User Module Deleter (UMD)"
 #~ msgstr "Eliminador de Módulos do Usuário (EMU)"

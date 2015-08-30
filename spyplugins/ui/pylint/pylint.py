@@ -17,7 +17,7 @@ import spyderlib.utils.icon_manager as ima
 
 # Local imports
 from spyderlib.config.base import get_translation
-_ = get_translation("spyplugins.ui.pylint")
+_ = get_translation("pylint", "spyplugins.ui.pylint")
 from spyderlib.utils.qthelpers import create_action
 from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage
 

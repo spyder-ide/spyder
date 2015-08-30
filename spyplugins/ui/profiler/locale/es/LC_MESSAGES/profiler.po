@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
-"POT-Creation-Date: 2015-07-31 18:08+COT\n"
+"POT-Creation-Date: 2015-08-29 22:49+COT\n"
 "PO-Revision-Date: 2012-06-25 21:59-0500\n"
 "Last-Translator: Carlos Cordoba <ccordoba12@gmail.com>\n"
 "Language-Team: Python\n"
@@ -18,11 +18,11 @@ msgstr ""
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: ../../../../\n"
 
-#: spyplugins/ui/profiler/profiler.py:26
+#: spyplugins/ui/profiler/profiler.py:27
 msgid "Results"
 msgstr "Resultados"
 
-#: spyplugins/ui/profiler/profiler.py:27
+#: spyplugins/ui/profiler/profiler.py:28
 msgid ""
 "Profiler plugin results (the output of python's profile/cProfile)\n"
 "are stored here:"
@@ -30,11 +30,11 @@ msgstr ""
 "Los resultados del perfilador (es decir la salida de profile o cProfile)\n"
 "son guardados aquí:"
 
-#: spyplugins/ui/profiler/profiler.py:67
+#: spyplugins/ui/profiler/profiler.py:68
 msgid "Profiler"
 msgstr "Perfilador (Profiler)"
 
-#: spyplugins/ui/profiler/profiler.py:95
+#: spyplugins/ui/profiler/profiler.py:96
 #: spyplugins/ui/profiler/widgets/profilergui.py:76
 msgid "Profile"
 msgstr "Perfilar (Profile)"

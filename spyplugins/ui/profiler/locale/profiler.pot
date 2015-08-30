@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2015-07-31 18:08+COT\n"
+"POT-Creation-Date: 2015-08-29 22:49+COT\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -15,21 +15,21 @@ msgstr ""
 "Generated-By: pygettext.py 1.5\n"
 
 
-#: spyplugins/ui/profiler/profiler.py:26
+#: spyplugins/ui/profiler/profiler.py:27
 msgid "Results"
 msgstr ""
 
-#: spyplugins/ui/profiler/profiler.py:27
+#: spyplugins/ui/profiler/profiler.py:28
 msgid ""
 "Profiler plugin results (the output of python's profile/cProfile)\n"
 "are stored here:"
 msgstr ""
 
-#: spyplugins/ui/profiler/profiler.py:67
+#: spyplugins/ui/profiler/profiler.py:68
 msgid "Profiler"
 msgstr ""
 
-#: spyplugins/ui/profiler/profiler.py:95
+#: spyplugins/ui/profiler/profiler.py:96
 #: spyplugins/ui/profiler/widgets/profilergui.py:76
 msgid "Profile"
 msgstr ""
