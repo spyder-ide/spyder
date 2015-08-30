@@ -302,7 +302,6 @@ def get_translation(modname, dirname=None):
         dirname = modname
     locale_path = get_module_data_path(dirname, relpath="locale",
                                        attr_name='LOCALEPATH')
-
     # If LANG is defined in ubuntu, a warning message is displayed, so in unix
     # systems we define the LANGUAGE variable.
     language = load_lang_conf()

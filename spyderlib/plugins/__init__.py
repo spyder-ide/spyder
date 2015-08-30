@@ -470,6 +470,7 @@ class SpyderPluginMixin(object):
         spyders's IMG_PATH.
         """
         icon_path = self.PLUGIN_PATH / self.IMG_PATH / icon_name
+        print(icon_path)
         if icon_path.isfile():
             return QIcon(icon_path)
         else:

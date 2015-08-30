@@ -10,11 +10,15 @@ Spyder third-party plugins configuration management
 
 import sys
 import traceback
-import imp
+import importlib
 
 # Local imports
+from spyderlib.py3compat import PY2, PY3, PY33
 from spyderlib.baseconfig import get_conf_path
 from spyderlib.utils.external.path import Path
+
+if PY2:
+    import imp
 
 INIT_PY = """# -*- coding: utf-8 -*-
 
@@ -22,18 +26,22 @@ INIT_PY = """# -*- coding: utf-8 -*-
 __import__('pkg_resources').declare_namespace(__name__)
 """
 
+
 def _get_spyderplugins(plugin_path, base_namespace, plugins_namespace,
                        modnames, modlist):
     """Scan the directory `plugin_path` for plugins_namespace package and
     loads its submodules."""
     namespace_path = Path(plugin_path) / base_namespace / plugins_namespace
+
     if not namespace_path.exists():
         return
+
     for dirname in namespace_path.dirs():
         if dirname.name == "__pycache__":
             continue
         _import_plugin(dirname.name, base_namespace, plugins_namespace,
                        namespace_path, modnames, modlist)
+
     for name in namespace_path.files(pattern="*.py"):
         if name.name == "__init__.py":
             continue
@@ -41,22 +49,45 @@ def _get_spyderplugins(plugin_path, base_namespace, plugins_namespace,
                        namespace_path, modnames, modlist)
 
 
+class _ModuleMock():
+    """ """
+
+
 def _import_plugin(name, base_namespace, plugin_namespace, namespace_path,
                    modnames, modlist):
     """Import the plugin `plugins_namsepace`.`name`, add it to `modlist` and
     adds its name to `modname`."""
-    submodule_name = "%s.%s.%s" % (base_namespace, plugin_namespace, name)
-    if submodule_name in modnames:
+    module_name = "{0}.{1}.{2}".format(base_namespace, plugin_namespace, name)
+
+    if module_name in modnames:
         return
     try:
-        info = imp.find_module(name, [namespace_path])
-        submodule = imp.load_module(submodule_name, *info)
-        modlist.append(submodule)
-        modnames.append(submodule_name)
+        # First add a mock module with the LOCALEPATH attribute so that the
+        # helper method can fin the locale on import
+        mock = _ModuleMock()
+        mock.LOCALEPATH = Path(namespace_path) / name / 'locale'
+        sys.modules[module_name] = mock
+
+        if PY33:
+            loader = importlib.machinery.PathFinder.find_module(
+                name, [namespace_path])
+            module = loader.load_module(name)
+        elif PY3:
+            spec = importlib.machinery.PathFinder.find_spec(name,
+                                                            [namespace_path])
+            module = spec.loader.load_module(name)
+        else:
+            info = imp.find_module(name, [namespace_path])
+            module = imp.load_module(module_name, *info)
+
+        # Then restore the actual loaded module instead of the mock
+        sys.modules[module_name] = module
+
+        modlist.append(module)
+        modnames.append(module_name)
     except Exception:
-        sys.stderr.write(
-            "ERROR: 3rd party plugin import failed for `%s`\n"
-            % submodule_name)
+        sys.stderr.write("ERROR: 3rd party plugin import failed for "
+                         "`{0}`\n".format(module_name))
         traceback.print_exc(file=sys.stderr)
 
 
@@ -70,8 +101,9 @@ def get_spyderplugins_mods(io=False):
         plugins_namespace = "ui"
 
     namespace = '.'.join([base_namespace, plugins_namespace])
+
     # Import parent module
-    __import__(namespace)
+    importlib.import_module(namespace)
 
     # Create user directory
     user_conf_path = Path(get_conf_path())
@@ -81,10 +113,10 @@ def get_spyderplugins_mods(io=False):
     (user_plugin_basepath / "__init__.py").write_text(INIT_PY)
     (user_plugin_path / "__init__.py").write_text(INIT_PY)
 
-    modlist = []
-    modnames = []
-    for directory in [user_conf_path] + sys.path:
-        _get_spyderplugins(directory, base_namespace, plugins_namespace,
+    modlist, modnames = [], []
+
+    # The user plugins directory is given the priority when looking for modules
+    for plugin_path in [user_conf_path] + sys.path:
+        _get_spyderplugins(plugin_path, base_namespace, plugins_namespace,
                            modnames, modlist)
     return modlist
-
