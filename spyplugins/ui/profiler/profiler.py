@@ -8,29 +8,31 @@
 
 """Profiler Plugin"""
 
-from spyderlib.qt.QtGui import QVBoxLayout, QGroupBox, QLabel
 from spyderlib.qt.QtCore import Signal, Qt
-import spyderlib.utils.icon_manager as ima
+from spyderlib.qt.QtGui import QVBoxLayout, QGroupBox, QLabel
 
 # Local imports
 from spyderlib.config.base import get_translation
-_ = get_translation("profiler", "spyplugins.ui.profiler")
-from spyderlib.utils.qthelpers import create_action
 from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage, runconfig
+from spyderlib.utils import icon_manager as ima
+from spyderlib.utils.external.path import path as Path
+from spyderlib.utils.qthelpers import create_action
 
-from .widgets.profilergui import (ProfilerWidget,
-                                               is_profiler_installed)
+from .widgets.profilergui import (ProfilerWidget, is_profiler_installed)
+
+
+_ = get_translation("profiler", "spyplugins.ui.profiler")
 
 
 class ProfilerConfigPage(PluginConfigPage):
     def setup_page(self):
         results_group = QGroupBox(_("Results"))
-        results_label1 = QLabel(_("Profiler plugin results "\
+        results_label1 = QLabel(_("Profiler plugin results "
                                   "(the output of python's profile/cProfile)\n"
                                   "are stored here:"))
         results_label1.setWordWrap(True)
 
-        # Warning: do not try to regroup the following QLabel contents with 
+        # Warning: do not try to regroup the following QLabel contents with
         # widgets above -- this string was isolated here in a single QLabel
         # on purpose: to fix Issue 863
         results_label2 = QLabel(ProfilerWidget.DATAPATH)
@@ -47,6 +49,7 @@ class ProfilerConfigPage(PluginConfigPage):
         vlayout.addWidget(results_group)
         vlayout.addStretch(1)
         self.setLayout(vlayout)
+
 
 class Profiler(ProfilerWidget, SpyderPluginMixin):
     """Profiler (after python's profile and pstats)"""
@@ -69,8 +72,9 @@ class Profiler(ProfilerWidget, SpyderPluginMixin):
 
     def get_plugin_icon(self):
         """Return widget icon"""
-        return ima.icon('profiler')
-    
+        path = Path(self.PLUGIN_PATH) / self.IMG_PATH
+        return ima.icon('profiler', icon_path=path)
+
     def get_focus_widget(self):
         """
         Return the widget to give focus to when

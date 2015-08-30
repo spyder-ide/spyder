@@ -463,18 +463,12 @@ class SpyderPluginMixin(object):
         """Set plugin font option"""
         set_font(font, self.CONF_SECTION, option)
 
-    def get_icon(self, icon_name):
-        """
-        Search icon.
-        THe icon is searched first in the plugin images directory, then in
-        spyders's IMG_PATH.
-        """
-        icon_path = self.PLUGIN_PATH / self.IMG_PATH / icon_name
-        print(icon_path)
-        if icon_path.isfile():
-            return QIcon(icon_path)
-        else:
-            return get_icon(icon_name)
+#    def get_icon(self, icon_name):
+#        """
+#        Search icon.
+#        THe icon is searched first in the plugin images directory, then in
+#        spyders's IMG_PATH.
+#        """
 
     def __show_message(self, message, timeout=0):
         """Show message in main window's status bar"""

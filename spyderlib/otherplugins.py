@@ -8,13 +8,13 @@
 Spyder third-party plugins configuration management
 """
 
+import importlib
 import sys
 import traceback
-import importlib
 
 # Local imports
-from spyderlib.py3compat import PY2, PY3, PY33
 from spyderlib.config.base import get_conf_path
+from spyderlib.py3compat import PY2, PY3, PY33
 from spyderlib.utils.external.path import Path
 
 if PY2:

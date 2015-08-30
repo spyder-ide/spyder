@@ -11,17 +11,20 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-from spyderlib.qt.QtGui import QInputDialog, QVBoxLayout, QGroupBox, QLabel
 from spyderlib.qt.QtCore import Signal, Qt
-import spyderlib.utils.icon_manager as ima 
+from spyderlib.qt.QtGui import QInputDialog, QVBoxLayout, QGroupBox, QLabel
 
 # Local imports
 from spyderlib.config.base import get_translation
-_ = get_translation("pylint", "spyplugins.ui.pylint")
+from spyderlib.utils import icon_manager as ima
+from spyderlib.utils.external.path import path as Path
 from spyderlib.utils.qthelpers import create_action
 from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage
 
 from .widgets.pylintgui import PylintWidget, PYLINT_PATH
+
+
+_ = get_translation("pylint", "spyplugins.ui.pylint")
 
 
 class PylintConfigPage(PluginConfigPage):
@@ -90,11 +93,12 @@ class Pylint(PylintWidget, SpyderPluginMixin):
     def get_plugin_title(self):
         """Return widget title"""
         return _("Static code analysis")
-    
+
     def get_plugin_icon(self):
         """Return widget icon"""
-        return ima.icon('pylint')
-    
+        path = Path(self.PLUGIN_PATH) / self.IMG_PATH
+        return ima.icon('pylint', icon_path=path)
+
     def get_focus_widget(self):
         """
         Return the widget to give focus to when

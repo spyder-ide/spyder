@@ -1,8 +1,11 @@
 import os
-from spyderlib.external import qtawesome as qta
+
+from spyderlib.qt.QtGui import QIcon, QWidget, QStyle
+
 from spyderlib.config.base import get_image_path
 from spyderlib.config.main import CONF
-from spyderlib.qt.QtGui import QIcon, QWidget, QStyle
+from spyderlib.external import qtawesome as qta
+from spyderlib.utils.external.path import Path
 
 
 _resource = {
@@ -224,19 +227,24 @@ def get_icon(name, default=None, resample=False):
         icon0 = QIcon()
         for size in (16, 24, 32, 48, 96, 128, 256, 512):
             icon0.addPixmap(icon.pixmap(size, size))
-        return icon0 
+        return icon0
     else:
         return icon
 
-def icon(name, resample=False):
-    theme =  CONF.get('main', 'icon_theme')
+
+def icon(name, resample=False, icon_path=None):
+    theme = CONF.get('main', 'icon_theme')
     if theme == 'spyder 3':
         if not _resource['loaded']:
-            qta.load_font('spyder', 'spyder.ttf', 'spyder-charmap.json', directory=_resource['directory'])
+            qta.load_font('spyder', 'spyder.ttf', 'spyder-charmap.json',
+                          directory=_resource['directory'])
             _resource['loaded'] = True
         args, kwargs = _qtaargs[name]
         return qta.icon(*args, **kwargs)
     elif theme == 'spyder 2':
         icon = get_icon(name + '.png', resample=resample)
+        if icon_path:
+            icon_path = Path(icon_path) / (name + '.png')
+            if icon_path.isfile():
+                icon = QIcon(icon_path)
         return icon if icon is not None else QIcon()
-    
