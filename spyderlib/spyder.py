@@ -1318,11 +1318,11 @@ class MainWindow(QMainWindow):
             if not self.extconsole.isvisible and not ipy_visible:
                 self.historylog.add_history(get_conf_path('history.py'))
 
-            # Load project (if opened)
+            # Load last openned project (if a project was active when spyder closed)
             if self.projectexplorer is not None:
                 self.projectexplorer.setup_projects()
 
-            # Give focus to the Editor and load projects if any
+            # Give focus to the Editor setup opened files
             if self.editor.dockwidget.isVisible():
                 # Load files
                 self.editor.setup_open_files()

@@ -466,20 +466,6 @@ class Editor(SpyderPluginWidget):
         
         self.untitled_num = 0
                 
-#        filenames = self.get_option('filenames', [])
-#        if filenames and not ignore_last_opened_files:
-#            self.load(filenames)
-#            layout = self.get_option('layout_settings', None)
-#            if layout is not None:
-#                self.editorsplitter.set_layout_settings(layout)
-#            win_layout = self.get_option('windows_layout_settings', None)
-#            if win_layout:
-#                for layout_settings in win_layout:
-#                    self.editorwindows_to_be_created.append(layout_settings)
-#            self.set_last_focus_editorstack(self, self.editorstacks[0])
-#        else:
-#            self.__load_temp_file()
-                
         # Parameters of last file execution:
         self.__last_ic_exec = None # internal console
         self.__last_ec_exec = None # external console
@@ -627,11 +613,14 @@ class Editor(SpyderPluginWidget):
         """Perform actions before parent main window is closed"""
         state = self.splitter.saveState()
         self.set_option('splitter_state', qbytearray_to_str(state))
-        #filenames = []
         editorstack = self.editorstacks[0]
-        #filenames += [finfo.filename for finfo in editorstack.data]
-        # FIXME: Only save the state if it is not in project mode
-        self.set_open_filenames()              
+
+        active_project_path = None
+        if self.projectexplorer:
+             active_project_path = self.projectexplorer.get_active_project_path()
+        if not active_project_path:
+	  self.set_open_filenames()              
+
         self.set_option('layout_settings',
                         self.editorsplitter.get_layout_settings())
         self.set_option('windows_layout_settings',
@@ -1084,14 +1073,8 @@ class Editor(SpyderPluginWidget):
         self.set_inspector(self.main.inspector)
         if self.main.outlineexplorer is not None:
             self.set_outlineexplorer(self.main.outlineexplorer)
-        # This is not needed now because the opening of files is done in a
-        # Separate step in the post visible setup
-        #editorstack = self.get_current_editorstack()
-        #if not editorstack.data:
-        #    self.__load_temp_file()
-        self.main.add_dockwidget(self)
-    
-        
+        self.main.add_dockwidget(self)    
+
     #------ Focus tabwidget
     def __get_focus_editorstack(self):
         fwidget = QApplication.focusWidget()
