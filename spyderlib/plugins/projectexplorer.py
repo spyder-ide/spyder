@@ -156,3 +156,16 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         scrollbar_pos = self.get_option('scrollbar_position', None)
         if scrollbar_pos is not None:
             self.treewidget.set_scrollbar_position(scrollbar_pos)
+
+    # --- New projects interface ---------------------------------------------
+    def get_active_project(self):
+        return None
+
+    def setup_projects(self):
+        pass
+
+    def get_project_filenames(self):
+        return []
+
+    def get_active_project_path(self):
+        return None

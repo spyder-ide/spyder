@@ -20,7 +20,6 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QPrintDialog, QSplitter, QToolBar,
                                 QKeySequence, QGridLayout)
 from spyderlib.qt.QtCore import Signal, QByteArray, Qt, Slot
 from spyderlib.qt.compat import to_qvariant, from_qvariant, getopenfilenames
-import spyderlib.utils.icon_manager as ima
 
 import os
 import re
@@ -30,6 +29,7 @@ import os.path as osp
 
 # Local imports
 from spyderlib.utils import encoding, sourcecode, codeanalysis
+from spyderlib.utils import icon_manager as ima
 from spyderlib.config.base import get_conf_path, _
 from spyderlib.config.main import CONF, EDIT_FILTERS, get_filter, EDIT_FILETYPES
 from spyderlib.config.gui import get_color_scheme
@@ -466,19 +466,19 @@ class Editor(SpyderPluginWidget):
         
         self.untitled_num = 0
                 
-        filenames = self.get_option('filenames', [])
-        if filenames and not ignore_last_opened_files:
-            self.load(filenames)
-            layout = self.get_option('layout_settings', None)
-            if layout is not None:
-                self.editorsplitter.set_layout_settings(layout)
-            win_layout = self.get_option('windows_layout_settings', None)
-            if win_layout:
-                for layout_settings in win_layout:
-                    self.editorwindows_to_be_created.append(layout_settings)
-            self.set_last_focus_editorstack(self, self.editorstacks[0])
-        else:
-            self.__load_temp_file()
+#        filenames = self.get_option('filenames', [])
+#        if filenames and not ignore_last_opened_files:
+#            self.load(filenames)
+#            layout = self.get_option('layout_settings', None)
+#            if layout is not None:
+#                self.editorsplitter.set_layout_settings(layout)
+#            win_layout = self.get_option('windows_layout_settings', None)
+#            if win_layout:
+#                for layout_settings in win_layout:
+#                    self.editorwindows_to_be_created.append(layout_settings)
+#            self.set_last_focus_editorstack(self, self.editorstacks[0])
+#        else:
+#            self.__load_temp_file()
                 
         # Parameters of last file execution:
         self.__last_ic_exec = None # internal console
@@ -492,7 +492,49 @@ class Editor(SpyderPluginWidget):
             self.add_cursor_position_to_history(filename, position)
         self.update_cursorpos_actions()
         self.set_path()
-        
+
+    def set_open_filenames(self):
+        """ """
+        editorstack = self.editorstacks[0]
+        if self.projectexplorer:
+            if not self.projectexplorer.get_active_project():
+                filenames = []
+                filenames += [finfo.filename for finfo in editorstack.data]
+                self.set_option('filenames', filenames)
+
+    def setup_open_files(self):
+        """ """
+        active_project_path = None
+        if self.projectexplorer:
+             active_project_path = self.projectexplorer.get_active_project_path()
+
+        spyder_filenames = self.get_option('filenames', [])
+        project_filenames = self.projectexplorer.get_project_filenames()
+        filenames = spyder_filenames[:]
+
+        if active_project_path:
+            close_filenames = set(spyder_filenames) - set(project_filenames)
+        else:
+            close_filenames = set(project_filenames) - set(spyder_filenames)
+
+        filenames += project_filenames
+
+        if filenames:
+            self.load(filenames)
+            layout = self.get_option('layout_settings', None)
+            if layout is not None:
+                self.editorsplitter.set_layout_settings(layout)
+            win_layout = self.get_option('windows_layout_settings', None)
+            if win_layout:
+                for layout_settings in win_layout:
+                    self.editorwindows_to_be_created.append(layout_settings)
+            self.set_last_focus_editorstack(self, self.editorstacks[0])
+        else:
+            self.__load_temp_file()
+
+        for filename in close_filenames:
+            self.close_file_from_name(filename)
+
     def set_projectexplorer(self, projectexplorer):
         self.projectexplorer = projectexplorer
 
@@ -585,14 +627,16 @@ class Editor(SpyderPluginWidget):
         """Perform actions before parent main window is closed"""
         state = self.splitter.saveState()
         self.set_option('splitter_state', qbytearray_to_str(state))
-        filenames = []
+        #filenames = []
         editorstack = self.editorstacks[0]
-        filenames += [finfo.filename for finfo in editorstack.data]
+        #filenames += [finfo.filename for finfo in editorstack.data]
+        # FIXME: Only save the state if it is not in project mode
+        self.set_open_filenames()              
         self.set_option('layout_settings',
                         self.editorsplitter.get_layout_settings())
         self.set_option('windows_layout_settings',
                     [win.get_layout_settings() for win in self.editorwindows])
-        self.set_option('filenames', filenames)
+        #self.set_option('filenames', filenames)
         self.set_option('recent_files', self.recent_files)
         if not editorstack.save_if_changed(cancelable) and cancelable:
             return False
@@ -942,13 +986,22 @@ class Editor(SpyderPluginWidget):
         self.recent_file_menu = QMenu(_("Open &recent"), self)
         self.recent_file_menu.aboutToShow.connect(self.update_recent_file_menu)
 
-        file_menu_actions = [self.new_action, self.open_action,
-                             self.recent_file_menu, self.save_action,
+        file_menu_actions = [self.new_action, 
+                             None,
+                             self.open_action,
+                             self.recent_file_menu,
+                             None,
+                             None,
+                             self.save_action,
                              self.save_all_action, save_as_action,
                              self.revert_action, 
-                             None, print_preview_action, self.print_action,
-                             None, self.close_action,
-                             self.close_all_action, None]
+                             None,
+                             print_preview_action, self.print_action,
+                             None,
+                             self.close_action,
+                             self.close_all_action,
+                             None,
+                             ]
         self.main.file_menu_actions += file_menu_actions
         file_toolbar_actions = [self.new_action, self.open_action,
                                 self.save_action, self.save_all_action]
@@ -1031,9 +1084,11 @@ class Editor(SpyderPluginWidget):
         self.set_inspector(self.main.inspector)
         if self.main.outlineexplorer is not None:
             self.set_outlineexplorer(self.main.outlineexplorer)
-        editorstack = self.get_current_editorstack()
-        if not editorstack.data:
-            self.__load_temp_file()
+        # This is not needed now because the opening of files is done in a
+        # Separate step in the post visible setup
+        #editorstack = self.get_current_editorstack()
+        #if not editorstack.data:
+        #    self.__load_temp_file()
         self.main.add_dockwidget(self)
     
         

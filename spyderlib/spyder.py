@@ -377,6 +377,9 @@ class MainWindow(QMainWindow):
         self.selectall_action = None
         self.maximize_action = None
         self.fullscreen_action = None
+        self.new_project_action_ = None
+        self.open_project_action_ = None
+        self.close_project_action_ = None
 
         # Menu bars
         self.file_menu = None
@@ -439,8 +442,9 @@ class MainWindow(QMainWindow):
                                                sys.version_info[1])
         if DEBUG:
             title += " [DEBUG MODE %d]" % DEBUG
-        self.setWindowTitle(title)
+        self.base_title = title
         resample = os.name != 'nt'
+        self.setWindowTitle(title)
         icon = ima.icon('spyder_light', resample=resample) if self.light\
           else ima.icon('spyder', resample=resample)
         # Resampling SVG icon only on non-Windows platforms (see Issue 1314):
@@ -1314,8 +1318,14 @@ class MainWindow(QMainWindow):
             if not self.extconsole.isvisible and not ipy_visible:
                 self.historylog.add_history(get_conf_path('history.py'))
 
-            # Give focus to the Editor
+            # Load project (if opened)
+            if self.projectexplorer is not None:
+                self.projectexplorer.setup_projects()
+
+            # Give focus to the Editor and load projects if any
             if self.editor.dockwidget.isVisible():
+                # Load files
+                self.editor.setup_open_files()
                 try:
                     self.editor.get_focus_widget().setFocus()
                 except AttributeError:
