@@ -187,12 +187,12 @@ _qtaargs = {
     'module':                  [('spyder.circle-letter-m',), {'color': '#daa520'}],
     'no_match':                [('fa.circle',), {'color': 'gray'}],
     'no_match':                [('fa.circle',), {'color': 'gray'}],
-    # Third party plugins
-    # ---
+    # --- Third party plugins ------------------------------------------------
     'profiler':                [('fa.clock-o',), {}],
     'pylint':                  [('fa.search', 'fa.check'), {'options': [{}, {'offset': (0.125, 0.125), 'color': 'orange'}]}],
     'condapackages':           [('fa.archive',), {}],
-    'spyplugins.ui.example':    [('fa.eye',), {}],
+    'spyplugins.ui.example':   [('fa.eye',), {}],
+    'spyplugins.ui.autopep8':  [('fa.eye',), {}],
 }
 
 
@@ -250,7 +250,6 @@ def icon(name, resample=False, icon_path=None):
         icon = get_icon(name + '.png', resample=resample)
         if icon_path:
             icon_path = Path(icon_path) / (name + '.png')
-            print(icon_path)
             if icon_path.isfile():
                 icon = QIcon(icon_path)
         return icon if icon is not None else QIcon()
