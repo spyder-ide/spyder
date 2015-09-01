@@ -20,12 +20,6 @@ from spyderlib.utils.external.path import Path
 if PY2:
     import imp
 
-INIT_PY = """# -*- coding: utf-8 -*-
-
-# Declare as a namespace package
-__import__('pkg_resources').declare_namespace(__name__)
-"""
-
 
 def _get_spyderplugins(plugin_path, base_namespace, plugins_namespace,
                        modnames, modlist):
@@ -50,7 +44,10 @@ def _get_spyderplugins(plugin_path, base_namespace, plugins_namespace,
 
 
 class _ModuleMock():
-    """ """
+    """This mock module is added to sys.modules on plugin load to add the
+    location of the LOCALEDATA so that the module loads succesfully.
+    Once loaded the module is replaced by the actual loaded module object.
+    """
 
 
 def _import_plugin(name, base_namespace, plugin_namespace, namespace_path,
@@ -91,6 +88,34 @@ def _import_plugin(name, base_namespace, plugin_namespace, namespace_path,
         traceback.print_exc(file=sys.stderr)
 
 
+def create_userplugins_files(path):
+    """
+    """
+    if not path.isdir():
+        path.makedirs_p()
+
+    init_file = "__init__.py"
+    init_file_content = """# -*- coding: utf-8 -*-
+'''
+'spyplugins' makes uses of namespace packages to keep different plugins
+organized in the sitepackages directory and in the user directory.
+
+Spyder plugins can be of 'io' type or 'ui' type. Each type also makes use
+of namespace packages.
+
+For more information on namespace packages visit:
+- https://www.python.org/dev/peps/pep-0382/
+- https://www.python.org/dev/peps/pep-0420/
+'''
+
+# Declare as a namespace package
+__import__('pkg_resources').declare_namespace(__name__)
+"""
+    new_path = path / init_file
+    if not (new_path.isfile() and new_path.text == init_file_content):
+        new_path.write_text(init_file_content)
+
+
 def get_spyderplugins_mods(io=False):
     """Import modules from plugins package and return the list"""
     base_namespace = "spyplugins"
@@ -109,9 +134,9 @@ def get_spyderplugins_mods(io=False):
     user_conf_path = Path(get_conf_path())
     user_plugin_basepath = user_conf_path / base_namespace
     user_plugin_path = user_conf_path / base_namespace / plugins_namespace
-    user_plugin_path.makedirs_p()
-    (user_plugin_basepath / "__init__.py").write_text(INIT_PY)
-    (user_plugin_path / "__init__.py").write_text(INIT_PY)
+
+    create_userplugins_files(user_plugin_basepath)
+    create_userplugins_files(user_plugin_path)
 
     modlist, modnames = [], []
 
