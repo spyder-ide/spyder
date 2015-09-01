@@ -274,12 +274,7 @@ editor, Python console, etc.""",
       platforms=['any'],
       packages=get_packages(),
       package_data={LIBNAME: get_package_data(LIBNAME, EXTLIST),
-                    'spyplugins':
-                    get_package_data('spyplugins', EXTLIST+['.py']),
-                    'spyplugins.io':
-                    get_package_data('spyplugins.io', EXTLIST+['.py']),
-                    'spyplugins.ui':
-                    get_package_data('spyplugins.ui', EXTLIST+['.py']),
+                    'spyplugins': get_package_data('spyplugins', EXTLIST),
                     },
       scripts=[osp.join('scripts', fname) for fname in SCRIPTS],
       data_files=get_data_files(),
