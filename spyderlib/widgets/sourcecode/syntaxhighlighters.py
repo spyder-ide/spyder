@@ -40,7 +40,7 @@ dependencies.add("pygments", _("Syntax highlighting for Matlab, Julia and other 
 COLOR_SCHEME_KEYS = ("background", "currentline", "currentcell", "occurence",
                      "ctrlclick", "sideareas", "matched_p", "unmatched_p",
                      "normal", "keyword", "builtin", "definition",
-                     "comment", "string", "number", "instance")
+                     "comment", "docstring", "string", "number", "instance")
 COLOR_SCHEME_NAMES = CONF.get('color_schemes', 'names')
 # Mapping for file extensions that use Pygments highlighting but should use
 # different lexers than Pygments' autodetection suggests.  Keys are file
@@ -293,14 +293,22 @@ def make_python_patterns(additional_keywords=[], additional_builtins=[]):
     dq3string =    r'(\b[rRuU])?"""[^"\\]*((\\.|"(?!""))[^"\\]*)*(""")?'
     uf_sq3string = r"(\b[rRuU])?'''[^'\\]*((\\.|'(?!''))[^'\\]*)*(\\)?(?!''')$"
     uf_dq3string = r'(\b[rRuU])?"""[^"\\]*((\\.|"(?!""))[^"\\]*)*(\\)?(?!""")$'
-    string = any("string", [sq3string, dq3string, sqstring, dqstring])
+    stringlist = [sq3string, dq3string, sqstring, dqstring]
+    string = any("string", stringlist)
     ufstring1 = any("uf_sqstring", [uf_sqstring])
     ufstring2 = any("uf_dqstring", [uf_dqstring])
     ufstring3 = any("uf_sq3string", [uf_sq3string])
     ufstring4 = any("uf_dq3string", [uf_dq3string])
-    return "|".join([instance, kw, builtin, comment,
-                     ufstring1, ufstring2, ufstring3, ufstring4, string,
-                     number, any("SYNC", [r"\n"])])
+    linestart = r"^\s*"
+    docstring = any("docstring", [linestart + s for s in stringlist])
+    ufstring5 = any("uf_sqdocstr", [linestart + uf_sqstring])
+    ufstring6 = any("uf_dqdocstr", [linestart + uf_dqstring])
+    ufstring7 = any("uf_sq3docstr", [linestart + uf_sq3string])
+    ufstring8 = any("uf_dq3docstr", [linestart + uf_dq3string])
+    return "|".join([instance, kw, builtin, comment, 
+                     ufstring5, ufstring6, ufstring7, ufstring8, 
+                     ufstring1, ufstring2, ufstring3, ufstring4, 
+                     docstring, string, number, any("SYNC", [r"\n"])])
 
 class OutlineExplorerData(object):
     CLASS, FUNCTION, STATEMENT, COMMENT, CELL = list(range(5))
@@ -346,8 +354,10 @@ class PythonSH(BaseSH):
     IDPROG = re.compile(r"\s+(\w+)", re.S)
     ASPROG = re.compile(r".*?\b(as)\b")
     # Syntax highlighting states (from one text block to another):
-    (NORMAL, INSIDE_SQ3STRING, INSIDE_DQ3STRING,
-     INSIDE_SQSTRING, INSIDE_DQSTRING) = list(range(5))
+    (NORMAL, DEFINITION, INSIDE_DEFINITION,
+     INSIDE_SQ3STRING, INSIDE_DQ3STRING, INSIDE_SQSTRING, INSIDE_DQSTRING,
+     INSIDE_SQ3DOCSTRING, INSIDE_DQ3DOCSTRING, 
+     INSIDE_SQDOCSTRING, INSIDE_DQDOCSTRING) = list(range(11))
     DEF_TYPES = {"def": OutlineExplorerData.FUNCTION,
                  "class": OutlineExplorerData.CLASS}
     # Comments suitable for Outline Explorer
@@ -363,20 +373,31 @@ class PythonSH(BaseSH):
         text = to_text_string(text)
         prev_state = self.previousBlockState()
         if prev_state == self.INSIDE_DQ3STRING:
+            offset = -5
+            text = r' """ '+text
+        elif prev_state == self.INSIDE_DQ3DOCSTRING:
             offset = -4
             text = r'""" '+text
         elif prev_state == self.INSIDE_SQ3STRING:
             offset = -4
+            text = r" ''' "+text
+        elif prev_state == self.INSIDE_SQ3DOCSTRING:
+            offset = -5
             text = r"''' "+text
         elif prev_state == self.INSIDE_DQSTRING:
+            offset = -3
+            text = r' " '+text
+        elif prev_state == self.INSIDE_DQDOCSTRING:
             offset = -2
             text = r'" '+text
         elif prev_state == self.INSIDE_SQSTRING:
+            offset = -3
+            text = r" ' "+text
+        elif prev_state == self.INSIDE_SQDOCSTRING:
             offset = -2
             text = r"' "+text
         else:
             offset = 0
-            prev_state = self.NORMAL
         
         oedata = None
         import_stmt = None
@@ -384,6 +405,12 @@ class PythonSH(BaseSH):
         self.setFormat(0, len(text), self.formats["normal"])
         
         state = self.NORMAL
+        if prev_state == self.INSIDE_DEFINITION:
+            if text.rstrip().endswith(':'):
+                state = self.DEFINITION
+            else:
+                state = self.INSIDE_DEFINITION
+                
         match = self.PROG.search(text)
         while match:
             for key, value in list(match.groupdict().items()):
@@ -391,22 +418,45 @@ class PythonSH(BaseSH):
                     start, end = match.span(key)
                     start = max([0, start+offset])
                     end = max([0, end+offset])
-                    if key == "uf_sq3string":
+                    if key == "uf_sq3string" or key == "uf_sq3docstr":
+                        if key == "uf_sq3docstr" and self.is_docstring(text):
+                            self.setFormat(start, end-start,
+                                           self.formats["docstring"])
+                            state = self.INSIDE_SQ3DOCSTRING
+                        else:
+                            self.setFormat(start, end-start,
+                                           self.formats["string"])
+                            state = self.INSIDE_SQ3STRING
+                    elif key == "uf_dq3string" or key == "uf_dq3docstr":
+                        if key == "uf_dq3docstr" and self.is_docstring(text):
+                            self.setFormat(start, end-start,
+                                           self.formats["docstring"])
+                            state = self.INSIDE_DQ3DOCSTRING
+                        else:
+                            self.setFormat(start, end-start,
+                                           self.formats["string"])
+                            state = self.INSIDE_DQ3STRING
+                    elif key == "uf_sqstring" or key == "uf_sqdocstr":
+                        if key == "uf_sqdocstr" and self.is_docstring(text):
+                            self.setFormat(start, end-start,
+                                           self.formats["docstring"])
+                            state = self.INSIDE_SQDOCSTRING
+                        else:
+                            self.setFormat(start, end-start,
+                                           self.formats["string"])
+                            state = self.INSIDE_SQSTRING
+                    elif key == "uf_dqstring" or key == "uf_dqdocstr":
+                        if key == "uf_dqdocstr" and self.is_docstring(text):
+                            self.setFormat(start, end-start,
+                                           self.formats["docstring"])
+                            state = self.INSIDE_DQDOCSTRING
+                        else:
+                            self.setFormat(start, end-start,
+                                           self.formats["string"])
+                            state = self.INSIDE_DQSTRING
+                    elif key == "docstring" and not self.is_docstring(text):
                         self.setFormat(start, end-start,
                                        self.formats["string"])
-                        state = self.INSIDE_SQ3STRING
-                    elif key == "uf_dq3string":
-                        self.setFormat(start, end-start,
-                                       self.formats["string"])
-                        state = self.INSIDE_DQ3STRING
-                    elif key == "uf_sqstring":
-                        self.setFormat(start, end-start,
-                                       self.formats["string"])
-                        state = self.INSIDE_SQSTRING
-                    elif key == "uf_dqstring":
-                        self.setFormat(start, end-start,
-                                       self.formats["string"])
-                        state = self.INSIDE_DQSTRING
                     else:
                         self.setFormat(start, end-start, self.formats[key])
                         if key == "comment":
@@ -427,6 +477,10 @@ class PythonSH(BaseSH):
                             if value in ("def", "class"):
                                 match1 = self.IDPROG.match(text, end)
                                 if match1:
+                                    if text.rstrip().endswith(':'):
+                                        state = self.DEFINITION
+                                    else:
+                                        state = self.INSIDE_DEFINITION
                                     start1, end1 = match1.span(1)
                                     self.setFormat(start1, end1-start1,
                                                    self.formats["definition"])
@@ -482,6 +536,10 @@ class PythonSH(BaseSH):
             block_nb = self.currentBlock().blockNumber()
             self.import_statements[block_nb] = import_stmt
             
+    def is_docstring(self, text):
+        return self.previousBlockState() == self.DEFINITION \
+                or not text.startswith((' ', '\t'))
+    
     def get_import_statements(self):
         return list(self.import_statements.values())
             
