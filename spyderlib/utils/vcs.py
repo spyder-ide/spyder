@@ -8,6 +8,10 @@
 
 from __future__ import print_function
 
+<<<<<<< HEAD
+=======
+import sys
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 import os.path as osp
 import subprocess
 
@@ -38,7 +42,11 @@ SUPPORTED = [
 class ActionToolNotFound(RuntimeError):
     """Exception to transmit information about supported tools for
        failed attempt to execute given action"""
+<<<<<<< HEAD
        
+=======
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def __init__(self, vcsname, action, tools):
         RuntimeError.__init__(self)
         self.vcsname = vcsname
@@ -113,11 +121,17 @@ def get_hg_revision(repopath):
 
 def get_git_revision(repopath):
     """Return Git revision for the repository located at repopath
+<<<<<<< HEAD
        Result is the latest commit hash, with None on error
+=======
+       Result is a tuple (latest commit hash, branch), with None values on
+       error
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     """
     try:
         git = programs.find_program('git')
         assert git is not None and osp.isdir(osp.join(repopath, '.git'))
+<<<<<<< HEAD
         commit = subprocess.Popen([git, 'rev-parse', '--short', 'HEAD'],
                                   stdout=subprocess.PIPE,
                                   cwd=repopath).communicate()
@@ -129,6 +143,34 @@ def get_git_revision(repopath):
         return commit
     except (subprocess.CalledProcessError, AssertionError, AttributeError):
         return None
+=======
+
+        # Revision
+        commit = subprocess.Popen([git, 'rev-parse', '--short', 'HEAD'],
+                                  stdout=subprocess.PIPE,
+                                  cwd=repopath).communicate()
+        commit = commit[0].strip()
+        if PY3:
+            commit = commit.decode(sys.getdefaultencoding())
+
+        # Branch
+        branches = subprocess.Popen([git, 'branch'],
+                                     stdout=subprocess.PIPE,
+                                     cwd=repopath).communicate()
+        branches = branches[0]
+        if PY3:
+            branches = branches.decode(sys.getdefaultencoding())
+        branches = branches.split('\n')
+        active_branch = [b for b in branches if b.startswith('*')]
+        if len(active_branch) != 1:
+            branch = None
+        else:
+            branch = active_branch[0].split(None, 1)[1]
+
+        return commit, branch
+    except (subprocess.CalledProcessError, AssertionError, AttributeError):
+        return None, None
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
 
 if __name__ == '__main__':

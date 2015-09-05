@@ -16,7 +16,11 @@ import tempfile
 import traceback
 
 # Local import
+<<<<<<< HEAD
 from spyderlib.baseconfig import _, DEBUG
+=======
+from spyderlib.config.base import _, DEBUG
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 from spyderlib.utils import programs, encoding
 from spyderlib.py3compat import to_text_string, to_binary_string, PY3
 from spyderlib import dependencies

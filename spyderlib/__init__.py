@@ -28,7 +28,11 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 """
 
+<<<<<<< HEAD
 __version__ = '2.3.6'
+=======
+__version__ = '3.0.0dev'
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 __license__ = __doc__
 __project_url__ = 'https://github.com/spyder-ide/spyder'
 __forum_url__   = 'http://groups.google.com/group/spyderlib'
@@ -68,7 +72,11 @@ def get_versions(reporev=True):
     revision = None
     if reporev:
         from spyderlib.utils import vcs
+<<<<<<< HEAD
         revision = vcs.get_git_revision(os.path.dirname(__dir__))
+=======
+        revision, branch = vcs.get_git_revision(os.path.dirname(__dir__))
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
     if not sys.platform == 'darwin':  # To avoid a crash with our Mac app
         system = platform.system()

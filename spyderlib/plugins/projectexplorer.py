@@ -7,11 +7,20 @@
 """Project Explorer Plugin"""
 
 from spyderlib.qt.QtGui import QFontDialog
+<<<<<<< HEAD
 from spyderlib.qt.QtCore import SIGNAL
 
 # Local imports
 from spyderlib.baseconfig import _
 from spyderlib.utils.qthelpers import get_icon, create_action
+=======
+from spyderlib.qt.QtCore import Signal, Slot
+import spyderlib.utils.icon_manager as ima
+
+# Local imports
+from spyderlib.config.base import _
+from spyderlib.utils.qthelpers import create_action
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 from spyderlib.widgets.projectexplorer import ProjectExplorerWidget
 from spyderlib.plugins import SpyderPluginMixin
 from spyderlib.py3compat import is_text_string
@@ -20,6 +29,20 @@ from spyderlib.py3compat import is_text_string
 class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
     """Project explorer plugin"""
     CONF_SECTION = 'project_explorer'
+<<<<<<< HEAD
+=======
+
+    open_terminal = Signal(str)
+    open_interpreter = Signal(str)
+    pythonpath_changed = Signal()
+    sig_projects_were_closed = Signal()
+    create_module = Signal(str)
+    edit = Signal(str)
+    removed = Signal(str)
+    removed_tree = Signal(str)
+    renamed = Signal(str, str)
+    redirect_stdio = Signal(bool)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     
     def __init__(self, parent=None):
         ProjectExplorerWidget.__init__(self, parent=parent,
@@ -50,11 +73,19 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         new_project_act = create_action(self, text=_('New project...'),
+<<<<<<< HEAD
                                         icon=get_icon('project_expanded.png'),
                                         triggered=self.create_new_project)
 
         font_action = create_action(self, _("&Font..."),
                                     None, 'font.png', _("Set font style"),
+=======
+                                        icon=ima.icon('project_expanded'),
+                                        triggered=self.create_new_project)
+
+        font_action = create_action(self, _("&Font..."),
+                                    None, ima.icon('font'), _("Set font style"),
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
                                     triggered=self.change_font)
         self.treewidget.common_actions += (None, font_action)
         
@@ -65,6 +96,7 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         self.main.pythonpath_changed()
+<<<<<<< HEAD
         self.connect(self.main, SIGNAL('restore_scrollbar_position()'),
                      self.restore_scrollbar_position)
         self.connect(self, SIGNAL("pythonpath_changed()"),
@@ -80,6 +112,17 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
                      self.main.editor.removed_tree)
         self.connect(self, SIGNAL("renamed(QString,QString)"),
                      self.main.editor.renamed)
+=======
+        self.main.restore_scrollbar_position.connect(
+                                               self.restore_scrollbar_position)
+        self.pythonpath_changed.connect(self.main.pythonpath_changed)
+        self.sig_projects_were_closed.connect(self.projects_were_closed)
+        self.create_module.connect(self.main.editor.new)
+        self.edit.connect(self.main.editor.load)
+        self.removed.connect(self.main.editor.removed)
+        self.removed_tree.connect(self.main.editor.removed_tree)
+        self.renamed.connect(self.main.editor.renamed)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         self.main.editor.set_projectexplorer(self)
         self.main.add_dockwidget(self)
 
@@ -96,6 +139,10 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         return True
         
     #------ Public API ---------------------------------------------------------
+<<<<<<< HEAD
+=======
+    @Slot()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def create_new_project(self):
         """Create new project"""
         if self.dockwidget.isHidden():
@@ -111,7 +158,12 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         for fname in self.main.editor.get_filenames():
             if self.treewidget.workspace.is_file_in_closed_project(fname):
                 self.main.editor.close_file_from_name(fname)
+<<<<<<< HEAD
         
+=======
+
+    @Slot()    
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def change_font(self):
         """Change font"""
         font, valid = QFontDialog.getFont(self.get_plugin_font(), self,

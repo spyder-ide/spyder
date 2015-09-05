@@ -29,14 +29,30 @@ class FallbackPlugin(IntrospectionPlugin):
     name = 'fallback'
 
     def get_completions(self, info):
+<<<<<<< HEAD
         """Return a list of completion strings
+=======
+        """Return a list of (completion, type) tuples
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
         Simple completion based on python-like identifiers and whitespace
         """
         items = []
+<<<<<<< HEAD
         if (info.line.strip().startswith(('import ', 'from ')) and
                 info.is_python_like):
             items += module_completion(info.line, [info.filename])
+=======
+        line = info.line.strip()
+        is_from = line.startswith('from')
+        if ((line.startswith('import') or is_from and ' import' not in line)
+                and info.is_python_like):
+            items += module_completion(info.line, [info.filename])
+            return [(i, 'module') for i in sorted(items)]
+        elif is_from and info.is_python_like:
+            items += module_completion(info.line, [info.filename])
+            return [(i, '') for i in sorted(items)]
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         elif info.obj:
             base = info.obj
             tokens = set(info.split_words(-1))
@@ -46,7 +62,11 @@ class FallbackPlugin(IntrospectionPlugin):
                 start = base.rfind('.') + 1
             else:
                 start = 0
+<<<<<<< HEAD
  
+=======
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
             items = [i[start:len(base)] + i[len(base):].split('.')[0]
                      for i in items]
             # get path completions
@@ -54,7 +74,11 @@ class FallbackPlugin(IntrospectionPlugin):
             match = re.search('''[ "\']([\w\.\\\\/]+)\Z''', info.line)
             if match:
                 items += _complete_path(match.groups()[0])
+<<<<<<< HEAD
         return list(sorted(items))
+=======
+            return [(i, '') for i in sorted(items)]
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
     def get_definition(self, info):
         """
@@ -100,6 +124,24 @@ class FallbackPlugin(IntrospectionPlugin):
 
         return filename, line_nr
 
+<<<<<<< HEAD
+=======
+    def get_info(self, info):
+        """Get a formatted calltip and docstring from Fallback"""
+        if info.docstring:
+            if info.filename:
+                filename = os.path.basename(info.filename)
+                filename = os.path.splitext(filename)[0]
+            else:
+                filename = '<module>'
+            resp = dict(docstring=info.docstring,
+                        name=filename,
+                        note='',
+                        argspec='',
+                        calltip=None)
+            return resp
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
 @memoize
 def python_like_mod_finder(import_line, alt_path=None,

@@ -19,12 +19,16 @@ ALL_LANGUAGES = {
                  'Fortran77': ('f', 'for', 'f77'),
                  'Fortran': ('f90', 'f95', 'f2k'),
                  'Idl': ('pro',),
+<<<<<<< HEAD
                  'Matlab': ('m',),
                  'Julia': ('jl',),
+=======
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
                  'Diff': ('diff', 'patch', 'rej'),
                  'GetText': ('po', 'pot'),
                  'Nsis': ('nsi', 'nsh'),
                  'Html': ('htm', 'html'),
+<<<<<<< HEAD
                  'Css': ('css',),
                  'Xml': ('xml',),
                  'Js': ('js',),
@@ -34,6 +38,10 @@ ALL_LANGUAGES = {
                  'Batch': ('bat', 'cmd', 'nt'),
                  'Ini': ('properties', 'session', 'ini', 'inf', 'reg', 'url',
                          'cfg', 'cnf', 'aut', 'iss'),
+=======
+                 'Cpp': ('c', 'cc', 'cpp', 'cxx', 'h', 'hh', 'hpp', 'hxx'),
+                 'OpenCL': ('cl',),
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
                  'Yaml':('yaml','yml'),
                  }
 

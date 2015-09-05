@@ -29,6 +29,7 @@ Patching rope:
 
 def apply():
     """Monkey patching rope
+<<<<<<< HEAD
     
     See [1], [2], [3], [4] and [5] in module docstring."""
     import rope
@@ -38,12 +39,27 @@ def apply():
     # [1] Patching project.Project for compatibility with py2exe/cx_Freeze
     #     distributions
     from spyderlib.baseconfig import is_py2exe_or_cx_Freeze
+=======
+
+    See [1], [2], [3], [4] and [5] in module docstring."""
+    import rope
+    if rope.VERSION not in ('0.10.2', '0.9.4-1', '0.9.4'):
+        raise ImportError("rope %s can't be patched" % rope.VERSION)
+
+    # [1] Patching project.Project for compatibility with py2exe/cx_Freeze
+    #     distributions
+    from spyderlib.config.base import is_py2exe_or_cx_Freeze
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     if is_py2exe_or_cx_Freeze():
         from rope.base import project
         class PatchedProject(project.Project):
             def _default_config(self):
                 # py2exe/cx_Freeze distribution
+<<<<<<< HEAD
                 from spyderlib.baseconfig import get_module_source_path
+=======
+                from spyderlib.config.base import get_module_source_path
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
                 fname = get_module_source_path('spyderlib',
                                                'default_config.py')
                 return open(fname, 'rb').read()

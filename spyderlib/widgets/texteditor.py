@@ -10,6 +10,7 @@ Text Editor Dialog based on Qt
 
 from __future__ import print_function
 
+<<<<<<< HEAD
 from spyderlib.qt.QtCore import Qt, SIGNAL, SLOT
 from spyderlib.qt.QtGui import QVBoxLayout, QTextEdit, QDialog, QDialogButtonBox
 
@@ -17,6 +18,15 @@ from spyderlib.qt.QtGui import QVBoxLayout, QTextEdit, QDialog, QDialogButtonBox
 from spyderlib.baseconfig import _
 from spyderlib.guiconfig import get_font
 from spyderlib.utils.qthelpers import get_icon
+=======
+from spyderlib.qt.QtCore import Qt
+from spyderlib.qt.QtGui import QVBoxLayout, QTextEdit, QDialog, QDialogButtonBox
+import spyderlib.utils.icon_manager as ima
+
+# Local import
+from spyderlib.config.base import _
+from spyderlib.config.gui import get_font
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 from spyderlib.py3compat import (to_text_string, to_binary_string,
                                  is_binary_string)
 
@@ -48,7 +58,11 @@ class TextEditor(QDialog):
 
         # Text edit
         self.edit = QTextEdit(parent)
+<<<<<<< HEAD
         self.connect(self.edit, SIGNAL('textChanged()'), self.text_changed)
+=======
+        self.edit.textChanged.connect(self.text_changed)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         self.edit.setReadOnly(readonly)
         self.edit.setPlainText(text)
         if font is None:
@@ -61,14 +75,23 @@ class TextEditor(QDialog):
         if not readonly:
             buttons = buttons | QDialogButtonBox.Cancel
         bbox = QDialogButtonBox(buttons)
+<<<<<<< HEAD
         self.connect(bbox, SIGNAL("accepted()"), SLOT("accept()"))
         self.connect(bbox, SIGNAL("rejected()"), SLOT("reject()"))
+=======
+        bbox.accepted.connect(self.accept)
+        bbox.rejected.connect(self.reject)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         self.layout.addWidget(bbox)
         
         # Make the dialog act as a window
         self.setWindowFlags(Qt.Window)
         
+<<<<<<< HEAD
         self.setWindowIcon(get_icon('edit.png'))
+=======
+        self.setWindowIcon(ima.icon('edit'))
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         self.setWindowTitle(_("Text editor") + \
                             "%s" % (" - "+str(title) if str(title) else ""))
         self.resize(size[0], size[1])

@@ -71,7 +71,10 @@ def add(modname, features, required_version, installed_version=None):
 
 def check(modname):
     """Check if required dependency is installed"""
+<<<<<<< HEAD
     global DEPENDENCIES
+=======
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     for dependency in DEPENDENCIES:
         if dependency.modname == modname:
             return dependency.check()
@@ -80,7 +83,10 @@ def check(modname):
 
 def status():
     """Return a complete status of Optional Dependencies"""
+<<<<<<< HEAD
     global DEPENDENCIES
+=======
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     maxwidth = 0
     col1 = []
     col2 = []

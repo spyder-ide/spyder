@@ -15,8 +15,15 @@ from __future__ import with_statement
 
 from spyderlib.qt.QtGui import (QHBoxLayout, QWidget, QTreeWidgetItem,
                                 QSizePolicy, QRadioButton, QVBoxLayout, QLabel)
+<<<<<<< HEAD
 from spyderlib.qt.QtCore import SIGNAL, Qt, QThread, QMutexLocker, QMutex
 from spyderlib.qt.compat import getexistingdirectory
+=======
+from spyderlib.qt.QtCore import (Signal, Slot, Qt, QThread, QMutexLocker,
+                                 QMutex)
+from spyderlib.qt.compat import getexistingdirectory
+import spyderlib.utils.icon_manager as ima
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
 import sys
 import os
@@ -29,9 +36,14 @@ import traceback
 # Local imports
 from spyderlib.utils.vcs import is_hg_installed, get_vcs_root
 from spyderlib.utils.misc import abspardir, get_common_path
+<<<<<<< HEAD
 from spyderlib.utils.qthelpers import (get_icon, get_std_icon,
                                        create_toolbutton, get_filetype_icon)
 from spyderlib.baseconfig import _
+=======
+from spyderlib.utils.qthelpers import create_toolbutton, get_filetype_icon
+from spyderlib.config.base import _
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 from spyderlib.widgets.comboboxes import PathComboBox, PatternComboBox
 from spyderlib.widgets.onecolumntree import OneColumnTree
 from spyderlib.py3compat import to_text_string, getcwd
@@ -106,6 +118,11 @@ from spyderlib.py3compat import to_text_string, getcwd
 
 class SearchThread(QThread):
     """Find in files search thread"""
+<<<<<<< HEAD
+=======
+    sig_finished = Signal(bool)
+    
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def __init__(self, parent):
         QThread.__init__(self, parent)
         self.mutex = QMutex()
@@ -154,7 +171,11 @@ class SearchThread(QThread):
             traceback.print_exc()
             self.error_flag = _("Unexpected error: see internal console")
         self.stop()
+<<<<<<< HEAD
         self.emit(SIGNAL("finished(bool)"), self.completed)
+=======
+        self.sig_finished.emit(self.completed)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         
     def stop(self):
         with QMutexLocker(self.mutex):
@@ -284,6 +305,12 @@ class SearchThread(QThread):
 
 class FindOptions(QWidget):
     """Find widget with options"""
+<<<<<<< HEAD
+=======
+    find = Signal()
+    stop = Signal()
+    
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def __init__(self, parent, search_text, search_text_regexp, search_path,
                  include, include_idx, include_regexp,
                  exclude, exclude_idx, exclude_regexp,
@@ -309,8 +336,13 @@ class FindOptions(QWidget):
         self.search_text = PatternComboBox(self, search_text,
                                            _("Search pattern"))
         self.edit_regexp = create_toolbutton(self,
+<<<<<<< HEAD
                                              icon=get_icon("advanced.png"),
                                              tip=_("Regular expression"))
+=======
+                                             icon=ima.icon('advanced'),
+                                             tip=_('Regular expression'))
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         self.edit_regexp.setCheckable(True)
         self.edit_regexp.setChecked(search_text_regexp)
         self.more_widgets = ()
@@ -320,6 +352,7 @@ class FindOptions(QWidget):
         self.more_options.setChecked(more_options)
         
         self.ok_button = create_toolbutton(self, text=_("Search"),
+<<<<<<< HEAD
                                 icon=get_std_icon("DialogApplyButton"),
                                 triggered=lambda: self.emit(SIGNAL('find()')),
                                 tip=_("Start search"),
@@ -328,6 +361,16 @@ class FindOptions(QWidget):
         self.stop_button = create_toolbutton(self, text=_("Stop"),
                                 icon=get_icon("stop.png"),
                                 triggered=lambda: self.emit(SIGNAL('stop()')),
+=======
+                                icon=ima.icon('DialogApplyButton'),
+                                triggered=lambda: self.find.emit(),
+                                tip=_("Start search"),
+                                text_beside_icon=True)
+        self.ok_button.clicked.connect(self.update_combos)
+        self.stop_button = create_toolbutton(self, text=_("Stop"),
+                                icon=ima.icon('stop'),
+                                triggered=lambda: self.stop.emit(),
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
                                 tip=_("Stop search"),
                                 text_beside_icon=True)
         self.stop_button.setEnabled(False)
@@ -343,8 +386,13 @@ class FindOptions(QWidget):
            and include_idx < self.include_pattern.count():
             self.include_pattern.setCurrentIndex(include_idx)
         self.include_regexp = create_toolbutton(self,
+<<<<<<< HEAD
                                             icon=get_icon("advanced.png"),
                                             tip=_("Regular expression"))
+=======
+                                            icon=ima.icon('advanced'),
+                                            tip=_('Regular expression'))
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         self.include_regexp.setCheckable(True)
         self.include_regexp.setChecked(include_regexp)
         include_label = QLabel(_("Include:"))
@@ -355,8 +403,13 @@ class FindOptions(QWidget):
            and exclude_idx < self.exclude_pattern.count():
             self.exclude_pattern.setCurrentIndex(exclude_idx)
         self.exclude_regexp = create_toolbutton(self,
+<<<<<<< HEAD
                                             icon=get_icon("advanced.png"),
                                             tip=_("Regular expression"))
+=======
+                                            icon=ima.icon('advanced'),
+                                            tip=_('Regular expression'))
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         self.exclude_regexp.setCheckable(True)
         self.exclude_regexp.setChecked(exclude_regexp)
         exclude_label = QLabel(_("Exclude:"))
@@ -383,6 +436,7 @@ class FindOptions(QWidget):
         self.dir_combo = PathComboBox(self)
         self.dir_combo.addItems(search_path)
         self.dir_combo.setToolTip(_("Search recursively in this directory"))
+<<<<<<< HEAD
         self.connect(self.dir_combo, SIGNAL("open_dir(QString)"),
                      self.set_directory)
         self.connect(self.python_path, SIGNAL('toggled(bool)'),
@@ -390,12 +444,19 @@ class FindOptions(QWidget):
         self.connect(self.hg_manifest, SIGNAL('toggled(bool)'),
                      self.dir_combo.setDisabled)
         browse = create_toolbutton(self, icon=get_std_icon('DirOpenIcon'),
+=======
+        self.dir_combo.open_dir.connect(self.set_directory)
+        self.python_path.toggled.connect(self.dir_combo.setDisabled)
+        self.hg_manifest.toggled.connect(self.dir_combo.setDisabled)
+        browse = create_toolbutton(self, icon=ima.icon('DirOpenIcon'),
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
                                    tip=_('Browse a search directory'),
                                    triggered=self.select_directory)
         for widget in [self.python_path, self.hg_manifest, self.custom_dir,
                        self.dir_combo, browse]:
             hlayout3.addWidget(widget)
             
+<<<<<<< HEAD
         self.connect(self.search_text, SIGNAL("valid(bool)"),
                      lambda valid: self.emit(SIGNAL('find()')))
         self.connect(self.include_pattern, SIGNAL("valid(bool)"),
@@ -404,6 +465,12 @@ class FindOptions(QWidget):
                      lambda valid: self.emit(SIGNAL('find()')))
         self.connect(self.dir_combo, SIGNAL("valid(bool)"),
                      lambda valid: self.emit(SIGNAL('find()')))
+=======
+        self.search_text.valid.connect(lambda valid: self.find.emit())
+        self.include_pattern.valid.connect(lambda valid: self.find.emit())
+        self.exclude_pattern.valid.connect(lambda valid: self.find.emit())
+        self.dir_combo.valid.connect(lambda valid: self.find.emit())
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
             
         vlayout = QVBoxLayout()
         vlayout.setContentsMargins(0, 0, 0, 0)
@@ -415,13 +482,19 @@ class FindOptions(QWidget):
         self.setLayout(vlayout)
                 
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+<<<<<<< HEAD
         
+=======
+
+    @Slot(bool)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def toggle_more_options(self, state):
         for layout in self.more_widgets:
             for index in range(layout.count()):
                 if state and self.isVisible() or not state:
                     layout.itemAt(index).widget().setVisible(state)
         if state:
+<<<<<<< HEAD
             icon_name = 'options_less.png'
             tip = _('Hide advanced options')
         else:
@@ -434,6 +507,20 @@ class FindOptions(QWidget):
         self.search_text.lineEdit().emit(SIGNAL('returnPressed()'))
         self.include_pattern.lineEdit().emit(SIGNAL('returnPressed()'))
         self.exclude_pattern.lineEdit().emit(SIGNAL('returnPressed()'))
+=======
+            icon = ima.icon('options_less')
+            tip = _('Hide advanced options')
+        else:
+            icon = ima.icon('options_more')
+            tip = _('Show advanced options')
+        self.more_options.setIcon(icon)
+        self.more_options.setToolTip(tip)
+        
+    def update_combos(self):
+        self.search_text.lineEdit().returnPressed.emit()
+        self.include_pattern.lineEdit().returnPressed.emit()
+        self.exclude_pattern.lineEdit().returnPressed.emit()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         
     def detect_hg_repository(self, path=None):
         if path is None:
@@ -497,15 +584,27 @@ class FindOptions(QWidget):
         else:
             return (path, python_path, hg_manifest,
                     include, exclude, texts, text_re)
+<<<<<<< HEAD
         
     def select_directory(self):
         """Select directory"""
         self.parent().emit(SIGNAL('redirect_stdio(bool)'), False)
+=======
+
+    @Slot()
+    def select_directory(self):
+        """Select directory"""
+        self.parent().redirect_stdio.emit(False)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         directory = getexistingdirectory(self, _("Select directory"),
                                          self.dir_combo.currentText())
         if directory:
             self.set_directory(directory)
+<<<<<<< HEAD
         self.parent().emit(SIGNAL('redirect_stdio(bool)'), True)
+=======
+        self.parent().redirect_stdio.emit(True)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         
     def set_directory(self, directory):
         path = to_text_string(osp.abspath(to_text_string(directory)))
@@ -517,11 +616,18 @@ class FindOptions(QWidget):
         ctrl = event.modifiers() & Qt.ControlModifier
         shift = event.modifiers() & Qt.ShiftModifier
         if event.key() in (Qt.Key_Enter, Qt.Key_Return):
+<<<<<<< HEAD
             self.emit(SIGNAL('find()'))
         elif event.key() == Qt.Key_F and ctrl and shift:
             # Toggle find widgets
             self.parent().emit(SIGNAL('toggle_visibility(bool)'),
                                not self.isVisible())
+=======
+            self.find.emit()
+        elif event.key() == Qt.Key_F and ctrl and shift:
+            # Toggle find widgets
+            self.parent().toggle_visibility.emit(not self.isVisible())
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         else:
             QWidget.keyPressEvent(self, event)
 
@@ -543,8 +649,12 @@ class ResultsBrowser(OneColumnTree):
         itemdata = self.data.get(id(self.currentItem()))
         if itemdata is not None:
             filename, lineno = itemdata
+<<<<<<< HEAD
             self.parent().emit(SIGNAL("edit_goto(QString,int,QString)"),
                                filename, lineno, self.search_text)
+=======
+            self.parent().edit_goto.emit(filename, lineno, self.search_text)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
     def clicked(self, item):
         """Click event"""
@@ -620,7 +730,11 @@ class ResultsBrowser(OneColumnTree):
                 displayed_name = dirname
             item = QTreeWidgetItem(parent, [displayed_name],
                                    QTreeWidgetItem.Type)
+<<<<<<< HEAD
             item.setIcon(0, get_std_icon('DirClosedIcon'))
+=======
+            item.setIcon(0, ima.icon('DirClosedIcon'))
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
             return item
         dirs = {}
         for dirname in sorted(list(dir_set)):
@@ -664,7 +778,11 @@ class ResultsBrowser(OneColumnTree):
                 item = QTreeWidgetItem(file_item,
                            ["%d (%s): %s" % (lineno, colno_str, line.rstrip())],
                            QTreeWidgetItem.Type)
+<<<<<<< HEAD
                 item.setIcon(0, get_icon('arrow.png'))
+=======
+                item.setIcon(0, ima.icon('arrow'))
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
                 self.data[id(item)] = (filename, lineno)
         # Removing empty directories
         top_level_items = [self.topLevelItem(index)
@@ -699,9 +817,14 @@ class FindInFilesWidget(QWidget):
                                         exclude, exclude_idx, exclude_regexp,
                                         supported_encodings, in_python_path,
                                         more_options)
+<<<<<<< HEAD
         self.connect(self.find_options, SIGNAL('find()'), self.find)
         self.connect(self.find_options, SIGNAL('stop()'),
                      self.stop_and_reset_thread)
+=======
+        self.find_options.find.connect(self.find)
+        self.find_options.stop.connect(self.stop_and_reset_thread)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         
         self.result_browser = ResultsBrowser(self)
         
@@ -748,8 +871,12 @@ class FindInFilesWidget(QWidget):
         self.search_thread = SearchThread(self)
         self.search_thread.get_pythonpath_callback = \
                                                 self.get_pythonpath_callback
+<<<<<<< HEAD
         self.connect(self.search_thread, SIGNAL("finished(bool)"),
                      self.search_complete)
+=======
+        self.search_thread.sig_finished.connect(self.search_complete)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         self.search_thread.initialize(*options)
         self.search_thread.start()
         self.find_options.ok_button.setEnabled(False)
@@ -760,9 +887,14 @@ class FindInFilesWidget(QWidget):
         if self.search_thread is not None:
             if self.search_thread.isRunning():
                 if ignore_results:
+<<<<<<< HEAD
                     self.disconnect(self.search_thread,
                                     SIGNAL("finished(bool)"),
                                     self.search_complete)
+=======
+                    self.search_thread.sig_finished.disconnect(
+                                                         self.search_complete)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
                 self.search_thread.stop()
                 self.search_thread.wait()
             self.search_thread.setParent(None)
@@ -799,4 +931,8 @@ def test():
     
 if __name__ == '__main__':
     test()
+<<<<<<< HEAD
     
+=======
+    
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f

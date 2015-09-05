@@ -166,4 +166,7 @@ on Fedora `ipython-gui` and on Gentoo `ipython` with the `qt4` USE flag.
 * For discussions and troubleshooting:
 
     <http://groups.google.com/group/spyderlib>
+<<<<<<< HEAD
 # spyderlib
+=======
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f

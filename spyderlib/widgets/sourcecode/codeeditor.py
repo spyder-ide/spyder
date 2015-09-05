@@ -8,7 +8,11 @@
 Editor widget based on QtGui.QPlainTextEdit
 """
 
+<<<<<<< HEAD
 #%% This line is for cell execution testing
+=======
+# %% This line is for cell execution testing
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 # pylint: disable=C0103
 # pylint: disable=R0903
 # pylint: disable=R0911
@@ -21,11 +25,16 @@ import re
 import sre_constants
 import os.path as osp
 import time
+<<<<<<< HEAD
+=======
+from unicodedata import category
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
 from spyderlib.qt import is_pyqt46
 from spyderlib.qt.QtGui import (QColor, QMenu, QApplication, QSplitter, QFont,
                                 QTextEdit, QTextFormat, QPainter, QTextCursor,
                                 QBrush, QTextDocument, QTextCharFormat,
+<<<<<<< HEAD
                                 QPixmap, QPrinter, QToolTip, QCursor, QLabel,
                                 QInputDialog, QTextBlockUserData, QLineEdit,
                                 QKeySequence, QWidget, QVBoxLayout,
@@ -46,27 +55,64 @@ from spyderlib.start_app import CONF
 from spyderlib.guiconfig import get_font, create_shortcut
 from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
                                        mimedata2url, get_icon)
+=======
+                                QPrinter, QToolTip, QCursor, QLabel,
+                                QInputDialog, QTextBlockUserData, QLineEdit,
+                                QKeySequence, QVBoxLayout, QHBoxLayout,
+                                QDialog, QIntValidator, QDialogButtonBox,
+                                QGridLayout, QPaintEvent, QMessageBox, QWidget,
+                                QTextOption)
+from spyderlib.qt.QtCore import (Qt, Signal, QTimer, QRect, QRegExp, QSize,
+                                 Slot)
+from spyderlib.qt.compat import to_qvariant
+import spyderlib.utils.icon_manager as ima
+
+# %% This line is for cell execution testing
+# Local import
+# TODO: Try to separate this module from spyderlib to create a self
+#       consistent editor module (Qt source code and shell widgets library)
+from spyderlib.config.base import get_conf_path, _, DEBUG
+from spyderlib.config.main import CONF
+from spyderlib.config.gui import (get_font, create_shortcut, new_shortcut,
+                                  get_shortcut)
+from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
+                                       mimedata2url)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 from spyderlib.utils.dochelpers import getobj
 from spyderlib.utils import encoding, sourcecode
 from spyderlib.utils.sourcecode import ALL_LANGUAGES, CELL_LANGUAGES
 from spyderlib.widgets.editortools import PythonCFM
 from spyderlib.widgets.sourcecode.base import TextEditBaseWidget
+<<<<<<< HEAD
 from spyderlib.widgets.sourcecode import syntaxhighlighters as sh
+=======
+from spyderlib.widgets.sourcecode.kill_ring import QtKillRing
+from spyderlib.widgets.sourcecode import syntaxhighlighters as sh
+from spyderlib.widgets.arraybuilder import SHORTCUT_INLINE, SHORTCUT_TABLE
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 from spyderlib.py3compat import to_text_string
 
 try:
     import IPython.nbformat as nbformat
+<<<<<<< HEAD
     import IPython.nbformat.current      # analysis:ignore
+=======
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     from IPython.nbconvert import PythonExporter as nbexporter
 except:
     nbformat = None                      # analysis:ignore
 
+<<<<<<< HEAD
 #%% This line is for cell execution testing
+=======
+# %% This line is for cell execution testing
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 # For debugging purpose:
 LOG_FILENAME = get_conf_path('codeeditor.log')
 DEBUG_EDITOR = DEBUG >= 3
 
 
+<<<<<<< HEAD
 #===============================================================================
 # Go to line dialog box
 #===============================================================================
@@ -74,12 +120,31 @@ class GoToLineDialog(QDialog):
     def __init__(self, editor):
         QDialog.__init__(self, editor)
         
+=======
+def is_letter_or_number(char):
+    """ Returns whether the specified unicode character is a letter or a number.
+    """
+    cat = category(char)
+    return cat.startswith('L') or cat.startswith('N')
+
+# =============================================================================
+# Go to line dialog box
+# =============================================================================
+class GoToLineDialog(QDialog):
+    def __init__(self, editor):
+        QDialog.__init__(self, editor)
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         # Destroying the C++ object right after closing the dialog box,
         # otherwise it may be garbage-collected in another QThread
         # (e.g. the editor's analysis thread in Spyder), thus leading to
         # a segmentation fault on UNIX or an application crash on Windows
         self.setAttribute(Qt.WA_DeleteOnClose)
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         self.lineno = None
         self.editor = editor
 
@@ -91,8 +156,12 @@ class GoToLineDialog(QDialog):
         validator = QIntValidator(self.lineedit)
         validator.setRange(1, editor.get_line_count())
         self.lineedit.setValidator(validator)
+<<<<<<< HEAD
         self.connect(self.lineedit, SIGNAL('textChanged(QString)'),
                      self.text_has_changed)
+=======
+        self.lineedit.textChanged.connect(self.text_has_changed)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         cl_label = QLabel(_("Current line:"))
         cl_label_v = QLabel("<b>%d</b>" % editor.get_cursor_line_number())
         last_label = QLabel(_("Line count:"))
@@ -108,15 +177,24 @@ class GoToLineDialog(QDialog):
 
         bbox = QDialogButtonBox(QDialogButtonBox.Ok|QDialogButtonBox.Cancel,
                                 Qt.Vertical, self)
+<<<<<<< HEAD
         self.connect(bbox, SIGNAL("accepted()"), SLOT("accept()"))
         self.connect(bbox, SIGNAL("rejected()"), SLOT("reject()"))
+=======
+        bbox.accepted.connect(self.accept)
+        bbox.rejected.connect(self.reject)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         btnlayout = QVBoxLayout()
         btnlayout.addWidget(bbox)
         btnlayout.addStretch(1)
 
         ok_button = bbox.button(QDialogButtonBox.Ok)
         ok_button.setEnabled(False)
+<<<<<<< HEAD
         self.connect(self.lineedit, SIGNAL("textChanged(QString)"),
+=======
+        self.lineedit.textChanged.connect(
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
                      lambda text: ok_button.setEnabled(len(text) > 0))
 
         layout = QHBoxLayout()
@@ -125,7 +203,11 @@ class GoToLineDialog(QDialog):
         self.setLayout(layout)
 
         self.lineedit.setFocus()
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def text_has_changed(self, text):
         """Line edit's text has changed"""
         text = to_text_string(text)
@@ -185,13 +267,22 @@ class ScrollFlagArea(QWidget):
     WIDTH = 12
     FLAGS_DX = 4
     FLAGS_DY = 2
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def __init__(self, editor):
         QWidget.__init__(self, editor)
         self.setAttribute(Qt.WA_OpaquePaintEvent)
         self.code_editor = editor
+<<<<<<< HEAD
         self.connect(editor.verticalScrollBar(), SIGNAL('valueChanged(int)'),
                      lambda value: self.repaint())
+=======
+        editor.verticalScrollBar().valueChanged.connect(
+                                                  lambda value: self.repaint())
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
     def sizeHint(self):
         """Override Qt method"""
@@ -206,7 +297,11 @@ class ScrollFlagArea(QWidget):
         vsb = self.code_editor.verticalScrollBar()
         value = self.position_to_value(event.pos().y()-1)
         vsb.setValue(value-.5*vsb.pageStep())
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def get_scale_factor(self, slider=False):
         """Return scrollbar's scale factor:
         ratio between pixel span height and value span height"""
@@ -215,13 +310,21 @@ class ScrollFlagArea(QWidget):
         position_height = vsb.height()-delta-1
         value_height = vsb.maximum()-vsb.minimum()+vsb.pageStep()
         return float(position_height)/value_height
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def value_to_position(self, y, slider=False):
         """Convert value to position"""
         offset = 0 if slider else 1
         vsb = self.code_editor.verticalScrollBar()
         return (y-vsb.minimum())*self.get_scale_factor(slider)+offset
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def position_to_value(self, y, slider=False):
         """Convert position to value"""
         offset = 0 if slider else 1
@@ -311,17 +414,25 @@ def get_file_language(filename, text=None):
 
 class CodeEditor(TextEditBaseWidget):
     """Source Code Editor Widget based exclusively on Qt"""
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     LANGUAGES = {'Python': (sh.PythonSH, '#', PythonCFM),
                  'Cython': (sh.CythonSH, '#', PythonCFM),
                  'Fortran77': (sh.Fortran77SH, 'c', None),
                  'Fortran': (sh.FortranSH, '!', None),
                  'Idl': (sh.IdlSH, ';', None),
+<<<<<<< HEAD
                  'Matlab': (sh.MatlabSH, '%', None),
+=======
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
                  'Diff': (sh.DiffSH, '', None),
                  'GetText': (sh.GetTextSH, '#', None),
                  'Nsis': (sh.NsisSH, '#', None),
                  'Html': (sh.HtmlSH, '', None),
+<<<<<<< HEAD
                  'Css': (sh.CssSH, '', None),
                  'Xml': (sh.XmlSH, '', None),
                  'Js': (sh.JsSH, '//', None),
@@ -355,6 +466,38 @@ class CodeEditor(TextEditBaseWidget):
     
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
+=======
+                 'Yaml': (sh.YamlSH, '#', None),
+                 'Cpp': (sh.CppSH, '//', None),
+                 'OpenCL': (sh.OpenCLSH, '//', None),
+                 'Enaml': (sh.EnamlSH, '#', PythonCFM),
+                }
+
+    TAB_ALWAYS_INDENTS = ('py', 'pyw', 'python', 'c', 'cpp', 'cl', 'h')
+
+    # Custom signal to be emitted upon completion of the editor's paintEvent
+    painted = Signal(QPaintEvent)
+
+    # To have these attrs when early viewportEvent's are triggered
+    edge_line = None
+    linenumberarea = None
+
+    breakpoints_changed = Signal()
+    get_completions = Signal(bool)
+    go_to_definition = Signal(int)
+    sig_show_object_info = Signal(int)
+    run_selection = Signal()
+    run_cell_and_advance = Signal()
+    run_cell = Signal()
+    go_to_definition_regex = Signal(int)
+    sig_cursor_position_changed = Signal(int, int)
+    focus_changed = Signal()
+    sig_new_file = Signal(str)
+
+    def __init__(self, parent=None):
+        TextEditBaseWidget.__init__(self, parent)
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         self.setFocusPolicy(Qt.StrongFocus)
 
         # We use these object names to set the right background
@@ -389,21 +532,34 @@ class CodeEditor(TextEditBaseWidget):
         # Markers
         self.markers_margin = True
         self.markers_margin_width = 15
+<<<<<<< HEAD
         self.error_pixmap = QPixmap(get_image_path('error.png'), 'png')
         self.warning_pixmap = QPixmap(get_image_path('warning.png'), 'png')
         self.todo_pixmap = QPixmap(get_image_path('todo.png'), 'png')
         self.bp_pixmap = QPixmap(get_image_path('breakpoint_small.png'), 'png')
         self.bpc_pixmap = QPixmap(get_image_path('breakpoint_cond_small.png'),
                                                  'png')
+=======
+        self.error_pixmap = ima.icon('error').pixmap(QSize(14, 14))
+        self.warning_pixmap = ima.icon('warning').pixmap(QSize(14, 14))
+        self.todo_pixmap = ima.icon('todo').pixmap(QSize(14, 14))
+        self.bp_pixmap = ima.icon('breakpoint_big').pixmap(QSize(14, 14))
+        self.bpc_pixmap = ima.icon('breakpoint_cond_big').pixmap(QSize(14, 14))
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
         # Line number area management
         self.linenumbers_margin = True
         self.linenumberarea_enabled = None
         self.linenumberarea = LineNumberArea(self)
+<<<<<<< HEAD
         self.connect(self, SIGNAL("blockCountChanged(int)"),
                      self.update_linenumberarea_width)
         self.connect(self, SIGNAL("updateRequest(QRect,int)"),
                      self.update_linenumberarea)
+=======
+        self.blockCountChanged.connect(self.update_linenumberarea_width)
+        self.updateRequest.connect(self.update_linenumberarea)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         self.linenumberarea_pressed = -1
         self.linenumberarea_released = -1
 
@@ -416,7 +572,11 @@ class CodeEditor(TextEditBaseWidget):
         self.unmatched_p_color = None
         self.normal_color = None
         self.comment_color = None
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         self.linenumbers_color = QColor(Qt.darkGray)
 
         # --- Syntax highlight entrypoint ---
@@ -454,8 +614,12 @@ class CodeEditor(TextEditBaseWidget):
         self.document_id = id(self)
 
         # Indicate occurences of the selected word
+<<<<<<< HEAD
         self.connect(self, SIGNAL('cursorPositionChanged()'),
                      self.__cursor_position_changed)
+=======
+        self.cursorPositionChanged.connect(self.__cursor_position_changed)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         self.__find_first_pos = None
         self.__find_flags = None
 
@@ -463,6 +627,7 @@ class CodeEditor(TextEditBaseWidget):
         self.supported_cell_language = False
         self.classfunc_match = None
         self.comment_string = None
+<<<<<<< HEAD
 
         # Block user data
         self.blockuserdata_list = []
@@ -470,12 +635,22 @@ class CodeEditor(TextEditBaseWidget):
         # Update breakpoints if the number of lines in the file changes
         self.connect(self, SIGNAL("blockCountChanged(int)"),
                      self.update_breakpoints)
+=======
+        self._kill_ring = QtKillRing(self)
+
+        # Block user data
+        self.blockuserdata_list = []
+
+        # Update breakpoints if the number of lines in the file changes
+        self.blockCountChanged.connect(self.update_breakpoints)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
         # Mark occurences timer
         self.occurence_highlighting = None
         self.occurence_timer = QTimer(self)
         self.occurence_timer.setSingleShot(True)
         self.occurence_timer.setInterval(1500)
+<<<<<<< HEAD
         self.connect(self.occurence_timer, SIGNAL("timeout()"),
                      self.__mark_occurences)
         self.occurences = []
@@ -483,6 +658,14 @@ class CodeEditor(TextEditBaseWidget):
         
         # Mark found results
         self.connect(self, SIGNAL('textChanged()'), self.__text_has_changed)
+=======
+        self.occurence_timer.timeout.connect(self.__mark_occurences)
+        self.occurences = []
+        self.occurence_color = QColor(Qt.yellow).lighter(160)
+
+        # Mark found results
+        self.textChanged.connect(self.__text_has_changed)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         self.found_results = []
         self.found_results_color = QColor(Qt.magenta).lighter(180)
 
@@ -517,6 +700,7 @@ class CodeEditor(TextEditBaseWidget):
         # Code editor
         self.__visible_blocks = []  # Visible blocks, update with repaint
         self.painted.connect(self._draw_editor_cell_divider)
+<<<<<<< HEAD
         
         self.connect(self.verticalScrollBar(), SIGNAL('valueChanged(int)'),
                      lambda value: self.rehighlight_cells())
@@ -524,6 +708,15 @@ class CodeEditor(TextEditBaseWidget):
     def create_shortcuts(self):
         codecomp = create_shortcut(self.do_completion, context='Editor',
                                    name='Code completion', parent=self)
+=======
+
+        self.verticalScrollBar().valueChanged.connect(
+                                       lambda value: self.rehighlight_cells())                                 
+
+    def create_shortcuts(self):
+        codecomp = create_shortcut(self.do_completion, context='Editor',
+                                   name='Code Completion', parent=self)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         duplicate_line = create_shortcut(self.duplicate_line, context='Editor',
                                          name='Duplicate line', parent=self)
         copyline = create_shortcut(self.copy_line, context='Editor',
@@ -542,9 +735,78 @@ class CodeEditor(TextEditBaseWidget):
                                        name='Blockcomment', parent=self)
         unblockcomment = create_shortcut(self.unblockcomment, context='Editor',
                                          name='Unblockcomment', parent=self)
+<<<<<<< HEAD
         return [codecomp, duplicate_line, copyline, deleteline, movelineup,
                 movelinedown, gotodef, toggle_comment, blockcomment,
                 unblockcomment]
+=======
+
+        def cb_maker(attr):
+            """Make a callback for cursor move event type, (e.g. "Start")
+            """
+            def cursor_move_event():
+                cursor = self.textCursor()
+                move_type = getattr(QTextCursor, attr)
+                cursor.movePosition(move_type)
+                self.setTextCursor(cursor)
+            return cursor_move_event
+
+        line_start = create_shortcut(cb_maker('StartOfLine'), context='Editor',
+                                     name='Start of line', parent=self)
+        line_end = create_shortcut(cb_maker('EndOfLine'), context='Editor',
+                                   name='End of line', parent=self)
+
+        prev_line = create_shortcut(cb_maker('Up'), context='Editor',
+                                    name='Previous line', parent=self)
+        next_line = create_shortcut(cb_maker('Down'), context='Editor',
+                                    name='Next line', parent=self)
+
+        prev_char = create_shortcut(cb_maker('Left'), context='Editor',
+                                    name='Previous char', parent=self)
+        next_char = create_shortcut(cb_maker('Right'), context='Editor',
+                                    name='Next char', parent=self)
+
+        prev_word = create_shortcut(cb_maker('StartOfWord'), context='Editor',
+                                    name='Previous word', parent=self)
+        next_word = create_shortcut(cb_maker('EndOfWord'), context='Editor',
+                                    name='Next word', parent=self)
+
+        kill_line_end = create_shortcut(self.kill_line_end, context='Editor',
+                                        name='Kill to line end', parent=self)
+        kill_line_start = create_shortcut(self.kill_line_start,
+                                          context='Editor',
+                                          name='Kill to line start',
+                                          parent=self)
+        yank = create_shortcut(self._kill_ring.yank, context='Editor',
+                               name='Yank', parent=self)
+        kill_ring_rotate = create_shortcut(self._kill_ring.rotate,
+                                           context='Editor',
+                                           name='Rotate kill ring',
+                                           parent=self)
+
+        kill_prev_word = create_shortcut(self.kill_prev_word, context='Editor',
+                                         name='Kill previous word',
+                                         parent=self)
+        kill_next_word = create_shortcut(self.kill_next_word, context='Editor',
+                                         name='Kill next word', parent=self)
+
+        start_doc = create_shortcut(cb_maker('Start'), context='Editor',
+                                    name='Start of Document', parent=self)
+
+        end_doc = create_shortcut(cb_maker('End'), context='Editor',
+                                  name='End of document', parent=self)
+
+        # Fixed shortcuts
+        new_shortcut(SHORTCUT_INLINE, self, lambda: self.enter_array_inline())
+        new_shortcut(SHORTCUT_TABLE, self, lambda: self.enter_array_table())
+
+        return [codecomp, duplicate_line, copyline, deleteline, movelineup,
+                movelinedown, gotodef, toggle_comment, blockcomment,
+                unblockcomment, line_start, line_end, prev_line, next_line,
+                prev_char, next_char, prev_word, next_word, kill_line_end,
+                kill_line_start, yank, kill_ring_rotate, kill_prev_word,
+                kill_next_word, start_doc, end_doc]
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
     def get_shortcut_data(self):
         """
@@ -558,8 +820,12 @@ class CodeEditor(TextEditBaseWidget):
     def closeEvent(self, event):
         TextEditBaseWidget.closeEvent(self, event)
         if is_pyqt46:
+<<<<<<< HEAD
             self.emit(SIGNAL('destroyed()'))
 
+=======
+            self.destroyed.emit()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
     def get_document_id(self):
         return self.document_id
@@ -586,7 +852,11 @@ class CodeEditor(TextEditBaseWidget):
                      calltips=None, go_to_definition=False,
                      close_parentheses=True, close_quotes=False,
                      add_colons=True, auto_unindent=True, indent_chars=" "*4,
+<<<<<<< HEAD
                      tab_stop_width=40, cloned_from=None,
+=======
+                     tab_stop_width=40, cloned_from=None, filename=None,
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
                      occurence_timeout=1500):
         
         # Code completion and calltips
@@ -618,7 +888,11 @@ class CodeEditor(TextEditBaseWidget):
         self.setup_margins(linenumbers, markers)
 
         # Lexer
+<<<<<<< HEAD
         self.set_language(language)
+=======
+        self.set_language(language, filename)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
         # Highlight current cell
         self.set_highlight_current_cell(highlight_current_cell)
@@ -664,11 +938,19 @@ class CodeEditor(TextEditBaseWidget):
     def set_close_parentheses_enabled(self, enable):
         """Enable/disable automatic parentheses insertion feature"""
         self.close_parentheses_enabled = enable
+<<<<<<< HEAD
     
     def set_close_quotes_enabled(self, enable):
         """Enable/disable automatic quote insertion feature"""
         self.close_quotes_enabled = enable
     
+=======
+
+    def set_close_quotes_enabled(self, enable):
+        """Enable/disable automatic quote insertion feature"""
+        self.close_quotes_enabled = enable
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def set_add_colons_enabled(self, enable):
         """Enable/disable automatic colons insertion feature"""
         self.add_colons_enabled = enable
@@ -704,7 +986,11 @@ class CodeEditor(TextEditBaseWidget):
         else:
             self.unhighlight_current_cell()
 
+<<<<<<< HEAD
     def set_language(self, language):
+=======
+    def set_language(self, language, filename=None):
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         self.tab_indents = language in self.TAB_ALWAYS_INDENTS
         self.comment_string = ''
         sh_class = sh.TextSH
@@ -722,6 +1008,12 @@ class CodeEditor(TextEditBaseWidget):
                     else:
                         self.classfunc_match = CFMatch()
                     break
+<<<<<<< HEAD
+=======
+        if filename is not None and not self.supported_language:
+            sh_class = sh.guess_pygments_highlighter(filename)
+            self.support_language = sh_class is not sh.TextSH
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         self._set_highlighter(sh_class)
 
     def _set_highlighter(self, sh_class):
@@ -737,20 +1029,33 @@ class CodeEditor(TextEditBaseWidget):
         self._apply_highlighter_color_scheme()
 
     def is_json(self):
+<<<<<<< HEAD
         return self.highlighter_class is sh.JsonSH
+=======
+        return (isinstance(self.highlighter, sh.PygmentsSH) and
+                self.highlighter._lexer.name == 'JSON')
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
     def is_python(self):
         return self.highlighter_class is sh.PythonSH
 
     def is_cython(self):
         return self.highlighter_class is sh.CythonSH
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def is_enaml(self):
         return self.highlighter_class is sh.EnamlSH
 
     def is_python_like(self):
         return self.is_python() or self.is_cython() or self.is_enaml()
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def intelligent_tab(self):
         """Provide intelligent behavoir for Tab key press"""
         leading_text = self.get_text('sol', 'cursor')
@@ -763,7 +1068,11 @@ class CodeEditor(TextEditBaseWidget):
         elif leading_text.endswith('import ') or leading_text[-1] == '.':
             # blank import or dot completion
             self.do_completion()
+<<<<<<< HEAD
         elif (leading_text.split()[0] in ['from', 'import'] and 
+=======
+        elif (leading_text.split()[0] in ['from', 'import'] and
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
               not ';' in leading_text):
             # import line with a single statement
             #  (prevents lines like: `import pdb; pdb.set_trace()`)
@@ -786,14 +1095,22 @@ class CodeEditor(TextEditBaseWidget):
             # blank line
             self.unindent()
         elif self.in_comment_or_string():
+<<<<<<< HEAD
             self.unindent()  
+=======
+            self.unindent()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         elif leading_text[-1] in '(,' or leading_text.endswith(', '):
             position = self.get_position('cursor')
             self.show_object_info(position)
         else:
             # if the line ends with any other character but comma
             self.unindent()
+<<<<<<< HEAD
             
+=======
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def rehighlight(self):
         """
         Rehighlight the whole document to rebuild outline explorer data
@@ -804,12 +1121,20 @@ class CodeEditor(TextEditBaseWidget):
         if self.highlight_current_cell_enabled:
             self.highlight_current_cell()
         else:
+<<<<<<< HEAD
             self.unhighlight_current_cell()   
+=======
+            self.unhighlight_current_cell()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         if self.highlight_current_line_enabled:
             self.highlight_current_line()
         else:
             self.unhighlight_current_line()
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def rehighlight_cells(self):
         """Rehighlight cells when moving the scrollbar"""
         if self.highlight_current_cell_enabled:
@@ -879,7 +1204,11 @@ class CodeEditor(TextEditBaseWidget):
     def __cursor_position_changed(self):
         """Cursor position has changed"""
         line, column = self.get_cursor_line_column()
+<<<<<<< HEAD
         self.emit(SIGNAL('cursorPositionChanged(int,int)'), line, column)
+=======
+        self.sig_cursor_position_changed.emit(line, column)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         if self.highlight_current_cell_enabled:
             self.highlight_current_cell()
         else:
@@ -927,13 +1256,21 @@ class CodeEditor(TextEditBaseWidget):
 
         if not self.supported_language:
             return
+<<<<<<< HEAD
             
+=======
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         text = self.get_current_word()
         if text is None:
             return
         if self.has_selected_text() and self.get_selected_text() != text:
             return
+<<<<<<< HEAD
             
+=======
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         if (self.is_python_like()) and \
            (sourcecode.is_keyword(to_text_string(text)) or \
            to_text_string(text) == 'self'):
@@ -950,7 +1287,11 @@ class CodeEditor(TextEditBaseWidget):
         self.update_extra_selections()
         if len(self.occurences) > 1 and self.occurences[-1] == 0:
             # XXX: this is never happening with PySide but it's necessary
+<<<<<<< HEAD
             # for PyQt4... this must be related to a different behavior for 
+=======
+            # for PyQt4... this must be related to a different behavior for
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
             # the QTextDocument.find function between those two libraries
             self.occurences.pop(-1)
         self.scrollflagarea.update()
@@ -982,13 +1323,21 @@ class CodeEditor(TextEditBaseWidget):
             extra_selections.append(selection)
         self.set_extra_selections('find', extra_selections)
         self.update_extra_selections()
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def clear_found_results(self):
         """Clear found results highlighting"""
         self.found_results = []
         self.clear_extra_selections('find')
         self.scrollflagarea.update()
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def __text_has_changed(self):
         """Text has changed, eventually clear found results highlighting"""
         if self.found_results:
@@ -1029,7 +1378,11 @@ class CodeEditor(TextEditBaseWidget):
     def update_linenumberarea_width(self, new_block_count=None):
         """
         Update line number area width.
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         new_block_count is needed to handle blockCountChanged(int) signal
         """
         self.setViewportMargins(self.compute_linenumberarea_width(), 0,
@@ -1221,7 +1574,11 @@ class CodeEditor(TextEditBaseWidget):
         block.setUserData(data)
         self.linenumberarea.update()
         self.scrollflagarea.update()
+<<<<<<< HEAD
         self.emit(SIGNAL('breakpoints_changed()'))
+=======
+        self.breakpoints_changed.emit()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
     def get_breakpoints(self):
         """Get breakpoints"""
@@ -1251,22 +1608,38 @@ class CodeEditor(TextEditBaseWidget):
 
     def update_breakpoints(self):
         """Update breakpoints"""
+<<<<<<< HEAD
         self.emit(SIGNAL('breakpoints_changed()'))
+=======
+        self.breakpoints_changed.emit()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
     #-----Code introspection
     def do_completion(self, automatic=False):
         """Trigger completion"""
         if not self.is_completion_widget_visible():
+<<<<<<< HEAD
             self.emit(SIGNAL('get_completions(bool)'), automatic)
+=======
+            self.get_completions.emit(automatic)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
     def do_go_to_definition(self):
         """Trigger go-to-definition"""
         if not self.in_comment_or_string():
+<<<<<<< HEAD
             self.emit(SIGNAL("go_to_definition(int)"), self.textCursor().position())
 
     def show_object_info(self, position):
         """Trigger a calltip"""
         self.emit(SIGNAL('show_object_info(int)'), position)
+=======
+            self.go_to_definition.emit(self.textCursor().position())
+
+    def show_object_info(self, position):
+        """Trigger a calltip"""
+        self.sig_show_object_info.emit(position)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
     #-----edge line
     def set_edge_line_enabled(self, state):
@@ -1291,6 +1664,11 @@ class CodeEditor(TextEditBaseWidget):
         else:
             option.setFlags(option.flags() & ~QTextOption.ShowTabsAndSpaces)
         self.document().setDefaultTextOption(option)
+<<<<<<< HEAD
+=======
+        # Rehighlight to make the spaces less apparent.
+        self.rehighlight()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
     #-----scrollflagarea
     def set_scrollflagarea_enabled(self, state):
@@ -1310,12 +1688,20 @@ class CodeEditor(TextEditBaseWidget):
         """Painting the scroll flag area"""
         make_flag = self.scrollflagarea.make_flag_qrect
         make_slider = self.scrollflagarea.make_slider_range
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         # Filling the whole painting area
         painter = QPainter(self.scrollflagarea)
         painter.fillRect(event.rect(), self.sideareas_color)
         block = self.document().firstBlock()
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         # Painting warnings and todos
         for line_number in range(1, self.document().blockCount()+1):
             data = block.userData()
@@ -1339,14 +1725,22 @@ class CodeEditor(TextEditBaseWidget):
                     set_scrollflagarea_painter(painter, self.breakpoint_color)
                     painter.drawRect(make_flag(position))
             block = block.next()
+<<<<<<< HEAD
             
+=======
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         # Occurences
         if self.occurences:
             set_scrollflagarea_painter(painter, self.occurence_color)
             for line_number in self.occurences:
                 position = self.scrollflagarea.value_to_position(line_number)
                 painter.drawRect(make_flag(position))
+<<<<<<< HEAD
             
+=======
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         # Found results
         if self.found_results:
             set_scrollflagarea_painter(painter, self.found_results_color)
@@ -1404,6 +1798,10 @@ class CodeEditor(TextEditBaseWidget):
         return TextEditBaseWidget.viewportEvent(self, event)
 
     #-----Misc.
+<<<<<<< HEAD
+=======
+    @Slot()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def delete(self):
         """Remove selected text"""
         # Used by global callbacks in Spyder -> delete_action
@@ -1474,7 +1872,11 @@ class CodeEditor(TextEditBaseWidget):
         text, _enc = encoding.read(filename)
         if language is None:
             language = get_file_language(filename, text)
+<<<<<<< HEAD
         self.set_language(language)
+=======
+        self.set_language(language, filename)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         self.set_text(text)
 
     def append(self, text):
@@ -1483,6 +1885,10 @@ class CodeEditor(TextEditBaseWidget):
         cursor.movePosition(QTextCursor.End)
         cursor.insertText(text)
 
+<<<<<<< HEAD
+=======
+    @Slot()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def paste(self):
         """
         Reimplement QPlainTextEdit's method to fix the following issue:
@@ -1516,8 +1922,12 @@ class CodeEditor(TextEditBaseWidget):
     def center_cursor_on_next_focus(self):
         """QPlainTextEdit's "centerCursor" requires the widget to be visible"""
         self.centerCursor()
+<<<<<<< HEAD
         self.disconnect(self, SIGNAL("focus_in()"),
                         self.center_cursor_on_next_focus)
+=======
+        self.focus_in.disconnect(self.center_cursor_on_next_focus)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
     def go_to_line(self, line, word=''):
         """Go to line number *line* and eventually highlight it"""
@@ -1526,8 +1936,12 @@ class CodeEditor(TextEditBaseWidget):
         if self.isVisible():
             self.centerCursor()
         else:
+<<<<<<< HEAD
             self.connect(self, SIGNAL("focus_in()"),
                          self.center_cursor_on_next_focus)
+=======
+            self.focus_in.connect(self.center_cursor_on_next_focus)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         self.horizontalScrollBar().setValue(0)
         if word and to_text_string(word) in to_text_string(block.text()):
             self.find(word, QTextDocument.FindCaseSensitively)
@@ -1548,7 +1962,11 @@ class CodeEditor(TextEditBaseWidget):
                 del data
         self.setUpdatesEnabled(True)
         # When the new code analysis results are empty, it is necessary
+<<<<<<< HEAD
         # to update manually the scrollflag and linenumber areas (otherwise, 
+=======
+        # to update manually the scrollflag and linenumber areas (otherwise,
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         # the old flags will still be displayed):
         self.scrollflagarea.update()
         self.linenumberarea.update()
@@ -1813,12 +2231,35 @@ class CodeEditor(TextEditBaseWidget):
             return
         cursor = self.textCursor()
         block_nb = cursor.blockNumber()
+<<<<<<< HEAD
+=======
+        # find the line that contains our scope
+        diff = 0
+        add_indent = False
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         prevline = None
         for prevline in range(block_nb-1, -1, -1):
             cursor.movePosition(QTextCursor.PreviousBlock)
             prevtext = to_text_string(cursor.block().text()).rstrip()
             if not prevtext.strip().startswith('#'):
+<<<<<<< HEAD
                 break
+=======
+                if prevtext.strip().endswith(')'):
+                    comment_or_string = True  # prevent further parsing
+                elif prevtext.strip().endswith(':'):
+                    add_indent = True
+                    comment_or_string = True
+                if prevtext.count(')') > prevtext.count('('):
+                    diff = prevtext.count(')') - prevtext.count('(')
+                    continue
+                elif diff:
+                    diff += prevtext.count(')') - prevtext.count('(')
+                    if not diff:
+                        break
+                else:
+                    break
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
         if not prevline:
             return False
@@ -1826,6 +2267,12 @@ class CodeEditor(TextEditBaseWidget):
         indent = self.get_block_indentation(block_nb)
         correct_indent = self.get_block_indentation(prevline)
 
+<<<<<<< HEAD
+=======
+        if add_indent:
+            correct_indent += len(self.indent_chars)
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         if not comment_or_string:
             if prevtext.endswith(':'):
                 # Indent
@@ -1848,8 +2295,16 @@ class CodeEditor(TextEditBaseWidget):
                             else:
                                 break
                 else:
+<<<<<<< HEAD
                     prevexpr = re.split(r'\(|\{|\[', prevtext)[-1]
                     correct_indent = len(prevtext)-len(prevexpr)
+=======
+                    if prevtext.strip():
+                        prevexpr = re.split(r'\(|\{|\[', prevtext)[-1]
+                        correct_indent = len(prevtext)-len(prevexpr)
+                    else:
+                        correct_indent = len(prevtext)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
         if (forward and indent >= correct_indent) or \
            (not forward and indent <= correct_indent):
@@ -1866,6 +2321,7 @@ class CodeEditor(TextEditBaseWidget):
             cursor.endEditBlock()
             return True
 
+<<<<<<< HEAD
     def clear_all_output(self):
         """removes all ouput in the ipynb format (Json only)"""
         if self.is_json() and nbformat is not None:
@@ -1879,11 +2335,21 @@ class CodeEditor(TextEditBaseWidget):
                 return
             if nb.worksheets:
                 for cell in nb.worksheets[0].cells:
+=======
+    @Slot()
+    def clear_all_output(self):
+        """Removes all ouput in the ipynb format (Json only)"""
+        try:
+            nb = nbformat.reads(self.toPlainText(), as_version=4)
+            if nb.cells:
+                for cell in nb.cells:
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
                     if 'outputs' in cell:
                         cell['outputs'] = []
                     if 'prompt_number' in cell:
                         cell['prompt_number'] = None
             # We do the following rather than using self.setPlainText
+<<<<<<< HEAD
             # to benefit from QTextEdit's undo/redo feature. 
             self.selectAll()
             self.insertPlainText(nbformat.current.writes(nb, 'json'))
@@ -1899,11 +2365,34 @@ class CodeEditor(TextEditBaseWidget):
                 nb = nbformat.current.reads(self.toPlainText(), 'json')
         except Exception as e:
             QMessageBox.critical(self, _('Conversion error'), 
+=======
+            # to benefit from QTextEdit's undo/redo feature.
+            self.selectAll()
+            self.insertPlainText(nbformat.writes(nb))
+        except Exception as e:
+            QMessageBox.critical(self, _('Removal error'),
+                           _("It was not possible to remove outputs from "
+                             "this notebook. The error is:\n\n") + \
+                             to_text_string(e))
+            return
+
+    @Slot()
+    def convert_notebook(self):
+        """Convert an IPython notebook to a Python script in editor"""
+        try:
+            nb = nbformat.reads(self.toPlainText(), as_version=4)
+            script = nbexporter().from_notebook_node(nb)[0]
+        except Exception as e:
+            QMessageBox.critical(self, _('Conversion error'),
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
                                  _("It was not possible to convert this "
                                  "notebook. The error is:\n\n") + \
                                  to_text_string(e))
             return
+<<<<<<< HEAD
         script = nbexporter().from_notebook_node(nb)[0]
+=======
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         self.sig_new_file.emit(script)
 
     def indent(self, force=False):
@@ -1968,6 +2457,10 @@ class CodeEditor(TextEditBaseWidget):
                 else:
                     self.remove_prefix(self.indent_chars)
 
+<<<<<<< HEAD
+=======
+    @Slot()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def toggle_comment(self):
         """Toggle comment on current line or selection"""
         cursor = self.textCursor()
@@ -2079,7 +2572,87 @@ class CodeEditor(TextEditBaseWidget):
             cursor3.select(QTextCursor.BlockUnderCursor)
             cursor3.removeSelectedText()
         cursor3.endEditBlock()
+<<<<<<< HEAD
     
+=======
+
+    #------Kill ring handlers
+    # Taken from Jupyter's QtConsole
+    # Copyright (c) 2001-2015, IPython Development Team
+    # Copyright (c) 2015-, Jupyter Development Team
+    def kill_line_end(self):
+        """Kill the text on the current line from the cursor forward"""
+        cursor = self.textCursor()
+        cursor.clearSelection()
+        cursor.movePosition(QTextCursor.EndOfLine, QTextCursor.KeepAnchor)
+        if not cursor.hasSelection():
+            # Line deletion
+            cursor.movePosition(QTextCursor.NextBlock,
+                                QTextCursor.KeepAnchor)
+        self._kill_ring.kill_cursor(cursor)
+        self.setTextCursor(cursor)
+
+    def kill_line_start(self):
+        """Kill the text on the current line from the cursor backward"""
+        cursor = self.textCursor()
+        cursor.clearSelection()
+        cursor.movePosition(QTextCursor.StartOfBlock,
+                            QTextCursor.KeepAnchor)
+        self._kill_ring.kill_cursor(cursor)
+        self.setTextCursor(cursor)
+
+    def _get_word_start_cursor(self, position):
+        """Find the start of the word to the left of the given position. If a
+           sequence of non-word characters precedes the first word, skip over
+           them. (This emulates the behavior of bash, emacs, etc.)
+        """
+        document = self.document()
+        position -= 1
+        while (position and not
+               is_letter_or_number(document.characterAt(position))):
+            position -= 1
+        while position and is_letter_or_number(document.characterAt(position)):
+            position -= 1
+        cursor = self.textCursor()
+        cursor.setPosition(position + 1)
+        return cursor
+
+    def _get_word_end_cursor(self, position):
+        """Find the end of the word to the right of the given position. If a
+           sequence of non-word characters precedes the first word, skip over
+           them. (This emulates the behavior of bash, emacs, etc.)
+        """
+        document = self.document()
+        cursor = self.textCursor()
+        position = cursor.position()
+        cursor.movePosition(QTextCursor.End)
+        end = cursor.position()
+        while (position < end and
+               not is_letter_or_number(document.characterAt(position))):
+            position += 1
+        while (position < end and
+               is_letter_or_number(document.characterAt(position))):
+            position += 1
+        cursor.setPosition(position)
+        return cursor
+
+    def kill_prev_word(self):
+        """Kill the previous word"""
+        position = self.textCursor().position()
+        cursor = self._get_word_start_cursor(position)
+        cursor.setPosition(position, QTextCursor.KeepAnchor)
+        self._kill_ring.kill_cursor(cursor)
+        self.setTextCursor(cursor)
+
+    def kill_next_word(self):
+        """Kill the next word"""
+        position = self.textCursor().position()
+        cursor = self._get_word_end_cursor(position)
+        cursor.setPosition(position, QTextCursor.KeepAnchor)
+        self._kill_ring.kill_cursor(cursor)
+        self.setTextCursor(cursor)
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     #------Autoinsertion of quotes/colons
     def __get_current_color(self):
         """Get the syntax highlighting color for the current cursor position"""
@@ -2088,7 +2661,11 @@ class CodeEditor(TextEditBaseWidget):
         pos = cursor.position() - block.position()  # relative pos within block
         layout = block.layout()
         block_formats = layout.additionalFormats()
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         if block_formats:
             # To easily grab current format for autoinsert_colons
             if cursor.atBlockEnd():
@@ -2102,7 +2679,11 @@ class CodeEditor(TextEditBaseWidget):
             return color
         else:
             return None
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def in_comment_or_string(self):
         """Is the cursor inside or next to a comment or string?"""
         if self.highlighter:
@@ -2164,15 +2745,26 @@ class CodeEditor(TextEditBaseWidget):
             return False
         else:
             return True
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def __unmatched_quotes_in_line(self, text):
         """Return whether a string has open quotes.
         This simply counts whether the number of quote characters of either
         type in the string is odd.
+<<<<<<< HEAD
         
         Take from the IPython project (in IPython/core/completer.py in v0.13)
         Spyder team: Add some changes to deal with escaped quotes
         
+=======
+
+        Take from the IPython project (in IPython/core/completer.py in v0.13)
+        Spyder team: Add some changes to deal with escaped quotes
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         - Copyright (C) 2008-2011 IPython Development Team
         - Copyright (C) 2001-2007 Fernando Perez. <fperez@colorado.edu>
         - Copyright (C) 2001 Python Software Foundation, www.python.org
@@ -2192,7 +2784,11 @@ class CodeEditor(TextEditBaseWidget):
 
     def __next_char(self):
         cursor = self.textCursor()
+<<<<<<< HEAD
         cursor.movePosition(QTextCursor.NextCharacter, 
+=======
+        cursor.movePosition(QTextCursor.NextCharacter,
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
                             QTextCursor.KeepAnchor)
         next_char = to_text_string(cursor.selectedText())
         return next_char
@@ -2211,7 +2807,11 @@ class CodeEditor(TextEditBaseWidget):
     def autoinsert_quotes(self, key):
         """Control how to automatically insert quotes in various situations"""
         char = {Qt.Key_QuoteDbl: '"', Qt.Key_Apostrophe: '\''}[key]
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         line_text = self.get_text('sol', 'eol')
         line_to_cursor = self.get_text('sol', 'cursor')
         cursor = self.textCursor()
@@ -2262,6 +2862,7 @@ class CodeEditor(TextEditBaseWidget):
         """Setup context menu"""
         self.undo_action = create_action(self, _("Undo"),
                            shortcut=keybinding('Undo'),
+<<<<<<< HEAD
                            icon=get_icon('undo.png'), triggered=self.undo)
         self.redo_action = create_action(self, _("Redo"),
                            shortcut=keybinding('Redo'),
@@ -2289,15 +2890,49 @@ class CodeEditor(TextEditBaseWidget):
                            triggered=self.toggle_comment)
         self.clear_all_output_action = create_action(self,
                            _("Clear all ouput"), icon='ipython_console.png',
+=======
+                           icon=ima.icon('undo'), triggered=self.undo)
+        self.redo_action = create_action(self, _("Redo"),
+                           shortcut=keybinding('Redo'),
+                           icon=ima.icon('redo'), triggered=self.redo)
+        self.cut_action = create_action(self, _("Cut"),
+                           shortcut=keybinding('Cut'),
+                           icon=ima.icon('editcut'), triggered=self.cut)
+        self.copy_action = create_action(self, _("Copy"),
+                           shortcut=keybinding('Copy'),
+                           icon=ima.icon('editcopy'), triggered=self.copy)
+        self.paste_action = create_action(self, _("Paste"),
+                           shortcut=keybinding('Paste'),
+                           icon=ima.icon('editpaste'), triggered=self.paste)
+        self.delete_action = create_action(self, _("Delete"),
+                           shortcut=keybinding('Delete'),
+                           icon=ima.icon('editdelete'),
+                           triggered=self.delete)
+        selectall_action = create_action(self, _("Select All"),
+                           shortcut=keybinding('SelectAll'),
+                           icon=ima.icon('selectall'),
+                           triggered=self.selectAll)
+        toggle_comment_action = create_action(self,
+                                _("Comment")+"/"+_("Uncomment"),
+                                icon=ima.icon('comment'),
+                                triggered=self.toggle_comment)
+        self.clear_all_output_action = create_action(self,
+                           _("Clear all ouput"), icon=ima.icon('ipython_console'),
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
                            triggered=self.clear_all_output)
         self.ipynb_convert_action = create_action(self,
                                                _("Convert to Python script"),
                                                triggered=self.convert_notebook,
+<<<<<<< HEAD
                                                icon='python.png')
+=======
+                                               icon=ima.icon('python'))
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         self.gotodef_action = create_action(self, _("Go to definition"),
                                    triggered=self.go_to_definition_from_cursor)
         self.run_selection_action = create_action(self,
                         _("Run &selection or current line"),
+<<<<<<< HEAD
                         icon='run_selection.png',
                         triggered=lambda: self.emit(SIGNAL('run_selection()')))
         zoom_in_action = create_action(self, _("Zoom in"),
@@ -2315,6 +2950,27 @@ class CodeEditor(TextEditBaseWidget):
         actions_2 = [selectall_action, None, zoom_in_action, zoom_out_action,
                      zoom_reset_action, None, toggle_comment_action, None,
                      self.run_selection_action, self.gotodef_action]
+=======
+                        icon=ima.icon('run_selection'),
+                        triggered=lambda: self.run_selection.emit())
+        zoom_in_action = create_action(self, _("Zoom in"),
+                      QKeySequence(QKeySequence.ZoomIn), icon=ima.icon('zoom_in'),
+                      triggered=lambda: self.zoom_in.emit())
+        zoom_out_action = create_action(self, _("Zoom out"),
+                      QKeySequence(QKeySequence.ZoomOut), icon=ima.icon('zoom_out'),
+                      triggered=lambda: self.zoom_out.emit())
+        zoom_reset_action = create_action(self, _("Zoom reset"),
+                      QKeySequence("Ctrl+0"),
+                      triggered=lambda: self.zoom_reset.emit())
+        self.menu = QMenu(self)
+        actions_1 = [self.undo_action, self.redo_action, None, self.cut_action,
+                     self.copy_action, self.paste_action, self.delete_action,
+                     None]
+        actions_2 = [selectall_action, None, zoom_in_action,
+                     zoom_out_action,
+                     zoom_reset_action, None, toggle_comment_action,
+                     None, self.run_selection_action, self.gotodef_action]
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         if nbformat is not None:
             nb_actions = [self.clear_all_output_action,
                           self.ipynb_convert_action, None]
@@ -2322,8 +2978,13 @@ class CodeEditor(TextEditBaseWidget):
             add_actions(self.menu, actions)
         else:
             actions = actions_1 + actions_2
+<<<<<<< HEAD
             add_actions(self.menu, actions) 
             
+=======
+            add_actions(self.menu, actions)
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         # Read-only context-menu
         self.readonly_menu = QMenu(self)
         add_actions(self.readonly_menu,
@@ -2340,6 +3001,33 @@ class CodeEditor(TextEditBaseWidget):
             self.__clear_occurences()
         if QToolTip.isVisible():
             self.hide_tooltip_if_necessary(key)
+<<<<<<< HEAD
+=======
+
+        # Handle the Qt Builtin key sequences
+        checks = [('SelectAll', 'Select All'),
+                  ('Copy', 'Copy'),
+                  ('Cut', 'Cut'),
+                  ('Paste', 'Paste')]
+
+        for qname, name in checks:
+            seq = getattr(QKeySequence, qname)
+            sc = get_shortcut('editor', name)
+            default = QKeySequence(seq).toString()
+            if event == seq and sc != default:
+                # if we have overridden it, call our action
+                for shortcut in self.shortcuts:
+                    qsc, name, keystr = shortcut.data
+                    if keystr == default:
+                        qsc.activated.emit()
+                        event.ignore()
+                        return
+
+                # otherwise, pass it on to parent
+                event.ignore()
+                return
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         if key in (Qt.Key_Enter, Qt.Key_Return):
             if not shift and not ctrl:
                 if self.add_colons_enabled and self.is_python_like() and \
@@ -2354,9 +3042,15 @@ class CodeEditor(TextEditBaseWidget):
                     TextEditBaseWidget.keyPressEvent(self, event)
                     self.fix_indent(comment_or_string=cmt_or_str)
             elif shift:
+<<<<<<< HEAD
                 self.emit(SIGNAL('run_cell_and_advance()'))
             elif ctrl:
                 self.emit(SIGNAL('run_cell()'))
+=======
+                self.run_cell_and_advance.emit()
+            elif ctrl:
+                self.run_cell.emit()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         elif key == Qt.Key_Insert and not shift and not ctrl:
             self.setOverwriteMode(not self.overwriteMode())
         elif key == Qt.Key_Backspace and not shift and not ctrl:
@@ -2398,11 +3092,16 @@ class CodeEditor(TextEditBaseWidget):
         elif key == Qt.Key_Home:
             self.stdkey_home(shift, ctrl)
         elif key == Qt.Key_End:
+<<<<<<< HEAD
             # See Issue 495: on MacOS X, it is necessary to redefine this 
+=======
+            # See Issue 495: on MacOS X, it is necessary to redefine this
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
             # basic action which should have been implemented natively
             self.stdkey_end(shift, ctrl)
         elif text == '(' and not self.has_selected_text():
             self.hide_completion_widget()
+<<<<<<< HEAD
             position = self.get_position('cursor')
             s_trailing_text = self.get_text('cursor', 'eol').strip()
             if self.close_parentheses_enabled and \
@@ -2417,6 +3116,10 @@ class CodeEditor(TextEditBaseWidget):
             if self.is_python_like() and self.get_text('sol', 'cursor') and \
               self.calltips:
                 self.emit(SIGNAL('show_object_info(int)'), position)
+=======
+            if self.close_parentheses_enabled:
+                self.handle_close_parentheses(text)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         elif text in ('[', '{') and not self.has_selected_text() \
           and self.close_parentheses_enabled:
             s_trailing_text = self.get_text('cursor', 'eol').strip()
@@ -2485,6 +3188,25 @@ class CodeEditor(TextEditBaseWidget):
             if self.is_completion_widget_visible() and text:
                 self.completion_text += text
 
+<<<<<<< HEAD
+=======
+    def handle_close_parentheses(self, text):
+        if not self.close_parentheses_enabled:
+            return
+        position = self.get_position('cursor')
+        rest = self.get_text('cursor', 'eol').rstrip()
+        if not rest or rest[0] in (',', ')', ']', '}'):
+            self.insert_text('()')
+            cursor = self.textCursor()
+            cursor.movePosition(QTextCursor.PreviousCharacter)
+            self.setTextCursor(cursor)
+        else:
+            self.insert_text(text)
+        if self.is_python_like() and self.get_text('sol', 'cursor') and \
+                self.calltips:
+            self.sig_show_object_info.emit(position)
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def mouseMoveEvent(self, event):
         """Underline words when pressing <CONTROL>"""
         if self.has_selected_text():
@@ -2521,7 +3243,12 @@ class CodeEditor(TextEditBaseWidget):
             self.__cursor_changed = False
             self.clear_extra_selections('ctrl_click')
         TextEditBaseWidget.leaveEvent(self, event)
+<<<<<<< HEAD
         
+=======
+
+    @Slot()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def go_to_definition_from_cursor(self, cursor=None):
         """Go to definition from cursor instance (QTextCursor)"""
         if not self.go_to_definition_enabled:
@@ -2536,7 +3263,11 @@ class CodeEditor(TextEditBaseWidget):
             cursor.select(QTextCursor.WordUnderCursor)
             text = to_text_string(cursor.selectedText())
         if not text is None:
+<<<<<<< HEAD
             self.emit(SIGNAL("go_to_definition(int)"), position)
+=======
+            self.go_to_definition.emit(position)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
     def mousePressEvent(self, event):
         """Reimplement Qt method"""
@@ -2554,6 +3285,7 @@ class CodeEditor(TextEditBaseWidget):
         self.copy_action.setEnabled(nonempty_selection)
         self.cut_action.setEnabled(nonempty_selection)
         self.delete_action.setEnabled(nonempty_selection)
+<<<<<<< HEAD
         self.clear_all_output_action.setVisible(self.is_json())
         self.ipynb_convert_action.setVisible(self.is_json())
         self.run_selection_action.setEnabled(nonempty_selection)
@@ -2561,13 +3293,27 @@ class CodeEditor(TextEditBaseWidget):
         self.gotodef_action.setVisible(self.go_to_definition_enabled \
                                        and self.is_python_like())   
         
+=======
+        self.clear_all_output_action.setVisible(self.is_json() and \
+                                                nbformat is not None)
+        self.ipynb_convert_action.setVisible(self.is_json() and \
+                                             nbformat is not None)
+        self.run_selection_action.setVisible(self.is_python())
+        self.gotodef_action.setVisible(self.go_to_definition_enabled \
+                                       and self.is_python_like())
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         # Code duplication go_to_definition_from_cursor and mouse_move_event
         cursor = self.textCursor()
         text = to_text_string(cursor.selectedText())
         if len(text) == 0:
             cursor.select(QTextCursor.WordUnderCursor)
             text = to_text_string(cursor.selectedText())
+<<<<<<< HEAD
            
+=======
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         self.undo_action.setEnabled( self.document().isUndoAvailable())
         self.redo_action.setEnabled( self.document().isRedoAvailable())
         menu = self.menu
@@ -2633,7 +3379,11 @@ class CodeEditor(TextEditBaseWidget):
             pen.setStyle(Qt.SolidLine)
             pen.setBrush(cell_line_color)
             painter.setPen(pen)
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
             for top, line_number, block in self.visible_blocks:
                 if self.is_cell_separator(block):
                     painter.drawLine(4, top, self.width(), top)
@@ -2651,6 +3401,13 @@ class CodeEditor(TextEditBaseWidget):
         """
         return self.__visible_blocks
 
+<<<<<<< HEAD
+=======
+    def is_editor(self):
+        return True
+
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 #===============================================================================
 # CodeEditor's Printer
 #===============================================================================
@@ -2693,12 +3450,21 @@ class TestWidget(QSplitter):
         from spyderlib.widgets.editortools import OutlineExplorerWidget
         self.classtree = OutlineExplorerWidget(self)
         self.addWidget(self.classtree)
+<<<<<<< HEAD
         self.connect(self.classtree, SIGNAL("edit_goto(QString,int,QString)"),
                      lambda _fn, line, word: self.editor.go_to_line(line, word))
         self.setStretchFactor(0, 4)
         self.setStretchFactor(1, 1)
         self.setWindowIcon(get_icon('spyder.svg'))
 
+=======
+        self.classtree.edit_goto.connect(
+                    lambda _fn, line, word: self.editor.go_to_line(line, word))
+        self.setStretchFactor(0, 4)
+        self.setStretchFactor(1, 1)
+        self.setWindowIcon(ima.icon('spyder'))
+ 
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def load(self, filename):
         self.editor.set_text_from_file(filename)
         self.setWindowTitle("%s - %s (%s)" % (_("Editor"),

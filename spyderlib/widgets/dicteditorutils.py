@@ -18,7 +18,11 @@ from spyderlib.py3compat import (NUMERIC_TYPES, TEXT_TYPES, to_text_string,
                                  PY2)
 from spyderlib.utils import programs
 from spyderlib import dependencies
+<<<<<<< HEAD
 from spyderlib.baseconfig import _
+=======
+from spyderlib.config.base import _
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
 
 class FakeObject(object):

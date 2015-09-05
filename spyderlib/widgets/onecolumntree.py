@@ -14,6 +14,7 @@ They are also used in Spyder through the Plugin interface
 (see spyderlib.plugins)
 """
 
+<<<<<<< HEAD
 from spyderlib.qt.QtGui import QTreeWidget, QMenu
 from spyderlib.qt.QtCore import SIGNAL
 
@@ -21,6 +22,15 @@ from spyderlib.qt.QtCore import SIGNAL
 from spyderlib.baseconfig import _
 from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions,
                                        get_item_user_text)
+=======
+from spyderlib.qt.QtCore import Slot
+from spyderlib.qt.QtGui import QTreeWidget, QMenu
+import spyderlib.utils.icon_manager as ima
+
+# Local imports
+from spyderlib.config.base import _
+from spyderlib.utils.qthelpers import create_action, add_actions, get_item_user_text
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
 
 class OneColumnTree(QTreeWidget):
@@ -29,10 +39,15 @@ class OneColumnTree(QTreeWidget):
         QTreeWidget.__init__(self, parent)
         self.setItemsExpandable(True)
         self.setColumnCount(1)
+<<<<<<< HEAD
         self.connect(self, SIGNAL('itemActivated(QTreeWidgetItem*,int)'),
                      self.activated)
         self.connect(self, SIGNAL('itemClicked(QTreeWidgetItem*,int)'),
                      self.clicked)
+=======
+        self.itemActivated.connect(self.activated)
+        self.itemClicked.connect(self.clicked)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         # Setup context menu
         self.menu = QMenu(self)
         self.collapse_all_action = None
@@ -43,8 +58,12 @@ class OneColumnTree(QTreeWidget):
         
         self.__expanded_state = None
 
+<<<<<<< HEAD
         self.connect(self, SIGNAL('itemSelectionChanged()'),
                      self.item_selection_changed)
+=======
+        self.itemSelectionChanged.connect(self.item_selection_changed)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         self.item_selection_changed()
                      
     def activated(self, item):
@@ -61,15 +80,24 @@ class OneColumnTree(QTreeWidget):
         """Setup context menu common actions"""
         self.collapse_all_action = create_action(self,
                                      text=_('Collapse all'),
+<<<<<<< HEAD
                                      icon=get_icon('collapse.png'),
                                      triggered=self.collapseAll)
         self.expand_all_action = create_action(self,
                                      text=_('Expand all'),
                                      icon=get_icon('expand.png'),
+=======
+                                     icon=ima.icon('collapse'),
+                                     triggered=self.collapseAll)
+        self.expand_all_action = create_action(self,
+                                     text=_('Expand all'),
+                                     icon=ima.icon('expand'),
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
                                      triggered=self.expandAll)
         self.restore_action = create_action(self,
                                      text=_('Restore'),
                                      tip=_('Restore original tree layout'),
+<<<<<<< HEAD
                                      icon=get_icon('restore.png'),
                                      triggered=self.restore)
         self.collapse_selection_action = create_action(self,
@@ -79,6 +107,17 @@ class OneColumnTree(QTreeWidget):
         self.expand_selection_action = create_action(self,
                                      text=_('Expand selection'),
                                      icon=get_icon('expand_selection.png'),
+=======
+                                     icon=ima.icon('restore'),
+                                     triggered=self.restore)
+        self.collapse_selection_action = create_action(self,
+                                     text=_('Collapse selection'),
+                                     icon=ima.icon('collapse_selection'),
+                                     triggered=self.collapse_selection)
+        self.expand_selection_action = create_action(self,
+                                     text=_('Expand selection'),
+                                     icon=ima.icon('expand_selection'),
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
                                      triggered=self.expand_selection)
         return [self.collapse_all_action, self.expand_all_action,
                 self.restore_action, None,
@@ -98,6 +137,10 @@ class OneColumnTree(QTreeWidget):
         # (reimplement this method)
         return []
 
+<<<<<<< HEAD
+=======
+    @Slot()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def restore(self):
         self.collapseAll()
         for item in self.get_top_level_items():
@@ -114,7 +157,12 @@ class OneColumnTree(QTreeWidget):
             for index in range(item.childCount()):
                 child = item.child(index)
                 self.__expand_item(child)
+<<<<<<< HEAD
         
+=======
+    
+    @Slot()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def expand_selection(self):
         items = self.selectedItems()
         if not items:
@@ -130,6 +178,10 @@ class OneColumnTree(QTreeWidget):
             child = item.child(index)
             self.__collapse_item(child)
 
+<<<<<<< HEAD
+=======
+    @Slot()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def collapse_selection(self):
         items = self.selectedItems()
         if not items:

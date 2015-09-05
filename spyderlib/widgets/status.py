@@ -9,11 +9,19 @@
 import os
 
 from spyderlib.qt.QtGui import QWidget, QHBoxLayout, QLabel
+<<<<<<< HEAD
 from spyderlib.qt.QtCore import QTimer, SIGNAL
 
 # Local import
 from spyderlib.baseconfig import _
 from spyderlib.guiconfig import get_font
+=======
+from spyderlib.qt.QtCore import QTimer
+
+# Local import
+from spyderlib.config.base import _
+from spyderlib.config.gui import get_font
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 from spyderlib.py3compat import to_text_string
 from spyderlib import dependencies
 
@@ -56,7 +64,11 @@ class BaseTimerStatus(StatusBarWidget):
         layout.addSpacing(20)
         if self.is_supported():
             self.timer = QTimer()
+<<<<<<< HEAD
             self.connect(self.timer, SIGNAL('timeout()'), self.update_label)
+=======
+            self.timer.timeout.connect(self.update_label)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
             self.timer.start(2000)
         else:
             self.timer = None

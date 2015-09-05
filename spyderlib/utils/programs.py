@@ -171,7 +171,11 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
             subprocess.Popen(cmd, shell=True, cwd=wdir)
         except WindowsError:
             from spyderlib.qt.QtGui import QMessageBox
+<<<<<<< HEAD
             from spyderlib.baseconfig import _
+=======
+            from spyderlib.config.base import _
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
             QMessageBox.critical(None, _('Run'),
                                  _("It was not possible to run this file in "
                                    "an external terminal"),
@@ -201,6 +205,27 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
         raise NotImplementedError
 
 
+<<<<<<< HEAD
+=======
+def is_stable_version(version):
+    """
+    A stable version has no letters in the final component, but only numbers.
+
+    Stable version example: 1.2, 1.3.4, 1.0.5
+    Not stable version: 1.2alpha, 1.3.4beta, 0.1.0rc1, 3.0.0dev
+    """
+    if not isinstance(version, tuple):
+        version = version.split('.')
+    last_part = version[-1]
+
+    try:
+        int(last_part)
+        return True
+    except ValueError:
+        return False
+
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 def check_version(actver, version, cmp_op):
     """
     Check version string of an active module against a required version.
@@ -216,6 +241,16 @@ def check_version(actver, version, cmp_op):
     """
     if isinstance(actver, tuple):
         actver = '.'.join([str(i) for i in actver])
+<<<<<<< HEAD
+=======
+
+    # A small hack is needed so that LooseVersion understands that for example
+    # version = '3.0.0' is in fact bigger than actver = '3.0.0rc1'
+    if is_stable_version(version) and actver.startswith(version) and\
+      version != actver:
+        version = version + 'z'
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     try:
         if cmp_op == '>':
             return LooseVersion(actver) > LooseVersion(version)
@@ -258,12 +293,20 @@ def is_module_installed(module_name, version=None, installed_version=None,
         if osp.isfile(interpreter) and ('python' in interpreter):
             checkver = inspect.getsource(check_version)
             get_modver = inspect.getsource(get_module_version)
+<<<<<<< HEAD
+=======
+            stable_ver = inspect.getsource(is_stable_version)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
             ismod_inst = inspect.getsource(is_module_installed)
             fd, script = tempfile.mkstemp(suffix='.py', dir=TEMPDIR)
             with os.fdopen(fd, 'w') as f:
                 f.write("# -*- coding: utf-8 -*-" + "\n\n")
                 f.write("from distutils.version import LooseVersion" + "\n")
                 f.write("import re" + "\n\n")
+<<<<<<< HEAD
+=======
+                f.write(stable_ver + "\n")
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
                 f.write(checkver + "\n")
                 f.write(get_modver + "\n")
                 f.write(ismod_inst + "\n")

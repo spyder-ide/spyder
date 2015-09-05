@@ -24,22 +24,38 @@ from time import time
 from subprocess import Popen
 
 from spyderlib.qt.QtGui import QMessageBox
+<<<<<<< HEAD
 from spyderlib.qt.QtCore import SIGNAL, QObject, QEventLoop
 
 # Local import
 from spyderlib import get_versions
 from spyderlib.utils.qthelpers import create_action, get_std_icon
+=======
+from spyderlib.qt.QtCore import Signal, Slot, QObject, QEventLoop
+
+# Local import
+from spyderlib import get_versions
+from spyderlib.utils.qthelpers import create_action
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 from spyderlib.interpreter import Interpreter
 from spyderlib.utils.dochelpers import getargtxt, getsource, getdoc, getobjdir
 from spyderlib.utils.misc import get_error_match
 #TODO: remove the CONF object and make it work anyway
 # In fact, this 'CONF' object has nothing to do in package spyderlib.widgets
 # which should not contain anything directly related to Spyder's main app
+<<<<<<< HEAD
 from spyderlib.baseconfig import get_conf_path, _, DEBUG
 from spyderlib.start_app import CONF
 #from spyderlib.config import CONF
 from spyderlib.widgets.shell import PythonShellWidget
 from spyderlib.py3compat import to_text_string, getcwd, to_binary_string, u
+=======
+from spyderlib.config.base import get_conf_path, _, DEBUG
+from spyderlib.config.main import CONF
+from spyderlib.widgets.shell import PythonShellWidget
+from spyderlib.py3compat import to_text_string, getcwd, to_binary_string, u
+import spyderlib.utils.icon_manager as ima
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
 
 def create_banner(message):
@@ -54,6 +70,11 @@ def create_banner(message):
 
 class SysOutput(QObject):
     """Handle standard I/O queue"""
+<<<<<<< HEAD
+=======
+    data_avail = Signal()
+    
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def __init__(self):
         QObject.__init__(self)
         self.queue = []
@@ -63,7 +84,11 @@ class SysOutput(QObject):
         self.lock.acquire()
         self.queue.append(val)
         self.lock.release()
+<<<<<<< HEAD
         self.emit(SIGNAL("void data_avail()"))
+=======
+        self.data_avail.emit()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
     def empty_queue(self):
         self.lock.acquire()
@@ -81,12 +106,22 @@ class WidgetProxyData(object):
 
 class WidgetProxy(QObject):
     """Handle Shell widget refresh signal"""
+<<<<<<< HEAD
+=======
+    
+    sig_new_prompt = Signal(str)
+    sig_set_readonly = Signal(bool)
+    sig_edit = Signal(str, bool)
+    sig_wait_input = Signal(str)
+    
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def __init__(self, input_condition):
         QObject.__init__(self)
         self.input_data = None
         self.input_condition = input_condition
         
     def new_prompt(self, prompt):
+<<<<<<< HEAD
         self.emit(SIGNAL("new_prompt(QString)"), prompt)
         
     def set_readonly(self, state):
@@ -94,6 +129,15 @@ class WidgetProxy(QObject):
         
     def edit(self, filename, external_editor=False):
         self.emit(SIGNAL("edit(QString,bool)"), filename, external_editor)
+=======
+        self.sig_new_prompt.emit(prompt)
+        
+    def set_readonly(self, state):
+        self.sig_set_readonly.emit(state)
+        
+    def edit(self, filename, external_editor=False):
+        self.sig_edit.emit(filename, external_editor)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     
     def data_available(self):
         """Return True if input data is available"""
@@ -101,7 +145,11 @@ class WidgetProxy(QObject):
     
     def wait_input(self, prompt=''):
         self.input_data = WidgetProxyData
+<<<<<<< HEAD
         self.emit(SIGNAL("wait_input(QString)"), prompt)
+=======
+        self.sig_wait_input.emit(prompt)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     
     def end_input(self, cmd):
         self.input_condition.acquire()
@@ -112,6 +160,15 @@ class WidgetProxy(QObject):
 
 class InternalShell(PythonShellWidget):
     """Shell base widget: link between PythonShellWidget and Interpreter"""
+<<<<<<< HEAD
+=======
+    
+    status = Signal(str)
+    refresh = Signal()
+    go_to_error = Signal(str)
+    focus_changed = Signal()
+    
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def __init__(self, parent=None, namespace=None, commands=[], message=None,
                  max_line_count=300, font=None, exitfunc=None, profile=False,
                  multithreaded=True, light_background=True):
@@ -135,8 +192,12 @@ class InternalShell(PythonShellWidget):
         
         # KeyboardInterrupt support
         self.interrupted = False # used only for not-multithreaded mode
+<<<<<<< HEAD
         self.connect(self, SIGNAL("keyboard_interrupt()"),
                      self.keyboard_interrupt)
+=======
+        self.sig_keyboard_interrupt.connect(self.keyboard_interrupt)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         
         # Code completion / calltips
         getcfg = lambda option: CONF.get('internal_console', option)
@@ -154,14 +215,22 @@ class InternalShell(PythonShellWidget):
         self.start_interpreter(namespace)
         
         # Clear status bar
+<<<<<<< HEAD
         self.emit(SIGNAL("status(QString)"), '')
+=======
+        self.status.emit('')
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         
         # Embedded shell -- requires the monitor (which installs the
         # 'open_in_spyder' function in builtins)
         if hasattr(builtins, 'open_in_spyder'):
+<<<<<<< HEAD
             self.connect(self, SIGNAL("go_to_error(QString)"),
                          self.open_with_external_spyder)
 
+=======
+            self.go_to_error.connect(self.open_with_external_spyder)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
     #------ Interpreter
     def start_interpreter(self, namespace):
@@ -172,6 +241,7 @@ class InternalShell(PythonShellWidget):
             self.interpreter.closing()
         self.interpreter = Interpreter(namespace, self.exitfunc,
                                        SysOutput, WidgetProxy, DEBUG)
+<<<<<<< HEAD
         self.connect(self.interpreter.stdout_write,
                      SIGNAL("void data_avail()"), self.stdout_avail)
         self.connect(self.interpreter.stderr_write,
@@ -184,6 +254,14 @@ class InternalShell(PythonShellWidget):
                      SIGNAL("edit(QString,bool)"), self.edit_script)
         self.connect(self.interpreter.widget_proxy,
                      SIGNAL("wait_input(QString)"), self.wait_input)
+=======
+        self.interpreter.stdout_write.data_avail.connect(self.stdout_avail)
+        self.interpreter.stderr_write.data_avail.connect(self.stderr_avail)
+        self.interpreter.widget_proxy.sig_set_readonly.connect(self.setReadOnly)
+        self.interpreter.widget_proxy.sig_new_prompt.connect(self.new_prompt)
+        self.interpreter.widget_proxy.sig_edit.connect(self.edit_script)
+        self.interpreter.widget_proxy.sig_wait_input.connect(self.wait_input)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         if self.multithreaded:
             self.interpreter.start()
         
@@ -197,7 +275,11 @@ class InternalShell(PythonShellWidget):
                 
         # First prompt
         self.new_prompt(self.interpreter.p1)
+<<<<<<< HEAD
         self.emit(SIGNAL("refresh()"))
+=======
+        self.refresh.emit()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
         return self.interpreter
 
@@ -251,10 +333,18 @@ class InternalShell(PythonShellWidget):
         """Reimplement PythonShellWidget method"""
         PythonShellWidget.setup_context_menu(self)
         self.help_action = create_action(self, _("Help..."),
+<<<<<<< HEAD
                            icon=get_std_icon('DialogHelpButton'),
                            triggered=self.help)
         self.menu.addAction(self.help_action)
 
+=======
+                           icon=ima.icon('DialogHelpButton'),
+                           triggered=self.help)
+        self.menu.addAction(self.help_action)
+
+    @Slot()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def help(self):
         """Help on Spyder console"""
         QMessageBox.about(self, _("Help"),
@@ -401,7 +491,11 @@ class InternalShell(PythonShellWidget):
         self.interpreter.stdin_write.write(to_binary_string(cmd + '\n'))
         if not self.multithreaded:
             self.interpreter.run_line()
+<<<<<<< HEAD
             self.emit(SIGNAL("refresh()"))
+=======
+            self.refresh.emit()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     
     
     #------ Code completion / Calltips

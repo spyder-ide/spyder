@@ -18,6 +18,7 @@ These plugins inherit the following classes
 # pylint: disable=R0911
 # pylint: disable=R0201
 
+<<<<<<< HEAD
 from spyderlib.qt.QtGui import (QDockWidget, QWidget, QShortcut, QCursor,
                                 QKeySequence, QMainWindow, QApplication)
 from spyderlib.qt.QtCore import SIGNAL, Qt, QObject, Signal
@@ -32,6 +33,22 @@ from spyderlib.start_app import CONF
 #from spyderlib.config import CONF
 from spyderlib.userconfig import NoDefault
 from spyderlib.guiconfig import get_font, set_font
+=======
+# Qt imports
+from spyderlib.qt import PYQT5
+from spyderlib.qt.QtGui import (QDockWidget, QWidget, QShortcut, QCursor,
+                                QKeySequence, QMainWindow, QApplication,
+                                QTabBar)
+from spyderlib.qt.QtCore import Qt, Signal, QObject, QEvent, QPoint
+import spyderlib.utils.icon_manager as ima
+
+# Local imports
+from spyderlib.utils.qthelpers import toggle_actions, get_icon, create_action
+from spyderlib.config.base import _
+from spyderlib.config.main import CONF
+from spyderlib.config.user import NoDefault
+from spyderlib.config.gui import get_font, set_font
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 from spyderlib.plugins.configdialog import SpyderConfigPage
 from spyderlib.py3compat import configparser, is_text_string
 
@@ -54,15 +71,195 @@ class PluginConfigPage(SpyderConfigPage):
         return self.plugin.get_plugin_icon()
 
 
+<<<<<<< HEAD
 class SpyderDockWidget(QDockWidget):
     """Subclass to override needed methods"""
+=======
+class TabFilter(QObject):
+    """
+    Filter event attached to each QTabBar that holds 2 or more dockwidgets in
+    charge of handling tab rearangement.
+
+    This filter also holds the methods needed for the detection of a drag and
+    the movement of tabs.
+    """
+    def __init__(self, dock_tabbar, main):
+        QObject.__init__(self)
+        self.dock_tabbar = dock_tabbar
+        self.main = main
+        self.moving = False
+        self.from_index = None
+        self.to_index = None
+
+    # Helper methods
+    def _get_plugin(self, index):
+        """Get plugin reference based on tab index."""
+        for plugin in self.main.widgetlist:
+            if plugin.get_plugin_title() == self.dock_tabbar.tabText(index):
+                return plugin
+
+    def _get_plugins(self):
+        """
+        Get a list of all plugin references in the QTabBar to which this
+        event filter is attached.
+        """
+        plugins = []
+        for index in range(self.dock_tabbar.count()):
+            plugin = self._get_plugin(index)
+            plugins.append(plugin)
+        return plugins
+
+    def _fix_cursor(self, from_index, to_index):
+        """Fix mouse cursor position to adjust for different tab sizes."""
+        # The direction is +1 (moving to the right) or -1 (moving to the left)
+        direction = abs(to_index - from_index)/(to_index - from_index)
+
+        tab_width = self.dock_tabbar.tabRect(to_index).width()
+        tab_x_min = self.dock_tabbar.tabRect(to_index).x()
+        tab_x_max = tab_x_min + tab_width
+        previous_width = self.dock_tabbar.tabRect(to_index - direction).width()
+
+        delta = previous_width - tab_width
+        if delta > 0:
+            delta = delta * direction
+        else:
+            delta = 0
+        cursor = QCursor()
+        pos = self.dock_tabbar.mapFromGlobal(cursor.pos())
+        x, y = pos.x(), pos.y()
+        if x < tab_x_min or x > tab_x_max:
+            new_pos = self.dock_tabbar.mapToGlobal(QPoint(x + delta, y))
+            cursor.setPos(new_pos)
+
+    def eventFilter(self,  obj,  event):
+        """Filter mouse press events.
+
+        Events that are captured and not propagated return True. Events that
+        are not captured and are propagated return False.
+        """
+        event_type = event.type()
+        if event_type == QEvent.MouseButtonPress:
+            self.tab_pressed(event)
+            return False
+        if event_type == QEvent.MouseMove:
+            self.tab_moved(event)
+            return True
+        if event_type == QEvent.MouseButtonRelease:
+            self.tab_released(event)
+            return True
+        return False
+
+    def tab_pressed(self, event):
+        """Method called when a tab from a QTabBar has been pressed."""
+        self.from_index = self.dock_tabbar.tabAt(event.pos())
+
+        if event.button() == Qt.RightButton:
+            if self.from_index == -1:
+                self.show_nontab_menu(event)
+            else:
+                self.show_tab_menu(event)
+
+    def tab_moved(self, event):
+        """Method called when a tab from a QTabBar has been moved."""
+        # If the left button isn't pressed anymore then return
+        if not event.buttons() & Qt.LeftButton:
+            self.to_index = None
+            return
+
+        self.to_index = self.dock_tabbar.tabAt(event.pos())
+
+        if not self.moving and self.from_index != -1 and self.to_index != -1:
+            QApplication.setOverrideCursor(Qt.ClosedHandCursor)
+            self.moving = True
+
+        if self.to_index == -1:
+            self.to_index = self.from_index
+
+        from_index, to_index = self.from_index, self.to_index
+        if from_index != to_index and from_index != -1 and to_index != -1:
+            self.move_tab(from_index, to_index)
+            self._fix_cursor(from_index, to_index)
+            self.from_index = to_index
+
+    def tab_released(self, event):
+        """Method called when a tab from a QTabBar has been released."""
+        QApplication.restoreOverrideCursor()
+        self.moving = False
+
+    def move_tab(self, from_index, to_index):
+        """Move a tab from a given index to a given index position."""
+        plugins = self._get_plugins()
+        from_plugin = self._get_plugin(from_index)
+        to_plugin = self._get_plugin(to_index)
+
+        from_idx = plugins.index(from_plugin)
+        to_idx = plugins.index(to_plugin)
+
+        plugins[from_idx], plugins[to_idx] = plugins[to_idx], plugins[from_idx]
+
+        for i in range(len(plugins)-1):
+            self.main.tabify_plugins(plugins[i], plugins[i+1])
+        from_plugin.dockwidget.raise_()
+
+    def show_tab_menu(self, event):
+        """Show the context menu assigned to tabs."""
+        self.show_nontab_menu(event)
+
+    def show_nontab_menu(self, event):
+        """Show the context menu assigned to nontabs section."""
+        menu = self.main.createPopupMenu()
+        menu.exec_(self.dock_tabbar.mapToGlobal(event.pos()))
+
+
+class SpyderDockWidget(QDockWidget):
+    """Subclass to override needed methods"""
+    plugin_closed = Signal()
+
+    def __init__(self, title, parent):
+        super(SpyderDockWidget, self).__init__(title, parent)
+
+        # Needed for the installation of the event filter
+        self.title = title
+        self.main = parent
+        self.dock_tabbar = None
+
+        # To track dockwidget changes the filter is installed when dockwidget
+        # visibility changes. This installs the filter on startup and also
+        # on dockwidgets that are undocked and then docked to a new location.
+        self.visibilityChanged.connect(self.install_tab_event_filter)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
     def closeEvent(self, event):
         """
         Reimplement Qt method to send a signal on close so that "Panes" main
         window menu can be updated correctly
         """
+<<<<<<< HEAD
         self.emit(SIGNAL('plugin_closed()'))
+=======
+        self.plugin_closed.emit()
+
+    def install_tab_event_filter(self, value):
+        """
+        Install an event filter to capture mouse events in the tabs of a
+        QTabBar holding tabified dockwidgets.
+        """
+        dock_tabbar = None
+        tabbars = self.main.findChildren(QTabBar)
+        for tabbar in tabbars:
+            for tab in range(tabbar.count()):
+                title = tabbar.tabText(tab)
+                if title == self.title:
+                    dock_tabbar = tabbar
+                    break
+        if dock_tabbar is not None:
+            self.dock_tabbar = dock_tabbar
+            # Install filter only once per QTabBar
+            if getattr(self.dock_tabbar, 'filter', None) is None:
+                self.dock_tabbar.filter = TabFilter(self.dock_tabbar,
+                                                    self.main)
+                self.dock_tabbar.installEventFilter(self.dock_tabbar.filter)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
 
 class SpyderPluginMixin(object):
@@ -71,15 +268,24 @@ class SpyderPluginMixin(object):
     See SpyderPluginWidget class for required widget interface
     
     Signals:
+<<<<<<< HEAD
         sig_option_changed
             Example:
             plugin.sig_option_changed.emit('show_all', checked)
         'show_message(QString,int)'
+=======
+        * sig_option_changed
+             Example:
+             plugin.sig_option_changed.emit('show_all', checked)
+        * show_message
+        * update_plugin_title
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     """
     CONF_SECTION = None
     CONFIGWIDGET_CLASS = None
     ALLOWED_AREAS = Qt.AllDockWidgetAreas
     LOCATION = Qt.LeftDockWidgetArea
+<<<<<<< HEAD
     FEATURES = QDockWidget.DockWidgetClosable | \
                QDockWidget.DockWidgetFloatable | \
                QDockWidget.DockWidgetMovable
@@ -88,6 +294,19 @@ class SpyderPluginMixin(object):
     def __init__(self, main):
         """Bind widget to a QMainWindow instance"""
         super(SpyderPluginMixin, self).__init__()
+=======
+    FEATURES = QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetFloatable
+    DISABLE_ACTIONS_WHEN_HIDDEN = True
+
+    # Signals
+    sig_option_changed = None
+    show_message = None
+    update_plugin_title = None
+
+    def __init__(self, main=None, **kwds):
+        """Bind widget to a QMainWindow instance"""
+        super(SpyderPluginMixin, self).__init__(**kwds)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         assert self.CONF_SECTION is not None
         self.main = main
         self.default_margins = None
@@ -109,15 +328,26 @@ class SpyderPluginMixin(object):
         # We decided to create our own toggle action instead of using
         # the one that comes with dockwidget because it's not possible
         # to raise and focus the plugin with it.
+<<<<<<< HEAD
         self.toggle_view_action = None
+=======
+        self.toggle_view_action = None 
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         
     def initialize_plugin(self):
         """Initialize plugin: connect signals, setup actions, ..."""
         self.plugin_actions = self.get_plugin_actions()
+<<<<<<< HEAD
         QObject.connect(self, SIGNAL('show_message(QString,int)'),
                         self.show_message)
         QObject.connect(self, SIGNAL('update_plugin_title()'),
                         self.__update_plugin_title)
+=======
+        if self.show_message is not None:
+            self.show_message.connect(self.__show_message)
+        if self.update_plugin_title is not None:
+            self.update_plugin_title.connect(self.__update_plugin_title)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         if self.sig_option_changed is not None:
             self.sig_option_changed.connect(self.set_option)
         self.setWindowTitle(self.get_plugin_title())
@@ -180,10 +410,15 @@ class SpyderPluginMixin(object):
         dock.setFeatures(self.FEATURES)
         dock.setWidget(self)
         self.update_margins()
+<<<<<<< HEAD
         self.connect(dock, SIGNAL('visibilityChanged(bool)'),
                      self.visibility_changed)
         self.connect(dock, SIGNAL('plugin_closed()'),
                      self.plugin_closed)
+=======
+        dock.visibilityChanged.connect(self.visibility_changed)
+        dock.plugin_closed.connect(self.plugin_closed)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         self.dockwidget = dock
         if self.shortcut is not None:
             sc = QShortcut(QKeySequence(self.shortcut), self.main,
@@ -281,8 +516,13 @@ class SpyderPluginMixin(object):
     def set_plugin_font(self, font, option=None):
         """Set plugin font option"""
         set_font(font, self.CONF_SECTION, option)
+<<<<<<< HEAD
         
     def show_message(self, message, timeout=0):
+=======
+
+    def __show_message(self, message, timeout=0):
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         """Show message in main window's status bar"""
         self.main.statusBar().showMessage(message, timeout)
 
@@ -291,7 +531,11 @@ class SpyderPluginMixin(object):
         Showing message in main window's status bar
         and changing mouse cursor to Qt.WaitCursor
         """
+<<<<<<< HEAD
         self.show_message(message)
+=======
+        self.__show_message(message)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         QApplication.processEvents()
         
@@ -301,7 +545,11 @@ class SpyderPluginMixin(object):
         and restoring mouse cursor
         """
         QApplication.restoreOverrideCursor()
+<<<<<<< HEAD
         self.show_message(message, timeout=2000)
+=======
+        self.__show_message(message, timeout=2000)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         QApplication.processEvents()
         
     def set_default_color_scheme(self, name='Spyder'):
@@ -319,11 +567,21 @@ class SpyderPluginMixin(object):
         if self.CONF_SECTION == 'editor':
             title = _('Editor')
         if self.shortcut is not None:
+<<<<<<< HEAD
             action = create_action(self, title, toggled=self.toggle_view,
                                    shortcut=QKeySequence(self.shortcut))
             action.setShortcutContext(Qt.WidgetWithChildrenShortcut)
         else:
             action = create_action(self, title, toggled=self.toggle_view)
+=======
+            action = create_action(self, title,
+                             toggled=lambda checked: self.toggle_view(checked),
+                             shortcut=QKeySequence(self.shortcut))
+            action.setShortcutContext(Qt.WidgetWithChildrenShortcut)
+        else:
+            action = create_action(self, title, toggled=lambda checked:
+                                                self.toggle_view(checked))
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         self.toggle_view_action = action
     
     def toggle_view(self, checked):
@@ -341,10 +599,23 @@ class SpyderPluginWidget(QWidget, SpyderPluginMixin):
     Spyder's widgets either inherit this class or reimplement its interface
     """
     sig_option_changed = Signal(str, object)
+<<<<<<< HEAD
     
     def __init__(self, parent):
         QWidget.__init__(self, parent)
         SpyderPluginMixin.__init__(self, parent)
+=======
+    show_message = Signal(str, int)
+    update_plugin_title = Signal()
+
+    if PYQT5:
+        def __init__(self, parent, **kwds):
+            super(SpyderPluginWidget, self).__init__(parent, **kwds)
+    else:
+        def __init__(self, parent):
+            QWidget.__init__(self, parent)
+            SpyderPluginMixin.__init__(self, parent)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         
     def get_plugin_title(self):
         """
@@ -361,7 +632,11 @@ class SpyderPluginWidget(QWidget, SpyderPluginMixin):
               (see SpyderPluginMixin.create_mainwindow)
               and for configuration dialog widgets creation
         """
+<<<<<<< HEAD
         return get_icon('qt.png')
+=======
+        return ima.icon('outline_explorer')
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     
     def get_focus_widget(self):
         """
@@ -376,7 +651,11 @@ class SpyderPluginWidget(QWidget, SpyderPluginMixin):
         Return True or False whether the plugin may be closed immediately or not
         Note: returned value is ignored if *cancelable* is False
         """
+<<<<<<< HEAD
         raise NotImplementedError
+=======
+        return True
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         
     def refresh_plugin(self):
         """Refresh widget"""

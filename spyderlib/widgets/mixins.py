@@ -19,26 +19,44 @@ from xml.sax.saxutils import escape
 
 from spyderlib.qt.QtGui import (QTextCursor, QTextDocument, QApplication,
                                 QCursor, QToolTip)
+<<<<<<< HEAD
 from spyderlib.qt.QtCore import Qt, QPoint, QRegExp, SIGNAL
 
 # Local imports
 from spyderlib.baseconfig import _
+=======
+from spyderlib.qt.QtCore import Qt, QPoint, QRegExp
+
+# Local imports
+from spyderlib.config.base import _
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 from spyderlib.utils import encoding, sourcecode
 from spyderlib.utils.misc import get_error_match
 from spyderlib.utils.dochelpers import (getobj, getargspecfromtext,
                                         getsignaturefromtext)
 from spyderlib.py3compat import is_text_string, to_text_string, u
+<<<<<<< HEAD
 
+=======
+from spyderlib.widgets.arraybuilder import NumpyArrayDialog
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
 HISTORY_FILENAMES = []
 
 
 class BaseEditMixin(object):
+<<<<<<< HEAD
+=======
+    
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def __init__(self):
         self.eol_chars = None
         self.calltip_size = 600
     
+<<<<<<< HEAD
     
+=======
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     #------Line number area
     def get_linenumberarea_width(self):
         """Return line number area width"""
@@ -495,9 +513,62 @@ class BaseEditMixin(object):
                 return True
         return False
 
+<<<<<<< HEAD
 
 class TracebackLinksMixin(object):
     QT_CLASS = None
+=======
+    def is_editor(self):
+        """Needs to be overloaded in the codeeditor where it will be True"""
+        return False
+
+    # --- Numpy matrix/array helper / See 'spyderlib/widgets/arraybuilder.py'
+    def enter_array_inline(self):
+        """ """
+        self._enter_array(True)
+
+    def enter_array_table(self):
+        """ """
+        self._enter_array(False)
+
+    def _enter_array(self, inline):
+        """ """
+        offset = self.get_position('cursor') - self.get_position('sol')
+        rect = self.cursorRect()
+        dlg = NumpyArrayDialog(self, inline, offset)
+
+        # TODO: adapt to font size
+        x = rect.left()
+        x = x + self.get_linenumberarea_width() - 14
+        y = rect.top() + (rect.bottom() - rect.top())/2
+        y = y - dlg.height()/2 - 3
+
+        pos = QPoint(x, y)
+        dlg.move(self.mapToGlobal(pos))
+
+        # called from editor
+        if self.is_editor():
+            python_like_check = self.is_python_like()
+            suffix = '\n'
+        # called from a console
+        else:
+            python_like_check = True
+            suffix = ''
+
+        if python_like_check and dlg.exec_():
+            text = dlg.text() + suffix
+            if text != '':
+                cursor = self.textCursor()
+                cursor.beginEditBlock()
+                cursor.insertText(text)
+                cursor.endEditBlock()
+
+
+class TracebackLinksMixin(object):
+    """ """
+    QT_CLASS = None
+    go_to_error = None
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     
     def __init__(self):
         self.__cursor_changed = False
@@ -509,7 +580,12 @@ class TracebackLinksMixin(object):
         self.QT_CLASS.mouseReleaseEvent(self, event)            
         text = self.get_line_at(event.pos())
         if get_error_match(text) and not self.has_selected_text():
+<<<<<<< HEAD
             self.emit(SIGNAL("go_to_error(QString)"), text)
+=======
+            if self.go_to_error is not None:
+                self.go_to_error.emit(text)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
     def mouseMoveEvent(self, event):
         """Show Pointing Hand Cursor on error messages"""
@@ -619,6 +695,10 @@ class SaveHistoryMixin(object):
     
     INITHISTORY = None
     SEPARATOR = None
+<<<<<<< HEAD
+=======
+    append_to_history = None
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     
     def __init__(self):
         pass
@@ -643,5 +723,10 @@ class SaveHistoryMixin(object):
             text = self.SEPARATOR + text
         
         encoding.write(text, self.history_filename, mode='ab')
+<<<<<<< HEAD
         self.emit(SIGNAL('append_to_history(QString,QString)'),
                   self.history_filename, text)
+=======
+        if self.append_to_history is not None:
+            self.append_to_history.emit(self.history_filename, text)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+<<<<<<< HEAD
 import os,sys
 import os.path as osp
 import socket
@@ -672,6 +673,21 @@ CONF = UserConfig('spyder', defaults=DEFAULTS, load=True, version=CONF_VERSION,
                   subfolder=SUBFOLDER, backup=True, raw_mode=True)
 
 from spyderlib.baseconfig import DEV, TEST
+=======
+# Std imports
+import atexit
+import os
+import os.path as osp
+import random
+import socket
+import sys
+import time
+
+# Local imports
+from spyderlib.cli_options import get_options
+from spyderlib.config.base import get_conf_path, running_in_mac_app, DEV, TEST
+from spyderlib.config.main import CONF
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 from spyderlib.utils.external import lockfile
 from spyderlib.py3compat import is_unicode
 
@@ -713,7 +729,11 @@ def main():
     options to the application.
     """
     # Renaming old configuration files (the '.' prefix has been removed)
+<<<<<<< HEAD
     # (except for .spyder.ini --> spyder.ini, which is done in userconfig.py)
+=======
+    # (except for .spyder.ini --> spyder.ini, which is done in config/user.py)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     if DEV is None:
         cpath = get_conf_path()
         for fname in os.listdir(cpath):
@@ -727,6 +747,12 @@ def main():
     # Parse command line options
     options, args = get_options()
 
+<<<<<<< HEAD
+=======
+    # Store variable to be used in self.restart (restart spyder instance)
+    os.environ['SPYDER_ARGS'] = str(sys.argv[1:])
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     if CONF.get('main', 'single_instance') and not options.new_instance \
       and not running_in_mac_app():
         # Minimal delay (0.1-0.2 secs) to avoid that several

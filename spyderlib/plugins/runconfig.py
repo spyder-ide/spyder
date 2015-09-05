@@ -12,16 +12,27 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QDialog, QWidget, QGroupBox,
                                 QStackedWidget, QGridLayout, QSizePolicy,
                                 QRadioButton, QMessageBox, QFrame,
                                 QButtonGroup)
+<<<<<<< HEAD
 from spyderlib.qt.QtCore import SIGNAL, SLOT, Qt
 from spyderlib.qt.compat import getexistingdirectory
+=======
+from spyderlib.qt.QtCore import Signal, Slot, Qt, QSize
+from spyderlib.qt.compat import getexistingdirectory
+import spyderlib.utils.icon_manager as ima
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
 import os.path as osp
 
 # Local imports
+<<<<<<< HEAD
 from spyderlib.baseconfig import _
 from spyderlib.start_app import CONF
 #from spyderlib.config import CONF
 from spyderlib.utils.qthelpers import get_icon, get_std_icon
+=======
+from spyderlib.config.base import _
+from spyderlib.config.main import CONF
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 from spyderlib.plugins.configdialog import GeneralConfigPage
 from spyderlib.py3compat import to_text_string, getcwd
 
@@ -52,7 +63,12 @@ class RunConfiguration(object):
         self.current = None
         self.systerm = None
         self.interact = None
+<<<<<<< HEAD
         self.show_kill_warning = None
+=======
+        self.show_kill_warning =None
+        self.post_mortem = None
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         self.python_args = None
         self.python_args_enabled = None
         self.set(CONF.get('run', 'defaultconfiguration', default={}))
@@ -75,8 +91,17 @@ class RunConfiguration(object):
                            CONF.get('run', CURRENT_INTERPRETER_OPTION, True))
         self.systerm = options.get('systerm',
                            CONF.get('run', SYSTERM_INTERPRETER_OPTION, False))
+<<<<<<< HEAD
         self.interact = options.get('interact', False)
         self.show_kill_warning = options.get('show_kill_warning', True)
+=======
+        self.interact = options.get('interact',
+                           CONF.get('run', 'interact', False))
+        self.show_kill_warning = options.get('show_kill_warning', 
+                           CONF.get('run', 'show_kill_warning', False))
+        self.post_mortem = options.get('post_mortem',
+                           CONF.get('run', 'post_mortem', False))
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         self.python_args = options.get('python_args', '')
         self.python_args_enabled = options.get('python_args/enabled', False)
         
@@ -90,6 +115,10 @@ class RunConfiguration(object):
                 'systerm': self.systerm,
                 'interact': self.interact,
                 'show_kill_warning': self.show_kill_warning,
+<<<<<<< HEAD
+=======
+                'post_mortem': self.post_mortem,
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
                 'python_args/enabled': self.python_args_enabled,
                 'python_args': self.python_args,
                 }
@@ -157,14 +186,19 @@ class RunConfigOptions(QWidget):
         self.clo_cb = QCheckBox(_("Command line options:"))
         common_layout.addWidget(self.clo_cb, 0, 0)
         self.clo_edit = QLineEdit()
+<<<<<<< HEAD
         self.connect(self.clo_cb, SIGNAL("toggled(bool)"),
                      self.clo_edit.setEnabled)
+=======
+        self.clo_cb.toggled.connect(self.clo_edit.setEnabled)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         self.clo_edit.setEnabled(False)
         common_layout.addWidget(self.clo_edit, 0, 1)
         self.wd_cb = QCheckBox(_("Working directory:"))
         common_layout.addWidget(self.wd_cb, 1, 0)
         wd_layout = QHBoxLayout()
         self.wd_edit = QLineEdit()
+<<<<<<< HEAD
         self.connect(self.wd_cb, SIGNAL("toggled(bool)"),
                      self.wd_edit.setEnabled)
         self.wd_edit.setEnabled(False)
@@ -174,6 +208,19 @@ class RunConfigOptions(QWidget):
         self.connect(browse_btn, SIGNAL("clicked()"), self.select_directory)
         wd_layout.addWidget(browse_btn)
         common_layout.addLayout(wd_layout, 1, 1)
+=======
+        self.wd_cb.toggled.connect(self.wd_edit.setEnabled)
+        self.wd_edit.setEnabled(False)
+        wd_layout.addWidget(self.wd_edit)
+        browse_btn = QPushButton(ima.icon('DirOpenIcon'), '', self)
+        browse_btn.setToolTip(_("Select directory"))
+        browse_btn.clicked.connect(self.select_directory)
+        wd_layout.addWidget(browse_btn)
+        common_layout.addLayout(wd_layout, 1, 1)
+        self.post_mortem_cb = QCheckBox(_("Enter debugging mode when "
+                                          "errors appear during execution"))
+        common_layout.addWidget(self.post_mortem_cb)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         
         # --- Interpreter ---
         interpreter_group = QGroupBox(_("Console"))
@@ -188,8 +235,12 @@ class RunConfigOptions(QWidget):
         
         # --- Dedicated interpreter ---
         new_group = QGroupBox(_("Dedicated Python console"))
+<<<<<<< HEAD
         self.connect(self.current_radio, SIGNAL("toggled(bool)"),
                      new_group.setDisabled)
+=======
+        self.current_radio.toggled.connect(new_group.setDisabled)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         new_layout = QGridLayout()
         new_group.setLayout(new_layout)
         self.interact_cb = QCheckBox(_("Interact with the Python "
@@ -198,18 +249,29 @@ class RunConfigOptions(QWidget):
         
         self.show_kill_warning_cb = QCheckBox(_("Show warning when killing"
                                                 " running process"))
+<<<<<<< HEAD
+=======
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         new_layout.addWidget(self.show_kill_warning_cb, 2, 0, 1, -1)
         self.pclo_cb = QCheckBox(_("Command line options:"))
         new_layout.addWidget(self.pclo_cb, 3, 0)
         self.pclo_edit = QLineEdit()
+<<<<<<< HEAD
         self.connect(self.pclo_cb, SIGNAL("toggled(bool)"),
                      self.pclo_edit.setEnabled)
+=======
+        self.pclo_cb.toggled.connect(self.pclo_edit.setEnabled)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         self.pclo_edit.setEnabled(False)
         self.pclo_edit.setToolTip(_("<b>-u</b> is added to the "
                                     "other options you set here"))
         new_layout.addWidget(self.pclo_edit, 3, 1)
         
+<<<<<<< HEAD
         #TODO: Add option for "Post-mortem debugging"
+=======
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
         # Checkbox to preserve the old behavior, i.e. always open the dialog
         # on first run
@@ -217,8 +279,12 @@ class RunConfigOptions(QWidget):
         hline.setFrameShape(QFrame.HLine)
         hline.setFrameShadow(QFrame.Sunken)
         self.firstrun_cb = QCheckBox(ALWAYS_OPEN_FIRST_RUN % _("this dialog"))
+<<<<<<< HEAD
         self.connect(self.firstrun_cb, SIGNAL("clicked(bool)"),
                      self.set_firstrun_o)
+=======
+        self.firstrun_cb.clicked.connect(self.set_firstrun_o)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         self.firstrun_cb.setChecked(firstrun_o)
         
         layout = QVBoxLayout()
@@ -253,6 +319,10 @@ class RunConfigOptions(QWidget):
             self.dedicated_radio.setChecked(True)
         self.interact_cb.setChecked(self.runconf.interact)
         self.show_kill_warning_cb.setChecked(self.runconf.show_kill_warning)
+<<<<<<< HEAD
+=======
+        self.post_mortem_cb.setChecked(self.runconf.post_mortem)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         self.pclo_cb.setChecked(self.runconf.python_args_enabled)
         self.pclo_edit.setText(self.runconf.python_args)
     
@@ -265,6 +335,10 @@ class RunConfigOptions(QWidget):
         self.runconf.systerm = self.systerm_radio.isChecked()
         self.runconf.interact = self.interact_cb.isChecked()
         self.runconf.show_kill_warning = self.show_kill_warning_cb.isChecked()
+<<<<<<< HEAD
+=======
+        self.runconf.post_mortem = self.post_mortem_cb.isChecked()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         self.runconf.python_args_enabled = self.pclo_cb.isChecked()
         self.runconf.python_args = to_text_string(self.pclo_edit.text())
         return self.runconf.get()
@@ -286,6 +360,11 @@ class RunConfigOptions(QWidget):
 
 class BaseRunConfigDialog(QDialog):
     """Run configuration dialog box, base widget"""
+<<<<<<< HEAD
+=======
+    size_change = Signal(QSize)
+    
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
         
@@ -295,7 +374,11 @@ class BaseRunConfigDialog(QDialog):
         # a segmentation fault on UNIX or an application crash on Windows
         self.setAttribute(Qt.WA_DeleteOnClose)
 
+<<<<<<< HEAD
         self.setWindowIcon(get_icon("run_settings.png"))
+=======
+        self.setWindowIcon(ima.icon('run_settings'))
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         layout = QVBoxLayout()
         self.setLayout(layout)
     
@@ -312,9 +395,15 @@ class BaseRunConfigDialog(QDialog):
         """Create dialog button box and add it to the dialog layout"""
         bbox = QDialogButtonBox(stdbtns)
         run_btn = bbox.addButton(_("Run"), QDialogButtonBox.AcceptRole)
+<<<<<<< HEAD
         self.connect(run_btn, SIGNAL('clicked()'), self.run_btn_clicked)
         self.connect(bbox, SIGNAL("accepted()"), SLOT("accept()"))
         self.connect(bbox, SIGNAL("rejected()"), SLOT("reject()"))
+=======
+        run_btn.clicked.connect(self.run_btn_clicked)
+        bbox.accepted.connect(self.accept)
+        bbox.rejected.connect(self.reject)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         btnlayout = QHBoxLayout()
         btnlayout.addStretch(1)
         btnlayout.addWidget(bbox)
@@ -326,7 +415,11 @@ class BaseRunConfigDialog(QDialog):
         main application
         """
         QDialog.resizeEvent(self, event)
+<<<<<<< HEAD
         self.emit(SIGNAL("size_change(QSize)"), self.size())
+=======
+        self.size_change.emit(self.size())
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     
     def run_btn_clicked(self):
         """Run button was just clicked"""
@@ -352,7 +445,12 @@ class RunConfigOneDialog(BaseRunConfigDialog):
         self.add_widgets(self.runconfigoptions)
         self.add_button_box(QDialogButtonBox.Cancel)
         self.setWindowTitle(_("Run settings for %s") % osp.basename(fname))
+<<<<<<< HEAD
             
+=======
+    
+    @Slot()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def accept(self):
         """Reimplement Qt method"""
         if not self.runconfigoptions.is_valid():
@@ -405,8 +503,12 @@ class RunConfigDialog(BaseRunConfigDialog):
             widget.set(options)
             self.combo.addItem(filename)
             self.stack.addWidget(widget)
+<<<<<<< HEAD
         self.connect(self.combo, SIGNAL("currentIndexChanged(int)"),
                      self.stack.setCurrentIndex)
+=======
+        self.combo.currentIndexChanged.connect(self.stack.setCurrentIndex)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         self.combo.setCurrentIndex(index)
 
         self.add_widgets(combo_label, self.combo, 10, self.stack)
@@ -434,7 +536,11 @@ class RunConfigPage(GeneralConfigPage):
     CONF_SECTION = "run"
 
     NAME = _("Run")
+<<<<<<< HEAD
     ICON = "run.png"
+=======
+    ICON = ima.icon('run')
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     
     def setup_page(self):
         run_dlg = _("Run Settings")
@@ -463,8 +569,13 @@ class RunConfigPage(GeneralConfigPage):
         interpreter_layout.addWidget(self.dedicated_radio)
         interpreter_layout.addWidget(self.systerm_radio)
         
+<<<<<<< HEAD
         wdir_group = QGroupBox(_("Working directory"))
         wdir_bg = QButtonGroup(wdir_group)
+=======
+        general_group = QGroupBox("General settings")
+        wdir_bg = QButtonGroup(general_group)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         wdir_label = QLabel(_("Default working directory is:"))
         wdir_label.setWordWrap(True)
         dirname_radio = self.create_radiobutton(_("the script directory"),
@@ -474,19 +585,50 @@ class RunConfigPage(GeneralConfigPage):
                                 WDIR_USE_FIXED_DIR_OPTION, False,
                                 button_group=wdir_bg)
         thisdir_bd = self.create_browsedir("", WDIR_FIXED_DIR_OPTION, getcwd())
+<<<<<<< HEAD
         self.connect(thisdir_radio, SIGNAL("toggled(bool)"),
                      thisdir_bd.setEnabled)
         self.connect(dirname_radio, SIGNAL("toggled(bool)"),
                      thisdir_bd.setDisabled)
+=======
+        thisdir_radio.toggled.connect(thisdir_bd.setEnabled)
+        dirname_radio.toggled.connect(thisdir_bd.setDisabled)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         thisdir_layout = QHBoxLayout()
         thisdir_layout.addWidget(thisdir_radio)
         thisdir_layout.addWidget(thisdir_bd)
 
+<<<<<<< HEAD
         wdir_layout = QVBoxLayout()
         wdir_layout.addWidget(wdir_label)
         wdir_layout.addWidget(dirname_radio)
         wdir_layout.addLayout(thisdir_layout)
         wdir_group.setLayout(wdir_layout)
+=======
+        post_mortem = self.create_checkbox(
+             _("Enter debugging mode when errors appear during execution"),
+             'post_mortem', False)
+
+        general_layout = QVBoxLayout()
+        general_layout.addWidget(wdir_label)
+        general_layout.addWidget(dirname_radio)
+        general_layout.addLayout(thisdir_layout)
+        general_layout.addWidget(post_mortem)
+        general_group.setLayout(general_layout)
+
+        dedicated_group = QGroupBox(_("Dedicated Python console"))
+        interact_after = self.create_checkbox(
+            _("Interact with the Python console after execution"),
+            'interact', False)
+        show_warning = self.create_checkbox(
+            _("Show warning when killing running processes"),
+            'show_kill_warning', True)
+
+        dedicated_layout = QVBoxLayout()
+        dedicated_layout.addWidget(interact_after)
+        dedicated_layout.addWidget(show_warning)
+        dedicated_group.setLayout(dedicated_layout)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
         firstrun_cb = self.create_checkbox(
                             ALWAYS_OPEN_FIRST_RUN % _("Run Settings dialog"),
@@ -496,7 +638,12 @@ class RunConfigPage(GeneralConfigPage):
         vlayout.addWidget(about_label)
         vlayout.addSpacing(10)
         vlayout.addWidget(interpreter_group)
+<<<<<<< HEAD
         vlayout.addWidget(wdir_group)
+=======
+        vlayout.addWidget(general_group)
+        vlayout.addWidget(dedicated_group)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         vlayout.addWidget(firstrun_cb)
         vlayout.addStretch(1)
         self.setLayout(vlayout)
