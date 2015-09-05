@@ -212,7 +212,7 @@ if PY3 and sys.platform.startswith('linux'):
 else:
     SCRIPTS.append('spyder')
 EXTLIST = ['.mo', '.svg', '.png', '.css', '.html', '.js', '.chm', '.ini',
-           '.txt', '.rst', '.qss']
+           '.txt', '.rst', '.qss', '.ttf', '.json']
 if os.name == 'nt':
     SCRIPTS += ['spyder.bat']
     EXTLIST += ['.ico']

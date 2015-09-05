@@ -10,7 +10,11 @@ Object Editor Dialog based on Qt
 
 from __future__ import print_function
 
+<<<<<<< HEAD
 from spyderlib.qt.QtCore import QObject, SIGNAL
+=======
+from spyderlib.qt.QtCore import QObject
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
 # Local imports
 from spyderlib.py3compat import is_text_string
@@ -27,9 +31,15 @@ class DialogKeeper(QObject):
     
     def create_dialog(self, dialog, refname, func):
         self.dialogs[id(dialog)] = dialog, refname, func
+<<<<<<< HEAD
         self.connect(dialog, SIGNAL('accepted()'),
                      lambda eid=id(dialog): self.editor_accepted(eid))
         self.connect(dialog, SIGNAL('rejected()'),
+=======
+        dialog.accepted.connect(
+                     lambda eid=id(dialog): self.editor_accepted(eid))
+        dialog.rejected.connect(
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
                      lambda eid=id(dialog): self.editor_rejected(eid))
         dialog.show()
         dialog.activateWindow()
@@ -146,7 +156,12 @@ def test():
     """Run object editor test"""
     import datetime, numpy as np
     from spyderlib.pil_patch import Image
+<<<<<<< HEAD
     image = Image.fromarray(np.random.random_integers(255, size=(100, 100)))
+=======
+    data = np.random.random_integers(255, size=(100, 100)).astype('uint8')
+    image = Image.fromarray(data)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     example = {'str': 'kjkj kj k j j kj k jkj',
                'list': [1, 3, 4, 'kjkj', None],
                'dict': {'d': 1, 'a': np.random.rand(10, 10), 'b': [1, 2]},

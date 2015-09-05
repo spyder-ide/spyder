@@ -1,0 +1,175 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Console &mdash; Spyder 2.3 documentation</title>
+    
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '2.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+    <link rel="top" title="Spyder 2.3 documentation" href="index.html" />
+    <link rel="next" title="IPython Console" href="ipythonconsole.html" />
+    <link rel="prev" title="Light mode" href="lightmode.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="ipythonconsole.html" title="IPython Console"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="lightmode.html" title="Light mode"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Spyder 2.3 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/spyder_bbg.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Console</a><ul>
+<li><a class="reference internal" href="#reloading-modules-the-user-module-deleter-umd">Reloading modules: the User Module Deleter (UMD)</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="lightmode.html"
+                        title="previous chapter">Light mode</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="ipythonconsole.html"
+                        title="next chapter">IPython Console</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/console.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="console">
+<h1>Console<a class="headerlink" href="#console" title="Permalink to this headline">¶</a></h1>
+<p>The <strong>Console</strong> is where you may enter, interact with and visualize data,
+inside a command interpreter. All the commands entered in the console are
+executed in a separate process, thus allowing the user to interrupt any
+process at any time.</p>
+<img alt="_images/console.png" src="_images/console.png" />
+<p>Many command windows may be created in the <strong>Console</strong>:</p>
+<ul class="simple">
+<li>Python interpreter</li>
+<li>Running Python script</li>
+<li>System command window (this terminal emulation window has quite limited
+features compared to a real terminal: it may be useful on Windows
+platforms where the system terminal is not much more powerful - on the
+contrary, on GNU/Linux, a real system terminal is opened, outside Spyder)</li>
+</ul>
+<p>Python-based command windows support the following features:</p>
+<ul class="simple">
+<li>Code completion and calltips</li>
+<li>Variable explorer with GUI-based editors for arrays, lists,
+dictionaries, strings, etc.</li>
+<li>Debugging with standard Python debugger (<cite>pdb</cite>): at each breakpoint
+the corresponding script is opened in the <a class="reference internal" href="editor.html"><em>Editor</em></a> at the breakpoint
+line number</li>
+<li>User Module Deleter (see below)</li>
+</ul>
+<p>Related plugins:</p>
+<ul class="simple">
+<li><a class="reference internal" href="inspector.html"><em>Object inspector</em></a></li>
+<li><a class="reference internal" href="historylog.html"><em>History log</em></a></li>
+<li><a class="reference internal" href="editor.html"><em>Editor</em></a></li>
+<li><a class="reference internal" href="explorer.html"><em>Explorer</em></a></li>
+</ul>
+<div class="section" id="reloading-modules-the-user-module-deleter-umd">
+<h2>Reloading modules: the User Module Deleter (UMD)<a class="headerlink" href="#reloading-modules-the-user-module-deleter-umd" title="Permalink to this headline">¶</a></h2>
+<p>When working with Python scripts interactively, one must keep in mind that
+Python import a module from its source code (on disk) only when parsing the
+first corresponding import statement. During this first import, the byte code
+is generated (.pyc file) if necessary and the imported module code object is
+cached in <cite>sys.modules</cite>. Then, when re-importing the same module, this cached
+code object will be directly used even if the source code file (.py[w] file)
+has changed meanwhile.</p>
+<p>This behavior is sometimes unexpected when working with the Python interpreter
+in interactive mode, because one must either always restart the interpreter
+or remove manually the .pyc files to be sure that changes made in imported
+modules were taken into account.</p>
+<p>The User Module Deleter (UMD) is a Spyder console&#8217;s exclusive feature that
+forces the Python interpreter to reload modules completely when executing
+a Python script.</p>
+<p>For example, when UMD is turned on, one may test complex applications
+within the same Python interpreter without having to restart it every time
+(restart time may be relatively long when testing GUI-based applications).</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="ipythonconsole.html" title="IPython Console"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="lightmode.html" title="Light mode"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Spyder 2.3 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2009, Pierre Raybaut.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+    </div>
+  </body>
+</html>

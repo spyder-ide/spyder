@@ -12,20 +12,19 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-from spyderlib.qt.QtCore import SIGNAL
-
 # Local imports
-from spyderlib.baseconfig import get_translation
+from spyderlib.config.base import get_translation
 _ = get_translation("p_breakpoints", dirname="spyderplugins")
-from spyderlib.utils.qthelpers import get_icon, create_action
+from spyderlib.utils.qthelpers import create_action
 from spyderlib.plugins import SpyderPluginMixin
 from spyderplugins.widgets.breakpointsgui import BreakpointWidget
 from spyderlib.py3compat import to_text_string, is_text_string
-
+import spyderlib.utils.icon_manager as ima
 
 class Breakpoints(BreakpointWidget, SpyderPluginMixin):
     """Breakpoint list"""
     CONF_SECTION = 'breakpoints'
+
 #    CONFIGWIDGET_CLASS = BreakpointConfigPage
     def __init__(self, parent=None):
         BreakpointWidget.__init__(self, parent=parent)
@@ -42,7 +41,7 @@ class Breakpoints(BreakpointWidget, SpyderPluginMixin):
     
     def get_plugin_icon(self):
         """Return widget icon"""
-        return get_icon('bug.png')
+        return ima.icon('bug')
     
     def get_focus_widget(self):
         """
@@ -61,19 +60,14 @@ class Breakpoints(BreakpointWidget, SpyderPluginMixin):
 
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
-        self.connect(self, SIGNAL("edit_goto(QString,int,QString)"),
-                     self.main.editor.load)
-        self.connect(self, SIGNAL('redirect_stdio(bool)'),
-                     self.main.redirect_internalshell_stdio)
-        self.connect(self, SIGNAL('clear_all_breakpoints()'),
-                     self.main.editor.clear_all_breakpoints)
-        self.connect(self, SIGNAL('clear_breakpoint(QString,int)'),
-                     self.main.editor.clear_breakpoint)
-        self.connect(self, SIGNAL('set_or_edit_conditional_breakpoint()'),
-                     self.main.editor.set_or_edit_conditional_breakpoint)
-        self.connect(self.main.editor,
-                     SIGNAL("breakpoints_saved()"),
-                     self.set_data)
+        self.edit_goto.connect(self.main.editor.load)
+        #self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
+        self.clear_all_breakpoints.connect(
+                                        self.main.editor.clear_all_breakpoints)
+        self.clear_breakpoint.connect(self.main.editor.clear_breakpoint)
+        self.main.editor.breakpoints_saved.connect(self.set_data)
+        self.set_or_edit_conditional_breakpoint.connect(
+                           self.main.editor.set_or_edit_conditional_breakpoint)
         
         self.main.add_dockwidget(self)
         

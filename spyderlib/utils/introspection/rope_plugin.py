@@ -11,7 +11,11 @@ Rope introspection plugin
 import time
 
 from spyderlib import dependencies
+<<<<<<< HEAD
 from spyderlib.baseconfig import get_conf_path, _, STDERR
+=======
+from spyderlib.config.base import get_conf_path, _, STDERR
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 from spyderlib.utils import encoding, programs
 from spyderlib.py3compat import PY2
 from spyderlib.utils.dochelpers import getsignaturefromtext
@@ -24,7 +28,11 @@ try:
         from spyderlib import rope_patch
         rope_patch.apply()
     except ImportError:
+<<<<<<< HEAD
         # rope 0.9.2/0.9.3 is not installed
+=======
+        # rope is not installed
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         pass
     import rope.base.libutils
     import rope.contrib.codeassist
@@ -32,7 +40,11 @@ except ImportError:
     pass
 
 
+<<<<<<< HEAD
 ROPE_REQVER = '>=0.9.2'
+=======
+ROPE_REQVER = '>=0.9.4'
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 dependencies.add('rope',
                  _("Editor's code completion, go-to-definition and help"),
                  required_version=ROPE_REQVER)
@@ -48,6 +60,7 @@ ROPE_PREFS = {'ignore_syntax_errors': True,
 class RopePlugin(IntrospectionPlugin):
     """
     Rope based introspection plugin for jedi
+<<<<<<< HEAD
     
     Editor's code completion, go-to-definition and help
     """
@@ -57,6 +70,17 @@ class RopePlugin(IntrospectionPlugin):
     # ---- IntrospectionPlugin API --------------------------------------------
     name = 'rope'
     
+=======
+
+    Editor's code completion, go-to-definition and help
+    """
+
+    project = None
+
+    # ---- IntrospectionPlugin API --------------------------------------------
+    name = 'rope'
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def load_plugin(self):
         """Load the Rope introspection plugin"""
         if not programs.is_module_installed('rope', ROPE_REQVER):
@@ -65,9 +89,15 @@ class RopePlugin(IntrospectionPlugin):
         self.create_rope_project(root_path=get_conf_path())
 
     def get_completions(self, info):
+<<<<<<< HEAD
         """Get a list of completions using Rope"""
         if self.project is None:
             return
+=======
+        """Get a list of (completion, type) tuples using Rope"""
+        if self.project is None:
+            return []
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         filename = info.filename
         source_code = info.source_code
         offset = info.position
@@ -93,10 +123,18 @@ class RopePlugin(IntrospectionPlugin):
             proposals = rope.contrib.codeassist.sorted_proposals(proposals)
             if DEBUG_EDITOR:
                 log_dt(LOG_FILENAME, "code_assist/sorted_proposals", t0)
+<<<<<<< HEAD
             return [proposal.name for proposal in proposals]
         except Exception as _error:  #analysis:ignore
             if DEBUG_EDITOR:
                 log_last_error(LOG_FILENAME, "get_completion_list")
+=======
+            return [(proposal.name, proposal.type) for proposal in proposals]
+        except Exception as _error:  #analysis:ignore
+            if DEBUG_EDITOR:
+                log_last_error(LOG_FILENAME, "get_completion_list")
+        return []
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
     def get_info(self, info):
         """Get a formatted calltip and docstring from Rope"""
@@ -182,6 +220,12 @@ class RopePlugin(IntrospectionPlugin):
                 module = obj_fullname[:module_end]
                 note = 'Present in %s module' % module
 
+<<<<<<< HEAD
+=======
+        if not doc_text and not calltip:
+            return
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         return dict(name=obj_fullname, argspec=argspec, note=note,
             docstring=doc_text, calltip=calltip)
 
@@ -252,8 +296,11 @@ class RopePlugin(IntrospectionPlugin):
                 log_last_error(LOG_FILENAME,
                                "create_rope_project: %r" % root_path)
         except TypeError:
+<<<<<<< HEAD
             # Compatibility with new Mercurial API (>= 1.3).
             # New versions of rope (> 0.9.2) already handle this issue
+=======
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
             self.project = None
             if DEBUG_EDITOR:
                 log_last_error(LOG_FILENAME,
@@ -269,7 +316,11 @@ class RopePlugin(IntrospectionPlugin):
 if __name__ == '__main__':
 
     from spyderlib.utils.introspection.plugin_manager import CodeInfo
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     p = RopePlugin()
     p.load_plugin()
 
@@ -277,6 +328,7 @@ if __name__ == '__main__':
     docs = p.get_info(CodeInfo('info', source_code, len(source_code),
                                            __file__))
     assert 'ones(' in docs['calltip'] and 'ones(' in docs['docstring']
+<<<<<<< HEAD
     
     source_code = "import numpy; n"
     completions = p.get_completions(CodeInfo('completions', source_code,
@@ -287,6 +339,18 @@ if __name__ == '__main__':
     path, line_nr = p.get_definition(CodeInfo('definition', source_code,
         len(source_code), __file__))
     assert 'pyplot.py' in path 
+=======
+
+    source_code = "import numpy; n"
+    completions = p.get_completions(CodeInfo('completions', source_code,
+        len(source_code), __file__))
+    assert ('numpy', 'module') in completions
+
+    source_code = "import matplotlib.pyplot as plt; plt.imsave"
+    path, line_nr = p.get_definition(CodeInfo('definition', source_code,
+        len(source_code), __file__))
+    assert 'pyplot.py' in path
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
     code = '''
 def test(a, b):

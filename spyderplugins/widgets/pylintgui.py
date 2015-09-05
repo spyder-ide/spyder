@@ -15,9 +15,10 @@ from __future__ import with_statement, print_function
 
 from spyderlib.qt.QtGui import (QHBoxLayout, QWidget, QTreeWidgetItem,
                                 QMessageBox, QVBoxLayout, QLabel)
-from spyderlib.qt.QtCore import SIGNAL, QProcess, QByteArray, QTextCodec
+from spyderlib.qt.QtCore import Signal, QProcess, QByteArray, QTextCodec
 locale_codec = QTextCodec.codecForLocale()
 from spyderlib.qt.compat import getopenfilename
+import spyderlib.utils.icon_manager as ima
 
 import sys
 import os
@@ -30,8 +31,8 @@ import subprocess
 from spyderlib import dependencies
 from spyderlib.utils import programs
 from spyderlib.utils.encoding import to_unicode_from_fs
-from spyderlib.utils.qthelpers import get_icon, create_toolbutton
-from spyderlib.baseconfig import get_conf_path, get_translation
+from spyderlib.utils.qthelpers import create_toolbutton
+from spyderlib.config.base import get_conf_path, get_translation
 from spyderlib.widgets.onecolumntree import OneColumnTree
 from spyderlib.widgets.texteditor import TextEditor
 from spyderlib.widgets.comboboxes import (PythonModulesComboBox,
@@ -87,8 +88,7 @@ class ResultsTree(OneColumnTree):
         data = self.data.get(id(item))
         if data is not None:
             fname, lineno = data
-            self.parent().emit(SIGNAL("edit_goto(QString,int,QString)"),
-                               fname, lineno, '')
+            self.parent().edit_goto.emit(fname, lineno, '')
 
     def clicked(self, item):
         """Click event"""
@@ -110,13 +110,13 @@ class ResultsTree(OneColumnTree):
         self.data = {}
         # Populating tree
         results = ((_('Convention'),
-                    get_icon('convention.png'), self.results['C:']),
+                   ima.icon('convention'), self.results['C:']),
                    (_('Refactor'),
-                    get_icon('refactor.png'), self.results['R:']),
+                   ima.icon('refactor'), self.results['R:']),
                    (_('Warning'),
-                    get_icon('warning.png'), self.results['W:']),
+                   ima.icon('warning'), self.results['W:']),
                    (_('Error'),
-                    get_icon('error.png'), self.results['E:']))
+                   ima.icon('error'), self.results['E:']))
         for title, icon, messages in results:
             title += ' (%d message%s)' % (len(messages),
                                           's' if len(messages)>1 else '')
@@ -147,7 +147,7 @@ class ResultsTree(OneColumnTree):
                     if parent is None:
                         item = QTreeWidgetItem(title_item, [module],
                                                QTreeWidgetItem.Type)
-                        item.setIcon(0, get_icon('py.png'))
+                        item.setIcon(0, ima.icon('python'))
                         modules[modname] = item
                         parent = item
                 else:
@@ -157,7 +157,7 @@ class ResultsTree(OneColumnTree):
                 else:
                     text = "%d : %s" % (lineno, message)
                 msg_item = QTreeWidgetItem(parent, [text], QTreeWidgetItem.Type)
-                msg_item.setIcon(0, get_icon('arrow.png'))
+                msg_item.setIcon(0, ima.icon('arrow'))
                 self.data[id(msg_item)] = (modname, lineno)
 
 
@@ -167,6 +167,7 @@ class PylintWidget(QWidget):
     """
     DATAPATH = get_conf_path('pylint.results')
     VERSION = '1.1.0'
+    redirect_stdio = Signal(bool)
     
     def __init__(self, parent, max_entries=100):
         QWidget.__init__(self, parent)
@@ -191,26 +192,25 @@ class PylintWidget(QWidget):
             self.remove_obsolete_items()
             self.filecombo.addItems(self.get_filenames())
         
-        self.start_button = create_toolbutton(self, icon=get_icon('run.png'),
+        self.start_button = create_toolbutton(self, icon=ima.icon('run'),
                                     text=_("Analyze"),
                                     tip=_("Run analysis"),
                                     triggered=self.start, text_beside_icon=True)
         self.stop_button = create_toolbutton(self,
-                                             icon=get_icon('stop.png'),
+                                             icon=ima.icon('stop'),
                                              text=_("Stop"),
                                              tip=_("Stop current analysis"),
                                              text_beside_icon=True)
-        self.connect(self.filecombo, SIGNAL('valid(bool)'),
-                     self.start_button.setEnabled)
-        self.connect(self.filecombo, SIGNAL('valid(bool)'), self.show_data)
+        self.filecombo.valid.connect(self.start_button.setEnabled)
+        self.filecombo.valid.connect(self.show_data)
 
-        browse_button = create_toolbutton(self, icon=get_icon('fileopen.png'),
+        browse_button = create_toolbutton(self, icon=ima.icon('fileopen'),
                                tip=_('Select Python file'),
                                triggered=self.select_file)
 
         self.ratelabel = QLabel()
         self.datelabel = QLabel()
-        self.log_button = create_toolbutton(self, icon=get_icon('log.png'),
+        self.log_button = create_toolbutton(self, icon=ima.icon('log'),
                                     text=_("Output"),
                                     text_beside_icon=True,
                                     tip=_("Complete output"),
@@ -273,10 +273,10 @@ class PylintWidget(QWidget):
             self.start()
             
     def select_file(self):
-        self.emit(SIGNAL('redirect_stdio(bool)'), False)
+        self.redirect_stdio.emit(False)
         filename, _selfilter = getopenfilename(self, _("Select Python file"),
                            getcwd(), _("Python files")+" (*.py ; *.pyw)")
-        self.emit(SIGNAL('redirect_stdio(bool)'), False)
+        self.redirect_stdio.emit(True)
         if filename:
             self.analyze(filename)
             
@@ -320,14 +320,12 @@ class PylintWidget(QWidget):
         self.process = QProcess(self)
         self.process.setProcessChannelMode(QProcess.SeparateChannels)
         self.process.setWorkingDirectory(osp.dirname(filename))
-        self.connect(self.process, SIGNAL("readyReadStandardOutput()"),
-                     self.read_output)
-        self.connect(self.process, SIGNAL("readyReadStandardError()"),
-                     lambda: self.read_output(error=True))
-        self.connect(self.process, SIGNAL("finished(int,QProcess::ExitStatus)"),
-                     self.finished)
-        self.connect(self.stop_button, SIGNAL("clicked()"),
-                     self.process.kill)
+        self.process.readyReadStandardOutput.connect(self.read_output)
+        self.process.readyReadStandardError.connect(
+                                          lambda: self.read_output(error=True))
+        self.process.finished.connect(lambda ec, es=QProcess.ExitStatus:
+                                      self.finished(ec, es))
+        self.stop_button.clicked.connect(self.process.kill)
         
         self.output = ''
         self.error_output = ''
@@ -373,7 +371,7 @@ class PylintWidget(QWidget):
         else:
             self.output += text
         
-    def finished(self):
+    def finished(self, exit_code, exit_status):
         self.set_running_state(False)
         if not self.output:
             if self.error_output:

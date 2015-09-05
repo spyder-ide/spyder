@@ -9,12 +9,13 @@
 """Profiler Plugin"""
 
 from spyderlib.qt.QtGui import QVBoxLayout, QGroupBox, QLabel
-from spyderlib.qt.QtCore import SIGNAL, Qt
+from spyderlib.qt.QtCore import Signal, Qt
+import spyderlib.utils.icon_manager as ima
 
 # Local imports
-from spyderlib.baseconfig import get_translation
+from spyderlib.config.base import get_translation
 _ = get_translation("p_profiler", dirname="spyderplugins")
-from spyderlib.utils.qthelpers import get_icon, create_action
+from spyderlib.utils.qthelpers import create_action
 from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage, runconfig
 
 from spyderplugins.widgets.profilergui import (ProfilerWidget,
@@ -51,6 +52,8 @@ class Profiler(ProfilerWidget, SpyderPluginMixin):
     """Profiler (after python's profile and pstats)"""
     CONF_SECTION = 'profiler'
     CONFIGWIDGET_CLASS = ProfilerConfigPage
+    edit_goto = Signal(str, int, str)
+    
     def __init__(self, parent=None):
         ProfilerWidget.__init__(self, parent=parent,
                               max_entries=self.get_option('max_entries', 50))
@@ -66,7 +69,7 @@ class Profiler(ProfilerWidget, SpyderPluginMixin):
 
     def get_plugin_icon(self):
         """Return widget icon"""
-        return get_icon('profiler.png')
+        return ima.icon('profiler')
     
     def get_focus_widget(self):
         """
@@ -86,14 +89,12 @@ class Profiler(ProfilerWidget, SpyderPluginMixin):
 
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
-        self.connect(self, SIGNAL("edit_goto(QString,int,QString)"),
-                     self.main.editor.load)
-        self.connect(self, SIGNAL('redirect_stdio(bool)'),
-                     self.main.redirect_internalshell_stdio)
+        self.edit_goto.connect(self.main.editor.load)
+        self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
         self.main.add_dockwidget(self)
         
         profiler_act = create_action(self, _("Profile"),
-                                     icon=get_icon('profiler.png'),
+                                     icon=ima.icon('profiler'),
                                      triggered=self.run_profiler)
         profiler_act.setEnabled(is_profiler_installed())
         self.register_shortcut(profiler_act, context="Profiler",

@@ -14,7 +14,11 @@ import time
 import threading
 
 from spyderlib import dependencies
+<<<<<<< HEAD
 from spyderlib.baseconfig import _, debug_print
+=======
+from spyderlib.config.base import _, debug_print
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 from spyderlib.utils import programs
 from spyderlib.utils.debug import log_last_error, log_dt
 from spyderlib.utils.dochelpers import getsignaturefromtext
@@ -54,10 +58,18 @@ class JediPlugin(IntrospectionPlugin):
         self._warmup_thread.start()
 
     def get_completions(self, info):
+<<<<<<< HEAD
         """Return a list of completion strings"""
         completions = self.get_jedi_object('completions', info)
         debug_print(str(completions)[:100])
         return [c.name for c in completions]
+=======
+        """Return a list of (completion, type) tuples"""
+        completions = self.get_jedi_object('completions', info)
+        completions = [(c.name, c.type) for c in completions]
+        debug_print(str(completions)[:100])
+        return completions
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
     def get_info(self, info):
         """
@@ -267,7 +279,11 @@ if __name__ == '__main__':
     source_code = "import n"
     completions = p.get_completions(CodeInfo('completions', source_code,
         len(source_code)))
+<<<<<<< HEAD
     assert 'numpy' in completions
+=======
+    assert ('numpy', 'module') in completions
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
     source_code = "import matplotlib.pyplot as plt; plt.imsave"
     path, line_nr = p.get_definition(CodeInfo('definition', source_code,

@@ -16,9 +16,16 @@ from spyderlib.qt.QtGui import (QTableView, QVBoxLayout, QHBoxLayout,
                                 QSizePolicy, QCheckBox, QColor, QRadioButton,
                                 QLineEdit, QFrame, QMenu, QIntValidator,
                                 QGroupBox, QMessageBox)
+<<<<<<< HEAD
 from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel,
                                  SIGNAL, SLOT, Slot)
 from spyderlib.qt.compat import to_qvariant
+=======
+from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, Signal,
+                                 Slot)
+from spyderlib.qt.compat import to_qvariant
+import spyderlib.utils.icon_manager as ima
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
 from functools import partial as ft_partial
 
@@ -28,12 +35,22 @@ except ImportError:
     pd = None
 
 # Local import
+<<<<<<< HEAD
 from spyderlib.baseconfig import _
 from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import get_icon, add_actions, create_action
 from spyderlib.py3compat import (TEXT_TYPES, INT_TYPES, to_text_string, u,
                                  zip_longest, io)
 
+=======
+from spyderlib.config.base import _
+from spyderlib.utils import programs
+from spyderlib.utils.qthelpers import add_actions, create_action
+from spyderlib.py3compat import (TEXT_TYPES, INT_TYPES, to_text_string, u,
+                                 zip_longest, io)
+
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 def try_to_parse(value):
     _types = ('int', 'float')
     for _t in _types:
@@ -97,8 +114,16 @@ def get_color(value, alpha):
     color.setAlphaF(alpha)
     return color
 
+<<<<<<< HEAD
 class ContentsWidget(QWidget):
     """Import wizard contents widget"""
+=======
+
+class ContentsWidget(QWidget):
+    """Import wizard contents widget"""
+    asDataChanged = Signal(bool)
+    
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def __init__(self, parent, text):
         QWidget.__init__(self, parent)
 
@@ -145,8 +170,12 @@ class ContentsWidget(QWidget):
         self.line_edt = QLineEdit(",")
         self.line_edt.setMaximumWidth(30)
         self.line_edt.setEnabled(True)
+<<<<<<< HEAD
         self.connect(other_btn_col, SIGNAL("toggled(bool)"),
                      self.line_edt, SLOT("setEnabled(bool)"))
+=======
+        other_btn_col.toggled.connect(self.line_edt.setEnabled)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         grid_layout.addWidget(self.line_edt, 0, 2)
 
         row_label = QLabel(_("Row separator:"))
@@ -163,8 +192,12 @@ class ContentsWidget(QWidget):
         self.line_edt_row = QLineEdit(";")
         self.line_edt_row.setMaximumWidth(30)
         self.line_edt_row.setEnabled(False)
+<<<<<<< HEAD
         self.connect(other_btn_row, SIGNAL("toggled(bool)"),
                      self.line_edt_row, SLOT("setEnabled(bool)"))
+=======
+        other_btn_row.toggled.connect(self.line_edt_row.setEnabled)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         grid_layout.addWidget(self.line_edt_row, 1, 2)
 
         grid_layout.setRowMinimumHeight(2, 15)
@@ -199,12 +232,18 @@ class ContentsWidget(QWidget):
         opts_frame = QFrame()
         opts_frame.setLayout(grid_layout)
 
+<<<<<<< HEAD
         self.connect(data_btn, SIGNAL("toggled(bool)"),
                      opts_frame, SLOT("setEnabled(bool)"))
         self.connect(data_btn, SIGNAL("toggled(bool)"),
                      self, SLOT("set_as_data(bool)"))
         self.connect(code_btn, SIGNAL("toggled(bool)"),
                      self, SLOT("set_as_code(bool)"))
+=======
+        data_btn.toggled.connect(opts_frame.setEnabled)
+        data_btn.toggled.connect(self.set_as_data)
+        code_btn.toggled.connect(self.set_as_code)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 #        self.connect(txt_btn, SIGNAL("toggled(bool)"),
 #                     self, SLOT("is_text(bool)"))
 
@@ -251,7 +290,11 @@ class ContentsWidget(QWidget):
     def set_as_data(self, as_data):
         """Set if data type conversion"""
         self._as_data = as_data
+<<<<<<< HEAD
         self.emit(SIGNAL("asDataChanged(bool)"), as_data)
+=======
+        self.asDataChanged.emit(as_data)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
     @Slot(bool)
     def set_as_code(self, as_code):
@@ -321,10 +364,21 @@ class PreviewTableModel(QAbstractTableModel):
             elif kwargs['atype'] == "float":
                 self._data[index.row()][index.column()] = float(
                     self._data[index.row()][index.column()])
+<<<<<<< HEAD
             self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"), index, index)
         except Exception as instance:
             print(instance)
 
+=======
+            self.dataChanged.emit(index, index)
+        except Exception as instance:
+            print(instance)
+
+    def reset(self):
+        self.beginResetModel()
+        self.endResetModel()
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 class PreviewTable(QTableView):
     """Import wizard preview widget"""
     def __init__(self, parent):
@@ -400,6 +454,10 @@ class PreviewTable(QTableView):
         self._model = PreviewTableModel(data)
         self.setModel(self._model)
 
+<<<<<<< HEAD
+=======
+    @Slot()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def parse_to_type(self,**kwargs):
         """Parse to a given type"""
         indexes = self.selectedIndexes()
@@ -412,6 +470,10 @@ class PreviewTable(QTableView):
         self.opt_menu.popup(event.globalPos())
         event.accept()
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 class PreviewWidget(QWidget):
     """Import wizard preview widget"""
 
@@ -464,6 +526,10 @@ class PreviewWidget(QWidget):
         """Return table data"""
         return self._table_view.get_data()
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 class ImportWizard(QDialog):
     """Text data import wizard"""
     def __init__(self, parent, text,
@@ -480,7 +546,11 @@ class ImportWizard(QDialog):
             title = _("Import wizard")
         self.setWindowTitle(title)
         if icon is None:
+<<<<<<< HEAD
             self.setWindowIcon(get_icon("fileimport.png"))
+=======
+            self.setWindowIcon(ima.icon('fileimport'))
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         if contents_title is None:
             contents_title = _("Raw text")
 
@@ -511,13 +581,18 @@ class ImportWizard(QDialog):
         btns_layout = QHBoxLayout()
         cancel_btn = QPushButton(_("Cancel"))
         btns_layout.addWidget(cancel_btn)
+<<<<<<< HEAD
         self.connect(cancel_btn, SIGNAL("clicked()"), self, SLOT("reject()"))
+=======
+        cancel_btn.clicked.connect(self.reject)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         h_spacer = QSpacerItem(40, 20,
                                QSizePolicy.Expanding, QSizePolicy.Minimum)
         btns_layout.addItem(h_spacer)
         self.back_btn = QPushButton(_("Previous"))
         self.back_btn.setEnabled(False)
         btns_layout.addWidget(self.back_btn)
+<<<<<<< HEAD
         self.connect(self.back_btn, SIGNAL("clicked()"),
                      ft_partial(self._set_step, step=-1))
         self.fwd_btn = QPushButton(_("Next"))
@@ -534,6 +609,19 @@ class ImportWizard(QDialog):
                      self.fwd_btn, SLOT("setEnabled(bool)"))
         self.connect(self.text_widget, SIGNAL("asDataChanged(bool)"),
                      self.done_btn, SLOT("setDisabled(bool)"))
+=======
+        self.back_btn.clicked.connect(ft_partial(self._set_step, step=-1))
+        self.fwd_btn = QPushButton(_("Next"))
+        btns_layout.addWidget(self.fwd_btn)
+        self.fwd_btn.clicked.connect(ft_partial(self._set_step, step=1))
+        self.done_btn = QPushButton(_("Done"))
+        self.done_btn.setEnabled(False)
+        btns_layout.addWidget(self.done_btn)
+        self.done_btn.clicked.connect(self.process)
+
+        self.text_widget.asDataChanged.connect(self.fwd_btn.setEnabled)
+        self.text_widget.asDataChanged.connect(self.done_btn.setDisabled)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         layout = QVBoxLayout()
         layout.addLayout(name_layout)
         layout.addWidget(self.tab_widget)

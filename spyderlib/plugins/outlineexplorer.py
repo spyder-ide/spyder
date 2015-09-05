@@ -11,6 +11,7 @@ highlighter of assigned editor. For example, for Python files code editor uses
 highlighter spyderlib.widgets.sourcecode.syntaxhighlighters.PythonSH
 """
 
+<<<<<<< HEAD
 from spyderlib.qt.QtCore import SIGNAL, Signal
 
 # Local imports
@@ -19,11 +20,25 @@ from spyderlib.utils.qthelpers import get_icon
 from spyderlib.widgets.editortools import OutlineExplorerWidget
 from spyderlib.plugins import SpyderPluginMixin
 from spyderlib.py3compat import is_text_string
+=======
+from spyderlib.qt.QtCore import Signal
+
+# Local imports
+from spyderlib.config.base import _
+from spyderlib.widgets.editortools import OutlineExplorerWidget
+from spyderlib.plugins import SpyderPluginMixin
+from spyderlib.py3compat import is_text_string
+import spyderlib.utils.icon_manager as ima
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
 
 class OutlineExplorer(OutlineExplorerWidget, SpyderPluginMixin):
     CONF_SECTION = 'outline_explorer'
     sig_option_changed = Signal(str, object)
+<<<<<<< HEAD
+=======
+    
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def __init__(self, parent=None, fullpath_sorting=True):
         show_fullpath = self.get_option('show_fullpath')
         show_all_files = self.get_option('show_all_files')
@@ -48,7 +63,11 @@ class OutlineExplorer(OutlineExplorerWidget, SpyderPluginMixin):
 
     def get_plugin_icon(self):
         """Return widget icon"""
+<<<<<<< HEAD
         return get_icon('outline_explorer.png')
+=======
+        return ima.icon('outline_explorer')
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     
     def get_focus_widget(self):
         """
@@ -63,8 +82,13 @@ class OutlineExplorer(OutlineExplorerWidget, SpyderPluginMixin):
     
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
+<<<<<<< HEAD
         self.connect(self.main, SIGNAL('restore_scrollbar_position()'),
                      self.restore_scrollbar_position)
+=======
+        self.main.restore_scrollbar_position.connect(
+                                               self.restore_scrollbar_position)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         self.main.add_dockwidget(self)
         
     def refresh_plugin(self):
@@ -81,7 +105,11 @@ class OutlineExplorer(OutlineExplorerWidget, SpyderPluginMixin):
         """DockWidget visibility has changed"""
         SpyderPluginMixin.visibility_changed(self, enable)
         if enable:
+<<<<<<< HEAD
             self.emit(SIGNAL("outlineexplorer_is_visible()"))
+=======
+            self.outlineexplorer_is_visible.emit()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
             
     #------ Public API ---------------------------------------------------------
     def restore_scrollbar_position(self):

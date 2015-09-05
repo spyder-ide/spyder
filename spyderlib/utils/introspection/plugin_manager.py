@@ -14,7 +14,11 @@ import os
 import imp
 import time
 
+<<<<<<< HEAD
 from spyderlib.baseconfig import DEBUG, get_conf_path, debug_print
+=======
+from spyderlib.config.base import DEBUG, get_conf_path, debug_print
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 from spyderlib.utils.introspection.module_completion import (
     get_preferred_submodules)
 from spyderlib.utils import sourcecode
@@ -53,7 +57,11 @@ class RequestHandler(QObject):
             self._make_async_call(plugin, code_info)
 
     def _handle_timeout(self):
+<<<<<<< HEAD
         debug_print('got timeout')
+=======
+        debug_print('got timeout: %s' % self.plugins)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         if self.pending:
             for plugin in self.plugins:
                 if plugin.name in self.pending:
@@ -69,7 +77,15 @@ class RequestHandler(QObject):
             return
         result = self._threads[name].result
         if name == self.plugins[0].name or not self.waiting:
+<<<<<<< HEAD
             self._finalize(name, result)
+=======
+            if result:
+                self._finalize(name, result)
+            else:
+                debug_print('No valid responses acquired')
+                self.introspection_complete.emit()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         else:
             self.pending[name] = result
 
@@ -84,7 +100,11 @@ class RequestHandler(QObject):
         self.waiting = False
         self.pending = None
         delta = time.time() - self._start_time
+<<<<<<< HEAD
         debug_print('%s request from %s complete: "%s" in %.1f sec'
+=======
+        debug_print('%s request from %s finished: "%s" in %.1f sec'
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
             % (self.info.name, name, str(result)[:100], delta))
         self.introspection_complete.emit()
 
@@ -136,11 +156,16 @@ class CodeInfo(object):
                                  re.UNICODE)
 
     def __init__(self, name, source_code, position, filename=None,
+<<<<<<< HEAD
             is_python_like=True, **kwargs):
+=======
+            is_python_like=True, in_comment_or_string=False, **kwargs):
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         self.__dict__.update(kwargs)
         self.name = name
         self.filename = filename
         self.source_code = source_code
+<<<<<<< HEAD
         self.position = position
         self.is_python_like = is_python_like
 
@@ -149,10 +174,43 @@ class CodeInfo(object):
             self.line_num = 0
             self.obj = None
             self.full_obj = None
+=======
+        self.is_python_like = is_python_like
+        self.in_comment_or_string = in_comment_or_string
+        self.position = position
+
+        # if in a comment, look for the previous definition
+        if in_comment_or_string:
+            # if this is a docstring, find it, set as our
+            self.docstring = self._get_docstring()
+            # backtrack and look for a line that starts with def or class
+            while position:
+                base = self.source_code[position: position + 6]
+                if base.startswith('def ') or base.startswith('class '):
+                    position += base.index(' ') + 1
+                    break
+                position -= 1
+        else:
+            self.docstring = ''
+
+        self.position = position
+
+        if position == 0:
+            self.lines = []
+            self.column = 0
+            self.line_num = 0
+            self.line = ''
+            self.obj = ''
+            self.full_obj = ''
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         else:
             self._get_info()
 
     def _get_info(self):
+<<<<<<< HEAD
+=======
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         self.lines = self.source_code[:self.position].splitlines()
         self.line_num = len(self.lines)
 
@@ -186,12 +244,37 @@ class CodeInfo(object):
         """
         Split our source code into valid identifiers.
 
+<<<<<<< HEAD
         P"""
+=======
+        """
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         if position is None:
             position = self.offset
         text = self.source_code[:position]
         return re.findall(self.id_regex, text)
 
+<<<<<<< HEAD
+=======
+    def _get_docstring(self):
+        """Find the docstring we are currently in"""
+        left = self.position
+        while left:
+            if self.source_code[left: left + 3] in ['"""', "'''"]:
+                left += 3
+                break
+            left -= 1
+        right = self.position
+        while right < len(self.source_code):
+            if self.source_code[right - 3: right] in ['"""', "'''"]:
+                right -= 3
+                break
+            right += 1
+        if left and right < len(self.source_code):
+            return self.source_code[left: right]
+        return ''
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def __eq__(self, other):
         try:
             return self.__dict__ == other.__dict__
@@ -240,6 +323,10 @@ class PluginManager(QObject):
 
         editor = self.editor_widget.get_current_editor()
         finfo = self.editor_widget.get_current_finfo()
+<<<<<<< HEAD
+=======
+        in_comment_or_string = editor.in_comment_or_string()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
         if position is None:
             position = editor.get_position('cursor')
@@ -249,7 +336,12 @@ class PluginManager(QObject):
         kwargs['editor_widget'] = self.editor_widget
 
         return CodeInfo(name, finfo.get_source_code(), position,
+<<<<<<< HEAD
             finfo.filename, editor.is_python_like, **kwargs)
+=======
+            finfo.filename, editor.is_python_like, in_comment_or_string,
+            **kwargs)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
     def get_completions(self, automatic):
         """Get code completion"""
@@ -294,12 +386,20 @@ class PluginManager(QObject):
 
     def _handle_request(self, info, desired=None):
         """Handle an incoming request from the user."""
+<<<<<<< HEAD
         debug_print('%s request:' % info.name)
+=======
+        debug_print('%s request' % info.name)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
         editor = info.editor
         if ((not editor.is_python_like())
                 or sourcecode.is_keyword(info.obj)
+<<<<<<< HEAD
                 or editor.in_comment_or_string()):
+=======
+                or (editor.in_comment_or_string() and info.name != 'info')):
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
             desired = 'fallback'
 
         self.pending = (info, desired)
@@ -318,11 +418,21 @@ class PluginManager(QObject):
 
         if desired:
             plugins = [self.plugins[desired]]
+<<<<<<< HEAD
         elif info.name == 'definition' and not info.editor.is_python():
             plugins = [p for p in self.plugins.values() if not p.busy]
         else:
             # use all but the fallback
             plugins = [p for p in list(self.plugins.values())[:-1] if not p.busy]
+=======
+        elif (info.name == 'definition' and not info.editor.is_python()
+              or info.name == 'info'):
+            plugins = [p for p in self.plugins.values() if not p.busy]
+        else:
+            # use all but the fallback
+            plugins = [p for p in list(self.plugins.values())[:-1]
+                       if not p. busy]
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
         self.request = RequestHandler(info, plugins)
         self.request.introspection_complete.connect(
@@ -375,7 +485,12 @@ class PluginManager(QObject):
             return
 
         if info.full_obj and len(info.full_obj) > len(info.obj):
+<<<<<<< HEAD
             new_list = [c for c in comp_list if c.startswith(info.full_obj)]
+=======
+            new_list = [(c, t) for (c, t) in comp_list
+                        if c.startswith(info.full_obj)]
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
             if new_list:
                 pos = info.editor.get_position('cursor')
                 new_pos = pos + len(info.full_obj) - len(info.obj)
@@ -386,8 +501,14 @@ class PluginManager(QObject):
         if '.' in completion_text:
             completion_text = completion_text.split('.')[-1]
 
+<<<<<<< HEAD
         comp_list = [c.split('.')[-1]  for c in comp_list]
         comp_list = [c for c in comp_list if c.startswith(completion_text)]
+=======
+        comp_list = [(c.split('.')[-1], t) for (c, t) in comp_list]
+        comp_list = [(c, t) for (c, t) in comp_list
+                     if c.startswith(completion_text)]
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
         info.editor.show_completion_list(comp_list, completion_text,
                                          prev_info.automatic)
@@ -429,9 +550,18 @@ class PluginManager(QObject):
         Post a message to the main window status bar with a timeout in ms
         """
         if self.editor_widget:
+<<<<<<< HEAD
             statusbar = self.editor_widget.window().statusBar()
             statusbar.showMessage(message, timeout)
             QApplication.processEvents()
+=======
+            try:
+                statusbar = self.editor_widget.window().statusBar()
+                statusbar.showMessage(message, timeout)
+                QApplication.processEvents()
+            except AttributeError:
+                pass
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
 
 def memoize(obj):

@@ -18,7 +18,10 @@ try:
 except:
     pass
 
+<<<<<<< HEAD
+=======
 
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 def sympy_config(mpl_backend):
     """Sympy configuration"""
     lines = """
@@ -33,7 +36,12 @@ def kernel_config():
     """Create a config object with IPython kernel options"""
     from IPython.config.loader import Config, load_pyconfig_files
     from IPython.core.application import get_ipython_dir
-    from spyderlib.config import CONF
+<<<<<<< HEAD
+    from spyderlib.start_app import CONF
+    #from spyderlib.config import CONF
+=======
+    from spyderlib.config.main import CONF
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     from spyderlib.utils.programs import is_module_installed
     
     # ---- IPython config ----

@@ -1,0 +1,156 @@
+# -*- coding: utf-8 -*-
+# Spyder's brazilian portuguese translation file
+# Valter Nazianzeno <manipuladordedados@gmail.com>, 2014.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2014-11-26 06:56+COT\n"
+"PO-Revision-Date: 2015-02-25 22:08-0400\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+"Last-Translator: Valter Nazianzeno <manipuladordedados@gmail.com>\n"
+"Language-Team: \n"
+"Language: pt_BR\n"
+"X-Generator: Poedit 1.7.4\n"
+
+#: spyderplugins/p_pylint.py:28
+msgid "Settings"
+msgstr "Configurações"
+
+#: spyderplugins/p_pylint.py:29
+msgid "Save file before analyzing it"
+msgstr "Salvar arquivo antes de analisá-lo"
+
+#: spyderplugins/p_pylint.py:32 spyderplugins/p_pylint.py:151
+msgid "History"
+msgstr "Histórico"
+
+#: spyderplugins/p_pylint.py:33
+msgid "The following option will be applied at next startup."
+msgstr "A seguinte opção será aplicada na próxima vez que o Spyder for iniciado."
+
+#: spyderplugins/p_pylint.py:36
+msgid "History: "
+msgstr "Histórico:"
+
+#: spyderplugins/p_pylint.py:37
+msgid " results"
+msgstr " resultados"
+
+#: spyderplugins/p_pylint.py:40
+msgid "Results"
+msgstr "Resultados"
+
+#: spyderplugins/p_pylint.py:41
+msgid "Results are stored here:"
+msgstr "Os resultados são armazenados aqui:"
+
+#: spyderplugins/p_pylint.py:89 spyderplugins/widgets/pylintgui.py:64
+msgid "Static code analysis"
+msgstr "Análise de código"
+
+#: spyderplugins/p_pylint.py:105
+msgid "History..."
+msgstr "Histórico..."
+
+#: spyderplugins/p_pylint.py:107
+msgid "Set history maximum entries"
+msgstr "Definir número máximo de entradas para o histórico"
+
+#: spyderplugins/p_pylint.py:125
+msgid "Run static code analysis"
+msgstr "Executar análise de código"
+
+#: spyderplugins/p_pylint.py:152
+msgid "Maximum entries"
+msgstr "Número máximo de entradas"
+
+#: spyderplugins/widgets/pylintgui.py:99
+msgid "Results for "
+msgstr "Resultados para "
+
+#: spyderplugins/widgets/pylintgui.py:104
+msgid "Convention"
+msgstr "Convention"
+
+#: spyderplugins/widgets/pylintgui.py:106
+msgid "Refactor"
+msgstr "Refatoração"
+
+#: spyderplugins/widgets/pylintgui.py:108
+msgid "Warning"
+msgstr "Aviso"
+
+#: spyderplugins/widgets/pylintgui.py:110
+#: spyderplugins/widgets/pylintgui.py:344
+#: spyderplugins/widgets/pylintgui.py:372
+msgid "Error"
+msgstr "Erro"
+
+#: spyderplugins/widgets/pylintgui.py:187
+msgid "Analyze"
+msgstr "Analisar"
+
+#: spyderplugins/widgets/pylintgui.py:188
+msgid "Run analysis"
+msgstr "Executar análise"
+
+#: spyderplugins/widgets/pylintgui.py:192
+msgid "Stop"
+msgstr "Parar"
+
+#: spyderplugins/widgets/pylintgui.py:193
+msgid "Stop current analysis"
+msgstr "Parar análise atual"
+
+#: spyderplugins/widgets/pylintgui.py:200
+#: spyderplugins/widgets/pylintgui.py:269
+msgid "Select Python file"
+msgstr "Selecionar arquivo Python"
+
+#: spyderplugins/widgets/pylintgui.py:206
+msgid "Output"
+msgstr "Saída"
+
+#: spyderplugins/widgets/pylintgui.py:208
+msgid "Complete output"
+msgstr "Saída completa"
+
+#: spyderplugins/widgets/pylintgui.py:242
+msgid "Pylint script was not found. Please add \"%s\" to PATH."
+msgstr "O script do Pylint não foi encontrada. Por favor adicione \"%s\" ao PATH."
+
+#: spyderplugins/widgets/pylintgui.py:245
+msgid "Please install <b>pylint</b>:"
+msgstr "Por favor instale o <b>pylint</b>:"
+
+#: spyderplugins/widgets/pylintgui.py:270
+msgid "Python files"
+msgstr "Arquivos Python"
+
+#: spyderplugins/widgets/pylintgui.py:306
+msgid "Pylint output"
+msgstr "Saída do Pylint"
+
+#: spyderplugins/widgets/pylintgui.py:345
+msgid "Process failed to start"
+msgstr "O processo falhou ao iniciar"
+
+#: spyderplugins/widgets/pylintgui.py:446
+msgid "Source code has not been rated yet."
+msgstr "O código fonte não foi avaliado ainda."
+
+#: spyderplugins/widgets/pylintgui.py:452
+msgid "Analysis did not succeed (see output for more details)."
+msgstr "A análise não foi bem sucedida (veja a saída para mais detalhes)."
+
+#: spyderplugins/widgets/pylintgui.py:465
+msgid "Global evaluation:"
+msgstr "Avaliação global:"
+
+#: spyderplugins/widgets/pylintgui.py:469
+msgid "previous run:"
+msgstr "análise anterior:"

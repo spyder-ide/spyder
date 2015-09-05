@@ -12,12 +12,13 @@
 # pylint: disable=R0201
 
 from spyderlib.qt.QtGui import QInputDialog, QVBoxLayout, QGroupBox, QLabel
-from spyderlib.qt.QtCore import SIGNAL, Qt
+from spyderlib.qt.QtCore import Signal, Qt
+import spyderlib.utils.icon_manager as ima 
 
 # Local imports
-from spyderlib.baseconfig import get_translation
+from spyderlib.config.base import get_translation
 _ = get_translation("p_pylint", dirname="spyderplugins")
-from spyderlib.utils.qthelpers import get_icon, create_action
+from spyderlib.utils.qthelpers import create_action
 from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage
 
 from spyderplugins.widgets.pylintgui import PylintWidget, PYLINT_PATH
@@ -75,6 +76,8 @@ class Pylint(PylintWidget, SpyderPluginMixin):
     """Python source code analysis based on pylint"""
     CONF_SECTION = 'pylint'
     CONFIGWIDGET_CLASS = PylintConfigPage
+    edit_goto = Signal(str, int, str)
+
     def __init__(self, parent=None):
         PylintWidget.__init__(self, parent=parent,
                               max_entries=self.get_option('max_entries', 50))
@@ -90,7 +93,7 @@ class Pylint(PylintWidget, SpyderPluginMixin):
     
     def get_plugin_icon(self):
         """Return widget icon"""
-        return get_icon('pylint.png')
+        return ima.icon('pylint')
     
     def get_focus_widget(self):
         """
@@ -103,7 +106,7 @@ class Pylint(PylintWidget, SpyderPluginMixin):
         """Return a list of actions related to plugin"""
         # Font
         history_action = create_action(self, _("History..."),
-                                       None, 'history.png',
+                                       None, ima.icon('history'),
                                        _("Set history maximum entries"),
                                        triggered=self.change_history_depth)
         self.treewidget.common_actions += (None, history_action)
@@ -116,10 +119,8 @@ class Pylint(PylintWidget, SpyderPluginMixin):
 
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
-        self.connect(self, SIGNAL("edit_goto(QString,int,QString)"),
-                     self.main.editor.load)
-        self.connect(self, SIGNAL('redirect_stdio(bool)'),
-                     self.main.redirect_internalshell_stdio)
+        self.edit_goto.connect(self.main.editor.load)
+        self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
         self.main.add_dockwidget(self)
         
         pylint_act = create_action(self, _("Run static code analysis"),

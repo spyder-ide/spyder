@@ -9,23 +9,41 @@
 import os
 
 from spyderlib.qt.QtGui import QMessageBox
+<<<<<<< HEAD
 from spyderlib.qt.QtCore import QProcess, SIGNAL, QTextCodec
+=======
+from spyderlib.qt.QtCore import (QProcess, Signal, QTextCodec,
+                                 QProcessEnvironment)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 LOCALE_CODEC = QTextCodec.codecForLocale()
 CP850_CODEC = QTextCodec.codecForName('cp850')
 
 # Local imports
 from spyderlib.utils.programs import shell_split
+<<<<<<< HEAD
 from spyderlib.baseconfig import _
 from spyderlib.utils.qthelpers import get_icon
+=======
+from spyderlib.config.base import _
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 from spyderlib.widgets.externalshell.baseshell import (ExternalShellBase,
                                                    add_pathlist_to_PYTHONPATH)
 from spyderlib.widgets.shell import TerminalWidget
 from spyderlib.py3compat import to_text_string, is_text_string
+<<<<<<< HEAD
+=======
+import spyderlib.utils.icon_manager as ima
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
 
 class ExternalSystemShell(ExternalShellBase):
     """External Shell widget: execute Python script in a separate process"""
     SHELL_CLASS = TerminalWidget
+<<<<<<< HEAD
+=======
+    started = Signal()
+    
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def __init__(self, parent=None, wdir=None, path=[], light_background=True,
                  menu_actions=None, show_buttons_inside=True,
                  show_elapsed_time=True):
@@ -45,7 +63,11 @@ class ExternalSystemShell(ExternalShellBase):
         self.connection_file = None
 
     def get_icon(self):
+<<<<<<< HEAD
         return get_icon('cmdprompt.png')
+=======
+        return ima.icon('cmdprompt')
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     
     def create_process(self):
         self.shell.clear()
@@ -56,8 +78,20 @@ class ExternalSystemShell(ExternalShellBase):
         # PYTHONPATH (in case we use Python in this terminal, e.g. py2exe)
         env = [to_text_string(_path)
                for _path in self.process.systemEnvironment()]
+<<<<<<< HEAD
         add_pathlist_to_PYTHONPATH(env, self.path)
         self.process.setEnvironment(env)
+=======
+
+        processEnvironment = QProcessEnvironment()
+        for envItem in env:
+            envName, separator, envValue = envItem.partition('=')
+            processEnvironment.insert(envName, envValue)
+
+        add_pathlist_to_PYTHONPATH(env, self.path)
+        self.process.setProcessEnvironment(processEnvironment)                   
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         
         # Working directory
         if self.wdir is not None:
@@ -71,6 +105,7 @@ class ExternalSystemShell(ExternalShellBase):
             
         if self.arguments:
             p_args.extend( shell_split(self.arguments) )
+<<<<<<< HEAD
                         
         self.connect(self.process, SIGNAL("readyReadStandardOutput()"),
                      self.write_output)
@@ -79,6 +114,12 @@ class ExternalSystemShell(ExternalShellBase):
         
         self.connect(self.kill_button, SIGNAL("clicked()"),
                      self.process.kill)
+=======
+        
+        self.process.readyReadStandardOutput.connect(self.write_output)
+        self.process.finished.connect(self.finished)
+        self.kill_button.clicked.connect(self.process.kill)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         
         if os.name == 'nt':
             self.process.start('cmd.exe', p_args)
@@ -94,7 +135,11 @@ class ExternalSystemShell(ExternalShellBase):
                                  _("Process failed to start"))
         else:
             self.shell.setFocus()
+<<<<<<< HEAD
             self.emit(SIGNAL('started()'))
+=======
+            self.started.emit()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
             
         return self.process
     

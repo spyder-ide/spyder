@@ -9,6 +9,7 @@
 from spyderlib.qt.QtGui import (QDialog, QTableView, QItemDelegate, QColor,
                                 QVBoxLayout, QHBoxLayout, QPushButton,
                                 QApplication, QLabel, QDialogButtonBox)
+<<<<<<< HEAD
 from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, SIGNAL,
                                  SLOT)
 from spyderlib.qt.compat import to_qvariant
@@ -17,6 +18,15 @@ import sys
 # Local imports
 from spyderlib.baseconfig import _
 from spyderlib.utils.qthelpers import get_icon
+=======
+from spyderlib.qt.QtCore import Qt, QModelIndex, QAbstractTableModel
+from spyderlib.qt.compat import to_qvariant
+import spyderlib.utils.icon_manager as ima
+import sys
+
+# Local imports
+from spyderlib.config.base import _
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 from spyderlib import __version__
 
 
@@ -91,6 +101,13 @@ class DependenciesTableModel(QAbstractTableModel):
                 color.setAlphaF(.25)
                 return to_qvariant(color)
 
+<<<<<<< HEAD
+=======
+    def reset(self):
+        self.beginResetModel()
+        self.endResetModel()
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
 class DependenciesDelegate(QItemDelegate):
     def __init__(self, parent=None):
@@ -125,7 +142,11 @@ class DependenciesDialog(QDialog):
         QDialog.__init__(self, parent)
         self.setWindowTitle("Spyder %s: %s" % (__version__,
                                                _("Optional Dependencies")))
+<<<<<<< HEAD
         self.setWindowIcon(get_icon('advanced.png'))
+=======
+        self.setWindowIcon(ima.icon('tooloptions'))
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         self.setModal(True)
 
         self.view = DependenciesTableView(self, [])
@@ -147,9 +168,15 @@ class DependenciesDialog(QDialog):
         self.label.setContentsMargins(5, 8, 12, 10)
 
         btn = QPushButton(_("Copy to clipboard"), )
+<<<<<<< HEAD
         self.connect(btn, SIGNAL('clicked()'), self.copy_to_clipboard)
         bbox = QDialogButtonBox(QDialogButtonBox.Ok)
         self.connect(bbox, SIGNAL("accepted()"), SLOT("accept()"))
+=======
+        btn.clicked.connect(self.copy_to_clipboard)
+        bbox = QDialogButtonBox(QDialogButtonBox.Ok)
+        bbox.accepted.connect(self.accept)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         hlayout = QHBoxLayout()
         hlayout.addWidget(btn)
         hlayout.addStretch()

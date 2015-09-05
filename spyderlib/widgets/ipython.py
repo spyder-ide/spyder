@@ -22,10 +22,15 @@ import time
 from spyderlib.qt.QtGui import (QTextEdit, QKeySequence, QWidget, QMenu,
                                 QHBoxLayout, QToolButton, QVBoxLayout,
                                 QMessageBox)
+<<<<<<< HEAD
 from spyderlib.qt.QtCore import SIGNAL, Qt
 
 from spyderlib import pygments_patch
 pygments_patch.apply()
+=======
+from spyderlib.qt.QtCore import Signal, Slot, Qt
+import spyderlib.utils.icon_manager as ima
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
 # IPython imports
 try:
@@ -38,20 +43,36 @@ from IPython.core.oinspect import call_tip
 from IPython.config.loader import Config, load_pyconfig_files
 
 # Local imports
+<<<<<<< HEAD
 from spyderlib.baseconfig import (get_conf_path, get_image_path,
                                   get_module_source_path, _)
-from spyderlib.config import CONF
+from spyderlib.start_app import CONF
+#from spyderlib.config import CONF
 from spyderlib.guiconfig import (create_shortcut, get_font, get_shortcut,
                                  new_shortcut)
 from spyderlib.utils.dochelpers import getargspecfromtext, getsignaturefromtext
 from spyderlib.utils.qthelpers import (get_std_icon, create_toolbutton,
                                        add_actions, create_action, get_icon,
                                        restore_keyevent)
+=======
+from spyderlib.config.base import (get_conf_path, get_image_path,
+                                   get_module_source_path, _)
+from spyderlib.config.main import CONF
+from spyderlib.config.gui import (create_shortcut, get_font, get_shortcut,
+                                  new_shortcut)
+from spyderlib.utils.dochelpers import getargspecfromtext, getsignaturefromtext
+from spyderlib.utils.qthelpers import (create_toolbutton, add_actions, 
+                                       create_action, restore_keyevent)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 from spyderlib.utils import programs, sourcecode
 from spyderlib.widgets.browser import WebView
 from spyderlib.widgets.calltip import CallTipWidget
 from spyderlib.widgets.mixins import (BaseEditMixin, InspectObjectMixin,
                                       SaveHistoryMixin, TracebackLinksMixin)
+<<<<<<< HEAD
+=======
+from spyderlib.widgets.arraybuilder import (SHORTCUT_INLINE, SHORTCUT_TABLE)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 from spyderlib.py3compat import PY3
 
 
@@ -78,6 +99,13 @@ class IPythonControlWidget(TracebackLinksMixin, InspectObjectMixin, QTextEdit,
     control widget for IPython widgets
     """
     QT_CLASS = QTextEdit
+<<<<<<< HEAD
+=======
+    visibility_changed = Signal(bool)
+    go_to_error = Signal(str)
+    focus_changed = Signal()
+    
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def __init__(self, parent=None):
         QTextEdit.__init__(self, parent)
         BaseEditMixin.__init__(self)
@@ -92,7 +120,11 @@ class IPythonControlWidget(TracebackLinksMixin, InspectObjectMixin, QTextEdit,
 
     def showEvent(self, event):
         """Reimplement Qt Method"""
+<<<<<<< HEAD
         self.emit(SIGNAL("visibility_changed(bool)"), True)
+=======
+        self.visibility_changed.emit(True)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
     def _key_question(self, text):
         """ Action for '?' and '(' """
@@ -116,12 +148,20 @@ class IPythonControlWidget(TracebackLinksMixin, InspectObjectMixin, QTextEdit,
 
     def focusInEvent(self, event):
         """Reimplement Qt method to send focus change notification"""
+<<<<<<< HEAD
         self.emit(SIGNAL('focus_changed()'))
+=======
+        self.focus_changed.emit()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         return super(IPythonControlWidget, self).focusInEvent(event)
     
     def focusOutEvent(self, event):
         """Reimplement Qt method to send focus change notification"""
+<<<<<<< HEAD
         self.emit(SIGNAL('focus_changed()'))
+=======
+        self.focus_changed.emit()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         return super(IPythonControlWidget, self).focusOutEvent(event)
 
 
@@ -131,6 +171,13 @@ class IPythonPageControlWidget(QTextEdit, BaseEditMixin):
     use as the paging widget for IPython widgets
     """
     QT_CLASS = QTextEdit
+<<<<<<< HEAD
+=======
+    visibility_changed = Signal(bool)
+    show_find_widget = Signal()
+    focus_changed = Signal()
+    
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def __init__(self, parent=None):
         QTextEdit.__init__(self, parent)
         BaseEditMixin.__init__(self)
@@ -138,23 +185,39 @@ class IPythonPageControlWidget(QTextEdit, BaseEditMixin):
     
     def showEvent(self, event):
         """Reimplement Qt Method"""
+<<<<<<< HEAD
         self.emit(SIGNAL("visibility_changed(bool)"), True)
+=======
+        self.visibility_changed.emit(True)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     
     def keyPressEvent(self, event):
         """Reimplement Qt Method - Basic keypress event handler"""
         event, text, key, ctrl, shift = restore_keyevent(event)
         
         if key == Qt.Key_Slash and self.isVisible():
+<<<<<<< HEAD
             self.emit(SIGNAL("show_find_widget()"))
 
     def focusInEvent(self, event):
         """Reimplement Qt method to send focus change notification"""
         self.emit(SIGNAL('focus_changed()'))
+=======
+            self.show_find_widget.emit()
+
+    def focusInEvent(self, event):
+        """Reimplement Qt method to send focus change notification"""
+        self.focus_changed.emit()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         return super(IPythonPageControlWidget, self).focusInEvent(event)
     
     def focusOutEvent(self, event):
         """Reimplement Qt method to send focus change notification"""
+<<<<<<< HEAD
         self.emit(SIGNAL('focus_changed()'))
+=======
+        self.focus_changed.emit()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         return super(IPythonPageControlWidget, self).focusOutEvent(event)
 
 
@@ -168,6 +231,12 @@ class IPythonShellWidget(RichIPythonWidget):
     This class has custom control and page_control widgets, additional methods
     to provide missing functionality and a couple more keyboard shortcuts.
     """
+<<<<<<< HEAD
+=======
+    focus_changed = Signal()
+    new_client = Signal()
+    
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def __init__(self, *args, **kw):
         # To override the Qt widget used by RichIPythonWidget
         self.custom_control = IPythonControlWidget
@@ -228,6 +297,7 @@ These commands were executed:
         banner = 'Python %s on %s -- IPython %s' % (py_ver, sys.platform,
                                                     version)
         return banner
+<<<<<<< HEAD
     
     def clear_console(self):
         self.execute("%clear")
@@ -239,6 +309,16 @@ These commands were executed:
         except AttributeError:
             self.kernel_client.input(line)
     
+=======
+
+    def clear_console(self):
+        self.execute("%clear")
+
+    def write_to_stdin(self, line):
+        """Send raw characters to the IPython kernel through stdin"""
+        self.kernel_client.input(line)
+
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def set_background_color(self):
         lightbg_o = CONF.get('ipython_console', 'light_color')
         if not lightbg_o:
@@ -252,8 +332,16 @@ These commands were executed:
                                         name='Clear shell', parent=self)
 
         # Fixed shortcuts
+<<<<<<< HEAD
         new_shortcut("Ctrl+T", self,
                      lambda: self.emit(SIGNAL("new_ipyclient()")))
+=======
+        new_shortcut("Ctrl+T", self, lambda: self.new_client.emit())
+        new_shortcut(SHORTCUT_INLINE, self,
+                     lambda: self._control.enter_array_inline())
+        new_shortcut(SHORTCUT_TABLE, self,
+                     lambda: self._control.enter_array_table())
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
         return [inspect, clear_console]
 
@@ -362,12 +450,20 @@ These commands were executed:
     #---- Qt methods ----------------------------------------------------------
     def focusInEvent(self, event):
         """Reimplement Qt method to send focus change notification"""
+<<<<<<< HEAD
         self.emit(SIGNAL('focus_changed()'))
+=======
+        self.focus_changed.emit()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         return super(IPythonShellWidget, self).focusInEvent(event)
     
     def focusOutEvent(self, event):
         """Reimplement Qt method to send focus change notification"""
+<<<<<<< HEAD
         self.emit(SIGNAL('focus_changed()'))
+=======
+        self.focus_changed.emit()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         return super(IPythonShellWidget, self).focusOutEvent(event)
 
 
@@ -379,11 +475,19 @@ class IPythonClient(QWidget, SaveHistoryMixin):
     IPython client or frontend for Spyder
 
     This is a widget composed of a shell widget (i.e. RichIPythonWidget
+<<<<<<< HEAD
     + our additions = IPythonShellWidget) and an WebView info widget to 
+=======
+    + our additions = IPythonShellWidget) and a WebView info widget to 
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     print kernel error and other messages.
     """
     
     SEPARATOR = '%s##---(%s)---' % (os.linesep*2, time.ctime())
+<<<<<<< HEAD
+=======
+    append_to_history = Signal(str, str)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     
     def __init__(self, plugin, name, history_filename, connection_file=None, 
                  hostname=None, sshkey=None, password=None, 
@@ -394,8 +498,12 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         
         # stop button and icon
         self.stop_button = None
+<<<<<<< HEAD
         self.stop_icon = get_icon("stop.png")
         
+=======
+        self.stop_icon = ima.icon('stop')        
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         self.connection_file = connection_file
         self.kernel_widget_id = kernel_widget_id
         self.hostname = hostname
@@ -464,8 +572,15 @@ class IPythonClient(QWidget, SaveHistoryMixin):
    
     def disable_stop_button(self):
         self.stop_button.setDisabled(True)
+<<<<<<< HEAD
         
     def stop_button_click_handler(self):
+=======
+
+    @Slot()
+    def stop_button_click_handler(self):
+        """Method to handle what to do when the stop button is pressed"""
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         self.stop_button.setDisabled(True)
         # Interrupt computations or stop debugging
         if not self.shellwidget._reading:
@@ -500,6 +615,10 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         self.infowidget.setHtml(page)
     
     def show_restart_animation(self):
+<<<<<<< HEAD
+=======
+        """Show loading_page while restarting the kernel"""
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         self.shellwidget.hide()
         self.infowidget.setHtml(self.loading_page)
         self.infowidget.show()
@@ -522,7 +641,11 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         """Return options menu"""
         restart_action = create_action(self, _("Restart kernel"),
                                        shortcut=QKeySequence("Ctrl+."),
+<<<<<<< HEAD
                                        icon=get_icon('restart.png'),
+=======
+                                       icon=ima.icon('restart'),
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
                                        triggered=self.restart_kernel)
         restart_action.setShortcutContext(Qt.WidgetWithChildrenShortcut)
         
@@ -553,7 +676,11 @@ class IPythonClient(QWidget, SaveHistoryMixin):
             options = self.get_options_menu()
             if options:
                 self.options_button = create_toolbutton(self,
+<<<<<<< HEAD
                         text=_("Options"), icon=get_icon('tooloptions.png'))
+=======
+                        text=_('Options'), icon=ima.icon('tooloptions'))
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
                 self.options_button.setPopupMode(QToolButton.InstantPopup)
                 menu = QMenu(self)
                 add_actions(menu, options)
@@ -569,18 +696,32 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         inspect_action = create_action(self, _("Inspect current object"),
                                     QKeySequence(get_shortcut('console',
                                                     'inspect current object')),
+<<<<<<< HEAD
                                     icon=get_std_icon('MessageBoxInformation'),
                                     triggered=self.inspect_object)
         clear_line_action = create_action(self, _("Clear line or block"),
                                           QKeySequence("Shift+Escape"),
                                           icon=get_icon('eraser.png'),
+=======
+                                    icon=ima.icon('MessageBoxInformation'),
+                                    triggered=self.inspect_object)
+        clear_line_action = create_action(self, _("Clear line or block"),
+                                          QKeySequence("Shift+Escape"),
+                                          icon=ima.icon('editdelete'),
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
                                           triggered=self.clear_line)
         clear_console_action = create_action(self, _("Clear console"),
                                              QKeySequence(get_shortcut('console',
                                                                'clear shell')),
+<<<<<<< HEAD
                                              icon=get_icon('clear.png'),
                                              triggered=self.clear_console)
         quit_action = create_action(self, _("&Quit"), icon='exit.png',
+=======
+                                             icon=ima.icon('editclear'),
+                                             triggered=self.clear_console)
+        quit_action = create_action(self, _("&Quit"), icon=ima.icon('exit'),
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
                                     triggered=self.exit_callback)
         add_actions(menu, (None, inspect_action, clear_line_action,
                            clear_console_action, None, quit_action))
@@ -592,12 +733,17 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         self.shellwidget.font = font
     
     def set_infowidget_font(self):
+<<<<<<< HEAD
+=======
+        """Set font for infowidget"""
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         font = get_font('inspector', 'rich_text')
         self.infowidget.set_font(font)
     
     def interrupt_kernel(self):
         """Interrupt the associanted Spyder kernel if it's running"""
         self.shellwidget.request_interrupt_kernel()
+<<<<<<< HEAD
     
     def restart_kernel(self):
         """Restart the associanted Spyder kernel"""
@@ -611,6 +757,25 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         """Clear a console line"""
         self.shellwidget._keyboard_quit()
     
+=======
+
+    @Slot()
+    def restart_kernel(self):
+        """Restart the associanted Spyder kernel"""
+        self.shellwidget.request_restart_kernel()
+
+    @Slot()
+    def inspect_object(self):
+        """Show how to inspect an object with our object inspector"""
+        self.shellwidget._control.inspect_current_object()
+
+    @Slot()
+    def clear_line(self):
+        """Clear a console line"""
+        self.shellwidget._keyboard_quit()
+
+    @Slot()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def clear_console(self):
         """Clear the whole console"""
         self.shellwidget.execute("%clear")
@@ -628,6 +793,13 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         self.history = self.shellwidget._history
     
     def set_backend_for_mayavi(self, command):
+<<<<<<< HEAD
+=======
+        """
+        Mayavi plots require the Qt backend, so we try to detect if one is
+        generated to change backends
+        """
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         calling_mayavi = False
         lines = command.splitlines()
         for l in lines:
@@ -668,7 +840,12 @@ class IPythonClient(QWidget, SaveHistoryMixin):
             self.namespacebrowser.refresh_table()
     
     def shellwidget_config(self):
+<<<<<<< HEAD
         """Generate a Config instance for shell widgets using our config
+=======
+        """
+        Generate a Config instance for shell widgets using our config
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         system
         
         This lets us create each widget with its own config (as opposed to
@@ -693,9 +870,15 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         spy_cfg.IPythonWidget.kind = 'rich'
         
         # Gui completion widget
+<<<<<<< HEAD
         gui_comp_o = self.get_option('use_gui_completion')
         completions = {True: 'droplist', False: 'ncurses'}
         spy_cfg.IPythonWidget.gui_completion = completions[gui_comp_o]
+=======
+        completion_type_o = CONF.get('ipython_console', 'completion_type')
+        completions = {0: "droplist", 1: "ncurses", 2: "plain"}
+        spy_cfg.IPythonWidget.gui_completion = completions[completion_type_o]
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
         # Pager
         pager_o = self.get_option('use_pager')
@@ -727,6 +910,10 @@ class IPythonClient(QWidget, SaveHistoryMixin):
     
     #------ Private API -------------------------------------------------------
     def _create_loading_page(self):
+<<<<<<< HEAD
+=======
+        """Create html page to show while the kernel is created"""
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         loading_template = Template(LOADING)
         loading_img = get_image_path('loading_sprites.png')
         if os.name == 'nt':

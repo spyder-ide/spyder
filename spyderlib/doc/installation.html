@@ -1,0 +1,396 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Installation &mdash; Spyder 2.3 documentation</title>
+    
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '2.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+    <link rel="top" title="Spyder 2.3 documentation" href="index.html" />
+    <link rel="next" title="Command line options" href="options.html" />
+    <link rel="prev" title="Overview" href="overview.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="options.html" title="Command line options"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="overview.html" title="Overview"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Spyder 2.3 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/spyder_bbg.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Installation</a><ul>
+<li><a class="reference internal" href="#installing-on-macos-x">Installing on MacOS X</a><ul>
+<li><a class="reference internal" href="#the-easy-way">The easy way</a></li>
+<li><a class="reference internal" href="#the-hard-way">The hard way</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#installing-on-linux">Installing on Linux</a></li>
+<li><a class="reference internal" href="#installing-on-windows-xp-vista-7-8">Installing on Windows XP/Vista/7/8</a><ul>
+<li><a class="reference internal" href="#id3">The easy way</a></li>
+<li><a class="reference internal" href="#id4">The hard way</a></li>
+<li><a class="reference internal" href="#updating-spyder">Updating Spyder</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#installing-or-running-directly-from-source">Installing or running directly from source</a><ul>
+<li><a class="reference internal" href="#requirements">Requirements</a></li>
+<li><a class="reference internal" href="#recommended-modules">Recommended modules</a></li>
+<li><a class="reference internal" href="#installation-procedure">Installation procedure</a></li>
+<li><a class="reference internal" href="#run-without-installing">Run without installing</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#installing-the-development-version">Installing the development version</a></li>
+<li><a class="reference internal" href="#help-and-support">Help and support</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="overview.html"
+                        title="previous chapter">Overview</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="options.html"
+                        title="next chapter">Command line options</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/installation.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="installation">
+<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
+<p>Spyder is quite easy to install on Windows, Linux and MacOS X. Just the read the
+following instructions with care.</p>
+<div class="section" id="installing-on-macos-x">
+<h2>Installing on MacOS X<a class="headerlink" href="#installing-on-macos-x" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="the-easy-way">
+<h3>The easy way<a class="headerlink" href="#the-easy-way" title="Permalink to this headline">¶</a></h3>
+<p>Thanks to the Spyder team and <a class="reference external" href="http://www.continuum.io/">Continuum</a>, you have
+two alternatives:</p>
+<ol class="arabic simple">
+<li>Use the Anaconda Python distribution, which can be downloaded on this
+<a class="reference external" href="http://continuum.io/downloads.html">site</a>.</li>
+<li>Use our dmg installer, which can be found
+<a class="reference external" href="https://github.com/spyder-ide/spyder/releases">here</a>.</li>
+</ol>
+<blockquote>
+<div><div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The minimal MacOS X version to run our dmg is Mavericks (10.9) since
+Spyder 2.3.5. Previous versions work on Lion (10.7) or higher.</p>
+</div>
+</div></blockquote>
+</div>
+<div class="section" id="the-hard-way">
+<h3>The hard way<a class="headerlink" href="#the-hard-way" title="Permalink to this headline">¶</a></h3>
+<p>Thanks to the <em>MacPorts</em> project, Spyder can be installed using its <code class="docutils literal"><span class="pre">port</span></code> package manager.
+There are <a class="reference external" href="http://www.macports.org/ports.php?by=name&amp;substr=spyder">several versions</a> available from which you can choose from.</p>
+<blockquote>
+<div><div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p>It is known that the MacPorts version of Spyder is raising this error:
+<code class="docutils literal"><span class="pre">ValueError:</span> <span class="pre">unknown</span> <span class="pre">locale:</span> <span class="pre">UTF-8</span></code>, which doesn&#8217;t let it start correctly.</p>
+<p>To fix it you will have to set these environment variables in your
+<code class="docutils literal"><span class="pre">~/.profile</span></code> (or <code class="docutils literal"><span class="pre">~/.bashrc</span></code>) manually:</p>
+<div class="last highlight-python"><div class="highlight"><pre>export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+</pre></div>
+</div>
+</div>
+</div></blockquote>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</div>
+</div>
+<div class="section" id="installing-on-linux">
+<h2>Installing on Linux<a class="headerlink" href="#installing-on-linux" title="Permalink to this headline">¶</a></h2>
+<p>Please refer to the <a class="reference internal" href="#recommended-modules">Recommended modules</a> section to see what other packages you
+might need.</p>
+<ol class="arabic">
+<li><p class="first"><strong>Ubuntu</strong>:</p>
+<ul>
+<li><p class="first">Using the official package manager: <code class="docutils literal"><span class="pre">sudo</span> <span class="pre">apt-get</span> <span class="pre">install</span> <span class="pre">spyder</span></code>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This package could be slightly outdated. If you find that is the case,
+please use the Debian package mentioned below.</p>
+</div>
+</li>
+<li><p class="first">Using the <a class="reference external" href="https://pypi.python.org/pypi/pip/">pip</a> package manager:</p>
+<ul class="simple">
+<li>Requirements: <code class="docutils literal"><span class="pre">sudo</span> <span class="pre">apt-get</span> <span class="pre">install</span> <span class="pre">python-qt4</span> <span class="pre">python-sphinx</span></code></li>
+<li>Installing: <code class="docutils literal"><span class="pre">sudo</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">spyder</span></code></li>
+<li>Updating: <code class="docutils literal"><span class="pre">sudo</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-U</span> <span class="pre">spyder</span></code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p class="first"><strong>Debian Unstable</strong>:</p>
+<p>Using the package manager: <code class="docutils literal"><span class="pre">sudo</span> <span class="pre">apt-get</span> <span class="pre">install</span> <span class="pre">spyder</span></code></p>
+<p>The Spyder&#8217;s official Debian package is available <a class="reference external" href="http://packages.debian.org/fr/sid/spyder.">here</a></p>
+</li>
+<li><p class="first"><strong>Other Distributions</strong></p>
+<p>Spyder is also available in other GNU/Linux distributions, like</p>
+<ul class="simple">
+<li><a class="reference external" href="https://aur.archlinux.org/packages/?K=spyder">Archlinux</a></li>
+<li><a class="reference external" href="https://admin.fedoraproject.org/pkgdb/acls/name/spyder?_csrf_token=ab2ac812ed6df3abdf42981038a56d3d87b34128">Fedora</a></li>
+<li><a class="reference external" href="http://packages.gentoo.org/package/dev-python/spyder">Gentoo</a></li>
+<li><a class="reference external" href="https://build.opensuse.org/package/show?package=python-spyder&amp;project=home%3Aocefpaf">openSUSE</a></li>
+<li><a class="reference external" href="http://mageia.madb.org/package/show/name/spyder">Mageia</a></li>
+</ul>
+<p>Please refer to your distribution&#8217;s documentation to learn how to install it
+there.</p>
+</li>
+</ol>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</div>
+<div class="section" id="installing-on-windows-xp-vista-7-8">
+<h2>Installing on Windows XP/Vista/7/8<a class="headerlink" href="#installing-on-windows-xp-vista-7-8" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id3">
+<h3>The easy way<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<p>Spyder is already included in these <em>Python Scientific Distributions</em>:</p>
+<ol class="arabic simple">
+<li><a class="reference external" href="https://code.google.com/p/pythonxy">Python(x,y)</a></li>
+<li><a class="reference external" href="https://winpython.github.io/">WinPython</a></li>
+<li><a class="reference external" href="http://continuum.io/downloads.html">Anaconda</a></li>
+</ol>
+<p>You can start using it immediately after installing one of them (you only need
+to install one!).</p>
+</div>
+<div class="section" id="id4">
+<h3>The hard way<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<p>If you want to install Spyder directly, you need to follow these steps:</p>
+<ol class="arabic">
+<li><p class="first">Install the essential requirements:</p>
+<ul class="simple">
+<li><a class="reference external" href="http://www.python.org/">The Python language</a></li>
+<li><a class="reference external" href="http://www.riverbankcomputing.co.uk/software/pyqt/download">PyQt4</a></li>
+</ul>
+</li>
+<li><p class="first">Install optional modules:</p>
+<p>Please refer to the <a class="reference internal" href="#recommended-modules">Recommended modules</a> section to see what other packages
+you might need.</p>
+</li>
+<li><p class="first">Installing Spyder itself:</p>
+<p>You need to download and install the .exe file that corresponds to your Python
+version and architecture from
+<a class="reference external" href="https://github.com/spyder-ide/spyder/releases">this page</a>.</p>
+</li>
+</ol>
+</div>
+<div class="section" id="updating-spyder">
+<h3>Updating Spyder<a class="headerlink" href="#updating-spyder" title="Permalink to this headline">¶</a></h3>
+<p>You can update Spyder by:</p>
+<ul class="simple">
+<li>Updating Python(x,y), WinPython or Anaconda.</li>
+<li>Installing a new .exe file from the page mentioned above (this will automatically
+uninstall any previous version <em>only if</em> this version was installed with the same
+kind of installer - i.e. not with an .msi installer).</li>
+</ul>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</div>
+</div>
+<div class="section" id="installing-or-running-directly-from-source">
+<h2>Installing or running directly from source<a class="headerlink" href="#installing-or-running-directly-from-source" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="requirements">
+<h3>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h3>
+<p>The minimal requirements to run Spyder are</p>
+<ul class="simple">
+<li><a class="reference external" href="http://www.python.org/">Python</a> 2.6+</li>
+<li><a class="reference external" href="http://www.riverbankcomputing.co.uk/software/pyqt/download">PyQt4</a> &gt;= v4.6 or
+<a class="reference external" href="http://pyside.org/">PySide</a> &gt;=1.2.0 (PyQt4 is recommended).</li>
+</ul>
+</div>
+<div class="section" id="recommended-modules">
+<h3>Recommended modules<a class="headerlink" href="#recommended-modules" title="Permalink to this headline">¶</a></h3>
+<p>We recommend you to install these modules to get the most out of Spyder:</p>
+<ul class="simple">
+<li><a class="reference external" href="http://ipython.org/install.html#downloads">IPython</a> 3.0 or less, or
+<a class="reference external" href="http://jupyter.org/qtconsole/stable/">qtconsole</a> 4.0 or higher &#8211; for an
+enhanced Python interpreter.</li>
+</ul>
+<blockquote>
+<div><div class="admonition note">
+<p class="first admonition-title">Note</p>
+<ul class="last simple">
+<li>On <em>Ubuntu</em> you need to install <code class="docutils literal"><span class="pre">ipython-qtconsole</span></code>.</li>
+<li>On <em>Fedora</em>, <code class="docutils literal"><span class="pre">ipython-gui</span></code></li>
+<li>And on <em>Gentoo</em> <code class="docutils literal"><span class="pre">ipython</span></code> with the <code class="docutils literal"><span class="pre">qt4</span></code> USE flag</li>
+</ul>
+</div>
+</div></blockquote>
+<ul class="simple">
+<li><a class="reference external" href="http://sphinx.pocoo.org">sphinx</a> &gt;= v0.6  &#8211; for the Object Inspector&#8217;s rich
+text mode and to get our documentation.</li>
+<li><a class="reference external" href="http://rope.sourceforge.net/">rope</a> 0.9.x (x&gt;=0) &#8211; for code completion,
+go-to-definition and calltips on the Editor.</li>
+<li><a class="reference external" href="http://pypi.python.org/pypi/pyflakes">pyflakes</a>  0.x (x&gt;=5) &#8211; for real-time
+code analysis.</li>
+<li><a class="reference external" href="http://www.logilab.org/project/pylint">pylint</a>  &#8211; for static code analysis.</li>
+<li><a class="reference external" href="https://pypi.python.org/pypi/pep8">pep8</a> &#8211; for style analysis.</li>
+<li><a class="reference external" href="http://numpy.scipy.org/">numpy</a> &#8211; for N-dimensional arrays.</li>
+<li><a class="reference external" href="http://www.scipy.org/">scipy</a> &#8211; for signal and image processing.</li>
+<li><a class="reference external" href="http://matplotlib.sourceforge.net/">matplotlib</a> &#8211; for 2D and 3D plotting.</li>
+<li><a class="reference external" href="http://code.google.com/p/psutil/">psutil</a>  &#8211; for memory/CPU usage in the status
+bar.</li>
+</ul>
+</div>
+<div class="section" id="installation-procedure">
+<h3>Installation procedure<a class="headerlink" href="#installation-procedure" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li>Download and unzip the source package (spyder-<em>version</em>.zip):</li>
+<li>Change your current directory to the unzipped directory</li>
+<li>Run:<ul>
+<li><code class="docutils literal"><span class="pre">sudo</span> <span class="pre">python</span> <span class="pre">setup.py</span> <span class="pre">install</span></code>, on Linux or MacOS X, or</li>
+<li><code class="docutils literal"><span class="pre">python</span> <span class="pre">setup.py</span> <span class="pre">install</span></code>, on Windows.</li>
+</ul>
+</li>
+</ol>
+<blockquote>
+<div><div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">This procedure does <em>not</em> uninstall previous versions of Spyder, it simply
+copies files on top of an existing installation. When using this command,
+it is thus highly recommended to uninstall manually any previous version of
+Spyder by removing the associated directories (<code class="docutils literal"><span class="pre">spyderlib</span></code> and
+<code class="docutils literal"><span class="pre">spyderplugins</span></code> in your site-packages directory).</p>
+</div>
+</div></blockquote>
+</div>
+<div class="section" id="run-without-installing">
+<h3>Run without installing<a class="headerlink" href="#run-without-installing" title="Permalink to this headline">¶</a></h3>
+<p>You can execute Spyder without installing it first by following these steps:</p>
+<ol class="arabic simple">
+<li>Unzip the source package</li>
+<li>Change current directory to the unzipped directory</li>
+<li>Run Spyder with the command <code class="docutils literal"><span class="pre">python</span> <span class="pre">bootstrap.py</span></code></li>
+<li>(<em>Optional</em>) Build the documentation with <code class="docutils literal"><span class="pre">python</span> <span class="pre">setup.py</span> <span class="pre">build_doc</span></code>.</li>
+</ol>
+<p>This is especially useful for beta-testing, troubleshooting and development
+of Spyder itself.</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</div>
+</div>
+<div class="section" id="installing-the-development-version">
+<h2>Installing the development version<a class="headerlink" href="#installing-the-development-version" title="Permalink to this headline">¶</a></h2>
+<p>If you want to try the next Spyder version, you have to:</p>
+<ol class="arabic">
+<li><p class="first">Install <a class="reference external" href="http://git-scm.com/downloads">Git</a>, a powerful
+source control management tool.</p>
+</li>
+<li><p class="first">Clone the Spyder source code repository with the command:</p>
+<p><code class="docutils literal"><span class="pre">git</span> <span class="pre">clone</span> <span class="pre">https://github.com/spyder-ide/spyder.git</span></code></p>
+</li>
+<li><p class="first">To keep your repository up-to-date, run</p>
+<p><code class="docutils literal"><span class="pre">git</span> <span class="pre">pull</span></code></p>
+<p>inside the cloned directory.</p>
+</li>
+<li><p class="first">(<em>Optional</em>) If you want to read the documentation, you must build it first with
+the command</p>
+<p><code class="docutils literal"><span class="pre">python</span> <span class="pre">setup.py</span> <span class="pre">build_doc</span></code></p>
+</li>
+</ol>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</div>
+<div class="section" id="help-and-support">
+<h2>Help and support<a class="headerlink" href="#help-and-support" title="Permalink to this headline">¶</a></h2>
+<p>Spyder websites:</p>
+<ul class="simple">
+<li>For bug reports and feature requests you can go to our
+<a class="reference external" href="https://github.com/spyder-ide/spyder/issues">website</a>.</li>
+<li>For discussions and help requests, you can suscribe to our
+<a class="reference external" href="http://groups.google.com/group/spyderlib">Google Group</a>.</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="options.html" title="Command line options"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="overview.html" title="Overview"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Spyder 2.3 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2009, Pierre Raybaut.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+    </div>
+  </body>
+</html>
