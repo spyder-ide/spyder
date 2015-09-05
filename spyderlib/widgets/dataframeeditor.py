@@ -13,18 +13,31 @@
 Pandas DataFrame Editor Dialog
 """
 
+<<<<<<< HEAD
+from spyderlib.qt.QtCore import (QAbstractTableModel, Qt, QModelIndex,
+                                 SIGNAL, SLOT)
+=======
 from spyderlib.qt.QtCore import QAbstractTableModel, Qt, QModelIndex, Slot
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 from spyderlib.qt.QtGui import (QDialog, QTableView, QColor, QGridLayout,
                                 QDialogButtonBox, QHBoxLayout, QPushButton,
                                 QCheckBox, QMessageBox, QInputDialog,
                                 QLineEdit, QApplication, QMenu, QKeySequence)
 from spyderlib.qt.compat import to_qvariant, from_qvariant
+<<<<<<< HEAD
+from spyderlib.utils.qthelpers import (qapplication, get_icon, create_action,
+                                       add_actions, keybinding)
+
+from spyderlib.baseconfig import _
+from spyderlib.guiconfig import get_font, new_shortcut
+=======
 import spyderlib.utils.icon_manager as ima
 from spyderlib.utils.qthelpers import (qapplication, create_action,
                                        add_actions, keybinding)
 
 from spyderlib.config.base import _
 from spyderlib.config.gui import get_font, new_shortcut
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 from spyderlib.py3compat import io, is_text_string, to_text_string, PY2
 from spyderlib.utils import encoding
 from spyderlib.widgets.arrayeditor import get_idx_rect
@@ -367,10 +380,13 @@ class DataFrameModel(QAbstractTableModel):
         else:
             return self.cols_loaded + 1
 
+<<<<<<< HEAD
+=======
     def reset(self):
         self.beginResetModel()
         self.endResetModel()
 
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
 class DataFrameView(QTableView):
     """Data Frame view class"""
@@ -380,6 +396,16 @@ class DataFrameView(QTableView):
 
         self.sort_old = [None]
         self.header_class = self.horizontalHeader()
+<<<<<<< HEAD
+        self.connect(self.header_class,
+                     SIGNAL("sectionClicked(int)"), self.sortByColumn)
+        self.menu = self.setup_menu()
+        new_shortcut(QKeySequence.Copy, self, self.copy)
+        self.connect(self.horizontalScrollBar(), SIGNAL("valueChanged(int)"),
+                     lambda val: self.load_more_data(val, columns=True))
+        self.connect(self.verticalScrollBar(), SIGNAL("valueChanged(int)"),
+                     lambda val: self.load_more_data(val, rows=True))
+=======
         self.header_class.sectionClicked.connect(self.sortByColumn)
         self.menu = self.setup_menu()
         new_shortcut(QKeySequence.Copy, self, self.copy)
@@ -387,6 +413,7 @@ class DataFrameView(QTableView):
                             lambda val: self.load_more_data(val, columns=True))
         self.verticalScrollBar().valueChanged.connect(
                                lambda val: self.load_more_data(val, rows=True))
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     
     def load_more_data(self, value, rows=False, columns=False):
         if rows and value == self.verticalScrollBar().maximum():
@@ -415,9 +442,15 @@ class DataFrameView(QTableView):
 
     def setup_menu(self):
         """Setup context menu"""
+<<<<<<< HEAD
+        copy_action = create_action(self, _( "Copy"),
+                                    shortcut=keybinding("Copy"),
+                                    icon=get_icon('editcopy.png'),
+=======
         copy_action = create_action(self, _('Copy'),
                                     shortcut=keybinding('Copy'),
                                     icon=ima.icon('editcopy'),
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
                                     triggered=self.copy,
                                     context=Qt.WidgetShortcut)
         functions = ((_("To bool"), bool), (_("To complex"), complex),
@@ -439,7 +472,10 @@ class DataFrameView(QTableView):
         index_list = self.selectedIndexes()
         [model.setData(i, '', change_type=func) for i in index_list]
 
+<<<<<<< HEAD
+=======
     @Slot()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def copy(self):
         """Copy text to clipboard"""
         (row_min, row_max,
@@ -483,7 +519,11 @@ class DataFrameEditor(QDialog):
         """
         self.layout = QGridLayout()
         self.setLayout(self.layout)
+<<<<<<< HEAD
+        self.setWindowIcon(get_icon('arredit.png'))
+=======
         self.setWindowIcon(ima.icon('arredit'))
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         if title:
             title = to_text_string(title) + " - %s" % data.__class__.__name__
         else:
@@ -508,28 +548,51 @@ class DataFrameEditor(QDialog):
         btn = QPushButton(_("Format"))
         # disable format button for int type
         btn_layout.addWidget(btn)
+<<<<<<< HEAD
+        self.connect(btn, SIGNAL("clicked()"), self.change_format)
+        btn = QPushButton(_('Resize'))
+        btn_layout.addWidget(btn)
+        self.connect(btn, SIGNAL("clicked()"),
+                     self.dataTable.resizeColumnsToContents)
+=======
         btn.clicked.connect(self.change_format)
         btn = QPushButton(_('Resize'))
         btn_layout.addWidget(btn)
         btn.clicked.connect(self.dataTable.resizeColumnsToContents)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
         bgcolor = QCheckBox(_('Background color'))
         bgcolor.setChecked(self.dataModel.bgcolor_enabled)
         bgcolor.setEnabled(self.dataModel.bgcolor_enabled)
+<<<<<<< HEAD
+        self.connect(bgcolor, SIGNAL("stateChanged(int)"),
+                     self.change_bgcolor_enable)
+=======
         bgcolor.stateChanged.connect(self.change_bgcolor_enable)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         btn_layout.addWidget(bgcolor)
 
         self.bgcolor_global = QCheckBox(_('Column min/max'))
         self.bgcolor_global.setChecked(self.dataModel.colum_avg_enabled)
         self.bgcolor_global.setEnabled(not self.is_time_series and
                                        self.dataModel.bgcolor_enabled)
+<<<<<<< HEAD
+        self.connect(self.bgcolor_global, SIGNAL("stateChanged(int)"),
+                     self.dataModel.colum_avg)
+=======
         self.bgcolor_global.stateChanged.connect(self.dataModel.colum_avg)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         btn_layout.addWidget(self.bgcolor_global)
 
         btn_layout.addStretch()
         bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+<<<<<<< HEAD
+        self.connect(bbox, SIGNAL("accepted()"), SLOT("accept()"))
+        self.connect(bbox, SIGNAL("rejected()"), SLOT("reject()"))
+=======
         bbox.accepted.connect(self.accept)
         bbox.rejected.connect(self.reject)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         btn_layout.addWidget(bbox)
 
         self.layout.addLayout(btn_layout, 2, 0)

@@ -1,0 +1,24 @@
+\.lnk$
+\.url$
+\.pyc$
+\.pyo$
+\.settings$
+\.spyderproject$
+\.ropeproject$
+\.orig$
+\.DS_Store$
+^build/
+^dist/
+^bin/
+app_example/build/
+app_example/dist/
+^doctmp/
+^spyder.egg-info/
+MANIFEST$
+\pypi.txt
+\Thumbs.db
+\matlab_sn$
+syntax: glob
+capture-linux_std_icons.png
+Spyderdoc.chm
+spyder_crash.log

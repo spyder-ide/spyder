@@ -18,9 +18,14 @@ This module should be fully compatible with:
 
 from __future__ import print_function
 
+<<<<<<< HEAD
+import sys
+import os
+=======
 import operator
 import os
 import sys
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
 PY2 = sys.version[0] == '2'
 PY3 = sys.version[0] == '3'
@@ -244,6 +249,8 @@ def qbytearray_to_str(qba):
     """Convert QByteArray object to str in a way compatible with Python 2/3"""
     return str(bytes(qba.toHex().data()).decode())
 
+<<<<<<< HEAD
+=======
 # =============================================================================
 # Dict funcs
 # =============================================================================
@@ -284,6 +291,7 @@ else:
 
     viewitems = operator.methodcaller("viewitems")
 
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
 if __name__ == '__main__':
     pass

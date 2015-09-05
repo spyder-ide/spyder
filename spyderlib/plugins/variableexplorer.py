@@ -6,6 +6,16 @@
 
 """Namespace Browser Plugin"""
 
+<<<<<<< HEAD
+from spyderlib.qt.QtGui import QStackedWidget, QGroupBox, QVBoxLayout
+from spyderlib.qt.QtCore import Signal
+
+# Local imports
+from spyderlib.baseconfig import _
+from spyderlib.start_app import CONF
+#from spyderlib.config import CONF
+from spyderlib.utils.qthelpers import get_icon
+=======
 from spyderlib.qt.QtGui import QGroupBox, QStackedWidget, QVBoxLayout, QWidget
 from spyderlib.qt.QtCore import Signal, Slot
 import spyderlib.utils.icon_manager as ima
@@ -13,6 +23,7 @@ import spyderlib.utils.icon_manager as ima
 # Local imports
 from spyderlib.config.base import _
 from spyderlib.config.main import CONF
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 from spyderlib.utils import programs
 from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage
 from spyderlib.widgets.externalshell.monitor import REMOTE_SETTINGS
@@ -75,13 +86,24 @@ class VariableExplorerConfigPage(PluginConfigPage):
         self.setLayout(vlayout)
 
 
+<<<<<<< HEAD
+class VariableExplorer(QStackedWidget, SpyderPluginMixin):
+=======
 class VariableExplorer(QWidget, SpyderPluginMixin):
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     """
     Variable Explorer Plugin
     """
     CONF_SECTION = 'variable_explorer'
     CONFIGWIDGET_CLASS = VariableExplorerConfigPage
     sig_option_changed = Signal(str, object)
+<<<<<<< HEAD
+    def __init__(self, parent):
+        QStackedWidget.__init__(self, parent)
+        SpyderPluginMixin.__init__(self, parent)
+        self.shellwidgets = {}
+
+=======
 
     def __init__(self, parent):
         QWidget.__init__(self, parent)
@@ -96,6 +118,7 @@ class VariableExplorer(QWidget, SpyderPluginMixin):
         layout.addWidget(self.stack)
         self.setLayout(layout)
 
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         # Initialize plugin
         self.initialize_plugin()
 
@@ -110,6 +133,13 @@ class VariableExplorer(QWidget, SpyderPluginMixin):
         for name in REMOTE_SETTINGS:
             settings[name] = CONF.get(VariableExplorer.CONF_SECTION, name)
         return settings
+<<<<<<< HEAD
+        
+    #------ Public API ---------------------------------------------------------
+    def add_shellwidget(self, shellwidget):
+        shellwidget_id = id(shellwidget)
+        # Add shell only once: this method may be called two times in a row 
+=======
 
     # ----- Stack accesors ----------------------------------------------------
     def set_current_widget(self, nsb):
@@ -131,6 +161,7 @@ class VariableExplorer(QWidget, SpyderPluginMixin):
     def add_shellwidget(self, shellwidget):
         shellwidget_id = id(shellwidget)
         # Add shell only once: this method may be called two times in a row
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         # by the External console plugin (dev. convenience)
         from spyderlib.widgets.externalshell import systemshell
         if isinstance(shellwidget, systemshell.ExternalSystemShell):
@@ -140,7 +171,11 @@ class VariableExplorer(QWidget, SpyderPluginMixin):
             nsb.set_shellwidget(shellwidget)
             nsb.setup(**VariableExplorer.get_settings())
             nsb.sig_option_changed.connect(self.sig_option_changed.emit)
+<<<<<<< HEAD
+            self.addWidget(nsb)
+=======
             self.add_widget(nsb)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
             self.shellwidgets[shellwidget_id] = nsb
             self.set_shellwidget_from_id(shellwidget_id)
             return nsb
@@ -150,12 +185,28 @@ class VariableExplorer(QWidget, SpyderPluginMixin):
         # that shell was not a Python-based console (it was a terminal)
         if shellwidget_id in self.shellwidgets:
             nsb = self.shellwidgets.pop(shellwidget_id)
+<<<<<<< HEAD
+            self.removeWidget(nsb)
+=======
             self.remove_widget(nsb)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
             nsb.close()
     
     def set_shellwidget_from_id(self, shellwidget_id):
         if shellwidget_id in self.shellwidgets:
             nsb = self.shellwidgets[shellwidget_id]
+<<<<<<< HEAD
+            self.setCurrentWidget(nsb)
+            if self.isvisible:
+                nsb.visibility_changed(True)
+            
+    def import_data(self, fname):
+        """Import data in current namespace"""
+        if self.count():
+            nsb = self.currentWidget()
+            nsb.refresh_table()
+            nsb.import_data(fname)
+=======
             self.set_current_widget(nsb)
             if self.isvisible:
                 nsb.visibility_changed(True)
@@ -166,6 +217,7 @@ class VariableExplorer(QWidget, SpyderPluginMixin):
             nsb = self.current_widget()
             nsb.refresh_table()
             nsb.import_data(filename=fname)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
             if self.dockwidget and not self.ismaximized:
                 self.dockwidget.setVisible(True)
                 self.dockwidget.raise_()
@@ -175,7 +227,11 @@ class VariableExplorer(QWidget, SpyderPluginMixin):
         """DockWidget visibility has changed"""
         SpyderPluginMixin.visibility_changed(self, enable)
         for nsb in list(self.shellwidgets.values()):
+<<<<<<< HEAD
+            nsb.visibility_changed(enable and nsb is self.currentWidget())
+=======
             nsb.visibility_changed(enable and nsb is self.current_widget())
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
@@ -184,14 +240,22 @@ class VariableExplorer(QWidget, SpyderPluginMixin):
 
     def get_plugin_icon(self):
         """Return plugin icon"""
+<<<<<<< HEAD
+        return get_icon('dictedit.png')
+=======
         return ima.icon('dictedit')
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     
     def get_focus_widget(self):
         """
         Return the widget to give focus to when
         this plugin's dockwidget is raised on top-level
         """
+<<<<<<< HEAD
+        return self.currentWidget()
+=======
         return self.current_widget()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""

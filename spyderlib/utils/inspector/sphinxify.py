@@ -23,7 +23,10 @@ import os.path as osp
 import shutil
 import sys
 from tempfile import mkdtemp
+<<<<<<< HEAD
+=======
 from xml.sax.saxutils import escape
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
 # 3rd party imports
 from docutils.utils import SystemMessage as SystemMessage
@@ -32,7 +35,11 @@ import sphinx
 from sphinx.application import Sphinx
 
 # Local imports
+<<<<<<< HEAD
+from spyderlib.baseconfig import (_, get_module_data_path,
+=======
 from spyderlib.config.base import (_, get_module_data_path,
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
                                   get_module_source_path)
 from spyderlib.utils import encoding
 
@@ -178,9 +185,13 @@ def sphinxify(docstring, context, buildername='html'):
     
     # Add a class to several characters on the argspec. This way we can
     # highlight them using css, in a similar way to what IPython does.
+<<<<<<< HEAD
+    argspec = context['argspec']
+=======
     # NOTE: Before doing this, we escape common html chars so that they
     # don't interfere with the rest of html present in the page
     argspec = escape(context['argspec'])
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     for char in ['=', ',', '(', ')', '*', '**']:
         argspec = argspec.replace(char,
                          '<span class="argspec-highlight">' + char + '</span>')

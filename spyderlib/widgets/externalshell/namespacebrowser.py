@@ -12,9 +12,14 @@ import socket
 from spyderlib.qt.QtGui import (QWidget, QVBoxLayout, QHBoxLayout, QMenu,
                                 QToolButton, QMessageBox, QApplication,
                                 QCursor, QInputDialog)
+<<<<<<< HEAD
+from spyderlib.qt.QtCore import SIGNAL, Qt, Signal
+from spyderlib.qt.compat import getopenfilenames, getsavefilename
+=======
 from spyderlib.qt.QtCore import Qt, Signal, Slot
 from spyderlib.qt.compat import getopenfilenames, getsavefilename
 import spyderlib.utils.icon_manager as ima
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
 # Local imports
 from spyderlib.widgets.externalshell.monitor import (
@@ -27,11 +32,19 @@ from spyderlib.widgets.dicteditorutils import globalsfilter
 from spyderlib.utils import encoding
 from spyderlib.utils.misc import fix_reference_name
 from spyderlib.utils.programs import is_module_installed
+<<<<<<< HEAD
+from spyderlib.utils.qthelpers import (get_icon, create_toolbutton,
+                                       add_actions, create_action)
+from spyderlib.utils.iofuncs import iofunctions
+from spyderlib.widgets.importwizard import ImportWizard
+from spyderlib.baseconfig import _, get_supported_types
+=======
 from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
                                        create_action)
 from spyderlib.utils.iofuncs import iofunctions
 from spyderlib.widgets.importwizard import ImportWizard
 from spyderlib.config.base import _, get_supported_types
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 from spyderlib.py3compat import is_text_string, to_text_string, getcwd
 
 
@@ -41,8 +54,11 @@ SUPPORTED_TYPES = get_supported_types()
 class NamespaceBrowser(QWidget):
     """Namespace browser (global variables explorer widget)"""
     sig_option_changed = Signal(str, object)
+<<<<<<< HEAD
+=======
     sig_collapse = Signal()
     
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def __init__(self, parent):
         QWidget.__init__(self, parent)
         
@@ -135,6 +151,22 @@ class NamespaceBrowser(QWidget):
         self.editor.sig_option_changed.connect(self.sig_option_changed.emit)
         self.editor.sig_files_dropped.connect(self.import_data)
         
+<<<<<<< HEAD
+        
+        # Setup layout
+        hlayout = QHBoxLayout()
+        vlayout = QVBoxLayout()
+        toolbar = self.setup_toolbar(exclude_private, exclude_uppercase,
+                                     exclude_capitalized, exclude_unsupported,
+                                     autorefresh)
+        vlayout.setAlignment(Qt.AlignTop)
+        for widget in toolbar:
+            vlayout.addWidget(widget)
+        hlayout.addWidget(self.editor)
+        hlayout.addLayout(vlayout)
+        self.setLayout(hlayout)
+        hlayout.setContentsMargins(0, 0, 0, 0)
+=======
         # Menu
         options_button = create_toolbutton(self, text=_('Options'),
                                            icon=ima.icon('tooloptions'))
@@ -164,6 +196,7 @@ class NamespaceBrowser(QWidget):
         layout.addWidget(self.editor)
         self.setLayout(layout)
         layout.setContentsMargins(0, 0, 0, 0)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
         self.sig_option_changed.connect(self.option_changed)
         
@@ -188,6 +221,21 @@ class NamespaceBrowser(QWidget):
                           
         toolbar = []
 
+<<<<<<< HEAD
+        refresh_button = create_toolbutton(self, text=_("Refresh"),
+                                           icon=get_icon('reload.png'),
+                                           triggered=self.refresh_table)
+        self.auto_refresh_button = create_toolbutton(self,
+                                           text=_("Refresh periodically"),
+                                           icon=get_icon('auto_reload.png'),
+                                           toggled=self.toggle_auto_refresh)
+        self.auto_refresh_button.setChecked(autorefresh)
+        load_button = create_toolbutton(self, text=_("Import data"),
+                                        icon=get_icon('fileimport.png'),
+                                        triggered=self.import_data)
+        self.save_button = create_toolbutton(self, text=_("Save data"),
+                            icon=get_icon('filesave.png'),
+=======
         refresh_button = create_toolbutton(self, text=_('Refresh'),
                                            icon=ima.icon('reload'),
                                            triggered=self.refresh_table)
@@ -201,11 +249,16 @@ class NamespaceBrowser(QWidget):
                                         triggered=self.import_data)
         self.save_button = create_toolbutton(self, text=_("Save data"),
                             icon=ima.icon('filesave'),
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
                             triggered=lambda: self.save_data(self.filename))
         self.save_button.setEnabled(False)
         save_as_button = create_toolbutton(self,
                                            text=_("Save data as..."),
+<<<<<<< HEAD
+                                           icon=get_icon('filesaveas.png'),
+=======
                                            icon=ima.icon('filesaveas'),
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
                                            triggered=self.save_data)
         toolbar += [refresh_button, self.auto_refresh_button, load_button,
                     self.save_button, save_as_button]
@@ -241,6 +294,24 @@ class NamespaceBrowser(QWidget):
                 self.sig_option_changed.emit('exclude_unsupported', state))
         self.exclude_unsupported_action.setChecked(exclude_unsupported)
         
+<<<<<<< HEAD
+        options_button = create_toolbutton(self, text=_("Options"),
+                                           icon=get_icon('tooloptions.png'))
+        toolbar.append(options_button)
+        options_button.setPopupMode(QToolButton.InstantPopup)
+        menu = QMenu(self)
+        editor = self.editor
+        actions = [self.exclude_private_action, self.exclude_uppercase_action,
+                   self.exclude_capitalized_action,
+                   self.exclude_unsupported_action, None,
+                   editor.truncate_action]
+        if is_module_installed('numpy'):
+            actions.append(editor.minmax_action)
+        add_actions(menu, actions)
+        options_button.setMenu(menu)
+        
+=======
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         self.setup_in_progress = False
         
         return toolbar
@@ -269,7 +340,10 @@ class NamespaceBrowser(QWidget):
         #     self.refresh_table()
         pass
 
+<<<<<<< HEAD
+=======
     @Slot(bool)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def toggle_auto_refresh(self, state):
         """Toggle auto refresh state"""
         self.autorefresh = state
@@ -309,8 +383,12 @@ class NamespaceBrowser(QWidget):
         for name in REMOTE_SETTINGS:
             settings[name] = getattr(self, name)
         return settings
+<<<<<<< HEAD
+        
+=======
 
     @Slot()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def refresh_table(self):
         """Refresh variable table"""
         if self.is_visible and self.isVisible():
@@ -444,10 +522,15 @@ class NamespaceBrowser(QWidget):
         
     def collapse(self):
         """Collapse"""
+<<<<<<< HEAD
+        self.emit(SIGNAL('collapse()'))
+        
+=======
         self.sig_collapse.emit()
 
     # FIXME: This method raises an error when called from the button in the UI
     @Slot(list)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def import_data(self, filenames=None):
         """Import data from text file"""
         title = _("Import data")
@@ -463,10 +546,19 @@ class NamespaceBrowser(QWidget):
         elif is_text_string(filenames):
             filenames = [filenames]
 
+<<<<<<< HEAD
+            
+        for filename in filenames:
+            
+            self.filename = to_text_string(filename)
+            ext = osp.splitext(self.filename)[1].lower()
+            
+=======
         for filename in filenames:
             self.filename = to_text_string(filename)
             ext = osp.splitext(self.filename)[1].lower()
 
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
             if ext not in iofunctions.load_funcs:
                 buttons = QMessageBox.Yes | QMessageBox.Cancel
                 answer = QMessageBox.question(self, title,
@@ -531,7 +623,11 @@ class NamespaceBrowser(QWidget):
                                        ) % (self.filename, error_message))
             self.refresh_table()
             
+<<<<<<< HEAD
+    
+=======
     @Slot()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def save_data(self, filename=None):
         """Save data"""
         if filename is None:
@@ -563,3 +659,7 @@ class NamespaceBrowser(QWidget):
                             _("<b>Unable to save current workspace</b>"
                               "<br><br>Error message:<br>%s") % error_message)
         self.save_button.setEnabled(self.filename is not None)
+<<<<<<< HEAD
+        
+=======
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f

@@ -21,21 +21,50 @@ import os.path as osp
 import sys
 
 # Qt imports
+<<<<<<< HEAD
+=======
 from spyderlib.qt import PYQT5
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 from spyderlib.qt.QtGui import (QVBoxLayout, QHBoxLayout, QFormLayout, 
                                 QMessageBox, QGroupBox, QDialogButtonBox,
                                 QDialog, QTabWidget, QFontComboBox, 
                                 QCheckBox, QApplication, QLabel,QLineEdit,
+<<<<<<< HEAD
+                                QPushButton, QKeySequence, QWidget)
+from spyderlib.qt.compat import getopenfilename
+from spyderlib.qt.QtCore import SIGNAL, Qt
+=======
                                 QPushButton, QKeySequence, QWidget,
                                 QGridLayout)
 from spyderlib.qt.compat import getopenfilename
 from spyderlib.qt.QtCore import Signal, Slot, Qt
 import spyderlib.utils.icon_manager as ima
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
 # IPython imports
 from IPython.core.application import get_ipython_dir
 from IPython.kernel.connect import find_connection_file
 from IPython.qt.manager import QtKernelManager
+<<<<<<< HEAD
+try: # IPython = "<=2.0"
+    from IPython.external.ssh import tunnel as zmqtunnel
+    import IPython.external.pexpect as pexpect
+except ImportError:
+    from zmq.ssh import tunnel as zmqtunnel      # analysis:ignore
+    try:
+        import pexpect                           # analysis:ignore
+    except ImportError:
+        pexpect = None                           # analysis:ignore
+
+# Local imports
+from spyderlib import dependencies
+from spyderlib.baseconfig import _
+from spyderlib.start_app import CONF
+#from spyderlib.config import CONF
+from spyderlib.utils.misc import get_error_match, remove_backslashes
+from spyderlib.utils import programs
+from spyderlib.utils.qthelpers import get_icon, create_action
+=======
 
 # Ssh imports
 from zmq.ssh import tunnel as zmqtunnel
@@ -51,6 +80,7 @@ from spyderlib.config.main import CONF
 from spyderlib.utils.misc import get_error_match, remove_backslashes
 from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import create_action
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 from spyderlib.widgets.tabs import Tabs
 from spyderlib.widgets.ipython import IPythonClient
 from spyderlib.widgets.findreplace import FindReplace
@@ -163,6 +193,13 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         banner_box = newcb(_("Display initial banner"), 'show_banner',
                       tip=_("This option lets you hide the message shown at\n"
                             "the top of the console when it's opened."))
+<<<<<<< HEAD
+        gui_comp_box = newcb(_("Use a completion widget"),
+                             'use_gui_completion',
+                             tip=_("Use a widget instead of plain text "
+                                   "output for tab completion"))
+=======
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         pager_box = newcb(_("Use a pager to display additional text inside "
                             "the console"), 'use_pager',
                             tip=_("Useful if you don't want to fill the "
@@ -175,11 +212,17 @@ class IPythonConsoleConfigPage(PluginConfigPage):
 
         interface_layout = QVBoxLayout()
         interface_layout.addWidget(banner_box)
+<<<<<<< HEAD
+        interface_layout.addWidget(gui_comp_box)
+=======
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         interface_layout.addWidget(pager_box)
         interface_layout.addWidget(calltips_box)
         interface_layout.addWidget(ask_box)
         interface_group.setLayout(interface_layout)
 
+<<<<<<< HEAD
+=======
         comp_group = QGroupBox(_("Completion Type"))
         comp_label = QLabel(_("Decide what type of completion to use"))
         comp_label.setWordWrap(True)
@@ -191,6 +234,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         comp_layout.addWidget(comp_box)
         comp_group.setLayout(comp_layout)
 
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         # Background Color Group
         bg_group = QGroupBox(_("Background color"))
         light_radio = self.create_radiobutton(_("Light background"),
@@ -228,7 +272,12 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                                      "Matplotlib or to develop \nGUIs with "
                                      "Spyder."))
         autoload_pylab_box.setEnabled(self.get_option('pylab') and mpl_present)
+<<<<<<< HEAD
+        self.connect(pylab_box, SIGNAL("toggled(bool)"),
+                     autoload_pylab_box.setEnabled)
+=======
         pylab_box.toggled.connect(autoload_pylab_box.setEnabled)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         
         pylab_layout = QVBoxLayout()
         pylab_layout.addWidget(pylab_box)
@@ -277,7 +326,12 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         backend_layout.addWidget(backend_box)
         backend_group.setLayout(backend_layout)
         backend_group.setEnabled(self.get_option('pylab') and mpl_present)
+<<<<<<< HEAD
+        self.connect(pylab_box, SIGNAL("toggled(bool)"),
+                     backend_group.setEnabled)
+=======
         pylab_box.toggled.connect(backend_group.setEnabled)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         
         # Inline backend Group
         inline_group = QGroupBox(_("Inline backend"))
@@ -301,6 +355,18 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                           'pylab/inline/height', min_=1, max_=20, step=1,
                           tip=_("Default is 4"))
         
+<<<<<<< HEAD
+        inline_layout = QVBoxLayout()
+        inline_layout.addWidget(inline_label)
+        inline_layout.addWidget(format_box)
+        inline_layout.addWidget(resolution_spin)
+        inline_layout.addWidget(width_spin)
+        inline_layout.addWidget(height_spin)
+        inline_group.setLayout(inline_layout)
+        inline_group.setEnabled(self.get_option('pylab') and mpl_present)
+        self.connect(pylab_box, SIGNAL("toggled(bool)"),
+                     inline_group.setEnabled)
+=======
         inline_v_layout = QVBoxLayout()
         inline_v_layout.addWidget(inline_label)
         inline_layout = QGridLayout()
@@ -322,6 +388,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         inline_group.setLayout(inline_v_layout)
         inline_group.setEnabled(self.get_option('pylab') and mpl_present)
         pylab_box.toggled.connect(inline_group.setEnabled)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
         # --- Startup ---
         # Run lines Group
@@ -350,7 +417,12 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                            'startup/use_run_file', False)
         run_file_browser = self.create_browsefile('', 'startup/run_file', '')
         run_file_browser.setEnabled(False)
+<<<<<<< HEAD
+        self.connect(file_radio, SIGNAL("toggled(bool)"),
+                     run_file_browser.setEnabled)
+=======
         file_radio.toggled.connect(run_file_browser.setEnabled)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         
         run_file_layout = QVBoxLayout()
         run_file_layout.addWidget(run_file_label)
@@ -449,18 +521,28 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         
         prompts_layout = QVBoxLayout()
         prompts_layout.addWidget(prompts_label)
+<<<<<<< HEAD
+        prompts_layout.addWidget(in_prompt_edit)
+        prompts_layout.addWidget(out_prompt_edit)
+=======
         prompts_g_layout  = QGridLayout()
         prompts_g_layout.addWidget(in_prompt_edit.label, 0, 0)
         prompts_g_layout.addWidget(in_prompt_edit.textbox, 0, 1)
         prompts_g_layout.addWidget(out_prompt_edit.label, 1, 0)
         prompts_g_layout.addWidget(out_prompt_edit.textbox, 1, 1)
         prompts_layout.addLayout(prompts_g_layout)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         prompts_group.setLayout(prompts_layout)
 
         # --- Tabs organization ---
         tabs = QTabWidget()
+<<<<<<< HEAD
+        tabs.addTab(self.create_tab(font_group, interface_group, bg_group,
+                                    source_code_group), _("Display"))
+=======
         tabs.addTab(self.create_tab(font_group, interface_group, comp_group,
                                     bg_group, source_code_group), _("Display"))
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         tabs.addTab(self.create_tab(pylab_group, backend_group, inline_group),
                                     _("Graphics"))
         tabs.addTab(self.create_tab(run_lines_group, run_file_group),
@@ -496,7 +578,12 @@ class KernelConnectionDialog(QDialog):
         self.cf.setPlaceholderText(_('Path to connection file or kernel id'))
         self.cf.setMinimumWidth(250)
         cf_open_btn = QPushButton(_('Browse'))
+<<<<<<< HEAD
+        self.connect(cf_open_btn, SIGNAL('clicked()'),
+                     self.select_connection_file)
+=======
         cf_open_btn.clicked.connect(self.select_connection_file)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
         cf_layout = QHBoxLayout()
         cf_layout.addWidget(cf_label)
@@ -513,7 +600,11 @@ class KernelConnectionDialog(QDialog):
         self.kf = QLineEdit()
         self.kf.setPlaceholderText(_('Path to ssh key file'))
         kf_open_btn = QPushButton(_('Browse'))
+<<<<<<< HEAD
+        self.connect(kf_open_btn, SIGNAL('clicked()'), self.select_ssh_key)
+=======
         kf_open_btn.clicked.connect(self.select_ssh_key)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
         kf_layout = QHBoxLayout()
         kf_layout.addWidget(self.kf)
@@ -533,8 +624,13 @@ class KernelConnectionDialog(QDialog):
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
             Qt.Horizontal, self)
 
+<<<<<<< HEAD
+        self.connect(accept_btns, SIGNAL('accepted()'), self.accept)
+        self.connect(accept_btns, SIGNAL('rejected()'), self.reject)
+=======
         accept_btns.accepted.connect(self.accept)
         accept_btns.rejected.connect(self.reject)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
         # Dialog layout
         layout = QVBoxLayout(self)
@@ -552,7 +648,11 @@ class KernelConnectionDialog(QDialog):
                 ssh_form.itemAt(2 * i).widget().setEnabled(state)
        
         ssh_set_enabled(self.rm_cb.checkState())
+<<<<<<< HEAD
+        self.connect(self.rm_cb, SIGNAL('stateChanged(int)'), ssh_set_enabled)
+=======
         self.rm_cb.stateChanged.connect(ssh_set_enabled)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
     def select_connection_file(self):
         cf = getopenfilename(self, _('Open IPython connection file'),
@@ -591,6 +691,11 @@ class IPythonConsole(SpyderPluginWidget):
     CONF_SECTION = 'ipython_console'
     CONFIGWIDGET_CLASS = IPythonConsoleConfigPage
     DISABLE_ACTIONS_WHEN_HIDDEN = False
+<<<<<<< HEAD
+
+    def __init__(self, parent):
+        SpyderPluginWidget.__init__(self, parent)
+=======
     
     # Signals
     focus_changed = Signal()
@@ -601,6 +706,7 @@ class IPythonConsole(SpyderPluginWidget):
             SpyderPluginWidget.__init__(self, parent, main = parent)
         else:
             SpyderPluginWidget.__init__(self, parent)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
         self.tabwidget = None
         self.menu_actions = None
@@ -609,7 +715,10 @@ class IPythonConsole(SpyderPluginWidget):
         self.inspector = None          # Object inspector plugin
         self.historylog = None         # History log plugin
         self.variableexplorer = None   # Variable explorer plugin
+<<<<<<< HEAD
+=======
         self.editor = None             # Editor plugin
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
         self.master_clients = 0
         self.clients = []
@@ -625,8 +734,15 @@ class IPythonConsole(SpyderPluginWidget):
             # a crash when the console is detached from the main window
             # Fixes Issue 561
             self.tabwidget.setDocumentMode(True)
+<<<<<<< HEAD
+        self.connect(self.tabwidget, SIGNAL('currentChanged(int)'),
+                     self.refresh_plugin)
+        self.connect(self.tabwidget, SIGNAL('move_data(int,int)'),
+                     self.move_tab)
+=======
         self.tabwidget.currentChanged.connect(self.refresh_plugin)
         self.tabwidget.move_data.connect(self.move_tab)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
                      
         self.tabwidget.set_close_function(self.close_client)
 
@@ -690,7 +806,11 @@ class IPythonConsole(SpyderPluginWidget):
     
     def get_plugin_icon(self):
         """Return widget icon"""
+<<<<<<< HEAD
+        return get_icon('ipython_console.png')
+=======
         return ima.icon('ipython_console')
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     
     def get_focus_widget(self):
         """
@@ -728,20 +848,32 @@ class IPythonConsole(SpyderPluginWidget):
         self.find_widget.set_editor(control)
         self.tabwidget.set_corner_widgets({Qt.TopRightCorner: widgets})
         self.main.last_console_plugin_focus_was_python = False
+<<<<<<< HEAD
+        self.emit(SIGNAL('update_plugin_title()'))
+=======
         self.update_plugin_title.emit()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         ctrl = "Cmd" if sys.platform == "darwin" else "Ctrl"
         main_create_client_action = create_action(self,
                                 _("Open an &IPython console"),
+<<<<<<< HEAD
+                                None, 'ipython_console.png',
+=======
                                 None, ima.icon('ipython_console'),
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
                                 triggered=self.create_new_client,
                                 tip=_("Use %s+T when the console is selected "
                                       "to open a new one") % ctrl)
         create_client_action = create_action(self,
                                 _("Open a new console"),
+<<<<<<< HEAD
+                                QKeySequence("Ctrl+T"), 'ipython_console.png',
+=======
                                 QKeySequence("Ctrl+T"), ima.icon('ipython_console'),
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
                                 triggered=self.create_new_client)
         create_client_action.setShortcutContext(Qt.WidgetWithChildrenShortcut)
 
@@ -768,6 +900,18 @@ class IPythonConsole(SpyderPluginWidget):
         self.inspector = self.main.inspector
         self.historylog = self.main.historylog
         self.variableexplorer = self.main.variableexplorer
+<<<<<<< HEAD
+
+        self.connect(self, SIGNAL('focus_changed()'),
+                     self.main.plugin_focus_changed)
+
+        if self.main.editor is not None:
+            self.connect(self, SIGNAL("edit_goto(QString,int,QString)"),
+                         self.main.editor.load)
+            self.connect(self.main.editor,
+                         SIGNAL('run_in_current_ipyclient(QString,QString,QString,bool)'),
+                         self.run_script_in_current_client)
+=======
         self.editor = self.main.editor
         
         self.focus_changed.connect(self.main.plugin_focus_changed)
@@ -775,6 +919,7 @@ class IPythonConsole(SpyderPluginWidget):
             self.edit_goto.connect(self.editor.load)
             self.editor.run_in_current_ipyclient.connect(
                                              self.run_script_in_current_client)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
     #------ Public API (for clients) ------------------------------------------
     def get_clients(self):
@@ -800,8 +945,12 @@ class IPythonConsole(SpyderPluginWidget):
         if client is not None:
             return client
 
+<<<<<<< HEAD
+    def run_script_in_current_client(self, filename, wdir, args, debug):
+=======
     def run_script_in_current_client(self, filename, wdir, args, debug,
             post_mortem):
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         """Run script in current client, if any"""
         norm = lambda text: remove_backslashes(to_text_string(text))
         client = self.get_current_client()
@@ -814,8 +963,11 @@ class IPythonConsole(SpyderPluginWidget):
                     line += ", args='%s'" % norm(args)
                 if wdir:
                     line += ", wdir='%s'" % norm(wdir)
+<<<<<<< HEAD
+=======
                 if post_mortem:
                     line += ", post_mortem=True"
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
                 line += ")"
             else: # External kernels, use %run
                 line = "%run "
@@ -846,7 +998,10 @@ class IPythonConsole(SpyderPluginWidget):
         if client is not None:
             client.shellwidget.write_to_stdin(line)
 
+<<<<<<< HEAD
+=======
     @Slot()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def create_new_client(self, give_focus=True):
         """Create a new client"""
         self.master_clients += 1
@@ -867,7 +1022,12 @@ class IPythonConsole(SpyderPluginWidget):
         page_control = shellwidget._page_control
 
         # Create new clients with Ctrl+T shortcut
+<<<<<<< HEAD
+        self.connect(shellwidget, SIGNAL('new_ipyclient()'),
+                     self.create_new_client)
+=======
         shellwidget.new_client.connect(self.create_new_client)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         
         # Handle kernel interrupts
         extconsoles = self.extconsole.shellwidgets
@@ -885,7 +1045,11 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Connect to our variable explorer
         if kernel_widget is not None and self.variableexplorer is not None:
+<<<<<<< HEAD
+            nsb = self.variableexplorer.currentWidget()
+=======
             nsb = self.variableexplorer.current_widget()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
             # When the autorefresh button is active, our kernels
             # start to consume more and more CPU during time
             # Fix Issue 1450
@@ -906,7 +1070,11 @@ class IPythonConsole(SpyderPluginWidget):
             return
         
         # For tracebacks
+<<<<<<< HEAD
+        self.connect(control, SIGNAL("go_to_error(QString)"), self.go_to_error)
+=======
         control.go_to_error.connect(self.go_to_error)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         
         # Handle kernel restarts asked by the user
         if kernel_widget is not None:
@@ -928,22 +1096,43 @@ class IPythonConsole(SpyderPluginWidget):
         # Connect client to our history log
         if self.historylog is not None:
             self.historylog.add_history(client.history_filename)
+<<<<<<< HEAD
+            self.connect(client, SIGNAL('append_to_history(QString,QString)'),
+                         self.historylog.append_to_history)
+=======
             client.append_to_history.connect(self.historylog.append_to_history)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         
         # Set font for client
         client.set_font( self.get_plugin_font() )
         
         # Connect focus signal to client's control widget
+<<<<<<< HEAD
+        self.connect(control, SIGNAL('focus_changed()'),
+                     lambda: self.emit(SIGNAL('focus_changed()')))
+=======
         control.focus_changed.connect(lambda: self.focus_changed.emit())
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         
         # Update the find widget if focus changes between control and
         # page_control
         self.find_widget.set_editor(control)
         if page_control:
+<<<<<<< HEAD
+            self.connect(page_control, SIGNAL('focus_changed()'),
+                         lambda: self.emit(SIGNAL('focus_changed()')))
+            self.connect(control, SIGNAL('visibility_changed(bool)'),
+                         self.refresh_plugin)
+            self.connect(page_control, SIGNAL('visibility_changed(bool)'),
+                         self.refresh_plugin)
+            self.connect(page_control, SIGNAL('show_find_widget()'),
+                         self.find_widget.show)
+=======
             page_control.focus_changed.connect(lambda: self.focus_changed.emit())
             control.visibility_changed.connect(self.refresh_plugin)
             page_control.visibility_changed.connect(self.refresh_plugin)
             page_control.show_find_widget.connect(self.find_widget.show)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
     def close_client(self, index=None, client=None, force=False):
         """Close client tab from index or widget (or close current tab)"""
@@ -981,7 +1170,11 @@ class IPythonConsole(SpyderPluginWidget):
         # Note: client index may have changed after closing related widgets
         self.tabwidget.removeTab(self.tabwidget.indexOf(client))
         self.clients.remove(client)
+<<<<<<< HEAD
+        self.emit(SIGNAL('update_plugin_title()'))
+=======
         self.update_plugin_title.emit()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
     def get_client_index_from_id(self, client_id):
         """Return client index from id"""
@@ -1069,7 +1262,10 @@ class IPythonConsole(SpyderPluginWidget):
             widget.kernel_manager = km
             widget.kernel_client = kc
 
+<<<<<<< HEAD
+=======
     @Slot()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def create_client_for_kernel(self):
         """Create a client connected to an existing kernel"""
         (cf, hostname,
@@ -1162,7 +1358,11 @@ class IPythonConsole(SpyderPluginWidget):
     def add_tab(self, widget, name):
         """Add tab"""
         self.clients.append(widget)
+<<<<<<< HEAD
+        index = self.tabwidget.addTab(widget, get_icon('ipython_console.png'),
+=======
         index = self.tabwidget.addTab(widget, ima.icon('ipython_console'),
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
                                       name)
         self.tabwidget.setCurrentIndex(index)
         if self.dockwidget and not self.ismaximized:
@@ -1177,7 +1377,11 @@ class IPythonConsole(SpyderPluginWidget):
         """
         client = self.clients.pop(index_from)
         self.clients.insert(index_to, client)
+<<<<<<< HEAD
+        self.emit(SIGNAL('update_plugin_title()'))
+=======
         self.update_plugin_title.emit()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
     #------ Public API (for help) ---------------------------------------------
     def go_to_error(self, text):
@@ -1185,21 +1389,35 @@ class IPythonConsole(SpyderPluginWidget):
         match = get_error_match(to_text_string(text))
         if match:
             fname, lnb = match.groups()
+<<<<<<< HEAD
+            self.emit(SIGNAL("edit_goto(QString,int,QString)"),
+                      osp.abspath(fname), int(lnb), '')
+    
+=======
             self.edit_goto.emit(osp.abspath(fname), int(lnb), '')
 
     @Slot()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def show_intro(self):
         """Show intro to IPython help"""
         from IPython.core.usage import interactive_usage
         self.inspector.show_rich_text(interactive_usage)
+<<<<<<< HEAD
+    
+=======
 
     @Slot()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def show_guiref(self):
         """Show qtconsole help"""
         from IPython.core.usage import gui_reference
         self.inspector.show_rich_text(gui_reference, collapse=True)
+<<<<<<< HEAD
+    
+=======
 
     @Slot()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def show_quickref(self):
         """Show IPython Cheat Sheet"""
         from IPython.core.usage import quick_reference
@@ -1246,3 +1464,7 @@ class IPythonConsole(SpyderPluginWidget):
 #            elif shellwidget:
 #                shellwidget.shell.drop_pathlist(pathlist)
 #        event.acceptProposedAction()
+<<<<<<< HEAD
+
+=======
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f

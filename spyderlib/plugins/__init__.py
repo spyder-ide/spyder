@@ -18,6 +18,22 @@ These plugins inherit the following classes
 # pylint: disable=R0911
 # pylint: disable=R0201
 
+<<<<<<< HEAD
+from spyderlib.qt.QtGui import (QDockWidget, QWidget, QShortcut, QCursor,
+                                QKeySequence, QMainWindow, QApplication)
+from spyderlib.qt.QtCore import SIGNAL, Qt, QObject, Signal
+
+import sys
+
+# Local imports
+from spyderlib.utils.qthelpers import toggle_actions, get_icon, create_action
+from spyderlib.baseconfig import _
+
+from spyderlib.start_app import CONF
+#from spyderlib.config import CONF
+from spyderlib.userconfig import NoDefault
+from spyderlib.guiconfig import get_font, set_font
+=======
 # Qt imports
 from spyderlib.qt import PYQT5
 from spyderlib.qt.QtGui import (QDockWidget, QWidget, QShortcut, QCursor,
@@ -32,6 +48,7 @@ from spyderlib.config.base import _
 from spyderlib.config.main import CONF
 from spyderlib.config.user import NoDefault
 from spyderlib.config.gui import get_font, set_font
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 from spyderlib.plugins.configdialog import SpyderConfigPage
 from spyderlib.py3compat import configparser, is_text_string
 
@@ -54,6 +71,10 @@ class PluginConfigPage(SpyderConfigPage):
         return self.plugin.get_plugin_icon()
 
 
+<<<<<<< HEAD
+class SpyderDockWidget(QDockWidget):
+    """Subclass to override needed methods"""
+=======
 class TabFilter(QObject):
     """
     Filter event attached to each QTabBar that holds 2 or more dockwidgets in
@@ -206,12 +227,16 @@ class SpyderDockWidget(QDockWidget):
         # visibility changes. This installs the filter on startup and also
         # on dockwidgets that are undocked and then docked to a new location.
         self.visibilityChanged.connect(self.install_tab_event_filter)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
     def closeEvent(self, event):
         """
         Reimplement Qt method to send a signal on close so that "Panes" main
         window menu can be updated correctly
         """
+<<<<<<< HEAD
+        self.emit(SIGNAL('plugin_closed()'))
+=======
         self.plugin_closed.emit()
 
     def install_tab_event_filter(self, value):
@@ -234,6 +259,7 @@ class SpyderDockWidget(QDockWidget):
                 self.dock_tabbar.filter = TabFilter(self.dock_tabbar,
                                                     self.main)
                 self.dock_tabbar.installEventFilter(self.dock_tabbar.filter)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
 
 class SpyderPluginMixin(object):
@@ -242,16 +268,33 @@ class SpyderPluginMixin(object):
     See SpyderPluginWidget class for required widget interface
     
     Signals:
+<<<<<<< HEAD
+        sig_option_changed
+            Example:
+            plugin.sig_option_changed.emit('show_all', checked)
+        'show_message(QString,int)'
+=======
         * sig_option_changed
              Example:
              plugin.sig_option_changed.emit('show_all', checked)
         * show_message
         * update_plugin_title
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     """
     CONF_SECTION = None
     CONFIGWIDGET_CLASS = None
     ALLOWED_AREAS = Qt.AllDockWidgetAreas
     LOCATION = Qt.LeftDockWidgetArea
+<<<<<<< HEAD
+    FEATURES = QDockWidget.DockWidgetClosable | \
+               QDockWidget.DockWidgetFloatable | \
+               QDockWidget.DockWidgetMovable
+    DISABLE_ACTIONS_WHEN_HIDDEN = True
+    sig_option_changed = None
+    def __init__(self, main):
+        """Bind widget to a QMainWindow instance"""
+        super(SpyderPluginMixin, self).__init__()
+=======
     FEATURES = QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetFloatable
     DISABLE_ACTIONS_WHEN_HIDDEN = True
 
@@ -263,6 +306,7 @@ class SpyderPluginMixin(object):
     def __init__(self, main=None, **kwds):
         """Bind widget to a QMainWindow instance"""
         super(SpyderPluginMixin, self).__init__(**kwds)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         assert self.CONF_SECTION is not None
         self.main = main
         self.default_margins = None
@@ -284,15 +328,26 @@ class SpyderPluginMixin(object):
         # We decided to create our own toggle action instead of using
         # the one that comes with dockwidget because it's not possible
         # to raise and focus the plugin with it.
+<<<<<<< HEAD
+        self.toggle_view_action = None
+=======
         self.toggle_view_action = None 
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         
     def initialize_plugin(self):
         """Initialize plugin: connect signals, setup actions, ..."""
         self.plugin_actions = self.get_plugin_actions()
+<<<<<<< HEAD
+        QObject.connect(self, SIGNAL('show_message(QString,int)'),
+                        self.show_message)
+        QObject.connect(self, SIGNAL('update_plugin_title()'),
+                        self.__update_plugin_title)
+=======
         if self.show_message is not None:
             self.show_message.connect(self.__show_message)
         if self.update_plugin_title is not None:
             self.update_plugin_title.connect(self.__update_plugin_title)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         if self.sig_option_changed is not None:
             self.sig_option_changed.connect(self.set_option)
         self.setWindowTitle(self.get_plugin_title())
@@ -355,8 +410,15 @@ class SpyderPluginMixin(object):
         dock.setFeatures(self.FEATURES)
         dock.setWidget(self)
         self.update_margins()
+<<<<<<< HEAD
+        self.connect(dock, SIGNAL('visibilityChanged(bool)'),
+                     self.visibility_changed)
+        self.connect(dock, SIGNAL('plugin_closed()'),
+                     self.plugin_closed)
+=======
         dock.visibilityChanged.connect(self.visibility_changed)
         dock.plugin_closed.connect(self.plugin_closed)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         self.dockwidget = dock
         if self.shortcut is not None:
             sc = QShortcut(QKeySequence(self.shortcut), self.main,
@@ -454,8 +516,13 @@ class SpyderPluginMixin(object):
     def set_plugin_font(self, font, option=None):
         """Set plugin font option"""
         set_font(font, self.CONF_SECTION, option)
+<<<<<<< HEAD
+        
+    def show_message(self, message, timeout=0):
+=======
 
     def __show_message(self, message, timeout=0):
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         """Show message in main window's status bar"""
         self.main.statusBar().showMessage(message, timeout)
 
@@ -464,7 +531,11 @@ class SpyderPluginMixin(object):
         Showing message in main window's status bar
         and changing mouse cursor to Qt.WaitCursor
         """
+<<<<<<< HEAD
+        self.show_message(message)
+=======
         self.__show_message(message)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         QApplication.processEvents()
         
@@ -474,7 +545,11 @@ class SpyderPluginMixin(object):
         and restoring mouse cursor
         """
         QApplication.restoreOverrideCursor()
+<<<<<<< HEAD
+        self.show_message(message, timeout=2000)
+=======
         self.__show_message(message, timeout=2000)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         QApplication.processEvents()
         
     def set_default_color_scheme(self, name='Spyder'):
@@ -492,6 +567,13 @@ class SpyderPluginMixin(object):
         if self.CONF_SECTION == 'editor':
             title = _('Editor')
         if self.shortcut is not None:
+<<<<<<< HEAD
+            action = create_action(self, title, toggled=self.toggle_view,
+                                   shortcut=QKeySequence(self.shortcut))
+            action.setShortcutContext(Qt.WidgetWithChildrenShortcut)
+        else:
+            action = create_action(self, title, toggled=self.toggle_view)
+=======
             action = create_action(self, title,
                              toggled=lambda checked: self.toggle_view(checked),
                              shortcut=QKeySequence(self.shortcut))
@@ -499,6 +581,7 @@ class SpyderPluginMixin(object):
         else:
             action = create_action(self, title, toggled=lambda checked:
                                                 self.toggle_view(checked))
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         self.toggle_view_action = action
     
     def toggle_view(self, checked):
@@ -516,6 +599,12 @@ class SpyderPluginWidget(QWidget, SpyderPluginMixin):
     Spyder's widgets either inherit this class or reimplement its interface
     """
     sig_option_changed = Signal(str, object)
+<<<<<<< HEAD
+    
+    def __init__(self, parent):
+        QWidget.__init__(self, parent)
+        SpyderPluginMixin.__init__(self, parent)
+=======
     show_message = Signal(str, int)
     update_plugin_title = Signal()
 
@@ -526,6 +615,7 @@ class SpyderPluginWidget(QWidget, SpyderPluginMixin):
         def __init__(self, parent):
             QWidget.__init__(self, parent)
             SpyderPluginMixin.__init__(self, parent)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         
     def get_plugin_title(self):
         """
@@ -542,7 +632,11 @@ class SpyderPluginWidget(QWidget, SpyderPluginMixin):
               (see SpyderPluginMixin.create_mainwindow)
               and for configuration dialog widgets creation
         """
+<<<<<<< HEAD
+        return get_icon('qt.png')
+=======
         return ima.icon('outline_explorer')
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     
     def get_focus_widget(self):
         """
@@ -557,7 +651,11 @@ class SpyderPluginWidget(QWidget, SpyderPluginMixin):
         Return True or False whether the plugin may be closed immediately or not
         Note: returned value is ignored if *cancelable* is False
         """
+<<<<<<< HEAD
+        raise NotImplementedError
+=======
         return True
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         
     def refresh_plugin(self):
         """Refresh widget"""

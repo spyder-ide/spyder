@@ -12,11 +12,18 @@
 # pylint: disable=R0201
 
 from spyderlib.qt.QtGui import QApplication
+<<<<<<< HEAD
+from spyderlib.qt.QtCore import SIGNAL, Signal
+
+# Local imports
+from spyderlib.baseconfig import _
+=======
 from spyderlib.qt.QtCore import Signal, Slot
 import spyderlib.utils.icon_manager as ima
 
 # Local imports
 from spyderlib.config.base import _
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 from spyderlib.utils.qthelpers import create_action
 from spyderlib.widgets.findinfiles import FindInFilesWidget
 from spyderlib.plugins import SpyderPluginMixin
@@ -27,10 +34,13 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
     """Find in files DockWidget"""
     CONF_SECTION = 'find_in_files'
     sig_option_changed = Signal(str, object)
+<<<<<<< HEAD
+=======
     toggle_visibility = Signal(bool)
     edit_goto = Signal(str, int, str)
     redirect_stdio = Signal(bool)
     
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def __init__(self, parent=None):
         supported_encodings = self.get_option('supported_encodings')
         
@@ -61,7 +71,11 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
         # Initialize plugin
         self.initialize_plugin()
         
+<<<<<<< HEAD
+        self.connect(self, SIGNAL('toggle_visibility(bool)'), self.toggle)
+=======
         self.toggle_visibility.connect(self.toggle)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         
     def toggle(self, state):
         """Toggle widget visibility"""
@@ -72,7 +86,10 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
         """Refresh search directory"""
         self.find_options.set_directory(getcwd())
 
+<<<<<<< HEAD
+=======
     @Slot()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def findinfiles_callback(self):
         """Find in files callback"""
         widget = QApplication.focusWidget()
@@ -110,12 +127,24 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
         """Register plugin in Spyder's main window"""
         self.get_pythonpath_callback = self.main.get_spyder_pythonpath
         self.main.add_dockwidget(self)
+<<<<<<< HEAD
+        self.connect(self, SIGNAL("edit_goto(QString,int,QString)"),
+                     self.main.editor.load)
+        self.connect(self, SIGNAL('redirect_stdio(bool)'),
+                     self.main.redirect_internalshell_stdio)
+        self.connect(self.main.workingdirectory,
+                     SIGNAL("refresh_findinfiles()"), self.refreshdir)
+        
+        findinfiles_action = create_action(self, _("&Find in files"),
+                                   icon='findf.png',
+=======
         self.edit_goto.connect(self.main.editor.load)
         self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
         self.main.workingdirectory.refresh_findinfiles.connect(self.refreshdir)
         
         findinfiles_action = create_action(self, _("&Find in files"),
                                    icon=ima.icon('findf'),
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
                                    triggered=self.findinfiles_callback,
                                    tip=_("Search text in multiple files"))        
         

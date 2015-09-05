@@ -21,18 +21,31 @@ from spyderlib.qt.QtGui import (QHBoxLayout, QColor, QTableView, QItemDelegate,
                                 QMessageBox, QPushButton, QInputDialog, QMenu,
                                 QApplication, QKeySequence, QLabel, QComboBox,
                                 QSpinBox, QStackedWidget, QWidget, QVBoxLayout)
+<<<<<<< HEAD
+from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, SIGNAL,
+                                 SLOT)
+from spyderlib.qt.compat import to_qvariant, from_qvariant
+=======
 from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, Slot)
                                  
 from spyderlib.qt.compat import to_qvariant, from_qvariant
 import spyderlib.utils.icon_manager as ima
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
 import numpy as np
 
 # Local imports
+<<<<<<< HEAD
+from spyderlib.baseconfig import _
+from spyderlib.guiconfig import get_font, new_shortcut
+from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
+                                       qapplication, get_icon)
+=======
 from spyderlib.config.base import _
 from spyderlib.config.gui import get_font, new_shortcut
 from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
                                        qapplication)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 from spyderlib.py3compat import io, to_text_string, is_text_string
 
 # Note: string and unicode data types will be formatted with '%s' (see below)
@@ -136,8 +149,13 @@ class ArrayModel(QAbstractTableModel):
         size = self.total_rows * self.total_cols
         
         try:
+<<<<<<< HEAD
+            self.vmin = self.color_func(data).min()
+            self.vmax = self.color_func(data).max()
+=======
             self.vmin = np.nanmin(self.color_func(data))
             self.vmax = np.nanmax(self.color_func(data))
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
             if self.vmax == self.vmin:
                 self.vmin -= 1
             self.hue0 = huerange[0]
@@ -292,7 +310,12 @@ class ArrayModel(QAbstractTableModel):
         
         # Add change to self.changes
         self.changes[(i, j)] = val
+<<<<<<< HEAD
+        self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
+                  index, index)
+=======
         self.dataChanged.emit(index, index)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         if val > self.vmax:
             self.vmax = val
         if val < self.vmin:
@@ -316,10 +339,13 @@ class ArrayModel(QAbstractTableModel):
         else:
             return to_qvariant(labels[section])
 
+<<<<<<< HEAD
+=======
     def reset(self):
         self.beginResetModel()
         self.endResetModel()
 
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
 class ArrayDelegate(QItemDelegate):
     """Array Editor Item Delegate"""
@@ -341,14 +367,24 @@ class ArrayDelegate(QItemDelegate):
             editor.setAlignment(Qt.AlignCenter)
             if is_number(self.dtype):
                 editor.setValidator(QDoubleValidator(editor))
+<<<<<<< HEAD
+            self.connect(editor, SIGNAL("returnPressed()"),
+                         self.commitAndCloseEditor)
+=======
             editor.returnPressed.connect(self.commitAndCloseEditor)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
             return editor
 
     def commitAndCloseEditor(self):
         """Commit and close editor"""
         editor = self.sender()
+<<<<<<< HEAD
+        self.emit(SIGNAL("commitData(QWidget*)"), editor)
+        self.emit(SIGNAL("closeEditor(QWidget*)"), editor)
+=======
         self.commitData.emit(editor)
         self.closeEditor.emit(editor, QAbstractItemDelegate.NoHint)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
     def setEditorData(self, editor, index):
         """Set editor widget's data"""
@@ -371,10 +407,17 @@ class ArrayView(QTableView):
         self.shape = shape
         self.menu = self.setup_menu()
         new_shortcut(QKeySequence.Copy, self, self.copy)
+<<<<<<< HEAD
+        self.connect(self.horizontalScrollBar(), SIGNAL("valueChanged(int)"),
+                     lambda val: self.load_more_data(val, columns=True))
+        self.connect(self.verticalScrollBar(), SIGNAL("valueChanged(int)"),
+                     lambda val: self.load_more_data(val, rows=True))
+=======
         self.horizontalScrollBar().valueChanged.connect(
                             lambda val: self.load_more_data(val, columns=True))
         self.verticalScrollBar().valueChanged.connect(
                                lambda val: self.load_more_data(val, rows=True))
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     
     def load_more_data(self, value, rows=False, columns=False):
         if rows and value == self.verticalScrollBar().maximum():
@@ -389,9 +432,15 @@ class ArrayView(QTableView):
 
     def setup_menu(self):
         """Setup context menu"""
+<<<<<<< HEAD
+        self.copy_action = create_action(self, _( "Copy"),
+                                         shortcut=keybinding("Copy"),
+                                         icon=get_icon('editcopy.png'),
+=======
         self.copy_action = create_action(self, _('Copy'),
                                          shortcut=keybinding('Copy'),
                                          icon=ima.icon('editcopy'),
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
                                          triggered=self.copy,
                                          context=Qt.WidgetShortcut)
         menu = QMenu(self)
@@ -421,8 +470,12 @@ class ArrayView(QTableView):
         contents = output.getvalue()
         output.close()
         return contents
+<<<<<<< HEAD
+    
+=======
 
     @Slot()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def copy(self):
         """Copy text to clipboard"""
         cliptxt = self._sel_to_text( self.selectedIndexes() )
@@ -454,6 +507,16 @@ class ArrayEditorWidget(QWidget):
         # disable format button for int type
         btn.setEnabled(is_float(data.dtype))
         btn_layout.addWidget(btn)
+<<<<<<< HEAD
+        self.connect(btn, SIGNAL("clicked()"), self.change_format)
+        btn = QPushButton(_( "Resize"))
+        btn_layout.addWidget(btn)
+        self.connect(btn, SIGNAL("clicked()"), self.view.resize_to_contents)
+        bgcolor = QCheckBox(_( 'Background color'))
+        bgcolor.setChecked(self.model.bgcolor_enabled)
+        bgcolor.setEnabled(self.model.bgcolor_enabled)
+        self.connect(bgcolor, SIGNAL("stateChanged(int)"), self.model.bgcolor)
+=======
         btn.clicked.connect(self.change_format)
         btn = QPushButton(_( "Resize"))
         btn_layout.addWidget(btn)
@@ -462,6 +525,7 @@ class ArrayEditorWidget(QWidget):
         bgcolor.setChecked(self.model.bgcolor_enabled)
         bgcolor.setEnabled(self.model.bgcolor_enabled)
         bgcolor.stateChanged.connect(self.model.bgcolor)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         btn_layout.addWidget(bgcolor)
         
         layout = QVBoxLayout()
@@ -529,6 +593,18 @@ class ArrayEditor(QDialog):
             self.error(_("Array is empty"))
             return False
         if data.ndim > 3:
+<<<<<<< HEAD
+            self.error(_("Arrays with more than 3 dimensions "
+                               "are not supported"))
+            return False
+        if xlabels is not None and len(xlabels) != self.data.shape[1]:
+            self.error(_("The 'xlabels' argument length "
+						 	   "do no match array column number"))
+            return False
+        if ylabels is not None and len(ylabels) != self.data.shape[0]:
+            self.error(_("The 'ylabels' argument length "
+							   "do no match array row number"))
+=======
             self.error(_("Arrays with more than 3 dimensions are not supported"))
             return False
         if xlabels is not None and len(xlabels) != self.data.shape[1]:
@@ -538,6 +614,7 @@ class ArrayEditor(QDialog):
         if ylabels is not None and len(ylabels) != self.data.shape[0]:
             self.error(_("The 'ylabels' argument length do no match array row "
                          "number"))
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
             return False
         if not is_record_array:
             dtn = data.dtype.name
@@ -549,7 +626,11 @@ class ArrayEditor(QDialog):
         
         self.layout = QGridLayout()
         self.setLayout(self.layout)
+<<<<<<< HEAD
+        self.setWindowIcon(get_icon('arredit.png'))
+=======
         self.setWindowIcon(ima.icon('arredit'))
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         if title:
             title = to_text_string(title) + " - " + _("NumPy array")
         else:
@@ -578,7 +659,12 @@ class ArrayEditor(QDialog):
             self.stack.addWidget(ArrayEditorWidget(self, data, readonly,
                                                    xlabels, ylabels))
         self.arraywidget = self.stack.currentWidget()
+<<<<<<< HEAD
+        self.connect(self.stack, SIGNAL('currentChanged(int)'),
+                     self.current_widget_changed)
+=======
         self.stack.currentChanged.connect(self.current_widget_changed)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         self.layout.addWidget(self.stack, 1, 0)
 
         # Buttons configuration
@@ -601,12 +687,22 @@ class ArrayEditor(QDialog):
             if data.ndim == 3:
                 # QSpinBox
                 self.index_spin = QSpinBox(self, keyboardTracking=False)
+<<<<<<< HEAD
+                self.connect(self.index_spin, SIGNAL('valueChanged(int)'),
+                             self.change_active_widget)
+=======
                 self.index_spin.valueChanged.connect(self.change_active_widget)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
                 # QComboBox
                 names = [str(i) for i in range(3)]
                 ra_combo = QComboBox(self)
                 ra_combo.addItems(names)
+<<<<<<< HEAD
+                self.connect(ra_combo, SIGNAL('currentIndexChanged(int)'),
+                             self.current_dim_changed)    
+=======
                 ra_combo.currentIndexChanged.connect(self.current_dim_changed)    
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
                 # Adding the widgets to layout
                 label = QLabel(_("Axis:"))
                 btn_layout.addWidget(label)
@@ -622,7 +718,12 @@ class ArrayEditor(QDialog):
                 self.current_dim_changed(self.last_dim)
             else:
                 ra_combo = QComboBox(self)
+<<<<<<< HEAD
+                self.connect(ra_combo, SIGNAL('currentIndexChanged(int)'),
+                             self.stack.setCurrentIndex)
+=======
                 ra_combo.currentIndexChanged.connect(self.stack.setCurrentIndex)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
                 ra_combo.addItems(names)
                 btn_layout.addWidget(ra_combo)
             if is_masked_array:
@@ -633,8 +734,13 @@ class ArrayEditor(QDialog):
                 btn_layout.addWidget(label)
             btn_layout.addStretch()
         bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+<<<<<<< HEAD
+        self.connect(bbox, SIGNAL("accepted()"), SLOT("accept()"))
+        self.connect(bbox, SIGNAL("rejected()"), SLOT("reject()"))
+=======
         bbox.accepted.connect(self.accept)
         bbox.rejected.connect(self.reject)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         btn_layout.addWidget(bbox)
         self.layout.addLayout(btn_layout, 2, 0)
 
@@ -692,7 +798,10 @@ class ArrayEditor(QDialog):
         self.index_spin.setRange(-self.data.shape[index],
                                  self.data.shape[index]-1)
 
+<<<<<<< HEAD
+=======
     @Slot()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def accept(self):
         """Reimplement Qt method"""
         for index in range(self.stack.count()):
@@ -711,7 +820,10 @@ class ArrayEditor(QDialog):
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.reject()
 
+<<<<<<< HEAD
+=======
     @Slot()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def reject(self):
         """Reimplement Qt method"""
         if self.arraywidget is not None:

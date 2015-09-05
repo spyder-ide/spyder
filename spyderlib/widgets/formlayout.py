@@ -64,11 +64,19 @@ from spyderlib.qt.QtGui import (QWidget, QLineEdit, QComboBox, QLabel,
                                 QDateEdit, QDateTimeEdit, QFont, QFontComboBox,
                                 QFontDatabase, QGridLayout, QDoubleValidator,
                                 QTextEdit)
+<<<<<<< HEAD
+from spyderlib.qt.QtCore import Qt, SIGNAL, SLOT, QSize, Slot, Property
+import datetime
+
+# Local imports
+from spyderlib.baseconfig import _, DEBUG, STDERR
+=======
 from spyderlib.qt.QtCore import Qt, Signal, QSize, Slot, Property
 import datetime
 
 # Local imports
 from spyderlib.config.base import _, DEBUG, STDERR
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 from spyderlib.py3compat import is_text_string, to_text_string, is_string, u
 
 DEBUG_FORMLAYOUT = DEBUG >= 2
@@ -84,7 +92,11 @@ class ColorButton(QPushButton):
         QPushButton.__init__(self, parent)
         self.setFixedSize(20, 20)
         self.setIconSize(QSize(12, 12))
+<<<<<<< HEAD
+        self.connect(self, SIGNAL("clicked()"), self.choose_color)
+=======
         self.clicked.connect(self.choose_color)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         self._color = QColor()
     
     def choose_color(self):
@@ -99,7 +111,11 @@ class ColorButton(QPushButton):
     def set_color(self, color):
         if color != self._color:
             self._color = color
+<<<<<<< HEAD
+            self.emit(SIGNAL("colorChanged(QColor)"), self._color)
+=======
             self.colorChanged.emit(self._color)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
             pixmap = QPixmap(self.iconSize())
             pixmap.fill(color)
             self.setIcon(QIcon(pixmap))
@@ -134,11 +150,21 @@ class ColorLayout(QHBoxLayout):
         QHBoxLayout.__init__(self)
         assert isinstance(color, QColor)
         self.lineedit = QLineEdit(color.name(), parent)
+<<<<<<< HEAD
+        self.connect(self.lineedit, SIGNAL("textChanged(QString)"),
+                     self.update_color)
+        self.addWidget(self.lineedit)
+        self.colorbtn = ColorButton(parent)
+        self.colorbtn.color = color
+        self.connect(self.colorbtn, SIGNAL("colorChanged(QColor)"),
+                     self.update_text)
+=======
         self.lineedit.textChanged.connect(self.update_color)
         self.addWidget(self.lineedit)
         self.colorbtn = ColorButton(parent)
         self.colorbtn.color = color
         self.colorbtn.colorChanged.connect(self.update_text)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         self.addWidget(self.colorbtn)
 
     def update_color(self, text):
@@ -306,7 +332,12 @@ class FormWidget(QWidget):
                 field.setValidator(QDoubleValidator(field))
                 dialog = self.get_dialog()
                 dialog.register_float_field(field)
+<<<<<<< HEAD
+                self.connect(field, SIGNAL('textChanged(QString)'),
+                             lambda text: dialog.update_buttons())
+=======
                 field.textChanged.connect(lambda text: dialog.update_buttons())
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
             elif isinstance(value, int):
                 field = QSpinBox(self)
                 field.setRange(-1e9, 1e9)
@@ -371,8 +402,11 @@ class FormWidget(QWidget):
 
 
 class FormComboWidget(QWidget):
+<<<<<<< HEAD
+=======
     update_buttons = Signal()
     
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def __init__(self, datalist, comment="", parent=None):
         QWidget.__init__(self, parent)
         layout = QVBoxLayout()
@@ -382,8 +416,13 @@ class FormComboWidget(QWidget):
         
         self.stackwidget = QStackedWidget(self)
         layout.addWidget(self.stackwidget)
+<<<<<<< HEAD
+        self.connect(self.combobox, SIGNAL("currentIndexChanged(int)"),
+                     self.stackwidget, SLOT("setCurrentIndex(int)"))
+=======
         self.combobox.currentIndexChanged.connect(
                                               self.stackwidget.setCurrentIndex)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         
         self.widgetlist = []
         for data, title, comment in datalist:
@@ -452,12 +491,22 @@ class FormDialog(QDialog):
         # Button box
         self.bbox = bbox = QDialogButtonBox(QDialogButtonBox.Ok
                                             |QDialogButtonBox.Cancel)
+<<<<<<< HEAD
+        self.connect(self.formwidget, SIGNAL('update_buttons()'),
+                     self.update_buttons)
+        if self.apply_callback is not None:
+            apply_btn = bbox.addButton(QDialogButtonBox.Apply)
+            self.connect(apply_btn, SIGNAL("clicked()"), self.apply)
+        self.connect(bbox, SIGNAL("accepted()"), SLOT("accept()"))
+        self.connect(bbox, SIGNAL("rejected()"), SLOT("reject()"))
+=======
         self.formwidget.update_buttons.connect(self.update_buttons)
         if self.apply_callback is not None:
             apply_btn = bbox.addButton(QDialogButtonBox.Apply)
             apply_btn.clicked.connect(self.apply)
         bbox.accepted.connect(self.accept)
         bbox.rejected.connect(self.reject)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         layout.addWidget(bbox)
 
         self.setLayout(layout)
@@ -479,6 +528,13 @@ class FormDialog(QDialog):
             btn = self.bbox.button(btn_type)
             if btn is not None:
                 btn.setEnabled(valid)
+<<<<<<< HEAD
+        
+    def accept(self):
+        self.data = self.formwidget.get()
+        QDialog.accept(self)
+        
+=======
     
     @Slot()
     def accept(self):
@@ -486,6 +542,7 @@ class FormDialog(QDialog):
         QDialog.accept(self)
     
     @Slot()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def reject(self):
         self.data = None
         QDialog.reject(self)

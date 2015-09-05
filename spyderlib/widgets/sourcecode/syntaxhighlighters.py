@@ -11,6 +11,13 @@ Editor widget syntax highlighters based on QtGui.QSyntaxHighlighter
 
 from __future__ import print_function
 
+<<<<<<< HEAD
+import re #,sys,os
+import keyword
+
+from spyderlib.qt.QtGui import (QColor, QApplication, QFont,
+                                QSyntaxHighlighter, QCursor, QTextCharFormat)
+=======
 import os
 import re
 import keyword
@@ -18,12 +25,23 @@ import keyword
 from spyderlib.qt.QtGui import (QColor, QApplication, QFont,
                                 QSyntaxHighlighter, QCursor, QTextCharFormat,
                                 QTextOption)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 from spyderlib.qt.QtCore import Qt
 
 # Local imports
 from spyderlib import dependencies
+<<<<<<< HEAD
+from spyderlib.baseconfig import _
+
+
+#from spyderlib.config import CONF ###this doesnt work!
+
+from spyderlib.start_app import CONF
+
+=======
 from spyderlib.config.base import _
 from spyderlib.config.main import CONF
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 from spyderlib.py3compat import builtins, is_text_string, to_text_string
 from spyderlib.utils.sourcecode import CELL_LANGUAGES
 
@@ -42,6 +60,8 @@ COLOR_SCHEME_KEYS = ("background", "currentline", "currentcell", "occurence",
                      "normal", "keyword", "builtin", "definition",
                      "comment", "string", "number", "instance")
 COLOR_SCHEME_NAMES = CONF.get('color_schemes', 'names')
+<<<<<<< HEAD
+=======
 # Mapping for file extensions that use Pygments highlighting but should use
 # different lexers than Pygments' autodetection suggests.  Keys are file
 # extensions or tuples of extensions, values are Pygments lexer names.
@@ -61,6 +81,7 @@ for key, value in CUSTOM_EXTENSION_LEXER.items():
     else:
         for k in key:
             _custom_extension_lexer_mapping[k] = value
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
 
 #==============================================================================
@@ -85,12 +106,17 @@ class BaseSH(QSyntaxHighlighter):
     """Base Syntax Highlighter Class"""
     # Syntax highlighting rules:
     PROG = None
+<<<<<<< HEAD
+    # Syntax highlighting states (from one text block to another):
+    NORMAL = 0
+=======
     BLANKPROG = re.compile("\s+")
     # Syntax highlighting states (from one text block to another):
     NORMAL = 0
     # Syntax highlighting parameters.
     BLANK_ALPHA_FACTOR = 0.31
     
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def __init__(self, parent, font=None, color_scheme='Spyder'):
         QSyntaxHighlighter.__init__(self, parent)
         
@@ -195,6 +221,9 @@ class BaseSH(QSyntaxHighlighter):
 
     def highlightBlock(self, text):
         raise NotImplementedError
+<<<<<<< HEAD
+            
+=======
 
     def highlight_spaces(self, text, offset=0):
         """
@@ -226,6 +255,7 @@ class BaseSH(QSyntaxHighlighter):
                 self.setFormat(start, end-start, color_foreground)
                 match = self.BLANKPROG.search(text, match.end())
     
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def get_outlineexplorer_data(self):
         return self.outlineexplorer_data
 
@@ -237,9 +267,15 @@ class BaseSH(QSyntaxHighlighter):
 
 
 class TextSH(BaseSH):
+<<<<<<< HEAD
+    """Simple Text Syntax Highlighter Class (do nothing)"""
+    def highlightBlock(self, text):
+        pass
+=======
     """Simple Text Syntax Highlighter Class (only highlight spaces)"""
     def highlightBlock(self, text):
         self.highlight_spaces(text)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
 
 class GenericSH(BaseSH):
@@ -260,8 +296,11 @@ class GenericSH(BaseSH):
                     self.setFormat(start, end-start, self.formats[key])
                     
             match = self.PROG.search(text, match.end())
+<<<<<<< HEAD
+=======
         
         self.highlight_spaces(text)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
 
 #==============================================================================
@@ -304,9 +343,12 @@ def make_python_patterns(additional_keywords=[], additional_builtins=[]):
 
 class OutlineExplorerData(object):
     CLASS, FUNCTION, STATEMENT, COMMENT, CELL = list(range(5))
+<<<<<<< HEAD
+=======
     FUNCTION_TOKEN = 'def'
     CLASS_TOKEN = 'class'
 
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def __init__(self):
         self.text = None
         self.fold_level = None
@@ -315,9 +357,12 @@ class OutlineExplorerData(object):
         
     def is_not_class_nor_function(self):
         return self.def_type not in (self.CLASS, self.FUNCTION)
+<<<<<<< HEAD
+=======
 
     def is_class_or_function(self):
         return self.def_type in (self.CLASS, self.FUNCTION)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     
     def is_comment(self):
         return self.def_type in (self.COMMENT, self.CELL)
@@ -329,6 +374,9 @@ class OutlineExplorerData(object):
     def get_function_name(self):
         if self.def_type == self.FUNCTION:
             return self.def_name
+<<<<<<< HEAD
+    
+=======
 
     def get_token(self):
         if self.def_type == self.FUNCTION:
@@ -339,6 +387,7 @@ class OutlineExplorerData(object):
         return token
 
 
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 class PythonSH(BaseSH):
     """Python Syntax Highlighter"""
     # Syntax highlighting rules:
@@ -436,7 +485,10 @@ class PythonSH(BaseSH):
                                     oedata.def_type = self.DEF_TYPES[
                                                         to_text_string(value)]
                                     oedata.def_name = text[start1:end1]
+<<<<<<< HEAD
+=======
                                     oedata.color = self.formats["definition"]
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
                             elif value in ("elif", "else", "except", "finally",
                                            "for", "if", "try", "while",
                                            "with"):
@@ -466,6 +518,11 @@ class PythonSH(BaseSH):
                                                    self.formats["keyword"])
                     
             match = self.PROG.search(text, match.end())
+<<<<<<< HEAD
+ 
+        self.setCurrentBlockState(state)
+        
+=======
         
         self.setCurrentBlockState(state)
         
@@ -474,6 +531,7 @@ class PythonSH(BaseSH):
         self.formats['trailing'] = self.formats['normal']
         self.highlight_spaces(text, offset)
         
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         if oedata is not None:
             block_nb = self.currentBlock().blockNumber()
             self.outlineexplorer_data[block_nb] = oedata
@@ -511,8 +569,12 @@ class CythonSH(PythonSH):
 #==============================================================================
 class EnamlSH(PythonSH):
     """Enaml Syntax Highlighter"""
+<<<<<<< HEAD
+    ADDITIONAL_KEYWORDS = ["enamldef", "template", "attr", "event", "const", "alias"]
+=======
     ADDITIONAL_KEYWORDS = ["enamldef", "template", "attr", "event", "const", "alias",
                            "func"]
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     ADDITIONAL_BUILTINS = []
     PROG = re.compile(make_python_patterns(ADDITIONAL_KEYWORDS,
                                            ADDITIONAL_BUILTINS), re.S)
@@ -594,9 +656,13 @@ class CppSH(BaseSH):
                         self.setFormat(start, end-start, self.formats[key])
                     
             match = self.PROG.search(text, match.end())
+<<<<<<< HEAD
+
+=======
         
         self.highlight_spaces(text)
         
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         last_state = self.INSIDE_COMMENT if inside_comment else self.NORMAL
         self.setCurrentBlockState(last_state)
 
@@ -671,8 +737,11 @@ class FortranSH(BaseSH):
                                            self.formats["definition"])
                     
             match = self.PROG.search(text, match.end())
+<<<<<<< HEAD
+=======
         
         self.highlight_spaces(text)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
 class Fortran77SH(FortranSH):
     """Fortran 77 Syntax Highlighter"""
@@ -680,7 +749,10 @@ class Fortran77SH(FortranSH):
         text = to_text_string(text)
         if text.startswith(("c", "C")):
             self.setFormat(0, len(text), self.formats["comment"])
+<<<<<<< HEAD
+=======
             self.highlight_spaces(text)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         else:
             FortranSH.highlightBlock(self, text)
             self.setFormat(0, 5, self.formats["comment"])
@@ -736,8 +808,12 @@ class DiffSH(BaseSH):
             self.setFormat(0, len(text), self.formats["number"])
         elif text.startswith("@"):
             self.setFormat(0, len(text), self.formats["builtin"])
+<<<<<<< HEAD
+
+=======
         
         self.highlight_spaces(text)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
 #==============================================================================
 # NSIS highlighter
@@ -867,8 +943,11 @@ class BaseWebSH(BaseSH):
             
             match = self.PROG.search(text, match.end())
             match_count += 1
+<<<<<<< HEAD
+=======
         
         self.highlight_spaces(text)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
 def make_html_patterns():
     """Strongly inspired from idlelib.ColorDelegator.make_pat """
@@ -951,6 +1030,40 @@ class PygmentsSH(BaseSH):
             start = ct
             ct += len(val)        
             self.setFormat(start, ct-start, self.formats[key])
+<<<<<<< HEAD
+
+class BatchSH(PygmentsSH):
+    """Batch highlighter"""
+    _lang_name = 'bat'
+
+class IniSH(PygmentsSH):
+    """INI highlighter"""
+    _lang_name = 'ini'
+
+class XmlSH(PygmentsSH):
+    """XML highlighter"""
+    _lang_name = 'xml'
+
+class JsSH(PygmentsSH):
+    """Javascript highlighter"""
+    _lang_name = 'js'
+
+class JsonSH(PygmentsSH):
+    """Json highlighter"""
+    _lang_name = 'json'
+
+class JuliaSH(PygmentsSH):
+    """Julia highlighter"""
+    _lang_name = 'julia'
+        
+class CssSH(PygmentsSH):
+    """CSS Syntax Highlighter"""
+    _lang_name = 'css'
+
+class MatlabSH(PygmentsSH):
+    """Matlab highlighter"""
+    _lang_name = 'matlab'
+=======
         
         self.highlight_spaces(text)
 
@@ -980,6 +1093,7 @@ def guess_pygments_highlighter(filename):
         _lexer = lexer
     return GuessedPygmentsSH
 
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
 
 if __name__ == '__main__':

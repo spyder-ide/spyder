@@ -10,11 +10,17 @@ from spyderlib.qt.QtGui import (QAction, QStyle, QWidget, QIcon, QApplication,
                                 QLabel, QVBoxLayout, QHBoxLayout, QLineEdit,
                                 QKeyEvent, QMenu, QKeySequence, QToolButton,
                                 QPixmap)
+<<<<<<< HEAD
+from spyderlib.qt.QtCore import (SIGNAL, QObject, Qt, QLocale, QTranslator,
+                                 QLibraryInfo, QEvent)
+from spyderlib.qt.compat import to_qvariant, from_qvariant
+=======
 from spyderlib.qt.QtCore import (Signal, QObject, Qt, QLocale, QTranslator,
                                  QLibraryInfo, QEvent, Slot)
 from spyderlib.qt.compat import to_qvariant, from_qvariant
 import spyderlib.utils.icon_manager as ima
 from spyderlib.utils.icon_manager import get_icon, get_std_icon
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
 import os
 import re
@@ -22,8 +28,13 @@ import os.path as osp
 import sys
 
 # Local import
+<<<<<<< HEAD
+from spyderlib.baseconfig import get_image_path, running_in_mac_app
+from spyderlib.guiconfig import get_shortcut
+=======
 from spyderlib.config.base import get_image_path, running_in_mac_app
 from spyderlib.config.gui import get_shortcut
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 from spyderlib.utils import programs
 from spyderlib.py3compat import is_text_string, to_text_string
 
@@ -38,6 +49,31 @@ from spyderlib.py3compat import is_text_string, to_text_string
 #                 lambda *args: self.emit(SIGNAL('option_changed'), *args))
 
 
+<<<<<<< HEAD
+def get_icon(name, default=None, resample=False):
+    """Return image inside a QIcon object
+    default: default image name or icon
+    resample: if True, manually resample icon pixmaps for usual sizes
+    (16, 24, 32, 48, 96, 128, 256). This is recommended for QMainWindow icons 
+    created from SVG images on non-Windows platforms due to a Qt bug (see 
+    Issue 1314)."""
+    if default is None:
+        icon = QIcon(get_image_path(name))
+    elif isinstance(default, QIcon):
+        icon_path = get_image_path(name, default=None)
+        icon = default if icon_path is None else QIcon(icon_path)
+    else:
+        icon = QIcon(get_image_path(name, default))
+    if resample:
+        icon0 = QIcon()
+        for size in (16, 24, 32, 48, 96, 128, 256, 512):
+            icon0.addPixmap(icon.pixmap(size, size))
+        return icon0 
+    else:
+        return icon
+
+=======
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
 def get_image_label(name, default="not_found.png"):
     """Return image inside a QLabel object"""
@@ -48,15 +84,22 @@ def get_image_label(name, default="not_found.png"):
 
 class MacApplication(QApplication):
     """Subclass to be able to open external files with our Mac app"""
+<<<<<<< HEAD
+=======
     open_external_file = Signal(str)
     
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def __init__(self, *args):
         QApplication.__init__(self, *args)
 
     def event(self, event):
         if event.type() == QEvent.FileOpen:
             fname = str(event.file())
+<<<<<<< HEAD
+            self.emit(SIGNAL('open_external_file(QString)'), fname)
+=======
             self.open_external_file.emit(fname)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         return QApplication.event(self, event)
 
 
@@ -190,9 +233,15 @@ def create_toolbutton(parent, text=None, shortcut=None, icon=None, tip=None,
         button.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
     button.setAutoRaise(autoraise)
     if triggered is not None:
+<<<<<<< HEAD
+        QObject.connect(button, SIGNAL('clicked()'), triggered)
+    if toggled is not None:
+        QObject.connect(button, SIGNAL("toggled(bool)"), toggled)
+=======
         button.clicked.connect(triggered)
     if toggled is not None:
         button.toggled.connect(toggled)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         button.setCheckable(True)
     if shortcut is not None:
         button.setShortcut(shortcut)
@@ -225,9 +274,15 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
     """Create a QAction"""
     action = QAction(text, parent)
     if triggered is not None:
+<<<<<<< HEAD
+        parent.connect(action, SIGNAL("triggered()"), triggered)
+    if toggled is not None:
+        parent.connect(action, SIGNAL("toggled(bool)"), toggled)
+=======
         action.triggered.connect(triggered)
     if toggled is not None:
         action.toggled.connect(toggled)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         action.setCheckable(True)
     if icon is not None:
         if is_text_string(icon):
@@ -294,6 +349,10 @@ def set_item_user_text(item, text):
 
 def create_bookmark_action(parent, url, title, icon=None, shortcut=None):
     """Create bookmark action"""
+<<<<<<< HEAD
+    return create_action( parent, title, shortcut=shortcut, icon=icon,
+                          triggered=lambda u=url: programs.start_file(u) )
+=======
     
     @Slot()
     def open_url():
@@ -301,6 +360,7 @@ def create_bookmark_action(parent, url, title, icon=None, shortcut=None):
     
     return create_action( parent, title, shortcut=shortcut, icon=icon,
                           triggered=open_url)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
 
 def create_module_bookmark_actions(parent, bookmarks):
@@ -365,11 +425,19 @@ class DialogManager(QObject):
         else:
             dialog.show()
             self.dialogs[id(dialog)] = dialog
+<<<<<<< HEAD
+            self.connect(dialog, SIGNAL('accepted()'),
+                         lambda eid=id(dialog): self.dialog_finished(eid))
+            self.connect(dialog, SIGNAL('rejected()'),
+                         lambda eid=id(dialog): self.dialog_finished(eid))
+        
+=======
             dialog.accepted.connect(
                               lambda eid=id(dialog): self.dialog_finished(eid))
             dialog.rejected.connect(
                               lambda eid=id(dialog): self.dialog_finished(eid))
     
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def dialog_finished(self, dialog_id):
         """Manage non-modal dialog boxes"""
         return self.dialogs.pop(dialog_id)
@@ -380,12 +448,31 @@ class DialogManager(QObject):
             dlg.reject()
 
         
+<<<<<<< HEAD
+def get_std_icon(name, size=None):
+    """Get standard platform icon
+    Call 'show_std_icons()' for details"""
+    if not name.startswith('SP_'):
+        name = 'SP_'+name
+    icon = QWidget().style().standardIcon( getattr(QStyle, name) )
+    if size is None:
+        return icon
+    else:
+        return QIcon( icon.pixmap(size, size) )
+
+
+=======
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 def get_filetype_icon(fname):
     """Return file type icon"""
     ext = osp.splitext(fname)[1]
     if ext.startswith('.'):
         ext = ext[1:]
+<<<<<<< HEAD
+    return get_icon( "%s.png" % ext, get_std_icon('FileIcon') )
+=======
     return get_icon( "%s.png" % ext, ima.icon('FileIcon') )
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
 
 class ShowStdIcons(QWidget):

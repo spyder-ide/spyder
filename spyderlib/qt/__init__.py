@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 #
+<<<<<<< HEAD
+# Copyright © 2011 Pierre Raybaut
+=======
 # Copyright © 2011-2012 Pierre Raybaut
 #           © 2012-2014 anatoly techtonik
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -10,6 +14,29 @@
 import os
 
 os.environ.setdefault('QT_API', 'pyqt')
+<<<<<<< HEAD
+assert os.environ['QT_API'] in ('pyqt', 'pyside')
+
+API = os.environ['QT_API']
+API_NAME = {'pyqt': 'PyQt4', 'pyside': 'PySide'}[API]
+
+if API == 'pyqt':
+    # Since Spyder 2.3.6 we only support API #2
+    import sip
+    try:
+        sip.setapi('QString', 2)
+        sip.setapi('QVariant', 2)
+        sip.setapi('QDate', 2)
+        sip.setapi('QDateTime', 2)
+        sip.setapi('QTextStream', 2)
+        sip.setapi('QTime', 2)
+        sip.setapi('QUrl', 2)
+    except AttributeError:
+        pass
+
+    try:
+        from PyQt4.QtCore import PYQT_VERSION_STR as __version__
+=======
 assert os.environ['QT_API'] in ('pyqt5', 'pyqt', 'pyside')
 
 API = os.environ['QT_API']
@@ -45,6 +72,7 @@ elif API == 'pyqt':
             pass
 
         from PyQt4.QtCore import PYQT_VERSION_STR as __version__ # analysis:ignore
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     except ImportError:
         # Switching to PySide
         API = os.environ['QT_API'] = 'pyside'

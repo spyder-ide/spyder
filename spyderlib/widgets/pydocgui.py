@@ -7,13 +7,21 @@
 """pydoc widget"""
 
 from spyderlib.qt.QtGui import QApplication, QCursor
+<<<<<<< HEAD
+from spyderlib.qt.QtCore import QThread, QUrl, Qt, SIGNAL
+=======
 from spyderlib.qt.QtCore import QThread, QUrl, Qt, Signal
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
 import sys
 import os.path as osp
 
 # Local imports
+<<<<<<< HEAD
+from spyderlib.baseconfig import _
+=======
 from spyderlib.config.base import _
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 from spyderlib.widgets.browser import WebBrowser
 from spyderlib.utils.misc import select_port
 from spyderlib.py3compat import to_text_string, PY3
@@ -21,8 +29,11 @@ from spyderlib.py3compat import to_text_string, PY3
 
 class PydocServer(QThread):
     """Pydoc server"""
+<<<<<<< HEAD
+=======
     server_started = Signal()
     
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def __init__(self, port=7464):
         QThread.__init__(self)
         self.port = port
@@ -40,7 +51,11 @@ class PydocServer(QThread):
 
     def callback(self, server):
         self.server = server
+<<<<<<< HEAD
+        self.emit(SIGNAL('server_started()'))
+=======
         self.server_started.emit()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         
     def completer(self):
         self.complete = True
@@ -95,10 +110,19 @@ class PydocBrowser(WebBrowser):
             self.port = select_port(default_port=self.DEFAULT_PORT)
             self.set_home_url('http://localhost:%d/' % self.port)
         elif self.server.isRunning():
+<<<<<<< HEAD
+            self.disconnect(self.server, SIGNAL('server_started()'),
+                            self.initialize_continued)
+            self.server.quit()
+        self.server = PydocServer(port=self.port)
+        self.connect(self.server, SIGNAL('server_started()'),
+                     self.initialize_continued)
+=======
             self.server.server_started.disconnect(self.initialize_continued)
             self.server.quit()
         self.server = PydocServer(port=self.port)
         self.server.server_started.connect(self.initialize_continued)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         self.server.start()
 
     #------ WebBrowser API -----------------------------------------------------

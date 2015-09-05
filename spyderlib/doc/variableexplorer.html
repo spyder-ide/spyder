@@ -1,0 +1,170 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Variable Explorer &mdash; Spyder 2.3 documentation</title>
+    
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '2.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+    <link rel="top" title="Spyder 2.3 documentation" href="index.html" />
+    <link rel="next" title="Object inspector" href="inspector.html" />
+    <link rel="prev" title="Debugging" href="debugging.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="inspector.html" title="Object inspector"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="debugging.html" title="Debugging"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Spyder 2.3 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/spyder_bbg.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Variable Explorer</a><ul>
+<li><a class="reference internal" href="#supported-types">Supported types</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="debugging.html"
+                        title="previous chapter">Debugging</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="inspector.html"
+                        title="next chapter">Object inspector</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/variableexplorer.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="variable-explorer">
+<h1>Variable Explorer<a class="headerlink" href="#variable-explorer" title="Permalink to this headline">¶</a></h1>
+<p>The variable explorer shows the <cite>globals()</cite> namespace contents (i.e. all global
+object references) of the current console: it supports both the <a class="reference internal" href="console.html"><em>Console</em></a>
+(Python interpreter running in a remote process)
+and the <a class="reference internal" href="internalconsole.html"><em>Internal Console</em></a>.</p>
+<img alt="_images/variableexplorer1.png" src="_images/variableexplorer1.png" />
+<p>The following screenshots show some interesting features such as editing
+lists, strings, dictionaries, NumPy arrays, or plotting/showing NumPy arrays
+data.</p>
+<img alt="_images/listeditor.png" src="_images/listeditor.png" />
+<img alt="_images/texteditor.png" src="_images/texteditor.png" />
+<img alt="_images/dicteditor.png" src="_images/dicteditor.png" />
+<img alt="_images/arrayeditor.png" src="_images/arrayeditor.png" />
+<img alt="_images/variableexplorer-plot.png" src="_images/variableexplorer-plot.png" />
+<img alt="_images/variableexplorer-imshow.png" src="_images/variableexplorer-imshow.png" />
+<p>The default variable explorer configuration allows to browse global variables
+without slowing the console even with very large NumPy arrays, lists or
+dictionaries. The trick is to truncate values, to hide collection contents
+(i.e. showing &#8216;&lt;list &#64; address&gt;&#8217; instead of list contents) and to <em>not</em> show
+mininum and maximum values for NumPy arrays (see context menu options on the
+screenshot at the top of this page).</p>
+<p>However, most of the time, choosing the opposite options won&#8217;t have too much
+effect on console&#8217;s performance:</p>
+<img alt="_images/variableexplorer2.png" src="_images/variableexplorer2.png" />
+<div class="section" id="supported-types">
+<h2>Supported types<a class="headerlink" href="#supported-types" title="Permalink to this headline">¶</a></h2>
+<p>The variable explorer can&#8217;t show all types of objects. The ones currently
+supported are:</p>
+<ol class="arabic simple">
+<li><cite>Pandas</cite> DataFrames and TimeSeries</li>
+<li><cite>NumPy</cite> arrays and matrices</li>
+<li><cite>PIL/Pillow</cite> images</li>
+<li><cite>datetime</cite> dates</li>
+<li>Integers</li>
+<li>Floats</li>
+<li>Complex numbers</li>
+<li>Lists</li>
+<li>Dictionaries</li>
+<li>Tuples</li>
+<li>Strings</li>
+</ol>
+<p>Related plugins:</p>
+<ul class="simple">
+<li><a class="reference internal" href="console.html"><em>Console</em></a></li>
+<li><a class="reference internal" href="internalconsole.html"><em>Internal Console</em></a></li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="inspector.html" title="Object inspector"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="debugging.html" title="Debugging"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Spyder 2.3 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2009, Pierre Raybaut.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+    </div>
+  </body>
+</html>

@@ -9,12 +9,19 @@ Environment variable utilities
 """
 
 from spyderlib.qt.QtGui import QDialog, QMessageBox
+<<<<<<< HEAD
+=======
 import spyderlib.utils.icon_manager as ima
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
 import os
 
 # Local imports
+<<<<<<< HEAD
+from spyderlib.baseconfig import _
+=======
 from spyderlib.config.base import _
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 from spyderlib.widgets.dicteditor import DictEditor
 
 
@@ -38,7 +45,11 @@ class RemoteEnvDialog(DictEditor):
     def __init__(self, get_environ_func, set_environ_func, parent=None):
         super(RemoteEnvDialog, self).__init__(parent)
         self.setup(envdict2listdict(get_environ_func()),
+<<<<<<< HEAD
+                   title="os.environ", width=600, icon='environ.png')
+=======
                    title="os.environ", width=600, icon=ima.icon('environ'))
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         self.set_environ = set_environ_func
     def accept(self):
         """Reimplement Qt method"""

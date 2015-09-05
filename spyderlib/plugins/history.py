@@ -6,22 +6,38 @@
 
 """Console History Plugin"""
 
+<<<<<<< HEAD
+from spyderlib.qt.QtGui import (QVBoxLayout, QFontDialog, QInputDialog,
+                                QToolButton, QMenu, QFontComboBox, QGroupBox,
+                                QHBoxLayout, QWidget)
+from spyderlib.qt.QtCore import SIGNAL
+=======
 from spyderlib.qt import PYQT5
 from spyderlib.qt.QtGui import (QVBoxLayout, QFontDialog, QInputDialog,
                                 QToolButton, QMenu, QFontComboBox, QGroupBox,
                                 QHBoxLayout, QWidget)
 from spyderlib.qt.QtCore import Signal, Slot
 import spyderlib.utils.icon_manager as ima
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
 import os.path as osp
 import sys
 
 # Local imports
 from spyderlib.utils import encoding
+<<<<<<< HEAD
+from spyderlib.baseconfig import _
+from spyderlib.start_app import CONF
+#from spyderlib.config import CONF
+from spyderlib.guiconfig import get_color_scheme
+from spyderlib.utils.qthelpers import (get_icon, create_action,
+                                       create_toolbutton, add_actions)
+=======
 from spyderlib.config.base import _
 from spyderlib.config.main import CONF
 from spyderlib.config.gui import get_color_scheme
 from spyderlib.utils.qthelpers import (create_action, create_toolbutton, add_actions)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 from spyderlib.widgets.tabs import Tabs
 from spyderlib.widgets.sourcecode import codeeditor
 from spyderlib.widgets.findreplace import FindReplace
@@ -31,7 +47,11 @@ from spyderlib.py3compat import to_text_string, is_text_string
 
 class HistoryConfigPage(PluginConfigPage):
     def get_icon(self):
+<<<<<<< HEAD
+        return get_icon('history24.png')
+=======
         return ima.icon('history')
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     
     def setup_page(self):
         settings_group = QGroupBox(_("Settings"))
@@ -63,8 +83,13 @@ class HistoryConfigPage(PluginConfigPage):
         sourcecode_group.setLayout(sourcecode_layout)
         
         vlayout = QVBoxLayout()
+<<<<<<< HEAD
+        vlayout.addWidget(settings_group)
+        vlayout.addWidget(font_group)
+=======
         vlayout.addWidget(font_group)
         vlayout.addWidget(settings_group)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         vlayout.addWidget(sourcecode_group)
         vlayout.addStretch(1)
         self.setLayout(vlayout)
@@ -76,8 +101,11 @@ class HistoryLog(SpyderPluginWidget):
     """
     CONF_SECTION = 'historylog'
     CONFIGWIDGET_CLASS = HistoryConfigPage
+<<<<<<< HEAD
+=======
     focus_changed = Signal()
     
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def __init__(self, parent):
         self.tabwidget = None
         self.menu_actions = None
@@ -87,10 +115,15 @@ class HistoryLog(SpyderPluginWidget):
         self.editors = []
         self.filenames = []
         self.icons = []
+<<<<<<< HEAD
+        
+        SpyderPluginWidget.__init__(self, parent)
+=======
         if PYQT5:        
             SpyderPluginWidget.__init__(self, parent, main = parent)
         else:
             SpyderPluginWidget.__init__(self, parent)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
         # Initialize plugin
         self.initialize_plugin()
@@ -99,8 +132,15 @@ class HistoryLog(SpyderPluginWidget):
         
         layout = QVBoxLayout()
         self.tabwidget = Tabs(self, self.menu_actions)
+<<<<<<< HEAD
+        self.connect(self.tabwidget, SIGNAL('currentChanged(int)'),
+                     self.refresh_plugin)
+        self.connect(self.tabwidget, SIGNAL('move_data(int,int)'),
+                     self.move_tab)
+=======
         self.tabwidget.currentChanged.connect(self.refresh_plugin)
         self.tabwidget.move_data.connect(self.move_tab)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
         if sys.platform == 'darwin':
             tab_container = QWidget()
@@ -112,11 +152,17 @@ class HistoryLog(SpyderPluginWidget):
         else:
             layout.addWidget(self.tabwidget)
 
+<<<<<<< HEAD
+        # Menu as corner widget
+        options_button = create_toolbutton(self, text=_("Options"),
+                                           icon=get_icon('tooloptions.png'))
+=======
         self.tabwidget.setStyleSheet("QTabWidget::pane {border: 0;}")
 
         # Menu as corner widget
         options_button = create_toolbutton(self, text=_('Options'),
                                            icon=ima.icon('tooloptions'))
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         options_button.setPopupMode(QToolButton.InstantPopup)
         menu = QMenu(self)
         add_actions(menu, self.menu_actions)
@@ -139,7 +185,11 @@ class HistoryLog(SpyderPluginWidget):
     
     def get_plugin_icon(self):
         """Return widget icon"""
+<<<<<<< HEAD
+        return get_icon('history.png')
+=======
         return ima.icon('history')
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     
     def get_focus_widget(self):
         """
@@ -163,11 +213,19 @@ class HistoryLog(SpyderPluginWidget):
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         history_action = create_action(self, _("History..."),
+<<<<<<< HEAD
+                                       None, 'history.png',
+                                       _("Set history maximum entries"),
+                                       triggered=self.change_history_depth)
+        font_action = create_action(self, _("&Font..."), None,
+                                    'font.png', _("Set shell font style"),
+=======
                                        None, ima.icon('history'),
                                        _("Set history maximum entries"),
                                        triggered=self.change_history_depth)
         font_action = create_action(self, _("&Font..."), None,
                                     ima.icon('font'), _("Set shell font style"),
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
                                     triggered=self.change_font)
         self.wrap_action = create_action(self, _("Wrap lines"),
                                     toggled=self.toggle_wrap_mode)
@@ -181,10 +239,19 @@ class HistoryLog(SpyderPluginWidget):
     
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
+<<<<<<< HEAD
+        self.connect(self, SIGNAL('focus_changed()'),
+                     self.main.plugin_focus_changed)
+        self.main.add_dockwidget(self)
+#        self.main.console.set_historylog(self)
+        self.connect(self.main.console.shell, SIGNAL("refresh()"),
+                     self.refresh_plugin)
+=======
         self.focus_changed.connect(self.main.plugin_focus_changed)
         self.main.add_dockwidget(self)
 #        self.main.console.set_historylog(self)
         self.main.console.shell.refresh.connect(self.refresh_plugin)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
@@ -221,7 +288,11 @@ class HistoryLog(SpyderPluginWidget):
     def add_history(self, filename):
         """
         Add new history tab
+<<<<<<< HEAD
+        Slot for SIGNAL('add_history(QString)') emitted by shell instance
+=======
         Slot for add_history signal emitted by shell instance
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         """
         filename = encoding.to_unicode_from_fs(filename)
         if filename in self.filenames:
@@ -229,6 +300,16 @@ class HistoryLog(SpyderPluginWidget):
         editor = codeeditor.CodeEditor(self)
         if osp.splitext(filename)[1] == '.py':
             language = 'py'
+<<<<<<< HEAD
+            icon = get_icon('python.png')
+        else:
+            language = 'bat'
+            icon = get_icon('cmdprompt.png')
+        editor.setup_editor(linenumbers=False, language=language,
+                            scrollflagarea=False)
+        self.connect(editor, SIGNAL("focus_changed()"),
+                     lambda: self.emit(SIGNAL("focus_changed()")))
+=======
             icon = ima.icon('python')
         else:
             language = 'bat'
@@ -236,6 +317,7 @@ class HistoryLog(SpyderPluginWidget):
         editor.setup_editor(linenumbers=False, language=language,
                             scrollflagarea=False)
         editor.focus_changed.connect(lambda: self.focus_changed.emit())
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         editor.setReadOnly(True)
         color_scheme = get_color_scheme(self.get_option('color_scheme_name'))
         editor.set_font( self.get_plugin_font(), color_scheme )
@@ -257,7 +339,12 @@ class HistoryLog(SpyderPluginWidget):
     def append_to_history(self, filename, command):
         """
         Append an entry to history filename
+<<<<<<< HEAD
+        Slot for SIGNAL('append_to_history(QString,QString)')
+        emitted by shell instance
+=======
         Slot for append_to_history signal emitted by shell instance
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         """
         if not is_text_string(filename): # filename is a QString
             filename = to_text_string(filename.toUtf8(), 'utf-8')
@@ -267,8 +354,12 @@ class HistoryLog(SpyderPluginWidget):
         if self.get_option('go_to_eof'):
             self.editors[index].set_cursor_position('eof')
         self.tabwidget.setCurrentIndex(index)
+<<<<<<< HEAD
+        
+=======
     
     @Slot()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def change_history_depth(self):
         "Change history max entries"""
         depth, valid = QInputDialog.getInteger(self, _('History'),
@@ -277,8 +368,12 @@ class HistoryLog(SpyderPluginWidget):
                                        10, 10000)
         if valid:
             self.set_option('max_entries', depth)
+<<<<<<< HEAD
+        
+=======
     
     @Slot()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def change_font(self):
         """Change console font"""
         font, valid = QFontDialog.getFont(self.get_plugin_font(),
@@ -287,8 +382,12 @@ class HistoryLog(SpyderPluginWidget):
             for editor in self.editors:
                 editor.set_font(font)
             self.set_plugin_font(font)
+<<<<<<< HEAD
+            
+=======
     
     @Slot(bool)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def toggle_wrap_mode(self, checked):
         """Toggle wrap mode"""
         if self.tabwidget is None:

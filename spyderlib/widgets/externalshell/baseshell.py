@@ -14,6 +14,19 @@ import os
 import os.path as osp
 from time import time, strftime, gmtime
 
+<<<<<<< HEAD
+from spyderlib.qt.QtGui import (QApplication, QWidget, QVBoxLayout,
+                                QHBoxLayout, QMenu, QLabel, QInputDialog,
+                                QLineEdit, QToolButton)
+from spyderlib.qt.QtCore import (QProcess, SIGNAL, QByteArray, QTimer, Qt,
+                                 QTextCodec)
+LOCALE_CODEC = QTextCodec.codecForLocale()
+
+# Local imports
+from spyderlib.utils.qthelpers import (get_icon, create_toolbutton,
+                                       create_action, add_actions)
+from spyderlib.baseconfig import get_conf_path, _
+=======
 from spyderlib.qt.QtGui import (QWidget, QVBoxLayout, QHBoxLayout, QMenu,
                                 QLabel, QInputDialog, QLineEdit, QToolButton)
 from spyderlib.qt.QtCore import (QProcess, Signal, QByteArray, QTimer, Qt,
@@ -26,6 +39,7 @@ LOCALE_CODEC = QTextCodec.codecForLocale()
 from spyderlib.utils.qthelpers import (create_toolbutton, create_action, 
                                        add_actions)
 from spyderlib.config.base import get_conf_path, _
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 from spyderlib.py3compat import is_text_string, to_text_string
 
 
@@ -50,9 +64,12 @@ def add_pathlist_to_PYTHONPATH(env, pathlist, drop_env=False):
 class ExternalShellBase(QWidget):
     """External Shell widget: execute Python script in a separate process"""
     SHELL_CLASS = None
+<<<<<<< HEAD
+=======
     redirect_stdio = Signal(bool)
     sig_finished = Signal()
     
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def __init__(self, parent=None, fname=None, wdir=None,
                  history_filename=None, show_icontext=True,
                  light_background=True, menu_actions=None,
@@ -76,11 +93,22 @@ class ExternalShellBase(QWidget):
         
         self.shell = self.SHELL_CLASS(parent, get_conf_path(history_filename))
         self.shell.set_light_background(light_background)
+<<<<<<< HEAD
+        self.connect(self.shell, SIGNAL("execute(QString)"),
+                     self.send_to_process)
+        self.connect(self.shell, SIGNAL("keyboard_interrupt()"),
+                     self.keyboard_interrupt)
+        # Redirecting some SIGNALs:
+        self.connect(self.shell, SIGNAL('redirect_stdio(bool)'),
+                     lambda state: self.emit(SIGNAL('redirect_stdio(bool)'),
+                                             state))
+=======
         self.shell.execute.connect(self.send_to_process)
         self.shell.sig_keyboard_interrupt.connect(self.keyboard_interrupt)
         # Redirecting some SIGNALs:
         self.shell.redirect_stdio.connect(
                      lambda state: self.redirect_stdio.emit(state))
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         
         self.state_label = None
         self.time_label = None
@@ -115,8 +143,12 @@ class ExternalShellBase(QWidget):
 
         if show_buttons_inside:
             self.update_time_label_visibility()
+<<<<<<< HEAD
+        
+=======
 
     @Slot(bool)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def set_elapsed_time_visible(self, state):
         self.show_elapsed_time = state
         if self.time_label is not None:
@@ -138,20 +170,33 @@ class ExternalShellBase(QWidget):
     def get_toolbar_buttons(self):
         if self.run_button is None:
             self.run_button = create_toolbutton(self, text=_("Run"),
+<<<<<<< HEAD
+                                             icon=get_icon('run.png'),
+=======
                                              icon=ima.icon('run'),
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
                                              tip=_("Run again this program"),
                                              triggered=self.start_shell)
         if self.kill_button is None:
             self.kill_button = create_toolbutton(self, text=_("Kill"),
+<<<<<<< HEAD
+                                     icon=get_icon('kill.png'),
+=======
                                      icon=ima.icon('kill'),
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
                                      tip=_("Kills the current process, "
                                            "causing it to exit immediately"))
         buttons = [self.run_button]
         if self.options_button is None:
             options = self.get_options_menu()
             if options:
+<<<<<<< HEAD
+                self.options_button = create_toolbutton(self, text=_("Options"),
+                                            icon=get_icon('tooloptions.png'))
+=======
                 self.options_button = create_toolbutton(self, text=_('Options'),
                                             icon=ima.icon('tooloptions'))
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
                 self.options_button.setPopupMode(QToolButton.InstantPopup)
                 menu = QMenu(self)
                 add_actions(menu, options)
@@ -205,11 +250,15 @@ class ExternalShellBase(QWidget):
             self.is_closing = True
             self.process.kill()
             self.process.waitForFinished(100)
+<<<<<<< HEAD
+        self.disconnect(self.timer, SIGNAL("timeout()"), self.show_time)
+=======
 
         try:
             self.timer.timeout.disconnect(self.show_time)
         except (RuntimeError, TypeError):
             pass
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     
     def set_running_state(self, state=True):
         self.set_buttons_runnning_state(state)
@@ -219,27 +268,49 @@ class ExternalShellBase(QWidget):
                 self.state_label.setText(_(
                    "<span style=\'color: #44AA44\'><b>Running...</b></span>"))
             self.t0 = time()
+<<<<<<< HEAD
+            self.connect(self.timer, SIGNAL("timeout()"), self.show_time)
+=======
             self.timer.timeout.connect(self.show_time)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
             self.timer.start(1000)        
         else:
             if self.state_label is not None:
                 self.state_label.setText(_('Terminated.'))
+<<<<<<< HEAD
+            self.disconnect(self.timer, SIGNAL("timeout()"), self.show_time)
+=======
             try:
                 self.timer.timeout.disconnect(self.show_time)
             except (RuntimeError, TypeError):
                 pass
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
     def set_buttons_runnning_state(self, state):
         self.run_button.setVisible(not state and not self.is_ipykernel)
         self.kill_button.setVisible(state)
+<<<<<<< HEAD
+    
+=======
 
     @Slot(bool)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def start_shell(self, ask_for_arguments=False):
         """Start shell"""
         if ask_for_arguments and not self.get_arguments():
             self.set_running_state(False)
             return
         try:
+<<<<<<< HEAD
+            self.disconnect(self.terminate_button, SIGNAL("clicked()"),
+                            self.process.terminate)
+            self.disconnect(self.kill_button, SIGNAL("clicked()"),
+                            self.process.terminate)
+        except:
+            pass
+        self.create_process()
+
+=======
             self.terminate_button.clicked.disconnect(self.process.terminate)
             self.kill_button.clicked.disconnect(self.process.terminate)
         except (AttributeError, RuntimeError, TypeError):
@@ -247,6 +318,7 @@ class ExternalShellBase(QWidget):
         self.create_process()
 
     @Slot()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def get_arguments(self):
         arguments, valid = QInputDialog.getText(self, _('Arguments'),
                                                 _('Command line arguments:'),
@@ -261,7 +333,11 @@ class ExternalShellBase(QWidget):
     
     def finished(self, exit_code, exit_status):
         self.shell.flush()
+<<<<<<< HEAD
+        self.emit(SIGNAL('finished()'))
+=======
         self.sig_finished.emit()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         if self.is_closing:
             return
         self.set_running_state(False)
@@ -289,6 +365,16 @@ class ExternalShellBase(QWidget):
         while self.process.bytesAvailable():
             qba += self.process.readAllStandardError()
         return self.transcode(qba)
+<<<<<<< HEAD
+    
+    def write_output(self):
+        self.shell.write(self.get_stdout(), flush=True)
+        QApplication.processEvents()
+        
+    def send_to_process(self, qstr):
+        raise NotImplementedError
+        
+=======
 
     def write_output(self):
         self.shell.write(self.get_stdout(), flush=True)
@@ -299,6 +385,7 @@ class ExternalShellBase(QWidget):
     def send_to_process(self, qstr):
         raise NotImplementedError
 
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def send_ctrl_to_process(self, letter):
         char = chr("abcdefghijklmnopqrstuvwxyz".index(letter) + 1)
         byte_array = QByteArray()

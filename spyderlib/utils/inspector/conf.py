@@ -10,7 +10,11 @@
 from sphinx import __version__ as sphinx_version
 
 # Local imports
+<<<<<<< HEAD
+from spyderlib.config import CONF
+=======
 from spyderlib.config.main import CONF
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 from spyderlib.py3compat import u
 
 #==============================================================================

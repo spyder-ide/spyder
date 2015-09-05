@@ -1,0 +1,154 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Editor &mdash; Spyder 2.3 documentation</title>
+    
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '2.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+    <link rel="top" title="Spyder 2.3 documentation" href="index.html" />
+    <link rel="next" title="Find in files" href="findinfiles.html" />
+    <link rel="prev" title="Project Explorer" href="projectexplorer.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="findinfiles.html" title="Find in files"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="projectexplorer.html" title="Project Explorer"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Spyder 2.3 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/spyder_bbg.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Editor</a><ul>
+<li><a class="reference internal" href="#how-to-define-a-code-cell">How to define a code cell</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="projectexplorer.html"
+                        title="previous chapter">Project Explorer</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="findinfiles.html"
+                        title="next chapter">Find in files</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/editor.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="editor">
+<h1>Editor<a class="headerlink" href="#editor" title="Permalink to this headline">¶</a></h1>
+<p>Spyder&#8217;s text editor is a multi-language editor with features such as syntax
+coloring, code analysis (real-time code analysis powered by <cite>pyflakes</cite> and
+advanced code analysis using <cite>pylint</cite>), introspection capabilities such as
+code completion, calltips and go-to-definition features (powered by <cite>rope</cite>),
+function/class browser, horizontal/vertical splitting features, etc.</p>
+<p>Function/class/method browser:</p>
+<img alt="_images/editor1.png" src="_images/editor1.png" />
+<p>Code analysis with <cite>pyflakes</cite>:</p>
+<img alt="_images/editor2.png" src="_images/editor2.png" />
+<p>Horizontal/vertical splitting feature:</p>
+<img alt="_images/editor3.png" src="_images/editor3.png" />
+<div class="section" id="how-to-define-a-code-cell">
+<h2>How to define a code cell<a class="headerlink" href="#how-to-define-a-code-cell" title="Permalink to this headline">¶</a></h2>
+<p>A &#8220;code cell&#8221; is a concept similar to MATLAB&#8217;s &#8220;cell&#8221; (except that there is
+no &#8220;cell mode&#8221; in Spyder), i.e. a block of lines to be executed at once in the
+current interpreter (Python or IPython). Every script may be divided in as
+many cells as needed.</p>
+<p>Cells are separated by lines starting with:</p>
+<ul class="simple">
+<li><cite>#%%</cite> (standard cell separator)</li>
+<li><cite># %%</cite> (standard cell separator, when file has been edited with Eclipse)</li>
+<li><cite># &lt;codecell&gt;</cite> (IPython notebook cell separator)</li>
+</ul>
+<p>Related plugins:</p>
+<ul class="simple">
+<li><a class="reference internal" href="console.html"><em>Console</em></a></li>
+<li><a class="reference internal" href="explorer.html"><em>Explorer</em></a></li>
+<li><a class="reference internal" href="findinfiles.html"><em>Find in files</em></a></li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="findinfiles.html" title="Find in files"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="projectexplorer.html" title="Project Explorer"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Spyder 2.3 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2009, Pierre Raybaut.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+    </div>
+  </body>
+</html>

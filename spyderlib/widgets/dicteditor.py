@@ -21,10 +21,16 @@ from spyderlib.qt.QtGui import (QMessageBox, QTableView, QItemDelegate,
                                 QLineEdit, QVBoxLayout, QWidget, QColor,
                                 QDialog, QDateEdit, QDialogButtonBox, QMenu,
                                 QInputDialog, QDateTimeEdit, QApplication,
+<<<<<<< HEAD
+                                QKeySequence)
+from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, SIGNAL,
+                                 SLOT, QDateTime, Signal)
+=======
                                 QKeySequence, QAbstractItemDelegate)
 from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, Signal,
                                  QDateTime, Slot)
 import spyderlib.utils.icon_manager as ima
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 from spyderlib.qt.compat import to_qvariant, from_qvariant, getsavefilename
 from spyderlib.utils.qthelpers import mimedata2url
 
@@ -32,10 +38,18 @@ import sys
 import datetime
 
 # Local import
+<<<<<<< HEAD
+from spyderlib.baseconfig import _
+from spyderlib.guiconfig import get_font
+from spyderlib.utils.misc import fix_reference_name
+from spyderlib.utils.qthelpers import (get_icon, add_actions, create_action,
+                                       qapplication)
+=======
 from spyderlib.config.base import _
 from spyderlib.config.gui import get_font
 from spyderlib.utils.misc import fix_reference_name
 from spyderlib.utils.qthelpers import add_actions, create_action, qapplication
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 from spyderlib.widgets.dicteditorutils import (sort_against, get_size,
                get_human_readable_type, value_to_display, get_color_name,
                is_known_type, FakeObject, Image, ndarray, array, MaskedArray,
@@ -249,8 +263,12 @@ class ReadOnlyDictModel(QAbstractTableModel):
             self.keys = sort_against(self.keys, values, reverse)
             self.sizes = sort_against(self.sizes, values, reverse)
             self.types = sort_against(self.types, values, reverse)
+<<<<<<< HEAD
+        self.reset()
+=======
         self.beginResetModel()
         self.endResetModel()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
     def columnCount(self, qindex=QModelIndex()):
         """Array column number"""
@@ -366,9 +384,12 @@ class ReadOnlyDictModel(QAbstractTableModel):
             return Qt.ItemIsEnabled
         return Qt.ItemFlags(QAbstractTableModel.flags(self, index)|
                             Qt.ItemIsEditable)
+<<<<<<< HEAD
+=======
     def reset(self):
         self.beginResetModel()
         self.endResetModel()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
 class DictModel(ReadOnlyDictModel):
     """DictEditor Table Model"""
@@ -403,7 +424,12 @@ class DictModel(ReadOnlyDictModel):
         value = display_to_value(value, self.get_value(index),
                                  ignore_errors=True)
         self.set_value(index, value)
+<<<<<<< HEAD
+        self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
+                  index, index)
+=======
         self.dataChanged.emit(index, index)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         return True
 
 
@@ -514,12 +540,22 @@ class DictDelegate(QItemDelegate):
             editor = QDateTimeEdit(value, parent)
             editor.setCalendarPopup(True)
             editor.setFont(get_font('dicteditor'))
+<<<<<<< HEAD
+            self.connect(editor, SIGNAL("returnPressed()"),
+                         self.commitAndCloseEditor)
+=======
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
             return editor
         #---editor = QDateEdit
         elif isinstance(value, datetime.date):
             editor = QDateEdit(value, parent)
             editor.setCalendarPopup(True)
             editor.setFont(get_font('dicteditor'))
+<<<<<<< HEAD
+            self.connect(editor, SIGNAL("returnPressed()"),
+                         self.commitAndCloseEditor)
+=======
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
             return editor
         #---editor = QTextEdit
         elif is_text_string(value) and len(value)>40:
@@ -532,7 +568,12 @@ class DictDelegate(QItemDelegate):
             editor = QLineEdit(parent)
             editor.setFont(get_font('dicteditor'))
             editor.setAlignment(Qt.AlignLeft)
+<<<<<<< HEAD
+            self.connect(editor, SIGNAL("returnPressed()"),
+                         self.commitAndCloseEditor)
+=======
             editor.returnPressed.connect(self.commitAndCloseEditor)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
             return editor
         #---editor = DictEditor for an arbitrary object
         else:
@@ -545,9 +586,15 @@ class DictDelegate(QItemDelegate):
             
     def create_dialog(self, editor, data):
         self._editors[id(editor)] = data
+<<<<<<< HEAD
+        self.connect(editor, SIGNAL('accepted()'),
+                     lambda eid=id(editor): self.editor_accepted(eid))
+        self.connect(editor, SIGNAL('rejected()'),
+=======
         editor.accepted.connect(
                      lambda eid=id(editor): self.editor_accepted(eid))
         editor.rejected.connect(
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
                      lambda eid=id(editor): self.editor_rejected(eid))
         editor.show()
         
@@ -566,6 +613,10 @@ class DictDelegate(QItemDelegate):
     def commitAndCloseEditor(self):
         """Overriding method commitAndCloseEditor"""
         editor = self.sender()
+<<<<<<< HEAD
+        self.emit(SIGNAL("commitData(QWidget*)"), editor)
+        self.emit(SIGNAL("closeEditor(QWidget*)"), editor)
+=======
         # Avoid a segfault with PyQt5. Variable value won't be changed
         # but at least Spyder won't crash. It seems generated by a
         # bug in sip. See
@@ -575,6 +626,7 @@ class DictDelegate(QItemDelegate):
         except AttributeError:
             pass
         self.closeEditor.emit(editor, QAbstractItemDelegate.NoHint)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
     def setEditorData(self, editor, index):
         """Overriding method setEditorData
@@ -634,7 +686,10 @@ class BaseTableView(QTableView):
     """Base dictionary editor table view"""
     sig_option_changed = Signal(str, object)
     sig_files_dropped = Signal(list)
+<<<<<<< HEAD
+=======
     redirect_stdio = Signal(bool)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     
     def __init__(self, parent):
         QTableView.__init__(self, parent)
@@ -675,6 +730,37 @@ class BaseTableView(QTableView):
         resize_action = create_action(self, _("Resize rows to contents"),
                                       triggered=self.resizeRowsToContents)
         self.paste_action = create_action(self, _("Paste"),
+<<<<<<< HEAD
+                                          icon=get_icon('editpaste.png'),
+                                          triggered=self.paste)
+        self.copy_action = create_action(self, _("Copy"),
+                                         icon=get_icon('editcopy.png'),
+                                         triggered=self.copy)                                      
+        self.edit_action = create_action(self, _("Edit"),
+                                         icon=get_icon('edit.png'),
+                                         triggered=self.edit_item)
+        self.plot_action = create_action(self, _("Plot"),
+                                    icon=get_icon('plot.png'),
+                                    triggered=lambda: self.plot_item('plot'))
+        self.plot_action.setVisible(False)
+        self.hist_action = create_action(self, _("Histogram"),
+                                    icon=get_icon('hist.png'),
+                                    triggered=lambda: self.plot_item('hist'))
+        self.hist_action.setVisible(False)
+        self.imshow_action = create_action(self, _("Show image"),
+                                           icon=get_icon('imshow.png'),
+                                           triggered=self.imshow_item)
+        self.imshow_action.setVisible(False)
+        self.save_array_action = create_action(self, _("Save array"),
+                                               icon=get_icon('filesave.png'),
+                                               triggered=self.save_array)
+        self.save_array_action.setVisible(False)
+        self.insert_action = create_action(self, _("Insert"),
+                                           icon=get_icon('insert.png'),
+                                           triggered=self.insert_item)
+        self.remove_action = create_action(self, _("Remove"),
+                                           icon=get_icon('editdelete.png'),
+=======
                                           icon=ima.icon('editpaste'),
                                           triggered=self.paste)
         self.copy_action = create_action(self, _("Copy"),
@@ -704,6 +790,7 @@ class BaseTableView(QTableView):
                                            triggered=self.insert_item)
         self.remove_action = create_action(self, _("Remove"),
                                            icon=ima.icon('editdelete'),
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
                                            triggered=self.remove_item)
         self.truncate_action = create_action(self, _("Truncate values"),
                                              toggled=self.toggle_truncate)
@@ -713,11 +800,19 @@ class BaseTableView(QTableView):
                                            toggled=self.toggle_minmax)
         self.minmax_action.setChecked(minmax)
         self.toggle_minmax(minmax)
+<<<<<<< HEAD
+        self.rename_action = create_action(self, _( "Rename"),
+                                           icon=get_icon('rename.png'),
+                                           triggered=self.rename_item)
+        self.duplicate_action = create_action(self, _( "Duplicate"),
+                                              icon=get_icon('edit_add.png'),
+=======
         self.rename_action = create_action(self, _("Rename"),
                                            icon=ima.icon('rename'),
                                            triggered=self.rename_item)
         self.duplicate_action = create_action(self, _("Duplicate"),
                                               icon=ima.icon('edit_add'),
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
                                               triggered=self.duplicate_item)
         menu = QMenu(self)
         menu_actions = [self.edit_action, self.plot_action, self.hist_action,
@@ -904,19 +999,30 @@ class BaseTableView(QTableView):
         else:
             event.ignore()
 
+<<<<<<< HEAD
+=======
     @Slot(bool)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def toggle_truncate(self, state):
         """Toggle display truncating option"""
         self.sig_option_changed.emit('truncate', state)
         self.model.truncate = state
+<<<<<<< HEAD
+        
+=======
 
     @Slot(bool)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def toggle_minmax(self, state):
         """Toggle min/max display for numpy arrays"""
         self.sig_option_changed.emit('minmax', state)
         self.model.minmax = state
+<<<<<<< HEAD
+        
+=======
 
     @Slot()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def edit_item(self):
         """Edit item"""
         index = self.currentIndex()
@@ -924,8 +1030,12 @@ class BaseTableView(QTableView):
             return
         # TODO: Remove hard coded "Value" column number (3 here)
         self.edit(index.child(index.row(), 3))
+<<<<<<< HEAD
+    
+=======
 
     @Slot()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def remove_item(self):
         """Remove item"""
         indexes = self.selectedIndexes()
@@ -962,18 +1072,29 @@ class BaseTableView(QTableView):
             self.copy_value(orig_key, new_key)
             if erase_original:
                 self.remove_values([orig_key])
+<<<<<<< HEAD
+    
+=======
 
     @Slot()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def duplicate_item(self):
         """Duplicate item"""
         self.copy_item()
 
+<<<<<<< HEAD
+    def rename_item(self):
+        """Rename item"""
+        self.copy_item(True)
+    
+=======
     @Slot()
     def rename_item(self):
         """Rename item"""
         self.copy_item(True)
 
     @Slot()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def insert_item(self):
         """Insert item"""
         index = self.currentIndex()
@@ -1001,9 +1122,15 @@ class BaseTableView(QTableView):
             
     def __prepare_plot(self):
         try:
+<<<<<<< HEAD
+            import guiqwt.pyplot #analysis:ignore
+            return True
+        except ImportError:
+=======
             import guiqwt.pyplot   #analysis:ignore
             return True
         except (ImportError, AssertionError):
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
             try:
                 if 'matplotlib' not in sys.modules:
                     import matplotlib
@@ -1026,8 +1153,12 @@ class BaseTableView(QTableView):
                                      _("<b>Unable to plot data.</b>"
                                        "<br><br>Error message:<br>%s"
                                        ) % str(error))
+<<<<<<< HEAD
+            
+=======
 
     @Slot()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def imshow_item(self):
         """Imshow item"""
         index = self.currentIndex()
@@ -1043,18 +1174,30 @@ class BaseTableView(QTableView):
                                      _("<b>Unable to show image.</b>"
                                        "<br><br>Error message:<br>%s"
                                        ) % str(error))
+<<<<<<< HEAD
+            
+=======
 
     @Slot()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def save_array(self):
         """Save array"""
         title = _( "Save array")
         if self.array_filename is None:
             self.array_filename = getcwd()
+<<<<<<< HEAD
+        self.emit(SIGNAL('redirect_stdio(bool)'), False)
+        filename, _selfilter = getsavefilename(self, title,
+                                               self.array_filename,
+                                               _("NumPy arrays")+" (*.npy)")
+        self.emit(SIGNAL('redirect_stdio(bool)'), True)
+=======
         self.redirect_stdio.emit(False)
         filename, _selfilter = getsavefilename(self, title,
                                                self.array_filename,
                                                _("NumPy arrays")+" (*.npy)")
         self.redirect_stdio.emit(True)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         if filename:
             self.array_filename = filename
             data = self.delegate.get_value( self.currentIndex() )
@@ -1066,8 +1209,11 @@ class BaseTableView(QTableView):
                                      _("<b>Unable to save array</b>"
                                        "<br><br>Error message:<br>%s"
                                        ) % str(error))
+<<<<<<< HEAD
+=======
     
     @Slot()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def copy(self):
         """Copy text to clipboard"""
         clipboard = QApplication.clipboard()
@@ -1088,8 +1234,12 @@ class BaseTableView(QTableView):
         if editor.exec_():
             var_name, clip_data = editor.get_data()
             self.new_value(var_name, clip_data)
+<<<<<<< HEAD
+    
+=======
 
     @Slot()
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def paste(self):
         """Import text/data/code from clipboard"""
         clipboard = QApplication.clipboard()
@@ -1255,7 +1405,11 @@ class DictEditor(QDialog):
         self.widget = None
         
     def setup(self, data, title='', readonly=False, width=500,
+<<<<<<< HEAD
+              icon='dictedit.png', remote=False, parent=None):
+=======
               icon=ima.icon('dictedit'), remote=False, parent=None):
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         if isinstance(data, dict):
             # dictionnary
             self.data_copy = data.copy()
@@ -1281,9 +1435,15 @@ class DictEditor(QDialog):
         if not readonly:
             buttons = buttons | QDialogButtonBox.Cancel
         bbox = QDialogButtonBox(buttons)
+<<<<<<< HEAD
+        self.connect(bbox, SIGNAL("accepted()"), SLOT("accept()"))
+        if not readonly:
+            self.connect(bbox, SIGNAL("rejected()"), SLOT("reject()"))
+=======
         bbox.accepted.connect(self.accept)
         if not readonly:
             bbox.rejected.connect(self.reject)
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         layout.addWidget(bbox)
 
         constant = 121
@@ -1293,6 +1453,11 @@ class DictEditor(QDialog):
         self.resize(width, height)
 
         self.setWindowTitle(self.widget.get_title())
+<<<<<<< HEAD
+        if is_text_string(icon):
+            icon = get_icon(icon)
+=======
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
         self.setWindowIcon(icon)
         # Make the dialog act as a window
         self.setWindowFlags(Qt.Window)
@@ -1374,7 +1539,11 @@ class RemoteDictEditorTableView(BaseTableView):
         """Setup context menu"""
         menu = BaseTableView.setup_menu(self, truncate, minmax)
         return menu
+<<<<<<< HEAD
+            
+=======
 
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
     def oedit_possible(self, key):
         if (self.is_list(key) or self.is_dict(key) 
             or self.is_array(key) or self.is_image(key)

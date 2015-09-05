@@ -18,7 +18,11 @@ import errno
 import traceback
 
 # Local imports
+<<<<<<< HEAD
+from spyderlib.baseconfig import DEBUG, STDERR
+=======
 from spyderlib.config.base import DEBUG, STDERR
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 DEBUG_EDITOR = DEBUG >= 3
 from spyderlib.py3compat import pickle
 PICKLE_HIGHEST_PROTOCOL = 2

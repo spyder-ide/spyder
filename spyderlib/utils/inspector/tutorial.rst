@@ -169,7 +169,11 @@ Inspecting objects defined in the console
 
 * Once an object is visible in the current name space (as is ``hello``
   in this example), we can use the ``help`` function as follows to
+<<<<<<< HEAD
+  learn about it: Typing ``help(hello)`` at the console prompt, you
+=======
   learn about it: typing ``help(hello)`` at the console prompt, you
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
   should see an output like this::
 
     In [ ]: help(hello)
@@ -186,12 +190,20 @@ Inspecting objects defined in the console
   for the function object ``hello``. The documentation string is the
   first string immediately below the line ``def hello():``.
 
+<<<<<<< HEAD
+  This strings are special, and they are called *docstrings* which is short for
+=======
   These strings are special, and they are called *docstrings* which is short for
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
   *documentation strings*. As they usually extend over multiple lines, there
   are enclosed by triple single quotes (``'''``) or triple double quotes
   (``"""``).
 
+<<<<<<< HEAD
+* The Spyder environment also provides the ``Object inspector`` which
+=======
 * The Spyder environment also provides the ``Object Inspector`` which
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
   by default is located in the top right corner.
 
   While the cursor is on the name of an object,
@@ -282,7 +294,11 @@ the console (in the example above, we updated the function object
 ``hello``), is of great use when developing and debugging more complex
 codes, and when creating objects/data in the console session take
 time. For example, by modifying only the functions (or
+<<<<<<< HEAD
+classes/objects, etc) that we are actually developing or debugging, we
+=======
 classes/objects, etc.) that we are actually developing or debugging, we
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 can keep re-using the data and other objects that are defined in the
 console session.
 
@@ -330,7 +346,11 @@ and press return, then confirm with ``y``::
 That's all.
 
 We discuss this a little further, but you can skip the following if
+<<<<<<< HEAD
+you are not interested: After issuing the ``%reset`` command, we
+=======
 you are not interested: after issuing the ``%reset`` command, we
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 should have only a few objects defined in the name space of that
 session. We can list all of them using the ``dir()`` command::
 
@@ -400,7 +420,11 @@ Automatic Symbolic Python
 Through ``Preferences > IPython console > Advanced Settings > Use
 symbolic math`` we can activate IPython's SYMbolic PYthon (sympy) mode that is
 provided by the `sympy <http://sympy.org>`__ module. This mode
+<<<<<<< HEAD
+in Spyder allows nicely rendered mathematical output (latex style) and also
+=======
 in Spyder allows nicely rendered mathematical output (LaTeX style) and also
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 imports some sympy objects automatically when the IPython console starts, and
 reports what it has done.
 
@@ -450,7 +474,11 @@ Shortcuts for useful functions
   (the selection will update automatically) and confirming by pressing
   ``Enter`` when the right name is identified.
 
+<<<<<<< HEAD
+- ``Ctrl+Enter`` executes the current cell (menu enty ``Run > Run
+=======
 - ``Ctrl+Enter`` executes the current cell (menu entry ``Run > Run
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
   cell``). A cell is defined as the code between two lines which start with
   the agreed tag ``#%%``.
 
@@ -478,7 +506,11 @@ Shortcuts for useful functions
   size in the Editor, whereas ``Cmd + -`` (``Ctrl + -``) will decrease it.
   Also works in the IPython Console.
 
+<<<<<<< HEAD
+  The font size for the Object Inspector, the Python console etc can be set
+=======
   The font size for the Object Inspector, the Python console etc. can be set
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
   individually via ``Preferences > Object inspector`` etc.
 
   I couldn't find a way of changing the font size in the variable explorer.
@@ -609,7 +641,11 @@ Execute in new dedicated Python console
 ---------------------------------------
 
 Choosing ``Execute in new dedicated Python console`` under ``Run
+<<<<<<< HEAD
+> Configure`` will start *a new Python console everytime* the
+=======
 > Configure`` will start *a new Python console every time* the
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 ``hello.py`` program is executed. The major advantage of this mode
 over `Execute in current Python or IPython console`_ is that we
 can be certain that there are no global objects defined in this
@@ -677,7 +713,11 @@ right window in default layout). Click on the ``Options`` icon (the tooltip is
 Reset all customization
 -----------------------
 
+<<<<<<< HEAD
+All customization saved on disk can be reset by calling spyder from
+=======
 All customization saved on disk can be reset by calling Spyder from
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 the command line with the switch ``--reset``, i.e. a command like
 ``spyder --reset``.
 
@@ -705,7 +745,11 @@ format called restructured text (`quick reference
 also needs to follow a set of conventions called the `Numpydoc standard
 <https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt#id5>`__
 
+<<<<<<< HEAD
+If you follow those guidelines, you can obtain beautifully formated docstrings
+=======
 If you follow those guidelines, you can obtain beautifully formatted docstrings
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 in Spyder.
 
 For example, to get an ``average()`` function look like this in the
@@ -896,7 +940,11 @@ console is::
     In [3]: %matplotlib inline
 
 The command to get figures appear in their own window (which
+<<<<<<< HEAD
+technically is a Qt windown) is::
+=======
 technically is a Qt window) is::
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 
     In [4]: %matplotlib qt
 
@@ -945,6 +993,10 @@ by `Hans Fangohr <http://www.southampton.ac.uk/~fangohr>`__, that are
 used at the `University of Southampton <http://www.soton.ac.uk>`__ to
 `teach Python for computational modelling
 <http://www.southampton.ac.uk/~fangohr/teaching/python.html>`__ to
+<<<<<<< HEAD
+undegraduate engineers and postgraduate PhD students for the
+=======
 undergraduate engineers and postgraduate PhD students for the
+>>>>>>> 68da9235aabda2be32a6204ea08e3d1a37d3e12f
 `Next Generation Computational Modelling <http://ngcm.soton.ac.uk>`__
 doctoral training centre.
