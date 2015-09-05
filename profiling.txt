@@ -1,0 +1,30 @@
+Profile test results:
+====================
+
+The following shows that the Workspace refresh method is responsible for the
+observed lack of performance.
+
+--light: 30ms
+(same as IPython PyQt4 frontend which implementation is far more simple)
+
+No option (or --numpy, or --scipy): 50-60ms
+
+When Explorer widget is disabled (.spyder.ini): 30ms 
+
+--all or --pylab  :
+
+* Workspace auto-refresh is disabled: 50-60ms
+* Workspace is empty: 140ms
+* Workspace contains 2 numpy arrays (shape: (1, 2e5)):
+    - workspace hidden : 140ms
+    - workspace visible : 300ms -> adding more arrays: 80ms/array of this size
+                                -> proportionnal to array size
+                                -> show complete values: ~2-3ms/array!
+
+==> Explorer contribution:  ~30ms -> solved by refreshing only when necessary
+==> Workspace contribution: ~80ms when empty
+
+-> when Workspace is hidden: the most time consuming task is filtering
+
+=> Workspace lack of performance solved too! -> was due to a CONF.get within a
+   loop... duh...

@@ -1,0 +1,164 @@
+# -*- coding: utf-8 -*-
+# Spyder Profiler's spanish translation file
+# Copyright (C) 2011 Spyder Development team
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: 2.1\n"
+"POT-Creation-Date: 2015-08-24 15:12+COT\n"
+"PO-Revision-Date: 2014-05-18 16:44-0500\n"
+"Last-Translator: Carlos Cordoba <ccordoba12@gmail.com>\n"
+"Language-Team: Python\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+"X-Poedit-SourceCharset: utf-8\n"
+"X-Poedit-Basepath: ../../../../\n"
+"X-Generator: Poedit 1.5.4\n"
+
+#: spyderplugins/p_pylint.py:28
+msgid "Settings"
+msgstr "Ajustes"
+
+#: spyderplugins/p_pylint.py:29
+msgid "Save file before analyzing it"
+msgstr "Guardar archivo antes de analizarlo"
+
+#: spyderplugins/p_pylint.py:32 spyderplugins/p_pylint.py:151
+msgid "History"
+msgstr "Historial"
+
+#: spyderplugins/p_pylint.py:33
+msgid "The following option will be applied at next startup."
+msgstr "La siguiente opción será aplicada la próxima vez que se inicie Spyder"
+
+#: spyderplugins/p_pylint.py:36
+msgid "History: "
+msgstr "Guardar"
+
+#: spyderplugins/p_pylint.py:37
+msgid " results"
+msgstr " resultados"
+
+#: spyderplugins/p_pylint.py:40
+msgid "Results"
+msgstr "Resultados"
+
+#: spyderplugins/p_pylint.py:41
+msgid "Results are stored here:"
+msgstr "Los resultados se guardan en:"
+
+#: spyderplugins/p_pylint.py:89 spyderplugins/widgets/pylintgui.py:72
+msgid "Static code analysis"
+msgstr "Análisis estático del código"
+
+#: spyderplugins/p_pylint.py:105
+msgid "History..."
+msgstr ""
+
+#: spyderplugins/p_pylint.py:107
+msgid "Set history maximum entries"
+msgstr ""
+
+#: spyderplugins/p_pylint.py:125
+msgid "Run static code analysis"
+msgstr "Realizar análisis estático del código"
+
+#: spyderplugins/p_pylint.py:152
+msgid "Maximum entries"
+msgstr ""
+
+#: spyderplugins/widgets/pylintgui.py:107
+msgid "Results for "
+msgstr ""
+
+#: spyderplugins/widgets/pylintgui.py:112
+msgid "Convention"
+msgstr ""
+
+#: spyderplugins/widgets/pylintgui.py:114
+msgid "Refactor"
+msgstr ""
+
+#: spyderplugins/widgets/pylintgui.py:116
+msgid "Warning"
+msgstr ""
+
+#: spyderplugins/widgets/pylintgui.py:118
+#: spyderplugins/widgets/pylintgui.py:352
+#: spyderplugins/widgets/pylintgui.py:380
+msgid "Error"
+msgstr ""
+
+#: spyderplugins/widgets/pylintgui.py:195
+msgid "Analyze"
+msgstr ""
+
+#: spyderplugins/widgets/pylintgui.py:196
+msgid "Run analysis"
+msgstr ""
+
+#: spyderplugins/widgets/pylintgui.py:200
+msgid "Stop"
+msgstr ""
+
+#: spyderplugins/widgets/pylintgui.py:201
+msgid "Stop current analysis"
+msgstr ""
+
+#: spyderplugins/widgets/pylintgui.py:208
+#: spyderplugins/widgets/pylintgui.py:277
+msgid "Select Python file"
+msgstr ""
+
+#: spyderplugins/widgets/pylintgui.py:214
+msgid "Output"
+msgstr ""
+
+#: spyderplugins/widgets/pylintgui.py:216
+msgid "Complete output"
+msgstr ""
+
+#: spyderplugins/widgets/pylintgui.py:250
+msgid "Pylint script was not found. Please add \"%s\" to PATH."
+msgstr ""
+
+#: spyderplugins/widgets/pylintgui.py:253
+msgid "Please install <b>pylint</b>:"
+msgstr ""
+
+#: spyderplugins/widgets/pylintgui.py:278
+msgid "Python files"
+msgstr ""
+
+#: spyderplugins/widgets/pylintgui.py:314
+msgid "Pylint output"
+msgstr ""
+
+#: spyderplugins/widgets/pylintgui.py:353
+msgid "Process failed to start"
+msgstr ""
+
+#: spyderplugins/widgets/pylintgui.py:454
+msgid "Source code has not been rated yet."
+msgstr ""
+
+#: spyderplugins/widgets/pylintgui.py:460
+msgid "Analysis did not succeed (see output for more details)."
+msgstr ""
+
+#: spyderplugins/widgets/pylintgui.py:473
+msgid "Global evaluation:"
+msgstr ""
+
+#: spyderplugins/widgets/pylintgui.py:477
+msgid "previous run:"
+msgstr ""
+
+#~ msgid "Pylint"
+#~ msgstr "Análisis del código"
+
+#~ msgid "Run pylint code analysis"
+#~ msgstr "Realizar un análisis del código"

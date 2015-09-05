@@ -1,0 +1,18 @@
+# Compiled python files
+*.py[oc]
+
+# gedit files
+*~
+
+# Special dirs and files
+build/
+dist/
+bin/
+spyder.egg-info/
+Thumbs.db
+.DS_Store/
+spyder_crash.log
+.DS_Store
+
+# git .orig files
+*.orig

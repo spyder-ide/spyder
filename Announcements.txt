@@ -1,0 +1,169 @@
+Minor release to list
+=====================
+
+Subject: [ANN] Spyder 2.3.6 is released!
+
+
+Hi all,
+
+On the behalf of Spyder’s development team (https://github.com/spyder-ide/spyder/graphs/contributors),
+I’m pleased to announce that Spyder 2.3.6 has been released and is available for
+Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
+
+This release represents two months of development since version 2.3.5.2
+and introduces several new features:
+
+* IPython Console
+    * Make it fully compatible with IPython/Jupyter 4.0
+* Variable Explorer
+    * Don't refresh it when focused to avoid slow downs when working with big data
+    * Add variable name to DataFrame editor
+    * Fix several crashes and freezes when working with DataFrames
+* Under the hood
+    * Use PyQt4 API #2 by default (API #1 is not supported anymore). This is necessary to support IPython/Jupyter 4.0
+
+We also fixed 12 bugs and merged 3 pull requests. For a full list of fixes
+see our changelog: https://github.com/spyder-ide/spyder/blob/2.3/CHANGELOG.md
+
+Don’t forget to follow Spyder updates/news:
+
+* on the project website: https://github.com/spyder-ide/spyder
+* and on our official blog: http://spyder-ide.blogspot.com/
+
+Last, but not least, we welcome any contribution that helps making Spyder an
+efficient scientific development/computing environment. Join us to help creating
+your favorite environment!
+
+Enjoy!
+-Carlos
+
+
+----
+
+
+Minor release others
+====================
+
+Subject: [ANN] Spyder 2.3.5 is released!
+
+
+On the behalf of Spyder’s development team (https://github.com/spyder-ide/spyder/blob/master/AUTHORS),
+I’m pleased to announce that Spyder 2.3.5 has been released and is available for
+Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
+
+Spyder is a free, open-source (MIT license) interactive development environment
+for the Python language with advanced editing, interactive testing, debugging
+and introspection features. It was designed to provide MATLAB-like features
+(integrated help, interactive console, variable explorer with GUI-based editors
+for NumPy arrays and Pandas dataframes), it is strongly oriented towards scientific
+computing and software development.
+
+This release represents almost three months of development since version 2.3.4
+and introduces several new features:
+
+* Editor
+    * Add support for Jedi 0.9
+* IPython Console
+    * Add initial support for IPython/Jupyter 4.0
+* Main Window
+    * Improve how Spyder looks in MacOS X
+    * Several fixes to prevent startup crashes
+
+We also fixed 22 bugs and merged 8 pull requests. For a full list of fixes see
+our changelog: https://github.com/spyder-ide/spyder/blob/2.3/CHANGELOG.md
+
+Don’t forget to follow Spyder updates/news:
+
+* on the project website: https://github.com/spyder-ide/spyder
+* and on our official blog: http://spyder-ide.blogspot.com/
+
+Last, but not least, we welcome any contribution that helps making Spyder an
+efficient scientific development/computing environment. Join us to help creating
+your favorite environment!
+
+Enjoy!
+-Carlos
+
+----
+
+
+Major release to others
+=======================
+
+Subject: [ANN] Spyder 3.0 is released!
+
+
+Hi all,
+
+On the behalf of Spyder's development team (https://github.com/spyder-ide/spyder/blob/master/AUTHORS),
+I'm pleased to announce that Spyder 2.3 has been released and is available for
+Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
+
+Spyder is a free, open-source (MIT license) interactive development environment
+for the Python language with advanced editing, interactive testing, debugging
+and introspection features. It was designed to provide MATLAB-like features
+(integrated help, interactive console, variable explorer with GUI-based editors
+for NumPy arrays and Pandas dataframes), it is strongly oriented towards
+scientific computing and software development.
+
+This release represents 14 months of development since version 2.2 and introduces
+major enhancements and new features:
+
+   * Python 3 support (versions 3.2, 3.3 and 3.4 are supported).
+   * Various Editor improvements:
+     - Use the Tab key to do code completions
+     - Highlight cells
+     - First-class support for Enaml files
+     - Improve how calltips are shown
+   * Better looking Object Inspector
+   * Several refinements to the user interface to make it easier and more intuitive
+   * And many other changes: https://github.com/spyder-ide/spyder/blob/2.3/CHANGELOG.md
+
+Spyder 2.2 has been a huge success (being downloaded more than 400,000 times!)
+and we hope 2.3 will be as successful as it. For that we fixed 70 important bugs,
+merged 30 pull requests from 11 authors and added almost 1000 commits between
+these two releases.
+
+Don't forget to follow Spyder updates/news:
+  
+* on the project website: https://github.com/spyder-ide/spyder
+* and on our official blog: http://spyder-ide.blogspot.com/
+
+Last, but not least, we welcome any contribution that helps making Spyder an
+efficient scientific development/computing environment. Join us to help creating
+your favorite environment!
+
+Enjoy!
+-Carlos
+
+
+---
+
+
+Beta release
+============
+
+Subject: [ANN] Spyder 3.0 first public beta release
+
+
+Hi all,
+
+On the behalf of Spyder's development team (https://github.com/spyder-ide/spyder/graphs/contributors),
+I'm pleased to announce the first beta of our next major version: Spyder 3.0.
+
+We've been working on this version for about 10 months now and as far as we know
+it's working very well. There are still several bugs to squash but we encourage all
+people who like the bleeding edge to give it a try.
+
+Perhaps the most important feature of this release is that it comes with support for
+PyQt5. It also comes with several other important and interesting enhancements to our
+graphical interface. For a complete list, please see here:
+
+https://github.com/spyder-ide/spyder/wiki/Beta-version-changelog
+
+This beta version is released a bit more than a month after our last stable release
+(2.3.5.2) and it already contains several important bugfixes, specially regarding
+viewing DataFrames in the Variable Explorer.
+
+Enjoy!
+-Carlos

@@ -1,0 +1,347 @@
+Spyder License Agreement (MIT License)
+--------------------------------------
+
+Copyright (c) 2009-2013 Pierre Raybaut
+Copyright (c) 2013-2015 The Spyder Development Team
+
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation
+files (the "Software"), to deal in the Software without
+restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+
+
+Included software
+-----------------
+
+License terms are included in any software used inside Spyder's source code.
+
+
+Included images (spyderlib/images)
+----------------------------------
+
+[1] Spyder License Agreement (see above)
+
+spyderlib/images/arredit.png
+spyderlib/images/dictedit.png
+spyderlib/images/none.png
+spyderlib/images/not_found.png
+spyderlib/images/matplotlib.png
+spyderlib/images/options.svg
+spyderlib/images/set_workdir.png
+spyderlib/images/splash.png
+spyderlib/images/spyder.svg
+spyderlib/images/spyder_light.svg
+spyderlib/images/whole_words.png
+spyderlib/images/win_env.png
+spyderlib/images/actions/hist.png
+spyderlib/images/actions/window_nofullscreen.png
+spyderlib/images/editor/attribute.png
+spyderlib/images/editor/filelist.png
+spyderlib/images/editor/function.png
+spyderlib/images/editor/method.png
+spyderlib/images/editor/module.png
+spyderlib/images/editor/no_match.png
+spyderlib/images/editor/private1.png
+spyderlib/images/editor/private2.png
+spyderlib/images/editor/cell.png
+spyderlib/images/editor/blockcomment.png
+spyderlib/images/editor/refactor.png
+spyderlib/images/console/ipython_console.png
+spyderlib/images/console/ipython_console_t.png
+
+
+[2] Crystal Project Icons
+    Author: Everaldo Coelho
+    Site: http://www.everaldo.com
+    Contact: everaldo@everaldo.com
+    Copyright (c) 2006-2007 Everaldo Coelho.
+
+spyderlib/images/advanced.png
+spyderlib/images/arrow.png
+spyderlib/images/bold.png
+spyderlib/images/browser.png
+spyderlib/images/ext_tools.png
+spyderlib/images/font.png
+spyderlib/images/genprefs.png
+spyderlib/images/inspector.png
+spyderlib/images/italic.png
+spyderlib/images/pythonpath_mgr.png
+spyderlib/images/upper_lower.png
+spyderlib/images/vcs_browse.png
+spyderlib/images/vcs_commit.png
+spyderlib/images/actions/1downarrow.png
+spyderlib/images/actions/1uparrow.png
+spyderlib/images/actions/2downarrow.png
+spyderlib/images/actions/2uparrow.png
+spyderlib/images/actions/auto_reload.png
+spyderlib/images/actions/browse_tab.png
+spyderlib/images/actions/check.png
+spyderlib/images/actions/cmdprompt.png
+spyderlib/images/actions/configure.png
+spyderlib/images/actions/copywop.png
+spyderlib/images/actions/delete.png
+spyderlib/images/actions/edit.png
+spyderlib/images/actions/edit24.png
+spyderlib/images/actions/editcopy.png
+spyderlib/images/actions/editcut.png
+spyderlib/images/actions/editdelete.png
+spyderlib/images/actions/editpaste.png
+spyderlib/images/actions/edit_add.png
+spyderlib/images/actions/edit_remove.png
+spyderlib/images/actions/eraser.png
+spyderlib/images/actions/exit.png
+spyderlib/images/actions/filter.png
+spyderlib/images/actions/find.png
+spyderlib/images/actions/findf.png
+spyderlib/images/actions/findnext.png
+spyderlib/images/actions/findprevious.png
+spyderlib/images/actions/folder_new.png
+spyderlib/images/actions/hide.png
+spyderlib/images/actions/home.png
+spyderlib/images/actions/imshow.png
+spyderlib/images/actions/insert.png
+spyderlib/images/actions/lock.png
+spyderlib/images/actions/lock_open.png
+spyderlib/images/actions/magnifier.png
+spyderlib/images/actions/next.png
+spyderlib/images/actions/options_less.png
+spyderlib/images/actions/options_more.png
+spyderlib/images/actions/plot.png
+spyderlib/images/actions/previous.png
+spyderlib/images/actions/redo.png
+spyderlib/images/actions/reload.png
+spyderlib/images/actions/rename.png
+spyderlib/images/actions/replace.png
+spyderlib/images/actions/show.png
+spyderlib/images/actions/special_paste.png
+spyderlib/images/actions/synchronize.png
+spyderlib/images/actions/tooloptions.png
+spyderlib/images/actions/undo.png
+spyderlib/images/actions/up.png
+spyderlib/images/actions/zoom_in.png
+spyderlib/images/actions/zoom_out.png
+spyderlib/images/console/clear.png
+spyderlib/images/console/cmdprompt_t.png
+spyderlib/images/console/console.png
+spyderlib/images/console/environ.png
+spyderlib/images/console/history.png
+spyderlib/images/console/history24.png
+spyderlib/images/console/kill.png
+spyderlib/images/console/prompt.png
+spyderlib/images/console/restart.png
+spyderlib/images/console/syspath.png
+spyderlib/images/editor/bug.png
+spyderlib/images/editor/close_panel.png
+spyderlib/images/editor/comment.png
+spyderlib/images/editor/error.png
+spyderlib/images/editor/file.png
+spyderlib/images/editor/fromcursor.png
+spyderlib/images/editor/gotoline.png
+spyderlib/images/editor/highlight.png
+spyderlib/images/editor/horsplit.png
+spyderlib/images/editor/indent.png
+spyderlib/images/editor/last_edit_location.png
+spyderlib/images/editor/newwindow.png
+spyderlib/images/editor/next_cursor.png
+spyderlib/images/editor/next_wng.png
+spyderlib/images/editor/outline_explorer.png
+spyderlib/images/editor/outline_explorer_vis.png
+spyderlib/images/editor/prev_cursor.png
+spyderlib/images/editor/prev_wng.png
+spyderlib/images/editor/select.png
+spyderlib/images/editor/selectall.png
+spyderlib/images/editor/todo_list.png
+spyderlib/images/editor/uncomment.png
+spyderlib/images/editor/unindent.png
+spyderlib/images/editor/versplit.png
+spyderlib/images/editor/wng_list.png
+spyderlib/images/file/fileclose.png
+spyderlib/images/file/filecloseall.png
+spyderlib/images/file/fileimport.png
+spyderlib/images/file/filenew.png
+spyderlib/images/file/fileopen.png
+spyderlib/images/file/filesave.png
+spyderlib/images/file/filesaveas.png
+spyderlib/images/file/print.png
+spyderlib/images/file/save_all.png
+spyderlib/images/filetypes/bat.png
+spyderlib/images/filetypes/bmp.png
+spyderlib/images/filetypes/c.png
+spyderlib/images/filetypes/cc.png
+spyderlib/images/filetypes/cfg.png
+spyderlib/images/filetypes/chm.png
+spyderlib/images/filetypes/cl.png
+spyderlib/images/filetypes/cmd.png
+spyderlib/images/filetypes/cpp.png
+spyderlib/images/filetypes/css.png
+spyderlib/images/filetypes/cxx.png
+spyderlib/images/filetypes/diff.png
+spyderlib/images/filetypes/doc.png
+spyderlib/images/filetypes/exe.png
+spyderlib/images/filetypes/f.png
+spyderlib/images/filetypes/f77.png
+spyderlib/images/filetypes/f90.png
+spyderlib/images/filetypes/gif.png
+spyderlib/images/filetypes/h.png
+spyderlib/images/filetypes/hh.png
+spyderlib/images/filetypes/hpp.png
+spyderlib/images/filetypes/htm.png
+spyderlib/images/filetypes/html.png
+spyderlib/images/filetypes/hxx.png
+spyderlib/images/filetypes/inf.png
+spyderlib/images/filetypes/ini.png
+spyderlib/images/filetypes/jpeg.png
+spyderlib/images/filetypes/jpg.png
+spyderlib/images/filetypes/js.png
+spyderlib/images/filetypes/log.png
+spyderlib/images/filetypes/nt.png
+spyderlib/images/filetypes/patch.png
+spyderlib/images/filetypes/pdf.png
+spyderlib/images/filetypes/png.png
+spyderlib/images/filetypes/pps.png
+spyderlib/images/filetypes/properties.png
+spyderlib/images/filetypes/ps.png
+spyderlib/images/filetypes/pxd.png
+spyderlib/images/filetypes/pxi.png
+spyderlib/images/filetypes/pyx.png
+spyderlib/images/filetypes/rar.png
+spyderlib/images/filetypes/readme.png
+spyderlib/images/filetypes/reg.png
+spyderlib/images/filetypes/rej.png
+spyderlib/images/filetypes/session.png
+spyderlib/images/filetypes/tar.png
+spyderlib/images/filetypes/tex.png
+spyderlib/images/filetypes/tgz.png
+spyderlib/images/filetypes/tif.png
+spyderlib/images/filetypes/tiff.png
+spyderlib/images/filetypes/txt.png
+spyderlib/images/filetypes/xls.png
+spyderlib/images/filetypes/xml.png
+spyderlib/images/filetypes/zip.png
+spyderlib/images/projects/add_to_path.png
+spyderlib/images/projects/folder.png
+spyderlib/images/projects/package.png
+spyderlib/images/projects/pp_folder.png
+spyderlib/images/projects/pp_package.png
+spyderlib/images/projects/pp_project.png
+spyderlib/images/projects/project.png
+spyderlib/images/projects/project_closed.png
+spyderlib/images/projects/pythonpath.png
+spyderlib/images/projects/remove_from_path.png
+spyderlib/images/projects/show_all.png
+
+
+[3] GNU Lesser General Public License (Version 2.1)
+
+spyderlib/images/qt.png
+spyderlib/images/qtassistant.png
+spyderlib/images/qtdesigner.png
+spyderlib/images/qtlinguist.png
+spyderlib/images/filetypes/ts.png
+spyderlib/images/filetypes/ui.png
+
+
+[4] GNU General Public License version 3 
+
+spyderlib/images/pythonxy.png
+spyderlib/images/vitables.png
+
+
+[5] MIT License
+
+spyderlib/images/winpython.svg
+spyderlib/images/chevron-left.png
+spyderlib/images/chevron-right.png
+
+
+[6] BSD License
+
+spyderlib/images/scipy.png
+
+
+[7] Creative Commons Attribution 2.5 License
+(FamFamFam Silk icon set 1.3)
+
+spyderlib/images/actions/collapse.png
+spyderlib/images/actions/collapse_selection.png
+spyderlib/images/actions/expand.png
+spyderlib/images/actions/expand_selection.png
+spyderlib/images/actions/restore.png
+spyderlib/images/editor/class.png
+spyderlib/images/editor/convention.png
+spyderlib/images/editor/todo.png
+spyderlib/images/editor/warning.png
+spyderlib/images/filetypes/po.png
+spyderlib/images/filetypes/pot.png
+
+
+[8] PSF LICENSE AGREEMENT FOR PYTHON
+spyderlib/images/console/python.png
+spyderlib/images/console/python_t.png
+spyderlib/images/filetypes/py.png
+spyderlib/images/filetypes/pyc.png
+spyderlib/images/filetypes/pyw.png
+
+
+[9] zlib/libpng license
+spyderlib/images/filetypes/nsh.png
+spyderlib/images/filetypes/nsi.png
+
+
+[10] Eclipse Public License
+spyderlib/images/projects/pydev.png
+
+
+[11] Creative Commons Attribution 3.0 License
+(Yusuke Kamiyamane Icons)
+
+spyderlib/images/actions/arrow-continue.png
+spyderlib/images/actions/arrow-step-in.png
+spyderlib/images/actions/arrow-step-out.png
+spyderlib/images/actions/arrow-step-over.png
+spyderlib/images/actions/maximize.png
+spyderlib/images/actions/stop_debug.png
+spyderlib/images/actions/unmaximize.png
+spyderlib/images/actions/window_fullscreen.png
+spyderlib/images/editor/breakpoint_big.png
+spyderlib/images/editor/breakpoint_cond_big.png
+spyderlib/images/editor/breakpoint_cond_small.png
+spyderlib/images/editor/breakpoint_small.png
+spyderlib/images/editor/debug.png
+spyderlib/images/console/terminated.png
+spyderlib/images/actions/stop.png
+
+
+[12] Creative Commons BY-SA license
+(The Oxygen icon theme)
+
+spyderlib/images/editor/run.png
+spyderlib/images/editor/run_again.png
+spyderlib/images/editor/run_cell.png
+spyderlib/images/editor/run_cell_advance.png
+spyderlib/images/editor/run_selection.png
+spyderlib/images/editor/run_settings.png
+spyderlib/images/console/run_small.png
+
+[13] http://preloaders.net/
+(According to the website: "All animated GIF and APNG images are completely
+free to use in all projects (web and desktop applications, freeware and
+commercial projects)")
+
+spyderlib/images/console/loading_sprites.png

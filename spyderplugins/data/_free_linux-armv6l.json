@@ -1,0 +1,4274 @@
+{
+  "info": {
+    "arch": "armv6l",
+    "default_numpy_version": "1.8",
+    "default_python_version": "2.7",
+    "platform": "linux"
+  },
+  "packages": {
+    "_license-1.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "proprietary - Continuum Analytics, Inc.",
+      "md5": "becc5c65d9700d903494a036f95707ee",
+      "name": "_license",
+      "requires": [],
+      "size": 185973,
+      "version": "1.1"
+    },
+    "apptools-4.2.0-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "configobj",
+        "python 2.7*",
+        "traitsui 4.3.0"
+      ],
+      "license": "BSD",
+      "md5": "e2af9cff9291849fc528dced3af6ea21",
+      "name": "apptools",
+      "requires": [],
+      "size": 277570,
+      "version": "4.2.0"
+    },
+    "apptools-4.2.0-py27_1.tar.bz2": {
+      "build": "py27_1",
+      "build_number": 1,
+      "depends": [
+        "configobj",
+        "python 2.7*",
+        "traitsui 4.4.0"
+      ],
+      "license": "BSD",
+      "md5": "cfaef2a28a98844e25f3c33d56797cb5",
+      "name": "apptools",
+      "requires": [],
+      "size": 277601,
+      "version": "4.2.0"
+    },
+    "argcomplete-0.6.7-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*",
+        "setuptools"
+      ],
+      "license": "Apache Software License",
+      "md5": "b53790e3f22158b526e1ec60516993e5",
+      "name": "argcomplete",
+      "requires": [],
+      "size": 25492,
+      "version": "0.6.7"
+    },
+    "astropy-0.2-np17py27_0.tar.bz2": {
+      "build": "np17py27_0",
+      "build_number": 0,
+      "depends": [
+        "numpy 1.7*",
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "f62b0b504a883b8b3942be43bdda3ddf",
+      "name": "astropy",
+      "requires": [],
+      "size": 4902382,
+      "version": "0.2"
+    },
+    "astropy-0.2.1-np17py27_0.tar.bz2": {
+      "build": "np17py27_0",
+      "build_number": 0,
+      "depends": [
+        "numpy 1.7*",
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "ea65146cf86d050d35af3a65a8c63723",
+      "name": "astropy",
+      "requires": [],
+      "size": 4887839,
+      "version": "0.2.1"
+    },
+    "astropy-0.2.3-np17py27_0.tar.bz2": {
+      "build": "np17py27_0",
+      "build_number": 0,
+      "depends": [
+        "numpy 1.7*",
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "949e87a8d75d91799c87bcd9f9ef36d7",
+      "name": "astropy",
+      "requires": [],
+      "size": 4907627,
+      "version": "0.2.3"
+    },
+    "astropy-0.2.4-np17py27_1.tar.bz2": {
+      "build": "np17py27_1",
+      "build_number": 1,
+      "depends": [
+        "numpy 1.7*",
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "e294ebf670277b196867b18ea37fad31",
+      "name": "astropy",
+      "requires": [],
+      "size": 4902882,
+      "version": "0.2.4"
+    },
+    "astropy-0.2.5-np17py27_0.tar.bz2": {
+      "build": "np17py27_0",
+      "build_number": 0,
+      "depends": [
+        "numpy 1.7*",
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "7c1bbe05da2bd9337a6bd04c1518d819",
+      "name": "astropy",
+      "requires": [],
+      "size": 4899032,
+      "version": "0.2.5"
+    },
+    "astropy-0.3.0-np17py27_0.tar.bz2": {
+      "build": "np17py27_0",
+      "build_number": 0,
+      "depends": [
+        "numpy 1.7*",
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "dfb6d185bbf8082620381821dd09e8a9",
+      "name": "astropy",
+      "requires": [],
+      "size": 6089714,
+      "version": "0.3.0"
+    },
+    "atom-0.2.3-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "conflicts": [
+        "gdata"
+      ],
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "978dfb1815aeda0b0044686a5913bbd8",
+      "name": "atom",
+      "requires": [],
+      "size": 432511,
+      "version": "0.2.3"
+    },
+    "atom-0.3.2-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "conflicts": [
+        "gdata"
+      ],
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "2923144532ecfa027205e4d9223d9eab",
+      "name": "atom",
+      "requires": [],
+      "size": 668745,
+      "version": "0.3.2"
+    },
+    "atom-0.3.4-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "conflicts": [
+        "gdata"
+      ],
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "246ee1ca115f959a9ce66445ff0e4264",
+      "name": "atom",
+      "requires": [],
+      "size": 711224,
+      "version": "0.3.4"
+    },
+    "atom-0.3.5-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "conflicts": [
+        "gdata"
+      ],
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "d63a811583e41d2ac851e8bb71476a50",
+      "name": "atom",
+      "requires": [],
+      "size": 714972,
+      "version": "0.3.5"
+    },
+    "atom-0.3.7-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "conflicts": [
+        "gdata"
+      ],
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "2780479bf76ff623304fe4d7e7bb7c0a",
+      "name": "atom",
+      "requires": [],
+      "size": 716092,
+      "version": "0.3.7"
+    },
+    "atom-0.3.9-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "conflicts": [
+        "gdata"
+      ],
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "0c50859bc3e7148c47186d65ba7eb348",
+      "name": "atom",
+      "requires": [],
+      "size": 741798,
+      "version": "0.3.9"
+    },
+    "beautiful-soup-4.3.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "PSF/MIT",
+      "md5": "877dc455e0dfbcc24164e8d2571c493e",
+      "name": "beautiful-soup",
+      "org_name": "beautifulsoup4",
+      "requires": [],
+      "size": 111245,
+      "version": "4.3.1"
+    },
+    "binstar-0.1.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "keyring 1.4",
+        "python 2.7*",
+        "pyyaml",
+        "requests"
+      ],
+      "license": "BSD",
+      "md5": "2e98c0753bc6d290ec137191d9aa5cf0",
+      "name": "binstar",
+      "requires": [],
+      "size": 30410,
+      "version": "0.1.1"
+    },
+    "binstar-0.1.2-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "keyring 1.4",
+        "python 2.7*",
+        "pyyaml",
+        "requests"
+      ],
+      "license": "BSD",
+      "md5": "c927e1c9a89e0e47452e600103459cad",
+      "name": "binstar",
+      "requires": [],
+      "size": 30883,
+      "version": "0.1.2"
+    },
+    "binstar-0.2.2-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "keyring 1.6.1",
+        "python 2.7*",
+        "pyyaml",
+        "requests"
+      ],
+      "license": "BSD",
+      "md5": "689eb696e67249c43a75e127f3d82901",
+      "name": "binstar",
+      "requires": [],
+      "size": 33684,
+      "version": "0.2.2"
+    },
+    "binstar-0.3.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "dateutil",
+        "keyring 3.0.1",
+        "python 2.7*",
+        "pyyaml",
+        "requests"
+      ],
+      "license": "BSD",
+      "md5": "fa10f9e13ab0dce393af9c503e2fcc23",
+      "name": "binstar",
+      "requires": [],
+      "size": 47076,
+      "version": "0.3.1"
+    },
+    "binstar-0.3.1-py27_1.tar.bz2": {
+      "build": "py27_1",
+      "build_number": 1,
+      "depends": [
+        "dateutil",
+        "keyring 3.2",
+        "python 2.7*",
+        "pyyaml",
+        "requests"
+      ],
+      "license": "BSD",
+      "md5": "30d09217799286e577a6431bb8559fdb",
+      "name": "binstar",
+      "requires": [],
+      "size": 47012,
+      "version": "0.3.1"
+    },
+    "binstar-0.5.3-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "dateutil",
+        "python 2.7*",
+        "pytz",
+        "pyyaml",
+        "requests"
+      ],
+      "license": "BSD",
+      "md5": "09ee736fd1f8e8445397e26aa711423b",
+      "name": "binstar",
+      "requires": [],
+      "size": 68400,
+      "version": "0.5.3"
+    },
+    "biopython-1.60-np17py27_0.tar.bz2": {
+      "build": "np17py27_0",
+      "build_number": 0,
+      "depends": [
+        "numpy 1.7*",
+        "python 2.7*"
+      ],
+      "license": "BSD-like",
+      "md5": "47940fd45902efdd3bdaf31e17502441",
+      "name": "biopython",
+      "requires": [],
+      "size": 1824727,
+      "version": "1.60"
+    },
+    "biopython-1.61-np17py27_0.tar.bz2": {
+      "build": "np17py27_0",
+      "build_number": 0,
+      "depends": [
+        "numpy 1.7*",
+        "python 2.7*"
+      ],
+      "license": "BSD-like",
+      "md5": "f6e92f4aabe8cce2c7b4a1613c82ba5e",
+      "name": "biopython",
+      "requires": [],
+      "size": 2009300,
+      "version": "1.61"
+    },
+    "biopython-1.62-np17py27_0.tar.bz2": {
+      "build": "np17py27_0",
+      "build_number": 0,
+      "depends": [
+        "numpy 1.7*",
+        "python 2.7*"
+      ],
+      "license": "BSD-like",
+      "md5": "9f6090a21b2d5c3d8543958430aee057",
+      "name": "biopython",
+      "requires": [],
+      "size": 2156817,
+      "version": "1.62"
+    },
+    "biopython-1.63-np17py27_0.tar.bz2": {
+      "build": "np17py27_0",
+      "build_number": 0,
+      "depends": [
+        "numpy 1.7*",
+        "python 2.7*"
+      ],
+      "license": "BSD-like",
+      "md5": "168ac8f107633637adaf5b78ea53412e",
+      "name": "biopython",
+      "requires": [],
+      "size": 2136562,
+      "version": "1.63"
+    },
+    "bitarray-0.8.0-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "PSF",
+      "md5": "8ef1a1a9b5b11baab1a94506b6b6c248",
+      "name": "bitarray",
+      "requires": [],
+      "size": 95551,
+      "version": "0.8.0"
+    },
+    "bitarray-0.8.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "PSF",
+      "md5": "a1bee4065582b5031496d69982c7a304",
+      "name": "bitarray",
+      "requires": [],
+      "size": 95809,
+      "version": "0.8.1"
+    },
+    "bitey-0.0-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "llvmpy 0.11.1",
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "3e47de11931b1e8e4c8784dab278eef9",
+      "name": "bitey",
+      "requires": [],
+      "size": 6927,
+      "version": "0.0"
+    },
+    "boto-2.11.0-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "42b28d0b178b927b5d514f5b2ba4847d",
+      "name": "boto",
+      "requires": [],
+      "size": 1082917,
+      "version": "2.11.0"
+    },
+    "boto-2.12.0-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "737b5367188b96ba944497321f8d88c2",
+      "name": "boto",
+      "requires": [],
+      "size": 1088715,
+      "version": "2.12.0"
+    },
+    "boto-2.15.0-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "83489d5c625070dfc68bc4f2b4def530",
+      "name": "boto",
+      "requires": [],
+      "size": 1093852,
+      "version": "2.15.0"
+    },
+    "boto-2.19.0-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "c1774d373d90e4ed885dc06d044da055",
+      "name": "boto",
+      "requires": [],
+      "size": 1120756,
+      "version": "2.19.0"
+    },
+    "boto-2.28.0-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "e84234d5cd866e3d7584f22876bb0b81",
+      "name": "boto",
+      "requires": [],
+      "size": 1242623,
+      "version": "2.28.0"
+    },
+    "boto-2.29.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "c66b970acb6da63688eb8c9df5dfdb32",
+      "name": "boto",
+      "requires": [],
+      "size": 1242976,
+      "version": "2.29.1"
+    },
+    "boto-2.8.0-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "80066552eea40b10d014487011596499",
+      "name": "boto",
+      "requires": [],
+      "size": 821480,
+      "version": "2.8.0"
+    },
+    "boto-2.9.0-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "f00cc5b764b8043a12bc053cf66f2718",
+      "name": "boto",
+      "requires": [],
+      "size": 939255,
+      "version": "2.9.0"
+    },
+    "boto-2.9.2-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "23a04a254257a1d983bf55e53bbbefa9",
+      "name": "boto",
+      "requires": [],
+      "size": 945652,
+      "version": "2.9.2"
+    },
+    "boto-2.9.5-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "f06e8f89ae4e494f368190951fb3e2d4",
+      "name": "boto",
+      "requires": [],
+      "size": 966519,
+      "version": "2.9.5"
+    },
+    "boto-2.9.6-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "dff1d24b3550d6852d79936fb144647a",
+      "name": "boto",
+      "requires": [],
+      "size": 969813,
+      "version": "2.9.6"
+    },
+    "boto-2.9.9-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "7dbc6051f448d26f62bcabb0032cf25a",
+      "name": "boto",
+      "requires": [],
+      "size": 996170,
+      "version": "2.9.9"
+    },
+    "bsdiff4-1.1.3-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "096b5e66267719db6c35a52fb15bd30d",
+      "name": "bsdiff4",
+      "requires": [],
+      "size": 28922,
+      "version": "1.1.3"
+    },
+    "bzip2-1.0.6-0.tar.bz2": {
+      "build": "0",
+      "build_number": 0,
+      "depends": [],
+      "license": "BSD",
+      "md5": "1da45cde21000b273583a8528a30db08",
+      "name": "bzip2",
+      "requires": [],
+      "size": 90090,
+      "version": "1.0.6"
+    },
+    "cairo-1.12.2-1.tar.bz2": {
+      "build": "1",
+      "build_number": 1,
+      "depends": [
+        "freetype 2.4.10",
+        "libpng 1.5.13",
+        "pixman 0.26.2",
+        "zlib 1.2.7"
+      ],
+      "license": "LGPL 2.1 and MPL 1.1",
+      "md5": "b14592faae08be80613f8dba0db141c5",
+      "name": "cairo",
+      "requires": [],
+      "size": 495552,
+      "version": "1.12.2"
+    },
+    "cairo-1.12.2-2.tar.bz2": {
+      "build": "2",
+      "build_number": 2,
+      "depends": [
+        "freetype 2.4.10",
+        "libpng 1.5.13",
+        "pixman 0.26.2",
+        "zlib 1.2.7"
+      ],
+      "license": "LGPL 2.1 and MPL 1.1",
+      "md5": "bcd590374631bb23b4faf3be35db9346",
+      "name": "cairo",
+      "requires": [],
+      "size": 484169,
+      "version": "1.12.2"
+    },
+    "casuarius-1.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "LGPL",
+      "md5": "a721a4e1559575fc236fe3d03f3d355c",
+      "name": "casuarius",
+      "requires": [],
+      "size": 1006819,
+      "version": "1.1"
+    },
+    "cdecimal-2.3-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "783542cddbbdae2ad59a2edcda73a684",
+      "name": "cdecimal",
+      "requires": [],
+      "size": 406199,
+      "version": "2.3"
+    },
+    "chrpath-0.13-0.tar.bz2": {
+      "build": "0",
+      "build_number": 0,
+      "depends": [],
+      "license": "GPL",
+      "md5": "c2623a5ae43111b1bc62da798f279ab4",
+      "name": "chrpath",
+      "requires": [],
+      "size": 11652,
+      "version": "0.13"
+    },
+    "cmake-2.8.10.2-0.tar.bz2": {
+      "build": "0",
+      "build_number": 0,
+      "depends": [],
+      "license": null,
+      "md5": "236d551c15bc9849d73f1ee07d82d0c3",
+      "name": "cmake",
+      "requires": [],
+      "size": 8398338,
+      "version": "2.8.10.2"
+    },
+    "colorama-0.2.7-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "530bafa38c34cc33f7c1325a8a2d1034",
+      "name": "colorama",
+      "requires": [],
+      "size": 14715,
+      "version": "0.2.7"
+    },
+    "conda-1.5.0-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*",
+        "pyyaml"
+      ],
+      "license": "BSD",
+      "md5": "b8deca569004ea1163d116892b03ead3",
+      "name": "conda",
+      "requires": [
+        "python 2.7",
+        "pyyaml 3.10"
+      ],
+      "size": 87488,
+      "version": "1.5.0"
+    },
+    "conda-1.5.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*",
+        "pyyaml"
+      ],
+      "license": "BSD",
+      "md5": "85c4594ccbd8125b5f1522bf59842fa7",
+      "name": "conda",
+      "requires": [
+        "python 2.7",
+        "pyyaml 3.10"
+      ],
+      "size": 89579,
+      "version": "1.5.1"
+    },
+    "conda-1.5.2-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*",
+        "pyyaml"
+      ],
+      "license": "BSD",
+      "md5": "c5efdba3e1f072b52a5ac1b9761ebc6e",
+      "name": "conda",
+      "requires": [
+        "python 2.7",
+        "pyyaml 3.10"
+      ],
+      "size": 89918,
+      "version": "1.5.2"
+    },
+    "conda-1.7.0-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "pycosat",
+        "python 2.7*",
+        "pyyaml"
+      ],
+      "license": "BSD",
+      "md5": "ccc4638567609a789c59f7a4542793a3",
+      "name": "conda",
+      "requires": [
+        "pycosat 0.6.0",
+        "python 2.7",
+        "pyyaml 3.10"
+      ],
+      "size": 99242,
+      "version": "1.7.0"
+    },
+    "conda-1.7.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "pycosat",
+        "python 2.7*",
+        "pyyaml"
+      ],
+      "license": "BSD",
+      "md5": "b1a3ded34d0f51973e3b2ac480bf4735",
+      "name": "conda",
+      "requires": [
+        "pycosat 0.6.0",
+        "python 2.7",
+        "pyyaml 3.10"
+      ],
+      "size": 99530,
+      "version": "1.7.1"
+    },
+    "conda-1.7.2-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "pycosat",
+        "python 2.7*",
+        "pyyaml"
+      ],
+      "license": "BSD",
+      "md5": "38baa0f1fe11f7c8cad11bbf933258cb",
+      "name": "conda",
+      "requires": [
+        "pycosat 0.6.0",
+        "python 2.7",
+        "pyyaml 3.10"
+      ],
+      "size": 100006,
+      "version": "1.7.2"
+    },
+    "conda-1.8.0-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "pycosat",
+        "python 2.7*",
+        "pyyaml"
+      ],
+      "license": "BSD",
+      "md5": "a5f6e7b19d13e4eec46ec8289d3556d0",
+      "name": "conda",
+      "requires": [
+        "pycosat 0.6.0",
+        "python 2.7",
+        "pyyaml 3.10"
+      ],
+      "size": 115898,
+      "version": "1.8.0"
+    },
+    "conda-2.0.0-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "pycosat",
+        "python 2.7*",
+        "pyyaml"
+      ],
+      "license": "BSD",
+      "md5": "758503780d8dcc7f8ec7321725a1c683",
+      "name": "conda",
+      "requires": [
+        "pycosat 0.6.0",
+        "python 2.7",
+        "pyyaml 3.10"
+      ],
+      "size": 126317,
+      "version": "2.0.0"
+    },
+    "conda-2.0.2-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "pycosat",
+        "python 2.7*",
+        "pyyaml"
+      ],
+      "license": "BSD",
+      "md5": "ab7e051e06eee18ca8cd9f47e3fc2fcc",
+      "name": "conda",
+      "requires": [
+        "pycosat 0.6.0",
+        "python 2.7",
+        "pyyaml 3.10"
+      ],
+      "size": 126994,
+      "version": "2.0.2"
+    },
+    "conda-2.0.3-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "pycosat",
+        "python 2.7*",
+        "pyyaml"
+      ],
+      "license": "BSD",
+      "md5": "3335cdae957e2620e0b4065b2d7832cd",
+      "name": "conda",
+      "requires": [
+        "pycosat 0.6.0",
+        "python 2.7",
+        "pyyaml 3.10"
+      ],
+      "size": 126759,
+      "version": "2.0.3"
+    },
+    "conda-2.2.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "pycosat",
+        "python 2.7*",
+        "pyyaml"
+      ],
+      "license": "BSD",
+      "md5": "08656cbb181f8032c099d72630325f5c",
+      "name": "conda",
+      "requires": [
+        "pycosat 0.6.0",
+        "python 2.7",
+        "pyyaml 3.10"
+      ],
+      "size": 131938,
+      "version": "2.2.1"
+    },
+    "conda-3.5.5-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "pycosat",
+        "python 2.7*",
+        "pyyaml",
+        "requests"
+      ],
+      "license": "BSD",
+      "md5": "8749780316791c76bc942663953c5d2a",
+      "name": "conda",
+      "requires": [
+        "pycosat 0.6.1",
+        "python 2.7",
+        "pyyaml 3.11",
+        "requests 2.3.0"
+      ],
+      "size": 137789,
+      "version": "3.5.5"
+    },
+    "configobj-4.7.2-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "a5ed310371b4bd8b63811d7435b6b78d",
+      "name": "configobj",
+      "requires": [],
+      "size": 48994,
+      "version": "4.7.2"
+    },
+    "configobj-5.0.5-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*",
+        "six"
+      ],
+      "license": "BSD",
+      "md5": "9f852ff4b813c1776e40bf176f457548",
+      "name": "configobj",
+      "requires": [],
+      "size": 50691,
+      "version": "5.0.5"
+    },
+    "cubes-0.10.2-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "jinja2",
+        "python 2.7*",
+        "sqlalchemy",
+        "werkzeug 0.8*"
+      ],
+      "license": "MIT",
+      "md5": "0eccf263fb9316a3f389402d27d74a12",
+      "name": "cubes",
+      "requires": [],
+      "size": 117219,
+      "version": "0.10.2"
+    },
+    "cubes-0.10.2-py27_1.tar.bz2": {
+      "build": "py27_1",
+      "build_number": 1,
+      "depends": [
+        "jinja2",
+        "python 2.7*",
+        "sqlalchemy",
+        "werkzeug 0.8*"
+      ],
+      "license": "MIT",
+      "md5": "30a2477862998dfc47d07875b36cfd2a",
+      "name": "cubes",
+      "requires": [],
+      "size": 117204,
+      "version": "0.10.2"
+    },
+    "cubes-0.10.2-py27_2.tar.bz2": {
+      "build": "py27_2",
+      "build_number": 2,
+      "depends": [
+        "jinja2",
+        "python 2.7*",
+        "sqlalchemy",
+        "werkzeug 0.9*"
+      ],
+      "license": "MIT",
+      "md5": "60904316baaae8b29e892ad7c155b7ea",
+      "name": "cubes",
+      "requires": [],
+      "size": 117285,
+      "version": "0.10.2"
+    },
+    "cubes-0.10.2-py27_3.tar.bz2": {
+      "build": "py27_3",
+      "build_number": 3,
+      "depends": [
+        "jinja2",
+        "python 2.7*",
+        "sqlalchemy",
+        "werkzeug 0.9*"
+      ],
+      "license": "MIT",
+      "md5": "65c4a6b0513839ef4592abf503b854c0",
+      "name": "cubes",
+      "requires": [],
+      "size": 119220,
+      "version": "0.10.2"
+    },
+    "cubes-0.10.2-py27_4.tar.bz2": {
+      "build": "py27_4",
+      "build_number": 4,
+      "depends": [
+        "jinja2",
+        "python 2.7*",
+        "sqlalchemy",
+        "werkzeug 0.9*"
+      ],
+      "license": "MIT",
+      "md5": "6f3246ae41246ee724f5f23f98886413",
+      "name": "cubes",
+      "requires": [],
+      "size": 119531,
+      "version": "0.10.2"
+    },
+    "curl-7.26.0-1.tar.bz2": {
+      "build": "1",
+      "build_number": 1,
+      "depends": [],
+      "license": "MIT/X derivate (http://curl.haxx.se/docs/copyright.html)",
+      "md5": "7b7816ad6cb62d21fd7caa6b0df30bc3",
+      "name": "curl",
+      "requires": [],
+      "size": 533983,
+      "version": "7.26.0"
+    },
+    "curl-7.30.0-0.tar.bz2": {
+      "build": "0",
+      "build_number": 0,
+      "depends": [
+        "openssl 1.0.1*",
+        "zlib 1.2.7"
+      ],
+      "license": "MIT/X derivate (http://curl.haxx.se/docs/copyright.html)",
+      "md5": "74899e3079c7d5c89979aa343e99a463",
+      "name": "curl",
+      "requires": [],
+      "size": 558998,
+      "version": "7.30.0"
+    },
+    "cython-0.18-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "Apache 2.0",
+      "md5": "af5813507ec9f7b3951c7c0765c32d86",
+      "name": "cython",
+      "org_name": "Cython",
+      "requires": [],
+      "size": 3400774,
+      "version": "0.18"
+    },
+    "cython-0.19-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "Apache 2.0",
+      "md5": "47254887f27cc54a8fcc76aeb198dd85",
+      "name": "cython",
+      "org_name": "Cython",
+      "requires": [],
+      "size": 3786626,
+      "version": "0.19"
+    },
+    "cython-0.19.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "Apache 2.0",
+      "md5": "6ecacfadffab77057b3b11617461d6a1",
+      "name": "cython",
+      "org_name": "Cython",
+      "requires": [],
+      "size": 3790042,
+      "version": "0.19.1"
+    },
+    "cython-0.19.2-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "Apache 2.0",
+      "md5": "f28284e14cc62aa5dda3222f09ac20b7",
+      "name": "cython",
+      "org_name": "Cython",
+      "requires": [],
+      "size": 3822579,
+      "version": "0.19.2"
+    },
+    "cython-0.20.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "Apache 2.0",
+      "md5": "a1873984024bf3114d5cbc62c22e511b",
+      "name": "cython",
+      "org_name": "Cython",
+      "requires": [],
+      "size": 4572293,
+      "version": "0.20.1"
+    },
+    "dateutil-2.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*",
+        "six"
+      ],
+      "license": "BSD",
+      "md5": "431874323c2fd6cb81b016fc5e826fc6",
+      "name": "dateutil",
+      "org_name": "python-dateutil",
+      "requires": [],
+      "size": 148426,
+      "version": "2.1"
+    },
+    "dateutil-2.1-py27_1.tar.bz2": {
+      "build": "py27_1",
+      "build_number": 1,
+      "depends": [
+        "python 2.7*",
+        "six"
+      ],
+      "license": "BSD",
+      "md5": "d90c5e8e57c853c7004d08bfd1c28a55",
+      "name": "dateutil",
+      "org_name": "python-dateutil",
+      "requires": [],
+      "size": 148421,
+      "version": "2.1"
+    },
+    "dateutil-2.1-py27_2.tar.bz2": {
+      "build": "py27_2",
+      "build_number": 2,
+      "depends": [
+        "python 2.7*",
+        "six"
+      ],
+      "license": "BSD",
+      "md5": "91745b914571c15bfd9d5b13edf56039",
+      "name": "dateutil",
+      "org_name": "python-dateutil",
+      "requires": [],
+      "size": 232626,
+      "version": "2.1"
+    },
+    "decorator-3.4.0-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "b2a6ef2e1c0e74ad3b82a5e585cab89c",
+      "name": "decorator",
+      "requires": [],
+      "size": 8309,
+      "version": "3.4.0"
+    },
+    "distribute-0.6.34-py27_1.tar.bz2": {
+      "build": "py27_1",
+      "build_number": 1,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "PSF or ZPL",
+      "md5": "108615c9a48976d6ffc5849c6c47486c",
+      "name": "distribute",
+      "requires": [],
+      "size": 446902,
+      "version": "0.6.34"
+    },
+    "distribute-0.6.36-py27_1.tar.bz2": {
+      "build": "py27_1",
+      "build_number": 1,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "PSF or ZPL",
+      "md5": "32e842d4d62f0dd17c1db656976cb327",
+      "name": "distribute",
+      "requires": [],
+      "size": 446701,
+      "version": "0.6.36"
+    },
+    "distribute-0.6.45-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "PSF or ZPL",
+      "md5": "672b4de8bfa6bd3b0aad50ade66e2e74",
+      "name": "distribute",
+      "requires": [],
+      "size": 529767,
+      "version": "0.6.45"
+    },
+    "distribute-0.6.45-py27_1.tar.bz2": {
+      "build": "py27_1",
+      "build_number": 1,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "PSF or ZPL",
+      "md5": "7e21fad43e6007b3879c53ae7ebdbbbd",
+      "name": "distribute",
+      "requires": [],
+      "size": 529913,
+      "version": "0.6.45"
+    },
+    "docutils-0.10-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "Public-Domain, PSF, 2-clause BSD, GPL3",
+      "md5": "95ea9561f77ee91f49db5dd03214d6d5",
+      "name": "docutils",
+      "requires": [],
+      "size": 642669,
+      "version": "0.10"
+    },
+    "docutils-0.11-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "Public-Domain, PSF, 2-clause BSD, GPL3",
+      "md5": "dfdc7e7241e04a18d91b65b27622e3d3",
+      "name": "docutils",
+      "requires": [],
+      "size": 650536,
+      "version": "0.11"
+    },
+    "envisage-4.3.0-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "apptools 4.2.0",
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "c49b74999d5f56670371ba454a2f2823",
+      "name": "envisage",
+      "requires": [],
+      "size": 272359,
+      "version": "4.3.0"
+    },
+    "envisage-4.4.0-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "apptools 4.2.0",
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "4570ba26c028b312a8e105b808a037e4",
+      "name": "envisage",
+      "requires": [],
+      "size": 272997,
+      "version": "4.4.0"
+    },
+    "flask-0.10.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "itsdangerous",
+        "jinja2",
+        "python 2.7*",
+        "werkzeug 0.9*"
+      ],
+      "license": "BSD",
+      "md5": "d6edf66182dac713ab994a0b8f9f7a26",
+      "name": "flask",
+      "org_name": "Flask",
+      "requires": [],
+      "size": 131699,
+      "version": "0.10.1"
+    },
+    "flask-0.10.1-py27_1.tar.bz2": {
+      "build": "py27_1",
+      "build_number": 1,
+      "depends": [
+        "itsdangerous",
+        "jinja2",
+        "python 2.7*",
+        "werkzeug 0.9*"
+      ],
+      "license": "BSD",
+      "md5": "3047f18ed3d813535662f8e41faf0e3d",
+      "name": "flask",
+      "org_name": "Flask",
+      "requires": [],
+      "size": 131669,
+      "version": "0.10.1"
+    },
+    "flask-0.9-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "jinja2",
+        "python 2.7*",
+        "werkzeug 0.8*"
+      ],
+      "license": "BSD",
+      "md5": "04b5545dee60af8c024a3dd4aa758eb0",
+      "name": "flask",
+      "org_name": "Flask",
+      "requires": [],
+      "size": 114861,
+      "version": "0.9"
+    },
+    "freetype-2.4.10-0.tar.bz2": {
+      "build": "0",
+      "build_number": 0,
+      "depends": [],
+      "license": "FreeType License (http://freetype.sourceforge.net/FTL.TXT)",
+      "md5": "26883ca713e725461f7875d29d0ddff7",
+      "name": "freetype",
+      "requires": [],
+      "size": 2271873,
+      "version": "2.4.10"
+    },
+    "future-0.12.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "53ae1f9492f274f76d626edf841b8bff",
+      "name": "future",
+      "requires": [],
+      "size": 837744,
+      "version": "0.12.1"
+    },
+    "gdata-2.0.17-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "conflicts": [
+        "atom"
+      ],
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "Apache 2.0",
+      "md5": "f39be9e2b53bb4284664454989d90120",
+      "name": "gdata",
+      "requires": [],
+      "size": 788135,
+      "version": "2.0.17"
+    },
+    "gevent-0.13.8-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "greenlet 0.4*",
+        "libevent 2.0.20",
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "993627615ea47d475a912e3768eaf6fe",
+      "name": "gevent",
+      "requires": [],
+      "size": 358294,
+      "version": "0.13.8"
+    },
+    "gevent-1.0.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "greenlet 0.4*",
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "f8f7bd0b2931eb35449e4d8f1c512f73",
+      "name": "gevent",
+      "requires": [],
+      "size": 861827,
+      "version": "1.0.1"
+    },
+    "gevent-websocket-0.3.6-py27_1.tar.bz2": {
+      "build": "py27_1",
+      "build_number": 1,
+      "depends": [
+        "gevent 0.13.7|0.13.8",
+        "python 2.7*"
+      ],
+      "license": "Apache",
+      "md5": "728e01d4720718873bd7ee95f26504d1",
+      "name": "gevent-websocket",
+      "requires": [],
+      "size": 13790,
+      "version": "0.3.6"
+    },
+    "gevent-websocket-0.3.6-py27_2.tar.bz2": {
+      "build": "py27_2",
+      "build_number": 2,
+      "depends": [
+        "gevent 0.13.7|0.13.8",
+        "python 2.7*"
+      ],
+      "license": "Apache",
+      "md5": "7b588d6fd45f1146ffaa0c87164a45f3",
+      "name": "gevent-websocket",
+      "requires": [],
+      "size": 13791,
+      "version": "0.3.6"
+    },
+    "gevent-websocket-0.9.3-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "gevent 1.0.1",
+        "python 2.7*",
+        "ujson 1.33"
+      ],
+      "license": "Apache",
+      "md5": "ce969aa31d91fb2937284d6eaa16e46c",
+      "name": "gevent-websocket",
+      "requires": [],
+      "size": 24933,
+      "version": "0.9.3"
+    },
+    "gevent_zeromq-0.2.5-py27_1.tar.bz2": {
+      "build": "py27_1",
+      "build_number": 1,
+      "depends": [
+        "gevent 0.13.7|0.13.8",
+        "python 2.7*",
+        "pyzmq 2.2.0.1"
+      ],
+      "license": null,
+      "md5": "a065f2530529d56b275d573358a48e34",
+      "name": "gevent_zeromq",
+      "requires": [],
+      "size": 104213,
+      "version": "0.2.5"
+    },
+    "gevent_zeromq-0.2.5-py27_2.tar.bz2": {
+      "build": "py27_2",
+      "build_number": 2,
+      "depends": [
+        "gevent 0.13.7|0.13.8",
+        "python 2.7*",
+        "pyzmq 2.2.0.1"
+      ],
+      "license": null,
+      "md5": "2498bedb256ec6ebd9c63939a4bc22ee",
+      "name": "gevent_zeromq",
+      "requires": [],
+      "size": 116698,
+      "version": "0.2.5"
+    },
+    "googlecl-0.9.12-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "gdata 2.0.17",
+        "python 2.7*"
+      ],
+      "license": "Apache 2.0",
+      "md5": "e892088687d2517e36db41c31448e197",
+      "name": "googlecl",
+      "requires": [],
+      "size": 107090,
+      "version": "0.9.12"
+    },
+    "greenlet-0.4.0-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "9dc20486bd8c4e327b4c460a54e5de17",
+      "name": "greenlet",
+      "requires": [],
+      "size": 29987,
+      "version": "0.4.0"
+    },
+    "greenlet-0.4.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "bd19c539bdd6e4655aed18b8b68bf702",
+      "name": "greenlet",
+      "requires": [],
+      "size": 30043,
+      "version": "0.4.1"
+    },
+    "greenlet-0.4.2-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "cf138f5384d4070191eab4935d9b1413",
+      "name": "greenlet",
+      "requires": [],
+      "size": 30289,
+      "version": "0.4.2"
+    },
+    "grin-1.2.1-py27_1.tar.bz2": {
+      "build": "py27_1",
+      "build_number": 1,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "7a5f7ad9ff78570e9830a88e936e9c5b",
+      "name": "grin",
+      "requires": [],
+      "size": 22974,
+      "version": "1.2.1"
+    },
+    "h5py-2.1.1-np17py27_0.tar.bz2": {
+      "build": "np17py27_0",
+      "build_number": 0,
+      "depends": [
+        "hdf5 1.8.9",
+        "numpy 1.7*",
+        "python 2.7*"
+      ],
+      "license": "New BSD (http://opensource.org/licenses/bsd-license.php)",
+      "md5": "48405a79d2c9f7e1cfb7c68a74a927dd",
+      "name": "h5py",
+      "requires": [],
+      "size": 2381592,
+      "version": "2.1.1"
+    },
+    "h5py-2.2.0-np17py27_0.tar.bz2": {
+      "build": "np17py27_0",
+      "build_number": 0,
+      "depends": [
+        "hdf5 1.8.9",
+        "numpy 1.7*",
+        "python 2.7*"
+      ],
+      "license": "New BSD (http://opensource.org/licenses/bsd-license.php)",
+      "md5": "1a3684b2891cbefd87bb1ddff0ce55f8",
+      "name": "h5py",
+      "requires": [],
+      "size": 2128714,
+      "version": "2.2.0"
+    },
+    "h5py-2.2.1-np17py27_0.tar.bz2": {
+      "build": "np17py27_0",
+      "build_number": 0,
+      "depends": [
+        "hdf5 1.8.9",
+        "numpy 1.7*",
+        "python 2.7*"
+      ],
+      "license": "New BSD (http://opensource.org/licenses/bsd-license.php)",
+      "md5": "c0d87a2b032681b5cf1fdc684683a64b",
+      "name": "h5py",
+      "requires": [],
+      "size": 2132390,
+      "version": "2.2.1"
+    },
+    "h5py-2.3.0-np18py27_0.tar.bz2": {
+      "build": "np18py27_0",
+      "build_number": 0,
+      "depends": [
+        "hdf5 1.8.9",
+        "numpy 1.8*",
+        "python 2.7*"
+      ],
+      "license": "New BSD (http://opensource.org/licenses/bsd-license.php)",
+      "md5": "524e72817ddb0c81f9b0ed868f5525a4",
+      "name": "h5py",
+      "requires": [],
+      "size": 2355653,
+      "version": "2.3.0"
+    },
+    "hdf5-1.8.9-0.tar.bz2": {
+      "build": "0",
+      "build_number": 0,
+      "depends": [],
+      "license": "BSD-style (http://www.hdfgroup.org/ftp/HDF5/current/src/unpacked/COPYING)",
+      "md5": "155bd3b4a03d5e82ec2603a5c8630017",
+      "name": "hdf5",
+      "requires": [],
+      "size": 1736504,
+      "version": "1.8.9"
+    },
+    "hdf5-1.8.9-1.tar.bz2": {
+      "build": "1",
+      "build_number": 1,
+      "depends": [],
+      "license": "BSD-style (http://www.hdfgroup.org/ftp/HDF5/current/src/unpacked/COPYING)",
+      "md5": "2e84d7b77ddfcf53c5b62e09a654ca6c",
+      "name": "hdf5",
+      "requires": [],
+      "size": 1752581,
+      "version": "1.8.9"
+    },
+    "imaging-1.1.7-py27_2.tar.bz2": {
+      "build": "py27_2",
+      "build_number": 2,
+      "depends": [
+        "freetype 2.4.10",
+        "jpeg 8d",
+        "python 2.7*",
+        "zlib 1.2.7"
+      ],
+      "license": null,
+      "md5": "58ba77a7e506d90a8161574f80dc84a1",
+      "name": "imaging",
+      "requires": [],
+      "size": 581277,
+      "version": "1.1.7"
+    },
+    "ipython-0.13.1-py27_1.tar.bz2": {
+      "build": "py27_1",
+      "build_number": 1,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "8f3903c206535675ba2cef4d65af89b0",
+      "name": "ipython",
+      "requires": [],
+      "size": 1608302,
+      "version": "0.13.1"
+    },
+    "ipython-0.13.2-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "f3779aade2c5447be18bf59806b052ca",
+      "name": "ipython",
+      "requires": [],
+      "size": 1610036,
+      "version": "0.13.2"
+    },
+    "ipython-1.0.0-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "5aea57b989f4c2c2db6184bf17eef01b",
+      "name": "ipython",
+      "requires": [],
+      "size": 2905260,
+      "version": "1.0.0"
+    },
+    "ipython-1.1.0-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "e048eb81f148d155a72b1dc4ba28d694",
+      "name": "ipython",
+      "requires": [],
+      "size": 2921332,
+      "version": "1.1.0"
+    },
+    "ipython-2.1.0-py27_2.tar.bz2": {
+      "build": "py27_2",
+      "build_number": 2,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "d55d4c39ca667b132fce49bc826fd47b",
+      "name": "ipython",
+      "requires": [],
+      "size": 2922197,
+      "version": "2.1.0"
+    },
+    "itsdangerous-0.21-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD License",
+      "md5": "13221af9da9ba543a52009d92760b532",
+      "name": "itsdangerous",
+      "requires": [],
+      "size": 14409,
+      "version": "0.21"
+    },
+    "itsdangerous-0.23-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD License",
+      "md5": "b4f931326c0d32694baf1c3c0fb08187",
+      "name": "itsdangerous",
+      "requires": [],
+      "size": 15507,
+      "version": "0.23"
+    },
+    "itsdangerous-0.24-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD License",
+      "md5": "6ce0aa7003e53e4a76edb41dd036614e",
+      "name": "itsdangerous",
+      "requires": [],
+      "size": 16075,
+      "version": "0.24"
+    },
+    "jdcal-1.0-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "29ab07a3413f8ca517fa9568571c7bbb",
+      "name": "jdcal",
+      "requires": [],
+      "size": 9021,
+      "version": "1.0"
+    },
+    "jinja2-2.6-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "32c5586da5c2929c9266120ed00de54c",
+      "name": "jinja2",
+      "org_name": "Jinja2",
+      "requires": [],
+      "size": 326671,
+      "version": "2.6"
+    },
+    "jinja2-2.7-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "markupsafe",
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "4d6e6108b266f14d55b02c161dd64224",
+      "name": "jinja2",
+      "org_name": "Jinja2",
+      "requires": [],
+      "size": 313816,
+      "version": "2.7"
+    },
+    "jinja2-2.7.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "markupsafe",
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "95c6629e4d026e1f7d30b63a733d55d1",
+      "name": "jinja2",
+      "org_name": "Jinja2",
+      "requires": [],
+      "size": 314006,
+      "version": "2.7.1"
+    },
+    "jinja2-2.7.2-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "markupsafe",
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "19a3c4524cc72c2b8b26d5363e2ac6ff",
+      "name": "jinja2",
+      "org_name": "Jinja2",
+      "requires": [],
+      "size": 314782,
+      "version": "2.7.2"
+    },
+    "jpeg-8d-0.tar.bz2": {
+      "build": "0",
+      "build_number": 0,
+      "depends": [],
+      "license": "Custom free software license",
+      "md5": "d223cb7568d5096a0b88d10129834fb7",
+      "name": "jpeg",
+      "requires": [],
+      "size": 759126,
+      "version": "8d"
+    },
+    "keyring-1.4-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": null,
+      "md5": "3180381eb0a4685f62b9e354c792906d",
+      "name": "keyring",
+      "requires": [],
+      "size": 67943,
+      "version": "1.4"
+    },
+    "keyring-1.6.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": null,
+      "md5": "ad04bdaa6a49f1f7fbe40a6f5a379229",
+      "name": "keyring",
+      "requires": [],
+      "size": 68878,
+      "version": "1.6.1"
+    },
+    "keyring-2.0.2-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": null,
+      "md5": "be94c1e3b3206648b2d6390b28370be2",
+      "name": "keyring",
+      "requires": [],
+      "size": 69781,
+      "version": "2.0.2"
+    },
+    "keyring-3.0.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": null,
+      "md5": "e67b796aa6dd9e2502ae9bbe0d4b31d2",
+      "name": "keyring",
+      "requires": [],
+      "size": 69923,
+      "version": "3.0.1"
+    },
+    "keyring-3.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": null,
+      "md5": "d5cd08fd57965dfa1f5d96c1b1e88588",
+      "name": "keyring",
+      "requires": [],
+      "size": 70320,
+      "version": "3.1"
+    },
+    "keyring-3.2-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": null,
+      "md5": "6d0ef10bdc3e2e00594f8ee4c6326b14",
+      "name": "keyring",
+      "requires": [],
+      "size": 71322,
+      "version": "3.2"
+    },
+    "keyring-3.3-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": null,
+      "md5": "7325c6cbc20eca30c5bc1b279e8450ea",
+      "name": "keyring",
+      "requires": [],
+      "size": 71390,
+      "version": "3.3"
+    },
+    "kiwisolver-0.1.2-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "58b63053cd8491dd7bc2e89ddb9ebd13",
+      "name": "kiwisolver",
+      "requires": [],
+      "size": 824021,
+      "version": "0.1.2"
+    },
+    "lcms-1.19-0.tar.bz2": {
+      "build": "0",
+      "build_number": 0,
+      "depends": [],
+      "license": "MIT",
+      "md5": "fbc9b9a0938e46ed6e3632c18838d3de",
+      "name": "lcms",
+      "requires": [],
+      "size": 660120,
+      "version": "1.19"
+    },
+    "libevent-2.0.20-0.tar.bz2": {
+      "build": "0",
+      "build_number": 0,
+      "depends": [],
+      "license": "3-clause BSD (http://libevent.org/LICENSE.txt)",
+      "md5": "0174f792947eb13cee264464a89248dd",
+      "name": "libevent",
+      "requires": [],
+      "size": 1709516,
+      "version": "2.0.20"
+    },
+    "libnetcdf-4.2.1.1-1.tar.bz2": {
+      "build": "1",
+      "build_number": 1,
+      "depends": [
+        "curl 7.30.0",
+        "hdf5 1.8.9",
+        "zlib 1.2.7"
+      ],
+      "license": "MIT",
+      "md5": "0bc41bace30b397b26b62d5d294c9663",
+      "name": "libnetcdf",
+      "org_name": "netcdf",
+      "requires": [],
+      "size": 812011,
+      "version": "4.2.1.1"
+    },
+    "libpng-1.5.13-1.tar.bz2": {
+      "build": "1",
+      "build_number": 1,
+      "depends": [],
+      "license": "Open Source (http://www.libpng.org/pub/png/src/libpng-LICENSE.txt)",
+      "md5": "2d67af7bed829b8a7cc4dcfd526de99e",
+      "name": "libpng",
+      "requires": [],
+      "size": 146781,
+      "version": "1.5.13"
+    },
+    "libtiff-4.0.2-0.tar.bz2": {
+      "build": "0",
+      "build_number": 0,
+      "depends": [],
+      "license": "as-is (http://www.libtiff.org/misc.html)",
+      "md5": "39eb6fe27d4722b70a39c5ff06dc987a",
+      "name": "libtiff",
+      "org_name": "tiff",
+      "requires": [],
+      "size": 885911,
+      "version": "4.0.2"
+    },
+    "libxml2-2.9.0-0.tar.bz2": {
+      "build": "0",
+      "build_number": 0,
+      "depends": [
+        "zlib 1.2.7"
+      ],
+      "license": "MIT",
+      "md5": "37efcc89bd51ed55413f4f38d7b8afae",
+      "name": "libxml2",
+      "requires": [],
+      "size": 4181060,
+      "version": "2.9.0"
+    },
+    "libxslt-1.1.28-0.tar.bz2": {
+      "build": "0",
+      "build_number": 0,
+      "depends": [
+        "libxml2 2.9.0"
+      ],
+      "license": "MIT",
+      "md5": "6d0b4be8ca27eed75bdbdfbe632e91e8",
+      "name": "libxslt",
+      "requires": [],
+      "size": 1118641,
+      "version": "1.1.28"
+    },
+    "llvm-3.2-0.tar.bz2": {
+      "build": "0",
+      "build_number": 0,
+      "depends": [],
+      "license": "Open Source (http://llvm.org/releases/3.3/LICENSE.TXT)",
+      "md5": "61171800a01090a966ae26b591a854d5",
+      "name": "llvm",
+      "requires": [],
+      "size": 12664831,
+      "version": "3.2"
+    },
+    "llvm-3.3-0.tar.bz2": {
+      "build": "0",
+      "build_number": 0,
+      "depends": [],
+      "license": "Open Source (http://llvm.org/releases/3.3/LICENSE.TXT)",
+      "md5": "d5744e65fe63a455cd71f8a0f4cfb537",
+      "name": "llvm",
+      "requires": [],
+      "size": 13527617,
+      "version": "3.3"
+    },
+    "llvmpy-0.11.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "llvm 3.2",
+        "python 2.7*"
+      ],
+      "license": "New BSD License",
+      "md5": "f1010d0fe710d992607bbffdfd932734",
+      "name": "llvmpy",
+      "requires": [],
+      "size": 1437276,
+      "version": "0.11.1"
+    },
+    "markupsafe-0.18-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "55f317cfd9e20f97060b639d9dd959f9",
+      "name": "markupsafe",
+      "org_name": "MarkupSafe",
+      "requires": [],
+      "size": 26728,
+      "version": "0.18"
+    },
+    "mdp-3.3-np17py27_0.tar.bz2": {
+      "build": "np17py27_0",
+      "build_number": 0,
+      "depends": [
+        "numpy 1.7*",
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "e9467f152d1d2887b4dedf5d54f170b6",
+      "name": "mdp",
+      "org_name": "MDP",
+      "requires": [],
+      "size": 750741,
+      "version": "3.3"
+    },
+    "meta-0.4.2.dev-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": null,
+      "md5": "041ded446d202ae8b41fab9ebf9490df",
+      "name": "meta",
+      "requires": [],
+      "size": 89406,
+      "version": "0.4.2.dev"
+    },
+    "mock-1.0.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "53176a0221ee8f3fd9313cc954adef96",
+      "name": "mock",
+      "requires": [],
+      "size": 36666,
+      "version": "1.0.1"
+    },
+    "mongo-driver-0.7.1-0.tar.bz2": {
+      "build": "0",
+      "build_number": 0,
+      "depends": [],
+      "license": null,
+      "md5": "3cf826804763a3fa28e8e7c0abe5b2bf",
+      "name": "mongo-driver",
+      "requires": [],
+      "size": 186786,
+      "version": "0.7.1"
+    },
+    "multipledispatch-0.4.3-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "94c78d3cb15285e393677c73a07512fd",
+      "name": "multipledispatch",
+      "requires": [],
+      "size": 9632,
+      "version": "0.4.3"
+    },
+    "networkx-1.7-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "21af6b3bf045ad2112dead6f1d8598f0",
+      "name": "networkx",
+      "requires": [],
+      "size": 625424,
+      "version": "1.7"
+    },
+    "networkx-1.8-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "8c3a0bd82e994a7c1163f83e8c9d9932",
+      "name": "networkx",
+      "requires": [],
+      "size": 665415,
+      "version": "1.8"
+    },
+    "networkx-1.8.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "0c9a1c1af83efc3c8f93f4c6daba3d3a",
+      "name": "networkx",
+      "requires": [],
+      "size": 664864,
+      "version": "1.8.1"
+    },
+    "networkx-1.9-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "decorator 3.4.0",
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "2b87a68154a5fe78017185b5aa2d8ae8",
+      "name": "networkx",
+      "requires": [],
+      "size": 957012,
+      "version": "1.9"
+    },
+    "nltk-2.0.4-np17py27_0.tar.bz2": {
+      "build": "np17py27_0",
+      "build_number": 0,
+      "depends": [
+        "numpy 1.7*",
+        "python 2.7*",
+        "pyyaml"
+      ],
+      "license": "Apache 2.0",
+      "md5": "8fcd4d0fa99ac46a04a9b79687afca29",
+      "name": "nltk",
+      "requires": [],
+      "size": 1456601,
+      "version": "2.0.4"
+    },
+    "nltk-2.0.4-np18py27_0.tar.bz2": {
+      "build": "np18py27_0",
+      "build_number": 0,
+      "depends": [
+        "numpy 1.8*",
+        "python 2.7*",
+        "pyyaml"
+      ],
+      "license": "Apache 2.0",
+      "md5": "eddcd0cf58cecfd3d01f7fb77e71306c",
+      "name": "nltk",
+      "requires": [],
+      "size": 1456496,
+      "version": "2.0.4"
+    },
+    "nose-1.2.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "LGPL",
+      "md5": "7e52c584ac5c9d316e1406af2260f466",
+      "name": "nose",
+      "requires": [],
+      "size": 189033,
+      "version": "1.2.1"
+    },
+    "nose-1.3.0-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "LGPL",
+      "md5": "7de170e7d1e22804354f8add2ceca004",
+      "name": "nose",
+      "requires": [],
+      "size": 191521,
+      "version": "1.3.0"
+    },
+    "numexpr-2.0.1-np17py27_2.tar.bz2": {
+      "build": "np17py27_2",
+      "build_number": 2,
+      "depends": [
+        "numpy 1.7*",
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "46e3d970bce9e384f1a2cd2caf6ab1fa",
+      "name": "numexpr",
+      "requires": [],
+      "size": 309629,
+      "version": "2.0.1"
+    },
+    "numexpr-2.0.1-np17py27_3.tar.bz2": {
+      "build": "np17py27_3",
+      "build_number": 3,
+      "depends": [
+        "numpy 1.7*",
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "a152a672fbca058b6d608668c2aab731",
+      "name": "numexpr",
+      "requires": [],
+      "size": 309676,
+      "version": "2.0.1"
+    },
+    "numexpr-2.1-np17py27_0.tar.bz2": {
+      "build": "np17py27_0",
+      "build_number": 0,
+      "depends": [
+        "numpy 1.7*",
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "7bb9766153adfcd4128cc59ebaba3c68",
+      "name": "numexpr",
+      "requires": [],
+      "size": 337083,
+      "version": "2.1"
+    },
+    "numexpr-2.2.2-np17py27_0.tar.bz2": {
+      "build": "np17py27_0",
+      "build_number": 0,
+      "depends": [
+        "numpy 1.7*",
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "02c9ff988bf98815e1b4b34f4cf312ee",
+      "name": "numexpr",
+      "requires": [],
+      "size": 336919,
+      "version": "2.2.2"
+    },
+    "numexpr-2.2.2-np17py27_1.tar.bz2": {
+      "build": "np17py27_1",
+      "build_number": 1,
+      "depends": [
+        "numpy 1.7*",
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "58c9e3b5ba3c2127ba06c8103c6fd2a8",
+      "name": "numexpr",
+      "requires": [],
+      "size": 336930,
+      "version": "2.2.2"
+    },
+    "numexpr-2.3.1-np18py27_0.tar.bz2": {
+      "build": "np18py27_0",
+      "build_number": 0,
+      "depends": [
+        "numpy 1.8*",
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "5de90ddba8c3edce9ccf5c566bda77d4",
+      "name": "numexpr",
+      "requires": [],
+      "size": 344195,
+      "version": "2.3.1"
+    },
+    "numpy-1.7.0-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "nose",
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "06a427b7df5ef3fe19696cdc79573624",
+      "name": "numpy",
+      "requires": [],
+      "size": 5378401,
+      "version": "1.7.0"
+    },
+    "openpyxl-1.6.2-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT/Expat",
+      "md5": "4ca450233c687208766842b28cee43be",
+      "name": "openpyxl",
+      "requires": [],
+      "size": 109710,
+      "version": "1.6.2"
+    },
+    "openssl-1.0.1c-0.tar.bz2": {
+      "build": "0",
+      "build_number": 0,
+      "depends": [],
+      "license": "Apache-style (http://www.openssl.org/source/license.html)",
+      "md5": "87b62c0dc4351af50d7abfa33aaf93c5",
+      "name": "openssl",
+      "requires": [],
+      "size": 2106669,
+      "version": "1.0.1c"
+    },
+    "openssl-1.0.1h-0.tar.bz2": {
+      "build": "0",
+      "build_number": 0,
+      "depends": [],
+      "license": "Apache-style (http://www.openssl.org/source/license.html)",
+      "md5": "4b40580cd3a55239c95d05d2caf992dc",
+      "name": "openssl",
+      "requires": [],
+      "size": 2120798,
+      "version": "1.0.1h"
+    },
+    "patsy-0.2.0-np17py27_0.tar.bz2": {
+      "build": "np17py27_0",
+      "build_number": 0,
+      "depends": [
+        "numpy 1.7*",
+        "python 2.7*"
+      ],
+      "license": "BSD License",
+      "md5": "c921b9cbd3679fd25222c0d5cca50fff",
+      "name": "patsy",
+      "requires": [],
+      "size": 224956,
+      "version": "0.2.0"
+    },
+    "patsy-0.2.1-np17py27_0.tar.bz2": {
+      "build": "np17py27_0",
+      "build_number": 0,
+      "depends": [
+        "numpy 1.7*",
+        "python 2.7*"
+      ],
+      "license": "BSD License",
+      "md5": "2360b14d81a3d2416ee874a0ce0ee04d",
+      "name": "patsy",
+      "requires": [],
+      "size": 225590,
+      "version": "0.2.1"
+    },
+    "patsy-0.2.1-np18py27_0.tar.bz2": {
+      "build": "np18py27_0",
+      "build_number": 0,
+      "depends": [
+        "numpy 1.8*",
+        "python 2.7*"
+      ],
+      "license": "BSD License",
+      "md5": "67561160d412e2544629d6ee859621cc",
+      "name": "patsy",
+      "requires": [],
+      "size": 225886,
+      "version": "0.2.1"
+    },
+    "pcre-8.31-0.tar.bz2": {
+      "build": "0",
+      "build_number": 0,
+      "depends": [],
+      "license": "???",
+      "md5": "57e064e2c71ad3b84871d5ad19d3ebe5",
+      "name": "pcre",
+      "requires": [],
+      "size": 528209,
+      "version": "8.31"
+    },
+    "pep8-1.4.5-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT License",
+      "md5": "b441b9cfab96cbc07370bf085e5f3ff4",
+      "name": "pep8",
+      "requires": [],
+      "size": 40096,
+      "version": "1.4.5"
+    },
+    "pep8-1.4.6-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT License",
+      "md5": "5cf1161ba9cde9a18ab20582273e888f",
+      "name": "pep8",
+      "requires": [],
+      "size": 40934,
+      "version": "1.4.6"
+    },
+    "pep8-1.5.6-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT License",
+      "md5": "0a393b7c457c14c8f8bb1fe1b354413a",
+      "name": "pep8",
+      "requires": [],
+      "size": 43883,
+      "version": "1.5.6"
+    },
+    "pip-1.2.1-py27_1.tar.bz2": {
+      "build": "py27_1",
+      "build_number": 1,
+      "depends": [
+        "distribute",
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "a34b1a493fcd31471593bd22c7a2f6ca",
+      "name": "pip",
+      "requires": [],
+      "size": 116515,
+      "version": "1.2.1"
+    },
+    "pip-1.3.1-py27_1.tar.bz2": {
+      "build": "py27_1",
+      "build_number": 1,
+      "depends": [
+        "distribute",
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "627368b744b234549b59b6c4daf51250",
+      "name": "pip",
+      "requires": [],
+      "size": 274367,
+      "version": "1.3.1"
+    },
+    "pip-1.4.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "distribute",
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "7c193abdd2fb9e0939cc26799a297880",
+      "name": "pip",
+      "requires": [],
+      "size": 659073,
+      "version": "1.4.1"
+    },
+    "pip-1.4.1-py27_1.tar.bz2": {
+      "build": "py27_1",
+      "build_number": 1,
+      "depends": [
+        "python 2.7*",
+        "setuptools"
+      ],
+      "license": "MIT",
+      "md5": "ba14ef18f5de2f2c757b576f8fd933e9",
+      "name": "pip",
+      "requires": [],
+      "size": 659325,
+      "version": "1.4.1"
+    },
+    "pip-1.5-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*",
+        "setuptools"
+      ],
+      "license": "MIT",
+      "md5": "51966ceda2bf745b1f87e45da2a9e5a8",
+      "name": "pip",
+      "requires": [],
+      "size": 1262023,
+      "version": "1.5"
+    },
+    "pip-1.5.6-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*",
+        "setuptools"
+      ],
+      "license": "MIT",
+      "md5": "164111344d8692a759c5c8fe3e704883",
+      "name": "pip",
+      "requires": [],
+      "size": 1349501,
+      "version": "1.5.6"
+    },
+    "pixman-0.26.2-0.tar.bz2": {
+      "build": "0",
+      "build_number": 0,
+      "depends": [],
+      "license": "MIT",
+      "md5": "e989bbd7e1f354c54b3e0ba5bd98762e",
+      "name": "pixman",
+      "requires": [],
+      "size": 1762488,
+      "version": "0.26.2"
+    },
+    "ply-3.4-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "f3bf9f5e3d9d01f37f8a9141eb8df852",
+      "name": "ply",
+      "requires": [],
+      "size": 68933,
+      "version": "3.4"
+    },
+    "psutil-0.6.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "b52200448bc2dc19b45ad0f3ea52913f",
+      "name": "psutil",
+      "requires": [],
+      "size": 78027,
+      "version": "0.6.1"
+    },
+    "psutil-0.7.0-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "14e51beee9833cbf13ec400584d98bb3",
+      "name": "psutil",
+      "requires": [],
+      "size": 81717,
+      "version": "0.7.0"
+    },
+    "psutil-0.7.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "22b8977902b79f95ae358faeac3a15ba",
+      "name": "psutil",
+      "requires": [],
+      "size": 81749,
+      "version": "0.7.1"
+    },
+    "psutil-1.0.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "aa5d2825a4022ce44ac479f7998c6290",
+      "name": "psutil",
+      "requires": [],
+      "size": 89504,
+      "version": "1.0.1"
+    },
+    "psutil-1.1.2-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "8b76707074a1b0b1c54c7d28d4a76bb6",
+      "name": "psutil",
+      "requires": [],
+      "size": 93199,
+      "version": "1.1.2"
+    },
+    "psutil-2.1.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "09a160d322945cefce43397a0eb51ef3",
+      "name": "psutil",
+      "requires": [],
+      "size": 104005,
+      "version": "2.1.1"
+    },
+    "py-1.4.12-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "bf832e878f1e091acb81ffb70acc9619",
+      "name": "py",
+      "requires": [],
+      "size": 119205,
+      "version": "1.4.12"
+    },
+    "py-1.4.14-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "c14212e7131441831d2d817fcb9d54a4",
+      "name": "py",
+      "requires": [],
+      "size": 119127,
+      "version": "1.4.14"
+    },
+    "py-1.4.17-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "8be5d8f0ec7854a93f465e59cdb47298",
+      "name": "py",
+      "requires": [],
+      "size": 120401,
+      "version": "1.4.17"
+    },
+    "py-1.4.20-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "5fbdedccc0c261165e8423bc9c0f40a2",
+      "name": "py",
+      "requires": [],
+      "size": 123200,
+      "version": "1.4.20"
+    },
+    "py2cairo-1.10.0-py27_1.tar.bz2": {
+      "build": "py27_1",
+      "build_number": 1,
+      "depends": [
+        "cairo 1.12.2",
+        "python 2.7*"
+      ],
+      "license": "LGPL 2.1 and MPL 1.1",
+      "md5": "9719614d2cf2079aadbb0ced427acfe1",
+      "name": "py2cairo",
+      "requires": [],
+      "size": 32231,
+      "version": "1.10.0"
+    },
+    "pycosat-0.2.0-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "87e6ecadf906aaadf67146e19089bcc5",
+      "name": "pycosat",
+      "requires": [],
+      "size": 134743,
+      "version": "0.2.0"
+    },
+    "pycosat-0.4.0-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "1707bac1b2db2123ee0f173ce191245b",
+      "name": "pycosat",
+      "requires": [],
+      "size": 139473,
+      "version": "0.4.0"
+    },
+    "pycosat-0.4.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "2d799ddf8415fa9531aaefd207a45c85",
+      "name": "pycosat",
+      "requires": [],
+      "size": 141849,
+      "version": "0.4.1"
+    },
+    "pycosat-0.4.2-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "28773505c612d2ce1b64c636567914c3",
+      "name": "pycosat",
+      "requires": [],
+      "size": 142240,
+      "version": "0.4.2"
+    },
+    "pycosat-0.5.0-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "4ded02f34aafdb2496141d5c8182696c",
+      "name": "pycosat",
+      "requires": [],
+      "size": 142399,
+      "version": "0.5.0"
+    },
+    "pycosat-0.6.0-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "a5b72a77f3fd1d476757e8573ced4928",
+      "name": "pycosat",
+      "requires": [],
+      "size": 143109,
+      "version": "0.6.0"
+    },
+    "pycosat-0.6.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "dd029b7b96f72f94183cf084d8b57c4b",
+      "name": "pycosat",
+      "requires": [],
+      "size": 146034,
+      "version": "0.6.1"
+    },
+    "pycparser-2.10-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "7021d435c1ed1365fa685701499b81fb",
+      "name": "pycparser",
+      "requires": [],
+      "size": 147678,
+      "version": "2.10"
+    },
+    "pycparser-2.9.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "d8b3e1f839dc5e843f5ee955682d9b69",
+      "name": "pycparser",
+      "requires": [],
+      "size": 144235,
+      "version": "2.9.1"
+    },
+    "pycrypto-2.6-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "Public Domain",
+      "md5": "8ff94e7f39a886d7a6142da811785197",
+      "name": "pycrypto",
+      "requires": [],
+      "size": 464276,
+      "version": "2.6"
+    },
+    "pycrypto-2.6.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "Public Domain",
+      "md5": "8ffb6c5d058b2fbda2932fd4794a0718",
+      "name": "pycrypto",
+      "requires": [],
+      "size": 466558,
+      "version": "2.6.1"
+    },
+    "pycurl-7.19.0-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "LGPL and MIT/X",
+      "md5": "5da0dd2c51564c4fbaad6c4675b1cf2f",
+      "name": "pycurl",
+      "requires": [],
+      "size": 253289,
+      "version": "7.19.0"
+    },
+    "pyface-4.3.0-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*",
+        "traits 4.3.0"
+      ],
+      "license": "BSD",
+      "md5": "6abc0c67e384becfd0606045478ad466",
+      "name": "pyface",
+      "requires": [],
+      "size": 708584,
+      "version": "4.3.0"
+    },
+    "pyface-4.4.0-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*",
+        "traits 4.4.0"
+      ],
+      "license": "BSD",
+      "md5": "f188bedd5969c46f543c4d8744fea8c9",
+      "name": "pyface",
+      "requires": [],
+      "size": 710456,
+      "version": "4.4.0"
+    },
+    "pyflakes-0.6.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "b057731300fad0c81eec141ca79a6137",
+      "name": "pyflakes",
+      "requires": [],
+      "size": 41824,
+      "version": "0.6.1"
+    },
+    "pyflakes-0.7.0-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "912abd240d75828c52eaef0b48e3d0a4",
+      "name": "pyflakes",
+      "requires": [],
+      "size": 46499,
+      "version": "0.7.0"
+    },
+    "pyflakes-0.7.2-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "aa527a17171d3d7514cb86d41233211f",
+      "name": "pyflakes",
+      "requires": [],
+      "size": 47319,
+      "version": "0.7.2"
+    },
+    "pyflakes-0.7.3-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "99a25fd65bbbca877928863dcc6335a4",
+      "name": "pyflakes",
+      "requires": [],
+      "size": 48022,
+      "version": "0.7.3"
+    },
+    "pyflakes-0.8.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "79c5de8fa3c355f9b62f8a16f3561d91",
+      "name": "pyflakes",
+      "requires": [],
+      "size": 51025,
+      "version": "0.8.1"
+    },
+    "pygments-1.6-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "b8394b9a6ee1ed23b4fa4c2ae3d6f1b5",
+      "name": "pygments",
+      "org_name": "Pygments",
+      "requires": [],
+      "size": 885441,
+      "version": "1.6"
+    },
+    "pyparsing-1.5.6-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "773c3d33a54c982f5db8a30969fb6c41",
+      "name": "pyparsing",
+      "requires": [],
+      "size": 62545,
+      "version": "1.5.6"
+    },
+    "pyparsing-2.0.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "cf6d14ab23e64e77cc119a5d8a878828",
+      "name": "pyparsing",
+      "requires": [],
+      "size": 63130,
+      "version": "2.0.1"
+    },
+    "pysam-0.6-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "8dc87b20e21a3207cd6e3ec94041a7d4",
+      "name": "pysam",
+      "requires": [],
+      "size": 1708248,
+      "version": "0.6"
+    },
+    "pytables-2.4.0-np17py27_0.tar.bz2": {
+      "build": "np17py27_0",
+      "build_number": 0,
+      "depends": [
+        "hdf5 1.8.9",
+        "numexpr 2.0*",
+        "numpy 1.7*",
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "4aef4bfc8ab6840f708fc71ac3d72bee",
+      "name": "pytables",
+      "org_name": "tables",
+      "requires": [],
+      "size": 2074120,
+      "version": "2.4.0"
+    },
+    "pytables-3.0.0-np17py27_1.tar.bz2": {
+      "build": "np17py27_1",
+      "build_number": 1,
+      "depends": [
+        "hdf5 1.8.9",
+        "numexpr 2.2*",
+        "numpy 1.7*",
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "11cf5e9e5a80ffc2473bed35f1d3c865",
+      "name": "pytables",
+      "org_name": "tables",
+      "requires": [],
+      "size": 2260875,
+      "version": "3.0.0"
+    },
+    "pytables-3.1.1-np18py27_0.tar.bz2": {
+      "build": "np18py27_0",
+      "build_number": 0,
+      "depends": [
+        "hdf5 1.8.9",
+        "numexpr 2.3*",
+        "numpy 1.8*",
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "333df37947e11a53a47dc52e319c9997",
+      "name": "pytables",
+      "org_name": "tables",
+      "requires": [],
+      "size": 3136864,
+      "version": "3.1.1"
+    },
+    "pytest-2.3.4-py27_1.tar.bz2": {
+      "build": "py27_1",
+      "build_number": 1,
+      "depends": [
+        "py 1.4.12",
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "90d818bf1331abfa9b998bc45b89c6b9",
+      "name": "pytest",
+      "requires": [],
+      "size": 152577,
+      "version": "2.3.4"
+    },
+    "pytest-2.3.5-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "py 1.4.14",
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "10f3d9c62f1007f72d125283a9011443",
+      "name": "pytest",
+      "requires": [],
+      "size": 155534,
+      "version": "2.3.5"
+    },
+    "pytest-2.4.2-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "py 1.4.17",
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "68ffcbb16cdff0d53ab574aa81e7999e",
+      "name": "pytest",
+      "requires": [],
+      "size": 167932,
+      "version": "2.4.2"
+    },
+    "python-2.7.3-7.tar.bz2": {
+      "build": "7",
+      "build_number": 7,
+      "depends": [],
+      "license": "PSF",
+      "md5": "c3ebdfc6d8fc8ab820b2bf54ffa2fb84",
+      "name": "python",
+      "org_name": "Python",
+      "requires": [],
+      "size": 11534314,
+      "version": "2.7.3"
+    },
+    "python-2.7.4-0.tar.bz2": {
+      "build": "0",
+      "build_number": 0,
+      "depends": [],
+      "license": "PSF",
+      "md5": "5c4d54fc1f694c6d7f95dadbb92d40d5",
+      "name": "python",
+      "org_name": "Python",
+      "requires": [],
+      "size": 11628998,
+      "version": "2.7.4"
+    },
+    "python-2.7.5-1.tar.bz2": {
+      "build": "1",
+      "build_number": 1,
+      "depends": [],
+      "license": "PSF",
+      "md5": "fb9847a0619a826cee3a90510ebfae88",
+      "name": "python",
+      "org_name": "Python",
+      "requires": [],
+      "size": 11617513,
+      "version": "2.7.5"
+    },
+    "python-2.7.5-2.tar.bz2": {
+      "build": "2",
+      "build_number": 2,
+      "depends": [],
+      "license": "PSF",
+      "md5": "53e1abc012925e2f8c7ad92315df8bac",
+      "name": "python",
+      "org_name": "Python",
+      "requires": [],
+      "size": 11815596,
+      "version": "2.7.5"
+    },
+    "python-2.7.5-3.tar.bz2": {
+      "build": "3",
+      "build_number": 3,
+      "depends": [],
+      "license": "PSF",
+      "md5": "6e807e9182da359cefeacda48180dd5a",
+      "name": "python",
+      "org_name": "Python",
+      "requires": [],
+      "size": 11816228,
+      "version": "2.7.5"
+    },
+    "python-2.7.6-0.tar.bz2": {
+      "build": "0",
+      "build_number": 0,
+      "depends": [],
+      "license": "PSF",
+      "md5": "4c3fd8dfc356f03c9e409fc8f5878e32",
+      "name": "python",
+      "org_name": "Python",
+      "requires": [],
+      "size": 11794562,
+      "version": "2.7.6"
+    },
+    "python-2.7.7-0.tar.bz2": {
+      "build": "0",
+      "build_number": 0,
+      "depends": [
+        "openssl 1.0.1*"
+      ],
+      "license": "PSF",
+      "md5": "d777d67b63e18c56c433d41e5c181fa5",
+      "name": "python",
+      "org_name": "Python",
+      "requires": [],
+      "size": 11821273,
+      "version": "2.7.7"
+    },
+    "python-2.7.7-2.tar.bz2": {
+      "build": "2",
+      "build_number": 2,
+      "depends": [
+        "openssl 1.0.1*"
+      ],
+      "license": "PSF",
+      "md5": "5dcc27488b7dc98800c1c494cf5ee2c8",
+      "name": "python",
+      "org_name": "Python",
+      "requires": [],
+      "size": 11817404,
+      "version": "2.7.7"
+    },
+    "python-2.7.8-0.tar.bz2": {
+      "build": "0",
+      "build_number": 0,
+      "depends": [
+        "openssl 1.0.1*"
+      ],
+      "license": "PSF",
+      "md5": "42b50e4fb43ce51e416dd0c9d9fcfc7e",
+      "name": "python",
+      "org_name": "Python",
+      "requires": [],
+      "size": 11890617,
+      "version": "2.7.8"
+    },
+    "pytz-2012j-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "becb84fb06829f34c8b67c08093c2ec2",
+      "name": "pytz",
+      "requires": [],
+      "size": 234355,
+      "version": "2012j"
+    },
+    "pytz-2013b-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "d2f5d51563d205771bc97bca271c85d7",
+      "name": "pytz",
+      "requires": [],
+      "size": 231551,
+      "version": "2013b"
+    },
+    "pytz-2014.3-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "8b2265edc9c668ce21360b6d07f06410",
+      "name": "pytz",
+      "requires": [],
+      "size": 175563,
+      "version": "2014.3"
+    },
+    "pyyaml-3.10-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*",
+        "yaml 0.1.4"
+      ],
+      "license": "MIT",
+      "md5": "0881b236c8a23ae34d4b21e1ffbb27b3",
+      "name": "pyyaml",
+      "org_name": "PyYAML",
+      "requires": [],
+      "size": 266300,
+      "version": "3.10"
+    },
+    "pyyaml-3.11-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*",
+        "yaml 0.1.4"
+      ],
+      "license": "MIT",
+      "md5": "05e112f2412fc5dcfe343d136665e2e1",
+      "name": "pyyaml",
+      "org_name": "PyYAML",
+      "requires": [],
+      "size": 310973,
+      "version": "3.11"
+    },
+    "pyzmq-2.2.0.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*",
+        "zeromq 2.2.0"
+      ],
+      "license": "LGPL and BSD",
+      "md5": "b2ad46c9eadc6d49a2c6af9f660455cb",
+      "name": "pyzmq",
+      "requires": [],
+      "size": 549726,
+      "version": "2.2.0.1"
+    },
+    "pyzmq-2.2.0.1-py27_1.tar.bz2": {
+      "build": "py27_1",
+      "build_number": 1,
+      "depends": [
+        "python 2.7*",
+        "zeromq 2.2.0"
+      ],
+      "license": "LGPL and BSD",
+      "md5": "acb3f0978bec8b9e0ba9a20111aa8adc",
+      "name": "pyzmq",
+      "requires": [],
+      "size": 550090,
+      "version": "2.2.0.1"
+    },
+    "readline-6.2-0.tar.bz2": {
+      "build": "0",
+      "build_number": 0,
+      "depends": [],
+      "license": "GPL 3",
+      "md5": "814d608d8cf8fdfede7417f19b4fcd01",
+      "name": "readline",
+      "requires": [],
+      "size": 570034,
+      "version": "6.2"
+    },
+    "readline-6.2-2.tar.bz2": {
+      "build": "2",
+      "build_number": 2,
+      "depends": [],
+      "license": "GPL 3",
+      "md5": "2b1bd87156fc80c83b6b586ed98d9c22",
+      "name": "readline",
+      "requires": [],
+      "size": 570734,
+      "version": "6.2"
+    },
+    "requests-1.1.0-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "ISC",
+      "md5": "381c666a871d2d40c47a45d31473e90a",
+      "name": "requests",
+      "requires": [],
+      "size": 492889,
+      "version": "1.1.0"
+    },
+    "requests-1.2.0-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "ISC",
+      "md5": "e8fd682df42faf3931aa9f6c518bda7e",
+      "name": "requests",
+      "requires": [],
+      "size": 496839,
+      "version": "1.2.0"
+    },
+    "requests-1.2.3-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "ISC",
+      "md5": "880fce0708aabc3a66c2037c7e41f7c2",
+      "name": "requests",
+      "requires": [],
+      "size": 508922,
+      "version": "1.2.3"
+    },
+    "requests-2.2.0-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "ISC",
+      "md5": "cc0190bc00da7450245790c523c14806",
+      "name": "requests",
+      "requires": [],
+      "size": 573811,
+      "version": "2.2.0"
+    },
+    "requests-2.3.0-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "ISC",
+      "md5": "ac7a8e80c1b2c06a53681858ad824ef8",
+      "name": "requests",
+      "requires": [],
+      "size": 581548,
+      "version": "2.3.0"
+    },
+    "rope-0.9.4-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "GPL",
+      "md5": "4e99c524fb1d6c6465a8fd2a30ca13cf",
+      "name": "rope",
+      "requires": [],
+      "size": 230089,
+      "version": "0.9.4"
+    },
+    "rope-0.9.4-py27_1.tar.bz2": {
+      "build": "py27_1",
+      "build_number": 1,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "GPL",
+      "md5": "23d3f5c6d2a6634442307424aa3390f1",
+      "name": "rope",
+      "requires": [],
+      "size": 230172,
+      "version": "0.9.4"
+    },
+    "setuptools-1.4-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "PSF or ZPL",
+      "md5": "e78e1d648e836faf2c37e65644a07b21",
+      "name": "setuptools",
+      "requires": [],
+      "size": 500316,
+      "version": "1.4"
+    },
+    "setuptools-2.0.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "PSF or ZPL",
+      "md5": "e0476d6f41e7f92f6e3102cd7b400cd5",
+      "name": "setuptools",
+      "requires": [],
+      "size": 464970,
+      "version": "2.0.1"
+    },
+    "setuptools-2.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "PSF or ZPL",
+      "md5": "8904a6f2bdb34d3d7706731ab1c99fee",
+      "name": "setuptools",
+      "requires": [],
+      "size": 466288,
+      "version": "2.1"
+    },
+    "setuptools-3.6-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "PSF or ZPL",
+      "md5": "df0631222db50b4b565f4b84eba66956",
+      "name": "setuptools",
+      "requires": [],
+      "size": 478253,
+      "version": "3.6"
+    },
+    "sip-4.15.5-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "GPL",
+      "md5": "b9e8f41fe7d90310bcf330f28957539e",
+      "name": "sip",
+      "requires": [],
+      "size": 232512,
+      "version": "4.15.5"
+    },
+    "six-1.2.0-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "62ff7644a2fe67787ed71e0d3a82ff5a",
+      "name": "six",
+      "requires": [],
+      "size": 8196,
+      "version": "1.2.0"
+    },
+    "six-1.3.0-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "ef9ed9b2e97724a1983d8ef89fb33111",
+      "name": "six",
+      "requires": [],
+      "size": 9214,
+      "version": "1.3.0"
+    },
+    "six-1.4.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "1113294aef425a1285f6e7fc24a77a95",
+      "name": "six",
+      "requires": [],
+      "size": 11966,
+      "version": "1.4.1"
+    },
+    "six-1.6.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "c9b7e34d4f2d5edf6ed6131a7d316b3f",
+      "name": "six",
+      "requires": [],
+      "size": 13550,
+      "version": "1.6.1"
+    },
+    "six-1.7.3-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "55add3ea2f33b8f761464271aecf28b7",
+      "name": "six",
+      "requires": [],
+      "size": 15285,
+      "version": "1.7.3"
+    },
+    "sphinx-1.1.3-py27_2.tar.bz2": {
+      "build": "py27_2",
+      "build_number": 2,
+      "depends": [
+        "docutils",
+        "jinja2",
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "75dd94efa8be46c024131fa9244b3e21",
+      "name": "sphinx",
+      "org_name": "Sphinx",
+      "requires": [],
+      "size": 918076,
+      "version": "1.1.3"
+    },
+    "sphinx-1.1.3-py27_3.tar.bz2": {
+      "build": "py27_3",
+      "build_number": 3,
+      "depends": [
+        "docutils",
+        "jinja2",
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "46f320e82b90d5134d3f71209b4f8dda",
+      "name": "sphinx",
+      "org_name": "Sphinx",
+      "requires": [],
+      "size": 917870,
+      "version": "1.1.3"
+    },
+    "sphinx-1.1.3-py27_4.tar.bz2": {
+      "build": "py27_4",
+      "build_number": 4,
+      "depends": [
+        "docutils",
+        "jinja2",
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "2302741af8cb6ac1cb2cd9f7496909c0",
+      "name": "sphinx",
+      "org_name": "Sphinx",
+      "requires": [],
+      "size": 918068,
+      "version": "1.1.3"
+    },
+    "sphinx-1.2-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "docutils",
+        "jinja2",
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "f338c726acc1f1cdbfb11b0647ccd5a7",
+      "name": "sphinx",
+      "org_name": "Sphinx",
+      "requires": [],
+      "size": 974654,
+      "version": "1.2"
+    },
+    "sphinx-1.2.2-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "docutils",
+        "jinja2",
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "c224d5c86d9cb572344b36b53ce0d284",
+      "name": "sphinx",
+      "org_name": "Sphinx",
+      "requires": [],
+      "size": 986259,
+      "version": "1.2.2"
+    },
+    "sqlalchemy-0.7.8-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "65183438a2c6a8cad122a8aa7a27ece4",
+      "name": "sqlalchemy",
+      "org_name": "SQLAlchemy",
+      "requires": [],
+      "size": 969526,
+      "version": "0.7.8"
+    },
+    "sqlalchemy-0.8.0-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "859647da5494ab4922c1f1c75f7c2c7e",
+      "name": "sqlalchemy",
+      "org_name": "SQLAlchemy",
+      "requires": [],
+      "size": 1100613,
+      "version": "0.8.0"
+    },
+    "sqlalchemy-0.8.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "59d136a842d447ffe79612d8a227f481",
+      "name": "sqlalchemy",
+      "org_name": "SQLAlchemy",
+      "requires": [],
+      "size": 1103956,
+      "version": "0.8.1"
+    },
+    "sqlalchemy-0.8.2-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "4f8fd09db61893b8194148a2b0a2e111",
+      "name": "sqlalchemy",
+      "org_name": "SQLAlchemy",
+      "requires": [],
+      "size": 1111442,
+      "version": "0.8.2"
+    },
+    "sqlalchemy-0.8.3-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "ffe0c7aaa023799766e339a787302fcf",
+      "name": "sqlalchemy",
+      "org_name": "SQLAlchemy",
+      "requires": [],
+      "size": 1114897,
+      "version": "0.8.3"
+    },
+    "sqlalchemy-0.9.4-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "MIT",
+      "md5": "cf1c89cc569401cbfc3bf7c9e1bc421d",
+      "name": "sqlalchemy",
+      "org_name": "SQLAlchemy",
+      "requires": [],
+      "size": 1219941,
+      "version": "0.9.4"
+    },
+    "sqlite-3.7.13-0.tar.bz2": {
+      "build": "0",
+      "build_number": 0,
+      "depends": [],
+      "license": "Public Domain (http://www.sqlite.org/copyright.html)",
+      "md5": "d12bb70ff137c2e0c50ed7cb796d7125",
+      "name": "sqlite",
+      "org_name": "SQLite",
+      "requires": [],
+      "size": 2375752,
+      "version": "3.7.13"
+    },
+    "sqlite-3.8.4.1-0.tar.bz2": {
+      "build": "0",
+      "build_number": 0,
+      "depends": [],
+      "license": "Public Domain (http://www.sqlite.org/copyright.html)",
+      "md5": "6ab782346cafe95bf8983eceb00c5bce",
+      "name": "sqlite",
+      "org_name": "SQLite",
+      "requires": [],
+      "size": 2594002,
+      "version": "3.8.4.1"
+    },
+    "ssl_match_hostname-3.4.0.2-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "PSF",
+      "md5": "e55b599d2884cc21f5124caabc6e1f0e",
+      "name": "ssl_match_hostname",
+      "org_name": "backports.ssl_match_hostname",
+      "requires": [],
+      "size": 6073,
+      "version": "3.4.0.2"
+    },
+    "swig-2.0.10-1.tar.bz2": {
+      "build": "1",
+      "build_number": 1,
+      "depends": [
+        "pcre 8.31"
+      ],
+      "license": "GPLv3",
+      "md5": "1a9dc8c74f12b94b804be0ef9126c696",
+      "name": "swig",
+      "requires": [],
+      "size": 1912245,
+      "version": "2.0.10"
+    },
+    "sympy-0.7.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "New BSD",
+      "md5": "d4df445e9e74fce60975de4b98963530",
+      "name": "sympy",
+      "requires": [],
+      "size": 3441701,
+      "version": "0.7.1"
+    },
+    "sympy-0.7.2-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "New BSD",
+      "md5": "428c394159ffef2fcfaf0e6db6bd7ce0",
+      "name": "sympy",
+      "requires": [],
+      "size": 4378136,
+      "version": "0.7.2"
+    },
+    "sympy-0.7.3-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "New BSD",
+      "md5": "91115cf15bc36167140531e16bce7e09",
+      "name": "sympy",
+      "requires": [],
+      "size": 5197540,
+      "version": "0.7.3"
+    },
+    "sympy-0.7.4-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "New BSD",
+      "md5": "e2a815386f1d427e9572203dca6471bc",
+      "name": "sympy",
+      "requires": [],
+      "size": 5601703,
+      "version": "0.7.4"
+    },
+    "sympy-0.7.5-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "New BSD",
+      "md5": "0ced21e7137dd1bb5ddaea16499d3914",
+      "name": "sympy",
+      "requires": [],
+      "size": 5795828,
+      "version": "0.7.5"
+    },
+    "tk-8.5.13-0.tar.bz2": {
+      "build": "0",
+      "build_number": 0,
+      "depends": [],
+      "license": "BSD-style",
+      "md5": "f053ec2cdc70521b8cfc59d33d8c06c9",
+      "name": "tk",
+      "org_name": "Tcl/Tk",
+      "requires": [],
+      "size": 925003,
+      "version": "8.5.13"
+    },
+    "tornado-2.4.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "Apache",
+      "md5": "0684b3b2d5ed26409afbd43035730edd",
+      "name": "tornado",
+      "requires": [],
+      "size": 401217,
+      "version": "2.4.1"
+    },
+    "tornado-3.0.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "Apache",
+      "md5": "56afbc75a606eec03a8fdb4d7dfc9e72",
+      "name": "tornado",
+      "requires": [],
+      "size": 477672,
+      "version": "3.0.1"
+    },
+    "tornado-3.0.2-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "Apache",
+      "md5": "febdb460ac6a170136aa79d0f044c7c5",
+      "name": "tornado",
+      "requires": [],
+      "size": 478017,
+      "version": "3.0.2"
+    },
+    "tornado-3.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "Apache",
+      "md5": "4dee3fd6707332776a30f11197c805e0",
+      "name": "tornado",
+      "requires": [],
+      "size": 506688,
+      "version": "3.1"
+    },
+    "tornado-3.1.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "Apache",
+      "md5": "16d1f612bf3f7022f667a929d6ca3613",
+      "name": "tornado",
+      "requires": [],
+      "size": 507132,
+      "version": "3.1.1"
+    },
+    "tornado-3.2.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*",
+        "ssl_match_hostname 3.4.0.2"
+      ],
+      "license": "Apache",
+      "md5": "f2205e69e3bc1790e2614d35c5dc307e",
+      "name": "tornado",
+      "requires": [],
+      "size": 546739,
+      "version": "3.2.1"
+    },
+    "traits-4.3.0-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "946d1867e2620420c09413f94114cd3e",
+      "name": "traits",
+      "requires": [],
+      "size": 488467,
+      "version": "4.3.0"
+    },
+    "traits-4.4.0-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "b9b2f35ab39baf3beb49ee2b3ca365aa",
+      "name": "traits",
+      "requires": [],
+      "size": 430286,
+      "version": "4.4.0"
+    },
+    "traitsui-4.3.0-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "pyface 4.3.0",
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "c7073e7f1d7258b3f7e90bf3086f1c3f",
+      "name": "traitsui",
+      "requires": [],
+      "size": 840992,
+      "version": "4.3.0"
+    },
+    "traitsui-4.4.0-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "pyface 4.4.0",
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "67a761ab62123eb0653d3ef88d60267d",
+      "name": "traitsui",
+      "requires": [],
+      "size": 857579,
+      "version": "4.4.0"
+    },
+    "ujson-1.33-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "6518a2b947992638f568502ff3e82ef4",
+      "name": "ujson",
+      "requires": [],
+      "size": 53962,
+      "version": "1.33"
+    },
+    "unixodbc-2.3.1-0.tar.bz2": {
+      "build": "0",
+      "build_number": 0,
+      "depends": [],
+      "license": "???",
+      "md5": "1c8e1ee6c053b2f82a1e3657caeff829",
+      "name": "unixodbc",
+      "org_name": "unixODBC",
+      "requires": [],
+      "size": 675936,
+      "version": "2.3.1"
+    },
+    "util-linux-2.21-0.tar.bz2": {
+      "build": "0",
+      "build_number": 0,
+      "depends": [],
+      "license": "GPL",
+      "md5": "775269dcf0af9b9c14204a7d74e2ffc4",
+      "name": "util-linux",
+      "requires": [],
+      "size": 42280,
+      "version": "2.21"
+    },
+    "werkzeug-0.8.3-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "4c5db180caaa98dda843478b51b81e73",
+      "name": "werkzeug",
+      "org_name": "Werkzeug",
+      "requires": [],
+      "size": 358641,
+      "version": "0.8.3"
+    },
+    "werkzeug-0.9.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "28329322f444b963466533e0f1f75ae1",
+      "name": "werkzeug",
+      "org_name": "Werkzeug",
+      "requires": [],
+      "size": 392391,
+      "version": "0.9.1"
+    },
+    "werkzeug-0.9.3-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "23624990c48612a94bebad3cda494003",
+      "name": "werkzeug",
+      "org_name": "Werkzeug",
+      "requires": [],
+      "size": 393710,
+      "version": "0.9.3"
+    },
+    "werkzeug-0.9.4-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "d5a4bd0bdff8c1ae599cfa1a744bf741",
+      "name": "werkzeug",
+      "org_name": "Werkzeug",
+      "requires": [],
+      "size": 393831,
+      "version": "0.9.4"
+    },
+    "werkzeug-0.9.6-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "2c124a19a5ef4765d1bda91521ed07fd",
+      "name": "werkzeug",
+      "org_name": "Werkzeug",
+      "requires": [],
+      "size": 397006,
+      "version": "0.9.6"
+    },
+    "xlrd-0.9.0-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "fcdc48e5283b62a2fd523d904bebc89f",
+      "name": "xlrd",
+      "requires": [],
+      "size": 182772,
+      "version": "0.9.0"
+    },
+    "xlrd-0.9.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "3239d85371f16b15ab7ccbf36fb91a93",
+      "name": "xlrd",
+      "requires": [],
+      "size": 162395,
+      "version": "0.9.1"
+    },
+    "xlrd-0.9.2-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "a0f1513e03bc64d372095a19a509f3f3",
+      "name": "xlrd",
+      "requires": [],
+      "size": 181915,
+      "version": "0.9.2"
+    },
+    "xlrd-0.9.3-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "c8b4d06a8b8c1b60ca5f0e285c47f0bc",
+      "name": "xlrd",
+      "requires": [],
+      "size": 163674,
+      "version": "0.9.3"
+    },
+    "xlsxwriter-0.5.5-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "de045cde772b40f151f582797132e08a",
+      "name": "xlsxwriter",
+      "org_name": "XlsxWriter",
+      "requires": [],
+      "size": 166281,
+      "version": "0.5.5"
+    },
+    "xlwt-0.7.4-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "d9a962b4fb30c7696f0c27937f7f9d31",
+      "name": "xlwt",
+      "requires": [],
+      "size": 174616,
+      "version": "0.7.4"
+    },
+    "xlwt-0.7.5-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python 2.7*"
+      ],
+      "license": "BSD",
+      "md5": "6066f46183c41d91d6ef3147b629eb20",
+      "name": "xlwt",
+      "requires": [],
+      "size": 176223,
+      "version": "0.7.5"
+    },
+    "yaml-0.1.4-0.tar.bz2": {
+      "build": "0",
+      "build_number": 0,
+      "depends": [],
+      "license": "MIT (http://www.yaml.org/spec/1.2/spec.html)",
+      "md5": "f5515abaee3bc619bb3654514bb55c82",
+      "name": "yaml",
+      "requires": [],
+      "size": 228765,
+      "version": "0.1.4"
+    },
+    "zeromq-2.2.0-0.tar.bz2": {
+      "build": "0",
+      "build_number": 0,
+      "depends": [
+        "util-linux 2.21"
+      ],
+      "license": "LGPL",
+      "md5": "88d656afa72ab790bb04e07b6f21937c",
+      "name": "zeromq",
+      "requires": [],
+      "size": 1805843,
+      "version": "2.2.0"
+    },
+    "zeromq-2.2.0-1.tar.bz2": {
+      "build": "1",
+      "build_number": 1,
+      "depends": [
+        "util-linux 2.21"
+      ],
+      "license": "LGPL",
+      "md5": "c38f3687300c6e77f0f78697e23307ec",
+      "name": "zeromq",
+      "requires": [],
+      "size": 2437799,
+      "version": "2.2.0"
+    },
+    "zlib-1.2.7-0.tar.bz2": {
+      "build": "0",
+      "build_number": 0,
+      "depends": [],
+      "license": "zlib (http://zlib.net/zlib_license.html)",
+      "md5": "e58c9c08667e252f37c89c6608b3e332",
+      "name": "zlib",
+      "requires": [],
+      "size": 103745,
+      "version": "1.2.7"
+    }
+  }
+}
