@@ -126,10 +126,8 @@ except ImportError:
 
 def main():
     """Run Windows environment variable editor"""
-    print('what?')
     from spyderlib.utils.qthelpers import qapplication
     app = qapplication()
-    print('here I am')
     dialog = WinUserEnvDialog()
     dialog.show()
     app.exec_()
