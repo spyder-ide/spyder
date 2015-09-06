@@ -31,6 +31,7 @@ from spyderlib.widgets.sourcecode.terminal import ANSIEscapeCodeHandler
 from spyderlib.widgets.mixins import BaseEditMixin
 from spyderlib.widgets.calltip import CallTipWidget
 from spyderlib.py3compat import to_text_string, str_lower, PY3
+from spyderlib.config.base import debug_print
 
 
 def insert_text_to(cursor, text, fmt):
@@ -67,6 +68,7 @@ class CompletionWidget(QListWidget):
         completion_list = [c[0] for c in completion_list]
         if len(completion_list) == 1 and not automatic:
             self.textedit.insert_completion(completion_list[0])
+            return
 
         self.completion_list = completion_list
         self.clear()
