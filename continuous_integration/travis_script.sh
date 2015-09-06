@@ -15,6 +15,9 @@ for f in spyderlib/*.py; do
   if [[ $f == "spyderlib/start_app.py" ]]; then
     continue
   fi
+  if [[ $f == "spyderlib/pil_patch.py" ]]; then
+    continue
+  fi
   python "$f"
   if [ $? -ne 0 ]; then
     exit 1
