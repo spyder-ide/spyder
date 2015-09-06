@@ -59,4 +59,4 @@ install:
 
 script:  
   - python bootstrap.py --test-travis 30
-
+  - ./continuous_integration/travis_script.sh
