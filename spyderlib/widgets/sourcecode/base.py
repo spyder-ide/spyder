@@ -31,7 +31,6 @@ from spyderlib.widgets.sourcecode.terminal import ANSIEscapeCodeHandler
 from spyderlib.widgets.mixins import BaseEditMixin
 from spyderlib.widgets.calltip import CallTipWidget
 from spyderlib.py3compat import to_text_string, str_lower, PY3
-from spyderlib.config.base import debug_print
 
 
 def insert_text_to(cursor, text, fmt):
