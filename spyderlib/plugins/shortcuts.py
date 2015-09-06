@@ -16,12 +16,14 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QTableView, QMessageBox,
                                 QDialogButtonBox, QLabel, QGridLayout,
                                 QLineEdit, QAbstractItemView,
                                 QSortFilterProxyModel, QApplication,
-                                QSpacerItem, QRegExpValidator, QHBoxLayout)
+                                QSpacerItem, QRegExpValidator, QHBoxLayout,
+                                QCheckBox)
 from spyderlib.qt.QtCore import Qt, QAbstractTableModel, QModelIndex, QRegExp
 from spyderlib.qt.compat import to_qvariant, from_qvariant
 
 # Local imports
 from spyderlib.config.base import _, debug_print
+from spyderlib.config.main import CONF, DEFAULTS
 from spyderlib.config.gui import (get_shortcut, set_shortcut,
                                   iter_shortcuts, reset_shortcuts)
 from spyderlib.plugins.configdialog import GeneralConfigPage
@@ -773,17 +775,30 @@ class ShortcutsConfigPage(GeneralConfigPage):
         self.finder = ShortcutFinder(self.table, self.table.set_regex)
         self.table.finder = self.finder
         self.label_finder = QLabel(_('Search: '))
+        self.label_emacs = QLabel(_('Emacs Keybindings: '))
+        self.check_emacs = QCheckBox()
         self.reset_btn = QPushButton(_("Reset to default values"))
 
         # Layout
         hlayout = QHBoxLayout()
+        emacs_layout = QHBoxLayout()
         vlayout = QVBoxLayout()
         hlayout.addWidget(self.label_finder)
         hlayout.addWidget(self.finder)
         vlayout.addWidget(self.table)
         vlayout.addLayout(hlayout)
+        emacs_layout.addWidget(self.label_emacs)
+        emacs_layout.addWidget(self.check_emacs)
+        vlayout.addLayout(emacs_layout)
         vlayout.addWidget(self.reset_btn)
         self.setLayout(vlayout)
+
+        try:
+            is_emacs = CONF.get('emacs_shortcuts', 'use_emacs_shortcuts')
+        except Exception:
+            is_emacs = False
+        self.check_emacs.setChecked(is_emacs)
+        self.check_emacs.stateChanged.connect(self._emacs_changed)
 
         self.setTabOrder(self.table, self.finder)
         self.setTabOrder(self.finder, self.reset_btn)
@@ -806,6 +821,25 @@ class ShortcutsConfigPage(GeneralConfigPage):
     def apply_settings(self, options):
         self.table.save_shortcuts()
         self.main.apply_shortcuts()
+
+    def _emacs_changed(self, change):
+        ischecked = self.check_emacs.isChecked()
+        defaults = dict(DEFAULTS)
+        CONF.set('emacs_shortcuts', 'use_emacs_shortcuts', ischecked)
+        for (context, name, shortcut) in iter_shortcuts():
+            full_name = '/'.join([context, name])
+            try:
+                if not ischecked:
+                    CONF.set('shortcuts', full_name,
+                             defaults['shortcuts'][full_name])
+                else:
+                    CONF.set('shortcuts', full_name,
+                             CONF.get('emacs_shortcuts', full_name))
+            except Exception:
+                pass
+        self.set_modified(True)
+        self.table.load_shortcuts()
+        self.load_from_conf()
 
 
 def test():
