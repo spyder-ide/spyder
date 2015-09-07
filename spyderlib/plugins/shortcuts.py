@@ -17,13 +17,13 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QTableView, QMessageBox,
                                 QLineEdit, QAbstractItemView,
                                 QSortFilterProxyModel, QApplication,
                                 QSpacerItem, QRegExpValidator, QHBoxLayout,
-                                QCheckBox)
+                                QComboBox)
 from spyderlib.qt.QtCore import Qt, QAbstractTableModel, QModelIndex, QRegExp
 from spyderlib.qt.compat import to_qvariant, from_qvariant
 
 # Local imports
 from spyderlib.config.base import _, debug_print
-from spyderlib.config.main import CONF, DEFAULTS
+from spyderlib.config.main import CONF
 from spyderlib.config.gui import (get_shortcut, set_shortcut,
                                   iter_shortcuts, reset_shortcuts)
 from spyderlib.plugins.configdialog import GeneralConfigPage
@@ -775,38 +775,32 @@ class ShortcutsConfigPage(GeneralConfigPage):
         self.finder = ShortcutFinder(self.table, self.table.set_regex)
         self.table.finder = self.finder
         self.label_finder = QLabel(_('Search: '))
-        self.label_emacs = QLabel(_('Emacs Keybindings: '))
-        self.check_emacs = QCheckBox()
-        self.reset_btn = QPushButton(_("Reset to default values"))
+        self.label_shortcut_type = QLabel(_('Use Keybindings: '))
+        self.combo_keybindings = QComboBox()
+        self.combo_keybindings.addItems(['default', 'emacs'])
+        self.load_button = QPushButton(_("Load"))
 
         # Layout
         hlayout = QHBoxLayout()
-        emacs_layout = QHBoxLayout()
+        selector_layout = QHBoxLayout()
         vlayout = QVBoxLayout()
         hlayout.addWidget(self.label_finder)
         hlayout.addWidget(self.finder)
         vlayout.addWidget(self.table)
         vlayout.addLayout(hlayout)
-        emacs_layout.addWidget(self.label_emacs)
-        emacs_layout.addWidget(self.check_emacs)
-        vlayout.addLayout(emacs_layout)
-        vlayout.addWidget(self.reset_btn)
+        selector_layout.addWidget(self.label_shortcut_type)
+        selector_layout.addWidget(self.combo_keybindings)
+        selector_layout.addWidget(self.load_button)
+        vlayout.addLayout(selector_layout)
         self.setLayout(vlayout)
 
-        try:
-            is_emacs = CONF.get('emacs_shortcuts', 'use_emacs_shortcuts')
-        except Exception:
-            is_emacs = False
-        self.check_emacs.setChecked(is_emacs)
-        self.check_emacs.stateChanged.connect(self._emacs_changed)
-
         self.setTabOrder(self.table, self.finder)
-        self.setTabOrder(self.finder, self.reset_btn)
+        self.setTabOrder(self.finder, self.combo_keybindings)
 
         # Signals and slots
         self.table.proxy_model.dataChanged.connect(
                      lambda i1, i2, opt='': self.has_been_modified(opt))
-        self.reset_btn.clicked.connect(self.reset_to_default)
+        self.load_button.clicked.connect(self.load_button_clicked)
 
     def check_settings(self):
         self.table.check_shortcuts()
@@ -822,24 +816,21 @@ class ShortcutsConfigPage(GeneralConfigPage):
         self.table.save_shortcuts()
         self.main.apply_shortcuts()
 
-    def _emacs_changed(self, change):
-        ischecked = self.check_emacs.isChecked()
-        defaults = dict(DEFAULTS)
-        CONF.set('emacs_shortcuts', 'use_emacs_shortcuts', ischecked)
-        for (context, name, shortcut) in iter_shortcuts():
-            full_name = '/'.join([context, name])
-            try:
-                if not ischecked:
+    def load_button_clicked(self, change):
+        selected = self.combo_keybindings.currentText().lower()
+        reset_shortcuts()
+        if selected != 'default':
+            for (context, name, shortcut) in iter_shortcuts():
+                full_name = '/'.join([context, name])
+                try:
                     CONF.set('shortcuts', full_name,
-                             defaults['shortcuts'][full_name])
-                else:
-                    CONF.set('shortcuts', full_name,
-                             CONF.get('emacs_shortcuts', full_name))
-            except Exception:
-                pass
-        self.set_modified(True)
+                             CONF.get('%s_shortcuts' % selected, full_name))
+                except Exception:
+                    pass
+        self.main.apply_shortcuts()
         self.table.load_shortcuts()
         self.load_from_conf()
+        self.set_modified(False)
 
 
 def test():

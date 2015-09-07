@@ -582,7 +582,6 @@ DEFAULTS = [
               }),
             ('emacs_shortcuts',
               {
-              'use_emacs_shortcuts': False,
               # -- In codeeditor
               'editor/code completion': 'Meta+Tab',
               'editor/go to definition': "Ctrl+G",
