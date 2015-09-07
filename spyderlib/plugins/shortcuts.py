@@ -775,7 +775,7 @@ class ShortcutsConfigPage(GeneralConfigPage):
         self.finder = ShortcutFinder(self.table, self.table.set_regex)
         self.table.finder = self.finder
         self.label_finder = QLabel(_('Search: '))
-        self.label_shortcut_type = QLabel(_('Use Keybindings: '))
+        self.label_shortcut_type = QLabel(_('Load Keybindings: '))
         self.combo_keybindings = QComboBox()
         self.combo_keybindings.addItems(['default', 'emacs'])
         self.load_button = QPushButton(_("Load"))
