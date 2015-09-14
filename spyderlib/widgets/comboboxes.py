@@ -13,7 +13,7 @@
 
 from spyderlib.qt.QtGui import (QComboBox, QFont, QToolTip, QSizePolicy,
                                 QCompleter)
-from spyderlib.qt.QtCore import Signal, Qt, QUrl, QTimer
+from spyderlib.qt.QtCore import Signal, Qt, QUrl, QTimer, QEvent
 
 import glob
 import os
@@ -27,13 +27,25 @@ from spyderlib.py3compat import to_text_string
 class BaseComboBox(QComboBox):
     """Editable combo box base class"""
     valid = Signal(bool)
+    sig_tab_pressed = Signal(bool)
+    sig_double_tab_pressed = Signal(bool)
     
     def __init__(self, parent):
         QComboBox.__init__(self, parent)
         self.setEditable(True)
         self.setCompleter(QCompleter(self))
+        self.numpress = 0
 
     # --- overrides
+    def event(self, event):
+        if (event.type() == QEvent.KeyPress) and (event.key()==Qt.Key_Tab):
+            self.sig_tab_pressed.emit(True)
+            self.numpress += 1
+            if self.numpress == 1:
+                self.presstimer = QTimer.singleShot(400, self.hanlde_keypress)
+            return True
+        return QComboBox.event(self, event)
+
     def keyPressEvent(self, event):
         """Handle key press events"""
         if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
@@ -58,6 +70,12 @@ class BaseComboBox(QComboBox):
         QComboBox.focusOutEvent(self, event)
 
     # --- own methods
+    def hanlde_keypress(self):
+        """ """
+        if self.numpress == 2:
+            self.sig_double_tab_pressed.emit(True)
+        self.numpress = 0
+
     def is_valid(self, qstr):
         """
         Return True if string is valid
@@ -98,6 +116,11 @@ class BaseComboBox(QComboBox):
         if valid or valid is None:
             self.add_current_text()
             return True
+
+    def set_current_text(self, text):
+        """ """
+        lineedit = self.lineEdit()
+        lineedit.setText(to_text_string(text))
 
     def hide_completer(self):
         """Hides the completion widget."""
@@ -186,27 +209,35 @@ class PathComboBox(EditableComboBox):
             self.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLength)
             self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.tips = {True: _("Press enter to validate this path"),
-                     False: _('This path is incorrect.\n'
-                                    'Enter a correct directory path,\n'
-                                    'then press enter to validate')}
+                     False: ''}
+        self.sig_tab_pressed.connect(self.tab_complete)
+        self.sig_double_tab_pressed.connect(self.double_tab_complete)
 
-    def autocomplete(self, text):
-        """ """
-        self._base = text
+    def _complete_options(self):
+        """Find available completion options."""
         text = to_text_string(self.currentText())
-
-        if osp.isdir(text):
-            if text[-1] != os.sep:
-                return
         opts = glob.glob(text + "*")
         opts = sorted([opt for opt in opts if osp.isdir(opt)])
         self.setCompleter(QCompleter(opts, self))
+        return opts
+
+    def double_tab_complete(self):
+        """If several options available a double tab displays options."""
+        opts = self._complete_options()
+        if len(opts) > 1:
+            self.completer().complete()
+
+    def tab_complete(self):
+        """If there is a single option available one tab completes."""
+        opts = self._complete_options()
+        if len(opts) == 1:
+            self.set_current_text(opts[0] + os.sep)
+            self.hide_completer()
 
     def is_valid(self, qstr=None):
         """Return True if string is valid"""
         if qstr is None:
             qstr = self.currentText()
-        self.autocomplete(qstr)
         return osp.isdir( to_text_string(qstr) )
     
     def selected(self):
