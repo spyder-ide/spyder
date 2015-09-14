@@ -38,7 +38,6 @@ from spyderlib.config.user import NoDefault
 from spyderlib.config.gui import get_font, set_font
 from spyderlib.plugins.configdialog import SpyderConfigPage
 from spyderlib.py3compat import configparser, is_text_string
-from spyderlib.utils.external.path import path as Path
 
 
 class PluginConfigPage(SpyderConfigPage):
@@ -271,7 +270,6 @@ class SpyderPluginMixin(object):
         """Bind widget to a QMainWindow instance"""
         super(SpyderPluginMixin, self).__init__(**kwds)
         assert self.CONF_SECTION is not None
-        self.PLUGIN_PATH = Path(inspect.getfile(self.__class__)).parent
         self.main = main
         self.default_margins = None
         self.plugin_actions = None
