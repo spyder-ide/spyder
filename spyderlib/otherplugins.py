@@ -9,13 +9,14 @@ Spyder third-party plugins configuration management
 """
 
 import importlib
+import os
+import os.path as osp
 import sys
 import traceback
 
 # Local imports
 from spyderlib.config.base import get_conf_path
 from spyderlib.py3compat import PY2, PY3, PY33
-from spyderlib.utils.external.path import Path
 
 if PY2:
     import imp
@@ -25,21 +26,22 @@ def _get_spyderplugins(plugin_path, base_namespace, plugins_namespace,
                        modnames, modlist):
     """Scan the directory `plugin_path` for plugins_namespace package and
     loads its submodules."""
-    namespace_path = Path(plugin_path) / base_namespace / plugins_namespace
+    namespace_path = osp.join(plugin_path, base_namespace, plugins_namespace)
 
-    if not namespace_path.exists():
+    if not osp.exists(namespace_path):
         return
 
-    for dirname in namespace_path.dirs():
-        if dirname.name == "__pycache__":
+    dirs = []
+    for d in os.listdir(namespace_path):
+        path = osp.join(namespace_path, d)
+        if osp.isdir(path):
+            dirs.append(path)
+            
+    for dirname in dirs:
+        name = osp.basename(dirname)
+        if name == "__pycache__":
             continue
-        _import_plugin(dirname.name, base_namespace, plugins_namespace,
-                       namespace_path, modnames, modlist)
-
-    for name in namespace_path.files(pattern="*.py"):
-        if name.name == "__init__.py":
-            continue
-        _import_plugin(name.namebase, base_namespace, plugins_namespace,
+        _import_plugin(name, base_namespace, plugins_namespace,
                        namespace_path, modnames, modlist)
 
 
@@ -48,6 +50,7 @@ class _ModuleMock():
     location of the LOCALEDATA so that the module loads succesfully.
     Once loaded the module is replaced by the actual loaded module object.
     """
+    pass
 
 
 def _import_plugin(name, base_namespace, plugin_namespace, namespace_path,
@@ -62,7 +65,7 @@ def _import_plugin(name, base_namespace, plugin_namespace, namespace_path,
         # First add a mock module with the LOCALEPATH attribute so that the
         # helper method can fin the locale on import
         mock = _ModuleMock()
-        mock.LOCALEPATH = Path(namespace_path) / name / 'locale'
+        mock.LOCALEPATH = osp.join(namespace_path, name, 'locale')
         sys.modules[module_name] = mock
 
         if PY33:
@@ -90,9 +93,10 @@ def _import_plugin(name, base_namespace, plugin_namespace, namespace_path,
 
 def create_userplugins_files(path):
     """
+    Create userplugins namespace dirs and files if not present in .spyder* dir
     """
-    if not path.isdir():
-        path.makedirs_p()
+    if not osp.isdir(path):
+        os.makedirs(path)
 
     init_file = "__init__.py"
     init_file_content = """# -*- coding: utf-8 -*-
@@ -111,9 +115,15 @@ For more information on namespace packages visit:
 # Declare as a namespace package
 __import__('pkg_resources').declare_namespace(__name__)
 """
-    new_path = path / init_file
-    if not (new_path.isfile() and new_path.text == init_file_content):
-        new_path.write_text(init_file_content)
+    data = ""
+    new_path = osp.join(path, init_file)
+    if osp.isfile(new_path):
+        with open(new_path, "r") as f:
+	    data = f.read()
+
+    if not (osp.isfile(new_path) and data == init_file_content):
+        with open(new_path, "w") as f:
+	    f.write(init_file_content)
 
 
 def get_spyderplugins_mods(io=False):
@@ -131,9 +141,10 @@ def get_spyderplugins_mods(io=False):
     importlib.import_module(namespace)
 
     # Create user directory
-    user_conf_path = Path(get_conf_path())
-    user_plugin_basepath = user_conf_path / base_namespace
-    user_plugin_path = user_conf_path / base_namespace / plugins_namespace
+    user_conf_path = get_conf_path()
+    user_plugin_basepath = osp.join(user_conf_path, base_namespace)
+    user_plugin_path = osp.join(user_conf_path, base_namespace,
+                                plugins_namespace)
 
     create_userplugins_files(user_plugin_basepath)
     create_userplugins_files(user_plugin_path)
