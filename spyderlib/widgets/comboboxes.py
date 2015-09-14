@@ -197,7 +197,7 @@ class PathComboBox(EditableComboBox):
 
         if osp.isdir(text):
             if text[-1] != os.sep:
-	      return
+                return
         opts = glob.glob(text + "*")
         opts = sorted([opt for opt in opts if osp.isdir(opt)])
         self.setCompleter(QCompleter(opts, self))
