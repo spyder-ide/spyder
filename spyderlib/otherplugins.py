@@ -119,11 +119,11 @@ __import__('pkg_resources').declare_namespace(__name__)
     new_path = osp.join(path, init_file)
     if osp.isfile(new_path):
         with open(new_path, "r") as f:
-	    data = f.read()
+            data = f.read()
 
     if not (osp.isfile(new_path) and data == init_file_content):
         with open(new_path, "w") as f:
-	    f.write(init_file_content)
+            f.write(init_file_content)
 
 
 def get_spyderplugins_mods(io=False):
