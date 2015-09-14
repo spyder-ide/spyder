@@ -15,6 +15,8 @@ from spyderlib.qt.QtGui import (QComboBox, QFont, QToolTip, QSizePolicy,
                                 QCompleter)
 from spyderlib.qt.QtCore import Signal, Qt, QUrl, QTimer
 
+import glob
+import os
 import os.path as osp
 
 # Local imports
@@ -37,6 +39,14 @@ class BaseComboBox(QComboBox):
         if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
             if self.add_current_text_if_valid():
                 self.selected()
+                self.hide_completer()
+        elif event.key() == Qt.Key_Escape:
+            if self.completer().currentCompletion():
+                edit = self.lineEdit()
+                text = to_text_string(self.currentText())
+                base = os.sep.join(text.split(os.sep)[:-1])
+                edit.setText(base)
+                self.hide_completer()
         else:
             QComboBox.keyPressEvent(self, event)
 
@@ -88,7 +98,11 @@ class BaseComboBox(QComboBox):
         if valid or valid is None:
             self.add_current_text()
             return True
-        
+
+    def hide_completer(self):
+        """Hides the completion widget."""
+        self.setCompleter(QCompleter([], self))
+
 
 class PatternComboBox(BaseComboBox):
     """Search pattern combo box"""
@@ -121,7 +135,7 @@ class EditableComboBox(BaseComboBox):
     def show_tip(self, tip=""):
         """Show tip"""
         QToolTip.showText(self.mapToGlobal(self.pos()), tip, self)
-        
+
     def set_default_style(self):
         """Set widget style to default"""
         self.font.setBold(False)
@@ -175,11 +189,24 @@ class PathComboBox(EditableComboBox):
                      False: _('This path is incorrect.\n'
                                     'Enter a correct directory path,\n'
                                     'then press enter to validate')}
-        
+
+    def autocomplete(self, text):
+        """ """
+        self._base = text
+        text = to_text_string(self.currentText())
+
+        if osp.isdir(text):
+            if text[-1] != os.sep:
+	      return
+        opts = glob.glob(text + "*")
+        opts = sorted([opt for opt in opts if osp.isdir(opt)])
+        self.setCompleter(QCompleter(opts, self))
+
     def is_valid(self, qstr=None):
         """Return True if string is valid"""
         if qstr is None:
             qstr = self.currentText()
+        self.autocomplete(qstr)
         return osp.isdir( to_text_string(qstr) )
     
     def selected(self):
