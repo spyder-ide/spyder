@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+#
+# Copyright © 2015 The Spyder Development Team
+# Licensed under the terms of the MIT License
+# (see spyderlib/__init__.py for details)
 import os
 
 from spyderlib.qt.QtGui import QIcon, QWidget, QStyle
@@ -191,8 +196,10 @@ _qtaargs = {
     'profiler':                [('fa.clock-o',), {}],
     'pylint':                  [('fa.search', 'fa.check'), {'options': [{}, {'offset': (0.125, 0.125), 'color': 'orange'}]}],
     'condapackages':           [('fa.archive',), {}],
-    'spyplugins.ui.example':   [('fa.eye',), {}],
-    'spyplugins.ui.autopep8':  [('fa.eye',), {}],
+    'spyder.example':          [('fa.eye',), {}],
+    'spyder.autopep8':         [('fa.eye',), {}],
+    'spyder.memory_profiler':  [('fa.eye',), {}],
+    'spyder.line_profiler':    [('fa.eye',), {}],
 }
 
 
