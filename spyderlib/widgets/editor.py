@@ -293,6 +293,7 @@ class FileInfo(QObject):
 
     def text_changed(self):
         """Editor's text has changed"""
+        self.default = False
         self.emit(SIGNAL('text_changed_at(QString,int)'),
                   self.filename, self.editor.get_position('cursor'))
 
