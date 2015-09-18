@@ -1196,6 +1196,7 @@ class EditorStack(QWidget):
                 self.set_stack_index(new_index)
         if self.get_stack_count() == 0:
             self.emit(SIGNAL('sig_new_file()'))
+            return False
         return is_ok
 
     def close_all_files(self):
