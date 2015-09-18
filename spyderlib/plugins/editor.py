@@ -1558,7 +1558,6 @@ class Editor(SpyderPluginWidget):
         self._clone_file_everywhere(finfo)
         current_editor = current_es.set_current_filename(finfo.filename)
         self.register_widget_shortcuts("Editor", current_editor)
-        finfo.default = False
         if not created_from_here:
             self.save(force=True)
 

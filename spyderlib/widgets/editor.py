@@ -185,6 +185,7 @@ class FileInfo(QObject):
 
     def text_changed(self):
         """Editor's text has changed"""
+        self.default = False
         self.text_changed_at.emit(self.filename,
                                   self.editor.get_position('cursor'))
 
@@ -1113,7 +1114,7 @@ class EditorStack(QWidget):
                 self.set_stack_index(new_index)
         if self.get_stack_count() == 0:
             self.sig_new_file[()].emit()
-
+            return False
         return is_ok
 
     def close_all_files(self):
