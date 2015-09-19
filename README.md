@@ -9,7 +9,7 @@ Licensed under the terms of the MIT License (see `LICENSE` for details)
 
 ## Overview
 
-![screenshot](./img_src/screenshot_windows.png)
+![screenshot](./img_src/screenshot.png)
 
 Spyder is a Python development environment with a lot of features:
 
