@@ -27,7 +27,7 @@ except ImportError:
     jedi = None
 
 
-JEDI_REQVER = '>=0.8.1'
+JEDI_REQVER = '>=0.8.1;<0.9.0'
 dependencies.add('jedi',
                  _("(Experimental) Editor's code completion,"
                    " go-to-definition and help"),
