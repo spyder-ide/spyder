@@ -9,10 +9,12 @@ Licensed under the terms of the MIT License (see `LICENSE` for details)
 
 ## Overview
 
-Spyder is a Python development environment with tons of features:
-    
+![screenshot](./img_src/screenshot_windows.png)
+
+Spyder is a Python development environment with a lot of features:
+
 * **Editor**
-    
+
     Multi-language editor with function/class browser, code analysis
     features (pyflakes and pylint are currently supported), code
     completion, horizontal and vertical splitting, and goto definition.
@@ -47,21 +49,28 @@ Spyder may also be used as a PyQt4/PySide extension library (module
 Spyder may be embedded in your own PyQt4/PySide application.
 
 
+## Documentation
+
+You can read the Spyder documentation at:
+
+http://pythonhosted.org/spyder/
+
+
 ## Running from source
 
 The fastest way to run Spyder is to get the source code, install PyQt
 or PySide, and run:
 
     python bootstrap.py
-
+    
 You may want to do this for fixing bugs in Spyder, adding new
 features, learning how Spyder works or just getting a taste of it.
 
 
 ## Installation
 
-This section explains how to install the latest stable release of 
-Spyder. If you prefer testing the development version, please use 
+This section explains how to install the latest stable release of
+Spyder. If you prefer testing the development version, please use
 the `bootstrap` script (see next section).
 
 The easiest way to install Spyder is:
