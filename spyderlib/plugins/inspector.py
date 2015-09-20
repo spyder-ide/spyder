@@ -64,7 +64,7 @@ class ObjectComboBox(EditableComboBox):
     QComboBox handling object names
     """
     # Signals
-    valid = Signal(bool)
+    valid = Signal(bool, bool)
 
     def __init__(self, parent):
         EditableComboBox.__init__(self, parent)
@@ -107,15 +107,15 @@ class ObjectComboBox(EditableComboBox):
             if editing:
                 # Combo box text is being modified: invalidate the entry
                 self.show_tip(self.tips[valid])
-                self.valid.emit(False)
+                self.valid.emit(False, False)
             else:
                 # A new item has just been selected
                 if valid:
                     self.selected()
                 else:
-                    self.valid.emit(False)
-        else:
-            self.set_default_style()
+                    self.valid.emit(False, False)
+#        else:
+#            self.set_default_style()
 
 
 class ObjectInspectorConfigPage(PluginConfigPage):
