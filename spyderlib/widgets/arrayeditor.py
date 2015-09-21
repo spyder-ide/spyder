@@ -16,7 +16,7 @@ NumPy Array Editor Dialog based on Qt
 from __future__ import print_function
 
 from spyderlib.qt.QtGui import (QHBoxLayout, QColor, QTableView, QItemDelegate,
-                                QLineEdit, QCheckBox, QGridLayout,
+                                QLineEdit, QCheckBox, QGridLayout, QCursor,
                                 QDoubleValidator, QDialog, QDialogButtonBox,
                                 QMessageBox, QPushButton, QInputDialog, QMenu,
                                 QApplication, QKeySequence, QLabel, QComboBox,
@@ -381,11 +381,14 @@ class ArrayView(QTableView):
             self.model().fetch_more(rows=rows)
         if columns and value == self.horizontalScrollBar().maximum():
             self.model().fetch_more(columns=columns)
-  
+
     def resize_to_contents(self):
         """Resize cells to contents"""
+        QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         self.resizeColumnsToContents()
-        self.resizeRowsToContents()
+        self.model().fetch_more(columns=True)
+        self.resizeColumnsToContents()
+        QApplication.restoreOverrideCursor()
 
     def setup_menu(self):
         """Setup context menu"""

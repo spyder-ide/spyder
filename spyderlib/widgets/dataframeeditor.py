@@ -16,7 +16,7 @@ Pandas DataFrame Editor Dialog
 from spyderlib.qt.QtCore import QAbstractTableModel, Qt, QModelIndex, Slot
 from spyderlib.qt.QtGui import (QDialog, QTableView, QColor, QGridLayout,
                                 QDialogButtonBox, QHBoxLayout, QPushButton,
-                                QCheckBox, QMessageBox, QInputDialog,
+                                QCheckBox, QMessageBox, QInputDialog, QCursor,
                                 QLineEdit, QApplication, QMenu, QKeySequence)
 from spyderlib.qt.compat import to_qvariant, from_qvariant
 import spyderlib.utils.icon_manager as ima
@@ -511,7 +511,7 @@ class DataFrameEditor(QDialog):
         btn.clicked.connect(self.change_format)
         btn = QPushButton(_('Resize'))
         btn_layout.addWidget(btn)
-        btn.clicked.connect(self.dataTable.resizeColumnsToContents)
+        btn.clicked.connect(self.resize_to_contents)
 
         bgcolor = QCheckBox(_('Background color'))
         bgcolor.setChecked(self.dataModel.bgcolor_enabled)
@@ -568,6 +568,13 @@ class DataFrameEditor(QDialog):
             return df.iloc[:, 0]
         else:
             return df
+
+    def resize_to_contents(self):
+        QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+        self.dataTable.resizeColumnsToContents()
+        self.dataModel.fetch_more(columns=True)
+        self.dataTable.resizeColumnsToContents()
+        QApplication.restoreOverrideCursor()
 
 
 def test_edit(data, title="", parent=None):
