@@ -26,6 +26,8 @@ from spyderlib.config.base import get_image_path, running_in_mac_app
 from spyderlib.config.gui import get_shortcut
 from spyderlib.utils import programs
 from spyderlib.py3compat import is_text_string, to_text_string
+from spyderlib.widgets.helperwidgets import WidgetInnerToolbar
+
 
 # Note: How to redirect a signal from widget *a* to widget *b* ?
 # ----
@@ -303,6 +305,22 @@ def set_item_user_text(item, text):
     """Set QTreeWidgetItem user role string"""
     item.setData(0, Qt.UserRole, to_qvariant(text))
 
+
+def context_menu_to_toolbar(parent, menu):
+    """dont forget you may need to callsomehting like .update_menu()
+    before passing in the menu."""    
+    actions = (a for a in menu.actions() if not a.isSeparator())
+    buttons = []
+    non_icon_buttons = []
+    for action in actions:                    
+        if action.icon().isNull():
+            non_icon_buttons.append(action)
+        else:
+            new_button = create_toolbutton(parent)
+            new_button.setDefaultAction(action)
+            buttons.append(new_button) 
+        
+    return WidgetInnerToolbar(buttons, non_icon_buttons)
 
 def create_bookmark_action(parent, url, title, icon=None, shortcut=None):
     """Create bookmark action"""

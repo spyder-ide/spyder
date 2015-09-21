@@ -15,29 +15,44 @@ from spyderlib.qt.QtGui import (QToolButton, QToolTip,
                                 QTextDocument, QStyleOptionViewItem,
                                 QAbstractTextDocumentLayout, QStyle,
                                 QVBoxLayout, QSpacerItem, QHBoxLayout,
-                                QMessageBox, QCheckBox, QWidget)
-from spyderlib.utils.qthelpers import create_action
+                                QMessageBox, QCheckBox, QWidget, QMenu)
+
 
 # Local imports
 from spyderlib.config.base import _
 from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.qthelpers import get_std_icon
+import spyderlib.utils.icon_manager as ima
 
 class WidgetInnerToolbar(QWidget):
     """A light-weight toolbar-like widget which can be toggled on/off like
     a proper toolbar. Usage: Layout.addWidget(WidgetInnerToolbar)"""
     
-    def __init__(self, buttons):
+    def __init__(self, buttons, non_icon_buttons=None):
         """Expects a sequence of buttons, each of which is made using
         the helper function called create_toolbutton."""
+        # TODO: fix import issues, so this isn't local
+        from spyderlib.utils.qthelpers import create_action, add_actions
+                                               
         QWidget.__init__(self)
         self._layout = QHBoxLayout()
         self.setLayout(self._layout)
         self._layout.setAlignment(Qt.AlignLeft)
         self._layout.setContentsMargins(0, 0, 0, 0)
-        
+
         for btn in buttons:
             self._layout.addWidget(btn)
+        
+        if non_icon_buttons:
+            self._button_menu = QToolButton(self)
+            self._menu = QMenu(self)
+            add_actions(self._menu, non_icon_buttons)
+            self._button_menu.setIcon(ima.icon('tooloptions'))
+            self._button_menu.setPopupMode(QToolButton.InstantPopup)
+            self._button_menu.setMenu(self._menu)
+            self._layout.addStretch()
+            self._layout.addWidget(self._button_menu)
+
         self._dummy_parent = QObject()
         self._toggle_view_action = create_action(self._dummy_parent,
                                                  "toggle WidgetInnerToolbar",

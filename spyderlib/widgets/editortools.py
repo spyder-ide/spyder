@@ -11,8 +11,7 @@ from __future__ import print_function
 import re
 import os.path as osp
 
-from spyderlib.qt.QtGui import (QWidget, QTreeWidgetItem,  QHBoxLayout,
-                                QVBoxLayout)
+from spyderlib.qt.QtGui import (QWidget, QTreeWidgetItem, QVBoxLayout)
 from spyderlib.qt.QtCore import Qt, Signal, Slot
 from spyderlib.qt.compat import from_qvariant
 import spyderlib.utils.icon_manager as ima
@@ -20,10 +19,11 @@ import spyderlib.utils.icon_manager as ima
 # Local import
 from spyderlib.config.base import _, STDOUT
 from spyderlib.utils.qthelpers import (create_action, create_toolbutton,
-                                       set_item_user_text)
+                                       set_item_user_text,
+                                       context_menu_to_toolbar)
 from spyderlib.widgets.onecolumntree import OneColumnTree
 from spyderlib.py3compat import to_text_string
-from spyderlib.widgets.helperwidgets import WidgetInnerToolbar
+
 
 
 #===============================================================================
@@ -513,7 +513,8 @@ class OutlineExplorerWidget(QWidget):
                                            toggled=self.toggle_visibility)
         self.visibility_action.setChecked(True)
         
-        self.toolbar = WidgetInnerToolbar(self.setup_buttons())
+        self.treewidget.update_menu()
+        self.toolbar = context_menu_to_toolbar(self, self.treewidget.menu)
         
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
