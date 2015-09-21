@@ -14,15 +14,47 @@ from spyderlib.qt.QtGui import (QToolButton, QToolTip,
                                 QStyledItemDelegate, QApplication,
                                 QTextDocument, QStyleOptionViewItem,
                                 QAbstractTextDocumentLayout, QStyle,
-                                QVBoxLayout, QSpacerItem, QPainter,
-                                QMessageBox, QCheckBox, QLineEdit)
+                                QVBoxLayout, QSpacerItem, QHBoxLayout,
+                                QMessageBox, QCheckBox, QWidget)
+from spyderlib.utils.qthelpers import create_action
 
 # Local imports
 from spyderlib.config.base import _
 from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.qthelpers import get_std_icon
 
-
+class WidgetInnerToolbar(QWidget):
+    """A light-weight toolbar-like widget which can be toggled on/off like
+    a proper toolbar. Usage: Layout.addWidget(WidgetInnerToolbar)"""
+    
+    def __init__(self, buttons):
+        """Expects a sequence of buttons, each of which is made using
+        the helper function called create_toolbutton."""
+        QWidget.__init__(self)
+        self._layout = QHBoxLayout()
+        self.setLayout(self._layout)
+        self._layout.setAlignment(Qt.AlignLeft)
+        self._layout.setContentsMargins(0, 0, 0, 0)
+        
+        for btn in buttons:
+            self._layout.addWidget(btn)
+        self._dummy_parent = QObject()
+        self._toggle_view_action = create_action(self._dummy_parent,
+                                                 "toggle WidgetInnerToolbar",
+                                                 toggled=self.toggleEvent)
+        self._toggle_view_action.setChecked(True)
+    
+    @Slot(bool)
+    def toggleEvent(self, v):
+        """handler for toggle_view_action"""
+        self.setVisible(v)
+    
+    def toggleViewAction(self):
+        return self._toggle_view_action
+        
+    def objectName(self):
+        return None
+        
 class HelperToolButton(QToolButton):
     """Subclasses QToolButton, to provide a simple tooltip on mousedown.
     """
@@ -141,99 +173,6 @@ class HTMLDelegate(QStyledItemDelegate):
         doc.setTextWidth(options.rect.width())
 
         return QSize(doc.idealWidth(), doc.size().height())
-
-
-class IconLineEdit(QLineEdit):
-    """Custom QLineEdit that includes an icon representing the validation."""
-
-    def __init__(self, *args, **kwargs):
-        super(IconLineEdit, self).__init__(*args, **kwargs)
-
-        self._status = True
-        self._status_set = True
-        self._valid_icon = ima.icon('todo')
-        self._invalid_icon = ima.icon('warning')
-        self._set_icon = ima.icon('todo_list')
-        self._application_style = QApplication.style().objectName()
-        self._refresh()
-        self._paint_count = 0
-        self._icon_visible = False
-
-    def _refresh(self):
-        """After an application style change, the paintEvent updates the
-        custom defined stylesheet.
-        """
-        padding = self.height()
-        css_base = """QLineEdit {{
-                                 border: none;
-                                 padding-right: {padding}px;
-                                 }}
-                   """
-        css_oxygen = """QLineEdit {{background: transparent;
-                                   border: none;
-                                   padding-right: {padding}px;
-                                   }}
-                     """
-        if self._application_style == 'oxygen':
-            css_template = css_oxygen
-        else:
-            css_template = css_base
-
-        css = css_template.format(padding=padding)
-        self.setStyleSheet(css)
-        self.update()
-
-    def hide_status_icon(self):
-        """Show the status icon."""
-        self._icon_visible = False
-        self.repaint()
-        self.update()
-
-    def show_status_icon(self):
-        """Hide the status icon."""
-        self._icon_visible = True
-        self.repaint()
-        self.update()
-
-    def update_status(self, value, value_set):
-        """Update the status and set_status to update the icons to display."""
-        self._status = value
-        self._status_set = value_set
-        self.repaint()
-        self.update()
-
-    def paintEvent(self, event):
-        """Qt Override.
-
-        Include a validation icon to the left of the line edit.
-        """
-        super(IconLineEdit, self).paintEvent(event)
-        painter = QPainter(self)
-
-        rect = self.geometry()
-        space = int((rect.height())/6)
-        h = rect.height() - space
-        w = rect.width() - h
-
-        if self._icon_visible:
-            if self._status and self._status_set:
-                pixmap = self._set_icon.pixmap(h, h)
-            elif self._status:
-                pixmap = self._valid_icon.pixmap(h, h)
-            else:
-                pixmap = self._invalid_icon.pixmap(h, h)
-
-            painter.drawPixmap(w, space, pixmap)
-
-        application_style = QApplication.style().objectName()
-        if self._application_style != application_style:
-            self._application_style = application_style
-            self._refresh()
-
-        # Small hack to gurantee correct padding on Spyder start
-        if self._paint_count < 5:
-            self._paint_count += 1
-            self._refresh()
 
 
 def test_msgcheckbox():

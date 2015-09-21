@@ -23,6 +23,7 @@ from spyderlib.utils.qthelpers import (create_action, create_toolbutton,
                                        set_item_user_text)
 from spyderlib.widgets.onecolumntree import OneColumnTree
 from spyderlib.py3compat import to_text_string
+from spyderlib.widgets.helperwidgets import WidgetInnerToolbar
 
 
 #===============================================================================
@@ -512,14 +513,11 @@ class OutlineExplorerWidget(QWidget):
                                            toggled=self.toggle_visibility)
         self.visibility_action.setChecked(True)
         
-        btn_layout = QHBoxLayout()
-        btn_layout.setAlignment(Qt.AlignLeft)
-        for btn in self.setup_buttons():
-            btn_layout.addWidget(btn)
-
+        self.toolbar = WidgetInnerToolbar(self.setup_buttons())
+        
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.addLayout(btn_layout)
+        layout.addWidget(self.toolbar)
         layout.addWidget(self.treewidget)
         self.setLayout(layout)
 

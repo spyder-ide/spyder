@@ -2069,6 +2069,8 @@ class MainWindow(QMainWindow):
         for toolbar in self.toolbarslist:
             action = toolbar.toggleViewAction()
             name = toolbar.objectName()
+            if name is None:
+                continue
             try:
                 pos = order.index(name)
             except ValueError:
