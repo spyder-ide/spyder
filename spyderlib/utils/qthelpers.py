@@ -307,7 +307,7 @@ def set_item_user_text(item, text):
 
 
 def context_menu_to_toolbar(parent, menu):
-    """dont forget you may need to callsomehting like .update_menu()
+    """dont forget you may need to call something like .update_menu()
     before passing in the menu."""    
     actions = (a for a in menu.actions() if not a.isSeparator())
     buttons = []

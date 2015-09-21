@@ -532,26 +532,6 @@ class OutlineExplorerWidget(QWidget):
             if state:
                 self.outlineexplorer_is_visible.emit()
         
-    def setup_buttons(self):
-        """Reuses the actions from the context menu of the treewidget as
-        buttons for a toolbar.
-        """
-        self.treewidget.update_menu()
-        actions = (a for a in self.treewidget.menu.actions()
-                   if not a.isSeparator())
-        buttons = []
-        non_icon_buttons = []
-        for action in actions:                    
-            if action.icon().isNull():
-                non_icon_buttons.append(action)
-            else:
-                new_button = create_toolbutton(self)
-                new_button.setDefaultAction(action)
-                buttons.append(new_button) 
-        if non_icon_buttons:
-            pass # TODO: buttons should get a continuation dropdown for these
-        return buttons
-                
     def set_current_editor(self, editor, fname, update, clear):
         if clear:
             self.remove_editor(editor)

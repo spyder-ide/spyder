@@ -400,7 +400,7 @@ class SpyderPluginMixin(object):
     
     def register_toolbar(self, toolbar):
         """registerd toolbars can be toggled on/off.
-        Should be a QHBoxLayout ..or subclass"""
+        Should be a WidgetInnerToolbar ..or subclass"""
         self.main.toolbarslist.append(toolbar)
         
     def register_shortcut(self, qaction_or_qshortcut, context, name,
