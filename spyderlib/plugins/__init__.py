@@ -409,13 +409,33 @@ class SpyderPluginMixin(object):
             self.register_shortcut(qshortcut, context, name, default)
     
     def switch_to_plugin(self):
-        """Switch to plugin
-        This method is called when pressing plugin's shortcut key"""
+        """Switch to plugin.
+
+        This method is called when pressing plugin's shortcut key. This method
+        works as a toggle method, if the dockwidget is not visible it will
+        become visible, and if it is "visible" and also focussed it will
+        close and give focus to the previous focussed widget.
+        """
+        lfws = getattr(self.main, "lfws", [])
+        widget = self.get_focus_widget()
+        focus_widget = QApplication.instance().focusWidget()
+
         if not self.ismaximized:
             self.dockwidget.show()
-        if not self.toggle_view_action.isChecked():
+        if self.toggle_view_action.isChecked():
+            if widget.hasFocus():
+                self.visibility_changed(False)
+                self.toggle_view_action.setChecked(False)
+                lfws[-1].setFocus()
+            else:
+                self.visibility_changed(True)
+                self.toggle_view_action.setChecked(True)
+                lfws = [focus_widget]
+        else:
             self.toggle_view_action.setChecked(True)
-        self.visibility_changed(True)
+            self.visibility_changed(True)
+            lfws = [focus_widget]
+        self.main.lfws = lfws
 
     def visibility_changed(self, enable):
         """DockWidget visibility has changed"""
