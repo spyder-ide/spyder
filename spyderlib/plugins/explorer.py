@@ -44,6 +44,7 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
                                 show_icontext=self.get_option('show_icontext'))
         SpyderPluginMixin.__init__(self, parent)
 
+        self.register_toolbar(self.toolbar)
         # Initialize plugin
         self.initialize_plugin()
         
