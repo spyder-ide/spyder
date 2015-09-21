@@ -42,7 +42,7 @@ import spyderlib.utils.icon_manager as ima
 # Local import
 # TODO: Try to separate this module from spyderlib to create a self
 #       consistent editor module (Qt source code and shell widgets library)
-from spyderlib.config.base import get_conf_path, _, DEBUG
+from spyderlib.config.base import get_conf_path, _, DEBUG, debug_print
 from spyderlib.config.main import CONF
 from spyderlib.config.gui import (get_font, create_shortcut, new_shortcut,
                                   get_shortcut)
@@ -546,7 +546,12 @@ class CodeEditor(TextEditBaseWidget):
             """Make a callback for cursor move event type, (e.g. "Start")
             """
             def cursor_move_event():
+                debug_print('moving', attr)
                 cursor = self.textCursor()
+                if attr == 'StartOfWord':
+                    cursor.movePosition(QTextCursor.Left)
+                elif attr == 'EndOfWord':
+                    cursor.movePosition(QTextCursor.Right)
                 move_type = getattr(QTextCursor, attr)
                 cursor.movePosition(move_type)
                 self.setTextCursor(cursor)
