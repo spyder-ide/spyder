@@ -17,7 +17,7 @@ from spyderlib.qt.QtCore import (QAbstractTableModel, Qt, QModelIndex,
                                  SIGNAL, SLOT)
 from spyderlib.qt.QtGui import (QDialog, QTableView, QColor, QGridLayout,
                                 QDialogButtonBox, QHBoxLayout, QPushButton,
-                                QCheckBox, QMessageBox, QInputDialog,
+                                QCheckBox, QMessageBox, QInputDialog, QCursor,
                                 QLineEdit, QApplication, QMenu, QKeySequence)
 from spyderlib.qt.compat import to_qvariant, from_qvariant
 from spyderlib.utils.qthelpers import (qapplication, get_icon, create_action,
@@ -507,8 +507,7 @@ class DataFrameEditor(QDialog):
         self.connect(btn, SIGNAL("clicked()"), self.change_format)
         btn = QPushButton(_('Resize'))
         btn_layout.addWidget(btn)
-        self.connect(btn, SIGNAL("clicked()"),
-                     self.dataTable.resizeColumnsToContents)
+        self.connect(btn, SIGNAL("clicked()"), self.resize_to_contents)
 
         bgcolor = QCheckBox(_('Background color'))
         bgcolor.setChecked(self.dataModel.bgcolor_enabled)
@@ -567,6 +566,13 @@ class DataFrameEditor(QDialog):
             return df.iloc[:, 0]
         else:
             return df
+
+    def resize_to_contents(self):
+        QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+        self.dataTable.resizeColumnsToContents()
+        self.dataModel.fetch_more(columns=True)
+        self.dataTable.resizeColumnsToContents()
+        QApplication.restoreOverrideCursor()
 
 
 def test_edit(data, title="", parent=None):
