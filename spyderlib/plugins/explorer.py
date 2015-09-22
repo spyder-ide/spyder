@@ -40,8 +40,7 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
     def __init__(self, parent=None):
         ExplorerWidget.__init__(self, parent=parent,
                                 name_filters=self.get_option('name_filters'),
-                                show_all=self.get_option('show_all'),
-                                show_icontext=self.get_option('show_icontext'))
+                                show_all=self.get_option('show_all'))
         SpyderPluginMixin.__init__(self, parent)
 
         self.register_toolbar(self.toolbar)

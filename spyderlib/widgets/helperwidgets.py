@@ -70,17 +70,6 @@ class WidgetInnerToolbar(QWidget):
     def objectName(self):
         return None
 
-    @Slot(bool)
-    def toggle_icontext(self, value):
-        print("TODO")
-        # TODO: actually make this work
-        # for widget in something:
-        #     if widget is not self.button_menu:
-        #         if state:
-        #             widget.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
-        #         else:
-        #             widget.setToolButtonStyle(Qt.ToolButtonIconOnly)
-
         
 class HelperToolButton(QToolButton):
     """Subclasses QToolButton, to provide a simple tooltip on mousedown.
