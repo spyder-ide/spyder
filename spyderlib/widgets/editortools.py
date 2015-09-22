@@ -18,8 +18,7 @@ import spyderlib.utils.icon_manager as ima
 
 # Local import
 from spyderlib.config.base import _, STDOUT
-from spyderlib.utils.qthelpers import (create_action, create_toolbutton,
-                                       set_item_user_text,
+from spyderlib.utils.qthelpers import (create_action, set_item_user_text,
                                        context_menu_to_toolbar)
 from spyderlib.widgets.onecolumntree import OneColumnTree
 from spyderlib.py3compat import to_text_string

@@ -28,7 +28,7 @@ from spyderlib.config.main import CONF
 from spyderlib.config.gui import get_color_scheme, get_font, set_font
 from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
-                                       create_action)
+                                       create_action, context_menu_to_toolbar)
 from spyderlib.widgets.comboboxes import EditableComboBox
 from spyderlib.widgets.sourcecode import codeeditor
 from spyderlib.widgets.findreplace import FindReplace
@@ -355,7 +355,8 @@ class Help(SpyderPluginWidget):
     CONFIGWIDGET_CLASS = HelpConfigPage
     LOG_PATH = get_conf_path(CONF_SECTION)
     focus_changed = Signal()
-
+    source_is_console = Signal(bool)
+    
     def __init__(self, parent):
         if PYQT5:
             SpyderPluginWidget.__init__(self, parent, main = parent)
@@ -403,6 +404,27 @@ class Help(SpyderPluginWidget):
         self._last_texts = [None, None]
         self._last_editor_doc = None
 
+        self.common_actions = []
+        
+        # Create the toggle between source and editor
+        # the choice is connected into the self._source_is_console signal
+        self._supports_editor_source = (programs.is_module_installed('rope') 
+                            or programs.is_module_installed('jedi', '>=0.8.1'))
+        if self._supports_editor_source:
+            source_button = create_toolbutton(self, text=_('Source'))
+            source_menu = QMenu(self)
+            self.console_action = create_action(self, _("Console"), 
+                                                toggled=self.source_toggled_console)
+            self.editor_action = create_action(self, _("Editor"),
+                                                toggled=self.source_toggled_editor)
+            self._source_is_console.connect(self.source_is_console_changed)
+            add_actions(source_menu, [self.console_action, self.editor_action])
+            source_button.setMenu(source_menu)
+            self.common_actions.append(source_button)
+        
+        
+        self.toolbar = context_menu_to_toolbar(self, self.rich_text.menu)
+        
         # Object name
         layout_edit = QHBoxLayout()
         layout_edit.setContentsMargins(0, 0, 0, 0)
@@ -415,8 +437,7 @@ class Help(SpyderPluginWidget):
         self.source_combo = QComboBox(self)
         self.source_combo.addItems([_("Console"), _("Editor")])
         self.source_combo.currentIndexChanged.connect(self.source_changed)
-        if (not programs.is_module_installed('rope') and
-                not programs.is_module_installed('jedi', '>=0.8.1')):
+        :
             self.source_combo.hide()
             source_label.hide()
         layout_edit.addWidget(self.source_combo)
@@ -594,25 +615,34 @@ class Help(SpyderPluginWidget):
         return self.source_combo.currentIndex() == 0
 
     def switch_to_editor_source(self):
-        self.source_combo.setCurrentIndex(1)
+        raise NotImplementedError()
 
     def switch_to_console_source(self):
-        self.source_combo.setCurrentIndex(0)
-
-    def source_changed(self, index=None):
-        if self.source_is_console():
+        raise NotImplementedError()
+        
+    def source_toggled_console(self, v):
+        self._source_is_console = v
+        
+    def source_toggled_editor(self, v):
+        self._source_is_console = not v
+    
+    @Slot(bool)
+    def source_is_console_changed(self, v):
+        if v:
             # Console
-            self.combo.show()
-            self.object_edit.hide()
-            self.show_source_action.setEnabled(True)
-            self.auto_import_action.setEnabled(True)
+            pass
+            #self.combo.show()
+            #self.object_edit.hide()
+            #self.show_source_action.setEnabled(True)
+            #self.auto_import_action.setEnabled(True)
         else:
             # Editor
-            self.combo.hide()
-            self.object_edit.show()
-            self.show_source_action.setDisabled(True)
-            self.auto_import_action.setDisabled(True)
-        self.restore_text()
+            pass
+            #self.combo.hide()
+            #self.object_edit.show()
+            #self.show_source_action.setDisabled(True)
+            #self.auto_import_action.setDisabled(True)
+        #self.restore_text()
 
     def save_text(self, callback):
         if self.source_is_console():
