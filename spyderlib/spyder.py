@@ -1873,6 +1873,13 @@ class MainWindow(QMainWindow):
             action.setChecked(plugin.dockwidget.isVisible())
 
     # --- Show/Hide toolbars
+    def get_toolbars_visible(self):
+        try:
+            return self.toolbars_visible
+        except AttributeError:
+            self.toolbars_visible = CONF.get('main', 'toolbars_visible')
+            return self.toolbars_visible
+            
     def _update_show_toolbars_action(self):
         """Update the text displayed in the menu entry."""
         if self.toolbars_visible:
