@@ -1089,7 +1089,7 @@ class BaseTableView(QTableView):
                         output = io.BytesIO()
                     else:
                         output = io.StringIO()
-                    np.savetxt(output,obj, delimiter='\t')
+                    np.savetxt(output, obj, delimiter='\t')
                 obj = output.getvalue().decode('utf-8')
                     
             clipl.append(to_text_string(obj))
