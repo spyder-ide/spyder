@@ -20,13 +20,13 @@ import os.path as osp
 
 # Third party imports
 from spyderlib.qt.QtCore import QEvent, Qt, QTimer, QUrl, Signal
-from spyderlib.qt.QtGui import (QApplication, QComboBox, QCompleter, QFont,
-                                QLineEdit, QPainter, QSizePolicy, QToolTip)
+from spyderlib.qt.QtGui import (QComboBox, QCompleter, QFont,
+                                QSizePolicy, QToolTip)
 
 # Local imports
 from spyderlib.config.base import _
 from spyderlib.py3compat import to_text_string
-from spyderlib.utils import icon_manager as ima
+from spyderlib.widgets.helperwidgets import IconLineEdit
 
 
 class BaseComboBox(QComboBox):
@@ -51,7 +51,7 @@ class BaseComboBox(QComboBox):
             self.sig_tab_pressed.emit(True)
             self.numpress += 1
             if self.numpress == 1:
-                self.presstimer = QTimer.singleShot(400, self.hanlde_keypress)
+                self.presstimer = QTimer.singleShot(400, self.handle_keypress)
             return True
         return QComboBox.event(self, event)
 
@@ -65,7 +65,7 @@ class BaseComboBox(QComboBox):
                 self.selected()
                 self.hide_completer()
         elif event.key() == Qt.Key_Escape:
-            self.lineEdit().setText(self.selected_text)
+            self.set_current_text(self.selected_text)
             self.hide_completer()
         else:
             QComboBox.keyPressEvent(self, event)
@@ -79,7 +79,7 @@ class BaseComboBox(QComboBox):
         QComboBox.focusOutEvent(self, event)
 
     # --- own methods
-    def hanlde_keypress(self):
+    def handle_keypress(self):
         """ """
         if self.numpress == 2:
             self.sig_double_tab_pressed.emit(True)
@@ -134,7 +134,7 @@ class BaseComboBox(QComboBox):
             self.add_current_text()
             return True
         else:
-            self.lineEdit().setText(self.selected_text)
+            self.set_current_text(self.selected_text)
 
     def hide_completer(self):
         """Hides the completion widget."""
@@ -299,67 +299,3 @@ class PythonModulesComboBox(PathComboBox):
         """Action to be executed when a valid item has been selected"""
         EditableComboBox.selected(self)
         self.open_dir.emit(self.currentText())
-
-
-class IconLineEdit(QLineEdit):
-    """Custom QLineEdit that includes an icon representing the validation."""
-    def __init__(self, *args, **kwargs):
-        super(IconLineEdit, self).__init__(*args, **kwargs)
-
-        self._status = True
-        self._status_set = True
-        self._valid_icon = ima.icon('todo')
-        self._invalid_icon = ima.icon('warning')
-        self._set_icon = ima.icon('todo_list')
-
-    def _refresh(self):
-        """After an application style change, the paintEvent updates the
-        custom defined stylesheet.
-        """
-        application_style = QApplication.style().objectName()
-        padding = self.height()
-        css_base = """QLineEdit {{border: none;
-                                 padding-left: {padding}px;
-                                 }}
-                   """
-        css_oxygen = """QLineEdit {{background: transparent;
-                                   border: none;
-                                   padding-left: {padding}px;
-                                   }}
-                     """
-        if application_style == 'oxygen':
-            css_template = css_oxygen
-        else:
-            css_template = css_base
-
-        css = css_template.format(padding=padding)
-        self.setStyleSheet(css)
-
-    def update_status(self, value, value_set):
-        """Update the status and set_status to update the icons to display."""
-        self._status = value
-        self._status_set = value_set
-        self.repaint()
-        self.update()
-
-    def paintEvent(self, event):
-        """Qt Override.
-
-        Include a validation icon to the left of the line edit.
-        """
-        self._refresh()
-        super(IconLineEdit, self).paintEvent(event)
-        painter = QPainter(self)
-
-        rect = self.geometry()
-        space = int((rect.height())/6)
-        h = rect.height() - space
-
-        if self._status and self._status_set:
-            pixmap = self._set_icon.pixmap(h, h)
-        elif self._status:
-            pixmap = self._valid_icon.pixmap(h, h)
-        else:
-            pixmap = self._invalid_icon.pixmap(h, h)
-
-        painter.drawPixmap(space, space, pixmap)
