@@ -23,6 +23,10 @@ import shutil
 from distutils.core import setup
 from distutils.command.build import build
 from distutils.command.install_data import install_data
+try:
+    import setuptools  # allows python setup.py develop
+except ImportError:
+    pass
 
 # Check for Python 3
 PY3 = sys.version_info[0] == 3
