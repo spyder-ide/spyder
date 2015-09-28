@@ -14,7 +14,7 @@ _default_options = {
     'color_disabled': QColor(150, 150, 150),
     'opacity': 1.0,
     'scale_factor': 1.0,
-    }
+}
 
 
 def set_global_defaults(**kwargs):
@@ -150,13 +150,11 @@ class IconicFont(QObject):
             directory = os.path.join(
                 os.path.dirname(os.path.realpath(__file__)), 'fonts')
 
-        with open(os.path.join(directory, ttf_filename), 'rb') as f:
-            font_data = QByteArray(f.read())
-
         with open(os.path.join(directory, charmap_filename), 'r') as codes:
             self.charmap[prefix] = json.load(codes, object_hook=hook)
 
-        id_ = QFontDatabase.addApplicationFontFromData(font_data)
+        id_ = QFontDatabase.addApplicationFont(os.path.join(directory, ttf_filename))
+
         loadedFontFamilies = QFontDatabase.applicationFontFamilies(id_)
 
         if(loadedFontFamilies):
