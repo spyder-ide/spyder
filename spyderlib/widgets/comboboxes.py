@@ -74,7 +74,6 @@ class BaseComboBox(QComboBox):
         """Handle focus out event restoring the last valid selected path."""
         # Calling asynchronously the 'add_current_text' to avoid crash
         # https://groups.google.com/group/spyderlib/browse_thread/thread/2257abf530e210bd
-#        QTimer.singleShot(50, self.add_current_text_if_valid)
         lineedit = self.lineEdit()
         QTimer.singleShot(50, lambda: lineedit.setText(self.selected_text))
         QComboBox.focusOutEvent(self, event)

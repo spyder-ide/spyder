@@ -114,8 +114,6 @@ class ObjectComboBox(EditableComboBox):
                     self.selected()
                 else:
                     self.valid.emit(False, False)
-#        else:
-#            self.set_default_style()
 
 
 class ObjectInspectorConfigPage(PluginConfigPage):
