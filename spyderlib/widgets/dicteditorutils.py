@@ -194,7 +194,7 @@ def value_to_display(value, truncate=False, trunc_len=80, minmax=False):
             # Fixes Issue 2514
             try:
                 ini_col = to_text_string(cols[0], encoding='utf-8-sig')
-            except UnicodeDecodeError:
+            except:
                 ini_col = to_text_string(cols[0])
             cols = [ini_col] + [to_text_string(c) for c in cols[1:]]
         else:

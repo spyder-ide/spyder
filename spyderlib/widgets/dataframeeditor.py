@@ -179,7 +179,7 @@ class DataFrameModel(QAbstractTableModel):
                 try:
                     header = to_text_string(self.df_header[0],
                                             encoding='utf-8-sig')
-                except UnicodeDecodeError:
+                except:
                     header = to_text_string(self.df_header[0])
                 return to_qvariant(header)
             else:
