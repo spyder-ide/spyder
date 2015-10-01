@@ -21,11 +21,18 @@ except:
 
 def sympy_config(mpl_backend):
     """Sympy configuration"""
-    lines = """
+    if mpl_backend is not None:
+        lines = """
 from sympy.interactive import init_session
 init_session()
 %matplotlib {0}
 """.format(mpl_backend)
+    else:
+        lines = """
+from sympy.interactive import init_session
+init_session()
+"""
+
     return lines
 
 
@@ -59,6 +66,7 @@ def kernel_config():
         spy_cfg.IPKernelApp.exec_lines = []
     
     # Pylab configuration
+    mpl_backend = None
     mpl_installed = is_module_installed('matplotlib')
     pylab_o = CONF.get('ipython_console', 'pylab')
 
