@@ -310,7 +310,7 @@ def context_menu_to_toolbar(parent=None, menu=None, old=None):
     """dont forget you may need to call something like .update_menu()
     before passing in the menu.
     `old` can be a `WidgetInnerToolbar` previously returned by this
-    method, in which case the `.replace` method will be used rather
+    method, in which case the `.add_mode` method will be used rather
     than creating a fresh `WidgetInnerToolbar`.
     """    
     actions = (a for a in menu.actions() if not a.isSeparator())
@@ -325,7 +325,7 @@ def context_menu_to_toolbar(parent=None, menu=None, old=None):
             buttons.append(new_button) 
         
     if old:
-        old.replace(buttons, non_icon_buttons)
+        old.add_mode(buttons, non_icon_buttons)
         return old
     else:
         return WidgetInnerToolbar(buttons, non_icon_buttons, parent=parent)

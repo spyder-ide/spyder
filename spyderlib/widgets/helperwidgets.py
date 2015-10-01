@@ -15,7 +15,8 @@ from spyderlib.qt.QtGui import (QToolButton, QToolTip,
                                 QTextDocument, QStyleOptionViewItem,
                                 QAbstractTextDocumentLayout, QStyle,
                                 QVBoxLayout, QSpacerItem, QHBoxLayout,
-                                QMessageBox, QCheckBox, QWidget, QMenu)
+                                QMessageBox, QCheckBox, QWidget, QMenu,
+                                QStackedWidget, QSizePolicy)
 
 
 # Local imports
@@ -24,6 +25,7 @@ from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.qthelpers import get_std_icon
 import spyderlib.utils.icon_manager as ima
 
+                         
 class WidgetInnerToolbar(QWidget):
     """A light-weight toolbar-like widget which can be toggled on/off like
     a proper toolbar. Usage: Layout.addWidget(WidgetInnerToolbar)"""
@@ -35,32 +37,57 @@ class WidgetInnerToolbar(QWidget):
         from spyderlib.utils.qthelpers import create_action
                                                
         QWidget.__init__(self)
-        self._layout = QHBoxLayout()
-        self.setLayout(self._layout)
-        self._layout.setAlignment(Qt.AlignLeft)
-        self._layout.setContentsMargins(0, 0, 0, 0)
 
-        self.replace(buttons, non_icon_buttons)
-        
+        self._layout_list = []
+        self.add_mode(buttons, non_icon_buttons)
         self._parent = parent or QObject()
         self._toggle_view_action = create_action(self._parent,
                                                  "toggle WidgetInnerToolbar",
                                                  toggled=self.toggleEvent)
         self._toggle_view_action.setChecked(True)
     
-    def replace(self, buttons, non_icon_buttons=None):
-        """If you want to change the toolbar after creating it use this method.
-        It should work the same as init.
+    def select_mode(self, index=0):
+        if len(self._layout_list) > 1:
+            self._stack.setCurrentIndex(index)
+        # else: nothing to select between, just a basic layout
+
+    def _layout_to_stack_widget(self, layout):
+        w = QWidget(self)
+        w.setLayout(layout) 
+        return w
+
+    def add_mode(self, buttons, non_icon_buttons=None):
+        """This takes arguments like init, and sets up a
+        new "mode", using a QStacked to hold multiple modes. You can
+        switch between using modes using .select_mode(index).
         """
         # TODO: fix import issues, so this isn't local
-        from spyderlib.utils.qthelpers import add_actions
+        from spyderlib.utils.qthelpers import add_actions        
         
-        # clear layout ..I think this is the right way to do it?
-        while self._layout.count():
-            self._layout.takeAt(0).widget().deleteLater()
+        layout = QHBoxLayout()
+        layout.setAlignment(Qt.AlignLeft)
+        layout.setContentsMargins(0, 0, 0, 0)
         
+        if len(self._layout_list) == 0:
+            self.setLayout(layout)
+        elif len(self._layout_list) == 1:
+            # need to switch from simple layout to stacked layout
+            self._stack = QStackedWidget()
+            self._stack.setSizePolicy(QSizePolicy.Preferred,QSizePolicy.Fixed) 
+            self._stack_layout = QVBoxLayout()
+            self._stack_layout.setAlignment(Qt.AlignLeft)
+            self._stack_layout.setContentsMargins(0, 0, 0, 0)
+            self._stack_layout.addWidget(self._stack)
+            self._stack.addWidget(self._layout_to_stack_widget(self._layout_list[0]))
+            self._stack.addWidget(self._layout_to_stack_widget(layout))
+            self.setLayout(self._stack_layout)
+        else:
+            self._stack.addWidget(self._layout_to_stack_widget(layout))
+
+        self._layout_list += [layout]
+                    
         for btn in buttons:
-            self._layout.addWidget(btn)
+            layout.addWidget(btn)
             
         if non_icon_buttons:
             self._button_menu = QToolButton(self)
@@ -69,8 +96,9 @@ class WidgetInnerToolbar(QWidget):
             self._button_menu.setIcon(ima.icon('tooloptions'))
             self._button_menu.setPopupMode(QToolButton.InstantPopup)
             self._button_menu.setMenu(self._menu)
-            self._layout.addStretch()
-            self._layout.addWidget(self._button_menu)
+            layout.addStretch()
+            layout.addWidget(self._button_menu)
+        
             
     @Slot(bool)
     def toggleEvent(self, v):

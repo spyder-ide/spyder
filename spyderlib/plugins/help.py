@@ -46,8 +46,9 @@ else:
 
 # Check if we can import Sphinx to activate rich text mode
 try:
-    from spyderlib.utils.help.sphinxify import (CSS_PATH, sphinxify, warning,
-                                                generate_context, usage)
+    from spyderlib.utils.help.sphinxify import (CSS_PATH, sphinxify,
+                                                     warning, generate_context,
+                                                     usage)
     sphinx_version = programs.get_module_version('sphinx')
 except (ImportError, TypeError):
     sphinxify = sphinx_version = None  # analysis:ignore
@@ -427,6 +428,7 @@ class Help(SpyderPluginWidget):
             source_mode_group.setExclusive(True)
             source_mode_group.addAction(self.console_action)
             source_mode_group.addAction(self.editor_action)
+            self.console_action.setChecked(True)
             add_actions(source_menu, [self.console_action, self.editor_action])
             self.common_actions.append(source_menu)
 
@@ -444,13 +446,6 @@ class Help(SpyderPluginWidget):
         display_mode_group.setExclusive(True)
         display_mode_group.addAction(self.plain_text_action)
         display_mode_group.addAction(self.rich_text_action)
-
-        if self.rich_help:
-            self.switch_to_rich_text()
-        else:
-            self.switch_to_plain_text()
-        self.plain_text_action.setChecked(not self.rich_help)
-        self.rich_text_action.setChecked(self.rich_help)
         self.rich_text_action.setEnabled(sphinxify is not None)
         display_menu = QMenu(_('Display'), parent=self)
         add_actions(display_menu, [self.plain_text_action, self.rich_text_action,
@@ -475,7 +470,8 @@ class Help(SpyderPluginWidget):
         add_actions(self.plain_text.editor.readonly_menu, self.common_actions)  
         
         self.toolbar = context_menu_to_toolbar(self, self.rich_text.menu)
-        
+        context_menu_to_toolbar(menu=self.plain_text.editor.readonly_menu,
+                                 old=self.toolbar)
         
         #self.source_combo.currentIndexChanged.connect(self.source_is_console)
         
@@ -496,6 +492,7 @@ class Help(SpyderPluginWidget):
         layout.addWidget(self.plain_text)
         layout.addWidget(self.rich_text)
         self.setLayout(layout)
+        
         self.register_toolbar(self.toolbar)
         
         # Add worker thread for handling rich text rendering
@@ -514,7 +511,15 @@ class Help(SpyderPluginWidget):
         view.page().setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
         view.linkClicked.connect(self.handle_link_clicks)
 
+        self.plain_text_action.setChecked(not self.rich_help)
+        self.rich_text_action.setChecked(self.rich_help)
+        if self.rich_help:
+            self.switch_to_rich_text()
+        else:
+            self.switch_to_plain_text()
+        
         self._starting_up = True
+        
 
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
@@ -594,11 +599,11 @@ class Help(SpyderPluginWidget):
         return self._source_is_console
 
     def switch_to_editor_source(self):
-        raise NotImplementedError()
+        pass
 
     def switch_to_console_source(self):
-        raise NotImplementedError()
-        
+        pass
+    
     def source_toggled_console(self, v):
         self._source_is_console = v
         
@@ -612,15 +617,15 @@ class Help(SpyderPluginWidget):
             pass
             #self.combo.show()
             #self.object_edit.hide()
-            #self.show_source_action.setEnabled(True)
-            #self.auto_import_action.setEnabled(True)
+            self.show_source_action.setEnabled(True)
+            self.auto_import_action.setEnabled(True)
         else:
             # Editor
             pass
             #self.combo.hide()
             #self.object_edit.show()
-            #self.show_source_action.setDisabled(True)
-            #self.auto_import_action.setDisabled(True)
+            self.show_source_action.setDisabled(True)
+            self.auto_import_action.setDisabled(True)
         #self.restore_text()
 
     def save_text(self, callback):
@@ -700,14 +705,17 @@ class Help(SpyderPluginWidget):
         self.rich_help = False
         self.plain_text.show()
         self.rich_text.hide()
+        self.toolbar.select_mode(1)
         self.plain_text_action.setChecked(True)
 
     def switch_to_rich_text(self):
         """Switch to rich text mode"""
+        self.toolbar.select_mode(0)
         self.rich_help = True
         self.plain_text.hide()
         self.rich_text.show()
         self.rich_text_action.setChecked(True)
+
         self.show_source_action.setChecked(False)
 
     def set_plain_text(self, text, is_code):
@@ -823,23 +831,21 @@ class Help(SpyderPluginWidget):
 
     def set_object_text(self, text, force_refresh=False, ignore_unknown=False):
         """Set object analyzed by Help"""
-        return
-        # TODO: reimplement this
         if (self.locked and not force_refresh):
             return
         self.switch_to_console_source()
 
-        add_to_combo = True
-        if text is None:
-            text = to_text_string(self.combo.currentText())
-            add_to_combo = False
+        #add_to_combo = True
+        #if text is None:
+        #    text = to_text_string(self.combo.currentText())
+        #    add_to_combo = False
 
         found = self.show_help(text, ignore_unknown=ignore_unknown)
         if ignore_unknown and not found:
             return
 
-        if add_to_combo:
-            self.combo.add_text(text)
+        #if add_to_combo:
+        #    self.combo.add_text(text)
         if found:
             self.save_history()
 
@@ -872,7 +878,7 @@ class Help(SpyderPluginWidget):
             self.dockwidget.blockSignals(False)
 
     def __eventually_raise_help(self, text, force=False):
-        index = self.source_combo.currentIndex()
+        index = 0# self.source_combo.currentIndex()
         if hasattr(self.main, 'tabifiedDockWidgets'):
             # 'QMainWindow.tabifiedDockWidgets' was introduced in PyQt 4.5
             if self.dockwidget and (force or self.dockwidget.isVisible()) \
@@ -897,6 +903,7 @@ class Help(SpyderPluginWidget):
 
     def save_history(self):
         """Save history to a text file in user home directory"""
+        return # TODO: reimplement this
         open(self.LOG_PATH, 'w').write("\n".join( \
                 [to_text_string(self.combo.itemText(index))
                  for index in range(self.combo.count())] ))
