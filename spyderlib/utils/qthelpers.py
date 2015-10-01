@@ -9,7 +9,7 @@
 from spyderlib.qt.QtGui import (QAction, QStyle, QWidget, QApplication,
                                 QLabel, QVBoxLayout, QHBoxLayout, QLineEdit,
                                 QKeyEvent, QMenu, QKeySequence, QToolButton,
-                                QPixmap)
+                                QPixmap, QWidgetAction, QComboBox, QSizePolicy)
 from spyderlib.qt.QtCore import (Signal, QObject, Qt, QLocale, QTranslator,
                                  QLibraryInfo, QEvent, Slot, QTimer)
 from spyderlib.qt.compat import to_qvariant, from_qvariant
@@ -232,7 +232,45 @@ def toggle_actions(actions, enable):
             if action is not None:
                 action.setEnabled(enable)
 
+class ComboAction(QWidgetAction):    
+    """Wraps a QComboBox as an action. Use the .combo to access the combo 
+    itself. Note that really there are multiple combos that keep in-sync with
+    each other, but you don't neet to know that."""
+    def __init__(self, parent, text="Caption:"):
+        QWidgetAction.__init__(self, parent)
+        self._text = text
+        self._widgets = []
+        self._combos = [QComboBox()]
 
+    def createWidget(self, new_parent):
+        widget = QWidget(new_parent)
+        self._widgets.append(widget)
+        layout = QHBoxLayout(widget)
+        layout.setContentsMargins(0, 0, 0, 0)
+        widget.setLayout(layout)
+        widget.setToolTip(self._text)
+        if len(self._widgets) == 1:
+            combo = self._combos[0]
+        else:
+            # the first time we create a widget we use the pre-existing "primary" combo
+            self._combos.append(QComboBox())
+            combo = self._combos[-1]
+            combo.setModel(self._combos[0].model())
+        
+        #self._label = QLabel(text, widget)
+        #self._label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Minimum)
+        #layout.addWidget(self._label)
+        layout.addWidget(combo)
+        return widget        
+
+    @property
+    def combo(self):
+        return self._combos[0]
+    
+    def releaseWidget(self, w):
+        idx = self._widgets.index(w)
+        # TODO: clean up combos/widgets etc.
+        
 def create_action(parent, text, shortcut=None, icon=None, tip=None,
                   toggled=None, triggered=None, data=None, menurole=None,
                   context=Qt.WindowShortcut):
@@ -311,13 +349,18 @@ def context_menu_to_toolbar(parent=None, menu=None, old=None):
     before passing in the menu.
     `old` can be a `WidgetInnerToolbar` previously returned by this
     method, in which case the `.add_mode` method will be used rather
-    than creating a fresh `WidgetInnerToolbar`.
+    than creating a fresh `WidgetInnerToolbar`
+
+    TODO: it would make more sense to use createWidget(self) on all actions
+    rather than accepting a mixture of buttons and actions.
     """    
     actions = (a for a in menu.actions() if not a.isSeparator())
     buttons = []
     non_icon_buttons = []
-    for action in actions:                    
-        if action.icon().isNull():
+    for action in actions:             
+        if isinstance(action, QWidgetAction):
+            buttons.append(action.createWidget(parent)) 
+        elif action.icon().isNull():
             non_icon_buttons.append(action)
         else:
             new_button = create_toolbutton(parent)
