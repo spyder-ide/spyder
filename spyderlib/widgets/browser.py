@@ -34,6 +34,7 @@ class WebView(QWebView):
         self.zoom_in_action = create_action(self, _("Zoom in"),
                                             icon=ima.icon('zoom_in'),
                                             triggered=self.zoom_in)
+        self.build_context_menu()
         
     def find_text(self, text, changed=True,
                   forward=True, case=False, words=False,
@@ -97,8 +98,8 @@ class WebView(QWebView):
         import webbrowser
         webbrowser.open(to_text_string(self.url().toString()))
         
-    def contextMenuEvent(self, event):
-        menu = QMenu(self)
+    def build_context_menu(self):
+        self.menu = QMenu(self)
         actions = [self.pageAction(QWebPage.Back),
                    self.pageAction(QWebPage.Forward), None,
                    self.pageAction(QWebPage.SelectAll),
@@ -108,8 +109,10 @@ class WebView(QWebView):
             settings = self.page().settings()
             settings.setAttribute(QWebSettings.DeveloperExtrasEnabled, True)
             actions += [None, self.pageAction(QWebPage.InspectElement)]
-        add_actions(menu, actions)
-        menu.popup(event.globalPos())
+        add_actions(self.menu, actions)
+
+    def contextMenuEvent(self, event):
+        self.menu.popup(event.globalPos())
         event.accept()
                 
 
@@ -266,6 +269,10 @@ class FrameWebView(QFrame):
     def setHtml(self, html_text, base_url):
         self._webview.setHtml(html_text, base_url)
 
+    @property
+    def menu(self):
+        return self._webview.menu
+        
     def url(self):
         return self._webview.url()
 

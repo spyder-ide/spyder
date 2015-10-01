@@ -28,11 +28,11 @@ class WidgetInnerToolbar(QWidget):
     """A light-weight toolbar-like widget which can be toggled on/off like
     a proper toolbar. Usage: Layout.addWidget(WidgetInnerToolbar)"""
     
-    def __init__(self, buttons, non_icon_buttons=None):
+    def __init__(self, buttons, non_icon_buttons=None, parent=None):
         """Expects a sequence of buttons, each of which is made using
         the helper function called create_toolbutton."""
         # TODO: fix import issues, so this isn't local
-        from spyderlib.utils.qthelpers import create_action, add_actions
+        from spyderlib.utils.qthelpers import create_action
                                                
         QWidget.__init__(self)
         self._layout = QHBoxLayout()
@@ -40,9 +40,28 @@ class WidgetInnerToolbar(QWidget):
         self._layout.setAlignment(Qt.AlignLeft)
         self._layout.setContentsMargins(0, 0, 0, 0)
 
+        self.replace(buttons, non_icon_buttons)
+        
+        self._parent = parent or QObject()
+        self._toggle_view_action = create_action(self._parent,
+                                                 "toggle WidgetInnerToolbar",
+                                                 toggled=self.toggleEvent)
+        self._toggle_view_action.setChecked(True)
+    
+    def replace(self, buttons, non_icon_buttons=None):
+        """If you want to change the toolbar after creating it use this method.
+        It should work the same as init.
+        """
+        # TODO: fix import issues, so this isn't local
+        from spyderlib.utils.qthelpers import add_actions
+        
+        # clear layout ..I think this is the right way to do it?
+        while self._layout.count():
+            self._layout.takeAt(0).widget().deleteLater()
+        
         for btn in buttons:
             self._layout.addWidget(btn)
-        
+            
         if non_icon_buttons:
             self._button_menu = QToolButton(self)
             self._menu = QMenu(self)
@@ -52,13 +71,7 @@ class WidgetInnerToolbar(QWidget):
             self._button_menu.setMenu(self._menu)
             self._layout.addStretch()
             self._layout.addWidget(self._button_menu)
-
-        self._dummy_parent = QObject()
-        self._toggle_view_action = create_action(self._dummy_parent,
-                                                 "toggle WidgetInnerToolbar",
-                                                 toggled=self.toggleEvent)
-        self._toggle_view_action.setChecked(True)
-    
+            
     @Slot(bool)
     def toggleEvent(self, v):
         """handler for toggle_view_action"""

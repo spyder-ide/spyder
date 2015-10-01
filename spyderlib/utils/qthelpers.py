@@ -306,9 +306,13 @@ def set_item_user_text(item, text):
     item.setData(0, Qt.UserRole, to_qvariant(text))
 
 
-def context_menu_to_toolbar(parent, menu):
+def context_menu_to_toolbar(parent=None, menu=None, old=None):
     """dont forget you may need to call something like .update_menu()
-    before passing in the menu."""    
+    before passing in the menu.
+    `old` can be a `WidgetInnerToolbar` previously returned by this
+    method, in which case the `.replace` method will be used rather
+    than creating a fresh `WidgetInnerToolbar`.
+    """    
     actions = (a for a in menu.actions() if not a.isSeparator())
     buttons = []
     non_icon_buttons = []
@@ -320,7 +324,11 @@ def context_menu_to_toolbar(parent, menu):
             new_button.setDefaultAction(action)
             buttons.append(new_button) 
         
-    return WidgetInnerToolbar(buttons, non_icon_buttons)
+    if old:
+        old.replace(buttons, non_icon_buttons)
+        return old
+    else:
+        return WidgetInnerToolbar(buttons, non_icon_buttons, parent=parent)
 
 def create_bookmark_action(parent, url, title, icon=None, shortcut=None):
     """Create bookmark action"""

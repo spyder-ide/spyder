@@ -411,6 +411,7 @@ class MainWindow(QMainWindow):
         # Toolbars
         self.visible_toolbars = []
         self.toolbarslist = []
+        self.toolbars_list_inner = []
         self.main_toolbar = None
         self.main_toolbar_actions = []
         self.file_toolbar = None
@@ -1932,11 +1933,10 @@ class MainWindow(QMainWindow):
             self.save_visible_toolbars()
         else:
             self.get_visible_toolbars()
-
-        for toolbar in self.visible_toolbars:
+        for toolbar in self.visible_toolbars + self.toolbars_list_inner:
             toolbar.toggleViewAction().setChecked(value)
             toolbar.setVisible(value)
-
+            
         self.toolbars_visible = value
         self._update_show_toolbars_action()
 
