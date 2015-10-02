@@ -119,10 +119,27 @@ CTRL = "Meta" if sys.platform == 'darwin' else "Ctrl"
 # Fonts
 #==============================================================================
 def is_ubuntu():
+    "Detect if we are running in an Ubuntu-based distribution"
     if sys.platform.startswith('linux') and osp.isfile('/etc/lsb-release'):
         release_info = open('/etc/lsb-release').read()
         if 'Ubuntu' in release_info:
             return True
+        else:
+            return False
+    else:
+        return False
+
+
+def is_gtk_desktop():
+    "Detect if we are running in a Gtk-based desktop"
+    if sys.platform.startswith('linux'):
+        xdg_desktop = os.environ.get('XDG_CURRENT_DESKTOP', '')
+        if xdg_desktop:
+            gtk_desktops = ['Unity', 'GNOME', 'XFCE']
+            if any([xdg_desktop.startswith(d) for d in gtk_desktops]):
+                return True
+            else:
+                return False
         else:
             return False
     else:

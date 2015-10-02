@@ -88,7 +88,7 @@ except:
 from spyderlib.qt.QtGui import (QApplication, QMainWindow, QSplashScreen,
                                 QPixmap, QMessageBox, QMenu, QColor, QShortcut,
                                 QKeySequence, QDockWidget, QAction,
-                                QDesktopServices)
+                                QDesktopServices, QStyleFactory)
 from spyderlib.qt.QtCore import (SIGNAL, QPoint, Qt, QSize, QByteArray, QUrl,
                                  QCoreApplication)
 from spyderlib.qt.compat import (from_qvariant, getopenfilename,
@@ -130,7 +130,8 @@ from spyderlib.baseconfig import (get_conf_path, get_module_data_path,
                                   get_module_source_path, STDERR, DEBUG, DEV,
                                   debug_print, TEST, SUBFOLDER, MAC_APP_NAME,
                                   running_in_mac_app)
-from spyderlib.config import CONF, EDIT_EXT, IMPORT_EXT, OPEN_FILES_PORT
+from spyderlib.config import (CONF, EDIT_EXT, IMPORT_EXT, OPEN_FILES_PORT,
+                              is_gtk_desktop)
 from spyderlib.cli_options import get_options
 from spyderlib import dependencies
 from spyderlib.ipythonconfig import IPYTHON_QT_INSTALLED
@@ -1951,7 +1952,16 @@ class MainWindow(QMainWindow):
     def apply_settings(self):
         """Apply settings changed in 'Preferences' dialog box"""
         qapp = QApplication.instance()
-        qapp.setStyle(CONF.get('main', 'windows_style', self.default_style))
+        # Set 'gtk+' as the default theme in Gtk-based desktops
+        # Fixes Issue 2036
+        if is_gtk_desktop() and ('GTK+' in QStyleFactory.keys()):
+            try:
+                qapp.setStyle('gtk+')
+            except:
+                pass
+        else:
+            qapp.setStyle(CONF.get('main', 'windows_style',
+                                   self.default_style))
         
         default = self.DOCKOPTIONS
         if CONF.get('main', 'vertical_tabs'):

@@ -9,7 +9,7 @@
 import os.path as osp
 
 from spyderlib.baseconfig import _, running_in_mac_app
-from spyderlib.config import CONF
+from spyderlib.config import CONF, is_gtk_desktop
 from spyderlib.guiconfig import (CUSTOM_COLOR_SCHEME_NAME,
                                  set_default_color_scheme)
 from spyderlib.utils.qthelpers import get_icon, get_std_icon
@@ -663,6 +663,11 @@ class MainConfigPage(GeneralConfigPage):
         # --- Interface
         interface_group = QGroupBox(_("Interface"))
         styles = [str(txt) for txt in list(QStyleFactory.keys())]
+        # Don't offer users the possibility to change to a different
+        # style in Gtk-based desktops
+        # Fixes Issue 2036
+        if is_gtk_desktop() and ('GTK+' in styles):
+            styles = ['GTK+']
         choices = list(zip(styles, [style.lower() for style in styles]))
         style_combo = self.create_combobox(_('Qt windows style'), choices,
                                            'windows_style',
