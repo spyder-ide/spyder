@@ -463,12 +463,16 @@ class Help(SpyderPluginWidget):
         # Extra (d): automatic import option
         self.auto_import_action = create_action(self, _("Automatic import"),
                                                 toggled=self.toggle_auto_import)
-        self.auto_import_action.setChecked(self.get_option('automatic_import'))
         self.common_actions += [self.auto_import_action, None]
         
-        self.combo_action = ComboAction(self, text=_("Object: "))
-        self.combo_action.combo.addItem(_("dummy name a"))
-        self.combo_action.combo.addItem(_("dummy name b"))
+        # Extra (e): object-history combo action
+        self.combo_action = ComboAction(self, text=_("Object"), 
+                                        combo_subclass=ObjectComboBox,
+                                        subclass_signals=('valid',))
+        self.combo_action.combo.setMaxCount(self.get_option('max_history_entries'))
+        self.combo_action.combo.addItems(self.load_history())
+        self.combo_action.combo.setItemText(0, '')
+        self.combo_action.combo.valid.connect(lambda valid: self.force_refresh())
         self.common_actions += [self.combo_action]
         
         # Add common_actions and build toolbar...
@@ -477,21 +481,8 @@ class Help(SpyderPluginWidget):
         
         self.toolbar = context_menu_to_toolbar(self, self.rich_text.menu)
         context_menu_to_toolbar(menu=self.plain_text.editor.readonly_menu,
-                                 old=self.toolbar)
-        
-        
-        #self.source_combo.currentIndexChanged.connect(self.source_is_console)
-        
-        #self.object_edit.setReadOnly(True)
-        #self.combo.setMaxCount(self.get_option('max_history_entries'))
-        #self.combo.addItems( self.load_history() )
-        #self.combo.setItemText(0, '')
-        #self.combo.valid.connect(lambda valid: self.force_refresh())
-
-        # Plain text docstring option
-        
-        #self.source_changed()
-
+                                 old=self.toolbar) 
+       
         # Main layout
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
@@ -524,6 +515,7 @@ class Help(SpyderPluginWidget):
             self.switch_to_rich_text()
         else:
             self.switch_to_plain_text()
+        self.auto_import_action.setChecked(self.get_option('automatic_import'))
         
         self._starting_up = True
         
@@ -838,17 +830,17 @@ class Help(SpyderPluginWidget):
             return
         self.switch_to_console_source()
 
-        #add_to_combo = True
-        #if text is None:
-        #    text = to_text_string(self.combo.currentText())
-        #    add_to_combo = False
+        add_to_combo = True
+        if text is None:
+            text = to_text_string(self.combo_action.combo.currentText())
+            add_to_combo = False
 
         found = self.show_help(text, ignore_unknown=ignore_unknown)
         if ignore_unknown and not found:
             return
 
-        #if add_to_combo:
-        #    self.combo.add_text(text)
+        if add_to_combo:
+            self.combo_action.combo.add_text(text)
         if found:
             self.save_history()
 
@@ -906,10 +898,9 @@ class Help(SpyderPluginWidget):
 
     def save_history(self):
         """Save history to a text file in user home directory"""
-        return # TODO: reimplement this
         open(self.LOG_PATH, 'w').write("\n".join( \
-                [to_text_string(self.combo.itemText(index))
-                 for index in range(self.combo.count())] ))
+                [to_text_string(self.combo_action.combo.itemText(index))
+                 for index in range(self.combo_action.combo.count())] ))
 
     @Slot(bool)
     def toggle_plain_text(self, checked):
@@ -941,7 +932,7 @@ class Help(SpyderPluginWidget):
     @Slot(bool)
     def toggle_auto_import(self, checked):
         """Toggle automatic import feature"""
-        #self.combo.validate_current_text()
+        self.combo_action.combo.validate_current_text()
         self.set_option('automatic_import', checked)
         self.force_refresh()
 
