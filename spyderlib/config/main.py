@@ -136,12 +136,13 @@ SANS_SERIF = ['Sans Serif', 'DejaVu Sans', 'Bitstream Vera Sans',
               'Calibri', 'Verdana', 'Geneva', 'Lucid', 'Arial',
               'Helvetica', 'Avant Garde', 'Times', 'sans-serif']
 
-MONOSPACE = ['Monospace', 'DejaVu Sans Mono', 'Consolas', 'Monaco',
+MONOSPACE = ['Monospace', 'DejaVu Sans Mono', 'Consolas',
              'Bitstream Vera Sans Mono', 'Andale Mono', 'Liberation Mono',
              'Courier New', 'Courier', 'monospace', 'Fixed', 'Terminal']
 
 
 if sys.platform == 'darwin':
+    MONOSPACE = ['Menlo'] + MONOSPACE
     BIG = MEDIUM = SMALL = 12
 elif os.name == 'nt':
     BIG = 12
@@ -741,7 +742,7 @@ DEFAULTS = [
 # 2. If you want to *remove* options that are no longer needed in our codebase,
 #    you need to do a MAJOR update in version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '21.0.0'
+CONF_VERSION = '21.1.0'
 
 # XXX: Previously we had load=(not DEV) here but DEV was set to *False*.
 # Check if it *really* needs to be updated or not

@@ -1115,7 +1115,13 @@ class CodeEditor(TextEditBaseWidget):
         """Painting line number area"""
         painter = QPainter(self.linenumberarea)
         painter.fillRect(event.rect(), self.sideareas_color)
-        font = painter.font()
+        # This is needed to make that the font size of line numbers
+        # be the same as the text one when zooming
+        # See Issue 2296
+        if sys.platform == 'darwin':
+            font = self.font()
+        else:
+            font = painter.font()
         font_height = self.fontMetrics().height()
 
         active_block = self.textCursor().block()
