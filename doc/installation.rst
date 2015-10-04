@@ -64,15 +64,14 @@ The easy way
 Thanks to the Spyder team and `Continuum <http://www.continuum.io/>`_, you have
 two alternatives:
 
-#. Use the Anaconda Python distribution, which can be downloaded on this
-   `site <http://continuum.io/downloads.html>`_.
+#. Use the `Anaconda <http://continuum.io/downloads.html>`_ Python distribution.
 
-#. Use our dmg installer, which can be found
+#. Use our DMG installers, which can be found
    `here <https://github.com/spyder-ide/spyder/releases>`_.
 
   .. note::
-   
-     The minimal MacOS X version to run our dmg is Mavericks (10.9) since
+     
+     The minimal version to run our DMG's is Mavericks (10.9) since
      Spyder 2.3.5. Previous versions work on Lion (10.7) or higher.
 
 
