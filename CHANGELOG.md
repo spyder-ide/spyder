@@ -1,5 +1,44 @@
 # History of changes
 
+## Version 2.3.7
+
+### New features
+
+* Editor
+    * Remove support for Jedi 0.9 because it was causing crashes
+* Variable Explorer
+    * Fix crashes and freezes when working with DataFrames on Python 2
+* Under the hodd
+    * Restore support for PySide
+
+### Bug fixes
+
+**Issues**
+
+* [Issue 2709](../../issues/2709) - IPython console error when trying to use SymPy
+* [Issue 2693](../../issues/2693) - README should link to manual
+* [Issue 2689](../../issues/2689) - "Resize" button in variable explorer chops off the array
+* [Issue 2684](../../issues/2684) - Applications directory link is broken in Spyder 2.3.6 dmg's
+* [Issue 2680](../../issues/2680) - "Close all files" hangs Spyder
+* [Issue 2661](../../issues/2661) - Conda package manager is packed in 2.3.6 win32 distribution leading to errors
+* [Issue 2659](../../issues/2659) - Crash while getting completions of DataFrames on the Editor because of Jedi 0.9
+* [Issue 2654](../../issues/2654) - Creating DataFrames in Python or IPython consoles make Spyder 2.3.6 to hang
+* [Issue 2649](../../issues/2649) - PySide can not be used on 2.3.6
+* [Issue 2296](../../issues/2296) - Line numbers misaligned when zooming and scrolling in Mac
+* [Issue 2036](../../issues/2036) - Code analysis and tooltips are not displayed in Ubuntu
+
+In this release they were closed 11 issues
+
+**Pull requests**
+
+* [PR 2650](../../pull/2650) - Failed sip import blocks fallback to PySide
+
+In this release they were merged 1 pull requests
+
+
+----
+
+
 ## Version 2.3.6
 
 ### New features
