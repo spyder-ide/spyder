@@ -24,6 +24,7 @@ requirements:
     - pygments
     - sphinx
     - pep8
+    - psutil
     - python.app      [osx]
 
 test:
