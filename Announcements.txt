@@ -1,28 +1,26 @@
 Minor release to list
 =====================
 
-Subject: [ANN] Spyder 2.3.6 is released!
+Subject: [ANN] Spyder 2.3.7 is released!
 
 
 Hi all,
 
 On the behalf of Spyder’s development team (https://github.com/spyder-ide/spyder/graphs/contributors),
-I’m pleased to announce that Spyder 2.3.6 has been released and is available for
+I’m pleased to announce that Spyder 2.3.7 has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release represents two months of development since version 2.3.5.2
+This release represents one months of development since version 2.3.6
 and introduces several new features:
 
-* IPython Console
-    * Make it fully compatible with IPython/Jupyter 4.0
+* Editor
+    * Remove support for Jedi 0.9 because it was causing crashes
 * Variable Explorer
-    * Don't refresh it when focused to avoid slow downs when working with big data
-    * Add variable name to DataFrame editor
-    * Fix several crashes and freezes when working with DataFrames
-* Under the hood
-    * Use PyQt4 API #2 by default (API #1 is not supported anymore). This is necessary to support IPython/Jupyter 4.0
+    * Fix crashes and freezes when working with DataFrames on Python 2
+* Under the hodd
+    * Restore support for PySide
 
-We also fixed 12 bugs and merged 3 pull requests. For a full list of fixes
+We also fixed 11 bugs and merged 1 pull request. For a full list of fixes
 see our changelog: https://github.com/spyder-ide/spyder/blob/2.3/CHANGELOG.md
 
 Don’t forget to follow Spyder updates/news:
