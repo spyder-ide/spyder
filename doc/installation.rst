@@ -96,17 +96,17 @@ might need.
 
 |
 
-Installing on Windows XP/Vista/7/8
-----------------------------------
+Installing on Windows Vista/7/8
+-------------------------------
 
 The easy way
 ~~~~~~~~~~~~
 
 Spyder is already included in these *Python Scientific Distributions*:
 
-#. `Python(x,y) <https://code.google.com/p/pythonxy>`_
-#. `WinPython <https://winpython.github.io/>`_
 #. `Anaconda <http://continuum.io/downloads.html>`_
+#. `WinPython <https://winpython.github.io/>`_
+#. `Python(x,y) <https://code.google.com/p/pythonxy>`_
 
 You can start using it immediately after installing one of them (you only need
 to install one!).
@@ -139,7 +139,7 @@ Updating Spyder
 
 You can update Spyder by:
 
-* Updating Python(x,y), WinPython or Anaconda.
+* Updating Anaconda, WinPython, Python(x,y).
 
 * Installing a new .exe file from the page mentioned above (this will automatically
   uninstall any previous version *only if* this version was installed with the same
