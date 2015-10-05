@@ -62,10 +62,10 @@ try:
     try:   # Ipython 4
         import nbformat as nbformat
         from nbconvert import PythonExporter as nbexporter  
-    except:  # Ipython 3
+    except ImportError:  # Ipython 3
         import IPython.nbformat as nbformat
         from IPython.nbconvert import PythonExporter as nbexporter
-except:
+except ImportError:
     nbformat = None                      # analysis:ignore
 
 # %% This line is for cell execution testing
