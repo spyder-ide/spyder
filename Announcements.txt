@@ -10,7 +10,7 @@ On the behalf of Spyder’s development team (https://github.com/spyder-ide/spyd
 I’m pleased to announce that Spyder 2.3.7 has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release represents one months of development since version 2.3.6
+This release represents one month of development since version 2.3.6
 and introduces several new features:
 
 * Editor
@@ -42,11 +42,11 @@ Enjoy!
 Minor release others
 ====================
 
-Subject: [ANN] Spyder 2.3.5 is released!
+Subject: [ANN] Spyder 2.3.7 is released!
 
 
-On the behalf of Spyder’s development team (https://github.com/spyder-ide/spyder/blob/master/AUTHORS),
-I’m pleased to announce that Spyder 2.3.5 has been released and is available for
+On the behalf of Spyder’s development team (https://github.com/spyder-ide/spyder/graphs/contributors),
+I’m pleased to announce that Spyder 2.3.7 has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
 Spyder is a free, open-source (MIT license) interactive development environment
@@ -56,19 +56,18 @@ and introspection features. It was designed to provide MATLAB-like features
 for NumPy arrays and Pandas dataframes), it is strongly oriented towards scientific
 computing and software development.
 
-This release represents almost three months of development since version 2.3.4
+This release represents one month of development since version 2.3.7
 and introduces several new features:
 
 * Editor
-    * Add support for Jedi 0.9
-* IPython Console
-    * Add initial support for IPython/Jupyter 4.0
-* Main Window
-    * Improve how Spyder looks in MacOS X
-    * Several fixes to prevent startup crashes
+    * Remove support for Jedi 0.9 because it was causing crashes
+* Variable Explorer
+    * Fix crashes and freezes when working with DataFrames on Python 2
+* Under the hodd
+    * Restore support for PySide
 
-We also fixed 22 bugs and merged 8 pull requests. For a full list of fixes see
-our changelog: https://github.com/spyder-ide/spyder/blob/2.3/CHANGELOG.md
+We also fixed 11 bugs and merged 1 pull request. For a full list of fixes
+see our changelog: https://github.com/spyder-ide/spyder/blob/2.3/CHANGELOG.md
 
 Don’t forget to follow Spyder updates/news:
 
