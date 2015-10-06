@@ -354,6 +354,6 @@ if __name__ == '__main__':
     assert(check_version('0.9.4-1', '0.9.4', '>='))
     assert(check_version('3.0.0rc1', '3.0.0', '<'))
     assert(check_version('1.0', '1.0b2', '>'))
-    assert(is_module_installed('IPython', '>=3.0'))
+    assert(is_module_installed('qtconsole', '>=4.0'))
     assert(not is_module_installed('IPython', '>=1.0;<3.0'))
     assert(is_module_installed('jedi', '>=0.7.0'))
