@@ -212,10 +212,9 @@ def is_stable_version(version):
         version = version.split('.')
     last_part = version[-1]
 
-    try:
-        int(last_part)
+    if not re.search('[a-zA-Z]', last_part):
         return True
-    except ValueError:
+    else:
         return False
 
 
@@ -235,11 +234,14 @@ def check_version(actver, version, cmp_op):
     if isinstance(actver, tuple):
         actver = '.'.join([str(i) for i in actver])
 
-    # A small hack is needed so that LooseVersion understands that for example
+    # Hacks needed so that LooseVersion understands that (for example)
     # version = '3.0.0' is in fact bigger than actver = '3.0.0rc1'
-    if is_stable_version(version) and actver.startswith(version) and\
-      version != actver:
-        version = version + 'z'
+    if is_stable_version(version) and not is_stable_version(actver) and \
+      actver.startswith(version) and version != actver:
+        version = version + 'zz'
+    elif is_stable_version(actver) and not is_stable_version(version) and \
+      version.startswith(actver) and version != actver:
+        actver = actver + 'zz'
 
     try:
         if cmp_op == '>':
@@ -345,9 +347,13 @@ def is_module_installed(module_name, version=None, installed_version=None,
 
 
 if __name__ == '__main__':
-    print(find_program('hg'))
-    print(shell_split('-q -o -a'))
-    print(shell_split('-q "d:\\Python de xxxx\\t.txt" -o -a'))
-    print(is_module_installed('IPython', '>=0.12'))
-    print(is_module_installed('IPython', '>=0.13;<1.0'))
-    print(is_module_installed('jedi', '>=0.7.0'))
+    assert(find_program('git'))
+    assert(shell_split('-q -o -a') == ['-q', '-o', '-a'])
+    assert(shell_split('-q "d:\\Python de xxxx\\t.txt" -o -a') == \
+           ['-q', 'd:\\Python de xxxx\\t.txt', '-o', '-a'])
+    assert(check_version('0.9.4-1', '0.9.4', '>='))
+    assert(check_version('3.0.0rc1', '3.0.0', '<'))
+    assert(check_version('1.0', '1.0b2', '>'))
+    assert(is_module_installed('IPython', '>=3.0'))
+    assert(not is_module_installed('IPython', '>=1.0;<3.0'))
+    assert(is_module_installed('jedi', '>=0.7.0'))
