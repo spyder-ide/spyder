@@ -460,7 +460,7 @@ class DataFrameView(QTableView):
             obj = df.iloc[slice(row_min, row_max+1), slice(col_min-1, col_max)]
             output = io.StringIO()
             obj.to_csv(output, sep='\t', index=index, header=header)
-            contents = output.getvalue()
+            contents = output.getvalue().decode('utf-8')
             output.close()
         clipboard = QApplication.clipboard()
         clipboard.setText(contents)
