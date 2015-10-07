@@ -423,8 +423,14 @@ class ArrayView(QTableView):
             output = io.BytesIO()
         else:
             output = io.StringIO()
-        np.savetxt(output, _data[row_min:row_max+1, col_min:col_max+1],
-                   delimiter='\t')
+        try:
+            np.savetxt(output, _data[row_min:row_max+1, col_min:col_max+1],
+                       delimiter='\t')
+        except:
+            QMessageBox.warning(self, _("Warning"),
+                                _("It is not possible to copy values of "
+                                  "non-numeric arrays"))
+            return
         contents = output.getvalue().decode('utf-8')
         output.close()
         return contents
