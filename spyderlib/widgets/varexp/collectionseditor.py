@@ -1047,7 +1047,13 @@ class BaseTableView(QTableView):
                         output = io.BytesIO()
                     else:
                         output = io.StringIO()
-                    np.savetxt(output, obj, delimiter='\t')
+                    try:
+                        np.savetxt(output, obj, delimiter='\t')
+                    except:
+                        QMessageBox.warning(self, _("Warning"),
+                                            _("It was not possible to copy "
+                                              "this array"))
+                        return
                 obj = output.getvalue().decode('utf-8')
             clipl.append(obj)
         clipboard.setText('\n'.join(clipl))
