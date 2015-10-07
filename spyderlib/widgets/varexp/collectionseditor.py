@@ -1051,6 +1051,16 @@ class BaseTableView(QTableView):
                                           "this array"))
                     return
                 obj = output.getvalue().decode('utf-8')
+                output.close()
+            elif isinstance(obj, (DataFrame, TimeSeries)) \
+              and DataFrame is not FakeObject:
+                output = io.StringIO()
+                obj.to_csv(output, sep='\t', index=True, header=True)
+                if PY3:
+                    obj = output.getvalue()
+                else:
+                    obj = output.getvalue().decode('utf-8')
+                output.close()
             clipl.append(obj)
         clipboard.setText('\n'.join(clipl))
 
