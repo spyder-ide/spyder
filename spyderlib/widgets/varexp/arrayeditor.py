@@ -37,6 +37,7 @@ from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
 from spyderlib.py3compat import (PY3, io, to_text_string, is_text_string,
                                  is_binary_string, to_binary_string, is_string)
 
+
 # Note: string and unicode data types will be formatted with '%s' (see below)
 SUPPORTED_FORMATS = {
                      'single': '%.3f',
@@ -86,14 +87,19 @@ LARGE_NROWS = 1e5
 LARGE_COLS = 60
 
 
+#==============================================================================
+# Utility functions
+#==============================================================================
 def is_float(dtype):
     """Return True if datatype dtype is a float kind"""
     return ('float' in dtype.name) or dtype.name in ['single', 'double']
+
 
 def is_number(dtype):
     """Return True is datatype dtype is a number kind"""
     return is_float(dtype) or ('int' in dtype.name) or ('long' in dtype.name) \
            or ('short' in dtype.name)
+
 
 def get_idx_rect(index_list):
     """Extract the boundaries from a list of indexes"""
@@ -101,12 +107,15 @@ def get_idx_rect(index_list):
     return ( min(rows), max(rows), min(cols), max(cols) )
 
 
+#==============================================================================
+# Main classes
+#==============================================================================
 class ArrayModel(QAbstractTableModel):
     """Array Editor Table Model"""
-    
+
     ROWS_TO_LOAD = 500
     COLS_TO_LOAD = 40
-    
+
     def __init__(self, data, format="%.3f", xlabels=None, ylabels=None,
                  readonly=False, parent=None):
         QAbstractTableModel.__init__(self)
@@ -748,8 +757,11 @@ class ArrayEditor(QDialog):
             for index in range(self.stack.count()):
                 self.stack.widget(index).reject_changes()
         QDialog.reject(self)
-    
-    
+
+
+#==============================================================================
+# Tests
+#==============================================================================    
 def test_edit(data, title="", xlabels=None, ylabels=None,
               readonly=False, parent=None):
     """Test subroutine"""
