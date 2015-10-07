@@ -34,7 +34,7 @@ from spyderlib.utils.encoding import to_unicode_from_fs
 from spyderlib.utils.qthelpers import create_toolbutton
 from spyderlib.config.base import get_conf_path, get_translation
 from spyderlib.widgets.onecolumntree import OneColumnTree
-from spyderlib.widgets.texteditor import TextEditor
+from spyderlib.widgets.varexp.texteditor import TextEditor
 from spyderlib.widgets.comboboxes import (PythonModulesComboBox,
                                           is_module_or_package)
 from spyderlib.py3compat import PY3, to_text_string, getcwd, pickle
