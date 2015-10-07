@@ -2303,7 +2303,7 @@ def test():
     t0 = time.time()
     test.load(__file__)
     test.load("explorer.py")
-    test.load("dicteditor.py")
+    test.load("varexp/collectionseditor.py")
     test.load("sourcecode/codeeditor.py")
     test.load("../spyder.py")
     print("Elapsed time: %.3f s" % (time.time()-t0))

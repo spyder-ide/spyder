@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
-"""Namespace browser widget"""
+"""
+Namespace browser widget
+
+This is the main widget used in the Variable Explorer plugin
+"""
 
 import os.path as osp
 import socket
@@ -21,16 +25,16 @@ from spyderlib.widgets.externalshell.monitor import (
             monitor_set_global, monitor_get_global, monitor_del_global,
             monitor_copy_global, monitor_save_globals, monitor_load_globals,
             communicate, REMOTE_SETTINGS)
-from spyderlib.widgets.dicteditor import (RemoteDictEditorTableView,
-                                          DictEditorTableView)
-from spyderlib.widgets.dicteditorutils import globalsfilter
+from spyderlib.widgets.varexp.collectionseditor import (
+                  RemoteCollectionsEditorTableView, CollectionsEditorTableView)
+from spyderlib.widgets.varexp.utils import globalsfilter
 from spyderlib.utils import encoding
 from spyderlib.utils.misc import fix_reference_name
 from spyderlib.utils.programs import is_module_installed
 from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
                                        create_action)
 from spyderlib.utils.iofuncs import iofunctions
-from spyderlib.widgets.importwizard import ImportWizard
+from spyderlib.widgets.varexp.importwizard import ImportWizard
 from spyderlib.config.base import _, get_supported_types
 from spyderlib.py3compat import is_text_string, to_text_string, getcwd
 
@@ -106,13 +110,14 @@ class NamespaceBrowser(QWidget):
                 self.auto_refresh_button.setChecked(autorefresh)
             self.refresh_table()
             return
-        
+
         # Dict editor:
         if self.is_internal_shell:
-            self.editor = DictEditorTableView(self, None, truncate=truncate,
-                                              minmax=minmax)
+            self.editor = CollectionsEditorTableView(self, None,
+                                                     truncate=truncate,
+                                                     minmax=minmax)
         else:
-            self.editor = RemoteDictEditorTableView(self, None,
+            self.editor = RemoteCollectionsEditorTableView(self, None,
                             truncate=truncate, minmax=minmax,
                             remote_editing=remote_editing,
                             get_value_func=self.get_value,
@@ -429,12 +434,12 @@ class NamespaceBrowser(QWidget):
             self.ipyclient.shellwidget.execute(command)
         else:
             self.shellwidget.send_to_process(command)
-        
+
     def oedit(self, name):
-        command = "from spyderlib.widgets.objecteditor import oedit; " \
+        command = "from spyderlib.widgets.varexp.objecteditor import oedit; " \
                   "oedit('%s', modal=False, namespace=locals());" % name
         self.shellwidget.send_to_process(command)
-        
+
     #------ Set, load and save data -------------------------------------------
     def set_data(self, data):
         """Set data"""

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -26,11 +26,11 @@ from spyderlib.utils.misc import get_python_executable
 from spyderlib.config.base import (_, get_module_source_path, DEBUG,
                                   MAC_APP_NAME, running_in_mac_app)
 from spyderlib.widgets.shell import PythonShellWidget
-from spyderlib.widgets.externalshell.namespacebrowser import NamespaceBrowser
+from spyderlib.widgets.varexp.namespacebrowser import NamespaceBrowser
 from spyderlib.utils.bsdsocket import communicate, write_packet
 from spyderlib.widgets.externalshell.baseshell import (ExternalShellBase,
                                                    add_pathlist_to_PYTHONPATH)
-from spyderlib.widgets.dicteditor import DictEditor
+from spyderlib.widgets.varexp.collectionseditor import CollectionsEditor
 from spyderlib.py3compat import (is_text_string, to_text_string,
                                  to_binary_string)
 
@@ -652,7 +652,7 @@ class ExternalPythonShell(ExternalShellBase):
     @Slot()
     def show_syspath(self):
         """Show sys.path contents"""
-        editor = DictEditor()
+        editor = CollectionsEditor()
         editor.setup(self.shell.get_syspath(), title="sys.path", readonly=True,
                      width=600, icon=ima.icon('syspath'))
         self.dialog_manager.show(editor)

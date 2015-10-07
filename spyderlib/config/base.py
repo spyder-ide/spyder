@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2011-2013 Pierre Raybaut
+# Copyright © 2009- The Spyder development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -380,7 +380,7 @@ def get_supported_types():
 
 # Variable explorer display / check all elements data types for sequences:
 # (when saving the variable explorer contents, check_all is True,
-#  see widgets/externalshell/namespacebrowser.py:NamespaceBrowser.save_data)
+#  see widgets/varexp/namespacebrowser.py:NamespaceBrowser.save_data)
 CHECK_ALL = False #XXX: If True, this should take too much to compute...
 
 EXCLUDED_NAMES = ['nan', 'inf', 'infty', 'little_endian', 'colorbar_doc',

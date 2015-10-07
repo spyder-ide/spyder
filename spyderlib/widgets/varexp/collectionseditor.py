@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
 """
-Dictionary Editor Widget and Dialog based on Qt
+Collections (i.e. dictionary, list and tuple) editor widget and dialog
 """
 
 #TODO: Multiple selection: open as many editors (array/dict/...) as necessary,
@@ -17,6 +17,10 @@ Dictionary Editor Widget and Dialog based on Qt
 # pylint: disable=R0201
 
 from __future__ import print_function
+
+import sys
+import datetime
+
 from spyderlib.qt.QtGui import (QMessageBox, QTableView, QItemDelegate,
                                 QLineEdit, QVBoxLayout, QWidget, QColor,
                                 QDialog, QDateEdit, QDialogButtonBox, QMenu,
@@ -25,99 +29,49 @@ from spyderlib.qt.QtGui import (QMessageBox, QTableView, QItemDelegate,
 from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, Signal,
                                  QDateTime, Slot)
 import spyderlib.utils.icon_manager as ima
-from spyderlib.qt.compat import to_qvariant, from_qvariant, getsavefilename
+from spyderlib.qt.compat import to_qvariant, getsavefilename
 from spyderlib.utils.qthelpers import mimedata2url
-
-import sys
-import datetime
 
 # Local import
 from spyderlib.config.base import _
 from spyderlib.config.gui import get_font
 from spyderlib.utils.misc import fix_reference_name
 from spyderlib.utils.qthelpers import add_actions, create_action, qapplication
-from spyderlib.widgets.dicteditorutils import (sort_against, get_size,
+from spyderlib.widgets.varexp.utils import (sort_against, get_size,
                get_human_readable_type, value_to_display, get_color_name,
                is_known_type, FakeObject, Image, ndarray, array, MaskedArray,
-               unsorted_unique, try_to_eval, datestr_to_datetime,
-               get_numpy_dtype, is_editable_type, DataFrame, TimeSeries)
+               unsorted_unique, try_to_eval, is_editable_type, DataFrame,
+               TimeSeries, display_to_value, np_savetxt)
 if ndarray is not FakeObject:
-    from spyderlib.widgets.arrayeditor import ArrayEditor
+    from spyderlib.widgets.varexp.arrayeditor import ArrayEditor
 if DataFrame is not FakeObject:
-    from spyderlib.widgets.dataframeeditor import DataFrameEditor
-from spyderlib.widgets.texteditor import TextEditor
-from spyderlib.widgets.importwizard import ImportWizard
-from spyderlib.py3compat import (to_text_string, to_binary_string,
-                                 is_text_string, is_binary_string, getcwd, u,
-                                 PY3, io)
+    from spyderlib.widgets.varexp.dataframeeditor import DataFrameEditor
+from spyderlib.widgets.varexp.texteditor import TextEditor
+from spyderlib.widgets.varexp.importwizard import ImportWizard
+from spyderlib.py3compat import (to_text_string, is_text_string, PY3, io,
+                                 is_binary_string, getcwd)
 
 
 LARGE_NROWS = 100
-
-
-def display_to_value(value, default_value, ignore_errors=True):
-    """Convert back to value"""
-    value = from_qvariant(value, to_text_string)
-    try:
-        np_dtype = get_numpy_dtype(default_value)
-        if isinstance(default_value, bool):
-            # We must test for boolean before NumPy data types
-            # because `bool` class derives from `int` class
-            try:
-                value = bool(float(value))
-            except ValueError:
-                value = value.lower() == "true"
-        elif np_dtype is not None:
-            if 'complex' in str(type(default_value)):
-                value = np_dtype(complex(value))
-            else:
-                value = np_dtype(value)
-        elif is_binary_string(default_value):
-            value = to_binary_string(value, 'utf8')
-        elif is_text_string(default_value):
-            value = to_text_string(value)
-        elif isinstance(default_value, complex):
-            value = complex(value)
-        elif isinstance(default_value, float):
-            value = float(value)
-        elif isinstance(default_value, int):
-            try:
-                value = int(value)
-            except ValueError:
-                value = float(value)
-        elif isinstance(default_value, datetime.datetime):
-            value = datestr_to_datetime(value)
-        elif isinstance(default_value, datetime.date):
-            value = datestr_to_datetime(value).date()
-        elif ignore_errors:
-            value = try_to_eval(value)
-        else:
-            value = eval(value)
-    except (ValueError, SyntaxError):
-        if ignore_errors:
-            value = try_to_eval(value)
-        else:
-            return default_value
-    return value
 
 
 class ProxyObject(object):
     """Dictionary proxy to an unknown object"""
     def __init__(self, obj):
         self.__obj__ = obj
-    
+
     def __len__(self):
         return len(dir(self.__obj__))
-    
+
     def __getitem__(self, key):
         return getattr(self.__obj__, key)
-    
+
     def __setitem__(self, key, value):
         setattr(self.__obj__, key, value)
-        
 
-class ReadOnlyDictModel(QAbstractTableModel):
-    """DictEditor Read-Only Table Model"""
+
+class ReadOnlyCollectionsModel(QAbstractTableModel):
+    """CollectionsEditor Read-Only Table Model"""
     ROWS_TO_LOAD = 50
 
     def __init__(self, parent, data, title="", names=False, truncate=True,
@@ -144,14 +98,14 @@ class ReadOnlyDictModel(QAbstractTableModel):
     def get_data(self):
         """Return model data"""
         return self._data
-            
-    def set_data(self, data, dictfilter=None):
+
+    def set_data(self, data, coll_filter=None):
         """Set model data"""
         self._data = data
 
-        if dictfilter is not None and not self.remote and \
+        if coll_filter is not None and not self.remote and \
           isinstance(data, (tuple, list, dict)):
-            data = dictfilter(data)
+            data = coll_filter(data)
         self.showndata = data
 
         self.header0 = _("Index")
@@ -361,8 +315,8 @@ class ReadOnlyDictModel(QAbstractTableModel):
 
     def flags(self, index):
         """Overriding method flags"""
-        # This method was implemented in DictModel only, but to enable tuple
-        # exploration (even without editing), this method was moved here
+        # This method was implemented in CollectionsModel only, but to enable
+        # tuple exploration (even without editing), this method was moved here
         if not index.isValid():
             return Qt.ItemIsEnabled
         return Qt.ItemFlags(QAbstractTableModel.flags(self, index)|
@@ -371,9 +325,10 @@ class ReadOnlyDictModel(QAbstractTableModel):
         self.beginResetModel()
         self.endResetModel()
 
-class DictModel(ReadOnlyDictModel):
-    """DictEditor Table Model"""
-    
+
+class CollectionsModel(ReadOnlyCollectionsModel):
+    """Collections Table Model"""
+
     def set_value(self, index, value):
         """Set value"""
         self._data[ self.keys[index.row()] ] = value
@@ -385,7 +340,7 @@ class DictModel(ReadOnlyDictModel):
         """Background color depending on value"""
         value = self.get_value(index)
         if index.column() < 3:
-            color = ReadOnlyDictModel.get_bgcolor(self, index)
+            color = ReadOnlyCollectionsModel.get_bgcolor(self, index)
         else:
             if self.remote:
                 color_name = value['color']
@@ -408,9 +363,9 @@ class DictModel(ReadOnlyDictModel):
         return True
 
 
-class DictDelegate(QItemDelegate):
-    """DictEditor Item Delegate"""
-    
+class CollectionsDelegate(QItemDelegate):
+    """CollectionsEditor Item Delegate"""
+
     def __init__(self, parent=None):
         QItemDelegate.__init__(self, parent)
         self._editors = {} # keep references on opened editors
@@ -467,9 +422,9 @@ class DictDelegate(QItemDelegate):
         key = index.model().get_key(index)
         readonly = isinstance(value, tuple) or self.parent().readonly \
                    or not is_known_type(value)
-        #---editor = DictEditor
+        #---editor = CollectionsEditor
         if isinstance(value, (list, tuple, dict)):
-            editor = DictEditor()
+            editor = CollectionsEditor()
             editor.setup(value, key, icon=self.parent().windowIcon(),
                          readonly=readonly)
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
@@ -488,7 +443,7 @@ class DictDelegate(QItemDelegate):
             return None
         #---showing image
         elif isinstance(value, Image) and ndarray is not FakeObject \
-             and Image is not FakeObject:
+          and Image is not FakeObject:
             arr = array(value)
             if arr.size == 0:
                 return None
@@ -501,15 +456,14 @@ class DictDelegate(QItemDelegate):
                                             conv=conv_func))
             return None
         #--editor = DataFrameEditor and TimeSeriesEditor
-        elif isinstance(value, (DataFrame, TimeSeries))\
-             and DataFrame is not FakeObject:
+        elif isinstance(value, (DataFrame, TimeSeries)) \
+          and DataFrame is not FakeObject:
             editor = DataFrameEditor()
             if not editor.setup_and_check(value, title=key):
                 return
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
                                             key=key, readonly=readonly))
             return None
-
         #---editor = QDateTimeEdit
         elif isinstance(value, datetime.datetime):
             editor = QDateTimeEdit(value, parent)
@@ -522,7 +476,7 @@ class DictDelegate(QItemDelegate):
             editor.setCalendarPopup(True)
             editor.setFont(get_font('dicteditor'))
             return editor
-        #---editor = QTextEdit
+        #---editor = TextEditor
         elif is_text_string(value) and len(value)>40:
             editor = TextEditor(value, key)
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
@@ -535,9 +489,9 @@ class DictDelegate(QItemDelegate):
             editor.setAlignment(Qt.AlignLeft)
             editor.returnPressed.connect(self.commitAndCloseEditor)
             return editor
-        #---editor = DictEditor for an arbitrary object
+        #---editor = CollectionsEditor for an arbitrary object
         else:
-            editor = DictEditor()
+            editor = CollectionsEditor()
             editor.setup(value, key, icon=self.parent().windowIcon(),
                          readonly=readonly)
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
@@ -578,8 +532,10 @@ class DictDelegate(QItemDelegate):
         self.closeEditor.emit(editor, QAbstractItemDelegate.NoHint)
 
     def setEditorData(self, editor, index):
-        """Overriding method setEditorData
-        Model --> Editor"""
+        """
+        Overriding method setEditorData
+        Model --> Editor
+        """
         value = self.get_value(index)
         if isinstance(editor, QLineEdit):
             if is_binary_string(value):
@@ -596,8 +552,10 @@ class DictDelegate(QItemDelegate):
             editor.setDateTime(QDateTime(value.date(), value.time()))
 
     def setModelData(self, editor, model, index):
-        """Overriding method setModelData
-        Editor --> Model"""
+        """
+        Overriding method setModelData
+        Editor --> Model
+        """
         if not hasattr(model, "set_value"):
             # Read-only mode
             return
@@ -632,7 +590,7 @@ class DictDelegate(QItemDelegate):
 
 
 class BaseTableView(QTableView):
-    """Base dictionary editor table view"""
+    """Base collection editor table view"""
     sig_option_changed = Signal(str, object)
     sig_files_dropped = Signal(list)
     redirect_stdio = Signal(bool)
@@ -1077,24 +1035,35 @@ class BaseTableView(QTableView):
             if not idx.isValid():
                 continue
             obj = self.delegate.get_value(idx)
-            # check if it's a numpy array, and if so make sure to copy the whole
-            # thing in a tab separated format
-            try:
-                import numpy as np
-            except ImportError:
-                pass # skip this part
-            else:
-                if isinstance(obj, np.ndarray):
-                    if PY3:
-                        output = io.BytesIO()
-                    else:
-                        output = io.StringIO()
-                    np.savetxt(output, obj, delimiter='\t')
+            # Check if we are trying to copy a numpy array, and if so make sure
+            # to copy the whole thing in a tab separated format
+            if isinstance(obj, (ndarray, MaskedArray)) \
+              and ndarray is not FakeObject:
+                if PY3:
+                    output = io.BytesIO()
+                else:
+                    output = io.StringIO()
+                try:
+                    np_savetxt(output, obj, delimiter='\t')
+                except:
+                    QMessageBox.warning(self, _("Warning"),
+                                        _("It was not possible to copy "
+                                          "this array"))
+                    return
                 obj = output.getvalue().decode('utf-8')
-                    
-            clipl.append(to_text_string(obj))
-        clipboard.setText(u('\n').join(clipl))
-    
+                output.close()
+            elif isinstance(obj, (DataFrame, TimeSeries)) \
+              and DataFrame is not FakeObject:
+                output = io.StringIO()
+                obj.to_csv(output, sep='\t', index=True, header=True)
+                if PY3:
+                    obj = output.getvalue()
+                else:
+                    obj = output.getvalue().decode('utf-8')
+                output.close()
+            clipl.append(obj)
+        clipboard.setText('\n'.join(clipl))
+
     def import_from_string(self, text, title=None):
         """Import data from string"""
         data = self.model.get_data()
@@ -1118,20 +1087,21 @@ class BaseTableView(QTableView):
         else:
             QMessageBox.warning(self, _( "Empty clipboard"),
                                 _("Nothing to be imported from clipboard."))
-        
 
-class DictEditorTableView(BaseTableView):
-    """DictEditor table view"""
+
+class CollectionsEditorTableView(BaseTableView):
+    """CollectionsEditor table view"""
     def __init__(self, parent, data, readonly=False, title="",
                  names=False, truncate=True, minmax=False):
         BaseTableView.__init__(self, parent)
         self.dictfilter = None
         self.readonly = readonly or isinstance(data, tuple)
-        DictModelClass = ReadOnlyDictModel if self.readonly else DictModel
-        self.model = DictModelClass(self, data, title, names=names,
-                                    truncate=truncate, minmax=minmax)
+        CollectionsModelClass = ReadOnlyCollectionsModel if self.readonly \
+                                else CollectionsModel
+        self.model = CollectionsModelClass(self, data, title, names=names,
+                                           truncate=truncate, minmax=minmax)
         self.setModel(self.model)
-        self.delegate = DictDelegate(self)
+        self.delegate = CollectionsDelegate(self)
         self.setItemDelegate(self.delegate)
 
         self.setup_table()
@@ -1191,13 +1161,13 @@ class DictEditorTableView(BaseTableView):
         """Return array's ndim"""
         data = self.model.get_data()
         return data[key].ndim
-    
+
     def oedit(self, key):
         """Edit item"""
         data = self.model.get_data()
-        from spyderlib.widgets.objecteditor import oedit
+        from spyderlib.widgets.varexp.objecteditor import oedit
         oedit(data[key])
-    
+
     def plot(self, key, funcname):
         """Plot item"""
         data = self.model.get_data()
@@ -1236,14 +1206,15 @@ class DictEditorTableView(BaseTableView):
         self.dictfilter = dictfilter
 
 
-class DictEditorWidget(QWidget):
-    """Dictionary Editor Dialog"""
+class CollectionsEditorWidget(QWidget):
+    """Dictionary Editor Widget"""
     def __init__(self, parent, data, readonly=False, title="", remote=False):
         QWidget.__init__(self, parent)
         if remote:
-            self.editor = RemoteDictEditorTableView(self, data, readonly)
+            self.editor = RemoteCollectionsEditorTableView(self, data, readonly)
         else:
-            self.editor = DictEditorTableView(self, data, readonly, title)
+            self.editor = CollectionsEditorTableView(self, data, readonly,
+                                                     title)
         layout = QVBoxLayout()
         layout.addWidget(self.editor)
         self.setLayout(layout)
@@ -1257,22 +1228,22 @@ class DictEditorWidget(QWidget):
         return self.editor.model.title
 
 
-class DictEditor(QDialog):
-    """Dictionary/List Editor Dialog"""
+class CollectionsEditor(QDialog):
+    """Collections Editor Dialog"""
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
-        
+
         # Destroying the C++ object right after closing the dialog box,
         # otherwise it may be garbage-collected in another QThread
         # (e.g. the editor's analysis thread in Spyder), thus leading to
         # a segmentation fault on UNIX or an application crash on Windows
         self.setAttribute(Qt.WA_DeleteOnClose)
-        
+
         self.data_copy = None
         self.widget = None
-        
-    def setup(self, data, title='', readonly=False, width=500,
-              icon=ima.icon('dictedit'), remote=False, parent=None):
+
+    def setup(self, data, title='', readonly=False, width=500, remote=False,
+              icon=None, parent=None):
         if isinstance(data, dict):
             # dictionnary
             self.data_copy = data.copy()
@@ -1286,9 +1257,9 @@ class DictEditor(QDialog):
             import copy
             self.data_copy = copy.deepcopy(data)
             datalen = len(dir(data))
-        self.widget = DictEditorWidget(self, self.data_copy, title=title,
-                                       readonly=readonly, remote=remote)
-        
+        self.widget = CollectionsEditorWidget(self, self.data_copy, title=title,
+                                              readonly=readonly, remote=remote)
+
         layout = QVBoxLayout()
         layout.addWidget(self.widget)
         self.setLayout(layout)
@@ -1310,10 +1281,11 @@ class DictEditor(QDialog):
         self.resize(width, height)
 
         self.setWindowTitle(self.widget.get_title())
-        self.setWindowIcon(icon)
+        if icon is None:
+            self.setWindowIcon(ima.icon('dictedit'))
         # Make the dialog act as a window
         self.setWindowFlags(Qt.Window)
-        
+
     def get_value(self):
         """Return modified copy of dictionary or list"""
         # It is import to avoid accessing Qt C++ object as it has probably
@@ -1321,14 +1293,14 @@ class DictEditor(QDialog):
         return self.data_copy
 
 
-#----Remote versions of DictDelegate and DictEditorTableView
-class RemoteDictDelegate(DictDelegate):
-    """DictEditor Item Delegate"""
+#----Remote versions of CollectionsDelegate and CollectionsEditorTableView
+class RemoteCollectionsDelegate(CollectionsDelegate):
+    """CollectionsEditor Item Delegate"""
     def __init__(self, parent=None, get_value_func=None, set_value_func=None):
-        DictDelegate.__init__(self, parent)
+        CollectionsDelegate.__init__(self, parent)
         self.get_value_func = get_value_func
         self.set_value_func = set_value_func
-        
+
     def get_value(self, index):
         if index.isValid():
             name = index.model().keys[index.row()]
@@ -1340,9 +1312,9 @@ class RemoteDictDelegate(DictDelegate):
             self.set_value_func(name, value)
 
 
-class RemoteDictEditorTableView(BaseTableView):
+class RemoteCollectionsEditorTableView(BaseTableView):
     """DictEditor table view"""
-    def __init__(self, parent, data, truncate=True, minmax=False, 
+    def __init__(self, parent, data, truncate=True, minmax=False,
                  get_value_func=None, set_value_func=None,
                  new_value_func=None, remove_values_func=None,
                  copy_value_func=None, is_list_func=None, get_len_func=None,
@@ -1377,13 +1349,14 @@ class RemoteDictEditorTableView(BaseTableView):
         self.model = None
         self.delegate = None
         self.readonly = False
-        self.model = DictModel(self, data, names=True,
-                               truncate=truncate, minmax=minmax,
-                               remote=True)
+        self.model = CollectionsModel(self, data, names=True,
+                                      truncate=truncate, minmax=minmax,
+                                      remote=True)
         self.setModel(self.model)
-        self.delegate = RemoteDictDelegate(self, get_value_func, set_value_func)
+        self.delegate = RemoteCollectionsDelegate(self, get_value_func,
+                                                  set_value_func)
         self.setItemDelegate(self.delegate)
-        
+
         self.setup_table()
         self.menu = self.setup_menu(truncate, minmax)
 
@@ -1423,6 +1396,9 @@ class RemoteDictEditorTableView(BaseTableView):
             BaseTableView.edit_item(self)
 
 
+#==============================================================================
+# Tests
+#==============================================================================
 def get_test_data():
     """Create test data"""
     import numpy as np
@@ -1462,32 +1438,36 @@ def get_test_data():
             'bool_scalar': np.bool(8),
             'unsupported1': np.arccos,
             'unsupported2': np.cast,
-            #1: (1, 2, 3), -5: ("a", "b", "c"), 2.5: np.array((4.0, 6.0, 8.0)),            
+            #1: (1, 2, 3), -5: ("a", "b", "c"), 2.5: np.array((4.0, 6.0, 8.0)),
             }
 
-def test():
-    """Dictionary editor test"""
+
+def editor_test():
+    """Collections editor test"""
     app = qapplication() #analysis:ignore
-    dialog = DictEditor()
+    dialog = CollectionsEditor()
     dialog.setup(get_test_data())
     dialog.show()
     app.exec_()
     print("out:", dialog.get_value())
-    
+
+
 def remote_editor_test():
-    """Remote dictionary editor test"""
+    """Remote collections editor test"""
+    app = qapplication()
     from spyderlib.plugins.variableexplorer import VariableExplorer
     from spyderlib.widgets.externalshell.monitor import make_remote_view
     remote = make_remote_view(get_test_data(), VariableExplorer.get_settings())
     from pprint import pprint
     pprint(remote)
-    app = qapplication()
-    dialog = DictEditor()
+    dialog = CollectionsEditor()
     dialog.setup(remote, remote=True)
     dialog.show()
     app.exec_()
     if dialog.result():
         print(dialog.get_value())
 
+
 if __name__ == "__main__":
+    #editor_test()
     remote_editor_test()
