@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -56,15 +56,15 @@ def create_dialog(obj, obj_name):
     oedit to show eMZed related data)
     """
     # Local import
-    from spyderlib.widgets.texteditor import TextEditor
+    from spyderlib.widgets.varexp.texteditor import TextEditor
     from spyderlib.widgets.dicteditorutils import (ndarray, FakeObject,
                                                    Image, is_known_type,
                                                    DataFrame, TimeSeries)
     from spyderlib.widgets.dicteditor import DictEditor
-    from spyderlib.widgets.arrayeditor import ArrayEditor
+    from spyderlib.widgets.varexp.arrayeditor import ArrayEditor
     if DataFrame is not FakeObject:
-        from spyderlib.widgets.dataframeeditor import DataFrameEditor
-    
+        from spyderlib.widgets.varexp.dataframeeditor import DataFrameEditor
+
     conv_func = lambda data: data
     readonly = not is_known_type(obj)
     if isinstance(obj, ndarray) and ndarray is not FakeObject:

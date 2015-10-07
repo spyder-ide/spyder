@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -42,11 +42,11 @@ from spyderlib.widgets.dicteditorutils import (sort_against, get_size,
                unsorted_unique, try_to_eval, datestr_to_datetime,
                get_numpy_dtype, is_editable_type, DataFrame, TimeSeries)
 if ndarray is not FakeObject:
-    from spyderlib.widgets.arrayeditor import ArrayEditor
+    from spyderlib.widgets.varexp.arrayeditor import ArrayEditor
 if DataFrame is not FakeObject:
-    from spyderlib.widgets.dataframeeditor import DataFrameEditor
-from spyderlib.widgets.texteditor import TextEditor
-from spyderlib.widgets.importwizard import ImportWizard
+    from spyderlib.widgets.varexp.dataframeeditor import DataFrameEditor
+from spyderlib.widgets.varexp.texteditor import TextEditor
+from spyderlib.widgets.varexp.importwizard import ImportWizard
 from spyderlib.py3compat import (to_text_string, to_binary_string,
                                  is_text_string, is_binary_string, getcwd, u)
 

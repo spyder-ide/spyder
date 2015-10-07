@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2014 Spyder development team
+# Copyright © 2009- Spyder development team
 # Licensed under the terms of the New BSD License
 #
 # DataFrameModel is based on the class ArrayModel from array editor
@@ -27,7 +27,7 @@ from spyderlib.config.base import _
 from spyderlib.config.gui import get_font, new_shortcut
 from spyderlib.py3compat import io, is_text_string, to_text_string, PY2
 from spyderlib.utils import encoding
-from spyderlib.widgets.arrayeditor import get_idx_rect
+from spyderlib.widgets.varexp.arrayeditor import get_idx_rect
 
 from pandas import DataFrame, TimeSeries
 import numpy as np
