@@ -428,8 +428,8 @@ class ArrayView(QTableView):
                        delimiter='\t')
         except:
             QMessageBox.warning(self, _("Warning"),
-                                _("It is not possible to copy values of "
-                                  "non-numeric arrays"))
+                                _("It was not possible to copy values for "
+                                  "this array"))
             return
         contents = output.getvalue().decode('utf-8')
         output.close()
