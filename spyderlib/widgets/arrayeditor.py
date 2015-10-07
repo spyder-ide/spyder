@@ -392,6 +392,15 @@ class ArrayView(QTableView):
                             lambda val: self.load_more_data(val, columns=True))
         self.verticalScrollBar().valueChanged.connect(
                                lambda val: self.load_more_data(val, rows=True))
+        
+        # In the event that an entire row or column is selected
+        # we are probably interested in all the data (not just the
+        # data already fetched). Therefore, load it all
+        # (Note - ideally it would be better to do this by overriding
+        # "selectRow" and "selectColumn" in the QTableView, but
+        # they aren't virtual)
+        self.horizontalHeader().sectionClicked.connect(self.load_all_rows_select_column)
+        self.verticalHeader().sectionClicked.connect(self.load_all_columns_select_row)
     
     def load_more_data(self, value, rows=False, columns=False):
         if rows and value == self.verticalScrollBar().maximum():
@@ -458,6 +467,33 @@ class ArrayView(QTableView):
         cliptxt = self._sel_to_text( self.selectedIndexes() )
         clipboard = QApplication.clipboard()
         clipboard.setText(cliptxt)
+       
+    def load_all_rows(self):
+        while self.model().can_fetch_more(rows=True):
+            self.model().fetch_more(rows=True)
+            
+    @Slot(int)
+    def load_all_rows_select_column(self, column):
+        self.load_all_rows()
+        self.selectColumn(column)
+
+    def load_all_columns(self):
+        while self.model().can_fetch_more(columns=True):
+            self.model().fetch_more(columns=True)
+            
+    @Slot(int)
+    def load_all_columns_select_row(self, row):
+        self.load_all_columns()
+        self.selectRow(row)
+    
+    def selectAll(self):
+        """If we select everything then we probably intended to 
+        select the entire array (and hence must load any unloaded data)"""
+        self.load_all_rows()
+        self.load_all_columns()
+
+        QTableView.selectAll(self)
+        
 
 
 class ArrayEditorWidget(QWidget):
