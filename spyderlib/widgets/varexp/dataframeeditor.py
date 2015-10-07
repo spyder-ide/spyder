@@ -25,7 +25,7 @@ from spyderlib.utils.qthelpers import (qapplication, create_action,
 
 from spyderlib.config.base import _
 from spyderlib.config.gui import get_font, new_shortcut
-from spyderlib.py3compat import io, is_text_string, to_text_string, PY2
+from spyderlib.py3compat import PY2, io, is_text_string, to_text_string
 from spyderlib.utils import encoding
 from spyderlib.widgets.varexp.arrayeditor import get_idx_rect
 
@@ -460,7 +460,10 @@ class DataFrameView(QTableView):
             obj = df.iloc[slice(row_min, row_max+1), slice(col_min-1, col_max)]
             output = io.StringIO()
             obj.to_csv(output, sep='\t', index=index, header=header)
-            contents = output.getvalue().decode('utf-8')
+            if not PY2:
+                contents = output.getvalue()
+            else:
+                contents = output.getvalue().decode('utf-8')
             output.close()
         clipboard = QApplication.clipboard()
         clipboard.setText(contents)
