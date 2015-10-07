@@ -4,7 +4,11 @@
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
-"""Namespace browser widget"""
+"""
+Namespace browser widget
+
+This is the main widget used in the Variable Explorer plugin
+"""
 
 import os.path as osp
 import socket
