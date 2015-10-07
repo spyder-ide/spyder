@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2011 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -21,12 +21,17 @@ from spyderlib import dependencies
 from spyderlib.config.base import _
 
 
+#==============================================================================
+# FakeObject
+#==============================================================================
 class FakeObject(object):
     """Fake class used in replacement of missing modules"""
     pass
 
 
-#----Numpy arrays support
+#==============================================================================
+# Numpy arrays support
+#==============================================================================
 try:
     from numpy import ndarray
     from numpy import array, matrix #@UnusedImport (object eval)
@@ -55,7 +60,9 @@ def get_numpy_dtype(obj):
                 return
 
 
-#----Pandas support
+#==============================================================================
+# Pandas support
+#==============================================================================
 PANDAS_REQVER = '>=0.13.1'
 dependencies.add('pandas',  _("View and edit DataFrames and Series in the "
                               "Variable Explorer"),
@@ -66,7 +73,9 @@ else:
     DataFrame = TimeSeries = FakeObject      # analysis:ignore
 
 
-#----PIL Images support
+#==============================================================================
+# PIL Images support
+#==============================================================================
 try:
     from spyderlib import pil_patch
     Image = pil_patch.Image.Image
@@ -74,7 +83,9 @@ except ImportError:
     Image = FakeObject  # analysis:ignore
 
 
-#----BeautifulSoup support (see Issue 2448)
+#==============================================================================
+# BeautifulSoup support (see Issue 2448)
+#==============================================================================
 try:
     import bs4
     NavigableString = bs4.element.NavigableString
@@ -82,15 +93,41 @@ except ImportError:
     NavigableString = FakeObject  # analysis:ignore
 
 
-#----Misc.
+#==============================================================================
+# Misc.
+#==============================================================================
 def address(obj):
     """Return object address as a string: '<classname @ address>'"""
     return "<%s @ %s>" % (obj.__class__.__name__,
                           hex(id(obj)).upper().replace('X', 'x'))
 
 
-#----Set limits for the amount of elements in the repr of collections
-#    (lists, dicts, tuples and sets)
+def try_to_eval(value):
+    """Try to eval value"""
+    try:
+        return eval(value)
+    except (NameError, SyntaxError, ImportError):
+        return value
+
+    
+def get_size(item):
+    """Return size of an item of arbitrary type"""
+    if isinstance(item, (list, tuple, dict)):
+        return len(item)
+    elif isinstance(item, (ndarray, MaskedArray)):
+        return item.shape
+    elif isinstance(item, Image):
+        return item.size
+    if isinstance(item, (DataFrame, TimeSeries)):
+        return item.shape
+    else:
+        return 1
+
+
+#==============================================================================
+# Set limits for the amount of elements in the repr of collections (lists,
+# dicts, tuples and sets)
+#==============================================================================
 CollectionsRepr = reprlib.Repr()
 CollectionsRepr.maxlist = 10
 CollectionsRepr.maxdict = 10
@@ -98,7 +135,9 @@ CollectionsRepr.maxtuple = 10
 CollectionsRepr.maxset = 10
 
 
-#----date and datetime objects support
+#==============================================================================
+# Date and datetime objects support
+#==============================================================================
 import datetime
 try:
     from dateutil.parser import parse as dateparse
@@ -113,7 +152,9 @@ def datestr_to_datetime(value):
     return v
 
 
-#----Background colors for supported types
+#==============================================================================
+# Background colors for supported types
+#==============================================================================
 ARRAY_COLOR = "#00ff00"
 SCALAR_COLOR = "#0000ff"
 COLORS = {
@@ -150,13 +191,16 @@ def get_color_name(value):
         else:
             return ARRAY_COLOR
 
+
 def is_editable_type(value):
     """Return True if data type is editable with a standard GUI-based editor,
     like DictEditor, ArrayEditor, QDateEdit or a simple QLineEdit"""
     return get_color_name(value) not in (UNSUPPORTED_COLOR, CUSTOM_TYPE_COLOR)
 
 
-#----Sorting
+#==============================================================================
+# Sorting
+#==============================================================================
 def sort_against(lista, listb, reverse=False):
     """Arrange lista items in the same order as sorted(listb)"""
     try:
@@ -164,12 +208,15 @@ def sort_against(lista, listb, reverse=False):
     except:
         return lista
 
+
 def unsorted_unique(lista):
     """Removes duplicates from lista neglecting its initial ordering"""
     return list(set(lista))
 
 
-#----Display <--> Value
+#==============================================================================
+# Display <--> Value
+#==============================================================================
 def value_to_display(value, truncate=False, trunc_len=80, minmax=False):
     """Convert value for display purpose"""
     if minmax and isinstance(value, (ndarray, MaskedArray)):
@@ -217,26 +264,10 @@ def value_to_display(value, truncate=False, trunc_len=80, minmax=False):
         value = value[:trunc_len].rstrip() + ' ...'
     return value
 
-def try_to_eval(value):
-    """Try to eval value"""
-    try:
-        return eval(value)
-    except (NameError, SyntaxError, ImportError):
-        return value
-    
-def get_size(item):
-    """Return size of an item of arbitrary type"""
-    if isinstance(item, (list, tuple, dict)):
-        return len(item)
-    elif isinstance(item, (ndarray, MaskedArray)):
-        return item.shape
-    elif isinstance(item, Image):
-        return item.size
-    if isinstance(item, (DataFrame, TimeSeries)):
-        return item.shape
-    else:
-        return 1
 
+#==============================================================================
+# Types
+#==============================================================================
 def get_type_string(item):
     """Return type string of an object"""
     if isinstance(item, DataFrame):
@@ -253,6 +284,7 @@ def is_known_type(item):
     # Unfortunately, the masked array case is specific
     return isinstance(item, MaskedArray) or get_type_string(item) is not None
 
+
 def get_human_readable_type(item):
     """Return human-readable type string of an item"""
     if isinstance(item, (ndarray, MaskedArray)):
@@ -267,7 +299,9 @@ def get_human_readable_type(item):
             return text[text.find('.')+1:]
 
 
-#----Globals filter: filter namespace dictionaries (to be edited in DictEditor)
+#==============================================================================
+# Globals filter: filter namespace dictionaries (to be edited in DictEditor)
+#==============================================================================
 def is_supported(value, check_all=False, filters=None, iterate=True):
     """Return True if the value is supported, False otherwise"""
     assert filters is not None
@@ -291,6 +325,7 @@ def is_supported(value, check_all=False, filters=None, iterate=True):
                 if not check_all:
                     break
     return True
+
 
 def globalsfilter(input_dict, check_all=False, filters=None,
                   exclude_private=None, exclude_capitalized=None,
