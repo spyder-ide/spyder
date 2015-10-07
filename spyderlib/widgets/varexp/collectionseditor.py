@@ -49,7 +49,7 @@ if DataFrame is not FakeObject:
 from spyderlib.widgets.varexp.texteditor import TextEditor
 from spyderlib.widgets.varexp.importwizard import ImportWizard
 from spyderlib.py3compat import (to_text_string, is_text_string,
-                                 is_binary_string, getcwd, u)
+                                 is_binary_string, getcwd, u, PY3, io)
 
 
 LARGE_NROWS = 100
@@ -1034,9 +1034,25 @@ class BaseTableView(QTableView):
         for idx in self.selectedIndexes():
             if not idx.isValid():
                 continue
-            clipl.append(to_text_string(self.delegate.get_value(idx)))
+            obj = self.delegate.get_value(idx)
+            # check if it's a numpy array, and if so make sure to copy the whole
+            # thing in a tab separated format
+            try:
+                import numpy as np
+            except ImportError:
+                pass # skip this part
+            else:
+                if isinstance(obj, np.ndarray):
+                    if PY3:
+                        output = io.BytesIO()
+                    else:
+                        output = io.StringIO()
+                    np.savetxt(output, obj, delimiter='\t')
+                obj = output.getvalue().decode('utf-8')
+
+            clipl.append(to_text_string(obj))
         clipboard.setText(u('\n').join(clipl))
-    
+
     def import_from_string(self, text, title=None):
         """Import data from string"""
         data = self.model.get_data()
