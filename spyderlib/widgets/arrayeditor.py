@@ -34,7 +34,8 @@ from spyderlib.config.base import _
 from spyderlib.config.gui import get_font, new_shortcut
 from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
                                        qapplication)
-from spyderlib.py3compat import PY3, io, to_text_string, is_text_string
+from spyderlib.py3compat import (PY3, io, to_text_string, is_text_string,
+                                 is_binary_string)
 
 # Note: string and unicode data types will be formatted with '%s' (see below)
 SUPPORTED_FORMATS = {
@@ -237,6 +238,11 @@ class ArrayModel(QAbstractTableModel):
         if not index.isValid():
             return to_qvariant()
         value = self.get_value(index)
+        if is_binary_string(value):
+            try:
+                value = to_text_string(value, 'utf8')
+            except:
+                pass
         if role == Qt.DisplayRole:
             if value is np.ma.masked:
                 return ''
@@ -244,10 +250,10 @@ class ArrayModel(QAbstractTableModel):
                 return to_qvariant(self._format % value)
         elif role == Qt.TextAlignmentRole:
             return to_qvariant(int(Qt.AlignCenter|Qt.AlignVCenter))
-        elif role == Qt.BackgroundColorRole and self.bgcolor_enabled\
-             and value is not np.ma.masked:
+        elif role == Qt.BackgroundColorRole and self.bgcolor_enabled \
+          and value is not np.ma.masked:
             hue = self.hue0+\
-                  self.dhue*(self.vmax-self.color_func(value))\
+                  self.dhue*(self.vmax-self.color_func(value)) \
                   /(self.vmax-self.vmin)
             hue = float(np.abs(hue))
             color = QColor.fromHsvF(hue, self.sat, self.val, self.alp)
