@@ -442,6 +442,8 @@ class DataFrameView(QTableView):
     @Slot()
     def copy(self):
         """Copy text to clipboard"""
+        if not self.selectedIndexes():
+            return
         (row_min, row_max,
          col_min, col_max) = get_idx_rect(self.selectedIndexes())
         index = header = False
