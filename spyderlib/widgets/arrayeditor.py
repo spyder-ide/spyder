@@ -55,6 +55,7 @@ SUPPORTED_FORMATS = {
                      'complex192': '%r',
                      'complex256': '%r',
                      'byte': '%d',
+                     'bytes8': '%s',
                      'short': '%d',
                      'intc': '%d',
                      'int_': '%d',
