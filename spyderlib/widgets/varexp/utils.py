@@ -5,7 +5,7 @@
 # (see spyderlib/__init__.py for details)
 
 """
-Utilities for the Dictionary Editor Widget and Dialog based on Qt
+Utilities for the Collections editor widget and dialog
 """
 
 from __future__ import print_function
