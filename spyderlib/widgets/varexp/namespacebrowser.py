@@ -21,8 +21,8 @@ from spyderlib.widgets.externalshell.monitor import (
             monitor_set_global, monitor_get_global, monitor_del_global,
             monitor_copy_global, monitor_save_globals, monitor_load_globals,
             communicate, REMOTE_SETTINGS)
-from spyderlib.widgets.varexp.dicteditor import (RemoteDictEditorTableView,
-                                                 DictEditorTableView)
+from spyderlib.widgets.varexp.dicteditor import (RemoteCollectionsEditorTableView,
+                                                 CollectionsEditorTableView)
 from spyderlib.widgets.varexp.utils import globalsfilter
 from spyderlib.utils import encoding
 from spyderlib.utils.misc import fix_reference_name
@@ -106,13 +106,14 @@ class NamespaceBrowser(QWidget):
                 self.auto_refresh_button.setChecked(autorefresh)
             self.refresh_table()
             return
-        
+
         # Dict editor:
         if self.is_internal_shell:
-            self.editor = DictEditorTableView(self, None, truncate=truncate,
-                                              minmax=minmax)
+            self.editor = CollectionsEditorTableView(self, None,
+                                                     truncate=truncate,
+                                                     minmax=minmax)
         else:
-            self.editor = RemoteDictEditorTableView(self, None,
+            self.editor = RemoteCollectionsEditorTableView(self, None,
                             truncate=truncate, minmax=minmax,
                             remote_editing=remote_editing,
                             get_value_func=self.get_value,

@@ -60,7 +60,7 @@ def create_dialog(obj, obj_name):
     from spyderlib.widgets.varexp.utils import (ndarray, FakeObject, Image,
                                                 is_known_type, DataFrame,
                                                 TimeSeries)
-    from spyderlib.widgets.varexp.dicteditor import DictEditor
+    from spyderlib.widgets.varexp.dicteditor import CollectionsEditor
     from spyderlib.widgets.varexp.arrayeditor import ArrayEditor
     if DataFrame is not FakeObject:
         from spyderlib.widgets.varexp.dataframeeditor import DataFrameEditor
@@ -90,7 +90,7 @@ def create_dialog(obj, obj_name):
     elif is_text_string(obj):
         dialog = TextEditor(obj, title=obj_name, readonly=readonly)
     else:
-        dialog = DictEditor()
+        dialog = CollectionsEditor()
         dialog.setup(obj, title=obj_name, readonly=readonly)
 
     def end_func(dialog):

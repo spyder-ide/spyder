@@ -32,7 +32,7 @@ from spyderlib.utils.qthelpers import (create_action, add_actions,
 from spyderlib.utils.environ import EnvDialog
 from spyderlib.widgets.internalshell import InternalShell
 from spyderlib.widgets.findreplace import FindReplace
-from spyderlib.widgets.varexp.dicteditor import DictEditor
+from spyderlib.widgets.varexp.dicteditor import CollectionsEditor
 from spyderlib.plugins import SpyderPluginWidget
 from spyderlib.py3compat import to_text_string, getcwd
 
@@ -217,7 +217,7 @@ class Console(SpyderPluginWidget):
     @Slot()
     def show_syspath(self):
         """Show sys.path"""
-        editor = DictEditor()
+        editor = CollectionsEditor()
         editor.setup(sys.path, title="sys.path", readonly=True,
                      width=600, icon=ima.icon('syspath'))
         self.dialog_manager.show(editor)

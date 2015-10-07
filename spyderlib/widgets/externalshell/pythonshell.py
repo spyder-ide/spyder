@@ -30,7 +30,7 @@ from spyderlib.widgets.varexp.namespacebrowser import NamespaceBrowser
 from spyderlib.utils.bsdsocket import communicate, write_packet
 from spyderlib.widgets.externalshell.baseshell import (ExternalShellBase,
                                                    add_pathlist_to_PYTHONPATH)
-from spyderlib.widgets.varexp.dicteditor import DictEditor
+from spyderlib.widgets.varexp.dicteditor import CollectionsEditor
 from spyderlib.py3compat import (is_text_string, to_text_string,
                                  to_binary_string)
 
@@ -652,7 +652,7 @@ class ExternalPythonShell(ExternalShellBase):
     @Slot()
     def show_syspath(self):
         """Show sys.path contents"""
-        editor = DictEditor()
+        editor = CollectionsEditor()
         editor.setup(self.shell.get_syspath(), title="sys.path", readonly=True,
                      width=600, icon=ima.icon('syspath'))
         self.dialog_manager.show(editor)
