@@ -15,7 +15,7 @@ import spyderlib.utils.icon_manager as ima
 
 # Local imports
 from spyderlib.config.base import _
-from spyderlib.widgets.varexp.dicteditor import CollectionsEditor
+from spyderlib.widgets.varexp.collectionseditor import CollectionsEditor
 
 
 def envdict2listdict(envdict):

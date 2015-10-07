@@ -21,8 +21,8 @@ from spyderlib.widgets.externalshell.monitor import (
             monitor_set_global, monitor_get_global, monitor_del_global,
             monitor_copy_global, monitor_save_globals, monitor_load_globals,
             communicate, REMOTE_SETTINGS)
-from spyderlib.widgets.varexp.dicteditor import (RemoteCollectionsEditorTableView,
-                                                 CollectionsEditorTableView)
+from spyderlib.widgets.varexp.collectionseditor import (
+                  RemoteCollectionsEditorTableView, CollectionsEditorTableView)
 from spyderlib.widgets.varexp.utils import globalsfilter
 from spyderlib.utils import encoding
 from spyderlib.utils.misc import fix_reference_name
