@@ -1035,8 +1035,8 @@ class BaseTableView(QTableView):
             if not idx.isValid():
                 continue
             obj = self.delegate.get_value(idx)
-            # check if it's a numpy array, and if so make sure to copy the whole
-            # thing in a tab separated format
+            # Check if we are trying to copy a numpy array, and if so make sure
+            # to copy the whole thing in a tab separated format
             try:
                 import numpy as np
             except ImportError:
@@ -1049,8 +1049,7 @@ class BaseTableView(QTableView):
                         output = io.StringIO()
                     np.savetxt(output, obj, delimiter='\t')
                 obj = output.getvalue().decode('utf-8')
-
-            clipl.append(to_text_string(obj))
+            clipl.append(obj)
         clipboard.setText('\n'.join(clipl))
 
     def import_from_string(self, text, title=None):
