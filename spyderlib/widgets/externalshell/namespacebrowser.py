@@ -23,7 +23,7 @@ from spyderlib.widgets.externalshell.monitor import (
             communicate, REMOTE_SETTINGS)
 from spyderlib.widgets.varexp.dicteditor import (RemoteDictEditorTableView,
                                                  DictEditorTableView)
-from spyderlib.widgets.dicteditorutils import globalsfilter
+from spyderlib.widgets.varexp.utils import globalsfilter
 from spyderlib.utils import encoding
 from spyderlib.utils.misc import fix_reference_name
 from spyderlib.utils.programs import is_module_installed

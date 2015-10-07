@@ -36,7 +36,7 @@ from spyderlib.config.base import _
 from spyderlib.config.gui import get_font
 from spyderlib.utils.misc import fix_reference_name
 from spyderlib.utils.qthelpers import add_actions, create_action, qapplication
-from spyderlib.widgets.dicteditorutils import (sort_against, get_size,
+from spyderlib.widgets.varexp.utils import (sort_against, get_size,
                get_human_readable_type, value_to_display, get_color_name,
                is_known_type, FakeObject, Image, ndarray, array, MaskedArray,
                unsorted_unique, try_to_eval, datestr_to_datetime,

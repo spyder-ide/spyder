@@ -57,9 +57,9 @@ def create_dialog(obj, obj_name):
     """
     # Local import
     from spyderlib.widgets.varexp.texteditor import TextEditor
-    from spyderlib.widgets.dicteditorutils import (ndarray, FakeObject,
-                                                   Image, is_known_type,
-                                                   DataFrame, TimeSeries)
+    from spyderlib.widgets.varexp.utils import (ndarray, FakeObject, Image,
+                                                is_known_type, DataFrame,
+                                                TimeSeries)
     from spyderlib.widgets.varexp.dicteditor import DictEditor
     from spyderlib.widgets.varexp.arrayeditor import ArrayEditor
     if DataFrame is not FakeObject:
