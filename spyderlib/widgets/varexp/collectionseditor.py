@@ -48,8 +48,8 @@ if DataFrame is not FakeObject:
     from spyderlib.widgets.varexp.dataframeeditor import DataFrameEditor
 from spyderlib.widgets.varexp.texteditor import TextEditor
 from spyderlib.widgets.varexp.importwizard import ImportWizard
-from spyderlib.py3compat import (to_text_string, is_text_string,
-                                 is_binary_string, getcwd, u, PY3, io)
+from spyderlib.py3compat import (to_text_string, is_text_string, PY3, io,
+                                 is_binary_string, getcwd)
 
 
 LARGE_NROWS = 100
@@ -1051,7 +1051,7 @@ class BaseTableView(QTableView):
                 obj = output.getvalue().decode('utf-8')
 
             clipl.append(to_text_string(obj))
-        clipboard.setText(u('\n').join(clipl))
+        clipboard.setText('\n'.join(clipl))
 
     def import_from_string(self, text, title=None):
         """Import data from string"""
