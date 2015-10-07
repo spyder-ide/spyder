@@ -415,6 +415,8 @@ class ArrayView(QTableView):
 
     def _sel_to_text(self, cell_range):
         """Copy an array portion to a unicode string"""
+        if not cell_range:
+            return
         row_min, row_max, col_min, col_max = get_idx_rect(cell_range)
         _data = self.model().get_data()
         if PY3:
