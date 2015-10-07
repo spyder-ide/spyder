@@ -1174,13 +1174,13 @@ class DictEditorTableView(BaseTableView):
         """Return array's ndim"""
         data = self.model.get_data()
         return data[key].ndim
-    
+
     def oedit(self, key):
         """Edit item"""
         data = self.model.get_data()
-        from spyderlib.widgets.objecteditor import oedit
+        from spyderlib.widgets.varexp.objecteditor import oedit
         oedit(data[key])
-    
+
     def plot(self, key, funcname):
         """Plot item"""
         data = self.model.get_data()

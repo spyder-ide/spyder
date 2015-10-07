@@ -429,12 +429,12 @@ class NamespaceBrowser(QWidget):
             self.ipyclient.shellwidget.execute(command)
         else:
             self.shellwidget.send_to_process(command)
-        
+
     def oedit(self, name):
-        command = "from spyderlib.widgets.objecteditor import oedit; " \
+        command = "from spyderlib.widgets.varexp.objecteditor import oedit; " \
                   "oedit('%s', modal=False, namespace=locals());" % name
         self.shellwidget.send_to_process(command)
-        
+
     #------ Set, load and save data -------------------------------------------
     def set_data(self, data):
         """Set data"""

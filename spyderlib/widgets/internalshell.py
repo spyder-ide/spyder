@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -15,7 +15,7 @@
 
 #----Builtins*
 from spyderlib.py3compat import builtins
-from spyderlib.widgets.objecteditor import oedit
+from spyderlib.widgets.varexp.objecteditor import oedit
 builtins.oedit = oedit
 
 import os
