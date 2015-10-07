@@ -346,14 +346,18 @@ def is_module_installed(module_name, version=None, installed_version=None,
             return check_version(actver, version, symb)
 
 
+def test_programs():
+    assert find_program('git')
+    assert shell_split('-q -o -a') == ['-q', '-o', '-a']
+    assert shell_split('-q "d:\\Python de xxxx\\t.txt" -o -a') == \
+           ['-q', 'd:\\Python de xxxx\\t.txt', '-o', '-a']
+    assert check_version('0.9.4-1', '0.9.4', '>=')
+    assert check_version('3.0.0rc1', '3.0.0', '<')
+    assert check_version('1.0', '1.0b2', '>')
+    assert is_module_installed('qtconsole', '>=4.0')
+    assert not is_module_installed('IPython', '>=1.0;<3.0')
+    assert is_module_installed('jedi', '>=0.7.0')
+
+
 if __name__ == '__main__':
-    assert(find_program('git'))
-    assert(shell_split('-q -o -a') == ['-q', '-o', '-a'])
-    assert(shell_split('-q "d:\\Python de xxxx\\t.txt" -o -a') == \
-           ['-q', 'd:\\Python de xxxx\\t.txt', '-o', '-a'])
-    assert(check_version('0.9.4-1', '0.9.4', '>='))
-    assert(check_version('3.0.0rc1', '3.0.0', '<'))
-    assert(check_version('1.0', '1.0b2', '>'))
-    assert(is_module_installed('qtconsole', '>=4.0'))
-    assert(not is_module_installed('IPython', '>=1.0;<3.0'))
-    assert(is_module_installed('jedi', '>=0.7.0'))
+    test_programs()
