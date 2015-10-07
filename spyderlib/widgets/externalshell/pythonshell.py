@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -30,7 +30,7 @@ from spyderlib.widgets.externalshell.namespacebrowser import NamespaceBrowser
 from spyderlib.utils.bsdsocket import communicate, write_packet
 from spyderlib.widgets.externalshell.baseshell import (ExternalShellBase,
                                                    add_pathlist_to_PYTHONPATH)
-from spyderlib.widgets.dicteditor import DictEditor
+from spyderlib.widgets.varexp.dicteditor import DictEditor
 from spyderlib.py3compat import (is_text_string, to_text_string,
                                  to_binary_string)
 

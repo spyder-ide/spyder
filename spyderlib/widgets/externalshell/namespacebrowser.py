@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -21,8 +21,8 @@ from spyderlib.widgets.externalshell.monitor import (
             monitor_set_global, monitor_get_global, monitor_del_global,
             monitor_copy_global, monitor_save_globals, monitor_load_globals,
             communicate, REMOTE_SETTINGS)
-from spyderlib.widgets.dicteditor import (RemoteDictEditorTableView,
-                                          DictEditorTableView)
+from spyderlib.widgets.varexp.dicteditor import (RemoteDictEditorTableView,
+                                                 DictEditorTableView)
 from spyderlib.widgets.dicteditorutils import globalsfilter
 from spyderlib.utils import encoding
 from spyderlib.utils.misc import fix_reference_name

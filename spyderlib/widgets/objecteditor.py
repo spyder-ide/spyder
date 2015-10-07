@@ -60,7 +60,7 @@ def create_dialog(obj, obj_name):
     from spyderlib.widgets.dicteditorutils import (ndarray, FakeObject,
                                                    Image, is_known_type,
                                                    DataFrame, TimeSeries)
-    from spyderlib.widgets.dicteditor import DictEditor
+    from spyderlib.widgets.varexp.dicteditor import DictEditor
     from spyderlib.widgets.varexp.arrayeditor import ArrayEditor
     if DataFrame is not FakeObject:
         from spyderlib.widgets.varexp.dataframeeditor import DataFrameEditor

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -32,7 +32,7 @@ from spyderlib.utils.qthelpers import (create_action, add_actions,
 from spyderlib.utils.environ import EnvDialog
 from spyderlib.widgets.internalshell import InternalShell
 from spyderlib.widgets.findreplace import FindReplace
-from spyderlib.widgets.dicteditor import DictEditor
+from spyderlib.widgets.varexp.dicteditor import DictEditor
 from spyderlib.plugins import SpyderPluginWidget
 from spyderlib.py3compat import to_text_string, getcwd
 

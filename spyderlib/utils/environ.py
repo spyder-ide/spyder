@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -8,14 +8,14 @@
 Environment variable utilities
 """
 
+import os
+
 from spyderlib.qt.QtGui import QDialog, QMessageBox
 import spyderlib.utils.icon_manager as ima
 
-import os
-
 # Local imports
 from spyderlib.config.base import _
-from spyderlib.widgets.dicteditor import DictEditor
+from spyderlib.widgets.varexp.dicteditor import DictEditor
 
 
 def envdict2listdict(envdict):
