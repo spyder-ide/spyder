@@ -41,7 +41,7 @@ from spyderlib.widgets.varexp.utils import (sort_against, get_size,
                get_human_readable_type, value_to_display, get_color_name,
                is_known_type, FakeObject, Image, ndarray, array, MaskedArray,
                unsorted_unique, try_to_eval, is_editable_type, DataFrame,
-               TimeSeries, display_to_value)
+               TimeSeries, display_to_value, np_savetxt)
 if ndarray is not FakeObject:
     from spyderlib.widgets.varexp.arrayeditor import ArrayEditor
 if DataFrame is not FakeObject:
@@ -1037,23 +1037,19 @@ class BaseTableView(QTableView):
             obj = self.delegate.get_value(idx)
             # Check if we are trying to copy a numpy array, and if so make sure
             # to copy the whole thing in a tab separated format
-            try:
-                import numpy as np
-            except ImportError:
-                pass # skip this part
-            else:
-                if isinstance(obj, np.ndarray):
-                    if PY3:
-                        output = io.BytesIO()
-                    else:
-                        output = io.StringIO()
-                    try:
-                        np.savetxt(output, obj, delimiter='\t')
-                    except:
-                        QMessageBox.warning(self, _("Warning"),
-                                            _("It was not possible to copy "
-                                              "this array"))
-                        return
+            if isinstance(obj, (ndarray, MaskedArray)) \
+              and ndarray is not FakeObject:
+                if PY3:
+                    output = io.BytesIO()
+                else:
+                    output = io.StringIO()
+                try:
+                    np_savetxt(output, obj, delimiter='\t')
+                except:
+                    QMessageBox.warning(self, _("Warning"),
+                                        _("It was not possible to copy "
+                                          "this array"))
+                    return
                 obj = output.getvalue().decode('utf-8')
             clipl.append(obj)
         clipboard.setText('\n'.join(clipl))

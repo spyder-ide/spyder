@@ -36,8 +36,9 @@ try:
     from numpy import ndarray
     from numpy import array, matrix #@UnusedImport (object eval)
     from numpy.ma import MaskedArray
+    from numpy import savetxt as np_savetxt
 except ImportError:
-    ndarray = array = matrix = MaskedArray = FakeObject  # analysis:ignore
+    ndarray = array = matrix = MaskedArray = np_savetxt = FakeObject  # analysis:ignore
 
 
 def get_numpy_dtype(obj):
