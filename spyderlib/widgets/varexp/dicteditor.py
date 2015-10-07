@@ -17,6 +17,10 @@ Dictionary Editor Widget and Dialog based on Qt
 # pylint: disable=R0201
 
 from __future__ import print_function
+
+import sys
+import datetime
+
 from spyderlib.qt.QtGui import (QMessageBox, QTableView, QItemDelegate,
                                 QLineEdit, QVBoxLayout, QWidget, QColor,
                                 QDialog, QDateEdit, QDialogButtonBox, QMenu,
@@ -25,11 +29,8 @@ from spyderlib.qt.QtGui import (QMessageBox, QTableView, QItemDelegate,
 from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, Signal,
                                  QDateTime, Slot)
 import spyderlib.utils.icon_manager as ima
-from spyderlib.qt.compat import to_qvariant, from_qvariant, getsavefilename
+from spyderlib.qt.compat import to_qvariant, getsavefilename
 from spyderlib.utils.qthelpers import mimedata2url
-
-import sys
-import datetime
 
 # Local import
 from spyderlib.config.base import _
@@ -39,65 +40,19 @@ from spyderlib.utils.qthelpers import add_actions, create_action, qapplication
 from spyderlib.widgets.varexp.utils import (sort_against, get_size,
                get_human_readable_type, value_to_display, get_color_name,
                is_known_type, FakeObject, Image, ndarray, array, MaskedArray,
-               unsorted_unique, try_to_eval, datestr_to_datetime,
-               get_numpy_dtype, is_editable_type, DataFrame, TimeSeries)
+               unsorted_unique, try_to_eval, is_editable_type, DataFrame,
+               TimeSeries, display_to_value)
 if ndarray is not FakeObject:
     from spyderlib.widgets.varexp.arrayeditor import ArrayEditor
 if DataFrame is not FakeObject:
     from spyderlib.widgets.varexp.dataframeeditor import DataFrameEditor
 from spyderlib.widgets.varexp.texteditor import TextEditor
 from spyderlib.widgets.varexp.importwizard import ImportWizard
-from spyderlib.py3compat import (to_text_string, to_binary_string,
-                                 is_text_string, is_binary_string, getcwd, u)
+from spyderlib.py3compat import (to_text_string, is_text_string,
+                                 is_binary_string, getcwd, u)
 
 
 LARGE_NROWS = 100
-
-
-def display_to_value(value, default_value, ignore_errors=True):
-    """Convert back to value"""
-    value = from_qvariant(value, to_text_string)
-    try:
-        np_dtype = get_numpy_dtype(default_value)
-        if isinstance(default_value, bool):
-            # We must test for boolean before NumPy data types
-            # because `bool` class derives from `int` class
-            try:
-                value = bool(float(value))
-            except ValueError:
-                value = value.lower() == "true"
-        elif np_dtype is not None:
-            if 'complex' in str(type(default_value)):
-                value = np_dtype(complex(value))
-            else:
-                value = np_dtype(value)
-        elif is_binary_string(default_value):
-            value = to_binary_string(value, 'utf8')
-        elif is_text_string(default_value):
-            value = to_text_string(value)
-        elif isinstance(default_value, complex):
-            value = complex(value)
-        elif isinstance(default_value, float):
-            value = float(value)
-        elif isinstance(default_value, int):
-            try:
-                value = int(value)
-            except ValueError:
-                value = float(value)
-        elif isinstance(default_value, datetime.datetime):
-            value = datestr_to_datetime(value)
-        elif isinstance(default_value, datetime.date):
-            value = datestr_to_datetime(value).date()
-        elif ignore_errors:
-            value = try_to_eval(value)
-        else:
-            value = eval(value)
-    except (ValueError, SyntaxError):
-        if ignore_errors:
-            value = try_to_eval(value)
-        else:
-            return default_value
-    return value
 
 
 class ProxyObject(object):

@@ -15,7 +15,7 @@ import re
 # Local imports
 from spyderlib.py3compat import (NUMERIC_TYPES, TEXT_TYPES, to_text_string,
                                  is_text_string, is_binary_string, reprlib,
-                                 PY2)
+                                 PY2, to_binary_string)
 from spyderlib.utils import programs
 from spyderlib import dependencies
 from spyderlib.config.base import _
@@ -139,12 +139,16 @@ CollectionsRepr.maxset = 10
 # Date and datetime objects support
 #==============================================================================
 import datetime
+
+
 try:
     from dateutil.parser import parse as dateparse
 except ImportError:
     def dateparse(datestr):  # analysis:ignore
         """Just for 'year, month, day' strings"""
         return datetime.datetime( *list(map(int, datestr.split(','))) )
+
+
 def datestr_to_datetime(value):
     rp = value.rfind('(')+1
     v = dateparse(value[rp:-1])
@@ -262,6 +266,53 @@ def value_to_display(value, truncate=False, trunc_len=80, minmax=False):
             value = repr(value)
     if truncate and len(value) > trunc_len:
         value = value[:trunc_len].rstrip() + ' ...'
+    return value
+
+
+def display_to_value(value, default_value, ignore_errors=True):
+    """Convert back to value"""
+    from spyderlib.qt.compat import from_qvariant
+    value = from_qvariant(value, to_text_string)
+    try:
+        np_dtype = get_numpy_dtype(default_value)
+        if isinstance(default_value, bool):
+            # We must test for boolean before NumPy data types
+            # because `bool` class derives from `int` class
+            try:
+                value = bool(float(value))
+            except ValueError:
+                value = value.lower() == "true"
+        elif np_dtype is not None:
+            if 'complex' in str(type(default_value)):
+                value = np_dtype(complex(value))
+            else:
+                value = np_dtype(value)
+        elif is_binary_string(default_value):
+            value = to_binary_string(value, 'utf8')
+        elif is_text_string(default_value):
+            value = to_text_string(value)
+        elif isinstance(default_value, complex):
+            value = complex(value)
+        elif isinstance(default_value, float):
+            value = float(value)
+        elif isinstance(default_value, int):
+            try:
+                value = int(value)
+            except ValueError:
+                value = float(value)
+        elif isinstance(default_value, datetime.datetime):
+            value = datestr_to_datetime(value)
+        elif isinstance(default_value, datetime.date):
+            value = datestr_to_datetime(value).date()
+        elif ignore_errors:
+            value = try_to_eval(value)
+        else:
+            value = eval(value)
+    except (ValueError, SyntaxError):
+        if ignore_errors:
+            value = try_to_eval(value)
+        else:
+            return default_value
     return value
 
 
