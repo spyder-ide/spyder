@@ -20,9 +20,10 @@ from spyderlib.qt.QtGui import (QHBoxLayout, QColor, QTableView, QItemDelegate,
                                 QDoubleValidator, QDialog, QDialogButtonBox,
                                 QMessageBox, QPushButton, QInputDialog, QMenu,
                                 QApplication, QKeySequence, QLabel, QComboBox,
-                                QSpinBox, QStackedWidget, QWidget, QVBoxLayout)
+                                QSpinBox, QStackedWidget, QWidget, QVBoxLayout,
+                                QAbstractItemDelegate)
 from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, Slot)
-                                 
+
 from spyderlib.qt.compat import to_qvariant, from_qvariant
 import spyderlib.utils.icon_manager as ima
 
