@@ -186,7 +186,7 @@ def value_to_display(value, truncate=False, trunc_len=80, minmax=False):
         return '%s  Mode: %s' % (address(value), value.mode)
     if isinstance(value, DataFrame):
         cols = value.columns
-        if PY2 and cols:
+        if PY2 and len(cols) > 0:
             # Get rid of possible BOM utf-8 data present at the
             # beginning of a file, which gets attached to the first
             # column header when headers are present in the first
