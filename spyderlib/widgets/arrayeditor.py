@@ -35,7 +35,7 @@ from spyderlib.config.gui import get_font, new_shortcut
 from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
                                        qapplication)
 from spyderlib.py3compat import (PY3, io, to_text_string, is_text_string,
-                                 is_binary_string)
+                                 is_binary_string, to_binary_string)
 
 # Note: string and unicode data types will be formatted with '%s' (see below)
 SUPPORTED_FORMATS = {
@@ -275,7 +275,7 @@ class ArrayModel(QAbstractTableModel):
             except ValueError:
                 val = value.lower() == "true"
         elif self._data.dtype.name.startswith("string"):
-            val = str(value)
+            val = to_binary_string(value, 'utf8')
         elif self._data.dtype.name.startswith("unicode"):
             val = to_text_string(value)
         else:
