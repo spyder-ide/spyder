@@ -33,7 +33,7 @@ from spyderlib.config.base import _
 from spyderlib.config.gui import get_font, new_shortcut
 from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
                                        qapplication)
-from spyderlib.py3compat import io, to_text_string, is_text_string
+from spyderlib.py3compat import PY3, io, to_text_string, is_text_string
 
 # Note: string and unicode data types will be formatted with '%s' (see below)
 SUPPORTED_FORMATS = {
@@ -417,11 +417,13 @@ class ArrayView(QTableView):
         """Copy an array portion to a unicode string"""
         row_min, row_max, col_min, col_max = get_idx_rect(cell_range)
         _data = self.model().get_data()
-        output = io.StringIO()
-        np.savetxt(output,
-                  _data[row_min:row_max+1, col_min:col_max+1],
-                  delimiter='\t')
-        contents = output.getvalue()
+        if PY3:
+            output = io.BytesIO()
+        else:
+            output = io.StringIO()
+        np.savetxt(output, _data[row_min:row_max+1, col_min:col_max+1],
+                   delimiter='\t')
+        contents = output.getvalue().decode('utf-8')
         output.close()
         return contents
 
