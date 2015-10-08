@@ -9,7 +9,7 @@ build:
 source:
   git_url: https://github.com/spyder-ide/spyder.git
   patches:
-    - {{ [environ.get('TRAVIS_PULL_REQUEST'), '.patch']|join }}
+    - {{ [environ.get('TRAVIS_PULL_REQUEST'), '.diff']|join }}
 
 requirements:
   build:
