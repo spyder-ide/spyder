@@ -25,6 +25,7 @@ requirements:
     - sphinx
     - pep8
     - psutil
+    - six
     - python.app      [osx]
 
 test:
