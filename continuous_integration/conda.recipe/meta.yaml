@@ -7,7 +7,7 @@ build:
   osx_is_app: True
 
 source:
-  git_url: /home/travis/pr-clone
+  git_url: {{ [environ.get('HOME'), '/pr-clone']|join }}
   git_tag: {{ ['travis_pr_', environ.get('TRAVIS_PULL_REQUEST')]|join }}
 
 requirements:
