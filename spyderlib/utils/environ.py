@@ -17,7 +17,6 @@ import spyderlib.utils.icon_manager as ima
 from spyderlib.config.base import _
 from spyderlib.widgets.varexp.collectionseditor import CollectionsEditor
 
-
 def envdict2listdict(envdict):
     """Dict --> Dict of lists"""
     sep = os.path.pathsep
