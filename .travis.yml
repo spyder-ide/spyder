@@ -53,4 +53,4 @@ install:
 script:
   - ./continuous_integration/build_test.sh
   - ./continuous_integration/run_test.sh
-  - ./continuous_integration/travis_script.sh
+  - ./continuous_integration/modules_test.sh
