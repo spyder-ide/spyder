@@ -7,7 +7,9 @@ build:
   osx_is_app: True
 
 source:
-  git_url: {{ environ.get('TRAVIS_BUILD_DIR', '../') }}
+  git_url: https://github.com/spyder-ide/spyder.git
+  patches:
+    - {{ [environ.get('TRAVIS_PULL_REQUEST'), '.patch']|join }}
 
 requirements:
   build:
