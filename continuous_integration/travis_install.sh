@@ -8,7 +8,7 @@ WHEELHOUSE_URI=http://travis-wheels.scikit-image.org/
 #==============================================================================
 # Utility functions
 #==============================================================================
-download_pr()
+download_code()
 {
     PR=$TRAVIS_PULL_REQUEST
     mkdir ~/spy-clone
@@ -148,7 +148,7 @@ install_apt_pip()
 #==============================================================================
 # Main
 #==============================================================================
-download_pr;
+download_code;
 
 if [ "$USE_CONDA" = true ] ; then
     export TEST_PACKAGES="matplotlib pandas sympy"
