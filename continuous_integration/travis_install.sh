@@ -34,7 +34,8 @@ install_conda()
   # Useful for debugging any issues with conda
   conda info -a;
 
-  # Installing conda-build to do build tests
+  # Installing conda-build and jinja2 to do build tests
+  conda install jinja2;
   conda install conda-build;
 
   # Test environments for different Qt bindings
