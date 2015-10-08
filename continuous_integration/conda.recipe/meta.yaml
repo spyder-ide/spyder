@@ -7,7 +7,8 @@ build:
   osx_is_app: True
 
 source:
-  git_url: ../
+  git_url: {{ [environ.get('HOME'), '/pr-clone']|join }}
+  git_tag: {{ ['travis_pr_', environ.get('TRAVIS_PULL_REQUEST')]|join }}
 
 requirements:
   build:
@@ -25,6 +26,8 @@ requirements:
     - sphinx
     - pep8
     - psutil
+    - pylint
+    - six
     - python.app      [osx]
 
 test:
