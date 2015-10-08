@@ -7,7 +7,7 @@ build:
   osx_is_app: True
 
 source:
-  git_url: https://github.com/spyder-ide/spyder.git
+  git_url: ~/spyder-ide/spyder
 
 requirements:
   build:
