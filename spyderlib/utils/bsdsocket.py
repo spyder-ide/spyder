@@ -157,12 +157,10 @@ if __name__ == '__main__':
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client.connect( address )
 
-    client.send("data to be catched")
+    client.send("data to be catched".encode('utf-8'))
     # accepted server socket is the one we can read from
     # note that it is different from server socket
     accsock, addr = server.accept()
-    print('..got "%s" from %s' % (accsock.recv(4096), addr))
-    client.send("more data for recv")
     print('..got "%s" from %s' % (accsock.recv(4096), addr))
     
     # accsock.close()
