@@ -128,7 +128,7 @@ install_apt_pip()
 }
 
 if [ "$USE_CONDA" = true ] ; then
-  export TEST_PACKAGES="ipython-qtconsole matplotlib pandas pep8 psutil pyflakes pygments pylint sphinx sympy"
+  export TEST_PACKAGES="matplotlib pandas sympy"
   export SOURCE=`source activate test-environment`
   install_conda;
 else
