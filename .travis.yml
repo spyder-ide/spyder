@@ -60,4 +60,5 @@ install:
   - export SPYDER_TEST_TRAVIS_TIMER=30000;
 
 script:
+  - ./continuous_integration/build_test.sh
   - python bootstrap.py

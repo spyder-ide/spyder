@@ -34,6 +34,9 @@ install_conda()
   # Useful for debugging any issues with conda
   conda info -a;
 
+  # Installing conda-build to do build tests
+  conda install conda-build;
+
   # Test environments for different Qt bindings
   if [ "$USE_QT_API" = "PyQt5" ]; then
     #sudo apt-get install -q "^libxcb.*" libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev
