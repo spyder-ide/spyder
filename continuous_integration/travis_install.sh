@@ -5,6 +5,19 @@ set -ex
 PY_VERSION=$TRAVIS_PYTHON_VERSION
 WHEELHOUSE_URI=http://travis-wheels.scikit-image.org/
 
+#==============================================================================
+# Utility functions
+#==============================================================================
+download_pr()
+{
+    PR=$TRAVIS_PULL_REQUEST    
+    mkdir ~/pr-clone
+    git clone https://github.com/spyder-ide/spyder.git ~/pr-clone
+    cd ~/pr-clone
+    git fetch origin pull/$PR/head:travis_pr_$PR
+}
+
+
 install_conda()
 {
   # Define the value to download
@@ -63,6 +76,7 @@ install_conda()
   conda install -q -n test-environment $TEST_PACKAGES
 }
 
+
 install_pyside()
 {
   # Currently support for python 2.7, 3.3, 3.4
@@ -74,6 +88,7 @@ install_pyside()
   POSTINSTALL=$(find ~/virtualenv/ -type f -name "pyside_postinstall.py";)
   python $POSTINSTALL -install;
 }
+
 
 install_qt4()
 {
@@ -102,6 +117,7 @@ install_qt4()
   done
 }
 
+
 install_qt5()
 {
   echo "Not supported yet"
@@ -126,6 +142,12 @@ install_apt_pip()
   fi
   pip install -U $TEST_PACKAGES
 }
+
+
+#==============================================================================
+# Main
+#==============================================================================
+download_pr;
 
 if [ "$USE_CONDA" = true ] ; then
   export TEST_PACKAGES="matplotlib pandas sympy"
