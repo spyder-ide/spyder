@@ -56,7 +56,8 @@ install:
   - export PATH="$HOME/miniconda/bin:$PATH";
   - source activate test-environment;
   - QT_API=$USE_QT_API;
+  - export SPYDER_TEST_TRAVIS=True;
+  - export SPYDER_TEST_TRAVIS_TIMER=30000;
 
-script:  
-  - python bootstrap.py --test-travis 30
-
+script:
+  - python bootstrap.py
