@@ -61,4 +61,4 @@ install:
 
 script:
   - ./continuous_integration/build_test.sh
-  - python bootstrap.py
+  - ./continuous_integration/run_test.sh
