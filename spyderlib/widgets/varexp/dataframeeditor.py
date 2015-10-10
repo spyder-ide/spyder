@@ -582,19 +582,27 @@ class DataFrameEditor(QDialog):
         QApplication.restoreOverrideCursor()
 
 
+#==============================================================================
+# Tests
+#==============================================================================
 def test_edit(data, title="", parent=None):
     """Test subroutine"""
+    app = qapplication()                  # analysis:ignore
     dlg = DataFrameEditor(parent=parent)
-    if dlg.setup_and_check(data, title=title) and dlg.exec_():
+
+    if dlg.setup_and_check(data, title=title):
+        dlg.exec_()
         return dlg.get_value()
     else:
         import sys
-        sys.exit()
+        sys.exit(1)
 
 
 def test():
     """DataFrame editor test"""
     from numpy import nan
+    from pandas import Series
+    from pandas.util.testing import assert_frame_equal, assert_series_equal
 
     df1 = DataFrame([
                      [True, "bool"],
@@ -610,19 +618,22 @@ def test():
                            "Test global max", 'd'],
                     columns=[nan, 'Type'])
     out = test_edit(df1)
-    print("out:", out)
+    assert_frame_equal(df1, out)
+
+    result = Series([True, "bool"], index=[nan, 'Type'], name='a')
     out = test_edit(df1.iloc[0])
-    print("out:", out)
-    df1 = DataFrame(np.random.rand(100001, 10))
+    assert_series_equal(result, out)
+
     # Sorting large DataFrame takes time
+    df1 = DataFrame(np.random.rand(100100, 10))
     df1.sort(columns=[0, 1], inplace=True)
     out = test_edit(df1)
-    print("out:", out)
-    out = test_edit(TimeSeries(np.arange(10)))
-    print("out:", out)
-    return out
+    assert_frame_equal(out, df1)
+
+    series = TimeSeries(np.arange(10))
+    out = test_edit(series)
+    assert_series_equal(series, out)
 
 
 if __name__ == '__main__':
-    _app = qapplication()
-    df = test()
+    test()
