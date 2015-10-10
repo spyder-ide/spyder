@@ -2,7 +2,7 @@
 
 set -ex
 
-# Tell Spyder we're testing our widgets on Travis
+# Tell Spyder we're testing our widgets in Travis
 export TEST_TRAVIS_WIDGETS=True
 
 for f in spyderlib/*.py; do

@@ -2,7 +2,7 @@
 
 set -ex
 
-# Tell Spyder we're testing the app on Travis
+# Tell Spyder we're testing the app in Travis
 export TEST_TRAVIS_APP=True
 
 if [ "$USE_CONDA" = true ] ; then
