@@ -2,6 +2,9 @@
 
 set -ex
 
+# Tell Spyder we're testing our widgets on Travis
+export TEST_TRAVIS_WIDGETS=True
+
 for f in spyderlib/*.py; do
     if [[ $f == "spyderlib/restart_app.py" ]]; then
         continue
@@ -30,9 +33,6 @@ for f in spyderlib/*/*.py; do
         continue
     fi
     if [[ $f == spyderlib/qt/*.py ]]; then
-        continue
-    fi
-    if [[ $f == spyderlib/utils/environ.py ]]; then
         continue
     fi
     if [[ $f == spyderlib/utils/qthelpers.py ]]; then

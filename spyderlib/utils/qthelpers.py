@@ -6,12 +6,12 @@
 
 """Qt utilities"""
 
-from spyderlib.qt.QtGui import (QAction, QStyle, QWidget, QIcon, QApplication,
+from spyderlib.qt.QtGui import (QAction, QStyle, QWidget, QApplication,
                                 QLabel, QVBoxLayout, QHBoxLayout, QLineEdit,
                                 QKeyEvent, QMenu, QKeySequence, QToolButton,
                                 QPixmap)
 from spyderlib.qt.QtCore import (Signal, QObject, Qt, QLocale, QTranslator,
-                                 QLibraryInfo, QEvent, Slot)
+                                 QLibraryInfo, QEvent, Slot, QTimer)
 from spyderlib.qt.compat import to_qvariant, from_qvariant
 import spyderlib.utils.icon_manager as ima
 from spyderlib.utils.icon_manager import get_icon, get_std_icon
@@ -78,6 +78,13 @@ def qapplication(translate=True):
         app.setApplicationName('Spyder')
     if translate:
         install_translator(app)
+
+    test_travis = os.environ.get('TEST_TRAVIS_WIDGETS', None)
+    if test_travis is not None:
+        timer_shutdown_time = 5000
+        timer_shutdown = QTimer(app)
+        timer_shutdown.timeout.connect(app.quit)
+        timer_shutdown.start(timer_shutdown_time)
     return app
 
 
