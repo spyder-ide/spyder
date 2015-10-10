@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2011 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -384,6 +384,7 @@ class EditorStack(QWidget):
         self.highlight_current_line_enabled = False
         self.highlight_current_cell_enabled = False
         self.occurence_highlighting_enabled = True
+        self.occurence_highlighting_timeout=1500
         self.checkeolchars_enabled = True
         self.always_remove_trailing_spaces = False
         self.fullpath_sorting_enabled = None
@@ -2293,6 +2294,7 @@ class EditorPluginExample(QSplitter):
         """Fake!"""
         pass
 
+
 def test():
     from spyderlib.utils.qthelpers import qapplication
     app = qapplication()
@@ -2302,12 +2304,13 @@ def test():
     import time
     t0 = time.time()
     test.load(__file__)
-    test.load("explorer.py")
-    test.load("varexp/collectionseditor.py")
-    test.load("sourcecode/codeeditor.py")
-    test.load("../spyder.py")
+    cur_dir = osp.dirname(osp.abspath(__file__))
+    test.load(osp.join(cur_dir, "explorer.py"))
+    test.load(osp.join(cur_dir, "varexp", "collectionseditor.py"))
+    test.load(osp.join(cur_dir, "sourcecode", "codeeditor.py"))
     print("Elapsed time: %.3f s" % (time.time()-t0))
     sys.exit(app.exec_())
+
 
 if __name__ == "__main__":
     test()
