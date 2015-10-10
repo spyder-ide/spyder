@@ -1,4 +1,8 @@
 #
+# Copyright (c) 2009- The Spyder Development Team)
+# Licensed under the terms of the MIT License)
+# (see spyderlib/__init__.py for details)
+#
 # IMPORTANT NOTE: Don't add a coding line here! It's not necessary for
 # site files
 #
