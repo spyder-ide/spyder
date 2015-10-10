@@ -5,7 +5,7 @@
 # (see spyderlib/__init__.py for details)
 
 """
-Object Editor Dialog based on Qt
+Generic object editor dialog
 """
 
 from __future__ import print_function
@@ -142,6 +142,9 @@ def oedit(obj, modal=True, namespace=None):
             app.exec_()
 
 
+#==============================================================================
+# Tests
+#==============================================================================
 def test():
     """Run object editor test"""
     import datetime, numpy as np
@@ -162,11 +165,13 @@ def test():
         def __init__(self):
             self.text = "toto"
     foobar = Foobar()
+
     print(oedit(foobar))
     print(oedit(example))
     print(oedit(np.random.rand(10, 10)))
     print(oedit(oedit.__doc__))
     print(example)
-    
+
+
 if __name__ == "__main__":
     test()
