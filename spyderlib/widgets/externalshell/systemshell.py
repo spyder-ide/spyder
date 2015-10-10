@@ -161,7 +161,7 @@ def test():
 
     from spyderlib.qt.QtGui import QFont
     from spyderlib.config.main import CONF
-    font = QFont(CONF.get('console', 'font/family'))
+    font = QFont(CONF.get('console', 'font/family')[0])
     font.setPointSize(10)
     shell.shell.set_font(font)
 
