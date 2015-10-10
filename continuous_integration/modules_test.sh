@@ -59,7 +59,7 @@ for f in spyderlib/*/*/*.py; do
     if [[ $f == spyderlib/external/*/*.py ]]; then
         continue
     fi
-    if [[ $f == spyderlib//utils/external/*.py ]]; then
+    if [[ $f == spyderlib/utils/external/*.py ]]; then
         continue
     fi
     if [[ $f == spyderlib/utils/inspector/*.py ]]; then
