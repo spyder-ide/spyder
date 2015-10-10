@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -2896,7 +2896,7 @@ class TestWidget(QSplitter):
         self.editor = CodeEditor(self)
         self.editor.setup_editor(linenumbers=True, markers=True, tab_mode=False,
                                  font=QFont("Courier New", 10),
-                                 show_blanks=True, color_scheme='Pydev')
+                                 show_blanks=True, color_scheme='Zenburn')
         self.addWidget(self.editor)
         from spyderlib.widgets.editortools import OutlineExplorerWidget
         self.classtree = OutlineExplorerWidget(self)
@@ -2914,32 +2914,28 @@ class TestWidget(QSplitter):
                                               osp.dirname(filename)))
         self.classtree.set_current_editor(self.editor, filename, False, False)
 
+
 def test(fname):
     from spyderlib.utils.qthelpers import qapplication
-    app = qapplication()
-    app.setStyle('Plastique')
+    app = qapplication(test_time=5)
     win = TestWidget(None)
     win.show()
     win.load(fname)
-    win.resize(1000, 800)
+    win.resize(900, 700)
 
     from spyderlib.utils.codeanalysis import (check_with_pyflakes,
                                               check_with_pep8)
     source_code = to_text_string(win.editor.toPlainText())
-    res = check_with_pyflakes(source_code, fname)#+\
-#          check_with_pep8(source_code, fname)
-    win.editor.process_code_analysis(res)
+    results = check_with_pyflakes(source_code, fname) + \
+              check_with_pep8(source_code, fname)
+    win.editor.process_code_analysis(results)
 
     sys.exit(app.exec_())
+
 
 if __name__ == '__main__':
     if len(sys.argv) > 1:
         fname = sys.argv[1]
     else:
         fname = __file__
-#        fname = r"d:\Python\scintilla\src\LexCPP.cxx"
-#        fname = r"C:\Python26\Lib\pdb.py"
-#        fname = r"C:\Python26\Lib\ssl.py"
-#        fname = r"D:\Python\testouille.py"
-#        fname = r"C:\Python26\Lib\pydoc.py"
     test(fname)
