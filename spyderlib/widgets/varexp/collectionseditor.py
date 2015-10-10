@@ -1444,7 +1444,7 @@ def get_test_data():
 
 def editor_test():
     """Collections editor test"""
-    app = qapplication() #analysis:ignore
+    app = qapplication()             #analysis:ignore
     dialog = CollectionsEditor()
     dialog.setup(get_test_data())
     dialog.show()
@@ -1469,5 +1469,5 @@ def remote_editor_test():
 
 
 if __name__ == "__main__":
-    #editor_test()
+    editor_test()
     remote_editor_test()
