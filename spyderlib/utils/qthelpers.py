@@ -81,7 +81,7 @@ def qapplication(translate=True):
 
     test_travis = os.environ.get('TEST_TRAVIS_WIDGETS', None)
     if test_travis is not None:
-        timer_shutdown_time = 5000
+        timer_shutdown_time = 3000
         timer_shutdown = QTimer(app)
         timer_shutdown.timeout.connect(app.quit)
         timer_shutdown.start(timer_shutdown_time)
