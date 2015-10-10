@@ -229,6 +229,8 @@ def is_edit_valid(edit):
     return state == QDoubleValidator.Acceptable
 
 class FormWidget(QWidget):
+    update_buttons = Signal()
+
     def __init__(self, data, comment="", parent=None):
         QWidget.__init__(self, parent)
         from copy import deepcopy
@@ -398,9 +400,11 @@ class FormComboWidget(QWidget):
 
     def get(self):
         return [ widget.get() for widget in self.widgetlist]
-        
+
 
 class FormTabWidget(QWidget):
+    update_buttons = Signal()
+
     def __init__(self, datalist, comment="", parent=None):
         QWidget.__init__(self, parent)
         layout = QVBoxLayout()
@@ -530,9 +534,13 @@ def fedit(data, title="", comment="", icon=None, parent=None, apply=None):
     """
     # Create a QApplication instance if no instance currently exists
     # (e.g. if the module is used directly from the interpreter)
-    if QApplication.startingUp():
+    test_travis = os.environ.get('TEST_TRAVIS_WIDGETS', None)
+    if test_travis is not None:
+        from spyderlib.utils.qthelpers import qapplication
+        _app = qapplication()
+    elif QApplication.startingUp():
         _app = QApplication([])
-        
+
     dialog = FormDialog(data, title, comment, icon, parent, apply)
     if dialog.exec_():
         return dialog.get()
