@@ -281,7 +281,6 @@ class MainWindow(QMainWindow):
         self.multithreaded = options.multithreaded
         self.light = options.light
         self.new_instance = options.new_instance
-        self.test_travis = os.environ.get('SPYDER_TEST_TRAVIS', None)
 
         self.debug_print("Start of MainWindow constructor")
 
@@ -451,9 +450,10 @@ class MainWindow(QMainWindow):
             debug_print("appusermodelid: " + str(res))
 
         # Setting QTimer if running in travis
-        if self.test_travis is not None:
+        test_travis = os.environ.get('TEST_TRAVIS_APP', None)
+        if test_travis is not None:
             global MAIN_APP
-            timer_shutdown_time = int(os.environ['SPYDER_TEST_TRAVIS_TIMER'])
+            timer_shutdown_time = 30000
             self.timer_shutdown = QTimer(self)
             self.timer_shutdown.timeout.connect(MAIN_APP.quit)
             self.timer_shutdown.start(timer_shutdown_time)

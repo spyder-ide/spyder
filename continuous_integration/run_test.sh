@@ -3,6 +3,9 @@
 set -ex
 
 if [ "$USE_CONDA" = true ] ; then
+    # Tell Spyder we're testing on Travis
+    export TEST_TRAVIS_APP=True
+
     # Move to a tmp dir
     mkdir ~/tmp
     cd ~/tmp
