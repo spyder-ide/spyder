@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -13,6 +13,11 @@
 
 from __future__ import with_statement
 
+import os
+import re
+import os.path as osp
+import shutil
+
 from spyderlib.qt import is_pyqt46
 from spyderlib.qt.QtGui import (QVBoxLayout, QLabel, QHBoxLayout, QInputDialog,
                                 QFileSystemModel, QMenu, QWidget, QToolButton,
@@ -23,17 +28,11 @@ from spyderlib.qt.QtCore import (Qt, Signal, QMimeData, QSize, QDir, QUrl,
 from spyderlib.qt.compat import getsavefilename, getexistingdirectory
 import spyderlib.utils.icon_manager as ima
 
-import os
-import sys
-import re
-import os.path as osp
-import shutil
-
 # Local imports
 from spyderlib.utils.qthelpers import create_action, add_actions, file_uri
 from spyderlib.utils import misc, encoding, programs, vcs
 from spyderlib.config.base import _
-from spyderlib.py3compat import (to_text_string, to_binary_string, getcwd,
+from spyderlib.py3compat import (PY2, to_text_string, to_binary_string, getcwd,
                                  str_lower)
 
 try:
@@ -86,7 +85,7 @@ class DirView(QTreeView):
     """Base file/directory tree view"""
     def __init__(self, parent=None):
         super(DirView, self).__init__(parent)
-        self.name_filters = None
+        self.name_filters = ['*.py']
         self.parent_widget = parent
         self.show_all = None
         self.menu = None
@@ -980,6 +979,8 @@ class ExplorerTreeWidget(DirView):
                 self.history.append(directory)
             self.histindex = len(self.history)-1
         directory = to_text_string(directory)
+        if PY2:
+            PermissionError = OSError
         try:
             os.chdir(directory)
             self.parent_widget.open_dir.emit(directory)
@@ -996,6 +997,7 @@ class ExplorerWidget(QWidget):
     sig_open_file = Signal(str)
     sig_new_file = Signal(str)
     redirect_stdio = Signal(bool)
+    open_dir = Signal(str)
 
     def __init__(self, parent=None, name_filters=['*.py', '*.pyw'],
                  show_all=False, show_cd_only=None, show_icontext=True):
@@ -1082,6 +1084,9 @@ class ExplorerWidget(QWidget):
                     widget.setToolButtonStyle(Qt.ToolButtonIconOnly)
 
 
+#==============================================================================
+# Tests
+#==============================================================================
 class FileExplorerTest(QWidget):
     def __init__(self):
         QWidget.__init__(self)
@@ -1117,8 +1122,9 @@ class FileExplorerTest(QWidget):
         hlayout3.addWidget(self.label3)
         self.explorer.sig_option_changed.connect(
            lambda x, y: self.label3.setText('option_changed: %r, %r' % (x, y)))
-        self.explorer.open_parent_dir.connect(
-                                lambda: self.explorer.listwidget.refresh('..'))
+        self.explorer.open_dir.connect(
+                                lambda: self.explorer.treewidget.refresh('..'))
+
 
 class ProjectExplorerTest(QWidget):
     def __init__(self, parent=None):
@@ -1127,17 +1133,23 @@ class ProjectExplorerTest(QWidget):
         self.setLayout(vlayout)
         self.treewidget = FilteredDirView(self)
         self.treewidget.setup_view()
-        self.treewidget.set_root_path(r'D:\Python')
-        self.treewidget.set_folder_names(['spyder', 'spyder-2.0'])
+        self.treewidget.set_root_path(osp.dirname(osp.abspath(__file__)))
+        self.treewidget.set_folder_names(['varexp', 'sourcecode'])
         vlayout.addWidget(self.treewidget)
 
-    
-if __name__ == "__main__":
+
+def test(file_explorer):
     from spyderlib.utils.qthelpers import qapplication
     app = qapplication()
-    test = FileExplorerTest()
-#    test = ProjectExplorerTest()
+    if file_explorer:
+        test = FileExplorerTest()
+    else:
+        test = ProjectExplorerTest()
     test.resize(640, 480)
     test.show()
-    sys.exit(app.exec_())
-    
+    app.exec_()
+
+
+if __name__ == "__main__":
+    test(file_explorer=True)
+    test(file_explorer=False)
