@@ -6,19 +6,19 @@ set -ex
 export TEST_TRAVIS_WIDGETS=True
 
 for f in spyderlib/*.py; do
-    if [[ $f == "spyderlib/restart_app.py" ]]; then
+    if [[ $f == spyderlib/restart_app.py ]]; then
         continue
     fi
-    if [[ $f == "spyderlib/spyder.py" ]]; then
+    if [[ $f == spyderlib/spyder.py ]]; then
         continue
     fi
-    if [[ $f == "spyderlib/tour.py" ]]; then
+    if [[ $f == spyderlib/tour.py ]]; then
         continue
     fi
-    if [[ $f == "spyderlib/start_app.py" ]]; then
+    if [[ $f == spyderlib/start_app.py ]]; then
         continue
     fi
-    if [[ $f == "spyderlib/pil_patch.py" ]]; then
+    if [[ $f == spyderlib/pil_patch.py ]]; then
         continue
     fi
     python "$f"
@@ -41,13 +41,16 @@ for f in spyderlib/*/*.py; do
     if [[ $f == spyderlib/utils/windows.py ]]; then
         continue
     fi
-    if [[ $f == "spyderlib/widgets/externalshell/inputhooks.py" ]]; then
+    if [[ $f == spyderlib/widgets/formlayout.py ]]; then
         continue
     fi
-    if [[ $f == "spyderlib/widgets/externalshell/sitecustomize.py" ]]; then
+    if [[ $f == spyderlib/widgets/externalshell/inputhooks.py ]]; then
         continue
     fi
-    if [[ $f == "spyderlib/widgets/externalshell/start_ipython_kernel.py" ]]; then
+    if [[ $f == spyderlib/widgets/externalshell/sitecustomize.py ]]; then
+        continue
+    fi
+    if [[ $f == spyderlib/widgets/externalshell/start_ipython_kernel.py ]]; then
         continue
     fi
     python "$f"
