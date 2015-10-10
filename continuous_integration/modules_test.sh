@@ -41,7 +41,13 @@ for f in spyderlib/*/*.py; do
     if [[ $f == spyderlib/utils/windows.py ]]; then
         continue
     fi
-    if [[ $f == spyderlib/widgets/*.py ]]; then
+    if [[ $f == "spyderlib/widgets/externalshell/inputhooks.py" ]]; then
+        continue
+    fi
+    if [[ $f == "spyderlib/widgets/externalshell/sitecustomize.py" ]]; then
+        continue
+    fi
+    if [[ $f == "spyderlib/widgets/externalshell/start_ipython_kernel.py" ]]; then
         continue
     fi
     python "$f"
