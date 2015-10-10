@@ -279,7 +279,7 @@ class FrameWebView(QFrame):
 def test():
     """Run web browser"""
     from spyderlib.utils.qthelpers import qapplication
-    app = qapplication()
+    app = qapplication(test_time=8)
     widget = WebBrowser()
     widget.show()
     widget.set_home_url('http://www.google.com/')
