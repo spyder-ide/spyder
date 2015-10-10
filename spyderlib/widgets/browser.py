@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -276,15 +276,16 @@ class FrameWebView(QFrame):
         return self._webview.page()
 
 
-def main():
+def test():
     """Run web browser"""
     from spyderlib.utils.qthelpers import qapplication
     app = qapplication()
     widget = WebBrowser()
     widget.show()
-    widget.set_home_url('http://localhost:7464/')
+    widget.set_home_url('http://www.google.com/')
     widget.go_home()
     sys.exit(app.exec_())
 
+
 if __name__ == '__main__':
-    main()
+    test()
