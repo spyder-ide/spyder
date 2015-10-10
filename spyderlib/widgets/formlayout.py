@@ -69,7 +69,7 @@ import datetime
 
 # Local imports
 from spyderlib.config.base import _, DEBUG, STDERR
-from spyderlib.py3compat import is_text_string, to_text_string, is_string, u
+from spyderlib.py3compat import is_text_string, to_text_string, is_string
 
 DEBUG_FORMLAYOUT = DEBUG >= 2
 
@@ -276,7 +276,7 @@ class FormWidget(QWidget):
                 if '\n' in value:
                     for linesep in (os.linesep, '\n'):
                         if linesep in value:
-                            value = value.replace(linesep, u("\u2029"))
+                            value = value.replace(linesep, u"\u2029")
                     field = QTextEdit(value, self)
                 else:
                     field = QLineEdit(value, self)
@@ -336,7 +336,7 @@ class FormWidget(QWidget):
             elif is_text_string(value):
                 if isinstance(field, QTextEdit):
                     value = to_text_string(field.toPlainText()
-                                           ).replace(u("\u2029"), os.linesep)
+                                           ).replace(u"\u2029", os.linesep)
                 else:
                     value = to_text_string(field.text())
             elif isinstance(value, (list, tuple)):
@@ -537,7 +537,7 @@ def fedit(data, title="", comment="", icon=None, parent=None, apply=None):
     test_travis = os.environ.get('TEST_TRAVIS_WIDGETS', None)
     if test_travis is not None:
         from spyderlib.utils.qthelpers import qapplication
-        _app = qapplication()
+        _app = qapplication(test_time=1)
     elif QApplication.startingUp():
         _app = QApplication([])
 
