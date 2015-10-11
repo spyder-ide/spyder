@@ -45,7 +45,7 @@ from spyderlib.widgets.sourcecode import syntaxhighlighters, codeeditor
 from spyderlib.widgets.sourcecode.base import TextEditBaseWidget  #analysis:ignore
 from spyderlib.widgets.sourcecode.codeeditor import Printer  #analysis:ignore
 from spyderlib.widgets.sourcecode.codeeditor import get_file_language
-from spyderlib.widgets.file_switcher import FileSwitcher
+from spyderlib.widgets.fileswitcher import FileSwitcher
 from spyderlib.py3compat import to_text_string, qbytearray_to_str, u
 
 DEBUG_EDITOR = DEBUG >= 3
