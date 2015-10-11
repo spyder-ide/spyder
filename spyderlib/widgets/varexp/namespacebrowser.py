@@ -131,7 +131,7 @@ class NamespaceBrowser(QWidget):
                             is_image_func=self.is_image,
                             is_dict_func=self.is_dict,
                             is_data_frame_func=self.is_data_frame,
-                            is_time_series_func=self.is_time_series,                       
+                            is_series_func=self.is_series,                       
                             get_array_shape_func=self.get_array_shape,
                             get_array_ndim_func=self.get_array_ndim,
                             oedit_func=self.oedit,
@@ -387,17 +387,17 @@ class NamespaceBrowser(QWidget):
     def is_image(self, name):
         """Return True if variable is a PIL.Image image"""
         return communicate(self._get_sock(), 'is_image("%s")' % name)
-    
+
     def is_data_frame(self, name):
-        """Return True if variable is a data_frame"""
+        """Return True if variable is a DataFrame"""
         return communicate(self._get_sock(),
              "isinstance(globals()['%s'], DataFrame)" % name)
-    
-    def is_time_series(self, name):
-        """Return True if variable is a data_frame"""
+
+    def is_series(self, name):
+        """Return True if variable is a Series"""
         return communicate(self._get_sock(),
-             "isinstance(globals()['%s'], TimeSeries)" % name)   
-        
+             "isinstance(globals()['%s'], Series)" % name)  
+    
     def get_array_shape(self, name):
         """Return array's shape"""
         return communicate(self._get_sock(), "%s.shape" % name)
