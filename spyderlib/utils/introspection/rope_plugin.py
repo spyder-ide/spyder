@@ -229,7 +229,10 @@ class RopePlugin(IntrospectionPlugin):
     def validate(self):
         """Validate the Rope project"""
         if self.project is not None:
-            self.project.validate(self.project.root)
+            try:
+                self.project.validate(self.project.root)
+            except RuntimeError:
+                pass
 
     def set_pref(self, key, value):
         """Set a Rope preference"""
