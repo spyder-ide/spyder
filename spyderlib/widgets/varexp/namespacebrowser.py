@@ -139,8 +139,17 @@ class NamespaceBrowser(QWidget):
                             show_image_func=self.show_image)
         self.editor.sig_option_changed.connect(self.sig_option_changed.emit)
         self.editor.sig_files_dropped.connect(self.import_data)
-        
-        # Menu
+
+        # Setup layout
+        layout = QVBoxLayout()
+        blayout = QHBoxLayout()
+        toolbar = self.setup_toolbar(exclude_private, exclude_uppercase,
+                                     exclude_capitalized, exclude_unsupported,
+                                     autorefresh)
+        for widget in toolbar:
+            blayout.addWidget(widget)
+
+        # Options menu
         options_button = create_toolbutton(self, text=_('Options'),
                                            icon=ima.icon('tooloptions'))
         options_button.setPopupMode(QToolButton.InstantPopup)
@@ -155,14 +164,6 @@ class NamespaceBrowser(QWidget):
         add_actions(menu, actions)
         options_button.setMenu(menu)
 
-        # Setup layout
-        layout = QVBoxLayout()
-        blayout = QHBoxLayout()
-        toolbar = self.setup_toolbar(exclude_private, exclude_uppercase,
-                                     exclude_capitalized, exclude_unsupported,
-                                     autorefresh)
-        for widget in toolbar:
-            blayout.addWidget(widget)
         blayout.addStretch()
         blayout.addWidget(options_button)
         layout.addLayout(blayout)
