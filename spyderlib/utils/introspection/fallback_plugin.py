@@ -75,6 +75,8 @@ class FallbackPlugin(IntrospectionPlugin):
         filename = info.filename
 
         line_nr = None
+        if token is None:
+            return
         if '.' in token:
             token = token.split('.')[-1]
 
