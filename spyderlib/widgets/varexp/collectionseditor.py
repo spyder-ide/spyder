@@ -41,7 +41,7 @@ from spyderlib.widgets.varexp.utils import (sort_against, get_size,
                get_human_readable_type, value_to_display, get_color_name,
                is_known_type, FakeObject, Image, ndarray, array, MaskedArray,
                unsorted_unique, try_to_eval, is_editable_type, DataFrame,
-               TimeSeries, display_to_value, np_savetxt)
+               Series, display_to_value, np_savetxt)
 if ndarray is not FakeObject:
     from spyderlib.widgets.varexp.arrayeditor import ArrayEditor
 if DataFrame is not FakeObject:
@@ -455,8 +455,8 @@ class CollectionsDelegate(QItemDelegate):
                                             key=key, readonly=readonly,
                                             conv=conv_func))
             return None
-        #--editor = DataFrameEditor and TimeSeriesEditor
-        elif isinstance(value, (DataFrame, TimeSeries)) \
+        #--editor = DataFrameEditor
+        elif isinstance(value, (DataFrame, Series)) \
           and DataFrame is not FakeObject:
             editor = DataFrameEditor()
             if not editor.setup_and_check(value, title=key):
@@ -1052,7 +1052,7 @@ class BaseTableView(QTableView):
                     return
                 obj = output.getvalue().decode('utf-8')
                 output.close()
-            elif isinstance(obj, (DataFrame, TimeSeries)) \
+            elif isinstance(obj, (DataFrame, Series)) \
               and DataFrame is not FakeObject:
                 output = io.StringIO()
                 obj.to_csv(output, sep='\t', index=True, header=True)
@@ -1321,18 +1321,18 @@ class RemoteCollectionsEditorTableView(BaseTableView):
                  is_array_func=None, is_image_func=None, is_dict_func=None,
                  get_array_shape_func=None, get_array_ndim_func=None,
                  oedit_func=None, plot_func=None, imshow_func=None,
-                 is_data_frame_func=None, is_time_series_func=None,
+                 is_data_frame_func=None, is_series_func=None,
                  show_image_func=None, remote_editing=False):
         BaseTableView.__init__(self, parent)
-        
+
         self.remote_editing_enabled = None
-        
+
         self.remove_values = remove_values_func
         self.copy_value = copy_value_func
         self.new_value = new_value_func
 
         self.is_data_frame = is_data_frame_func
-        self.is_time_series = is_time_series_func
+        self.is_series = is_series_func
         self.is_list = is_list_func
         self.get_len = get_len_func
         self.is_array = is_array_func
@@ -1366,13 +1366,13 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         return menu
 
     def oedit_possible(self, key):
-        if (self.is_list(key) or self.is_dict(key) 
+        if (self.is_list(key) or self.is_dict(key)
             or self.is_array(key) or self.is_image(key)
-            or self.is_data_frame(key) or self.is_time_series(key)):
-            # If this is a remote dict editor, the following avoid 
+            or self.is_data_frame(key) or self.is_series(key)):
+            # If this is a remote dict editor, the following avoid
             # transfering large amount of data through the socket
             return True
-            
+
     def edit_item(self):
         """
         Reimplement BaseTableView's method to edit item
@@ -1444,7 +1444,7 @@ def get_test_data():
 
 def editor_test():
     """Collections editor test"""
-    app = qapplication() #analysis:ignore
+    app = qapplication()             #analysis:ignore
     dialog = CollectionsEditor()
     dialog.setup(get_test_data())
     dialog.show()
@@ -1469,5 +1469,5 @@ def remote_editor_test():
 
 
 if __name__ == "__main__":
-    #editor_test()
+    editor_test()
     remote_editor_test()

@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2011 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
 """Qt utilities"""
 
-from spyderlib.qt.QtGui import (QAction, QStyle, QWidget, QIcon, QApplication,
+from spyderlib.qt.QtGui import (QAction, QStyle, QWidget, QApplication,
                                 QLabel, QVBoxLayout, QHBoxLayout, QLineEdit,
                                 QKeyEvent, QMenu, QKeySequence, QToolButton,
                                 QPixmap)
 from spyderlib.qt.QtCore import (Signal, QObject, Qt, QLocale, QTranslator,
-                                 QLibraryInfo, QEvent, Slot)
+                                 QLibraryInfo, QEvent, Slot, QTimer)
 from spyderlib.qt.compat import to_qvariant, from_qvariant
 import spyderlib.utils.icon_manager as ima
 from spyderlib.utils.icon_manager import get_icon, get_std_icon
@@ -60,9 +60,14 @@ class MacApplication(QApplication):
         return QApplication.event(self, event)
 
 
-def qapplication(translate=True):
-    """Return QApplication instance
-    Creates it if it doesn't already exist"""
+def qapplication(translate=True, test_time=3):
+    """
+    Return QApplication instance
+    Creates it if it doesn't already exist
+    
+    test_time: Time to maintain open the application when testing. It's given
+    in seconds
+    """
     if running_in_mac_app():
         SpyderApplication = MacApplication
     else:
@@ -78,6 +83,12 @@ def qapplication(translate=True):
         app.setApplicationName('Spyder')
     if translate:
         install_translator(app)
+
+    test_travis = os.environ.get('TEST_TRAVIS_WIDGETS', None)
+    if test_travis is not None:
+        timer_shutdown = QTimer(app)
+        timer_shutdown.timeout.connect(app.quit)
+        timer_shutdown.start(test_time*1000)
     return app
 
 

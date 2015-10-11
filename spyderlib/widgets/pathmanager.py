@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -244,9 +244,11 @@ def test():
     """Run path manager test"""
     from spyderlib.utils.qthelpers import qapplication
     _app = qapplication()  # analysis:ignore
-    test = PathManager(None, sys.path[:-10], sys.path[-10:])
+    test = PathManager(None, pathlist=sys.path[:-10],
+                       ro_pathlist=sys.path[-10:])
     test.exec_()
     print(test.get_path_list())
+
 
 if __name__ == "__main__":
     test()

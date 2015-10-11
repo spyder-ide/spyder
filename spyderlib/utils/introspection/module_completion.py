@@ -29,6 +29,7 @@ from zipimport import zipimporter
 
 from spyderlib.config.base import get_conf_path, running_in_mac_app
 from spyderlib.utils.external.pickleshare import PickleShareDB
+from spyderlib.py3compat import PY3
 
 #-----------------------------------------------------------------------------
 # Globals and constants
@@ -314,8 +315,12 @@ if __name__ == "__main__":
     s = 'from xml.etree.ElementTree import '
     assert module_completion(s + 'V') == ['VERSION']
 
-    assert sorted(module_completion(s + 'VERSION, XM')) == \
-        ['XML', 'XMLID', 'XMLParser', 'XMLTreeBuilder']
+    if PY3:
+        assert sorted(module_completion(s + 'VERSION, XM')) == \
+            ['XML', 'XMLID', 'XMLParser', 'XMLPullParser']
+    else:
+        assert sorted(module_completion(s + 'VERSION, XM')) == \
+            ['XML', 'XMLID', 'XMLParser', 'XMLTreeBuilder']
 
     assert module_completion(s + '(dum') == ['dump']
 

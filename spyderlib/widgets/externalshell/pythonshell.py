@@ -6,10 +6,10 @@
 
 """External Python Shell widget: execute Python script in a separate process"""
 
-import sys
 import os
 import os.path as osp
 import socket
+import sys
 
 from spyderlib.qt.QtGui import QApplication, QMessageBox, QSplitter, QMenu
 from spyderlib.qt.QtCore import QProcess, Signal, Slot, Qt
@@ -656,3 +656,33 @@ class ExternalPythonShell(ExternalShellBase):
         editor.setup(self.shell.get_syspath(), title="sys.path", readonly=True,
                      width=600, icon=ima.icon('syspath'))
         self.dialog_manager.show(editor)
+
+
+def test():
+    from spyderlib.utils.qthelpers import qapplication
+    app = qapplication()
+
+    from spyderlib.plugins.variableexplorer import VariableExplorer
+    settings = VariableExplorer.get_settings()
+
+    shell = ExternalPythonShell(pythonexecutable=sys.executable,
+                                interact=True,
+                                stand_alone=settings,
+                                wdir=osp.dirname(__file__),
+                                mpl_backend=0,
+                                light_background=False)
+
+    from spyderlib.qt.QtGui import QFont
+    from spyderlib.config.main import CONF
+    font = QFont(CONF.get('console', 'font/family')[0])
+    font.setPointSize(10)
+    shell.shell.set_font(font)
+
+    shell.shell.toggle_wrap_mode(True)
+    shell.start_shell(False)
+    shell.show()
+    sys.exit(app.exec_())
+
+
+if __name__ == "__main__":
+    test()

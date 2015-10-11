@@ -74,7 +74,7 @@ install_conda()
         conda create -q -n test-environment python=$PY_VERSION sphinx sip qt pyside;
     fi
 
-    conda install -q -n test-environment $TEST_PACKAGES
+    conda install -q -n test-environment $EXTRA_PACKAGES
 }
 
 
@@ -137,11 +137,11 @@ install_apt_pip()
     elif [ "$USE_QT_API" = "PySide" ]; then
         install_pyside;
     fi
-  
+
     if [ "$PY_VERSION" = "2.7" ]; then
-        TEST_PACKAGES+=" rope"
+        EXTRA_PACKAGES+=" rope"
     fi
-    pip install -U $TEST_PACKAGES
+    pip install -U $EXTRA_PACKAGES
 }
 
 
@@ -151,11 +151,11 @@ install_apt_pip()
 download_code;
 
 if [ "$USE_CONDA" = true ] ; then
-    export TEST_PACKAGES="matplotlib pandas sympy"
+    export EXTRA_PACKAGES="matplotlib pandas sympy pillow"
     export SOURCE=`source activate test-environment`
     install_conda;
 else
-    export TEST_PACKAGES="IPython jedi matplotlib pandas pep8 psutil pyflakes pygments pylint sphinx sympy"
+    export EXTRA_PACKAGES="IPython jedi matplotlib pandas pep8 psutil pyflakes pygments pylint sphinx sympy"
     install_apt_pip;
 fi
 

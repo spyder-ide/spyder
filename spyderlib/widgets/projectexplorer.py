@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2010-2011 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -10,6 +10,12 @@
 
 from __future__ import print_function
 
+import os
+import re
+import shutil
+import os.path as osp
+import xml.etree.ElementTree as ElementTree
+
 from spyderlib.qt import PYQT5
 from spyderlib.qt.QtGui import (QVBoxLayout, QLabel, QHBoxLayout, QWidget,
                                 QFileIconProvider, QMessageBox, QInputDialog,
@@ -18,12 +24,6 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QLabel, QHBoxLayout, QWidget,
 from spyderlib.qt.QtCore import Qt, QFileInfo, Slot, Signal
 from spyderlib.qt.compat import getexistingdirectory
 import spyderlib.utils.icon_manager as ima
-
-import os
-import re
-import shutil
-import os.path as osp
-import xml.etree.ElementTree as ElementTree
 
 # Local imports
 from spyderlib.utils import misc
@@ -1268,7 +1268,8 @@ class ProjectExplorerWidget(QWidget):
     """Project Explorer"""
     sig_option_changed = Signal(str, object)
     sig_open_file = Signal(str)
-    
+    pythonpath_changed = Signal()
+
     def __init__(self, parent, name_filters=['*.py', '*.pyw'],
                  show_all=False, show_hscrollbar=True):
         QWidget.__init__(self, parent)
@@ -1326,14 +1327,17 @@ class ProjectExplorerWidget(QWidget):
         return self.treewidget.get_source_project(fname)
 
 
+#==============================================================================
+# Tests
+#==============================================================================
 class Test(QWidget):
     def __init__(self):
         QWidget.__init__(self)
         vlayout = QVBoxLayout()
         self.setLayout(vlayout)
-        
+
         self.explorer = ProjectExplorerWidget(None, show_all=True)
-        self.explorer.set_workspace(r'D:/Python')
+        self.explorer.set_workspace(osp.dirname(osp.abspath(__file__)))
 #        p1 = self.explorer.add_project(r"D:/Python/spyder")
 #        p1.set_pythonpath([r"D:\Python\spyder\spyderlib"])
 #        p1.save()
@@ -1362,10 +1366,14 @@ class Test(QWidget):
            lambda x, y: self.label3.setText('option_changed: %r, %r' % (x, y)))
 
 
-if __name__ == "__main__":
+def test():
     from spyderlib.utils.qthelpers import qapplication
     app = qapplication()
     test = Test()
     test.resize(640, 480)
     test.show()
     app.exec_()
+
+
+if __name__ == "__main__":
+    test()

@@ -1,4 +1,8 @@
 #
+# Copyright (c) 2009- The Spyder Development Team)
+# Licensed under the terms of the MIT License)
+# (see spyderlib/__init__.py for details)
+#
 # IMPORTANT NOTE: Don't add a coding line here! It's not necessary for
 # site files
 #
@@ -313,7 +317,7 @@ if matplotlib is not None:
 
     # Setting no backend if the user asks for it
     if not mpl_backend or mpl_backend.lower() == 'none':
-        mpl_backend = None
+        mpl_backend = ""
 
     # Set backend automatically
     if mpl_backend.lower() == 'automatic':
@@ -360,7 +364,7 @@ if matplotlib is not None:
     if mpl_ion.lower() == "true":
         matplotlib.rcParams['interactive'] = True
 
-    if not IS_IPYTHON and mpl_backend is not None:
+    if not IS_IPYTHON and mpl_backend:
         import ctypes
         from spyderlib.widgets.externalshell import inputhooks
 

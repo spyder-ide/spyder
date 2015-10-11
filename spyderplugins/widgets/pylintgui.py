@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -484,14 +484,19 @@ class PylintWidget(QWidget):
         self.datelabel.setText(date_text)
 
 
+#==============================================================================
+# Tests
+#==============================================================================
 def test():
     """Run pylint widget test"""
     from spyderlib.utils.qthelpers import qapplication
-    app = qapplication()
+    app = qapplication(test_time=20)
     widget = PylintWidget(None)
+    widget.resize(640, 480)
     widget.show()
     widget.analyze(__file__)
     sys.exit(app.exec_())
-    
+
+
 if __name__ == '__main__':
     test()

@@ -765,53 +765,62 @@ class ArrayEditor(QDialog):
 def test_edit(data, title="", xlabels=None, ylabels=None,
               readonly=False, parent=None):
     """Test subroutine"""
+    app = qapplication(test_time=1.5)    # analysis:ignore
     dlg = ArrayEditor(parent)
+
     if dlg.setup_and_check(data, title, xlabels=xlabels, ylabels=ylabels,
-                           readonly=readonly) and dlg.exec_():
+                           readonly=readonly):
+        dlg.exec_()
         return dlg.get_value()
     else:
         import sys
-        sys.exit()
+        sys.exit(1)
 
 
 def test():
     """Array editor test"""
-    _app = qapplication()
-    
+    from numpy.testing import assert_array_equal
+
     arr = np.array(["kjrekrjkejr"])
-    print("out:", test_edit(arr, "string array"))
-    from spyderlib.py3compat import u
-    arr = np.array([u("kjrekrjkejr")])
-    print("out:", test_edit(arr, "unicode array"))
+    assert arr == test_edit(arr, "string array")
+
+    arr = np.array([u"ñññéáíó"])
+    assert arr == test_edit(arr, "unicode array")
+
     arr = np.ma.array([[1, 0], [1, 0]], mask=[[True, False], [False, False]])
-    print("out:", test_edit(arr, "masked array"))
+    assert_array_equal(arr, test_edit(arr, "masked array"))
+
     arr = np.zeros((2, 2), {'names': ('red', 'green', 'blue'),
                            'formats': (np.float32, np.float32, np.float32)})
-    print("out:", test_edit(arr, "record array"))
+    assert_array_equal(arr, test_edit(arr, "record array"))
+
     arr = np.array([(0, 0.0), (0, 0.0), (0, 0.0)],
                    dtype=[(('title 1', 'x'), '|i1'),
                           (('title 2', 'y'), '>f4')])
-    print("out:", test_edit(arr, "record array with titles"))
+    assert_array_equal(arr, test_edit(arr, "record array with titles"))
+
     arr = np.random.rand(5, 5)
-    print("out:", test_edit(arr, "float array",
-                            xlabels=['a', 'b', 'c', 'd', 'e']))
+    assert_array_equal(arr, test_edit(arr, "float array",
+                                      xlabels=['a', 'b', 'c', 'd', 'e']))
+
     arr = np.round(np.random.rand(5, 5)*10)+\
                    np.round(np.random.rand(5, 5)*10)*1j
-    print("out:", test_edit(arr, "complex array",
-                            xlabels=np.linspace(-12, 12, 5),
-                            ylabels=np.linspace(-12, 12, 5)))
+    assert_array_equal(arr, test_edit(arr, "complex array",
+                                      xlabels=np.linspace(-12, 12, 5),
+                                      ylabels=np.linspace(-12, 12, 5)))
+
     arr_in = np.array([True, False, True])
-    print("in:", arr_in)
     arr_out = test_edit(arr_in, "bool array")
-    print("out:", arr_out)
-    print(arr_in is arr_out)
+    assert arr_in is arr_out
+
     arr = np.array([1, 2, 3], dtype="int8")
-    print("out:", test_edit(arr, "int array"))
+    assert_array_equal(arr, test_edit(arr, "int array"))
+
     arr = np.zeros((3,3,4))
     arr[0,0,0]=1
     arr[0,0,1]=2
     arr[0,0,2]=3
-    print("out:", test_edit(arr))
+    assert_array_equal(arr, test_edit(arr, "3D array"))
 
 
 if __name__ == "__main__":

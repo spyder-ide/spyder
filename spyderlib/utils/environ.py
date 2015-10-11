@@ -131,7 +131,10 @@ def main():
     """Run Windows environment variable editor"""
     from spyderlib.utils.qthelpers import qapplication
     app = qapplication()
-    dialog = EnvDialog()
+    if os.name == 'nt':
+        dialog = WinUserEnvDialog()
+    else:
+        dialog = EnvDialog()
     dialog.show()
     app.exec_()
 
