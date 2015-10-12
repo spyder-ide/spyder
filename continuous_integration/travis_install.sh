@@ -67,14 +67,9 @@ install_conda()
 
         # libxcb-atom1-dev libxcb-event1-dev libxcb-icccm1-dev
         # ldd /home/goanpeca/anaconda/envs/test-environment/lib/qt5/plugins/platforms/libqxcb.so
-        #	
     elif [ "$USE_QT_API" = "PyQt4" ]; then
-        conda create -q -n test-environment python=$PY_VERSION sphinx sip qt pyqt;
-    elif [ "$USE_QT_API" = "PySide" ]; then
-        conda create -q -n test-environment python=$PY_VERSION sphinx sip qt pyside;
+        conda create -q -n test-environment python=$PY_VERSION;
     fi
-
-    conda install -q -n test-environment $EXTRA_PACKAGES
 }
 
 
@@ -151,7 +146,6 @@ install_apt_pip()
 download_code;
 
 if [ "$USE_CONDA" = true ] ; then
-    export EXTRA_PACKAGES="matplotlib pandas sympy pillow"
     export SOURCE=`source activate test-environment`
     install_conda;
 else
