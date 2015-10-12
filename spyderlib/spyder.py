@@ -2696,7 +2696,6 @@ class MainWindow(QMainWindow):
         """
         self.shortcut_data.append( (qaction_or_qshortcut,
                                     context, name, default) )
-        self.apply_shortcuts()
 
     def remove_deprecated_shortcuts(self):
         """Remove deprecated shortcuts"""
