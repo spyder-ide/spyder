@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2013-2015 The Spyder Development Team
-# Copyright © 2015 Daniel Manson (@d1manson)
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
