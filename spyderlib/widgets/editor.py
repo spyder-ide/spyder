@@ -1068,18 +1068,21 @@ class EditorStack(QWidget):
         that is being closed)"""
         current_index = self.get_stack_index()
         count = self.get_stack_count()
+
         if index is None:
             if count > 0:
                 index = current_index
             else:
                 self.find_widget.set_editor(None)
                 return
+
         new_index = None
         if count > 1:
             if current_index == index:
                 new_index = self._get_previous_file_index()
             else:
                 new_index = current_index
+
         is_ok = force or self.save_if_changed(cancelable=True, index=index)
         if is_ok:
             finfo = self.data[index]
@@ -1100,11 +1103,13 @@ class EditorStack(QWidget):
                 # editortabwidget is empty: removing it
                 # (if it's not the first editortabwidget)
                 self.close()
+
             self.opened_files_list_changed.emit()
             self.update_code_analysis_actions.emit()
             self._refresh_outlineexplorer()
             self.refresh_file_dependent_actions.emit()
             self.update_plugin_title.emit()
+
             editor = self.get_current_editor()
             if editor:
                 editor.setFocus()
@@ -1113,9 +1118,11 @@ class EditorStack(QWidget):
                 if index < new_index:
                     new_index -= 1
                 self.set_stack_index(new_index)
+
         if self.get_stack_count() == 0:
             self.sig_new_file[()].emit()
             return False
+
         return is_ok
 
     def close_all_files(self):
