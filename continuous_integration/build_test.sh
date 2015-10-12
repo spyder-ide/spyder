@@ -4,7 +4,7 @@ set -ex
 
 if [ "$USE_CONDA" = true ] ; then
     # Print basic testing info
-    conda --info
+    conda info
 
     cd continuous_integration
 
