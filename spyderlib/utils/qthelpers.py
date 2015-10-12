@@ -135,6 +135,7 @@ def _process_mime_path(path, extlist):
                 path = path[5:]
         else:
             path = path[7:]
+    path = path.replace('%5C' , os.sep)  # Transforming backslashes
     if osp.exists(path):
         if extlist is None or osp.splitext(path)[1] in extlist:
             return path
