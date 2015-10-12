@@ -68,10 +68,6 @@ for f in spyderlib/*/*/*.py; do
     if [[ $f == spyderlib/utils/introspection/__init__.py ]]; then
         continue
     fi
-    # TODO: fallback_plugin tests are failing!!
-    if [[ $f == spyderlib/utils/introspection/fallback_plugin.py ]]; then
-        continue
-    fi
     if [[ $f == spyderlib/widgets/externalshell/inputhooks.py ]]; then
         continue
     fi

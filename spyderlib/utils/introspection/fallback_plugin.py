@@ -339,7 +339,7 @@ if __name__ == '__main__':
     assert '.py' in ext and '.pyx' in ext
 
     ext = all_editable_exts()
-    assert '.cfg' in ext and '.iss' in ext
+    assert '.cpp' in ext and '.html' in ext
 
     path = p.get_parent_until(os.path.abspath(__file__))
     assert path == 'spyderlib.utils.introspection.fallback_plugin'
@@ -350,8 +350,10 @@ if __name__ == '__main__':
     path = python_like_mod_finder(line, stop_token='sourcecode')
     assert path.endswith('__init__.py') and 'sourcecode' in path
 
-    path = p.get_parent_until(osp.expanduser(r'~/.spyder2/temp.py'))
-    assert path == '.spyder2.temp'
+    path = osp.expanduser(r'~/.spyder2/temp.py')
+    if os.path.exists(path):
+        path = p.get_parent_until(path)
+        assert path == '.spyder2.temp', path
 
     code = 'import re\n\nre'
     path, line = p.get_definition(CodeInfo('definition', code, len(code),
@@ -360,19 +362,19 @@ if __name__ == '__main__':
 
     code = 'self.proxy.widget; self.p'
     comp = p.get_completions(CodeInfo('completions', code, len(code)))
-    assert comp == ['proxy']
+    assert comp[0] == ('proxy', '')
 
     code = 'self.sigMessageReady.emit; self.s'
     comp = p.get_completions(CodeInfo('completions', code, len(code)))
-    assert comp == ['sigMessageReady']
+    assert comp == [('sigMessageReady', '')]
 
     code = encoding.to_unicode('álfa;á')
     comp = p.get_completions(CodeInfo('completions', code, len(code)))
-    assert comp == [encoding.to_unicode('álfa')]
+    assert comp == [(encoding.to_unicode('álfa'), '')]
 
     code = 'from numpy import one'
     comp = p.get_completions(CodeInfo('completions', code, len(code)))
-    assert 'ones' in comp
+    assert ('ones', '') in comp
 
     comp = p.get_completions(CodeInfo('completions', code, len(code),
         is_python_like=False))
@@ -380,7 +382,7 @@ if __name__ == '__main__':
 
     code = 'from numpy.testing import (asse'
     comp = p.get_completions(CodeInfo('completions', code, len(code)))
-    assert 'assert_equal' in comp
+    assert ('assert_equal', '') in comp
 
     code = '''
 def test(a, b):
