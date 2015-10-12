@@ -234,6 +234,10 @@ def check_version(actver, version, cmp_op):
     if isinstance(actver, tuple):
         actver = '.'.join([str(i) for i in actver])
 
+    # The following adds support for versions like 0.9.4-1
+    if re.match(r'\d*\.\d*(\.\d*)?\-(\d*)', actver):
+        actver = ".".join(actver.split('-'))
+
     # Hacks needed so that LooseVersion understands that (for example)
     # version = '3.0.0' is in fact bigger than actver = '3.0.0rc1'
     if is_stable_version(version) and not is_stable_version(actver) and \
