@@ -324,8 +324,13 @@ class FileSwitcher(QDialog):
                 self.initial_path = paths[i]
             self.initial_cursors[paths[i]] = editor.textCursor()
 
+    def accept(self):
+        QDialog.accept(self)
+        self.list.clear()
+
     def restore_initial_state(self):
         """Restores initial cursors and initial active editor."""
+        self.list.clear()
         editors = self.editors_by_path
 
         for path in self.initial_cursors:
@@ -546,8 +551,16 @@ class FileSwitcher(QDialog):
             item.setSizeHint(QSize(0, 16))
             self.list.addItem(item)
 
-        # Move selected item in list accordingly and update list size
-        self.set_current_row(0)
+        # Move selected item in list accordingly
+        # NOTE: Doing this is causing two problems:
+        # 1. It makes the cursor to auto-jump to the last selected
+        #    symbol after opening or closing a different file
+        # 2. It moves the cursor to the first symbol by default,
+        #    which is very distracting.
+        # That's why this line is commented!
+        # self.set_current_row(0)
+
+        # Update list size
         self.fix_size(lines, extra=125)
 
     def setup(self):
