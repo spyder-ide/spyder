@@ -43,7 +43,7 @@ install_conda()
     export PATH="$HOME/miniconda/bin:$PATH";
     hash -r;
     conda config --set always_yes yes --set changeps1 no;
-    conda update -q conda;
+    conda install -q conda==3.18.1;
 
     # Useful for debugging any issues with conda
     conda info -a;
