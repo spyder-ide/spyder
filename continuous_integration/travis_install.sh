@@ -62,8 +62,7 @@ install_conda()
         #sudo apt-get install -q "^libxcb.*" libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev
         #sudo ln -sf /usr/lib/x86_64-linux-gnu/libxcb-render-util.so.0 /usr/lib/libxcb-render-util.so.0
 
-        conda install -n test-environment -c jdreaver qt5
-        conda install -n test-environment -c nicoddemus pyqt5
+        conda install -n test-environment -c jdreaver pyqt5
     fi
 }
 
