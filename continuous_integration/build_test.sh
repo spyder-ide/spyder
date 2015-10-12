@@ -3,13 +3,10 @@
 set -ex
 
 if [ "$USE_CONDA" = true ] ; then
-    cd continuous_integration
+    # Print basic testing info
+    conda --info
 
-    echo "----------- TESTING VERSIONS -----------"
-    python --version
-    pip --version
-    conda --version
-    echo "----------------------------------------"
+    cd continuous_integration
 
     # Use --python only for 3.5 to avoid building for old Pythons
     # on the other versions
