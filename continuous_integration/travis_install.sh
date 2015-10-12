@@ -52,6 +52,8 @@ install_conda()
     conda install jinja2;
     conda install conda-build;
 
+    conda create -q -n test-environment python=$PY_VERSION;
+
     # Test environments for different Qt bindings
     if [ "$USE_QT_API" = "PyQt5" ]; then
         #sudo apt-get install -q libxcb-sync0-dev libxcb-render-util0 libxcb-image0  libxcb-xfixes0 libxcb-randr0 libxcb-keysyms1
@@ -60,10 +62,9 @@ install_conda()
         #sudo apt-get install -q "^libxcb.*" libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev
         #sudo ln -sf /usr/lib/x86_64-linux-gnu/libxcb-render-util.so.0 /usr/lib/libxcb-render-util.so.0
 
-        conda config --add channels nicoddemus;
+        conda install -n test-environment -c jdreaver qt5
+        conda install -n test-environment -c nicoddemus pyqt5
     fi
-
-    conda create -q -n test-environment python=$PY_VERSION;
 }
 
 
