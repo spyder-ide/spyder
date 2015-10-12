@@ -19,7 +19,7 @@ requirements:
     - pyqt
     - rope
     - pyflakes
-    - jedi            0.8*
+    - jedi            0.8*   [py27 or py34]
     - qtconsole
     - nbconvert
     - pygments
