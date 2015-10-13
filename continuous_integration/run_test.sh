@@ -9,7 +9,11 @@ export TEST_TRAVIS_APP=True
 # We install them here and not in travis_install.sh to see if
 # Spyder is correctly pulling its deps (some of them are shared
 # with mpl)
-export EXTRA_PACKAGES="matplotlib pandas sympy pillow"
+export EXTRA_PACKAGES="pandas sympy pillow"
+
+if [ "$USE_QT_API" = "PyQt4" ]; then
+    EXTRA_PACKAGES+=" matplotlib"
+fi
 
 if [ "$USE_CONDA" = true ] ; then
     # Move to a tmp dir
