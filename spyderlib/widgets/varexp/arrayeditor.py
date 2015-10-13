@@ -21,9 +21,9 @@ from spyderlib.qt.QtGui import (QHBoxLayout, QColor, QTableView, QItemDelegate,
                                 QMessageBox, QPushButton, QInputDialog, QMenu,
                                 QApplication, QKeySequence, QLabel, QComboBox,
                                 QSpinBox, QStackedWidget, QWidget, QVBoxLayout,
-                                QAbstractItemDelegate, QItemSelection,
-                                QItemSelectionRange)
-from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, Slot)
+                                QAbstractItemDelegate)
+from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, Slot,
+                                 QItemSelection, QItemSelectionRange)
 
 from spyderlib.qt.compat import to_qvariant, from_qvariant
 import spyderlib.utils.icon_manager as ima
