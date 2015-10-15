@@ -43,6 +43,9 @@ install_conda()
     export PATH="$HOME/miniconda/bin:$PATH";
     hash -r;
     conda config --set always_yes yes --set changeps1 no;
+
+    # Pinning conda to this version because installing from tarballs is not
+    # pulling deps in 3.18.2 and that breaks all our tests!!
     echo 'conda ==3.18.1' > $HOME/miniconda/conda-meta/pinned;
     conda update -q conda;
 
