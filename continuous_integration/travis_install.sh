@@ -49,9 +49,6 @@ install_conda()
     echo 'conda ==3.18.1' > $HOME/miniconda/conda-meta/pinned;
     conda update -q conda;
 
-    # Useful for debugging any issues with conda
-    conda info -a;
-
     # Installing conda-build and jinja2 to do build tests
     conda install jinja2;
     conda install conda-build;

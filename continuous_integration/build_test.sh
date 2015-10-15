@@ -13,8 +13,7 @@ if [ "$USE_CONDA" = true ] ; then
         conda build --python $TRAVIS_PYTHON_VERSION qtconsole
     fi
 
-    # Use --python only for 3.5 to avoid building for old Pythons
-    # on the other versions
+    # There is no Miniconda for 3.5 right now
     if [ "$TRAVIS_PYTHON_VERSION" = "3.5" ]; then
         conda build --python $TRAVIS_PYTHON_VERSION spyder
     else
