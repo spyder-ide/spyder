@@ -57,13 +57,7 @@ install_conda()
 
     # Test environments for different Qt bindings
     if [ "$USE_QT_API" = "PyQt5" ]; then
-        #sudo apt-get install -q libxcb-sync0-dev libxcb-render-util0 libxcb-image0  libxcb-xfixes0 libxcb-randr0 libxcb-keysyms1
-        #sudo cp- /usr/lib/libxcb-render-util.so.0 /usr/lib/x86_64-linux-gnu/libxcb-render-util.so.0
-
-        #sudo apt-get install -q "^libxcb.*" libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev
-        #sudo ln -sf /usr/lib/x86_64-linux-gnu/libxcb-render-util.so.0 /usr/lib/libxcb-render-util.so.0
-
-        conda config --add channels jdreaver;
+        conda config --add channels spyder-ide;
     fi
 }
 

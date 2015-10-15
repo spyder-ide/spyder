@@ -11,14 +11,9 @@ export TEST_TRAVIS_APP=True
 # with mpl)
 export EXTRA_PACKAGES="pandas sympy pillow"
 
+# Don't install mpl for PyQt5 because it pulls PyQt4
 if [ "$USE_QT_API" = "PyQt4" ]; then
     EXTRA_PACKAGES+=" matplotlib"
-else
-    # The PyQt5 version we're using was compiled against libpng 1.5
-    echo 'libpng 1.5*' > ~/miniconda/envs/test-environment/conda-meta/pinned
-
-    # Install old Pillow version to be compatible with libpng 1.5
-    EXTRA_PACKAGES+="==2.7.0"
 fi
 
 if [ "$USE_CONDA" = true ] ; then
