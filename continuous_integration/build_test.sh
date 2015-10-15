@@ -10,7 +10,7 @@ if [ "$USE_CONDA" = true ] ; then
 
     # Custom build of qtconsole for pyqt5
     if [ "$USE_QT_API" = "PyQt5" ]; then
-        conda build qtconsole
+        conda build --python $TRAVIS_PYTHON_VERSION qtconsole
     fi
 
     # Use --python only for 3.5 to avoid building for old Pythons
