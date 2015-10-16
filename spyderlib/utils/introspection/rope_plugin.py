@@ -288,10 +288,10 @@ if __name__ == '__main__':
         len(source_code), __file__))
     assert ('numpy', 'module') in completions
 
-    source_code = "import matplotlib.pyplot as plt; plt.imsave"
+    source_code = "import pandas as pd; pd.DataFrame"
     path, line_nr = p.get_definition(CodeInfo('definition', source_code,
         len(source_code), __file__))
-    assert 'pyplot.py' in path
+    assert 'frame.py' in path
 
     code = '''
 def test(a, b):

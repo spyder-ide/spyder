@@ -19,7 +19,7 @@ for f in spyderlib/*.py; do
     if [[ $f == spyderlib/start_app.py ]]; then
         continue
     fi
-    if [[ $f == spyderlib/pil_patch.py ]]; then
+    if [[ $f == spyderlib/pyplot.py ]]; then
         continue
     fi
     python "$f"
