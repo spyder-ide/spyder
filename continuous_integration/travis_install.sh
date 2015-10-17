@@ -122,6 +122,8 @@ install_apt_pip()
         install_pyside;
     fi
 
+    pip install -U pip;
+    pip install -U setuptools;
     pip install --no-index --find-links=$WHEELHOUSE_URI $EXTRA_PACKAGES;
 }
 
