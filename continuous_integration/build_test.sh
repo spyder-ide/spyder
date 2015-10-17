@@ -19,4 +19,6 @@ if [ "$USE_CONDA" = true ] ; then
     else
         conda build spyder
     fi
+else
+    python setup.py bdist_wheel --universal
 fi

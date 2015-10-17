@@ -122,10 +122,7 @@ install_apt_pip()
         install_pyside;
     fi
 
-    if [ "$PY_VERSION" = "2.7" ]; then
-        EXTRA_PACKAGES+=" rope"
-    fi
-    pip install -U $EXTRA_PACKAGES
+    pip install --no-index --find-links=$WHEELHOUSE_URI $EXTRA_PACKAGES;
 }
 
 
@@ -138,8 +135,6 @@ if [ "$USE_CONDA" = true ] ; then
     export SOURCE=`source activate test-environment`
     install_conda;
 else
-    export EXTRA_PACKAGES="IPython jedi matplotlib pandas pep8 psutil pyflakes pygments pylint sphinx sympy"
+    export EXTRA_PACKAGES="matplotlib pandas sympy"
     install_apt_pip;
 fi
-
-#sleep 60;

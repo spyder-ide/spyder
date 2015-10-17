@@ -26,13 +26,10 @@ matrix:
     - python: "3.5"
       env: USE_QT_API=PyQt5 USE_CONDA=true
       os: linux
-    #- python: "2.7"
-    #  env: USE_QT_API=PySide USE_CONDA=true
-    #  os: linux
     # Linux using apt-get/pip packages
-    #- python: "2.7"
-    #  env: USE_QT_API=PyQt4 USE_CONDA=false
-    #  os: linux
+    - python: "2.7"
+      env: USE_QT_API=PyQt4 USE_CONDA=false
+      os: linux
     #- python: "2.7"
     #  env: USE_QT_API=PySide USE_CONDA=false
     #  os: linux
