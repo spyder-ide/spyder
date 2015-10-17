@@ -26,8 +26,11 @@ from distutils.command.install import install
 from distutils.command.install_data import install_data
 
 
+#==============================================================================
 # Check for Python 3
+#==============================================================================
 PY3 = sys.version_info[0] == 3
+
 
 #==============================================================================
 # Minimal Python version sanity check
