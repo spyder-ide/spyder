@@ -3,7 +3,7 @@
 set -ex
 
 PY_VERSION=$TRAVIS_PYTHON_VERSION
-WHEELHOUSE_URI=http://travis-wheels.scikit-image.org/
+WHEELHOUSE_URI=travis-wheels.scikit-image.org
 
 #==============================================================================
 # Utility functions
@@ -124,7 +124,7 @@ install_apt_pip()
 
     pip install -U pip;
     pip install -U setuptools;
-    pip install --no-index --trusted-host $WHEELHOUSE_URI --find-links=$WHEELHOUSE_URI $EXTRA_PACKAGES;
+    pip install --no-index --trusted-host $WHEELHOUSE_URI --find-links=http://$WHEELHOUSE_URI $EXTRA_PACKAGES/;
 }
 
 
