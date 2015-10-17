@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -24,8 +24,21 @@ from distutils.core import setup
 from distutils.command.build import build
 from distutils.command.install_data import install_data
 
+
 # Check for Python 3
 PY3 = sys.version_info[0] == 3
+
+
+#------------------------------------------------------------------------------
+# Minimal Python version sanity check
+# Taken from the notebook setup.py -- Modified BSD License
+#------------------------------------------------------------------------------
+v = sys.version_info
+if v[:2] < (2,7) or (v[0] >= 3 and v[:2] < (3,3)):
+    error = "ERROR: Spyder requires Python version 2.7 or 3.3 or above."
+    print(error, file=sys.stderr)
+    sys.exit(1)
+
 
 # This is necessary to prevent an error while installing Spyder with pip
 # See http://stackoverflow.com/a/18961843/438386
