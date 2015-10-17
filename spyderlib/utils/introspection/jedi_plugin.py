@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2013 The Spyder Development Team
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -270,10 +270,10 @@ if __name__ == '__main__':
         len(source_code)))
     assert ('numpy', 'module') in completions
 
-    source_code = "import matplotlib.pyplot as plt; plt.imsave"
+    source_code = "import pandas as pd; pd.DataFrame"
     path, line_nr = p.get_definition(CodeInfo('definition', source_code,
         len(source_code)))
-    assert 'pyplot.py' in path
+    assert 'frame.py' in path
 
     source_code = 'from .plugin_manager import memoize'
     path, line_nr = p.get_definition(CodeInfo('definition', source_code,

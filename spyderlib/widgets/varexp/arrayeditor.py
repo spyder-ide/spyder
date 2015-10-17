@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2012 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -20,9 +20,11 @@ from spyderlib.qt.QtGui import (QHBoxLayout, QColor, QTableView, QItemDelegate,
                                 QDoubleValidator, QDialog, QDialogButtonBox,
                                 QMessageBox, QPushButton, QInputDialog, QMenu,
                                 QApplication, QKeySequence, QLabel, QComboBox,
-                                QSpinBox, QStackedWidget, QWidget, QVBoxLayout)
-from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, Slot)
-                                 
+                                QSpinBox, QStackedWidget, QWidget, QVBoxLayout,
+                                QAbstractItemDelegate)
+from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, Slot,
+                                 QItemSelection, QItemSelectionRange)
+
 from spyderlib.qt.compat import to_qvariant, from_qvariant
 import spyderlib.utils.icon_manager as ima
 
@@ -33,7 +35,9 @@ from spyderlib.config.base import _
 from spyderlib.config.gui import get_font, new_shortcut
 from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
                                        qapplication)
-from spyderlib.py3compat import io, to_text_string, is_text_string
+from spyderlib.py3compat import (PY3, io, to_text_string, is_text_string,
+                                 is_binary_string, to_binary_string, is_string)
+
 
 # Note: string and unicode data types will be formatted with '%s' (see below)
 SUPPORTED_FORMATS = {
@@ -53,6 +57,7 @@ SUPPORTED_FORMATS = {
                      'complex192': '%r',
                      'complex256': '%r',
                      'byte': '%d',
+                     'bytes8': '%s',
                      'short': '%d',
                      'intc': '%d',
                      'int_': '%d',
@@ -83,14 +88,19 @@ LARGE_NROWS = 1e5
 LARGE_COLS = 60
 
 
+#==============================================================================
+# Utility functions
+#==============================================================================
 def is_float(dtype):
     """Return True if datatype dtype is a float kind"""
     return ('float' in dtype.name) or dtype.name in ['single', 'double']
+
 
 def is_number(dtype):
     """Return True is datatype dtype is a number kind"""
     return is_float(dtype) or ('int' in dtype.name) or ('long' in dtype.name) \
            or ('short' in dtype.name)
+
 
 def get_idx_rect(index_list):
     """Extract the boundaries from a list of indexes"""
@@ -98,12 +108,15 @@ def get_idx_rect(index_list):
     return ( min(rows), max(rows), min(cols), max(cols) )
 
 
+#==============================================================================
+# Main classes
+#==============================================================================
 class ArrayModel(QAbstractTableModel):
     """Array Editor Table Model"""
-    
+
     ROWS_TO_LOAD = 500
     COLS_TO_LOAD = 40
-    
+
     def __init__(self, data, format="%.3f", xlabels=None, ylabels=None,
                  readonly=False, parent=None):
         QAbstractTableModel.__init__(self)
@@ -236,6 +249,11 @@ class ArrayModel(QAbstractTableModel):
         if not index.isValid():
             return to_qvariant()
         value = self.get_value(index)
+        if is_binary_string(value):
+            try:
+                value = to_text_string(value, 'utf8')
+            except:
+                pass
         if role == Qt.DisplayRole:
             if value is np.ma.masked:
                 return ''
@@ -243,10 +261,10 @@ class ArrayModel(QAbstractTableModel):
                 return to_qvariant(self._format % value)
         elif role == Qt.TextAlignmentRole:
             return to_qvariant(int(Qt.AlignCenter|Qt.AlignVCenter))
-        elif role == Qt.BackgroundColorRole and self.bgcolor_enabled\
-             and value is not np.ma.masked:
+        elif role == Qt.BackgroundColorRole and self.bgcolor_enabled \
+          and value is not np.ma.masked:
             hue = self.hue0+\
-                  self.dhue*(self.vmax-self.color_func(value))\
+                  self.dhue*(self.vmax-self.color_func(value)) \
                   /(self.vmax-self.vmin)
             hue = float(np.abs(hue))
             color = QColor.fromHsvF(hue, self.sat, self.val, self.alp)
@@ -262,14 +280,15 @@ class ArrayModel(QAbstractTableModel):
         i = index.row()
         j = index.column()
         value = from_qvariant(value, str)
-        if self._data.dtype.name == "bool":
+        dtype = self._data.dtype.name
+        if dtype == "bool":
             try:
                 val = bool(float(value))
             except ValueError:
                 val = value.lower() == "true"
-        elif self._data.dtype.name.startswith("string"):
-            val = str(value)
-        elif self._data.dtype.name.startswith("unicode"):
+        elif dtype.startswith("string") or dtype.startswith("bytes"):
+            val = to_binary_string(value, 'utf8')
+        elif dtype.startswith("unicode") or dtype.startswith("str"):
             val = to_text_string(value)
         else:
             if value.lower().startswith('e') or value.lower().endswith('e'):
@@ -293,12 +312,13 @@ class ArrayModel(QAbstractTableModel):
         # Add change to self.changes
         self.changes[(i, j)] = val
         self.dataChanged.emit(index, index)
-        if val > self.vmax:
-            self.vmax = val
-        if val < self.vmin:
-            self.vmin = val
+        if not is_string(val):
+            if val > self.vmax:
+                self.vmax = val
+            if val < self.vmin:
+                self.vmin = val
         return True
-    
+
     def flags(self, index):
         """Set editable flag"""
         if not index.isValid():
@@ -347,7 +367,14 @@ class ArrayDelegate(QItemDelegate):
     def commitAndCloseEditor(self):
         """Commit and close editor"""
         editor = self.sender()
-        self.commitData.emit(editor)
+        # Avoid a segfault with PyQt5. Variable value won't be changed
+        # but at least Spyder won't crash. It seems generated by a
+        # bug in sip. See
+        # http://comments.gmane.org/gmane.comp.python.pyqt-pykde/26544
+        try:
+            self.commitData.emit(editor)
+        except AttributeError:
+            pass
         self.closeEditor.emit(editor, QAbstractItemDelegate.NoHint)
 
     def setEditorData(self, editor, index):
@@ -377,10 +404,39 @@ class ArrayView(QTableView):
                                lambda val: self.load_more_data(val, rows=True))
     
     def load_more_data(self, value, rows=False, columns=False):
+        old_selection = self.selectionModel().selection()
+        old_rows_loaded = old_cols_loaded = None
+        
         if rows and value == self.verticalScrollBar().maximum():
+            old_rows_loaded = self.model().rows_loaded
             self.model().fetch_more(rows=rows)
+            
         if columns and value == self.horizontalScrollBar().maximum():
+            old_cols_loaded = self.model().cols_loaded
             self.model().fetch_more(columns=columns)
+            
+        if old_rows_loaded is not None or old_cols_loaded is not None:
+            # if we've changed anything, update selection
+            new_selection = QItemSelection()
+            for part in old_selection:
+                top = part.top()
+                bottom = part.bottom()
+                if (old_rows_loaded is not None and 
+                    top == 0 and bottom == (old_rows_loaded-1)):
+                    # complete column selected (so expand it to match updated range)
+                    bottom = self.model().rows_loaded-1
+                left = part.left()
+                right = part.right()
+                if (old_cols_loaded is not None
+                    and left == 0 and right == (old_cols_loaded-1)):
+                    # compete row selected (so expand it to match updated range)
+                    right = self.model().cols_loaded-1
+                top_left = self.model().index(top, left)
+                bottom_right = self.model().index(bottom, right)
+                part = QItemSelectionRange(top_left, bottom_right)
+                new_selection.append(part)
+            self.selectionModel().select(new_selection, self.selectionModel().ClearAndSelect)
+                    
 
     def resize_to_contents(self):
         """Resize cells to contents"""
@@ -415,13 +471,31 @@ class ArrayView(QTableView):
 
     def _sel_to_text(self, cell_range):
         """Copy an array portion to a unicode string"""
+        if not cell_range:
+            return
         row_min, row_max, col_min, col_max = get_idx_rect(cell_range)
+        if col_min == 0 and col_max == (self.model().cols_loaded-1):
+            # we've selected a whole column. It isn't possible to
+            # select only the first part of a column without loading more, 
+            # so we can treat it as intentional and copy the whole thing
+            col_max = self.model().total_cols-1
+        if row_min == 0 and row_max == (self.model().rows_loaded-1):
+            row_max = self.model().total_rows-1
+        
         _data = self.model().get_data()
-        output = io.StringIO()
-        np.savetxt(output,
-                  _data[row_min:row_max+1, col_min:col_max+1],
-                  delimiter='\t')
-        contents = output.getvalue()
+        if PY3:
+            output = io.BytesIO()
+        else:
+            output = io.StringIO()
+        try:
+            np.savetxt(output, _data[row_min:row_max+1, col_min:col_max+1],
+                       delimiter='\t')
+        except:
+            QMessageBox.warning(self, _("Warning"),
+                                _("It was not possible to copy values for "
+                                  "this array"))
+            return
+        contents = output.getvalue().decode('utf-8')
         output.close()
         return contents
 
@@ -721,58 +795,70 @@ class ArrayEditor(QDialog):
             for index in range(self.stack.count()):
                 self.stack.widget(index).reject_changes()
         QDialog.reject(self)
-    
-    
+
+
+#==============================================================================
+# Tests
+#==============================================================================    
 def test_edit(data, title="", xlabels=None, ylabels=None,
               readonly=False, parent=None):
     """Test subroutine"""
+    app = qapplication(test_time=1.5)    # analysis:ignore
     dlg = ArrayEditor(parent)
+
     if dlg.setup_and_check(data, title, xlabels=xlabels, ylabels=ylabels,
-                           readonly=readonly) and dlg.exec_():
+                           readonly=readonly):
+        dlg.exec_()
         return dlg.get_value()
     else:
         import sys
-        sys.exit()
+        sys.exit(1)
 
 
 def test():
     """Array editor test"""
-    _app = qapplication()
-    
+    from numpy.testing import assert_array_equal
+
     arr = np.array(["kjrekrjkejr"])
-    print("out:", test_edit(arr, "string array"))
-    from spyderlib.py3compat import u
-    arr = np.array([u("kjrekrjkejr")])
-    print("out:", test_edit(arr, "unicode array"))
+    assert arr == test_edit(arr, "string array")
+
+    arr = np.array([u"ñññéáíó"])
+    assert arr == test_edit(arr, "unicode array")
+
     arr = np.ma.array([[1, 0], [1, 0]], mask=[[True, False], [False, False]])
-    print("out:", test_edit(arr, "masked array"))
+    assert_array_equal(arr, test_edit(arr, "masked array"))
+
     arr = np.zeros((2, 2), {'names': ('red', 'green', 'blue'),
                            'formats': (np.float32, np.float32, np.float32)})
-    print("out:", test_edit(arr, "record array"))
+    assert_array_equal(arr, test_edit(arr, "record array"))
+
     arr = np.array([(0, 0.0), (0, 0.0), (0, 0.0)],
                    dtype=[(('title 1', 'x'), '|i1'),
                           (('title 2', 'y'), '>f4')])
-    print("out:", test_edit(arr, "record array with titles"))
+    assert_array_equal(arr, test_edit(arr, "record array with titles"))
+
     arr = np.random.rand(5, 5)
-    print("out:", test_edit(arr, "float array",
-                            xlabels=['a', 'b', 'c', 'd', 'e']))
+    assert_array_equal(arr, test_edit(arr, "float array",
+                                      xlabels=['a', 'b', 'c', 'd', 'e']))
+
     arr = np.round(np.random.rand(5, 5)*10)+\
                    np.round(np.random.rand(5, 5)*10)*1j
-    print("out:", test_edit(arr, "complex array",
-                            xlabels=np.linspace(-12, 12, 5),
-                            ylabels=np.linspace(-12, 12, 5)))
+    assert_array_equal(arr, test_edit(arr, "complex array",
+                                      xlabels=np.linspace(-12, 12, 5),
+                                      ylabels=np.linspace(-12, 12, 5)))
+
     arr_in = np.array([True, False, True])
-    print("in:", arr_in)
     arr_out = test_edit(arr_in, "bool array")
-    print("out:", arr_out)
-    print(arr_in is arr_out)
+    assert arr_in is arr_out
+
     arr = np.array([1, 2, 3], dtype="int8")
-    print("out:", test_edit(arr, "int array"))
+    assert_array_equal(arr, test_edit(arr, "int array"))
+
     arr = np.zeros((3,3,4))
     arr[0,0,0]=1
     arr[0,0,1]=2
     arr[0,0,2]=3
-    print("out:", test_edit(arr))
+    assert_array_equal(arr, test_edit(arr, "3D array"))
 
 
 if __name__ == "__main__":

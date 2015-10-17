@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2011 Santiago Jaramillo
+# Copyright © 2009- The Spyder Development Team
 # based on pylintgui.py by Pierre Raybaut
 #
 # Licensed under the terms of the MIT License
@@ -11,9 +11,6 @@ Profiler widget
 
 See the official documentation on python profiling:
 http://docs.python.org/library/profile.html
-
-Questions for Pierre and others:
-    - Where in the menu should profiler go?  Run > Profile code ?
 """
 
 from __future__ import with_statement
@@ -38,7 +35,7 @@ from spyderlib.utils.qthelpers import (create_toolbutton, get_item_user_text,
                                        set_item_user_text)
 from spyderlib.utils.programs import shell_split
 from spyderlib.config.base import get_conf_path, get_translation
-from spyderlib.widgets.texteditor import TextEditor
+from spyderlib.widgets.varexp.texteditor import TextEditor
 from spyderlib.widgets.comboboxes import PythonModulesComboBox
 from spyderlib.widgets.externalshell import baseshell
 from spyderlib.py3compat import to_text_string, getcwd
@@ -632,17 +629,55 @@ class ProfilerDataTree(QTreeWidget):
                 item.setExpanded(True)
     
 
+#==============================================================================
+# Tests
+#==============================================================================
+def primes(n):
+    """
+    Simple test function
+    Taken from http://www.huyng.com/posts/python-performance-analysis/
+    """
+    if n==2:
+        return [2]
+    elif n<2:
+        return []
+    s=list(range(3,n+1,2))
+    mroot = n ** 0.5
+    half=(n+1)//2-1
+    i=0
+    m=3
+    while m <= mroot:
+        if s[i]:
+            j=(m*m-3)//2
+            s[j]=0
+            while j<half:
+                s[j]=0
+                j+=m
+        i=i+1
+        m=2*i+3
+    return [2]+[x for x in s if x]
+
+
 def test():
     """Run widget test"""
+    import inspect
+    import tempfile
     from spyderlib.utils.qthelpers import qapplication
-    app = qapplication()
+
+    primes_sc = inspect.getsource(primes)
+    fd, script = tempfile.mkstemp(suffix='.py')
+    with os.fdopen(fd, 'w') as f:
+        f.write("# -*- coding: utf-8 -*-" + "\n\n")
+        f.write(primes_sc + "\n\n")
+        f.write("primes(100000)")
+    
+    app = qapplication(test_time=5)
     widget = ProfilerWidget(None)
     widget.resize(800, 600)
     widget.show()
-    #widget.analyze(__file__)
-    widget.analyze(osp.join(osp.dirname(__file__), os.pardir, os.pardir,
-                            'spyderlib/widgets', 'texteditor.py'))
+    widget.analyze(script)
     sys.exit(app.exec_())
-    
+
+
 if __name__ == '__main__':
     test()

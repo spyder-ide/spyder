@@ -42,9 +42,6 @@ parser.add_option('--no-apport', action='store_true',
                   default=False, help="Disable Apport exception hook (Ubuntu)")
 parser.add_option('--debug', action='store_true',
                   default=False, help="Run Spyder in debug mode")
-parser.add_option('--test-travis', dest="shutdown_time", default=None, 
-                  help="Closes the application after the entered number of "
-                       "seconds. Useful in continuous integration testing.")
 
 options, args = parser.parse_args()
 
@@ -165,13 +162,5 @@ print("Bootstrap completed in " +
     time.strftime("%H:%M:%S.", time.gmtime(time_lapse)) +  
     # gmtime() converts float into tuple, but loses milliseconds
     ("%.4f" % time_lapse).split('.')[1])
-
-# Set variable to start timer inside spyder application
-if options.shutdown_time is not None:
-    timer_seconds = int(options.shutdown_time)
-    os.environ['SPYDER_TEST_TRAVIS'] = 'True'
-    # In miliseconds
-    os.environ['SPYDER_TEST_TRAVIS_TIMER'] = str(timer_seconds*1000)
-    print("\nSpyder will automatically shut down in {} seconds.\n".format(timer_seconds))
 
 start_app.main()

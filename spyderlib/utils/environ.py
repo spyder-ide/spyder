@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -8,15 +8,14 @@
 Environment variable utilities
 """
 
+import os
+
 from spyderlib.qt.QtGui import QDialog, QMessageBox
 import spyderlib.utils.icon_manager as ima
 
-import os
-
 # Local imports
 from spyderlib.config.base import _
-from spyderlib.widgets.dicteditor import DictEditor
-
+from spyderlib.widgets.varexp.collectionseditor import CollectionsEditor
 
 def envdict2listdict(envdict):
     """Dict --> Dict of lists"""
@@ -26,6 +25,7 @@ def envdict2listdict(envdict):
             envdict[key] = [path.strip() for path in envdict[key].split(sep)]
     return envdict
 
+
 def listdict2envdict(listdict):
     """Dict of lists --> Dict"""
     for key in listdict:
@@ -33,7 +33,8 @@ def listdict2envdict(listdict):
             listdict[key] = os.path.pathsep.join(listdict[key])
     return listdict
 
-class RemoteEnvDialog(DictEditor):
+
+class RemoteEnvDialog(CollectionsEditor):
     """Remote process environment variables Dialog"""
     def __init__(self, get_environ_func, set_environ_func, parent=None):
         super(RemoteEnvDialog, self).__init__(parent)
@@ -44,6 +45,7 @@ class RemoteEnvDialog(DictEditor):
         """Reimplement Qt method"""
         self.set_environ(listdict2envdict(self.get_value()))
         QDialog.accept(self)
+
 
 class EnvDialog(RemoteEnvDialog):
     """Environment variables Dialog"""
@@ -96,8 +98,8 @@ try:
                         _("Module <b>pywin32 was not found</b>.<br>"
                           "Please restart this Windows <i>session</i> "
                           "(not the computer) for changes to take effect."))
-            
-    class WinUserEnvDialog(DictEditor):
+
+    class WinUserEnvDialog(CollectionsEditor):
         """Windows User Environment Variables Editor"""
         def __init__(self, parent=None):
             super(WinUserEnvDialog, self).__init__(parent)
@@ -129,7 +131,10 @@ def main():
     """Run Windows environment variable editor"""
     from spyderlib.utils.qthelpers import qapplication
     app = qapplication()
-    dialog = WinUserEnvDialog()
+    if os.name == 'nt':
+        dialog = WinUserEnvDialog()
+    else:
+        dialog = EnvDialog()
     dialog.show()
     app.exec_()
 

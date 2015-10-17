@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2015 Gonzalo Peña-Castellanos (@goanpeca)
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -355,19 +355,18 @@ class NumpyArrayDialog(QDialog):
 
 
 def test():
-    """ """
     from spyderlib.utils.qthelpers import qapplication
     app = qapplication()
     app.setStyle('Plastique')
 
-    dlg_inline = NumpyArrayDialog(None, inline=True)
     dlg_table = NumpyArrayDialog(None, inline=False)
-
-    if dlg_inline.exec_():
-        print(dlg_inline.text())
+    dlg_inline = NumpyArrayDialog(None, inline=True)
 
     if dlg_table.exec_():
         print(dlg_table.text())
+
+    if dlg_inline.exec_():
+        print(dlg_inline.text())
 
 
 if __name__ == "__main__":

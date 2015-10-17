@@ -14,21 +14,18 @@ matrix:
     - python: "2.7"
       env: USE_QT_API=PyQt4 USE_CONDA=true
       os: linux
-    - python: "3.3"
-      env: USE_QT_API=PyQt4 USE_CONDA=true
+    - python: "2.7"
+      env: USE_QT_API=PyQt5 USE_CONDA=true
       os: linux
     - python: "3.4"
       env: USE_QT_API=PyQt4 USE_CONDA=true
       os: linux
-    #- python: "2.7"
-    #  env: USE_QT_API=PyQt5 USE_CONDA=true
-    #  os: linux
-    #- python: "3.3"
-    #  env: USE_QT_API=PyQt5 USE_CONDA=true
-    #  os: linux
-    #- python: "3.4"
-    #  env: USE_QT_API=PyQt5 USE_CONDA=true
-    #  os: linux
+    - python: "3.5"
+      env: USE_QT_API=PyQt4 USE_CONDA=true
+      os: linux
+    - python: "3.5"
+      env: USE_QT_API=PyQt5 USE_CONDA=true
+      os: linux
     #- python: "2.7"
     #  env: USE_QT_API=PySide USE_CONDA=true
     #  os: linux
@@ -37,9 +34,6 @@ matrix:
     #  env: USE_QT_API=PyQt4 USE_CONDA=false
     #  os: linux
     #- python: "2.7"
-    #  env: USE_QT_API=PySide USE_CONDA=false
-    #  os: linux
-    #- python: "3.3"
     #  env: USE_QT_API=PySide USE_CONDA=false
     #  os: linux
     #- python: "3.4"
@@ -57,6 +51,7 @@ install:
   - source activate test-environment;
   - QT_API=$USE_QT_API;
 
-script:  
-  - python bootstrap.py --test-travis 30
-
+script:
+  - ./continuous_integration/build_test.sh
+  - ./continuous_integration/run_test.sh
+  - ./continuous_integration/modules_test.sh

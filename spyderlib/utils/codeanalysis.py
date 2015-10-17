@@ -153,7 +153,11 @@ def check(args, source_code, filename=None, options=None):
     lines = source_code.splitlines()
     for line in output:
         lineno = int(re.search(r'(\:[\d]+\:)', line).group()[1:-1])
-        if 'analysis:ignore' not in to_text_string(lines[lineno-1], coding):
+        try:
+            text = to_text_string(lines[lineno-1], coding)
+        except TypeError:
+            text = to_text_string(lines[lineno-1])
+        if 'analysis:ignore' not in text:
             message = line[line.find(': ')+2:]
             results.append((message, lineno))
     return results

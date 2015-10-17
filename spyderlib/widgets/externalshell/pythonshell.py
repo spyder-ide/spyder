@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
 """External Python Shell widget: execute Python script in a separate process"""
 
-import sys
 import os
 import os.path as osp
 import socket
+import sys
 
 from spyderlib.qt.QtGui import QApplication, QMessageBox, QSplitter, QMenu
 from spyderlib.qt.QtCore import QProcess, Signal, Slot, Qt
@@ -26,11 +26,11 @@ from spyderlib.utils.misc import get_python_executable
 from spyderlib.config.base import (_, get_module_source_path, DEBUG,
                                   MAC_APP_NAME, running_in_mac_app)
 from spyderlib.widgets.shell import PythonShellWidget
-from spyderlib.widgets.externalshell.namespacebrowser import NamespaceBrowser
+from spyderlib.widgets.varexp.namespacebrowser import NamespaceBrowser
 from spyderlib.utils.bsdsocket import communicate, write_packet
 from spyderlib.widgets.externalshell.baseshell import (ExternalShellBase,
                                                    add_pathlist_to_PYTHONPATH)
-from spyderlib.widgets.dicteditor import DictEditor
+from spyderlib.widgets.varexp.collectionseditor import CollectionsEditor
 from spyderlib.py3compat import (is_text_string, to_text_string,
                                  to_binary_string)
 
@@ -652,7 +652,37 @@ class ExternalPythonShell(ExternalShellBase):
     @Slot()
     def show_syspath(self):
         """Show sys.path contents"""
-        editor = DictEditor()
+        editor = CollectionsEditor()
         editor.setup(self.shell.get_syspath(), title="sys.path", readonly=True,
                      width=600, icon=ima.icon('syspath'))
         self.dialog_manager.show(editor)
+
+
+def test():
+    from spyderlib.utils.qthelpers import qapplication
+    app = qapplication()
+
+    from spyderlib.plugins.variableexplorer import VariableExplorer
+    settings = VariableExplorer.get_settings()
+
+    shell = ExternalPythonShell(pythonexecutable=sys.executable,
+                                interact=True,
+                                stand_alone=settings,
+                                wdir=osp.dirname(__file__),
+                                mpl_backend=0,
+                                light_background=False)
+
+    from spyderlib.qt.QtGui import QFont
+    from spyderlib.config.main import CONF
+    font = QFont(CONF.get('console', 'font/family')[0])
+    font.setPointSize(10)
+    shell.shell.set_font(font)
+
+    shell.shell.toggle_wrap_mode(True)
+    shell.start_shell(False)
+    shell.show()
+    sys.exit(app.exec_())
+
+
+if __name__ == "__main__":
+    test()

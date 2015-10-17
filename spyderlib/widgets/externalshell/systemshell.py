@@ -7,6 +7,7 @@
 """External System Shell widget: execute terminal in a separate process"""
 
 import os
+import sys
 
 from spyderlib.qt.QtGui import QMessageBox
 from spyderlib.qt.QtCore import (QProcess, Signal, QTextCodec,
@@ -149,4 +150,26 @@ class ExternalSystemShell(ExternalShellBase):
 #                                              x.dwProcessID)
 #        else:
 #            self.send_ctrl_to_process('c')
-                
+
+
+def test():
+    import os.path as osp
+    from spyderlib.utils.qthelpers import qapplication
+    app = qapplication()
+    shell = ExternalSystemShell(wdir=osp.dirname(__file__),
+                                light_background=False)
+
+    from spyderlib.qt.QtGui import QFont
+    from spyderlib.config.main import CONF
+    font = QFont(CONF.get('console', 'font/family')[0])
+    font.setPointSize(10)
+    shell.shell.set_font(font)
+
+    shell.shell.toggle_wrap_mode(True)
+    shell.start_shell(False)
+    shell.show()
+    sys.exit(app.exec_())
+
+
+if __name__ == "__main__":
+    test()

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2012 Jed Ludlow
+# Copyright © 2009- The Spyder Development Team
 # based loosley on pylintgui.py by Pierre Raybaut
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
@@ -235,6 +235,10 @@ class BreakpointWidget(QWidget):
         self.dictwidget.adjust_columns()
         self.dictwidget.sortByColumn(0, Qt.DescendingOrder)
 
+
+#==============================================================================
+# Tests
+#==============================================================================
 def test():
     """Run breakpoint widget test"""
     from spyderlib.utils.qthelpers import qapplication
@@ -242,6 +246,7 @@ def test():
     widget = BreakpointWidget(None)
     widget.show()
     sys.exit(app.exec_())
-    
+
+
 if __name__ == '__main__':
     test()

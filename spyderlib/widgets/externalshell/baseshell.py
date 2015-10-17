@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -9,7 +9,6 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-import sys
 import os
 import os.path as osp
 from time import time, strftime, gmtime
@@ -306,38 +305,6 @@ class ExternalShellBase(QWidget):
         self.process.write(byte_array)
         self.process.waitForBytesWritten(-1)
         self.shell.write(LOCALE_CODEC.toUnicode(byte_array), flush=True)
-        
+
     def keyboard_interrupt(self):
         raise NotImplementedError
-
-
-def test():
-    from spyderlib.utils.qthelpers import qapplication
-    app = qapplication()
-    from spyderlib.widgets.externalshell.pythonshell import ExternalPythonShell
-    from spyderlib.widgets.externalshell.systemshell import ExternalSystemShell
-    import spyderlib
-    from spyderlib.plugins.variableexplorer import VariableExplorer
-    settings = VariableExplorer.get_settings()
-    shell = ExternalPythonShell(wdir=osp.dirname(spyderlib.__file__),
-                                ipykernel=True, stand_alone=settings,
-                                arguments="-q4thread -pylab -colors LightBG",
-                                light_background=False)
-#    shell = ExternalPythonShell(wdir=osp.dirname(spyderlib.__file__),
-#                                interact=True, umr_enabled=True,
-#                                stand_alone=settings,
-#                                umr_namelist=['guidata', 'guiqwt'],
-#                                umr_verbose=True, light_background=False)
-#    shell = ExternalSystemShell(wdir=osp.dirname(spyderlib.__file__),
-#                                light_background=False)
-    shell.shell.toggle_wrap_mode(True)
-    shell.start_shell(False)
-    from spyderlib.qt.QtGui import QFont
-    font = QFont("Lucida console")
-    font.setPointSize(10)
-    shell.shell.set_font(font)
-    shell.show()
-    sys.exit(app.exec_())
-
-if __name__ == "__main__":
-    test()

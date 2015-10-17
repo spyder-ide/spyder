@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -34,7 +34,7 @@ from spyderlib.utils.encoding import to_unicode_from_fs
 from spyderlib.utils.qthelpers import create_toolbutton
 from spyderlib.config.base import get_conf_path, get_translation
 from spyderlib.widgets.onecolumntree import OneColumnTree
-from spyderlib.widgets.texteditor import TextEditor
+from spyderlib.widgets.varexp.texteditor import TextEditor
 from spyderlib.widgets.comboboxes import (PythonModulesComboBox,
                                           is_module_or_package)
 from spyderlib.py3compat import PY3, to_text_string, getcwd, pickle
@@ -484,14 +484,19 @@ class PylintWidget(QWidget):
         self.datelabel.setText(date_text)
 
 
+#==============================================================================
+# Tests
+#==============================================================================
 def test():
     """Run pylint widget test"""
     from spyderlib.utils.qthelpers import qapplication
-    app = qapplication()
+    app = qapplication(test_time=20)
     widget = PylintWidget(None)
+    widget.resize(640, 480)
     widget.show()
     widget.analyze(__file__)
     sys.exit(app.exec_())
-    
+
+
 if __name__ == '__main__':
     test()

@@ -90,7 +90,14 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
         if text:
             self.find()
         
-    #------ SpyderPluginWidget API ---------------------------------------------    
+    #------ SpyderPluginMixin API ---------------------------------------------    
+    def switch_to_plugin(self):
+        """Switch to plugin
+        This method is called when pressing plugin's shortcut key"""
+        self.findinfiles_callback()  # Necessary at least with PyQt5 on Windows
+        SpyderPluginMixin.switch_to_plugin(self)
+
+    #------ SpyderPluginWidget API --------------------------------------------    
     def get_plugin_title(self):
         """Return widget title"""
         return _("Find in files")

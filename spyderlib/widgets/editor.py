@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2011 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -45,7 +45,7 @@ from spyderlib.widgets.sourcecode import syntaxhighlighters, codeeditor
 from spyderlib.widgets.sourcecode.base import TextEditBaseWidget  #analysis:ignore
 from spyderlib.widgets.sourcecode.codeeditor import Printer  #analysis:ignore
 from spyderlib.widgets.sourcecode.codeeditor import get_file_language
-from spyderlib.widgets.file_switcher import FileSwitcher
+from spyderlib.widgets.fileswitcher import FileSwitcher
 from spyderlib.py3compat import to_text_string, qbytearray_to_str, u
 
 DEBUG_EDITOR = DEBUG >= 3
@@ -384,6 +384,7 @@ class EditorStack(QWidget):
         self.highlight_current_line_enabled = False
         self.highlight_current_cell_enabled = False
         self.occurence_highlighting_enabled = True
+        self.occurence_highlighting_timeout=1500
         self.checkeolchars_enabled = True
         self.always_remove_trailing_spaces = False
         self.fullpath_sorting_enabled = None
@@ -1067,18 +1068,21 @@ class EditorStack(QWidget):
         that is being closed)"""
         current_index = self.get_stack_index()
         count = self.get_stack_count()
+
         if index is None:
             if count > 0:
                 index = current_index
             else:
                 self.find_widget.set_editor(None)
                 return
+
         new_index = None
         if count > 1:
             if current_index == index:
                 new_index = self._get_previous_file_index()
             else:
                 new_index = current_index
+
         is_ok = force or self.save_if_changed(cancelable=True, index=index)
         if is_ok:
             finfo = self.data[index]
@@ -1099,11 +1103,13 @@ class EditorStack(QWidget):
                 # editortabwidget is empty: removing it
                 # (if it's not the first editortabwidget)
                 self.close()
+
             self.opened_files_list_changed.emit()
             self.update_code_analysis_actions.emit()
             self._refresh_outlineexplorer()
             self.refresh_file_dependent_actions.emit()
             self.update_plugin_title.emit()
+
             editor = self.get_current_editor()
             if editor:
                 editor.setFocus()
@@ -1112,9 +1118,11 @@ class EditorStack(QWidget):
                 if index < new_index:
                     new_index -= 1
                 self.set_stack_index(new_index)
+
         if self.get_stack_count() == 0:
             self.sig_new_file[()].emit()
             return False
+
         return is_ok
 
     def close_all_files(self):
@@ -2293,6 +2301,7 @@ class EditorPluginExample(QSplitter):
         """Fake!"""
         pass
 
+
 def test():
     from spyderlib.utils.qthelpers import qapplication
     app = qapplication()
@@ -2302,12 +2311,13 @@ def test():
     import time
     t0 = time.time()
     test.load(__file__)
-    test.load("explorer.py")
-    test.load("dicteditor.py")
-    test.load("sourcecode/codeeditor.py")
-    test.load("../spyder.py")
+    cur_dir = osp.dirname(osp.abspath(__file__))
+    test.load(osp.join(cur_dir, "explorer.py"))
+    test.load(osp.join(cur_dir, "varexp", "collectionseditor.py"))
+    test.load(osp.join(cur_dir, "sourcecode", "codeeditor.py"))
     print("Elapsed time: %.3f s" % (time.time()-t0))
     sys.exit(app.exec_())
+
 
 if __name__ == "__main__":
     test()

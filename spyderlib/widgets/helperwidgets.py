@@ -120,8 +120,11 @@ class HTMLDelegate(QStyledItemDelegate):
 
         textRect = style.subElementRect(QStyle.SE_ItemViewItemText, options)
         painter.save()
-        painter.translate(textRect.topLeft())
-        painter.setClipRect(textRect.translated(-textRect.topLeft()))
+        if style.objectName() == 'oxygen':
+            painter.translate(textRect.topLeft() + QPoint(5, -9))
+        else:
+            painter.translate(textRect.topLeft())
+            painter.setClipRect(textRect.translated(-textRect.topLeft()))
         doc.documentLayout().draw(painter, ctx)
 
         painter.restore()
