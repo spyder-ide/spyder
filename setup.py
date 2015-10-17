@@ -22,6 +22,7 @@ import shutil
 
 from distutils.core import setup
 from distutils.command.build import build
+from distutils.command.install import install
 from distutils.command.install_data import install_data
 
 
@@ -45,23 +46,6 @@ if v[:2] < (2,7) or (v[0] >= 3 and v[:2] < (3,3)):
 NAME = 'spyder'
 LIBNAME = 'spyderlib'
 from spyderlib import __version__, __project_url__
-
-
-#==============================================================================
-# This is necessary to prevent an error while installing Spyder with pip
-# See http://stackoverflow.com/a/18961843/438386
-#==============================================================================
-with_setuptools = False
-if 'USE_SETUPTOOLS' in os.environ or 'pip' in __file__ or \
-  'VIRTUAL_ENV' in os.environ:
-    try:
-        from setuptools.command.install import install
-        with_setuptools = True
-    except:
-        with_setuptools = False
-
-if not with_setuptools:
-    from distutils.command.install import install  # analysis:ignore
 
 
 #==============================================================================
