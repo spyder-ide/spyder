@@ -89,31 +89,28 @@ The easiest way to install Spyder is:
 
 ### Cross-platform way from source
 
-You can install Spyder from its zip source package named `spyder-x.y.z.zip`,
-found [here](https://github.com/spyder-ide/spyder/releases). Then you need to
-use the standard Python `setup.py` script:
+You can also install Spyder with the `pip` package manager, which comes by
+default with most Python installations. For that you need to use the
+command:
 
-    python setup.py install
+    pip install spyder
 
-Note that `setup.py` is not able to uninstall previous versions of Python
-packages: it simply copies files on top of an existing installation. So the
-best way to install from source is to use the `pip` package manager:
-
-    pip install .
-
-Note the dot (`.`) at the end of this command. `pip` can also install Spyder
-from the [Python package index](http://pypi.python.org/pypi) *and* upgrade an
-existing installation
+To upgrade Spyder to its latest version, if it was installed before, you need
+to run
 
     pip install --upgrade spyder
 
 For more details on supported platforms, please refer to our
 [installation instructions](http://pythonhosted.org/spyder/installation.html).
 
+**Important note**: This does not install the graphical Python libraries (i.e.
+PyQt4, PyQt5 or PySide) that Spyder depend on. Those have to be installed
+separately after installing Python.
+
 
 ## Running from source
 
-The fastest way to run Spyder is to get the source code, install PyQt
+The fastest way to run Spyder is to get the source code, install PyQt4, PyQt5
 or PySide, and run:
 
     python bootstrap.py
