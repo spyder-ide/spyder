@@ -124,7 +124,7 @@ install_apt_pip()
 
     pip install -U pip;
     pip install -U setuptools;
-    pip install --no-index --find-links=$WHEELHOUSE_URI $EXTRA_PACKAGES;
+    pip install --no-index --trusted-host $WHEELHOUSE_URI --find-links=$WHEELHOUSE_URI $EXTRA_PACKAGES;
 }
 
 
