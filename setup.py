@@ -28,11 +28,10 @@ from distutils.command.install_data import install_data
 # Check for Python 3
 PY3 = sys.version_info[0] == 3
 
-
-#------------------------------------------------------------------------------
+#==============================================================================
 # Minimal Python version sanity check
 # Taken from the notebook setup.py -- Modified BSD License
-#------------------------------------------------------------------------------
+#==============================================================================
 v = sys.version_info
 if v[:2] < (2,7) or (v[0] >= 3 and v[:2] < (3,3)):
     error = "ERROR: Spyder requires Python version 2.7 or 3.3 or above."
@@ -40,8 +39,18 @@ if v[:2] < (2,7) or (v[0] >= 3 and v[:2] < (3,3)):
     sys.exit(1)
 
 
+#==============================================================================
+# Constants
+#==============================================================================
+NAME = 'spyder'
+LIBNAME = 'spyderlib'
+from spyderlib import __version__, __project_url__
+
+
+#==============================================================================
 # This is necessary to prevent an error while installing Spyder with pip
 # See http://stackoverflow.com/a/18961843/438386
+#==============================================================================
 with_setuptools = False
 if 'USE_SETUPTOOLS' in os.environ or 'pip' in __file__ or \
   'VIRTUAL_ENV' in os.environ:
@@ -55,6 +64,9 @@ if not with_setuptools:
     from distutils.command.install import install  # analysis:ignore
 
 
+#==============================================================================
+# Auxiliary functions
+#==============================================================================
 def get_package_data(name, extlist):
     """Return data files for package *name* with extensions in *extlist*"""
     flist = []
@@ -93,6 +105,29 @@ def get_data_files():
     return data_files
 
 
+def get_packages():
+    """Return package list"""
+    if WINDOWS_INSTALLER:
+        # Adding pyflakes and rope to the package if available in the 
+        # repository (this is not conventional but Spyder really need 
+        # those tools and there is not decent package manager on 
+        # Windows platforms, so...)
+        import shutil
+        import atexit
+        extdir = 'external-py' + TARGET_VERSION[0]
+        for name in ('rope', 'pyflakes'):
+            srcdir = osp.join(extdir, name)
+            if osp.isdir(srcdir):
+                dstdir = osp.join(LIBNAME, 'utils', 'external', name)
+                shutil.copytree(srcdir, dstdir)
+                atexit.register(shutil.rmtree, osp.abspath(dstdir))
+    packages = get_subpackages(LIBNAME)+get_subpackages('spyderplugins')
+    return packages
+
+
+#==============================================================================
+# Make Linux detect Spyder desktop file
+#==============================================================================
 class MyInstallData(install_data):
     def run(self):
         install_data.run(self)
@@ -105,7 +140,9 @@ class MyInstallData(install_data):
 CMDCLASS = {'install_data': MyInstallData}
 
 
+#==============================================================================
 # Sphinx build (documentation)
+#==============================================================================
 def get_html_help_exe():
     """Return HTML Help Workshop executable path (Windows only)"""
     if os.name == 'nt':
@@ -184,11 +221,9 @@ except ImportError:
           'is not installed', file=sys.stderr)
 
 
-NAME = 'spyder'
-LIBNAME = 'spyderlib'
-from spyderlib import __version__, __project_url__
-
-
+#==============================================================================
+# Windows installer names
+#==============================================================================
 JOINEDARGS = ''.join(sys.argv)
 WINDOWS_INSTALLER = 'bdist_wininst' in JOINEDARGS or 'bdist_msi' in JOINEDARGS
 TARGET_MATCH = re.search(r'--target-version=([0-9]*)\.([0-9]*)', JOINEDARGS)
@@ -198,25 +233,9 @@ else:
     TARGET_VERSION = (str(sys.version_info[0]), str(sys.version_info[1]))
 
 
-def get_packages():
-    """Return package list"""
-    if WINDOWS_INSTALLER:
-        # Adding pyflakes and rope to the package if available in the 
-        # repository (this is not conventional but Spyder really need 
-        # those tools and there is not decent package manager on 
-        # Windows platforms, so...)
-        import shutil
-        import atexit
-        extdir = 'external-py' + TARGET_VERSION[0]
-        for name in ('rope', 'pyflakes'):
-            srcdir = osp.join(extdir, name)
-            if osp.isdir(srcdir):
-                dstdir = osp.join(LIBNAME, 'utils', 'external', name)
-                shutil.copytree(srcdir, dstdir)
-                atexit.register(shutil.rmtree, osp.abspath(dstdir))
-    packages = get_subpackages(LIBNAME)+get_subpackages('spyderplugins')
-    return packages
-
+#==============================================================================
+# Main scripts
+#==============================================================================
 # NOTE: the '[...]_win_post_install.py' script is installed even on non-Windows
 # platforms due to a bug in pip installation process (see Issue 1158)
 SCRIPTS = ['%s_win_post_install.py' % NAME]
@@ -224,13 +243,21 @@ if PY3 and sys.platform.startswith('linux'):
     SCRIPTS.append('spyder3')
 else:
     SCRIPTS.append('spyder')
+
+
+#==============================================================================
+# Files added to the package
+#==============================================================================
 EXTLIST = ['.mo', '.svg', '.png', '.css', '.html', '.js', '.chm', '.ini',
            '.txt', '.rst', '.qss', '.ttf', '.json']
 if os.name == 'nt':
     SCRIPTS += ['spyder.bat']
     EXTLIST += ['.ico']
 
+
+#==============================================================================
 # Adding a message for the Windows installers
+#==============================================================================
 WININST_MSG = ""
 if WINDOWS_INSTALLER:
     WININST_MSG = \
@@ -239,6 +266,9 @@ if WINDOWS_INSTALLER:
 """
 
 
+#==============================================================================
+# Main setup
+#==============================================================================
 setup(name=NAME,
       version=__version__,
       description='Scientific PYthon Development EnviRonment',
