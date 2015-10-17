@@ -56,17 +56,6 @@ You can read the Spyder documentation at:
 http://pythonhosted.org/spyder/
 
 
-## Running from source
-
-The fastest way to run Spyder is to get the source code, install PyQt
-or PySide, and run:
-
-    python bootstrap.py
-    
-You may want to do this for fixing bugs in Spyder, adding new
-features, learning how Spyder works or just getting a taste of it.
-
-
 ## Installation
 
 This section explains how to install the latest stable release of
@@ -120,6 +109,17 @@ existing installation
 
 For more details on supported platforms, please refer to our
 [installation instructions](http://pythonhosted.org/spyder/installation.html).
+
+
+## Running from source
+
+The fastest way to run Spyder is to get the source code, install PyQt
+or PySide, and run:
+
+    python bootstrap.py
+    
+You may want to do this for fixing bugs in Spyder, adding new
+features, learning how Spyder works or just getting a taste of it.
 
 
 ## Dependencies
