@@ -137,6 +137,6 @@ if [ "$USE_CONDA" = true ] ; then
     export SOURCE=`source activate test-environment`
     install_conda;
 else
-    export EXTRA_PACKAGES="matplotlib pandas sympy"
+    export EXTRA_PACKAGES="matplotlib pandas sympy pyzmq pillow"
     install_apt_pip;
 fi
