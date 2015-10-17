@@ -267,9 +267,9 @@ if WINDOWS_INSTALLER:
 
 
 #==============================================================================
-# Main setup
+# Setup arguments
 #==============================================================================
-setup(name=NAME,
+setup_args = dict(name=NAME,
       version=__version__,
       description='Scientific PYthon Development EnviRonment',
       long_description=WININST_MSG + \
@@ -289,7 +289,6 @@ editor, Python console, etc.""",
       package_data={LIBNAME: get_package_data(LIBNAME, EXTLIST),
                     'spyderplugins':
                     get_package_data('spyderplugins', EXTLIST)},
-      requires=["rope (>=0.9.2)", "sphinx (>=0.6.0)", "PyQt4 (>=4.4)"],
       scripts=[osp.join('scripts', fname) for fname in SCRIPTS],
       data_files=get_data_files(),
       options={"bdist_wininst":
@@ -308,7 +307,45 @@ editor, Python console, etc.""",
                    'Operating System :: Unix',
                    'Programming Language :: Python :: 2.7',
                    'Programming Language :: Python :: 3',
+                   'Programming Language :: Python :: 3.3'
                    'Development Status :: 5 - Production/Stable',
                    'Topic :: Scientific/Engineering',
                    'Topic :: Software Development :: Widget Sets'],
       cmdclass=CMDCLASS)
+
+
+#==============================================================================
+# Setuptools deps
+#==============================================================================
+if any(arg == 'bdist_wheel' for arg in sys.argv):
+    import setuptools     # analysis:ignore
+
+install_requires = [
+    'rope>=0.9.4',
+    'jedi==0.8.1',
+    'pyflakes',
+    'pygments',
+    'qtconsole',
+    'nbconvert',
+    'sphinx',
+    'pep8',
+    'pylint',
+    'psutil'
+]
+
+if 'setuptools' in sys.modules:
+    setup_args['install_requires'] = install_requires
+
+    setup_args['entry_points'] = {
+        'gui_scripts': [
+            'spyder = spyderlib.start_app:main'
+        ]
+    }
+
+    setup_args.pop('scripts', None)
+
+
+#==============================================================================
+# Main setup
+#==============================================================================
+setup(**setup_args)
