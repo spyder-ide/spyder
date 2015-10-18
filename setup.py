@@ -308,7 +308,7 @@ if any(arg == 'bdist_wheel' for arg in sys.argv):
     import setuptools     # analysis:ignore
 
 install_requires = [
-    'rope>=0.9.4',
+    'rope_py3k' if PY3 else 'rope>=0.9.4',
     'jedi==0.8.1',
     'pyflakes',
     'pygments',
