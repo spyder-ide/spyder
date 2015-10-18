@@ -98,6 +98,7 @@ install_pip()
         conda install pyqt;
     else
         conda install pyqt5;
+    fi
 
     pip install --no-index --trusted-host $WHEELHOUSE_URI --find-links=http://$WHEELHOUSE_URI/ $EXTRA_PACKAGES;
 }
