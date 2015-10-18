@@ -1,4 +1,4 @@
-# After changing this file, check it on http://yaml-online-parser.appspot.com/
+# https://travis-ci.org/spyder-ide/spyder
 
 language: python
 sudo: false
@@ -36,7 +36,6 @@ matrix:
       os: linux
 
 before_install:
-  #- sudo apt-get update
   - "export DISPLAY=:99.0"
   - "sh -e /etc/init.d/xvfb start"
 

@@ -78,25 +78,14 @@ install_pyside()
 }
 
 
-install_qt5()
-{
-    echo "Not supported yet"
-}
-
-
 install_pip()
 {
-    # Test for different Qt bindings
-    #if [ "$USE_QT_API" = "PyQt5" ]; then
-    #    install_qt5
-    #elif [ "$USE_QT_API" = "PySide" ]; then
-    #    install_pyside;
-    #fi
-
-    if [ "$USE_QT_API" = "PyQt4" ]; then
-        conda install pyqt;
-    else
+    if [ "$USE_QT_API" = "PyQt5" ]; then
         conda install pyqt5;
+    elif [ "$USE_QT_API" = "PyQt4" ]; then
+        conda install pyqt;
+    elif [ "$USE_QT_API" = "PySide" ]; then
+        install_pyside;
     fi
 
     pip install --no-index --trusted-host $WHEELHOUSE_URI --find-links=http://$WHEELHOUSE_URI/ $EXTRA_PACKAGES;
