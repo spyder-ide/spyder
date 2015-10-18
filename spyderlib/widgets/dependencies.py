@@ -127,24 +127,17 @@ class DependenciesDialog(QDialog):
     def __init__(self, parent):
         QDialog.__init__(self, parent)
         self.setWindowTitle("Spyder %s: %s" % (__version__,
-                                               _("Optional Dependencies")))
+                                               _("Dependencies")))
         self.setWindowIcon(ima.icon('tooloptions'))
         self.setModal(True)
 
         self.view = DependenciesTableView(self, [])
 
-        important_mods = ['rope', 'pyflakes', 'IPython', 'matplotlib']
         self.label = QLabel(_("Spyder depends on several Python modules to "
-                              "provide additional functionality for its "
-                              "plugins. The table below shows the required "
+                              "provide the right functionality for all its "
+                              "panes. The table below shows the required "
                               "and installed versions (if any) of all of "
-                              "them.<br><br>"
-                              "Although Spyder can work without any of these "
-                              "modules, it's strongly recommended that at "
-                              "least you try to install <b>%s</b> and "
-                              "<b>%s</b> to have a much better experience.")
-                              % (', '.join(important_mods[:-1]),
-                                 important_mods[-1]))
+                              "them."))
         self.label.setWordWrap(True)
         self.label.setAlignment(Qt.AlignJustify)
         self.label.setContentsMargins(5, 8, 12, 10)
