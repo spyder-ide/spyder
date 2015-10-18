@@ -1782,9 +1782,8 @@ class MainWindow(QMainWindow):
         self.ql_reset = create_action(self, _('Reset to spyder default'),
                                       triggered=self.reset_window_layout)
 
-        self.register_shortcut(self.ql_save, "_", _("Save current layout"))
-        self.register_shortcut(self.ql_preferences, "_",
-                               _("Layout preferences"))
+        self.register_shortcut(self.ql_save, "_", "Save current layout")
+        self.register_shortcut(self.ql_preferences, "_", "Layout preferences")
 
         ql_actions += [None]
         ql_actions += [self.ql_save, self.ql_preferences, self.ql_reset]
