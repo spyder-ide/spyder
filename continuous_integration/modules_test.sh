@@ -68,6 +68,9 @@ for f in spyderlib/*/*/*.py; do
     if [[ $f == spyderlib/utils/introspection/__init__.py ]]; then
         continue
     fi
+    if [[ $f == spyderlib/widgets/externalshell/systemshell.py ]]; then
+        continue
+    fi
     if [[ $f == spyderlib/widgets/externalshell/inputhooks.py ]]; then
         continue
     fi

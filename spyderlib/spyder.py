@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2013 Pierre Raybaut
-# Copyright © 2013-2015 The Spyder Development Team
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -956,8 +955,8 @@ class MainWindow(QMainWindow):
 
             self.set_splash(_("Setting up main window..."))
 
-            # Help menu            
-            dep_action = create_action(self, _("Optional dependencies..."),
+            # Help menu
+            dep_action = create_action(self, _("Dependencies..."),
                                        triggered=self.show_dependencies,
                                        icon=ima.icon('advanced'))
             report_action = create_action(self,
@@ -2348,7 +2347,7 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def show_dependencies(self):
-        """Show Spyder's Optional Dependencies dialog box"""
+        """Show Spyder's Dependencies dialog box"""
         from spyderlib.widgets.dependencies import DependenciesDialog
         dlg = DependenciesDialog(None)
         dlg.set_data(dependencies.DEPENDENCIES)
@@ -2387,7 +2386,7 @@ class MainWindow(QMainWindow):
 * Python Version: %s
 * Qt Versions: %s, %s %s on %s
 
-## Optional dependencies
+## Dependencies
 ```
 %s
 ```

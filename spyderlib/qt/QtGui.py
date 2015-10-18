@@ -21,3 +21,4 @@ elif os.environ['QT_API'] == 'pyqt':
 else:
     from PySide.QtGui import *                                # analysis:ignore
     QStyleOptionViewItem = QStyleOptionViewItemV4             # analysis:ignore
+    del QItemSelection, QItemSelectionRange                   # analysis:ignore

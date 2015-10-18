@@ -3,7 +3,7 @@
 set -ex
 
 PY_VERSION=$TRAVIS_PYTHON_VERSION
-WHEELHOUSE_URI=http://travis-wheels.scikit-image.org/
+WHEELHOUSE_URI=travis-wheels.scikit-image.org
 
 #==============================================================================
 # Utility functions
@@ -50,10 +50,11 @@ install_conda()
     conda update -q conda;
 
     # Installing conda-build and jinja2 to do build tests
-    conda install jinja2;
-    conda install conda-build;
-
-    conda create -q -n test-environment python=$PY_VERSION;
+    if [ "$USE_CONDA" = true ]; then
+        conda install jinja2;
+        conda install conda-build;
+        conda create -q -n test-environment python=$PY_VERSION;
+    fi
 
     # Test environments for different Qt bindings
     if [ "$USE_QT_API" = "PyQt5" ]; then
@@ -64,68 +65,30 @@ install_conda()
 
 install_pyside()
 {
-    # Currently support for python 2.7, 3.3, 3.4
+    # Currently support Python 2.7 and 3.4
     # http://stackoverflow.com/questions/24489588/how-can-i-install-pyside-on-travis
-    sudo apt-get install libqt4-dev;
-    pip install --upgrade pip;
-    pip install PySide --no-index --find-links=$WHEELHOUSE_URI;  
+
+    pip install -U setuptools;
+    pip install -U pip;
+    pip install --no-index --trusted-host $WHEELHOUSE_URI --find-links=http://$WHEELHOUSE_URI/ pyside;
+
     # Travis CI servers use virtualenvs, so we need to finish the install by the following
     POSTINSTALL=$(find ~/virtualenv/ -type f -name "pyside_postinstall.py";)
     python $POSTINSTALL -install;
 }
 
 
-install_qt4()
+install_pip()
 {
-    # Install Qt and then update the Matplotlib settings
-    sudo apt-get install -q libqt4-dev pyqt4-dev-tools;
-
-    if [[ $PY_VERSION == 2.7* ]]; then
-        sudo apt-get install python-dev
-        sudo apt-get install -q python-qt4
-    else  
-        sudo apt-get install python3-dev
-    fi
-
-    # http://stackoverflow.com/a/9716100
-    LIBS=( PyQt4 sip.so )
-
-    VAR=( $(which -a python$PY_VERSION) )
-
-    GET_PYTHON_LIB_CMD="from distutils.sysconfig import get_python_lib; print (get_python_lib())"
-    LIB_VIRTUALENV_PATH=$(python -c "$GET_PYTHON_LIB_CMD")
-    LIB_SYSTEM_PATH=$(${VAR[-1]} -c "$GET_PYTHON_LIB_CMD")
-
-    for LIB in ${LIBS[@]}
-    do
-        sudo ln -sf $LIB_SYSTEM_PATH/$LIB $LIB_VIRTUALENV_PATH/$LIB
-    done
-}
-
-
-install_qt5()
-{
-    echo "Not supported yet"
-}
-
-
-install_apt_pip()
-{  
-    # Test for different Qt bindings
     if [ "$USE_QT_API" = "PyQt5" ]; then
-        #sudo apt-get install -qq python-sip python-qt5 python-sphinx --fix-missing;
-        #sudo apt-get install -qq python3-sip python3-pyqt5 --fix-missing;
-        install_qt5
+        conda install pyqt5;
     elif [ "$USE_QT_API" = "PyQt4" ]; then
-        install_qt4;
+        conda install pyqt;
     elif [ "$USE_QT_API" = "PySide" ]; then
         install_pyside;
     fi
 
-    if [ "$PY_VERSION" = "2.7" ]; then
-        EXTRA_PACKAGES+=" rope"
-    fi
-    pip install -U $EXTRA_PACKAGES
+    pip install --no-index --trusted-host $WHEELHOUSE_URI --find-links=http://$WHEELHOUSE_URI/ $EXTRA_PACKAGES;
 }
 
 
@@ -134,12 +97,10 @@ install_apt_pip()
 #==============================================================================
 download_code;
 
-if [ "$USE_CONDA" = true ] ; then
-    export SOURCE=`source activate test-environment`
-    install_conda;
-else
-    export EXTRA_PACKAGES="IPython jedi matplotlib pandas pep8 psutil pyflakes pygments pylint sphinx sympy"
-    install_apt_pip;
-fi
+# Use conda even to test pip!
+install_conda;
 
-#sleep 60;
+if [ "$USE_CONDA" = false ]; then
+    export EXTRA_PACKAGES="matplotlib pandas sympy pyzmq pillow"
+    install_pip;
+fi

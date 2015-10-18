@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -50,13 +50,17 @@ class ExternalSystemShell(ExternalShellBase):
 
     def get_icon(self):
         return ima.icon('cmdprompt')
-    
+
+    def finish_process(self):
+        while not self.process.waitForFinished(100):
+            self.process.kill();
+
     def create_process(self):
         self.shell.clear()
-            
+
         self.process = QProcess(self)
         self.process.setProcessChannelMode(QProcess.MergedChannels)
-        
+
         # PYTHONPATH (in case we use Python in this terminal, e.g. py2exe)
         env = [to_text_string(_path)
                for _path in self.process.systemEnvironment()]
@@ -152,12 +156,17 @@ class ExternalSystemShell(ExternalShellBase):
 #            self.send_ctrl_to_process('c')
 
 
+#==============================================================================
+# Tests
+#==============================================================================
 def test():
     import os.path as osp
     from spyderlib.utils.qthelpers import qapplication
-    app = qapplication()
+    app = qapplication(test_time=5)
     shell = ExternalSystemShell(wdir=osp.dirname(__file__),
                                 light_background=False)
+
+    app.aboutToQuit.connect(shell.finish_process)
 
     from spyderlib.qt.QtGui import QFont
     from spyderlib.config.main import CONF

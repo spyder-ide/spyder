@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2013 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
-"""Module checking Spyder optional runtime dependencies"""
+"""Module checking Spyder runtime dependencies"""
 
 
 import os
@@ -14,7 +14,7 @@ from spyderlib.utils import programs
 
 
 class Dependency(object):
-    """Spyder's optional dependency
+    """Spyder's dependency
 
     version may starts with =, >=, > or < to specify the exact requirement ;
     multiple conditions may be separated by ';' (e.g. '>=0.13;<1.0')"""
@@ -60,7 +60,7 @@ class Dependency(object):
 DEPENDENCIES = []
 
 def add(modname, features, required_version, installed_version=None):
-    """Add Spyder optional dependency"""
+    """Add Spyder dependency"""
     global DEPENDENCIES
     for dependency in DEPENDENCIES:
         if dependency.modname == modname:
@@ -78,7 +78,7 @@ def check(modname):
         raise RuntimeError("Unkwown dependency %s" % modname)
 
 def status():
-    """Return a complete status of Optional Dependencies"""
+    """Return a complete status of Dependencies"""
     maxwidth = 0
     col1 = []
     col2 = []
