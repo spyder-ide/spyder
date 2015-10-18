@@ -60,11 +60,15 @@ class WorkerUpdates(QObject):
         self.latest_release = __version__
 
         error_msg = None
-        # Fix for issue # 2685
-        # More info: https://www.python.org/dev/peps/pep-0476/#opting-out
-        context = ssl._create_unverified_context()
+
         try:
-            page = urlopen(self.url, context=context)
+            if hasattr(ssl, '_create_unverified_context'):
+                # Fix for issue # 2685 [Works only with Python >=2.7.9]
+                # More info: https://www.python.org/dev/peps/pep-0476/#opting-out
+                context = ssl._create_unverified_context()
+                page = urlopen(self.url, context=context)
+            else:
+                page = urlopen(self.url)
             try:
                 data = page.read()
 
