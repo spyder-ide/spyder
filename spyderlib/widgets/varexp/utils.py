@@ -22,6 +22,19 @@ from spyderlib.config.base import _
 
 
 #==============================================================================
+# Dependencies
+#==============================================================================
+PANDAS_REQVER = '>=0.13.1'
+dependencies.add('pandas',  _("View and edit DataFrames and Series in the "
+                              "Variable Explorer"),
+                 required_version=PANDAS_REQVER)
+
+NUMPY_REQVER = '>=1.7'
+dependencies.add("numpy", _("View and edit two and three dimensional arrays "
+                            "in the Variable Explorer"),
+                 required_version=NUMPY_REQVER)
+
+#==============================================================================
 # FakeObject
 #==============================================================================
 class FakeObject(object):
@@ -64,10 +77,6 @@ def get_numpy_dtype(obj):
 #==============================================================================
 # Pandas support
 #==============================================================================
-PANDAS_REQVER = '>=0.13.1'
-dependencies.add('pandas',  _("View and edit DataFrames and Series in the "
-                              "Variable Explorer"),
-                 required_version=PANDAS_REQVER)
 if programs.is_module_installed('pandas', PANDAS_REQVER):
     from pandas import DataFrame, Series
 else:
