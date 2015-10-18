@@ -83,8 +83,9 @@ install_qt4()
     if [[ $PY_VERSION == 2.7* ]]; then
         sudo apt-get install python-dev
         sudo apt-get install -q python-qt4
-    else  
+    else
         sudo apt-get install python3-dev
+        sudo apt-get install -q python3-pyqt4
     fi
 
     # http://stackoverflow.com/a/9716100
@@ -105,16 +106,16 @@ install_qt4()
 
 install_qt5()
 {
+    #sudo apt-get install -qq python-sip python-qt5 python-sphinx --fix-missing;
+    #sudo apt-get install -qq python3-sip python3-pyqt5 --fix-missing;    
     echo "Not supported yet"
 }
 
 
 install_apt_pip()
-{  
+{
     # Test for different Qt bindings
     if [ "$USE_QT_API" = "PyQt5" ]; then
-        #sudo apt-get install -qq python-sip python-qt5 python-sphinx --fix-missing;
-        #sudo apt-get install -qq python3-sip python3-pyqt5 --fix-missing;
         install_qt5
     elif [ "$USE_QT_API" = "PyQt4" ]; then
         install_qt4;
