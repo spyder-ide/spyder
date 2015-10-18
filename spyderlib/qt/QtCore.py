@@ -27,3 +27,5 @@ else:
     import PySide.QtCore
     __version__ = PySide.QtCore.__version__                   # analysis:ignore
     from PySide.QtCore import *                               # analysis:ignore
+
+    from PySide.QtGui import QItemSelection, QItemSelectionRange  # analysis:ignore
