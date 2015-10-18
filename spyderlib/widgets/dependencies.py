@@ -133,11 +133,16 @@ class DependenciesDialog(QDialog):
 
         self.view = DependenciesTableView(self, [])
 
+        opt_mods = ['Matplotlib', 'Pandas', 'SymPy']
         self.label = QLabel(_("Spyder depends on several Python modules to "
                               "provide the right functionality for all its "
                               "panes. The table below shows the required "
                               "and installed versions (if any) of all of "
-                              "them."))
+                              "them.<br><br>"
+                              "<b>Note</b>: You can safely use Spyder "
+                              "without the following modules installed: "
+                              "<b>%s</b> and <b>%s</b>")
+                              % (', '.join(opt_mods[:-1]), opt_mods[-1]))
         self.label.setWordWrap(True)
         self.label.setAlignment(Qt.AlignJustify)
         self.label.setContentsMargins(5, 8, 12, 10)
