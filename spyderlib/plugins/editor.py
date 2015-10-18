@@ -230,7 +230,7 @@ class EditorConfigPage(PluginConfigPage):
         is_pep8 = codeanalysis.get_checker_executable('pep8') is not None
         pyflakes_box = newcb(_("Real-time code analysis"),
                       'code_analysis/pyflakes', default=True,
-                      tip=_("<p>If enabled, Python source code will be analyzed"
+                      tip=_("<p>If enabled, Python source code will be analyzed "
                             "using pyflakes, lines containing errors or "
                             "warnings will be highlighted.</p>"
                             "<p><u>Note</u>: add <b>analysis:ignore</b> in "
