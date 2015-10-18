@@ -320,13 +320,8 @@ install_requires = [
     'psutil'
 ]
 
-setup_requires = [
-    'sphinx'
-]
-
 if 'setuptools' in sys.modules:
     setup_args['install_requires'] = install_requires
-    setup_args['setup_requires'] = setup_requires
 
     setup_args['entry_points'] = {
         'gui_scripts': [
