@@ -53,9 +53,8 @@ install_conda()
     if [ "$USE_CONDA" = true ]; then
         conda install jinja2;
         conda install conda-build;
+        conda create -q -n test-environment python=$PY_VERSION;
     fi
-
-    conda create -q -n test-environment python=$PY_VERSION;
 
     # Test environments for different Qt bindings
     if [ "$USE_QT_API" = "PyQt5" ]; then
