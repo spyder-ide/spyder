@@ -138,7 +138,7 @@ class Restarter(QWidget):
 
         if error:
             e = error.__repr__()
-            message = messages[error_type] + _("\n\n{0}".format(e))
+            message = messages[error_type] + _("\n\n{0}").format(e)
         else:
             message = messages[error_type]
 

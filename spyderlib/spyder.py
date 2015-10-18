@@ -1013,7 +1013,7 @@ class MainWindow(QMainWindow):
                 def trigger(i=i, self=self):  # closure needed!
                     return lambda: self.show_tour(i)
 
-                temp_action = create_action(self, tour_name, tip=_(""),
+                temp_action = create_action(self, tour_name, tip="",
                                             triggered=trigger())
                 self.tour_menu_actions += [temp_action]
 

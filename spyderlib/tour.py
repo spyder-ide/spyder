@@ -155,8 +155,8 @@ def get_tour(index):
                            "please follow this <a href=\"{0}\">link</a>.<br><br>"
                            "Please click on the button below to run some simple "
                            "code in this console. This will be useful to show "
-                           "you other important features.".format(
-                           qtconsole_link)),
+                           "you other important features.").format(
+                           qtconsole_link),
               'widgets': [sw.ipython_console],
               'run': ["li = list(range(100))", "d = {'a': 1, 'b': 2}"]
               },
