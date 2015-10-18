@@ -1,6 +1,7 @@
 # After changing this file, check it on http://yaml-online-parser.appspot.com/
 
 language: python
+sudo: false
 
 env:
   global:
