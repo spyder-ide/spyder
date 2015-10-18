@@ -50,8 +50,10 @@ install_conda()
     conda update -q conda;
 
     # Installing conda-build and jinja2 to do build tests
-    conda install jinja2;
-    conda install conda-build;
+    if [ "$USE_CONDA" = true ]; then
+        conda install jinja2;
+        conda install conda-build;
+    fi
 
     conda create -q -n test-environment python=$PY_VERSION;
 
@@ -66,7 +68,6 @@ install_pyside()
 {
     # Currently support Python 2.7 and 3.4
     # http://stackoverflow.com/questions/24489588/how-can-i-install-pyside-on-travis
-    # sudo apt-get install libqt4-dev;
 
     pip install -U setuptools;
     pip install -U pip;
@@ -87,11 +88,16 @@ install_qt5()
 install_pip()
 {
     # Test for different Qt bindings
-    if [ "$USE_QT_API" = "PyQt5" ]; then
-        install_qt5
-    elif [ "$USE_QT_API" = "PySide" ]; then
-        install_pyside;
-    fi
+    #if [ "$USE_QT_API" = "PyQt5" ]; then
+    #    install_qt5
+    #elif [ "$USE_QT_API" = "PySide" ]; then
+    #    install_pyside;
+    #fi
+
+    if [ "$USE_QT_API" = "PyQt4" ]; then
+        conda install pyqt;
+    else
+        conda install pyqt5;
 
     pip install --no-index --trusted-host $WHEELHOUSE_URI --find-links=http://$WHEELHOUSE_URI/ $EXTRA_PACKAGES;
 }
@@ -102,10 +108,10 @@ install_pip()
 #==============================================================================
 download_code;
 
-if [ "$USE_CONDA" = true ] ; then
-    export SOURCE=`source activate test-environment`
-    install_conda;
-else
+# Use conda even to test pip!
+install_conda;
+
+if [ "$USE_CONDA" = false ]; then
     export EXTRA_PACKAGES="matplotlib pandas sympy pyzmq pillow"
     install_pip;
 fi
