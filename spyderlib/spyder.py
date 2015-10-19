@@ -100,7 +100,8 @@ from spyderlib.qt.compat import (from_qvariant, getopenfilename,
 # is also installed (or any other Qt-based application prepending a directory
 # containing incompatible Qt DLLs versions in PATH):
 from spyderlib.qt import QtSvg  # analysis:ignore
-import spyderlib.utils.icon_manager as ima
+
+
 
 #==============================================================================
 # Create our QApplication instance here because it's needed to render the
@@ -127,6 +128,7 @@ QApplication.processEvents()
 #==============================================================================
 # Local utility imports
 #==============================================================================
+import spyderlib.utils.icon_manager as ima
 from spyderlib import __version__, __project_url__, __forum_url__, get_versions
 from spyderlib.config.base import (get_conf_path, get_module_data_path,
                                    get_module_source_path, STDERR, DEBUG,
