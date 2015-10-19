@@ -926,6 +926,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
                       "builtin":        _("Builtin:"),
                       "definition":     _("Definition:"),
                       "comment":        _("Comment:"),
+                      "docstring":      _("Documentation:"),
                       "string":         _("String:"),
                       "number":         _("Number:"),
                       "instance":       _("Instance:"),
