@@ -46,21 +46,22 @@ COLOR_SCHEME_NAMES = CONF.get('color_schemes', 'names')
 # different lexers than Pygments' autodetection suggests.  Keys are file
 # extensions or tuples of extensions, values are Pygments lexer names.
 CUSTOM_EXTENSION_LEXER = {'.ipynb': 'json',
+                          '.txt': 'text',
                           '.nt': 'bat',
                           '.scss': 'css',
                           '.m': 'matlab',
                           ('.properties', '.session', '.inf', '.reg', '.url',
                            '.cfg', '.cnf', '.aut', '.iss'): 'ini'}
 # Convert custom extensions into a one-to-one mapping for easier lookup.
-_custom_extension_lexer_mapping = {}
+custom_extension_lexer_mapping = {}
 for key, value in CUSTOM_EXTENSION_LEXER.items():
     # Single key is mapped unchanged.
     if is_text_string(key):
-        _custom_extension_lexer_mapping[key] = value
+        custom_extension_lexer_mapping[key] = value
     # Tuple of keys is iterated over and each is mapped to value.
     else:
         for k in key:
-            _custom_extension_lexer_mapping[k] = value
+            custom_extension_lexer_mapping[k] = value
 
 
 #==============================================================================
@@ -969,8 +970,8 @@ def guess_pygments_highlighter(filename):
     except ImportError:
         return TextSH
     root, ext = os.path.splitext(filename)
-    if ext in _custom_extension_lexer_mapping:
-        lexer = get_lexer_by_name(_custom_extension_lexer_mapping[ext])
+    if ext in custom_extension_lexer_mapping:
+        lexer = get_lexer_by_name(custom_extension_lexer_mapping[ext])
     else:
         try:
             lexer = get_lexer_for_filename(filename)
