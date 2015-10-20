@@ -16,7 +16,7 @@ from spyderlib.config.main import CONF
 from spyderlib.utils import programs
 from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage
 from spyderlib.widgets.externalshell.monitor import REMOTE_SETTINGS
-from spyderlib.widgets.varexp.namespacebrowser import NamespaceBrowser
+from spyderlib.widgets.editors.namespacebrowser import NamespaceBrowser
 
 
 class VariableExplorerConfigPage(PluginConfigPage):

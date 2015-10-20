@@ -6,6 +6,11 @@
 
 """
 Collections (i.e. dictionary, list and tuple) editor widget and dialog
+
+.. note::
+    
+    These widgets are replacing old `spyderlib.widget.DictEditor` and 
+    associated classes.
 """
 
 #TODO: Multiple selection: open as many editors (array/dict/...) as necessary,
@@ -37,17 +42,17 @@ from spyderlib.config.base import _
 from spyderlib.config.gui import get_font
 from spyderlib.utils.misc import fix_reference_name
 from spyderlib.utils.qthelpers import add_actions, create_action, qapplication
-from spyderlib.widgets.varexp.utils import (sort_against, get_size,
+from spyderlib.widgets.editors.utils import (sort_against, get_size,
                get_human_readable_type, value_to_display, get_color_name,
                is_known_type, FakeObject, Image, ndarray, array, MaskedArray,
                unsorted_unique, try_to_eval, is_editable_type, DataFrame,
                Series, display_to_value, np_savetxt)
 if ndarray is not FakeObject:
-    from spyderlib.widgets.varexp.arrayeditor import ArrayEditor
+    from spyderlib.widgets.editors.arrayeditor import ArrayEditor
 if DataFrame is not FakeObject:
-    from spyderlib.widgets.varexp.dataframeeditor import DataFrameEditor
-from spyderlib.widgets.varexp.texteditor import TextEditor
-from spyderlib.widgets.varexp.importwizard import ImportWizard
+    from spyderlib.widgets.editors.dataframeeditor import DataFrameEditor
+from spyderlib.widgets.editors.texteditor import TextEditor
+from spyderlib.widgets.editors.importwizard import ImportWizard
 from spyderlib.py3compat import (to_text_string, is_text_string, PY3, io,
                                  is_binary_string, getcwd)
 
@@ -1165,7 +1170,7 @@ class CollectionsEditorTableView(BaseTableView):
     def oedit(self, key):
         """Edit item"""
         data = self.model.get_data()
-        from spyderlib.widgets.varexp.objecteditor import oedit
+        from spyderlib.widgets.editors.objecteditor import oedit
         oedit(data[key])
 
     def plot(self, key, funcname):
@@ -1220,7 +1225,7 @@ class CollectionsEditorWidget(QWidget):
         self.setLayout(layout)
         
     def set_data(self, data):
-        """Set DictEditor data"""
+        """Set CollectionsEditor data"""
         self.editor.set_data(data)
         
     def get_title(self):
@@ -1313,7 +1318,7 @@ class RemoteCollectionsDelegate(CollectionsDelegate):
 
 
 class RemoteCollectionsEditorTableView(BaseTableView):
-    """DictEditor table view"""
+    """CollectionsEditor table view"""
     def __init__(self, parent, data, truncate=True, minmax=False,
                  get_value_func=None, set_value_func=None,
                  new_value_func=None, remove_values_func=None,

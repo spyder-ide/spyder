@@ -1,5 +1,21 @@
 # History of changes
 
+## Version X.Y.Z
+
+### API Changes
+
+* `spyderlib.dicteditor.DictEditor` has been renamed to `spyderlib.widgets.editors.collectionseditor.CollectionsEditor`
+* Editor widgets were moved from `spyderlib.widgets` to `spyderlib.widgets.editors`:
+    * `spyderlib.widgets.editors.arrayeditor`
+    * `spyderlib.widgets.editors.collectionseditor`
+    * `spyderlib.widgets.editors.objecteditor`
+    * `spyderlib.widgets.editors.texteditor`
+    * `spyderlib.widgets.editors.dataframeeditor`
+
+
+----
+
+
 ## Version 2.3.7
 
 ### New features

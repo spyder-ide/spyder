@@ -25,16 +25,16 @@ from spyderlib.widgets.externalshell.monitor import (
             monitor_set_global, monitor_get_global, monitor_del_global,
             monitor_copy_global, monitor_save_globals, monitor_load_globals,
             communicate, REMOTE_SETTINGS)
-from spyderlib.widgets.varexp.collectionseditor import (
+from spyderlib.widgets.editors.collectionseditor import (
                   RemoteCollectionsEditorTableView, CollectionsEditorTableView)
-from spyderlib.widgets.varexp.utils import globalsfilter
+from spyderlib.widgets.editors.utils import globalsfilter
 from spyderlib.utils import encoding
 from spyderlib.utils.misc import fix_reference_name
 from spyderlib.utils.programs import is_module_installed
 from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
                                        create_action)
 from spyderlib.utils.iofuncs import iofunctions
-from spyderlib.widgets.varexp.importwizard import ImportWizard
+from spyderlib.widgets.editors.importwizard import ImportWizard
 from spyderlib.config.base import _, get_supported_types
 from spyderlib.py3compat import is_text_string, to_text_string, getcwd
 
@@ -414,7 +414,7 @@ class NamespaceBrowser(QWidget):
                   "spyderlib.pyplot.show(); "\
                   "del __fig__, __items__;" % (funcname, name)
         if self.is_ipykernel:
-            self.ipyclient.shellwidget.execute("%%varexp --%s %s" % (funcname,
+            self.ipyclient.shellwidget.execute("%%editors --%s %s" % (funcname,
                                                                    name))
         else:
             self.shellwidget.send_to_process(command)
@@ -425,7 +425,7 @@ class NamespaceBrowser(QWidget):
                   "__items__ = spyderlib.pyplot.imshow(%s); " \
                   "spyderlib.pyplot.show(); del __fig__, __items__;" % name
         if self.is_ipykernel:
-            self.ipyclient.shellwidget.execute("%%varexp --imshow %s" % name)
+            self.ipyclient.shellwidget.execute("%%editors --imshow %s" % name)
         else:
             self.shellwidget.send_to_process(command)
         
@@ -437,7 +437,7 @@ class NamespaceBrowser(QWidget):
             self.shellwidget.send_to_process(command)
 
     def oedit(self, name):
-        command = "from spyderlib.widgets.varexp.objecteditor import oedit; " \
+        command = "from spyderlib.widgets.editors.objecteditor import oedit; " \
                   "oedit('%s', modal=False, namespace=locals());" % name
         self.shellwidget.send_to_process(command)
 
