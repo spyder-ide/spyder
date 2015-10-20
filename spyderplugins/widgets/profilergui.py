@@ -35,7 +35,7 @@ from spyderlib.utils.qthelpers import (create_toolbutton, get_item_user_text,
                                        set_item_user_text)
 from spyderlib.utils.programs import shell_split
 from spyderlib.config.base import get_conf_path, get_translation
-from spyderlib.widgets.editors.texteditor import TextEditor
+from spyderlib.widgets.varexp.texteditor import TextEditor
 from spyderlib.widgets.comboboxes import PythonModulesComboBox
 from spyderlib.widgets.externalshell import baseshell
 from spyderlib.py3compat import to_text_string, getcwd

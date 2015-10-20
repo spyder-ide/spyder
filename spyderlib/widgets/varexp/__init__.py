@@ -5,8 +5,8 @@
 # (see spyderlib/__init__.py for details)
 
 """
-spyderlib.widgets.editors
-=========================
+spyderlib.widgets.varexp
+========================
 
-Editor widgets (Variable Explorer related widgets)
+Variable Explorer related widgets
 """

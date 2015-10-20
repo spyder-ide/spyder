@@ -27,7 +27,7 @@ from spyderlib.config.base import _
 from spyderlib.config.gui import get_font, new_shortcut
 from spyderlib.py3compat import PY2, io, is_text_string, to_text_string
 from spyderlib.utils import encoding
-from spyderlib.widgets.editors.arrayeditor import get_idx_rect
+from spyderlib.widgets.varexp.arrayeditor import get_idx_rect
 
 from pandas import DataFrame, Series
 import numpy as np
