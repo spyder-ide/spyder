@@ -40,11 +40,11 @@ before_install:
   - "sh -e /etc/init.d/xvfb start"
 
 install:
-  - ./continuous_integration/travis_install.sh;
+  - ./continuous_integration/travis/install.sh;
   - if [ "$USE_CONDA" = true ]; then source activate test-environment; fi
   - export PATH="$HOME/miniconda/bin:$PATH";
 
 script:
-  - ./continuous_integration/build_test.sh
-  - ./continuous_integration/run_test.sh
-  - ./continuous_integration/modules_test.sh
+  - ./continuous_integration/travis/build_test.sh
+  - ./continuous_integration/travis/run_test.sh
+  - ./continuous_integration/travis/modules_test.sh
