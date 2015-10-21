@@ -22,10 +22,6 @@ requirements:
     - pygments
     - ipykernel
 
-test:
-  imports:
-    - qtconsole
-
 about:
   home: http://jupyter.org
   license: BSD
