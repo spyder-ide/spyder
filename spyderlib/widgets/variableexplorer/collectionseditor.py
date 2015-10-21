@@ -20,6 +20,7 @@ from __future__ import print_function
 
 import sys
 import datetime
+import warnings
 
 from spyderlib.qt.QtGui import (QMessageBox, QTableView, QItemDelegate,
                                 QLineEdit, QVBoxLayout, QWidget, QColor,
@@ -1291,6 +1292,14 @@ class CollectionsEditor(QDialog):
         # It is import to avoid accessing Qt C++ object as it has probably
         # already been destroyed, due to the Qt.WA_DeleteOnClose attribute
         return self.data_copy
+
+
+class DictEditor(CollectionsEditor):
+    def __init__(self, parent=None):
+        warnings.warn("`DictEditor` has been renamed to `CollectionsEditor` in "
+                      "Spyder 3. Please use `CollectionsEditor` instead",
+                      RuntimeWarning)
+        CollectionsEditor.__init__(self, parent)
 
 
 #----Remote versions of CollectionsDelegate and CollectionsEditorTableView
