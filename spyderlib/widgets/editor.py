@@ -2313,7 +2313,7 @@ def test():
     test.load(__file__)
     cur_dir = osp.dirname(osp.abspath(__file__))
     test.load(osp.join(cur_dir, "explorer.py"))
-    test.load(osp.join(cur_dir, "varexp", "collectionseditor.py"))
+    test.load(osp.join(cur_dir, "variableexplorer", "collectionseditor.py"))
     test.load(osp.join(cur_dir, "sourcecode", "codeeditor.py"))
     print("Elapsed time: %.3f s" % (time.time()-t0))
     sys.exit(app.exec_())

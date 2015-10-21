@@ -25,16 +25,16 @@ from spyderlib.widgets.externalshell.monitor import (
             monitor_set_global, monitor_get_global, monitor_del_global,
             monitor_copy_global, monitor_save_globals, monitor_load_globals,
             communicate, REMOTE_SETTINGS)
-from spyderlib.widgets.varexp.collectionseditor import (
+from spyderlib.widgets.variableexplorer.collectionseditor import (
                   RemoteCollectionsEditorTableView, CollectionsEditorTableView)
-from spyderlib.widgets.varexp.utils import globalsfilter
+from spyderlib.widgets.variableexplorer.utils import globalsfilter
 from spyderlib.utils import encoding
 from spyderlib.utils.misc import fix_reference_name
 from spyderlib.utils.programs import is_module_installed
 from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
                                        create_action)
 from spyderlib.utils.iofuncs import iofunctions
-from spyderlib.widgets.varexp.importwizard import ImportWizard
+from spyderlib.widgets.variableexplorer.importwizard import ImportWizard
 from spyderlib.config.base import _, get_supported_types
 from spyderlib.py3compat import is_text_string, to_text_string, getcwd
 
@@ -437,7 +437,7 @@ class NamespaceBrowser(QWidget):
             self.shellwidget.send_to_process(command)
 
     def oedit(self, name):
-        command = "from spyderlib.widgets.varexp.objecteditor import oedit; " \
+        command = "from spyderlib.widgets.variableexplorer.objecteditor import oedit; " \
                   "oedit('%s', modal=False, namespace=locals());" % name
         self.shellwidget.send_to_process(command)
 

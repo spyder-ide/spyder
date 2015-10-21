@@ -5,7 +5,7 @@
 # (see spyderlib/__init__.py for details)
 
 """
-spyderlib.widgets.varexp
+spyderlib.widgets.variableexplorer
 ========================
 
 Variable Explorer related widgets

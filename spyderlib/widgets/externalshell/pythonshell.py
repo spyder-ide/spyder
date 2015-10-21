@@ -26,11 +26,11 @@ from spyderlib.utils.misc import get_python_executable
 from spyderlib.config.base import (_, get_module_source_path, DEBUG,
                                   MAC_APP_NAME, running_in_mac_app)
 from spyderlib.widgets.shell import PythonShellWidget
-from spyderlib.widgets.varexp.namespacebrowser import NamespaceBrowser
+from spyderlib.widgets.variableexplorer.namespacebrowser import NamespaceBrowser
 from spyderlib.utils.bsdsocket import communicate, write_packet
 from spyderlib.widgets.externalshell.baseshell import (ExternalShellBase,
                                                    add_pathlist_to_PYTHONPATH)
-from spyderlib.widgets.varexp.collectionseditor import CollectionsEditor
+from spyderlib.widgets.variableexplorer.collectionseditor import CollectionsEditor
 from spyderlib.py3compat import (is_text_string, to_text_string,
                                  to_binary_string)
 

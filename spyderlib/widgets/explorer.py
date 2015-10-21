@@ -1134,7 +1134,7 @@ class ProjectExplorerTest(QWidget):
         self.treewidget = FilteredDirView(self)
         self.treewidget.setup_view()
         self.treewidget.set_root_path(osp.dirname(osp.abspath(__file__)))
-        self.treewidget.set_folder_names(['varexp', 'sourcecode'])
+        self.treewidget.set_folder_names(['variableexplorer', 'sourcecode'])
         vlayout.addWidget(self.treewidget)
 
 
