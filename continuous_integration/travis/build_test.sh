@@ -27,7 +27,7 @@ else
     cd $FULL_SPYDER_CLONE
 
     # Checkout the right branch
-    if [ "$PR" != "false" ] ; then
+    if [ $TRAVIS_PULL_REQUEST != "false" ] ; then
         git checkout travis_pr_$TRAVIS_PULL_REQUEST
     else
         git checkout master
