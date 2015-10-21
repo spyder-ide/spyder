@@ -24,7 +24,7 @@ else
     pip --version
 
     # Moving to where our code is
-    cd $HOME/spy-clone
+    cd $FULL_SPYDER_CLONE
 
     # Checkout the right branch
     if [ "$PR" != "false" ] ; then

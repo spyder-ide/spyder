@@ -6,7 +6,7 @@ set -ex
 export TEST_TRAVIS_WIDGETS=True
 
 # Checkout the right branch
-cd $HOME/spy-clone
+cd $FULL_SPYDER_CLONE
 
 if [ "$PR" != "false" ] ; then
     git checkout travis_pr_$TRAVIS_PULL_REQUEST
