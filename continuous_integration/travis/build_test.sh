@@ -23,8 +23,15 @@ else
     # Print basic testing info
     pip --version
 
-    # Checkout branch of the current pull request
-    git checkout travis_pr_$TRAVIS_PULL_REQUEST
+    # Moving to where our code is
+    cd $HOME/spy-clone
+
+    # Checkout the right branch
+    if [ "$PR" != "false" ] ; then
+        git checkout travis_pr_$TRAVIS_PULL_REQUEST
+    else
+        git checkout master
+    fi
 
     python setup.py bdist_wheel --universal
 fi
