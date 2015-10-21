@@ -23,5 +23,8 @@ else
     # Print basic testing info
     pip --version
 
+    # Checkout branch of the current pull request
+    git checkout travis_pr_$TRAVIS_PULL_REQUEST
+
     python setup.py bdist_wheel --universal
 fi
