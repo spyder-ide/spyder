@@ -35,7 +35,7 @@ from spyderlib.utils.qthelpers import (create_toolbutton, get_item_user_text,
                                        set_item_user_text)
 from spyderlib.utils.programs import shell_split
 from spyderlib.config.base import get_conf_path, get_translation
-from spyderlib.widgets.varexp.texteditor import TextEditor
+from spyderlib.widgets.editors.texteditor import TextEditor
 from spyderlib.widgets.comboboxes import PythonModulesComboBox
 from spyderlib.widgets.externalshell import baseshell
 from spyderlib.py3compat import to_text_string, getcwd
@@ -100,13 +100,13 @@ class ProfilerWidget(QWidget):
 
         self.collapse_button = create_toolbutton(self,
                                                  icon=ima.icon('collapse'),
-                                                 triggered=lambda dD=-1:
-                                                 self.datatree.change_view(dD),
+                                                 triggered=lambda dD:
+                                                 self.datatree.change_view(-1),
                                                  tip=_('Collapse one level up'))
         self.expand_button = create_toolbutton(self,
                                                icon=ima.icon('expand'),
-                                               triggered=lambda dD=1:
-                                               self.datatree.change_view(dD),
+                                               triggered=lambda dD:
+                                               self.datatree.change_view(1),
                                                tip=_('Expand one level down'))
                                 
         self.save_button = create_toolbutton(self, text_beside_icon=True,
@@ -603,7 +603,7 @@ class ProfilerDataTree(QTreeWidget):
         return [self.topLevelItem(_i) for _i in range(self.topLevelItemCount())]
     
     def get_items(self, maxlevel):
-        """Return items (excluding top level items)"""
+        """Return all items with a level <= `maxlevel`"""
         itemlist = []
         def add_to_itemlist(item, maxlevel, level=1):
             level += 1
@@ -614,19 +614,20 @@ class ProfilerDataTree(QTreeWidget):
                     add_to_itemlist(citem, maxlevel, level)
         for tlitem in self.get_top_level_items():
             itemlist.append(tlitem)
-            if maxlevel > 1:
+            if maxlevel > 0:
                 add_to_itemlist(tlitem, maxlevel=maxlevel)
         return itemlist
             
     def change_view(self, change_in_depth):
         """Change the view depth by expand or collapsing all same-level nodes"""
         self.current_view_depth += change_in_depth
-        if self.current_view_depth < 1:
-            self.current_view_depth = 1
+        if self.current_view_depth < 0:
+            self.current_view_depth = 0
         self.collapseAll()
-        for item in self.get_items(maxlevel=self.current_view_depth):
-            item.setExpanded(True)
-
+        if self.current_view_depth > 0:
+            for item in self.get_items(maxlevel=self.current_view_depth-1):
+                item.setExpanded(True)
+    
 
 #==============================================================================
 # Tests
