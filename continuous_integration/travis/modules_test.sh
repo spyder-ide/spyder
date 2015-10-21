@@ -5,6 +5,15 @@ set -ex
 # Tell Spyder we're testing our widgets in Travis
 export TEST_TRAVIS_WIDGETS=True
 
+# Checkout the right branch
+cd $FULL_SPYDER_CLONE
+
+if [ "$PR" != "false" ] ; then
+    git checkout travis_pr_$TRAVIS_PULL_REQUEST
+else
+    git checkout master
+fi
+
 # Depth 1
 for f in spyderlib/*.py; do
     if [[ $f == spyderlib/restart_app.py ]]; then

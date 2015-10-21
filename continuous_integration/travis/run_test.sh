@@ -36,6 +36,7 @@ if [ "$USE_CONDA" = true ] ; then
         pip install jedi==0.8.1
     fi
 else
+    cd $FULL_SPYDER_CLONE
     pip install dist/spyder-*.whl
 fi
 

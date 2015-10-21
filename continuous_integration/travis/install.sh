@@ -11,10 +11,10 @@ WHEELHOUSE_URI=travis-wheels.scikit-image.org
 download_code()
 {
     PR=$TRAVIS_PULL_REQUEST
-    mkdir ~/spy-clone
-    git clone https://github.com/spyder-ide/spyder.git ~/spy-clone
+    mkdir $FULL_SPYDER_CLONE
+    git clone https://github.com/spyder-ide/spyder.git $FULL_SPYDER_CLONE
     if [ "$PR" != "false" ] ; then
-        cd ~/spy-clone
+        cd $FULL_SPYDER_CLONE
         git fetch origin pull/$PR/head:travis_pr_$PR
     fi
 }

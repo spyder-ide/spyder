@@ -38,13 +38,14 @@ matrix:
 before_install:
   - "export DISPLAY=:99.0"
   - "sh -e /etc/init.d/xvfb start"
+  - "export FULL_SPYDER_CLONE=$HOME/spy-clone"
 
 install:
-  - ./continuous_integration/travis_install.sh;
+  - ./continuous_integration/travis/install.sh;
   - if [ "$USE_CONDA" = true ]; then source activate test-environment; fi
   - export PATH="$HOME/miniconda/bin:$PATH";
 
 script:
-  - ./continuous_integration/build_test.sh
-  - ./continuous_integration/run_test.sh
-  - ./continuous_integration/modules_test.sh
+  - ./continuous_integration/travis/build_test.sh
+  - ./continuous_integration/travis/run_test.sh
+  - ./continuous_integration/travis/modules_test.sh
