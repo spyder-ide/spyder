@@ -21,8 +21,8 @@ from spyderlib.qt.QtCore import Qt
 
 from spyderlib.config.main import CONF
 from spyderlib.config.user import NoDefault
-from spyderlib.widgets.sourcecode import syntaxhighlighters as sh
 from spyderlib.py3compat import to_text_string
+from spyderlib.utils import syntaxhighlighters as sh
 
 
 # To save metadata about widget shortcuts (needed to build our

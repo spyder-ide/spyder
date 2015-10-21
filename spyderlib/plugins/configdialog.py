@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -28,8 +28,8 @@ from spyderlib.config.main import CONF, is_gtk_desktop
 from spyderlib.config.gui import (CUSTOM_COLOR_SCHEME_NAME,
                                   set_default_color_scheme)
 from spyderlib.config.user import NoDefault
+from spyderlib.utils import syntaxhighlighters as sh
 from spyderlib.widgets.colors import ColorLayout
-from spyderlib.widgets.sourcecode import syntaxhighlighters as sh
 from spyderlib.py3compat import to_text_string, is_text_string, getcwd
 
 
@@ -930,7 +930,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
                       "number":         _("Number:"),
                       "instance":       _("Instance:"),
                       }
-        from spyderlib.widgets.sourcecode import syntaxhighlighters
+        from spyderlib.utils import syntaxhighlighters
         assert all([key in fieldnames
                     for key in syntaxhighlighters.COLOR_SCHEME_KEYS])
         for tabname in names:
