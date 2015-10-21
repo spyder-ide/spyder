@@ -36,12 +36,13 @@ from spyderlib.config.gui import create_shortcut, new_shortcut
 from spyderlib.utils.qthelpers import (create_action, add_actions,
                                        mimedata2url, get_filetype_icon,
                                        create_toolbutton)
+from spyderlib.utils import syntaxhighlighters
 from spyderlib.widgets.tabs import BaseTabs
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.editortools import OutlineExplorerWidget
 from spyderlib.widgets.status import (ReadWriteStatus, EOLStatus,
                                       EncodingStatus, CursorPositionStatus)
-from spyderlib.widgets.sourcecode import syntaxhighlighters, codeeditor
+from spyderlib.widgets.sourcecode import codeeditor
 from spyderlib.widgets.sourcecode.base import TextEditBaseWidget  #analysis:ignore
 from spyderlib.widgets.sourcecode.codeeditor import Printer  #analysis:ignore
 from spyderlib.widgets.sourcecode.codeeditor import get_file_language
@@ -2313,7 +2314,7 @@ def test():
     test.load(__file__)
     cur_dir = osp.dirname(osp.abspath(__file__))
     test.load(osp.join(cur_dir, "explorer.py"))
-    test.load(osp.join(cur_dir, "editors", "collectionseditor.py"))
+    test.load(osp.join(cur_dir, "variableexplorer", "collectionseditor.py"))
     test.load(osp.join(cur_dir, "sourcecode", "codeeditor.py"))
     print("Elapsed time: %.3f s" % (time.time()-t0))
     sys.exit(app.exec_())

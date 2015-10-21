@@ -15,7 +15,7 @@
 
 #----Builtins*
 from spyderlib.py3compat import builtins
-from spyderlib.widgets.editors.objecteditor import oedit
+from spyderlib.widgets.variableexplorer.objecteditor import oedit
 builtins.oedit = oedit
 
 import os
