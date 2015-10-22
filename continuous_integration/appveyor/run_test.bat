@@ -19,5 +19,4 @@ REM Install extra packages
 conda install -q -y %EXTRA_PACKAGES%
 
 REM Test that the app starts correctly
-spyder
-if errorlevel 1 exit 1
+spyder || exit 1
