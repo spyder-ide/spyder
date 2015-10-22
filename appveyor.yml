@@ -1,5 +1,4 @@
 environment:
-
   matrix:
     - PYTHON:         "C:\\Python27_64"
       PYTHON_VERSION: "2.7"
@@ -21,4 +20,5 @@ test_script:
   # Build and test the package. This appears(?) to sporadically fail due to a
   # bug in conda-build on 32 bit python.
   # https://github.com/conda/conda-build/issues/152
-  - "%CMD_IN_ENV% .\\continuous_integration\\appveyor\\build_test.bat"
+  - "%CMD_IN_ENV% %APPVEYOR_BUILD_FOLDER%\\continuous_integration\\appveyor\\build_test.bat"
+  - "%CMD_IN_ENV% %APPVEYOR_BUILD_FOLDER%\\continuous_integration\\appveyor\\run_test.bat"
