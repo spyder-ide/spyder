@@ -7,8 +7,10 @@ build:
   osx_is_app: True
 
 source:
-  git_url: {{ environ.get('FULL_SPYDER_CLONE') }}
-  git_tag: {% if environ.get('TRAVIS_PULL_REQUEST') != 'false' %} {{ ['travis_pr_', environ.get('TRAVIS_PULL_REQUEST')]|join }} {% else %} master {% endif %}
+  git_url: {{ environ.get('APPVEYOR_BUILD_FOLDER') }}   [win]
+  git_tag: {{ environ.get('APPVEYOR_REPO_COMMIT') }}    [win]
+  git_url: {{ environ.get('FULL_SPYDER_CLONE') }}       [unix]
+  git_tag: {% if environ.get('TRAVIS_PULL_REQUEST') != 'false' %} {{ ['travis_pr_', environ.get('TRAVIS_PULL_REQUEST')]|join }} {% else %} master {% endif %}  [unix]
 
 requirements:
   build:
