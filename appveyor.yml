@@ -1,0 +1,24 @@
+# https://ci.appveyor.com/project/ccordoba12/spyder
+
+environment:
+  matrix:
+    - PYTHON:         "C:\\Python27_64"
+      PYTHON_VERSION: "2.7"
+      PYTHON_ARCH:    "64"
+      USE_QT_API:     "PyQt4"
+
+    - PYTHON:         "C:\\Python34_64"
+      PYTHON_VERSION: "3.4"
+      PYTHON_ARCH:    "64"
+      USE_QT_API:     "PyQt4"
+
+install:
+  - powershell .\\continuous_integration\\appveyor\\install.ps1
+  - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
+
+build: false
+
+test_script:
+  - "%CMD_IN_ENV% %APPVEYOR_BUILD_FOLDER%\\continuous_integration\\appveyor\\build_test.bat"
+  - "%CMD_IN_ENV% %APPVEYOR_BUILD_FOLDER%\\continuous_integration\\appveyor\\run_test.bat"
+  - "%CMD_IN_ENV% %APPVEYOR_BUILD_FOLDER%\\continuous_integration\\appveyor\\modules_test.bat"
