@@ -3,7 +3,7 @@ setlocal enableextensions enabledelayedexpansion
 @echo off
 
 set SPYDERLIB=%APPVEYOR_BUILD_FOLDER%\spyderlib
-set TEST_TRAVIS_WIDGETS=True
+set TEST_CI_WIDGETS=True
 
 REM Spyderlib
 for /r "%SPYDERLIB%" %%f in (*.py) do (

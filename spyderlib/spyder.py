@@ -450,7 +450,7 @@ class MainWindow(QMainWindow):
             debug_print("appusermodelid: " + str(res))
 
         # Setting QTimer if running in travis
-        test_travis = os.environ.get('TEST_TRAVIS_APP', None)
+        test_travis = os.environ.get('TEST_CI_APP', None)
         if test_travis is not None:
             global MAIN_APP
             timer_shutdown_time = 30000

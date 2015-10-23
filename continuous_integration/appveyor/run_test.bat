@@ -1,5 +1,5 @@
 REM Tell Spyder we're testing the app
-set TEST_TRAVIS_APP=True
+set TEST_CI_APP=True
 
 REM Set extra packages
 set EXTRA_PACKAGES=pandas sympy pillow
