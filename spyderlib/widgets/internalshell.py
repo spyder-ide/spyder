@@ -204,7 +204,7 @@ class InternalShell(PythonShellWidget):
         """Exit interpreter"""
         self.interpreter.exit_flag = True
         if self.multithreaded:
-            self.interpreter.stdin_write.write('\n')
+            self.interpreter.stdin_write.write(to_binary_string('\n'))
         self.interpreter.restore_stds()
         
     def edit_script(self, filename, external_editor):
