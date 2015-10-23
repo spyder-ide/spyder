@@ -1,3 +1,5 @@
+# https://ci.appveyor.com/project/ccordoba12/spyder
+
 environment:
   matrix:
     - PYTHON:         "C:\\Python27_64"
@@ -5,21 +7,18 @@ environment:
       PYTHON_ARCH:    "64"
       USE_QT_API:     "PyQt4"
 
-    #- PYTHON: "C:\\Python34_64"
-    #  PYTHON_VERSION: "3.4"
-    #  PYTHON_ARCH: "64"
+    - PYTHON:         "C:\\Python34_64"
+      PYTHON_VERSION: "3.4"
+      PYTHON_ARCH:    "64"
+      USE_QT_API:     "PyQt4"
 
 install:
-  # This script installs the appropriate Miniconda (Py2/Py3, 32/64 bit),
   - powershell .\\continuous_integration\\appveyor\\install.ps1
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
 
 build: false
 
 test_script:
-  # Build and test the package. This appears(?) to sporadically fail due to a
-  # bug in conda-build on 32 bit python.
-  # https://github.com/conda/conda-build/issues/152
   - "%CMD_IN_ENV% %APPVEYOR_BUILD_FOLDER%\\continuous_integration\\appveyor\\build_test.bat"
   - "%CMD_IN_ENV% %APPVEYOR_BUILD_FOLDER%\\continuous_integration\\appveyor\\run_test.bat"
   - "%CMD_IN_ENV% %APPVEYOR_BUILD_FOLDER%\\continuous_integration\\appveyor\\modules_test.bat"
