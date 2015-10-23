@@ -22,3 +22,4 @@ test_script:
   # https://github.com/conda/conda-build/issues/152
   - "%CMD_IN_ENV% %APPVEYOR_BUILD_FOLDER%\\continuous_integration\\appveyor\\build_test.bat"
   - "%CMD_IN_ENV% %APPVEYOR_BUILD_FOLDER%\\continuous_integration\\appveyor\\run_test.bat"
+  - "%CMD_IN_ENV% %APPVEYOR_BUILD_FOLDER%\\continuous_integration\\appveyor\\modules_test.bat"
