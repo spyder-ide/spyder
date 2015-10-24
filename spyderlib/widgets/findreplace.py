@@ -30,7 +30,7 @@ from spyderlib.py3compat import to_text_string
 def is_position_sup(pos1, pos2):
     """Return True is pos1 > pos2"""
     return pos1 > pos2
-
+    
 def is_position_inf(pos1, pos2):
     """Return True is pos1 < pos2"""
     return pos1 < pos2
@@ -45,21 +45,21 @@ class FindReplace(QWidget):
     STYLE = {False: "background-color:rgb(255, 175, 90);",
              True: ""}
     visibility_changed = Signal(bool)
-
+    
     def __init__(self, parent, enable_replace=False):
         QWidget.__init__(self, parent)
         self.enable_replace = enable_replace
         self.editor = None
         self.is_code_editor = None
-
+        
         glayout = QGridLayout()
         glayout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(glayout)
-
+        
         self.close_button = create_toolbutton(self, triggered=self.hide,
                                       icon=ima.icon('DialogCloseButton'))
         glayout.addWidget(self.close_button, 0, 0)
-
+        
         # Find layout
         self.search_text = PatternComboBox(self, tip=_("Search string"),
                                            adjust_to_minimum=False)
@@ -68,7 +68,7 @@ class FindReplace(QWidget):
                      self.find(changed=False, forward=True, rehighlight=False))
         self.search_text.lineEdit().textEdited.connect(
                                                      self.text_has_been_edited)
-
+        
         self.previous_button = create_toolbutton(self,
                                              triggered=self.find_previous,
                                              icon=ima.icon('ArrowUp'))
@@ -82,19 +82,19 @@ class FindReplace(QWidget):
                                            tip=_("Regular expression"))
         self.re_button.setCheckable(True)
         self.re_button.toggled.connect(lambda state: self.find())
-
+        
         self.case_button = create_toolbutton(self,
                                              icon=get_icon("upper_lower.png"),
                                              tip=_("Case Sensitive"))
         self.case_button.setCheckable(True)
         self.case_button.toggled.connect(lambda state: self.find())
-
+                     
         self.words_button = create_toolbutton(self,
                                               icon=get_icon("whole_words.png"),
                                               tip=_("Whole words"))
         self.words_button.setCheckable(True)
         self.words_button.toggled.connect(lambda state: self.find())
-
+                     
         self.highlight_button = create_toolbutton(self,
                                               icon=get_icon("highlight.png"),
                                               tip=_("Highlight matches"))
@@ -114,7 +114,7 @@ class FindReplace(QWidget):
         replace_with = QLabel(_("Replace with:"))
         self.replace_text = PatternComboBox(self, adjust_to_minimum=False,
                                             tip=_('Replace string'))
-
+        
         self.replace_button = create_toolbutton(self,
                                      text=_('Replace/find'),
                                      icon=ima.icon('DialogApplyButton'),
@@ -122,9 +122,9 @@ class FindReplace(QWidget):
                                      text_beside_icon=True)
         self.replace_button.clicked.connect(self.update_replace_combo)
         self.replace_button.clicked.connect(self.update_search_combo)
-
+        
         self.all_check = QCheckBox(_("Replace all"))
-
+        
         self.replace_layout = QHBoxLayout()
         widgets = [replace_with, self.replace_text, self.replace_button,
                    self.all_check]
@@ -134,18 +134,18 @@ class FindReplace(QWidget):
         self.widgets.extend(widgets)
         self.replace_widgets = widgets
         self.hide_replace()
-
+        
         self.search_text.setTabOrder(self.search_text, self.replace_text)
-
+        
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-
+        
         self.shortcuts = self.create_shortcuts(parent)
-
+        
         self.highlight_timer = QTimer(self)
         self.highlight_timer.setSingleShot(True)
         self.highlight_timer.setInterval(1000)
         self.highlight_timer.timeout.connect(self.highlight_matches)
-
+        
     def create_shortcuts(self, parent):
         """Create shortcuts for this widget"""
         # Configurable
@@ -162,7 +162,7 @@ class FindReplace(QWidget):
         new_shortcut("Escape", self, self.hide)
 
         return [findnext, findprev, togglefind, togglereplace]
-
+        
     def get_shortcut_data(self):
         """
         Returns shortcut data, a list of tuples (shortcut, text, default)
@@ -171,13 +171,13 @@ class FindReplace(QWidget):
         default (string): default key sequence
         """
         return [sc.data for sc in self.shortcuts]
-
+        
     def update_search_combo(self):
         self.search_text.lineEdit().returnPressed.emit()
-
+        
     def update_replace_combo(self):
         self.replace_text.lineEdit().returnPressed.emit()
-
+    
     def toggle_replace_widgets(self):
         if self.enable_replace:
             # Toggle replace widgets
@@ -196,7 +196,7 @@ class FindReplace(QWidget):
                 self.highlight_matches()
             else:
                 self.clear_matches()
-
+        
     def show(self):
         """Overrides Qt Method"""
         QWidget.show(self)
@@ -262,18 +262,18 @@ class FindReplace(QWidget):
         if self.editor is not None:
             self.editor.setFocus()
             self.clear_matches()
-
+        
     def show_replace(self):
         """Show replace widgets"""
         self.show()
         for widget in self.replace_widgets:
             widget.show()
-
+            
     def hide_replace(self):
         """Hide replace widgets"""
         for widget in self.replace_widgets:
             widget.hide()
-
+        
     def refresh(self):
         """Refresh widget"""
         if self.isHidden():
@@ -285,7 +285,7 @@ class FindReplace(QWidget):
             widget.setEnabled(state)
         if state:
             self.find()
-
+            
     def set_editor(self, editor, refresh=True):
         """
         Set associated editor/web page:
@@ -323,7 +323,7 @@ class FindReplace(QWidget):
         """Find text has been edited (this slot won't be triggered when
         setting the search pattern combo box text programmatically"""
         self.find(changed=True, forward=True, start_highlight_timer=True)
-
+        
     def highlight_matches(self):
         """Highlight found results"""
         if self.is_code_editor and self.highlight_button.isChecked():
@@ -332,12 +332,12 @@ class FindReplace(QWidget):
             regexp = self.re_button.isChecked()
             self.editor.highlight_found_results(text, words=words,
                                                 regexp=regexp)
-
+                                                
     def clear_matches(self):
         """Clear all highlighted matches"""
         if self.is_code_editor:
             self.editor.clear_found_results()
-
+        
     def find(self, changed=True, forward=True,
              rehighlight=True, start_highlight_timer=False):
         """Call the find function"""
