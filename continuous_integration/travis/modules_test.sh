@@ -3,7 +3,7 @@
 set -ex
 
 # Tell Spyder we're testing our widgets in Travis
-export TEST_TRAVIS_WIDGETS=True
+export TEST_CI_WIDGETS=True
 
 # Checkout the right branch
 cd $FULL_SPYDER_CLONE

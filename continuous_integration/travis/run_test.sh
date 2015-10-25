@@ -3,7 +3,7 @@
 set -ex
 
 # Tell Spyder we're testing the app in Travis
-export TEST_TRAVIS_APP=True
+export TEST_CI_APP=True
 
 
 # Extra packages to install besides Spyder regular dependencies
