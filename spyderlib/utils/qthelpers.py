@@ -26,7 +26,6 @@ from spyderlib.config.base import get_image_path, running_in_mac_app
 from spyderlib.config.gui import get_shortcut
 from spyderlib.utils import programs
 from spyderlib.py3compat import is_text_string, to_text_string
-from spyderlib.widgets.helperwidgets import WidgetInnerToolbar
 
 
 # Note: How to redirect a signal from widget *a* to widget *b* ?
@@ -376,6 +375,7 @@ def context_menu_to_toolbar(parent=None, menu=None, old=None):
     TODO: it would make more sense to use createWidget(self) on all actions
     rather than accepting a mixture of buttons and actions.
     """    
+    from spyderlib.widgets.helperwidgets import WidgetInnerToolbar
     actions = (a for a in menu.actions() if not a.isSeparator())
     buttons = []
     non_icon_buttons = []
