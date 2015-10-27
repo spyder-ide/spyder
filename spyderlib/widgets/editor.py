@@ -1149,8 +1149,8 @@ class EditorStack(QWidget):
     def close_all_but_this(self):
         """Close all files but the current one"""
         self.close_all_right()
-        for i in range(1, self.get_stack_count()):
-            self.close_file(1)
+        for i in range(0, self.get_stack_count()-1  ):
+            self.close_file(0)
 
     #------ Save
     def save_if_changed(self, cancelable=False, index=None):
