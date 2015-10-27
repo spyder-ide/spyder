@@ -16,6 +16,7 @@ import pdb
 import bdb
 import time
 import traceback
+import shlex
 
 
 #==============================================================================
@@ -775,7 +776,7 @@ def runfile(filename, args=None, wdir=None, namespace=None, post_mortem=False):
     namespace['__file__'] = filename
     sys.argv = [filename]
     if args is not None:
-        for arg in args.split():
+        for arg in shlex.split(args):
             sys.argv.append(arg)
     if wdir is not None:
         try:
