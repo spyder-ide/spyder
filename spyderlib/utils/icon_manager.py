@@ -1,7 +1,7 @@
 import os
 from spyderlib.external import qtawesome as qta
-from spyderlib.baseconfig import get_image_path
-from spyderlib.config import CONF
+from spyderlib.config.base import get_image_path
+from spyderlib.config.main import CONF
 from spyderlib.qt.QtGui import QIcon, QWidget, QStyle
 
 
@@ -21,6 +21,8 @@ _qtaargs = {
     'stop':                    [('fa.stop',), {}],
     'syspath':                 [('fa.cogs',), {}],
     'font':                    [('fa.font',), {}],
+    'keyboard':                [('fa.keyboard-o',), {}],
+    'eyedropper':              [('fa.eyedropper',), {}],
     'tooloptions':             [('fa.cog',), {}],
     'edit24':                  [('fa.edit',), {}],
     'edit':                    [('fa.edit',), {}],
@@ -42,11 +44,13 @@ _qtaargs = {
     'arrow-step-out':          [('spyder.step-out',), {'color': '#3775a9'}],
     'stop_debug':              [('fa.stop',), {'color': '#3775a9'}],
     'run':                     [('fa.play',), {'color': 'green'}],
-    'run_settings':            [('fa.wrench', 'spyder.run'), {'options': [{'offset':(-0.1, -0.1), 'scale_factor': 0.75}, {'offset': (0.0, 0.125), 'color': 'green','scale_factor': 0.75}]}],
-    'run_again':               [('fa.repeat', 'spyder.run'), {'options': [{'offset':(-0.1, -0.1), 'scale_factor': 0.75}, {'offset':(0.1, 0.125), 'color': 'green', 'scale_factor': 0.75}]}],
+    'run_settings':            [('fa.wrench', 'fa.play'), {'options': [{'offset':(0.0, -0.1)}, {'offset': (0.2, 0.125), 'color': 'green', 'scale_factor': 0.8}]}],
+    'run_again':               [('fa.repeat', 'fa.play'), {'options': [{'offset':(0.0, -0.1)}, {'offset': (0.2, 0.125), 'color': 'green', 'scale_factor': 0.8}]}],
     'run_selection':           [('spyder.run-selection',), {}],
-    'run_cell':                [('fa.th-list', 'spyder.run-one-inplace'), {'options': [{'color': '#AAAAAA'}, {'color':'green'}]}],
-    'run_cell_advance':        [('fa.th-list', 'spyder.run-one'), {'options': [{'color': '#AAAAAA'}, {'color':'green'}]}],
+    'run_cell':                [('spyder.cell-page', 'spyder.cell-border', 'spyder.cell-code', 'spyder.cell-page-shadow', 'spyder.cell-play'),
+                                {'options': [{'color': 'white'}, {'color': 'gray'}, {'color': '#fff683'}, {}, {'color': 'green'}]}],
+    'run_cell_advance':        [('spyder.cell-page', 'spyder.cell-border', 'spyder.cell-code', 'spyder.cell-page-shadow', 'spyder.cell-play', 'spyder.cell-next'),
+                                {'options': [{'color': 'white'}, {'color': 'gray'}, {'color': '#fff683'}, {}, {'color': 'green'}, {'color': 'red'}]}],
     'todo_list':               [('fa.th-list', 'fa.check'), {'options': [{'color': '#3775a9'}, {'offset': (0.0, 0.2), 'color': 'orange', 'color_disabled': '#face7e'}]}],
     'wng_list':                [('fa.th-list', 'fa.warning'), {'options': [{'color': '#3775a9'}, {'offset': (0.0, 0.2), 'scale_factor': 0.75, 'color': 'orange', 'color_disabled': '#face7e'}]}],
     'prev_wng':                [('fa.arrow-left', 'fa.warning'), {'options': [{'color': '#3775a9'}, {'offset': (0.0, 0.2), 'scale_factor': 0.75, 'color': 'orange', 'color_disabled': '#face7e'}]}],
@@ -61,19 +65,19 @@ _qtaargs = {
     'error':                   [('fa.times-circle',), {}],
     'warning':                 [('fa.warning',), {'color': 'orange'}],
     'todo':                    [('fa.check',), {'color': 'orange'}],
-    'ipython_console':         [('spyder.ipython-logo',), {}],
-    'ipython_console_t':       [('spyder.ipython-logo',), {'color':'gray'}],
+    'ipython_console':         [('spyder.ipython-logo-alt',), {}],
+    'ipython_console_t':       [('spyder.ipython-logo-alt',), {'color':'gray'}],
     'python':                  [('spyder.python-logo-up', 'spyder.python-logo-down'), {'options': [{'color': '#3775a9'}, {'color': '#ffd444'}]}],
     'python_t':                [('spyder.python-logo',), {'color':'gray'}],
     'pythonpath':              [('spyder.python-logo-up', 'spyder.python-logo-down'), {'options': [{'color': '#3775a9'}, {'color': '#ffd444'}]}],
     'terminated':              [('fa.circle',), {}],
     'cmdprompt':               [('fa.terminal',), {}],
     'cmdprompt_t':             [('fa.terminal',), {'color':'gray'}],
-    'console':                 [('fa.terminal',), {}],
+    'console':                 [('spyder.python-logo-up', 'spyder.python-logo-down'), {'options': [{'color': '#3775a9'}, {'color': '#ffd444'}]}],
     'findf':                   [('fa.file-o', 'fa.search'), {'options': [{'scale_factor': 1.0}, {'scale_factor': 0.6}]}],
     'history24':               [('fa.history',), {}],
     'history':                 [('fa.history',), {}],
-    'inspector':               [('fa.search',), {}],
+    'inspector':               [('fa.question-circle',), {}],
     'lock':                    [('fa.lock',), {}],
     'lock_open':               [('fa.unlock-alt',), {}],
     'outline_explorer':        [('spyder.treeview',), {}],

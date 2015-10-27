@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2011 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -8,13 +8,13 @@
 
 Data for outline are provided by method .get_outlineexplorer_data() of
 highlighter of assigned editor. For example, for Python files code editor uses
-highlighter spyderlib.widgets.sourcecode.syntaxhighlighters.PythonSH
+highlighter spyderlib.utils.syntaxhighlighters.PythonSH
 """
 
 from spyderlib.qt.QtCore import Signal
 
 # Local imports
-from spyderlib.baseconfig import _
+from spyderlib.config.base import _
 from spyderlib.widgets.editortools import OutlineExplorerWidget
 from spyderlib.plugins import SpyderPluginMixin
 from spyderlib.py3compat import is_text_string

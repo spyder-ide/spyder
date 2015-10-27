@@ -22,17 +22,17 @@ import sys
 
 # Local imports
 from spyderlib import dependencies
-from spyderlib.baseconfig import get_conf_path, get_module_source_path, _
-from spyderlib.ipythonconfig import IPYTHON_QT_INSTALLED
-from spyderlib.config import CONF
-from spyderlib.guiconfig import get_color_scheme, get_font, set_font
+from spyderlib.config.base import get_conf_path, get_module_source_path, _
+from spyderlib.config.ipython import IPYTHON_QT_INSTALLED
+from spyderlib.config.main import CONF
+from spyderlib.config.gui import get_color_scheme, get_font, set_font
 from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
                                        create_action)
 from spyderlib.widgets.comboboxes import EditableComboBox
 from spyderlib.widgets.sourcecode import codeeditor
 from spyderlib.widgets.findreplace import FindReplace
-from spyderlib.widgets.browser import WebView
+from spyderlib.widgets.browser import FrameWebView
 from spyderlib.widgets.externalshell.pythonshell import ExtPythonShellWidget
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 from spyderlib.py3compat import to_text_string, get_meth_class_inst
@@ -50,7 +50,7 @@ try:
                                                      warning, generate_context,
                                                      usage)
     sphinx_version = programs.get_module_version('sphinx')
-except ImportError:
+except (ImportError, TypeError):
     sphinxify = sphinx_version = None  # analysis:ignore
 
 # To add sphinx dependency to the Dependencies dialog
@@ -206,7 +206,7 @@ class RichText(QWidget):
     def __init__(self, parent):
         QWidget.__init__(self, parent)
 
-        self.webview = WebView(self)
+        self.webview = FrameWebView(self)
         self.find_widget = FindReplace(self)
         self.find_widget.set_editor(self.webview)
         self.find_widget.hide()

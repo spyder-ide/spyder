@@ -21,7 +21,11 @@ elif os.environ['QT_API'] == 'pyqt':
     from PyQt4.QtCore import pyqtSlot as Slot                 # analysis:ignore
     from PyQt4.QtCore import pyqtProperty as Property         # analysis:ignore
     from PyQt4.QtCore import QT_VERSION_STR as __version__    # analysis:ignore
+
+    from PyQt4.QtGui import QItemSelection, QItemSelectionRange  # analysis:ignore
 else:
     import PySide.QtCore
     __version__ = PySide.QtCore.__version__                   # analysis:ignore
     from PySide.QtCore import *                               # analysis:ignore
+
+    from PySide.QtGui import QItemSelection, QItemSelectionRange  # analysis:ignore

@@ -18,7 +18,7 @@ import spyderlib.utils.icon_manager as ima
 import os.path as osp
 
 # Local imports
-from spyderlib.baseconfig import _
+from spyderlib.config.base import _
 from spyderlib.utils.qthelpers import create_action
 from spyderlib.widgets.explorer import ExplorerWidget
 from spyderlib.plugins import SpyderPluginMixin

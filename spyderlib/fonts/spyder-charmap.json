@@ -1,7 +1,6 @@
 {
     "continue": "0xE000",
     "debug": "0xE001",
-    "run": "0xE002",
     "run-cell": "0xE003",
     "run-cell-inplace": "0xE004",
     "step-forward": "0xE005",
@@ -10,6 +9,12 @@
     "step-over": "0xE008",
     "stop": "0xE009",
     "cell": "0xE00A",
+    "cell-page": "0xE03A",
+    "cell-page-shadow": "0xE03F",
+    "cell-code": "0xE03B",
+    "cell-play": "0xE03C",
+    "cell-next": "0xE03D",
+    "cell-border": "0xE03E",
     "run-one-inplace": "0xE00B",
     "run-one": "0xE00C",
     "python-logo": "0xE00D",
@@ -24,6 +29,8 @@
     "maximize-pane": "0xE016",
     "minimize-pane": "0xE017",
     "ipython-logo": "0xE018",
+    "ipython-logo-alt": "0xE042",
+    "jupyter-logo": "0xE043",
     "run-selection": "0xE019",
     "text-select-all": "0xE01A",
     "treeview": "0xE01B",
@@ -33,5 +40,11 @@
     "circle-hash": "0xE022",
     "circle-letter-m": "0xE023",
     "circle-percent": "0xE024",
-    "circle-letter-r": "0xE025"
+    "circle-letter-r": "0xE025",
+    "cube-front": "0xE055",
+    "cube-bottom": "0xE056",
+    "cube-right": "0xE057",
+    "cube-left": "0xE058",
+    "cube-rear": "0xE059",
+    "cube-top": "0xE060"
 }

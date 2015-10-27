@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -42,26 +42,30 @@ import spyderlib.utils.icon_manager as ima
 # Local import
 # TODO: Try to separate this module from spyderlib to create a self
 #       consistent editor module (Qt source code and shell widgets library)
-from spyderlib.baseconfig import get_conf_path, _, DEBUG
-from spyderlib.config import CONF
-from spyderlib.guiconfig import (get_font, create_shortcut, new_shortcut,
-                                 get_shortcut)
+from spyderlib.config.base import get_conf_path, _, DEBUG
+from spyderlib.config.main import CONF
+from spyderlib.config.gui import (get_font, create_shortcut, new_shortcut,
+                                  get_shortcut)
 from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
                                        mimedata2url)
 from spyderlib.utils.dochelpers import getobj
 from spyderlib.utils import encoding, sourcecode
 from spyderlib.utils.sourcecode import ALL_LANGUAGES, CELL_LANGUAGES
+from spyderlib.utils import syntaxhighlighters as sh
 from spyderlib.widgets.editortools import PythonCFM
 from spyderlib.widgets.sourcecode.base import TextEditBaseWidget
 from spyderlib.widgets.sourcecode.kill_ring import QtKillRing
-from spyderlib.widgets.sourcecode import syntaxhighlighters as sh
 from spyderlib.widgets.arraybuilder import SHORTCUT_INLINE, SHORTCUT_TABLE
 from spyderlib.py3compat import to_text_string
 
 try:
-    import IPython.nbformat as nbformat
-    from IPython.nbconvert import PythonExporter as nbexporter
-except:
+    try:   # Ipython 4
+        import nbformat as nbformat
+        from nbconvert import PythonExporter as nbexporter  
+    except ImportError:  # Ipython 3
+        import IPython.nbformat as nbformat
+        from IPython.nbconvert import PythonExporter as nbexporter
+except ImportError:
     nbformat = None                      # analysis:ignore
 
 # %% This line is for cell execution testing
@@ -1115,7 +1119,13 @@ class CodeEditor(TextEditBaseWidget):
         """Painting line number area"""
         painter = QPainter(self.linenumberarea)
         painter.fillRect(event.rect(), self.sideareas_color)
-        font = painter.font()
+        # This is needed to make that the font size of line numbers
+        # be the same as the text one when zooming
+        # See Issue 2296
+        if sys.platform == 'darwin':
+            font = self.font()
+        else:
+            font = painter.font()
         font_height = self.fontMetrics().height()
 
         active_block = self.textCursor().block()
@@ -1356,6 +1366,8 @@ class CodeEditor(TextEditBaseWidget):
         else:
             option.setFlags(option.flags() & ~QTextOption.ShowTabsAndSpaces)
         self.document().setDefaultTextOption(option)
+        # Rehighlight to make the spaces less apparent.
+        self.rehighlight()
 
     #-----scrollflagarea
     def set_scrollflagarea_enabled(self, state):
@@ -1881,6 +1893,7 @@ class CodeEditor(TextEditBaseWidget):
         # find the line that contains our scope
         diff = 0
         add_indent = False
+        prevline = None
         for prevline in range(block_nb-1, -1, -1):
             cursor.movePosition(QTextCursor.PreviousBlock)
             prevtext = to_text_string(cursor.block().text()).rstrip()
@@ -1899,6 +1912,9 @@ class CodeEditor(TextEditBaseWidget):
                         break
                 else:
                     break
+
+        if not prevline:
+            return False
 
         indent = self.get_block_indentation(block_nb)
         correct_indent = self.get_block_indentation(prevline)
@@ -2585,20 +2601,8 @@ class CodeEditor(TextEditBaseWidget):
             self.stdkey_end(shift, ctrl)
         elif text == '(' and not self.has_selected_text():
             self.hide_completion_widget()
-            position = self.get_position('cursor')
-            s_trailing_text = self.get_text('cursor', 'eol').strip()
-            if self.close_parentheses_enabled and \
-              (len(s_trailing_text) == 0 or \
-              s_trailing_text[0] in (',', ')', ']', '}')):
-                self.insert_text('()')
-                cursor = self.textCursor()
-                cursor.movePosition(QTextCursor.PreviousCharacter)
-                self.setTextCursor(cursor)
-            else:
-                self.insert_text(text)
-            if self.is_python_like() and self.get_text('sol', 'cursor') and \
-              self.calltips:
-                self.sig_show_object_info.emit(position)
+            if self.close_parentheses_enabled:
+                self.handle_close_parentheses(text)
         elif text in ('[', '{') and not self.has_selected_text() \
           and self.close_parentheses_enabled:
             s_trailing_text = self.get_text('cursor', 'eol').strip()
@@ -2666,6 +2670,22 @@ class CodeEditor(TextEditBaseWidget):
             TextEditBaseWidget.keyPressEvent(self, event)
             if self.is_completion_widget_visible() and text:
                 self.completion_text += text
+
+    def handle_close_parentheses(self, text):
+        if not self.close_parentheses_enabled:
+            return
+        position = self.get_position('cursor')
+        rest = self.get_text('cursor', 'eol').rstrip()
+        if not rest or rest[0] in (',', ')', ']', '}'):
+            self.insert_text('()')
+            cursor = self.textCursor()
+            cursor.movePosition(QTextCursor.PreviousCharacter)
+            self.setTextCursor(cursor)
+        else:
+            self.insert_text(text)
+        if self.is_python_like() and self.get_text('sol', 'cursor') and \
+                self.calltips:
+            self.sig_show_object_info.emit(position)
 
     def mouseMoveEvent(self, event):
         """Underline words when pressing <CONTROL>"""
@@ -2876,7 +2896,7 @@ class TestWidget(QSplitter):
         self.editor = CodeEditor(self)
         self.editor.setup_editor(linenumbers=True, markers=True, tab_mode=False,
                                  font=QFont("Courier New", 10),
-                                 show_blanks=True, color_scheme='Pydev')
+                                 show_blanks=True, color_scheme='Zenburn')
         self.addWidget(self.editor)
         from spyderlib.widgets.editortools import OutlineExplorerWidget
         self.classtree = OutlineExplorerWidget(self)
@@ -2894,32 +2914,28 @@ class TestWidget(QSplitter):
                                               osp.dirname(filename)))
         self.classtree.set_current_editor(self.editor, filename, False, False)
 
+
 def test(fname):
     from spyderlib.utils.qthelpers import qapplication
-    app = qapplication()
-    app.setStyle('Plastique')
+    app = qapplication(test_time=5)
     win = TestWidget(None)
     win.show()
     win.load(fname)
-    win.resize(1000, 800)
+    win.resize(900, 700)
 
     from spyderlib.utils.codeanalysis import (check_with_pyflakes,
                                               check_with_pep8)
     source_code = to_text_string(win.editor.toPlainText())
-    res = check_with_pyflakes(source_code, fname)#+\
-#          check_with_pep8(source_code, fname)
-    win.editor.process_code_analysis(res)
+    results = check_with_pyflakes(source_code, fname) + \
+              check_with_pep8(source_code, fname)
+    win.editor.process_code_analysis(results)
 
     sys.exit(app.exec_())
+
 
 if __name__ == '__main__':
     if len(sys.argv) > 1:
         fname = sys.argv[1]
     else:
         fname = __file__
-#        fname = r"d:\Python\scintilla\src\LexCPP.cxx"
-#        fname = r"C:\Python26\Lib\pdb.py"
-#        fname = r"C:\Python26\Lib\ssl.py"
-#        fname = r"D:\Python\testouille.py"
-#        fname = r"C:\Python26\Lib\pydoc.py"
     test(fname)

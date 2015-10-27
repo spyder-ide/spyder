@@ -117,8 +117,8 @@ def get_identifiers(source_code):
 if __name__ == '__main__':
     code = 'import functools\nfunctools.partial'
     assert get_primary_at(code, len(code)) == 'functools.partial'
-    assert get_identifiers(code) == ['import', 'functools', 
-                                     'functools.partial']
+    assert set(get_identifiers(code)) == set(['import', 'functools',
+                                              'functools.partial'])
     assert split_source(code) == ['import functools', 'functools.partial']
     code = code.replace('\n', '\r\n')
     assert split_source(code) == ['import functools', 'functools.partial']

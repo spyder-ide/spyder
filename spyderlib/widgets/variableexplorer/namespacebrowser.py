@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
-"""Namespace browser widget"""
+"""
+Namespace browser widget
+
+This is the main widget used in the Variable Explorer plugin
+"""
 
 import os.path as osp
 import socket
@@ -21,17 +25,17 @@ from spyderlib.widgets.externalshell.monitor import (
             monitor_set_global, monitor_get_global, monitor_del_global,
             monitor_copy_global, monitor_save_globals, monitor_load_globals,
             communicate, REMOTE_SETTINGS)
-from spyderlib.widgets.dicteditor import (RemoteDictEditorTableView,
-                                          DictEditorTableView)
-from spyderlib.widgets.dicteditorutils import globalsfilter
+from spyderlib.widgets.variableexplorer.collectionseditor import (
+                  RemoteCollectionsEditorTableView, CollectionsEditorTableView)
+from spyderlib.widgets.variableexplorer.utils import globalsfilter
 from spyderlib.utils import encoding
 from spyderlib.utils.misc import fix_reference_name
 from spyderlib.utils.programs import is_module_installed
 from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
                                        create_action)
 from spyderlib.utils.iofuncs import iofunctions
-from spyderlib.widgets.importwizard import ImportWizard
-from spyderlib.baseconfig import _, get_supported_types
+from spyderlib.widgets.variableexplorer.importwizard import ImportWizard
+from spyderlib.config.base import _, get_supported_types
 from spyderlib.py3compat import is_text_string, to_text_string, getcwd
 
 
@@ -106,13 +110,14 @@ class NamespaceBrowser(QWidget):
                 self.auto_refresh_button.setChecked(autorefresh)
             self.refresh_table()
             return
-        
+
         # Dict editor:
         if self.is_internal_shell:
-            self.editor = DictEditorTableView(self, None, truncate=truncate,
-                                              minmax=minmax)
+            self.editor = CollectionsEditorTableView(self, None,
+                                                     truncate=truncate,
+                                                     minmax=minmax)
         else:
-            self.editor = RemoteDictEditorTableView(self, None,
+            self.editor = RemoteCollectionsEditorTableView(self, None,
                             truncate=truncate, minmax=minmax,
                             remote_editing=remote_editing,
                             get_value_func=self.get_value,
@@ -126,7 +131,7 @@ class NamespaceBrowser(QWidget):
                             is_image_func=self.is_image,
                             is_dict_func=self.is_dict,
                             is_data_frame_func=self.is_data_frame,
-                            is_time_series_func=self.is_time_series,                       
+                            is_series_func=self.is_series,                       
                             get_array_shape_func=self.get_array_shape,
                             get_array_ndim_func=self.get_array_ndim,
                             oedit_func=self.oedit,
@@ -134,21 +139,37 @@ class NamespaceBrowser(QWidget):
                             show_image_func=self.show_image)
         self.editor.sig_option_changed.connect(self.sig_option_changed.emit)
         self.editor.sig_files_dropped.connect(self.import_data)
-        
-        
+
         # Setup layout
-        hlayout = QHBoxLayout()
-        vlayout = QVBoxLayout()
+        layout = QVBoxLayout()
+        blayout = QHBoxLayout()
         toolbar = self.setup_toolbar(exclude_private, exclude_uppercase,
                                      exclude_capitalized, exclude_unsupported,
                                      autorefresh)
-        vlayout.setAlignment(Qt.AlignTop)
         for widget in toolbar:
-            vlayout.addWidget(widget)
-        hlayout.addWidget(self.editor)
-        hlayout.addLayout(vlayout)
-        self.setLayout(hlayout)
-        hlayout.setContentsMargins(0, 0, 0, 0)
+            blayout.addWidget(widget)
+
+        # Options menu
+        options_button = create_toolbutton(self, text=_('Options'),
+                                           icon=ima.icon('tooloptions'))
+        options_button.setPopupMode(QToolButton.InstantPopup)
+        menu = QMenu(self)
+        editor = self.editor
+        actions = [self.exclude_private_action, self.exclude_uppercase_action,
+                   self.exclude_capitalized_action,
+                   self.exclude_unsupported_action, None,
+                   editor.truncate_action]
+        if is_module_installed('numpy'):
+            actions.append(editor.minmax_action)
+        add_actions(menu, actions)
+        options_button.setMenu(menu)
+
+        blayout.addStretch()
+        blayout.addWidget(options_button)
+        layout.addLayout(blayout)
+        layout.addWidget(self.editor)
+        self.setLayout(layout)
+        layout.setContentsMargins(0, 0, 0, 0)
 
         self.sig_option_changed.connect(self.option_changed)
         
@@ -226,21 +247,6 @@ class NamespaceBrowser(QWidget):
                 self.sig_option_changed.emit('exclude_unsupported', state))
         self.exclude_unsupported_action.setChecked(exclude_unsupported)
         
-        options_button = create_toolbutton(self, text=_('Options'),
-                                           icon=ima.icon('tooloptions'))
-        toolbar.append(options_button)
-        options_button.setPopupMode(QToolButton.InstantPopup)
-        menu = QMenu(self)
-        editor = self.editor
-        actions = [self.exclude_private_action, self.exclude_uppercase_action,
-                   self.exclude_capitalized_action,
-                   self.exclude_unsupported_action, None,
-                   editor.truncate_action]
-        if is_module_installed('numpy'):
-            actions.append(editor.minmax_action)
-        add_actions(menu, actions)
-        options_button.setMenu(menu)
-        
         self.setup_in_progress = False
         
         return toolbar
@@ -252,13 +258,22 @@ class NamespaceBrowser(QWidget):
             settings = self.get_view_settings()
             communicate(self._get_sock(),
                         'set_remote_view_settings()', settings=[settings])
-        
+
     def visibility_changed(self, enable):
-        """Notify the widget whether its container (the namespace browser 
+        """Notify the widget whether its container (the namespace browser
         plugin is visible or not"""
-        self.is_visible = enable
-        if enable:
-            self.refresh_table()
+        # This is slowing down Spyder a lot if too much data is present in
+        # the Variable Explorer, and users give focus to it after being hidden.
+        # This also happens when the Variable Explorer is visible and users
+        # give focus to Spyder after using another application (like Chrome
+        # or Firefox).
+        # That's why we've decided to remove this feature
+        # Fixes Issue 2593
+        #
+        # self.is_visible = enable
+        # if enable:
+        #     self.refresh_table()
+        pass
 
     @Slot(bool)
     def toggle_auto_refresh(self, state):
@@ -373,17 +388,17 @@ class NamespaceBrowser(QWidget):
     def is_image(self, name):
         """Return True if variable is a PIL.Image image"""
         return communicate(self._get_sock(), 'is_image("%s")' % name)
-    
+
     def is_data_frame(self, name):
-        """Return True if variable is a data_frame"""
+        """Return True if variable is a DataFrame"""
         return communicate(self._get_sock(),
              "isinstance(globals()['%s'], DataFrame)" % name)
-    
-    def is_time_series(self, name):
-        """Return True if variable is a data_frame"""
+
+    def is_series(self, name):
+        """Return True if variable is a Series"""
         return communicate(self._get_sock(),
-             "isinstance(globals()['%s'], TimeSeries)" % name)   
-        
+             "isinstance(globals()['%s'], Series)" % name)  
+    
     def get_array_shape(self, name):
         """Return array's shape"""
         return communicate(self._get_sock(), "%s.shape" % name)
@@ -420,12 +435,12 @@ class NamespaceBrowser(QWidget):
             self.ipyclient.shellwidget.execute(command)
         else:
             self.shellwidget.send_to_process(command)
-        
+
     def oedit(self, name):
-        command = "from spyderlib.widgets.objecteditor import oedit; " \
+        command = "from spyderlib.widgets.variableexplorer.objecteditor import oedit; " \
                   "oedit('%s', modal=False, namespace=locals());" % name
         self.shellwidget.send_to_process(command)
-        
+
     #------ Set, load and save data -------------------------------------------
     def set_data(self, data):
         """Set data"""
@@ -437,6 +452,7 @@ class NamespaceBrowser(QWidget):
         """Collapse"""
         self.sig_collapse.emit()
 
+    # FIXME: This method raises an error when called from the button in the UI
     @Slot(list)
     def import_data(self, filenames=None):
         """Import data from text file"""
@@ -553,4 +569,3 @@ class NamespaceBrowser(QWidget):
                             _("<b>Unable to save current workspace</b>"
                               "<br><br>Error message:<br>%s") % error_message)
         self.save_button.setEnabled(self.filename is not None)
-        

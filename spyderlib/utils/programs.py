@@ -171,7 +171,7 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
             subprocess.Popen(cmd, shell=True, cwd=wdir)
         except WindowsError:
             from spyderlib.qt.QtGui import QMessageBox
-            from spyderlib.baseconfig import _
+            from spyderlib.config.base import _
             QMessageBox.critical(None, _('Run'),
                                  _("It was not possible to run this file in "
                                    "an external terminal"),
@@ -212,10 +212,9 @@ def is_stable_version(version):
         version = version.split('.')
     last_part = version[-1]
 
-    try:
-        int(last_part)
+    if not re.search('[a-zA-Z]', last_part):
         return True
-    except ValueError:
+    else:
         return False
 
 
@@ -235,11 +234,14 @@ def check_version(actver, version, cmp_op):
     if isinstance(actver, tuple):
         actver = '.'.join([str(i) for i in actver])
 
-    # A small hack is needed so that LooseVersion understands that for example
+    # Hacks needed so that LooseVersion understands that (for example)
     # version = '3.0.0' is in fact bigger than actver = '3.0.0rc1'
-    if is_stable_version(version) and actver.startswith(version) and\
-      version != actver:
-        version = version + 'z'
+    if is_stable_version(version) and not is_stable_version(actver) and \
+      actver.startswith(version) and version != actver:
+        version = version + 'zz'
+    elif is_stable_version(actver) and not is_stable_version(version) and \
+      version.startswith(actver) and version != actver:
+        actver = actver + 'zz'
 
     try:
         if cmp_op == '>':
@@ -283,12 +285,14 @@ def is_module_installed(module_name, version=None, installed_version=None,
         if osp.isfile(interpreter) and ('python' in interpreter):
             checkver = inspect.getsource(check_version)
             get_modver = inspect.getsource(get_module_version)
+            stable_ver = inspect.getsource(is_stable_version)
             ismod_inst = inspect.getsource(is_module_installed)
             fd, script = tempfile.mkstemp(suffix='.py', dir=TEMPDIR)
             with os.fdopen(fd, 'w') as f:
                 f.write("# -*- coding: utf-8 -*-" + "\n\n")
                 f.write("from distutils.version import LooseVersion" + "\n")
                 f.write("import re" + "\n\n")
+                f.write(stable_ver + "\n")
                 f.write(checkver + "\n")
                 f.write(get_modver + "\n")
                 f.write(ismod_inst + "\n")
@@ -342,10 +346,18 @@ def is_module_installed(module_name, version=None, installed_version=None,
             return check_version(actver, version, symb)
 
 
+def test_programs():
+    assert find_program('git')
+    assert shell_split('-q -o -a') == ['-q', '-o', '-a']
+    assert shell_split('-q "d:\\Python de xxxx\\t.txt" -o -a') == \
+           ['-q', 'd:\\Python de xxxx\\t.txt', '-o', '-a']
+    assert check_version('0.9.4-1', '0.9.4', '>=')
+    assert check_version('3.0.0rc1', '3.0.0', '<')
+    assert check_version('1.0', '1.0b2', '>')
+    assert is_module_installed('qtconsole', '>=4.0')
+    assert not is_module_installed('IPython', '>=1.0;<3.0')
+    assert is_module_installed('jedi', '>=0.7.0')
+
+
 if __name__ == '__main__':
-    print(find_program('hg'))
-    print(shell_split('-q -o -a'))
-    print(shell_split('-q "d:\\Python de xxxx\\t.txt" -o -a'))
-    print(is_module_installed('IPython', '>=0.12'))
-    print(is_module_installed('IPython', '>=0.13;<1.0'))
-    print(is_module_installed('jedi', '>=0.7.0'))
+    test_programs()

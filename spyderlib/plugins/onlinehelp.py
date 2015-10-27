@@ -11,7 +11,7 @@ from spyderlib.qt.QtCore import Signal
 import os.path as osp
 
 # Local imports
-from spyderlib.baseconfig import get_conf_path, _
+from spyderlib.config.base import get_conf_path, _
 from spyderlib.widgets.pydocgui import PydocBrowser
 from spyderlib.plugins import SpyderPluginMixin
 from spyderlib.py3compat import to_text_string

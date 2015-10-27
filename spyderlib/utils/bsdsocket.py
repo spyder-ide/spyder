@@ -18,7 +18,7 @@ import errno
 import traceback
 
 # Local imports
-from spyderlib.baseconfig import DEBUG, STDERR
+from spyderlib.config.base import DEBUG, STDERR
 DEBUG_EDITOR = DEBUG >= 3
 from spyderlib.py3compat import pickle
 PICKLE_HIGHEST_PROTOCOL = 2
@@ -157,14 +157,26 @@ if __name__ == '__main__':
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client.connect( address )
 
-    client.send("data to be catched")
+    client.send("data to be catched".encode('utf-8'))
     # accepted server socket is the one we can read from
     # note that it is different from server socket
-    accsock, addr = server.accept()
+    if os.name == 'nt':
+        import time
+        import sys
+        count = 0
+        try:
+            accsock, addr = server.accept()
+        except socket.error as e:
+            if e[0] == 10035 and count < 5:
+                count += 1
+                time.sleep(1)
+            else:
+                print('Socket error!')
+                sys.exit(1)
+    else:
+        accsock, addr = server.accept()
     print('..got "%s" from %s' % (accsock.recv(4096), addr))
-    client.send("more data for recv")
-    print('..got "%s" from %s' % (accsock.recv(4096), addr))
-    
+
     # accsock.close()
     # client.send("more data for recv")
     #socket.error: [Errno 9] Bad file descriptor

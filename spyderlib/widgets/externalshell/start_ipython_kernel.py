@@ -10,14 +10,29 @@
 import sys
 import os.path as osp
 
+# TODO: Move to Jupyter imports in 3.1
+try:
+    import warnings
+    from IPython.utils.shimmodule import ShimWarning
+    warnings.simplefilter('ignore', ShimWarning)
+except:
+    pass
+
 
 def sympy_config(mpl_backend):
     """Sympy configuration"""
-    lines = """
+    if mpl_backend is not None:
+        lines = """
 from sympy.interactive import init_session
 init_session()
 %matplotlib {0}
 """.format(mpl_backend)
+    else:
+        lines = """
+from sympy.interactive import init_session
+init_session()
+"""
+
     return lines
 
 
@@ -25,7 +40,7 @@ def kernel_config():
     """Create a config object with IPython kernel options"""
     from IPython.config.loader import Config, load_pyconfig_files
     from IPython.core.application import get_ipython_dir
-    from spyderlib.config import CONF
+    from spyderlib.config.main import CONF
     from spyderlib.utils.programs import is_module_installed
     
     # ---- IPython config ----
@@ -51,6 +66,7 @@ def kernel_config():
         spy_cfg.IPKernelApp.exec_lines = []
     
     # Pylab configuration
+    mpl_backend = None
     mpl_installed = is_module_installed('matplotlib')
     pylab_o = CONF.get('ipython_console', 'pylab')
 

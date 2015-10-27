@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -13,7 +13,7 @@ import sys
 import os.path as osp
 
 # Local imports
-from spyderlib.baseconfig import _
+from spyderlib.config.base import _
 from spyderlib.widgets.browser import WebBrowser
 from spyderlib.utils.misc import select_port
 from spyderlib.py3compat import to_text_string, PY3
@@ -122,14 +122,15 @@ class PydocBrowser(WebBrowser):
         return osp.splitext(to_text_string(url.path()))[0][1:]
 
 
-def main():
+def test():
     """Run web browser"""
     from spyderlib.utils.qthelpers import qapplication
-    app = qapplication()
+    app = qapplication(test_time=8)
     widget = PydocBrowser(None)
     widget.show()
     widget.initialize()
     sys.exit(app.exec_())
 
+
 if __name__ == '__main__':
-    main()
+    test()

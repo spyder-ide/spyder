@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2011 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
 """Qt utilities"""
 
-from spyderlib.qt.QtGui import (QAction, QStyle, QWidget, QIcon, QApplication,
+from spyderlib.qt.QtGui import (QAction, QStyle, QWidget, QApplication,
                                 QLabel, QVBoxLayout, QHBoxLayout, QLineEdit,
                                 QKeyEvent, QMenu, QKeySequence, QToolButton,
                                 QPixmap)
 from spyderlib.qt.QtCore import (Signal, QObject, Qt, QLocale, QTranslator,
-                                 QLibraryInfo, QEvent, Slot)
+                                 QLibraryInfo, QEvent, Slot, QTimer)
 from spyderlib.qt.compat import to_qvariant, from_qvariant
 import spyderlib.utils.icon_manager as ima
 from spyderlib.utils.icon_manager import get_icon, get_std_icon
@@ -22,8 +22,8 @@ import os.path as osp
 import sys
 
 # Local import
-from spyderlib.baseconfig import get_image_path, running_in_mac_app
-from spyderlib.guiconfig import get_shortcut
+from spyderlib.config.base import get_image_path, running_in_mac_app
+from spyderlib.config.gui import get_shortcut
 from spyderlib.utils import programs
 from spyderlib.py3compat import is_text_string, to_text_string
 
@@ -60,9 +60,14 @@ class MacApplication(QApplication):
         return QApplication.event(self, event)
 
 
-def qapplication(translate=True):
-    """Return QApplication instance
-    Creates it if it doesn't already exist"""
+def qapplication(translate=True, test_time=3):
+    """
+    Return QApplication instance
+    Creates it if it doesn't already exist
+    
+    test_time: Time to maintain open the application when testing. It's given
+    in seconds
+    """
     if running_in_mac_app():
         SpyderApplication = MacApplication
     else:
@@ -78,6 +83,12 @@ def qapplication(translate=True):
         app.setApplicationName('Spyder')
     if translate:
         install_translator(app)
+
+    test_travis = os.environ.get('TEST_CI_WIDGETS', None)
+    if test_travis is not None:
+        timer_shutdown = QTimer(app)
+        timer_shutdown.timeout.connect(app.quit)
+        timer_shutdown.start(test_time*1000)
     return app
 
 
@@ -124,6 +135,7 @@ def _process_mime_path(path, extlist):
                 path = path[5:]
         else:
             path = path[7:]
+    path = path.replace('%5C' , os.sep)  # Transforming backslashes
     if osp.exists(path):
         if extlist is None or osp.splitext(path)[1] in extlist:
             return path

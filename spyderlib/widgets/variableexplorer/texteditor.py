@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
 """
-Text Editor Dialog based on Qt
+Text editor dialog
 """
 
 from __future__ import print_function
@@ -15,8 +15,8 @@ from spyderlib.qt.QtGui import QVBoxLayout, QTextEdit, QDialog, QDialogButtonBox
 import spyderlib.utils.icon_manager as ima
 
 # Local import
-from spyderlib.baseconfig import _
-from spyderlib.guiconfig import get_font
+from spyderlib.config.base import _
+from spyderlib.config.gui import get_font
 from spyderlib.py3compat import (to_text_string, to_binary_string,
                                  is_binary_string)
 
@@ -86,24 +86,24 @@ class TextEditor(QDialog):
         # It is import to avoid accessing Qt C++ object as it has probably
         # already been destroyed, due to the Qt.WA_DeleteOnClose attribute
         return self.text
-    
-    
+
+
+#==============================================================================
+# Tests
+#==============================================================================
 def test():
     """Text editor demo"""
     from spyderlib.utils.qthelpers import qapplication
     _app = qapplication()  # analysis:ignore
-    dialog = TextEditor("""
-    01234567890123456789012345678901234567890123456789012345678901234567890123456789
-    dedekdh elkd ezd ekjd lekdj elkdfjelfjk e
-    """)
-    dialog.show()
-    if dialog.exec_():
-        text = dialog.get_value()
-        print("Accepted:", text)
-        dialog = TextEditor(text)
-        dialog.exec_()
-    else:
-        print("Canceled")
+
+    text = """01234567890123456789012345678901234567890123456789012345678901234567890123456789
+dedekdh elkd ezd ekjd lekdj elkdfjelfjk e"""
+    dialog = TextEditor(text)
+    dialog.exec_()
+
+    dlg_text = dialog.get_value()
+    assert text == dlg_text
+
 
 if __name__ == "__main__":
     test()

@@ -331,7 +331,7 @@ def load_dictionary(filename):
             # Old format (Spyder 2.0-2.1 for Python 2)
             with open(pickle_filename, 'U') as fdesc:
                 data = pickle.loads(fdesc.read())
-        except (pickle.PickleError, TypeError):
+        except (pickle.PickleError, TypeError, UnicodeDecodeError):
             # New format (Spyder >=2.2 for Python 2 and Python 3)
             with open(pickle_filename, 'rb') as fdesc:
                 data = pickle.loads(fdesc.read())
@@ -358,7 +358,7 @@ def load_dictionary(filename):
     return data, error_message
 
 
-from spyderlib.baseconfig import get_conf_path, STDERR
+from spyderlib.config.base import get_conf_path, STDERR
 
 SAVED_CONFIG_FILES = ('inspector', 'onlinehelp', 'path', 'pylint.results',
                       'spyder.ini', 'temp.py', 'temp.spydata', 'template.py',
@@ -448,7 +448,7 @@ def load_session(filename):
     return error_message
 
 
-from spyderlib.baseconfig import _
+from spyderlib.config.base import _
 
 class IOFunctions(object):
     def __init__(self):

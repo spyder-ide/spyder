@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2012 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -12,8 +12,8 @@ from spyderlib.qt.QtGui import QWidget, QHBoxLayout, QLabel
 from spyderlib.qt.QtCore import QTimer
 
 # Local import
-from spyderlib.baseconfig import _
-from spyderlib.guiconfig import get_font
+from spyderlib.config.base import _
+from spyderlib.config.gui import get_font
 from spyderlib.py3compat import to_text_string
 from spyderlib import dependencies
 
@@ -184,7 +184,7 @@ class CursorPositionStatus(StatusBarWidget):
 def test():
     from spyderlib.qt.QtGui import QMainWindow
     from spyderlib.utils.qthelpers import qapplication
-    app = qapplication()
+    app = qapplication(test_time=5)
     win = QMainWindow()
     win.setWindowTitle("Status widgets test")
     win.resize(900, 300)
@@ -196,6 +196,7 @@ def test():
         swidgets.append(swidget)
     win.show()
     app.exec_()
-    
+
+
 if __name__ == "__main__":
     test()

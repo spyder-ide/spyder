@@ -1,25 +1,15 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
-
-"""
-spyderlib.widgets
-=================
-
-Widgets defined in this module may be used in any other Qt-based application
-
-They are also used in Spyder through the Plugin interface
-(see spyderlib.plugins)
-"""
 
 from spyderlib.qt.QtCore import Slot
 from spyderlib.qt.QtGui import QTreeWidget, QMenu
 import spyderlib.utils.icon_manager as ima
 
 # Local imports
-from spyderlib.baseconfig import _
+from spyderlib.config.base import _
 from spyderlib.utils.qthelpers import create_action, add_actions, get_item_user_text
 
 

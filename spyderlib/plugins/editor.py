@@ -30,9 +30,9 @@ import os.path as osp
 
 # Local imports
 from spyderlib.utils import encoding, sourcecode, codeanalysis
-from spyderlib.baseconfig import get_conf_path, _
-from spyderlib.config import CONF, EDIT_FILTERS, get_filter, EDIT_FILETYPES
-from spyderlib.guiconfig import get_color_scheme
+from spyderlib.config.base import get_conf_path, _
+from spyderlib.config.main import CONF, EDIT_FILTERS, get_filter, EDIT_FILETYPES
+from spyderlib.config.gui import get_color_scheme
 from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import (create_action, add_actions,
                                        get_filetype_icon, add_shortcut_to_tooltip)
@@ -230,7 +230,7 @@ class EditorConfigPage(PluginConfigPage):
         is_pep8 = codeanalysis.get_checker_executable('pep8') is not None
         pyflakes_box = newcb(_("Real-time code analysis"),
                       'code_analysis/pyflakes', default=True,
-                      tip=_("<p>If enabled, Python source code will be analyzed"
+                      tip=_("<p>If enabled, Python source code will be analyzed "
                             "using pyflakes, lines containing errors or "
                             "warnings will be highlighted.</p>"
                             "<p><u>Note</u>: add <b>analysis:ignore</b> in "
@@ -459,7 +459,8 @@ class Editor(SpyderPluginWidget):
         # Editor's splitter state
         state = self.get_option('splitter_state', None)
         if state is not None:
-            self.splitter.restoreState( QByteArray().fromHex(str(state)) )
+            self.splitter.restoreState( QByteArray().fromHex(
+                    str(state).encode('utf-8')) )
         
         self.recent_files = self.get_option('recent_files', [])
         
@@ -593,11 +594,14 @@ class Editor(SpyderPluginWidget):
                     [win.get_layout_settings() for win in self.editorwindows])
         self.set_option('filenames', filenames)
         self.set_option('recent_files', self.recent_files)
-        if not editorstack.save_if_changed(cancelable) and cancelable:
-            return False
-        else:
-            for win in self.editorwindows[:]:
-                win.close()
+        try:
+            if not editorstack.save_if_changed(cancelable) and cancelable:
+                return False
+            else:
+                for win in self.editorwindows[:]:
+                    win.close()
+                return True
+        except IndexError:
             return True
 
     def get_plugin_actions(self):
@@ -664,8 +668,6 @@ class Editor(SpyderPluginWidget):
         self.print_action = create_action(self, _("&Print..."),
                 icon=ima.icon('print'), tip=_("Print current file..."),
                 triggered=self.print_file)
-        self.register_shortcut(self.print_action, context="Editor",
-                               name="Print")
         # Shortcut for close_action is defined in widgets/editor.py
         self.close_action = create_action(self, _("&Close"),
                 icon=ima.icon('fileclose'), tip=_("Close current file"),
@@ -1500,6 +1502,7 @@ class Editor(SpyderPluginWidget):
         """
         # If no text is provided, create default content
         if text is None:
+            default_content = True
             text, enc = encoding.read(self.TEMPLATE_PATH)
             enc_match = re.search('-*- coding: ?([a-z0-9A-Z\-]*) -*-', text)
             if enc_match:
@@ -1521,8 +1524,9 @@ class Editor(SpyderPluginWidget):
             except:
                 pass
         else:
+            default_content = False
             enc = encoding.read(self.TEMPLATE_PATH)[1]
-        
+
         create_fname = lambda n: to_text_string(_("untitled")) + ("%d.py" % n)
         # Creating editor widget
         if editorstack is None:
@@ -1552,14 +1556,14 @@ class Editor(SpyderPluginWidget):
         # Creating the editor widget in the first editorstack (the one that
         # can't be destroyed), then cloning this editor widget in all other
         # editorstacks:
-        finfo = self.editorstacks[0].new(fname, enc, text)
+        finfo = self.editorstacks[0].new(fname, enc, text, default_content)
         finfo.path = self.main.get_spyder_pythonpath()
         self._clone_file_everywhere(finfo)
         current_editor = current_es.set_current_filename(finfo.filename)
         self.register_widget_shortcuts("Editor", current_editor)
         if not created_from_here:
             self.save(force=True)
-                
+
     def edit_template(self):
         """Edit new file template"""
         self.load(self.TEMPLATE_PATH)

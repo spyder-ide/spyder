@@ -29,8 +29,8 @@ import sys
 import subprocess
 
 # Local imports
-from spyderlib.baseconfig import SCIENTIFIC_STARTUP, running_in_mac_app, _
-from spyderlib.config import CONF
+from spyderlib.config.base import SCIENTIFIC_STARTUP, running_in_mac_app, _
+from spyderlib.config.main import CONF
 from spyderlib.utils import encoding, programs
 from spyderlib.utils.misc import (get_error_match, get_python_executable,
                                   remove_backslashes, is_python_script)
@@ -43,6 +43,7 @@ from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 from spyderlib.plugins.runconfig import get_run_configuration
 from spyderlib.py3compat import to_text_string, is_text_string, getcwd
 from spyderlib import dependencies
+
 
 MPL_REQVER = '>=1.0'
 dependencies.add("matplotlib", _("Interactive data plotting in the consoles"),
@@ -261,86 +262,48 @@ class ExternalConsoleConfigPage(PluginConfigPage):
             ('PyQt4', 'pyqt'),
             ('PySide', 'pyside'),
         ]
-        qt_group = QGroupBox(_("Qt Bindings"))
+        qt_group = QGroupBox(_("Qt-Python Bindings"))
         qt_setapi_box = self.create_combobox(
-                         _("Qt-Python bindings library selection:"), opts,
+                         _("Library:") + "   ", opts,
                          'qt/api', default='default',
                          tip=_("This option will act on<br> "
                                "libraries such as Matplotlib, guidata "
                                "or ETS"))
-        if self.get_option('pythonexecutable/default'):
-            interpreter = get_python_executable()
-        else:
-            interpreter = self.get_option('pythonexecutable')
-        has_pyqt5 = programs.is_module_installed('PyQt5',
-                                                 interpreter=interpreter)
-        has_pyqt4 = programs.is_module_installed('PyQt4',
-                                                 interpreter=interpreter)
-        has_pyside = programs.is_module_installed('PySide',
-                                                  interpreter=interpreter)
-        if has_pyqt4 and not has_pyqt5:
-            self.set_option('qt/api', 'pyqt')
-        elif has_pyside and not (has_pyqt5 or has_pyqt4):
-            self.set_option('qt/api', 'pyside')
-        
+
         qt_layout = QVBoxLayout()
         qt_layout.addWidget(qt_setapi_box)
         qt_group.setLayout(qt_layout)
-        qt_group.setEnabled(has_pyqt5 or has_pyqt4 or has_pyside)
-        
-        # PyQt4 Group
-        if has_pyqt4:
-            pyqt_group = QGroupBox(_("PyQt"))
-            setapi_box = self.create_combobox(
-                _("API selection for QString and QVariant objects:"),
-                ((_("Default API"), 0), (_("API #1"), 1), (_("API #2"), 2)),
-                'pyqt/api_version', default=0,
-                tip=_("PyQt API #1 is the default <br>"
-                      "API for Python 2. PyQt API #2 is "
-                      "the default API for Python 3 and "
-                      "is compatible with PySide."))
-            ignore_api_box = newcb(_("Ignore API change errors (sip.setapi)"),
-                                     'pyqt/ignore_sip_setapi_errors',
-                               tip=_("Enabling this option will ignore <br>"
-                                     "errors when changing PyQt API. As "
-                                     "PyQt does not support dynamic API "
-                                     "changes, it is strongly recommended "
-                                     "to use this feature wisely, e.g. "
-                                     "for debugging purpose."))
-            try:
-                from sip import setapi #analysis:ignore
-            except ImportError:
-                setapi_box.setDisabled(True)
-                ignore_api_box.setDisabled(True)
-            
-            pyqt_layout = QVBoxLayout()
-            pyqt_layout.addWidget(setapi_box)
-            pyqt_layout.addWidget(ignore_api_box)
-            pyqt_group.setLayout(pyqt_layout)
-            qt_layout.addWidget(pyqt_group)
-        
+
         # Matplotlib Group
-        mpl_group = QGroupBox(_("Matplotlib"))
-        mpl_backend_box = newcb('', 'matplotlib/backend/enabled', True)
-        mpl_backend_edit = self.create_lineedit(_("GUI backend:"),
-                                'matplotlib/backend/value',
-                                tip=_("Set the GUI toolkit used by <br>"
-                                      "Matplotlib to show figures "
-                                      "(default: Qt4Agg)"),
-                                alignment=Qt.Horizontal)
-        mpl_backend_box.toggled.connect(mpl_backend_edit.setEnabled)
-        mpl_backend_layout = QHBoxLayout()
-        mpl_backend_layout.addWidget(mpl_backend_box)
-        mpl_backend_layout.addWidget(mpl_backend_edit)
-        mpl_backend_edit.setEnabled(
-                                self.get_option('matplotlib/backend/enabled'))
+        mpl_group = QGroupBox(_("Graphics"))
+        mpl_label = QLabel(_("Decide which backend to use to display graphics. "
+                              "If unsure, please select the <b>Automatic</b> "
+                              "backend.<br><br>"
+                              "<b>Note:</b> We support a very limited number "
+                              "of backends in our Python consoles. If you "
+                              "prefer to work with a different one, please use "
+                              "an IPython console."))
+        mpl_label.setWordWrap(True)
+
+        backends = [("Automatic", 0), ("None", 1)]
+        if programs.is_module_installed('_tkinter'):
+            backends.append( ("Tkinter", 2) )
+        if sys.platform == 'darwin':
+            backends.append( ("Mac OSX", 3) )
+        backends = tuple(backends)
+
+        mpl_backend_box = self.create_combobox( _("Backend:")+"   ", backends,
+                                       'matplotlib/backend/value',
+                                       tip=_("This option will be applied the "
+                                             "next time a console is opened."))
+
         mpl_installed = programs.is_module_installed('matplotlib')
-        
         mpl_layout = QVBoxLayout()
-        mpl_layout.addLayout(mpl_backend_layout)
+        mpl_layout.addWidget(mpl_label)
+        mpl_layout.addWidget(mpl_backend_box)
         mpl_group.setLayout(mpl_layout)
         mpl_group.setEnabled(mpl_installed)
-        
+
         # ETS Group
         ets_group = QGroupBox(_("Enthought Tool Suite"))
         ets_label = QLabel(_("Enthought Tool Suite (ETS) supports "
@@ -349,15 +312,20 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         ets_label.setWordWrap(True)
         ets_edit = self.create_lineedit(_("ETS_TOOLKIT:"), 'ets_backend',
                                         alignment=Qt.Horizontal)
-        
+
         ets_layout = QVBoxLayout()
         ets_layout.addWidget(ets_label)
         ets_layout.addWidget(ets_edit)
         ets_group.setLayout(ets_layout)
+
+        if self.get_option('pythonexecutable/default'):
+            interpreter = get_python_executable()
+        else:
+            interpreter = self.get_option('pythonexecutable')
         ets_group.setEnabled(programs.is_module_installed(
                                                     "enthought.etsconfig.api",
                                                     interpreter=interpreter))
-        
+
         tabs = QTabWidget()
         tabs.addTab(self.create_tab(font_group, interface_group, display_group,
                                     bg_group),
@@ -373,34 +341,12 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         vlayout.addWidget(tabs)
         self.setLayout(vlayout)
 
-    def _auto_change_qt_api(self, pyexec):
-        """Change automatically Qt API depending on
-        selected Python executable"""
-        has_pyqt5 = programs.is_module_installed('PyQt5', interpreter=pyexec)
-        has_pyqt4 = programs.is_module_installed('PyQt4', interpreter=pyexec)
-        has_pyside = programs.is_module_installed('PySide', interpreter=pyexec)
-        for cb in self.comboboxes:
-            if self.comboboxes[cb][0] == 'qt/api':
-                qt_setapi_cb = cb
-        if has_pyqt5:
-            qt_setapi_cb.setCurrentIndex(1)
-        elif has_pyside and not has_pyqt4:
-            qt_setapi_cb.setCurrentIndex(3)
-        elif has_pyqt4 and not has_pyside:
-            qt_setapi_cb.setCurrentIndex(2)
-        else:
-            qt_setapi_cb.setCurrentIndex(0)
-
     def python_executable_changed(self, pyexec):
         """Custom Python executable value has been changed"""
         if not self.cus_exec_radio.isChecked():
             return
         if not is_text_string(pyexec):
             pyexec = to_text_string(pyexec.toUtf8(), 'utf-8')
-        old_pyexec = self.get_option("pythonexecutable",
-                                     get_python_executable())
-        if pyexec != old_pyexec:
-            self._auto_change_qt_api(pyexec)
         self.warn_python_compatibility(pyexec)
 
     def python_executable_switched(self, custom):
@@ -410,8 +356,6 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         if not is_text_string(cust_pyexec):
             cust_pyexec = to_text_string(cust_pyexec.toUtf8(), 'utf-8')
         if def_pyexec != cust_pyexec:
-            pyexec = cust_pyexec if custom else def_pyexec
-            self._auto_change_qt_api(pyexec)
             if custom:
                 self.warn_python_compatibility(cust_pyexec)
 
@@ -461,15 +405,10 @@ class ExternalConsole(SpyderPluginWidget):
         self.inspector = None # Object inspector plugin
         self.historylog = None # History log plugin
         self.variableexplorer = None # Variable explorer plugin
-        
+
         self.python_count = 0
         self.terminal_count = 0
 
-        try:
-            from sip import setapi #analysis:ignore
-        except ImportError:
-            self.set_option('pyqt/ignore_sip_setapi_errors', False)
-        
         # Python executable selection (initializing default values as well)
         executable = self.get_option('pythonexecutable',
                                      get_python_executable())
@@ -779,24 +718,20 @@ class ExternalConsole(SpyderPluginWidget):
         if python:
             if self.get_option('pythonexecutable/default'):
                 pythonexecutable = get_python_executable()
+                external_interpreter = False
             else:
                 pythonexecutable = self.get_option('pythonexecutable')
+                external_interpreter = True
             if self.get_option('pythonstartup/default') or ipykernel:
                 pythonstartup = None
             else:
                 pythonstartup = self.get_option('pythonstartup', None)
             monitor_enabled = self.get_option('monitor/enabled')
-            if self.get_option('matplotlib/backend/enabled'):
-                mpl_backend = self.get_option('matplotlib/backend/value')
-            else:
-                mpl_backend = None
+            mpl_backend = self.get_option('matplotlib/backend/value')
             ets_backend = self.get_option('ets_backend')
             qt_api = self.get_option('qt/api')
-            if qt_api not in ('pyqt', 'pyside'):
+            if qt_api not in ('pyqt', 'pyside', 'pyqt5'):
                 qt_api = None
-            pyqt_api = self.get_option('pyqt/api_version')
-            ignore_sip_setapi_errors = self.get_option(
-                                            'pyqt/ignore_sip_setapi_errors')
             merge_output_channels = self.get_option('merge_output_channels')
             colorize_sys_stderr = self.get_option('colorize_sys_stderr')
             umr_enabled = self.get_option('umr/enabled')
@@ -828,12 +763,11 @@ class ExternalConsole(SpyderPluginWidget):
                            arguments=args, stand_alone=sa_settings,
                            pythonstartup=pythonstartup,
                            pythonexecutable=pythonexecutable,
+                           external_interpreter=external_interpreter,
                            umr_enabled=umr_enabled, umr_namelist=umr_namelist,
                            umr_verbose=umr_verbose, ets_backend=ets_backend,
                            monitor_enabled=monitor_enabled,
-                           mpl_backend=mpl_backend,
-                           qt_api=qt_api, pyqt_api=pyqt_api,
-                           ignore_sip_setapi_errors=ignore_sip_setapi_errors,
+                           mpl_backend=mpl_backend, qt_api=qt_api,
                            merge_output_channels=merge_output_channels,
                            colorize_sys_stderr=colorize_sys_stderr,
                            autorefresh_timeout=ar_timeout,
@@ -911,14 +845,13 @@ class ExternalConsole(SpyderPluginWidget):
                             frontend_ver = '<3.0'
                         else:
                             frontend_ver = '>=3.0'
-                        pyexec = self.get_option('pythonexecutable')
                         kernel_and_frontend_match = \
                           programs.is_module_installed('IPython',
-                                                       version=frontend_ver,
-                                                       interpreter=pyexec)
+                                                  version=frontend_ver,
+                                                  interpreter=pythonexecutable)
                     else:
                         kernel_and_frontend_match = True
-                    
+
                     # Create a a kernel tab only if frontend and kernel
                     # versions match
                     if kernel_and_frontend_match:

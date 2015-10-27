@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -15,7 +15,7 @@
 
 #----Builtins*
 from spyderlib.py3compat import builtins
-from spyderlib.widgets.objecteditor import oedit
+from spyderlib.widgets.variableexplorer.objecteditor import oedit
 builtins.oedit = oedit
 
 import os
@@ -35,8 +35,8 @@ from spyderlib.utils.misc import get_error_match
 #TODO: remove the CONF object and make it work anyway
 # In fact, this 'CONF' object has nothing to do in package spyderlib.widgets
 # which should not contain anything directly related to Spyder's main app
-from spyderlib.baseconfig import get_conf_path, _, DEBUG
-from spyderlib.config import CONF
+from spyderlib.config.base import get_conf_path, _, DEBUG
+from spyderlib.config.main import CONF
 from spyderlib.widgets.shell import PythonShellWidget
 from spyderlib.py3compat import to_text_string, getcwd, to_binary_string, u
 import spyderlib.utils.icon_manager as ima
@@ -210,7 +210,7 @@ class InternalShell(PythonShellWidget):
         """Exit interpreter"""
         self.interpreter.exit_flag = True
         if self.multithreaded:
-            self.interpreter.stdin_write.write('\n')
+            self.interpreter.stdin_write.write(to_binary_string('\n'))
         self.interpreter.restore_stds()
         
     def edit_script(self, filename, external_editor):

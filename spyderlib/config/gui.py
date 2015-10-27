@@ -6,7 +6,7 @@
 
 """
 Spyder GUI-related configuration management
-(for non-GUI configuration, see spyderlib/baseconfig.py)
+(for non-GUI configuration, see spyderlib/config/base.py)
 
 Important note regarding shortcuts:
     For compatibility with QWERTZ keyboards, one must avoid using the following
@@ -19,10 +19,10 @@ from collections import namedtuple
 from spyderlib.qt.QtGui import QFont, QFontDatabase, QShortcut, QKeySequence
 from spyderlib.qt.QtCore import Qt
 
-from spyderlib.config import CONF
-from spyderlib.userconfig import NoDefault
-from spyderlib.widgets.sourcecode import syntaxhighlighters as sh
+from spyderlib.config.main import CONF
+from spyderlib.config.user import NoDefault
 from spyderlib.py3compat import to_text_string
+from spyderlib.utils import syntaxhighlighters as sh
 
 
 # To save metadata about widget shortcuts (needed to build our

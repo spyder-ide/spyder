@@ -11,7 +11,7 @@ Rope introspection plugin
 import time
 
 from spyderlib import dependencies
-from spyderlib.baseconfig import get_conf_path, _, STDERR
+from spyderlib.config.base import get_conf_path, _, STDERR
 from spyderlib.utils import encoding, programs
 from spyderlib.py3compat import PY2
 from spyderlib.utils.dochelpers import getsignaturefromtext
@@ -24,7 +24,7 @@ try:
         from spyderlib import rope_patch
         rope_patch.apply()
     except ImportError:
-        # rope 0.9.2/0.9.3 is not installed
+        # rope is not installed
         pass
     import rope.base.libutils
     import rope.contrib.codeassist
@@ -32,7 +32,7 @@ except ImportError:
     pass
 
 
-ROPE_REQVER = '>=0.9.2'
+ROPE_REQVER = '>=0.9.4'
 dependencies.add('rope',
                  _("Editor's code completion, go-to-definition and help"),
                  required_version=ROPE_REQVER)
@@ -229,7 +229,10 @@ class RopePlugin(IntrospectionPlugin):
     def validate(self):
         """Validate the Rope project"""
         if self.project is not None:
-            self.project.validate(self.project.root)
+            try:
+                self.project.validate(self.project.root)
+            except RuntimeError:
+                pass
 
     def set_pref(self, key, value):
         """Set a Rope preference"""
@@ -256,8 +259,6 @@ class RopePlugin(IntrospectionPlugin):
                 log_last_error(LOG_FILENAME,
                                "create_rope_project: %r" % root_path)
         except TypeError:
-            # Compatibility with new Mercurial API (>= 1.3).
-            # New versions of rope (> 0.9.2) already handle this issue
             self.project = None
             if DEBUG_EDITOR:
                 log_last_error(LOG_FILENAME,
@@ -287,10 +288,10 @@ if __name__ == '__main__':
         len(source_code), __file__))
     assert ('numpy', 'module') in completions
 
-    source_code = "import matplotlib.pyplot as plt; plt.imsave"
+    source_code = "import pandas as pd; pd.DataFrame"
     path, line_nr = p.get_definition(CodeInfo('definition', source_code,
         len(source_code), __file__))
-    assert 'pyplot.py' in path
+    assert 'frame.py' in path
 
     code = '''
 def test(a, b):

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2011 Santiago Jaramillo
+# Copyright © 2009- The Spyder Development Team
 # based on pylintgui.py by Pierre Raybaut
 #
 # Licensed under the terms of the MIT License
@@ -11,9 +11,6 @@ Profiler widget
 
 See the official documentation on python profiling:
 http://docs.python.org/library/profile.html
-
-Questions for Pierre and others:
-    - Where in the menu should profiler go?  Run > Profile code ?
 """
 
 from __future__ import with_statement
@@ -37,8 +34,8 @@ import time
 from spyderlib.utils.qthelpers import (create_toolbutton, get_item_user_text,
                                        set_item_user_text)
 from spyderlib.utils.programs import shell_split
-from spyderlib.baseconfig import get_conf_path, get_translation
-from spyderlib.widgets.texteditor import TextEditor
+from spyderlib.config.base import get_conf_path, get_translation
+from spyderlib.widgets.variableexplorer.texteditor import TextEditor
 from spyderlib.widgets.comboboxes import PythonModulesComboBox
 from spyderlib.widgets.externalshell import baseshell
 from spyderlib.py3compat import to_text_string, getcwd
@@ -103,13 +100,13 @@ class ProfilerWidget(QWidget):
 
         self.collapse_button = create_toolbutton(self,
                                                  icon=ima.icon('collapse'),
-                                                 triggered=lambda dD=-1:
-                                                 self.datatree.change_view(dD),
+                                                 triggered=lambda dD:
+                                                 self.datatree.change_view(-1),
                                                  tip=_('Collapse one level up'))
         self.expand_button = create_toolbutton(self,
                                                icon=ima.icon('expand'),
-                                               triggered=lambda dD=1:
-                                               self.datatree.change_view(dD),
+                                               triggered=lambda dD:
+                                               self.datatree.change_view(1),
                                                tip=_('Expand one level down'))
                                 
         self.save_button = create_toolbutton(self, text_beside_icon=True,
@@ -606,7 +603,7 @@ class ProfilerDataTree(QTreeWidget):
         return [self.topLevelItem(_i) for _i in range(self.topLevelItemCount())]
     
     def get_items(self, maxlevel):
-        """Return items (excluding top level items)"""
+        """Return all items with a level <= `maxlevel`"""
         itemlist = []
         def add_to_itemlist(item, maxlevel, level=1):
             level += 1
@@ -617,31 +614,70 @@ class ProfilerDataTree(QTreeWidget):
                     add_to_itemlist(citem, maxlevel, level)
         for tlitem in self.get_top_level_items():
             itemlist.append(tlitem)
-            if maxlevel > 1:
+            if maxlevel > 0:
                 add_to_itemlist(tlitem, maxlevel=maxlevel)
         return itemlist
             
     def change_view(self, change_in_depth):
         """Change the view depth by expand or collapsing all same-level nodes"""
         self.current_view_depth += change_in_depth
-        if self.current_view_depth < 1:
-            self.current_view_depth = 1
+        if self.current_view_depth < 0:
+            self.current_view_depth = 0
         self.collapseAll()
-        for item in self.get_items(maxlevel=self.current_view_depth):
-            item.setExpanded(True)
+        if self.current_view_depth > 0:
+            for item in self.get_items(maxlevel=self.current_view_depth-1):
+                item.setExpanded(True)
     
+
+#==============================================================================
+# Tests
+#==============================================================================
+def primes(n):
+    """
+    Simple test function
+    Taken from http://www.huyng.com/posts/python-performance-analysis/
+    """
+    if n==2:
+        return [2]
+    elif n<2:
+        return []
+    s=list(range(3,n+1,2))
+    mroot = n ** 0.5
+    half=(n+1)//2-1
+    i=0
+    m=3
+    while m <= mroot:
+        if s[i]:
+            j=(m*m-3)//2
+            s[j]=0
+            while j<half:
+                s[j]=0
+                j+=m
+        i=i+1
+        m=2*i+3
+    return [2]+[x for x in s if x]
+
 
 def test():
     """Run widget test"""
+    import inspect
+    import tempfile
     from spyderlib.utils.qthelpers import qapplication
-    app = qapplication()
+
+    primes_sc = inspect.getsource(primes)
+    fd, script = tempfile.mkstemp(suffix='.py')
+    with os.fdopen(fd, 'w') as f:
+        f.write("# -*- coding: utf-8 -*-" + "\n\n")
+        f.write(primes_sc + "\n\n")
+        f.write("primes(100000)")
+    
+    app = qapplication(test_time=5)
     widget = ProfilerWidget(None)
     widget.resize(800, 600)
     widget.show()
-    #widget.analyze(__file__)
-    widget.analyze(osp.join(osp.dirname(__file__), os.pardir, os.pardir,
-                            'spyderlib/widgets', 'texteditor.py'))
+    widget.analyze(script)
     sys.exit(app.exec_())
-    
+
+
 if __name__ == '__main__':
     test()

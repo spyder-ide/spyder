@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2011 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -15,10 +15,9 @@ from __future__ import print_function
 
 from spyderlib.qt import is_pyqt46
 from spyderlib.qt.QtGui import (QVBoxLayout, QMessageBox, QMenu, QFont,
-                                QAction, QApplication, QWidget, QHBoxLayout,
-                                QLabel, QKeySequence, QMainWindow,
-                                QSplitter, QListWidget, QListWidgetItem,
-                                QDialog, QLineEdit)
+                                QAction, QApplication, QWidget,
+                                QKeySequence, QMainWindow, QSplitter,
+                                QHBoxLayout)
 from spyderlib.qt.QtCore import (Signal, Qt, QFileInfo, QThread, QObject,
                                  QByteArray, QSize, QPoint, QTimer, Slot)
 from spyderlib.qt.compat import getsavefilename
@@ -31,139 +30,26 @@ import os.path as osp
 # Local imports
 from spyderlib.utils import encoding, sourcecode, codeanalysis
 from spyderlib.utils import introspection
-from spyderlib.baseconfig import _, DEBUG, STDOUT, STDERR
-from spyderlib.config import EDIT_FILTERS, EDIT_EXT, get_filter, EDIT_FILETYPES
-from spyderlib.guiconfig import create_shortcut, new_shortcut
+from spyderlib.config.base import _, DEBUG, STDOUT, STDERR
+from spyderlib.config.main import EDIT_FILTERS, EDIT_EXT, get_filter, EDIT_FILETYPES
+from spyderlib.config.gui import create_shortcut, new_shortcut
 from spyderlib.utils.qthelpers import (create_action, add_actions,
                                        mimedata2url, get_filetype_icon,
                                        create_toolbutton)
+from spyderlib.utils import syntaxhighlighters
 from spyderlib.widgets.tabs import BaseTabs
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.editortools import OutlineExplorerWidget
 from spyderlib.widgets.status import (ReadWriteStatus, EOLStatus,
                                       EncodingStatus, CursorPositionStatus)
-from spyderlib.widgets.sourcecode import syntaxhighlighters, codeeditor
+from spyderlib.widgets.sourcecode import codeeditor
 from spyderlib.widgets.sourcecode.base import TextEditBaseWidget  #analysis:ignore
 from spyderlib.widgets.sourcecode.codeeditor import Printer  #analysis:ignore
 from spyderlib.widgets.sourcecode.codeeditor import get_file_language
+from spyderlib.widgets.fileswitcher import FileSwitcher
 from spyderlib.py3compat import to_text_string, qbytearray_to_str, u
 
-
 DEBUG_EDITOR = DEBUG >= 3
-
-
-class FileListDialog(QDialog):
-    close_file = Signal(int)
-    edit_file = Signal(int)
-
-    def __init__(self, parent, tabs, fullpath_sorting):
-        QDialog.__init__(self, parent)
-
-        # Destroying the C++ object right after closing the dialog box,
-        # otherwise it may be garbage-collected in another QThread
-        # (e.g. the editor's analysis thread in Spyder), thus leading to
-        # a segmentation fault on UNIX or an application crash on Windows
-        self.setAttribute(Qt.WA_DeleteOnClose)
-
-        self.indexes = None
-
-        self.setWindowIcon(ima.icon('filelist'))
-        self.setWindowTitle(_("File list management"))
-
-        self.setModal(True)
-
-        flabel = QLabel(_("Filter:"))
-        self.edit = QLineEdit(self)
-        self.edit.returnPressed.connect(self.edit_file)
-        self.edit.textChanged.connect(lambda text: self.synchronize(0))
-        fhint = QLabel(_("(press <b>Enter</b> to edit file)"))
-        edit_layout = QHBoxLayout()
-        edit_layout.addWidget(flabel)
-        edit_layout.addWidget(self.edit)
-        edit_layout.addWidget(fhint)
-
-        self.listwidget = QListWidget(self)
-        self.listwidget.setResizeMode(QListWidget.Adjust)
-        self.listwidget.itemSelectionChanged.connect(self.item_selection_changed)
-        self.listwidget.itemActivated.connect(self.edit_file)
-
-        btn_layout = QHBoxLayout()
-        edit_btn = create_toolbutton(self, icon=ima.icon('edit'),
-                     text=_("&Edit file"), autoraise=False,
-                     triggered=self.edit_file, text_beside_icon=True)
-        edit_btn.setMinimumHeight(28)
-        btn_layout.addWidget(edit_btn)
-
-        btn_layout.addStretch()
-        btn_layout.addSpacing(150)
-        btn_layout.addStretch()
-
-        close_btn = create_toolbutton(self, text=_("&Close file"),
-              icon=ima.icon('fileclose'),
-              autoraise=False, text_beside_icon=True,
-              triggered=lambda: self.close_file.emit(
-                                  self.indexes[self.listwidget.currentRow()]))
-        close_btn.setMinimumHeight(28)
-        btn_layout.addWidget(close_btn)
-
-        hint = QLabel(_("Hint: press <b>Alt</b> to show accelerators"))
-        hint.setAlignment(Qt.AlignCenter)
-
-        vlayout = QVBoxLayout()
-        vlayout.addLayout(edit_layout)
-        vlayout.addWidget(self.listwidget)
-        vlayout.addLayout(btn_layout)
-        vlayout.addWidget(hint)
-        self.setLayout(vlayout)
-
-        self.tabs = tabs
-        self.fullpath_sorting = fullpath_sorting
-        self.buttons = (edit_btn, close_btn)
-
-    @Slot()
-    def edit_file(self):
-        row = self.listwidget.currentRow()
-        if self.listwidget.count() > 0 and row >= 0:
-            self.edit_file.emit(self.indexes[row])
-            self.accept()
-
-    def item_selection_changed(self):
-        for btn in self.buttons:
-            btn.setEnabled(self.listwidget.currentRow() >= 0)
-
-    def synchronize(self, stack_index):
-        count = self.tabs.count()
-        if count == 0:
-            self.accept()
-            return
-        self.listwidget.setTextElideMode(Qt.ElideMiddle
-                                         if self.fullpath_sorting
-                                         else Qt.ElideRight)
-        current_row = self.listwidget.currentRow()
-        if current_row >= 0:
-            current_text = to_text_string(self.listwidget.currentItem().text())
-        else:
-            current_text = ""
-        self.listwidget.clear()
-        self.indexes = []
-        new_current_index = stack_index
-        filter_text = to_text_string(self.edit.text())
-        lw_index = 0
-        for index in range(count):
-            text = to_text_string(self.tabs.tabText(index))
-            if len(filter_text) == 0 or filter_text in text:
-                if text == current_text:
-                    new_current_index = lw_index
-                lw_index += 1
-                item = QListWidgetItem(self.tabs.tabIcon(index),
-                                       text, self.listwidget)
-                item.setSizeHint(QSize(0, 25))
-                self.listwidget.addItem(item)
-                self.indexes.append(index)
-        if new_current_index < self.listwidget.count():
-            self.listwidget.setCurrentRow(new_current_index)
-        for btn in self.buttons:
-            btn.setEnabled(lw_index > 0)
 
 
 class AnalysisThread(QThread):
@@ -282,6 +168,7 @@ class FileInfo(QObject):
         self.threadmanager = threadmanager
         self.filename = filename
         self.newly_created = new
+        self.default = False      # Default untitled file
         self.encoding = encoding
         self.editor = editor
         self.path = []
@@ -299,6 +186,7 @@ class FileInfo(QObject):
 
     def text_changed(self):
         """Editor's text has changed"""
+        self.default = False
         self.text_changed_at.emit(self.filename,
                                   self.editor.get_position('cursor'))
 
@@ -437,7 +325,7 @@ class EditorStack(QWidget):
         self.setLayout(layout)
 
         self.menu = None
-        self.filelist_dlg = None
+        self.fileswitcher_dlg = None
 #        self.filelist_btn = None
 #        self.previous_btn = None
 #        self.next_btn = None
@@ -450,21 +338,23 @@ class EditorStack(QWidget):
         self.find_widget = None
 
         self.data = []
-
-        filelist_action = create_action(self, _("File list management"),
-                                 icon=ima.icon('filelist'),
-                                 triggered=self.open_filelistdialog)
-        copy_to_cb_action = create_action(self, _('Copy path to clipboard'),
+        fileswitcher_action = create_action(self, _("File switcher..."),
+                icon=ima.icon('filelist'),
+                triggered=self.open_fileswitcher_dlg)
+        copy_to_cb_action = create_action(self, _("Copy path to clipboard"),
                 icon=ima.icon('editcopy'),
                 triggered=lambda:
                 QApplication.clipboard().setText(self.get_current_filename()))
+
         close_right = create_action(self, _("Close all to the right"), 
                     icon=ima.icon('filelist'),
                     triggered=self.close_all_right)
         close_all_but_this = create_action(self, _("Close all but this"), 
                     icon=ima.icon('filelist'),
                     triggered=self.close_all_but_this)
-        self.menu_actions = actions+[None, filelist_action, copy_to_cb_action, None, close_right, close_all_but_this]
+
+        self.menu_actions = actions + [None, fileswitcher_action,
+                                       copy_to_cb_action, None, close_right, close_all_but_this]
         self.outlineexplorer = None
         self.inspector = None
         self.unregister_callback = None
@@ -503,6 +393,7 @@ class EditorStack(QWidget):
         self.highlight_current_line_enabled = False
         self.highlight_current_cell_enabled = False
         self.occurence_highlighting_enabled = True
+        self.occurence_highlighting_timeout=1500
         self.checkeolchars_enabled = True
         self.always_remove_trailing_spaces = False
         self.fullpath_sorting_enabled = None
@@ -547,8 +438,6 @@ class EditorStack(QWidget):
                                       parent=self)
         gotoline = create_shortcut(self.go_to_line, context='Editor',
                                    name='Go to line', parent=self)
-        filelist = create_shortcut(self.open_filelistdialog, context='Editor',
-                                   name='File list management', parent=self)
         tab = create_shortcut(self.go_to_previous_file, context='Editor',
                               name='Go to previous file', parent=self)
         tabshift = create_shortcut(self.go_to_next_file, context='Editor',
@@ -563,7 +452,7 @@ class EditorStack(QWidget):
         new_shortcut("Ctrl+F4", self, self.close_file)
 
         # Return configurable ones
-        return [inspect, breakpoint, cbreakpoint, gotoline, filelist, tab,
+        return [inspect, breakpoint, cbreakpoint, gotoline, tab,
                 tabshift]
 
     def get_shortcut_data(self):
@@ -587,7 +476,7 @@ class EditorStack(QWidget):
 #        self.filelist_btn = create_toolbutton(self,
 #                             icon=ima.icon('filelist'),
 #                             tip=_("File list management"),
-#                             triggered=self.open_filelistdialog)
+#                             triggered=self.open_fileswitcher_dlg)
 #
 #        self.previous_btn = create_toolbutton(self,
 #                             icon=ima.icon('previous'),
@@ -655,20 +544,19 @@ class EditorStack(QWidget):
         self.set_stack_index(other.get_stack_index())
 
     @Slot()
-    def open_filelistdialog(self):
+    def open_fileswitcher_dlg(self):
         """Open file list management dialog box"""
-        self.filelist_dlg = dlg = FileListDialog(self, self.tabs,
-                                                 self.fullpath_sorting_enabled)
-        dlg.edit_file.connect(self.set_stack_index)
-        dlg.close_file.connect(self.close_file)
-        dlg.synchronize(self.get_stack_index())
-        dlg.exec_()
-        self.filelist_dlg = None
+        if not self.tabs.count():
+            return
+        self.fileswitcher_dlg = FileSwitcher(self, self.tabs, self.data)
+        self.fileswitcher_dlg.sig_goto_file.connect(self.set_stack_index)
+        self.fileswitcher_dlg.sig_close_file.connect(self.close_file)
+        self.fileswitcher_dlg.show()
 
-    def update_filelistdialog(self):
+    def update_fileswitcher_dlg(self):
         """Synchronize file list dialog box with editor widget tabs"""
-        if self.filelist_dlg is not None:
-            self.filelist_dlg.synchronize(self.get_stack_index())
+        if self.fileswitcher_dlg:
+            self.fileswitcher_dlg.setup()
 
     def go_to_line(self):
         """Go to line dialog"""
@@ -1002,7 +890,7 @@ class EditorStack(QWidget):
         self.data.pop(index)
         self.tabs.blockSignals(False)
         self.update_actions()
-        self.update_filelistdialog()
+        self.update_fileswitcher_dlg()
 
     def __modified_readonly_title(self, title, is_modified, is_readonly):
         if is_modified is not None and is_modified:
@@ -1056,7 +944,7 @@ class EditorStack(QWidget):
             self.set_stack_index(index)
             self.current_changed(index)
         self.update_actions()
-        self.update_filelistdialog()
+        self.update_fileswitcher_dlg()
 
     def __repopulate_stack(self):
         self.tabs.blockSignals(True)
@@ -1072,7 +960,7 @@ class EditorStack(QWidget):
             index = self.tabs.addTab(finfo.editor, icon, tab_text)
             self.tabs.setTabToolTip(index, tab_tip)
         self.tabs.blockSignals(False)
-        self.update_filelistdialog()
+        self.update_fileswitcher_dlg()
 
     def rename_in_data(self, index, new_filename):
         finfo = self.data[index]
@@ -1099,7 +987,7 @@ class EditorStack(QWidget):
     def set_stack_title(self, index, is_modified):
         finfo = self.data[index]
         fname = finfo.filename
-        is_modified = is_modified or finfo.newly_created
+        is_modified = (is_modified or finfo.newly_created) and not finfo.default
         is_readonly = finfo.editor.isReadOnly()
         tab_text = self.get_tab_text(fname, is_modified, is_readonly)
         tab_tip = self.get_tab_tip(fname, is_modified, is_readonly)
@@ -1189,18 +1077,21 @@ class EditorStack(QWidget):
         that is being closed)"""
         current_index = self.get_stack_index()
         count = self.get_stack_count()
+
         if index is None:
             if count > 0:
                 index = current_index
             else:
                 self.find_widget.set_editor(None)
                 return
+
         new_index = None
         if count > 1:
             if current_index == index:
                 new_index = self._get_previous_file_index()
             else:
                 new_index = current_index
+
         is_ok = force or self.save_if_changed(cancelable=True, index=index)
         if is_ok:
             finfo = self.data[index]
@@ -1221,11 +1112,13 @@ class EditorStack(QWidget):
                 # editortabwidget is empty: removing it
                 # (if it's not the first editortabwidget)
                 self.close()
+
             self.opened_files_list_changed.emit()
             self.update_code_analysis_actions.emit()
             self._refresh_outlineexplorer()
             self.refresh_file_dependent_actions.emit()
             self.update_plugin_title.emit()
+
             editor = self.get_current_editor()
             if editor:
                 editor.setFocus()
@@ -1234,8 +1127,11 @@ class EditorStack(QWidget):
                 if index < new_index:
                     new_index -= 1
                 self.set_stack_index(new_index)
+
         if self.get_stack_count() == 0:
             self.sig_new_file[()].emit()
+            return False
+
         return is_ok
 
     def close_all_files(self):
@@ -1818,7 +1714,7 @@ class EditorStack(QWidget):
             editor = self.get_current_editor()
             editor.setFocus()
 
-    def new(self, filename, encoding, text):
+    def new(self, filename, encoding, text, default_content=False):
         """
         Create new filename with *encoding* and *text*
         """
@@ -1826,6 +1722,9 @@ class EditorStack(QWidget):
                                        set_current=False, new=True)
         finfo.editor.set_cursor_position('eof')
         finfo.editor.insert_text(os.linesep)
+        if default_content:
+            finfo.default = True
+            finfo.editor.document().setModified(False)
         return finfo
 
     def load(self, filename, set_current=True):
@@ -2081,7 +1980,8 @@ class EditorSplitter(QSplitter):
             editorstack.set_current_filename(cfname)
         hexstate = settings.get('hexstate')
         if hexstate is not None:
-            self.restoreState( QByteArray().fromHex(str(hexstate)) )
+            self.restoreState( QByteArray().fromHex(
+                    str(hexstate).encode('utf-8')) )
         sizes = settings.get('sizes')
         if sizes is not None:
             self.setSizes(sizes)
@@ -2261,7 +2161,8 @@ class EditorMainWindow(QMainWindow):
             self.move( QPoint(*pos) )
         hexstate = settings.get('hexstate')
         if hexstate is not None:
-            self.restoreState( QByteArray().fromHex(str(hexstate)) )
+            self.restoreState( QByteArray().fromHex(
+                    str(hexstate).encode('utf-8')) )
         if settings.get('is_maximized'):
             self.setWindowState(Qt.WindowMaximized)
         if settings.get('is_fullscreen'):
@@ -2421,6 +2322,7 @@ class EditorPluginExample(QSplitter):
         """Fake!"""
         pass
 
+
 def test():
     from spyderlib.utils.qthelpers import qapplication
     app = qapplication()
@@ -2430,12 +2332,13 @@ def test():
     import time
     t0 = time.time()
     test.load(__file__)
-    test.load("explorer.py")
-    test.load("dicteditor.py")
-    test.load("sourcecode/codeeditor.py")
-    test.load("../spyder.py")
+    cur_dir = osp.dirname(osp.abspath(__file__))
+    test.load(osp.join(cur_dir, "explorer.py"))
+    test.load(osp.join(cur_dir, "variableexplorer", "collectionseditor.py"))
+    test.load(osp.join(cur_dir, "sourcecode", "codeeditor.py"))
     print("Elapsed time: %.3f s" % (time.time()-t0))
     sys.exit(app.exec_())
+
 
 if __name__ == "__main__":
     test()

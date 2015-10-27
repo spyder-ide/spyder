@@ -6,13 +6,12 @@
 # (see spyderlib/__init__.py for details)
 
 import json
-
+import ssl
 
 from spyderlib import __version__
-from spyderlib.baseconfig import _
+from spyderlib.config.base import _
 from spyderlib.py3compat import PY3
-from spyderlib.qt.QtGui import QMessageBox, QCheckBox, QSpacerItem, QVBoxLayout
-from spyderlib.qt.QtCore import Signal, Qt, QObject
+from spyderlib.qt.QtCore import Signal, QObject
 from spyderlib.utils.programs import check_version, is_stable_version
 
 
@@ -21,48 +20,6 @@ if PY3:
     from urllib.error import URLError, HTTPError
 else:
     from urllib2 import urlopen, URLError, HTTPError
-
-
-class MessageCheckBox(QMessageBox):
-    """
-    A QMessageBox derived widget that includes a QCheckBox aligned to the right
-    under the message and on top of the buttons.
-    """
-    def __init__(self, *args, **kwargs):
-        super(MessageCheckBox, self).__init__(*args, **kwargs)
-
-        self._checkbox = QCheckBox()
-
-        # Set layout to include checkbox
-        size = 9
-        check_layout = QVBoxLayout()
-        check_layout.addItem(QSpacerItem(size, size))
-        check_layout.addWidget(self._checkbox, 0, Qt.AlignRight)
-        check_layout.addItem(QSpacerItem(size, size))
-
-        # Access the Layout of the MessageBox to add the Checkbox
-        layout = self.layout()
-        layout.addLayout(check_layout, 1, 1)
-
-    # --- Public API
-    # Methods to access the checkbox
-    def is_checked(self):
-        return self._checkbox.isChecked()
-
-    def set_checked(self, value):
-        return self._checkbox.setChecked(value)
-
-    def set_check_visible(self, value):
-        self._checkbox.setVisible(value)
-
-    def is_check_visible(self):
-        self._checkbox.isVisible()
-
-    def checkbox_text(self):
-        self._checkbox.text()
-
-    def set_checkbox_text(self, text):
-        self._checkbox.setText(text)
 
 
 class WorkerUpdates(QObject):
@@ -103,8 +60,15 @@ class WorkerUpdates(QObject):
         self.latest_release = __version__
 
         error_msg = None
+
         try:
-            page = urlopen(self.url)
+            if hasattr(ssl, '_create_unverified_context'):
+                # Fix for issue # 2685 [Works only with Python >=2.7.9]
+                # More info: https://www.python.org/dev/peps/pep-0476/#opting-out
+                context = ssl._create_unverified_context()
+                page = urlopen(self.url, context=context)
+            else:
+                page = urlopen(self.url)
             try:
                 data = page.read()
 
@@ -130,19 +94,3 @@ class WorkerUpdates(QObject):
 
         self.error = error_msg
         self.sig_ready.emit()
-
-
-def test_msgcheckbox():
-    from spyderlib.utils.qthelpers import qapplication
-    app = qapplication()
-    box = MessageCheckBox()
-    box.setWindowTitle(_("Spyder updates"))
-    box.setText("Testing checkbox")
-    box.set_checkbox_text("Check for updates on startup?")
-    box.setStandardButtons(QMessageBox.Ok)
-    box.setDefaultButton(QMessageBox.Ok)
-    box.setIcon(QMessageBox.Information)
-    box.exec_()
-
-if __name__ == '__main__':
-    test_msgcheckbox()

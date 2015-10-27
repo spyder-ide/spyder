@@ -1,22 +1,23 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
 """Simple web browser widget"""
 
-from spyderlib.qt.QtGui import (QHBoxLayout, QWidget, QVBoxLayout,
-                                QProgressBar, QLabel, QMenu)
-from spyderlib.qt.QtWebKit import QWebView, QWebPage, QWebSettings
-from spyderlib.qt.QtCore import QUrl, Slot
-import spyderlib.utils.icon_manager as ima
 import sys
 
+from spyderlib.qt.QtCore import QUrl, Slot, Signal
+from spyderlib.qt.QtGui import (QHBoxLayout, QWidget, QVBoxLayout,
+                                QProgressBar, QLabel, QMenu, QFrame)
+from spyderlib.qt.QtWebKit import QWebView, QWebPage, QWebSettings
+
 # Local imports
+from spyderlib.config.base import DEV, _
 from spyderlib.utils.qthelpers import (create_action, add_actions,
                                        create_toolbutton, action2button)
-from spyderlib.baseconfig import DEV, _
+from spyderlib.utils import icon_manager as ima
 from spyderlib.widgets.comboboxes import UrlComboBox
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.py3compat import to_text_string, is_text_string
@@ -239,15 +240,52 @@ class WebBrowser(QWidget):
             self.find_widget.hide()
 
 
-def main():
+class FrameWebView(QFrame):
+    """
+    Framed QWebView for UI consistency in Spyder.
+    """
+    linkClicked = Signal(QUrl)
+
+    def __init__(self, parent):
+        QFrame.__init__(self, parent)
+
+        self._webview = WebView(self)
+
+        layout = QHBoxLayout()
+        layout.addWidget(self._webview)
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(layout)
+
+        self.setFrameStyle(QFrame.StyledPanel | QFrame.Sunken)
+
+        self._webview.linkClicked.connect(self.linkClicked)
+
+    def set_font(self, font, fixed_font=None):
+        self._webview.set_font(font, fixed_font=fixed_font)
+
+    def setHtml(self, html_text, base_url):
+        self._webview.setHtml(html_text, base_url)
+
+    def url(self):
+        return self._webview.url()
+
+    def load(self, url):
+        self._webview.load(url)
+
+    def page(self):
+        return self._webview.page()
+
+
+def test():
     """Run web browser"""
     from spyderlib.utils.qthelpers import qapplication
-    app = qapplication()
+    app = qapplication(test_time=8)
     widget = WebBrowser()
     widget.show()
-    widget.set_home_url('http://localhost:7464/')
+    widget.set_home_url('http://www.google.com/')
     widget.go_home()
     sys.exit(app.exec_())
 
+
 if __name__ == '__main__':
-    main()
+    test()

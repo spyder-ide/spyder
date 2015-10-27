@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2015-06-21 23:28+COT\n"
+"POT-Creation-Date: 2015-10-18 15:21+Paris, Madrid (heure d’été)\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -15,35 +15,35 @@ msgstr ""
 "Generated-By: pygettext.py 1.5\n"
 
 
-#: spyderplugins/p_breakpoints.py:41
+#: spyderplugins/p_breakpoints.py:40
 msgid "Breakpoints"
 msgstr ""
 
-#: spyderplugins/p_breakpoints.py:80
+#: spyderplugins/p_breakpoints.py:74
 msgid "List breakpoints"
 msgstr ""
 
-#: spyderplugins/widgets/breakpointsgui.py:85
+#: spyderplugins/widgets/breakpointsgui.py:87
 msgid "Condition"
 msgstr ""
 
-#: spyderplugins/widgets/breakpointsgui.py:85
+#: spyderplugins/widgets/breakpointsgui.py:87
 msgid "File"
 msgstr ""
 
-#: spyderplugins/widgets/breakpointsgui.py:85
+#: spyderplugins/widgets/breakpointsgui.py:87
 msgid "Line"
 msgstr ""
 
-#: spyderplugins/widgets/breakpointsgui.py:158
+#: spyderplugins/widgets/breakpointsgui.py:170
 msgid "Clear breakpoints in all files"
 msgstr ""
 
-#: spyderplugins/widgets/breakpointsgui.py:165
+#: spyderplugins/widgets/breakpointsgui.py:177
 msgid "Clear this breakpoint"
 msgstr ""
 
-#: spyderplugins/widgets/breakpointsgui.py:172
+#: spyderplugins/widgets/breakpointsgui.py:183
 msgid "Edit this breakpoint"
 msgstr ""
 

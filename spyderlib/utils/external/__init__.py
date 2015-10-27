@@ -19,7 +19,7 @@ import os
 if os.name == 'nt':
     import os.path as osp
     import sys
-    from spyderlib.baseconfig import get_module_source_path
+    from spyderlib.config.base import get_module_source_path
 
     dirname = get_module_source_path(__name__)
     if osp.isdir(osp.join(dirname, 'rope')):

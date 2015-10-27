@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -29,11 +29,11 @@ except ImportError:
     pd = None
 
 # Local import
-from spyderlib.baseconfig import _
+from spyderlib.config.base import _
 from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import add_actions, create_action
-from spyderlib.py3compat import (TEXT_TYPES, INT_TYPES, to_text_string, u,
-                                 zip_longest, io)
+from spyderlib.py3compat import (TEXT_TYPES, INT_TYPES, to_text_string, io,
+                                 zip_longest)
 
 
 def try_to_parse(value):
@@ -230,13 +230,13 @@ class ContentsWidget(QWidget):
     def get_col_sep(self):
         """Return the column separator"""
         if self.tab_btn.isChecked():
-            return u("\t")
+            return u"\t"
         return to_text_string(self.line_edt.text())
 
     def get_row_sep(self):
         """Return the row separator"""
         if self.eol_btn.isChecked():
-            return u("\n")
+            return u"\n"
         return to_text_string(self.line_edt_row.text())
 
     def get_skiprows(self):
@@ -365,7 +365,7 @@ class PreviewTable(QTableView):
         add_actions( self.opt_menu, (self.str_action, self.int_action,
                                      self.float_action))
 
-    def _shape_text(self, text, colsep=u("\t"), rowsep=u("\n"),
+    def _shape_text(self, text, colsep=u"\t", rowsep=u"\n",
                     transpose=False, skiprows=0, comments='#'):
         """Decode the shape of the given text"""
         assert colsep != rowsep
@@ -396,7 +396,7 @@ class PreviewTable(QTableView):
             return None
         return self._model.get_data()
 
-    def process_data(self, text, colsep=u("\t"), rowsep=u("\n"),
+    def process_data(self, text, colsep=u"\t", rowsep=u"\n",
                      transpose=False, skiprows=0, comments='#'):
         """Put data into table model"""
         data = self._shape_text(text, colsep, rowsep, transpose, skiprows,
@@ -456,7 +456,7 @@ class PreviewWidget(QWidget):
         vert_layout.addWidget(self._table_view)
         self.setLayout(vert_layout)
 
-    def open_data(self, text, colsep=u("\t"), rowsep=u("\n"),
+    def open_data(self, text, colsep=u"\t", rowsep=u"\n",
                   transpose=False, skiprows=0, comments='#'):
         """Open clipboard text as table"""
         if pd:
@@ -636,4 +636,4 @@ def test(text):
         print(dialog.get_data())
 
 if __name__ == "__main__":
-    test(u("17/11/1976\t1.34\n14/05/09\t3.14"))
+    test(u"17/11/1976\t1.34\n14/05/09\t3.14")

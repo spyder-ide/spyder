@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -16,13 +16,14 @@ import re
 import keyword
 
 from spyderlib.qt.QtGui import (QColor, QApplication, QFont,
-                                QSyntaxHighlighter, QCursor, QTextCharFormat)
+                                QSyntaxHighlighter, QCursor, QTextCharFormat,
+                                QTextOption)
 from spyderlib.qt.QtCore import Qt
 
 # Local imports
 from spyderlib import dependencies
-from spyderlib.baseconfig import _
-from spyderlib.config import CONF
+from spyderlib.config.base import _
+from spyderlib.config.main import CONF
 from spyderlib.py3compat import builtins, is_text_string, to_text_string
 from spyderlib.utils.sourcecode import CELL_LANGUAGES
 
@@ -84,8 +85,12 @@ class BaseSH(QSyntaxHighlighter):
     """Base Syntax Highlighter Class"""
     # Syntax highlighting rules:
     PROG = None
+    BLANKPROG = re.compile("\s+")
     # Syntax highlighting states (from one text block to another):
     NORMAL = 0
+    # Syntax highlighting parameters.
+    BLANK_ALPHA_FACTOR = 0.31
+    
     def __init__(self, parent, font=None, color_scheme='Spyder'):
         QSyntaxHighlighter.__init__(self, parent)
         
@@ -190,7 +195,37 @@ class BaseSH(QSyntaxHighlighter):
 
     def highlightBlock(self, text):
         raise NotImplementedError
-            
+
+    def highlight_spaces(self, text, offset=0):
+        """
+        Make blank space less apparent by setting the foreground alpha.
+        This only has an effect when 'Show blank space' is turned on.
+        Derived classes could call this function at the end of
+        highlightBlock().
+        """
+        flags_text = self.document().defaultTextOption().flags()
+        show_blanks =  flags_text & QTextOption.ShowTabsAndSpaces
+        if show_blanks:
+            format_leading = self.formats.get("leading", None)
+            format_trailing = self.formats.get("trailing", None)
+            match = self.BLANKPROG.search(text, offset)
+            while match:
+                start, end = match.span()
+                start = max([0, start+offset])
+                end = max([0, end+offset])
+                # Format trailing spaces at the end of the line. 
+                if end == len(text) and format_trailing is not None:
+                    self.setFormat(start, end, format_trailing)
+                # Format leading spaces, e.g. indentation.
+                if start == 0 and format_leading is not None:
+                    self.setFormat(start, end, format_leading)
+                format = self.format(start)
+                color_foreground = format.foreground().color()
+                alpha_new = self.BLANK_ALPHA_FACTOR * color_foreground.alphaF()
+                color_foreground.setAlphaF(alpha_new)
+                self.setFormat(start, end-start, color_foreground)
+                match = self.BLANKPROG.search(text, match.end())
+    
     def get_outlineexplorer_data(self):
         return self.outlineexplorer_data
 
@@ -202,9 +237,9 @@ class BaseSH(QSyntaxHighlighter):
 
 
 class TextSH(BaseSH):
-    """Simple Text Syntax Highlighter Class (do nothing)"""
+    """Simple Text Syntax Highlighter Class (only highlight spaces)"""
     def highlightBlock(self, text):
-        pass
+        self.highlight_spaces(text)
 
 
 class GenericSH(BaseSH):
@@ -225,6 +260,8 @@ class GenericSH(BaseSH):
                     self.setFormat(start, end-start, self.formats[key])
                     
             match = self.PROG.search(text, match.end())
+        
+        self.highlight_spaces(text)
 
 
 #==============================================================================
@@ -267,6 +304,9 @@ def make_python_patterns(additional_keywords=[], additional_builtins=[]):
 
 class OutlineExplorerData(object):
     CLASS, FUNCTION, STATEMENT, COMMENT, CELL = list(range(5))
+    FUNCTION_TOKEN = 'def'
+    CLASS_TOKEN = 'class'
+
     def __init__(self):
         self.text = None
         self.fold_level = None
@@ -275,6 +315,9 @@ class OutlineExplorerData(object):
         
     def is_not_class_nor_function(self):
         return self.def_type not in (self.CLASS, self.FUNCTION)
+
+    def is_class_or_function(self):
+        return self.def_type in (self.CLASS, self.FUNCTION)
     
     def is_comment(self):
         return self.def_type in (self.COMMENT, self.CELL)
@@ -286,7 +329,16 @@ class OutlineExplorerData(object):
     def get_function_name(self):
         if self.def_type == self.FUNCTION:
             return self.def_name
-    
+
+    def get_token(self):
+        if self.def_type == self.FUNCTION:
+            token = self.FUNCTION_TOKEN
+        elif self.def_type == self.CLASS:
+            token = self.CLASS_TOKEN
+
+        return token
+
+
 class PythonSH(BaseSH):
     """Python Syntax Highlighter"""
     # Syntax highlighting rules:
@@ -384,6 +436,7 @@ class PythonSH(BaseSH):
                                     oedata.def_type = self.DEF_TYPES[
                                                         to_text_string(value)]
                                     oedata.def_name = text[start1:end1]
+                                    oedata.color = self.formats["definition"]
                             elif value in ("elif", "else", "except", "finally",
                                            "for", "if", "try", "while",
                                            "with"):
@@ -413,8 +466,13 @@ class PythonSH(BaseSH):
                                                    self.formats["keyword"])
                     
             match = self.PROG.search(text, match.end())
- 
+        
         self.setCurrentBlockState(state)
+        
+        # Use normal format for indentation and trailing spaces.
+        self.formats['leading'] = self.formats['normal']
+        self.formats['trailing'] = self.formats['normal']
+        self.highlight_spaces(text, offset)
         
         if oedata is not None:
             block_nb = self.currentBlock().blockNumber()
@@ -536,7 +594,9 @@ class CppSH(BaseSH):
                         self.setFormat(start, end-start, self.formats[key])
                     
             match = self.PROG.search(text, match.end())
-
+        
+        self.highlight_spaces(text)
+        
         last_state = self.INSIDE_COMMENT if inside_comment else self.NORMAL
         self.setCurrentBlockState(last_state)
 
@@ -611,6 +671,8 @@ class FortranSH(BaseSH):
                                            self.formats["definition"])
                     
             match = self.PROG.search(text, match.end())
+        
+        self.highlight_spaces(text)
 
 class Fortran77SH(FortranSH):
     """Fortran 77 Syntax Highlighter"""
@@ -618,6 +680,7 @@ class Fortran77SH(FortranSH):
         text = to_text_string(text)
         if text.startswith(("c", "C")):
             self.setFormat(0, len(text), self.formats["comment"])
+            self.highlight_spaces(text)
         else:
             FortranSH.highlightBlock(self, text)
             self.setFormat(0, 5, self.formats["comment"])
@@ -673,7 +736,8 @@ class DiffSH(BaseSH):
             self.setFormat(0, len(text), self.formats["number"])
         elif text.startswith("@"):
             self.setFormat(0, len(text), self.formats["builtin"])
-
+        
+        self.highlight_spaces(text)
 
 #==============================================================================
 # NSIS highlighter
@@ -803,6 +867,8 @@ class BaseWebSH(BaseSH):
             
             match = self.PROG.search(text, match.end())
             match_count += 1
+        
+        self.highlight_spaces(text)
 
 def make_html_patterns():
     """Strongly inspired from idlelib.ColorDelegator.make_pat """
@@ -885,7 +951,8 @@ class PygmentsSH(BaseSH):
             start = ct
             ct += len(val)        
             self.setFormat(start, ct-start, self.formats[key])
-
+        
+        self.highlight_spaces(text)
 
 def guess_pygments_highlighter(filename):
     """Factory to generate syntax highlighter for the given filename.

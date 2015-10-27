@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -24,15 +24,15 @@ import os.path as osp
 
 
 # Local imports
-from spyderlib.baseconfig import _, debug_print
-from spyderlib.config import CONF
+from spyderlib.config.base import _, debug_print
+from spyderlib.config.main import CONF
 from spyderlib.utils.misc import get_error_match, remove_backslashes
 from spyderlib.utils.qthelpers import (create_action, add_actions,
                                        mimedata2url, DialogManager)
 from spyderlib.utils.environ import EnvDialog
 from spyderlib.widgets.internalshell import InternalShell
 from spyderlib.widgets.findreplace import FindReplace
-from spyderlib.widgets.dicteditor import DictEditor
+from spyderlib.widgets.variableexplorer.collectionseditor import CollectionsEditor
 from spyderlib.plugins import SpyderPluginWidget
 from spyderlib.py3compat import to_text_string, getcwd
 
@@ -217,7 +217,7 @@ class Console(SpyderPluginWidget):
     @Slot()
     def show_syspath(self):
         """Show sys.path"""
-        editor = DictEditor()
+        editor = CollectionsEditor()
         editor.setup(sys.path, title="sys.path", readonly=True,
                      width=600, icon=ima.icon('syspath'))
         self.dialog_manager.show(editor)

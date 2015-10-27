@@ -22,7 +22,7 @@ from spyderlib.qt.QtGui import (QTextCursor, QTextDocument, QApplication,
 from spyderlib.qt.QtCore import Qt, QPoint, QRegExp
 
 # Local imports
-from spyderlib.baseconfig import _
+from spyderlib.config.base import _
 from spyderlib.utils import encoding, sourcecode
 from spyderlib.utils.misc import get_error_match
 from spyderlib.utils.dochelpers import (getobj, getargspecfromtext,

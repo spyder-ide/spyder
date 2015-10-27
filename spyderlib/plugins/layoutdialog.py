@@ -8,7 +8,7 @@
 
 import sys
 
-from spyderlib.baseconfig import _
+from spyderlib.config.base import _
 
 from spyderlib.qt.QtGui import (QVBoxLayout, QHBoxLayout, QDialogButtonBox,
                                 QGroupBox, QComboBox, QPushButton, QDialog,
@@ -177,7 +177,7 @@ class LayoutSettingsDialog(QDialog):
         self.button_box = QDialogButtonBox(QDialogButtonBox.Ok |
                                            QDialogButtonBox.Cancel,
                                            Qt.Horizontal, self)
-        self.group_box = QGroupBox(_("Layout Dispay and Order"))
+        self.group_box = QGroupBox(_("Layout Display and Order"))
         self.table = QTableView(self)
         self.ok_button = self.button_box.button(QDialogButtonBox.Ok)
         self.cancel_button = self.button_box.button(QDialogButtonBox.Cancel)

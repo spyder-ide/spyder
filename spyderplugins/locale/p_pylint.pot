@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2015-06-21 23:28+COT\n"
+"POT-Creation-Date: 2015-10-18 15:21+Paris, Madrid (heure d’été)\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -15,55 +15,55 @@ msgstr ""
 "Generated-By: pygettext.py 1.5\n"
 
 
-#: spyderplugins/p_pylint.py:28
+#: spyderplugins/p_pylint.py:29
 msgid "Settings"
 msgstr ""
 
-#: spyderplugins/p_pylint.py:29
+#: spyderplugins/p_pylint.py:30
 msgid "Save file before analyzing it"
 msgstr ""
 
-#: spyderplugins/p_pylint.py:32 spyderplugins/p_pylint.py:151
+#: spyderplugins/p_pylint.py:33 spyderplugins/p_pylint.py:152
 msgid "History"
 msgstr ""
 
-#: spyderplugins/p_pylint.py:33
+#: spyderplugins/p_pylint.py:34
 msgid "The following option will be applied at next startup."
 msgstr ""
 
-#: spyderplugins/p_pylint.py:36
+#: spyderplugins/p_pylint.py:37
 msgid "History: "
 msgstr ""
 
-#: spyderplugins/p_pylint.py:37
+#: spyderplugins/p_pylint.py:38
 msgid " results"
 msgstr ""
 
-#: spyderplugins/p_pylint.py:40
+#: spyderplugins/p_pylint.py:41
 msgid "Results"
 msgstr ""
 
-#: spyderplugins/p_pylint.py:41
+#: spyderplugins/p_pylint.py:42
 msgid "Results are stored here:"
 msgstr ""
 
-#: spyderplugins/p_pylint.py:89 spyderplugins/widgets/pylintgui.py:72
+#: spyderplugins/p_pylint.py:92 spyderplugins/widgets/pylintgui.py:73
 msgid "Static code analysis"
 msgstr ""
 
-#: spyderplugins/p_pylint.py:105
+#: spyderplugins/p_pylint.py:108
 msgid "History..."
 msgstr ""
 
-#: spyderplugins/p_pylint.py:107
+#: spyderplugins/p_pylint.py:110
 msgid "Set history maximum entries"
 msgstr ""
 
-#: spyderplugins/p_pylint.py:125
+#: spyderplugins/p_pylint.py:126
 msgid "Run static code analysis"
 msgstr ""
 
-#: spyderplugins/p_pylint.py:152
+#: spyderplugins/p_pylint.py:153
 msgid "Maximum entries"
 msgstr ""
 
@@ -84,24 +84,24 @@ msgid "Warning"
 msgstr ""
 
 #: spyderplugins/widgets/pylintgui.py:118
-#: spyderplugins/widgets/pylintgui.py:352
-#: spyderplugins/widgets/pylintgui.py:380
+#: spyderplugins/widgets/pylintgui.py:350
+#: spyderplugins/widgets/pylintgui.py:378
 msgid "Error"
 msgstr ""
 
-#: spyderplugins/widgets/pylintgui.py:195
+#: spyderplugins/widgets/pylintgui.py:196
 msgid "Analyze"
 msgstr ""
 
-#: spyderplugins/widgets/pylintgui.py:196
+#: spyderplugins/widgets/pylintgui.py:197
 msgid "Run analysis"
 msgstr ""
 
-#: spyderplugins/widgets/pylintgui.py:200
+#: spyderplugins/widgets/pylintgui.py:201
 msgid "Stop"
 msgstr ""
 
-#: spyderplugins/widgets/pylintgui.py:201
+#: spyderplugins/widgets/pylintgui.py:202
 msgid "Stop current analysis"
 msgstr ""
 
@@ -134,23 +134,23 @@ msgstr ""
 msgid "Pylint output"
 msgstr ""
 
-#: spyderplugins/widgets/pylintgui.py:353
+#: spyderplugins/widgets/pylintgui.py:351
 msgid "Process failed to start"
 msgstr ""
 
-#: spyderplugins/widgets/pylintgui.py:454
+#: spyderplugins/widgets/pylintgui.py:452
 msgid "Source code has not been rated yet."
 msgstr ""
 
-#: spyderplugins/widgets/pylintgui.py:460
+#: spyderplugins/widgets/pylintgui.py:458
 msgid "Analysis did not succeed (see output for more details)."
 msgstr ""
 
-#: spyderplugins/widgets/pylintgui.py:473
+#: spyderplugins/widgets/pylintgui.py:471
 msgid "Global evaluation:"
 msgstr ""
 
-#: spyderplugins/widgets/pylintgui.py:477
+#: spyderplugins/widgets/pylintgui.py:475
 msgid "previous run:"
 msgstr ""
 

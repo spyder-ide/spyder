@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -22,14 +22,14 @@ from spyderlib.qt.compat import (to_qvariant, from_qvariant,
                                  getexistingdirectory, getopenfilename)
 import spyderlib.utils.icon_manager as ima
 
-from spyderlib.baseconfig import (_, running_in_mac_app, LANGUAGE_CODES,
-                                  save_lang_conf, load_lang_conf)
-from spyderlib.config import CONF
-from spyderlib.guiconfig import (CUSTOM_COLOR_SCHEME_NAME,
-                                 set_default_color_scheme)
-from spyderlib.userconfig import NoDefault
+from spyderlib.config.base import (_, running_in_mac_app, LANGUAGE_CODES,
+                                   save_lang_conf, load_lang_conf)
+from spyderlib.config.main import CONF, is_gtk_desktop
+from spyderlib.config.gui import (CUSTOM_COLOR_SCHEME_NAME,
+                                  set_default_color_scheme)
+from spyderlib.config.user import NoDefault
+from spyderlib.utils import syntaxhighlighters as sh
 from spyderlib.widgets.colors import ColorLayout
-from spyderlib.widgets.sourcecode import syntaxhighlighters as sh
 from spyderlib.py3compat import to_text_string, is_text_string, getcwd
 
 
@@ -124,36 +124,37 @@ class ConfigDialog(QDialog):
     
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
-        
+
+        self.main = parent
+
+        # Widgets
+        self.pages_widget = QStackedWidget()
+        self.contents_widget = QListWidget()
+        self.button_reset = QPushButton(_('Reset to defaults'))
+
+        bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Apply |
+                                QDialogButtonBox.Cancel)
+        self.apply_btn = bbox.button(QDialogButtonBox.Apply)
+
+        # Widgets setup
         # Destroying the C++ object right after closing the dialog box,
         # otherwise it may be garbage-collected in another QThread
         # (e.g. the editor's analysis thread in Spyder), thus leading to
         # a segmentation fault on UNIX or an application crash on Windows
         self.setAttribute(Qt.WA_DeleteOnClose)
-
-        self.contents_widget = QListWidget()
+        self.setWindowTitle(_('Preferences'))
+        self.setWindowIcon(ima.icon('configure'))
         self.contents_widget.setMovement(QListView.Static)
         self.contents_widget.setSpacing(1)
-
-        bbox = QDialogButtonBox(QDialogButtonBox.Ok|QDialogButtonBox.Apply
-                                |QDialogButtonBox.Cancel)
-        self.apply_btn = bbox.button(QDialogButtonBox.Apply)
-        bbox.accepted.connect(self.accept)
-        bbox.rejected.connect(self.reject)
-        bbox.clicked.connect(self.button_clicked)
-        
-        self.pages_widget = QStackedWidget()
-        self.pages_widget.currentChanged.connect(self.current_page_changed)
-
-        self.contents_widget.currentRowChanged.connect(
-                                             self.pages_widget.setCurrentIndex)
         self.contents_widget.setCurrentRow(0)
 
+        # Layout
         hsplitter = QSplitter()
         hsplitter.addWidget(self.contents_widget)
         hsplitter.addWidget(self.pages_widget)
 
         btnlayout = QHBoxLayout()
+        btnlayout.addWidget(self.button_reset)
         btnlayout.addStretch(1)
         btnlayout.addWidget(bbox)
 
@@ -163,12 +164,18 @@ class ConfigDialog(QDialog):
 
         self.setLayout(vlayout)
 
-        self.setWindowTitle(_('Preferences'))
-        self.setWindowIcon(ima.icon('configure'))
+        # Signals and slots
+        self.button_reset.clicked.connect(self.main.reset_spyder)
+        self.pages_widget.currentChanged.connect(self.current_page_changed)
+        self.contents_widget.currentRowChanged.connect(
+                                             self.pages_widget.setCurrentIndex)
+        bbox.accepted.connect(self.accept)
+        bbox.rejected.connect(self.reject)
+        bbox.clicked.connect(self.button_clicked)
 
         # Ensures that the config is present on spyder first run
         CONF.set('main', 'interface_language', load_lang_conf())
-        
+
     def get_current_index(self):
         """Return current page index"""
         return self.contents_widget.currentRow()
@@ -733,6 +740,11 @@ class MainConfigPage(GeneralConfigPage):
         # --- Interface
         interface_group = QGroupBox(_("Interface"))
         styles = [str(txt) for txt in list(QStyleFactory.keys())]
+        # Don't offer users the possibility to change to a different
+        # style in Gtk-based desktops
+        # Fixes Issue 2036
+        if is_gtk_desktop() and ('GTK+' in styles):
+            styles = ['GTK+']
         choices = list(zip(styles, [style.lower() for style in styles]))
         style_combo = self.create_combobox(_('Qt windows style'), choices,
                                            'windows_style',
@@ -893,7 +905,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
     CONF_SECTION = "color_schemes"
     
     NAME = _("Syntax coloring")
-    ICON = ima.icon('genprefs')
+    ICON = ima.icon('eyedropper')
     
     def setup_page(self):
         tabs = QTabWidget()
@@ -918,7 +930,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
                       "number":         _("Number:"),
                       "instance":       _("Instance:"),
                       }
-        from spyderlib.widgets.sourcecode import syntaxhighlighters
+        from spyderlib.utils import syntaxhighlighters
         assert all([key in fieldnames
                     for key in syntaxhighlighters.COLOR_SCHEME_KEYS])
         for tabname in names:

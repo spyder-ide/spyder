@@ -13,7 +13,7 @@ from spyderlib.qt.QtCore import Signal, Qt
 import spyderlib.utils.icon_manager as ima
 
 # Local imports
-from spyderlib.baseconfig import get_translation
+from spyderlib.config.base import get_translation
 _ = get_translation("p_profiler", dirname="spyderplugins")
 from spyderlib.utils.qthelpers import create_action
 from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage, runconfig
@@ -130,7 +130,7 @@ class Profiler(ProfilerWidget, SpyderPluginMixin):
             self.dockwidget.raise_()
         pythonpath = self.main.get_spyder_pythonpath()
         runconf = runconfig.get_run_configuration(filename)
-        wdir, args = None, None
+        wdir, args = None, []
         if runconf is not None:
             if runconf.wdir_enabled:
                 wdir = runconf.wdir

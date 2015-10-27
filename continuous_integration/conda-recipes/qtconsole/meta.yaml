@@ -1,0 +1,28 @@
+package:
+  name: qtconsole
+  version: 4.0.1
+
+build:
+  number: 99
+
+source:
+  fn: qtconsole-4.0.1.tar.gz
+  url: https://pypi.python.org/packages/source/q/qtconsole/qtconsole-4.0.1.tar.gz
+  md5: a8f17246361ee37ec55d3222dee9e18c
+
+requirements:
+  build:
+    - python
+  run:
+    - python
+    - pyqt5
+    - traitlets
+    - jupyter_core
+    - jupyter_client
+    - pygments
+    - ipykernel
+
+about:
+  home: http://jupyter.org
+  license: BSD
+  summary: Jupyter Qt Console

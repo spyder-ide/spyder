@@ -18,9 +18,9 @@ import sys
 
 # Local imports
 from spyderlib.utils import encoding
-from spyderlib.baseconfig import _
-from spyderlib.config import CONF
-from spyderlib.guiconfig import get_color_scheme
+from spyderlib.config.base import _
+from spyderlib.config.main import CONF
+from spyderlib.config.gui import get_color_scheme
 from spyderlib.utils.qthelpers import (create_action, create_toolbutton, add_actions)
 from spyderlib.widgets.tabs import Tabs
 from spyderlib.widgets.sourcecode import codeeditor
@@ -111,6 +111,8 @@ class HistoryLog(SpyderPluginWidget):
             layout.addWidget(tab_container)
         else:
             layout.addWidget(self.tabwidget)
+
+        self.tabwidget.setStyleSheet("QTabWidget::pane {border: 0;}")
 
         # Menu as corner widget
         options_button = create_toolbutton(self, text=_('Options'),

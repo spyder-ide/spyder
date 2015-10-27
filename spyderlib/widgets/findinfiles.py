@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -32,7 +32,7 @@ import traceback
 from spyderlib.utils.vcs import is_hg_installed, get_vcs_root
 from spyderlib.utils.misc import abspardir, get_common_path
 from spyderlib.utils.qthelpers import create_toolbutton, get_filetype_icon
-from spyderlib.baseconfig import _
+from spyderlib.config.base import _
 from spyderlib.widgets.comboboxes import PathComboBox, PatternComboBox
 from spyderlib.widgets.onecolumntree import OneColumnTree
 from spyderlib.py3compat import to_text_string, getcwd
@@ -790,9 +790,10 @@ def test():
     from spyderlib.utils.qthelpers import qapplication
     app = qapplication()
     widget = FindInFilesWidget(None)
+    widget.resize(640, 480)
     widget.show()
     sys.exit(app.exec_())
-    
+
+
 if __name__ == '__main__':
     test()
-    

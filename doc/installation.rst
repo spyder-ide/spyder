@@ -4,6 +4,56 @@ Installation
 Spyder is quite easy to install on Windows, Linux and MacOS X. Just the read the
 following instructions with care.
 
+Installing on Windows Vista/7/8/10
+----------------------------------
+
+The easy way
+~~~~~~~~~~~~
+
+Spyder is already included in these *Python Scientific Distributions*:
+
+#. `Anaconda <http://continuum.io/downloads.html>`_
+#. `WinPython <https://winpython.github.io/>`_
+#. `Python(x,y) <https://code.google.com/p/pythonxy>`_
+
+You can start using it immediately after installing one of them (you only need
+to install one!).
+
+
+The hard way
+~~~~~~~~~~~~
+
+If you want to install Spyder directly, you need to follow these steps:
+
+#. Install the essential requirements:
+
+   * `The Python language <http://www.python.org/>`_
+   * `PyQt4 <http://www.riverbankcomputing.co.uk/software/pyqt/download>`_
+
+#. Install optional modules:
+
+   Please refer to the `Recommended modules`_ section to see what other packages
+   you might need.
+  
+#. Installing Spyder itself:
+
+   You need to download and install the .exe file that corresponds to your Python
+   version and architecture from
+   `this page <https://github.com/spyder-ide/spyder/releases>`_.
+
+
+Updating Spyder
+~~~~~~~~~~~~~~~
+
+You can update Spyder by:
+
+* Updating Anaconda, WinPython, Python(x,y).
+
+* Installing a new .exe file from the page mentioned above (this will automatically
+  uninstall any previous version *only if* this version was installed with the same
+  kind of installer - i.e. not with an .msi installer).
+
+|
 
 Installing on MacOS X
 ----------------------
@@ -14,15 +64,14 @@ The easy way
 Thanks to the Spyder team and `Continuum <http://www.continuum.io/>`_, you have
 two alternatives:
 
-#. Use the Anaconda Python distribution, which can be downloaded on this
-   `site <http://continuum.io/downloads.html>`_.
+#. Use the `Anaconda <http://continuum.io/downloads.html>`_ Python distribution.
 
-#. Use our dmg installer, which can be found
+#. Use our DMG installers, which can be found
    `here <https://github.com/spyder-ide/spyder/releases>`_.
 
   .. note::
-   
-     The minimal MacOS X version to run our dmg is Mavericks (10.9) since
+     
+     The minimal version to run our DMG's is Mavericks (10.9) since
      Spyder 2.3.5. Previous versions work on Lion (10.7) or higher.
 
 
@@ -96,57 +145,6 @@ might need.
 
 |
 
-Installing on Windows XP/Vista/7/8
-----------------------------------
-
-The easy way
-~~~~~~~~~~~~
-
-Spyder is already included in these *Python Scientific Distributions*:
-
-#. `Python(x,y) <https://code.google.com/p/pythonxy>`_
-#. `WinPython <https://winpython.github.io/>`_
-#. `Anaconda <http://continuum.io/downloads.html>`_
-
-You can start using it immediately after installing one of them (you only need
-to install one!).
-
-
-The hard way
-~~~~~~~~~~~~
-
-If you want to install Spyder directly, you need to follow these steps:
-
-#. Install the essential requirements:
-
-   * `The Python language <http://www.python.org/>`_
-   * `PyQt4 <http://www.riverbankcomputing.co.uk/software/pyqt/download>`_
-
-#. Install optional modules:
-
-   Please refer to the `Recommended modules`_ section to see what other packages
-   you might need.
-  
-#. Installing Spyder itself:
-
-   You need to download and install the .exe file that corresponds to your Python
-   version and architecture from
-   `this page <https://github.com/spyder-ide/spyder/releases>`_.
-
-
-Updating Spyder
-~~~~~~~~~~~~~~~
-
-You can update Spyder by:
-
-* Updating Python(x,y), WinPython or Anaconda.
-
-* Installing a new .exe file from the page mentioned above (this will automatically
-  uninstall any previous version *only if* this version was installed with the same
-  kind of installer - i.e. not with an .msi installer).
-
-|
-
 Installing or running directly from source
 ------------------------------------------
 
@@ -166,8 +164,9 @@ Recommended modules
 
 We recommend you to install these modules to get the most out of Spyder:
 
-* `IPython <http://ipython.org/install.html#downloads>`_ -- for an enhanced Python
-  interpreter.
+* `IPython <http://ipython.org/install.html#downloads>`_ 3.0 or less, or
+  `qtconsole <http://jupyter.org/qtconsole/stable/>`_ 4.0 or higher -- for an
+  enhanced Python interpreter.
   
  .. note::
   

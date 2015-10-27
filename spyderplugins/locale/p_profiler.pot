@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2015-06-21 23:28+COT\n"
+"POT-Creation-Date: 2015-10-18 15:21+Paris, Madrid (heure d’été)\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -15,127 +15,165 @@ msgstr ""
 "Generated-By: pygettext.py 1.5\n"
 
 
-#: spyderplugins/p_profiler.py:26
+#: spyderplugins/p_profiler.py:27
 msgid "Results"
 msgstr ""
 
-#: spyderplugins/p_profiler.py:27
+#: spyderplugins/p_profiler.py:28
 msgid ""
 "Profiler plugin results (the output of python's profile/cProfile)\n"
 "are stored here:"
 msgstr ""
 
-#: spyderplugins/p_profiler.py:65
+#: spyderplugins/p_profiler.py:68
 msgid "Profiler"
 msgstr ""
 
-#: spyderplugins/p_profiler.py:95 spyderplugins/widgets/profilergui.py:72
+#: spyderplugins/p_profiler.py:96 spyderplugins/widgets/profilergui.py:73
 msgid "Profile"
 msgstr ""
 
-#: spyderplugins/widgets/profilergui.py:73
+#: spyderplugins/widgets/profilergui.py:74
 msgid "Run profiler"
 msgstr ""
 
-#: spyderplugins/widgets/profilergui.py:77
+#: spyderplugins/widgets/profilergui.py:79
 msgid "Stop"
 msgstr ""
 
-#: spyderplugins/widgets/profilergui.py:78
+#: spyderplugins/widgets/profilergui.py:80
 msgid "Stop current profiling"
 msgstr ""
 
-#: spyderplugins/widgets/profilergui.py:87
-#: spyderplugins/widgets/profilergui.py:168
+#: spyderplugins/widgets/profilergui.py:88
+#: spyderplugins/widgets/profilergui.py:211
 msgid "Select Python script"
 msgstr ""
 
-#: spyderplugins/widgets/profilergui.py:93
+#: spyderplugins/widgets/profilergui.py:94
 msgid "Output"
 msgstr ""
 
-#: spyderplugins/widgets/profilergui.py:95
+#: spyderplugins/widgets/profilergui.py:96
 msgid "Show program's output"
 msgstr ""
 
-#: spyderplugins/widgets/profilergui.py:104
+#: spyderplugins/widgets/profilergui.py:105
 msgid "Collapse one level up"
 msgstr ""
 
-#: spyderplugins/widgets/profilergui.py:109
+#: spyderplugins/widgets/profilergui.py:110
 msgid "Expand one level down"
 msgstr ""
 
-#: spyderplugins/widgets/profilergui.py:143
+#: spyderplugins/widgets/profilergui.py:113
+msgid "Save data"
+msgstr ""
+
+#: spyderplugins/widgets/profilergui.py:116
+msgid "Save profiling data"
+msgstr ""
+
+#: spyderplugins/widgets/profilergui.py:118
+msgid "Load data"
+msgstr ""
+
+#: spyderplugins/widgets/profilergui.py:121
+msgid "Load profiling data for comparison"
+msgstr ""
+
+#: spyderplugins/widgets/profilergui.py:123
+msgid "Clear comparison"
+msgstr ""
+
+#: spyderplugins/widgets/profilergui.py:163
 msgid "Please install"
 msgstr ""
 
-#: spyderplugins/widgets/profilergui.py:144
+#: spyderplugins/widgets/profilergui.py:164
 msgid "the Python profiler modules"
 msgstr ""
 
-#: spyderplugins/widgets/profilergui.py:169
+#: spyderplugins/widgets/profilergui.py:171
+msgid "Save profiler result"
+msgstr ""
+
+#: spyderplugins/widgets/profilergui.py:174
+#: spyderplugins/widgets/profilergui.py:180
+msgid "Profiler result"
+msgstr ""
+
+#: spyderplugins/widgets/profilergui.py:179
+msgid "Select script to compare"
+msgstr ""
+
+#: spyderplugins/widgets/profilergui.py:212
 msgid "Python scripts"
 msgstr ""
 
-#: spyderplugins/widgets/profilergui.py:176
-#: spyderplugins/widgets/profilergui.py:181
+#: spyderplugins/widgets/profilergui.py:219
+#: spyderplugins/widgets/profilergui.py:224
 msgid "Profiler output"
 msgstr ""
 
-#: spyderplugins/widgets/profilergui.py:200
+#: spyderplugins/widgets/profilergui.py:243
 msgid "Profiling, please wait..."
 msgstr ""
 
-#: spyderplugins/widgets/profilergui.py:242
+#: spyderplugins/widgets/profilergui.py:287
 msgid "Error"
 msgstr ""
 
-#: spyderplugins/widgets/profilergui.py:243
+#: spyderplugins/widgets/profilergui.py:288
 msgid "Process failed to start"
 msgstr ""
 
-#: spyderplugins/widgets/profilergui.py:291
+#: spyderplugins/widgets/profilergui.py:335
 msgid "Sorting data, please wait..."
 msgstr ""
 
-#: spyderplugins/widgets/profilergui.py:335
+#: spyderplugins/widgets/profilergui.py:381
 msgid "Function/Module"
 msgstr ""
 
-#: spyderplugins/widgets/profilergui.py:335
+#: spyderplugins/widgets/profilergui.py:381
 msgid "Total Time"
 msgstr ""
 
-#: spyderplugins/widgets/profilergui.py:336
+#: spyderplugins/widgets/profilergui.py:381
+#: spyderplugins/widgets/profilergui.py:382
+msgid "Diff"
+msgstr ""
+
+#: spyderplugins/widgets/profilergui.py:382
 msgid "Calls"
 msgstr ""
 
-#: spyderplugins/widgets/profilergui.py:336
-msgid "File:line"
-msgstr ""
-
-#: spyderplugins/widgets/profilergui.py:336
+#: spyderplugins/widgets/profilergui.py:382
 msgid "Local Time"
 msgstr ""
 
-#: spyderplugins/widgets/profilergui.py:443
+#: spyderplugins/widgets/profilergui.py:383
+msgid "File:line"
+msgstr ""
+
+#: spyderplugins/widgets/profilergui.py:533
 msgid "Time in function (including sub-functions)"
 msgstr ""
 
-#: spyderplugins/widgets/profilergui.py:449
+#: spyderplugins/widgets/profilergui.py:542
 msgid "Local time in function (not in sub-functions)"
 msgstr ""
 
-#: spyderplugins/widgets/profilergui.py:455
+#: spyderplugins/widgets/profilergui.py:552
 msgid "Total number of calls (including recursion)"
 msgstr ""
 
-#: spyderplugins/widgets/profilergui.py:460
+#: spyderplugins/widgets/profilergui.py:562
 msgid "File:line where function is defined"
 msgstr ""
 
-#: spyderplugins/widgets/profilergui.py:465
+#: spyderplugins/widgets/profilergui.py:567
 msgid "recursion"
 msgstr ""
 

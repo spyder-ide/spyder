@@ -16,9 +16,9 @@ import sys
 import os.path as osp
 
 # Local import
-from spyderlib.userconfig import UserConfig
-from spyderlib.baseconfig import (CHECK_ALL, EXCLUDED_NAMES, SUBFOLDER,
-                                  get_home_dir, _)
+from spyderlib.config.user import UserConfig
+from spyderlib.config.base import (CHECK_ALL, EXCLUDED_NAMES, SUBFOLDER,
+                                   get_home_dir, _)
 from spyderlib.utils import iofuncs, codeanalysis
 
 
@@ -121,10 +121,27 @@ CTRL = "Meta" if MAC else "Ctrl"
 # Fonts
 #==============================================================================
 def is_ubuntu():
+    "Detect if we are running in an Ubuntu-based distribution"
     if sys.platform.startswith('linux') and osp.isfile('/etc/lsb-release'):
         release_info = open('/etc/lsb-release').read()
         if 'Ubuntu' in release_info:
             return True
+        else:
+            return False
+    else:
+        return False
+
+
+def is_gtk_desktop():
+    "Detect if we are running in a Gtk-based desktop"
+    if sys.platform.startswith('linux'):
+        xdg_desktop = os.environ.get('XDG_CURRENT_DESKTOP', '')
+        if xdg_desktop:
+            gtk_desktops = ['Unity', 'GNOME', 'XFCE']
+            if any([xdg_desktop.startswith(d) for d in gtk_desktops]):
+                return True
+            else:
+                return False
         else:
             return False
     else:
@@ -136,12 +153,13 @@ SANS_SERIF = ['Sans Serif', 'DejaVu Sans', 'Bitstream Vera Sans',
               'Calibri', 'Verdana', 'Geneva', 'Lucid', 'Arial',
               'Helvetica', 'Avant Garde', 'Times', 'sans-serif']
 
-MONOSPACE = ['Monospace', 'DejaVu Sans Mono', 'Consolas', 'Monaco',
+MONOSPACE = ['Monospace', 'DejaVu Sans Mono', 'Consolas',
              'Bitstream Vera Sans Mono', 'Andale Mono', 'Liberation Mono',
              'Courier New', 'Courier', 'monospace', 'Fixed', 'Terminal']
 
 
 if sys.platform == 'darwin':
+    MONOSPACE = ['Menlo'] + MONOSPACE
     BIG = MEDIUM = SMALL = 12
 elif os.name == 'nt':
     BIG = 12
@@ -196,7 +214,8 @@ DEFAULTS = [
               'use_custom_margin': True,
               'custom_margin': 0,
               'show_internal_console_if_traceback': True,
-              'check_updates_on_startup': True
+              'check_updates_on_startup': True,
+              'toolbars_visible': True,
               }),
             ('quick_layouts',
              {
@@ -251,12 +270,7 @@ DEFAULTS = [
               'show_icontext': False,
               'monitor/enabled': True,
               'qt/api': 'default',
-              'pyqt/api_version': 2,
-              'pyqt/ignore_sip_setapi_errors': False,
-              'matplotlib/backend/enabled': True,
-              'matplotlib/backend/value': 'MacOSX' if (sys.platform == 'darwin' \
-                                           and os.environ.get('QT_API') == 'pyside')\
-                                           else 'Qt4Agg',
+              'matplotlib/backend/value': 0,
               'umr/enabled': True,
               'umr/verbose': True,
               'umr/namelist': ['guidata', 'guiqwt'],
@@ -484,6 +498,7 @@ DEFAULTS = [
               '_/save current layout': "Shift+Alt+S",
               '_/toggle default layout': "Shift+Alt+Home",
               '_/layout preferences': "Shift+Alt+P",
+              '_/show toolbars': "Alt+Shift+T",
               '_/restart': "Shift+Alt+R",
               '_/quit': "Ctrl+Q",
               # -- In plugins/editor
@@ -537,9 +552,9 @@ DEFAULTS = [
               # -- In widgets/editor
               'editor/inspect current object': 'Ctrl+I',
               'editor/go to line': 'Ctrl+L',
-              'editor/file list management': 'Ctrl+E',
               'editor/go to previous file': 'Ctrl+Tab',
               'editor/go to next file': 'Ctrl+Shift+Tab',
+              '_/file switcher': 'Ctrl+P',
               # -- In spyder.py
               'editor/find text': "Ctrl+F",
               'editor/find next': "F3",
@@ -560,7 +575,6 @@ DEFAULTS = [
               'editor/save file': "Ctrl+S",
               'editor/save all': "Ctrl+Alt+S",
               'editor/save as': 'Ctrl+Shift+S',
-              'editor/print': "Ctrl+P",
               'editor/close all': "Ctrl+Shift+W",
               'editor/breakpoint': 'F12',
               'editor/conditional breakpoint': 'Shift+F12',
@@ -745,7 +759,7 @@ DEFAULTS = [
 # 2. If you want to *remove* options that are no longer needed in our codebase,
 #    you need to do a MAJOR update in version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '18.1.0'
+CONF_VERSION = '21.1.0'
 
 # XXX: Previously we had load=(not DEV) here but DEV was set to *False*.
 # Check if it *really* needs to be updated or not
