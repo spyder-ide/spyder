@@ -39,7 +39,10 @@ from spyderlib.py3compat import PY3
 MODULES_PATH = get_conf_path('db')
 
 # Time in seconds after which we give up
-TIMEOUT_GIVEUP = 20
+if os.name == 'nt':
+    TIMEOUT_GIVEUP = 30
+else:
+    TIMEOUT_GIVEUP = 20
 
 # Py2app only uses .pyc files for the stdlib when optimize=0,
 # so we need to add it as another suffix here
