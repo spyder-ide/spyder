@@ -23,7 +23,7 @@ echo ------- Testing the app ---------
 echo.
 echo %time%
 spyder || exit 1
-echo Sucess!
+echo Success!
 echo %time%
 echo.
 echo ---------------------------------
