@@ -141,41 +141,42 @@ PACKET_NOT_RECEIVED = PacketNotReceived()
 
 
 if __name__ == '__main__':
-    # socket read/write testing - client and server in one thread
+    if not os.name == 'nt':
+        # socket read/write testing - client and server in one thread
+        
+        # (techtonik): the stuff below is placed into public domain
+        print("-- Testing standard Python socket interface --")
     
-    # (techtonik): the stuff below is placed into public domain
-    print("-- Testing standard Python socket interface --")
-
-    address = ("127.0.0.1", 9999)
+        address = ("127.0.0.1", 9999)
+        
+        server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server.setblocking(0)
+        server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        server.bind( address )
+        server.listen(2)
     
-    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server.setblocking(0)
-    server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    server.bind( address )
-    server.listen(2)
-
-    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client.connect( address )
-
-    client.send("data to be catched".encode('utf-8'))
-    # accepted server socket is the one we can read from
-    # note that it is different from server socket
-    accsock, addr = server.accept()
-    print('..got "%s" from %s' % (accsock.recv(4096), addr))
-
-    # accsock.close()
-    # client.send("more data for recv")
-    #socket.error: [Errno 9] Bad file descriptor
-    # accsock, addr = server.accept()
-    #socket.error: [Errno 11] Resource temporarily unavailable
+        client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        client.connect( address )
     
-
-    print("-- Testing BSD socket write_packet/read_packet --")
-
-    write_packet(client, "a tiny piece of data")
-    print('..got "%s" from read_packet()' % (read_packet(accsock)))
+        client.send("data to be catched".encode('utf-8'))
+        # accepted server socket is the one we can read from
+        # note that it is different from server socket
+        accsock, addr = server.accept()
+        print('..got "%s" from %s' % (accsock.recv(4096), addr))
     
-    client.close()
-    server.close()
+        # accsock.close()
+        # client.send("more data for recv")
+        #socket.error: [Errno 9] Bad file descriptor
+        # accsock, addr = server.accept()
+        #socket.error: [Errno 11] Resource temporarily unavailable
+        
     
-    print("-- Done.")
+        print("-- Testing BSD socket write_packet/read_packet --")
+    
+        write_packet(client, "a tiny piece of data")
+        print('..got "%s" from read_packet()' % (read_packet(accsock)))
+        
+        client.close()
+        server.close()
+        
+        print("-- Done.")
