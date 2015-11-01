@@ -108,7 +108,7 @@ def get_packages():
                 dstdir = osp.join(LIBNAME, 'utils', 'external', name)
                 shutil.copytree(srcdir, dstdir)
                 atexit.register(shutil.rmtree, osp.abspath(dstdir))
-    packages = get_subpackages(LIBNAME)+get_subpackages('spyderplugins')
+    packages = get_subpackages(LIBNAME) + get_subpackages('spyplugins')
     return packages
 
 
@@ -276,6 +276,7 @@ editor, Python console, etc.""",
       package_data={LIBNAME: get_package_data(LIBNAME, EXTLIST),
                     'spyplugins': get_package_data('spyplugins', EXTLIST),
                     },
+      include_package_data=True,
       scripts=[osp.join('scripts', fname) for fname in SCRIPTS],
       data_files=get_data_files(),
       options={"bdist_wininst":
