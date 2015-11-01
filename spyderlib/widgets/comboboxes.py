@@ -40,6 +40,7 @@ class BaseComboBox(QComboBox):
         self.setEditable(True)
         self.setCompleter(QCompleter(self))
         self.numpress = 0
+        self.selected_text = self.currentText()
 
     # --- overrides
     def event(self, event):
@@ -66,6 +67,7 @@ class BaseComboBox(QComboBox):
                 self.hide_completer()
         elif event.key() == Qt.Key_Escape:
             self.set_current_text(self.selected_text)
+            print([self.selected_text])
             self.hide_completer()
         else:
             QComboBox.keyPressEvent(self, event)

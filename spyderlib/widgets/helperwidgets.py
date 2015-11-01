@@ -153,12 +153,13 @@ class IconLineEdit(QLineEdit):
         self._valid_icon = ima.icon('todo')
         self._invalid_icon = ima.icon('warning')
         self._set_icon = ima.icon('todo_list')
+        self._application_style = QApplication.style().objectName()
+        self._refresh()
 
     def _refresh(self):
         """After an application style change, the paintEvent updates the
         custom defined stylesheet.
         """
-        application_style = QApplication.style().objectName()
         padding = self.height()
         css_base = """QLineEdit {{border: none;
                                  padding-left: {padding}px;
@@ -169,13 +170,14 @@ class IconLineEdit(QLineEdit):
                                    padding-left: {padding}px;
                                    }}
                      """
-        if application_style == 'oxygen':
+        if self._application_style == 'oxygen':
             css_template = css_oxygen
         else:
             css_template = css_base
 
         css = css_template.format(padding=padding)
         self.setStyleSheet(css)
+        self.update()
 
     def update_status(self, value, value_set):
         """Update the status and set_status to update the icons to display."""
@@ -189,7 +191,6 @@ class IconLineEdit(QLineEdit):
 
         Include a validation icon to the left of the line edit.
         """
-        self._refresh()
         super(IconLineEdit, self).paintEvent(event)
         painter = QPainter(self)
 
@@ -206,6 +207,10 @@ class IconLineEdit(QLineEdit):
 
         painter.drawPixmap(space, space, pixmap)
 
+        application_style = QApplication.style().objectName()
+        if self._application_style != application_style:
+            self._application_style = application_style
+            self._refresh()
 
 
 def test_msgcheckbox():
