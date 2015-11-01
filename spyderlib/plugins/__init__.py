@@ -27,8 +27,9 @@ from spyderlib.qt.QtCore import Qt, Signal, QObject, QEvent, QPoint
 import spyderlib.utils.icon_manager as ima
 
 # Stdlib imports
-import sys
 import inspect
+import os
+import sys
 
 # Local imports
 from spyderlib.utils.qthelpers import toggle_actions, get_icon, create_action
@@ -270,6 +271,7 @@ class SpyderPluginMixin(object):
         """Bind widget to a QMainWindow instance"""
         super(SpyderPluginMixin, self).__init__(**kwds)
         assert self.CONF_SECTION is not None
+        self.PLUGIN_PATH = os.path.dirname(inspect.getfile(self.__class__))
         self.main = main
         self.default_margins = None
         self.plugin_actions = None

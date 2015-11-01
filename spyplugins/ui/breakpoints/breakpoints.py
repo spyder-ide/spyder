@@ -12,14 +12,18 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
+# Standard library imports
+import os.path as osp
+
 # Local imports
 from spyderlib.config.base import get_translation
-_ = get_translation("breakpoints", "spyplugins.ui.breakpoints")
+from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.qthelpers import create_action
 from spyderlib.plugins import SpyderPluginMixin
-from .widgets.breakpointsgui import BreakpointWidget
 from spyderlib.py3compat import to_text_string, is_text_string
-import spyderlib.utils.icon_manager as ima
+from .widgets.breakpointsgui import BreakpointWidget
+
+_ = get_translation("breakpoints", "spyplugins.ui.breakpoints")
 
 
 class Breakpoints(BreakpointWidget, SpyderPluginMixin):
@@ -42,7 +46,8 @@ class Breakpoints(BreakpointWidget, SpyderPluginMixin):
     
     def get_plugin_icon(self):
         """Return widget icon"""
-        return ima.icon('bug')
+        path = osp.join(self.PLUGIN_PATH, self.IMG_PATH)
+        return ima.icon('profiler', icon_path=path)
     
     def get_focus_widget(self):
         """

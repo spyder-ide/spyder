@@ -4,20 +4,23 @@
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
-"""Pylint Code Analysis Plugin"""
+"""Pylint Code Analysis Plugin."""
 
 # pylint: disable=C0103
 # pylint: disable=R0903
 # pylint: disable=R0911
 # pylint: disable=R0201
 
+# Standard library imports
+import os.path as osp
+
+# Third party imports
 from spyderlib.qt.QtCore import Signal, Qt
 from spyderlib.qt.QtGui import QInputDialog, QVBoxLayout, QGroupBox, QLabel
 
 # Local imports
 from spyderlib.config.base import get_translation
 from spyderlib.utils import icon_manager as ima
-from spyderlib.utils.external.path import path as Path
 from spyderlib.utils.qthelpers import create_action
 from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage
 
@@ -96,7 +99,7 @@ class Pylint(PylintWidget, SpyderPluginMixin):
 
     def get_plugin_icon(self):
         """Return widget icon"""
-        path = Path(self.PLUGIN_PATH) / self.IMG_PATH
+        path = osp.join(self.PLUGIN_PATH, self.IMG_PATH)
         return ima.icon('pylint', icon_path=path)
 
     def get_focus_widget(self):

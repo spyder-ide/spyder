@@ -6,8 +6,12 @@
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
-"""Profiler Plugin"""
+"""Profiler Plugin."""
 
+# Standard library imports
+import os.path as osp
+
+# Third party imports
 from spyderlib.qt.QtCore import Signal, Qt
 from spyderlib.qt.QtGui import QVBoxLayout, QGroupBox, QLabel
 
@@ -15,9 +19,7 @@ from spyderlib.qt.QtGui import QVBoxLayout, QGroupBox, QLabel
 from spyderlib.config.base import get_translation
 from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage, runconfig
 from spyderlib.utils import icon_manager as ima
-from spyderlib.utils.external.path import path as Path
 from spyderlib.utils.qthelpers import create_action
-
 from .widgets.profilergui import (ProfilerWidget, is_profiler_installed)
 
 
@@ -72,7 +74,7 @@ class Profiler(ProfilerWidget, SpyderPluginMixin):
 
     def get_plugin_icon(self):
         """Return widget icon"""
-        path = Path(self.PLUGIN_PATH) / self.IMG_PATH
+        path = osp.join(self.PLUGIN_PATH, self.IMG_PATH)
         return ima.icon('profiler', icon_path=path)
 
     def get_focus_widget(self):
