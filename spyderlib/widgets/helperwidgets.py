@@ -155,13 +155,15 @@ class IconLineEdit(QLineEdit):
         self._set_icon = ima.icon('todo_list')
         self._application_style = QApplication.style().objectName()
         self._refresh()
+        self._paint_count = 0
 
     def _refresh(self):
         """After an application style change, the paintEvent updates the
         custom defined stylesheet.
         """
         padding = self.height()
-        css_base = """QLineEdit {{border: none;
+        css_base = """QLineEdit {{
+                                 border: none;
                                  padding-left: {padding}px;
                                  }}
                    """
@@ -210,6 +212,11 @@ class IconLineEdit(QLineEdit):
         application_style = QApplication.style().objectName()
         if self._application_style != application_style:
             self._application_style = application_style
+            self._refresh()
+
+        # Small hack to gurantee correct padding on Spyder start
+        if self._paint_count < 5:
+            self._paint_count += 1
             self._refresh()
 
 
