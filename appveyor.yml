@@ -7,8 +7,8 @@ environment:
     #  PYTHON_ARCH:    "64"
     #  USE_QT_API:     "PyQt4"
 
-    - PYTHON:         "C:\\Python34_64"
-      PYTHON_VERSION: "3.4"
+    - PYTHON:         "C:\\Python35_64"
+      PYTHON_VERSION: "3.5"
       PYTHON_ARCH:    "64"
       USE_QT_API:     "PyQt4"
 
