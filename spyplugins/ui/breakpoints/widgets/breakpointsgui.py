@@ -26,8 +26,12 @@ from spyderlib.config.base import get_translation
 from spyderlib.config.main import CONF
 from spyderlib.utils.qthelpers import create_action, add_actions
 
-
-_ = get_translation("breakpoints", "spyplugins.ui.breakpoints")
+# This is needed for testing this module as a stand alone script
+try:
+    _ = get_translation("breakpoints", "spyplugins.ui.breakpoints")
+except KeyError as error:
+    import gettext
+    _ = gettext.gettext
 
 
 class BreakpointTableModel(QAbstractTableModel):

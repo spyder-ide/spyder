@@ -38,7 +38,13 @@ from spyderlib.widgets.variableexplorer.texteditor import TextEditor
 from spyderlib.widgets.comboboxes import (PythonModulesComboBox,
                                           is_module_or_package)
 from spyderlib.py3compat import PY3, to_text_string, getcwd, pickle
-_ = get_translation("pylint", "spyplugins.ui.pylint")
+
+# This is needed for testing this module as a stand alone script
+try:
+    _ = get_translation("pylint", "spyplugins.ui.pylint")
+except KeyError as error:
+    import gettext
+    _ = gettext.gettext
 
 
 PYLINT = 'pylint'

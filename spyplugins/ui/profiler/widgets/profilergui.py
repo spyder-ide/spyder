@@ -39,7 +39,13 @@ from spyderlib.widgets.variableexplorer.texteditor import TextEditor
 from spyderlib.widgets.comboboxes import PythonModulesComboBox
 from spyderlib.widgets.externalshell import baseshell
 from spyderlib.py3compat import to_text_string, getcwd
-_ = get_translation("profiler", "spyplugins.ui.profiler")
+
+# This is needed for testing this module as a stand alone script
+try:
+    _ = get_translation("profiler", "spyplugins.ui.profiler")
+except KeyError as error:
+    import gettext
+    _ = gettext.gettext
 
 
 def is_profiler_installed():
