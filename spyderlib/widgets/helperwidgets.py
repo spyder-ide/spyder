@@ -145,6 +145,7 @@ class HTMLDelegate(QStyledItemDelegate):
 
 class IconLineEdit(QLineEdit):
     """Custom QLineEdit that includes an icon representing the validation."""
+
     def __init__(self, *args, **kwargs):
         super(IconLineEdit, self).__init__(*args, **kwargs)
 
@@ -156,6 +157,7 @@ class IconLineEdit(QLineEdit):
         self._application_style = QApplication.style().objectName()
         self._refresh()
         self._paint_count = 0
+        self._icon_visible = False
 
     def _refresh(self):
         """After an application style change, the paintEvent updates the
@@ -181,6 +183,18 @@ class IconLineEdit(QLineEdit):
         self.setStyleSheet(css)
         self.update()
 
+    def hide_status_icon(self):
+        """Show the status icon."""
+        self._icon_visible = False
+        self.repaint()
+        self.update()
+
+    def show_status_icon(self):
+        """Hide the status icon."""
+        self._icon_visible = True
+        self.repaint()
+        self.update()
+
     def update_status(self, value, value_set):
         """Update the status and set_status to update the icons to display."""
         self._status = value
@@ -200,14 +214,15 @@ class IconLineEdit(QLineEdit):
         space = int((rect.height())/6)
         h = rect.height() - space
 
-        if self._status and self._status_set:
-            pixmap = self._set_icon.pixmap(h, h)
-        elif self._status:
-            pixmap = self._valid_icon.pixmap(h, h)
-        else:
-            pixmap = self._invalid_icon.pixmap(h, h)
+        if self._icon_visible:
+            if self._status and self._status_set:
+                pixmap = self._set_icon.pixmap(h, h)
+            elif self._status:
+                pixmap = self._valid_icon.pixmap(h, h)
+            else:
+                pixmap = self._invalid_icon.pixmap(h, h)
 
-        painter.drawPixmap(space, space, pixmap)
+            painter.drawPixmap(space, space, pixmap)
 
         application_style = QApplication.style().objectName()
         if self._application_style != application_style:
