@@ -14,7 +14,7 @@ environment:
 
 install:
   - powershell .\\continuous_integration\\appveyor\\install.ps1
-  - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
+  - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PYTHON%\\Library\\bin;%PATH%"
 
 build: false
 
