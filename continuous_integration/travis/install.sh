@@ -51,9 +51,8 @@ install_conda()
     echo 'conda-env ==2.4.2' >> $HOME/miniconda/conda-meta/pinned;
     conda update -q conda;
 
-    # Installing conda-build and jinja2 to do build tests
+    # Installing conda-build to do build tests
     if [ "$USE_CONDA" = true ]; then
-        conda install jinja2;
         conda install conda-build;
         conda create -q -n test-environment python=$PY_VERSION;
     fi
