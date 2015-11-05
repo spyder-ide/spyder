@@ -30,9 +30,9 @@ requirements:
     - sphinx
     - pep8
     - psutil
-    - pylint
+    - pylint                 [not win]
     - six
-    - python.app      [osx]
+    - python.app             [osx]
 
 about:
   home: https://github.com/spyder-ide/spyder
