@@ -95,7 +95,7 @@ except NameError:
                   file=sys.stderr)
             sys.exit(1)
         from win32com.shell import shell, shellcon
-        
+
         path_names = ['CSIDL_COMMON_STARTMENU', 'CSIDL_STARTMENU',
                       'CSIDL_COMMON_APPDATA', 'CSIDL_LOCAL_APPDATA',
                       'CSIDL_APPDATA', 'CSIDL_COMMON_DESKTOPDIRECTORY',
@@ -131,6 +131,8 @@ def install():
     python = osp.abspath(osp.join(sys.prefix, 'python.exe'))
     pythonw = osp.abspath(osp.join(sys.prefix, 'pythonw.exe'))
     script = osp.abspath(osp.join(sys.prefix, 'scripts', 'spyder'))
+    if not osp.exists(script): # if not installed to the site scripts dir
+        script = osp.abspath(osp.join(osp.dirname(osp.abspath(__file__)), 'spyder'))
     workdir = "%HOMEDRIVE%%HOMEPATH%"
     import distutils.sysconfig
     lib_dir = distutils.sysconfig.get_python_lib(plat_specific=1)
