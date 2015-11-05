@@ -1,15 +1,17 @@
 package:
   name: spyder
-  version: {{ environ.get('GIT_DESCRIBE_TAG', '').replace('v', '') }}
+  version: {{ environ.get('GIT_DESCRIBE_TAG', '').replace('v', '') }}                                    [unix]
+  version: 3.0.0b1                                                                                       [win]
 
 build:
-  number: {{ environ.get('GIT_DESCRIBE_NUMBER', 0) }}
+  number: {{ environ.get('GIT_DESCRIBE_NUMBER', 0) }}                                                    [unix]
+  number: 0                                                                                              [win]
   osx_is_app: True
 
 source:
-  git_url: {{ environ.get('APPVEYOR_BUILD_FOLDER') }}   [win]
-  git_tag: {{ environ.get('APPVEYOR_REPO_COMMIT') }}    [win]
-  git_url: {{ environ.get('FULL_SPYDER_CLONE') }}       [unix]
+  fn:  spyder-3.0.0dev.zip                                                                               [win]
+  url: {{ ['file:///', environ.get('APPVEYOR_BUILD_FOLDER'), '\dist\spyder-3.0.0dev.zip']|join }}        [win]
+  git_url: {{ environ.get('FULL_SPYDER_CLONE') }}                                                        [unix]
   git_tag: {% if environ.get('TRAVIS_PULL_REQUEST') != 'false' %} {{ ['travis_pr_', environ.get('TRAVIS_PULL_REQUEST')]|join }} {% else %} master {% endif %}  [unix]
 
 requirements:
@@ -28,9 +30,9 @@ requirements:
     - sphinx
     - pep8
     - psutil
-    - pylint
+    - pylint                 [not win]
     - six
-    - python.app      [osx]
+    - python.app             [osx]
 
 about:
   home: https://github.com/spyder-ide/spyder
