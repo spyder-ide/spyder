@@ -56,7 +56,7 @@ class _ModuleMock():
 def _import_plugin(name, base_namespace, plugin_namespace, namespace_path,
                    modnames, modlist):
     """Import the plugin `plugins_namsepace`.`name`, add it to `modlist` and
-    adds its name to `modname`."""
+    adds its name to `modnames`."""
     module_name = "{0}.{1}.{2}".format(base_namespace, plugin_namespace, name)
 
     if module_name in modnames:

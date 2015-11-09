@@ -18,27 +18,26 @@ These plugins inherit the following classes
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-# Qt imports
+# Standard library imports
+import inspect
+import os
+
+# Third party imports
 from spyderlib.qt import PYQT5
+from spyderlib.qt.QtCore import Qt, Signal, QObject, QEvent, QPoint
 from spyderlib.qt.QtGui import (QDockWidget, QWidget, QShortcut, QCursor,
                                 QKeySequence, QMainWindow, QApplication,
                                 QTabBar)
-from spyderlib.qt.QtCore import Qt, Signal, QObject, QEvent, QPoint
-import spyderlib.utils.icon_manager as ima
-
-# Stdlib imports
-import inspect
-import os
-import sys
 
 # Local imports
-from spyderlib.utils.qthelpers import toggle_actions, get_icon, create_action
+from spyderlib.utils.qthelpers import create_action, toggle_actions
 from spyderlib.config.base import _
+from spyderlib.config.gui import get_font, set_font
 from spyderlib.config.main import CONF
 from spyderlib.config.user import NoDefault
-from spyderlib.config.gui import get_font, set_font
 from spyderlib.plugins.configdialog import SpyderConfigPage
 from spyderlib.py3compat import configparser, is_text_string
+from spyderlib.utils import icon_manager as ima
 
 
 class PluginConfigPage(SpyderConfigPage):
