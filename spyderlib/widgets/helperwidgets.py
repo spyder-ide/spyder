@@ -166,12 +166,12 @@ class IconLineEdit(QLineEdit):
         padding = self.height()
         css_base = """QLineEdit {{
                                  border: none;
-                                 padding-left: {padding}px;
+                                 padding-right: {padding}px;
                                  }}
                    """
         css_oxygen = """QLineEdit {{background: transparent;
                                    border: none;
-                                   padding-left: {padding}px;
+                                   padding-right: {padding}px;
                                    }}
                      """
         if self._application_style == 'oxygen':
@@ -213,6 +213,7 @@ class IconLineEdit(QLineEdit):
         rect = self.geometry()
         space = int((rect.height())/6)
         h = rect.height() - space
+        w = rect.width() - h
 
         if self._icon_visible:
             if self._status and self._status_set:
@@ -222,7 +223,7 @@ class IconLineEdit(QLineEdit):
             else:
                 pixmap = self._invalid_icon.pixmap(h, h)
 
-            painter.drawPixmap(space, space, pixmap)
+            painter.drawPixmap(w, space, pixmap)
 
         application_style = QApplication.style().objectName()
         if self._application_style != application_style:

@@ -42,7 +42,7 @@ class BaseComboBox(QComboBox):
         self.numpress = 0
         self.selected_text = self.currentText()
 
-    # --- overrides
+    # --- Qt overrides
     def event(self, event):
         """Qt Override.
 
@@ -70,25 +70,6 @@ class BaseComboBox(QComboBox):
             self.hide_completer()
         else:
             QComboBox.keyPressEvent(self, event)
-
-    def focusInEvent(self, event):
-        """Handle focus in event restoring to display the status icon."""
-        show_status = getattr(self.lineEdit(), 'show_status_icon', None)
-        if show_status:
-            show_status()
-        QComboBox.focusInEvent(self, event)
-
-    def focusOutEvent(self, event):
-        """Handle focus out event restoring the last valid selected path."""
-        # Calling asynchronously the 'add_current_text' to avoid crash
-        # https://groups.google.com/group/spyderlib/browse_thread/thread/2257abf530e210bd
-        lineedit = self.lineEdit()
-        QTimer.singleShot(50, lambda: lineedit.setText(self.selected_text))
-
-        hide_status = getattr(self.lineEdit(), 'hide_status_icon', None)
-        if hide_status:
-            hide_status()
-        QComboBox.focusOutEvent(self, event)
 
     # --- own methods
     def handle_keypress(self):
@@ -235,6 +216,27 @@ class PathComboBox(EditableComboBox):
         self.sig_double_tab_pressed.connect(self.double_tab_complete)
         self.valid.connect(lineedit.update_status)
 
+    # --- Qt overrides
+    def focusInEvent(self, event):
+        """Handle focus in event restoring to display the status icon."""
+        show_status = getattr(self.lineEdit(), 'show_status_icon', None)
+        if show_status:
+            show_status()
+        QComboBox.focusInEvent(self, event)
+
+    def focusOutEvent(self, event):
+        """Handle focus out event restoring the last valid selected path."""
+        # Calling asynchronously the 'add_current_text' to avoid crash
+        # https://groups.google.com/group/spyderlib/browse_thread/thread/2257abf530e210bd
+        lineedit = self.lineEdit()
+        QTimer.singleShot(50, lambda: lineedit.setText(self.selected_text))
+
+        hide_status = getattr(self.lineEdit(), 'hide_status_icon', None)
+        if hide_status:
+            hide_status()
+        QComboBox.focusOutEvent(self, event)
+
+    # --- Own methods
     def _complete_options(self):
         """Find available completion options."""
         text = to_text_string(self.currentText())
