@@ -25,9 +25,6 @@ matrix:
     - python: "2.7"
       env: USE_QT_API=PyQt5 USE_CONDA=true
       os: linux
-    - python: "3.4"
-      env: USE_QT_API=PyQt4 USE_CONDA=true
-      os: linux
     - python: "3.5"
       env: USE_QT_API=PyQt4 USE_CONDA=true
       os: linux

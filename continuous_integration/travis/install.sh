@@ -44,21 +44,16 @@ install_conda()
     hash -r;
     conda config --set always_yes yes --set changeps1 no;
 
-    # - Pinning conda to this version because installing from tarballs is not
-    #   pulling deps in 3.18.2 and that breaks all our tests!!
-    # - Also pinning conda-env because of a bug in 2.4.3
-    echo 'conda ==3.18.1' > $HOME/miniconda/conda-meta/pinned;
-    echo 'conda-env ==2.4.2' >> $HOME/miniconda/conda-meta/pinned;
+    # Update conda
     conda update -q conda;
 
-    # Installing conda-build and jinja2 to do build tests
+    # Installing conda-build to do build tests
     if [ "$USE_CONDA" = true ]; then
-        conda install jinja2;
         conda install conda-build;
         conda create -q -n test-environment python=$PY_VERSION;
     fi
 
-    # Test environments for different Qt bindings
+    # Add our own channel for PyQt5 tests
     if [ "$USE_QT_API" = "PyQt5" ]; then
         conda config --add channels spyder-ide;
     fi
