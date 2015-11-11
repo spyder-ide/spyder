@@ -45,7 +45,13 @@ for /r "%SPYDERLIB%" %%f in (*.py) do (
     ) else if not "!file:utils\inspector=!"=="!file!" (
         echo --- NOT testing %%f ---
         echo.
+    ) else if "%%f"=="%SPYDERLIB%\utils\bsdsocket.py" (
+        echo --- NOT testing %%f ---
+        echo.
     ) else if "%%f"=="%SPYDERLIB%\utils\introspection\__init__.py" (
+        echo --- NOT testing %%f ---
+        echo.
+    ) else if "%%f"=="%SPYDERLIB%\utils\introspection\module_completion.py" (
         echo --- NOT testing %%f ---
         echo.
     ) else if "%%f"=="%SPYDERLIB%\widgets\externalshell\systemshell.py" (

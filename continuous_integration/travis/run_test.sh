@@ -26,7 +26,7 @@ if [ "$USE_CONDA" = true ] ; then
     cd ~/tmp
 
     # Install and run the package
-    conda install ~/miniconda/conda-bld/linux-64/spyder-*.tar.bz2
+    conda install --use-local spyder==3.0.0b1
 
     # Install extra packages
     conda install -q $EXTRA_PACKAGES
