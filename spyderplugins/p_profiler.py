@@ -120,7 +120,8 @@ class Profiler(ProfilerWidget, SpyderPluginMixin):
     #------ Public API ---------------------------------------------------------        
     def run_profiler(self):
         """Run profiler"""
-        self.analyze(self.main.editor.get_current_filename())
+        if self.main.editor.save():
+            self.analyze(self.main.editor.get_current_filename())
 
     def analyze(self, filename):
         """Reimplement analyze method"""
