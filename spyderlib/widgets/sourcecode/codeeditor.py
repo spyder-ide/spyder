@@ -2603,6 +2603,8 @@ class CodeEditor(TextEditBaseWidget):
             self.hide_completion_widget()
             if self.close_parentheses_enabled:
                 self.handle_close_parentheses(text)
+            else:
+                self.insert_text(text)
         elif text in ('[', '{') and not self.has_selected_text() \
           and self.close_parentheses_enabled:
             s_trailing_text = self.get_text('cursor', 'eol').strip()
