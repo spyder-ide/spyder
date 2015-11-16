@@ -113,6 +113,9 @@ class DataFrameModel(QAbstractTableModel):
 
     def max_min_col_update(self):
         """Determines the maximum and minimum number in each column"""
+        # If there are no rows to compute max/min then return
+        if self.df.shape[0] == 0:
+            return
         max_r = self.df.max(numeric_only=True)
         min_r = self.df.min(numeric_only=True)
         self.max_min_col = list(zip(max_r, min_r))
