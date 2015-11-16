@@ -207,6 +207,7 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
                     workdir = "."
         self.chdir(workdir)
         self.pathedit.addItems( wdhistory )
+        self.pathedit.selected_text = self.pathedit.currentText()
         self.refresh_plugin()
         self.addWidget(self.pathedit)
         
