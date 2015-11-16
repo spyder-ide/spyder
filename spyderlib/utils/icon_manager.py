@@ -1,8 +1,16 @@
+# -*- coding: utf-8 -*-
+#
+# Copyright © 2009- The Spyder Development Team
+# Licensed under the terms of the MIT License
+# (see spyderlib/__init__.py for details)
 import os
-from spyderlib.external import qtawesome as qta
+
+from spyderlib.qt.QtGui import QIcon, QWidget, QStyle
+
 from spyderlib.config.base import get_image_path
 from spyderlib.config.main import CONF
-from spyderlib.qt.QtGui import QIcon, QWidget, QStyle
+from spyderlib.external import qtawesome as qta
+from spyderlib.utils.external.path import Path
 
 
 _resource = {
@@ -147,7 +155,6 @@ _qtaargs = {
     'kill':                    [('fa.warning',), {}],
     'reload':                  [('fa.repeat',), {}],
     'auto_reload':             [('fa.repeat', 'fa.clock-o'), {'options': [{'scale_factor': 0.75, 'offset': (-0.1, -0.1)}, {'scale_factor': 0.5, 'offset': (0.25, 0.25)}]}],
-    'profiler':                [('fa.clock-o',), {}],
     'fileimport':              [('fa.download',), {}],
     'environ':                 [('fa.th-list',), {}],
     'options_less':            [('fa.minus-square',), {}],
@@ -181,10 +188,18 @@ _qtaargs = {
     '1uparrow':                [('fa.angle-up',), {}],
     '2downarrow':              [('fa.angle-double-down',), {}],
     '1downarrow':              [('fa.angle-down',), {}],    
-    'pylint':                  [('fa.search', 'fa.check'), {'options': [{}, {'offset': (0.125, 0.125), 'color': 'orange'}]}],
     'attribute':               [('spyder.circle-letter-a',), {'color': 'magenta'}],
     'module':                  [('spyder.circle-letter-m',), {'color': '#daa520'}],
     'no_match':                [('fa.circle',), {'color': 'gray'}],
+    'no_match':                [('fa.circle',), {'color': 'gray'}],
+    # --- Third party plugins ------------------------------------------------
+    'profiler':                [('fa.clock-o',), {}],
+    'pylint':                  [('fa.search', 'fa.check'), {'options': [{}, {'offset': (0.125, 0.125), 'color': 'orange'}]}],
+    'condapackages':           [('fa.archive',), {}],
+    'spyder.example':          [('fa.eye',), {}],
+    'spyder.autopep8':         [('fa.eye',), {}],
+    'spyder.memory_profiler':  [('fa.eye',), {}],
+    'spyder.line_profiler':    [('fa.eye',), {}],
 }
 
 
@@ -224,19 +239,24 @@ def get_icon(name, default=None, resample=False):
         icon0 = QIcon()
         for size in (16, 24, 32, 48, 96, 128, 256, 512):
             icon0.addPixmap(icon.pixmap(size, size))
-        return icon0 
+        return icon0
     else:
         return icon
 
-def icon(name, resample=False):
-    theme =  CONF.get('main', 'icon_theme')
+
+def icon(name, resample=False, icon_path=None):
+    theme = CONF.get('main', 'icon_theme')
     if theme == 'spyder 3':
         if not _resource['loaded']:
-            qta.load_font('spyder', 'spyder.ttf', 'spyder-charmap.json', directory=_resource['directory'])
+            qta.load_font('spyder', 'spyder.ttf', 'spyder-charmap.json',
+                          directory=_resource['directory'])
             _resource['loaded'] = True
         args, kwargs = _qtaargs[name]
         return qta.icon(*args, **kwargs)
     elif theme == 'spyder 2':
         icon = get_icon(name + '.png', resample=resample)
+        if icon_path:
+            icon_path = Path(icon_path) / (name + '.png')
+            if icon_path.isfile():
+                icon = QIcon(icon_path)
         return icon if icon is not None else QIcon()
-    

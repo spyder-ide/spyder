@@ -108,7 +108,7 @@ def get_packages():
                 dstdir = osp.join(LIBNAME, 'utils', 'external', name)
                 shutil.copytree(srcdir, dstdir)
                 atexit.register(shutil.rmtree, osp.abspath(dstdir))
-    packages = get_subpackages(LIBNAME)+get_subpackages('spyderplugins')
+    packages = get_subpackages(LIBNAME) + get_subpackages('spyplugins')
     return packages
 
 
@@ -173,7 +173,7 @@ try:
             sys.path.insert(0, os.path.abspath(build.build_lib))
             dirname = self.distribution.get_command_obj('build').build_purelib
             self.builder_target_dir = osp.join(dirname, 'spyderlib', 'doc')
-            
+
             if not osp.exists(self.builder_target_dir):
                 os.mkdir(self.builder_target_dir)
 
@@ -189,7 +189,7 @@ try:
                       "location (path with *only* ASCII characters).",
                       file=sys.stderr)
             sys.path.pop(0)
-            
+
             # Building chm doc, if HTML Help Workshop is installed
             if hhc_exe is not None:
                 fname = osp.join(self.builder_target_dir, 'Spyderdoc.chm')
@@ -260,11 +260,11 @@ setup_args = dict(name=NAME,
       version=__version__,
       description='Scientific PYthon Development EnviRonment',
       long_description=WININST_MSG + \
-"""Spyder is an interactive Python development environment providing 
+"""Spyder is an interactive Python development environment providing
 MATLAB-like features in a simple and light-weighted software.
-It also provides ready-to-use pure-Python widgets to your PyQt4 or 
-PySide application: source code editor with syntax highlighting and 
-code introspection/analysis features, NumPy array editor, dictionary 
+It also provides ready-to-use pure-Python widgets to your PyQt4 or
+PySide application: source code editor with syntax highlighting and
+code introspection/analysis features, NumPy array editor, dictionary
 editor, Python console, etc.""",
       download_url='%s/files/%s-%s.zip' % (__project_url__, NAME, __version__),
       author="Pierre Raybaut",
@@ -274,8 +274,8 @@ editor, Python console, etc.""",
       platforms=['any'],
       packages=get_packages(),
       package_data={LIBNAME: get_package_data(LIBNAME, EXTLIST),
-                    'spyderplugins':
-                    get_package_data('spyderplugins', EXTLIST)},
+                    'spyplugins': get_package_data('spyplugins', EXTLIST),
+                    },
       scripts=[osp.join('scripts', fname) for fname in SCRIPTS],
       data_files=get_data_files(),
       options={"bdist_wininst":

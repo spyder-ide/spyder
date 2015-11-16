@@ -18,22 +18,26 @@ These plugins inherit the following classes
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-# Qt imports
+# Standard library imports
+import inspect
+import os
+
+# Third party imports
 from spyderlib.qt import PYQT5
+from spyderlib.qt.QtCore import Qt, Signal, QObject, QEvent, QPoint
 from spyderlib.qt.QtGui import (QDockWidget, QWidget, QShortcut, QCursor,
                                 QKeySequence, QMainWindow, QApplication,
                                 QTabBar)
-from spyderlib.qt.QtCore import Qt, Signal, QObject, QEvent, QPoint
-import spyderlib.utils.icon_manager as ima
 
 # Local imports
-from spyderlib.utils.qthelpers import toggle_actions, get_icon, create_action
+from spyderlib.utils.qthelpers import create_action, toggle_actions
 from spyderlib.config.base import _
+from spyderlib.config.gui import get_font, set_font
 from spyderlib.config.main import CONF
 from spyderlib.config.user import NoDefault
-from spyderlib.config.gui import get_font, set_font
 from spyderlib.plugins.configdialog import SpyderConfigPage
 from spyderlib.py3compat import configparser, is_text_string
+from spyderlib.utils import icon_manager as ima
 
 
 class PluginConfigPage(SpyderConfigPage):
@@ -251,6 +255,7 @@ class SpyderPluginMixin(object):
     """
     CONF_SECTION = None
     CONFIGWIDGET_CLASS = None
+    IMG_PATH = 'images'
     ALLOWED_AREAS = Qt.AllDockWidgetAreas
     LOCATION = Qt.LeftDockWidgetArea
     FEATURES = QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetFloatable
@@ -265,6 +270,7 @@ class SpyderPluginMixin(object):
         """Bind widget to a QMainWindow instance"""
         super(SpyderPluginMixin, self).__init__(**kwds)
         assert self.CONF_SECTION is not None
+        self.PLUGIN_PATH = os.path.dirname(inspect.getfile(self.__class__))
         self.main = main
         self.default_margins = None
         self.plugin_actions = None
@@ -372,9 +378,9 @@ class SpyderPluginMixin(object):
         """
         self.mainwindow = mainwindow = QMainWindow()
         mainwindow.setAttribute(Qt.WA_DeleteOnClose)
-        icon = self.get_widget_icon()
+        icon = self.get_plugin_icon()
         if is_text_string(icon):
-            icon = get_icon(icon)
+            icon = self.get_icon(icon)
         mainwindow.setWindowIcon(icon)
         mainwindow.setWindowTitle(self.get_plugin_title())
         mainwindow.setCentralWidget(self)
