@@ -28,11 +28,10 @@ class FakeObject(object):
 
 #----Numpy arrays support
 try:
-    from numpy import ndarray
-    from numpy import array, matrix #@UnusedImport (object eval)
+    from numpy import ndarray, array, matrix, recarray
     from numpy.ma import MaskedArray
 except ImportError:
-    ndarray = array = matrix = MaskedArray = FakeObject  # analysis:ignore
+    ndarray = array = matrix = recarray = MaskedArray = FakeObject  # analysis:ignore
 
 
 def get_numpy_dtype(obj):
@@ -172,6 +171,9 @@ def unsorted_unique(lista):
 #----Display <--> Value
 def value_to_display(value, truncate=False, trunc_len=80, minmax=False):
     """Convert value for display purpose"""
+    if isinstance(value, recarray):
+        fields = value.names
+        return 'Field names: ' + ', '.join(fields)
     if minmax and isinstance(value, (ndarray, MaskedArray)):
         if value.size == 0:
             return repr(value)
