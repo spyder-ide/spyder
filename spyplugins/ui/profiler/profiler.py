@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 #
-# Copyright © 2011 Santiago Jaramillo
+# Copyright © 2009- The Spyder Development Team
 # based on p_pylint.py by Pierre Raybaut
 #
 # Licensed under the terms of the MIT License
@@ -98,9 +98,9 @@ class Profiler(ProfilerWidget, SpyderPluginMixin):
         self.edit_goto.connect(self.main.editor.load)
         self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
         self.main.add_dockwidget(self)
-        
+
         profiler_act = create_action(self, _("Profile"),
-                                     icon=ima.icon('profiler'),
+                                     icon=self.get_plugin_icon(),
                                      triggered=self.run_profiler)
         profiler_act.setEnabled(is_profiler_installed())
         self.register_shortcut(profiler_act, context="Profiler",

@@ -73,11 +73,15 @@ for /r "%SPYDERLIB%" %%f in (*.py) do (
     )
 )
 
-REM Spyderplugins
-for /r "%APPVEYOR_BUILD_FOLDER%\spyderplugins\widgets" %%f in (*.py) do (
-    echo --- Testing %%f ---
-    python "%%f" || exit 1
-    echo.
+REM Spyplugins
+for /r "%APPVEYOR_BUILD_FOLDER%\spyplugins" %%f in (*.py) do (
+    set file=%%f
+
+    if not "!file:widgets\=!"=="!file!" (    
+        echo --- Testing %%f ---
+        python "%%f" || exit 1
+        echo.
+    )
 )
 
 endlocal
