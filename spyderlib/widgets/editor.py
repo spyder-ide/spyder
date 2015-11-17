@@ -2310,9 +2310,9 @@ def test():
     test.resize(900, 700)
     test.show()
     import time
-    t0 = time.time()
-    test.load(__file__)
     cur_dir = osp.dirname(osp.abspath(__file__))
+    t0 = time.time()
+    test.load(osp.join(cur_dir, "editor.py"))
     test.load(osp.join(cur_dir, "explorer.py"))
     test.load(osp.join(cur_dir, "variableexplorer", "collectionseditor.py"))
     test.load(osp.join(cur_dir, "sourcecode", "codeeditor.py"))
