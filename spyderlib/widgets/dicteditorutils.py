@@ -173,20 +173,22 @@ def value_to_display(value, truncate=False, trunc_len=80, minmax=False):
     """Convert value for display purpose"""
     if isinstance(value, recarray):
         fields = value.names
-        return 'Field names: ' + ', '.join(fields)
-    if minmax and isinstance(value, (ndarray, MaskedArray)):
+        display = 'Field names: ' + ', '.join(fields)
+    elif minmax and isinstance(value, (ndarray, MaskedArray)):
         if value.size == 0:
-            return repr(value)
+            display = repr(value)
         try:
-            return 'Min: %r\nMax: %r' % (value.min(), value.max())
+            display = 'Min: %r\nMax: %r' % (value.min(), value.max())
         except TypeError:
             pass
         except ValueError:
             # Happens when one of the array cell contains a sequence
             pass
-    if isinstance(value, Image):
-        return '%s  Mode: %s' % (address(value), value.mode)
-    if isinstance(value, DataFrame):
+    elif isinstance(value, (list, tuple, dict, set)):
+        display = CollectionsRepr.repr(value)
+    elif isinstance(value, Image):
+        display = '%s  Mode: %s' % (address(value), value.mode)
+    elif isinstance(value, DataFrame):
         cols = value.columns
         if PY2 and len(cols) > 0:
             # Get rid of possible BOM utf-8 data present at the
@@ -201,23 +203,24 @@ def value_to_display(value, truncate=False, trunc_len=80, minmax=False):
             cols = [ini_col] + [to_text_string(c) for c in cols[1:]]
         else:
             cols = [to_text_string(c) for c in cols]
-        return 'Column names: ' + ', '.join(list(cols))
-    if isinstance(value, NavigableString):
+        display = 'Column names: ' + ', '.join(list(cols))
+    elif isinstance(value, NavigableString):
         # Fixes Issue 2448
-        return to_text_string(value)
-    if is_binary_string(value):
+        display = to_text_string(value)
+    elif is_binary_string(value):
         try:
-            value = to_text_string(value, 'utf8')
+            display = to_text_string(value, 'utf8')
         except:
             pass
-    if not is_text_string(value):
-        if isinstance(value, (list, tuple, dict, set)):
-            value = CollectionsRepr.repr(value)
-        else:
-            value = repr(value)
-    if truncate and len(value) > trunc_len:
-        value = value[:trunc_len].rstrip() + ' ...'
-    return value
+    elif is_text_string(value):
+        display = value
+    else:
+        display = repr(value)
+        if truncate and len(display) > trunc_len:
+            display = display[:trunc_len].rstrip() + ' ...'
+
+    return display
+
 
 def try_to_eval(value):
     """Try to eval value"""
