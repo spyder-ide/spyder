@@ -29,7 +29,7 @@ from spyderlib.py3compat import io, is_text_string, to_text_string, PY2
 from spyderlib.utils import encoding
 from spyderlib.widgets.arrayeditor import get_idx_rect
 
-from pandas import DataFrame, TimeSeries
+from pandas import DataFrame, Series
 import numpy as np
 
 # Supported Numbers and complex numbers
@@ -362,7 +362,7 @@ class DataFrameModel(QAbstractTableModel):
 
     def columnCount(self, index=QModelIndex()):
         """DataFrame column number"""
-        # This is done to implement timeseries
+        # This is done to implement series
         if len(self.df.shape) == 1:
             return 2
         elif self.total_cols <= self.cols_loaded:
@@ -472,7 +472,7 @@ class DataFrameEditor(QDialog):
         # (e.g. the editor's analysis thread in Spyder), thus leading to
         # a segmentation fault on UNIX or an application crash on Windows
         self.setAttribute(Qt.WA_DeleteOnClose)
-        self.is_time_series = False
+        self.is_series = False
         self.layout = None
 
     def setup_and_check(self, data, title=''):
@@ -487,8 +487,8 @@ class DataFrameEditor(QDialog):
             title = to_text_string(title) + " - %s" % data.__class__.__name__
         else:
             title = _("%s editor") % data.__class__.__name__
-        if isinstance(data, TimeSeries):
-            self.is_time_series = True
+        if isinstance(data, Series):
+            self.is_series = True
             data = data.to_frame()
 
         self.setWindowTitle(title)
@@ -521,7 +521,7 @@ class DataFrameEditor(QDialog):
 
         self.bgcolor_global = QCheckBox(_('Column min/max'))
         self.bgcolor_global.setChecked(self.dataModel.colum_avg_enabled)
-        self.bgcolor_global.setEnabled(not self.is_time_series and
+        self.bgcolor_global.setEnabled(not self.is_series and
                                        self.dataModel.bgcolor_enabled)
         self.connect(self.bgcolor_global, SIGNAL("stateChanged(int)"),
                      self.dataModel.colum_avg)
@@ -542,7 +542,7 @@ class DataFrameEditor(QDialog):
         This is implementet so column min/max is only active when bgcolor is
         """
         self.dataModel.bgcolor(state)
-        self.bgcolor_global.setEnabled(not self.is_time_series and state > 0)
+        self.bgcolor_global.setEnabled(not self.is_series and state > 0)
 
     def change_format(self):
         """Change display format"""
@@ -565,7 +565,7 @@ class DataFrameEditor(QDialog):
         # It is import to avoid accessing Qt C++ object as it has probably
         # already been destroyed, due to the Qt.WA_DeleteOnClose attribute
         df = self.dataModel.get_data()
-        if self.is_time_series:
+        if self.is_series:
             return df.iloc[:, 0]
         else:
             return df
@@ -614,7 +614,7 @@ def test():
     df1.sort(columns=[0, 1], inplace=True)
     out = test_edit(df1)
     print("out:", out)
-    out = test_edit(TimeSeries(np.arange(10)))
+    out = test_edit(Series(np.arange(10)))
     print("out:", out)
     return out
 

@@ -60,9 +60,9 @@ dependencies.add('pandas',  _("View and edit DataFrames and Series in the "
                               "Variable Explorer"),
                  required_version=PANDAS_REQVER)
 if programs.is_module_installed('pandas', PANDAS_REQVER):
-    from pandas import DataFrame, TimeSeries
+    from pandas import DataFrame, Series
 else:
-    DataFrame = TimeSeries = FakeObject      # analysis:ignore
+    DataFrame = Series = FakeObject      # analysis:ignore
 
 
 #----PIL Images support
@@ -126,7 +126,7 @@ COLORS = {
            MaskedArray,
            matrix,
            DataFrame,
-           TimeSeries):       ARRAY_COLOR,
+           Series):           ARRAY_COLOR,
           Image:              "#008000",
           datetime.date:      "#808000",
           }
@@ -234,7 +234,7 @@ def get_size(item):
         return item.shape
     elif isinstance(item, Image):
         return item.size
-    if isinstance(item, (DataFrame, TimeSeries)):
+    if isinstance(item, (DataFrame, Series)):
         return item.shape
     else:
         return 1
@@ -243,8 +243,8 @@ def get_type_string(item):
     """Return type string of an object"""
     if isinstance(item, DataFrame):
         return "DataFrame"
-    if isinstance(item, TimeSeries):
-        return "TimeSeries"    
+    if isinstance(item, Series):
+        return "Series"
     found = re.findall(r"<(?:type|class) '(\S*)'>", str(type(item)))
     if found:
         return found[0]
