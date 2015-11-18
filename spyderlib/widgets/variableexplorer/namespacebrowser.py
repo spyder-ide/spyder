@@ -397,8 +397,8 @@ class NamespaceBrowser(QWidget):
     def is_series(self, name):
         """Return True if variable is a Series"""
         return communicate(self._get_sock(),
-             "isinstance(globals()['%s'], Series)" % name)  
-    
+             "isinstance(globals()['%s'], Series)" % name)
+
     def get_array_shape(self, name):
         """Return array's shape"""
         return communicate(self._get_sock(), "%s.shape" % name)

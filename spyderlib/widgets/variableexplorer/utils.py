@@ -336,7 +336,7 @@ def get_type_string(item):
     if isinstance(item, DataFrame):
         return "DataFrame"
     if isinstance(item, Series):
-        return "Series"    
+        return "Series"
     found = re.findall(r"<(?:type|class) '(\S*)'>", str(type(item)))
     if found:
         return found[0]
