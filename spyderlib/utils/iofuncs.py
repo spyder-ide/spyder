@@ -259,7 +259,7 @@ def load_pickle(filename):
     """Load a pickle file as a dictionary"""
     try:
         if pd:
-            return pd.read_pickle(data), None
+            return pd.read_pickle(filename), None
         else:
             with open(filename, 'rb') as fid:
                 data = pickle.load(fid)
