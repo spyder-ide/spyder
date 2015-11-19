@@ -164,26 +164,35 @@ try:
     except AttributeError:
         # Python 2.5: warnings.catch_warnings was introduced in Python 2.6
         import scipy.io as spio  # analysis:ignore
-    def load_matlab(filename):
-        try:
-            out = spio.loadmat(filename)
-            for key, value in list(out.items()):
-                out[key] = get_matlab_value(value)
-            return out, None
-        except Exception as error:
-            return None, str(error)
-    def save_matlab(data, filename):
-        try:
-            spio.savemat(filename, data, oned_as='row')
-        except Exception as error:
-            return str(error)
-except ImportError:
+    except:
+        spio = None
+
+    if spio is None:
+        load_matlab = None
+        save_matlab = None
+    else:
+        def load_matlab(filename):
+            try:
+                out = spio.loadmat(filename)
+                for key, value in list(out.items()):
+                    out[key] = get_matlab_value(value)
+                return out, None
+            except Exception as error:
+                return None, str(error)
+
+        def save_matlab(data, filename):
+            try:
+                spio.savemat(filename, data, oned_as='row')
+            except Exception as error:
+                return str(error)
+except:
     load_matlab = None
     save_matlab = None
 
 
 try:
     import numpy as np  # analysis:ignore
+
     def load_array(filename):
         try:
             name = osp.splitext(osp.basename(filename))[0]
@@ -194,17 +203,19 @@ try:
                 return {name: data}, None
         except Exception as error:
             return None, str(error)
+
     def __save_array(data, basename, index):
         """Save numpy array"""
         fname = basename + '_%04d.npy' % index
         np.save(fname, data)
         return fname
-except ImportError:
+except:
     load_array = None
 
 
 try:
     from spyderlib.pil_patch import Image
+
     if sys.byteorder == 'little':
         _ENDIAN = '<'
     else:
@@ -233,13 +244,14 @@ try:
         if extra is not None:
             shape += (extra,)
         return np.array(img.getdata(), dtype=np.dtype(dtype)).reshape(shape)
+
     def load_image(filename):
         try:
             name = osp.splitext(osp.basename(filename))[0]
             return {name: __image_to_array(filename)}, None
         except Exception as error:
             return None, str(error)
-except ImportError:
+except:
     load_image = None
 
 
@@ -316,6 +328,7 @@ def save_dictionary(data, filename):
     os.chdir(old_cwd)
     return error_message
 
+
 def load_dictionary(filename):
     """Load dictionary from .spydata file"""
     filename = osp.abspath(filename)
@@ -379,6 +392,7 @@ def reset_session():
             continue
         print("removing:", cfg_fname, file=STDERR)
 
+
 def save_session(filename):
     """Save Spyder session"""
     local_fname = get_conf_path(osp.basename(filename))
@@ -397,6 +411,7 @@ def save_session(filename):
         error_message = to_text_string(error)
     os.chdir(old_cwd)
     return error_message
+
 
 def load_session(filename):
     """Load Spyder session"""
