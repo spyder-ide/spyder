@@ -1,3 +1,5 @@
+conda info
+
 cd %APPVEYOR_BUILD_FOLDER%
 python setup.py sdist
 if errorlevel 1 exit 1

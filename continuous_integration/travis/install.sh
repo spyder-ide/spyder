@@ -49,6 +49,7 @@ install_conda()
 
     # Installing conda-build to do build tests
     if [ "$USE_CONDA" = true ]; then
+        echo 'conda-build ==1.18.1' > $HOME/miniconda/conda-meta/pinned;
         conda install conda-build;
         conda create -q -n test-environment python=$PY_VERSION;
     fi
