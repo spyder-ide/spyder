@@ -19,6 +19,9 @@ import traceback
 import shlex
 
 
+PY2 = sys.version[0] == '2'
+
+
 #==============================================================================
 # sys.argv can be missing when Python is embedded, taking care of it.
 # Fixes Issue 1473 and other crazy crashes with IPython 0.13 trying to
@@ -198,6 +201,17 @@ try:
     import sitecustomize  #analysis:ignore
 except ImportError:
     pass
+
+
+#==============================================================================
+# Add default filesystem encoding on Linux to avoid an error with
+# Matplotlib 1.5 in Python 2 (Fixes Issue 2793) 
+#==============================================================================
+if PY2 and sys.platform.startswith('linux'):
+    def _getfilesystemencoding_wrapper():
+        return 'utf-8'
+
+    sys.getfilesystemencoding = _getfilesystemencoding_wrapper
 
 
 #==============================================================================
