@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
-"POT-Creation-Date: 2015-10-04 10:37+COT\n"
+"POT-Creation-Date: 2015-11-24 20:56+COT\n"
 "PO-Revision-Date: 2015-08-24 15:13-0500\n"
 "Last-Translator: Carlos Cordoba <ccordoba12@gmail.com>\n"
 "Language-Team: Python\n"
@@ -66,7 +66,7 @@ msgstr "Archivos Patch y diff"
 msgid "Batch files"
 msgstr "Archivos Batch"
 
-#: spyderlib/config.py:41 spyderlib/utils/iofuncs.py:499
+#: spyderlib/config.py:41 spyderlib/utils/iofuncs.py:514
 msgid "Text files"
 msgstr "Archivos de Texto"
 
@@ -1246,7 +1246,7 @@ msgstr ""
 #: spyderlib/plugins/externalconsole.py:114
 #: spyderlib/plugins/ipythonconsole.py:188
 #: spyderlib/widgets/arrayeditor.py:460
-#: spyderlib/widgets/dataframeeditor.py:512
+#: spyderlib/widgets/dataframeeditor.py:515
 msgid "Background color"
 msgstr "Color de fondo"
 
@@ -2717,7 +2717,7 @@ msgid "Redo"
 msgstr "Rehacer"
 
 #: spyderlib/spyder.py:523 spyderlib/widgets/arrayeditor.py:392
-#: spyderlib/widgets/dataframeeditor.py:415
+#: spyderlib/widgets/dataframeeditor.py:418
 #: spyderlib/widgets/dicteditor.py:674 spyderlib/widgets/shell.py:118
 #: spyderlib/widgets/sourcecode/codeeditor.py:2277
 msgid "Copy"
@@ -3122,59 +3122,59 @@ msgstr "(Experimental) Completado del código y ayuda en el Editor"
 msgid "Editor's code completion, go-to-definition and help"
 msgstr "Completado del código y ayuda en el Editor"
 
-#: spyderlib/utils/iofuncs.py:481
+#: spyderlib/utils/iofuncs.py:496
 msgid "Supported files"
 msgstr "Archivos soportados"
 
-#: spyderlib/utils/iofuncs.py:483
+#: spyderlib/utils/iofuncs.py:498
 msgid "All files (*.*)"
 msgstr "Todos los archivos (*.*)"
 
-#: spyderlib/utils/iofuncs.py:493
+#: spyderlib/utils/iofuncs.py:508
 msgid "Spyder data files"
 msgstr "Archivos de datos de Spyder"
 
-#: spyderlib/utils/iofuncs.py:495 spyderlib/widgets/dicteditor.py:1041
+#: spyderlib/utils/iofuncs.py:510 spyderlib/widgets/dicteditor.py:1041
 msgid "NumPy arrays"
 msgstr "Arreglos de NumPy"
 
-#: spyderlib/utils/iofuncs.py:496
+#: spyderlib/utils/iofuncs.py:511
 msgid "NumPy zip arrays"
 msgstr "Arreglos comprimidos de NumPy"
 
-#: spyderlib/utils/iofuncs.py:497
+#: spyderlib/utils/iofuncs.py:512
 msgid "Matlab files"
 msgstr "Archivos de Matlab"
 
-#: spyderlib/utils/iofuncs.py:498
+#: spyderlib/utils/iofuncs.py:513
 msgid "CSV text files"
 msgstr "Archivos de texto CSV"
 
-#: spyderlib/utils/iofuncs.py:500
+#: spyderlib/utils/iofuncs.py:515
 msgid "JPEG images"
 msgstr "Imágenes JPEG"
 
-#: spyderlib/utils/iofuncs.py:501
+#: spyderlib/utils/iofuncs.py:516
 msgid "PNG images"
 msgstr "Imágenes PNG"
 
-#: spyderlib/utils/iofuncs.py:502
+#: spyderlib/utils/iofuncs.py:517
 msgid "GIF images"
 msgstr "Imágenes GIF"
 
-#: spyderlib/utils/iofuncs.py:503
+#: spyderlib/utils/iofuncs.py:518
 msgid "TIFF images"
 msgstr "Imágenes TIFF"
 
-#: spyderlib/utils/iofuncs.py:504 spyderlib/utils/iofuncs.py:505
+#: spyderlib/utils/iofuncs.py:519 spyderlib/utils/iofuncs.py:520
 msgid "Pickle files"
 msgstr "Archivos pickle"
 
-#: spyderlib/utils/iofuncs.py:506
+#: spyderlib/utils/iofuncs.py:521
 msgid "JSON files"
 msgstr "Archivos JSON"
 
-#: spyderlib/utils/iofuncs.py:525 spyderlib/utils/iofuncs.py:532
+#: spyderlib/utils/iofuncs.py:540 spyderlib/utils/iofuncs.py:547
 msgid "<b>Unsupported file type '%s'</b>"
 msgstr "<b>Tipo de archivo no soportado '%s'</b>"
 
@@ -3183,23 +3183,23 @@ msgid "It was not possible to run this file in an external terminal"
 msgstr "No fue posible ejecutar este archivo en una terminal del sistema"
 
 #: spyderlib/widgets/arrayeditor.py:452 spyderlib/widgets/arrayeditor.py:485
-#: spyderlib/widgets/dataframeeditor.py:504
-#: spyderlib/widgets/dataframeeditor.py:546
+#: spyderlib/widgets/dataframeeditor.py:507
+#: spyderlib/widgets/dataframeeditor.py:549
 msgid "Format"
 msgstr "Formato"
 
 #: spyderlib/widgets/arrayeditor.py:457
-#: spyderlib/widgets/dataframeeditor.py:508
+#: spyderlib/widgets/dataframeeditor.py:511
 msgid "Resize"
 msgstr "Redimensionar"
 
 #: spyderlib/widgets/arrayeditor.py:486
-#: spyderlib/widgets/dataframeeditor.py:547
+#: spyderlib/widgets/dataframeeditor.py:550
 msgid "Float formatting"
 msgstr "Formato de punto flotante"
 
 #: spyderlib/widgets/arrayeditor.py:493
-#: spyderlib/widgets/dataframeeditor.py:555 spyderlib/widgets/explorer.py:578
+#: spyderlib/widgets/dataframeeditor.py:558 spyderlib/widgets/explorer.py:578
 #: spyderlib/widgets/explorer.py:681
 #: spyderlib/widgets/externalshell/pythonshell.py:537
 #: spyderlib/widgets/externalshell/systemshell.py:93
@@ -3207,7 +3207,7 @@ msgid "Error"
 msgstr "Error"
 
 #: spyderlib/widgets/arrayeditor.py:494
-#: spyderlib/widgets/dataframeeditor.py:556
+#: spyderlib/widgets/dataframeeditor.py:559
 msgid "Format (%s) is incorrect"
 msgstr "El formato (%s) es incorrecto"
 
@@ -3338,31 +3338,31 @@ msgstr ""
 "directorio correcta y después\n"
 "presione Enter para validarla"
 
-#: spyderlib/widgets/dataframeeditor.py:420
+#: spyderlib/widgets/dataframeeditor.py:423
 msgid "To bool"
 msgstr "A booleano"
 
-#: spyderlib/widgets/dataframeeditor.py:420
+#: spyderlib/widgets/dataframeeditor.py:423
 msgid "To complex"
 msgstr "A complejo"
 
-#: spyderlib/widgets/dataframeeditor.py:421
+#: spyderlib/widgets/dataframeeditor.py:424
 msgid "To float"
 msgstr "A flotante"
 
-#: spyderlib/widgets/dataframeeditor.py:421
+#: spyderlib/widgets/dataframeeditor.py:424
 msgid "To int"
 msgstr "A entero"
 
-#: spyderlib/widgets/dataframeeditor.py:422
+#: spyderlib/widgets/dataframeeditor.py:425
 msgid "To str"
 msgstr "A cadena"
 
-#: spyderlib/widgets/dataframeeditor.py:486
+#: spyderlib/widgets/dataframeeditor.py:489
 msgid "%s editor"
 msgstr "Editor de %s"
 
-#: spyderlib/widgets/dataframeeditor.py:519
+#: spyderlib/widgets/dataframeeditor.py:522
 msgid "Column min/max"
 msgstr "Min/max de columna"
 
@@ -3565,7 +3565,7 @@ msgstr "Vaciar el portapapeles"
 msgid "Nothing to be imported from clipboard."
 msgstr "No hay nada para importar desde el portapapeles."
 
-#: spyderlib/widgets/dicteditorutils.py:60
+#: spyderlib/widgets/dicteditorutils.py:59
 msgid "View and edit DataFrames and Series in the Variable Explorer"
 msgstr "Ver y editar DataFrames y Series en el Explorador de Variables"
 
