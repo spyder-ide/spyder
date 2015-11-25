@@ -286,7 +286,7 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         mpl_label.setWordWrap(True)
 
         backends = [("Automatic", 0), ("None", 1)]
-        if programs.is_module_installed('_tkinter'):
+        if not os.name == 'nt' and programs.is_module_installed('_tkinter'):
             backends.append( ("Tkinter", 2) )
         if sys.platform == 'darwin':
             backends.append( ("Mac OSX", 3) )
