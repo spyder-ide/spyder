@@ -380,45 +380,48 @@ if matplotlib is not None:
     if mpl_ion.lower() == "true":
         matplotlib.rcParams['interactive'] = True
 
-    if not IS_IPYTHON and mpl_backend:
-        import ctypes
+    if not IS_IPYTHON:
         from spyderlib.widgets.externalshell import inputhooks
+        if mpl_backend:
+            import ctypes
 
-        # Grab QT_API
-        qt_api = os.environ["QT_API"]
+            # Grab QT_API
+            qt_api = os.environ["QT_API"]
 
-        # Setting the user defined backend
-        if not IS_EXT_INTERPRETER:
-            matplotlib.use(mpl_backend)
+            # Setting the user defined backend
+            if not IS_EXT_INTERPRETER:
+                matplotlib.use(mpl_backend)
 
-        # Setting the right input hook according to mpl_backend,
-        # IMPORTANT NOTE: Don't try to abstract the steps to set a PyOS
-        # input hook callback in a function. It will **crash** the
-        # interpreter!!
-        if (mpl_backend == "Qt4Agg" or mpl_backend == "Qt5Agg") and \
-          os.name == 'nt' and monitor is not None:
-            # Removing PyQt4 input hook which is not working well on
-            # Windows since opening a subprocess does not attach a real
-            # console to it (with keyboard events...)
-            if qt_api == 'pyqt' or qt_api == 'pyqt5':
+            # Setting the right input hook according to mpl_backend,
+            # IMPORTANT NOTE: Don't try to abstract the steps to set a PyOS
+            # input hook callback in a function. It will **crash** the
+            # interpreter!!
+            if (mpl_backend == "Qt4Agg" or mpl_backend == "Qt5Agg") and \
+              os.name == 'nt' and monitor is not None:
+                # Removing PyQt4 input hook which is not working well on
+                # Windows since opening a subprocess does not attach a real
+                # console to it (with keyboard events...)
+                if qt_api == 'pyqt' or qt_api == 'pyqt5':
+                    inputhooks.remove_pyqt_inputhook()
+                # Using our own input hook
+                # NOTE: it's not working correctly for some configurations
+                # (See issue 1831)
+                callback = inputhooks.set_pyft_callback(qt_nt_inputhook)
+                pyos_ih = inputhooks.get_pyos_inputhook()
+                pyos_ih.value = ctypes.cast(callback, ctypes.c_void_p).value
+            elif mpl_backend == "Qt4Agg" and qt_api == 'pyside':
+                # PySide doesn't have an input hook, so we need to install one
+                # to be able to show plots
+                # Note: This only works well for Posix systems
+                callback = inputhooks.set_pyft_callback(inputhooks.qt4)
+                pyos_ih = inputhooks.get_pyos_inputhook()
+                pyos_ih.value = ctypes.cast(callback, ctypes.c_void_p).value
+            elif (mpl_backend != "Qt4Agg" and qt_api == 'pyqt') \
+              or (mpl_backend != "Qt5Agg" and qt_api == 'pyqt5'):
+                # Matplotlib backends install their own input hooks, so we
+                # need to remove the PyQt one to make them work
                 inputhooks.remove_pyqt_inputhook()
-            # Using our own input hook
-            # NOTE: it's not working correctly for some configurations
-            # (See issue 1831)
-            callback = inputhooks.set_pyft_callback(qt_nt_inputhook)
-            pyos_ih = inputhooks.get_pyos_inputhook()
-            pyos_ih.value = ctypes.cast(callback, ctypes.c_void_p).value
-        elif mpl_backend == "Qt4Agg" and qt_api == 'pyside':
-            # PySide doesn't have an input hook, so we need to install one
-            # to be able to show plots
-            # Note: This only works well for Posix systems
-            callback = inputhooks.set_pyft_callback(inputhooks.qt4)
-            pyos_ih = inputhooks.get_pyos_inputhook()
-            pyos_ih.value = ctypes.cast(callback, ctypes.c_void_p).value
-        elif (mpl_backend != "Qt4Agg" and qt_api == 'pyqt') \
-          or (mpl_backend != "Qt5Agg" and qt_api == 'pyqt5'):
-            # Matplotlib backends install their own input hooks, so we
-            # need to remove the PyQt one to make them work
+        else:
             inputhooks.remove_pyqt_inputhook()
 
 
