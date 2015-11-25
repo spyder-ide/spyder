@@ -581,13 +581,11 @@ class ExternalPythonShell(ExternalShellBase):
     def send_to_process(self, text):
         if not self.is_running():
             return
-
         if not is_text_string(text):
             text = to_text_string(text)
-        if (self.mpl_backend == 'Qt4Agg' or self.mpl_backend == 'Qt5Agg') \
-          and os.name == 'nt' and self.introspection_socket is not None:
-            communicate(self.introspection_socket,
-                        "toggle_inputhook_flag(True)")
+        if self.mpl_backend == 0 and os.name == 'nt' and \
+          self.introspection_socket is not None:
+            communicate(self.introspection_socket, "toggle_inputhook_flag(True)")
 #            # Socket-based alternative (see input hook in sitecustomize.py):
 #            while self.local_server.hasPendingConnections():
 #                self.local_server.nextPendingConnection().write('go!')
