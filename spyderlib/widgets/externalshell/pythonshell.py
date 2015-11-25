@@ -467,7 +467,7 @@ class ExternalPythonShell(ExternalShellBase):
         if not self.is_ipykernel:
             env.append('ETS_TOOLKIT=%s' % self.ets_backend)
         if self.mpl_backend is not None:
-            backends = {0: 'Automatic', 1: 'None', 2: 'TkAgg', 3: 'MacOSX'}
+            backends = {0: 'Automatic', 1: 'None', 2: 'TkAgg'}
             env.append('SPY_MPL_BACKEND=%s' % backends[self.mpl_backend])
         if self.qt_api and not self.is_ipykernel:
             env.append('QT_API=%s' % self.qt_api)

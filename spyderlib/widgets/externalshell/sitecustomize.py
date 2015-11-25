@@ -359,10 +359,8 @@ if matplotlib is not None:
             backends = [('PyQt5', 'Qt5Agg', 'pyqt5'),
                         ('PyQt4', 'Qt4Agg', 'pyqt'),
                         ('PySide', 'Qt4Agg', 'pyqt')]
-            if sys.platform == 'darwin':
-                backends.append((None, 'MacOSX', None))
             if not os.name == 'nt':
-                 backends.append(('_tkinter', 'TkAgg', None))
+                 backends.append( ('_tkinter', 'TkAgg', None) )
 
             for b in backends:
                 mpl_backend = set_mpl_backend(b)

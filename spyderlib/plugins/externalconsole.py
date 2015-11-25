@@ -288,8 +288,6 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         backends = [("Automatic", 0), ("None", 1)]
         if not os.name == 'nt' and programs.is_module_installed('_tkinter'):
             backends.append( ("Tkinter", 2) )
-        if sys.platform == 'darwin':
-            backends.append( ("Mac OSX", 3) )
         backends = tuple(backends)
 
         mpl_backend_box = self.create_combobox( _("Backend:")+"   ", backends,
