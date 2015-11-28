@@ -160,8 +160,9 @@ for i in deps:
 IPYDEPS = ['path.py', 'simplegeneric.py', 'decorator.py', 'mistune.py',
            'mistune.so', 'pickleshare.py']
 for dep in IPYDEPS:
-    shutil.copyfile(osp.join(system_python_lib, dep),
-                    osp.join(app_python_lib, dep))
+    if osp.isfile(osp.join(system_python_lib, dep)):
+        shutil.copyfile(osp.join(system_python_lib, dep),
+                        osp.join(app_python_lib, dep))
 
 # Function to adjust the interpreter used by PROGRAMS
 # (to be added to __boot.py__)
