@@ -7,7 +7,7 @@
 * Python and IPython consoles
     * Fix a sitecustomize error when using Matplotlib 1.5 with Python 2 on Linux
 * Variable Explorer
-    * Add support for Pandas Series when using Pamdas 0.17+
+    * Add support for Pandas Series when using Pandas 0.17+
     * Fix a freeze when creating empty DataFrames in Python 2
     * Fix a freeze when working with big Numpy recarray's
 * Under the hood
