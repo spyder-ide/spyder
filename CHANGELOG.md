@@ -1,5 +1,35 @@
 # History of changes
 
+## Version 2.3.8
+
+### New features
+
+* Python and IPython consoles
+    * Fix a sitecustomize error when using Matplotlib 1.5 with Python 2 on Linux
+* Variable Explorer
+    * Add support for Pandas Series when using Pamdas 0.17+
+    * Fix a freeze when creating empty DataFrames in Python 2
+    * Fix a freeze when working with big Numpy recarray's
+* Under the hood
+    * Avoid startup crashes when there are errors importing Numpy, SciPy or Pillow
+
+### Bug fixes
+
+**Issues**
+
+* [Issue 2819](../../issues/2819) - Spyder fails to start because of an error with scipy
+* [Issue 2815](../../issues/2815) - Variable explorer is not recognizing Pandas Series objects
+* [Issue 2793](../../issues/2793) - Connecting to kernel fails because of update to Matplotlib 1.5
+* [Issue 2791](../../issues/2791) - DataFrame with no rows gives error when trying to view it
+* [Issue 2783](../../issues/2783) - Spyder freezes on assigning a fits table data
+* [Issue 2744](../../issues/2744) - Spyder hangs when creating an empty DataFrame on Python 2
+
+In this release they were closed 6 issues
+
+
+----
+
+
 ## Version 2.3.7
 
 ### New features
