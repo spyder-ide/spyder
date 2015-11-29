@@ -10,9 +10,9 @@ from spyderlib.qt.QtGui import QIcon, QWidget, QStyle
 
 from spyderlib.config.base import get_image_path
 from spyderlib.config.main import CONF
-from spyderlib.external import qtawesome as qta
 
 from path import Path
+import qtawesome as qta
 
 
 _resource = {
