@@ -303,7 +303,8 @@ install_requires = [
     'sphinx',
     'pep8',
     'pylint',
-    'psutil'
+    'psutil',
+    'qtawesome'
 ]
 
 if 'setuptools' in sys.modules:
