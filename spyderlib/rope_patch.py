@@ -31,8 +31,9 @@ def apply():
     """Monkey patching rope
 
     See [1], [2], [3], [4] and [5] in module docstring."""
-    import rope
-    if rope.VERSION not in ('0.10.2', '0.9.4-1', '0.9.4'):
+    from spyderlib.utils.programs import is_module_installed
+    if is_module_installed('rope', '<0.9.4'):
+        import rope
         raise ImportError("rope %s can't be patched" % rope.VERSION)
 
     # [1] Patching project.Project for compatibility with py2exe/cx_Freeze

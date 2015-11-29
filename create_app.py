@@ -156,7 +156,7 @@ for i in deps:
         shutil.copy2(osp.join(system_python_lib, i),
                      osp.join(app_python_lib, i))
 
-# Copy path.py for IPython
+# Copy dependencies for IPython/Jupyter
 IPYDEPS = ['path.py', 'simplegeneric.py', 'decorator.py', 'mistune.py',
            'mistune.so', 'pickleshare.py']
 for dep in IPYDEPS:
