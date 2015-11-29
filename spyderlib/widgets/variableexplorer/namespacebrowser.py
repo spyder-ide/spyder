@@ -204,7 +204,7 @@ class NamespaceBrowser(QWidget):
         self.auto_refresh_button.setChecked(autorefresh)
         load_button = create_toolbutton(self, text=_('Import data'),
                                         icon=ima.icon('fileimport'),
-                                        triggered=self.import_data)
+                                        triggered=lambda: self.import_data())
         self.save_button = create_toolbutton(self, text=_("Save data"),
                             icon=ima.icon('filesave'),
                             triggered=lambda: self.save_data(self.filename))
@@ -452,7 +452,6 @@ class NamespaceBrowser(QWidget):
         """Collapse"""
         self.sig_collapse.emit()
 
-    # FIXME: This method raises an error when called from the button in the UI
     @Slot(list)
     def import_data(self, filenames=None):
         """Import data from text file"""
