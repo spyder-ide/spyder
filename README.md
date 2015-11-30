@@ -108,11 +108,13 @@ separately after installing Python.
 
 ## Running from source
 
-The fastest way to run Spyder is to get the source code, install PyQt4, PyQt5
-or PySide, and run:
+The fastest way to run Spyder is to get the source code using git, install
+PyQt4, PyQt5 or PySide, and run these commands:
 
-    python bootstrap.py
-    
+1. `pip install qtawesome` or `conda install -c spyder-ide qtawesome`
+2. `cd /your/spyder/git-clone`
+3. `python bootstrap.py`
+
 You may want to do this for fixing bugs in Spyder, adding new
 features, learning how Spyder works or just getting a taste of it.
 

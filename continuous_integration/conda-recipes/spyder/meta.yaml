@@ -31,7 +31,7 @@ requirements:
     - pep8
     - psutil
     - pylint                 [not win]
-    - six
+    - qtawesome
     - python.app             [osx]
 
 about:

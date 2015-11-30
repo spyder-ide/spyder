@@ -54,8 +54,8 @@ install_conda()
         conda create -q -n test-environment python=$PY_VERSION;
     fi
 
-    # Add our own channel for PyQt5 tests
-    if [ "$USE_QT_API" = "PyQt5" ]; then
+    # Add our own channel for our own packages
+    if [ "$USE_CONDA" = true ]; then
         conda config --add channels spyder-ide;
     fi
 }

@@ -94,20 +94,6 @@ def get_data_files():
 
 def get_packages():
     """Return package list"""
-    if WINDOWS_INSTALLER:
-        # Adding pyflakes and rope to the package if available in the 
-        # repository (this is not conventional but Spyder really need 
-        # those tools and there is not decent package manager on 
-        # Windows platforms, so...)
-        import shutil
-        import atexit
-        extdir = 'external-py' + TARGET_VERSION[0]
-        for name in ('rope', 'pyflakes'):
-            srcdir = osp.join(extdir, name)
-            if osp.isdir(srcdir):
-                dstdir = osp.join(LIBNAME, 'utils', 'external', name)
-                shutil.copytree(srcdir, dstdir)
-                atexit.register(shutil.rmtree, osp.abspath(dstdir))
     packages = get_subpackages(LIBNAME) + get_subpackages('spyplugins')
     return packages
 
@@ -317,7 +303,8 @@ install_requires = [
     'sphinx',
     'pep8',
     'pylint',
-    'psutil'
+    'psutil',
+    'qtawesome'
 ]
 
 if 'setuptools' in sys.modules:

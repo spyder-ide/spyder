@@ -3,14 +3,16 @@
 # Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
+
 import os
 
 from spyderlib.qt.QtGui import QIcon, QWidget, QStyle
 
 from spyderlib.config.base import get_image_path
 from spyderlib.config.main import CONF
-from spyderlib.external import qtawesome as qta
-from spyderlib.utils.external.path import Path
+
+from path import Path
+import qtawesome as qta
 
 
 _resource = {

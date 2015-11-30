@@ -103,11 +103,6 @@ print("Revision %s, Branch: %s" % get_git_revision(DEVPATH))
 sys.path.insert(0, DEVPATH)
 print("01. Patched sys.path with %s" % DEVPATH)
 
-EXTPATH = osp.join(DEVPATH, 'external-py' + sys.version[0])
-if osp.isdir(EXTPATH):
-    sys.path.insert(0, EXTPATH)
-    print("                      and %s" % EXTPATH)
-
 
 # Selecting the GUI toolkit: PyQt5 if installed, otherwise PySide or PyQt4
 # (Note: PyQt4 is still the officially supported GUI toolkit for Spyder)
