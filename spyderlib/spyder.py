@@ -197,7 +197,7 @@ def get_python_doc_path():
         if not osp.isdir(doc_path):
             return
         python_chm = [path for path in os.listdir(doc_path)
-                      if re.match(r"(?i)Python[0-9]{3}.chm", path)]
+                      if re.match(r"(?i)Python[0-9]{3,6}.chm", path)]
         if python_chm:
             return file_uri(osp.join(doc_path, python_chm[0]))
     else:
