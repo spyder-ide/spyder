@@ -63,28 +63,31 @@ def _import_plugin(name, base_namespace, plugin_namespace, namespace_path,
         return
     try:
         # First add a mock module with the LOCALEPATH attribute so that the
-        # helper method can fin the locale on import
+        # helper method can find the locale on import
         mock = _ModuleMock()
         mock.LOCALEPATH = osp.join(namespace_path, name, 'locale')
         sys.modules[module_name] = mock
-
+        module = None
         if PY33:
             loader = importlib.machinery.PathFinder.find_module(
                 name, [namespace_path])
-            module = loader.load_module(name)
+            if loader:
+                module = loader.load_module(name)
         elif PY3:
             spec = importlib.machinery.PathFinder.find_spec(name,
                                                             [namespace_path])
-            module = spec.loader.load_module(name)
+            if spec:
+                module = spec.loader.load_module(name)
         else:
             info = imp.find_module(name, [namespace_path])
-            module = imp.load_module(module_name, *info)
+            if info:
+                module = imp.load_module(module_name, *info)
 
         # Then restore the actual loaded module instead of the mock
-        sys.modules[module_name] = module
-
-        modlist.append(module)
-        modnames.append(module_name)
+        if module:
+            sys.modules[module_name] = module
+            modlist.append(module)
+            modnames.append(module_name)
     except Exception:
         sys.stderr.write("ERROR: 3rd party plugin import failed for "
                          "`{0}`\n".format(module_name))
