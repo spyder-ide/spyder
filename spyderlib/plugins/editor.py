@@ -636,7 +636,14 @@ class Editor(SpyderPluginWidget):
                                name="Open file")
         add_shortcut_to_tooltip(self.open_action, context="Editor",
                                 name="Open file")
-        
+
+        self.file_switcher_action = create_action(self, _('File switcher...'),
+                                            icon=ima.icon('filelist'),
+                                            tip=_('Fast switch between files'),
+                                            triggered=self.call_file_switcher,
+                                            context=Qt.ApplicationShortcut)
+        self.register_shortcut(self.file_switcher_action, "_", "file switcher")
+
         self.revert_action = create_action(self, _("&Revert"),
                 icon=ima.icon('revert'), tip=_("Revert file from disk"),
                 triggered=self.revert)
@@ -946,9 +953,10 @@ class Editor(SpyderPluginWidget):
         self.recent_file_menu.aboutToShow.connect(self.update_recent_file_menu)
 
         file_menu_actions = [self.new_action, self.open_action,
+                             self.file_switcher_action,
                              self.recent_file_menu, self.save_action,
                              self.save_all_action, save_as_action,
-                             self.revert_action, 
+                             self.revert_action,
                              None, print_preview_action, self.print_action,
                              None, self.close_action,
                              self.close_all_action, None]
@@ -1567,7 +1575,11 @@ class Editor(SpyderPluginWidget):
     def edit_template(self):
         """Edit new file template"""
         self.load(self.TEMPLATE_PATH)
-        
+
+    def call_file_switcher(self):
+        if self.editorstacks:
+            self.get_current_editorstack().open_fileswitcher_dlg()
+
     def update_recent_file_menu(self):
         """Update recent file menu"""
         recent_files = []
