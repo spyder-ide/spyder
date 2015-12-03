@@ -373,7 +373,6 @@ class MainWindow(QMainWindow):
         self.copy_action = None
         self.cut_action = None
         self.paste_action = None
-        self.delete_action = None
         self.selectall_action = None
         self.maximize_action = None
         self.fullscreen_action = None
@@ -601,18 +600,14 @@ class MainWindow(QMainWindow):
                                                  ima.icon('editcut'))
             self.paste_action = create_edit_action('Paste', _('Paste'),
                                                    ima.icon('editpaste'))
-            self.delete_action = create_edit_action('Delete', _('Delete'),
-                                                    ima.icon('editdelete'))
-
             self.selectall_action = create_edit_action("Select All",
                                                        _("Select All"),
                                                        ima.icon('selectall'))
 
             self.edit_menu_actions = [self.undo_action, self.redo_action,
                                       None, self.cut_action, self.copy_action,
-                                      self.paste_action, self.delete_action,
-                                      None, self.selectall_action]
-            self.search_menu_actions = [self.find_action, 
+                                      self.paste_action, self.selectall_action]
+            self.search_menu_actions = [self.find_action,
                                         self.find_next_action,
                                         self.find_previous_action,
                                         self.replace_action]
@@ -2033,7 +2028,6 @@ class MainWindow(QMainWindow):
         self.copy_action.setEnabled(has_selection)
         self.cut_action.setEnabled(has_selection and not_readonly)
         self.paste_action.setEnabled(not_readonly)
-        self.delete_action.setEnabled(has_selection and not_readonly)
 
         # Comment, uncomment, indent, unindent...
         if not console and not_readonly:

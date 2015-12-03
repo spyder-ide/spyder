@@ -1481,12 +1481,6 @@ class CodeEditor(TextEditBaseWidget):
         return TextEditBaseWidget.viewportEvent(self, event)
 
     #-----Misc.
-    @Slot()
-    def delete(self):
-        """Remove selected text"""
-        # Used by global callbacks in Spyder -> delete_action
-        self.remove_selected_text()
-
     def _apply_highlighter_color_scheme(self):
         """Apply color scheme from syntax highlighter to the editor"""
         hl = self.highlighter
