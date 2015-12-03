@@ -2447,10 +2447,6 @@ class CodeEditor(TextEditBaseWidget):
         self.paste_action = create_action(self, _("Paste"),
                            shortcut=keybinding('Paste'),
                            icon=ima.icon('editpaste'), triggered=self.paste)
-        self.delete_action = create_action(self, _("Delete"),
-                           shortcut=keybinding('Delete'),
-                           icon=ima.icon('editdelete'),
-                           triggered=self.delete)
         selectall_action = create_action(self, _("Select All"),
                            shortcut=keybinding('SelectAll'),
                            icon=ima.icon('selectall'),
@@ -2483,12 +2479,10 @@ class CodeEditor(TextEditBaseWidget):
                       triggered=lambda: self.zoom_reset.emit())
         self.menu = QMenu(self)
         actions_1 = [self.undo_action, self.redo_action, None, self.cut_action,
-                     self.copy_action, self.paste_action, self.delete_action,
-                     None]
-        actions_2 = [selectall_action, None, zoom_in_action,
-                     zoom_out_action,
-                     zoom_reset_action, None, toggle_comment_action,
-                     None, self.run_selection_action, self.gotodef_action]
+                     self.copy_action, self.paste_action, selectall_action]
+        actions_2 = [None, zoom_in_action, zoom_out_action, zoom_reset_action,
+                     None, toggle_comment_action, None,
+                     self.run_selection_action, self.gotodef_action]
         if nbformat is not None:
             nb_actions = [self.clear_all_output_action,
                           self.ipynb_convert_action, None]
@@ -2758,7 +2752,6 @@ class CodeEditor(TextEditBaseWidget):
         nonempty_selection = self.has_selected_text()
         self.copy_action.setEnabled(nonempty_selection)
         self.cut_action.setEnabled(nonempty_selection)
-        self.delete_action.setEnabled(nonempty_selection)
         self.clear_all_output_action.setVisible(self.is_json() and \
                                                 nbformat is not None)
         self.ipynb_convert_action.setVisible(self.is_json() and \
