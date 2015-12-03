@@ -38,6 +38,8 @@ init_session()
 
 def kernel_config():
     """Create a config object with IPython kernel options"""
+    import os
+
     from IPython.config.loader import Config, load_pyconfig_files
     from IPython.core.application import get_ipython_dir
     from spyderlib.config.main import CONF
@@ -69,13 +71,23 @@ def kernel_config():
     mpl_backend = None
     mpl_installed = is_module_installed('matplotlib')
     pylab_o = CONF.get('ipython_console', 'pylab')
+    external_interpreter = \
+                   os.environ.get('EXTERNAL_INTERPRETER', '').lower() == "true"
 
     if mpl_installed and pylab_o:
         # Get matplotlib backend
-        backend_o = CONF.get('ipython_console', 'pylab/backend', 0)
-        backends = {0: 'inline', 1: 'auto', 2: 'qt', 3: 'osx', 4: 'gtk',
-                    5: 'wx', 6: 'tk'}
-        mpl_backend = backends[backend_o]
+        if not external_interpreter:
+            if os.environ["QT_API"] == 'pyqt5':
+                qt_backend = 'qt5'
+            else:
+                qt_backend = 'qt'
+
+            backend_o = CONF.get('ipython_console', 'pylab/backend', 0)
+            backends = {0: 'inline', 1: qt_backend, 2: qt_backend, 3: 'osx',
+                        4: 'gtk', 5: 'wx', 6: 'tk'}
+            mpl_backend = backends[backend_o]
+        else:
+            mpl_backend = 'inline'
 
         # Automatically load Pylab and Numpy, or only set Matplotlib
         # backend
