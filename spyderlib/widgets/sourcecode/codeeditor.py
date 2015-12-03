@@ -2458,6 +2458,14 @@ class CodeEditor(TextEditBaseWidget):
                                                icon=ima.icon('python'))
         self.gotodef_action = create_action(self, _("Go to definition"),
                                    triggered=self.go_to_definition_from_cursor)
+        self.run_cell_action = create_action(self,
+                        _("Run cell"),
+                        icon=ima.icon('run_cell'),
+                        triggered=lambda: self.run_cell.emit())
+        self.run_cell_and_advance_action = create_action(self,
+                        _("Run cell and advance"),
+                        icon=ima.icon('run_cell'),
+                        triggered=lambda: self.run_cell_and_advance.emit())
         self.run_selection_action = create_action(self,
                         _("Run &selection or current line"),
                         icon=ima.icon('run_selection'),
@@ -2472,11 +2480,12 @@ class CodeEditor(TextEditBaseWidget):
                       QKeySequence("Ctrl+0"),
                       triggered=lambda: self.zoom_reset.emit())
         self.menu = QMenu(self)
-        actions_1 = [self.undo_action, self.redo_action, None, self.cut_action,
+        actions_1 = [self.run_cell_action, self.run_cell_and_advance_action,
+                     self.run_selection_action, self.gotodef_action, None,
+                     self.undo_action, self.redo_action, None, self.cut_action,
                      self.copy_action, self.paste_action, selectall_action]
         actions_2 = [None, zoom_in_action, zoom_out_action, zoom_reset_action,
-                     None, toggle_comment_action, None,
-                     self.run_selection_action, self.gotodef_action]
+                     None, toggle_comment_action]
         if nbformat is not None:
             nb_actions = [self.clear_all_output_action,
                           self.ipynb_convert_action, None]
@@ -2750,6 +2759,8 @@ class CodeEditor(TextEditBaseWidget):
                                                 nbformat is not None)
         self.ipynb_convert_action.setVisible(self.is_json() and \
                                              nbformat is not None)
+        self.run_cell_action.setVisible(self.is_python())
+        self.run_cell_and_advance_action.setVisible(self.is_python())
         self.run_selection_action.setVisible(self.is_python())
         self.gotodef_action.setVisible(self.go_to_definition_enabled \
                                        and self.is_python_like())
