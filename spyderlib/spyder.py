@@ -272,6 +272,8 @@ class MainWindow(QMainWindow):
         QMainWindow.__init__(self)
 
         qapp = QApplication.instance()
+        if PYQT5:
+            qapp.setAttribute(Qt.AA_UseHighDpiPixmaps)
         self.default_style = str(qapp.style().objectName())
 
         self.dialog_manager = DialogManager()
