@@ -4,7 +4,6 @@ package:
 
 build:
   osx_is_app: True
-  noarch_python: True
 
 source:
   git_url: ../
