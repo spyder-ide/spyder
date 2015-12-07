@@ -136,7 +136,7 @@ a Python version greater than 2.7 (Python 3.2 is not supported anymore).
 
 ### Runtime dependencies
 
-* **Python** 2.7, 3.3, 3.4 or 3.5
+* **Python** 2.7 or 3.3+
 * **PyQt4** 4.6+, **PyQt5** 5.2+ or **PySide** 1.2.0+: PyQt4 is recommended.
 * **IPython** 3.0 or **qtconsole**: Enhanced Python interpreter.
 * **Rope** and/or **Jedi** 0.8.1: Editor code completion, calltips
