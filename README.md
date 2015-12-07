@@ -2,8 +2,7 @@
 
 Copyright © 2009- The Spyder Development Team.
 
-Licensed under the terms of the MIT License (see `LICENSE` for details)
-
+[![license](https://img.shields.io/pypi/l/spyder.svg)](./LICENSE)
 [![pypi version](https://img.shields.io/pypi/v/spyder.svg)](https://pypi.python.org/pypi/spyder)
 [![pypi downloads](https://img.shields.io/pypi/dm/spyder.svg)](https://pypi.python.org/pypi/spyder)
 [![Travis status](https://travis-ci.org/spyder-ide/spyder.svg?branch=master)](https://travis-ci.org/spyder-ide/spyder)
