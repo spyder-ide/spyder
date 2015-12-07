@@ -162,7 +162,7 @@ class CallTipWidget(QtGui.QLabel):
             self._hide_timer.stop()
             # Logic to decide how much time to show the calltip depending
             # on the amount of text present
-            if len(wrapped_tiplines) == 1:
+            if len(wrapped_tiplines) == 1 and '(' in wrapped_tiplines[0]:
                 args = wrapped_tiplines[0].split('(')[1]
                 nargs = len(args.split(','))
                 if nargs == 1:
