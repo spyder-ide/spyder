@@ -139,26 +139,26 @@ a Python version greater than 2.7 (Python 3.2 is not supported anymore).
 
 * **Python** 2.7, 3.3, 3.4 or 3.5
 * **PyQt4** 4.6+, **PyQt5** 5.2+ or **PySide** 1.2.0+: PyQt4 is recommended.
-* **IPython** 3.0 or **qtconsole** 4.0+: Enhanced Python interpreter.
-* **Rope** v0.9.4+ and/or **Jedi** 0.8.1: Editor code completion, calltips
+* **IPython** 3.0 or **qtconsole**: Enhanced Python interpreter.
+* **Rope** and/or **Jedi** 0.8.1: Editor code completion, calltips
   and go-to-definition.
-* **Pyflakes** v0.5.0+: Real-time code analysis)
-* **Sphinx** v0.6+: Object Inspector's rich text mode.
-* **Pygments** v1.6+: Syntax highlighting for all file types it supports.
-* **Pylint** v0.25+: Static code analysis.
-* **Pep8** v0.6+: Style analysis.
-* **Psutil** v0.3+: CPU and memory usage on the status bar.
-* **Nbconvert** 4.0+: Manipulation of notebooks in the Editor.
+* **Pyflakes**: Real-time code analysis)
+* **Sphinx**: Object Inspector's rich text mode.
+* **Pygments**: Syntax highlighting for all file types it supports.
+* **Pylint**: Static code analysis.
+* **Pep8**: Style analysis.
+* **Psutil**: CPU and memory usage on the status bar.
+* **Nbconvert**: Manipulation of notebooks in the Editor.
 
 **Note**: To get IPython in Ubuntu you need to install `ipython-qtconsole`,
 on Fedora `ipython-gui` and on Gentoo `ipython` with the `qt4` USE flag.
 
 ### Optional modules
 
-* **Matplotlib** v1.0+: 2D/3D plotting.
-* **Pandas** v0.13.1+: DataFrame and Series support.
-* **Numpy** v1.7+: N-dimensional arrays.
-* **SymPy** v0.7.4+: Symbolic mathematics.
+* **Matplotlib**: 2D/3D plotting.
+* **Pandas**: DataFrame and Series support.
+* **Numpy**: N-dimensional arrays.
+* **SymPy**: Symbolic mathematics.
 
 
 ## More information
