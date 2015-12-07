@@ -4,6 +4,10 @@ Copyright © 2009- The Spyder Development Team.
 
 Licensed under the terms of the MIT License (see `LICENSE` for details)
 
+[![pypi version](https://img.shields.io/pypi/v/spyder.svg)](https://pypi.python.org/pypi/spyder)
+[![pypi downloads](https://img.shields.io/pypi/dm/spyder.svg)](https://pypi.python.org/pypi/spyder)
+[![Travis status](https://travis-ci.org/spyder-ide/spyder.svg?branch=master)](https://travis-ci.org/spyder-ide/spyder)
+[![AppVeyor status](https://ci.appveyor.com/api/projects/status/awb92if4tl555fuy/branch/master?svg=true)](https://ci.appveyor.com/project/ccordoba12/spyder/branch/master)
 
 ## Overview
 
