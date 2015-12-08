@@ -1045,7 +1045,9 @@ class ColorSchemeConfigPage(GeneralConfigPage):
 
     def update_buttons(self):
         """Updates the enable status of delete and reset buttons."""
-        delete_visible = self.current_scheme not in self.get_option("names")
+        current_scheme = self.current_scheme.lower()
+        names = [n.lower() for n in self.get_option("names")]
+        delete_visible = current_scheme not in names
         self.delete_button.setEnabled(delete_visible)
         self.reset_button.setEnabled(not delete_visible)
 
