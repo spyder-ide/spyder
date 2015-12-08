@@ -633,7 +633,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             name, key = item
             if name is None and key is None:
                 combobox.insertSeparator(index + count)
-#                count += 1            
+                count += 1
         self.comboboxes[combobox] = (option, default)
         layout = QHBoxLayout()
         layout.addWidget(label)
@@ -1109,7 +1109,8 @@ class ColorSchemeConfigPage(GeneralConfigPage):
 
         if dlg.exec_():
             self.update_combobox()
-            index = len(names) + custom_names.index(custom_name) - 1 
+            # The +1 is needed because of the separator in the combobox
+            index = (names + custom_names).index(custom_name) + 1
             self.schemes_combo.setCurrentIndex(index)
         else:
             # Delete the config ....
