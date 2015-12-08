@@ -1022,11 +1022,11 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         custom_names = self.get_option("custom_names")  # 'custom-n'
 
         if custom_names:
-            all_choices = names + [None] + sorted(custom_names)
-            scheme_choices = list(zip(all_choices, [a for a in all_choices]))            
+            choices = names + [None] + sorted(custom_names)
+            scheme_choices = list(zip(choices, [a for a in choices]))
         else:
-            all_choices = sorted(names)
-            scheme_choices = list(zip(all_choices, [a.lower() for a in all_choices]))
+            choices = sorted(names)
+            scheme_choices = list(zip(choices, [a.lower() for a in choices]))
 
         combo = self.schemes_combo
         combo.clear()
@@ -1053,17 +1053,14 @@ class ColorSchemeConfigPage(GeneralConfigPage):
 
     def update_preview(self):
         """Update the color scheme of the preview editor and adds text."""
-        text = ['"""',
-                'String',
-                '"""',
-                '',
-                '# A comment',
-                '',
-                '# %% A cell',
-                '',
-                'def myfunc(boo):',
-                '    a = 1 * 5',
-                '    print(s)']
+        text = ('"""A string"""\n\n'
+                '# A comment\n\n'
+                '# %% A cell\n\n'
+                'class Foo(object):\n'
+                '    def __init__(self):\n'
+                '        bar = 42\n'
+                '        print(bar)\n'
+                )
         scheme = self.current_scheme
         self.preview_editor.setup_editor(linenumbers=False,
                                          markers=False,
@@ -1071,7 +1068,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
                                          font=QFont("Courier New", 10),
                                          show_blanks=True,
                                          color_scheme=scheme)
-        self.preview_editor.set_text('\n'.join(text))
+        self.preview_editor.set_text(text)
         self.preview_editor.set_language('Python')
 
     # Actions
@@ -1253,3 +1250,7 @@ class SchemeEditor(QDialog):
         self.stack.removeWidget(widget)
         index = self.order.index(scheme_name)
         self.order.pop(index)
+
+    def update_temp(self):
+        """ """
+        pass
