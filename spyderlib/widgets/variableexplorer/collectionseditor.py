@@ -276,9 +276,12 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         value = self.get_value(index)
         if index.column() == 3 and self.remote:
             value = value['view']
-        display = value_to_display(value,
+        if index.column() == 3:
+            display = value_to_display(value,
                                truncate=index.column() == 3 and self.truncate,
                                minmax=self.minmax)
+        else:
+             display = to_text_string(value)
         if role == Qt.DisplayRole:
             return to_qvariant(display)
         elif role == Qt.EditRole:
