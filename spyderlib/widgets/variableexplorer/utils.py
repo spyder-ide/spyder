@@ -236,6 +236,8 @@ def value_to_display(value, truncate=False, trunc_len=80, minmax=False):
         if isinstance(value, recarray):
             fields = value.names
             display = 'Field names: ' + ', '.join(fields)
+        elif isinstance(value, MaskedArray):
+            display = 'Masked array'
         elif minmax and isinstance(value, (ndarray, MaskedArray)):
             if value.size == 0:
                 display = repr(value)
