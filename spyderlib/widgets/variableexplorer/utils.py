@@ -279,11 +279,16 @@ def value_to_display(value, truncate=False, trunc_len=80, minmax=False):
         elif is_text_string(value):
             display = value
         else:
-            display = repr(value)
+            # Note: Don't trust on repr's. They can be inefficient and
+            # so freeze Spyder quite easily
+            # display = repr(value)
+            type_str = to_text_string(type(value))
+            display = type_str[1:-1]
             if truncate and len(display) > trunc_len:
                 display = display[:trunc_len].rstrip() + ' ...'
     except:
-        display = to_text_string(type(value))
+        type_str = to_text_string(type(value))
+        display = type_str[1:-1]
 
     return display
 
