@@ -28,6 +28,7 @@ from spyderlib.qt.compat import (to_qvariant, from_qvariant,
 # Local imports
 from spyderlib.config.base import (_, running_in_mac_app, LANGUAGE_CODES,
                                    save_lang_conf, load_lang_conf)
+from spyderlib.config.gui import get_font
 from spyderlib.config.main import CONF, is_gtk_desktop
 from spyderlib.config.gui import (CUSTOM_COLOR_SCHEME_NAME,
                                   set_default_color_scheme)
@@ -934,7 +935,6 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         self.preview_editor = CodeEditor(self)
         self.stacked_widget = QStackedWidget(self)
         self.reset_button = QPushButton(_("Reset"))
-        preview_about_label = QLabel(_('Preview:'))
         self.scheme_editor_dialog = SchemeEditor(parent=self,
                                                  stack=self.stacked_widget)
 
@@ -962,8 +962,6 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         buttons_layout.addWidget(create_button)
 
         preview_layout = QVBoxLayout()
-        preview_layout.addWidget(preview_about_label)
-        preview_layout.addSpacerItem(QSpacerItem(14, 14))
         preview_layout.addWidget(self.preview_editor)
 
         buttons_preview_layout = QHBoxLayout()
@@ -1065,13 +1063,14 @@ class ColorSchemeConfigPage(GeneralConfigPage):
                 '        bar = 42\n'
                 '        print(bar)\n'
                 )
+        show_blanks = CONF.get('editor', 'blank_spaces')
         if not scheme_name:
             scheme_name = self.current_scheme
         self.preview_editor.setup_editor(linenumbers=True,
-                                         markers=False,
+                                         markers=True,
                                          tab_mode=False,
-                                         font=QFont("Courier New", 10),
-                                         show_blanks=True,
+                                         font=get_font('editor'),
+                                         show_blanks=show_blanks,
                                          color_scheme=scheme_name)
         self.preview_editor.set_text(text)
         self.preview_editor.set_language('Python')
@@ -1186,13 +1185,15 @@ class ColorSchemeConfigPage(GeneralConfigPage):
 
 
 class SchemeEditor(QDialog):
+    """A color scheme editor dialog."""
     def __init__(self, parent=None, stack=None):
         super(SchemeEditor, self).__init__(parent)
         self.parent = parent
         self.stack = stack
-        self.order = []
-        self.stored_order = []
-        self.widgets = {}
+        self.order = []    # Uses lowercase scheme names
+
+        # Needed for self.get_edited_color_scheme()        
+        self.widgets = {}  
         self.last_edited_color_scheme = None
         self.last_used_scheme = None
 
@@ -1222,8 +1223,8 @@ class SchemeEditor(QDialog):
     def add_color_scheme_stack(self, scheme_name):
         """Add a stack for a given scheme and connects the CONF values."""
         color_scheme_groups = [
-            (_('Text'), ["builtin", "comment", "definition", "instance",
-                         "keyword", "normal", "number", "string"],),
+            (_('Text'), ["normal", "builtin", "keyword", "definition",
+                         "instance", "number", "string", "comment",],),
             (_('Highlight'), ["ctrlclick", "currentcell", "currentline",
                               "occurence", "matched_p", "unmatched_p"],),
             (_('Background'), ["background", "sideareas"],)
@@ -1310,6 +1311,7 @@ class SchemeEditor(QDialog):
         """
         color_scheme = {}
         scheme_name = self.last_used_scheme 
+
         for key in self.widgets[scheme_name]:
             items = self.widgets[scheme_name][key]
 
@@ -1320,6 +1322,7 @@ class SchemeEditor(QDialog):
                 # ColorLayout + checkboxes
                 value = (items[0].text(), items[1].isChecked(),
                          items[2].isChecked())
+
             color_scheme[key] = value
 
         return color_scheme
