@@ -280,6 +280,9 @@ def value_to_display(value, truncate=False, trunc_len=80, minmax=False):
                 pass
         elif is_text_string(value):
             display = value
+        elif isinstance(value, NUMERIC_TYPES) or isinstance(value, bool) or \
+          isinstance(value, datetime.date):
+            display = repr(value)
         else:
             # Note: Don't trust on repr's. They can be inefficient and
             # so freeze Spyder quite easily
