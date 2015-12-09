@@ -1251,7 +1251,11 @@ class SchemeEditor(QDialog):
         cs_layout.addLayout(name_layout)
         cs_layout.addSpacerItem(QSpacerItem(14, 14))
 
-        for group_name, keys in color_scheme_groups:
+        h_layout = QHBoxLayout()
+        v_layout = QVBoxLayout()
+
+        for index, item in enumerate(color_scheme_groups):
+            group_name, keys = item
             group_layout = QGridLayout()
 
             for row, key in enumerate(keys):
@@ -1268,8 +1272,6 @@ class SchemeEditor(QDialog):
                     label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
                     group_layout.addWidget(label, row+1, 0)
                     group_layout.addLayout(clayout, row+1, 1)
-                    group_layout.addWidget(QWidget(), row+1, 2)
-                    group_layout.addWidget(QWidget(), row+1, 3)
 
                     # Needed to update temp scheme to obtain instant preview
                     self.widgets[lower_scheme_name][key] = [clayout]
@@ -1291,7 +1293,14 @@ class SchemeEditor(QDialog):
 
             group_box = QGroupBox(group_name)
             group_box.setLayout(group_layout)
-            cs_layout.addWidget(group_box)
+
+            if index == 0:
+                h_layout.addWidget(group_box)
+            else:
+                v_layout.addWidget(group_box)
+
+        h_layout.addLayout(v_layout)
+        cs_layout.addLayout(h_layout)
 
         stackitem = QWidget()
         stackitem.setLayout(cs_layout)
