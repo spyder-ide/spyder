@@ -940,7 +940,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
 
         # Widget setup
         about_label.setWordWrap(True)
-        schemes_combo = self.create_combobox(_('Scheme'),
+        schemes_combo = self.create_combobox(_('Scheme:'),
                                              [('', '')],
                                              'selected')
         self.schemes_combo = schemes_combo.combobox
@@ -959,6 +959,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         buttons_layout.addWidget(self.reset_button)
         buttons_layout.addWidget(self.delete_button)
         buttons_layout.addStretch(1)
+        buttons_layout.addWidget(create_button)
 
         preview_layout = QVBoxLayout()
         preview_layout.addWidget(preview_about_label)
@@ -973,7 +974,6 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         manage_layout = QVBoxLayout()
         manage_layout.addWidget(about_label)
         manage_layout.addLayout(buttons_preview_layout)
-        manage_layout.addWidget(create_button)
         manage_group = QGroupBox(_("Manage color schemes"))
         manage_group.setLayout(manage_layout)
 
@@ -1051,8 +1051,12 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         self.delete_button.setEnabled(delete_visible)
         self.reset_button.setEnabled(not delete_visible)
 
-    def update_preview(self):
-        """Update the color scheme of the preview editor and adds text."""
+    def update_preview(self, index=None, scheme_name=None):
+        """
+        Update the color scheme of the preview editor and adds text.
+        
+        This is triggered by a signal that sends the index.
+        """
         text = ('"""A string"""\n\n'
                 '# A comment\n\n'
                 '# %% A cell\n\n'
@@ -1061,13 +1065,14 @@ class ColorSchemeConfigPage(GeneralConfigPage):
                 '        bar = 42\n'
                 '        print(bar)\n'
                 )
-        scheme = self.current_scheme
-        self.preview_editor.setup_editor(linenumbers=False,
+        if not scheme_name:
+            scheme_name = self.current_scheme
+        self.preview_editor.setup_editor(linenumbers=True,
                                          markers=False,
                                          tab_mode=False,
                                          font=QFont("Courier New", 10),
                                          show_blanks=True,
-                                         color_scheme=scheme)
+                                         color_scheme=scheme_name)
         self.preview_editor.set_text(text)
         self.preview_editor.set_language('Python')
 
@@ -1121,7 +1126,13 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         dlg.set_scheme(self.current_scheme)
 
         if dlg.exec_():
-            pass
+            # Update temp scheme to reflect instant edits on the preview
+            temporal_color_scheme = dlg.get_edited_color_scheme()
+            for key in temporal_color_scheme:
+                option = "temp/{0}".format(key)
+                value = temporal_color_scheme[key]
+                self.set_option(option, value)
+            self.update_preview(scheme_name='temp')
 
     def delete_scheme(self):
         """Deletes the currently selected custom color scheme."""
@@ -1143,8 +1154,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
 
     def set_scheme(self, scheme_name):
         """
-        Helper method that set the current stack in the dialog to the
-        scheme with name 'schema_name'.
+        Set the current stack in the dialog to the scheme with 'schema_name'.
         """
         dlg = self.scheme_editor_dialog
         dlg.set_scheme(scheme_name)
@@ -1182,6 +1192,9 @@ class SchemeEditor(QDialog):
         self.stack = stack
         self.order = []
         self.stored_order = []
+        self.widgets = {}
+        self.last_edited_color_scheme = None
+        self.last_used_scheme = None
 
         # Widgets
         bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
@@ -1194,6 +1207,7 @@ class SchemeEditor(QDialog):
 
         # Signals
         bbox.accepted.connect(self.accept)
+        bbox.accepted.connect(self.get_edited_color_scheme)
         bbox.rejected.connect(self.reject)
 
     # Helpers
@@ -1201,42 +1215,80 @@ class SchemeEditor(QDialog):
     def set_scheme(self, scheme_name):
         """Set the current stack by 'scheme_name'."""
         self.stack.setCurrentIndex(self.order.index(scheme_name.lower()))
+        self.last_used_scheme = scheme_name.lower()
 
     # Actions
     # -------------------------------------------------------------------------
     def add_color_scheme_stack(self, scheme_name):
         """Add a stack for a given scheme and connects the CONF values."""
-        cs_layout = QGridLayout()
+        color_scheme_groups = [
+            (_('Text'), ["builtin", "comment", "definition", "instance",
+                         "keyword", "normal", "number", "string"],),
+            (_('Highlight'), ["ctrlclick", "currentcell", "currentline",
+                              "occurence", "matched_p", "unmatched_p"],),
+            (_('Background'), ["background", "sideareas"],)
+            ]
+
         name_label = QLabel(_("Scheme name:"))
         actual_name_label = QLabel(scheme_name)
-        cs_layout.addWidget(name_label, 0, 0)
-        cs_layout.addWidget(actual_name_label, 0, 1)
+        parent = self.parent
+        lower_scheme_name = scheme_name.lower()
+        self.widgets[lower_scheme_name] = {}
+
+        # Widget setup
         name_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        self.setWindowTitle(_('Color scheme editor'))
 
-        for i, key in enumerate(syntaxhighlighters.COLOR_SCHEME_KEYS):
-            row = i + 1
-            option = "{0}/{1}".format(scheme_name, key).lower()
-            value = self.parent.get_option(option)
-            name = syntaxhighlighters.COLOR_SCHEME_KEYS[key]
+        # Layout
+        name_layout = QHBoxLayout()
+        name_layout.addWidget(name_label)
+        name_layout.addWidget(actual_name_label)
 
-            if is_text_string(value):
-                label, clayout = self.parent.create_coloredit(
-                    name,
-                    option,
-                    without_layout=True)
-                label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-                cs_layout.addWidget(label, row+1, 0)
-                cs_layout.addLayout(clayout, row+1, 1)
-            else:
-                label, clayout, cb_bold, cb_italic = self.parent.create_scedit(
-                    name,
-                    option,
-                    without_layout=True)
-                label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-                cs_layout.addWidget(label, row+1, 0)
-                cs_layout.addLayout(clayout, row+1, 1)
-                cs_layout.addWidget(cb_bold, row+1, 2)
-                cs_layout.addWidget(cb_italic, row+1, 3)
+        cs_layout = QVBoxLayout()
+        cs_layout.addLayout(name_layout)
+        cs_layout.addSpacerItem(QSpacerItem(14, 14))
+
+        for group_name, keys in color_scheme_groups:
+            group_layout = QGridLayout()
+
+            for row, key in enumerate(keys):
+                option = "{0}/{1}".format(scheme_name, key).lower()
+                value = self.parent.get_option(option)
+                name = syntaxhighlighters.COLOR_SCHEME_KEYS[key]
+
+                if is_text_string(value):
+                    label, clayout = parent.create_coloredit(
+                        name,
+                        option,
+                        without_layout=True,
+                        )
+                    label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+                    group_layout.addWidget(label, row+1, 0)
+                    group_layout.addLayout(clayout, row+1, 1)
+                    group_layout.addWidget(QWidget(), row+1, 2)
+                    group_layout.addWidget(QWidget(), row+1, 3)
+
+                    # Needed to update temp scheme to obtain instant preview
+                    self.widgets[lower_scheme_name][key] = [clayout]
+                else:
+                    label, clayout, cb_bold, cb_italic = parent.create_scedit(
+                        name,
+                        option,
+                        without_layout=True,
+                        )
+                    label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+                    group_layout.addWidget(label, row+1, 0)
+                    group_layout.addLayout(clayout, row+1, 1)
+                    group_layout.addWidget(cb_bold, row+1, 2)
+                    group_layout.addWidget(cb_italic, row+1, 3)
+
+                    # Needed to update temp scheme to obtain instant preview
+                    self.widgets[lower_scheme_name][key] = [clayout, cb_bold,
+                                                            cb_italic]
+
+            group_box = QGroupBox(group_name)
+            group_box.setLayout(group_layout)
+            cs_layout.addWidget(group_box)
 
         stackitem = QWidget()
         stackitem.setLayout(cs_layout)
@@ -1251,6 +1303,23 @@ class SchemeEditor(QDialog):
         index = self.order.index(scheme_name)
         self.order.pop(index)
 
-    def update_temp(self):
-        """ """
-        pass
+    def get_edited_color_scheme(self):
+        """
+        Get the values of the last edited color scheme to be used in an instant
+        preview in the preview editor, without using `apply`.
+        """
+        color_scheme = {}
+        scheme_name = self.last_used_scheme 
+        for key in self.widgets[scheme_name]:
+            items = self.widgets[scheme_name][key]
+
+            if len(items) == 1:
+                # ColorLayout
+                value = items[0].text()
+            else:
+                # ColorLayout + checkboxes
+                value = (items[0].text(), items[1].isChecked(),
+                         items[2].isChecked())
+            color_scheme[key] = value
+
+        return color_scheme
