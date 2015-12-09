@@ -18,7 +18,7 @@ from spyderlib.qt.QtGui import (QWidget, QDialog, QListWidget, QListWidgetItem,
                                 QHBoxLayout, QDialogButtonBox, QCheckBox,
                                 QMessageBox, QLabel, QLineEdit, QSpinBox,
                                 QPushButton, QFontComboBox, QGroupBox,
-                                QComboBox, QColor, QGridLayout, QTabWidget,
+                                QComboBox, QColor, QGridLayout, QSpacerItem,
                                 QRadioButton, QButtonGroup, QSplitter,
                                 QStyleFactory, QScrollArea, QDoubleSpinBox)
 from spyderlib.qt.QtCore import Qt, QSize, Signal, Slot
@@ -996,9 +996,8 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         self.main.editor.apply_plugin_settings(['color_scheme_name'])
         if self.main.historylog is not None:
             self.main.historylog.apply_plugin_settings(['color_scheme_name'])
-        if self.main.help is not None:
-            self.main.help.apply_plugin_settings(['color_scheme_name'])
-
+        if self.main.inspector is not None:
+            self.main.inspector.apply_plugin_settings(['color_scheme_name'])
         self.update_preview()
         self.update_combobox()
 
@@ -1052,8 +1051,11 @@ class ColorSchemeConfigPage(GeneralConfigPage):
     def update_preview(self, index=None, scheme_name=None):
         """
         Update the color scheme of the preview editor and adds text.
-        
-        This is triggered by a signal that sends the index.
+
+        Note
+        ----
+        'index' is needed, because this is triggered by a signal that sends
+        the selected index.
         """
         text = ('"""A string"""\n\n'
                 '# A comment\n\n'
@@ -1192,8 +1194,8 @@ class SchemeEditor(QDialog):
         self.stack = stack
         self.order = []    # Uses lowercase scheme names
 
-        # Needed for self.get_edited_color_scheme()        
-        self.widgets = {}  
+        # Needed for self.get_edited_color_scheme()
+        self.widgets = {}
         self.last_edited_color_scheme = None
         self.last_used_scheme = None
 
@@ -1224,10 +1226,10 @@ class SchemeEditor(QDialog):
         """Add a stack for a given scheme and connects the CONF values."""
         color_scheme_groups = [
             (_('Text'), ["normal", "builtin", "keyword", "definition",
-                         "instance", "number", "string", "comment",],),
+                         "instance", "number", "string", "comment"]),
             (_('Highlight'), ["ctrlclick", "currentcell", "currentline",
-                              "occurence", "matched_p", "unmatched_p"],),
-            (_('Background'), ["background", "sideareas"],)
+                              "occurence", "matched_p", "unmatched_p"]),
+            (_('Background'), ["background", "sideareas"])
             ]
 
         name_label = QLabel(_("Scheme name:"))
@@ -1310,7 +1312,7 @@ class SchemeEditor(QDialog):
         preview in the preview editor, without using `apply`.
         """
         color_scheme = {}
-        scheme_name = self.last_used_scheme 
+        scheme_name = self.last_used_scheme
 
         for key in self.widgets[scheme_name]:
             items = self.widgets[scheme_name][key]
