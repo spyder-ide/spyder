@@ -238,7 +238,7 @@ def value_to_display(value, truncate=False, trunc_len=80, minmax=False):
             display = 'Field names: ' + ', '.join(fields)
         elif isinstance(value, MaskedArray):
             display = 'Masked array'
-        elif minmax and isinstance(value, (ndarray, MaskedArray)):
+        elif minmax and isinstance(value, ndarray):
             if value.size == 0:
                 display = repr(value)
             try:
@@ -248,6 +248,8 @@ def value_to_display(value, truncate=False, trunc_len=80, minmax=False):
             except ValueError:
                 # Happens when one of the array cell contains a sequence
                 pass
+        elif isinstance(value, ndarray):
+            display = repr(value)
         elif isinstance(value, (list, tuple, dict, set)):
             display = CollectionsRepr.repr(value)
         elif isinstance(value, Image):
