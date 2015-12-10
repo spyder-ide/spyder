@@ -18,7 +18,7 @@ from spyderlib.qt.QtGui import (QWidget, QDialog, QListWidget, QListWidgetItem,
                                 QHBoxLayout, QDialogButtonBox, QCheckBox,
                                 QMessageBox, QLabel, QLineEdit, QSpinBox,
                                 QPushButton, QFontComboBox, QGroupBox,
-                                QComboBox, QColor, QGridLayout, QSpacerItem,
+                                QComboBox, QColor, QGridLayout,
                                 QRadioButton, QButtonGroup, QSplitter,
                                 QStyleFactory, QScrollArea, QDoubleSpinBox)
 from spyderlib.qt.QtCore import Qt, QSize, Signal, Slot
@@ -954,7 +954,6 @@ class ColorSchemeConfigPage(GeneralConfigPage):
 
         buttons_layout = QVBoxLayout()
         buttons_layout.addLayout(combo_layout)
-        buttons_layout.addSpacerItem(QSpacerItem(14, 14))
         buttons_layout.addWidget(edit_button)
         buttons_layout.addWidget(self.reset_button)
         buttons_layout.addWidget(self.delete_button)
@@ -966,7 +965,6 @@ class ColorSchemeConfigPage(GeneralConfigPage):
 
         buttons_preview_layout = QHBoxLayout()
         buttons_preview_layout.addLayout(buttons_layout)
-        buttons_preview_layout.addSpacerItem(QSpacerItem(14, 14))
         buttons_preview_layout.addLayout(preview_layout)
 
         manage_layout = QVBoxLayout()
@@ -1225,10 +1223,10 @@ class SchemeEditor(QDialog):
     def add_color_scheme_stack(self, scheme_name):
         """Add a stack for a given scheme and connects the CONF values."""
         color_scheme_groups = [
-            (_('Text'), ["normal", "builtin", "keyword", "definition",
-                         "instance", "number", "string", "comment"]),
-            (_('Highlight'), ["ctrlclick", "currentcell", "currentline",
-                              "occurence", "matched_p", "unmatched_p"]),
+            (_('Text'), ["normal", "comment", "string", "number", "keyword",
+                         "builtin", "definition", "instance", ]),
+            (_('Highlight'), ["currentcell", "currentline", "occurence",
+                              "matched_p", "unmatched_p", "ctrlclick"]),
             (_('Background'), ["background", "sideareas"])
             ]
 
@@ -1249,7 +1247,6 @@ class SchemeEditor(QDialog):
 
         cs_layout = QVBoxLayout()
         cs_layout.addLayout(name_layout)
-        cs_layout.addSpacerItem(QSpacerItem(14, 14))
 
         h_layout = QHBoxLayout()
         v_layout = QVBoxLayout()
