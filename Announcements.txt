@@ -140,27 +140,36 @@ Enjoy!
 Beta release
 ============
 
-Subject: [ANN] Spyder 3.0 first public beta release
+Subject: [ANN] Spyder 3.0 second public beta release
 
 
 Hi all,
 
 On the behalf of Spyder's development team (https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce the first beta of our next major version: Spyder 3.0.
+I'm pleased to announce the second beta of our next major version: Spyder 3.0.
 
-We've been working on this version for about 10 months now and as far as we know
+We've been working on this version for more than a year now and as far as we know
 it's working very well. There are still several bugs to squash but we encourage all
 people who like the bleeding edge to give it a try.
 
-Perhaps the most important feature of this release is that it comes with support for
-PyQt5. It also comes with several other important and interesting enhancements to our
-graphical interface. For a complete list, please see here:
+This release comes with several interesting and exciting new features. The most
+important ones are:
+
+1. A file switcher very similar to the Sublime Text one (which can be activated
+with `Ctrl+P`).
+2. A new icon theme based on FontAwesome (not yet activated by default).
+3. A new set of default pane layouts for those coming from Rstudio or Matlab.
+4. Syntax highlighting for all file types supported by Pygments (a pure Python
+highlighting library).
+5. A simpler and more intuitive way to introduce keyboard shortcuts.
+6. Support for PyQt5.
+
+For a complete list of changes, please see here:
 
 https://github.com/spyder-ide/spyder/wiki/Beta-version-changelog
 
-This beta version is released a bit more than a month after our last stable release
-(2.3.5.2) and it already contains several important bugfixes, specially regarding
-viewing DataFrames in the Variable Explorer.
+This second beta is released four months after our first one and includes more
+than 600 commits!
 
 Enjoy!
 -Carlos
