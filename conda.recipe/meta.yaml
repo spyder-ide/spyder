@@ -29,12 +29,6 @@ requirements:
     - qtawesome
     - python.app             [osx]
 
-test:
-  commands:
-    - spyder -h
-  imports:
-    - spyderlib
-
 about:
   home: https://github.com/spyder-ide/spyder
   license: MIT
