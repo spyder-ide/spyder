@@ -150,9 +150,10 @@ I'm pleased to announce the second beta of our next major version: Spyder 3.0.
 
 We've been working on this version for more than a year now and as far as we know
 it's working very well. There are still several bugs to squash but we encourage all
-people who like the bleeding edge to give it a try.
+people who like the bleeding edge to give it a try. This second beta is released
+four months after our first one and it includes more than 600 commits!
 
-This release comes with several interesting and exciting new features. The most
+Spyder 3.0 comes with several interesting and exciting new features. The most
 important ones are:
 
 1. A file switcher very similar to the Sublime Text one (which can be activated
@@ -168,8 +169,9 @@ For a complete list of changes, please see here:
 
 https://github.com/spyder-ide/spyder/wiki/Beta-version-changelog
 
-This second beta is released four months after our first one and includes more
-than 600 commits!
+You can easily install this beta if you use Anaconda by running:
+
+    conda install -c spyder-ide spyder
 
 Enjoy!
 -Carlos
