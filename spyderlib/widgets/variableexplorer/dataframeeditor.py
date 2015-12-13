@@ -208,6 +208,8 @@ class DataFrameModel(QAbstractTableModel):
             vmax, vmin = self.return_max(self.max_min_col, column-1)
             hue = self.hue0 + self.dhue*(vmax-color_func(value)) / (vmax-vmin)
             hue = float(abs(hue))
+            if hue > 1:
+                hue = 1
             color = QColor.fromHsvF(hue, self.sat, self.val, self.alp)
         elif is_text_string(value):
             color = QColor(Qt.lightGray)
