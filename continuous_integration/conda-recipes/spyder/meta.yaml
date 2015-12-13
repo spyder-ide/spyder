@@ -1,7 +1,7 @@
 package:
   name: spyder
   version: {{ environ.get('GIT_DESCRIBE_TAG', '').replace('v', '') }}                                    [unix]
-  version: 3.0.0b1                                                                                       [win]
+  version: 3.0.0b2                                                                                       [win]
 
 build:
   number: {{ environ.get('GIT_DESCRIBE_NUMBER', 0) }}                                                    [unix]

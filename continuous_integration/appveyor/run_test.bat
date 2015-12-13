@@ -13,7 +13,7 @@ mkdir C:\projects\tmp
 cd C:\projects\tmp
 
 REM Install the package we created
-conda install -q -y --use-local spyder==3.0.0b1
+conda install -q -y --use-local spyder==3.0.0b2
 
 REM Install missing deps
 if %PYTHON_VERSION%==3.5 (
