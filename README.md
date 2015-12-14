@@ -155,7 +155,7 @@ on Fedora `ipython-gui` and on Gentoo `ipython` with the `qt4` USE flag.
 ### Optional modules
 
 * **Matplotlib**: 2D/3D plotting in the Python and IPython consoles.
-* **Pandas**: View and edit DataFrame and Series in the Variable Explorer.
+* **Pandas**: View and edit DataFrames and Series in the Variable Explorer.
 * **Numpy**: View and edit two or three dimensional arrays in the Variable Explorer.
 * **SymPy**: Symbolic mathematics in the IPython console.
 * **SciPy**: Import Matlab workspace files in the Variable Explorer.
