@@ -141,7 +141,7 @@ a Python version greater than 2.7 (Python 3.2 is not supported anymore).
 * **IPython** 3.0 or **qtconsole**: Enhanced Python interpreter.
 * **Rope** and/or **Jedi** 0.8.1: Editor code completion, calltips
   and go-to-definition.
-* **Pyflakes**: Real-time code analysis)
+* **Pyflakes**: Real-time code analysis.
 * **Sphinx**: Object Inspector's rich text mode.
 * **Pygments**: Syntax highlighting for all file types it supports.
 * **Pylint**: Static code analysis.
@@ -154,10 +154,11 @@ on Fedora `ipython-gui` and on Gentoo `ipython` with the `qt4` USE flag.
 
 ### Optional modules
 
-* **Matplotlib**: 2D/3D plotting.
+* **Matplotlib**: 2D/3D plotting in the Python and IPython consoles.
 * **Pandas**: DataFrame and Series support.
-* **Numpy**: N-dimensional arrays.
-* **SymPy**: Symbolic mathematics.
+* **Numpy**: View and edit two or three dimensional arrays in the Variable Explorer.
+* **SymPy**: Symbolic mathematics in the IPython console.
+* **SciPy**: Import Matlab workspace files in the Variable Explorer.
 
 
 ## More information
