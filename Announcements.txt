@@ -159,7 +159,8 @@ important ones are:
 1. A file switcher very similar to the Sublime Text one (which can be activated
 with `Ctrl+P`).
 2. A new icon theme based on FontAwesome (not yet activated by default).
-3. A new set of default pane layouts for those coming from Rstudio or Matlab.
+3. A new set of default pane layouts for those coming from Rstudio or Matlab
+(under `View > Window layouts`).
 4. Syntax highlighting for all file types supported by Pygments (a pure Python
 highlighting library).
 5. A simpler and more intuitive way to introduce keyboard shortcuts.
@@ -172,6 +173,11 @@ https://github.com/spyder-ide/spyder/wiki/Beta-version-changelog
 You can easily install this beta if you use Anaconda by running:
 
     conda install -c spyder-ide spyder
+
+Or you can download it from our Releases page: https://github.com/spyder-ide/spyder/releases
+and previously installing QtAwesome with
+
+    pip install qtawesome
 
 Enjoy!
 -Carlos
