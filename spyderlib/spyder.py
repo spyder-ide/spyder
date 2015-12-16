@@ -836,9 +836,9 @@ class MainWindow(QMainWindow):
 
             # Object inspector plugin
             if CONF.get('inspector', 'enable'):
-                self.set_splash(_("Loading object inspector..."))
-                from spyderlib.plugins.help import ObjectInspector
-                self.inspector = ObjectInspector(self)
+                self.set_splash(_("Loading help..."))
+                from spyderlib.plugins.help import Help
+                self.inspector = Help(self)
                 self.inspector.register_plugin()
 
             # Outline explorer widget
