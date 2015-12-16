@@ -1054,7 +1054,7 @@ class ExternalConsole(SpyderPluginWidget):
             self.main.widgetlist.append(self)
         else:
             self.main.add_dockwidget(self)
-            self.inspector = self.main.inspector
+            self.inspector = self.main.help
             if self.inspector is not None:
                 self.inspector.set_external_console(self)
             self.historylog = self.main.historylog

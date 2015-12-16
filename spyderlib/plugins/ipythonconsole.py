@@ -765,7 +765,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.main.add_dockwidget(self)
 
         self.extconsole = self.main.extconsole
-        self.inspector = self.main.inspector
+        self.inspector = self.main.help
         self.historylog = self.main.historylog
         self.variableexplorer = self.main.variableexplorer
         self.editor = self.main.editor

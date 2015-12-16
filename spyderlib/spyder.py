@@ -324,7 +324,7 @@ class MainWindow(QMainWindow):
         self.workingdirectory = None
         self.editor = None
         self.explorer = None
-        self.inspector = None
+        self.help = None
         self.onlinehelp = None
         self.projectexplorer = None
         self.outlineexplorer = None
@@ -834,12 +834,12 @@ class MainWindow(QMainWindow):
             self.workingdirectory.register_plugin()
             self.toolbarslist.append(self.workingdirectory)
 
-            # Object inspector plugin
+            # Help plugin
             if CONF.get('inspector', 'enable'):
                 self.set_splash(_("Loading help..."))
                 from spyderlib.plugins.help import Help
-                self.inspector = Help(self)
-                self.inspector.register_plugin()
+                self.help = Help(self)
+                self.help.register_plugin()
 
             # Outline explorer widget
             if CONF.get('outline_explorer', 'enable'):
@@ -986,7 +986,7 @@ class MainWindow(QMainWindow):
                                        triggered=lambda : programs.start_file(spyder_doc))
 
             tut_action = create_action(self, _("Spyder tutorial"),
-                                       triggered=self.inspector.show_tutorial)
+                                       triggered=self.help.show_tutorial)
 
         #----- Tours
             self.tour = tour.AnimatedTour(self)
@@ -1288,8 +1288,8 @@ class MainWindow(QMainWindow):
                 self.console.toggle_view_action.setChecked(False)
                 self.console.dockwidget.hide()
 
-            # Show the Object Inspector and Consoles by default
-            plugins_to_show = [self.inspector]
+            # Show Help and Consoles by default
+            plugins_to_show = [self.help]
             if self.ipyconsole is not None:
                 if self.ipyconsole.isvisible:
                     plugins_to_show += [self.extconsole, self.ipyconsole]
@@ -1479,7 +1479,7 @@ class MainWindow(QMainWindow):
         explorer_variable = self.variableexplorer
         history = self.historylog
         finder = self.findinfiles
-        inspector = self.inspector
+        help_plugin = self.help
         helper = self.onlinehelp
         plugins = self.thirdparty_plugins
 
@@ -1496,10 +1496,10 @@ class MainWindow(QMainWindow):
                     [[explorer_project]],
                     # column 1
                     [[editor]],
-                    # column 2                                        
+                    # column 2
                     [[outline]],
                     # column 3
-                    [[inspector, explorer_variable, helper, explorer_file,
+                    [[help_plugin, explorer_variable, helper, explorer_file,
                       finder] + plugins,
                      [console_int, console_ext, console_ipy, history]]
                     ],
@@ -1520,7 +1520,7 @@ class MainWindow(QMainWindow):
                      [console_ipy, console_ext, console_int]],
                     # column 1
                     [[explorer_variable, history, outline, finder] + plugins,
-                     [explorer_file, explorer_project, inspector, helper]]
+                     [explorer_file, explorer_project, help_plugin, helper]]
                     ],
                     'width fraction': [0.55,            # column 0 width
                                        0.45],           # column 1 width
@@ -1539,7 +1539,7 @@ class MainWindow(QMainWindow):
                      [console_ipy, console_ext, console_int]],
                     # column 2
                     [[explorer_variable, finder] + plugins,
-                     [history, inspector, helper]]
+                     [history, help_plugin, helper]]
                     ],
                     'width fraction': [0.20,            # column 0 width
                                        0.40,            # column 1 width
@@ -1555,7 +1555,7 @@ class MainWindow(QMainWindow):
                     # column 0
                     [[editor],
                      [console_ipy, console_ext, console_int, explorer_file,
-                      explorer_project, inspector, explorer_variable,
+                      explorer_project, help_plugin, explorer_variable,
                       history, outline, finder, helper] + plugins]
                     ],
                     'width fraction': [1.0],            # column 0 width
@@ -1569,7 +1569,7 @@ class MainWindow(QMainWindow):
                     [[editor]],
                     # column 1
                     [[console_ipy, console_ext, console_int, explorer_file,
-                      explorer_project, inspector, explorer_variable,
+                      explorer_project, help_plugin, explorer_variable,
                       history, outline, finder, helper] + plugins]
                     ],
                     'width fraction': [0.55,      # column 0 width
@@ -1965,9 +1965,9 @@ class MainWindow(QMainWindow):
         if shell is not None:
             # A Python shell widget has focus
             self.last_console_plugin_focus_was_python = True
-            if self.inspector is not None:
-                #  The object inspector may be disabled in .spyder.ini
-                self.inspector.set_shell(shell)
+            if self.help is not None:
+                #  Help may be disabled in .spyder.ini
+                self.help.set_shell(shell)
             from spyderlib.widgets.externalshell import pythonshell
             if isinstance(shell, pythonshell.ExtPythonShellWidget):
                 shell = shell.parent()
@@ -1981,8 +1981,8 @@ class MainWindow(QMainWindow):
                     idx = self.extconsole.get_shell_index_from_id(kwid)
                     if idx is not None:
                         kw = self.extconsole.shellwidgets[idx]
-                        if self.inspector is not None:
-                            self.inspector.set_shell(kw)
+                        if self.help is not None:
+                            self.help.set_shell(kw)
                         self.variableexplorer.set_shellwidget_from_id(kwid)
                         # Setting the kernel widget as current widget for the
                         # external console's tabwidget: this is necessary for
@@ -2408,7 +2408,7 @@ class MainWindow(QMainWindow):
     #---- Global callbacks (called from plugins)
     def get_current_editor_plugin(self):
         """Return editor plugin which has focus:
-        console, extconsole, editor, inspector or historylog"""
+        console, extconsole, editor, help or historylog"""
         if self.light:
             return self.extconsole
         widget = QApplication.focusWidget()
@@ -2646,7 +2646,7 @@ class MainWindow(QMainWindow):
             dlg.add_page(widget)
         for plugin in [self.workingdirectory, self.editor,
                        self.projectexplorer, self.extconsole, self.ipyconsole,
-                       self.historylog, self.inspector, self.variableexplorer,
+                       self.historylog, self.help, self.variableexplorer,
                        self.onlinehelp, self.explorer, self.findinfiles
                        ]+self.thirdparty_plugins:
             if plugin is not None:

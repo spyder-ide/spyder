@@ -1039,7 +1039,7 @@ class Editor(SpyderPluginWidget):
         self.exec_in_extconsole.connect(self.main.execute_in_external_console)
         self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
         self.open_dir.connect(self.main.workingdirectory.chdir)
-        self.set_inspector(self.main.inspector)
+        self.set_inspector(self.main.help)
         if self.main.outlineexplorer is not None:
             self.set_outlineexplorer(self.main.outlineexplorer)
         editorstack = self.get_current_editorstack()
