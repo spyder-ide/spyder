@@ -837,7 +837,7 @@ class MainWindow(QMainWindow):
             # Object inspector plugin
             if CONF.get('inspector', 'enable'):
                 self.set_splash(_("Loading object inspector..."))
-                from spyderlib.plugins.inspector import ObjectInspector
+                from spyderlib.plugins.help import ObjectInspector
                 self.inspector = ObjectInspector(self)
                 self.inspector.register_plugin()
 
