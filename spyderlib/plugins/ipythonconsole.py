@@ -661,7 +661,7 @@ class IPythonConsole(SpyderPluginWidget):
         font_n = 'plugin_font'
         font_o = self.get_plugin_font()
         inspector_n = 'connect_to_oi'
-        inspector_o = CONF.get('inspector', 'connect/ipython_console')
+        inspector_o = CONF.get('help', 'connect/ipython_console')
         for client in self.clients:
             control = client.get_control()
             if font_n in options:
@@ -922,7 +922,7 @@ class IPythonConsole(SpyderPluginWidget):
         # Connect text widget to our inspector
         if kernel_widget is not None and self.inspector is not None:
             control.set_inspector(self.inspector)
-            control.set_inspector_enabled(CONF.get('inspector',
+            control.set_inspector_enabled(CONF.get('help',
                                                    'connect/ipython_console'))
 
         # Connect client to our history log

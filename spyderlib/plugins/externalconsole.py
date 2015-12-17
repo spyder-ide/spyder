@@ -814,7 +814,7 @@ class ExternalConsole(SpyderPluginWidget):
         if python and self.inspector is not None:
             shellwidget.shell.set_inspector(self.inspector)
             shellwidget.shell.set_inspector_enabled(
-                               CONF.get('inspector', 'connect/python_console'))
+                               CONF.get('help', 'connect/python_console'))
         if self.historylog is not None:
             self.historylog.add_history(shellwidget.shell.history_filename)
             shellwidget.shell.append_to_history.connect(
@@ -1120,7 +1120,7 @@ class ExternalConsole(SpyderPluginWidget):
         calltips_n = 'calltips'
         calltips_o = self.get_option(calltips_n)
         inspector_n = 'connect_to_oi'
-        inspector_o = CONF.get('inspector', 'connect/python_console')
+        inspector_o = CONF.get('help', 'connect/python_console')
         wrap_n = 'wrap'
         wrap_o = self.get_option(wrap_n)
         compauto_n = 'codecompletion/auto'

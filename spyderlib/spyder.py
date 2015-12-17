@@ -835,7 +835,7 @@ class MainWindow(QMainWindow):
             self.toolbarslist.append(self.workingdirectory)
 
             # Help plugin
-            if CONF.get('inspector', 'enable'):
+            if CONF.get('help', 'enable'):
                 self.set_splash(_("Loading help..."))
                 from spyderlib.plugins.help import Help
                 self.help = Help(self)
@@ -2061,7 +2061,7 @@ class MainWindow(QMainWindow):
 
     def create_plugins_menu(self):
         order = ['editor', 'console', 'ipython_console', 'variable_explorer',
-                 'inspector', None, 'explorer', 'outline_explorer',
+                 'help', None, 'explorer', 'outline_explorer',
                  'project_explorer', 'find_in_files', None, 'historylog',
                  'profiler', 'breakpoints', 'pylint', None,
                  'onlinehelp', 'internal_console']

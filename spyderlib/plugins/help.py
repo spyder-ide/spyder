@@ -352,7 +352,7 @@ class Help(SpyderPluginWidget):
     """
     Docstrings viewer widget
     """
-    CONF_SECTION = 'inspector'
+    CONF_SECTION = 'help'
     CONFIGWIDGET_CLASS = HelpConfigPage
     LOG_PATH = get_conf_path(CONF_SECTION)
     focus_changed = Signal()
@@ -585,7 +585,7 @@ class Help(SpyderPluginWidget):
         if self.main.ipyconsole is not None:
             self.main.ipyconsole.apply_plugin_settings(options=[connect_n])
 
-    #------ Public API (related to inspector's source) -------------------------
+    #------ Public API (related to Help's source) -------------------------
     def source_is_console(self):
         """Return True if source is Console"""
         return self.source_combo.currentIndex() == 0

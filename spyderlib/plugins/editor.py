@@ -1141,14 +1141,13 @@ class Editor(SpyderPluginWidget):
                     )
         for method, setting in settings:
             getattr(editorstack, method)(self.get_option(setting))
-        editorstack.set_inspector_enabled(CONF.get('inspector',
-                                                   'connect/editor'))
+        editorstack.set_inspector_enabled(CONF.get('help', 'connect/editor'))
         color_scheme = get_color_scheme(self.get_option('color_scheme_name'))
         editorstack.set_default_font(self.get_plugin_font(), color_scheme)
-        
+
         editorstack.starting_long_process.connect(self.starting_long_process)
         editorstack.ending_long_process.connect(self.ending_long_process)
-        
+
         # Redirect signals
         editorstack.redirect_stdio.connect(
                                  lambda state: self.redirect_stdio.emit(state))
@@ -2293,7 +2292,7 @@ class Editor(SpyderPluginWidget):
             tab_stop_width_n = 'tab_stop_width'
             tab_stop_width_o = self.get_option(tab_stop_width_n)
             inspector_n = 'connect_to_oi'
-            inspector_o = CONF.get('inspector', 'connect/editor')
+            inspector_o = CONF.get('help', 'connect/editor')
             todo_n = 'todo_list'
             todo_o = self.get_option(todo_n)
             pyflakes_n = 'code_analysis/pyflakes'

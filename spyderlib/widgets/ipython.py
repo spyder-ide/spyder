@@ -602,12 +602,12 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         """Set IPython widget's font"""
         self.shellwidget._control.setFont(font)
         self.shellwidget.font = font
-    
+
     def set_infowidget_font(self):
         """Set font for infowidget"""
-        font = get_font('inspector', 'rich_text')
+        font = get_font('help', 'rich_text')
         self.infowidget.set_font(font)
-    
+
     def interrupt_kernel(self):
         """Interrupt the associanted Spyder kernel if it's running"""
         self.shellwidget.request_interrupt_kernel()
