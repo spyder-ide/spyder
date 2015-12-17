@@ -87,7 +87,7 @@ _qtaargs = {
     'findf':                   [('fa.file-o', 'fa.search'), {'options': [{'scale_factor': 1.0}, {'scale_factor': 0.6}]}],
     'history24':               [('fa.history',), {}],
     'history':                 [('fa.history',), {}],
-    'inspector':               [('fa.question-circle',), {}],
+    'help':                    [('fa.question-circle',), {}],
     'lock':                    [('fa.lock',), {}],
     'lock_open':               [('fa.unlock-alt',), {}],
     'outline_explorer':        [('spyder.treeview',), {}],

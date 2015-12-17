@@ -519,7 +519,7 @@ class Help(SpyderPluginWidget):
 
     def get_plugin_icon(self):
         """Return widget icon"""
-        return ima.icon('inspector')
+        return ima.icon('help')
 
     def get_focus_widget(self):
         """
