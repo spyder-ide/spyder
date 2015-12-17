@@ -397,7 +397,7 @@ class EditorStack(QWidget):
         self.color_scheme = ccs
         self.introspector = introspection.PluginManager(self)
 
-        self.introspector.send_to_inspector.connect(self.send_to_inspector)
+        self.introspector.send_to_help.connect(self.send_to_inspector)
         self.introspector.edit_goto.connect(
              lambda fname, lineno, name:
              self.edit_goto.emit(fname, lineno, name))
