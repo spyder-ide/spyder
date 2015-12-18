@@ -56,10 +56,10 @@ from spyderlib.py3compat import PY3
 #-----------------------------------------------------------------------------
 # Templates
 #-----------------------------------------------------------------------------
-# Using the same css file from the Object Inspector for now. Maybe
+# Using the same css file from the Help plugin for now. Maybe
 # later it'll be a good idea to create a new one.
 UTILS_PATH = get_module_source_path('spyderlib', 'utils')
-CSS_PATH = osp.join(UTILS_PATH, 'inspector', 'static', 'css')
+CSS_PATH = osp.join(UTILS_PATH, 'help', 'static', 'css')
 TEMPLATES_PATH = osp.join(UTILS_PATH, 'ipython', 'templates')
 
 BLANK = open(osp.join(TEMPLATES_PATH, 'blank.html')).read()
@@ -619,7 +619,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
 
     @Slot()
     def inspect_object(self):
-        """Show how to inspect an object with our object inspector"""
+        """Show how to inspect an object with our Help plugin"""
         self.shellwidget._control.inspect_current_object()
 
     @Slot()
