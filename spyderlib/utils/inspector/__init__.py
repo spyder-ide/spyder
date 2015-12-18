@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2012 Spyder Development team
-# Licensed under the terms of the MIT or BSD Licenses 
+# Copyright © 2009- Spyder Development team
+# Licensed under the terms of the MIT or BSD Licenses
 # (See every file for its license)
 
 """
 spyderlib.utils.inspector
 ========================
 
-Configuration files for the object inspector rich text mode
+Configuration files for the Help plugin rich text mode
 """
 
 import sys

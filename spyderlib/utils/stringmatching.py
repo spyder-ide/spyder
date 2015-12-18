@@ -238,7 +238,7 @@ def test():
              'preferences', 'quit', 'restart', 'save current layout',
              'switch to breakpoints', 'switch to console', 'switch to editor',
              'switch to explorer', 'switch to find_in_files',
-             'switch to historylog', 'switch to inspector',
+             'switch to historylog', 'switch to help',
              'switch to ipython_console', 'switch to onlinehelp',
              'switch to outline_explorer', 'switch to project_explorer',
              'switch to variable_explorer', 'toggle default layout',
