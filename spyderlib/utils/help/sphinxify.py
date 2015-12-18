@@ -43,7 +43,10 @@ from spyderlib.utils import encoding
 
 # Note: we do not use __file__ because it won't be working in the stand-alone
 # version of Spyder (i.e. the py2exe or cx_Freeze build)
-CONFDIR_PATH = get_module_source_path('spyderlib.utils.help')
+try:
+    CONFDIR_PATH = get_module_source_path('spyderlib.utils.help')
+except KeyError:
+    CONFDIR_PATH = osp.abspath(osp.dirname(__file__))
 CSS_PATH = osp.join(CONFDIR_PATH, 'static', 'css')
 JS_PATH = osp.join(CONFDIR_PATH, 'js')
 
