@@ -46,9 +46,8 @@ else:
 
 # Check if we can import Sphinx to activate rich text mode
 try:
-    from spyderlib.utils.inspector.sphinxify import (CSS_PATH, sphinxify,
-                                                     warning, generate_context,
-                                                     usage)
+    from spyderlib.utils.help.sphinxify import (CSS_PATH, sphinxify, warning,
+                                                generate_context, usage)
     sphinx_version = programs.get_module_version('sphinx')
 except (ImportError, TypeError):
     sphinxify = sphinx_version = None  # analysis:ignore
@@ -781,7 +780,7 @@ class Help(SpyderPluginWidget):
 
     @Slot()
     def show_tutorial(self):
-        tutorial_path = get_module_source_path('spyderlib.utils.inspector')
+        tutorial_path = get_module_source_path('spyderlib.utils.help')
         img_path = osp.join(tutorial_path, 'static', 'images')
         tutorial = osp.join(tutorial_path, 'tutorial.rst')
         text = open(tutorial).read()

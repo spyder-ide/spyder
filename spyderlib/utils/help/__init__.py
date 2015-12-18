@@ -5,8 +5,8 @@
 # (See every file for its license)
 
 """
-spyderlib.utils.inspector
-========================
+spyderlib.utils.help
+====================
 
 Configuration files for the Help plugin rich text mode
 """
