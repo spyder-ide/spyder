@@ -47,7 +47,7 @@ from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
 from spyderlib.utils import programs, sourcecode
 from spyderlib.widgets.browser import WebView
 from spyderlib.widgets.calltip import CallTipWidget
-from spyderlib.widgets.mixins import (BaseEditMixin, InspectObjectMixin,
+from spyderlib.widgets.mixins import (BaseEditMixin, GetHelpMixin,
                                       SaveHistoryMixin, TracebackLinksMixin)
 from spyderlib.widgets.arraybuilder import (SHORTCUT_INLINE, SHORTCUT_TABLE)
 from spyderlib.py3compat import PY3
@@ -69,7 +69,7 @@ KERNEL_ERROR = open(osp.join(TEMPLATES_PATH, 'kernel_error.html')).read()
 #-----------------------------------------------------------------------------
 # Control widgets
 #-----------------------------------------------------------------------------
-class IPythonControlWidget(TracebackLinksMixin, InspectObjectMixin, QTextEdit,
+class IPythonControlWidget(TracebackLinksMixin, GetHelpMixin, QTextEdit,
                            BaseEditMixin):
     """
     Subclass of QTextEdit with features from Spyder's mixins to use as the
@@ -84,7 +84,7 @@ class IPythonControlWidget(TracebackLinksMixin, InspectObjectMixin, QTextEdit,
         QTextEdit.__init__(self, parent)
         BaseEditMixin.__init__(self)
         TracebackLinksMixin.__init__(self)
-        InspectObjectMixin.__init__(self)
+        GetHelpMixin.__init__(self)
 
         self.calltip_widget = CallTipWidget(self, hide_timer_on=True)
         self.found_results = []

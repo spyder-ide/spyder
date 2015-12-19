@@ -35,7 +35,7 @@ from spyderlib.utils import encoding
 from spyderlib.utils.qthelpers import (keybinding, create_action, add_actions,
                                        restore_keyevent)
 from spyderlib.widgets.sourcecode.base import ConsoleBaseWidget
-from spyderlib.widgets.mixins import (InspectObjectMixin, TracebackLinksMixin,
+from spyderlib.widgets.mixins import (GetHelpMixin, TracebackLinksMixin,
                                       SaveHistoryMixin)
 from spyderlib.widgets.arraybuilder import (SHORTCUT_INLINE, SHORTCUT_TABLE)
 from spyderlib.py3compat import (is_text_string, to_text_string, builtins,
@@ -676,7 +676,7 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
 # log_methods_calls('log.log', ShellBaseWidget)
 
 class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
-                        InspectObjectMixin):
+                        GetHelpMixin):
     """Python shell widget"""
     QT_CLASS = ShellBaseWidget
     INITHISTORY = ['# -*- coding: utf-8 -*-',
@@ -687,7 +687,7 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
     def __init__(self, parent, history_filename, profile=False):
         ShellBaseWidget.__init__(self, parent, history_filename, profile)
         TracebackLinksMixin.__init__(self)
-        InspectObjectMixin.__init__(self)
+        GetHelpMixin.__init__(self)
 
         # Local shortcuts
         self.shortcuts = self.create_shortcuts()

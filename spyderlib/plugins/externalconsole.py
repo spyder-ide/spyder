@@ -812,8 +812,8 @@ class ExternalConsole(SpyderPluginWidget):
         shellwidget.shell.set_codecompletion_enter(
                             self.get_option('codecompletion/enter_key') )
         if python and self.help is not None:
-            shellwidget.shell.set_inspector(self.inspector)
-            shellwidget.shell.set_inspector_enabled(
+            shellwidget.shell.set_help(self.help)
+            shellwidget.shell.set_help_enabled(
                                CONF.get('help', 'connect/python_console'))
         if self.historylog is not None:
             self.historylog.add_history(shellwidget.shell.history_filename)
@@ -1146,7 +1146,7 @@ class ExternalConsole(SpyderPluginWidget):
                 shellwidget.shell.set_calltips(calltips_o)
             if help_n in options:
                 if isinstance(shellwidget, ExternalPythonShell):
-                    shellwidget.shell.set_inspector_enabled(inspector_o)
+                    shellwidget.shell.set_help_enabled(help_o)
             if wrap_n in options:
                 shellwidget.shell.toggle_wrap_mode(wrap_o)
             if compauto_n in options:

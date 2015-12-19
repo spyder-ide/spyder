@@ -101,7 +101,7 @@ class Console(SpyderPluginWidget):
 
     def set_help(self, help_plugin):
         """Bind help instance to this console"""
-        self.shell.inspector = help_plugin
+        self.shell.help = help_plugin
 
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):

@@ -667,7 +667,7 @@ class IPythonConsole(SpyderPluginWidget):
             if font_n in options:
                 client.set_font(font_o)
             if help_n in options and control is not None:
-                control.set_inspector_enabled(help_o)
+                control.set_help_enabled(help_o)
 
     def toggle_view(self, checked):
         """Toggle view"""
@@ -921,9 +921,9 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Connect text widget to Help
         if kernel_widget is not None and self.help is not None:
-            control.set_inspector(self.help)
-            control.set_inspector_enabled(CONF.get('help',
-                                                   'connect/ipython_console'))
+            control.set_help(self.help)
+            control.set_help_enabled(CONF.get('help',
+                                              'connect/ipython_console'))
 
         # Connect client to our history log
         if self.historylog is not None:
