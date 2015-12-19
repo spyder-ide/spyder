@@ -12,7 +12,7 @@
             "name": "Reset Spyder Settings",
             "pyscript": "${PYTHON_SCRIPTS}/spyder-script.py --reset",
             "workdir": "${USERPROFILE}",
-            "icon": "${PYTHON_SCRIPTS}/spyder_light.ico"
+            "icon": "${PYTHON_SCRIPTS}/spyder_reset.ico"
         }
     ]
 }
