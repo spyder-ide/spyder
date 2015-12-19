@@ -1041,49 +1041,45 @@ class ExternalConsole(SpyderPluginWidget):
         consoles_menu_actions = [interpreter_action]
         tools_menu_actions = [terminal_action]
         self.menu_actions = [interpreter_action, terminal_action, run_action]
-        
+
         self.main.consoles_menu_actions += consoles_menu_actions
         self.main.tools_menu_actions += tools_menu_actions
-        
+
         return self.menu_actions+consoles_menu_actions+tools_menu_actions
-    
+
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
-        if self.main.light:
-            self.main.setCentralWidget(self)
-            self.main.widgetlist.append(self)
-        else:
-            self.main.add_dockwidget(self)
-            self.help = self.main.help
-            if self.help is not None:
-                self.help.set_external_console(self)
-            self.historylog = self.main.historylog
-            self.edit_goto.connect(self.main.editor.load)
-            self.edit_goto[str, int, str, bool].connect(
-                         lambda fname, lineno, word, processevents:
-                         self.main.editor.load(fname, lineno, word,
-                                               processevents=processevents))
-            self.main.editor.run_in_current_extconsole.connect(
-                         self.run_script_in_current_shell)
-            self.main.editor.breakpoints_saved.connect(
-                         self.set_spyder_breakpoints)
-            self.main.editor.open_dir.connect(
-                         self.set_current_shell_working_directory)
-            self.main.workingdirectory.set_current_console_wd.connect(
-                         self.set_current_shell_working_directory)
-            self.focus_changed.connect(
-                         self.main.plugin_focus_changed)
-            self.redirect_stdio.connect(
-                         self.main.redirect_internalshell_stdio)
-            expl = self.main.explorer
-            if expl is not None:
-                expl.open_terminal.connect(self.open_terminal)
-                expl.open_interpreter.connect(self.open_interpreter)
-            pexpl = self.main.projectexplorer
-            if pexpl is not None:
-                pexpl.open_terminal.connect(self.open_terminal)
-                pexpl.open_interpreter.connect(self.open_interpreter)
-        
+        self.main.add_dockwidget(self)
+        self.help = self.main.help
+        if self.help is not None:
+            self.help.set_external_console(self)
+        self.historylog = self.main.historylog
+        self.edit_goto.connect(self.main.editor.load)
+        self.edit_goto[str, int, str, bool].connect(
+                        lambda fname, lineno, word, processevents:
+                        self.main.editor.load(fname, lineno, word,
+                                            processevents=processevents))
+        self.main.editor.run_in_current_extconsole.connect(
+                        self.run_script_in_current_shell)
+        self.main.editor.breakpoints_saved.connect(
+                        self.set_spyder_breakpoints)
+        self.main.editor.open_dir.connect(
+                        self.set_current_shell_working_directory)
+        self.main.workingdirectory.set_current_console_wd.connect(
+                        self.set_current_shell_working_directory)
+        self.focus_changed.connect(
+                        self.main.plugin_focus_changed)
+        self.redirect_stdio.connect(
+                        self.main.redirect_internalshell_stdio)
+        expl = self.main.explorer
+        if expl is not None:
+            expl.open_terminal.connect(self.open_terminal)
+            expl.open_interpreter.connect(self.open_interpreter)
+        pexpl = self.main.projectexplorer
+        if pexpl is not None:
+            pexpl.open_terminal.connect(self.open_terminal)
+            pexpl.open_interpreter.connect(self.open_interpreter)
+
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         for shellwidget in self.shellwidgets:
@@ -1183,11 +1179,10 @@ class ExternalConsole(SpyderPluginWidget):
         """Open interpreter"""
         if wdir is None:
             wdir = getcwd()
-        if not self.main.light:
-            self.visibility_changed(True)
+        self.visibility_changed(True)
         self.start(fname=None, wdir=to_text_string(wdir), args='',
                    interact=True, debug=False, python=True)
-    
+
     def start_ipykernel(self, client, wdir=None, give_focus=True):
         """Start new IPython kernel"""
         if not self.get_option('monitor/enabled'):
