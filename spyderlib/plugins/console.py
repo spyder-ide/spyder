@@ -98,10 +98,10 @@ class Console(SpyderPluginWidget):
         Not used anymore since v2.0"""
         historylog.add_history(self.shell.history_filename)
         self.shell.append_to_history.connect(historylog.append_to_history)
-        
-    def set_inspector(self, inspector):
-        """Bind inspector instance to this console"""
-        self.shell.inspector = inspector
+
+    def set_help(self, help_plugin):
+        """Bind help instance to this console"""
+        self.shell.inspector = help_plugin
 
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
