@@ -191,13 +191,13 @@ Inspecting objects defined in the console
   are enclosed by triple single quotes (``'''``) or triple double quotes
   (``"""``).
 
-* The Spyder environment also provides the ``Object Inspector`` which
+* The Spyder environment also provides a ``Help`` pane which
   by default is located in the top right corner.
 
   While the cursor is on the name of an object,
   press ``CTRL+i`` (or ``CMD+i`` on Mac), and you should find that
   the same information as we obtained from ``help(hello)`` is provided
-  automatically in the object inspector:
+  automatically in the Help:
 
   .. image:: static/images/spyder-hello-docstring.png
        :align: center
@@ -478,8 +478,8 @@ Shortcuts for useful functions
   size in the Editor, whereas ``Cmd + -`` (``Ctrl + -``) will decrease it.
   Also works in the IPython Console.
 
-  The font size for the Object Inspector, the Python console etc. can be set
-  individually via ``Preferences > Object inspector`` etc.
+  The font size for the Help, the Python console etc. can be set
+  individually via ``Preferences > Help`` etc.
 
   I couldn't find a way of changing the font size in the variable explorer.
 
@@ -500,7 +500,7 @@ Shortcuts for useful functions
 
 - ``Cmd+I`` (on Mac OS X) and ``Ctrl+I`` (otherwise) when pressed
   while the cursor is on an object, opens documentation for that
-  object in the object inspector.
+  object in the help pane.
 
 
 
@@ -709,7 +709,7 @@ If you follow those guidelines, you can obtain beautifully formatted docstrings
 in Spyder.
 
 For example, to get an ``average()`` function look like this in the
-Spyder Object inspector:
+Spyder Help pane:
 
 .. image:: static/images/spyder-nice-docstring-rendering.png
      :align: center

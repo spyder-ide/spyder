@@ -41,7 +41,7 @@ class SpyderWidgets(object):
     editor_line_number_area = 'editor.get_current_editor().linenumberarea'
     editor_scroll_flag_area = 'editor.get_current_editor().scrollflagarea'
     file_explorer = 'explorer'
-    object_inspector = 'inspector'
+    help_plugin = 'help'
     variable_explorer = 'variableexplorer'
     history_log = "historylog"
 
@@ -189,7 +189,7 @@ def get_tour(index):
               'run': ["a = 2", "s='Hello, world!'"],
               },
 
-             {'title': _("The Object Inspector"),
+             {'title': _("Help"),
               'content': _("This pane displays documentation of the "
                            "functions, classes, methods or modules you are "
                            "currently using in the Editor or the Consoles.<br><br>"
@@ -197,7 +197,7 @@ def get_tour(index):
                            "front of an object. If that object has some "
                            "documentation associated with it, it will be "
                            "displayed here."),
-              'widgets': [sw.object_inspector],
+              'widgets': [sw.help_plugin],
               'interact': True},
 
              {'title': _("The File Explorer"),

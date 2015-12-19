@@ -142,7 +142,7 @@ a Python version greater than 2.7 (Python 3.2 is not supported anymore).
 * **Rope** and/or **Jedi** 0.8.1: Editor code completion, calltips
   and go-to-definition.
 * **Pyflakes**: Real-time code analysis.
-* **Sphinx**: Object Inspector's rich text mode.
+* **Sphinx**: Rich text mode for the Help pane
 * **Pygments**: Syntax highlighting for all file types it supports.
 * **Pylint**: Static code analysis.
 * **Pep8**: Style analysis.

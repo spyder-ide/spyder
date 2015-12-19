@@ -47,7 +47,7 @@ from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
 from spyderlib.utils import programs, sourcecode
 from spyderlib.widgets.browser import WebView
 from spyderlib.widgets.calltip import CallTipWidget
-from spyderlib.widgets.mixins import (BaseEditMixin, InspectObjectMixin,
+from spyderlib.widgets.mixins import (BaseEditMixin, GetHelpMixin,
                                       SaveHistoryMixin, TracebackLinksMixin)
 from spyderlib.widgets.arraybuilder import (SHORTCUT_INLINE, SHORTCUT_TABLE)
 from spyderlib.py3compat import PY3
@@ -56,10 +56,10 @@ from spyderlib.py3compat import PY3
 #-----------------------------------------------------------------------------
 # Templates
 #-----------------------------------------------------------------------------
-# Using the same css file from the Object Inspector for now. Maybe
+# Using the same css file from the Help plugin for now. Maybe
 # later it'll be a good idea to create a new one.
 UTILS_PATH = get_module_source_path('spyderlib', 'utils')
-CSS_PATH = osp.join(UTILS_PATH, 'inspector', 'static', 'css')
+CSS_PATH = osp.join(UTILS_PATH, 'help', 'static', 'css')
 TEMPLATES_PATH = osp.join(UTILS_PATH, 'ipython', 'templates')
 
 BLANK = open(osp.join(TEMPLATES_PATH, 'blank.html')).read()
@@ -69,7 +69,7 @@ KERNEL_ERROR = open(osp.join(TEMPLATES_PATH, 'kernel_error.html')).read()
 #-----------------------------------------------------------------------------
 # Control widgets
 #-----------------------------------------------------------------------------
-class IPythonControlWidget(TracebackLinksMixin, InspectObjectMixin, QTextEdit,
+class IPythonControlWidget(TracebackLinksMixin, GetHelpMixin, QTextEdit,
                            BaseEditMixin):
     """
     Subclass of QTextEdit with features from Spyder's mixins to use as the
@@ -84,7 +84,7 @@ class IPythonControlWidget(TracebackLinksMixin, InspectObjectMixin, QTextEdit,
         QTextEdit.__init__(self, parent)
         BaseEditMixin.__init__(self)
         TracebackLinksMixin.__init__(self)
-        InspectObjectMixin.__init__(self)
+        GetHelpMixin.__init__(self)
 
         self.calltip_widget = CallTipWidget(self, hide_timer_on=True)
         self.found_results = []
@@ -602,12 +602,12 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         """Set IPython widget's font"""
         self.shellwidget._control.setFont(font)
         self.shellwidget.font = font
-    
+
     def set_infowidget_font(self):
         """Set font for infowidget"""
-        font = get_font('inspector', 'rich_text')
+        font = get_font('help', 'rich_text')
         self.infowidget.set_font(font)
-    
+
     def interrupt_kernel(self):
         """Interrupt the associanted Spyder kernel if it's running"""
         self.shellwidget.request_interrupt_kernel()
@@ -619,7 +619,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
 
     @Slot()
     def inspect_object(self):
-        """Show how to inspect an object with our object inspector"""
+        """Show how to inspect an object with our Help plugin"""
         self.shellwidget._control.inspect_current_object()
 
     @Slot()

@@ -975,5 +975,5 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         self.main.editor.apply_plugin_settings(['color_scheme_name'])
         if self.main.historylog is not None:
             self.main.historylog.apply_plugin_settings(['color_scheme_name'])
-        if self.main.inspector is not None:
-            self.main.inspector.apply_plugin_settings(['color_scheme_name'])
+        if self.main.help is not None:
+            self.main.help.apply_plugin_settings(['color_scheme_name'])

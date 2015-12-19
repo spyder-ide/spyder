@@ -262,7 +262,6 @@ DEFAULTS = [
               'wrap': True,
               'single_tab': True,
               'calltips': True,
-              'object_inspector': True,
               'codecompletion/auto': True,
               'codecompletion/enter_key': True,
               'codecompletion/case_sensitive': True,
@@ -294,7 +293,6 @@ DEFAULTS = [
               'use_pager': False,
               'show_calltips': True,
               'ask_before_closing': True,
-              'object_inspector': True,
               'buffer_size': 500,
               'pylab': True,
               'pylab/autoload': False,
@@ -359,7 +357,6 @@ DEFAULTS = [
               'auto_unindent': True,
               'indent_chars': '*    *',
               'tab_stop_width': 40,
-              'object_inspector': True,
               'codecompletion/auto': True,
               'codecompletion/enter_key': True,
               'codecompletion/case_sensitive': True,
@@ -389,7 +386,7 @@ DEFAULTS = [
               'wrap': True,
               'go_to_eof': True,
               }),
-            ('inspector',
+            ('help',
              {
               'enable': True,
               'max_history_entries': 20,
@@ -508,7 +505,7 @@ DEFAULTS = [
               '_/debug step return': "Ctrl+Shift+F11",
               '_/debug exit': "Ctrl+Shift+F12",
               # -- In plugins/init
-              '_/switch to inspector': "Ctrl+Shift+H",
+              '_/switch to help': "Ctrl+Shift+H",
               '_/switch to outline_explorer': "Ctrl+Shift+O",
               '_/switch to editor': "Ctrl+Shift+E",
               '_/switch to historylog': "Ctrl+Shift+L",
@@ -759,7 +756,7 @@ DEFAULTS = [
 # 2. If you want to *remove* options that are no longer needed in our codebase,
 #    you need to do a MAJOR update in version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '21.1.0'
+CONF_VERSION = '22.0.0'
 
 # XXX: Previously we had load=(not DEV) here but DEV was set to *False*.
 # Check if it *really* needs to be updated or not

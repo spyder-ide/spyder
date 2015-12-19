@@ -174,7 +174,7 @@ We recommend you to install these modules to get the most out of Spyder:
     - On *Fedora*, ``ipython-gui``
     - And on *Gentoo* ``ipython`` with the ``qt4`` USE flag
   
-* `sphinx <http://sphinx.pocoo.org>`_ >= v0.6  -- for the Object Inspector's rich
+* `sphinx <http://sphinx.pocoo.org>`_ >= v0.6  -- for the Help pane rich
   text mode and to get our documentation.
 
 * `rope <http://rope.sourceforge.net/>`_ 0.9.x (x>=0) -- for code completion,

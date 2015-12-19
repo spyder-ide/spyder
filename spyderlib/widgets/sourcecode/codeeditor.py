@@ -373,8 +373,8 @@ class CodeEditor(TextEditBaseWidget):
             plugin_name = repr(parent)
             if 'editor' in plugin_name.lower():
                 self.setObjectName('editor')
-            elif 'inspector' in plugin_name.lower():
-                self.setObjectName('inspector')
+            elif 'help' in plugin_name.lower():
+                self.setObjectName('help')
             elif 'historylog' in plugin_name.lower():
                 self.setObjectName('historylog')
 

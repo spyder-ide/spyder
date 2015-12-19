@@ -606,7 +606,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.menu_actions = None
 
         self.extconsole = None         # External console plugin
-        self.inspector = None          # Object inspector plugin
+        self.help = None               # Help plugin
         self.historylog = None         # History log plugin
         self.variableexplorer = None   # Variable explorer plugin
         self.editor = None             # Editor plugin
@@ -660,14 +660,14 @@ class IPythonConsole(SpyderPluginWidget):
         """Apply configuration file's plugin settings"""
         font_n = 'plugin_font'
         font_o = self.get_plugin_font()
-        inspector_n = 'connect_to_oi'
-        inspector_o = CONF.get('inspector', 'connect/ipython_console')
+        help_n = 'connect_to_oi'
+        help_o = CONF.get('help', 'connect/ipython_console')
         for client in self.clients:
             control = client.get_control()
             if font_n in options:
                 client.set_font(font_o)
-            if inspector_n in options and control is not None:
-                control.set_inspector_enabled(inspector_o)
+            if help_n in options and control is not None:
+                control.set_help_enabled(help_o)
 
     def toggle_view(self, checked):
         """Toggle view"""
@@ -765,7 +765,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.main.add_dockwidget(self)
 
         self.extconsole = self.main.extconsole
-        self.inspector = self.main.inspector
+        self.help = self.main.help
         self.historylog = self.main.historylog
         self.variableexplorer = self.main.variableexplorer
         self.editor = self.main.editor
@@ -918,12 +918,12 @@ class IPythonConsole(SpyderPluginWidget):
         # Print a message if kernel dies unexpectedly
         shellwidget.custom_restart_kernel_died.connect(
                                             lambda t: client.if_kernel_dies(t))
-        
-        # Connect text widget to our inspector
-        if kernel_widget is not None and self.inspector is not None:
-            control.set_inspector(self.inspector)
-            control.set_inspector_enabled(CONF.get('inspector',
-                                                   'connect/ipython_console'))
+
+        # Connect text widget to Help
+        if kernel_widget is not None and self.help is not None:
+            control.set_help(self.help)
+            control.set_help_enabled(CONF.get('help',
+                                              'connect/ipython_console'))
 
         # Connect client to our history log
         if self.historylog is not None:
@@ -1191,20 +1191,20 @@ class IPythonConsole(SpyderPluginWidget):
     def show_intro(self):
         """Show intro to IPython help"""
         from IPython.core.usage import interactive_usage
-        self.inspector.show_rich_text(interactive_usage)
+        self.help.show_rich_text(interactive_usage)
 
     @Slot()
     def show_guiref(self):
         """Show qtconsole help"""
         from IPython.core.usage import gui_reference
-        self.inspector.show_rich_text(gui_reference, collapse=True)
+        self.help.show_rich_text(gui_reference, collapse=True)
 
     @Slot()
     def show_quickref(self):
         """Show IPython Cheat Sheet"""
         from IPython.core.usage import quick_reference
-        self.inspector.show_plain_text(quick_reference)
-        
+        self.help.show_plain_text(quick_reference)
+
     #----Drag and drop
     #TODO: try and reimplement this block
     # (this is still the original code block copied from externalconsole.py)

@@ -373,7 +373,7 @@ def load_dictionary(filename):
 
 from spyderlib.config.base import get_conf_path, STDERR
 
-SAVED_CONFIG_FILES = ('inspector', 'onlinehelp', 'path', 'pylint.results',
+SAVED_CONFIG_FILES = ('help', 'onlinehelp', 'path', 'pylint.results',
                       'spyder.ini', 'temp.py', 'temp.spydata', 'template.py',
                       'history.py', 'history_internal.py', 'workingdir',
                       '.projects', '.spyderproject', '.ropeproject',

@@ -42,7 +42,7 @@ for /r "%SPYDERLIB%" %%f in (*.py) do (
     ) else if not "!file:utils\external\=!"=="!file!" (
         echo --- NOT testing %%f ---
         echo.
-    ) else if not "!file:utils\inspector=!"=="!file!" (
+    ) else if not "!file:utils\help=!"=="!file!" (
         echo --- NOT testing %%f ---
         echo.
     ) else if "%%f"=="%SPYDERLIB%\utils\bsdsocket.py" (

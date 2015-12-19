@@ -381,7 +381,7 @@ class Editor(SpyderPluginWidget):
 
         self.projectexplorer = None
         self.outlineexplorer = None
-        self.inspector = None
+        self.help = None
 
         self.editorstacks = None
         self.editorwindows = None
@@ -530,12 +530,12 @@ class Editor(SpyderPluginWidget):
                 dw.show()
                 dw.raise_()
             self.switch_to_plugin()
-        
-    def set_inspector(self, inspector):
-        self.inspector = inspector
+
+    def set_help(self, help_plugin):
+        self.help = help_plugin
         for editorstack in self.editorstacks:
-            editorstack.set_inspector(self.inspector)
-        
+            editorstack.set_help(self.help)
+
     #------ Private API --------------------------------------------------------
     def restore_scrollbar_position(self):
         """Restoring scrollbar position after main window is visible"""
@@ -1039,7 +1039,7 @@ class Editor(SpyderPluginWidget):
         self.exec_in_extconsole.connect(self.main.execute_in_external_console)
         self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
         self.open_dir.connect(self.main.workingdirectory.chdir)
-        self.set_inspector(self.main.inspector)
+        self.set_help(self.main.help)
         if self.main.outlineexplorer is not None:
             self.set_outlineexplorer(self.main.outlineexplorer)
         editorstack = self.get_current_editorstack()
@@ -1100,8 +1100,8 @@ class Editor(SpyderPluginWidget):
             editorstack.sig_editor_cursor_position_changed.connect(
                                  self.cursorpos_status.cursor_position_changed)
             editorstack.refresh_eol_chars.connect(self.eol_status.eol_changed)
-            
-        editorstack.set_inspector(self.inspector)
+
+        editorstack.set_help(self.help)
         editorstack.set_io_actions(self.new_action, self.open_action,
                                    self.save_action, self.revert_action)
         editorstack.set_tempfile_path(self.TEMPFILE_PATH)
@@ -1141,14 +1141,13 @@ class Editor(SpyderPluginWidget):
                     )
         for method, setting in settings:
             getattr(editorstack, method)(self.get_option(setting))
-        editorstack.set_inspector_enabled(CONF.get('inspector',
-                                                   'connect/editor'))
+        editorstack.set_help_enabled(CONF.get('help', 'connect/editor'))
         color_scheme = get_color_scheme(self.get_option('color_scheme_name'))
         editorstack.set_default_font(self.get_plugin_font(), color_scheme)
-        
+
         editorstack.starting_long_process.connect(self.starting_long_process)
         editorstack.ending_long_process.connect(self.ending_long_process)
-        
+
         # Redirect signals
         editorstack.redirect_stdio.connect(
                                  lambda state: self.redirect_stdio.emit(state))
@@ -2292,8 +2291,8 @@ class Editor(SpyderPluginWidget):
             indent_chars_o = self.get_option(indent_chars_n)
             tab_stop_width_n = 'tab_stop_width'
             tab_stop_width_o = self.get_option(tab_stop_width_n)
-            inspector_n = 'connect_to_oi'
-            inspector_o = CONF.get('inspector', 'connect/editor')
+            help_n = 'connect_to_oi'
+            help_o = CONF.get('help', 'connect/editor')
             todo_n = 'todo_list'
             todo_o = self.get_option(todo_n)
             pyflakes_n = 'code_analysis/pyflakes'
@@ -2356,8 +2355,8 @@ class Editor(SpyderPluginWidget):
                     editorstack.set_indent_chars(indent_chars_o)
                 if tab_stop_width_n in options:
                     editorstack.set_tab_stop_width(tab_stop_width_o)
-                if inspector_n in options:
-                    editorstack.set_inspector_enabled(inspector_o)
+                if help_n in options:
+                    editorstack.set_help_enabled(help_o)
                 if todo_n in options:
                     editorstack.set_todolist_enabled(todo_o,
                                                      current_finfo=finfo)

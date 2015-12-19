@@ -30,7 +30,7 @@ Python-based command windows support the following features:
 
 Related plugins:
 
-* :doc:`inspector`
+* :doc:`help`
 * :doc:`historylog`
 * :doc:`editor`
 * :doc:`explorer`

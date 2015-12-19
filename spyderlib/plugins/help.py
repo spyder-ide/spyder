@@ -4,7 +4,7 @@
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
-"""Object Inspector Plugin"""
+"""Help Plugin"""
 
 from spyderlib.qt import PYQT5
 from spyderlib.qt.QtGui import (QHBoxLayout, QVBoxLayout, QLabel, QSizePolicy,
@@ -46,16 +46,15 @@ else:
 
 # Check if we can import Sphinx to activate rich text mode
 try:
-    from spyderlib.utils.inspector.sphinxify import (CSS_PATH, sphinxify,
-                                                     warning, generate_context,
-                                                     usage)
+    from spyderlib.utils.help.sphinxify import (CSS_PATH, sphinxify, warning,
+                                                generate_context, usage)
     sphinx_version = programs.get_module_version('sphinx')
 except (ImportError, TypeError):
     sphinxify = sphinx_version = None  # analysis:ignore
 
 # To add sphinx dependency to the Dependencies dialog
 SPHINX_REQVER = '>=0.6.6'
-dependencies.add("sphinx", _("Rich text help on the Object Inspector"),
+dependencies.add("sphinx", _("Rich text help"),
                  required_version=SPHINX_REQVER)
 
 
@@ -68,29 +67,29 @@ class ObjectComboBox(EditableComboBox):
 
     def __init__(self, parent):
         EditableComboBox.__init__(self, parent)
-        self.object_inspector = parent
+        self.help = parent
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.tips = {True: '', False: ''}
 
     def is_valid(self, qstr=None):
         """Return True if string is valid"""
-        if not self.object_inspector.source_is_console():
+        if not self.help.source_is_console():
             return True
         if qstr is None:
             qstr = self.currentText()
         if not re.search('^[a-zA-Z0-9_\.]*$', str(qstr), 0):
             return False
         objtxt = to_text_string(qstr)
-        if self.object_inspector.get_option('automatic_import'):
-            shell = self.object_inspector.internal_shell
+        if self.help.get_option('automatic_import'):
+            shell = self.help.internal_shell
             if shell is not None:
                 return shell.is_defined(objtxt, force_import=True)
-        shell = self.object_inspector.get_shell()
+        shell = self.help.get_shell()
         if shell is not None:
             try:
                 return shell.is_defined(objtxt)
             except socket.error:
-                shell = self.object_inspector.get_shell()
+                shell = self.help.get_shell()
                 try:
                     return shell.is_defined(objtxt)
                 except socket.error:
@@ -116,7 +115,7 @@ class ObjectComboBox(EditableComboBox):
                     self.valid.emit(False, False)
 
 
-class ObjectInspectorConfigPage(PluginConfigPage):
+class HelpConfigPage(PluginConfigPage):
     def setup_page(self):
         # Fonts group
         plain_text_font_group = self.create_fontgroup(option=None,
@@ -127,7 +126,7 @@ class ObjectInspectorConfigPage(PluginConfigPage):
 
         # Connections group
         connections_group = QGroupBox(_("Automatic connections"))
-        connections_label = QLabel(_("The Object Inspector can automatically "
+        connections_label = QLabel(_("This pane can automatically "
                                      "show an object's help information after "
                                      "a left parenthesis is written next to it. "
                                      "Below you can decide to which plugin "
@@ -348,12 +347,12 @@ class SphinxThread(QThread):
         self.html_ready.emit(html_text)
 
 
-class ObjectInspector(SpyderPluginWidget):
+class Help(SpyderPluginWidget):
     """
     Docstrings viewer widget
     """
-    CONF_SECTION = 'inspector'
-    CONFIGWIDGET_CLASS = ObjectInspectorConfigPage
+    CONF_SECTION = 'help'
+    CONFIGWIDGET_CLASS = HelpConfigPage
     LOG_PATH = get_conf_path(CONF_SECTION)
     focus_changed = Signal()
 
@@ -513,13 +512,17 @@ class ObjectInspector(SpyderPluginWidget):
         self._starting_up = True
 
     #------ SpyderPluginWidget API ---------------------------------------------
+    def on_first_registration(self):
+        """Action to be performed on first plugin registration"""
+        self.main.tabify_plugins(self.main.variableexplorer, self)
+
     def get_plugin_title(self):
         """Return widget title"""
-        return _('Object inspector')
+        return _('Help')
 
     def get_plugin_icon(self):
         """Return widget icon"""
-        return ima.icon('inspector')
+        return ima.icon('help')
 
     def get_focus_widget(self):
         """
@@ -537,7 +540,7 @@ class ObjectInspector(SpyderPluginWidget):
         """Register plugin in Spyder's main window"""
         self.focus_changed.connect(self.main.plugin_focus_changed)
         self.main.add_dockwidget(self)
-        self.main.console.set_inspector(self)
+        self.main.console.set_help(self)
         self.internal_shell = self.main.console.shell
 
     def closing_plugin(self, cancelable=False):
@@ -585,7 +588,7 @@ class ObjectInspector(SpyderPluginWidget):
         if self.main.ipyconsole is not None:
             self.main.ipyconsole.apply_plugin_settings(options=[connect_n])
 
-    #------ Public API (related to inspector's source) -------------------------
+    #------ Public API (related to Help's source) -------------------------
     def source_is_console(self):
         """Return True if source is Console"""
         return self.source_combo.currentIndex() == 0
@@ -741,7 +744,7 @@ class ObjectInspector(SpyderPluginWidget):
                           "Help can also be shown automatically after writing "
                           "a left parenthesis next to an object. You can "
                           "activate this behavior in %s.")
-        prefs = _("Preferences > Object Inspector")
+        prefs = _("Preferences > Help")
         if sys.platform == 'darwin':
             shortcut = "Cmd+I"
         else:
@@ -781,7 +784,7 @@ class ObjectInspector(SpyderPluginWidget):
 
     @Slot()
     def show_tutorial(self):
-        tutorial_path = get_module_source_path('spyderlib.utils.inspector')
+        tutorial_path = get_module_source_path('spyderlib.utils.help')
         img_path = osp.join(tutorial_path, 'static', 'images')
         tutorial = osp.join(tutorial_path, 'tutorial.rst')
         text = open(tutorial).read()
@@ -810,7 +813,7 @@ class ObjectInspector(SpyderPluginWidget):
             self.set_editor_doc(self._last_editor_doc, force_refresh=True)
 
     def set_object_text(self, text, force_refresh=False, ignore_unknown=False):
-        """Set object analyzed by Object Inspector"""
+        """Set object analyzed by Help"""
         if (self.locked and not force_refresh):
             return
         self.switch_to_console_source()
@@ -831,13 +834,13 @@ class ObjectInspector(SpyderPluginWidget):
 
         if self.dockwidget is not None:
             self.dockwidget.blockSignals(True)
-        self.__eventually_raise_inspector(text, force=force_refresh)
+        self.__eventually_raise_help(text, force=force_refresh)
         if self.dockwidget is not None:
             self.dockwidget.blockSignals(False)
 
     def set_editor_doc(self, doc, force_refresh=False):
         """
-        Use the object inspector to show docstring dictionary computed
+        Use the help plugin to show docstring dictionary computed
         with introspection plugin from the Editor plugin
         """
         if (self.locked and not force_refresh):
@@ -853,12 +856,11 @@ class ObjectInspector(SpyderPluginWidget):
 
         if self.dockwidget is not None:
             self.dockwidget.blockSignals(True)
-        self.__eventually_raise_inspector(doc['docstring'],
-                                          force=force_refresh)
+        self.__eventually_raise_help(doc['docstring'], force=force_refresh)
         if self.dockwidget is not None:
             self.dockwidget.blockSignals(False)
 
-    def __eventually_raise_inspector(self, text, force=False):
+    def __eventually_raise_help(self, text, force=False):
         index = self.source_combo.currentIndex()
         if hasattr(self.main, 'tabifiedDockWidgets'):
             # 'QMainWindow.tabifiedDockWidgets' was introduced in PyQt 4.5
@@ -949,7 +951,7 @@ class ObjectInspector(SpyderPluginWidget):
             self.shell = shell
 
     def get_shell(self):
-        """Return shell which is currently bound to object inspector,
+        """Return shell which is currently bound to Help,
         or another running shell if it has been terminated"""
         if not isinstance(self.shell, ExtPythonShellWidget) \
            or not self.shell.externalshell.is_running():
@@ -978,7 +980,7 @@ class ObjectInspector(SpyderPluginWidget):
         self._sphinx_thread.wait()
         self.plain_text_action.setChecked(True)
         QMessageBox.critical(self,
-                    _('Object inspector'),
+                    _('Help'),
                     _("The following error occured when calling "
                       "<b>Sphinx %s</b>. <br>Incompatible Sphinx "
                       "version or doc string decoding failed."

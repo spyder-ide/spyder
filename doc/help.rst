@@ -1,11 +1,11 @@
-Object inspector
-================
+Help
+====
 
-The object inspector plugin works together with the :doc:`console` and the 
+The help plugin works together with the :doc:`console` and the 
 :doc:`editor`: it shows automatically documentation available when the 
 user is instantiating a class or calling a function (pressing the left 
-parenthesis key after a valid function or class name triggers the object 
-inspector).
+parenthesis key after a valid function or class name triggers a call
+in the help pane).
 
 Note that this automatic link may be disabled by pressing the "Lock" button 
 (at the top right corner of the window).
@@ -16,17 +16,17 @@ in the combo box.
 
 Plain text mode:
 
-.. image:: images/inspector_plain.png
+.. image:: images/help_plain.png
 
 Rich text mode:
 
-.. image:: images/inspector_rich.png
+.. image:: images/help_rich.png
 
 Sometimes, when docstrings are not available or not sufficient to document the 
 object, the documentation viewer can show the source code (if available, i.e. 
 if the object is pure Python):
 
-.. image:: images/inspector_source.png
+.. image:: images/help_source.png
 
 Related plugins:
 

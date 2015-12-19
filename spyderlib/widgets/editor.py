@@ -160,7 +160,7 @@ class FileInfo(QObject):
     save_breakpoints = Signal(str, str)
     text_changed_at = Signal(str, int)
     edit_goto = Signal(str, int, str)
-    send_to_inspector = Signal(str, str, str, str, bool)
+    send_to_help = Signal(str, str, str, str, bool)
 
     def __init__(self, filename, encoding, editor, new, threadmanager,
                  introspection_plugin):
@@ -348,7 +348,7 @@ class EditorStack(QWidget):
         self.menu_actions = actions + [None, fileswitcher_action,
                                        copy_to_cb_action]
         self.outlineexplorer = None
-        self.inspector = None
+        self.help = None
         self.unregister_callback = None
         self.is_closable = False
         self.new_action = None
@@ -377,7 +377,7 @@ class EditorStack(QWidget):
         self.auto_unindent_enabled = True
         self.indent_chars = " "*4
         self.tab_stop_width = 40
-        self.inspector_enabled = False
+        self.help_enabled = False
         self.default_font = None
         self.wrap_enabled = False
         self.tabmode_enabled = False
@@ -397,7 +397,7 @@ class EditorStack(QWidget):
         self.color_scheme = ccs
         self.introspector = introspection.PluginManager(self)
 
-        self.introspector.send_to_inspector.connect(self.send_to_inspector)
+        self.introspector.send_to_help.connect(self.send_to_help)
         self.introspector.edit_goto.connect(
              lambda fname, lineno, name:
              self.edit_goto.emit(fname, lineno, name))
@@ -568,16 +568,16 @@ class EditorStack(QWidget):
             editor.add_remove_breakpoint(edit_condition=True)
 
     def inspect_current_object(self):
-        """Inspect current object in Object Inspector"""
+        """Inspect current object in the Help plugin"""
         if self.introspector:
             editor = self.get_current_editor()
             position = editor.get_position('cursor')
-            self.inspector.switch_to_editor_source()
+            self.help.switch_to_editor_source()
             self.introspector.show_object_info(position, auto=False)
         else:
             text = self.get_current_editor().get_current_object()
             if text:
-                self.send_to_inspector(text, force=True)
+                self.send_to_help(text, force=True)
 
     #------ Editor Widget Settings
     def set_closable(self, state):
@@ -611,8 +611,8 @@ class EditorStack(QWidget):
         oe_btn.setDefaultAction(self.outlineexplorer.visibility_action)
         self.add_corner_widgets_to_tabbar([5, oe_btn])
 
-    def set_inspector(self, inspector):
-        self.inspector = inspector
+    def set_help(self, help_plugin):
+        self.help = help_plugin
 
     def set_tempfile_path(self, path):
         self.tempfile_path = path
@@ -770,8 +770,8 @@ class EditorStack(QWidget):
             for finfo in self.data:
                 finfo.editor.setTabStopWidth(tab_stop_width)
 
-    def set_inspector_enabled(self, state):
-        self.inspector_enabled = state
+    def set_help_enabled(self, state):
+        self.help_enabled = state
 
     def set_default_font(self, font, color_scheme=None):
         # get_font(self.CONF_SECTION)
@@ -1599,7 +1599,7 @@ class EditorStack(QWidget):
                          self.introspector)
 
         self.add_to_data(finfo, set_current)
-        finfo.send_to_inspector.connect(self.send_to_inspector)
+        finfo.send_to_help.connect(self.send_to_help)
         finfo.analysis_results_changed.connect(
                                   lambda: self.analysis_results_changed.emit())
         finfo.todo_results_changed.connect(
@@ -1671,17 +1671,17 @@ class EditorStack(QWidget):
         """Cursor position of one of the editor in the stack has changed"""
         self.sig_editor_cursor_position_changed.emit(line, index)
 
-    def send_to_inspector(self, qstr1, qstr2=None, qstr3=None,
-                          qstr4=None, force=False):
+    def send_to_help(self, qstr1, qstr2=None, qstr3=None, qstr4=None,
+                     force=False):
         """qstr1: obj_text, qstr2: argpspec, qstr3: note, qstr4: doc_text"""
-        if not force and not self.inspector_enabled:
+        if not force and not self.help_enabled:
             return
-        if self.inspector is not None \
-           and (force or self.inspector.dockwidget.isVisible()):
-            # ObjectInspector widget exists and is visible
+        if self.help is not None \
+          and (force or self.help.dockwidget.isVisible()):
+            # Help plugin exists and is visible
             if qstr4 is None:
-                self.inspector.set_object_text(qstr1, ignore_unknown=True,
-                                               force_refresh=force)
+                self.help.set_object_text(qstr1, ignore_unknown=True,
+                                          force_refresh=force)
             else:
                 objtxt = to_text_string(qstr1)
                 name = objtxt.split('.')[-1]
@@ -1690,7 +1690,7 @@ class EditorStack(QWidget):
                 docstring = to_text_string(qstr4)
                 doc = {'obj_text': objtxt, 'name': name, 'argspec': argspec,
                        'note': note, 'docstring': docstring}
-                self.inspector.set_editor_doc(doc, force_refresh=force)
+                self.help.set_editor_doc(doc, force_refresh=force)
             editor = self.get_current_editor()
             editor.setFocus()
 

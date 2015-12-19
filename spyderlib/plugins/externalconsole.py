@@ -399,8 +399,8 @@ class ExternalConsole(SpyderPluginWidget):
         self.light_mode = light_mode
         self.tabwidget = None
         self.menu_actions = None
-        
-        self.inspector = None # Object inspector plugin
+
+        self.help = None # Help plugin
         self.historylog = None # History log plugin
         self.variableexplorer = None # Variable explorer plugin
 
@@ -569,17 +569,17 @@ class ExternalConsole(SpyderPluginWidget):
                 else:
                     self.tabwidget.setCurrentIndex(index)
                     return shellwidget
-    
+
     def get_current_shell(self):
         """
-        Called by object inspector to retrieve the current shell instance
+        Called by Help to retrieve the current shell instance
         """
         shellwidget = self.__find_python_shell()
         return shellwidget.shell
-                
+
     def get_running_python_shell(self):
         """
-        Called by object inspector to retrieve a running Python shell instance
+        Called by Help to retrieve a running Python shell instance
         """
         current_index = self.tabwidget.currentIndex()
         if current_index == -1:
@@ -811,10 +811,10 @@ class ExternalConsole(SpyderPluginWidget):
                             self.get_option('codecompletion/case_sensitive') )
         shellwidget.shell.set_codecompletion_enter(
                             self.get_option('codecompletion/enter_key') )
-        if python and self.inspector is not None:
-            shellwidget.shell.set_inspector(self.inspector)
-            shellwidget.shell.set_inspector_enabled(
-                               CONF.get('inspector', 'connect/python_console'))
+        if python and self.help is not None:
+            shellwidget.shell.set_help(self.help)
+            shellwidget.shell.set_help_enabled(
+                               CONF.get('help', 'connect/python_console'))
         if self.historylog is not None:
             self.historylog.add_history(shellwidget.shell.history_filename)
             shellwidget.shell.append_to_history.connect(
@@ -981,11 +981,11 @@ class ExternalConsole(SpyderPluginWidget):
         shell = self.shellwidgets[index]
         icon, _icon = self.icons[index]
         self.tabwidget.setTabIcon(index, icon)
-        if self.inspector is not None:
-            self.inspector.set_shell(shell.shell)
+        if self.help is not None:
+            self.help.set_shell(shell.shell)
         if self.variableexplorer is not None:
             self.variableexplorer.add_shellwidget(shell)
-        
+
     def process_finished(self, shell_id):
         index = self.get_shell_index_from_id(shell_id)
         if index is not None:
@@ -1054,9 +1054,9 @@ class ExternalConsole(SpyderPluginWidget):
             self.main.widgetlist.append(self)
         else:
             self.main.add_dockwidget(self)
-            self.inspector = self.main.inspector
-            if self.inspector is not None:
-                self.inspector.set_external_console(self)
+            self.help = self.main.help
+            if self.help is not None:
+                self.help.set_external_console(self)
             self.historylog = self.main.historylog
             self.edit_goto.connect(self.main.editor.load)
             self.edit_goto[str, int, str, bool].connect(
@@ -1119,8 +1119,8 @@ class ExternalConsole(SpyderPluginWidget):
         icontext_o = self.get_option(icontext_n)
         calltips_n = 'calltips'
         calltips_o = self.get_option(calltips_n)
-        inspector_n = 'connect_to_oi'
-        inspector_o = CONF.get('inspector', 'connect/python_console')
+        help_n = 'connect_to_oi'
+        help_o = CONF.get('help', 'connect/python_console')
         wrap_n = 'wrap'
         wrap_o = self.get_option(wrap_n)
         compauto_n = 'codecompletion/auto'
@@ -1144,9 +1144,9 @@ class ExternalConsole(SpyderPluginWidget):
                 shellwidget.set_icontext_visible(icontext_o)
             if calltips_n in options:
                 shellwidget.shell.set_calltips(calltips_o)
-            if inspector_n in options:
+            if help_n in options:
                 if isinstance(shellwidget, ExternalPythonShell):
-                    shellwidget.shell.set_inspector_enabled(inspector_o)
+                    shellwidget.shell.set_help_enabled(help_o)
             if wrap_n in options:
                 shellwidget.shell.toggle_wrap_mode(wrap_o)
             if compauto_n in options:

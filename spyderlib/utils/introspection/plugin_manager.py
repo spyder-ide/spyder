@@ -246,7 +246,7 @@ class CodeInfo(object):
 
 class PluginManager(QObject):
 
-    send_to_inspector = Signal(str, str, str, str, bool)
+    send_to_help = Signal(str, str, str, str, bool)
     edit_goto = Signal(str, int, str)
 
     def __init__(self, editor_widget):
@@ -318,11 +318,11 @@ class PluginManager(QObject):
         self._handle_request(info)
 
     def show_object_info(self, position, auto=True):
-        """Show signature calltip and/or docstring in the Object Inspector"""
+        """Show signature calltip and/or docstring in the Help plugin"""
         # auto is True means that this method was called automatically,
         # i.e. the user has just entered an opening parenthesis -- in that
-        # case, we don't want to force the object inspector to be visible,
-        # to avoid polluting the window layout
+        # case, we don't want to force Help to be visible, to avoid polluting
+        # the window layout
         info = self._get_code_info('info', position, auto=auto)
         self._handle_request(info)
 
@@ -459,7 +459,7 @@ class PluginManager(QObject):
                                      at_position=prev_info.position)
 
         if resp['name']:
-            self.send_to_inspector.emit(
+            self.send_to_help.emit(
                 resp['name'], resp['argspec'],
                 resp['note'], resp['docstring'],
                 not prev_info.auto)

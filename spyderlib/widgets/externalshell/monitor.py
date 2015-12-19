@@ -248,9 +248,9 @@ class Monitor(threading.Thread):
         else:
             ns.update(glbs)
             ns.update(self.pdb_locals)
-        
-        # Add magics to ns so we can show help about them on the Object
-        # Inspector
+
+        # Add magics to ns so we can show help about them on the Help
+        # plugin
         if self.ip and with_magics:
             line_magics = self.ip.magics_manager.magics['line']
             cell_magics = self.ip.magics_manager.magics['cell']
