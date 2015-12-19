@@ -512,6 +512,10 @@ class Help(SpyderPluginWidget):
         self._starting_up = True
 
     #------ SpyderPluginWidget API ---------------------------------------------
+    def on_first_registration(self):
+        """Action to be performed on first plugin registration"""
+        self.main.tabify_plugins(self.main.variableexplorer, self)
+
     def get_plugin_title(self):
         """Return widget title"""
         return _('Help')
