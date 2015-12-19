@@ -30,8 +30,10 @@ class Dependency(object):
         if installed_version is None:
             try:
                 self.installed_version = programs.get_module_version(modname)
-            except ImportError:
-                # Module is not installed
+            except:
+                # NOTE: Don't add any exception type here!
+                # Modules can fail to import in several ways besides
+                # ImportError
                 self.installed_version = None
         else:
             self.installed_version = installed_version
