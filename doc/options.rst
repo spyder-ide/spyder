@@ -6,7 +6,6 @@ Spyder's command line options are the following:
 
 Options:
   -h, --help            show this help message and exit
-  -l, --light           Light version (all add-ons are disabled)
   --new-instance        Run a new instance of Spyder, even if the single
                         instance mode has been turned on (default)
   --session=STARTUP_SESSION

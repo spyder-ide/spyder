@@ -86,7 +86,7 @@ def get_data_files():
                           ('share/pixmaps', ['img_src/spyder.png'])]
     elif os.name == 'nt':
         data_files = [('scripts', ['img_src/spyder.ico',
-                                   'img_src/spyder_light.ico'])]
+                                   'img_src/spyder_reset.ico'])]
     else:
         data_files = []
     return data_files

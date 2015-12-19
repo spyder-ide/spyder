@@ -99,7 +99,6 @@ _qtaargs = {
     'up':                      [('fa.arrow-up',), {}],
     'down':                    [('fa.arrow-down',), {}],
     'filesaveas2':             [('fa.save', 'fa.close'), {'options': [{'scale_factor': 0.8, 'offset': (-0.1, -0.1)}, {'offset': (0.2, 0.2)}]}],   # save_session_action
-    'spyder_light':            [('spyder.spyder-logo-background', 'spyder.spyder-logo-web'), {'options': [{'color': '#414141'}, {'color': '#fafafa'}]}],
     'spyder':                  [('spyder.spyder-logo-background', 'spyder.spyder-logo-web', 'spyder.spyder-logo-snake'),  {'options': [{'color': '#414141'}, {'color': '#fafafa'}, {'color': '#ee0000'}]}],
     'find':                    [('fa.search',), {}],
     'findnext':                [('fa.search', 'fa.long-arrow-down'), {'options':[{'scale_factor': 0.6, 'offset': (0.3, 0.0)}, {'offset': (-0.3, 0.0)}]}],

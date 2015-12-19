@@ -147,13 +147,6 @@ def install():
                     osp.join(ico_dir, 'spyder.ico'))
     file_created(fname)
 
-    desc += '. Light configuration: console and variable explorer only.'
-    fname = osp.join(start_menu, 'Spyder (light).lnk')
-    create_shortcut(python, desc, fname,
-                    '"%s" --light' % script, workdir,
-                    osp.join(ico_dir, 'spyder_light.ico'))
-    file_created(fname)
-
     fname = osp.join(start_menu, 'Spyder-Reset all settings.lnk')
     create_shortcut(python, 'Reset Spyder settings to defaults',
                     fname, '"%s" --reset' % script, workdir)

@@ -30,7 +30,6 @@ Contents:
     overview
     installation
     options
-    lightmode
     console
     ipythonconsole
     debugging

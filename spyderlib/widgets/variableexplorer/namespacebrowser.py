@@ -54,11 +54,9 @@ class NamespaceBrowser(QWidget):
         self.is_internal_shell = None
         self.ipyclient = None
         self.is_ipykernel = None
-        
-        self.is_visible = True # Do not modify: light mode won't work!
-        
+        self.is_visible = True
         self.setup_in_progress = None
-        
+
         # Remote dict editor settings
         self.check_all = None
         self.exclude_private = None
