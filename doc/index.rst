@@ -35,7 +35,7 @@ Contents:
     ipythonconsole
     debugging
     variableexplorer
-    inspector
+    help
     onlinehelp
     historylog
     explorer
