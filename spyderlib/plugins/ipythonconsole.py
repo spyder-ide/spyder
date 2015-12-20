@@ -1117,26 +1117,6 @@ class IPythonConsole(SpyderPluginWidget):
         # Connecting kernel and client
         self.register_client(client)
 
-    def restart_kernel(self, client):
-        """
-        Create a new kernel and connect it to `client` if the user asks for it
-        """
-        # Took this bit of code (until if result == ) from the IPython project
-        # (qt/frontend_widget.py - restart_kernel).
-        # Licensed under the BSD license
-        message = _('Are you sure you want to restart the kernel?')
-        buttons = QMessageBox.Yes | QMessageBox.No
-        result = QMessageBox.question(self, _('Restart kernel?'),
-                                      message, buttons)
-        if result == QMessageBox.Yes:
-            client.show_restart_animation()
-            # Close old kernel tab
-            idx = self.extconsole.get_shell_index_from_id(client.kernel_widget_id)
-            self.extconsole.close_console(index=idx, from_ipyclient=True)
-            
-            # Create a new one and connect it to the client
-            self.extconsole.start_ipykernel(client)
-    
     def get_shellwidget_by_kernelwidget_id(self, kernel_id):
         """Return the IPython widget associated to a kernel widget id"""
         for cl in self.clients:

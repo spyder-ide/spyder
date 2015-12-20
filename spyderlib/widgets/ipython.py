@@ -536,8 +536,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
                                        shortcut=QKeySequence("Ctrl+."),
                                        icon=ima.icon('restart'),
                                        triggered=self.restart_kernel)
-        restart_action.setShortcutContext(Qt.WidgetWithChildrenShortcut)
-        
+
         # Main menu
         if self.menu_actions is not None:
             actions = [restart_action, None] + self.menu_actions
@@ -619,8 +618,32 @@ class IPythonClient(QWidget, SaveHistoryMixin):
 
     @Slot()
     def restart_kernel(self):
-        """Restart the associanted Spyder kernel"""
-        self.shellwidget.request_restart_kernel()
+        """Restart the associanted kernel"""
+        # Took this code from the qtconsole project
+        # Licensed under the BSD license
+        message = _('Are you sure you want to restart the kernel?')
+        buttons = QMessageBox.Yes | QMessageBox.No
+        result = QMessageBox.question(self, _('Restart kernel?'),
+                                      message, buttons)
+        if result == QMessageBox.Yes:
+            sw = self.shellwidget
+            if sw.kernel_manager:
+                try:
+                    sw.kernel_manager.restart_kernel()
+                except RuntimeError as e:
+                    sw._append_plain_text(
+                        _('Error restarting kernel: %s\n') % e,
+                        before_prompt=True
+                    )
+                else:
+                    sw._append_html(_("<br>Restarting kernel...\n<hr><br>"),
+                        before_prompt=True,
+                    )
+            else:
+                sw._append_plain_text(
+                    _('Cannot restart a kernel not started by Spyder\n'),
+                    before_prompt=True
+                )
 
     @Slot()
     def inspect_object(self):
