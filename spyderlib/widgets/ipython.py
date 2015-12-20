@@ -183,20 +183,13 @@ class IPythonShellWidget(RichIPythonWidget):
         self.custom_page_control = IPythonPageControlWidget
         super(IPythonShellWidget, self).__init__(*args, **kw)
         self.set_background_color()
-        
+
         # --- Spyder variables ---
         self.ipyclient = None
-        
+
         # --- Keyboard shortcuts ---
         self.shortcuts = self.create_shortcuts()
-        
-        # --- IPython variables ---
-        # To send an interrupt signal to the Spyder kernel
-        self.custom_interrupt = True
-        
-        # To restart the Spyder kernel in case it dies
-        self.custom_restart = True
-    
+
     #---- Public API ----------------------------------------------------------
     def set_ipyclient(self, ipyclient):
         """Bind this shell widget to an IPython client one"""
@@ -462,10 +455,10 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         # To update the Variable Explorer after execution
         self.shellwidget.executed.connect(self.auto_refresh_namespacebrowser)
 
-        # To show a stop button, when executing a process
+        # To enable the stop button when executing a process
         self.shellwidget.executing.connect(self.enable_stop_button)
 
-        # To hide a stop button after execution stopped
+        # To disable the stop button after execution stopped
         self.shellwidget.executed.connect(self.disable_stop_button)
 
     def enable_stop_button(self):
