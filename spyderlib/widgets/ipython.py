@@ -1,12 +1,13 @@
 # -*- coding:utf-8 -*-
 #
-# Copyright © 2011-2012 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
 """
-IPython v0.13+ client's widget
+IPython client's widget
 """
+
 # Fix for Issue 1356
 from __future__ import absolute_import
 

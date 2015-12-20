@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2012 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
-"""IPython Console plugin
+"""
+IPython Console plugin
 
-Handles IPython clients (and in the future, will handle IPython kernels too
--- meanwhile, the external console plugin is handling them)"""
+Handles IPython clients and kernels
+"""
 
 # pylint: disable=C0103
 # pylint: disable=R0903

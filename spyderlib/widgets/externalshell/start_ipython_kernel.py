@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2012 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
-"""Startup file used by ExternalPythonShell exclusively for IPython kernels
-(see spyderlib/widgets/externalshell/pythonshell.py)"""
+"""
+File used to start IPython kernels
+"""
 
 import sys
 import os.path as osp
