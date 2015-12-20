@@ -414,17 +414,17 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         self.get_option = plugin.get_option
         self.shellwidget = IPythonShellWidget(config=self.shellwidget_config(),
                                               local_kernel=False)
-        self.shellwidget.hide()
-        self.infowidget = WebView(self)
+        #self.shellwidget.show()
+        #self.infowidget = WebView(self)
         self.menu_actions = menu_actions
         self.history_filename = get_conf_path(history_filename)
         self.history = []
         self.namespacebrowser = None
-        
-        self.set_infowidget_font()
-        self.loading_page = self._create_loading_page()
-        self.infowidget.setHtml(self.loading_page)
-        
+
+        #self.set_infowidget_font()
+        #self.loading_page = self._create_loading_page()
+        #self.infowidget.setHtml(self.loading_page)
+
         vlayout = QVBoxLayout()
         toolbar_buttons = self.get_toolbar_buttons()
         hlayout = QHBoxLayout()
@@ -433,11 +433,11 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         vlayout.addLayout(hlayout)
         vlayout.setContentsMargins(0, 0, 0, 0)
         vlayout.addWidget(self.shellwidget)
-        vlayout.addWidget(self.infowidget)
+        #vlayout.addWidget(self.infowidget)
         self.setLayout(vlayout)
-        
+
         self.exit_callback = lambda: plugin.close_client(client=self)
-        
+
     #------ Public API --------------------------------------------------------
     def show_shellwidget(self, give_focus=True):
         """Show shellwidget and configure it"""

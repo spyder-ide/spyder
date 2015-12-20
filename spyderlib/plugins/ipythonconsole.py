@@ -18,6 +18,7 @@ Handles IPython clients (and in the future, will handle IPython kernels too
 import atexit
 import os
 import os.path as osp
+import uuid
 import sys
 
 # Qt imports
@@ -853,14 +854,14 @@ class IPythonConsole(SpyderPluginWidget):
         name = "%d/A" % self.master_clients
         client = IPythonClient(self, name=name, history_filename='history.py',
                                menu_actions=self.menu_actions)
+        self.connect_client_to_kernel(client)
         self.add_tab(client, name=client.get_name())
-        self.main.extconsole.start_ipykernel(client, give_focus=give_focus)
+        #self.main.extconsole.start_ipykernel(client, give_focus=give_focus)
 
     def register_client(self, client, restart=False, give_focus=True):
         """Register new client"""
-        self.connect_client_to_kernel(client)
         client.show_shellwidget(give_focus=give_focus)
-        
+
         # Local vars
         shellwidget = client.shellwidget
         control = shellwidget._control
@@ -1012,6 +1013,20 @@ class IPythonConsole(SpyderPluginWidget):
             self.close_client(client=cl, force=True)
 
     #------ Public API (for kernels) ------------------------------------------
+    def _new_connection_file(self):
+        """
+        Generate a new connection file
+
+        Taken from jupyter_client/console_app.py
+        """
+        from jupyter_core.paths import jupyter_runtime_dir
+        cf = ''
+        while not cf:
+            ident = str(uuid.uuid4()).split('-')[-1]
+            cf = os.path.join(jupyter_runtime_dir(), 'kernel-%s.json' % ident)
+            cf = cf if not os.path.exists(cf) else ''
+        return cf
+
     def ssh_tunnel(self, *args, **kwargs):
         if sys.platform == 'win32':
             return zmqtunnel.paramiko_tunnel(*args, **kwargs)
@@ -1032,10 +1047,16 @@ class IPythonConsole(SpyderPluginWidget):
                                          hostname=None, sshkey=None,
                                          password=None):
         """Create kernel manager and client"""
-        cf = find_connection_file(connection_file)
-        kernel_manager = QtKernelManager(connection_file=cf, config=None)
+        if connection_file is None:
+            cf = self._new_connection_file()
+        else:
+            cf = find_connection_file(connection_file)
+        kernel_manager = QtKernelManager(connection_file=cf, config=None,
+                                         autorestart=True)
+        kernel_manager.start_kernel()
         kernel_client = kernel_manager.client()
-        kernel_client.load_connection_file()
+        if connection_file is not None:
+            kernel_client.load_connection_file()
         if hostname is not None:
             try:
                 newports = self.tunnel_to_kernel(dict(ip=kernel_client.ip,
@@ -1053,7 +1074,7 @@ class IPythonConsole(SpyderPluginWidget):
                 return None, None
         kernel_client.start_channels()
         # To rely on kernel's heartbeat to know when a kernel has died
-        kernel_client.hb_channel.unpause()
+        # kernel_client.hb_channel.unpause()
         return kernel_manager, kernel_client
 
     def connect_client_to_kernel(self, client):
