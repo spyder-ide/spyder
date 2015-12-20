@@ -413,7 +413,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         self.name = name
         self.get_option = plugin.get_option
         self.shellwidget = IPythonShellWidget(config=self.shellwidget_config(),
-                                              local_kernel=False)
+                                              local_kernel=True)
         #self.shellwidget.show()
         #self.infowidget = WebView(self)
         self.menu_actions = menu_actions
@@ -610,7 +610,8 @@ class IPythonClient(QWidget, SaveHistoryMixin):
 
     def shutdown_kernel(self):
         """Shutdown kernel"""
-        self.shellwidget.kernel_manager.shutdown_kernel()
+        if self.shellwidget.kernel_manager is not None:
+            self.shellwidget.kernel_manager.shutdown_kernel()
 
     def interrupt_kernel(self):
         """Interrupt the associanted Spyder kernel if it's running"""

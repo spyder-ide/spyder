@@ -36,6 +36,7 @@ import spyderlib.utils.icon_manager as ima
 # IPython imports
 from IPython.core.application import get_ipython_dir
 from IPython.kernel.connect import find_connection_file
+from IPython.qt.client import QtKernelClient
 from IPython.qt.manager import QtKernelManager
 
 # Ssh imports
@@ -854,7 +855,8 @@ class IPythonConsole(SpyderPluginWidget):
         self.master_clients += 1
         name = "%d/A" % self.master_clients
         client = IPythonClient(self, name=name, history_filename='history.py',
-                               menu_actions=self.menu_actions)
+                               menu_actions=self.menu_actions,
+                               connection_file=self._new_connection_file())
         self.connect_client_to_kernel(client)
         self.add_tab(client, name=client.get_name())
         #self.main.extconsole.start_ipykernel(client, give_focus=give_focus)
@@ -961,24 +963,19 @@ class IPythonConsole(SpyderPluginWidget):
         # Check if related clients or kernels are opened
         # and eventually ask before closing them
         if not force and isinstance(client, IPythonClient):
-            #kernel_index = self.extconsole.get_shell_index_from_id(
-            #                                           client.kernel_widget_id)
             close_all = True
-            #if len(self.get_related_clients(client)) > 0 and \
-            #  self.get_option('ask_before_closing'):
-            #    ans = QMessageBox.question(self, self.get_plugin_title(),
-            #           _("Do you want to close all other consoles connected "
-            #             "to the same kernel as this one?"),
-            #           QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel)
-            #    if ans == QMessageBox.Cancel:
-            #        return
-            #    close_all = ans == QMessageBox.Yes
+            if len(self.get_related_clients(client)) > 0 and \
+              self.get_option('ask_before_closing'):
+                ans = QMessageBox.question(self, self.get_plugin_title(),
+                       _("Do you want to close all other consoles connected "
+                         "to the same kernel as this one?"),
+                       QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel)
+                if ans == QMessageBox.Cancel:
+                    return
+                close_all = ans == QMessageBox.Yes
             if close_all:
-                #if kernel_index is not None:
-                #    self.extconsole.close_console(index=kernel_index,
-                #                                  from_ipyclient=True)
                 client.shutdown_kernel()
-                #self.close_related_clients(client)
+                self.close_related_clients(client)
         client.close()
 
         # Note: client index may have changed after closing related widgets
@@ -1049,16 +1046,12 @@ class IPythonConsole(SpyderPluginWidget):
                                          hostname=None, sshkey=None,
                                          password=None):
         """Create kernel manager and client"""
-        if connection_file is None:
-            cf = self._new_connection_file()
-        else:
-            cf = find_connection_file(connection_file)
-        kernel_manager = QtKernelManager(connection_file=cf, config=None,
-                                         autorestart=True)
+        kernel_manager = QtKernelManager(connection_file=connection_file,
+                                         config=None, autorestart=True)
         kernel_manager.start_kernel()
+        
         kernel_client = kernel_manager.client()
-        if connection_file is not None:
-            kernel_client.load_connection_file()
+        
         if hostname is not None:
             try:
                 newports = self.tunnel_to_kernel(dict(ip=kernel_client.ip,
@@ -1074,16 +1067,14 @@ class IPythonConsole(SpyderPluginWidget):
                                    _("Could not open ssh tunnel. The "
                                      "error was:\n\n") + to_text_string(e))
                 return None, None
-        kernel_client.start_channels()
-        # To rely on kernel's heartbeat to know when a kernel has died
-        # kernel_client.hb_channel.unpause()
+
+        kernel_client.start_channels(shell=True, iopub=True)
+
         return kernel_manager, kernel_client
 
     def connect_client_to_kernel(self, client):
-        """
-        Connect a client to its kernel
-        """
-        km, kc = self.create_kernel_manager_and_client(client.connection_file, 
+        """Connect a client to its kernel"""
+        km, kc = self.create_kernel_manager_and_client(client.connection_file,
                                                        client.hostname,
                                                        client.sshkey,
                                                        client.password)
@@ -1104,9 +1095,8 @@ class IPythonConsole(SpyderPluginWidget):
 
     def _create_client_for_kernel(self, cf, hostname, kf, pw):
         # Verifying if the connection file exists
-        cf = osp.basename(cf)
         try:
-            find_connection_file(cf)
+            find_connection_file(osp.basename(cf))
         except (IOError, UnboundLocalError):
             QMessageBox.critical(self, _('IPython'),
                                  _("Unable to connect to IPython <b>%s") % cf)
@@ -1130,28 +1120,27 @@ class IPythonConsole(SpyderPluginWidget):
         if master_name is None:
             self.master_clients += 1
             master_name = to_text_string(self.master_clients)
-        
+
         # Set full client name
         name = master_name + '/' + chr(slave_ord + 1)
-        
-        # Getting kernel_widget_id from the currently open kernels.
-        kernel_widget_id = None
-        for sw in self.extconsole.shellwidgets:
-            if sw.connection_file == cf.split('/')[-1]:  
-                kernel_widget_id = id(sw)
 
         # Creating the client
         client = IPythonClient(self, name=name, history_filename='history.py',
                                connection_file=cf,
-                               kernel_widget_id=kernel_widget_id,
                                menu_actions=self.menu_actions,
                                hostname=hostname, sshkey=kf, password=pw)
-        
+
+        # Create kernel client
+        kernel_client = QtKernelClient(connection_file=cf)
+        kernel_client.load_connection_file()
+        kernel_client.start_channels()
+        client.shellwidget.kernel_client = kernel_client
+
         # Adding the tab
         self.add_tab(client, name=client.get_name())
-        
+
         # Connecting kernel and client
-        self.register_client(client)
+        # self.register_client(client)
 
     def restart_kernel(self, client):
         """
