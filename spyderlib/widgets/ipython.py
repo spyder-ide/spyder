@@ -441,36 +441,36 @@ class IPythonClient(QWidget, SaveHistoryMixin):
     #------ Public API --------------------------------------------------------
     def show_shellwidget(self, give_focus=True):
         """Show shellwidget and configure it"""
-        self.infowidget.hide()
-        self.shellwidget.show()
-        self.infowidget.setHtml(BLANK)
+        #self.infowidget.hide()
+        #self.shellwidget.show()
+        #self.infowidget.setHtml(BLANK)
         if give_focus:
             self.get_control().setFocus()
-        
+
         # Connect shellwidget to the client
         self.shellwidget.set_ipyclient(self)
-        
+
         # To save history
         self.shellwidget.executing.connect(self.add_to_history)
-        
+
         # For Mayavi to run correctly
         self.shellwidget.executing.connect(self.set_backend_for_mayavi)
-        
+
         # To update history after execution
         self.shellwidget.executed.connect(self.update_history)
-        
+
         # To update the Variable Explorer after execution
         self.shellwidget.executed.connect(self.auto_refresh_namespacebrowser)
-        
+
         # To show a stop button, when executing a process
         self.shellwidget.executing.connect(self.enable_stop_button)
-        
+
         # To hide a stop button after execution stopped
         self.shellwidget.executed.connect(self.disable_stop_button)
-    
+
     def enable_stop_button(self):
         self.stop_button.setEnabled(True)
-   
+
     def disable_stop_button(self):
         self.stop_button.setDisabled(True)
 
@@ -636,19 +636,10 @@ class IPythonClient(QWidget, SaveHistoryMixin):
     def clear_console(self):
         """Clear the whole console"""
         self.shellwidget.execute("%clear")
-    
-    def if_kernel_dies(self, t):
-        """
-        Show a message in the console if the kernel dies.
-        t is the time in seconds between the death and showing the message.
-        """
-        message = _("It seems the kernel died unexpectedly. Use "
-                    "'Restart kernel' to continue using this console.")
-        self.shellwidget._append_plain_text(message + '\n')
-    
+
     def update_history(self):
         self.history = self.shellwidget._history
-    
+
     def set_backend_for_mayavi(self, command):
         """
         Mayavi plots require the Qt backend, so we try to detect if one is

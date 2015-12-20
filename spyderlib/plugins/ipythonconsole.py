@@ -859,7 +859,7 @@ class IPythonConsole(SpyderPluginWidget):
                                connection_file=self._new_connection_file())
         self.connect_client_to_kernel(client)
         self.add_tab(client, name=client.get_name())
-        #self.main.extconsole.start_ipykernel(client, give_focus=give_focus)
+        self.register_client(client)
 
     def register_client(self, client, restart=False, give_focus=True):
         """Register new client"""
@@ -870,61 +870,36 @@ class IPythonConsole(SpyderPluginWidget):
         control = shellwidget._control
         page_control = shellwidget._page_control
 
-        # Create new clients with Ctrl+T shortcut
-        shellwidget.new_client.connect(self.create_new_client)
-        
-        # Handle kernel interrupts
-        extconsoles = self.extconsole.shellwidgets
-        kernel_widget = None
-        if extconsoles:
-            if extconsoles[-1].connection_file == client.connection_file:
-                kernel_widget = extconsoles[-1]
-                if restart:
-                    shellwidget.custom_interrupt_requested.disconnect()
-                shellwidget.custom_interrupt_requested.connect(
-                                              kernel_widget.keyboard_interrupt)
-        if kernel_widget is None:
-            shellwidget.custom_interrupt_requested.connect(
-                                                      client.interrupt_message)
-
         # Connect to our variable explorer
-        if kernel_widget is not None and self.variableexplorer is not None:
-            nsb = self.variableexplorer.current_widget()
-            # When the autorefresh button is active, our kernels
-            # start to consume more and more CPU during time
-            # Fix Issue 1450
-            # ----------------
-            # When autorefresh is off by default we need the next
-            # line so that kernels don't start to consume CPU
-            # Fix Issue 1595
-            nsb.auto_refresh_button.setChecked(True)
-            nsb.auto_refresh_button.setChecked(False)
-            nsb.auto_refresh_button.setEnabled(False)
-            nsb.set_ipyclient(client)
-            client.set_namespacebrowser(nsb)
+        #if self.variableexplorer is not None:
+        #    nsb = self.variableexplorer.current_widget()
+        #    # When the autorefresh button is active, our kernels
+        #    # start to consume more and more CPU during time
+        #    # Fix Issue 1450
+        #    # ----------------
+        #    # When autorefresh is off by default we need the next
+        #    # line so that kernels don't start to consume CPU
+        #    # Fix Issue 1595
+        #    nsb.auto_refresh_button.setChecked(True)
+        #    nsb.auto_refresh_button.setChecked(False)
+        #    nsb.auto_refresh_button.setEnabled(False)
+        #    nsb.set_ipyclient(client)
+        #    client.set_namespacebrowser(nsb)
 
         # If we are restarting the kernel we need to rename
         # the client tab and do no more from here on
         if restart:
             self.rename_client_tab(client)
             return
-        
+
+        # Create new clients with Ctrl+T shortcut
+        shellwidget.new_client.connect(self.create_new_client)
+
         # For tracebacks
         control.go_to_error.connect(self.go_to_error)
-        
-        # Handle kernel restarts asked by the user
-        if kernel_widget is not None:
-            shellwidget.custom_restart_requested.connect(
-                                 lambda cl=client: self.restart_kernel(client))
-        else:
-            shellwidget.custom_restart_requested.connect(client.restart_message)
-        
-        # Print a message if kernel dies unexpectedly
-        shellwidget.custom_restart_kernel_died.connect(
-                                            lambda t: client.if_kernel_dies(t))
 
         # Connect text widget to Help
-        if kernel_widget is not None and self.help is not None:
+        if self.help is not None:
             control.set_help(self.help)
             control.set_help_enabled(CONF.get('help',
                                               'connect/ipython_console'))
@@ -1140,7 +1115,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.add_tab(client, name=client.get_name())
 
         # Connecting kernel and client
-        # self.register_client(client)
+        self.register_client(client)
 
     def restart_kernel(self, client):
         """
