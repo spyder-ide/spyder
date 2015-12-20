@@ -719,12 +719,6 @@ class IPythonConsole(SpyderPluginWidget):
             control = client.get_control()
             control.setFocus()
             widgets = client.get_toolbar_buttons()+[5]
-            
-            # Change extconsole tab to the client's kernel widget
-            idx = self.extconsole.get_shell_index_from_id(
-                                                       client.kernel_widget_id)
-            if idx is not None:
-                self.extconsole.tabwidget.setCurrentIndex(idx)
         else:
             control = None
             widgets = []
@@ -810,7 +804,7 @@ class IPythonConsole(SpyderPluginWidget):
         client = self.get_current_client()
         if client is not None:
             # Internal kernels, use runfile
-            if client.kernel_widget_id is not None:
+            if client.shellwidget.kernel_manager is not None:
                 line = "%s('%s'" % ('debugfile' if debug else 'runfile',
                                     norm(filename))
                 if args:
@@ -1116,14 +1110,6 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Connecting kernel and client
         self.register_client(client)
-
-    def get_shellwidget_by_kernelwidget_id(self, kernel_id):
-        """Return the IPython widget associated to a kernel widget id"""
-        for cl in self.clients:
-            if cl.kernel_widget_id == kernel_id:
-                return cl.shellwidget
-        else:
-            raise ValueError("Unknown kernel widget ID %r" % kernel_id)
 
     #------ Public API (for tabs) ---------------------------------------------
     def add_tab(self, widget, name):

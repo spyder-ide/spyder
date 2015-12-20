@@ -381,25 +381,24 @@ class IPythonClient(QWidget, SaveHistoryMixin):
     IPython client or frontend for Spyder
 
     This is a widget composed of a shell widget (i.e. RichIPythonWidget
-    + our additions = IPythonShellWidget) and a WebView info widget to 
+    + our additions = IPythonShellWidget) and a WebView info widget to
     print kernel error and other messages.
     """
-    
+
     SEPARATOR = '%s##---(%s)---' % (os.linesep*2, time.ctime())
     append_to_history = Signal(str, str)
-    
-    def __init__(self, plugin, name, history_filename, connection_file=None, 
-                 hostname=None, sshkey=None, password=None, 
-                 kernel_widget_id=None, menu_actions=None):
+
+    def __init__(self, plugin, name, history_filename, connection_file=None,
+                 hostname=None, sshkey=None, password=None,
+                 menu_actions=None):
         super(IPythonClient, self).__init__(plugin)
         SaveHistoryMixin.__init__(self)
         self.options_button = None
-        
+
         # stop button and icon
         self.stop_button = None
-        self.stop_icon = ima.icon('stop')        
+        self.stop_icon = ima.icon('stop')
         self.connection_file = connection_file
-        self.kernel_widget_id = kernel_widget_id
         self.hostname = hostname
         self.sshkey = sshkey
         self.password = password

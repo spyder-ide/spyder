@@ -1940,39 +1940,39 @@ class MainWindow(QMainWindow):
         self.update_search_menu()
 
         # Now deal with Python shell and IPython plugins
-        shell = get_focus_python_shell()
-        if shell is not None:
-            # A Python shell widget has focus
-            self.last_console_plugin_focus_was_python = True
-            if self.help is not None:
-                #  Help may be disabled in .spyder.ini
-                self.help.set_shell(shell)
-            from spyderlib.widgets.externalshell import pythonshell
-            if isinstance(shell, pythonshell.ExtPythonShellWidget):
-                shell = shell.parent()
-            self.variableexplorer.set_shellwidget_from_id(id(shell))
-        elif self.ipyconsole is not None:
-            focus_client = self.ipyconsole.get_focus_client()
-            if focus_client is not None:
-                self.last_console_plugin_focus_was_python = False
-                kwid = focus_client.kernel_widget_id
-                if kwid is not None:
-                    idx = self.extconsole.get_shell_index_from_id(kwid)
-                    if idx is not None:
-                        kw = self.extconsole.shellwidgets[idx]
-                        if self.help is not None:
-                            self.help.set_shell(kw)
-                        self.variableexplorer.set_shellwidget_from_id(kwid)
-                        # Setting the kernel widget as current widget for the
-                        # external console's tabwidget: this is necessary for
-                        # the editor/console link to be working (otherwise,
-                        # features like "Execute in current interpreter" will
-                        # not work with IPython clients unless the associated
-                        # IPython kernel has been selected in the external
-                        # console... that's not brilliant, but it works for
-                        # now: we shall take action on this later
-                        self.extconsole.tabwidget.setCurrentWidget(kw)
-                        focus_client.get_control().setFocus()
+        #shell = get_focus_python_shell()
+        #if shell is not None:
+        #    # A Python shell widget has focus
+        #    self.last_console_plugin_focus_was_python = True
+        #    if self.help is not None:
+        #        #  Help may be disabled in .spyder.ini
+        #        self.help.set_shell(shell)
+        #    from spyderlib.widgets.externalshell import pythonshell
+        #    if isinstance(shell, pythonshell.ExtPythonShellWidget):
+        #        shell = shell.parent()
+        #    self.variableexplorer.set_shellwidget_from_id(id(shell))
+        #elif self.ipyconsole is not None:
+        #    focus_client = self.ipyconsole.get_focus_client()
+        #    if focus_client is not None:
+        #        self.last_console_plugin_focus_was_python = False
+        #        kwid = focus_client.kernel_widget_id
+        #        if kwid is not None:
+        #            idx = self.extconsole.get_shell_index_from_id(kwid)
+        #            if idx is not None:
+        #                kw = self.extconsole.shellwidgets[idx]
+        #                if self.help is not None:
+        #                    self.help.set_shell(kw)
+        #                self.variableexplorer.set_shellwidget_from_id(kwid)
+        #                # Setting the kernel widget as current widget for the
+        #                # external console's tabwidget: this is necessary for
+        #                # the editor/console link to be working (otherwise,
+        #                # features like "Execute in current interpreter" will
+        #                # not work with IPython clients unless the associated
+        #                # IPython kernel has been selected in the external
+        #                # console... that's not brilliant, but it works for
+        #                # now: we shall take action on this later
+        #                self.extconsole.tabwidget.setCurrentWidget(kw)
+        #                focus_client.get_control().setFocus()
 
     def update_file_menu(self):
         """Update file menu"""
