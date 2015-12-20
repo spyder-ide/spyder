@@ -705,9 +705,10 @@ class IPythonConsole(SpyderPluginWidget):
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         for client in self.clients:
+            client.shutdown_kernel()
             client.close()
         return True
-    
+
     def refresh_plugin(self):
         """Refresh tabwidget"""
         client = None
@@ -960,25 +961,26 @@ class IPythonConsole(SpyderPluginWidget):
         # Check if related clients or kernels are opened
         # and eventually ask before closing them
         if not force and isinstance(client, IPythonClient):
-            kernel_index = self.extconsole.get_shell_index_from_id(
-                                                       client.kernel_widget_id)
+            #kernel_index = self.extconsole.get_shell_index_from_id(
+            #                                           client.kernel_widget_id)
             close_all = True
-            if len(self.get_related_clients(client)) > 0 and \
-              self.get_option('ask_before_closing'):
-                ans = QMessageBox.question(self, self.get_plugin_title(),
-                       _("Do you want to close all other consoles connected "
-                         "to the same kernel as this one?"),
-                       QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel)
-                if ans == QMessageBox.Cancel:
-                    return
-                close_all = ans == QMessageBox.Yes
+            #if len(self.get_related_clients(client)) > 0 and \
+            #  self.get_option('ask_before_closing'):
+            #    ans = QMessageBox.question(self, self.get_plugin_title(),
+            #           _("Do you want to close all other consoles connected "
+            #             "to the same kernel as this one?"),
+            #           QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel)
+            #    if ans == QMessageBox.Cancel:
+            #        return
+            #    close_all = ans == QMessageBox.Yes
             if close_all:
-                if kernel_index is not None:
-                    self.extconsole.close_console(index=kernel_index,
-                                                  from_ipyclient=True)
-                self.close_related_clients(client)
+                #if kernel_index is not None:
+                #    self.extconsole.close_console(index=kernel_index,
+                #                                  from_ipyclient=True)
+                client.shutdown_kernel()
+                #self.close_related_clients(client)
         client.close()
-        
+
         # Note: client index may have changed after closing related widgets
         self.tabwidget.removeTab(self.tabwidget.indexOf(client))
         self.clients.remove(client)

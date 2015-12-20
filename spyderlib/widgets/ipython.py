@@ -608,6 +608,10 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         font = get_font('help', 'rich_text')
         self.infowidget.set_font(font)
 
+    def shutdown_kernel(self):
+        """Shutdown kernel"""
+        self.shellwidget.kernel_manager.shutdown_kernel()
+
     def interrupt_kernel(self):
         """Interrupt the associanted Spyder kernel if it's running"""
         self.shellwidget.request_interrupt_kernel()
