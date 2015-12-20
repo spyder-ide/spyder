@@ -605,8 +605,10 @@ class IPythonClient(QWidget, SaveHistoryMixin):
 
     def shutdown_kernel(self):
         """Shutdown kernel"""
-        if self.shellwidget.kernel_manager is not None:
+        try:
             self.shellwidget.kernel_manager.shutdown_kernel()
+        except:
+            pass
 
     def interrupt_kernel(self):
         """Interrupt the associanted Spyder kernel if it's running"""

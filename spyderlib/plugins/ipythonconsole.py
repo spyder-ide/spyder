@@ -615,10 +615,11 @@ class IPythonConsole(SpyderPluginWidget):
 
         self.master_clients = 0
         self.clients = []
-        
+        self.mainwindow_close = False
+
         # Initialize plugin
         self.initialize_plugin()
-        
+
         layout = QVBoxLayout()
         self.tabwidget = Tabs(self, self.menu_actions)
         if hasattr(self.tabwidget, 'setDocumentMode')\
@@ -705,6 +706,7 @@ class IPythonConsole(SpyderPluginWidget):
 
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
+        self.mainwindow_close = True
         for client in self.clients:
             client.shutdown_kernel()
             client.close()
@@ -931,7 +933,8 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Check if related clients or kernels are opened
         # and eventually ask before closing them
-        if not force and isinstance(client, IPythonClient):
+        if not self.mainwindow_close and not force and \
+          isinstance(client, IPythonClient):
             close_all = True
             if len(self.get_related_clients(client)) > 0 and \
               self.get_option('ask_before_closing'):
