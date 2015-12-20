@@ -804,7 +804,7 @@ class IPythonConsole(SpyderPluginWidget):
         client = self.get_current_client()
         if client is not None:
             # Internal kernels, use runfile
-            if client.shellwidget.kernel_manager is not None:
+            if client.get_kernel() is not None:
                 line = "%s('%s'" % ('debugfile' if debug else 'runfile',
                                     norm(filename))
                 if args:
@@ -1075,8 +1075,11 @@ class IPythonConsole(SpyderPluginWidget):
         # (i.e. the i in i/A)
         master_name = None
         slave_ord = ord('A') - 1
+        kernel_manager = None
         for cl in self.get_clients():
             if cf in cl.connection_file:
+                if cl.get_kernel() is not None:
+                    kernel_manager = cl.get_kernel()
                 cf = cl.connection_file
                 if master_name is None:
                     master_name = cl.name.split('/')[0]
@@ -1104,6 +1107,7 @@ class IPythonConsole(SpyderPluginWidget):
         kernel_client.load_connection_file()
         kernel_client.start_channels()
         client.shellwidget.kernel_client = kernel_client
+        client.shellwidget.kernel_manager = kernel_manager
 
         # Adding the tab
         self.add_tab(client, name=client.get_name())

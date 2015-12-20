@@ -522,6 +522,10 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         else:
             return self.shellwidget._control
 
+    def get_kernel(self):
+        """Get kernel associated with this client"""
+        return self.shellwidget.kernel_manager
+
     def get_options_menu(self):
         """Return options menu"""
         restart_action = create_action(self, _("Restart kernel"),
