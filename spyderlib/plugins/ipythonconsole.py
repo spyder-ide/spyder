@@ -1019,15 +1019,26 @@ class IPythonConsole(SpyderPluginWidget):
     def create_kernel_spec(self):
         """Create a kernel spec for our own kernels"""
         spykernel_path = get_module_source_path('spyderlib.widgets.externalshell')
+        default_interpreter = CONF.get('console', 'pythonexecutable/default')
+
+        if default_interpreter:
+            pyexec = sys.executable
+        else:
+            # Avoid IPython adding the virtualenv on which Spyder is running
+            # to the kernel sys.path
+            try:
+                os.environ.pop('VIRTUAL_ENV')
+            except KeyError:
+                pass
+            pyexec = CONF.get('console', 'pythonexecutable')
 
         kernel_cmd = [
-            sys.executable,
+            pyexec,
             osp.join("%s" % spykernel_path, "start_ipython_kernel.py"),
-            "-f", 
-            "{connection_file}"
+            '-f',
+            '{connection_file}'
         ]
 
-        default_interpreter = CONF.get('console', 'pythonexecutable/default')
         umr_namelist = ','.join(CONF.get('console', 'umr/namelist'))
         env_vars = {
             'PYTHONPATH': spykernel_path,

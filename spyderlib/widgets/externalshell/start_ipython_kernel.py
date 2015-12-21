@@ -201,15 +201,18 @@ def main():
     # Fire up the kernel instance.
     from IPython.kernel.zmq.kernelapp import IPKernelApp
     ipk_temp = IPKernelApp.instance()
-    ipk_temp.config = kernel_config()
+    try:
+        ipk_temp.config = kernel_config()
+    except:
+        pass
     ipk_temp.initialize()
 
     # Grabbing the kernel's shell to share its namespace with our
     # Variable Explorer
     __ipythonshell__ = ipk_temp.shell
 
-    # Issue 977 : Since kernel.initialize() has completed execution, 
-    # we can now allow the monitor to communicate the availablility of 
+    # Issue 977: Since kernel.initialize() has completed execution, 
+    # we can now allow the monitor to communicate the availablility of
     # the kernel to accept front end connections.
     __ipythonkernel__ = ipk_temp
     del ipk_temp
