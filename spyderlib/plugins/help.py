@@ -55,7 +55,7 @@ except (ImportError, TypeError):
 
 # To add sphinx dependency to the Dependencies dialog
 SPHINX_REQVER = '>=0.6.6'
-dependencies.add("sphinx", _("Rich text help on the Object Inspector"),
+dependencies.add("sphinx", _("Rich text help"),
                  required_version=SPHINX_REQVER)
 
 
@@ -68,29 +68,29 @@ class ObjectComboBox(EditableComboBox):
 
     def __init__(self, parent):
         EditableComboBox.__init__(self, parent)
-        self.object_inspector = parent
+        self.help = parent
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.tips = {True: '', False: ''}
 
     def is_valid(self, qstr=None):
         """Return True if string is valid"""
-        if not self.object_inspector.source_is_console():
+        if not self.help.source_is_console():
             return True
         if qstr is None:
             qstr = self.currentText()
         if not re.search('^[a-zA-Z0-9_\.]*$', str(qstr), 0):
             return False
         objtxt = to_text_string(qstr)
-        if self.object_inspector.get_option('automatic_import'):
-            shell = self.object_inspector.internal_shell
+        if self.help.get_option('automatic_import'):
+            shell = self.help.internal_shell
             if shell is not None:
                 return shell.is_defined(objtxt, force_import=True)
-        shell = self.object_inspector.get_shell()
+        shell = self.help.get_shell()
         if shell is not None:
             try:
                 return shell.is_defined(objtxt)
             except socket.error:
-                shell = self.object_inspector.get_shell()
+                shell = self.help.get_shell()
                 try:
                     return shell.is_defined(objtxt)
                 except socket.error:
@@ -116,7 +116,7 @@ class ObjectComboBox(EditableComboBox):
                     self.valid.emit(False, False)
 
 
-class ObjectInspectorConfigPage(PluginConfigPage):
+class HelpConfigPage(PluginConfigPage):
     def setup_page(self):
         # Fonts group
         plain_text_font_group = self.create_fontgroup(option=None,
@@ -127,7 +127,7 @@ class ObjectInspectorConfigPage(PluginConfigPage):
 
         # Connections group
         connections_group = QGroupBox(_("Automatic connections"))
-        connections_label = QLabel(_("The Object Inspector can automatically "
+        connections_label = QLabel(_("This pane can automatically "
                                      "show an object's help information after "
                                      "a left parenthesis is written next to it. "
                                      "Below you can decide to which plugin "
@@ -523,11 +523,11 @@ class Help(SpyderPluginWidget):
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
-        return _('Object inspector')
+        return _('Help')
 
     def get_plugin_icon(self):
         """Return widget icon"""
-        return ima.icon('inspector')
+        return ima.icon('help')
 
     def get_focus_widget(self):
         """
