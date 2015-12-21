@@ -163,6 +163,7 @@ def change_edit_magic(shell):
     except:
         pass
 
+
 def varexp(line):
     """
     Spyder's variable explorer magic
@@ -178,41 +179,50 @@ def varexp(line):
     spyderlib.pyplot.show()
     del __fig__, __items__
 
-# Remove this module's path from sys.path:
-try:
-    sys.path.remove(osp.dirname(__file__))
-except ValueError:
-    pass
 
-locals().pop('__file__')
-__doc__ = ''
-__name__ = '__main__'
+def main():
+    # Remove this module's path from sys.path:
+    try:
+        sys.path.remove(osp.dirname(__file__))
+    except ValueError:
+        pass
 
-# Add current directory to sys.path (like for any standard Python interpreter
-# executed in interactive mode):
-sys.path.insert(0, '')
+    try:
+        locals().pop('__file__')
+    except KeyError:
+        pass
+    __doc__ = ''
+    __name__ = '__main__'
 
-# Fire up the kernel instance.
-from IPython.kernel.zmq.kernelapp import IPKernelApp
-ipk_temp = IPKernelApp.instance()
-ipk_temp.config = kernel_config()
-ipk_temp.initialize()
+    # Add current directory to sys.path (like for any standard Python interpreter
+    # executed in interactive mode):
+    sys.path.insert(0, '')
 
-# Grabbing the kernel's shell to share its namespace with our
-# Variable Explorer
-__ipythonshell__ = ipk_temp.shell
+    # Fire up the kernel instance.
+    from IPython.kernel.zmq.kernelapp import IPKernelApp
+    ipk_temp = IPKernelApp.instance()
+    #ipk_temp.config = kernel_config()
+    ipk_temp.initialize()
 
-# Issue 977 : Since kernel.initialize() has completed execution, 
-# we can now allow the monitor to communicate the availablility of 
-# the kernel to accept front end connections.
-__ipythonkernel__ = ipk_temp
-del ipk_temp
+    # Grabbing the kernel's shell to share its namespace with our
+    # Variable Explorer
+    __ipythonshell__ = ipk_temp.shell
 
-# Change %edit to open files inside Spyder
-# NOTE: Leave this and other magic modifications *after* setting
-# __ipythonkernel__ to not have problems while starting kernels
-change_edit_magic(__ipythonshell__)
-__ipythonshell__.register_magic_function(varexp)
+    # Issue 977 : Since kernel.initialize() has completed execution, 
+    # we can now allow the monitor to communicate the availablility of 
+    # the kernel to accept front end connections.
+    __ipythonkernel__ = ipk_temp
+    del ipk_temp
 
-# Start the (infinite) kernel event loop.
-__ipythonkernel__.start()
+    # Change %edit to open files inside Spyder
+    # NOTE: Leave this and other magic modifications *after* setting
+    # __ipythonkernel__ to not have problems while starting kernels
+    change_edit_magic(__ipythonshell__)
+    __ipythonshell__.register_magic_function(varexp)
+
+    # Start the (infinite) kernel event loop.
+    __ipythonkernel__.start()
+
+
+if __name__ == '__main__':
+    main()

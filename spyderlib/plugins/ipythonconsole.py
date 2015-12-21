@@ -34,11 +34,12 @@ from spyderlib.qt.compat import getopenfilename
 from spyderlib.qt.QtCore import Signal, Slot, Qt
 import spyderlib.utils.icon_manager as ima
 
-# IPython imports
+# IPython/Jupyter imports
 from IPython.core.application import get_ipython_dir
 from IPython.kernel.connect import find_connection_file
 from IPython.qt.client import QtKernelClient
 from IPython.qt.manager import QtKernelManager
+from jupyter_client.kernelspec import KernelSpec
 
 # Ssh imports
 from zmq.ssh import tunnel as zmqtunnel
@@ -49,7 +50,7 @@ except ImportError:
 
 # Local imports
 from spyderlib import dependencies
-from spyderlib.config.base import _
+from spyderlib.config.base import _, get_module_source_path
 from spyderlib.config.main import CONF
 from spyderlib.utils.misc import get_error_match, remove_backslashes
 from spyderlib.utils import programs
@@ -1015,16 +1016,37 @@ class IPythonConsole(SpyderPluginWidget):
             self.ssh_tunnel(lp, rp, hostname, remote_ip, sshkey, password, timeout)
         return tuple(lports)
 
+    def create_kernel_spec(self):
+        """Create a kernel spec for our own kernels"""
+        spykernel_path = get_module_source_path('spyderlib.widgets.externalshell')
+
+        kernel_cmd = [
+            sys.executable,
+            osp.join("%s" % spykernel_path, "start_ipython_kernel.py"),
+            "-f", 
+            "{connection_file}"
+        ]
+
+        kernel_dict = {
+            'argv': kernel_cmd,
+            'display_name': 'Spyder',
+            'language': 'python',
+            'env': {'PYTHONPATH': spykernel_path,
+                    "IPYTHON_KERNEL": "True"}
+        }
+
+        return KernelSpec(resource_dir='', **kernel_dict)
+
     def create_kernel_manager_and_client(self, connection_file=None,
                                          hostname=None, sshkey=None,
                                          password=None):
         """Create kernel manager and client"""
         kernel_manager = QtKernelManager(connection_file=connection_file,
                                          config=None, autorestart=True)
+        kernel_manager.kernel_spec = self.create_kernel_spec()
         kernel_manager.start_kernel()
-        
+
         kernel_client = kernel_manager.client()
-        
         if hostname is not None:
             try:
                 newports = self.tunnel_to_kernel(dict(ip=kernel_client.ip,
@@ -1040,7 +1062,6 @@ class IPythonConsole(SpyderPluginWidget):
                                    _("Could not open ssh tunnel. The "
                                      "error was:\n\n") + to_text_string(e))
                 return None, None
-
         kernel_client.start_channels(shell=True, iopub=True)
 
         return kernel_manager, kernel_client
