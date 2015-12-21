@@ -8,8 +8,8 @@
 File used to start IPython kernels
 """
 
-import sys
 import os.path as osp
+import sys
 
 # TODO: Move to Jupyter imports in 3.1
 try:
@@ -201,7 +201,7 @@ def main():
     # Fire up the kernel instance.
     from IPython.kernel.zmq.kernelapp import IPKernelApp
     ipk_temp = IPKernelApp.instance()
-    #ipk_temp.config = kernel_config()
+    ipk_temp.config = kernel_config()
     ipk_temp.initialize()
 
     # Grabbing the kernel's shell to share its namespace with our
