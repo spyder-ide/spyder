@@ -1027,12 +1027,22 @@ class IPythonConsole(SpyderPluginWidget):
             "{connection_file}"
         ]
 
+        default_interpreter = CONF.get('console', 'pythonexecutable/default')
+        umr_namelist = ','.join(CONF.get('console', 'umr/namelist'))
+        env_vars = {
+            'PYTHONPATH': spykernel_path,
+            'IPYTHON_KERNEL': 'True',
+            'EXTERNAL_INTERPRETER': to_text_string(not default_interpreter),
+            'UMR_ENABLED': to_text_string(CONF.get('console', 'umr/enabled')),
+            'UMR_VERBOSE': to_text_string(CONF.get('console', 'umr/verbose')),
+            'UMR_NAMELIST': umr_namelist
+        }
+
         kernel_dict = {
             'argv': kernel_cmd,
             'display_name': 'Spyder',
             'language': 'python',
-            'env': {'PYTHONPATH': spykernel_path,
-                    "IPYTHON_KERNEL": "True"}
+            'env': env_vars
         }
 
         return KernelSpec(resource_dir='', **kernel_dict)
