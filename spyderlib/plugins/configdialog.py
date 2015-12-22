@@ -940,6 +940,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
                                                  stack=self.stacked_widget)
 
         # Widget setup
+        self.scheme_choices_dic = {}
         about_label.setWordWrap(True)
         schemes_combo = self.create_combobox(_('Scheme:'),
                                              [('', '')],
@@ -991,6 +992,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
             self.scheme_editor_dialog.add_color_scheme_stack(name)
 
         self.update_combobox()
+        self.update_preview()
 
     def apply_settings(self, options):
         self.main.editor.apply_plugin_settings(['color_scheme_name'])
@@ -998,14 +1000,18 @@ class ColorSchemeConfigPage(GeneralConfigPage):
             self.main.historylog.apply_plugin_settings(['color_scheme_name'])
         if self.main.inspector is not None:
             self.main.inspector.apply_plugin_settings(['color_scheme_name'])
-        self.update_preview()
         self.update_combobox()
+        self.update_preview()
 
     # Helpers
     # -------------------------------------------------------------------------
     @property
+    def current_scheme_name(self):
+        return self.schemes_combo.currentText()
+
+    @property
     def current_scheme(self):
-        return self.schemes_combo.currentText().lower()
+        return self.scheme_choices_dic[self.current_scheme_name]
 
     @property
     def current_scheme_index(self):
@@ -1016,23 +1022,24 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         index = self.current_scheme_index
         self.schemes_combo.blockSignals(True)
         names = self.get_option("names", [])
-        custom_names = self.get_option("custom_names")  # 'custom-n'
+        custom_names = self.get_option("custom_names")
+
+        # Useful for retrieving the actual data
+        for n in names + custom_names:
+            self.scheme_choices_dic[self.get_option('{0}/name'.format(n))] = n
 
         if custom_names:
-            choices = names + [None] + sorted(custom_names)
-            scheme_choices = list(zip(choices, choices))
+            choices = names + [None] + custom_names
         else:
-            choices = sorted(names)
-            scheme_choices = list(zip(choices, [a.lower() for a in choices]))
+            choices = names
 
         combo = self.schemes_combo
         combo.clear()
 
-        for item in scheme_choices:
-            name, key = item
-            if name is None and key is None:
+        for name in choices:
+            if name is None:
                 continue
-            combo.addItem(name, key)
+            combo.addItem(self.get_option('{0}/name'.format(name)), name)
 
         if custom_names:
             combo.insertSeparator(len(names))
@@ -1042,8 +1049,8 @@ class ColorSchemeConfigPage(GeneralConfigPage):
 
     def update_buttons(self):
         """Updates the enable status of delete and reset buttons."""
-        current_scheme = self.current_scheme.lower()
-        names = [n.lower() for n in self.get_option("names")]
+        current_scheme = self.current_scheme
+        names = [n for n in self.get_option("names")]
         delete_enabled = current_scheme not in names
         self.delete_button.setEnabled(delete_enabled)
         self.reset_button.setEnabled(not delete_enabled)
@@ -1098,9 +1105,10 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         self.set_option('custom_names', custom_names)
         for key in syntaxhighlighters.COLOR_SCHEME_KEYS:
             name = "{0}/{1}".format(custom_name, key)
-            default_name = "{0}/{1}".format(self.current_scheme, key).lower()
+            default_name = "{0}/{1}".format(self.current_scheme, key)
             option = self.get_option(default_name)
             self.set_option(name, option)
+        self.set_option('{0}/name'.format(custom_name), custom_name)
 
         # Now they need to be loaded! how to make a partial load_from_conf?
         dlg = self.scheme_editor_dialog
@@ -1138,15 +1146,22 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         scheme_name = self.current_scheme
 
         # Put the combobox in Spyder by default, when deleting a scheme
-        names = [n.lower() for n in self.get_option('names')]
-        self.set_scheme('Spyder')
+        names = self.get_option('names')
+        self.set_scheme('spyder')
         self.schemes_combo.setCurrentIndex(names.index('spyder'))
-        self.set_option('selected', 'Spyder')
+        self.set_option('selected', 'spyder')
 
         # Delete from custom_names
         custom_names = self.get_option('custom_names')
         custom_names.remove(scheme_name)
         self.set_option('custom_names', custom_names)
+
+        # Delete config options
+        for key in syntaxhighlighters.COLOR_SCHEME_KEYS:
+            option = "{0}/{1}".format(scheme_name, key)
+            CONF.remove_option(self.CONF_SECTION, option)
+            print(self.CONF_SECTION, option)
+        CONF.remove_option(self.CONF_SECTION, "{0}/name".format(scheme_name))
 
         self.update_combobox()
         self.update_preview()
@@ -1161,13 +1176,20 @@ class ColorSchemeConfigPage(GeneralConfigPage):
     @Slot(str)
     def reset_to_default(self):
         """Restore initial values for default color schemes."""
-        # Checks that this is indeed a +default scheme
-        scheme = self.current_scheme.lower()
-        for key in syntaxhighlighters.COLOR_SCHEME_KEYS:
-            option = "{0}/{1}".format(scheme, key)
+        # Checks that this is indeed a default scheme
+        scheme = self.current_scheme
+        names = self.get_option('names')
+        if scheme not in names:
+            for key in syntaxhighlighters.COLOR_SCHEME_KEYS:
+                option = "{0}/{1}".format(scheme, key)
+                value = CONF.get_default(self.CONF_SECTION, option)
+                self.set_option(option, value)
+
+            option = "{0}/name".format(scheme)
             value = CONF.get_default(self.CONF_SECTION, option)
             self.set_option(option, value)
-        self.load_from_conf()
+
+            self.load_from_conf()
 
 
 class SchemeEditor(QDialog):
@@ -1176,7 +1198,7 @@ class SchemeEditor(QDialog):
         super(SchemeEditor, self).__init__(parent)
         self.parent = parent
         self.stack = stack
-        self.order = []    # Uses lowercase scheme names
+        self.order = []    # Uses scheme names
 
         # Needed for self.get_edited_color_scheme()
         self.widgets = {}
@@ -1201,8 +1223,8 @@ class SchemeEditor(QDialog):
     # -------------------------------------------------------------------------
     def set_scheme(self, scheme_name):
         """Set the current stack by 'scheme_name'."""
-        self.stack.setCurrentIndex(self.order.index(scheme_name.lower()))
-        self.last_used_scheme = scheme_name.lower()
+        self.stack.setCurrentIndex(self.order.index(scheme_name))
+        self.last_used_scheme = scheme_name
 
     # Actions
     # -------------------------------------------------------------------------
@@ -1216,20 +1238,20 @@ class SchemeEditor(QDialog):
             (_('Background'), ["background", "sideareas"])
             ]
 
-        name_label = QLabel(_("Scheme name:"))
-        actual_name_label = QLabel(scheme_name)
         parent = self.parent
-        lower_scheme_name = scheme_name.lower()
-        self.widgets[lower_scheme_name] = {}
+        line_edit = parent.create_lineedit(_("Scheme name:"),
+                                           '{0}/name'.format(scheme_name))
+
+        self.widgets[scheme_name] = {}
 
         # Widget setup
-        name_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        line_edit.label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.setWindowTitle(_('Color scheme editor'))
 
         # Layout
         name_layout = QHBoxLayout()
-        name_layout.addWidget(name_label)
-        name_layout.addWidget(actual_name_label)
+        name_layout.addWidget(line_edit.label)
+        name_layout.addWidget(line_edit.textbox)
 
         cs_layout = QVBoxLayout()
         cs_layout.addLayout(name_layout)
@@ -1242,7 +1264,7 @@ class SchemeEditor(QDialog):
             group_layout = QGridLayout()
 
             for row, key in enumerate(keys):
-                option = "{0}/{1}".format(scheme_name, key).lower()
+                option = "{0}/{1}".format(scheme_name, key)
                 value = self.parent.get_option(option)
                 name = syntaxhighlighters.COLOR_SCHEME_KEYS[key]
 
@@ -1257,7 +1279,7 @@ class SchemeEditor(QDialog):
                     group_layout.addLayout(clayout, row+1, 1)
 
                     # Needed to update temp scheme to obtain instant preview
-                    self.widgets[lower_scheme_name][key] = [clayout]
+                    self.widgets[scheme_name][key] = [clayout]
                 else:
                     label, clayout, cb_bold, cb_italic = parent.create_scedit(
                         name,
@@ -1271,8 +1293,8 @@ class SchemeEditor(QDialog):
                     group_layout.addWidget(cb_italic, row+1, 3)
 
                     # Needed to update temp scheme to obtain instant preview
-                    self.widgets[lower_scheme_name][key] = [clayout, cb_bold,
-                                                            cb_italic]
+                    self.widgets[scheme_name][key] = [clayout, cb_bold,
+                                                      cb_italic]
 
             group_box = QGroupBox(group_name)
             group_box.setLayout(group_layout)
@@ -1288,7 +1310,7 @@ class SchemeEditor(QDialog):
         stackitem = QWidget()
         stackitem.setLayout(cs_layout)
         self.stack.addWidget(stackitem)
-        self.order.append(scheme_name.lower())
+        self.order.append(scheme_name)
 
     def delete_color_scheme_stack(self, scheme_name):
         """Remove stack widget by 'scheme_name'."""
