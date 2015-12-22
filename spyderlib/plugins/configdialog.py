@@ -1161,7 +1161,6 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         for key in syntaxhighlighters.COLOR_SCHEME_KEYS:
             option = "{0}/{1}".format(scheme_name, key)
             CONF.remove_option(self.CONF_SECTION, option)
-            print(self.CONF_SECTION, option)
         CONF.remove_option(self.CONF_SECTION, "{0}/name".format(scheme_name))
 
         self.update_combobox()
