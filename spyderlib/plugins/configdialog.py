@@ -986,8 +986,11 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         self.schemes_combo.currentIndexChanged.connect(self.update_buttons)
 
         # Setup
-        for name in names + custom_names:
+        for name in names:
             self.scheme_editor_dialog.add_color_scheme_stack(name)
+
+        for name in custom_names:
+            self.scheme_editor_dialog.add_color_scheme_stack(name, custom=True)
 
         self.update_combobox()
         self.update_preview()
@@ -1110,7 +1113,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
 
         # Now they need to be loaded! how to make a partial load_from_conf?
         dlg = self.scheme_editor_dialog
-        dlg.add_color_scheme_stack(custom_name)
+        dlg.add_color_scheme_stack(custom_name, custom=True)
         dlg.set_scheme(custom_name)
         self.load_from_conf()
 
@@ -1226,7 +1229,7 @@ class SchemeEditor(QDialog):
 
     # Actions
     # -------------------------------------------------------------------------
-    def add_color_scheme_stack(self, scheme_name):
+    def add_color_scheme_stack(self, scheme_name, custom=False):
         """Add a stack for a given scheme and connects the CONF values."""
         color_scheme_groups = [
             (_('Text'), ["normal", "comment", "string", "number", "keyword",
@@ -1250,6 +1253,9 @@ class SchemeEditor(QDialog):
         name_layout = QHBoxLayout()
         name_layout.addWidget(line_edit.label)
         name_layout.addWidget(line_edit.textbox)
+
+        if not custom:
+            line_edit.textbox.setDisabled(True)
 
         cs_layout = QVBoxLayout()
         cs_layout.addLayout(name_layout)
