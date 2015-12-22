@@ -484,7 +484,7 @@ class SpyderPluginMixin(object):
         self.__show_message(message, timeout=2000)
         QApplication.processEvents()
         
-    def set_default_color_scheme(self, name='Spyder'):
+    def set_default_color_scheme(self, name='spyder'):
         """Set default color scheme (only once)"""
         color_scheme_name = self.get_option('color_scheme_name', None)
         if color_scheme_name is None:

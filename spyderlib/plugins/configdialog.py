@@ -30,8 +30,6 @@ from spyderlib.config.base import (_, running_in_mac_app, LANGUAGE_CODES,
                                    save_lang_conf, load_lang_conf)
 from spyderlib.config.gui import get_font
 from spyderlib.config.main import CONF, is_gtk_desktop
-from spyderlib.config.gui import (CUSTOM_COLOR_SCHEME_NAME,
-                                  set_default_color_scheme)
 from spyderlib.config.user import NoDefault
 from spyderlib.py3compat import to_text_string, is_text_string, getcwd
 from spyderlib.utils import icon_manager as ima
@@ -998,8 +996,8 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         self.main.editor.apply_plugin_settings(['color_scheme_name'])
         if self.main.historylog is not None:
             self.main.historylog.apply_plugin_settings(['color_scheme_name'])
-        if self.main.inspector is not None:
-            self.main.inspector.apply_plugin_settings(['color_scheme_name'])
+        if self.main.help is not None:
+            self.main.help.apply_plugin_settings(['color_scheme_name'])
         self.update_combobox()
         self.update_preview()
 
