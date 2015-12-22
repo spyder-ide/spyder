@@ -1022,8 +1022,8 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         """Recreates the combobox contents."""
         index = self.current_scheme_index
         self.schemes_combo.blockSignals(True)
-        names = self.get_option("names", [])
-        custom_names = self.get_option("custom_names")
+        names = self.get_option("names")
+        custom_names = self.get_option("custom_names", [])
 
         # Useful for retrieving the actual data
         for n in names + custom_names:
@@ -1051,7 +1051,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
     def update_buttons(self):
         """Updates the enable status of delete and reset buttons."""
         current_scheme = self.current_scheme
-        names = [n for n in self.get_option("names")]
+        names = self.get_option("names")
         delete_enabled = current_scheme not in names
         self.delete_button.setEnabled(delete_enabled)
         self.reset_button.setEnabled(not delete_enabled)
