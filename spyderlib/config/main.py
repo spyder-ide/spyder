@@ -588,7 +588,6 @@ DEFAULTS = [
              {
               'names': ['Emacs', 'IDLE', 'Monokai', 'Pydev', 'Scintilla',
                         'Spyder', 'Spyder/Dark', 'Zenburn'],
-              'custom_names': [],
               'selected': 'Spyder',
               # ---- Emacs ----
               #      Name            Color     Bold  Italic

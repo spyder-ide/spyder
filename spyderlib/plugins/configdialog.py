@@ -924,11 +924,12 @@ class ColorSchemeConfigPage(GeneralConfigPage):
 
     def setup_page(self):
         names = [n for n in self.get_option("names")]
-        custom_names = self.get_option("custom_names")
+        custom_names = self.get_option("custom_names", [])
 
         # Widgets
-        about_label = QLabel(_("The existing schemes can be edited or you "
-                               "can create new custom color schemes.<br>"))
+        about_label = QLabel(_("Here you can edit the color schemes provided "
+                               "by Spyder or create your own ones by using "
+                               "the options provided below.<br>"))
         edit_button = QPushButton(_("Edit selected"))
         create_button = QPushButton(_("Create new scheme"))
         self.delete_button = QPushButton(_("Delete"))
@@ -947,6 +948,9 @@ class ColorSchemeConfigPage(GeneralConfigPage):
 
         # Layouts
         vlayout = QVBoxLayout()
+
+        manage_layout = QVBoxLayout()
+        manage_layout.addWidget(about_label)
 
         combo_layout = QHBoxLayout()
         combo_layout.addWidget(schemes_combo.label)
@@ -967,8 +971,6 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         buttons_preview_layout.addLayout(buttons_layout)
         buttons_preview_layout.addLayout(preview_layout)
 
-        manage_layout = QVBoxLayout()
-        manage_layout.addWidget(about_label)
         manage_layout.addLayout(buttons_preview_layout)
         manage_group = QGroupBox(_("Manage color schemes"))
         manage_group.setLayout(manage_layout)
@@ -1013,12 +1015,12 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         """Recreates the combobox contents."""
         index = self.current_scheme_index
         self.schemes_combo.blockSignals(True)
-        names = self.get_option("names")
+        names = self.get_option("names", [])
         custom_names = self.get_option("custom_names")  # 'custom-n'
 
         if custom_names:
             choices = names + [None] + sorted(custom_names)
-            scheme_choices = list(zip(choices, [a for a in choices]))
+            scheme_choices = list(zip(choices, choices))
         else:
             choices = sorted(names)
             scheme_choices = list(zip(choices, [a.lower() for a in choices]))
@@ -1042,9 +1044,9 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         """Updates the enable status of delete and reset buttons."""
         current_scheme = self.current_scheme.lower()
         names = [n.lower() for n in self.get_option("names")]
-        delete_visible = current_scheme not in names
-        self.delete_button.setEnabled(delete_visible)
-        self.reset_button.setEnabled(not delete_visible)
+        delete_enabled = current_scheme not in names
+        self.delete_button.setEnabled(delete_enabled)
+        self.reset_button.setEnabled(not delete_enabled)
 
     def update_preview(self, index=None, scheme_name=None):
         """
@@ -1080,9 +1082,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
     def create_new_scheme(self):
         """Creates a new color scheme with a custom name."""
         names = self.get_option('names')
-        custom_names = self.get_option('custom_names')
-        if not custom_names:
-            custom_names = []
+        custom_names = self.get_option('custom_names', [])
 
         # Get the available number this new color scheme
         counter = len(custom_names) - 1
@@ -1168,20 +1168,6 @@ class ColorSchemeConfigPage(GeneralConfigPage):
             value = CONF.get_default(self.CONF_SECTION, option)
             self.set_option(option, value)
         self.load_from_conf()
-
-    # Import/Export
-    # -------------------------------------------------------------------------
-    def import_scheme(self):
-        """
-        TODO:
-        """
-        pass
-
-    def export_scheme(self):
-        """
-        TODO:
-        """
-        pass
 
 
 class SchemeEditor(QDialog):
