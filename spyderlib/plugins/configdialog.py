@@ -921,7 +921,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
     ICON = ima.icon('eyedropper')
 
     def setup_page(self):
-        names = [n for n in self.get_option("names")]
+        names = self.get_option("names")
         custom_names = self.get_option("custom_names", [])
 
         # Widgets
@@ -938,12 +938,12 @@ class ColorSchemeConfigPage(GeneralConfigPage):
                                                  stack=self.stacked_widget)
 
         # Widget setup
-        self.scheme_choices_dic = {}
+        self.scheme_choices_dict = {}
         about_label.setWordWrap(True)
-        schemes_combo = self.create_combobox(_('Scheme:'),
+        schemes_combobox_widget = self.create_combobox(_('Scheme:'),
                                              [('', '')],
                                              'selected')
-        self.schemes_combo = schemes_combo.combobox
+        self.schemes_combobox = schemes_combobox_widget.combobox
 
         # Layouts
         vlayout = QVBoxLayout()
@@ -952,8 +952,8 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         manage_layout.addWidget(about_label)
 
         combo_layout = QHBoxLayout()
-        combo_layout.addWidget(schemes_combo.label)
-        combo_layout.addWidget(schemes_combo.combobox)
+        combo_layout.addWidget(schemes_combobox_widget.label)
+        combo_layout.addWidget(schemes_combobox_widget.combobox)
 
         buttons_layout = QVBoxLayout()
         buttons_layout.addLayout(combo_layout)
@@ -982,8 +982,8 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         edit_button.clicked.connect(self.edit_scheme)
         self.reset_button.clicked.connect(self.reset_to_default)
         self.delete_button.clicked.connect(self.delete_scheme)
-        self.schemes_combo.currentIndexChanged.connect(self.update_preview)
-        self.schemes_combo.currentIndexChanged.connect(self.update_buttons)
+        self.schemes_combobox.currentIndexChanged.connect(self.update_preview)
+        self.schemes_combobox.currentIndexChanged.connect(self.update_buttons)
 
         # Setup
         for name in names:
@@ -1008,45 +1008,45 @@ class ColorSchemeConfigPage(GeneralConfigPage):
     # -------------------------------------------------------------------------
     @property
     def current_scheme_name(self):
-        return self.schemes_combo.currentText()
+        return self.schemes_combobox.currentText()
 
     @property
     def current_scheme(self):
-        return self.scheme_choices_dic[self.current_scheme_name]
+        return self.scheme_choices_dict[self.current_scheme_name]
 
     @property
     def current_scheme_index(self):
-        return self.schemes_combo.currentIndex()
+        return self.schemes_combobox.currentIndex()
 
     def update_combobox(self):
         """Recreates the combobox contents."""
         index = self.current_scheme_index
-        self.schemes_combo.blockSignals(True)
+        self.schemes_combobox.blockSignals(True)
         names = self.get_option("names")
         custom_names = self.get_option("custom_names", [])
 
         # Useful for retrieving the actual data
         for n in names + custom_names:
-            self.scheme_choices_dic[self.get_option('{0}/name'.format(n))] = n
+            self.scheme_choices_dict[self.get_option('{0}/name'.format(n))] = n
 
         if custom_names:
             choices = names + [None] + custom_names
         else:
             choices = names
 
-        combo = self.schemes_combo
-        combo.clear()
+        combobox = self.schemes_combobox
+        combobox.clear()
 
         for name in choices:
             if name is None:
                 continue
-            combo.addItem(self.get_option('{0}/name'.format(name)), name)
+            combobox.addItem(self.get_option('{0}/name'.format(name)), name)
 
         if custom_names:
-            combo.insertSeparator(len(names))
+            combobox.insertSeparator(len(names))
 
-        self.schemes_combo.blockSignals(False)
-        self.schemes_combo.setCurrentIndex(index)
+        self.schemes_combobox.blockSignals(False)
+        self.schemes_combobox.setCurrentIndex(index)
 
     def update_buttons(self):
         """Updates the enable status of delete and reset buttons."""
@@ -1074,7 +1074,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
                 '        print(bar)\n'
                 )
         show_blanks = CONF.get('editor', 'blank_spaces')
-        if not scheme_name:
+        if scheme_name is None:
             scheme_name = self.current_scheme
         self.preview_editor.setup_editor(linenumbers=True,
                                          markers=True,
@@ -1121,7 +1121,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
             self.update_combobox()
             # The +1 is needed because of the separator in the combobox
             index = (names + custom_names).index(custom_name) + 1
-            self.schemes_combo.setCurrentIndex(index)
+            self.schemes_combobox.setCurrentIndex(index)
         else:
             # Delete the config ....
             custom_names.remove(custom_name)
@@ -1149,12 +1149,13 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         # Put the combobox in Spyder by default, when deleting a scheme
         names = self.get_option('names')
         self.set_scheme('spyder')
-        self.schemes_combo.setCurrentIndex(names.index('spyder'))
+        self.schemes_combobox.setCurrentIndex(names.index('spyder'))
         self.set_option('selected', 'spyder')
 
         # Delete from custom_names
-        custom_names = self.get_option('custom_names')
-        custom_names.remove(scheme_name)
+        custom_names = self.get_option('custom_names', [])
+        if scheme_name in custom_names:
+            custom_names.remove(scheme_name)
         self.set_option('custom_names', custom_names)
 
         # Delete config options
@@ -1179,7 +1180,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         # Checks that this is indeed a default scheme
         scheme = self.current_scheme
         names = self.get_option('names')
-        if scheme not in names:
+        if scheme in names:
             for key in syntaxhighlighters.COLOR_SCHEME_KEYS:
                 option = "{0}/{1}".format(scheme, key)
                 value = CONF.get_default(self.CONF_SECTION, option)
