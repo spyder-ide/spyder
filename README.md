@@ -148,6 +148,7 @@ a Python version greater than 2.7 (Python 3.2 is not supported anymore).
 * **Pep8**: Style analysis.
 * **Psutil**: CPU and memory usage on the status bar.
 * **Nbconvert**: Manipulation of notebooks in the Editor.
+* **Path.py** and **pickleshare**: Show import completions of the Editor and consoles
 
 **Note**: To get IPython in Ubuntu you need to install `ipython-qtconsole`,
 on Fedora `ipython-gui` and on Gentoo `ipython` with the `qt4` USE flag.

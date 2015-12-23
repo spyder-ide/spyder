@@ -304,7 +304,9 @@ install_requires = [
     'pep8',
     'pylint',
     'psutil',
-    'qtawesome'
+    'qtawesome',
+    'path.py',
+    'pickleshare'
 ]
 
 if 'setuptools' in sys.modules:
