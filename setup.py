@@ -280,7 +280,6 @@ editor, Python console, etc.""",
                    'Operating System :: Unix',
                    'Programming Language :: Python :: 2.7',
                    'Programming Language :: Python :: 3',
-                   'Programming Language :: Python :: 3.3'
                    'Development Status :: 5 - Production/Stable',
                    'Topic :: Scientific/Engineering',
                    'Topic :: Software Development :: Widget Sets'],
