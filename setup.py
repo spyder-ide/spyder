@@ -253,7 +253,7 @@ PySide application: source code editor with syntax highlighting and
 code introspection/analysis features, NumPy array editor, dictionary
 editor, Python console, etc.""",
       download_url='%s/files/%s-%s.zip' % (__project_url__, NAME, __version__),
-      author="Pierre Raybaut",
+      author="The Spyder Development Team",
       url=__project_url__,
       license='MIT',
       keywords='PyQt4 PySide editor shell console widgets IDE',
