@@ -8,7 +8,7 @@ build:
 source:
   fn:  qtconsole-4.1.1.tar.gz
   url: https://pypi.python.org/packages/source/q/qtconsole/qtconsole-4.1.1.tar.gz
-  md5: e2b0c38344bc584b96b3fe39851645f2
+  md5: 12f474ab467d2945249d149d2d32f208
 
 requirements:
   build:
