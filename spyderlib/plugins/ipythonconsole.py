@@ -52,7 +52,8 @@ from spyderlib import dependencies
 from spyderlib.config.base import _, get_module_source_path
 from spyderlib.config.main import CONF
 from spyderlib.utils.misc import (get_error_match, remove_backslashes,
-                                  add_pathlist_to_PYTHONPATH)
+                                  add_pathlist_to_PYTHONPATH,
+                                  get_python_executable)
 from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import create_action
 from spyderlib.widgets.tabs import Tabs
@@ -1045,7 +1046,7 @@ class IPythonConsole(SpyderPluginWidget):
                                        drop_env=(not self.default_interpreter))
 
         if self.default_interpreter:
-            pyexec = sys.executable
+            pyexec = get_python_executable()
         else:
             # Avoid IPython adding the virtualenv on which Spyder is running
             # to the kernel sys.path
