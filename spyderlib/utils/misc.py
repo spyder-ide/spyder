@@ -233,7 +233,8 @@ def get_common_path(pathlist):
                 return osp.abspath(common)
 
 
-def add_pathlist_to_PYTHONPATH(env, pathlist, drop_env=False):
+def add_pathlist_to_PYTHONPATH(env, pathlist, drop_env=False,
+                               ipyconsole=False):
     # PyQt API 1/2 compatibility-related tests:
     assert isinstance(env, list)
     assert all([is_text_string(path) for path in env])
@@ -241,13 +242,23 @@ def add_pathlist_to_PYTHONPATH(env, pathlist, drop_env=False):
     pypath = "PYTHONPATH"
     pathstr = os.pathsep.join(pathlist)
     if os.environ.get(pypath) is not None and not drop_env:
-        for index, var in enumerate(env[:]):
-            if var.startswith(pypath+'='):
-                env[index] = var.replace(pypath+'=',
-                                         pypath+'='+pathstr+os.pathsep)
-        env.append('OLD_PYTHONPATH='+os.environ[pypath])
+        old_pypath = os.environ[pypath]
+        if not ipyconsole:
+            for index, var in enumerate(env[:]):
+                if var.startswith(pypath+'='):
+                    env[index] = var.replace(pypath+'=',
+                                             pypath+'='+pathstr+os.pathsep)
+            env.append('OLD_PYTHONPATH='+old_pypath)
+        else:
+            pypath =  {'PYTHONPATH': pathstr + os.pathsep + old_pypath,
+                       'OLD_PYTHONPATH': old_pypath}
+            return pypath
     else:
-        env.append(pypath+'='+pathstr)
+        if not ipyconsole:
+            env.append(pypath+'='+pathstr)
+        else:
+            return {'PYTHONPATH': pathstr}
+
 
 
 if __name__ == '__main__':

@@ -32,7 +32,6 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QHBoxLayout, QFormLayout,
                                 QGridLayout)
 from spyderlib.qt.compat import getopenfilename
 from spyderlib.qt.QtCore import Signal, Slot, Qt
-import spyderlib.utils.icon_manager as ima
 
 # IPython/Jupyter imports
 from IPython.core.application import get_ipython_dir
@@ -52,7 +51,8 @@ except ImportError:
 from spyderlib import dependencies
 from spyderlib.config.base import _, get_module_source_path
 from spyderlib.config.main import CONF
-from spyderlib.utils.misc import get_error_match, remove_backslashes
+from spyderlib.utils.misc import (get_error_match, remove_backslashes,
+                                  add_pathlist_to_PYTHONPATH)
 from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import create_action
 from spyderlib.widgets.tabs import Tabs
@@ -60,6 +60,7 @@ from spyderlib.widgets.ipython import IPythonClient
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 from spyderlib.py3compat import to_text_string
+import spyderlib.utils.icon_manager as ima
 
 
 SYMPY_REQVER = '>=0.7.3'
@@ -1033,7 +1034,15 @@ class IPythonConsole(SpyderPluginWidget):
 
     def create_kernel_spec(self):
         """Create a kernel spec for our own kernels"""
-        spykernel_path = get_module_source_path('spyderlib.widgets.externalshell')
+        # Paths that we need to add to PYTHONPATH:
+        # 1. sc_path: Path to our sitecustomize
+        # 2. spy_pythonpath: Paths saved by our users with our PYTHONPATH
+        #                    manager
+        sc_path = get_module_source_path('spyderlib.widgets.externalshell')
+        spy_pythonpath = self.main.get_spyder_pythonpath()
+        pathlist = [sc_path] + spy_pythonpath
+        pypath = add_pathlist_to_PYTHONPATH([], pathlist, ipyconsole=True,
+                                       drop_env=(not self.default_interpreter))
 
         if self.default_interpreter:
             pyexec = sys.executable
@@ -1048,20 +1057,20 @@ class IPythonConsole(SpyderPluginWidget):
 
         kernel_cmd = [
             pyexec,
-            osp.join("%s" % spykernel_path, "start_ipython_kernel.py"),
+            osp.join("%s" % sc_path, "start_ipython_kernel.py"),
             '-f',
             '{connection_file}'
         ]
 
         umr_namelist = ','.join(CONF.get('console', 'umr/namelist'))
         env_vars = {
-            'PYTHONPATH': spykernel_path,
             'IPYTHON_KERNEL': 'True',
             'EXTERNAL_INTERPRETER': to_text_string(not self.default_interpreter),
             'UMR_ENABLED': to_text_string(CONF.get('console', 'umr/enabled')),
             'UMR_VERBOSE': to_text_string(CONF.get('console', 'umr/verbose')),
             'UMR_NAMELIST': umr_namelist
         }
+        env_vars.update(pypath)
 
         kernel_dict = {
             'argv': kernel_cmd,
