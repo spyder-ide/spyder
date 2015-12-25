@@ -28,8 +28,8 @@ from spyderlib.config.base import (_, get_module_source_path, DEBUG,
 from spyderlib.widgets.shell import PythonShellWidget
 from spyderlib.widgets.variableexplorer.namespacebrowser import NamespaceBrowser
 from spyderlib.utils.bsdsocket import communicate, write_packet
-from spyderlib.widgets.externalshell.baseshell import (ExternalShellBase,
-                                                   add_pathlist_to_PYTHONPATH)
+from spyderlib.utils.misc import add_pathlist_to_PYTHONPATH
+from spyderlib.widgets.externalshell.baseshell import ExternalShellBase
 from spyderlib.widgets.variableexplorer.collectionseditor import CollectionsEditor
 from spyderlib.py3compat import (is_text_string, to_text_string,
                                  to_binary_string)

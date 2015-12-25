@@ -9,7 +9,6 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-import os
 import os.path as osp
 from time import time, strftime, gmtime
 
@@ -22,28 +21,11 @@ import spyderlib.utils.icon_manager as ima
 LOCALE_CODEC = QTextCodec.codecForLocale()
 
 # Local imports
-from spyderlib.utils.qthelpers import (create_toolbutton, create_action, 
+from spyderlib.utils.qthelpers import (create_toolbutton, create_action,
                                        add_actions)
 from spyderlib.config.base import get_conf_path, _
-from spyderlib.py3compat import is_text_string, to_text_string
+from spyderlib.py3compat import to_text_string
 
-
-def add_pathlist_to_PYTHONPATH(env, pathlist, drop_env=False):
-    # PyQt API 1/2 compatibility-related tests:
-    assert isinstance(env, list)
-    assert all([is_text_string(path) for path in env])
-    
-    pypath = "PYTHONPATH"
-    pathstr = os.pathsep.join(pathlist)
-    if os.environ.get(pypath) is not None and not drop_env:
-        for index, var in enumerate(env[:]):
-            if var.startswith(pypath+'='):
-                env[index] = var.replace(pypath+'=',
-                                         pypath+'='+pathstr+os.pathsep)
-        env.append('OLD_PYTHONPATH='+os.environ[pypath])
-    else:
-        env.append(pypath+'='+pathstr)
-    
 
 #TODO: code refactoring/cleaning (together with systemshell.py and pythonshell.py)
 class ExternalShellBase(QWidget):

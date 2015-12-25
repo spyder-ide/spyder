@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Developmet Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -11,6 +11,8 @@ import os.path as osp
 import sys
 import stat
 
+from spyderlib.py3compat import is_text_string
+
 
 def __remove_pyc_pyo(fname):
     """Eventually remove .pyc and .pyo files associated to a Python script"""
@@ -18,6 +20,7 @@ def __remove_pyc_pyo(fname):
         for ending in ('c', 'o'):
             if osp.exists(fname+ending):
                 os.remove(fname+ending)
+
 
 def rename_file(source, dest):
     """
@@ -27,6 +30,7 @@ def rename_file(source, dest):
     os.rename(source, dest)
     __remove_pyc_pyo(source)
 
+
 def remove_file(fname):
     """
     Remove file *fname*
@@ -34,6 +38,7 @@ def remove_file(fname):
     """
     os.remove(fname)
     __remove_pyc_pyo(fname)
+
 
 def move_file(source, dest):
     """
@@ -226,6 +231,24 @@ def get_common_path(pathlist):
                     return abspardir(common)
             else:
                 return osp.abspath(common)
+
+
+def add_pathlist_to_PYTHONPATH(env, pathlist, drop_env=False):
+    # PyQt API 1/2 compatibility-related tests:
+    assert isinstance(env, list)
+    assert all([is_text_string(path) for path in env])
+    
+    pypath = "PYTHONPATH"
+    pathstr = os.pathsep.join(pathlist)
+    if os.environ.get(pypath) is not None and not drop_env:
+        for index, var in enumerate(env[:]):
+            if var.startswith(pypath+'='):
+                env[index] = var.replace(pypath+'=',
+                                         pypath+'='+pathstr+os.pathsep)
+        env.append('OLD_PYTHONPATH='+os.environ[pypath])
+    else:
+        env.append(pypath+'='+pathstr)
+
 
 if __name__ == '__main__':
     if os.name == 'nt':

@@ -18,10 +18,10 @@ CP850_CODEC = QTextCodec.codecForName('cp850')
 # Local imports
 from spyderlib.utils.programs import shell_split
 from spyderlib.config.base import _
-from spyderlib.widgets.externalshell.baseshell import (ExternalShellBase,
-                                                   add_pathlist_to_PYTHONPATH)
+from spyderlib.widgets.externalshell.baseshell import ExternalShellBase
 from spyderlib.widgets.shell import TerminalWidget
 from spyderlib.py3compat import to_text_string, is_text_string
+from spyderlib.utils.misc import add_pathlist_to_PYTHONPATH
 import spyderlib.utils.icon_manager as ima
 
 
