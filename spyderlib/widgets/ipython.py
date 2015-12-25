@@ -407,14 +407,14 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         self.get_option = plugin.get_option
         self.shellwidget = IPythonShellWidget(config=self.shellwidget_config(),
                                               local_kernel=True)
-        #self.shellwidget.show()
-        #self.infowidget = WebView(self)
+        self.infowidget = WebView(self)
+        self.infowidget.hide()
         self.menu_actions = menu_actions
         self.history_filename = get_conf_path(history_filename)
         self.history = []
         self.namespacebrowser = None
 
-        #self.set_infowidget_font()
+        self.set_infowidget_font()
         #self.loading_page = self._create_loading_page()
         #self.infowidget.setHtml(self.loading_page)
 
@@ -426,7 +426,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         vlayout.addLayout(hlayout)
         vlayout.setContentsMargins(0, 0, 0, 0)
         vlayout.addWidget(self.shellwidget)
-        #vlayout.addWidget(self.infowidget)
+        vlayout.addWidget(self.infowidget)
         self.setLayout(vlayout)
 
         self.exit_callback = lambda: plugin.close_client(client=self)
@@ -479,30 +479,22 @@ class IPythonClient(QWidget, SaveHistoryMixin):
 
     def show_kernel_error(self, error):
         """Show kernel initialization errors in infowidget"""
-        # Remove explanation about how to kill the kernel (doesn't apply to us)
-        error = error.split('issues/2049')[-1]
-        # Remove unneeded blank lines at the beginning
-        eol = sourcecode.get_eol_chars(error)
-        if eol:
-            error = error.replace(eol, '<br>')
-        while error.startswith('<br>'):
-            error = error[4:]
-        # Remove connection message
-        if error.startswith('To connect another client') or \
-          error.startswith('[IPKernelApp] To connect another client'):
-            error = error.split('<br>')
-            error = '<br>'.join(error[2:])
         # Don't break lines in hyphens
         # From http://stackoverflow.com/q/7691569/438386
         error = error.replace('-', '&#8209')
-            
+
+        # Create error page
         message = _("An error ocurred while starting the kernel")
         kernel_error_template = Template(KERNEL_ERROR)
         page = kernel_error_template.substitute(css_path=CSS_PATH,
                                                 message=message,
                                                 error=error)
+
+        # Show error
         self.infowidget.setHtml(page)
-    
+        self.shellwidget.hide()
+        self.infowidget.show()
+
     def show_restart_animation(self):
         """Show loading_page while restarting the kernel"""
         self.shellwidget.hide()

@@ -618,6 +618,8 @@ class IPythonConsole(SpyderPluginWidget):
         self.master_clients = 0
         self.clients = []
         self.mainwindow_close = False
+        self.default_interpreter = CONF.get('console',
+                                            'pythonexecutable/default')
 
         # Initialize plugin
         self.initialize_plugin()
@@ -855,8 +857,21 @@ class IPythonConsole(SpyderPluginWidget):
         client = IPythonClient(self, name=name, history_filename='history.py',
                                menu_actions=self.menu_actions,
                                connection_file=self._new_connection_file())
-        self.connect_client_to_kernel(client)
         self.add_tab(client, name=client.get_name())
+        if not self.default_interpreter:
+            pyexec = CONF.get('console', 'pythonexecutable')
+            ipykernel_present = programs.is_module_installed('ipykernel',
+                                                            interpreter=pyexec)
+            if not ipykernel_present:
+                client.show_kernel_error(_("You are using an external "
+                                     "interpreter and you don't seem to have "
+                                     "the <tt>ipykernel</tt> module installed "
+                                     "on it.<br><br>"
+                                     "Without this module is not possible for "
+                                     "Spyder to create an IPython console for "
+                                     "you."))
+                return
+        self.connect_client_to_kernel(client)
         self.register_client(client)
 
     def register_client(self, client, restart=False, give_focus=True):
@@ -1019,9 +1034,8 @@ class IPythonConsole(SpyderPluginWidget):
     def create_kernel_spec(self):
         """Create a kernel spec for our own kernels"""
         spykernel_path = get_module_source_path('spyderlib.widgets.externalshell')
-        default_interpreter = CONF.get('console', 'pythonexecutable/default')
 
-        if default_interpreter:
+        if self.default_interpreter:
             pyexec = sys.executable
         else:
             # Avoid IPython adding the virtualenv on which Spyder is running
@@ -1043,7 +1057,7 @@ class IPythonConsole(SpyderPluginWidget):
         env_vars = {
             'PYTHONPATH': spykernel_path,
             'IPYTHON_KERNEL': 'True',
-            'EXTERNAL_INTERPRETER': to_text_string(not default_interpreter),
+            'EXTERNAL_INTERPRETER': to_text_string(not self.default_interpreter),
             'UMR_ENABLED': to_text_string(CONF.get('console', 'umr/enabled')),
             'UMR_VERBOSE': to_text_string(CONF.get('console', 'umr/verbose')),
             'UMR_NAMELIST': umr_namelist
