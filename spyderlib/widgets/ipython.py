@@ -495,12 +495,6 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         self.shellwidget.hide()
         self.infowidget.show()
 
-    def show_restart_animation(self):
-        """Show loading_page while restarting the kernel"""
-        self.shellwidget.hide()
-        self.infowidget.setHtml(self.loading_page)
-        self.infowidget.show()
-    
     def get_name(self):
         """Return client name"""
         return ((_("Console") if self.hostname is None else self.hostname)
