@@ -1037,14 +1037,21 @@ class IPythonConsole(SpyderPluginWidget):
         """Create a kernel spec for our own kernels"""
         # Paths that we need to add to PYTHONPATH:
         # 1. sc_path: Path to our sitecustomize
-        # 2. spy_pythonpath: Paths saved by our users with our PYTHONPATH
+        # 2. spy_path: Path to our main module, so we can use our config
+        #              system to configure kernels
+        # 3. spy_pythonpath: Paths saved by our users with our PYTHONPATH
         #                    manager
         sc_path = get_module_source_path('spyderlib.widgets.externalshell')
+        spy_path = get_module_source_path('spyderlib')
         spy_pythonpath = self.main.get_spyder_pythonpath()
-        pathlist = [sc_path] + spy_pythonpath
+        if self.default_interpreter:
+            pathlist = [sc_path] + spy_pythonpath
+        else:
+            pathlist = [sc_path, spy_path] + spy_pythonpath
         pypath = add_pathlist_to_PYTHONPATH([], pathlist, ipyconsole=True,
                                        drop_env=(not self.default_interpreter))
 
+        # Python interpreter used to start kernels
         if self.default_interpreter:
             pyexec = get_python_executable()
         else:

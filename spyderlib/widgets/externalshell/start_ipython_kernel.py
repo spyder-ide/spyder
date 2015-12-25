@@ -8,6 +8,7 @@
 File used to start IPython kernels
 """
 
+import os
 import os.path as osp
 import sys
 
@@ -39,13 +40,21 @@ init_session()
 
 def kernel_config():
     """Create a config object with IPython kernel options"""
-    import os
+    external_interpreter = \
+                   os.environ.get('EXTERNAL_INTERPRETER', '').lower() == "true"
 
     from IPython.config.loader import Config, load_pyconfig_files
     from IPython.core.application import get_ipython_dir
-    from spyderlib.config.main import CONF
-    from spyderlib.utils.programs import is_module_installed
-    
+    if not external_interpreter:
+        from spyderlib.config.main import CONF
+        from spyderlib.utils.programs import is_module_installed
+    else:
+        # We add "spyderlib" to sys.path for external interpreters,
+        # so this works!
+        # See create_kernel_spec of plugins/ipythonconsole
+        from config.main import CONF
+        from utils.programs import is_module_installed
+
     # ---- IPython config ----
     try:
         profile_path = osp.join(get_ipython_dir(), 'profile_default')
@@ -72,8 +81,6 @@ def kernel_config():
     mpl_backend = None
     mpl_installed = is_module_installed('matplotlib')
     pylab_o = CONF.get('ipython_console', 'pylab')
-    external_interpreter = \
-                   os.environ.get('EXTERNAL_INTERPRETER', '').lower() == "true"
 
     if mpl_installed and pylab_o:
         # Get matplotlib backend
