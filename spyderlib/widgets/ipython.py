@@ -33,7 +33,6 @@ except ImportError:
     from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
 from IPython.qt.console.ansi_code_processor import ANSI_OR_SPECIAL_PATTERN
 from IPython.core.application import get_ipython_dir
-from IPython.core.oinspect import call_tip
 from IPython.config.loader import Config, load_pyconfig_files
 
 # Local imports
@@ -43,9 +42,9 @@ from spyderlib.config.main import CONF
 from spyderlib.config.gui import (create_shortcut, get_font, get_shortcut,
                                   new_shortcut)
 from spyderlib.utils.dochelpers import getargspecfromtext, getsignaturefromtext
-from spyderlib.utils.qthelpers import (create_toolbutton, add_actions, 
+from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
                                        create_action, restore_keyevent)
-from spyderlib.utils import programs, sourcecode
+from spyderlib.utils import programs
 from spyderlib.widgets.browser import WebView
 from spyderlib.widgets.calltip import CallTipWidget
 from spyderlib.widgets.mixins import (BaseEditMixin, GetHelpMixin,
@@ -314,36 +313,6 @@ These commands were executed:
             return self.long_banner()
         else:
             return self.short_banner()
-    
-    def _handle_object_info_reply(self, rep):
-        """
-        Reimplement call tips to only show signatures, using the same style
-        from our Editor and External Console too
-        Note: For IPython 2-
-        """
-        self.log.debug("oinfo: %s", rep.get('content', ''))
-        cursor = self._get_cursor()
-        info = self._request_info.get('call_tip')
-        if info and info.id == rep['parent_header']['msg_id'] and \
-          info.pos == cursor.position():
-            content = rep['content']
-            if content.get('ismagic', False):
-                call_info, doc = None, None
-            else:
-                call_info, doc = call_tip(content, format_call=True)
-                if call_info is None and doc is not None:
-                    name = content['name'].split('.')[-1]
-                    argspec = getargspecfromtext(doc)
-                    if argspec:
-                        # This covers cases like np.abs, whose docstring is
-                        # the same as np.absolute and because of that a proper
-                        # signature can't be obtained correctly
-                        call_info = name + argspec
-                    else:
-                        call_info = getsignaturefromtext(doc, name)
-            if call_info:
-                self._control.show_calltip(_("Arguments"), call_info,
-                                           signature=True, color='#2D62FF')
 
     def _handle_inspect_reply(self, rep):
         """
