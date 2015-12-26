@@ -1057,10 +1057,7 @@ class IPythonConsole(SpyderPluginWidget):
         else:
             # Avoid IPython adding the virtualenv on which Spyder is running
             # to the kernel sys.path
-            try:
-                os.environ.pop('VIRTUAL_ENV')
-            except KeyError:
-                pass
+            os.environ.pop('VIRTUAL_ENV', None)
             pyexec = CONF.get('console', 'pythonexecutable')
 
         kernel_cmd = [
