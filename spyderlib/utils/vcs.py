@@ -100,10 +100,9 @@ def get_hg_revision(repopath):
            ('eba7273c69df+', '2015+', 'default')
     """
     try:
-        hg = programs.find_program('hg')
-        assert hg is not None and osp.isdir(osp.join(repopath, '.hg'))
-        output, _err = subprocess.Popen([hg, 'id', '-nib', repopath],
-                                        stdout=subprocess.PIPE).communicate()
+        assert osp.isdir(osp.join(repopath, '.hg'))
+        proc = programs.run_program('hg', ['id', '-nib', repopath])
+        output, _err = proc.communicate()
         # output is now: ('eba7273c69df+ 2015+ default\n', None)
         # Split 2 times max to allow spaces in branch names.
         return tuple(output.decode().strip().split(None, 2))
@@ -120,11 +119,8 @@ def get_git_revision(repopath):
     try:
         git = programs.find_program('git')
         assert git is not None and osp.isdir(osp.join(repopath, '.git'))
-
-        # Revision
-        commit = subprocess.Popen([git, 'rev-parse', '--short', 'HEAD'],
-                                  stdout=subprocess.PIPE,
-                                  cwd=repopath).communicate()
+        commit = programs.run_program(git, ['rev-parse', '--short', 'HEAD'],
+                cwd=repopath).communicate()
         commit = commit[0].strip()
         if PY3:
             commit = commit.decode(sys.getdefaultencoding())

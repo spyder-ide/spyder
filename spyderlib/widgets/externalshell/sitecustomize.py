@@ -21,6 +21,8 @@ import shlex
 
 PY2 = sys.version[0] == '2'
 
+from spyderlib.utils import programs
+
 
 #==============================================================================
 # sys.argv can be missing when Python is embedded, taking care of it.
@@ -205,7 +207,7 @@ except ImportError:
 
 #==============================================================================
 # Add default filesystem encoding on Linux to avoid an error with
-# Matplotlib 1.5 in Python 2 (Fixes Issue 2793) 
+# Matplotlib 1.5 in Python 2 (Fixes Issue 2793)
 #==============================================================================
 if PY2 and sys.platform.startswith('linux'):
     def _getfilesystemencoding_wrapper():
@@ -866,10 +868,10 @@ def evalsc(command):
             _print(os.getcwd())
     elif command == 'ls':
         if os.name == 'nt':
-            Popen('dir', shell=True, stdin=PIPE)
+            programs.run_shell_command('dir')
             _print('\n')
         else:
-            Popen('ls', shell=True, stdin=PIPE)
+            programs.run_shell_command('ls')
             _print('\n')
     elif command == 'scientific':
         from spyderlib.config import base
