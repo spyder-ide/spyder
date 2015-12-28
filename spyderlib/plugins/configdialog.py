@@ -941,8 +941,8 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         self.scheme_choices_dict = {}
         about_label.setWordWrap(True)
         schemes_combobox_widget = self.create_combobox(_('Scheme:'),
-                                             [('', '')],
-                                             'selected')
+                                                       [('', '')],
+                                                       'selected')
         self.schemes_combobox = schemes_combobox_widget.combobox
 
         # Layouts
@@ -1118,9 +1118,13 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         self.load_from_conf()
 
         if dlg.exec_():
-            self.update_combobox()
+            # This is needed to have the custom name updated on the combobox
+            name = dlg.get_scheme_name()
+            self.set_option('{0}/name'.format(custom_name), name)
+
             # The +1 is needed because of the separator in the combobox
             index = (names + custom_names).index(custom_name) + 1
+            self.update_combobox()
             self.schemes_combobox.setCurrentIndex(index)
         else:
             # Delete the config ....
@@ -1169,7 +1173,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
 
     def set_scheme(self, scheme_name):
         """
-        Set the current stack in the dialog to the scheme with 'schema_name'.
+        Set the current stack in the dialog to the scheme with 'scheme_name'.
         """
         dlg = self.scheme_editor_dialog
         dlg.set_scheme(scheme_name)
@@ -1186,10 +1190,6 @@ class ColorSchemeConfigPage(GeneralConfigPage):
                 value = CONF.get_default(self.CONF_SECTION, option)
                 self.set_option(option, value)
 
-            option = "{0}/name".format(scheme)
-            value = CONF.get_default(self.CONF_SECTION, option)
-            self.set_option(option, value)
-
             self.load_from_conf()
 
 
@@ -1203,6 +1203,7 @@ class SchemeEditor(QDialog):
 
         # Needed for self.get_edited_color_scheme()
         self.widgets = {}
+        self.scheme_name_textbox = {}
         self.last_edited_color_scheme = None
         self.last_used_scheme = None
 
@@ -1226,6 +1227,36 @@ class SchemeEditor(QDialog):
         """Set the current stack by 'scheme_name'."""
         self.stack.setCurrentIndex(self.order.index(scheme_name))
         self.last_used_scheme = scheme_name
+
+    def get_scheme_name(self):
+        """
+        Returns the edited scheme name, needed to update the combobox on
+        scheme creation.
+        """
+        return self.scheme_name_textbox[self.last_used_scheme].text()
+
+    def get_edited_color_scheme(self):
+        """
+        Get the values of the last edited color scheme to be used in an instant
+        preview in the preview editor, without using `apply`.
+        """
+        color_scheme = {}
+        scheme_name = self.last_used_scheme
+
+        for key in self.widgets[scheme_name]:
+            items = self.widgets[scheme_name][key]
+
+            if len(items) == 1:
+                # ColorLayout
+                value = items[0].text()
+            else:
+                # ColorLayout + checkboxes
+                value = (items[0].text(), items[1].isChecked(),
+                         items[2].isChecked())
+
+            color_scheme[key] = value
+
+        return color_scheme
 
     # Actions
     # -------------------------------------------------------------------------
@@ -1253,6 +1284,7 @@ class SchemeEditor(QDialog):
         name_layout = QHBoxLayout()
         name_layout.addWidget(line_edit.label)
         name_layout.addWidget(line_edit.textbox)
+        self.scheme_name_textbox[scheme_name] = line_edit.textbox
 
         if not custom:
             line_edit.textbox.setDisabled(True)
@@ -1323,26 +1355,3 @@ class SchemeEditor(QDialog):
         self.stack.removeWidget(widget)
         index = self.order.index(scheme_name)
         self.order.pop(index)
-
-    def get_edited_color_scheme(self):
-        """
-        Get the values of the last edited color scheme to be used in an instant
-        preview in the preview editor, without using `apply`.
-        """
-        color_scheme = {}
-        scheme_name = self.last_used_scheme
-
-        for key in self.widgets[scheme_name]:
-            items = self.widgets[scheme_name][key]
-
-            if len(items) == 1:
-                # ColorLayout
-                value = items[0].text()
-            else:
-                # ColorLayout + checkboxes
-                value = (items[0].text(), items[1].isChecked(),
-                         items[2].isChecked())
-
-            color_scheme[key] = value
-
-        return color_scheme

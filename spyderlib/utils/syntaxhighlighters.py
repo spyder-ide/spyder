@@ -34,14 +34,9 @@ dependencies.add("pygments", _("Syntax highlighting for Matlab, Julia and other 
                  required_version=PYGMENTS_REQVER)
 
 
-#==============================================================================
+# =============================================================================
 # Constants
-#==============================================================================
-#COLOR_SCHEME_KEYS = ("background", "currentline", "currentcell", "occurence",
-#                     "ctrlclick", "sideareas", "matched_p", "unmatched_p",
-#                     "normal", "keyword", "builtin", "definition",
-#                     "comment", "string", "number", "instance")
-
+# =============================================================================
 COLOR_SCHEME_KEYS = {
                       "background":     _("Background:"),
                       "currentline":    _("Current line:"),
