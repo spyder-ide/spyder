@@ -23,7 +23,6 @@ if API == 'pyqt5':
         from PyQt5.QtCore import PYQT_VERSION_STR as __version__
         from PyQt5 import uic  # analysis:ignore
     except ImportError:
-        PYQT5 = False
         API = os.environ['QT_API'] = 'pyqt'
         API_NAME = 'PyQt4'
 
@@ -47,6 +46,8 @@ if API == 'pyqt':
             pass
 
         from PyQt4.QtCore import PYQT_VERSION_STR as __version__ # analysis:ignore
+        from PyQt4 import uic  # analysis:ignore
+        PYQT5 = False
     except ImportError:
         API = os.environ['QT_API'] = 'pyside'
         API_NAME = 'PySide'
@@ -58,10 +59,10 @@ if API == 'pyqt':
             API_NAME += (" (API v%d)" % sip.getapi('QString'))
         except AttributeError:
             pass
-        from PyQt4 import uic  # analysis:ignore
 
 if API == 'pyside':
     try:
         from PySide import __version__  # analysis:ignore
+        PYQT5 = False
     except ImportError:
-        raise ImportError("Spyder requires PySide or PyQt to be installed")
+        raise ImportError("Spyder requires PyQt5, PyQt4 or PySide to be installed")
