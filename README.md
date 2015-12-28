@@ -45,9 +45,9 @@ Spyder is a Python development environment with a lot of features:
 
 * **History log**
 
-Spyder may also be used as a PyQt4/PySide extension library (module 
+Spyder may also be used as a PyQt5/PyQt4 extension library (module 
 `spyderlib`). For example, the Python interactive shell widget used in
-Spyder may be embedded in your own PyQt4/PySide application.
+Spyder may be embedded in your own PyQt5/PyQt4 application.
 
 
 ## Documentation
@@ -105,14 +105,14 @@ For more details on supported platforms, please refer to our
 [installation instructions](http://pythonhosted.org/spyder/installation.html).
 
 **Important note**: This does not install the graphical Python libraries (i.e.
-PyQt4, PyQt5 or PySide) that Spyder depend on. Those have to be installed
-separately after installing Python.
+PyQt5 or PyQt4) that Spyder depend on. Those have to be installed separately
+after installing Python.
 
 
 ## Running from source
 
 The fastest way to run Spyder is to get the source code using git, install
-PyQt4, PyQt5 or PySide, and run these commands:
+PyQt5 or PyQt4, and run these commands:
 
 1. `pip install qtawesome` or `conda install -c spyder-ide qtawesome`
 2. `cd /your/spyder/git-clone`
@@ -137,7 +137,7 @@ a Python version greater than 2.7 (Python 3.2 is not supported anymore).
 ### Runtime dependencies
 
 * **Python** 2.7 or 3.3+
-* **PyQt4** 4.6+, **PyQt5** 5.2+ or **PySide** 1.2.0+: PyQt4 is recommended.
+* **PyQt5** 5.2+ or **PyQt4** 4.6+: PyQt5 is recommended.
 * **IPython** 3.0 or **qtconsole**: Enhanced Python interpreter.
 * **Rope** and/or **Jedi** 0.8.1: Editor code completion, calltips
   and go-to-definition.

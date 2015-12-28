@@ -5,7 +5,7 @@
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
-"""Transitional package (PyQt4 --> PySide)"""
+"""Spyder Qt Shim"""
 
 import os
 
