@@ -75,6 +75,6 @@ Key features:
 * :doc:`projectexplorer` (support Pydev project import)
 
 
-Spyder may also be used as a PyQt4 or PySide extension library 
-(module 'spyderlib'). For example, the Python interactive shell widget 
-used in Spyder may be embedded in your own PyQt4 or PySide application.
+Spyder may also be used as a PyQt5 or PyQt4 extension library 
+(module 'spyderlib'). For example, the Python interactive shell widget
+used in Spyder may be embedded in your own PyQt5 or PyQt4 application.
