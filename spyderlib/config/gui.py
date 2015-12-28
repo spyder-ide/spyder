@@ -50,7 +50,6 @@ def get_family(families):
 
 FONT_CACHE = {}
 
-
 def get_font(section='main', option='font', font_size_delta=0):
     """Get console font properties depending on OS and user options"""
     font = FONT_CACHE.get((section, option))
@@ -73,6 +72,8 @@ def get_font(section='main', option='font', font_size_delta=0):
         font.setItalic(italic)
         FONT_CACHE[(section, option)] = font
 
+    size = CONF.get(section, option+'/size', 9) + font_size_delta
+    font.setPointSize(size)
     return font
 
 

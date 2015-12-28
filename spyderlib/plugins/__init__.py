@@ -255,6 +255,7 @@ class SpyderPluginMixin(object):
     CONF_SECTION = None
     CONFIGWIDGET_CLASS = None
     FONT_SIZE_DELTA = 0
+    RICH_FONT_SIZE_DELTA = 0
     IMG_PATH = 'images'
     ALLOWED_AREAS = Qt.AllDockWidgetAreas
     LOCATION = Qt.LeftDockWidgetArea
@@ -461,9 +462,10 @@ class SpyderPluginMixin(object):
         All plugins in Spyder use a global font. This is a convenience method
         in case some plugins will have a delta size based on the default size.
         """
+
         if rich_text:
             option = 'rich_font'
-            font_size_delta = 0
+            font_size_delta = self.RICH_FONT_SIZE_DELTA
         else:
             option = 'font'
             font_size_delta = self.FONT_SIZE_DELTA
@@ -483,7 +485,7 @@ class SpyderPluginMixin(object):
 
     def update_font(self):
         """ """
-        print("Launched!")
+        pass
 
     def __show_message(self, message, timeout=0):
         """Show message in main window's status bar"""

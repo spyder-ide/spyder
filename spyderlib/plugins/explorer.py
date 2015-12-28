@@ -11,15 +11,14 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-from spyderlib.qt.QtGui import QFontDialog
-from spyderlib.qt.QtCore import Signal, Slot
+from spyderlib.qt.QtCore import Signal
 import spyderlib.utils.icon_manager as ima
 
 import os.path as osp
 
 # Local imports
 from spyderlib.config.base import _
-from spyderlib.config.main import DEFAULT_SMALL_DELTA
+from spyderlib.config.main import DEFAULT_LARGE_DELTA
 from spyderlib.widgets.explorer import ExplorerWidget
 from spyderlib.plugins import SpyderPluginMixin
 from spyderlib.py3compat import to_text_string
@@ -28,7 +27,7 @@ from spyderlib.py3compat import to_text_string
 class Explorer(ExplorerWidget, SpyderPluginMixin):
     """File and Directories Explorer DockWidget"""
     CONF_SECTION = 'explorer'
-    FONT_SIZE_DELTA = DEFAULT_SMALL_DELTA
+    RICH_FONT_SIZE_DELTA = DEFAULT_LARGE_DELTA*2
     open_terminal = Signal(str)
     open_interpreter = Signal(str)
     edit = Signal(str)
@@ -102,7 +101,7 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
         return True
 
     def update_font(self):
-        font = self.get_plugin_font()
+        font = self.get_plugin_font(rich_text=True)
         self.setFont(font)
         self.treewidget.setFont(font)
 

@@ -174,7 +174,8 @@ else:
     BIG = 12
     MEDIUM = SMALL = 9
 
-DEFAULT_SMALL_DELTA = MEDIUM - SMALL
+DEFAULT_SMALL_DELTA = SMALL - MEDIUM
+DEFAULT_LARGE_DELTA = SMALL - BIG
 
 # =============================================================================
 #  Defaults
