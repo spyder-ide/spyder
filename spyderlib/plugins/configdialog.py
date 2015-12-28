@@ -25,7 +25,7 @@ import spyderlib.utils.icon_manager as ima
 from spyderlib.config.base import (_, running_in_mac_app, LANGUAGE_CODES,
                                    save_lang_conf, load_lang_conf)
 from spyderlib.config.main import CONF, is_gtk_desktop
-from spyderlib.config.gui import (CUSTOM_COLOR_SCHEME_NAME, get_font,
+from spyderlib.config.gui import (CUSTOM_COLOR_SCHEME_NAME, get_font, set_font,
                                   set_default_color_scheme)
 from spyderlib.config.user import NoDefault
 from spyderlib.utils import syntaxhighlighters as sh
@@ -880,12 +880,12 @@ class MainConfigPage(GeneralConfigPage):
         # --- Theme and fonts
         # Fonts group
         plain_text_font_group = self.create_fontgroup(
-            option='plain_text',
+            option='font',
             text=_("Plain text font style"),
             fontfilters=QFontComboBox.MonospacedFonts)
 
         rich_text_font_group = self.create_fontgroup(
-            option='rich_text',
+            option='rich_font',
             text=_("Rich text font style"))
 
         fonts_layout = QVBoxLayout()
@@ -902,13 +902,18 @@ class MainConfigPage(GeneralConfigPage):
 
         self.setLayout(vlayout)
 
-    def get_font(self, option=None):
+    def get_font(self, option):
         """Return global font used in Spyder."""
-        return get_font(self.CONF_SECTION, option)
+        return get_font(option=option)
 
-    def set_font(self, font=None, option=None):
+    def set_font(self, font, option):
         """Set global font used in Spyder."""
-        print("Not setting font for now")
+        set_font(font, option=option)
+
+        # Update fonts in all plugins
+        plugins = self.main.widgetlist + self.main.thirdparty_plugins
+        for plugin in plugins:
+            plugin.update_font()
 
     def apply_settings(self, options):
         self.main.apply_settings()

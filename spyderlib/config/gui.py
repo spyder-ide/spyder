@@ -49,35 +49,35 @@ def get_family(families):
 
 
 FONT_CACHE = {}
-def get_font(section, option=None):
+
+
+def get_font(section='main', option='font', font_size_delta=0):
     """Get console font properties depending on OS and user options"""
     font = FONT_CACHE.get((section, option))
+
     if font is None:
-        if option is None:
-            option = 'font'
-        else:
-            option += '/font'
         families = CONF.get(section, option+"/family", None)
+
         if families is None:
             return QFont()
+
         family = get_family(families)
         weight = QFont.Normal
         italic = CONF.get(section, option+'/italic', False)
+
         if CONF.get(section, option+'/bold', False):
             weight = QFont.Bold
-        size = CONF.get(section, option+'/size', 9)
+
+        size = CONF.get(section, option+'/size', 9) + font_size_delta
         font = QFont(family, size, weight)
         font.setItalic(italic)
         FONT_CACHE[(section, option)] = font
+
     return font
 
 
-def set_font(font, section, option=None):
+def set_font(font, section='main', option='font'):
     """Set font"""
-    if option is None:
-        option = 'font'
-    else:
-        option += '/font'
     CONF.set(section, option+'/family', to_text_string(font.family()))
     CONF.set(section, option+'/size', float(font.pointSize()))
     CONF.set(section, option+'/italic', int(font.italic()))
