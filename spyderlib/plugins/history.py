@@ -44,9 +44,9 @@ class HistoryConfigPage(PluginConfigPage):
         wrap_mode_box = self.create_checkbox(_("Wrap lines"), 'wrap')
         go_to_eof_box = self.create_checkbox(
                         _("Scroll automatically to last entry"), 'go_to_eof')
-        font_group = self.create_fontgroup(option=None,
-                                    text=_("Font style"),
-                                    fontfilters=QFontComboBox.MonospacedFonts)
+#        font_group = self.create_fontgroup(option=None,
+#                                    text=_("Font style"),
+#                                    fontfilters=QFontComboBox.MonospacedFonts)
         names = CONF.get('color_schemes', 'names')
         choices = list(zip(names, names))
         cs_combo = self.create_combobox(_("Syntax color scheme: "),
@@ -63,7 +63,6 @@ class HistoryConfigPage(PluginConfigPage):
         sourcecode_group.setLayout(sourcecode_layout)
         
         vlayout = QVBoxLayout()
-        vlayout.addWidget(font_group)
         vlayout.addWidget(settings_group)
         vlayout.addWidget(sourcecode_group)
         vlayout.addStretch(1)

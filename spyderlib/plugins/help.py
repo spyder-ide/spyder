@@ -118,11 +118,11 @@ class ObjectComboBox(EditableComboBox):
 class HelpConfigPage(PluginConfigPage):
     def setup_page(self):
         # Fonts group
-        plain_text_font_group = self.create_fontgroup(option=None,
-                                    text=_("Plain text font style"),
-                                    fontfilters=QFontComboBox.MonospacedFonts)
-        rich_text_font_group = self.create_fontgroup(option='rich_text',
-                                text=_("Rich text font style"))
+#        plain_text_font_group = self.create_fontgroup(option=None,
+#                                    text=_("Plain text font style"),
+#                                    fontfilters=QFontComboBox.MonospacedFonts)
+#        rich_text_font_group = self.create_fontgroup(option='rich_text',
+#                                text=_("Rich text font style"))
 
         # Connections group
         connections_group = QGroupBox(_("Automatic connections"))
@@ -187,8 +187,6 @@ class HelpConfigPage(PluginConfigPage):
 
         # Final layout
         vlayout = QVBoxLayout()
-        vlayout.addWidget(rich_text_font_group)
-        vlayout.addWidget(plain_text_font_group)
         vlayout.addWidget(connections_group)
         vlayout.addWidget(features_group)
         vlayout.addWidget(sourcecode_group)

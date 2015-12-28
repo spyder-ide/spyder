@@ -102,9 +102,9 @@ class EditorConfigPage(PluginConfigPage):
                                     self.plugin.edit_template)
         
         interface_group = QGroupBox(_("Interface"))
-        font_group = self.create_fontgroup(option=None,
-                                    text=_("Text and margin font style"),
-                                    fontfilters=QFontComboBox.MonospacedFonts)
+#        font_group = self.create_fontgroup(option=None,
+#                                    text=_("Text and margin font style"),
+#                                    fontfilters=QFontComboBox.MonospacedFonts)
         newcb = self.create_checkbox
         fpsorting_box = newcb(_("Sort files according to full path"),
                               'fullpath_sorting')
@@ -332,7 +332,7 @@ class EditorConfigPage(PluginConfigPage):
         eol_group.setLayout(eol_layout)
         
         tabs = QTabWidget()
-        tabs.addTab(self.create_tab(font_group, interface_group, display_group),
+        tabs.addTab(self.create_tab(interface_group, display_group),
                     _("Display"))
         tabs.addTab(self.create_tab(introspection_group, analysis_group),
                     _("Code Introspection/Analysis"))

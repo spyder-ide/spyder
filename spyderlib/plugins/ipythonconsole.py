@@ -155,8 +155,8 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         mpl_present = programs.is_module_installed("matplotlib")
         
         # --- Display ---
-        font_group = self.create_fontgroup(option=None, text=None,
-                                    fontfilters=QFontComboBox.MonospacedFonts)
+#        font_group = self.create_fontgroup(option=None, text=None,
+#                                    fontfilters=QFontComboBox.MonospacedFonts)
 
         # Interface Group
         interface_group = QGroupBox(_("Interface"))
@@ -459,7 +459,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
 
         # --- Tabs organization ---
         tabs = QTabWidget()
-        tabs.addTab(self.create_tab(font_group, interface_group, comp_group,
+        tabs.addTab(self.create_tab(interface_group, comp_group,
                                     bg_group, source_code_group), _("Display"))
         tabs.addTab(self.create_tab(pylab_group, backend_group, inline_group),
                                     _("Graphics"))

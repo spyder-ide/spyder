@@ -65,8 +65,8 @@ class ExternalConsoleConfigPage(PluginConfigPage):
 
     def setup_page(self):
         interface_group = QGroupBox(_("Interface"))
-        font_group = self.create_fontgroup(option=None, text=None,
-                                    fontfilters=QFontComboBox.MonospacedFonts)
+#        font_group = self.create_fontgroup(option=None, text=None,
+#                                    fontfilters=QFontComboBox.MonospacedFonts)
         newcb = self.create_checkbox
         singletab_box = newcb(_("One tab per script"), 'single_tab')
         showtime_box = newcb(_("Show elapsed time"), 'show_elapsed_time')
@@ -325,7 +325,7 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                                                     interpreter=interpreter))
 
         tabs = QTabWidget()
-        tabs.addTab(self.create_tab(font_group, interface_group, display_group,
+        tabs.addTab(self.create_tab(interface_group, display_group,
                                     bg_group),
                     _("Display"))
         tabs.addTab(self.create_tab(monitor_group, source_group),
