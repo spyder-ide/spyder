@@ -109,15 +109,15 @@ print("01. Patched sys.path with %s" % DEVPATH)
 if options.gui is None:
     try:
         import PyQt5  # analysis:ignore
-        print("02. PyQt5 is detected, selecting (experimental)")
+        print("02. PyQt5 is detected, selecting")
         os.environ['QT_API'] = 'pyqt5'
     except ImportError:
         try:
-            import PySide  # analysis:ignore
-            print("02. PySide is detected, selecting")
-            os.environ['QT_API'] = 'pyside'
+            import PyQt4  # analysis:ignore
+            print("02. PyQt4 is detected, selecting")
+            os.environ['QT_API'] = 'pyqt'
         except ImportError:
-            print("02. No PyQt5 or PySide detected, using PyQt4 if available")
+            print("02. No PyQt5 or PyQt4 detected, using PySide if available")
 else:
     print ("02. Skipping GUI toolkit detection")
     os.environ['QT_API'] = options.gui
