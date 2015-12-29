@@ -204,7 +204,11 @@ class EditorConfigPage(PluginConfigPage):
         autounindent_box = newcb(_("Automatic indentation after 'else', "
                                    "'elif', etc."), 'auto_unindent')
         indent_chars_box = self.create_combobox(_("Indentation characters: "),
-                                        ((_("4 spaces"), '*    *'),
+                                        ((_("8 spaces"), '*        *'),
+                                         (_("7 spaces"), '*       *'),
+                                         (_("6 spaces"), '*      *'),
+                                         (_("5 spaces"), '*     *'),
+                                         (_("4 spaces"), '*    *'),
                                          (_("3 spaces"), '*   *'),
                                          (_("2 spaces"), '*  *'),
                                          (_("tab"), '*\t*')), 'indent_chars')
