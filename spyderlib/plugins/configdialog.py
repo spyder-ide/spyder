@@ -634,29 +634,50 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         combobox.label_text = text
         return widget
     
-    def create_fontgroup(self, option=None, text=None,
-                         tip=None, fontfilters=None):
+    def create_fontgroup(self, option=None, text=None, title=None,
+                         tip=None, fontfilters=None, without_group=False):
         """Option=None -> setting plugin font"""
-        fontlabel = QLabel(_("Font: "))
+
+        if title:
+            fontlabel = QLabel(title)
+        else:
+            fontlabel = QLabel(_("Font: "))
         fontbox = QFontComboBox()
+
         if fontfilters is not None:
             fontbox.setFontFilters(fontfilters)
+
         sizelabel = QLabel("  "+_("Size: "))
         sizebox = QSpinBox()
         sizebox.setRange(7, 100)
         self.fontboxes[(fontbox, sizebox)] = option
         layout = QHBoxLayout()
+
         for subwidget in (fontlabel, fontbox, sizelabel, sizebox):
             layout.addWidget(subwidget)
         layout.addStretch(1)
-        if text is None:
-            text = _("Font style")
-        group = QGroupBox(text)
-        group.setLayout(layout)
-        if tip is not None:
-            group.setToolTip(tip)
-        return group
-    
+
+        widget = QWidget(self)
+        widget.fontlabel = fontlabel
+        widget.sizelabel = sizelabel        
+        widget.fontbox = fontbox
+        widget.sizebox = sizebox
+        widget.setLayout(layout)
+
+        if not without_group:
+            if text is None:
+                text = _("Font style")
+
+            group = QGroupBox(text)
+            group.setLayout(layout)
+
+            if tip is not None:
+                group.setToolTip(tip)
+
+            return group
+        else:
+            return widget
+
     def create_button(self, text, callback):
         btn = QPushButton(text)
         btn.clicked.connect(callback)
@@ -872,21 +893,33 @@ class MainConfigPage(GeneralConfigPage):
         sbar_group.setLayout(sbar_layout)
 
         # --- Theme and fonts
-        plain_text_font_group = self.create_fontgroup(
+        plain_text_font = self.create_fontgroup(
             option='font',
-            text=_("Plain text font style"),
-            fontfilters=QFontComboBox.MonospacedFonts)
+            title=_("Plain text font"),
+            fontfilters=QFontComboBox.MonospacedFonts,
+            without_group=True)
 
-        rich_text_font_group = self.create_fontgroup(
+        rich_text_font = self.create_fontgroup(
             option='rich_font',
-            text=_("Rich text font style"))
+            title=_("Rich text font"),
+            without_group=True)
+
+        fonts_group = QGroupBox(_("Fonts"))
+        fonts_layout = QGridLayout()
+        fonts_layout.addWidget(plain_text_font.fontlabel, 0, 0)
+        fonts_layout.addWidget(plain_text_font.fontbox, 0, 1)
+        fonts_layout.addWidget(plain_text_font.sizelabel, 0, 2)
+        fonts_layout.addWidget(plain_text_font.sizebox, 0, 3)
+        fonts_layout.addWidget(rich_text_font.fontlabel, 1, 0)
+        fonts_layout.addWidget(rich_text_font.fontbox, 1, 1)
+        fonts_layout.addWidget(rich_text_font.sizelabel, 1, 2)
+        fonts_layout.addWidget(rich_text_font.sizebox, 1, 3)
+        fonts_group.setLayout(fonts_layout)
 
         tabs = QTabWidget()
         tabs.addTab(self.create_tab(general_group, sbar_group),
                     _("General"))
-        tabs.addTab(self.create_tab(plain_text_font_group,
-                                    rich_text_font_group,
-                                    interface_group),
+        tabs.addTab(self.create_tab(fonts_group, interface_group),
                     _("Appearance"))
         
         vlayout = QVBoxLayout()
