@@ -205,6 +205,7 @@ class EditorConfigPage(PluginConfigPage):
                                    "'elif', etc."), 'auto_unindent')
         indent_chars_box = self.create_combobox(_("Indentation characters: "),
                                         ((_("4 spaces"), '*    *'),
+                                         (_("3 spaces"), '*   *'),
                                          (_("2 spaces"), '*  *'),
                                          (_("tab"), '*\t*')), 'indent_chars')
         tabwidth_spin = self.create_spinbox(_("Tab stop width:"), _("pixels"),
