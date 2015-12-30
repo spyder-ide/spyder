@@ -21,7 +21,6 @@ These plugins inherit the following classes
 # Standard library imports
 import inspect
 import os
-import sys
 
 # Third party imports
 from spyderlib.qt import PYQT5
@@ -33,7 +32,7 @@ from spyderlib.qt.QtGui import (QDockWidget, QWidget, QShortcut, QCursor,
 
 # Local imports
 from spyderlib.utils import icon_manager as ima
-from spyderlib.utils.qthelpers import toggle_actions, get_icon, create_action
+from spyderlib.utils.qthelpers import toggle_actions, create_action
 from spyderlib.config.base import _, debug_print
 from spyderlib.config.gui import get_font, set_font
 from spyderlib.config.main import CONF
@@ -147,7 +146,7 @@ class SpyderTitleBarWidget(QFrame):
     def _update(self):
         """Update the look and feel of pane buttons."""
         style = QApplication.style()
-        icon_close = style.standardIcon(QStyle.SP_DockWidgetCloseButton)
+        icon_close = style.standardIcon(QStyle.SP_TitleBarCloseButton)
         icon_float = style.standardIcon(QStyle.SP_TitleBarNormalButton)
         icon_maximize = style.standardIcon(QStyle.SP_TitleBarMaxButton)
 
