@@ -59,6 +59,16 @@ class PluginConfigPage(SpyderConfigPage):
         return self.plugin.get_plugin_icon()
 
 
+class EmptyTitleBar(QWidget):
+    """
+    When docks are locked and title bar is set to be hidden.
+
+    This provides a minimal vertical space for having a clean look.
+    """
+    def sizeHint(self):
+        return QSize(2, 2)  # TODO: find adequate metrics here.
+
+
 class DirectionLabel(QLabel):
     """A QLabel that can be set to horizontal or vertical."""
     def __init__(self, *args, **kwargs):
@@ -183,7 +193,7 @@ class SpyderTitleBarWidget(QFrame):
             b = 2  # FIXME: find the adequate metrics here...
         elif not self.dockwidget.locked:
             self.setFrameStyle(QFrame.StyledPanel)
-            b = 0
+            b = 1
         else:
             self.setFrameStyle(QFrame.NoFrame)
             b = 2  # FIXME: find the adequate metrics here...
@@ -203,10 +213,11 @@ class SpyderTitleBarWidget(QFrame):
             self._content_margins = (1+b, 0+b, 1+b, 0+b)
             layout = QHBoxLayout()
 
-            widgets = [self._label_title, None, self._button_maximize,
+            widgets = [self._label_title, self._button_maximize,
                        self._button_float, self._button_close]
 
             self._label_title.set_horizontal(True)
+            self._label_title.setAlignment(Qt.AlignCenter)
             self._orientation = Qt.Horizontal
             self.setMaximumHeight(self.MIN_LENGTH)
             self.setMaximumWidth(self.MAX_LENGTH)
@@ -222,7 +233,7 @@ class SpyderTitleBarWidget(QFrame):
 
         for w in widgets:
             if w:
-                layout.addWidget(w)
+                layout.addWidget(w, Qt.AlignCenter)
                 w.setEnabled(False)
             else:
                 layout.addStretch()
@@ -257,7 +268,8 @@ class SpyderTitleBarWidget(QFrame):
 
     def mouseDoubleClickEvent(self, event):
         """Overloaded Qt method"""
-        self.dockwidget.float_window()
+        if not self.dockwidget.locked:
+            self.dockwidget.float_window()
 
     # Public api
     def update_features(self):
@@ -515,7 +527,7 @@ class SpyderDockWidget(QDockWidget):
         self.setWindowTitle(self.title)
 
         if locked and hide_dock_titlebar and not self.isFloating():
-            self.setTitleBarWidget(QWidget())
+            self.setTitleBarWidget(EmptyTitleBar())
 
         if show:
             self.show()
