@@ -211,7 +211,7 @@ class EditorConfigPage(PluginConfigPage):
                                          (_("6 spaces"), '*      *'),
                                          (_("7 spaces"), '*       *'),
                                          (_("8 spaces"), '*        *'),
-                                         (_("tab"), '*\t*')), 'indent_chars')
+                                         (_("Tabulations"), '*\t*')), 'indent_chars')
         tabwidth_spin = self.create_spinbox(_("Tab stop width:"), _("pixels"),
                                             'tab_stop_width', 40, 10, 1000, 10)
         tab_mode_box = newcb(_("Tab always indent"),
