@@ -916,7 +916,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
                       "background":     _("Background:"),
                       "currentline":    _("Current line:"),
                       "currentcell":    _("Current cell:"),
-                      "occurence":      _("Occurence:"),
+                      "occurrence":      _("Occurrence:"),
                       "ctrlclick":      _("Link:"),
                       "sideareas":      _("Side areas:"),
                       "matched_p":      _("Matched parentheses:"),

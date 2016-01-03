@@ -39,7 +39,7 @@ Key features:
     * *calltips*
     * *go-to-definition*: go to object (any symbol: function, class, attribute, etc.) definition by pressing Ctrl+Left mouse click on word or Ctrl+G (default shortcut)
       
-  * *occurence highlighting*
+  * *occurrence highlighting*
   * typing helpers (optional):
     
     * automatically insert closing parentheses, braces and brackets
@@ -70,7 +70,7 @@ Key features:
   * documentation may be displayed as an html page thanks to the rich text mode (powered by `sphinx`)
     
 * :doc:`onlinehelp`: automatically generated html documentation on installed Python modules
-* :doc:`findinfiles`: find string occurences in a directory, a mercurial repository or directly in PYTHONPATH (support for regular expressions and  included/excluded string lists)
+* :doc:`findinfiles`: find string occurrences in a directory, a mercurial repository or directly in PYTHONPATH (support for regular expressions and  included/excluded string lists)
 * :doc:`explorer`
 * :doc:`projectexplorer` (support Pydev project import)
 

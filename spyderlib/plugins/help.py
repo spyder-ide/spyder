@@ -265,7 +265,7 @@ class PlainText(QWidget):
 
     def set_text(self, text, is_code):
         self.editor.set_highlight_current_line(is_code)
-        self.editor.set_occurence_highlighting(is_code)
+        self.editor.set_occurrence_highlighting(is_code)
         if is_code:
             self.editor.set_language('py')
         else:

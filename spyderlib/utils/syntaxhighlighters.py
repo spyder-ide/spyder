@@ -37,7 +37,7 @@ dependencies.add("pygments", _("Syntax highlighting for Matlab, Julia and other 
 #==============================================================================
 # Constants
 #==============================================================================
-COLOR_SCHEME_KEYS = ("background", "currentline", "currentcell", "occurence",
+COLOR_SCHEME_KEYS = ("background", "currentline", "currentcell", "occurrence",
                      "ctrlclick", "sideareas", "matched_p", "unmatched_p",
                      "normal", "keyword", "builtin", "definition",
                      "comment", "string", "number", "instance")
@@ -106,7 +106,7 @@ class BaseSH(QSyntaxHighlighter):
         self.background_color = None
         self.currentline_color = None
         self.currentcell_color = None
-        self.occurence_color = None
+        self.occurrence_color = None
         self.ctrlclick_color = None
         self.sideareas_color = None
         self.matched_p_color = None
@@ -130,8 +130,8 @@ class BaseSH(QSyntaxHighlighter):
     def get_currentcell_color(self):
         return QColor(self.currentcell_color)
         
-    def get_occurence_color(self):
-        return QColor(self.occurence_color)
+    def get_occurrence_color(self):
+        return QColor(self.occurrence_color)
     
     def get_ctrlclick_color(self):
         return QColor(self.ctrlclick_color)
@@ -164,7 +164,7 @@ class BaseSH(QSyntaxHighlighter):
         self.background_color = colors.pop("background")
         self.currentline_color = colors.pop("currentline")
         self.currentcell_color = colors.pop("currentcell")
-        self.occurence_color = colors.pop("occurence")
+        self.occurrence_color = colors.pop("occurrence")
         self.ctrlclick_color = colors.pop("ctrlclick")
         self.sideareas_color = colors.pop("sideareas")
         self.matched_p_color = colors.pop("matched_p")
