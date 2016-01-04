@@ -14,6 +14,7 @@ Thumbs.db
 spyder_crash.log
 .DS_Store
 .spyderproject
+.idea/
 
 # git .orig files
 *.orig
