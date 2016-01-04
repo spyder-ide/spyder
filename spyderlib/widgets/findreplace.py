@@ -260,7 +260,7 @@ class FindReplace(QWidget):
 
     @Slot()
     def find_next(self):
-        """Find next occurence"""
+        """Find next occurrence"""
         state = self.find(changed=False, forward=True, rehighlight=False)
         self.editor.setFocus()
         self.search_text.add_current_text()
@@ -268,7 +268,7 @@ class FindReplace(QWidget):
 
     @Slot()
     def find_previous(self):
-        """Find previous occurence"""
+        """Find previous occurrence"""
         state = self.find(changed=False, forward=False, rehighlight=False)
         self.editor.setFocus()
         return state
@@ -361,7 +361,7 @@ class FindReplace(QWidget):
                             # part of the search string
                             break
                     if position1 == position0:
-                        # Avoid infinite loop: single found occurence
+                        # Avoid infinite loop: single found occurrence
                         break
                     position0 = position1
                 if pattern is None:

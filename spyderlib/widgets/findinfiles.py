@@ -472,7 +472,7 @@ class FindOptions(QWidget):
         hg_manifest = self.hg_manifest.isChecked()
         path = osp.abspath( to_text_string( self.dir_combo.currentText() ) )
         
-        # Finding text occurences
+        # Finding text occurrences
         if not include_re:
             include = fnmatch.translate(include)
         if not exclude_re:

@@ -384,8 +384,8 @@ class EditorStack(QWidget):
         self.intelligent_backspace_enabled = True
         self.highlight_current_line_enabled = False
         self.highlight_current_cell_enabled = False
-        self.occurence_highlighting_enabled = True
-        self.occurence_highlighting_timeout=1500
+        self.occurrence_highlighting_enabled = True
+        self.occurrence_highlighting_timeout=1500
         self.checkeolchars_enabled = True
         self.always_remove_trailing_spaces = False
         self.fullpath_sorting_enabled = None
@@ -809,19 +809,19 @@ class EditorStack(QWidget):
             for finfo in self.data:
                 finfo.editor.toggle_intelligent_backspace(state)
 
-    def set_occurence_highlighting_enabled(self, state):
-        # CONF.get(self.CONF_SECTION, 'occurence_highlighting')
-        self.occurence_highlighting_enabled = state
+    def set_occurrence_highlighting_enabled(self, state):
+        # CONF.get(self.CONF_SECTION, 'occurrence_highlighting')
+        self.occurrence_highlighting_enabled = state
         if self.data:
             for finfo in self.data:
-                finfo.editor.set_occurence_highlighting(state)
+                finfo.editor.set_occurrence_highlighting(state)
 
-    def set_occurence_highlighting_timeout(self, timeout):
-        # CONF.get(self.CONF_SECTION, 'occurence_highlighting/timeout')
-        self.occurence_highlighting_timeout = timeout
+    def set_occurrence_highlighting_timeout(self, timeout):
+        # CONF.get(self.CONF_SECTION, 'occurrence_highlighting/timeout')
+        self.occurrence_highlighting_timeout = timeout
         if self.data:
             for finfo in self.data:
-                finfo.editor.set_occurence_timeout(timeout)
+                finfo.editor.set_occurrence_timeout(timeout)
 
     def set_highlight_current_line_enabled(self, state):
         self.highlight_current_line_enabled = state
@@ -1624,8 +1624,8 @@ class EditorStack(QWidget):
                 intelligent_backspace=self.intelligent_backspace_enabled,
                 highlight_current_line=self.highlight_current_line_enabled,
                 highlight_current_cell=self.highlight_current_cell_enabled,
-                occurence_highlighting=self.occurence_highlighting_enabled,
-                occurence_timeout=self.occurence_highlighting_timeout,
+                occurrence_highlighting=self.occurrence_highlighting_enabled,
+                occurrence_timeout=self.occurrence_highlighting_timeout,
                 codecompletion_auto=self.codecompletion_auto_enabled,
                 codecompletion_case=self.codecompletion_case_enabled,
                 codecompletion_enter=self.codecompletion_enter_enabled,

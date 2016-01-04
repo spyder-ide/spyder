@@ -21,7 +21,7 @@ def get_search_regex(query, ignore_case=True):
     Parameters
     ----------
     query : str
-        String to search in another string (in order of character occurence).
+        String to search in another string (in order of character occurrence).
     ignore_case : True
         Optional value perform a case insensitive search (True by default).
 
