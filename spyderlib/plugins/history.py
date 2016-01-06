@@ -8,7 +8,7 @@
 
 from spyderlib.qt import PYQT5
 from spyderlib.qt.QtGui import (QVBoxLayout, QFontDialog, QInputDialog,
-                                QToolButton, QMenu, QFontComboBox, QGroupBox,
+                                QToolButton, QMenu, QGroupBox,
                                 QHBoxLayout, QWidget)
 from spyderlib.qt.QtCore import Signal, Slot
 import spyderlib.utils.icon_manager as ima
@@ -44,9 +44,6 @@ class HistoryConfigPage(PluginConfigPage):
         wrap_mode_box = self.create_checkbox(_("Wrap lines"), 'wrap')
         go_to_eof_box = self.create_checkbox(
                         _("Scroll automatically to last entry"), 'go_to_eof')
-        font_group = self.create_fontgroup(option=None,
-                                    text=_("Font style"),
-                                    fontfilters=QFontComboBox.MonospacedFonts)
         names = CONF.get('color_schemes', 'names')
         choices = list(zip(names, names))
         cs_combo = self.create_combobox(_("Syntax color scheme: "),
@@ -63,7 +60,6 @@ class HistoryConfigPage(PluginConfigPage):
         sourcecode_group.setLayout(sourcecode_layout)
         
         vlayout = QVBoxLayout()
-        vlayout.addWidget(font_group)
         vlayout.addWidget(settings_group)
         vlayout.addWidget(sourcecode_group)
         vlayout.addStretch(1)
@@ -185,6 +181,13 @@ class HistoryLog(SpyderPluginWidget):
         self.main.add_dockwidget(self)
 #        self.main.console.set_historylog(self)
         self.main.console.shell.refresh.connect(self.refresh_plugin)
+
+    def update_font(self):
+        """ """
+        color_scheme = get_color_scheme(self.get_option('color_scheme_name'))
+        font = self.get_plugin_font()
+        for editor in self.editors:
+            editor.set_font(font, color_scheme)
 
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""

@@ -15,7 +15,7 @@
 from spyderlib.qt import PYQT5
 from spyderlib.qt.QtGui import (QVBoxLayout, QMessageBox, QInputDialog,
                                 QLineEdit, QPushButton, QGroupBox, QLabel,
-                                QTabWidget, QFontComboBox, QHBoxLayout,
+                                QTabWidget, QHBoxLayout,
                                 QButtonGroup, QWidget)
 from spyderlib.qt.QtCore import Signal, Slot, Qt
 from spyderlib.qt.compat import getopenfilename
@@ -65,8 +65,6 @@ class ExternalConsoleConfigPage(PluginConfigPage):
 
     def setup_page(self):
         interface_group = QGroupBox(_("Interface"))
-        font_group = self.create_fontgroup(option=None, text=None,
-                                    fontfilters=QFontComboBox.MonospacedFonts)
         newcb = self.create_checkbox
         singletab_box = newcb(_("One tab per script"), 'single_tab')
         showtime_box = newcb(_("Show elapsed time"), 'show_elapsed_time')
@@ -325,7 +323,7 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                                                     interpreter=interpreter))
 
         tabs = QTabWidget()
-        tabs.addTab(self.create_tab(font_group, interface_group, display_group,
+        tabs.addTab(self.create_tab(interface_group, display_group,
                                     bg_group),
                     _("Display"))
         tabs.addTab(self.create_tab(monitor_group, source_group),
@@ -1104,11 +1102,19 @@ class ExternalConsole(SpyderPluginWidget):
             shellwidget.update_time_label_visibility()
         self.main.last_console_plugin_focus_was_python = True
         self.update_plugin_title.emit()
-    
+
+    def update_font(self):
+        """ """
+        font = self.get_plugin_font()
+        for shellwidget in self.shellwidgets:
+            shellwidget.shell.set_font(font)
+            completion_size = CONF.get('shell_appearance',
+                                       'completion/size')
+            comp_widget = shellwidget.shell.completion_widget
+            comp_widget.setup_appearance(completion_size, font)
+
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
-        font_n = 'plugin_font'
-        font_o = self.get_plugin_font()
         showtime_n = 'show_elapsed_time'
         showtime_o = self.get_option(showtime_n)
         icontext_n = 'show_icontext'
@@ -1128,12 +1134,6 @@ class ExternalConsole(SpyderPluginWidget):
         mlc_n = 'max_line_count'
         mlc_o = self.get_option(mlc_n)
         for shellwidget in self.shellwidgets:
-            if font_n in options:
-                shellwidget.shell.set_font(font_o)
-                completion_size = CONF.get('shell_appearance',
-                                           'completion/size')
-                comp_widget = shellwidget.shell.completion_widget
-                comp_widget.setup_appearance(completion_size, font_o)
             if showtime_n in options:
                 shellwidget.set_elapsed_time_visible(showtime_o)
             if icontext_n in options:

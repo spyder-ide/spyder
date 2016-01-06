@@ -16,7 +16,7 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QPrintDialog, QSplitter, QToolBar,
                                 QAction, QApplication, QDialog, QWidget,
                                 QPrinter, QActionGroup, QInputDialog, QMenu,
                                 QAbstractPrintDialog, QGroupBox, QTabWidget,
-                                QLabel, QFontComboBox, QHBoxLayout,
+                                QLabel, QHBoxLayout,
                                 QKeySequence, QGridLayout)
 from spyderlib.qt.QtCore import Signal, QByteArray, Qt, Slot
 from spyderlib.qt.compat import to_qvariant, from_qvariant, getopenfilenames
@@ -102,9 +102,6 @@ class EditorConfigPage(PluginConfigPage):
                                     self.plugin.edit_template)
         
         interface_group = QGroupBox(_("Interface"))
-        font_group = self.create_fontgroup(option=None,
-                                    text=_("Text and margin font style"),
-                                    fontfilters=QFontComboBox.MonospacedFonts)
         newcb = self.create_checkbox
         fpsorting_box = newcb(_("Sort files according to full path"),
                               'fullpath_sorting')
@@ -332,7 +329,7 @@ class EditorConfigPage(PluginConfigPage):
         eol_group.setLayout(eol_layout)
         
         tabs = QTabWidget()
-        tabs.addTab(self.create_tab(font_group, interface_group, display_group),
+        tabs.addTab(self.create_tab(interface_group, display_group),
                     _("Display"))
         tabs.addTab(self.create_tab(introspection_group, analysis_group),
                     _("Code Introspection/Analysis"))
@@ -1046,7 +1043,18 @@ class Editor(SpyderPluginWidget):
         if not editorstack.data:
             self.__load_temp_file()
         self.main.add_dockwidget(self)
-    
+
+    def update_font(self):
+        """ """
+        font = self.get_plugin_font()
+        color_scheme = get_color_scheme(self.get_option('color_scheme_name'))
+        for editorstack in self.editorstacks:
+            editorstack.set_default_font(font, color_scheme)
+            completion_size = CONF.get('editor_appearance',
+                                       'completion/size')
+            for finfo in editorstack.data:
+                comp_widget = finfo.editor.completion_widget
+                comp_widget.setup_appearance(completion_size, font)
         
     #------ Focus tabwidget
     def __get_focus_editorstack(self):
@@ -2210,8 +2218,6 @@ class Editor(SpyderPluginWidget):
             # --- syntax highlight and text rendering settings
             color_scheme_n = 'color_scheme_name'
             color_scheme_o = get_color_scheme(self.get_option(color_scheme_n))
-            font_n = 'plugin_font'
-            font_o = self.get_plugin_font()
             currentline_n = 'highlight_current_line'
             currentline_o = self.get_option(currentline_n)
             currentcell_n = 'highlight_current_cell'
@@ -2224,15 +2230,7 @@ class Editor(SpyderPluginWidget):
             focus_to_editor_o = self.get_option(focus_to_editor_n)
             
             for editorstack in self.editorstacks:
-                if font_n in options:
-                    scs = color_scheme_o if color_scheme_n in options else None
-                    editorstack.set_default_font(font_o, scs)
-                    completion_size = CONF.get('editor_appearance',
-                                               'completion/size')
-                    for finfo in editorstack.data:
-                        comp_widget = finfo.editor.completion_widget
-                        comp_widget.setup_appearance(completion_size, font_o)
-                elif color_scheme_n in options:
+                if color_scheme_n in options:
                     editorstack.set_color_scheme(color_scheme_o)
                 if currentline_n in options:
                     editorstack.set_highlight_current_line_enabled(

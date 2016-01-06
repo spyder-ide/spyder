@@ -47,7 +47,6 @@ class PluginConfigPage(SpyderConfigPage):
         self.get_option = plugin.get_option
         self.set_option = plugin.set_option
         self.get_font = plugin.get_plugin_font
-        self.set_font = plugin.set_plugin_font
         self.apply_settings = plugin.apply_plugin_settings
         SpyderConfigPage.__init__(self, parent)
     
@@ -255,6 +254,8 @@ class SpyderPluginMixin(object):
     """
     CONF_SECTION = None
     CONFIGWIDGET_CLASS = None
+    FONT_SIZE_DELTA = 0
+    RICH_FONT_SIZE_DELTA = 0
     IMG_PATH = 'images'
     ALLOWED_AREAS = Qt.AllDockWidgetAreas
     LOCATION = Qt.LeftDockWidgetArea
@@ -453,14 +454,38 @@ class SpyderPluginMixin(object):
     def get_option(self, option, default=NoDefault):
         """Get a plugin option from configuration file"""
         return CONF.get(self.CONF_SECTION, option, default)
-    
-    def get_plugin_font(self, option=None):
-        """Return plugin font option"""
-        return get_font(self.CONF_SECTION, option)
-    
-    def set_plugin_font(self, font, option=None):
-        """Set plugin font option"""
-        set_font(font, self.CONF_SECTION, option)
+
+    def get_plugin_font(self, rich_text=False):
+        """
+        Return plugin font option.
+
+        All plugins in Spyder use a global font. This is a convenience method
+        in case some plugins will have a delta size based on the default size.
+        """
+
+        if rich_text:
+            option = 'rich_font'
+            font_size_delta = self.RICH_FONT_SIZE_DELTA
+        else:
+            option = 'font'
+            font_size_delta = self.FONT_SIZE_DELTA
+
+        return get_font(option=option, font_size_delta=font_size_delta)
+
+    def set_plugin_font(self):
+        """
+        Set plugin font option.
+
+        Note: All plugins in Spyder use a global font. To define a different
+        size, the plugin must define a 'FONT_SIZE_DELTA' class variable.
+        """
+        raise Exception("Plugins font is based on the general settings, "
+                        "and cannot be set directly on the plugin."
+                        "This method is deprecated.")
+
+    def update_font(self):
+        """ """
+        pass
 
     def __show_message(self, message, timeout=0):
         """Show message in main window's status bar"""

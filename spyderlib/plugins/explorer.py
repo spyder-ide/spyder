@@ -11,15 +11,14 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-from spyderlib.qt.QtGui import QFontDialog
-from spyderlib.qt.QtCore import Signal, Slot
+from spyderlib.qt.QtCore import Signal
 import spyderlib.utils.icon_manager as ima
 
 import os.path as osp
 
 # Local imports
 from spyderlib.config.base import _
-from spyderlib.utils.qthelpers import create_action
+from spyderlib.config.main import DEFAULT_LARGE_DELTA
 from spyderlib.widgets.explorer import ExplorerWidget
 from spyderlib.plugins import SpyderPluginMixin
 from spyderlib.py3compat import to_text_string
@@ -28,6 +27,7 @@ from spyderlib.py3compat import to_text_string
 class Explorer(ExplorerWidget, SpyderPluginMixin):
     """File and Directories Explorer DockWidget"""
     CONF_SECTION = 'explorer'
+    RICH_FONT_SIZE_DELTA = DEFAULT_LARGE_DELTA*2
     open_terminal = Signal(str)
     open_interpreter = Signal(str)
     edit = Signal(str)
@@ -47,7 +47,7 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
         # Initialize plugin
         self.initialize_plugin()
         
-        self.set_font(self.get_plugin_font())
+        self.update_font()
         
     #------ SpyderPluginWidget API ---------------------------------------------    
     def get_plugin_title(self):
@@ -63,11 +63,6 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
     
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
-        # Font
-        font_action = create_action(self, _("&Font..."), None, ima.icon('font'),
-                                    _("Set font style"),
-                                    triggered=self.change_font)
-        self.treewidget.common_actions.append(font_action)
         return []
     
     def register_plugin(self):
@@ -104,22 +99,13 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         return True
-        
+
+    def update_font(self):
+        font = self.get_plugin_font(rich_text=True)
+        self.setFont(font)
+        self.treewidget.setFont(font)
+
     #------ Public API ---------------------------------------------------------        
     def chdir(self, directory):
         """Set working directory"""
         self.treewidget.chdir(directory)
-    
-    @Slot()
-    def change_font(self):
-        """Change font"""
-        font, valid = QFontDialog.getFont(self.get_plugin_font(), self,
-                                          _("Select a new font"))
-        if valid:
-            self.set_font(font)
-            self.set_plugin_font(font)
-            
-    def set_font(self, font):
-        """Set explorer widget font"""
-        self.setFont(font)
-        self.treewidget.setFont(font)
