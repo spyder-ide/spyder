@@ -27,9 +27,6 @@ if API == 'pyqt5':
         API_NAME = 'PyQt4'
 
 if API == 'pyqt':
-    # Spyder 2.3 is compatible with both #1 and #2 PyQt API,
-    # but to avoid issues with IPython and other Qt plugins
-    # we choose to support only API #2 for 2.4+
     try:
         import sip
         try:
@@ -65,4 +62,5 @@ if API == 'pyside':
         from PySide import __version__  # analysis:ignore
         PYQT5 = False
     except ImportError:
-        raise ImportError("Spyder requires PyQt5, PyQt4 or PySide to be installed")
+        raise ImportError("Spyder requires PyQt5, PyQt4 or PySide (deprecated) "
+                          "to be installed")
