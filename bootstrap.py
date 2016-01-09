@@ -150,7 +150,7 @@ if not options.hide_console and os.name == 'nt':
     print("0x. Enforcing parent console (Windows only)")
     sys.argv.append("--show-console")  # Windows only: show parent console
 
-print("04. Executing spyder.main()")
+print("04. Running Spyder")
 from spyderlib.app import start
 
 time_lapse = time.time()-time_start

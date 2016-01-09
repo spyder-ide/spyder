@@ -107,7 +107,7 @@ def main():
             # Then start Spyder as usual and *don't* continue
             # executing this script because it doesn't make
             # sense
-            from spyderlib import spyder
+            from spyderlib.app import spyder
             spyder.main()
             return
 
@@ -115,7 +115,7 @@ def main():
             # Start a new instance
             if TEST is None:
                 atexit.register(lock.unlock)
-            from spyderlib import spyder
+            from spyderlib.app import spyder
             spyder.main()
         else:
             # Pass args to Spyder or print an informative
@@ -126,7 +126,7 @@ def main():
                 print("Spyder is already running. If you want to open a new \n"
                       "instance, please pass to it the --new-instance option")
     else:
-        from spyderlib import spyder
+        from spyderlib.app import spyder
         spyder.main()
 
 
