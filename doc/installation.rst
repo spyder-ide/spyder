@@ -204,20 +204,13 @@ Optional modules
 Installation procedure
 ~~~~~~~~~~~~~~~~~~~~~~
 
-#. Download and unzip the source package (spyder-*version*.zip):
-#. Change your current directory to the unzipped directory
-#. Run:
+1. If you use Anaconda, you need to run this command to install Spyder:
 
-   * ``sudo python setup.py install``, on Linux or MacOS X, or
-   * ``python setup.py install``, on Windows.
+   ``conda install spyder``
 
-  .. warning::
+2. If you don't use Anaconda, you need to run:
 
-     This procedure does *not* uninstall previous versions of Spyder, it simply 
-     copies files on top of an existing installation. When using this command,
-     it is thus highly recommended to uninstall manually any previous version of
-     Spyder by removing the associated directories (``spyderlib`` and
-     ``spyderplugins`` in your site-packages directory).
+   ``pip install --update spyder``
 
 
 Run without installing
@@ -239,6 +232,8 @@ Installing the development version
 ----------------------------------
 
 If you want to try the next Spyder version, you have to:
+
+#. Install Spyder `requirements`_
 
 #. Install `Git <http://git-scm.com/downloads>`_, a powerful
    source control management tool.
