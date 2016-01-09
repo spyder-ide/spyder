@@ -150,9 +150,6 @@ a Python version greater than 2.7 (Python 3.2 is not supported anymore).
 * **Nbconvert**: Manipulation of notebooks in the Editor.
 * **Path.py** and **pickleshare**: Show import completions on the Editor and consoles
 
-**Note**: To get IPython in Ubuntu you need to install `ipython-qtconsole`,
-on Fedora `ipython-gui` and on Gentoo `ipython` with the `qt4` USE flag.
-
 ### Optional modules
 
 * **Matplotlib**: 2D/3D plotting in the Python and IPython consoles.
