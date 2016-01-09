@@ -32,9 +32,9 @@ from spyderlib.qt.compat import getopenfilename
 from spyderlib.qt.QtCore import Signal, Slot, Qt
 import spyderlib.utils.icon_manager as ima
 
-# Jupyter imports
+# IPython/Jupyter imports
 from IPython.core.application import get_ipython_dir
-from IPython.kernel.connect import find_connection_file
+from jupyter_client.connect import find_connection_file
 from qtconsole.manager import QtKernelManager
 
 # Ssh imports

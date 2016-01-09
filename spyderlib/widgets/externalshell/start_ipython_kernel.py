@@ -184,7 +184,7 @@ __name__ = '__main__'
 sys.path.insert(0, '')
 
 # Fire up the kernel instance.
-from IPython.kernel.zmq.kernelapp import IPKernelApp
+from ipykernel.kernelapp import IPKernelApp
 ipk_temp = IPKernelApp.instance()
 ipk_temp.config = kernel_config()
 ipk_temp.initialize()
