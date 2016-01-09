@@ -16,9 +16,6 @@ fi
 
 # Depth 1
 for f in spyderlib/*.py; do
-    if [[ $f == spyderlib/spyder.py ]]; then
-        continue
-    fi
     if [[ $f == spyderlib/pyplot.py ]]; then
         continue
     fi
