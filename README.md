@@ -138,7 +138,7 @@ a Python version greater than 2.7 (Python 3.2 is not supported anymore).
 
 * **Python** 2.7 or 3.3+
 * **PyQt5** 5.2+ or **PyQt4** 4.6+: PyQt5 is recommended.
-* **IPython** 3.0 or **qtconsole**: Enhanced Python interpreter.
+* **qtconsole**: Enhanced Python interpreter.
 * **Rope** and/or **Jedi** 0.8.1: Editor code completion, calltips
   and go-to-definition.
 * **Pyflakes**: Real-time code analysis.
