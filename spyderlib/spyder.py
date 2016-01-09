@@ -2741,7 +2741,7 @@ class MainWindow(QMainWindow):
         restart_script = osp.join(spyder_start_directory, 'restart_app.py')
 
         # Get any initial argument passed when spyder was started
-        # Note: Variables defined in bootstrap.py and spyderlib\start_app.py
+        # Note: Variables defined in bootstrap.py and spyderlib/app/start.py
         env = os.environ.copy()
         bootstrap_args = env.pop('SPYDER_BOOTSTRAP_ARGS', None)
         spyder_args = env.pop('SPYDER_ARGS')

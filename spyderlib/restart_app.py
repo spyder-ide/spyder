@@ -206,7 +206,7 @@ def main():
         spyder = osp.join(spyder_folder, 'bootstrap.py')
     else:
         spyderlib = osp.join(spyder_folder, 'spyderlib')
-        spyder = osp.join(spyderlib, 'start_app.py')
+        spyder = osp.join(spyderlib, 'app', 'start.py')
 
     command = '"{0}" "{1}" {2}'.format(python, spyder, args)
 

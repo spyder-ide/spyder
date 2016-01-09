@@ -18,10 +18,10 @@ for /r "%SPYDERLIB%" %%f in (*.py) do (
     ) else if "%%f"=="%SPYDERLIB%\tour.py" (
         echo --- NOT testing %%f ---
         echo.
-    ) else if "%%f"=="%SPYDERLIB%\start_app.py" (
+    ) else if "%%f"=="%SPYDERLIB%\pyplot.py" (
         echo --- NOT testing %%f ---
         echo.
-    ) else if "%%f"=="%SPYDERLIB%\pyplot.py" (
+    ) else if not "!file:app\=!"=="!file!" (
         echo --- NOT testing %%f ---
         echo.
     ) else if not "!file:plugins\=!"=="!file!" (
