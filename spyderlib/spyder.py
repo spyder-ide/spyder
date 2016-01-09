@@ -124,7 +124,7 @@ from spyderlib.config.base import (get_conf_path, get_module_data_path,
                                    running_in_mac_app, get_module_path)
 from spyderlib.config.main import (CONF, EDIT_EXT, IMPORT_EXT, OPEN_FILES_PORT,
                                    is_gtk_desktop)
-from spyderlib.cli_options import get_options
+from spyderlib.app.cli_options import get_options
 from spyderlib import dependencies
 from spyderlib.config.ipython import QTCONSOLE_INSTALLED
 from spyderlib.config.user import NoDefault
