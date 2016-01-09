@@ -25,16 +25,10 @@ The hard way
 
 If you want to install Spyder directly, you need to follow these steps:
 
-#. Install the essential requirements:
+#. Install the necessary `requirements`_
 
-   * `The Python language <http://www.python.org/>`_
-   * `PyQt4 <http://www.riverbankcomputing.co.uk/software/pyqt/download>`_
+#. Install the `optional modules`_
 
-#. Install optional modules:
-
-   Please refer to the `Recommended modules`_ section to see what other packages
-   you might need.
-  
 #. Installing Spyder itself:
 
    You need to download and install the .exe file that corresponds to your Python
@@ -99,21 +93,20 @@ __ http://www.macports.org/ports.php?by=name&substr=spyder
 Installing on Linux
 -------------------
 
-Please refer to the `Recommended modules`_ section to see what other packages you
+Please refer to the `Requirements`_ section to see what other packages you
 might need.
 
 #. **Ubuntu**:
-  
+
    * Using the official package manager: ``sudo apt-get install spyder``.
-  
+
      .. note::
-     
+
         This package could be slightly outdated. If you find that is the case,
         please use the Debian package mentioned below.
-  
+
    * Using the `pip <https://pypi.python.org/pypi/pip/>`_ package manager:
-  
-     * Requirements: ``sudo apt-get install python-qt4 python-sphinx``
+
      * Installing: ``sudo pip install spyder``
      * Updating: ``sudo pip install -U spyder``
 
@@ -151,44 +144,61 @@ Installing or running directly from source
 Requirements
 ~~~~~~~~~~~~
 
-The minimal requirements to run Spyder are
+The requirements to run Spyder are:
 
-* `Python <http://www.python.org/>`_ 2.6+
-  
-* `PyQt5 <https://www.riverbankcomputing.com/software/pyqt/download5>`_ >= v5.2 or
+* `Python <http://www.python.org/>`_ 2.7 or >=3.3
+
+* `PyQt5 <https://www.riverbankcomputing.com/software/pyqt/download5>`_ >=5.2 or
   `PyQt4 <https://www.riverbankcomputing.com/software/pyqt/download>`_ >=4.6.0
   (PyQt5 is recommended).
 
-
-Recommended modules
-~~~~~~~~~~~~~~~~~~~
-
-We recommend you to install these modules to get the most out of Spyder:
-
-* `qtconsole <http://jupyter.org/qtconsole/stable/>`_ 4.0 or higher -- for an
+* `Qtconsole <http://jupyter.org/qtconsole/stable/>`_ >=4.0 -- for an
   enhanced Python interpreter.
 
-* `sphinx <http://sphinx.pocoo.org>`_ >= v0.6  -- for the Help pane rich
-  text mode and to get our documentation.
-
-* `rope <http://rope.sourceforge.net/>`_ 0.9.x (x>=0) -- for code completion,
+* `Rope <http://rope.sourceforge.net/>`_ >=0.9.4 or
+  `Jedi <http://jedi.jedidjah.ch/en/latest/>` 0.8.1 -- for code completion,
   go-to-definition and calltips on the Editor.
 
-* `pyflakes <http://pypi.python.org/pypi/pyflakes>`_  0.x (x>=5) -- for real-time
+* `Pyflakes <http://pypi.python.org/pypi/pyflakes>`_  -- for real-time
   code analysis.
 
-* `pylint <http://www.logilab.org/project/pylint>`_  -- for static code analysis.
+* `Sphinx <http://sphinx.pocoo.org>`_ -- for the Help pane rich text mode
+  and to get our documentation.
 
-* `pep8 <https://pypi.python.org/pypi/pep8>`_ -- for style analysis.
+* `Pygments <http://pygments.org/>`_ -- for syntax highlighting in the Editor of
+  all file types it supports.
 
-* `numpy <http://numpy.scipy.org/>`_ -- for N-dimensional arrays.
+* `Pylint <http://www.logilab.org/project/pylint>`_  -- for static code analysis.
 
-* `scipy <http://www.scipy.org/>`_ -- for signal and image processing.
+* `Pep8 <https://pypi.python.org/pypi/pep8>`_ -- for style analysis.
 
-* `matplotlib <http://matplotlib.sourceforge.net/>`_ -- for 2D and 3D plotting.
-
-* `psutil <http://code.google.com/p/psutil/>`_  -- for memory/CPU usage in the status
+* `Psutil <http://code.google.com/p/psutil/>`_  -- for memory/CPU usage in the status
   bar.
+
+* `Nbconvert <http://nbconvert.readthedocs.org/>`_ -- to manipulate Jupyter notebooks
+  on the Editor
+
+* Path.py and pickleshare -- To show import completions on the Editor and the
+  consoles.
+
+
+Optional modules
+~~~~~~~~~~~~~~~~
+
+* `Matplotlib <http://matplotlib.sourceforge.net/>`_ -- for 2D and 3D plotting in
+  the consoles.
+
+* `Pandas <http://pandas.pydata.org/>`_ -- for view and editing DataFrames and
+  Series in the Variable Explorer.
+
+* `Numpy <http://numpy.scipy.org/>`_ -- for view and editing two or three
+  dimensional arrays in the Variable Explorer.
+
+* `Sympy <http://www.sympy.org/es/>`_ -- for working with symbolic mathematics
+  in the IPython console.
+
+* `Scipy <http://www.scipy.org/>`_ -- for importing Matlab workspace files in
+  the Variable Explorer.
 
 
 Installation procedure
