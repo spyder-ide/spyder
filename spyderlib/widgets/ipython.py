@@ -63,6 +63,7 @@ BLANK = open(osp.join(TEMPLATES_PATH, 'blank.html')).read()
 LOADING = open(osp.join(TEMPLATES_PATH, 'loading.html')).read()
 KERNEL_ERROR = open(osp.join(TEMPLATES_PATH, 'kernel_error.html')).read()
 
+
 #-----------------------------------------------------------------------------
 # Control widgets
 #-----------------------------------------------------------------------------
