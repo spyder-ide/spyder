@@ -148,6 +148,7 @@ a Python version greater than 2.7 (Python 3.2 is not supported anymore).
 * **Pep8**: Style analysis.
 * **Psutil**: CPU and memory usage on the status bar.
 * **Nbconvert**: Manipulation of notebooks in the Editor.
+* **Qtawesome**: To have an icon theme based on FontAwesome
 * **Path.py** and **pickleshare**: Show import completions on the Editor and consoles
 
 ### Optional modules

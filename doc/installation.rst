@@ -176,7 +176,10 @@ The requirements to run Spyder are:
   bar.
 
 * `Nbconvert <http://nbconvert.readthedocs.org/>`_ -- to manipulate Jupyter notebooks
-  on the Editor
+  on the Editor.
+
+* `Qtawesome <https://github.com/spyder-ide/qtawesome>`_ -- for an icon theme based on
+  FontAwesome.
 
 * Path.py and pickleshare -- To show import completions on the Editor and the
   consoles.
