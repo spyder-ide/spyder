@@ -825,7 +825,7 @@ In this release they were merged 6 pull requests
 * Fixed Home/End key behaviour inconsistency on MacOS X (See [Issue 495](../../issues/495))
 * Internal console: new option "Pop up internal console when errors were intercepted" -- default: False, which avoids loosing focus when a traceback is shown in the internal console... but features may also fail silently! (bugs could stay hidden a while before being taken care of) -- See [Issue 1016](../../issues/1016)
 * Fixed "TypeError: file_saved(long,long).emit(): argument 1 has unexpected type 'long'" error occuring on some Linux 32-bit platforms -- See [Issue 1094](../../issues/1094)
-* Console: find/replace widget "Search next/previous occurence" feature was broken
+* Console: find/replace widget "Search next/previous occurrence" feature was broken
 
 ### Other changes
 
@@ -939,7 +939,7 @@ In this release they were merged 6 pull requests
     * Selecting a part of a word raises an IndexError exception
     * Revert option was prompting for user input even on an unmodified buffer
     * Added missing .f77 file extensions for Fortran files filter
-    * Occurence highlighting was not working when cursor was at the left side of a word and if the next character was ':', ',' or '(' (or any other character not matching the "word regexp")
+    * Occurrence highlighting was not working when cursor was at the left side of a word and if the next character was ':', ',' or '(' (or any other character not matching the "word regexp")
 * Console:
     * Console was unusable (endless tracebacks) when monitor was disabled
     * File drag'n drop was not working (should execute dropped file)
@@ -1223,7 +1223,7 @@ Since version 2.1:
 * Object inspector:
     * Rich text mode was failing for non-ascii docstrings
 * Find/Replace widget:
-    * Combo box history was populated only when pressing Enter (now pressing F3 to find next occurence will add the current entry to history)
+    * Combo box history was populated only when pressing Enter (now pressing F3 to find next occurrence will add the current entry to history)
 
 
 ----

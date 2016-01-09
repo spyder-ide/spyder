@@ -12,14 +12,6 @@ import os
 import os.path as osp
 import sys
 
-# TODO: Move to Jupyter imports in 3.1
-try:
-    import warnings
-    from IPython.utils.shimmodule import ShimWarning
-    warnings.simplefilter('ignore', ShimWarning)
-except:
-    pass
-
 
 def sympy_config(mpl_backend):
     """Sympy configuration"""
@@ -43,8 +35,9 @@ def kernel_config():
     external_interpreter = \
                    os.environ.get('EXTERNAL_INTERPRETER', '').lower() == "true"
 
-    from IPython.config.loader import Config, load_pyconfig_files
+
     from IPython.core.application import get_ipython_dir
+    from traitlets.config.loader import Config, load_pyconfig_file
     if not external_interpreter:
         from spyderlib.config.main import CONF
         from spyderlib.utils.programs import is_module_installed
@@ -206,7 +199,7 @@ def main():
     sys.path.insert(0, '')
 
     # Fire up the kernel instance.
-    from IPython.kernel.zmq.kernelapp import IPKernelApp
+    from ipykernel.kernelapp import IPKernelApp
     ipk_temp = IPKernelApp.instance()
     try:
         ipk_temp.config = kernel_config()

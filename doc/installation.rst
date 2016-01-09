@@ -155,8 +155,9 @@ The minimal requirements to run Spyder are
 
 * `Python <http://www.python.org/>`_ 2.6+
   
-* `PyQt4 <http://www.riverbankcomputing.co.uk/software/pyqt/download>`_ >= v4.6 or
-  `PySide <http://pyside.org/>`_ >=1.2.0 (PyQt4 is recommended).
+* `PyQt5 <https://www.riverbankcomputing.com/software/pyqt/download5>`_ >= v5.2 or
+  `PyQt4 <https://www.riverbankcomputing.com/software/pyqt/download>`_ >=4.6.0
+  (PyQt5 is recommended).
 
 
 Recommended modules
@@ -164,16 +165,9 @@ Recommended modules
 
 We recommend you to install these modules to get the most out of Spyder:
 
-* `IPython <http://ipython.org/install.html#downloads>`_ 3.0 or less, or
-  `qtconsole <http://jupyter.org/qtconsole/stable/>`_ 4.0 or higher -- for an
+* `qtconsole <http://jupyter.org/qtconsole/stable/>`_ 4.0 or higher -- for an
   enhanced Python interpreter.
-  
- .. note::
-  
-    - On *Ubuntu* you need to install ``ipython-qtconsole``.
-    - On *Fedora*, ``ipython-gui``
-    - And on *Gentoo* ``ipython`` with the ``qt4`` USE flag
-  
+
 * `sphinx <http://sphinx.pocoo.org>`_ >= v0.6  -- for the Help pane rich
   text mode and to get our documentation.
 

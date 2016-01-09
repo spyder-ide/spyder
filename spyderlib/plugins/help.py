@@ -23,7 +23,7 @@ import sys
 # Local imports
 from spyderlib import dependencies
 from spyderlib.config.base import get_conf_path, get_module_source_path, _
-from spyderlib.config.ipython import IPYTHON_QT_INSTALLED
+from spyderlib.config.ipython import QTCONSOLE_INSTALLED
 from spyderlib.config.main import CONF
 from spyderlib.config.gui import get_color_scheme, get_font, set_font
 from spyderlib.utils import programs
@@ -39,7 +39,7 @@ from spyderlib.py3compat import to_text_string, get_meth_class_inst
 
 #XXX: Hardcoded dependency on optional IPython plugin component
 #     that requires the hack to make this work without IPython
-if IPYTHON_QT_INSTALLED:
+if QTCONSOLE_INSTALLED:
     from spyderlib.widgets.ipython import IPythonControlWidget
 else:
     IPythonControlWidget = None  # analysis:ignore
@@ -145,7 +145,7 @@ class HelpConfigPage(PluginConfigPage):
                                           'connect/python_console')
         ipython_box = self.create_checkbox(_("IPython Console"),
                                            'connect/ipython_console')
-        ipython_box.setEnabled(IPYTHON_QT_INSTALLED)
+        ipython_box.setEnabled(QTCONSOLE_INSTALLED)
 
         connections_layout = QVBoxLayout()
         connections_layout.addWidget(connections_label)
@@ -265,7 +265,7 @@ class PlainText(QWidget):
 
     def set_text(self, text, is_code):
         self.editor.set_highlight_current_line(is_code)
-        self.editor.set_occurence_highlighting(is_code)
+        self.editor.set_occurrence_highlighting(is_code)
         if is_code:
             self.editor.set_language('py')
         else:

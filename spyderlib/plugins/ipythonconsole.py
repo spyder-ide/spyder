@@ -35,9 +35,9 @@ from spyderlib.qt.QtCore import Signal, Slot, Qt
 
 # IPython/Jupyter imports
 from IPython.core.application import get_ipython_dir
-from IPython.kernel.connect import find_connection_file
-from IPython.qt.client import QtKernelClient
-from IPython.qt.manager import QtKernelManager
+from jupyter_client.connect import find_connection_file
+from qtconsole.client import QtKernelClient
+from qtconsole.manager import QtKernelManager
 from jupyter_client.kernelspec import KernelSpec
 
 # Ssh imports

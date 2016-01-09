@@ -700,7 +700,7 @@ Documentation string formatting
 
 If you want to add documentation for the code you are developing, we recommend
 you to write documentation strings (or *docstrings*) for it, using a special 
-format called restructured text (`quick reference
+format called reStructuredText (`quick reference
 <http://docutils.sourceforge.net/docs/user/rst/quickref.html>`__). This format
 also needs to follow a set of conventions called the `Numpydoc standard
 <https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt#id5>`__

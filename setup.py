@@ -248,15 +248,15 @@ setup_args = dict(name=NAME,
       long_description=WININST_MSG + \
 """Spyder is an interactive Python development environment providing
 MATLAB-like features in a simple and light-weighted software.
-It also provides ready-to-use pure-Python widgets to your PyQt4 or
-PySide application: source code editor with syntax highlighting and
+It also provides ready-to-use pure-Python widgets to your PyQt5 or
+PyQt4 application: source code editor with syntax highlighting and
 code introspection/analysis features, NumPy array editor, dictionary
 editor, Python console, etc.""",
       download_url='%s/files/%s-%s.zip' % (__project_url__, NAME, __version__),
-      author="Pierre Raybaut",
+      author="The Spyder Development Team",
       url=__project_url__,
       license='MIT',
-      keywords='PyQt4 PySide editor shell console widgets IDE',
+      keywords='PyQt5 PyQt4 editor shell console widgets IDE',
       platforms=['any'],
       packages=get_packages(),
       package_data={LIBNAME: get_package_data(LIBNAME, EXTLIST),
@@ -280,7 +280,6 @@ editor, Python console, etc.""",
                    'Operating System :: Unix',
                    'Programming Language :: Python :: 2.7',
                    'Programming Language :: Python :: 3',
-                   'Programming Language :: Python :: 3.3'
                    'Development Status :: 5 - Production/Stable',
                    'Topic :: Scientific/Engineering',
                    'Topic :: Software Development :: Widget Sets'],
@@ -304,7 +303,9 @@ install_requires = [
     'pep8',
     'pylint',
     'psutil',
-    'qtawesome'
+    'qtawesome',
+    'path.py',
+    'pickleshare'
 ]
 
 if 'setuptools' in sys.modules:

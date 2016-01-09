@@ -39,7 +39,7 @@ EDIT_FILETYPES = (
     (_("Patch and diff files"), ('.patch', '.diff', '.rej')),
     (_("Batch files"), ('.bat', '.cmd')),
     (_("Text files"), ('.txt',)),
-    (_("reStructured Text files"), ('.txt', '.rst')),
+    (_("reStructuredText files"), ('.txt', '.rst')),
     (_("gettext files"), ('.po', '.pot')),
     (_("NSIS files"), ('.nsi', '.nsh')),
     (_("Web page files"), ('.scss', '.css', '.htm', '.html',)),
@@ -354,8 +354,8 @@ DEFAULTS = [
               'intelligent_backspace': True,
               'highlight_current_line': True,
               'highlight_current_cell': True,
-              'occurence_highlighting': True,
-              'occurence_highlighting/timeout': 1500,
+              'occurrence_highlighting': True,
+              'occurrence_highlighting/timeout': 1500,
               'always_remove_trailing_spaces': False,
               'fullpath_sorting': True,
               'show_tab_bar': True,
@@ -593,7 +593,7 @@ DEFAULTS = [
               'emacs/background':  "#000000",
               'emacs/currentline': "#2b2b43",
               'emacs/currentcell': "#1c1c2d",
-              'emacs/occurence':   "#abab67",
+              'emacs/occurrence':   "#abab67",
               'emacs/ctrlclick':   "#0000ff",
               'emacs/sideareas':   "#555555",
               'emacs/matched_p':   "#009800",
@@ -611,7 +611,7 @@ DEFAULTS = [
               'idle/background':   "#ffffff",
               'idle/currentline':  "#f2e6f3",
               'idle/currentcell':  "#feefff",
-              'idle/occurence':    "#e8f2fe",
+              'idle/occurrence':    "#e8f2fe",
               'idle/ctrlclick':    "#0000ff",
               'idle/sideareas':    "#efefef",
               'idle/matched_p':    "#99ff99",
@@ -629,7 +629,7 @@ DEFAULTS = [
               'monokai/background':   "#2a2b24",
               'monokai/currentline':  "#484848",
               'monokai/currentcell':  "#3d3d3d",
-              'monokai/occurence':    "#666666",
+              'monokai/occurrence':    "#666666",
               'monokai/ctrlclick':    "#0000ff",
               'monokai/sideareas':    "#2a2b24",
               'monokai/matched_p':    "#688060",
@@ -647,7 +647,7 @@ DEFAULTS = [
               'pydev/background':  "#ffffff",
               'pydev/currentline': "#e8f2fe",
               'pydev/currentcell': "#eff8fe",
-              'pydev/occurence':   "#ffff99",
+              'pydev/occurrence':   "#ffff99",
               'pydev/ctrlclick':   "#0000ff",
               'pydev/sideareas':   "#efefef",
               'pydev/matched_p':   "#99ff99",
@@ -665,7 +665,7 @@ DEFAULTS = [
               'scintilla/background':  "#ffffff",
               'scintilla/currentline': "#e1f0d1",
               'scintilla/currentcell': "#edfcdc",  
-              'scintilla/occurence':   "#ffff99",
+              'scintilla/occurrence':   "#ffff99",
               'scintilla/ctrlclick':   "#0000ff",
               'scintilla/sideareas':   "#efefef",
               'scintilla/matched_p':   "#99ff99",
@@ -683,7 +683,7 @@ DEFAULTS = [
               'spyder/background':  "#ffffff",
               'spyder/currentline': "#f7ecf8",
               'spyder/currentcell': "#fdfdde",              
-              'spyder/occurence':   "#ffff99",
+              'spyder/occurrence':   "#ffff99",
               'spyder/ctrlclick':   "#0000ff",
               'spyder/sideareas':   "#efefef",
               'spyder/matched_p':   "#99ff99",
@@ -701,7 +701,7 @@ DEFAULTS = [
               'spyder/dark/background':  "#131926",
               'spyder/dark/currentline': "#2b2b43",
               'spyder/dark/currentcell': "#31314e",
-              'spyder/dark/occurence':   "#abab67",
+              'spyder/dark/occurrence':   "#abab67",
               'spyder/dark/ctrlclick':   "#0000ff",
               'spyder/dark/sideareas':   "#282828",
               'spyder/dark/matched_p':   "#009800",
@@ -719,7 +719,7 @@ DEFAULTS = [
               'zenburn/background':  "#3f3f3f",
               'zenburn/currentline': "#333333",
               'zenburn/currentcell': "#2c2c2c",
-              'zenburn/occurence':   "#7a738f",
+              'zenburn/occurrence':   "#7a738f",
               'zenburn/ctrlclick':   "#0000ff",
               'zenburn/sideareas':   "#3f3f3f",
               'zenburn/matched_p':   "#688060",
@@ -743,9 +743,10 @@ DEFAULTS = [
 # 1. If you want to *change* the default value of a current option, you need to
 #    do a MINOR update in config version, e.g. from 3.0.0 to 3.1.0
 # 2. If you want to *remove* options that are no longer needed in our codebase,
-#    you need to do a MAJOR update in version, e.g. from 3.0.0 to 4.0.0
+#    or if you want to *rename* options, then you need to do a MAJOR update in 
+#    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '23.0.0'
+CONF_VERSION = '24.0.0'
 
 # XXX: Previously we had load=(not DEV) here but DEV was set to *False*.
 # Check if it *really* needs to be updated or not

@@ -26,14 +26,11 @@ from spyderlib.qt.QtGui import (QTextEdit, QKeySequence, QWidget, QMenu,
 from spyderlib.qt.QtCore import Signal, Slot, Qt
 import spyderlib.utils.icon_manager as ima
 
-# IPython imports
-try:
-    from qtconsole.rich_jupyter_widget import RichJupyterWidget as RichIPythonWidget
-except ImportError:
-    from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
-from IPython.qt.console.ansi_code_processor import ANSI_OR_SPECIAL_PATTERN
+# IPython/Jupyter imports
 from IPython.core.application import get_ipython_dir
-from IPython.config.loader import Config, load_pyconfig_files
+from qtconsole.rich_jupyter_widget import RichJupyterWidget
+from qtconsole.ansi_code_processor import ANSI_OR_SPECIAL_PATTERN
+from traitlets.config.loader import Config, load_pyconfig_files
 
 # Local imports
 from spyderlib.config.base import (get_conf_path, get_image_path,
@@ -167,7 +164,7 @@ class IPythonPageControlWidget(QTextEdit, BaseEditMixin):
 #-----------------------------------------------------------------------------
 # Shell widget
 #-----------------------------------------------------------------------------
-class IPythonShellWidget(RichIPythonWidget):
+class IPythonShellWidget(RichJupyterWidget):
     """
     Spyder's IPython shell widget
 
