@@ -126,7 +126,7 @@ from spyderlib.config.main import (CONF, EDIT_EXT, IMPORT_EXT, OPEN_FILES_PORT,
                                    is_gtk_desktop)
 from spyderlib.cli_options import get_options
 from spyderlib import dependencies
-from spyderlib.config.ipython import IPYTHON_QT_INSTALLED
+from spyderlib.config.ipython import QTCONSOLE_INSTALLED
 from spyderlib.config.user import NoDefault
 from spyderlib.utils import encoding, programs
 from spyderlib.utils.iofuncs import load_session, save_session, reset_session
@@ -908,7 +908,7 @@ class MainWindow(QMainWindow):
         self.variableexplorer.register_plugin()
 
         # IPython console
-        if IPYTHON_QT_INSTALLED:
+        if QTCONSOLE_INSTALLED:
             self.set_splash(_("Loading IPython console..."))
             from spyderlib.plugins.ipythonconsole import IPythonConsole
             self.ipyconsole = IPythonConsole(self)
