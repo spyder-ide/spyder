@@ -37,7 +37,7 @@ def kernel_config():
 
 
     from IPython.core.application import get_ipython_dir
-    from traitlets.config.loader import Config, load_pyconfig_file
+    from traitlets.config.loader import Config, load_pyconfig_files
     if not external_interpreter:
         from spyderlib.config.main import CONF
         from spyderlib.utils.programs import is_module_installed
