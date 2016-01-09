@@ -19,9 +19,6 @@ for f in spyderlib/*.py; do
     if [[ $f == spyderlib/spyder.py ]]; then
         continue
     fi
-    if [[ $f == spyderlib/tour.py ]]; then
-        continue
-    fi
     if [[ $f == spyderlib/pyplot.py ]]; then
         continue
     fi

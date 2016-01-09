@@ -12,9 +12,6 @@ for /r "%SPYDERLIB%" %%f in (*.py) do (
     if "%%f"=="%SPYDERLIB%\spyder.py" (
         echo --- NOT testing %%f ---
         echo.
-    ) else if "%%f"=="%SPYDERLIB%\tour.py" (
-        echo --- NOT testing %%f ---
-        echo.
     ) else if "%%f"=="%SPYDERLIB%\pyplot.py" (
         echo --- NOT testing %%f ---
         echo.

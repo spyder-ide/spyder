@@ -156,7 +156,7 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, get_icon,
                                        file_uri)
 from spyderlib.config.gui import get_shortcut, remove_deprecated_shortcuts
 from spyderlib.otherplugins import get_spyderplugins_mods
-from spyderlib import tour # FIXME: Better place for this?
+from spyderlib.app import tour
 
 
 #==============================================================================
