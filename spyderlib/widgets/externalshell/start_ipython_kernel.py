@@ -32,11 +32,11 @@ def kernel_config():
     """Create a config object with IPython kernel options"""
     import os
 
-    from IPython.config.loader import Config, load_pyconfig_files
     from IPython.core.application import get_ipython_dir
     from spyderlib.config.main import CONF
     from spyderlib.utils.programs import is_module_installed
-    
+    from traitlets.config.loader import Config, load_pyconfig_files
+
     # ---- IPython config ----
     try:
         profile_path = osp.join(get_ipython_dir(), 'profile_default')
