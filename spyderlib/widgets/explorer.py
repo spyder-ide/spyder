@@ -36,9 +36,9 @@ from spyderlib.py3compat import (PY2, to_text_string, to_binary_string, getcwd,
                                  str_lower)
 
 try:
-    from IPython.nbconvert import PythonExporter as nbexporter
+    from nbconvert import PythonExporter as nbexporter
 except:
-    nbexporter = None      # analysis:ignore
+    nbexporter = None    # analysis:ignore
 
 
 def fixpath(path):

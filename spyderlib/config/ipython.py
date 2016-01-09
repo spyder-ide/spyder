@@ -16,11 +16,14 @@ from spyderlib.config.base import _
 # Constants
 QTCONSOLE_REQVER = '>=4.0'
 ZMQ_REQVER = ">=13.0.0"
+NBCONVERT_REQVER = ">=4.0"
 
 
 # Dependencies
 dependencies.add("qtconsole", _("Jupyter Qtconsole integration"),
                  required_version=QTCONSOLE_REQVER)
+dependencies.add("nbconvert", _("Manipulate Jupyter notebooks on the Editor"),
+                 required_version=NBCONVERT_REQVER)
 
 
 # Auxiliary functions
