@@ -168,7 +168,8 @@ def main():
     reset = os.environ.pop('SPYDER_RESET', None)
 
     # Get the spyder base folder based on this file
-    spyder_folder = osp.split(osp.dirname(osp.abspath(__file__)))[0]
+    this_folder = osp.split(osp.dirname(osp.abspath(__file__)))[0]
+    spyder_folder = osp.split(this_folder)[0]
 
     if not any([spyder_args, pid, is_bootstrap, reset]):
         error = "This script can only be called from within a Spyder instance"

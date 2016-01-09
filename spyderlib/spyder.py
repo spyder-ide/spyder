@@ -2738,7 +2738,7 @@ class MainWindow(QMainWindow):
         """
         # Get start path to use in restart script
         spyder_start_directory = get_module_path('spyderlib')
-        restart_script = osp.join(spyder_start_directory, 'restart_app.py')
+        restart_script = osp.join(spyder_start_directory, 'app', 'restart.py')
 
         # Get any initial argument passed when spyder was started
         # Note: Variables defined in bootstrap.py and spyderlib/app/start.py

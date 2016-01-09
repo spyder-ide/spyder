@@ -9,10 +9,7 @@ REM Spyderlib
 for /r "%SPYDERLIB%" %%f in (*.py) do (
     set file=%%f
 
-    if "%%f"=="%SPYDERLIB%\restart_app.py" (
-        echo --- NOT testing %%f ---
-        echo.
-    ) else if "%%f"=="%SPYDERLIB%\spyder.py" (
+    if "%%f"=="%SPYDERLIB%\spyder.py" (
         echo --- NOT testing %%f ---
         echo.
     ) else if "%%f"=="%SPYDERLIB%\tour.py" (
