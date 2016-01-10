@@ -21,8 +21,6 @@ import shlex
 
 PY2 = sys.version[0] == '2'
 
-from spyderlib.utils import programs
-
 
 #==============================================================================
 # sys.argv can be missing when Python is embedded, taking care of it.
@@ -843,8 +841,8 @@ def evalsc(command):
     """Evaluate special commands
     (analog to IPython's magic commands but far less powerful/complete)"""
     assert command.startswith('%')
-    
-    from subprocess import Popen, PIPE
+    from spyderlib.utils import programs
+
     namespace = _get_globals()
     command = command[1:].strip()  # Remove leading %
 
