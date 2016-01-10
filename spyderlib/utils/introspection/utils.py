@@ -89,16 +89,6 @@ class CodeInfo(object):
                 self.column = self.line.index(self.obj) + len(self.obj)
                 self.position = self.position - len(self.line) + self.column
 
-    def split_words(self, position=None):
-        """
-        Split our source code into valid identifiers.
-
-        """
-        if position is None:
-            position = self.offset
-        text = self.source_code[:position]
-        return re.findall(self.id_regex, text)
-
     def _get_docstring(self):
         """Find the docstring we are currently in"""
         left = self.position
@@ -122,6 +112,10 @@ class CodeInfo(object):
             return self.__dict__ == other.__dict__
         except Exception:
             return False
+
+    def __getitem__(self, item):
+        """Allow dictionary-like access"""
+        return getattr(self, item)
 
 
 @memoize
@@ -151,9 +145,12 @@ def get_parent_until(path):
 
 
 if __name__ == '__main__':
+    import pickle
     code = 'import numpy'
     test = CodeInfo('test', code, len(code) - 2)
     assert test.obj == 'num'
     assert test.full_obj == 'numpy'
     test2 = CodeInfo('test', code, len(code) - 2)
     assert test == test2
+    test3 = pickle.loads(pickle.dumps(test2.__dict__))
+    assert test3['full_obj'] == 'numpy'

@@ -73,9 +73,9 @@ class RopePlugin(IntrospectionPlugin):
         """Get a list of (completion, type) tuples using Rope"""
         if self.project is None:
             return []
-        filename = info.filename
-        source_code = info.source_code
-        offset = info.position
+        filename = info['filename']
+        source_code = info['source_code']
+        offset = info['position']
 
         if PY2:
             filename = filename.encode('utf-8')
@@ -108,9 +108,9 @@ class RopePlugin(IntrospectionPlugin):
         """Get a formatted calltip and docstring from Rope"""
         if self.project is None:
             return
-        filename = info.filename
-        source_code = info.source_code
-        offset = info.position
+        filename = info['filename']
+        source_code = info['source_code']
+        offset = info['position']
 
         if PY2:
             filename = filename.encode('utf-8')
@@ -199,9 +199,9 @@ class RopePlugin(IntrospectionPlugin):
         if self.project is None:
             return
 
-        filename = info.filename
-        source_code = info.source_code
-        offset = info.position
+        filename = info['filename']
+        source_code = info['source_code']
+        offset = info['position']
 
         if PY2:
             filename = filename.encode('utf-8')

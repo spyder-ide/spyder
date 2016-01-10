@@ -69,6 +69,7 @@ class PluginClient(QObject):
             return
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect(("127.0.0.1", self.client_port))
+        request['plugin_name'] = self.plugin_name
         write_packet(sock, request)
         sock.close()
 

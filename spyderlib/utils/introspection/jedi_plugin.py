@@ -128,7 +128,7 @@ class JediPlugin(IntrospectionPlugin):
         module.  Falls back on token lookup if it is in an enaml file or does
         not find a match
         """
-        line, filename = info.line_num, info.filename
+        line, filename = info['line_num'], info['filename']
         def_info, module_path, line_nr = None, None, None
         gotos = self.get_jedi_object('goto_assignments', info)
 
@@ -168,13 +168,13 @@ class JediPlugin(IntrospectionPlugin):
                 sys.meta_path.remove(meta)
 
         if use_filename:
-            filename = info.filename
+            filename = info['filename']
         else:
             filename = None
 
         try:
-            script = jedi.Script(info.source_code, info.line_num,
-                                 info.column, filename)
+            script = jedi.Script(info['source_code'], info['line_num'],
+                                 info['column'], filename)
             func = getattr(script, func_name)
             val = func()
         except Exception as e:

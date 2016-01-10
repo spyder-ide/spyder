@@ -36,18 +36,18 @@ class FallbackPlugin(IntrospectionPlugin):
         Simple completion based on python-like identifiers and whitespace
         """
         items = []
-        line = info.line.strip()
+        line = info['line'].strip()
         is_from = line.startswith('from')
         if ((line.startswith('import') or is_from and ' import' not in line)
-                and info.is_python_like):
-            items += module_completion(info.line, [info.filename])
+                and info['is_python_like']):
+            items += module_completion(info['line'], [info['filename']])
             return [(i, 'module') for i in sorted(items)]
-        elif is_from and info.is_python_like:
-            items += module_completion(info.line, [info.filename])
+        elif is_from and info['is_python_like']:
+            items += module_completion(info['line'], [info['filename']])
             return [(i, '') for i in sorted(items)]
-        elif info.obj:
-            base = info.obj
-            tokens = set(info.split_words(-1))
+        elif info['obj']:
+            base = info['obj']
+            tokens = set(re.findall(info['id_regex'], info['source_code']))
             items = [item for item in tokens if
                      item.startswith(base) and len(item) > len(base)]
             if '.' in base:
@@ -59,7 +59,7 @@ class FallbackPlugin(IntrospectionPlugin):
                      for i in items]
             # get path completions
             # get last word back to a space or a quote character
-            match = re.search('''[ "\']([\w\.\\\\/]+)\Z''', info.line)
+            match = re.search('''[ "\']([\w\.\\\\/]+)\Z''', info['line'])
             if match:
                 items += _complete_path(match.groups()[0])
             return [(i, '') for i in sorted(items)]
@@ -71,10 +71,10 @@ class FallbackPlugin(IntrospectionPlugin):
         This is used to find the path of python-like modules
         (e.g. cython and enaml) for a goto definition
         """
-        token = info.obj
-        lines = info.lines
-        source_code = info.source_code
-        filename = info.filename
+        token = info['obj']
+        lines = info['lines']
+        source_code = info['source_code']
+        filename = info['filename']
 
         line_nr = None
         if token is None:
@@ -86,7 +86,7 @@ class FallbackPlugin(IntrospectionPlugin):
                                             len(lines))
         if line_nr is None:
             return
-        line = info.line
+        line = info['line']
         exts = python_like_exts()
         if not osp.splitext(filename)[-1] in exts:
             return filename, line_nr
@@ -112,13 +112,13 @@ class FallbackPlugin(IntrospectionPlugin):
 
     def get_info(self, info):
         """Get a formatted calltip and docstring from Fallback"""
-        if info.docstring:
-            if info.filename:
-                filename = os.path.basename(info.filename)
+        if info['docstring']:
+            if info['filename']:
+                filename = os.path.basename(info['filename'])
                 filename = os.path.splitext(filename)[0]
             else:
                 filename = '<module>'
-            resp = dict(docstring=info.docstring,
+            resp = dict(docstring=info['docstring'],
                         name=filename,
                         note='',
                         argspec='',
