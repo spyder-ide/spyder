@@ -11,18 +11,18 @@ from __future__ import print_function
 import re
 import os.path as osp
 
-from spyderlib.qt.QtGui import (QWidget, QTreeWidgetItem,  QHBoxLayout,
-                                QVBoxLayout)
+from spyderlib.qt.QtGui import (QWidget, QTreeWidgetItem, QVBoxLayout)
 from spyderlib.qt.QtCore import Qt, Signal, Slot
 from spyderlib.qt.compat import from_qvariant
 import spyderlib.utils.icon_manager as ima
 
 # Local import
 from spyderlib.config.base import _, STDOUT
-from spyderlib.utils.qthelpers import (create_action, create_toolbutton,
-                                       set_item_user_text)
+from spyderlib.utils.qthelpers import (create_action, set_item_user_text,
+                                       context_menu_to_toolbar)
 from spyderlib.widgets.onecolumntree import OneColumnTree
 from spyderlib.py3compat import to_text_string
+
 
 
 #===============================================================================
@@ -512,14 +512,12 @@ class OutlineExplorerWidget(QWidget):
                                            toggled=self.toggle_visibility)
         self.visibility_action.setChecked(True)
         
-        btn_layout = QHBoxLayout()
-        btn_layout.setAlignment(Qt.AlignLeft)
-        for btn in self.setup_buttons():
-            btn_layout.addWidget(btn)
-
+        self.treewidget.update_menu()
+        self.toolbar = context_menu_to_toolbar(self, self.treewidget.menu)
+        
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.addLayout(btn_layout)
+        layout.addWidget(self.toolbar)
         layout.addWidget(self.treewidget)
         self.setLayout(layout)
 
@@ -532,19 +530,6 @@ class OutlineExplorerWidget(QWidget):
             current_editor.setFocus()
             if state:
                 self.outlineexplorer_is_visible.emit()
-        
-    def setup_buttons(self):
-        fromcursor_btn = create_toolbutton(self,
-                             icon=ima.icon('fromcursor'),
-                             tip=_('Go to cursor position'),
-                             triggered=self.treewidget.go_to_cursor_position)
-        collapse_btn = create_toolbutton(self)
-        collapse_btn.setDefaultAction(self.treewidget.collapse_selection_action)
-        expand_btn = create_toolbutton(self)
-        expand_btn.setDefaultAction(self.treewidget.expand_selection_action)
-        restore_btn = create_toolbutton(self)
-        restore_btn.setDefaultAction(self.treewidget.restore_action)
-        return (fromcursor_btn, collapse_btn, expand_btn, restore_btn)
         
     def set_current_editor(self, editor, fname, update, clear):
         if clear:

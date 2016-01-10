@@ -27,8 +27,8 @@ from spyderlib.config.ipython import QTCONSOLE_INSTALLED
 from spyderlib.config.main import CONF
 from spyderlib.config.gui import get_color_scheme, get_font, set_font
 from spyderlib.utils import programs
-from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
-                                       create_action)
+from spyderlib.utils.qthelpers import (add_actions, create_action,
+                                       context_menu_to_toolbar, ComboAction)
 from spyderlib.widgets.comboboxes import EditableComboBox
 from spyderlib.widgets.sourcecode import codeeditor
 from spyderlib.widgets.findreplace import FindReplace
@@ -46,8 +46,9 @@ else:
 
 # Check if we can import Sphinx to activate rich text mode
 try:
-    from spyderlib.utils.help.sphinxify import (CSS_PATH, sphinxify, warning,
-                                                generate_context, usage)
+    from spyderlib.utils.help.sphinxify import (CSS_PATH, sphinxify,
+                                                     warning, generate_context,
+                                                     usage)
     sphinx_version = programs.get_module_version('sphinx')
 except (ImportError, TypeError):
     sphinxify = sphinx_version = None  # analysis:ignore
@@ -224,6 +225,11 @@ class RichText(QWidget):
 
     def clear(self):
         self.set_html('', self.webview.url())
+    
+    @property
+    def menu(self):
+        return self.webview.menu
+        
 
 
 class PlainText(QWidget):
@@ -274,7 +280,7 @@ class PlainText(QWidget):
         self.editor.set_cursor_position('sof')
 
     def clear(self):
-        self.editor.clear()
+        self.editor.clear()        
 
 
 class SphinxThread(QThread):
@@ -355,7 +361,8 @@ class Help(SpyderPluginWidget):
     CONFIGWIDGET_CLASS = HelpConfigPage
     LOG_PATH = get_conf_path(CONF_SECTION)
     focus_changed = Signal()
-
+    _source_is_console = Signal(bool)
+    
     def __init__(self, parent):
         if PYQT5:
             SpyderPluginWidget.__init__(self, parent, main = parent)
@@ -403,96 +410,89 @@ class Help(SpyderPluginWidget):
         self._last_texts = [None, None]
         self._last_editor_doc = None
 
-        # Object name
-        layout_edit = QHBoxLayout()
-        layout_edit.setContentsMargins(0, 0, 0, 0)
-        txt = _("Source")
-        if sys.platform == 'darwin':
-            source_label = QLabel("  " + txt)
-        else:
-            source_label = QLabel(txt)
-        layout_edit.addWidget(source_label)
-        self.source_combo = QComboBox(self)
-        self.source_combo.addItems([_("Console"), _("Editor")])
-        self.source_combo.currentIndexChanged.connect(self.source_changed)
-        if (not programs.is_module_installed('rope') and
-                not programs.is_module_installed('jedi', '>=0.8.1')):
-            self.source_combo.hide()
-            source_label.hide()
-        layout_edit.addWidget(self.source_combo)
-        layout_edit.addSpacing(10)
-        layout_edit.addWidget(QLabel(_("Object")))
-        self.combo = ObjectComboBox(self)
-        layout_edit.addWidget(self.combo)
-        self.object_edit = QLineEdit(self)
-        self.object_edit.setReadOnly(True)
-        layout_edit.addWidget(self.object_edit)
-        self.combo.setMaxCount(self.get_option('max_history_entries'))
-        self.combo.addItems( self.load_history() )
-        self.combo.setItemText(0, '')
-        self.combo.valid.connect(lambda valid: self.force_refresh())
+        # Extra actions added to rich/plain-text context menus        
+        self.common_actions = [None]
+        
+        # Extra (a): source_mode_group: source/editor
+        #    (see signal: self._source_is_console)
+        self._supports_editor_source = (programs.is_module_installed('rope') 
+                            or programs.is_module_installed('jedi', '>=0.8.1'))
+        if self._supports_editor_source:
+            source_menu = QMenu(_('Source'), parent=self)
+            self.console_action = create_action(self, _("Console"), 
+                                                toggled=self.source_toggled_console)
+            self.editor_action = create_action(self, _("Editor"),
+                                                toggled=self.source_toggled_editor)
+            self._source_is_console.connect(self.source_is_console_changed)
+            source_mode_group = QActionGroup(self)
+            source_mode_group.setExclusive(True)
+            source_mode_group.addAction(self.console_action)
+            source_mode_group.addAction(self.editor_action)
+            self.console_action.setChecked(True)
+            add_actions(source_menu, [self.console_action, self.editor_action])
+            self.common_actions.append(source_menu)
 
-        # Plain text docstring option
+        # Extra (b): display choice: rich text or plain text, and source on/off
         self.docstring = True
         self.rich_help = sphinxify is not None \
                          and self.get_option('rich_mode', True)
         self.plain_text_action = create_action(self, _("Plain Text"),
                                                toggled=self.toggle_plain_text)
-
-        # Source code option
         self.show_source_action = create_action(self, _("Show Source"),
                                                 toggled=self.toggle_show_source)
-
-        # Rich text option
         self.rich_text_action = create_action(self, _("Rich Text"),
                                          toggled=self.toggle_rich_text)
+        self.display_mode_group = display_mode_group = QActionGroup(self)
+        display_mode_group.setExclusive(True)
+        display_mode_group.addAction(self.plain_text_action)
+        display_mode_group.addAction(self.rich_text_action)
+        display_mode_group.addAction(self.show_source_action)
 
-        # Add the help actions to an exclusive QActionGroup
-        help_actions = QActionGroup(self)
-        help_actions.setExclusive(True)
-        help_actions.addAction(self.plain_text_action)
-        help_actions.addAction(self.rich_text_action)
+        self.rich_text_action.setEnabled(sphinxify is not None)
+        display_menu = QMenu(_('Display'), parent=self)
+        add_actions(display_menu, [self.plain_text_action, self.rich_text_action,
+                                   self.show_source_action])
+        self.common_actions += [display_menu]        
 
-        # Automatic import option
+        # Extra (c): lock button
+        self.locked_button = create_action(self, _(""),
+                                           toggled=self.toggle_locked)
+        self._update_lock_icon_and_text()
+        self.common_actions += [self.locked_button, None]
+        
+        # Extra (d): automatic import option
         self.auto_import_action = create_action(self, _("Automatic import"),
                                                 toggled=self.toggle_auto_import)
-        auto_import_state = self.get_option('automatic_import')
-        self.auto_import_action.setChecked(auto_import_state)
-
-        # Lock checkbox
-        self.locked_button = create_toolbutton(self,
-                                               triggered=self.toggle_locked)
-        layout_edit.addWidget(self.locked_button)
-        self._update_lock_icon()
-
-        # Option menu
-        options_button = create_toolbutton(self, text=_('Options'),
-                                           icon=ima.icon('tooloptions'))
-        options_button.setPopupMode(QToolButton.InstantPopup)
-        menu = QMenu(self)
-        add_actions(menu, [self.rich_text_action, self.plain_text_action,
-                           self.show_source_action, None,
-                           self.auto_import_action])
-        options_button.setMenu(menu)
-        layout_edit.addWidget(options_button)
-
-        if self.rich_help:
-            self.switch_to_rich_text()
-        else:
-            self.switch_to_plain_text()
-        self.plain_text_action.setChecked(not self.rich_help)
-        self.rich_text_action.setChecked(self.rich_help)
-        self.rich_text_action.setEnabled(sphinxify is not None)
-        self.source_changed()
-
+        self.common_actions += [self.auto_import_action, None]
+        
+        # Extra (e): object-history combo action
+        self.combo_action = ComboAction(self, text=_("Object"), 
+                                        combo_subclass=ObjectComboBox,
+                                        subclass_signals=('valid',))
+        self.combo_action.combo.setMaxCount(self.get_option('max_history_entries'))
+        self.combo_action.combo.addItems(self.load_history())
+        self.combo_action.combo.setItemText(0, '')
+        self.combo_action.combo.valid.connect(lambda valid: self.force_refresh())
+        self.common_actions += [self.combo_action]
+        
+        # Add common_actions and build toolbar...
+        add_actions(self.rich_text.menu, self.common_actions)  
+        add_actions(self.plain_text.editor.readonly_menu, self.common_actions)  
+        
+        self.toolbar = context_menu_to_toolbar(self, self.rich_text.menu)
+        context_menu_to_toolbar(menu=self.plain_text.editor.readonly_menu,
+                                 old=self.toolbar) 
+       
         # Main layout
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.addLayout(layout_edit)
+        layout.addWidget(self.toolbar)
         layout.addWidget(self.plain_text)
         layout.addWidget(self.rich_text)
         self.setLayout(layout)
-
+        
+        self.register_toolbar(self.toolbar)
+        
         # Add worker thread for handling rich text rendering
         if sphinxify is None:
             self._sphinx_thread = None
@@ -509,13 +509,18 @@ class Help(SpyderPluginWidget):
         view.page().setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
         view.linkClicked.connect(self.handle_link_clicks)
 
+        self.plain_text_action.setChecked(not self.rich_help)
+        self.rich_text_action.setChecked(self.rich_help)
+        if self.rich_help:
+            self.switch_to_rich_text()
+        else:
+            self.switch_to_plain_text()
+        self.auto_import_action.setChecked(self.get_option('automatic_import'))
+        
         self._starting_up = True
+        
 
     #------ SpyderPluginWidget API ---------------------------------------------
-    def on_first_registration(self):
-        """Action to be performed on first plugin registration"""
-        self.main.tabify_plugins(self.main.variableexplorer, self)
-
     def get_plugin_title(self):
         """Return widget title"""
         return _('Help')
@@ -529,8 +534,7 @@ class Help(SpyderPluginWidget):
         Return the widget to give focus to when
         this plugin's dockwidget is raised on top-level
         """
-        self.combo.lineEdit().selectAll()
-        return self.combo
+        pass
 
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
@@ -591,28 +595,33 @@ class Help(SpyderPluginWidget):
     #------ Public API (related to Help's source) -------------------------
     def source_is_console(self):
         """Return True if source is Console"""
-        return self.source_combo.currentIndex() == 0
+        return self._source_is_console
 
     def switch_to_editor_source(self):
-        self.source_combo.setCurrentIndex(1)
+        pass
 
     def switch_to_console_source(self):
-        self.source_combo.setCurrentIndex(0)
-
-    def source_changed(self, index=None):
-        if self.source_is_console():
+        pass
+    
+    def source_toggled_console(self, v):
+        self._source_is_console = v
+        
+    def source_toggled_editor(self, v):
+        self._source_is_console = not v
+    
+    @Slot(bool)
+    def source_is_console_changed(self, v):
+        if v:
             # Console
-            self.combo.show()
-            self.object_edit.hide()
+            #self.object_edit.hide()
             self.show_source_action.setEnabled(True)
             self.auto_import_action.setEnabled(True)
         else:
             # Editor
-            self.combo.hide()
-            self.object_edit.show()
+            #self.object_edit.show()
             self.show_source_action.setDisabled(True)
             self.auto_import_action.setDisabled(True)
-        self.restore_text()
+        #self.restore_text()
 
     def save_text(self, callback):
         if self.source_is_console():
@@ -691,14 +700,17 @@ class Help(SpyderPluginWidget):
         self.rich_help = False
         self.plain_text.show()
         self.rich_text.hide()
+        self.toolbar.select_mode(1)
         self.plain_text_action.setChecked(True)
 
     def switch_to_rich_text(self):
         """Switch to rich text mode"""
+        self.toolbar.select_mode(0)
         self.rich_help = True
         self.plain_text.hide()
         self.rich_text.show()
         self.rich_text_action.setChecked(True)
+
         self.show_source_action.setChecked(False)
 
     def set_plain_text(self, text, is_code):
@@ -820,7 +832,7 @@ class Help(SpyderPluginWidget):
 
         add_to_combo = True
         if text is None:
-            text = to_text_string(self.combo.currentText())
+            text = to_text_string(self.combo_action.combo.currentText())
             add_to_combo = False
 
         found = self.show_help(text, ignore_unknown=ignore_unknown)
@@ -828,7 +840,7 @@ class Help(SpyderPluginWidget):
             return
 
         if add_to_combo:
-            self.combo.add_text(text)
+            self.combo_action.combo.add_text(text)
         if found:
             self.save_history()
 
@@ -847,7 +859,7 @@ class Help(SpyderPluginWidget):
             return
         self.switch_to_editor_source()
         self._last_editor_doc = doc
-        self.object_edit.setText(doc['obj_text'])
+        #self.object_edit.setText(doc['obj_text'])
 
         if self.rich_help:
             self.render_sphinx_doc(doc)
@@ -861,7 +873,7 @@ class Help(SpyderPluginWidget):
             self.dockwidget.blockSignals(False)
 
     def __eventually_raise_help(self, text, force=False):
-        index = self.source_combo.currentIndex()
+        index = 0# self.source_combo.currentIndex()
         if hasattr(self.main, 'tabifiedDockWidgets'):
             # 'QMainWindow.tabifiedDockWidgets' was introduced in PyQt 4.5
             if self.dockwidget and (force or self.dockwidget.isVisible()) \
@@ -887,39 +899,40 @@ class Help(SpyderPluginWidget):
     def save_history(self):
         """Save history to a text file in user home directory"""
         open(self.LOG_PATH, 'w').write("\n".join( \
-                [to_text_string(self.combo.itemText(index))
-                 for index in range(self.combo.count())] ))
+                [to_text_string(self.combo_action.combo.itemText(index))
+                 for index in range(self.combo_action.combo.count())] ))
 
     @Slot(bool)
     def toggle_plain_text(self, checked):
-        """Toggle plain text docstring"""
+        """Display plain text docstring, not rich text or source."""
         if checked:
-            self.docstring = checked
+            self.docstring = True
             self.switch_to_plain_text()
             self.force_refresh()
         self.set_option('rich_mode', not checked)
 
     @Slot(bool)
     def toggle_show_source(self, checked):
-        """Toggle show source code"""
+        """Display source, not rich/plain text docstring"""
         if checked:
             self.switch_to_plain_text()
-        self.docstring = not checked
-        self.force_refresh()
+            self.docstring = False
+            self.force_refresh()
         self.set_option('rich_mode', not checked)
 
     @Slot(bool)
     def toggle_rich_text(self, checked):
-        """Toggle between sphinxified docstrings or plain ones"""
+        """Display sphinxified docstrings not plain ones or source."""
         if checked:
-            self.docstring = not checked
+            self.docstring = False
             self.switch_to_rich_text()
+            self.force_refresh()
         self.set_option('rich_mode', checked)
 
     @Slot(bool)
     def toggle_auto_import(self, checked):
         """Toggle automatic import feature"""
-        self.combo.validate_current_text()
+        self.combo_action.combo.validate_current_text()
         self.set_option('automatic_import', checked)
         self.force_refresh()
 
@@ -930,14 +943,15 @@ class Help(SpyderPluginWidget):
         locked = disable link with Console
         """
         self.locked = not self.locked
-        self._update_lock_icon()
+        self._update_lock_icon_and_text()
 
-    def _update_lock_icon(self):
+    def _update_lock_icon_and_text(self):
         """Update locked state icon"""
         icon = ima.icon('lock') if self.locked else ima.icon('lock_open')
         self.locked_button.setIcon(icon)
         tip = _("Unlock") if self.locked else _("Lock")
         self.locked_button.setToolTip(tip)
+        self.locked_button.setText(tip)
 
     def set_shell(self, shell):
         """Bind to shell"""

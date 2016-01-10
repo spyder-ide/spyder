@@ -398,6 +398,13 @@ class SpyderPluginMixin(object):
         """Apply configuration file's plugin settings"""
         raise NotImplementedError
     
+    def register_toolbar(self, toolbar):
+        """registerd toolbars can be toggled on/off.
+        Should be a WidgetInnerToolbar ..or subclass"""
+        self.main.toolbars_list_inner.append(toolbar)
+        toolbar.setVisible(self.main.get_toolbars_visible())
+        toolbar.toggleViewAction().setChecked(self.main.get_toolbars_visible())
+        
     def register_shortcut(self, qaction_or_qshortcut, context, name,
                           default=NoDefault):
         """

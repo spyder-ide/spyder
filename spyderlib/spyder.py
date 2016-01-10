@@ -399,6 +399,7 @@ class MainWindow(QMainWindow):
         # Toolbars
         self.visible_toolbars = []
         self.toolbarslist = []
+        self.toolbars_list_inner = []
         self.main_toolbar = None
         self.main_toolbar_actions = []
         self.file_toolbar = None
@@ -1861,6 +1862,13 @@ class MainWindow(QMainWindow):
             action.setChecked(plugin.dockwidget.isVisible())
 
     # --- Show/Hide toolbars
+    def get_toolbars_visible(self):
+        try:
+            return self.toolbars_visible
+        except AttributeError:
+            self.toolbars_visible = CONF.get('main', 'toolbars_visible')
+            return self.toolbars_visible
+            
     def _update_show_toolbars_action(self):
         """Update the text displayed in the menu entry."""
         if self.toolbars_visible:
@@ -1913,11 +1921,10 @@ class MainWindow(QMainWindow):
             self.save_visible_toolbars()
         else:
             self.get_visible_toolbars()
-
-        for toolbar in self.visible_toolbars:
+        for toolbar in self.visible_toolbars + self.toolbars_list_inner:
             toolbar.toggleViewAction().setChecked(value)
             toolbar.setVisible(value)
-
+            
         self.toolbars_visible = value
         self._update_show_toolbars_action()
 
@@ -2057,6 +2064,8 @@ class MainWindow(QMainWindow):
         for toolbar in self.toolbarslist:
             action = toolbar.toggleViewAction()
             name = toolbar.objectName()
+            if name is None:
+                continue
             try:
                 pos = order.index(name)
             except ValueError:

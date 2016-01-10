@@ -9,7 +9,7 @@
 from spyderlib.qt.QtGui import (QAction, QStyle, QWidget, QApplication,
                                 QLabel, QVBoxLayout, QHBoxLayout, QLineEdit,
                                 QKeyEvent, QMenu, QKeySequence, QToolButton,
-                                QPixmap)
+                                QPixmap, QWidgetAction, QComboBox, QSizePolicy)
 from spyderlib.qt.QtCore import (Signal, QObject, Qt, QLocale, QTranslator,
                                  QLibraryInfo, QEvent, Slot, QTimer)
 from spyderlib.qt.compat import to_qvariant, from_qvariant
@@ -26,6 +26,7 @@ from spyderlib.config.base import get_image_path, running_in_mac_app
 from spyderlib.config.gui import get_shortcut
 from spyderlib.utils import programs
 from spyderlib.py3compat import is_text_string, to_text_string
+
 
 # Note: How to redirect a signal from widget *a* to widget *b* ?
 # ----
@@ -230,7 +231,67 @@ def toggle_actions(actions, enable):
             if action is not None:
                 action.setEnabled(enable)
 
+class ComboAction(QWidgetAction):    
+    """Wraps a QComboBox as an action. Use the .combo to access the combo 
+    itself. Note that really there are multiple combos that keep in-sync with
+    each other, but you don't neet to know that...well, maybe...
+    If you want to wrap a subclass of QComboBox rather than that class itself,
+    you can pass the subclass in combo_subclass param of init, but things
+    can get a bit messier: provide a sequence of singal names (i.e. attributes
+    on the combo_subclass) that you want to have monkey-patched in secondary 
+    isntances of the custom combo (we just replace the secondary combo's own
+    signal with the primary combo's signal, which thus gets co-owned by all
+    the instances of the custom combo)."""
+    def __init__(self, parent, text="Caption:", combo_subclass=QComboBox,
+                 subclass_signals=()):
+        QWidgetAction.__init__(self, parent)
+        self._text = text
+        self._widgets = []
+        self._combo_subclass = combo_subclass
+        self._subclass_signals = subclass_signals
+        self._combos = [combo_subclass(parent)]
 
+    def createWidget(self, new_parent):
+        widget = QWidget(new_parent)
+        self._widgets.append(widget)
+        layout = QHBoxLayout(widget)
+        layout.setContentsMargins(0, 0, 0, 0)
+        widget.setLayout(layout)
+        widget.setToolTip(self._text)
+        if len(self._widgets) == 1:
+            # the first time we create a widget we use the pre-existing "primary" combo
+            combo = self._combos[0]
+        else:
+            # after that we create a new combo and "hook it up" to the primary one
+            self._combos.append(self._combo_subclass(self.parent()))
+            combo = self._combos[-1]
+            combo.setModel(self._combos[0].model())
+            combo.currentIndexChanged.connect(self._combos[0].setCurrentIndex)
+            self._combos[0].currentIndexChanged.connect(combo.setCurrentIndex)
+            self._combos[0].editTextChanged.connect(combo.setEditText)
+            combo.editTextChanged.connect(self._combos[0].setEditText)            
+            for sig_name in self._subclass_signals:
+                sig_0 = getattr(self._combos[0], sig_name)
+                setattr(combo, sig_name, sig_0)    
+                
+        #self._label = QLabel(text, widget)
+        #self._label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Minimum)
+        #layout.addWidget(self._label)
+        layout.addWidget(combo)
+        return widget        
+
+    @property
+    def combo(self):
+        return self._combos[0]
+    
+    def releaseWidget(self, w):
+        idx = self._widgets.index(w)
+        if idx > 0:
+            del self._widgets[idx]
+            del self._combos[idx]
+        else:
+            pass # TODO: implement properly for idx==0            
+        
 def create_action(parent, text, shortcut=None, icon=None, tip=None,
                   toggled=None, triggered=None, data=None, menurole=None,
                   context=Qt.WindowShortcut):
@@ -303,6 +364,36 @@ def set_item_user_text(item, text):
     """Set QTreeWidgetItem user role string"""
     item.setData(0, Qt.UserRole, to_qvariant(text))
 
+
+def context_menu_to_toolbar(parent=None, menu=None, old=None):
+    """dont forget you may need to call something like .update_menu()
+    before passing in the menu.
+    `old` can be a `WidgetInnerToolbar` previously returned by this
+    method, in which case the `.add_mode` method will be used rather
+    than creating a fresh `WidgetInnerToolbar`
+
+    TODO: it would make more sense to use createWidget(self) on all actions
+    rather than accepting a mixture of buttons and actions.
+    """    
+    from spyderlib.widgets.helperwidgets import WidgetInnerToolbar
+    actions = (a for a in menu.actions() if not a.isSeparator())
+    buttons = []
+    non_icon_buttons = []
+    for action in actions:             
+        if isinstance(action, QWidgetAction):
+            buttons.append(action.createWidget(parent)) 
+        elif action.icon().isNull():
+            non_icon_buttons.append(action)
+        else:
+            new_button = create_toolbutton(parent)
+            new_button.setDefaultAction(action)
+            buttons.append(new_button) 
+        
+    if old:
+        old.add_mode(buttons, non_icon_buttons)
+        return old
+    else:
+        return WidgetInnerToolbar(buttons, non_icon_buttons, parent=parent)
 
 def create_bookmark_action(parent, url, title, icon=None, shortcut=None):
     """Create bookmark action"""
