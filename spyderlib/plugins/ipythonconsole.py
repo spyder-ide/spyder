@@ -1092,7 +1092,7 @@ class IPythonConsole(SpyderPluginWidget):
         """Create kernel manager and client"""
         kernel_manager = QtKernelManager(connection_file=connection_file,
                                          config=None, autorestart=True)
-        kernel_manager.kernel_spec = self.create_kernel_spec()
+        kernel_manager._kernel_spec = self.create_kernel_spec()
         kernel_manager.start_kernel()
 
         kernel_client = kernel_manager.client()
