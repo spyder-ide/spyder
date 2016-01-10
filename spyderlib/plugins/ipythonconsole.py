@@ -60,7 +60,8 @@ from spyderlib.widgets.tabs import Tabs
 from spyderlib.widgets.ipython import IPythonClient
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
-from spyderlib.py3compat import to_text_string
+from spyderlib.py3compat import (PY3, iteritems, to_binary_string,
+                                 to_text_string)
 import spyderlib.utils.icon_manager as ima
 
 
@@ -1068,15 +1069,23 @@ class IPythonConsole(SpyderPluginWidget):
             '{connection_file}'
         ]
 
-        # Environment variables that we need to pass to sitecustomize
-        umr_namelist = ','.join(CONF.get('console', 'umr/namelist'))
+        # Environment variables that we need to pass to our sitecustomize
         env_vars = {
             'IPYTHON_KERNEL': 'True',
-            'EXTERNAL_INTERPRETER': to_text_string(not self.default_interpreter),
-            'UMR_ENABLED': to_text_string(CONF.get('console', 'umr/enabled')),
-            'UMR_VERBOSE': to_text_string(CONF.get('console', 'umr/verbose')),
-            'UMR_NAMELIST': umr_namelist
+            'EXTERNAL_INTERPRETER': not self.default_interpreter,
+            'UMR_ENABLED': CONF.get('console', 'umr/enabled'),
+            'UMR_VERBOSE': CONF.get('console', 'umr/verbose'),
+            'UMR_NAMELIST': ','.join(CONF.get('console', 'umr/namelist'))
         }
+
+        # Making all env_vars strings
+        for k,v in iteritems(env_vars):
+            if PY3:
+                env_vars[k] = to_text_string(v)
+            else:
+                env_vars[k] = to_binary_string(v)
+
+        # Add our PYTHONPATH to env_vars
         env_vars.update(pypath)
 
         # Dict for our kernel spec
