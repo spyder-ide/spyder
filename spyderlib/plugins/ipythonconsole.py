@@ -60,7 +60,7 @@ from spyderlib.widgets.tabs import Tabs
 from spyderlib.widgets.ipython import IPythonClient
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
-from spyderlib.py3compat import (PY3, iteritems, to_binary_string,
+from spyderlib.py3compat import (PY2, iteritems, to_binary_string,
                                  to_text_string)
 import spyderlib.utils.icon_manager as ima
 
@@ -1078,15 +1078,16 @@ class IPythonConsole(SpyderPluginWidget):
             'UMR_NAMELIST': ','.join(CONF.get('console', 'umr/namelist'))
         }
 
-        # Making all env_vars strings
-        for k,v in iteritems(env_vars):
-            if PY3:
-                env_vars[k] = to_text_string(v)
-            else:
-                env_vars[k] = to_binary_string(v)
-
         # Add our PYTHONPATH to env_vars
         env_vars.update(pypath)
+
+        # Making all env_vars strings
+        for k,v in iteritems(env_vars):
+            if PY2 and os.name == 'nt':
+                uv = to_text_string(v)
+                env_vars[k] = to_binary_string(uv, encoding='utf-8')
+            else:
+                env_vars[k] = to_text_string(v)
 
         # Dict for our kernel spec
         kernel_dict = {
