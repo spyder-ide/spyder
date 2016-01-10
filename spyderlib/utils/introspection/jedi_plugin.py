@@ -19,6 +19,7 @@ from spyderlib.utils.debug import log_last_error, log_dt
 from spyderlib.utils.dochelpers import getsignaturefromtext
 from spyderlib.utils.introspection.plugin_manager import (
     DEBUG_EDITOR, LOG_FILENAME, IntrospectionPlugin)
+from spyderlib.utils.introspection.utils import get_parent_until
 
 try:
     import jedi
@@ -80,7 +81,7 @@ class JediPlugin(IntrospectionPlugin):
         if name is None:
             return
         if call_def.module_path:
-            mod_name = self.get_parent_until(call_def.module_path)
+            mod_name = get_parent_until(call_def.module_path)
         else:
             mod_name = None
         if not mod_name:

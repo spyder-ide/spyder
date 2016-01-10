@@ -19,7 +19,9 @@ from spyderlib.utils.debug import log_dt
 from spyderlib.utils import sourcecode, encoding
 from spyderlib.utils.introspection.module_completion import module_completion
 from spyderlib.utils.introspection.plugin_manager import (
-    DEBUG_EDITOR, LOG_FILENAME, IntrospectionPlugin, memoize)
+    DEBUG_EDITOR, LOG_FILENAME, IntrospectionPlugin)
+from spyderlib.utils.introspection.utils import (
+    get_parent_until, memoize)
 
 
 class FallbackPlugin(IntrospectionPlugin):
@@ -341,7 +343,7 @@ if __name__ == '__main__':
     ext = all_editable_exts()
     assert '.cpp' in ext and '.html' in ext
 
-    path = p.get_parent_until(os.path.abspath(__file__))
+    path = get_parent_until(os.path.abspath(__file__))
     assert path == 'spyderlib.utils.introspection.fallback_plugin'
 
     line = 'from spyderlib.widgets.sourcecode.codeeditor import CodeEditor'
@@ -352,7 +354,7 @@ if __name__ == '__main__':
 
     path = osp.expanduser(r'~/.spyder2/temp.py')
     if os.path.exists(path):
-        path = p.get_parent_until(path)
+        path = get_parent_until(path)
         assert path == '.spyder2.temp', path
 
     code = 'import re\n\nre'
