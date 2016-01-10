@@ -401,7 +401,7 @@ class EditorStack(QWidget):
         if ccs not in syntaxhighlighters.COLOR_SCHEME_NAMES:
             ccs = syntaxhighlighters.COLOR_SCHEME_NAMES[0]
         self.color_scheme = ccs
-        self.introspector = introspection.PluginManager(self)
+        self.introspector = introspection.IntrospectionManager(self)
 
         self.introspector.send_to_help.connect(self.send_to_help)
         self.introspector.edit_goto.connect(
@@ -685,7 +685,7 @@ class EditorStack(QWidget):
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_blanks_enabled(state)
-        
+
     def set_edgeline_enabled(self, state):
         # CONF.get(self.CONF_SECTION, 'edge_line')
         self.edgeline_enabled = state
