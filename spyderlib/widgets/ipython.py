@@ -357,8 +357,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
     append_to_history = Signal(str, str)
 
     def __init__(self, plugin, name, history_filename, connection_file=None,
-                 hostname=None, sshkey=None, password=None,
-                 menu_actions=None):
+                 hostname=None, menu_actions=None):
         super(IPythonClient, self).__init__(plugin)
         SaveHistoryMixin.__init__(self)
         self.options_button = None
@@ -368,8 +367,6 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         self.stop_icon = ima.icon('stop')
         self.connection_file = connection_file
         self.hostname = hostname
-        self.sshkey = sshkey
-        self.password = password
         self.name = name
         self.get_option = plugin.get_option
         self.shellwidget = IPythonShellWidget(config=self.shellwidget_config(),

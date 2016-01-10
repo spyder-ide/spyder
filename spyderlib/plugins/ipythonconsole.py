@@ -564,8 +564,7 @@ class KernelConnectionDialog(QDialog):
 
     def select_connection_file(self):
         cf = getopenfilename(self, _('Open IPython connection file'),
-                 osp.join(get_ipython_dir(), 'profile_default', 'security'),
-                 '*.json;;*.*')[0]
+                             jupyter_runtime_dir(), '*.json;;*.*')[0]
         self.cf.setText(cf)
 
     def select_ssh_key(self):
@@ -1020,14 +1019,17 @@ class IPythonConsole(SpyderPluginWidget):
         return cf
 
     def ssh_tunnel(self, *args, **kwargs):
-        if sys.platform == 'win32':
+        if os.name == 'nt':
             return zmqtunnel.paramiko_tunnel(*args, **kwargs)
         else:
             return openssh_tunnel(self, *args, **kwargs)
 
     def tunnel_to_kernel(self, ci, hostname, sshkey=None, password=None, timeout=10):
-        """tunnel connections to a kernel via ssh. remote ports are specified in
-        the connection info ci."""
+        """
+        Tunnel connections to a kernel via ssh.
+        
+        Remote ports are specified in the connection info ci.
+        """
         lports = zmqtunnel.select_random_ports(4)
         rports = ci['shell_port'], ci['iopub_port'], ci['stdin_port'], ci['hb_port']
         remote_ip = ci['ip']
@@ -1100,45 +1102,26 @@ class IPythonConsole(SpyderPluginWidget):
 
         return KernelSpec(resource_dir='', **kernel_dict)
 
-    def create_kernel_manager_and_client(self, connection_file=None,
-                                         hostname=None, sshkey=None,
-                                         password=None):
+    def create_kernel_manager_and_client(self, connection_file=None):
         """Create kernel manager and client"""
+        # Kernel manager
         kernel_manager = QtKernelManager(connection_file=connection_file,
                                          config=None, autorestart=True)
         kernel_manager._kernel_spec = self.create_kernel_spec()
         kernel_manager.start_kernel()
 
+        # Kernel client
         kernel_client = kernel_manager.client()
-        if hostname is not None:
-            try:
-                newports = self.tunnel_to_kernel(dict(ip=kernel_client.ip,
-                                      shell_port=kernel_client.shell_port,
-                                      iopub_port=kernel_client.iopub_port,
-                                      stdin_port=kernel_client.stdin_port,
-                                      hb_port=kernel_client.hb_port),
-                                      hostname, sshkey, password)
-                (kernel_client.shell_port, kernel_client.iopub_port,
-                 kernel_client.stdin_port, kernel_client.hb_port) = newports
-            except Exception as e:
-                QMessageBox.critical(self, _('Connection error'), 
-                                   _("Could not open ssh tunnel. The "
-                                     "error was:\n\n") + to_text_string(e))
-                return None, None
         kernel_client.start_channels(shell=True, iopub=True)
 
         return kernel_manager, kernel_client
 
     def connect_client_to_kernel(self, client):
         """Connect a client to its kernel"""
-        km, kc = self.create_kernel_manager_and_client(client.connection_file,
-                                                       client.hostname,
-                                                       client.sshkey,
-                                                       client.password)
-        if km is not None:
-            widget = client.shellwidget
-            widget.kernel_manager = km
-            widget.kernel_client = kc
+        km, kc = self.create_kernel_manager_and_client(client.connection_file)
+        widget = client.shellwidget
+        widget.kernel_manager = km
+        widget.kernel_client = kc
 
     @Slot()
     def create_client_for_kernel(self):
@@ -1185,22 +1168,39 @@ class IPythonConsole(SpyderPluginWidget):
         name = master_name + '/' + chr(slave_ord + 1)
 
         # Creating the client
-        client = IPythonClient(self, name=name, history_filename='history.py',
-                               connection_file=cf,
+        client = IPythonClient(self, name=name,
+                               history_filename='history.py',
+                               connection_file=cf, 
                                menu_actions=self.menu_actions,
-                               hostname=hostname, sshkey=kf, password=pw)
+                               hostname=hostname)
 
         # Create kernel client
         kernel_client = QtKernelClient(connection_file=cf)
         kernel_client.load_connection_file()
+        if hostname is not None:
+            try:
+                newports = self.tunnel_to_kernel(dict(ip=kernel_client.ip,
+                                      shell_port=kernel_client.shell_port,
+                                      iopub_port=kernel_client.iopub_port,
+                                      stdin_port=kernel_client.stdin_port,
+                                      hb_port=kernel_client.hb_port),
+                                      hostname, kf, pw)
+                (kernel_client.shell_port, kernel_client.iopub_port,
+                 kernel_client.stdin_port, kernel_client.hb_port) = newports
+            except Exception as e:
+                QMessageBox.critical(self, _('Connection error'), 
+                                   _("Could not open ssh tunnel. The "
+                                     "error was:\n\n") + to_text_string(e))
+                return
         kernel_client.start_channels()
+
         client.shellwidget.kernel_client = kernel_client
         client.shellwidget.kernel_manager = kernel_manager
 
-        # Adding the tab
+        # Adding a new tab for the client
         self.add_tab(client, name=client.get_name())
 
-        # Connecting kernel and client
+        # Register client
         self.register_client(client)
 
     #------ Public API (for tabs) ---------------------------------------------
