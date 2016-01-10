@@ -1038,9 +1038,9 @@ class IPythonConsole(SpyderPluginWidget):
         # Paths that we need to add to PYTHONPATH:
         # 1. sc_path: Path to our sitecustomize
         # 2. spy_path: Path to our main module, so we can use our config
-        #              system to configure kernels
+        #    system to configure kernels started by exterrnal interpreters
         # 3. spy_pythonpath: Paths saved by our users with our PYTHONPATH
-        #                    manager
+        #    manager
         sc_path = get_module_source_path('spyderlib.widgets.externalshell')
         spy_path = get_module_source_path('spyderlib')
         spy_pythonpath = self.main.get_spyder_pythonpath()
@@ -1060,6 +1060,7 @@ class IPythonConsole(SpyderPluginWidget):
             os.environ.pop('VIRTUAL_ENV', None)
             pyexec = CONF.get('console', 'pythonexecutable')
 
+        # Command used to start kernels
         kernel_cmd = [
             pyexec,
             osp.join("%s" % sc_path, "start_ipython_kernel.py"),
@@ -1067,6 +1068,7 @@ class IPythonConsole(SpyderPluginWidget):
             '{connection_file}'
         ]
 
+        # Environment variables that we need to pass to sitecustomize
         umr_namelist = ','.join(CONF.get('console', 'umr/namelist'))
         env_vars = {
             'IPYTHON_KERNEL': 'True',
@@ -1077,6 +1079,7 @@ class IPythonConsole(SpyderPluginWidget):
         }
         env_vars.update(pypath)
 
+        # Dict for our kernel spec
         kernel_dict = {
             'argv': kernel_cmd,
             'display_name': 'Spyder',
