@@ -103,7 +103,7 @@ MAIN_APP = qapplication()
 # Create splash screen out of MainWindow to reduce perceived startup time. 
 #==============================================================================
 from spyderlib.config.base import _, get_image_path, DEV
-SPLASH = QSplashScreen(QPixmap(get_image_path('splash.png'), 'png'))
+SPLASH = QSplashScreen(QPixmap(get_image_path('splash.svg'), 'svg'))
 SPLASH_FONT = SPLASH.font()
 SPLASH_FONT.setPixelSize(10)
 SPLASH.setFont(SPLASH_FONT)
