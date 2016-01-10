@@ -1083,7 +1083,7 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Making all env_vars strings
         for k,v in iteritems(env_vars):
-            if PY2 and os.name == 'nt':
+            if PY2:
                 uv = to_text_string(v)
                 env_vars[k] = to_binary_string(uv, encoding='utf-8')
             else:
