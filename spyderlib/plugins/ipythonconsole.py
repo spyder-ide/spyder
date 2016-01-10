@@ -37,6 +37,7 @@ from spyderlib.qt.QtCore import Signal, Slot, Qt
 from IPython.core.application import get_ipython_dir
 from jupyter_client.connect import find_connection_file
 from jupyter_client.kernelspec import KernelSpec
+from jupyter_core.paths import jupyter_runtime_dir
 from qtconsole.client import QtKernelClient
 from qtconsole.manager import QtKernelManager
 
@@ -1010,7 +1011,6 @@ class IPythonConsole(SpyderPluginWidget):
 
         Taken from jupyter_client/console_app.py
         """
-        from jupyter_core.paths import jupyter_runtime_dir
         cf = ''
         while not cf:
             ident = str(uuid.uuid4()).split('-')[-1]
