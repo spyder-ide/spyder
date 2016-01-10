@@ -8,7 +8,7 @@
 spyderlib.py3compat
 -------------------
 
-Transitional module providing compatibility functions intended to help 
+Transitional module providing compatibility functions intended to help
 migrating from Python 2 to Python 3.
 
 This module should be fully compatible with:
@@ -63,6 +63,7 @@ if PY2:
     from UserDict import DictMixin as MutableMapping
     import thread as _thread
     import repr as reprlib
+    import Queue
 else:
     # Python 3
     import builtins
@@ -77,7 +78,7 @@ else:
     from collections import MutableMapping
     import _thread
     import reprlib
-
+    import queue as Queue
 
 #==============================================================================
 # Strings

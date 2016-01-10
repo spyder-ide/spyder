@@ -11,7 +11,6 @@ import re
 import os.path as osp
 import sys
 import time
-import threading
 
 from spyderlib import dependencies
 from spyderlib.config.base import _, debug_print
@@ -27,7 +26,7 @@ except ImportError:
     jedi = None
 
 
-JEDI_REQVER = '>=0.8.1;<0.9.0'
+JEDI_REQVER = '>=0.8.1'
 dependencies.add('jedi',
                  _("(Experimental) Editor's code completion,"
                    " go-to-definition and help"),
@@ -49,9 +48,8 @@ class JediPlugin(IntrospectionPlugin):
         if not programs.is_module_installed('jedi', JEDI_REQVER):
             raise ImportError('Requires Jedi %s' % JEDI_REQVER)
         jedi.settings.case_insensitive_completion = False
-        self.busy = True
-        self._warmup_thread = threading.Thread(target=self.preload)
-        self._warmup_thread.start()
+        for lib in ['numpy', 'matplotlib']:
+            jedi.preload_module(lib)
 
     def get_completions(self, info):
         """Return a list of (completion, type) tuples"""
@@ -152,10 +150,6 @@ class JediPlugin(IntrospectionPlugin):
             return
         return module_path, line_nr
 
-    def set_pref(self, name, value):
-        """Set a plugin preference to a value"""
-        pass
-
     # ---- Private API -------------------------------------------------------
 
     def get_jedi_object(self, func_name, info, use_filename=True):
@@ -240,12 +234,6 @@ class JediPlugin(IntrospectionPlugin):
         if not ext in self.all_editable_exts():
             line_nr = None
         return module_path, line_nr
-
-    def preload(self):
-        """Preload a list of libraries"""
-        for lib in ['numpy']:
-            jedi.preload_module(lib)
-        self.busy = False
 
 if __name__ == '__main__':
 

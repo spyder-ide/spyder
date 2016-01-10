@@ -15,8 +15,6 @@ import imp
 import time
 
 from spyderlib.config.base import DEBUG, get_conf_path, debug_print
-from spyderlib.utils.introspection.module_completion import (
-    get_preferred_submodules)
 from spyderlib.utils import sourcecode
 from spyderlib.utils.debug import log_last_error
 
@@ -94,21 +92,6 @@ class RequestHandler(QObject):
         debug_print('%s request from %s finished: "%s" in %.1f sec'
             % (self.info.name, name, str(result)[:100], delta))
         self.introspection_complete.emit()
-
-
-class GetSubmodulesThread(QThread):
-
-    """
-    A thread to generate a list of submodules to be passed to
-    introspection plugins
-    """
-
-    def __init__(self):
-        super(GetSubmodulesThread, self).__init__()
-        self.submods = []
-
-    def run(self):
-        self.submods = get_preferred_submodules()
 
 
 class IntrospectionThread(QThread):
@@ -255,9 +238,6 @@ class PluginManager(QObject):
         self.pending = None
         self.busy = False
         self.load_plugins()
-        self._submods_thread = GetSubmodulesThread()
-        self._submods_thread.finished.connect(self._update_extension_modules)
-        self._submods_thread.start()
 
     def load_plugins(self):
         """Get and load a plugin, checking in order of PLUGINS"""
@@ -469,12 +449,6 @@ class PluginManager(QObject):
         fname, lineno = resp
         self.edit_goto.emit(fname, lineno, "")
 
-    def _update_extension_modules(self):
-        """Set the extension_modules after submods thread finishes"""
-        for plugin in self.plugins.values():
-            plugin.set_pref('extension_modules',
-                            self._submods_thread.submods)
-
     def _post_message(self, message, timeout=60000):
         """
         Post a message to the main window status bar with a timeout in ms
@@ -540,10 +514,6 @@ class IntrospectionPlugin(object):
         """Get a (filename, line_num) location for a definition"""
         pass
 
-    def set_pref(self, name, value):
-        """Set a plugin preference to a value"""
-        pass
-
     def validate(self):
         """Validate the plugin"""
         pass
@@ -578,6 +548,7 @@ class IntrospectionPlugin(object):
 if __name__ == '__main__':
     code = 'import numpy'
     test = CodeInfo('test', code, len(code) - 2)
+    print(test.serialize())
     assert test.obj == 'num'
     assert test.full_obj == 'numpy'
     test2 = CodeInfo('test', code, len(code) - 2)

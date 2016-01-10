@@ -19,6 +19,8 @@ from spyderlib.utils import sourcecode
 from spyderlib.utils.debug import log_last_error, log_dt
 from spyderlib.utils.introspection.plugin_manager import (
     DEBUG_EDITOR, LOG_FILENAME, IntrospectionPlugin)
+from spyderlib.utils.introspection.module_completion import (
+    get_preferred_submodules)
 try:
     try:
         from spyderlib import rope_patch
@@ -63,6 +65,9 @@ class RopePlugin(IntrospectionPlugin):
             raise ImportError('Requires Rope %s' % ROPE_REQVER)
         self.project = None
         self.create_rope_project(root_path=get_conf_path())
+        submods = get_preferred_submodules()
+        if self.project is not None:
+            self.project.prefs.set('extension_modules', submods)
 
     def get_completions(self, info):
         """Get a list of (completion, type) tuples using Rope"""
@@ -226,18 +231,13 @@ class RopePlugin(IntrospectionPlugin):
             if DEBUG_EDITOR:
                 log_last_error(LOG_FILENAME, "get_definition_location")
 
-    def validate(self):
+    def validate(self, info):
         """Validate the Rope project"""
         if self.project is not None:
             try:
                 self.project.validate(self.project.root)
             except RuntimeError:
                 pass
-
-    def set_pref(self, key, value):
-        """Set a Rope preference"""
-        if self.project is not None:
-            self.project.prefs.set(key, value)
 
     # ---- Private API -------------------------------------------------------
 
