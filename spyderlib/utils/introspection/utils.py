@@ -8,11 +8,12 @@
 Introspection utilities used by Spyder
 """
 
-import functools
 import imp
 import os
 import os.path as osp
 import re
+
+from spyderlib.utils.misc import memoize
 
 
 class CodeInfo(object):
@@ -123,29 +124,6 @@ class CodeInfo(object):
             return False
 
 
-def memoize(obj):
-    """
-    Memoize objects to trade memory for execution speed
-
-    Use a limited size cache to store the value, which takes into account
-    The calling args and kwargs
-
-    See https://wiki.python.org/moin/PythonDecoratorLibrary#Memoize
-    """
-    cache = obj.cache = {}
-
-    @functools.wraps(obj)
-    def memoizer(*args, **kwargs):
-        key = str(args) + str(kwargs)
-        if key not in cache:
-            cache[key] = obj(*args, **kwargs)
-        # only keep the most recent 100 entries
-        if len(cache) > 100:
-            cache.popitem(last=False)
-        return cache[key]
-    return memoizer
-
-
 @memoize
 def get_parent_until(path):
     """
@@ -175,7 +153,6 @@ def get_parent_until(path):
 if __name__ == '__main__':
     code = 'import numpy'
     test = CodeInfo('test', code, len(code) - 2)
-    print(test.serialize())
     assert test.obj == 'num'
     assert test.full_obj == 'numpy'
     test2 = CodeInfo('test', code, len(code) - 2)

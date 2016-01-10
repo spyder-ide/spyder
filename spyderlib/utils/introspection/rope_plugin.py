@@ -231,7 +231,7 @@ class RopePlugin(IntrospectionPlugin):
             if DEBUG_EDITOR:
                 log_last_error(LOG_FILENAME, "get_definition_location")
 
-    def validate(self, info):
+    def validate(self):
         """Validate the Rope project"""
         if self.project is not None:
             try:

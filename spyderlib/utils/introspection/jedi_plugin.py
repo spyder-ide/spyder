@@ -131,6 +131,7 @@ class JediPlugin(IntrospectionPlugin):
         line, filename = info.line_num, info.filename
         def_info, module_path, line_nr = None, None, None
         gotos = self.get_jedi_object('goto_assignments', info)
+
         if gotos:
             def_info = self.get_definition_info(gotos[0])
         if def_info and def_info['goto_next']:
@@ -195,7 +196,10 @@ class JediPlugin(IntrospectionPlugin):
         try:
             module_path = defn.module_path
             name = defn.name
-            line_nr = defn.line_nr
+            if hasattr(defn, 'line_nr'):
+                line_nr = defn.line_nr
+            else:
+                line_nr = defn.line
             description = defn.description
             in_builtin = defn.in_builtin_module()
         except Exception as e:
@@ -243,12 +247,6 @@ if __name__ == '__main__':
     p = JediPlugin()
     p.load_plugin()
 
-    print('Warming up Jedi')
-    t0 = time.time()
-    while p.busy:
-        time.sleep(0.1)
-    print('Warmed up in %0.1f s' % (time.time() - t0))
-
     source_code = "import numpy; numpy.ones("
     docs = p.get_info(CodeInfo('info', source_code, len(source_code)))
 
@@ -264,10 +262,10 @@ if __name__ == '__main__':
         len(source_code)))
     assert 'frame.py' in path
 
-    source_code = 'from .plugin_manager import memoize'
+    source_code = 'from .utils import CodeInfo'
     path, line_nr = p.get_definition(CodeInfo('definition', source_code,
         len(source_code), __file__))
-    assert 'plugin_manager.py' in path and 'introspection' in path
+    assert 'utils.py' in path and 'introspection' in path
 
     code = '''
 def test(a, b):
