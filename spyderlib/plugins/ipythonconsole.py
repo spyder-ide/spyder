@@ -1010,6 +1010,7 @@ class IPythonConsole(SpyderPluginWidget):
         Generate a new connection file
 
         Taken from jupyter_client/console_app.py
+        Licensed under the BSD license
         """
         cf = ''
         while not cf:
