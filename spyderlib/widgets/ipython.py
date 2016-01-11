@@ -407,8 +407,8 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         document.contentsChange.connect(self._stop_loading_animation)
 
     #------ Public API --------------------------------------------------------
-    def show_shellwidget(self, give_focus=True):
-        """Show shellwidget and configure it"""
+    def configure_shellwidget(self, give_focus=True):
+        """Configure shellwidget after kernel is started"""
         if give_focus:
             self.get_control().setFocus()
 

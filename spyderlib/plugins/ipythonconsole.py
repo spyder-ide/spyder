@@ -904,7 +904,7 @@ class IPythonConsole(SpyderPluginWidget):
 
     def register_client(self, client, give_focus=True):
         """Register new client"""
-        client.show_shellwidget(give_focus=give_focus)
+        client.configure_shellwidget(give_focus=give_focus)
 
         # Local vars
         shellwidget = client.shellwidget
