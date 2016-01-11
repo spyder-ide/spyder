@@ -34,7 +34,6 @@ from spyderlib.qt.compat import getopenfilename
 from spyderlib.qt.QtCore import Signal, Slot, Qt
 
 # IPython/Jupyter imports
-from IPython.core.application import get_ipython_dir
 from jupyter_client.connect import find_connection_file
 from jupyter_client.kernelspec import KernelSpec
 from jupyter_core.paths import jupyter_runtime_dir
@@ -50,7 +49,7 @@ except ImportError:
 
 # Local imports
 from spyderlib import dependencies
-from spyderlib.config.base import _, get_module_source_path
+from spyderlib.config.base import _, get_home_dir, get_module_source_path
 from spyderlib.config.main import CONF
 from spyderlib.utils.misc import (get_error_match, remove_backslashes,
                                   add_pathlist_to_PYTHONPATH,
@@ -568,8 +567,8 @@ class KernelConnectionDialog(QDialog):
         self.cf.setText(cf)
 
     def select_ssh_key(self):
-        kf = getopenfilename(self, _('Select ssh key'), 
-                             get_ipython_dir(), '*.pem;;*.*')[0]
+        kf = getopenfilename(self, _('Select ssh key'),
+                             get_home_dir(), '*.pem;;*.*')[0]
         self.kf.setText(kf)
 
     @staticmethod
