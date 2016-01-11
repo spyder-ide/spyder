@@ -1016,20 +1016,6 @@ class IPythonConsole(SpyderPluginWidget):
             self.close_client(client=cl, force=True)
 
     #------ Public API (for kernels) ------------------------------------------
-    def _new_connection_file(self):
-        """
-        Generate a new connection file
-
-        Taken from jupyter_client/console_app.py
-        Licensed under the BSD license
-        """
-        cf = ''
-        while not cf:
-            ident = str(uuid.uuid4()).split('-')[-1]
-            cf = os.path.join(jupyter_runtime_dir(), 'kernel-%s.json' % ident)
-            cf = cf if not os.path.exists(cf) else ''
-        return cf
-
     def ssh_tunnel(self, *args, **kwargs):
         if os.name == 'nt':
             return zmqtunnel.paramiko_tunnel(*args, **kwargs)
@@ -1048,7 +1034,8 @@ class IPythonConsole(SpyderPluginWidget):
                   connection_info['stdin_port'], connection_info['hb_port'])
         remote_ip = connection_info['ip']
         for lp, rp in zip(lports, rports):
-            self.ssh_tunnel(lp, rp, hostname, remote_ip, sshkey, password, timeout)
+            self.ssh_tunnel(lp, rp, hostname, remote_ip, sshkey, password,
+                            timeout)
         return tuple(lports)
 
     def create_kernel_spec(self):
@@ -1130,6 +1117,68 @@ class IPythonConsole(SpyderPluginWidget):
 
         return kernel_manager, kernel_client
 
+    #------ Public API (for tabs) ---------------------------------------------
+    def add_tab(self, widget, name):
+        """Add tab"""
+        self.clients.append(widget)
+        index = self.tabwidget.addTab(widget, ima.icon('ipython_console'),
+                                      name)
+        self.tabwidget.setCurrentIndex(index)
+        if self.dockwidget and not self.ismaximized:
+            self.dockwidget.setVisible(True)
+            self.dockwidget.raise_()
+        self.activateWindow()
+        widget.get_control().setFocus()
+        
+    def move_tab(self, index_from, index_to):
+        """
+        Move tab (tabs themselves have already been moved by the tabwidget)
+        """
+        client = self.clients.pop(index_from)
+        self.clients.insert(index_to, client)
+        self.update_plugin_title.emit()
+
+    #------ Public API (for help) ---------------------------------------------
+    def go_to_error(self, text):
+        """Go to error if relevant"""
+        match = get_error_match(to_text_string(text))
+        if match:
+            fname, lnb = match.groups()
+            self.edit_goto.emit(osp.abspath(fname), int(lnb), '')
+
+    @Slot()
+    def show_intro(self):
+        """Show intro to IPython help"""
+        from IPython.core.usage import interactive_usage
+        self.help.show_rich_text(interactive_usage)
+
+    @Slot()
+    def show_guiref(self):
+        """Show qtconsole help"""
+        from IPython.core.usage import gui_reference
+        self.help.show_rich_text(gui_reference, collapse=True)
+
+    @Slot()
+    def show_quickref(self):
+        """Show IPython Cheat Sheet"""
+        from IPython.core.usage import quick_reference
+        self.help.show_plain_text(quick_reference)
+
+    #------ Private API -------------------------------------------------------
+    def _new_connection_file(self):
+        """
+        Generate a new connection file
+
+        Taken from jupyter_client/console_app.py
+        Licensed under the BSD license
+        """
+        cf = ''
+        while not cf:
+            ident = str(uuid.uuid4()).split('-')[-1]
+            cf = os.path.join(jupyter_runtime_dir(), 'kernel-%s.json' % ident)
+            cf = cf if not os.path.exists(cf) else ''
+        return cf
+
     def _create_client_for_kernel(self, connection_file, hostname, sshkey,
                                   password):
         # Verifying if the connection file exists
@@ -1205,50 +1254,3 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Register client
         self.register_client(client)
-
-    #------ Public API (for tabs) ---------------------------------------------
-    def add_tab(self, widget, name):
-        """Add tab"""
-        self.clients.append(widget)
-        index = self.tabwidget.addTab(widget, ima.icon('ipython_console'),
-                                      name)
-        self.tabwidget.setCurrentIndex(index)
-        if self.dockwidget and not self.ismaximized:
-            self.dockwidget.setVisible(True)
-            self.dockwidget.raise_()
-        self.activateWindow()
-        widget.get_control().setFocus()
-        
-    def move_tab(self, index_from, index_to):
-        """
-        Move tab (tabs themselves have already been moved by the tabwidget)
-        """
-        client = self.clients.pop(index_from)
-        self.clients.insert(index_to, client)
-        self.update_plugin_title.emit()
-
-    #------ Public API (for help) ---------------------------------------------
-    def go_to_error(self, text):
-        """Go to error if relevant"""
-        match = get_error_match(to_text_string(text))
-        if match:
-            fname, lnb = match.groups()
-            self.edit_goto.emit(osp.abspath(fname), int(lnb), '')
-
-    @Slot()
-    def show_intro(self):
-        """Show intro to IPython help"""
-        from IPython.core.usage import interactive_usage
-        self.help.show_rich_text(interactive_usage)
-
-    @Slot()
-    def show_guiref(self):
-        """Show qtconsole help"""
-        from IPython.core.usage import gui_reference
-        self.help.show_rich_text(gui_reference, collapse=True)
-
-    @Slot()
-    def show_quickref(self):
-        """Show IPython Cheat Sheet"""
-        from IPython.core.usage import quick_reference
-        self.help.show_plain_text(quick_reference)
