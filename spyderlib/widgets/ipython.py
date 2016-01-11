@@ -360,28 +360,32 @@ class IPythonClient(QWidget, SaveHistoryMixin):
                  hostname=None, menu_actions=None):
         super(IPythonClient, self).__init__(plugin)
         SaveHistoryMixin.__init__(self)
-        self.options_button = None
 
-        # stop button and icon
-        self.stop_button = None
-        self.stop_icon = ima.icon('stop')
+        # --- Init attrs
+        self.name = name
+        self.history_filename = get_conf_path(history_filename)
         self.connection_file = connection_file
         self.hostname = hostname
-        self.name = name
+        self.menu_actions = menu_actions
+
+        # --- Other attrs
+        self.options_button = None
+        self.stop_button = None
+        self.stop_icon = ima.icon('stop')
         self.get_option = plugin.get_option
+        self.history = []
+        self.namespacebrowser = None
+
+        # --- Widgets
         self.shellwidget = IPythonShellWidget(config=self.shellwidget_config(),
                                               local_kernel=True)
         self.shellwidget.hide()
         self.infowidget = WebView(self)
-        self.menu_actions = menu_actions
-        self.history_filename = get_conf_path(history_filename)
-        self.history = []
-        self.namespacebrowser = None
-
         self.set_infowidget_font()
         self.loading_page = self._create_loading_page()
         self.infowidget.setHtml(self.loading_page)
 
+        # --- Layout
         vlayout = QVBoxLayout()
         toolbar_buttons = self.get_toolbar_buttons()
         hlayout = QHBoxLayout()
@@ -393,8 +397,10 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         vlayout.addWidget(self.infowidget)
         self.setLayout(vlayout)
 
+        # --- Exit function
         self.exit_callback = lambda: plugin.close_client(client=self)
 
+        # --- Signals
         # As soon as some content is printed in the console, stop
         # our loading animation
         document = self.get_control().document()
