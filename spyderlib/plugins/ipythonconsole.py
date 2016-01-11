@@ -854,6 +854,9 @@ class IPythonConsole(SpyderPluginWidget):
                                menu_actions=self.menu_actions,
                                connection_file=self._new_connection_file())
         self.add_tab(client, name=client.get_name())
+
+        # Check if ipykernel is present in the external interpreter.
+        # Else we won't be able to create a client
         if not self.default_interpreter:
             pyexec = CONF.get('console', 'pythonexecutable')
             ipykernel_present = programs.is_module_installed('ipykernel',
@@ -867,8 +870,20 @@ class IPythonConsole(SpyderPluginWidget):
                                      "Spyder to create an IPython console for "
                                      "you."))
                 return
+
         self.connect_client_to_kernel(client)
         self.register_client(client)
+
+    @Slot()
+    def create_client_for_kernel(self):
+        """Create a client connected to an existing kernel"""
+        connect_output = KernelConnectionDialog.get_connection_parameters(self)
+        (connection_file, hostname, sshkey, password, ok) = connect_output
+        if not ok:
+            return
+        else:
+            self._create_client_for_kernel(connection_file, hostname, sshkey,
+                                           password)
 
     def connect_client_to_kernel(self, client):
         """Connect a client to its kernel"""
@@ -940,17 +955,6 @@ class IPythonConsole(SpyderPluginWidget):
             control.visibility_changed.connect(self.refresh_plugin)
             page_control.visibility_changed.connect(self.refresh_plugin)
             page_control.show_find_widget.connect(self.find_widget.show)
-
-    @Slot()
-    def create_client_for_kernel(self):
-        """Create a client connected to an existing kernel"""
-        connect_output = KernelConnectionDialog.get_connection_parameters(self)
-        (connection_file, hostname, sshkey, password, ok) = connect_output
-        if not ok:
-            return
-        else:
-            self._create_client_for_kernel(connection_file, hostname, sshkey,
-                                           password)
 
     def close_client(self, index=None, client=None, force=False):
         """Close client tab from index or widget (or close current tab)"""
