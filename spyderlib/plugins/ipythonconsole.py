@@ -902,7 +902,7 @@ class IPythonConsole(SpyderPluginWidget):
         widget.kernel_manager = km
         widget.kernel_client = kc
 
-    def register_client(self, client, restart=False, give_focus=True):
+    def register_client(self, client, give_focus=True):
         """Register new client"""
         client.show_shellwidget(give_focus=give_focus)
 
@@ -926,12 +926,6 @@ class IPythonConsole(SpyderPluginWidget):
         #    nsb.auto_refresh_button.setEnabled(False)
         #    nsb.set_ipyclient(client)
         #    client.set_namespacebrowser(nsb)
-
-        # If we are restarting the kernel we need to rename
-        # the client tab and do no more from here on
-        if restart:
-            self.rename_client_tab(client)
-            return
 
         # Create new clients with Ctrl+T shortcut
         shellwidget.new_client.connect(self.create_new_client)
@@ -1005,9 +999,9 @@ class IPythonConsole(SpyderPluginWidget):
         for index, client in enumerate(self.clients):
             if id(client) == client_id:
                 return index
-    
+
     def rename_client_tab(self, client):
-        """Add the pid of the kernel process to client tab"""
+        """Rename client's tab"""
         index = self.get_client_index_from_id(id(client))
         self.tabwidget.setTabText(index, client.get_name())
 

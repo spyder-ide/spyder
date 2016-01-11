@@ -567,9 +567,12 @@ class IPythonClient(QWidget, SaveHistoryMixin):
 
     @Slot()
     def restart_kernel(self):
-        """Restart the associanted kernel"""
-        # Took this code from the qtconsole project
-        # Licensed under the BSD license
+        """
+        Restart the associanted kernel
+
+        Took this code from the qtconsole project
+        Licensed under the BSD license
+        """
         message = _('Are you sure you want to restart the kernel?')
         buttons = QMessageBox.Yes | QMessageBox.No
         result = QMessageBox.question(self, _('Restart kernel?'),
