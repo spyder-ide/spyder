@@ -371,16 +371,16 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         self.get_option = plugin.get_option
         self.shellwidget = IPythonShellWidget(config=self.shellwidget_config(),
                                               local_kernel=True)
+        self.shellwidget.hide()
         self.infowidget = WebView(self)
-        self.infowidget.hide()
         self.menu_actions = menu_actions
         self.history_filename = get_conf_path(history_filename)
         self.history = []
         self.namespacebrowser = None
 
         self.set_infowidget_font()
-        #self.loading_page = self._create_loading_page()
-        #self.infowidget.setHtml(self.loading_page)
+        self.loading_page = self._create_loading_page()
+        self.infowidget.setHtml(self.loading_page)
 
         vlayout = QVBoxLayout()
         toolbar_buttons = self.get_toolbar_buttons()
@@ -395,12 +395,14 @@ class IPythonClient(QWidget, SaveHistoryMixin):
 
         self.exit_callback = lambda: plugin.close_client(client=self)
 
+        # As soon as some content is printed in the console, stop
+        # our loading animation
+        document = self.get_control().document()
+        document.contentsChange.connect(self._stop_loading_animation)
+
     #------ Public API --------------------------------------------------------
     def show_shellwidget(self, give_focus=True):
         """Show shellwidget and configure it"""
-        #self.infowidget.hide()
-        #self.shellwidget.show()
-        #self.infowidget.setHtml(BLANK)
         if give_focus:
             self.get_control().setFocus()
 
@@ -717,10 +719,10 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         # over IPython ones
         ip_cfg._merge(spy_cfg)
         return ip_cfg
-    
+
     #------ Private API -------------------------------------------------------
     def _create_loading_page(self):
-        """Create html page to show while the kernel is created"""
+        """Create html page to show while the kernel is starting"""
         loading_template = Template(LOADING)
         loading_img = get_image_path('loading_sprites.png')
         if os.name == 'nt':
@@ -730,3 +732,12 @@ class IPythonClient(QWidget, SaveHistoryMixin):
                                            loading_img=loading_img,
                                            message=message)
         return page
+
+    def _stop_loading_animation(self):
+        """Stop animation shown while the kernel is starting"""
+        self.infowidget.hide()
+        self.shellwidget.show()
+        self.infowidget.setHtml(BLANK)
+
+        document = self.get_control().document()
+        document.contentsChange.disconnect(self._stop_loading_animation)
