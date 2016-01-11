@@ -730,13 +730,3 @@ class IPythonClient(QWidget, SaveHistoryMixin):
                                            loading_img=loading_img,
                                            message=message)
         return page
-    
-    #---- Qt methods ----------------------------------------------------------
-    def closeEvent(self, event):
-        """
-        Reimplement Qt method to stop sending the custom_restart_kernel_died
-        signal
-        """
-        kc = self.shellwidget.kernel_client
-        if kc is not None:
-            kc.hb_channel.pause()
