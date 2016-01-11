@@ -785,12 +785,6 @@ class IPythonConsole(SpyderPluginWidget):
     def get_clients(self):
         """Return clients list"""
         return [cl for cl in self.clients if isinstance(cl, IPythonClient)]
-        
-#    def get_kernels(self):
-#        """Return IPython kernel widgets list"""
-#        return [sw for sw in self.shellwidgets
-#                if isinstance(sw, IPythonKernel)]
-#        
 
     def get_focus_client(self):
         """Return current client with focus, if any"""
