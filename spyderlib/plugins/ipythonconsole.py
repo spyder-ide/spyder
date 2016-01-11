@@ -870,6 +870,14 @@ class IPythonConsole(SpyderPluginWidget):
         self.connect_client_to_kernel(client)
         self.register_client(client)
 
+    def connect_client_to_kernel(self, client):
+        """Connect a client to its kernel"""
+        connection_file = client.connection_file
+        km, kc = self.create_kernel_manager_and_kernel_client(connection_file)
+        widget = client.shellwidget
+        widget.kernel_manager = km
+        widget.kernel_client = kc
+
     def register_client(self, client, restart=False, give_focus=True):
         """Register new client"""
         client.show_shellwidget(give_focus=give_focus)
@@ -932,6 +940,17 @@ class IPythonConsole(SpyderPluginWidget):
             control.visibility_changed.connect(self.refresh_plugin)
             page_control.visibility_changed.connect(self.refresh_plugin)
             page_control.show_find_widget.connect(self.find_widget.show)
+
+    @Slot()
+    def create_client_for_kernel(self):
+        """Create a client connected to an existing kernel"""
+        connect_output = KernelConnectionDialog.get_connection_parameters(self)
+        (connection_file, hostname, sshkey, password, ok) = connect_output
+        if not ok:
+            return
+        else:
+            self._create_client_for_kernel(connection_file, hostname, sshkey,
+                                           password)
 
     def close_client(self, index=None, client=None, force=False):
         """Close client tab from index or widget (or close current tab)"""
@@ -1097,7 +1116,7 @@ class IPythonConsole(SpyderPluginWidget):
 
         return KernelSpec(resource_dir='', **kernel_dict)
 
-    def create_kernel_manager_and_client(self, connection_file=None):
+    def create_kernel_manager_and_kernel_client(self, connection_file):
         """Create kernel manager and client"""
         # Kernel manager
         kernel_manager = QtKernelManager(connection_file=connection_file,
@@ -1110,24 +1129,6 @@ class IPythonConsole(SpyderPluginWidget):
         kernel_client.start_channels(shell=True, iopub=True)
 
         return kernel_manager, kernel_client
-
-    def connect_client_to_kernel(self, client):
-        """Connect a client to its kernel"""
-        km, kc = self.create_kernel_manager_and_client(client.connection_file)
-        widget = client.shellwidget
-        widget.kernel_manager = km
-        widget.kernel_client = kc
-
-    @Slot()
-    def create_client_for_kernel(self):
-        """Create a client connected to an existing kernel"""
-        connect_output = KernelConnectionDialog.get_connection_parameters(self)
-        (connection_file, hostname, sshkey, password, ok) = connect_output
-        if not ok:
-            return
-        else:
-            self._create_client_for_kernel(connection_file, hostname, sshkey,
-                                           password)
 
     def _create_client_for_kernel(self, connection_file, hostname, sshkey,
                                   password):
