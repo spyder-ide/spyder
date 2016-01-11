@@ -70,6 +70,9 @@ dependencies.add("sympy", _("Symbolic mathematics in the IPython Console"),
                  required_version=SYMPY_REQVER)
 
 
+#------------------------------------------------------------------------------
+# Existing kernels
+#------------------------------------------------------------------------------
 # Replacing pyzmq openssh_tunnel method to work around the issue
 # https://github.com/zeromq/pyzmq/issues/589 which was solved in pyzmq
 # https://github.com/zeromq/pyzmq/pull/615
@@ -151,8 +154,119 @@ def openssh_tunnel(self, lport, rport, server, remoteip='127.0.0.1',
             failed = True
 
 
-class IPythonConsoleConfigPage(PluginConfigPage):
+class KernelConnectionDialog(QDialog):
+    """Dialog to connect to existing kernels (either local or remote)"""
     
+    def __init__(self, parent=None):
+        super(KernelConnectionDialog, self).__init__(parent)
+        self.setWindowTitle(_('Connect to an existing kernel'))
+        
+        main_label = QLabel(_("Please enter the connection info of the kernel "
+                              "you want to connect to. For that you can "
+                              "either select its JSON connection file using "
+                              "the <tt>Browse</tt> button, or write directly "
+                              "its id, in case it's a local kernel (for "
+                              "example <tt>kernel-3764.json</tt> or just "
+                              "<tt>3764</tt>)."))
+        main_label.setWordWrap(True)
+        main_label.setAlignment(Qt.AlignJustify)
+        
+        # connection file
+        cf_label = QLabel(_('Connection info:'))
+        self.cf = QLineEdit()
+        self.cf.setPlaceholderText(_('Path to connection file or kernel id'))
+        self.cf.setMinimumWidth(250)
+        cf_open_btn = QPushButton(_('Browse'))
+        cf_open_btn.clicked.connect(self.select_connection_file)
+
+        cf_layout = QHBoxLayout()
+        cf_layout.addWidget(cf_label)
+        cf_layout.addWidget(self.cf)
+        cf_layout.addWidget(cf_open_btn)
+        
+        # remote kernel checkbox 
+        self.rm_cb = QCheckBox(_('This is a remote kernel'))
+        
+        # ssh connection 
+        self.hn = QLineEdit()
+        self.hn.setPlaceholderText(_('username@hostname:port'))
+        
+        self.kf = QLineEdit()
+        self.kf.setPlaceholderText(_('Path to ssh key file'))
+        kf_open_btn = QPushButton(_('Browse'))
+        kf_open_btn.clicked.connect(self.select_ssh_key)
+
+        kf_layout = QHBoxLayout()
+        kf_layout.addWidget(self.kf)
+        kf_layout.addWidget(kf_open_btn)
+        
+        self.pw = QLineEdit()
+        self.pw.setPlaceholderText(_('Password or ssh key passphrase'))
+        self.pw.setEchoMode(QLineEdit.Password)
+
+        ssh_form = QFormLayout()
+        ssh_form.addRow(_('Host name'), self.hn)
+        ssh_form.addRow(_('Ssh key'), kf_layout)
+        ssh_form.addRow(_('Password'), self.pw)
+        
+        # Ok and Cancel buttons
+        accept_btns = QDialogButtonBox(
+            QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
+            Qt.Horizontal, self)
+
+        accept_btns.accepted.connect(self.accept)
+        accept_btns.rejected.connect(self.reject)
+
+        # Dialog layout
+        layout = QVBoxLayout(self)
+        layout.addWidget(main_label)
+        layout.addLayout(cf_layout)
+        layout.addWidget(self.rm_cb)
+        layout.addLayout(ssh_form)
+        layout.addWidget(accept_btns)
+                
+        # remote kernel checkbox enables the ssh_connection_form
+        def ssh_set_enabled(state):
+            for wid in [self.hn, self.kf, kf_open_btn, self.pw]:
+                wid.setEnabled(state)
+            for i in range(ssh_form.rowCount()):
+                ssh_form.itemAt(2 * i).widget().setEnabled(state)
+       
+        ssh_set_enabled(self.rm_cb.checkState())
+        self.rm_cb.stateChanged.connect(ssh_set_enabled)
+
+    def select_connection_file(self):
+        cf = getopenfilename(self, _('Open IPython connection file'),
+                             jupyter_runtime_dir(), '*.json;;*.*')[0]
+        self.cf.setText(cf)
+
+    def select_ssh_key(self):
+        kf = getopenfilename(self, _('Select ssh key'),
+                             get_home_dir(), '*.pem;;*.*')[0]
+        self.kf.setText(kf)
+
+    @staticmethod
+    def get_connection_parameters(parent=None):
+        dialog = KernelConnectionDialog(parent)
+        result = dialog.exec_()
+        is_remote = bool(dialog.rm_cb.checkState())
+        accepted = result == QDialog.Accepted
+        if is_remote:
+            falsy_to_none = lambda arg: arg if arg else None
+            return (dialog.cf.text(),            # connection file
+                falsy_to_none(dialog.hn.text()), # host name
+                falsy_to_none(dialog.kf.text()), # ssh key file
+                falsy_to_none(dialog.pw.text()), # ssh password
+                accepted)                        # ok
+        else:
+            return (dialog.cf.text(), None, None, None, accepted)
+
+
+#------------------------------------------------------------------------------
+# Config page
+#------------------------------------------------------------------------------
+class IPythonConsoleConfigPage(PluginConfigPage):
+
     def __init__(self, plugin, parent):
         PluginConfigPage.__init__(self, plugin, parent)
         self.get_name = lambda: _("IPython console")
@@ -480,114 +594,9 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         self.setLayout(vlayout)
 
 
-class KernelConnectionDialog(QDialog):
-    """Dialog to connect to existing kernels (either local or remote)"""
-    
-    def __init__(self, parent=None):
-        super(KernelConnectionDialog, self).__init__(parent)
-        self.setWindowTitle(_('Connect to an existing kernel'))
-        
-        main_label = QLabel(_("Please enter the connection info of the kernel "
-                              "you want to connect to. For that you can "
-                              "either select its JSON connection file using "
-                              "the <tt>Browse</tt> button, or write directly "
-                              "its id, in case it's a local kernel (for "
-                              "example <tt>kernel-3764.json</tt> or just "
-                              "<tt>3764</tt>)."))
-        main_label.setWordWrap(True)
-        main_label.setAlignment(Qt.AlignJustify)
-        
-        # connection file
-        cf_label = QLabel(_('Connection info:'))
-        self.cf = QLineEdit()
-        self.cf.setPlaceholderText(_('Path to connection file or kernel id'))
-        self.cf.setMinimumWidth(250)
-        cf_open_btn = QPushButton(_('Browse'))
-        cf_open_btn.clicked.connect(self.select_connection_file)
-
-        cf_layout = QHBoxLayout()
-        cf_layout.addWidget(cf_label)
-        cf_layout.addWidget(self.cf)
-        cf_layout.addWidget(cf_open_btn)
-        
-        # remote kernel checkbox 
-        self.rm_cb = QCheckBox(_('This is a remote kernel'))
-        
-        # ssh connection 
-        self.hn = QLineEdit()
-        self.hn.setPlaceholderText(_('username@hostname:port'))
-        
-        self.kf = QLineEdit()
-        self.kf.setPlaceholderText(_('Path to ssh key file'))
-        kf_open_btn = QPushButton(_('Browse'))
-        kf_open_btn.clicked.connect(self.select_ssh_key)
-
-        kf_layout = QHBoxLayout()
-        kf_layout.addWidget(self.kf)
-        kf_layout.addWidget(kf_open_btn)
-        
-        self.pw = QLineEdit()
-        self.pw.setPlaceholderText(_('Password or ssh key passphrase'))
-        self.pw.setEchoMode(QLineEdit.Password)
-
-        ssh_form = QFormLayout()
-        ssh_form.addRow(_('Host name'), self.hn)
-        ssh_form.addRow(_('Ssh key'), kf_layout)
-        ssh_form.addRow(_('Password'), self.pw)
-        
-        # Ok and Cancel buttons
-        accept_btns = QDialogButtonBox(
-            QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
-            Qt.Horizontal, self)
-
-        accept_btns.accepted.connect(self.accept)
-        accept_btns.rejected.connect(self.reject)
-
-        # Dialog layout
-        layout = QVBoxLayout(self)
-        layout.addWidget(main_label)
-        layout.addLayout(cf_layout)
-        layout.addWidget(self.rm_cb)
-        layout.addLayout(ssh_form)
-        layout.addWidget(accept_btns)
-                
-        # remote kernel checkbox enables the ssh_connection_form
-        def ssh_set_enabled(state):
-            for wid in [self.hn, self.kf, kf_open_btn, self.pw]:
-                wid.setEnabled(state)
-            for i in range(ssh_form.rowCount()):
-                ssh_form.itemAt(2 * i).widget().setEnabled(state)
-       
-        ssh_set_enabled(self.rm_cb.checkState())
-        self.rm_cb.stateChanged.connect(ssh_set_enabled)
-
-    def select_connection_file(self):
-        cf = getopenfilename(self, _('Open IPython connection file'),
-                             jupyter_runtime_dir(), '*.json;;*.*')[0]
-        self.cf.setText(cf)
-
-    def select_ssh_key(self):
-        kf = getopenfilename(self, _('Select ssh key'),
-                             get_home_dir(), '*.pem;;*.*')[0]
-        self.kf.setText(kf)
-
-    @staticmethod
-    def get_connection_parameters(parent=None):
-        dialog = KernelConnectionDialog(parent)
-        result = dialog.exec_()
-        is_remote = bool(dialog.rm_cb.checkState())
-        accepted = result == QDialog.Accepted
-        if is_remote:
-            falsy_to_none = lambda arg: arg if arg else None
-            return (dialog.cf.text(),            # connection file
-                falsy_to_none(dialog.hn.text()), # host name
-                falsy_to_none(dialog.kf.text()), # ssh key file
-                falsy_to_none(dialog.pw.text()), # ssh password
-                accepted)                        # ok
-        else:
-            return (dialog.cf.text(), None, None, None, accepted)
-
-
+#------------------------------------------------------------------------------
+# Plugin widget
+#------------------------------------------------------------------------------
 class IPythonConsole(SpyderPluginWidget):
     """
     IPython Console plugin
