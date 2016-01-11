@@ -498,13 +498,11 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         else:
             actions = [restart_action]
         return actions
-    
+
     def get_toolbar_buttons(self):
         """Return toolbar buttons list"""
-        #TODO: Eventually add some buttons (Empty for now)
-        # (see for example: spyderlib/widgets/externalshell/baseshell.py)
         buttons = []
-        # Code to add the stop button 
+        # Code to add the stop button
         if self.stop_button is None:
             self.stop_button = create_toolbutton(self, text=_("Stop"),
                                              icon=self.stop_icon,
@@ -531,7 +529,6 @@ class IPythonClient(QWidget, SaveHistoryMixin):
 
     def add_actions_to_context_menu(self, menu):
         """Add actions to IPython widget context menu"""
-        # See spyderlib/widgets/ipython.py for more details on this method
         inspect_action = create_action(self, _("Inspect current object"),
                                     QKeySequence(get_shortcut('console',
                                                     'inspect current object')),
@@ -639,24 +636,6 @@ class IPythonClient(QWidget, SaveHistoryMixin):
             message = _("Changing backend to Qt for Mayavi")
             self.shellwidget._append_plain_text(message + '\n')
             self.shellwidget.execute("%gui inline\n%gui qt")
-    
-    def interrupt_message(self):
-        """
-        Print an interrupt message when the client is connected to an external
-        kernel
-        """
-        message = _("Kernel process is either remote or unspecified. "
-                    "Cannot interrupt")
-        QMessageBox.information(self, "IPython", message)
-    
-    def restart_message(self):
-        """
-        Print a restart message when the client is connected to an external
-        kernel
-        """
-        message = _("Kernel process is either remote or unspecified. "
-                    "Cannot restart.")
-        QMessageBox.information(self, "IPython", message)
 
     def set_namespacebrowser(self, namespacebrowser):
         """Set namespace browser widget"""
