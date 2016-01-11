@@ -1023,15 +1023,17 @@ class IPythonConsole(SpyderPluginWidget):
         else:
             return openssh_tunnel(self, *args, **kwargs)
 
-    def tunnel_to_kernel(self, ci, hostname, sshkey=None, password=None, timeout=10):
+    def tunnel_to_kernel(self, connection_info, hostname, sshkey=None,
+                         password=None, timeout=10):
         """
         Tunnel connections to a kernel via ssh.
-        
+
         Remote ports are specified in the connection info ci.
         """
         lports = zmqtunnel.select_random_ports(4)
-        rports = ci['shell_port'], ci['iopub_port'], ci['stdin_port'], ci['hb_port']
-        remote_ip = ci['ip']
+        rports = (connection_info['shell_port'], connection_info['iopub_port'],
+                  connection_info['stdin_port'], connection_info['hb_port'])
+        remote_ip = connection_info['ip']
         for lp, rp in zip(lports, rports):
             self.ssh_tunnel(lp, rp, hostname, remote_ip, sshkey, password, timeout)
         return tuple(lports)
@@ -1125,32 +1127,35 @@ class IPythonConsole(SpyderPluginWidget):
     @Slot()
     def create_client_for_kernel(self):
         """Create a client connected to an existing kernel"""
-        (cf, hostname,
-         kf, pw, ok) = KernelConnectionDialog.get_connection_parameters(self)
+        connect_output = KernelConnectionDialog.get_connection_parameters(self)
+        (connection_file, hostname, sshkey, password, ok) = connect_output
         if not ok:
             return
         else:
-            self._create_client_for_kernel(cf, hostname, kf, pw)
+            self._create_client_for_kernel(connection_file, hostname, sshkey,
+                                           password)
 
-    def _create_client_for_kernel(self, cf, hostname, kf, pw):
+    def _create_client_for_kernel(self, connection_file, hostname, sshkey,
+                                  password):
         # Verifying if the connection file exists
         try:
-            find_connection_file(osp.basename(cf))
+            find_connection_file(osp.basename(connection_file))
         except (IOError, UnboundLocalError):
             QMessageBox.critical(self, _('IPython'),
-                                 _("Unable to connect to IPython <b>%s") % cf)
+                                 _("Unable to connect to "
+                                   "<b>%s</b>") % connection_file)
             return
-        
+
         # Getting the master name that corresponds to the client
         # (i.e. the i in i/A)
         master_name = None
         slave_ord = ord('A') - 1
         kernel_manager = None
         for cl in self.get_clients():
-            if cf in cl.connection_file:
+            if connection_file in cl.connection_file:
                 if cl.get_kernel() is not None:
                     kernel_manager = cl.get_kernel()
-                cf = cl.connection_file
+                connection_file = cl.connection_file
                 if master_name is None:
                     master_name = cl.name.split('/')[0]
                 new_slave_ord = ord(cl.name.split('/')[1])
@@ -1169,30 +1174,34 @@ class IPythonConsole(SpyderPluginWidget):
         # Creating the client
         client = IPythonClient(self, name=name,
                                history_filename='history.py',
-                               connection_file=cf, 
+                               connection_file=connection_file, 
                                menu_actions=self.menu_actions,
                                hostname=hostname)
 
         # Create kernel client
-        kernel_client = QtKernelClient(connection_file=cf)
+        kernel_client = QtKernelClient(connection_file=connection_file)
         kernel_client.load_connection_file()
         if hostname is not None:
             try:
-                newports = self.tunnel_to_kernel(dict(ip=kernel_client.ip,
-                                      shell_port=kernel_client.shell_port,
-                                      iopub_port=kernel_client.iopub_port,
-                                      stdin_port=kernel_client.stdin_port,
-                                      hb_port=kernel_client.hb_port),
-                                      hostname, kf, pw)
-                (kernel_client.shell_port, kernel_client.iopub_port,
-                 kernel_client.stdin_port, kernel_client.hb_port) = newports
+                connection_info = dict(ip = kernel_client.ip,
+                                       shell_port = kernel_client.shell_port,
+                                       iopub_port = kernel_client.iopub_port,
+                                       stdin_port = kernel_client.stdin_port,
+                                       hb_port = kernel_client.hb_port)
+                newports = self.tunnel_to_kernel(connection_info, hostname,
+                                                 sshkey, password)
+                (kernel_client.shell_port,
+                 kernel_client.iopub_port,
+                 kernel_client.stdin_port,
+                 kernel_client.hb_port) = newports
             except Exception as e:
-                QMessageBox.critical(self, _('Connection error'), 
+                QMessageBox.critical(self, _('Connection error'),
                                    _("Could not open ssh tunnel. The "
                                      "error was:\n\n") + to_text_string(e))
                 return
         kernel_client.start_channels()
 
+        # Assign kernel manager and client to shellwidget
         client.shellwidget.kernel_client = kernel_client
         client.shellwidget.kernel_manager = kernel_manager
 
