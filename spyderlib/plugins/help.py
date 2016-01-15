@@ -37,13 +37,6 @@ from spyderlib.widgets.externalshell.pythonshell import ExtPythonShellWidget
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 from spyderlib.py3compat import to_text_string, get_meth_class_inst
 
-#XXX: Hardcoded dependency on optional IPython plugin component
-#     that requires the hack to make this work without IPython
-if QTCONSOLE_INSTALLED:
-    from spyderlib.widgets.ipython import IPythonControlWidget
-else:
-    IPythonControlWidget = None  # analysis:ignore
-
 # Check if we can import Sphinx to activate rich text mode
 try:
     from spyderlib.utils.help.sphinxify import (CSS_PATH, sphinxify, warning,
@@ -941,14 +934,7 @@ class Help(SpyderPluginWidget):
 
     def set_shell(self, shell):
         """Bind to shell"""
-        if IPythonControlWidget is not None:
-            # XXX(anatoli): hack to make Spyder run on systems without IPython
-            #               there should be a better way
-            if isinstance(shell, IPythonControlWidget):
-                # XXX: this ignores passed argument completely
-                self.shell = self.external_console.get_current_shell()
-        else:
-            self.shell = shell
+        self.shell = shell
 
     def get_shell(self):
         """Return shell which is currently bound to Help,
