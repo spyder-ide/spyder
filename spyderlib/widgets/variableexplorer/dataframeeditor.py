@@ -431,7 +431,7 @@ class DataFrameView(QTableView):
         types_in_menu = [copy_action]
         for name, func in functions:
             types_in_menu += [create_action(self, name,
-                                            triggered=lambda func=func:
+                                            triggered=lambda checked=False, func=func:
                                                       self.change_type(func),
                                             context=Qt.WidgetShortcut)]
         menu = QMenu(self)

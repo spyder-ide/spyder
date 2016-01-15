@@ -1346,7 +1346,7 @@ class Editor(SpyderPluginWidget):
             error = 'syntax' in message
             text = message[:1].upper()+message[1:]
             icon = ima.icon('error') if error else ima.icon('warning')
-            slot = lambda _l=line_number: self.load(filename, goto=_l)
+            slot = lambda checked=False, _l=line_number: self.load(filename, goto=_l)
             action = create_action(self, text=text, icon=icon, triggered=slot)
             self.warning_menu.addAction(action)
             
@@ -1372,7 +1372,7 @@ class Editor(SpyderPluginWidget):
         filename = self.get_current_filename()
         for text, line0 in results:
             icon = ima.icon('todo')
-            slot = lambda _l=line0: self.load(filename, goto=_l)
+            slot = lambda checked=False, _l=line0: self.load(filename, goto=_l)
             action = create_action(self, text=text, icon=icon, triggered=slot)
             self.todo_menu.addAction(action)
         self.update_todo_actions()
@@ -1575,6 +1575,7 @@ class Editor(SpyderPluginWidget):
         """Edit new file template"""
         self.load(self.TEMPLATE_PATH)
 
+    @Slot()
     def call_file_switcher(self):
         if self.editorstacks:
             self.get_current_editorstack().open_fileswitcher_dlg()

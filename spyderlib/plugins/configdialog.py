@@ -295,7 +295,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         """Load settings from configuration file"""
         for checkbox, (option, default) in list(self.checkboxes.items()):
             checkbox.setChecked(self.get_option(option, default))
-            # Checkboxes work differently for PySide and PyQt
+            # QAbstractButton works differently for PySide and PyQt (bug in PySide)
             if API == 'pyqt':
                 checkbox.clicked.connect(lambda _foo, opt=option:
                                          self.has_been_modified(opt))
@@ -346,7 +346,13 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             edit = clayout.lineedit
             btn = clayout.colorbtn
             edit.setText(self.get_option(option, default))
-            btn.clicked.connect(lambda opt=option: self.has_been_modified(opt))
+            # QAbstractButton works differently for PySide and PyQt (bug in PySide)
+            if API == 'pyqt':
+                btn.clicked.connect(lambda _foo, opt=option:
+                                    self.has_been_modified(opt))
+            else:
+                btn.clicked.connect(lambda opt=option:
+                                    self.has_been_modified(opt))
             edit.textChanged.connect(lambda _foo, opt=option:
                                      self.has_been_modified(opt))
         for (clayout, cb_bold, cb_italic
@@ -357,19 +363,21 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             edit.setText(color)
             cb_bold.setChecked(bold)
             cb_italic.setChecked(italic)
-            btn.clicked.connect(lambda opt=option: self.has_been_modified(opt))
             edit.textChanged.connect(lambda _foo, opt=option:
                                      self.has_been_modified(opt))
+            # QAbstractButton works differently for PySide and PyQt (bug in PySide)
             if API == 'pyqt':
+                btn.clicked.connect(lambda _foo, opt=option:
+                                    self.has_been_modified(opt))
                 cb_bold.clicked.connect(lambda _foo, opt=option:
                                         self.has_been_modified(opt))
-            else:
-                cb_bold.clicked.connect(lambda opt=option:
-                                        self.has_been_modified(opt))
-            if API == 'pyqt':
                 cb_italic.clicked.connect(lambda _foo, opt=option:
                                           self.has_been_modified(opt))
             else:
+                btn.clicked.connect(lambda opt=option:
+                                    self.has_been_modified(opt))
+                cb_bold.clicked.connect(lambda opt=option:
+                                        self.has_been_modified(opt))
                 cb_italic.clicked.connect(lambda opt=option:
                                           self.has_been_modified(opt))
 
@@ -411,7 +419,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             checkbox.setToolTip(tip)
         self.checkboxes[checkbox] = (option, default)
         if msg_warning is not None or msg_info is not None:
-            def show_message(is_checked):
+            def show_message(is_checked=False):
                 if is_checked or not msg_if_enabled:
                     if msg_warning is not None:
                         QMessageBox.warning(self, self.get_name(),
@@ -660,7 +668,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
     def create_button(self, text, callback):
         btn = QPushButton(text)
         btn.clicked.connect(callback)
-        btn.clicked.connect(lambda opt='': self.has_been_modified(opt))
+        btn.clicked.connect(lambda checked=False, opt='': self.has_been_modified(opt))
         return btn
     
     def create_tab(self, *widgets):

@@ -1170,12 +1170,12 @@ class ExternalConsole(SpyderPluginWidget):
                 self.open_interpreter()
         else:
             self.dockwidget.hide()
-    
+
     #------ Public API ---------------------------------------------------------
     @Slot(str)
     def open_interpreter(self, wdir=None):
         """Open interpreter"""
-        if wdir is None:
+        if not wdir:
             wdir = getcwd()
         self.visibility_changed(True)
         self.start(fname=None, wdir=to_text_string(wdir), args='',
@@ -1189,7 +1189,7 @@ class ExternalConsole(SpyderPluginWidget):
                   "be started as expected, but an IPython console will have "
                   "to be connected manually to the kernel."), QMessageBox.Ok)
         
-        if wdir is None:
+        if not wdir:
             wdir = getcwd()
         self.main.ipyconsole.visibility_changed(True)
         self.start(fname=None, wdir=to_text_string(wdir), args='',
@@ -1199,7 +1199,7 @@ class ExternalConsole(SpyderPluginWidget):
     @Slot(str)
     def open_terminal(self, wdir=None):
         """Open terminal"""
-        if wdir is None:
+        if not wdir:
             wdir = getcwd()
         self.start(fname=None, wdir=to_text_string(wdir), args='',
                    interact=True, debug=False, python=False)

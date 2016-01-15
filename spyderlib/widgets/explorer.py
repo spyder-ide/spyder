@@ -268,21 +268,21 @@ class DirView(QTreeView):
         actions += [None]
         if only_notebooks and nbexporter is not None:
             actions.append(ipynb_convert_action)
-        
+
         # VCS support is quite limited for now, so we are enabling the VCS
         # related actions only when a single file/folder is selected:
         dirname = fnames[0] if osp.isdir(fnames[0]) else osp.dirname(fnames[0])
         if len(fnames) == 1 and vcs.is_vcs_repository(dirname):
             vcs_ci = create_action(self, _("Commit"),
                                    icon=ima.icon('vcs_commit'),
-                                   triggered=lambda fnames=[dirname]:
+                                   triggered=lambda checked=False, fnames=[dirname]:
                                    self.vcs_command(fnames, 'commit'))
             vcs_log = create_action(self, _("Browse repository"),
                                     icon=ima.icon('vcs_browse'),
-                                    triggered=lambda fnames=[dirname]:
+                                    triggered=lambda checked=False, fnames=[dirname]:
                                     self.vcs_command(fnames, 'browse'))
             actions += [None, vcs_ci, vcs_log]
-        
+
         return actions
 
     def create_folder_manage_actions(self, fnames):

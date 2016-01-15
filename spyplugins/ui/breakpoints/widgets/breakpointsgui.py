@@ -179,13 +179,13 @@ class BreakpointTableView(QTableView):
             lineno = int(self.model.breakpoints[index_clicked.row()][1])         
             clear_breakpoint_action = create_action(self,
                     _("Clear this breakpoint"),
-                    triggered=lambda filename=filename, lineno=lineno: \
+                    triggered=lambda checked=False, filename=filename, lineno=lineno: \
                     self.clear_breakpoint.emit(filename, lineno))
             actions.insert(0,clear_breakpoint_action)
 
             edit_breakpoint_action = create_action(self,
                     _("Edit this breakpoint"),
-                    triggered=lambda filename=filename, lineno=lineno: \
+                    triggered=lambda checked=False, filename=filename, lineno=lineno: \
                     (self.edit_goto.emit(filename, lineno, ''),
                      self.set_or_edit_conditional_breakpoint.emit())
                     )
