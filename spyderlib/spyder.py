@@ -818,6 +818,9 @@ class MainWindow(QMainWindow):
         self.toolbarslist.append(self.workingdirectory)
 
         # Help plugin
+        dependencies.add("sphinx", _("Show help for objects in the Editor and "
+                                     "Consoles in a dedicated pane"),
+                         required_version='>=0.6.6')
         if CONF.get('help', 'enable') and \
           programs.is_module_installed('sphinx'):
             self.set_splash(_("Loading help..."))

@@ -21,7 +21,6 @@ import socket
 import sys
 
 # Local imports
-from spyderlib import dependencies
 from spyderlib.config.base import get_conf_path, get_module_source_path, _
 from spyderlib.config.ipython import QTCONSOLE_INSTALLED
 from spyderlib.config.main import CONF
@@ -45,13 +44,6 @@ if QTCONSOLE_INSTALLED:
     from spyderlib.widgets.ipython import IPythonControlWidget
 else:
     IPythonControlWidget = None  # analysis:ignore
-
-
-# To add sphinx dependency to the Dependencies dialog
-SPHINX_REQVER = '>=0.6.6'
-dependencies.add("sphinx", _("Show help interactively from the Editor and "
-                             "Consoles"),
-                 required_version=SPHINX_REQVER)
 
 
 class ObjectComboBox(EditableComboBox):
