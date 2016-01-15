@@ -114,7 +114,7 @@ after installing Python.
 The fastest way to run Spyder is to get the source code using git, install
 PyQt5 or PyQt4, and run these commands:
 
-1. `pip install qtawesome` or `conda install -c spyder-ide qtawesome`
+1. Install our *runtime dependencies* (see below).
 2. `cd /your/spyder/git-clone`
 3. `python bootstrap.py`
 
@@ -148,10 +148,8 @@ a Python version greater than 2.7 (Python 3.2 is not supported anymore).
 * **Pep8**: Style analysis.
 * **Psutil**: CPU and memory usage on the status bar.
 * **Nbconvert**: Manipulation of notebooks in the Editor.
-* **Path.py** and **pickleshare**: Show import completions on the Editor and consoles
-
-**Note**: To get IPython in Ubuntu you need to install `ipython-qtconsole`,
-on Fedora `ipython-gui` and on Gentoo `ipython` with the `qt4` USE flag.
+* **Qtawesome**: To have an icon theme based on FontAwesome
+* **Pickleshare**: Show import completions on the Editor and Consoles
 
 ### Optional modules
 

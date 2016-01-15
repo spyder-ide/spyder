@@ -205,7 +205,7 @@ except ImportError:
 
 #==============================================================================
 # Add default filesystem encoding on Linux to avoid an error with
-# Matplotlib 1.5 in Python 2 (Fixes Issue 2793) 
+# Matplotlib 1.5 in Python 2 (Fixes Issue 2793)
 #==============================================================================
 if PY2 and sys.platform.startswith('linux'):
     def _getfilesystemencoding_wrapper():
@@ -841,8 +841,8 @@ def evalsc(command):
     """Evaluate special commands
     (analog to IPython's magic commands but far less powerful/complete)"""
     assert command.startswith('%')
-    
-    from subprocess import Popen, PIPE
+    from spyderlib.utils import programs
+
     namespace = _get_globals()
     command = command[1:].strip()  # Remove leading %
 
@@ -866,10 +866,10 @@ def evalsc(command):
             _print(os.getcwd())
     elif command == 'ls':
         if os.name == 'nt':
-            Popen('dir', shell=True, stdin=PIPE)
+            programs.run_shell_command('dir')
             _print('\n')
         else:
-            Popen('ls', shell=True, stdin=PIPE)
+            programs.run_shell_command('ls')
             _print('\n')
     elif command == 'scientific':
         from spyderlib.config import base

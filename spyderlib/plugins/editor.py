@@ -1892,11 +1892,11 @@ class Editor(SpyderPluginWidget):
             else:
                 args = runconf.get_arguments().split()
                 wdir = runconf.get_working_directory()
-                # Handle the case where wdir comes back as an empty string
-                # when the working directory dialog checkbox is unchecked.
-                if not wdir:
-                    wdir = None
-            programs.run_program(WINPDB_PATH, [fname]+args, wdir)
+            # Handle the case where wdir comes back as an empty string
+            # when the working directory dialog checkbox is unchecked.
+            # (subprocess "cwd" default is None, so empty str
+            # must be changed to None in this case.)
+            programs.run_program(WINPDB_PATH, [fname] + args, cwd=wdir or None)
         
     def toggle_eol_chars(self, os_name):
         editor = self.get_current_editor()

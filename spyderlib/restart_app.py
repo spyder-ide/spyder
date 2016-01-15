@@ -85,8 +85,8 @@ class Restarter(QWidget):
 
         # Widgets
         self.timer_ellipsis = QTimer(self)
-        self.splash = QSplashScreen(QPixmap(get_image_path('splash.png'),
-                                    'png'))
+        self.splash = QSplashScreen(QPixmap(get_image_path('splash.svg'),
+                                    'svg'))
 
         # Widget setup
         self.setVisible(False)
