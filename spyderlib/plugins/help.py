@@ -27,6 +27,8 @@ from spyderlib.config.ipython import QTCONSOLE_INSTALLED
 from spyderlib.config.main import CONF
 from spyderlib.config.gui import get_color_scheme, get_font, set_font
 from spyderlib.utils import programs
+from spyderlib.utils.help.sphinxify import (CSS_PATH, sphinxify, warning,
+                                            generate_context, usage)
 from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
                                        create_action)
 from spyderlib.widgets.comboboxes import EditableComboBox
@@ -44,13 +46,7 @@ if QTCONSOLE_INSTALLED:
 else:
     IPythonControlWidget = None  # analysis:ignore
 
-# Check if we can import Sphinx to activate rich text mode
-try:
-    from spyderlib.utils.help.sphinxify import (CSS_PATH, sphinxify, warning,
-                                                generate_context, usage)
-    sphinx_version = programs.get_module_version('sphinx')
-except (ImportError, TypeError):
-    sphinxify = sphinx_version = None  # analysis:ignore
+sphinx_version = programs.get_module_version('sphinx')
 
 # To add sphinx dependency to the Dependencies dialog
 SPHINX_REQVER = '>=0.6.6'
