@@ -427,8 +427,7 @@ class Help(SpyderPluginWidget):
 
         # Plain text docstring option
         self.docstring = True
-        self.rich_help = sphinxify is not None \
-                         and self.get_option('rich_mode', True)
+        self.rich_help = self.get_option('rich_mode', True)
         self.plain_text_action = create_action(self, _("Plain Text"),
                                                toggled=self.toggle_plain_text)
 
@@ -475,7 +474,6 @@ class Help(SpyderPluginWidget):
             self.switch_to_plain_text()
         self.plain_text_action.setChecked(not self.rich_help)
         self.rich_text_action.setChecked(self.rich_help)
-        self.rich_text_action.setEnabled(sphinxify is not None)
         self.source_changed()
 
         # Main layout
@@ -487,15 +485,11 @@ class Help(SpyderPluginWidget):
         self.setLayout(layout)
 
         # Add worker thread for handling rich text rendering
-        if sphinxify is None:
-            self._sphinx_thread = None
-        else:
-            self._sphinx_thread = SphinxThread(
+        self._sphinx_thread = SphinxThread(
                                   html_text_no_doc=warning(self.no_doc_string))
-            self._sphinx_thread.html_ready.connect(
+        self._sphinx_thread.html_ready.connect(
                                              self._on_sphinx_thread_html_ready)
-            self._sphinx_thread.error_msg.connect(
-                                              self._on_sphinx_thread_error_msg)
+        self._sphinx_thread.error_msg.connect(self._on_sphinx_thread_error_msg)
 
         # Render internal links
         view = self.rich_text.webview
@@ -544,8 +538,7 @@ class Help(SpyderPluginWidget):
         """Refresh widget"""
         if self._starting_up:
             self._starting_up = False
-            if sphinxify is not None:
-                self.switch_to_rich_text()
+            self.switch_to_rich_text()
             self.show_intro_message()
 
     def apply_plugin_settings(self, options):
@@ -781,10 +774,7 @@ class Help(SpyderPluginWidget):
         img_path = osp.join(tutorial_path, 'static', 'images')
         tutorial = osp.join(tutorial_path, 'tutorial.rst')
         text = open(tutorial).read()
-        if sphinxify is not None:
-            self.show_rich_text(text, collapse=True, img_path=img_path)
-        else:
-            self.show_plain_text(text)
+        self.show_rich_text(text, collapse=True, img_path=img_path)
 
     def handle_link_clicks(self, url):
         url = to_text_string(url.toString())
