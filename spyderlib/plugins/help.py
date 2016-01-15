@@ -46,7 +46,6 @@ if QTCONSOLE_INSTALLED:
 else:
     IPythonControlWidget = None  # analysis:ignore
 
-sphinx_version = programs.get_module_version('sphinx')
 
 # To add sphinx dependency to the Dependencies dialog
 SPHINX_REQVER = '>=0.6.6'
@@ -154,14 +153,12 @@ class HelpConfigPage(PluginConfigPage):
         features_group = QGroupBox(_("Additional features"))
         math_box = self.create_checkbox(_("Render mathematical equations"),
                                         'math')
-        req_sphinx = sphinx_version is not None and \
-                     programs.is_module_installed('sphinx', '>=1.1')
+        req_sphinx = programs.is_module_installed('sphinx', '>=1.1')
         math_box.setEnabled(req_sphinx)
         if not req_sphinx:
+            sphinx_ver = programs.get_module_version('sphinx')
             sphinx_tip = _("This feature requires Sphinx 1.1 or superior.")
-            if sphinx_version is not None:
-                sphinx_tip += "\n" + _("Sphinx %s is currently installed."
-                                       ) % sphinx_version
+            sphinx_tip += "\n" + _("Sphinx %s is currently installed.") % sphinx_ver
             math_box.setToolTip(sphinx_tip)
 
         features_layout = QVBoxLayout()
@@ -975,13 +972,14 @@ class Help(SpyderPluginWidget):
         """ Display error message on Sphinx rich text failure"""
         self._sphinx_thread.wait()
         self.plain_text_action.setChecked(True)
+        sphinx_ver = programs.get_module_version('sphinx')
         QMessageBox.critical(self,
                     _('Help'),
                     _("The following error occured when calling "
                       "<b>Sphinx %s</b>. <br>Incompatible Sphinx "
                       "version or doc string decoding failed."
                       "<br><br>Error message:<br>%s"
-                      ) % (sphinx_version, error_msg))
+                      ) % (sphinx_ver, error_msg))
 
     def show_help(self, obj_text, ignore_unknown=False):
         """Show help"""
