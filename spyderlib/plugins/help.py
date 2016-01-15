@@ -49,7 +49,8 @@ else:
 
 # To add sphinx dependency to the Dependencies dialog
 SPHINX_REQVER = '>=0.6.6'
-dependencies.add("sphinx", _("Rich text help"),
+dependencies.add("sphinx", _("Show help interactively from the Editor and "
+                             "Consoles"),
                  required_version=SPHINX_REQVER)
 
 
