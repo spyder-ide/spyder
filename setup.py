@@ -304,7 +304,6 @@ install_requires = [
     'pylint',
     'psutil',
     'qtawesome',
-    'path.py',
     'pickleshare'
 ]
 
