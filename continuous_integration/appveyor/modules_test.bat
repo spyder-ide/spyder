@@ -42,6 +42,9 @@ for /r "%SPYDERLIB%" %%f in (*.py) do (
     ) else if "%%f"=="%SPYDERLIB%\utils\introspection\__init__.py" (
         echo --- NOT testing %%f ---
         echo.
+    ) else if "%%f"=="%SPYDERLIB%\utils\introspection\plugin_client.py" (
+        echo --- NOT testing %%f ---
+        echo.
     ) else if "%%f"=="%SPYDERLIB%\utils\introspection\module_completion.py" (
         echo --- NOT testing %%f ---
         echo.
@@ -68,7 +71,7 @@ REM Spyplugins
 for /r "%APPVEYOR_BUILD_FOLDER%\spyplugins" %%f in (*.py) do (
     set file=%%f
 
-    if not "!file:widgets\=!"=="!file!" (    
+    if not "!file:widgets\=!"=="!file!" (
         echo --- Testing %%f ---
         python "%%f" || exit 1
         echo.
