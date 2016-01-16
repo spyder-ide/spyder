@@ -273,7 +273,7 @@ class RopePlugin(IntrospectionPlugin):
 
 if __name__ == '__main__':
 
-    from spyderlib.utils.introspection.plugin_manager import CodeInfo
+    from spyderlib.utils.introspection.manager import CodeInfo
 
     p = RopePlugin()
     p.load_plugin()

@@ -296,7 +296,7 @@ def _complete_path(path=None):
 
 
 if __name__ == '__main__':
-    from spyderlib.utils.introspection.plugin_manager import CodeInfo
+    from spyderlib.utils.introspection.manager import CodeInfo
 
     p = FallbackPlugin()
 

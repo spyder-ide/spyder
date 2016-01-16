@@ -76,7 +76,7 @@ class CodeInfo(object):
             self.obj = None
 
         self.full_obj = self.obj
-        debug_print('got obj %s' % repr(self.obj))
+
         if self.obj:
             full_line = self.source_code.splitlines()[self.line_num - 1]
             rest = full_line[self.column:]
