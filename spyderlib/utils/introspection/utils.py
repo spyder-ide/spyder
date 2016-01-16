@@ -10,10 +10,12 @@ Introspection utilities used by Spyder
 
 import imp
 import os
+import pickle
 import os.path as osp
 import re
 
 from spyderlib.utils.misc import memoize
+from spyderlib.config.base import DEBUG, get_conf_path, debug_print
 
 
 class CodeInfo(object):
@@ -37,12 +39,13 @@ class CodeInfo(object):
             # if this is a docstring, find it, set as our
             self.docstring = self._get_docstring()
             # backtrack and look for a line that starts with def or class
-            while position:
-                base = self.source_code[position: position + 6]
-                if base.startswith('def ') or base.startswith('class '):
-                    position += base.index(' ') + 1
-                    break
-                position -= 1
+            if name != 'completions':
+                while position:
+                    base = self.source_code[position: position + 6]
+                    if base.startswith('def ') or base.startswith('class '):
+                        position += base.index(' ') + 1
+                        break
+                    position -= 1
         else:
             self.docstring = ''
 
@@ -73,7 +76,7 @@ class CodeInfo(object):
             self.obj = None
 
         self.full_obj = self.obj
-
+        debug_print('got obj %s' % repr(self.obj))
         if self.obj:
             full_line = self.source_code.splitlines()[self.line_num - 1]
             rest = full_line[self.column:]
@@ -86,6 +89,7 @@ class CodeInfo(object):
             func_call = re.findall(self.func_call_regex, self.line)
             if func_call:
                 self.obj = func_call[-1]
+                debug_print('new obj %s' % repr(self.obj))
                 self.column = self.line.index(self.obj) + len(self.obj)
                 self.position = self.position - len(self.line) + self.column
 
@@ -117,6 +121,18 @@ class CodeInfo(object):
         """Allow dictionary-like access"""
         return getattr(self, item)
 
+    def serialize(self):
+        state = {}
+        for (key, value) in self.__dict__.items():
+            try:
+                pickle.dumps(value)
+                state[key] = value
+            except Exception:
+                pass
+        state['id_regex'] = self.id_regex
+        state['func_call_regex'] = self.func_call_regex
+        return state
+
 
 @memoize
 def get_parent_until(path):
@@ -145,7 +161,6 @@ def get_parent_until(path):
 
 
 if __name__ == '__main__':
-    import pickle
     code = 'import numpy'
     test = CodeInfo('test', code, len(code) - 2)
     assert test.obj == 'num'

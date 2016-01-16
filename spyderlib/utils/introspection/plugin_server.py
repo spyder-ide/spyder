@@ -11,6 +11,7 @@ import os
 import sys
 
 # Local imports
+from spyderlib.utils.misc import select_port
 from spyderlib.py3compat import Queue
 from spyderlib.utils.bsdsocket import read_packet, write_packet
 
@@ -22,7 +23,7 @@ class PluginServer(object):
     for interacting with the plugin.
     """
 
-    def __init__(self, server_port, client_port, plugin_name):
+    def __init__(self, client_port, plugin_name):
         mod_name = plugin_name + '_plugin'
         mod = __import__('spyderlib.utils.introspection.' + mod_name,
                          fromlist=[mod_name])
@@ -32,9 +33,10 @@ class PluginServer(object):
         self.plugin = plugin
 
         self._client_port = int(client_port)
+        self.server_port = select_port()
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        sock.bind(("127.0.0.1", int(server_port)))
+        sock.bind(("127.0.0.1", int(self.server_port)))
         self._server_sock = sock
 
         self.queue = Queue.Queue()
@@ -44,7 +46,7 @@ class PluginServer(object):
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect(("127.0.0.1", self._client_port))
-        write_packet(sock, 'initialized')
+        write_packet(sock, self.server_port)
         sock.close()
 
     def listen(self):
@@ -78,7 +80,7 @@ class PluginServer(object):
                 method = getattr(self.plugin, request['method'])
                 args = request.get('args', [])
                 kwargs = request.get('kwargs', {})
-                request['response'] = method(*args, **kwargs)
+                request['result'] = method(*args, **kwargs)
             except Exception as e:
                 request['error'] = str(e)
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -89,8 +91,8 @@ class PluginServer(object):
 
 if __name__ == '__main__':
     args = sys.argv[1:]
-    if not len(args) == 3:
-        print('Usage: plugin_server.py server_port client_port plugin_name')
+    if not len(args) == 2:
+        print('Usage: plugin_server.py client_port plugin_name')
         sys.exit(0)
     plugin = PluginServer(*args)
     print('Started')

@@ -10,6 +10,7 @@ import os
 import sys
 
 # Local imports
+from spyderlib.config.base import debug_print
 from spyderlib.utils.misc import select_port
 from spyderlib.utils.bsdsocket import read_packet, write_packet
 from spyderlib.qt.QtCore import QThread, QProcess, Signal, QObject
@@ -40,17 +41,16 @@ class PluginClient(QObject):
         """
         self._initialized = False
         plugin_name = self.plugin_name
+
         server_port = select_port()
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.bind(("127.0.0.1", server_port))
 
-        self.client_port = select_port()
-
         self.process = QProcess(self)
         self.process.setWorkingDirectory(os.path.dirname(__file__))
-        p_args = ['plugin_server.py', str(self.client_port),
-                  str(server_port), plugin_name]
+        p_args = ['plugin_server.py', str(server_port), plugin_name]
+
         self.listener = PluginListener(sock)
         self.listener.request_handled.connect(self.request_handled.emit)
         self.listener.initialized.connect(self._on_initialized)
@@ -73,11 +73,14 @@ class PluginClient(QObject):
         write_packet(sock, request)
         sock.close()
 
-    def _on_initialized(self):
+    def _on_initialized(self, port):
+        debug_print('Initialized %s' % self.plugin_name)
         self._initialized = True
+        self.client_port = port
         self.initialized.emit()
 
     def _on_finished(self):
+        debug_print('finished %s %s' % (self.plugin_name, self._initialized))
         if self._initialized:
             self.start()
         else:
@@ -91,7 +94,7 @@ class PluginListener(QThread):
     """
 
     # Emitted when the plugin has intitialized.
-    initialized = Signal()
+    initialized = Signal(int)
 
     # Emitted when a request response has been received.
     request_handled = Signal(object)
@@ -114,9 +117,10 @@ class PluginListener(QThread):
                     continue
                 raise
             if not self._initialized:
-                if read_packet(conn) == 'initialized':
+                server_port = read_packet(conn)
+                if isinstance(server_port, int):
                     self._initialized = True
-                    self.initialized.emit()
+                    self.initialized.emit(server_port)
             else:
                 self.request_handled.emit(read_packet(conn))
 
@@ -138,6 +142,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     def start():
+        print('start')
         plugin.send(dict(method='validate'))
 
     plugin.errored.connect(handle_errored)

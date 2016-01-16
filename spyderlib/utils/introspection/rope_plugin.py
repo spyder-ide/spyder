@@ -17,7 +17,7 @@ from spyderlib.py3compat import PY2
 from spyderlib.utils.dochelpers import getsignaturefromtext
 from spyderlib.utils import sourcecode
 from spyderlib.utils.debug import log_last_error, log_dt
-from spyderlib.utils.introspection.plugin_manager import (
+from spyderlib.utils.introspection.manager import (
     DEBUG_EDITOR, LOG_FILENAME, IntrospectionPlugin)
 from spyderlib.utils.introspection.module_completion import (
     get_preferred_submodules)

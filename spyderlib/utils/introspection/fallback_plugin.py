@@ -18,7 +18,7 @@ import time
 from spyderlib.utils.debug import log_dt
 from spyderlib.utils import sourcecode, encoding
 from spyderlib.utils.introspection.module_completion import module_completion
-from spyderlib.utils.introspection.plugin_manager import (
+from spyderlib.utils.introspection.manager import (
     DEBUG_EDITOR, LOG_FILENAME, IntrospectionPlugin)
 from spyderlib.utils.introspection.utils import (
     get_parent_until, memoize)
