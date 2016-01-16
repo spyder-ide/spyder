@@ -288,15 +288,6 @@ if __name__ == '__main__':
         len(source_code), __file__))
     assert ('numpy', 'module') in completions
 
-    try:
-        import pandas
-        source_code = "import pandas as pd; pd.DataFrame"
-        path, line_nr = p.get_definition(CodeInfo('definition', source_code,
-            len(source_code), __file__))
-        assert 'frame.py' in path
-    except ImportError:
-        pass
-
     code = '''
 def test(a, b):
     """Test docstring"""
