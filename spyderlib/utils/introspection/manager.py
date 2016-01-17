@@ -30,12 +30,12 @@ class PluginManager(QObject):
 
     introspection_complete = Signal(object)
 
-    def __init__(self):
+    def __init__(self, executable):
         super(PluginManager, self).__init__()
         plugins = OrderedDict()
         for name in PLUGINS:
             try:
-                plugin = PluginClient(name)
+                plugin = PluginClient(name, executable)
             except Exception:
                 debug_print('Introspection Plugin Failed: %s' % name)
                 continue
@@ -116,6 +116,9 @@ class PluginManager(QObject):
         else:
             self.pending = response
 
+    def close(self):
+        [plugin.close() for plugin in self.plugins]
+
     def _finalize(self, response):
         self.waiting = False
         self.pending = None
@@ -140,11 +143,17 @@ class IntrospectionManager(QObject):
     send_to_help = Signal(str, str, str, str, bool)
     edit_goto = Signal(str, int, str)
 
-    def __init__(self, editor_widget):
+    def __init__(self, editor_widget, executable=None):
         super(IntrospectionManager, self).__init__()
         self.editor_widget = editor_widget
         self.pending = None
-        self.plugin_manager = PluginManager()
+        self.plugin_manager = PluginManager(executable)
+        self.plugin_manager.introspection_complete.connect(
+            self._introspection_complete)
+
+    def change_executable(self, executable):
+        self.plugin_manager.close()
+        self.plugin_manager = PluginManager(executable)
         self.plugin_manager.introspection_complete.connect(
             self._introspection_complete)
 

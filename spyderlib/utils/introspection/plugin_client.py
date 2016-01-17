@@ -31,9 +31,10 @@ class PluginClient(QObject):
     # Emitted when a request response is received.
     request_handled = Signal(object)
 
-    def __init__(self, plugin_name):
+    def __init__(self, plugin_name, executable=None):
         super(PluginClient, self).__init__()
         self.plugin_name = plugin_name
+        self.executable = executable or sys.executable
         self.start()
 
     def start(self):
@@ -56,7 +57,7 @@ class PluginClient(QObject):
         self.listener.initialized.connect(self._on_initialized)
         self.listener.start()
 
-        self.process.start(sys.executable, p_args)
+        self.process.start(self.executable, p_args)
         self.process.finished.connect(self._on_finished)
         running = self.process.waitForStarted()
         if not running:
@@ -72,6 +73,10 @@ class PluginClient(QObject):
         request['plugin_name'] = self.plugin_name
         write_packet(sock, request)
         sock.close()
+
+    def close(self):
+        self.listener.quit()
+        self.process.kill()
 
     def _on_initialized(self, port):
         debug_print('Initialized %s' % self.plugin_name)
