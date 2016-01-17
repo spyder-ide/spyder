@@ -45,6 +45,24 @@ for /r "%SPYDERLIB%" %%f in (*.py) do (
     ) else if "%%f"=="%SPYDERLIB%\utils\introspection\plugin_client.py" (
         echo --- NOT testing %%f ---
         echo.
+    ) else if "%%f"=="%SPYDERLIB%\utils\introspection\manager.py" (
+        echo --- NOT testing %%f ---
+        echo.
+    ) else if "%%f"=="%SPYDERLIB%\utils\introspection\plugin_server.py" (
+        echo --- NOT testing %%f ---
+        echo.
+    ) else if "%%f"=="%SPYDERLIB%\utils\introspection\rope_plugin.py" (
+        echo --- NOT testing %%f ---
+        echo.
+    ) else if "%%f"=="%SPYDERLIB%\utils\introspection\fallback_plugin.py" (
+        echo --- NOT testing %%f ---
+        echo.
+    ) else if "%%f"=="%SPYDERLIB%\utils\introspection\jedi_plugin.py" (
+        echo --- NOT testing %%f ---
+        echo.
+    ) else if "%%f"=="%SPYDERLIB%\utils\introspection\utils.py" (
+        echo --- NOT testing %%f ---
+        echo.
     ) else if "%%f"=="%SPYDERLIB%\utils\introspection\module_completion.py" (
         echo --- NOT testing %%f ---
         echo.
