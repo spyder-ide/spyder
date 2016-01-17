@@ -48,9 +48,14 @@ class PluginManager(QObject):
         self.info = None
         self.request = None
         self.pending = None
+        self.pending_request = None
+        self.waiting = False
 
     def send_request(self, info):
         """Handle an incoming request from the user."""
+        if self.waiting:
+            self.pending_request = info
+            return
         debug_print('%s request' % info.name)
         desired = None
         self.info = info
@@ -119,6 +124,10 @@ class PluginManager(QObject):
             % (self.info.name, response['plugin_name'],
                str(response['result'])[:100], delta))
         self.introspection_complete.emit(response)
+        if self.pending_request:
+            info = self.pending_request
+            self.pending_request = None
+            self.send_request(info)
 
     def _handle_timeout(self):
         self.waiting = False
