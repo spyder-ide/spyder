@@ -9,8 +9,6 @@
     "step-over": "0xE008",
     "stop": "0xE009",
     "cell": "0xE00A",
-    "cell-page": "0xE03A",
-    "cell-page-shadow": "0xE03F",
     "cell-code": "0xE03B",
     "cell-play": "0xE03C",
     "cell-next": "0xE03D",
