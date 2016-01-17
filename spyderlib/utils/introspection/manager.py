@@ -54,7 +54,10 @@ class PluginManager(QObject):
     def send_request(self, info):
         """Handle an incoming request from the user."""
         if self.waiting:
-            self.pending_request = info
+            if info.serialize() != self.info.serialize():
+                self.pending_request = info
+            else:
+                debug_print('skipping duplicate request')
             return
         debug_print('%s request' % info.name)
         desired = None
@@ -82,6 +85,7 @@ class PluginManager(QObject):
             self.desired = list(self.plugins.keys())[:-1]
 
         self._start_time = time.time()
+        self.waiting = True
         request = dict(method='get_%s' % info.name,
                        args=[info.serialize()],
                        request_id=id(info))
@@ -91,7 +95,6 @@ class PluginManager(QObject):
         self.timer.stop()
         self.timer.singleShot(LEAD_TIME_SEC * 1000, self._handle_timeout)
         self.request = request
-        self.waiting = True
 
     def validate(self):
         message = dict(method='validate')
@@ -108,10 +111,10 @@ class PluginManager(QObject):
         if name == self.desired[0] or not self.waiting:
             if response.get('result', None):
                 self._finalize(response)
-            else:
+            elif not self.waiting:
                 if response.get('error', None):
                     debug_print(response['error'])
-                debug_print('No valid responses acquired')
+                debug_print('No valid responses acquired', name, self.waiting)
                 self.introspection_complete.emit(response)
         else:
             self.pending = response
@@ -127,6 +130,7 @@ class PluginManager(QObject):
             % (self.info.name, response['plugin_name'],
                str(response['result'])[:100], delta))
         self.introspection_complete.emit(response)
+        self.info = None
         if self.pending_request:
             info = self.pending_request
             self.pending_request = None
