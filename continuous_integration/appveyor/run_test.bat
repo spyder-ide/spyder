@@ -17,7 +17,7 @@ conda install -q -y --use-local spyder==3.0.0b2
 
 REM Install missing deps
 if %PYTHON_VERSION%==3.5 (
-    pip install jedi==0.8.1
+    pip install jedi
     pip install pylint
 )
 
