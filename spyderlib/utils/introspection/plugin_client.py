@@ -47,6 +47,8 @@ class PluginClient(QObject):
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.bind(("127.0.0.1", server_port))
         sock.listen(2)
+        self.sock = sock
+        QApplication.instance().aboutToQuit.connect(self.close)
 
         self.process = QProcess(self)
         self.process.setWorkingDirectory(os.path.dirname(__file__))
@@ -75,8 +77,9 @@ class PluginClient(QObject):
         sock.close()
 
     def close(self):
-        self.listener.quit()
         self.process.kill()
+        self.process.waitForFinished(200)
+        self.sock.close()
 
     def _on_initialized(self, port):
         debug_print('Initialized %s' % self.plugin_name)
@@ -114,6 +117,8 @@ class PluginListener(QThread):
             try:
                 conn, _addr = self.sock.accept()
             except socket.error as e:
+                if e.args[0] == errno.ECONNABORTED:
+                    return
                 # See Issue 1275 for details on why errno EINTR is
                 # silently ignored here.
                 eintr = errno.WSAEINTR if os.name == 'nt' else errno.EINTR

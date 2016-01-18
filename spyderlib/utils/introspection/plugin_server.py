@@ -9,6 +9,7 @@ import socket
 import errno
 import os
 import sys
+import atexit
 
 # Local imports
 from spyderlib.utils.misc import select_port
@@ -38,6 +39,7 @@ class PluginServer(object):
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.bind(("127.0.0.1", int(self.server_port)))
         sock.listen(2)
+        atexit.register(sock.close)
         self._server_sock = sock
 
         self.queue = Queue.Queue()
@@ -56,6 +58,8 @@ class PluginServer(object):
             try:
                 conn, _addr = self._server_sock.accept()
             except socket.error as e:
+                if e.args[0] == errno.ECONNABORTED:
+                    return
                 # See Issue 1275 for details on why errno EINTR is
                 # silently ignored here.
                 eintr = errno.WSAEINTR if os.name == 'nt' else errno.EINTR
