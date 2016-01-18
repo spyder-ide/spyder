@@ -42,11 +42,11 @@ class PluginClient(QObject):
         """
         self._initialized = False
         plugin_name = self.plugin_name
-
         server_port = select_port()
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.bind(("127.0.0.1", server_port))
+        sock.listen(2)
 
         self.process = QProcess(self)
         self.process.setWorkingDirectory(os.path.dirname(__file__))
@@ -111,7 +111,6 @@ class PluginListener(QThread):
 
     def run(self):
         while True:
-            self.sock.listen(2)
             try:
                 conn, _addr = self.sock.accept()
             except socket.error as e:
