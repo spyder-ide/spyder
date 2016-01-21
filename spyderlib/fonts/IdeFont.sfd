@@ -20,7 +20,7 @@ OS2Version: 0
 OS2_WeightWidthSlopeOnly: 0
 OS2_UseTypoMetrics: 1
 CreationTime: 1428196570
-ModificationTime: 1453078602
+ModificationTime: 1453349789
 OS2TypoAscent: 0
 OS2TypoAOffset: 1
 OS2TypoDescent: 0
@@ -43,7 +43,7 @@ DisplaySize: -48
 AntiAlias: 1
 FitToEm: 1
 WinInfo: 57267 27 9
-BeginChars: 1114112 44
+BeginChars: 1114112 45
 
 StartChar: uniE000
 Encoding: 57344 57344 0
@@ -1825,7 +1825,7 @@ StartChar: uniE03E
 Encoding: 57406 57406 35
 Width: 1792
 VWidth: 0
-Flags: HO
+Flags: H
 HStem: -294 64<14.0738 1521.93> 346 64<44.5384 1491.46> 1178 64<45.1085 1491.46> 1562 64<14.0738 1521.93>
 VStem: -64 64<-215.27 1547.27> 1536 64<-215.27 1547.27>
 LayerCount: 2
@@ -1864,6 +1864,7 @@ SplineSet
  128 346 l 2
  57 346 1 403 1 474 c 1
 EndSplineSet
+Validated: 1
 EndChar
 
 StartChar: uniE055
@@ -2059,6 +2060,43 @@ SplineSet
  353 -358 301 -306 301 -242 c 0
 EndSplineSet
 Validated: 1
+EndChar
+
+StartChar: uniE026
+Encoding: 57382 57382 44
+Width: 1792
+VWidth: 0
+Flags: H
+LayerCount: 2
+Fore
+SplineSet
+1216 219 m 1
+ 1216 347 l 1
+ 1216 347 1210 379 1197 392 c 0
+ 1184 405 1169 411 1152 411 c 2
+ 384 411 l 2
+ 367 411 352 405 339 392 c 0
+ 326 379 320 347 320 347 c 1
+ 320 219 l 1
+ 320 219 326 187 339 174 c 0
+ 352 161 367 155 384 155 c 2
+ 1152 155 l 2
+ 1169 155 1184 161 1197 174 c 0
+ 1210 187 1216 219 1216 219 c 1
+1536 538 m 0
+ 1536 399 1502 270 1433 152 c 0
+ 1364 35 1271 -58 1154 -127 c 0
+ 1036 -196 907 -230 768 -230 c 0
+ 629 -230 500 -196 382 -127 c 0
+ 265 -58 172 35 103 152 c 0
+ 34 270 0 399 0 538 c 0
+ 0 677 34 806 103 924 c 0
+ 172 1041 265 1134 382 1203 c 0
+ 500 1272 629 1306 768 1306 c 0
+ 907 1306 1036 1272 1154 1203 c 0
+ 1271 1134 1364 1041 1433 924 c 0
+ 1502 806 1536 677 1536 538 c 0
+EndSplineSet
 EndChar
 EndChars
 EndSplineFont
