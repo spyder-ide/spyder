@@ -345,16 +345,14 @@ class EditorStack(QWidget):
                 icon=ima.icon('editcopy'),
                 triggered=lambda:
                 QApplication.clipboard().setText(self.get_current_filename()))
-
-        close_right = create_action(self, _("Close all to the right"), 
-                    icon=ima.icon('filelist'),
-                    triggered=self.close_all_right)
-        close_all_but_this = create_action(self, _("Close all but this"), 
-                    icon=ima.icon('filelist'),
-                    triggered=self.close_all_but_this)
+        close_right = create_action(self, _("Close all to the right"),
+                                    triggered=self.close_all_right)
+        close_all_but_this = create_action(self, _("Close all but this"),
+                                           triggered=self.close_all_but_this)
 
         self.menu_actions = actions + [None, fileswitcher_action,
-                                       copy_to_cb_action, None, close_right, close_all_but_this]
+                                       copy_to_cb_action, None, close_right,
+                                       close_all_but_this]
         self.outlineexplorer = None
         self.help = None
         self.unregister_callback = None
