@@ -12,6 +12,7 @@ import sys
 # Local imports
 from spyderlib.config.base import debug_print
 from spyderlib.utils.bsdsocket import read_packet, write_packet
+from spyderlib.qt.QtGui import QApplication
 from spyderlib.qt.QtCore import QThread, QProcess, Signal, QObject
 from spyderlib.utils.introspection.utils import connect_to_port
 
@@ -131,7 +132,6 @@ class PluginListener(QThread):
 
 
 if __name__ == '__main__':
-    from spyderlib.qt.QtGui import QApplication
     app = QApplication(sys.argv)
     plugin = PluginClient('jedi')
 

@@ -36,8 +36,9 @@ class PluginManager(QObject):
         for name in PLUGINS:
             try:
                 plugin = PluginClient(name, executable)
-            except Exception:
+            except Exception as e:
                 debug_print('Introspection Plugin Failed: %s' % name)
+                debug_print(str(e))
                 continue
             debug_print('Introspection Plugin Loaded: %s' % name)
             plugins[name] = plugin
