@@ -163,23 +163,22 @@ def get_parent_until(path):
     return '.'.join(reversed(items))
 
 
-def connect_to_port():
+def connect_to_port(base_port=20128):
     """Connect and bind to the next available port."""
     while 1:
-        port = select_port()
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         try:
-            sock.bind(("127.0.0.1", port))
+            sock.bind(("127.0.0.1", base_port))
         except OSError as e:
             if e.errno == errno.EADDRINUSE:
+                base_port += 1
                 continue
             else:
                 raise
         else:
             break
-    sock.listen(2)
-    return sock, port
+    return sock, base_port
 
 
 if __name__ == '__main__':
