@@ -12,7 +12,7 @@ import sys
 import atexit
 
 # Local imports
-from spyderlib.utils.misc import select_port
+from spyderlib.utils.introspection.utils import connect_to_port
 from spyderlib.py3compat import Queue
 from spyderlib.utils.bsdsocket import read_packet, write_packet
 
@@ -34,10 +34,7 @@ class PluginServer(object):
         self.plugin = plugin
 
         self._client_port = int(client_port)
-        self.server_port = select_port()
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        sock.bind(("127.0.0.1", int(self.server_port)))
+        sock, self.server_port = connect_to_port()
         sock.listen(2)
         atexit.register(sock.close)
         self._server_sock = sock

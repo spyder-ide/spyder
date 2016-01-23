@@ -11,9 +11,9 @@ import sys
 
 # Local imports
 from spyderlib.config.base import debug_print
-from spyderlib.utils.misc import select_port
 from spyderlib.utils.bsdsocket import read_packet, write_packet
 from spyderlib.qt.QtCore import QThread, QProcess, Signal, QObject
+from spyderlib.utils.introspection.utils import connect_to_port
 
 
 class PluginClient(QObject):
@@ -42,19 +42,15 @@ class PluginClient(QObject):
         """
         self._initialized = False
         plugin_name = self.plugin_name
-        server_port = select_port()
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        sock.bind(("127.0.0.1", server_port))
-        sock.listen(2)
-        self.sock = sock
+        self.sock, server_port = connect_to_port()
+        self.sock.listen(2)
         QApplication.instance().aboutToQuit.connect(self.close)
 
         self.process = QProcess(self)
         self.process.setWorkingDirectory(os.path.dirname(__file__))
         p_args = ['plugin_server.py', str(server_port), plugin_name]
 
-        self.listener = PluginListener(sock)
+        self.listener = PluginListener(self.sock)
         self.listener.request_handled.connect(self.request_handled.emit)
         self.listener.initialized.connect(self._on_initialized)
         self.listener.start()

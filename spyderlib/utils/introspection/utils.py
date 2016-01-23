@@ -13,9 +13,12 @@ import os
 import pickle
 import os.path as osp
 import re
+import socket
+import errno
 
 from spyderlib.utils.misc import memoize
-from spyderlib.config.base import DEBUG, get_conf_path, debug_print
+from spyderlib.config.base import debug_print
+from spyderlib.utils.misc import select_port
 
 
 class CodeInfo(object):
@@ -158,6 +161,25 @@ def get_parent_until(path):
         except ImportError:
             break
     return '.'.join(reversed(items))
+
+
+def connect_to_port():
+    """Connect and bind to the next available port."""
+    while 1:
+        port = select_port()
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        try:
+            sock.bind(("127.0.0.1", port))
+        except OSError as e:
+            if e.errno == errno.EADDRINUSE:
+                continue
+            else:
+                raise
+        else:
+            break
+    sock.listen(2)
+    return sock, port
 
 
 if __name__ == '__main__':
