@@ -17,6 +17,13 @@ from spyderlib.utils.introspection.utils import connect_to_port
 from spyderlib.py3compat import Queue
 from spyderlib.utils.bsdsocket import read_packet, write_packet
 
+logging.basicConfig()
+logger = logging.getLogger('plugin_server')
+handler = logging.FileHandler('plugin_server.log')
+logger.addHandler(handler)
+logger.setLevel(logging.INFO)
+logger.info('initialized logger')
+
 
 class PluginServer(object):
 
@@ -26,29 +33,24 @@ class PluginServer(object):
     """
 
     def __init__(self, client_port, plugin_name):
-        logging.basicConfig()
-        self.logger = logging.getLogger('plugin_server_%s' % plugin_name)
-        handler = logging.FileHandler('plugin_server_%s.log' % plugin_name)
-        self.logger.addHandler(handler)
-        self.logger.setLevel(logging.INFO)
         mod_name = plugin_name + '_plugin'
-        self.logger.info(mod_name)
+        logger.info(mod_name)
         mod = __import__('spyderlib.utils.introspection.' + mod_name,
                          fromlist=[mod_name])
-        self.logger.info(mod)
+        logger.info(mod)
         cls = getattr(mod, '%sPlugin' % plugin_name.capitalize())
-        self.logger.info(cls)
+        logger.info(cls)
         plugin = cls()
-        self.logger.info(plugin)
+        logger.info(plugin)
         plugin.load_plugin()
         self.plugin = plugin
 
         self._client_port = int(client_port)
-        self.logger.info(client_port)
+        logger.info(client_port)
         sock, self.server_port = connect_to_port()
-        self.logger.info(self.server_port)
+        logger.info(self.server_port)
         sock.listen(2)
-        self.logger.info('listened')
+        logger.info('listened')
         atexit.register(sock.close)
         self._server_sock = sock
 
@@ -57,15 +59,15 @@ class PluginServer(object):
         self._listener.setDaemon(True)
         self._listener.start()
 
-        self.logger.info('started listener')
+        logger.info('started listener')
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.logger.info(sock)
+        logger.info(sock)
         sock.connect(("127.0.0.1", self._client_port))
-        self.logger.info('connected')
+        logger.info('connected')
         write_packet(sock, self.server_port)
-        self.logger.info('wrote packet')
+        logger.info('wrote packet')
         sock.close()
-        self.logger.info('closed socket')
+        logger.info('closed socket')
 
     def listen(self):
         """Listen for requests"""
@@ -109,10 +111,15 @@ class PluginServer(object):
 
 
 if __name__ == '__main__':
+    logger.info('In main block')
     args = sys.argv[1:]
+    logger.info('sys.argv: %s' % args)
     if not len(args) == 2:
+        logger.info('Invalid sys.argv')
         print('Usage: plugin_server.py client_port plugin_name')
         sys.exit(0)
+    logger.info('Creating server')
     plugin = PluginServer(*args)
+    logger.info('started')
     print('Started')
     plugin.run()
