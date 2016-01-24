@@ -86,7 +86,7 @@ INCLUDES = get_stdlib_modules()
 EDIT_EXT = [ext[1:] for ext in EDIT_EXT]
 
 OPTIONS = {
-    'argv_emulation': True,
+    'argv_emulation': False,
     'compressed' : False,
     'optimize': 0,
     'packages': PACKAGES,
