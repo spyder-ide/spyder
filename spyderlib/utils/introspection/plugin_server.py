@@ -55,7 +55,7 @@ class PluginServer(object):
             try:
                 conn, _addr = self.accept()
             except socket.error as e:
-                badfd = errno.WSAEBADF if os.name == 'nt' else errno.EBADFD
+                badfd = errno.WSAEBADF if os.name == 'nt' else errno.EBADF
                 extra = errno.WSAENOTSOCK if os.name == 'nt' else badfd
                 if e.args[0] in [errno.ECONNABORTED, badfd, extra]:
                     return
