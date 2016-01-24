@@ -53,7 +53,7 @@ class PluginServer(object):
         """Listen for requests"""
         while True:
             try:
-                conn, _addr = self.accept()
+                conn, _addr = self._server_sock.accept()
             except socket.error as e:
                 badfd = errno.WSAEBADF if os.name == 'nt' else errno.EBADF
                 extra = errno.WSAENOTSOCK if os.name == 'nt' else badfd

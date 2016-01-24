@@ -7,13 +7,16 @@
 import socket
 import errno
 import os
+import subprocess
 import sys
 
 # Local imports
 from spyderlib.config.base import debug_print
 from spyderlib.utils.bsdsocket import read_packet, write_packet
 from spyderlib.qt.QtGui import QApplication
-from spyderlib.qt.QtCore import QThread, QProcess, Signal, QObject
+from spyderlib.qt.QtCore import (
+    QThread, QProcess, Signal, QObject, QProcessEnvironment
+)
 from spyderlib.utils.introspection.utils import connect_to_port
 
 
@@ -49,6 +52,15 @@ class PluginClient(QObject):
 
         self.process = QProcess(self)
         self.process.setWorkingDirectory(os.path.dirname(__file__))
+        processEnvironment = QProcessEnvironment()
+        env = self.process.systemEnvironment()
+        call = '%s -c "import site; print(site.getsitepackages()[0])"'
+        site_path = subprocess.check_output(call % self.executable, shell=True)
+        env.append("PYTHONPATH=%s" % site_path.decode('utf-8').strip())
+        for envItem in env:
+            envName, separator, envValue = envItem.partition('=')
+            processEnvironment.insert(envName, envValue)
+        self.process.setProcessEnvironment(processEnvironment)
         p_args = ['plugin_server.py', str(server_port), plugin_name]
 
         self.listener = PluginListener(self.sock)
