@@ -7,7 +7,6 @@
 import threading
 import socket
 import errno
-import logging
 import os
 import sys
 import atexit
@@ -16,13 +15,6 @@ import atexit
 from spyderlib.utils.introspection.utils import connect_to_port
 from spyderlib.py3compat import Queue
 from spyderlib.utils.bsdsocket import read_packet, write_packet
-
-logging.basicConfig()
-logger = logging.getLogger('plugin_server')
-handler = logging.FileHandler('plugin_server.log')
-logger.addHandler(handler)
-logger.setLevel(logging.INFO)
-logger.info('initialized logger')
 
 
 class PluginServer(object):
@@ -34,23 +26,16 @@ class PluginServer(object):
 
     def __init__(self, client_port, plugin_name):
         mod_name = plugin_name + '_plugin'
-        logger.info(mod_name)
         mod = __import__('spyderlib.utils.introspection.' + mod_name,
                          fromlist=[mod_name])
-        logger.info(mod)
         cls = getattr(mod, '%sPlugin' % plugin_name.capitalize())
-        logger.info(cls)
         plugin = cls()
-        logger.info(plugin)
         plugin.load_plugin()
         self.plugin = plugin
 
         self._client_port = int(client_port)
-        logger.info(client_port)
         sock, self.server_port = connect_to_port()
-        logger.info(self.server_port)
         sock.listen(2)
-        logger.info('listened')
         atexit.register(sock.close)
         self._server_sock = sock
 
@@ -59,23 +44,18 @@ class PluginServer(object):
         self._listener.setDaemon(True)
         self._listener.start()
 
-        logger.info('started listener')
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        logger.info(sock)
         sock.connect(("127.0.0.1", self._client_port))
-        logger.info('connected')
         write_packet(sock, self.server_port)
-        logger.info('wrote packet')
         sock.close()
-        logger.info('closed socket')
 
     def listen(self):
         """Listen for requests"""
         while True:
             try:
-                conn, _addr = self._server_sock.accept()
+                conn, _addr = self.accept()
             except socket.error as e:
-                if e.args[0] == errno.ECONNABORTED:
+                if e.args[0] in [errno.ECONNABORTED, errno.EBADFD]:
                     return
                 # See Issue 1275 for details on why errno EINTR is
                 # silently ignored here.
@@ -111,15 +91,10 @@ class PluginServer(object):
 
 
 if __name__ == '__main__':
-    logger.info('In main block')
     args = sys.argv[1:]
-    logger.info('sys.argv: %s' % args)
     if not len(args) == 2:
-        logger.info('Invalid sys.argv')
         print('Usage: plugin_server.py client_port plugin_name')
         sys.exit(0)
-    logger.info('Creating server')
     plugin = PluginServer(*args)
-    logger.info('started')
     print('Started')
     plugin.run()
