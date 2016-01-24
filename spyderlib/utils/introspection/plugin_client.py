@@ -114,7 +114,8 @@ class PluginListener(QThread):
             try:
                 conn, _addr = self.sock.accept()
             except socket.error as e:
-                if e.args[0] in [errno.ECONNABORTED, errno.EBADFD]:
+                badfd = errno.WSAEBADFD if os.name == 'nt' else errno.EBADFD
+                if e.args[0] in [errno.ECONNABORTED, badfd]:
                     return
                 # See Issue 1275 for details on why errno EINTR is
                 # silently ignored here.
