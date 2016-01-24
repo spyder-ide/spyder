@@ -31,9 +31,9 @@ if [ "$USE_CONDA" = true ] ; then
     # Install extra packages
     conda install -q $EXTRA_PACKAGES
 
-    # Jedi 0.8 is not available in conda
+    # Jedi is not available in conda
     if [ "$TRAVIS_PYTHON_VERSION" = "3.5" ]; then
-        pip install jedi==0.8.1
+        pip install jedi
     fi
 else
     cd $FULL_SPYDER_CLONE

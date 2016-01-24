@@ -28,7 +28,7 @@ REM Test that the app starts correctly
 echo ------- Testing the app ---------
 echo.
 echo %time%
-REM skipping spyder || exit 1
+spyder || exit 1
 echo Success!
 echo %time%
 echo.
