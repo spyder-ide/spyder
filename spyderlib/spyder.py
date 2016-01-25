@@ -2997,7 +2997,7 @@ def run_spyder(app, options, args):
 
     # Open external files with our Mac app
     if running_in_mac_app():
-        app.sig_open_external_file.connect(main.open_external_file)
+        app.open_external_file.connect(main.open_external_file)
 
     # To give focus again to the last focused widget after restoring
     # the window
