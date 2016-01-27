@@ -23,6 +23,10 @@ from spyderlib.utils import encoding
 from spyderlib.py3compat import PY2, is_text_string
 
 
+class ProgramError(Exception):
+    pass
+
+
 if os.name == 'nt':
     TEMPDIR = tempfile.gettempdir() + osp.sep + 'spyder'
 else:
@@ -31,8 +35,11 @@ else:
 
 
 def is_program_installed(basename):
-    """Return program absolute path if installed in PATH
-    Otherwise, return None"""
+    """
+    Return program absolute path if installed in PATH.
+
+    Otherwise, return None
+    """
     for path in os.environ["PATH"].split(os.pathsep):
         abspath = osp.join(path, basename)
         if osp.isfile(abspath):
@@ -40,9 +47,12 @@ def is_program_installed(basename):
 
 
 def find_program(basename):
-    """Find program in PATH and return absolute path
+    """
+    Find program in PATH and return absolute path
+
     Try adding .exe or .bat to basename on Windows platforms
-    (return None if not found)"""
+    (return None if not found)
+    """
     names = [basename]
     if os.name == 'nt':
         # Windows platforms
@@ -55,19 +65,109 @@ def find_program(basename):
             return path
 
 
-def run_program(name, args=[], cwd=None):
-    """Run program in a separate process"""
-    assert isinstance(args, (tuple, list))
-    path = find_program(name)
-    if not path:
-        raise RuntimeError("Program %s was not found" % name)
-    subprocess.Popen([path]+args, cwd=cwd)
+def alter_subprocess_kwargs_by_platform(**kwargs):
+    """
+    Given a dict, populate kwargs to create a generally
+    useful default setup for running subprocess processes
+    on different platforms. For example, `close_fds` is
+    set on posix and creation of a new console window is
+    disabled on Windows.
+
+    This function will alter the given kwargs and return
+    the modified dict.
+    """
+    kwargs.setdefault('close_fds', os.name == 'posix')
+    if os.name == 'nt':
+        CONSOLE_CREATION_FLAGS = 0  # Default value
+        # See: https://msdn.microsoft.com/en-us/library/windows/desktop/ms684863%28v=vs.85%29.aspx
+        CREATE_NO_WINDOW = 0x08000000
+        # We "or" them together
+        CONSOLE_CREATION_FLAGS |= CREATE_NO_WINDOW
+        kwargs.setdefault('creationflags', CONSOLE_CREATION_FLAGS)
+    return kwargs
+
+
+def run_shell_command(cmdstr, **subprocess_kwargs):
+    """
+    Execute the given shell command.
+    
+    Note that *args and **kwargs will be passed to the subprocess call.
+
+    If 'shell' is given in subprocess_kwargs it must be True,
+    otherwise ProgramError will be raised.
+    .
+    If 'executable' is not given in subprocess_kwargs, it will
+    be set to the value of the SHELL environment variable.
+
+    Note that stdin, stdout and stderr will be set by default
+    to PIPE unless specified in subprocess_kwargs.
+
+    :str cmdstr: The string run as a shell command.
+    :subprocess_kwargs: These will be passed to subprocess.Popen.
+    """
+    if 'shell' in subprocess_kwargs and not subprocess_kwargs['shell']:
+        raise ProgramError(
+                'The "shell" kwarg may be omitted, but if '
+                'provided it must be True.')
+    else:
+        subprocess_kwargs['shell'] = True
+
+    if 'executable' not in subprocess_kwargs:
+        subprocess_kwargs['executable'] = os.getenv('SHELL')
+
+    for stream in ['stdin', 'stdout', 'stderr']:
+        subprocess_kwargs.setdefault(stream, subprocess.PIPE)
+    subprocess_kwargs = alter_subprocess_kwargs_by_platform(
+            **subprocess_kwargs)
+    return subprocess.Popen(cmdstr, **subprocess_kwargs)
+
+
+def run_program(program, args=None, **subprocess_kwargs):
+    """
+    Run program in a separate process.
+
+    NOTE: returns the process object created by
+    `subprocess.Popen()`. This can be used with
+    `proc.communicate()` for example.
+
+    If 'shell' appears in the kwargs, it must be False,
+    otherwise ProgramError will be raised.
+
+    If only the program name is given and not the full path,
+    a lookup will be performed to find the program. If the
+    lookup fails, ProgramError will be raised.
+
+    Note that stdin, stdout and stderr will be set by default
+    to PIPE unless specified in subprocess_kwargs.
+
+    :str program: The name of the program to run.
+    :list args: The program arguments.
+    :subprocess_kwargs: These will be passed to subprocess.Popen.
+    """
+    if 'shell' in subprocess_kwargs and subprocess_kwargs['shell']:
+        raise ProgramError(
+                "This function is only for non-shell programs, "
+                "use run_shell_command() instead.")
+    fullcmd = find_program(program)
+    if not fullcmd:
+        raise ProgramError("Program %s was not found" % program)
+    # As per subprocess, we make a complete list of prog+args
+    fullcmd = [fullcmd] + (args or [])
+    for stream in ['stdin', 'stdout', 'stderr']:
+        subprocess_kwargs.setdefault(stream, subprocess.PIPE)
+    subprocess_kwargs = alter_subprocess_kwargs_by_platform(
+            **subprocess_kwargs)
+    return subprocess.Popen(fullcmd, **subprocess_kwargs)
 
 
 def start_file(filename):
-    """Generalized os.startfile for all platforms supported by Qt
-    (this function is simply wrapping QDesktopServices.openUrl)
-    Returns True if successfull, otherwise returns False."""
+    """
+    Generalized os.startfile for all platforms supported by Qt
+
+    This function is simply wrapping QDesktopServices.openUrl
+
+    Returns True if successfull, otherwise returns False.
+    """
     from spyderlib.qt.QtGui import QDesktopServices
     from spyderlib.qt.QtCore import QUrl
 
@@ -81,8 +181,10 @@ def start_file(filename):
 
 
 def python_script_exists(package=None, module=None):
-    """Return absolute path if Python script exists (otherwise, return None)
-    package=None -> module is in sys.path (standard library modules)"""
+    """
+    Return absolute path if Python script exists (otherwise, return None)
+    package=None -> module is in sys.path (standard library modules)
+    """
     assert module is not None
     try:
         if package is None:
@@ -98,21 +200,25 @@ def python_script_exists(package=None, module=None):
 
 
 def run_python_script(package=None, module=None, args=[], p_args=[]):
-    """Run Python script in a separate process
-    package=None -> module is in sys.path (standard library modules)"""
+    """
+    Run Python script in a separate process
+    package=None -> module is in sys.path (standard library modules)
+    """
     assert module is not None
     assert isinstance(args, (tuple, list)) and isinstance(p_args, (tuple, list))
     path = python_script_exists(package, module)
-    subprocess.Popen([sys.executable]+p_args+[path]+args)
+    run_program(sys.executable, p_args + [path] + args)
 
 
 def shell_split(text):
-    """Split the string `text` using shell-like syntax
-    
-    This avoids breaking single/double-quoted strings (e.g. containing 
+    """
+    Split the string `text` using shell-like syntax
+
+    This avoids breaking single/double-quoted strings (e.g. containing
     strings with spaces). This function is almost equivalent to the shlex.split
-    function (see standard library `shlex`) except that it is supporting 
-    unicode strings (shlex does not support unicode until Python 2.7.3)."""
+    function (see standard library `shlex`) except that it is supporting
+    unicode strings (shlex does not support unicode until Python 2.7.3).
+    """
     assert is_text_string(text)  # in case a QString is passed...
     pattern = r'(\s+|(?<!\\)".*?(?<!\\)"|(?<!\\)\'.*?(?<!\\)\')'
     out = []
@@ -168,7 +274,7 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
             cmd = encoding.to_fs_from_unicode(cmd)
             wdir = encoding.to_fs_from_unicode(wdir)
         try:
-            subprocess.Popen(cmd, shell=True, cwd=wdir)
+            run_shell_command(cmd, cwd=wdir)
         except WindowsError:
             from spyderlib.qt.QtGui import QMessageBox
             from spyderlib.config.base import _
@@ -268,16 +374,18 @@ def get_module_version(module_name):
 
 def is_module_installed(module_name, version=None, installed_version=None,
                         interpreter=None):
-    """Return True if module *module_name* is installed
-    
-    If version is not None, checking module version 
+    """
+    Return True if module *module_name* is installed
+
+    If version is not None, checking module version
     (module must have an attribute named '__version__')
-    
+
     version may starts with =, >=, > or < to specify the exact requirement ;
     multiple conditions may be separated by ';' (e.g. '>=0.13;<1.0')
-    
-    interpreter: check if a module is installed with a given version 
-    in a determined interpreter"""
+
+    interpreter: check if a module is installed with a given version
+    in a determined interpreter
+    """
     if interpreter:
         if not osp.isdir(TEMPDIR):
             os.mkdir(TEMPDIR)
@@ -302,8 +410,8 @@ def is_module_installed(module_name, version=None, installed_version=None,
                 else:
                     f.write("print(is_module_installed('%s'))" % module_name)
             try:
-                output, _err = subprocess.Popen([interpreter, script],
-                                        stdout=subprocess.PIPE).communicate()
+                proc = run_program(interpreter, [script])
+                output, _err = proc.communicate()
             except subprocess.CalledProcessError:
                 return True
             if output:  # TODO: Check why output could be empty!

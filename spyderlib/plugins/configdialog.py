@@ -34,8 +34,8 @@ from spyderlib.config.user import NoDefault
 from spyderlib.py3compat import to_text_string, is_text_string, getcwd
 from spyderlib.utils import icon_manager as ima
 from spyderlib.utils import syntaxhighlighters
-from spyderlib.widgets.sourcecode.codeeditor import CodeEditor
 from spyderlib.widgets.colors import ColorLayout
+from spyderlib.widgets.sourcecode.codeeditor import CodeEditor
 
 
 class ConfigAccessMixin(object):
@@ -1265,7 +1265,7 @@ class SchemeEditor(QDialog):
         color_scheme_groups = [
             (_('Text'), ["normal", "comment", "string", "number", "keyword",
                          "builtin", "definition", "instance", ]),
-            (_('Highlight'), ["currentcell", "currentline", "occurence",
+            (_('Highlight'), ["currentcell", "currentline", "occurrence",
                               "matched_p", "unmatched_p", "ctrlclick"]),
             (_('Background'), ["background", "sideareas"])
             ]

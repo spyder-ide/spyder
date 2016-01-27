@@ -59,14 +59,10 @@ from spyderlib.widgets.arraybuilder import SHORTCUT_INLINE, SHORTCUT_TABLE
 from spyderlib.py3compat import to_text_string
 
 try:
-    try:   # Ipython 4
-        import nbformat as nbformat
-        from nbconvert import PythonExporter as nbexporter  
-    except ImportError:  # Ipython 3
-        import IPython.nbformat as nbformat
-        from IPython.nbconvert import PythonExporter as nbexporter
-except ImportError:
-    nbformat = None                      # analysis:ignore
+    import nbformat as nbformat
+    from nbconvert import PythonExporter as nbexporter
+except:
+    nbformat = None  # analysis:ignore
 
 # %% This line is for cell execution testing
 # For debugging purpose:
@@ -414,7 +410,7 @@ class CodeEditor(TextEditBaseWidget):
 
         # Colors to be defined in _apply_highlighter_color_scheme()
         # Currentcell color and current line color are defined in base.py
-        self.occurence_color = None
+        self.occurrence_color = None
         self.ctrl_click_color = None
         self.sideareas_color = None
         self.matched_p_color = None
@@ -434,7 +430,7 @@ class CodeEditor(TextEditBaseWidget):
         #   - providing data for Outliner
         # - self.highlighter is not responsible for
         #   - background highlight for current line
-        #   - background highlight for search / current line occurences
+        #   - background highlight for search / current line occurrences
 
         self.highlighter_class = sh.TextSH
         self.highlighter = None
@@ -458,7 +454,7 @@ class CodeEditor(TextEditBaseWidget):
 
         self.document_id = id(self)
 
-        # Indicate occurences of the selected word
+        # Indicate occurrences of the selected word
         self.cursorPositionChanged.connect(self.__cursor_position_changed)
         self.__find_first_pos = None
         self.__find_flags = None
@@ -475,14 +471,14 @@ class CodeEditor(TextEditBaseWidget):
         # Update breakpoints if the number of lines in the file changes
         self.blockCountChanged.connect(self.update_breakpoints)
 
-        # Mark occurences timer
-        self.occurence_highlighting = None
-        self.occurence_timer = QTimer(self)
-        self.occurence_timer.setSingleShot(True)
-        self.occurence_timer.setInterval(1500)
-        self.occurence_timer.timeout.connect(self.__mark_occurences)
-        self.occurences = []
-        self.occurence_color = QColor(Qt.yellow).lighter(160)
+        # Mark occurrences timer
+        self.occurrence_highlighting = None
+        self.occurrence_timer = QTimer(self)
+        self.occurrence_timer.setSingleShot(True)
+        self.occurrence_timer.setInterval(1500)
+        self.occurrence_timer.timeout.connect(self.__mark_occurrences)
+        self.occurrences = []
+        self.occurrence_color = QColor(Qt.yellow).lighter(160)
 
         # Mark found results
         self.textChanged.connect(self.__text_has_changed)
@@ -644,7 +640,7 @@ class CodeEditor(TextEditBaseWidget):
     def setup_editor(self, linenumbers=True, language=None, markers=False,
                      font=None, color_scheme=None, wrap=False, tab_mode=True,
                      intelligent_backspace=True, highlight_current_line=True,
-                     highlight_current_cell=True, occurence_highlighting=True,
+                     highlight_current_cell=True, occurrence_highlighting=True,
                      scrollflagarea=True, edge_line=True, edge_line_column=79,
                      codecompletion_auto=False, codecompletion_case=True,
                      codecompletion_enter=False, show_blanks=False,
@@ -652,7 +648,7 @@ class CodeEditor(TextEditBaseWidget):
                      close_parentheses=True, close_quotes=False,
                      add_colons=True, auto_unindent=True, indent_chars=" "*4,
                      tab_stop_width=40, cloned_from=None, filename=None,
-                     occurence_timeout=1500):
+                     occurrence_timeout=1500):
         
         # Code completion and calltips
         self.set_codecompletion_auto(codecompletion_auto)
@@ -691,9 +687,9 @@ class CodeEditor(TextEditBaseWidget):
         # Highlight current line
         self.set_highlight_current_line(highlight_current_line)
 
-        # Occurence highlighting
-        self.set_occurence_highlighting(occurence_highlighting)
-        self.set_occurence_timeout(occurence_timeout)
+        # Occurrence highlighting
+        self.set_occurrence_highlighting(occurrence_highlighting)
+        self.set_occurrence_timeout(occurrence_timeout)
 
         # Tab always indents (even when cursor is not at the begin of line)
         self.set_tab_mode(tab_mode)
@@ -742,15 +738,15 @@ class CodeEditor(TextEditBaseWidget):
         """Enable/disable automatic unindent after else/elif/finally/except"""
         self.auto_unindent_enabled = enable
 
-    def set_occurence_highlighting(self, enable):
-        """Enable/disable occurence highlighting"""
-        self.occurence_highlighting = enable
+    def set_occurrence_highlighting(self, enable):
+        """Enable/disable occurrence highlighting"""
+        self.occurrence_highlighting = enable
         if not enable:
-            self.__clear_occurences()
+            self.__clear_occurrences()
 
-    def set_occurence_timeout(self, timeout):
-        """Set occurence highlighting timeout (ms)"""
-        self.occurence_timer.setInterval(timeout)
+    def set_occurrence_timeout(self, timeout):
+        """Set occurrence highlighting timeout (ms)"""
+        self.occurrence_timer.setInterval(timeout)
 
     def set_highlight_current_line(self, enable):
         """Enable/disable current line highlighting"""
@@ -925,9 +921,9 @@ class CodeEditor(TextEditBaseWidget):
         offset = self.get_position('cursor')
         return sourcecode.get_primary_at(source_code, offset)
 
-    #------Find occurences
+    #------Find occurrences
     def __find_first(self, text):
-        """Find first occurence: scan whole document"""
+        """Find first occurrence: scan whole document"""
         flags = QTextDocument.FindCaseSensitively|QTextDocument.FindWholeWords
         cursor = self.textCursor()
         # Scanning whole document
@@ -938,7 +934,7 @@ class CodeEditor(TextEditBaseWidget):
         return cursor
 
     def __find_next(self, text, cursor):
-        """Find next occurence"""
+        """Find next occurrence"""
         flags = QTextDocument.FindCaseSensitively|QTextDocument.FindWholeWords
         regexp = QRegExp(r"\b%s\b" % QRegExp.escape(text), Qt.CaseSensitive)
         cursor = self.document().find(regexp, cursor, flags)
@@ -957,14 +953,14 @@ class CodeEditor(TextEditBaseWidget):
             self.highlight_current_line()
         else:
             self.unhighlight_current_line()
-        if self.occurence_highlighting:
-            self.occurence_timer.stop()
-            self.occurence_timer.start()
+        if self.occurrence_highlighting:
+            self.occurrence_timer.stop()
+            self.occurrence_timer.start()
 
-    def __clear_occurences(self):
-        """Clear occurence markers"""
-        self.occurences = []
-        self.clear_extra_selections('occurences')
+    def __clear_occurrences(self):
+        """Clear occurrence markers"""
+        self.occurrences = []
+        self.clear_extra_selections('occurrences')
         self.scrollflagarea.update()
 
     def __highlight_selection(self, key, cursor, foreground_color=None,
@@ -990,9 +986,9 @@ class CodeEditor(TextEditBaseWidget):
         if update:
             self.update_extra_selections()
 
-    def __mark_occurences(self):
-        """Marking occurences of the currently selected word"""
-        self.__clear_occurences()
+    def __mark_occurrences(self):
+        """Marking occurrences of the currently selected word"""
+        self.__clear_occurrences()
 
         if not self.supported_language:
             return
@@ -1008,20 +1004,20 @@ class CodeEditor(TextEditBaseWidget):
            to_text_string(text) == 'self'):
             return
 
-        # Highlighting all occurences of word *text*
+        # Highlighting all occurrences of word *text*
         cursor = self.__find_first(text)
-        self.occurences = []
+        self.occurrences = []
         while cursor:
-            self.occurences.append(cursor.blockNumber())
-            self.__highlight_selection('occurences', cursor,
-                                       background_color=self.occurence_color)
+            self.occurrences.append(cursor.blockNumber())
+            self.__highlight_selection('occurrences', cursor,
+                                       background_color=self.occurrence_color)
             cursor = self.__find_next(text, cursor)
         self.update_extra_selections()
-        if len(self.occurences) > 1 and self.occurences[-1] == 0:
+        if len(self.occurrences) > 1 and self.occurrences[-1] == 0:
             # XXX: this is never happening with PySide but it's necessary
             # for PyQt4... this must be related to a different behavior for
             # the QTextDocument.find function between those two libraries
-            self.occurences.pop(-1)
+            self.occurrences.pop(-1)
         self.scrollflagarea.update()
 
     #-----highlight found results (find/replace widget)
@@ -1417,10 +1413,10 @@ class CodeEditor(TextEditBaseWidget):
                     painter.drawRect(make_flag(position))
             block = block.next()
 
-        # Occurences
-        if self.occurences:
-            set_scrollflagarea_painter(painter, self.occurence_color)
-            for line_number in self.occurences:
+        # Occurrences
+        if self.occurrences:
+            set_scrollflagarea_painter(painter, self.occurrence_color)
+            for line_number in self.occurrences:
                 position = self.scrollflagarea.value_to_position(line_number)
                 painter.drawRect(make_flag(position))
 
@@ -1489,7 +1485,7 @@ class CodeEditor(TextEditBaseWidget):
                              foreground=hl.get_foreground_color())
             self.currentline_color = hl.get_currentline_color()
             self.currentcell_color = hl.get_currentcell_color()
-            self.occurence_color = hl.get_occurence_color()
+            self.occurrence_color = hl.get_occurrence_color()
             self.ctrl_click_color = hl.get_ctrlclick_color()
             self.sideareas_color = hl.get_sideareas_color()
             self.comment_color = hl.get_comment_color()
@@ -1662,7 +1658,7 @@ class CodeEditor(TextEditBaseWidget):
                 regexp = QRegExp(r"\b%s\b" % QRegExp.escape(text),
                                  Qt.CaseSensitive)
                 color = self.error_color if error else self.warning_color
-                # Highlighting all occurences (this is a compromise as pyflakes
+                # Highlighting all occurrences (this is a compromise as pyflakes
                 # do not provide the column number -- see Issue 709 on Spyder's
                 # GoogleCode project website)
                 cursor = document.find(regexp, cursor, flags)
@@ -2508,7 +2504,7 @@ class CodeEditor(TextEditBaseWidget):
         shift = event.modifiers() & Qt.ShiftModifier
         text = to_text_string(event.text())
         if text:
-            self.__clear_occurences()
+            self.__clear_occurrences()
         if QToolTip.isVisible():
             self.hide_tooltip_if_necessary(key)
 
