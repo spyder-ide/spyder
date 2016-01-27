@@ -46,7 +46,7 @@ if not results.milestone:
     sys.exit(1)
 
 # Get milestone number, given its name
-milestones = repo.milestones.get()
+milestones = repo.milestones.get(state='all')
 milestone_number = -1
 for ms in milestones:
     if ms['title'] == results.milestone:
