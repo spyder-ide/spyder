@@ -31,6 +31,10 @@ parser.add_argument('-f', action="store", dest="format", default='changelog',
                     help="Format for print, either 'changelog' (for our "
                          "Changelog.md file) or 'release' (for the Github "
                          "Releases page)")
+parser.add_argument('-p', action="store", dest="page", default='1',
+                    help="What page to select when asking Github for issues "
+                         "and pull requests of a given milestone. Default is "
+                         "1, and it contains 100 results")
 results = parser.parse_args()
 
 # Creating the main class to interact with Github
@@ -54,7 +58,7 @@ if milestone_number == -1:
 
 # This returns issues and pull requests
 issues = repo.issues.get(milestone=milestone_number, state='closed',
-                         per_page='500')
+                         per_page='100', page=results.page)
 
 # Printing issues
 print('\n**Issues**\n')
