@@ -28,6 +28,9 @@ from spyderlib.utils.qthelpers import (add_actions, create_toolbutton,
 from spyderlib.py3compat import PY2, to_text_string
 
 
+class EditorTabBar(QTabBar):
+    pass
+
 class TabBar(QTabBar):
     """Tabs base class with drag and drop support"""
     sig_move_tab = Signal((int, int), (str, int, int))
@@ -124,7 +127,7 @@ class BaseTabs(QTabWidget):
 
         self.corner_widgets = {}
         self.menu_use_tooltips = menu_use_tooltips
-        
+        self.setTabBar(EditorTabBar(self))
         if menu is None:
             self.menu = QMenu(self)
             if actions:

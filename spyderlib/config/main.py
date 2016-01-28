@@ -189,6 +189,7 @@ DEFAULTS = [
               'vertical_tabs': False,
               'animated_docks': True,
               'prompt_on_exit': False,
+              'hide_dock_titlebar': False,
               'panes_locked': True,
               'window/size': (1260, 740),
               'window/position': (10, 10),

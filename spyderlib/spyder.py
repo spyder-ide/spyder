@@ -78,7 +78,8 @@ from spyderlib.qt import PYQT5
 from spyderlib.qt.QtGui import (QApplication, QMainWindow, QSplashScreen,
                                 QPixmap, QMessageBox, QMenu, QColor, QShortcut,
                                 QKeySequence, QDockWidget, QAction,
-                                QDesktopServices, QStyleFactory)
+                                QDesktopServices, QWidget, QVBoxLayout,
+                                QHBoxLayout)
 from spyderlib.qt.QtCore import (Signal, QPoint, Qt, QSize, QByteArray, QUrl,
                                  Slot, QTimer, QCoreApplication, QThread)
 from spyderlib.qt.compat import (from_qvariant, getopenfilename,
@@ -1433,6 +1434,7 @@ class MainWindow(QMainWindow):
             
             # Regenerate menu
             self.quick_layout_set_menu()
+
         self.set_window_settings(*settings)
 
         for plugin in self.widgetlist:
@@ -2197,6 +2199,30 @@ class MainWindow(QMainWindow):
         self.maximize_action.setIcon(icon)
         self.maximize_action.setToolTip(tip)
 
+    def __set_central_widget(self, plugin):
+        """ """
+        vertical_title = CONF.get('main', 'vertical_dockwidget_titlebars')
+        widget = QWidget()
+        widget.setContentsMargins(0, 0, 0, 0)
+        
+        if vertical_title:
+            layout = QHBoxLayout()
+        else:
+            layout = QVBoxLayout()
+        layout.addWidget(plugin.dockwidget.custom_titlebar)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(plugin)
+        layout.setSpacing(0)
+        widget.setLayout(layout)
+        self.setCentralWidget(widget)
+        #plugin.dockwidget.update_dockwidget(show=False)
+
+    def __unset_central_widget(self, plugin):
+        """ """
+        plugin.dockwidget.setTitleBarWidget(plugin.dockwidget.titleBarWidget())
+        self.setCentralWidget(None)
+        plugin.dockwidget.update_dockwidget()
+
     @Slot()
     def maximize_dockwidget(self, restore=False):
         """Shortcut: Ctrl+Alt+Shift+M
@@ -2208,13 +2234,19 @@ class MainWindow(QMainWindow):
             # No plugin is currently maximized: maximizing focus plugin
             self.state_before_maximizing = self.saveState()
             focus_widget = QApplication.focusWidget()
+
             for plugin in self.widgetlist:
-                plugin.dockwidget.hide()
+                plugin.toggle_view_action.setEnabled(False)
                 if plugin.isAncestorOf(focus_widget):
                     self.last_plugin = plugin
-            self.last_plugin.dockwidget.toggleViewAction().setDisabled(True)
-            self.setCentralWidget(self.last_plugin)
+
+            self.__set_central_widget(self.last_plugin)
             self.last_plugin.ismaximized = True
+
+            for plugin in self.widgetlist:
+                if not plugin.dockwidget.isFloating():
+                    plugin.dockwidget.hide()
+
             # Workaround to solve an issue with editor's outline explorer:
             # (otherwise the whole plugin is hidden and so is the outline explorer
             #  and the latter won't be refreshed if not visible)
@@ -2222,16 +2254,29 @@ class MainWindow(QMainWindow):
             self.last_plugin.visibility_changed(True)
             if self.last_plugin is self.editor:
                 # Automatically show the outline if the editor was maximized:
+                width = self.outlineexplorer.width()
                 self.addDockWidget(Qt.RightDockWidgetArea,
                                    self.outlineexplorer.dockwidget)
                 self.outlineexplorer.dockwidget.show()
+                # HAck needed to properly adjust the width of the editor
+                self.outlineexplorer.setMaximumWidth(width)
+                self.adjust_width_timer = QTimer(self)
+                self.adjust_width_timer.setSingleShot(True)
+                self.adjust_width_timer.timeout.connect(lambda: self.outlineexplorer.setMaximumWidth(16777215))
+                self.adjust_width_timer.start(1000)
         else:
             # Restore original layout (before maximizing current dockwidget)
             self.last_plugin.dockwidget.setWidget(self.last_plugin)
-            self.last_plugin.dockwidget.toggleViewAction().setEnabled(True)
-            self.setCentralWidget(None)
+            self.last_plugin.toggle_view_action.setEnabled(True)
             self.last_plugin.ismaximized = False
+            self.__unset_central_widget(self.last_plugin)
             self.restoreState(self.state_before_maximizing)
+
+            for plugin in self.widgetlist:
+                plugin.toggle_view_action.setEnabled(True)                
+                if plugin.dockwidget.isFloating():
+                    plugin.dockwidget.update_dockwidget()
+
             self.state_before_maximizing = None
             self.last_plugin.get_focus_widget().setFocus()
         self.__update_maximize_action()
@@ -2579,12 +2624,10 @@ class MainWindow(QMainWindow):
         """Update dockwidgets features settings"""
         # Update toggle action on menu
         for child in self.widgetlist:
-            features = child.FEATURES
-            if CONF.get('main', 'vertical_dockwidget_titlebars'):
-                features = features | QDockWidget.DockWidgetVerticalTitleBar
-            if not self.dockwidgets_locked:
-                features = features | QDockWidget.DockWidgetMovable
-            child.dockwidget.setFeatures(features)
+            maximized = child.ismaximized
+            if maximized:
+                self.__set_central_widget(child)
+            child.dockwidget.update_dockwidget(show=False, maximized=maximized)
             child.update_margins()
 
     def apply_statusbar_settings(self):

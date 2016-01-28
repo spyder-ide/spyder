@@ -770,6 +770,8 @@ class MainConfigPage(GeneralConfigPage):
                              'vertical_dockwidget_titlebars')
         verttabs_box = newcb(_("Vertical tabs in panes"),
                              'vertical_tabs')
+        hide_dock_titlebar_box = newcb(_("Hide pane title bar when locked"),
+                                       'hide_dock_titlebar')
         animated_box = newcb(_("Animated toolbars and panes"),
                              'animated_docks')
         tear_off_box = newcb(_("Tear off menus"), 'tear_off_menus',
@@ -808,6 +810,7 @@ class MainConfigPage(GeneralConfigPage):
         interface_layout.addWidget(single_instance_box)
         interface_layout.addWidget(vertdock_box)
         interface_layout.addWidget(verttabs_box)
+        interface_layout.addWidget(hide_dock_titlebar_box)
         interface_layout.addWidget(animated_box)
         interface_layout.addWidget(tear_off_box)
         interface_layout.addLayout(margins_layout)
