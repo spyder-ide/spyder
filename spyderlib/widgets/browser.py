@@ -1,22 +1,23 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
 """Simple web browser widget"""
 
-from spyderlib.qt.QtGui import (QHBoxLayout, QWidget, QVBoxLayout,
-                                QProgressBar, QLabel, QMenu)
-from spyderlib.qt.QtWebKit import QWebView, QWebPage, QWebSettings
-from spyderlib.qt.QtCore import SIGNAL, QUrl
-
 import sys
 
+from spyderlib.qt.QtCore import QUrl, Slot, Signal
+from spyderlib.qt.QtGui import (QHBoxLayout, QWidget, QVBoxLayout,
+                                QProgressBar, QLabel, QMenu, QFrame)
+from spyderlib.qt.QtWebKit import QWebView, QWebPage, QWebSettings
+
 # Local imports
-from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions,
+from spyderlib.config.base import DEV, _
+from spyderlib.utils.qthelpers import (create_action, add_actions,
                                        create_toolbutton, action2button)
-from spyderlib.baseconfig import DEV, _
+from spyderlib.utils import icon_manager as ima
 from spyderlib.widgets.comboboxes import UrlComboBox
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.py3compat import to_text_string, is_text_string
@@ -28,10 +29,10 @@ class WebView(QWebView):
         QWebView.__init__(self, parent)
         self.zoom_factor = 1.
         self.zoom_out_action = create_action(self, _("Zoom out"),
-                                             icon=get_icon('zoom_out.png'),
+                                             icon=ima.icon('zoom_out'),
                                              triggered=self.zoom_out)
         self.zoom_in_action = create_action(self, _("Zoom in"),
-                                            icon=get_icon('zoom_in.png'),
+                                            icon=ima.icon('zoom_in'),
                                             triggered=self.zoom_in)
         
     def find_text(self, text, changed=True,
@@ -78,12 +79,14 @@ class WebView(QWebView):
     def get_zoom_factor(self):
         """Return zoom factor"""
         return self.zoom_factor
-            
+
+    @Slot()
     def zoom_out(self):
         """Zoom out"""
         self.zoom_factor = max(.1, self.zoom_factor-.1)
         self.apply_zoom_factor()
-    
+
+    @Slot()
     def zoom_in(self):
         """Zoom in"""
         self.zoom_factor += .1
@@ -120,14 +123,11 @@ class WebBrowser(QWidget):
         self.home_url = None
         
         self.webview = WebView(self)
-        self.connect(self.webview, SIGNAL("loadFinished(bool)"),
-                     self.load_finished)
-        self.connect(self.webview, SIGNAL("titleChanged(QString)"),
-                     self.setWindowTitle)
-        self.connect(self.webview, SIGNAL("urlChanged(QUrl)"),
-                     self.url_changed)
+        self.webview.loadFinished.connect(self.load_finished)
+        self.webview.titleChanged.connect(self.setWindowTitle)
+        self.webview.urlChanged.connect(self.url_changed)
                 
-        home_button = create_toolbutton(self, icon=get_icon('home.png'),
+        home_button = create_toolbutton(self, icon=ima.icon('home'),
                                         tip=_("Home"),
                                         triggered=self.go_home)
         
@@ -142,36 +142,30 @@ class WebBrowser(QWidget):
         next_button = pageact2btn(QWebPage.Forward)
         
         stop_button.setEnabled(False)
-        self.connect(self.webview, SIGNAL("loadStarted()"),
-                     lambda: stop_button.setEnabled(True))
-        self.connect(self.webview, SIGNAL("loadFinished(bool)"),
-                     lambda: stop_button.setEnabled(False))
+        self.webview.loadStarted.connect(lambda: stop_button.setEnabled(True))
+        self.webview.loadFinished.connect(lambda: stop_button.setEnabled(False))
         
         progressbar = QProgressBar(self)
         progressbar.setTextVisible(False)
         progressbar.hide()
-        self.connect(self.webview, SIGNAL("loadStarted()"), progressbar.show)
-        self.connect(self.webview, SIGNAL("loadProgress(int)"),
-                     progressbar.setValue)
-        self.connect(self.webview, SIGNAL("loadFinished(bool)"),
-                     lambda _state: progressbar.hide())
+        self.webview.loadStarted.connect(progressbar.show)
+        self.webview.loadProgress.connect(progressbar.setValue)
+        self.webview.loadFinished.connect(lambda _state: progressbar.hide())
         
         label = QLabel(self.get_label())
         
         self.url_combo = UrlComboBox(self)
-        self.connect(self.url_combo, SIGNAL('valid(bool)'),
-                     self.url_combo_activated)
-        self.connect(self.webview, SIGNAL("iconChanged()"), self.icon_changed)
+        self.url_combo.valid.connect(self.url_combo_activated)
+        self.webview.iconChanged.connect(self.icon_changed)
         
         self.find_widget = FindReplace(self)
         self.find_widget.set_editor(self.webview)
         self.find_widget.hide()
 
-        find_button = create_toolbutton(self, icon='find.png',
+        find_button = create_toolbutton(self, icon=ima.icon('find'),
                                         tip=_("Find text"),
                                         toggled=self.toggle_find_widget)
-        self.connect(self.find_widget, SIGNAL("visibility_changed(bool)"),
-                     find_button.setChecked)
+        self.find_widget.visibility_changed.connect(find_button.setChecked)
 
         hlayout = QHBoxLayout()
         for widget in (previous_button, next_button, home_button, find_button,
@@ -205,7 +199,8 @@ class WebBrowser(QWidget):
         else:
             url = url_or_text
         self.webview.load(url)
-        
+
+    @Slot()
     def go_home(self):
         """Go to home page"""
         if self.home_url is not None:
@@ -236,7 +231,8 @@ class WebBrowser(QWidget):
         self.url_combo.setItemIcon(self.url_combo.currentIndex(),
                                    self.webview.icon())
         self.setWindowIcon(self.webview.icon())
-        
+
+    @Slot(bool)
     def toggle_find_widget(self, state):
         if state:
             self.find_widget.show()
@@ -244,15 +240,52 @@ class WebBrowser(QWidget):
             self.find_widget.hide()
 
 
-def main():
+class FrameWebView(QFrame):
+    """
+    Framed QWebView for UI consistency in Spyder.
+    """
+    linkClicked = Signal(QUrl)
+
+    def __init__(self, parent):
+        QFrame.__init__(self, parent)
+
+        self._webview = WebView(self)
+
+        layout = QHBoxLayout()
+        layout.addWidget(self._webview)
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(layout)
+
+        self.setFrameStyle(QFrame.StyledPanel | QFrame.Sunken)
+
+        self._webview.linkClicked.connect(self.linkClicked)
+
+    def set_font(self, font, fixed_font=None):
+        self._webview.set_font(font, fixed_font=fixed_font)
+
+    def setHtml(self, html_text, base_url):
+        self._webview.setHtml(html_text, base_url)
+
+    def url(self):
+        return self._webview.url()
+
+    def load(self, url):
+        self._webview.load(url)
+
+    def page(self):
+        return self._webview.page()
+
+
+def test():
     """Run web browser"""
     from spyderlib.utils.qthelpers import qapplication
-    app = qapplication()
+    app = qapplication(test_time=8)
     widget = WebBrowser()
     widget.show()
-    widget.set_home_url('http://localhost:7464/')
+    widget.set_home_url('http://www.google.com/')
     widget.go_home()
     sys.exit(app.exec_())
 
+
 if __name__ == '__main__':
-    main()
+    test()

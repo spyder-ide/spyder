@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -11,10 +11,12 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
+from spyderlib.qt import PYQT5
 from spyderlib.qt.QtGui import (QVBoxLayout, QFontDialog, QInputDialog,
                                 QLineEdit, QMenu)
-from spyderlib.qt.QtCore import SIGNAL
+from spyderlib.qt.QtCore import Signal, Slot
 from spyderlib.qt.compat import getopenfilename
+import spyderlib.utils.icon_manager as ima
 
 import os
 import sys
@@ -22,27 +24,34 @@ import os.path as osp
 
 
 # Local imports
-from spyderlib.baseconfig import _, debug_print
-from spyderlib.config import CONF
+from spyderlib.config.base import _, debug_print
+from spyderlib.config.main import CONF
 from spyderlib.utils.misc import get_error_match, remove_backslashes
-from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions,
+from spyderlib.utils.qthelpers import (create_action, add_actions,
                                        mimedata2url, DialogManager)
 from spyderlib.utils.environ import EnvDialog
 from spyderlib.widgets.internalshell import InternalShell
 from spyderlib.widgets.findreplace import FindReplace
-from spyderlib.widgets.dicteditor import DictEditor
+from spyderlib.widgets.variableexplorer.collectionseditor import CollectionsEditor
 from spyderlib.plugins import SpyderPluginWidget
 from spyderlib.py3compat import to_text_string, getcwd
 
-    
+
 class Console(SpyderPluginWidget):
     """
     Console widget
     """
     CONF_SECTION = 'internal_console'
+    focus_changed = Signal()
+    redirect_stdio = Signal(bool)
+    edit_goto = Signal(str, int, str)
+    
     def __init__(self, parent=None, namespace=None, commands=[], message=None,
                  exitfunc=None, profile=False, multithreaded=False):
-        SpyderPluginWidget.__init__(self, parent)
+        if PYQT5:
+            SpyderPluginWidget.__init__(self, parent, main = parent)
+        else:
+            SpyderPluginWidget.__init__(self, parent)
         
         debug_print("    ..internal console: initializing")
         self.dialog_manager = DialogManager()
@@ -54,21 +63,17 @@ class Console(SpyderPluginWidget):
                                    self.get_plugin_font(), exitfunc, profile,
                                    multithreaded,
                                    light_background=light_background)
-        self.connect(self.shell, SIGNAL('status(QString)'),
-                     lambda msg:
-                     self.emit(SIGNAL('show_message(QString,int)'), msg, 0))
-        self.connect(self.shell, SIGNAL("go_to_error(QString)"),
-                     self.go_to_error)
-        self.connect(self.shell, SIGNAL("focus_changed()"),
-                     lambda: self.emit(SIGNAL("focus_changed()")))
-        # Redirecting some SIGNALs:
-        self.connect(self.shell, SIGNAL('redirect_stdio(bool)'),
-                     lambda state: self.emit(SIGNAL('redirect_stdio(bool)'),
-                                             state))
+        self.shell.status.connect(lambda msg: self.show_message.emit(msg, 0))
+        self.shell.go_to_error.connect(self.go_to_error)
+        self.shell.focus_changed.connect(lambda: self.focus_changed.emit())
+
+        # Redirecting some signals:
+        self.shell.redirect_stdio.connect(lambda state:
+                                          self.redirect_stdio.emit(state))
         
         # Initialize plugin
         self.initialize_plugin()
-                
+
         # Find/replace widget
         self.find_widget = FindReplace(self)
         self.find_widget.set_editor(self.shell)
@@ -92,12 +97,11 @@ class Console(SpyderPluginWidget):
         """Bind historylog instance to this console
         Not used anymore since v2.0"""
         historylog.add_history(self.shell.history_filename)
-        self.connect(self.shell, SIGNAL('append_to_history(QString,QString)'),
-                     historylog.append_to_history)
-        
-    def set_inspector(self, inspector):
-        """Bind inspector instance to this console"""
-        self.shell.inspector = inspector
+        self.shell.append_to_history.connect(historylog.append_to_history)
+
+    def set_help(self, help_plugin):
+        """Bind help instance to this console"""
+        self.shell.help = help_plugin
 
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
@@ -123,21 +127,23 @@ class Console(SpyderPluginWidget):
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         quit_action = create_action(self, _("&Quit"),
-                                    icon='exit.png', tip=_("Quit"),
+                                    icon=ima.icon('exit'), 
+                                    tip=_("Quit"),
                                     triggered=self.quit)
         self.register_shortcut(quit_action, "_", "Quit", "Ctrl+Q")
         run_action = create_action(self, _("&Run..."), None,
-                            'run_small.png', _("Run a Python script"),
+                            ima.icon('run_small'),
+                            _("Run a Python script"),
                             triggered=self.run_script)
         environ_action = create_action(self,
                             _("Environment variables..."),
-                            icon = 'environ.png',
+                            icon=ima.icon('environ'),
                             tip=_("Show and edit environment variables"
                                         " (for current session)"),
                             triggered=self.show_env)
         syspath_action = create_action(self,
                             _("Show sys.path contents..."),
-                            icon = 'syspath.png',
+                            icon=ima.icon('syspath'),
                             tip=_("Show (read-only) sys.path"),
                             triggered=self.show_syspath)
         buffer_action = create_action(self,
@@ -146,7 +152,7 @@ class Console(SpyderPluginWidget):
                             triggered=self.change_max_line_count)
         font_action = create_action(self,
                             _("&Font..."), None,
-                            'font.png', _("Set shell font style"),
+                            ima.icon('font'), _("Set shell font style"),
                             triggered=self.change_font)
         exteditor_action = create_action(self,
                             _("External editor path..."), None, None,
@@ -169,8 +175,8 @@ class Console(SpyderPluginWidget):
         codecompenter_action.setChecked(self.get_option(
                                                     'codecompletion/enter_key'))
         
-        option_menu = QMenu(_("Internal console settings"), self)
-        option_menu.setIcon(get_icon('tooloptions.png'))
+        option_menu = QMenu(_('Internal console settings'), self)
+        option_menu.setIcon(ima.icon('tooloptions'))
         add_actions(option_menu, (buffer_action, font_action, wrap_action,
                                   calltips_action, codecompletion_action,
                                   codecompenter_action, exteditor_action))
@@ -185,12 +191,10 @@ class Console(SpyderPluginWidget):
     
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
-        self.connect(self, SIGNAL('focus_changed()'),
-                     self.main.plugin_focus_changed)
+        self.focus_changed.connect(self.main.plugin_focus_changed)
         self.main.add_dockwidget(self)
         # Connecting the following signal once the dockwidget has been created:
-        self.connect(self.shell, SIGNAL('traceback_available()'),
-                     self.traceback_available)
+        self.shell.traceback_available.connect(self.traceback_available)
     
     def traceback_available(self):
         """Traceback is available in the internal console: showing the 
@@ -200,21 +204,25 @@ class Console(SpyderPluginWidget):
             self.dockwidget.raise_()
         
     #------ Public API ---------------------------------------------------------
+    @Slot()
     def quit(self):
         """Quit mainwindow"""
         self.main.close()
-        
+    
+    @Slot()
     def show_env(self):
         """Show environment variables"""
         self.dialog_manager.show(EnvDialog())
-
+    
+    @Slot()
     def show_syspath(self):
         """Show sys.path"""
-        editor = DictEditor()
+        editor = CollectionsEditor()
         editor.setup(sys.path, title="sys.path", readonly=True,
-                     width=600, icon='syspath.png')
+                     width=600, icon=ima.icon('syspath'))
         self.dialog_manager.show(editor)
-        
+    
+    @Slot()
     def run_script(self, filename=None, silent=False, set_focus=False,
                    args=None):
         """Run a Python script"""
@@ -228,6 +236,7 @@ class Console(SpyderPluginWidget):
                 filename = osp.basename(filename)
             else:
                 return
+        debug_print(args)
         filename = osp.abspath(filename)
         rbs = remove_backslashes
         command = "runfile('%s', args='%s')" % (rbs(filename), rbs(args))
@@ -255,14 +264,14 @@ class Console(SpyderPluginWidget):
             self.shell.external_editor(filename, goto)
             return
         if filename is not None:
-            self.emit(SIGNAL("edit_goto(QString,int,QString)"),
-                      osp.abspath(filename), goto, '')
+            self.edit_goto.emit(osp.abspath(filename), goto, '')
         
     def execute_lines(self, lines):
         """Execute lines and give focus to shell"""
         self.shell.execute_lines(to_text_string(lines))
         self.shell.setFocus()
-        
+    
+    @Slot()
     def change_font(self):
         """Change console font"""
         font, valid = QFontDialog.getFont(self.get_plugin_font(),
@@ -270,7 +279,8 @@ class Console(SpyderPluginWidget):
         if valid:
             self.shell.set_font(font)
             self.set_plugin_font(font)
-        
+    
+    @Slot()
     def change_max_line_count(self):
         "Change maximum line count"""
         mlc, valid = QInputDialog.getInteger(self, _('Buffer'),
@@ -281,6 +291,7 @@ class Console(SpyderPluginWidget):
             self.shell.setMaximumBlockCount(mlc)
             self.set_option('max_line_count', mlc)
 
+    @Slot()
     def change_exteditor(self):
         """Change external editor path"""
         path, valid = QInputDialog.getText(self, _('External editor'),
@@ -289,22 +300,26 @@ class Console(SpyderPluginWidget):
                           self.get_option('external_editor/path'))
         if valid:
             self.set_option('external_editor/path', to_text_string(path))
-            
+    
+    @Slot(bool)
     def toggle_wrap_mode(self, checked):
         """Toggle wrap mode"""
         self.shell.toggle_wrap_mode(checked)
         self.set_option('wrap', checked)
-            
+    
+    @Slot(bool)
     def toggle_calltips(self, checked):
         """Toggle calltips"""
         self.shell.set_calltips(checked)
         self.set_option('calltips', checked)
-            
+    
+    @Slot(bool)
     def toggle_codecompletion(self, checked):
         """Toggle automatic code completion"""
         self.shell.set_codecompletion_auto(checked)
         self.set_option('codecompletion/auto', checked)
-            
+    
+    @Slot(bool)
     def toggle_codecompletion_enter(self, checked):
         """Toggle Enter key for code completion"""
         self.shell.set_codecompletion_enter(checked)

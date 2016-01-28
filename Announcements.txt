@@ -132,3 +132,52 @@ your favorite environment!
 
 Enjoy!
 -Carlos
+
+
+---
+
+
+Beta release
+============
+
+Subject: [ANN] Spyder 3.0 second public beta release
+
+
+Hi all,
+
+On the behalf of Spyder's development team (https://github.com/spyder-ide/spyder/graphs/contributors),
+I'm pleased to announce the second beta of our next major version: Spyder 3.0.
+
+We've been working on this version for more than a year now and as far as we know
+it's working very well. There are still several bugs to squash but we encourage all
+people who like the bleeding edge to give it a try. This second beta is released
+four months after our first one and it includes more than 600 commits!
+
+Spyder 3.0 comes with several interesting and exciting new features. The most
+important ones are:
+
+1. A file switcher very similar to the Sublime Text one (which can be activated
+with `Ctrl+P`).
+2. A new icon theme based on FontAwesome (not yet activated by default).
+3. A new set of default pane layouts for those coming from Rstudio or Matlab
+(under `View > Window layouts`).
+4. Syntax highlighting for all file types supported by Pygments (a pure Python
+highlighting library).
+5. A simpler and more intuitive way to introduce keyboard shortcuts.
+6. Support for PyQt5.
+
+For a complete list of changes, please see here:
+
+https://github.com/spyder-ide/spyder/wiki/Beta-version-changelog
+
+You can easily install this beta if you use Anaconda by running:
+
+    conda install -c spyder-ide spyder
+
+Or you can download it from our Releases page: https://github.com/spyder-ide/spyder/releases
+and previously installing QtAwesome with
+
+    pip install qtawesome
+
+Enjoy!
+-Carlos

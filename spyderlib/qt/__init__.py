@@ -1,21 +1,32 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2011 Pierre Raybaut
+# Copyright © 2011-2012 Pierre Raybaut
+#           © 2012-2014 anatoly techtonik
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
-"""Transitional package (PyQt4 --> PySide)"""
+"""Spyder Qt Shim"""
 
 import os
 
-os.environ.setdefault('QT_API', 'pyqt')
-assert os.environ['QT_API'] in ('pyqt', 'pyside')
+os.environ.setdefault('QT_API', 'pyqt5')
+assert os.environ['QT_API'] in ('pyqt5', 'pyqt', 'pyside')
 
 API = os.environ['QT_API']
-API_NAME = {'pyqt': 'PyQt4', 'pyside': 'PySide'}[API]
+API_NAME = {'pyqt5': 'PyQt5', 'pyqt': 'PyQt4', 'pyside': 'PySide'}[API]
+
+is_old_pyqt = is_pyqt46 = False
+PYQT5 = True
+
+if API == 'pyqt5':
+    try:
+        from PyQt5.QtCore import PYQT_VERSION_STR as __version__
+        from PyQt5 import uic  # analysis:ignore
+    except ImportError:
+        API = os.environ['QT_API'] = 'pyqt'
+        API_NAME = 'PyQt4'
 
 if API == 'pyqt':
-    # Since Spyder 2.3.6 we only support API #2
     try:
         import sip
         try:
@@ -27,11 +38,14 @@ if API == 'pyqt':
             sip.setapi('QTime', 2)
             sip.setapi('QUrl', 2)
         except AttributeError:
+            # PyQt < v4.6. The actual check is done by requirements.check_qt()
+            # call from spyder.py
             pass
-        
-        from PyQt4.QtCore import PYQT_VERSION_STR as __version__
-    except ImportError: # May fail on sip or on PyQt4 import
-        # Switching to PySide
+
+        from PyQt4.QtCore import PYQT_VERSION_STR as __version__ # analysis:ignore
+        from PyQt4 import uic  # analysis:ignore
+        PYQT5 = False
+    except ImportError:
         API = os.environ['QT_API'] = 'pyside'
         API_NAME = 'PySide'
     else:
@@ -46,7 +60,7 @@ if API == 'pyqt':
 if API == 'pyside':
     try:
         from PySide import __version__  # analysis:ignore
+        PYQT5 = False
     except ImportError:
-        raise ImportError("Spyder requires PySide or PyQt to be installed")
-    else:
-        is_old_pyqt = is_pyqt46 = False
+        raise ImportError("Spyder requires PyQt5, PyQt4 or PySide (deprecated) "
+                          "to be installed")

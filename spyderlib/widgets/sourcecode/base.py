@@ -19,9 +19,11 @@ from spyderlib.qt.QtGui import (QTextCursor, QColor, QFont, QApplication,
                                 QTextEdit, QTextCharFormat, QToolTip,
                                 QListWidget, QPlainTextEdit, QPalette,
                                 QMainWindow, QTextOption, QMouseEvent,
-                                QTextFormat, QClipboard)
-from spyderlib.qt.QtCore import SIGNAL, Qt, QEventLoop, QEvent, QPoint
+                                QTextFormat, QClipboard, QAbstractItemView,
+                                QListWidgetItem)
+from spyderlib.qt.QtCore import Signal, Slot, Qt, QEventLoop, QEvent, QPoint
 from spyderlib.qt.compat import to_qvariant
+import spyderlib.utils.icon_manager as ima
 
 
 # Local imports
@@ -29,6 +31,19 @@ from spyderlib.widgets.sourcecode.terminal import ANSIEscapeCodeHandler
 from spyderlib.widgets.mixins import BaseEditMixin
 from spyderlib.widgets.calltip import CallTipWidget
 from spyderlib.py3compat import to_text_string, str_lower, PY3
+
+
+def insert_text_to(cursor, text, fmt):
+    """Helper to print text, taking into account backspaces"""
+    while True:
+        index = text.find(chr(8))  # backspace
+        if index == -1:
+            break
+        cursor.insertText(text[:index], fmt)
+        if cursor.positionInBlock() > 0:
+            cursor.deletePreviousChar()
+        text = text[index+1:]
+    cursor.insertText(text, fmt)
 
 
 class CompletionWidget(QListWidget):
@@ -41,23 +56,39 @@ class CompletionWidget(QListWidget):
         self.case_sensitive = False
         self.enter_select = None
         self.hide()
-        self.connect(self, SIGNAL("itemActivated(QListWidgetItem*)"),
-                     self.item_selected)
+        self.itemActivated.connect(self.item_selected)
         
     def setup_appearance(self, size, font):
         self.resize(*size)
         self.setFont(font)
         
     def show_list(self, completion_list, automatic=True):
+        types = [c[1] for c in completion_list]
+        completion_list = [c[0] for c in completion_list]
         if len(completion_list) == 1 and not automatic:
             self.textedit.insert_completion(completion_list[0])
             return
-        
+
         self.completion_list = completion_list
         self.clear()
-        self.addItems(completion_list)
+
+        icons_map = {'instance': 'attribute',
+                     'statement': 'attribute',
+                     'method': 'method',
+                     'function': 'function',
+                     'class': 'class',
+                     'module': 'module'}
+
+        self.type_list = types
+        if any(types):
+            for (c, t) in zip(completion_list, types):
+                icon = icons_map.get(t, 'no_match')
+                self.addItem(QListWidgetItem(ima.icon(icon), c))
+        else:
+            self.addItems(completion_list)
+
         self.setCurrentRow(0)
-        
+
         QApplication.processEvents(QEventLoop.ExcludeUserInputEvents)
         self.show()
         self.setFocus()
@@ -151,6 +182,8 @@ class CompletionWidget(QListWidget):
                     completion_text = completion_text.lower()
                 if completion.startswith(completion_text):
                     self.setCurrentRow(row)
+                    self.scrollTo(self.currentIndex(),
+                                  QAbstractItemView.PositionAtTop)
                     break
             else:
                 self.hide()
@@ -179,6 +212,11 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     """Text edit base widget"""
     BRACE_MATCHING_SCOPE = ('sof', 'eof')
     cell_separators = None
+    focus_in = Signal()
+    zoom_in = Signal()
+    zoom_out = Signal()
+    zoom_reset = Signal()
+    focus_changed = Signal()
     
     def __init__(self, parent=None):
         QPlainTextEdit.__init__(self, parent)
@@ -187,9 +225,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         
         self.extra_selections_dict = {}
         
-        self.connect(self, SIGNAL('textChanged()'), self.changed)
-        self.connect(self, SIGNAL('cursorPositionChanged()'),
-                     self.cursor_position_changed)
+        self.textChanged.connect(self.changed)
+        self.cursorPositionChanged.connect(self.cursor_position_changed)
         
         self.indent_chars = " "*4
         
@@ -277,8 +314,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         
     def changed(self):
         """Emit changed signal"""
-        self.emit(SIGNAL('modificationChanged(bool)'),
-                  self.document().isModified())
+        self.modificationChanged.emit(self.document().isModified())
 
 
     #------Highlight current line
@@ -445,6 +481,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         
         
     #------Reimplementing Qt methods
+    @Slot()
     def copy(self):
         """
         Reimplement Qt method
@@ -776,6 +813,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         cursor = self.textCursor()
         cursor.beginEditBlock()
         start_pos, end_pos = self.__save_selection()
+        add_linesep = False
         if to_text_string(cursor.selectedText()):
             # Check if start_pos is at the start of a block
             cursor.setPosition(start_pos)
@@ -795,22 +833,41 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             start_pos = cursor.position()
             cursor.movePosition(QTextCursor.NextBlock)
             end_pos = cursor.position()
+            # check if on last line
+            if end_pos == start_pos:
+                cursor.movePosition(QTextCursor.End)
+                end_pos = cursor.position()
+                if start_pos == end_pos:
+                    cursor.endEditBlock()
+                    return
+                add_linesep = True
         cursor.setPosition(start_pos)
         cursor.setPosition(end_pos, QTextCursor.KeepAnchor)
-        
+
         sel_text = to_text_string(cursor.selectedText())
+        if add_linesep:
+            sel_text += os.linesep
         cursor.removeSelectedText()
-        
+
         if after_current_line:
             text = to_text_string(cursor.block().text())
+            if not text:
+                cursor.insertText(sel_text)
+                cursor.endEditBlock()
+                return
             start_pos += len(text)+1
             end_pos += len(text)+1
             cursor.movePosition(QTextCursor.NextBlock)
+            if cursor.position() < start_pos:
+                cursor.movePosition(QTextCursor.End)
+                sel_text = os.linesep + sel_text
+                end_pos -= 1
         else:
             cursor.movePosition(QTextCursor.PreviousBlock)
             text = to_text_string(cursor.block().text())
             start_pos -= len(text)+1
             end_pos -= len(text)+1
+
         cursor.insertText(sel_text)
 
         cursor.endEditBlock()
@@ -884,16 +941,21 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     def show_completion_list(self, completions, completion_text="",
                              automatic=True):
         """Display the possible completions"""
-        if completions is None or len(completions) == 0 or \
-          completions == [completion_text]:
+        if not completions:
+            return
+        if not isinstance(completions[0], tuple):
+            completions = [(c, '') for c in completions]
+        if len(completions) == 1 and completions[0][0] == completion_text:
             return
         self.completion_text = completion_text
         # Sorting completion list (entries starting with underscore are
         # put at the end of the list):
-        underscore = set([comp for comp in completions
+        underscore = set([(comp, t) for (comp, t) in completions
                           if comp.startswith('_')])
-        completions = sorted(set(completions)-underscore, key=str_lower)+\
-                      sorted(underscore, key=str_lower)
+
+        completions = sorted(set(completions) - underscore,
+                             key=lambda x: str_lower(x[0]))
+        completions += sorted(underscore, key=lambda x: str_lower(x[0]))
         self.show_completion_widget(completions, automatic=automatic)
         
     def select_completion_list(self):
@@ -1002,14 +1064,14 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
     def focusInEvent(self, event):
         """Reimplemented to handle focus"""
-        self.emit(SIGNAL("focus_changed()"))
-        self.emit(SIGNAL("focus_in()"))
+        self.focus_changed.emit()
+        self.focus_in.emit()
         self.highlight_current_cell()
         QPlainTextEdit.focusInEvent(self, event)
         
     def focusOutEvent(self, event):
         """Reimplemented to handle focus"""
-        self.emit(SIGNAL("focus_changed()"))
+        self.focus_changed.emit()
         QPlainTextEdit.focusOutEvent(self, event)
     
     def wheelEvent(self, event):
@@ -1017,10 +1079,16 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         # This feature is disabled on MacOS, see Issue 1510
         if sys.platform != 'darwin':
             if event.modifiers() & Qt.ControlModifier:
-                if event.delta() < 0:
-                    self.emit(SIGNAL("zoom_out()"))
-                elif event.delta() > 0:
-                    self.emit(SIGNAL("zoom_in()"))
+                if hasattr(event, 'angleDelta'):
+                    if event.angleDelta().y() < 0:
+                        self.zoom_out.emit()
+                    elif event.angleDelta().y() > 0:
+                        self.zoom_in.emit()
+                elif hasattr(event, 'delta'):
+                    if event.delta() < 0:
+                        self.zoom_out.emit()
+                    elif event.delta() > 0:
+                        self.zoom_in.emit()
                 return
         QPlainTextEdit.wheelEvent(self, event)
         self.highlight_current_cell()
@@ -1122,11 +1190,15 @@ class ConsoleFontStyle(object):
         font.setItalic(self.italic)
         font.setUnderline(self.underline)
         self.format.setFont(font)
-    
+
+
 class ConsoleBaseWidget(TextEditBaseWidget):
     """Console base widget"""
     BRACE_MATCHING_SCOPE = ('sol', 'eol')
     COLOR_PATTERN = re.compile('\x01?\x1b\[(.*?)m\x02?')
+    traceback_available = Signal()
+    userListActivated = Signal(int, str)
+    completion_widget_activated = Signal(str)
     
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
@@ -1141,10 +1213,8 @@ class ConsoleBaseWidget(TextEditBaseWidget):
         # Disable undo/redo (nonsense for a console widget...):
         self.setUndoRedoEnabled(False)
         
-        self.connect(self, SIGNAL('userListActivated(int, const QString)'),
-                     lambda user_id, text:
-                     self.emit(SIGNAL('completion_widget_activated(QString)'),
-                               text))
+        self.userListActivated.connect(lambda user_id, text:
+                                   self.completion_widget_activated.emit(text))
         
         self.default_style = ConsoleFontStyle(
                             foregroundcolor=0x000000, backgroundcolor=0xFFFFFF,
@@ -1203,6 +1273,8 @@ class ConsoleBaseWidget(TextEditBaseWidget):
     #------Python shell
     def insert_text(self, text):
         """Reimplement TextEditBaseWidget method"""
+        # Eventually this maybe should wrap to insert_text_to if
+        # backspace-handling is required
         self.textCursor().insertText(text, self.default_style.format)
         
     def paste(self):
@@ -1223,6 +1295,9 @@ class ConsoleBaseWidget(TextEditBaseWidget):
         """
         cursor = self.textCursor()
         cursor.movePosition(QTextCursor.End)
+        if '\r' in text:    # replace \r\n with \n
+            text = text.replace('\r\n', '\n')
+            text = text.replace('\r', '\n')
         while True:
             index = text.find(chr(12))
             if index == -1:
@@ -1243,21 +1318,21 @@ class ConsoleBaseWidget(TextEditBaseWidget):
                     # Show error/warning messages in red
                     cursor.insertText(text, self.error_style.format)
             if is_traceback:
-                self.emit(SIGNAL('traceback_available()'))
+                self.traceback_available.emit()
         elif prompt:
             # Show prompt in green
-            cursor.insertText(text, self.prompt_style.format)
+            insert_text_to(cursor, text, self.prompt_style.format)
         else:
             # Show other outputs in black
             last_end = 0
             for match in self.COLOR_PATTERN.finditer(text):
-                cursor.insertText(text[last_end:match.start()],
-                                  self.default_style.format)
+                insert_text_to(cursor, text[last_end:match.start()],
+                               self.default_style.format)
                 last_end = match.end()
                 for code in [int(_c) for _c in match.group(1).split(';')]:
                     self.ansi_handler.set_code(code)
                 self.default_style.format = self.ansi_handler.get_format()
-            cursor.insertText(text[last_end:], self.default_style.format)
+            insert_text_to(cursor, text[last_end:], self.default_style.format)
 #            # Slower alternative:
 #            segments = self.COLOR_PATTERN.split(text)
 #            cursor.insertText(segments.pop(0), self.default_style.format)
@@ -1269,7 +1344,7 @@ class ConsoleBaseWidget(TextEditBaseWidget):
 #                    cursor.insertText(text, self.default_style.format)
         self.set_cursor_position('eof')
         self.setCurrentCharFormat(self.default_style.format)
-    
+
     def set_pythonshell_font(self, font=None):
         """Python Shell only"""
         if font is None:

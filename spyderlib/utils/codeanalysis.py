@@ -11,12 +11,11 @@ Source code analysis utilities
 import sys
 import re
 import os
-from subprocess import Popen, PIPE
 import tempfile
 import traceback
 
 # Local import
-from spyderlib.baseconfig import _, DEBUG
+from spyderlib.config.base import _, DEBUG
 from spyderlib.utils import programs, encoding
 from spyderlib.py3compat import to_text_string, to_binary_string, PY3
 from spyderlib import dependencies
@@ -144,8 +143,10 @@ def check(args, source_code, filename=None, options=None):
         args.append(tempfd.name)
     else:
         args.append(filename)
-    output = Popen(args, stdout=PIPE, stderr=PIPE
-                   ).communicate()[0].strip().decode().splitlines()
+    cmd = args[0]
+    cmdargs = args[1:]
+    proc = programs.run_program(cmd, cmdargs)
+    output = proc.communicate()[0].strip().decode().splitlines()
     if filename is None:
         os.unlink(tempfd.name)
     results = []
@@ -153,7 +154,11 @@ def check(args, source_code, filename=None, options=None):
     lines = source_code.splitlines()
     for line in output:
         lineno = int(re.search(r'(\:[\d]+\:)', line).group()[1:-1])
-        if 'analysis:ignore' not in to_text_string(lines[lineno-1], coding):
+        try:
+            text = to_text_string(lines[lineno-1], coding)
+        except TypeError:
+            text = to_text_string(lines[lineno-1])
+        if 'analysis:ignore' not in text:
             message = line[line.find(': ')+2:]
             results.append((message, lineno))
     return results

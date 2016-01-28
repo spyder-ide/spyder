@@ -29,14 +29,20 @@ class FallbackPlugin(IntrospectionPlugin):
     name = 'fallback'
 
     def get_completions(self, info):
-        """Return a list of completion strings
+        """Return a list of (completion, type) tuples
 
         Simple completion based on python-like identifiers and whitespace
         """
         items = []
-        if (info.line.strip().startswith(('import ', 'from ')) and
-                info.is_python_like):
+        line = info.line.strip()
+        is_from = line.startswith('from')
+        if ((line.startswith('import') or is_from and ' import' not in line)
+                and info.is_python_like):
             items += module_completion(info.line, [info.filename])
+            return [(i, 'module') for i in sorted(items)]
+        elif is_from and info.is_python_like:
+            items += module_completion(info.line, [info.filename])
+            return [(i, '') for i in sorted(items)]
         elif info.obj:
             base = info.obj
             tokens = set(info.split_words(-1))
@@ -46,7 +52,7 @@ class FallbackPlugin(IntrospectionPlugin):
                 start = base.rfind('.') + 1
             else:
                 start = 0
- 
+
             items = [i[start:len(base)] + i[len(base):].split('.')[0]
                      for i in items]
             # get path completions
@@ -54,7 +60,7 @@ class FallbackPlugin(IntrospectionPlugin):
             match = re.search('''[ "\']([\w\.\\\\/]+)\Z''', info.line)
             if match:
                 items += _complete_path(match.groups()[0])
-        return list(sorted(items))
+            return [(i, '') for i in sorted(items)]
 
     def get_definition(self, info):
         """
@@ -69,6 +75,8 @@ class FallbackPlugin(IntrospectionPlugin):
         filename = info.filename
 
         line_nr = None
+        if token is None:
+            return
         if '.' in token:
             token = token.split('.')[-1]
 
@@ -99,6 +107,21 @@ class FallbackPlugin(IntrospectionPlugin):
                 line_nr = get_definition_with_regex(code, token)
 
         return filename, line_nr
+
+    def get_info(self, info):
+        """Get a formatted calltip and docstring from Fallback"""
+        if info.docstring:
+            if info.filename:
+                filename = os.path.basename(info.filename)
+                filename = os.path.splitext(filename)[0]
+            else:
+                filename = '<module>'
+            resp = dict(docstring=info.docstring,
+                        name=filename,
+                        note='',
+                        argspec='',
+                        calltip=None)
+            return resp
 
 
 @memoize
@@ -316,7 +339,7 @@ if __name__ == '__main__':
     assert '.py' in ext and '.pyx' in ext
 
     ext = all_editable_exts()
-    assert '.cfg' in ext and '.iss' in ext
+    assert '.cpp' in ext and '.html' in ext
 
     path = p.get_parent_until(os.path.abspath(__file__))
     assert path == 'spyderlib.utils.introspection.fallback_plugin'
@@ -327,8 +350,10 @@ if __name__ == '__main__':
     path = python_like_mod_finder(line, stop_token='sourcecode')
     assert path.endswith('__init__.py') and 'sourcecode' in path
 
-    path = p.get_parent_until(osp.expanduser(r'~/.spyder2/temp.py'))
-    assert path == '.spyder2.temp'
+    path = osp.expanduser(r'~/.spyder2/temp.py')
+    if os.path.exists(path):
+        path = p.get_parent_until(path)
+        assert path == '.spyder2.temp', path
 
     code = 'import re\n\nre'
     path, line = p.get_definition(CodeInfo('definition', code, len(code),
@@ -337,19 +362,19 @@ if __name__ == '__main__':
 
     code = 'self.proxy.widget; self.p'
     comp = p.get_completions(CodeInfo('completions', code, len(code)))
-    assert comp == ['proxy']
+    assert comp[0] == ('proxy', '')
 
     code = 'self.sigMessageReady.emit; self.s'
     comp = p.get_completions(CodeInfo('completions', code, len(code)))
-    assert comp == ['sigMessageReady']
+    assert comp == [('sigMessageReady', '')]
 
     code = encoding.to_unicode('álfa;á')
     comp = p.get_completions(CodeInfo('completions', code, len(code)))
-    assert comp == [encoding.to_unicode('álfa')]
+    assert comp == [(encoding.to_unicode('álfa'), '')]
 
     code = 'from numpy import one'
     comp = p.get_completions(CodeInfo('completions', code, len(code)))
-    assert 'ones' in comp
+    assert ('ones', '') in comp
 
     comp = p.get_completions(CodeInfo('completions', code, len(code),
         is_python_like=False))
@@ -357,7 +382,7 @@ if __name__ == '__main__':
 
     code = 'from numpy.testing import (asse'
     comp = p.get_completions(CodeInfo('completions', code, len(code)))
-    assert 'assert_equal' in comp
+    assert ('assert_equal', '') in comp
 
     code = '''
 def test(a, b):

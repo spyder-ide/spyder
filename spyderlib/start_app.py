@@ -1,17 +1,18 @@
 # -*- coding: utf-8 -*-
 
+# Std imports
+import atexit
 import os
 import os.path as osp
-import socket
-import time
-import atexit
 import random
+import socket
+import sys
+import time
 
 # Local imports
 from spyderlib.cli_options import get_options
-from spyderlib.baseconfig import get_conf_path, running_in_mac_app
-from spyderlib.config import CONF
-from spyderlib.baseconfig import DEV, TEST
+from spyderlib.config.base import get_conf_path, running_in_mac_app, DEV, TEST
+from spyderlib.config.main import CONF
 from spyderlib.utils.external import lockfile
 from spyderlib.py3compat import is_unicode
 
@@ -53,7 +54,7 @@ def main():
     options to the application.
     """
     # Renaming old configuration files (the '.' prefix has been removed)
-    # (except for .spyder.ini --> spyder.ini, which is done in userconfig.py)
+    # (except for .spyder.ini --> spyder.ini, which is done in config/user.py)
     if DEV is None:
         cpath = get_conf_path()
         for fname in os.listdir(cpath):
@@ -66,6 +67,9 @@ def main():
 
     # Parse command line options
     options, args = get_options()
+
+    # Store variable to be used in self.restart (restart spyder instance)
+    os.environ['SPYDER_ARGS'] = str(sys.argv[1:])
 
     if CONF.get('main', 'single_instance') and not options.new_instance \
       and not running_in_mac_app():

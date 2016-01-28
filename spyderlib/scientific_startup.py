@@ -80,7 +80,7 @@ if os.environ.get('QT_API') != 'pyside':
         plt_.ion()
         exec_print("+ guidata %s, guiqwt %s" % (guidata.__version__,
                                            guiqwt.__version__))
-    except ImportError:
+    except (ImportError, AssertionError):
         exec_print()
 
 #==============================================================================

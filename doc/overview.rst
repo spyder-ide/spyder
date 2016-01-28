@@ -16,7 +16,7 @@ Key features:
 * *preferences* dialog box:
   
   * keyboard shortcuts
-  * syntax coloring schemes (source editor, history log, object inspector)
+  * syntax coloring schemes (source editor, history log, help)
   * console: background color (black/white), automatic code completion, etc.
   * and a lot more...
     
@@ -39,7 +39,7 @@ Key features:
     * *calltips*
     * *go-to-definition*: go to object (any symbol: function, class, attribute, etc.) definition by pressing Ctrl+Left mouse click on word or Ctrl+G (default shortcut)
       
-  * *occurence highlighting*
+  * *occurrence highlighting*
   * typing helpers (optional):
     
     * automatically insert closing parentheses, braces and brackets
@@ -53,7 +53,7 @@ Key features:
 * :doc:`console`:
   
   * *all consoles are executed in a separate process*
-  * *code completion*/calltips and automatic link to object inspector (see below)
+  * *code completion*/calltips and automatic link to help (see below)
   * open Python interpreters or basic terminal command windows
   * run Python scripts (see source editor features)
   * *variable explorer*:
@@ -64,17 +64,17 @@ Key features:
     * data visualization
       
 * :doc:`historylog`
-* :doc:`inspector`:
+* :doc:`help`:
   
   * provide documentation or source code on any Python object (class, function, module, ...)
   * documentation may be displayed as an html page thanks to the rich text mode (powered by `sphinx`)
     
 * :doc:`onlinehelp`: automatically generated html documentation on installed Python modules
-* :doc:`findinfiles`: find string occurences in a directory, a mercurial repository or directly in PYTHONPATH (support for regular expressions and  included/excluded string lists)
+* :doc:`findinfiles`: find string occurrences in a directory, a mercurial repository or directly in PYTHONPATH (support for regular expressions and  included/excluded string lists)
 * :doc:`explorer`
 * :doc:`projectexplorer` (support Pydev project import)
 
 
-Spyder may also be used as a PyQt4 or PySide extension library 
-(module 'spyderlib'). For example, the Python interactive shell widget 
-used in Spyder may be embedded in your own PyQt4 or PySide application.
+Spyder may also be used as a PyQt5 or PyQt4 extension library 
+(module 'spyderlib'). For example, the Python interactive shell widget
+used in Spyder may be embedded in your own PyQt5 or PyQt4 application.

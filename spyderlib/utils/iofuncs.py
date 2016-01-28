@@ -371,13 +371,14 @@ def load_dictionary(filename):
     return data, error_message
 
 
-from spyderlib.baseconfig import get_conf_path, STDERR
+from spyderlib.config.base import get_conf_path, STDERR
 
-SAVED_CONFIG_FILES = ('inspector', 'onlinehelp', 'path', 'pylint.results',
+SAVED_CONFIG_FILES = ('help', 'onlinehelp', 'path', 'pylint.results',
                       'spyder.ini', 'temp.py', 'temp.spydata', 'template.py',
                       'history.py', 'history_internal.py', 'workingdir',
                       '.projects', '.spyderproject', '.ropeproject',
-                      'monitor.log', 'monitor_debug.log', 'rope.log')
+                      'monitor.log', 'monitor_debug.log', 'rope.log',
+                      'langconfig')
 
 def reset_session():
     """Remove all config files"""
@@ -462,7 +463,7 @@ def load_session(filename):
     return error_message
 
 
-from spyderlib.baseconfig import _
+from spyderlib.config.base import _
 
 class IOFunctions(object):
     def __init__(self):
@@ -524,7 +525,7 @@ class IOFunctions(object):
     def get_3rd_party_funcs(self):
         other_funcs = []
         from spyderlib.otherplugins import get_spyderplugins_mods
-        for mod in get_spyderplugins_mods(prefix='io_', extension='.py'):
+        for mod in get_spyderplugins_mods(io=True):
             try:
                 other_funcs.append((mod.FORMAT_EXT, mod.FORMAT_NAME,
                                     mod.FORMAT_LOAD, mod.FORMAT_SAVE))

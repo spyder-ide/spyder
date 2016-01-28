@@ -42,7 +42,7 @@ set:
 
 Related plugins:
 
-* :doc:`inspector`
+* :doc:`help`
 * :doc:`editor`
 * :doc:`explorer`
 

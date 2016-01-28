@@ -1,0 +1,49 @@
+# -*- coding: utf-8 -*-
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2015-08-29 22:49+COT\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: utf-8\n"
+"Generated-By: pygettext.py 1.5\n"
+
+#: spyplugins/ui/breakpoints/breakpoints.py:41
+msgid "Breakpoints"
+msgstr "Points d'arrêt"
+
+#: spyplugins/ui/breakpoints/breakpoints.py:75
+msgid "List breakpoints"
+msgstr "Liste des points d'arrêt"
+
+#: spyplugins/ui/breakpoints/widgets/breakpointsgui.py:87
+msgid "Condition"
+msgstr "Condition"
+
+#: spyplugins/ui/breakpoints/widgets/breakpointsgui.py:87
+msgid "File"
+msgstr "Fichier"
+
+#: spyplugins/ui/breakpoints/widgets/breakpointsgui.py:87
+msgid "Line"
+msgstr "Ligne"
+
+#: spyplugins/ui/breakpoints/widgets/breakpointsgui.py:170
+msgid "Clear breakpoints in all files"
+msgstr "Supprimer tous les points d'arrêts"
+
+#: spyplugins/ui/breakpoints/widgets/breakpointsgui.py:177
+msgid "Clear this breakpoint"
+msgstr "Supprimer ce point d'arrêt"
+
+#: spyplugins/ui/breakpoints/widgets/breakpointsgui.py:183
+msgid "Edit this breakpoint"
+msgstr "Supprimer ce point d'arrêt"

@@ -6,7 +6,7 @@
 
 """External shell's introspection and notification servers"""
 
-from spyderlib.qt.QtCore import QThread, SIGNAL, Signal
+from spyderlib.qt.QtCore import QThread, Signal
 
 import threading
 import socket
@@ -14,7 +14,7 @@ import errno
 import os
 
 # Local imports
-from spyderlib.baseconfig import get_conf_path, DEBUG
+from spyderlib.config.base import get_conf_path, DEBUG
 from spyderlib.utils.misc import select_port
 from spyderlib.utils.debug import log_last_error
 from spyderlib.utils.bsdsocket import read_packet, write_packet
@@ -138,6 +138,11 @@ def start_notification_server():
 class NotificationThread(QThread):
     """Notification thread"""
     sig_process_remote_view = Signal(object)
+    sig_pdb = Signal(str, int)
+    open_file = Signal(str, int)
+    new_ipython_kernel = Signal(str)
+    refresh_namespace_browser = Signal()
+    
     def __init__(self):
         QThread.__init__(self)
         self.notify_socket = None
@@ -173,17 +178,17 @@ class NotificationThread(QThread):
                 data = cdict.get('data')
                 if command == 'pdb_step':
                     fname, lineno = data
-                    self.emit(SIGNAL('pdb(QString,int)'), fname, lineno)
-                    self.emit(SIGNAL('refresh_namespace_browser()'))
+                    self.sig_pdb.emit(fname, lineno)
+                    self.refresh_namespace_browser.emit()
                 elif command == 'refresh':
-                    self.emit(SIGNAL('refresh_namespace_browser()'))
+                    self.refresh_namespace_browser.emit()
                 elif command == 'remote_view':
                     self.sig_process_remote_view.emit(data)
                 elif command == 'ipykernel':
-                    self.emit(SIGNAL('new_ipython_kernel(QString)'), data)
+                    self.new_ipython_kernel.emit(data)
                 elif command == 'open_file':
                     fname, lineno = data
-                    self.emit(SIGNAL('open_file(QString,int)'), fname, lineno)
+                    self.open_file.emit(fname, lineno)
                 else:
                     raise RuntimeError('Unsupported command: %r' % command)
                 if DEBUG_INTROSPECTION:

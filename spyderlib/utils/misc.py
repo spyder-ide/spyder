@@ -86,9 +86,9 @@ def count_lines(path, extensions=None, excluded_dirnames=None):
     of *path* with names ending with *extensions*
     Directory names *excluded_dirnames* will be ignored"""
     if extensions is None:
-        extensions = ['.py', '.pyw', '.ipy', '.c', '.h', '.cpp', '.hpp',
-                      '.inc', '.', '.hh', '.hxx', '.cc', '.cxx', '.cl',
-                      '.f', '.for', '.f77', '.f90', '.f95', '.f2k']
+        extensions = ['.py', '.pyw', '.ipy', '.enaml', '.c', '.h', '.cpp', 
+                      '.hpp', '.inc', '.', '.hh', '.hxx', '.cc', '.cxx', 
+                      '.cl', '.f', '.for', '.f77', '.f90', '.f95', '.f2k']
     if excluded_dirnames is None:
         excluded_dirnames = ['build', 'dist', '.hg', '.svn']
     def get_filelines(path):
@@ -228,9 +228,17 @@ def get_common_path(pathlist):
                 return osp.abspath(common)
 
 if __name__ == '__main__':
-    assert get_common_path([
-                            'D:\\Python\\spyder-v21\\spyderlib\\widgets',
-                            'D:\\Python\\spyder\\spyderlib\\utils',
-                            'D:\\Python\\spyder\\spyderlib\\widgets',
-                            'D:\\Python\\spyder-v21\\spyderlib\\utils',
-                            ]) == 'D:\\Python'
+    if os.name == 'nt':
+        assert get_common_path([
+                                'D:\\Python\\spyder-v21\\spyderlib\\widgets',
+                                'D:\\Python\\spyder\\spyderlib\\utils',
+                                'D:\\Python\\spyder\\spyderlib\\widgets',
+                                'D:\\Python\\spyder-v21\\spyderlib\\utils',
+                                ]) == 'D:\\Python'
+    else:
+        assert get_common_path([
+                                '/Python/spyder-v21/spyderlib/widgets',
+                                '/Python/spyder/spyderlib/utils',
+                                '/Python/spyder/spyderlib/widgets',
+                                '/Python/spyder-v21/spyderlib/utils',
+                                ]) == '/Python'

@@ -13,22 +13,25 @@
 
 from spyderlib.qt.QtGui import (QTabWidget, QMenu, QDrag, QApplication,
                                 QTabBar, QWidget, QHBoxLayout)
-from spyderlib.qt.QtCore import SIGNAL, Qt, QPoint, QMimeData, QByteArray
+from spyderlib.qt.QtCore import Signal, Qt, QPoint, QMimeData, QByteArray
+import spyderlib.utils.icon_manager as ima
 
 import os.path as osp
 import sys
 
 # Local imports
-from spyderlib.baseconfig import _
-from spyderlib.guiconfig import new_shortcut
+from spyderlib.config.base import _
+from spyderlib.config.gui import new_shortcut
 from spyderlib.utils.misc import get_common_path
 from spyderlib.utils.qthelpers import (add_actions, create_toolbutton,
-                                       create_action, get_icon)
+                                       create_action)
 from spyderlib.py3compat import PY2, to_text_string
 
 
 class TabBar(QTabBar):
     """Tabs base class with drag and drop support"""
+    sig_move_tab = Signal((int, int), (str, int, int))
+    
     def __init__(self, parent, ancestor):
         QTabBar.__init__(self, parent)
         self.ancestor = ancestor
@@ -96,18 +99,20 @@ class TabBar(QTabBar):
             # depend on the platform: long for 64bit, int for 32bit. Replacing 
             # by long all the time is not working on some 32bit platforms 
             # (see Issue 1094, Issue 1098)
-            self.emit(SIGNAL("move_tab(QString,int,int)"), 
-                      tabwidget_from, index_from, index_to)
+            self.sig_move_tab[(str, int, int)].emit(tabwidget_from, index_from,
+                                                    index_to)
 
             event.acceptProposedAction()
         elif index_from != index_to:
-            self.emit(SIGNAL("move_tab(int,int)"), index_from, index_to)
+            self.sig_move_tab.emit(index_from, index_to)
             event.acceptProposedAction()
         QTabBar.dropEvent(self, event)
         
         
 class BaseTabs(QTabWidget):
     """TabWidget with context menu and corner widgets"""
+    sig_close_tab = Signal(int)
+    
     def __init__(self, parent, actions=None, menu=None,
                  corner_widgets=None, menu_use_tooltips=False):
         QTabWidget.__init__(self, parent)
@@ -133,13 +138,12 @@ class BaseTabs(QTabWidget):
         corner_widgets.setdefault(Qt.TopLeftCorner, [])
         corner_widgets.setdefault(Qt.TopRightCorner, [])
         self.browse_button = create_toolbutton(self,
-                                          icon=get_icon("browse_tab.png"),
+                                          icon=ima.icon('browse_tab'),
                                           tip=_("Browse tabs"))
         self.browse_tabs_menu = QMenu(self)
         self.browse_button.setMenu(self.browse_tabs_menu)
         self.browse_button.setPopupMode(self.browse_button.InstantPopup)
-        self.connect(self.browse_tabs_menu, SIGNAL("aboutToShow()"),
-                     self.update_browse_tabs_menu)
+        self.browse_tabs_menu.aboutToShow.connect(self.update_browse_tabs_menu)
         corner_widgets[Qt.TopLeftCorner] += [self.browse_button]
 
         self.set_corner_widgets(corner_widgets)
@@ -214,6 +218,7 @@ class BaseTabs(QTabWidget):
         
     def contextMenuEvent(self, event):
         """Override Qt method"""
+        self.setCurrentIndex(self.tabBar().tabAt(event.pos()))
         if self.menu:
             self.menu.popup(event.globalPos())
             
@@ -222,7 +227,7 @@ class BaseTabs(QTabWidget):
         if event.button() == Qt.MidButton:
             index = self.tabBar().tabAt(event.pos())
             if index >= 0:
-                self.emit(SIGNAL("close_tab(int)"), index)
+                self.sig_close_tab.emit(index)
                 event.accept()
                 return
         QTabWidget.mousePressEvent(self, event)
@@ -234,11 +239,17 @@ class BaseTabs(QTabWidget):
         handled = False
         if ctrl and self.count() > 0:
             index = self.currentIndex()
-            if key == Qt.Key_PageUp and index > 0:
-                self.setCurrentIndex(index-1)
+            if key == Qt.Key_PageUp:
+                if index > 0:
+                    self.setCurrentIndex(index - 1)
+                else:
+                    self.setCurrentIndex(self.count() - 1)
                 handled = True
-            elif key == Qt.Key_PageDown and index < self.count()-1:
-                self.setCurrentIndex(index+1)
+            elif key == Qt.Key_PageDown:
+                if index < self.count() - 1:
+                    self.setCurrentIndex(index + 1)
+                else:
+                    self.setCurrentIndex(0)
                 handled = True
         if not handled:
             QTabWidget.keyPressEvent(self, event)
@@ -248,37 +259,42 @@ class BaseTabs(QTabWidget):
         None -> tabs are not closable"""
         state = func is not None
         if state:
-            self.connect(self, SIGNAL("close_tab(int)"), func)
+            self.sig_close_tab.connect(func)
         try:
             # Assuming Qt >= 4.5
             QTabWidget.setTabsClosable(self, state)
-            self.connect(self, SIGNAL("tabCloseRequested(int)"), func)
+            self.tabCloseRequested.connect(func)
         except AttributeError:
             # Workaround for Qt < 4.5
             close_button = create_toolbutton(self, triggered=func,
-                                             icon=get_icon("fileclose.png"),
+                                             icon=ima.icon('fileclose'),
                                              tip=_("Close current tab"))
             self.setCornerWidget(close_button if state else None)
 
         
 class Tabs(BaseTabs):
     """BaseTabs widget with movable tabs and tab navigation shortcuts"""
+    # Signals
+    move_data = Signal(int, int)
+    move_tab_finished = Signal()
+    sig_move_tab = Signal(str, str, int, int)
+    
     def __init__(self, parent, actions=None, menu=None,
                  corner_widgets=None, menu_use_tooltips=False):
         BaseTabs.__init__(self, parent, actions, menu,
                           corner_widgets, menu_use_tooltips)
         tab_bar = TabBar(self, parent)
-        self.connect(tab_bar, SIGNAL('move_tab(int,int)'), self.move_tab)
-        self.connect(tab_bar, SIGNAL('move_tab(QString,int,int)'),
-                     self.move_tab_from_another_tabwidget)
+        tab_bar.sig_move_tab.connect(self.move_tab)
+        tab_bar.sig_move_tab[(str, int, int)].connect(
+                                          self.move_tab_from_another_tabwidget)
         self.setTabBar(tab_bar)
         
         new_shortcut("Ctrl+Tab", parent, lambda: self.tab_navigate(1))
         new_shortcut("Shift+Ctrl+Tab", parent, lambda: self.tab_navigate(-1))
-        new_shortcut("Ctrl+W", parent, lambda: self.emit(SIGNAL("close_tab(int)"),
-                                                         self.currentIndex()))
-        new_shortcut("Ctrl+F4", parent, lambda: self.emit(SIGNAL("close_tab(int)"),
-                                                          self.currentIndex()))
+        new_shortcut("Ctrl+W", parent,
+                     lambda: self.sig_close_tab.emit(self.currentIndex()))
+        new_shortcut("Ctrl+F4", parent,
+                     lambda: self.sig_close_tab.emit(self.currentIndex()))
         
     def tab_navigate(self, delta=1):
         """Ctrl+Tab"""
@@ -292,7 +308,7 @@ class Tabs(BaseTabs):
 
     def move_tab(self, index_from, index_to):
         """Move tab inside a tabwidget"""
-        self.emit(SIGNAL('move_data(int,int)'), index_from, index_to)
+        self.move_data.emit(index_from, index_to)
 
         tip, text = self.tabToolTip(index_from), self.tabText(index_from)
         icon, widget = self.tabIcon(index_from), self.widget(index_from)
@@ -303,8 +319,7 @@ class Tabs(BaseTabs):
         self.setTabToolTip(index_to, tip)
         
         self.setCurrentWidget(current_widget)
-        
-        self.emit(SIGNAL('move_tab_finished()'))
+        self.move_tab_finished.emit()
 
     def move_tab_from_another_tabwidget(self, tabwidget_from,
                                         index_from, index_to):
@@ -314,5 +329,5 @@ class Tabs(BaseTabs):
         # depend on the platform: long for 64bit, int for 32bit. Replacing 
         # by long all the time is not working on some 32bit platforms 
         # (see Issue 1094, Issue 1098)
-        self.emit(SIGNAL('move_tab(QString,QString,int,int)'),
-                  tabwidget_from, str(id(self)), index_from, index_to)
+        self.sig_move_tab.emit(tabwidget_from, str(id(self)), index_from,
+                               index_to)

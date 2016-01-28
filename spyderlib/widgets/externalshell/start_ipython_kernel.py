@@ -10,14 +10,6 @@
 import sys
 import os.path as osp
 
-# TODO: Move to Jupyter imports in 3.1
-try:
-    import warnings
-    from IPython.utils.shimmodule import ShimWarning
-    warnings.simplefilter('ignore', ShimWarning)
-except:
-    pass
-
 
 def sympy_config(mpl_backend):
     """Sympy configuration"""
@@ -38,11 +30,13 @@ init_session()
 
 def kernel_config():
     """Create a config object with IPython kernel options"""
-    from IPython.config.loader import Config, load_pyconfig_files
+    import os
+
     from IPython.core.application import get_ipython_dir
-    from spyderlib.config import CONF
+    from spyderlib.config.main import CONF
     from spyderlib.utils.programs import is_module_installed
-    
+    from traitlets.config.loader import Config, load_pyconfig_files
+
     # ---- IPython config ----
     try:
         profile_path = osp.join(get_ipython_dir(), 'profile_default')
@@ -69,13 +63,23 @@ def kernel_config():
     mpl_backend = None
     mpl_installed = is_module_installed('matplotlib')
     pylab_o = CONF.get('ipython_console', 'pylab')
+    external_interpreter = \
+                   os.environ.get('EXTERNAL_INTERPRETER', '').lower() == "true"
 
     if mpl_installed and pylab_o:
         # Get matplotlib backend
-        backend_o = CONF.get('ipython_console', 'pylab/backend', 0)
-        backends = {0: 'inline', 1: 'auto', 2: 'qt', 3: 'osx', 4: 'gtk',
-                    5: 'wx', 6: 'tk'}
-        mpl_backend = backends[backend_o]
+        if not external_interpreter:
+            if os.environ["QT_API"] == 'pyqt5':
+                qt_backend = 'qt5'
+            else:
+                qt_backend = 'qt'
+
+            backend_o = CONF.get('ipython_console', 'pylab/backend', 0)
+            backends = {0: 'inline', 1: qt_backend, 2: qt_backend, 3: 'osx',
+                        4: 'gtk', 5: 'wx', 6: 'tk'}
+            mpl_backend = backends[backend_o]
+        else:
+            mpl_backend = 'inline'
 
         # Automatically load Pylab and Numpy, or only set Matplotlib
         # backend
@@ -180,7 +184,7 @@ __name__ = '__main__'
 sys.path.insert(0, '')
 
 # Fire up the kernel instance.
-from IPython.kernel.zmq.kernelapp import IPKernelApp
+from ipykernel.kernelapp import IPKernelApp
 ipk_temp = IPKernelApp.instance()
 ipk_temp.config = kernel_config()
 ipk_temp.initialize()

@@ -19,21 +19,12 @@ ALL_LANGUAGES = {
                  'Fortran77': ('f', 'for', 'f77'),
                  'Fortran': ('f90', 'f95', 'f2k'),
                  'Idl': ('pro',),
-                 'Matlab': ('m',),
-                 'Julia': ('jl',),
                  'Diff': ('diff', 'patch', 'rej'),
                  'GetText': ('po', 'pot'),
                  'Nsis': ('nsi', 'nsh'),
                  'Html': ('htm', 'html'),
-                 'Css': ('css',),
-                 'Xml': ('xml',),
-                 'Js': ('js',),
-                 'Json': ('json', 'ipynb'),
                  'Cpp': ('c', 'cc', 'cpp', 'cxx', 'h', 'hh', 'hpp', 'hxx'),
                  'OpenCL': ('cl',),
-                 'Batch': ('bat', 'cmd', 'nt'),
-                 'Ini': ('properties', 'session', 'ini', 'inf', 'reg', 'url',
-                         'cfg', 'cnf', 'aut', 'iss'),
                  'Yaml':('yaml','yml'),
                  }
 
@@ -126,8 +117,8 @@ def get_identifiers(source_code):
 if __name__ == '__main__':
     code = 'import functools\nfunctools.partial'
     assert get_primary_at(code, len(code)) == 'functools.partial'
-    assert get_identifiers(code) == ['import', 'functools', 
-                                     'functools.partial']
+    assert set(get_identifiers(code)) == set(['import', 'functools',
+                                              'functools.partial'])
     assert split_source(code) == ['import functools', 'functools.partial']
     code = code.replace('\n', '\r\n')
     assert split_source(code) == ['import functools', 'functools.partial']

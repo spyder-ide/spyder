@@ -4,19 +4,17 @@
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
-try:
-    from guidata.gettext_helpers import do_rescan, do_rescan_files
-except ImportError:
-    raise ImportError("This script requires guidata >= v1.3.0.")
+from gettext_helpers import do_rescan, do_rescan_files
 
 if __name__ == "__main__":
     do_rescan("spyderlib")
-    do_rescan_files(["spyderplugins/p_pylint.py",
-                     "spyderplugins/widgets/pylintgui.py"],
-                     "p_pylint", "spyderplugins")
-    do_rescan_files(["spyderplugins/p_profiler.py",
-                     "spyderplugins/widgets/profilergui.py"],
-                     "p_profiler", "spyderplugins")
-    do_rescan_files(["spyderplugins/p_breakpoints.py",
-                     "spyderplugins/widgets/breakpointsgui.py"],
-                     "p_breakpoints", "spyderplugins")
+    do_rescan_files(["spyplugins/ui/pylint/pylint.py",
+                     "spyplugins/ui/pylint/widgets/pylintgui.py"],
+                     "pylint", "spyplugins/ui/pylint")
+    do_rescan_files(["spyplugins/ui/profiler/profiler.py",
+                     "spyplugins/ui/profiler/widgets/profilergui.py"],
+                     "profiler", "spyplugins/ui/profiler")
+    do_rescan_files(["spyplugins/ui/breakpoints/breakpoints.py",
+                     "spyplugins/ui/breakpoints/widgets/breakpointsgui.py"],
+                     "breakpoints", "spyplugins/ui/breakpoints")
+

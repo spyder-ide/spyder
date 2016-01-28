@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2013 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
-"""Module checking Spyder optional runtime dependencies"""
+"""Module checking Spyder runtime dependencies"""
 
 
 import os
@@ -14,7 +14,7 @@ from spyderlib.utils import programs
 
 
 class Dependency(object):
-    """Spyder's optional dependency
+    """Spyder's dependency
 
     version may starts with =, >=, > or < to specify the exact requirement ;
     multiple conditions may be separated by ';' (e.g. '>=0.13;<1.0')"""
@@ -30,8 +30,10 @@ class Dependency(object):
         if installed_version is None:
             try:
                 self.installed_version = programs.get_module_version(modname)
-            except ImportError:
-                # Module is not installed
+            except:
+                # NOTE: Don't add any exception type here!
+                # Modules can fail to import in several ways besides
+                # ImportError
                 self.installed_version = None
         else:
             self.installed_version = installed_version
@@ -60,7 +62,7 @@ class Dependency(object):
 DEPENDENCIES = []
 
 def add(modname, features, required_version, installed_version=None):
-    """Add Spyder optional dependency"""
+    """Add Spyder dependency"""
     global DEPENDENCIES
     for dependency in DEPENDENCIES:
         if dependency.modname == modname:
@@ -71,7 +73,6 @@ def add(modname, features, required_version, installed_version=None):
 
 def check(modname):
     """Check if required dependency is installed"""
-    global DEPENDENCIES
     for dependency in DEPENDENCIES:
         if dependency.modname == modname:
             return dependency.check()
@@ -79,8 +80,7 @@ def check(modname):
         raise RuntimeError("Unkwown dependency %s" % modname)
 
 def status():
-    """Return a complete status of Optional Dependencies"""
-    global DEPENDENCIES
+    """Return a complete status of Dependencies"""
     maxwidth = 0
     col1 = []
     col2 = []

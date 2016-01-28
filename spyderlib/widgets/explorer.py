@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -13,32 +13,32 @@
 
 from __future__ import with_statement
 
-from spyderlib.qt.QtGui import (QVBoxLayout, QLabel, QHBoxLayout, QInputDialog,
-                                QFileSystemModel, QMenu, QWidget, QToolButton,
-                                QLineEdit, QMessageBox, QToolBar, QTreeView,
-                                QDrag, QSortFilterProxyModel)
-from spyderlib.qt.QtCore import (Qt, SIGNAL, QMimeData, QSize, QDir, QUrl,
-                                 Signal, QTimer)
-from spyderlib.qt.compat import getsavefilename, getexistingdirectory
-
 import os
-import sys
 import re
 import os.path as osp
 import shutil
 
+from spyderlib.qt import is_pyqt46
+from spyderlib.qt.QtGui import (QVBoxLayout, QLabel, QHBoxLayout, QInputDialog,
+                                QFileSystemModel, QMenu, QWidget, QToolButton,
+                                QLineEdit, QMessageBox, QTreeView,
+                                QDrag, QSortFilterProxyModel)
+from spyderlib.qt.QtCore import (Qt, Signal, QMimeData, QSize, QDir, QUrl,
+                                 QTimer, Slot)
+from spyderlib.qt.compat import getsavefilename, getexistingdirectory
+import spyderlib.utils.icon_manager as ima
+
 # Local imports
-from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions,
-                                       file_uri, get_std_icon)
+from spyderlib.utils.qthelpers import create_action, add_actions, file_uri
 from spyderlib.utils import misc, encoding, programs, vcs
-from spyderlib.baseconfig import _
-from spyderlib.py3compat import (to_text_string, to_binary_string, getcwd,
+from spyderlib.config.base import _
+from spyderlib.py3compat import (PY2, to_text_string, to_binary_string, getcwd,
                                  str_lower)
 
 try:
-    from IPython.nbconvert import PythonExporter as nbexporter
+    from nbconvert import PythonExporter as nbexporter
 except:
-    nbexporter = None      # analysis:ignore
+    nbexporter = None    # analysis:ignore
 
 
 def fixpath(path):
@@ -85,7 +85,7 @@ class DirView(QTreeView):
     """Base file/directory tree view"""
     def __init__(self, parent=None):
         super(DirView, self).__init__(parent)
-        self.name_filters = None
+        self.name_filters = ['*.py']
         self.parent_widget = parent
         self.show_all = None
         self.menu = None
@@ -111,8 +111,9 @@ class DirView(QTreeView):
     def setup_view(self):
         """Setup view"""
         self.install_model()
-        self.connect(self.fsmodel, SIGNAL('directoryLoaded(QString)'),
-                     lambda: self.resizeColumnToContents(0))
+        if not is_pyqt46:
+            self.fsmodel.directoryLoaded.connect(
+                                        lambda: self.resizeColumnToContents(0))
         self.setAnimated(False)
         self.setSortingEnabled(True)
         self.sortByColumn(0, Qt.AscendingOrder)
@@ -171,7 +172,7 @@ class DirView(QTreeView):
         """Setup context menu common actions"""
         # Filters
         filters_action = create_action(self, _("Edit filename filters..."),
-                                       None, get_icon('filter.png'),
+                                       None, ima.icon('filter'),
                                        triggered=self.edit_filter)
         # Show all files
         all_action = create_action(self, _("Show all files"),
@@ -180,7 +181,8 @@ class DirView(QTreeView):
         self.toggle_all(self.show_all)
         
         return [filters_action, all_action]
-        
+
+    @Slot()
     def edit_filter(self):
         """Edit name filters"""
         filters, valid = QInputDialog.getText(self, _('Edit filename filters'),
@@ -191,7 +193,8 @@ class DirView(QTreeView):
             filters = [f.strip() for f in to_text_string(filters).split(',')]
             self.parent_widget.sig_option_changed.emit('name_filters', filters)
             self.set_name_filters(filters)
-            
+
+    @Slot(bool)
     def toggle_all(self, checked):
         """Toggle all files mode"""
         self.parent_widget.sig_option_changed.emit('show_all', checked)
@@ -202,18 +205,20 @@ class DirView(QTreeView):
         """Return actions for submenu 'New...'"""
         if not fnames:
             return []
-        new_file_act = create_action(self, _("File..."), icon='filenew.png',
+        new_file_act = create_action(self, _("File..."), 
+                                     icon=ima.icon('filenew'),
                                      triggered=lambda:
                                      self.new_file(fnames[-1]))
-        new_module_act = create_action(self, _("Module..."), icon='py.png',
+        new_module_act = create_action(self, _("Module..."),
+                                       icon=ima.icon('spyder'),
                                        triggered=lambda:
                                          self.new_module(fnames[-1]))
         new_folder_act = create_action(self, _("Folder..."),
-                                       icon='folder_new.png',
+                                       icon=ima.icon('folder_new'),
                                        triggered=lambda:
                                         self.new_folder(fnames[-1]))
         new_package_act = create_action(self, _("Package..."),
-                                        icon=get_icon('package_collapsed.png'),
+                                        icon=ima.icon('package_new'),
                                         triggered=lambda:
                                          self.new_package(fnames[-1]))
         return [new_file_act, new_folder_act, None,
@@ -231,23 +236,23 @@ class DirView(QTreeView):
         only_notebooks = all([osp.splitext(_fn)[1] == '.ipynb'
                               for _fn in fnames])
         only_valid = all([encoding.is_text_file(_fn) for _fn in fnames])
-        run_action = create_action(self, _("Run"), icon="run_small.png",
+        run_action = create_action(self, _("Run"), icon=ima.icon('run'),
                                    triggered=self.run)
-        edit_action = create_action(self, _("Edit"), icon="edit.png",
+        edit_action = create_action(self, _("Edit"), icon=ima.icon('edit'),
                                     triggered=self.clicked)
         move_action = create_action(self, _("Move..."),
                                     icon="move.png",
                                     triggered=self.move)
         delete_action = create_action(self, _("Delete..."),
-                                      icon="delete.png",
+                                      icon=ima.icon('editdelete'),
                                       triggered=self.delete)
         rename_action = create_action(self, _("Rename..."),
-                                      icon="rename.png",
+                                      icon=ima.icon('rename'),
                                       triggered=self.rename)
         open_action = create_action(self, _("Open"), triggered=self.open)
         ipynb_convert_action = create_action(self, _("Convert to Python script"),
-                                             icon="python.png",
-                                             triggered=self.convert)
+                                             icon=ima.icon('python'),
+                                             triggered=self.convert_notebooks)
         
         actions = []
         if only_modules:
@@ -269,11 +274,11 @@ class DirView(QTreeView):
         dirname = fnames[0] if osp.isdir(fnames[0]) else osp.dirname(fnames[0])
         if len(fnames) == 1 and vcs.is_vcs_repository(dirname):
             vcs_ci = create_action(self, _("Commit"),
-                                   icon="vcs_commit.png",
+                                   icon=ima.icon('vcs_commit'),
                                    triggered=lambda fnames=[dirname]:
                                    self.vcs_command(fnames, 'commit'))
             vcs_log = create_action(self, _("Browse repository"),
-                                    icon="vcs_browse.png",
+                                    icon=ima.icon('vcs_browse'),
                                     triggered=lambda fnames=[dirname]:
                                     self.vcs_command(fnames, 'browse'))
             actions += [None, vcs_ci, vcs_log]
@@ -287,13 +292,13 @@ class DirView(QTreeView):
             _title = _("Open command prompt here")
         else:
             _title = _("Open terminal here")
-        action = create_action(self, _title, icon="cmdprompt.png",
-                               triggered=lambda fnames=fnames:
+        action = create_action(self, _title, icon=ima.icon('cmdprompt'),
+                               triggered=lambda:
                                self.open_terminal(fnames))
         actions.append(action)
         _title = _("Open Python console here")
-        action = create_action(self, _title, icon="python.png",
-                               triggered=lambda fnames=fnames:
+        action = create_action(self, _title, icon=ima.icon('python'),
+                               triggered=lambda:
                                self.open_interpreter(fnames))
         actions.append(action)
         return actions
@@ -366,6 +371,8 @@ class DirView(QTreeView):
             self.rename()
         elif event.key() == Qt.Key_Delete:
             self.delete()
+        elif event.key() == Qt.Key_Backspace:
+            self.go_to_parent_directory()
         else:
             QTreeView.keyPressEvent(self, event)
 
@@ -373,7 +380,8 @@ class DirView(QTreeView):
         """Reimplement Qt method"""
         QTreeView.mouseDoubleClickEvent(self, event)
         self.clicked()
-        
+
+    @Slot()
     def clicked(self):
         """Selected item was double-clicked or enter/return was pressed"""
         fnames = self.get_selected_filenames()
@@ -409,6 +417,7 @@ class DirView(QTreeView):
         drag.exec_()
         
     #---- File/Directory actions
+    @Slot()
     def open(self, fnames=None):
         """Open files with the appropriate application"""
         if fnames is None:
@@ -426,24 +435,25 @@ class DirView(QTreeView):
             path = file_uri(path)
             ok = programs.start_file(path)
             if not ok:
-                self.parent_widget.emit(SIGNAL("edit(QString)"), path)
+                self.parent_widget.edit.emit(path)
                 
     def open_terminal(self, fnames):
         """Open terminal"""
         for path in sorted(fnames):
-            self.parent_widget.emit(SIGNAL("open_terminal(QString)"), path)
+            self.parent_widget.open_terminal.emit(path)
             
     def open_interpreter(self, fnames):
         """Open interpreter"""
         for path in sorted(fnames):
-            self.parent_widget.emit(SIGNAL("open_interpreter(QString)"), path)
-        
+            self.parent_widget.open_interpreter.emit(path)
+
+    @Slot()
     def run(self, fnames=None):
         """Run Python scripts"""
         if fnames is None:
             fnames = self.get_selected_filenames()
         for fname in fnames:
-            self.parent_widget.emit(SIGNAL("run(QString)"), fname)
+            self.parent_widget.run.emit(fname)
     
     def remove_tree(self, dirname):
         """Remove whole directory tree
@@ -471,12 +481,10 @@ class DirView(QTreeView):
         try:
             if osp.isfile(fname):
                 misc.remove_file(fname)
-                self.parent_widget.emit(SIGNAL("removed(QString)"),
-                                        fname)
+                self.parent_widget.removed.emit(fname)
             else:
                 self.remove_tree(fname)
-                self.parent_widget.emit(SIGNAL("removed_tree(QString)"),
-                                        fname)
+                self.parent_widget.removed_tree.emit(fname)
             return yes_to_all
         except EnvironmentError as error:
             action_str = _('delete')
@@ -485,7 +493,8 @@ class DirView(QTreeView):
                               "<br><br>Error message:<br>%s"
                               ) % (action_str, fname, to_text_string(error)))
         return False
-        
+
+    @Slot()
     def delete(self, fnames=None):
         """Delete files"""
         if fnames is None:
@@ -509,11 +518,11 @@ class DirView(QTreeView):
                                  to_text_string(e))
             return
         self.parent_widget.sig_new_file.emit(script)
-    
-    def convert(self, fnames=None):
+
+    @Slot()
+    def convert_notebooks(self):
         """Convert IPython notebooks to Python scripts in editor"""
-        if fnames is None:
-            fnames = self.get_selected_filenames()
+        fnames = self.get_selected_filenames()
         if not isinstance(fnames, (tuple, list)):
             fnames = [fnames]
         for fname in fnames:
@@ -537,15 +546,15 @@ class DirView(QTreeView):
                     return
             try:
                 misc.rename_file(fname, path)
-                self.parent_widget.emit( \
-                     SIGNAL("renamed(QString,QString)"), fname, path)
+                self.parent_widget.renamed.emit(fname, path)
                 return path
             except EnvironmentError as error:
                 QMessageBox.critical(self, _("Rename"),
                             _("<b>Unable to rename file <i>%s</i></b>"
                               "<br><br>Error message:<br>%s"
                               ) % (osp.basename(fname), to_text_string(error)))
-    
+
+    @Slot()
     def rename(self, fnames=None):
         """Rename files"""
         if fnames is None:
@@ -554,16 +563,17 @@ class DirView(QTreeView):
             fnames = [fnames]
         for fname in fnames:
             self.rename_file(fname)
-        
+
+    @Slot()
     def move(self, fnames=None):
         """Move files/directories"""
         if fnames is None:
             fnames = self.get_selected_filenames()
         orig = fixpath(osp.dirname(fnames[0]))
         while True:
-            self.parent_widget.emit(SIGNAL('redirect_stdio(bool)'), False)
+            self.parent_widget.redirect_stdio.emit(False)
             folder = getexistingdirectory(self, _("Select directory"), orig)
-            self.parent_widget.emit(SIGNAL('redirect_stdio(bool)'), True)
+            self.parent_widget.redirect_stdio.emit(True)
             if folder:
                 folder = fixpath(folder)
                 if folder != orig:
@@ -632,9 +642,9 @@ class DirView(QTreeView):
             current_path = ''
         if osp.isfile(current_path):
             current_path = osp.dirname(current_path)
-        self.parent_widget.emit(SIGNAL('redirect_stdio(bool)'), False)
+        self.parent_widget.redirect_stdio.emit(False)
         fname, _selfilter = getsavefilename(self, title, current_path, filters)
-        self.parent_widget.emit(SIGNAL('redirect_stdio(bool)'), True)
+        self.parent_widget.redirect_stdio.emit(True)
         if fname:
             try:
                 create_func(fname)
@@ -664,8 +674,7 @@ class DirView(QTreeView):
         """New module"""
         title = _("New module")
         filters = _("Python scripts")+" (*.py *.pyw *.ipy)"
-        create_func = lambda fname: self.parent_widget.emit( \
-                                     SIGNAL("create_module(QString)"), fname)
+        create_func = lambda fname: self.parent_widget.create_module.emit(fname)
         self.create_new_file(basedir, title, filters, create_func)
         
     #----- VCS actions
@@ -736,9 +745,8 @@ class DirView(QTreeView):
                     self._to_be_loaded = []
                 self._to_be_loaded.append(path)
                 self.setExpanded(self.get_index(path), True)
-        if not self.__expanded_state:
-            self.disconnect(self.fsmodel, SIGNAL('directoryLoaded(QString)'),
-                            self.restore_directory_state)
+        if not self.__expanded_state and not is_pyqt46:
+            self.fsmodel.directoryLoaded.disconnect(self.restore_directory_state)
                 
     def follow_directories_loaded(self, fname):
         """Follow directories loaded during startup"""
@@ -747,9 +755,10 @@ class DirView(QTreeView):
         path = osp.normpath(to_text_string(fname))
         if path in self._to_be_loaded:
             self._to_be_loaded.remove(path)
-        if self._to_be_loaded is not None and len(self._to_be_loaded) == 0:
-            self.disconnect(self.fsmodel, SIGNAL('directoryLoaded(QString)'),
-                            self.follow_directories_loaded)
+        if self._to_be_loaded is not None and len(self._to_be_loaded) == 0 \
+          and not is_pyqt46:
+            self.fsmodel.directoryLoaded.disconnect(
+                                        self.follow_directories_loaded)
             if self._scrollbar_positions is not None:
                 # The tree view need some time to render branches:
                 QTimer.singleShot(50, self.restore_scrollbar_positions)
@@ -758,11 +767,11 @@ class DirView(QTreeView):
         """Restore all items expanded state"""
         if self.__expanded_state is not None:
             # In the old project explorer, the expanded state was a dictionnary:
-            if isinstance(self.__expanded_state, list):
-                self.connect(self.fsmodel, SIGNAL('directoryLoaded(QString)'),
-                             self.restore_directory_state)
-                self.connect(self.fsmodel, SIGNAL('directoryLoaded(QString)'),
-                             self.follow_directories_loaded)
+            if isinstance(self.__expanded_state, list) and not is_pyqt46:
+                self.fsmodel.directoryLoaded.connect(
+                                                  self.restore_directory_state)
+                self.fsmodel.directoryLoaded.connect(
+                                                self.follow_directories_loaded)
 
 
 class ProxyModel(QSortFilterProxyModel):
@@ -852,6 +861,9 @@ class ExplorerTreeWidget(DirView):
     show_cd_only: Show current directory only
     (True/False: enable/disable the option
      None: enable the option and do not allow the user to disable it)"""
+    set_previous_enabled = Signal(bool)
+    set_next_enabled = Signal(bool)
+    
     def __init__(self, parent=None, show_cd_only=None):
         DirView.__init__(self, parent)
                 
@@ -885,7 +897,8 @@ class ExplorerTreeWidget(DirView):
             self.toggle_show_cd_only(self.show_cd_only)
             actions.append(cd_only_action)
         return actions
-            
+
+    @Slot(bool)
     def toggle_show_cd_only(self, checked):
         """Toggle show current directory only mode"""
         self.parent_widget.sig_option_changed.emit('show_cd_only', checked)
@@ -916,11 +929,10 @@ class ExplorerTreeWidget(DirView):
             index = self.set_current_folder(new_path)
             self.expand(index)
             self.setCurrentIndex(index)
-        self.emit(SIGNAL("set_previous_enabled(bool)"),
-                  self.histindex is not None and self.histindex > 0)
-        self.emit(SIGNAL("set_next_enabled(bool)"),
-                  self.histindex is not None and \
-                  self.histindex < len(self.history)-1)
+        self.set_previous_enabled.emit(
+                             self.histindex is not None and self.histindex > 0)
+        self.set_next_enabled.emit(self.histindex is not None and \
+                                   self.histindex < len(self.history)-1)
             
     #---- Events
     def directory_clicked(self, dirname):
@@ -928,15 +940,18 @@ class ExplorerTreeWidget(DirView):
         self.chdir(directory=dirname)
         
     #---- Files/Directories Actions
+    @Slot()
     def go_to_parent_directory(self):
         """Go to parent directory"""
         self.chdir( osp.abspath(osp.join(getcwd(), os.pardir)) )
-        
+
+    @Slot()
     def go_to_previous_directory(self):
         """Back to previous directory"""
         self.histindex -= 1
         self.chdir(browsing_history=True)
-        
+
+    @Slot()
     def go_to_next_directory(self):
         """Return to next directory"""
         self.histindex += 1
@@ -966,9 +981,16 @@ class ExplorerTreeWidget(DirView):
                 self.history.append(directory)
             self.histindex = len(self.history)-1
         directory = to_text_string(directory)
-        os.chdir(directory)
-        self.parent_widget.emit(SIGNAL("open_dir(QString)"), directory)
-        self.refresh(new_path=directory, force_current=True)
+        if PY2:
+            PermissionError = OSError
+        try:
+            os.chdir(directory)
+            self.parent_widget.open_dir.emit(directory)
+            self.refresh(new_path=directory, force_current=True)
+        except PermissionError:
+            QMessageBox.critical(self.parent_widget, "Error",
+                                 _("You don't have the right permissions to "
+                                   "open this directory"))
 
 
 class ExplorerWidget(QWidget):
@@ -976,74 +998,97 @@ class ExplorerWidget(QWidget):
     sig_option_changed = Signal(str, object)
     sig_open_file = Signal(str)
     sig_new_file = Signal(str)
-    
+    redirect_stdio = Signal(bool)
+    open_dir = Signal(str)
+
     def __init__(self, parent=None, name_filters=['*.py', '*.pyw'],
                  show_all=False, show_cd_only=None, show_icontext=True):
         QWidget.__init__(self, parent)
-        
+
+        # Widgets
         self.treewidget = ExplorerTreeWidget(self, show_cd_only=show_cd_only)
-        self.treewidget.setup(name_filters=name_filters, show_all=show_all)
-        self.treewidget.chdir(getcwd())
-        
+        button_previous = QToolButton(self)
+        button_next = QToolButton(self)
+        button_parent = QToolButton(self)
+        self.button_menu = QToolButton(self)
+        menu = QMenu(self)
+
+        self.action_widgets = [button_previous, button_next, button_parent,
+                               self.button_menu]
+
+        # Actions
         icontext_action = create_action(self, _("Show icons and text"),
                                         toggled=self.toggle_icontext)
-        self.treewidget.common_actions += [None, icontext_action]
-        
-        # Setup toolbar
-        self.toolbar = QToolBar(self)
-        self.toolbar.setIconSize(QSize(16, 16))
-        
-        self.previous_action = create_action(self, text=_("Previous"),
-                            icon=get_std_icon("ArrowBack"),
+        previous_action = create_action(self, text=_("Previous"),
+                            icon=ima.icon('ArrowBack'),
                             triggered=self.treewidget.go_to_previous_directory)
-        self.toolbar.addAction(self.previous_action)
-        self.previous_action.setEnabled(False)
-        self.connect(self.treewidget, SIGNAL("set_previous_enabled(bool)"),
-                     self.previous_action.setEnabled)
-        
-        self.next_action = create_action(self, text=_("Next"),
-                            icon=get_std_icon("ArrowForward"),
+        next_action = create_action(self, text=_("Next"),
+                            icon=ima.icon('ArrowForward'),
                             triggered=self.treewidget.go_to_next_directory)
-        self.toolbar.addAction(self.next_action)
-        self.next_action.setEnabled(False)
-        self.connect(self.treewidget, SIGNAL("set_next_enabled(bool)"),
-                     self.next_action.setEnabled)
-        
         parent_action = create_action(self, text=_("Parent"),
-                            icon=get_std_icon("ArrowUp"),
+                            icon=ima.icon('ArrowUp'),
                             triggered=self.treewidget.go_to_parent_directory)
-        self.toolbar.addAction(parent_action)
-        self.toolbar.addSeparator()
+        options_action = create_action(self, text='', tip=_('Options'))
 
-        options_action = create_action(self, text='', tip=_("Options"),
-                                       icon=get_icon('tooloptions.png'))
-        self.toolbar.addAction(options_action)
-        widget = self.toolbar.widgetForAction(options_action)
-        widget.setPopupMode(QToolButton.InstantPopup)
-        menu = QMenu(self)
+        # Setup widgets
+        self.treewidget.setup(name_filters=name_filters, show_all=show_all)
+        self.treewidget.chdir(getcwd())
+        self.treewidget.common_actions += [None, icontext_action]
+
+        button_previous.setDefaultAction(previous_action)
+        previous_action.setEnabled(False)
+
+        button_next.setDefaultAction(next_action)
+        next_action.setEnabled(False)
+
+        button_parent.setDefaultAction(parent_action)
+
+        self.button_menu.setIcon(ima.icon('tooloptions'))
+        self.button_menu.setPopupMode(QToolButton.InstantPopup)
+        self.button_menu.setMenu(menu)
         add_actions(menu, self.treewidget.common_actions)
         options_action.setMenu(menu)
-            
-        icontext_action.setChecked(show_icontext)
-        self.toggle_icontext(show_icontext)     
-        
-        vlayout = QVBoxLayout()
-        vlayout.addWidget(self.toolbar)
-        vlayout.addWidget(self.treewidget)
-        self.setLayout(vlayout)
 
+        self.toggle_icontext(show_icontext)
+        icontext_action.setChecked(show_icontext)
+
+        for widget in self.action_widgets:
+            widget.setAutoRaise(True)
+            widget.setIconSize(QSize(16, 16))
+
+        # Layouts
+        blayout = QHBoxLayout()
+        blayout.addWidget(button_previous)
+        blayout.addWidget(button_next)
+        blayout.addWidget(button_parent)
+        blayout.addStretch()
+        blayout.addWidget(self.button_menu)
+
+        layout = QVBoxLayout()
+        layout.addLayout(blayout)
+        layout.addWidget(self.treewidget)
+        self.setLayout(layout)
+
+        # Signals and slots
+        self.treewidget.set_previous_enabled.connect(
+                                               previous_action.setEnabled)
+        self.treewidget.set_next_enabled.connect(next_action.setEnabled)
+
+    @Slot(bool)
     def toggle_icontext(self, state):
         """Toggle icon text"""
         self.sig_option_changed.emit('show_icontext', state)
-        for action in self.toolbar.actions():
-            if not action.isSeparator():
-                widget = self.toolbar.widgetForAction(action)
+        for widget in self.action_widgets:
+            if widget is not self.button_menu:
                 if state:
                     widget.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
                 else:
                     widget.setToolButtonStyle(Qt.ToolButtonIconOnly)
 
 
+#==============================================================================
+# Tests
+#==============================================================================
 class FileExplorerTest(QWidget):
     def __init__(self):
         QWidget.__init__(self)
@@ -1068,8 +1113,7 @@ class FileExplorerTest(QWidget):
         hlayout2.addWidget(label)
         self.label2 = QLabel()
         hlayout2.addWidget(self.label2)
-        self.connect(self.explorer, SIGNAL("open_dir(QString)"),
-                     self.label2.setText)
+        self.explorer.open_dir.connect(self.label2.setText)
         
         hlayout3 = QHBoxLayout()
         vlayout.addLayout(hlayout3)
@@ -1080,9 +1124,9 @@ class FileExplorerTest(QWidget):
         hlayout3.addWidget(self.label3)
         self.explorer.sig_option_changed.connect(
            lambda x, y: self.label3.setText('option_changed: %r, %r' % (x, y)))
+        self.explorer.open_dir.connect(
+                                lambda: self.explorer.treewidget.refresh('..'))
 
-        self.connect(self.explorer, SIGNAL("open_parent_dir()"),
-                     lambda: self.explorer.listwidget.refresh('..'))
 
 class ProjectExplorerTest(QWidget):
     def __init__(self, parent=None):
@@ -1091,17 +1135,23 @@ class ProjectExplorerTest(QWidget):
         self.setLayout(vlayout)
         self.treewidget = FilteredDirView(self)
         self.treewidget.setup_view()
-        self.treewidget.set_root_path(r'D:\Python')
-        self.treewidget.set_folder_names(['spyder', 'spyder-2.0'])
+        self.treewidget.set_root_path(osp.dirname(osp.abspath(__file__)))
+        self.treewidget.set_folder_names(['variableexplorer', 'sourcecode'])
         vlayout.addWidget(self.treewidget)
 
-    
-if __name__ == "__main__":
+
+def test(file_explorer):
     from spyderlib.utils.qthelpers import qapplication
     app = qapplication()
-    test = FileExplorerTest()
-#    test = ProjectExplorerTest()
+    if file_explorer:
+        test = FileExplorerTest()
+    else:
+        test = ProjectExplorerTest()
     test.resize(640, 480)
     test.show()
-    sys.exit(app.exec_())
-    
+    app.exec_()
+
+
+if __name__ == "__main__":
+    test(file_explorer=True)
+    test(file_explorer=False)

@@ -16,12 +16,11 @@ import os
 import re
 import os.path as osp
 import pydoc
-from subprocess import Popen, PIPE
 from code import InteractiveConsole
 
 # Local imports:
 from spyderlib.utils.dochelpers import isdefined
-from spyderlib.utils import encoding
+from spyderlib.utils import encoding, programs
 from spyderlib.py3compat import is_text_string, getcwd
 from spyderlib.utils.misc import remove_backslashes
 
@@ -211,8 +210,7 @@ has the same effect as typing a particular string at the help> prompt.
         # Execute command
         elif cmd.startswith('!'):
             # System ! command
-            pipe = Popen(cmd[1:], shell=True,
-                         stdin=PIPE, stderr=PIPE, stdout=PIPE)
+            pipe = programs.run_shell_command(cmd[1:])
             txt_out = encoding.transcode( pipe.stdout.read().decode() )
             txt_err = encoding.transcode( pipe.stderr.read().decode().rstrip() )
             if txt_err:

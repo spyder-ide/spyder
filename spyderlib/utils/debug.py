@@ -9,7 +9,7 @@
 """
 Debug utilities that are independent of Spyder code.
 
-See spyderlib.baseconfig for other helpers.
+See spyderlib.config.base for other helpers.
 """
 
 from __future__ import print_function

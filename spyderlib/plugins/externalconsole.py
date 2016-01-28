@@ -12,27 +12,28 @@
 # pylint: disable=R0201
 
 # Qt imports
+from spyderlib.qt import PYQT5
 from spyderlib.qt.QtGui import (QVBoxLayout, QMessageBox, QInputDialog,
                                 QLineEdit, QPushButton, QGroupBox, QLabel,
                                 QTabWidget, QFontComboBox, QHBoxLayout,
                                 QButtonGroup, QWidget)
-from spyderlib.qt.QtCore import SIGNAL, Qt
+from spyderlib.qt.QtCore import Signal, Slot, Qt
 from spyderlib.qt.compat import getopenfilename
+import spyderlib.utils.icon_manager as ima
 
 # Stdlib imports
 import atexit
 import os
 import os.path as osp
 import sys
-import subprocess
 
 # Local imports
-from spyderlib.baseconfig import SCIENTIFIC_STARTUP, running_in_mac_app, _
-from spyderlib.config import CONF
+from spyderlib.config.base import SCIENTIFIC_STARTUP, running_in_mac_app, _
+from spyderlib.config.main import CONF
 from spyderlib.utils import encoding, programs
 from spyderlib.utils.misc import (get_error_match, get_python_executable,
                                   remove_backslashes, is_python_script)
-from spyderlib.utils.qthelpers import get_icon, create_action, mimedata2url
+from spyderlib.utils.qthelpers import create_action, mimedata2url
 from spyderlib.widgets.tabs import Tabs
 from spyderlib.widgets.externalshell.pythonshell import ExternalPythonShell
 from spyderlib.widgets.externalshell.systemshell import ExternalSystemShell
@@ -42,12 +43,14 @@ from spyderlib.plugins.runconfig import get_run_configuration
 from spyderlib.py3compat import to_text_string, is_text_string, getcwd
 from spyderlib import dependencies
 
+
 MPL_REQVER = '>=1.0'
 dependencies.add("matplotlib", _("Interactive data plotting in the consoles"),
                  required_version=MPL_REQVER)
 
 
 class ExternalConsoleConfigPage(PluginConfigPage):
+
     def __init__(self, plugin, parent):
         PluginConfigPage.__init__(self, plugin, parent)
         self.get_name = lambda: _("Console")
@@ -56,10 +59,8 @@ class ExternalConsoleConfigPage(PluginConfigPage):
 
     def initialize(self):
         PluginConfigPage.initialize(self)
-        self.connect(self.pyexec_edit, SIGNAL("textChanged(QString)"),
-                     self.python_executable_changed)
-        self.connect(self.cus_exec_radio, SIGNAL("toggled(bool)"),
-                     self.python_executable_switched)
+        self.pyexec_edit.textChanged.connect(self.python_executable_changed)
+        self.cus_exec_radio.toggled.connect(self.python_executable_switched)
 
     def setup_page(self):
         interface_group = QGroupBox(_("Interface"))
@@ -96,10 +97,8 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                tip=_("This method is the only way to have colorized standard\n"
                      "error channel when the output channels have been "
                      "merged."))
-        self.connect(merge_channels_box, SIGNAL("toggled(bool)"),
-                     colorize_sys_stderr_box.setEnabled)
-        self.connect(merge_channels_box, SIGNAL("toggled(bool)"),
-                     colorize_sys_stderr_box.setChecked)
+        merge_channels_box.toggled.connect(colorize_sys_stderr_box.setEnabled)
+        merge_channels_box.toggled.connect(colorize_sys_stderr_box.setChecked)
         colorize_sys_stderr_box.setEnabled(
                                     self.get_option('merge_output_channels'))
         
@@ -167,8 +166,7 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                                 "be applied only to new consoles"))
         umr_namelist_btn = QPushButton(
                             _("Set UMR excluded (not reloaded) modules"))
-        self.connect(umr_namelist_btn, SIGNAL('clicked()'),
-                     self.plugin.set_umr_namelist)
+        umr_namelist_btn.clicked.connect(self.plugin.set_umr_namelist)
         
         umr_layout = QVBoxLayout()
         umr_layout.addWidget(umr_label)
@@ -199,10 +197,8 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         for le in self.lineedits:
             if self.lineedits[le][0] == 'pythonexecutable':
                 self.pyexec_edit = le
-        self.connect(def_exec_radio, SIGNAL("toggled(bool)"),
-                     pyexec_file.setDisabled)
-        self.connect(self.cus_exec_radio, SIGNAL("toggled(bool)"),
-                     pyexec_file.setEnabled)
+        def_exec_radio.toggled.connect(pyexec_file.setDisabled)
+        self.cus_exec_radio.toggled.connect(pyexec_file.setEnabled)
         pyexec_layout = QVBoxLayout()
         pyexec_layout.addWidget(pyexec_label)
         pyexec_layout.addWidget(def_exec_radio)
@@ -228,10 +224,8 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         pystartup_file = self.create_browsefile('', 'pythonstartup', '',
                                                 filters=_("Python scripts")+\
                                                 " (*.py)")
-        self.connect(def_startup_radio, SIGNAL("toggled(bool)"),
-                     pystartup_file.setDisabled)
-        self.connect(cus_startup_radio, SIGNAL("toggled(bool)"),
-                     pystartup_file.setEnabled)
+        def_startup_radio.toggled.connect(pystartup_file.setDisabled)
+        cus_startup_radio.toggled.connect(pystartup_file.setEnabled)
         
         pystartup_layout = QVBoxLayout()
         pystartup_layout.addWidget(pystartup_label)
@@ -252,7 +246,7 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         monitor_box = newcb(_("Enable monitor"), 'monitor/enabled')
         for obj in (completion_box, case_comp_box, comp_enter_box,
                     calltips_box):
-            self.connect(monitor_box, SIGNAL("toggled(bool)"), obj.setEnabled)
+            monitor_box.toggled.connect(obj.setEnabled)
             obj.setEnabled(self.get_option('monitor/enabled'))
         
         monitor_layout = QVBoxLayout()
@@ -261,85 +255,52 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         monitor_group.setLayout(monitor_layout)
         
         # Qt Group
-        opts = [(_("Default library"), 'default'), ('PyQt4', 'pyqt'),
-                ('PySide', 'pyside')]
-        qt_group = QGroupBox(_("Qt (PyQt/PySide)"))
+        opts = [
+            (_("Default library"), 'default'),
+            ('PyQt5', 'pyqt5'),
+            ('PyQt4', 'pyqt'),
+            ('PySide', 'pyside'),
+        ]
+        qt_group = QGroupBox(_("Qt-Python Bindings"))
         qt_setapi_box = self.create_combobox(
-                         _("Qt-Python bindings library selection:"), opts,
+                         _("Library:") + "   ", opts,
                          'qt/api', default='default',
                          tip=_("This option will act on<br> "
                                "libraries such as Matplotlib, guidata "
                                "or ETS"))
-        if self.get_option('pythonexecutable/default'):
-            interpreter = get_python_executable()
-        else:
-            interpreter = self.get_option('pythonexecutable')
-        has_pyqt4 = programs.is_module_installed('PyQt4',
-                                                 interpreter=interpreter)
-        has_pyside = programs.is_module_installed('PySide',
-                                                  interpreter=interpreter)
-        if has_pyside and not has_pyqt4:
-            self.set_option('qt/api', 'pyside')
-        
+
         qt_layout = QVBoxLayout()
         qt_layout.addWidget(qt_setapi_box)
         qt_group.setLayout(qt_layout)
-        qt_group.setEnabled(has_pyqt4 or has_pyside)
-        
-        # PyQt Group
-        if has_pyqt4:
-            pyqt_group = QGroupBox(_("PyQt"))
-            setapi_box = self.create_combobox(
-                _("API selection for QString and QVariant objects:"),
-                ((_("Default API"), 0), (_("API #1"), 1), (_("API #2"), 2)),
-                'pyqt/api_version', default=0,
-                tip=_("PyQt API #1 is the default <br>"
-                      "API for Python 2. PyQt API #2 is "
-                      "the default API for Python 3 and "
-                      "is compatible with PySide."))
-            ignore_api_box = newcb(_("Ignore API change errors (sip.setapi)"),
-                                     'pyqt/ignore_sip_setapi_errors',
-                               tip=_("Enabling this option will ignore <br>"
-                                     "errors when changing PyQt API. As "
-                                     "PyQt does not support dynamic API "
-                                     "changes, it is strongly recommended "
-                                     "to use this feature wisely, e.g. "
-                                     "for debugging purpose."))
-            try:
-                from sip import setapi #analysis:ignore
-            except ImportError:
-                setapi_box.setDisabled(True)
-                ignore_api_box.setDisabled(True)
-            
-            pyqt_layout = QVBoxLayout()
-            pyqt_layout.addWidget(setapi_box)
-            pyqt_layout.addWidget(ignore_api_box)
-            pyqt_group.setLayout(pyqt_layout)
-            qt_layout.addWidget(pyqt_group)
-        
+
         # Matplotlib Group
-        mpl_group = QGroupBox(_("Matplotlib"))
-        mpl_backend_box = newcb('', 'matplotlib/backend/enabled', True)
-        mpl_backend_edit = self.create_lineedit(_("GUI backend:"),
-                                'matplotlib/backend/value', "Qt4Agg",
-                                tip=_("Set the GUI toolkit used by <br>"
-                                      "Matplotlib to show figures "
-                                      "(default: Qt4Agg)"),
-                                alignment=Qt.Horizontal)
-        self.connect(mpl_backend_box, SIGNAL("toggled(bool)"),
-                     mpl_backend_edit.setEnabled)
-        mpl_backend_layout = QHBoxLayout()
-        mpl_backend_layout.addWidget(mpl_backend_box)
-        mpl_backend_layout.addWidget(mpl_backend_edit)
-        mpl_backend_edit.setEnabled(
-                                self.get_option('matplotlib/backend/enabled'))
+        mpl_group = QGroupBox(_("Graphics"))
+        mpl_label = QLabel(_("Decide which backend to use to display graphics. "
+                              "If unsure, please select the <b>Automatic</b> "
+                              "backend.<br><br>"
+                              "<b>Note:</b> We support a very limited number "
+                              "of backends in our Python consoles. If you "
+                              "prefer to work with a different one, please use "
+                              "an IPython console."))
+        mpl_label.setWordWrap(True)
+
+        backends = [("Automatic", 0), ("None", 1)]
+        if not os.name == 'nt' and programs.is_module_installed('_tkinter'):
+            backends.append( ("Tkinter", 2) )
+        backends = tuple(backends)
+
+        mpl_backend_box = self.create_combobox( _("Backend:")+"   ", backends,
+                                       'matplotlib/backend/value',
+                                       tip=_("This option will be applied the "
+                                             "next time a console is opened."))
+
         mpl_installed = programs.is_module_installed('matplotlib')
-        
         mpl_layout = QVBoxLayout()
-        mpl_layout.addLayout(mpl_backend_layout)
+        mpl_layout.addWidget(mpl_label)
+        mpl_layout.addWidget(mpl_backend_box)
         mpl_group.setLayout(mpl_layout)
         mpl_group.setEnabled(mpl_installed)
-        
+
         # ETS Group
         ets_group = QGroupBox(_("Enthought Tool Suite"))
         ets_label = QLabel(_("Enthought Tool Suite (ETS) supports "
@@ -348,15 +309,20 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         ets_label.setWordWrap(True)
         ets_edit = self.create_lineedit(_("ETS_TOOLKIT:"), 'ets_backend',
                                         alignment=Qt.Horizontal)
-        
+
         ets_layout = QVBoxLayout()
         ets_layout.addWidget(ets_label)
         ets_layout.addWidget(ets_edit)
         ets_group.setLayout(ets_layout)
+
+        if self.get_option('pythonexecutable/default'):
+            interpreter = get_python_executable()
+        else:
+            interpreter = self.get_option('pythonexecutable')
         ets_group.setEnabled(programs.is_module_installed(
                                                     "enthought.etsconfig.api",
                                                     interpreter=interpreter))
-        
+
         tabs = QTabWidget()
         tabs.addTab(self.create_tab(font_group, interface_group, display_group,
                                     bg_group),
@@ -372,31 +338,12 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         vlayout.addWidget(tabs)
         self.setLayout(vlayout)
 
-    def _auto_change_qt_api(self, pyexec):
-        """Change automatically Qt API depending on
-        selected Python executable"""
-        has_pyqt4 = programs.is_module_installed('PyQt4', interpreter=pyexec)
-        has_pyside = programs.is_module_installed('PySide', interpreter=pyexec)
-        for cb in self.comboboxes:
-            if self.comboboxes[cb][0] == 'qt/api':
-                qt_setapi_cb = cb
-        if has_pyside and not has_pyqt4:
-            qt_setapi_cb.setCurrentIndex(2)
-        elif has_pyqt4 and not has_pyside:
-            qt_setapi_cb.setCurrentIndex(1)
-        else:
-            qt_setapi_cb.setCurrentIndex(0)
-
     def python_executable_changed(self, pyexec):
         """Custom Python executable value has been changed"""
         if not self.cus_exec_radio.isChecked():
             return
         if not is_text_string(pyexec):
             pyexec = to_text_string(pyexec.toUtf8(), 'utf-8')
-        old_pyexec = self.get_option("pythonexecutable",
-                                     get_python_executable())
-        if pyexec != old_pyexec:
-            self._auto_change_qt_api(pyexec)
         self.warn_python_compatibility(pyexec)
 
     def python_executable_switched(self, custom):
@@ -406,8 +353,6 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         if not is_text_string(cust_pyexec):
             cust_pyexec = to_text_string(cust_pyexec.toUtf8(), 'utf-8')
         if def_pyexec != cust_pyexec:
-            pyexec = cust_pyexec if custom else def_pyexec
-            self._auto_change_qt_api(pyexec)
             if custom:
                 self.warn_python_compatibility(cust_pyexec)
 
@@ -416,10 +361,9 @@ class ExternalConsoleConfigPage(PluginConfigPage):
             return
         spyder_version = sys.version_info[0]
         try:
-            cmd = [pyexec, "-c", "import sys; print(sys.version_info[0])"]
-            # subprocess.check_output is not present in python2.6 and 3.0
-            process = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-            console_version = int(process.communicate()[0])
+            args = ["-c", "import sys; print(sys.version_info[0])"]
+            proc = programs.run_program(pyexec, args)
+            console_version = int(proc.communicate()[0])
         except IOError:
             console_version = spyder_version
         if spyder_version != console_version:
@@ -440,24 +384,27 @@ class ExternalConsole(SpyderPluginWidget):
     CONF_SECTION = 'console'
     CONFIGWIDGET_CLASS = ExternalConsoleConfigPage
     DISABLE_ACTIONS_WHEN_HIDDEN = False
+
+    edit_goto = Signal((str, int, str), (str, int, str, bool))
+    focus_changed = Signal()
+    redirect_stdio = Signal(bool)
+    
     def __init__(self, parent, light_mode):
-        SpyderPluginWidget.__init__(self, parent)
+        if PYQT5:
+            SpyderPluginWidget.__init__(self, parent, main = parent)
+        else:
+            SpyderPluginWidget.__init__(self, parent)
         self.light_mode = light_mode
         self.tabwidget = None
         self.menu_actions = None
-        
-        self.inspector = None # Object inspector plugin
+
+        self.help = None # Help plugin
         self.historylog = None # History log plugin
         self.variableexplorer = None # Variable explorer plugin
-        
+
         self.python_count = 0
         self.terminal_count = 0
 
-        try:
-            from sip import setapi #analysis:ignore
-        except ImportError:
-            self.set_option('pyqt/ignore_sip_setapi_errors', False)
-        
         # Python executable selection (initializing default values as well)
         executable = self.get_option('pythonexecutable',
                                      get_python_executable())
@@ -500,12 +447,9 @@ class ExternalConsole(SpyderPluginWidget):
             # a crash when the console is detached from the main window
             # Fixes Issue 561
             self.tabwidget.setDocumentMode(True)
-        self.connect(self.tabwidget, SIGNAL('currentChanged(int)'),
-                     self.refresh_plugin)
-        self.connect(self.tabwidget, SIGNAL('move_data(int,int)'),
-                     self.move_tab)
-        self.connect(self.main, SIGNAL("pythonpath_changed()"),
-                     self.set_path)
+        self.tabwidget.currentChanged.connect(self.refresh_plugin)
+        self.tabwidget.move_data.connect(self.move_tab)
+        self.main.sig_pythonpath_changed.connect(self.set_path)
                      
         self.tabwidget.set_close_function(self.close_console)
 
@@ -542,7 +486,7 @@ class ExternalConsole(SpyderPluginWidget):
         self.filenames.insert(index_to, filename)
         self.shellwidgets.insert(index_to, shell)
         self.icons.insert(index_to, icons)
-        self.emit(SIGNAL('update_plugin_title()'))
+        self.update_plugin_title.emit()
 
     def get_shell_index_from_id(self, shell_id):
         """Return shellwidget index from id"""
@@ -585,7 +529,7 @@ class ExternalConsole(SpyderPluginWidget):
             self.filenames.pop(index)
             self.shellwidgets.pop(index)
             self.icons.pop(index)
-            self.emit(SIGNAL('update_plugin_title()'))
+            self.update_plugin_title.emit()
         else:
             QMessageBox.question(self, _('Trying to kill a kernel?'),
                 _("You can't close this kernel because it has one or more "
@@ -623,17 +567,17 @@ class ExternalConsole(SpyderPluginWidget):
                 else:
                     self.tabwidget.setCurrentIndex(index)
                     return shellwidget
-    
+
     def get_current_shell(self):
         """
-        Called by object inspector to retrieve the current shell instance
+        Called by Help to retrieve the current shell instance
         """
         shellwidget = self.__find_python_shell()
         return shellwidget.shell
-                
+
     def get_running_python_shell(self):
         """
-        Called by object inspector to retrieve a running Python shell instance
+        Called by Help to retrieve a running Python shell instance
         """
         current_index = self.tabwidget.currentIndex()
         if current_index == -1:
@@ -652,7 +596,8 @@ class ExternalConsole(SpyderPluginWidget):
             else:
                 return shellwidgets[0].shell
         
-    def run_script_in_current_shell(self, filename, wdir, args, debug):
+    def run_script_in_current_shell(self, filename, wdir, args, debug, 
+                  post_mortem):
         """Run script in current shell, if any"""
         norm = lambda text: remove_backslashes(to_text_string(text))
         line = "%s('%s'" % ('debugfile' if debug else 'runfile',
@@ -661,6 +606,8 @@ class ExternalConsole(SpyderPluginWidget):
             line += ", args='%s'" % norm(args)
         if wdir:
             line += ", wdir='%s'" % norm(wdir)
+        if post_mortem:
+            line += ', post_mortem=True'
         line += ")"
         if not self.execute_python_code(line, interpreter_only=True):
             QMessageBox.warning(self, _('Warning'),
@@ -696,8 +643,7 @@ class ExternalConsole(SpyderPluginWidget):
         # This is a unique form of the edit_goto signal that is intended to 
         # prevent keyboard input from accidentally entering the editor
         # during repeated, rapid entry of debugging commands.    
-        self.emit(SIGNAL("edit_goto(QString,int,QString,bool)"),
-                  fname, lineno, '', False)
+        self.edit_goto[str, int, str, bool].emit(fname, lineno, '', False)
         if shellwidget.is_ipykernel:
             # Focus client widget, not kernel
             ipw = self.main.ipyconsole.get_focus_widget()
@@ -706,7 +652,7 @@ class ExternalConsole(SpyderPluginWidget):
         else:
             self.activateWindow()
             shellwidget.shell.setFocus()
-        
+    
     def set_spyder_breakpoints(self):
         """Set all Spyder breakpoints into all shells"""
         for shellwidget in self.shellwidgets:
@@ -714,7 +660,7 @@ class ExternalConsole(SpyderPluginWidget):
     
     def start(self, fname, wdir=None, args='', interact=False, debug=False,
               python=True, ipykernel=False, ipyclient=None,
-              give_ipyclient_focus=True, python_args=''):
+              give_ipyclient_focus=True, python_args='', post_mortem=True):
         """
         Start new console
         
@@ -768,24 +714,20 @@ class ExternalConsole(SpyderPluginWidget):
         if python:
             if self.get_option('pythonexecutable/default'):
                 pythonexecutable = get_python_executable()
+                external_interpreter = False
             else:
                 pythonexecutable = self.get_option('pythonexecutable')
+                external_interpreter = True
             if self.get_option('pythonstartup/default') or ipykernel:
                 pythonstartup = None
             else:
                 pythonstartup = self.get_option('pythonstartup', None)
             monitor_enabled = self.get_option('monitor/enabled')
-            if self.get_option('matplotlib/backend/enabled'):
-                mpl_backend = self.get_option('matplotlib/backend/value')
-            else:
-                mpl_backend = None
+            mpl_backend = self.get_option('matplotlib/backend/value')
             ets_backend = self.get_option('ets_backend')
             qt_api = self.get_option('qt/api')
-            if qt_api not in ('pyqt', 'pyside'):
+            if qt_api not in ('pyqt', 'pyside', 'pyqt5'):
                 qt_api = None
-            pyqt_api = self.get_option('pyqt/api_version')
-            ignore_sip_setapi_errors = self.get_option(
-                                            'pyqt/ignore_sip_setapi_errors')
             merge_output_channels = self.get_option('merge_output_channels')
             colorize_sys_stderr = self.get_option('colorize_sys_stderr')
             umr_enabled = self.get_option('umr/enabled')
@@ -810,18 +752,18 @@ class ExternalConsole(SpyderPluginWidget):
             else:
                 sa_settings = None
             shellwidget = ExternalPythonShell(self, fname, wdir,
-                           interact, debug, path=pythonpath,
+                           interact, debug, post_mortem=post_mortem, 
+                           path=pythonpath,
                            python_args=python_args,
                            ipykernel=ipykernel,
                            arguments=args, stand_alone=sa_settings,
                            pythonstartup=pythonstartup,
                            pythonexecutable=pythonexecutable,
+                           external_interpreter=external_interpreter,
                            umr_enabled=umr_enabled, umr_namelist=umr_namelist,
                            umr_verbose=umr_verbose, ets_backend=ets_backend,
                            monitor_enabled=monitor_enabled,
-                           mpl_backend=mpl_backend,
-                           qt_api=qt_api, pyqt_api=pyqt_api,
-                           ignore_sip_setapi_errors=ignore_sip_setapi_errors,
+                           mpl_backend=mpl_backend, qt_api=qt_api,
                            merge_output_channels=merge_output_channels,
                            colorize_sys_stderr=colorize_sys_stderr,
                            autorefresh_timeout=ar_timeout,
@@ -830,9 +772,9 @@ class ExternalConsole(SpyderPluginWidget):
                            menu_actions=self.menu_actions,
                            show_buttons_inside=False,
                            show_elapsed_time=show_elapsed_time)
-            self.connect(shellwidget, SIGNAL('pdb(QString,int)'),
-                         lambda fname, lineno, shellwidget=shellwidget:
-                         self.pdb_has_stopped(fname, lineno, shellwidget))
+            shellwidget.sig_pdb.connect(
+                              lambda fname, lineno, shellwidget=shellwidget:
+                              self.pdb_has_stopped(fname, lineno, shellwidget))
             self.register_widget_shortcuts("Console", shellwidget.shell)
         else:
             if os.name == 'posix':
@@ -867,29 +809,25 @@ class ExternalConsole(SpyderPluginWidget):
                             self.get_option('codecompletion/case_sensitive') )
         shellwidget.shell.set_codecompletion_enter(
                             self.get_option('codecompletion/enter_key') )
-        if python and self.inspector is not None:
-            shellwidget.shell.set_inspector(self.inspector)
-            shellwidget.shell.set_inspector_enabled(
-                               CONF.get('inspector', 'connect/python_console'))
+        if python and self.help is not None:
+            shellwidget.shell.set_help(self.help)
+            shellwidget.shell.set_help_enabled(
+                               CONF.get('help', 'connect/python_console'))
         if self.historylog is not None:
             self.historylog.add_history(shellwidget.shell.history_filename)
-            self.connect(shellwidget.shell,
-                         SIGNAL('append_to_history(QString,QString)'),
-                         self.historylog.append_to_history)
-        self.connect(shellwidget.shell, SIGNAL("go_to_error(QString)"),
-                     self.go_to_error)
-        self.connect(shellwidget.shell, SIGNAL("focus_changed()"),
-                     lambda: self.emit(SIGNAL("focus_changed()")))
+            shellwidget.shell.append_to_history.connect(
+                                             self.historylog.append_to_history)
+            shellwidget.shell.go_to_error.connect(self.go_to_error)
+            shellwidget.shell.focus_changed.connect(        
+                                             lambda: self.focus_changed.emit())
         if python:
             if self.main.editor is not None:
-                self.connect(shellwidget, SIGNAL('open_file(QString,int)'),
-                             self.open_file_in_spyder)
+                shellwidget.open_file.connect(self.open_file_in_spyder)
             if fname is None:
                 if ipykernel:
                     # Connect client to any possible error while starting the
                     # kernel
-                    ipyclient.connect(shellwidget,
-                              SIGNAL("ipython_kernel_start_error(QString)"),
+                    shellwidget.ipython_kernel_start_error.connect(
                               lambda error: ipyclient.show_kernel_error(error))
                     
                     # Detect if kernel and frontend match or not
@@ -903,29 +841,26 @@ class ExternalConsole(SpyderPluginWidget):
                             frontend_ver = '<3.0'
                         else:
                             frontend_ver = '>=3.0'
-                        pyexec = self.get_option('pythonexecutable')
                         kernel_and_frontend_match = \
                           programs.is_module_installed('IPython',
-                                                       version=frontend_ver,
-                                                       interpreter=pyexec)
+                                                  version=frontend_ver,
+                                                  interpreter=pythonexecutable)
                     else:
                         kernel_and_frontend_match = True
-                    
+
                     # Create a a kernel tab only if frontend and kernel
                     # versions match
                     if kernel_and_frontend_match:
                         tab_name = _("Kernel")
-                        tab_icon1 = get_icon('ipython_console.png')
-                        tab_icon2 = get_icon('ipython_console_t.png')
-                        self.connect(shellwidget,
-                                     SIGNAL('create_ipython_client(QString)'),
+                        tab_icon1 = ima.icon('ipython_console')
+                        tab_icon2 = ima.icon('ipython_console_t')
+                        shellwidget.create_ipython_client.connect(
                                      lambda cf: self.register_ipyclient(cf,
                                               ipyclient,
                                               shellwidget,
                                               give_focus=give_ipyclient_focus))
                     else:
-                        shellwidget.emit(
-                          SIGNAL("ipython_kernel_start_error(QString)"),
+                        shellwidget.ipython_kernel_start_error.emit(
                           _("Either:"
                             "<ol>"
                             "<li>Your IPython frontend and kernel versions "
@@ -941,12 +876,12 @@ class ExternalConsole(SpyderPluginWidget):
                 else:
                     self.python_count += 1
                     tab_name = "Python %d" % self.python_count
-                    tab_icon1 = get_icon('python.png')
-                    tab_icon2 = get_icon('python_t.png')
+                    tab_icon1 = ima.icon('python')
+                    tab_icon2 = ima.icon('python_t')
             else:
                 tab_name = osp.basename(fname)
-                tab_icon1 = get_icon('run.png')
-                tab_icon2 = get_icon('terminated.png')
+                tab_icon1 = ima.icon('run')
+                tab_icon2 = ima.icon('terminated')
         else:
             fname = id(shellwidget)
             if os.name == 'nt':
@@ -955,8 +890,8 @@ class ExternalConsole(SpyderPluginWidget):
                 tab_name = _("Terminal")
             self.terminal_count += 1
             tab_name += (" %d" % self.terminal_count)
-            tab_icon1 = get_icon('cmdprompt.png')
-            tab_icon2 = get_icon('cmdprompt_t.png')
+            tab_icon1 = ima.icon('cmdprompt')
+            tab_icon2 = ima.icon('cmdprompt_t')
         self.shellwidgets.insert(index, shellwidget)
         self.filenames.insert(index, fname)
         self.icons.insert(index, (tab_icon1, tab_icon2))
@@ -965,9 +900,9 @@ class ExternalConsole(SpyderPluginWidget):
         else:
             self.tabwidget.insertTab(index, shellwidget, tab_name)
         
-        self.connect(shellwidget, SIGNAL("started()"),
+        shellwidget.started.connect(
                      lambda sid=id(shellwidget): self.process_started(sid))
-        self.connect(shellwidget, SIGNAL("finished()"),
+        shellwidget.sig_finished.connect(
                      lambda sid=id(shellwidget): self.process_finished(sid))
         self.find_widget.set_editor(shellwidget.shell)
         self.tabwidget.setTabToolTip(index, fname if wdir is None else wdir)
@@ -1044,11 +979,11 @@ class ExternalConsole(SpyderPluginWidget):
         shell = self.shellwidgets[index]
         icon, _icon = self.icons[index]
         self.tabwidget.setTabIcon(index, icon)
-        if self.inspector is not None:
-            self.inspector.set_shell(shell.shell)
+        if self.help is not None:
+            self.help.set_shell(shell.shell)
         if self.variableexplorer is not None:
             self.variableexplorer.add_shellwidget(shell)
-        
+
     def process_finished(self, shell_id):
         index = self.get_shell_index_from_id(shell_id)
         if index is not None:
@@ -1073,7 +1008,7 @@ class ExternalConsole(SpyderPluginWidget):
     
     def get_plugin_icon(self):
         """Return widget icon"""
-        return get_icon('console.png')
+        return ima.icon('console')
     
     def get_focus_widget(self):
         """
@@ -1086,7 +1021,8 @@ class ExternalConsole(SpyderPluginWidget):
         """Return a list of actions related to plugin"""
         interpreter_action = create_action(self,
                             _("Open a &Python console"), None,
-                            'python.png', triggered=self.open_interpreter)
+                            ima.icon('python'),
+                            triggered=self.open_interpreter)
         if os.name == 'nt':
             text = _("Open &command prompt")
             tip = _("Open a Windows command prompt")
@@ -1097,63 +1033,51 @@ class ExternalConsole(SpyderPluginWidget):
                                         triggered=self.open_terminal)
         run_action = create_action(self,
                             _("&Run..."), None,
-                            'run_small.png', _("Run a Python script"),
+                            ima.icon('run_small'), _("Run a Python script"),
                             triggered=self.run_script)
 
         consoles_menu_actions = [interpreter_action]
         tools_menu_actions = [terminal_action]
         self.menu_actions = [interpreter_action, terminal_action, run_action]
-        
+
         self.main.consoles_menu_actions += consoles_menu_actions
         self.main.tools_menu_actions += tools_menu_actions
-        
+
         return self.menu_actions+consoles_menu_actions+tools_menu_actions
-    
+
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
-        if self.main.light:
-            self.main.setCentralWidget(self)
-            self.main.widgetlist.append(self)
-        else:
-            self.main.add_dockwidget(self)
-            self.inspector = self.main.inspector
-            if self.inspector is not None:
-                self.inspector.set_external_console(self)
-            self.historylog = self.main.historylog
-            self.connect(self, SIGNAL("edit_goto(QString,int,QString)"),
-                         self.main.editor.load)
-            self.connect(self, SIGNAL("edit_goto(QString,int,QString,bool)"),
-                         lambda fname, lineno, word, processevents:
-                         self.main.editor.load(fname, lineno, word,
-                                               processevents=processevents))
-            self.connect(self.main.editor,
-                         SIGNAL('run_in_current_extconsole(QString,QString,QString,bool)'),
-                         self.run_script_in_current_shell)
-            self.connect(self.main.editor,
-                         SIGNAL("breakpoints_saved()"),
-                         self.set_spyder_breakpoints)
-            self.connect(self.main.editor, SIGNAL("open_dir(QString)"),
-                         self.set_current_shell_working_directory)
-            self.connect(self.main.workingdirectory,
-                         SIGNAL("set_current_console_wd(QString)"),
-                         self.set_current_shell_working_directory)
-            self.connect(self, SIGNAL('focus_changed()'),
-                         self.main.plugin_focus_changed)
-            self.connect(self, SIGNAL('redirect_stdio(bool)'),
-                         self.main.redirect_internalshell_stdio)
-            expl = self.main.explorer
-            if expl is not None:
-                self.connect(expl, SIGNAL("open_terminal(QString)"),
-                             self.open_terminal)
-                self.connect(expl, SIGNAL("open_interpreter(QString)"),
-                             self.open_interpreter)
-            pexpl = self.main.projectexplorer
-            if pexpl is not None:
-                self.connect(pexpl, SIGNAL("open_terminal(QString)"),
-                             self.open_terminal)
-                self.connect(pexpl, SIGNAL("open_interpreter(QString)"),
-                             self.open_interpreter)
-        
+        self.main.add_dockwidget(self)
+        self.help = self.main.help
+        if self.help is not None:
+            self.help.set_external_console(self)
+        self.historylog = self.main.historylog
+        self.edit_goto.connect(self.main.editor.load)
+        self.edit_goto[str, int, str, bool].connect(
+                        lambda fname, lineno, word, processevents:
+                        self.main.editor.load(fname, lineno, word,
+                                            processevents=processevents))
+        self.main.editor.run_in_current_extconsole.connect(
+                        self.run_script_in_current_shell)
+        self.main.editor.breakpoints_saved.connect(
+                        self.set_spyder_breakpoints)
+        self.main.editor.open_dir.connect(
+                        self.set_current_shell_working_directory)
+        self.main.workingdirectory.set_current_console_wd.connect(
+                        self.set_current_shell_working_directory)
+        self.focus_changed.connect(
+                        self.main.plugin_focus_changed)
+        self.redirect_stdio.connect(
+                        self.main.redirect_internalshell_stdio)
+        expl = self.main.explorer
+        if expl is not None:
+            expl.open_terminal.connect(self.open_terminal)
+            expl.open_interpreter.connect(self.open_interpreter)
+        pexpl = self.main.projectexplorer
+        if pexpl is not None:
+            pexpl.open_terminal.connect(self.open_terminal)
+            pexpl.open_interpreter.connect(self.open_interpreter)
+
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         for shellwidget in self.shellwidgets:
@@ -1177,7 +1101,7 @@ class ExternalConsole(SpyderPluginWidget):
         if shellwidget:
             shellwidget.update_time_label_visibility()
         self.main.last_console_plugin_focus_was_python = True
-        self.emit(SIGNAL('update_plugin_title()'))
+        self.update_plugin_title.emit()
     
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
@@ -1189,8 +1113,8 @@ class ExternalConsole(SpyderPluginWidget):
         icontext_o = self.get_option(icontext_n)
         calltips_n = 'calltips'
         calltips_o = self.get_option(calltips_n)
-        inspector_n = 'connect_to_oi'
-        inspector_o = CONF.get('inspector', 'connect/python_console')
+        help_n = 'connect_to_oi'
+        help_o = CONF.get('help', 'connect/python_console')
         wrap_n = 'wrap'
         wrap_o = self.get_option(wrap_n)
         compauto_n = 'codecompletion/auto'
@@ -1214,9 +1138,9 @@ class ExternalConsole(SpyderPluginWidget):
                 shellwidget.set_icontext_visible(icontext_o)
             if calltips_n in options:
                 shellwidget.shell.set_calltips(calltips_o)
-            if inspector_n in options:
+            if help_n in options:
                 if isinstance(shellwidget, ExternalPythonShell):
-                    shellwidget.shell.set_inspector_enabled(inspector_o)
+                    shellwidget.shell.set_help_enabled(help_o)
             if wrap_n in options:
                 shellwidget.shell.toggle_wrap_mode(wrap_o)
             if compauto_n in options:
@@ -1248,15 +1172,15 @@ class ExternalConsole(SpyderPluginWidget):
             self.dockwidget.hide()
     
     #------ Public API ---------------------------------------------------------
+    @Slot(str)
     def open_interpreter(self, wdir=None):
         """Open interpreter"""
         if wdir is None:
             wdir = getcwd()
-        if not self.main.light:
-            self.visibility_changed(True)
+        self.visibility_changed(True)
         self.start(fname=None, wdir=to_text_string(wdir), args='',
                    interact=True, debug=False, python=True)
-    
+
     def start_ipykernel(self, client, wdir=None, give_focus=True):
         """Start new IPython kernel"""
         if not self.get_option('monitor/enabled'):
@@ -1272,19 +1196,21 @@ class ExternalConsole(SpyderPluginWidget):
                    interact=True, debug=False, python=True, ipykernel=True,
                    ipyclient=client, give_ipyclient_focus=give_focus)
 
+    @Slot(str)
     def open_terminal(self, wdir=None):
         """Open terminal"""
         if wdir is None:
             wdir = getcwd()
         self.start(fname=None, wdir=to_text_string(wdir), args='',
                    interact=True, debug=False, python=False)
-        
+
+    @Slot()
     def run_script(self):
         """Run a Python script"""
-        self.emit(SIGNAL('redirect_stdio(bool)'), False)
+        self.redirect_stdio.emit(False)
         filename, _selfilter = getopenfilename(self, _("Run Python script"),
                 getcwd(), _("Python scripts")+" (*.py ; *.pyw ; *.ipy)")
-        self.emit(SIGNAL('redirect_stdio(bool)'), True)
+        self.redirect_stdio.emit(True)
         if filename:
             self.start(fname=filename, wdir=None, args='',
                        interact=False, debug=False)
@@ -1321,8 +1247,7 @@ class ExternalConsole(SpyderPluginWidget):
         match = get_error_match(to_text_string(text))
         if match:
             fname, lnb = match.groups()
-            self.emit(SIGNAL("edit_goto(QString,int,QString)"),
-                      osp.abspath(fname), int(lnb), '')
+            self.edit_goto.emit(osp.abspath(fname), int(lnb), '')
             
     #----Drag and drop
     def dragEnterEvent(self, event):

@@ -11,11 +11,16 @@ import ctypes
 import os
 import sys
 
+QT_API = os.environ["QT_API"]
+
 # Qt imports
-if os.environ["QT_API"] == 'pyqt':
-    from PyQt4 import QtCore, QtGui
-elif os.environ["QT_API"] == 'pyside':
-    from PySide import QtCore, QtGui   # analysis:ignore
+if QT_API == 'pyqt5':
+    from PyQt5 import QtCore
+elif QT_API == 'pyqt':
+    from PyQt4 import QtCore
+elif QT_API == 'pyside':
+    from PySide import QtCore
+
 
 #-----------------------------------------------------------------------------
 # Utilities
@@ -84,8 +89,11 @@ def set_pyft_callback(callback):
     return callback
 
 def remove_pyqt_inputhook():
-    if os.environ["QT_API"] == 'pyqt':
+    if QT_API == 'pyqt' or QT_API == 'pyqt5':
         QtCore.pyqtRemoveInputHook()
+    else:
+        pass
+
 
 #------------------------------------------------------------------------------
 # Input hooks
@@ -106,7 +114,7 @@ def qt4():
         allow_CTRL_C()
         app = QtCore.QCoreApplication.instance()
         if not app:
-            app = QtGui.QApplication([" "])
+            return 0
         app.processEvents(QtCore.QEventLoop.AllEvents, 300)
         if not stdin_ready():
             # Generally a program would run QCoreApplication::exec()

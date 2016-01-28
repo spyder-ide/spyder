@@ -1,0 +1,49 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2015-08-29 22:49+COT\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: ENCODING\n"
+"Generated-By: pygettext.py 1.5\n"
+
+
+#: spyplugins/ui/breakpoints/breakpoints.py:41
+msgid "Breakpoints"
+msgstr ""
+
+#: spyplugins/ui/breakpoints/breakpoints.py:75
+msgid "List breakpoints"
+msgstr ""
+
+#: spyplugins/ui/breakpoints/widgets/breakpointsgui.py:87
+msgid "Condition"
+msgstr ""
+
+#: spyplugins/ui/breakpoints/widgets/breakpointsgui.py:87
+msgid "File"
+msgstr ""
+
+#: spyplugins/ui/breakpoints/widgets/breakpointsgui.py:87
+msgid "Line"
+msgstr ""
+
+#: spyplugins/ui/breakpoints/widgets/breakpointsgui.py:170
+msgid "Clear breakpoints in all files"
+msgstr ""
+
+#: spyplugins/ui/breakpoints/widgets/breakpointsgui.py:177
+msgid "Clear this breakpoint"
+msgstr ""
+
+#: spyplugins/ui/breakpoints/widgets/breakpointsgui.py:183
+msgid "Edit this breakpoint"
+msgstr ""
+

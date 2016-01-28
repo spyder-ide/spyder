@@ -28,7 +28,7 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 """
 
-__version__ = '2.3.8'
+__version__ = '3.0.0dev'
 __license__ = __doc__
 __project_url__ = 'https://github.com/spyder-ide/spyder'
 __forum_url__   = 'http://groups.google.com/group/spyderlib'
@@ -68,7 +68,7 @@ def get_versions(reporev=True):
     revision = None
     if reporev:
         from spyderlib.utils import vcs
-        revision = vcs.get_git_revision(os.path.dirname(__dir__))
+        revision, branch = vcs.get_git_revision(os.path.dirname(__dir__))
 
     if not sys.platform == 'darwin':  # To avoid a crash with our Mac app
         system = platform.system()
@@ -80,7 +80,7 @@ def get_versions(reporev=True):
         'python': platform.python_version(),  # "2.7.3"
         'bitness': 64 if sys.maxsize > 2**32 else 32,
         'qt': spyderlib.qt.QtCore.__version__,
-        'qt_api': spyderlib.qt.API_NAME,      # PySide or PyQt4
+        'qt_api': spyderlib.qt.API_NAME,      # PyQt5 or PyQt4
         'qt_api_ver': spyderlib.qt.__version__,
         'system': system,   # Linux, Windows, ...
         'revision': revision,  # '9fdf926eccce'

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2013 The Spyder Development Team
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -14,7 +14,7 @@ import time
 import threading
 
 from spyderlib import dependencies
-from spyderlib.baseconfig import _, debug_print
+from spyderlib.config.base import _, debug_print
 from spyderlib.utils import programs
 from spyderlib.utils.debug import log_last_error, log_dt
 from spyderlib.utils.dochelpers import getsignaturefromtext
@@ -54,10 +54,11 @@ class JediPlugin(IntrospectionPlugin):
         self._warmup_thread.start()
 
     def get_completions(self, info):
-        """Return a list of completion strings"""
+        """Return a list of (completion, type) tuples"""
         completions = self.get_jedi_object('completions', info)
+        completions = [(c.name, c.type) for c in completions]
         debug_print(str(completions)[:100])
-        return [c.name for c in completions]
+        return completions
 
     def get_info(self, info):
         """
@@ -267,12 +268,12 @@ if __name__ == '__main__':
     source_code = "import n"
     completions = p.get_completions(CodeInfo('completions', source_code,
         len(source_code)))
-    assert 'numpy' in completions
+    assert ('numpy', 'module') in completions
 
-    source_code = "import matplotlib.pyplot as plt; plt.imsave"
+    source_code = "import pandas as pd; pd.DataFrame"
     path, line_nr = p.get_definition(CodeInfo('definition', source_code,
         len(source_code)))
-    assert 'pyplot.py' in path
+    assert 'frame.py' in path
 
     source_code = 'from .plugin_manager import memoize'
     path, line_nr = p.get_definition(CodeInfo('definition', source_code,

@@ -1,7 +1,7 @@
 Spyder License Agreement (MIT License)
 --------------------------------------
 
-Copyright (c) 2009-2013 Pierre Raybaut
+Copyright (c) 2009- The Spyder Development Team
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -50,9 +50,12 @@ spyderlib/images/whole_words.png
 spyderlib/images/win_env.png
 spyderlib/images/actions/hist.png
 spyderlib/images/actions/window_nofullscreen.png
+spyderlib/images/editor/attribute.png
 spyderlib/images/editor/filelist.png
 spyderlib/images/editor/function.png
 spyderlib/images/editor/method.png
+spyderlib/images/editor/module.png
+spyderlib/images/editor/no_match.png
 spyderlib/images/editor/private1.png
 spyderlib/images/editor/private2.png
 spyderlib/images/editor/cell.png
@@ -75,7 +78,7 @@ spyderlib/images/browser.png
 spyderlib/images/ext_tools.png
 spyderlib/images/font.png
 spyderlib/images/genprefs.png
-spyderlib/images/inspector.png
+spyderlib/images/help.png
 spyderlib/images/italic.png
 spyderlib/images/pythonpath_mgr.png
 spyderlib/images/upper_lower.png

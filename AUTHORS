@@ -1,46 +1,5 @@
-Main author
-===========
+The Spyder Development Team is composed of:
 
-Pierre Raybaut <pierre.raybaut@gmail.com>
-
-Current maintainer
-==================
-
-Carlos Cordoba <ccordoba12@gmail.com>
-
-Contributors
-============
-
-Steven Sylvester <steven.silvester@ieee.org>
-Gonzalo Peña-Castellanos <goanpeca@gmail.com>
-Anatoly Techtonick <techtonik@gmail.com>
-Sylvain Corlay <sylvain.corlay@gmail.com>
-Daniel Høegh <dhoegh91@gmail.com>
-Jed Ludlow <jed.ludlow@gmail.com>
-Joseph Martinot-Lagarde
-Hans Fangohr <fangohr@soton.ac.uk>
-Eric Larson <larson.eric.d@gmail.com>
-Alok Talekar
-Caleb Hattingh <caleb.hattingh@gmail.com>
-stonebig       
-Thomas Kluyver <takowl@gmail.com>
-randy.heydon@clockworklab.net
-Cybjit <cybjit@gmail.com>
-Enfenion <enfo42@gmail.com>
-Karan Uppal <karan.uppal711@gmail.com>
-Alex@ruby.cable.virginmedia.net
-Ronan
-TWAC
-robrosit@gmail.com
-David Joy <videan42@gmail.com>
-David Powell
-Alex Fargus <alex.fargus@gmail.com>
-alfonso.137.718@gmail.com
-benjamin.drung@profitbricks.com
-bioruffo
-Javier Dehesa <javidcf@gmail.com>
-Robert Pollak <robert.pollak@mykolab.com>
-robrosit
-Ronan Paixao <ronanpaixao@gmail.com>
-sandorracz@rnumerics.com
-vitoace
+* Pierre Raybaut <pierre.raybaut@gmail.com> (Main Spyder author)
+* Carlos Cordoba <ccordoba12@gmail.com> (Current maintainer)
+* All other developers that have contributed to this repository

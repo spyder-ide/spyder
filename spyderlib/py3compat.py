@@ -18,12 +18,13 @@ This module should be fully compatible with:
 
 from __future__ import print_function
 
-import sys
+import operator
 import os
+import sys
 
 PY2 = sys.version[0] == '2'
 PY3 = sys.version[0] == '3'
-
+PY33 = sys.version_info[0:2] >= (3, 3)
 
 #==============================================================================
 # Data types
@@ -242,6 +243,46 @@ else:
 def qbytearray_to_str(qba):
     """Convert QByteArray object to str in a way compatible with Python 2/3"""
     return str(bytes(qba.toHex().data()).decode())
+
+# =============================================================================
+# Dict funcs
+# =============================================================================
+if PY3:
+    def iterkeys(d, **kw):
+        return iter(d.keys(**kw))
+
+    def itervalues(d, **kw):
+        return iter(d.values(**kw))
+
+    def iteritems(d, **kw):
+        return iter(d.items(**kw))
+
+    def iterlists(d, **kw):
+        return iter(d.lists(**kw))
+
+    viewkeys = operator.methodcaller("keys")
+
+    viewvalues = operator.methodcaller("values")
+
+    viewitems = operator.methodcaller("items")
+else:
+    def iterkeys(d, **kw):
+        return d.iterkeys(**kw)
+
+    def itervalues(d, **kw):
+        return d.itervalues(**kw)
+
+    def iteritems(d, **kw):
+        return d.iteritems(**kw)
+
+    def iterlists(d, **kw):
+        return d.iterlists(**kw)
+
+    viewkeys = operator.methodcaller("viewkeys")
+
+    viewvalues = operator.methodcaller("viewvalues")
+
+    viewitems = operator.methodcaller("viewitems")
 
 
 if __name__ == '__main__':

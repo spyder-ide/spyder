@@ -35,7 +35,7 @@ def check_path():
 
 def check_qt():
     """Check Qt binding requirements"""
-    qt_infos = dict(pyqt=("PyQt4", "4.6"), pyside=("PySide", "1.2.0"))
+    qt_infos = dict(pyqt5=("PyQt5", "5.2"), pyqt=("PyQt4", "4.6"))
     try:
         from spyderlib import qt
         package_name, required_ver = qt_infos[qt.API]
@@ -45,6 +45,8 @@ def check_qt():
                          "%s %s+ is required (found v%s)."
                          % (package_name, required_ver, actual_ver))
     except ImportError:
-        show_warning("Please check Spyder installation requirements:\n"
-                     "%s %s+ (or %s %s+) is required."
-                     % (qt_infos['pyqt']+qt_infos['pyside']))
+        show_warning("Please check Spyder installation requirements:\n\n"
+                     "%s %s+ or\n"
+                     "%s %s+\n\n"
+                     "is required to run Spyder"
+                     % (qt_infos['pyqt5'] + qt_infos['pyqt']))

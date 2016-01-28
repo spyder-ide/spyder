@@ -30,12 +30,11 @@ Contents:
     overview
     installation
     options
-    lightmode
     console
     ipythonconsole
     debugging
     variableexplorer
-    inspector
+    help
     onlinehelp
     historylog
     explorer

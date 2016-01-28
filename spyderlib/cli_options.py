@@ -12,8 +12,6 @@ def get_options():
     return commands, message
     """
     parser = optparse.OptionParser(usage="spyder [options] files")
-    parser.add_option('-l', '--light', action='store_true', default=False,
-                      help="Light version (all add-ons are disabled)")
     parser.add_option('--new-instance', action='store_true', default=False,
                       help="Run a new instance of Spyder, even if the single "
                            "instance mode has been turned on (default)")
