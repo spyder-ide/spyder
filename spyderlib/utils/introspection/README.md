@@ -10,16 +10,16 @@ Data is passed between the server and client as pickled objects over
 bsd sockets.  We pass a request from:
 
  `Editor -> IntrospectionManager -> Plugin Manager -> PluginClient ->
-  PluginServer`
+  PluginServer -> Plugin`
 
 The response bubbles back as:
 
- `PluginServer -> PluginClient -> PluginManager -> IntrospectionManager ->
-  Editor`
+ `Plugin -> PluginServer -> PluginClient -> PluginManager ->
+  IntrospectionManager -> Editor`
 
 There can only be one active and one pending request at a time.
-There is a `LEAD_TIME_SEC` time where we wait for the primary response from a
-request.  After that time, a secondary response can be used, or
+There is a `LEAD_TIME_SEC` time where we wait for the primary response
+from a request.  After that time, a secondary response can be used, or
 a pending request will be sent, if there is one.
 
 When a valid response reaches the `IntrospectionManager`, it checks
