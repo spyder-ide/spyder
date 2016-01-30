@@ -23,6 +23,7 @@ import os
 import os.path as osp
 import subprocess
 import sys
+import re
 
 from IPython.core.completerlib import module_list
 
@@ -86,7 +87,7 @@ INCLUDES = get_stdlib_modules()
 EDIT_EXT = [ext[1:] for ext in EDIT_EXT]
 
 OPTIONS = {
-    'argv_emulation': True,
+    'argv_emulation': False,
     'compressed' : False,
     'optimize': 0,
     'packages': PACKAGES,
@@ -105,9 +106,47 @@ setup(
     options={'py2app': OPTIONS}
 )
 
+
+ALIAS_MODE = ('--alias' in sys.argv) or ('-A' in sys.argv)
+if ALIAS_MODE:
+    APP_MAIN_SCRIPT_BASENAME = os.path.basename(APP_MAIN_SCRIPT)
+    bundle_name = os.path.splitext(APP_MAIN_SCRIPT_BASENAME)[0] + '.app'
+    bundle_path = 'dist/' + bundle_name
+
+    # In alias mode, iconfile is a symlink. Replace it with a copy of the real file.
+    os.remove(bundle_path + '/Contents/Resources/' + os.path.basename(OPTIONS['iconfile']))
+    shutil.copy(OPTIONS['iconfile'], bundle_path + '/Contents/Resources/')
+
+    # Copy the launch script into the app bundle
+    shutil.copy(APP_MAIN_SCRIPT, bundle_path + '/Contents/Resources/' + APP_MAIN_SCRIPT_BASENAME)
+    
+    # Change __boot__.py to point to the relocated main script
+    # Also, remove _path_inject() line that points to the developer's environment.
+    boot_path = bundle_path + '/Contents/Resources/__boot__.py'
+    for line in fileinput.input(boot_path, inplace=True):
+        line = re.sub('^DEFAULT_SCRIPT=.*$', 'DEFAULT_SCRIPT="' + APP_MAIN_SCRIPT_BASENAME + '"', line)
+        line = re.sub('^_path_inject.*$', '', line)
+        print(line, end='')
+
+    # sym-link to the environment site-packages directory
+    # This seems to be necessary for Spyder's subprocesses like IPython to work properly.
+    site_packages_path = sys.prefix + '/lib/python2.7/site-packages'
+    os.symlink(site_packages_path, bundle_path + '/Contents/Resources/lib/python2.7/site-packages')
+
+    # Remove site.py because it wants to use site-packages.zip,
+    # which doesn't exist in alias mode
+    os.remove(bundle_path + '/Contents/Resources/site.py')
+    os.remove(bundle_path + '/Contents/Resources/site.pyc')
+    os.remove(bundle_path + '/Contents/Resources/lib/python2.7/site.pyc')
+
+    # Remove script for app
+    os.remove(APP_MAIN_SCRIPT)
+
+    # The post-processing steps below are not necessary in alias mode
+    sys.exit(0)
+
 # Remove script for app
 os.remove(APP_MAIN_SCRIPT)
-
 
 #==============================================================================
 # Post-app creation

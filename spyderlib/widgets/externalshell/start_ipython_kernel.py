@@ -8,6 +8,7 @@
 (see spyderlib/widgets/externalshell/pythonshell.py)"""
 
 import sys
+import os
 import os.path as osp
 
 
@@ -181,7 +182,7 @@ __name__ = '__main__'
 
 # Add current directory to sys.path (like for any standard Python interpreter
 # executed in interactive mode):
-sys.path.insert(0, '')
+sys.path.insert(0, os.getcwd())
 
 # Fire up the kernel instance.
 from ipykernel.kernelapp import IPKernelApp
