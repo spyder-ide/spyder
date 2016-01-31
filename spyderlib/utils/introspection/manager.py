@@ -66,6 +66,13 @@ class PluginManager(QObject):
         self.pending = None
         self.pending_request = None
         self.waiting = False
+        try:
+            # This import is here to avoid circular imports
+            from spyderlib.utils.introspection.rope_plugin import (
+                rename_identifier)
+            self.rename_identifier = rename_identifier
+        except (ImportError, NameError):
+            self.rename_identifier = None
 
     def send_request(self, info):
         """Handle an incoming request from the user."""
@@ -110,6 +117,19 @@ class PluginManager(QObject):
             self.ids[request_id] = plugin.name
         self.timer.stop()
         self.timer.singleShot(LEAD_TIME_SEC * 1000, self._handle_timeout)
+
+    def rename(self, code, position, new_name):
+        """Returns code with identifier renamed.
+        This functionality is only implemented in the rope plugin. If
+        rope is not installed then an NotImplementedException is raised.
+        code (str): old source code
+        position (int): position of identifier to be renamed
+        new_name (str): new name of identifier
+        """
+        if self.rename_identifier:
+            return self.rename_identifier(code, position, new_name)
+        else:
+            raise NotImplementedError
 
     def validate(self):
         for plugin in self.plugins.values():
