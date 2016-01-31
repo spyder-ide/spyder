@@ -1771,6 +1771,16 @@ class EditorStack(QWidget):
         finfo = self.data[index]
         finfo.editor.fix_indentation()
 
+    def rename_variable(self, index=None):
+        """Open rename variable dialog box."""
+        if index is None:
+            index = self.get_stack_index()
+        finfo = self.data[index]
+        res = finfo.editor.open_rename_variable_dialog()
+        if res:
+            new_code = self.introspector.rename(*res)
+            finfo.editor.change_text(new_code)
+
     #------ Run
     def run_selection(self):
         """Run selected text or current line in console"""

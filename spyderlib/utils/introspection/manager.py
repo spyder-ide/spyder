@@ -230,6 +230,10 @@ class IntrospectionManager(QObject):
         info = self._get_code_info('info', position, auto=auto)
         self.plugin_manager.send_request(info)
 
+    def rename(self, code, position, new_name):
+        """Returns code with identifier renamed."""
+        return self.plugin_manager.rename(code, position, new_name)
+
     def validate(self):
         """Validate the plugins"""
         self.plugin_manager.validate()
