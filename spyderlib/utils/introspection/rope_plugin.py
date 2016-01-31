@@ -251,6 +251,25 @@ class RopePlugin(IntrospectionPlugin):
             except RuntimeError:
                 pass
 
+    def rename(self, code, position, new_name):
+        """
+        Returns code with identifier renamed using Rope
+        code (str): old source code
+        position (int): position of identifier to be renamed
+        new_name (str): new name of identifier
+        """
+        import os
+        temp_filename = 'ropefile-{}.py'.format(os.getpid())
+        temp_module = self.project.root.create_file(temp_filename)
+        temp_module.write(code)
+        from rope.refactor.rename import Rename
+        renamer = Rename(self.project, temp_module, position)
+        changes = renamer.get_changes(new_name)
+        self.project.do(changes)
+        result = temp_module.read()
+        temp_module.remove()
+        return result
+
     # ---- Private API -------------------------------------------------------
 
     def create_rope_project(self, root_path):
@@ -317,3 +336,7 @@ test(1,'''
     docs = p.get_info(CodeInfo('info', code, len(code), __file__,
         is_python_like=True))
     assert 'Test docstring' in docs['docstring']
+
+    code = 'a = 1; b = 2 * a'
+    newcode = p.rename(code, 0, 'x')
+    assert newcode == 'x = 1; b = 2 * x'
