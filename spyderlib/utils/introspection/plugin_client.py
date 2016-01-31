@@ -7,7 +7,7 @@
 import socket
 import errno
 import os
-import subprocess
+import imp
 import sys
 
 # Local imports
@@ -54,9 +54,8 @@ class PluginClient(QObject):
         self.process.setWorkingDirectory(os.path.dirname(__file__))
         processEnvironment = QProcessEnvironment()
         env = self.process.systemEnvironment()
-        call = '%s -c "import site; print(site.getsitepackages()[0])"'
-        site_path = subprocess.check_output(call % self.executable, shell=True)
-        env.append("PYTHONPATH=%s" % site_path.decode('utf-8').strip())
+        spyder_path = imp.find_module('spyderlib')[1]
+        env.append("PYTHONPATH=%s" % spyder_path)
         for envItem in env:
             envName, separator, envValue = envItem.partition('=')
             processEnvironment.insert(envName, envValue)
