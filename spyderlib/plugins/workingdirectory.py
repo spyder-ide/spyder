@@ -23,7 +23,7 @@ import os.path as osp
 
 # Local imports
 from spyderlib.utils import encoding
-from spyderlib.config.base import get_conf_path, _
+from spyderlib.config.base import get_conf_path, get_home_dir, _
 from spyderlib.utils.qthelpers import create_action
 
 # Package local imports
@@ -273,10 +273,10 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
             wdhistory = [name for name in wdhistory if os.path.isdir(name)]
         else:
             if workdir is None:
-                workdir = getcwd()
+                workdir = get_home_dir()
             wdhistory = [ workdir ]
         return wdhistory
-    
+
     def save_wdhistory(self):
         """Save history to a text file in user home directory"""
         text = [ to_text_string( self.pathedit.itemText(index) ) \
