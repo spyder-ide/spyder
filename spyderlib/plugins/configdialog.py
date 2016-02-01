@@ -4,33 +4,38 @@
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
-"""Configuration dialog / Preferences"""
+"""
+Configuration dialog / Preferences.
+"""
 
+# Standard library imports
 import os.path as osp
 
+# Third party imports
 from spyderlib.qt import API
 from spyderlib.qt.QtGui import (QWidget, QDialog, QListWidget, QListWidgetItem,
                                 QVBoxLayout, QStackedWidget, QListView,
                                 QHBoxLayout, QDialogButtonBox, QCheckBox,
                                 QMessageBox, QLabel, QLineEdit, QSpinBox,
                                 QPushButton, QFontComboBox, QGroupBox,
-                                QComboBox, QColor, QGridLayout, QTabWidget,
+                                QComboBox, QColor, QGridLayout,
                                 QRadioButton, QButtonGroup, QSplitter,
                                 QStyleFactory, QScrollArea, QDoubleSpinBox)
 from spyderlib.qt.QtCore import Qt, QSize, Signal, Slot
 from spyderlib.qt.compat import (to_qvariant, from_qvariant,
                                  getexistingdirectory, getopenfilename)
-import spyderlib.utils.icon_manager as ima
 
+# Local imports
 from spyderlib.config.base import (_, running_in_mac_app, LANGUAGE_CODES,
                                    save_lang_conf, load_lang_conf)
+from spyderlib.config.gui import get_font
 from spyderlib.config.main import CONF, is_gtk_desktop
-from spyderlib.config.gui import (CUSTOM_COLOR_SCHEME_NAME,
-                                  set_default_color_scheme)
 from spyderlib.config.user import NoDefault
-from spyderlib.utils import syntaxhighlighters as sh
-from spyderlib.widgets.colors import ColorLayout
 from spyderlib.py3compat import to_text_string, is_text_string, getcwd
+from spyderlib.utils import icon_manager as ima
+from spyderlib.utils import syntaxhighlighters
+from spyderlib.widgets.colors import ColorLayout
+from spyderlib.widgets.sourcecode.codeeditor import CodeEditor
 
 
 class ConfigAccessMixin(object):
@@ -619,7 +624,15 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         if tip is not None:
             combobox.setToolTip(tip)
         for name, key in choices:
-            combobox.addItem(name, to_qvariant(key))
+            if not (name is None and key is None):
+                combobox.addItem(name, to_qvariant(key))
+        # Insert separators
+        count = 0
+        for index, item in enumerate(choices):
+            name, key = item
+            if name is None and key is None:
+                combobox.insertSeparator(index + count)
+                count += 1
         self.comboboxes[combobox] = (option, default)
         layout = QHBoxLayout()
         layout.addWidget(label)
@@ -903,77 +916,442 @@ class MainConfigPage(GeneralConfigPage):
 
 class ColorSchemeConfigPage(GeneralConfigPage):
     CONF_SECTION = "color_schemes"
-    
+
     NAME = _("Syntax coloring")
     ICON = ima.icon('eyedropper')
-    
+
     def setup_page(self):
-        tabs = QTabWidget()
         names = self.get_option("names")
-        names.pop(names.index(CUSTOM_COLOR_SCHEME_NAME))
-        names.insert(0, CUSTOM_COLOR_SCHEME_NAME)
-        fieldnames = {
-                      "background":     _("Background:"),
-                      "currentline":    _("Current line:"),
-                      "currentcell":    _("Current cell:"),
-                      "occurrence":      _("Occurrence:"),
-                      "ctrlclick":      _("Link:"),
-                      "sideareas":      _("Side areas:"),
-                      "matched_p":      _("Matched parentheses:"),
-                      "unmatched_p":    _("Unmatched parentheses:"),
-                      "normal":         _("Normal text:"),
-                      "keyword":        _("Keyword:"),
-                      "builtin":        _("Builtin:"),
-                      "definition":     _("Definition:"),
-                      "comment":        _("Comment:"),
-                      "string":         _("String:"),
-                      "number":         _("Number:"),
-                      "instance":       _("Instance:"),
-                      }
-        from spyderlib.utils import syntaxhighlighters
-        assert all([key in fieldnames
-                    for key in syntaxhighlighters.COLOR_SCHEME_KEYS])
-        for tabname in names:
-            cs_group = QGroupBox(_("Color scheme"))
-            cs_layout = QGridLayout()
-            for row, key in enumerate(syntaxhighlighters.COLOR_SCHEME_KEYS):
-                option = "%s/%s" % (tabname, key)
-                value = self.get_option(option)
-                name = fieldnames[key]
-                if is_text_string(value):
-                    label, clayout = self.create_coloredit(name, option,
-                                                           without_layout=True)
-                    label.setAlignment(Qt.AlignRight|Qt.AlignVCenter)
-                    cs_layout.addWidget(label, row+1, 0)
-                    cs_layout.addLayout(clayout, row+1, 1)
-                else:
-                    label, clayout, cb_bold, cb_italic = self.create_scedit(
-                                            name, option, without_layout=True)
-                    label.setAlignment(Qt.AlignRight|Qt.AlignVCenter)
-                    cs_layout.addWidget(label, row+1, 0)
-                    cs_layout.addLayout(clayout, row+1, 1)
-                    cs_layout.addWidget(cb_bold, row+1, 2)
-                    cs_layout.addWidget(cb_italic, row+1, 3)
-            cs_group.setLayout(cs_layout)
-            if tabname in sh.COLOR_SCHEME_NAMES:
-                def_btn = self.create_button(_("Reset to default values"),
-                                         lambda: self.reset_to_default(tabname))
-                tabs.addTab(self.create_tab(cs_group, def_btn), tabname)
-            else:
-                tabs.addTab(self.create_tab(cs_group), tabname)
-        
+        custom_names = self.get_option("custom_names", [])
+
+        # Widgets
+        about_label = QLabel(_("Here you can edit the color schemes provided "
+                               "by Spyder or create your own ones by using "
+                               "the options provided below.<br>"))
+        edit_button = QPushButton(_("Edit selected"))
+        create_button = QPushButton(_("Create new scheme"))
+        self.delete_button = QPushButton(_("Delete"))
+        self.preview_editor = CodeEditor(self)
+        self.stacked_widget = QStackedWidget(self)
+        self.reset_button = QPushButton(_("Reset"))
+        self.scheme_editor_dialog = SchemeEditor(parent=self,
+                                                 stack=self.stacked_widget)
+
+        # Widget setup
+        self.scheme_choices_dict = {}
+        about_label.setWordWrap(True)
+        schemes_combobox_widget = self.create_combobox(_('Scheme:'),
+                                                       [('', '')],
+                                                       'selected')
+        self.schemes_combobox = schemes_combobox_widget.combobox
+
+        # Layouts
         vlayout = QVBoxLayout()
-        vlayout.addWidget(tabs)
+
+        manage_layout = QVBoxLayout()
+        manage_layout.addWidget(about_label)
+
+        combo_layout = QHBoxLayout()
+        combo_layout.addWidget(schemes_combobox_widget.label)
+        combo_layout.addWidget(schemes_combobox_widget.combobox)
+
+        buttons_layout = QVBoxLayout()
+        buttons_layout.addLayout(combo_layout)
+        buttons_layout.addWidget(edit_button)
+        buttons_layout.addWidget(self.reset_button)
+        buttons_layout.addWidget(self.delete_button)
+        buttons_layout.addStretch(1)
+        buttons_layout.addWidget(create_button)
+
+        preview_layout = QVBoxLayout()
+        preview_layout.addWidget(self.preview_editor)
+
+        buttons_preview_layout = QHBoxLayout()
+        buttons_preview_layout.addLayout(buttons_layout)
+        buttons_preview_layout.addLayout(preview_layout)
+
+        manage_layout.addLayout(buttons_preview_layout)
+        manage_group = QGroupBox(_("Manage color schemes"))
+        manage_group.setLayout(manage_layout)
+
+        vlayout.addWidget(manage_group)
         self.setLayout(vlayout)
-        
-    @Slot(str)
-    def reset_to_default(self, name):
-        set_default_color_scheme(name, replace=True)
-        self.load_from_conf()
-            
+
+        # Signals and slots
+        create_button.clicked.connect(self.create_new_scheme)
+        edit_button.clicked.connect(self.edit_scheme)
+        self.reset_button.clicked.connect(self.reset_to_default)
+        self.delete_button.clicked.connect(self.delete_scheme)
+        self.schemes_combobox.currentIndexChanged.connect(self.update_preview)
+        self.schemes_combobox.currentIndexChanged.connect(self.update_buttons)
+
+        # Setup
+        for name in names:
+            self.scheme_editor_dialog.add_color_scheme_stack(name)
+
+        for name in custom_names:
+            self.scheme_editor_dialog.add_color_scheme_stack(name, custom=True)
+
+        self.update_combobox()
+        self.update_preview()
+
     def apply_settings(self, options):
         self.main.editor.apply_plugin_settings(['color_scheme_name'])
         if self.main.historylog is not None:
             self.main.historylog.apply_plugin_settings(['color_scheme_name'])
         if self.main.help is not None:
             self.main.help.apply_plugin_settings(['color_scheme_name'])
+        self.update_combobox()
+        self.update_preview()
+
+    # Helpers
+    # -------------------------------------------------------------------------
+    @property
+    def current_scheme_name(self):
+        return self.schemes_combobox.currentText()
+
+    @property
+    def current_scheme(self):
+        return self.scheme_choices_dict[self.current_scheme_name]
+
+    @property
+    def current_scheme_index(self):
+        return self.schemes_combobox.currentIndex()
+
+    def update_combobox(self):
+        """Recreates the combobox contents."""
+        index = self.current_scheme_index
+        self.schemes_combobox.blockSignals(True)
+        names = self.get_option("names")
+        custom_names = self.get_option("custom_names", [])
+
+        # Useful for retrieving the actual data
+        for n in names + custom_names:
+            self.scheme_choices_dict[self.get_option('{0}/name'.format(n))] = n
+
+        if custom_names:
+            choices = names + [None] + custom_names
+        else:
+            choices = names
+
+        combobox = self.schemes_combobox
+        combobox.clear()
+
+        for name in choices:
+            if name is None:
+                continue
+            combobox.addItem(self.get_option('{0}/name'.format(name)), name)
+
+        if custom_names:
+            combobox.insertSeparator(len(names))
+
+        self.schemes_combobox.blockSignals(False)
+        self.schemes_combobox.setCurrentIndex(index)
+
+    def update_buttons(self):
+        """Updates the enable status of delete and reset buttons."""
+        current_scheme = self.current_scheme
+        names = self.get_option("names")
+        delete_enabled = current_scheme not in names
+        self.delete_button.setEnabled(delete_enabled)
+        self.reset_button.setEnabled(not delete_enabled)
+
+    def update_preview(self, index=None, scheme_name=None):
+        """
+        Update the color scheme of the preview editor and adds text.
+
+        Note
+        ----
+        'index' is needed, because this is triggered by a signal that sends
+        the selected index.
+        """
+        text = ('"""A string"""\n\n'
+                '# A comment\n\n'
+                '# %% A cell\n\n'
+                'class Foo(object):\n'
+                '    def __init__(self):\n'
+                '        bar = 42\n'
+                '        print(bar)\n'
+                )
+        show_blanks = CONF.get('editor', 'blank_spaces')
+        if scheme_name is None:
+            scheme_name = self.current_scheme
+        self.preview_editor.setup_editor(linenumbers=True,
+                                         markers=True,
+                                         tab_mode=False,
+                                         font=get_font('editor'),
+                                         show_blanks=show_blanks,
+                                         color_scheme=scheme_name)
+        self.preview_editor.set_text(text)
+        self.preview_editor.set_language('Python')
+
+    # Actions
+    # -------------------------------------------------------------------------
+    def create_new_scheme(self):
+        """Creates a new color scheme with a custom name."""
+        names = self.get_option('names')
+        custom_names = self.get_option('custom_names', [])
+
+        # Get the available number this new color scheme
+        counter = len(custom_names) - 1
+        custom_index = [int(n.split('-')[-1]) for n in custom_names]
+        for i in range(len(custom_names)):
+            if custom_index[i] != i:
+                counter = i - 1
+                break
+        custom_name = "custom-{0}".format(counter+1)
+
+        # Add the config settings, based on the current one.
+        custom_names.append(custom_name)
+        self.set_option('custom_names', custom_names)
+        for key in syntaxhighlighters.COLOR_SCHEME_KEYS:
+            name = "{0}/{1}".format(custom_name, key)
+            default_name = "{0}/{1}".format(self.current_scheme, key)
+            option = self.get_option(default_name)
+            self.set_option(name, option)
+        self.set_option('{0}/name'.format(custom_name), custom_name)
+
+        # Now they need to be loaded! how to make a partial load_from_conf?
+        dlg = self.scheme_editor_dialog
+        dlg.add_color_scheme_stack(custom_name, custom=True)
+        dlg.set_scheme(custom_name)
+        self.load_from_conf()
+
+        if dlg.exec_():
+            # This is needed to have the custom name updated on the combobox
+            name = dlg.get_scheme_name()
+            self.set_option('{0}/name'.format(custom_name), name)
+
+            # The +1 is needed because of the separator in the combobox
+            index = (names + custom_names).index(custom_name) + 1
+            self.update_combobox()
+            self.schemes_combobox.setCurrentIndex(index)
+        else:
+            # Delete the config ....
+            custom_names.remove(custom_name)
+            self.set_option('custom_names', custom_names)
+            dlg.delete_color_scheme_stack(custom_name)
+
+    def edit_scheme(self):
+        """Edit current scheme."""
+        dlg = self.scheme_editor_dialog
+        dlg.set_scheme(self.current_scheme)
+
+        if dlg.exec_():
+            # Update temp scheme to reflect instant edits on the preview
+            temporal_color_scheme = dlg.get_edited_color_scheme()
+            for key in temporal_color_scheme:
+                option = "temp/{0}".format(key)
+                value = temporal_color_scheme[key]
+                self.set_option(option, value)
+            self.update_preview(scheme_name='temp')
+
+    def delete_scheme(self):
+        """Deletes the currently selected custom color scheme."""
+        scheme_name = self.current_scheme
+
+        # Put the combobox in Spyder by default, when deleting a scheme
+        names = self.get_option('names')
+        self.set_scheme('spyder')
+        self.schemes_combobox.setCurrentIndex(names.index('spyder'))
+        self.set_option('selected', 'spyder')
+
+        # Delete from custom_names
+        custom_names = self.get_option('custom_names', [])
+        if scheme_name in custom_names:
+            custom_names.remove(scheme_name)
+        self.set_option('custom_names', custom_names)
+
+        # Delete config options
+        for key in syntaxhighlighters.COLOR_SCHEME_KEYS:
+            option = "{0}/{1}".format(scheme_name, key)
+            CONF.remove_option(self.CONF_SECTION, option)
+        CONF.remove_option(self.CONF_SECTION, "{0}/name".format(scheme_name))
+
+        self.update_combobox()
+        self.update_preview()
+
+    def set_scheme(self, scheme_name):
+        """
+        Set the current stack in the dialog to the scheme with 'scheme_name'.
+        """
+        dlg = self.scheme_editor_dialog
+        dlg.set_scheme(scheme_name)
+
+    @Slot(str)
+    def reset_to_default(self):
+        """Restore initial values for default color schemes."""
+        # Checks that this is indeed a default scheme
+        scheme = self.current_scheme
+        names = self.get_option('names')
+        if scheme in names:
+            for key in syntaxhighlighters.COLOR_SCHEME_KEYS:
+                option = "{0}/{1}".format(scheme, key)
+                value = CONF.get_default(self.CONF_SECTION, option)
+                self.set_option(option, value)
+
+            self.load_from_conf()
+
+
+class SchemeEditor(QDialog):
+    """A color scheme editor dialog."""
+    def __init__(self, parent=None, stack=None):
+        super(SchemeEditor, self).__init__(parent)
+        self.parent = parent
+        self.stack = stack
+        self.order = []    # Uses scheme names
+
+        # Needed for self.get_edited_color_scheme()
+        self.widgets = {}
+        self.scheme_name_textbox = {}
+        self.last_edited_color_scheme = None
+        self.last_used_scheme = None
+
+        # Widgets
+        bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+
+        # Layout
+        layout = QVBoxLayout()
+        layout.addWidget(self.stack)
+        layout.addWidget(bbox)
+        self.setLayout(layout)
+
+        # Signals
+        bbox.accepted.connect(self.accept)
+        bbox.accepted.connect(self.get_edited_color_scheme)
+        bbox.rejected.connect(self.reject)
+
+    # Helpers
+    # -------------------------------------------------------------------------
+    def set_scheme(self, scheme_name):
+        """Set the current stack by 'scheme_name'."""
+        self.stack.setCurrentIndex(self.order.index(scheme_name))
+        self.last_used_scheme = scheme_name
+
+    def get_scheme_name(self):
+        """
+        Returns the edited scheme name, needed to update the combobox on
+        scheme creation.
+        """
+        return self.scheme_name_textbox[self.last_used_scheme].text()
+
+    def get_edited_color_scheme(self):
+        """
+        Get the values of the last edited color scheme to be used in an instant
+        preview in the preview editor, without using `apply`.
+        """
+        color_scheme = {}
+        scheme_name = self.last_used_scheme
+
+        for key in self.widgets[scheme_name]:
+            items = self.widgets[scheme_name][key]
+
+            if len(items) == 1:
+                # ColorLayout
+                value = items[0].text()
+            else:
+                # ColorLayout + checkboxes
+                value = (items[0].text(), items[1].isChecked(),
+                         items[2].isChecked())
+
+            color_scheme[key] = value
+
+        return color_scheme
+
+    # Actions
+    # -------------------------------------------------------------------------
+    def add_color_scheme_stack(self, scheme_name, custom=False):
+        """Add a stack for a given scheme and connects the CONF values."""
+        color_scheme_groups = [
+            (_('Text'), ["normal", "comment", "string", "number", "keyword",
+                         "builtin", "definition", "instance", ]),
+            (_('Highlight'), ["currentcell", "currentline", "occurrence",
+                              "matched_p", "unmatched_p", "ctrlclick"]),
+            (_('Background'), ["background", "sideareas"])
+            ]
+
+        parent = self.parent
+        line_edit = parent.create_lineedit(_("Scheme name:"),
+                                           '{0}/name'.format(scheme_name))
+
+        self.widgets[scheme_name] = {}
+
+        # Widget setup
+        line_edit.label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        self.setWindowTitle(_('Color scheme editor'))
+
+        # Layout
+        name_layout = QHBoxLayout()
+        name_layout.addWidget(line_edit.label)
+        name_layout.addWidget(line_edit.textbox)
+        self.scheme_name_textbox[scheme_name] = line_edit.textbox
+
+        if not custom:
+            line_edit.textbox.setDisabled(True)
+
+        cs_layout = QVBoxLayout()
+        cs_layout.addLayout(name_layout)
+
+        h_layout = QHBoxLayout()
+        v_layout = QVBoxLayout()
+
+        for index, item in enumerate(color_scheme_groups):
+            group_name, keys = item
+            group_layout = QGridLayout()
+
+            for row, key in enumerate(keys):
+                option = "{0}/{1}".format(scheme_name, key)
+                value = self.parent.get_option(option)
+                name = syntaxhighlighters.COLOR_SCHEME_KEYS[key]
+
+                if is_text_string(value):
+                    label, clayout = parent.create_coloredit(
+                        name,
+                        option,
+                        without_layout=True,
+                        )
+                    label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+                    group_layout.addWidget(label, row+1, 0)
+                    group_layout.addLayout(clayout, row+1, 1)
+
+                    # Needed to update temp scheme to obtain instant preview
+                    self.widgets[scheme_name][key] = [clayout]
+                else:
+                    label, clayout, cb_bold, cb_italic = parent.create_scedit(
+                        name,
+                        option,
+                        without_layout=True,
+                        )
+                    label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+                    group_layout.addWidget(label, row+1, 0)
+                    group_layout.addLayout(clayout, row+1, 1)
+                    group_layout.addWidget(cb_bold, row+1, 2)
+                    group_layout.addWidget(cb_italic, row+1, 3)
+
+                    # Needed to update temp scheme to obtain instant preview
+                    self.widgets[scheme_name][key] = [clayout, cb_bold,
+                                                      cb_italic]
+
+            group_box = QGroupBox(group_name)
+            group_box.setLayout(group_layout)
+
+            if index == 0:
+                h_layout.addWidget(group_box)
+            else:
+                v_layout.addWidget(group_box)
+
+        h_layout.addLayout(v_layout)
+        cs_layout.addLayout(h_layout)
+
+        stackitem = QWidget()
+        stackitem.setLayout(cs_layout)
+        self.stack.addWidget(stackitem)
+        self.order.append(scheme_name)
+
+    def delete_color_scheme_stack(self, scheme_name):
+        """Remove stack widget by 'scheme_name'."""
+        self.set_scheme(scheme_name)
+        widget = self.stack.currentWidget()
+        self.stack.removeWidget(widget)
+        index = self.order.index(scheme_name)
+        self.order.pop(index)

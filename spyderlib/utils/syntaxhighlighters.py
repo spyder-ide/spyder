@@ -34,13 +34,27 @@ dependencies.add("pygments", _("Syntax highlighting for Matlab, Julia and other 
                  required_version=PYGMENTS_REQVER)
 
 
-#==============================================================================
+# =============================================================================
 # Constants
-#==============================================================================
-COLOR_SCHEME_KEYS = ("background", "currentline", "currentcell", "occurrence",
-                     "ctrlclick", "sideareas", "matched_p", "unmatched_p",
-                     "normal", "keyword", "builtin", "definition",
-                     "comment", "string", "number", "instance")
+# =============================================================================
+COLOR_SCHEME_KEYS = {
+                      "background":     _("Background:"),
+                      "currentline":    _("Current line:"),
+                      "currentcell":    _("Current cell:"),
+                      "occurrence":      _("Occurrence:"),
+                      "ctrlclick":      _("Link:"),
+                      "sideareas":      _("Side areas:"),
+                      "matched_p":      _("Matched <br>parens:"),
+                      "unmatched_p":    _("Unmatched <br>parens:"),
+                      "normal":         _("Normal text:"),
+                      "keyword":        _("Keyword:"),
+                      "builtin":        _("Builtin:"),
+                      "definition":     _("Definition:"),
+                      "comment":        _("Comment:"),
+                      "string":         _("String:"),
+                      "number":         _("Number:"),
+                      "instance":       _("Instance:"),
+                      }
 COLOR_SCHEME_NAMES = CONF.get('color_schemes', 'names')
 # Mapping for file extensions that use Pygments highlighting but should use
 # different lexers than Pygments' autodetection suggests.  Keys are file
@@ -180,7 +194,8 @@ class BaseSH(QSyntaxHighlighter):
         
     def _check_color_scheme(self, color_scheme):
         if is_text_string(color_scheme):
-            assert color_scheme in COLOR_SCHEME_NAMES
+            pass
+#            assert color_scheme in COLOR_SCHEME_NAMES
         else:
             assert all([key in color_scheme for key in COLOR_SCHEME_KEYS])
 

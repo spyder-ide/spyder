@@ -586,9 +586,11 @@ DEFAULTS = [
               }),
             ('color_schemes',
              {
-              'names': ['Emacs', 'IDLE', 'Monokai', 'Pydev', 'Scintilla',
-                        'Spyder', 'Spyder/Dark', 'Zenburn'],
+              'names': ['emacs', 'idle', 'monokai', 'pydev', 'scintilla',
+                        'spyder', 'spyder/dark', 'zenburn'],
+              'selected': 'spyder',
               # ---- Emacs ----
+              'emacs/name':        "Emacs",
               #      Name            Color     Bold  Italic
               'emacs/background':  "#000000",
               'emacs/currentline': "#2b2b43",
@@ -607,6 +609,7 @@ DEFAULTS = [
               'emacs/number':     ('#800000', False, False),
               'emacs/instance':   ('#ffffff', False, True),
               # ---- IDLE ----
+              'idle/name':         "IDLE",
               #      Name            Color     Bold  Italic
               'idle/background':   "#ffffff",
               'idle/currentline':  "#f2e6f3",
@@ -625,6 +628,7 @@ DEFAULTS = [
               'idle/number':      ('#924900', False, False),
               'idle/instance':    ('#777777', True, True),
               # ---- Monokai ----
+              'monokai/name':         "Monokai",
               #      Name              Color     Bold  Italic
               'monokai/background':   "#2a2b24",
               'monokai/currentline':  "#484848",
@@ -643,6 +647,7 @@ DEFAULTS = [
               'monokai/number':      ("#ae81ff", False, False),
               'monokai/instance':    ("#ddddda", False, True),
               # ---- Pydev ----
+              'pydev/name':        "Pydev",
               #      Name            Color     Bold  Italic
               'pydev/background':  "#ffffff",
               'pydev/currentline': "#e8f2fe",
@@ -661,6 +666,7 @@ DEFAULTS = [
               'pydev/number':     ('#800000', False, False),
               'pydev/instance':   ('#000000', False, True),
               # ---- Scintilla ----
+              'scintilla/name':        "Scintilla",
               #         Name             Color     Bold  Italic
               'scintilla/background':  "#ffffff",
               'scintilla/currentline': "#e1f0d1",
@@ -679,6 +685,7 @@ DEFAULTS = [
               'scintilla/number':     ('#007f7f', False, False),
               'scintilla/instance':   ('#000000', False, True),
               # ---- Spyder ----
+              'spyder/name':        "Spyder",
               #       Name            Color     Bold  Italic
               'spyder/background':  "#ffffff",
               'spyder/currentline': "#f7ecf8",
@@ -697,6 +704,7 @@ DEFAULTS = [
               'spyder/number':     ('#800000', False, False),
               'spyder/instance':   ('#924900', False, True),
               # ---- Spyder/Dark ----
+              'spyder/dark/name':        "Spyder Dark",
               #           Name             Color     Bold  Italic
               'spyder/dark/background':  "#131926",
               'spyder/dark/currentline': "#2b2b43",
@@ -715,6 +723,7 @@ DEFAULTS = [
               'spyder/dark/number':     ('#c80000', False, False),
               'spyder/dark/instance':   ('#be5f00', False, True),
               # ---- Zenburn ----
+              'zenburn/name':        "Zenburn",
               #        Name            Color     Bold  Italic
               'zenburn/background':  "#3f3f3f",
               'zenburn/currentline': "#333333",
