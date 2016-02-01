@@ -54,8 +54,14 @@ class PluginClient(QObject):
         self.process.setWorkingDirectory(os.path.dirname(__file__))
         processEnvironment = QProcessEnvironment()
         env = self.process.systemEnvironment()
-        spyder_path = imp.find_module('spyderlib')[1]
-        env.append("PYTHONPATH=%s" % spyder_path)
+        python_path = imp.find_module('spyderlib')[1]
+        # Use the current version of the plugin provider if possible.
+        try:
+            provider_path = imp.find_module(self.plugin_name)[1]
+            python_path = os.sep.join([python_path, provider_path])
+        except ImportError:
+            pass
+        env.append("PYTHONPATH=%s" % python_path)
         for envItem in env:
             envName, separator, envValue = envItem.partition('=')
             processEnvironment.insert(envName, envValue)
