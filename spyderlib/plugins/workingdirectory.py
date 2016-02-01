@@ -339,6 +339,7 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         self.refresh_plugin()
         if refresh_explorer:
             self.set_explorer_cwd.emit(directory)
+            self.set_as_current_console_wd()
         self.refresh_findinfiles.emit()
     
     @Slot()
