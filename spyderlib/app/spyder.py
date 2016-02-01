@@ -124,7 +124,7 @@ from spyderlib.config.base import (get_conf_path, get_module_data_path,
                                    running_in_mac_app, get_module_path)
 from spyderlib.config.main import (CONF, EDIT_EXT, IMPORT_EXT, OPEN_FILES_PORT,
                                    is_gtk_desktop)
-from spyderlib.cli_options import get_options
+from spyderlib.app.cli_options import get_options
 from spyderlib import dependencies
 from spyderlib.config.ipython import QTCONSOLE_INSTALLED
 from spyderlib.config.user import NoDefault
@@ -156,7 +156,7 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, get_icon,
                                        file_uri)
 from spyderlib.config.gui import get_shortcut, remove_deprecated_shortcuts
 from spyderlib.otherplugins import get_spyderplugins_mods
-from spyderlib import tour # FIXME: Better place for this?
+from spyderlib.app import tour
 
 
 #==============================================================================
@@ -276,7 +276,7 @@ class MainWindow(QMainWindow):
         # Use a custom Qt stylesheet
         if sys.platform == 'darwin':
             spy_path = get_module_source_path('spyderlib')
-            mac_style = open(osp.join(spy_path, 'mac_stylesheet.qss')).read()
+            mac_style = open(osp.join(spy_path, 'app', 'mac_stylesheet.qss')).read()
             self.setStyleSheet(mac_style)
 
         # Shortcut management data
@@ -2746,10 +2746,10 @@ class MainWindow(QMainWindow):
         """
         # Get start path to use in restart script
         spyder_start_directory = get_module_path('spyderlib')
-        restart_script = osp.join(spyder_start_directory, 'restart_app.py')
+        restart_script = osp.join(spyder_start_directory, 'app', 'restart.py')
 
         # Get any initial argument passed when spyder was started
-        # Note: Variables defined in bootstrap.py and spyderlib\start_app.py
+        # Note: Variables defined in bootstrap.py and spyderlib/app/start.py
         env = os.environ.copy()
         bootstrap_args = env.pop('SPYDER_BOOTSTRAP_ARGS', None)
         spyder_args = env.pop('SPYDER_ARGS')

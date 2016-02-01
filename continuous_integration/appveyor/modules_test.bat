@@ -9,19 +9,10 @@ REM Spyderlib
 for /r "%SPYDERLIB%" %%f in (*.py) do (
     set file=%%f
 
-    if "%%f"=="%SPYDERLIB%\restart_app.py" (
+    if "%%f"=="%SPYDERLIB%\pyplot.py" (
         echo --- NOT testing %%f ---
         echo.
-    ) else if "%%f"=="%SPYDERLIB%\spyder.py" (
-        echo --- NOT testing %%f ---
-        echo.
-    ) else if "%%f"=="%SPYDERLIB%\tour.py" (
-        echo --- NOT testing %%f ---
-        echo.
-    ) else if "%%f"=="%SPYDERLIB%\start_app.py" (
-        echo --- NOT testing %%f ---
-        echo.
-    ) else if "%%f"=="%SPYDERLIB%\pyplot.py" (
+    ) else if not "!file:app\=!"=="!file!" (
         echo --- NOT testing %%f ---
         echo.
     ) else if not "!file:plugins\=!"=="!file!" (
