@@ -15,7 +15,7 @@ import re
 import os
 import locale
 import sys
-from codecs import BOM_UTF8, BOM_UTF16, BOM_UTF32
+from codecs import BOM_UTF8, BOM_UTF16, BOM_UTF32, getincrementaldecoder
 
 # Local imports
 from spyderlib.py3compat import (is_string, to_text_string, is_binary_string,
@@ -243,13 +243,16 @@ def is_text_file(filename):
             for bom in [BOM_UTF8, BOM_UTF16, BOM_UTF32]:
                 if chunk.startswith(bom):
                     return True
-            chunk = chunk.decode('utf-8')
+
+            decoder = getincrementaldecoder('utf-8')()
             while 1:
+                is_final = len(chunk) < CHUNKSIZE
+                chunk = decoder.decode(chunk, final=is_final)
                 if '\0' in chunk: # found null byte
                     return False
-                if len(chunk) < CHUNKSIZE:
+                if is_final:
                     break # done
-                chunk = fid.read(CHUNKSIZE).decode('utf-8')
+                chunk = fid.read(CHUNKSIZE)
         except UnicodeDecodeError:
             return False
         except Exception:

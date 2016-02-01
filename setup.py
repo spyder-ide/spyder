@@ -17,7 +17,6 @@ import os
 import os.path as osp
 import subprocess
 import sys
-import re
 import shutil
 
 from distutils.core import setup
@@ -195,18 +194,6 @@ except ImportError:
 
 
 #==============================================================================
-# Windows installer names
-#==============================================================================
-JOINEDARGS = ''.join(sys.argv)
-WINDOWS_INSTALLER = 'bdist_wininst' in JOINEDARGS or 'bdist_msi' in JOINEDARGS
-TARGET_MATCH = re.search(r'--target-version=([0-9]*)\.([0-9]*)', JOINEDARGS)
-if TARGET_MATCH:
-    TARGET_VERSION = TARGET_MATCH.groups()
-else:
-    TARGET_VERSION = (str(sys.version_info[0]), str(sys.version_info[1]))
-
-
-#==============================================================================
 # Main scripts
 #==============================================================================
 # NOTE: the '[...]_win_post_install.py' script is installed even on non-Windows
@@ -229,23 +216,12 @@ if os.name == 'nt':
 
 
 #==============================================================================
-# Adding a message for the Windows installers
-#==============================================================================
-WININST_MSG = ""
-if WINDOWS_INSTALLER:
-    WININST_MSG = \
-"""Please uninstall any previous version of Spyder before continue.
-
-"""
-
-
-#==============================================================================
 # Setup arguments
 #==============================================================================
 setup_args = dict(name=NAME,
       version=__version__,
       description='Scientific PYthon Development EnviRonment',
-      long_description=WININST_MSG + \
+      long_description=
 """Spyder is an interactive Python development environment providing
 MATLAB-like features in a simple and light-weighted software.
 It also provides ready-to-use pure-Python widgets to your PyQt5 or
@@ -264,14 +240,6 @@ editor, Python console, etc.""",
                     },
       scripts=[osp.join('scripts', fname) for fname in SCRIPTS],
       data_files=get_data_files(),
-      options={"bdist_wininst":
-               {"install_script": "%s_win_post_install.py" % NAME,
-                "title": "%s %s" % (NAME.capitalize(), __version__),
-                "bitmap": osp.join('img_src', 'spyder-bdist_wininst.bmp'),
-                "target_version": '%s.%s' % TARGET_VERSION,
-                "user_access_control": "auto"},
-               "bdist_msi":
-               {"install_script": "%s_win_post_install.py" % NAME}},
       classifiers=['License :: OSI Approved :: MIT License',
                    'Operating System :: MacOS',
                    'Operating System :: Microsoft :: Windows',
@@ -312,7 +280,7 @@ if 'setuptools' in sys.modules:
 
     setup_args['entry_points'] = {
         'gui_scripts': [
-            'spyder = spyderlib.start_app:main'
+            'spyder = spyderlib.app.start:main'
         ]
     }
 

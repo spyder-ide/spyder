@@ -380,6 +380,8 @@ class DirView(QTreeView):
             self.rename()
         elif event.key() == Qt.Key_Delete:
             self.delete()
+        elif event.key() == Qt.Key_Backspace:
+            self.go_to_parent_directory()
         else:
             QTreeView.keyPressEvent(self, event)
 
