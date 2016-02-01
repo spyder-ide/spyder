@@ -295,8 +295,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         """Load settings from configuration file"""
         for checkbox, (option, default) in list(self.checkboxes.items()):
             checkbox.setChecked(self.get_option(option, default))
-            # QAbstractButton works differently for PySide and PyQt (bug in PySide)
-            if API == 'pyqt':
+            # QAbstractButton works differently for PySide and PyQt
+            if not API == 'pyside':
                 checkbox.clicked.connect(lambda _foo, opt=option:
                                          self.has_been_modified(opt))
             else:
@@ -346,8 +346,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             edit = clayout.lineedit
             btn = clayout.colorbtn
             edit.setText(self.get_option(option, default))
-            # QAbstractButton works differently for PySide and PyQt (bug in PySide)
-            if API == 'pyqt':
+            # QAbstractButton works differently for PySide and PyQt
+            if not API == 'pyside':
                 btn.clicked.connect(lambda _foo, opt=option:
                                     self.has_been_modified(opt))
             else:
@@ -365,8 +365,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             cb_italic.setChecked(italic)
             edit.textChanged.connect(lambda _foo, opt=option:
                                      self.has_been_modified(opt))
-            # QAbstractButton works differently for PySide and PyQt (bug in PySide)
-            if API == 'pyqt':
+            # QAbstractButton works differently for PySide and PyQt
+            if not API == 'pyside':
                 btn.clicked.connect(lambda _foo, opt=option:
                                     self.has_been_modified(opt))
                 cb_bold.clicked.connect(lambda _foo, opt=option:

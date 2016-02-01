@@ -12,6 +12,7 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
+from spyderlib.qt import API
 from spyderlib.qt.QtGui import (QWidget, QTableView, QItemDelegate,
                                 QVBoxLayout, QMenu)
 from spyderlib.qt.QtCore import (Qt, Signal, QTextCodec, QModelIndex,
@@ -176,19 +177,29 @@ class BreakpointTableView(QTableView):
         actions.append(clear_all_breakpoints_action)
         if self.model.breakpoints:
             filename = self.model.breakpoints[index_clicked.row()][0]
-            lineno = int(self.model.breakpoints[index_clicked.row()][1])         
+            lineno = int(self.model.breakpoints[index_clicked.row()][1])
+            # QAction.triggered works differently for PySide and PyQt
+            if not API == 'pyside':
+                clear_slot = lambda _checked, filename=filename, lineno=lineno: \
+                    self.clear_breakpoint.emit(filename, lineno)
+                edit_slot = lambda _checked, filename=filename, lineno=lineno: \
+                    (self.edit_goto.emit(filename, lineno, ''),
+                     self.set_or_edit_conditional_breakpoint.emit())
+            else:
+                clear_slot = lambda filename=filename, lineno=lineno: \
+                    self.clear_breakpoint.emit(filename, lineno)
+                edit_slot = lambda filename=filename, lineno=lineno: \
+                    (self.edit_goto.emit(filename, lineno, ''),
+                     self.set_or_edit_conditional_breakpoint.emit())
+
             clear_breakpoint_action = create_action(self,
                     _("Clear this breakpoint"),
-                    triggered=lambda checked=False, filename=filename, lineno=lineno: \
-                    self.clear_breakpoint.emit(filename, lineno))
+                    triggered=clear_slot)
             actions.insert(0,clear_breakpoint_action)
 
             edit_breakpoint_action = create_action(self,
                     _("Edit this breakpoint"),
-                    triggered=lambda checked=False, filename=filename, lineno=lineno: \
-                    (self.edit_goto.emit(filename, lineno, ''),
-                     self.set_or_edit_conditional_breakpoint.emit())
-                    )
+                    triggered=edit_slot)
             actions.append(edit_breakpoint_action)
         add_actions(self.popup_menu, actions)        
         self.popup_menu.popup(event.globalPos())

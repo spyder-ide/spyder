@@ -74,7 +74,7 @@ except ImportError:
 #==============================================================================
 # Qt imports
 #==============================================================================
-from spyderlib.qt import PYQT5
+from spyderlib.qt import API, PYQT5
 from spyderlib.qt.QtGui import (QApplication, QMainWindow, QSplashScreen,
                                 QPixmap, QMessageBox, QMenu, QColor, QShortcut,
                                 QKeySequence, QDockWidget, QAction,
@@ -1019,10 +1019,14 @@ class MainWindow(QMainWindow):
         ipm_actions = []
         def add_ipm_action(text, path):
             """Add installed Python module doc action to help submenu"""
-            path = file_uri(path)
+            # QAction.triggered works differently for PySide and PyQt
+            if not API == 'pyside':
+                slot=lambda _checked, path=path: programs.start_file(path)
+            else:
+                slot=lambda path=path: programs.start_file(path)
             action = create_action(self, text,
                     icon='%s.png' % osp.splitext(path)[1][1:],
-                    triggered=lambda checked=False, path=path: programs.start_file(path))
+                    triggered=slot)
             ipm_actions.append(action)
         sysdocpth = osp.join(sys.prefix, 'Doc')
         if osp.isdir(sysdocpth): # exists on Windows, except frozen dist.

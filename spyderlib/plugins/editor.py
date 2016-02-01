@@ -11,7 +11,7 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-from spyderlib.qt import PYQT5
+from spyderlib.qt import API, PYQT5
 from spyderlib.qt.QtGui import (QVBoxLayout, QPrintDialog, QSplitter, QToolBar,
                                 QAction, QApplication, QDialog, QWidget,
                                 QPrinter, QActionGroup, QInputDialog, QMenu,
@@ -1346,7 +1346,11 @@ class Editor(SpyderPluginWidget):
             error = 'syntax' in message
             text = message[:1].upper()+message[1:]
             icon = ima.icon('error') if error else ima.icon('warning')
-            slot = lambda checked=False, _l=line_number: self.load(filename, goto=_l)
+            # QAction.triggered works differently for PySide and PyQt
+            if not API == 'pyside':
+                slot = lambda _checked, _l=line_number: self.load(filename, goto=_l)
+            else:
+                slot = lambda _l=line_number: self.load(filename, goto=_l)
             action = create_action(self, text=text, icon=icon, triggered=slot)
             self.warning_menu.addAction(action)
             
@@ -1372,7 +1376,11 @@ class Editor(SpyderPluginWidget):
         filename = self.get_current_filename()
         for text, line0 in results:
             icon = ima.icon('todo')
-            slot = lambda checked=False, _l=line0: self.load(filename, goto=_l)
+            # QAction.triggered works differently for PySide and PyQt
+            if not API == 'pyside':
+                slot = lambda _checked, _l=line0: self.load(filename, goto=_l)
+            else:
+                slot = lambda _l=line0: self.load(filename, goto=_l)
             action = create_action(self, text=text, icon=icon, triggered=slot)
             self.todo_menu.addAction(action)
         self.update_todo_actions()
