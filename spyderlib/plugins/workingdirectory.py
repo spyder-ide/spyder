@@ -193,8 +193,9 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
                                "find in files plugin and for new files\n"
                                "created in the editor"))
         self.pathedit.open_dir.connect(self.chdir)
+        self.pathedit.activated[str].connect(self.chdir)
         self.pathedit.setMaxCount(self.get_option('working_dir_history'))
-        wdhistory = self.load_wdhistory( workdir )
+        wdhistory = self.load_wdhistory(workdir)
         if workdir is None:
             if self.get_option('startup/use_last_directory'):
                 if wdhistory:
@@ -206,7 +207,7 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
                 if not osp.isdir(workdir):
                     workdir = "."
         self.chdir(workdir)
-        self.pathedit.addItems( wdhistory )
+        self.pathedit.addItems(wdhistory)
         self.pathedit.selected_text = self.pathedit.currentText()
         self.refresh_plugin()
         self.addWidget(self.pathedit)
@@ -308,13 +309,13 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
     def parent_directory(self):
         """Change working directory to parent directory"""
         self.chdir(os.path.join(getcwd(), os.path.pardir))
-        
-    def chdir(self, directory=None, browsing_history=False,
+
+    @Slot(str)
+    def chdir(self, directory, browsing_history=False,
               refresh_explorer=True):
         """Set directory as working directory"""
         # Working directory history management
-        if directory is not None:
-            directory = osp.abspath(to_text_string(directory))
+        directory = osp.abspath(to_text_string(directory))
         if browsing_history:
             directory = self.history[self.histindex]
         elif directory in self.history:

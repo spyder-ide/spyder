@@ -227,8 +227,9 @@ class PathComboBox(EditableComboBox):
         """Handle focus out event restoring the last valid selected path."""
         # Calling asynchronously the 'add_current_text' to avoid crash
         # https://groups.google.com/group/spyderlib/browse_thread/thread/2257abf530e210bd
-        lineedit = self.lineEdit()
-        QTimer.singleShot(50, lambda: lineedit.setText(self.selected_text))
+        if not self.is_valid():
+            lineedit = self.lineEdit()
+            QTimer.singleShot(50, lambda: lineedit.setText(self.selected_text))
 
         hide_status = getattr(self.lineEdit(), 'hide_status_icon', None)
         if hide_status:
