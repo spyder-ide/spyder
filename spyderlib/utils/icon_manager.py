@@ -4,19 +4,18 @@
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
-import os
+import os.path as osp
 
 from spyderlib.qt.QtGui import QIcon, QWidget, QStyle
 
 from spyderlib.config.base import get_image_path
 from spyderlib.config.main import CONF
 
-from path import Path
 import qtawesome as qta
 
 
 _resource = {
-    'directory': os.path.join(os.path.dirname(os.path.realpath(__file__)), '../fonts'),
+    'directory': osp.join(osp.dirname(osp.realpath(__file__)), '../fonts'),
     'loaded': False,
 }
 
@@ -257,7 +256,7 @@ def icon(name, resample=False, icon_path=None):
     elif theme == 'spyder 2':
         icon = get_icon(name + '.png', resample=resample)
         if icon_path:
-            icon_path = Path(icon_path) / (name + '.png')
-            if icon_path.isfile():
+            icon_path = osp.join(icon_path, name + '.png')
+            if osp.isfile(icon_path):
                 icon = QIcon(icon_path)
         return icon if icon is not None else QIcon()

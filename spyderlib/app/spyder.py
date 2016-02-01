@@ -103,7 +103,7 @@ MAIN_APP = qapplication()
 # Create splash screen out of MainWindow to reduce perceived startup time. 
 #==============================================================================
 from spyderlib.config.base import _, get_image_path, DEV
-SPLASH = QSplashScreen(QPixmap(get_image_path('splash.png'), 'png'))
+SPLASH = QSplashScreen(QPixmap(get_image_path('splash.svg'), 'svg'))
 SPLASH_FONT = SPLASH.font()
 SPLASH_FONT.setPixelSize(10)
 SPLASH.setFont(SPLASH_FONT)
@@ -818,7 +818,11 @@ class MainWindow(QMainWindow):
         self.toolbarslist.append(self.workingdirectory)
 
         # Help plugin
-        if CONF.get('help', 'enable'):
+        dependencies.add("sphinx", _("Show help for objects in the Editor and "
+                                     "Consoles in a dedicated pane"),
+                         required_version='>=0.6.6')
+        if CONF.get('help', 'enable') and \
+          programs.is_module_installed('sphinx'):
             self.set_splash(_("Loading help..."))
             from spyderlib.plugins.help import Help
             self.help = Help(self)
@@ -959,8 +963,11 @@ class MainWindow(QMainWindow):
                                     icon=ima.icon('DialogHelpButton'),
                                     triggered=lambda : programs.start_file(spyder_doc))
 
-        tut_action = create_action(self, _("Spyder tutorial"),
-                                    triggered=self.help.show_tutorial)
+        if self.help is not None:
+            tut_action = create_action(self, _("Spyder tutorial"),
+                                       triggered=self.help.show_tutorial)
+        else:
+            tut_action = None
 
         #----- Tours
         self.tour = tour.AnimatedTour(self)
@@ -987,10 +994,9 @@ class MainWindow(QMainWindow):
             self.tours_menu = None
 
         self.help_menu_actions = [doc_action, tut_action, self.tours_menu,
-                                    None,
-                                    report_action, dep_action,
-                                    self.check_updates_action, support_action,
-                                    None]
+                                  None, report_action, dep_action,
+                                  self.check_updates_action, support_action,
+                                  None]
         # Python documentation
         if get_python_doc_path() is not None:
             pydoc_act = create_action(self, _("Python documentation"),
@@ -998,7 +1004,7 @@ class MainWindow(QMainWindow):
                                 programs.start_file(get_python_doc_path()))
             self.help_menu_actions.append(pydoc_act)
         # IPython documentation
-        if self.ipyconsole is not None:
+        if self.ipyconsole is not None and self.help is not None:
             ipython_menu = QMenu(_("IPython documentation"), self)
             intro_action = create_action(self, _("Intro to IPython"),
                                         triggered=self.ipyconsole.show_intro)
@@ -1258,7 +1264,9 @@ class MainWindow(QMainWindow):
             self.console.dockwidget.hide()
 
         # Show Help and Consoles by default
-        plugins_to_show = [self.help]
+        plugins_to_show = []
+        if self.help is not None:
+            plugins_to_show.append(self.help)
         if self.ipyconsole is not None:
             if self.ipyconsole.isvisible:
                 plugins_to_show += [self.extconsole, self.ipyconsole]

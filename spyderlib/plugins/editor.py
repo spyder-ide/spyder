@@ -204,9 +204,14 @@ class EditorConfigPage(PluginConfigPage):
         autounindent_box = newcb(_("Automatic indentation after 'else', "
                                    "'elif', etc."), 'auto_unindent')
         indent_chars_box = self.create_combobox(_("Indentation characters: "),
-                                        ((_("4 spaces"), '*    *'),
-                                         (_("2 spaces"), '*  *'),
-                                         (_("tab"), '*\t*')), 'indent_chars')
+                                        ((_("2 spaces"), '*  *'),
+                                         (_("3 spaces"), '*   *'),
+                                         (_("4 spaces"), '*    *'),
+                                         (_("5 spaces"), '*     *'),
+                                         (_("6 spaces"), '*      *'),
+                                         (_("7 spaces"), '*       *'),
+                                         (_("8 spaces"), '*        *'),
+                                         (_("Tabulations"), '*\t*')), 'indent_chars')
         tabwidth_spin = self.create_spinbox(_("Tab stop width:"), _("pixels"),
                                             'tab_stop_width', 40, 10, 1000, 10)
         tab_mode_box = newcb(_("Tab always indent"),
@@ -1329,11 +1334,10 @@ class Editor(SpyderPluginWidget):
                 action.setEnabled(enable)
                 
     def refresh_save_all_action(self):
-        state = False
-        editorstack = self.editorstacks[0]
-        if editorstack.get_stack_count() > 1:
-            state = state or any([finfo.editor.document().isModified()
-                                  for finfo in editorstack.data])
+        """Enable 'Save All' if there are files to be saved"""
+        editorstack = self.get_current_editorstack()
+        state = any(finfo.editor.document().isModified()
+                    for finfo in editorstack.data)
         self.save_all_action.setEnabled(state)
             
     def update_warning_menu(self):
@@ -1892,11 +1896,11 @@ class Editor(SpyderPluginWidget):
             else:
                 args = runconf.get_arguments().split()
                 wdir = runconf.get_working_directory()
-                # Handle the case where wdir comes back as an empty string
-                # when the working directory dialog checkbox is unchecked.
-                if not wdir:
-                    wdir = None
-            programs.run_program(WINPDB_PATH, [fname]+args, wdir)
+            # Handle the case where wdir comes back as an empty string
+            # when the working directory dialog checkbox is unchecked.
+            # (subprocess "cwd" default is None, so empty str
+            # must be changed to None in this case.)
+            programs.run_program(WINPDB_PATH, [fname] + args, cwd=wdir or None)
         
     def toggle_eol_chars(self, os_name):
         editor = self.get_current_editor()

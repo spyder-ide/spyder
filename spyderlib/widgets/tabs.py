@@ -218,6 +218,7 @@ class BaseTabs(QTabWidget):
         
     def contextMenuEvent(self, event):
         """Override Qt method"""
+        self.setCurrentIndex(self.tabBar().tabAt(event.pos()))
         if self.menu:
             self.menu.popup(event.globalPos())
             

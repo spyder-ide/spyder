@@ -26,7 +26,6 @@ import atexit
 import os
 import os.path as osp
 import sys
-import subprocess
 
 # Local imports
 from spyderlib.config.base import SCIENTIFIC_STARTUP, running_in_mac_app, _
@@ -362,10 +361,9 @@ class ExternalConsoleConfigPage(PluginConfigPage):
             return
         spyder_version = sys.version_info[0]
         try:
-            cmd = [pyexec, "-c", "import sys; print(sys.version_info[0])"]
-            # subprocess.check_output is not present in python2.6 and 3.0
-            process = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-            console_version = int(process.communicate()[0])
+            args = ["-c", "import sys; print(sys.version_info[0])"]
+            proc = programs.run_program(pyexec, args)
+            console_version = int(proc.communicate()[0])
         except IOError:
             console_version = spyder_version
         if spyder_version != console_version:

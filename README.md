@@ -149,9 +149,9 @@ a Python version greater than 2.7 (Python 3.2 is not supported anymore).
 * **Psutil**: CPU and memory usage on the status bar.
 * **Nbconvert**: Manipulation of notebooks in the Editor.
 * **Qtawesome**: To have an icon theme based on FontAwesome
-* **Path.py** and **pickleshare**: Show import completions on the Editor and consoles
+* **Pickleshare**: Show import completions on the Editor and Consoles
 
-### Optional modules
+### Optional dependencies
 
 * **Matplotlib**: 2D/3D plotting in the Python and IPython consoles.
 * **Pandas**: View and edit DataFrames and Series in the Variable Explorer.

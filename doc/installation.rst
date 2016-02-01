@@ -25,15 +25,15 @@ The hard way
 
 If you want to install Spyder directly, you need to follow these steps:
 
-#. Install the necessary `requirements`_
+#. Install the essential requirements:
 
-#. Install the `optional modules`_
+   * `The Python programming language <http://www.python.org/>`_
+   * `PyQt5 <http://www.riverbankcomputing.co.uk/software/pyqt/download5>`_ (recommended)
+     or `PyQt4 <http://www.riverbankcomputing.co.uk/software/pyqt/download>`_
 
-#. Installing Spyder itself:
+#. Install Spyder and its dependencies by running this command::
 
-   You need to download and install the .exe file that corresponds to your Python
-   version and architecture from
-   `this page <https://github.com/spyder-ide/spyder/releases>`_.
+       pip install spyder
 
 
 Updating Spyder
@@ -43,9 +43,14 @@ You can update Spyder by:
 
 * Updating Anaconda, WinPython, Python(x,y).
 
-* Installing a new .exe file from the page mentioned above (this will automatically
-  uninstall any previous version *only if* this version was installed with the same
-  kind of installer - i.e. not with an .msi installer).
+* Or using this command (in case you *don't* use any of those scientific
+  distributions)::
+
+        pip install --update spyder
+
+  .. note::
+
+     This command will also update all Spyder dependencies
 
 |
 
@@ -181,8 +186,7 @@ The requirements to run Spyder are:
 * `Qtawesome <https://github.com/spyder-ide/qtawesome>`_ -- for an icon theme based on
   FontAwesome.
 
-* Path.py and pickleshare -- To show import completions on the Editor and the
-  consoles.
+* Pickleshare -- To show import completions on the Editor and Consoles.
 
 
 Optional modules
