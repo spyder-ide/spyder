@@ -217,14 +217,7 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
                                       _('Browse a working directory'),
                                       triggered=self.select_directory)
         self.addAction(browse_action)
-        
-        # Set current console working directory action
-        setwd_action = create_action(self, icon=ima.icon('set_workdir'),
-                                     text=_("Set as current console's "
-                                                  "working directory"),
-                                     triggered=self.set_as_current_console_wd)
-        self.addAction(setwd_action)
-        
+
         # Parent dir action
         parent_action = create_action(self, "parent", None,
                                       ima.icon('up'),
