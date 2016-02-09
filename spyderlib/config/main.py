@@ -50,12 +50,15 @@ EDIT_FILETYPES = (
     (_("Enaml files"), ('.enaml',)),
     (_("Configuration files"), ('.properties', '.session', '.ini', '.inf',
                                 '.reg', '.cfg', '.desktop')),
-                 )
+)
+
 
 def _create_filter(title, ftypes):
     return "%s (*%s)" % (title, " *".join(ftypes))
 
+
 ALL_FILTER = "%s (*)" % _("All files")
+
 
 def _get_filters(filetypes):
     filters = []
@@ -64,11 +67,13 @@ def _get_filters(filetypes):
     filters.append(ALL_FILTER)
     return ";;".join(filters)
 
+
 def _get_extensions(filetypes):
     ftype_list = []
     for _title, ftypes in filetypes:
         ftype_list += list(ftypes)
     return ftype_list
+
 
 def get_filter(filetypes, ext):
     """Return filter associated to file extension"""
@@ -80,14 +85,18 @@ def get_filter(filetypes, ext):
     else:
         return ''
 
+
 EDIT_FILTERS = _get_filters(EDIT_FILETYPES)
 EDIT_EXT = _get_extensions(EDIT_FILETYPES)+['']
+
 
 # Extensions supported by Spyder's Variable explorer
 IMPORT_EXT = list(iofuncs.iofunctions.load_extensions.values())
 
+
 # Extensions that should be visible in Spyder's file/project explorers
 SHOW_EXT = ['.png', '.ico', '.svg']
+
 
 # Extensions supported by Spyder (Editor or Variable explorer)
 VALID_EXT = EDIT_EXT+IMPORT_EXT
@@ -110,6 +119,7 @@ NAME_FILTERS = ['*' + _ext for _ext in VALID_EXT + SHOW_EXT if _ext]+\
 # Port used to detect if there is a running instance and to communicate with
 # it to open external files
 OPEN_FILES_PORT = 21128
+
 
 # OS Specific
 WIN = os.name == 'nt'
@@ -748,10 +758,12 @@ DEFAULTS = [
 # 3. You don't need to touch this value if you're just adding a new option
 CONF_VERSION = '24.0.0'
 
+
 # XXX: Previously we had load=(not DEV) here but DEV was set to *False*.
 # Check if it *really* needs to be updated or not
 CONF = UserConfig('spyder', defaults=DEFAULTS, load=True, version=CONF_VERSION,
                   subfolder=SUBFOLDER, backup=True, raw_mode=True)
+
 
 # Removing old .spyder.ini location:
 old_location = osp.join(get_home_dir(), '.spyder.ini')
