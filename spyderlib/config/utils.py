@@ -17,8 +17,9 @@ from spyderlib.utils import iofuncs
 
 
 #==============================================================================
-# File extensions supported by Spyder
+# Constants
 #==============================================================================
+# File types supported by the Editor up to Spyder 2.3
 EDIT_FILETYPES = [
     (_("Python files"), ('.py', '.pyw', '.ipy')),
     (_("Cython/Pyrex files"), ('.pyx', '.pxd', '.pxi')),
@@ -46,8 +47,16 @@ EDIT_FILETYPES = [
                                 '.reg', '.cfg', '.desktop')),
 ]
 
+# Filter for all files
 ALL_FILTER = "%s (*)" % _("All files")
 
+# Extensions supported by Spyder's Variable explorer
+IMPORT_EXT = list(iofuncs.iofunctions.load_extensions.values())
+
+
+#==============================================================================
+# Auxiliary functions
+#==============================================================================
 def _create_filter(title, ftypes):
     return "%s (*%s)" % (title, " *".join(ftypes))
 
@@ -80,6 +89,9 @@ def _get_pygments_extensions():
     return tuple(extensions)
 
 
+#==============================================================================
+# Main functions
+#==============================================================================
 def get_filter(filetypes, ext):
     """Return filter associated to file extension"""
     if not ext:
@@ -114,10 +126,6 @@ def get_edit_extensions():
     """
     edit_filetypes = get_edit_filetypes()
     return _get_extensions(edit_filetypes)+['']
-
-
-# Extensions supported by Spyder's Variable explorer
-IMPORT_EXT = list(iofuncs.iofunctions.load_extensions.values())
 
 
 #==============================================================================
