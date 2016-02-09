@@ -31,7 +31,8 @@ import os.path as osp
 from spyderlib.utils import encoding, sourcecode, codeanalysis
 from spyderlib.utils import introspection
 from spyderlib.config.base import _, DEBUG, STDOUT, STDERR
-from spyderlib.config.main import EDIT_FILTERS, EDIT_EXT, get_filter, EDIT_FILETYPES
+from spyderlib.config.utils import (EDIT_EXT, EDIT_FILTERS, EDIT_FILETYPES,
+                                    get_filter)
 from spyderlib.config.gui import create_shortcut, new_shortcut
 from spyderlib.utils.qthelpers import (create_action, add_actions,
                                        mimedata2url, get_filetype_icon,

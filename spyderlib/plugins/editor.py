@@ -31,7 +31,8 @@ import os.path as osp
 # Local imports
 from spyderlib.utils import encoding, sourcecode, codeanalysis
 from spyderlib.config.base import get_conf_path, _
-from spyderlib.config.main import CONF, EDIT_FILTERS, get_filter, EDIT_FILETYPES
+from spyderlib.config.main import CONF
+from spyderlib.config.utils import EDIT_FILTERS, EDIT_FILETYPES, get_filter
 from spyderlib.config.gui import get_color_scheme
 from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import (create_action, add_actions,
