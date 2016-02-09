@@ -31,8 +31,8 @@ import os.path as osp
 from spyderlib.utils import encoding, sourcecode, codeanalysis
 from spyderlib.utils import introspection
 from spyderlib.config.base import _, DEBUG, STDOUT, STDERR
-from spyderlib.config.utils import (EDIT_EXT, EDIT_FILTERS, EDIT_FILETYPES,
-                                    get_filter)
+from spyderlib.config.utils import (EDIT_EXT, get_edit_filters,
+                                    get_edit_filetypes, get_filter)
 from spyderlib.config.gui import create_shortcut, new_shortcut
 from spyderlib.utils.qthelpers import (create_action, add_actions,
                                        mimedata2url, get_filetype_icon,
@@ -1261,11 +1261,13 @@ class EditorStack(QWidget):
         finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
 
     def select_savename(self, original_filename):
-        selectedfilter = get_filter(EDIT_FILETYPES,
+        selectedfilter = get_filter(get_edit_filetypes(),
                                     osp.splitext(original_filename)[1])
         self.redirect_stdio.emit(False)
         filename, _selfilter = getsavefilename(self, _("Save Python script"),
-                               original_filename, EDIT_FILTERS, selectedfilter)
+                                               original_filename,
+                                               get_edit_filters(),
+                                               selectedfilter)
         self.redirect_stdio.emit(True)
         if filename:
             return osp.normpath(filename)

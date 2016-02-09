@@ -32,7 +32,8 @@ import os.path as osp
 from spyderlib.utils import encoding, sourcecode, codeanalysis
 from spyderlib.config.base import get_conf_path, _
 from spyderlib.config.main import CONF
-from spyderlib.config.utils import EDIT_FILTERS, EDIT_FILETYPES, get_filter
+from spyderlib.config.utils import (get_edit_filters, get_edit_filetypes,
+                                    get_filter)
 from spyderlib.config.gui import get_color_scheme
 from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import (create_action, add_actions,
@@ -1653,12 +1654,13 @@ class Editor(SpyderPluginWidget):
             self.redirect_stdio.emit(False)
             parent_widget = self.get_current_editorstack()
             if filename0 is not None:
-                selectedfilter = get_filter(EDIT_FILETYPES,
+                selectedfilter = get_filter(get_edit_filetypes(),
                                             osp.splitext(filename0)[1])
             else:
                 selectedfilter = ''
             filenames, _selfilter = getopenfilenames(parent_widget,
-                                         _("Open file"), basedir, EDIT_FILTERS,
+                                         _("Open file"), basedir,
+                                         get_edit_filters(),
                                          selectedfilter=selectedfilter)
             self.redirect_stdio.emit(True)
             if filenames:

@@ -19,7 +19,7 @@ from spyderlib.utils import iofuncs
 #==============================================================================
 # File extensions supported by Spyder
 #==============================================================================
-EDIT_FILETYPES = (
+EDIT_FILETYPES = [
     (_("Python files"), ('.py', '.pyw', '.ipy')),
     (_("Cython/Pyrex files"), ('.pyx', '.pxd', '.pxi')),
     (_("C files"), ('.c', '.h')),
@@ -44,14 +44,12 @@ EDIT_FILETYPES = (
     (_("Enaml files"), ('.enaml',)),
     (_("Configuration files"), ('.properties', '.session', '.ini', '.inf',
                                 '.reg', '.cfg', '.desktop')),
-)
+]
 
+ALL_FILTER = "%s (*)" % _("All files")
 
 def _create_filter(title, ftypes):
     return "%s (*%s)" % (title, " *".join(ftypes))
-
-
-ALL_FILTER = "%s (*)" % _("All files")
 
 
 def _get_filters(filetypes):
@@ -69,7 +67,7 @@ def _get_extensions(filetypes):
     return ftype_list
 
 
-def get_pygments_extensions():
+def _get_pygments_extensions():
     """Return all file type extensions supported by Pygments"""
     # NOTE: Leave this import here to keep startup process fast!
     import pygments.lexers as lexers
@@ -93,7 +91,19 @@ def get_filter(filetypes, ext):
         return ''
 
 
-EDIT_FILTERS = _get_filters(EDIT_FILETYPES)
+def get_edit_filetypes():
+    """Get all file types supported by the Editor"""
+    pygments_filetypes = (_("Supported text files"),
+                          _get_pygments_extensions())
+    return [pygments_filetypes] + EDIT_FILETYPES
+
+
+def get_edit_filters():
+    """Return filters associated with our file types"""
+    edit_filetypes = get_edit_filetypes()
+    return _get_filters(edit_filetypes)
+    
+
 EDIT_EXT = _get_extensions(EDIT_FILETYPES)+['']
 
 # Extensions supported by Spyder's Variable explorer
@@ -109,7 +119,7 @@ VALID_EXT = EDIT_EXT+IMPORT_EXT
 
 
 #==============================================================================
-# Detection of OSes specific versions
+# Detection of OS specific versions
 #==============================================================================
 def is_ubuntu():
     "Detect if we are running in an Ubuntu-based distribution"
