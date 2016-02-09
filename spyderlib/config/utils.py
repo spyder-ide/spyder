@@ -69,6 +69,19 @@ def _get_extensions(filetypes):
     return ftype_list
 
 
+def get_pygments_extensions():
+    """Return all file type extensions supported by Pygments"""
+    # NOTE: Leave this import here to keep startup process fast!
+    import pygments.lexers as lexers
+    extensions = []
+    all_lexers = lexers.get_all_lexers()
+    for lx in all_lexers:
+        lexer_exts = lx[2]
+        if lexer_exts:
+            extensions = extensions + list(lexer_exts)
+    return tuple(extensions)
+
+
 def get_filter(filetypes, ext):
     """Return filter associated to file extension"""
     if not ext:
