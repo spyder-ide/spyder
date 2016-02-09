@@ -99,23 +99,25 @@ def get_edit_filetypes():
 
 
 def get_edit_filters():
-    """Return filters associated with our file types"""
+    """
+    Return filters associated with the file types
+    supported by the Editor
+    """
     edit_filetypes = get_edit_filetypes()
     return _get_filters(edit_filetypes)
-    
 
-EDIT_EXT = _get_extensions(EDIT_FILETYPES)+['']
+
+def get_edit_extensions():
+    """
+    Return extensions associated with the file types
+    supported by the Editor
+    """
+    edit_filetypes = get_edit_filetypes()
+    return _get_extensions(edit_filetypes)+['']
+
 
 # Extensions supported by Spyder's Variable explorer
 IMPORT_EXT = list(iofuncs.iofunctions.load_extensions.values())
-
-
-# Extensions that should be visible in Spyder's file/project explorers
-SHOW_EXT = ['.png', '.ico', '.svg']
-
-
-# Extensions supported by Spyder (Editor or Variable explorer)
-VALID_EXT = EDIT_EXT+IMPORT_EXT
 
 
 #==============================================================================

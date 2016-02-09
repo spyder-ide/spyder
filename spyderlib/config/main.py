@@ -19,25 +19,28 @@ import os.path as osp
 from spyderlib.config.user import UserConfig
 from spyderlib.config.base import (CHECK_ALL, EXCLUDED_NAMES, SUBFOLDER,
                                    get_home_dir)
-from spyderlib.config.utils import EDIT_EXT, VALID_EXT, SHOW_EXT, is_ubuntu
+from spyderlib.config.utils import IMPORT_EXT, is_ubuntu
 from spyderlib.utils import codeanalysis
 
 
 #==============================================================================
 # Main constants
 #==============================================================================
-# Find in files include/exclude patterns
-INCLUDE_PATTERNS = [r'|'.join(['\\'+_ext+r'$' for _ext in EDIT_EXT if _ext])+\
-                    r'|README|INSTALL',
-                    r'\.pyw?$|\.ipy$|\.txt$|\.rst$',
-                    '.']
+# Find in files exclude patterns
 EXCLUDE_PATTERNS = [r'\.pyc$|\.pyo$|\.orig$|\.hg|\.svn|\bbuild\b',
                     r'\.pyc$|\.pyo$|\.orig$|\.hg|\.svn']
 
+# Extensions that should be visible in Spyder's file/project explorers
+SHOW_EXT = ['.py', '.ipynb', '.txt', '.dat', '.pdf', '.png', '.svg']
+
+
+# Extensions supported by Spyder (Editor or Variable explorer)
+USEFUL_EXT = IMPORT_EXT + SHOW_EXT
+
 
 # Name filters for file/project explorers (excluding files without extension)
-NAME_FILTERS = ['*' + _ext for _ext in VALID_EXT + SHOW_EXT if _ext]+\
-               ['README', 'INSTALL', 'LICENSE', 'CHANGELOG']
+NAME_FILTERS = ['README', 'INSTALL', 'LICENSE', 'CHANGELOG'] + \
+               ['*' + _ext for _ext in USEFUL_EXT if _ext]
 
 
 # Port used to detect if there is a running instance and to communicate with
@@ -355,7 +358,7 @@ DEFAULTS = [
              {
               'enable': True,
               'supported_encodings': ["utf-8", "iso-8859-1", "cp1252"],
-              'include': INCLUDE_PATTERNS,
+              'include': '',
               'include_regexp': True,
               'exclude': EXCLUDE_PATTERNS,
               'exclude_regexp': True,
@@ -653,7 +656,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in 
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '24.0.0'
+CONF_VERSION = '24.1.0'
 
 
 # XXX: Previously we had load=(not DEV) here but DEV was set to *False*.
