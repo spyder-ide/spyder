@@ -74,7 +74,7 @@ except ImportError:
 #==============================================================================
 # Qt imports
 #==============================================================================
-from spyderlib.qt import PYQT5
+from spyderlib.qt import API, PYQT5
 from spyderlib.qt.QtGui import (QApplication, QMainWindow, QSplashScreen,
                                 QPixmap, QMessageBox, QMenu, QColor, QShortcut,
                                 QKeySequence, QDockWidget, QAction,
@@ -1019,10 +1019,14 @@ class MainWindow(QMainWindow):
         ipm_actions = []
         def add_ipm_action(text, path):
             """Add installed Python module doc action to help submenu"""
-            path = file_uri(path)
+            # QAction.triggered works differently for PySide and PyQt
+            if not API == 'pyside':
+                slot=lambda _checked, path=path: programs.start_file(path)
+            else:
+                slot=lambda path=path: programs.start_file(path)
             action = create_action(self, text,
                     icon='%s.png' % osp.splitext(path)[1][1:],
-                    triggered=lambda path=path: programs.start_file(path))
+                    triggered=slot)
             ipm_actions.append(action)
         sysdocpth = osp.join(sys.prefix, 'Doc')
         if osp.isdir(sysdocpth): # exists on Windows, except frozen dist.
@@ -1675,10 +1679,12 @@ class MainWindow(QMainWindow):
 
         self.setUpdatesEnabled(True)
 
+    @Slot()
     def toggle_previous_layout(self):
         """ """
         self.toggle_layout('previous')
 
+    @Slot()
     def toggle_next_layout(self):
         """ """
         self.toggle_layout('next')
@@ -1913,6 +1919,7 @@ class MainWindow(QMainWindow):
             self.get_visible_toolbars()
         self._update_show_toolbars_action()
 
+    @Slot()
     def show_toolbars(self):
         """Show/Hides toolbars."""
         value = not self.toolbars_visible
@@ -2725,6 +2732,7 @@ class MainWindow(QMainWindow):
             req.sendall(b' ')
 
     # ---- Quit and restart, and reset spyder defaults
+    @Slot()
     def reset_spyder(self):
         """
         Quit and reset Spyder and then Restart application.
@@ -2736,6 +2744,7 @@ class MainWindow(QMainWindow):
         if answer == QMessageBox.Yes:
             self.restart(reset=True)
 
+    @Slot()
     def restart(self, reset=False):
         """
         Quit and Restart Spyder application.
@@ -2872,6 +2881,7 @@ class MainWindow(QMainWindow):
         # Provide feeback when clicking menu if check on startup is on
         self.give_updates_feedback = True
 
+    @Slot()
     def check_updates(self):
         """
         Check for spyder updates on github releases using a QThread.
