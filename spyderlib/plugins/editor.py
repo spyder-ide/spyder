@@ -933,9 +933,11 @@ class Editor(SpyderPluginWidget):
         fixindentation_action = create_action(self, _("Fix indentation"),
                       tip=_("Replace tab characters by space characters"),
                       triggered=self.fix_indentation)
-        rename_action = create_action(self, _("Rename"),
-                                      tip=_("Rename a variable"),
-                                      triggered=self.rename_variable)
+
+        self.rename_action = create_action(self, _("Rename"),
+                                           tip=_("Rename a variable"),
+                                           triggered=self.rename_variable)
+        self.rename_action.setEnabled(False) # cf. register_editorstack()
 
         gotoline_action = create_action(self, _("Go to line..."),
                                         icon=ima.icon('gotoline'),
@@ -1010,7 +1012,7 @@ class Editor(SpyderPluginWidget):
         
         source_menu_actions = [eol_menu, self.showblanks_action,
                                trailingspaces_action, fixindentation_action,
-                               rename_action]
+                               self.rename_action]
         self.main.source_menu_actions += source_menu_actions
         
         source_toolbar_actions = [self.todo_list_action,
@@ -1119,6 +1121,7 @@ class Editor(SpyderPluginWidget):
             editorstack.sig_editor_cursor_position_changed.connect(
                                  self.cursorpos_status.cursor_position_changed)
             editorstack.refresh_eol_chars.connect(self.eol_status.eol_changed)
+            self.rename_action.setEnabled(editorstack.introspector.can_rename())
 
         editorstack.set_help(self.help)
         editorstack.set_io_actions(self.new_action, self.open_action,

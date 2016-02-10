@@ -131,6 +131,10 @@ class PluginManager(QObject):
         else:
             raise NotImplementedError
 
+    def can_rename(self):
+        """Whether at least one plugin can do a rename."""
+        return bool(self.rename_identifier)
+
     def validate(self):
         for plugin in self.plugins.values():
             plugin.request('validate')
@@ -233,6 +237,10 @@ class IntrospectionManager(QObject):
     def rename(self, code, position, new_name):
         """Returns code with identifier renamed."""
         return self.plugin_manager.rename(code, position, new_name)
+
+    def can_rename(self):
+        """Whether this object can do a rename."""
+        return self.plugin_manager.can_rename()
 
     def validate(self):
         """Validate the plugins"""
