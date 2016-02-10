@@ -1020,6 +1020,7 @@ class MainWindow(QMainWindow):
         def add_ipm_action(text, path):
             """Add installed Python module doc action to help submenu"""
             # QAction.triggered works differently for PySide and PyQt
+            path = file_uri(path)
             if not API == 'pyside':
                 slot=lambda _checked, path=path: programs.start_file(path)
             else:
