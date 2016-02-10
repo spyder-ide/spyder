@@ -492,7 +492,7 @@ class Editor(SpyderPluginWidget):
         self.__last_ec_exec = None # external console
 
         # File types and filters used by the Open dialog
-        self.edit_types = None
+        self.edit_filetypes = None
         self.edit_filters = None
 
         self.__ignore_cursor_position = False
@@ -1651,8 +1651,8 @@ class Editor(SpyderPluginWidget):
                 filenames = from_qvariant(action.data(), to_text_string)
         if not filenames:
             basedir = getcwd()
-            if self.edit_types is None:
-                self.edit_types = get_edit_filetypes()
+            if self.edit_filetypes is None:
+                self.edit_filetypes = get_edit_filetypes()
             if self.edit_filters is None:
                 self.edit_filters = get_edit_filters()
             if CONF.get('workingdir', 'editor/open/browse_scriptdir'):
@@ -1662,7 +1662,7 @@ class Editor(SpyderPluginWidget):
             self.redirect_stdio.emit(False)
             parent_widget = self.get_current_editorstack()
             if filename0 is not None:
-                selectedfilter = get_filter(self.edit_types,
+                selectedfilter = get_filter(self.edit_filetypes,
                                             osp.splitext(filename0)[1])
             else:
                 selectedfilter = ''
