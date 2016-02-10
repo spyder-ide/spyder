@@ -477,8 +477,8 @@ DEFAULTS = [
               'editor/debug with winpdb': "F7",
               'editor/debug': "Ctrl+F5",
               'editor/run': "F5",
-              'editor/configure': "F6",
-              'editor/re-run last script': "Ctrl+F6",
+              'editor/configure': "Ctrl+F6",
+              'editor/re-run last script': "F6",
               'editor/run selection': "F9",
               'editor/last edit location': "Ctrl+Alt+Shift+Left",
               'editor/previous cursor position': "Ctrl+Alt+Left",
@@ -656,7 +656,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in 
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '24.1.0'
+CONF_VERSION = '24.2.0'
 
 
 # XXX: Previously we had load=(not DEV) here but DEV was set to *False*.
