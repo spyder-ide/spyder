@@ -31,7 +31,9 @@ import os.path as osp
 # Local imports
 from spyderlib.utils import encoding, sourcecode, codeanalysis
 from spyderlib.config.base import get_conf_path, _
-from spyderlib.config.main import CONF, EDIT_FILTERS, get_filter, EDIT_FILETYPES
+from spyderlib.config.main import CONF
+from spyderlib.config.utils import (get_edit_filters, get_edit_filetypes,
+                                    get_filter)
 from spyderlib.config.gui import get_color_scheme
 from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import (create_action, add_actions,
@@ -488,7 +490,11 @@ class Editor(SpyderPluginWidget):
         # Parameters of last file execution:
         self.__last_ic_exec = None # internal console
         self.__last_ec_exec = None # external console
-            
+
+        # File types and filters used by the Open dialog
+        self.edit_filetypes = None
+        self.edit_filters = None
+
         self.__ignore_cursor_position = False
         current_editor = self.get_current_editor()
         if current_editor is not None:
@@ -1645,6 +1651,10 @@ class Editor(SpyderPluginWidget):
                 filenames = from_qvariant(action.data(), to_text_string)
         if not filenames:
             basedir = getcwd()
+            if self.edit_filetypes is None:
+                self.edit_filetypes = get_edit_filetypes()
+            if self.edit_filters is None:
+                self.edit_filters = get_edit_filters()
             if CONF.get('workingdir', 'editor/open/browse_scriptdir'):
                 c_fname = self.get_current_filename()
                 if c_fname is not None and c_fname != self.TEMPFILE_PATH:
@@ -1652,12 +1662,13 @@ class Editor(SpyderPluginWidget):
             self.redirect_stdio.emit(False)
             parent_widget = self.get_current_editorstack()
             if filename0 is not None:
-                selectedfilter = get_filter(EDIT_FILETYPES,
+                selectedfilter = get_filter(self.edit_filetypes,
                                             osp.splitext(filename0)[1])
             else:
                 selectedfilter = ''
             filenames, _selfilter = getopenfilenames(parent_widget,
-                                         _("Open file"), basedir, EDIT_FILTERS,
+                                         _("Open file"), basedir,
+                                         self.edit_filters,
                                          selectedfilter=selectedfilter)
             self.redirect_stdio.emit(True)
             if filenames:

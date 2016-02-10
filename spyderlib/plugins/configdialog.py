@@ -24,7 +24,8 @@ import spyderlib.utils.icon_manager as ima
 
 from spyderlib.config.base import (_, running_in_mac_app, LANGUAGE_CODES,
                                    save_lang_conf, load_lang_conf)
-from spyderlib.config.main import CONF, is_gtk_desktop
+from spyderlib.config.main import CONF
+from spyderlib.config.utils import is_gtk_desktop
 from spyderlib.config.gui import (CUSTOM_COLOR_SCHEME_NAME,
                                   set_default_color_scheme)
 from spyderlib.config.user import NoDefault

@@ -122,8 +122,8 @@ from spyderlib.config.base import (get_conf_path, get_module_data_path,
                                    get_module_source_path, STDERR, DEBUG,
                                    debug_print, TEST, SUBFOLDER, MAC_APP_NAME,
                                    running_in_mac_app, get_module_path)
-from spyderlib.config.main import (CONF, EDIT_EXT, IMPORT_EXT, OPEN_FILES_PORT,
-                                   is_gtk_desktop)
+from spyderlib.config.main import CONF, OPEN_FILES_PORT
+from spyderlib.config.utils import IMPORT_EXT, is_gtk_desktop
 from spyderlib.app.cli_options import get_options
 from spyderlib import dependencies
 from spyderlib.config.ipython import QTCONSOLE_INSTALLED
@@ -2488,9 +2488,7 @@ class MainWindow(QMainWindow):
         """
         fname = to_text_string(fname)
         ext = osp.splitext(fname)[1]
-        if ext in EDIT_EXT:
-            self.editor.load(fname)
-        elif self.variableexplorer is not None and ext in IMPORT_EXT:
+        if self.variableexplorer is not None and ext in IMPORT_EXT:
             self.variableexplorer.import_data(fname)
         elif encoding.is_text_file(fname):
             self.editor.load(fname)

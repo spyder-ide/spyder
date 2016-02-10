@@ -31,7 +31,8 @@ import os.path as osp
 from spyderlib.utils import encoding, sourcecode, codeanalysis
 from spyderlib.utils import introspection
 from spyderlib.config.base import _, DEBUG, STDOUT, STDERR
-from spyderlib.config.main import EDIT_FILTERS, EDIT_EXT, get_filter, EDIT_FILETYPES
+from spyderlib.config.utils import (get_edit_extensions, get_edit_filters,
+                                    get_edit_filetypes, get_filter)
 from spyderlib.config.gui import create_shortcut, new_shortcut
 from spyderlib.utils.qthelpers import (create_action, add_actions,
                                        mimedata2url, get_filetype_icon,
@@ -1260,11 +1261,13 @@ class EditorStack(QWidget):
         finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
 
     def select_savename(self, original_filename):
-        selectedfilter = get_filter(EDIT_FILETYPES,
+        selectedfilter = get_filter(get_edit_filetypes(),
                                     osp.splitext(original_filename)[1])
         self.redirect_stdio.emit(False)
         filename, _selfilter = getsavefilename(self, _("Save Python script"),
-                               original_filename, EDIT_FILTERS, selectedfilter)
+                                               original_filename,
+                                               get_edit_filters(),
+                                               selectedfilter)
         self.redirect_stdio.emit(True)
         if filename:
             return osp.normpath(filename)
@@ -1810,7 +1813,7 @@ class EditorStack(QWidget):
         # The second check is necessary on Windows, where source.hasUrls()
         # can return True but source.urls() is []
         if source.hasUrls() and source.urls():
-            if mimedata2url(source, extlist=EDIT_EXT):
+            if mimedata2url(source, extlist=get_edit_extensions()):
                 event.acceptProposedAction()
             else:
                 all_urls = mimedata2url(source)
@@ -1837,7 +1840,7 @@ class EditorStack(QWidget):
         if source.hasUrls():
             files = mimedata2url(source)
             files = [f for f in files if encoding.is_text_file(f)]
-            supported_files = mimedata2url(source, extlist=EDIT_EXT)
+            supported_files = mimedata2url(source, extlist=get_edit_extensions())
             files = set(files or []) | set(supported_files or [])
             for fname in files:
                 self.plugin_load.emit(fname)
