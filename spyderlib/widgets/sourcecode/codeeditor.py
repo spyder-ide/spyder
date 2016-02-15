@@ -917,6 +917,13 @@ class CodeEditor(TextEditBaseWidget):
         Returns (source_code, offset, new_name) on success, None otherwise.
         """
         old_name = self.get_current_word()
+        if (not self.is_python_like()
+            or not old_name
+            or sourcecode.is_keyword(to_text_string(old_name))
+            or (self.has_selected_text() and self.get_selected_text() != old_name)
+            or self.in_comment_or_string()):
+            QMessageBox.information(self, _('Rename'), _('Cannot rename here'))
+            return
         msg = _("Enter new name for '{}':").format(old_name)
         new_name, ok = QInputDialog.getText(self, _('Rename'), msg,
                                             text=old_name)
