@@ -917,14 +917,14 @@ class CodeEditor(TextEditBaseWidget):
         Returns (source_code, offset, new_name) on success, None otherwise.
         """
         old_name = self.get_current_word()
-        msg = "Enter new name for '{}':".format(old_name)
-        new_name, ok = QInputDialog.getText(self, 'Rename', msg, text=old_name)
+        msg = _("Enter new name for '{}':").format(old_name)
+        new_name, ok = QInputDialog.getText(self, _('Rename'), msg,
+                                            text=old_name)
         if ok and new_name and new_name != old_name:
             source_code = to_text_string(self.toPlainText())
             offset = self.get_position('cursor')
             return (source_code, offset, new_name)
-        else:
-            return None
+        return None
 
     def change_text(self, new_text):
         """Replace contents by new text"""

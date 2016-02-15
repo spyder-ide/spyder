@@ -1959,7 +1959,7 @@ class Editor(SpyderPluginWidget):
     def rename_variable(self):
         """Open rename variable dialog box."""
         editorstack = self.get_current_editorstack()
-        if editorstack is not None:
+        if editorstack:
             editorstack.rename_variable()
 
     #------ Cursor position history management
