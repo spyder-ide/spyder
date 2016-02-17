@@ -935,9 +935,13 @@ class CodeEditor(TextEditBaseWidget):
 
     def change_text(self, new_text):
         """Replace contents by new text"""
-        self.setPlainText(new_text)
-        self.document().setModified(True)
-
+        cursor = self.textCursor()
+        old_position = cursor.position()
+        cursor.select(QTextCursor.Document)
+        cursor.insertText(new_text)
+        cursor.setPosition(old_position)
+        self.setTextCursor(cursor)
+        
     def get_current_object(self):
         """Return current object (string) """
         source_code = to_text_string(self.toPlainText())
