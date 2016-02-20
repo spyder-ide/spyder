@@ -21,6 +21,6 @@
 
 ## Dependencies
 
-Please go to the menu entry `Help > Optional Dependencies` or
-`Help > Dependencies`, press the button `Copy to clipboard` and paste the
-contents below:
+Please go to the menu entry `Help > Optional Dependencies` (or
+`Help > Dependencies`), press the button `Copy to clipboard`
+and paste the contents below:
