@@ -107,6 +107,8 @@ class PluginClient(QObject):
             self.start()
         else:
             self._initialized = False
+            debug_print(self.process.readAllStandardOutput())
+            debug_print(self.process.readAllStandardError())
             self.errored.emit()
 
 

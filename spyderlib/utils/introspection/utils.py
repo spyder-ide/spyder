@@ -170,7 +170,7 @@ def connect_to_port(base_port=20128):
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         try:
             sock.bind(("127.0.0.1", base_port))
-        except OSError as e:
+        except Exception as e:
             if e.errno == errno.EADDRINUSE:
                 base_port += 1
                 continue
