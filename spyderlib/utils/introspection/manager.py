@@ -109,14 +109,12 @@ class PluginManager(QObject):
             return
         name = response['plugin_name']
         response['info'] = self.info
+        if response.get('error', None):
+            debug_print('Response error:', response['error'])
+            return
         if name == self.desired[0] or not self.waiting:
             if response.get('result', None):
                 self._finalize(response)
-            elif not self.waiting:
-                if response.get('error', None):
-                    debug_print(response['error'])
-                debug_print('No valid responses acquired', name, self.waiting)
-                self.introspection_complete.emit(response)
         else:
             self.pending = response
 
@@ -127,6 +125,7 @@ class PluginManager(QObject):
         self.waiting = False
         self.pending = None
         delta = time.time() - self._start_time
+        debug_print(str(response.keys()))
         debug_print('%s request from %s finished: "%s" in %.1f sec'
             % (self.info.name, response['plugin_name'],
                str(response['result'])[:100], delta))
@@ -141,6 +140,8 @@ class PluginManager(QObject):
         self.waiting = False
         if self.pending:
             self._finalize(self.pending)
+        else:
+            debug_print('No valid responses acquired', self.request['method'])
 
 
 class IntrospectionManager(QObject):
