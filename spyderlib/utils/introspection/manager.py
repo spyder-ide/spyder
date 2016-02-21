@@ -9,9 +9,9 @@ from __future__ import print_function
 from collections import OrderedDict
 import time
 
-from spyderlib.config.base import DEBUG, get_conf_path, debug_print
+from spyderlib import dependencies
+from spyderlib.config.base import DEBUG, get_conf_path, _, debug_print
 from spyderlib.utils import sourcecode
-from spyderlib.utils.debug import log_last_error
 
 from spyderlib.qt.QtGui import QApplication
 from spyderlib.qt.QtCore import Signal, QObject, QTimer
@@ -24,6 +24,18 @@ PLUGINS = ['rope', 'jedi', 'fallback']
 LOG_FILENAME = get_conf_path('introspection.log')
 DEBUG_EDITOR = DEBUG >= 3
 LEAD_TIME_SEC = 0.25
+
+
+ROPE_REQVER = '>=0.9.4'
+dependencies.add('rope',
+                 _("Editor's code completion, go-to-definition and help"),
+                 required_version=ROPE_REQVER)
+
+JEDI_REQVER = '>=0.8.1'
+dependencies.add('jedi',
+                 _("(Experimental) Editor's code completion,"
+                   " go-to-definition and help"),
+                 required_version=JEDI_REQVER)
 
 
 class PluginManager(QObject):

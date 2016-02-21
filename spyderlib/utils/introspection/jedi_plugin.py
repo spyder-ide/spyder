@@ -12,26 +12,19 @@ import os.path as osp
 import sys
 import time
 
-from spyderlib import dependencies
-from spyderlib.config.base import _, debug_print
+from spyderlib.config.base import debug_print
 from spyderlib.utils import programs
 from spyderlib.utils.debug import log_last_error, log_dt
 from spyderlib.utils.dochelpers import getsignaturefromtext
 from spyderlib.utils.introspection.manager import (
     DEBUG_EDITOR, LOG_FILENAME, IntrospectionPlugin)
 from spyderlib.utils.introspection.utils import get_parent_until
+from spyderlib.utils.introspection.manager import JEDI_REQVER
 
 try:
     import jedi
 except ImportError:
     jedi = None
-
-
-JEDI_REQVER = '>=0.8.1'
-dependencies.add('jedi',
-                 _("(Experimental) Editor's code completion,"
-                   " go-to-definition and help"),
-                 required_version=JEDI_REQVER)
 
 
 class JediPlugin(IntrospectionPlugin):

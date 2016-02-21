@@ -10,8 +10,7 @@ Rope introspection plugin
 
 import time
 
-from spyderlib import dependencies
-from spyderlib.config.base import get_conf_path, _, STDERR
+from spyderlib.config.base import get_conf_path, STDERR
 from spyderlib.utils import encoding, programs
 from spyderlib.py3compat import PY2
 from spyderlib.utils.dochelpers import getsignaturefromtext
@@ -21,6 +20,8 @@ from spyderlib.utils.introspection.manager import (
     DEBUG_EDITOR, LOG_FILENAME, IntrospectionPlugin)
 from spyderlib.utils.introspection.module_completion import (
     get_preferred_submodules)
+from spyderlib.utils.introspection.manager import ROPE_REQVER
+
 try:
     try:
         from spyderlib import rope_patch
@@ -33,11 +34,6 @@ try:
 except ImportError:
     pass
 
-
-ROPE_REQVER = '>=0.9.4'
-dependencies.add('rope',
-                 _("Editor's code completion, go-to-definition and help"),
-                 required_version=ROPE_REQVER)
 
 #TODO: The following preferences should be customizable in the future
 ROPE_PREFS = {'ignore_syntax_errors': True,
