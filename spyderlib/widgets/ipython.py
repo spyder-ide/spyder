@@ -638,17 +638,15 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         """Resets the namespace by removing all names defined by the user"""
         
         reply = QMessageBox.question(
-            None,
+            self,
             _("Reset IPython namespace"),
             _("All user-defined variables will be removed."
-            "<br>Are you sure you want to clean the namespace?"),
+            "<br>Are you sure you want to reset the namespace?"),
             QMessageBox.Yes | QMessageBox.No,
             )
 
-        if reply == QMessageBox.No:
-            return
-        
-        self.shellwidget.execute("%reset -f")
+        if reply == QMessageBox.Yes:
+            self.shellwidget.execute("%reset -f")
     
     def if_kernel_dies(self, t):
         """
