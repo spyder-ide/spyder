@@ -237,6 +237,20 @@ These commands were executed:
 
     def clear_console(self):
         self.execute("%clear")
+        
+    def reset_namespace(self):
+        """Resets the namespace by removing all names defined by the user"""
+        
+        reply = QMessageBox.question(
+            self,
+            _("Reset IPython namespace"),
+            _("All user-defined variables will be removed."
+            "<br>Are you sure you want to reset the namespace?"),
+            QMessageBox.Yes | QMessageBox.No,
+            )
+
+        if reply == QMessageBox.Yes:
+            self.execute("%reset -f")
 
     def write_to_stdin(self, line):
         """Send raw characters to the IPython kernel through stdin"""
@@ -634,22 +648,12 @@ class IPythonClient(QWidget, SaveHistoryMixin):
     @Slot()
     def clear_console(self):
         """Clear the whole console"""
-        self.shellwidget.execute("%clear")
+        self.shellwidget.clear_console()
         
     @Slot()
     def reset_namespace(self):
         """Resets the namespace by removing all names defined by the user"""
-        
-        reply = QMessageBox.question(
-            self,
-            _("Reset IPython namespace"),
-            _("All user-defined variables will be removed."
-            "<br>Are you sure you want to reset the namespace?"),
-            QMessageBox.Yes | QMessageBox.No,
-            )
-
-        if reply == QMessageBox.Yes:
-            self.shellwidget.execute("%reset -f")
+        self.shellwidget.reset_namespace()
     
     def if_kernel_dies(self, t):
         """
