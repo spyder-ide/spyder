@@ -267,7 +267,7 @@ These commands were executed:
                                   parent=self)
         clear_console = create_shortcut(self.clear_console, context='Console',
                                         name='Clear shell', parent=self)
-                                        
+
         # Fixed shortcuts
         new_shortcut("Ctrl+T", self, lambda: self.new_client.emit())
         new_shortcut("Ctrl+R", self, lambda: self.reset_namespace())
