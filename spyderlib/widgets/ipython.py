@@ -267,17 +267,16 @@ These commands were executed:
                                   parent=self)
         clear_console = create_shortcut(self.clear_console, context='Console',
                                         name='Clear shell', parent=self)
-        reset_namespace = create_shortcut(self.reset_namespace, context='Console',
-                                        name='Reset namespace', parent=self)
                                         
         # Fixed shortcuts
         new_shortcut("Ctrl+T", self, lambda: self.new_client.emit())
+        new_shortcut("Ctrl+R", self, lambda: self.reset_namespace())
         new_shortcut(SHORTCUT_INLINE, self,
                      lambda: self._control.enter_array_inline())
         new_shortcut(SHORTCUT_TABLE, self,
                      lambda: self._control.enter_array_table())
 
-        return [inspect, clear_console, reset_namespace]
+        return [inspect, clear_console]
 
     def clean_invalid_var_chars(self, var):
         """
@@ -601,8 +600,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
                                           icon=ima.icon('editdelete'),
                                           triggered=self.clear_line)
         reset_namespace_action = create_action(self, _("Reset namespace"),
-                                          QKeySequence(get_shortcut('console',
-                                                    'reset namespace')),
+                                          QKeySequence("Ctrl+R"),
                                           triggered=self.reset_namespace)
         clear_console_action = create_action(self, _("Clear console"),
                                              QKeySequence(get_shortcut('console',
