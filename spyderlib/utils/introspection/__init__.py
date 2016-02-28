@@ -7,6 +7,3 @@
 """
 Introspection utilities used by Spyder
 """
-from . import module_completion
-from .manager import IntrospectionManager
-
