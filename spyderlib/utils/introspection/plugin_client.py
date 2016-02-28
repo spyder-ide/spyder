@@ -66,7 +66,7 @@ class PluginClient(QObject):
             envName, separator, envValue = envItem.partition('=')
             processEnvironment.insert(envName, envValue)
         self.process.setProcessEnvironment(processEnvironment)
-        p_args = ['plugin_server.py', str(server_port), plugin_name]
+        p_args = ['-u', 'plugin_server.py', str(server_port), plugin_name]
 
         self.listener = PluginListener(self.sock)
         self.listener.request_handled.connect(self.request_handled.emit)

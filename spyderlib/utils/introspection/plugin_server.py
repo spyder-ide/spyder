@@ -9,12 +9,17 @@ import socket
 import errno
 import os
 import sys
+import time
 import atexit
 
 # Local imports
 from spyderlib.utils.introspection.utils import connect_to_port
 from spyderlib.py3compat import Queue
 from spyderlib.utils.bsdsocket import read_packet, write_packet
+
+
+# Timeout in seconds
+TIMEOUT = 60
 
 
 class PluginServer(object):
@@ -31,6 +36,7 @@ class PluginServer(object):
         cls = getattr(mod, '%sPlugin' % plugin_name.capitalize())
         plugin = cls()
         plugin.load_plugin()
+        self.tlast = time.time()
         self.plugin = plugin
 
         self._client_port = int(client_port)
@@ -74,11 +80,14 @@ class PluginServer(object):
             request = None
             while 1:
                 try:
-                    request = self.queue.get(True, 0.005)
+                    request = self.queue.get(True, 0.01)
                 except Queue.Empty:
                     break
             if request is None:
+                if time.time() - self.tlast > TIMEOUT:
+                    sys.exit('Program timed out')
                 continue
+            self.tlast = time.time()
             try:
                 method = getattr(self.plugin, request['method'])
                 args = request.get('args', [])

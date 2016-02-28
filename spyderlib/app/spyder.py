@@ -29,6 +29,7 @@ import os.path as osp
 import re
 import socket
 import shutil
+import signal
 import subprocess
 import sys
 import threading
@@ -272,6 +273,22 @@ class MainWindow(QMainWindow):
         self.new_instance = options.new_instance
 
         self.debug_print("Start of MainWindow constructor")
+
+        def signal_handler(signum, frame):
+            """Handler for signals."""
+            sys.stdout.write('Handling signal: %s\n' % signum)
+            sys.stdout.flush()
+            QApplication.quit()
+
+        if os.name == "nt":
+            try:
+                import win32api
+                win32api.SetConsoleCtrlHandler(signal_handler, True)
+            except ImportError:
+                version = '.'.join(map(str, sys.version_info[:2]))
+                raise Exception('pywin32 not installed for Python ' + version)
+        else:
+            signal.signal(signal.SIGTERM, signal_handler)
 
         # Use a custom Qt stylesheet
         if sys.platform == 'darwin':
