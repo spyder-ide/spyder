@@ -30,7 +30,7 @@ requirements:
     - sphinx
     - pep8
     - psutil
-    - pylint                 [not win]
+    - pylint
     - qtawesome
     - python.app             [osx]
 
