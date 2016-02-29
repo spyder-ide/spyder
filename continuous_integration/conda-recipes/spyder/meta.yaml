@@ -23,14 +23,14 @@ requirements:
     - {% if environ.get('USE_QT_API') == 'PyQt4' %} pyqt {% else %} pyqt5 {% endif %}
     - rope
     - pyflakes
-    - jedi                  [py27 or py34]
+    - jedi
     - qtconsole
     - nbconvert
     - pygments
     - sphinx
     - pep8
     - psutil
-    - pylint                 [not win]
+    - pylint
     - qtawesome
     - python.app             [osx]
 
