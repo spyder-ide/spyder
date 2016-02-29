@@ -68,7 +68,7 @@ REM Spyplugins
 for /r "%APPVEYOR_BUILD_FOLDER%\spyplugins" %%f in (*.py) do (
     set file=%%f
 
-    if not "!file:widgets\=!"=="!file!" (    
+    if not "!file:widgets\=!"=="!file!" (
         echo --- Testing %%f ---
         python "%%f" || exit 1
         echo.

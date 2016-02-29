@@ -10,15 +10,18 @@ Rope introspection plugin
 
 import time
 
-from spyderlib import dependencies
-from spyderlib.config.base import get_conf_path, _, STDERR
+from spyderlib.config.base import get_conf_path, STDERR
 from spyderlib.utils import encoding, programs
 from spyderlib.py3compat import PY2
 from spyderlib.utils.dochelpers import getsignaturefromtext
 from spyderlib.utils import sourcecode
 from spyderlib.utils.debug import log_last_error, log_dt
-from spyderlib.utils.introspection.plugin_manager import (
+from spyderlib.utils.introspection.manager import (
     DEBUG_EDITOR, LOG_FILENAME, IntrospectionPlugin)
+from spyderlib.utils.introspection.module_completion import (
+    get_preferred_submodules)
+from spyderlib.utils.introspection.manager import ROPE_REQVER
+
 try:
     try:
         from spyderlib import rope_patch
@@ -31,11 +34,6 @@ try:
 except ImportError:
     pass
 
-
-ROPE_REQVER = '>=0.9.4'
-dependencies.add('rope',
-                 _("Editor's code completion, go-to-definition and help"),
-                 required_version=ROPE_REQVER)
 
 #TODO: The following preferences should be customizable in the future
 ROPE_PREFS = {'ignore_syntax_errors': True,
@@ -63,14 +61,17 @@ class RopePlugin(IntrospectionPlugin):
             raise ImportError('Requires Rope %s' % ROPE_REQVER)
         self.project = None
         self.create_rope_project(root_path=get_conf_path())
+        submods = get_preferred_submodules()
+        if self.project is not None:
+            self.project.prefs.set('extension_modules', submods)
 
     def get_completions(self, info):
         """Get a list of (completion, type) tuples using Rope"""
         if self.project is None:
             return []
-        filename = info.filename
-        source_code = info.source_code
-        offset = info.position
+        filename = info['filename']
+        source_code = info['source_code']
+        offset = info['position']
 
         if PY2:
             filename = filename.encode('utf-8')
@@ -103,9 +104,9 @@ class RopePlugin(IntrospectionPlugin):
         """Get a formatted calltip and docstring from Rope"""
         if self.project is None:
             return
-        filename = info.filename
-        source_code = info.source_code
-        offset = info.position
+        filename = info['filename']
+        source_code = info['source_code']
+        offset = info['position']
 
         if PY2:
             filename = filename.encode('utf-8')
@@ -194,9 +195,9 @@ class RopePlugin(IntrospectionPlugin):
         if self.project is None:
             return
 
-        filename = info.filename
-        source_code = info.source_code
-        offset = info.position
+        filename = info['filename']
+        source_code = info['source_code']
+        offset = info['position']
 
         if PY2:
             filename = filename.encode('utf-8')
@@ -234,11 +235,6 @@ class RopePlugin(IntrospectionPlugin):
             except RuntimeError:
                 pass
 
-    def set_pref(self, key, value):
-        """Set a Rope preference"""
-        if self.project is not None:
-            self.project.prefs.set(key, value)
-
     # ---- Private API -------------------------------------------------------
 
     def create_rope_project(self, root_path):
@@ -273,7 +269,7 @@ class RopePlugin(IntrospectionPlugin):
 
 if __name__ == '__main__':
 
-    from spyderlib.utils.introspection.plugin_manager import CodeInfo
+    from spyderlib.utils.introspection.manager import CodeInfo
 
     p = RopePlugin()
     p.load_plugin()
@@ -287,11 +283,6 @@ if __name__ == '__main__':
     completions = p.get_completions(CodeInfo('completions', source_code,
         len(source_code), __file__))
     assert ('numpy', 'module') in completions
-
-    source_code = "import pandas as pd; pd.DataFrame"
-    path, line_nr = p.get_definition(CodeInfo('definition', source_code,
-        len(source_code), __file__))
-    assert 'frame.py' in path
 
     code = '''
 def test(a, b):

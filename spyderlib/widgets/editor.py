@@ -29,7 +29,7 @@ import os.path as osp
 
 # Local imports
 from spyderlib.utils import encoding, sourcecode, codeanalysis
-from spyderlib.utils import introspection
+from spyderlib.utils.introspection.manager import IntrospectionManager
 from spyderlib.config.base import _, DEBUG, STDOUT, STDERR
 from spyderlib.config.utils import get_edit_extensions
 from spyderlib.config.gui import create_shortcut, new_shortcut
@@ -401,7 +401,7 @@ class EditorStack(QWidget):
         if ccs not in syntaxhighlighters.COLOR_SCHEME_NAMES:
             ccs = syntaxhighlighters.COLOR_SCHEME_NAMES[0]
         self.color_scheme = ccs
-        self.introspector = introspection.PluginManager(self)
+        self.introspector = IntrospectionManager(self)
 
         self.introspector.send_to_help.connect(self.send_to_help)
         self.introspector.edit_goto.connect(
@@ -685,7 +685,7 @@ class EditorStack(QWidget):
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_blanks_enabled(state)
-        
+
     def set_edgeline_enabled(self, state):
         # CONF.get(self.CONF_SECTION, 'edge_line')
         self.edgeline_enabled = state
