@@ -12,7 +12,7 @@ import imp
 import sys
 
 # Local imports
-from spyderlib.config.base import debug_print, DEV
+from spyderlib.config.base import debug_print
 from spyderlib.utils.bsdsocket import read_packet, write_packet
 from spyderlib.qt.QtGui import QApplication
 from spyderlib.qt.QtCore import (
@@ -55,9 +55,14 @@ class PluginClient(QObject):
         self.process.setWorkingDirectory(os.path.dirname(__file__))
         processEnvironment = QProcessEnvironment()
         env = self.process.systemEnvironment()
-        if DEV:
-            python_path = imp.find_module('spyderlib')[1]
-            env.append("PYTHONPATH=%s" % osp.dirname(python_path))
+        python_path = osp.dirname(imp.find_module('spyderlib')[1])
+        # Use the current version of the plugin provider if possible.
+        try:
+            provider_path = osp.dirname(imp.find_module(self.plugin_name)[1])
+            python_path = osp.pathsep.join([python_path, provider_path])
+        except ImportError:
+            pass
+        env.append("PYTHONPATH=%s" % python_path)
         for envItem in env:
             envName, separator, envValue = envItem.partition('=')
             processEnvironment.insert(envName, envValue)
