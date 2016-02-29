@@ -7,6 +7,7 @@
 import socket
 import errno
 import os
+import os.path as osp
 import imp
 import sys
 
@@ -54,11 +55,11 @@ class PluginClient(QObject):
         self.process.setWorkingDirectory(os.path.dirname(__file__))
         processEnvironment = QProcessEnvironment()
         env = self.process.systemEnvironment()
-        python_path = imp.find_module('spyderlib')[1]
+        python_path = osp.dirname(imp.find_module('spyderlib')[1])
         # Use the current version of the plugin provider if possible.
         try:
-            provider_path = imp.find_module(self.plugin_name)[1]
-            python_path = os.sep.join([python_path, provider_path])
+            provider_path = osp.dirname(imp.find_module(self.plugin_name)[1])
+            python_path = osp.pathsep.join([python_path, provider_path])
         except ImportError:
             pass
         env.append("PYTHONPATH=%s" % python_path)
