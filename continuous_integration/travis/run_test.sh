@@ -30,11 +30,6 @@ if [ "$USE_CONDA" = true ] ; then
 
     # Install extra packages
     conda install -q $EXTRA_PACKAGES
-
-    # Jedi is not available in conda
-    if [ "$TRAVIS_PYTHON_VERSION" = "3.5" ]; then
-        pip install jedi
-    fi
 else
     cd $FULL_SPYDER_CLONE
     pip install dist/spyder-*.whl
