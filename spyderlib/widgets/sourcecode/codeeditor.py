@@ -910,9 +910,9 @@ class CodeEditor(TextEditBaseWidget):
             self.setPlainText(text_after)
             self.document().setModified(True)
 
-    def open_rename_variable_dialog(self):
+    def open_rename_identifier_dialog(self):
         """
-        Open rename variable dialog box and return result.
+        Open rename identifier dialog box and return result.
 
         Returns (source_code, offset, new_name) on success, None otherwise.
         """

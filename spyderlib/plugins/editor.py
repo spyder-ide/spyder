@@ -934,9 +934,9 @@ class Editor(SpyderPluginWidget):
                       tip=_("Replace tab characters by space characters"),
                       triggered=self.fix_indentation)
 
-        self.rename_action = create_action(self, _("Rename"),
-                                           tip=_("Rename a variable"),
-                                           triggered=self.rename_variable)
+        self.rename_action = create_action(self, _("Rename identifier"),
+                      tip=_("Rename a variable, function or class"),
+                      triggered=self.rename_identifier)
         self.rename_action.setEnabled(False) # cf. register_editorstack()
 
         gotoline_action = create_action(self, _("Go to line..."),
@@ -1956,11 +1956,11 @@ class Editor(SpyderPluginWidget):
         editorstack.fix_indentation()
                     
     @Slot()
-    def rename_variable(self):
-        """Open rename variable dialog box."""
+    def rename_identifier(self):
+        """Open rename identifier dialog box."""
         editorstack = self.get_current_editorstack()
         if editorstack:
-            editorstack.rename_variable()
+            editorstack.rename_identifier()
 
     #------ Cursor position history management
     def update_cursorpos_actions(self):
