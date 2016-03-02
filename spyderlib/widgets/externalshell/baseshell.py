@@ -16,7 +16,7 @@ from time import time, strftime, gmtime
 from spyderlib.qt.QtGui import (QWidget, QVBoxLayout, QHBoxLayout, QMenu,
                                 QLabel, QInputDialog, QLineEdit, QToolButton)
 from spyderlib.qt.QtCore import (QProcess, Signal, QByteArray, QTimer, Qt,
-                                 QTextCodec, Slot)
+                                 QTextCodec, Slot, QMutex)
 import spyderlib.utils.icon_manager as ima
 
 LOCALE_CODEC = QTextCodec.codecForLocale()
@@ -59,6 +59,9 @@ class ExternalShellBase(QWidget):
         QWidget.__init__(self, parent)
         
         self.menu_actions = menu_actions
+        self.write_lock = QMutex()
+        self.buffer_lock = QMutex()
+        self.buffer = []
         
         self.run_button = None
         self.kill_button = None
@@ -290,10 +293,29 @@ class ExternalShellBase(QWidget):
         return self.transcode(qba)
 
     def write_output(self):
+        # if we are already writing something else,
+        # store the present message in a buffer
+        if not self.write_lock.tryLock():
+            self.buffer_lock.lock()
+            self.buffer.append(self.get_stdout())
+            self.buffer_lock.unlock()
+
+            return
+
         self.shell.write(self.get_stdout(), flush=True)
-        # Commenting the line below improves crashes on long
-        # output. See Issue 2251
-        # QApplication.processEvents()
+
+        while True:
+            self.buffer_lock.lock()
+            messages = self.buffer
+            self.buffer = []
+            self.buffer_lock.unlock()
+
+            if not len(messages): break
+            else:
+                for msg in messages:
+                    self.shell.write(msg, flush=True)                
+
+        self.write_lock.unlock()
 
     def send_to_process(self, qstr):
         raise NotImplementedError
