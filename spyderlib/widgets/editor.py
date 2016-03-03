@@ -2324,7 +2324,7 @@ def test():
     from spyderlib.config.base import get_module_path
 
     cur_dir = osp.join(get_module_path('spyderlib'), 'widgets')
-    app = qapplication()
+    app = qapplication(test_time=8)
     test = EditorPluginExample()
     test.resize(900, 700)
     test.show()
