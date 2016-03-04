@@ -382,8 +382,10 @@ class Editor(SpyderPluginWidget):
         
         # Creating template if it doesn't already exist
         if not osp.isfile(self.TEMPLATE_PATH):
-            header = ['# -*- coding: utf-8 -*-', '"""', 'Created on %(date)s',
-                      '', '@author: %(username)s', '"""', '']
+            header = ['#!/usr/bin/env python' + ('2' if PY2 else '3'),
+                      '# -*- coding: utf-8 -*-',
+                      '"""', 'Created on %(date)s', '',
+                      '@author: %(username)s', '"""', '']
             encoding.write(os.linesep.join(header), self.TEMPLATE_PATH, 'utf-8')
 
         self.projectexplorer = None
