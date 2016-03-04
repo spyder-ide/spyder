@@ -110,8 +110,6 @@ def get_coding(text):
             # sometimes we find a false encoding that can result in errors
             if codec in CODECS:
                 return codec
-            else:
-                return None
     return None
 
 def decode(text):
