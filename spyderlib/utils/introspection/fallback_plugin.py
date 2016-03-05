@@ -365,18 +365,6 @@ if __name__ == '__main__':
     comp = p.get_completions(CodeInfo('completions', code, len(code)))
     assert comp == [(encoding.to_unicode('álfa'), '')]
 
-    code = 'from numpy import one'
-    comp = p.get_completions(CodeInfo('completions', code, len(code)))
-    assert ('ones', '') in comp
-
-    comp = p.get_completions(CodeInfo('completions', code, len(code),
-        is_python_like=False))
-    assert not comp
-
-    code = 'from numpy.testing import (asse'
-    comp = p.get_completions(CodeInfo('completions', code, len(code)))
-    assert ('assert_equal', '') in comp
-
     code = '''
 def test(a, b):
     pass
