@@ -106,7 +106,10 @@ def get_coding(text):
     for line in text.splitlines()[:2]:
         result = CODING_RE.search(to_text_string(line))
         if result:
-            return result.group(1)
+            codec = result.group(1)
+            # sometimes we find a false encoding that can result in errors
+            if codec in CODECS:
+                return codec
     return None
 
 def decode(text):
