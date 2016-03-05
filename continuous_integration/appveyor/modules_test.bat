@@ -39,9 +39,6 @@ for /r "%SPYDERLIB%" %%f in (*.py) do (
     ) else if "%%f"=="%SPYDERLIB%\utils\bsdsocket.py" (
         echo --- NOT testing %%f ---
         echo.
-    ) else if "%%f"=="%SPYDERLIB%\utils\introspection\__init__.py" (
-        echo --- NOT testing %%f ---
-        echo.
     ) else if "%%f"=="%SPYDERLIB%\utils\introspection\module_completion.py" (
         echo --- NOT testing %%f ---
         echo.
