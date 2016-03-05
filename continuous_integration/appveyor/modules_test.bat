@@ -57,9 +57,15 @@ for /r "%SPYDERLIB%" %%f in (*.py) do (
     ) else if "%%f"=="%SPYDERLIB%\widgets\externalshell\start_ipython_kernel.py" (
         echo --- NOT testing %%f ---
         echo.
-    ) else if "%%f"=="%SPYDERLIB%\widgets\sourcecode\codeeditor.py" if %PYTHON_VERSION%==2.7 (
-        echo --- NOT testing %%f ---
-        echo.
+    ) else if "%%f"=="%SPYDERLIB%\widgets\sourcecode\codeeditor.py" (
+        if %PYTHON_VERSION%==2.7 (
+            echo --- NOT testing %%f ---
+            echo.
+        ) else (
+            echo --- Testing %%f ---
+            python "%%f" || exit 1
+            echo.
+        )
     ) else (
         echo --- Testing %%f ---
         python "%%f" || exit 1
