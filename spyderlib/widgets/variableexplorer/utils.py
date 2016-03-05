@@ -277,7 +277,7 @@ def value_to_display(value, truncate=False, trunc_len=80, minmax=False):
             try:
                 display = to_text_string(value, 'utf8')
             except:
-                pass
+                display = value
         elif is_text_string(value):
             display = value
         elif isinstance(value, NUMERIC_TYPES) or isinstance(value, bool) or \
