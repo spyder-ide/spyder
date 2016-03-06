@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2011 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -18,98 +18,35 @@ import os.path as osp
 # Local import
 from spyderlib.config.user import UserConfig
 from spyderlib.config.base import (CHECK_ALL, EXCLUDED_NAMES, SUBFOLDER,
-                                   get_home_dir, _)
-from spyderlib.utils import iofuncs, codeanalysis
+                                   get_home_dir)
+from spyderlib.config.utils import IMPORT_EXT, is_ubuntu
+from spyderlib.utils import codeanalysis
 
 
 #==============================================================================
-# Extensions supported by Spyder's Editor
+# Main constants
 #==============================================================================
-EDIT_FILETYPES = (
-    (_("Python files"), ('.py', '.pyw', '.ipy')),
-    (_("Cython/Pyrex files"), ('.pyx', '.pxd', '.pxi')),
-    (_("C files"), ('.c', '.h')),
-    (_("C++ files"), ('.cc', '.cpp', '.cxx', '.h', '.hh', '.hpp', '.hxx')),
-    (_("OpenCL files"), ('.cl', )),
-    (_("Fortran files"), ('.f', '.for', '.f77', '.f90', '.f95', '.f2k')),
-    (_("IDL files"), ('.pro', )),
-    (_("MATLAB files"), ('.m', )),
-    (_("Julia files"), ('.jl',)),
-    (_("Yaml files"), ('.yaml','.yml',)),
-    (_("Patch and diff files"), ('.patch', '.diff', '.rej')),
-    (_("Batch files"), ('.bat', '.cmd')),
-    (_("Text files"), ('.txt',)),
-    (_("reStructuredText files"), ('.txt', '.rst')),
-    (_("gettext files"), ('.po', '.pot')),
-    (_("NSIS files"), ('.nsi', '.nsh')),
-    (_("Web page files"), ('.scss', '.css', '.htm', '.html',)),
-    (_("XML files"), ('.xml',)),
-    (_("Javascript files"), ('.js',)),
-    (_("Json files"), ('.json',)),
-    (_("IPython notebooks"), ('.ipynb',)),
-    (_("Enaml files"), ('.enaml',)),
-    (_("Configuration files"), ('.properties', '.session', '.ini', '.inf',
-                                '.reg', '.cfg', '.desktop')),
-                 )
-
-def _create_filter(title, ftypes):
-    return "%s (*%s)" % (title, " *".join(ftypes))
-
-ALL_FILTER = "%s (*)" % _("All files")
-
-def _get_filters(filetypes):
-    filters = []
-    for title, ftypes in filetypes:
-        filters.append(_create_filter(title, ftypes))
-    filters.append(ALL_FILTER)
-    return ";;".join(filters)
-
-def _get_extensions(filetypes):
-    ftype_list = []
-    for _title, ftypes in filetypes:
-        ftype_list += list(ftypes)
-    return ftype_list
-
-def get_filter(filetypes, ext):
-    """Return filter associated to file extension"""
-    if not ext:
-        return ALL_FILTER
-    for title, ftypes in filetypes:
-        if ext in ftypes:
-            return _create_filter(title, ftypes)
-    else:
-        return ''
-
-EDIT_FILTERS = _get_filters(EDIT_FILETYPES)
-EDIT_EXT = _get_extensions(EDIT_FILETYPES)+['']
-
-# Extensions supported by Spyder's Variable explorer
-IMPORT_EXT = list(iofuncs.iofunctions.load_extensions.values())
-
-# Extensions that should be visible in Spyder's file/project explorers
-SHOW_EXT = ['.png', '.ico', '.svg']
-
-# Extensions supported by Spyder (Editor or Variable explorer)
-VALID_EXT = EDIT_EXT+IMPORT_EXT
-
-
-# Find in files include/exclude patterns
-INCLUDE_PATTERNS = [r'|'.join(['\\'+_ext+r'$' for _ext in EDIT_EXT if _ext])+\
-                    r'|README|INSTALL',
-                    r'\.pyw?$|\.ipy$|\.txt$|\.rst$',
-                    '.']
+# Find in files exclude patterns
 EXCLUDE_PATTERNS = [r'\.pyc$|\.pyo$|\.orig$|\.hg|\.svn|\bbuild\b',
                     r'\.pyc$|\.pyo$|\.orig$|\.hg|\.svn']
 
+# Extensions that should be visible in Spyder's file/project explorers
+SHOW_EXT = ['.py', '.ipynb', '.txt', '.dat', '.pdf', '.png', '.svg']
+
+
+# Extensions supported by Spyder (Editor or Variable explorer)
+USEFUL_EXT = IMPORT_EXT + SHOW_EXT
+
 
 # Name filters for file/project explorers (excluding files without extension)
-NAME_FILTERS = ['*' + _ext for _ext in VALID_EXT + SHOW_EXT if _ext]+\
-               ['README', 'INSTALL', 'LICENSE', 'CHANGELOG']
+NAME_FILTERS = ['README', 'INSTALL', 'LICENSE', 'CHANGELOG'] + \
+               ['*' + _ext for _ext in USEFUL_EXT if _ext]
 
 
 # Port used to detect if there is a running instance and to communicate with
 # it to open external files
 OPEN_FILES_PORT = 21128
+
 
 # OS Specific
 WIN = os.name == 'nt'
@@ -117,37 +54,7 @@ MAC = sys.platform == 'darwin'
 CTRL = "Meta" if MAC else "Ctrl"
 
 
-#==============================================================================
 # Fonts
-#==============================================================================
-def is_ubuntu():
-    "Detect if we are running in an Ubuntu-based distribution"
-    if sys.platform.startswith('linux') and osp.isfile('/etc/lsb-release'):
-        release_info = open('/etc/lsb-release').read()
-        if 'Ubuntu' in release_info:
-            return True
-        else:
-            return False
-    else:
-        return False
-
-
-def is_gtk_desktop():
-    "Detect if we are running in a Gtk-based desktop"
-    if sys.platform.startswith('linux'):
-        xdg_desktop = os.environ.get('XDG_CURRENT_DESKTOP', '')
-        if xdg_desktop:
-            gtk_desktops = ['Unity', 'GNOME', 'XFCE']
-            if any([xdg_desktop.startswith(d) for d in gtk_desktops]):
-                return True
-            else:
-                return False
-        else:
-            return False
-    else:
-        return False
-
-
 SANS_SERIF = ['Sans Serif', 'DejaVu Sans', 'Bitstream Vera Sans',
               'Bitstream Charter', 'Lucida Grande', 'MS Shell Dlg 2',
               'Calibri', 'Verdana', 'Geneva', 'Lucid', 'Arial',
@@ -158,6 +65,9 @@ MONOSPACE = ['Monospace', 'DejaVu Sans Mono', 'Consolas',
              'Courier New', 'Courier', 'monospace', 'Fixed', 'Terminal']
 
 
+#==============================================================================
+# Adjust font size per OS
+#==============================================================================
 if sys.platform == 'darwin':
     MONOSPACE = ['Menlo'] + MONOSPACE
     BIG = MEDIUM = SMALL = 12
@@ -174,10 +84,12 @@ else:
     BIG = 12
     MEDIUM = SMALL = 9
 
+DEFAULT_SMALL_DELTA = SMALL - MEDIUM
+DEFAULT_LARGE_DELTA = SMALL - BIG
 
-#==============================================================================
-# Defaults
-#==============================================================================
+# =============================================================================
+#  Defaults
+# =============================================================================
 DEFAULTS = [
             ('main',
              {
@@ -205,6 +117,15 @@ DEFAULTS = [
               'show_internal_console_if_traceback': True,
               'check_updates_on_startup': True,
               'toolbars_visible': True,
+              # Global Spyder fonts
+              'font/family': MONOSPACE,
+              'font/size': MEDIUM,
+              'font/italic': False,
+              'font/bold': False,
+              'rich_font/family': SANS_SERIF,
+              'rich_font/size': BIG,
+              'rich_font/italic': False,
+              'rich_font/bold': False,
               }),
             ('quick_layouts',
              {
@@ -228,10 +149,6 @@ DEFAULTS = [
               'max_line_count': 300,
               'working_dir_history': 30,
               'working_dir_adjusttocontents': False,
-              'font/family': MONOSPACE,
-              'font/size': MEDIUM,
-              'font/italic': False,
-              'font/bold': False,
               'wrap': True,
               'calltips': True,
               'codecompletion/auto': False,
@@ -244,10 +161,6 @@ DEFAULTS = [
             ('console',
              {
               'max_line_count': 500,
-              'font/family': MONOSPACE,
-              'font/size': MEDIUM,
-              'font/italic': False,
-              'font/bold': False,
               'wrap': True,
               'single_tab': True,
               'calltips': True,
@@ -273,10 +186,6 @@ DEFAULTS = [
               }),
             ('ipython_console',
              {
-              'font/family': MONOSPACE,
-              'font/size': MEDIUM,
-              'font/italic': False,
-              'font/bold': False,
               'show_banner': True,
               'completion_type': 0,
               'use_pager': False,
@@ -321,10 +230,6 @@ DEFAULTS = [
               'printer_header/font/size': MEDIUM,
               'printer_header/font/italic': False,
               'printer_header/font/bold': False,
-              'font/family': MONOSPACE,
-              'font/size': MEDIUM,
-              'font/italic': False,
-              'font/bold': False,
               'wrap': False,
               'wrapflag': True,
               'code_analysis/pyflakes': True,
@@ -368,10 +273,6 @@ DEFAULTS = [
              {
               'enable': True,
               'max_entries': 100,
-              'font/family': MONOSPACE,
-              'font/size': MEDIUM,
-              'font/italic': False,
-              'font/bold': False,
               'wrap': True,
               'go_to_eof': True,
               }),
@@ -379,14 +280,6 @@ DEFAULTS = [
              {
               'enable': True,
               'max_history_entries': 20,
-              'font/family': MONOSPACE,
-              'font/size': SMALL,
-              'font/italic': False,
-              'font/bold': False,
-              'rich_text/font/family': SANS_SERIF,
-              'rich_text/font/size': BIG,
-              'rich_text/font/italic': False,
-              'rich_text/font/bold': False,
               'wrap': True,
               'connect/editor': False,
               'connect/python_console': False,
@@ -414,27 +307,6 @@ DEFAULTS = [
               'show_all': False,
               'show_hscrollbar': True
               }),
-            ('arrayeditor',
-             {
-              'font/family': MONOSPACE,
-              'font/size': SMALL,
-              'font/italic': False,
-              'font/bold': False,
-              }),
-            ('texteditor',
-             {
-              'font/family': MONOSPACE,
-              'font/size': MEDIUM,
-              'font/italic': False,
-              'font/bold': False,
-              }),
-            ('dicteditor',
-             {
-              'font/family': MONOSPACE,
-              'font/size': SMALL,
-              'font/italic': False,
-              'font/bold': False,
-              }),
             ('explorer',
              {
               'enable': True,
@@ -448,7 +320,7 @@ DEFAULTS = [
              {
               'enable': True,
               'supported_encodings': ["utf-8", "iso-8859-1", "cp1252"],
-              'include': INCLUDE_PATTERNS,
+              'include': '',
               'include_regexp': True,
               'exclude': EXCLUDE_PATTERNS,
               'exclude_regexp': True,
@@ -567,8 +439,8 @@ DEFAULTS = [
               'editor/debug with winpdb': "F7",
               'editor/debug': "Ctrl+F5",
               'editor/run': "F5",
-              'editor/configure': "F6",
-              'editor/re-run last script': "Ctrl+F6",
+              'editor/configure': "Ctrl+F6",
+              'editor/re-run last script': "F6",
               'editor/run selection': "F9",
               'editor/last edit location': "Ctrl+Alt+Shift+Left",
               'editor/previous cursor position': "Ctrl+Alt+Left",
@@ -755,12 +627,14 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in 
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '24.0.0'
+CONF_VERSION = '25.0.0'
+
 
 # XXX: Previously we had load=(not DEV) here but DEV was set to *False*.
 # Check if it *really* needs to be updated or not
 CONF = UserConfig('spyder', defaults=DEFAULTS, load=True, version=CONF_VERSION,
                   subfolder=SUBFOLDER, backup=True, raw_mode=True)
+
 
 # Removing old .spyder.ini location:
 old_location = osp.join(get_home_dir(), '.spyder.ini')

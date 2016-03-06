@@ -15,7 +15,7 @@
 import os.path as osp
 
 # Third party imports
-from spyderlib.qt.QtCore import Signal, Qt
+from spyderlib.qt.QtCore import Signal, Slot, Qt
 from spyderlib.qt.QtGui import QInputDialog, QVBoxLayout, QGroupBox, QLabel
 
 # Local imports
@@ -154,6 +154,7 @@ class Pylint(PylintWidget, SpyderPluginMixin):
         pass
         
     #------ Public API --------------------------------------------------------
+    @Slot()
     def change_history_depth(self):
         "Change history max entries"""
         depth, valid = QInputDialog.getInteger(self, _('History'),
@@ -162,7 +163,8 @@ class Pylint(PylintWidget, SpyderPluginMixin):
                                        10, 10000)
         if valid:
             self.set_option('max_entries', depth)
-        
+
+    @Slot()
     def run_pylint(self):
         """Run pylint code analysis"""
         if self.get_option('save_before', True)\

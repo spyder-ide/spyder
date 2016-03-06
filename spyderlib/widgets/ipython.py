@@ -237,6 +237,20 @@ These commands were executed:
 
     def clear_console(self):
         self.execute("%clear")
+        
+    def reset_namespace(self):
+        """Resets the namespace by removing all names defined by the user"""
+        
+        reply = QMessageBox.question(
+            self,
+            _("Reset IPython namespace"),
+            _("All user-defined variables will be removed."
+            "<br>Are you sure you want to reset the namespace?"),
+            QMessageBox.Yes | QMessageBox.No,
+            )
+
+        if reply == QMessageBox.Yes:
+            self.execute("%reset -f")
 
     def write_to_stdin(self, line):
         """Send raw characters to the IPython kernel through stdin"""
@@ -256,6 +270,7 @@ These commands were executed:
 
         # Fixed shortcuts
         new_shortcut("Ctrl+T", self, lambda: self.new_client.emit())
+        new_shortcut("Ctrl+R", self, lambda: self.reset_namespace())
         new_shortcut(SHORTCUT_INLINE, self,
                      lambda: self._control.enter_array_inline())
         new_shortcut(SHORTCUT_TABLE, self,
@@ -584,6 +599,9 @@ class IPythonClient(QWidget, SaveHistoryMixin):
                                           QKeySequence("Shift+Escape"),
                                           icon=ima.icon('editdelete'),
                                           triggered=self.clear_line)
+        reset_namespace_action = create_action(self, _("Reset namespace"),
+                                          QKeySequence("Ctrl+R"),
+                                          triggered=self.reset_namespace)
         clear_console_action = create_action(self, _("Clear console"),
                                              QKeySequence(get_shortcut('console',
                                                                'clear shell')),
@@ -592,7 +610,8 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         quit_action = create_action(self, _("&Quit"), icon=ima.icon('exit'),
                                     triggered=self.exit_callback)
         add_actions(menu, (None, inspect_action, clear_line_action,
-                           clear_console_action, None, quit_action))
+                           clear_console_action, reset_namespace_action,
+                           None, quit_action))
         return menu
     
     def set_font(self, font):
@@ -602,7 +621,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
 
     def set_infowidget_font(self):
         """Set font for infowidget"""
-        font = get_font('help', 'rich_text')
+        font = get_font(option='rich_font')
         self.infowidget.set_font(font)
 
     def interrupt_kernel(self):
@@ -627,7 +646,12 @@ class IPythonClient(QWidget, SaveHistoryMixin):
     @Slot()
     def clear_console(self):
         """Clear the whole console"""
-        self.shellwidget.execute("%clear")
+        self.shellwidget.clear_console()
+        
+    @Slot()
+    def reset_namespace(self):
+        """Resets the namespace by removing all names defined by the user"""
+        self.shellwidget.reset_namespace()
     
     def if_kernel_dies(self, t):
         """

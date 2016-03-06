@@ -23,7 +23,7 @@ import os.path as osp
 
 # Local imports
 from spyderlib.utils import encoding
-from spyderlib.config.base import get_conf_path, _
+from spyderlib.config.base import get_conf_path, get_home_dir, _
 from spyderlib.utils.qthelpers import create_action
 
 # Package local imports
@@ -193,8 +193,9 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
                                "find in files plugin and for new files\n"
                                "created in the editor"))
         self.pathedit.open_dir.connect(self.chdir)
+        self.pathedit.activated[str].connect(self.chdir)
         self.pathedit.setMaxCount(self.get_option('working_dir_history'))
-        wdhistory = self.load_wdhistory( workdir )
+        wdhistory = self.load_wdhistory(workdir)
         if workdir is None:
             if self.get_option('startup/use_last_directory'):
                 if wdhistory:
@@ -206,7 +207,7 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
                 if not osp.isdir(workdir):
                     workdir = "."
         self.chdir(workdir)
-        self.pathedit.addItems( wdhistory )
+        self.pathedit.addItems(wdhistory)
         self.pathedit.selected_text = self.pathedit.currentText()
         self.refresh_plugin()
         self.addWidget(self.pathedit)
@@ -217,14 +218,7 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
                                       _('Browse a working directory'),
                                       triggered=self.select_directory)
         self.addAction(browse_action)
-        
-        # Set current console working directory action
-        setwd_action = create_action(self, icon=ima.icon('set_workdir'),
-                                     text=_("Set as current console's "
-                                                  "working directory"),
-                                     triggered=self.set_as_current_console_wd)
-        self.addAction(setwd_action)
-        
+
         # Parent dir action
         parent_action = create_action(self, "parent", None,
                                       ima.icon('up'),
@@ -279,10 +273,10 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
             wdhistory = [name for name in wdhistory if os.path.isdir(name)]
         else:
             if workdir is None:
-                workdir = getcwd()
+                workdir = get_home_dir()
             wdhistory = [ workdir ]
         return wdhistory
-    
+
     def save_wdhistory(self):
         """Save history to a text file in user home directory"""
         text = [ to_text_string( self.pathedit.itemText(index) ) \
@@ -315,13 +309,13 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
     def parent_directory(self):
         """Change working directory to parent directory"""
         self.chdir(os.path.join(getcwd(), os.path.pardir))
-        
-    def chdir(self, directory=None, browsing_history=False,
+
+    @Slot(str)
+    def chdir(self, directory, browsing_history=False,
               refresh_explorer=True):
         """Set directory as working directory"""
         # Working directory history management
-        if directory is not None:
-            directory = osp.abspath(to_text_string(directory))
+        directory = osp.abspath(to_text_string(directory))
         if browsing_history:
             directory = self.history[self.histindex]
         elif directory in self.history:
@@ -339,6 +333,7 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         self.refresh_plugin()
         if refresh_explorer:
             self.set_explorer_cwd.emit(directory)
+            self.set_as_current_console_wd()
         self.refresh_findinfiles.emit()
     
     @Slot()

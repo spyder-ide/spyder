@@ -8,9 +8,9 @@
 
 from spyderlib.qt import PYQT5
 from spyderlib.qt.QtGui import (QHBoxLayout, QVBoxLayout, QLabel, QSizePolicy,
-                                QMenu, QToolButton, QGroupBox, QFontComboBox,
-                                QActionGroup, QFontDialog, QWidget, QComboBox,
-                                QLineEdit, QMessageBox)
+                                QMenu, QToolButton, QGroupBox, QActionGroup,
+                                QFontDialog, QWidget, QComboBox, QLineEdit,
+                                QMessageBox)
 from spyderlib.qt.QtCore import Signal, Slot, QUrl, QThread
 from spyderlib.qt.QtWebKit import QWebPage
 import spyderlib.utils.icon_manager as ima
@@ -21,9 +21,10 @@ import socket
 import sys
 
 # Local imports
+from spyderlib import dependencies
 from spyderlib.config.base import get_conf_path, get_module_source_path, _
 from spyderlib.config.ipython import QTCONSOLE_INSTALLED
-from spyderlib.config.main import CONF
+from spyderlib.config.main import CONF, DEFAULT_SMALL_DELTA
 from spyderlib.config.gui import get_color_scheme, get_font, set_font
 from spyderlib.utils import programs
 from spyderlib.utils.help.sphinxify import (CSS_PATH, sphinxify, warning,
@@ -37,6 +38,13 @@ from spyderlib.widgets.browser import FrameWebView
 from spyderlib.widgets.externalshell.pythonshell import ExtPythonShellWidget
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 from spyderlib.py3compat import to_text_string, get_meth_class_inst
+
+
+# Sphinx dependency
+dependencies.add("sphinx", _("Show help for objects in the Editor and "
+                             "Consoles in a dedicated pane"),
+                 required_version='>=0.6.6')
+
 
 #XXX: Hardcoded dependency on optional IPython plugin component
 #     that requires the hack to make this work without IPython
@@ -105,13 +113,6 @@ class ObjectComboBox(EditableComboBox):
 
 class HelpConfigPage(PluginConfigPage):
     def setup_page(self):
-        # Fonts group
-        plain_text_font_group = self.create_fontgroup(option=None,
-                                    text=_("Plain text font style"),
-                                    fontfilters=QFontComboBox.MonospacedFonts)
-        rich_text_font_group = self.create_fontgroup(option='rich_text',
-                                text=_("Rich text font style"))
-
         # Connections group
         connections_group = QGroupBox(_("Automatic connections"))
         connections_label = QLabel(_("This pane can automatically "
@@ -173,8 +174,6 @@ class HelpConfigPage(PluginConfigPage):
 
         # Final layout
         vlayout = QVBoxLayout()
-        vlayout.addWidget(rich_text_font_group)
-        vlayout.addWidget(plain_text_font_group)
         vlayout.addWidget(connections_group)
         vlayout.addWidget(features_group)
         vlayout.addWidget(sourcecode_group)
@@ -340,6 +339,9 @@ class Help(SpyderPluginWidget):
     CONF_SECTION = 'help'
     CONFIGWIDGET_CLASS = HelpConfigPage
     LOG_PATH = get_conf_path(CONF_SECTION)
+    FONT_SIZE_DELTA = DEFAULT_SMALL_DELTA
+
+    # Signals
     focus_changed = Signal()
 
     def __init__(self, parent):
@@ -534,27 +536,27 @@ class Help(SpyderPluginWidget):
             self.switch_to_rich_text()
             self.show_intro_message()
 
+    def update_font(self):
+        """Update font from Preferences"""
+        color_scheme = get_color_scheme(self.get_option('color_scheme_name'))
+        font = self.get_plugin_font()
+        rich_font = self.get_plugin_font(rich_text=True)
+
+        self.set_plain_text_font(font, color_scheme=color_scheme)
+        self.set_rich_text_font(rich_font)
+
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
         color_scheme_n = 'color_scheme_name'
         color_scheme_o = get_color_scheme(self.get_option(color_scheme_n))
-        font_n = 'plugin_font'
-        font_o = self.get_plugin_font()
         connect_n = 'connect_to_oi'
-        rich_font_n = 'rich_text'
-        rich_font_o = self.get_plugin_font('rich_text')
         wrap_n = 'wrap'
         wrap_o = self.get_option(wrap_n)
         self.wrap_action.setChecked(wrap_o)
         math_n = 'math'
         math_o = self.get_option(math_n)
 
-        if font_n in options:
-            scs = color_scheme_o if color_scheme_n in options else None
-            self.set_plain_text_font(font_o, color_scheme=scs)
-        if rich_font_n in options:
-            self.set_rich_text_font(rich_font_o)
-        elif color_scheme_n in options:
+        if color_scheme_n in options:
             self.set_plain_text_color_scheme(color_scheme_o)
         if wrap_n in options:
             self.toggle_wrap_mode(wrap_o)

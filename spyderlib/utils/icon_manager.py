@@ -26,16 +26,16 @@ _qtaargs = {
     'italic':                  [('fa.italic',), {}],
     'genprefs':                [('fa.cogs',), {}],
     'exit':                    [('fa.power-off',), {}],
-    'run_small':               [('fa.play',), {'color':'green'}],
-    'stop':                    [('fa.stop',), {}],
+    'run_small':               [('fa.play',), {'color': 'green'}],
+    'stop':                    [('fa.stop',), {'color': 'darkred'}],
     'syspath':                 [('fa.cogs',), {}],
     'font':                    [('fa.font',), {}],
     'keyboard':                [('fa.keyboard-o',), {}],
     'eyedropper':              [('fa.eyedropper',), {}],
-    'tooloptions':             [('fa.cog',), {}],
+    'tooloptions':             [('fa.cog',), {'color': '#333333'}],
     'edit24':                  [('fa.edit',), {}],
     'edit':                    [('fa.edit',), {}],
-    'filenew':                 [('fa.file-o', 'fa.plus'), {'options': [{}, {'scale_factor': 0.5, 'offset': (0.0, 0.1)}]}],
+    'filenew':                 [('fa.file-o',), {}],
     'fileopen':                [('fa.folder-open',), {}],
     'revert':                  [('fa.undo',), {}],
     'filesave':                [('fa.save',), {}],
@@ -45,7 +45,7 @@ _qtaargs = {
     'fileclose':               [('fa.close',), {}],
     'filecloseall':            [('fa.close', 'fa.close', 'fa.close'), {'options': [{'scale_factor': 0.6, 'offset': (0.3, -0.3)},  {'scale_factor': 0.6, 'offset': (-0.3, -0.3)}, {'scale_factor': 0.6, 'offset': (0.3, 0.3)}]}],
     'breakpoint_big':          [('fa.circle',), {'color': 'darkred'} ],
-    'breakpoint_cond_big':     [('fa.question-circle',), {'color':  'darkred'},],
+    'breakpoint_cond_big':     [('fa.question-circle',), {'color': 'darkred'},],
     'debug':                   [('spyder.debug',), {'color': '#3775a9'}],
     'arrow-step-over':         [('spyder.step-forward',), {'color': '#3775a9'}],
     'arrow-continue':          [('spyder.continue',), {'color': '#3775a9'}],
@@ -56,14 +56,14 @@ _qtaargs = {
     'run_settings':            [('fa.wrench', 'fa.play'), {'options': [{'offset':(0.0, -0.1)}, {'offset': (0.2, 0.125), 'color': 'green', 'scale_factor': 0.8}]}],
     'run_again':               [('fa.repeat', 'fa.play'), {'options': [{'offset':(0.0, -0.1)}, {'offset': (0.2, 0.125), 'color': 'green', 'scale_factor': 0.8}]}],
     'run_selection':           [('spyder.run-selection',), {}],
-    'run_cell':                [('spyder.cell-page', 'spyder.cell-border', 'spyder.cell-code', 'spyder.cell-page-shadow', 'spyder.cell-play'),
-                                {'options': [{'color': 'white'}, {'color': 'gray'}, {'color': '#fff683'}, {}, {'color': 'green'}]}],
-    'run_cell_advance':        [('spyder.cell-page', 'spyder.cell-border', 'spyder.cell-code', 'spyder.cell-page-shadow', 'spyder.cell-play', 'spyder.cell-next'),
-                                {'options': [{'color': 'white'}, {'color': 'gray'}, {'color': '#fff683'}, {}, {'color': 'green'}, {'color': 'red'}]}],
-    'todo_list':               [('fa.th-list', 'fa.check'), {'options': [{'color': '#3775a9'}, {'offset': (0.0, 0.2), 'color': 'orange', 'color_disabled': '#face7e'}]}],
-    'wng_list':                [('fa.th-list', 'fa.warning'), {'options': [{'color': '#3775a9'}, {'offset': (0.0, 0.2), 'scale_factor': 0.75, 'color': 'orange', 'color_disabled': '#face7e'}]}],
-    'prev_wng':                [('fa.arrow-left', 'fa.warning'), {'options': [{'color': '#3775a9'}, {'offset': (0.0, 0.2), 'scale_factor': 0.75, 'color': 'orange', 'color_disabled': '#face7e'}]}],
-    'next_wng':                [('fa.arrow-right', 'fa.warning'), {'options': [{'color': '#3775a9'}, {'offset': (0.0, 0.2), 'scale_factor': 0.75, 'color': 'orange', 'color_disabled': '#face7e'}]}],
+    'run_cell':                [('spyder.cell-code', 'spyder.cell-border', 'spyder.cell-play'),
+                                {'options': [{'color': '#fff683'}, {}, {'color': 'green'}]}],
+    'run_cell_advance':        [('spyder.cell-code', 'spyder.cell-border', 'spyder.cell-play', 'spyder.cell-next'),
+                                {'options': [{'color': '#fff683'}, {}, {'color': 'green'}, {'color': 'red'}]}],
+    'todo_list':               [('fa.th-list', 'fa.check'), {'options': [{'color': '#999999'}, {'offset': (0.0, 0.2), 'color': '#3775a9', 'color_disabled': '#748fa6'}]}],
+    'wng_list':                [('fa.th-list', 'fa.warning'), {'options': [{'color': '#999999'}, {'offset': (0.0, 0.2), 'scale_factor': 0.75, 'color': 'orange', 'color_disabled': '#face7e'}]}],
+    'prev_wng':                [('fa.arrow-left', 'fa.warning'), {'options': [{'color': '#999999'}, {'offset': (0.0, 0.2), 'scale_factor': 0.75, 'color': 'orange', 'color_disabled': '#face7e'}]}],
+    'next_wng':                [('fa.arrow-right', 'fa.warning'), {'options': [{'color': '999999'}, {'offset': (0.0, 0.2), 'scale_factor': 0.75, 'color': 'orange', 'color_disabled': '#face7e'}]}],
     'last_edit_location':      [('fa.caret-up',), {}],
     'prev_cursor':             [('fa.hand-o-left',), {}],
     'next_cursor':             [('fa.hand-o-right',), {}],
@@ -71,9 +71,9 @@ _qtaargs = {
     'indent':                  [('fa.indent',), {}],
     'unindent':                [('fa.outdent',), {}],
     'gotoline':                [('fa.sort-numeric-asc',), {}],
-    'error':                   [('fa.times-circle',), {}],
+    'error':                   [('fa.times-circle',), {'color': 'darkred'}],
     'warning':                 [('fa.warning',), {'color': 'orange'}],
-    'todo':                    [('fa.check',), {'color': 'orange'}],
+    'todo':                    [('fa.check',), {'color': '#3775a9'}],
     'ipython_console':         [('spyder.ipython-logo-alt',), {}],
     'ipython_console_t':       [('spyder.ipython-logo-alt',), {'color':'gray'}],
     'python':                  [('spyder.python-logo-up', 'spyder.python-logo-down'), {'options': [{'color': '#3775a9'}, {'color': '#ffd444'}]}],
@@ -105,7 +105,7 @@ _qtaargs = {
     'replace':                 [('fa.exchange',), {}],
     'undo':                    [('fa.undo',), {}],
     'redo':                    [('fa.repeat',), {}],
-    'restart':                 [('fa.repeat',), {}],
+    'restart':                 [('fa.repeat',), {'çolor': '#3775a9'}],
     'editcopy':                [('fa.copy',), {}],
     'editcut':                 [('fa.scissors',), {}],
     'editpaste':               [('fa.clipboard',), {}],
@@ -113,7 +113,7 @@ _qtaargs = {
     'editclear':               [('fa.times',), {}],
     'selectall':               [('spyder.text-select-all',), {}],
     'pythonpath_mgr':          [('spyder.python-logo-up', 'spyder.python-logo-down'), {'options': [{'color': '#3775a9'}, {'color': '#ffd444'}]}],
-    'exit':                    [('fa.power-off',), {}],
+    'exit':                    [('fa.power-off',), {'color': 'darkred'}],
     'advanced':                [('fa.gear',), {}],
     'bug':                     [('fa.bug',), {}],
     'maximize':                [('spyder.maximize-pane',), {}],
@@ -140,9 +140,9 @@ _qtaargs = {
     'horsplit':                [('fa.columns',), {}],
     'close_panel':             [('fa.close',), {}],
     'class':                   [('spyder.circle-letter-c',), {'color':'#3775a9'}],
-    'private2':                [('fa.minus-circle',), {'color':'#7ea67e'}],
-    'private1':                [('fa.minus-circle',), {'color':'#7ea67e'}],
-    'method':                  [('spyder.circle-letter-m',), {'color':'green'}],
+    'private2':                [('spyder.circle-underscore',), {'color':'#e69c9c'}],
+    'private1':                [('spyder.circle-underscore',), {'color':'#e69c9c'}],
+    'method':                  [('spyder.circle-letter-m',), {'color':'#7ea67e'}],
     'function':                [('spyder.circle-letter-f',), {'color':'orange'}],
     'blockcomment':            [('spyder.circle-hash',), {'color':'grey'}],
     'cell':                    [('spyder.circle-percent',), {'color':'red'}],
@@ -165,10 +165,9 @@ _qtaargs = {
     'ArrowForward':            [('fa.arrow-circle-right',), {}],
     'DialogApplyButton':       [('fa.check',), {}],
     'DialogCloseButton':       [('fa.close',), {}],
-    'DialogHelpButton':        [('fa.question',), {}],
     'DirClosedIcon':           [('fa.folder-o',), {}],
-    'DialogHelpButton':        [('fa.life-ring',), {}],
-    'MessageBoxInformation':   [('fa.info',), {}],
+    'DialogHelpButton':        [('fa.life-ring',), {'color': 'darkred'}],
+    'MessageBoxInformation':   [('fa.info',), {'color': '3775a9'}],
     'DirOpenIcon':             [('fa.folder-open',), {}],
     'FileIcon':                [('fa.file-o',), {}],
     'DriveHDIcon':             [('fa.hdd-o',), {}],
@@ -187,7 +186,7 @@ _qtaargs = {
     '2uparrow':                [('fa.angle-double-up',), {}],
     '1uparrow':                [('fa.angle-up',), {}],
     '2downarrow':              [('fa.angle-double-down',), {}],
-    '1downarrow':              [('fa.angle-down',), {}],    
+    '1downarrow':              [('fa.angle-down',), {}],
     'attribute':               [('spyder.circle-letter-a',), {'color': 'magenta'}],
     'module':                  [('spyder.circle-letter-m',), {'color': '#daa520'}],
     'no_match':                [('fa.circle',), {'color': 'gray'}],
@@ -216,12 +215,14 @@ def get_std_icon(name, size=None):
 
 
 def get_icon(name, default=None, resample=False):
-    """Return image inside a QIcon object
+    """Return image inside a QIcon object.
+
     default: default image name or icon
     resample: if True, manually resample icon pixmaps for usual sizes
-    (16, 24, 32, 48, 96, 128, 256). This is recommended for QMainWindow icons 
-    created from SVG images on non-Windows platforms due to a Qt bug (see 
-    Issue 1314)."""
+    (16, 24, 32, 48, 96, 128, 256). This is recommended for QMainWindow icons
+    created from SVG images on non-Windows platforms due to a Qt bug (see
+    Issue 1314).
+    """
 
     icon_path = get_image_path(name, default=None)
     if icon_path is not None:

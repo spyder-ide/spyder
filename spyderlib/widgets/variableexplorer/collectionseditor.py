@@ -35,6 +35,7 @@ from spyderlib.utils.qthelpers import mimedata2url
 
 # Local import
 from spyderlib.config.base import _
+from spyderlib.config.main import DEFAULT_SMALL_DELTA
 from spyderlib.config.gui import get_font
 from spyderlib.utils.misc import fix_reference_name
 from spyderlib.utils.qthelpers import add_actions, create_action, qapplication
@@ -298,16 +299,16 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
             return to_qvariant( self.get_bgcolor(index) )
         elif role == Qt.FontRole:
             if index.column() < 3:
-                return to_qvariant(get_font('dicteditor_header'))
+                return to_qvariant(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
             else:
-                return to_qvariant(get_font('dicteditor'))
+                return to_qvariant(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
         return to_qvariant()
     
     def headerData(self, section, orientation, role=Qt.DisplayRole):
         """Overriding method headerData"""
         if role != Qt.DisplayRole:
             if role == Qt.FontRole:
-                return to_qvariant(get_font('dicteditor_header'))
+                return to_qvariant(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
             else:
                 return to_qvariant()
         i_column = int(section)
@@ -472,13 +473,13 @@ class CollectionsDelegate(QItemDelegate):
         elif isinstance(value, datetime.datetime):
             editor = QDateTimeEdit(value, parent)
             editor.setCalendarPopup(True)
-            editor.setFont(get_font('dicteditor'))
+            editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
             return editor
         #---editor = QDateEdit
         elif isinstance(value, datetime.date):
             editor = QDateEdit(value, parent)
             editor.setCalendarPopup(True)
-            editor.setFont(get_font('dicteditor'))
+            editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
             return editor
         #---editor = TextEditor
         elif is_text_string(value) and len(value)>40:
@@ -489,7 +490,7 @@ class CollectionsDelegate(QItemDelegate):
         #---editor = QLineEdit
         elif is_editable_type(value):
             editor = QLineEdit(parent)
-            editor.setFont(get_font('dicteditor'))
+            editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
             editor.setAlignment(Qt.AlignLeft)
             editor.returnPressed.connect(self.commitAndCloseEditor)
             return editor
@@ -1065,6 +1066,10 @@ class BaseTableView(QTableView):
                 else:
                     obj = output.getvalue().decode('utf-8')
                 output.close()
+            elif is_binary_string(obj):
+                obj = to_text_string(obj, 'utf8')
+            else:
+                obj = to_text_string(obj)
             clipl.append(obj)
         clipboard.setText('\n'.join(clipl))
 

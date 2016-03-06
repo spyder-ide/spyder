@@ -150,8 +150,8 @@ if not options.hide_console and os.name == 'nt':
     print("0x. Enforcing parent console (Windows only)")
     sys.argv.append("--show-console")  # Windows only: show parent console
 
-print("04. Executing spyder.main()")
-from spyderlib import start_app
+print("04. Running Spyder")
+from spyderlib.app import start
 
 time_lapse = time.time()-time_start
 print("Bootstrap completed in " +
@@ -159,4 +159,4 @@ print("Bootstrap completed in " +
     # gmtime() converts float into tuple, but loses milliseconds
     ("%.4f" % time_lapse).split('.')[1])
 
-start_app.main()
+start.main()

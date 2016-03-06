@@ -16,18 +16,6 @@ fi
 
 # Depth 1
 for f in spyderlib/*.py; do
-    if [[ $f == spyderlib/restart_app.py ]]; then
-        continue
-    fi
-    if [[ $f == spyderlib/spyder.py ]]; then
-        continue
-    fi
-    if [[ $f == spyderlib/tour.py ]]; then
-        continue
-    fi
-    if [[ $f == spyderlib/start_app.py ]]; then
-        continue
-    fi
     if [[ $f == spyderlib/pyplot.py ]]; then
         continue
     fi
@@ -40,6 +28,9 @@ done
 
 # Depth 2
 for f in spyderlib/*/*.py; do
+    if [[ $f == spyderlib/app/*.py ]]; then
+        continue
+    fi
     if [[ $f == spyderlib/plugins/*.py ]]; then
         continue
     fi
@@ -74,7 +65,7 @@ for f in spyderlib/*/*/*.py; do
     if [[ $f == spyderlib/utils/help/*.py ]]; then
         continue
     fi
-    if [[ $f == spyderlib/utils/introspection/__init__.py ]]; then
+    if [[ $f == spyderlib/utils/introspection/plugin_client.py ]]; then
         continue
     fi
     if [[ $f == spyderlib/widgets/externalshell/systemshell.py ]]; then

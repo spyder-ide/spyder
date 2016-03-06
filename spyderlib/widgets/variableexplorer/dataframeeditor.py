@@ -13,6 +13,7 @@
 Pandas DataFrame Editor Dialog
 """
 
+from spyderlib.qt import API
 from spyderlib.qt.QtCore import QAbstractTableModel, Qt, QModelIndex, Slot
 from spyderlib.qt.QtGui import (QDialog, QTableView, QColor, QGridLayout,
                                 QDialogButtonBox, QHBoxLayout, QPushButton,
@@ -430,9 +431,13 @@ class DataFrameView(QTableView):
                      (_("To str"), to_text_string))
         types_in_menu = [copy_action]
         for name, func in functions:
+            # QAction.triggered works differently for PySide and PyQt
+            if not API == 'pyside':
+                slot = lambda _checked, func=func: self.change_type(func)
+            else:
+                slot = lambda func=func: self.change_type(func)
             types_in_menu += [create_action(self, name,
-                                            triggered=lambda func=func:
-                                                      self.change_type(func),
+                                            triggered=slot,
                                             context=Qt.WidgetShortcut)]
         menu = QMenu(self)
         add_actions(menu, types_in_menu)

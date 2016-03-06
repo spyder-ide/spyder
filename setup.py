@@ -262,7 +262,7 @@ if any(arg == 'bdist_wheel' for arg in sys.argv):
 
 install_requires = [
     'rope_py3k' if PY3 else 'rope>=0.9.4',
-    'jedi==0.8.1',
+    'jedi',
     'pyflakes',
     'pygments',
     'qtconsole',
@@ -280,7 +280,7 @@ if 'setuptools' in sys.modules:
 
     setup_args['entry_points'] = {
         'gui_scripts': [
-            'spyder = spyderlib.start_app:main'
+            'spyder = spyderlib.app.start:main'
         ]
     }
 

@@ -29,9 +29,9 @@ import os.path as osp
 
 # Local imports
 from spyderlib.utils import encoding, sourcecode, codeanalysis
-from spyderlib.utils import introspection
+from spyderlib.utils.introspection.manager import IntrospectionManager
 from spyderlib.config.base import _, DEBUG, STDOUT, STDERR
-from spyderlib.config.main import EDIT_FILTERS, EDIT_EXT, get_filter, EDIT_FILETYPES
+from spyderlib.config.utils import get_edit_extensions
 from spyderlib.config.gui import create_shortcut, new_shortcut
 from spyderlib.utils.qthelpers import (create_action, add_actions,
                                        mimedata2url, get_filetype_icon,
@@ -401,7 +401,7 @@ class EditorStack(QWidget):
         if ccs not in syntaxhighlighters.COLOR_SCHEME_NAMES:
             ccs = syntaxhighlighters.COLOR_SCHEME_NAMES[0]
         self.color_scheme = ccs
-        self.introspector = introspection.PluginManager(self)
+        self.introspector = IntrospectionManager(self)
 
         self.introspector.send_to_help.connect(self.send_to_help)
         self.introspector.edit_goto.connect(
@@ -685,7 +685,7 @@ class EditorStack(QWidget):
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_blanks_enabled(state)
-        
+
     def set_edgeline_enabled(self, state):
         # CONF.get(self.CONF_SECTION, 'edge_line')
         self.edgeline_enabled = state
@@ -1260,11 +1260,9 @@ class EditorStack(QWidget):
         finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
 
     def select_savename(self, original_filename):
-        selectedfilter = get_filter(EDIT_FILETYPES,
-                                    osp.splitext(original_filename)[1])
         self.redirect_stdio.emit(False)
-        filename, _selfilter = getsavefilename(self, _("Save Python script"),
-                               original_filename, EDIT_FILTERS, selectedfilter)
+        filename, _selfilter = getsavefilename(self, _("Save file"),
+                                               original_filename)
         self.redirect_stdio.emit(True)
         if filename:
             return osp.normpath(filename)
@@ -1810,7 +1808,7 @@ class EditorStack(QWidget):
         # The second check is necessary on Windows, where source.hasUrls()
         # can return True but source.urls() is []
         if source.hasUrls() and source.urls():
-            if mimedata2url(source, extlist=EDIT_EXT):
+            if mimedata2url(source, extlist=get_edit_extensions()):
                 event.acceptProposedAction()
             else:
                 all_urls = mimedata2url(source)
@@ -1837,7 +1835,7 @@ class EditorStack(QWidget):
         if source.hasUrls():
             files = mimedata2url(source)
             files = [f for f in files if encoding.is_text_file(f)]
-            supported_files = mimedata2url(source, extlist=EDIT_EXT)
+            supported_files = mimedata2url(source, extlist=get_edit_extensions())
             files = set(files or []) | set(supported_files or [])
             for fname in files:
                 self.plugin_load.emit(fname)
@@ -2326,7 +2324,7 @@ def test():
     from spyderlib.config.base import get_module_path
 
     cur_dir = osp.join(get_module_path('spyderlib'), 'widgets')
-    app = qapplication()
+    app = qapplication(test_time=8)
     test = EditorPluginExample()
     test.resize(900, 700)
     test.show()

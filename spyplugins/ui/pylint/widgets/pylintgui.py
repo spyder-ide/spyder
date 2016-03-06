@@ -15,7 +15,7 @@ from __future__ import with_statement, print_function
 
 from spyderlib.qt.QtGui import (QHBoxLayout, QWidget, QTreeWidgetItem,
                                 QMessageBox, QVBoxLayout, QLabel)
-from spyderlib.qt.QtCore import Signal, QProcess, QByteArray, QTextCodec
+from spyderlib.qt.QtCore import Signal, Slot, QProcess, QByteArray, QTextCodec
 locale_codec = QTextCodec.codecForLocale()
 from spyderlib.qt.compat import getopenfilename
 import spyderlib.utils.icon_manager as ima
@@ -278,7 +278,8 @@ class PylintWidget(QWidget):
         self.filecombo.selected()
         if self.filecombo.is_valid():
             self.start()
-            
+
+    @Slot()
     def select_file(self):
         self.redirect_stdio.emit(False)
         filename, _selfilter = getopenfilename(self, _("Select Python file"),
@@ -315,12 +316,14 @@ class PylintWidget(QWidget):
         while len(self.rdata) > self.max_entries:
             self.rdata.pop(-1)
         pickle.dump([self.VERSION]+self.rdata, open(self.DATAPATH, 'wb'), 2)
-        
+
+    @Slot()
     def show_log(self):
         if self.output:
             TextEditor(self.output, title=_("Pylint output"),
                        readonly=True, size=(700, 500)).exec_()
-        
+
+    @Slot()
     def start(self):
         filename = to_text_string(self.filecombo.currentText())
         

@@ -29,6 +29,7 @@ import os.path as osp
 import re
 import socket
 import shutil
+import signal
 import subprocess
 import sys
 import threading
@@ -74,7 +75,7 @@ except ImportError:
 #==============================================================================
 # Qt imports
 #==============================================================================
-from spyderlib.qt import PYQT5
+from spyderlib.qt import API, PYQT5
 from spyderlib.qt.QtGui import (QApplication, QMainWindow, QSplashScreen,
                                 QPixmap, QMessageBox, QMenu, QColor, QShortcut,
                                 QKeySequence, QDockWidget, QAction,
@@ -122,9 +123,9 @@ from spyderlib.config.base import (get_conf_path, get_module_data_path,
                                    get_module_source_path, STDERR, DEBUG,
                                    debug_print, TEST, SUBFOLDER, MAC_APP_NAME,
                                    running_in_mac_app, get_module_path)
-from spyderlib.config.main import (CONF, EDIT_EXT, IMPORT_EXT, OPEN_FILES_PORT,
-                                   is_gtk_desktop)
-from spyderlib.cli_options import get_options
+from spyderlib.config.main import CONF, OPEN_FILES_PORT
+from spyderlib.config.utils import IMPORT_EXT, is_gtk_desktop
+from spyderlib.app.cli_options import get_options
 from spyderlib import dependencies
 from spyderlib.config.ipython import QTCONSOLE_INSTALLED
 from spyderlib.config.user import NoDefault
@@ -156,7 +157,7 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, get_icon,
                                        file_uri)
 from spyderlib.config.gui import get_shortcut, remove_deprecated_shortcuts
 from spyderlib.otherplugins import get_spyderplugins_mods
-from spyderlib import tour # FIXME: Better place for this?
+from spyderlib.app import tour
 
 
 #==============================================================================
@@ -273,10 +274,26 @@ class MainWindow(QMainWindow):
 
         self.debug_print("Start of MainWindow constructor")
 
+        def signal_handler(signum, frame):
+            """Handler for signals."""
+            sys.stdout.write('Handling signal: %s\n' % signum)
+            sys.stdout.flush()
+            QApplication.quit()
+
+        if os.name == "nt":
+            try:
+                import win32api
+                win32api.SetConsoleCtrlHandler(signal_handler, True)
+            except ImportError:
+                version = '.'.join(map(str, sys.version_info[:2]))
+                raise Exception('pywin32 not installed for Python ' + version)
+        else:
+            signal.signal(signal.SIGTERM, signal_handler)
+
         # Use a custom Qt stylesheet
         if sys.platform == 'darwin':
             spy_path = get_module_source_path('spyderlib')
-            mac_style = open(osp.join(spy_path, 'mac_stylesheet.qss')).read()
+            mac_style = open(osp.join(spy_path, 'app', 'mac_stylesheet.qss')).read()
             self.setStyleSheet(mac_style)
 
         # Shortcut management data
@@ -818,11 +835,7 @@ class MainWindow(QMainWindow):
         self.toolbarslist.append(self.workingdirectory)
 
         # Help plugin
-        dependencies.add("sphinx", _("Show help for objects in the Editor and "
-                                     "Consoles in a dedicated pane"),
-                         required_version='>=0.6.6')
-        if CONF.get('help', 'enable') and \
-          programs.is_module_installed('sphinx'):
+        if CONF.get('help', 'enable'):
             self.set_splash(_("Loading help..."))
             from spyderlib.plugins.help import Help
             self.help = Help(self)
@@ -1019,10 +1032,15 @@ class MainWindow(QMainWindow):
         ipm_actions = []
         def add_ipm_action(text, path):
             """Add installed Python module doc action to help submenu"""
+            # QAction.triggered works differently for PySide and PyQt
             path = file_uri(path)
+            if not API == 'pyside':
+                slot=lambda _checked, path=path: programs.start_file(path)
+            else:
+                slot=lambda path=path: programs.start_file(path)
             action = create_action(self, text,
                     icon='%s.png' % osp.splitext(path)[1][1:],
-                    triggered=lambda path=path: programs.start_file(path))
+                    triggered=slot)
             ipm_actions.append(action)
         sysdocpth = osp.join(sys.prefix, 'Doc')
         if osp.isdir(sysdocpth): # exists on Windows, except frozen dist.
@@ -1292,10 +1310,26 @@ class MainWindow(QMainWindow):
 
         # Check for spyder updates
         if DEV is None and CONF.get('main', 'check_updates_on_startup'):
-            self.give_updates_feedback = False 
+            self.give_updates_feedback = False
             self.check_updates()
 
+        self.report_missing_dependencies()
+
         self.is_setting_up = False
+
+    def report_missing_dependencies(self):
+        """Show a QMessageBox with a list of missing hard dependencies"""
+        missing_deps = dependencies.missing_dependencies()
+        if missing_deps:
+            QMessageBox.critical(self, _('Error'),
+                _("<b>You have missing dependencies!!</b>"
+                  "<br><br><tt>%s</tt><br><br>"
+                  "<b>Please install them to avoid this message.</b>"
+                  "<br><br>"
+                  "<i>Note</i>: Spyder could work without them but please "
+                  "don't complain about problems or errors generated because "
+                  "of this."
+                  ) % missing_deps, QMessageBox.Ok)
 
     def load_window_settings(self, prefix, default=False, section='main'):
         """Load window layout settings from userconfig-based configuration
@@ -1675,10 +1709,12 @@ class MainWindow(QMainWindow):
 
         self.setUpdatesEnabled(True)
 
+    @Slot()
     def toggle_previous_layout(self):
         """ """
         self.toggle_layout('previous')
 
+    @Slot()
     def toggle_next_layout(self):
         """ """
         self.toggle_layout('next')
@@ -1913,6 +1949,7 @@ class MainWindow(QMainWindow):
             self.get_visible_toolbars()
         self._update_show_toolbars_action()
 
+    @Slot()
     def show_toolbars(self):
         """Show/Hides toolbars."""
         value = not self.toolbars_visible
@@ -2488,9 +2525,7 @@ class MainWindow(QMainWindow):
         """
         fname = to_text_string(fname)
         ext = osp.splitext(fname)[1]
-        if ext in EDIT_EXT:
-            self.editor.load(fname)
-        elif self.variableexplorer is not None and ext in IMPORT_EXT:
+        if self.variableexplorer is not None and ext in IMPORT_EXT:
             self.variableexplorer.import_data(fname)
         elif encoding.is_text_file(fname):
             self.editor.load(fname)
@@ -2727,6 +2762,7 @@ class MainWindow(QMainWindow):
             req.sendall(b' ')
 
     # ---- Quit and restart, and reset spyder defaults
+    @Slot()
     def reset_spyder(self):
         """
         Quit and reset Spyder and then Restart application.
@@ -2738,6 +2774,7 @@ class MainWindow(QMainWindow):
         if answer == QMessageBox.Yes:
             self.restart(reset=True)
 
+    @Slot()
     def restart(self, reset=False):
         """
         Quit and Restart Spyder application.
@@ -2746,10 +2783,10 @@ class MainWindow(QMainWindow):
         """
         # Get start path to use in restart script
         spyder_start_directory = get_module_path('spyderlib')
-        restart_script = osp.join(spyder_start_directory, 'restart_app.py')
+        restart_script = osp.join(spyder_start_directory, 'app', 'restart.py')
 
         # Get any initial argument passed when spyder was started
-        # Note: Variables defined in bootstrap.py and spyderlib\start_app.py
+        # Note: Variables defined in bootstrap.py and spyderlib/app/start.py
         env = os.environ.copy()
         bootstrap_args = env.pop('SPYDER_BOOTSTRAP_ARGS', None)
         spyder_args = env.pop('SPYDER_ARGS')
@@ -2874,6 +2911,7 @@ class MainWindow(QMainWindow):
         # Provide feeback when clicking menu if check on startup is on
         self.give_updates_feedback = True
 
+    @Slot()
     def check_updates(self):
         """
         Check for spyder updates on github releases using a QThread.
