@@ -12,8 +12,7 @@
 # pylint: disable=R0201
 
 from spyderlib.qt import PYQT5
-from spyderlib.qt.QtGui import (QVBoxLayout, QFontDialog, QInputDialog,
-                                QLineEdit, QMenu)
+from spyderlib.qt.QtGui import QVBoxLayout, QInputDialog, QLineEdit, QMenu
 from spyderlib.qt.QtCore import Signal, Slot
 from spyderlib.qt.compat import getopenfilename
 import spyderlib.utils.icon_manager as ima
@@ -116,7 +115,7 @@ class Console(SpyderPluginWidget):
         return self.shell
 
     def update_font(self):
-        """ """
+        """Update font from Preferences"""
         font = self.get_plugin_font()
         self.shell.set_font(font)
 

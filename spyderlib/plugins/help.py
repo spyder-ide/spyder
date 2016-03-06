@@ -8,9 +8,9 @@
 
 from spyderlib.qt import PYQT5
 from spyderlib.qt.QtGui import (QHBoxLayout, QVBoxLayout, QLabel, QSizePolicy,
-                                QMenu, QToolButton, QGroupBox, QFontComboBox,
-                                QActionGroup, QFontDialog, QWidget, QComboBox,
-                                QLineEdit, QMessageBox)
+                                QMenu, QToolButton, QGroupBox, QActionGroup,
+                                QFontDialog, QWidget, QComboBox, QLineEdit,
+                                QMessageBox)
 from spyderlib.qt.QtCore import Signal, Slot, QUrl, QThread
 from spyderlib.qt.QtWebKit import QWebPage
 import spyderlib.utils.icon_manager as ima
@@ -537,7 +537,7 @@ class Help(SpyderPluginWidget):
             self.show_intro_message()
 
     def update_font(self):
-        """ """
+        """Update font from Preferences"""
         color_scheme = get_color_scheme(self.get_option('color_scheme_name'))
         font = self.get_plugin_font()
         rich_font = self.get_plugin_font(rich_text=True)

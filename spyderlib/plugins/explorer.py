@@ -12,7 +12,6 @@
 # pylint: disable=R0201
 
 from spyderlib.qt.QtCore import Signal
-import spyderlib.utils.icon_manager as ima
 
 import os.path as osp
 
@@ -101,6 +100,7 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
         return True
 
     def update_font(self):
+        """Update font from Preferences"""
         font = self.get_plugin_font(rich_text=True)
         self.setFont(font)
         self.treewidget.setFont(font)

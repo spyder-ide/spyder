@@ -653,10 +653,10 @@ class IPythonConsole(SpyderPluginWidget):
         self.main.tabify_plugins(self.main.extconsole, self)
 
     def update_font(self):
-        """ """
+        """Update font from Preferences"""
         font = self.get_plugin_font()
         for client in self.clients:
-            client.set_font(font)        
+            client.set_font(font)
 
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""

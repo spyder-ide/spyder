@@ -32,7 +32,7 @@ from spyderlib.qt.QtGui import (QDockWidget, QWidget, QShortcut, QCursor,
 # Local imports
 from spyderlib.utils.qthelpers import create_action, toggle_actions
 from spyderlib.config.base import _
-from spyderlib.config.gui import get_font, set_font
+from spyderlib.config.gui import get_font
 from spyderlib.config.main import CONF
 from spyderlib.config.user import NoDefault
 from spyderlib.plugins.configdialog import SpyderConfigPage
@@ -484,8 +484,7 @@ class SpyderPluginMixin(object):
                         "This method is deprecated.")
 
     def update_font(self):
-        """ """
-        pass
+        raise NotImplementedError
 
     def __show_message(self, message, timeout=0):
         """Show message in main window's status bar"""

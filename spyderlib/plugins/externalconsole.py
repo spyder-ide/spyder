@@ -1102,7 +1102,7 @@ class ExternalConsole(SpyderPluginWidget):
         self.update_plugin_title.emit()
 
     def update_font(self):
-        """ """
+        """Update font from Preferences"""
         font = self.get_plugin_font()
         for shellwidget in self.shellwidgets:
             shellwidget.shell.set_font(font)

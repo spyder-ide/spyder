@@ -183,7 +183,7 @@ class HistoryLog(SpyderPluginWidget):
         self.main.console.shell.refresh.connect(self.refresh_plugin)
 
     def update_font(self):
-        """ """
+        """Update font from Preferences"""
         color_scheme = get_color_scheme(self.get_option('color_scheme_name'))
         font = self.get_plugin_font()
         for editor in self.editors:

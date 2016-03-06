@@ -1056,7 +1056,7 @@ class Editor(SpyderPluginWidget):
         self.main.add_dockwidget(self)
 
     def update_font(self):
-        """ """
+        """Update font from Preferences"""
         font = self.get_plugin_font()
         color_scheme = get_color_scheme(self.get_option('color_scheme_name'))
         for editorstack in self.editorstacks:
