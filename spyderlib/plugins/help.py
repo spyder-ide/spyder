@@ -9,8 +9,7 @@
 from spyderlib.qt import PYQT5
 from spyderlib.qt.QtGui import (QHBoxLayout, QVBoxLayout, QLabel, QSizePolicy,
                                 QMenu, QToolButton, QGroupBox, QActionGroup,
-                                QFontDialog, QWidget, QComboBox, QLineEdit,
-                                QMessageBox)
+                                QWidget, QComboBox, QLineEdit, QMessageBox)
 from spyderlib.qt.QtCore import Signal, Slot, QUrl, QThread
 from spyderlib.qt.QtWebKit import QWebPage
 import spyderlib.utils.icon_manager as ima
@@ -25,7 +24,7 @@ from spyderlib import dependencies
 from spyderlib.config.base import get_conf_path, get_module_source_path, _
 from spyderlib.config.ipython import QTCONSOLE_INSTALLED
 from spyderlib.config.main import CONF, DEFAULT_SMALL_DELTA
-from spyderlib.config.gui import get_color_scheme, get_font, set_font
+from spyderlib.config.gui import get_color_scheme
 from spyderlib.utils import programs
 from spyderlib.utils.help.sphinxify import (CSS_PATH, sphinxify, warning,
                                             generate_context, usage)
@@ -370,15 +369,11 @@ class Help(SpyderPluginWidget):
         self.plain_text.editor.toggle_wrap_mode(self.get_option('wrap'))
 
         # Add entries to read-only editor context-menu
-        font_action = create_action(self, _("&Font..."), None,
-                                    ima.icon('font'), _("Set font style"),
-                                    triggered=self.change_font)
         self.wrap_action = create_action(self, _("Wrap lines"),
                                          toggled=self.toggle_wrap_mode)
         self.wrap_action.setChecked(self.get_option('wrap'))
         self.plain_text.editor.readonly_menu.addSeparator()
-        add_actions(self.plain_text.editor.readonly_menu,
-                    (font_action, self.wrap_action))
+        add_actions(self.plain_text.editor.readonly_menu, (self.wrap_action,))
 
         self.set_rich_text_font(self.get_plugin_font('rich_text'))
 
@@ -639,15 +634,6 @@ class Help(SpyderPluginWidget):
     def set_plain_text_color_scheme(self, color_scheme):
         """Set plain text mode color scheme"""
         self.plain_text.set_color_scheme(color_scheme)
-
-    @Slot()
-    def change_font(self):
-        """Change console font"""
-        font, valid = QFontDialog.getFont(get_font(self.CONF_SECTION), self,
-                                      _("Select a new font"))
-        if valid:
-            self.set_plain_text_font(font)
-            set_font(font, self.CONF_SECTION)
 
     @Slot(bool)
     def toggle_wrap_mode(self, checked):
