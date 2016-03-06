@@ -33,6 +33,7 @@ import numpy as np
 # Local imports
 from spyderlib.config.base import _
 from spyderlib.config.gui import get_font, new_shortcut
+from spyderlib.config.main import DEFAULT_SMALL_DELTA
 from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
                                        qapplication)
 from spyderlib.py3compat import (PY3, io, to_text_string, is_text_string,
@@ -270,7 +271,7 @@ class ArrayModel(QAbstractTableModel):
             color = QColor.fromHsvF(hue, self.sat, self.val, self.alp)
             return to_qvariant(color)
         elif role == Qt.FontRole:
-            return to_qvariant(get_font('arrayeditor'))
+            return to_qvariant(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
         return to_qvariant()
 
     def setData(self, index, value, role=Qt.EditRole):
@@ -357,7 +358,7 @@ class ArrayDelegate(QItemDelegate):
             return
         elif value is not np.ma.masked:
             editor = QLineEdit(parent)
-            editor.setFont(get_font('arrayeditor'))
+            editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
             editor.setAlignment(Qt.AlignCenter)
             if is_number(self.dtype):
                 editor.setValidator(QDoubleValidator(editor))

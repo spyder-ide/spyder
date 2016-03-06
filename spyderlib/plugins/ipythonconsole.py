@@ -24,7 +24,7 @@ import sys
 from spyderlib.qt import PYQT5
 from spyderlib.qt.QtGui import (QVBoxLayout, QHBoxLayout, QFormLayout, 
                                 QMessageBox, QGroupBox, QDialogButtonBox,
-                                QDialog, QTabWidget, QFontComboBox, 
+                                QDialog, QTabWidget, 
                                 QCheckBox, QApplication, QLabel,QLineEdit,
                                 QPushButton, QKeySequence, QWidget,
                                 QGridLayout)
@@ -154,10 +154,6 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         newcb = self.create_checkbox
         mpl_present = programs.is_module_installed("matplotlib")
         
-        # --- Display ---
-        font_group = self.create_fontgroup(option=None, text=None,
-                                    fontfilters=QFontComboBox.MonospacedFonts)
-
         # Interface Group
         interface_group = QGroupBox(_("Interface"))
         banner_box = newcb(_("Display initial banner"), 'show_banner',
@@ -459,7 +455,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
 
         # --- Tabs organization ---
         tabs = QTabWidget()
-        tabs.addTab(self.create_tab(font_group, interface_group, comp_group,
+        tabs.addTab(self.create_tab(interface_group, comp_group,
                                     bg_group, source_code_group), _("Display"))
         tabs.addTab(self.create_tab(pylab_group, backend_group, inline_group),
                                     _("Graphics"))
@@ -655,6 +651,12 @@ class IPythonConsole(SpyderPluginWidget):
     def on_first_registration(self):
         """Action to be performed on first plugin registration"""
         self.main.tabify_plugins(self.main.extconsole, self)
+
+    def update_font(self):
+        """Update font from Preferences"""
+        font = self.get_plugin_font()
+        for client in self.clients:
+            client.set_font(font)
 
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""

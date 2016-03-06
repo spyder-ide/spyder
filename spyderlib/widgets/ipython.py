@@ -621,7 +621,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
 
     def set_infowidget_font(self):
         """Set font for infowidget"""
-        font = get_font('help', 'rich_text')
+        font = get_font(option='rich_font')
         self.infowidget.set_font(font)
 
     def interrupt_kernel(self):

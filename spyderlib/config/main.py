@@ -84,10 +84,12 @@ else:
     BIG = 12
     MEDIUM = SMALL = 9
 
+DEFAULT_SMALL_DELTA = SMALL - MEDIUM
+DEFAULT_LARGE_DELTA = SMALL - BIG
 
-#==============================================================================
-# Defaults
-#==============================================================================
+# =============================================================================
+#  Defaults
+# =============================================================================
 DEFAULTS = [
             ('main',
              {
@@ -115,6 +117,15 @@ DEFAULTS = [
               'show_internal_console_if_traceback': True,
               'check_updates_on_startup': True,
               'toolbars_visible': True,
+              # Global Spyder fonts
+              'font/family': MONOSPACE,
+              'font/size': MEDIUM,
+              'font/italic': False,
+              'font/bold': False,
+              'rich_font/family': SANS_SERIF,
+              'rich_font/size': BIG,
+              'rich_font/italic': False,
+              'rich_font/bold': False,
               }),
             ('quick_layouts',
              {
@@ -138,10 +149,6 @@ DEFAULTS = [
               'max_line_count': 300,
               'working_dir_history': 30,
               'working_dir_adjusttocontents': False,
-              'font/family': MONOSPACE,
-              'font/size': MEDIUM,
-              'font/italic': False,
-              'font/bold': False,
               'wrap': True,
               'calltips': True,
               'codecompletion/auto': False,
@@ -154,10 +161,6 @@ DEFAULTS = [
             ('console',
              {
               'max_line_count': 500,
-              'font/family': MONOSPACE,
-              'font/size': MEDIUM,
-              'font/italic': False,
-              'font/bold': False,
               'wrap': True,
               'single_tab': True,
               'calltips': True,
@@ -183,10 +186,6 @@ DEFAULTS = [
               }),
             ('ipython_console',
              {
-              'font/family': MONOSPACE,
-              'font/size': MEDIUM,
-              'font/italic': False,
-              'font/bold': False,
               'show_banner': True,
               'completion_type': 0,
               'use_pager': False,
@@ -231,10 +230,6 @@ DEFAULTS = [
               'printer_header/font/size': MEDIUM,
               'printer_header/font/italic': False,
               'printer_header/font/bold': False,
-              'font/family': MONOSPACE,
-              'font/size': MEDIUM,
-              'font/italic': False,
-              'font/bold': False,
               'wrap': False,
               'wrapflag': True,
               'code_analysis/pyflakes': True,
@@ -278,10 +273,6 @@ DEFAULTS = [
              {
               'enable': True,
               'max_entries': 100,
-              'font/family': MONOSPACE,
-              'font/size': MEDIUM,
-              'font/italic': False,
-              'font/bold': False,
               'wrap': True,
               'go_to_eof': True,
               }),
@@ -289,14 +280,6 @@ DEFAULTS = [
              {
               'enable': True,
               'max_history_entries': 20,
-              'font/family': MONOSPACE,
-              'font/size': SMALL,
-              'font/italic': False,
-              'font/bold': False,
-              'rich_text/font/family': SANS_SERIF,
-              'rich_text/font/size': BIG,
-              'rich_text/font/italic': False,
-              'rich_text/font/bold': False,
               'wrap': True,
               'connect/editor': False,
               'connect/python_console': False,
@@ -323,27 +306,6 @@ DEFAULTS = [
               'name_filters': NAME_FILTERS,
               'show_all': False,
               'show_hscrollbar': True
-              }),
-            ('arrayeditor',
-             {
-              'font/family': MONOSPACE,
-              'font/size': SMALL,
-              'font/italic': False,
-              'font/bold': False,
-              }),
-            ('texteditor',
-             {
-              'font/family': MONOSPACE,
-              'font/size': MEDIUM,
-              'font/italic': False,
-              'font/bold': False,
-              }),
-            ('dicteditor',
-             {
-              'font/family': MONOSPACE,
-              'font/size': SMALL,
-              'font/italic': False,
-              'font/bold': False,
               }),
             ('explorer',
              {
@@ -656,7 +618,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in 
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '24.2.0'
+CONF_VERSION = '25.0.0'
 
 
 # XXX: Previously we had load=(not DEV) here but DEV was set to *False*.

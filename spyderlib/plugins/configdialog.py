@@ -26,7 +26,7 @@ from spyderlib.config.base import (_, running_in_mac_app, LANGUAGE_CODES,
                                    save_lang_conf, load_lang_conf)
 from spyderlib.config.main import CONF
 from spyderlib.config.utils import is_gtk_desktop
-from spyderlib.config.gui import (CUSTOM_COLOR_SCHEME_NAME,
+from spyderlib.config.gui import (CUSTOM_COLOR_SCHEME_NAME, get_font, set_font,
                                   set_default_color_scheme)
 from spyderlib.config.user import NoDefault
 from spyderlib.utils import syntaxhighlighters as sh
@@ -643,29 +643,50 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         combobox.label_text = text
         return widget
     
-    def create_fontgroup(self, option=None, text=None,
-                         tip=None, fontfilters=None):
+    def create_fontgroup(self, option=None, text=None, title=None,
+                         tip=None, fontfilters=None, without_group=False):
         """Option=None -> setting plugin font"""
-        fontlabel = QLabel(_("Font: "))
+
+        if title:
+            fontlabel = QLabel(title)
+        else:
+            fontlabel = QLabel(_("Font: "))
         fontbox = QFontComboBox()
+
         if fontfilters is not None:
             fontbox.setFontFilters(fontfilters)
+
         sizelabel = QLabel("  "+_("Size: "))
         sizebox = QSpinBox()
         sizebox.setRange(7, 100)
         self.fontboxes[(fontbox, sizebox)] = option
         layout = QHBoxLayout()
+
         for subwidget in (fontlabel, fontbox, sizelabel, sizebox):
             layout.addWidget(subwidget)
         layout.addStretch(1)
-        if text is None:
-            text = _("Font style")
-        group = QGroupBox(text)
-        group.setLayout(layout)
-        if tip is not None:
-            group.setToolTip(tip)
-        return group
-    
+
+        widget = QWidget(self)
+        widget.fontlabel = fontlabel
+        widget.sizelabel = sizelabel        
+        widget.fontbox = fontbox
+        widget.sizebox = sizebox
+        widget.setLayout(layout)
+
+        if not without_group:
+            if text is None:
+                text = _("Font style")
+
+            group = QGroupBox(text)
+            group.setLayout(layout)
+
+            if tip is not None:
+                group.setToolTip(tip)
+
+            return group
+        else:
+            return widget
+
     def create_button(self, text, callback):
         btn = QPushButton(text)
         btn.clicked.connect(callback)
@@ -747,6 +768,38 @@ class MainConfigPage(GeneralConfigPage):
         newcb = self.create_checkbox
 
         # --- Interface
+        general_group = QGroupBox(_("General"))
+        languages = LANGUAGE_CODES.items()
+        language_choices = sorted([(val, key) for key, val in languages])
+        language_combo = self.create_combobox(_('Language'), language_choices,
+                                              'interface_language',
+                                              restart=True)
+        single_instance_box = newcb(_("Use a single instance"),
+                                    'single_instance',
+                                    tip=_("Set this to open external<br> "
+                                          "Python files in an already running "
+                                          "instance (Requires a restart)"))
+        prompt_box = newcb(_("Prompt when exiting"), 'prompt_on_exit')
+        popup_console_box = newcb(_("Pop up internal console when internal "
+                                    "errors appear"),
+                                  'show_internal_console_if_traceback')
+        check_updates = newcb(_("Check for updates on startup"),
+                              'check_updates_on_startup')
+
+        # Decide if it's possible to activate or not single instance mode
+        if running_in_mac_app():
+            self.set_option("single_instance", True)
+            single_instance_box.setEnabled(False)
+
+        general_layout = QVBoxLayout()
+        general_layout.addWidget(language_combo)
+        general_layout.addWidget(single_instance_box)
+        general_layout.addWidget(prompt_box)
+        general_layout.addWidget(popup_console_box)
+        general_layout.addWidget(check_updates)
+        general_group.setLayout(general_layout)
+
+        # --- Theme
         interface_group = QGroupBox(_("Interface"))
         styles = [str(txt) for txt in list(QStyleFactory.keys())]
         # Don't offer users the possibility to change to a different
@@ -764,17 +817,7 @@ class MainConfigPage(GeneralConfigPage):
         icons_combo = self.create_combobox(_('Icon theme'), icon_choices,
                                            'icon_theme', restart=True)
 
-        languages = LANGUAGE_CODES.items()
-        language_choices = sorted([(val, key) for key, val in languages])
-        language_combo = self.create_combobox(_('Language'), language_choices,
-                                              'interface_language',
-                                              restart=True)
 
-        single_instance_box = newcb(_("Use a single instance"),
-                                    'single_instance',
-                                    tip=_("Set this to open external<br> "
-                                          "Python files in an already running "
-                                          "instance (Requires a restart)"))
         vertdock_box = newcb(_("Vertical title bars in panes"),
                              'vertical_dockwidget_titlebars')
         verttabs_box = newcb(_("Vertical tabs in panes"),
@@ -793,12 +836,6 @@ class MainConfigPage(GeneralConfigPage):
         margins_layout = QHBoxLayout()
         margins_layout.addWidget(margin_box)
         margins_layout.addWidget(margin_spin)
-        prompt_box = newcb(_("Prompt when exiting"), 'prompt_on_exit')
-
-        # Decide if it's possible to activate or not single instance mode
-        if running_in_mac_app():
-            self.set_option("single_instance", True)
-            single_instance_box.setEnabled(False)
 
         # Layout interface
         comboboxes_layout = QHBoxLayout()
@@ -807,20 +844,16 @@ class MainConfigPage(GeneralConfigPage):
         cbs_layout.addWidget(style_combo.combobox, 0, 1)
         cbs_layout.addWidget(icons_combo.label, 1, 0)
         cbs_layout.addWidget(icons_combo.combobox, 1, 1)
-        cbs_layout.addWidget(language_combo.label, 2, 0)
-        cbs_layout.addWidget(language_combo.combobox, 2, 1)
         comboboxes_layout.addLayout(cbs_layout)
         comboboxes_layout.addStretch(1)
         
         interface_layout = QVBoxLayout()
         interface_layout.addLayout(comboboxes_layout)
-        interface_layout.addWidget(single_instance_box)
         interface_layout.addWidget(vertdock_box)
         interface_layout.addWidget(verttabs_box)
         interface_layout.addWidget(animated_box)
         interface_layout.addWidget(tear_off_box)
         interface_layout.addLayout(margins_layout)
-        interface_layout.addWidget(prompt_box)
         interface_group.setLayout(interface_layout)
 
         # --- Status bar
@@ -868,31 +901,52 @@ class MainConfigPage(GeneralConfigPage):
         sbar_layout.addLayout(cpu_memory_layout)
         sbar_group.setLayout(sbar_layout)
 
-        # --- Debugging
-        debug_group = QGroupBox(_("Debugging"))
-        popup_console_box = newcb(_("Pop up internal console when internal "
-                                    "errors appear"),
-                                  'show_internal_console_if_traceback')
-        
-        debug_layout = QVBoxLayout()
-        debug_layout.addWidget(popup_console_box)
-        debug_group.setLayout(debug_layout)
+        # --- Theme and fonts
+        plain_text_font = self.create_fontgroup(
+            option='font',
+            title=_("Plain text font"),
+            fontfilters=QFontComboBox.MonospacedFonts,
+            without_group=True)
 
-        # --- Spyder updates
-        update_group = QGroupBox(_("Updates"))
-        check_updates = newcb(_("Check for updates on startup"),
-                              'check_updates_on_startup')
-        update_layout = QVBoxLayout()
-        update_layout.addWidget(check_updates)
-        update_group.setLayout(update_layout)
-        
+        rich_text_font = self.create_fontgroup(
+            option='rich_font',
+            title=_("Rich text font"),
+            without_group=True)
+
+        fonts_group = QGroupBox(_("Fonts"))
+        fonts_layout = QGridLayout()
+        fonts_layout.addWidget(plain_text_font.fontlabel, 0, 0)
+        fonts_layout.addWidget(plain_text_font.fontbox, 0, 1)
+        fonts_layout.addWidget(plain_text_font.sizelabel, 0, 2)
+        fonts_layout.addWidget(plain_text_font.sizebox, 0, 3)
+        fonts_layout.addWidget(rich_text_font.fontlabel, 1, 0)
+        fonts_layout.addWidget(rich_text_font.fontbox, 1, 1)
+        fonts_layout.addWidget(rich_text_font.sizelabel, 1, 2)
+        fonts_layout.addWidget(rich_text_font.sizebox, 1, 3)
+        fonts_group.setLayout(fonts_layout)
+
+        tabs = QTabWidget()
+        tabs.addTab(self.create_tab(fonts_group, interface_group),
+                    _("Appearance"))
+        tabs.addTab(self.create_tab(general_group, sbar_group),
+                    _("Advanced Settings"))
+
         vlayout = QVBoxLayout()
-        vlayout.addWidget(interface_group)
-        vlayout.addWidget(sbar_group)
-        vlayout.addWidget(debug_group)
-        vlayout.addWidget(update_group)
-        vlayout.addStretch(1)
+        vlayout.addWidget(tabs)
         self.setLayout(vlayout)
+
+    def get_font(self, option):
+        """Return global font used in Spyder."""
+        return get_font(option=option)
+
+    def set_font(self, font, option):
+        """Set global font used in Spyder."""
+        set_font(font, option=option)
+
+        # Update fonts in all plugins
+        plugins = self.main.widgetlist + self.main.thirdparty_plugins
+        for plugin in plugins:
+            plugin.update_font()
 
     def apply_settings(self, options):
         self.main.apply_settings()

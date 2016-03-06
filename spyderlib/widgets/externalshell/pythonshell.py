@@ -670,10 +670,9 @@ def test():
                                 mpl_backend=0,
                                 light_background=False)
 
-    from spyderlib.qt.QtGui import QFont
-    from spyderlib.config.main import CONF
-    font = QFont(CONF.get('console', 'font/family')[0])
-    font.setPointSize(10)
+    from spyderlib.config.gui import get_font
+    
+    font = get_font()
     shell.shell.set_font(font)
 
     shell.shell.toggle_wrap_mode(True)
