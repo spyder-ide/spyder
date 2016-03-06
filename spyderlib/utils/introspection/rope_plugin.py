@@ -81,6 +81,13 @@ class RopePlugin(IntrospectionPlugin):
         source_code = info['source_code']
         offset = info['position']
 
+        # Prevent Rope from returning import completions because
+        # it can't handle them. Only Jedi can do it!
+        lines = sourcecode.split_source(source_code)
+        last_line = lines[-1].lstrip()
+        if last_line.startswith('import ') or last_line.startswith('from '):
+            return []
+
         if PY2:
             filename = filename.encode('utf-8')
         else:
@@ -291,6 +298,11 @@ if __name__ == '__main__':
     completions = p.get_completions(CodeInfo('completions', source_code,
         len(source_code), __file__))
     assert ('numpy', 'module') in completions
+    
+    source_code = "import o"
+    completions = p.get_completions(CodeInfo('completions', source_code,
+        len(source_code), __file__))
+    assert not completions
 
     code = '''
 def test(a, b):
