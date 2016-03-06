@@ -85,7 +85,8 @@ class RopePlugin(IntrospectionPlugin):
         # it can't handle them. Only Jedi can do it!
         lines = sourcecode.split_source(source_code)
         last_line = lines[-1].lstrip()
-        if last_line.startswith('import ') or last_line.startswith('from '):
+        if (last_line.startswith('import ') or last_line.startswith('from ')) \
+          and not ';' in last_line:
             return []
 
         if PY2:
