@@ -983,6 +983,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
 
     def setup_page(self):
         names = self.get_option("names")
+        names.pop(names.index(u'Custom'))
         custom_names = self.get_option("custom_names", [])
 
         # Widgets
@@ -1084,6 +1085,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         index = self.current_scheme_index
         self.schemes_combobox.blockSignals(True)
         names = self.get_option("names")
+        names.pop(names.index(u'Custom'))
         custom_names = self.get_option("custom_names", [])
 
         # Useful for retrieving the actual data
@@ -1113,6 +1115,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         """Updates the enable status of delete and reset buttons."""
         current_scheme = self.current_scheme
         names = self.get_option("names")
+        names.pop(names.index(u'Custom'))
         delete_enabled = current_scheme not in names
         self.delete_button.setEnabled(delete_enabled)
         self.reset_button.setEnabled(not delete_enabled)
