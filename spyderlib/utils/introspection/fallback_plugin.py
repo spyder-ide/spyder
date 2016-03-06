@@ -392,19 +392,6 @@ if __name__ == '__main__':
     comp = p.get_completions(CodeInfo('completions', code, len(code), 'dummy.py'))
     assert ('sigMessageReady', '') in comp
 
-<<<<<<< HEAD
-=======
-    code = 'from numpy import one'
-    comp = p.get_completions(CodeInfo('completions', code, len(code), 'dummy.py', is_python_like=True))
-    assert ('ones', '') in comp
-
-    comp = p.get_completions(CodeInfo('completions', code, len(code), 'dummy.txt'))
-    assert not comp, comp
-
-    code = 'from numpy.testing import (asse'
-    comp = p.get_completions(CodeInfo('completions', code, len(code), 'dummy.py', is_python_like=True))
-    assert ('assert_equal', '') in comp
-
     code = 'bob = 1; bo'
     comp = p.get_completions(CodeInfo('completions', code, len(code), 'dummy.m'))
     assert ('bob', '') in comp
@@ -413,7 +400,6 @@ if __name__ == '__main__':
     comp = p.get_completions(CodeInfo('completions', code, len(code), 'dummy.sh'))
     assert ('function', '') in comp, comp
 
->>>>>>> 1993154... Use pygments in introspection
     code = '''
 def test(a, b):
     pass
