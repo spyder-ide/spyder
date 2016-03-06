@@ -6,7 +6,7 @@
 
 """
 spyderlib.widgets.variableexplorer
-========================
+==================================
 
 Variable Explorer related widgets
 """

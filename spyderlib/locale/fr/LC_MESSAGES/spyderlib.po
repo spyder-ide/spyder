@@ -80,7 +80,7 @@ msgid "Text files"
 msgstr "Fichiers texte"
 
 #: spyderlib/config/main.py:42
-msgid "reStructured Text files"
+msgid "reStructuredText files"
 msgstr "Fichiers reST"
 
 #: spyderlib/config/main.py:43
@@ -319,8 +319,8 @@ msgid "Current cell:"
 msgstr "Cellule actuelle :"
 
 #: spyderlib/plugins/configdialog.py:914
-msgid "Occurence:"
-msgstr "Occurence :"
+msgid "Occurrence:"
+msgstr "Occurrence :"
 
 #: spyderlib/plugins/configdialog.py:915
 msgid "Link:"
@@ -549,8 +549,8 @@ msgid "Highlight current cell"
 msgstr "Surligner la cellule en cours d'édition"
 
 #: spyderlib/plugins/editor.py:131
-msgid "Highlight occurences after"
-msgstr "Surligner les occurences après"
+msgid "Highlight occurrences after"
+msgstr "Surligner les occurrences après"
 
 #: spyderlib/plugins/editor.py:142 spyderlib/plugins/history.py:52
 #: spyderlib/plugins/inspector.py:183

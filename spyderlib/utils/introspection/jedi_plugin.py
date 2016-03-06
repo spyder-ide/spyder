@@ -11,27 +11,20 @@ import re
 import os.path as osp
 import sys
 import time
-import threading
 
-from spyderlib import dependencies
-from spyderlib.config.base import _, debug_print
+from spyderlib.config.base import debug_print
 from spyderlib.utils import programs
 from spyderlib.utils.debug import log_last_error, log_dt
 from spyderlib.utils.dochelpers import getsignaturefromtext
-from spyderlib.utils.introspection.plugin_manager import (
+from spyderlib.utils.introspection.manager import (
     DEBUG_EDITOR, LOG_FILENAME, IntrospectionPlugin)
+from spyderlib.utils.introspection.utils import get_parent_until
+from spyderlib.utils.introspection.manager import JEDI_REQVER
 
 try:
     import jedi
 except ImportError:
     jedi = None
-
-
-JEDI_REQVER = '>=0.8.1;<0.9.0'
-dependencies.add('jedi',
-                 _("(Experimental) Editor's code completion,"
-                   " go-to-definition and help"),
-                 required_version=JEDI_REQVER)
 
 
 class JediPlugin(IntrospectionPlugin):
@@ -49,9 +42,8 @@ class JediPlugin(IntrospectionPlugin):
         if not programs.is_module_installed('jedi', JEDI_REQVER):
             raise ImportError('Requires Jedi %s' % JEDI_REQVER)
         jedi.settings.case_insensitive_completion = False
-        self.busy = True
-        self._warmup_thread = threading.Thread(target=self.preload)
-        self._warmup_thread.start()
+        for lib in ['numpy', 'matplotlib']:
+            jedi.preload_module(lib)
 
     def get_completions(self, info):
         """Return a list of (completion, type) tuples"""
@@ -82,7 +74,7 @@ class JediPlugin(IntrospectionPlugin):
         if name is None:
             return
         if call_def.module_path:
-            mod_name = self.get_parent_until(call_def.module_path)
+            mod_name = get_parent_until(call_def.module_path)
         else:
             mod_name = None
         if not mod_name:
@@ -129,9 +121,10 @@ class JediPlugin(IntrospectionPlugin):
         module.  Falls back on token lookup if it is in an enaml file or does
         not find a match
         """
-        line, filename = info.line_num, info.filename
+        line, filename = info['line_num'], info['filename']
         def_info, module_path, line_nr = None, None, None
         gotos = self.get_jedi_object('goto_assignments', info)
+
         if gotos:
             def_info = self.get_definition_info(gotos[0])
         if def_info and def_info['goto_next']:
@@ -152,10 +145,6 @@ class JediPlugin(IntrospectionPlugin):
             return
         return module_path, line_nr
 
-    def set_pref(self, name, value):
-        """Set a plugin preference to a value"""
-        pass
-
     # ---- Private API -------------------------------------------------------
 
     def get_jedi_object(self, func_name, info, use_filename=True):
@@ -172,13 +161,13 @@ class JediPlugin(IntrospectionPlugin):
                 sys.meta_path.remove(meta)
 
         if use_filename:
-            filename = info.filename
+            filename = info['filename']
         else:
             filename = None
 
         try:
-            script = jedi.Script(info.source_code, info.line_num,
-                                 info.column, filename)
+            script = jedi.Script(info['source_code'], info['line_num'],
+                                 info['column'], filename)
             func = getattr(script, func_name)
             val = func()
         except Exception as e:
@@ -200,7 +189,10 @@ class JediPlugin(IntrospectionPlugin):
         try:
             module_path = defn.module_path
             name = defn.name
-            line_nr = defn.line_nr
+            if hasattr(defn, 'line_nr'):
+                line_nr = defn.line_nr
+            else:
+                line_nr = defn.line
             description = defn.description
             in_builtin = defn.in_builtin_module()
         except Exception as e:
@@ -241,24 +233,12 @@ class JediPlugin(IntrospectionPlugin):
             line_nr = None
         return module_path, line_nr
 
-    def preload(self):
-        """Preload a list of libraries"""
-        for lib in ['numpy']:
-            jedi.preload_module(lib)
-        self.busy = False
-
 if __name__ == '__main__':
 
-    from spyderlib.utils.introspection.plugin_manager import CodeInfo
+    from spyderlib.utils.introspection.manager import CodeInfo
 
     p = JediPlugin()
     p.load_plugin()
-
-    print('Warming up Jedi')
-    t0 = time.time()
-    while p.busy:
-        time.sleep(0.1)
-    print('Warmed up in %0.1f s' % (time.time() - t0))
 
     source_code = "import numpy; numpy.ones("
     docs = p.get_info(CodeInfo('info', source_code, len(source_code)))
@@ -275,10 +255,10 @@ if __name__ == '__main__':
         len(source_code)))
     assert 'frame.py' in path
 
-    source_code = 'from .plugin_manager import memoize'
+    source_code = 'from .utils import CodeInfo'
     path, line_nr = p.get_definition(CodeInfo('definition', source_code,
         len(source_code), __file__))
-    assert 'plugin_manager.py' in path and 'introspection' in path
+    assert 'utils.py' in path and 'introspection' in path
 
     code = '''
 def test(a, b):

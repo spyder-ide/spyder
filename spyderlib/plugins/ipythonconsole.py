@@ -32,10 +32,10 @@ from spyderlib.qt.compat import getopenfilename
 from spyderlib.qt.QtCore import Signal, Slot, Qt
 import spyderlib.utils.icon_manager as ima
 
-# IPython imports
+# IPython/Jupyter imports
 from IPython.core.application import get_ipython_dir
-from IPython.kernel.connect import find_connection_file
-from IPython.qt.manager import QtKernelManager
+from jupyter_client.connect import find_connection_file
+from qtconsole.manager import QtKernelManager
 
 # Ssh imports
 from zmq.ssh import tunnel as zmqtunnel
@@ -60,7 +60,7 @@ from spyderlib.py3compat import to_text_string
 
 SYMPY_REQVER = '>=0.7.3'
 dependencies.add("sympy", _("Symbolic mathematics in the IPython Console"),
-                 required_version=SYMPY_REQVER)
+                 required_version=SYMPY_REQVER, optional=True)
 
 
 # Replacing pyzmq openssh_tunnel method to work around the issue

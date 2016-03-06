@@ -25,10 +25,10 @@ import os
 import re
 import fnmatch
 import os.path as osp
-from subprocess import Popen, PIPE
 import traceback
 
 # Local imports
+from spyderlib.utils import programs
 from spyderlib.utils.vcs import is_hg_installed, get_vcs_root
 from spyderlib.utils.misc import abspardir, get_common_path
 from spyderlib.utils.qthelpers import create_toolbutton, get_filetype_icon
@@ -189,8 +189,7 @@ class SearchThread(QThread):
         return ok
 
     def find_files_in_hg_manifest(self):
-        p = Popen(['hg', 'manifest'], stdout=PIPE,
-                  cwd=self.rootpath, shell=True)
+        p = programs.run_shell_command('hg manifest', cwd=self.rootpath)
         hgroot = get_vcs_root(self.rootpath)
         self.pathlist = [hgroot]
         for path in p.stdout.read().decode().splitlines():
@@ -472,7 +471,7 @@ class FindOptions(QWidget):
         hg_manifest = self.hg_manifest.isChecked()
         path = osp.abspath( to_text_string( self.dir_combo.currentText() ) )
         
-        # Finding text occurences
+        # Finding text occurrences
         if not include_re:
             include = fnmatch.translate(include)
         if not exclude_re:

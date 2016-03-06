@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2011 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -18,98 +18,35 @@ import os.path as osp
 # Local import
 from spyderlib.config.user import UserConfig
 from spyderlib.config.base import (CHECK_ALL, EXCLUDED_NAMES, SUBFOLDER,
-                                   get_home_dir, _)
-from spyderlib.utils import iofuncs, codeanalysis
+                                   get_home_dir)
+from spyderlib.config.utils import IMPORT_EXT, is_ubuntu
+from spyderlib.utils import codeanalysis
 
 
 #==============================================================================
-# Extensions supported by Spyder's Editor
+# Main constants
 #==============================================================================
-EDIT_FILETYPES = (
-    (_("Python files"), ('.py', '.pyw', '.ipy')),
-    (_("Cython/Pyrex files"), ('.pyx', '.pxd', '.pxi')),
-    (_("C files"), ('.c', '.h')),
-    (_("C++ files"), ('.cc', '.cpp', '.cxx', '.h', '.hh', '.hpp', '.hxx')),
-    (_("OpenCL files"), ('.cl', )),
-    (_("Fortran files"), ('.f', '.for', '.f77', '.f90', '.f95', '.f2k')),
-    (_("IDL files"), ('.pro', )),
-    (_("MATLAB files"), ('.m', )),
-    (_("Julia files"), ('.jl',)),
-    (_("Yaml files"), ('.yaml','.yml',)),
-    (_("Patch and diff files"), ('.patch', '.diff', '.rej')),
-    (_("Batch files"), ('.bat', '.cmd')),
-    (_("Text files"), ('.txt',)),
-    (_("reStructured Text files"), ('.txt', '.rst')),
-    (_("gettext files"), ('.po', '.pot')),
-    (_("NSIS files"), ('.nsi', '.nsh')),
-    (_("Web page files"), ('.scss', '.css', '.htm', '.html',)),
-    (_("XML files"), ('.xml',)),
-    (_("Javascript files"), ('.js',)),
-    (_("Json files"), ('.json',)),
-    (_("IPython notebooks"), ('.ipynb',)),
-    (_("Enaml files"), ('.enaml',)),
-    (_("Configuration files"), ('.properties', '.session', '.ini', '.inf',
-                                '.reg', '.cfg', '.desktop')),
-                 )
-
-def _create_filter(title, ftypes):
-    return "%s (*%s)" % (title, " *".join(ftypes))
-
-ALL_FILTER = "%s (*)" % _("All files")
-
-def _get_filters(filetypes):
-    filters = []
-    for title, ftypes in filetypes:
-        filters.append(_create_filter(title, ftypes))
-    filters.append(ALL_FILTER)
-    return ";;".join(filters)
-
-def _get_extensions(filetypes):
-    ftype_list = []
-    for _title, ftypes in filetypes:
-        ftype_list += list(ftypes)
-    return ftype_list
-
-def get_filter(filetypes, ext):
-    """Return filter associated to file extension"""
-    if not ext:
-        return ALL_FILTER
-    for title, ftypes in filetypes:
-        if ext in ftypes:
-            return _create_filter(title, ftypes)
-    else:
-        return ''
-
-EDIT_FILTERS = _get_filters(EDIT_FILETYPES)
-EDIT_EXT = _get_extensions(EDIT_FILETYPES)+['']
-
-# Extensions supported by Spyder's Variable explorer
-IMPORT_EXT = list(iofuncs.iofunctions.load_extensions.values())
-
-# Extensions that should be visible in Spyder's file/project explorers
-SHOW_EXT = ['.png', '.ico', '.svg']
-
-# Extensions supported by Spyder (Editor or Variable explorer)
-VALID_EXT = EDIT_EXT+IMPORT_EXT
-
-
-# Find in files include/exclude patterns
-INCLUDE_PATTERNS = [r'|'.join(['\\'+_ext+r'$' for _ext in EDIT_EXT if _ext])+\
-                    r'|README|INSTALL',
-                    r'\.pyw?$|\.ipy$|\.txt$|\.rst$',
-                    '.']
+# Find in files exclude patterns
 EXCLUDE_PATTERNS = [r'\.pyc$|\.pyo$|\.orig$|\.hg|\.svn|\bbuild\b',
                     r'\.pyc$|\.pyo$|\.orig$|\.hg|\.svn']
 
+# Extensions that should be visible in Spyder's file/project explorers
+SHOW_EXT = ['.py', '.ipynb', '.txt', '.dat', '.pdf', '.png', '.svg']
+
+
+# Extensions supported by Spyder (Editor or Variable explorer)
+USEFUL_EXT = IMPORT_EXT + SHOW_EXT
+
 
 # Name filters for file/project explorers (excluding files without extension)
-NAME_FILTERS = ['*' + _ext for _ext in VALID_EXT + SHOW_EXT if _ext]+\
-               ['README', 'INSTALL', 'LICENSE', 'CHANGELOG']
+NAME_FILTERS = ['README', 'INSTALL', 'LICENSE', 'CHANGELOG'] + \
+               ['*' + _ext for _ext in USEFUL_EXT if _ext]
 
 
 # Port used to detect if there is a running instance and to communicate with
 # it to open external files
 OPEN_FILES_PORT = 21128
+
 
 # OS Specific
 WIN = os.name == 'nt'
@@ -117,37 +54,7 @@ MAC = sys.platform == 'darwin'
 CTRL = "Meta" if MAC else "Ctrl"
 
 
-#==============================================================================
 # Fonts
-#==============================================================================
-def is_ubuntu():
-    "Detect if we are running in an Ubuntu-based distribution"
-    if sys.platform.startswith('linux') and osp.isfile('/etc/lsb-release'):
-        release_info = open('/etc/lsb-release').read()
-        if 'Ubuntu' in release_info:
-            return True
-        else:
-            return False
-    else:
-        return False
-
-
-def is_gtk_desktop():
-    "Detect if we are running in a Gtk-based desktop"
-    if sys.platform.startswith('linux'):
-        xdg_desktop = os.environ.get('XDG_CURRENT_DESKTOP', '')
-        if xdg_desktop:
-            gtk_desktops = ['Unity', 'GNOME', 'XFCE']
-            if any([xdg_desktop.startswith(d) for d in gtk_desktops]):
-                return True
-            else:
-                return False
-        else:
-            return False
-    else:
-        return False
-
-
 SANS_SERIF = ['Sans Serif', 'DejaVu Sans', 'Bitstream Vera Sans',
               'Bitstream Charter', 'Lucida Grande', 'MS Shell Dlg 2',
               'Calibri', 'Verdana', 'Geneva', 'Lucid', 'Arial',
@@ -158,6 +65,9 @@ MONOSPACE = ['Monospace', 'DejaVu Sans Mono', 'Consolas',
              'Courier New', 'Courier', 'monospace', 'Fixed', 'Terminal']
 
 
+#==============================================================================
+# Adjust font size per OS
+#==============================================================================
 if sys.platform == 'darwin':
     MONOSPACE = ['Menlo'] + MONOSPACE
     BIG = MEDIUM = SMALL = 12
@@ -349,8 +259,8 @@ DEFAULTS = [
               'intelligent_backspace': True,
               'highlight_current_line': True,
               'highlight_current_cell': True,
-              'occurence_highlighting': True,
-              'occurence_highlighting/timeout': 1500,
+              'occurrence_highlighting': True,
+              'occurrence_highlighting/timeout': 1500,
               'always_remove_trailing_spaces': False,
               'fullpath_sorting': True,
               'show_tab_bar': True,
@@ -410,7 +320,7 @@ DEFAULTS = [
              {
               'enable': True,
               'supported_encodings': ["utf-8", "iso-8859-1", "cp1252"],
-              'include': INCLUDE_PATTERNS,
+              'include': '',
               'include_regexp': True,
               'exclude': EXCLUDE_PATTERNS,
               'exclude_regexp': True,
@@ -529,8 +439,8 @@ DEFAULTS = [
               'editor/debug with winpdb': "F7",
               'editor/debug': "Ctrl+F5",
               'editor/run': "F5",
-              'editor/configure': "F6",
-              'editor/re-run last script': "Ctrl+F6",
+              'editor/configure': "Ctrl+F6",
+              'editor/re-run last script': "F6",
               'editor/run selection': "F9",
               'editor/last edit location': "Ctrl+Alt+Shift+Left",
               'editor/previous cursor position': "Ctrl+Alt+Left",
@@ -555,7 +465,7 @@ DEFAULTS = [
               'emacs/background':  "#000000",
               'emacs/currentline': "#2b2b43",
               'emacs/currentcell': "#1c1c2d",
-              'emacs/occurence':   "#abab67",
+              'emacs/occurrence':   "#abab67",
               'emacs/ctrlclick':   "#0000ff",
               'emacs/sideareas':   "#555555",
               'emacs/matched_p':   "#009800",
@@ -573,7 +483,7 @@ DEFAULTS = [
               'idle/background':   "#ffffff",
               'idle/currentline':  "#f2e6f3",
               'idle/currentcell':  "#feefff",
-              'idle/occurence':    "#e8f2fe",
+              'idle/occurrence':    "#e8f2fe",
               'idle/ctrlclick':    "#0000ff",
               'idle/sideareas':    "#efefef",
               'idle/matched_p':    "#99ff99",
@@ -591,7 +501,7 @@ DEFAULTS = [
               'monokai/background':   "#2a2b24",
               'monokai/currentline':  "#484848",
               'monokai/currentcell':  "#3d3d3d",
-              'monokai/occurence':    "#666666",
+              'monokai/occurrence':    "#666666",
               'monokai/ctrlclick':    "#0000ff",
               'monokai/sideareas':    "#2a2b24",
               'monokai/matched_p':    "#688060",
@@ -609,7 +519,7 @@ DEFAULTS = [
               'pydev/background':  "#ffffff",
               'pydev/currentline': "#e8f2fe",
               'pydev/currentcell': "#eff8fe",
-              'pydev/occurence':   "#ffff99",
+              'pydev/occurrence':   "#ffff99",
               'pydev/ctrlclick':   "#0000ff",
               'pydev/sideareas':   "#efefef",
               'pydev/matched_p':   "#99ff99",
@@ -627,7 +537,7 @@ DEFAULTS = [
               'scintilla/background':  "#ffffff",
               'scintilla/currentline': "#e1f0d1",
               'scintilla/currentcell': "#edfcdc",  
-              'scintilla/occurence':   "#ffff99",
+              'scintilla/occurrence':   "#ffff99",
               'scintilla/ctrlclick':   "#0000ff",
               'scintilla/sideareas':   "#efefef",
               'scintilla/matched_p':   "#99ff99",
@@ -645,7 +555,7 @@ DEFAULTS = [
               'spyder/background':  "#ffffff",
               'spyder/currentline': "#f7ecf8",
               'spyder/currentcell': "#fdfdde",              
-              'spyder/occurence':   "#ffff99",
+              'spyder/occurrence':   "#ffff99",
               'spyder/ctrlclick':   "#0000ff",
               'spyder/sideareas':   "#efefef",
               'spyder/matched_p':   "#99ff99",
@@ -663,7 +573,7 @@ DEFAULTS = [
               'spyder/dark/background':  "#131926",
               'spyder/dark/currentline': "#2b2b43",
               'spyder/dark/currentcell': "#31314e",
-              'spyder/dark/occurence':   "#abab67",
+              'spyder/dark/occurrence':   "#abab67",
               'spyder/dark/ctrlclick':   "#0000ff",
               'spyder/dark/sideareas':   "#282828",
               'spyder/dark/matched_p':   "#009800",
@@ -681,7 +591,7 @@ DEFAULTS = [
               'zenburn/background':  "#3f3f3f",
               'zenburn/currentline': "#333333",
               'zenburn/currentcell': "#2c2c2c",
-              'zenburn/occurence':   "#7a738f",
+              'zenburn/occurrence':   "#7a738f",
               'zenburn/ctrlclick':   "#0000ff",
               'zenburn/sideareas':   "#3f3f3f",
               'zenburn/matched_p':   "#688060",
@@ -705,14 +615,17 @@ DEFAULTS = [
 # 1. If you want to *change* the default value of a current option, you need to
 #    do a MINOR update in config version, e.g. from 3.0.0 to 3.1.0
 # 2. If you want to *remove* options that are no longer needed in our codebase,
-#    you need to do a MAJOR update in version, e.g. from 3.0.0 to 4.0.0
+#    or if you want to *rename* options, then you need to do a MAJOR update in 
+#    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '24.0.0'
+CONF_VERSION = '25.0.0'
+
 
 # XXX: Previously we had load=(not DEV) here but DEV was set to *False*.
 # Check if it *really* needs to be updated or not
 CONF = UserConfig('spyder', defaults=DEFAULTS, load=True, version=CONF_VERSION,
                   subfolder=SUBFOLDER, backup=True, raw_mode=True)
+
 
 # Removing old .spyder.ini location:
 old_location = osp.join(get_home_dir(), '.spyder.ini')

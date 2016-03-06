@@ -80,7 +80,7 @@ def get_versions(reporev=True):
         'python': platform.python_version(),  # "2.7.3"
         'bitness': 64 if sys.maxsize > 2**32 else 32,
         'qt': spyderlib.qt.QtCore.__version__,
-        'qt_api': spyderlib.qt.API_NAME,      # PySide or PyQt4
+        'qt_api': spyderlib.qt.API_NAME,      # PyQt5 or PyQt4
         'qt_api_ver': spyderlib.qt.__version__,
         'system': system,   # Linux, Windows, ...
         'revision': revision,  # '9fdf926eccce'

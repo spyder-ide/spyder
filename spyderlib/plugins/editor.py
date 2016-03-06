@@ -11,7 +11,7 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-from spyderlib.qt import PYQT5
+from spyderlib.qt import API, PYQT5
 from spyderlib.qt.QtGui import (QVBoxLayout, QPrintDialog, QSplitter, QToolBar,
                                 QAction, QApplication, QDialog, QWidget,
                                 QPrinter, QActionGroup, QInputDialog, QMenu,
@@ -31,7 +31,9 @@ import os.path as osp
 # Local imports
 from spyderlib.utils import encoding, sourcecode, codeanalysis
 from spyderlib.config.base import get_conf_path, _
-from spyderlib.config.main import CONF, EDIT_FILTERS, get_filter, EDIT_FILETYPES
+from spyderlib.config.main import CONF
+from spyderlib.config.utils import (get_edit_filters, get_edit_filetypes,
+                                    get_filter)
 from spyderlib.config.gui import get_color_scheme
 from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import (create_action, add_actions,
@@ -125,13 +127,13 @@ class EditorConfigPage(PluginConfigPage):
                                 'highlight_current_line')
         currentcell_box = newcb(_("Highlight current cell"),
                                 'highlight_current_cell')
-        occurence_box = newcb(_("Highlight occurences after"),
-                              'occurence_highlighting')
-        occurence_spin = self.create_spinbox("", " ms",
-                                             'occurence_highlighting/timeout',
+        occurrence_box = newcb(_("Highlight occurrences after"),
+                              'occurrence_highlighting')
+        occurrence_spin = self.create_spinbox("", " ms",
+                                             'occurrence_highlighting/timeout',
                                              min_=100, max_=1000000, step=100)
-        occurence_box.toggled.connect(occurence_spin.setEnabled)
-        occurence_spin.setEnabled(self.get_option('occurence_highlighting'))
+        occurrence_box.toggled.connect(occurrence_spin.setEnabled)
+        occurrence_spin.setEnabled(self.get_option('occurrence_highlighting'))
 
         wrap_mode_box = newcb(_("Wrap lines"), 'wrap')
         names = CONF.get('color_schemes', 'names')
@@ -147,9 +149,9 @@ class EditorConfigPage(PluginConfigPage):
         display_layout.addWidget(edgeline_spin.slabel, 2, 2)
         display_layout.addWidget(currentline_box, 3, 0)
         display_layout.addWidget(currentcell_box, 4, 0)
-        display_layout.addWidget(occurence_box, 5, 0)
-        display_layout.addWidget(occurence_spin.spinbox, 5, 1)
-        display_layout.addWidget(occurence_spin.slabel, 5, 2)
+        display_layout.addWidget(occurrence_box, 5, 0)
+        display_layout.addWidget(occurrence_spin.spinbox, 5, 1)
+        display_layout.addWidget(occurrence_spin.slabel, 5, 2)
         display_layout.addWidget(wrap_mode_box, 6, 0)
         display_layout.addWidget(cs_combo.label, 7, 0)
         display_layout.addWidget(cs_combo.combobox, 7, 1)
@@ -201,9 +203,14 @@ class EditorConfigPage(PluginConfigPage):
         autounindent_box = newcb(_("Automatic indentation after 'else', "
                                    "'elif', etc."), 'auto_unindent')
         indent_chars_box = self.create_combobox(_("Indentation characters: "),
-                                        ((_("4 spaces"), '*    *'),
-                                         (_("2 spaces"), '*  *'),
-                                         (_("tab"), '*\t*')), 'indent_chars')
+                                        ((_("2 spaces"), '*  *'),
+                                         (_("3 spaces"), '*   *'),
+                                         (_("4 spaces"), '*    *'),
+                                         (_("5 spaces"), '*     *'),
+                                         (_("6 spaces"), '*      *'),
+                                         (_("7 spaces"), '*       *'),
+                                         (_("8 spaces"), '*        *'),
+                                         (_("Tabulations"), '*\t*')), 'indent_chars')
         tabwidth_spin = self.create_spinbox(_("Tab stop width:"), _("pixels"),
                                             'tab_stop_width', 40, 10, 1000, 10)
         tab_mode_box = newcb(_("Tab always indent"),
@@ -480,7 +487,11 @@ class Editor(SpyderPluginWidget):
         # Parameters of last file execution:
         self.__last_ic_exec = None # internal console
         self.__last_ec_exec = None # external console
-            
+
+        # File types and filters used by the Open dialog
+        self.edit_filetypes = None
+        self.edit_filters = None
+
         self.__ignore_cursor_position = False
         current_editor = self.get_current_editor()
         if current_editor is not None:
@@ -1140,8 +1151,8 @@ class Editor(SpyderPluginWidget):
             ('set_intelligent_backspace_enabled',   'intelligent_backspace'),
             ('set_highlight_current_line_enabled',  'highlight_current_line'),
             ('set_highlight_current_cell_enabled',  'highlight_current_cell'),
-            ('set_occurence_highlighting_enabled',  'occurence_highlighting'),
-            ('set_occurence_highlighting_timeout',  'occurence_highlighting/timeout'),
+            ('set_occurrence_highlighting_enabled',  'occurrence_highlighting'),
+            ('set_occurrence_highlighting_timeout',  'occurrence_highlighting/timeout'),
             ('set_checkeolchars_enabled',           'check_eol_chars'),
             ('set_fullpath_sorting_enabled',        'fullpath_sorting'),
             ('set_tabbar_visible',                  'show_tab_bar'),
@@ -1337,11 +1348,10 @@ class Editor(SpyderPluginWidget):
                 action.setEnabled(enable)
                 
     def refresh_save_all_action(self):
-        state = False
-        editorstack = self.editorstacks[0]
-        if editorstack.get_stack_count() > 1:
-            state = state or any([finfo.editor.document().isModified()
-                                  for finfo in editorstack.data])
+        """Enable 'Save All' if there are files to be saved"""
+        editorstack = self.get_current_editorstack()
+        state = any(finfo.editor.document().isModified()
+                    for finfo in editorstack.data)
         self.save_all_action.setEnabled(state)
             
     def update_warning_menu(self):
@@ -1354,7 +1364,11 @@ class Editor(SpyderPluginWidget):
             error = 'syntax' in message
             text = message[:1].upper()+message[1:]
             icon = ima.icon('error') if error else ima.icon('warning')
-            slot = lambda _l=line_number: self.load(filename, goto=_l)
+            # QAction.triggered works differently for PySide and PyQt
+            if not API == 'pyside':
+                slot = lambda _checked, _l=line_number: self.load(filename, goto=_l)
+            else:
+                slot = lambda _l=line_number: self.load(filename, goto=_l)
             action = create_action(self, text=text, icon=icon, triggered=slot)
             self.warning_menu.addAction(action)
             
@@ -1380,7 +1394,11 @@ class Editor(SpyderPluginWidget):
         filename = self.get_current_filename()
         for text, line0 in results:
             icon = ima.icon('todo')
-            slot = lambda _l=line0: self.load(filename, goto=_l)
+            # QAction.triggered works differently for PySide and PyQt
+            if not API == 'pyside':
+                slot = lambda _checked, _l=line0: self.load(filename, goto=_l)
+            else:
+                slot = lambda _l=line0: self.load(filename, goto=_l)
             action = create_action(self, text=text, icon=icon, triggered=slot)
             self.todo_menu.addAction(action)
         self.update_todo_actions()
@@ -1583,6 +1601,7 @@ class Editor(SpyderPluginWidget):
         """Edit new file template"""
         self.load(self.TEMPLATE_PATH)
 
+    @Slot()
     def call_file_switcher(self):
         if self.editorstacks:
             self.get_current_editorstack().open_fileswitcher_dlg()
@@ -1649,6 +1668,10 @@ class Editor(SpyderPluginWidget):
                 filenames = from_qvariant(action.data(), to_text_string)
         if not filenames:
             basedir = getcwd()
+            if self.edit_filetypes is None:
+                self.edit_filetypes = get_edit_filetypes()
+            if self.edit_filters is None:
+                self.edit_filters = get_edit_filters()
             if CONF.get('workingdir', 'editor/open/browse_scriptdir'):
                 c_fname = self.get_current_filename()
                 if c_fname is not None and c_fname != self.TEMPFILE_PATH:
@@ -1656,12 +1679,13 @@ class Editor(SpyderPluginWidget):
             self.redirect_stdio.emit(False)
             parent_widget = self.get_current_editorstack()
             if filename0 is not None:
-                selectedfilter = get_filter(EDIT_FILETYPES,
+                selectedfilter = get_filter(self.edit_filetypes,
                                             osp.splitext(filename0)[1])
             else:
                 selectedfilter = ''
             filenames, _selfilter = getopenfilenames(parent_widget,
-                                         _("Open file"), basedir, EDIT_FILTERS,
+                                         _("Open file"), basedir,
+                                         self.edit_filters,
                                          selectedfilter=selectedfilter)
             self.redirect_stdio.emit(True)
             if filenames:
@@ -1900,11 +1924,11 @@ class Editor(SpyderPluginWidget):
             else:
                 args = runconf.get_arguments().split()
                 wdir = runconf.get_working_directory()
-                # Handle the case where wdir comes back as an empty string
-                # when the working directory dialog checkbox is unchecked.
-                if not wdir:
-                    wdir = None
-            programs.run_program(WINPDB_PATH, [fname]+args, wdir)
+            # Handle the case where wdir comes back as an empty string
+            # when the working directory dialog checkbox is unchecked.
+            # (subprocess "cwd" default is None, so empty str
+            # must be changed to None in this case.)
+            programs.run_program(WINPDB_PATH, [fname] + args, cwd=wdir or None)
         
     def toggle_eol_chars(self, os_name):
         editor = self.get_current_editor()
@@ -2222,10 +2246,10 @@ class Editor(SpyderPluginWidget):
             currentline_o = self.get_option(currentline_n)
             currentcell_n = 'highlight_current_cell'
             currentcell_o = self.get_option(currentcell_n)            
-            occurence_n = 'occurence_highlighting'
-            occurence_o = self.get_option(occurence_n)
-            occurence_timeout_n = 'occurence_highlighting/timeout'
-            occurence_timeout_o = self.get_option(occurence_timeout_n)
+            occurrence_n = 'occurrence_highlighting'
+            occurrence_o = self.get_option(occurrence_n)
+            occurrence_timeout_n = 'occurrence_highlighting/timeout'
+            occurrence_timeout_o = self.get_option(occurrence_timeout_n)
             focus_to_editor_n = 'focus_to_editor'
             focus_to_editor_o = self.get_option(focus_to_editor_n)
             
@@ -2238,11 +2262,11 @@ class Editor(SpyderPluginWidget):
                 if currentcell_n in options:
                     editorstack.set_highlight_current_cell_enabled(
                                                                 currentcell_o)              
-                if occurence_n in options:
-                    editorstack.set_occurence_highlighting_enabled(occurence_o)
-                if occurence_timeout_n in options:
-                    editorstack.set_occurence_highlighting_timeout(
-                                                           occurence_timeout_o)
+                if occurrence_n in options:
+                    editorstack.set_occurrence_highlighting_enabled(occurrence_o)
+                if occurrence_timeout_n in options:
+                    editorstack.set_occurrence_highlighting_timeout(
+                                                           occurrence_timeout_o)
                 if focus_to_editor_n in options:
                     editorstack.set_focus_to_editor(focus_to_editor_o)
 

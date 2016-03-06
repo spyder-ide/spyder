@@ -1329,8 +1329,11 @@ class ConsoleBaseWidget(TextEditBaseWidget):
                 insert_text_to(cursor, text[last_end:match.start()],
                                self.default_style.format)
                 last_end = match.end()
-                for code in [int(_c) for _c in match.group(1).split(';')]:
-                    self.ansi_handler.set_code(code)
+                try:
+                    for code in [int(_c) for _c in match.group(1).split(';')]:
+                        self.ansi_handler.set_code(code)
+                except ValueError:
+                    pass
                 self.default_style.format = self.ansi_handler.get_format()
             insert_text_to(cursor, text[last_end:], self.default_style.format)
 #            # Slower alternative:

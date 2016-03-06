@@ -9,19 +9,10 @@ REM Spyderlib
 for /r "%SPYDERLIB%" %%f in (*.py) do (
     set file=%%f
 
-    if "%%f"=="%SPYDERLIB%\restart_app.py" (
+    if "%%f"=="%SPYDERLIB%\pyplot.py" (
         echo --- NOT testing %%f ---
         echo.
-    ) else if "%%f"=="%SPYDERLIB%\spyder.py" (
-        echo --- NOT testing %%f ---
-        echo.
-    ) else if "%%f"=="%SPYDERLIB%\tour.py" (
-        echo --- NOT testing %%f ---
-        echo.
-    ) else if "%%f"=="%SPYDERLIB%\start_app.py" (
-        echo --- NOT testing %%f ---
-        echo.
-    ) else if "%%f"=="%SPYDERLIB%\pyplot.py" (
+    ) else if not "!file:app\=!"=="!file!" (
         echo --- NOT testing %%f ---
         echo.
     ) else if not "!file:plugins\=!"=="!file!" (
@@ -48,9 +39,6 @@ for /r "%SPYDERLIB%" %%f in (*.py) do (
     ) else if "%%f"=="%SPYDERLIB%\utils\bsdsocket.py" (
         echo --- NOT testing %%f ---
         echo.
-    ) else if "%%f"=="%SPYDERLIB%\utils\introspection\__init__.py" (
-        echo --- NOT testing %%f ---
-        echo.
     ) else if "%%f"=="%SPYDERLIB%\utils\introspection\module_completion.py" (
         echo --- NOT testing %%f ---
         echo.
@@ -66,6 +54,15 @@ for /r "%SPYDERLIB%" %%f in (*.py) do (
     ) else if "%%f"=="%SPYDERLIB%\widgets\externalshell\start_ipython_kernel.py" (
         echo --- NOT testing %%f ---
         echo.
+    ) else if "%%f"=="%SPYDERLIB%\widgets\sourcecode\codeeditor.py" (
+        if %PYTHON_VERSION%==2.7 (
+            echo --- NOT testing %%f ---
+            echo.
+        ) else (
+            echo --- Testing %%f ---
+            python "%%f" || exit 1
+            echo.
+        )
     ) else (
         echo --- Testing %%f ---
         python "%%f" || exit 1
@@ -77,7 +74,7 @@ REM Spyplugins
 for /r "%APPVEYOR_BUILD_FOLDER%\spyplugins" %%f in (*.py) do (
     set file=%%f
 
-    if not "!file:widgets\=!"=="!file!" (    
+    if not "!file:widgets\=!"=="!file!" (
         echo --- Testing %%f ---
         python "%%f" || exit 1
         echo.

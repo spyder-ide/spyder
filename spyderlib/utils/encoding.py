@@ -15,7 +15,7 @@ import re
 import os
 import locale
 import sys
-from codecs import BOM_UTF8, BOM_UTF16, BOM_UTF32
+from codecs import BOM_UTF8, BOM_UTF16, BOM_UTF32, getincrementaldecoder
 
 # Local imports
 from spyderlib.py3compat import (is_string, to_text_string, is_binary_string,
@@ -91,10 +91,10 @@ def to_fs_from_unicode(unic):
 
 # Codecs for working with files and text.
 CODING_RE = re.compile(r"coding[:=]\s*([-\w_.]+)")
-CODECS = ['utf-8', 'iso8859-1',  'iso8859-15', 'koi8-r',
-          'koi8-u', 'iso8859-2', 'iso8859-3', 'iso8859-4', 'iso8859-5', 
-          'iso8859-6', 'iso8859-7', 'iso8859-8', 'iso8859-9', 
-          'iso8859-10', 'iso8859-13', 'iso8859-14', 'latin-1', 
+CODECS = ['utf-8', 'iso8859-1',  'iso8859-15', 'ascii', 'koi8-r',
+          'koi8-u', 'iso8859-2', 'iso8859-3', 'iso8859-4', 'iso8859-5',
+          'iso8859-6', 'iso8859-7', 'iso8859-8', 'iso8859-9',
+          'iso8859-10', 'iso8859-13', 'iso8859-14', 'latin-1',
           'utf-16']
 
 def get_coding(text):
@@ -106,7 +106,10 @@ def get_coding(text):
     for line in text.splitlines()[:2]:
         result = CODING_RE.search(to_text_string(line))
         if result:
-            return result.group(1)
+            codec = result.group(1)
+            # sometimes we find a false encoding that can result in errors
+            if codec in CODECS:
+                return codec
     return None
 
 def decode(text):
@@ -243,13 +246,16 @@ def is_text_file(filename):
             for bom in [BOM_UTF8, BOM_UTF16, BOM_UTF32]:
                 if chunk.startswith(bom):
                     return True
-            chunk = chunk.decode('utf-8')
+
+            decoder = getincrementaldecoder('utf-8')()
             while 1:
+                is_final = len(chunk) < CHUNKSIZE
+                chunk = decoder.decode(chunk, final=is_final)
                 if '\0' in chunk: # found null byte
                     return False
-                if len(chunk) < CHUNKSIZE:
+                if is_final:
                     break # done
-                chunk = fid.read(CHUNKSIZE).decode('utf-8')
+                chunk = fid.read(CHUNKSIZE)
         except UnicodeDecodeError:
             return False
         except Exception:

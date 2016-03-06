@@ -23,10 +23,12 @@ import sys
 # Local imports
 from spyderlib import dependencies
 from spyderlib.config.base import get_conf_path, get_module_source_path, _
-from spyderlib.config.ipython import IPYTHON_QT_INSTALLED
+from spyderlib.config.ipython import QTCONSOLE_INSTALLED
 from spyderlib.config.main import CONF, DEFAULT_SMALL_DELTA
 from spyderlib.config.gui import get_color_scheme, get_font, set_font
 from spyderlib.utils import programs
+from spyderlib.utils.help.sphinxify import (CSS_PATH, sphinxify, warning,
+                                            generate_context, usage)
 from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
                                        create_action)
 from spyderlib.widgets.comboboxes import EditableComboBox
@@ -37,25 +39,19 @@ from spyderlib.widgets.externalshell.pythonshell import ExtPythonShellWidget
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 from spyderlib.py3compat import to_text_string, get_meth_class_inst
 
+
+# Sphinx dependency
+dependencies.add("sphinx", _("Show help for objects in the Editor and "
+                             "Consoles in a dedicated pane"),
+                 required_version='>=0.6.6')
+
+
 #XXX: Hardcoded dependency on optional IPython plugin component
 #     that requires the hack to make this work without IPython
-if IPYTHON_QT_INSTALLED:
+if QTCONSOLE_INSTALLED:
     from spyderlib.widgets.ipython import IPythonControlWidget
 else:
     IPythonControlWidget = None  # analysis:ignore
-
-# Check if we can import Sphinx to activate rich text mode
-try:
-    from spyderlib.utils.help.sphinxify import (CSS_PATH, sphinxify, warning,
-                                                generate_context, usage)
-    sphinx_version = programs.get_module_version('sphinx')
-except (ImportError, TypeError):
-    sphinxify = sphinx_version = None  # analysis:ignore
-
-# To add sphinx dependency to the Dependencies dialog
-SPHINX_REQVER = '>=0.6.6'
-dependencies.add("sphinx", _("Rich text help"),
-                 required_version=SPHINX_REQVER)
 
 
 class ObjectComboBox(EditableComboBox):
@@ -138,7 +134,7 @@ class HelpConfigPage(PluginConfigPage):
                                           'connect/python_console')
         ipython_box = self.create_checkbox(_("IPython Console"),
                                            'connect/ipython_console')
-        ipython_box.setEnabled(IPYTHON_QT_INSTALLED)
+        ipython_box.setEnabled(QTCONSOLE_INSTALLED)
 
         connections_layout = QVBoxLayout()
         connections_layout.addWidget(connections_label)
@@ -151,14 +147,12 @@ class HelpConfigPage(PluginConfigPage):
         features_group = QGroupBox(_("Additional features"))
         math_box = self.create_checkbox(_("Render mathematical equations"),
                                         'math')
-        req_sphinx = sphinx_version is not None and \
-                     programs.is_module_installed('sphinx', '>=1.1')
+        req_sphinx = programs.is_module_installed('sphinx', '>=1.1')
         math_box.setEnabled(req_sphinx)
         if not req_sphinx:
+            sphinx_ver = programs.get_module_version('sphinx')
             sphinx_tip = _("This feature requires Sphinx 1.1 or superior.")
-            if sphinx_version is not None:
-                sphinx_tip += "\n" + _("Sphinx %s is currently installed."
-                                       ) % sphinx_version
+            sphinx_tip += "\n" + _("Sphinx %s is currently installed.") % sphinx_ver
             math_box.setToolTip(sphinx_tip)
 
         features_layout = QVBoxLayout()
@@ -256,7 +250,7 @@ class PlainText(QWidget):
 
     def set_text(self, text, is_code):
         self.editor.set_highlight_current_line(is_code)
-        self.editor.set_occurence_highlighting(is_code)
+        self.editor.set_occurrence_highlighting(is_code)
         if is_code:
             self.editor.set_language('py')
         else:
@@ -428,8 +422,7 @@ class Help(SpyderPluginWidget):
 
         # Plain text docstring option
         self.docstring = True
-        self.rich_help = sphinxify is not None \
-                         and self.get_option('rich_mode', True)
+        self.rich_help = self.get_option('rich_mode', True)
         self.plain_text_action = create_action(self, _("Plain Text"),
                                                toggled=self.toggle_plain_text)
 
@@ -476,7 +469,6 @@ class Help(SpyderPluginWidget):
             self.switch_to_plain_text()
         self.plain_text_action.setChecked(not self.rich_help)
         self.rich_text_action.setChecked(self.rich_help)
-        self.rich_text_action.setEnabled(sphinxify is not None)
         self.source_changed()
 
         # Main layout
@@ -488,15 +480,11 @@ class Help(SpyderPluginWidget):
         self.setLayout(layout)
 
         # Add worker thread for handling rich text rendering
-        if sphinxify is None:
-            self._sphinx_thread = None
-        else:
-            self._sphinx_thread = SphinxThread(
+        self._sphinx_thread = SphinxThread(
                                   html_text_no_doc=warning(self.no_doc_string))
-            self._sphinx_thread.html_ready.connect(
+        self._sphinx_thread.html_ready.connect(
                                              self._on_sphinx_thread_html_ready)
-            self._sphinx_thread.error_msg.connect(
-                                              self._on_sphinx_thread_error_msg)
+        self._sphinx_thread.error_msg.connect(self._on_sphinx_thread_error_msg)
 
         # Render internal links
         view = self.rich_text.webview
@@ -545,8 +533,7 @@ class Help(SpyderPluginWidget):
         """Refresh widget"""
         if self._starting_up:
             self._starting_up = False
-            if sphinxify is not None:
-                self.switch_to_rich_text()
+            self.switch_to_rich_text()
             self.show_intro_message()
 
     def update_font(self):
@@ -782,10 +769,7 @@ class Help(SpyderPluginWidget):
         img_path = osp.join(tutorial_path, 'static', 'images')
         tutorial = osp.join(tutorial_path, 'tutorial.rst')
         text = open(tutorial).read()
-        if sphinxify is not None:
-            self.show_rich_text(text, collapse=True, img_path=img_path)
-        else:
-            self.show_plain_text(text)
+        self.show_rich_text(text, collapse=True, img_path=img_path)
 
     def handle_link_clicks(self, url):
         url = to_text_string(url.toString())
@@ -973,13 +957,14 @@ class Help(SpyderPluginWidget):
         """ Display error message on Sphinx rich text failure"""
         self._sphinx_thread.wait()
         self.plain_text_action.setChecked(True)
+        sphinx_ver = programs.get_module_version('sphinx')
         QMessageBox.critical(self,
                     _('Help'),
                     _("The following error occured when calling "
                       "<b>Sphinx %s</b>. <br>Incompatible Sphinx "
                       "version or doc string decoding failed."
                       "<br><br>Error message:<br>%s"
-                      ) % (sphinx_version, error_msg))
+                      ) % (sphinx_ver, error_msg))
 
     def show_help(self, obj_text, ignore_unknown=False):
         """Show help"""

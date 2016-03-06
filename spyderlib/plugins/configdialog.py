@@ -24,7 +24,8 @@ import spyderlib.utils.icon_manager as ima
 
 from spyderlib.config.base import (_, running_in_mac_app, LANGUAGE_CODES,
                                    save_lang_conf, load_lang_conf)
-from spyderlib.config.main import CONF, is_gtk_desktop
+from spyderlib.config.main import CONF
+from spyderlib.config.utils import is_gtk_desktop
 from spyderlib.config.gui import (CUSTOM_COLOR_SCHEME_NAME, get_font, set_font,
                                   set_default_color_scheme)
 from spyderlib.config.user import NoDefault
@@ -295,8 +296,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         """Load settings from configuration file"""
         for checkbox, (option, default) in list(self.checkboxes.items()):
             checkbox.setChecked(self.get_option(option, default))
-            # Checkboxes work differently for PySide and PyQt
-            if API == 'pyqt':
+            # QAbstractButton works differently for PySide and PyQt
+            if not API == 'pyside':
                 checkbox.clicked.connect(lambda _foo, opt=option:
                                          self.has_been_modified(opt))
             else:
@@ -346,7 +347,13 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             edit = clayout.lineedit
             btn = clayout.colorbtn
             edit.setText(self.get_option(option, default))
-            btn.clicked.connect(lambda opt=option: self.has_been_modified(opt))
+            # QAbstractButton works differently for PySide and PyQt
+            if not API == 'pyside':
+                btn.clicked.connect(lambda _foo, opt=option:
+                                    self.has_been_modified(opt))
+            else:
+                btn.clicked.connect(lambda opt=option:
+                                    self.has_been_modified(opt))
             edit.textChanged.connect(lambda _foo, opt=option:
                                      self.has_been_modified(opt))
         for (clayout, cb_bold, cb_italic
@@ -357,19 +364,21 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             edit.setText(color)
             cb_bold.setChecked(bold)
             cb_italic.setChecked(italic)
-            btn.clicked.connect(lambda opt=option: self.has_been_modified(opt))
             edit.textChanged.connect(lambda _foo, opt=option:
                                      self.has_been_modified(opt))
-            if API == 'pyqt':
+            # QAbstractButton works differently for PySide and PyQt
+            if not API == 'pyside':
+                btn.clicked.connect(lambda _foo, opt=option:
+                                    self.has_been_modified(opt))
                 cb_bold.clicked.connect(lambda _foo, opt=option:
                                         self.has_been_modified(opt))
-            else:
-                cb_bold.clicked.connect(lambda opt=option:
-                                        self.has_been_modified(opt))
-            if API == 'pyqt':
                 cb_italic.clicked.connect(lambda _foo, opt=option:
                                           self.has_been_modified(opt))
             else:
+                btn.clicked.connect(lambda opt=option:
+                                    self.has_been_modified(opt))
+                cb_bold.clicked.connect(lambda opt=option:
+                                        self.has_been_modified(opt))
                 cb_italic.clicked.connect(lambda opt=option:
                                           self.has_been_modified(opt))
 
@@ -411,7 +420,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             checkbox.setToolTip(tip)
         self.checkboxes[checkbox] = (option, default)
         if msg_warning is not None or msg_info is not None:
-            def show_message(is_checked):
+            def show_message(is_checked=False):
                 if is_checked or not msg_if_enabled:
                     if msg_warning is not None:
                         QMessageBox.warning(self, self.get_name(),
@@ -681,7 +690,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
     def create_button(self, text, callback):
         btn = QPushButton(text)
         btn.clicked.connect(callback)
-        btn.clicked.connect(lambda opt='': self.has_been_modified(opt))
+        btn.clicked.connect(lambda checked=False, opt='': self.has_been_modified(opt))
         return btn
     
     def create_tab(self, *widgets):
@@ -970,7 +979,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
                       "background":     _("Background:"),
                       "currentline":    _("Current line:"),
                       "currentcell":    _("Current cell:"),
-                      "occurence":      _("Occurence:"),
+                      "occurrence":      _("Occurrence:"),
                       "ctrlclick":      _("Link:"),
                       "sideareas":      _("Side areas:"),
                       "matched_p":      _("Matched parentheses:"),

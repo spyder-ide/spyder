@@ -85,8 +85,8 @@ class Restarter(QWidget):
 
         # Widgets
         self.timer_ellipsis = QTimer(self)
-        self.splash = QSplashScreen(QPixmap(get_image_path('splash.png'),
-                                    'png'))
+        self.splash = QSplashScreen(QPixmap(get_image_path('splash.svg'),
+                                    'svg'))
 
         # Widget setup
         self.setVisible(False)
@@ -168,7 +168,8 @@ def main():
     reset = os.environ.pop('SPYDER_RESET', None)
 
     # Get the spyder base folder based on this file
-    spyder_folder = osp.split(osp.dirname(osp.abspath(__file__)))[0]
+    this_folder = osp.split(osp.dirname(osp.abspath(__file__)))[0]
+    spyder_folder = osp.split(this_folder)[0]
 
     if not any([spyder_args, pid, is_bootstrap, reset]):
         error = "This script can only be called from within a Spyder instance"
@@ -206,7 +207,7 @@ def main():
         spyder = osp.join(spyder_folder, 'bootstrap.py')
     else:
         spyderlib = osp.join(spyder_folder, 'spyderlib')
-        spyder = osp.join(spyderlib, 'start_app.py')
+        spyder = osp.join(spyderlib, 'app', 'start.py')
 
     command = '"{0}" "{1}" {2}'.format(python, spyder, args)
 

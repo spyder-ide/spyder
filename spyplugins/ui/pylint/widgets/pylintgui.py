@@ -15,7 +15,7 @@ from __future__ import with_statement, print_function
 
 from spyderlib.qt.QtGui import (QHBoxLayout, QWidget, QTreeWidgetItem,
                                 QMessageBox, QVBoxLayout, QLabel)
-from spyderlib.qt.QtCore import Signal, QProcess, QByteArray, QTextCodec
+from spyderlib.qt.QtCore import Signal, Slot, QProcess, QByteArray, QTextCodec
 locale_codec = QTextCodec.codecForLocale()
 from spyderlib.qt.compat import getopenfilename
 import spyderlib.utils.icon_manager as ima
@@ -25,7 +25,6 @@ import os
 import os.path as osp
 import time
 import re
-import subprocess
 
 # Local imports
 from spyderlib import dependencies
@@ -59,13 +58,15 @@ PYLINT_PATH = programs.find_program(PYLINT)
 
 def get_pylint_version():
     """Return pylint version"""
-    global PYLINT_PATH
     if PYLINT_PATH is None:
         return
-    process = subprocess.Popen([PYLINT, '--version'],
-                               stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                               cwd=osp.dirname(PYLINT_PATH),
-                               shell=True if os.name == 'nt' else False)
+    cwd = osp.dirname(PYLINT_PATH)
+    args = ['--version']
+    if os.name == 'nt':
+        cmd = ' '.join([PYLINT] + args)
+        process = programs.run_shell_command(cmd, cwd=cwd)
+    else:
+        process = programs.run_program(PYLINT, args, cwd=cwd)
     lines = to_unicode_from_fs(process.stdout.read()).splitlines()
     if lines:
         regex = '({0}*|pylint-script.py) ([0-9\.]*)'.format(PYLINT)
@@ -277,7 +278,8 @@ class PylintWidget(QWidget):
         self.filecombo.selected()
         if self.filecombo.is_valid():
             self.start()
-            
+
+    @Slot()
     def select_file(self):
         self.redirect_stdio.emit(False)
         filename, _selfilter = getopenfilename(self, _("Select Python file"),
@@ -314,12 +316,14 @@ class PylintWidget(QWidget):
         while len(self.rdata) > self.max_entries:
             self.rdata.pop(-1)
         pickle.dump([self.VERSION]+self.rdata, open(self.DATAPATH, 'wb'), 2)
-        
+
+    @Slot()
     def show_log(self):
         if self.output:
             TextEditor(self.output, title=_("Pylint output"),
                        readonly=True, size=(700, 500)).exec_()
-        
+
+    @Slot()
     def start(self):
         filename = to_text_string(self.filecombo.currentText())
         

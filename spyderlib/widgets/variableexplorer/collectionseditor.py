@@ -1066,6 +1066,10 @@ class BaseTableView(QTableView):
                 else:
                     obj = output.getvalue().decode('utf-8')
                 output.close()
+            elif is_binary_string(obj):
+                obj = to_text_string(obj, 'utf8')
+            else:
+                obj = to_text_string(obj)
             clipl.append(obj)
         clipboard.setText('\n'.join(clipl))
 

@@ -26,7 +26,6 @@ import atexit
 import os
 import os.path as osp
 import sys
-import subprocess
 
 # Local imports
 from spyderlib.config.base import SCIENTIFIC_STARTUP, running_in_mac_app, _
@@ -47,7 +46,7 @@ from spyderlib import dependencies
 
 MPL_REQVER = '>=1.0'
 dependencies.add("matplotlib", _("Interactive data plotting in the consoles"),
-                 required_version=MPL_REQVER)
+                 required_version=MPL_REQVER, optional=True)
 
 
 class ExternalConsoleConfigPage(PluginConfigPage):
@@ -360,10 +359,9 @@ class ExternalConsoleConfigPage(PluginConfigPage):
             return
         spyder_version = sys.version_info[0]
         try:
-            cmd = [pyexec, "-c", "import sys; print(sys.version_info[0])"]
-            # subprocess.check_output is not present in python2.6 and 3.0
-            process = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-            console_version = int(process.communicate()[0])
+            args = ["-c", "import sys; print(sys.version_info[0])"]
+            proc = programs.run_program(pyexec, args)
+            console_version = int(proc.communicate()[0])
         except IOError:
             console_version = spyder_version
         if spyder_version != console_version:
@@ -1172,12 +1170,12 @@ class ExternalConsole(SpyderPluginWidget):
                 self.open_interpreter()
         else:
             self.dockwidget.hide()
-    
+
     #------ Public API ---------------------------------------------------------
     @Slot(str)
     def open_interpreter(self, wdir=None):
         """Open interpreter"""
-        if wdir is None:
+        if not wdir:
             wdir = getcwd()
         self.visibility_changed(True)
         self.start(fname=None, wdir=to_text_string(wdir), args='',
@@ -1191,7 +1189,7 @@ class ExternalConsole(SpyderPluginWidget):
                   "be started as expected, but an IPython console will have "
                   "to be connected manually to the kernel."), QMessageBox.Ok)
         
-        if wdir is None:
+        if not wdir:
             wdir = getcwd()
         self.main.ipyconsole.visibility_changed(True)
         self.start(fname=None, wdir=to_text_string(wdir), args='',
@@ -1201,7 +1199,7 @@ class ExternalConsole(SpyderPluginWidget):
     @Slot(str)
     def open_terminal(self, wdir=None):
         """Open terminal"""
-        if wdir is None:
+        if not wdir:
             wdir = getcwd()
         self.start(fname=None, wdir=to_text_string(wdir), args='',
                    interact=True, debug=False, python=False)

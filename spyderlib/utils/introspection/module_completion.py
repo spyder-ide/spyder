@@ -286,6 +286,7 @@ def get_preferred_submodules():
             'PyQt4', 'PySide', 'os.path']
 
     submodules = []
+
     for m in mods:
         submods = get_submodules(m)
         submodules += submods
@@ -329,3 +330,5 @@ if __name__ == "__main__":
     assert module_completion(s + '(dum') == ['dump']
 
     assert module_completion(s + '(dump, Su') == ['SubElement']
+
+    assert 'os.path' in get_preferred_submodules()

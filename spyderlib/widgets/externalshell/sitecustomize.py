@@ -205,7 +205,7 @@ except ImportError:
 
 #==============================================================================
 # Add default filesystem encoding on Linux to avoid an error with
-# Matplotlib 1.5 in Python 2 (Fixes Issue 2793) 
+# Matplotlib 1.5 in Python 2 (Fixes Issue 2793)
 #==============================================================================
 if PY2 and sys.platform.startswith('linux'):
     def _getfilesystemencoding_wrapper():
@@ -327,58 +327,58 @@ else:
 IS_IPYTHON = os.environ.get("IPYTHON_KERNEL", "").lower() == "true"
 
 if matplotlib is not None:
-    mpl_backend = os.environ.get("SPY_MPL_BACKEND", "")
-    mpl_ion = os.environ.get("MATPLOTLIB_ION", "")
-
-    # Setting no backend if the user asks for it
-    if not mpl_backend or mpl_backend.lower() == 'none':
-        mpl_backend = ""
-
-    # Set backend automatically
-    if mpl_backend.lower() == 'automatic':
-        if not IS_EXT_INTERPRETER:
-            if os.environ["QT_API"] == 'pyqt5':
-                mpl_backend = 'Qt5Agg'
-            else:
-                mpl_backend = 'Qt4Agg'
-        else:
-            # Test for backend libraries on external interpreters
-            def set_mpl_backend(backend):
-                mod, bend, qt_api = backend
-                try:
-                    if mod:
-                        __import__(mod)
-                    if qt_api and (os.environ["QT_API"] != qt_api):
-                        return None
-                    else:
-                        matplotlib.use(bend)
-                        return bend
-                except (ImportError, ValueError):
-                    return None
-
-            backends = [('PyQt5', 'Qt5Agg', 'pyqt5'),
-                        ('PyQt4', 'Qt4Agg', 'pyqt'),
-                        ('PySide', 'Qt4Agg', 'pyqt')]
-            if not os.name == 'nt':
-                 backends.append( ('_tkinter', 'TkAgg', None) )
-
-            for b in backends:
-                mpl_backend = set_mpl_backend(b)
-                if mpl_backend:
-                    break
-
-            if not mpl_backend:
-                _print("NOTE: No suitable Matplotlib backend was found!\n"
-                       "      You won't be able to create plots\n")
-
-    # To have mpl docstrings as rst
-    matplotlib.rcParams['docstring.hardcopy'] = True
-
-    # Activate interactive mode when needed
-    if mpl_ion.lower() == "true":
-        matplotlib.rcParams['interactive'] = True
-
     if not IS_IPYTHON:
+        mpl_backend = os.environ.get("SPY_MPL_BACKEND", "")
+        mpl_ion = os.environ.get("MATPLOTLIB_ION", "")
+
+        # Setting no backend if the user asks for it
+        if not mpl_backend or mpl_backend.lower() == 'none':
+            mpl_backend = ""
+
+        # Set backend automatically
+        if mpl_backend.lower() == 'automatic':
+            if not IS_EXT_INTERPRETER:
+                if os.environ["QT_API"] == 'pyqt5':
+                    mpl_backend = 'Qt5Agg'
+                else:
+                    mpl_backend = 'Qt4Agg'
+            else:
+                # Test for backend libraries on external interpreters
+                def set_mpl_backend(backend):
+                    mod, bend, qt_api = backend
+                    try:
+                        if mod:
+                            __import__(mod)
+                        if qt_api and (os.environ["QT_API"] != qt_api):
+                            return None
+                        else:
+                            matplotlib.use(bend)
+                            return bend
+                    except (ImportError, ValueError):
+                        return None
+
+                backends = [('PyQt5', 'Qt5Agg', 'pyqt5'),
+                            ('PyQt4', 'Qt4Agg', 'pyqt'),
+                            ('PySide', 'Qt4Agg', 'pyqt')]
+                if not os.name == 'nt':
+                     backends.append( ('_tkinter', 'TkAgg', None) )
+    
+                for b in backends:
+                    mpl_backend = set_mpl_backend(b)
+                    if mpl_backend:
+                        break
+
+                if not mpl_backend:
+                    _print("NOTE: No suitable Matplotlib backend was found!\n"
+                           "      You won't be able to create plots\n")
+
+        # To have mpl docstrings as rst
+        matplotlib.rcParams['docstring.hardcopy'] = True
+
+        # Activate interactive mode when needed
+        if mpl_ion.lower() == "true":
+            matplotlib.rcParams['interactive'] = True
+
         from spyderlib.widgets.externalshell import inputhooks
         if mpl_backend:
             import ctypes
@@ -421,6 +421,9 @@ if matplotlib is not None:
                 inputhooks.remove_pyqt_inputhook()
         else:
             inputhooks.remove_pyqt_inputhook()
+    else:
+        # To have mpl docstrings as rst
+        matplotlib.rcParams['docstring.hardcopy'] = True
 
 
 #==============================================================================
@@ -838,8 +841,8 @@ def evalsc(command):
     """Evaluate special commands
     (analog to IPython's magic commands but far less powerful/complete)"""
     assert command.startswith('%')
-    
-    from subprocess import Popen, PIPE
+    from spyderlib.utils import programs
+
     namespace = _get_globals()
     command = command[1:].strip()  # Remove leading %
 
@@ -863,10 +866,10 @@ def evalsc(command):
             _print(os.getcwd())
     elif command == 'ls':
         if os.name == 'nt':
-            Popen('dir', shell=True, stdin=PIPE)
+            programs.run_shell_command('dir')
             _print('\n')
         else:
-            Popen('ls', shell=True, stdin=PIPE)
+            programs.run_shell_command('ls')
             _print('\n')
     elif command == 'scientific':
         from spyderlib.config import base

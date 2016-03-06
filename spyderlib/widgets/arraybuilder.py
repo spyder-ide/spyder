@@ -28,8 +28,8 @@ from spyderlib.widgets.helperwidgets import HelperToolButton
 
 
 # Constants
-SHORTCUT_INLINE = "Shift+Ctrl+*"  # Fixed shortcuts for editor and consoles
-SHORTCUT_TABLE = "Ctrl+*"         # Fixed shortcuts for editor and consoles
+SHORTCUT_TABLE = "Ctrl+M"
+SHORTCUT_INLINE = "Ctrl+Alt+M"
 ELEMENT_SEPARATOR = ', '
 ROW_SEPARATOR = ';'
 BRACES = '], ['
