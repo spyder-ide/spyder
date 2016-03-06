@@ -484,7 +484,11 @@ class SpyderPluginMixin(object):
                         "This method is deprecated.")
 
     def update_font(self):
-        raise NotImplementedError
+        """
+        This has to be reimplemented by plugins that need to adjust
+        their fonts
+        """
+        pass
 
     def __show_message(self, message, timeout=0):
         """Show message in main window's status bar"""
