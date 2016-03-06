@@ -18,7 +18,7 @@ from spyderlib.qt.QtGui import (QWidget, QDialog, QListWidget, QListWidgetItem,
                                 QHBoxLayout, QDialogButtonBox, QCheckBox,
                                 QMessageBox, QLabel, QLineEdit, QSpinBox,
                                 QPushButton, QFontComboBox, QGroupBox,
-                                QComboBox, QColor, QGridLayout,
+                                QComboBox, QColor, QGridLayout, QTabWidget,
                                 QRadioButton, QButtonGroup, QSplitter,
                                 QStyleFactory, QScrollArea, QDoubleSpinBox)
 from spyderlib.qt.QtCore import Qt, QSize, Signal, Slot
@@ -954,8 +954,6 @@ class MainConfigPage(GeneralConfigPage):
 
     def set_font(self, font, option):
         """Set global font used in Spyder."""
-        set_font(font, option=option)
-
         # Update fonts in all plugins
         plugins = self.main.widgetlist + self.main.thirdparty_plugins
         for plugin in plugins:
