@@ -17,7 +17,6 @@ import time
 
 from spyderlib.utils.debug import log_dt
 from spyderlib.utils import sourcecode, encoding
-from spyderlib.utils.introspection.module_completion import module_completion
 from spyderlib.utils.introspection.manager import (
     DEBUG_EDITOR, LOG_FILENAME, IntrospectionPlugin)
 from spyderlib.utils.introspection.utils import (
@@ -35,34 +34,26 @@ class FallbackPlugin(IntrospectionPlugin):
 
         Simple completion based on python-like identifiers and whitespace
         """
+        if not info['obj']:
+            return
         items = []
-        line = info['line'].strip()
-        is_from = line.startswith('from')
-        if ((line.startswith('import') or is_from and ' import' not in line)
-                and info['is_python_like']):
-            items += module_completion(info['line'], [info['filename']])
-            return [(i, 'module') for i in sorted(items)]
-        elif is_from and info['is_python_like']:
-            items += module_completion(info['line'], [info['filename']])
-            return [(i, '') for i in sorted(items)]
-        elif info['obj']:
-            base = info['obj']
-            tokens = set(re.findall(info['id_regex'], info['source_code']))
-            items = [item for item in tokens if
-                     item.startswith(base) and len(item) > len(base)]
-            if '.' in base:
-                start = base.rfind('.') + 1
-            else:
-                start = 0
+        base = info['obj']
+        tokens = set(re.findall(info['id_regex'], info['source_code']))
+        items = [item for item in tokens if
+                 item.startswith(base) and len(item) > len(base)]
+        if '.' in base:
+            start = base.rfind('.') + 1
+        else:
+            start = 0
 
-            items = [i[start:len(base)] + i[len(base):].split('.')[0]
-                     for i in items]
-            # get path completions
-            # get last word back to a space or a quote character
-            match = re.search('''[ "\']([\w\.\\\\/]+)\Z''', info['line'])
-            if match:
-                items += _complete_path(match.groups()[0])
-            return [(i, '') for i in sorted(items)]
+        items = [i[start:len(base)] + i[len(base):].split('.')[0]
+                 for i in items]
+        # get path completions
+        # get last word back to a space or a quote character
+        match = re.search('''[ "\']([\w\.\\\\/]+)\Z''', info['line'])
+        if match:
+            items += _complete_path(match.groups()[0])
+        return [(i, '') for i in sorted(items)]
 
     def get_definition(self, info):
         """
@@ -373,18 +364,6 @@ if __name__ == '__main__':
     code = encoding.to_unicode('álfa;á')
     comp = p.get_completions(CodeInfo('completions', code, len(code)))
     assert comp == [(encoding.to_unicode('álfa'), '')]
-
-    code = 'from numpy import one'
-    comp = p.get_completions(CodeInfo('completions', code, len(code)))
-    assert ('ones', '') in comp
-
-    comp = p.get_completions(CodeInfo('completions', code, len(code),
-        is_python_like=False))
-    assert not comp
-
-    code = 'from numpy.testing import (asse'
-    comp = p.get_completions(CodeInfo('completions', code, len(code)))
-    assert ('assert_equal', '') in comp
 
     code = '''
 def test(a, b):

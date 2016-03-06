@@ -9,6 +9,7 @@ Rope introspection plugin
 """
 
 import time
+import imp
 
 from spyderlib.config.base import get_conf_path, STDERR
 from spyderlib.utils import encoding, programs
@@ -62,8 +63,15 @@ class RopePlugin(IntrospectionPlugin):
         self.project = None
         self.create_rope_project(root_path=get_conf_path())
         submods = get_preferred_submodules()
+        actual = []
+        for submod in submods:
+            try:
+                imp.find_module(submod)
+                actual.append(submod)
+            except ImportError:
+                pass
         if self.project is not None:
-            self.project.prefs.set('extension_modules', submods)
+            self.project.prefs.set('extension_modules', actual)
 
     def get_completions(self, info):
         """Get a list of (completion, type) tuples using Rope"""
