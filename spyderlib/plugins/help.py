@@ -21,6 +21,7 @@ import socket
 import sys
 
 # Local imports
+from spyderlib import dependencies
 from spyderlib.config.base import get_conf_path, get_module_source_path, _
 from spyderlib.config.ipython import QTCONSOLE_INSTALLED
 from spyderlib.config.main import CONF
@@ -37,6 +38,13 @@ from spyderlib.widgets.browser import FrameWebView
 from spyderlib.widgets.externalshell.pythonshell import ExtPythonShellWidget
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 from spyderlib.py3compat import to_text_string, get_meth_class_inst
+
+
+# Sphinx dependency
+dependencies.add("sphinx", _("Show help for objects in the Editor and "
+                             "Consoles in a dedicated pane"),
+                 required_version='>=0.6.6')
+
 
 #XXX: Hardcoded dependency on optional IPython plugin component
 #     that requires the hack to make this work without IPython
