@@ -60,7 +60,7 @@ from spyderlib.py3compat import to_text_string
 
 SYMPY_REQVER = '>=0.7.3'
 dependencies.add("sympy", _("Symbolic mathematics in the IPython Console"),
-                 required_version=SYMPY_REQVER)
+                 required_version=SYMPY_REQVER, optional=True)
 
 
 # Replacing pyzmq openssh_tunnel method to work around the issue

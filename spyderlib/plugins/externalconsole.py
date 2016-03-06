@@ -46,7 +46,7 @@ from spyderlib import dependencies
 
 MPL_REQVER = '>=1.0'
 dependencies.add("matplotlib", _("Interactive data plotting in the consoles"),
-                 required_version=MPL_REQVER)
+                 required_version=MPL_REQVER, optional=True)
 
 
 class ExternalConsoleConfigPage(PluginConfigPage):
