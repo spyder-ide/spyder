@@ -44,8 +44,7 @@ import spyderlib.utils.icon_manager as ima
 #       consistent editor module (Qt source code and shell widgets library)
 from spyderlib.config.base import get_conf_path, _, DEBUG
 from spyderlib.config.main import CONF
-from spyderlib.config.gui import (get_font, create_shortcut, new_shortcut,
-                                  get_shortcut)
+from spyderlib.config.gui import create_shortcut, new_shortcut, get_shortcut
 from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
                                        mimedata2url)
 from spyderlib.utils.dochelpers import getobj
@@ -375,7 +374,7 @@ class CodeEditor(TextEditBaseWidget):
                 self.setObjectName('historylog')
 
         # Caret (text cursor)
-        self.setCursorWidth( CONF.get('editor_appearance', 'cursor/width') )
+        self.setCursorWidth( CONF.get('main', 'cursor/width') )
 
         # 79-col edge line
         self.edge_line_enabled = True

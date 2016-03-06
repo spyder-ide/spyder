@@ -1061,8 +1061,7 @@ class Editor(SpyderPluginWidget):
         color_scheme = get_color_scheme(self.get_option('color_scheme_name'))
         for editorstack in self.editorstacks:
             editorstack.set_default_font(font, color_scheme)
-            completion_size = CONF.get('editor_appearance',
-                                       'completion/size')
+            completion_size = CONF.get('main', 'completion/size')
             for finfo in editorstack.data:
                 comp_widget = finfo.editor.completion_widget
                 comp_widget.setup_appearance(completion_size, font)

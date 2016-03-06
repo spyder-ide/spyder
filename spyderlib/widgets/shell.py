@@ -91,7 +91,7 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
         self.setFocus()
 
         # Cursor width
-        self.setCursorWidth( CONF.get('shell_appearance', 'cursor/width') )
+        self.setCursorWidth( CONF.get('main', 'cursor/width') )
 
     def toggle_wrap_mode(self, enable):
         """Enable/disable wrap mode"""

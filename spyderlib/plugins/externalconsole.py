@@ -1106,8 +1106,7 @@ class ExternalConsole(SpyderPluginWidget):
         font = self.get_plugin_font()
         for shellwidget in self.shellwidgets:
             shellwidget.shell.set_font(font)
-            completion_size = CONF.get('shell_appearance',
-                                       'completion/size')
+            completion_size = CONF.get('main', 'completion/size')
             comp_widget = shellwidget.shell.completion_widget
             comp_widget.setup_appearance(completion_size, font)
 

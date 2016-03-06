@@ -267,7 +267,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.unmatched_p_color = QColor(Qt.red)
 
     def setup_completion(self):
-        size = CONF.get('editor_appearance', 'completion/size')
+        size = CONF.get('main', 'completion/size')
         font = get_font()
         self.completion_widget.setup_appearance(size, font)
 
