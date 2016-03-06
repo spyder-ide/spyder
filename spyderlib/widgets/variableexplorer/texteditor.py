@@ -52,7 +52,7 @@ class TextEditor(QDialog):
         self.edit.setReadOnly(readonly)
         self.edit.setPlainText(text)
         if font is None:
-            font = get_font('texteditor')
+            font = get_font()
         self.edit.setFont(font)
         self.layout.addWidget(self.edit)
 

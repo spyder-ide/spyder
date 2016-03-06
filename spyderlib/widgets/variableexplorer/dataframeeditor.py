@@ -26,6 +26,7 @@ from spyderlib.utils.qthelpers import (qapplication, create_action,
 
 from spyderlib.config.base import _
 from spyderlib.config.gui import get_font, new_shortcut
+from spyderlib.config.main import DEFAULT_SMALL_DELTA
 from spyderlib.py3compat import PY2, io, is_text_string, to_text_string
 from spyderlib.utils import encoding
 from spyderlib.widgets.variableexplorer.arrayeditor import get_idx_rect
@@ -255,7 +256,7 @@ class DataFrameModel(QAbstractTableModel):
         elif role == Qt.BackgroundColorRole:
             return to_qvariant(self.get_bgcolor(index))
         elif role == Qt.FontRole:
-            return to_qvariant(get_font('arrayeditor'))
+            return to_qvariant(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
         return to_qvariant()
 
     def sort(self, column, order=Qt.AscendingOrder):

@@ -28,10 +28,10 @@ class StatusBarWidget(QWidget):
     def __init__(self, parent, statusbar):
         QWidget.__init__(self, parent)
 
-        self.label_font = font = get_font('editor')
+        self.label_font = font = get_font(option='rich_font')
         font.setPointSize(self.font().pointSize())
         font.setBold(True)
-        
+
         layout = QHBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)

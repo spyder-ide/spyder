@@ -780,7 +780,6 @@ class EditorStack(QWidget):
         self.help_enabled = state
 
     def set_default_font(self, font, color_scheme=None):
-        # get_font(self.CONF_SECTION)
         self.default_font = font
         if color_scheme is not None:
             self.color_scheme = color_scheme
