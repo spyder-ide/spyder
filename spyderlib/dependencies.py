@@ -83,18 +83,31 @@ def check(modname):
     else:
         raise RuntimeError("Unkwown dependency %s" % modname)
 
-def status():
-    """Return a complete status of Dependencies"""
+
+def status(deps=DEPENDENCIES, linesep=os.linesep):
+    """Return a status of dependencies"""
     maxwidth = 0
     col1 = []
     col2 = []
-    for dependency in DEPENDENCIES:
+    for dependency in deps:
         title1 = dependency.modname
         title1 += ' ' + dependency.required_version
         col1.append(title1)
         maxwidth = max([maxwidth, len(title1)])
         col2.append(dependency.get_installed_version())
     text = ""
-    for index in range(len(DEPENDENCIES)):
-        text += col1[index].ljust(maxwidth) + ':  ' + col2[index] + os.linesep
+    for index in range(len(deps)):
+        text += col1[index].ljust(maxwidth) + ':  ' + col2[index] + linesep
     return text
+
+
+def missing_dependencies():
+    """Return the status of missing dependencies (if any)"""
+    missing_deps = []
+    for dependency in DEPENDENCIES:
+        if not dependency.check() and not dependency.optional:
+            missing_deps.append(dependency)
+    if missing_deps:
+        return status(deps=missing_deps, linesep='<br>')
+    else:
+        return ""

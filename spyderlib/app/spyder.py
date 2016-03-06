@@ -1310,10 +1310,26 @@ class MainWindow(QMainWindow):
 
         # Check for spyder updates
         if DEV is None and CONF.get('main', 'check_updates_on_startup'):
-            self.give_updates_feedback = False 
+            self.give_updates_feedback = False
             self.check_updates()
 
+        self.report_missing_dependencies()
+
         self.is_setting_up = False
+
+    def report_missing_dependencies(self):
+        """Show a QMessageBox with a list of missing hard dependencies"""
+        missing_deps = dependencies.missing_dependencies()
+        if missing_deps:
+            QMessageBox.critical(self, _('Error'),
+                _("<b>You have missing dependencies!!</b>"
+                  "<br><br><tt>%s</tt><br><br>"
+                  "<b>Please install them to avoid this message.</b>"
+                  "<br><br>"
+                  "<i>Note</i>: Spyder could work without them but please "
+                  "don't complain about problems or errors generated because "
+                  "of this."
+                  ) % missing_deps, QMessageBox.Ok)
 
     def load_window_settings(self, prefix, default=False, section='main'):
         """Load window layout settings from userconfig-based configuration
