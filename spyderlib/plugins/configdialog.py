@@ -1143,7 +1143,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         self.preview_editor.setup_editor(linenumbers=True,
                                          markers=True,
                                          tab_mode=False,
-                                         font=get_font('editor'),
+                                         font=get_font(),
                                          show_blanks=show_blanks,
                                          color_scheme=scheme_name)
         self.preview_editor.set_text(text)
