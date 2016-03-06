@@ -1322,13 +1322,18 @@ class MainWindow(QMainWindow):
         missing_deps = dependencies.missing_dependencies()
         if missing_deps:
             QMessageBox.critical(self, _('Error'),
-                _("<b>You have missing dependencies!!</b>"
+                _("<b>You have missing dependencies!</b>"
                   "<br><br><tt>%s</tt><br><br>"
                   "<b>Please install them to avoid this message.</b>"
                   "<br><br>"
-                  "<i>Note</i>: Spyder could work without them but please "
-                  "don't complain about problems or errors generated because "
-                  "of this."
+                  "<i>Note</i>: Spyder could work without some of these "
+                  "dependencies, however to have a smooth experience when "
+                  "using Spyder we <i>strongly</i> recommend you to install "
+                  "all the listed missing dependencies.<br>"
+                  "Failing to install these dependencies might result in bugs. "
+                  "Please be sure that any found bugs are not the direct "
+                  "result of missing dependencies, prior to reporting a new "
+                  "issue."
                   ) % missing_deps, QMessageBox.Ok)
 
     def load_window_settings(self, prefix, default=False, section='main'):
