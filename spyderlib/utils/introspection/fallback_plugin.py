@@ -15,12 +15,14 @@ import os.path as osp
 import re
 import time
 
+from pygments.token import Token
+
 from spyderlib.utils.debug import log_dt
 from spyderlib.utils import sourcecode, encoding
 from spyderlib.utils.introspection.manager import (
     DEBUG_EDITOR, LOG_FILENAME, IntrospectionPlugin)
 from spyderlib.utils.introspection.utils import (
-    get_parent_until, memoize)
+    get_parent_until, memoize, find_lexer_for_filename, get_keywords)
 
 
 class FallbackPlugin(IntrospectionPlugin):
@@ -37,23 +39,51 @@ class FallbackPlugin(IntrospectionPlugin):
         if not info['obj']:
             return
         items = []
-        base = info['obj']
-        tokens = set(re.findall(info['id_regex'], info['source_code']))
-        items = [item for item in tokens if
-                 item.startswith(base) and len(item) > len(base)]
-        if '.' in base:
-            start = base.rfind('.') + 1
-        else:
-            start = 0
+        line = info['line'].strip()
+        is_from = line.startswith('from')
+        if ((line.startswith('import') or is_from and ' import' not in line)
+                and info['is_python_like']):
+            items += module_completion(info['line'], [info['filename']])
+            return [(i, 'module') for i in sorted(items)]
+        elif is_from and info['is_python_like']:
+            items += module_completion(info['line'], [info['filename']])
+            return [(i, '') for i in sorted(items)]
+        elif info['obj']:
+            obj = info['obj']
+            if info['context']:
+                lexer = find_lexer_for_filename(info['filename'])
+                # get a list of token matches for the current object
+                tokens = lexer.get_tokens(info['source_code'])
+                for (context, token) in tokens:
+                    token = token.strip()
+                    if (context in info['context']and
+                            token.startswith(obj) and
+                            obj != token):
+                        items.append(token)
+                # add in keywords if not in a string
+                if context not in Token.Literal.String:
+                    try:
+                        keywords = get_keywords(lexer)
+                        items.extend(k for k in keywords if k.startswith(obj))
+                    except Exception:
+                        pass
+            else:
+                tokens = set(re.findall(info['id_regex'], info['source_code']))
+                items = [item for item in tokens if
+                     item.startswith(obj) and len(item) > len(obj)]
+                if '.' in obj:
+                    start = obj.rfind('.') + 1
+                else:
+                    start = 0
 
-        items = [i[start:len(base)] + i[len(base):].split('.')[0]
-                 for i in items]
-        # get path completions
-        # get last word back to a space or a quote character
-        match = re.search('''[ "\']([\w\.\\\\/]+)\Z''', info['line'])
-        if match:
-            items += _complete_path(match.groups()[0])
-        return [(i, '') for i in sorted(items)]
+                items = [i[start:len(obj)] + i[len(obj):].split('.')[0]
+                     for i in items]
+            # get path completions
+            # get last word back to a space or a quote character
+            match = re.search('''[ "\']([\w\.\\\\/]+)\Z''', info['line'])
+            if match:
+                items += _complete_path(match.groups()[0])
+            return [(i, '') for i in sorted(items)]
 
     def get_definition(self, info):
         """
@@ -62,6 +92,8 @@ class FallbackPlugin(IntrospectionPlugin):
         This is used to find the path of python-like modules
         (e.g. cython and enaml) for a goto definition
         """
+        if not info['is_python_like']:
+            return
         token = info['obj']
         lines = info['lines']
         source_code = info['source_code']
@@ -88,7 +120,7 @@ class FallbackPlugin(IntrospectionPlugin):
             if (not source_file or
                     not osp.splitext(source_file)[-1] in exts):
                 line_nr = get_definition_with_regex(source_code, token,
-                                                         line_nr)
+                                                    line_nr)
                 return filename, line_nr
             mod_name = osp.basename(source_file).split('.')[0]
             if mod_name == token or mod_name == '__init__':
@@ -200,7 +232,6 @@ def get_definition_with_regex(source, token, start_line=-1):
                     'self.{0}{1}[^=!<>]*=[^=]',
                     '{0}{1}[^=!<>]*=[^=]']
         matches = get_matches(patterns, source, token, start_line)
-
     # find the one closest to the start line (prefer before the start line)
     if matches:
         min_dist = len(source.splitlines())
@@ -296,25 +327,25 @@ if __name__ == '__main__':
     code += '\nlog_dt'
 
     path, line = p.get_definition(CodeInfo('definition', code, len(code),
-        __file__))
+        __file__, is_python_like=True))
     assert path.endswith('fallback_plugin.py')
 
     code += '\np.get_completions'
     path, line = p.get_definition(CodeInfo('definition', code, len(code),
-        'dummy.txt'))
-    assert path == 'dummy.txt'
+        'dummy.py', is_python_like=True))
+    assert path == 'dummy.py'
     assert 'def get_completions(' in code.splitlines()[line - 1]
 
     code += '\npython_like_mod_finder'
     path, line = p.get_definition(CodeInfo('definition', code, len(code),
-        'dummy.txt'))
-    assert path == 'dummy.txt'
+        'dummy.py', is_python_like=True))
+    assert path == 'dummy.py'
     # FIXME: we need to prioritize def over =
     assert 'def python_like_mod_finder' in code.splitlines()[line - 1]
 
     code += 'python_like_mod_finder'
     resp = p.get_definition(CodeInfo('definition', code, len(code),
-        'dummy.txt'))
+        'dummy.py'))
     assert resp is None
 
     code = """
@@ -325,7 +356,7 @@ if __name__ == '__main__':
     t = Test()
     t.foo"""
     path, line = p.get_definition(CodeInfo('definition', code, len(code),
-        'dummy.txt'))
+        'dummy.py', is_python_like=True))
     assert line == 4
 
     ext = python_like_exts()
@@ -350,25 +381,29 @@ if __name__ == '__main__':
 
     code = 'import re\n\nre'
     path, line = p.get_definition(CodeInfo('definition', code, len(code),
-        'dummy.txt'))
-    assert path == 'dummy.txt' and line == 1
+        'dummy.py', is_python_like=True))
+    assert path == 'dummy.py' and line == 1
 
     code = 'self.proxy.widget; self.p'
-    comp = p.get_completions(CodeInfo('completions', code, len(code)))
-    assert comp[0] == ('proxy', '')
+    comp = p.get_completions(CodeInfo('completions', code, len(code), 'dummy.py'))
+    assert ('proxy', '') in comp, comp
 
     code = 'self.sigMessageReady.emit; self.s'
-    comp = p.get_completions(CodeInfo('completions', code, len(code)))
-    assert comp == [('sigMessageReady', '')]
+    comp = p.get_completions(CodeInfo('completions', code, len(code), 'dummy.py'))
+    assert ('sigMessageReady', '') in comp
 
-    code = encoding.to_unicode('álfa;á')
-    comp = p.get_completions(CodeInfo('completions', code, len(code)))
-    assert comp == [(encoding.to_unicode('álfa'), '')]
+    code = 'bob = 1; bo'
+    comp = p.get_completions(CodeInfo('completions', code, len(code), 'dummy.m'))
+    assert ('bob', '') in comp
+
+    code = 'functi'    
+    comp = p.get_completions(CodeInfo('completions', code, len(code), 'dummy.sh'))
+    assert ('function', '') in comp, comp
 
     code = '''
 def test(a, b):
     pass
 test(1,'''
     path, line = p.get_definition(CodeInfo('definition', code, len(code),
-        'dummy.txt'))
+        'dummy.py', is_python_like=True))
     assert line == 2

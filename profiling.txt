@@ -28,3 +28,4 @@ When Explorer widget is disabled (.spyder.ini): 30ms
 
 => Workspace lack of performance solved too! -> was due to a CONF.get within a
    loop... duh...
+
