@@ -33,7 +33,7 @@ import numpy as np
 # Local imports
 from spyderlib.config.base import _
 from spyderlib.config.gui import get_font, new_shortcut
-from spyderlib.config.main import DEFAULT_SMALL_DELTA
+from spyderlib.config.fonts import DEFAULT_SMALL_DELTA
 from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
                                        qapplication)
 from spyderlib.py3compat import (PY3, io, to_text_string, is_text_string,

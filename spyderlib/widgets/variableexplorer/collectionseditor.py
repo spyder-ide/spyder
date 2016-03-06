@@ -35,7 +35,7 @@ from spyderlib.utils.qthelpers import mimedata2url
 
 # Local import
 from spyderlib.config.base import _
-from spyderlib.config.main import DEFAULT_SMALL_DELTA
+from spyderlib.config.fonts import DEFAULT_SMALL_DELTA
 from spyderlib.config.gui import get_font
 from spyderlib.utils.misc import fix_reference_name
 from spyderlib.utils.qthelpers import add_actions, create_action, qapplication

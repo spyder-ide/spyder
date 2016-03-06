@@ -26,7 +26,7 @@ from spyderlib.utils.qthelpers import (qapplication, create_action,
 
 from spyderlib.config.base import _
 from spyderlib.config.gui import get_font, new_shortcut
-from spyderlib.config.main import DEFAULT_SMALL_DELTA
+from spyderlib.config.fonts import DEFAULT_SMALL_DELTA
 from spyderlib.py3compat import PY2, io, is_text_string, to_text_string
 from spyderlib.utils import encoding
 from spyderlib.widgets.variableexplorer.arrayeditor import get_idx_rect
