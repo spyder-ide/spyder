@@ -27,6 +27,8 @@ import spyderlib.utils.icon_manager as ima
 
 
 # Local imports
+from spyderlib.config.main import CONF
+from spyderlib.config.gui import get_font
 from spyderlib.widgets.sourcecode.terminal import ANSIEscapeCodeHandler
 from spyderlib.widgets.mixins import BaseEditMixin
 from spyderlib.widgets.calltip import CallTipWidget
@@ -245,6 +247,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.codecompletion_case = True
         self.codecompletion_enter = False
         self.completion_text = ""
+        self.setup_completion()
 
         self.calltip_widget = CallTipWidget(self, hide_timer_on=True)
         self.calltips = True
@@ -262,13 +265,15 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.bracepos = None
         self.matched_p_color = QColor(Qt.green)
         self.unmatched_p_color = QColor(Qt.red)
-        
-    def setup_completion(self, size=None, font=None):
+
+    def setup_completion(self):
+        size = CONF.get('editor_appearance', 'completion/size')
+        font = get_font()
         self.completion_widget.setup_appearance(size, font)
-        
+
     def set_indent_chars(self, indent_chars):
         self.indent_chars = indent_chars
-        
+
     def set_palette(self, background, foreground):
         """
         Set text editor palette colors:

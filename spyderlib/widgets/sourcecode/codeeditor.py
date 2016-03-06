@@ -374,12 +374,6 @@ class CodeEditor(TextEditBaseWidget):
             elif 'historylog' in plugin_name.lower():
                 self.setObjectName('historylog')
 
-        # Completion
-        completion_size = CONF.get('editor_appearance', 'completion/size')
-        completion_font = get_font('editor')
-        self.completion_widget.setup_appearance(completion_size,
-                                                completion_font)
-
         # Caret (text cursor)
         self.setCursorWidth( CONF.get('editor_appearance', 'cursor/width') )
 

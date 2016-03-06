@@ -29,8 +29,7 @@ import spyderlib.utils.icon_manager as ima
 # Local import
 from spyderlib.config.base import get_conf_path, _, STDERR, DEBUG
 from spyderlib.config.main import CONF
-from spyderlib.config.gui import (get_font, create_shortcut, get_shortcut,
-                                  new_shortcut)
+from spyderlib.config.gui import create_shortcut, get_shortcut, new_shortcut
 from spyderlib.utils import encoding
 from spyderlib.utils.qthelpers import (keybinding, create_action, add_actions,
                                        restore_keyevent)
@@ -90,15 +89,10 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
 
         # Give focus to widget
         self.setFocus()
-        
-        # Completion
-        completion_size = CONF.get('shell_appearance', 'completion/size')
-        completion_font = get_font('console')
-        self.completion_widget.setup_appearance(completion_size,
-                                                completion_font)
+
         # Cursor width
         self.setCursorWidth( CONF.get('shell_appearance', 'cursor/width') )
-        
+
     def toggle_wrap_mode(self, enable):
         """Enable/disable wrap mode"""
         self.set_wrap_mode('character' if enable else None)
