@@ -27,12 +27,12 @@ from spyderlib.config.base import _
 PANDAS_REQVER = '>=0.13.1'
 dependencies.add('pandas',  _("View and edit DataFrames and Series in the "
                               "Variable Explorer"),
-                 required_version=PANDAS_REQVER)
+                 required_version=PANDAS_REQVER, optional=True)
 
 NUMPY_REQVER = '>=1.7'
 dependencies.add("numpy", _("View and edit two and three dimensional arrays "
                             "in the Variable Explorer"),
-                 required_version=NUMPY_REQVER)
+                 required_version=NUMPY_REQVER, optional=True)
 
 #==============================================================================
 # FakeObject
