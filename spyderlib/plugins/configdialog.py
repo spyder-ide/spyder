@@ -926,11 +926,11 @@ class MainConfigPage(GeneralConfigPage):
         fonts_group.setLayout(fonts_layout)
 
         tabs = QTabWidget()
-        tabs.addTab(self.create_tab(general_group, sbar_group),
-                    _("General"))
         tabs.addTab(self.create_tab(fonts_group, interface_group),
                     _("Appearance"))
-        
+        tabs.addTab(self.create_tab(general_group, sbar_group),
+                    _("Advanced Settings"))
+
         vlayout = QVBoxLayout()
         vlayout.addWidget(tabs)
         self.setLayout(vlayout)
