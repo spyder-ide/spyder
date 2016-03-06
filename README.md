@@ -149,7 +149,7 @@ a Python version greater than 2.7 (Python 3.2 is not supported anymore).
 * **Psutil**: CPU and memory usage on the status bar.
 * **Nbconvert**: Manipulation of notebooks in the Editor.
 * **Qtawesome**: To have an icon theme based on FontAwesome
-* **Pickleshare**: Show import completions on the Editor and Consoles
+* **Pickleshare**: Show import completions on the Python consoles
 
 ### Optional dependencies
 
