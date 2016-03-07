@@ -299,8 +299,8 @@ if __name__ == '__main__':
     completions = p.get_completions(CodeInfo('completions', source_code,
         len(source_code), __file__))
     assert ('numpy', 'module') in completions
-    
-    source_code = "import o"
+
+    source_code = "import a"
     completions = p.get_completions(CodeInfo('completions', source_code,
         len(source_code), __file__))
     assert not completions
