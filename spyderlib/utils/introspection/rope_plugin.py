@@ -83,7 +83,7 @@ class RopePlugin(IntrospectionPlugin):
 
         # Prevent Rope from returning import completions because
         # it can't handle them. Only Jedi can do it!
-        lines = sourcecode.split_source(source_code)
+        lines = sourcecode.split_source(source_code[:offset])
         last_line = lines[-1].lstrip()
         if (last_line.startswith('import ') or last_line.startswith('from ')) \
           and not ';' in last_line:
