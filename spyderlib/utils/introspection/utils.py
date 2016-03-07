@@ -22,6 +22,7 @@ from spyderlib.utils.syntaxhighlighters import (
     custom_extension_lexer_mapping
 )
 
+from pygments.lexer import words
 from pygments.lexers import (
     get_lexer_for_filename, get_lexer_by_name, TextLexer
 )
@@ -188,15 +189,25 @@ def get_keywords(lexer):
     if not hasattr(lexer, 'tokens'):
         return []
     if 'keywords' in lexer.tokens:
-        return lexer.tokens['keywords'][0][0].words
+        try:
+            return lexer.tokens['keywords'][0][0].words
+        except:
+            pass
     keywords = []
     for vals in lexer.tokens.values():
         for val in vals:
             try:
-                if '|' in val[0] and ')\\b' in val[0]:
-                    val = re.sub(r'\\.', '', val[0])
-                    val = re.sub('[^0-9a-zA-Z|]+', '', val)
-                    keywords.extend(val.split('|'))
+                if isinstance(val[0], words):
+                    keywords.extend(val[0].words)
+                else:
+                    ini_val = val[0]
+                    if ')\\b' in val[0] or ')(\\s+)' in val[0]:
+                        val = re.sub(r'\\.', '', val[0])
+                        val = re.sub('[^0-9a-zA-Z|]+', '', val)
+                        if '|' in ini_val:
+                            keywords.extend(val.split('|'))
+                        else:
+                            keywords.append(val)
             except Exception:
                 continue
     return keywords
