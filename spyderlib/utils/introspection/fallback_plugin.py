@@ -39,51 +39,42 @@ class FallbackPlugin(IntrospectionPlugin):
         if not info['obj']:
             return
         items = []
-        line = info['line'].strip()
-        is_from = line.startswith('from')
-        if ((line.startswith('import') or is_from and ' import' not in line)
-                and info['is_python_like']):
-            items += module_completion(info['line'], [info['filename']])
-            return [(i, 'module') for i in sorted(items)]
-        elif is_from and info['is_python_like']:
-            items += module_completion(info['line'], [info['filename']])
-            return [(i, '') for i in sorted(items)]
-        elif info['obj']:
-            obj = info['obj']
-            if info['context']:
-                lexer = find_lexer_for_filename(info['filename'])
-                # get a list of token matches for the current object
-                tokens = lexer.get_tokens(info['source_code'])
-                for (context, token) in tokens:
-                    token = token.strip()
-                    if (context in info['context']and
-                            token.startswith(obj) and
-                            obj != token):
-                        items.append(token)
-                # add in keywords if not in a string
-                if context not in Token.Literal.String:
-                    try:
-                        keywords = get_keywords(lexer)
-                        items.extend(k for k in keywords if k.startswith(obj))
-                    except Exception:
-                        pass
+        obj = info['obj']
+        if info['context']:
+            lexer = find_lexer_for_filename(info['filename'])
+            # get a list of token matches for the current object
+            tokens = lexer.get_tokens(info['source_code'])
+            print(tokens)
+            for (context, token) in tokens:
+                token = token.strip()
+                if (context in info['context'] and
+                        token.startswith(obj) and
+                        obj != token):
+                    items.append(token)
+            # add in keywords if not in a string
+            if context not in Token.Literal.String:
+                try:
+                    keywords = get_keywords(lexer)
+                    items.extend(k for k in keywords if k.startswith(obj))
+                except Exception:
+                    pass
+        else:
+            tokens = set(re.findall(info['id_regex'], info['source_code']))
+            items = [item for item in tokens if
+                 item.startswith(obj) and len(item) > len(obj)]
+            if '.' in obj:
+                start = obj.rfind('.') + 1
             else:
-                tokens = set(re.findall(info['id_regex'], info['source_code']))
-                items = [item for item in tokens if
-                     item.startswith(obj) and len(item) > len(obj)]
-                if '.' in obj:
-                    start = obj.rfind('.') + 1
-                else:
-                    start = 0
+                start = 0
 
-                items = [i[start:len(obj)] + i[len(obj):].split('.')[0]
-                     for i in items]
-            # get path completions
-            # get last word back to a space or a quote character
-            match = re.search('''[ "\']([\w\.\\\\/]+)\Z''', info['line'])
-            if match:
-                items += _complete_path(match.groups()[0])
-            return [(i, '') for i in sorted(items)]
+            items = [i[start:len(obj)] + i[len(obj):].split('.')[0]
+                 for i in items]
+        # get path completions
+        # get last word back to a space or a quote character
+        match = re.search('''[ "\']([\w\.\\\\/]+)\Z''', info['line'])
+        if match:
+            items += _complete_path(match.groups()[0])
+        return [(i, '') for i in sorted(items)]
 
     def get_definition(self, info):
         """
