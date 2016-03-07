@@ -85,6 +85,8 @@ def _get_pygments_extensions():
     for lx in all_lexers:
         lexer_exts = lx[2]
         if lexer_exts:
+            lexer_exts = [le[1:] for le in lexer_exts]
+            lexer_exts = [le for le in lexer_exts if not le.endswith('_*')]
             extensions = extensions + list(lexer_exts)
     return extensions
 
@@ -106,7 +108,7 @@ def get_filter(filetypes, ext):
 def get_edit_filetypes():
     """Get all file types supported by the Editor"""
     pygments_exts = _get_pygments_extensions()
-    other_exts = ['*.ipynb', '*.md']
+    other_exts = ['.ipynb', '.md']
     all_exts = tuple(pygments_exts + other_exts)
     text_filetypes = (_("Supported text files"), all_exts)
     return [text_filetypes] + EDIT_FILETYPES
