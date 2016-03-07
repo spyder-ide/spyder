@@ -44,7 +44,6 @@ class FallbackPlugin(IntrospectionPlugin):
             lexer = find_lexer_for_filename(info['filename'])
             # get a list of token matches for the current object
             tokens = lexer.get_tokens(info['source_code'])
-            print(tokens)
             for (context, token) in tokens:
                 token = token.strip()
                 if (context in info['context'] and
