@@ -990,7 +990,9 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         custom_names = self.get_option("custom_names", [])
 
         # Widgets
-        about_label = QLabel(_("Here you can edit the color schemes provided "
+        about_label = QLabel(_("Here you can select the color scheme used in "
+                               "the Editor and all other Spyder plugins.<br><br>"
+                               "You can also edit the color schemes provided "
                                "by Spyder or create your own ones by using "
                                "the options provided below.<br>"))
         edit_button = QPushButton(_("Edit selected"))
