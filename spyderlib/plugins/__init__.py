@@ -511,15 +511,6 @@ class SpyderPluginMixin(object):
         QApplication.restoreOverrideCursor()
         self.__show_message(message, timeout=2000)
         QApplication.processEvents()
-        
-    def set_default_color_scheme(self, name='spyder'):
-        """Set default color scheme (only once)"""
-        color_scheme_name = self.get_option('color_scheme_name', None)
-        if color_scheme_name is None:
-            names = CONF.get("color_schemes", "names")
-            if name not in names:
-                name = names[0]
-            self.set_option('color_scheme_name', name)
 
     def get_color_scheme(self):
         """Get current color scheme"""
