@@ -19,8 +19,6 @@ import sys
 # Local imports
 from spyderlib.utils import encoding
 from spyderlib.config.base import _
-from spyderlib.config.main import CONF
-from spyderlib.config.gui import get_color_scheme
 from spyderlib.utils.qthelpers import (create_action, create_toolbutton, add_actions)
 from spyderlib.widgets.tabs import Tabs
 from spyderlib.widgets.sourcecode import codeeditor
@@ -44,10 +42,6 @@ class HistoryConfigPage(PluginConfigPage):
         wrap_mode_box = self.create_checkbox(_("Wrap lines"), 'wrap')
         go_to_eof_box = self.create_checkbox(
                         _("Scroll automatically to last entry"), 'go_to_eof')
-        names = CONF.get('color_schemes', 'names')
-        choices = list(zip(names, names))
-        cs_combo = self.create_combobox(_("Syntax color scheme: "),
-                                        choices, 'color_scheme_name')
 
         settings_layout = QVBoxLayout()
         settings_layout.addWidget(hist_spin)
@@ -56,9 +50,8 @@ class HistoryConfigPage(PluginConfigPage):
         sourcecode_layout = QVBoxLayout()
         sourcecode_layout.addWidget(wrap_mode_box)
         sourcecode_layout.addWidget(go_to_eof_box)
-        sourcecode_layout.addWidget(cs_combo)
         sourcecode_group.setLayout(sourcecode_layout)
-        
+
         vlayout = QVBoxLayout()
         vlayout.addWidget(settings_group)
         vlayout.addWidget(sourcecode_group)
@@ -90,9 +83,7 @@ class HistoryLog(SpyderPluginWidget):
 
         # Initialize plugin
         self.initialize_plugin()
-        
-        self.set_default_color_scheme()
-        
+
         layout = QVBoxLayout()
         self.tabwidget = Tabs(self, self.menu_actions)
         self.tabwidget.currentChanged.connect(self.refresh_plugin)
@@ -184,7 +175,7 @@ class HistoryLog(SpyderPluginWidget):
 
     def update_font(self):
         """Update font from Preferences"""
-        color_scheme = get_color_scheme(self.get_option('color_scheme_name'))
+        color_scheme = self.get_color_scheme()
         font = self.get_plugin_font()
         for editor in self.editors:
             editor.set_font(font, color_scheme)
@@ -192,7 +183,7 @@ class HistoryLog(SpyderPluginWidget):
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
         color_scheme_n = 'color_scheme_name'
-        color_scheme_o = get_color_scheme(self.get_option(color_scheme_n))
+        color_scheme_o = self.get_color_scheme()
         font_n = 'plugin_font'
         font_o = self.get_plugin_font()
         wrap_n = 'wrap'
@@ -240,7 +231,7 @@ class HistoryLog(SpyderPluginWidget):
                             scrollflagarea=False)
         editor.focus_changed.connect(lambda: self.focus_changed.emit())
         editor.setReadOnly(True)
-        color_scheme = get_color_scheme(self.get_option('color_scheme_name'))
+        color_scheme = self.get_color_scheme()
         editor.set_font( self.get_plugin_font(), color_scheme )
         editor.toggle_wrap_mode( self.get_option('wrap') )
 
