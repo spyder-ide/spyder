@@ -17,7 +17,6 @@ import os.path as osp
 
 # Local imports
 from spyderlib.config.base import _
-from spyderlib.config.main import DEFAULT_LARGE_DELTA
 from spyderlib.widgets.explorer import ExplorerWidget
 from spyderlib.plugins import SpyderPluginMixin
 from spyderlib.py3compat import to_text_string
@@ -26,7 +25,6 @@ from spyderlib.py3compat import to_text_string
 class Explorer(ExplorerWidget, SpyderPluginMixin):
     """File and Directories Explorer DockWidget"""
     CONF_SECTION = 'explorer'
-    RICH_FONT_SIZE_DELTA = DEFAULT_LARGE_DELTA*2
     open_terminal = Signal(str)
     open_interpreter = Signal(str)
     edit = Signal(str)
@@ -45,10 +43,8 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
 
         # Initialize plugin
         self.initialize_plugin()
-        
-        self.update_font()
-        
-    #------ SpyderPluginWidget API ---------------------------------------------    
+
+    #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
         return _("File explorer")
@@ -99,13 +95,7 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
         """Perform actions before parent main window is closed"""
         return True
 
-    def update_font(self):
-        """Update font from Preferences"""
-        font = self.get_plugin_font(rich_text=True)
-        self.setFont(font)
-        self.treewidget.setFont(font)
-
-    #------ Public API ---------------------------------------------------------        
+    #------ Public API ---------------------------------------------------------
     def chdir(self, directory):
         """Set working directory"""
         self.treewidget.chdir(directory)

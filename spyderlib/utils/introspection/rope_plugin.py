@@ -83,7 +83,7 @@ class RopePlugin(IntrospectionPlugin):
 
         # Prevent Rope from returning import completions because
         # it can't handle them. Only Jedi can do it!
-        lines = sourcecode.split_source(source_code)
+        lines = sourcecode.split_source(source_code[:offset])
         last_line = lines[-1].lstrip()
         if (last_line.startswith('import ') or last_line.startswith('from ')) \
           and not ';' in last_line:
@@ -299,8 +299,8 @@ if __name__ == '__main__':
     completions = p.get_completions(CodeInfo('completions', source_code,
         len(source_code), __file__))
     assert ('numpy', 'module') in completions
-    
-    source_code = "import o"
+
+    source_code = "import a"
     completions = p.get_completions(CodeInfo('completions', source_code,
         len(source_code), __file__))
     assert not completions
@@ -311,8 +311,9 @@ def test(a, b):
     pass
 test(1,'''
     path, line = p.get_definition(CodeInfo('definition', code, len(code),
-        'dummy.txt'))
+        'dummy.txt', is_python_like=True))
     assert line == 2
 
-    docs = p.get_info(CodeInfo('info', code, len(code), __file__))
+    docs = p.get_info(CodeInfo('info', code, len(code), __file__,
+        is_python_like=True))
     assert 'Test docstring' in docs['docstring']

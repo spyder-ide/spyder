@@ -16,7 +16,7 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QPrintDialog, QSplitter, QToolBar,
                                 QAction, QApplication, QDialog, QWidget,
                                 QPrinter, QActionGroup, QInputDialog, QMenu,
                                 QAbstractPrintDialog, QGroupBox, QTabWidget,
-                                QLabel, QHBoxLayout,
+                                QLabel, QHBoxLayout, QFileDialog,
                                 QKeySequence, QGridLayout)
 from spyderlib.qt.QtCore import Signal, QByteArray, Qt, Slot
 from spyderlib.qt.compat import to_qvariant, from_qvariant, getopenfilenames
@@ -1052,8 +1052,7 @@ class Editor(SpyderPluginWidget):
         color_scheme = self.get_color_scheme()
         for editorstack in self.editorstacks:
             editorstack.set_default_font(font, color_scheme)
-            completion_size = CONF.get('editor_appearance',
-                                       'completion/size')
+            completion_size = CONF.get('main', 'completion/size')
             for finfo in editorstack.data:
                 comp_widget = finfo.editor.completion_widget
                 comp_widget.setup_appearance(completion_size, font)
@@ -1674,10 +1673,11 @@ class Editor(SpyderPluginWidget):
                                             osp.splitext(filename0)[1])
             else:
                 selectedfilter = ''
-            filenames, _selfilter = getopenfilenames(parent_widget,
-                                         _("Open file"), basedir,
-                                         self.edit_filters,
-                                         selectedfilter=selectedfilter)
+            filenames, _sf = getopenfilenames(parent_widget,
+                                     _("Open file"), basedir,
+                                     self.edit_filters,
+                                     selectedfilter=selectedfilter,
+                                     options=QFileDialog.HideNameFilterDetails)
             self.redirect_stdio.emit(True)
             if filenames:
                 filenames = [osp.normpath(fname) for fname in filenames]

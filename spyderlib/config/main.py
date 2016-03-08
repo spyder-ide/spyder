@@ -16,10 +16,11 @@ import sys
 import os.path as osp
 
 # Local import
-from spyderlib.config.user import UserConfig
 from spyderlib.config.base import (CHECK_ALL, EXCLUDED_NAMES, SUBFOLDER,
                                    get_home_dir)
-from spyderlib.config.utils import IMPORT_EXT, is_ubuntu
+from spyderlib.config.fonts import BIG, MEDIUM, MONOSPACE, SANS_SERIF
+from spyderlib.config.user import UserConfig
+from spyderlib.config.utils import IMPORT_EXT
 from spyderlib.utils import codeanalysis
 
 
@@ -53,39 +54,6 @@ WIN = os.name == 'nt'
 MAC = sys.platform == 'darwin'
 CTRL = "Meta" if MAC else "Ctrl"
 
-
-# Fonts
-SANS_SERIF = ['Sans Serif', 'DejaVu Sans', 'Bitstream Vera Sans',
-              'Bitstream Charter', 'Lucida Grande', 'MS Shell Dlg 2',
-              'Calibri', 'Verdana', 'Geneva', 'Lucid', 'Arial',
-              'Helvetica', 'Avant Garde', 'Times', 'sans-serif']
-
-MONOSPACE = ['Monospace', 'DejaVu Sans Mono', 'Consolas',
-             'Bitstream Vera Sans Mono', 'Andale Mono', 'Liberation Mono',
-             'Courier New', 'Courier', 'monospace', 'Fixed', 'Terminal']
-
-
-#==============================================================================
-# Adjust font size per OS
-#==============================================================================
-if sys.platform == 'darwin':
-    MONOSPACE = ['Menlo'] + MONOSPACE
-    BIG = MEDIUM = SMALL = 12
-elif os.name == 'nt':
-    BIG = 12
-    MEDIUM = 10
-    SMALL = 9
-elif is_ubuntu():
-    SANS_SERIF = ['Ubuntu'] + SANS_SERIF
-    MONOSPACE = ['Ubuntu Mono'] + MONOSPACE
-    BIG = 13
-    MEDIUM = SMALL = 11
-else:
-    BIG = 12
-    MEDIUM = SMALL = 9
-
-DEFAULT_SMALL_DELTA = SMALL - MEDIUM
-DEFAULT_LARGE_DELTA = SMALL - BIG
 
 # =============================================================================
 #  Defaults
@@ -126,6 +94,8 @@ DEFAULTS = [
               'rich_font/size': BIG,
               'rich_font/italic': False,
               'rich_font/bold': False,
+              'cursor/width': 2,
+              'completion/size': (300, 180),
               }),
             ('quick_layouts',
              {
@@ -133,16 +103,6 @@ DEFAULTS = [
               'names': ['Matlab layout', 'Rstudio layout', 'Vertical split', 'Horizontal split'],
               'order': ['Matlab layout', 'Rstudio layout', 'Vertical split', 'Horizontal split'],
               'active': ['Matlab layout', 'Rstudio layout', 'Vertical split', 'Horizontal split'],
-              }),
-            ('editor_appearance',
-             {
-              'cursor/width': 2,
-              'completion/size': (300, 180),
-              }),
-            ('shell_appearance',
-             {
-              'cursor/width': 2,
-              'completion/size': (300, 180),
               }),
             ('internal_console',
              {
@@ -624,10 +584,10 @@ DEFAULTS = [
 # 1. If you want to *change* the default value of a current option, you need to
 #    do a MINOR update in config version, e.g. from 3.0.0 to 3.1.0
 # 2. If you want to *remove* options that are no longer needed in our codebase,
-#    or if you want to *rename* options, then you need to do a MAJOR update in 
+#    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '25.0.0'
+CONF_VERSION = '26.0.0'
 
 
 # XXX: Previously we had load=(not DEV) here but DEV was set to *False*.

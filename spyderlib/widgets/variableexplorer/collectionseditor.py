@@ -35,7 +35,7 @@ from spyderlib.utils.qthelpers import mimedata2url
 
 # Local import
 from spyderlib.config.base import _
-from spyderlib.config.main import DEFAULT_SMALL_DELTA
+from spyderlib.config.fonts import DEFAULT_SMALL_DELTA
 from spyderlib.config.gui import get_font
 from spyderlib.utils.misc import fix_reference_name
 from spyderlib.utils.qthelpers import add_actions, create_action, qapplication
@@ -298,19 +298,13 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         elif role == Qt.BackgroundColorRole:
             return to_qvariant( self.get_bgcolor(index) )
         elif role == Qt.FontRole:
-            if index.column() < 3:
-                return to_qvariant(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
-            else:
-                return to_qvariant(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
+            return to_qvariant(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
         return to_qvariant()
-    
+
     def headerData(self, section, orientation, role=Qt.DisplayRole):
         """Overriding method headerData"""
         if role != Qt.DisplayRole:
-            if role == Qt.FontRole:
-                return to_qvariant(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
-            else:
-                return to_qvariant()
+            return to_qvariant()
         i_column = int(section)
         if orientation == Qt.Horizontal:
             headers = (self.header0, _("Type"), _("Size"), _("Value"))
