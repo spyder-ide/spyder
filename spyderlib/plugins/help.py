@@ -24,7 +24,7 @@ import sys
 from spyderlib import dependencies
 from spyderlib.config.base import get_conf_path, get_module_source_path, _
 from spyderlib.config.ipython import QTCONSOLE_INSTALLED
-from spyderlib.config.main import CONF, DEFAULT_SMALL_DELTA
+from spyderlib.config.main import DEFAULT_SMALL_DELTA
 from spyderlib.config.gui import get_font, set_font
 from spyderlib.utils import programs
 from spyderlib.utils.help.sphinxify import (CSS_PATH, sphinxify, warning,
