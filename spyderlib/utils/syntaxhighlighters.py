@@ -41,7 +41,7 @@ COLOR_SCHEME_KEYS = {
                       "background":     _("Background:"),
                       "currentline":    _("Current line:"),
                       "currentcell":    _("Current cell:"),
-                      "occurrence":      _("Occurrence:"),
+                      "occurrence":     _("Occurrence:"),
                       "ctrlclick":      _("Link:"),
                       "sideareas":      _("Side areas:"),
                       "matched_p":      _("Matched <br>parens:"),
@@ -105,14 +105,13 @@ class BaseSH(QSyntaxHighlighter):
     NORMAL = 0
     # Syntax highlighting parameters.
     BLANK_ALPHA_FACTOR = 0.31
-    
+
     def __init__(self, parent, font=None, color_scheme='Spyder'):
         QSyntaxHighlighter.__init__(self, parent)
-        
+
         self.outlineexplorer_data = {}
-        
+
         self.font = font
-        self._check_color_scheme(color_scheme)
         if is_text_string(color_scheme):
             self.color_scheme = get_color_scheme(color_scheme)
         else:
@@ -192,16 +191,8 @@ class BaseSH(QSyntaxHighlighter):
                 format.setFontWeight(QFont.Bold)
             format.setFontItalic(italic)
             self.formats[name] = format
-        
-    def _check_color_scheme(self, color_scheme):
-        if is_text_string(color_scheme):
-            pass
-#            assert color_scheme in COLOR_SCHEME_NAMES
-        else:
-            assert all([key in color_scheme for key in COLOR_SCHEME_KEYS])
 
     def set_color_scheme(self, color_scheme):
-        self._check_color_scheme(color_scheme)
         if is_text_string(color_scheme):
             self.color_scheme = get_color_scheme(color_scheme)
         else:
