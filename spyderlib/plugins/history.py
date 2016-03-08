@@ -153,13 +153,10 @@ class HistoryLog(SpyderPluginWidget):
                                        None, ima.icon('history'),
                                        _("Set history maximum entries"),
                                        triggered=self.change_history_depth)
-        font_action = create_action(self, _("&Font..."), None,
-                                    ima.icon('font'), _("Set shell font style"),
-                                    triggered=self.change_font)
         self.wrap_action = create_action(self, _("Wrap lines"),
                                     toggled=self.toggle_wrap_mode)
         self.wrap_action.setChecked( self.get_option('wrap') )
-        self.menu_actions = [history_action, font_action, self.wrap_action]
+        self.menu_actions = [history_action, self.wrap_action]
         return self.menu_actions
 
     def on_first_registration(self):
@@ -271,17 +268,7 @@ class HistoryLog(SpyderPluginWidget):
                                        10, 10000)
         if valid:
             self.set_option('max_entries', depth)
-    
-    @Slot()
-    def change_font(self):
-        """Change console font"""
-        font, valid = QFontDialog.getFont(self.get_plugin_font(),
-                       self, _("Select a new font"))
-        if valid:
-            for editor in self.editors:
-                editor.set_font(font)
-            self.set_plugin_font(font)
-    
+
     @Slot(bool)
     def toggle_wrap_mode(self, checked):
         """Toggle wrap mode"""
