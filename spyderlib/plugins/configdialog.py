@@ -1223,26 +1223,31 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         """Deletes the currently selected custom color scheme."""
         scheme_name = self.current_scheme
 
-        # Put the combobox in Spyder by default, when deleting a scheme
-        names = self.get_option('names')
-        self.set_scheme('spyder')
-        self.schemes_combobox.setCurrentIndex(names.index('spyder'))
-        self.set_option('selected', 'spyder')
-
-        # Delete from custom_names
-        custom_names = self.get_option('custom_names', [])
-        if scheme_name in custom_names:
-            custom_names.remove(scheme_name)
-        self.set_option('custom_names', custom_names)
-
-        # Delete config options
-        for key in syntaxhighlighters.COLOR_SCHEME_KEYS:
-            option = "{0}/{1}".format(scheme_name, key)
-            CONF.remove_option(self.CONF_SECTION, option)
-        CONF.remove_option(self.CONF_SECTION, "{0}/name".format(scheme_name))
-
-        self.update_combobox()
-        self.update_preview()
+        answer = QMessageBox.warning(self, _("Warning"),
+                                           _("Are you sure you want to delete "
+                                             "this scheme?"),
+                                           QMessageBox.Yes | QMessageBox.No)
+        if answer == QMessageBox.Yes:
+            # Put the combobox in Spyder by default, when deleting a scheme
+            names = self.get_option('names')
+            self.set_scheme('spyder')
+            self.schemes_combobox.setCurrentIndex(names.index('spyder'))
+            self.set_option('selected', 'spyder')
+    
+            # Delete from custom_names
+            custom_names = self.get_option('custom_names', [])
+            if scheme_name in custom_names:
+                custom_names.remove(scheme_name)
+            self.set_option('custom_names', custom_names)
+    
+            # Delete config options
+            for key in syntaxhighlighters.COLOR_SCHEME_KEYS:
+                option = "{0}/{1}".format(scheme_name, key)
+                CONF.remove_option(self.CONF_SECTION, option)
+            CONF.remove_option(self.CONF_SECTION, "{0}/name".format(scheme_name))
+    
+            self.update_combobox()
+            self.update_preview()
 
     def set_scheme(self, scheme_name):
         """
