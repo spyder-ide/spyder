@@ -363,15 +363,11 @@ class Help(SpyderPluginWidget):
         self.plain_text.editor.toggle_wrap_mode(self.get_option('wrap'))
 
         # Add entries to read-only editor context-menu
-        font_action = create_action(self, _("&Font..."), None,
-                                    ima.icon('font'), _("Set font style"),
-                                    triggered=self.change_font)
         self.wrap_action = create_action(self, _("Wrap lines"),
                                          toggled=self.toggle_wrap_mode)
         self.wrap_action.setChecked(self.get_option('wrap'))
         self.plain_text.editor.readonly_menu.addSeparator()
-        add_actions(self.plain_text.editor.readonly_menu,
-                    (font_action, self.wrap_action))
+        add_actions(self.plain_text.editor.readonly_menu, (self.wrap_action,))
 
         self.set_rich_text_font(self.get_plugin_font('rich_text'))
 
@@ -632,15 +628,6 @@ class Help(SpyderPluginWidget):
     def set_plain_text_color_scheme(self, color_scheme):
         """Set plain text mode color scheme"""
         self.plain_text.set_color_scheme(color_scheme)
-
-    @Slot()
-    def change_font(self):
-        """Change console font"""
-        font, valid = QFontDialog.getFont(get_font(self.CONF_SECTION), self,
-                                      _("Select a new font"))
-        if valid:
-            self.set_plain_text_font(font)
-            set_font(font, self.CONF_SECTION)
 
     @Slot(bool)
     def toggle_wrap_mode(self, checked):
