@@ -34,7 +34,6 @@ from spyderlib.config.base import get_conf_path, _
 from spyderlib.config.main import CONF
 from spyderlib.config.utils import (get_edit_filters, get_edit_filetypes,
                                     get_filter)
-from spyderlib.config.gui import get_color_scheme
 from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import (create_action, add_actions,
                                        get_filetype_icon, add_shortcut_to_tooltip)
@@ -136,11 +135,7 @@ class EditorConfigPage(PluginConfigPage):
         occurrence_spin.setEnabled(self.get_option('occurrence_highlighting'))
 
         wrap_mode_box = newcb(_("Wrap lines"), 'wrap')
-        names = CONF.get('color_schemes', 'names')
-        choices = list(zip(names, names))
-        cs_combo = self.create_combobox(_("Syntax color scheme: "),
-                                        choices, 'color_scheme_name')
-        
+
         display_layout = QGridLayout()
         display_layout.addWidget(linenumbers_box, 0, 0)
         display_layout.addWidget(blanks_box, 1, 0)
@@ -153,8 +148,6 @@ class EditorConfigPage(PluginConfigPage):
         display_layout.addWidget(occurrence_spin.spinbox, 5, 1)
         display_layout.addWidget(occurrence_spin.slabel, 5, 2)
         display_layout.addWidget(wrap_mode_box, 6, 0)
-        display_layout.addWidget(cs_combo.label, 7, 0)
-        display_layout.addWidget(cs_combo.combobox, 7, 1)
         display_h_layout = QHBoxLayout()
         display_h_layout.addLayout(display_layout)
         display_h_layout.addStretch(1)
@@ -372,11 +365,9 @@ class Editor(SpyderPluginWidget):
             SpyderPluginWidget.__init__(self, parent, main=parent)
         else:
             SpyderPluginWidget.__init__(self, parent)
-        
+
         self.__set_eol_chars = True
-        
-        self.set_default_color_scheme()
-        
+
         # Creating template if it doesn't already exist
         if not osp.isfile(self.TEMPLATE_PATH):
             header = ['# -*- coding: utf-8 -*-', '"""', 'Created on %(date)s',
@@ -1058,7 +1049,7 @@ class Editor(SpyderPluginWidget):
     def update_font(self):
         """Update font from Preferences"""
         font = self.get_plugin_font()
-        color_scheme = get_color_scheme(self.get_option('color_scheme_name'))
+        color_scheme = self.get_color_scheme()
         for editorstack in self.editorstacks:
             editorstack.set_default_font(font, color_scheme)
             completion_size = CONF.get('main', 'completion/size')
@@ -1160,7 +1151,7 @@ class Editor(SpyderPluginWidget):
         for method, setting in settings:
             getattr(editorstack, method)(self.get_option(setting))
         editorstack.set_help_enabled(CONF.get('help', 'connect/editor'))
-        color_scheme = get_color_scheme(self.get_option('color_scheme_name'))
+        color_scheme = self.get_color_scheme()
         editorstack.set_default_font(self.get_plugin_font(), color_scheme)
 
         editorstack.starting_long_process.connect(self.starting_long_process)
@@ -2241,7 +2232,7 @@ class Editor(SpyderPluginWidget):
         if self.editorstacks is not None:
             # --- syntax highlight and text rendering settings
             color_scheme_n = 'color_scheme_name'
-            color_scheme_o = get_color_scheme(self.get_option(color_scheme_n))
+            color_scheme_o = self.get_color_scheme()
             currentline_n = 'highlight_current_line'
             currentline_o = self.get_option(currentline_n)
             currentcell_n = 'highlight_current_cell'

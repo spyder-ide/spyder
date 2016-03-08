@@ -24,8 +24,6 @@ from spyderlib import dependencies
 from spyderlib.config.base import get_conf_path, get_module_source_path, _
 from spyderlib.config.ipython import QTCONSOLE_INSTALLED
 from spyderlib.config.fonts import DEFAULT_SMALL_DELTA
-from spyderlib.config.main import CONF
-from spyderlib.config.gui import get_color_scheme
 from spyderlib.utils import programs
 from spyderlib.utils.help.sphinxify import (CSS_PATH, sphinxify, warning,
                                             generate_context, usage)
@@ -162,14 +160,9 @@ class HelpConfigPage(PluginConfigPage):
         # Source code group
         sourcecode_group = QGroupBox(_("Source code"))
         wrap_mode_box = self.create_checkbox(_("Wrap lines"), 'wrap')
-        names = CONF.get('color_schemes', 'names')
-        choices = list(zip(names, names))
-        cs_combo = self.create_combobox(_("Syntax color scheme: "),
-                                        choices, 'color_scheme_name')
 
         sourcecode_layout = QVBoxLayout()
         sourcecode_layout.addWidget(wrap_mode_box)
-        sourcecode_layout.addWidget(cs_combo)
         sourcecode_group.setLayout(sourcecode_layout)
 
         # Final layout
@@ -360,12 +353,10 @@ class Help(SpyderPluginWidget):
         self._last_console_cb = None
         self._last_editor_cb = None
 
-        self.set_default_color_scheme()
-
         self.plain_text = PlainText(self)
         self.rich_text = RichText(self)
 
-        color_scheme = get_color_scheme(self.get_option('color_scheme_name'))
+        color_scheme = self.get_color_scheme()
         self.set_plain_text_font(self.get_plugin_font(), color_scheme)
         self.plain_text.editor.toggle_wrap_mode(self.get_option('wrap'))
 
@@ -534,7 +525,7 @@ class Help(SpyderPluginWidget):
 
     def update_font(self):
         """Update font from Preferences"""
-        color_scheme = get_color_scheme(self.get_option('color_scheme_name'))
+        color_scheme = self.get_color_scheme()
         font = self.get_plugin_font()
         rich_font = self.get_plugin_font(rich_text=True)
 
@@ -544,7 +535,7 @@ class Help(SpyderPluginWidget):
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
         color_scheme_n = 'color_scheme_name'
-        color_scheme_o = get_color_scheme(self.get_option(color_scheme_n))
+        color_scheme_o = self.get_color_scheme()
         connect_n = 'connect_to_oi'
         wrap_n = 'wrap'
         wrap_o = self.get_option(wrap_n)

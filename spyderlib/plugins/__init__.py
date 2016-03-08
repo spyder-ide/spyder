@@ -32,7 +32,7 @@ from spyderlib.qt.QtGui import (QDockWidget, QWidget, QShortcut, QCursor,
 # Local imports
 from spyderlib.utils.qthelpers import create_action, toggle_actions
 from spyderlib.config.base import _
-from spyderlib.config.gui import get_font
+from spyderlib.config.gui import get_color_scheme, get_font
 from spyderlib.config.main import CONF
 from spyderlib.config.user import NoDefault
 from spyderlib.plugins.configdialog import SpyderConfigPage
@@ -511,16 +511,11 @@ class SpyderPluginMixin(object):
         QApplication.restoreOverrideCursor()
         self.__show_message(message, timeout=2000)
         QApplication.processEvents()
-        
-    def set_default_color_scheme(self, name='Spyder'):
-        """Set default color scheme (only once)"""
-        color_scheme_name = self.get_option('color_scheme_name', None)
-        if color_scheme_name is None:
-            names = CONF.get("color_schemes", "names")
-            if name not in names:
-                name = names[0]
-            self.set_option('color_scheme_name', name)
-    
+
+    def get_color_scheme(self):
+        """Get current color scheme"""
+        return get_color_scheme(CONF.get('color_schemes', 'selected'))
+
     def create_toggle_view_action(self):
         """Associate a toggle view action with each plugin"""
         title = self.get_plugin_title()
