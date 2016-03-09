@@ -492,7 +492,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         Reimplement Qt method
         Copy text to clipboard with correct EOL chars
         """
-        if len(self.get_selected_text()) > 0:
+        if self.get_selected_text():
             QApplication.clipboard().setText(self.get_selected_text())
     
     def toPlainText(self):
