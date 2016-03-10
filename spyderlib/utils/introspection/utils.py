@@ -13,8 +13,6 @@ import os
 import pickle
 import os.path as osp
 import re
-import socket
-import errno
 
 from spyderlib.utils.misc import memoize
 
@@ -226,24 +224,6 @@ def get_parent_until(path):
         except ImportError:
             break
     return '.'.join(reversed(items))
-
-
-def connect_to_port(base_port=20128):
-    """Connect and bind to the next available port."""
-    while 1:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        try:
-            sock.bind(("127.0.0.1", base_port))
-        except Exception as e:
-            if e.errno == errno.EADDRINUSE:
-                base_port += 1
-                continue
-            else:
-                raise
-        else:
-            break
-    return sock, base_port
 
 
 if __name__ == '__main__':
