@@ -8,6 +8,7 @@ import os
 import os.path as osp
 import imp
 import sys
+import uuid
 
 import zmq
 
@@ -39,18 +40,18 @@ class AsyncClient(QObject):
     # Emitted when a request response is received.
     received = Signal(object)
 
-    def __init__(self, executable, target, extra_args=None, libs=None,
-                 cwd=None, env=None):
+    def __init__(self, target, executable=None, name=None,
+                 extra_args=None, libs=None, cwd=None, env=None):
         super(AsyncClient, self).__init__()
         self.executable = executable or sys.executable
         self.extra_args = extra_args
         self.target = target
+        self.name = name or self
         self.libs = libs
         self.cwd = cwd
         self.env = env
         self.is_initialized = False
         self.closing = False
-        self.request_num = 0
         self.context = zmq.Context()
         QApplication.instance().aboutToQuit.connect(self.close)
 
@@ -109,27 +110,26 @@ class AsyncClient(QObject):
     def request(self, func_name, *args, **kwargs):
         """Send a request to the server.
 
-        The response will be a dictionary with the following fields:
-
-        func_name, args, kwargs, request_num
-
-        It will also have a 'result' field with the object returned by
+        The response will be a dictionary the 'request_id' and the
+        'func_name' as well as a 'result' field with the object returned by
         the function call or or an 'error' field with a traceback.
         """
         if not self.is_initialized:
             return
-        self.request_num += 1
+        request_id = uuid.uuid4().hex
         request = dict(func_name=func_name,
                        args=args,
                        kwargs=kwargs,
-                       request_num=self.request_num)
+                       request_id=request_id)
         try:
             self.socket.send_pyobj(request)
         except zmq.ZMQError:
             pass
-        return self.request_num
+        return request_id
 
     def close(self):
+        """Cleanly close the connection to the server.
+        """
         self.closing = True
         self.timer.stop()
         self.request('server_quit')
@@ -137,20 +137,26 @@ class AsyncClient(QObject):
         self.context.destroy(0)
 
     def _on_finished(self):
+        """Handle a finished signal from the process.
+        """
         if self.closing:
             return
         if self.is_initialized:
-            debug_print('Restarting %s' % self)
+            debug_print('Restarting %s' % self.name)
+            debug_print(self.process.readAllStandardOutput())
+            debug_print(self.process.readAllStandardError())
             self.is_initialized = False
             self.notifier.setEnabled(False)
             self.run()
         else:
-            debug_print('Errored %s' % self)
+            debug_print('Errored %s' % self.name)
             debug_print(self.process.readAllStandardOutput())
             debug_print(self.process.readAllStandardError())
             self.errored.emit()
 
     def _on_msg_received(self):
+        """Handle a message trigger from the socket.
+        """
         self.notifier.setEnabled(False)
         while 1:
             try:
@@ -160,24 +166,28 @@ class AsyncClient(QObject):
                 return
             if not self.is_initialized:
                 self.is_initialized = True
-                debug_print('Initialized %s' % self)
+                debug_print('Initialized %s' % self.name)
                 self.initialized.emit()
                 continue
+            resp['name'] = self.name
             self.received.emit(resp)
 
     def _heartbeat(self):
+        """Send a heartbeat to keep the server alive.
+        """
         if not self.is_initialized:
             return
-        self.socket.send_pyobj('server_heartbeat')
+        self.socket.send_pyobj(dict(func_name='server_heartbeat'))
 
 
 class PluginClient(AsyncClient):
 
     def __init__(self, plugin_name, executable=None, env=None):
         cwd = os.path.dirname(__file__)
-        super(PluginClient, self).__init__(executable=executable,
-            target='plugin_server.py', cwd=cwd, env=env,
+        super(PluginClient, self).__init__('plugin_server.py',
+            executable=executable, cwd=cwd, env=env,
             extra_args=[plugin_name], libs=[plugin_name])
+        self.name = plugin_name
 
 
 if __name__ == '__main__':

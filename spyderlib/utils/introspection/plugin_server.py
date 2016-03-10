@@ -38,23 +38,42 @@ class AsyncServer(object):
         """Handle requests from the client.
         """
         while 1:
+            # Poll for events, handling a timeout.
             events = self.socket.poll(TIMEOUT)
             if events == 0:
                 print('Timed out')
                 return
-            request = self.socket.recv_pyobj()
-            if request['func_name'] == 'server_quit':
-                print('Quitting')
-                sys.stdout.flush()
-                return
+            # Drain all exising requests, handling quit and heartbeat.
+            requests = []
+            while 1:
+                request = self.socket.recv_pyobj()
+                if request['func_name'] == 'server_quit':
+                    print('Quitting')
+                    sys.stdout.flush()
+                    return
+                elif request['func_name'] != 'server_heartbeat':
+                    requests.append(request)
+                events = self.socket.poll(0)
+                if events == 0:
+                    break
+            # Select the most recent request.
+            if not requests:
+                continue
+            request = requests[-1]
+
+            # Gather the response
+            response = dict(func_name=request['func_name'],
+                            request_id=request['request_id'])
             try:
                 func = getattr(self.object, request['func_name'])
                 args = request.get('args', [])
                 kwargs = request.get('kwargs', {})
-                request['result'] = func(*args, **kwargs)
+                response['result'] = func(*args, **kwargs)
             except Exception:
-                request['error'] = traceback.format_exc()
-            self.socket.send_pyobj(request)
+                response['error'] = traceback.format_exc()
+
+            # Send the response to the client.
+            self.socket.send_pyobj(response)
 
 
 class PluginServer(AsyncServer):
