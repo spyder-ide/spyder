@@ -22,7 +22,7 @@ from spyderlib.qt.QtCore import (
 
 
 # Heartbeat timer in milliseconds
-HEATBEAT = 5000
+HEARTBEAT = 5000
 
 
 class AsyncClient(QObject):
@@ -58,7 +58,7 @@ class AsyncClient(QObject):
         # Set up the heartbeat timer.
         self.timer = QTimer(self)
         self.timer.timeout.connect(self._heartbeat)
-        self.timer.start(HEATBEAT)
+        self.timer.start(HEARTBEAT)
 
     def run(self):
         """Handle the connection with the server.
