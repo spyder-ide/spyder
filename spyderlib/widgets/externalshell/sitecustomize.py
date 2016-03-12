@@ -20,6 +20,8 @@ import shlex
 
 
 PY2 = sys.version[0] == '2'
+IS_EXT_INTERPRETER = os.environ.get('EXTERNAL_INTERPRETER', '').lower() == "true"
+IS_IPYTHON = os.environ.get("IPYTHON_KERNEL", "").lower() == "true"
 
 
 #==============================================================================
@@ -168,8 +170,6 @@ if os.name == 'nt':
 #==============================================================================
 # Settings for our MacOs X app
 #==============================================================================
-IS_EXT_INTERPRETER = os.environ.get('EXTERNAL_INTERPRETER', '').lower() == "true"
-
 if sys.platform == 'darwin':
     from spyderlib.config.base import MAC_APP_NAME
     if MAC_APP_NAME in __file__:
@@ -219,10 +219,11 @@ if PY2 and sys.platform.startswith('linux'):
 # This prevents a kernel crash with the inline backend in our IPython
 # consoles on Linux and Python 3 (Fixes Issue 2257)
 #==============================================================================
-try:
-    import matplotlib
-except ImportError:
-    matplotlib = None   # analysis:ignore
+if IS_IPYTHON and sys.version[0] == '3' and sys.platform.startswith('linux'):
+    try:
+        import matplotlib
+    except ImportError:
+        matplotlib = None   # analysis:ignore
 
 
 #==============================================================================
@@ -324,8 +325,6 @@ else:
 #==============================================================================
 # Matplotlib settings
 #==============================================================================
-IS_IPYTHON = os.environ.get("IPYTHON_KERNEL", "").lower() == "true"
-
 if matplotlib is not None:
     if not IS_IPYTHON:
         mpl_backend = os.environ.get("SPY_MPL_BACKEND", "")
