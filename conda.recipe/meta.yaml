@@ -27,6 +27,7 @@ requirements:
     - psutil
     - pylint
     - qtawesome
+    - pyzmq
     - python.app             [osx]
 
 about:
