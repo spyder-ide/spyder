@@ -255,7 +255,12 @@ class FindReplace(QWidget):
             browser.WebView
         """
         self.editor = editor
-        from spyderlib.qt.QtWebKit import QWebView
+        # Note: This is necessary to test widgets/editor.py
+        # in Qt builds that don't have web widgets
+        try:
+            from spyderlib.qt.QtWebKit import QWebView
+        except ImportError:
+            QWebView = type(None)
         self.words_button.setVisible(not isinstance(editor, QWebView))
         self.re_button.setVisible(not isinstance(editor, QWebView))
         from spyderlib.widgets.sourcecode.codeeditor import CodeEditor
