@@ -13,7 +13,7 @@ import uuid
 import zmq
 
 # Local imports
-from spyderlib.config.base import debug_print, get_module_path
+from spyderlib.config.base import debug_print, DEV, get_module_path
 from spyderlib.qt.QtGui import QApplication
 from spyderlib.qt.QtCore import (
     QSocketNotifier, QProcess, Signal, QObject, QProcessEnvironment,
@@ -78,7 +78,7 @@ class AsyncClient(QObject):
         # Set up environment variables.
         processEnvironment = QProcessEnvironment()
         env = self.process.systemEnvironment()
-        if self.env and 'PYTHONPATH' not in self.env:
+        if (self.env and 'PYTHONPATH' not in self.env) or DEV:
             python_path = osp.dirname(get_module_path('spyderlib'))
             # Add the libs to the python path.
             for lib in self.libs:
