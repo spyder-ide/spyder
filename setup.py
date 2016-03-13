@@ -272,7 +272,8 @@ install_requires = [
     'pylint',
     'psutil',
     'qtawesome',
-    'pickleshare'
+    'pickleshare',
+    'pyzmq'
 ]
 
 if 'setuptools' in sys.modules:

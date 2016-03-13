@@ -142,14 +142,15 @@ a Python version greater than 2.7 (Python 3.2 is not supported anymore).
 * **Rope** and **Jedi**: Editor code completion, calltips
   and go-to-definition.
 * **Pyflakes**: Real-time code analysis.
-* **Sphinx**: Rich text mode for the Help pane
+* **Sphinx**: Rich text mode for the Help pane.
 * **Pygments**: Syntax highlighting for all file types it supports.
 * **Pylint**: Static code analysis.
 * **Pep8**: Style analysis.
 * **Psutil**: CPU and memory usage on the status bar.
 * **Nbconvert**: Manipulation of notebooks in the Editor.
-* **Qtawesome**: To have an icon theme based on FontAwesome
-* **Pickleshare**: Show import completions on the Python consoles
+* **Qtawesome**: To have an icon theme based on FontAwesome.
+* **Pickleshare**: Show import completions on the Python consoles.
+* **PyZMQ**: Run introspection services asynchronously.
 
 ### Optional dependencies
 
