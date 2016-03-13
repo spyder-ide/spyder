@@ -132,15 +132,14 @@ class PluginManager(QObject):
     def _finalize(self, response):
         self.waiting = False
         self.pending = None
-        if not self.info:
-            return
-        delta = time.time() - self._start_time
-        debug_print('%s request from %s finished: "%s" in %.1f sec'
-            % (self.info.name, response['name'],
-               str(response['result'])[:100], delta))
-        response['info'] = self.info
-        self.introspection_complete.emit(response)
-        self.info = None
+        if self.info:
+            delta = time.time() - self._start_time
+            debug_print('%s request from %s finished: "%s" in %.1f sec'
+                % (self.info.name, response['name'],
+                   str(response['result'])[:100], delta))
+            response['info'] = self.info
+            self.introspection_complete.emit(response)
+            self.info = None
         if self.pending_request:
             info = self.pending_request
             self.pending_request = None
