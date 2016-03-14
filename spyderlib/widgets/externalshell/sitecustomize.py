@@ -150,7 +150,7 @@ os.environ['SPYDER_PARENT_DIR'] = spyderlib_path
 # Setting console encoding (otherwise Python does not recognize encoding)
 # for Windows platforms
 #==============================================================================
-if os.name == 'nt':
+if os.name == 'nt' and PY2:
     try:
         import locale, ctypes
         _t, _cp = locale.getdefaultlocale('LANG')
