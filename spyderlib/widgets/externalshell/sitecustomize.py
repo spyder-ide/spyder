@@ -147,6 +147,25 @@ os.environ['SPYDER_PARENT_DIR'] = spyderlib_path
 
 
 #==============================================================================
+# Setting console encoding (otherwise Python does not recognize encoding)
+# for Windows platforms
+#==============================================================================
+if os.name == 'nt' and PY2:
+    try:
+        import locale, ctypes
+        _t, _cp = locale.getdefaultlocale('LANG')
+        try:
+            _cp = int(_cp[2:])
+            ctypes.windll.kernel32.SetConsoleCP(_cp)
+            ctypes.windll.kernel32.SetConsoleOutputCP(_cp)
+        except (ValueError, TypeError):
+            # Code page number in locale is not valid
+            pass
+    except ImportError:
+        pass
+
+
+#==============================================================================
 # Settings for our MacOs X app
 #==============================================================================
 IS_EXT_INTERPRETER = os.environ.get('EXTERNAL_INTERPRETER', '').lower() == "true"
