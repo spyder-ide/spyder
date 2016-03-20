@@ -92,7 +92,8 @@ except ImportError:
     basestring = (str,)
     def execfile(filename, namespace):
         # Open a source file correctly, whatever its encoding is
-        exec(compile(open(filename, 'rb').read(), filename, 'exec'), namespace)
+        with open(filename, 'rb') as f:
+            exec(compile(f.read(), filename, 'exec'), namespace)
 
 
 #==============================================================================
