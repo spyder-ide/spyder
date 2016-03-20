@@ -75,6 +75,11 @@ class SysOutput(QObject):
     def flush(self):
         pass
 
+    # This is needed to fix Issue 2984
+    @property
+    def closed(self):
+        return False
+
 class WidgetProxyData(object):
     pass
 
