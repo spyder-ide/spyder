@@ -447,21 +447,35 @@ if IS_IPYTHON:
             kwargs['exit'] = False
             TestProgram.__init__(self, *args, **kwargs)
     unittest.main = IPyTesProgram
-    
-    # Pandas monkey-patches
-    try:
-        # Make Pandas recognize our IPython consoles as proper qtconsoles
-        # Fixes Issue 2015
-        def in_qtconsole():
-            return True
-        import pandas as pd
-        pd.core.common.in_qtconsole = in_qtconsole
-        
-        # Set Pandas output encoding
-        pd.options.display.encoding = 'utf-8'
-    except (ImportError, AttributeError):
-        pass
-        
+
+
+#==============================================================================
+# Pandas adjustments
+#==============================================================================
+try:
+    # Make Pandas recognize our IPython consoles as proper qtconsoles
+    # Fixes Issue 2015
+    def in_qtconsole():
+        return True
+    import pandas as pd
+    pd.core.common.in_qtconsole = in_qtconsole
+
+    # Set Pandas output encoding
+    pd.options.display.encoding = 'utf-8'
+
+    # Filter warning that appears only on Windows and Spyder for
+    # DataFrames with np.nan values in Pandas 0.17-
+    # Example:
+    # import pandas as pd, numpy as np
+    # pd.Series([np.nan,np.nan,np.nan],index=[1,2,3])
+    # Fixes Issue 2991
+    import warnings
+    warnings.filterwarnings(action='ignore', category=RuntimeWarning,
+                            module='pandas.core.format',
+                            message=".*invalid value encountered in.*")
+except (ImportError, AttributeError):
+    pass
+
 
 #==============================================================================
 # Pdb adjustments
