@@ -175,16 +175,14 @@ def value_to_display(value, truncate=False, trunc_len=80, minmax=False):
         if isinstance(value, recarray):
             fields = value.names
             display = 'Field names: ' + ', '.join(fields)
-        elif minmax and isinstance(value, (ndarray, MaskedArray)):
-            if value.size == 0:
+        elif isinstance(value, (ndarray, MaskedArray)):
+            if minmax:
+                try:
+                    display = 'Min: %r\nMax: %r' % (value.min(), value.max())
+                except (TypeError, ValueError):
+                    display = repr(value)
+            else:
                 display = repr(value)
-            try:
-                display = 'Min: %r\nMax: %r' % (value.min(), value.max())
-            except TypeError:
-                pass
-            except ValueError:
-                # Happens when one of the array cell contains a sequence
-                pass
         elif isinstance(value, (list, tuple, dict, set)):
             display = CollectionsRepr.repr(value)
         elif isinstance(value, Image):
