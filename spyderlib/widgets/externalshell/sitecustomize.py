@@ -216,6 +216,19 @@ if PY2 and sys.platform.startswith('linux'):
 
 
 #==============================================================================
+# Set PyQt API to #2
+#==============================================================================
+if os.environ["QT_API"] == 'pyqt':
+    try:
+        import sip
+        for qtype in ('QString', 'QVariant', 'QDate', 'QDateTime',
+                      'QTextStream', 'QTime', 'QUrl'):
+            sip.setapi(qtype, 2)
+    except:
+        pass
+
+
+#==============================================================================
 # Importing matplotlib before creating the monitor.
 # This prevents a kernel crash with the inline backend in our IPython
 # consoles on Linux and Python 3 (Fixes Issue 2257)
