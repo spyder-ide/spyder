@@ -32,6 +32,13 @@ if not hasattr(sys, 'argv'):
 
 
 #==============================================================================
+# Main constants
+#==============================================================================
+IS_IPYTHON = os.environ.get("IPYTHON_KERNEL", "").lower() == "true"
+IS_EXT_INTERPRETER = os.environ.get('EXTERNAL_INTERPRETER', '').lower() == "true"
+
+
+#==============================================================================
 # Important Note:
 #
 # We avoid importing spyderlib here, so we are handling Python 3 compatiblity
@@ -169,8 +176,6 @@ if os.name == 'nt' and PY2:
 #==============================================================================
 # Settings for our MacOs X app
 #==============================================================================
-IS_EXT_INTERPRETER = os.environ.get('EXTERNAL_INTERPRETER', '').lower() == "true"
-
 if sys.platform == 'darwin':
     from spyderlib.config.base import MAC_APP_NAME
     if MAC_APP_NAME in __file__:
@@ -281,7 +286,7 @@ else:
     builtins.open_in_spyder = open_in_spyder
 
     # Our own input hook, monitor based and for Windows only
-    if os.name == 'nt':
+    if os.name == 'nt' and matplotlib and not IS_IPYTHON:
         # Qt imports
         if os.environ["QT_API"] == 'pyqt5':
             from PyQt5 import QtCore
@@ -338,8 +343,6 @@ else:
 #==============================================================================
 # Matplotlib settings
 #==============================================================================
-IS_IPYTHON = os.environ.get("IPYTHON_KERNEL", "").lower() == "true"
-
 if matplotlib is not None:
     if not IS_IPYTHON:
         mpl_backend = os.environ.get("SPY_MPL_BACKEND", "")
