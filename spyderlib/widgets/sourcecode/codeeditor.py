@@ -1869,8 +1869,6 @@ class CodeEditor(TextEditBaseWidget):
 
         Returns True if indent needed to be fixed
         """
-        if not self.is_python_like():
-            return
         cursor = self.textCursor()
         block_nb = cursor.blockNumber()
         # find the line that contains our scope
@@ -1880,10 +1878,11 @@ class CodeEditor(TextEditBaseWidget):
         for prevline in range(block_nb-1, -1, -1):
             cursor.movePosition(QTextCursor.PreviousBlock)
             prevtext = to_text_string(cursor.block().text()).rstrip()
-            if not prevtext.strip().startswith('#') and prevtext:
+            if (self.is_python_like() and not prevtext.strip().startswith('#') \
+              and prevtext) or prevtext:
                 if prevtext.strip().endswith(')'):
                     comment_or_string = True  # prevent further parsing
-                elif prevtext.strip().endswith(':'):
+                elif prevtext.strip().endswith(':') and self.is_python_like():
                     add_indent = True
                     comment_or_string = True
                 if prevtext.count(')') > prevtext.count('('):
@@ -1906,11 +1905,11 @@ class CodeEditor(TextEditBaseWidget):
             correct_indent += len(self.indent_chars)
 
         if not comment_or_string:
-            if prevtext.endswith(':'):
+            if prevtext.endswith(':') and self.is_python_like():
                 # Indent
                 correct_indent += len(self.indent_chars)
-            elif prevtext.endswith('continue') or prevtext.endswith('break') \
-              or prevtext.endswith('pass'):
+            elif (prevtext.endswith('continue') or prevtext.endswith('break') \
+              or prevtext.endswith('pass')) and self.is_python_like():
                 # Unindent
                 correct_indent -= len(self.indent_chars)
             elif len(re.split(r'\(|\{|\[', prevtext)) > 1:
