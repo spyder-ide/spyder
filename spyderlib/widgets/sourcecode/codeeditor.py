@@ -1913,8 +1913,7 @@ class CodeEditor(TextEditBaseWidget):
               or prevtext.endswith('pass'):
                 # Unindent
                 correct_indent -= len(self.indent_chars)
-            elif prevtext.endswith(',') \
-              and len(re.split(r'\(|\{|\[', prevtext)) > 1:
+            elif len(re.split(r'\(|\{|\[', prevtext)) > 1:
                 rlmap = {")":"(", "]":"[", "}":"{"}
                 for par in rlmap:
                     i_right = prevtext.rfind(par)
