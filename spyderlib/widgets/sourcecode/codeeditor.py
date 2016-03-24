@@ -1880,7 +1880,7 @@ class CodeEditor(TextEditBaseWidget):
         for prevline in range(block_nb-1, -1, -1):
             cursor.movePosition(QTextCursor.PreviousBlock)
             prevtext = to_text_string(cursor.block().text()).rstrip()
-            if not prevtext.strip().startswith('#'):
+            if not prevtext.strip().startswith('#') and prevtext:
                 if prevtext.strip().endswith(')'):
                     comment_or_string = True  # prevent further parsing
                 elif prevtext.strip().endswith(':'):
