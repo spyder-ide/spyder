@@ -1940,12 +1940,10 @@ class CodeEditor(TextEditBaseWidget):
 
         if correct_indent >= 0:
             cursor = self.textCursor()
-            cursor.beginEditBlock()
             cursor.movePosition(QTextCursor.StartOfBlock)
             cursor.setPosition(cursor.position()+indent, QTextCursor.KeepAnchor)
             cursor.removeSelectedText()
             cursor.insertText(self.indent_chars[0]*correct_indent)
-            cursor.endEditBlock()
             return True
 
     @Slot()
@@ -2528,15 +2526,19 @@ class CodeEditor(TextEditBaseWidget):
             if not shift and not ctrl:
                 if self.add_colons_enabled and self.is_python_like() and \
                   self.autoinsert_colons():
+                    self.textCursor().beginEditBlock()
                     self.insert_text(':' + self.get_line_separator())
                     self.fix_indent()
+                    self.textCursor().endEditBlock()
                 elif self.is_completion_widget_visible() \
                    and self.codecompletion_enter:
                     self.select_completion_list()
                 else:
                     cmt_or_str = self.in_comment_or_string()
+                    self.textCursor().beginEditBlock()
                     TextEditBaseWidget.keyPressEvent(self, event)
                     self.fix_indent(comment_or_string=cmt_or_str)
+                    self.textCursor().endEditBlock()
             elif shift:
                 self.run_cell_and_advance.emit()
             elif ctrl:
