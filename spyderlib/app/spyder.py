@@ -285,8 +285,7 @@ class MainWindow(QMainWindow):
                 import win32api
                 win32api.SetConsoleCtrlHandler(signal_handler, True)
             except ImportError:
-                version = '.'.join(map(str, sys.version_info[:2]))
-                raise Exception('pywin32 not installed for Python ' + version)
+                pass
         else:
             signal.signal(signal.SIGTERM, signal_handler)
 
