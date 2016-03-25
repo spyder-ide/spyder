@@ -274,7 +274,7 @@ class MainWindow(QMainWindow):
 
         self.debug_print("Start of MainWindow constructor")
 
-        def signal_handler(signum, frame):
+        def signal_handler(signum, frame=None):
             """Handler for signals."""
             sys.stdout.write('Handling signal: %s\n' % signum)
             sys.stdout.flush()
