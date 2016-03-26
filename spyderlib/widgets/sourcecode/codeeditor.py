@@ -1869,8 +1869,6 @@ class CodeEditor(TextEditBaseWidget):
 
         Returns True if indent needed to be fixed
         """
-        if not self.is_python_like():
-            return
         cursor = self.textCursor()
         block_nb = cursor.blockNumber()
         # find the line that contains our scope
@@ -1880,10 +1878,11 @@ class CodeEditor(TextEditBaseWidget):
         for prevline in range(block_nb-1, -1, -1):
             cursor.movePosition(QTextCursor.PreviousBlock)
             prevtext = to_text_string(cursor.block().text()).rstrip()
-            if not prevtext.strip().startswith('#'):
+            if (self.is_python_like() and not prevtext.strip().startswith('#') \
+              and prevtext) or prevtext:
                 if prevtext.strip().endswith(')'):
                     comment_or_string = True  # prevent further parsing
-                elif prevtext.strip().endswith(':'):
+                elif prevtext.strip().endswith(':') and self.is_python_like():
                     add_indent = True
                     comment_or_string = True
                 if prevtext.count(')') > prevtext.count('('):
@@ -1906,15 +1905,14 @@ class CodeEditor(TextEditBaseWidget):
             correct_indent += len(self.indent_chars)
 
         if not comment_or_string:
-            if prevtext.endswith(':'):
+            if prevtext.endswith(':') and self.is_python_like():
                 # Indent
                 correct_indent += len(self.indent_chars)
-            elif prevtext.endswith('continue') or prevtext.endswith('break') \
-              or prevtext.endswith('pass'):
+            elif (prevtext.endswith('continue') or prevtext.endswith('break') \
+              or prevtext.endswith('pass')) and self.is_python_like():
                 # Unindent
                 correct_indent -= len(self.indent_chars)
-            elif prevtext.endswith(',') \
-              and len(re.split(r'\(|\{|\[', prevtext)) > 1:
+            elif len(re.split(r'\(|\{|\[', prevtext)) > 1:
                 rlmap = {")":"(", "]":"[", "}":"{"}
                 for par in rlmap:
                     i_right = prevtext.rfind(par)
@@ -1940,12 +1938,10 @@ class CodeEditor(TextEditBaseWidget):
 
         if correct_indent >= 0:
             cursor = self.textCursor()
-            cursor.beginEditBlock()
             cursor.movePosition(QTextCursor.StartOfBlock)
             cursor.setPosition(cursor.position()+indent, QTextCursor.KeepAnchor)
             cursor.removeSelectedText()
             cursor.insertText(self.indent_chars[0]*correct_indent)
-            cursor.endEditBlock()
             return True
 
     @Slot()
@@ -2528,15 +2524,19 @@ class CodeEditor(TextEditBaseWidget):
             if not shift and not ctrl:
                 if self.add_colons_enabled and self.is_python_like() and \
                   self.autoinsert_colons():
+                    self.textCursor().beginEditBlock()
                     self.insert_text(':' + self.get_line_separator())
                     self.fix_indent()
+                    self.textCursor().endEditBlock()
                 elif self.is_completion_widget_visible() \
                    and self.codecompletion_enter:
                     self.select_completion_list()
                 else:
                     cmt_or_str = self.in_comment_or_string()
+                    self.textCursor().beginEditBlock()
                     TextEditBaseWidget.keyPressEvent(self, event)
                     self.fix_indent(comment_or_string=cmt_or_str)
+                    self.textCursor().endEditBlock()
             elif shift:
                 self.run_cell_and_advance.emit()
             elif ctrl:
