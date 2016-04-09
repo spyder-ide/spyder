@@ -6,23 +6,24 @@
 
 """Spyder path manager"""
 
+# Standard library imports
 from __future__ import print_function
-
-from spyderlib.qt.QtGui import (QDialog, QListWidget, QDialogButtonBox,
-                                QVBoxLayout, QHBoxLayout, QMessageBox,
-                                QListWidgetItem)
-from spyderlib.qt.QtCore import Qt, Signal, Slot
-from spyderlib.qt.compat import getexistingdirectory
-import spyderlib.utils.icon_manager as ima
-
 import os
-import sys
 import os.path as osp
+import sys
+
+# Third party imports
+from qtpy.compat import getexistingdirectory
+from qtpy.QtCore import Qt, Signal, Slot
+from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QHBoxLayout,
+                            QListWidget, QListWidgetItem, QMessageBox,
+                            QVBoxLayout)
 
 # Local imports
-from spyderlib.utils.qthelpers import create_toolbutton
 from spyderlib.config.base import _
 from spyderlib.py3compat import getcwd
+from spyderlib.utils import icon_manager as ima
+from spyderlib.utils.qthelpers import create_toolbutton
 
 
 class PathManager(QDialog):
