@@ -11,43 +11,44 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
+# Local imports
 from __future__ import print_function
-
-from spyderlib.qt import is_pyqt46
-from spyderlib.qt.QtGui import (QVBoxLayout, QMessageBox, QMenu, QFont,
-                                QAction, QApplication, QWidget,
-                                QKeySequence, QMainWindow, QSplitter,
-                                QHBoxLayout)
-from spyderlib.qt.QtCore import (Signal, Qt, QFileInfo, QThread, QObject,
-                                 QByteArray, QSize, QPoint, QTimer, Slot)
-from spyderlib.qt.compat import getsavefilename
-import spyderlib.utils.icon_manager as ima
-
 import os
-import sys
 import os.path as osp
+import sys
+
+# Third party imports
+from qtpy import is_pyqt46
+from qtpy.compat import getsavefilename
+from qtpy.QtCore import (QByteArray, QFileInfo, QObject, QPoint, QSize, Qt,
+                         QThread, QTimer, Signal, Slot)
+from qtpy.QtGui import QFont, QKeySequence
+from qtpy.QtWidgets import (QAction, QApplication, QHBoxLayout, QMainWindow,
+                            QMessageBox, QMenu, QSplitter, QVBoxLayout,
+                            QWidget)
 
 # Local imports
-from spyderlib.utils import encoding, sourcecode, codeanalysis
-from spyderlib.utils.introspection.manager import IntrospectionManager
-from spyderlib.config.base import _, DEBUG, STDOUT, STDERR
-from spyderlib.config.utils import get_edit_extensions
+from spyderlib.config.base import _, DEBUG, STDERR, STDOUT
 from spyderlib.config.gui import create_shortcut, new_shortcut
-from spyderlib.utils.qthelpers import (create_action, add_actions,
-                                       mimedata2url, get_filetype_icon,
-                                       create_toolbutton)
-from spyderlib.utils import syntaxhighlighters
-from spyderlib.widgets.tabs import BaseTabs
-from spyderlib.widgets.findreplace import FindReplace
+from spyderlib.config.utils import get_edit_extensions
+from spyderlib.py3compat import qbytearray_to_str, to_text_string, u
+from spyderlib.utils import icon_manager as ima
+from spyderlib.utils import (codeanalysis, encoding, sourcecode,
+                             syntaxhighlighters)
+from spyderlib.utils.introspection.manager import IntrospectionManager
+from spyderlib.utils.qthelpers import (add_actions, create_action,
+                                       create_toolbutton, get_filetype_icon,
+                                       mimedata2url)
 from spyderlib.widgets.editortools import OutlineExplorerWidget
-from spyderlib.widgets.status import (ReadWriteStatus, EOLStatus,
-                                      EncodingStatus, CursorPositionStatus)
-from spyderlib.widgets.sourcecode import codeeditor
-from spyderlib.widgets.sourcecode.base import TextEditBaseWidget  #analysis:ignore
-from spyderlib.widgets.sourcecode.codeeditor import Printer  #analysis:ignore
-from spyderlib.widgets.sourcecode.codeeditor import get_file_language
 from spyderlib.widgets.fileswitcher import FileSwitcher
-from spyderlib.py3compat import to_text_string, qbytearray_to_str, u
+from spyderlib.widgets.findreplace import FindReplace
+from spyderlib.widgets.sourcecode import codeeditor
+from spyderlib.widgets.sourcecode.base import TextEditBaseWidget  # analysis:ignore
+from spyderlib.widgets.sourcecode.codeeditor import Printer       # analysis:ignore
+from spyderlib.widgets.sourcecode.codeeditor import get_file_language
+from spyderlib.widgets.status import (CursorPositionStatus, EncodingStatus,
+                                      EOLStatus, ReadWriteStatus)
+from spyderlib.widgets.tabs import BaseTabs
 
 DEBUG_EDITOR = DEBUG >= 3
 
