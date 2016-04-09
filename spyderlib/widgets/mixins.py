@@ -7,28 +7,31 @@
 """Mix-in classes
 
 These classes were created to be able to provide Spyder's regular text and
-console widget features to an independant widget based on QTextEdit for the 
+console widget features to an independant widget based on QTextEdit for the
 IPython console plugin.
 """
 
+# Standard library imports
+from xml.sax.saxutils import escape
 import os
 import re
 import sre_constants
 import textwrap
-from xml.sax.saxutils import escape
 
-from spyderlib.qt.QtGui import (QTextCursor, QTextDocument, QApplication,
-                                QCursor, QToolTip)
-from spyderlib.qt.QtCore import Qt, QPoint, QRegExp
+# Third party imports
+from qtpy.QtCore import QPoint, QRegExp, Qt
+from qtpy.QtGui import QCursor, QTextCursor, QTextDocument
+from qtpy.QtWidgets import QApplication, QToolTip
 
 # Local imports
 from spyderlib.config.base import _
-from spyderlib.utils import encoding, sourcecode
-from spyderlib.utils.misc import get_error_match
-from spyderlib.utils.dochelpers import (getobj, getargspecfromtext,
-                                        getsignaturefromtext)
 from spyderlib.py3compat import is_text_string, to_text_string, u
+from spyderlib.utils import encoding, sourcecode
+from spyderlib.utils.dochelpers import (getargspecfromtext, getobj,
+                                        getsignaturefromtext)
+from spyderlib.utils.misc import get_error_match
 from spyderlib.widgets.arraybuilder import NumpyArrayDialog
+
 
 HISTORY_FILENAMES = []
 
