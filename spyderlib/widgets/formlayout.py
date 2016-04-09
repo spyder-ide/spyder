@@ -33,8 +33,6 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 """
 
-from __future__ import print_function
-
 # History:
 # 1.0.15: added support for multiline strings
 # 1.0.14: fixed Python 3 support (regression in 1.0.13)
@@ -46,31 +44,34 @@ from __future__ import print_function
 # 1.0.7: added support for "Apply" button
 # 1.0.6: code cleaning
 
-__version__ = '1.0.15'
-__license__ = __doc__
-
+# Standard library imports
+from __future__ import print_function
+import datetime
 import os
 
+# Third party imports
 try:
-    from spyderlib.qt.QtGui import QFormLayout
+    from qtpy.QtWidgets import QFormLayout
 except ImportError:
     raise ImportError("Warning: formlayout requires PyQt4 >v4.3")
 
-from spyderlib.qt.QtGui import (QWidget, QLineEdit, QComboBox, QLabel,
-                                QSpinBox, QIcon, QStyle, QDialogButtonBox,
-                                QHBoxLayout, QVBoxLayout, QDialog, QColor,
-                                QPushButton, QCheckBox, QColorDialog, QPixmap,
-                                QTabWidget, QApplication, QStackedWidget,
-                                QDateEdit, QDateTimeEdit, QFont, QFontComboBox,
-                                QFontDatabase, QGridLayout, QDoubleValidator,
-                                QTextEdit)
-from spyderlib.qt.QtCore import Qt, Signal, QSize, Slot, Property
-import datetime
+from qtpy.QtCore import Property, QSize, Qt, Signal, Slot
+from qtpy.QtGui import (QColor, QDoubleValidator, QFont, QFontDatabase, QIcon,
+                        QPixmap)
+from qtpy.QtWidgets import (QApplication, QCheckBox, QColorDialog, QComboBox,
+                            QDateEdit, QDateTimeEdit, QDialog,
+                            QDialogButtonBox, QFontComboBox, QGridLayout,
+                            QHBoxLayout, QLabel, QLineEdit, QPushButton,
+                            QSpinBox, QStackedWidget, QStyle, QTabWidget,
+                            QTextEdit, QVBoxLayout, QWidget)
 
 # Local imports
 from spyderlib.config.base import _, DEBUG, STDERR
-from spyderlib.py3compat import is_text_string, to_text_string, is_string
+from spyderlib.py3compat import is_string, is_text_string, to_text_string
 
+
+__version__ = '1.0.15'
+__license__ = __doc__
 DEBUG_FORMLAYOUT = DEBUG >= 2
 
 
