@@ -11,19 +11,22 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-from spyderlib.qt.QtGui import (QHBoxLayout, QGridLayout, QCheckBox, QLabel,
-                                QWidget, QSizePolicy, QTextCursor)
-from spyderlib.qt.QtCore import Signal, Slot, Qt, QTimer
-import spyderlib.utils.icon_manager as ima
-
+# Standard library imports
 import re
+
+# Third party imports
+from qtpy.QtCore import Qt, QTimer, Signal, Slot
+from qtpy.QtGui import QTextCursor
+from qtpy.QtWidgets import (QCheckBox, QGridLayout, QHBoxLayout, QLabel,
+                            QSizePolicy, QWidget)
 
 # Local imports
 from spyderlib.config.base import _
 from spyderlib.config.gui import create_shortcut, new_shortcut
-from spyderlib.utils.qthelpers import get_icon, create_toolbutton
-from spyderlib.widgets.comboboxes import PatternComboBox
 from spyderlib.py3compat import to_text_string
+from spyderlib.utils import icon_manager as ima
+from spyderlib.utils.qthelpers import create_toolbutton, get_icon
+from spyderlib.widgets.comboboxes import PatternComboBox
 
 
 def is_position_sup(pos1, pos2):
