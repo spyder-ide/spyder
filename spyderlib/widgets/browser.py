@@ -6,21 +6,23 @@
 
 """Simple web browser widget"""
 
+# Standard library imports
 import sys
 
-from spyderlib.qt.QtCore import QUrl, Slot, Signal
-from spyderlib.qt.QtGui import (QHBoxLayout, QWidget, QVBoxLayout,
-                                QProgressBar, QLabel, QMenu, QFrame)
-from spyderlib.qt.QtWebKit import QWebView, QWebPage, QWebSettings
+# Third party imports
+from qtpy.QtCore import QUrl, Signal, Slot
+from qtpy.QtWidgets import (QFrame, QHBoxLayout, QLabel, QProgressBar, QMenu,
+                            QVBoxLayout, QWidget)
+from qtpy.QtWebKit import QWebPage, QWebSettings, QWebView
 
 # Local imports
-from spyderlib.config.base import DEV, _
-from spyderlib.utils.qthelpers import (create_action, add_actions,
-                                       create_toolbutton, action2button)
+from spyderlib.config.base import _, DEV
+from spyderlib.py3compat import is_text_string, to_text_string
+from spyderlib.utils.qthelpers import (action2button, add_actions,
+                                       create_action, create_toolbutton)
 from spyderlib.utils import icon_manager as ima
 from spyderlib.widgets.comboboxes import UrlComboBox
 from spyderlib.widgets.findreplace import FindReplace
-from spyderlib.py3compat import to_text_string, is_text_string
 
 
 class WebView(QWebView):
