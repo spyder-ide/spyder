@@ -10,7 +10,7 @@
 import os.path as osp
 
 # Third party imports
-from spyderlib.qt.QtCore import Signal
+from qtpy.QtCore import Signal
 
 # Local imports
 from spyderlib.config.base import _, get_conf_path
