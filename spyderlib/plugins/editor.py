@@ -11,44 +11,44 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-from spyderlib.qt import API, PYQT5
-from spyderlib.qt.QtGui import (QVBoxLayout, QPrintDialog, QSplitter, QToolBar,
-                                QAction, QApplication, QDialog, QWidget,
-                                QPrinter, QActionGroup, QInputDialog, QMenu,
-                                QAbstractPrintDialog, QGroupBox, QTabWidget,
-                                QLabel, QHBoxLayout, QFileDialog,
-                                QKeySequence, QGridLayout)
-from spyderlib.qt.QtCore import Signal, QByteArray, Qt, Slot
-from spyderlib.qt.compat import to_qvariant, from_qvariant, getopenfilenames
-import spyderlib.utils.icon_manager as ima
-
+# Standard library imports
 import os
+import os.path as osp
 import re
 import sys
 import time
-import os.path as osp
+
+# Third party imports
+from qtpy import API, PYQT5
+from qtpy.compat import from_qvariant, getopenfilenames, to_qvariant
+from qtpy.QtCore import QByteArray, Qt, Signal, Slot
+from qtpy.QtGui import QKeySequence
+from qtpy.QtPrintSupport import QAbstractPrintDialog, QPrintDialog, QPrinter
+from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
+                            QFileDialog, QGridLayout, QGroupBox, QHBoxLayout,
+                            QInputDialog, QLabel, QMenu, QSplitter, QTabWidget,
+                            QToolBar, QVBoxLayout, QWidget)
 
 # Local imports
-from spyderlib.utils import encoding, sourcecode, codeanalysis
-from spyderlib.config.base import get_conf_path, _
+from spyderlib.config.base import _, get_conf_path
 from spyderlib.config.main import CONF
-from spyderlib.config.utils import (get_edit_filters, get_edit_filetypes,
+from spyderlib.config.utils import (get_edit_filetypes, get_edit_filters,
                                     get_filter)
-from spyderlib.utils import programs
-from spyderlib.utils.qthelpers import (create_action, add_actions,
-                                       get_filetype_icon, add_shortcut_to_tooltip)
+from spyderlib.py3compat import getcwd, PY2, qbytearray_to_str, to_text_string
+from spyderlib.utils import codeanalysis, encoding, programs, sourcecode
+from spyderlib.utils import icon_manager as ima
+from spyderlib.utils.qthelpers import (add_actions, add_shortcut_to_tooltip,
+                                       create_action, get_filetype_icon)
 from spyderlib.widgets.findreplace import FindReplace
-from spyderlib.widgets.status import (ReadWriteStatus, EOLStatus,
-                                      EncodingStatus, CursorPositionStatus)
-from spyderlib.widgets.editor import (EditorSplitter, EditorStack, Printer,
-                                      EditorMainWindow)
+from spyderlib.widgets.editor import (EditorMainWindow, EditorSplitter,
+                                      EditorStack, Printer)
 from spyderlib.widgets.sourcecode.codeeditor import CodeEditor
-from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
-from spyderlib.plugins.runconfig import (RunConfigDialog, RunConfigOneDialog,
+from spyderlib.widgets.status import (CursorPositionStatus, EncodingStatus,
+                                      EOLStatus, ReadWriteStatus)
+from spyderlib.plugins import PluginConfigPage, SpyderPluginWidget
+from spyderlib.plugins.runconfig import (ALWAYS_OPEN_FIRST_RUN_OPTION,
                                          get_run_configuration,
-                                         ALWAYS_OPEN_FIRST_RUN_OPTION)
-from spyderlib.py3compat import PY2, to_text_string, getcwd, qbytearray_to_str
-
+                                         RunConfigDialog, RunConfigOneDialog)
 
 
 def _load_all_breakpoints():
