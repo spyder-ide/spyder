@@ -12,26 +12,26 @@ Configuration dialog / Preferences.
 import os.path as osp
 
 # Third party imports
-from spyderlib.qt import API
-from spyderlib.qt.QtGui import (QWidget, QDialog, QListWidget, QListWidgetItem,
-                                QVBoxLayout, QStackedWidget, QListView,
-                                QHBoxLayout, QDialogButtonBox, QCheckBox,
-                                QMessageBox, QLabel, QLineEdit, QSpinBox,
-                                QPushButton, QFontComboBox, QGroupBox,
-                                QComboBox, QColor, QGridLayout, QTabWidget,
-                                QRadioButton, QButtonGroup, QSplitter,
-                                QStyleFactory, QScrollArea, QDoubleSpinBox)
-from spyderlib.qt.QtCore import Qt, QSize, Signal, Slot
-from spyderlib.qt.compat import (to_qvariant, from_qvariant,
-                                 getexistingdirectory, getopenfilename)
+from qtpy import API
+from qtpy.compat import (getexistingdirectory, getopenfilename, from_qvariant,
+                         to_qvariant)
+from qtpy.QtCore import QSize, Qt, Signal, Slot
+from qtpy.QtGui import QColor
+from qtpy.QtWidgets import (QButtonGroup, QCheckBox, QComboBox, QDialog,
+                            QDialogButtonBox, QDoubleSpinBox, QFontComboBox,
+                            QGridLayout, QGroupBox, QHBoxLayout, QLabel,
+                            QLineEdit, QListView, QListWidget, QListWidgetItem,
+                            QMessageBox, QPushButton, QRadioButton,
+                            QScrollArea, QSpinBox, QSplitter, QStackedWidget,
+                            QStyleFactory, QTabWidget, QVBoxLayout, QWidget)
 
 # Local imports
-from spyderlib.config.base import (_, running_in_mac_app, LANGUAGE_CODES,
-                                   save_lang_conf, load_lang_conf)
+from spyderlib.config.base import (_, LANGUAGE_CODES, load_lang_conf,
+                                   running_in_mac_app, save_lang_conf)
 from spyderlib.config.gui import get_font
 from spyderlib.config.main import CONF
-from spyderlib.config.utils import is_gtk_desktop
 from spyderlib.config.user import NoDefault
+from spyderlib.config.utils import is_gtk_desktop
 from spyderlib.py3compat import to_text_string, is_text_string, getcwd
 from spyderlib.utils import icon_manager as ima
 from spyderlib.utils import syntaxhighlighters
