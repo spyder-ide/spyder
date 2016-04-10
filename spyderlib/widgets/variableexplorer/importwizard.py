@@ -15,9 +15,8 @@ from functools import partial as ft_partial
 # Third party imports
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import QAbstractTableModel, QModelIndex, Qt, Signal, Slot
-from qtpy.QtGui import QColor  # , QIntValidator # FIXME: fix qtpy
+from qtpy.QtGui import QColor, QIntValidator
 from qtpy.QtWidgets import (QCheckBox, QDialog, QFrame, QGridLayout, QGroupBox,
-                            QIntValidator,  # FIXME: delete after qtpy fix
                             QHBoxLayout, QLabel, QLineEdit,
                             QPushButton, QMenu, QMessageBox, QRadioButton,
                             QSizePolicy, QSpacerItem, QTableView, QTabWidget,

@@ -30,7 +30,7 @@ import time
 from qtpy import is_pyqt46
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import QRect, QRegExp, QSize, Qt, QTimer, Signal, Slot
-from qtpy.QtGui import (QBrush, QColor, QCursor, QFont, #QIntValidator,  # FIXME: QTPY needs to be fixed!
+from qtpy.QtGui import (QBrush, QColor, QCursor, QFont, QIntValidator,
                         QKeySequence, QPaintEvent, QPainter,
                         QTextBlockUserData, QTextCharFormat, QTextCursor,
                         QTextDocument, QTextFormat, QTextOption)
@@ -38,8 +38,7 @@ from qtpy.QtPrintSupport import QPrinter
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QGridLayout, QHBoxLayout, QInputDialog, QLabel,
                             QLineEdit, QMenu, QMessageBox, QSplitter,
-                            QTextEdit, QToolTip, QVBoxLayout, QWidget,  # )
-                            QIntValidator)  # FIXME: Remove line after QtPy fix
+                            QTextEdit, QToolTip, QVBoxLayout, QWidget)
 
 # %% This line is for cell execution testing
 
