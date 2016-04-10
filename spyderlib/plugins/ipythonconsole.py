@@ -14,30 +14,24 @@ Handles IPython clients (and in the future, will handle IPython kernels too
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-# Stdlib imports
+# Standard library imports
 import atexit
 import os
 import os.path as osp
 import sys
 
-# Qt imports
-from spyderlib.qt import PYQT5
-from spyderlib.qt.QtGui import (QVBoxLayout, QHBoxLayout, QFormLayout, 
-                                QMessageBox, QGroupBox, QDialogButtonBox,
-                                QDialog, QTabWidget, 
-                                QCheckBox, QApplication, QLabel,QLineEdit,
-                                QPushButton, QKeySequence, QWidget,
-                                QGridLayout)
-from spyderlib.qt.compat import getopenfilename
-from spyderlib.qt.QtCore import Signal, Slot, Qt
-import spyderlib.utils.icon_manager as ima
-
-# IPython/Jupyter imports
+# Third party imports
 from IPython.core.application import get_ipython_dir
 from jupyter_client.connect import find_connection_file
 from qtconsole.manager import QtKernelManager
-
-# Ssh imports
+from qtpy import PYQT5
+from qtpy.compat import getopenfilename
+from qtpy.QtCore import Qt, Signal, Slot
+from qtpy.QtGui import QKeySequence
+from qtpy.QtWidgets import (QApplication, QCheckBox, QDialog, QDialogButtonBox,
+                            QFormLayout, QGridLayout, QGroupBox, QHBoxLayout,
+                            QLabel, QLineEdit, QMessageBox, QPushButton,
+                            QTabWidget, QVBoxLayout, QWidget)
 from zmq.ssh import tunnel as zmqtunnel
 try:
     import pexpect
@@ -48,14 +42,15 @@ except ImportError:
 from spyderlib import dependencies
 from spyderlib.config.base import _
 from spyderlib.config.main import CONF
-from spyderlib.utils.misc import get_error_match, remove_backslashes
-from spyderlib.utils import programs
-from spyderlib.utils.qthelpers import create_action
-from spyderlib.widgets.tabs import Tabs
-from spyderlib.widgets.ipython import IPythonClient
-from spyderlib.widgets.findreplace import FindReplace
-from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
+from spyderlib.plugins import PluginConfigPage, SpyderPluginWidget
 from spyderlib.py3compat import to_text_string
+from spyderlib.utils import icon_manager as ima
+from spyderlib.utils import programs
+from spyderlib.utils.misc import get_error_match, remove_backslashes
+from spyderlib.utils.qthelpers import create_action
+from spyderlib.widgets.findreplace import FindReplace
+from spyderlib.widgets.ipython import IPythonClient
+from spyderlib.widgets.tabs import Tabs
 
 
 SYMPY_REQVER = '>=0.7.3'
