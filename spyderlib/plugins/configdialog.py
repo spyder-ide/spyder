@@ -324,9 +324,9 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             value = self.get_option(option, default)
             for index in range(combobox.count()):
                 data = from_qvariant(combobox.itemData(index), to_text_string)
-                # For PyQt API v2, it is necessary to convert `data` to 
-                # unicode in case the original type was not a string, like an 
-                # integer for example (see spyderlib.qt.compat.from_qvariant):
+                # For PyQt API v2, it is necessary to convert `data` to
+                # unicode in case the original type was not a string, like an
+                # integer for example (see qtpy.compat.from_qvariant):
                 if to_text_string(data) == to_text_string(value):
                     break
             combobox.setCurrentIndex(index)
