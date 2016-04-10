@@ -15,16 +15,15 @@
 import os.path as osp
 
 # Third party imports
-from spyderlib.qt.QtCore import Signal, Slot, Qt
-from spyderlib.qt.QtGui import QInputDialog, QVBoxLayout, QGroupBox, QLabel
+from qtpy.QtCore import Qt, Signal, Slot
+from qtpy.QtWidgets import QGroupBox, QInputDialog, QLabel, QVBoxLayout
 
 # Local imports
 from spyderlib.config.base import get_translation
+from spyderlib.plugins import PluginConfigPage, SpyderPluginMixin
 from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.qthelpers import create_action
-from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage
-
-from .widgets.pylintgui import PylintWidget, PYLINT_PATH
+from .widgets.pylintgui import (PYLINT_PATH, PylintWidget)
 
 
 _ = get_translation("pylint", "spyplugins.ui.pylint")

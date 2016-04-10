@@ -299,7 +299,7 @@ def value_to_display(value, truncate=False, trunc_len=80, minmax=False):
 
 def display_to_value(value, default_value, ignore_errors=True):
     """Convert back to value"""
-    from spyderlib.qt.compat import from_qvariant
+    from qtpy.compat import from_qvariant
     value = from_qvariant(value, to_text_string)
     try:
         np_dtype = get_numpy_dtype(default_value)

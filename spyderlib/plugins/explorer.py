@@ -11,15 +11,17 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-from spyderlib.qt.QtCore import Signal
-
+# Standard library imports
 import os.path as osp
+
+# Third party imports
+from qtpy.QtCore import Signal
 
 # Local imports
 from spyderlib.config.base import _
-from spyderlib.widgets.explorer import ExplorerWidget
 from spyderlib.plugins import SpyderPluginMixin
 from spyderlib.py3compat import to_text_string
+from spyderlib.widgets.explorer import ExplorerWidget
 
 
 class Explorer(ExplorerWidget, SpyderPluginMixin):

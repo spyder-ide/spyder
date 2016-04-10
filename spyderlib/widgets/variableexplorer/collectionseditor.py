@@ -16,42 +16,45 @@ Collections (i.e. dictionary, list and tuple) editor widget and dialog
 # pylint: disable=R0911
 # pylint: disable=R0201
 
+# Standard library imports
 from __future__ import print_function
-
-import sys
 import datetime
+import sys
 import warnings
 
-from spyderlib.qt.QtGui import (QMessageBox, QTableView, QItemDelegate,
-                                QLineEdit, QVBoxLayout, QWidget, QColor,
-                                QDialog, QDateEdit, QDialogButtonBox, QMenu,
-                                QInputDialog, QDateTimeEdit, QApplication,
-                                QKeySequence, QAbstractItemDelegate)
-from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, Signal,
-                                 QDateTime, Slot)
-import spyderlib.utils.icon_manager as ima
-from spyderlib.qt.compat import to_qvariant, getsavefilename
-from spyderlib.utils.qthelpers import mimedata2url
+# Third party imports
+from qtpy.compat import getsavefilename, to_qvariant
+from qtpy.QtCore import (QAbstractTableModel, QDateTime, QModelIndex, Qt,
+                         Signal, Slot)
+from qtpy.QtGui import QColor, QKeySequence
+from qtpy.QtWidgets import (QAbstractItemDelegate, QApplication, QDateEdit,
+                            QDateTimeEdit, QDialog, QDialogButtonBox,
+                            QInputDialog, QItemDelegate, QLineEdit, QMenu,
+                            QMessageBox, QTableView, QVBoxLayout, QWidget)
 
 # Local import
 from spyderlib.config.base import _
 from spyderlib.config.fonts import DEFAULT_SMALL_DELTA
 from spyderlib.config.gui import get_font
+from spyderlib.py3compat import (io, is_binary_string, is_text_string,
+                                 getcwd, PY3, to_text_string)
+from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.misc import fix_reference_name
-from spyderlib.utils.qthelpers import add_actions, create_action, qapplication
-from spyderlib.widgets.variableexplorer.utils import (sort_against, get_size,
-               get_human_readable_type, value_to_display, get_color_name,
-               is_known_type, FakeObject, Image, ndarray, array, MaskedArray,
-               unsorted_unique, try_to_eval, is_editable_type, DataFrame,
-               Series, display_to_value, np_savetxt)
+from spyderlib.utils.qthelpers import (add_actions, create_action,
+                                       mimedata2url)
+from spyderlib.widgets.variableexplorer.importwizard import ImportWizard
+from spyderlib.widgets.variableexplorer.texteditor import TextEditor
+from spyderlib.widgets.variableexplorer.utils import (
+    array, DataFrame, display_to_value, FakeObject, get_color_name,
+    get_human_readable_type, get_size, Image, is_editable_type, is_known_type,
+    MaskedArray, ndarray, np_savetxt, Series, sort_against, try_to_eval,
+    unsorted_unique, value_to_display,)
+
 if ndarray is not FakeObject:
     from spyderlib.widgets.variableexplorer.arrayeditor import ArrayEditor
+
 if DataFrame is not FakeObject:
     from spyderlib.widgets.variableexplorer.dataframeeditor import DataFrameEditor
-from spyderlib.widgets.variableexplorer.texteditor import TextEditor
-from spyderlib.widgets.variableexplorer.importwizard import ImportWizard
-from spyderlib.py3compat import (to_text_string, is_text_string, PY3, io,
-                                 is_binary_string, getcwd)
 
 
 LARGE_NROWS = 100
@@ -1455,6 +1458,8 @@ def get_test_data():
 
 def editor_test():
     """Collections editor test"""
+    from spyderlib.utils.qthelpers import qapplication
+
     app = qapplication()             #analysis:ignore
     dialog = CollectionsEditor()
     dialog.setup(get_test_data())
@@ -1465,18 +1470,24 @@ def editor_test():
 
 def remote_editor_test():
     """Remote collections editor test"""
+    from pprint import pprint
+
+    from spyderlib.utils.qthelpers import qapplication
     app = qapplication()
+
     from spyderlib.plugins.variableexplorer import VariableExplorer
     from spyderlib.widgets.externalshell.monitor import make_remote_view
+
     remote = make_remote_view(get_test_data(), VariableExplorer.get_settings())
-    from pprint import pprint
     pprint(remote)
     dialog = CollectionsEditor()
     dialog.setup(remote, remote=True)
     dialog.show()
-    app.exec_()
+
     if dialog.result():
         print(dialog.get_value())
+
+    app.exec_()
 
 
 if __name__ == "__main__":

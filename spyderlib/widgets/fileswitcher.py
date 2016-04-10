@@ -4,15 +4,16 @@
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
+# Standard library imports
 from __future__ import print_function
-
 import os
 import os.path as osp
 
-from spyderlib.qt.QtGui import (QDialog, QHBoxLayout, QIcon, QLabel, QLineEdit,
-                                QListWidget, QListWidgetItem, QRegExpValidator,
-                                QTextCursor, QVBoxLayout)
-from spyderlib.qt.QtCore import Signal, QEvent, QObject, QRegExp, QSize, Qt
+# Third party imports
+from qtpy.QtCore import Signal, QEvent, QObject, QRegExp, QSize, Qt
+from qtpy.QtGui import (QIcon, QRegExpValidator, QTextCursor)
+from qtpy.QtWidgets import (QDialog, QHBoxLayout, QLabel, QLineEdit,
+                            QListWidget, QListWidgetItem, QVBoxLayout)
 
 # Local imports
 from spyderlib.config.base import _

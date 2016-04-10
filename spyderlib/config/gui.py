@@ -14,11 +14,15 @@ Important note regarding shortcuts:
         Ctrl + Alt + Q, W, F, G, Y, X, C, V, B, N
 """
 
+# Standard library imports
 from collections import namedtuple
 
-from spyderlib.qt.QtGui import QFont, QFontDatabase, QShortcut, QKeySequence
-from spyderlib.qt.QtCore import Qt
+# Third party imports
+from qtpy.QtCore import Qt
+from qtpy.QtGui import QFont, QFontDatabase, QKeySequence
+from qtpy.QtWidgets import QShortcut
 
+# Local imports
 from spyderlib.config.main import CONF
 from spyderlib.config.user import NoDefault
 from spyderlib.py3compat import to_text_string

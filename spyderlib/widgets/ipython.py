@@ -7,25 +7,23 @@
 """
 IPython v0.13+ client's widget
 """
-# Fix for Issue 1356
-from __future__ import absolute_import
 
-# Stdlib imports
+# Standard library imports
+from __future__ import absolute_import  # Fix for Issue 1356
+from string import Template
 import os
 import os.path as osp
 import re
-from string import Template
 import sys
 import time
 
-# Qt imports
-from spyderlib.qt.QtGui import (QTextEdit, QKeySequence, QWidget, QMenu,
-                                QHBoxLayout, QToolButton, QVBoxLayout,
-                                QMessageBox)
-from spyderlib.qt.QtCore import Signal, Slot, Qt
-import spyderlib.utils.icon_manager as ima
+# Third party imports
+from qtpy.QtCore import Qt, Signal, Slot
+from qtpy.QtGui import QKeySequence
+from qtpy.QtWidgets import (QHBoxLayout, QMenu, QMessageBox, QTextEdit,
+                            QToolButton, QVBoxLayout, QWidget)
 
-# IPython/Jupyter imports
+# Third party imports (IPython/Jupyter)
 from IPython.core.application import get_ipython_dir
 from IPython.core.oinspect import call_tip
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
@@ -33,21 +31,22 @@ from qtconsole.ansi_code_processor import ANSI_OR_SPECIAL_PATTERN
 from traitlets.config.loader import Config, load_pyconfig_files
 
 # Local imports
-from spyderlib.config.base import (get_conf_path, get_image_path,
-                                   get_module_source_path, _)
-from spyderlib.config.main import CONF
+from spyderlib.config.base import (_, get_conf_path, get_image_path,
+                                   get_module_source_path)
 from spyderlib.config.gui import (create_shortcut, get_font, get_shortcut,
                                   new_shortcut)
-from spyderlib.utils.dochelpers import getargspecfromtext, getsignaturefromtext
-from spyderlib.utils.qthelpers import (create_toolbutton, add_actions, 
-                                       create_action, restore_keyevent)
+from spyderlib.config.main import CONF
+from spyderlib.py3compat import PY3
+from spyderlib.utils import icon_manager as ima
 from spyderlib.utils import programs, sourcecode
+from spyderlib.utils.dochelpers import getargspecfromtext, getsignaturefromtext
+from spyderlib.utils.qthelpers import (add_actions, create_action,
+                                       create_toolbutton, restore_keyevent)
+from spyderlib.widgets.arraybuilder import SHORTCUT_INLINE, SHORTCUT_TABLE
 from spyderlib.widgets.browser import WebView
 from spyderlib.widgets.calltip import CallTipWidget
 from spyderlib.widgets.mixins import (BaseEditMixin, GetHelpMixin,
                                       SaveHistoryMixin, TracebackLinksMixin)
-from spyderlib.widgets.arraybuilder import (SHORTCUT_INLINE, SHORTCUT_TABLE)
-from spyderlib.py3compat import PY3
 
 
 #-----------------------------------------------------------------------------

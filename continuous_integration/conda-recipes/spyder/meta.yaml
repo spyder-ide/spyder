@@ -32,6 +32,7 @@ requirements:
     - psutil
     - pylint
     - qtawesome
+    - qtpy
     - python.app             [osx]
 
 about:

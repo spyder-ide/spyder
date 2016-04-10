@@ -11,6 +11,7 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
+# Standard library imports
 import keyword
 import locale
 import os
@@ -19,26 +20,26 @@ import re
 import sys
 import time
 
-from spyderlib.qt.QtGui import (QMenu, QApplication, QToolTip, QKeySequence,
-                                QMessageBox, QTextCursor, QTextCharFormat)
-from spyderlib.qt.QtCore import (Qt, QCoreApplication, QTimer, Signal,
-                                 Property, Slot)
-from spyderlib.qt.compat import getsavefilename
-import spyderlib.utils.icon_manager as ima
+# Third party imports
+from qtpy.compat import getsavefilename
+from qtpy.QtCore import Property, QCoreApplication, Qt, QTimer, Signal, Slot
+from qtpy.QtGui import QKeySequence, QTextCharFormat, QTextCursor
+from qtpy.QtWidgets import QApplication, QMenu, QMessageBox, QToolTip
 
 # Local import
-from spyderlib.config.base import get_conf_path, _, STDERR, DEBUG
-from spyderlib.config.main import CONF
+from spyderlib.config.base import _, DEBUG, get_conf_path, STDERR
 from spyderlib.config.gui import create_shortcut, get_shortcut, new_shortcut
+from spyderlib.config.main import CONF
+from spyderlib.py3compat import (builtins, is_string, is_text_string,
+                                 PY3, to_text_string)
 from spyderlib.utils import encoding
-from spyderlib.utils.qthelpers import (keybinding, create_action, add_actions,
+from spyderlib.utils import icon_manager as ima
+from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
                                        restore_keyevent)
+from spyderlib.widgets.arraybuilder import SHORTCUT_INLINE, SHORTCUT_TABLE
+from spyderlib.widgets.mixins import (GetHelpMixin, SaveHistoryMixin,
+                                      TracebackLinksMixin)
 from spyderlib.widgets.sourcecode.base import ConsoleBaseWidget
-from spyderlib.widgets.mixins import (GetHelpMixin, TracebackLinksMixin,
-                                      SaveHistoryMixin)
-from spyderlib.widgets.arraybuilder import (SHORTCUT_INLINE, SHORTCUT_TABLE)
-from spyderlib.py3compat import (is_text_string, to_text_string, builtins,
-                                 is_string, PY3)
 
 
 class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):

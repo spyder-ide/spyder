@@ -11,37 +11,36 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-# Qt imports
-from spyderlib.qt import PYQT5
-from spyderlib.qt.QtGui import (QVBoxLayout, QMessageBox, QInputDialog,
-                                QLineEdit, QPushButton, QGroupBox, QLabel,
-                                QTabWidget, QHBoxLayout,
-                                QButtonGroup, QWidget)
-from spyderlib.qt.QtCore import Signal, Slot, Qt
-from spyderlib.qt.compat import getopenfilename
-import spyderlib.utils.icon_manager as ima
-
-# Stdlib imports
+# Standard library imports
 import atexit
 import os
 import os.path as osp
 import sys
 
+# Third party imports
+from qtpy import PYQT5
+from qtpy.compat import getopenfilename
+from qtpy.QtCore import Qt, Signal, Slot
+from qtpy.QtWidgets import (QButtonGroup, QGroupBox, QHBoxLayout, QInputDialog,
+                            QLabel, QLineEdit, QMessageBox, QPushButton,
+                            QTabWidget, QVBoxLayout, QWidget)
+
 # Local imports
-from spyderlib.config.base import SCIENTIFIC_STARTUP, running_in_mac_app, _
+from spyderlib import dependencies
+from spyderlib.config.base import _, running_in_mac_app, SCIENTIFIC_STARTUP
 from spyderlib.config.main import CONF
 from spyderlib.utils import encoding, programs
+from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.misc import (get_error_match, get_python_executable,
-                                  remove_backslashes, is_python_script)
+                                  is_python_script, remove_backslashes)
 from spyderlib.utils.qthelpers import create_action, mimedata2url
-from spyderlib.widgets.tabs import Tabs
+from spyderlib.plugins import PluginConfigPage, SpyderPluginWidget
+from spyderlib.plugins.runconfig import get_run_configuration
+from spyderlib.py3compat import to_text_string, is_text_string, getcwd
 from spyderlib.widgets.externalshell.pythonshell import ExternalPythonShell
 from spyderlib.widgets.externalshell.systemshell import ExternalSystemShell
 from spyderlib.widgets.findreplace import FindReplace
-from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
-from spyderlib.plugins.runconfig import get_run_configuration
-from spyderlib.py3compat import to_text_string, is_text_string, getcwd
-from spyderlib import dependencies
+from spyderlib.widgets.tabs import Tabs
 
 
 MPL_REQVER = '>=1.0'

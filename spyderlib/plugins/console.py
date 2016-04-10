@@ -11,29 +11,30 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-from spyderlib.qt import PYQT5
-from spyderlib.qt.QtGui import QVBoxLayout, QInputDialog, QLineEdit, QMenu
-from spyderlib.qt.QtCore import Signal, Slot
-from spyderlib.qt.compat import getopenfilename
-import spyderlib.utils.icon_manager as ima
-
+# Standard library imports
 import os
-import sys
 import os.path as osp
+import sys
 
+# Third party imports
+from qtpy import PYQT5
+from qtpy.compat import getopenfilename
+from qtpy.QtCore import Signal, Slot
+from qtpy.QtWidgets import QInputDialog, QLineEdit, QMenu, QVBoxLayout
 
 # Local imports
 from spyderlib.config.base import _, debug_print
 from spyderlib.config.main import CONF
-from spyderlib.utils.misc import get_error_match, remove_backslashes
-from spyderlib.utils.qthelpers import (create_action, add_actions,
-                                       mimedata2url, DialogManager)
+from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.environ import EnvDialog
+from spyderlib.utils.misc import get_error_match, remove_backslashes
+from spyderlib.utils.qthelpers import (add_actions, create_action,
+                                       DialogManager, mimedata2url)
 from spyderlib.widgets.internalshell import InternalShell
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.variableexplorer.collectionseditor import CollectionsEditor
 from spyderlib.plugins import SpyderPluginWidget
-from spyderlib.py3compat import to_text_string, getcwd
+from spyderlib.py3compat import getcwd, to_text_string
 
 
 class Console(SpyderPluginWidget):

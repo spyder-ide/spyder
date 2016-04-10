@@ -13,26 +13,27 @@
 Pandas DataFrame Editor Dialog
 """
 
-from spyderlib.qt import API
-from spyderlib.qt.QtCore import QAbstractTableModel, Qt, QModelIndex, Slot
-from spyderlib.qt.QtGui import (QDialog, QTableView, QColor, QGridLayout,
-                                QDialogButtonBox, QHBoxLayout, QPushButton,
-                                QCheckBox, QMessageBox, QInputDialog, QCursor,
-                                QLineEdit, QApplication, QMenu, QKeySequence)
-from spyderlib.qt.compat import to_qvariant, from_qvariant
-import spyderlib.utils.icon_manager as ima
-from spyderlib.utils.qthelpers import (qapplication, create_action,
-                                       add_actions, keybinding)
-
-from spyderlib.config.base import _
-from spyderlib.config.gui import get_font, new_shortcut
-from spyderlib.config.fonts import DEFAULT_SMALL_DELTA
-from spyderlib.py3compat import PY2, io, is_text_string, to_text_string
-from spyderlib.utils import encoding
-from spyderlib.widgets.variableexplorer.arrayeditor import get_idx_rect
-
+# Third party imports
 from pandas import DataFrame, Series
+from qtpy import API
+from qtpy.compat import from_qvariant, to_qvariant
+from qtpy.QtCore import QAbstractTableModel, QModelIndex, Qt, Slot
+from qtpy.QtGui import QColor, QCursor, QKeySequence
+from qtpy.QtWidgets import (QApplication, QCheckBox, QDialogButtonBox, QDialog,
+                            QGridLayout, QHBoxLayout, QInputDialog, QLineEdit,
+                            QMenu, QMessageBox, QPushButton, QTableView)
 import numpy as np
+
+# Local imports
+from spyderlib.config.base import _
+from spyderlib.config.fonts import DEFAULT_SMALL_DELTA
+from spyderlib.config.gui import get_font, new_shortcut
+from spyderlib.py3compat import io, is_text_string, PY2, to_text_string
+from spyderlib.utils import encoding
+from spyderlib.utils import icon_manager as ima
+from spyderlib.utils.qthelpers import (add_actions, create_action,
+                                       keybinding, qapplication)
+from spyderlib.widgets.variableexplorer.arrayeditor import get_idx_rect
 
 # Supported Numbers and complex numbers
 _sup_nr = (float, int, np.int64, np.int32)

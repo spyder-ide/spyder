@@ -4,21 +4,21 @@
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
+# Local imports
+import imp
 import os
 import os.path as osp
-import imp
 import sys
 import uuid
 
+# Third party imports
+from qtpy.QtCore import (QObject, QProcess, QProcessEnvironment,
+                         QSocketNotifier, QTimer, Signal)
+from qtpy.QtWidgets import QApplication
 import zmq
 
 # Local imports
 from spyderlib.config.base import debug_print, DEV, get_module_path
-from spyderlib.qt.QtGui import QApplication
-from spyderlib.qt.QtCore import (
-    QSocketNotifier, QProcess, Signal, QObject, QProcessEnvironment,
-    QTimer
-)
 
 
 # Heartbeat timer in milliseconds

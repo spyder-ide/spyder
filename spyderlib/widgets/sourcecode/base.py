@@ -11,28 +11,28 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
+# Standard library imports
 import os
 import re
 import sys
 
-from spyderlib.qt.QtGui import (QTextCursor, QColor, QFont, QApplication,
-                                QTextEdit, QTextCharFormat, QToolTip,
-                                QListWidget, QPlainTextEdit, QPalette,
-                                QMainWindow, QTextOption, QMouseEvent,
-                                QTextFormat, QClipboard, QAbstractItemView,
-                                QListWidgetItem)
-from spyderlib.qt.QtCore import Signal, Slot, Qt, QEventLoop, QEvent, QPoint
-from spyderlib.qt.compat import to_qvariant
-import spyderlib.utils.icon_manager as ima
-
+# Third party imports
+from qtpy.compat import to_qvariant
+from qtpy.QtCore import QEvent, QEventLoop, QPoint, Qt, Signal, Slot
+from qtpy.QtGui import (QClipboard, QColor, QFont, QMouseEvent, QPalette,
+                        QTextCharFormat, QTextFormat, QTextOption, QTextCursor)
+from qtpy.QtWidgets import (QAbstractItemView, QApplication, QListWidget,
+                            QListWidgetItem, QMainWindow, QPlainTextEdit,
+                            QTextEdit, QToolTip)
 
 # Local imports
-from spyderlib.config.main import CONF
 from spyderlib.config.gui import get_font
-from spyderlib.widgets.sourcecode.terminal import ANSIEscapeCodeHandler
-from spyderlib.widgets.mixins import BaseEditMixin
+from spyderlib.config.main import CONF
+from spyderlib.py3compat import PY3, str_lower, to_text_string
+from spyderlib.utils import icon_manager as ima
 from spyderlib.widgets.calltip import CallTipWidget
-from spyderlib.py3compat import to_text_string, str_lower, PY3
+from spyderlib.widgets.mixins import BaseEditMixin
+from spyderlib.widgets.sourcecode.terminal import ANSIEscapeCodeHandler
 
 
 def insert_text_to(cursor, text, fmt):

@@ -16,20 +16,18 @@ Licensed under the terms of the MIT License
 (see spyderlib/__init__.py for details)
 """
 
-from __future__ import print_function
-
-
-#==============================================================================
+# =============================================================================
 # Stdlib imports
-#==============================================================================
+# =============================================================================
+from __future__ import print_function
 import atexit
 import errno
 import os
 import os.path as osp
 import re
-import socket
 import shutil
 import signal
+import socket
 import subprocess
 import sys
 import threading
@@ -75,20 +73,19 @@ except ImportError:
 #==============================================================================
 # Qt imports
 #==============================================================================
-from spyderlib.qt import API, PYQT5
-from spyderlib.qt.QtGui import (QApplication, QMainWindow, QSplashScreen,
-                                QPixmap, QMessageBox, QMenu, QColor, QShortcut,
-                                QKeySequence, QDockWidget, QAction,
-                                QDesktopServices, QStyleFactory)
-from spyderlib.qt.QtCore import (Signal, QPoint, Qt, QSize, QByteArray, QUrl,
-                                 Slot, QTimer, QCoreApplication, QThread)
-from spyderlib.qt.compat import (from_qvariant, getopenfilename,
-                                 getsavefilename)
+from qtpy import API, PYQT5
+from qtpy.compat import from_qvariant, getopenfilename, getsavefilename
+from qtpy.QtCore import (QByteArray, QCoreApplication, QPoint, QSize, Qt,
+                         QThread, QTimer, QUrl, Signal, Slot)
+from qtpy.QtGui import QColor, QDesktopServices, QKeySequence, QPixmap
+from qtpy.QtWidgets import (QAction, QApplication, QDockWidget, QMainWindow,
+                            QMenu, QMessageBox, QShortcut, QSplashScreen,
+                            QStyleFactory)
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms
 # when PySide is selected by the QT_API environment variable and when PyQt4
 # is also installed (or any other Qt-based application prepending a directory
 # containing incompatible Qt DLLs versions in PATH):
-from spyderlib.qt import QtSvg  # analysis:ignore
+from qtpy import QtSvg  # analysis:ignore
 
 
 
@@ -117,7 +114,6 @@ QApplication.processEvents()
 #==============================================================================
 # Local utility imports
 #==============================================================================
-import spyderlib.utils.icon_manager as ima
 from spyderlib import __version__, __project_url__, __forum_url__, get_versions
 from spyderlib.config.base import (get_conf_path, get_module_data_path,
                                    get_module_source_path, STDERR, DEBUG,
@@ -129,14 +125,14 @@ from spyderlib.app.cli_options import get_options
 from spyderlib import dependencies
 from spyderlib.config.ipython import QTCONSOLE_INSTALLED
 from spyderlib.config.user import NoDefault
+from spyderlib.py3compat import (getcwd, is_text_string, to_text_string,
+                                 PY3, qbytearray_to_str, u, configparser as cp)
 from spyderlib.utils import encoding, programs
+from spyderlib.utils import icon_manager as ima
+from spyderlib.utils.introspection import module_completion
 from spyderlib.utils.iofuncs import load_session, save_session, reset_session
 from spyderlib.utils.programs import is_module_installed
-from spyderlib.utils.introspection import module_completion
 from spyderlib.utils.misc import select_port
-from spyderlib.py3compat import (PY3, to_text_string, is_text_string, getcwd,
-                                 u, qbytearray_to_str, configparser as cp)
-
 
 #==============================================================================
 # Local gui imports
@@ -2403,7 +2399,7 @@ class MainWindow(QMainWindow):
 
         url = QUrl("https://github.com/spyder-ide/spyder/issues/new")
         if PYQT5:
-            from spyderlib.qt.QtCore import QUrlQuery
+            from qtpy.QtCore import QUrlQuery
             query = QUrlQuery()
             query.addQueryItem("body", quote(issue_template))
             url.setQuery(query)
@@ -2956,7 +2952,7 @@ def initialize():
         def exec_():
             """Do nothing because the Qt mainloop is already running"""
             pass
-    from spyderlib.qt import QtGui
+    from qtpy import QtGui
     QtGui.QApplication = FakeQApplication
 
     #----Monkey patching rope

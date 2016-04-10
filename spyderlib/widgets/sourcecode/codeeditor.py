@@ -8,54 +8,56 @@
 Editor widget based on QtGui.QPlainTextEdit
 """
 
+# TODO: Try to separate this module from spyderlib to create a self
+#       consistent editor module (Qt source code and shell widgets library)
+
 # %% This line is for cell execution testing
 # pylint: disable=C0103
 # pylint: disable=R0903
 # pylint: disable=R0911
 # pylint: disable=R0201
 
+# Standard library imports
 from __future__ import division
-
-import sys
+from unicodedata import category
+import os.path as osp
 import re
 import sre_constants
-import os.path as osp
+import sys
 import time
-from unicodedata import category
 
-from spyderlib.qt import is_pyqt46
-from spyderlib.qt.QtGui import (QColor, QMenu, QApplication, QSplitter, QFont,
-                                QTextEdit, QTextFormat, QPainter, QTextCursor,
-                                QBrush, QTextDocument, QTextCharFormat,
-                                QPrinter, QToolTip, QCursor, QLabel,
-                                QInputDialog, QTextBlockUserData, QLineEdit,
-                                QKeySequence, QVBoxLayout, QHBoxLayout,
-                                QDialog, QIntValidator, QDialogButtonBox,
-                                QGridLayout, QPaintEvent, QMessageBox, QWidget,
-                                QTextOption)
-from spyderlib.qt.QtCore import (Qt, Signal, QTimer, QRect, QRegExp, QSize,
-                                 Slot)
-from spyderlib.qt.compat import to_qvariant
-import spyderlib.utils.icon_manager as ima
+# Third party imports
+from qtpy import is_pyqt46
+from qtpy.compat import to_qvariant
+from qtpy.QtCore import QRect, QRegExp, QSize, Qt, QTimer, Signal, Slot
+from qtpy.QtGui import (QBrush, QColor, QCursor, QFont, QIntValidator,
+                        QKeySequence, QPaintEvent, QPainter,
+                        QTextBlockUserData, QTextCharFormat, QTextCursor,
+                        QTextDocument, QTextFormat, QTextOption)
+from qtpy.QtPrintSupport import QPrinter
+from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
+                            QGridLayout, QHBoxLayout, QInputDialog, QLabel,
+                            QLineEdit, QMenu, QMessageBox, QSplitter,
+                            QTextEdit, QToolTip, QVBoxLayout, QWidget)
 
 # %% This line is for cell execution testing
-# Local import
-# TODO: Try to separate this module from spyderlib to create a self
-#       consistent editor module (Qt source code and shell widgets library)
+
+# Local imports
 from spyderlib.config.base import get_conf_path, _, DEBUG
+from spyderlib.config.gui import create_shortcut, get_shortcut, new_shortcut
 from spyderlib.config.main import CONF
-from spyderlib.config.gui import create_shortcut, new_shortcut, get_shortcut
+from spyderlib.py3compat import to_text_string
+from spyderlib.utils import icon_manager as ima
+from spyderlib.utils import syntaxhighlighters as sh
+from spyderlib.utils import encoding, sourcecode
+from spyderlib.utils.dochelpers import getobj
 from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
                                        mimedata2url)
-from spyderlib.utils.dochelpers import getobj
-from spyderlib.utils import encoding, sourcecode
 from spyderlib.utils.sourcecode import ALL_LANGUAGES, CELL_LANGUAGES
-from spyderlib.utils import syntaxhighlighters as sh
+from spyderlib.widgets.arraybuilder import SHORTCUT_INLINE, SHORTCUT_TABLE
 from spyderlib.widgets.editortools import PythonCFM
 from spyderlib.widgets.sourcecode.base import TextEditBaseWidget
 from spyderlib.widgets.sourcecode.kill_ring import QtKillRing
-from spyderlib.widgets.arraybuilder import SHORTCUT_INLINE, SHORTCUT_TABLE
-from spyderlib.py3compat import to_text_string
 
 try:
     import nbformat as nbformat

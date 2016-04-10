@@ -4,20 +4,22 @@
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
+# Standard library imports
 from __future__ import print_function
-
 from collections import OrderedDict
 import time
 
+# Third party imports
+from qtpy.QtCore import QObject, QTimer, Signal
+from qtpy.QtWidgets import QApplication
+
+# Local imports
 from spyderlib import dependencies
-from spyderlib.config.base import DEBUG, get_conf_path, _, debug_print
+from spyderlib.config.base import _, DEBUG, debug_print, get_conf_path
 from spyderlib.utils import sourcecode
-
-from spyderlib.qt.QtGui import QApplication
-from spyderlib.qt.QtCore import Signal, QObject, QTimer
-
-from spyderlib.utils.introspection.utils import CodeInfo
 from spyderlib.utils.introspection.plugin_client import PluginClient
+from spyderlib.utils.introspection.utils import CodeInfo
+
 
 PLUGINS = ['rope', 'jedi', 'fallback']
 

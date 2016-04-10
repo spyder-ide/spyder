@@ -13,33 +13,35 @@
 
 #FIXME: Internal shell MT: for i in range(100000): print i -> bug
 
-#----Builtins*
-from spyderlib.py3compat import builtins
-from spyderlib.widgets.variableexplorer.objecteditor import oedit
-builtins.oedit = oedit
-
+# Standard library imports
+from time import time
 import os
 import threading
-from time import time
 
-from spyderlib.qt.QtGui import QMessageBox
-from spyderlib.qt.QtCore import Signal, Slot, QObject, QEventLoop
+# Third party imports
+from qtpy.QtCore import QEventLoop, QObject, Signal, Slot
+from qtpy.QtWidgets import QMessageBox
 
-# Local import
+# Local imports
 from spyderlib import get_versions
-from spyderlib.utils.qthelpers import create_action
 from spyderlib.interpreter import Interpreter
-from spyderlib.utils.dochelpers import getargtxt, getsource, getdoc, getobjdir
-from spyderlib.utils.misc import get_error_match
+from spyderlib.py3compat import (builtins, getcwd, to_binary_string,
+                                 to_text_string, u)
+from spyderlib.utils import icon_manager as ima
 from spyderlib.utils import programs
-#TODO: remove the CONF object and make it work anyway
+from spyderlib.utils.dochelpers import getargtxt, getdoc, getobjdir, getsource
+from spyderlib.utils.misc import get_error_match
+from spyderlib.utils.qthelpers import create_action
+from spyderlib.widgets.shell import PythonShellWidget
+from spyderlib.widgets.variableexplorer.objecteditor import oedit
+# TODO: remove the CONF object and make it work anyway
 # In fact, this 'CONF' object has nothing to do in package spyderlib.widgets
 # which should not contain anything directly related to Spyder's main app
-from spyderlib.config.base import get_conf_path, _, DEBUG
+from spyderlib.config.base import _, DEBUG, get_conf_path
 from spyderlib.config.main import CONF
-from spyderlib.widgets.shell import PythonShellWidget
-from spyderlib.py3compat import to_text_string, getcwd, to_binary_string, u
-import spyderlib.utils.icon_manager as ima
+
+
+builtins.oedit = oedit
 
 
 def create_banner(message):

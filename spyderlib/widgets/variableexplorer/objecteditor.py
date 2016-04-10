@@ -8,9 +8,11 @@
 Generic object editor dialog
 """
 
+# Standard library imports
 from __future__ import print_function
 
-from spyderlib.qt.QtCore import QObject
+# Third party imports
+from qtpy.QtCore import QObject
 
 # Local imports
 from spyderlib.py3compat import is_text_string

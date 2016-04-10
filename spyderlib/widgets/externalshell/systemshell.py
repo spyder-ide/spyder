@@ -6,23 +6,26 @@
 
 """External System Shell widget: execute terminal in a separate process"""
 
+# Standard library imports
 import os
 import sys
 
-from spyderlib.qt.QtGui import QMessageBox
-from spyderlib.qt.QtCore import (QProcess, Signal, QTextCodec,
-                                 QProcessEnvironment)
-LOCALE_CODEC = QTextCodec.codecForLocale()
-CP850_CODEC = QTextCodec.codecForName('cp850')
+# Third party imports
+from qtpy.QtCore import QProcess, QProcessEnvironment, QTextCodec, Signal
+from qtpy.QtWidgets import QMessageBox
 
 # Local imports
-from spyderlib.utils.programs import shell_split
 from spyderlib.config.base import _
-from spyderlib.widgets.externalshell.baseshell import (ExternalShellBase,
-                                                   add_pathlist_to_PYTHONPATH)
+from spyderlib.py3compat import is_text_string, to_text_string
+from spyderlib.utils import icon_manager as ima
+from spyderlib.utils.programs import shell_split
+from spyderlib.widgets.externalshell.baseshell import (add_pathlist_to_PYTHONPATH,
+                                                       ExternalShellBase)
 from spyderlib.widgets.shell import TerminalWidget
-from spyderlib.py3compat import to_text_string, is_text_string
-import spyderlib.utils.icon_manager as ima
+
+
+LOCALE_CODEC = QTextCodec.codecForLocale()
+CP850_CODEC = QTextCodec.codecForName('cp850')
 
 
 class ExternalSystemShell(ExternalShellBase):
@@ -168,9 +171,8 @@ def test():
 
     app.aboutToQuit.connect(shell.finish_process)
 
-    from spyderlib.qt.QtGui import QFont
-    from spyderlib.config.main import CONF
-    font = QFont(CONF.get('console', 'font/family')[0])
+    from qtpy.QtGui import QFont
+    font = QFont()
     font.setPointSize(10)
     shell.shell.set_font(font)
 

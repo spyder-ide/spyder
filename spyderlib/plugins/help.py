@@ -6,36 +6,38 @@
 
 """Help Plugin"""
 
-from spyderlib.qt import PYQT5
-from spyderlib.qt.QtGui import (QHBoxLayout, QVBoxLayout, QLabel, QSizePolicy,
-                                QMenu, QToolButton, QGroupBox, QActionGroup,
-                                QWidget, QComboBox, QLineEdit, QMessageBox)
-from spyderlib.qt.QtCore import Signal, Slot, QUrl, QThread
-from spyderlib.qt.QtWebKit import QWebPage
-import spyderlib.utils.icon_manager as ima
-
+# Standard library imports
 import re
 import os.path as osp
 import socket
 import sys
 
+# Third party imports
+from qtpy import PYQT5
+from qtpy.QtCore import QThread, QUrl, Signal, Slot
+from qtpy.QtWidgets import (QActionGroup, QComboBox, QGroupBox, QHBoxLayout,
+                            QLabel, QLineEdit, QMenu, QMessageBox, QSizePolicy,
+                            QToolButton, QVBoxLayout, QWidget)
+from qtpy.QtWebEngineWidgets import QWebEnginePage
+
 # Local imports
 from spyderlib import dependencies
-from spyderlib.config.base import get_conf_path, get_module_source_path, _
-from spyderlib.config.ipython import QTCONSOLE_INSTALLED
+from spyderlib.config.base import _, get_conf_path, get_module_source_path
 from spyderlib.config.fonts import DEFAULT_SMALL_DELTA
+from spyderlib.config.ipython import QTCONSOLE_INSTALLED
+from spyderlib.plugins import PluginConfigPage, SpyderPluginWidget
+from spyderlib.py3compat import get_meth_class_inst, to_text_string
+from spyderlib.utils import icon_manager as ima
 from spyderlib.utils import programs
-from spyderlib.utils.help.sphinxify import (CSS_PATH, sphinxify, warning,
-                                            generate_context, usage)
-from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
-                                       create_action)
-from spyderlib.widgets.comboboxes import EditableComboBox
-from spyderlib.widgets.sourcecode import codeeditor
-from spyderlib.widgets.findreplace import FindReplace
+from spyderlib.utils.help.sphinxify import (CSS_PATH, generate_context,
+                                            sphinxify, usage, warning)
+from spyderlib.utils.qthelpers import (add_actions, create_action,
+                                       create_toolbutton)
 from spyderlib.widgets.browser import FrameWebView
+from spyderlib.widgets.comboboxes import EditableComboBox
 from spyderlib.widgets.externalshell.pythonshell import ExtPythonShellWidget
-from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
-from spyderlib.py3compat import to_text_string, get_meth_class_inst
+from spyderlib.widgets.findreplace import FindReplace
+from spyderlib.widgets.sourcecode import codeeditor
 
 
 # Sphinx dependency
@@ -475,7 +477,7 @@ class Help(SpyderPluginWidget):
 
         # Render internal links
         view = self.rich_text.webview
-        view.page().setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
+        view.page().setLinkDelegationPolicy(QWebEnginePage.DelegateAllLinks)
         view.linkClicked.connect(self.handle_link_clicks)
 
         self._starting_up = True

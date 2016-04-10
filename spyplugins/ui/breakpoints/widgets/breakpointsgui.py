@@ -12,20 +12,22 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-from spyderlib.qt import API
-from spyderlib.qt.QtGui import (QWidget, QTableView, QItemDelegate,
-                                QVBoxLayout, QMenu)
-from spyderlib.qt.QtCore import (Qt, Signal, QTextCodec, QModelIndex,
-                                 QAbstractTableModel)
-locale_codec = QTextCodec.codecForLocale()
-from spyderlib.qt.compat import to_qvariant
-import sys
+# Standard library imports
 import os.path as osp
+import sys
+
+# Third party imports
+from qtpy import API
+from qtpy.compat import to_qvariant
+from qtpy.QtCore import (QAbstractTableModel, QModelIndex, QTextCodec, Qt,
+                         Signal)
+from qtpy.QtWidgets import (QItemDelegate, QMenu, QTableView, QVBoxLayout,
+                            QWidget)
 
 # Local imports
 from spyderlib.config.base import get_translation
 from spyderlib.config.main import CONF
-from spyderlib.utils.qthelpers import create_action, add_actions
+from spyderlib.utils.qthelpers import add_actions, create_action
 
 # This is needed for testing this module as a stand alone script
 try:
@@ -33,6 +35,9 @@ try:
 except KeyError as error:
     import gettext
     _ = gettext.gettext
+
+
+locale_codec = QTextCodec.codecForLocale()
 
 
 class BreakpointTableModel(QAbstractTableModel):

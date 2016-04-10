@@ -12,8 +12,8 @@
 import os.path as osp
 
 # Third party imports
-from spyderlib.qt.QtCore import Signal, Qt
-from spyderlib.qt.QtGui import QVBoxLayout, QGroupBox, QLabel
+from qtpy.QtCore import Qt, Signal
+from qtpy.QtWidgets import QGroupBox, QLabel, QVBoxLayout
 
 # Local imports
 from spyderlib.config.base import get_translation

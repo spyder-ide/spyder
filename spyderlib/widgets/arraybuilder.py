@@ -13,15 +13,17 @@ Numpy Matrix/Array Builder Widget
 # -Fix positioning
 # -Use the same font as editor/console?
 
+# Standard library imports
 from __future__ import division
-
 import re
 
-from spyderlib.qt.QtCore import (QEvent, QPoint, Qt)
-from spyderlib.qt.QtGui import (QDialog, QHBoxLayout, QLineEdit, QTableWidget,
-                                QTableWidgetItem, QToolButton, QToolTip,
-                                QWidget)
+# Third party imports
+from qtpy.QtCore import QEvent, QPoint, Qt
+from qtpy.QtWidgets import (QDialog, QHBoxLayout, QLineEdit, QTableWidget,
+                            QTableWidgetItem, QToolButton, QToolTip,
+                            QWidget)
 
+# Local imports
 from spyderlib.config.base import _
 from spyderlib.utils import icon_manager as ima
 from spyderlib.widgets.helperwidgets import HelperToolButton

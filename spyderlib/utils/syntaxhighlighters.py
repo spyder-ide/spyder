@@ -9,16 +9,17 @@ Editor widget syntax highlighters based on QtGui.QSyntaxHighlighter
 (Python syntax highlighting rules are inspired from idlelib)
 """
 
+# Standard library imports
 from __future__ import print_function
-
+import keyword
 import os
 import re
-import keyword
 
-from spyderlib.qt.QtGui import (QColor, QApplication, QFont,
-                                QSyntaxHighlighter, QCursor, QTextCharFormat,
-                                QTextOption)
-from spyderlib.qt.QtCore import Qt
+# Third party imports
+from qtpy.QtCore import Qt
+from qtpy.QtGui import (QColor, QCursor, QFont, QSyntaxHighlighter,
+                        QTextCharFormat, QTextOption)
+from qtpy.QtWidgets import QApplication
 
 # Local imports
 from spyderlib import dependencies
@@ -29,8 +30,8 @@ from spyderlib.utils.sourcecode import CELL_LANGUAGES
 
 
 PYGMENTS_REQVER = '>=1.6'
-dependencies.add("pygments", _("Syntax highlighting for Matlab, Julia and other "
-                               "file types"),
+dependencies.add("pygments", _("Syntax highlighting for Matlab, Julia and "
+                               "other file types"),
                  required_version=PYGMENTS_REQVER)
 
 

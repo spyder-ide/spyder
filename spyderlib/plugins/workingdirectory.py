@@ -11,25 +11,25 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-from spyderlib.qt import PYQT5
-from spyderlib.qt.QtGui import (QToolBar, QLabel, QGroupBox, QVBoxLayout,
-                                QHBoxLayout, QButtonGroup)
-from spyderlib.qt.QtCore import Signal, Slot, QSize
-from spyderlib.qt.compat import getexistingdirectory
-import spyderlib.utils.icon_manager as ima
-
+# Standard library imports
 import os
 import os.path as osp
 
-# Local imports
-from spyderlib.utils import encoding
-from spyderlib.config.base import get_conf_path, get_home_dir, _
-from spyderlib.utils.qthelpers import create_action
+# Third party imports
+from qtpy import PYQT5
+from qtpy.compat import getexistingdirectory
+from qtpy.QtCore import QSize, Signal, Slot
+from qtpy.QtWidgets import (QButtonGroup, QGroupBox, QHBoxLayout, QLabel,
+                            QToolBar, QVBoxLayout)
 
-# Package local imports
-from spyderlib.widgets.comboboxes import PathComboBox
-from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage
+# Local imports
+from spyderlib.config.base import _, get_conf_path, get_home_dir
+from spyderlib.plugins import PluginConfigPage, SpyderPluginMixin
 from spyderlib.py3compat import to_text_string, getcwd
+from spyderlib.utils import encoding
+from spyderlib.utils import icon_manager as ima
+from spyderlib.utils.qthelpers import create_action
+from spyderlib.widgets.comboboxes import PathComboBox
 
 
 class WorkingDirectoryConfigPage(PluginConfigPage):

@@ -11,32 +11,33 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-from __future__ import with_statement, print_function
-
-from spyderlib.qt.QtGui import (QHBoxLayout, QWidget, QTreeWidgetItem,
-                                QMessageBox, QVBoxLayout, QLabel)
-from spyderlib.qt.QtCore import Signal, Slot, QProcess, QByteArray, QTextCodec
-locale_codec = QTextCodec.codecForLocale()
-from spyderlib.qt.compat import getopenfilename
-import spyderlib.utils.icon_manager as ima
-
-import sys
+# Standard library imports
+from __future__ import print_function, with_statement
 import os
 import os.path as osp
-import time
 import re
+import sys
+import time
+
+# Third party imports
+from qtpy.compat import getopenfilename
+from qtpy.QtCore import QByteArray, QProcess, QTextCodec, Signal, Slot
+from qtpy.QtWidgets import (QHBoxLayout, QLabel, QMessageBox, QTreeWidgetItem,
+                            QVBoxLayout, QWidget)
 
 # Local imports
 from spyderlib import dependencies
+from spyderlib.config.base import get_conf_path, get_translation
+from spyderlib.py3compat import getcwd, pickle, PY3, to_text_string
+from spyderlib.utils import icon_manager as ima
 from spyderlib.utils import programs
 from spyderlib.utils.encoding import to_unicode_from_fs
 from spyderlib.utils.qthelpers import create_toolbutton
-from spyderlib.config.base import get_conf_path, get_translation
+from spyderlib.widgets.comboboxes import (is_module_or_package,
+                                          PythonModulesComboBox)
 from spyderlib.widgets.onecolumntree import OneColumnTree
 from spyderlib.widgets.variableexplorer.texteditor import TextEditor
-from spyderlib.widgets.comboboxes import (PythonModulesComboBox,
-                                          is_module_or_package)
-from spyderlib.py3compat import PY3, to_text_string, getcwd, pickle
+
 
 # This is needed for testing this module as a stand alone script
 try:
@@ -53,6 +54,8 @@ if PY3:
     elif programs.find_program('python3-pylint'):
         PYLINT = 'python3-pylint'
 
+
+locale_codec = QTextCodec.codecForLocale()
 PYLINT_PATH = programs.find_program(PYLINT)
 
 
