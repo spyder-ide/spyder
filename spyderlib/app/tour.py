@@ -11,22 +11,23 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
+# Standard library imports
 from __future__ import division
-
 import sys
 
-from spyderlib.qt.QtGui import (QColor, QLayout, QMenu, QApplication,
-                                QPainter, QIcon, QBrush, QToolButton,
-                                QPixmap, QLabel, QWidget, QVBoxLayout,
-                                QHBoxLayout, QDialog, QMainWindow, QAction,
-                                QPushButton, QPainterPath, QSpacerItem, QPen,
-                                QGraphicsOpacityEffect, QRegion, QComboBox)
-from spyderlib.qt.QtCore import (Qt, Signal, QPoint, QRectF,
-                                 QPropertyAnimation, QEasingCurve)
+# Third party imports
+from qtpy.QtCore import (QEasingCurve, QPoint, QPropertyAnimation, QRectF, Qt,
+                         Signal)
+from qtpy.QtGui import (QBrush, QColor, QIcon, QPainter, QPainterPath, QPen,
+                        QPixmap, QRegion)
+from qtpy.QtWidgets import (QAction, QApplication, QComboBox, QDialog,
+                            QGraphicsOpacityEffect, QHBoxLayout, QLabel,
+                            QLayout, QMainWindow, QMenu, QPushButton,
+                            QSpacerItem, QToolButton, QVBoxLayout, QWidget)
 
-# Local import
+# Local imports
 from spyderlib.config.base import _, get_image_path
-from spyderlib.utils.qthelpers import (create_action, add_actions)
+from spyderlib.utils.qthelpers import add_actions, create_action
 
 # FIXME: Known issues
 # How to handle if an specific dockwidget does not exists/load, like ipython
