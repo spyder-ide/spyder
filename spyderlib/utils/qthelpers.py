@@ -6,25 +6,27 @@
 
 """Qt utilities"""
 
-from spyderlib.qt.QtGui import (QAction, QStyle, QWidget, QApplication,
-                                QLabel, QVBoxLayout, QHBoxLayout, QLineEdit,
-                                QKeyEvent, QMenu, QKeySequence, QToolButton,
-                                QPixmap)
-from spyderlib.qt.QtCore import (Signal, QObject, Qt, QLocale, QTranslator,
-                                 QLibraryInfo, QEvent, Slot, QTimer)
-from spyderlib.qt.compat import to_qvariant, from_qvariant
-import spyderlib.utils.icon_manager as ima
-from spyderlib.utils.icon_manager import get_icon, get_std_icon
-
+# Standard library imports
 import os
-import re
 import os.path as osp
+import re
 import sys
 
-# Local import
+# Third party imports
+from qtpy.compat import to_qvariant, from_qvariant
+from qtpy.QtCore import (QEvent, QLibraryInfo, QLocale, QObject, Qt, QTimer,
+                         QTranslator, Signal, Slot)
+from qtpy.QtGui import QKeyEvent, QKeySequence, QPixmap
+from qtpy.QtWidgets import (QAction, QApplication, QHBoxLayout, QLabel,
+                            QLineEdit, QMenu, QStyle, QToolButton, QVBoxLayout,
+                            QWidget)
+
+# Local imports
 from spyderlib.config.base import get_image_path, running_in_mac_app
 from spyderlib.config.gui import get_shortcut
 from spyderlib.utils import programs
+from spyderlib.utils import icon_manager as ima
+from spyderlib.utils.icon_manager import get_icon, get_std_icon
 from spyderlib.py3compat import is_text_string, to_text_string
 
 # Note: How to redirect a signal from widget *a* to widget *b* ?
