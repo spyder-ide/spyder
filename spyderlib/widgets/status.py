@@ -6,16 +6,18 @@
 
 """Status bar widgets"""
 
+# Standard library imports
 import os
 
-from spyderlib.qt.QtGui import QWidget, QHBoxLayout, QLabel
-from spyderlib.qt.QtCore import QTimer
+# Third party imports
+from qtpy.QtCore import QTimer
+from qtpy.QtWidgets import QHBoxLayout, QLabel, QWidget
 
-# Local import
+# Local imports
+from spyderlib import dependencies
 from spyderlib.config.base import _
 from spyderlib.config.gui import get_font
 from spyderlib.py3compat import to_text_string
-from spyderlib import dependencies
 
 
 if not os.name == 'nt':
