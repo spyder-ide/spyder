@@ -1473,18 +1473,21 @@ def remote_editor_test():
     from pprint import pprint
 
     from spyderlib.utils.qthelpers import qapplication
+    app = qapplication()
+
     from spyderlib.plugins.variableexplorer import VariableExplorer
     from spyderlib.widgets.externalshell.monitor import make_remote_view
 
-    app = qapplication()
     remote = make_remote_view(get_test_data(), VariableExplorer.get_settings())
     pprint(remote)
     dialog = CollectionsEditor()
     dialog.setup(remote, remote=True)
     dialog.show()
-    app.exec_()
+
     if dialog.result():
         print(dialog.get_value())
+
+    app.exec_()
 
 
 if __name__ == "__main__":
