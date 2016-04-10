@@ -8,14 +8,17 @@
 Environment variable utilities
 """
 
+# Standard library imports
 import os
 
-from spyderlib.qt.QtGui import QDialog, QMessageBox
-import spyderlib.utils.icon_manager as ima
+# Third party imports
+from qtpy.QtWidgets import QDialog, QMessageBox
 
 # Local imports
 from spyderlib.config.base import _
+from spyderlib.utils import icon_manager as ima
 from spyderlib.widgets.variableexplorer.collectionseditor import CollectionsEditor
+
 
 def envdict2listdict(envdict):
     """Dict --> Dict of lists"""
