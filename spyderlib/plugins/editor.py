@@ -1773,7 +1773,8 @@ class Editor(SpyderPluginWidget):
     @Slot()
     def print_preview(self):
         """Print preview for current file"""
-        from spyderlib.qt.QtGui import QPrintPreviewDialog
+        from qtpy.QtPrintSupport import QPrintPreviewDialog
+
         editor = self.get_current_editor()
         printer = Printer(mode=QPrinter.HighResolution,
                           header_font=self.get_plugin_font('printer_header'))
