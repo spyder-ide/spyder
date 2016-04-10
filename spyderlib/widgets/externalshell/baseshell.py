@@ -9,23 +9,26 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
+# Standard library imports
+from time import time, strftime, gmtime
 import os
 import os.path as osp
-from time import time, strftime, gmtime
 
-from spyderlib.qt.QtGui import (QWidget, QVBoxLayout, QHBoxLayout, QMenu,
-                                QLabel, QInputDialog, QLineEdit, QToolButton)
-from spyderlib.qt.QtCore import (QProcess, Signal, QByteArray, QTimer, Qt,
-                                 QTextCodec, Slot)
-import spyderlib.utils.icon_manager as ima
-
-LOCALE_CODEC = QTextCodec.codecForLocale()
+# Third party imports
+from qtpy.QtCore import (QByteArray, QProcess, Qt, QTextCodec, QTimer,
+                         Signal, Slot)
+from qtpy.QtWidgets import (QHBoxLayout, QInputDialog, QLabel, QLineEdit,
+                            QMenu, QToolButton, QVBoxLayout, QWidget)
 
 # Local imports
-from spyderlib.utils.qthelpers import (create_toolbutton, create_action, 
-                                       add_actions)
-from spyderlib.config.base import get_conf_path, _
+from spyderlib.config.base import _, get_conf_path
 from spyderlib.py3compat import is_text_string, to_text_string
+from spyderlib.utils import icon_manager as ima
+from spyderlib.utils.qthelpers import (add_actions, create_action,
+                                       create_toolbutton)
+
+
+LOCALE_CODEC = QTextCodec.codecForLocale()
 
 
 def add_pathlist_to_PYTHONPATH(env, pathlist, drop_env=False):
