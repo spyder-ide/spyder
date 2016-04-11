@@ -1,0 +1,159 @@
+# -*- coding: utf-8 -*-
+# Spyder's brazilian portuguese translation file
+# Valter Nazianzeno <manipuladordedados@gmail.com>, 2014.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2015-08-29 22:49+COT\n"
+"PO-Revision-Date: 2015-02-25 22:08-0400\n"
+"Last-Translator: Valter Nazianzeno <manipuladordedados@gmail.com>\n"
+"Language-Team: \n"
+"Language: pt_BR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+"X-Generator: Poedit 1.7.4\n"
+
+#: spyplugins/ui/pylint/pylint.py:29
+msgid "Settings"
+msgstr "Configurações"
+
+#: spyplugins/ui/pylint/pylint.py:30
+msgid "Save file before analyzing it"
+msgstr "Salvar arquivo antes de analisá-lo"
+
+#: spyplugins/ui/pylint/pylint.py:33 spyplugins/ui/pylint/pylint.py:152
+msgid "History"
+msgstr "Histórico"
+
+#: spyplugins/ui/pylint/pylint.py:34
+msgid "The following option will be applied at next startup."
+msgstr ""
+"A seguinte opção será aplicada na próxima vez que o Spyder for iniciado."
+
+#: spyplugins/ui/pylint/pylint.py:37
+msgid "History: "
+msgstr "Histórico:"
+
+#: spyplugins/ui/pylint/pylint.py:38
+msgid " results"
+msgstr " resultados"
+
+#: spyplugins/ui/pylint/pylint.py:41
+msgid "Results"
+msgstr "Resultados"
+
+#: spyplugins/ui/pylint/pylint.py:42
+msgid "Results are stored here:"
+msgstr "Os resultados são armazenados aqui:"
+
+#: spyplugins/ui/pylint/pylint.py:92
+#: spyplugins/ui/pylint/widgets/pylintgui.py:73
+msgid "Static code analysis"
+msgstr "Análise de código"
+
+#: spyplugins/ui/pylint/pylint.py:108
+msgid "History..."
+msgstr "Histórico..."
+
+#: spyplugins/ui/pylint/pylint.py:110
+msgid "Set history maximum entries"
+msgstr "Definir número máximo de entradas para o histórico"
+
+#: spyplugins/ui/pylint/pylint.py:126
+msgid "Run static code analysis"
+msgstr "Executar análise de código"
+
+#: spyplugins/ui/pylint/pylint.py:153
+msgid "Maximum entries"
+msgstr "Número máximo de entradas"
+
+#: spyplugins/ui/pylint/widgets/pylintgui.py:107
+msgid "Results for "
+msgstr "Resultados para "
+
+#: spyplugins/ui/pylint/widgets/pylintgui.py:112
+msgid "Convention"
+msgstr "Convention"
+
+#: spyplugins/ui/pylint/widgets/pylintgui.py:114
+msgid "Refactor"
+msgstr "Refatoração"
+
+#: spyplugins/ui/pylint/widgets/pylintgui.py:116
+msgid "Warning"
+msgstr "Aviso"
+
+#: spyplugins/ui/pylint/widgets/pylintgui.py:118
+#: spyplugins/ui/pylint/widgets/pylintgui.py:350
+#: spyplugins/ui/pylint/widgets/pylintgui.py:378
+msgid "Error"
+msgstr "Erro"
+
+#: spyplugins/ui/pylint/widgets/pylintgui.py:196
+msgid "Analyze"
+msgstr "Analisar"
+
+#: spyplugins/ui/pylint/widgets/pylintgui.py:197
+msgid "Run analysis"
+msgstr "Executar análise"
+
+#: spyplugins/ui/pylint/widgets/pylintgui.py:201
+msgid "Stop"
+msgstr "Parar"
+
+#: spyplugins/ui/pylint/widgets/pylintgui.py:202
+msgid "Stop current analysis"
+msgstr "Parar análise atual"
+
+#: spyplugins/ui/pylint/widgets/pylintgui.py:208
+#: spyplugins/ui/pylint/widgets/pylintgui.py:277
+msgid "Select Python file"
+msgstr "Selecionar arquivo Python"
+
+#: spyplugins/ui/pylint/widgets/pylintgui.py:214
+msgid "Output"
+msgstr "Saída"
+
+#: spyplugins/ui/pylint/widgets/pylintgui.py:216
+msgid "Complete output"
+msgstr "Saída completa"
+
+#: spyplugins/ui/pylint/widgets/pylintgui.py:250
+msgid "Pylint script was not found. Please add \"%s\" to PATH."
+msgstr ""
+"O script do Pylint não foi encontrada. Por favor adicione \"%s\" ao PATH."
+
+#: spyplugins/ui/pylint/widgets/pylintgui.py:253
+msgid "Please install <b>pylint</b>:"
+msgstr "Por favor instale o <b>pylint</b>:"
+
+#: spyplugins/ui/pylint/widgets/pylintgui.py:278
+msgid "Python files"
+msgstr "Arquivos Python"
+
+#: spyplugins/ui/pylint/widgets/pylintgui.py:314
+msgid "Pylint output"
+msgstr "Saída do Pylint"
+
+#: spyplugins/ui/pylint/widgets/pylintgui.py:351
+msgid "Process failed to start"
+msgstr "O processo falhou ao iniciar"
+
+#: spyplugins/ui/pylint/widgets/pylintgui.py:452
+msgid "Source code has not been rated yet."
+msgstr "O código fonte não foi avaliado ainda."
+
+#: spyplugins/ui/pylint/widgets/pylintgui.py:458
+msgid "Analysis did not succeed (see output for more details)."
+msgstr "A análise não foi bem sucedida (veja a saída para mais detalhes)."
+
+#: spyplugins/ui/pylint/widgets/pylintgui.py:471
+msgid "Global evaluation:"
+msgstr "Avaliação global:"
+
+#: spyplugins/ui/pylint/widgets/pylintgui.py:475
+msgid "previous run:"
+msgstr "análise anterior:"

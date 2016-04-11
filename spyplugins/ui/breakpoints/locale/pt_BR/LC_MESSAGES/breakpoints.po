@@ -1,0 +1,49 @@
+# -*- coding: utf-8 -*-
+# Spyder's brazilian portuguese translation file
+# Valter Nazianzeno <manipuladordedados@gmail.com>, 2014.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2015-08-29 22:49+COT\n"
+"PO-Revision-Date: 2015-02-25 22:08-0400\n"
+"Last-Translator: Valter Nazianzeno <manipuladordedados@gmail.com>\n"
+"Language-Team: \n"
+"Language: pt_BR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+"X-Generator: Poedit 1.7.4\n"
+
+#: spyplugins/ui/breakpoints/breakpoints.py:41
+msgid "Breakpoints"
+msgstr "Pontos de interrupção"
+
+#: spyplugins/ui/breakpoints/breakpoints.py:75
+msgid "List breakpoints"
+msgstr "Listar pontos de interrupção"
+
+#: spyplugins/ui/breakpoints/widgets/breakpointsgui.py:87
+msgid "Condition"
+msgstr "Condição"
+
+#: spyplugins/ui/breakpoints/widgets/breakpointsgui.py:87
+msgid "File"
+msgstr "Arquivo"
+
+#: spyplugins/ui/breakpoints/widgets/breakpointsgui.py:87
+msgid "Line"
+msgstr "Linha"
+
+#: spyplugins/ui/breakpoints/widgets/breakpointsgui.py:170
+msgid "Clear breakpoints in all files"
+msgstr "Limpar pontos de interrupção em todos os arquivos"
+
+#: spyplugins/ui/breakpoints/widgets/breakpointsgui.py:177
+msgid "Clear this breakpoint"
+msgstr "Limpar este ponto"
+
+#: spyplugins/ui/breakpoints/widgets/breakpointsgui.py:183
+msgid "Edit this breakpoint"
+msgstr "Editar este ponto"

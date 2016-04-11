@@ -1,0 +1,37 @@
+package:
+  name: spyder
+  version: {{ environ.get('GIT_DESCRIBE_TAG', '').replace('v', '') }}
+
+build:
+  osx_is_app: True
+
+source:
+  git_url: ../
+  git_tag: {{ environ.get('GIT_DESCRIBE_TAG') }}
+
+requirements:
+  build:
+    - python
+    - sphinx
+  run:
+    - python
+    - pyqt
+    - rope
+    - pyflakes
+    - jedi
+    - qtconsole
+    - nbconvert
+    - pygments
+    - sphinx
+    - pep8
+    - psutil
+    - pylint
+    - qtawesome
+    - qtpy
+    - pyzmq
+    - python.app             [osx]
+
+about:
+  home: https://github.com/spyder-ide/spyder
+  license: MIT
+  summary: Scientific PYthon Development EnviRonment

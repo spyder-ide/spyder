@@ -6,23 +6,24 @@
 
 """Run configurations related dialogs and widgets and data models"""
 
-from spyderlib.qt.QtGui import (QVBoxLayout, QDialog, QWidget, QGroupBox,
-                                QLabel, QPushButton, QCheckBox, QLineEdit,
-                                QComboBox, QHBoxLayout, QDialogButtonBox,
-                                QStackedWidget, QGridLayout, QSizePolicy,
-                                QRadioButton, QMessageBox, QFrame,
-                                QButtonGroup)
-from spyderlib.qt.QtCore import Signal, Slot, Qt, QSize
-from spyderlib.qt.compat import getexistingdirectory
-import spyderlib.utils.icon_manager as ima
-
+# Standard library imports
 import os.path as osp
+
+# Third party imports
+from qtpy.compat import getexistingdirectory
+from qtpy.QtCore import QSize, Qt, Signal, Slot
+from qtpy.QtWidgets import (QButtonGroup, QCheckBox, QComboBox, QDialog,
+                            QDialogButtonBox, QFrame, QGridLayout, QGroupBox,
+                            QHBoxLayout, QLabel, QLineEdit, QMessageBox,
+                            QPushButton, QRadioButton, QSizePolicy,
+                            QStackedWidget, QVBoxLayout, QWidget)
 
 # Local imports
 from spyderlib.config.base import _
 from spyderlib.config.main import CONF
 from spyderlib.plugins.configdialog import GeneralConfigPage
-from spyderlib.py3compat import to_text_string, getcwd
+from spyderlib.py3compat import getcwd, to_text_string
+from spyderlib.utils import icon_manager as ima
 
 
 CURRENT_INTERPRETER = _("Execute in current Python or IPython console")

@@ -6,16 +6,17 @@
 
 """Project Explorer Plugin"""
 
-from spyderlib.qt.QtGui import QFontDialog
-from spyderlib.qt.QtCore import Signal, Slot
-import spyderlib.utils.icon_manager as ima
+# Third party imports
+from qtpy.QtCore import Signal, Slot
+from qtpy.QtWidgets import QFontDialog
 
 # Local imports
 from spyderlib.config.base import _
-from spyderlib.utils.qthelpers import create_action
-from spyderlib.widgets.projectexplorer import ProjectExplorerWidget
 from spyderlib.plugins import SpyderPluginMixin
 from spyderlib.py3compat import is_text_string
+from spyderlib.utils import icon_manager as ima
+from spyderlib.utils.qthelpers import create_action
+from spyderlib.widgets.projectexplorer import ProjectExplorerWidget
 
 
 class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):

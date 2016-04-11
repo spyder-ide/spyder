@@ -6,15 +6,17 @@
 
 """Online Help Plugin"""
 
-from spyderlib.qt.QtCore import Signal
-
+# Standard library imports
 import os.path as osp
 
+# Third party imports
+from qtpy.QtCore import Signal
+
 # Local imports
-from spyderlib.config.base import get_conf_path, _
-from spyderlib.widgets.pydocgui import PydocBrowser
+from spyderlib.config.base import _, get_conf_path
 from spyderlib.plugins import SpyderPluginMixin
 from spyderlib.py3compat import to_text_string
+from spyderlib.widgets.pydocgui import PydocBrowser
 
 
 class OnlineHelp(PydocBrowser, SpyderPluginMixin):

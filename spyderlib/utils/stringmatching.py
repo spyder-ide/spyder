@@ -21,7 +21,7 @@ def get_search_regex(query, ignore_case=True):
     Parameters
     ----------
     query : str
-        String to search in another string (in order of character occurence).
+        String to search in another string (in order of character occurrence).
     ignore_case : True
         Optional value perform a case insensitive search (True by default).
 
@@ -238,7 +238,7 @@ def test():
              'preferences', 'quit', 'restart', 'save current layout',
              'switch to breakpoints', 'switch to console', 'switch to editor',
              'switch to explorer', 'switch to find_in_files',
-             'switch to historylog', 'switch to inspector',
+             'switch to historylog', 'switch to help',
              'switch to ipython_console', 'switch to onlinehelp',
              'switch to outline_explorer', 'switch to project_explorer',
              'switch to variable_explorer', 'toggle default layout',

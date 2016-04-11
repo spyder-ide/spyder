@@ -1,32 +1,34 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
 """Simple web browser widget"""
 
+# Standard library imports
 import sys
 
-from spyderlib.qt.QtCore import QUrl, Slot, Signal
-from spyderlib.qt.QtGui import (QHBoxLayout, QWidget, QVBoxLayout,
-                                QProgressBar, QLabel, QMenu, QFrame)
-from spyderlib.qt.QtWebKit import QWebView, QWebPage, QWebSettings
+# Third party imports
+from qtpy.QtCore import QUrl, Signal, Slot
+from qtpy.QtWidgets import (QFrame, QHBoxLayout, QLabel, QProgressBar, QMenu,
+                            QVBoxLayout, QWidget)
+from qtpy.QtWebEngineWidgets import QWebEnginePage, QWebEngineSettings, QWebEngineView
 
 # Local imports
-from spyderlib.config.base import DEV, _
-from spyderlib.utils.qthelpers import (create_action, add_actions,
-                                       create_toolbutton, action2button)
+from spyderlib.config.base import _, DEV
+from spyderlib.py3compat import is_text_string, to_text_string
+from spyderlib.utils.qthelpers import (action2button, add_actions,
+                                       create_action, create_toolbutton)
 from spyderlib.utils import icon_manager as ima
 from spyderlib.widgets.comboboxes import UrlComboBox
 from spyderlib.widgets.findreplace import FindReplace
-from spyderlib.py3compat import to_text_string, is_text_string
 
 
-class WebView(QWebView):
+class WebView(QWebEngineView):
     """Web page"""
     def __init__(self, parent):
-        QWebView.__init__(self, parent)
+        QWebEngineView.__init__(self, parent)
         self.zoom_factor = 1.
         self.zoom_out_action = create_action(self, _("Zoom out"),
                                              icon=ima.icon('zoom_out'),
@@ -39,11 +41,11 @@ class WebView(QWebView):
                   forward=True, case=False, words=False,
                   regexp=False):
         """Find text"""
-        findflag = QWebPage.FindWrapsAroundDocument
+        findflag = QWebEnginePage.FindWrapsAroundDocument
         if not forward:
-            findflag = findflag | QWebPage.FindBackward
+            findflag = findflag | QWebEnginePage.FindBackward
         if case:
-            findflag = findflag | QWebPage.FindCaseSensitively
+            findflag = findflag | QWebEnginePage.FindCaseSensitively
         return self.findText(text, findflag)
     
     def get_selected_text(self):
@@ -92,22 +94,22 @@ class WebView(QWebView):
         self.zoom_factor += .1
         self.apply_zoom_factor()
     
-    #------ QWebView API -------------------------------------------------------
+    #------ QWebEngineView API -------------------------------------------------------
     def createWindow(self, webwindowtype):
         import webbrowser
         webbrowser.open(to_text_string(self.url().toString()))
         
     def contextMenuEvent(self, event):
         menu = QMenu(self)
-        actions = [self.pageAction(QWebPage.Back),
-                   self.pageAction(QWebPage.Forward), None,
-                   self.pageAction(QWebPage.SelectAll),
-                   self.pageAction(QWebPage.Copy), None,
+        actions = [self.pageAction(QWebEnginePage.Back),
+                   self.pageAction(QWebEnginePage.Forward), None,
+                   self.pageAction(QWebEnginePage.SelectAll),
+                   self.pageAction(QWebEnginePage.Copy), None,
                    self.zoom_in_action, self.zoom_out_action]
         if DEV:
             settings = self.page().settings()
-            settings.setAttribute(QWebSettings.DeveloperExtrasEnabled, True)
-            actions += [None, self.pageAction(QWebPage.InspectElement)]
+            settings.setAttribute(QWebEngineSettings.DeveloperExtrasEnabled, True)
+            actions += [None, self.pageAction(QWebEnginePage.InspectElement)]
         add_actions(menu, actions)
         menu.popup(event.globalPos())
         event.accept()
@@ -136,10 +138,10 @@ class WebBrowser(QWidget):
         
         pageact2btn = lambda prop: action2button(self.webview.pageAction(prop),
                                                  parent=self.webview)
-        refresh_button = pageact2btn(QWebPage.Reload)
-        stop_button = pageact2btn(QWebPage.Stop)
-        previous_button = pageact2btn(QWebPage.Back)
-        next_button = pageact2btn(QWebPage.Forward)
+        refresh_button = pageact2btn(QWebEnginePage.Reload)
+        stop_button = pageact2btn(QWebEnginePage.Stop)
+        previous_button = pageact2btn(QWebEnginePage.Back)
+        next_button = pageact2btn(QWebEnginePage.Forward)
         
         stop_button.setEnabled(False)
         self.webview.loadStarted.connect(lambda: stop_button.setEnabled(True))
@@ -242,7 +244,7 @@ class WebBrowser(QWidget):
 
 class FrameWebView(QFrame):
     """
-    Framed QWebView for UI consistency in Spyder.
+    Framed QWebEngineView for UI consistency in Spyder.
     """
     linkClicked = Signal(QUrl)
 
@@ -276,15 +278,16 @@ class FrameWebView(QFrame):
         return self._webview.page()
 
 
-def main():
+def test():
     """Run web browser"""
     from spyderlib.utils.qthelpers import qapplication
-    app = qapplication()
+    app = qapplication(test_time=8)
     widget = WebBrowser()
     widget.show()
-    widget.set_home_url('http://localhost:7464/')
+    widget.set_home_url('http://www.google.com/')
     widget.go_home()
     sys.exit(app.exec_())
 
+
 if __name__ == '__main__':
-    main()
+    test()

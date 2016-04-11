@@ -9,7 +9,7 @@ IPython's many features.
 
 .. image:: images/ipythonconsole.png
 
-From the Interpreters menu, Spyder can launch **IPython Console**
+From the Consoles menu, Spyder can launch **IPython Console**
 instances that attach to kernels that are managed
 by Spyder itself or it can connect to external kernels that are managed
 by IPython Qt Console sessions or the IPython Notebook.
@@ -37,12 +37,12 @@ set:
 
 * Code completion
 * Debugging toolbar integration for launching the debugger and sending
-  debugging step commands to the kernel. Breakpoints must be set manaully
+  debugging step commands to the kernel. Breakpoints must be set manually
   from the console command line.
 
 Related plugins:
 
-* :doc:`inspector`
+* :doc:`help`
 * :doc:`editor`
 * :doc:`explorer`
 

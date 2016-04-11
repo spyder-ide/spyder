@@ -1,28 +1,29 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
 """Spyder path manager"""
 
+# Standard library imports
 from __future__ import print_function
-
-from spyderlib.qt.QtGui import (QDialog, QListWidget, QDialogButtonBox,
-                                QVBoxLayout, QHBoxLayout, QMessageBox,
-                                QListWidgetItem)
-from spyderlib.qt.QtCore import Qt, Signal, Slot
-from spyderlib.qt.compat import getexistingdirectory
-import spyderlib.utils.icon_manager as ima
-
 import os
-import sys
 import os.path as osp
+import sys
+
+# Third party imports
+from qtpy.compat import getexistingdirectory
+from qtpy.QtCore import Qt, Signal, Slot
+from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QHBoxLayout,
+                            QListWidget, QListWidgetItem, QMessageBox,
+                            QVBoxLayout)
 
 # Local imports
-from spyderlib.utils.qthelpers import create_toolbutton
 from spyderlib.config.base import _
 from spyderlib.py3compat import getcwd
+from spyderlib.utils import icon_manager as ima
+from spyderlib.utils.qthelpers import create_toolbutton
 
 
 class PathManager(QDialog):
@@ -244,9 +245,11 @@ def test():
     """Run path manager test"""
     from spyderlib.utils.qthelpers import qapplication
     _app = qapplication()  # analysis:ignore
-    test = PathManager(None, sys.path[:-10], sys.path[-10:])
+    test = PathManager(None, pathlist=sys.path[:-10],
+                       ro_pathlist=sys.path[-10:])
     test.exec_()
     print(test.get_path_list())
+
 
 if __name__ == "__main__":
     test()

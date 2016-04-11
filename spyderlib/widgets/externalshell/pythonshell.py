@@ -1,38 +1,39 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
 """External Python Shell widget: execute Python script in a separate process"""
 
-import sys
+# Standard library imports
 import os
 import os.path as osp
 import socket
+import sys
 
-from spyderlib.qt.QtGui import QApplication, QMessageBox, QSplitter, QMenu
-from spyderlib.qt.QtCore import QProcess, Signal, Slot, Qt
-from spyderlib.qt.QtCore import QProcessEnvironment
-from spyderlib.qt.compat import getexistingdirectory
-import spyderlib.utils.icon_manager as ima
+# Third party imports
+from qtpy.compat import getexistingdirectory
+from qtpy.QtCore import QProcess, QProcessEnvironment, Qt, Signal, Slot
+from qtpy.QtWidgets import QApplication, QMenu, QMessageBox, QSplitter
 
 # Local imports
-from spyderlib.utils.qthelpers import (add_actions, create_toolbutton,
-                                       create_action, DialogManager)
-from spyderlib.utils.environ import RemoteEnvDialog
-from spyderlib.utils.programs import get_python_args
-from spyderlib.utils.misc import get_python_executable
-from spyderlib.config.base import (_, get_module_source_path, DEBUG,
-                                  MAC_APP_NAME, running_in_mac_app)
-from spyderlib.widgets.shell import PythonShellWidget
-from spyderlib.widgets.externalshell.namespacebrowser import NamespaceBrowser
+from spyderlib.config.base import (_, DEBUG, get_module_source_path,
+                                   MAC_APP_NAME, running_in_mac_app)
+from spyderlib.py3compat import (is_text_string, to_binary_string,
+                                 to_text_string)
+from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.bsdsocket import communicate, write_packet
+from spyderlib.utils.environ import RemoteEnvDialog
+from spyderlib.utils.misc import get_python_executable
+from spyderlib.utils.programs import get_python_args
+from spyderlib.utils.qthelpers import (add_actions, create_action,
+                                       create_toolbutton, DialogManager)
 from spyderlib.widgets.externalshell.baseshell import (ExternalShellBase,
-                                                   add_pathlist_to_PYTHONPATH)
-from spyderlib.widgets.dicteditor import DictEditor
-from spyderlib.py3compat import (is_text_string, to_text_string,
-                                 to_binary_string)
+                                                       add_pathlist_to_PYTHONPATH)
+from spyderlib.widgets.shell import PythonShellWidget
+from spyderlib.widgets.variableexplorer.namespacebrowser import NamespaceBrowser
+from spyderlib.widgets.variableexplorer.collectionseditor import CollectionsEditor
 
 
 class ExtPythonShellWidget(PythonShellWidget):
@@ -467,7 +468,7 @@ class ExternalPythonShell(ExternalShellBase):
         if not self.is_ipykernel:
             env.append('ETS_TOOLKIT=%s' % self.ets_backend)
         if self.mpl_backend is not None:
-            backends = {0: 'Automatic', 1: 'None', 2: 'TkAgg', 3: 'MacOSX'}
+            backends = {0: 'Automatic', 1: 'None', 2: 'TkAgg'}
             env.append('SPY_MPL_BACKEND=%s' % backends[self.mpl_backend])
         if self.qt_api and not self.is_ipykernel:
             env.append('QT_API=%s' % self.qt_api)
@@ -581,13 +582,11 @@ class ExternalPythonShell(ExternalShellBase):
     def send_to_process(self, text):
         if not self.is_running():
             return
-
         if not is_text_string(text):
             text = to_text_string(text)
-        if (self.mpl_backend == 'Qt4Agg' or self.mpl_backend == 'Qt5Agg') \
-          and os.name == 'nt' and self.introspection_socket is not None:
-            communicate(self.introspection_socket,
-                        "toggle_inputhook_flag(True)")
+        if self.mpl_backend == 0 and os.name == 'nt' and \
+          self.introspection_socket is not None:
+            communicate(self.introspection_socket, "toggle_inputhook_flag(True)")
 #            # Socket-based alternative (see input hook in sitecustomize.py):
 #            while self.local_server.hasPendingConnections():
 #                self.local_server.nextPendingConnection().write('go!')
@@ -652,7 +651,36 @@ class ExternalPythonShell(ExternalShellBase):
     @Slot()
     def show_syspath(self):
         """Show sys.path contents"""
-        editor = DictEditor()
+        editor = CollectionsEditor()
         editor.setup(self.shell.get_syspath(), title="sys.path", readonly=True,
                      width=600, icon=ima.icon('syspath'))
         self.dialog_manager.show(editor)
+
+
+def test():
+    from spyderlib.utils.qthelpers import qapplication
+    app = qapplication()
+
+    from spyderlib.plugins.variableexplorer import VariableExplorer
+    settings = VariableExplorer.get_settings()
+
+    shell = ExternalPythonShell(pythonexecutable=sys.executable,
+                                interact=True,
+                                stand_alone=settings,
+                                wdir=osp.dirname(__file__),
+                                mpl_backend=0,
+                                light_background=False)
+
+    from spyderlib.config.gui import get_font
+    
+    font = get_font()
+    shell.shell.set_font(font)
+
+    shell.shell.toggle_wrap_mode(True)
+    shell.start_shell(False)
+    shell.show()
+    sys.exit(app.exec_())
+
+
+if __name__ == "__main__":
+    test()

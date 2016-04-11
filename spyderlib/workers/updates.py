@@ -5,13 +5,17 @@
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
+# Standard library imports
 import json
+import ssl
 
+# Third party imports
+from qtpy.QtCore import QObject, Signal
 
+# Local imports
 from spyderlib import __version__
 from spyderlib.config.base import _
 from spyderlib.py3compat import PY3
-from spyderlib.qt.QtCore import Signal, QObject
 from spyderlib.utils.programs import check_version, is_stable_version
 
 
@@ -60,8 +64,15 @@ class WorkerUpdates(QObject):
         self.latest_release = __version__
 
         error_msg = None
+
         try:
-            page = urlopen(self.url)
+            if hasattr(ssl, '_create_unverified_context'):
+                # Fix for issue # 2685 [Works only with Python >=2.7.9]
+                # More info: https://www.python.org/dev/peps/pep-0476/#opting-out
+                context = ssl._create_unverified_context()
+                page = urlopen(self.url, context=context)
+            else:
+                page = urlopen(self.url)
             try:
                 data = page.read()
 

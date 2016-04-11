@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -11,31 +11,31 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
+# Standard library imports
 from __future__ import with_statement
-
-from spyderlib.qt.QtGui import (QHBoxLayout, QWidget, QTreeWidgetItem,
-                                QSizePolicy, QRadioButton, QVBoxLayout, QLabel)
-from spyderlib.qt.QtCore import (Signal, Slot, Qt, QThread, QMutexLocker,
-                                 QMutex)
-from spyderlib.qt.compat import getexistingdirectory
-import spyderlib.utils.icon_manager as ima
-
-import sys
-import os
-import re
 import fnmatch
+import os
 import os.path as osp
-from subprocess import Popen, PIPE
+import re
+import sys
 import traceback
 
+# Third party imports
+from qtpy.compat import getexistingdirectory
+from qtpy.QtCore import QMutex, QMutexLocker, Qt, QThread, Signal, Slot
+from qtpy.QtWidgets import (QHBoxLayout, QLabel, QRadioButton, QSizePolicy,
+                            QTreeWidgetItem, QVBoxLayout, QWidget)
+
 # Local imports
-from spyderlib.utils.vcs import is_hg_installed, get_vcs_root
+from spyderlib.config.base import _
+from spyderlib.py3compat import getcwd, to_text_string
+from spyderlib.utils import programs
+from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.misc import abspardir, get_common_path
 from spyderlib.utils.qthelpers import create_toolbutton, get_filetype_icon
-from spyderlib.config.base import _
+from spyderlib.utils.vcs import is_hg_installed, get_vcs_root
 from spyderlib.widgets.comboboxes import PathComboBox, PatternComboBox
 from spyderlib.widgets.onecolumntree import OneColumnTree
-from spyderlib.py3compat import to_text_string, getcwd
 
 
 #def find_files_in_hg_manifest(rootpath, include, exclude):
@@ -189,8 +189,7 @@ class SearchThread(QThread):
         return ok
 
     def find_files_in_hg_manifest(self):
-        p = Popen(['hg', 'manifest'], stdout=PIPE,
-                  cwd=self.rootpath, shell=True)
+        p = programs.run_shell_command('hg manifest', cwd=self.rootpath)
         hgroot = get_vcs_root(self.rootpath)
         self.pathlist = [hgroot]
         for path in p.stdout.read().decode().splitlines():
@@ -472,7 +471,7 @@ class FindOptions(QWidget):
         hg_manifest = self.hg_manifest.isChecked()
         path = osp.abspath( to_text_string( self.dir_combo.currentText() ) )
         
-        # Finding text occurences
+        # Finding text occurrences
         if not include_re:
             include = fnmatch.translate(include)
         if not exclude_re:
@@ -790,9 +789,10 @@ def test():
     from spyderlib.utils.qthelpers import qapplication
     app = qapplication()
     widget = FindInFilesWidget(None)
+    widget.resize(640, 480)
     widget.show()
     sys.exit(app.exec_())
-    
+
+
 if __name__ == '__main__':
     test()
-    

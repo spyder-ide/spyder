@@ -33,7 +33,7 @@ Type `python bootstrap.py -- --help` to read about Spyder
 options.""")
 parser.add_option('--gui', default=None,
                   help="GUI toolkit: pyqt5 (for PyQt5), pyqt (for PyQt4) or "
-                       "pyside (for PySide)")
+                       "pyside (for PySide, deprecated)")
 parser.add_option('--hide-console', action='store_true',
                   default=False, help="Hide parent console window (Windows only)")
 parser.add_option('--test', dest="test", action='store_true', default=False,
@@ -42,9 +42,6 @@ parser.add_option('--no-apport', action='store_true',
                   default=False, help="Disable Apport exception hook (Ubuntu)")
 parser.add_option('--debug', action='store_true',
                   default=False, help="Run Spyder in debug mode")
-parser.add_option('--test-travis', dest="shutdown_time", default=None, 
-                  help="Closes the application after the entered number of "
-                       "seconds. Useful in continuous integration testing.")
 
 options, args = parser.parse_args()
 
@@ -106,26 +103,22 @@ print("Revision %s, Branch: %s" % get_git_revision(DEVPATH))
 sys.path.insert(0, DEVPATH)
 print("01. Patched sys.path with %s" % DEVPATH)
 
-EXTPATH = osp.join(DEVPATH, 'external-py' + sys.version[0])
-if osp.isdir(EXTPATH):
-    sys.path.insert(0, EXTPATH)
-    print("                      and %s" % EXTPATH)
-
 
 # Selecting the GUI toolkit: PyQt5 if installed, otherwise PySide or PyQt4
 # (Note: PyQt4 is still the officially supported GUI toolkit for Spyder)
 if options.gui is None:
     try:
         import PyQt5  # analysis:ignore
-        print("02. PyQt5 is detected, selecting (experimental)")
+        print("02. PyQt5 is detected, selecting")
         os.environ['QT_API'] = 'pyqt5'
     except ImportError:
         try:
-            import PySide  # analysis:ignore
-            print("02. PySide is detected, selecting")
-            os.environ['QT_API'] = 'pyside'
+            import PyQt4  # analysis:ignore
+            print("02. PyQt4 is detected, selecting")
+            os.environ['QT_API'] = 'pyqt'
         except ImportError:
-            print("02. No PyQt5 or PySide detected, using PyQt4 if available")
+            print("02. No PyQt5 or PyQt4 detected, using PySide if available "
+                  "(deprecated)")
 else:
     print ("02. Skipping GUI toolkit detection")
     os.environ['QT_API'] = options.gui
@@ -157,8 +150,8 @@ if not options.hide_console and os.name == 'nt':
     print("0x. Enforcing parent console (Windows only)")
     sys.argv.append("--show-console")  # Windows only: show parent console
 
-print("04. Executing spyder.main()")
-from spyderlib import start_app
+print("04. Running Spyder")
+from spyderlib.app import start
 
 time_lapse = time.time()-time_start
 print("Bootstrap completed in " +
@@ -166,12 +159,4 @@ print("Bootstrap completed in " +
     # gmtime() converts float into tuple, but loses milliseconds
     ("%.4f" % time_lapse).split('.')[1])
 
-# Set variable to start timer inside spyder application
-if options.shutdown_time is not None:
-    timer_seconds = int(options.shutdown_time)
-    os.environ['SPYDER_TEST_TRAVIS'] = 'True'
-    # In miliseconds
-    os.environ['SPYDER_TEST_TRAVIS_TIMER'] = str(timer_seconds*1000)
-    print("\nSpyder will automatically shut down in {} seconds.\n".format(timer_seconds))
-
-start_app.main()
+start.main()

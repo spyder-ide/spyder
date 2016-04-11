@@ -7,28 +7,31 @@
 """Mix-in classes
 
 These classes were created to be able to provide Spyder's regular text and
-console widget features to an independant widget based on QTextEdit for the 
+console widget features to an independant widget based on QTextEdit for the
 IPython console plugin.
 """
 
+# Standard library imports
+from xml.sax.saxutils import escape
 import os
 import re
 import sre_constants
 import textwrap
-from xml.sax.saxutils import escape
 
-from spyderlib.qt.QtGui import (QTextCursor, QTextDocument, QApplication,
-                                QCursor, QToolTip)
-from spyderlib.qt.QtCore import Qt, QPoint, QRegExp
+# Third party imports
+from qtpy.QtCore import QPoint, QRegExp, Qt
+from qtpy.QtGui import QCursor, QTextCursor, QTextDocument
+from qtpy.QtWidgets import QApplication, QToolTip
 
 # Local imports
 from spyderlib.config.base import _
-from spyderlib.utils import encoding, sourcecode
-from spyderlib.utils.misc import get_error_match
-from spyderlib.utils.dochelpers import (getobj, getargspecfromtext,
-                                        getsignaturefromtext)
 from spyderlib.py3compat import is_text_string, to_text_string, u
+from spyderlib.utils import encoding, sourcecode
+from spyderlib.utils.dochelpers import (getargspecfromtext, getobj,
+                                        getsignaturefromtext)
+from spyderlib.utils.misc import get_error_match
 from spyderlib.widgets.arraybuilder import NumpyArrayDialog
+
 
 HISTORY_FILENAMES = []
 
@@ -581,19 +584,19 @@ class TracebackLinksMixin(object):
         self.QT_CLASS.leaveEvent(self, event)
 
 
-class InspectObjectMixin(object):
+class GetHelpMixin(object):
     def __init__(self):
-        self.inspector = None
-        self.inspector_enabled = False
-    
-    def set_inspector(self, inspector):
-        """Set ObjectInspector DockWidget reference"""
-        self.inspector = inspector
-        self.inspector.set_shell(self)
+        self.help = None
+        self.help_enabled = False
 
-    def set_inspector_enabled(self, state):
-        self.inspector_enabled = state
-    
+    def set_help(self, help_plugin):
+        """Set Help DockWidget reference"""
+        self.help = help_plugin
+        self.help.set_shell(self)
+
+    def set_help_enabled(self, state):
+        self.help_enabled = state
+
     def inspect_current_object(self):
         text = ''
         text1 = self.get_text('sol', 'cursor')
@@ -606,22 +609,22 @@ class InspectObjectMixin(object):
             text += tl2[0]
         if text:
             self.show_object_info(text, force=True)
-    
+
     def show_object_info(self, text, call=False, force=False):
-        """Show signature calltip and/or docstring in the Object Inspector"""
+        """Show signature calltip and/or docstring in the Help plugin"""
         text = to_text_string(text) # Useful only for ExternalShellBase
-        
+
         # Show docstring
-        insp_enabled = self.inspector_enabled or force
-        if force and self.inspector is not None:
-            self.inspector.dockwidget.setVisible(True)
-            self.inspector.dockwidget.raise_()
-        if insp_enabled and (self.inspector is not None) and \
-           (self.inspector.dockwidget.isVisible()):
-            # ObjectInspector widget exists and is visible
-            self.inspector.set_shell(self)
-            self.inspector.set_object_text(text, ignore_unknown=False)
-            self.setFocus() # if inspector was not at top level, raising it to
+        help_enabled = self.help_enabled or force
+        if force and self.help is not None:
+            self.help.dockwidget.setVisible(True)
+            self.help.dockwidget.raise_()
+        if help_enabled and (self.help is not None) and \
+           (self.help.dockwidget.isVisible()):
+            # Help widget exists and is visible
+            self.help.set_shell(self)
+            self.help.set_object_text(text, ignore_unknown=False)
+            self.setFocus() # if help was not at top level, raising it to
                             # top will automatically give it focus because of
                             # the visibility_changed signal, so we must give
                             # focus back to shell

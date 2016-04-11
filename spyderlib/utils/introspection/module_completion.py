@@ -28,7 +28,9 @@ import sys
 from zipimport import zipimporter
 
 from spyderlib.config.base import get_conf_path, running_in_mac_app
-from spyderlib.utils.external.pickleshare import PickleShareDB
+from spyderlib.py3compat import PY3
+
+from pickleshare import PickleShareDB
 
 #-----------------------------------------------------------------------------
 # Globals and constants
@@ -38,7 +40,10 @@ from spyderlib.utils.external.pickleshare import PickleShareDB
 MODULES_PATH = get_conf_path('db')
 
 # Time in seconds after which we give up
-TIMEOUT_GIVEUP = 20
+if os.name == 'nt':
+    TIMEOUT_GIVEUP = 30
+else:
+    TIMEOUT_GIVEUP = 20
 
 # Py2app only uses .pyc files for the stdlib when optimize=0,
 # so we need to add it as another suffix here
@@ -281,6 +286,7 @@ def get_preferred_submodules():
             'PyQt4', 'PySide', 'os.path']
 
     submodules = []
+
     for m in mods:
         submods = get_submodules(m)
         submodules += submods
@@ -314,9 +320,15 @@ if __name__ == "__main__":
     s = 'from xml.etree.ElementTree import '
     assert module_completion(s + 'V') == ['VERSION']
 
-    assert sorted(module_completion(s + 'VERSION, XM')) == \
-        ['XML', 'XMLID', 'XMLParser', 'XMLTreeBuilder']
+    if PY3:
+        assert sorted(module_completion(s + 'VERSION, XM')) == \
+            ['XML', 'XMLID', 'XMLParser', 'XMLPullParser']
+    else:
+        assert sorted(module_completion(s + 'VERSION, XM')) == \
+            ['XML', 'XMLID', 'XMLParser', 'XMLTreeBuilder']
 
     assert module_completion(s + '(dum') == ['dump']
 
     assert module_completion(s + '(dump, Su') == ['SubElement']
+
+    assert 'os.path' in get_preferred_submodules()

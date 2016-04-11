@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2011-2013 Pierre Raybaut
+# Copyright © 2009- The Spyder development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -196,10 +196,6 @@ def add_image_path(path):
 
 add_image_path(get_module_data_path('spyderlib', relpath='images'))
 
-from spyderlib.otherplugins import PLUGIN_PATH
-if PLUGIN_PATH is not None:
-    add_image_path(osp.join(PLUGIN_PATH, 'images'))
-
 def get_image_path(name, default="not_found.png"):
     """Return image absolute path"""
     for img_path in IMG_PATH:
@@ -306,7 +302,6 @@ def get_translation(modname, dirname=None):
         dirname = modname
     locale_path = get_module_data_path(dirname, relpath="locale",
                                        attr_name='LOCALEPATH')
-
     # If LANG is defined in ubuntu, a warning message is displayed, so in unix
     # systems we define the LANGUAGE variable.
     language = load_lang_conf()
@@ -366,8 +361,8 @@ def get_supported_types():
     except ImportError:
         pass
     try:
-        from pandas import DataFrame, TimeSeries
-        editable_types += [DataFrame, TimeSeries]
+        from pandas import DataFrame, Series
+        editable_types += [DataFrame, Series]
     except ImportError:
         pass
     picklable_types = editable_types[:]
@@ -380,7 +375,7 @@ def get_supported_types():
 
 # Variable explorer display / check all elements data types for sequences:
 # (when saving the variable explorer contents, check_all is True,
-#  see widgets/externalshell/namespacebrowser.py:NamespaceBrowser.save_data)
+#  see widgets/variableexplorer/namespacebrowser.py:NamespaceBrowser.save_data)
 CHECK_ALL = False #XXX: If True, this should take too much to compute...
 
 EXCLUDED_NAMES = ['nan', 'inf', 'infty', 'little_endian', 'colorbar_doc',

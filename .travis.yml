@@ -1,6 +1,7 @@
-# After changing this file, check it on http://yaml-online-parser.appspot.com/
+# https://travis-ci.org/spyder-ide/spyder
 
 language: python
+sudo: false
 
 env:
   global:
@@ -10,53 +11,38 @@ env:
 
 matrix:
   include:
-    # Linux using miniconda
+    # Linux using pip packages
+    - python: "2.7"
+      env: USE_QT_API=PyQt4 USE_CONDA=false
+      os: linux
+    - python: "3.4"
+      env: USE_QT_API=PyQt4 USE_CONDA=false
+      os: linux
+    # Linux using conda packages
     - python: "2.7"
       env: USE_QT_API=PyQt4 USE_CONDA=true
       os: linux
-    - python: "3.3"
+    - python: "2.7"
+      env: USE_QT_API=PyQt5 USE_CONDA=true
+      os: linux
+    - python: "3.5"
       env: USE_QT_API=PyQt4 USE_CONDA=true
       os: linux
-    - python: "3.4"
-      env: USE_QT_API=PyQt4 USE_CONDA=true
+    - python: "3.5"
+      env: USE_QT_API=PyQt5 USE_CONDA=true
       os: linux
-    #- python: "2.7"
-    #  env: USE_QT_API=PyQt5 USE_CONDA=true
-    #  os: linux
-    #- python: "3.3"
-    #  env: USE_QT_API=PyQt5 USE_CONDA=true
-    #  os: linux
-    #- python: "3.4"
-    #  env: USE_QT_API=PyQt5 USE_CONDA=true
-    #  os: linux
-    #- python: "2.7"
-    #  env: USE_QT_API=PySide USE_CONDA=true
-    #  os: linux
-    # Linux using apt-get/pip packages
-    #- python: "2.7"
-    #  env: USE_QT_API=PyQt4 USE_CONDA=false
-    #  os: linux
-    #- python: "2.7"
-    #  env: USE_QT_API=PySide USE_CONDA=false
-    #  os: linux
-    #- python: "3.3"
-    #  env: USE_QT_API=PySide USE_CONDA=false
-    #  os: linux
-    #- python: "3.4"
-    #  env: USE_QT_API=PySide USE_CONDA=false
-    #  os: linux
 
 before_install:
-  - sudo apt-get update
   - "export DISPLAY=:99.0"
   - "sh -e /etc/init.d/xvfb start"
+  - "export FULL_SPYDER_CLONE=$HOME/spy-clone"
 
 install:
-  - ./continuous_integration/travis_install.sh;
+  - ./continuous_integration/travis/install.sh;
+  - if [ "$USE_CONDA" = true ]; then source activate test-environment; fi
   - export PATH="$HOME/miniconda/bin:$PATH";
-  - source activate test-environment;
-  - QT_API=$USE_QT_API;
 
-script:  
-  - python bootstrap.py --test-travis 30
-
+script:
+  - ./continuous_integration/travis/build_test.sh
+  - ./continuous_integration/travis/run_test.sh
+  - ./continuous_integration/travis/modules_test.sh

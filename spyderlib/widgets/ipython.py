@@ -7,59 +7,55 @@
 """
 IPython v0.13+ client's widget
 """
-# Fix for Issue 1356
-from __future__ import absolute_import
 
-# Stdlib imports
+# Standard library imports
+from __future__ import absolute_import  # Fix for Issue 1356
+from string import Template
 import os
 import os.path as osp
 import re
-from string import Template
 import sys
 import time
 
-# Qt imports
-from spyderlib.qt.QtGui import (QTextEdit, QKeySequence, QWidget, QMenu,
-                                QHBoxLayout, QToolButton, QVBoxLayout,
-                                QMessageBox)
-from spyderlib.qt.QtCore import Signal, Slot, Qt
-import spyderlib.utils.icon_manager as ima
+# Third party imports
+from qtpy.QtCore import Qt, Signal, Slot
+from qtpy.QtGui import QKeySequence
+from qtpy.QtWidgets import (QHBoxLayout, QMenu, QMessageBox, QTextEdit,
+                            QToolButton, QVBoxLayout, QWidget)
 
-# IPython imports
-try:
-    from qtconsole.rich_jupyter_widget import RichJupyterWidget as RichIPythonWidget
-except ImportError:
-    from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
-from IPython.qt.console.ansi_code_processor import ANSI_OR_SPECIAL_PATTERN
+# Third party imports (IPython/Jupyter)
 from IPython.core.application import get_ipython_dir
 from IPython.core.oinspect import call_tip
-from IPython.config.loader import Config, load_pyconfig_files
+from qtconsole.rich_jupyter_widget import RichJupyterWidget
+from qtconsole.ansi_code_processor import ANSI_OR_SPECIAL_PATTERN
+from traitlets.config.loader import Config, load_pyconfig_files
 
 # Local imports
-from spyderlib.config.base import (get_conf_path, get_image_path,
-                                   get_module_source_path, _)
-from spyderlib.config.main import CONF
+from spyderlib.config.base import (_, get_conf_path, get_image_path,
+                                   get_module_source_path)
 from spyderlib.config.gui import (create_shortcut, get_font, get_shortcut,
                                   new_shortcut)
-from spyderlib.utils.dochelpers import getargspecfromtext, getsignaturefromtext
-from spyderlib.utils.qthelpers import (create_toolbutton, add_actions, 
-                                       create_action, restore_keyevent)
+from spyderlib.config.main import CONF
+from spyderlib.py3compat import PY3
+from spyderlib.utils import icon_manager as ima
 from spyderlib.utils import programs, sourcecode
+from spyderlib.utils.dochelpers import getargspecfromtext, getsignaturefromtext
+from spyderlib.utils.qthelpers import (add_actions, create_action,
+                                       create_toolbutton, restore_keyevent)
+from spyderlib.widgets.arraybuilder import SHORTCUT_INLINE, SHORTCUT_TABLE
 from spyderlib.widgets.browser import WebView
 from spyderlib.widgets.calltip import CallTipWidget
-from spyderlib.widgets.mixins import (BaseEditMixin, InspectObjectMixin,
+from spyderlib.widgets.mixins import (BaseEditMixin, GetHelpMixin,
                                       SaveHistoryMixin, TracebackLinksMixin)
-from spyderlib.widgets.arraybuilder import (SHORTCUT_INLINE, SHORTCUT_TABLE)
-from spyderlib.py3compat import PY3
 
 
 #-----------------------------------------------------------------------------
 # Templates
 #-----------------------------------------------------------------------------
-# Using the same css file from the Object Inspector for now. Maybe
+# Using the same css file from the Help plugin for now. Maybe
 # later it'll be a good idea to create a new one.
 UTILS_PATH = get_module_source_path('spyderlib', 'utils')
-CSS_PATH = osp.join(UTILS_PATH, 'inspector', 'static', 'css')
+CSS_PATH = osp.join(UTILS_PATH, 'help', 'static', 'css')
 TEMPLATES_PATH = osp.join(UTILS_PATH, 'ipython', 'templates')
 
 BLANK = open(osp.join(TEMPLATES_PATH, 'blank.html')).read()
@@ -69,7 +65,7 @@ KERNEL_ERROR = open(osp.join(TEMPLATES_PATH, 'kernel_error.html')).read()
 #-----------------------------------------------------------------------------
 # Control widgets
 #-----------------------------------------------------------------------------
-class IPythonControlWidget(TracebackLinksMixin, InspectObjectMixin, QTextEdit,
+class IPythonControlWidget(TracebackLinksMixin, GetHelpMixin, QTextEdit,
                            BaseEditMixin):
     """
     Subclass of QTextEdit with features from Spyder's mixins to use as the
@@ -84,7 +80,7 @@ class IPythonControlWidget(TracebackLinksMixin, InspectObjectMixin, QTextEdit,
         QTextEdit.__init__(self, parent)
         BaseEditMixin.__init__(self)
         TracebackLinksMixin.__init__(self)
-        InspectObjectMixin.__init__(self)
+        GetHelpMixin.__init__(self)
 
         self.calltip_widget = CallTipWidget(self, hide_timer_on=True)
         self.found_results = []
@@ -167,7 +163,7 @@ class IPythonPageControlWidget(QTextEdit, BaseEditMixin):
 #-----------------------------------------------------------------------------
 # Shell widget
 #-----------------------------------------------------------------------------
-class IPythonShellWidget(RichIPythonWidget):
+class IPythonShellWidget(RichJupyterWidget):
     """
     Spyder's IPython shell widget
 
@@ -240,6 +236,20 @@ These commands were executed:
 
     def clear_console(self):
         self.execute("%clear")
+        
+    def reset_namespace(self):
+        """Resets the namespace by removing all names defined by the user"""
+        
+        reply = QMessageBox.question(
+            self,
+            _("Reset IPython namespace"),
+            _("All user-defined variables will be removed."
+            "<br>Are you sure you want to reset the namespace?"),
+            QMessageBox.Yes | QMessageBox.No,
+            )
+
+        if reply == QMessageBox.Yes:
+            self.execute("%reset -f")
 
     def write_to_stdin(self, line):
         """Send raw characters to the IPython kernel through stdin"""
@@ -259,6 +269,7 @@ These commands were executed:
 
         # Fixed shortcuts
         new_shortcut("Ctrl+T", self, lambda: self.new_client.emit())
+        new_shortcut("Ctrl+R", self, lambda: self.reset_namespace())
         new_shortcut(SHORTCUT_INLINE, self,
                      lambda: self._control.enter_array_inline())
         new_shortcut(SHORTCUT_TABLE, self,
@@ -587,6 +598,9 @@ class IPythonClient(QWidget, SaveHistoryMixin):
                                           QKeySequence("Shift+Escape"),
                                           icon=ima.icon('editdelete'),
                                           triggered=self.clear_line)
+        reset_namespace_action = create_action(self, _("Reset namespace"),
+                                          QKeySequence("Ctrl+R"),
+                                          triggered=self.reset_namespace)
         clear_console_action = create_action(self, _("Clear console"),
                                              QKeySequence(get_shortcut('console',
                                                                'clear shell')),
@@ -595,19 +609,20 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         quit_action = create_action(self, _("&Quit"), icon=ima.icon('exit'),
                                     triggered=self.exit_callback)
         add_actions(menu, (None, inspect_action, clear_line_action,
-                           clear_console_action, None, quit_action))
+                           clear_console_action, reset_namespace_action,
+                           None, quit_action))
         return menu
     
     def set_font(self, font):
         """Set IPython widget's font"""
         self.shellwidget._control.setFont(font)
         self.shellwidget.font = font
-    
+
     def set_infowidget_font(self):
         """Set font for infowidget"""
-        font = get_font('inspector', 'rich_text')
+        font = get_font(option='rich_font')
         self.infowidget.set_font(font)
-    
+
     def interrupt_kernel(self):
         """Interrupt the associanted Spyder kernel if it's running"""
         self.shellwidget.request_interrupt_kernel()
@@ -619,7 +634,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
 
     @Slot()
     def inspect_object(self):
-        """Show how to inspect an object with our object inspector"""
+        """Show how to inspect an object with our Help plugin"""
         self.shellwidget._control.inspect_current_object()
 
     @Slot()
@@ -630,7 +645,12 @@ class IPythonClient(QWidget, SaveHistoryMixin):
     @Slot()
     def clear_console(self):
         """Clear the whole console"""
-        self.shellwidget.execute("%clear")
+        self.shellwidget.clear_console()
+        
+    @Slot()
+    def reset_namespace(self):
+        """Resets the namespace by removing all names defined by the user"""
+        self.shellwidget.reset_namespace()
     
     def if_kernel_dies(self, t):
         """

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -11,35 +11,35 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
+# Standard library imports
 from __future__ import with_statement
-
-from spyderlib.qt import is_pyqt46
-from spyderlib.qt.QtGui import (QVBoxLayout, QLabel, QHBoxLayout, QInputDialog,
-                                QFileSystemModel, QMenu, QWidget, QToolButton,
-                                QLineEdit, QMessageBox, QTreeView,
-                                QDrag, QSortFilterProxyModel)
-from spyderlib.qt.QtCore import (Qt, Signal, QMimeData, QSize, QDir, QUrl,
-                                 QTimer, Slot)
-from spyderlib.qt.compat import getsavefilename, getexistingdirectory
-import spyderlib.utils.icon_manager as ima
-
 import os
-import sys
-import re
 import os.path as osp
+import re
 import shutil
 
+# Third party imports
+from qtpy import API, is_pyqt46
+from qtpy.compat import getsavefilename, getexistingdirectory
+from qtpy.QtCore import (QDir, QMimeData, QSize, QSortFilterProxyModel, Qt,
+                         QTimer, QUrl, Signal, Slot)
+from qtpy.QtGui import QDrag
+from qtpy.QtWidgets import (QFileSystemModel, QHBoxLayout, QInputDialog,
+                            QLabel, QLineEdit, QMenu, QMessageBox, QToolButton,
+                            QTreeView, QVBoxLayout, QWidget)
+
 # Local imports
-from spyderlib.utils.qthelpers import create_action, add_actions, file_uri
-from spyderlib.utils import misc, encoding, programs, vcs
 from spyderlib.config.base import _
-from spyderlib.py3compat import (to_text_string, to_binary_string, getcwd,
-                                 str_lower)
+from spyderlib.py3compat import (getcwd, str_lower, to_binary_string,
+                                 to_text_string, PY2)
+from spyderlib.utils import icon_manager as ima
+from spyderlib.utils import encoding, misc, programs, vcs
+from spyderlib.utils.qthelpers import add_actions, create_action, file_uri
 
 try:
-    from IPython.nbconvert import PythonExporter as nbexporter
+    from nbconvert import PythonExporter as nbexporter
 except:
-    nbexporter = None      # analysis:ignore
+    nbexporter = None    # analysis:ignore
 
 
 def fixpath(path):
@@ -86,7 +86,7 @@ class DirView(QTreeView):
     """Base file/directory tree view"""
     def __init__(self, parent=None):
         super(DirView, self).__init__(parent)
-        self.name_filters = None
+        self.name_filters = ['*.py']
         self.parent_widget = parent
         self.show_all = None
         self.menu = None
@@ -269,21 +269,30 @@ class DirView(QTreeView):
         actions += [None]
         if only_notebooks and nbexporter is not None:
             actions.append(ipynb_convert_action)
-        
+
         # VCS support is quite limited for now, so we are enabling the VCS
         # related actions only when a single file/folder is selected:
         dirname = fnames[0] if osp.isdir(fnames[0]) else osp.dirname(fnames[0])
         if len(fnames) == 1 and vcs.is_vcs_repository(dirname):
+            # QAction.triggered works differently for PySide and PyQt
+            if not API == 'pyside':
+                commit_slot = lambda _checked, fnames=[dirname]:\
+                                    self.vcs_command(fnames, 'commit')
+                browse_slot = lambda _checked, fnames=[dirname]:\
+                                    self.vcs_command(fnames, 'browse')
+            else:
+                commit_slot = lambda fnames=[dirname]:\
+                                    self.vcs_command(fnames, 'commit')
+                browse_slot = lambda fnames=[dirname]:\
+                                    self.vcs_command(fnames, 'browse')
             vcs_ci = create_action(self, _("Commit"),
                                    icon=ima.icon('vcs_commit'),
-                                   triggered=lambda fnames=[dirname]:
-                                   self.vcs_command(fnames, 'commit'))
+                                   triggered=commit_slot)
             vcs_log = create_action(self, _("Browse repository"),
                                     icon=ima.icon('vcs_browse'),
-                                    triggered=lambda fnames=[dirname]:
-                                    self.vcs_command(fnames, 'browse'))
+                                    triggered=browse_slot)
             actions += [None, vcs_ci, vcs_log]
-        
+
         return actions
 
     def create_folder_manage_actions(self, fnames):
@@ -372,6 +381,8 @@ class DirView(QTreeView):
             self.rename()
         elif event.key() == Qt.Key_Delete:
             self.delete()
+        elif event.key() == Qt.Key_Backspace:
+            self.go_to_parent_directory()
         else:
             QTreeView.keyPressEvent(self, event)
 
@@ -980,6 +991,8 @@ class ExplorerTreeWidget(DirView):
                 self.history.append(directory)
             self.histindex = len(self.history)-1
         directory = to_text_string(directory)
+        if PY2:
+            PermissionError = OSError
         try:
             os.chdir(directory)
             self.parent_widget.open_dir.emit(directory)
@@ -996,6 +1009,7 @@ class ExplorerWidget(QWidget):
     sig_open_file = Signal(str)
     sig_new_file = Signal(str)
     redirect_stdio = Signal(bool)
+    open_dir = Signal(str)
 
     def __init__(self, parent=None, name_filters=['*.py', '*.pyw'],
                  show_all=False, show_cd_only=None, show_icontext=True):
@@ -1082,6 +1096,9 @@ class ExplorerWidget(QWidget):
                     widget.setToolButtonStyle(Qt.ToolButtonIconOnly)
 
 
+#==============================================================================
+# Tests
+#==============================================================================
 class FileExplorerTest(QWidget):
     def __init__(self):
         QWidget.__init__(self)
@@ -1117,8 +1134,9 @@ class FileExplorerTest(QWidget):
         hlayout3.addWidget(self.label3)
         self.explorer.sig_option_changed.connect(
            lambda x, y: self.label3.setText('option_changed: %r, %r' % (x, y)))
-        self.explorer.open_parent_dir.connect(
-                                lambda: self.explorer.listwidget.refresh('..'))
+        self.explorer.open_dir.connect(
+                                lambda: self.explorer.treewidget.refresh('..'))
+
 
 class ProjectExplorerTest(QWidget):
     def __init__(self, parent=None):
@@ -1127,17 +1145,23 @@ class ProjectExplorerTest(QWidget):
         self.setLayout(vlayout)
         self.treewidget = FilteredDirView(self)
         self.treewidget.setup_view()
-        self.treewidget.set_root_path(r'D:\Python')
-        self.treewidget.set_folder_names(['spyder', 'spyder-2.0'])
+        self.treewidget.set_root_path(osp.dirname(osp.abspath(__file__)))
+        self.treewidget.set_folder_names(['variableexplorer', 'sourcecode'])
         vlayout.addWidget(self.treewidget)
 
-    
-if __name__ == "__main__":
+
+def test(file_explorer):
     from spyderlib.utils.qthelpers import qapplication
     app = qapplication()
-    test = FileExplorerTest()
-#    test = ProjectExplorerTest()
+    if file_explorer:
+        test = FileExplorerTest()
+    else:
+        test = ProjectExplorerTest()
     test.resize(640, 480)
     test.show()
-    sys.exit(app.exec_())
-    
+    app.exec_()
+
+
+if __name__ == "__main__":
+    test(file_explorer=True)
+    test(file_explorer=False)

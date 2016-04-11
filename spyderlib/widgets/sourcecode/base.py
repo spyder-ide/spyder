@@ -11,26 +11,28 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
+# Standard library imports
 import os
 import re
 import sys
 
-from spyderlib.qt.QtGui import (QTextCursor, QColor, QFont, QApplication,
-                                QTextEdit, QTextCharFormat, QToolTip,
-                                QListWidget, QPlainTextEdit, QPalette,
-                                QMainWindow, QTextOption, QMouseEvent,
-                                QTextFormat, QClipboard, QAbstractItemView,
-                                QListWidgetItem)
-from spyderlib.qt.QtCore import Signal, Slot, Qt, QEventLoop, QEvent, QPoint
-from spyderlib.qt.compat import to_qvariant
-import spyderlib.utils.icon_manager as ima
-
+# Third party imports
+from qtpy.compat import to_qvariant
+from qtpy.QtCore import QEvent, QEventLoop, QPoint, Qt, Signal, Slot
+from qtpy.QtGui import (QClipboard, QColor, QFont, QMouseEvent, QPalette,
+                        QTextCharFormat, QTextFormat, QTextOption, QTextCursor)
+from qtpy.QtWidgets import (QAbstractItemView, QApplication, QListWidget,
+                            QListWidgetItem, QMainWindow, QPlainTextEdit,
+                            QTextEdit, QToolTip)
 
 # Local imports
-from spyderlib.widgets.sourcecode.terminal import ANSIEscapeCodeHandler
-from spyderlib.widgets.mixins import BaseEditMixin
+from spyderlib.config.gui import get_font
+from spyderlib.config.main import CONF
+from spyderlib.py3compat import PY3, str_lower, to_text_string
+from spyderlib.utils import icon_manager as ima
 from spyderlib.widgets.calltip import CallTipWidget
-from spyderlib.py3compat import to_text_string, str_lower, PY3
+from spyderlib.widgets.mixins import BaseEditMixin
+from spyderlib.widgets.sourcecode.terminal import ANSIEscapeCodeHandler
 
 
 def insert_text_to(cursor, text, fmt):
@@ -67,6 +69,7 @@ class CompletionWidget(QListWidget):
         completion_list = [c[0] for c in completion_list]
         if len(completion_list) == 1 and not automatic:
             self.textedit.insert_completion(completion_list[0])
+            return
 
         self.completion_list = completion_list
         self.clear()
@@ -244,6 +247,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.codecompletion_case = True
         self.codecompletion_enter = False
         self.completion_text = ""
+        self.setup_completion()
 
         self.calltip_widget = CallTipWidget(self, hide_timer_on=True)
         self.calltips = True
@@ -261,13 +265,15 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.bracepos = None
         self.matched_p_color = QColor(Qt.green)
         self.unmatched_p_color = QColor(Qt.red)
-        
-    def setup_completion(self, size=None, font=None):
+
+    def setup_completion(self):
+        size = CONF.get('main', 'completion/size')
+        font = get_font()
         self.completion_widget.setup_appearance(size, font)
-        
+
     def set_indent_chars(self, indent_chars):
         self.indent_chars = indent_chars
-        
+
     def set_palette(self, background, foreground):
         """
         Set text editor palette colors:
@@ -486,7 +492,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         Reimplement Qt method
         Copy text to clipboard with correct EOL chars
         """
-        QApplication.clipboard().setText(self.get_selected_text())
+        if self.get_selected_text():
+            QApplication.clipboard().setText(self.get_selected_text())
     
     def toPlainText(self):
         """
@@ -1328,8 +1335,11 @@ class ConsoleBaseWidget(TextEditBaseWidget):
                 insert_text_to(cursor, text[last_end:match.start()],
                                self.default_style.format)
                 last_end = match.end()
-                for code in [int(_c) for _c in match.group(1).split(';')]:
-                    self.ansi_handler.set_code(code)
+                try:
+                    for code in [int(_c) for _c in match.group(1).split(';')]:
+                        self.ansi_handler.set_code(code)
+                except ValueError:
+                    pass
                 self.default_style.format = self.ansi_handler.get_format()
             insert_text_to(cursor, text[last_end:], self.default_style.format)
 #            # Slower alternative:

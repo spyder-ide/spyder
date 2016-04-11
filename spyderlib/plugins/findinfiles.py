@@ -11,16 +11,18 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-from spyderlib.qt.QtGui import QApplication
-from spyderlib.qt.QtCore import Signal, Slot
-import spyderlib.utils.icon_manager as ima
+# Third party imports
+from qtpy.QtWidgets import QApplication
+from qtpy.QtCore import Signal, Slot
 
 # Local imports
 from spyderlib.config.base import _
-from spyderlib.utils.qthelpers import create_action
-from spyderlib.widgets.findinfiles import FindInFilesWidget
+from spyderlib.config.utils import get_edit_extensions
 from spyderlib.plugins import SpyderPluginMixin
 from spyderlib.py3compat import getcwd
+from spyderlib.utils import icon_manager as ima
+from spyderlib.utils.qthelpers import create_action
+from spyderlib.widgets.findinfiles import FindInFilesWidget
 
 
 class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
@@ -40,9 +42,11 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
         search_text = [txt for txt in search_text \
                        if txt not in self.search_text_samples]
         search_text += self.search_text_samples
-        
+
         search_text_regexp = self.get_option('search_text_regexp')
         include = self.get_option('include')
+        if not include:
+            include = self.include_patterns()
         include_idx = self.get_option('include_idx', None)
         include_regexp = self.get_option('include_regexp')
         exclude = self.get_option('exclude')
@@ -89,8 +93,23 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
         self.set_search_text(text)
         if text:
             self.find()
-        
-    #------ SpyderPluginWidget API ---------------------------------------------    
+
+    def include_patterns(self):
+        edit_ext = get_edit_extensions()
+        patterns = [r'|'.join(['\\'+_ext+r'$' for _ext in edit_ext if _ext])+\
+                    r'|README|INSTALL',
+                    r'\.pyw?$|\.ipy$|\.txt$|\.rst$',
+                    '.']
+        return patterns
+    
+    #------ SpyderPluginMixin API ---------------------------------------------
+    def switch_to_plugin(self):
+        """Switch to plugin
+        This method is called when pressing plugin's shortcut key"""
+        self.findinfiles_callback()  # Necessary at least with PyQt5 on Windows
+        SpyderPluginMixin.switch_to_plugin(self)
+
+    #------ SpyderPluginWidget API --------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
         return _("Find in files")

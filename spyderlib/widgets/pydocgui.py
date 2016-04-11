@@ -1,22 +1,25 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
 """pydoc widget"""
 
-from spyderlib.qt.QtGui import QApplication, QCursor
-from spyderlib.qt.QtCore import QThread, QUrl, Qt, Signal
-
-import sys
+# Standard library imports
 import os.path as osp
+import sys
+
+# Third party imports
+from qtpy.QtCore import Qt, QThread, QUrl, Signal
+from qtpy.QtGui import QCursor
+from qtpy.QtWidgets import QApplication
 
 # Local imports
 from spyderlib.config.base import _
-from spyderlib.widgets.browser import WebBrowser
+from spyderlib.py3compat import PY3, to_text_string
 from spyderlib.utils.misc import select_port
-from spyderlib.py3compat import to_text_string, PY3
+from spyderlib.widgets.browser import WebBrowser
 
 
 class PydocServer(QThread):
@@ -122,14 +125,15 @@ class PydocBrowser(WebBrowser):
         return osp.splitext(to_text_string(url.path()))[0][1:]
 
 
-def main():
+def test():
     """Run web browser"""
     from spyderlib.utils.qthelpers import qapplication
-    app = qapplication()
+    app = qapplication(test_time=8)
     widget = PydocBrowser(None)
     widget.show()
     widget.initialize()
     sys.exit(app.exec_())
 
+
 if __name__ == '__main__':
-    main()
+    test()

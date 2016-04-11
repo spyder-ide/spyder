@@ -1,8 +1,13 @@
 # -*- coding: utf-8 -*-
+#
+# Copyright © 2009- The Spyder Development Team
+# Licensed under the terms of the MIT License
+# (see spyderlib/__init__.py for details)
 
-from spyderlib.qt.QtGui import (QLineEdit, QIcon, QHBoxLayout, QColor,
-                                QPushButton, QColorDialog, QPixmap)
-from spyderlib.qt.QtCore import QSize, Signal, Slot, Property
+# Third party imports
+from qtpy.QtCore import Property, QSize, Signal, Slot
+from qtpy.QtGui import QColor, QIcon, QPixmap
+from qtpy.QtWidgets import QColorDialog, QHBoxLayout, QLineEdit, QPushButton
 
 # Local imports
 from spyderlib.py3compat import is_text_string

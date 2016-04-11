@@ -14,30 +14,24 @@ Handles IPython clients (and in the future, will handle IPython kernels too
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-# Stdlib imports
+# Standard library imports
 import atexit
 import os
 import os.path as osp
 import sys
 
-# Qt imports
-from spyderlib.qt import PYQT5
-from spyderlib.qt.QtGui import (QVBoxLayout, QHBoxLayout, QFormLayout, 
-                                QMessageBox, QGroupBox, QDialogButtonBox,
-                                QDialog, QTabWidget, QFontComboBox, 
-                                QCheckBox, QApplication, QLabel,QLineEdit,
-                                QPushButton, QKeySequence, QWidget,
-                                QGridLayout)
-from spyderlib.qt.compat import getopenfilename
-from spyderlib.qt.QtCore import Signal, Slot, Qt
-import spyderlib.utils.icon_manager as ima
-
-# IPython imports
+# Third party imports
 from IPython.core.application import get_ipython_dir
-from IPython.kernel.connect import find_connection_file
-from IPython.qt.manager import QtKernelManager
-
-# Ssh imports
+from jupyter_client.connect import find_connection_file
+from qtconsole.manager import QtKernelManager
+from qtpy import PYQT5
+from qtpy.compat import getopenfilename
+from qtpy.QtCore import Qt, Signal, Slot
+from qtpy.QtGui import QKeySequence
+from qtpy.QtWidgets import (QApplication, QCheckBox, QDialog, QDialogButtonBox,
+                            QFormLayout, QGridLayout, QGroupBox, QHBoxLayout,
+                            QLabel, QLineEdit, QMessageBox, QPushButton,
+                            QTabWidget, QVBoxLayout, QWidget)
 from zmq.ssh import tunnel as zmqtunnel
 try:
     import pexpect
@@ -48,19 +42,20 @@ except ImportError:
 from spyderlib import dependencies
 from spyderlib.config.base import _
 from spyderlib.config.main import CONF
-from spyderlib.utils.misc import get_error_match, remove_backslashes
-from spyderlib.utils import programs
-from spyderlib.utils.qthelpers import create_action
-from spyderlib.widgets.tabs import Tabs
-from spyderlib.widgets.ipython import IPythonClient
-from spyderlib.widgets.findreplace import FindReplace
-from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
+from spyderlib.plugins import PluginConfigPage, SpyderPluginWidget
 from spyderlib.py3compat import to_text_string
+from spyderlib.utils import icon_manager as ima
+from spyderlib.utils import programs
+from spyderlib.utils.misc import get_error_match, remove_backslashes
+from spyderlib.utils.qthelpers import create_action
+from spyderlib.widgets.findreplace import FindReplace
+from spyderlib.widgets.ipython import IPythonClient
+from spyderlib.widgets.tabs import Tabs
 
 
 SYMPY_REQVER = '>=0.7.3'
 dependencies.add("sympy", _("Symbolic mathematics in the IPython Console"),
-                 required_version=SYMPY_REQVER)
+                 required_version=SYMPY_REQVER, optional=True)
 
 
 # Replacing pyzmq openssh_tunnel method to work around the issue
@@ -154,10 +149,6 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         newcb = self.create_checkbox
         mpl_present = programs.is_module_installed("matplotlib")
         
-        # --- Display ---
-        font_group = self.create_fontgroup(option=None, text=None,
-                                    fontfilters=QFontComboBox.MonospacedFonts)
-
         # Interface Group
         interface_group = QGroupBox(_("Interface"))
         banner_box = newcb(_("Display initial banner"), 'show_banner',
@@ -459,7 +450,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
 
         # --- Tabs organization ---
         tabs = QTabWidget()
-        tabs.addTab(self.create_tab(font_group, interface_group, comp_group,
+        tabs.addTab(self.create_tab(interface_group, comp_group,
                                     bg_group, source_code_group), _("Display"))
         tabs.addTab(self.create_tab(pylab_group, backend_group, inline_group),
                                     _("Graphics"))
@@ -606,7 +597,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.menu_actions = None
 
         self.extconsole = None         # External console plugin
-        self.inspector = None          # Object inspector plugin
+        self.help = None               # Help plugin
         self.historylog = None         # History log plugin
         self.variableexplorer = None   # Variable explorer plugin
         self.editor = None             # Editor plugin
@@ -656,18 +647,24 @@ class IPythonConsole(SpyderPluginWidget):
         """Action to be performed on first plugin registration"""
         self.main.tabify_plugins(self.main.extconsole, self)
 
+    def update_font(self):
+        """Update font from Preferences"""
+        font = self.get_plugin_font()
+        for client in self.clients:
+            client.set_font(font)
+
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
         font_n = 'plugin_font'
         font_o = self.get_plugin_font()
-        inspector_n = 'connect_to_oi'
-        inspector_o = CONF.get('inspector', 'connect/ipython_console')
+        help_n = 'connect_to_oi'
+        help_o = CONF.get('help', 'connect/ipython_console')
         for client in self.clients:
             control = client.get_control()
             if font_n in options:
                 client.set_font(font_o)
-            if inspector_n in options and control is not None:
-                control.set_inspector_enabled(inspector_o)
+            if help_n in options and control is not None:
+                control.set_help_enabled(help_o)
 
     def toggle_view(self, checked):
         """Toggle view"""
@@ -765,7 +762,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.main.add_dockwidget(self)
 
         self.extconsole = self.main.extconsole
-        self.inspector = self.main.inspector
+        self.help = self.main.help
         self.historylog = self.main.historylog
         self.variableexplorer = self.main.variableexplorer
         self.editor = self.main.editor
@@ -918,12 +915,12 @@ class IPythonConsole(SpyderPluginWidget):
         # Print a message if kernel dies unexpectedly
         shellwidget.custom_restart_kernel_died.connect(
                                             lambda t: client.if_kernel_dies(t))
-        
-        # Connect text widget to our inspector
-        if kernel_widget is not None and self.inspector is not None:
-            control.set_inspector(self.inspector)
-            control.set_inspector_enabled(CONF.get('inspector',
-                                                   'connect/ipython_console'))
+
+        # Connect text widget to Help
+        if kernel_widget is not None and self.help is not None:
+            control.set_help(self.help)
+            control.set_help_enabled(CONF.get('help',
+                                              'connect/ipython_console'))
 
         # Connect client to our history log
         if self.historylog is not None:
@@ -1191,20 +1188,20 @@ class IPythonConsole(SpyderPluginWidget):
     def show_intro(self):
         """Show intro to IPython help"""
         from IPython.core.usage import interactive_usage
-        self.inspector.show_rich_text(interactive_usage)
+        self.help.show_rich_text(interactive_usage)
 
     @Slot()
     def show_guiref(self):
         """Show qtconsole help"""
         from IPython.core.usage import gui_reference
-        self.inspector.show_rich_text(gui_reference, collapse=True)
+        self.help.show_rich_text(gui_reference, collapse=True)
 
     @Slot()
     def show_quickref(self):
         """Show IPython Cheat Sheet"""
         from IPython.core.usage import quick_reference
-        self.inspector.show_plain_text(quick_reference)
-        
+        self.help.show_plain_text(quick_reference)
+
     #----Drag and drop
     #TODO: try and reimplement this block
     # (this is still the original code block copied from externalconsole.py)

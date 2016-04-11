@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -11,30 +11,30 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-from spyderlib.qt import PYQT5
-from spyderlib.qt.QtGui import (QVBoxLayout, QFontDialog, QInputDialog,
-                                QLineEdit, QMenu)
-from spyderlib.qt.QtCore import Signal, Slot
-from spyderlib.qt.compat import getopenfilename
-import spyderlib.utils.icon_manager as ima
-
+# Standard library imports
 import os
-import sys
 import os.path as osp
+import sys
 
+# Third party imports
+from qtpy import PYQT5
+from qtpy.compat import getopenfilename
+from qtpy.QtCore import Signal, Slot
+from qtpy.QtWidgets import QInputDialog, QLineEdit, QMenu, QVBoxLayout
 
 # Local imports
 from spyderlib.config.base import _, debug_print
 from spyderlib.config.main import CONF
-from spyderlib.utils.misc import get_error_match, remove_backslashes
-from spyderlib.utils.qthelpers import (create_action, add_actions,
-                                       mimedata2url, DialogManager)
+from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.environ import EnvDialog
+from spyderlib.utils.misc import get_error_match, remove_backslashes
+from spyderlib.utils.qthelpers import (add_actions, create_action,
+                                       DialogManager, mimedata2url)
 from spyderlib.widgets.internalshell import InternalShell
 from spyderlib.widgets.findreplace import FindReplace
-from spyderlib.widgets.dicteditor import DictEditor
+from spyderlib.widgets.variableexplorer.collectionseditor import CollectionsEditor
 from spyderlib.plugins import SpyderPluginWidget
-from spyderlib.py3compat import to_text_string, getcwd
+from spyderlib.py3compat import getcwd, to_text_string
 
 
 class Console(SpyderPluginWidget):
@@ -98,10 +98,10 @@ class Console(SpyderPluginWidget):
         Not used anymore since v2.0"""
         historylog.add_history(self.shell.history_filename)
         self.shell.append_to_history.connect(historylog.append_to_history)
-        
-    def set_inspector(self, inspector):
-        """Bind inspector instance to this console"""
-        self.shell.inspector = inspector
+
+    def set_help(self, help_plugin):
+        """Bind help instance to this console"""
+        self.shell.help = help_plugin
 
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
@@ -114,7 +114,12 @@ class Console(SpyderPluginWidget):
         this plugin's dockwidget is raised on top-level
         """
         return self.shell
-        
+
+    def update_font(self):
+        """Update font from Preferences"""
+        font = self.get_plugin_font()
+        self.shell.set_font(font)
+
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         self.dialog_manager.close_all()
@@ -150,10 +155,6 @@ class Console(SpyderPluginWidget):
                             _("Buffer..."), None,
                             tip=_("Set maximum line count"),
                             triggered=self.change_max_line_count)
-        font_action = create_action(self,
-                            _("&Font..."), None,
-                            ima.icon('font'), _("Set shell font style"),
-                            triggered=self.change_font)
         exteditor_action = create_action(self,
                             _("External editor path..."), None, None,
                             _("Set external editor executable path"),
@@ -177,7 +178,7 @@ class Console(SpyderPluginWidget):
         
         option_menu = QMenu(_('Internal console settings'), self)
         option_menu.setIcon(ima.icon('tooloptions'))
-        add_actions(option_menu, (buffer_action, font_action, wrap_action,
+        add_actions(option_menu, (buffer_action, wrap_action,
                                   calltips_action, codecompletion_action,
                                   codecompenter_action, exteditor_action))
                     
@@ -217,7 +218,7 @@ class Console(SpyderPluginWidget):
     @Slot()
     def show_syspath(self):
         """Show sys.path"""
-        editor = DictEditor()
+        editor = CollectionsEditor()
         editor.setup(sys.path, title="sys.path", readonly=True,
                      width=600, icon=ima.icon('syspath'))
         self.dialog_manager.show(editor)
@@ -270,16 +271,7 @@ class Console(SpyderPluginWidget):
         """Execute lines and give focus to shell"""
         self.shell.execute_lines(to_text_string(lines))
         self.shell.setFocus()
-    
-    @Slot()
-    def change_font(self):
-        """Change console font"""
-        font, valid = QFontDialog.getFont(self.get_plugin_font(),
-                       self, _("Select a new font"))
-        if valid:
-            self.shell.set_font(font)
-            self.set_plugin_font(font)
-    
+
     @Slot()
     def change_max_line_count(self):
         "Change maximum line count"""

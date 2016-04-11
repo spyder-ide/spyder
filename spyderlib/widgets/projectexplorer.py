@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2010-2011 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -8,31 +8,31 @@
 
 # pylint: disable=C0103
 
+# Standard library imports
 from __future__ import print_function
-
-from spyderlib.qt import PYQT5
-from spyderlib.qt.QtGui import (QVBoxLayout, QLabel, QHBoxLayout, QWidget,
-                                QFileIconProvider, QMessageBox, QInputDialog,
-                                QLineEdit, QPushButton, QHeaderView,
-                                QAbstractItemView)
-from spyderlib.qt.QtCore import Qt, QFileInfo, Slot, Signal
-from spyderlib.qt.compat import getexistingdirectory
-import spyderlib.utils.icon_manager as ima
-
 import os
+import os.path as osp
 import re
 import shutil
-import os.path as osp
 import xml.etree.ElementTree as ElementTree
 
+# Third party imports
+from qtpy import PYQT5
+from qtpy.compat import getexistingdirectory
+from qtpy.QtCore import QFileInfo, Qt, Signal, Slot
+from qtpy.QtWidgets import (QAbstractItemView, QFileIconProvider, QHBoxLayout,
+                            QHeaderView, QInputDialog, QLabel, QLineEdit,
+                            QMessageBox, QPushButton, QVBoxLayout, QWidget)
+
 # Local imports
+from spyderlib.config.base import _, get_image_path, STDERR
+from spyderlib.py3compat import getcwd, pickle, to_text_string
+from spyderlib.utils import icon_manager as ima
 from spyderlib.utils import misc
-from spyderlib.utils.qthelpers import get_icon, create_action
-from spyderlib.config.base import _, STDERR, get_image_path
-from spyderlib.widgets.explorer import FilteredDirView, listdir, fixpath
+from spyderlib.utils.qthelpers import create_action, get_icon
+from spyderlib.widgets.explorer import FilteredDirView, fixpath, listdir
 from spyderlib.widgets.formlayout import fedit
 from spyderlib.widgets.pathmanager import PathManager
-from spyderlib.py3compat import to_text_string, getcwd, pickle
 
 
 def has_children_files(path, include, exclude, show_all):
@@ -1268,7 +1268,8 @@ class ProjectExplorerWidget(QWidget):
     """Project Explorer"""
     sig_option_changed = Signal(str, object)
     sig_open_file = Signal(str)
-    
+    pythonpath_changed = Signal()
+
     def __init__(self, parent, name_filters=['*.py', '*.pyw'],
                  show_all=False, show_hscrollbar=True):
         QWidget.__init__(self, parent)
@@ -1326,14 +1327,17 @@ class ProjectExplorerWidget(QWidget):
         return self.treewidget.get_source_project(fname)
 
 
+#==============================================================================
+# Tests
+#==============================================================================
 class Test(QWidget):
     def __init__(self):
         QWidget.__init__(self)
         vlayout = QVBoxLayout()
         self.setLayout(vlayout)
-        
+
         self.explorer = ProjectExplorerWidget(None, show_all=True)
-        self.explorer.set_workspace(r'D:/Python')
+        self.explorer.set_workspace(osp.dirname(osp.abspath(__file__)))
 #        p1 = self.explorer.add_project(r"D:/Python/spyder")
 #        p1.set_pythonpath([r"D:\Python\spyder\spyderlib"])
 #        p1.save()
@@ -1362,10 +1366,14 @@ class Test(QWidget):
            lambda x, y: self.label3.setText('option_changed: %r, %r' % (x, y)))
 
 
-if __name__ == "__main__":
+def test():
     from spyderlib.utils.qthelpers import qapplication
     app = qapplication()
     test = Test()
     test.resize(640, 480)
     test.show()
     app.exec_()
+
+
+if __name__ == "__main__":
+    test()

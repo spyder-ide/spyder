@@ -20,7 +20,7 @@ Patching rope:
     http://groups.google.com/group/rope-dev/browse_thread/thread/924c4b5a6268e618
 
 [4] To avoid rope adding a 2 spaces indent to every docstring it gets, because
-    it breaks the work of Sphinx on the Object Inspector. Also, to better
+    it breaks the work of Sphinx on the Help plugin. Also, to better
     control how to get calltips and docstrings of forced builtin objects.
 
 [5] To make matplotlib return its docstrings in proper rst, instead of a mix
@@ -31,8 +31,9 @@ def apply():
     """Monkey patching rope
 
     See [1], [2], [3], [4] and [5] in module docstring."""
-    import rope
-    if rope.VERSION not in ('0.10.2', '0.9.4-1', '0.9.4'):
+    from spyderlib.utils.programs import is_module_installed
+    if is_module_installed('rope', '<0.9.4'):
+        import rope
         raise ImportError("rope %s can't be patched" % rope.VERSION)
 
     # [1] Patching project.Project for compatibility with py2exe/cx_Freeze
@@ -202,9 +203,9 @@ def apply():
     codeassist.PyDocExtractor = PatchedPyDocExtractor
 
 
-    # [5] Get the right matplotlib docstrings for our Object Inspector
+    # [5] Get the right matplotlib docstrings for Help
     try:
         import matplotlib as mpl
         mpl.rcParams['docstring.hardcopy'] = True
-    except ImportError:
+    except:
         pass

@@ -1,5 +1,74 @@
 # History of changes
 
+## Version 2.3.8
+
+### New features
+
+* Python and IPython consoles
+    * Fix a sitecustomize error when using Matplotlib 1.5 with Python 2 on Linux
+* Variable Explorer
+    * Add support for Pandas Series when using Pandas 0.17+
+    * Fix a freeze when creating empty DataFrames in Python 2
+    * Fix a freeze when working with big Numpy recarray's
+* Under the hood
+    * Avoid startup crashes when there are errors importing Numpy, SciPy or Pillow
+
+### Bug fixes
+
+**Issues**
+
+* [Issue 2819](../../issues/2819) - Spyder fails to start because of an error with scipy
+* [Issue 2815](../../issues/2815) - Variable explorer is not recognizing Pandas Series objects
+* [Issue 2793](../../issues/2793) - Connecting to kernel fails because of update to Matplotlib 1.5
+* [Issue 2791](../../issues/2791) - DataFrame with no rows gives error when trying to view it
+* [Issue 2783](../../issues/2783) - Spyder freezes on assigning a fits table data
+* [Issue 2744](../../issues/2744) - Spyder hangs when creating an empty DataFrame on Python 2
+
+In this release they were closed 6 issues
+
+
+----
+
+
+## Version 2.3.7
+
+### New features
+
+* Editor
+    * Remove support for Jedi 0.9 because it was causing crashes
+* Variable Explorer
+    * Fix crashes and freezes when working with DataFrames on Python 2
+* Under the hodd
+    * Restore support for PySide
+
+### Bug fixes
+
+**Issues**
+
+* [Issue 2709](../../issues/2709) - IPython console error when trying to use SymPy
+* [Issue 2693](../../issues/2693) - README should link to manual
+* [Issue 2689](../../issues/2689) - "Resize" button in variable explorer chops off the array
+* [Issue 2684](../../issues/2684) - Applications directory link is broken in Spyder 2.3.6 dmg's
+* [Issue 2680](../../issues/2680) - "Close all files" hangs Spyder
+* [Issue 2661](../../issues/2661) - Conda package manager is packed in 2.3.6 win32 distribution leading to errors
+* [Issue 2659](../../issues/2659) - Crash while getting completions of DataFrames on the Editor because of Jedi 0.9
+* [Issue 2654](../../issues/2654) - Creating DataFrames in Python or IPython consoles make Spyder 2.3.6 to hang
+* [Issue 2649](../../issues/2649) - PySide can not be used on 2.3.6
+* [Issue 2296](../../issues/2296) - Line numbers misaligned when zooming and scrolling in Mac
+* [Issue 2036](../../issues/2036) - Code analysis and tooltips are not displayed in Ubuntu
+
+In this release they were closed 11 issues
+
+**Pull requests**
+
+* [PR 2650](../../pull/2650) - Failed sip import blocks fallback to PySide
+
+In this release they were merged 1 pull requests
+
+
+----
+
+
 ## Version 2.3.6
 
 ### New features
@@ -756,7 +825,7 @@ In this release they were merged 6 pull requests
 * Fixed Home/End key behaviour inconsistency on MacOS X (See [Issue 495](../../issues/495))
 * Internal console: new option "Pop up internal console when errors were intercepted" -- default: False, which avoids loosing focus when a traceback is shown in the internal console... but features may also fail silently! (bugs could stay hidden a while before being taken care of) -- See [Issue 1016](../../issues/1016)
 * Fixed "TypeError: file_saved(long,long).emit(): argument 1 has unexpected type 'long'" error occuring on some Linux 32-bit platforms -- See [Issue 1094](../../issues/1094)
-* Console: find/replace widget "Search next/previous occurence" feature was broken
+* Console: find/replace widget "Search next/previous occurrence" feature was broken
 
 ### Other changes
 
@@ -870,7 +939,7 @@ In this release they were merged 6 pull requests
     * Selecting a part of a word raises an IndexError exception
     * Revert option was prompting for user input even on an unmodified buffer
     * Added missing .f77 file extensions for Fortran files filter
-    * Occurence highlighting was not working when cursor was at the left side of a word and if the next character was ':', ',' or '(' (or any other character not matching the "word regexp")
+    * Occurrence highlighting was not working when cursor was at the left side of a word and if the next character was ':', ',' or '(' (or any other character not matching the "word regexp")
 * Console:
     * Console was unusable (endless tracebacks) when monitor was disabled
     * File drag'n drop was not working (should execute dropped file)
@@ -1154,7 +1223,7 @@ Since version 2.1:
 * Object inspector:
     * Rich text mode was failing for non-ascii docstrings
 * Find/Replace widget:
-    * Combo box history was populated only when pressing Enter (now pressing F3 to find next occurence will add the current entry to history)
+    * Combo box history was populated only when pressing Enter (now pressing F3 to find next occurrence will add the current entry to history)
 
 
 ----

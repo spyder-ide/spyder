@@ -1,4 +1,8 @@
 #
+# Copyright (c) 2009- The Spyder Development Team)
+# Licensed under the terms of the MIT License)
+# (see spyderlib/__init__.py for details)
+#
 # IMPORTANT NOTE: Don't add a coding line here! It's not necessary for
 # site files
 #
@@ -12,6 +16,10 @@ import pdb
 import bdb
 import time
 import traceback
+import shlex
+
+
+PY2 = sys.version[0] == '2'
 
 
 #==============================================================================
@@ -21,6 +29,13 @@ import traceback
 #==============================================================================
 if not hasattr(sys, 'argv'):
     sys.argv = ['']
+
+
+#==============================================================================
+# Main constants
+#==============================================================================
+IS_IPYTHON = os.environ.get("IPYTHON_KERNEL", "").lower() == "true"
+IS_EXT_INTERPRETER = os.environ.get('EXTERNAL_INTERPRETER', '').lower() == "true"
 
 
 #==============================================================================
@@ -84,7 +99,8 @@ except ImportError:
     basestring = (str,)
     def execfile(filename, namespace):
         # Open a source file correctly, whatever its encoding is
-        exec(compile(open(filename, 'rb').read(), filename, 'exec'), namespace)
+        with open(filename, 'rb') as f:
+            exec(compile(f.read(), filename, 'exec'), namespace)
 
 
 #==============================================================================
@@ -142,7 +158,7 @@ os.environ['SPYDER_PARENT_DIR'] = spyderlib_path
 # Setting console encoding (otherwise Python does not recognize encoding)
 # for Windows platforms
 #==============================================================================
-if os.name == 'nt':
+if os.name == 'nt' and PY2:
     try:
         import locale, ctypes
         _t, _cp = locale.getdefaultlocale('LANG')
@@ -160,8 +176,6 @@ if os.name == 'nt':
 #==============================================================================
 # Settings for our MacOs X app
 #==============================================================================
-IS_EXT_INTERPRETER = os.environ.get('EXTERNAL_INTERPRETER', '').lower() == "true"
-
 if sys.platform == 'darwin':
     from spyderlib.config.base import MAC_APP_NAME
     if MAC_APP_NAME in __file__:
@@ -193,6 +207,30 @@ try:
     import sitecustomize  #analysis:ignore
 except ImportError:
     pass
+
+
+#==============================================================================
+# Add default filesystem encoding on Linux to avoid an error with
+# Matplotlib 1.5 in Python 2 (Fixes Issue 2793)
+#==============================================================================
+if PY2 and sys.platform.startswith('linux'):
+    def _getfilesystemencoding_wrapper():
+        return 'utf-8'
+
+    sys.getfilesystemencoding = _getfilesystemencoding_wrapper
+
+
+#==============================================================================
+# Set PyQt API to #2
+#==============================================================================
+if os.environ["QT_API"] == 'pyqt':
+    try:
+        import sip
+        for qtype in ('QString', 'QVariant', 'QDate', 'QDateTime',
+                      'QTextStream', 'QTime', 'QUrl'):
+            sip.setapi(qtype, 2)
+    except:
+        pass
 
 
 #==============================================================================
@@ -248,7 +286,7 @@ else:
     builtins.open_in_spyder = open_in_spyder
 
     # Our own input hook, monitor based and for Windows only
-    if os.name == 'nt':
+    if os.name == 'nt' and matplotlib and not IS_IPYTHON:
         # Qt imports
         if os.environ["QT_API"] == 'pyqt5':
             from PyQt5 import QtCore
@@ -305,101 +343,104 @@ else:
 #==============================================================================
 # Matplotlib settings
 #==============================================================================
-IS_IPYTHON = os.environ.get("IPYTHON_KERNEL", "").lower() == "true"
-
 if matplotlib is not None:
-    mpl_backend = os.environ.get("SPY_MPL_BACKEND", "")
-    mpl_ion = os.environ.get("MATPLOTLIB_ION", "")
+    if not IS_IPYTHON:
+        mpl_backend = os.environ.get("SPY_MPL_BACKEND", "")
+        mpl_ion = os.environ.get("MATPLOTLIB_ION", "")
 
-    # Setting no backend if the user asks for it
-    if not mpl_backend or mpl_backend.lower() == 'none':
-        mpl_backend = None
+        # Setting no backend if the user asks for it
+        if not mpl_backend or mpl_backend.lower() == 'none':
+            mpl_backend = ""
 
-    # Set backend automatically
-    if mpl_backend.lower() == 'automatic':
-        if not IS_EXT_INTERPRETER:
-            if os.environ["QT_API"] == 'pyqt5':
-                mpl_backend = 'Qt5Agg'
+        # Set backend automatically
+        if mpl_backend.lower() == 'automatic':
+            if not IS_EXT_INTERPRETER:
+                if os.environ["QT_API"] == 'pyqt5':
+                    mpl_backend = 'Qt5Agg'
+                else:
+                    mpl_backend = 'Qt4Agg'
             else:
-                mpl_backend = 'Qt4Agg'
-        else:
-            # Test for backend libraries on external interpreters
-            def set_mpl_backend(backend):
-                mod, bend, qt_api = backend
-                try:
-                    if mod:
-                        __import__(mod)
-                    if qt_api and (os.environ["QT_API"] != qt_api):
+                # Test for backend libraries on external interpreters
+                def set_mpl_backend(backend):
+                    mod, bend, qt_api = backend
+                    try:
+                        if mod:
+                            __import__(mod)
+                        if qt_api and (os.environ["QT_API"] != qt_api):
+                            return None
+                        else:
+                            matplotlib.use(bend)
+                            return bend
+                    except (ImportError, ValueError):
                         return None
-                    else:
-                        matplotlib.use(bend)
-                        return bend
-                except (ImportError, ValueError):
-                    return None
 
-            backends = [('PyQt5', 'Qt5Agg', 'pyqt5'),
-                        ('PyQt4', 'Qt4Agg', 'pyqt'),
-                        ('PySide', 'Qt4Agg', 'pyqt'),
-                        ('_tkinter', 'TkAgg', None)]
-            if sys.platform == 'darwin':
-                backends.insert(3, (None, 'MacOSX', None))
+                backends = [('PyQt5', 'Qt5Agg', 'pyqt5'),
+                            ('PyQt4', 'Qt4Agg', 'pyqt'),
+                            ('PySide', 'Qt4Agg', 'pyqt')]
+                if not os.name == 'nt':
+                     backends.append( ('_tkinter', 'TkAgg', None) )
+    
+                for b in backends:
+                    mpl_backend = set_mpl_backend(b)
+                    if mpl_backend:
+                        break
 
-            for b in backends:
-                mpl_backend = set_mpl_backend(b)
-                if mpl_backend:
-                    break
+                if not mpl_backend:
+                    _print("NOTE: No suitable Matplotlib backend was found!\n"
+                           "      You won't be able to create plots\n")
 
-            if not mpl_backend:
-                _print("NOTE: No suitable Matplotlib backend was found!\n"
-                       "      You won't be able to create plots\n")
+        # To have mpl docstrings as rst
+        matplotlib.rcParams['docstring.hardcopy'] = True
 
-    # To have mpl docstrings as rst
-    matplotlib.rcParams['docstring.hardcopy'] = True
+        # Activate interactive mode when needed
+        if mpl_ion.lower() == "true":
+            matplotlib.rcParams['interactive'] = True
 
-    # Activate interactive mode when needed
-    if mpl_ion.lower() == "true":
-        matplotlib.rcParams['interactive'] = True
-
-    if not IS_IPYTHON and mpl_backend is not None:
-        import ctypes
         from spyderlib.widgets.externalshell import inputhooks
+        if mpl_backend:
+            import ctypes
 
-        # Grab QT_API
-        qt_api = os.environ["QT_API"]
+            # Grab QT_API
+            qt_api = os.environ["QT_API"]
 
-        # Setting the user defined backend
-        if not IS_EXT_INTERPRETER:
-            matplotlib.use(mpl_backend)
+            # Setting the user defined backend
+            if not IS_EXT_INTERPRETER:
+                matplotlib.use(mpl_backend)
 
-        # Setting the right input hook according to mpl_backend,
-        # IMPORTANT NOTE: Don't try to abstract the steps to set a PyOS
-        # input hook callback in a function. It will **crash** the
-        # interpreter!!
-        if (mpl_backend == "Qt4Agg" or mpl_backend == "Qt5Agg") and \
-          os.name == 'nt' and monitor is not None:
-            # Removing PyQt4 input hook which is not working well on
-            # Windows since opening a subprocess does not attach a real
-            # console to it (with keyboard events...)
-            if qt_api == 'pyqt' or qt_api == 'pyqt5':
+            # Setting the right input hook according to mpl_backend,
+            # IMPORTANT NOTE: Don't try to abstract the steps to set a PyOS
+            # input hook callback in a function. It will **crash** the
+            # interpreter!!
+            if (mpl_backend == "Qt4Agg" or mpl_backend == "Qt5Agg") and \
+              os.name == 'nt' and monitor is not None:
+                # Removing PyQt4 input hook which is not working well on
+                # Windows since opening a subprocess does not attach a real
+                # console to it (with keyboard events...)
+                if qt_api == 'pyqt' or qt_api == 'pyqt5':
+                    inputhooks.remove_pyqt_inputhook()
+                # Using our own input hook
+                # NOTE: it's not working correctly for some configurations
+                # (See issue 1831)
+                callback = inputhooks.set_pyft_callback(qt_nt_inputhook)
+                pyos_ih = inputhooks.get_pyos_inputhook()
+                pyos_ih.value = ctypes.cast(callback, ctypes.c_void_p).value
+            elif mpl_backend == "Qt4Agg" and qt_api == 'pyside':
+                # PySide doesn't have an input hook, so we need to install one
+                # to be able to show plots
+                # Note: This only works well for Posix systems
+                callback = inputhooks.set_pyft_callback(inputhooks.qt4)
+                pyos_ih = inputhooks.get_pyos_inputhook()
+                pyos_ih.value = ctypes.cast(callback, ctypes.c_void_p).value
+            elif (mpl_backend != "Qt4Agg" and qt_api == 'pyqt') \
+              or (mpl_backend != "Qt5Agg" and qt_api == 'pyqt5'):
+                # Matplotlib backends install their own input hooks, so we
+                # need to remove the PyQt one to make them work
                 inputhooks.remove_pyqt_inputhook()
-            # Using our own input hook
-            # NOTE: it's not working correctly for some configurations
-            # (See issue 1831)
-            callback = inputhooks.set_pyft_callback(qt_nt_inputhook)
-            pyos_ih = inputhooks.get_pyos_inputhook()
-            pyos_ih.value = ctypes.cast(callback, ctypes.c_void_p).value
-        elif mpl_backend == "Qt4Agg" and qt_api == 'pyside':
-            # PySide doesn't have an input hook, so we need to install one
-            # to be able to show plots
-            # Note: This only works well for Posix systems
-            callback = inputhooks.set_pyft_callback(inputhooks.qt4)
-            pyos_ih = inputhooks.get_pyos_inputhook()
-            pyos_ih.value = ctypes.cast(callback, ctypes.c_void_p).value
-        elif (mpl_backend != "Qt4Agg" and qt_api == 'pyqt') \
-          or (mpl_backend != "Qt5Agg" and qt_api == 'pyqt5'):
-            # Matplotlib backends install their own input hooks, so we
-            # need to remove the PyQt one to make them work
+        else:
             inputhooks.remove_pyqt_inputhook()
+    else:
+        # To have mpl docstrings as rst
+        matplotlib.rcParams['docstring.hardcopy'] = True
 
 
 #==============================================================================
@@ -422,21 +463,35 @@ if IS_IPYTHON:
             kwargs['exit'] = False
             TestProgram.__init__(self, *args, **kwargs)
     unittest.main = IPyTesProgram
-    
-    # Pandas monkey-patches
-    try:
-        # Make Pandas recognize our IPython consoles as proper qtconsoles
-        # Fixes Issue 2015
-        def in_qtconsole():
-            return True
-        import pandas as pd
-        pd.core.common.in_qtconsole = in_qtconsole
-        
-        # Set Pandas output encoding
-        pd.options.display.encoding = 'utf-8'
-    except (ImportError, AttributeError):
-        pass
-        
+
+
+#==============================================================================
+# Pandas adjustments
+#==============================================================================
+try:
+    # Make Pandas recognize our IPython consoles as proper qtconsoles
+    # Fixes Issue 2015
+    def in_qtconsole():
+        return True
+    import pandas as pd
+    pd.core.common.in_qtconsole = in_qtconsole
+
+    # Set Pandas output encoding
+    pd.options.display.encoding = 'utf-8'
+
+    # Filter warning that appears only on Windows and Spyder for
+    # DataFrames with np.nan values in Pandas 0.17-
+    # Example:
+    # import pandas as pd, numpy as np
+    # pd.Series([np.nan,np.nan,np.nan],index=[1,2,3])
+    # Fixes Issue 2991
+    import warnings
+    warnings.filterwarnings(action='ignore', category=RuntimeWarning,
+                            module='pandas.core.format',
+                            message=".*invalid value encountered in.*")
+except (ImportError, AttributeError):
+    pass
+
 
 #==============================================================================
 # Pdb adjustments
@@ -771,7 +826,7 @@ def runfile(filename, args=None, wdir=None, namespace=None, post_mortem=False):
     namespace['__file__'] = filename
     sys.argv = [filename]
     if args is not None:
-        for arg in args.split():
+        for arg in shlex.split(args):
             sys.argv.append(arg)
     if wdir is not None:
         try:
@@ -817,8 +872,8 @@ def evalsc(command):
     """Evaluate special commands
     (analog to IPython's magic commands but far less powerful/complete)"""
     assert command.startswith('%')
-    
-    from subprocess import Popen, PIPE
+    from spyderlib.utils import programs
+
     namespace = _get_globals()
     command = command[1:].strip()  # Remove leading %
 
@@ -842,10 +897,10 @@ def evalsc(command):
             _print(os.getcwd())
     elif command == 'ls':
         if os.name == 'nt':
-            Popen('dir', shell=True, stdin=PIPE)
+            programs.run_shell_command('dir')
             _print('\n')
         else:
-            Popen('ls', shell=True, stdin=PIPE)
+            programs.run_shell_command('ls')
             _print('\n')
     elif command == 'scientific':
         from spyderlib.config import base

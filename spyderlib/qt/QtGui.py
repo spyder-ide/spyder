@@ -17,6 +17,8 @@ elif os.environ['QT_API'] == 'pyqt':
     from PyQt4.Qt import QKeySequence, QTextCursor            # analysis:ignore
     from PyQt4.QtGui import *                                 # analysis:ignore
     QStyleOptionViewItem = QStyleOptionViewItemV4             # analysis:ignore
+    del QItemSelection, QItemSelectionRange                   # analysis:ignore
 else:
     from PySide.QtGui import *                                # analysis:ignore
     QStyleOptionViewItem = QStyleOptionViewItemV4             # analysis:ignore
+    del QItemSelection, QItemSelectionRange                   # analysis:ignore

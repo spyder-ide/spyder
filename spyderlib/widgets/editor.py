@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2011 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -11,42 +11,44 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
+# Local imports
 from __future__ import print_function
-
-from spyderlib.qt import is_pyqt46
-from spyderlib.qt.QtGui import (QVBoxLayout, QMessageBox, QMenu, QFont,
-                                QAction, QApplication, QWidget,
-                                QKeySequence, QMainWindow, QSplitter,
-                                QHBoxLayout)
-from spyderlib.qt.QtCore import (Signal, Qt, QFileInfo, QThread, QObject,
-                                 QByteArray, QSize, QPoint, QTimer, Slot)
-from spyderlib.qt.compat import getsavefilename
-import spyderlib.utils.icon_manager as ima
-
 import os
-import sys
 import os.path as osp
+import sys
+
+# Third party imports
+from qtpy import is_pyqt46
+from qtpy.compat import getsavefilename
+from qtpy.QtCore import (QByteArray, QFileInfo, QObject, QPoint, QSize, Qt,
+                         QThread, QTimer, Signal, Slot)
+from qtpy.QtGui import QFont, QKeySequence
+from qtpy.QtWidgets import (QAction, QApplication, QHBoxLayout, QMainWindow,
+                            QMessageBox, QMenu, QSplitter, QVBoxLayout,
+                            QWidget)
 
 # Local imports
-from spyderlib.utils import encoding, sourcecode, codeanalysis
-from spyderlib.utils import introspection
-from spyderlib.config.base import _, DEBUG, STDOUT, STDERR
-from spyderlib.config.main import EDIT_FILTERS, EDIT_EXT, get_filter, EDIT_FILETYPES
+from spyderlib.config.base import _, DEBUG, STDERR, STDOUT
 from spyderlib.config.gui import create_shortcut, new_shortcut
-from spyderlib.utils.qthelpers import (create_action, add_actions,
-                                       mimedata2url, get_filetype_icon,
-                                       create_toolbutton)
-from spyderlib.widgets.tabs import BaseTabs
-from spyderlib.widgets.findreplace import FindReplace
+from spyderlib.config.utils import get_edit_extensions
+from spyderlib.py3compat import qbytearray_to_str, to_text_string, u
+from spyderlib.utils import icon_manager as ima
+from spyderlib.utils import (codeanalysis, encoding, sourcecode,
+                             syntaxhighlighters)
+from spyderlib.utils.introspection.manager import IntrospectionManager
+from spyderlib.utils.qthelpers import (add_actions, create_action,
+                                       create_toolbutton, get_filetype_icon,
+                                       mimedata2url)
 from spyderlib.widgets.editortools import OutlineExplorerWidget
-from spyderlib.widgets.status import (ReadWriteStatus, EOLStatus,
-                                      EncodingStatus, CursorPositionStatus)
-from spyderlib.widgets.sourcecode import syntaxhighlighters, codeeditor
-from spyderlib.widgets.sourcecode.base import TextEditBaseWidget  #analysis:ignore
-from spyderlib.widgets.sourcecode.codeeditor import Printer  #analysis:ignore
+from spyderlib.widgets.fileswitcher import FileSwitcher
+from spyderlib.widgets.findreplace import FindReplace
+from spyderlib.widgets.sourcecode import codeeditor
+from spyderlib.widgets.sourcecode.base import TextEditBaseWidget  # analysis:ignore
+from spyderlib.widgets.sourcecode.codeeditor import Printer       # analysis:ignore
 from spyderlib.widgets.sourcecode.codeeditor import get_file_language
-from spyderlib.widgets.file_switcher import FileSwitcher
-from spyderlib.py3compat import to_text_string, qbytearray_to_str, u
+from spyderlib.widgets.status import (CursorPositionStatus, EncodingStatus,
+                                      EOLStatus, ReadWriteStatus)
+from spyderlib.widgets.tabs import BaseTabs
 
 DEBUG_EDITOR = DEBUG >= 3
 
@@ -159,7 +161,7 @@ class FileInfo(QObject):
     save_breakpoints = Signal(str, str)
     text_changed_at = Signal(str, int)
     edit_goto = Signal(str, int, str)
-    send_to_inspector = Signal(str, str, str, str, bool)
+    send_to_help = Signal(str, str, str, str, bool)
 
     def __init__(self, filename, encoding, editor, new, threadmanager,
                  introspection_plugin):
@@ -185,6 +187,7 @@ class FileInfo(QObject):
 
     def text_changed(self):
         """Editor's text has changed"""
+        self.default = False
         self.text_changed_at.emit(self.filename,
                                   self.editor.get_position('cursor'))
 
@@ -343,10 +346,16 @@ class EditorStack(QWidget):
                 icon=ima.icon('editcopy'),
                 triggered=lambda:
                 QApplication.clipboard().setText(self.get_current_filename()))
+        close_right = create_action(self, _("Close all to the right"),
+                                    triggered=self.close_all_right)
+        close_all_but_this = create_action(self, _("Close all but this"),
+                                           triggered=self.close_all_but_this)
+
         self.menu_actions = actions + [None, fileswitcher_action,
-                                       copy_to_cb_action]
+                                       copy_to_cb_action, None, close_right,
+                                       close_all_but_this]
         self.outlineexplorer = None
-        self.inspector = None
+        self.help = None
         self.unregister_callback = None
         self.is_closable = False
         self.new_action = None
@@ -375,14 +384,15 @@ class EditorStack(QWidget):
         self.auto_unindent_enabled = True
         self.indent_chars = " "*4
         self.tab_stop_width = 40
-        self.inspector_enabled = False
+        self.help_enabled = False
         self.default_font = None
         self.wrap_enabled = False
         self.tabmode_enabled = False
         self.intelligent_backspace_enabled = True
         self.highlight_current_line_enabled = False
         self.highlight_current_cell_enabled = False
-        self.occurence_highlighting_enabled = True
+        self.occurrence_highlighting_enabled = True
+        self.occurrence_highlighting_timeout=1500
         self.checkeolchars_enabled = True
         self.always_remove_trailing_spaces = False
         self.fullpath_sorting_enabled = None
@@ -392,9 +402,9 @@ class EditorStack(QWidget):
         if ccs not in syntaxhighlighters.COLOR_SCHEME_NAMES:
             ccs = syntaxhighlighters.COLOR_SCHEME_NAMES[0]
         self.color_scheme = ccs
-        self.introspector = introspection.PluginManager(self)
+        self.introspector = IntrospectionManager(self)
 
-        self.introspector.send_to_inspector.connect(self.send_to_inspector)
+        self.introspector.send_to_help.connect(self.send_to_help)
         self.introspector.edit_goto.connect(
              lambda fname, lineno, name:
              self.edit_goto.emit(fname, lineno, name))
@@ -565,16 +575,16 @@ class EditorStack(QWidget):
             editor.add_remove_breakpoint(edit_condition=True)
 
     def inspect_current_object(self):
-        """Inspect current object in Object Inspector"""
+        """Inspect current object in the Help plugin"""
         if self.introspector:
             editor = self.get_current_editor()
             position = editor.get_position('cursor')
-            self.inspector.switch_to_editor_source()
+            self.help.switch_to_editor_source()
             self.introspector.show_object_info(position, auto=False)
         else:
             text = self.get_current_editor().get_current_object()
             if text:
-                self.send_to_inspector(text, force=True)
+                self.send_to_help(text, force=True)
 
     #------ Editor Widget Settings
     def set_closable(self, state):
@@ -608,8 +618,8 @@ class EditorStack(QWidget):
         oe_btn.setDefaultAction(self.outlineexplorer.visibility_action)
         self.add_corner_widgets_to_tabbar([5, oe_btn])
 
-    def set_inspector(self, inspector):
-        self.inspector = inspector
+    def set_help(self, help_plugin):
+        self.help = help_plugin
 
     def set_tempfile_path(self, path):
         self.tempfile_path = path
@@ -676,7 +686,7 @@ class EditorStack(QWidget):
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_blanks_enabled(state)
-        
+
     def set_edgeline_enabled(self, state):
         # CONF.get(self.CONF_SECTION, 'edge_line')
         self.edgeline_enabled = state
@@ -767,11 +777,10 @@ class EditorStack(QWidget):
             for finfo in self.data:
                 finfo.editor.setTabStopWidth(tab_stop_width)
 
-    def set_inspector_enabled(self, state):
-        self.inspector_enabled = state
+    def set_help_enabled(self, state):
+        self.help_enabled = state
 
     def set_default_font(self, font, color_scheme=None):
-        # get_font(self.CONF_SECTION)
         self.default_font = font
         if color_scheme is not None:
             self.color_scheme = color_scheme
@@ -806,19 +815,19 @@ class EditorStack(QWidget):
             for finfo in self.data:
                 finfo.editor.toggle_intelligent_backspace(state)
 
-    def set_occurence_highlighting_enabled(self, state):
-        # CONF.get(self.CONF_SECTION, 'occurence_highlighting')
-        self.occurence_highlighting_enabled = state
+    def set_occurrence_highlighting_enabled(self, state):
+        # CONF.get(self.CONF_SECTION, 'occurrence_highlighting')
+        self.occurrence_highlighting_enabled = state
         if self.data:
             for finfo in self.data:
-                finfo.editor.set_occurence_highlighting(state)
+                finfo.editor.set_occurrence_highlighting(state)
 
-    def set_occurence_highlighting_timeout(self, timeout):
-        # CONF.get(self.CONF_SECTION, 'occurence_highlighting/timeout')
-        self.occurence_highlighting_timeout = timeout
+    def set_occurrence_highlighting_timeout(self, timeout):
+        # CONF.get(self.CONF_SECTION, 'occurrence_highlighting/timeout')
+        self.occurrence_highlighting_timeout = timeout
         if self.data:
             for finfo in self.data:
-                finfo.editor.set_occurence_timeout(timeout)
+                finfo.editor.set_occurrence_timeout(timeout)
 
     def set_highlight_current_line_enabled(self, state):
         self.highlight_current_line_enabled = state
@@ -1066,18 +1075,21 @@ class EditorStack(QWidget):
         that is being closed)"""
         current_index = self.get_stack_index()
         count = self.get_stack_count()
+
         if index is None:
             if count > 0:
                 index = current_index
             else:
                 self.find_widget.set_editor(None)
                 return
+
         new_index = None
         if count > 1:
             if current_index == index:
                 new_index = self._get_previous_file_index()
             else:
                 new_index = current_index
+
         is_ok = force or self.save_if_changed(cancelable=True, index=index)
         if is_ok:
             finfo = self.data[index]
@@ -1098,11 +1110,13 @@ class EditorStack(QWidget):
                 # editortabwidget is empty: removing it
                 # (if it's not the first editortabwidget)
                 self.close()
+
             self.opened_files_list_changed.emit()
             self.update_code_analysis_actions.emit()
             self._refresh_outlineexplorer()
             self.refresh_file_dependent_actions.emit()
             self.update_plugin_title.emit()
+
             editor = self.get_current_editor()
             if editor:
                 editor.setFocus()
@@ -1111,8 +1125,10 @@ class EditorStack(QWidget):
                 if index < new_index:
                     new_index -= 1
                 self.set_stack_index(new_index)
+
         if self.get_stack_count() == 0:
             self.sig_new_file[()].emit()
+            return False
 
         return is_ok
 
@@ -1121,6 +1137,18 @@ class EditorStack(QWidget):
         while self.close_file():
             pass
 
+    def close_all_right(self):
+        """ Close all files opened to the right """
+        num = self.get_stack_index()
+        n = self.get_stack_count()
+        for i in range(num, n-1):
+            self.close_file(num+1)
+    
+    def close_all_but_this(self):
+        """Close all files but the current one"""
+        self.close_all_right()
+        for i in range(0, self.get_stack_count()-1  ):
+            self.close_file(0)
 
     #------ Save
     def save_if_changed(self, cancelable=False, index=None):
@@ -1232,11 +1260,9 @@ class EditorStack(QWidget):
         finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
 
     def select_savename(self, original_filename):
-        selectedfilter = get_filter(EDIT_FILETYPES,
-                                    osp.splitext(original_filename)[1])
         self.redirect_stdio.emit(False)
-        filename, _selfilter = getsavefilename(self, _("Save Python script"),
-                               original_filename, EDIT_FILTERS, selectedfilter)
+        filename, _selfilter = getsavefilename(self, _("Save file"),
+                                               original_filename)
         self.redirect_stdio.emit(True)
         if filename:
             return osp.normpath(filename)
@@ -1589,7 +1615,7 @@ class EditorStack(QWidget):
                          self.introspector)
 
         self.add_to_data(finfo, set_current)
-        finfo.send_to_inspector.connect(self.send_to_inspector)
+        finfo.send_to_help.connect(self.send_to_help)
         finfo.analysis_results_changed.connect(
                                   lambda: self.analysis_results_changed.emit())
         finfo.todo_results_changed.connect(
@@ -1614,8 +1640,8 @@ class EditorStack(QWidget):
                 intelligent_backspace=self.intelligent_backspace_enabled,
                 highlight_current_line=self.highlight_current_line_enabled,
                 highlight_current_cell=self.highlight_current_cell_enabled,
-                occurence_highlighting=self.occurence_highlighting_enabled,
-                occurence_timeout=self.occurence_highlighting_timeout,
+                occurrence_highlighting=self.occurrence_highlighting_enabled,
+                occurrence_timeout=self.occurrence_highlighting_timeout,
                 codecompletion_auto=self.codecompletion_auto_enabled,
                 codecompletion_case=self.codecompletion_case_enabled,
                 codecompletion_enter=self.codecompletion_enter_enabled,
@@ -1661,17 +1687,17 @@ class EditorStack(QWidget):
         """Cursor position of one of the editor in the stack has changed"""
         self.sig_editor_cursor_position_changed.emit(line, index)
 
-    def send_to_inspector(self, qstr1, qstr2=None, qstr3=None,
-                          qstr4=None, force=False):
+    def send_to_help(self, qstr1, qstr2=None, qstr3=None, qstr4=None,
+                     force=False):
         """qstr1: obj_text, qstr2: argpspec, qstr3: note, qstr4: doc_text"""
-        if not force and not self.inspector_enabled:
+        if not force and not self.help_enabled:
             return
-        if self.inspector is not None \
-           and (force or self.inspector.dockwidget.isVisible()):
-            # ObjectInspector widget exists and is visible
+        if self.help is not None \
+          and (force or self.help.dockwidget.isVisible()):
+            # Help plugin exists and is visible
             if qstr4 is None:
-                self.inspector.set_object_text(qstr1, ignore_unknown=True,
-                                               force_refresh=force)
+                self.help.set_object_text(qstr1, ignore_unknown=True,
+                                          force_refresh=force)
             else:
                 objtxt = to_text_string(qstr1)
                 name = objtxt.split('.')[-1]
@@ -1680,7 +1706,7 @@ class EditorStack(QWidget):
                 docstring = to_text_string(qstr4)
                 doc = {'obj_text': objtxt, 'name': name, 'argspec': argspec,
                        'note': note, 'docstring': docstring}
-                self.inspector.set_editor_doc(doc, force_refresh=force)
+                self.help.set_editor_doc(doc, force_refresh=force)
             editor = self.get_current_editor()
             editor.setFocus()
 
@@ -1782,7 +1808,7 @@ class EditorStack(QWidget):
         # The second check is necessary on Windows, where source.hasUrls()
         # can return True but source.urls() is []
         if source.hasUrls() and source.urls():
-            if mimedata2url(source, extlist=EDIT_EXT):
+            if mimedata2url(source, extlist=get_edit_extensions()):
                 event.acceptProposedAction()
             else:
                 all_urls = mimedata2url(source)
@@ -1809,7 +1835,7 @@ class EditorStack(QWidget):
         if source.hasUrls():
             files = mimedata2url(source)
             files = [f for f in files if encoding.is_text_file(f)]
-            supported_files = mimedata2url(source, extlist=EDIT_EXT)
+            supported_files = mimedata2url(source, extlist=get_edit_extensions())
             files = set(files or []) | set(supported_files or [])
             for fname in files:
                 self.plugin_load.emit(fname)
@@ -2292,21 +2318,27 @@ class EditorPluginExample(QSplitter):
         """Fake!"""
         pass
 
+
 def test():
     from spyderlib.utils.qthelpers import qapplication
-    app = qapplication()
+    from spyderlib.config.base import get_module_path
+
+    cur_dir = osp.join(get_module_path('spyderlib'), 'widgets')
+    app = qapplication(test_time=8)
     test = EditorPluginExample()
     test.resize(900, 700)
     test.show()
+
     import time
     t0 = time.time()
-    test.load(__file__)
-    test.load("explorer.py")
-    test.load("dicteditor.py")
-    test.load("sourcecode/codeeditor.py")
-    test.load("../spyder.py")
+    test.load(osp.join(cur_dir, "editor.py"))
+    test.load(osp.join(cur_dir, "explorer.py"))
+    test.load(osp.join(cur_dir, "variableexplorer", "collectionseditor.py"))
+    test.load(osp.join(cur_dir, "sourcecode", "codeeditor.py"))
     print("Elapsed time: %.3f s" % (time.time()-t0))
+
     sys.exit(app.exec_())
+
 
 if __name__ == "__main__":
     test()

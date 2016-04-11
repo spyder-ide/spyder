@@ -1,8 +1,13 @@
 # -*- coding: utf-8 -*-
+#
+# Copyright © 2009- The Spyder Development Team
+# Licensed under the terms of the MIT License
+# (see spyderlib/__init__.py for details)
+
 """External shell's monitor"""
 
-#TODO: The "disable auto-refresh when variable explorer is hidden" feature 
-#      broken since we removed the "shell" widget reference from notification 
+#TODO: The "disable auto-refresh when variable explorer is hidden" feature
+#      broken since we removed the "shell" widget reference from notification
 #      thread. We must find another mechanism to avoid refreshing systematically
 #      remote views for all consoles...!
 
@@ -47,7 +52,7 @@ def get_remote_data(data, settings, mode, more_excluded_names=None):
         * mode (string): 'editable' or 'picklable'
         * more_excluded_names: additional excluded names (list)
     """
-    from spyderlib.widgets.dicteditorutils import globalsfilter
+    from spyderlib.widgets.variableexplorer.utils import globalsfilter
     global SUPPORTED_TYPES
     if not SUPPORTED_TYPES:
         SUPPORTED_TYPES = get_supported_types()
@@ -68,7 +73,7 @@ def make_remote_view(data, settings, more_excluded_names=None):
     Make a remote view of dictionary *data*
     -> globals explorer
     """
-    from spyderlib.widgets.dicteditorutils import (get_human_readable_type,
+    from spyderlib.widgets.variableexplorer.utils import (get_human_readable_type,
                                     get_size, get_color_name, value_to_display)
     assert all([name in REMOTE_SETTINGS for name in settings])
     data = get_remote_data(data, settings, mode='editable',
@@ -243,9 +248,9 @@ class Monitor(threading.Thread):
         else:
             ns.update(glbs)
             ns.update(self.pdb_locals)
-        
-        # Add magics to ns so we can show help about them on the Object
-        # Inspector
+
+        # Add magics to ns so we can show help about them on the Help
+        # plugin
         if self.ip and with_magics:
             line_magics = self.ip.magics_manager.magics['line']
             cell_magics = self.ip.magics_manager.magics['cell']

@@ -1,22 +1,23 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
-"""Namespace Browser Plugin"""
+"""Variable Explorer Plugin"""
 
-from spyderlib.qt.QtGui import QGroupBox, QStackedWidget, QVBoxLayout, QWidget
-from spyderlib.qt.QtCore import Signal, Slot
-import spyderlib.utils.icon_manager as ima
+# Third party imports
+from qtpy.QtCore import Signal
+from qtpy.QtWidgets import QGroupBox, QStackedWidget, QVBoxLayout, QWidget
 
 # Local imports
 from spyderlib.config.base import _
 from spyderlib.config.main import CONF
+from spyderlib.plugins import PluginConfigPage, SpyderPluginMixin
 from spyderlib.utils import programs
-from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage
+from spyderlib.utils import icon_manager as ima
 from spyderlib.widgets.externalshell.monitor import REMOTE_SETTINGS
-from spyderlib.widgets.externalshell.namespacebrowser import NamespaceBrowser
+from spyderlib.widgets.variableexplorer.namespacebrowser import NamespaceBrowser
 
 
 class VariableExplorerConfigPage(PluginConfigPage):

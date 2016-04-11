@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -13,33 +13,35 @@
 
 #FIXME: Internal shell MT: for i in range(100000): print i -> bug
 
-#----Builtins*
-from spyderlib.py3compat import builtins
-from spyderlib.widgets.objecteditor import oedit
-builtins.oedit = oedit
-
+# Standard library imports
+from time import time
 import os
 import threading
-from time import time
-from subprocess import Popen
 
-from spyderlib.qt.QtGui import QMessageBox
-from spyderlib.qt.QtCore import Signal, Slot, QObject, QEventLoop
+# Third party imports
+from qtpy.QtCore import QEventLoop, QObject, Signal, Slot
+from qtpy.QtWidgets import QMessageBox
 
-# Local import
+# Local imports
 from spyderlib import get_versions
-from spyderlib.utils.qthelpers import create_action
 from spyderlib.interpreter import Interpreter
-from spyderlib.utils.dochelpers import getargtxt, getsource, getdoc, getobjdir
+from spyderlib.py3compat import (builtins, getcwd, to_binary_string,
+                                 to_text_string, u)
+from spyderlib.utils import icon_manager as ima
+from spyderlib.utils import programs
+from spyderlib.utils.dochelpers import getargtxt, getdoc, getobjdir, getsource
 from spyderlib.utils.misc import get_error_match
-#TODO: remove the CONF object and make it work anyway
+from spyderlib.utils.qthelpers import create_action
+from spyderlib.widgets.shell import PythonShellWidget
+from spyderlib.widgets.variableexplorer.objecteditor import oedit
+# TODO: remove the CONF object and make it work anyway
 # In fact, this 'CONF' object has nothing to do in package spyderlib.widgets
 # which should not contain anything directly related to Spyder's main app
-from spyderlib.config.base import get_conf_path, _, DEBUG
+from spyderlib.config.base import _, DEBUG, get_conf_path
 from spyderlib.config.main import CONF
-from spyderlib.widgets.shell import PythonShellWidget
-from spyderlib.py3compat import to_text_string, getcwd, to_binary_string, u
-import spyderlib.utils.icon_manager as ima
+
+
+builtins.oedit = oedit
 
 
 def create_banner(message):
@@ -77,6 +79,11 @@ class SysOutput(QObject):
     # We need to add this method to fix Issue 1789
     def flush(self):
         pass
+
+    # This is needed to fix Issue 2984
+    @property
+    def closed(self):
+        return False
 
 class WidgetProxyData(object):
     pass
@@ -210,7 +217,7 @@ class InternalShell(PythonShellWidget):
         """Exit interpreter"""
         self.interpreter.exit_flag = True
         if self.multithreaded:
-            self.interpreter.stdin_write.write('\n')
+            self.interpreter.stdin_write.write(to_binary_string('\n'))
         self.interpreter.restore_stds()
         
     def edit_script(self, filename, external_editor):
@@ -298,11 +305,10 @@ class InternalShell(PythonShellWidget):
         editor_path = CONF.get('internal_console', 'external_editor/path')
         goto_option = CONF.get('internal_console', 'external_editor/gotoline')
         try:
+            args = [filename]
             if goto > 0 and goto_option:
-                Popen(r'%s "%s" %s%d' % (editor_path, filename,
-                                         goto_option, goto))
-            else:
-                Popen(r'%s "%s"' % (editor_path, filename))
+                args.append('%s%d'.format(goto_option, goto))
+            programs.run_program(editor_path, args)
         except OSError:
             self.write_error("External editor was not found:"
                              " %s\n" % editor_path)

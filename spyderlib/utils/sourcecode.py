@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
 """
 Source code text utilities
 """
+
 import re
+
 
 # Order is important:
 EOL_CHARS = (("\r\n", 'nt'), ("\n", 'posix'), ("\r", 'mac'))
@@ -32,11 +34,13 @@ PYTHON_LIKE_LANGUAGES = ('Python', 'Cython', 'Enaml')
 
 CELL_LANGUAGES = {'Python': ('#%%', '# %%', '# <codecell>', '# In[')}
 
+
 def get_eol_chars(text):
     """Get text EOL characters"""
     for eol_chars, _os_name in EOL_CHARS:
         if text.find(eol_chars) > -1:
             return eol_chars
+
 
 def get_os_name_from_eol_chars(eol_chars):
     """Return OS name from EOL characters"""
@@ -44,11 +48,13 @@ def get_os_name_from_eol_chars(eol_chars):
         if eol_chars == chars:
             return os_name
 
+
 def get_eol_chars_from_os_name(os_name):
     """Return EOL characters from OS name"""
     for eol_chars, name in EOL_CHARS:
         if name == os_name:
             return eol_chars
+
 
 def has_mixed_eol_chars(text):
     """Detect if text has mixed EOL characters"""
@@ -57,6 +63,7 @@ def has_mixed_eol_chars(text):
         return False
     correct_text = eol_chars.join((text+eol_chars).splitlines())
     return repr(correct_text) != repr(text)
+
 
 def fix_indentation(text):
     """Replace tabs by spaces"""
@@ -117,8 +124,8 @@ def get_identifiers(source_code):
 if __name__ == '__main__':
     code = 'import functools\nfunctools.partial'
     assert get_primary_at(code, len(code)) == 'functools.partial'
-    assert get_identifiers(code) == ['import', 'functools', 
-                                     'functools.partial']
+    assert set(get_identifiers(code)) == set(['import', 'functools',
+                                              'functools.partial'])
     assert split_source(code) == ['import functools', 'functools.partial']
     code = code.replace('\n', '\r\n')
     assert split_source(code) == ['import functools', 'functools.partial']
