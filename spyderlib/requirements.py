@@ -45,8 +45,10 @@ def check_qt():
                          "%s %s+ is required (found v%s)."
                          % (package_name, required_ver, actual_ver))
     except ImportError:
-        show_warning("Please check Spyder installation requirements:\n\n"
+        show_warning("Failed to import qtpy.\n"
+                     "Please check Spyder installation requirements:\n\n"
+                     "qtpy and either\n"
                      "%s %s+ or\n"
                      "%s %s+\n\n"
-                     "is required to run Spyder"
+                     "are required to run Spyder."
                      % (qt_infos['pyqt5'] + qt_infos['pyqt']))
