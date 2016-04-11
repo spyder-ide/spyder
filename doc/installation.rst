@@ -160,7 +160,7 @@ The requirements to run Spyder are:
 * `Qtconsole <http://jupyter.org/qtconsole/stable/>`_ >=4.0 -- for an
   enhanced Python interpreter.
 
-* `Rope <http://rope.sourceforge.net/>`_ >=0.9.4 or
+* `Rope <http://rope.sourceforge.net/>`_ >=0.9.4 and
   `Jedi <http://jedi.jedidjah.ch/en/latest/>` 0.8.1 -- for code completion,
   go-to-definition and calltips on the Editor.
 
@@ -187,6 +187,11 @@ The requirements to run Spyder are:
   FontAwesome.
 
 * Pickleshare -- To show import completions on the Editor and Consoles.
+
+* `PyZMQ <https://github.com/zeromq/pyzmq>`_ -- To run introspection services on the
+  Editor asynchronously.
+
+* `QtPy <https://github.com/spyder-ide/qtpy>`_ -- To run Spyder in PyQt4 and PyQt5.
 
 
 Optional modules

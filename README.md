@@ -151,6 +151,8 @@ a Python version greater than 2.7 (Python 3.2 is not supported anymore).
 * **Qtawesome**: To have an icon theme based on FontAwesome.
 * **Pickleshare**: Show import completions on the Python consoles.
 * **PyZMQ**: Run introspection services asynchronously.
+* **QtPy**: Abstracion layer for Python Qt bindings so that Spyder can run on PyQt4
+  and PyQt5.
 
 ### Optional dependencies
 
