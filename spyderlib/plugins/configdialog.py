@@ -28,7 +28,7 @@ from qtpy.QtWidgets import (QButtonGroup, QCheckBox, QComboBox, QDialog,
 # Local imports
 from spyderlib.config.base import (_, LANGUAGE_CODES, load_lang_conf,
                                    running_in_mac_app, save_lang_conf)
-from spyderlib.config.gui import get_font
+from spyderlib.config.gui import get_font, set_font
 from spyderlib.config.main import CONF
 from spyderlib.config.user import NoDefault
 from spyderlib.config.utils import is_gtk_desktop
@@ -955,6 +955,7 @@ class MainConfigPage(GeneralConfigPage):
     def set_font(self, font, option):
         """Set global font used in Spyder."""
         # Update fonts in all plugins
+        set_font(font, option=option)
         plugins = self.main.widgetlist + self.main.thirdparty_plugins
         for plugin in plugins:
             plugin.update_font()
