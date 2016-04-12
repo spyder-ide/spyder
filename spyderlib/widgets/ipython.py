@@ -218,14 +218,14 @@ These commands were executed:
 """
             banner = banner + lines
         return banner
-    
+
     def short_banner(self):
-        """Short banner with Python and IPython versions"""
-        from IPython.core.release import version
+        """Short banner with Python and QtConsole versions"""
+        from qtconsole._version import __version__
         py_ver = '%d.%d.%d' % (sys.version_info[0], sys.version_info[1],
                                sys.version_info[2])
-        banner = 'Python %s on %s -- IPython %s' % (py_ver, sys.platform,
-                                                    version)
+        banner = 'Python %s on %s -- QtConsole %s' % (py_ver, sys.platform,
+                                                      __version__)
         return banner
 
     def clear_console(self):
