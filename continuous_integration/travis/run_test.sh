@@ -10,7 +10,7 @@ export TEST_CI_APP=True
 # We install them here and not in travis_install.sh to see if
 # Spyder is correctly pulling its deps (some of them are shared
 # with mpl)
-export EXTRA_PACKAGES="pandas sympy pillow"
+export EXTRA_PACKAGES="nomkl pandas sympy pillow"
 
 
 # Don't install mpl for PyQt5 because it pulls PyQt4
@@ -30,11 +30,6 @@ if [ "$USE_CONDA" = true ] ; then
 
     # Install extra packages
     conda install -q $EXTRA_PACKAGES
-
-    # Jedi 0.8 is not available in conda
-    if [ "$TRAVIS_PYTHON_VERSION" = "3.5" ]; then
-        pip install jedi==0.8.1
-    fi
 else
     cd $FULL_SPYDER_CLONE
     pip install dist/spyder-*.whl

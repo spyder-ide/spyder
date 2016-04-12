@@ -11,19 +11,22 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-from spyderlib.qt.QtGui import (QHBoxLayout, QGridLayout, QCheckBox, QLabel,
-                                QWidget, QSizePolicy, QTextCursor)
-from spyderlib.qt.QtCore import Signal, Slot, Qt, QTimer
-import spyderlib.utils.icon_manager as ima
-
+# Standard library imports
 import re
+
+# Third party imports
+from qtpy.QtCore import Qt, QTimer, Signal, Slot
+from qtpy.QtGui import QTextCursor
+from qtpy.QtWidgets import (QCheckBox, QGridLayout, QHBoxLayout, QLabel,
+                            QSizePolicy, QWidget)
 
 # Local imports
 from spyderlib.config.base import _
 from spyderlib.config.gui import create_shortcut, new_shortcut
-from spyderlib.utils.qthelpers import get_icon, create_toolbutton
-from spyderlib.widgets.comboboxes import PatternComboBox
 from spyderlib.py3compat import to_text_string
+from spyderlib.utils import icon_manager as ima
+from spyderlib.utils.qthelpers import create_toolbutton, get_icon
+from spyderlib.widgets.comboboxes import PatternComboBox
 
 
 def is_position_sup(pos1, pos2):
@@ -198,7 +201,15 @@ class FindReplace(QWidget):
         self.visibility_changed.emit(True)
         if self.editor is not None:
             text = self.editor.get_selected_text()
-            if len(text) > 0:
+
+            # If no text is highlighted for search, use whatever word is under the cursor
+            if not text:
+                cursor = self.editor.textCursor()
+                cursor.select(QTextCursor.WordUnderCursor)
+                text = to_text_string(cursor.selectedText())
+
+            # Now that text value is sorted out, use it for the search
+            if text:
                 self.search_text.setEditText(text)
                 self.search_text.lineEdit().selectAll()
                 self.refresh()
@@ -247,9 +258,14 @@ class FindReplace(QWidget):
             browser.WebView
         """
         self.editor = editor
-        from spyderlib.qt.QtWebKit import QWebView
-        self.words_button.setVisible(not isinstance(editor, QWebView))
-        self.re_button.setVisible(not isinstance(editor, QWebView))
+        # Note: This is necessary to test widgets/editor.py
+        # in Qt builds that don't have web widgets
+        try:
+            from qtpy.QtWebEngineWidgets import QWebEngineView
+        except ImportError:
+            QWebEngineView = type(None)
+        self.words_button.setVisible(not isinstance(editor, QWebEngineView))
+        self.re_button.setVisible(not isinstance(editor, QWebEngineView))
         from spyderlib.widgets.sourcecode.codeeditor import CodeEditor
         self.is_code_editor = isinstance(editor, CodeEditor)
         self.highlight_button.setVisible(self.is_code_editor)

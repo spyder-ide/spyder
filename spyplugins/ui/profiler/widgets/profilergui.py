@@ -13,32 +13,31 @@ See the official documentation on python profiling:
 http://docs.python.org/library/profile.html
 """
 
+# Standard library imports
 from __future__ import with_statement
-
-from spyderlib.qt.QtGui import (QHBoxLayout, QWidget, QMessageBox, QVBoxLayout,
-                                QLabel, QTreeWidget, QTreeWidgetItem,
-                                QApplication, QColor)
-from spyderlib.qt.QtCore import (Signal, QProcess, QByteArray, Qt, QTextCodec,
-                                 QProcessEnvironment)
-
-import spyderlib.utils.icon_manager as ima
-locale_codec = QTextCodec.codecForLocale()
-from spyderlib.qt.compat import getopenfilename, getsavefilename
-
-import sys
 import os
 import os.path as osp
+import sys
 import time
 
+# Third party imports
+from qtpy.compat import getopenfilename, getsavefilename
+from qtpy.QtCore import (QByteArray, QProcess, QProcessEnvironment, QTextCodec,
+                         Qt, Signal)
+from qtpy.QtGui import QColor
+from qtpy.QtWidgets import (QApplication, QHBoxLayout, QLabel, QMessageBox,
+                            QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget)
+
 # Local imports
+from spyderlib.config.base import get_conf_path, get_translation
+from spyderlib.py3compat import getcwd, to_text_string
+from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.qthelpers import (create_toolbutton, get_item_user_text,
                                        set_item_user_text)
 from spyderlib.utils.programs import shell_split
-from spyderlib.config.base import get_conf_path, get_translation
-from spyderlib.widgets.variableexplorer.texteditor import TextEditor
 from spyderlib.widgets.comboboxes import PythonModulesComboBox
 from spyderlib.widgets.externalshell import baseshell
-from spyderlib.py3compat import to_text_string, getcwd
+from spyderlib.widgets.variableexplorer.texteditor import TextEditor
 
 # This is needed for testing this module as a stand alone script
 try:
@@ -46,6 +45,9 @@ try:
 except KeyError as error:
     import gettext
     _ = gettext.gettext
+
+
+locale_codec = QTextCodec.codecForLocale()
 
 
 def is_profiler_installed():

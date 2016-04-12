@@ -27,12 +27,12 @@ from spyderlib.config.base import _
 PANDAS_REQVER = '>=0.13.1'
 dependencies.add('pandas',  _("View and edit DataFrames and Series in the "
                               "Variable Explorer"),
-                 required_version=PANDAS_REQVER)
+                 required_version=PANDAS_REQVER, optional=True)
 
 NUMPY_REQVER = '>=1.7'
 dependencies.add("numpy", _("View and edit two and three dimensional arrays "
                             "in the Variable Explorer"),
-                 required_version=NUMPY_REQVER)
+                 required_version=NUMPY_REQVER, optional=True)
 
 #==============================================================================
 # FakeObject
@@ -238,16 +238,14 @@ def value_to_display(value, truncate=False, trunc_len=80, minmax=False):
             display = 'Field names: ' + ', '.join(fields)
         elif isinstance(value, MaskedArray):
             display = 'Masked array'
-        elif minmax and isinstance(value, ndarray):
-            if value.size == 0:
+        elif isinstance(value, ndarray):
+            if minmax:
+                try:
+                    display = 'Min: %r\nMax: %r' % (value.min(), value.max())
+                except (TypeError, ValueError):
+                    display = repr(value)
+            else:
                 display = repr(value)
-            try:
-                display = 'Min: %r\nMax: %r' % (value.min(), value.max())
-            except TypeError:
-                pass
-            except ValueError:
-                # Happens when one of the array cell contains a sequence
-                pass
         elif isinstance(value, ndarray):
             display = repr(value)
         elif isinstance(value, (list, tuple, dict, set)):
@@ -277,7 +275,7 @@ def value_to_display(value, truncate=False, trunc_len=80, minmax=False):
             try:
                 display = to_text_string(value, 'utf8')
             except:
-                pass
+                display = value
         elif is_text_string(value):
             display = value
         elif isinstance(value, NUMERIC_TYPES) or isinstance(value, bool) or \
@@ -301,7 +299,7 @@ def value_to_display(value, truncate=False, trunc_len=80, minmax=False):
 
 def display_to_value(value, default_value, ignore_errors=True):
     """Convert back to value"""
-    from spyderlib.qt.compat import from_qvariant
+    from qtpy.compat import from_qvariant
     value = from_qvariant(value, to_text_string)
     try:
         np_dtype = get_numpy_dtype(default_value)

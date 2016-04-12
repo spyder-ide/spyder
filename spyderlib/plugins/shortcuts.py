@@ -6,28 +6,30 @@
 
 """Shortcut management"""
 
+# Standard library imports
 from __future__ import print_function
 import os
 import re
 import sys
 
-from spyderlib.qt.QtGui import (QVBoxLayout, QTableView, QMessageBox,
-                                QPushButton, QKeySequence, QDialog,
-                                QDialogButtonBox, QLabel, QGridLayout,
-                                QLineEdit, QAbstractItemView,
-                                QSortFilterProxyModel, QApplication,
-                                QSpacerItem, QRegExpValidator, QHBoxLayout)
-from spyderlib.qt.QtCore import Qt, QAbstractTableModel, QModelIndex, QRegExp
-from spyderlib.qt.compat import to_qvariant, from_qvariant
+# Third party imports
+from qtpy.compat import from_qvariant, to_qvariant
+from qtpy.QtCore import (QAbstractTableModel, QModelIndex, QRegExp,
+                         QSortFilterProxyModel, Qt)
+from qtpy.QtGui import (QKeySequence, QRegExpValidator)
+from qtpy.QtWidgets import (QAbstractItemView, QApplication, QDialog,
+                            QDialogButtonBox, QGridLayout, QHBoxLayout, QLabel,
+                            QLineEdit, QMessageBox, QPushButton, QSpacerItem,
+                            QTableView, QVBoxLayout)
 
 # Local imports
 from spyderlib.config.base import _, debug_print
-from spyderlib.config.gui import (get_shortcut, set_shortcut,
-                                  iter_shortcuts, reset_shortcuts)
+from spyderlib.config.gui import (get_shortcut, iter_shortcuts,
+                                  reset_shortcuts, set_shortcut)
 from spyderlib.plugins.configdialog import GeneralConfigPage
 from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.qthelpers import get_std_icon
-from spyderlib.utils.stringmatching import get_search_regex, get_search_scores
+from spyderlib.utils.stringmatching import get_search_scores, get_search_regex
 from spyderlib.widgets.helperwidgets import HTMLDelegate
 from spyderlib.widgets.helperwidgets import HelperToolButton
 
@@ -789,8 +791,13 @@ class ShortcutsConfigPage(GeneralConfigPage):
         self.setTabOrder(self.finder, self.reset_btn)
 
         # Signals and slots
-        self.table.proxy_model.dataChanged.connect(
-                     lambda i1, i2, opt='': self.has_been_modified(opt))
+        if PYQT5:
+            # Qt5 'dataChanged' has 3 parameters
+            self.table.proxy_model.dataChanged.connect(
+                lambda i1, i2, roles, opt='': self.has_been_modified(opt))
+        else:
+            self.table.proxy_model.dataChanged.connect(
+                lambda i1, i2, opt='': self.has_been_modified(opt))
         self.reset_btn.clicked.connect(self.reset_to_default)
 
     def check_settings(self):

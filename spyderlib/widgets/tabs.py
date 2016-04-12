@@ -11,21 +11,24 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-from spyderlib.qt.QtGui import (QTabWidget, QMenu, QDrag, QApplication,
-                                QTabBar, QWidget, QHBoxLayout)
-from spyderlib.qt.QtCore import Signal, Qt, QPoint, QMimeData, QByteArray
-import spyderlib.utils.icon_manager as ima
-
+# Standard library imports
 import os.path as osp
 import sys
+
+# Third party imports
+from qtpy.QtCore import QByteArray, QMimeData, QPoint, Qt, Signal
+from qtpy.QtGui import QDrag
+from qtpy.QtWidgets import (QApplication, QHBoxLayout, QMenu, QTabBar,
+                            QTabWidget, QWidget)
 
 # Local imports
 from spyderlib.config.base import _
 from spyderlib.config.gui import new_shortcut
-from spyderlib.utils.misc import get_common_path
-from spyderlib.utils.qthelpers import (add_actions, create_toolbutton,
-                                       create_action)
 from spyderlib.py3compat import PY2, to_text_string
+from spyderlib.utils import icon_manager as ima
+from spyderlib.utils.misc import get_common_path
+from spyderlib.utils.qthelpers import (add_actions, create_action,
+                                       create_toolbutton)
 
 
 class TabBar(QTabBar):
@@ -218,6 +221,7 @@ class BaseTabs(QTabWidget):
         
     def contextMenuEvent(self, event):
         """Override Qt method"""
+        self.setCurrentIndex(self.tabBar().tabAt(event.pos()))
         if self.menu:
             self.menu.popup(event.globalPos())
             

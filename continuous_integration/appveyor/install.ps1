@@ -83,10 +83,12 @@ function UpdateConda ($python_home) {
     $conda_path = $python_home + "\Scripts\conda.exe"
     Write-Host "Updating conda..."
     $args = "update --yes conda"
-    $channel_args = "config --add channels spyder-ide"
+    $spy_channel_args = "config --add channels spyder-ide"
+    $mlabs_channel_args = "config --add channels m-labs"
     Write-Host $conda_path $args
     Start-Process -FilePath "$conda_path" -ArgumentList $args -Wait -Passthru
-    Start-Process -FilePath "$conda_path" -ArgumentList $channel_args -Wait -Passthru
+    Start-Process -FilePath "$conda_path" -ArgumentList $spy_channel_args -Wait -Passthru
+    Start-Process -FilePath "$conda_path" -ArgumentList $mlabs_channel_args -Wait -Passthru
 }
 
 

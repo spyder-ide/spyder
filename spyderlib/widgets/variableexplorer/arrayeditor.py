@@ -13,30 +13,32 @@ NumPy Array Editor Dialog based on Qt
 # pylint: disable=R0911
 # pylint: disable=R0201
 
+# Standard library imports
 from __future__ import print_function
 
-from spyderlib.qt.QtGui import (QHBoxLayout, QColor, QTableView, QItemDelegate,
-                                QLineEdit, QCheckBox, QGridLayout, QCursor,
-                                QDoubleValidator, QDialog, QDialogButtonBox,
-                                QMessageBox, QPushButton, QInputDialog, QMenu,
-                                QApplication, QKeySequence, QLabel, QComboBox,
-                                QSpinBox, QStackedWidget, QWidget, QVBoxLayout,
-                                QAbstractItemDelegate)
-from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, Slot,
-                                 QItemSelection, QItemSelectionRange)
-
-from spyderlib.qt.compat import to_qvariant, from_qvariant
-import spyderlib.utils.icon_manager as ima
-
+# Third party imports
+from qtpy.compat import from_qvariant, to_qvariant
+from qtpy.QtCore import (QAbstractTableModel, QItemSelection,
+                         QItemSelectionRange, QModelIndex, Qt, Slot)
+from qtpy.QtGui import QColor, QCursor, QDoubleValidator, QKeySequence
+from qtpy.QtWidgets import (QAbstractItemDelegate, QApplication, QCheckBox,
+                            QComboBox, QDialog, QDialogButtonBox, QGridLayout,
+                            QHBoxLayout, QInputDialog, QItemDelegate, QLabel,
+                            QLineEdit,  QMenu, QMessageBox, QPushButton,
+                            QSpinBox, QStackedWidget, QTableView, QVBoxLayout,
+                            QWidget)
 import numpy as np
 
 # Local imports
 from spyderlib.config.base import _
+from spyderlib.config.fonts import DEFAULT_SMALL_DELTA
 from spyderlib.config.gui import get_font, new_shortcut
+from spyderlib.py3compat import (io, is_binary_string, is_string,
+                                 is_text_string, PY3, to_binary_string,
+                                 to_text_string)
+from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
                                        qapplication)
-from spyderlib.py3compat import (PY3, io, to_text_string, is_text_string,
-                                 is_binary_string, to_binary_string, is_string)
 
 
 # Note: string and unicode data types will be formatted with '%s' (see below)
@@ -270,7 +272,7 @@ class ArrayModel(QAbstractTableModel):
             color = QColor.fromHsvF(hue, self.sat, self.val, self.alp)
             return to_qvariant(color)
         elif role == Qt.FontRole:
-            return to_qvariant(get_font('arrayeditor'))
+            return to_qvariant(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
         return to_qvariant()
 
     def setData(self, index, value, role=Qt.EditRole):
@@ -357,7 +359,7 @@ class ArrayDelegate(QItemDelegate):
             return
         elif value is not np.ma.masked:
             editor = QLineEdit(parent)
-            editor.setFont(get_font('arrayeditor'))
+            editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
             editor.setAlignment(Qt.AlignCenter)
             if is_number(self.dtype):
                 editor.setValidator(QDoubleValidator(editor))

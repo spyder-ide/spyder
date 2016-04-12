@@ -11,43 +11,44 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
+# Local imports
 from __future__ import print_function
-
-from spyderlib.qt import is_pyqt46
-from spyderlib.qt.QtGui import (QVBoxLayout, QMessageBox, QMenu, QFont,
-                                QAction, QApplication, QWidget,
-                                QKeySequence, QMainWindow, QSplitter,
-                                QHBoxLayout)
-from spyderlib.qt.QtCore import (Signal, Qt, QFileInfo, QThread, QObject,
-                                 QByteArray, QSize, QPoint, QTimer, Slot)
-from spyderlib.qt.compat import getsavefilename
-import spyderlib.utils.icon_manager as ima
-
 import os
-import sys
 import os.path as osp
+import sys
+
+# Third party imports
+from qtpy import is_pyqt46
+from qtpy.compat import getsavefilename
+from qtpy.QtCore import (QByteArray, QFileInfo, QObject, QPoint, QSize, Qt,
+                         QThread, QTimer, Signal, Slot)
+from qtpy.QtGui import QFont, QKeySequence
+from qtpy.QtWidgets import (QAction, QApplication, QHBoxLayout, QMainWindow,
+                            QMessageBox, QMenu, QSplitter, QVBoxLayout,
+                            QWidget)
 
 # Local imports
-from spyderlib.utils import encoding, sourcecode, codeanalysis
-from spyderlib.utils import introspection
-from spyderlib.config.base import _, DEBUG, STDOUT, STDERR
-from spyderlib.config.main import EDIT_FILTERS, EDIT_EXT, get_filter, EDIT_FILETYPES
+from spyderlib.config.base import _, DEBUG, STDERR, STDOUT
 from spyderlib.config.gui import create_shortcut, new_shortcut
-from spyderlib.utils.qthelpers import (create_action, add_actions,
-                                       mimedata2url, get_filetype_icon,
-                                       create_toolbutton)
-from spyderlib.utils import syntaxhighlighters
-from spyderlib.widgets.tabs import BaseTabs
-from spyderlib.widgets.findreplace import FindReplace
+from spyderlib.config.utils import get_edit_extensions
+from spyderlib.py3compat import qbytearray_to_str, to_text_string, u
+from spyderlib.utils import icon_manager as ima
+from spyderlib.utils import (codeanalysis, encoding, sourcecode,
+                             syntaxhighlighters)
+from spyderlib.utils.introspection.manager import IntrospectionManager
+from spyderlib.utils.qthelpers import (add_actions, create_action,
+                                       create_toolbutton, get_filetype_icon,
+                                       mimedata2url)
 from spyderlib.widgets.editortools import OutlineExplorerWidget
-from spyderlib.widgets.status import (ReadWriteStatus, EOLStatus,
-                                      EncodingStatus, CursorPositionStatus)
-from spyderlib.widgets.sourcecode import codeeditor
-from spyderlib.widgets.sourcecode.base import TextEditBaseWidget  #analysis:ignore
-from spyderlib.widgets.sourcecode.codeeditor import Printer  #analysis:ignore
-from spyderlib.widgets.sourcecode.codeeditor import get_file_language
 from spyderlib.widgets.fileswitcher import FileSwitcher
-from spyderlib.py3compat import to_text_string, qbytearray_to_str, u
+from spyderlib.widgets.findreplace import FindReplace
+from spyderlib.widgets.sourcecode import codeeditor
+from spyderlib.widgets.sourcecode.base import TextEditBaseWidget  # analysis:ignore
+from spyderlib.widgets.sourcecode.codeeditor import Printer       # analysis:ignore
+from spyderlib.widgets.sourcecode.codeeditor import get_file_language
+from spyderlib.widgets.status import (CursorPositionStatus, EncodingStatus,
+                                      EOLStatus, ReadWriteStatus)
+from spyderlib.widgets.tabs import BaseTabs
 
 DEBUG_EDITOR = DEBUG >= 3
 
@@ -345,8 +346,14 @@ class EditorStack(QWidget):
                 icon=ima.icon('editcopy'),
                 triggered=lambda:
                 QApplication.clipboard().setText(self.get_current_filename()))
+        close_right = create_action(self, _("Close all to the right"),
+                                    triggered=self.close_all_right)
+        close_all_but_this = create_action(self, _("Close all but this"),
+                                           triggered=self.close_all_but_this)
+
         self.menu_actions = actions + [None, fileswitcher_action,
-                                       copy_to_cb_action]
+                                       copy_to_cb_action, None, close_right,
+                                       close_all_but_this]
         self.outlineexplorer = None
         self.help = None
         self.unregister_callback = None
@@ -395,7 +402,7 @@ class EditorStack(QWidget):
         if ccs not in syntaxhighlighters.COLOR_SCHEME_NAMES:
             ccs = syntaxhighlighters.COLOR_SCHEME_NAMES[0]
         self.color_scheme = ccs
-        self.introspector = introspection.PluginManager(self)
+        self.introspector = IntrospectionManager(self)
 
         self.introspector.send_to_help.connect(self.send_to_help)
         self.introspector.edit_goto.connect(
@@ -679,7 +686,7 @@ class EditorStack(QWidget):
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_blanks_enabled(state)
-        
+
     def set_edgeline_enabled(self, state):
         # CONF.get(self.CONF_SECTION, 'edge_line')
         self.edgeline_enabled = state
@@ -774,7 +781,6 @@ class EditorStack(QWidget):
         self.help_enabled = state
 
     def set_default_font(self, font, color_scheme=None):
-        # get_font(self.CONF_SECTION)
         self.default_font = font
         if color_scheme is not None:
             self.color_scheme = color_scheme
@@ -1131,6 +1137,18 @@ class EditorStack(QWidget):
         while self.close_file():
             pass
 
+    def close_all_right(self):
+        """ Close all files opened to the right """
+        num = self.get_stack_index()
+        n = self.get_stack_count()
+        for i in range(num, n-1):
+            self.close_file(num+1)
+    
+    def close_all_but_this(self):
+        """Close all files but the current one"""
+        self.close_all_right()
+        for i in range(0, self.get_stack_count()-1  ):
+            self.close_file(0)
 
     #------ Save
     def save_if_changed(self, cancelable=False, index=None):
@@ -1242,11 +1260,9 @@ class EditorStack(QWidget):
         finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
 
     def select_savename(self, original_filename):
-        selectedfilter = get_filter(EDIT_FILETYPES,
-                                    osp.splitext(original_filename)[1])
         self.redirect_stdio.emit(False)
-        filename, _selfilter = getsavefilename(self, _("Save Python script"),
-                               original_filename, EDIT_FILTERS, selectedfilter)
+        filename, _selfilter = getsavefilename(self, _("Save file"),
+                                               original_filename)
         self.redirect_stdio.emit(True)
         if filename:
             return osp.normpath(filename)
@@ -1792,7 +1808,7 @@ class EditorStack(QWidget):
         # The second check is necessary on Windows, where source.hasUrls()
         # can return True but source.urls() is []
         if source.hasUrls() and source.urls():
-            if mimedata2url(source, extlist=EDIT_EXT):
+            if mimedata2url(source, extlist=get_edit_extensions()):
                 event.acceptProposedAction()
             else:
                 all_urls = mimedata2url(source)
@@ -1819,7 +1835,7 @@ class EditorStack(QWidget):
         if source.hasUrls():
             files = mimedata2url(source)
             files = [f for f in files if encoding.is_text_file(f)]
-            supported_files = mimedata2url(source, extlist=EDIT_EXT)
+            supported_files = mimedata2url(source, extlist=get_edit_extensions())
             files = set(files or []) | set(supported_files or [])
             for fname in files:
                 self.plugin_load.emit(fname)
@@ -2305,18 +2321,22 @@ class EditorPluginExample(QSplitter):
 
 def test():
     from spyderlib.utils.qthelpers import qapplication
-    app = qapplication()
+    from spyderlib.config.base import get_module_path
+
+    cur_dir = osp.join(get_module_path('spyderlib'), 'widgets')
+    app = qapplication(test_time=8)
     test = EditorPluginExample()
     test.resize(900, 700)
     test.show()
+
     import time
-    cur_dir = osp.dirname(osp.abspath(__file__))
     t0 = time.time()
     test.load(osp.join(cur_dir, "editor.py"))
     test.load(osp.join(cur_dir, "explorer.py"))
     test.load(osp.join(cur_dir, "variableexplorer", "collectionseditor.py"))
     test.load(osp.join(cur_dir, "sourcecode", "codeeditor.py"))
     print("Elapsed time: %.3f s" % (time.time()-t0))
+
     sys.exit(app.exec_())
 
 

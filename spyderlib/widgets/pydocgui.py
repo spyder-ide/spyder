@@ -6,17 +6,20 @@
 
 """pydoc widget"""
 
-from spyderlib.qt.QtGui import QApplication, QCursor
-from spyderlib.qt.QtCore import QThread, QUrl, Qt, Signal
-
-import sys
+# Standard library imports
 import os.path as osp
+import sys
+
+# Third party imports
+from qtpy.QtCore import Qt, QThread, QUrl, Signal
+from qtpy.QtGui import QCursor
+from qtpy.QtWidgets import QApplication
 
 # Local imports
 from spyderlib.config.base import _
-from spyderlib.widgets.browser import WebBrowser
+from spyderlib.py3compat import PY3, to_text_string
 from spyderlib.utils.misc import select_port
-from spyderlib.py3compat import to_text_string, PY3
+from spyderlib.widgets.browser import WebBrowser
 
 
 class PydocServer(QThread):

@@ -168,8 +168,8 @@ def start_file(filename):
 
     Returns True if successfull, otherwise returns False.
     """
-    from spyderlib.qt.QtGui import QDesktopServices
-    from spyderlib.qt.QtCore import QUrl
+    from qtpy.QtCore import QUrl
+    from qtpy.QtGui import QDesktopServices
 
     # We need to use setUrl instead of setPath because this is the only
     # cross-platform way to open external files. setPath fails completely on
@@ -276,8 +276,10 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
         try:
             run_shell_command(cmd, cwd=wdir)
         except WindowsError:
-            from spyderlib.qt.QtGui import QMessageBox
+            from qtpy.QtWidgets import QMessageBox
+
             from spyderlib.config.base import _
+
             QMessageBox.critical(None, _('Run'),
                                  _("It was not possible to run this file in "
                                    "an external terminal"),

@@ -32,6 +32,13 @@ if not hasattr(sys, 'argv'):
 
 
 #==============================================================================
+# Main constants
+#==============================================================================
+IS_IPYTHON = os.environ.get("IPYTHON_KERNEL", "").lower() == "true"
+IS_EXT_INTERPRETER = os.environ.get('EXTERNAL_INTERPRETER', '').lower() == "true"
+
+
+#==============================================================================
 # Important Note:
 #
 # We avoid importing spyderlib here, so we are handling Python 3 compatiblity
@@ -92,7 +99,8 @@ except ImportError:
     basestring = (str,)
     def execfile(filename, namespace):
         # Open a source file correctly, whatever its encoding is
-        exec(compile(open(filename, 'rb').read(), filename, 'exec'), namespace)
+        with open(filename, 'rb') as f:
+            exec(compile(f.read(), filename, 'exec'), namespace)
 
 
 #==============================================================================
@@ -150,7 +158,7 @@ os.environ['SPYDER_PARENT_DIR'] = spyderlib_path
 # Setting console encoding (otherwise Python does not recognize encoding)
 # for Windows platforms
 #==============================================================================
-if os.name == 'nt':
+if os.name == 'nt' and PY2:
     try:
         import locale, ctypes
         _t, _cp = locale.getdefaultlocale('LANG')
@@ -168,8 +176,6 @@ if os.name == 'nt':
 #==============================================================================
 # Settings for our MacOs X app
 #==============================================================================
-IS_EXT_INTERPRETER = os.environ.get('EXTERNAL_INTERPRETER', '').lower() == "true"
-
 if sys.platform == 'darwin':
     from spyderlib.config.base import MAC_APP_NAME
     if MAC_APP_NAME in __file__:
@@ -212,6 +218,19 @@ if PY2 and sys.platform.startswith('linux'):
         return 'utf-8'
 
     sys.getfilesystemencoding = _getfilesystemencoding_wrapper
+
+
+#==============================================================================
+# Set PyQt API to #2
+#==============================================================================
+if os.environ["QT_API"] == 'pyqt':
+    try:
+        import sip
+        for qtype in ('QString', 'QVariant', 'QDate', 'QDateTime',
+                      'QTextStream', 'QTime', 'QUrl'):
+            sip.setapi(qtype, 2)
+    except:
+        pass
 
 
 #==============================================================================
@@ -267,7 +286,7 @@ else:
     builtins.open_in_spyder = open_in_spyder
 
     # Our own input hook, monitor based and for Windows only
-    if os.name == 'nt':
+    if os.name == 'nt' and matplotlib and not IS_IPYTHON:
         # Qt imports
         if os.environ["QT_API"] == 'pyqt5':
             from PyQt5 import QtCore
@@ -324,8 +343,6 @@ else:
 #==============================================================================
 # Matplotlib settings
 #==============================================================================
-IS_IPYTHON = os.environ.get("IPYTHON_KERNEL", "").lower() == "true"
-
 if matplotlib is not None:
     if not IS_IPYTHON:
         mpl_backend = os.environ.get("SPY_MPL_BACKEND", "")
@@ -446,21 +463,35 @@ if IS_IPYTHON:
             kwargs['exit'] = False
             TestProgram.__init__(self, *args, **kwargs)
     unittest.main = IPyTesProgram
-    
-    # Pandas monkey-patches
-    try:
-        # Make Pandas recognize our IPython consoles as proper qtconsoles
-        # Fixes Issue 2015
-        def in_qtconsole():
-            return True
-        import pandas as pd
-        pd.core.common.in_qtconsole = in_qtconsole
-        
-        # Set Pandas output encoding
-        pd.options.display.encoding = 'utf-8'
-    except (ImportError, AttributeError):
-        pass
-        
+
+
+#==============================================================================
+# Pandas adjustments
+#==============================================================================
+try:
+    # Make Pandas recognize our IPython consoles as proper qtconsoles
+    # Fixes Issue 2015
+    def in_qtconsole():
+        return True
+    import pandas as pd
+    pd.core.common.in_qtconsole = in_qtconsole
+
+    # Set Pandas output encoding
+    pd.options.display.encoding = 'utf-8'
+
+    # Filter warning that appears only on Windows and Spyder for
+    # DataFrames with np.nan values in Pandas 0.17-
+    # Example:
+    # import pandas as pd, numpy as np
+    # pd.Series([np.nan,np.nan,np.nan],index=[1,2,3])
+    # Fixes Issue 2991
+    import warnings
+    warnings.filterwarnings(action='ignore', category=RuntimeWarning,
+                            module='pandas.core.format',
+                            message=".*invalid value encountered in.*")
+except (ImportError, AttributeError):
+    pass
+
 
 #==============================================================================
 # Pdb adjustments

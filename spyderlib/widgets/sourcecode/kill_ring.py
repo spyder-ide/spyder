@@ -1,19 +1,19 @@
-""" A generic Emacs-style kill ring, as well as a Qt-specific version.
+"""
+A generic Emacs-style kill ring, as well as a Qt-specific version.
 Copyright (c) 2001-2015, IPython Development Team
 Copyright (c) 2015-, Jupyter Development Team
 All rights reserved.
 """
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
 
-# System library imports
-from spyderlib.qt import QtCore, QtGui
+# Third party imports
+from qtpy.QtCore import QObject
+from qtpy.QtGui import QTextCursor
+from qtpy.QtWidgets import QTextEdit, QPlainTextEdit
 
-#-----------------------------------------------------------------------------
+
+# ----------------------------------------------------------------------------
 # Classes
-#-----------------------------------------------------------------------------
-
+# ----------------------------------------------------------------------------
 class KillRing(object):
     """ A generic Emacs-style kill ring.
     """
@@ -55,18 +55,18 @@ class KillRing(object):
         return None
 
 
-class QtKillRing(QtCore.QObject):
+class QtKillRing(QObject):
     """ A kill ring attached to Q[Plain]TextEdit.
     """
 
-    #--------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     # QtKillRing interface
-    #--------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
 
     def __init__(self, text_edit):
         """ Create a kill ring attached to the specified Qt text edit.
         """
-        assert isinstance(text_edit, (QtGui.QTextEdit, QtGui.QPlainTextEdit))
+        assert isinstance(text_edit, (QTextEdit, QPlainTextEdit))
         super(QtKillRing, self).__init__()
 
         self._ring = KillRing()
@@ -113,17 +113,17 @@ class QtKillRing(QtCore.QObject):
             if text:
                 self._skip_cursor = True
                 cursor = self._text_edit.textCursor()
-                cursor.movePosition(QtGui.QTextCursor.Left,
-                                    QtGui.QTextCursor.KeepAnchor,
+                cursor.movePosition(QTextCursor.Left,
+                                    QTextCursor.KeepAnchor,
                                     n=len(self._prev_yank))
                 cursor.insertText(text)
                 self._prev_yank = text
 
-    #--------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     # Protected interface
-    #--------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
 
-    #------ Signal handlers ----------------------------------------------------
+    # ----- Signal handlers ---------------------------------------------------
 
     def _cursor_position_changed(self):
         if self._skip_cursor:

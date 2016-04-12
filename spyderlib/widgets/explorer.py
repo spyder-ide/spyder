@@ -11,29 +11,30 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
+# Standard library imports
 from __future__ import with_statement
-
 import os
-import re
 import os.path as osp
+import re
 import shutil
 
-from spyderlib.qt import is_pyqt46
-from spyderlib.qt.QtGui import (QVBoxLayout, QLabel, QHBoxLayout, QInputDialog,
-                                QFileSystemModel, QMenu, QWidget, QToolButton,
-                                QLineEdit, QMessageBox, QTreeView,
-                                QDrag, QSortFilterProxyModel)
-from spyderlib.qt.QtCore import (Qt, Signal, QMimeData, QSize, QDir, QUrl,
-                                 QTimer, Slot)
-from spyderlib.qt.compat import getsavefilename, getexistingdirectory
-import spyderlib.utils.icon_manager as ima
+# Third party imports
+from qtpy import API, is_pyqt46
+from qtpy.compat import getsavefilename, getexistingdirectory
+from qtpy.QtCore import (QDir, QMimeData, QSize, QSortFilterProxyModel, Qt,
+                         QTimer, QUrl, Signal, Slot)
+from qtpy.QtGui import QDrag
+from qtpy.QtWidgets import (QFileSystemModel, QHBoxLayout, QInputDialog,
+                            QLabel, QLineEdit, QMenu, QMessageBox, QToolButton,
+                            QTreeView, QVBoxLayout, QWidget)
 
 # Local imports
-from spyderlib.utils.qthelpers import create_action, add_actions, file_uri
-from spyderlib.utils import misc, encoding, programs, vcs
 from spyderlib.config.base import _
-from spyderlib.py3compat import (PY2, to_text_string, to_binary_string, getcwd,
-                                 str_lower)
+from spyderlib.py3compat import (getcwd, str_lower, to_binary_string,
+                                 to_text_string, PY2)
+from spyderlib.utils import icon_manager as ima
+from spyderlib.utils import encoding, misc, programs, vcs
+from spyderlib.utils.qthelpers import add_actions, create_action, file_uri
 
 try:
     from nbconvert import PythonExporter as nbexporter
@@ -268,21 +269,30 @@ class DirView(QTreeView):
         actions += [None]
         if only_notebooks and nbexporter is not None:
             actions.append(ipynb_convert_action)
-        
+
         # VCS support is quite limited for now, so we are enabling the VCS
         # related actions only when a single file/folder is selected:
         dirname = fnames[0] if osp.isdir(fnames[0]) else osp.dirname(fnames[0])
         if len(fnames) == 1 and vcs.is_vcs_repository(dirname):
+            # QAction.triggered works differently for PySide and PyQt
+            if not API == 'pyside':
+                commit_slot = lambda _checked, fnames=[dirname]:\
+                                    self.vcs_command(fnames, 'commit')
+                browse_slot = lambda _checked, fnames=[dirname]:\
+                                    self.vcs_command(fnames, 'browse')
+            else:
+                commit_slot = lambda fnames=[dirname]:\
+                                    self.vcs_command(fnames, 'commit')
+                browse_slot = lambda fnames=[dirname]:\
+                                    self.vcs_command(fnames, 'browse')
             vcs_ci = create_action(self, _("Commit"),
                                    icon=ima.icon('vcs_commit'),
-                                   triggered=lambda fnames=[dirname]:
-                                   self.vcs_command(fnames, 'commit'))
+                                   triggered=commit_slot)
             vcs_log = create_action(self, _("Browse repository"),
                                     icon=ima.icon('vcs_browse'),
-                                    triggered=lambda fnames=[dirname]:
-                                    self.vcs_command(fnames, 'browse'))
+                                    triggered=browse_slot)
             actions += [None, vcs_ci, vcs_log]
-        
+
         return actions
 
     def create_folder_manage_actions(self, fnames):
@@ -371,6 +381,8 @@ class DirView(QTreeView):
             self.rename()
         elif event.key() == Qt.Key_Delete:
             self.delete()
+        elif event.key() == Qt.Key_Backspace:
+            self.go_to_parent_directory()
         else:
             QTreeView.keyPressEvent(self, event)
 

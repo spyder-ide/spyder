@@ -8,20 +8,19 @@
 Text data Importing Wizard based on Qt
 """
 
+# Standard library imports
 from __future__ import print_function
-
-from spyderlib.qt.QtGui import (QTableView, QVBoxLayout, QHBoxLayout,
-                                QGridLayout, QWidget, QDialog, QTextEdit,
-                                QTabWidget, QPushButton, QLabel, QSpacerItem,
-                                QSizePolicy, QCheckBox, QColor, QRadioButton,
-                                QLineEdit, QFrame, QMenu, QIntValidator,
-                                QGroupBox, QMessageBox)
-from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, Signal,
-                                 Slot)
-from spyderlib.qt.compat import to_qvariant
-import spyderlib.utils.icon_manager as ima
-
 from functools import partial as ft_partial
+
+# Third party imports
+from qtpy.compat import to_qvariant
+from qtpy.QtCore import QAbstractTableModel, QModelIndex, Qt, Signal, Slot
+from qtpy.QtGui import QColor, QIntValidator
+from qtpy.QtWidgets import (QCheckBox, QDialog, QFrame, QGridLayout, QGroupBox,
+                            QHBoxLayout, QLabel, QLineEdit,
+                            QPushButton, QMenu, QMessageBox, QRadioButton,
+                            QSizePolicy, QSpacerItem, QTableView, QTabWidget,
+                            QTextEdit, QVBoxLayout, QWidget)
 
 try:
     import pandas as pd
@@ -30,10 +29,11 @@ except ImportError:
 
 # Local import
 from spyderlib.config.base import _
-from spyderlib.utils import programs
-from spyderlib.utils.qthelpers import add_actions, create_action
-from spyderlib.py3compat import (TEXT_TYPES, INT_TYPES, to_text_string, io,
+from spyderlib.py3compat import (INT_TYPES, io, TEXT_TYPES, to_text_string,
                                  zip_longest)
+from spyderlib.utils import programs
+from spyderlib.utils import icon_manager as ima
+from spyderlib.utils.qthelpers import add_actions, create_action
 
 
 def try_to_parse(value):

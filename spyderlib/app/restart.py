@@ -12,6 +12,7 @@ A helper script that allows to restart (and also reset) Spyder from within the
 running application.
 """
 
+# Standard library imports
 import ast
 import os
 import os.path as osp
@@ -19,14 +20,17 @@ import subprocess
 import sys
 import time
 
+# Third party imports
+from qtpy.QtCore import Qt, QTimer
+from qtpy.QtGui import QColor, QPixmap
+from qtpy.QtWidgets import QApplication, QMessageBox, QSplashScreen, QWidget
 
+# Local imports
 from spyderlib.config.base import _, get_image_path
 from spyderlib.py3compat import to_text_string
-from spyderlib.qt.QtCore import Qt, QTimer
-from spyderlib.qt.QtGui import (QColor, QMessageBox, QPixmap, QSplashScreen,
-                                QWidget, QApplication)
 from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.qthelpers import qapplication
+
 
 PY2 = sys.version[0] == '2'
 IS_WINDOWS = os.name == 'nt'
@@ -168,7 +172,8 @@ def main():
     reset = os.environ.pop('SPYDER_RESET', None)
 
     # Get the spyder base folder based on this file
-    spyder_folder = osp.split(osp.dirname(osp.abspath(__file__)))[0]
+    this_folder = osp.split(osp.dirname(osp.abspath(__file__)))[0]
+    spyder_folder = osp.split(this_folder)[0]
 
     if not any([spyder_args, pid, is_bootstrap, reset]):
         error = "This script can only be called from within a Spyder instance"
@@ -206,7 +211,7 @@ def main():
         spyder = osp.join(spyder_folder, 'bootstrap.py')
     else:
         spyderlib = osp.join(spyder_folder, 'spyderlib')
-        spyder = osp.join(spyderlib, 'start_app.py')
+        spyder = osp.join(spyderlib, 'app', 'start.py')
 
     command = '"{0}" "{1}" {2}'.format(python, spyder, args)
 

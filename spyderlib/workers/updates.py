@@ -5,13 +5,17 @@
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
+# Standard library imports
 import json
 import ssl
 
+# Third party imports
+from qtpy.QtCore import QObject, Signal
+
+# Local imports
 from spyderlib import __version__
 from spyderlib.config.base import _
 from spyderlib.py3compat import PY3
-from spyderlib.qt.QtCore import Signal, QObject
 from spyderlib.utils.programs import check_version, is_stable_version
 
 

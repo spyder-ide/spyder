@@ -139,19 +139,22 @@ a Python version greater than 2.7 (Python 3.2 is not supported anymore).
 * **Python** 2.7 or 3.3+
 * **PyQt5** 5.2+ or **PyQt4** 4.6+: PyQt5 is recommended.
 * **qtconsole**: Enhanced Python interpreter.
-* **Rope** and/or **Jedi** 0.8.1: Editor code completion, calltips
+* **Rope** and **Jedi**: Editor code completion, calltips
   and go-to-definition.
 * **Pyflakes**: Real-time code analysis.
-* **Sphinx**: Rich text mode for the Help pane
+* **Sphinx**: Rich text mode for the Help pane.
 * **Pygments**: Syntax highlighting for all file types it supports.
 * **Pylint**: Static code analysis.
 * **Pep8**: Style analysis.
 * **Psutil**: CPU and memory usage on the status bar.
 * **Nbconvert**: Manipulation of notebooks in the Editor.
-* **Qtawesome**: To have an icon theme based on FontAwesome
-* **Pickleshare**: Show import completions on the Editor and Consoles
+* **Qtawesome**: To have an icon theme based on FontAwesome.
+* **Pickleshare**: Show import completions on the Python consoles.
+* **PyZMQ**: Run introspection services asynchronously.
+* **QtPy**: Abstracion layer for Python Qt bindings so that Spyder can run on PyQt4
+  and PyQt5.
 
-### Optional modules
+### Optional dependencies
 
 * **Matplotlib**: 2D/3D plotting in the Python and IPython consoles.
 * **Pandas**: View and edit DataFrames and Series in the Variable Explorer.

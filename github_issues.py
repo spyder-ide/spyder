@@ -31,21 +31,25 @@ parser.add_argument('-f', action="store", dest="format", default='changelog',
                     help="Format for print, either 'changelog' (for our "
                          "Changelog.md file) or 'release' (for the Github "
                          "Releases page)")
-results = parser.parse_args()
+parser.add_argument('-p', action="store", dest="page", default='1',
+                    help="What page to select when asking Github for issues "
+                         "and pull requests of a given milestone. Default is "
+                         "1, and it contains 100 results")
+options = parser.parse_args()
 
 # Creating the main class to interact with Github
 gh = github.GitHub()
 repo = gh.repos('spyder-ide')('spyder')
 
-if not results.milestone:
+if not options.milestone:
     print('Please pass a milestone to this script. See its help')
     sys.exit(1)
 
 # Get milestone number, given its name
-milestones = repo.milestones.get()
+milestones = repo.milestones.get(state='all')
 milestone_number = -1
 for ms in milestones:
-    if ms['title'] == results.milestone:
+    if ms['title'] == options.milestone:
         milestone_number = ms['number']
 
 if milestone_number == -1:
@@ -54,7 +58,7 @@ if milestone_number == -1:
 
 # This returns issues and pull requests
 issues = repo.issues.get(milestone=milestone_number, state='closed',
-                         per_page='500')
+                         per_page='100', page=options.page)
 
 # Printing issues
 print('\n**Issues**\n')
@@ -64,7 +68,7 @@ for i in issues:
     if not pr:
         number_of_issues += 1
         number = i['number']
-        if results.format == 'changelog':
+        if options.format == 'changelog':
             issue_link = "* [Issue %d](../../issues/%d)" % (number, number)
         else:
             issue_link = "* Issue #%d" % number
@@ -79,7 +83,7 @@ for i in issues:
     if pr:
         number_of_prs += 1
         number = i['number']
-        if results.format == 'changelog':
+        if options.format == 'changelog':
             pr_link = "* [PR %d](../../pull/%d)" % (number, number)
         else:
             pr_link = "* PR #%d" % number
