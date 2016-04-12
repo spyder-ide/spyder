@@ -14,6 +14,7 @@ import sys
 
 # Third party imports
 from qtpy.compat import from_qvariant, to_qvariant
+from qtpy import PYQT5
 from qtpy.QtCore import (QAbstractTableModel, QModelIndex, QRegExp,
                          QSortFilterProxyModel, Qt)
 from qtpy.QtGui import (QKeySequence, QRegExpValidator)
