@@ -755,12 +755,12 @@ class GeneralConfigPage(SpyderConfigPage):
                           "settings:")
         msg_end = _("Do you wish to restart now?")
 
-        msg_options = ""
+        msg_options = u""
         for option in options:
-            msg_options += "<li>{0}</li>".format(option)
+            msg_options += u"<li>{0}</li>".format(option)
 
         msg_title = _("Information")
-        msg = "{0}<ul>{1}</ul><br>{2}".format(msg_start, msg_options, msg_end)
+        msg = u"{0}<ul>{1}</ul><br>{2}".format(msg_start, msg_options, msg_end)
         answer = QMessageBox.information(self, msg_title, msg,
                                          QMessageBox.Yes | QMessageBox.No)
         if answer == QMessageBox.Yes:
