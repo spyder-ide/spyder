@@ -6,15 +6,16 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2016-03-21 22:00+0300\n"
-"PO-Revision-Date: 2016-03-26 13:36+0300\n"
+"PO-Revision-Date: 2016-04-18 20:14+0300\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: pygettext.py 1.5\n"
-"X-Generator: Poedit 1.8.4\n"
-"Last-Translator: Zgarbul Andrey <zgarbul.andrey@gmail.com>\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Generator: Poedit 1.5.4\n"
+"Last-Translator: Roman Kulagin <Roman.Qlogin@gmail.com>\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "Language: ru\n"
 
 #: spyplugins/ui/profiler/profiler.py:27
@@ -22,12 +23,11 @@ msgid "Results"
 msgstr "Результаты"
 
 #: spyplugins/ui/profiler/profiler.py:28
-#, fuzzy
 msgid ""
 "Profiler plugin results (the output of python's profile/cProfile)\n"
 "are stored here:"
 msgstr ""
-"Результаты плагина профайлера (вывод profile/cProfile python'а)\n"
+"Результаты Профайлера (вывод profile/cProfile python'а)\n"
 "хранятся здесь:"
 
 #: spyplugins/ui/profiler/profiler.py:68
@@ -66,11 +66,11 @@ msgstr "Показать вывод программы"
 
 #: spyplugins/ui/profiler/widgets/profilergui.py:108
 msgid "Collapse one level up"
-msgstr ""
+msgstr "Свернуть на один уровень вверх"
 
 #: spyplugins/ui/profiler/widgets/profilergui.py:113
 msgid "Expand one level down"
-msgstr ""
+msgstr "Раскрыть на один уровень вниз"
 
 #: spyplugins/ui/profiler/widgets/profilergui.py:116
 msgid "Save data"
@@ -124,7 +124,7 @@ msgstr "Вывод профайлера"
 
 #: spyplugins/ui/profiler/widgets/profilergui.py:246
 msgid "Profiling, please wait..."
-msgstr "Профилирование, пожалуйста подождите..."
+msgstr "Профилирование, пожалуйста, подождите..."
 
 #: spyplugins/ui/profiler/widgets/profilergui.py:290
 msgid "Error"
@@ -136,7 +136,7 @@ msgstr "Процесс не удалось запустить"
 
 #: spyplugins/ui/profiler/widgets/profilergui.py:338
 msgid "Sorting data, please wait..."
-msgstr "Сортировка данных, пожалуйста подождите..."
+msgstr "Сортировка данных, пожалуйста, подождите..."
 
 #: spyplugins/ui/profiler/widgets/profilergui.py:384
 msgid "Function/Module"
@@ -169,7 +169,7 @@ msgstr "Время в функции (включая подфункции)"
 
 #: spyplugins/ui/profiler/widgets/profilergui.py:545
 msgid "Local time in function (not in sub-functions)"
-msgstr "Докальное время в функции (исключая подфункции)"
+msgstr "Локальное время в функции (исключая подфункции)"
 
 #: spyplugins/ui/profiler/widgets/profilergui.py:555
 msgid "Total number of calls (including recursion)"
