@@ -80,6 +80,7 @@ class NumpyArrayTable(QTableWidget):
         self.setRowCount(2)
         self.setColumnCount(2)
         self.reset_headers()
+
         # signals
         self.cellChanged.connect(self.cell_changed)
 
@@ -96,9 +97,13 @@ class NumpyArrayTable(QTableWidget):
 
     def cell_changed(self, row, col):
         """ """
-        value = self.item(row, col).text()
-        rows = self.rowCount()
-        cols = self.columnCount()
+        item = self.item(row, col)
+        value = None
+
+        if item:
+            rows = self.rowCount()
+            cols = self.columnCount()
+            value = item.text()
 
         if value:
             if row == rows - 1:
@@ -129,8 +134,6 @@ class NumpyArrayTable(QTableWidget):
             item = self.item(0, 0)
             if item is None:
                 return ''
-            elif item.text() == '':
-                return ''
 
         for r in range(rows - 1):
             for c in range(cols - 1):
@@ -140,8 +143,9 @@ class NumpyArrayTable(QTableWidget):
                 else:
                     value = '0'
 
-                if value == '':
+                if value.strip() == '':
                     value = '0'
+
                 text.append(' ')
                 text.append(value)
             text.append(ROW_SEPARATOR)
@@ -151,15 +155,15 @@ class NumpyArrayTable(QTableWidget):
 
 class NumpyArrayDialog(QDialog):
     """ """
-    def __init__(self, parent, inline=True, offset=0):
-        QDialog.__init__(self, parent)
+    def __init__(self, parent=None, inline=True, offset=0, force_float=False):
+        QDialog.__init__(self, parent=parent)
         self._parent = parent
         self._text = None
         self._valid = None
         self._offset = offset
 
         # TODO: add this as an option in the General Preferences?
-        self._force_float = False
+        self._force_float = force_float
 
         self._help_inline = _("""
            <b>Numpy Array/Matrix Helper</b><br>
@@ -202,11 +206,11 @@ class NumpyArrayDialog(QDialog):
         if inline:
             self._button_help.setToolTip(self._help_inline)
             self._text = NumpyArrayInline(self)
-            self._widget = self._text
+            self.widget = self._text
         else:
             self._button_help.setToolTip(self._help_table)
             self._table = NumpyArrayTable(self)
-            self._widget = self._table
+            self.widget = self._table
 
         style = """
             QDialog {
@@ -230,16 +234,16 @@ class NumpyArrayDialog(QDialog):
         self.setWindowFlags(Qt.Window | Qt.Dialog | Qt.FramelessWindowHint)
         self.setModal(True)
         self.setWindowOpacity(0.90)
-        self._widget.setMinimumWidth(200)
+        self.widget.setMinimumWidth(200)
 
         # layout
         self._layout = QHBoxLayout()
-        self._layout.addWidget(self._widget)
+        self._layout.addWidget(self.widget)
         self._layout.addWidget(self._button_warning, 1, Qt.AlignTop)
         self._layout.addWidget(self._button_help, 1, Qt.AlignTop)
         self.setLayout(self._layout)
 
-        self._widget.setFocus()
+        self.widget.setFocus()
 
     def keyPressEvent(self, event):
         """Override Qt method"""
@@ -256,7 +260,12 @@ class NumpyArrayDialog(QDialog):
             QDialog.keyPressEvent(self, event)
 
     def event(self, event):
-        if event.type() == QEvent.KeyPress and event.key() == Qt.Key_Tab:
+        """
+        Qt Override
+
+        Usefull when in line edit mode.
+        """
+        if event.type() == QEvent.KeyPress and event.key() == Qt.Key_Tab:  # pragma: nocover
             return False
         return QWidget.event(self, event)
 
@@ -268,7 +277,7 @@ class NumpyArrayDialog(QDialog):
             prefix = 'np.matrix([['
 
         suffix = ']])'
-        values = self._widget.text().strip()
+        values = self.widget.text().strip()
 
         if values != '':
             # cleans repeated spaces
@@ -319,7 +328,7 @@ class NumpyArrayDialog(QDialog):
             if nrows == 1:
                 prefix = prefix[:-1]
                 suffix = suffix.replace("]])", "])")
-            
+
             # Fix offset
             offset = self._offset
             braces = BRACES.replace(' ', '\n' + ' '*(offset + len(prefix) - 1))
@@ -339,7 +348,7 @@ class NumpyArrayDialog(QDialog):
             tip = _('Array dimensions not valid')
             widget.setIcon(ima.icon('MessageBoxWarning'))
             widget.setToolTip(tip)
-            QToolTip.showText(self._widget.mapToGlobal(QPoint(0, 5)), tip)
+            QToolTip.showText(self.widget.mapToGlobal(QPoint(0, 5)), tip)
         else:
             self._button_warning.setToolTip('')
 
@@ -351,12 +360,8 @@ class NumpyArrayDialog(QDialog):
         """ """
         return self._text
 
-    def mousePressEvent(self, event):
-        """ """
-        pass
 
-
-def test():
+def test():  # pragma: no cover
     from spyderlib.utils.qthelpers import qapplication
     app = qapplication()
     app.setStyle('Plastique')
@@ -371,5 +376,5 @@ def test():
         print(dlg_inline.text())
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     test()
