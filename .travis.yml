@@ -39,11 +39,18 @@ before_install:
 
 install:
   - ./continuous_integration/travis/install.sh;
-  - if [ "$USE_CONDA" = true ]; then source activate test-environment; fi
+  - if [ "$USE_CONDA" = true ]; then
+      source activate test-environment;
+      conda install pytest pytest-cov;
+    else
+      pip install pytest pytest-cov;
+    fi
+  - pip install pytest-qt
   - export PATH="$HOME/miniconda/bin:$PATH";
 
 script:
   - ./continuous_integration/travis/build_test.sh
   - ./continuous_integration/travis/run_test.sh
   - ./continuous_integration/travis/modules_test.sh
+  - python runtests.py
   - cd doc; make html linkcheck
