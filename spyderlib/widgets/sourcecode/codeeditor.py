@@ -2929,7 +2929,8 @@ class TestIndent(CodeEditor):
         CodeEditor.__init__(self, parent)
         self.setup_editor(linenumbers=True, markers=True, tab_mode=False,
                           font=QFont("Courier New", 10),
-                          show_blanks=True, color_scheme='Zenburn')
+                          show_blanks=True, color_scheme='Zenburn',
+                          language='Python')
         self.tmp_filename = "test_spyder.tmp"
 
     def test_fix_indent(self):
@@ -2940,8 +2941,8 @@ class TestIndent(CodeEditor):
             assert text == "def function():\n    # Comment\n    ", repr(text)
 
             # fails
-#            text = self._get_indent_fix("\ndef function():\n")  # Works in editor...
-#            assert text == "\ndef function():\n    ", repr(text)
+            text = self._get_indent_fix("\ndef function():\n")
+            assert text == "\ndef function():\n    ", repr(text)
 
 #            text = self._get_indent_fix("def function():\n# Comment\n")
 #            assert text == "def function():\n# Comment\n    ", repr(text)
