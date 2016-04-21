@@ -51,8 +51,8 @@ install_conda()
     if [ "$USE_CONDA" = true ]; then
         echo 'conda-build ==1.18.1' > $HOME/miniconda/conda-meta/pinned;
         conda install conda-build;
-        conda create -q -n -y test-environment python=$PY_VERSION;
-        conda install -q -n -y test-environment pytest pytest-cov pytest-qt
+        conda create -q -n test-environment python=$PY_VERSION;
+        conda install -q -y -n test-environment pytest pytest-cov pytest-qt
     fi
 
     # Add our own channel for our own packages
