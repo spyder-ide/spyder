@@ -42,12 +42,6 @@ install:
   - if [ "$USE_CONDA" = true ]; then
       source activate test-environment;
     fi
-  - if [ "$USE_CONDA" = true ]; then
-      conda install pytest pytest-cov;
-    else
-      pip install pytest pytest-cov;
-    fi
-  - pip install pytest-qt
   - export PATH="$HOME/miniconda/bin:$PATH";
 
 script:

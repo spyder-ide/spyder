@@ -51,7 +51,8 @@ install_conda()
     if [ "$USE_CONDA" = true ]; then
         echo 'conda-build ==1.18.1' > $HOME/miniconda/conda-meta/pinned;
         conda install conda-build;
-        conda create -q -n test-environment python=$PY_VERSION;
+        conda create -q -n -y test-environment python=$PY_VERSION;
+        conda install -q -n -y test-environment pytest pytest-cov pytest-qt
     fi
 
     # Add our own channel for our own packages
@@ -99,6 +100,6 @@ download_code;
 install_conda;
 
 if [ "$USE_CONDA" = false ]; then
-    export EXTRA_PACKAGES="matplotlib pandas sympy pyzmq pillow"
+    export EXTRA_PACKAGES="matplotlib pandas sympy pyzmq pillow pytest pytest-cov pytest-qt"
     install_pip;
 fi
