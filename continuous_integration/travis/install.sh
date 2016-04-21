@@ -52,12 +52,13 @@ install_conda()
         echo 'conda-build ==1.18.1' > $HOME/miniconda/conda-meta/pinned;
         conda install conda-build;
         conda create -q -n test-environment python=$PY_VERSION;
-        conda install -q -y -n test-environment pytest pytest-cov pytest-qt
+        conda install -q -y -n test-environment pytest pytest-cov
     fi
 
     # Add our own channel for our own packages
     if [ "$USE_CONDA" = true ]; then
         conda config --add channels spyder-ide;
+        conda install -q -y -n test-environment pytest-qt
     fi
 }
 
