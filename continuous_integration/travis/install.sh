@@ -87,7 +87,8 @@ install_pip()
         install_pyside;
     fi
 
-    pip install --no-index --trusted-host $WHEELHOUSE_URI --allow-unverified --find-links=http://$WHEELHOUSE_URI/ $EXTRA_PACKAGES;
+    pip install --no-index --trusted-host $WHEELHOUSE_URI --find-links=http://$WHEELHOUSE_URI/ ;
+    pip install $EXTRA_PACKAGES
 }
 
 
