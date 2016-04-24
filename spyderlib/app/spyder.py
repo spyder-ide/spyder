@@ -439,7 +439,7 @@ class MainWindow(QMainWindow):
                                                sys.version_info[1])
         if DEBUG:
             title += " [DEBUG MODE %d]" % DEBUG
-        if not options.window_title is None:
+        if options.window_title is not None:
             title += ' ' + options.window_title
             
         self.setWindowTitle(title)
