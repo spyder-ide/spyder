@@ -439,6 +439,9 @@ class MainWindow(QMainWindow):
                                                sys.version_info[1])
         if DEBUG:
             title += " [DEBUG MODE %d]" % DEBUG
+        if options.window_title is not None:
+            title += ' ' + options.window_title
+            
         self.setWindowTitle(title)
         resample = os.name != 'nt'
         icon = ima.icon('spyder', resample=resample)
