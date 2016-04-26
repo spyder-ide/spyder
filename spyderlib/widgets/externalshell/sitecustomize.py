@@ -20,6 +20,8 @@ import shlex
 
 
 PY2 = sys.version[0] == '2'
+IS_EXT_INTERPRETER = os.environ.get('EXTERNAL_INTERPRETER', '').lower() == "true"
+IS_IPYTHON = os.environ.get("IPYTHON_KERNEL", "").lower() == "true"
 
 
 #==============================================================================
@@ -238,10 +240,11 @@ if os.environ["QT_API"] == 'pyqt':
 # This prevents a kernel crash with the inline backend in our IPython
 # consoles on Linux and Python 3 (Fixes Issue 2257)
 #==============================================================================
-try:
-    import matplotlib
-except ImportError:
-    matplotlib = None   # analysis:ignore
+if IS_IPYTHON and sys.version[0] == '3' and sys.platform.startswith('linux'):
+    try:
+        import matplotlib
+    except ImportError:
+        matplotlib = None   # analysis:ignore
 
 
 #==============================================================================
