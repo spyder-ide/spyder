@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
-"POT-Creation-Date: 2015-11-24 20:56+COT\n"
+"POT-Creation-Date: 2016-04-26 17:57+COT\n"
 "PO-Revision-Date: 2015-03-16 22:59-0500\n"
 "Last-Translator: Sylvain Corlay <sylvain.corlay@gmail.com>\n"
 "Language-Team: Python\n"
@@ -4344,43 +4344,43 @@ msgstr ""
 "<b>Impossible de passer à l'étape suivante</b><br><br>Merci de vérifier "
 "votre saisie.<br><br>Message d'erreur :<br>%s"
 
-#: spyderlib/widgets/internalshell.py:252
+#: spyderlib/widgets/internalshell.py:257
 msgid "Help..."
 msgstr "Aide..."
 
-#: spyderlib/widgets/internalshell.py:259
+#: spyderlib/widgets/internalshell.py:264
 msgid "Help"
 msgstr "Aide"
 
-#: spyderlib/widgets/internalshell.py:268
+#: spyderlib/widgets/internalshell.py:273
 msgid "Shell special commands:"
 msgstr "Commandes spéciales de la console :"
 
-#: spyderlib/widgets/internalshell.py:269
+#: spyderlib/widgets/internalshell.py:274
 msgid "Internal editor:"
 msgstr "Éditeur interne :"
 
-#: spyderlib/widgets/internalshell.py:270
+#: spyderlib/widgets/internalshell.py:275
 msgid "External editor:"
 msgstr "Éditeur externe :"
 
-#: spyderlib/widgets/internalshell.py:271
+#: spyderlib/widgets/internalshell.py:276
 msgid "Run script:"
 msgstr "Exécuter un script :"
 
-#: spyderlib/widgets/internalshell.py:272
+#: spyderlib/widgets/internalshell.py:277
 msgid "Remove references:"
 msgstr "Supprimer des références :"
 
-#: spyderlib/widgets/internalshell.py:273
+#: spyderlib/widgets/internalshell.py:278
 msgid "System commands:"
 msgstr "Commandes systèmes :"
 
-#: spyderlib/widgets/internalshell.py:274
+#: spyderlib/widgets/internalshell.py:279
 msgid "Python help:"
 msgstr "Aide Python :"
 
-#: spyderlib/widgets/internalshell.py:275
+#: spyderlib/widgets/internalshell.py:280
 msgid "GUI-based editor:"
 msgstr "Éditeur graphique :"
 
