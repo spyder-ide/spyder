@@ -1,26 +1,26 @@
 Minor release to list
 =====================
 
-Subject: [ANN] Spyder 2.3.8 is released!
+Subject: [ANN] Spyder 2.3.9 is released!
 
 
 Hi all,
 
 On the behalf of Spyder’s development team (https://github.com/spyder-ide/spyder/graphs/contributors),
-I’m pleased to announce that Spyder 2.3.8 has been released and is available for
+I’m pleased to announce that Spyder 2.3.9 has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release represents one month and a half of development since version 2.3.7
-and introduces several new features:
+This release comes 5 months after version 2.3.8 and introduces several new features:
 
+* Preferences
+    * Fix a crash when using certain versions of colorama (which is a Jedi dependency)
 * Python and IPython consoles
-    * Fix a sitecustomize error when using Matplotlib 1.5 with Python 2 on Linux
+    * Filter a RuntimeWarning generated for DataFrames with nan values
 * Variable Explorer
-    * Add support for Pandas Series when using Pamdas 0.17+
-    * Fix a freeze when creating empty DataFrames in Python 2
-    * Fix a freeze when working with big Numpy recarray's
+    * Fix a freeze when binary strings can't be converted to unicode in Python 2
+    * Fix a freeze with Numpy arrays containing strings
 
-We also fixed 6 bugs. For a full list of fixes see our changelog:
+We also fixed 5 bugs. For a full list of fixes see our changelog:
 https://github.com/spyder-ide/spyder/blob/2.3/CHANGELOG.md
 
 Don’t forget to follow Spyder updates/news:
