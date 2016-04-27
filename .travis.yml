@@ -39,10 +39,9 @@ before_install:
 
 install:
   - ./continuous_integration/travis/install.sh;
-  - if [ "$USE_CONDA" = true ]; then
-      source activate test-environment;
-    fi
   - export PATH="$HOME/miniconda/bin:$PATH";
+  - test $USE_CONDA = true \
+    && source activate test-environment
 
 script:
   - ./continuous_integration/travis/build_test.sh
