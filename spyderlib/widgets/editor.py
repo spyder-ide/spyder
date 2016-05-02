@@ -1773,12 +1773,19 @@ class EditorStack(QWidget):
 
     #------ Run
     def run_selection(self):
-        """Run selected text or current line in console"""
+        """Run selected text or current line in console
+        If no text is selected, then advance cursor to next line."""
         text = self.get_current_editor().get_selection_as_executable_code()
-        if not text:
-            line = self.get_current_editor().get_current_line()
+        if text:
+            move_next_line = False
+        else:
+            editor = self.get_current_editor()
+            line = editor.get_current_line()
             text = line.lstrip()
+            move_next_line = True
         self.exec_in_extconsole.emit(text, self.focus_to_editor)
+        if move_next_line:
+            editor.move_cursor_to_next('line', 'down')
 
     def run_cell(self):
         """Run current cell"""
