@@ -1773,8 +1773,10 @@ class EditorStack(QWidget):
 
     #------ Run
     def run_selection(self):
-        """Run selected text or current line in console
-        If no text is selected, then advance cursor to next line."""
+        """
+        Run selected text or current line in console. If no text is selected, 
+        then advance cursor to next line.
+        """
         text = self.get_current_editor().get_selection_as_executable_code()
         if text:
             move_next_line = False
