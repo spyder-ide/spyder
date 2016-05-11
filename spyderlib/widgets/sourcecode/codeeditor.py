@@ -2300,6 +2300,10 @@ class CodeEditor(TextEditBaseWidget):
                 match = self.find_brace_match(line_pos+pos, char, forward=True)
                 if (match is None) or (match > line_pos+len(text)):
                     return True
+            if char in [')', ']', '}']:
+                match = self.find_brace_match(line_pos+pos, char, forward=False)
+                if (match is None) or (match < line_pos):
+                    return True
         return False
 
     def autoinsert_colons(self):
