@@ -747,10 +747,9 @@ class Help(SpyderPluginWidget):
     @Slot()
     def show_tutorial(self):
         tutorial_path = get_module_source_path('spyderlib.utils.help')
-        img_path = osp.join(tutorial_path, 'static', 'images')
         tutorial = osp.join(tutorial_path, 'tutorial.rst')
         text = open(tutorial).read()
-        self.show_rich_text(text, collapse=True, img_path=img_path)
+        self.show_rich_text(text, collapse=True)
 
     def handle_link_clicks(self, url):
         url = to_text_string(url.toString())
