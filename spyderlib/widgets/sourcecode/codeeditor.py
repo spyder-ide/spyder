@@ -2306,6 +2306,18 @@ class CodeEditor(TextEditBaseWidget):
                     return True
         return False
 
+    def __has_colon_not_in_brackets(self, text):
+        """
+        Return whether a string has a colon which is not between brackets.
+        This function returns True if the given string has a colon which is
+        not between a pair of (round, square or curly) brackets. It assumes
+        that the brackets in the string are balanced.
+        """
+        for pos, char in enumerate(text):
+            if char == ':' and not self.__unmatched_braces_in_line(text[:pos]):
+                return True
+        return False
+
     def autoinsert_colons(self):
         """Decide if we want to autoinsert colons"""
         line_text = self.get_text('sol', 'cursor')
@@ -2318,6 +2330,8 @@ class CodeEditor(TextEditBaseWidget):
         elif self.__forbidden_colon_end_char(line_text):
             return False
         elif self.__unmatched_braces_in_line(line_text):
+            return False
+        elif self.__has_colon_not_in_brackets(line_text):
             return False
         else:
             return True
