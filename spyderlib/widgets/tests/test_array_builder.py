@@ -23,27 +23,24 @@ from spyderlib.widgets.arraybuilder import NumpyArrayDialog
 def botinline(qtbot):
     dialog = NumpyArrayDialog(inline=True)
     qtbot.addWidget(dialog)
-    qtbot.dialog = dialog
     dialog.show()
-    return qtbot, dialog, dialog._widget
+    return qtbot, dialog, dialog.array_widget
 
 
 @pytest.fixture
 def botinlinefloat(qtbot):
     dialog = NumpyArrayDialog(inline=True, force_float=True)
     qtbot.addWidget(dialog)
-    qtbot.dialog = dialog
     dialog.show()
-    return qtbot, dialog, dialog._widget
+    return qtbot, dialog, dialog.array_widget
 
 
 @pytest.fixture
 def botarray(qtbot):
     dialog = NumpyArrayDialog(inline=False)
     qtbot.addWidget(dialog)
-    qtbot.dialog = dialog
     dialog.show()
-    return qtbot, dialog, dialog._widget
+    return qtbot, dialog, dialog.array_widget
 
 
 # --- Tests

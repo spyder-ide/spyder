@@ -39,13 +39,14 @@ NAN_VALUES = ['nan', 'NAN', 'NaN', 'Na', 'NA', 'na']
 
 
 class NumpyArrayInline(QLineEdit):
-    """ """
     def __init__(self, parent):
         QLineEdit.__init__(self, parent)
         self._parent = parent
 
     def keyPressEvent(self, event):
-        """ """
+        """
+        Qt override.
+        """
         if event.key() in [Qt.Key_Enter, Qt.Key_Return]:
             self._parent.process_text()
             if self._parent.is_valid():
@@ -55,6 +56,11 @@ class NumpyArrayInline(QLineEdit):
 
     # to catch the Tab key event
     def event(self, event):
+        """
+        Qt override.
+
+        This is needed to be able to intercept the Tab key press event.
+        """
         if event.type() == QEvent.KeyPress:
             if (event.key() == Qt.Key_Tab or event.key() == Qt.Key_Space):
                 text = self.text()
@@ -73,7 +79,6 @@ class NumpyArrayInline(QLineEdit):
 
 
 class NumpyArrayTable(QTableWidget):
-    """ """
     def __init__(self, parent):
         QTableWidget.__init__(self, parent)
         self._parent = parent
@@ -85,7 +90,9 @@ class NumpyArrayTable(QTableWidget):
         self.cellChanged.connect(self.cell_changed)
 
     def keyPressEvent(self, event):
-        """ """
+        """
+        Qt override.
+        """
         if event.key() in [Qt.Key_Enter, Qt.Key_Return]:
             QTableWidget.keyPressEvent(self, event)
             # To avoid having to enter one final tab
@@ -96,7 +103,8 @@ class NumpyArrayTable(QTableWidget):
             QTableWidget.keyPressEvent(self, event)
 
     def cell_changed(self, row, col):
-        """ """
+        """
+        """
         item = self.item(row, col)
         value = None
 
@@ -113,7 +121,9 @@ class NumpyArrayTable(QTableWidget):
         self.reset_headers()
 
     def reset_headers(self):
-        """ """
+        """
+        Update the column and row numbering in the headers.
+        """
         rows = self.rowCount()
         cols = self.columnCount()
 
@@ -124,7 +134,9 @@ class NumpyArrayTable(QTableWidget):
             self.setColumnWidth(c, 40)
 
     def text(self):
-        """ """
+        """
+        Return the entered array in a parseable form.
+        """
         text = []
         rows = self.rowCount()
         cols = self.columnCount()
@@ -154,7 +166,6 @@ class NumpyArrayTable(QTableWidget):
 
 
 class NumpyArrayDialog(QDialog):
-    """ """
     def __init__(self, parent=None, inline=True, offset=0, force_float=False):
         QDialog.__init__(self, parent=parent)
         self._parent = parent
@@ -187,7 +198,7 @@ class NumpyArrayDialog(QDialog):
            Use two tabs at the end of a row to move to the next row.
            """)
 
-        # widgets
+        # Widgets
         self._button_warning = QToolButton()
         self._button_help = HelperToolButton()
         self._button_help.setIcon(ima.icon('MessageBoxInformation'))
@@ -246,7 +257,9 @@ class NumpyArrayDialog(QDialog):
         self._widget.setFocus()
 
     def keyPressEvent(self, event):
-        """Override Qt method"""
+        """
+        Qt override.
+        """
         QToolTip.hideText()
         ctrl = event.modifiers() & Qt.ControlModifier
 
@@ -261,16 +274,18 @@ class NumpyArrayDialog(QDialog):
 
     def event(self, event):
         """
-        Qt Override
+        Qt Override.
 
         Usefull when in line edit mode.
         """
-        if event.type() == QEvent.KeyPress and event.key() == Qt.Key_Tab:  # pragma: nocover
+        if event.type() == QEvent.KeyPress and event.key() == Qt.Key_Tab:
             return False
         return QWidget.event(self, event)
 
     def process_text(self, array=True):
-        """ """
+        """
+        Construct the text based on the entered content in the widget.
+        """
         if array:
             prefix = 'np.array([['
         else:
@@ -342,7 +357,9 @@ class NumpyArrayDialog(QDialog):
         self.update_warning()
 
     def update_warning(self):
-        """ """
+        """
+        Updates the icon and tip based on the validity of the array content.
+        """
         widget = self._button_warning
         if not self.is_valid():
             tip = _('Array dimensions not valid')
@@ -353,22 +370,30 @@ class NumpyArrayDialog(QDialog):
             self._button_warning.setToolTip('')
 
     def is_valid(self):
-        """ """
+        """
+        Return if the current array state is valid.
+        """
         return self._valid
 
     def text(self):
-        """ """
+        """
+        Return the parsed array/matrix text.
+        """
         return self._text
+
+    @property
+    def array_widget(self):
+        """
+        Return the array builder widget.
+        """
+        return self._widget
 
 
 def test():  # pragma: no cover
     from spyderlib.utils.qthelpers import qapplication
     app = qapplication()
-    app.setStyle('Plastique')
-
     dlg_table = NumpyArrayDialog(None, inline=False)
     dlg_inline = NumpyArrayDialog(None, inline=True)
-
     dlg_table.show()
     dlg_inline.show()
     app.exec_()
