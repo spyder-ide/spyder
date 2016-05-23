@@ -5,11 +5,12 @@
 #
 
 """
+Tests for the Numpy Matrix/Array Builder Widget.
 """
 
 # Third party imports
 from qtpy.QtCore import Qt
-from pytestqt import qtbot  # analysis:ignore
+from pytestqt import qtbot
 import pytest
 
 # Local imports
@@ -18,7 +19,7 @@ from spyderlib.widgets.arraybuilder import NumpyArrayDialog
 
 # --- Fixtures
 # -----------------------------------------------------------------------------
-@pytest.fixture  # analysis:ignore
+@pytest.fixture
 def botinline(qtbot):
     dialog = NumpyArrayDialog(inline=True)
     qtbot.addWidget(dialog)
@@ -27,7 +28,7 @@ def botinline(qtbot):
     return qtbot, dialog, dialog._widget
 
 
-@pytest.fixture  # analysis:ignore
+@pytest.fixture
 def botinlinefloat(qtbot):
     dialog = NumpyArrayDialog(inline=True, force_float=True)
     qtbot.addWidget(dialog)
@@ -36,7 +37,7 @@ def botinlinefloat(qtbot):
     return qtbot, dialog, dialog._widget
 
 
-@pytest.fixture  # analysis:ignore
+@pytest.fixture
 def botarray(qtbot):
     dialog = NumpyArrayDialog(inline=False)
     qtbot.addWidget(dialog)
