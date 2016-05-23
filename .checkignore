@@ -1,0 +1,3 @@
+# Ignore tests folder
+tests/*
+
