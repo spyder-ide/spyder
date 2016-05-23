@@ -22,6 +22,9 @@ from spyderlib.config.main import CONF_VERSION, DEFAULTS
 
 @pytest.fixture
 def tmpconfig(request):
+    """
+    Fixtures that returns a temporary CONF element.
+    """
     SUBFOLDER = tempfile.mkdtemp()
     CONF = UserConfig('spyder-test',
                       defaults=DEFAULTS,
@@ -31,8 +34,10 @@ def tmpconfig(request):
                       )
 
     def fin():
+        """
+        Fixture finalizer to delete the temporary CONF element.
+        """
         shutil.rmtree(SUBFOLDER)
 
     request.addfinalizer(fin)
     return CONF
-

@@ -1,3 +1,5 @@
+# Quantified Code ignore file. https://www.quantifiedcode.com
+
 # Ignore tests folder
-tests/*
+*/tests/*
 

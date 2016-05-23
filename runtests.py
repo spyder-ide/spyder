@@ -5,6 +5,7 @@
 #
 
 """
+File for running tests programmatically.
 """
 
 # Third party imports
@@ -13,6 +14,9 @@ import pytest
 
 
 def main():
+    """
+    Run pytest tests.
+    """
     pytest.main(['-x', 'spyderlib',  '-v', '-rw', '--durations=10',
                  '--cov=spyderlib', '--cov-report=term-missing'])
 
