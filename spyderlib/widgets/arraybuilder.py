@@ -143,7 +143,7 @@ class NumpyArrayTable(QTableWidget):
                 else:
                     value = '0'
 
-                if value.strip() == '':
+                if not value.strip():
                     value = '0'
 
                 text.append(' ')
@@ -206,11 +206,11 @@ class NumpyArrayDialog(QDialog):
         if inline:
             self._button_help.setToolTip(self._help_inline)
             self._text = NumpyArrayInline(self)
-            self.widget = self._text
+            self._widget = self._text
         else:
             self._button_help.setToolTip(self._help_table)
             self._table = NumpyArrayTable(self)
-            self.widget = self._table
+            self._widget = self._table
 
         style = """
             QDialog {
@@ -234,16 +234,16 @@ class NumpyArrayDialog(QDialog):
         self.setWindowFlags(Qt.Window | Qt.Dialog | Qt.FramelessWindowHint)
         self.setModal(True)
         self.setWindowOpacity(0.90)
-        self.widget.setMinimumWidth(200)
+        self._widget.setMinimumWidth(200)
 
         # layout
         self._layout = QHBoxLayout()
-        self._layout.addWidget(self.widget)
+        self._layout.addWidget(self._widget)
         self._layout.addWidget(self._button_warning, 1, Qt.AlignTop)
         self._layout.addWidget(self._button_help, 1, Qt.AlignTop)
         self.setLayout(self._layout)
 
-        self.widget.setFocus()
+        self._widget.setFocus()
 
     def keyPressEvent(self, event):
         """Override Qt method"""
@@ -277,7 +277,7 @@ class NumpyArrayDialog(QDialog):
             prefix = 'np.matrix([['
 
         suffix = ']])'
-        values = self.widget.text().strip()
+        values = self._widget.text().strip()
 
         if values != '':
             # cleans repeated spaces
@@ -348,7 +348,7 @@ class NumpyArrayDialog(QDialog):
             tip = _('Array dimensions not valid')
             widget.setIcon(ima.icon('MessageBoxWarning'))
             widget.setToolTip(tip)
-            QToolTip.showText(self.widget.mapToGlobal(QPoint(0, 5)), tip)
+            QToolTip.showText(self._widget.mapToGlobal(QPoint(0, 5)), tip)
         else:
             self._button_warning.setToolTip('')
 
@@ -369,11 +369,9 @@ def test():  # pragma: no cover
     dlg_table = NumpyArrayDialog(None, inline=False)
     dlg_inline = NumpyArrayDialog(None, inline=True)
 
-    if dlg_table.exec_():
-        print(dlg_table.text())
-
-    if dlg_inline.exec_():
-        print(dlg_inline.text())
+    dlg_table.show()
+    dlg_inline.show()
+    app.exec_()
 
 
 if __name__ == "__main__":  # pragma: no cover
