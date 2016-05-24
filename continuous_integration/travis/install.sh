@@ -47,16 +47,13 @@ install_conda()
     # Update conda
     conda update -q conda;
 
-    # Installing conda-build to do build tests
-    if [ "$USE_CONDA" = true ]; then
-        echo 'conda-build ==1.18.1' > $HOME/miniconda/conda-meta/pinned;
-        conda install conda-build;
-        conda create -q -n test-environment python=$PY_VERSION;
-    fi
-
     # Add our own channel for our own packages
     if [ "$USE_CONDA" = true ]; then
         conda config --add channels spyder-ide;
+        echo 'conda-build ==1.18.1' > $HOME/miniconda/conda-meta/pinned;
+        conda install conda-build;
+        conda create -q -n test-environment python=$PY_VERSION;
+        conda install -q -y -n test-environment pytest pytest-cov pytest-qt
     fi
 }
 
@@ -86,7 +83,8 @@ install_pip()
         install_pyside;
     fi
 
-    pip install --no-index --trusted-host $WHEELHOUSE_URI --find-links=http://$WHEELHOUSE_URI/ $EXTRA_PACKAGES;
+    pip install --no-index --trusted-host $WHEELHOUSE_URI --find-links=http://$WHEELHOUSE_URI/ ;
+    pip install $EXTRA_PACKAGES
 }
 
 
@@ -99,6 +97,6 @@ download_code;
 install_conda;
 
 if [ "$USE_CONDA" = false ]; then
-    export EXTRA_PACKAGES="matplotlib pandas sympy pyzmq pillow"
+    export EXTRA_PACKAGES="matplotlib pandas sympy pyzmq pillow pytest pytest-cov pytest-qt"
     install_pip;
 fi
