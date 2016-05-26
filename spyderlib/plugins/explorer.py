@@ -31,6 +31,7 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
     open_interpreter = Signal(str)
     edit = Signal(str)
     removed = Signal(str)
+    removed_tree = Signal(str)
     renamed = Signal(str, str)
     create_module = Signal(str)
     run = Signal(str)
