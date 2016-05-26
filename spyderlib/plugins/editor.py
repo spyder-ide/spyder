@@ -1842,7 +1842,7 @@ class Editor(SpyderPluginWidget):
         dirname = osp.abspath(to_text_string(dirname))
         for fname in self.get_filenames():
             if osp.abspath(fname).startswith(dirname):
-                self.__close(fname)
+                self.close_file_from_name(fname)
     
     def renamed(self, source, dest):
         """File was renamed in file explorer widget or in project explorer"""
