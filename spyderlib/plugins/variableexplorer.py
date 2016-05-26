@@ -166,7 +166,7 @@ class VariableExplorer(QWidget, SpyderPluginMixin):
         if self.count():
             nsb = self.current_widget()
             nsb.refresh_table()
-            nsb.import_data(filename=fname)
+            nsb.import_data(filenames=fname)
             if self.dockwidget and not self.ismaximized:
                 self.dockwidget.setVisible(True)
                 self.dockwidget.raise_()
