@@ -68,6 +68,7 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
         self.main.add_dockwidget(self)
         self.edit.connect(self.main.editor.load)
         self.removed.connect(self.main.editor.removed)
+        self.removed_tree.connect(self.main.editor.removed_tree)
         self.renamed.connect(self.main.editor.renamed)
         self.main.editor.open_dir.connect(self.chdir)
         self.create_module.connect(self.main.editor.new)
