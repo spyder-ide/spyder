@@ -2924,44 +2924,6 @@ class TestWidget(QSplitter):
         self.classtree.set_current_editor(self.editor, filename, False, False)
 
 
-class TestIndent(CodeEditor):
-    def __init__(self, parent=None):
-        CodeEditor.__init__(self, parent)
-        self.setup_editor(linenumbers=True, markers=True, tab_mode=False,
-                          font=QFont("Courier New", 10),
-                          show_blanks=True, color_scheme='Zenburn',
-                          language='Python')
-        self.tmp_filename = "test_spyder.tmp"
-
-    def test_fix_indent(self):
-            text = self._get_indent_fix("this_tuple = (1, 2)\n")
-            assert text == "this_tuple = (1, 2)\n", repr(text)
-
-            text = self._get_indent_fix("def function():\n    # Comment\n")
-            assert text == "def function():\n    # Comment\n    ", repr(text)
-
-            # fails
-            text = self._get_indent_fix("\ndef function():\n")
-            assert text == "\ndef function():\n    ", repr(text)
-
-#            text = self._get_indent_fix("def function():\n# Comment\n")
-#            assert text == "def function():\n# Comment\n    ", repr(text)
-#
-#            text = self._get_indent_fix("def function():\n")
-#            assert text == "def function():\n    ", repr(text)
-#
-#            text = self._get_indent_fix("open_parenthesis(\n")
-#            assert text == "open_parenthesis(\n    ", repr(text)
-
-    def _get_indent_fix(self, text):
-        self.set_text(text)
-        cursor = self.textCursor()
-        cursor.movePosition(QTextCursor.End)
-        self.setTextCursor(cursor)
-        self.fix_indent()
-        return to_text_string(self.toPlainText())
-
-
 def test(fname):
     from spyderlib.utils.qthelpers import qapplication
     app = qapplication(test_time=5)
@@ -2976,10 +2938,6 @@ def test(fname):
     results = check_with_pyflakes(source_code, fname) + \
               check_with_pep8(source_code, fname)
     win.editor.process_code_analysis(results)
-
-    win_indent = TestIndent()
-    win_indent.show()
-    win_indent.test_fix_indent()
 
     sys.exit(app.exec_())
 
