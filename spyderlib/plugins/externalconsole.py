@@ -1170,6 +1170,7 @@ class ExternalConsole(SpyderPluginWidget):
             self.dockwidget.hide()
 
     #------ Public API ---------------------------------------------------------
+    @Slot(bool)
     @Slot(str)
     def open_interpreter(self, wdir=None):
         """Open interpreter"""
@@ -1194,6 +1195,7 @@ class ExternalConsole(SpyderPluginWidget):
                    interact=True, debug=False, python=True, ipykernel=True,
                    ipyclient=client, give_ipyclient_focus=give_focus)
 
+    @Slot(bool)
     @Slot(str)
     def open_terminal(self, wdir=None):
         """Open terminal"""
