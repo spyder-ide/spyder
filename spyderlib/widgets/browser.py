@@ -153,13 +153,16 @@ class WebBrowser(QWidget):
         self.webview.loadStarted.connect(progressbar.show)
         self.webview.loadProgress.connect(progressbar.setValue)
         self.webview.loadFinished.connect(lambda _state: progressbar.hide())
-        
+
         label = QLabel(self.get_label())
-        
+
         self.url_combo = UrlComboBox(self)
         self.url_combo.valid.connect(self.url_combo_activated)
-        self.webview.iconChanged.connect(self.icon_changed)
-        
+        try:
+            self.webview.iconChanged.connect(self.icon_changed)
+        except AttributeError:
+            pass
+
         self.find_widget = FindReplace(self)
         self.find_widget.set_editor(self.webview)
         self.find_widget.hide()
@@ -260,7 +263,10 @@ class FrameWebView(QFrame):
 
         self.setFrameStyle(QFrame.StyledPanel | QFrame.Sunken)
 
-        self._webview.linkClicked.connect(self.linkClicked)
+        try:
+            self._webview.linkClicked.connect(self.linkClicked)
+        except AttributeError:
+            pass
 
     def set_font(self, font, fixed_font=None):
         self._webview.set_font(font, fixed_font=fixed_font)
