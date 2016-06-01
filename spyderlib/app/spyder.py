@@ -87,6 +87,8 @@ from qtpy.QtWidgets import (QAction, QApplication, QDockWidget, QMainWindow,
 # containing incompatible Qt DLLs versions in PATH):
 from qtpy import QtSvg  # analysis:ignore
 
+# Avoid a bug in Qt: https://bugreports.qt.io/browse/QTBUG-46720
+from qtpy import QtWebEngineWidgets
 
 
 #==============================================================================
