@@ -476,9 +476,12 @@ class Help(SpyderPluginWidget):
         self._sphinx_thread.error_msg.connect(self._on_sphinx_thread_error_msg)
 
         # Render internal links
-        view = self.rich_text.webview
-        view.page().setLinkDelegationPolicy(QWebEnginePage.DelegateAllLinks)
-        view.linkClicked.connect(self.handle_link_clicks)
+        try:
+            view = self.rich_text.webview
+            view.page().setLinkDelegationPolicy(QWebEnginePage.DelegateAllLinks)
+            view.linkClicked.connect(self.handle_link_clicks)
+        except AttributeError:
+            pass
 
         self._starting_up = True
 
