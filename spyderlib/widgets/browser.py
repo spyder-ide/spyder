@@ -10,7 +10,6 @@
 import sys
 
 # Third party imports
-from qtpy import PYQT5
 from qtpy.QtCore import QUrl, Signal, Slot
 from qtpy.QtWidgets import (QFrame, QHBoxLayout, QLabel, QProgressBar, QMenu,
                             QVBoxLayout, QWidget)
