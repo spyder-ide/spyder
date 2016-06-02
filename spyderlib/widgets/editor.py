@@ -2287,7 +2287,7 @@ class EditorPluginExample(QSplitter):
     def get_focus_widget(self):
         pass
 
-    @Slot(int, int)
+    @Slot(str, int)
     def close_file_in_all_editorstacks(self, editorstack_id_str, index):
         for editorstack in self.editorstacks:
             if str(id(editorstack)) != editorstack_id_str:
@@ -2297,7 +2297,7 @@ class EditorPluginExample(QSplitter):
 
     # This method is never called in this plugin example. It's here only
     # to show how to use the file_saved signal (see above).
-    @Slot(int, int)
+    @Slot(str, int, str)
     def file_saved_in_editorstack(self, editorstack_id_str, index, filename):
         """A file was saved in editorstack, this notifies others"""
         for editorstack in self.editorstacks:
@@ -2306,7 +2306,7 @@ class EditorPluginExample(QSplitter):
 
     # This method is never called in this plugin example. It's here only
     # to show how to use the file_saved signal (see above).
-    @Slot(int, int)
+    @Slot(str, int, str)
     def file_renamed_in_data_in_editorstack(self, editorstack_id_str,
                                             index, filename):
         """A file was renamed in data in editorstack, this notifies others"""

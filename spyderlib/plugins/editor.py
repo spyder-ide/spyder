@@ -1639,8 +1639,8 @@ class Editor(SpyderPluginWidget):
         if valid:
             self.set_option('max_recent_files', mrf)
 
-    @Slot(str)
     @Slot(bool)
+    @Slot(str)
     @Slot(str, int, str, object)
     def load(self, filenames=None, goto=None, word='', editorwindow=None,
              processevents=True):
