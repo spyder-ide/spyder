@@ -1260,7 +1260,6 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         dlg = self.scheme_editor_dialog
         dlg.set_scheme(scheme_name)
 
-    @Slot(str)
     def reset_to_default(self):
         """Restore initial values for default color schemes."""
         # Checks that this is indeed a default scheme
