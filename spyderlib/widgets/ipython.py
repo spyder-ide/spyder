@@ -18,7 +18,7 @@ import sys
 import time
 
 # Third party imports
-from qtpy.QtCore import Qt, Signal, Slot
+from qtpy.QtCore import Qt, QUrl, Signal, Slot
 from qtpy.QtGui import QKeySequence
 from qtpy.QtWidgets import (QHBoxLayout, QMenu, QMessageBox, QTextEdit,
                             QToolButton, QVBoxLayout, QWidget)
@@ -431,11 +431,12 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         self.history_filename = get_conf_path(history_filename)
         self.history = []
         self.namespacebrowser = None
-        
+
         self.set_infowidget_font()
         self.loading_page = self._create_loading_page()
-        self.infowidget.setHtml(self.loading_page)
-        
+        self.infowidget.setHtml(self.loading_page,
+                                QUrl.fromLocalFile(CSS_PATH))
+
         vlayout = QVBoxLayout()
         toolbar_buttons = self.get_toolbar_buttons()
         hlayout = QHBoxLayout()
