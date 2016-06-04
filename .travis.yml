@@ -51,4 +51,3 @@ script:
   - ./continuous_integration/travis/modules_test.sh
   - python runtests.py
   - coveralls
-#  - cd doc; make html linkcheck

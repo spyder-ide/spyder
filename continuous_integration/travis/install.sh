@@ -10,6 +10,9 @@ WHEELHOUSE_URI=travis-wheels.scikit-image.org
 #==============================================================================
 download_code()
 {
+    # We need to make a full git clone because Travis only does shallow
+    # ones, which are useless to build conda packages using git_url
+    # and git_tag.
     PR=$TRAVIS_PULL_REQUEST
     mkdir $FULL_SPYDER_CLONE
     git clone https://github.com/spyder-ide/spyder.git $FULL_SPYDER_CLONE
@@ -47,7 +50,7 @@ install_conda()
     # Update conda
     conda update -q conda;
 
-    # Add our own channel for our own packages
+    # Install testing dependencies
     if [ "$USE_CONDA" = true ]; then
         conda config --add channels spyder-ide;
         echo 'conda-build ==1.18.1' > $HOME/miniconda/conda-meta/pinned;
@@ -58,32 +61,16 @@ install_conda()
 }
 
 
-install_pyside()
-{
-    # Currently support Python 2.7 and 3.4
-    # http://stackoverflow.com/questions/24489588/how-can-i-install-pyside-on-travis
-
-    pip install -U setuptools;
-    pip install -U pip;
-    pip install --no-index --trusted-host $WHEELHOUSE_URI --find-links=http://$WHEELHOUSE_URI/ pyside;
-
-    # Travis CI servers use virtualenvs, so we need to finish the install by the following
-    POSTINSTALL=$(find ~/virtualenv/ -type f -name "pyside_postinstall.py";)
-    python $POSTINSTALL -install;
-}
-
-
 install_pip()
 {
     if [ "$USE_QT_API" = "PyQt5" ]; then
         conda install pyqt5;
     elif [ "$USE_QT_API" = "PyQt4" ]; then
         conda install pyqt;
-    elif [ "$USE_QT_API" = "PySide" ]; then
-        install_pyside;
     fi
 
     pip install --no-index --trusted-host $WHEELHOUSE_URI --find-links=http://$WHEELHOUSE_URI/ ;
+    EXTRA_PACKAGES="matplotlib pandas sympy pyzmq pillow pytest pytest-cov pytest-qt"
     pip install $EXTRA_PACKAGES
 }
 
@@ -97,6 +84,5 @@ download_code;
 install_conda;
 
 if [ "$USE_CONDA" = false ]; then
-    export EXTRA_PACKAGES="matplotlib pandas sympy pyzmq pillow pytest pytest-cov pytest-qt"
     install_pip;
 fi
