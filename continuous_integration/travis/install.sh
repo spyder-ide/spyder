@@ -58,29 +58,12 @@ install_conda()
 }
 
 
-install_pyside()
-{
-    # Currently support Python 2.7 and 3.4
-    # http://stackoverflow.com/questions/24489588/how-can-i-install-pyside-on-travis
-
-    pip install -U setuptools;
-    pip install -U pip;
-    pip install --no-index --trusted-host $WHEELHOUSE_URI --find-links=http://$WHEELHOUSE_URI/ pyside;
-
-    # Travis CI servers use virtualenvs, so we need to finish the install by the following
-    POSTINSTALL=$(find ~/virtualenv/ -type f -name "pyside_postinstall.py";)
-    python $POSTINSTALL -install;
-}
-
-
 install_pip()
 {
     if [ "$USE_QT_API" = "PyQt5" ]; then
         conda install pyqt5;
     elif [ "$USE_QT_API" = "PyQt4" ]; then
         conda install pyqt;
-    elif [ "$USE_QT_API" = "PySide" ]; then
-        install_pyside;
     fi
 
     pip install --no-index --trusted-host $WHEELHOUSE_URI --find-links=http://$WHEELHOUSE_URI/ ;
