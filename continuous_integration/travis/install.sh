@@ -10,6 +10,9 @@ WHEELHOUSE_URI=travis-wheels.scikit-image.org
 #==============================================================================
 download_code()
 {
+    # We need to make a full git clone because Travis only does shallow
+    # ones, which are useless to build conda packages using git_url
+    # and git_tag.
     PR=$TRAVIS_PULL_REQUEST
     mkdir $FULL_SPYDER_CLONE
     git clone https://github.com/spyder-ide/spyder.git $FULL_SPYDER_CLONE
