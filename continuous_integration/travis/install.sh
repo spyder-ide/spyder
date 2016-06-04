@@ -50,7 +50,7 @@ install_conda()
     # Update conda
     conda update -q conda;
 
-    # Add our own channel for our own packages
+    # Install testing dependencies
     if [ "$USE_CONDA" = true ]; then
         conda config --add channels spyder-ide;
         echo 'conda-build ==1.18.1' > $HOME/miniconda/conda-meta/pinned;
