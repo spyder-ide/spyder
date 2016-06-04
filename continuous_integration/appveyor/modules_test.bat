@@ -43,8 +43,8 @@ for /r "%SPYDERLIB%" %%f in (*.py) do (
         echo --- NOT testing %%f ---
         echo.
     ) else if "%%f"=="%SPYDERLIB%\utils\introspection\plugin_client.py" (
-            echo --- NOT testing %%f ---
-            echo.
+        echo --- NOT testing %%f ---
+        echo.
     ) else if "%%f"=="%SPYDERLIB%\widgets\externalshell\systemshell.py" (
         echo --- NOT testing %%f ---
         echo.
