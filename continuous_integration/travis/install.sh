@@ -67,6 +67,7 @@ install_pip()
     fi
 
     pip install --no-index --trusted-host $WHEELHOUSE_URI --find-links=http://$WHEELHOUSE_URI/ ;
+    EXTRA_PACKAGES="matplotlib pandas sympy pyzmq pillow pytest pytest-cov pytest-qt"
     pip install $EXTRA_PACKAGES
 }
 
@@ -80,6 +81,5 @@ download_code;
 install_conda;
 
 if [ "$USE_CONDA" = false ]; then
-    export EXTRA_PACKAGES="matplotlib pandas sympy pyzmq pillow pytest pytest-cov pytest-qt"
     install_pip;
 fi
