@@ -26,19 +26,24 @@ from spyderlib.widgets.comboboxes import UrlComboBox
 from spyderlib.widgets.findreplace import FindReplace
 
 
-if WEBENGINE:
-    class WebPage(QWebEnginePage):
-        """Web page"""
-        linkClicked = Signal(QUrl)
+class WebPage(QWebEnginePage):
+    """
+    Web page subclass to manage hyperlinks for WebEngine
 
-        def acceptNavigationRequest(self, url, navigation_type, isMainFrame):
-            """
-            Overloaded method to handle links ourselves
-            """
-            if navigation_type == QWebEnginePage.NavigationTypeLinkClicked:
-                self.linkClicked.emit(url)
-                return False
-            return True
+    Note: This can't be used for WebKit because the
+    acceptNavigationRequest method has a different
+    functionality for it.
+    """
+    linkClicked = Signal(QUrl)
+
+    def acceptNavigationRequest(self, url, navigation_type, isMainFrame):
+        """
+        Overloaded method to handle links ourselves
+        """
+        if navigation_type == QWebEnginePage.NavigationTypeLinkClicked:
+            self.linkClicked.emit(url)
+            return False
+        return True
 
 
 class WebView(QWebEngineView):
