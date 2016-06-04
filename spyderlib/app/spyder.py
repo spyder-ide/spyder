@@ -1475,7 +1475,11 @@ class MainWindow(QMainWindow):
         self.set_window_settings(*settings)
 
         for plugin in self.widgetlist:
-            plugin.initialize_plugin_in_mainwindow_layout()
+            try:
+                plugin.initialize_plugin_in_mainwindow_layout()
+            except Exception as error:
+                print("%s: %s" % (plugin, str(error)), file=STDERR)
+                traceback.print_exc(file=STDERR)
        
     def setup_default_layouts(self, index, settings):
         """Setup default layouts when run for the first time"""
