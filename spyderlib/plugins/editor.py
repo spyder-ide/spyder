@@ -1217,23 +1217,23 @@ class Editor(SpyderPluginWidget):
         editorstack.clone_from(self.editorstacks[0])
         for finfo in editorstack.data:
             self.register_widget_shortcuts("Editor", finfo.editor)
-        
-    @Slot(int, int)
+
+    @Slot(str, int)
     def close_file_in_all_editorstacks(self, editorstack_id_str, index):
         for editorstack in self.editorstacks:
             if str(id(editorstack)) != editorstack_id_str:
                 editorstack.blockSignals(True)
                 editorstack.close_file(index, force=True)
                 editorstack.blockSignals(False)
-                
-    @Slot(int, int)
+
+    @Slot(str, int, str)
     def file_saved_in_editorstack(self, editorstack_id_str, index, filename):
         """A file was saved in editorstack, this notifies others"""
         for editorstack in self.editorstacks:
             if str(id(editorstack)) != editorstack_id_str:
                 editorstack.file_saved_in_other_editorstack(index, filename)
 
-    @Slot(int, int)
+    @Slot(str, int, str)
     def file_renamed_in_data_in_editorstack(self, editorstack_id_str,
                                             index, filename):
         """A file was renamed in data in editorstack, this notifies others"""
@@ -1638,8 +1638,9 @@ class Editor(SpyderPluginWidget):
                                self.get_option('max_recent_files'), 1, 35)
         if valid:
             self.set_option('max_recent_files', mrf)
-    
 
+    @Slot(bool)
+    @Slot(str)
     @Slot(str, int, str, object)
     def load(self, filenames=None, goto=None, word='', editorwindow=None,
              processevents=True):

@@ -452,6 +452,7 @@ class NamespaceBrowser(QWidget):
         """Collapse"""
         self.sig_collapse.emit()
 
+    @Slot(bool)
     @Slot(list)
     def import_data(self, filenames=None):
         """Import data from text file"""

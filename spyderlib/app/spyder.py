@@ -87,6 +87,8 @@ from qtpy.QtWidgets import (QAction, QApplication, QDockWidget, QMainWindow,
 # containing incompatible Qt DLLs versions in PATH):
 from qtpy import QtSvg  # analysis:ignore
 
+# Avoid a bug in Qt: https://bugreports.qt.io/browse/QTBUG-46720
+from qtpy import QtWebEngineWidgets
 
 
 #==============================================================================
@@ -2974,6 +2976,12 @@ def initialize():
     def fake_sys_exit(arg=[]):
         pass
     sys.exit = fake_sys_exit
+
+    #----Monkey patching sys.excepthook to avoid crashes in PyQt 5.5+
+    if PYQT5:
+        def spy_excepthook(type_, value, tback):
+            sys.__excepthook__(type_, value, tback) 
+        sys.excepthook = spy_excepthook
 
     # Removing arguments from sys.argv as in standard Python interpreter
     sys.argv = ['']
