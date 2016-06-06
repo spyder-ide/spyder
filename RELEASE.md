@@ -6,11 +6,7 @@ To release a new version of Spyder you need to follow these steps:
 
 * Update Announcements.txt
 
-* Update version in:
-    - `__init__.py` (set release version, remove 'dev0')
-    - continuous_integration/conda-recipes/spyder/meta.yaml
-    - continuous_integration/travis/run_test.sh
-    - continuous_integration/appveyor/run_test.bat
+* Update version in `__init__.py` (set release version, remove 'dev0')
 
 * git add and git commit
 
@@ -29,6 +25,13 @@ To release a new version of Spyder you need to follow these steps:
 * git push upstream master
 
 * git push upstream --tags
+
+* Update to latest tag in
+    - continuous_integration/conda-recipes/spyder/meta.yaml
+    - continuous_integration/travis/run_test.sh
+    - continuous_integration/appveyor/run_test.bat
+
+* git add and git commit with [ci skip]
 
 * Optional: Create conda packages
     - conda build conda.recipe
