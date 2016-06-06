@@ -61,7 +61,7 @@ CTRL = "Meta" if MAC else "Ctrl"
 DEFAULTS = [
             ('main',
              {
-              'icon_theme': 'spyder 2',
+              'icon_theme': 'spyder 3',
               'single_instance': True,
               'open_files_port': OPEN_FILES_PORT,
               'tear_off_menus': False,
@@ -587,7 +587,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '26.1.0'
+CONF_VERSION = '26.2.0'
 
 
 # XXX: Previously we had load=(not DEV) here but DEV was set to *False*.
