@@ -31,6 +31,8 @@ To release a new version of Spyder you need to follow these steps:
 * git push --tags
 
 * Optional: Create conda packages
+  * conda build conda.recipe
+  * anaconda upload spyder-*.tar.bz2 -u spyder-ide
 
 * Publish release announcements to our list and the SciPy list
 
