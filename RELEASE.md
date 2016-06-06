@@ -28,7 +28,7 @@ To release a new version of Spyder you need to follow these steps:
 
 * git push upstream master
 
-* git push --tags
+* git push upstream --tags
 
 * Optional: Create conda packages
     - conda build conda.recipe
