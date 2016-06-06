@@ -69,9 +69,12 @@ install_pip()
         conda install pyqt;
     fi
 
-    pip install --no-index --trusted-host $WHEELHOUSE_URI --find-links=http://$WHEELHOUSE_URI/ ;
-    EXTRA_PACKAGES="matplotlib pandas sympy pyzmq pillow pytest pytest-cov pytest-qt"
-    pip install $EXTRA_PACKAGES
+    # Install testing packages
+    pip install pytest pytest-cov pytest-qt
+
+    # Install extra packages
+    EXTRA_PACKAGES="matplotlib pandas sympy pyzmq pillow"
+    pip install --no-index --trusted-host $WHEELHOUSE_URI --find-links=http://$WHEELHOUSE_URI/ $EXTRA_PACKAGES
 }
 
 
