@@ -30,6 +30,8 @@ To release a new version of Spyder you need to follow these steps:
 
 * git push --tags
 
+* Optional: Create conda packages
+
 * Publish release announcements to our list and the SciPy list
 
 * Publish list of bugs and merged pull requests in the Github Releases page
