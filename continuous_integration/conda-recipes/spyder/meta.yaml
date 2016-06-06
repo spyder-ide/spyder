@@ -9,8 +9,8 @@ build:
   osx_is_app: True
 
 source:
-  fn:  spyder-3.0.0dev.zip  # [win]
-  url: {{ ['file:///', environ.get('APPVEYOR_BUILD_FOLDER'), '\dist\spyder-3.0.0dev.zip']|join }}  # [win]
+  fn:  spyder-3.0.0.dev0.zip  # [win]
+  url: {{ ['file:///', environ.get('APPVEYOR_BUILD_FOLDER'), '\dist\spyder-3.0.0.dev0.zip']|join }}  # [win]
   git_url: {{ environ.get('FULL_SPYDER_CLONE') }}  # [unix]
   git_tag: {% if environ.get('TRAVIS_PULL_REQUEST') != 'false' %} {{ ['travis_pr_', environ.get('TRAVIS_PULL_REQUEST')]|join }} {% else %} master {% endif %}  # [unix]
 
