@@ -36,6 +36,7 @@ To release a new version of Spyder you need to follow these steps:
 
 * Publish release announcements to our list and the SciPy list
 
-* Publish list of bugs and merged pull requests in the Github Releases page
+* Publish list of bugs and merged pull requests to our Github Releases page
 
-* Create DMGs
+* Create DMGs, upload them to our Bitbucket Downloads page and link them
+  in our Github Releases page.
