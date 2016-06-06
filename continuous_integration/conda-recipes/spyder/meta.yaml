@@ -22,7 +22,8 @@ requirements:
     - python
     - python.app  # [osx]
     - {% if environ.get('USE_QT_API') == 'PyQt4' %} pyqt {% else %} pyqt5 {% endif %}
-    - rope
+    - rope 0.9.*  # [py34 or py35]
+    - rope  # [py27]
     - pyflakes
     - jedi
     - qtconsole
