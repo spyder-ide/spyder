@@ -26,7 +26,7 @@ To release a new version of Spyder you need to follow these steps:
 
 * git add and git commit
 
-* git push
+* git push upstream master
 
 * git push --tags
 
