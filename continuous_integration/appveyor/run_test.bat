@@ -13,7 +13,7 @@ mkdir C:\projects\tmp
 cd C:\projects\tmp
 
 :: Install the package we created
-conda install -q -y --use-local spyder==3.0.0b2
+conda install -q -y --use-local spyder==3.0.0b3
 
 :: Install extra packages
 conda install -q -y %EXTRA_PACKAGES%

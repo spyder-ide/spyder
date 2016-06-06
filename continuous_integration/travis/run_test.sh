@@ -26,7 +26,7 @@ if [ "$USE_CONDA" = true ] ; then
     cd ~/tmp
 
     # Install and run the package
-    conda install --use-local spyder==3.0.0b2
+    conda install --use-local spyder==3.0.0b3
 
     # Install extra packages
     conda install -q $EXTRA_PACKAGES
