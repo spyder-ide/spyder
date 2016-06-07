@@ -150,7 +150,7 @@ I'm pleased to announce the third beta of our next major version: Spyder 3.0.
 
 We've been working on this version for almost two years now and as far as we know
 it's working very well. There are still several bugs to squash but we encourage all
-people who like the bleeding edge to give it a try. This beta beta is released
+people who like the bleeding edge to give it a try. This beta version is released
 six months after our second one and it includes almost 600 commits!
 
 Spyder 3.0 comes with several interesting and exciting new features. The most
