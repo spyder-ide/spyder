@@ -23,10 +23,12 @@ else:
     import importlib
 
 
+PLUGIN_PREFIX = "spyder_"
+IO_PREFIX = PLUGIN_PREFIX + "io_"
+
+
 def get_spyderplugins_mods(io=False):
     """Import modules from plugins package and return the list"""
-    plugins_prefix = "spyderio_" if io else "spyderui_"
-
     # Create user directory
     user_conf_path = get_conf_path()
     user_plugin_path = osp.join(user_conf_path, "spyplugins")
@@ -36,19 +38,21 @@ def get_spyderplugins_mods(io=False):
 
     # The user plugins directory is given the priority when looking for modules
     for plugin_path in [user_conf_path] + sys.path:
-        _get_spyderplugins(plugin_path, plugins_prefix, modnames, modlist)
+        _get_spyderplugins(plugin_path, io, modnames, modlist)
     return modlist
 
 
-def _get_spyderplugins(plugin_path, plugins_prefix, modnames, modlist):
+def _get_spyderplugins(plugin_path, is_io, modnames, modlist):
     """Scan the directory `plugin_path` for plugins_namespace package and
     loads its submodules."""
     if not osp.isdir(plugin_path):
         return
 
     for name in os.listdir(plugin_path):
+        if is_io and not name.startswith(IO_PREFIX):
+            continue
         # Check if it's a spyder plugin
-        if not name.startswith(plugins_prefix):
+        if not name.startswith(PLUGIN_PREFIX) or name.startswith(IO_PREFIX):
             continue
 
         # Import the plugin

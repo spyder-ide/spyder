@@ -23,7 +23,7 @@ from spyderlib.utils.qthelpers import create_action
 from .widgets.profilergui import (ProfilerWidget, is_profiler_installed)
 
 
-_ = get_translation("profiler", "spyderui_profiler")
+_ = get_translation("profiler", "spyder_profiler")
 
 
 class ProfilerConfigPage(PluginConfigPage):
