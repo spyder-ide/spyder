@@ -26,7 +26,7 @@ from spyderlib.utils.qthelpers import create_action
 from .widgets.pylintgui import (PYLINT_PATH, PylintWidget)
 
 
-_ = get_translation("pylint", "spyplugins.ui.pylint")
+_ = get_translation("pylint", "spyderui_pylint")
 
 
 class PylintConfigPage(PluginConfigPage):
@@ -34,7 +34,7 @@ class PylintConfigPage(PluginConfigPage):
         settings_group = QGroupBox(_("Settings"))
         save_box = self.create_checkbox(_("Save file before analyzing it"),
                                         'save_before', default=True)
-        
+
         hist_group = QGroupBox(_("History"))
         hist_label1 = QLabel(_("The following option will be applied at next "
                                "startup."))
@@ -47,7 +47,7 @@ class PylintConfigPage(PluginConfigPage):
         results_label1 = QLabel(_("Results are stored here:"))
         results_label1.setWordWrap(True)
 
-        # Warning: do not try to regroup the following QLabel contents with 
+        # Warning: do not try to regroup the following QLabel contents with
         # widgets above -- this string was isolated here in a single QLabel
         # on purpose: to fix Issue 863
         results_label2 = QLabel(PylintWidget.DATAPATH)
@@ -87,10 +87,10 @@ class Pylint(PylintWidget, SpyderPluginMixin):
         PylintWidget.__init__(self, parent=parent,
                               max_entries=self.get_option('max_entries', 50))
         SpyderPluginMixin.__init__(self, parent)
-        
+
         # Initialize plugin
         self.initialize_plugin()
-        
+
     #------ SpyderPluginWidget API --------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
@@ -107,7 +107,7 @@ class Pylint(PylintWidget, SpyderPluginMixin):
         this plugin's dockwidget is raised on top-level
         """
         return self.treewidget
-    
+
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         # Font
@@ -128,30 +128,30 @@ class Pylint(PylintWidget, SpyderPluginMixin):
         self.edit_goto.connect(self.main.editor.load)
         self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
         self.main.add_dockwidget(self)
-        
+
         pylint_act = create_action(self, _("Run static code analysis"),
                                    triggered=self.run_pylint)
         pylint_act.setEnabled(PYLINT_PATH is not None)
         self.register_shortcut(pylint_act, context="Pylint",
                                name="Run analysis")
-        
+
         self.main.source_menu_actions += [None, pylint_act]
         self.main.editor.pythonfile_dependent_actions += [pylint_act]
 
     def refresh_plugin(self):
         """Refresh pylint widget"""
         self.remove_obsolete_items()
-        
+
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         return True
-            
+
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
-        # The history depth option will be applied at 
+        # The history depth option will be applied at
         # next Spyder startup, which is soon enough
         pass
-        
+
     #------ Public API --------------------------------------------------------
     @Slot()
     def change_history_depth(self):
@@ -170,7 +170,7 @@ class Pylint(PylintWidget, SpyderPluginMixin):
            and not self.main.editor.save():
             return
         self.analyze( self.main.editor.get_current_filename() )
-        
+
     def analyze(self, filename):
         """Reimplement analyze method"""
         if self.dockwidget and not self.ismaximized:

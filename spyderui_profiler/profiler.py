@@ -23,7 +23,7 @@ from spyderlib.utils.qthelpers import create_action
 from .widgets.profilergui import (ProfilerWidget, is_profiler_installed)
 
 
-_ = get_translation("profiler", "spyplugins.ui.profiler")
+_ = get_translation("profiler", "spyderui_profiler")
 
 
 class ProfilerConfigPage(PluginConfigPage):
@@ -58,16 +58,16 @@ class Profiler(ProfilerWidget, SpyderPluginMixin):
     CONF_SECTION = 'profiler'
     CONFIGWIDGET_CLASS = ProfilerConfigPage
     edit_goto = Signal(str, int, str)
-    
+
     def __init__(self, parent=None):
         ProfilerWidget.__init__(self, parent=parent,
                               max_entries=self.get_option('max_entries', 50))
         SpyderPluginMixin.__init__(self, parent)
-        
+
         # Initialize plugin
         self.initialize_plugin()
-        
-    #------ SpyderPluginWidget API ---------------------------------------------    
+
+    #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
         return _("Profiler")
@@ -83,7 +83,7 @@ class Profiler(ProfilerWidget, SpyderPluginMixin):
         this plugin's dockwidget is raised on top-level
         """
         return self.datatree
-    
+
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         return []
@@ -105,25 +105,25 @@ class Profiler(ProfilerWidget, SpyderPluginMixin):
         profiler_act.setEnabled(is_profiler_installed())
         self.register_shortcut(profiler_act, context="Profiler",
                                name="Run profiler")
-        
+
         self.main.run_menu_actions += [profiler_act]
         self.main.editor.pythonfile_dependent_actions += [profiler_act]
 
     def refresh_plugin(self):
         """Refresh profiler widget"""
         #self.remove_obsolete_items()  # FIXME: not implemented yet
-        
+
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         return True
-            
+
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
-        # The history depth option will be applied at 
+        # The history depth option will be applied at
         # next Spyder startup, which is soon enough
         pass
-        
-    #------ Public API ---------------------------------------------------------        
+
+    #------ Public API ---------------------------------------------------------
     def run_profiler(self):
         """Run profiler"""
         if self.main.editor.save():

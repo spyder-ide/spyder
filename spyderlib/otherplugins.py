@@ -16,33 +16,42 @@ import traceback
 
 # Local imports
 from spyderlib.config.base import get_conf_path
-from spyderlib.py3compat import PY2, PY3, PY33
+from spyderlib.py3compat import PY2, PY3, PY33, configparser as cp
 
 if PY2:
     import imp
 
 
-def _get_spyderplugins(plugin_path, base_namespace, plugins_namespace,
-                       modnames, modlist):
+def get_spyderplugins_mods(io=False):
+    """Import modules from plugins package and return the list"""
+    plugins_prefix = "spyderio_" if io else "spyderui_"
+
+    # Create user directory
+    user_conf_path = get_conf_path()
+    user_plugin_path = osp.join(user_conf_path, "spyplugins")
+    create_userplugins_files(user_plugin_path)
+
+    modlist, modnames = [], []
+
+    # The user plugins directory is given the priority when looking for modules
+    for plugin_path in [user_conf_path] + sys.path:
+        _get_spyderplugins(plugin_path, plugins_prefix, modnames, modlist)
+    return modlist
+
+
+def _get_spyderplugins(plugin_path, plugins_prefix, modnames, modlist):
     """Scan the directory `plugin_path` for plugins_namespace package and
     loads its submodules."""
-    namespace_path = osp.join(plugin_path, base_namespace, plugins_namespace)
-
-    if not osp.exists(namespace_path):
+    if not osp.isdir(plugin_path):
         return
 
-    dirs = []
-    for d in os.listdir(namespace_path):
-        path = osp.join(namespace_path, d)
-        if osp.isdir(path):
-            dirs.append(path)
-            
-    for dirname in dirs:
-        name = osp.basename(dirname)
-        if name == "__pycache__":
+    for name in os.listdir(plugin_path):
+        # Check if it's a spyder plugin
+        if not name.startswith(plugins_prefix):
             continue
-        _import_plugin(name, base_namespace, plugins_namespace,
-                       namespace_path, modnames, modlist)
+
+        # Import the plugin
+        _import_plugin(name, plugin_path, modnames, modlist)
 
 
 class _ModuleMock():
@@ -53,36 +62,38 @@ class _ModuleMock():
     pass
 
 
-def _import_plugin(name, base_namespace, plugin_namespace, namespace_path,
-                   modnames, modlist):
+def _import_plugin(module_name, plugin_path, modnames, modlist):
     """Import the plugin `plugins_namsepace`.`name`, add it to `modlist` and
     adds its name to `modnames`."""
-    module_name = "{0}.{1}.{2}".format(base_namespace, plugin_namespace, name)
-
     if module_name in modnames:
         return
     try:
         # First add a mock module with the LOCALEPATH attribute so that the
         # helper method can find the locale on import
         mock = _ModuleMock()
-        mock.LOCALEPATH = osp.join(namespace_path, name, 'locale')
+        mock.LOCALEPATH = osp.join(plugin_path, 'locale')
         sys.modules[module_name] = mock
         module = None
-        if PY33:
-            loader = importlib.machinery.PathFinder.find_module(
-                name, [namespace_path])
-            if loader:
-                module = loader.load_module(name)
-        elif PY3:
-            spec = importlib.machinery.PathFinder.find_spec(name,
-                                                            [namespace_path])
-            if spec:
-                module = spec.loader.load_module(name)
-        else:
-            info = imp.find_module(name, [namespace_path])
-            if info:
-                module = imp.load_module(module_name, *info)
 
+        spec = importlib.machinery.PathFinder.find_spec(module_name,
+                                                        [plugin_path])
+        if spec:
+            module = spec.loader.load_module(module_name)
+
+#        if PY33:
+#            loader = importlib.machinery.PathFinder.find_module(
+#                module_name, [plugin_dir])
+#            if loader:
+#                module = loader.load_module(module_name)
+#        elif PY3:
+#            spec = importlib.machinery.PathFinder.find_spec(module_name,
+#                                                            [plugin_dir])
+#            if spec:
+#                module = spec.loader.load_module(module_name)
+#        else:
+#            info = imp.find_module(module_name, [plugin_dir])
+#            if info:
+#                module = imp.load_module(module_name, *info)
         # Then restore the actual loaded module instead of the mock
         if module:
             sys.modules[module_name] = module
@@ -114,9 +125,6 @@ For more information on namespace packages visit:
 - https://www.python.org/dev/peps/pep-0382/
 - https://www.python.org/dev/peps/pep-0420/
 '''
-
-# Declare as a namespace package
-__import__('pkg_resources').declare_namespace(__name__)
 """
     data = ""
     new_path = osp.join(path, init_file)
@@ -127,35 +135,3 @@ __import__('pkg_resources').declare_namespace(__name__)
     if not (osp.isfile(new_path) and data == init_file_content):
         with open(new_path, "w") as f:
             f.write(init_file_content)
-
-
-def get_spyderplugins_mods(io=False):
-    """Import modules from plugins package and return the list"""
-    base_namespace = "spyplugins"
-
-    if io:
-        plugins_namespace = "io"
-    else:
-        plugins_namespace = "ui"
-
-    namespace = '.'.join([base_namespace, plugins_namespace])
-
-    # Import parent module
-    importlib.import_module(namespace)
-
-    # Create user directory
-    user_conf_path = get_conf_path()
-    user_plugin_basepath = osp.join(user_conf_path, base_namespace)
-    user_plugin_path = osp.join(user_conf_path, base_namespace,
-                                plugins_namespace)
-
-    create_userplugins_files(user_plugin_basepath)
-    create_userplugins_files(user_plugin_path)
-
-    modlist, modnames = [], []
-
-    # The user plugins directory is given the priority when looking for modules
-    for plugin_path in [user_conf_path] + sys.path:
-        _get_spyderplugins(plugin_path, base_namespace, plugins_namespace,
-                           modnames, modlist)
-    return modlist
