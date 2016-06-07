@@ -8,7 +8,6 @@
 Spyder third-party plugins configuration management
 """
 
-import importlib
 import os
 import os.path as osp
 import sys
@@ -16,10 +15,12 @@ import traceback
 
 # Local imports
 from spyderlib.config.base import get_conf_path
-from spyderlib.py3compat import PY2, PY3, PY33, configparser as cp
+from spyderlib.py3compat import PY2
 
 if PY2:
     import imp
+else:
+    import importlib
 
 
 def get_spyderplugins_mods(io=False):
@@ -75,25 +76,23 @@ def _import_plugin(module_name, plugin_path, modnames, modlist):
         sys.modules[module_name] = mock
         module = None
 
-        spec = importlib.machinery.PathFinder.find_spec(module_name,
-                                                        [plugin_path])
-        if spec:
-            module = spec.loader.load_module(module_name)
+        if PY2:
+            info = imp.find_module(module_name, [plugin_path])
+            if info:
+                module = imp.load_module(module_name, *info)
+        elif sys.version_info[0:2] <= (3, 3):
+            loader = importlib.machinery.PathFinder.find_module(
+                module_name,
+                [plugin_path])
+            if loader:
+                module = loader.load_module(module_name)
+        else:
+            spec = importlib.machinery.PathFinder.find_spec(
+                module_name,
+                [plugin_path])
+            if spec:
+                module = spec.loader.load_module(module_name)
 
-#        if PY33:
-#            loader = importlib.machinery.PathFinder.find_module(
-#                module_name, [plugin_dir])
-#            if loader:
-#                module = loader.load_module(module_name)
-#        elif PY3:
-#            spec = importlib.machinery.PathFinder.find_spec(module_name,
-#                                                            [plugin_dir])
-#            if spec:
-#                module = spec.loader.load_module(module_name)
-#        else:
-#            info = imp.find_module(module_name, [plugin_dir])
-#            if info:
-#                module = imp.load_module(module_name, *info)
         # Then restore the actual loaded module instead of the mock
         if module:
             sys.modules[module_name] = module
