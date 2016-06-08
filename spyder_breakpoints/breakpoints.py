@@ -34,28 +34,28 @@ class Breakpoints(BreakpointWidget, SpyderPluginMixin):
     def __init__(self, parent=None):
         BreakpointWidget.__init__(self, parent=parent)
         SpyderPluginMixin.__init__(self, parent)
-
+        
         # Initialize plugin
         self.initialize_plugin()
         self.set_data()
-
+    
     #------ SpyderPluginWidget API --------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
         return _("Breakpoints")
-
+    
     def get_plugin_icon(self):
         """Return widget icon"""
         path = osp.join(self.PLUGIN_PATH, self.IMG_PATH)
         return ima.icon('profiler', icon_path=path)
-
+    
     def get_focus_widget(self):
         """
         Return the widget to give focus to when
         this plugin's dockwidget is raised on top-level
         """
         return self.dictwidget
-
+    
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         return []
@@ -74,13 +74,13 @@ class Breakpoints(BreakpointWidget, SpyderPluginMixin):
         self.main.editor.breakpoints_saved.connect(self.set_data)
         self.set_or_edit_conditional_breakpoint.connect(
                            self.main.editor.set_or_edit_conditional_breakpoint)
-
+        
         self.main.add_dockwidget(self)
-
+        
         list_action = create_action(self, _("List breakpoints"),
                                    triggered=self.show)
         list_action.setEnabled(True)
-
+        
         # A fancy way to insert the action into the Breakpoints menu under
         # the assumption that Breakpoints is the first QMenu in the list.
         for item in self.main.debug_menu_actions:
@@ -89,12 +89,12 @@ class Breakpoints(BreakpointWidget, SpyderPluginMixin):
             except AttributeError:
                 pass
             else:
-                # Depending on Qt API version, could get a QString or
+                # Depending on Qt API version, could get a QString or 
                 # unicode from title()
                 if not is_text_string(menu_title): # string is a QString
                     menu_title = to_text_string(menu_title.toUtf8)
                 item.addAction(list_action)
-                # If we've reached this point it means we've located the
+                # If we've reached this point it means we've located the 
                 # first QMenu in the run_menu. Since there might be other
                 # QMenu entries in run_menu, we'll break so that the
                 # breakpoint action is only inserted once into the run_menu.
@@ -104,15 +104,15 @@ class Breakpoints(BreakpointWidget, SpyderPluginMixin):
     def refresh_plugin(self):
         """Refresh widget"""
         pass
-
+        
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         return True
-
+            
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
         pass
-
+        
     def show(self):
         """Show the breakpoints dockwidget"""
         if self.dockwidget and not self.ismaximized:
