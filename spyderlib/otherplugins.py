@@ -43,15 +43,13 @@ def get_spyderplugins_mods(io=False):
 
 
 def _get_spyderplugins(plugin_path, is_io, modnames, modlist):
-    """Scan the directory `plugin_path` for plugins_namespace package and
-    loads its submodules."""
+    """Scan the directory `plugin_path` for plugin packages and loads them."""
     if not osp.isdir(plugin_path):
         return
 
     for name in os.listdir(plugin_path):
         if is_io and not name.startswith(IO_PREFIX):
             continue
-        # Check if it's a spyder plugin
         if not name.startswith(PLUGIN_PREFIX) or name.startswith(IO_PREFIX):
             continue
 
@@ -59,17 +57,10 @@ def _get_spyderplugins(plugin_path, is_io, modnames, modlist):
         _import_plugin(name, plugin_path, modnames, modlist)
 
 
-class _ModuleMock():
-    """This mock module is added to sys.modules on plugin load to add the
-    location of the LOCALEDATA so that the module loads succesfully.
-    Once loaded the module is replaced by the actual loaded module object.
-    """
-    pass
-
-
 def _import_plugin(module_name, plugin_path, modnames, modlist):
-    """Import the plugin `plugins_namsepace`.`name`, add it to `modlist` and
-    adds its name to `modnames`."""
+    """Import the plugin `module_name` from `plugin_path`, add it to `modlist`
+    and adds its name to `modnames`.
+    """
     if module_name in modnames:
         return
     try:
@@ -78,24 +69,8 @@ def _import_plugin(module_name, plugin_path, modnames, modlist):
         mock = _ModuleMock()
         mock.LOCALEPATH = osp.join(plugin_path, 'locale')
         sys.modules[module_name] = mock
-        module = None
 
-        if PY2:
-            info = imp.find_module(module_name, [plugin_path])
-            if info:
-                module = imp.load_module(module_name, *info)
-        elif sys.version_info[0:2] <= (3, 3):
-            loader = importlib.machinery.PathFinder.find_module(
-                module_name,
-                [plugin_path])
-            if loader:
-                module = loader.load_module(module_name)
-        else:
-            spec = importlib.machinery.PathFinder.find_spec(
-                module_name,
-                [plugin_path])
-            if spec:
-                module = spec.loader.load_module(module_name)
+        module = _import_module_from_path(module_name, plugin_path)
 
         # Then restore the actual loaded module instead of the mock
         if module:
@@ -108,5 +83,34 @@ def _import_plugin(module_name, plugin_path, modnames, modlist):
         traceback.print_exc(file=sys.stderr)
 
 
+def _import_module_from_path(module_name, plugin_path):
+    """Imports `module_name` from `plugin_path`.
+
+    Return None if no module is found.
     """
+    module = None
+    if PY2:
+        info = imp.find_module(module_name, [plugin_path])
+        if info:
+            module = imp.load_module(module_name, *info)
+    elif sys.version_info[0:2] <= (3, 3):
+        loader = importlib.machinery.PathFinder.find_module(
+            module_name,
+            [plugin_path])
+        if loader:
+            module = loader.load_module(module_name)
+    else:  # Python 3.4+
+        spec = importlib.machinery.PathFinder.find_spec(
+            module_name,
+            [plugin_path])
+        if spec:
+            module = spec.loader.load_module(module_name)
+    return module
+
+
+class _ModuleMock():
+    """This mock module is added to sys.modules on plugin load to add the
+    location of the LOCALEDATA so that the module loads succesfully.
+    Once loaded the module is replaced by the actual loaded module object.
     """
+    pass
