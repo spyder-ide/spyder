@@ -30,14 +30,14 @@ IO_PREFIX = PLUGIN_PREFIX + "io_"
 def get_spyderplugins_mods(io=False):
     """Import modules from plugins package and return the list"""
     # Create user directory
-    user_conf_path = get_conf_path()
-    user_plugin_path = osp.join(user_conf_path, "spyplugins")
-    create_userplugins_files(user_plugin_path)
+    user_plugin_path = osp.join(get_conf_path(), "spyplugins")
+    if not osp.isdir(user_plugin_path):
+        os.makedirs(user_plugin_path)
 
     modlist, modnames = [], []
 
     # The user plugins directory is given the priority when looking for modules
-    for plugin_path in [user_conf_path] + sys.path:
+    for plugin_path in [user_plugin_path] + sys.path:
         _get_spyderplugins(plugin_path, io, modnames, modlist)
     return modlist
 
@@ -108,33 +108,5 @@ def _import_plugin(module_name, plugin_path, modnames, modlist):
         traceback.print_exc(file=sys.stderr)
 
 
-def create_userplugins_files(path):
     """
-    Create userplugins namespace dirs and files if not present in .spyder* dir
     """
-    if not osp.isdir(path):
-        os.makedirs(path)
-
-    init_file = "__init__.py"
-    init_file_content = """# -*- coding: utf-8 -*-
-'''
-'spyplugins' makes uses of namespace packages to keep different plugins
-organized in the sitepackages directory and in the user directory.
-
-Spyder plugins can be of 'io' type or 'ui' type. Each type also makes use
-of namespace packages.
-
-For more information on namespace packages visit:
-- https://www.python.org/dev/peps/pep-0382/
-- https://www.python.org/dev/peps/pep-0420/
-'''
-"""
-    data = ""
-    new_path = osp.join(path, init_file)
-    if osp.isfile(new_path):
-        with open(new_path, "r") as f:
-            data = f.read()
-
-    if not (osp.isfile(new_path) and data == init_file_content):
-        with open(new_path, "w") as f:
-            f.write(init_file_content)
