@@ -293,6 +293,8 @@ These commands were executed:
         data = content.get('data', {})
         text = data.get('text/plain', '')
         if text:
+            if isinstance(text, dict):
+                text = text['text/plain']
             text = ANSI_OR_SPECIAL_PATTERN.sub('', text)
             self._control.current_prompt_pos = self._prompt_pos
             line = self._control.get_current_line_to_cursor()
