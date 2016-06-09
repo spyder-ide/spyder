@@ -2300,6 +2300,22 @@ class CodeEditor(TextEditBaseWidget):
                 match = self.find_brace_match(line_pos+pos, char, forward=True)
                 if (match is None) or (match > line_pos+len(text)):
                     return True
+            if char in [')', ']', '}']:
+                match = self.find_brace_match(line_pos+pos, char, forward=False)
+                if (match is None) or (match < line_pos):
+                    return True
+        return False
+
+    def __has_colon_not_in_brackets(self, text):
+        """
+        Return whether a string has a colon which is not between brackets.
+        This function returns True if the given string has a colon which is
+        not between a pair of (round, square or curly) brackets. It assumes
+        that the brackets in the string are balanced.
+        """
+        for pos, char in enumerate(text):
+            if char == ':' and not self.__unmatched_braces_in_line(text[:pos]):
+                return True
         return False
 
     def autoinsert_colons(self):
@@ -2314,6 +2330,8 @@ class CodeEditor(TextEditBaseWidget):
         elif self.__forbidden_colon_end_char(line_text):
             return False
         elif self.__unmatched_braces_in_line(line_text):
+            return False
+        elif self.__has_colon_not_in_brackets(line_text):
             return False
         else:
             return True
