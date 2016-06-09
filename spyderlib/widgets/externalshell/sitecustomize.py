@@ -479,15 +479,19 @@ try:
     # Set Pandas output encoding
     pd.options.display.encoding = 'utf-8'
 
-    # Filter warning that appears only on Windows and Spyder for
-    # DataFrames with np.nan values in Pandas 0.17-
+    # Filter warning that appears for DataFrames with np.nan values
     # Example:
-    # import pandas as pd, numpy as np
-    # pd.Series([np.nan,np.nan,np.nan],index=[1,2,3])
+    # >>> import pandas as pd, numpy as np
+    # >>> pd.Series([np.nan,np.nan,np.nan],index=[1,2,3])
     # Fixes Issue 2991
     import warnings
+    # For 0.18-
     warnings.filterwarnings(action='ignore', category=RuntimeWarning,
                             module='pandas.core.format',
+                            message=".*invalid value encountered in.*")
+    # For 0.18.1+
+    warnings.filterwarnings(action='ignore', category=RuntimeWarning,
+                            module='pandas.formats.format',
                             message=".*invalid value encountered in.*")
 except (ImportError, AttributeError):
     pass
