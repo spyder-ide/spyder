@@ -1641,6 +1641,7 @@ class Editor(SpyderPluginWidget):
 
     @Slot(bool)
     @Slot(str)
+    @Slot(str, int, str)
     @Slot(str, int, str, object)
     def load(self, filenames=None, goto=None, word='', editorwindow=None,
              processevents=True):
