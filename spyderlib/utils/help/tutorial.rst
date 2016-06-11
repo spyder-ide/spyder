@@ -199,7 +199,7 @@ Inspecting objects defined in the console
   the same information as we obtained from ``help(hello)`` is provided
   automatically in the Help:
 
-  .. image:: static/images/spyder-hello-docstring.png
+  .. image:: images/spyder-hello-docstring.png
        :align: center
 
   This works in the console and in the editor.
@@ -415,7 +415,7 @@ reports what it has done.
 
 We can then use the variables ``x``, ``y``, for example like this:
 
-.. image:: static/images/spyder-sympy-example.png
+.. image:: images/spyder-sympy-example.png
      :align: center
 
 
@@ -711,7 +711,7 @@ in Spyder.
 For example, to get an ``average()`` function look like this in the
 Spyder Help pane:
 
-.. image:: static/images/spyder-nice-docstring-rendering.png
+.. image:: images/spyder-nice-docstring-rendering.png
      :align: center
 
 you need to format the documentation string as follows
@@ -772,19 +772,19 @@ i.e. not function or class objects)
 After entering debug mode, you can execute the code line by line using the
 ``Step`` button of the Debug toolbar:
 
-.. image:: static/images/debug-step-over.png
+.. image:: images/debug-step-over.png
      :align: center
 
 or the shortcut Ctrl+F10. You can also inspect how a particular function is
 working by stepping into it with the ``Step into`` button
 
-.. image:: static/images/debug-step-in.png
+.. image:: images/debug-step-in.png
      :align: center
 
 or the shortcut Ctrl+F11. Finally, to get out of a function and continue with
 the next line you need to use the ``Step return`` button 
 
-.. image:: static/images/debug-step-out.png
+.. image:: images/debug-step-out.png
      :align: center
 
 or the shortcut Ctrl+F12.
@@ -794,7 +794,7 @@ If you prefer to inspect your program at a specific point, you need to insert a
 that a red dot will be placed next to the line and you can press the ``Continue``
 button
 
-.. image:: static/images/debug-continue.png
+.. image:: images/debug-continue.png
      :align: center
 
 (after entering debug mode) to stop the execution at that line.
