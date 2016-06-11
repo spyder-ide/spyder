@@ -70,7 +70,10 @@ def _import_plugin(module_name, plugin_path, modnames, modlist):
         mock.LOCALEPATH = osp.join(plugin_path, 'locale')
         sys.modules[module_name] = mock
 
-        module = _import_module_from_path(module_name, plugin_path)
+        if osp.isdir(osp.join(plugin_path, module_name)):
+            module = _import_module_from_path(module_name, plugin_path)
+        else:
+            module = None
 
         # Then restore the actual loaded module instead of the mock
         if module:
