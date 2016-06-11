@@ -46,6 +46,7 @@ class TabBar(QTabBar):
         # Dragging tabs
         self.__drag_start_pos = QPoint()
         self.setAcceptDrops(True)
+        self.setUsesScrollButtons(True)
 
     def mousePressEvent(self, event):
         """Reimplement Qt method"""
