@@ -23,7 +23,7 @@ from spyderlib.plugins import SpyderPluginMixin
 from spyderlib.py3compat import to_text_string, is_text_string
 from .widgets.breakpointsgui import BreakpointWidget
 
-_ = get_translation("breakpoints", "spyplugins.ui.breakpoints")
+_ = get_translation("breakpoints", "spyder_breakpoints")
 
 
 class Breakpoints(BreakpointWidget, SpyderPluginMixin):

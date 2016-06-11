@@ -26,7 +26,7 @@ from spyderlib.utils.qthelpers import create_action
 from .widgets.pylintgui import (PYLINT_PATH, PylintWidget)
 
 
-_ = get_translation("pylint", "spyplugins.ui.pylint")
+_ = get_translation("pylint", "spyder_pylint")
 
 
 class PylintConfigPage(PluginConfigPage):
