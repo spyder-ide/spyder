@@ -70,5 +70,11 @@ def test_open_parenthesis():
     assert text == "open_parenthesis(\n    ", repr(text)
 
 
+@pytest.mark.xfail
+def test_brackets_alone():
+    text = get_indent_fix("def function():\n    print []\n")
+    assert text == "def function():\n    print []\n    ", repr(text)
+
+
 if __name__ == "__main__":
     pytest.main()
