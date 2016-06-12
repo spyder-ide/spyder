@@ -738,9 +738,10 @@ class IPythonConsole(SpyderPluginWidget):
                                       "to open a new one") % ctrl)
         create_client_action = create_action(self,
                                 _("Open a new console"),
-                                QKeySequence("Ctrl+T"), ima.icon('ipython_console'),
-                                triggered=self.create_new_client)
-        create_client_action.setShortcutContext(Qt.WidgetWithChildrenShortcut)
+                                QKeySequence("Ctrl+T"),
+                                ima.icon('ipython_console'),
+                                triggered=self.create_new_client,
+                                context=Qt.WidgetWithChildrenShortcut)
 
         connect_to_kernel_action = create_action(self,
                _("Connect to an existing kernel"), None, None,

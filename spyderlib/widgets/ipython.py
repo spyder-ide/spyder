@@ -547,9 +547,9 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         restart_action = create_action(self, _("Restart kernel"),
                                        shortcut=QKeySequence("Ctrl+."),
                                        icon=ima.icon('restart'),
-                                       triggered=self.restart_kernel)
-        restart_action.setShortcutContext(Qt.WidgetWithChildrenShortcut)
-        
+                                       triggered=self.restart_kernel,
+                                       context=Qt.WidgetWithChildrenShortcut)
+
         # Main menu
         if self.menu_actions is not None:
             actions = [restart_action, None] + self.menu_actions
