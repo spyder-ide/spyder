@@ -807,10 +807,10 @@ class Editor(SpyderPluginWidget):
                                name="Run selection")
 
         if sys.platform == 'darwin':
-            run_cell_sc = Qt.META + Qt.Key_Enter
+            run_cell_sc = Qt.META + Qt.Key_Return
         else:
-            run_cell_sc = Qt.CTRL + Qt.Key_Enter
-        run_cell_advance_sc = Qt.SHIFT + Qt.Key_Enter
+            run_cell_sc = Qt.CTRL + Qt.Key_Return
+        run_cell_advance_sc = Qt.SHIFT + Qt.Key_Return
 
         run_cell_action = create_action(self,
                             _("Run cell"),
@@ -818,7 +818,8 @@ class Editor(SpyderPluginWidget):
                             shortcut=QKeySequence(run_cell_sc),
                             tip=_("Run current cell (Ctrl+Enter)\n"
                                   "[Use #%% to create cells]"),
-                            triggered=self.run_cell)
+                            triggered=self.run_cell,
+                            context=Qt.WidgetWithChildrenShortcut)
 
         run_cell_advance_action = create_action(self,
                             _("Run cell and advance"),
@@ -826,8 +827,9 @@ class Editor(SpyderPluginWidget):
                             shortcut=QKeySequence(run_cell_advance_sc),
                             tip=_("Run current cell and go to "
                                   "the next one (Shift+Enter)"),
-                            triggered=self.run_cell_and_advance)
-        
+                            triggered=self.run_cell_and_advance,
+                            context=Qt.WidgetWithChildrenShortcut)
+
         # --- Source code Toolbar ---
         self.todo_list_action = create_action(self,
                 _("Show todo list"), icon=ima.icon('todo_list'),

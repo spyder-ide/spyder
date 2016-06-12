@@ -2463,27 +2463,43 @@ class CodeEditor(TextEditBaseWidget):
                                                icon=ima.icon('python'))
         self.gotodef_action = create_action(self, _("Go to definition"),
                                    triggered=self.go_to_definition_from_cursor)
+
+        # Run actions
+        if sys.platform == 'darwin':
+            run_cell_sc = Qt.META + Qt.Key_Return
+        else:
+            run_cell_sc = Qt.CTRL + Qt.Key_Return
+        run_cell_advance_sc = Qt.SHIFT + Qt.Key_Return
+
         self.run_cell_action = create_action(self,
                         _("Run cell"),
                         icon=ima.icon('run_cell'),
+                        shortcut=QKeySequence(run_cell_sc),
                         triggered=lambda: self.run_cell.emit())
         self.run_cell_and_advance_action = create_action(self,
                         _("Run cell and advance"),
                         icon=ima.icon('run_cell'),
+                        shortcut=QKeySequence(run_cell_advance_sc),
                         triggered=lambda: self.run_cell_and_advance.emit())
         self.run_selection_action = create_action(self,
                         _("Run &selection or current line"),
                         icon=ima.icon('run_selection'),
                         triggered=lambda: self.run_selection.emit())
+
+        # Zoom actions
         zoom_in_action = create_action(self, _("Zoom in"),
-                      QKeySequence(QKeySequence.ZoomIn), icon=ima.icon('zoom_in'),
+                      QKeySequence(QKeySequence.ZoomIn),
+                      icon=ima.icon('zoom_in'),
                       triggered=lambda: self.zoom_in.emit())
         zoom_out_action = create_action(self, _("Zoom out"),
-                      QKeySequence(QKeySequence.ZoomOut), icon=ima.icon('zoom_out'),
+                      QKeySequence(QKeySequence.ZoomOut),
+                      icon=ima.icon('zoom_out'),
                       triggered=lambda: self.zoom_out.emit())
         zoom_reset_action = create_action(self, _("Zoom reset"),
                       QKeySequence("Ctrl+0"),
                       triggered=lambda: self.zoom_reset.emit())
+
+        # Build menu
         self.menu = QMenu(self)
         actions_1 = [self.run_cell_action, self.run_cell_and_advance_action,
                      self.run_selection_action, self.gotodef_action, None,
