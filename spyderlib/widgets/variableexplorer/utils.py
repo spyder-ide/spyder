@@ -217,7 +217,8 @@ def is_editable_type(value):
 def sort_against(lista, listb, reverse=False):
     """Arrange lista items in the same order as sorted(listb)"""
     try:
-        return [item for _, item in sorted(zip(listb, lista), reverse=reverse)]
+        return [item for _, item in 
+                sorted(zip(listb, lista), key=lambda x: x[0], reverse=reverse)]
     except:
         return lista
 
