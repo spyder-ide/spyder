@@ -100,7 +100,7 @@ def set_shortcut(context, name, keystr):
     CONF.set('shortcuts', '%s/%s' % (context, name), keystr)
 
 
-def new_shortcut(keystr, parent, action):
+def fixed_shortcut(keystr, parent, action):
     """Define a new shortcut according to a keysequence string"""
     sc = QShortcut(QKeySequence(keystr), parent, action)
     sc.setContext(Qt.WidgetWithChildrenShortcut)
@@ -110,7 +110,7 @@ def new_shortcut(keystr, parent, action):
 def create_shortcut(action, context, name, parent):
     """Creates a Shortcut namedtuple for a widget"""
     keystr = get_shortcut(context, name)
-    qsc = new_shortcut(keystr, parent, action)
+    qsc = fixed_shortcut(keystr, parent, action)
     sc = Shortcut(data=(qsc, name, keystr))
     return sc
 

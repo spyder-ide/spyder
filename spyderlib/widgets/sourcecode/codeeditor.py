@@ -44,7 +44,7 @@ from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
 
 # Local imports
 from spyderlib.config.base import get_conf_path, _, DEBUG
-from spyderlib.config.gui import create_shortcut, get_shortcut, new_shortcut
+from spyderlib.config.gui import create_shortcut, get_shortcut, fixed_shortcut
 from spyderlib.config.main import CONF
 from spyderlib.py3compat import to_text_string
 from spyderlib.utils import icon_manager as ima
@@ -593,8 +593,8 @@ class CodeEditor(TextEditBaseWidget):
                                   name='End of document', parent=self)
 
         # Fixed shortcuts
-        new_shortcut(SHORTCUT_INLINE, self, lambda: self.enter_array_inline())
-        new_shortcut(SHORTCUT_TABLE, self, lambda: self.enter_array_table())
+        fixed_shortcut(SHORTCUT_INLINE, self, lambda: self.enter_array_inline())
+        fixed_shortcut(SHORTCUT_TABLE, self, lambda: self.enter_array_table())
 
         return [codecomp, duplicate_line, copyline, deleteline, movelineup,
                 movelinedown, gotodef, toggle_comment, blockcomment,

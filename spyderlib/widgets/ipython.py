@@ -34,7 +34,7 @@ from traitlets.config.loader import Config, load_pyconfig_files
 from spyderlib.config.base import (_, get_conf_path, get_image_path,
                                    get_module_source_path)
 from spyderlib.config.gui import (create_shortcut, get_font, get_shortcut,
-                                  new_shortcut)
+                                  fixed_shortcut)
 from spyderlib.config.main import CONF
 from spyderlib.py3compat import PY3
 from spyderlib.utils import icon_manager as ima
@@ -268,12 +268,12 @@ These commands were executed:
                                         name='Clear shell', parent=self)
 
         # Fixed shortcuts
-        new_shortcut("Ctrl+T", self, lambda: self.new_client.emit())
-        new_shortcut("Ctrl+R", self, lambda: self.reset_namespace())
-        new_shortcut(SHORTCUT_INLINE, self,
-                     lambda: self._control.enter_array_inline())
-        new_shortcut(SHORTCUT_TABLE, self,
-                     lambda: self._control.enter_array_table())
+        fixed_shortcut("Ctrl+T", self, lambda: self.new_client.emit())
+        fixed_shortcut("Ctrl+R", self, lambda: self.reset_namespace())
+        fixed_shortcut(SHORTCUT_INLINE, self,
+                       lambda: self._control.enter_array_inline())
+        fixed_shortcut(SHORTCUT_TABLE, self,
+                       lambda: self._control.enter_array_table())
 
         return [inspect, clear_console]
 

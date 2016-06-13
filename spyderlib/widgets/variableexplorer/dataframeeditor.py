@@ -27,7 +27,7 @@ import numpy as np
 # Local imports
 from spyderlib.config.base import _
 from spyderlib.config.fonts import DEFAULT_SMALL_DELTA
-from spyderlib.config.gui import get_font, new_shortcut
+from spyderlib.config.gui import get_font, fixed_shortcut
 from spyderlib.py3compat import io, is_text_string, PY2, to_text_string
 from spyderlib.utils import encoding
 from spyderlib.utils import icon_manager as ima
@@ -390,7 +390,7 @@ class DataFrameView(QTableView):
         self.header_class = self.horizontalHeader()
         self.header_class.sectionClicked.connect(self.sortByColumn)
         self.menu = self.setup_menu()
-        new_shortcut(QKeySequence.Copy, self, self.copy)
+        fixed_shortcut(QKeySequence.Copy, self, self.copy)
         self.horizontalScrollBar().valueChanged.connect(
                             lambda val: self.load_more_data(val, columns=True))
         self.verticalScrollBar().valueChanged.connect(

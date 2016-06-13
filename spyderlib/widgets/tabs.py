@@ -23,7 +23,7 @@ from qtpy.QtWidgets import (QApplication, QHBoxLayout, QMenu, QTabBar,
 
 # Local imports
 from spyderlib.config.base import _
-from spyderlib.config.gui import new_shortcut
+from spyderlib.config.gui import fixed_shortcut
 from spyderlib.py3compat import PY2, to_text_string
 from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.misc import get_common_path
@@ -292,14 +292,14 @@ class Tabs(BaseTabs):
         tab_bar.sig_move_tab[(str, int, int)].connect(
                                           self.move_tab_from_another_tabwidget)
         self.setTabBar(tab_bar)
-        
-        new_shortcut("Ctrl+Tab", parent, lambda: self.tab_navigate(1))
-        new_shortcut("Shift+Ctrl+Tab", parent, lambda: self.tab_navigate(-1))
-        new_shortcut("Ctrl+W", parent,
-                     lambda: self.sig_close_tab.emit(self.currentIndex()))
-        new_shortcut("Ctrl+F4", parent,
-                     lambda: self.sig_close_tab.emit(self.currentIndex()))
-        
+
+        fixed_shortcut("Ctrl+Tab", parent, lambda: self.tab_navigate(1))
+        fixed_shortcut("Shift+Ctrl+Tab", parent, lambda: self.tab_navigate(-1))
+        fixed_shortcut("Ctrl+W", parent,
+                       lambda: self.sig_close_tab.emit(self.currentIndex()))
+        fixed_shortcut("Ctrl+F4", parent,
+                       lambda: self.sig_close_tab.emit(self.currentIndex()))
+
     def tab_navigate(self, delta=1):
         """Ctrl+Tab"""
         if delta > 0 and self.currentIndex() == self.count()-1:

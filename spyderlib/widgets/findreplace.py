@@ -22,7 +22,7 @@ from qtpy.QtWidgets import (QCheckBox, QGridLayout, QHBoxLayout, QLabel,
 
 # Local imports
 from spyderlib.config.base import _
-from spyderlib.config.gui import create_shortcut, new_shortcut
+from spyderlib.config.gui import create_shortcut, fixed_shortcut
 from spyderlib.py3compat import to_text_string
 from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.qthelpers import create_toolbutton, get_icon
@@ -157,10 +157,10 @@ class FindReplace(QWidget):
                                         context='Editor', name='Replace text',
                                         parent=parent)
         # Fixed
-        new_shortcut("Escape", self, self.hide)
+        fixed_shortcut("Escape", self, self.hide)
 
         return [findnext, findprev, togglefind, togglereplace]
-        
+
     def get_shortcut_data(self):
         """
         Returns shortcut data, a list of tuples (shortcut, text, default)

@@ -29,7 +29,7 @@ from qtpy.QtWidgets import (QAction, QApplication, QHBoxLayout, QMainWindow,
 
 # Local imports
 from spyderlib.config.base import _, DEBUG, STDERR, STDOUT
-from spyderlib.config.gui import create_shortcut, new_shortcut
+from spyderlib.config.gui import create_shortcut, fixed_shortcut
 from spyderlib.config.utils import get_edit_extensions
 from spyderlib.py3compat import qbytearray_to_str, to_text_string, u
 from spyderlib.utils import icon_manager as ima
@@ -445,12 +445,12 @@ class EditorStack(QWidget):
                                    name='Run selection', parent=self)
 
         # Fixed shortcuts
-        new_shortcut(QKeySequence.ZoomIn, self, lambda: self.zoom_in.emit())
-        new_shortcut("Ctrl+=", self, lambda: self.zoom_in.emit())
-        new_shortcut(QKeySequence.ZoomOut, self, lambda: self.zoom_out.emit())
-        new_shortcut("Ctrl+0", self, lambda: self.zoom_reset.emit())
-        new_shortcut("Ctrl+W", self, self.close_file)
-        new_shortcut("Ctrl+F4", self, self.close_file)
+        fixed_shortcut(QKeySequence.ZoomIn, self, lambda: self.zoom_in.emit())
+        fixed_shortcut("Ctrl+=", self, lambda: self.zoom_in.emit())
+        fixed_shortcut(QKeySequence.ZoomOut, self, lambda: self.zoom_out.emit())
+        fixed_shortcut("Ctrl+0", self, lambda: self.zoom_reset.emit())
+        fixed_shortcut("Ctrl+W", self, self.close_file)
+        fixed_shortcut("Ctrl+F4", self, self.close_file)
 
         # Return configurable ones
         return [inspect, breakpoint, cbreakpoint, gotoline, tab,
