@@ -33,7 +33,7 @@ from traitlets.config.loader import Config, load_pyconfig_files
 # Local imports
 from spyderlib.config.base import (_, get_conf_path, get_image_path,
                                    get_module_source_path)
-from spyderlib.config.gui import (create_shortcut, get_font, get_shortcut,
+from spyderlib.config.gui import (config_shortcut, get_font, get_shortcut,
                                   fixed_shortcut)
 from spyderlib.config.main import CONF
 from spyderlib.py3compat import PY3
@@ -259,12 +259,12 @@ These commands were executed:
         lightbg_o = CONF.get('ipython_console', 'light_color')
         if not lightbg_o:
             self.set_default_style(colors='linux')
-    
+
     def create_shortcuts(self):
-        inspect = create_shortcut(self._control.inspect_current_object,
+        inspect = config_shortcut(self._control.inspect_current_object,
                                   context='Console', name='Inspect current object',
                                   parent=self)
-        clear_console = create_shortcut(self.clear_console, context='Console',
+        clear_console = config_shortcut(self.clear_console, context='Console',
                                         name='Clear shell', parent=self)
 
         # Fixed shortcuts

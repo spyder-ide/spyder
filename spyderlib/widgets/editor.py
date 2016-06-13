@@ -29,7 +29,7 @@ from qtpy.QtWidgets import (QAction, QApplication, QHBoxLayout, QMainWindow,
 
 # Local imports
 from spyderlib.config.base import _, DEBUG, STDERR, STDOUT
-from spyderlib.config.gui import create_shortcut, fixed_shortcut
+from spyderlib.config.gui import config_shortcut, fixed_shortcut
 from spyderlib.config.utils import get_edit_extensions
 from spyderlib.py3compat import qbytearray_to_str, to_text_string, u
 from spyderlib.utils import icon_manager as ima
@@ -426,22 +426,22 @@ class EditorStack(QWidget):
     def create_shortcuts(self):
         """Create local shortcuts"""
         # Configurable shortcuts
-        inspect = create_shortcut(self.inspect_current_object, context='Editor',
+        inspect = config_shortcut(self.inspect_current_object, context='Editor',
                                   name='Inspect current object', parent=self)
-        breakpoint = create_shortcut(self.set_or_clear_breakpoint,
+        breakpoint = config_shortcut(self.set_or_clear_breakpoint,
                                      context='Editor', name='Breakpoint',
                                      parent=self)
-        cbreakpoint = create_shortcut(self.set_or_edit_conditional_breakpoint,
+        cbreakpoint = config_shortcut(self.set_or_edit_conditional_breakpoint,
                                       context='Editor',
                                       name='Conditional breakpoint',
                                       parent=self)
-        gotoline = create_shortcut(self.go_to_line, context='Editor',
+        gotoline = config_shortcut(self.go_to_line, context='Editor',
                                    name='Go to line', parent=self)
-        tab = create_shortcut(self.go_to_previous_file, context='Editor',
+        tab = config_shortcut(self.go_to_previous_file, context='Editor',
                               name='Go to previous file', parent=self)
-        tabshift = create_shortcut(self.go_to_next_file, context='Editor',
+        tabshift = config_shortcut(self.go_to_next_file, context='Editor',
                                    name='Go to next file', parent=self)
-        run_selection = create_shortcut(self.run_selection, context='Editor',
+        run_selection = config_shortcut(self.run_selection, context='Editor',
                                    name='Run selection', parent=self)
 
         # Fixed shortcuts

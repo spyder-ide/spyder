@@ -44,7 +44,7 @@ from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
 
 # Local imports
 from spyderlib.config.base import get_conf_path, _, DEBUG
-from spyderlib.config.gui import create_shortcut, get_shortcut, fixed_shortcut
+from spyderlib.config.gui import config_shortcut, get_shortcut, fixed_shortcut
 from spyderlib.config.main import CONF
 from spyderlib.py3compat import to_text_string
 from spyderlib.utils import icon_manager as ima
@@ -513,28 +513,28 @@ class CodeEditor(TextEditBaseWidget):
         self.painted.connect(self._draw_editor_cell_divider)
 
         self.verticalScrollBar().valueChanged.connect(
-                                       lambda value: self.rehighlight_cells())                                 
+                                       lambda value: self.rehighlight_cells())
 
     def create_shortcuts(self):
-        codecomp = create_shortcut(self.do_completion, context='Editor',
+        codecomp = config_shortcut(self.do_completion, context='Editor',
                                    name='Code Completion', parent=self)
-        duplicate_line = create_shortcut(self.duplicate_line, context='Editor',
+        duplicate_line = config_shortcut(self.duplicate_line, context='Editor',
                                          name='Duplicate line', parent=self)
-        copyline = create_shortcut(self.copy_line, context='Editor',
+        copyline = config_shortcut(self.copy_line, context='Editor',
                                    name='Copy line', parent=self)
-        deleteline = create_shortcut(self.delete_line, context='Editor',
+        deleteline = config_shortcut(self.delete_line, context='Editor',
                                      name='Delete line', parent=self)
-        movelineup = create_shortcut(self.move_line_up, context='Editor',
+        movelineup = config_shortcut(self.move_line_up, context='Editor',
                                      name='Move line up', parent=self)
-        movelinedown = create_shortcut(self.move_line_down, context='Editor',
+        movelinedown = config_shortcut(self.move_line_down, context='Editor',
                                        name='Move line down', parent=self)
-        gotodef = create_shortcut(self.do_go_to_definition, context='Editor',
+        gotodef = config_shortcut(self.do_go_to_definition, context='Editor',
                                   name='Go to definition', parent=self)
-        toggle_comment = create_shortcut(self.toggle_comment, context='Editor',
+        toggle_comment = config_shortcut(self.toggle_comment, context='Editor',
                                          name='Toggle comment', parent=self)
-        blockcomment = create_shortcut(self.blockcomment, context='Editor',
+        blockcomment = config_shortcut(self.blockcomment, context='Editor',
                                        name='Blockcomment', parent=self)
-        unblockcomment = create_shortcut(self.unblockcomment, context='Editor',
+        unblockcomment = config_shortcut(self.unblockcomment, context='Editor',
                                          name='Unblockcomment', parent=self)
 
         def cb_maker(attr):
@@ -547,49 +547,49 @@ class CodeEditor(TextEditBaseWidget):
                 self.setTextCursor(cursor)
             return cursor_move_event
 
-        line_start = create_shortcut(cb_maker('StartOfLine'), context='Editor',
+        line_start = config_shortcut(cb_maker('StartOfLine'), context='Editor',
                                      name='Start of line', parent=self)
-        line_end = create_shortcut(cb_maker('EndOfLine'), context='Editor',
+        line_end = config_shortcut(cb_maker('EndOfLine'), context='Editor',
                                    name='End of line', parent=self)
 
-        prev_line = create_shortcut(cb_maker('Up'), context='Editor',
+        prev_line = config_shortcut(cb_maker('Up'), context='Editor',
                                     name='Previous line', parent=self)
-        next_line = create_shortcut(cb_maker('Down'), context='Editor',
+        next_line = config_shortcut(cb_maker('Down'), context='Editor',
                                     name='Next line', parent=self)
 
-        prev_char = create_shortcut(cb_maker('Left'), context='Editor',
+        prev_char = config_shortcut(cb_maker('Left'), context='Editor',
                                     name='Previous char', parent=self)
-        next_char = create_shortcut(cb_maker('Right'), context='Editor',
+        next_char = config_shortcut(cb_maker('Right'), context='Editor',
                                     name='Next char', parent=self)
 
-        prev_word = create_shortcut(cb_maker('StartOfWord'), context='Editor',
+        prev_word = config_shortcut(cb_maker('StartOfWord'), context='Editor',
                                     name='Previous word', parent=self)
-        next_word = create_shortcut(cb_maker('EndOfWord'), context='Editor',
+        next_word = config_shortcut(cb_maker('EndOfWord'), context='Editor',
                                     name='Next word', parent=self)
 
-        kill_line_end = create_shortcut(self.kill_line_end, context='Editor',
+        kill_line_end = config_shortcut(self.kill_line_end, context='Editor',
                                         name='Kill to line end', parent=self)
-        kill_line_start = create_shortcut(self.kill_line_start,
+        kill_line_start = config_shortcut(self.kill_line_start,
                                           context='Editor',
                                           name='Kill to line start',
                                           parent=self)
-        yank = create_shortcut(self._kill_ring.yank, context='Editor',
+        yank = config_shortcut(self._kill_ring.yank, context='Editor',
                                name='Yank', parent=self)
-        kill_ring_rotate = create_shortcut(self._kill_ring.rotate,
+        kill_ring_rotate = config_shortcut(self._kill_ring.rotate,
                                            context='Editor',
                                            name='Rotate kill ring',
                                            parent=self)
 
-        kill_prev_word = create_shortcut(self.kill_prev_word, context='Editor',
+        kill_prev_word = config_shortcut(self.kill_prev_word, context='Editor',
                                          name='Kill previous word',
                                          parent=self)
-        kill_next_word = create_shortcut(self.kill_next_word, context='Editor',
+        kill_next_word = config_shortcut(self.kill_next_word, context='Editor',
                                          name='Kill next word', parent=self)
 
-        start_doc = create_shortcut(cb_maker('Start'), context='Editor',
+        start_doc = config_shortcut(cb_maker('Start'), context='Editor',
                                     name='Start of Document', parent=self)
 
-        end_doc = create_shortcut(cb_maker('End'), context='Editor',
+        end_doc = config_shortcut(cb_maker('End'), context='Editor',
                                   name='End of document', parent=self)
 
         # Fixed shortcuts
