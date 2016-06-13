@@ -441,6 +441,8 @@ class EditorStack(QWidget):
                               name='Go to previous file', parent=self)
         tabshift = create_shortcut(self.go_to_next_file, context='Editor',
                                    name='Go to next file', parent=self)
+        run_selection = create_shortcut(self.run_selection, context='Editor',
+                                   name='Run selection', parent=self)
 
         # Fixed shortcuts
         new_shortcut(QKeySequence.ZoomIn, self, lambda: self.zoom_in.emit())
@@ -452,7 +454,7 @@ class EditorStack(QWidget):
 
         # Return configurable ones
         return [inspect, breakpoint, cbreakpoint, gotoline, tab,
-                tabshift]
+                tabshift, run_selection]
 
     def get_shortcut_data(self):
         """

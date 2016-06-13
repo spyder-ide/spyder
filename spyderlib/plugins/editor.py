@@ -803,8 +803,6 @@ class Editor(SpyderPluginWidget):
                                             tip=_("Run selection or "
                                                   "current line"),
                                             triggered=self.run_selection)
-        self.register_shortcut(run_selected_action, context="Editor",
-                               name="Run selection")
 
         if sys.platform == 'darwin':
             run_cell_sc = Qt.META + Qt.Key_Return
