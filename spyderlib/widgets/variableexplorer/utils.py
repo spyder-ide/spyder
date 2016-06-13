@@ -214,13 +214,18 @@ def is_editable_type(value):
 #==============================================================================
 # Sorting
 #==============================================================================
-def sort_against(lista, listb, reverse=False):
-    """Arrange lista items in the same order as sorted(listb)"""
+def sort_against(list1, list2, reverse=False):
+    """
+    Arrange items of list1 in the same order as sorted(list2).
+
+    In other words, apply to list1 the permutation which takes list2 
+    to sorted(list2, reverse).
+    """
     try:
         return [item for _, item in 
-                sorted(zip(listb, lista), key=lambda x: x[0], reverse=reverse)]
+                sorted(zip(list2, list1), key=lambda x: x[0], reverse=reverse)]
     except:
-        return lista
+        return list1
 
 
 def unsorted_unique(lista):
