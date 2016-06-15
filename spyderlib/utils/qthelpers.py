@@ -50,7 +50,7 @@ def get_image_label(name, default="not_found.png"):
 
 class MacApplication(QApplication):
     """Subclass to be able to open external files with our Mac app"""
-    open_external_file = Signal(str)
+    sig_open_external_file = Signal(str)
     
     def __init__(self, *args):
         QApplication.__init__(self, *args)
@@ -58,7 +58,7 @@ class MacApplication(QApplication):
     def event(self, event):
         if event.type() == QEvent.FileOpen:
             fname = str(event.file())
-            self.open_external_file.emit(fname)
+            self.sig_open_external_file.emit(fname)
         return QApplication.event(self, event)
 
 
