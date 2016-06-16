@@ -132,6 +132,9 @@ class AsyncClient(QObject):
         """
         self.closing = True
         self.timer.stop()
+        self.notifier.activated.disconnect(self._on_msg_received)
+        self.notifier.setEnabled(False)
+        del self.notifier
         self.request('server_quit')
         self.process.waitForFinished(1000)
         self.context.destroy(0)
