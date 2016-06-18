@@ -168,8 +168,8 @@ def start_file(filename):
 
     Returns True if successfull, otherwise returns False.
     """
-    from spyderlib.qt.QtGui import QDesktopServices
-    from spyderlib.qt.QtCore import QUrl
+    from qtpy.QtCore import QUrl
+    from qtpy.QtGui import QDesktopServices
 
     # We need to use setUrl instead of setPath because this is the only
     # cross-platform way to open external files. setPath fails completely on
@@ -252,7 +252,11 @@ def get_python_args(fname, python_args, interact, debug, end_args):
 
 def run_python_script_in_terminal(fname, wdir, args, interact,
                                   debug, python_args):
-    """Run Python script in an external system terminal"""
+    """
+    Run Python script in an external system terminal.
+
+    :str wdir: working directory, may be empty.
+    """
     
     # If fname has spaces on it it can't be ran on Windows, so we have to
     # enclose it in quotes. Also wdir can come with / as os.sep, so we
@@ -276,32 +280,39 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
         try:
             run_shell_command(cmd, cwd=wdir)
         except WindowsError:
-            from spyderlib.qt.QtGui import QMessageBox
+            from qtpy.QtWidgets import QMessageBox
+
             from spyderlib.config.base import _
+
             QMessageBox.critical(None, _('Run'),
                                  _("It was not possible to run this file in "
                                    "an external terminal"),
                                  QMessageBox.Ok)
     elif os.name == 'posix':
-        cmd = 'gnome-terminal'
-        if is_program_installed(cmd):
-            run_program(cmd, ['--working-directory', wdir, '-x'] + p_args,
-                        cwd=wdir)
-            return
-        cmd = 'konsole'
-        if is_program_installed(cmd):
-            run_program(cmd, ['--workdir', wdir, '-e'] + p_args,
-                        cwd=wdir)
-            return
-        cmd = 'xfce4-terminal'
-        if is_program_installed(cmd):
-            run_program(cmd, ['--working-directory', wdir, '-x'] + p_args,
-                        cwd=wdir)
-            return
-        cmd = 'xterm'
-        if is_program_installed(cmd):
-            run_program(cmd, ['-e'] + p_args + [wdir])
-            return		
+        programs = [{'cmd': 'gnome-terminal',
+                     'wdir-option': '--working-directory',
+                     'execute-option': '-x'},
+                    {'cmd': 'konsole',
+                     'wdir-option': '--workdir',
+                     'execute-option': '-e'},
+                    {'cmd': 'xfce4-terminal',
+                     'wdir-option': '--working-directory',
+                     'execute-option': '-x'},
+                    {'cmd': 'xterm',
+                     'wdir-option': None,
+                     'execute-option': '-e'},]
+        for program in programs:
+            if is_program_installed(program['cmd']):
+                arglist = []
+                if program['wdir-option'] and wdir:
+                    arglist += [program['wdir-option'], wdir]
+                arglist.append(program['execute-option'])
+                arglist += p_args
+                if wdir:
+                    run_program(program['cmd'], arglist, cwd=wdir)
+                else:
+                    run_program(program['cmd'], arglist)
+                return
         # TODO: Add a fallback to OSX
     else:
         raise NotImplementedError

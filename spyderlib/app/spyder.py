@@ -16,20 +16,18 @@ Licensed under the terms of the MIT License
 (see spyderlib/__init__.py for details)
 """
 
-from __future__ import print_function
-
-
-#==============================================================================
+# =============================================================================
 # Stdlib imports
-#==============================================================================
+# =============================================================================
+from __future__ import print_function
 import atexit
 import errno
 import os
 import os.path as osp
 import re
-import socket
 import shutil
 import signal
+import socket
 import subprocess
 import sys
 import threading
@@ -75,21 +73,22 @@ except ImportError:
 #==============================================================================
 # Qt imports
 #==============================================================================
-from spyderlib.qt import API, PYQT5
-from spyderlib.qt.QtGui import (QApplication, QMainWindow, QSplashScreen,
-                                QPixmap, QMessageBox, QMenu, QColor, QShortcut,
-                                QKeySequence, QDockWidget, QAction,
-                                QDesktopServices, QStyleFactory)
-from spyderlib.qt.QtCore import (Signal, QPoint, Qt, QSize, QByteArray, QUrl,
-                                 Slot, QTimer, QCoreApplication, QThread)
-from spyderlib.qt.compat import (from_qvariant, getopenfilename,
-                                 getsavefilename)
+from qtpy import API, PYQT5
+from qtpy.compat import from_qvariant, getopenfilename, getsavefilename
+from qtpy.QtCore import (QByteArray, QCoreApplication, QPoint, QSize, Qt,
+                         QThread, QTimer, QUrl, Signal, Slot)
+from qtpy.QtGui import QColor, QDesktopServices, QKeySequence, QPixmap
+from qtpy.QtWidgets import (QAction, QApplication, QDockWidget, QMainWindow,
+                            QMenu, QMessageBox, QShortcut, QSplashScreen,
+                            QStyleFactory)
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms
 # when PySide is selected by the QT_API environment variable and when PyQt4
 # is also installed (or any other Qt-based application prepending a directory
 # containing incompatible Qt DLLs versions in PATH):
-from spyderlib.qt import QtSvg  # analysis:ignore
+from qtpy import QtSvg  # analysis:ignore
 
+# Avoid a bug in Qt: https://bugreports.qt.io/browse/QTBUG-46720
+from qtpy import QtWebEngineWidgets
 
 
 #==============================================================================
@@ -117,7 +116,6 @@ QApplication.processEvents()
 #==============================================================================
 # Local utility imports
 #==============================================================================
-import spyderlib.utils.icon_manager as ima
 from spyderlib import __version__, __project_url__, __forum_url__, get_versions
 from spyderlib.config.base import (get_conf_path, get_module_data_path,
                                    get_module_source_path, STDERR, DEBUG,
@@ -129,14 +127,14 @@ from spyderlib.app.cli_options import get_options
 from spyderlib import dependencies
 from spyderlib.config.ipython import QTCONSOLE_INSTALLED
 from spyderlib.config.user import NoDefault
+from spyderlib.py3compat import (getcwd, is_text_string, to_text_string,
+                                 PY3, qbytearray_to_str, u, configparser as cp)
 from spyderlib.utils import encoding, programs
+from spyderlib.utils import icon_manager as ima
+from spyderlib.utils.introspection import module_completion
 from spyderlib.utils.iofuncs import load_session, save_session, reset_session
 from spyderlib.utils.programs import is_module_installed
-from spyderlib.utils.introspection import module_completion
 from spyderlib.utils.misc import select_port
-from spyderlib.py3compat import (PY3, to_text_string, is_text_string, getcwd,
-                                 u, qbytearray_to_str, configparser as cp)
-
 
 #==============================================================================
 # Local gui imports
@@ -274,7 +272,7 @@ class MainWindow(QMainWindow):
 
         self.debug_print("Start of MainWindow constructor")
 
-        def signal_handler(signum, frame):
+        def signal_handler(signum, frame=None):
             """Handler for signals."""
             sys.stdout.write('Handling signal: %s\n' % signum)
             sys.stdout.flush()
@@ -285,15 +283,16 @@ class MainWindow(QMainWindow):
                 import win32api
                 win32api.SetConsoleCtrlHandler(signal_handler, True)
             except ImportError:
-                version = '.'.join(map(str, sys.version_info[:2]))
-                raise Exception('pywin32 not installed for Python ' + version)
+                pass
         else:
             signal.signal(signal.SIGTERM, signal_handler)
 
         # Use a custom Qt stylesheet
         if sys.platform == 'darwin':
             spy_path = get_module_source_path('spyderlib')
+            img_path = osp.join(spy_path, 'images')
             mac_style = open(osp.join(spy_path, 'app', 'mac_stylesheet.qss')).read()
+            mac_style = mac_style.replace('$IMAGE_PATH', img_path)
             self.setStyleSheet(mac_style)
 
         # Shortcut management data
@@ -444,6 +443,9 @@ class MainWindow(QMainWindow):
                                                sys.version_info[1])
         if DEBUG:
             title += " [DEBUG MODE %d]" % DEBUG
+        if options.window_title is not None:
+            title += ' -- ' + options.window_title
+
         self.setWindowTitle(title)
         resample = os.name != 'nt'
         icon = ima.icon('spyder', resample=resample)
@@ -835,11 +837,7 @@ class MainWindow(QMainWindow):
         self.toolbarslist.append(self.workingdirectory)
 
         # Help plugin
-        dependencies.add("sphinx", _("Show help for objects in the Editor and "
-                                     "Consoles in a dedicated pane"),
-                         required_version='>=0.6.6')
-        if CONF.get('help', 'enable') and \
-          programs.is_module_installed('sphinx'):
+        if CONF.get('help', 'enable'):
             self.set_splash(_("Loading help..."))
             from spyderlib.plugins.help import Help
             self.help = Help(self)
@@ -1314,10 +1312,31 @@ class MainWindow(QMainWindow):
 
         # Check for spyder updates
         if DEV is None and CONF.get('main', 'check_updates_on_startup'):
-            self.give_updates_feedback = False 
+            self.give_updates_feedback = False
             self.check_updates()
 
+        self.report_missing_dependencies()
+
         self.is_setting_up = False
+
+    def report_missing_dependencies(self):
+        """Show a QMessageBox with a list of missing hard dependencies"""
+        missing_deps = dependencies.missing_dependencies()
+        if missing_deps:
+            QMessageBox.critical(self, _('Error'),
+                _("<b>You have missing dependencies!</b>"
+                  "<br><br><tt>%s</tt><br><br>"
+                  "<b>Please install them to avoid this message.</b>"
+                  "<br><br>"
+                  "<i>Note</i>: Spyder could work without some of these "
+                  "dependencies, however to have a smooth experience when "
+                  "using Spyder we <i>strongly</i> recommend you to install "
+                  "all the listed missing dependencies.<br>"
+                  "Failing to install these dependencies might result in bugs. "
+                  "Please be sure that any found bugs are not the direct "
+                  "result of missing dependencies, prior to reporting a new "
+                  "issue."
+                  ) % missing_deps, QMessageBox.Ok)
 
     def load_window_settings(self, prefix, default=False, section='main'):
         """Load window layout settings from userconfig-based configuration
@@ -1458,7 +1477,11 @@ class MainWindow(QMainWindow):
         self.set_window_settings(*settings)
 
         for plugin in self.widgetlist:
-            plugin.initialize_plugin_in_mainwindow_layout()
+            try:
+                plugin.initialize_plugin_in_mainwindow_layout()
+            except Exception as error:
+                print("%s: %s" % (plugin, str(error)), file=STDERR)
+                traceback.print_exc(file=STDERR)
        
     def setup_default_layouts(self, index, settings):
         """Setup default layouts when run for the first time"""
@@ -2387,7 +2410,7 @@ class MainWindow(QMainWindow):
 
         url = QUrl("https://github.com/spyder-ide/spyder/issues/new")
         if PYQT5:
-            from spyderlib.qt.QtCore import QUrlQuery
+            from qtpy.QtCore import QUrlQuery
             query = QUrlQuery()
             query.addQueryItem("body", quote(issue_template))
             url.setQuery(query)
@@ -2940,7 +2963,7 @@ def initialize():
         def exec_():
             """Do nothing because the Qt mainloop is already running"""
             pass
-    from spyderlib.qt import QtGui
+    from qtpy import QtGui
     QtGui.QApplication = FakeQApplication
 
     #----Monkey patching rope
@@ -2955,6 +2978,12 @@ def initialize():
     def fake_sys_exit(arg=[]):
         pass
     sys.exit = fake_sys_exit
+
+    #----Monkey patching sys.excepthook to avoid crashes in PyQt 5.5+
+    if PYQT5:
+        def spy_excepthook(type_, value, tback):
+            sys.__excepthook__(type_, value, tback) 
+        sys.excepthook = spy_excepthook
 
     # Removing arguments from sys.argv as in standard Python interpreter
     sys.argv = ['']

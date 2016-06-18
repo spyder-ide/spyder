@@ -1,26 +1,26 @@
 Minor release to list
 =====================
 
-Subject: [ANN] Spyder 2.3.8 is released!
+Subject: [ANN] Spyder 2.3.9 is released!
 
 
 Hi all,
 
 On the behalf of Spyder’s development team (https://github.com/spyder-ide/spyder/graphs/contributors),
-I’m pleased to announce that Spyder 2.3.8 has been released and is available for
+I’m pleased to announce that Spyder 2.3.9 has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release represents one month and a half of development since version 2.3.7
-and introduces several new features:
+This release comes 5 months after version 2.3.8 and introduces several new features:
 
+* Preferences
+    * Fix a crash when using certain versions of colorama (which is a Jedi dependency)
 * Python and IPython consoles
-    * Fix a sitecustomize error when using Matplotlib 1.5 with Python 2 on Linux
+    * Filter a RuntimeWarning generated for DataFrames with nan values
 * Variable Explorer
-    * Add support for Pandas Series when using Pamdas 0.17+
-    * Fix a freeze when creating empty DataFrames in Python 2
-    * Fix a freeze when working with big Numpy recarray's
+    * Fix a freeze when binary strings can't be converted to unicode in Python 2
+    * Fix a freeze with Numpy arrays containing strings
 
-We also fixed 6 bugs. For a full list of fixes see our changelog:
+We also fixed 5 bugs. For a full list of fixes see our changelog:
 https://github.com/spyder-ide/spyder/blob/2.3/CHANGELOG.md
 
 Don’t forget to follow Spyder updates/news:
@@ -140,31 +140,39 @@ Enjoy!
 Beta release
 ============
 
-Subject: [ANN] Spyder 3.0 second public beta release
+Subject: [ANN] Spyder 3.0 third public beta release
 
 
 Hi all,
 
 On the behalf of Spyder's development team (https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce the second beta of our next major version: Spyder 3.0.
+I'm pleased to announce the third beta of our next major version: Spyder 3.0.
 
-We've been working on this version for more than a year now and as far as we know
+We've been working on this version for almost two years now and as far as we know
 it's working very well. There are still several bugs to squash but we encourage all
-people who like the bleeding edge to give it a try. This second beta is released
-four months after our first one and it includes more than 600 commits!
+people who like the bleeding edge to give it a try. This beta version is released
+six months after our second one and it includes almost 600 commits!
 
 Spyder 3.0 comes with several interesting and exciting new features. The most
 important ones are:
 
-1. A file switcher very similar to the Sublime Text one (which can be activated
-with `Ctrl+P`).
-2. A new icon theme based on FontAwesome (not yet activated by default).
-3. A new set of default pane layouts for those coming from Rstudio or Matlab
-(under `View > Window layouts`).
-4. Syntax highlighting for all file types supported by Pygments (a pure Python
-highlighting library).
-5. A simpler and more intuitive way to introduce keyboard shortcuts.
-6. Support for PyQt5.
+* Support for much more programming languages: Spyder relies now on the excellent Pygments
+  library to provide syntax highlight and suggest code completions in the Editor, for all
+  programming languages supported by it.
+* A new file switcher: Spyder 3.0 will come with a fancy file switcher, very similar in
+  spirit to the one present in Sublime Text. This is a dialog to select among the open
+  files in the Editor, by doing a fuzzy search through their names. It also lets users to
+  view the list of classes, methods and functions defined in the current file, and select
+  one of them. This dialog is activated with `Ctrl+P`.
+* A Numpy array graphical builder: Users who need to create NumPy arrays in Spyder for
+  matrices and vectors can do it now in a graphical way by pressing `Ctrl+M` in the Editor
+  or the Consoles. This will open an empty 2D table widget to be filled with the data
+  required by the user.
+* A new icon theme based on FontAwesome.
+* A new set of default pane layouts for those coming from Rstudio or Matlab (under
+  `View > Window layouts`).
+* A simpler and more intuitive way to introduce keyboard shortcuts.
+* Support for PyQt5, which fixes problems in MacOS X and in high definition screens.
 
 For a complete list of changes, please see here:
 
@@ -172,12 +180,13 @@ https://github.com/spyder-ide/spyder/wiki/Beta-version-changelog
 
 You can easily install this beta if you use Anaconda by running:
 
-    conda install -c spyder-ide spyder
+    conda update qt pyqt
+    conda install -c spyder-ide spyder==3.0.0b3
 
-Or you can download it from our Releases page: https://github.com/spyder-ide/spyder/releases
-and previously installing QtAwesome with
+Or you can use pip with this command:
 
-    pip install qtawesome
+    pip install --pre -U spyder
+
 
 Enjoy!
 -Carlos

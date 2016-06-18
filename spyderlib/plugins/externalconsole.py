@@ -11,42 +11,41 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-# Qt imports
-from spyderlib.qt import PYQT5
-from spyderlib.qt.QtGui import (QVBoxLayout, QMessageBox, QInputDialog,
-                                QLineEdit, QPushButton, QGroupBox, QLabel,
-                                QTabWidget, QFontComboBox, QHBoxLayout,
-                                QButtonGroup, QWidget)
-from spyderlib.qt.QtCore import Signal, Slot, Qt
-from spyderlib.qt.compat import getopenfilename
-import spyderlib.utils.icon_manager as ima
-
-# Stdlib imports
+# Standard library imports
 import atexit
 import os
 import os.path as osp
 import sys
 
+# Third party imports
+from qtpy import PYQT5
+from qtpy.compat import getopenfilename
+from qtpy.QtCore import Qt, Signal, Slot
+from qtpy.QtWidgets import (QButtonGroup, QGroupBox, QHBoxLayout, QInputDialog,
+                            QLabel, QLineEdit, QMessageBox, QPushButton,
+                            QTabWidget, QVBoxLayout, QWidget)
+
 # Local imports
-from spyderlib.config.base import SCIENTIFIC_STARTUP, running_in_mac_app, _
+from spyderlib import dependencies
+from spyderlib.config.base import _, running_in_mac_app, SCIENTIFIC_STARTUP
 from spyderlib.config.main import CONF
 from spyderlib.utils import encoding, programs
+from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.misc import (get_error_match, get_python_executable,
-                                  remove_backslashes, is_python_script)
+                                  is_python_script, remove_backslashes)
 from spyderlib.utils.qthelpers import create_action, mimedata2url
-from spyderlib.widgets.tabs import Tabs
+from spyderlib.plugins import PluginConfigPage, SpyderPluginWidget
+from spyderlib.plugins.runconfig import get_run_configuration
+from spyderlib.py3compat import to_text_string, is_text_string, getcwd
 from spyderlib.widgets.externalshell.pythonshell import ExternalPythonShell
 from spyderlib.widgets.externalshell.systemshell import ExternalSystemShell
 from spyderlib.widgets.findreplace import FindReplace
-from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
-from spyderlib.plugins.runconfig import get_run_configuration
-from spyderlib.py3compat import to_text_string, is_text_string, getcwd
-from spyderlib import dependencies
+from spyderlib.widgets.tabs import Tabs
 
 
 MPL_REQVER = '>=1.0'
 dependencies.add("matplotlib", _("Interactive data plotting in the consoles"),
-                 required_version=MPL_REQVER)
+                 required_version=MPL_REQVER, optional=True)
 
 
 class ExternalConsoleConfigPage(PluginConfigPage):
@@ -64,8 +63,6 @@ class ExternalConsoleConfigPage(PluginConfigPage):
 
     def setup_page(self):
         interface_group = QGroupBox(_("Interface"))
-        font_group = self.create_fontgroup(option=None, text=None,
-                                    fontfilters=QFontComboBox.MonospacedFonts)
         newcb = self.create_checkbox
         singletab_box = newcb(_("One tab per script"), 'single_tab')
         showtime_box = newcb(_("Show elapsed time"), 'show_elapsed_time')
@@ -324,7 +321,7 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                                                     interpreter=interpreter))
 
         tabs = QTabWidget()
-        tabs.addTab(self.create_tab(font_group, interface_group, display_group,
+        tabs.addTab(self.create_tab(interface_group, display_group,
                                     bg_group),
                     _("Display"))
         tabs.addTab(self.create_tab(monitor_group, source_group),
@@ -1102,11 +1099,18 @@ class ExternalConsole(SpyderPluginWidget):
             shellwidget.update_time_label_visibility()
         self.main.last_console_plugin_focus_was_python = True
         self.update_plugin_title.emit()
-    
+
+    def update_font(self):
+        """Update font from Preferences"""
+        font = self.get_plugin_font()
+        for shellwidget in self.shellwidgets:
+            shellwidget.shell.set_font(font)
+            completion_size = CONF.get('main', 'completion/size')
+            comp_widget = shellwidget.shell.completion_widget
+            comp_widget.setup_appearance(completion_size, font)
+
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
-        font_n = 'plugin_font'
-        font_o = self.get_plugin_font()
         showtime_n = 'show_elapsed_time'
         showtime_o = self.get_option(showtime_n)
         icontext_n = 'show_icontext'
@@ -1126,12 +1130,6 @@ class ExternalConsole(SpyderPluginWidget):
         mlc_n = 'max_line_count'
         mlc_o = self.get_option(mlc_n)
         for shellwidget in self.shellwidgets:
-            if font_n in options:
-                shellwidget.shell.set_font(font_o)
-                completion_size = CONF.get('shell_appearance',
-                                           'completion/size')
-                comp_widget = shellwidget.shell.completion_widget
-                comp_widget.setup_appearance(completion_size, font_o)
             if showtime_n in options:
                 shellwidget.set_elapsed_time_visible(showtime_o)
             if icontext_n in options:
@@ -1172,6 +1170,7 @@ class ExternalConsole(SpyderPluginWidget):
             self.dockwidget.hide()
 
     #------ Public API ---------------------------------------------------------
+    @Slot(bool)
     @Slot(str)
     def open_interpreter(self, wdir=None):
         """Open interpreter"""
@@ -1196,6 +1195,7 @@ class ExternalConsole(SpyderPluginWidget):
                    interact=True, debug=False, python=True, ipykernel=True,
                    ipyclient=client, give_ipyclient_focus=give_focus)
 
+    @Slot(bool)
     @Slot(str)
     def open_terminal(self, wdir=None):
         """Open terminal"""

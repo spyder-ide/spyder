@@ -11,43 +11,44 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
+# Local imports
 from __future__ import print_function
-
-from spyderlib.qt import is_pyqt46
-from spyderlib.qt.QtGui import (QVBoxLayout, QMessageBox, QMenu, QFont,
-                                QAction, QApplication, QWidget,
-                                QKeySequence, QMainWindow, QSplitter,
-                                QHBoxLayout)
-from spyderlib.qt.QtCore import (Signal, Qt, QFileInfo, QThread, QObject,
-                                 QByteArray, QSize, QPoint, QTimer, Slot)
-from spyderlib.qt.compat import getsavefilename
-import spyderlib.utils.icon_manager as ima
-
 import os
-import sys
 import os.path as osp
+import sys
+
+# Third party imports
+from qtpy import is_pyqt46
+from qtpy.compat import getsavefilename
+from qtpy.QtCore import (QByteArray, QFileInfo, QObject, QPoint, QSize, Qt,
+                         QThread, QTimer, Signal, Slot)
+from qtpy.QtGui import QFont, QKeySequence
+from qtpy.QtWidgets import (QAction, QApplication, QHBoxLayout, QMainWindow,
+                            QMessageBox, QMenu, QSplitter, QVBoxLayout,
+                            QWidget)
 
 # Local imports
-from spyderlib.utils import encoding, sourcecode, codeanalysis
-from spyderlib.utils.introspection.manager import IntrospectionManager
-from spyderlib.config.base import _, DEBUG, STDOUT, STDERR
-from spyderlib.config.utils import get_edit_extensions
+from spyderlib.config.base import _, DEBUG, STDERR, STDOUT
 from spyderlib.config.gui import create_shortcut, new_shortcut
-from spyderlib.utils.qthelpers import (create_action, add_actions,
-                                       mimedata2url, get_filetype_icon,
-                                       create_toolbutton)
-from spyderlib.utils import syntaxhighlighters
-from spyderlib.widgets.tabs import BaseTabs
-from spyderlib.widgets.findreplace import FindReplace
+from spyderlib.config.utils import get_edit_extensions
+from spyderlib.py3compat import qbytearray_to_str, to_text_string, u
+from spyderlib.utils import icon_manager as ima
+from spyderlib.utils import (codeanalysis, encoding, sourcecode,
+                             syntaxhighlighters)
+from spyderlib.utils.introspection.manager import IntrospectionManager
+from spyderlib.utils.qthelpers import (add_actions, create_action,
+                                       create_toolbutton, get_filetype_icon,
+                                       mimedata2url)
 from spyderlib.widgets.editortools import OutlineExplorerWidget
-from spyderlib.widgets.status import (ReadWriteStatus, EOLStatus,
-                                      EncodingStatus, CursorPositionStatus)
-from spyderlib.widgets.sourcecode import codeeditor
-from spyderlib.widgets.sourcecode.base import TextEditBaseWidget  #analysis:ignore
-from spyderlib.widgets.sourcecode.codeeditor import Printer  #analysis:ignore
-from spyderlib.widgets.sourcecode.codeeditor import get_file_language
 from spyderlib.widgets.fileswitcher import FileSwitcher
-from spyderlib.py3compat import to_text_string, qbytearray_to_str, u
+from spyderlib.widgets.findreplace import FindReplace
+from spyderlib.widgets.sourcecode import codeeditor
+from spyderlib.widgets.sourcecode.base import TextEditBaseWidget  # analysis:ignore
+from spyderlib.widgets.sourcecode.codeeditor import Printer       # analysis:ignore
+from spyderlib.widgets.sourcecode.codeeditor import get_file_language
+from spyderlib.widgets.status import (CursorPositionStatus, EncodingStatus,
+                                      EOLStatus, ReadWriteStatus)
+from spyderlib.widgets.tabs import BaseTabs
 
 DEBUG_EDITOR = DEBUG >= 3
 
@@ -780,7 +781,6 @@ class EditorStack(QWidget):
         self.help_enabled = state
 
     def set_default_font(self, font, color_scheme=None):
-        # get_font(self.CONF_SECTION)
         self.default_font = font
         if color_scheme is not None:
             self.color_scheme = color_scheme
@@ -1773,12 +1773,21 @@ class EditorStack(QWidget):
 
     #------ Run
     def run_selection(self):
-        """Run selected text or current line in console"""
+        """
+        Run selected text or current line in console. If no text is selected, 
+        then advance cursor to next line.
+        """
         text = self.get_current_editor().get_selection_as_executable_code()
-        if not text:
-            line = self.get_current_editor().get_current_line()
+        if text:
+            move_next_line = False
+        else:
+            editor = self.get_current_editor()
+            line = editor.get_current_line()
             text = line.lstrip()
+            move_next_line = True
         self.exec_in_extconsole.emit(text, self.focus_to_editor)
+        if move_next_line:
+            editor.move_cursor_to_next('line', 'down')
 
     def run_cell(self):
         """Run current cell"""
@@ -2287,7 +2296,7 @@ class EditorPluginExample(QSplitter):
     def get_focus_widget(self):
         pass
 
-    @Slot(int, int)
+    @Slot(str, int)
     def close_file_in_all_editorstacks(self, editorstack_id_str, index):
         for editorstack in self.editorstacks:
             if str(id(editorstack)) != editorstack_id_str:
@@ -2297,7 +2306,7 @@ class EditorPluginExample(QSplitter):
 
     # This method is never called in this plugin example. It's here only
     # to show how to use the file_saved signal (see above).
-    @Slot(int, int)
+    @Slot(str, int, str)
     def file_saved_in_editorstack(self, editorstack_id_str, index, filename):
         """A file was saved in editorstack, this notifies others"""
         for editorstack in self.editorstacks:
@@ -2306,7 +2315,7 @@ class EditorPluginExample(QSplitter):
 
     # This method is never called in this plugin example. It's here only
     # to show how to use the file_saved signal (see above).
-    @Slot(int, int)
+    @Slot(str, int, str)
     def file_renamed_in_data_in_editorstack(self, editorstack_id_str,
                                             index, filename):
         """A file was renamed in data in editorstack, this notifies others"""
@@ -2324,7 +2333,7 @@ def test():
     from spyderlib.config.base import get_module_path
 
     cur_dir = osp.join(get_module_path('spyderlib'), 'widgets')
-    app = qapplication()
+    app = qapplication(test_time=8)
     test = EditorPluginExample()
     test.resize(900, 700)
     test.show()

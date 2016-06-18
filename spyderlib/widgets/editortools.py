@@ -6,23 +6,23 @@
 
 """Editor tools: outline explorer, etc."""
 
+# Standard library imports
 from __future__ import print_function
-
-import re
 import os.path as osp
+import re
 
-from spyderlib.qt.QtGui import (QWidget, QTreeWidgetItem,  QHBoxLayout,
-                                QVBoxLayout)
-from spyderlib.qt.QtCore import Qt, Signal, Slot
-from spyderlib.qt.compat import from_qvariant
-import spyderlib.utils.icon_manager as ima
+# Third party imports
+from qtpy.compat import from_qvariant
+from qtpy.QtCore import Qt, Signal, Slot
+from qtpy.QtWidgets import QHBoxLayout, QTreeWidgetItem, QVBoxLayout, QWidget
 
-# Local import
+# Local imports
 from spyderlib.config.base import _, STDOUT
+from spyderlib.py3compat import to_text_string
+from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.qthelpers import (create_action, create_toolbutton,
                                        set_item_user_text)
 from spyderlib.widgets.onecolumntree import OneColumnTree
-from spyderlib.py3compat import to_text_string
 
 
 #===============================================================================

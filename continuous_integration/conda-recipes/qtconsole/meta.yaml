@@ -1,14 +1,14 @@
 package:
   name: qtconsole
-  version: 4.2.0
+  version: 4.2.1
 
 build:
   number: 99
 
 source:
-  fn:  qtconsole-4.2.0.tar.gz
-  url: https://pypi.python.org/packages/source/q/qtconsole/qtconsole-4.2.0.tar.gz
-  md5: d08f3f75d2fd7cfa2c863dac0c045d87
+  fn:  qtconsole-4.2.1.tar.gz
+  url: https://pypi.python.org/packages/source/q/qtconsole/qtconsole-4.2.1.tar.gz
+  md5: c08ebebc7a60629ebadf685361ca0798
 
 requirements:
   build:

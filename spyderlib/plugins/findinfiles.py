@@ -11,17 +11,18 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-from spyderlib.qt.QtGui import QApplication
-from spyderlib.qt.QtCore import Signal, Slot
-import spyderlib.utils.icon_manager as ima
+# Third party imports
+from qtpy.QtWidgets import QApplication
+from qtpy.QtCore import Signal, Slot
 
 # Local imports
 from spyderlib.config.base import _
 from spyderlib.config.utils import get_edit_extensions
-from spyderlib.utils.qthelpers import create_action
-from spyderlib.widgets.findinfiles import FindInFilesWidget
 from spyderlib.plugins import SpyderPluginMixin
 from spyderlib.py3compat import getcwd
+from spyderlib.utils import icon_manager as ima
+from spyderlib.utils.qthelpers import create_action
+from spyderlib.widgets.findinfiles import FindInFilesWidget
 
 
 class FindInFiles(FindInFilesWidget, SpyderPluginMixin):

@@ -23,21 +23,21 @@ import inspect
 import os
 
 # Third party imports
-from spyderlib.qt import PYQT5
-from spyderlib.qt.QtCore import Qt, Signal, QObject, QEvent, QPoint
-from spyderlib.qt.QtGui import (QDockWidget, QWidget, QShortcut, QCursor,
-                                QKeySequence, QMainWindow, QApplication,
-                                QTabBar)
+from qtpy import PYQT5
+from qtpy.QtCore import QEvent, QObject, QPoint, Qt, Signal
+from qtpy.QtGui import QCursor, QKeySequence
+from qtpy.QtWidgets import (QApplication, QDockWidget, QMainWindow,
+                            QShortcut, QTabBar, QWidget)
 
 # Local imports
-from spyderlib.utils.qthelpers import create_action, toggle_actions
 from spyderlib.config.base import _
-from spyderlib.config.gui import get_font, set_font
+from spyderlib.config.gui import get_color_scheme, get_font
 from spyderlib.config.main import CONF
 from spyderlib.config.user import NoDefault
 from spyderlib.plugins.configdialog import SpyderConfigPage
 from spyderlib.py3compat import configparser, is_text_string
 from spyderlib.utils import icon_manager as ima
+from spyderlib.utils.qthelpers import create_action, toggle_actions
 
 
 class PluginConfigPage(SpyderConfigPage):
@@ -47,7 +47,6 @@ class PluginConfigPage(SpyderConfigPage):
         self.get_option = plugin.get_option
         self.set_option = plugin.set_option
         self.get_font = plugin.get_plugin_font
-        self.set_font = plugin.set_plugin_font
         self.apply_settings = plugin.apply_plugin_settings
         SpyderConfigPage.__init__(self, parent)
     
@@ -255,6 +254,8 @@ class SpyderPluginMixin(object):
     """
     CONF_SECTION = None
     CONFIGWIDGET_CLASS = None
+    FONT_SIZE_DELTA = 0
+    RICH_FONT_SIZE_DELTA = 0
     IMG_PATH = 'images'
     ALLOWED_AREAS = Qt.AllDockWidgetAreas
     LOCATION = Qt.LeftDockWidgetArea
@@ -453,14 +454,41 @@ class SpyderPluginMixin(object):
     def get_option(self, option, default=NoDefault):
         """Get a plugin option from configuration file"""
         return CONF.get(self.CONF_SECTION, option, default)
-    
-    def get_plugin_font(self, option=None):
-        """Return plugin font option"""
-        return get_font(self.CONF_SECTION, option)
-    
-    def set_plugin_font(self, font, option=None):
-        """Set plugin font option"""
-        set_font(font, self.CONF_SECTION, option)
+
+    def get_plugin_font(self, rich_text=False):
+        """
+        Return plugin font option.
+
+        All plugins in Spyder use a global font. This is a convenience method
+        in case some plugins will have a delta size based on the default size.
+        """
+
+        if rich_text:
+            option = 'rich_font'
+            font_size_delta = self.RICH_FONT_SIZE_DELTA
+        else:
+            option = 'font'
+            font_size_delta = self.FONT_SIZE_DELTA
+
+        return get_font(option=option, font_size_delta=font_size_delta)
+
+    def set_plugin_font(self):
+        """
+        Set plugin font option.
+
+        Note: All plugins in Spyder use a global font. To define a different
+        size, the plugin must define a 'FONT_SIZE_DELTA' class variable.
+        """
+        raise Exception("Plugins font is based on the general settings, "
+                        "and cannot be set directly on the plugin."
+                        "This method is deprecated.")
+
+    def update_font(self):
+        """
+        This has to be reimplemented by plugins that need to adjust
+        their fonts
+        """
+        pass
 
     def __show_message(self, message, timeout=0):
         """Show message in main window's status bar"""
@@ -483,16 +511,11 @@ class SpyderPluginMixin(object):
         QApplication.restoreOverrideCursor()
         self.__show_message(message, timeout=2000)
         QApplication.processEvents()
-        
-    def set_default_color_scheme(self, name='Spyder'):
-        """Set default color scheme (only once)"""
-        color_scheme_name = self.get_option('color_scheme_name', None)
-        if color_scheme_name is None:
-            names = CONF.get("color_schemes", "names")
-            if name not in names:
-                name = names[0]
-            self.set_option('color_scheme_name', name)
-    
+
+    def get_color_scheme(self):
+        """Get current color scheme"""
+        return get_color_scheme(CONF.get('color_schemes', 'selected'))
+
     def create_toggle_view_action(self):
         """Associate a toggle view action with each plugin"""
         title = self.get_plugin_title()
@@ -501,8 +524,8 @@ class SpyderPluginMixin(object):
         if self.shortcut is not None:
             action = create_action(self, title,
                              toggled=lambda checked: self.toggle_view(checked),
-                             shortcut=QKeySequence(self.shortcut))
-            action.setShortcutContext(Qt.WidgetWithChildrenShortcut)
+                             shortcut=QKeySequence(self.shortcut),
+                             context=Qt.WidgetWithChildrenShortcut)
         else:
             action = create_action(self, title, toggled=lambda checked:
                                                 self.toggle_view(checked))

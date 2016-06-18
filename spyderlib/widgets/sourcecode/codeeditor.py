@@ -8,55 +8,56 @@
 Editor widget based on QtGui.QPlainTextEdit
 """
 
+# TODO: Try to separate this module from spyderlib to create a self
+#       consistent editor module (Qt source code and shell widgets library)
+
 # %% This line is for cell execution testing
 # pylint: disable=C0103
 # pylint: disable=R0903
 # pylint: disable=R0911
 # pylint: disable=R0201
 
+# Standard library imports
 from __future__ import division
-
-import sys
+from unicodedata import category
+import os.path as osp
 import re
 import sre_constants
-import os.path as osp
+import sys
 import time
-from unicodedata import category
 
-from spyderlib.qt import is_pyqt46
-from spyderlib.qt.QtGui import (QColor, QMenu, QApplication, QSplitter, QFont,
-                                QTextEdit, QTextFormat, QPainter, QTextCursor,
-                                QBrush, QTextDocument, QTextCharFormat,
-                                QPrinter, QToolTip, QCursor, QLabel,
-                                QInputDialog, QTextBlockUserData, QLineEdit,
-                                QKeySequence, QVBoxLayout, QHBoxLayout,
-                                QDialog, QIntValidator, QDialogButtonBox,
-                                QGridLayout, QPaintEvent, QMessageBox, QWidget,
-                                QTextOption)
-from spyderlib.qt.QtCore import (Qt, Signal, QTimer, QRect, QRegExp, QSize,
-                                 Slot)
-from spyderlib.qt.compat import to_qvariant
-import spyderlib.utils.icon_manager as ima
+# Third party imports
+from qtpy import is_pyqt46
+from qtpy.compat import to_qvariant
+from qtpy.QtCore import QRect, QRegExp, QSize, Qt, QTimer, Signal, Slot
+from qtpy.QtGui import (QBrush, QColor, QCursor, QFont, QIntValidator,
+                        QKeySequence, QPaintEvent, QPainter,
+                        QTextBlockUserData, QTextCharFormat, QTextCursor,
+                        QTextDocument, QTextFormat, QTextOption)
+from qtpy.QtPrintSupport import QPrinter
+from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
+                            QGridLayout, QHBoxLayout, QInputDialog, QLabel,
+                            QLineEdit, QMenu, QMessageBox, QSplitter,
+                            QTextEdit, QToolTip, QVBoxLayout, QWidget)
 
 # %% This line is for cell execution testing
-# Local import
-# TODO: Try to separate this module from spyderlib to create a self
-#       consistent editor module (Qt source code and shell widgets library)
+
+# Local imports
 from spyderlib.config.base import get_conf_path, _, DEBUG
+from spyderlib.config.gui import create_shortcut, get_shortcut, new_shortcut
 from spyderlib.config.main import CONF
-from spyderlib.config.gui import (get_font, create_shortcut, new_shortcut,
-                                  get_shortcut)
+from spyderlib.py3compat import to_text_string
+from spyderlib.utils import icon_manager as ima
+from spyderlib.utils import syntaxhighlighters as sh
+from spyderlib.utils import encoding, sourcecode
+from spyderlib.utils.dochelpers import getobj
 from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
                                        mimedata2url)
-from spyderlib.utils.dochelpers import getobj
-from spyderlib.utils import encoding, sourcecode
 from spyderlib.utils.sourcecode import ALL_LANGUAGES, CELL_LANGUAGES
-from spyderlib.utils import syntaxhighlighters as sh
+from spyderlib.widgets.arraybuilder import SHORTCUT_INLINE, SHORTCUT_TABLE
 from spyderlib.widgets.editortools import PythonCFM
 from spyderlib.widgets.sourcecode.base import TextEditBaseWidget
 from spyderlib.widgets.sourcecode.kill_ring import QtKillRing
-from spyderlib.widgets.arraybuilder import SHORTCUT_INLINE, SHORTCUT_TABLE
-from spyderlib.py3compat import to_text_string
 
 try:
     import nbformat as nbformat
@@ -374,14 +375,8 @@ class CodeEditor(TextEditBaseWidget):
             elif 'historylog' in plugin_name.lower():
                 self.setObjectName('historylog')
 
-        # Completion
-        completion_size = CONF.get('editor_appearance', 'completion/size')
-        completion_font = get_font('editor')
-        self.completion_widget.setup_appearance(completion_size,
-                                                completion_font)
-
         # Caret (text cursor)
-        self.setCursorWidth( CONF.get('editor_appearance', 'cursor/width') )
+        self.setCursorWidth( CONF.get('main', 'cursor/width') )
 
         # 79-col edge line
         self.edge_line_enabled = True
@@ -1876,8 +1871,6 @@ class CodeEditor(TextEditBaseWidget):
 
         Returns True if indent needed to be fixed
         """
-        if not self.is_python_like():
-            return
         cursor = self.textCursor()
         block_nb = cursor.blockNumber()
         # find the line that contains our scope
@@ -1887,10 +1880,11 @@ class CodeEditor(TextEditBaseWidget):
         for prevline in range(block_nb-1, -1, -1):
             cursor.movePosition(QTextCursor.PreviousBlock)
             prevtext = to_text_string(cursor.block().text()).rstrip()
-            if not prevtext.strip().startswith('#'):
+            if (self.is_python_like() and not prevtext.strip().startswith('#') \
+              and prevtext) or prevtext:
                 if prevtext.strip().endswith(')'):
                     comment_or_string = True  # prevent further parsing
-                elif prevtext.strip().endswith(':'):
+                elif prevtext.strip().endswith(':') and self.is_python_like():
                     add_indent = True
                     comment_or_string = True
                 if prevtext.count(')') > prevtext.count('('):
@@ -1913,15 +1907,14 @@ class CodeEditor(TextEditBaseWidget):
             correct_indent += len(self.indent_chars)
 
         if not comment_or_string:
-            if prevtext.endswith(':'):
+            if prevtext.endswith(':') and self.is_python_like():
                 # Indent
                 correct_indent += len(self.indent_chars)
-            elif prevtext.endswith('continue') or prevtext.endswith('break') \
-              or prevtext.endswith('pass'):
+            elif (prevtext.endswith('continue') or prevtext.endswith('break') \
+              or prevtext.endswith('pass')) and self.is_python_like():
                 # Unindent
                 correct_indent -= len(self.indent_chars)
-            elif prevtext.endswith(',') \
-              and len(re.split(r'\(|\{|\[', prevtext)) > 1:
+            elif len(re.split(r'\(|\{|\[', prevtext)) > 1:
                 rlmap = {")":"(", "]":"[", "}":"{"}
                 for par in rlmap:
                     i_right = prevtext.rfind(par)
@@ -1947,12 +1940,10 @@ class CodeEditor(TextEditBaseWidget):
 
         if correct_indent >= 0:
             cursor = self.textCursor()
-            cursor.beginEditBlock()
             cursor.movePosition(QTextCursor.StartOfBlock)
             cursor.setPosition(cursor.position()+indent, QTextCursor.KeepAnchor)
             cursor.removeSelectedText()
             cursor.insertText(self.indent_chars[0]*correct_indent)
-            cursor.endEditBlock()
             return True
 
     @Slot()
@@ -2309,6 +2300,22 @@ class CodeEditor(TextEditBaseWidget):
                 match = self.find_brace_match(line_pos+pos, char, forward=True)
                 if (match is None) or (match > line_pos+len(text)):
                     return True
+            if char in [')', ']', '}']:
+                match = self.find_brace_match(line_pos+pos, char, forward=False)
+                if (match is None) or (match < line_pos):
+                    return True
+        return False
+
+    def __has_colon_not_in_brackets(self, text):
+        """
+        Return whether a string has a colon which is not between brackets.
+        This function returns True if the given string has a colon which is
+        not between a pair of (round, square or curly) brackets. It assumes
+        that the brackets in the string are balanced.
+        """
+        for pos, char in enumerate(text):
+            if char == ':' and not self.__unmatched_braces_in_line(text[:pos]):
+                return True
         return False
 
     def autoinsert_colons(self):
@@ -2323,6 +2330,8 @@ class CodeEditor(TextEditBaseWidget):
         elif self.__forbidden_colon_end_char(line_text):
             return False
         elif self.__unmatched_braces_in_line(line_text):
+            return False
+        elif self.__has_colon_not_in_brackets(line_text):
             return False
         else:
             return True
@@ -2454,27 +2463,43 @@ class CodeEditor(TextEditBaseWidget):
                                                icon=ima.icon('python'))
         self.gotodef_action = create_action(self, _("Go to definition"),
                                    triggered=self.go_to_definition_from_cursor)
+
+        # Run actions
+        if sys.platform == 'darwin':
+            run_cell_sc = Qt.META + Qt.Key_Return
+        else:
+            run_cell_sc = Qt.CTRL + Qt.Key_Return
+        run_cell_advance_sc = Qt.SHIFT + Qt.Key_Return
+
         self.run_cell_action = create_action(self,
                         _("Run cell"),
                         icon=ima.icon('run_cell'),
+                        shortcut=QKeySequence(run_cell_sc),
                         triggered=lambda: self.run_cell.emit())
         self.run_cell_and_advance_action = create_action(self,
                         _("Run cell and advance"),
                         icon=ima.icon('run_cell'),
+                        shortcut=QKeySequence(run_cell_advance_sc),
                         triggered=lambda: self.run_cell_and_advance.emit())
         self.run_selection_action = create_action(self,
                         _("Run &selection or current line"),
                         icon=ima.icon('run_selection'),
                         triggered=lambda: self.run_selection.emit())
+
+        # Zoom actions
         zoom_in_action = create_action(self, _("Zoom in"),
-                      QKeySequence(QKeySequence.ZoomIn), icon=ima.icon('zoom_in'),
+                      QKeySequence(QKeySequence.ZoomIn),
+                      icon=ima.icon('zoom_in'),
                       triggered=lambda: self.zoom_in.emit())
         zoom_out_action = create_action(self, _("Zoom out"),
-                      QKeySequence(QKeySequence.ZoomOut), icon=ima.icon('zoom_out'),
+                      QKeySequence(QKeySequence.ZoomOut),
+                      icon=ima.icon('zoom_out'),
                       triggered=lambda: self.zoom_out.emit())
         zoom_reset_action = create_action(self, _("Zoom reset"),
                       QKeySequence("Ctrl+0"),
                       triggered=lambda: self.zoom_reset.emit())
+
+        # Build menu
         self.menu = QMenu(self)
         actions_1 = [self.run_cell_action, self.run_cell_and_advance_action,
                      self.run_selection_action, self.gotodef_action, None,
@@ -2535,15 +2560,19 @@ class CodeEditor(TextEditBaseWidget):
             if not shift and not ctrl:
                 if self.add_colons_enabled and self.is_python_like() and \
                   self.autoinsert_colons():
+                    self.textCursor().beginEditBlock()
                     self.insert_text(':' + self.get_line_separator())
                     self.fix_indent()
+                    self.textCursor().endEditBlock()
                 elif self.is_completion_widget_visible() \
                    and self.codecompletion_enter:
                     self.select_completion_list()
                 else:
                     cmt_or_str = self.in_comment_or_string()
+                    self.textCursor().beginEditBlock()
                     TextEditBaseWidget.keyPressEvent(self, event)
                     self.fix_indent(comment_or_string=cmt_or_str)
+                    self.textCursor().endEditBlock()
             elif shift:
                 self.run_cell_and_advance.emit()
             elif ctrl:

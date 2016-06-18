@@ -12,6 +12,7 @@ A helper script that allows to restart (and also reset) Spyder from within the
 running application.
 """
 
+# Standard library imports
 import ast
 import os
 import os.path as osp
@@ -19,14 +20,17 @@ import subprocess
 import sys
 import time
 
+# Third party imports
+from qtpy.QtCore import Qt, QTimer
+from qtpy.QtGui import QColor, QPixmap
+from qtpy.QtWidgets import QApplication, QMessageBox, QSplashScreen, QWidget
 
+# Local imports
 from spyderlib.config.base import _, get_image_path
 from spyderlib.py3compat import to_text_string
-from spyderlib.qt.QtCore import Qt, QTimer
-from spyderlib.qt.QtGui import (QColor, QMessageBox, QPixmap, QSplashScreen,
-                                QWidget, QApplication)
 from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.qthelpers import qapplication
+
 
 PY2 = sys.version[0] == '2'
 IS_WINDOWS = os.name == 'nt'

@@ -10,33 +10,35 @@ Namespace browser widget
 This is the main widget used in the Variable Explorer plugin
 """
 
+# Standard library imports
 import os.path as osp
 import socket
 
-from spyderlib.qt.QtGui import (QWidget, QVBoxLayout, QHBoxLayout, QMenu,
-                                QToolButton, QMessageBox, QApplication,
-                                QCursor, QInputDialog)
-from spyderlib.qt.QtCore import Qt, Signal, Slot
-from spyderlib.qt.compat import getopenfilenames, getsavefilename
-import spyderlib.utils.icon_manager as ima
+# Third library imports
+from qtpy.compat import getsavefilename, getopenfilenames
+from qtpy.QtCore import Qt, Signal, Slot
+from qtpy.QtGui import QCursor
+from qtpy.QtWidgets import (QApplication, QHBoxLayout, QInputDialog, QMenu,
+                            QMessageBox, QToolButton, QVBoxLayout, QWidget)
 
 # Local imports
-from spyderlib.widgets.externalshell.monitor import (
-            monitor_set_global, monitor_get_global, monitor_del_global,
-            monitor_copy_global, monitor_save_globals, monitor_load_globals,
-            communicate, REMOTE_SETTINGS)
-from spyderlib.widgets.variableexplorer.collectionseditor import (
-                  RemoteCollectionsEditorTableView, CollectionsEditorTableView)
-from spyderlib.widgets.variableexplorer.utils import globalsfilter
+from spyderlib.config.base import _, get_supported_types
+from spyderlib.py3compat import is_text_string, getcwd, to_text_string
 from spyderlib.utils import encoding
+from spyderlib.utils import icon_manager as ima
+from spyderlib.utils.iofuncs import iofunctions
 from spyderlib.utils.misc import fix_reference_name
 from spyderlib.utils.programs import is_module_installed
-from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
-                                       create_action)
-from spyderlib.utils.iofuncs import iofunctions
+from spyderlib.utils.qthelpers import (add_actions, create_action,
+                                       create_toolbutton)
+from spyderlib.widgets.externalshell.monitor import (
+    communicate, monitor_copy_global, monitor_del_global, monitor_get_global,
+    monitor_load_globals, monitor_save_globals, monitor_set_global,
+    REMOTE_SETTINGS)
+from spyderlib.widgets.variableexplorer.collectionseditor import (
+    CollectionsEditorTableView, RemoteCollectionsEditorTableView)
 from spyderlib.widgets.variableexplorer.importwizard import ImportWizard
-from spyderlib.config.base import _, get_supported_types
-from spyderlib.py3compat import is_text_string, to_text_string, getcwd
+from spyderlib.widgets.variableexplorer.utils import globalsfilter
 
 
 SUPPORTED_TYPES = get_supported_types()
@@ -450,6 +452,7 @@ class NamespaceBrowser(QWidget):
         """Collapse"""
         self.sig_collapse.emit()
 
+    @Slot(bool)
     @Slot(list)
     def import_data(self, filenames=None):
         """Import data from text file"""

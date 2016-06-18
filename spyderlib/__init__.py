@@ -3,8 +3,7 @@
 Spyder License Agreement (MIT License)
 --------------------------------------
 
-Copyright (c) 2009-2013 Pierre Raybaut
-Copyright (c) 2013-2015 The Spyder Development Team
+Copyright (c) 2009- The Spyder Development Team
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -28,7 +27,9 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 """
 
-__version__ = '3.0.0dev'
+version_info = (3, 0, 0, "dev0")
+
+__version__ = '.'.join(map(str, version_info))
 __license__ = __doc__
 __project_url__ = 'https://github.com/spyder-ide/spyder'
 __forum_url__   = 'http://groups.google.com/group/spyderlib'
@@ -62,8 +63,9 @@ def get_versions(reporev=True):
     """Get version information for components used by Spyder"""
     import sys
     import platform
-    import spyderlib.qt
-    import spyderlib.qt.QtCore
+
+    import qtpy
+    import qtpy.QtCore
 
     revision = None
     if reporev:
@@ -74,14 +76,14 @@ def get_versions(reporev=True):
         system = platform.system()
     else:
         system = 'Darwin'
-    
+
     return {
         'spyder': __version__,
         'python': platform.python_version(),  # "2.7.3"
         'bitness': 64 if sys.maxsize > 2**32 else 32,
-        'qt': spyderlib.qt.QtCore.__version__,
-        'qt_api': spyderlib.qt.API_NAME,      # PyQt5 or PyQt4
-        'qt_api_ver': spyderlib.qt.__version__,
+        'qt': qtpy.QtCore.__version__,
+        'qt_api': qtpy.API_NAME,      # PyQt5 or PyQt4
+        'qt_api_ver': qtpy.__version__,
         'system': system,   # Linux, Windows, ...
         'revision': revision,  # '9fdf926eccce'
     }

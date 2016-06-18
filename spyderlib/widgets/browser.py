@@ -6,27 +6,50 @@
 
 """Simple web browser widget"""
 
+# Standard library imports
 import sys
 
-from spyderlib.qt.QtCore import QUrl, Slot, Signal
-from spyderlib.qt.QtGui import (QHBoxLayout, QWidget, QVBoxLayout,
-                                QProgressBar, QLabel, QMenu, QFrame)
-from spyderlib.qt.QtWebKit import QWebView, QWebPage, QWebSettings
+# Third party imports
+from qtpy.QtCore import QUrl, Signal, Slot
+from qtpy.QtWidgets import (QFrame, QHBoxLayout, QLabel, QProgressBar, QMenu,
+                            QVBoxLayout, QWidget)
+from qtpy.QtWebEngineWidgets import (QWebEnginePage, QWebEngineSettings,
+                                     QWebEngineView, WEBENGINE)
 
 # Local imports
-from spyderlib.config.base import DEV, _
-from spyderlib.utils.qthelpers import (create_action, add_actions,
-                                       create_toolbutton, action2button)
+from spyderlib.config.base import _, DEV
+from spyderlib.py3compat import is_text_string, to_text_string
+from spyderlib.utils.qthelpers import (action2button, add_actions,
+                                       create_action, create_toolbutton)
 from spyderlib.utils import icon_manager as ima
 from spyderlib.widgets.comboboxes import UrlComboBox
 from spyderlib.widgets.findreplace import FindReplace
-from spyderlib.py3compat import to_text_string, is_text_string
 
 
-class WebView(QWebView):
-    """Web page"""
+class WebPage(QWebEnginePage):
+    """
+    Web page subclass to manage hyperlinks for WebEngine
+
+    Note: This can't be used for WebKit because the
+    acceptNavigationRequest method has a different
+    functionality for it.
+    """
+    linkClicked = Signal(QUrl)
+
+    def acceptNavigationRequest(self, url, navigation_type, isMainFrame):
+        """
+        Overloaded method to handle links ourselves
+        """
+        if navigation_type == QWebEnginePage.NavigationTypeLinkClicked:
+            self.linkClicked.emit(url)
+            return False
+        return True
+
+
+class WebView(QWebEngineView):
+    """Web view"""
     def __init__(self, parent):
-        QWebView.__init__(self, parent)
+        QWebEngineView.__init__(self, parent)
         self.zoom_factor = 1.
         self.zoom_out_action = create_action(self, _("Zoom out"),
                                              icon=ima.icon('zoom_out'),
@@ -34,16 +57,19 @@ class WebView(QWebView):
         self.zoom_in_action = create_action(self, _("Zoom in"),
                                             icon=ima.icon('zoom_in'),
                                             triggered=self.zoom_in)
-        
+        if WEBENGINE:
+            web_page = WebPage(self)
+            self.setPage(web_page)
+
     def find_text(self, text, changed=True,
                   forward=True, case=False, words=False,
                   regexp=False):
         """Find text"""
-        findflag = QWebPage.FindWrapsAroundDocument
+        findflag = QWebEnginePage.FindWrapsAroundDocument
         if not forward:
-            findflag = findflag | QWebPage.FindBackward
+            findflag = findflag | QWebEnginePage.FindBackward
         if case:
-            findflag = findflag | QWebPage.FindCaseSensitively
+            findflag = findflag | QWebEnginePage.FindCaseSensitively
         return self.findText(text, findflag)
     
     def get_selected_text(self):
@@ -92,22 +118,22 @@ class WebView(QWebView):
         self.zoom_factor += .1
         self.apply_zoom_factor()
     
-    #------ QWebView API -------------------------------------------------------
+    #------ QWebEngineView API -------------------------------------------------------
     def createWindow(self, webwindowtype):
         import webbrowser
         webbrowser.open(to_text_string(self.url().toString()))
         
     def contextMenuEvent(self, event):
         menu = QMenu(self)
-        actions = [self.pageAction(QWebPage.Back),
-                   self.pageAction(QWebPage.Forward), None,
-                   self.pageAction(QWebPage.SelectAll),
-                   self.pageAction(QWebPage.Copy), None,
+        actions = [self.pageAction(QWebEnginePage.Back),
+                   self.pageAction(QWebEnginePage.Forward), None,
+                   self.pageAction(QWebEnginePage.SelectAll),
+                   self.pageAction(QWebEnginePage.Copy), None,
                    self.zoom_in_action, self.zoom_out_action]
-        if DEV:
+        if DEV and not WEBENGINE:
             settings = self.page().settings()
-            settings.setAttribute(QWebSettings.DeveloperExtrasEnabled, True)
-            actions += [None, self.pageAction(QWebPage.InspectElement)]
+            settings.setAttribute(QWebEngineSettings.DeveloperExtrasEnabled, True)
+            actions += [None, self.pageAction(QWebEnginePage.InspectElement)]
         add_actions(menu, actions)
         menu.popup(event.globalPos())
         event.accept()
@@ -136,10 +162,10 @@ class WebBrowser(QWidget):
         
         pageact2btn = lambda prop: action2button(self.webview.pageAction(prop),
                                                  parent=self.webview)
-        refresh_button = pageact2btn(QWebPage.Reload)
-        stop_button = pageact2btn(QWebPage.Stop)
-        previous_button = pageact2btn(QWebPage.Back)
-        next_button = pageact2btn(QWebPage.Forward)
+        refresh_button = pageact2btn(QWebEnginePage.Reload)
+        stop_button = pageact2btn(QWebEnginePage.Stop)
+        previous_button = pageact2btn(QWebEnginePage.Back)
+        next_button = pageact2btn(QWebEnginePage.Forward)
         
         stop_button.setEnabled(False)
         self.webview.loadStarted.connect(lambda: stop_button.setEnabled(True))
@@ -151,13 +177,14 @@ class WebBrowser(QWidget):
         self.webview.loadStarted.connect(progressbar.show)
         self.webview.loadProgress.connect(progressbar.setValue)
         self.webview.loadFinished.connect(lambda _state: progressbar.hide())
-        
+
         label = QLabel(self.get_label())
-        
+
         self.url_combo = UrlComboBox(self)
         self.url_combo.valid.connect(self.url_combo_activated)
-        self.webview.iconChanged.connect(self.icon_changed)
-        
+        if not WEBENGINE:
+            self.webview.iconChanged.connect(self.icon_changed)
+
         self.find_widget = FindReplace(self)
         self.find_widget.set_editor(self.webview)
         self.find_widget.hide()
@@ -242,7 +269,7 @@ class WebBrowser(QWidget):
 
 class FrameWebView(QFrame):
     """
-    Framed QWebView for UI consistency in Spyder.
+    Framed QWebEngineView for UI consistency in Spyder.
     """
     linkClicked = Signal(QUrl)
 
@@ -258,7 +285,10 @@ class FrameWebView(QFrame):
 
         self.setFrameStyle(QFrame.StyledPanel | QFrame.Sunken)
 
-        self._webview.linkClicked.connect(self.linkClicked)
+        if WEBENGINE:
+            self._webview.page().linkClicked.connect(self.linkClicked)
+        else:
+            self._webview.linkClicked.connect(self.linkClicked)
 
     def set_font(self, font, fixed_font=None):
         self._webview.set_font(font, fixed_font=fixed_font)

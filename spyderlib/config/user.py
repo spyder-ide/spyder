@@ -302,8 +302,11 @@ class UserConfig(DefaultsConfig):
         for section in old_defaults.sections():
             for option, _ in old_defaults.items(section, raw=self.raw):
                 if self.get_default(section, option) is NoDefault:
-                    self.remove_option(section, option)
-                    if len(self.items(section, raw=self.raw)) == 0:
+                    try:
+                        self.remove_option(section, option)
+                        if len(self.items(section, raw=self.raw)) == 0:
+                            self.remove_section(section)
+                    except cp.NoSectionError:
                         self.remove_section(section)
 
     def cleanup(self):

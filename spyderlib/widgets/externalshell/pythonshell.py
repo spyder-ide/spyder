@@ -6,33 +6,34 @@
 
 """External Python Shell widget: execute Python script in a separate process"""
 
+# Standard library imports
 import os
 import os.path as osp
 import socket
 import sys
 
-from spyderlib.qt.QtGui import QApplication, QMessageBox, QSplitter, QMenu
-from spyderlib.qt.QtCore import QProcess, Signal, Slot, Qt
-from spyderlib.qt.QtCore import QProcessEnvironment
-from spyderlib.qt.compat import getexistingdirectory
-import spyderlib.utils.icon_manager as ima
+# Third party imports
+from qtpy.compat import getexistingdirectory
+from qtpy.QtCore import QProcess, QProcessEnvironment, Qt, Signal, Slot
+from qtpy.QtWidgets import QApplication, QMenu, QMessageBox, QSplitter
 
 # Local imports
-from spyderlib.utils.qthelpers import (add_actions, create_toolbutton,
-                                       create_action, DialogManager)
+from spyderlib.config.base import (_, DEBUG, get_module_source_path,
+                                   MAC_APP_NAME, running_in_mac_app)
+from spyderlib.py3compat import (is_text_string, to_binary_string,
+                                 to_text_string)
+from spyderlib.utils import icon_manager as ima
+from spyderlib.utils.bsdsocket import communicate, write_packet
 from spyderlib.utils.environ import RemoteEnvDialog
-from spyderlib.utils.programs import get_python_args
 from spyderlib.utils.misc import get_python_executable
-from spyderlib.config.base import (_, get_module_source_path, DEBUG,
-                                  MAC_APP_NAME, running_in_mac_app)
+from spyderlib.utils.programs import get_python_args
+from spyderlib.utils.qthelpers import (add_actions, create_action,
+                                       create_toolbutton, DialogManager)
+from spyderlib.widgets.externalshell.baseshell import (ExternalShellBase,
+                                                       add_pathlist_to_PYTHONPATH)
 from spyderlib.widgets.shell import PythonShellWidget
 from spyderlib.widgets.variableexplorer.namespacebrowser import NamespaceBrowser
-from spyderlib.utils.bsdsocket import communicate, write_packet
-from spyderlib.widgets.externalshell.baseshell import (ExternalShellBase,
-                                                   add_pathlist_to_PYTHONPATH)
 from spyderlib.widgets.variableexplorer.collectionseditor import CollectionsEditor
-from spyderlib.py3compat import (is_text_string, to_text_string,
-                                 to_binary_string)
 
 
 class ExtPythonShellWidget(PythonShellWidget):
@@ -670,10 +671,9 @@ def test():
                                 mpl_backend=0,
                                 light_background=False)
 
-    from spyderlib.qt.QtGui import QFont
-    from spyderlib.config.main import CONF
-    font = QFont(CONF.get('console', 'font/family')[0])
-    font.setPointSize(10)
+    from spyderlib.config.gui import get_font
+    
+    font = get_font()
     shell.shell.set_font(font)
 
     shell.shell.toggle_wrap_mode(True)

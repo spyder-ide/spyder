@@ -6,15 +6,18 @@
 
 """Layout dialogs"""
 
+# Standard library imports
 import sys
 
-from spyderlib.config.base import _
+# Third party imports
+from qtpy.QtCore import QAbstractTableModel, QModelIndex, QSize, Qt
+from qtpy.compat import from_qvariant, to_qvariant
+from qtpy.QtWidgets import (QAbstractItemView, QComboBox, QDialog,
+                            QDialogButtonBox, QGroupBox, QHBoxLayout,
+                            QPushButton, QTableView, QVBoxLayout)
 
-from spyderlib.qt.QtGui import (QVBoxLayout, QHBoxLayout, QDialogButtonBox,
-                                QGroupBox, QComboBox, QPushButton, QDialog,
-                                QAbstractItemView, QTableView)
-from spyderlib.qt.QtCore import Qt, QSize, QAbstractTableModel, QModelIndex
-from spyderlib.qt.compat import to_qvariant, from_qvariant
+# Local imports
+from spyderlib.config.base import _
 from spyderlib.py3compat import to_text_string
 
 

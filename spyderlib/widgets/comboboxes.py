@@ -18,9 +18,9 @@ import os
 import os.path as osp
 
 # Third party imports
-from spyderlib.qt.QtCore import QEvent, Qt, QTimer, QUrl, Signal
-from spyderlib.qt.QtGui import (QComboBox, QCompleter, QFont,
-                                QSizePolicy, QToolTip)
+from qtpy.QtCore import QEvent, Qt, QTimer, QUrl, Signal
+from qtpy.QtGui import QFont
+from qtpy.QtWidgets import QComboBox, QCompleter, QSizePolicy, QToolTip
 
 # Local imports
 from spyderlib.config.base import _

@@ -8,17 +8,19 @@
 Text editor dialog
 """
 
+# Standard library imports
 from __future__ import print_function
 
-from spyderlib.qt.QtCore import Qt
-from spyderlib.qt.QtGui import QVBoxLayout, QTextEdit, QDialog, QDialogButtonBox
-import spyderlib.utils.icon_manager as ima
+# Third party imports
+from qtpy.QtCore import Qt
+from qtpy.QtWidgets import QDialog, QDialogButtonBox, QTextEdit, QVBoxLayout
 
 # Local import
 from spyderlib.config.base import _
 from spyderlib.config.gui import get_font
-from spyderlib.py3compat import (to_text_string, to_binary_string,
-                                 is_binary_string)
+from spyderlib.py3compat import (is_binary_string, to_binary_string,
+                                 to_text_string)
+from spyderlib.utils import icon_manager as ima
 
 
 class TextEditor(QDialog):
@@ -52,7 +54,7 @@ class TextEditor(QDialog):
         self.edit.setReadOnly(readonly)
         self.edit.setPlainText(text)
         if font is None:
-            font = get_font('texteditor')
+            font = get_font()
         self.edit.setFont(font)
         self.layout.addWidget(self.edit)
 

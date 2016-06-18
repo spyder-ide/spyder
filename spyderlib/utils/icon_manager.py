@@ -4,13 +4,16 @@
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
+# Standard library imports
 import os.path as osp
 
-from spyderlib.qt.QtGui import QIcon, QWidget, QStyle
+# Third party imports
+from qtpy.QtGui import QIcon
+from qtpy.QtWidgets import QStyle, QWidget
 
+# Local imports
 from spyderlib.config.base import get_image_path
 from spyderlib.config.main import CONF
-
 import qtawesome as qta
 
 

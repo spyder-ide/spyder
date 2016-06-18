@@ -1,5 +1,33 @@
 # History of changes
 
+## Version 2.3.9
+
+### New features
+
+* Preferences
+    * Fix a crash when using certain versions of colorama (which is a Jedi dependency)
+* Python and IPython consoles
+    * Filter a RuntimeWarning generated for DataFrames with nan values
+* Variable Explorer
+    * Fix a freeze when binary strings can't be converted to unicode in Python 2
+    * Fix a freeze with Numpy arrays containing strings
+
+### Bug fixes
+
+**Issues**
+
+* [Issue 3067](../../issues/3067) - File left open in sitecustomize when executing it in Python 3
+* [Issue 3031](../../issues/3031) - Variable Explorer freezes when certain binary data is loaded
+* [Issue 2991](../../issues/2991) - RuntimeWarning with pandas.dataframes that contain np.nan values
+* [Issue 2984](../../issues/2984) - Can't access Preferences in spyder
+* [Issue 2983](../../issues/2983) - Freeze while assigning data from numpy array when the data is a string
+
+In this release they were closed 5 issues
+
+
+----
+
+
 ## Version 2.3.8
 
 ### New features

@@ -9,16 +9,17 @@ Editor widget syntax highlighters based on QtGui.QSyntaxHighlighter
 (Python syntax highlighting rules are inspired from idlelib)
 """
 
+# Standard library imports
 from __future__ import print_function
-
+import keyword
 import os
 import re
-import keyword
 
-from spyderlib.qt.QtGui import (QColor, QApplication, QFont,
-                                QSyntaxHighlighter, QCursor, QTextCharFormat,
-                                QTextOption)
-from spyderlib.qt.QtCore import Qt
+# Third party imports
+from qtpy.QtCore import Qt
+from qtpy.QtGui import (QColor, QCursor, QFont, QSyntaxHighlighter,
+                        QTextCharFormat, QTextOption)
+from qtpy.QtWidgets import QApplication
 
 # Local imports
 from spyderlib import dependencies
@@ -29,38 +30,53 @@ from spyderlib.utils.sourcecode import CELL_LANGUAGES
 
 
 PYGMENTS_REQVER = '>=1.6'
-dependencies.add("pygments", _("Syntax highlighting for Matlab, Julia and other "
-                               "file types"),
+dependencies.add("pygments", _("Syntax highlighting for Matlab, Julia and "
+                               "other file types"),
                  required_version=PYGMENTS_REQVER)
 
 
-#==============================================================================
+# =============================================================================
 # Constants
-#==============================================================================
-COLOR_SCHEME_KEYS = ("background", "currentline", "currentcell", "occurrence",
-                     "ctrlclick", "sideareas", "matched_p", "unmatched_p",
-                     "normal", "keyword", "builtin", "definition",
-                     "comment", "string", "number", "instance")
+# =============================================================================
+COLOR_SCHEME_KEYS = {
+                      "background":     _("Background:"),
+                      "currentline":    _("Current line:"),
+                      "currentcell":    _("Current cell:"),
+                      "occurrence":     _("Occurrence:"),
+                      "ctrlclick":      _("Link:"),
+                      "sideareas":      _("Side areas:"),
+                      "matched_p":      _("Matched <br>parens:"),
+                      "unmatched_p":    _("Unmatched <br>parens:"),
+                      "normal":         _("Normal text:"),
+                      "keyword":        _("Keyword:"),
+                      "builtin":        _("Builtin:"),
+                      "definition":     _("Definition:"),
+                      "comment":        _("Comment:"),
+                      "string":         _("String:"),
+                      "number":         _("Number:"),
+                      "instance":       _("Instance:"),
+                      }
 COLOR_SCHEME_NAMES = CONF.get('color_schemes', 'names')
 # Mapping for file extensions that use Pygments highlighting but should use
 # different lexers than Pygments' autodetection suggests.  Keys are file
 # extensions or tuples of extensions, values are Pygments lexer names.
 CUSTOM_EXTENSION_LEXER = {'.ipynb': 'json',
+                          '.txt': 'text',
                           '.nt': 'bat',
                           '.scss': 'css',
                           '.m': 'matlab',
                           ('.properties', '.session', '.inf', '.reg', '.url',
                            '.cfg', '.cnf', '.aut', '.iss'): 'ini'}
 # Convert custom extensions into a one-to-one mapping for easier lookup.
-_custom_extension_lexer_mapping = {}
+custom_extension_lexer_mapping = {}
 for key, value in CUSTOM_EXTENSION_LEXER.items():
     # Single key is mapped unchanged.
     if is_text_string(key):
-        _custom_extension_lexer_mapping[key] = value
+        custom_extension_lexer_mapping[key] = value
     # Tuple of keys is iterated over and each is mapped to value.
     else:
         for k in key:
-            _custom_extension_lexer_mapping[k] = value
+            custom_extension_lexer_mapping[k] = value
 
 
 #==============================================================================
@@ -90,14 +106,13 @@ class BaseSH(QSyntaxHighlighter):
     NORMAL = 0
     # Syntax highlighting parameters.
     BLANK_ALPHA_FACTOR = 0.31
-    
+
     def __init__(self, parent, font=None, color_scheme='Spyder'):
         QSyntaxHighlighter.__init__(self, parent)
-        
+
         self.outlineexplorer_data = {}
-        
+
         self.font = font
-        self._check_color_scheme(color_scheme)
         if is_text_string(color_scheme):
             self.color_scheme = get_color_scheme(color_scheme)
         else:
@@ -177,15 +192,8 @@ class BaseSH(QSyntaxHighlighter):
                 format.setFontWeight(QFont.Bold)
             format.setFontItalic(italic)
             self.formats[name] = format
-        
-    def _check_color_scheme(self, color_scheme):
-        if is_text_string(color_scheme):
-            assert color_scheme in COLOR_SCHEME_NAMES
-        else:
-            assert all([key in color_scheme for key in COLOR_SCHEME_KEYS])
 
     def set_color_scheme(self, color_scheme):
-        self._check_color_scheme(color_scheme)
         if is_text_string(color_scheme):
             self.color_scheme = get_color_scheme(color_scheme)
         else:
@@ -969,8 +977,8 @@ def guess_pygments_highlighter(filename):
     except ImportError:
         return TextSH
     root, ext = os.path.splitext(filename)
-    if ext in _custom_extension_lexer_mapping:
-        lexer = get_lexer_by_name(_custom_extension_lexer_mapping[ext])
+    if ext in custom_extension_lexer_mapping:
+        lexer = get_lexer_by_name(custom_extension_lexer_mapping[ext])
     else:
         try:
             lexer = get_lexer_for_filename(filename)

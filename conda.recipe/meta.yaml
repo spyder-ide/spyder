@@ -1,13 +1,13 @@
 package:
   name: spyder
-  version: {{ environ.get('GIT_DESCRIBE_TAG', '').replace('v', '') }}
+  version: {{ GIT_DESCRIBE_TAG|replace('v', '') }}
 
 build:
+  number: {{ GIT_DESCRIBE_NUMBER|int }}
   osx_is_app: True
 
 source:
   git_url: ../
-  git_tag: {{ environ.get('GIT_DESCRIBE_TAG') }}
 
 requirements:
   build:
@@ -15,8 +15,11 @@ requirements:
     - sphinx
   run:
     - python
-    - pyqt
-    - rope
+    - python.app  # [osx]
+    - pyqt5  # [osx]
+    - pyqt  # [not osx]
+    - rope 0.9.*  # [py34 or py35]
+    - rope  # [py27]
     - pyflakes
     - jedi
     - qtconsole
@@ -27,7 +30,8 @@ requirements:
     - psutil
     - pylint
     - qtawesome
-    - python.app             [osx]
+    - qtpy  >=1.0.2
+    - pyzmq
 
 about:
   home: https://github.com/spyder-ide/spyder

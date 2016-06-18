@@ -4,20 +4,22 @@
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
+# Standard library imports
 from __future__ import print_function
-
 from collections import OrderedDict
 import time
 
+# Third party imports
+from qtpy.QtCore import QObject, QTimer, Signal
+from qtpy.QtWidgets import QApplication
+
+# Local imports
 from spyderlib import dependencies
-from spyderlib.config.base import DEBUG, get_conf_path, _, debug_print
+from spyderlib.config.base import _, DEBUG, debug_print, get_conf_path
 from spyderlib.utils import sourcecode
-
-from spyderlib.qt.QtGui import QApplication
-from spyderlib.qt.QtCore import Signal, QObject, QTimer
-
-from spyderlib.utils.introspection.utils import CodeInfo
 from spyderlib.utils.introspection.plugin_client import PluginClient
+from spyderlib.utils.introspection.utils import CodeInfo
+
 
 PLUGINS = ['rope', 'jedi', 'fallback']
 
@@ -33,8 +35,7 @@ dependencies.add('rope',
 
 JEDI_REQVER = '>=0.8.1'
 dependencies.add('jedi',
-                 _("(Experimental) Editor's code completion,"
-                   " go-to-definition and help"),
+                 _("Editor's code completion, go-to-definition and help"),
                  required_version=JEDI_REQVER)
 
 
@@ -48,16 +49,18 @@ class PluginManager(QObject):
         for name in PLUGINS:
             try:
                 plugin = PluginClient(name, executable)
+                plugin.run()
             except Exception as e:
                 debug_print('Introspection Plugin Failed: %s' % name)
                 debug_print(str(e))
                 continue
             debug_print('Introspection Plugin Loaded: %s' % name)
             plugins[name] = plugin
-            plugin.request_handled.connect(self.handle_response)
+            plugin.received.connect(self.handle_response)
         self.plugins = plugins
         self.timer = QTimer()
         self.desired = []
+        self.ids = dict()
         self.info = None
         self.request = None
         self.pending = None
@@ -99,28 +102,23 @@ class PluginManager(QObject):
 
         self._start_time = time.time()
         self.waiting = True
-        request = dict(method='get_%s' % info.name,
-                       args=[info.serialize()],
-                       request_id=id(info))
+        method = 'get_%s' % info.name
+        value = info.serialize()
+        self.ids = dict()
         for plugin in plugins:
-            plugin.send(request)
-            debug_print('sending %s' % (plugin.plugin_name))
+            request_id = plugin.request(method, value)
+            self.ids[request_id] = plugin.name
         self.timer.stop()
         self.timer.singleShot(LEAD_TIME_SEC * 1000, self._handle_timeout)
-        self.request = request
 
     def validate(self):
-        message = dict(method='validate')
         for plugin in self.plugins.values():
-            plugin.send(message)
+            plugin.request('validate')
 
     def handle_response(self, response):
-        if (self.request is None):
+        name = self.ids.get(response['request_id'], None)
+        if not name:
             return
-        if (response.get('request_id', None) != id(self.info)):
-            return
-        name = response['plugin_name']
-        response['info'] = self.info
         if response.get('error', None):
             debug_print('Response error:', response['error'])
             return
@@ -136,13 +134,14 @@ class PluginManager(QObject):
     def _finalize(self, response):
         self.waiting = False
         self.pending = None
-        delta = time.time() - self._start_time
-        debug_print(str(response.keys()))
-        debug_print('%s request from %s finished: "%s" in %.1f sec'
-            % (self.info.name, response['plugin_name'],
-               str(response['result'])[:100], delta))
-        self.introspection_complete.emit(response)
-        self.info = None
+        if self.info:
+            delta = time.time() - self._start_time
+            debug_print('%s request from %s finished: "%s" in %.1f sec'
+                % (self.info.name, response['name'],
+                   str(response['result'])[:100], delta))
+            response['info'] = self.info
+            self.introspection_complete.emit(response)
+            self.info = None
         if self.pending_request:
             info = self.pending_request
             self.pending_request = None
@@ -153,7 +152,7 @@ class PluginManager(QObject):
         if self.pending:
             self._finalize(self.pending)
         else:
-            debug_print('No valid responses acquired', self.request['method'])
+            debug_print('No valid responses acquired')
 
 
 class IntrospectionManager(QObject):

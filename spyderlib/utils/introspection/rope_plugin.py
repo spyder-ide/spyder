@@ -9,6 +9,7 @@ Rope introspection plugin
 """
 
 import time
+import imp
 
 from spyderlib.config.base import get_conf_path, STDERR
 from spyderlib.utils import encoding, programs
@@ -62,8 +63,15 @@ class RopePlugin(IntrospectionPlugin):
         self.project = None
         self.create_rope_project(root_path=get_conf_path())
         submods = get_preferred_submodules()
+        actual = []
+        for submod in submods:
+            try:
+                imp.find_module(submod)
+                actual.append(submod)
+            except ImportError:
+                pass
         if self.project is not None:
-            self.project.prefs.set('extension_modules', submods)
+            self.project.prefs.set('extension_modules', actual)
 
     def get_completions(self, info):
         """Get a list of (completion, type) tuples using Rope"""
@@ -72,6 +80,14 @@ class RopePlugin(IntrospectionPlugin):
         filename = info['filename']
         source_code = info['source_code']
         offset = info['position']
+
+        # Prevent Rope from returning import completions because
+        # it can't handle them. Only Jedi can do it!
+        lines = sourcecode.split_source(source_code[:offset])
+        last_line = lines[-1].lstrip()
+        if (last_line.startswith('import ') or last_line.startswith('from ')) \
+          and not ';' in last_line:
+            return []
 
         if PY2:
             filename = filename.encode('utf-8')
@@ -284,14 +300,20 @@ if __name__ == '__main__':
         len(source_code), __file__))
     assert ('numpy', 'module') in completions
 
+    source_code = "import a"
+    completions = p.get_completions(CodeInfo('completions', source_code,
+        len(source_code), __file__))
+    assert not completions
+
     code = '''
 def test(a, b):
     """Test docstring"""
     pass
 test(1,'''
     path, line = p.get_definition(CodeInfo('definition', code, len(code),
-        'dummy.txt'))
+        'dummy.txt', is_python_like=True))
     assert line == 2
 
-    docs = p.get_info(CodeInfo('info', code, len(code), __file__))
+    docs = p.get_info(CodeInfo('info', code, len(code), __file__,
+        is_python_like=True))
     assert 'Test docstring' in docs['docstring']

@@ -266,7 +266,7 @@ def test(a, b):
     pass
 test(1,'''
     path, line = p.get_definition(CodeInfo('definition', code, len(code),
-        'dummy.txt'))
+        'dummy.txt', is_python_like=True))
     assert line == 2
 
     docs = p.get_info(CodeInfo('info', code, len(code), __file__))

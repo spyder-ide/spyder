@@ -9,13 +9,12 @@ Helper widgets.
 """
 
 # Third party imports
-from spyderlib.qt.QtCore import QPoint, QSize, Qt
-from spyderlib.qt.QtGui import (QToolButton, QToolTip,
-                                QStyledItemDelegate, QApplication,
-                                QTextDocument, QStyleOptionViewItem,
-                                QAbstractTextDocumentLayout, QStyle,
-                                QVBoxLayout, QSpacerItem, QPainter,
-                                QMessageBox, QCheckBox, QLineEdit)
+from qtpy.QtCore import QPoint, QSize, Qt
+from qtpy.QtGui import QAbstractTextDocumentLayout, QPainter, QTextDocument
+from qtpy.QtWidgets import (QApplication, QCheckBox, QLineEdit, QMessageBox,
+                            QSpacerItem, QStyle, QStyledItemDelegate,
+                            QStyleOptionViewItem, QToolButton, QToolTip,
+                            QVBoxLayout)
 
 # Local imports
 from spyderlib.config.base import _

@@ -236,16 +236,18 @@ editor, Python console, etc.""",
       platforms=['any'],
       packages=get_packages(),
       package_data={LIBNAME: get_package_data(LIBNAME, EXTLIST),
-                    'spyplugins': get_package_data('spyplugins', EXTLIST),
+                    'spyder_breakpoints': get_package_data('spyder_breakpoints', EXTLIST),
+                    'spyder_profiler': get_package_data('spyder_profiler', EXTLIST),
+                    'spyder_pylint': get_package_data('spyder_pylint', EXTLIST),
+                    'spyder_io_dcm': get_package_data('spyder_io_dcm', EXTLIST),
+                    'spyder_io_hdf5': get_package_data('spyder_io_hdf5', EXTLIST),
                     },
       scripts=[osp.join('scripts', fname) for fname in SCRIPTS],
       data_files=get_data_files(),
       classifiers=['License :: OSI Approved :: MIT License',
                    'Operating System :: MacOS',
                    'Operating System :: Microsoft :: Windows',
-                   'Operating System :: OS Independent',
-                   'Operating System :: POSIX',
-                   'Operating System :: Unix',
+                   'Operating System :: POSIX :: Linux',
                    'Programming Language :: Python :: 2.7',
                    'Programming Language :: Python :: 3',
                    'Development Status :: 5 - Production/Stable',
@@ -272,7 +274,9 @@ install_requires = [
     'pylint',
     'psutil',
     'qtawesome',
-    'pickleshare'
+    'qtpy>=1.0.2',
+    'pickleshare',
+    'pyzmq'
 ]
 
 if 'setuptools' in sys.modules:

@@ -14,11 +14,15 @@ Important note regarding shortcuts:
         Ctrl + Alt + Q, W, F, G, Y, X, C, V, B, N
 """
 
+# Standard library imports
 from collections import namedtuple
 
-from spyderlib.qt.QtGui import QFont, QFontDatabase, QShortcut, QKeySequence
-from spyderlib.qt.QtCore import Qt
+# Third party imports
+from qtpy.QtCore import Qt
+from qtpy.QtGui import QFont, QFontDatabase, QKeySequence
+from qtpy.QtWidgets import QShortcut
 
+# Local imports
 from spyderlib.config.main import CONF
 from spyderlib.config.user import NoDefault
 from spyderlib.py3compat import to_text_string
@@ -49,35 +53,36 @@ def get_family(families):
 
 
 FONT_CACHE = {}
-def get_font(section, option=None):
+
+def get_font(section='main', option='font', font_size_delta=0):
     """Get console font properties depending on OS and user options"""
     font = FONT_CACHE.get((section, option))
+
     if font is None:
-        if option is None:
-            option = 'font'
-        else:
-            option += '/font'
         families = CONF.get(section, option+"/family", None)
+
         if families is None:
             return QFont()
+
         family = get_family(families)
         weight = QFont.Normal
         italic = CONF.get(section, option+'/italic', False)
+
         if CONF.get(section, option+'/bold', False):
             weight = QFont.Bold
-        size = CONF.get(section, option+'/size', 9)
+
+        size = CONF.get(section, option+'/size', 9) + font_size_delta
         font = QFont(family, size, weight)
         font.setItalic(italic)
         FONT_CACHE[(section, option)] = font
+
+    size = CONF.get(section, option+'/size', 9) + font_size_delta
+    font.setPointSize(size)
     return font
 
 
-def set_font(font, section, option=None):
+def set_font(font, section='main', option='font'):
     """Set font"""
-    if option is None:
-        option = 'font'
-    else:
-        option += '/font'
     CONF.set(section, option+'/family', to_text_string(font.family()))
     CONF.set(section, option+'/size', float(font.pointSize()))
     CONF.set(section, option+'/italic', int(font.italic()))
@@ -162,6 +167,3 @@ def set_default_color_scheme(name, replace=True):
 
 for _name in sh.COLOR_SCHEME_NAMES:
     set_default_color_scheme(_name, replace=False)
-CUSTOM_COLOR_SCHEME_NAME = "Custom"
-set_color_scheme(CUSTOM_COLOR_SCHEME_NAME, sh.get_color_scheme("Spyder"),
-                 replace=False)

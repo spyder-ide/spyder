@@ -6,18 +6,20 @@
 
 """External shell's introspection and notification servers"""
 
-from spyderlib.qt.QtCore import QThread, Signal
-
-import threading
-import socket
+# Standard library imports
 import errno
 import os
+import socket
+import threading
+
+# Third party imports
+from qtpy.QtCore import QThread, Signal
 
 # Local imports
 from spyderlib.config.base import get_conf_path, DEBUG
-from spyderlib.utils.misc import select_port
 from spyderlib.utils.debug import log_last_error
 from spyderlib.utils.bsdsocket import read_packet, write_packet
+from spyderlib.utils.misc import select_port
 
 
 LOG_FILENAME = get_conf_path('introspection.log')
@@ -30,6 +32,7 @@ if DEBUG_INTROSPECTION:
                         level=logging.DEBUG)
 
 SPYDER_PORT = 20128
+
 
 class IntrospectionServer(threading.Thread):
     """Introspection server"""

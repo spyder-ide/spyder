@@ -11,45 +11,44 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-from spyderlib.qt import API, PYQT5
-from spyderlib.qt.QtGui import (QVBoxLayout, QPrintDialog, QSplitter, QToolBar,
-                                QAction, QApplication, QDialog, QWidget,
-                                QPrinter, QActionGroup, QInputDialog, QMenu,
-                                QAbstractPrintDialog, QGroupBox, QTabWidget,
-                                QLabel, QFontComboBox, QHBoxLayout,
-                                QKeySequence, QGridLayout)
-from spyderlib.qt.QtCore import Signal, QByteArray, Qt, Slot
-from spyderlib.qt.compat import to_qvariant, from_qvariant, getopenfilenames
-import spyderlib.utils.icon_manager as ima
-
+# Standard library imports
 import os
+import os.path as osp
 import re
 import sys
 import time
-import os.path as osp
+
+# Third party imports
+from qtpy import API, PYQT5
+from qtpy.compat import from_qvariant, getopenfilenames, to_qvariant
+from qtpy.QtCore import QByteArray, Qt, Signal, Slot
+from qtpy.QtGui import QKeySequence
+from qtpy.QtPrintSupport import QAbstractPrintDialog, QPrintDialog, QPrinter
+from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
+                            QFileDialog, QGridLayout, QGroupBox, QHBoxLayout,
+                            QInputDialog, QLabel, QMenu, QSplitter, QTabWidget,
+                            QToolBar, QVBoxLayout, QWidget)
 
 # Local imports
-from spyderlib.utils import encoding, sourcecode, codeanalysis
-from spyderlib.config.base import get_conf_path, _
+from spyderlib.config.base import _, get_conf_path
 from spyderlib.config.main import CONF
-from spyderlib.config.utils import (get_edit_filters, get_edit_filetypes,
+from spyderlib.config.utils import (get_edit_filetypes, get_edit_filters,
                                     get_filter)
-from spyderlib.config.gui import get_color_scheme
-from spyderlib.utils import programs
-from spyderlib.utils.qthelpers import (create_action, add_actions,
-                                       get_filetype_icon, add_shortcut_to_tooltip)
+from spyderlib.py3compat import getcwd, PY2, qbytearray_to_str, to_text_string
+from spyderlib.utils import codeanalysis, encoding, programs, sourcecode
+from spyderlib.utils import icon_manager as ima
+from spyderlib.utils.qthelpers import (add_actions, add_shortcut_to_tooltip,
+                                       create_action, get_filetype_icon)
 from spyderlib.widgets.findreplace import FindReplace
-from spyderlib.widgets.status import (ReadWriteStatus, EOLStatus,
-                                      EncodingStatus, CursorPositionStatus)
-from spyderlib.widgets.editor import (EditorSplitter, EditorStack, Printer,
-                                      EditorMainWindow)
+from spyderlib.widgets.editor import (EditorMainWindow, EditorSplitter,
+                                      EditorStack, Printer)
 from spyderlib.widgets.sourcecode.codeeditor import CodeEditor
-from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
-from spyderlib.plugins.runconfig import (RunConfigDialog, RunConfigOneDialog,
+from spyderlib.widgets.status import (CursorPositionStatus, EncodingStatus,
+                                      EOLStatus, ReadWriteStatus)
+from spyderlib.plugins import PluginConfigPage, SpyderPluginWidget
+from spyderlib.plugins.runconfig import (ALWAYS_OPEN_FIRST_RUN_OPTION,
                                          get_run_configuration,
-                                         ALWAYS_OPEN_FIRST_RUN_OPTION)
-from spyderlib.py3compat import PY2, to_text_string, getcwd, qbytearray_to_str
-
+                                         RunConfigDialog, RunConfigOneDialog)
 
 
 def _load_all_breakpoints():
@@ -104,9 +103,6 @@ class EditorConfigPage(PluginConfigPage):
                                     self.plugin.edit_template)
         
         interface_group = QGroupBox(_("Interface"))
-        font_group = self.create_fontgroup(option=None,
-                                    text=_("Text and margin font style"),
-                                    fontfilters=QFontComboBox.MonospacedFonts)
         newcb = self.create_checkbox
         fpsorting_box = newcb(_("Sort files according to full path"),
                               'fullpath_sorting')
@@ -139,11 +135,7 @@ class EditorConfigPage(PluginConfigPage):
         occurrence_spin.setEnabled(self.get_option('occurrence_highlighting'))
 
         wrap_mode_box = newcb(_("Wrap lines"), 'wrap')
-        names = CONF.get('color_schemes', 'names')
-        choices = list(zip(names, names))
-        cs_combo = self.create_combobox(_("Syntax color scheme: "),
-                                        choices, 'color_scheme_name')
-        
+
         display_layout = QGridLayout()
         display_layout.addWidget(linenumbers_box, 0, 0)
         display_layout.addWidget(blanks_box, 1, 0)
@@ -156,8 +148,6 @@ class EditorConfigPage(PluginConfigPage):
         display_layout.addWidget(occurrence_spin.spinbox, 5, 1)
         display_layout.addWidget(occurrence_spin.slabel, 5, 2)
         display_layout.addWidget(wrap_mode_box, 6, 0)
-        display_layout.addWidget(cs_combo.label, 7, 0)
-        display_layout.addWidget(cs_combo.combobox, 7, 1)
         display_h_layout = QHBoxLayout()
         display_h_layout.addLayout(display_layout)
         display_h_layout.addStretch(1)
@@ -339,7 +329,7 @@ class EditorConfigPage(PluginConfigPage):
         eol_group.setLayout(eol_layout)
         
         tabs = QTabWidget()
-        tabs.addTab(self.create_tab(font_group, interface_group, display_group),
+        tabs.addTab(self.create_tab(interface_group, display_group),
                     _("Display"))
         tabs.addTab(self.create_tab(introspection_group, analysis_group),
                     _("Code Introspection/Analysis"))
@@ -375,15 +365,19 @@ class Editor(SpyderPluginWidget):
             SpyderPluginWidget.__init__(self, parent, main=parent)
         else:
             SpyderPluginWidget.__init__(self, parent)
-        
+
         self.__set_eol_chars = True
-        
-        self.set_default_color_scheme()
-        
+
         # Creating template if it doesn't already exist
         if not osp.isfile(self.TEMPLATE_PATH):
-            header = ['# -*- coding: utf-8 -*-', '"""', 'Created on %(date)s',
-                      '', '@author: %(username)s', '"""', '']
+            if os.name == "nt":
+                shebang = []
+            else:
+                shebang = ['#!/usr/bin/env python' + ('2' if PY2 else '3')]
+            header = shebang + [
+                '# -*- coding: utf-8 -*-',
+                '"""', 'Created on %(date)s', '',
+                '@author: %(username)s', '"""', '']
             encoding.write(os.linesep.join(header), self.TEMPLATE_PATH, 'utf-8')
 
         self.projectexplorer = None
@@ -813,10 +807,10 @@ class Editor(SpyderPluginWidget):
                                name="Run selection")
 
         if sys.platform == 'darwin':
-            run_cell_sc = Qt.META + Qt.Key_Enter
+            run_cell_sc = Qt.META + Qt.Key_Return
         else:
-            run_cell_sc = Qt.CTRL + Qt.Key_Enter
-        run_cell_advance_sc = Qt.SHIFT + Qt.Key_Enter
+            run_cell_sc = Qt.CTRL + Qt.Key_Return
+        run_cell_advance_sc = Qt.SHIFT + Qt.Key_Return
 
         run_cell_action = create_action(self,
                             _("Run cell"),
@@ -824,7 +818,8 @@ class Editor(SpyderPluginWidget):
                             shortcut=QKeySequence(run_cell_sc),
                             tip=_("Run current cell (Ctrl+Enter)\n"
                                   "[Use #%% to create cells]"),
-                            triggered=self.run_cell)
+                            triggered=self.run_cell,
+                            context=Qt.WidgetWithChildrenShortcut)
 
         run_cell_advance_action = create_action(self,
                             _("Run cell and advance"),
@@ -832,8 +827,9 @@ class Editor(SpyderPluginWidget):
                             shortcut=QKeySequence(run_cell_advance_sc),
                             tip=_("Run current cell and go to "
                                   "the next one (Shift+Enter)"),
-                            triggered=self.run_cell_and_advance)
-        
+                            triggered=self.run_cell_and_advance,
+                            context=Qt.WidgetWithChildrenShortcut)
+
         # --- Source code Toolbar ---
         self.todo_list_action = create_action(self,
                 _("Show todo list"), icon=ima.icon('todo_list'),
@@ -1057,7 +1053,17 @@ class Editor(SpyderPluginWidget):
         if not editorstack.data:
             self.__load_temp_file()
         self.main.add_dockwidget(self)
-    
+
+    def update_font(self):
+        """Update font from Preferences"""
+        font = self.get_plugin_font()
+        color_scheme = self.get_color_scheme()
+        for editorstack in self.editorstacks:
+            editorstack.set_default_font(font, color_scheme)
+            completion_size = CONF.get('main', 'completion/size')
+            for finfo in editorstack.data:
+                comp_widget = finfo.editor.completion_widget
+                comp_widget.setup_appearance(completion_size, font)
         
     #------ Focus tabwidget
     def __get_focus_editorstack(self):
@@ -1153,7 +1159,7 @@ class Editor(SpyderPluginWidget):
         for method, setting in settings:
             getattr(editorstack, method)(self.get_option(setting))
         editorstack.set_help_enabled(CONF.get('help', 'connect/editor'))
-        color_scheme = get_color_scheme(self.get_option('color_scheme_name'))
+        color_scheme = self.get_color_scheme()
         editorstack.set_default_font(self.get_plugin_font(), color_scheme)
 
         editorstack.starting_long_process.connect(self.starting_long_process)
@@ -1213,23 +1219,23 @@ class Editor(SpyderPluginWidget):
         editorstack.clone_from(self.editorstacks[0])
         for finfo in editorstack.data:
             self.register_widget_shortcuts("Editor", finfo.editor)
-        
-    @Slot(int, int)
+
+    @Slot(str, int)
     def close_file_in_all_editorstacks(self, editorstack_id_str, index):
         for editorstack in self.editorstacks:
             if str(id(editorstack)) != editorstack_id_str:
                 editorstack.blockSignals(True)
                 editorstack.close_file(index, force=True)
                 editorstack.blockSignals(False)
-                
-    @Slot(int, int)
+
+    @Slot(str, int, str)
     def file_saved_in_editorstack(self, editorstack_id_str, index, filename):
         """A file was saved in editorstack, this notifies others"""
         for editorstack in self.editorstacks:
             if str(id(editorstack)) != editorstack_id_str:
                 editorstack.file_saved_in_other_editorstack(index, filename)
 
-    @Slot(int, int)
+    @Slot(str, int, str)
     def file_renamed_in_data_in_editorstack(self, editorstack_id_str,
                                             index, filename):
         """A file was renamed in data in editorstack, this notifies others"""
@@ -1634,8 +1640,10 @@ class Editor(SpyderPluginWidget):
                                self.get_option('max_recent_files'), 1, 35)
         if valid:
             self.set_option('max_recent_files', mrf)
-    
 
+    @Slot(bool)
+    @Slot(str)
+    @Slot(str, int, str)
     @Slot(str, int, str, object)
     def load(self, filenames=None, goto=None, word='', editorwindow=None,
              processevents=True):
@@ -1675,10 +1683,11 @@ class Editor(SpyderPluginWidget):
                                             osp.splitext(filename0)[1])
             else:
                 selectedfilter = ''
-            filenames, _selfilter = getopenfilenames(parent_widget,
-                                         _("Open file"), basedir,
-                                         self.edit_filters,
-                                         selectedfilter=selectedfilter)
+            filenames, _sf = getopenfilenames(parent_widget,
+                                     _("Open file"), basedir,
+                                     self.edit_filters,
+                                     selectedfilter=selectedfilter,
+                                     options=QFileDialog.HideNameFilterDetails)
             self.redirect_stdio.emit(True)
             if filenames:
                 filenames = [osp.normpath(fname) for fname in filenames]
@@ -1768,7 +1777,8 @@ class Editor(SpyderPluginWidget):
     @Slot()
     def print_preview(self):
         """Print preview for current file"""
-        from spyderlib.qt.QtGui import QPrintPreviewDialog
+        from qtpy.QtPrintSupport import QPrintPreviewDialog
+
         editor = self.get_current_editor()
         printer = Printer(mode=QPrinter.HighResolution,
                           header_font=self.get_plugin_font('printer_header'))
@@ -2233,9 +2243,7 @@ class Editor(SpyderPluginWidget):
         if self.editorstacks is not None:
             # --- syntax highlight and text rendering settings
             color_scheme_n = 'color_scheme_name'
-            color_scheme_o = get_color_scheme(self.get_option(color_scheme_n))
-            font_n = 'plugin_font'
-            font_o = self.get_plugin_font()
+            color_scheme_o = self.get_color_scheme()
             currentline_n = 'highlight_current_line'
             currentline_o = self.get_option(currentline_n)
             currentcell_n = 'highlight_current_cell'
@@ -2248,15 +2256,7 @@ class Editor(SpyderPluginWidget):
             focus_to_editor_o = self.get_option(focus_to_editor_n)
             
             for editorstack in self.editorstacks:
-                if font_n in options:
-                    scs = color_scheme_o if color_scheme_n in options else None
-                    editorstack.set_default_font(font_o, scs)
-                    completion_size = CONF.get('editor_appearance',
-                                               'completion/size')
-                    for finfo in editorstack.data:
-                        comp_widget = finfo.editor.completion_widget
-                        comp_widget.setup_appearance(completion_size, font_o)
-                elif color_scheme_n in options:
+                if color_scheme_n in options:
                     editorstack.set_color_scheme(color_scheme_o)
                 if currentline_n in options:
                     editorstack.set_highlight_current_line_enabled(

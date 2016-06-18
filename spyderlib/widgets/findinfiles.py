@@ -11,31 +11,31 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
+# Standard library imports
 from __future__ import with_statement
-
-from spyderlib.qt.QtGui import (QHBoxLayout, QWidget, QTreeWidgetItem,
-                                QSizePolicy, QRadioButton, QVBoxLayout, QLabel)
-from spyderlib.qt.QtCore import (Signal, Slot, Qt, QThread, QMutexLocker,
-                                 QMutex)
-from spyderlib.qt.compat import getexistingdirectory
-import spyderlib.utils.icon_manager as ima
-
-import sys
-import os
-import re
 import fnmatch
+import os
 import os.path as osp
+import re
+import sys
 import traceback
 
+# Third party imports
+from qtpy.compat import getexistingdirectory
+from qtpy.QtCore import QMutex, QMutexLocker, Qt, QThread, Signal, Slot
+from qtpy.QtWidgets import (QHBoxLayout, QLabel, QRadioButton, QSizePolicy,
+                            QTreeWidgetItem, QVBoxLayout, QWidget)
+
 # Local imports
+from spyderlib.config.base import _
+from spyderlib.py3compat import getcwd, to_text_string
 from spyderlib.utils import programs
-from spyderlib.utils.vcs import is_hg_installed, get_vcs_root
+from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.misc import abspardir, get_common_path
 from spyderlib.utils.qthelpers import create_toolbutton, get_filetype_icon
-from spyderlib.config.base import _
+from spyderlib.utils.vcs import is_hg_installed, get_vcs_root
 from spyderlib.widgets.comboboxes import PathComboBox, PatternComboBox
 from spyderlib.widgets.onecolumntree import OneColumnTree
-from spyderlib.py3compat import to_text_string, getcwd
 
 
 #def find_files_in_hg_manifest(rootpath, include, exclude):

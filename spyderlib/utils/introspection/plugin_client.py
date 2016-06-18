@@ -4,165 +4,206 @@
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
-import socket
-import errno
+# Local imports
+import imp
 import os
 import os.path as osp
-import imp
 import sys
+import uuid
+
+# Third party imports
+from qtpy.QtCore import (QObject, QProcess, QProcessEnvironment,
+                         QSocketNotifier, QTimer, Signal)
+from qtpy.QtWidgets import QApplication
+import zmq
 
 # Local imports
-from spyderlib.config.base import debug_print, get_module_path
-from spyderlib.utils.bsdsocket import read_packet, write_packet
-from spyderlib.qt.QtGui import QApplication
-from spyderlib.qt.QtCore import (
-    QThread, QProcess, Signal, QObject, QProcessEnvironment
-)
-from spyderlib.utils.introspection.utils import connect_to_port
+from spyderlib.config.base import debug_print, DEV, get_module_path
 
 
-class PluginClient(QObject):
+# Heartbeat timer in milliseconds
+HEARTBEAT = 5000
+
+
+class AsyncClient(QObject):
 
     """
-    A class which handles a connection to a plugin through a QProcess.
+    A class which handles a connection to a client through a QProcess.
     """
 
-    # Emitted when the plugin has initialized.
+    # Emitted when the client has initialized.
     initialized = Signal()
 
-    # Emitted when the plugin has failed to load.
+    # Emitted when the client errors.
     errored = Signal()
 
     # Emitted when a request response is received.
-    request_handled = Signal(object)
+    received = Signal(object)
 
-    def __init__(self, plugin_name, executable=None):
-        super(PluginClient, self).__init__()
-        self.plugin_name = plugin_name
+    def __init__(self, target, executable=None, name=None,
+                 extra_args=None, libs=None, cwd=None, env=None):
+        super(AsyncClient, self).__init__()
         self.executable = executable or sys.executable
-        self.start()
-
-    def start(self):
-        """Start a new connection with the plugin.
-        """
-        self._initialized = False
-        plugin_name = self.plugin_name
-        self.sock, server_port = connect_to_port()
-        self.sock.listen(2)
+        self.extra_args = extra_args
+        self.target = target
+        self.name = name or self
+        self.libs = libs
+        self.cwd = cwd
+        self.env = env
+        self.is_initialized = False
+        self.closing = False
+        self.context = zmq.Context()
         QApplication.instance().aboutToQuit.connect(self.close)
 
+        # Set up the heartbeat timer.
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self._heartbeat)
+        self.timer.start(HEARTBEAT)
+
+    def run(self):
+        """Handle the connection with the server.
+        """
+        # Set up the zmq port.
+        self.socket = self.context.socket(zmq.PAIR)
+        self.port = self.socket.bind_to_random_port('tcp://*')
+
+        # Set up the process.
         self.process = QProcess(self)
-        self.process.setWorkingDirectory(os.path.dirname(__file__))
+        if self.cwd:
+            self.process.setWorkingDirectory(self.cwd)
+        p_args = ['-u', self.target, str(self.port)]
+        if self.extra_args is not None:
+            p_args += self.extra_args
+
+        # Set up environment variables.
         processEnvironment = QProcessEnvironment()
         env = self.process.systemEnvironment()
-        python_path = osp.dirname(get_module_path('spyderlib'))
-        # Use the current version of the plugin provider if possible.
-        try:
-            provider_path = osp.dirname(imp.find_module(self.plugin_name)[1])
-            python_path = osp.pathsep.join([python_path, provider_path])
-        except ImportError:
-            pass
-        env.append("PYTHONPATH=%s" % python_path)
+        if (self.env and 'PYTHONPATH' not in self.env) or DEV:
+            python_path = osp.dirname(get_module_path('spyderlib'))
+            # Add the libs to the python path.
+            for lib in self.libs:
+                try:
+                    path = osp.dirname(imp.find_module(lib)[1])
+                    python_path = osp.pathsep.join([python_path, path])
+                except ImportError:
+                    pass
+            env.append("PYTHONPATH=%s" % python_path)
+        if self.env:
+            env.update(self.env)
         for envItem in env:
             envName, separator, envValue = envItem.partition('=')
             processEnvironment.insert(envName, envValue)
         self.process.setProcessEnvironment(processEnvironment)
-        p_args = ['-u', 'plugin_server.py', str(server_port), plugin_name]
 
-        self.listener = PluginListener(self.sock)
-        self.listener.request_handled.connect(self.request_handled.emit)
-        self.listener.initialized.connect(self._on_initialized)
-        self.listener.start()
-
+        # Start the process and wait for started.
         self.process.start(self.executable, p_args)
         self.process.finished.connect(self._on_finished)
         running = self.process.waitForStarted()
         if not running:
-            raise IOError('Could not start plugin %s' % plugin_name)
+            raise IOError('Could not start %s' % self)
 
-    def send(self, request):
-        """Send a request to the plugin.
+        # Set up the socket notifer.
+        fid = self.socket.getsockopt(zmq.FD)
+        self.notifier = QSocketNotifier(fid, QSocketNotifier.Read, self)
+        self.notifier.activated.connect(self._on_msg_received)
+
+    def request(self, func_name, *args, **kwargs):
+        """Send a request to the server.
+
+        The response will be a dictionary the 'request_id' and the
+        'func_name' as well as a 'result' field with the object returned by
+        the function call or or an 'error' field with a traceback.
         """
-        if not self._initialized:
+        if not self.is_initialized:
             return
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.connect(("127.0.0.1", self.client_port))
-        request['plugin_name'] = self.plugin_name
-        write_packet(sock, request)
-        sock.close()
+        request_id = uuid.uuid4().hex
+        request = dict(func_name=func_name,
+                       args=args,
+                       kwargs=kwargs,
+                       request_id=request_id)
+        try:
+            self.socket.send_pyobj(request)
+        except zmq.ZMQError:
+            pass
+        return request_id
 
     def close(self):
-        self.process.kill()
-        self.process.waitForFinished(200)
-        self.sock.close()
-
-    def _on_initialized(self, port):
-        debug_print('Initialized %s' % self.plugin_name)
-        self._initialized = True
-        self.client_port = port
-        self.initialized.emit()
+        """Cleanly close the connection to the server.
+        """
+        self.closing = True
+        self.timer.stop()
+        self.notifier.activated.disconnect(self._on_msg_received)
+        self.notifier.setEnabled(False)
+        del self.notifier
+        self.request('server_quit')
+        self.process.waitForFinished(1000)
+        self.context.destroy(0)
 
     def _on_finished(self):
-        debug_print('finished %s %s' % (self.plugin_name, self._initialized))
-        if self._initialized:
-            self.start()
+        """Handle a finished signal from the process.
+        """
+        if self.closing:
+            return
+        if self.is_initialized:
+            debug_print('Restarting %s' % self.name)
+            debug_print(self.process.readAllStandardOutput())
+            debug_print(self.process.readAllStandardError())
+            self.is_initialized = False
+            self.notifier.setEnabled(False)
+            self.run()
         else:
-            self._initialized = False
+            debug_print('Errored %s' % self.name)
             debug_print(self.process.readAllStandardOutput())
             debug_print(self.process.readAllStandardError())
             self.errored.emit()
 
-
-class PluginListener(QThread):
-
-    """A plugin response listener.
-    """
-
-    # Emitted when the plugin has intitialized.
-    initialized = Signal(int)
-
-    # Emitted when a request response has been received.
-    request_handled = Signal(object)
-
-    def __init__(self, sock):
-        super(PluginListener, self).__init__()
-        self.sock = sock
-        self._initialized = False
-
-    def run(self):
-        while True:
+    def _on_msg_received(self):
+        """Handle a message trigger from the socket.
+        """
+        self.notifier.setEnabled(False)
+        while 1:
             try:
-                conn, _addr = self.sock.accept()
-            except socket.error as e:
-                badfd = errno.WSAEBADF if os.name == 'nt' else errno.EBADF
-                extra = errno.WSAENOTSOCK if os.name == 'nt' else badfd
-                if e.args[0] in [errno.ECONNABORTED, badfd, extra]:
-                    return
-                # See Issue 1275 for details on why errno EINTR is
-                # silently ignored here.
-                eintr = errno.WSAEINTR if os.name == 'nt' else errno.EINTR
-                if e.args[0] == eintr:
-                    continue
-                raise
-            if not self._initialized:
-                server_port = read_packet(conn)
-                if isinstance(server_port, int):
-                    self._initialized = True
-                    self.initialized.emit(server_port)
-            else:
-                self.request_handled.emit(read_packet(conn))
+                resp = self.socket.recv_pyobj(flags=zmq.NOBLOCK)
+            except zmq.ZMQError:
+                self.notifier.setEnabled(True)
+                return
+            if not self.is_initialized:
+                self.is_initialized = True
+                debug_print('Initialized %s' % self.name)
+                self.initialized.emit()
+                continue
+            resp['name'] = self.name
+            self.received.emit(resp)
+
+    def _heartbeat(self):
+        """Send a heartbeat to keep the server alive.
+        """
+        if not self.is_initialized:
+            return
+        self.socket.send_pyobj(dict(func_name='server_heartbeat'))
+
+
+class PluginClient(AsyncClient):
+
+    def __init__(self, plugin_name, executable=None, env=None):
+        cwd = os.path.dirname(__file__)
+        super(PluginClient, self).__init__('plugin_server.py',
+            executable=executable, cwd=cwd, env=env,
+            extra_args=[plugin_name], libs=[plugin_name])
+        self.name = plugin_name
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     plugin = PluginClient('jedi')
+    plugin.run()
 
     def handle_return(value):
         print(value)
-        if value['method'] == 'foo':
+        if value['func_name'] == 'foo':
             app.quit()
         else:
-            plugin.send(dict(method='foo'))
+            plugin.request('foo')
 
     def handle_errored():
         print('errored')
@@ -170,11 +211,10 @@ if __name__ == '__main__':
 
     def start():
         print('start')
-        plugin.send(dict(method='validate'))
+        plugin.request('validate')
 
     plugin.errored.connect(handle_errored)
-
-    plugin.request_handled.connect(handle_return)
+    plugin.received.connect(handle_return)
     plugin.initialized.connect(start)
 
     app.exec_()

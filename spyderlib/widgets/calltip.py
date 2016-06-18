@@ -14,14 +14,17 @@ Calltip widget used only to show signatures
 # Standard library imports
 from unicodedata import category
 
-# System library imports
-from spyderlib.qt import QtCore, QtGui
+# Third party imports
+from qtpy.QtCore import QBasicTimer, QCoreApplication, QEvent, Qt
+from qtpy.QtGui import QCursor, QPalette
+from qtpy.QtWidgets import (QFrame, QLabel, QTextEdit, QPlainTextEdit, QStyle,
+                            QStyleOptionFrame, QStylePainter, QToolTip)
 
 # Local imports
 from spyderlib.py3compat import to_text_string
 
 
-class CallTipWidget(QtGui.QLabel):
+class CallTipWidget(QLabel):
     """ Shows call tips by parsing the current text of Q[Plain]TextEdit.
     """
 
@@ -33,24 +36,24 @@ class CallTipWidget(QtGui.QLabel):
         """ Create a call tip manager that is attached to the specified Qt
             text edit widget.
         """
-        assert isinstance(text_edit, (QtGui.QTextEdit, QtGui.QPlainTextEdit))
-        super(CallTipWidget, self).__init__(None, QtCore.Qt.ToolTip)
-        self.app = QtCore.QCoreApplication.instance()
+        assert isinstance(text_edit, (QTextEdit, QPlainTextEdit))
+        super(CallTipWidget, self).__init__(None, Qt.ToolTip)
+        self.app = QCoreApplication.instance()
 
         self.hide_timer_on = hide_timer_on
-        self._hide_timer = QtCore.QBasicTimer()
+        self._hide_timer = QBasicTimer()
         self._text_edit = text_edit
 
         self.setFont(text_edit.document().defaultFont())
-        self.setForegroundRole(QtGui.QPalette.ToolTipText)
-        self.setBackgroundRole(QtGui.QPalette.ToolTipBase)
-        self.setPalette(QtGui.QToolTip.palette())
+        self.setForegroundRole(QPalette.ToolTipText)
+        self.setBackgroundRole(QPalette.ToolTipBase)
+        self.setPalette(QToolTip.palette())
 
-        self.setAlignment(QtCore.Qt.AlignLeft)
+        self.setAlignment(Qt.AlignLeft)
         self.setIndent(1)
-        self.setFrameStyle(QtGui.QFrame.NoFrame)
+        self.setFrameStyle(QFrame.NoFrame)
         self.setMargin(1 + self.style().pixelMetric(
-                QtGui.QStyle.PM_ToolTipLabelFrameWidth, None, self))
+                QStyle.PM_ToolTipLabelFrameWidth, None, self))
 
     def eventFilter(self, obj, event):
         """ Reimplemented to hide on certain key presses and on text edit focus
@@ -59,24 +62,24 @@ class CallTipWidget(QtGui.QLabel):
         if obj == self._text_edit:
             etype = event.type()
 
-            if etype == QtCore.QEvent.KeyPress:
+            if etype == QEvent.KeyPress:
                 key = event.key()
-                if key in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return,
-                           QtCore.Qt.Key_Down):
+                if key in (Qt.Key_Enter, Qt.Key_Return,
+                           Qt.Key_Down):
                     self.hide()
-                elif key == QtCore.Qt.Key_Escape:
+                elif key == Qt.Key_Escape:
                     self.hide()
                     return True
 
-            elif etype == QtCore.QEvent.FocusOut:
+            elif etype == QEvent.FocusOut:
                 self.hide()
 
-            elif etype == QtCore.QEvent.Enter:
+            elif etype == QEvent.Enter:
                 if (self._hide_timer.isActive() and
-                  self.app.topLevelAt(QtGui.QCursor.pos()) == self):
+                  self.app.topLevelAt(QCursor.pos()) == self):
                     self._hide_timer.stop()
 
-            elif etype == QtCore.QEvent.Leave:
+            elif etype == QEvent.Leave:
                 self._leave_event_hide()
 
         return super(CallTipWidget, self).eventFilter(obj, event)
@@ -97,7 +100,7 @@ class CallTipWidget(QtGui.QLabel):
         """
         super(CallTipWidget, self).enterEvent(event)
         if (self._hide_timer.isActive() and
-          self.app.topLevelAt(QtGui.QCursor.pos()) == self):
+          self.app.topLevelAt(QCursor.pos()) == self):
             self._hide_timer.stop()
 
     def hideEvent(self, event):
@@ -121,10 +124,10 @@ class CallTipWidget(QtGui.QLabel):
     def paintEvent(self, event):
         """ Reimplemented to paint the background panel.
         """
-        painter = QtGui.QStylePainter(self)
-        option = QtGui.QStyleOptionFrame()
+        painter = QStylePainter(self)
+        option = QStyleOptionFrame()
         option.initFrom(self)
-        painter.drawPrimitive(QtGui.QStyle.PE_PanelTipLabel, option)
+        painter.drawPrimitive(QStyle.PE_PanelTipLabel, option)
         painter.end()
 
         super(CallTipWidget, self).paintEvent(event)
@@ -274,7 +277,7 @@ class CallTipWidget(QtGui.QLabel):
             # If Enter events always came after Leave events, we wouldn't need
             # this check. But on Mac OS, it sometimes happens the other way
             # around when the tooltip is created.
-            self.app.topLevelAt(QtGui.QCursor.pos()) != self):
+            self.app.topLevelAt(QCursor.pos()) != self):
             self._hide_timer.start(800, self)
 
     #------ Signal handlers ----------------------------------------------------

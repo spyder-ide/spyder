@@ -13,12 +13,19 @@ import os
 import pickle
 import os.path as osp
 import re
-import socket
-import errno
 
 from spyderlib.utils.misc import memoize
-from spyderlib.config.base import debug_print
-from spyderlib.utils.misc import select_port
+
+from spyderlib.utils.syntaxhighlighters import (
+    custom_extension_lexer_mapping
+)
+
+from pygments.lexer import words
+from pygments.lexers import (
+    get_lexer_for_filename, get_lexer_by_name, TextLexer
+)
+from pygments.util import ClassNotFound
+from pygments.token import Token
 
 
 class CodeInfo(object):
@@ -28,13 +35,14 @@ class CodeInfo(object):
                                  re.UNICODE)
 
     def __init__(self, name, source_code, position, filename=None,
-            is_python_like=True, in_comment_or_string=False, **kwargs):
+            is_python_like=False, in_comment_or_string=False, **kwargs):
         self.__dict__.update(kwargs)
         self.name = name
         self.filename = filename
         self.source_code = source_code
         self.is_python_like = is_python_like
         self.in_comment_or_string = in_comment_or_string
+
         self.position = position
 
         # if in a comment, look for the previous definition
@@ -72,27 +80,48 @@ class CodeInfo(object):
         self.line = self.lines[-1]
         self.column = len(self.lines[-1])
 
-        tokens = re.findall(self.id_regex, self.line)
-        if tokens and self.line.endswith(tokens[-1]):
-            self.obj = tokens[-1]
+        full_line = self.source_code.splitlines()[self.line_num - 1]
+
+        lexer = find_lexer_for_filename(self.filename)
+
+        # check for a text-based lexer that doesn't split tokens
+        if len(list(lexer.get_tokens('a b'))) == 1:
+            # Use regex to get the information
+            tokens = re.findall(self.id_regex, self.line)
+            if tokens and self.line.endswith(tokens[-1]):
+                self.obj = tokens[-1]
+            else:
+                self.obj = None
+
+            self.full_obj = self.obj
+
+            if self.obj:
+                full_line = self.source_code.splitlines()[self.line_num - 1]
+                rest = full_line[self.column:]
+                match = re.match(self.id_regex, rest)
+                if match:
+                    self.full_obj = self.obj + match.group()
+
+            self.context = None
         else:
-            self.obj = None
+            # Use lexer to get the information
+            pos = 0
+            line_tokens = lexer.get_tokens(full_line)
+            for (context, token) in line_tokens:
+                pos += len(token)
+                if pos >= self.column:
+                    self.obj = token[:len(token) - (pos - self.column)]
+                    self.full_obj = token
+                    if context in Token.Literal.String:
+                        context = Token.Literal.String
+                    self.context = context
+                    break
 
-        self.full_obj = self.obj
-
-        if self.obj:
-            full_line = self.source_code.splitlines()[self.line_num - 1]
-            rest = full_line[self.column:]
-            match = re.match(self.id_regex, rest)
-            if match:
-                self.full_obj = self.obj + match.group()
-
-        if (self.name in ['info', 'definition'] and (not self.obj)
+        if (self.name in ['info', 'definition'] and (not self.context in Token.Name)
                 and self.is_python_like):
             func_call = re.findall(self.func_call_regex, self.line)
             if func_call:
                 self.obj = func_call[-1]
-                debug_print('new obj %s' % repr(self.obj))
                 self.column = self.line.index(self.obj) + len(self.obj)
                 self.position = self.position - len(self.line) + self.column
 
@@ -116,7 +145,7 @@ class CodeInfo(object):
 
     def __eq__(self, other):
         try:
-            return self.__dict__ == other.__dict__
+            return self.serialize() == other.serialize()
         except Exception:
             return False
 
@@ -135,6 +164,51 @@ class CodeInfo(object):
         state['id_regex'] = self.id_regex
         state['func_call_regex'] = self.func_call_regex
         return state
+
+
+def find_lexer_for_filename(filename):
+    """Get a Pygments Lexer given a filename.
+    """
+    filename = filename or ''
+    root, ext = os.path.splitext(filename)
+    if ext in custom_extension_lexer_mapping:
+        lexer = get_lexer_by_name(custom_extension_lexer_mapping[ext])
+    else:
+        try:
+            lexer = get_lexer_for_filename(filename)
+        except ClassNotFound:
+            return TextLexer()
+    return lexer
+
+
+def get_keywords(lexer):
+    """Get the keywords for a given lexer.
+    """
+    if not hasattr(lexer, 'tokens'):
+        return []
+    if 'keywords' in lexer.tokens:
+        try:
+            return lexer.tokens['keywords'][0][0].words
+        except:
+            pass
+    keywords = []
+    for vals in lexer.tokens.values():
+        for val in vals:
+            try:
+                if isinstance(val[0], words):
+                    keywords.extend(val[0].words)
+                else:
+                    ini_val = val[0]
+                    if ')\\b' in val[0] or ')(\\s+)' in val[0]:
+                        val = re.sub(r'\\.', '', val[0])
+                        val = re.sub('[^0-9a-zA-Z|]+', '', val)
+                        if '|' in ini_val:
+                            keywords.extend(val.split('|'))
+                        else:
+                            keywords.append(val)
+            except Exception:
+                continue
+    return keywords
 
 
 @memoize
@@ -161,24 +235,6 @@ def get_parent_until(path):
         except ImportError:
             break
     return '.'.join(reversed(items))
-
-
-def connect_to_port(base_port=20128):
-    """Connect and bind to the next available port."""
-    while 1:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        try:
-            sock.bind(("127.0.0.1", base_port))
-        except Exception as e:
-            if e.errno == errno.EADDRINUSE:
-                base_port += 1
-                continue
-            else:
-                raise
-        else:
-            break
-    return sock, base_port
 
 
 if __name__ == '__main__':

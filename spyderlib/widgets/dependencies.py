@@ -6,17 +6,21 @@
 
 """Module checking Spyder runtime dependencies"""
 
-from spyderlib.qt.QtGui import (QDialog, QTableView, QItemDelegate, QColor,
-                                QVBoxLayout, QHBoxLayout, QPushButton,
-                                QApplication, QLabel, QDialogButtonBox)
-from spyderlib.qt.QtCore import Qt, QModelIndex, QAbstractTableModel
-from spyderlib.qt.compat import to_qvariant
-import spyderlib.utils.icon_manager as ima
+# Standard library imports
 import sys
 
+# Third party imports
+from qtpy.compat import to_qvariant
+from qtpy.QtCore import Qt, QModelIndex, QAbstractTableModel
+from qtpy.QtGui import QColor
+from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
+                            QHBoxLayout, QItemDelegate, QLabel, QPushButton,
+                            QTableView, QVBoxLayout)
+
 # Local imports
-from spyderlib.config.base import _
 from spyderlib import __version__
+from spyderlib.config.base import _
+from spyderlib.utils import icon_manager as ima
 
 
 class DependenciesTableModel(QAbstractTableModel):

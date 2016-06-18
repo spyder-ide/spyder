@@ -16,10 +16,11 @@ import sys
 import os.path as osp
 
 # Local import
-from spyderlib.config.user import UserConfig
 from spyderlib.config.base import (CHECK_ALL, EXCLUDED_NAMES, SUBFOLDER,
                                    get_home_dir)
-from spyderlib.config.utils import IMPORT_EXT, is_ubuntu
+from spyderlib.config.fonts import BIG, MEDIUM, MONOSPACE, SANS_SERIF
+from spyderlib.config.user import UserConfig
+from spyderlib.config.utils import IMPORT_EXT
 from spyderlib.utils import codeanalysis
 
 
@@ -54,44 +55,13 @@ MAC = sys.platform == 'darwin'
 CTRL = "Meta" if MAC else "Ctrl"
 
 
-# Fonts
-SANS_SERIF = ['Sans Serif', 'DejaVu Sans', 'Bitstream Vera Sans',
-              'Bitstream Charter', 'Lucida Grande', 'MS Shell Dlg 2',
-              'Calibri', 'Verdana', 'Geneva', 'Lucid', 'Arial',
-              'Helvetica', 'Avant Garde', 'Times', 'sans-serif']
-
-MONOSPACE = ['Monospace', 'DejaVu Sans Mono', 'Consolas',
-             'Bitstream Vera Sans Mono', 'Andale Mono', 'Liberation Mono',
-             'Courier New', 'Courier', 'monospace', 'Fixed', 'Terminal']
-
-
-#==============================================================================
-# Adjust font size per OS
-#==============================================================================
-if sys.platform == 'darwin':
-    MONOSPACE = ['Menlo'] + MONOSPACE
-    BIG = MEDIUM = SMALL = 12
-elif os.name == 'nt':
-    BIG = 12
-    MEDIUM = 10
-    SMALL = 9
-elif is_ubuntu():
-    SANS_SERIF = ['Ubuntu'] + SANS_SERIF
-    MONOSPACE = ['Ubuntu Mono'] + MONOSPACE
-    BIG = 13
-    MEDIUM = SMALL = 11
-else:
-    BIG = 12
-    MEDIUM = SMALL = 9
-
-
-#==============================================================================
-# Defaults
-#==============================================================================
+# =============================================================================
+#  Defaults
+# =============================================================================
 DEFAULTS = [
             ('main',
              {
-              'icon_theme': 'spyder 2',
+              'icon_theme': 'spyder 3',
               'single_instance': True,
               'open_files_port': OPEN_FILES_PORT,
               'tear_off_menus': False,
@@ -115,6 +85,17 @@ DEFAULTS = [
               'show_internal_console_if_traceback': True,
               'check_updates_on_startup': True,
               'toolbars_visible': True,
+              # Global Spyder fonts
+              'font/family': MONOSPACE,
+              'font/size': MEDIUM,
+              'font/italic': False,
+              'font/bold': False,
+              'rich_font/family': SANS_SERIF,
+              'rich_font/size': BIG,
+              'rich_font/italic': False,
+              'rich_font/bold': False,
+              'cursor/width': 2,
+              'completion/size': (300, 180),
               }),
             ('quick_layouts',
              {
@@ -123,25 +104,11 @@ DEFAULTS = [
               'order': ['Matlab layout', 'Rstudio layout', 'Vertical split', 'Horizontal split'],
               'active': ['Matlab layout', 'Rstudio layout', 'Vertical split', 'Horizontal split'],
               }),
-            ('editor_appearance',
-             {
-              'cursor/width': 2,
-              'completion/size': (300, 180),
-              }),
-            ('shell_appearance',
-             {
-              'cursor/width': 2,
-              'completion/size': (300, 180),
-              }),
             ('internal_console',
              {
               'max_line_count': 300,
               'working_dir_history': 30,
               'working_dir_adjusttocontents': False,
-              'font/family': MONOSPACE,
-              'font/size': MEDIUM,
-              'font/italic': False,
-              'font/bold': False,
               'wrap': True,
               'calltips': True,
               'codecompletion/auto': False,
@@ -154,10 +121,6 @@ DEFAULTS = [
             ('console',
              {
               'max_line_count': 500,
-              'font/family': MONOSPACE,
-              'font/size': MEDIUM,
-              'font/italic': False,
-              'font/bold': False,
               'wrap': True,
               'single_tab': True,
               'calltips': True,
@@ -183,10 +146,6 @@ DEFAULTS = [
               }),
             ('ipython_console',
              {
-              'font/family': MONOSPACE,
-              'font/size': MEDIUM,
-              'font/italic': False,
-              'font/bold': False,
               'show_banner': True,
               'completion_type': 0,
               'use_pager': False,
@@ -231,10 +190,6 @@ DEFAULTS = [
               'printer_header/font/size': MEDIUM,
               'printer_header/font/italic': False,
               'printer_header/font/bold': False,
-              'font/family': MONOSPACE,
-              'font/size': MEDIUM,
-              'font/italic': False,
-              'font/bold': False,
               'wrap': False,
               'wrapflag': True,
               'code_analysis/pyflakes': True,
@@ -278,10 +233,6 @@ DEFAULTS = [
              {
               'enable': True,
               'max_entries': 100,
-              'font/family': MONOSPACE,
-              'font/size': MEDIUM,
-              'font/italic': False,
-              'font/bold': False,
               'wrap': True,
               'go_to_eof': True,
               }),
@@ -289,14 +240,6 @@ DEFAULTS = [
              {
               'enable': True,
               'max_history_entries': 20,
-              'font/family': MONOSPACE,
-              'font/size': SMALL,
-              'font/italic': False,
-              'font/bold': False,
-              'rich_text/font/family': SANS_SERIF,
-              'rich_text/font/size': BIG,
-              'rich_text/font/italic': False,
-              'rich_text/font/bold': False,
               'wrap': True,
               'connect/editor': False,
               'connect/python_console': False,
@@ -323,27 +266,6 @@ DEFAULTS = [
               'name_filters': NAME_FILTERS,
               'show_all': False,
               'show_hscrollbar': True
-              }),
-            ('arrayeditor',
-             {
-              'font/family': MONOSPACE,
-              'font/size': SMALL,
-              'font/italic': False,
-              'font/bold': False,
-              }),
-            ('texteditor',
-             {
-              'font/family': MONOSPACE,
-              'font/size': MEDIUM,
-              'font/italic': False,
-              'font/bold': False,
-              }),
-            ('dicteditor',
-             {
-              'font/family': MONOSPACE,
-              'font/size': SMALL,
-              'font/italic': False,
-              'font/bold': False,
               }),
             ('explorer',
              {
@@ -496,9 +418,11 @@ DEFAULTS = [
               }),
             ('color_schemes',
              {
-              'names': ['Emacs', 'IDLE', 'Monokai', 'Pydev', 'Scintilla',
-                        'Spyder', 'Spyder/Dark', 'Zenburn'],
+              'names': ['emacs', 'idle', 'monokai', 'pydev', 'scintilla',
+                        'spyder', 'spyder/dark', 'zenburn'],
+              'selected': 'spyder',
               # ---- Emacs ----
+              'emacs/name':        "Emacs",
               #      Name            Color     Bold  Italic
               'emacs/background':  "#000000",
               'emacs/currentline': "#2b2b43",
@@ -517,6 +441,7 @@ DEFAULTS = [
               'emacs/number':     ('#800000', False, False),
               'emacs/instance':   ('#ffffff', False, True),
               # ---- IDLE ----
+              'idle/name':         "IDLE",
               #      Name            Color     Bold  Italic
               'idle/background':   "#ffffff",
               'idle/currentline':  "#f2e6f3",
@@ -535,6 +460,7 @@ DEFAULTS = [
               'idle/number':      ('#924900', False, False),
               'idle/instance':    ('#777777', True, True),
               # ---- Monokai ----
+              'monokai/name':         "Monokai",
               #      Name              Color     Bold  Italic
               'monokai/background':   "#2a2b24",
               'monokai/currentline':  "#484848",
@@ -553,6 +479,7 @@ DEFAULTS = [
               'monokai/number':      ("#ae81ff", False, False),
               'monokai/instance':    ("#ddddda", False, True),
               # ---- Pydev ----
+              'pydev/name':        "Pydev",
               #      Name            Color     Bold  Italic
               'pydev/background':  "#ffffff",
               'pydev/currentline': "#e8f2fe",
@@ -571,6 +498,7 @@ DEFAULTS = [
               'pydev/number':     ('#800000', False, False),
               'pydev/instance':   ('#000000', False, True),
               # ---- Scintilla ----
+              'scintilla/name':        "Scintilla",
               #         Name             Color     Bold  Italic
               'scintilla/background':  "#ffffff",
               'scintilla/currentline': "#e1f0d1",
@@ -589,6 +517,7 @@ DEFAULTS = [
               'scintilla/number':     ('#007f7f', False, False),
               'scintilla/instance':   ('#000000', False, True),
               # ---- Spyder ----
+              'spyder/name':        "Spyder",
               #       Name            Color     Bold  Italic
               'spyder/background':  "#ffffff",
               'spyder/currentline': "#f7ecf8",
@@ -607,6 +536,7 @@ DEFAULTS = [
               'spyder/number':     ('#800000', False, False),
               'spyder/instance':   ('#924900', False, True),
               # ---- Spyder/Dark ----
+              'spyder/dark/name':        "Spyder Dark",
               #           Name             Color     Bold  Italic
               'spyder/dark/background':  "#131926",
               'spyder/dark/currentline': "#2b2b43",
@@ -625,6 +555,7 @@ DEFAULTS = [
               'spyder/dark/number':     ('#c80000', False, False),
               'spyder/dark/instance':   ('#be5f00', False, True),
               # ---- Zenburn ----
+              'zenburn/name':        "Zenburn",
               #        Name            Color     Bold  Italic
               'zenburn/background':  "#3f3f3f",
               'zenburn/currentline': "#333333",
@@ -653,10 +584,10 @@ DEFAULTS = [
 # 1. If you want to *change* the default value of a current option, you need to
 #    do a MINOR update in config version, e.g. from 3.0.0 to 3.1.0
 # 2. If you want to *remove* options that are no longer needed in our codebase,
-#    or if you want to *rename* options, then you need to do a MAJOR update in 
+#    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '24.2.0'
+CONF_VERSION = '26.2.0'
 
 
 # XXX: Previously we had load=(not DEV) here but DEV was set to *False*.

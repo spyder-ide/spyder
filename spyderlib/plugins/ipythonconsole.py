@@ -14,30 +14,24 @@ Handles IPython clients (and in the future, will handle IPython kernels too
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-# Stdlib imports
+# Standard library imports
 import atexit
 import os
 import os.path as osp
 import sys
 
-# Qt imports
-from spyderlib.qt import PYQT5
-from spyderlib.qt.QtGui import (QVBoxLayout, QHBoxLayout, QFormLayout, 
-                                QMessageBox, QGroupBox, QDialogButtonBox,
-                                QDialog, QTabWidget, QFontComboBox, 
-                                QCheckBox, QApplication, QLabel,QLineEdit,
-                                QPushButton, QKeySequence, QWidget,
-                                QGridLayout)
-from spyderlib.qt.compat import getopenfilename
-from spyderlib.qt.QtCore import Signal, Slot, Qt
-import spyderlib.utils.icon_manager as ima
-
-# IPython/Jupyter imports
+# Third party imports
 from IPython.core.application import get_ipython_dir
 from jupyter_client.connect import find_connection_file
 from qtconsole.manager import QtKernelManager
-
-# Ssh imports
+from qtpy import PYQT5
+from qtpy.compat import getopenfilename
+from qtpy.QtCore import Qt, Signal, Slot
+from qtpy.QtGui import QKeySequence
+from qtpy.QtWidgets import (QApplication, QCheckBox, QDialog, QDialogButtonBox,
+                            QFormLayout, QGridLayout, QGroupBox, QHBoxLayout,
+                            QLabel, QLineEdit, QMessageBox, QPushButton,
+                            QTabWidget, QVBoxLayout, QWidget)
 from zmq.ssh import tunnel as zmqtunnel
 try:
     import pexpect
@@ -48,19 +42,20 @@ except ImportError:
 from spyderlib import dependencies
 from spyderlib.config.base import _
 from spyderlib.config.main import CONF
-from spyderlib.utils.misc import get_error_match, remove_backslashes
-from spyderlib.utils import programs
-from spyderlib.utils.qthelpers import create_action
-from spyderlib.widgets.tabs import Tabs
-from spyderlib.widgets.ipython import IPythonClient
-from spyderlib.widgets.findreplace import FindReplace
-from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
+from spyderlib.plugins import PluginConfigPage, SpyderPluginWidget
 from spyderlib.py3compat import to_text_string
+from spyderlib.utils import icon_manager as ima
+from spyderlib.utils import programs
+from spyderlib.utils.misc import get_error_match, remove_backslashes
+from spyderlib.utils.qthelpers import create_action
+from spyderlib.widgets.findreplace import FindReplace
+from spyderlib.widgets.ipython import IPythonClient
+from spyderlib.widgets.tabs import Tabs
 
 
 SYMPY_REQVER = '>=0.7.3'
 dependencies.add("sympy", _("Symbolic mathematics in the IPython Console"),
-                 required_version=SYMPY_REQVER)
+                 required_version=SYMPY_REQVER, optional=True)
 
 
 # Replacing pyzmq openssh_tunnel method to work around the issue
@@ -154,10 +149,6 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         newcb = self.create_checkbox
         mpl_present = programs.is_module_installed("matplotlib")
         
-        # --- Display ---
-        font_group = self.create_fontgroup(option=None, text=None,
-                                    fontfilters=QFontComboBox.MonospacedFonts)
-
         # Interface Group
         interface_group = QGroupBox(_("Interface"))
         banner_box = newcb(_("Display initial banner"), 'show_banner',
@@ -459,7 +450,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
 
         # --- Tabs organization ---
         tabs = QTabWidget()
-        tabs.addTab(self.create_tab(font_group, interface_group, comp_group,
+        tabs.addTab(self.create_tab(interface_group, comp_group,
                                     bg_group, source_code_group), _("Display"))
         tabs.addTab(self.create_tab(pylab_group, backend_group, inline_group),
                                     _("Graphics"))
@@ -656,6 +647,12 @@ class IPythonConsole(SpyderPluginWidget):
         """Action to be performed on first plugin registration"""
         self.main.tabify_plugins(self.main.extconsole, self)
 
+    def update_font(self):
+        """Update font from Preferences"""
+        font = self.get_plugin_font()
+        for client in self.clients:
+            client.set_font(font)
+
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
         font_n = 'plugin_font'
@@ -741,9 +738,10 @@ class IPythonConsole(SpyderPluginWidget):
                                       "to open a new one") % ctrl)
         create_client_action = create_action(self,
                                 _("Open a new console"),
-                                QKeySequence("Ctrl+T"), ima.icon('ipython_console'),
-                                triggered=self.create_new_client)
-        create_client_action.setShortcutContext(Qt.WidgetWithChildrenShortcut)
+                                QKeySequence("Ctrl+T"),
+                                ima.icon('ipython_console'),
+                                triggered=self.create_new_client,
+                                context=Qt.WidgetWithChildrenShortcut)
 
         connect_to_kernel_action = create_action(self,
                _("Connect to an existing kernel"), None, None,
