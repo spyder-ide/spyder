@@ -302,7 +302,6 @@ class ExternalShellBase(QWidget):
             self.buffer_lock.lock()
             self.buffer.append(self.get_stdout())
             self.buffer_lock.unlock()
-
             return
 
         self.shell.write(self.get_stdout(), flush=True)
@@ -313,10 +312,10 @@ class ExternalShellBase(QWidget):
             self.buffer = []
             self.buffer_lock.unlock()
 
-            if not len(messages): break
-            else:
-                for msg in messages:
-                    self.shell.write(msg, flush=True)                
+            if not messages:
+                break
+
+            self.shell.write("\n".join(messages), flush=True)                
 
         self.write_lock.unlock()
 
