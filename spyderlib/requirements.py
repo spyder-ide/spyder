@@ -39,7 +39,7 @@ def check_qt():
     try:
         import qtpy
         package_name, required_ver = qt_infos[qtpy.API]
-        actual_ver = qtpy.__version__
+        actual_ver = qtpy.PYQT_VERSION
         if LooseVersion(actual_ver) < LooseVersion(required_ver):
             show_warning("Please check Spyder installation requirements:\n"
                          "%s %s+ is required (found v%s)."
