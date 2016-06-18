@@ -144,6 +144,16 @@ print("    [Python %s %dbits, Qt %s, %s %s on %s]" % \
        versions['qt_api'], versions['qt_api_ver'], versions['system']))
 
 
+# Check that we have the right qtpy version
+# TODO: Fix this when qtpy 1.1.0 is released!
+from spyderlib.utils import programs
+if not programs.is_module_installed('qtpy', '>=1.1.0.dev0'):
+    print("")
+    sys.exit("ERROR: Your qtpy version is outdated. Please install the "
+             "development version of qtpy (1.1.0.dev0) or higher to be "
+             "able to work with Spyder")
+
+
 # --- Executing Spyder
 
 if not options.hide_console and os.name == 'nt':
