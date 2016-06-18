@@ -647,7 +647,8 @@ class Editor(SpyderPluginWidget):
                                             tip=_('Fast switch between files'),
                                             triggered=self.call_file_switcher,
                                             context=Qt.ApplicationShortcut)
-        self.register_shortcut(self.file_switcher_action, "_", "file switcher")
+        self.register_shortcut(self.file_switcher_action, context="_",
+                               name="File switcher")
 
         self.revert_action = create_action(self, _("&Revert"),
                 icon=ima.icon('revert'), tip=_("Revert file from disk"),
