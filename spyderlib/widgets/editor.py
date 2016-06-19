@@ -425,7 +425,13 @@ class EditorStack(QWidget):
 
     def create_shortcuts(self):
         """Create local shortcuts"""
-        # Configurable shortcuts
+        if sys.platform == 'darwin':
+            run_cell_sc = Qt.META + Qt.Key_Return
+        else:
+            run_cell_sc = Qt.CTRL + Qt.Key_Return
+        run_cell_advance_sc = Qt.SHIFT + Qt.Key_Return
+
+        # --- Configurable shortcuts
         inspect = config_shortcut(self.inspect_current_object, context='Editor',
                                   name='Inspect current object', parent=self)
         breakpoint = config_shortcut(self.set_or_clear_breakpoint,
@@ -444,13 +450,16 @@ class EditorStack(QWidget):
         run_selection = config_shortcut(self.run_selection, context='Editor',
                                    name='Run selection', parent=self)
 
-        # Fixed shortcuts
+        # --- Fixed shortcuts
         fixed_shortcut(QKeySequence.ZoomIn, self, lambda: self.zoom_in.emit())
         fixed_shortcut("Ctrl+=", self, lambda: self.zoom_in.emit())
         fixed_shortcut(QKeySequence.ZoomOut, self, lambda: self.zoom_out.emit())
         fixed_shortcut("Ctrl+0", self, lambda: self.zoom_reset.emit())
         fixed_shortcut("Ctrl+W", self, self.close_file)
-        fixed_shortcut("Ctrl+F4", self, self.close_file)
+        fixed_shortcut("Ctrl+F4", self, self.close_file)        
+        fixed_shortcut(QKeySequence(run_cell_sc), self, self.run_cell)
+        fixed_shortcut(QKeySequence(run_cell_advance_sc), self,
+                       self.run_cell_and_advance)
 
         # Return configurable ones
         return [inspect, breakpoint, cbreakpoint, gotoline, tab,
