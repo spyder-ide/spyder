@@ -35,7 +35,6 @@ from spyderlib.py3compat import qbytearray_to_str, to_text_string, u
 from spyderlib.utils import icon_manager as ima
 from spyderlib.utils import (codeanalysis, encoding, sourcecode,
                              syntaxhighlighters)
-from spyderlib.utils.introspection.manager import IntrospectionManager
 from spyderlib.utils.qthelpers import (add_actions, create_action,
                                        create_toolbutton, get_filetype_icon,
                                        mimedata2url)
@@ -402,13 +401,7 @@ class EditorStack(QWidget):
         if ccs not in syntaxhighlighters.COLOR_SCHEME_NAMES:
             ccs = syntaxhighlighters.COLOR_SCHEME_NAMES[0]
         self.color_scheme = ccs
-        self.introspector = IntrospectionManager(self)
-
-        self.introspector.send_to_help.connect(self.send_to_help)
-        self.introspector.edit_goto.connect(
-             lambda fname, lineno, name:
-             self.edit_goto.emit(fname, lineno, name))
-
+        self.introspector = None
         self.__file_status_flag = False
 
         # Real-time code analysis
@@ -861,6 +854,9 @@ class EditorStack(QWidget):
 
     def set_focus_to_editor(self, state):
         self.focus_to_editor = state
+
+    def set_introspector(self, introspector):
+        self.introspector = introspector
 
     #------ Stacked widget management
     def get_stack_index(self):
@@ -2192,13 +2188,14 @@ class EditorPluginExample(QSplitter):
         self.outlineexplorer = OutlineExplorerWidget(self, show_fullpath=False,
                                                      show_all_files=False)
         self.outlineexplorer.edit_goto.connect(self.go_to_file)
+        self.editor_splitter = EditorSplitter(self, self, menu_actions,
+                                              first=True)
 
         editor_widgets = QWidget(self)
         editor_layout = QVBoxLayout()
         editor_layout.setContentsMargins(0, 0, 0, 0)
         editor_widgets.setLayout(editor_layout)
-        editor_layout.addWidget(EditorSplitter(self, self, menu_actions,
-                                               first=True))
+        editor_layout.addWidget(self.editor_splitter)
         editor_layout.addWidget(self.find_widget)
 
         self.setContentsMargins(0, 0, 0, 0)
@@ -2331,12 +2328,19 @@ class EditorPluginExample(QSplitter):
 def test():
     from spyderlib.utils.qthelpers import qapplication
     from spyderlib.config.base import get_module_path
+    from spyderlib.utils.introspection.manager import IntrospectionManager
 
     cur_dir = osp.join(get_module_path('spyderlib'), 'widgets')
     app = qapplication(test_time=8)
+    introspector = IntrospectionManager()
+
     test = EditorPluginExample()
     test.resize(900, 700)
     test.show()
+
+    editorstack = test.editor_splitter.editorstack
+    editorstack.set_introspector(introspector)
+    introspector.set_editor_widget(editorstack)
 
     import time
     t0 = time.time()
