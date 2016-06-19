@@ -37,6 +37,7 @@ from spyderlib.config.utils import (get_edit_filetypes, get_edit_filters,
 from spyderlib.py3compat import getcwd, PY2, qbytearray_to_str, to_text_string
 from spyderlib.utils import codeanalysis, encoding, programs, sourcecode
 from spyderlib.utils import icon_manager as ima
+from spyderlib.utils.introspection.manager import IntrospectionManager
 from spyderlib.utils.qthelpers import (add_actions, add_shortcut_to_tooltip,
                                        create_action, get_filetype_icon)
 from spyderlib.widgets.findreplace import FindReplace
@@ -387,7 +388,7 @@ class Editor(SpyderPluginWidget):
         self.editorstacks = None
         self.editorwindows = None
         self.editorwindows_to_be_created = None
-        
+
         self.file_dependent_actions = []
         self.pythonfile_dependent_actions = []
         self.dock_toolbar_actions = None
@@ -424,7 +425,9 @@ class Editor(SpyderPluginWidget):
         self.editorwindows_to_be_created = []
         self.toolbar_list = None
         self.menu_list = None
-        
+
+        self.introspector = IntrospectionManager()
+
         # Setup new windows:
         self.main.all_actions_defined.connect(self.setup_other_windows)
 
@@ -1093,8 +1096,12 @@ class Editor(SpyderPluginWidget):
             for win in [self]+self.editorwindows:
                 if win.isAncestorOf(editorstack):
                     self.set_last_focus_editorstack(win, editorstack)
-    
-        
+
+    def set_editorstack_for_introspection(self):
+        editorstack = self.__get_focus_editorstack()
+        if editorstack is not None:
+            self.introspector.set_editor_widget(editorstack)
+
     #------ Handling editorstacks
     def register_editorstack(self, editorstack):
         self.editorstacks.append(editorstack)
@@ -1122,6 +1129,8 @@ class Editor(SpyderPluginWidget):
         editorstack.set_io_actions(self.new_action, self.open_action,
                                    self.save_action, self.revert_action)
         editorstack.set_tempfile_path(self.TEMPFILE_PATH)
+        editorstack.set_introspector(self.introspector)
+
         settings = (
             ('set_pyflakes_enabled',                'code_analysis/pyflakes'),
             ('set_pep8_enabled',                    'code_analysis/pep8'),
@@ -1174,6 +1183,7 @@ class Editor(SpyderPluginWidget):
         editorstack.update_plugin_title.connect(
                                        lambda: self.update_plugin_title.emit())
         editorstack.editor_focus_changed.connect(self.save_focus_editorstack)
+        editorstack.editor_focus_changed.connect(self.set_editorstack_for_introspection)
         editorstack.editor_focus_changed.connect(self.main.plugin_focus_changed)
         editorstack.zoom_in.connect(lambda: self.zoom(1))
         editorstack.zoom_out.connect(lambda: self.zoom(-1))

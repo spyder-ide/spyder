@@ -35,7 +35,6 @@ from spyderlib.py3compat import qbytearray_to_str, to_text_string, u
 from spyderlib.utils import icon_manager as ima
 from spyderlib.utils import (codeanalysis, encoding, sourcecode,
                              syntaxhighlighters)
-from spyderlib.utils.introspection.manager import IntrospectionManager
 from spyderlib.utils.qthelpers import (add_actions, create_action,
                                        create_toolbutton, get_filetype_icon,
                                        mimedata2url)
@@ -402,13 +401,7 @@ class EditorStack(QWidget):
         if ccs not in syntaxhighlighters.COLOR_SCHEME_NAMES:
             ccs = syntaxhighlighters.COLOR_SCHEME_NAMES[0]
         self.color_scheme = ccs
-        self.introspector = IntrospectionManager(self)
-
-        self.introspector.send_to_help.connect(self.send_to_help)
-        self.introspector.edit_goto.connect(
-             lambda fname, lineno, name:
-             self.edit_goto.emit(fname, lineno, name))
-
+        self.introspector = None
         self.__file_status_flag = False
 
         # Real-time code analysis
@@ -861,6 +854,13 @@ class EditorStack(QWidget):
 
     def set_focus_to_editor(self, state):
         self.focus_to_editor = state
+
+    def set_introspector(self, introspector):
+        self.introspector = introspector
+        self.introspector.send_to_help.connect(self.send_to_help)
+        self.introspector.edit_goto.connect(
+             lambda fname, lineno, name:
+             self.edit_goto.emit(fname, lineno, name))
 
     #------ Stacked widget management
     def get_stack_index(self):
