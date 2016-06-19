@@ -814,7 +814,7 @@ class Editor(SpyderPluginWidget):
         run_cell_action = create_action(self,
                             _("Run cell"),
                             icon=ima.icon('run_cell'),
-                            #shortcut=QKeySequence(run_cell_sc),
+                            shown_shortcut=QKeySequence(run_cell_sc),
                             tip=_("Run current cell (Ctrl+Enter)\n"
                                   "[Use #%% to create cells]"),
                             triggered=self.run_cell)
@@ -822,7 +822,7 @@ class Editor(SpyderPluginWidget):
         run_cell_advance_action = create_action(self,
                             _("Run cell and advance"),
                             icon=ima.icon('run_cell_advance'),
-                            #shortcut=QKeySequence(run_cell_advance_sc),
+                            shown_shortcut=QKeySequence(run_cell_advance_sc),
                             tip=_("Run current cell and go to "
                                   "the next one (Shift+Enter)"),
                             triggered=self.run_cell_and_advance)
