@@ -1523,7 +1523,7 @@ class Editor(SpyderPluginWidget):
             editor = editorstack.clone_editor_from(finfo, set_current=False)
             self.register_widget_shortcuts("Editor", editor)
     
-    @Slot()
+#    @Slot(str)
     def new(self, fname=None, editorstack=None, text=None):
         """
         Create a new file - Untitled
@@ -1845,7 +1845,7 @@ class Editor(SpyderPluginWidget):
         dirname = osp.abspath(to_text_string(dirname))
         for fname in self.get_filenames():
             if osp.abspath(fname).startswith(dirname):
-                self.__close(fname)
+                self.close_file_from_name(fname)
     
     def renamed(self, source, dest):
         """File was renamed in file explorer widget or in project explorer"""
