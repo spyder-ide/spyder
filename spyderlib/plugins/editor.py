@@ -1257,6 +1257,19 @@ class Editor(SpyderPluginWidget):
         if editorstack is not None:
             self.introspector.set_editor_widget(editorstack)
 
+            # Disconnect active signals
+            try:
+                self.introspector.send_to_help.disconnect()
+                self.introspector.edit_goto.disconnect()
+            except TypeError:
+                pass
+
+            # Reconnect signals again
+            self.introspector.send_to_help.connect(editorstack.send_to_help)
+            self.introspector.edit_goto.connect(
+                lambda fname, lineno, name:
+                editorstack.edit_goto.emit(fname, lineno, name))
+
     #------ Handling editor windows
     def setup_other_windows(self):
         """Setup toolbars and menus for 'New window' instances"""

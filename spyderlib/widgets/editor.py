@@ -857,10 +857,6 @@ class EditorStack(QWidget):
 
     def set_introspector(self, introspector):
         self.introspector = introspector
-        self.introspector.send_to_help.connect(self.send_to_help)
-        self.introspector.edit_goto.connect(
-             lambda fname, lineno, name:
-             self.edit_goto.emit(fname, lineno, name))
 
     #------ Stacked widget management
     def get_stack_index(self):
