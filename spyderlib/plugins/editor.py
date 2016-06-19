@@ -1097,11 +1097,6 @@ class Editor(SpyderPluginWidget):
                 if win.isAncestorOf(editorstack):
                     self.set_last_focus_editorstack(win, editorstack)
 
-    def set_editorstack_for_introspection(self):
-        editorstack = self.__get_focus_editorstack()
-        if editorstack is not None:
-            self.introspector.set_editor_widget(editorstack)
-
     #------ Handling editorstacks
     def register_editorstack(self, editorstack):
         self.editorstacks.append(editorstack)
@@ -1253,8 +1248,16 @@ class Editor(SpyderPluginWidget):
             if str(id(editorstack)) != editorstack_id_str:
                 editorstack.rename_in_data(index, filename)
 
+    def set_editorstack_for_introspection(self):
+        """
+        Set the current editorstack to be used by the IntrospectionManager
+        instance
+        """
+        editorstack = self.__get_focus_editorstack()
+        if editorstack is not None:
+            self.introspector.set_editor_widget(editorstack)
 
-    #------ Handling editor windows    
+    #------ Handling editor windows
     def setup_other_windows(self):
         """Setup toolbars and menus for 'New window' instances"""
         self.toolbar_list = (
