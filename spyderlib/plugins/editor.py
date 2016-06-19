@@ -1522,8 +1522,9 @@ class Editor(SpyderPluginWidget):
         for editorstack in self.editorstacks[1:]:
             editor = editorstack.clone_editor_from(finfo, set_current=False)
             self.register_widget_shortcuts("Editor", editor)
-    
-#    @Slot(str)
+
+    @Slot()
+    @Slot(str)
     def new(self, fname=None, editorstack=None, text=None):
         """
         Create a new file - Untitled
