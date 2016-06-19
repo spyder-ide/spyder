@@ -2188,13 +2188,14 @@ class EditorPluginExample(QSplitter):
         self.outlineexplorer = OutlineExplorerWidget(self, show_fullpath=False,
                                                      show_all_files=False)
         self.outlineexplorer.edit_goto.connect(self.go_to_file)
+        self.editor_splitter = EditorSplitter(self, self, menu_actions,
+                                              first=True)
 
         editor_widgets = QWidget(self)
         editor_layout = QVBoxLayout()
         editor_layout.setContentsMargins(0, 0, 0, 0)
         editor_widgets.setLayout(editor_layout)
-        editor_layout.addWidget(EditorSplitter(self, self, menu_actions,
-                                               first=True))
+        editor_layout.addWidget(self.editor_splitter)
         editor_layout.addWidget(self.find_widget)
 
         self.setContentsMargins(0, 0, 0, 0)
@@ -2327,12 +2328,19 @@ class EditorPluginExample(QSplitter):
 def test():
     from spyderlib.utils.qthelpers import qapplication
     from spyderlib.config.base import get_module_path
+    from spyderlib.utils.introspection.manager import IntrospectionManager
 
     cur_dir = osp.join(get_module_path('spyderlib'), 'widgets')
     app = qapplication(test_time=8)
+    introspector = IntrospectionManager()
+
     test = EditorPluginExample()
     test.resize(900, 700)
     test.show()
+
+    editorstack = test.editor_splitter.editorstack
+    editorstack.set_introspector(introspector)
+    introspector.set_editor_widget(editorstack)
 
     import time
     t0 = time.time()
