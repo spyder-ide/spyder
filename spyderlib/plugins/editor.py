@@ -37,6 +37,7 @@ from spyderlib.config.utils import (get_edit_filetypes, get_edit_filters,
 from spyderlib.py3compat import getcwd, PY2, qbytearray_to_str, to_text_string
 from spyderlib.utils import codeanalysis, encoding, programs, sourcecode
 from spyderlib.utils import icon_manager as ima
+from spyderlib.utils.introspection.manager import IntrospectionManager
 from spyderlib.utils.qthelpers import (add_actions, create_action,
                                        get_filetype_icon)
 from spyderlib.widgets.findreplace import FindReplace
@@ -387,7 +388,7 @@ class Editor(SpyderPluginWidget):
         self.editorstacks = None
         self.editorwindows = None
         self.editorwindows_to_be_created = None
-        
+
         self.file_dependent_actions = []
         self.pythonfile_dependent_actions = []
         self.dock_toolbar_actions = None
@@ -424,7 +425,9 @@ class Editor(SpyderPluginWidget):
         self.editorwindows_to_be_created = []
         self.toolbar_list = None
         self.menu_list = None
-        
+
+        self.introspector = IntrospectionManager()
+
         # Setup new windows:
         self.main.all_actions_defined.connect(self.setup_other_windows)
 
@@ -1076,8 +1079,7 @@ class Editor(SpyderPluginWidget):
             for win in [self]+self.editorwindows:
                 if win.isAncestorOf(editorstack):
                     self.set_last_focus_editorstack(win, editorstack)
-    
-        
+
     #------ Handling editorstacks
     def register_editorstack(self, editorstack):
         self.editorstacks.append(editorstack)
@@ -1105,6 +1107,8 @@ class Editor(SpyderPluginWidget):
         editorstack.set_io_actions(self.new_action, self.open_action,
                                    self.save_action, self.revert_action)
         editorstack.set_tempfile_path(self.TEMPFILE_PATH)
+        editorstack.set_introspector(self.introspector)
+
         settings = (
             ('set_pyflakes_enabled',                'code_analysis/pyflakes'),
             ('set_pep8_enabled',                    'code_analysis/pep8'),
@@ -1157,6 +1161,7 @@ class Editor(SpyderPluginWidget):
         editorstack.update_plugin_title.connect(
                                        lambda: self.update_plugin_title.emit())
         editorstack.editor_focus_changed.connect(self.save_focus_editorstack)
+        editorstack.editor_focus_changed.connect(self.set_editorstack_for_introspection)
         editorstack.editor_focus_changed.connect(self.main.plugin_focus_changed)
         editorstack.zoom_in.connect(lambda: self.zoom(1))
         editorstack.zoom_out.connect(lambda: self.zoom(-1))
@@ -1226,8 +1231,29 @@ class Editor(SpyderPluginWidget):
             if str(id(editorstack)) != editorstack_id_str:
                 editorstack.rename_in_data(index, filename)
 
+    def set_editorstack_for_introspection(self):
+        """
+        Set the current editorstack to be used by the IntrospectionManager
+        instance
+        """
+        editorstack = self.__get_focus_editorstack()
+        if editorstack is not None:
+            self.introspector.set_editor_widget(editorstack)
 
-    #------ Handling editor windows    
+            # Disconnect active signals
+            try:
+                self.introspector.send_to_help.disconnect()
+                self.introspector.edit_goto.disconnect()
+            except TypeError:
+                pass
+
+            # Reconnect signals again
+            self.introspector.send_to_help.connect(editorstack.send_to_help)
+            self.introspector.edit_goto.connect(
+                lambda fname, lineno, name:
+                editorstack.edit_goto.emit(fname, lineno, name))
+
+    #------ Handling editor windows
     def setup_other_windows(self):
         """Setup toolbars and menus for 'New window' instances"""
         self.toolbar_list = (
@@ -1505,8 +1531,9 @@ class Editor(SpyderPluginWidget):
         for editorstack in self.editorstacks[1:]:
             editor = editorstack.clone_editor_from(finfo, set_current=False)
             self.register_widget_shortcuts("Editor", editor)
-    
+
     @Slot()
+    @Slot(str)
     def new(self, fname=None, editorstack=None, text=None):
         """
         Create a new file - Untitled
@@ -1828,7 +1855,7 @@ class Editor(SpyderPluginWidget):
         dirname = osp.abspath(to_text_string(dirname))
         for fname in self.get_filenames():
             if osp.abspath(fname).startswith(dirname):
-                self.__close(fname)
+                self.close_file_from_name(fname)
     
     def renamed(self, source, dest):
         """File was renamed in file explorer widget or in project explorer"""

@@ -160,9 +160,9 @@ class IntrospectionManager(QObject):
     send_to_help = Signal(str, str, str, str, bool)
     edit_goto = Signal(str, int, str)
 
-    def __init__(self, editor_widget, executable=None):
+    def __init__(self, executable=None):
         super(IntrospectionManager, self).__init__()
-        self.editor_widget = editor_widget
+        self.editor_widget = None
         self.pending = None
         self.plugin_manager = PluginManager(executable)
         self.plugin_manager.introspection_complete.connect(
@@ -173,6 +173,9 @@ class IntrospectionManager(QObject):
         self.plugin_manager = PluginManager(executable)
         self.plugin_manager.introspection_complete.connect(
             self._introspection_complete)
+
+    def set_editor_widget(self, editor_widget):
+        self.editor_widget = editor_widget
 
     def _get_code_info(self, name, position=None, **kwargs):
 
