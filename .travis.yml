@@ -51,3 +51,14 @@ script:
   - ./continuous_integration/travis/modules_test.sh
   - python runtests.py
   - coveralls
+
+# deploy tagged releases to GitHub
+# https://docs.travis-ci.com/user/deployment/releases
+deploy:
+  provider: releases
+  api_key: "please run `travis setup releases` to make encrypted key"
+  file:
+    - ./dist/spyder-${TRAVIS_TAG}-py2.py3-none-any.whl
+  skip_cleanup: true
+  on:
+    tags: true
