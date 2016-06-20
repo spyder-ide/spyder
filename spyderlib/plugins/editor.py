@@ -633,13 +633,15 @@ class Editor(SpyderPluginWidget):
                 icon=ima.icon('filenew'), tip=_("New file"),
                 triggered=self.new)
         self.register_shortcut(self.new_action, context="Editor",
-                               name="New file", add_sc_to_tip=True)
+                               name="New file", add_sc_to_tip=True,
+                               with_effect=False)
 
         self.open_action = create_action(self, _("&Open..."),
                 icon=ima.icon('fileopen'), tip=_("Open file"),
                 triggered=self.load)
         self.register_shortcut(self.open_action, context="Editor",
-                               name="Open file", add_sc_to_tip=True)
+                               name="Open file", add_sc_to_tip=True,
+                               with_effect=False)
 
         self.file_switcher_action = create_action(self, _('File switcher...'),
                                             icon=ima.icon('filelist'),
@@ -657,19 +659,21 @@ class Editor(SpyderPluginWidget):
                 icon=ima.icon('filesave'), tip=_("Save file"),
                 triggered=self.save)
         self.register_shortcut(self.save_action, context="Editor",
-                               name="Save file", add_sc_to_tip=True)
+                               name="Save file", add_sc_to_tip=True,
+                               with_effect=False)
 
         self.save_all_action = create_action(self, _("Sav&e all"),
                 icon=ima.icon('save_all'), tip=_("Save all files"),
-
                 triggered=self.save_all)
         self.register_shortcut(self.save_all_action, context="Editor",
-                               name="Save all", add_sc_to_tip=True)
+                               name="Save all", add_sc_to_tip=True,
+                               with_effect=False)
 
         save_as_action = create_action(self, _("Save &as..."), None,
                 ima.icon('filesaveas'), tip=_("Save current file as..."),
                 triggered=self.save_as)
-        self.register_shortcut(save_as_action, "Editor", "Save As")
+        self.register_shortcut(save_as_action, "Editor", "Save As",
+                               with_effect=False)
 
         print_preview_action = create_action(self, _("Print preview..."),
                 tip=_("Print preview..."), triggered=self.print_preview)
@@ -685,7 +689,7 @@ class Editor(SpyderPluginWidget):
                 icon=ima.icon('filecloseall'), tip=_("Close all opened files"),
                 triggered=self.close_all_files)
         self.register_shortcut(self.close_all_action, context="Editor",
-                               name="Close all")
+                               name="Close all", with_effect=False)
 
         # ---- Debug menu ----
         set_clear_breakpoint_action = create_action(self,
@@ -1190,8 +1194,10 @@ class Editor(SpyderPluginWidget):
         editorstack.text_changed_at.connect(self.text_changed_at)
         editorstack.current_file_changed.connect(self.current_file_changed)
         editorstack.plugin_load.connect(self.load)
+        editorstack.plugin_load[()].connect(self.load)
         editorstack.edit_goto.connect(self.load)
-        
+        editorstack.sig_save_as.connect(self.save_as)
+
     def unregister_editorstack(self, editorstack):
         """Removing editorstack only if it's not the last remaining"""
         self.remove_last_focus_editorstack(editorstack)

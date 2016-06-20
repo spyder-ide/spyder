@@ -626,6 +626,10 @@ class MainWindow(QMainWindow):
         # File menu/toolbar
         self.file_menu = self.menuBar().addMenu(_("&File"))
         self.file_menu.aboutToShow.connect(self.update_file_menu)
+        self.file_menu.aboutToShow.connect(
+            lambda : self.show_shortcuts('file'))
+        self.file_menu.aboutToHide.connect(
+            lambda : self.hide_shortcuts('file'))
         self.file_toolbar = self.create_toolbar(_("File toolbar"),
                                                 "file_toolbar")
 
@@ -2025,15 +2029,17 @@ class MainWindow(QMainWindow):
 
     def show_shortcuts(self, menu):
         """Show action shortcuts in menu"""
-        for action in getattr(self, menu + '_menu_actions'):
-            if action and action.shown_shortcut is not None:
-                action.setShortcut(action.shown_shortcut)
+        for element in getattr(self, menu + '_menu_actions'):
+            if element and isinstance(element, QAction):
+                if element.shown_shortcut is not None:
+                    element.setShortcut(element.shown_shortcut)
 
     def hide_shortcuts(self, menu):
         """Hide action shortcuts in menu"""
-        for action in getattr(self, menu + '_menu_actions'):
-            if action and action.shown_shortcut is not None:
-                action.setShortcut(QKeySequence())
+        for element in getattr(self, menu + '_menu_actions'):
+            if element and isinstance(element, QAction):
+                if element.shown_shortcut is not None:
+                    element.setShortcut(QKeySequence())
 
     def update_file_menu(self):
         """Update file menu"""

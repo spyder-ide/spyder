@@ -301,11 +301,12 @@ class EditorStack(QWidget):
     save_breakpoints = Signal(str, str)
     text_changed_at = Signal(str, int)
     current_file_changed = Signal(str ,int)
-    plugin_load = Signal(str)
+    plugin_load = Signal((str,), ())
     edit_goto = Signal(str, int, str)
     split_vertically = Signal()
     split_horizontally = Signal()
     sig_new_file = Signal((str,), ())
+    sig_save_as = Signal()
 
     def __init__(self, parent, actions):
         QWidget.__init__(self, parent)
@@ -441,7 +442,22 @@ class EditorStack(QWidget):
         tabshift = config_shortcut(self.go_to_next_file, context='Editor',
                                    name='Go to next file', parent=self)
         run_selection = config_shortcut(self.run_selection, context='Editor',
-                                   name='Run selection', parent=self)
+                                        name='Run selection', parent=self)
+        new_file = config_shortcut(lambda : self.sig_new_file[()].emit(),
+                                   context='Editor', name='New file',
+                                   parent=self)
+        open_file = config_shortcut(lambda : self.plugin_load[()].emit(),
+                                    context='Editor', name='Open file',
+                                    parent=self)
+        save_file = config_shortcut(self.save, context='Editor',
+                                    name='Save file', parent=self)
+        save_all = config_shortcut(self.save_all, context='Editor',
+                                   name='Save all', parent=self)
+        save_as = config_shortcut(lambda : self.sig_save_as.emit(),
+                                  context='Editor', name='Save As',
+                                  parent=self)
+        close_all = config_shortcut(self.close_all_files, context='Editor',
+                                    name='Close all', parent=self)
 
         # --- Fixed shortcuts
         fixed_shortcut(QKeySequence.ZoomIn, self, lambda: self.zoom_in.emit())
@@ -456,7 +472,8 @@ class EditorStack(QWidget):
 
         # Return configurable ones
         return [inspect, breakpoint, cbreakpoint, gotoline, tab,
-                tabshift, run_selection]
+                tabshift, run_selection, new_file, open_file,
+                save_file, save_all, save_as, close_all]
 
     def get_shortcut_data(self):
         """
