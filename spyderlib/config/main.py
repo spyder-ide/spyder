@@ -374,6 +374,9 @@ DEFAULTS = [
               'editor/end of document': 'Ctrl+Down',
               # -- In widgets/editor
               'editor/inspect current object': 'Ctrl+I',
+              'editor/breakpoint': 'F12',
+              'editor/conditional breakpoint': 'Shift+F12',
+              'editor/run selection': "F9",
               'editor/go to line': 'Ctrl+L',
               'editor/go to previous file': 'Ctrl+Tab',
               'editor/go to next file': 'Ctrl+Shift+Tab',
@@ -398,9 +401,6 @@ DEFAULTS = [
               # -- In plugins/editor
               'editor/show/hide outline': "Ctrl+Alt+O",
               'editor/show/hide project explorer': "Ctrl+Alt+P",
-              'editor/breakpoint': 'F12',
-              'editor/conditional breakpoint': 'Shift+F12',
-              'editor/run selection': "F9",
               'editor/last edit location': "Ctrl+Alt+Shift+Left",
               'editor/previous cursor position': "Ctrl+Alt+Left",
               'editor/next cursor position': "Ctrl+Alt+Right",
