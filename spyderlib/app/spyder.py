@@ -404,6 +404,7 @@ class MainWindow(QMainWindow):
         self.external_tools_menu_actions = []
         self.view_menu = None
         self.plugins_menu = None
+        self.plugins_menu_actions = []
         self.toolbars_menu = None
         self.help_menu = None
         self.help_menu_actions = []
@@ -1134,6 +1135,11 @@ class MainWindow(QMainWindow):
         #----- View
         # View menu
         self.plugins_menu = QMenu(_("Panes"), self)
+        self.plugins_menu.aboutToShow.connect(
+            lambda : self.show_shortcuts('plugins'))
+        self.plugins_menu.aboutToHide.connect(
+            lambda : self.hide_shortcuts('plugins'))
+
         self.toolbars_menu = QMenu(_("Toolbars"), self)
         self.quick_layout_menu = QMenu(_("Window layouts"), self)
         self.quick_layout_set_menu()
@@ -2115,6 +2121,7 @@ class MainWindow(QMainWindow):
         for action in order:
             if type(action) is str:
                 actions.remove(action)
+        self.plugins_menu_actions = actions
         add_actions(self.plugins_menu, actions)
 
     def create_toolbars_menu(self):

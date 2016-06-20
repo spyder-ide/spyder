@@ -534,8 +534,7 @@ class SpyderPluginMixin(object):
         if self.shortcut is not None:
             action = create_action(self, title,
                              toggled=lambda checked: self.toggle_view(checked),
-                             shortcut=QKeySequence(self.shortcut),
-                             context=Qt.WidgetWithChildrenShortcut)
+                             shown_shortcut=QKeySequence(self.shortcut))
         else:
             action = create_action(self, title, toggled=lambda checked:
                                                 self.toggle_view(checked))
