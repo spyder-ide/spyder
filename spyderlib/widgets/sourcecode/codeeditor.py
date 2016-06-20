@@ -44,7 +44,9 @@ from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
 
 # Local imports
 from spyderlib.config.base import get_conf_path, _, DEBUG
-from spyderlib.config.gui import config_shortcut, get_shortcut, fixed_shortcut
+from spyderlib.config.gui import (config_shortcut, fixed_shortcut, get_shortcut,
+                                  RUN_CELL_SHORTCUT,
+                                  RUN_CELL_AND_ADVANCE_SHORTCUT)
 from spyderlib.config.main import CONF
 from spyderlib.py3compat import to_text_string
 from spyderlib.utils import icon_manager as ima
@@ -2465,21 +2467,15 @@ class CodeEditor(TextEditBaseWidget):
                                    triggered=self.go_to_definition_from_cursor)
 
         # Run actions
-        if sys.platform == 'darwin':
-            run_cell_sc = Qt.META + Qt.Key_Return
-        else:
-            run_cell_sc = Qt.CTRL + Qt.Key_Return
-        run_cell_advance_sc = Qt.SHIFT + Qt.Key_Return
-
         self.run_cell_action = create_action(self,
                         _("Run cell"),
                         icon=ima.icon('run_cell'),
-                        shortcut=QKeySequence(run_cell_sc),
+                        shortcut=QKeySequence(RUN_CELL_SHORTCUT),
                         triggered=lambda: self.run_cell.emit())
         self.run_cell_and_advance_action = create_action(self,
                         _("Run cell and advance"),
                         icon=ima.icon('run_cell'),
-                        shortcut=QKeySequence(run_cell_advance_sc),
+                        shortcut=QKeySequence(RUN_CELL_AND_ADVANCE_SHORTCUT),
                         triggered=lambda: self.run_cell_and_advance.emit())
         self.run_selection_action = create_action(self,
                         _("Run &selection or current line"),

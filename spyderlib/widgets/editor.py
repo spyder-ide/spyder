@@ -29,7 +29,9 @@ from qtpy.QtWidgets import (QAction, QApplication, QHBoxLayout, QMainWindow,
 
 # Local imports
 from spyderlib.config.base import _, DEBUG, STDERR, STDOUT
-from spyderlib.config.gui import config_shortcut, fixed_shortcut
+from spyderlib.config.gui import (config_shortcut, fixed_shortcut,
+                                  RUN_CELL_SHORTCUT,
+                                  RUN_CELL_AND_ADVANCE_SHORTCUT)
 from spyderlib.config.utils import get_edit_extensions
 from spyderlib.py3compat import qbytearray_to_str, to_text_string, u
 from spyderlib.utils import icon_manager as ima
@@ -419,12 +421,6 @@ class EditorStack(QWidget):
 
     def create_shortcuts(self):
         """Create local shortcuts"""
-        if sys.platform == 'darwin':
-            run_cell_sc = Qt.META + Qt.Key_Return
-        else:
-            run_cell_sc = Qt.CTRL + Qt.Key_Return
-        run_cell_advance_sc = Qt.SHIFT + Qt.Key_Return
-
         # --- Configurable shortcuts
         inspect = config_shortcut(self.inspect_current_object, context='Editor',
                                   name='Inspect current object', parent=self)
@@ -465,9 +461,9 @@ class EditorStack(QWidget):
         fixed_shortcut(QKeySequence.ZoomOut, self, lambda: self.zoom_out.emit())
         fixed_shortcut("Ctrl+0", self, lambda: self.zoom_reset.emit())
         fixed_shortcut("Ctrl+W", self, self.close_file)
-        fixed_shortcut("Ctrl+F4", self, self.close_file)        
-        fixed_shortcut(QKeySequence(run_cell_sc), self, self.run_cell)
-        fixed_shortcut(QKeySequence(run_cell_advance_sc), self,
+        fixed_shortcut("Ctrl+F4", self, self.close_file)
+        fixed_shortcut(QKeySequence(RUN_CELL_SHORTCUT), self, self.run_cell)
+        fixed_shortcut(QKeySequence(RUN_CELL_AND_ADVANCE_SHORTCUT), self,
                        self.run_cell_and_advance)
 
         # Return configurable ones

@@ -16,6 +16,7 @@ Important note regarding shortcuts:
 
 # Standard library imports
 from collections import namedtuple
+import sys
 
 # Third party imports
 from qtpy.QtCore import Qt
@@ -27,6 +28,14 @@ from spyderlib.config.main import CONF
 from spyderlib.config.user import NoDefault
 from spyderlib.py3compat import to_text_string
 from spyderlib.utils import syntaxhighlighters as sh
+
+
+# Run cell shortcuts
+if sys.platform == 'darwin':
+    RUN_CELL_SHORTCUT = Qt.META + Qt.Key_Return
+else:
+    RUN_CELL_SHORTCUT = Qt.CTRL + Qt.Key_Return
+RUN_CELL_AND_ADVANCE_SHORTCUT = Qt.SHIFT + Qt.Key_Return
 
 
 # To save metadata about widget shortcuts (needed to build our

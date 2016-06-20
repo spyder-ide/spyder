@@ -31,6 +31,8 @@ from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
 
 # Local imports
 from spyderlib.config.base import _, get_conf_path
+from spyderlib.config.gui import (RUN_CELL_SHORTCUT,
+                                  RUN_CELL_AND_ADVANCE_SHORTCUT)
 from spyderlib.config.main import CONF
 from spyderlib.config.utils import (get_edit_filetypes, get_edit_filters,
                                     get_filter)
@@ -798,27 +800,21 @@ class Editor(SpyderPluginWidget):
         self.register_shortcut(run_selected_action, context="Editor",
                                name="Run selection", with_effect=False)
 
-        if sys.platform == 'darwin':
-            run_cell_sc = Qt.META + Qt.Key_Return
-        else:
-            run_cell_sc = Qt.CTRL + Qt.Key_Return
-        run_cell_advance_sc = Qt.SHIFT + Qt.Key_Return
-
         run_cell_action = create_action(self,
                             _("Run cell"),
                             icon=ima.icon('run_cell'),
-                            shown_shortcut=QKeySequence(run_cell_sc),
+                            shown_shortcut=QKeySequence(RUN_CELL_SHORTCUT),
                             tip=_("Run current cell (Ctrl+Enter)\n"
                                   "[Use #%% to create cells]"),
                             triggered=self.run_cell)
 
         run_cell_advance_action = create_action(self,
-                            _("Run cell and advance"),
-                            icon=ima.icon('run_cell_advance'),
-                            shown_shortcut=QKeySequence(run_cell_advance_sc),
-                            tip=_("Run current cell and go to "
-                                  "the next one (Shift+Enter)"),
-                            triggered=self.run_cell_and_advance)
+                   _("Run cell and advance"),
+                   icon=ima.icon('run_cell_advance'),
+                   shown_shortcut=QKeySequence(RUN_CELL_AND_ADVANCE_SHORTCUT),
+                   tip=_("Run current cell and go to the next one "
+                         "(Shift+Enter)"),
+                   triggered=self.run_cell_and_advance)
 
         # --- Source code Toolbar ---
         self.todo_list_action = create_action(self,
