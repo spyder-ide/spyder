@@ -802,7 +802,7 @@ class MainWindow(QMainWindow):
                                         _("Fullscreen mode"),
                                         triggered=self.toggle_fullscreen)
         self.register_shortcut(self.fullscreen_action, "_",
-                                "Fullscreen mode", add_sc_to_tip=True)
+                               "Fullscreen mode", add_sc_to_tip=True)
 
         # Main toolbar
         self.main_toolbar_actions = [self.maximize_action,
