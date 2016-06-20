@@ -68,11 +68,20 @@ The easiest way to install Spyder is:
 
 ### On Windows:
 
-- Using one of our [executable installers](https://github.com/spyder-ide/spyder/releases)
-- Or installing one of these scientific Python distributions:
+- You can use `pip`:
+
+    pip install spyder
+
+- Or install one scientific Python distributions that come with Spyder:
   1. [Anaconda](http://continuum.io/downloads)
   2. [WinPython](https://winpython.github.io/)
   3. [Python(x,y)](http://python-xy.github.io/)
+
+We used to produce [executable installers](https://github.com/spyder-ide/spyder/releases),
+but they were missing required dependencies and with Spyder 3.x
+we've decided to drop them until somebody comes with a solution
+for more friendly installers (see #2648).
+
 
 ### On Mac OSX:
 
