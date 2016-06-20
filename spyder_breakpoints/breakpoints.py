@@ -80,25 +80,10 @@ class Breakpoints(BreakpointWidget, SpyderPluginMixin):
         list_action = create_action(self, _("List breakpoints"),
                                    triggered=self.show)
         list_action.setEnabled(True)
-        
-        # A fancy way to insert the action into the Breakpoints menu under
-        # the assumption that Breakpoints is the first QMenu in the list.
-        for item in self.main.debug_menu_actions:
-            try:
-                menu_title = item.title()
-            except AttributeError:
-                pass
-            else:
-                # Depending on Qt API version, could get a QString or 
-                # unicode from title()
-                if not is_text_string(menu_title): # string is a QString
-                    menu_title = to_text_string(menu_title.toUtf8)
-                item.addAction(list_action)
-                # If we've reached this point it means we've located the 
-                # first QMenu in the run_menu. Since there might be other
-                # QMenu entries in run_menu, we'll break so that the
-                # breakpoint action is only inserted once into the run_menu.
-                break
+
+        # This 10 position is hard-coded.
+        # See the debug_menu_actions variable in plugins/editor.py
+        self.main.debug_menu_actions.insert(10, list_action)
         self.main.editor.pythonfile_dependent_actions += [list_action]
 
     def refresh_plugin(self):

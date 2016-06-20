@@ -657,6 +657,10 @@ class MainWindow(QMainWindow):
 
         # Debug menu/toolbar
         self.debug_menu = self.menuBar().addMenu(_("&Debug"))
+        self.debug_menu.aboutToShow.connect(
+            lambda : self.show_shortcuts('debug'))
+        self.debug_menu.aboutToHide.connect(
+            lambda : self.hide_shortcuts('debug'))
         self.debug_toolbar = self.create_toolbar(_("Debug toolbar"),
                                                     "debug_toolbar")
 

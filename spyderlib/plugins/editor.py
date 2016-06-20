@@ -710,10 +710,6 @@ class Editor(SpyderPluginWidget):
         clear_all_breakpoints_action = create_action(self,
                                     _('Clear breakpoints in all files'),
                                     triggered=self.clear_all_breakpoints)
-        breakpoints_menu = QMenu(_("Breakpoints"), self)
-        add_actions(breakpoints_menu, (set_clear_breakpoint_action,
-                                       set_cond_breakpoint_action, None,
-                                       clear_all_breakpoints_action))
         self.winpdb_action = create_action(self, _("Debug with winpdb"),
                                            triggered=self.run_winpdb)
         self.winpdb_action.setEnabled(WINPDB_PATH is not None and PY2)
@@ -759,14 +755,6 @@ class Editor(SpyderPluginWidget):
         self.register_shortcut(debug_exit_action, "_", "Debug Exit",
                                add_sc_to_tip=True)
 
-        debug_control_menu_actions = [debug_next_action,
-                                      debug_step_action,
-                                      debug_return_action,
-                                      debug_continue_action,
-                                      debug_exit_action]
-        debug_control_menu = QMenu(_("Debugging control"))
-        add_actions(debug_control_menu, debug_control_menu_actions)   
-        
         # --- Run toolbar ---
         run_action = create_action(self, _("&Run"), icon=ima.icon('run'),
                                    tip=_("Run file"),
@@ -978,14 +966,22 @@ class Editor(SpyderPluginWidget):
                                run_cell_advance_action, re_run_action,
                                configure_action]
         self.main.run_toolbar_actions += run_toolbar_actions
-        
+
         # ---- Debug menu/toolbar construction ----
-        # The breakpoints plugin is expecting that
-        # breakpoints_menu will be the first QMenu in debug_menu_actions
-        # If breakpoints_menu must be moved below another QMenu in the list 
-        # please update the breakpoints plugin accordingly.  
-        debug_menu_actions = [debug_action, breakpoints_menu,
-                              debug_control_menu, None, self.winpdb_action]
+        # If the order of these actions change please update
+        # the breakpoints plugin accordingly.
+        debug_menu_actions = [debug_action,
+                              debug_next_action,
+                              debug_step_action,
+                              debug_return_action,
+                              debug_continue_action,
+                              debug_exit_action,
+                              None,
+                              set_clear_breakpoint_action,
+                              set_cond_breakpoint_action,
+                              clear_all_breakpoints_action,
+                              None,
+                              self.winpdb_action]
         self.main.debug_menu_actions += debug_menu_actions
         debug_toolbar_actions = [debug_action, debug_next_action,
                                  debug_step_action, debug_return_action,
