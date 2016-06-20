@@ -759,7 +759,7 @@ class Editor(SpyderPluginWidget):
         run_action = create_action(self, _("&Run"), icon=ima.icon('run'),
                                    tip=_("Run file"),
                                    triggered=self.run_file)
-        self.register_shortcut(run_action, context="Editor", name="Run",
+        self.register_shortcut(run_action, context="_", name="Run",
                                add_sc_to_tip=True)
 
         configure_action = create_action(self, _("&Configure..."),
@@ -767,14 +767,14 @@ class Editor(SpyderPluginWidget):
                                tip=_("Run settings"),
                                menurole=QAction.NoRole,
                                triggered=self.edit_run_configurations)
-        self.register_shortcut(configure_action, context="Editor",
+        self.register_shortcut(configure_action, context="_",
                                name="Configure", add_sc_to_tip=True)
 
         re_run_action = create_action(self, _("Re-run &last script"),
                                       icon=ima.icon('run_again'),
                             tip=_("Run again last file"),
                             triggered=self.re_run_file)
-        self.register_shortcut(re_run_action, context="Editor",
+        self.register_shortcut(re_run_action, context="_",
                                name="Re-run last script",
                                add_sc_to_tip=True)
 
