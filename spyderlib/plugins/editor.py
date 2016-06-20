@@ -37,8 +37,8 @@ from spyderlib.config.utils import (get_edit_filetypes, get_edit_filters,
 from spyderlib.py3compat import getcwd, PY2, qbytearray_to_str, to_text_string
 from spyderlib.utils import codeanalysis, encoding, programs, sourcecode
 from spyderlib.utils import icon_manager as ima
-from spyderlib.utils.qthelpers import (add_actions, add_shortcut_to_tooltip,
-                                       create_action, get_filetype_icon)
+from spyderlib.utils.qthelpers import (add_actions, create_action,
+                                       get_filetype_icon)
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.editor import (EditorMainWindow, EditorSplitter,
                                       EditorStack, Printer)
@@ -630,17 +630,13 @@ class Editor(SpyderPluginWidget):
                 icon=ima.icon('filenew'), tip=_("New file"),
                 triggered=self.new)
         self.register_shortcut(self.new_action, context="Editor",
-                               name="New file")
-        add_shortcut_to_tooltip(self.new_action, context="Editor",
-                                name="New file")
-        
+                               name="New file", add_sc_to_tip=True)
+
         self.open_action = create_action(self, _("&Open..."),
                 icon=ima.icon('fileopen'), tip=_("Open file"),
                 triggered=self.load)
         self.register_shortcut(self.open_action, context="Editor",
-                               name="Open file")
-        add_shortcut_to_tooltip(self.open_action, context="Editor",
-                                name="Open file")
+                               name="Open file", add_sc_to_tip=True)
 
         self.file_switcher_action = create_action(self, _('File switcher...'),
                                             icon=ima.icon('filelist'),
@@ -648,7 +644,7 @@ class Editor(SpyderPluginWidget):
                                             triggered=self.call_file_switcher,
                                             context=Qt.ApplicationShortcut)
         self.register_shortcut(self.file_switcher_action, context="_",
-                               name="File switcher")
+                               name="File switcher", add_sc_to_tip=True)
 
         self.revert_action = create_action(self, _("&Revert"),
                 icon=ima.icon('revert'), tip=_("Revert file from disk"),
@@ -658,19 +654,15 @@ class Editor(SpyderPluginWidget):
                 icon=ima.icon('filesave'), tip=_("Save file"),
                 triggered=self.save)
         self.register_shortcut(self.save_action, context="Editor",
-                               name="Save file")
-        add_shortcut_to_tooltip(self.save_action, context="Editor",
-                                name="Save file")
-        
+                               name="Save file", add_sc_to_tip=True)
+
         self.save_all_action = create_action(self, _("Sav&e all"),
                 icon=ima.icon('save_all'), tip=_("Save all files"),
-                                             
+
                 triggered=self.save_all)
         self.register_shortcut(self.save_all_action, context="Editor",
-                               name="Save all")
-        add_shortcut_to_tooltip(self.save_all_action, context="Editor",
-                                name="Save all")
-        
+                               name="Save all", add_sc_to_tip=True)
+
         save_as_action = create_action(self, _("Save &as..."), None,
                 ima.icon('filesaveas'), tip=_("Save current file as..."),
                 triggered=self.save_as)
@@ -723,46 +715,41 @@ class Editor(SpyderPluginWidget):
         # --- Debug toolbar ---
         debug_action = create_action(self, _("&Debug"), icon=ima.icon('debug'),
                                      tip=_("Debug file"), triggered=self.debug_file)
-        self.register_shortcut(debug_action, context="Editor", name="Debug")
-        add_shortcut_to_tooltip(debug_action, context="Editor", name="Debug")
-        
-        debug_next_action = create_action(self, _("Step"), 
-               icon=ima.icon('arrow-step-over'), tip=_("Run current line"), 
-               triggered=lambda: self.debug_command("next")) 
-        self.register_shortcut(debug_next_action, "_", "Debug Step Over")
-        add_shortcut_to_tooltip(debug_next_action, context="_",
-                                name="Debug Step Over")
+        self.register_shortcut(debug_action, context="Editor", name="Debug",
+                               add_sc_to_tip=True)
+
+        debug_next_action = create_action(self, _("Step"),
+               icon=ima.icon('arrow-step-over'), tip=_("Run current line"),
+               triggered=lambda: self.debug_command("next"))
+        self.register_shortcut(debug_next_action, "_", "Debug Step Over",
+                               add_sc_to_tip=True)
 
         debug_continue_action = create_action(self, _("Continue"),
-               icon=ima.icon('arrow-continue'), tip=_("Continue execution until "
-                                                      "next breakpoint"), 
-               triggered=lambda: self.debug_command("continue"))                                                 
-        self.register_shortcut(debug_continue_action, "_", "Debug Continue")
-        add_shortcut_to_tooltip(debug_continue_action, context="_",
-                                name="Debug Continue")
+               icon=ima.icon('arrow-continue'),
+               tip=_("Continue execution until next breakpoint"),
+               triggered=lambda: self.debug_command("continue"))
+        self.register_shortcut(debug_continue_action, "_", "Debug Continue",
+                               add_sc_to_tip=True)
 
-        debug_step_action = create_action(self, _("Step Into"), 
-               icon=ima.icon('arrow-step-in'), tip=_("Step into function or method "
-                                                     "of current line"), 
-               triggered=lambda: self.debug_command("step"))                
-        self.register_shortcut(debug_step_action, "_", "Debug Step Into")
-        add_shortcut_to_tooltip(debug_step_action, context="_",
-                                name="Debug Step Into")
+        debug_step_action = create_action(self, _("Step Into"),
+               icon=ima.icon('arrow-step-in'),
+               tip=_("Step into function or method of current line"),
+               triggered=lambda: self.debug_command("step"))
+        self.register_shortcut(debug_step_action, "_", "Debug Step Into",
+                               add_sc_to_tip=True)
 
-        debug_return_action = create_action(self, _("Step Return"), 
-               icon=ima.icon('arrow-step-out'), tip=_("Run until current function "
-                                                      "or method returns"), 
-               triggered=lambda: self.debug_command("return"))               
-        self.register_shortcut(debug_return_action, "_", "Debug Step Return")
-        add_shortcut_to_tooltip(debug_return_action, context="_",
-                                name="Debug Step Return")
+        debug_return_action = create_action(self, _("Step Return"),
+               icon=ima.icon('arrow-step-out'),
+               tip=_("Run until current function or method returns"),
+               triggered=lambda: self.debug_command("return"))
+        self.register_shortcut(debug_return_action, "_", "Debug Step Return",
+                               add_sc_to_tip=True)
 
         debug_exit_action = create_action(self, _("Exit"),
-               icon=ima.icon('stop_debug'), tip=_("Exit Debug"), 
-               triggered=lambda: self.debug_command("exit"))                                       
-        self.register_shortcut(debug_exit_action, "_", "Debug Exit")
-        add_shortcut_to_tooltip(debug_exit_action, context="_",
-                                name="Debug Exit")
+               icon=ima.icon('stop_debug'), tip=_("Exit Debug"),
+               triggered=lambda: self.debug_command("exit"))
+        self.register_shortcut(debug_exit_action, "_", "Debug Exit",
+                               add_sc_to_tip=True)
 
         debug_control_menu_actions = [debug_next_action,
                                       debug_step_action,
@@ -776,27 +763,24 @@ class Editor(SpyderPluginWidget):
         run_action = create_action(self, _("&Run"), icon=ima.icon('run'),
                                    tip=_("Run file"),
                                    triggered=self.run_file)
-        self.register_shortcut(run_action, context="Editor", name="Run")
-        add_shortcut_to_tooltip(run_action, context="Editor", name="Run")
+        self.register_shortcut(run_action, context="Editor", name="Run",
+                               add_sc_to_tip=True)
 
-        configure_action = create_action(self, _("&Configure..."), 
+        configure_action = create_action(self, _("&Configure..."),
                                          icon=ima.icon('run_settings'),
                                tip=_("Run settings"),
                                menurole=QAction.NoRole,
                                triggered=self.edit_run_configurations)
         self.register_shortcut(configure_action, context="Editor",
-                               name="Configure")
-        add_shortcut_to_tooltip(configure_action, context="Editor",
-                                name="Configure")
-        
-        re_run_action = create_action(self, _("Re-run &last script"), 
+                               name="Configure", add_sc_to_tip=True)
+
+        re_run_action = create_action(self, _("Re-run &last script"),
                                       icon=ima.icon('run_again'),
                             tip=_("Run again last file"),
                             triggered=self.re_run_file)
         self.register_shortcut(re_run_action, context="Editor",
-                               name="Re-run last script")
-        add_shortcut_to_tooltip(re_run_action, context="Editor",
-                                name="Re-run last script")
+                               name="Re-run last script",
+                               add_sc_to_tip=True)
 
         run_selected_action = create_action(self, _("Run &selection or "
                                                     "current line"),

@@ -676,9 +676,8 @@ class MainWindow(QMainWindow):
         prefs_action = create_action(self, _("Pre&ferences"),
                                         icon=ima.icon('configure'),
                                         triggered=self.edit_preferences)
-        self.register_shortcut(prefs_action, "_", "Preferences")
-        add_shortcut_to_tooltip(prefs_action, context="_",
-                                name="Preferences")
+        self.register_shortcut(prefs_action, "_", "Preferences",
+                               add_sc_to_tip=True)
         spyder_path_action = create_action(self,
                                 _("PYTHONPATH manager"),
                                 None, icon=ima.icon('pythonpath'),
@@ -803,9 +802,7 @@ class MainWindow(QMainWindow):
                                         _("Fullscreen mode"),
                                         triggered=self.toggle_fullscreen)
         self.register_shortcut(self.fullscreen_action, "_",
-                                "Fullscreen mode")
-        add_shortcut_to_tooltip(self.fullscreen_action, context="_",
-                                name="Fullscreen mode")
+                                "Fullscreen mode", add_sc_to_tip=True)
 
         # Main toolbar
         self.main_toolbar_actions = [self.maximize_action,
