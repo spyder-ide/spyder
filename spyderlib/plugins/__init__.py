@@ -398,16 +398,21 @@ class SpyderPluginMixin(object):
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
         raise NotImplementedError
-    
+
     def register_shortcut(self, qaction_or_qshortcut, context, name,
-                          default=NoDefault):
+                          default=NoDefault, with_effect=True):
         """
         Register QAction or QShortcut to Spyder main application,
         with shortcut (context, name, default)
+
+        If with_effect is False, the shortcut doesn't have any effect.
+        Instead it is enabled (to be shown) when the menu to which
+        the action belongs to is made visible by the user, and
+        disabled when that menu is hidden.
         """
-        self.main.register_shortcut(qaction_or_qshortcut,
-                                    context, name, default)
-        
+        self.main.register_shortcut(qaction_or_qshortcut, context,
+                                    name, default, with_effect)
+
     def register_widget_shortcuts(self, context, widget):
         """
         Register widget shortcuts
