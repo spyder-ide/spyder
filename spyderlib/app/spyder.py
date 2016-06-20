@@ -645,6 +645,8 @@ class MainWindow(QMainWindow):
 
         # Run menu/toolbar
         self.run_menu = self.menuBar().addMenu(_("&Run"))
+        self.run_menu.aboutToShow.connect(lambda : self.show_shortcuts('run'))
+        self.run_menu.aboutToHide.connect(lambda : self.hide_shortcuts('run'))
         self.run_toolbar = self.create_toolbar(_("Run toolbar"),
                                                 "run_toolbar")
 
@@ -2014,6 +2016,18 @@ class MainWindow(QMainWindow):
                         # now: we shall take action on this later
                         self.extconsole.tabwidget.setCurrentWidget(kw)
                         focus_client.get_control().setFocus()
+
+    def show_shortcuts(self, menu):
+        """Show action shortcuts in menu"""
+        for action in getattr(self, menu + '_menu_actions'):
+            if action and action.shown_shortcut is not None:
+                action.setShortcut(action.shown_shortcut)
+
+    def hide_shortcuts(self, menu):
+        """Hide action shortcuts in menu"""
+        for action in getattr(self, menu + '_menu_actions'):
+            if action and action.shown_shortcut is not None:
+                action.setShortcut(QKeySequence())
 
     def update_file_menu(self):
         """Update file menu"""
