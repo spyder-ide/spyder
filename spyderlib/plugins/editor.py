@@ -968,8 +968,9 @@ class Editor(SpyderPluginWidget):
         self.main.run_toolbar_actions += run_toolbar_actions
 
         # ---- Debug menu/toolbar construction ----
-        # If the order of these actions change please update
-        # the breakpoints plugin accordingly.
+        # NOTE: 'list_breakpoints' is used by the breakpoints 
+        # plugin to add its "List breakpoints" action to this
+        # menu
         debug_menu_actions = [debug_action,
                               debug_next_action,
                               debug_step_action,
@@ -980,6 +981,7 @@ class Editor(SpyderPluginWidget):
                               set_clear_breakpoint_action,
                               set_cond_breakpoint_action,
                               clear_all_breakpoints_action,
+                              'list_breakpoints',
                               None,
                               self.winpdb_action]
         self.main.debug_menu_actions += debug_menu_actions

@@ -80,10 +80,8 @@ class Breakpoints(BreakpointWidget, SpyderPluginMixin):
         list_action = create_action(self, _("List breakpoints"),
                                    triggered=self.show)
         list_action.setEnabled(True)
-
-        # This 10 position is hard-coded.
-        # See the debug_menu_actions variable in plugins/editor.py
-        self.main.debug_menu_actions.insert(10, list_action)
+        pos = self.main.debug_menu_actions.index('list_breakpoints')
+        self.main.debug_menu_actions.insert(pos, list_action)
         self.main.editor.pythonfile_dependent_actions += [list_action]
 
     def refresh_plugin(self):
