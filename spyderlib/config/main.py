@@ -320,6 +320,7 @@ DEFAULTS = [
               '_/restart': "Shift+Alt+R",
               '_/quit': "Ctrl+Q",
               # -- In plugins/editor
+              '_/debug': "Ctrl+F5",
               '_/debug step over': "Ctrl+F10",
               '_/debug continue': "Ctrl+F12",
               '_/debug step into': "Ctrl+F11",
@@ -396,8 +397,6 @@ DEFAULTS = [
               'editor/show/hide project explorer': "Ctrl+Alt+P",
               'editor/breakpoint': 'F12',
               'editor/conditional breakpoint': 'Shift+F12',
-              'editor/debug with winpdb': "F7",
-              'editor/debug': "Ctrl+F5",
               'editor/run': "F5",
               'editor/configure': "Ctrl+F6",
               'editor/re-run last script': "F6",
@@ -587,7 +586,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '26.2.0'
+CONF_VERSION = '27.0.0'
 
 
 # XXX: Previously we had load=(not DEV) here but DEV was set to *False*.

@@ -424,13 +424,14 @@ class EditorStack(QWidget):
         # --- Configurable shortcuts
         inspect = config_shortcut(self.inspect_current_object, context='Editor',
                                   name='Inspect current object', parent=self)
-        breakpoint = config_shortcut(self.set_or_clear_breakpoint,
-                                     context='Editor', name='Breakpoint',
-                                     parent=self)
-        cbreakpoint = config_shortcut(self.set_or_edit_conditional_breakpoint,
-                                      context='Editor',
-                                      name='Conditional breakpoint',
-                                      parent=self)
+        set_breakpoint = config_shortcut(self.set_or_clear_breakpoint,
+                                         context='Editor', name='Breakpoint',
+                                         parent=self)
+        set_cond_breakpoint = config_shortcut(
+                                    self.set_or_edit_conditional_breakpoint,
+                                    context='Editor',
+                                    name='Conditional breakpoint',
+                                    parent=self)
         gotoline = config_shortcut(self.go_to_line, context='Editor',
                                    name='Go to line', parent=self)
         tab = config_shortcut(self.go_to_previous_file, context='Editor',
@@ -467,7 +468,7 @@ class EditorStack(QWidget):
                        self.run_cell_and_advance)
 
         # Return configurable ones
-        return [inspect, breakpoint, cbreakpoint, gotoline, tab,
+        return [inspect, set_breakpoint, set_cond_breakpoint, gotoline, tab,
                 tabshift, run_selection, new_file, open_file,
                 save_file, save_all, save_as, close_all]
 

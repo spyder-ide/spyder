@@ -697,17 +697,16 @@ class Editor(SpyderPluginWidget):
         set_clear_breakpoint_action = create_action(self,
                                     _("Set/Clear breakpoint"),
                                     icon=ima.icon('breakpoint_big'),
-                                    triggered=self.set_or_clear_breakpoint,
-                                    context=Qt.WidgetShortcut)
+                                    triggered=self.set_or_clear_breakpoint)
         self.register_shortcut(set_clear_breakpoint_action, context="Editor",
-                               name="Breakpoint")
+                               name="Breakpoint", with_effect=False)
         set_cond_breakpoint_action = create_action(self,
                             _("Set/Edit conditional breakpoint"),
                             icon=ima.icon('breakpoint_cond_big'),
-                            triggered=self.set_or_edit_conditional_breakpoint,
-                            context=Qt.WidgetShortcut)
+                            triggered=self.set_or_edit_conditional_breakpoint)
         self.register_shortcut(set_cond_breakpoint_action, context="Editor",
-                               name="Conditional breakpoint")
+                               name="Conditional breakpoint",
+                               with_effect=False)
         clear_all_breakpoints_action = create_action(self,
                                     _('Clear breakpoints in all files'),
                                     triggered=self.clear_all_breakpoints)
@@ -718,13 +717,13 @@ class Editor(SpyderPluginWidget):
         self.winpdb_action = create_action(self, _("Debug with winpdb"),
                                            triggered=self.run_winpdb)
         self.winpdb_action.setEnabled(WINPDB_PATH is not None and PY2)
-        self.register_shortcut(self.winpdb_action, context="Editor",
-                               name="Debug with winpdb")
-        
+
         # --- Debug toolbar ---
-        debug_action = create_action(self, _("&Debug"), icon=ima.icon('debug'),
-                                     tip=_("Debug file"), triggered=self.debug_file)
-        self.register_shortcut(debug_action, context="Editor", name="Debug",
+        debug_action = create_action(self, _("&Debug"),
+                                     icon=ima.icon('debug'),
+                                     tip=_("Debug file"),
+                                     triggered=self.debug_file)
+        self.register_shortcut(debug_action, context="_", name="Debug",
                                add_sc_to_tip=True)
 
         debug_next_action = create_action(self, _("Step"),
