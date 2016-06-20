@@ -400,7 +400,8 @@ class SpyderPluginMixin(object):
         raise NotImplementedError
 
     def register_shortcut(self, qaction_or_qshortcut, context, name,
-                          default=NoDefault, with_effect=True):
+                          default=NoDefault, with_effect=True,
+                          add_sc_to_tip=False):
         """
         Register QAction or QShortcut to Spyder main application,
         with shortcut (context, name, default)
@@ -409,9 +410,13 @@ class SpyderPluginMixin(object):
         Instead it is enabled (to be shown) when the menu to which
         the action belongs to is made visible by the user, and
         disabled when that menu is hidden.
+
+        if add_sc_to_tip is True, the shortcut is added to the
+        action's tooltip
         """
         self.main.register_shortcut(qaction_or_qshortcut, context,
-                                    name, default, with_effect)
+                                    name, default, with_effect,
+                                    add_sc_to_tip)
 
     def register_widget_shortcuts(self, context, widget):
         """

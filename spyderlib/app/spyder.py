@@ -2688,14 +2688,15 @@ class MainWindow(QMainWindow):
 
     #---- Shortcuts
     def register_shortcut(self, qaction_or_qshortcut, context, name,
-                          default=NoDefault, with_effect=True):
+                          default=NoDefault, with_effect=True,
+                          add_sc_to_tip=False):
         """
         Register QAction or QShortcut to Spyder main application,
         with shortcut (context, name, default)
         """
         self.shortcut_data.append( (qaction_or_qshortcut,
                                     context, name, default,
-                                    with_effect) )
+                                    with_effect, add_sc_to_tip) )
 
     def remove_deprecated_shortcuts(self):
         """Remove deprecated shortcuts"""
@@ -2706,8 +2707,8 @@ class MainWindow(QMainWindow):
     def apply_shortcuts(self):
         """Apply shortcuts settings to all widgets/plugins"""
         toberemoved = []
-        for index, (qobject, context, name, default,
-                    with_effect) in enumerate(self.shortcut_data):
+        for index, (qobject, context, name, default, with_effect,
+                    add_sc_to_tip) in enumerate(self.shortcut_data):
             keyseq = QKeySequence( get_shortcut(context, name, default) )
             try:
                 if isinstance(qobject, QAction):
@@ -2715,6 +2716,8 @@ class MainWindow(QMainWindow):
                         qobject.setShortcut(keyseq)
                     else:
                         qobject.shown_shortcut = keyseq
+                    if add_sc_to_tip:
+                        add_shortcut_to_tooltip(qobject, context, name)
                 elif isinstance(qobject, QShortcut):
                     qobject.setKey(keyseq)
             except RuntimeError:
