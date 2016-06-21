@@ -941,6 +941,8 @@ class Editor(SpyderPluginWidget):
         self.clear_recent_action = create_action(self,
             _("Clear this list"), tip=_("Clear recent files list"),
             triggered=self.clear_recent_files)
+
+        # ---- File menu/toolbar construction ----
         self.recent_file_menu = QMenu(_("Open &recent"), self)
         self.recent_file_menu.aboutToShow.connect(self.update_recent_file_menu)
 
@@ -957,6 +959,7 @@ class Editor(SpyderPluginWidget):
                                 self.file_switcher_action]
         self.main.file_toolbar_actions += file_toolbar_actions
 
+        # ---- Edit menu/toolbar construction ----
         self.edit_menu_actions = [self.toggle_comment_action,
                                   blockcomment_action, unblockcomment_action,
                                   self.indent_action, self.unindent_action]
@@ -964,7 +967,8 @@ class Editor(SpyderPluginWidget):
         edit_toolbar_actions = [self.toggle_comment_action,
                                 self.unindent_action, self.indent_action]
         self.main.edit_toolbar_actions += edit_toolbar_actions
-        
+
+        # ---- Search menu/toolbar construction ----
         self.search_menu_actions = [gotoline_action]
         self.main.search_menu_actions += self.search_menu_actions
         self.main.search_toolbar_actions += [gotoline_action]
@@ -1001,18 +1005,34 @@ class Editor(SpyderPluginWidget):
                                  debug_step_action, debug_return_action,
                                  debug_continue_action, debug_exit_action]
         self.main.debug_toolbar_actions += debug_toolbar_actions
-        
-        source_menu_actions = [eol_menu, self.showblanks_action,
-                               trailingspaces_action, fixindentation_action]
+
+        # ---- Source menu/toolbar construction ----
+        source_menu_actions = [eol_menu,
+                               self.showblanks_action,
+                               trailingspaces_action,
+                               fixindentation_action,
+                               None,
+                               self.todo_list_action,
+                               self.warning_list_action,
+                               self.previous_warning_action,
+                               self.next_warning_action,
+                               None,
+                               self.previous_edit_cursor_action,
+                               self.previous_cursor_action,
+                               self.next_cursor_action]
         self.main.source_menu_actions += source_menu_actions
-        
+
         source_toolbar_actions = [self.todo_list_action,
-                self.warning_list_action, self.previous_warning_action,
-                self.next_warning_action, None,
-                self.previous_edit_cursor_action,
-                self.previous_cursor_action, self.next_cursor_action]
+                                  self.warning_list_action,
+                                  self.previous_warning_action,
+                                  self.next_warning_action,
+                                  None,
+                                  self.previous_edit_cursor_action,
+                                  self.previous_cursor_action,
+                                  self.next_cursor_action]
         self.main.source_toolbar_actions += source_toolbar_actions
-        
+
+        # ---- Dock widget and file dependent actions ----
         self.dock_toolbar_actions = file_toolbar_actions + [None] + \
                                     source_toolbar_actions + [None] + \
                                     run_toolbar_actions + [None] + \
