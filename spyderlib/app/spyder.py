@@ -369,10 +369,6 @@ class MainWindow(QMainWindow):
         self.lock_dockwidgets_action = None
         self.show_toolbars_action = None
         self.close_dockwidget_action = None
-        self.find_action = None
-        self.find_next_action = None
-        self.find_previous_action = None
-        self.replace_action = None
         self.undo_action = None
         self.redo_action = None
         self.copy_action = None
@@ -557,33 +553,6 @@ class MainWindow(QMainWindow):
         self.register_shortcut(self.toggle_previous_layout_action, "_",
                                 "Use previous layout")
 
-
-        _text = _("&Find text")
-        self.find_action = create_action(self, _text, icon=ima.icon('find'),
-                                            tip=_text, triggered=self.find,
-                                            context=Qt.WidgetShortcut)
-        self.register_shortcut(self.find_action, "Editor", "Find text")
-        self.find_next_action = create_action(self, _("Find &next"),
-                icon=ima.icon('findnext'), 
-                triggered=self.find_next,
-                context=Qt.WidgetShortcut)
-        self.register_shortcut(self.find_next_action, "Editor",
-                                "Find next")
-        self.find_previous_action = create_action(self,
-                    _("Find &previous"),
-                    icon=ima.icon('findprevious'),
-                                    triggered=self.find_previous,
-                    context=Qt.WidgetShortcut)
-        self.register_shortcut(self.find_previous_action, "Editor",
-                                "Find previous")
-        _text = _("&Replace text")
-        self.replace_action = create_action(self, _text, 
-                                        icon=ima.icon('replace'),
-                                        tip=_text, triggered=self.replace,
-                                        context=Qt.WidgetShortcut)
-        self.register_shortcut(self.replace_action, "Editor",
-                                "Replace text")
-
         def create_edit_action(text, tr_text, icon):
             textseq = text.split(' ')
             method_name = textseq[0].lower()+"".join(textseq[1:])
@@ -613,13 +582,6 @@ class MainWindow(QMainWindow):
         self.edit_menu_actions = [self.undo_action, self.redo_action,
                                     None, self.cut_action, self.copy_action,
                                     self.paste_action, self.selectall_action]
-        self.search_menu_actions = [self.find_action,
-                                    self.find_next_action,
-                                    self.find_previous_action,
-                                    self.replace_action]
-        self.search_toolbar_actions = [self.find_action,
-                                        self.find_next_action,
-                                        self.replace_action]
 
         namespace = None
         self.debug_print("  ..toolbars")
@@ -2088,10 +2050,6 @@ class MainWindow(QMainWindow):
         """Update search menu"""
         if self.menuBar().hasFocus():
             return
-        # Disabling all actions to begin with
-        for child in [self.find_action, self.find_next_action,
-                      self.find_previous_action, self.replace_action]:
-            child.setEnabled(False)
 
         widget, textedit_properties = get_focus_widget_properties()
         for action in self.editor.search_menu_actions:
@@ -2100,11 +2058,8 @@ class MainWindow(QMainWindow):
             return
         #!!! Below this line, widget is expected to be a QPlainTextEdit instance
         _x, _y, readwrite_editor = textedit_properties
-        for action in [self.find_action, self.find_next_action,
-                       self.find_previous_action]:
-            action.setEnabled(True)
-        self.replace_action.setEnabled(readwrite_editor)
-        self.replace_action.setEnabled(readwrite_editor)
+        # Disable the replace action for read-only files
+        self.search_menu_actions[3].setEnabled(readwrite_editor)
 
     def create_plugins_menu(self):
         order = ['editor', 'console', 'ipython_console', 'variable_explorer',
@@ -2448,56 +2403,6 @@ class MainWindow(QMainWindow):
     def google_group(self):
         url = QUrl("http://groups.google.com/group/spyderlib")
         QDesktopServices.openUrl(url)
-
-    #---- Global callbacks (called from plugins)
-    def get_current_editor_plugin(self):
-        """Return editor plugin which has focus:
-        console, extconsole, editor, help or historylog"""
-        widget = QApplication.focusWidget()
-        from spyderlib.widgets.editor import TextEditBaseWidget
-        from spyderlib.widgets.shell import ShellBaseWidget
-        if not isinstance(widget, (TextEditBaseWidget, ShellBaseWidget)):
-            return
-        for plugin in self.widgetlist:
-            if plugin.isAncestorOf(widget):
-                return plugin
-        else:
-            # External Editor window
-            plugin = widget
-            from spyderlib.widgets.editor import EditorWidget
-            while not isinstance(plugin, EditorWidget):
-                plugin = plugin.parent()
-            return plugin
-
-    @Slot()
-    def find(self):
-        """Global find callback"""
-        plugin = self.get_current_editor_plugin()
-        if plugin is not None:
-            plugin.find_widget.show()
-            plugin.find_widget.search_text.setFocus()
-            return plugin
-
-    @Slot()
-    def find_next(self):
-        """Global find next callback"""
-        plugin = self.get_current_editor_plugin()
-        if plugin is not None:
-            plugin.find_widget.find_next()
-
-    @Slot()
-    def find_previous(self):
-        """Global find previous callback"""
-        plugin = self.get_current_editor_plugin()
-        if plugin is not None:
-            plugin.find_widget.find_previous()
-
-    @Slot()
-    def replace(self):
-        """Global replace callback"""
-        plugin = self.find()
-        if plugin is not None:
-            plugin.find_widget.show_replace()
 
     @Slot()
     def global_callback(self):

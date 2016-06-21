@@ -694,7 +694,33 @@ class Editor(SpyderPluginWidget):
         self.register_shortcut(self.close_all_action, context="Editor",
                                name="Close all")
 
-        # ---- Debug menu ----
+        # ---- Find menu and toolbar ----
+        _text = _("&Find text")
+        find_action = create_action(self, _text, icon=ima.icon('find'),
+                                    tip=_text, triggered=self.find,
+                                    context=Qt.WidgetShortcut)
+        self.register_shortcut(find_action, context="Editor",
+                               name="Find text", add_sc_to_tip=True)
+        find_next_action = create_action(self, _("Find &next"),
+                                         icon=ima.icon('findnext'), 
+                                         triggered=self.find_next,
+                                         context=Qt.WidgetShortcut)
+        self.register_shortcut(find_next_action, context="Editor",
+                               name="Find next")
+        find_previous_action = create_action(self, _("Find &previous"),
+                                             icon=ima.icon('findprevious'),
+                                             triggered=self.find_previous,
+                                             context=Qt.WidgetShortcut)
+        self.register_shortcut(find_previous_action, context="Editor",
+                               name="Find previous")
+        _text = _("&Replace text")
+        replace_action = create_action(self, _text, icon=ima.icon('replace'),
+                                       tip=_text, triggered=self.replace,
+                                       context=Qt.WidgetShortcut)
+        self.register_shortcut(replace_action, context="Editor",
+                               name="Replace text")
+
+        # ---- Debug menu and toolbar ----
         set_clear_breakpoint_action = create_action(self,
                                     _("Set/Clear breakpoint"),
                                     icon=ima.icon('breakpoint_big'),
@@ -958,6 +984,15 @@ class Editor(SpyderPluginWidget):
                                 self.save_action, self.save_all_action,
                                 self.file_switcher_action]
         self.main.file_toolbar_actions += file_toolbar_actions
+
+        # ---- Find menu/toolbar construction ----
+        self.main.search_menu_actions = [find_action,
+                                         find_next_action,
+                                         find_previous_action,
+                                         replace_action]
+        self.main.search_toolbar_actions = [find_action,
+                                            find_next_action,
+                                            replace_action]
 
         # ---- Edit menu/toolbar construction ----
         self.edit_menu_actions = [self.toggle_comment_action,
@@ -1869,8 +1904,32 @@ class Editor(SpyderPluginWidget):
         """Revert the currently edited file from disk"""
         editorstack = self.get_current_editorstack()
         editorstack.revert()
-    
-    
+
+    @Slot()
+    def find(self):
+        """Find slot"""
+        editorstack = self.get_current_editorstack()
+        editorstack.find_widget.show()
+        editorstack.find_widget.search_text.setFocus()
+
+    @Slot()
+    def find_next(self):
+        """Global find next callback"""
+        editorstack = self.get_current_editorstack()
+        editorstack.find_widget.find_next()
+
+    @Slot()
+    def find_previous(self):
+        """Global find previous callback"""
+        editorstack = self.get_current_editorstack()
+        editorstack.find_widget.find_previous()
+
+    @Slot()
+    def replace(self):
+        """Global replace callback"""
+        editorstack = self.get_current_editorstack()
+        editorstack.find_widget.show_replace()
+
     #------ Explorer widget
     def close_file_from_name(self, filename):
         """Close file from its name"""
