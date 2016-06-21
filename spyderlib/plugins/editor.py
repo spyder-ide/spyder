@@ -1186,7 +1186,6 @@ class Editor(SpyderPluginWidget):
         editorstack.save_breakpoints.connect(self.save_breakpoints)
         editorstack.text_changed_at.connect(self.text_changed_at)
         editorstack.current_file_changed.connect(self.current_file_changed)
-        editorstack.plugin_load.connect(self.load)
         editorstack.plugin_load[()].connect(self.load)
         editorstack.edit_goto.connect(self.load)
         editorstack.sig_save_as.connect(self.save_as)
@@ -1650,7 +1649,7 @@ class Editor(SpyderPluginWidget):
         if valid:
             self.set_option('max_recent_files', mrf)
 
-    @Slot(bool)
+    @Slot()
     @Slot(str)
     @Slot(str, int, str)
     @Slot(str, int, str, object)
