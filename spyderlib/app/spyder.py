@@ -626,10 +626,6 @@ class MainWindow(QMainWindow):
         # File menu/toolbar
         self.file_menu = self.menuBar().addMenu(_("&File"))
         self.file_menu.aboutToShow.connect(self.update_file_menu)
-        self.file_menu.aboutToShow.connect(
-            lambda : self.show_shortcuts('file'))
-        self.file_menu.aboutToHide.connect(
-            lambda : self.hide_shortcuts('file'))
         self.file_toolbar = self.create_toolbar(_("File toolbar"),
                                                 "file_toolbar")
 
@@ -650,17 +646,11 @@ class MainWindow(QMainWindow):
 
         # Run menu/toolbar
         self.run_menu = self.menuBar().addMenu(_("&Run"))
-        self.run_menu.aboutToShow.connect(lambda : self.show_shortcuts('run'))
-        self.run_menu.aboutToHide.connect(lambda : self.hide_shortcuts('run'))
         self.run_toolbar = self.create_toolbar(_("Run toolbar"),
                                                 "run_toolbar")
 
         # Debug menu/toolbar
         self.debug_menu = self.menuBar().addMenu(_("&Debug"))
-        self.debug_menu.aboutToShow.connect(
-            lambda : self.show_shortcuts('debug'))
-        self.debug_menu.aboutToHide.connect(
-            lambda : self.hide_shortcuts('debug'))
         self.debug_toolbar = self.create_toolbar(_("Debug toolbar"),
                                                     "debug_toolbar")
 
@@ -1143,10 +1133,6 @@ class MainWindow(QMainWindow):
         #----- View
         # View menu
         self.plugins_menu = QMenu(_("Panes"), self)
-        self.plugins_menu.aboutToShow.connect(
-            lambda : self.show_shortcuts('plugins'))
-        self.plugins_menu.aboutToHide.connect(
-            lambda : self.hide_shortcuts('plugins'))
 
         self.toolbars_menu = QMenu(_("Toolbars"), self)
         self.quick_layout_menu = QMenu(_("Window layouts"), self)
@@ -1215,6 +1201,17 @@ class MainWindow(QMainWindow):
         # Window set-up
         self.debug_print("Setting up window...")
         self.setup_layout(default=False)
+
+        # Show and hide shortcuts in menus for Mac.
+        # This is a workaround because we can't disable shortcuts
+        # by setting context=Qt.WidgetShortcut there
+        if sys.platform == 'darwin':
+            for name in ['file', 'run', 'debug', 'plugins']:
+                menu_object = getattr(self, name + '_menu')
+                menu_object.aboutToShow.connect(
+                    lambda name=name: self.show_shortcuts(name))
+                menu_object.aboutToHide.connect(
+                    lambda name=name: self.hide_shortcuts(name))
 
         self.splash.hide()
 
@@ -2035,14 +2032,14 @@ class MainWindow(QMainWindow):
         """Show action shortcuts in menu"""
         for element in getattr(self, menu + '_menu_actions'):
             if element and isinstance(element, QAction):
-                if element.shown_shortcut is not None:
-                    element.setShortcut(element.shown_shortcut)
+                if element._shown_shortcut is not None:
+                    element.setShortcut(element._shown_shortcut)
 
     def hide_shortcuts(self, menu):
         """Hide action shortcuts in menu"""
         for element in getattr(self, menu + '_menu_actions'):
             if element and isinstance(element, QAction):
-                if element.shown_shortcut is not None:
+                if element._shown_shortcut is not None:
                     element.setShortcut(QKeySequence())
 
     def update_file_menu(self):
@@ -2716,15 +2713,14 @@ class MainWindow(QMainWindow):
 
     #---- Shortcuts
     def register_shortcut(self, qaction_or_qshortcut, context, name,
-                          default=NoDefault, with_effect=True,
-                          add_sc_to_tip=False):
+                          default=NoDefault, add_sc_to_tip=False):
         """
         Register QAction or QShortcut to Spyder main application,
         with shortcut (context, name, default)
         """
         self.shortcut_data.append( (qaction_or_qshortcut,
                                     context, name, default,
-                                    with_effect, add_sc_to_tip) )
+                                    add_sc_to_tip) )
 
     def remove_deprecated_shortcuts(self):
         """Remove deprecated shortcuts"""
@@ -2735,15 +2731,16 @@ class MainWindow(QMainWindow):
     def apply_shortcuts(self):
         """Apply shortcuts settings to all widgets/plugins"""
         toberemoved = []
-        for index, (qobject, context, name, default, with_effect,
+        for index, (qobject, context, name, default,
                     add_sc_to_tip) in enumerate(self.shortcut_data):
             keyseq = QKeySequence( get_shortcut(context, name, default) )
             try:
                 if isinstance(qobject, QAction):
-                    if with_effect:
-                        qobject.setShortcut(keyseq)
+                    if sys.platform == 'darwin' and \
+                      qobject._shown_shortcut == 'missing':
+                        qobject._shown_shortcut = keyseq
                     else:
-                        qobject.shown_shortcut = keyseq
+                        qobject.setShortcut(keyseq)
                     if add_sc_to_tip:
                         add_shortcut_to_tooltip(qobject, context, name)
                 elif isinstance(qobject, QShortcut):

@@ -235,7 +235,7 @@ def toggle_actions(actions, enable):
 
 def create_action(parent, text, shortcut=None, icon=None, tip=None,
                   toggled=None, triggered=None, data=None, menurole=None,
-                  context=Qt.WindowShortcut, shown_shortcut=None):
+                  context=Qt.WindowShortcut):
     """Create a QAction"""
     action = QAction(text, parent)
     if triggered is not None:
@@ -247,8 +247,6 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
         if is_text_string(icon):
             icon = get_icon(icon)
         action.setIcon(icon)
-    if shortcut is not None:
-        action.setShortcut(shortcut)
     if tip is not None:
         action.setToolTip(tip)
         action.setStatusTip(tip)
@@ -257,8 +255,25 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
     if menurole is not None:
         action.setMenuRole(menurole)
 
-    action.shown_shortcut = shown_shortcut
-    action.setShortcutContext(context)
+    # Workround for Mac because setting context=Qt.WidgetShortcut
+    # there doesn't have any effect
+    if sys.platform == 'darwin':
+        action._shown_shortcut = None
+        if context == Qt.WidgetShortcut:
+            if shortcut is not None:
+                action._shown_shortcut = shortcut
+            else:
+                # This is going to be filled by
+                # main.register_shortcut
+                action._shown_shortcut = 'missing'
+        else:
+            if shortcut is not None:
+                action.setShortcut(shortcut)
+            action.setShortcutContext(context)
+    else:
+        if shortcut is not None:
+            action.setShortcut(shortcut)
+        action.setShortcutContext(context)
 
     return action
 

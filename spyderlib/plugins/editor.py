@@ -633,17 +633,17 @@ class Editor(SpyderPluginWidget):
         # ---- File menu and toolbar ----
         self.new_action = create_action(self, _("&New file..."),
                 icon=ima.icon('filenew'), tip=_("New file"),
-                triggered=self.new)
+                triggered=self.new,
+                context=Qt.WidgetShortcut)
         self.register_shortcut(self.new_action, context="Editor",
-                               name="New file", add_sc_to_tip=True,
-                               with_effect=False)
+                               name="New file", add_sc_to_tip=True)
 
         self.open_action = create_action(self, _("&Open..."),
                 icon=ima.icon('fileopen'), tip=_("Open file"),
-                triggered=self.load)
+                triggered=self.load,
+                context=Qt.WidgetShortcut)
         self.register_shortcut(self.open_action, context="Editor",
-                               name="Open file", add_sc_to_tip=True,
-                               with_effect=False)
+                               name="Open file", add_sc_to_tip=True)
 
         self.file_switcher_action = create_action(self, _('File switcher...'),
                                             icon=ima.icon('filelist'),
@@ -656,26 +656,26 @@ class Editor(SpyderPluginWidget):
         self.revert_action = create_action(self, _("&Revert"),
                 icon=ima.icon('revert'), tip=_("Revert file from disk"),
                 triggered=self.revert)
-        
+
         self.save_action = create_action(self, _("&Save"),
                 icon=ima.icon('filesave'), tip=_("Save file"),
-                triggered=self.save)
+                triggered=self.save,
+                context=Qt.WidgetShortcut)
         self.register_shortcut(self.save_action, context="Editor",
-                               name="Save file", add_sc_to_tip=True,
-                               with_effect=False)
+                               name="Save file", add_sc_to_tip=True)
 
         self.save_all_action = create_action(self, _("Sav&e all"),
                 icon=ima.icon('save_all'), tip=_("Save all files"),
-                triggered=self.save_all)
+                triggered=self.save_all,
+                context=Qt.WidgetShortcut)
         self.register_shortcut(self.save_all_action, context="Editor",
-                               name="Save all", add_sc_to_tip=True,
-                               with_effect=False)
+                               name="Save all", add_sc_to_tip=True)
 
         save_as_action = create_action(self, _("Save &as..."), None,
                 ima.icon('filesaveas'), tip=_("Save current file as..."),
-                triggered=self.save_as)
-        self.register_shortcut(save_as_action, "Editor", "Save As",
-                               with_effect=False)
+                triggered=self.save_as,
+                context=Qt.WidgetShortcut)
+        self.register_shortcut(save_as_action, "Editor", "Save As")
 
         print_preview_action = create_action(self, _("Print preview..."),
                 tip=_("Print preview..."), triggered=self.print_preview)
@@ -689,24 +689,26 @@ class Editor(SpyderPluginWidget):
 
         self.close_all_action = create_action(self, _("C&lose all"),
                 icon=ima.icon('filecloseall'), tip=_("Close all opened files"),
-                triggered=self.close_all_files)
+                triggered=self.close_all_files,
+                context=Qt.WidgetShortcut)
         self.register_shortcut(self.close_all_action, context="Editor",
-                               name="Close all", with_effect=False)
+                               name="Close all")
 
         # ---- Debug menu ----
         set_clear_breakpoint_action = create_action(self,
                                     _("Set/Clear breakpoint"),
                                     icon=ima.icon('breakpoint_big'),
-                                    triggered=self.set_or_clear_breakpoint)
+                                    triggered=self.set_or_clear_breakpoint,
+                                    context=Qt.WidgetShortcut)
         self.register_shortcut(set_clear_breakpoint_action, context="Editor",
-                               name="Breakpoint", with_effect=False)
+                               name="Breakpoint")
         set_cond_breakpoint_action = create_action(self,
                             _("Set/Edit conditional breakpoint"),
                             icon=ima.icon('breakpoint_cond_big'),
-                            triggered=self.set_or_edit_conditional_breakpoint)
+                            triggered=self.set_or_edit_conditional_breakpoint,
+                            context=Qt.WidgetShortcut)
         self.register_shortcut(set_cond_breakpoint_action, context="Editor",
-                               name="Conditional breakpoint",
-                               with_effect=False)
+                               name="Conditional breakpoint")
         clear_all_breakpoints_action = create_action(self,
                                     _('Clear breakpoints in all files'),
                                     triggered=self.clear_all_breakpoints)
@@ -783,25 +785,28 @@ class Editor(SpyderPluginWidget):
                                             icon=ima.icon('run_selection'),
                                             tip=_("Run selection or "
                                                   "current line"),
-                                            triggered=self.run_selection)
+                                            triggered=self.run_selection,
+                                            context=Qt.WidgetShortcut)
         self.register_shortcut(run_selected_action, context="Editor",
-                               name="Run selection", with_effect=False)
+                               name="Run selection")
 
         run_cell_action = create_action(self,
                             _("Run cell"),
                             icon=ima.icon('run_cell'),
-                            shown_shortcut=QKeySequence(RUN_CELL_SHORTCUT),
+                            shortcut=QKeySequence(RUN_CELL_SHORTCUT),
                             tip=_("Run current cell (Ctrl+Enter)\n"
                                   "[Use #%% to create cells]"),
-                            triggered=self.run_cell)
+                            triggered=self.run_cell,
+                            context=Qt.WidgetShortcut)
 
         run_cell_advance_action = create_action(self,
                    _("Run cell and advance"),
                    icon=ima.icon('run_cell_advance'),
-                   shown_shortcut=QKeySequence(RUN_CELL_AND_ADVANCE_SHORTCUT),
+                   shortcut=QKeySequence(RUN_CELL_AND_ADVANCE_SHORTCUT),
                    tip=_("Run current cell and go to the next one "
                          "(Shift+Enter)"),
-                   triggered=self.run_cell_and_advance)
+                   triggered=self.run_cell_and_advance,
+                   context=Qt.WidgetShortcut)
 
         # --- Source code Toolbar ---
         self.todo_list_action = create_action(self,
