@@ -99,9 +99,9 @@ def set_font(font, section='main', option='font'):
     FONT_CACHE[(section, option)] = font
 
 
-def get_shortcut(context, name, default=NoDefault):
+def get_shortcut(context, name):
     """Get keyboard shortcut (key sequence string)"""
-    return CONF.get('shortcuts', '%s/%s' % (context, name), default=default)
+    return CONF.get('shortcuts', '%s/%s' % (context, name))
 
 
 def set_shortcut(context, name, keystr):

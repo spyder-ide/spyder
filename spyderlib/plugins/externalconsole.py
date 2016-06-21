@@ -463,15 +463,15 @@ class ExternalConsole(SpyderPluginWidget):
         # Find/replace widget
         self.find_widget = FindReplace(self)
         self.find_widget.hide()
-        self.register_widget_shortcuts("Editor", self.find_widget)
-        
+        self.register_widget_shortcuts("_", self.find_widget)
+
         layout.addWidget(self.find_widget)
-        
+
         self.setLayout(layout)
-            
+
         # Accepting drops
         self.setAcceptDrops(True)
-        
+
     def move_tab(self, index_from, index_to):
         """
         Move tab (tabs themselves have already been moved by the tabwidget)

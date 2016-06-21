@@ -2049,7 +2049,7 @@ class EditorWidget(QSplitter):
         self.plugin = plugin
 
         self.find_widget = FindReplace(self, enable_replace=True)
-        self.plugin.register_widget_shortcuts("Editor", self.find_widget)
+        self.plugin.register_widget_shortcuts("_", self.find_widget)
         self.find_widget.hide()
         self.outlineexplorer = OutlineExplorerWidget(self,
                                             show_fullpath=show_fullpath,

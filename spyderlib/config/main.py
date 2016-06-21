@@ -305,7 +305,7 @@ DEFAULTS = [
             ('shortcuts',
              {
               # ---- Global ----
-              # -- In spyder.py
+              # -- In app/spyder.py
               '_/close pane': "Shift+Ctrl+F4",
               '_/lock unlock panes': "Shift+Ctrl+F5",
               '_/preferences': "Ctrl+Alt+Shift+P",
@@ -342,8 +342,13 @@ DEFAULTS = [
               '_/switch to variable_explorer': "Ctrl+Shift+V",
               '_/switch to find_in_files': "Ctrl+Shift+F",
               '_/switch to explorer': "Ctrl+Shift+X",
+              # -- In widgets/findreplace.py
+              '_/find text': "Ctrl+F",
+              '_/find next': "F3",
+              '_/find previous': "Shift+F3",
+              '_/replace text': "Ctrl+H",
               # ---- Editor ----
-              # -- In codeeditor
+              # -- In widgest/sourcecode/codeeditor.py
               'editor/code completion': CTRL+'+Space',
               'editor/duplicate line': "Ctrl+Alt+Up" if WIN else \
                                        "Shift+Alt+Up",
@@ -372,7 +377,7 @@ DEFAULTS = [
               'editor/kill next word': 'Meta+D',
               'editor/start of document': 'Ctrl+Up',
               'editor/end of document': 'Ctrl+Down',
-              # -- In widgets/editor
+              # -- In widgets/editor.py
               'editor/inspect current object': 'Ctrl+I',
               'editor/breakpoint': 'F12',
               'editor/conditional breakpoint': 'Shift+F12',
@@ -389,11 +394,7 @@ DEFAULTS = [
               'editor/last edit location': "Ctrl+Alt+Shift+Left",
               'editor/previous cursor position': "Ctrl+Alt+Left",
               'editor/next cursor position': "Ctrl+Alt+Right",
-              # -- In spyder.py
-              'editor/find text': "Ctrl+F",
-              'editor/find next': "F3",
-              'editor/find previous': "Shift+F3",
-              'editor/replace text': "Ctrl+H",
+              # -- In app/spyder.py
               'editor/undo': 'Ctrl+U',
               'editor/redo': 'Ctrl+Y',
               'editor/cut': 'Ctrl+X',
@@ -401,18 +402,18 @@ DEFAULTS = [
               'editor/paste': 'Ctrl+V',
               'editor/delete': 'Delete',
               'editor/select all': "Ctrl+A",
-              # -- In plugins/editor
+              # -- In plugins/editor.py
               'editor/show/hide outline': "Ctrl+Alt+O",
               'editor/show/hide project explorer': "Ctrl+Alt+P",
-              # -- In p_breakpoints
+              # -- In Breakpoints
               '_/switch to breakpoints': "Ctrl+Shift+B",
-              # ---- Console (in widgets/shell) ----
+              # ---- Consoles (in widgets/shell) ----
               'console/inspect current object': "Ctrl+I",
               'console/clear shell': "Ctrl+L",
               'console/clear line': "Shift+Escape",
-              # ---- Pylint (in p_pylint) ----
+              # ---- In Pylint ----
               'pylint/run analysis': "F8",
-              # ---- Profiler (in p_profiler) ----
+              # ---- In Profiler ----
               'profiler/run profiler': "F10"
               }),
             ('color_schemes',

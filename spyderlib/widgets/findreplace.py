@@ -147,14 +147,14 @@ class FindReplace(QWidget):
     def create_shortcuts(self, parent):
         """Create shortcuts for this widget"""
         # Configurable
-        findnext = config_shortcut(self.find_next, context='Editor',
+        findnext = config_shortcut(self.find_next, context='_',
                                    name='Find next', parent=parent)
-        findprev = config_shortcut(self.find_previous, context='Editor',
+        findprev = config_shortcut(self.find_previous, context='_',
                                    name='Find previous', parent=parent)
-        togglefind = config_shortcut(self.show, context='Editor',
+        togglefind = config_shortcut(self.show, context='_',
                                      name='Find text', parent=parent)
         togglereplace = config_shortcut(self.toggle_replace_widgets,
-                                        context='Editor', name='Replace text',
+                                        context='_', name='Replace text',
                                         parent=parent)
         # Fixed
         fixed_shortcut("Escape", self, self.hide)

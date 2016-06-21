@@ -2630,7 +2630,7 @@ class MainWindow(QMainWindow):
     def remove_deprecated_shortcuts(self):
         """Remove deprecated shortcuts"""
         data = [(context, name) for (qobject, context, name,
-                default) in self.shortcut_data]
+                default, add_sc_to_tip) in self.shortcut_data]
         remove_deprecated_shortcuts(data)
 
     def apply_shortcuts(self):
@@ -2638,7 +2638,7 @@ class MainWindow(QMainWindow):
         toberemoved = []
         for index, (qobject, context, name, default,
                     add_sc_to_tip) in enumerate(self.shortcut_data):
-            keyseq = QKeySequence( get_shortcut(context, name, default) )
+            keyseq = QKeySequence( get_shortcut(context, name) )
             try:
                 if isinstance(qobject, QAction):
                     if sys.platform == 'darwin' and \
