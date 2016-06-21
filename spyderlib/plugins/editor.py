@@ -836,24 +836,31 @@ class Editor(SpyderPluginWidget):
         self.previous_edit_cursor_action = create_action(self,
                 _("Last edit location"), icon=ima.icon('last_edit_location'),
                 tip=_("Go to last edit location"),
-                triggered=self.go_to_last_edit_location)
+                triggered=self.go_to_last_edit_location,
+                context=Qt.WidgetShortcut)
         self.register_shortcut(self.previous_edit_cursor_action,
                                context="Editor",
-                               name="Last edit location")
+                               name="Last edit location",
+                               add_sc_to_tip=True)
         self.previous_cursor_action = create_action(self,
                 _("Previous cursor position"), icon=ima.icon('prev_cursor'),
                 tip=_("Go to previous cursor position"),
-                triggered=self.go_to_previous_cursor_position)
+                triggered=self.go_to_previous_cursor_position,
+                context=Qt.WidgetShortcut)
         self.register_shortcut(self.previous_cursor_action,
-                               context="Editor",
-                               name="Previous cursor position")
+                               context="Editor", 
+                               name="Previous cursor position",
+                               add_sc_to_tip=True)
         self.next_cursor_action = create_action(self,
                 _("Next cursor position"), icon=ima.icon('next_cursor'),
                 tip=_("Go to next cursor position"),
-                triggered=self.go_to_next_cursor_position)
+                triggered=self.go_to_next_cursor_position,
+                context=Qt.WidgetShortcut)
         self.register_shortcut(self.next_cursor_action,
-                               context="Editor", name="Next cursor position")
-        
+                               context="Editor",
+                               name="Next cursor position",
+                               add_sc_to_tip=True)
+
         # --- Edit Toolbar ---
         self.toggle_comment_action = create_action(self,
                 _("Comment")+"/"+_("Uncomment"), icon=ima.icon('comment'),
@@ -1194,6 +1201,9 @@ class Editor(SpyderPluginWidget):
         editorstack.plugin_load[()].connect(self.load)
         editorstack.edit_goto.connect(self.load)
         editorstack.sig_save_as.connect(self.save_as)
+        editorstack.sig_prev_edit_pos.connect(self.go_to_last_edit_location)
+        editorstack.sig_prev_cursor.connect(self.go_to_previous_cursor_position)
+        editorstack.sig_next_cursor.connect(self.go_to_next_cursor_position)
 
     def unregister_editorstack(self, editorstack):
         """Removing editorstack only if it's not the last remaining"""

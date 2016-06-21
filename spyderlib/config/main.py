@@ -386,6 +386,9 @@ DEFAULTS = [
               'editor/save all': "Ctrl+Alt+S",
               'editor/save as': 'Ctrl+Shift+S',
               'editor/close all': "Ctrl+Shift+W",
+              'editor/last edit location': "Ctrl+Alt+Shift+Left",
+              'editor/previous cursor position': "Ctrl+Alt+Left",
+              'editor/next cursor position': "Ctrl+Alt+Right",
               # -- In spyder.py
               'editor/find text': "Ctrl+F",
               'editor/find next': "F3",
@@ -401,9 +404,6 @@ DEFAULTS = [
               # -- In plugins/editor
               'editor/show/hide outline': "Ctrl+Alt+O",
               'editor/show/hide project explorer': "Ctrl+Alt+P",
-              'editor/last edit location': "Ctrl+Alt+Shift+Left",
-              'editor/previous cursor position': "Ctrl+Alt+Left",
-              'editor/next cursor position': "Ctrl+Alt+Right",
               # -- In p_breakpoints
               '_/switch to breakpoints': "Ctrl+Shift+B",
               # ---- Console (in widgets/shell) ----

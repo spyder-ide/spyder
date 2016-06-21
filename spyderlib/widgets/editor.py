@@ -309,6 +309,9 @@ class EditorStack(QWidget):
     split_horizontally = Signal()
     sig_new_file = Signal((str,), ())
     sig_save_as = Signal()
+    sig_prev_edit_pos = Signal()
+    sig_prev_cursor = Signal()
+    sig_next_cursor = Signal()
 
     def __init__(self, parent, actions):
         QWidget.__init__(self, parent)
@@ -455,6 +458,18 @@ class EditorStack(QWidget):
                                   parent=self)
         close_all = config_shortcut(self.close_all_files, context='Editor',
                                     name='Close all', parent=self)
+        prev_edit_pos = config_shortcut(lambda : self.sig_prev_edit_pos.emit(),
+                                        context="Editor",
+                                        name="Last edit location",
+                                        parent=self)
+        prev_cursor = config_shortcut(lambda : self.sig_prev_cursor.emit(),
+                                      context="Editor",
+                                      name="Previous cursor position",
+                                      parent=self)
+        next_cursor = config_shortcut(lambda : self.sig_next_cursor.emit(),
+                                      context="Editor",
+                                      name="Next cursor position",
+                                      parent=self)
 
         # --- Fixed shortcuts
         fixed_shortcut(QKeySequence.ZoomIn, self, lambda: self.zoom_in.emit())
@@ -469,8 +484,9 @@ class EditorStack(QWidget):
 
         # Return configurable ones
         return [inspect, set_breakpoint, set_cond_breakpoint, gotoline, tab,
-                tabshift, run_selection, new_file, open_file,
-                save_file, save_all, save_as, close_all]
+                tabshift, run_selection, new_file, open_file, save_file,
+                save_all, save_as, close_all, prev_edit_pos, prev_cursor,
+                next_cursor]
 
     def get_shortcut_data(self):
         """
