@@ -269,12 +269,20 @@ class DataFrameModel(QAbstractTableModel):
                                      "relation is defined for complex numbers")
                 return False
         try:
+            ascending = order == Qt.AscendingOrder
             if column > 0:
-                self.df.sort(columns=self.df.columns[column-1],
-                             ascending=order, inplace=True)
+                try:
+                    self.df.sort_values(by=self.df.columns[column-1],
+                                        ascending=ascending, inplace=True,
+                                        kind='mergesort')
+                except AttributeError:
+                    # for pandas version < 0.17
+                    self.df.sort(columns=self.df.columns[column-1],
+                                 ascending=ascending, inplace=True,
+                                 kind='mergesort')
                 self.update_df_index()
             else:
-                self.df.sort_index(inplace=True, ascending=order)
+                self.df.sort_index(inplace=True, ascending=ascending)
                 self.update_df_index()
         except TypeError as e:
             QMessageBox.critical(self.dialog, "Error",
