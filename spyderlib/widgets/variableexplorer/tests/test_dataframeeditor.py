@@ -33,7 +33,6 @@ def test_dataframemodel_sort():
     df = DataFrame({'colA': [1, 3], 'colB': ['c', 'a']})
     dfm = DataFrameModel(df)
     dfm.sort(2)
-    print(dfm.df)
     assert dfm.data(dfm.createIndex(0, 0)) == '1'
     assert dfm.data(dfm.createIndex(0, 1)) == '3'
     assert dfm.data(dfm.createIndex(0, 2)) == 'a'
