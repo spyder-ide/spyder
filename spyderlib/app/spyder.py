@@ -566,22 +566,22 @@ class MainWindow(QMainWindow):
             return action
 
         self.undo_action = create_edit_action('Undo', _('Undo'),
-                                                ima.icon('undo'))
-        self.redo_action = create_edit_action('Redo', _('Redo'), 
-                                                ima.icon('redo'))
+                                              ima.icon('undo'))
+        self.redo_action = create_edit_action('Redo', _('Redo'),
+                                              ima.icon('redo'))
         self.copy_action = create_edit_action('Copy', _('Copy'),
-                                                ima.icon('editcopy'))
+                                              ima.icon('editcopy'))
         self.cut_action = create_edit_action('Cut', _('Cut'),
-                                                ima.icon('editcut'))
+                                             ima.icon('editcut'))
         self.paste_action = create_edit_action('Paste', _('Paste'),
-                                                ima.icon('editpaste'))
+                                               ima.icon('editpaste'))
         self.selectall_action = create_edit_action("Select All",
-                                                    _("Select All"),
-                                                    ima.icon('selectall'))
+                                                   _("Select All"),
+                                                   ima.icon('selectall'))
 
         self.edit_menu_actions = [self.undo_action, self.redo_action,
-                                    None, self.cut_action, self.copy_action,
-                                    self.paste_action, self.selectall_action]
+                                  None, self.cut_action, self.copy_action,
+                                  self.paste_action, self.selectall_action]
 
         namespace = None
         self.debug_print("  ..toolbars")
