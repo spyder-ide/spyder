@@ -136,17 +136,6 @@ def iter_shortcuts():
         yield context, name, get_shortcut(context, name)
 
 
-def remove_deprecated_shortcuts(data):
-    """Remove deprecated shortcuts (shortcuts in CONF but not registered)"""
-    section = 'shortcuts'
-    options = [('%s/%s' % (context, name)).lower() for (context, name) in data]
-    for option, _ in CONF.items(section, raw=CONF.raw):
-        if option not in options:
-            CONF.remove_option(section, option)
-            if len(CONF.items(section, raw=CONF.raw)) == 0:
-                CONF.remove_section(section)
-
-
 def reset_shortcuts():
     """Reset keyboard shortcuts to default values"""
     CONF.reset_to_defaults(section='shortcuts')

@@ -153,7 +153,7 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, get_icon,
                                        create_program_action, DialogManager,
                                        keybinding, create_python_script_action,
                                        file_uri)
-from spyderlib.config.gui import get_shortcut, remove_deprecated_shortcuts
+from spyderlib.config.gui import get_shortcut
 from spyderlib.otherplugins import get_spyderplugins_mods
 from spyderlib.app import tour
 
@@ -1154,7 +1154,6 @@ class MainWindow(QMainWindow):
 
         # Apply all defined shortcuts (plugins + 3rd-party plugins)
         self.apply_shortcuts()
-        #self.remove_deprecated_shortcuts()
 
         # Emitting the signal notifying plugins that main window menu and
         # toolbar actions are all defined:
@@ -2625,12 +2624,6 @@ class MainWindow(QMainWindow):
         """
         self.shortcut_data.append( (qaction_or_qshortcut, context,
                                     name, add_sc_to_tip) )
-
-    def remove_deprecated_shortcuts(self):
-        """Remove deprecated shortcuts"""
-        data = [(context, name) for (qobject, context, name,
-                default, add_sc_to_tip) in self.shortcut_data]
-        remove_deprecated_shortcuts(data)
 
     def apply_shortcuts(self):
         """Apply shortcuts settings to all widgets/plugins"""
