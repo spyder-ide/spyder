@@ -410,12 +410,12 @@ class SpyderPluginMixin(object):
         self.main.register_shortcut(qaction_or_qshortcut, context,
                                     name, add_sc_to_tip)
 
-    def register_widget_shortcuts(self, context, widget):
+    def register_widget_shortcuts(self, widget):
         """
         Register widget shortcuts
         widget interface must have a method called 'get_shortcut_data'
         """
-        for qshortcut, name, keystr in widget.get_shortcut_data():
+        for qshortcut, context, name in widget.get_shortcut_data():
             self.register_shortcut(qshortcut, context, name)
 
     def switch_to_plugin(self):

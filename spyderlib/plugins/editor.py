@@ -441,7 +441,7 @@ class Editor(SpyderPluginWidget):
         self.find_widget.hide()
         self.find_widget.visibility_changed.connect(
                                           lambda vs: self.rehighlight_cells())
-        self.register_widget_shortcuts("_", self.find_widget)
+        self.register_widget_shortcuts(self.find_widget)
 
         # Tabbed editor widget + Find/Replace widget
         editor_widgets = QWidget(self)
@@ -1147,7 +1147,7 @@ class Editor(SpyderPluginWidget):
     #------ Handling editorstacks
     def register_editorstack(self, editorstack):
         self.editorstacks.append(editorstack)
-        self.register_widget_shortcuts("Editor", editorstack)
+        self.register_widget_shortcuts(editorstack)
 
         if self.isAncestorOf(editorstack):
             # editorstack is a child of the Editor plugin
@@ -1274,7 +1274,7 @@ class Editor(SpyderPluginWidget):
     def clone_editorstack(self, editorstack):
         editorstack.clone_from(self.editorstacks[0])
         for finfo in editorstack.data:
-            self.register_widget_shortcuts("Editor", finfo.editor)
+            self.register_widget_shortcuts(finfo.editor)
 
     @Slot(str, int)
     def close_file_in_all_editorstacks(self, editorstack_id_str, index):
@@ -1598,7 +1598,7 @@ class Editor(SpyderPluginWidget):
         is created (when loading or creating a new file)"""
         for editorstack in self.editorstacks[1:]:
             editor = editorstack.clone_editor_from(finfo, set_current=False)
-            self.register_widget_shortcuts("Editor", editor)
+            self.register_widget_shortcuts(editor)
 
     @Slot()
     @Slot(str)
@@ -1669,7 +1669,7 @@ class Editor(SpyderPluginWidget):
         finfo.path = self.main.get_spyder_pythonpath()
         self._clone_file_everywhere(finfo)
         current_editor = current_es.set_current_filename(finfo.filename)
-        self.register_widget_shortcuts("Editor", current_editor)
+        self.register_widget_shortcuts(current_editor)
         if not created_from_here:
             self.save(force=True)
 
@@ -1819,8 +1819,8 @@ class Editor(SpyderPluginWidget):
                 self._clone_file_everywhere(finfo)
                 current_editor = current_es.set_current_filename(filename)
                 current_editor.set_breakpoints(load_breakpoints(filename))
-                self.register_widget_shortcuts("Editor", current_editor)
-                
+                self.register_widget_shortcuts(current_editor)
+
                 current_es.analyze_script()
                 self.__add_recent_file(filename)
             if goto is not None: # 'word' is assumed to be None as well

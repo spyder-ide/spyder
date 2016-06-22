@@ -2049,7 +2049,7 @@ class EditorWidget(QSplitter):
         self.plugin = plugin
 
         self.find_widget = FindReplace(self, enable_replace=True)
-        self.plugin.register_widget_shortcuts("_", self.find_widget)
+        self.plugin.register_widget_shortcuts(self.find_widget)
         self.find_widget.hide()
         self.outlineexplorer = OutlineExplorerWidget(self,
                                             show_fullpath=show_fullpath,
@@ -2361,7 +2361,7 @@ class EditorPluginExample(QSplitter):
             if str(id(editorstack)) != editorstack_id_str:
                 editorstack.rename_in_data(index, filename)
 
-    def register_widget_shortcuts(self, context, widget):
+    def register_widget_shortcuts(self, widget):
         """Fake!"""
         pass
 

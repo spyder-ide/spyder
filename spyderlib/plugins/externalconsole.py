@@ -463,7 +463,7 @@ class ExternalConsole(SpyderPluginWidget):
         # Find/replace widget
         self.find_widget = FindReplace(self)
         self.find_widget.hide()
-        self.register_widget_shortcuts("_", self.find_widget)
+        self.register_widget_shortcuts(self.find_widget)
 
         layout.addWidget(self.find_widget)
 
@@ -772,7 +772,7 @@ class ExternalConsole(SpyderPluginWidget):
             shellwidget.sig_pdb.connect(
                               lambda fname, lineno, shellwidget=shellwidget:
                               self.pdb_has_stopped(fname, lineno, shellwidget))
-            self.register_widget_shortcuts("Console", shellwidget.shell)
+            self.register_widget_shortcuts(shellwidget.shell)
         else:
             if os.name == 'posix':
                 cmd = 'gnome-terminal'

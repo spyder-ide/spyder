@@ -125,7 +125,7 @@ def config_shortcut(action, context, name, parent):
     """
     keystr = get_shortcut(context, name)
     qsc = fixed_shortcut(keystr, parent, action)
-    sc = Shortcut(data=(qsc, name, keystr))
+    sc = Shortcut(data=(qsc, context, name))
     return sc
 
 
