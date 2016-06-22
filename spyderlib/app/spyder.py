@@ -532,12 +532,12 @@ class MainWindow(QMainWindow):
                                     triggered=self.close_current_dockwidget,
                                     context=Qt.ApplicationShortcut)
         self.register_shortcut(self.close_dockwidget_action, "_",
-                                "Close pane")
+                               "Close pane")
         self.lock_dockwidgets_action = create_action(self, _("Lock panes"),
                                         toggled=self.toggle_lock_dockwidgets,
                                         context=Qt.ApplicationShortcut)
         self.register_shortcut(self.lock_dockwidgets_action, "_",
-                                    "lock unlock panes")
+                               "Lock unlock panes")
         # custom layouts shortcuts
         self.toggle_next_layout_action = create_action(self,
                                     _("Use next layout"),
@@ -548,9 +548,9 @@ class MainWindow(QMainWindow):
                                     triggered=self.toggle_previous_layout,
                                     context=Qt.ApplicationShortcut)
         self.register_shortcut(self.toggle_next_layout_action, "_",
-                                "Use next layout")
+                               "Use next layout")
         self.register_shortcut(self.toggle_previous_layout_action, "_",
-                                "Use previous layout")
+                               "Use previous layout")
 
         def create_edit_action(text, tr_text, icon):
             textseq = text.split(' ')
@@ -636,7 +636,8 @@ class MainWindow(QMainWindow):
         # Tools + External Tools
         prefs_action = create_action(self, _("Pre&ferences"),
                                         icon=ima.icon('configure'),
-                                        triggered=self.edit_preferences)
+                                        triggered=self.edit_preferences,
+                                        context=Qt.ApplicationShortcut)
         self.register_shortcut(prefs_action, "_", "Preferences",
                                add_sc_to_tip=True)
         spyder_path_action = create_action(self,
@@ -753,22 +754,24 @@ class MainWindow(QMainWindow):
 
         # Maximize current plugin
         self.maximize_action = create_action(self, '',
-                                        triggered=self.maximize_dockwidget)
-        self.register_shortcut(self.maximize_action, "_",
-                                "Maximize pane")
+                                        triggered=self.maximize_dockwidget,
+                                        context=Qt.ApplicationShortcut)
+        self.register_shortcut(self.maximize_action, "_", "Maximize pane")
         self.__update_maximize_action()
 
         # Fullscreen mode
         self.fullscreen_action = create_action(self,
                                         _("Fullscreen mode"),
-                                        triggered=self.toggle_fullscreen)
+                                        triggered=self.toggle_fullscreen,
+                                        context=Qt.ApplicationShortcut)
         self.register_shortcut(self.fullscreen_action, "_",
                                "Fullscreen mode", add_sc_to_tip=True)
 
         # Main toolbar
         self.main_toolbar_actions = [self.maximize_action,
-                                        self.fullscreen_action, None,
-                                        prefs_action, spyder_path_action]
+                                     self.fullscreen_action,
+                                     None,
+                                     prefs_action, spyder_path_action]
 
         self.main_toolbar = self.create_toolbar(_("Main toolbar"),
                                                 "main_toolbar")
@@ -818,14 +821,16 @@ class MainWindow(QMainWindow):
 
         # Populating file menu entries
         quit_action = create_action(self, _("&Quit"),
-                                    icon=ima.icon('exit'), 
+                                    icon=ima.icon('exit'),
                                     tip=_("Quit"),
-                                    triggered=self.console.quit)
+                                    triggered=self.console.quit,
+                                    context=Qt.ApplicationShortcut)
         self.register_shortcut(quit_action, "_", "Quit")
         restart_action = create_action(self, _("&Restart"),
-                                        icon=ima.icon('restart'),
-                                        tip=_("Restart"),
-                                        triggered=self.restart)
+                                       icon=ima.icon('restart'),
+                                       tip=_("Restart"),
+                                       triggered=self.restart,
+                                       context=Qt.ApplicationShortcut)
         self.register_shortcut(restart_action, "_", "Restart")
 
         self.file_menu_actions += [self.load_temp_session_action,
@@ -1105,17 +1110,18 @@ class MainWindow(QMainWindow):
                                         None))
         self.show_toolbars_action = create_action(self,
                                 _("Show toolbars"),
-                                triggered=self.show_toolbars)
+                                triggered=self.show_toolbars,
+                                context=Qt.ApplicationShortcut)
         self.register_shortcut(self.show_toolbars_action, "_",
-                                "Show toolbars")
+                               "Show toolbars")
         self.view_menu.addMenu(self.toolbars_menu)
         self.view_menu.addAction(self.show_toolbars_action)
         add_actions(self.view_menu, (None,
-                                        self.quick_layout_menu,
-                                        self.toggle_previous_layout_action,
-                                        self.toggle_next_layout_action,
-                                        None,
-                                        self.fullscreen_action))
+                                     self.quick_layout_menu,
+                                     self.toggle_previous_layout_action,
+                                     self.toggle_next_layout_action,
+                                     None,
+                                     self.fullscreen_action))
         if set_attached_console_visible is not None:
             cmd_act = create_action(self,
                                 _("Attached console window (debugging)"),
@@ -1300,7 +1306,7 @@ class MainWindow(QMainWindow):
                   "<i>Note</i>: Spyder could work without some of these "
                   "dependencies, however to have a smooth experience when "
                   "using Spyder we <i>strongly</i> recommend you to install "
-                  "all the listed missing dependencies.<br>"
+                  "all the listed missing dependencies.<br><br>"
                   "Failing to install these dependencies might result in bugs. "
                   "Please be sure that any found bugs are not the direct "
                   "result of missing dependencies, prior to reporting a new "
