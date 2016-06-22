@@ -1767,6 +1767,22 @@ class EditorStack(QWidget):
         finfo = self.data[index]
         finfo.editor.fix_indentation()
 
+    def rename_identifier(self, index=None):
+        """Open rename identifier dialog box."""
+        if index is None:
+            index = self.get_stack_index()
+        finfo = self.data[index]
+        res = finfo.editor.open_rename_identifier_dialog()
+        if res:
+            try:
+                new_code = self.introspector.rename(*res)
+            except Exception as err:
+                msg = _('Error encountered during rename:')
+                msg += '<br />' + str(err)
+                QMessageBox.critical(self, _('Rename'), msg)
+            else:
+                finfo.editor.change_text(new_code)
+
     #------ Run
     def run_selection(self):
         """

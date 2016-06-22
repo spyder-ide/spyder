@@ -30,8 +30,13 @@ try:
     except ImportError:
         # rope is not installed
         pass
+    import rope.base.change
+    import rope.base.exceptions
     import rope.base.libutils
+    import rope.base.project
+    import rope.base.resources
     import rope.contrib.codeassist
+    import rope.refactor.rename
 except ImportError:
     pass
 
@@ -283,6 +288,84 @@ class RopePlugin(IntrospectionPlugin):
             self.project.close()
 
 
+# ---- Refactoring -------------------------------------------------------
+
+class FakeResource(rope.base.resources.Resource):
+    """Resource for rope project which is held in memory."""
+    def __init__(self, project):
+        super(FakeResource, self).__init__(project, '<string>')
+        self.contents = ''
+
+    def read(self):
+        return self.contents
+
+    def read_bytes(self):
+        return self.contents
+        
+    def write(self, contents):
+        self.contents = contents
+
+    def exists(self):
+        return False
+        
+
+class FakeProject(rope.base.project._Project):
+    """Rope project with one resource held in memory."""
+    def __init__(self):
+        super(FakeProject, self).__init__(fscommands=None)
+
+    def get_resource(self, resource_name=None):
+        """Get a resource in a project.
+
+        A `FakeProject` has only one resource, which is retrieved by
+        passing `None` for `resource_name`. Any other name results in
+        a `exceptions.ResourceNotFound` exception.
+        """
+        if resource_name:
+            raise rope.base.exceptions.ResourceNotFoundError(
+                      'Unknown resource ' + resource_name)
+        else:
+            return FakeResource(self)
+
+    def get_file(self, path):
+        """Get the file with `path`.
+
+        Overrides method in parent class to always raise
+        `NotImplementedError`.
+        """
+        raise NotImplementedError
+
+    def get_folder(self, path):
+        """Get the folder with `path`.
+
+        Overrides method in parent class to always raise
+        `NotImplementedError`.
+        """
+        raise NotImplementedError
+
+    def get_files(self):
+        return []
+
+
+def rename_identifier(code, position, new_name):
+    """
+    Returns code with identifier renamed using Rope
+    code (str): old source code
+    position (int): position of identifier to be renamed
+    new_name (str): new name of identifier
+    """
+    project = FakeProject()
+    module = project.get_resource()
+    module.write(code)
+    renamer = rope.refactor.rename.Rename(project, module, position)
+    changes = renamer.get_changes(new_name, resources=[module])
+    for change in changes.changes:
+        assert isinstance(change, rope.base.change.ChangeContents)
+        assert change.resource == module
+        module.write(change.new_contents)
+    return module.read()
+
+
 if __name__ == '__main__':
 
     from spyderlib.utils.introspection.manager import CodeInfo
@@ -317,3 +400,7 @@ test(1,'''
     docs = p.get_info(CodeInfo('info', code, len(code), __file__,
         is_python_like=True))
     assert 'Test docstring' in docs['docstring']
+
+    code = 'a = 1; b = 2 * a'
+    newcode = rename_identifier(code, 0, 'x')
+    assert newcode == 'x = 1; b = 2 * x'

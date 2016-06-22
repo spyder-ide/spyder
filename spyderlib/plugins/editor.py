@@ -939,6 +939,11 @@ class Editor(SpyderPluginWidget):
                       tip=_("Replace tab characters by space characters"),
                       triggered=self.fix_indentation)
 
+        self.rename_action = create_action(self, _("Rename identifier"),
+                      tip=_("Rename a variable, function or class"),
+                      triggered=self.rename_identifier)
+        self.rename_action.setEnabled(False) # cf. register_editorstack()
+
         gotoline_action = create_action(self, _("Go to line..."),
                                         icon=ima.icon('gotoline'),
                                         triggered=self.go_to_line,
@@ -1011,7 +1016,8 @@ class Editor(SpyderPluginWidget):
         self.main.debug_toolbar_actions += debug_toolbar_actions
         
         source_menu_actions = [eol_menu, self.showblanks_action,
-                               trailingspaces_action, fixindentation_action]
+                               trailingspaces_action, fixindentation_action,
+                               self.rename_action]
         self.main.source_menu_actions += source_menu_actions
         
         source_toolbar_actions = [self.todo_list_action,
@@ -1119,6 +1125,7 @@ class Editor(SpyderPluginWidget):
             editorstack.sig_editor_cursor_position_changed.connect(
                                  self.cursorpos_status.cursor_position_changed)
             editorstack.refresh_eol_chars.connect(self.eol_status.eol_changed)
+            self.rename_action.setEnabled(editorstack.introspector.can_rename())
 
         editorstack.set_help(self.help)
         editorstack.set_io_actions(self.new_action, self.open_action,
@@ -1979,6 +1986,13 @@ class Editor(SpyderPluginWidget):
         editorstack = self.get_current_editorstack()
         editorstack.fix_indentation()
                     
+    @Slot()
+    def rename_identifier(self):
+        """Open rename identifier dialog box."""
+        editorstack = self.get_current_editorstack()
+        if editorstack:
+            editorstack.rename_identifier()
+
     #------ Cursor position history management
     def update_cursorpos_actions(self):
         self.previous_edit_cursor_action.setEnabled(

@@ -910,6 +910,38 @@ class CodeEditor(TextEditBaseWidget):
             self.setPlainText(text_after)
             self.document().setModified(True)
 
+    def open_rename_identifier_dialog(self):
+        """
+        Open rename identifier dialog box and return result.
+
+        Returns (source_code, offset, new_name) on success, None otherwise.
+        """
+        old_name = self.get_current_word()
+        if (not self.is_python_like()
+            or not old_name
+            or sourcecode.is_keyword(to_text_string(old_name))
+            or (self.has_selected_text() and self.get_selected_text() != old_name)
+            or self.in_comment_or_string()):
+            QMessageBox.information(self, _('Rename'), _('Cannot rename here'))
+            return
+        msg = _("Enter new name for '{}':").format(old_name)
+        new_name, ok = QInputDialog.getText(self, _('Rename'), msg,
+                                            text=old_name)
+        if ok and new_name and new_name != old_name:
+            source_code = to_text_string(self.toPlainText())
+            offset = self.get_position('cursor')
+            return (source_code, offset, new_name)
+        return None
+
+    def change_text(self, new_text):
+        """Replace contents by new text"""
+        cursor = self.textCursor()
+        old_position = cursor.position()
+        cursor.select(QTextCursor.Document)
+        cursor.insertText(new_text)
+        cursor.setPosition(old_position)
+        self.setTextCursor(cursor)
+        
     def get_current_object(self):
         """Return current object (string) """
         source_code = to_text_string(self.toPlainText())
