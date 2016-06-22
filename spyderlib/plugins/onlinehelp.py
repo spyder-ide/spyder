@@ -35,8 +35,8 @@ class OnlineHelp(PydocBrowser, SpyderPluginMixin):
         # Initialize plugin
         self.initialize_plugin()
 
-        self.register_widget_shortcuts("Editor", self.find_widget)
-        
+        self.register_widget_shortcuts(self.find_widget)
+
         self.webview.set_zoom_factor(self.get_option('zoom_factor'))
         self.url_combo.setMaxCount(self.get_option('max_history_entries'))
         self.url_combo.addItems( self.load_history() )

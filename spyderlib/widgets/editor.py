@@ -29,7 +29,9 @@ from qtpy.QtWidgets import (QAction, QApplication, QHBoxLayout, QMainWindow,
 
 # Local imports
 from spyderlib.config.base import _, DEBUG, STDERR, STDOUT
-from spyderlib.config.gui import create_shortcut, new_shortcut
+from spyderlib.config.gui import (config_shortcut, fixed_shortcut,
+                                  RUN_CELL_SHORTCUT,
+                                  RUN_CELL_AND_ADVANCE_SHORTCUT)
 from spyderlib.config.utils import get_edit_extensions
 from spyderlib.py3compat import qbytearray_to_str, to_text_string, u
 from spyderlib.utils import icon_manager as ima
@@ -301,11 +303,15 @@ class EditorStack(QWidget):
     save_breakpoints = Signal(str, str)
     text_changed_at = Signal(str, int)
     current_file_changed = Signal(str ,int)
-    plugin_load = Signal(str)
+    plugin_load = Signal((str,), ())
     edit_goto = Signal(str, int, str)
     split_vertically = Signal()
     split_horizontally = Signal()
     sig_new_file = Signal((str,), ())
+    sig_save_as = Signal()
+    sig_prev_edit_pos = Signal()
+    sig_prev_cursor = Signal()
+    sig_next_cursor = Signal()
 
     def __init__(self, parent, actions):
         QWidget.__init__(self, parent)
@@ -418,34 +424,69 @@ class EditorStack(QWidget):
 
     def create_shortcuts(self):
         """Create local shortcuts"""
-        # Configurable shortcuts
-        inspect = create_shortcut(self.inspect_current_object, context='Editor',
+        # --- Configurable shortcuts
+        inspect = config_shortcut(self.inspect_current_object, context='Editor',
                                   name='Inspect current object', parent=self)
-        breakpoint = create_shortcut(self.set_or_clear_breakpoint,
-                                     context='Editor', name='Breakpoint',
-                                     parent=self)
-        cbreakpoint = create_shortcut(self.set_or_edit_conditional_breakpoint,
-                                      context='Editor',
-                                      name='Conditional breakpoint',
-                                      parent=self)
-        gotoline = create_shortcut(self.go_to_line, context='Editor',
+        set_breakpoint = config_shortcut(self.set_or_clear_breakpoint,
+                                         context='Editor', name='Breakpoint',
+                                         parent=self)
+        set_cond_breakpoint = config_shortcut(
+                                    self.set_or_edit_conditional_breakpoint,
+                                    context='Editor',
+                                    name='Conditional breakpoint',
+                                    parent=self)
+        gotoline = config_shortcut(self.go_to_line, context='Editor',
                                    name='Go to line', parent=self)
-        tab = create_shortcut(self.go_to_previous_file, context='Editor',
+        tab = config_shortcut(self.go_to_previous_file, context='Editor',
                               name='Go to previous file', parent=self)
-        tabshift = create_shortcut(self.go_to_next_file, context='Editor',
+        tabshift = config_shortcut(self.go_to_next_file, context='Editor',
                                    name='Go to next file', parent=self)
+        run_selection = config_shortcut(self.run_selection, context='Editor',
+                                        name='Run selection', parent=self)
+        new_file = config_shortcut(lambda : self.sig_new_file[()].emit(),
+                                   context='Editor', name='New file',
+                                   parent=self)
+        open_file = config_shortcut(lambda : self.plugin_load[()].emit(),
+                                    context='Editor', name='Open file',
+                                    parent=self)
+        save_file = config_shortcut(self.save, context='Editor',
+                                    name='Save file', parent=self)
+        save_all = config_shortcut(self.save_all, context='Editor',
+                                   name='Save all', parent=self)
+        save_as = config_shortcut(lambda : self.sig_save_as.emit(),
+                                  context='Editor', name='Save As',
+                                  parent=self)
+        close_all = config_shortcut(self.close_all_files, context='Editor',
+                                    name='Close all', parent=self)
+        prev_edit_pos = config_shortcut(lambda : self.sig_prev_edit_pos.emit(),
+                                        context="Editor",
+                                        name="Last edit location",
+                                        parent=self)
+        prev_cursor = config_shortcut(lambda : self.sig_prev_cursor.emit(),
+                                      context="Editor",
+                                      name="Previous cursor position",
+                                      parent=self)
+        next_cursor = config_shortcut(lambda : self.sig_next_cursor.emit(),
+                                      context="Editor",
+                                      name="Next cursor position",
+                                      parent=self)
 
-        # Fixed shortcuts
-        new_shortcut(QKeySequence.ZoomIn, self, lambda: self.zoom_in.emit())
-        new_shortcut("Ctrl+=", self, lambda: self.zoom_in.emit())
-        new_shortcut(QKeySequence.ZoomOut, self, lambda: self.zoom_out.emit())
-        new_shortcut("Ctrl+0", self, lambda: self.zoom_reset.emit())
-        new_shortcut("Ctrl+W", self, self.close_file)
-        new_shortcut("Ctrl+F4", self, self.close_file)
+        # --- Fixed shortcuts
+        fixed_shortcut(QKeySequence.ZoomIn, self, lambda: self.zoom_in.emit())
+        fixed_shortcut("Ctrl+=", self, lambda: self.zoom_in.emit())
+        fixed_shortcut(QKeySequence.ZoomOut, self, lambda: self.zoom_out.emit())
+        fixed_shortcut("Ctrl+0", self, lambda: self.zoom_reset.emit())
+        fixed_shortcut("Ctrl+W", self, self.close_file)
+        fixed_shortcut("Ctrl+F4", self, self.close_file)
+        fixed_shortcut(QKeySequence(RUN_CELL_SHORTCUT), self, self.run_cell)
+        fixed_shortcut(QKeySequence(RUN_CELL_AND_ADVANCE_SHORTCUT), self,
+                       self.run_cell_and_advance)
 
         # Return configurable ones
-        return [inspect, breakpoint, cbreakpoint, gotoline, tab,
-                tabshift]
+        return [inspect, set_breakpoint, set_cond_breakpoint, gotoline, tab,
+                tabshift, run_selection, new_file, open_file, save_file,
+                save_all, save_as, close_all, prev_edit_pos, prev_cursor,
+                next_cursor]
 
     def get_shortcut_data(self):
         """
@@ -2008,7 +2049,7 @@ class EditorWidget(QSplitter):
         self.plugin = plugin
 
         self.find_widget = FindReplace(self, enable_replace=True)
-        self.plugin.register_widget_shortcuts("Editor", self.find_widget)
+        self.plugin.register_widget_shortcuts(self.find_widget)
         self.find_widget.hide()
         self.outlineexplorer = OutlineExplorerWidget(self,
                                             show_fullpath=show_fullpath,
@@ -2320,7 +2361,7 @@ class EditorPluginExample(QSplitter):
             if str(id(editorstack)) != editorstack_id_str:
                 editorstack.rename_in_data(index, filename)
 
-    def register_widget_shortcuts(self, context, widget):
+    def register_widget_shortcuts(self, widget):
         """Fake!"""
         pass
 

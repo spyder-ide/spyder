@@ -32,7 +32,7 @@ import numpy as np
 # Local imports
 from spyderlib.config.base import _
 from spyderlib.config.fonts import DEFAULT_SMALL_DELTA
-from spyderlib.config.gui import get_font, new_shortcut
+from spyderlib.config.gui import get_font, fixed_shortcut
 from spyderlib.py3compat import (io, is_binary_string, is_string,
                                  is_text_string, PY3, to_binary_string,
                                  to_text_string)
@@ -399,7 +399,7 @@ class ArrayView(QTableView):
         self.viewport().resize(min(total_width, 1024), self.height())
         self.shape = shape
         self.menu = self.setup_menu()
-        new_shortcut(QKeySequence.Copy, self, self.copy)
+        fixed_shortcut(QKeySequence.Copy, self, self.copy)
         self.horizontalScrollBar().valueChanged.connect(
                             lambda val: self.load_more_data(val, columns=True))
         self.verticalScrollBar().valueChanged.connect(

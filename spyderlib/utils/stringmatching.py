@@ -241,7 +241,7 @@ def test():
              'switch to historylog', 'switch to help',
              'switch to ipython_console', 'switch to onlinehelp',
              'switch to outline_explorer', 'switch to project_explorer',
-             'switch to variable_explorer', 'toggle default layout',
+             'switch to variable_explorer',
              'use next layout', 'use previous layout', 'clear line',
              'clear shell', 'inspect current object', 'blockcomment',
              'breakpoint', 'close all', 'code completion',
