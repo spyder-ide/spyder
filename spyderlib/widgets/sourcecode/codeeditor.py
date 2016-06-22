@@ -594,6 +594,21 @@ class CodeEditor(TextEditBaseWidget):
         end_doc = config_shortcut(cb_maker('End'), context='Editor',
                                   name='End of document', parent=self)
 
+        undo = config_shortcut(self.undo, context='Editor',
+                               name='undo', parent=self)
+        redo = config_shortcut(self.redo, context='Editor',
+                               name='redo', parent=self)
+        cut = config_shortcut(self.cut, context='Editor',
+                              name='cut', parent=self)
+        copy = config_shortcut(self.copy, context='Editor',
+                               name='copy', parent=self)
+        paste = config_shortcut(self.paste, context='Editor',
+                                name='paste', parent=self)
+        delete = config_shortcut(self.delete, context='Editor',
+                                 name='delete', parent=self)
+        select_all = config_shortcut(self.selectAll, context='Editor',
+                                     name='Select All', parent=self)
+
         # Fixed shortcuts
         fixed_shortcut(SHORTCUT_INLINE, self, lambda: self.enter_array_inline())
         fixed_shortcut(SHORTCUT_TABLE, self, lambda: self.enter_array_table())
@@ -603,7 +618,8 @@ class CodeEditor(TextEditBaseWidget):
                 unblockcomment, line_start, line_end, prev_line, next_line,
                 prev_char, next_char, prev_word, next_word, kill_line_end,
                 kill_line_start, yank, kill_ring_rotate, kill_prev_word,
-                kill_next_word, start_doc, end_doc]
+                kill_next_word, start_doc, end_doc, undo, redo, copy,
+                paste, delete, select_all]
 
     def get_shortcut_data(self):
         """
@@ -917,6 +933,12 @@ class CodeEditor(TextEditBaseWidget):
         source_code = to_text_string(self.toPlainText())
         offset = self.get_position('cursor')
         return sourcecode.get_primary_at(source_code, offset)
+
+    @Slot()
+    def delete(self):
+        """Remove selected text"""
+        if self.has_selected_text():
+            self.remove_selected_text()
 
     #------Find occurrences
     def __find_first(self, text):

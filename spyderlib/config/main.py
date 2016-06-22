@@ -348,7 +348,7 @@ DEFAULTS = [
               '_/find previous': "Shift+F3",
               '_/replace text': "Ctrl+H",
               # ---- Editor ----
-              # -- In widgest/sourcecode/codeeditor.py
+              # -- In widgets/sourcecode/codeeditor.py
               'editor/code completion': CTRL+'+Space',
               'editor/duplicate line': "Ctrl+Alt+Up" if WIN else \
                                        "Shift+Alt+Up",
@@ -377,6 +377,13 @@ DEFAULTS = [
               'editor/kill next word': 'Meta+D',
               'editor/start of document': 'Ctrl+Up',
               'editor/end of document': 'Ctrl+Down',
+              'editor/undo': 'Ctrl+U',
+              'editor/redo': 'Ctrl+Y',
+              'editor/cut': 'Ctrl+X',
+              'editor/copy': 'Ctrl+C',
+              'editor/paste': 'Ctrl+V',
+              'editor/delete': 'Delete',
+              'editor/select all': "Ctrl+A",
               # -- In widgets/editor.py
               'editor/inspect current object': 'Ctrl+I',
               'editor/breakpoint': 'F12',
@@ -394,14 +401,6 @@ DEFAULTS = [
               'editor/last edit location': "Ctrl+Alt+Shift+Left",
               'editor/previous cursor position': "Ctrl+Alt+Left",
               'editor/next cursor position': "Ctrl+Alt+Right",
-              # -- In app/spyder.py
-              'editor/undo': 'Ctrl+U',
-              'editor/redo': 'Ctrl+Y',
-              'editor/cut': 'Ctrl+X',
-              'editor/copy': 'Ctrl+C',
-              'editor/paste': 'Ctrl+V',
-              'editor/delete': 'Delete',
-              'editor/select all': "Ctrl+A",
               # -- In plugins/editor.py
               'editor/show/hide outline': "Ctrl+Alt+O",
               'editor/show/hide project explorer': "Ctrl+Alt+P",
