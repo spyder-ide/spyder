@@ -53,8 +53,7 @@ from spyderlib.utils import icon_manager as ima
 from spyderlib.utils import syntaxhighlighters as sh
 from spyderlib.utils import encoding, sourcecode
 from spyderlib.utils.dochelpers import getobj
-from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
-                                       mimedata2url)
+from spyderlib.utils.qthelpers import add_actions, create_action, mimedata2url
 from spyderlib.utils.sourcecode import ALL_LANGUAGES, CELL_LANGUAGES
 from spyderlib.widgets.arraybuilder import SHORTCUT_INLINE, SHORTCUT_TABLE
 from spyderlib.widgets.editortools import PythonCFM
@@ -2456,24 +2455,18 @@ class CodeEditor(TextEditBaseWidget):
     def setup_context_menu(self):
         """Setup context menu"""
         self.undo_action = create_action(self, _("Undo"),
-                           shortcut=keybinding('Undo'),
-                           icon=ima.icon('undo'), triggered=self.undo)
+                             icon=ima.icon('undo'), triggered=self.undo)
         self.redo_action = create_action(self, _("Redo"),
-                           shortcut=keybinding('Redo'),
-                           icon=ima.icon('redo'), triggered=self.redo)
+                             icon=ima.icon('redo'), triggered=self.redo)
         self.cut_action = create_action(self, _("Cut"),
-                           shortcut=keybinding('Cut'),
-                           icon=ima.icon('editcut'), triggered=self.cut)
+                             icon=ima.icon('editcut'), triggered=self.cut)
         self.copy_action = create_action(self, _("Copy"),
-                           shortcut=keybinding('Copy'),
-                           icon=ima.icon('editcopy'), triggered=self.copy)
+                             icon=ima.icon('editcopy'), triggered=self.copy)
         self.paste_action = create_action(self, _("Paste"),
-                           shortcut=keybinding('Paste'),
-                           icon=ima.icon('editpaste'), triggered=self.paste)
+                             icon=ima.icon('editpaste'), triggered=self.paste)
         selectall_action = create_action(self, _("Select All"),
-                           shortcut=keybinding('SelectAll'),
-                           icon=ima.icon('selectall'),
-                           triggered=self.selectAll)
+                             icon=ima.icon('selectall'),
+                             triggered=self.selectAll)
         toggle_comment_action = create_action(self,
                                 _("Comment")+"/"+_("Uncomment"),
                                 icon=ima.icon('comment'),

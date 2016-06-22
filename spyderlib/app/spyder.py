@@ -151,8 +151,7 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, get_icon,
                                        add_shortcut_to_tooltip,
                                        create_module_bookmark_actions,
                                        create_program_action, DialogManager,
-                                       keybinding, create_python_script_action,
-                                       file_uri)
+                                       create_python_script_action, file_uri)
 from spyderlib.config.gui import get_shortcut
 from spyderlib.otherplugins import get_spyderplugins_mods
 from spyderlib.app import tour
@@ -557,11 +556,10 @@ class MainWindow(QMainWindow):
             textseq = text.split(' ')
             method_name = textseq[0].lower()+"".join(textseq[1:])
             action = create_action(self, tr_text,
-                                shortcut=keybinding(text.replace(' ', '')),
-                                icon=icon,
-                                triggered=self.global_callback,
-                                data=method_name,
-                                context=Qt.WidgetShortcut)
+                                   icon=icon,
+                                   triggered=self.global_callback,
+                                   data=method_name,
+                                   context=Qt.WidgetShortcut)
             self.register_shortcut(action, "Editor", text)
             return action
 
