@@ -2618,14 +2618,13 @@ class MainWindow(QMainWindow):
 
     #---- Shortcuts
     def register_shortcut(self, qaction_or_qshortcut, context, name,
-                          default=NoDefault, add_sc_to_tip=False):
+                          add_sc_to_tip=False):
         """
         Register QAction or QShortcut to Spyder main application,
         with shortcut (context, name, default)
         """
-        self.shortcut_data.append( (qaction_or_qshortcut,
-                                    context, name, default,
-                                    add_sc_to_tip) )
+        self.shortcut_data.append( (qaction_or_qshortcut, context,
+                                    name, add_sc_to_tip) )
 
     def remove_deprecated_shortcuts(self):
         """Remove deprecated shortcuts"""
@@ -2636,7 +2635,7 @@ class MainWindow(QMainWindow):
     def apply_shortcuts(self):
         """Apply shortcuts settings to all widgets/plugins"""
         toberemoved = []
-        for index, (qobject, context, name, default,
+        for index, (qobject, context, name,
                     add_sc_to_tip) in enumerate(self.shortcut_data):
             keyseq = QKeySequence( get_shortcut(context, name) )
             try:

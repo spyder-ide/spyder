@@ -400,25 +400,24 @@ class SpyderPluginMixin(object):
         raise NotImplementedError
 
     def register_shortcut(self, qaction_or_qshortcut, context, name,
-                          default=NoDefault, add_sc_to_tip=False):
+                          add_sc_to_tip=False):
         """
-        Register QAction or QShortcut to Spyder main application,
-        with shortcut (context, name, default)
+        Register QAction or QShortcut to Spyder main application
 
         if add_sc_to_tip is True, the shortcut is added to the
         action's tooltip
         """
         self.main.register_shortcut(qaction_or_qshortcut, context,
-                                    name, default, add_sc_to_tip)
+                                    name, add_sc_to_tip)
 
     def register_widget_shortcuts(self, context, widget):
         """
         Register widget shortcuts
         widget interface must have a method called 'get_shortcut_data'
         """
-        for qshortcut, name, default in widget.get_shortcut_data():
-            self.register_shortcut(qshortcut, context, name, default)
-    
+        for qshortcut, name, keystr in widget.get_shortcut_data():
+            self.register_shortcut(qshortcut, context, name)
+
     def switch_to_plugin(self):
         """Switch to plugin
         This method is called when pressing plugin's shortcut key"""
