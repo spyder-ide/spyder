@@ -24,13 +24,13 @@ requirements:
     - jedi
     - qtconsole
     - nbconvert
-    - pygments
+    - pygments >=2.0
     - sphinx
     - pep8
     - psutil
     - pylint
     - qtawesome
-    - qtpy  >=1.0.2
+    - qtpy >=1.0.2
     - pyzmq
 
 about:

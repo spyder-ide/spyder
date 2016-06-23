@@ -266,7 +266,7 @@ install_requires = [
     'rope_py3k' if PY3 else 'rope>=0.9.4',
     'jedi',
     'pyflakes',
-    'pygments',
+    'pygments>=2.0',
     'qtconsole',
     'nbconvert',
     'sphinx',
