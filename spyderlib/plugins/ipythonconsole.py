@@ -1194,7 +1194,7 @@ class IPythonConsole(SpyderPluginWidget):
     @Slot()
     def show_guiref(self):
         """Show qtconsole help"""
-        from IPython.core.usage import gui_reference
+        from qtconsole.usage import gui_reference
         self.help.show_rich_text(gui_reference, collapse=True)
 
     @Slot()

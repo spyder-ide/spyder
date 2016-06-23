@@ -267,7 +267,7 @@ install_requires = [
     'jedi',
     'pyflakes',
     'pygments>=2.0',
-    'qtconsole',
+    'qtconsole>=4.2.0',
     'nbconvert',
     'sphinx',
     'pep8',

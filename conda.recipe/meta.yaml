@@ -22,7 +22,7 @@ requirements:
     - rope  # [py27]
     - pyflakes
     - jedi
-    - qtconsole
+    - qtconsole >=4.2.0
     - nbconvert
     - pygments >=2.0
     - sphinx
