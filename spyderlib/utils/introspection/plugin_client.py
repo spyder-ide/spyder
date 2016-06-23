@@ -22,7 +22,7 @@ from spyderlib.config.base import debug_print, DEV, get_module_path
 
 
 # Heartbeat timer in milliseconds
-HEARTBEAT = 5000
+HEARTBEAT = 1000
 
 
 class AsyncClient(QObject):
@@ -58,7 +58,6 @@ class AsyncClient(QObject):
         # Set up the heartbeat timer.
         self.timer = QTimer(self)
         self.timer.timeout.connect(self._heartbeat)
-        self.timer.start(HEARTBEAT)
 
     def run(self):
         """Handle the connection with the server.
@@ -121,16 +120,14 @@ class AsyncClient(QObject):
                        args=args,
                        kwargs=kwargs,
                        request_id=request_id)
-        try:
-            self.socket.send_pyobj(request)
-        except zmq.ZMQError:
-            pass
+        self._send(request)
         return request_id
 
     def close(self):
         """Cleanly close the connection to the server.
         """
         self.closing = True
+        self.is_initialized = False
         self.timer.stop()
         self.notifier.activated.disconnect(self._on_msg_received)
         self.notifier.setEnabled(False)
@@ -171,6 +168,7 @@ class AsyncClient(QObject):
                 self.is_initialized = True
                 debug_print('Initialized %s' % self.name)
                 self.initialized.emit()
+                self.timer.start(HEARTBEAT)
                 continue
             resp['name'] = self.name
             self.received.emit(resp)
@@ -178,9 +176,17 @@ class AsyncClient(QObject):
     def _heartbeat(self):
         """Send a heartbeat to keep the server alive.
         """
-        if not self.is_initialized:
-            return
-        self.socket.send_pyobj(dict(func_name='server_heartbeat'))
+        self._send(dict(func_name='server_heartbeat'))
+
+    def _send(self, obj):
+        """Send an object to the server.
+        """
+        try:
+            self.socket.send_pyobj(obj)
+        except Exception as e:
+            debug_print(e)
+            self.is_initialized = False
+            self._on_finished()
 
 
 class PluginClient(AsyncClient):
