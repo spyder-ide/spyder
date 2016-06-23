@@ -1171,7 +1171,8 @@ class MainWindow(QMainWindow):
         # This is a workaround because we can't disable shortcuts
         # by setting context=Qt.WidgetShortcut there
         if sys.platform == 'darwin':
-            for name in ['file', 'run', 'debug', 'plugins']:
+            for name in ['file', 'search', 'source', 'run', 'debug',
+                         'plugins']:
                 menu_object = getattr(self, name + '_menu')
                 menu_object.aboutToShow.connect(
                     lambda name=name: self.show_shortcuts(name))
