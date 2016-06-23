@@ -95,7 +95,7 @@ function UpdateConda ($python_home) {
 function main () {
     InstallMiniconda $env:PYTHON_VERSION $env:PYTHON_ARCH $env:PYTHON
     UpdateConda $env:PYTHON
-    InstallCondaPackages $env:PYTHON "conda-build pytest pytest-cov pytest-qt"
+    InstallCondaPackages $env:PYTHON "conda-build==1.21.0 pytest pytest-cov pytest-qt"
 }
 
 
