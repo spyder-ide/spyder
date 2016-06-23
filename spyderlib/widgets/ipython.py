@@ -198,12 +198,12 @@ class IPythonShellWidget(RichJupyterWidget):
         """Bind this shell widget to an IPython client one"""
         self.ipyclient = ipyclient
         self.exit_requested.connect(ipyclient.exit_callback)
-    
+
     def long_banner(self):
         """Banner for IPython widgets with pylab message"""
-        from IPython.core.usage import default_gui_banner
-        banner = default_gui_banner
-        
+        from IPython.core.usage import default_banner
+        banner = default_banner
+
         pylab_o = CONF.get('ipython_console', 'pylab', True)
         autoload_pylab_o = CONF.get('ipython_console', 'pylab/autoload', True)
         mpl_installed = programs.is_module_installed('matplotlib')
