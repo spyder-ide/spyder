@@ -191,8 +191,8 @@ The requirements to run Spyder are:
 * `PyZMQ <https://github.com/zeromq/pyzmq>`_ -- To run introspection services on the
   Editor asynchronously.
 
-* `QtPy <https://github.com/spyder-ide/qtpy>`_ >=1.0.2 -- To run Spyder in PyQt4 and
-  PyQt5.
+* `QtPy <https://github.com/spyder-ide/qtpy>`_ >=1.1.0 -- To run Spyder with PyQt4 or
+  PyQt5 seamlessly.
 
 
 Optional modules
