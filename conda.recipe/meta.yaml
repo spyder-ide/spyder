@@ -22,15 +22,15 @@ requirements:
     - rope  # [py27]
     - pyflakes
     - jedi
-    - qtconsole
+    - qtconsole >=4.2.0
     - nbconvert
-    - pygments
+    - pygments >=2.0
     - sphinx
     - pep8
     - psutil
     - pylint
     - qtawesome
-    - qtpy  >=1.0.2
+    - qtpy >=1.0.2
     - pyzmq
 
 about:
