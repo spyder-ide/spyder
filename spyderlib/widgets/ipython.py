@@ -33,8 +33,8 @@ from traitlets.config.loader import Config, load_pyconfig_files
 # Local imports
 from spyderlib.config.base import (_, get_conf_path, get_image_path,
                                    get_module_source_path)
-from spyderlib.config.gui import (create_shortcut, get_font, get_shortcut,
-                                  new_shortcut)
+from spyderlib.config.gui import (config_shortcut, get_font, get_shortcut,
+                                  fixed_shortcut)
 from spyderlib.config.main import CONF
 from spyderlib.py3compat import PY3
 from spyderlib.utils import icon_manager as ima
@@ -198,12 +198,12 @@ class IPythonShellWidget(RichJupyterWidget):
         """Bind this shell widget to an IPython client one"""
         self.ipyclient = ipyclient
         self.exit_requested.connect(ipyclient.exit_callback)
-    
+
     def long_banner(self):
         """Banner for IPython widgets with pylab message"""
-        from IPython.core.usage import default_gui_banner
-        banner = default_gui_banner
-        
+        from IPython.core.usage import default_banner
+        banner = default_banner
+
         pylab_o = CONF.get('ipython_console', 'pylab', True)
         autoload_pylab_o = CONF.get('ipython_console', 'pylab/autoload', True)
         mpl_installed = programs.is_module_installed('matplotlib')
@@ -259,21 +259,21 @@ These commands were executed:
         lightbg_o = CONF.get('ipython_console', 'light_color')
         if not lightbg_o:
             self.set_default_style(colors='linux')
-    
+
     def create_shortcuts(self):
-        inspect = create_shortcut(self._control.inspect_current_object,
+        inspect = config_shortcut(self._control.inspect_current_object,
                                   context='Console', name='Inspect current object',
                                   parent=self)
-        clear_console = create_shortcut(self.clear_console, context='Console',
+        clear_console = config_shortcut(self.clear_console, context='Console',
                                         name='Clear shell', parent=self)
 
         # Fixed shortcuts
-        new_shortcut("Ctrl+T", self, lambda: self.new_client.emit())
-        new_shortcut("Ctrl+R", self, lambda: self.reset_namespace())
-        new_shortcut(SHORTCUT_INLINE, self,
-                     lambda: self._control.enter_array_inline())
-        new_shortcut(SHORTCUT_TABLE, self,
-                     lambda: self._control.enter_array_table())
+        fixed_shortcut("Ctrl+T", self, lambda: self.new_client.emit())
+        fixed_shortcut("Ctrl+R", self, lambda: self.reset_namespace())
+        fixed_shortcut(SHORTCUT_INLINE, self,
+                       lambda: self._control.enter_array_inline())
+        fixed_shortcut(SHORTCUT_TABLE, self,
+                       lambda: self._control.enter_array_table())
 
         return [inspect, clear_console]
 

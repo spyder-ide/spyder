@@ -634,14 +634,14 @@ class IPythonConsole(SpyderPluginWidget):
         # Find/replace widget
         self.find_widget = FindReplace(self)
         self.find_widget.hide()
-        self.register_widget_shortcuts("Editor", self.find_widget)
+        self.register_widget_shortcuts(self.find_widget)
         layout.addWidget(self.find_widget)
-        
+
         self.setLayout(layout)
-            
+
         # Accepting drops
         self.setAcceptDrops(True)
-    
+
     #------ SpyderPluginMixin API ---------------------------------------------
     def on_first_registration(self):
         """Action to be performed on first plugin registration"""
@@ -1194,7 +1194,7 @@ class IPythonConsole(SpyderPluginWidget):
     @Slot()
     def show_guiref(self):
         """Show qtconsole help"""
-        from IPython.core.usage import gui_reference
+        from qtconsole.usage import gui_reference
         self.help.show_rich_text(gui_reference, collapse=True)
 
     @Slot()

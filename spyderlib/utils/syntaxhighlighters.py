@@ -29,7 +29,7 @@ from spyderlib.py3compat import builtins, is_text_string, to_text_string
 from spyderlib.utils.sourcecode import CELL_LANGUAGES
 
 
-PYGMENTS_REQVER = '>=1.6'
+PYGMENTS_REQVER = '>=2.0'
 dependencies.add("pygments", _("Syntax highlighting for Matlab, Julia and "
                                "other file types"),
                  required_version=PYGMENTS_REQVER)

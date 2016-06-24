@@ -463,15 +463,15 @@ class ExternalConsole(SpyderPluginWidget):
         # Find/replace widget
         self.find_widget = FindReplace(self)
         self.find_widget.hide()
-        self.register_widget_shortcuts("Editor", self.find_widget)
-        
+        self.register_widget_shortcuts(self.find_widget)
+
         layout.addWidget(self.find_widget)
-        
+
         self.setLayout(layout)
-            
+
         # Accepting drops
         self.setAcceptDrops(True)
-        
+
     def move_tab(self, index_from, index_to):
         """
         Move tab (tabs themselves have already been moved by the tabwidget)
@@ -772,7 +772,7 @@ class ExternalConsole(SpyderPluginWidget):
             shellwidget.sig_pdb.connect(
                               lambda fname, lineno, shellwidget=shellwidget:
                               self.pdb_has_stopped(fname, lineno, shellwidget))
-            self.register_widget_shortcuts("Console", shellwidget.shell)
+            self.register_widget_shortcuts(shellwidget.shell)
         else:
             if os.name == 'posix':
                 cmd = 'gnome-terminal'

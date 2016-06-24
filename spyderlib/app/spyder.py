@@ -151,9 +151,8 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, get_icon,
                                        add_shortcut_to_tooltip,
                                        create_module_bookmark_actions,
                                        create_program_action, DialogManager,
-                                       keybinding, create_python_script_action,
-                                       file_uri)
-from spyderlib.config.gui import get_shortcut, remove_deprecated_shortcuts
+                                       create_python_script_action, file_uri)
+from spyderlib.config.gui import get_shortcut
 from spyderlib.otherplugins import get_spyderplugins_mods
 from spyderlib.app import tour
 
@@ -369,10 +368,6 @@ class MainWindow(QMainWindow):
         self.lock_dockwidgets_action = None
         self.show_toolbars_action = None
         self.close_dockwidget_action = None
-        self.find_action = None
-        self.find_next_action = None
-        self.find_previous_action = None
-        self.replace_action = None
         self.undo_action = None
         self.redo_action = None
         self.copy_action = None
@@ -404,6 +399,7 @@ class MainWindow(QMainWindow):
         self.external_tools_menu_actions = []
         self.view_menu = None
         self.plugins_menu = None
+        self.plugins_menu_actions = []
         self.toolbars_menu = None
         self.help_menu = None
         self.help_menu_actions = []
@@ -536,12 +532,12 @@ class MainWindow(QMainWindow):
                                     triggered=self.close_current_dockwidget,
                                     context=Qt.ApplicationShortcut)
         self.register_shortcut(self.close_dockwidget_action, "_",
-                                "Close pane")
+                               "Close pane")
         self.lock_dockwidgets_action = create_action(self, _("Lock panes"),
                                         toggled=self.toggle_lock_dockwidgets,
                                         context=Qt.ApplicationShortcut)
         self.register_shortcut(self.lock_dockwidgets_action, "_",
-                                    "lock unlock panes")
+                               "Lock unlock panes")
         # custom layouts shortcuts
         self.toggle_next_layout_action = create_action(self,
                                     _("Use next layout"),
@@ -552,73 +548,38 @@ class MainWindow(QMainWindow):
                                     triggered=self.toggle_previous_layout,
                                     context=Qt.ApplicationShortcut)
         self.register_shortcut(self.toggle_next_layout_action, "_",
-                                "Use next layout")
+                               "Use next layout")
         self.register_shortcut(self.toggle_previous_layout_action, "_",
-                                "Use previous layout")
-
-
-        _text = _("&Find text")
-        self.find_action = create_action(self, _text, icon=ima.icon('find'),
-                                            tip=_text, triggered=self.find,
-                                            context=Qt.WidgetShortcut)
-        self.register_shortcut(self.find_action, "Editor", "Find text")
-        self.find_next_action = create_action(self, _("Find &next"),
-                icon=ima.icon('findnext'), 
-                triggered=self.find_next,
-                context=Qt.WidgetShortcut)
-        self.register_shortcut(self.find_next_action, "Editor",
-                                "Find next")
-        self.find_previous_action = create_action(self,
-                    _("Find &previous"),
-                    icon=ima.icon('findprevious'),
-                                    triggered=self.find_previous,
-                    context=Qt.WidgetShortcut)
-        self.register_shortcut(self.find_previous_action, "Editor",
-                                "Find previous")
-        _text = _("&Replace text")
-        self.replace_action = create_action(self, _text, 
-                                        icon=ima.icon('replace'),
-                                        tip=_text, triggered=self.replace,
-                                        context=Qt.WidgetShortcut)
-        self.register_shortcut(self.replace_action, "Editor",
-                                "Replace text")
+                               "Use previous layout")
 
         def create_edit_action(text, tr_text, icon):
             textseq = text.split(' ')
             method_name = textseq[0].lower()+"".join(textseq[1:])
             action = create_action(self, tr_text,
-                                shortcut=keybinding(text.replace(' ', '')),
-                                icon=icon,
-                                triggered=self.global_callback,
-                                data=method_name,
-                                context=Qt.WidgetShortcut)
+                                   icon=icon,
+                                   triggered=self.global_callback,
+                                   data=method_name,
+                                   context=Qt.WidgetShortcut)
             self.register_shortcut(action, "Editor", text)
             return action
 
         self.undo_action = create_edit_action('Undo', _('Undo'),
-                                                ima.icon('undo'))
-        self.redo_action = create_edit_action('Redo', _('Redo'), 
-                                                ima.icon('redo'))
+                                              ima.icon('undo'))
+        self.redo_action = create_edit_action('Redo', _('Redo'),
+                                              ima.icon('redo'))
         self.copy_action = create_edit_action('Copy', _('Copy'),
-                                                ima.icon('editcopy'))
+                                              ima.icon('editcopy'))
         self.cut_action = create_edit_action('Cut', _('Cut'),
-                                                ima.icon('editcut'))
+                                             ima.icon('editcut'))
         self.paste_action = create_edit_action('Paste', _('Paste'),
-                                                ima.icon('editpaste'))
+                                               ima.icon('editpaste'))
         self.selectall_action = create_edit_action("Select All",
-                                                    _("Select All"),
-                                                    ima.icon('selectall'))
+                                                   _("Select All"),
+                                                   ima.icon('selectall'))
 
         self.edit_menu_actions = [self.undo_action, self.redo_action,
-                                    None, self.cut_action, self.copy_action,
-                                    self.paste_action, self.selectall_action]
-        self.search_menu_actions = [self.find_action,
-                                    self.find_next_action,
-                                    self.find_previous_action,
-                                    self.replace_action]
-        self.search_toolbar_actions = [self.find_action,
-                                        self.find_next_action,
-                                        self.replace_action]
+                                  None, self.cut_action, self.copy_action,
+                                  self.paste_action, self.selectall_action]
 
         namespace = None
         self.debug_print("  ..toolbars")
@@ -675,10 +636,10 @@ class MainWindow(QMainWindow):
         # Tools + External Tools
         prefs_action = create_action(self, _("Pre&ferences"),
                                         icon=ima.icon('configure'),
-                                        triggered=self.edit_preferences)
-        self.register_shortcut(prefs_action, "_", "Preferences")
-        add_shortcut_to_tooltip(prefs_action, context="_",
-                                name="Preferences")
+                                        triggered=self.edit_preferences,
+                                        context=Qt.ApplicationShortcut)
+        self.register_shortcut(prefs_action, "_", "Preferences",
+                               add_sc_to_tip=True)
         spyder_path_action = create_action(self,
                                 _("PYTHONPATH manager"),
                                 None, icon=ima.icon('pythonpath'),
@@ -793,24 +754,24 @@ class MainWindow(QMainWindow):
 
         # Maximize current plugin
         self.maximize_action = create_action(self, '',
-                                        triggered=self.maximize_dockwidget)
-        self.register_shortcut(self.maximize_action, "_",
-                                "Maximize pane")
+                                        triggered=self.maximize_dockwidget,
+                                        context=Qt.ApplicationShortcut)
+        self.register_shortcut(self.maximize_action, "_", "Maximize pane")
         self.__update_maximize_action()
 
         # Fullscreen mode
         self.fullscreen_action = create_action(self,
                                         _("Fullscreen mode"),
-                                        triggered=self.toggle_fullscreen)
+                                        triggered=self.toggle_fullscreen,
+                                        context=Qt.ApplicationShortcut)
         self.register_shortcut(self.fullscreen_action, "_",
-                                "Fullscreen mode")
-        add_shortcut_to_tooltip(self.fullscreen_action, context="_",
-                                name="Fullscreen mode")
+                               "Fullscreen mode", add_sc_to_tip=True)
 
         # Main toolbar
         self.main_toolbar_actions = [self.maximize_action,
-                                        self.fullscreen_action, None,
-                                        prefs_action, spyder_path_action]
+                                     self.fullscreen_action,
+                                     None,
+                                     prefs_action, spyder_path_action]
 
         self.main_toolbar = self.create_toolbar(_("Main toolbar"),
                                                 "main_toolbar")
@@ -860,14 +821,16 @@ class MainWindow(QMainWindow):
 
         # Populating file menu entries
         quit_action = create_action(self, _("&Quit"),
-                                    icon=ima.icon('exit'), 
+                                    icon=ima.icon('exit'),
                                     tip=_("Quit"),
-                                    triggered=self.console.quit)
+                                    triggered=self.console.quit,
+                                    context=Qt.ApplicationShortcut)
         self.register_shortcut(quit_action, "_", "Quit")
         restart_action = create_action(self, _("&Restart"),
-                                        icon=ima.icon('restart'),
-                                        tip=_("Restart"),
-                                        triggered=self.restart)
+                                       icon=ima.icon('restart'),
+                                       tip=_("Restart"),
+                                       triggered=self.restart,
+                                       context=Qt.ApplicationShortcut)
         self.register_shortcut(restart_action, "_", "Restart")
 
         self.file_menu_actions += [self.load_temp_session_action,
@@ -1135,6 +1098,7 @@ class MainWindow(QMainWindow):
         #----- View
         # View menu
         self.plugins_menu = QMenu(_("Panes"), self)
+
         self.toolbars_menu = QMenu(_("Toolbars"), self)
         self.quick_layout_menu = QMenu(_("Window layouts"), self)
         self.quick_layout_set_menu()
@@ -1146,17 +1110,18 @@ class MainWindow(QMainWindow):
                                         None))
         self.show_toolbars_action = create_action(self,
                                 _("Show toolbars"),
-                                triggered=self.show_toolbars)
+                                triggered=self.show_toolbars,
+                                context=Qt.ApplicationShortcut)
         self.register_shortcut(self.show_toolbars_action, "_",
-                                "Show toolbars")
+                               "Show toolbars")
         self.view_menu.addMenu(self.toolbars_menu)
         self.view_menu.addAction(self.show_toolbars_action)
         add_actions(self.view_menu, (None,
-                                        self.quick_layout_menu,
-                                        self.toggle_previous_layout_action,
-                                        self.toggle_next_layout_action,
-                                        None,
-                                        self.fullscreen_action))
+                                     self.quick_layout_menu,
+                                     self.toggle_previous_layout_action,
+                                     self.toggle_next_layout_action,
+                                     None,
+                                     self.fullscreen_action))
         if set_attached_console_visible is not None:
             cmd_act = create_action(self,
                                 _("Attached console window (debugging)"),
@@ -1193,7 +1158,6 @@ class MainWindow(QMainWindow):
 
         # Apply all defined shortcuts (plugins + 3rd-party plugins)
         self.apply_shortcuts()
-        #self.remove_deprecated_shortcuts()
 
         # Emitting the signal notifying plugins that main window menu and
         # toolbar actions are all defined:
@@ -1202,6 +1166,18 @@ class MainWindow(QMainWindow):
         # Window set-up
         self.debug_print("Setting up window...")
         self.setup_layout(default=False)
+
+        # Show and hide shortcuts in menus for Mac.
+        # This is a workaround because we can't disable shortcuts
+        # by setting context=Qt.WidgetShortcut there
+        if sys.platform == 'darwin':
+            for name in ['file', 'search', 'source', 'run', 'debug',
+                         'plugins']:
+                menu_object = getattr(self, name + '_menu')
+                menu_object.aboutToShow.connect(
+                    lambda name=name: self.show_shortcuts(name))
+                menu_object.aboutToHide.connect(
+                    lambda name=name: self.hide_shortcuts(name))
 
         self.splash.hide()
 
@@ -1331,7 +1307,7 @@ class MainWindow(QMainWindow):
                   "<i>Note</i>: Spyder could work without some of these "
                   "dependencies, however to have a smooth experience when "
                   "using Spyder we <i>strongly</i> recommend you to install "
-                  "all the listed missing dependencies.<br>"
+                  "all the listed missing dependencies.<br><br>"
                   "Failing to install these dependencies might result in bugs. "
                   "Please be sure that any found bugs are not the direct "
                   "result of missing dependencies, prior to reporting a new "
@@ -2018,6 +1994,20 @@ class MainWindow(QMainWindow):
                         self.extconsole.tabwidget.setCurrentWidget(kw)
                         focus_client.get_control().setFocus()
 
+    def show_shortcuts(self, menu):
+        """Show action shortcuts in menu"""
+        for element in getattr(self, menu + '_menu_actions'):
+            if element and isinstance(element, QAction):
+                if element._shown_shortcut is not None:
+                    element.setShortcut(element._shown_shortcut)
+
+    def hide_shortcuts(self, menu):
+        """Hide action shortcuts in menu"""
+        for element in getattr(self, menu + '_menu_actions'):
+            if element and isinstance(element, QAction):
+                if element._shown_shortcut is not None:
+                    element.setShortcut(QKeySequence())
+
     def update_file_menu(self):
         """Update file menu"""
         self.load_temp_session_action.setEnabled(osp.isfile(TEMP_SESSION_PATH))
@@ -2064,10 +2054,6 @@ class MainWindow(QMainWindow):
         """Update search menu"""
         if self.menuBar().hasFocus():
             return
-        # Disabling all actions to begin with
-        for child in [self.find_action, self.find_next_action,
-                      self.find_previous_action, self.replace_action]:
-            child.setEnabled(False)
 
         widget, textedit_properties = get_focus_widget_properties()
         for action in self.editor.search_menu_actions:
@@ -2076,11 +2062,8 @@ class MainWindow(QMainWindow):
             return
         #!!! Below this line, widget is expected to be a QPlainTextEdit instance
         _x, _y, readwrite_editor = textedit_properties
-        for action in [self.find_action, self.find_next_action,
-                       self.find_previous_action]:
-            action.setEnabled(True)
-        self.replace_action.setEnabled(readwrite_editor)
-        self.replace_action.setEnabled(readwrite_editor)
+        # Disable the replace action for read-only files
+        self.search_menu_actions[3].setEnabled(readwrite_editor)
 
     def create_plugins_menu(self):
         order = ['editor', 'console', 'ipython_console', 'variable_explorer',
@@ -2104,6 +2087,7 @@ class MainWindow(QMainWindow):
         for action in order:
             if type(action) is str:
                 actions.remove(action)
+        self.plugins_menu_actions = actions
         add_actions(self.plugins_menu, actions)
 
     def create_toolbars_menu(self):
@@ -2424,56 +2408,6 @@ class MainWindow(QMainWindow):
         url = QUrl("http://groups.google.com/group/spyderlib")
         QDesktopServices.openUrl(url)
 
-    #---- Global callbacks (called from plugins)
-    def get_current_editor_plugin(self):
-        """Return editor plugin which has focus:
-        console, extconsole, editor, help or historylog"""
-        widget = QApplication.focusWidget()
-        from spyderlib.widgets.editor import TextEditBaseWidget
-        from spyderlib.widgets.shell import ShellBaseWidget
-        if not isinstance(widget, (TextEditBaseWidget, ShellBaseWidget)):
-            return
-        for plugin in self.widgetlist:
-            if plugin.isAncestorOf(widget):
-                return plugin
-        else:
-            # External Editor window
-            plugin = widget
-            from spyderlib.widgets.editor import EditorWidget
-            while not isinstance(plugin, EditorWidget):
-                plugin = plugin.parent()
-            return plugin
-
-    @Slot()
-    def find(self):
-        """Global find callback"""
-        plugin = self.get_current_editor_plugin()
-        if plugin is not None:
-            plugin.find_widget.show()
-            plugin.find_widget.search_text.setFocus()
-            return plugin
-
-    @Slot()
-    def find_next(self):
-        """Global find next callback"""
-        plugin = self.get_current_editor_plugin()
-        if plugin is not None:
-            plugin.find_widget.find_next()
-
-    @Slot()
-    def find_previous(self):
-        """Global find previous callback"""
-        plugin = self.get_current_editor_plugin()
-        if plugin is not None:
-            plugin.find_widget.find_previous()
-
-    @Slot()
-    def replace(self):
-        """Global replace callback"""
-        plugin = self.find()
-        if plugin is not None:
-            plugin.find_widget.show_replace()
-
     @Slot()
     def global_callback(self):
         """Global callback"""
@@ -2688,29 +2622,29 @@ class MainWindow(QMainWindow):
 
     #---- Shortcuts
     def register_shortcut(self, qaction_or_qshortcut, context, name,
-                          default=NoDefault):
+                          add_sc_to_tip=False):
         """
         Register QAction or QShortcut to Spyder main application,
         with shortcut (context, name, default)
         """
-        self.shortcut_data.append( (qaction_or_qshortcut,
-                                    context, name, default) )
-
-    def remove_deprecated_shortcuts(self):
-        """Remove deprecated shortcuts"""
-        data = [(context, name) for (qobject, context, name,
-                default) in self.shortcut_data]
-        remove_deprecated_shortcuts(data)
+        self.shortcut_data.append( (qaction_or_qshortcut, context,
+                                    name, add_sc_to_tip) )
 
     def apply_shortcuts(self):
         """Apply shortcuts settings to all widgets/plugins"""
         toberemoved = []
         for index, (qobject, context, name,
-                    default) in enumerate(self.shortcut_data):
-            keyseq = QKeySequence( get_shortcut(context, name, default) )
+                    add_sc_to_tip) in enumerate(self.shortcut_data):
+            keyseq = QKeySequence( get_shortcut(context, name) )
             try:
                 if isinstance(qobject, QAction):
-                    qobject.setShortcut(keyseq)
+                    if sys.platform == 'darwin' and \
+                      qobject._shown_shortcut == 'missing':
+                        qobject._shown_shortcut = keyseq
+                    else:
+                        qobject.setShortcut(keyseq)
+                    if add_sc_to_tip:
+                        add_shortcut_to_tooltip(qobject, context, name)
                 elif isinstance(qobject, QShortcut):
                     qobject.setKey(keyseq)
             except RuntimeError:

@@ -38,6 +38,8 @@ class AsyncServer(object):
     def run(self):
         """Handle requests from the client.
         """
+        t0 = time.time()
+        initialized = False
         while 1:
             # Poll for events, handling a timeout.
             try:
@@ -45,9 +47,11 @@ class AsyncServer(object):
             except KeyboardInterrupt:
                 time.sleep(0.1)
                 continue
-            if events == 0:
-                print('Timed out')
+            if events == 0 and not initialized:
+                delta = int(time.time() - t0)
+                print('Timed out after %s sec' % delta)
                 return
+            initialized = True
             # Drain all exising requests, handling quit and heartbeat.
             requests = []
             while 1:
@@ -62,6 +66,8 @@ class AsyncServer(object):
                     return
                 elif request['func_name'] != 'server_heartbeat':
                     requests.append(request)
+                else:
+                    print('Got heartbeat')
                 try:
                     events = self.socket.poll(0)
                 except KeyboardInterrupt:

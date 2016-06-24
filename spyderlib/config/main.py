@@ -305,26 +305,30 @@ DEFAULTS = [
             ('shortcuts',
              {
               # ---- Global ----
-              # -- In spyder.py
+              # -- In app/spyder.py
               '_/close pane': "Shift+Ctrl+F4",
               '_/lock unlock panes': "Shift+Ctrl+F5",
+              '_/use next layout': "Shift+Alt+PgDown",
+              '_/use previous layout': "Shift+Alt+PgUp",
               '_/preferences': "Ctrl+Alt+Shift+P",
               '_/maximize pane': "Ctrl+Alt+Shift+M",
               '_/fullscreen mode': "F11",
-              '_/use next layout': "Shift+Alt+PgDown",
-              '_/use previous layout': "Shift+Alt+PgUp",
               '_/save current layout': "Shift+Alt+S",
-              '_/toggle default layout': "Shift+Alt+Home",
               '_/layout preferences': "Shift+Alt+P",
               '_/show toolbars': "Alt+Shift+T",
               '_/restart': "Shift+Alt+R",
               '_/quit': "Ctrl+Q",
               # -- In plugins/editor
+              '_/file switcher': 'Ctrl+P',
+              '_/debug': "Ctrl+F5",
               '_/debug step over': "Ctrl+F10",
               '_/debug continue': "Ctrl+F12",
               '_/debug step into': "Ctrl+F11",
               '_/debug step return': "Ctrl+Shift+F11",
               '_/debug exit': "Ctrl+Shift+F12",
+              '_/run': "F5",
+              '_/configure': "Ctrl+F6",
+              '_/re-run last script': "F6",
               # -- In plugins/init
               '_/switch to help': "Ctrl+Shift+H",
               '_/switch to outline_explorer': "Ctrl+Shift+O",
@@ -337,8 +341,13 @@ DEFAULTS = [
               '_/switch to variable_explorer': "Ctrl+Shift+V",
               '_/switch to find_in_files': "Ctrl+Shift+F",
               '_/switch to explorer': "Ctrl+Shift+X",
+              # -- In widgets/findreplace.py
+              '_/find text': "Ctrl+F",
+              '_/find next': "F3",
+              '_/find previous': "Shift+F3",
+              '_/replace text': "Ctrl+R",
               # ---- Editor ----
-              # -- In codeeditor
+              # -- In widgets/sourcecode/codeeditor.py
               'editor/code completion': CTRL+'+Space',
               'editor/duplicate line': "Ctrl+Alt+Up" if WIN else \
                                        "Shift+Alt+Up",
@@ -367,53 +376,42 @@ DEFAULTS = [
               'editor/kill next word': 'Meta+D',
               'editor/start of document': 'Ctrl+Up',
               'editor/end of document': 'Ctrl+Down',
-              # -- In widgets/editor
-              'editor/inspect current object': 'Ctrl+I',
-              'editor/go to line': 'Ctrl+L',
-              'editor/go to previous file': 'Ctrl+Tab',
-              'editor/go to next file': 'Ctrl+Shift+Tab',
-              '_/file switcher': 'Ctrl+P',
-              # -- In spyder.py
-              'editor/find text': "Ctrl+F",
-              'editor/find next': "F3",
-              'editor/find previous': "Shift+F3",
-              'editor/replace text': "Ctrl+H",
-              'editor/undo': 'Ctrl+U',
-              'editor/redo': 'Ctrl+Y',
+              'editor/undo': 'Ctrl+Z',
+              'editor/redo': 'Ctrl+Shift+Z',
               'editor/cut': 'Ctrl+X',
               'editor/copy': 'Ctrl+C',
               'editor/paste': 'Ctrl+V',
               'editor/delete': 'Delete',
               'editor/select all': "Ctrl+A",
-              # -- In plugins/editor
-              'editor/show/hide outline': "Ctrl+Alt+O",
-              'editor/show/hide project explorer': "Ctrl+Alt+P",
+              # -- In widgets/editor.py
+              'editor/inspect current object': 'Ctrl+I',
+              'editor/breakpoint': 'F12',
+              'editor/conditional breakpoint': 'Shift+F12',
+              'editor/run selection': "F9",
+              'editor/go to line': 'Ctrl+L',
+              'editor/go to previous file': 'Ctrl+Tab',
+              'editor/go to next file': 'Ctrl+Shift+Tab',
               'editor/new file': "Ctrl+N",
               'editor/open file': "Ctrl+O",
               'editor/save file': "Ctrl+S",
               'editor/save all': "Ctrl+Alt+S",
               'editor/save as': 'Ctrl+Shift+S',
               'editor/close all': "Ctrl+Shift+W",
-              'editor/breakpoint': 'F12',
-              'editor/conditional breakpoint': 'Shift+F12',
-              'editor/debug with winpdb': "F7",
-              'editor/debug': "Ctrl+F5",
-              'editor/run': "F5",
-              'editor/configure': "Ctrl+F6",
-              'editor/re-run last script': "F6",
-              'editor/run selection': "F9",
               'editor/last edit location': "Ctrl+Alt+Shift+Left",
               'editor/previous cursor position': "Ctrl+Alt+Left",
               'editor/next cursor position': "Ctrl+Alt+Right",
-              # -- In p_breakpoints
+              # -- In plugins/editor.py
+              'editor/show/hide outline': "Ctrl+Alt+O",
+              'editor/show/hide project explorer': "Ctrl+Alt+P",
+              # -- In Breakpoints
               '_/switch to breakpoints': "Ctrl+Shift+B",
-              # ---- Console (in widgets/shell) ----
+              # ---- Consoles (in widgets/shell) ----
               'console/inspect current object': "Ctrl+I",
               'console/clear shell': "Ctrl+L",
               'console/clear line': "Shift+Escape",
-              # ---- Pylint (in p_pylint) ----
+              # ---- In Pylint ----
               'pylint/run analysis': "F8",
-              # ---- Profiler (in p_profiler) ----
+              # ---- In Profiler ----
               'profiler/run profiler': "F10"
               }),
             ('color_schemes',
@@ -587,7 +585,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '26.2.0'
+CONF_VERSION = '27.1.0'
 
 
 # XXX: Previously we had load=(not DEV) here but DEV was set to *False*.

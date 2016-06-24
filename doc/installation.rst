@@ -157,7 +157,7 @@ The requirements to run Spyder are:
   `PyQt4 <https://www.riverbankcomputing.com/software/pyqt/download>`_ >=4.6.0
   (PyQt5 is recommended).
 
-* `Qtconsole <http://jupyter.org/qtconsole/stable/>`_ >=4.0 -- for an
+* `Qtconsole <http://jupyter.org/qtconsole/stable/>`_ >=4.2.0 -- for an
   enhanced Python interpreter.
 
 * `Rope <http://rope.sourceforge.net/>`_ >=0.9.4 and
@@ -170,8 +170,8 @@ The requirements to run Spyder are:
 * `Sphinx <http://sphinx.pocoo.org>`_ -- for the Help pane rich text mode
   and to get our documentation.
 
-* `Pygments <http://pygments.org/>`_ -- for syntax highlighting in the Editor of
-  all file types it supports.
+* `Pygments <http://pygments.org/>`_ >=2.0 -- for syntax highlighting and code
+  completion in the Editor of all file types it supports.
 
 * `Pylint <http://www.logilab.org/project/pylint>`_  -- for static code analysis.
 
@@ -191,22 +191,23 @@ The requirements to run Spyder are:
 * `PyZMQ <https://github.com/zeromq/pyzmq>`_ -- To run introspection services on the
   Editor asynchronously.
 
-* `QtPy <https://github.com/spyder-ide/qtpy>`_ -- To run Spyder in PyQt4 and PyQt5.
+* `QtPy <https://github.com/spyder-ide/qtpy>`_ >=1.0.2 -- To run Spyder in PyQt4 and
+  PyQt5.
 
 
 Optional modules
 ~~~~~~~~~~~~~~~~
 
-* `Matplotlib <http://matplotlib.sourceforge.net/>`_ -- for 2D and 3D plotting in
-  the consoles.
+* `Matplotlib <http://matplotlib.sourceforge.net/>`_ >=1.0 -- for 2D and 3D plotting
+  in the consoles.
 
-* `Pandas <http://pandas.pydata.org/>`_ -- for view and editing DataFrames and
-  Series in the Variable Explorer.
+* `Pandas <http://pandas.pydata.org/>`_ >=0.13.1 -- for view and editing DataFrames
+  and Series in the Variable Explorer.
 
 * `Numpy <http://numpy.scipy.org/>`_ -- for view and editing two or three
   dimensional arrays in the Variable Explorer.
 
-* `Sympy <http://www.sympy.org/es/>`_ -- for working with symbolic mathematics
+* `Sympy <http://www.sympy.org/es/>`_ >=0.7.3 -- for working with symbolic mathematics
   in the IPython console.
 
 * `Scipy <http://www.scipy.org/>`_ -- for importing Matlab workspace files in
