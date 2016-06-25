@@ -992,23 +992,3 @@ def guess_pygments_highlighter(filename):
     class GuessedPygmentsSH(PygmentsSH):
         _lexer = lexer
     return GuessedPygmentsSH
-
-
-
-if __name__ == '__main__':
-    # Test Python Outline Explorer comment regexps
-    valid_comments = [
-      '# --- First variant',
-      '#------ 2nd variant',
-      '### 3rd variant'
-    ]
-    invalid_comments = [
-      '#---', '#--------', '#---   ', '# -------'
-    ]
-    for line in valid_comments:
-        if not PythonSH.OECOMMENT.match(line):
-            print("Error matching '%s' as outline comment" % line)
-    for line in invalid_comments:
-        if PythonSH.OECOMMENT.match(line):
-            print("Error: '%s' is matched as outline comment" % line)
-        

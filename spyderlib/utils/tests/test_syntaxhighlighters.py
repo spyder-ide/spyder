@@ -9,7 +9,7 @@ import pytest
 from qtpy.QtWidgets import QApplication
 from qtpy.QtGui import QTextDocument
 
-from spyderlib.utils.syntaxhighlighters import HtmlSH
+from spyderlib.utils.syntaxhighlighters import HtmlSH, PythonSH
 
 def compare_formats(actualFormats, expectedFormats, sh):
     assert len(actualFormats) == len(expectedFormats)
@@ -45,6 +45,17 @@ def test_HtmlSH_unclosed_commend():
     sh.rehighlightBlock(doc.firstBlock())
     res = [(0, 3, 'normal')]
     compare_formats(doc.firstBlock().layout().additionalFormats(), res, sh)
+
+@pytest.mark.parametrize('line', ['# --- First variant',
+                                  '#------ 2nd variant',
+                                  '### 3rd variant'])
+def test_python_outline_explorer_comment(line):
+    assert PythonSH.OECOMMENT.match(line)
+
+@pytest.mark.parametrize('line', ['#---', '#--------', '#---   ', '# -------'])
+def test_python_not_an_outline_explorer_comment(line):
+    assert not PythonSH.OECOMMENT.match(line)
+
 
 if __name__ == '__main__':
     pytest.main()
