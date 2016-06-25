@@ -38,6 +38,13 @@ def test_HtmlSH_basic():
            (45, 4, 'builtin')]   # |</p>|
     compare_formats(doc.firstBlock().layout().additionalFormats(), res, sh)
 
+def test_HtmlSH_unclosed_commend():
+    txt = '-->'
+    doc = QTextDocument(txt)
+    sh = HtmlSH(doc, color_scheme='Spyder')
+    sh.rehighlightBlock(doc.firstBlock())
+    res = [(0, 3, 'normal')]
+    compare_formats(doc.firstBlock().layout().additionalFormats(), res, sh)
 
 if __name__ == '__main__':
     pytest.main()

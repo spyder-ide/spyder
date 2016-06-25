@@ -870,8 +870,13 @@ class BaseWebSH(BaseSH):
                                            self.formats["comment"])
                         else:
                             self.setCurrentBlockState(self.NORMAL)
-                            self.setFormat(start, end-start,
-                                           self.formats[key])
+                            try:
+                                self.setFormat(start, end-start,
+                                               self.formats[key])
+                            except KeyError:
+                                # happens with unmatched end-of-comment;
+                                # see issue 1462
+                                pass
             
             match = self.PROG.search(text, match.end())
             match_count += 1
