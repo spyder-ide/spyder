@@ -41,9 +41,10 @@ def is_position_inf(pos1, pos2):
 class FindReplace(QWidget):
     """Find widget"""
     STYLE = {False: "background-color:rgb(255, 175, 90);",
-             True: ""}
+             True: "",
+             None: ""}
     visibility_changed = Signal(bool)
-    
+
     def __init__(self, parent, enable_replace=False):
         QWidget.__init__(self, parent)
         self.enable_replace = enable_replace
@@ -202,11 +203,16 @@ class FindReplace(QWidget):
         if self.editor is not None:
             text = self.editor.get_selected_text()
 
-            # If no text is highlighted for search, use whatever word is under the cursor
+            # If no text is highlighted for search, use whatever word is under
+            # the cursor
             if not text:
-                cursor = self.editor.textCursor()
-                cursor.select(QTextCursor.WordUnderCursor)
-                text = to_text_string(cursor.selectedText())
+                try:
+                    cursor = self.editor.textCursor()
+                    cursor.select(QTextCursor.WordUnderCursor)
+                    text = to_text_string(cursor.selectedText())
+                except AttributeError:
+                    # We can't do this for all widgets, e.g. WebView's
+                    pass
 
             # Now that text value is sorted out, use it for the search
             if text:

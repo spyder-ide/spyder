@@ -185,7 +185,7 @@ class RichText(QWidget):
 
         self.webview = FrameWebView(self)
         self.find_widget = FindReplace(self)
-        self.find_widget.set_editor(self.webview)
+        self.find_widget.set_editor(self.webview._webview)
         self.find_widget.hide()
 
         layout = QVBoxLayout()
