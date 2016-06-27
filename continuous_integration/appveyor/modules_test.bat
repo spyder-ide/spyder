@@ -13,7 +13,7 @@ for /r "%SPYDERLIB%" %%f in (*.py) do (
         echo --- NOT testing %%f ---
         echo.
     ) else if not "!file:app\=!"=="!file!" (
-        :: Most file in this dir can't be ran alone
+        :: Most files in this dir can't be ran alone
         echo --- NOT testing %%f ---
         echo.
     ) else if not "!file:plugins\=!"=="!file!" (
