@@ -320,6 +320,9 @@ class FindReplace(QWidget):
         text = self.search_text.currentText()
         if len(text) == 0:
             self.search_text.lineEdit().setStyleSheet("")
+            if not self.is_code_editor:
+                # Clears the selection for WebEngine
+                self.editor.find_text('')
             return None
         else:
             case = self.case_button.isChecked()
