@@ -47,6 +47,7 @@ SUPPORTED_FORMATS = {
                      'double': '%.3f',
                      'float_': '%.3f',
                      'longfloat': '%.3f',
+                     'float16': '%.3f',
                      'float32': '%.3f',
                      'float64': '%.3f',
                      'float96': '%.3f',
@@ -855,6 +856,9 @@ def test():
 
     arr = np.array([1, 2, 3], dtype="int8")
     assert_array_equal(arr, test_edit(arr, "int array"))
+
+    arr = np.zeros((5,5), dtype=np.float16)
+    assert_array_equal(arr, test_edit(arr, "float array"))
 
     arr = np.zeros((3,3,4))
     arr[0,0,0]=1
