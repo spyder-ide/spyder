@@ -68,20 +68,14 @@ class WebView(QWebEngineView):
         if not WEBENGINE:
             findflag = QWebEnginePage.FindWrapsAroundDocument
         else:
-            findflag = None
+            findflag = 0
 
         if not forward:
-            if findflag:
-                findflag = findflag | QWebEnginePage.FindBackward
-            else:
-                findflag = QWebEnginePage.FindBackward
+            findflag = findflag | QWebEnginePage.FindBackward
         if case:
             findflag = findflag | QWebEnginePage.FindCaseSensitively
 
-        if findflag is not None:
-            return self.findText(text, findflag)
-        else:
-            return self.findText(text)
+        return self.findText(text, QWebEnginePage.FindFlags(findflag))
 
     def get_selected_text(self):
         """Return text selected by current text cursor"""
