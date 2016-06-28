@@ -65,13 +65,18 @@ class WebView(QWebEngineView):
                   forward=True, case=False, words=False,
                   regexp=False):
         """Find text"""
-        findflag = QWebEnginePage.FindWrapsAroundDocument
+        if not WEBENGINE:
+            findflag = QWebEnginePage.FindWrapsAroundDocument
+        else:
+            findflag = 0
+
         if not forward:
             findflag = findflag | QWebEnginePage.FindBackward
         if case:
             findflag = findflag | QWebEnginePage.FindCaseSensitively
-        return self.findText(text, findflag)
-    
+
+        return self.findText(text, QWebEnginePage.FindFlags(findflag))
+
     def get_selected_text(self):
         """Return text selected by current text cursor"""
         return self.selectedText()
@@ -290,20 +295,12 @@ class FrameWebView(QFrame):
         else:
             self._webview.linkClicked.connect(self.linkClicked)
 
-    def set_font(self, font, fixed_font=None):
-        self._webview.set_font(font, fixed_font=fixed_font)
+    def __getattr__(self, name):
+        return getattr(self._webview, name)
 
-    def setHtml(self, html_text, base_url):
-        self._webview.setHtml(html_text, base_url)
-
-    def url(self):
-        return self._webview.url()
-
-    def load(self, url):
-        self._webview.load(url)
-
-    def page(self):
-        return self._webview.page()
+    @property
+    def web_widget(self):
+        return self._webview
 
 
 def test():
