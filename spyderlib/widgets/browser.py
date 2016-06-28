@@ -304,6 +304,10 @@ class FrameWebView(QFrame):
     def __getattr__(self, name):
         return getattr(self._webview, name)
 
+    @property
+    def web_widget(self):
+        return self._webview
+
 
 def test():
     """Run web browser"""
