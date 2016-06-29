@@ -143,9 +143,8 @@ class NotificationThread(QThread):
     sig_process_remote_view = Signal(object)
     sig_pdb = Signal(str, int)
     open_file = Signal(str, int)
-    new_ipython_kernel = Signal(str)
     refresh_namespace_browser = Signal()
-    
+
     def __init__(self):
         QThread.__init__(self)
         self.notify_socket = None
@@ -187,8 +186,6 @@ class NotificationThread(QThread):
                     self.refresh_namespace_browser.emit()
                 elif command == 'remote_view':
                     self.sig_process_remote_view.emit(data)
-                elif command == 'ipykernel':
-                    self.new_ipython_kernel.emit(data)
                 elif command == 'open_file':
                     fname, lineno = data
                     self.open_file.emit(fname, lineno)
