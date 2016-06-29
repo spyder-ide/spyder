@@ -490,52 +490,23 @@ class ExternalConsole(SpyderPluginWidget):
         for index, shell in enumerate(self.shellwidgets):
             if id(shell) == shell_id:
                 return index
-        
-    def close_console(self, index=None, from_ipyclient=False):
+
+    def close_console(self, index=None):
         """Close console tab from index or widget (or close current tab)"""
         # Get tab index
         if not self.tabwidget.count():
             return
         if index is None:
             index = self.tabwidget.currentIndex()
-        
-        # Detect what widget we are trying to close
-        for i, s in enumerate(self.shellwidgets):
-            if index == i:
-                shellwidget = s
-        
-        # If the tab is an IPython kernel, try to detect if it has a client
-        # connected to it
-        if shellwidget.is_ipykernel:
-            ipyclients = self.main.ipyconsole.get_clients()
-            if ipyclients:
-                for ic in ipyclients:
-                    if ic.kernel_widget_id == id(shellwidget):
-                        connected_ipyclient = True
-                        break
-                else:
-                    connected_ipyclient = False
-            else:
-                connected_ipyclient = False
-        
+
         # Closing logic
-        if not shellwidget.is_ipykernel or from_ipyclient or \
-          not connected_ipyclient:
-            self.tabwidget.widget(index).close()
-            self.tabwidget.removeTab(index)
-            self.filenames.pop(index)
-            self.shellwidgets.pop(index)
-            self.icons.pop(index)
-            self.update_plugin_title.emit()
-        else:
-            QMessageBox.question(self, _('Trying to kill a kernel?'),
-                _("You can't close this kernel because it has one or more "
-                  "consoles connected to it.<br><br>"
-                  "You need to close them instead or you can kill the kernel "
-                  "using the second button from right to left."),
-                  QMessageBox.Ok)
-                                 
-        
+        self.tabwidget.widget(index).close()
+        self.tabwidget.removeTab(index)
+        self.filenames.pop(index)
+        self.shellwidgets.pop(index)
+        self.icons.pop(index)
+        self.update_plugin_title.emit()
+
     def set_variableexplorer(self, variableexplorer):
         """Set variable explorer plugin"""
         self.variableexplorer = variableexplorer
