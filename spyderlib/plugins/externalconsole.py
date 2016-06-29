@@ -812,54 +812,6 @@ class ExternalConsole(SpyderPluginWidget):
         # Start process and give focus to console
         shellwidget.start_shell()
 
-    def set_ipykernel_attrs(self, connection_file, kernel_widget, name):
-        """Add the pid of the kernel process to an IPython kernel tab"""
-        # Set connection file
-        kernel_widget.connection_file = connection_file
-        
-        # If we've reached this point then it's safe to assume IPython
-        # is available, and this import should be valid.
-        from IPython.core.application import get_ipython_dir
-        # For each kernel we launch, setup to delete the associated
-        # connection file at the time Spyder exits.
-        def cleanup_connection_file(connection_file):
-            connection_file = osp.join(get_ipython_dir(), 'profile_default',
-                                       'security', connection_file)
-            try:
-                os.remove(connection_file)
-            except OSError:
-                pass
-        atexit.register(cleanup_connection_file, connection_file)   
-        
-        # Set tab name according to client master name
-        index = self.get_shell_index_from_id(id(kernel_widget))
-        tab_name = _("Kernel %s") % name
-        self.tabwidget.setTabText(index, tab_name)
-    
-    def register_ipyclient(self, connection_file, ipyclient, kernel_widget,
-                           give_focus=True):
-        """
-        Register `ipyclient` to be connected to `kernel_widget`
-        """
-        # Check if our client already has a connection_file and kernel_widget_id
-        # which means that we are asking for a kernel restart
-        if ipyclient.connection_file is not None \
-          and ipyclient.kernel_widget_id is not None:
-            restart_kernel = True
-        else:
-            restart_kernel = False
-        
-        # Setting kernel widget attributes
-        name = ipyclient.name.split('/')[0]
-        self.set_ipykernel_attrs(connection_file, kernel_widget, name)
-        
-        # Creating the client
-        ipyconsole = self.main.ipyconsole
-        ipyclient.connection_file = connection_file
-        ipyclient.kernel_widget_id = id(kernel_widget)
-        ipyconsole.register_client(ipyclient, restart=restart_kernel,
-                                   give_focus=give_focus)
-        
     def open_file_in_spyder(self, fname, lineno):
         """Open file in Spyder's editor from remote process"""
         self.main.editor.activateWindow()
@@ -1057,9 +1009,8 @@ class ExternalConsole(SpyderPluginWidget):
             consoles = None
             for sw in self.shellwidgets:
                 if isinstance(sw, pythonshell.ExternalPythonShell):
-                    if not sw.is_ipykernel:
-                        consoles = True
-                        break
+                    consoles = True
+                    break
             if not consoles:
                 self.open_interpreter()
         else:
@@ -1075,21 +1026,6 @@ class ExternalConsole(SpyderPluginWidget):
         self.visibility_changed(True)
         self.start(fname=None, wdir=to_text_string(wdir), args='',
                    interact=True, debug=False, python=True)
-
-    def start_ipykernel(self, client, wdir=None, give_focus=True):
-        """Start new IPython kernel"""
-        if not self.get_option('monitor/enabled'):
-            QMessageBox.warning(self, _('Open an IPython console'),
-                _("The console monitor was disabled: the IPython kernel will "
-                  "be started as expected, but an IPython console will have "
-                  "to be connected manually to the kernel."), QMessageBox.Ok)
-        
-        if not wdir:
-            wdir = getcwd()
-        self.main.ipyconsole.visibility_changed(True)
-        self.start(fname=None, wdir=to_text_string(wdir), args='',
-                   interact=True, debug=False, python=True, ipykernel=True,
-                   ipyclient=client, give_ipyclient_focus=give_focus)
 
     @Slot(bool)
     @Slot(str)
