@@ -179,10 +179,11 @@ class NamespaceBrowser(QWidget):
         from spyderlib.widgets import internalshell
         self.is_internal_shell = isinstance(self.shellwidget,
                                             internalshell.InternalShell)
-        self.is_ipykernel = self.shellwidget.is_ipykernel
+        # TODO: Fix this!!
+        self.is_ipykernel = False
         if not self.is_internal_shell:
             shellwidget.set_namespacebrowser(self)
-    
+
     def set_ipyclient(self, ipyclient):
         """Bind ipyclient instance to namespace browser"""
         self.ipyclient = ipyclient
